@@ -9,7 +9,7 @@ public class SuffixArray implements Configuration, Magic {
     private short text[];
 
     /** The lowest interesting commonality. */
-    private final int MINCOMMONALITY = 3;
+    private static final int MINCOMMONALITY = 3;
 
     /** The number of elements in `text' that are relevant. */
     private int length;
@@ -160,25 +160,25 @@ public class SuffixArray implements Configuration, Magic {
 
     String buildString( int start, int len )
     {
-        String s = "";
+        StringBuffer s = new StringBuffer( len+8 );
 	int i = start;
 
         while( len>0 && i<this.length  ){
             int c = (text[i] & 0xFFFF);
 
             if( c<255 ){
-                s += (char) c;
+                s.append( (char) c );
             }
             else if( c == STOP ){
-                s += "<stop>";
+                s.append( "<stop>" );
             }
             else {
-                s += "<" + c + ">";
+                s.append( "<" + c + ">" );
             }
 	    i++;
 	    len--;
         }
-        return s;
+        return new String( s );
     }
 
     String buildString( int start )

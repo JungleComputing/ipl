@@ -6,10 +6,6 @@ usage:
 
 Compress <input-file> <output-file>
 
-There is also a de-compressor:
-
-Decompress <input-file> <output-file>
-
 The program takes the following command-line options:
 
     -depth <n>  The number of levels of look-ahead used to determine the
@@ -19,8 +15,14 @@ The program takes the following command-line options:
                 get a better subsequent backreference.
 
     -verify     After compressing the text, decompress it again, and compare
-                against the original to make sure the compressor was correct.
+                against the original to make sure the compression was correct.
 
-Beware that some types of text (e.g. source code) may cause a much larger
-number of possibilities.
+Beware that some types of text (e.g. source code) have many repeats,
+and may require lower values for the depth and short parameters for
+acceptable execution times.
+
+
+There is also a de-compressor:
+
+Decompress <input-file> <output-file>
 

@@ -1,6 +1,4 @@
-- Fix bug that prevents the recognition of repeats such as aaaaaaaaaaaaa
+- Copy a test of the entire program from the other compressor.
 
-- Fix bug that causes the inclusion of undefined grammar rules.
-
-- Fix bug that causes garbled decompression.
+- Refactor to facilitate state cloning and hence parallelization.
 
