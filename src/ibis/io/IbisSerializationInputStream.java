@@ -60,7 +60,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	types.add(TYPE_BYTE,	byteArrayInfo);
 	types.add(TYPE_CHAR,	charArrayInfo);
 	types.add(TYPE_SHORT,	shortArrayInfo);
-	types.add(TYPE_SHORT,	intArrayInfo);
+	types.add(TYPE_INT,	intArrayInfo);
 	types.add(TYPE_LONG,	longArrayInfo);
 	types.add(TYPE_FLOAT,	floatArrayInfo);
 	types.add(TYPE_DOUBLE,	doubleArrayInfo);
@@ -886,11 +886,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	 */
 
 	int handle_or_type = readHandle();
-
-	while (handle_or_type == RESET_HANDLE) {
-	    reset();
-	    handle_or_type = readHandle();
-	}
 
 	if (handle_or_type == NUL_HANDLE) {
 	    return null;

@@ -14,7 +14,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     private int next_handle;
     private IbisHash references  = new IbisHash();
 
-    private boolean resetPending;
+    private boolean resetPending = false;
 
     /* Type id management */
     private int next_type = 1;
