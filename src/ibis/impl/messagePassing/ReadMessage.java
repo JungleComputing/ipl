@@ -124,11 +124,9 @@ public class ReadMessage
 
 
     public void finish() {
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    clear();
-	    port.finishMessage();
-	// }
+	clear();
+	port.finishMessage();
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 

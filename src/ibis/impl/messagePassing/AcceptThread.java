@@ -72,46 +72,48 @@ class AcceptThread extends Thread {
 
     boolean checkAccept(ibis.ipl.SendPortIdentifier p) {
 	boolean	accept;
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    AcceptQ q = get();
 
-	    q.port = p;
-	    enqueue(q);
+	AcceptQ q = get();
 
-	    while (! q.finished) {
-		q.decided.cv_wait();
-	    }
+	q.port = p;
+	enqueue(q);
 
-	    accept = q.accept;
+	while (! q.finished) {
+	    q.decided.cv_wait();
+	}
 
-	    release(q);
+	accept = q.accept;
 
-	// }
+	release(q);
+
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+
 	return accept;
     }
 
 
     public void run() {
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    AcceptQ q;
 
-	    while (true) {
-		while ((q = dequeue()) == null && ! stopped) {
-		    there_is_work.cv_wait();
-		}
+	AcceptQ q;
 
-		if (q == null) {
-		    break;
-		}
-
-		q.accept = upcall.upcall(q.port);
-		q.finished = true;
-		q.decided.cv_signal();
+	while (true) {
+	    while ((q = dequeue()) == null && ! stopped) {
+		there_is_work.cv_wait();
 	    }
-	// }
+
+	    if (q == null) {
+		break;
+	    }
+
+	    q.accept = upcall.upcall(q.port);
+	    q.finished = true;
+	    q.decided.cv_signal();
+	}
+
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 

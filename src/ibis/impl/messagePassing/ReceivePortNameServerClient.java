@@ -67,7 +67,6 @@ class ReceivePortNameServerClient
 	    // request a new Port.
 	    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 
-	    // synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	    try {
 		while (ns_busy) {
@@ -91,7 +90,6 @@ class ReceivePortNameServerClient
 
 		ns_busy = false;
 		ns_free.cv_signal();
-	    // }
 	    } finally {
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	    }
@@ -177,16 +175,13 @@ class ReceivePortNameServerClient
 // System.err.println(Thread.currentThread() + "Lookup receive port \"" + name + "\"");
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: grab Ibis lock.....");
 
-
-	    // synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-		while (ns_busy) {
+	    while (ns_busy) {
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait until the previous client is finished" + this);
-		    ns_free.cv_wait();
-		}
+		ns_free.cv_wait();
+	    }
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: set lookup.ns_busy" + this);
-		ns_busy = true;
-	    // }
+	    ns_busy = true;
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 
 	    long start = System.currentTimeMillis();
@@ -201,8 +196,6 @@ class ReceivePortNameServerClient
 		    throw new IbisIOException("messagePassing.Ibis ReceivePort lookup failed");
 		}
 		if (now - last_try >= BACKOFF_MILLIS) {
-		    // synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-// System.err.println("Getting lock ...");
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 // System.err.println("Got lock ...");
 		    try {
@@ -220,7 +213,6 @@ class ReceivePortNameServerClient
 			    ns_free.cv_signal();
 			    return ri;
 			}
-		    // }
 		    } finally {
 // System.err.println("Releasing lock ...");
 			ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
@@ -266,13 +258,8 @@ class ReceivePortNameServerClient
     native void ns_unbind(String public_name);
 
     void unbind(String name) {
-
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    ns_unbind(name);
-	// }
+	ns_unbind(name);
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 }

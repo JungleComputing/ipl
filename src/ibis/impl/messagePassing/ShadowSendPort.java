@@ -70,7 +70,7 @@ class ShadowSendPort extends SendPort {
 	if (! connect_allowed) {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unbindSendPort(this);
 	}
-	in = ibis.ipl.impl.messagePassing.Ibis.myIbis.createByteInputStream();
+	in = new ByteInputStream();
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println(Thread.currentThread() + "Created shadow send port (" + send_cpu + "," + send_port + "), connect to local port " + rcve_port);
 	}

@@ -3,6 +3,9 @@ package ibis.ipl.impl.messagePassing;
 import java.util.Vector;
 import java.util.Hashtable;
 
+import ibis.io.MantaInputStream;
+import ibis.io.MantaOutputStream;
+
 import ibis.ipl.impl.generic.ConditionVariable;
 import ibis.ipl.impl.generic.Monitor;
 import ibis.ipl.IbisException;
@@ -12,8 +15,8 @@ import ibis.ipl.StaticProperties;
 
 public class Ibis extends ibis.ipl.Ibis {
 
-    public static final boolean DEBUG = false;
-    public static final boolean STATISTICS = true;
+    static final boolean DEBUG = false;
+    static final boolean STATISTICS = true;
 
     private IbisIdentifier ident;
 
@@ -28,7 +31,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private final StaticProperties systemProperties = new StaticProperties();
 
-    public static Ibis	myIbis;
+    static Ibis	myIbis;
 
     Monitor monitor = new Monitor();
 
@@ -193,7 +196,6 @@ public class Ibis extends ibis.ipl.Ibis {
 	    System.err.println(Thread.currentThread() + "Registry lives...");
 	}
 
-	// synchronized (myIbis) {
 	myIbis.lock();
 	try {
 	    if (DEBUG) {
@@ -210,7 +212,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
 	    ibisNameService.add(ident);
 	    world.join(myCpu, ident);
-	// }
 	} finally {
 	    myIbis.unlock();
 	}
@@ -222,18 +223,14 @@ public class Ibis extends ibis.ipl.Ibis {
 
 
     public void openWorld() {
-	// synchronized (myIbis) {
 	myIbis.lock();
-	    world.open();
-	// }
+	world.open();
 	myIbis.unlock();
     }
 
     public void closeWorld() {
-	// synchronized (myIbis) {
 	myIbis.lock();
-	    world.close();
-	// }
+	world.close();
 	myIbis.unlock();
     }
 
@@ -281,24 +278,24 @@ public class Ibis extends ibis.ipl.Ibis {
     native double t2d(long t);
 
 
-    final public void lock() {
+    final void lock() {
 	monitor.lock();
     }
 
-    final public void unlock() {
+    final void unlock() {
 	monitor.unlock();
     }
 
-    final public void checkLockOwned() {
+    final void checkLockOwned() {
 	monitor.checkImOwner();
     }
 
-    final public void checkLockNotOwned() {
+    final void checkLockNotOwned() {
 	monitor.checkImNotOwner();
     }
 
 
-    public IbisIdentifier lookupIbis(String name) {
+    IbisIdentifier lookupIbis(String name) {
 // System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
 // manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
 // System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
@@ -382,64 +379,43 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    ByteInputStream createByteInputStream() {
-	ByteInputStream b = new ByteInputStream();
-	return b;
-    }
-
-    ByteOutputStream createByteOutputStream(SendPort port,
-						      boolean syncMode,
-						      boolean makeCopy) {
-	return new ByteOutputStream(port, syncMode, makeCopy);
-    }
-
-
-    ibis.io.ArrayInputStream createMantaInputStream(ByteInputStream byte_in) {
-	return new ibis.ipl.impl.messagePassing.ArrayInputStream(byte_in);
-    }
-
-
-    ibis.io.MantaOutputStream createMantaOutputStream(ByteOutputStream byte_out) {
-	return new ibis.io.MantaOutputStream(new ibis.ipl.impl.messagePassing.ArrayOutputStream(byte_out));
-    }
-
-
     public void poll() throws IbisIOException {
-	rcve_poll.poll();
 	try {
 	    myIbis.lock();
+	    rcve_poll.poll();
 	} finally {
 	    myIbis.unlock();
 	}
     }
 
 
-    public void resetStats() {
+    void resetStats() {
 	rcve_poll.reset_stats();
     }
 
     public void end() {
-	// synchronized (myIbis) {
 	registry.end();
+
 	myIbis.lock();
-	    ibisNameService.remove(ident);
-	    for (int i = 0; i < nrCpus; i++) {
-		if (i != myCpu) {
-    // System.err.println("Send join message to " + i);
-		    send_leave(i, ident.name());
-		}
+
+	ibisNameService.remove(ident);
+	for (int i = 0; i < nrCpus; i++) {
+	    if (i != myCpu) {
+// System.err.println("Send join message to " + i);
+		send_leave(i, ident.name());
 	    }
-	    world.leave(myCpu, ident);
+	}
+	world.leave(myCpu, ident);
 
-	    System.err.println("t native poll " + t2d(tMsgPoll) + " send " + t2d(tMsgSend));
-	    System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
-	    ConditionVariable.report(System.out);
-	    rcve_poll.finalize();
+	System.err.println("t native poll " + t2d(tMsgPoll) + " send " + t2d(tMsgSend));
+	System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
+	ConditionVariable.report(System.out);
+	rcve_poll.finalize();
 
-	    ibis.ipl.impl.messagePassing.ReceivePort.end();
+	ibis.ipl.impl.messagePassing.ReceivePort.end();
 
-	    ibmp_end();
-	// }
+	ibmp_end();
+
 	myIbis.unlock();
     }
 

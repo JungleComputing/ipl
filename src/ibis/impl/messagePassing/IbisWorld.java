@@ -64,12 +64,10 @@ class IbisWorld extends Thread {
 
     public void run() {
 
-	// synchronized (myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    while (! isOpen) {
-		opened.cv_wait();
-	    }
-	// }
+	while (! isOpen) {
+	    opened.cv_wait();
+	}
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
@@ -80,23 +78,19 @@ class IbisWorld extends Thread {
 	    System.err.println();
 	}
 	for (int i = 0; isOpen && i < myIbis.nrCpus; i++) {
-	    // synchronized (myIbis) {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-		while (joinId[i] == null) {
-		    opened.cv_wait();
-		}
-	    // }
+	    while (joinId[i] == null) {
+		opened.cv_wait();
+	    }
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	    myIbis.join(joinId[i]);
 	}
 
 	for (int i = 0; isOpen && i < myIbis.nrCpus; i++) {
-	    // synchronized (myIbis) {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-		while (leaveId[i] == null) {
-		    opened.cv_wait();
-		}
-	    // }
+	    while (leaveId[i] == null) {
+		opened.cv_wait();
+	    }
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	    myIbis.leave(leaveId[i]);
 	}

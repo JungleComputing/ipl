@@ -572,6 +572,9 @@ void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array(
     jtype      *a; \
     jtype      *buf; \
     \
+    if (msg->copy) { \
+	b = (*env)->NewGlobalRef(env, b); \
+    } \
     a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
     if (msg->copy) { \
 	ibmp_lock(env); \
@@ -586,7 +589,7 @@ void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array(
 	iovec_grow(env, msg, 0); \
 	msg->iov[msg->iov_len].data = a + off; \
 	msg->iov[msg->iov_len].len  = len * sizeof(jtype); \
-	msg->release[msg->iov_len].array = (*env)->NewGlobalRef(env, b); \
+	msg->release[msg->iov_len].array = b; \
 	msg->release[msg->iov_len].buf   = a; \
 	msg->release[msg->iov_len].func  = (release_func_t)(*env)->Release ## JType ## ArrayElements; \
     } \

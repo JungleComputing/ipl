@@ -30,8 +30,6 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 	    throw new IbisIOException(e);
 	}
 
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 // out.report();
@@ -42,7 +40,6 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 		out.reset(false);
 	    }
 	    sPort.registerSend();
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}

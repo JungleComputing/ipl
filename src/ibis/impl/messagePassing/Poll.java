@@ -199,7 +199,6 @@ public class Poll implements Runnable {
 	System.err.println("Poll peeker lives");
 	while (comm_lives) {
 	    if (ibis.ipl.impl.messagePassing.Ibis.myIbis != null) {
-		// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 // System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + " do a peeker poll...");
 		try {
@@ -207,7 +206,6 @@ public class Poll implements Runnable {
 		    if (DEBUG) {
 			poll_from_thread++;
 		    }
-		// }
 		} catch (IbisIOException e) {
 		    System.err.println("Poll throws " + e);
 		    e.printStackTrace(System.err);

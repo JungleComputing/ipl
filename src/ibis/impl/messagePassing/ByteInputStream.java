@@ -38,10 +38,8 @@ class ByteInputStream
 
     public int read() throws IbisIOException {
 	int x;
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    x = lockedRead();
-	// }
+	x = lockedRead();
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	return x;
     }
@@ -61,7 +59,6 @@ class ByteInputStream
     private native int readDoubleArray(double[] array, int off, int len);
 
     int read(boolean b[], int off, int len) throws IbisIOException {
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    if (msgSize == 0) {
@@ -73,7 +70,6 @@ class ByteInputStream
 		throw new IbisIOException("read(boolean[]): insufficient data");
 	    }
 	    return rd;
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
@@ -82,7 +78,6 @@ class ByteInputStream
 
     public int read(byte b[], int off, int len) throws IbisIOException {
 // manta.runtime.RuntimeSystem.DebugMe(msgHandle, this);
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
@@ -103,7 +98,6 @@ class ByteInputStream
 		throw new IbisIOException("read(boolean[]): insufficient data");
 	    }
 	    return rd;
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
@@ -111,7 +105,6 @@ class ByteInputStream
 
 
     int read(char b[], int off, int len) throws IbisIOException {
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    if (msgSize == 0) {
@@ -123,7 +116,6 @@ class ByteInputStream
 		throw new IbisIOException("read(boolean[]): insufficient data");
 	    }
 	    return rd;
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
@@ -131,7 +123,6 @@ class ByteInputStream
 
 
     int read(short b[], int off, int len) throws IbisIOException {
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    if (msgSize == 0) {
@@ -143,7 +134,6 @@ class ByteInputStream
 		throw new IbisIOException("read(boolean[]): insufficient data");
 	    }
 	    return rd;
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
@@ -151,7 +141,6 @@ class ByteInputStream
 
 
     int read(int b[], int off, int len) throws IbisIOException {
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    if (msgSize == 0) {
@@ -163,7 +152,6 @@ class ByteInputStream
 		throw new IbisIOException("read(boolean[]): insufficient data");
 	    }
 	    return rd;
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
@@ -171,7 +159,6 @@ class ByteInputStream
 
 
     int read(long b[], int off, int len) throws IbisIOException {
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    if (msgSize == 0) {
@@ -183,7 +170,6 @@ class ByteInputStream
 		throw new IbisIOException("read(boolean[]): insufficient data");
 	    }
 	    return rd;
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
@@ -191,7 +177,6 @@ class ByteInputStream
 
 
     int read(float b[], int off, int len) throws IbisIOException {
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    if (msgSize == 0) {
@@ -203,7 +188,6 @@ class ByteInputStream
 		throw new IbisIOException("read(boolean[]): insufficient data");
 	    }
 	    return rd;
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
@@ -211,7 +195,6 @@ class ByteInputStream
 
 
     int read(double b[], int off, int len) throws IbisIOException {
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    if (msgSize == 0) {
@@ -223,7 +206,6 @@ class ByteInputStream
 		throw new IbisIOException("read(boolean[]): insufficient data");
 	    }
 	    return rd;
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}

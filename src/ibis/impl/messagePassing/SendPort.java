@@ -45,7 +45,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	ident = new SendPortIdentifier(name, type.name());
 	portIsFree = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 	outConn = conn;
-	out = ibis.ipl.impl.messagePassing.Ibis.myIbis.createByteOutputStream(this, syncMode, makeCopy);
+	out = new ByteOutputStream(this, syncMode, makeCopy);
     }
 
     public SendPort(ibis.ipl.impl.messagePassing.PortType type, String name, OutputConnection conn) throws IbisIOException {
@@ -107,7 +107,6 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 			int timeout)
 	    throws IbisIOException {
 
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    ReceivePortIdentifier rid = (ReceivePortIdentifier)receiver;
@@ -131,7 +130,6 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	    if (! syncer[my_split].accepted) {
 		throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + rid);
 	    }
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
@@ -154,18 +152,14 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 
     public ibis.ipl.WriteMessage newMessage() throws IbisIOException {
 
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    while (aMessageIsAlive) {
-		newMessageWaiters++;
-		portIsFree.cv_wait();
-		newMessageWaiters--;
-	    }
+	while (aMessageIsAlive) {
+	    newMessageWaiters++;
+	    portIsFree.cv_wait();
+	    newMessageWaiters--;
+	}
 
-	    aMessageIsAlive = true;
-	// }
+	aMessageIsAlive = true;
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 
 	ibis.ipl.WriteMessage m = cachedMessage();

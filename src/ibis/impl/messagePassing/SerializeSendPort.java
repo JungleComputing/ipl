@@ -28,7 +28,6 @@ public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 			int timeout)
 	    throws IbisIOException {
 
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 
@@ -74,7 +73,6 @@ public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 	    if (! syncer[my_split].accepted) {
 		throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + receiver);
 	    }
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}

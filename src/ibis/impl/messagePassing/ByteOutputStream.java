@@ -4,7 +4,7 @@ import ibis.ipl.IbisIOException;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 
-public class ByteOutputStream
+class ByteOutputStream
 	extends java.io.OutputStream
 	implements PollClient {
 
@@ -31,7 +31,7 @@ public class ByteOutputStream
     }
 
 
-    public void send(boolean lastFrag) {
+    void send(boolean lastFrag) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
 	int n = sport.splitter.length;
@@ -77,19 +77,15 @@ public class ByteOutputStream
     }
 
 
-    public void send() {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+    void send() {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    send(true);
-	// }
+	send(true);
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
 
     /* Called from native */
     private void finished_upcall() {
-	// Already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 	outstandingFrags--;
 	sendComplete.cv_signal();
@@ -127,7 +123,7 @@ public class ByteOutputStream
 	sendComplete.cv_wait(timeout);
     }
 
-    Thread me;
+    private Thread me;
 
     public Thread thread() {
 	return me;
@@ -163,49 +159,46 @@ public class ByteOutputStream
     }
 
 
-    public void reset() throws IbisIOException {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+    void reset() throws IbisIOException {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    reset(false);
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
     }
 
-    public void finish() throws IbisIOException {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+
+    void finish() throws IbisIOException {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	try {
 	    reset(true);
-	// }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
     }
 
-    public boolean completed() {
+
+    boolean completed() {
 	return outstandingFrags == 0;
     }
+
 
     public void flush() {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; msgHandle 0x" + Integer.toHexString(msgHandle));
 	}
 // manta.runtime.RuntimeSystem.DebugMe(this, null);
-	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    send(false /* not lastFrag */);
-	// }
+	send(false /* not lastFrag */);
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
+
 
     public void write(byte[] b) throws IbisIOException {
 	write(b, 0, b.length);
     }
+
 
     native void init();
 
@@ -241,6 +234,6 @@ public class ByteOutputStream
     native void writeFloatArray(float[] array, int off, int len);
     native void writeDoubleArray(double[] array, int off, int len);
 
-    public native void report();
+    native void report();
 
 }
