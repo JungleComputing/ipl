@@ -4,13 +4,17 @@ class SpawnTest {
 
 	void start() {
 		Test t = new Test();
-		int i, x = 0, y = 0;
+		int i;
+		int[] x = new int[100];
+		int[] y = new int[100];
+
 		for (i = 0; i < 100; i++) {
-			x = t.spawn_test(0);
-			y = t.spawn_test(10);
+			x[i] = t.spawn_test(0);
+			y[i] = t.spawn_test(10);
 			t.sync();
 		}
-		System.out.println("application result: x = " + x + " y = " + y);
+		System.out.println("application result: x = " + x[50] +
+						   " y = " + y[50]);
 	}
 
 	public static void main(String args[]) {
