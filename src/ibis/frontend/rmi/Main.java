@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
@@ -145,16 +146,19 @@ class Main {
 	    }
 	}
 
-	if (changed) {
-	    must_save = true;
-	    Repository.removeClass(c);
-	    c = cg.getJavaClass();
-	    Repository.addClass(c);
-	}
-
-	if (must_save) {
+	if (changed || must_save) {
 	    String classname = c.getClassName();
 	    String classfile = classname.replace('.', java.io.File.separatorChar) + ".class";
+
+	    Repository.removeClass(c);
+	    c = cg.getJavaClass();
+
+	    /*
+	     * At this point, BCEL delivers an inconsistent JavaClass: there exist
+	     * constant_pool references in each Field, Method, Attribute, and these
+	     * sometimes don't refer to the new constantpool of the class. However,
+	     * everything seems to be good enough to dump and reload.
+	     */
 	    try {
 		c.dump(classfile);
 	    } catch(IOException e) {
@@ -162,6 +166,8 @@ class Main {
 		e.printStackTrace();
 		System.exit(1);
 	    }
+
+	    c = Repository.lookupClass(classname);
 	}
 
 	return c;
@@ -252,7 +258,8 @@ class Main {
 		output.flush();
 
 	    } catch (Exception e) {
-		System.err.println("Main got exception " + e);
+		System.err.println("Got exception during processing of " + ((JavaClass) classes.get(i)).getClassName());
+		System.err.println("exception is: " + e);
 		e.printStackTrace();
 		System.exit(1);
 	    }
