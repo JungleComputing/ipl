@@ -12,12 +12,12 @@ public abstract class Inlets extends Aborts {
 		IbisIdentifier oldParentOwner;
 
 		if (r.inletExecuted) {
-			System.err.print("r");
+			// System.err.print("r");
 			return;
 		}
 
 		if (r.parentLocals == null) {
-			System.err.println("empty inlet in handleInlet");
+			// System.err.println("empty inlet in handleInlet");
 			handleEmptyInlet(r);
 			return;
 		}
@@ -135,11 +135,11 @@ public abstract class Inlets extends Aborts {
 			System.exit(1);
 		}
 
-		//		if(INLET_DEBUG) {
-		out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: "
+		if(INLET_DEBUG) {
+			out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: "
 				+ r.eek + ": " + r.eek.getMessage());
-		r.eek.printStackTrace();
-		//		}
+			r.eek.printStackTrace();
+		}
 
 		InvocationRecord curr = r;
 
