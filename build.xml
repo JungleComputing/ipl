@@ -176,6 +176,16 @@
     </target>
 
 
+    <target name="connect" depends="init">
+	<patternset id="build.sources.connect">
+	    <include name="ibis/connect/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
+	    <reference refid="build.sources.connect" torefid="build.sources"/>
+	</antcall>
+    </target>
+
+
     <target name="satin" depends="init">
 	<patternset id="build.sources.satin">
 	    <include name="ibis/satin/**/*.java"/>
