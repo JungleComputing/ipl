@@ -77,12 +77,14 @@ static jclass cls_ByteOutputStream;
 
 static jfieldID fld_nativeByteOS;
 static jfieldID fld_waitingInPoll;
+static jfieldID fld_fragWaiting;
 static jfieldID fld_outstandingFrags;
 static jfieldID fld_makeCopy;
 static jfieldID fld_msgCount;
 static jfieldID fld_allocator;
 
 static jmethodID md_finished_upcall;
+static jmethodID md_wakeupFragWaiter;
 
 typedef void (*release_func_t)(JNIEnv *env, void *array, void *data, jint mode);
 
@@ -522,6 +524,7 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
 #endif
     ibmp_msg_p	handle;
     jboolean waitingInPoll;
+    jboolean fragWaiting;
     jint outstandingFrags;
     ibmp_byte_os_p byte_os = msg->byte_os;
 
@@ -560,7 +563,7 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
 					   byte_os->byte_output_stream,
 					   fld_outstandingFrags);
 
-    if (waitingInPoll && outstandingFrags == 0) {
+    if (waitingInPoll && outstandingFrags == 1) {
 	IBP_VPRINTF(300, env, ("Here... outstandingFrags %d\n", outstandingFrags));
 	(*env)->CallVoidMethod(env, byte_os->byte_output_stream, md_finished_upcall);
     } else {
@@ -570,6 +573,12 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
 			    byte_os->byte_output_stream,
 			    fld_outstandingFrags,
 			    outstandingFrags);
+	fragWaiting = (*env)->GetBooleanField(env, byte_os->byte_output_stream,
+					    fld_fragWaiting);
+	if (fragWaiting) {
+	    (*env)->CallVoidMethod(env, byte_os->byte_output_stream, md_wakeupFragWaiter);
+	}
+
     }
 
     IBP_VPRINTF(300, env, ("Here...\n"));
@@ -1401,6 +1410,13 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 	ibmp_error(env, "Cannot find static field waitingInPoll:Z\n");
     }
 
+    fld_fragWaiting    = (*env)->GetFieldID(env,
+					 cls_ByteOutputStream,
+					 "fragWaiting", "Z");
+    if (fld_fragWaiting == NULL) {
+	ibmp_error(env, "Cannot find static field fragWaiting:Z\n");
+    }
+
     fld_outstandingFrags = (*env)->GetFieldID(env,
 					 cls_ByteOutputStream,
 					 "outstandingFrags", "I");
@@ -1435,6 +1451,13 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 						"finished_upcall", "()V");
     if (md_finished_upcall == NULL) {
 	ibmp_error(env, "Cannot find method finished_upcall()V\n");
+    }
+
+    md_wakeupFragWaiter    = (*env)->GetMethodID(env,
+						cls_ByteOutputStream,
+						"wakeupFragWaiter", "()V");
+    if (md_wakeupFragWaiter == NULL) {
+	ibmp_error(env, "Cannot find method wakeupFragWaiter()V\n");
     }
 
     ibmp_byte_stream_port = ibp_mp_port_register(ibmp_byte_stream_handle);

@@ -23,27 +23,7 @@ final class SerializeWriteMessage extends WriteMessage {
 // Thread.dumpStack();
 	}
 	obj_out.flush();
-	Ibis.myIbis.lock();
-	try {
-	    out.send(true);
-	    sPort.registerSend();
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
-	return 0;
-    }
-
-    public void sync(int ticket) throws IOException {
-	if (DEBUG) {
-	    System.err.println("%%%%%%%%%%%%%%%% Sync SerializeWriteMessage");
-	}
-	Ibis.myIbis.lock();
-	try {
-	    out.reset(false);
-	    sPort.registerSend();
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
+	return out.getSentFrags();
     }
 
     public void reset() throws IOException {
@@ -51,23 +31,12 @@ final class SerializeWriteMessage extends WriteMessage {
     }
 
     public long finish() throws IOException {
-	// Shouldn't we do a send here? RFHH
 	if (DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%%% Finish SerializeWriteMessage");
 	}
+	obj_out.flush();
 	obj_out.reset();
-	Ibis.myIbis.lock();
-	try {
-	    out.reset(true); // : Now
-	    sPort.finishMessage();
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
-	long after = out.getCount();
-	long retval = after - before;
-	before = after;
-	sPort.count += retval;
-	return retval;
+	return super.finish();
     }
 
     public void writeBoolean(boolean value) throws IOException {

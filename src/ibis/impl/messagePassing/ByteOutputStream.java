@@ -15,6 +15,7 @@ final class ByteOutputStream
     private SendPort sport;
 
     private ConditionVariable sendComplete = Ibis.myIbis.createCV();
+    private ConditionVariable fragCv = Ibis.myIbis.createCV();
 
     /**
      * This field is read and <standout>written</standout> from native code
@@ -25,9 +26,19 @@ final class ByteOutputStream
     private int outstandingFrags;
 
     /**
+     * This field counts the number of sent fragments within a message.
+     */
+    private int sentFrags = 0;
+
+    /**
      * This field is read from native code
      */
     private boolean waitingInPoll = false;
+
+    /**
+     * This field is read from native code
+     */
+    private boolean fragWaiting = false;
 
     private boolean syncMode;
 
@@ -76,6 +87,25 @@ final class ByteOutputStream
 	nativeByteOS = init();
     }
 
+    int getSentFrags() {
+	return sentFrags;
+    }
+
+    void waitForFragno(int ticket) {
+	Ibis.myIbis.checkLockOwned();
+	while (sentFrags - outstandingFrags < ticket) {
+	    fragWaiting = true;
+	    try {
+		fragCv.cv_wait();
+	    } catch(InterruptedException e) {
+	    }
+	}
+	fragWaiting = false;
+    }
+
+    void wakeupFragWaiter() {
+	fragCv.cv_signal();
+    }
 
     void setAllocator(DataAllocator allocator) {
 	if (TypedProperties.booleanProperty("ibis.mp.allocator")) {
@@ -98,6 +128,7 @@ final class ByteOutputStream
 	boolean send_acked;
 
 	outstandingFrags++;
+	sentFrags++;
 
 	if (sport.group != SendPort.NO_BCAST_GROUP) {
 	    send_acked = msg_bcast(sport.group,
@@ -147,6 +178,9 @@ final class ByteOutputStream
 	Ibis.myIbis.checkLockOwned();
 	outstandingFrags--;
 	sendComplete.cv_signal();
+	if (fragWaiting) {
+	    fragCv.cv_signal();
+	}
 // System.err.println(Thread.currentThread() + "Signal finish msg for stream " + this + "; outstandingFrags " + outstandingFrags);
     }
 
@@ -217,6 +251,7 @@ final class ByteOutputStream
 // System.err.println(Thread.currentThread() + "Done  wait to finish msg for stream " + this);
 
 	msgSeqno++;
+	sentFrags = 0;
 	if (Ibis.DEBUG) {
 	    System.err.println("}}}}}}}}}}}}}}} ByteOutputStream: reset(finish=" + finish + ") increment msgSeqno to " + msgSeqno);
 	}

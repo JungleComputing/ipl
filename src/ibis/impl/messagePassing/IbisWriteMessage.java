@@ -4,15 +4,13 @@ import java.io.IOException;
 
 final public class IbisWriteMessage extends WriteMessage {
 
-    private SendPort sPort;
     private ibis.io.IbisSerializationOutputStream obj_out;
 
     IbisWriteMessage() {
     }
 
     IbisWriteMessage(SendPort p) {
-	sPort = p;
-	out = p.out;
+	super(p);
 	obj_out = ((IbisSendPort)p).obj_out;
     }
 
@@ -20,62 +18,20 @@ final public class IbisWriteMessage extends WriteMessage {
     public int send() throws IOException {
 // System.err.println("Send Ibis WriteMessage " + this + ": send its ByteOutput " + out + " flush its IbisSerializationOutputStream " + obj_out);
 	obj_out.flush();
+	// out is flushed from obj_out.
 
-	// Do this from obj_out: out.flush();
-
-	Ibis.myIbis.lock();
-	sPort.registerSend();
-	Ibis.myIbis.unlock();
-	return 0;
-    }
-
-
-    private void reset(boolean doSend, boolean finish) throws IOException {
-// System.err.println("Reset Ibis WriteMessage " + this + " and its ByteOutput " + out + (finish ? " and also" : " but not") + " its IbisSerializationOutputStream " + obj_out);
-	// Ibis.myIbis.lock();
-	if (doSend) {
-	    obj_out.flush();
-	}
-
-	obj_out.reset();
-
-	Ibis.myIbis.lock();
-	try {
-	    if (doSend) {
-		sPort.registerSend();
-	    }
-	    out.reset(finish);
-	    if (finish) {
-		sPort.finishMessage();
-	    }
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
+	return out.getSentFrags();
     }
 
 
     public long finish() throws IOException {
-	// Finish nowadays implies a send
-	// reset(true, true);
-	reset(false, true);
-	long after = out.getCount();
-	long retval = after - before;
-	sPort.count += retval;
-	before = after;
-	return retval;
+	obj_out.flush();
+	obj_out.reset();
+	return super.finish();
     }
 
     public void reset() throws IOException {
 	obj_out.reset();
-    }
-
-    public void sync(int ticket) throws IOException {
-	Ibis.myIbis.lock();
-	try {
-	    out.reset(true);
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
     }
 
     public void writeBoolean(boolean value) throws IOException {

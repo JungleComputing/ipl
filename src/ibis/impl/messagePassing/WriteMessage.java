@@ -21,35 +21,13 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	before = out.getCount();
     }
 
-
     public ibis.ipl.SendPort localPort() {
 	return sPort;
     }
 
-
-    private void send(boolean doSend, boolean isReset) throws IOException {
-	if (Ibis.DEBUG) {
-	    System.err.println("%%%%%%%%%%%%%%% Send an Ibis /no-serial/ WriteMessage");
-	}
-
-	Ibis.myIbis.lock();
-	try {
-	    if (doSend) {
-		out.send(true);
-	    }
-	    if (isReset) {
-		out.reset(false);
-	    }
-	    sPort.registerSend();
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
-    }
-
-
     public int send() throws IOException {
-	send(true, false);
-	return 0;
+	out.flush();
+	return out.getSentFrags();
     }
 
     public void reset() throws IOException {
@@ -57,9 +35,11 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 
 
     public long finish() throws IOException {
-	// Shouldn't we do a send here? RFHH
 	Ibis.myIbis.lock();
 	try {
+	    // We must do a send here.
+	    out.send(true);
+	    sPort.registerSend();
 	    out.reset(true);
 	    sPort.finishMessage();
 	} finally {
@@ -83,7 +63,12 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 
 
     public void sync(int ticketno) throws IOException {
-	send(false, true);
+	Ibis.myIbis.lock();
+	try {
+	    out.waitForFragno(ticketno);
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
     }
 
 
