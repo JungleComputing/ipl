@@ -20,10 +20,10 @@ public class Tests extends TestCase {
 	assertEquals( Helpers.decodeShort( (byte) -1, (byte) -1 ), 65535 );
     }
 
-    public void notestCompressor()
+    public void testCompressor()
         throws java.io.IOException
     {
-        String args[] = { "-short", "2", "-depth", "2", "-verify", "-string", sample };
+        String args[] = { "-quiet", "-short", "2", "-depth", "2", "-verify", "-string", sample };
 	Compress.main( args );
     }
 }

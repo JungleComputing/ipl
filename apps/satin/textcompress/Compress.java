@@ -10,6 +10,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
     static final boolean parallelizeShallowEvaluation = false;
     static int lookahead_depth = Configuration.LOOKAHEAD_DEPTH;
     static boolean doVerification = false;
+    static boolean quiet = false;
 
     private static void generateIndent( java.io.PrintStream str, int n )
     {
@@ -396,7 +397,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
     static void usage()
     {
-        System.err.println( "Usage: [-string <str>] [-verify] [-short <n>] [-depth <n>] <text> <compressedtext>" );
+        System.err.println( "Usage: [-quiet] [-verify] [-short <n>] [-depth <n>] <text> <compressedtext>" );
+        System.err.println( "   or: [-quiet] [-verify] [-short <n>] [-depth <n>] -string <str> <compressedtext>" );
     }
 
     /**
@@ -413,6 +415,9 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         for( int i=0; i<args.length; i++ ){
             if( args[i].equals( "-verify" ) ){
                 doVerification = true;
+            }
+            else if( args[i].equals( "-quiet" ) ){
+                quiet = true;
             }
             else if( args[i].equals( "-short" ) ){
                 i++;
@@ -462,7 +467,9 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         }
 	long startTime = System.currentTimeMillis();
 
-        System.out.println( "Recursion depth: " + lookahead_depth + ", max. shortening: " + max_shortening  );
+        if( !quiet ){
+            System.out.println( "Recursion depth: " + lookahead_depth + ", max. shortening: " + max_shortening  );
+        }
 
         Compress c = new Compress();
 
@@ -475,8 +482,10 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
 
-	System.out.println( "ExecutionTime: " + time );
-        System.out.println( "In: " + text.length + " bytes, out: " + buf.sz + " bytes." );
+        if( !quiet ){
+            System.out.println( "ExecutionTime: " + time );
+            System.out.println( "In: " + text.length + " bytes, out: " + buf.sz + " bytes." );
+        }
         if( doVerification ){
             ByteBuffer debuf = Decompress.decompress( buf );
             byte nt[] = debuf.getText();
