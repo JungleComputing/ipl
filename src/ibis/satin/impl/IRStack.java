@@ -1,11 +1,14 @@
 package ibis.satin.impl;
+
 import ibis.ipl.IbisIdentifier;
 
 /** A stack of invocation records. */
 
 final class IRStack implements Config {
 	private InvocationRecord[] l = new InvocationRecord[500];
+
 	private int count = 0;
+
 	Satin s;
 
 	IRStack(Satin s) {

@@ -3,6 +3,7 @@ package ibis.satin.impl;
 class DeleteThread extends Thread {
 
 	Satin satin;
+
 	int milis;
 
 	DeleteThread(Satin satin, int time) {

@@ -6,8 +6,11 @@ package ibis.satin.impl;
 // outstandingJobs list.
 final class DEQueueNormal extends DEQueue implements Config {
 	private InvocationRecord head = null;
+
 	private InvocationRecord tail = null;
+
 	private int length = 0;
+
 	private Satin satin;
 
 	DEQueueNormal(Satin satin) {
@@ -168,7 +171,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 			}
 
 			curr = curr.qprev; // This is correct, even if curr was just
-							   // removed.
+			// removed.
 		}
 	}
 

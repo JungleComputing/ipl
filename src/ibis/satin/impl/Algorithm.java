@@ -2,11 +2,11 @@ package ibis.satin.impl;
 
 abstract class Algorithm {
 
-    Satin satin;
+	Satin satin;
 
-    protected Algorithm(Satin s) {
-	satin = s;
-    }
+	protected Algorithm(Satin s) {
+		satin = s;
+	}
 
 	/**
 	 * Handler that is called when new work is added to the queue. Default
@@ -17,8 +17,8 @@ abstract class Algorithm {
 
 	/**
 	 * Called in every iteration of the client loop. It decides which jobs are
-	 * run, and what kind(s) of steal requests are done.
-	 * returns a job an success, null on failure.
+	 * run, and what kind(s) of steal requests are done. returns a job an
+	 * success, null on failure.
 	 */
 	abstract public InvocationRecord clientIteration();
 
@@ -27,9 +27,9 @@ abstract class Algorithm {
 	 * algorithm knows about the reply (this is needed with asynchronous
 	 * communication)
 	 */
-    public void stealReplyHandler(InvocationRecord ir, int opcode) {
-	satin.gotJobResult(ir);
-    }
+	public void stealReplyHandler(InvocationRecord ir, int opcode) {
+		satin.gotJobResult(ir);
+	}
 
 	/**
 	 * This one is called in the exit procedure so the algorithm can clean up,

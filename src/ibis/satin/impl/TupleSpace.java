@@ -14,6 +14,7 @@ import java.util.HashMap;
 public abstract class TupleSpace extends Communication {
 
 	static HashMap space;
+
 	public static boolean use_seq = false;
 
 	public void initTupleSpace() {
@@ -28,7 +29,7 @@ public abstract class TupleSpace extends Communication {
 		space = new HashMap();
 		use_seq = SUPPORT_TUPLE_MULTICAST && this_satin != null
 				&& TypedProperties.booleanProperty("satin.tuplespace.ordened");
-//				System.err.println("TupleSpace: use_seq = " + use_seq);
+		//				System.err.println("TupleSpace: use_seq = " + use_seq);
 		//		newKeys = new ArrayList();
 		//		newData = new ArrayList();
 	}
@@ -54,10 +55,11 @@ public abstract class TupleSpace extends Communication {
 					+ ": added key " + key);
 		}
 
-//		System.err.println("use seq = " + use_seq + ", this_satin = " + this_satin);
+		//		System.err.println("use seq = " + use_seq + ", this_satin = " +
+		// this_satin);
 
 		if (this_satin != null) { // can happen with sequential versions of
-								  // Satin
+			// Satin
 			// programs
 			this_satin.broadcastTuple(key, data);
 		}
@@ -193,6 +195,7 @@ public abstract class TupleSpace extends Communication {
 			//			}
 		}
 	}
+
 	/* ------------------- tuple space stuff ---------------------- */
 
 	protected void broadcastTuple(String key, Serializable data) {

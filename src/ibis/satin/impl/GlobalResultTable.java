@@ -33,10 +33,15 @@ public class GlobalResultTable implements Upcall, Config {
 	private int numReplicas = 0;
 
 	public int numUpdates = 0;
+
 	public int numTryUpdates = 0;
+
 	public int numLookups = 0;
+
 	public int numLookupsSucceded = 0;
+
 	public int maxNumEntries = 0;
+
 	public int numRemoteLookups = 0;
 
 	public final static int max = 20;

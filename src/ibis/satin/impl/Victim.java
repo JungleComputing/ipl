@@ -5,6 +5,7 @@ import ibis.ipl.SendPort;
 
 final class Victim {
 	IbisIdentifier ident;
+
 	SendPort s;
 
 	public boolean equals(Object o) {

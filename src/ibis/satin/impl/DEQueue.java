@@ -5,12 +5,18 @@ package ibis.satin.impl;
 abstract class DEQueue implements Config {
 
 	abstract InvocationRecord getFromHead();
+
 	abstract InvocationRecord getFromTail();
+
 	abstract void addToHead(InvocationRecord o);
+
 	abstract void addToTail(InvocationRecord o); //note: does not work for
-												 // Dijkstra
+
+	// Dijkstra
 	abstract void killChildrenOf(int targetStamp,
 			ibis.ipl.IbisIdentifier targetOwner);
+
 	abstract void killSubtreeOf(ibis.ipl.IbisIdentifier targetOwner);
+
 	abstract int size();
 }

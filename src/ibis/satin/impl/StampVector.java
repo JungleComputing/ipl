@@ -1,9 +1,12 @@
 package ibis.satin.impl;
+
 import ibis.ipl.IbisIdentifier;
 
 final class StampVector implements Config {
 	int[] stamps = new int[50];
+
 	IbisIdentifier[] owners = new IbisIdentifier[50];
+
 	int count = 0;
 
 	public void add(int stamp, IbisIdentifier owner) {

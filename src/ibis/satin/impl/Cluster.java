@@ -4,6 +4,7 @@ import java.util.Vector;
 
 final class Cluster {
 	String name; //all references to a cluster's name are the same
+
 	Vector victims;
 
 	public Cluster(String name) {

@@ -294,7 +294,7 @@ public abstract class WorkStealing extends Stats {
 		InvocationRecord myJob = stolenJob;
 		stolenJob = null;
 
-//		stolenFrom = myJob.owner;
+		//		stolenFrom = myJob.owner;
 
 		// if we have ordered communication, we have to wait until
 		// our sequence number equals the one in the job
@@ -422,10 +422,10 @@ public abstract class WorkStealing extends Stats {
 		outstandingJobs.add(r);
 	}
 
-    protected synchronized void gotJobResult(InvocationRecord ir) {
-	gotStealReply = true;
-	stolenJob = ir;
-	currentVictim = null;
-	notifyAll();
-    }
+	protected synchronized void gotJobResult(InvocationRecord ir) {
+		gotStealReply = true;
+		stolenJob = ir;
+		currentVictim = null;
+		notifyAll();
+	}
 }

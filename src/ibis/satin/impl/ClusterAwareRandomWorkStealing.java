@@ -2,16 +2,17 @@ package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
 
-class ClusterAwareRandomWorkStealing extends Algorithm
-		implements
-			Protocol,
-			Config {
+class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
+		Config {
 
 	private boolean gotAsyncStealReply = false;
+
 	private InvocationRecord asyncStolenJob = null;
+
 	private IbisIdentifier asyncCurrentVictim = null;
 
 	private long asyncStealAttempts = 0;
+
 	private long asyncStealSuccess = 0;
 
 	/**
@@ -21,7 +22,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm
 	private boolean asyncStealInProgress = false;
 
 	ClusterAwareRandomWorkStealing(Satin s) {
-	    super(s);
+		super(s);
 	}
 
 	public InvocationRecord clientIteration() {
@@ -96,22 +97,22 @@ class ClusterAwareRandomWorkStealing extends Algorithm
 
 	public void stealReplyHandler(InvocationRecord ir, int opcode) {
 		switch (opcode) {
-			case STEAL_REPLY_SUCCESS :
-			case STEAL_REPLY_FAILED :
-			case STEAL_REPLY_SUCCESS_TABLE :
-			case STEAL_REPLY_FAILED_TABLE :
-			    satin.gotJobResult(ir);
-				break;
-			case ASYNC_STEAL_REPLY_SUCCESS :
-			case ASYNC_STEAL_REPLY_FAILED :
-			case ASYNC_STEAL_REPLY_SUCCESS_TABLE :
-			case ASYNC_STEAL_REPLY_FAILED_TABLE :
-				synchronized (satin) {
-					gotAsyncStealReply = true;
-					asyncStolenJob = ir;
-					satin.notifyAll();
-				}
-				break;
+		case STEAL_REPLY_SUCCESS:
+		case STEAL_REPLY_FAILED:
+		case STEAL_REPLY_SUCCESS_TABLE:
+		case STEAL_REPLY_FAILED_TABLE:
+			satin.gotJobResult(ir);
+			break;
+		case ASYNC_STEAL_REPLY_SUCCESS:
+		case ASYNC_STEAL_REPLY_FAILED:
+		case ASYNC_STEAL_REPLY_SUCCESS_TABLE:
+		case ASYNC_STEAL_REPLY_FAILED_TABLE:
+			synchronized (satin) {
+				gotAsyncStealReply = true;
+				asyncStolenJob = ir;
+				satin.notifyAll();
+			}
+			break;
 		}
 	}
 

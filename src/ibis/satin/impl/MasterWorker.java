@@ -5,7 +5,7 @@ package ibis.satin.impl;
 final class MasterWorker extends Algorithm {
 
 	MasterWorker(Satin s) {
-	    super(s);
+		super(s);
 	}
 
 	public InvocationRecord clientIteration() {

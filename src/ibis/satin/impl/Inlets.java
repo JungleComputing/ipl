@@ -127,7 +127,7 @@ public abstract class Inlets extends Aborts {
 		//		if(INLET_DEBUG) {
 		out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: "
 				+ r.eek + ": " + r.eek.getMessage());
-						r.eek.printStackTrace();
+		r.eek.printStackTrace();
 		//		}
 
 		InvocationRecord curr = r;
@@ -169,6 +169,7 @@ public abstract class Inlets extends Aborts {
 			out.println("SATIN '" + ident.name() + ": got remote exception!");
 		}
 	}
+
 	// both here and in handleEmpty inlets: sendResult NOW if parentOwner is on
 	// remote machine
 	void handleExceptions() {

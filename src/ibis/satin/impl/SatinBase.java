@@ -135,7 +135,7 @@ public abstract class SatinBase implements Config {
 
 	InvocationRecord stolenJob = null;
 
-//	IbisIdentifier stolenFrom = null;
+	//	IbisIdentifier stolenFrom = null;
 
 	protected int suggestedQueueSize = 1000;
 

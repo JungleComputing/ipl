@@ -6,7 +6,9 @@ import ibis.ipl.IbisIdentifier;
 
 final class IRVector implements Config {
 	InvocationRecord[] l = new InvocationRecord[500];
+
 	int count = 0;
+
 	Satin satin;
 
 	IRVector(Satin s) {
@@ -88,7 +90,7 @@ final class IRVector implements Config {
 
 		for (int i = count - 1; i >= 0; i--) {
 			if (l[i].equals(r)) {
-			    InvocationRecord res = l[i];
+				InvocationRecord res = l[i];
 				count--;
 				l[i] = l[count];
 				//				System.err.println("SATIN: " + satin.ident.address() +
@@ -140,6 +142,7 @@ final class IRVector implements Config {
 			}
 		}
 	}
+
 	/**
 	 * Used for fault tolerance send an ABORT_AND_STORE message to the stealer
 	 * of each descendent of the given job
@@ -198,7 +201,7 @@ final class IRVector implements Config {
 			if ((curr.parent != null && curr.parent.aborted)
 					|| Satin.isDescendentOf1(curr, targetOwner)
 					|| curr.owner.equals(targetOwner)) //this shouldnt happen,
-													   // actually
+			// actually
 			{
 				curr.aborted = true;
 				if (ABORT_DEBUG) {
@@ -243,7 +246,7 @@ final class IRVector implements Config {
 			if ((curr.parent != null && curr.parent.aborted)
 					|| Satin.isDescendentOf1(curr, targetOwner)
 					|| curr.owner.equals(targetOwner)) //this shouldnt happen,
-													   // actually
+			// actually
 			{
 				curr.aborted = true;
 				curr.spawnCounter.value--; //not necessary?

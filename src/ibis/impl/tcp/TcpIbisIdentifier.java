@@ -1,6 +1,5 @@
 package ibis.impl.tcp;
 
-import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
 import ibis.util.IbisIdentifierTable;
 

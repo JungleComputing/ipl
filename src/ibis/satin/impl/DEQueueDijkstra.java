@@ -10,9 +10,13 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	private static final int START_SIZE = 5000;
 
 	private InvocationRecord[] l = new InvocationRecord[START_SIZE];
+
 	private volatile int size = START_SIZE;
+
 	private volatile int head;
+
 	private volatile int tail;
+
 	private Satin satin;
 
 	DEQueueDijkstra(Satin satin) {
@@ -149,7 +153,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 		for (int i = tail; i < head; i++) {
 			InvocationRecord curr = l[i];
 			if (Satin.isDescendentOf1(curr, owner) || curr.owner.equals(owner)) //shouldn
-																				// happen
+			// happen
 			{
 
 				curr.aborted = true;

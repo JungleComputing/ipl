@@ -304,10 +304,10 @@ public abstract class FaultTolerance extends Inlets {
 						m.writeByte(Protocol.RESULT_REQUEST);
 						m.writeObject(key);
 						m.writeInt(r.stamp); //stamp and owner are not
-											 // neccessary when using
+						// neccessary when using
 						m.writeObject(r.owner);//globally unique stamps, but
-											   // let's not make things too
-											   // complicated..
+						// let's not make things too
+						// complicated..
 						m.send();
 						m.finish();
 					} catch (IOException e) {

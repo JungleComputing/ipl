@@ -6,5 +6,6 @@ package ibis.satin.impl;
  */
 public final class SpawnCounter {
 	int value = 0;
+
 	SpawnCounter next;
 }

@@ -5,7 +5,7 @@ package ibis.satin.impl;
 final class RandomWorkStealing extends Algorithm implements Config {
 
 	RandomWorkStealing(Satin s) {
-	    super(s);
+		super(s);
 	}
 
 	public InvocationRecord clientIteration() {

@@ -7,17 +7,25 @@ import java.util.Vector;
 class MsgStats {
 
 	Vector remotePortHash = new Vector();
+
 	int[] upcall;
+
 	int[] upcallRequest;
+
 	int[] upcallReply;
+
 	int[] upcallResult;
 
 	Vector localPortHash = new Vector();
+
 	int[] sendRequest;
+
 	int[] sendReply;
+
 	int[] sendResult;
 
 	int[] sent;
+
 	int[] received;
 
 	private int[] realloc(int[] a, int n) {

@@ -2,51 +2,90 @@ package ibis.satin.impl;
 
 class StatsMessage implements java.io.Serializable {
 	long spawns;
+
 	long syncs;
+
 	long aborts;
+
 	long jobsExecuted;
+
 	long abortedJobs;
+
 	long abortMessages;
+
 	long stealAttempts;
+
 	long stealSuccess;
+
 	long tupleMsgs;
+
 	long tupleBytes;
+
 	long stolenJobs;
+
 	long stealRequests;
+
 	long interClusterMessages;
+
 	long intraClusterMessages;
+
 	long interClusterBytes;
+
 	long intraClusterBytes;
 
 	double stealTime;
+
 	double handleStealTime;
+
 	double abortTime;
+
 	double idleTime;
+
 	long idleCount;
+
 	double pollTime;
+
 	long pollCount;
+
 	double tupleTime;
+
 	double invocationRecordWriteTime;
+
 	long invocationRecordWriteCount;
+
 	double invocationRecordReadTime;
+
 	long invocationRecordReadCount;
+
 	double tupleWaitTime;
+
 	long tupleWaitCount;
+
 	double tupleSeqTime;
+
 	long tupleSeqCount;
 
 	//fault tolerance
 	long tableUpdates;
+
 	long tableLookups;
+
 	long tableSuccessfulLookups;
+
 	long tableRemoteLookups;
+
 	long killedOrphans;
 
 	double tableLookupTime;
+
 	double tableUpdateTime;
+
 	double tableHandleUpdateTime;
+
 	double tableHandleLookupTime;
+
 	double crashHandlingTime;
+
 	double addReplicaTime;
 
 	void add(StatsMessage s) {

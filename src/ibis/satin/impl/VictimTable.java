@@ -9,6 +9,7 @@ import java.util.Vector;
 
 final class VictimTable implements Config {
 	private Vector victims = new Vector();
+
 	private HashMap victimsHash = new HashMap();
 
 	// all victims grouped by cluster
@@ -17,8 +18,11 @@ final class VictimTable implements Config {
 	 * maik)
 	 */
 	private Vector clusters = new Vector();
+
 	private Cluster thisCluster;
+
 	private HashMap clustersHash = new HashMap();
+
 	private Satin satin;
 
 	VictimTable(Satin s) {
@@ -164,7 +168,7 @@ final class VictimTable implements Config {
 		}
 
 		if (victims.size() == 0) { // can happen with open world, no others have
-								   // joined yet.
+			// joined yet.
 			return null;
 		}
 
