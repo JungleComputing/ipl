@@ -1,0 +1,6 @@
+- have finish c.s. return the #bytes sent
+- implement sendport sent-bytes call
+- let the other drivers with a subOutput implement the flushBuffers()
+  call in the same way as NetSerializationOutput
+- investigate any deadlocks with NetGM rendez-vous (see SOR/IPL with
+  async sends)
