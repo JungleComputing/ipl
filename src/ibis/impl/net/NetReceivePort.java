@@ -369,7 +369,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         /* --- Upcall from main input object -- */
         public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 log.in();
-                //synchronized (this)
+                synchronized (this)
                         {
                         if (this.input == null) {
                                 __.warning__("message lost");
