@@ -15,7 +15,8 @@ final class IbisShadowSendPort extends ShadowSendPort {
 	    throws IOException {
 	super(rId, sId, group);
 // System.err.println("In IbisShadowSendPort.<init>");
-	obj_in = new IbisSerializationInputStream(new ArrayInputStream(in));
+	// obj_in = new IbisSerializationInputStream(new ArrayInputStream(in));
+	obj_in = new IbisSerializationInputStream(in);
     }
 
 

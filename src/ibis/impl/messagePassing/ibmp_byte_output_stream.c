@@ -48,7 +48,7 @@ static int	send_msg = 0;
 static int	send_frag_skip = 0;
 static int	send_sync = 0;
 
-#define COUNT_GLOBAL_REFS 0
+#define COUNT_GLOBAL_REFS 1
 #if COUNT_GLOBAL_REFS
 static int	ibmp_global_refs = 0;
 #define IBMP_GLOBAL_REF_INC() \
@@ -68,13 +68,14 @@ static int	ibmp_global_refs = 0;
 #define IBMP_GLOBAL_REF_DEC()
 #endif
 
-static jclass cls_PandaByteOutputStream;
+static jclass cls_ByteOutputStream;
 
 static jfieldID fld_nativeByteOS;
 static jfieldID fld_waitingInPoll;
 static jfieldID fld_outstandingFrags;
 static jfieldID fld_makeCopy;
 static jfieldID fld_msgCount;
+static jfieldID fld_allocator;
 
 static jmethodID md_finished_upcall;
 
@@ -109,10 +110,24 @@ typedef enum MSG_STATE {
 } msg_state_t, *msg_state_p;
 
 
+typedef struct IBMP_BUFFER_CACHE ibmp_buffer_cache_t, *ibmp_buffer_cache_p;
+
+struct IBMP_BUFFER_CACHE {
+    void	       *array;
+    void	       *buf;
+    ibmp_buffer_cache_p next;
+};
+
+
+static ibmp_buffer_cache_p ibmp_buffer_cache_freelist = NULL;
+
+
 typedef struct IBMP_MSG ibmp_msg_t, *ibmp_msg_p;
 
+typedef struct IBMP_BYTE_OS ibmp_byte_os_t, *ibmp_byte_os_p;
+
 struct IBMP_MSG {
-    jobject		byte_output_stream;
+    ibmp_byte_os_p	byte_os;
     pan_iovec_p		iov;
     release_p		release;
     int			iov_len;
@@ -134,13 +149,13 @@ struct IBMP_MSG {
 #define BUF_CHUNK	4096
 #define COPY_THRESHOLD	64
 
-typedef struct IBMP_BYTE_OS ibmp_byte_os_t, *ibmp_byte_os_p;
-
 struct IBMP_BYTE_OS {
     ibmp_msg_p		msg;
     jobject		byte_output_stream;
     ibmp_msg_p		ibmp_msg_freelist;
     int			freelist_size;
+    ibmp_buffer_cache_p *buffer_cache;
+    ibmp_buffer_cache_p	global_refs;
 };
 
 
@@ -220,13 +235,13 @@ ibmp_msg_get(JNIEnv *env, ibmp_byte_os_p byte_os)
 	msg->buf_alloc_len = BUF_CHUNK;
 	msg->buf = pan_malloc(BUF_CHUNK);
 	msg->state = MSG_STATE_ACCUMULATING;
-	msg->byte_output_stream = byte_os->byte_output_stream;
+	msg->byte_os = byte_os;
 
     } else {
 	assert(msg->iov_len == 0);
 	assert(msg->buf_len == 0);
 	assert(msg->state == MSG_STATE_UNTOUCHED);
-	assert(msg->byte_output_stream == byte_os->byte_output_stream);
+	assert(msg->byte_os == byte_os);
 	byte_os->ibmp_msg_freelist = msg->next;
 #ifndef NDEBUG
 	byte_os->freelist_size--;
@@ -256,8 +271,6 @@ ibmp_msg_put(JNIEnv *env, ibmp_byte_os_p byte_os, ibmp_msg_p msg)
 
     ibmp_msg_freelist_verify(env, __LINE__, byte_os);
 
-    IBMP_GLOBAL_REF_DEC();
-
 #ifndef NDEBUG
     assert(msg->outstanding_send == 0);
     assert(msg->next == NULL);
@@ -279,6 +292,138 @@ ibmp_msg_enq(ibmp_msg_p msg)
     msg->next = ibmp_sent_msg_q;
     ibmp_sent_msg_q = msg;
 }
+
+
+static ibmp_buffer_cache_p
+ibmp_buffer_cache_get(void)
+{
+    ibmp_buffer_cache_p c = ibmp_buffer_cache_freelist;
+
+    if (c == NULL) {
+	c = malloc(sizeof(*c));
+    } else {
+	ibmp_buffer_cache_freelist = c->next;
+    }
+
+    c->next = NULL;
+
+    return c;
+}
+
+
+static void
+ibmp_buffer_cache_put(ibmp_buffer_cache_p c)
+{
+    c->next = ibmp_buffer_cache_freelist;
+    ibmp_buffer_cache_freelist = c;
+}
+
+
+JNIEXPORT void JNICALL
+Java_ibis_impl_messagePassing_ByteOutputStream_clearGlobalRefs(
+	JNIEnv *env, jobject this)
+{
+    jint	byteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
+    ibmp_byte_os_p byte_os = (ibmp_byte_os_p)byteOS;
+    ibmp_buffer_cache_p c;
+
+    while (byte_os->global_refs != NULL) {
+	c = byte_os->global_refs;
+	byte_os->global_refs = c->next;
+	IBP_VPRINTF(300, env, ("Now delete global ref %p\n", c->array));
+	(*env)->DeleteGlobalRef(env, c->array);
+	IBMP_GLOBAL_REF_DEC();
+	IBP_VPRINTF(755, env, ("Now deleted global ref %p\n", c->array));
+	ibmp_buffer_cache_put(c);
+    }
+}
+
+
+#define RELEASE_ARRAY(JType, jtype) \
+\
+static void \
+release_ ## JType ## _array(JNIEnv *env, jtype ## Array array, jtype *buf) \
+{ \
+    IBP_VPRINTF(800, NULL, ("%s: Now release type %s array %p buf %p\n", \
+		ibmp_currentThread(env), #JType, array, buf)); \
+    (*env)->Release ## JType ## ArrayElements(env, array, buf, JNI_ABORT); \
+    IBP_VPRINTF(300, env, ("Now delete global ref %p\n", array)); \
+    (*env)->DeleteGlobalRef(env, array); \
+    IBMP_GLOBAL_REF_DEC(); \
+    IBP_VPRINTF(755, env, ("Now deleted global ref %p\n", array)); \
+} \
+\
+\
+JNIEXPORT jtype ## Array JNICALL \
+Java_ibis_impl_messagePassing_ByteOutputStream_getCached ## JType ## Buffer( \
+	JNIEnv *env, jobject this) \
+{ \
+    jint	byteOS = (*env)->GetIntField(env, this, fld_nativeByteOS); \
+    ibmp_byte_os_p byte_os = (ibmp_byte_os_p)byteOS; \
+    ibmp_buffer_cache_p c; \
+    \
+    assert(byte_os != NULL); \
+    c = byte_os->buffer_cache[jprim_ ## JType]; \
+    if (c == NULL) { \
+	return NULL; \
+    } \
+    \
+    byte_os->buffer_cache[jprim_ ## JType] = c->next; \
+    \
+    IBP_VPRINTF(800, NULL, ("%s: Now release type %s array %p buf %p\n", \
+		ibmp_currentThread(env), #JType, c->array, c->buf)); \
+    (*env)->Release ## JType ## ArrayElements(env, \
+		    c->array, c->buf, JNI_ABORT); \
+    \
+    /* Enqueue in the list of global refs to be cleared. We can clear the \
+     * global ref only *after* it has been returned to Java space. */ \
+    c->next = byte_os->global_refs; \
+    byte_os->global_refs = c; \
+    \
+    return c->array; \
+}
+
+RELEASE_ARRAY(Boolean, jboolean)
+RELEASE_ARRAY(Byte, jbyte)
+RELEASE_ARRAY(Char, jchar)
+RELEASE_ARRAY(Short, jshort)
+RELEASE_ARRAY(Int, jint)
+RELEASE_ARRAY(Long, jlong)
+RELEASE_ARRAY(Float, jfloat)
+RELEASE_ARRAY(Double, jdouble)
+
+#undef RELEASE_ARRAY
+
+
+JNIEXPORT void JNICALL
+Java_ibis_impl_messagePassing_ByteOutputStream_releaseCachedBuffers(
+	JNIEnv *env, jobject this)
+{
+    jint	byteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
+    ibmp_byte_os_p byte_os = (ibmp_byte_os_p)byteOS;
+    int		i;
+    ibmp_buffer_cache_p c;
+
+    assert(byte_os != NULL);
+#define RELEASE_ARRAY(JType) \
+    while ((c = byte_os->buffer_cache[jprim_ ## JType]) != NULL) { \
+	byte_os->buffer_cache[jprim_ ## JType] = c->next; \
+	release_ ## JType ## _array(env, c->array, c->buf); \
+	ibmp_buffer_cache_put(c); \
+    }
+
+RELEASE_ARRAY(Boolean)
+RELEASE_ARRAY(Byte)
+RELEASE_ARRAY(Char)
+RELEASE_ARRAY(Short)
+RELEASE_ARRAY(Int)
+RELEASE_ARRAY(Long)
+RELEASE_ARRAY(Float)
+RELEASE_ARRAY(Double)
+
+#undef RELEASE_ARRAY
+}
+
 
 
 static void
@@ -304,49 +449,55 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 	    pan_free(msg->iov[i].data);
 	}
     } else {
+	jobject allocator = (*env)->GetObjectField(env,
+					   msg->byte_os->byte_output_stream,
+					   fld_allocator);
 	for (i = 0; i < msg->iov_len; i++) {
-	    IBP_VPRINTF(800, NULL, ("%s: Now release msg %p iov %p size %d release type %d array %p buf %p\n",
+	    IBP_VPRINTF(800, NULL, ("%s: Now cache msg %p iov %p size %d release type %d array %p buf %p\n",
 			ibmp_currentThread(env),
 			msg, msg->iov[i].data, msg->iov[i].len,
 			msg->release[i].type, msg->release[i].array,
 			msg->release[i].buf));
 	    if (msg->release[i].type != jprim_n_types) {
-		/* 'type' used to be a function pointer that indicates
-		 * Release ## JType ## ArrayElements; but it seems that
-		 * the Java and native array types must be correctly
-		 * specified -- at least for Borland C++Builder.
-		 * So now we use a switch to release them and cast the
-		 * arrays back to their correct types. */
-		switch (msg->release[i].type) {
-
-#define RELEASE_ARRAY(JType, jtype) \
+		if (allocator == NULL) {
+		    switch (msg->release[i].type) {
+#define RELEASE_ARRAY(JType) \
 		    case jprim_ ## JType: \
-			(*env)->Release ## JType ## ArrayElements(env, \
-					(jtype ## Array)msg->release[i].array, \
-					(jtype *)msg->release[i].buf, \
-					JNI_ABORT); \
-			break;
+			release_ ## JType ## _array(env, \
+						    msg->release[i].array, \
+						    msg->release[i].buf); \
+			break; 
 
-		    RELEASE_ARRAY(Boolean, jboolean)
-		    RELEASE_ARRAY(Byte, jbyte)
-		    RELEASE_ARRAY(Char, jchar)
-		    RELEASE_ARRAY(Short, jshort)
-		    RELEASE_ARRAY(Int, jint)
-		    RELEASE_ARRAY(Long, jlong)
-		    RELEASE_ARRAY(Float, jfloat)
-		    RELEASE_ARRAY(Double, jdouble)
-
+		    RELEASE_ARRAY(Boolean)
+		    RELEASE_ARRAY(Byte)
+		    RELEASE_ARRAY(Char)
+		    RELEASE_ARRAY(Short)
+		    RELEASE_ARRAY(Int)
+		    RELEASE_ARRAY(Long)
+		    RELEASE_ARRAY(Float)
+		    RELEASE_ARRAY(Double)
 #undef RELEASE_ARRAY
+
 		    default:
 			break;
-		}
-		IBP_VPRINTF(300, env, ("Now delete global ref %p\n", msg->release[i].array));
-		(*env)->DeleteGlobalRef(env, msg->release[i].array);
-		IBMP_GLOBAL_REF_DEC();
+		    }
+
+		} else {
+		    ibmp_buffer_cache_p c = ibmp_buffer_cache_get();
+		    ibmp_byte_os_p byte_os = msg->byte_os;
+
+		    IBP_VPRINTF(280, env, ("enqueue array%d %p byte_os %p for reuse\n",
+				msg->release[i].type, msg->release[i].array,
+				byte_os));
+		    c->next = byte_os->buffer_cache[msg->release[i].type];
+		    byte_os->buffer_cache[msg->release[i].type] = c;
+
+		    c->array = msg->release[i].array;
+		    c->buf = msg->release[i].buf;
 #ifndef NDEBUG
-		msg->release[i].array = NULL;
+		    msg->release[i].array = NULL;
 #endif
-		IBP_VPRINTF(755, env, ("Now deleted global ref %p\n", msg->release[i].array));
+		}
 	    }
 	}
     }
@@ -367,11 +518,11 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
     ibmp_msg_p	handle;
     jboolean waitingInPoll;
     jint outstandingFrags;
-    jint	nativeByteOS;
-    ibmp_byte_os_p byte_os;
+    ibmp_byte_os_p byte_os = msg->byte_os;
 
     IBP_VPRINTF(300, env, ("Do a finished upcall msg %p obj %p firstFrag %s\n",
-		msg, msg->byte_output_stream, msg->firstFrag ? "yes" : "no"));
+		msg, msg->byte_os->byte_output_stream,
+		msg->firstFrag ? "yes" : "no"));
 
 #if JASON
     pan_time_get(&now);
@@ -395,32 +546,29 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
      * otherwise are no way atomic */
     // IBP_VPRINTF(300, env, ("Here...\n"));
 
-    waitingInPoll = (*env)->GetBooleanField(env, msg->byte_output_stream, fld_waitingInPoll);
+    waitingInPoll = (*env)->GetBooleanField(env, byte_os->byte_output_stream,
+					    fld_waitingInPoll);
 
     IBP_VPRINTF(300, env, ("Here... waitingInPoll %d\n", waitingInPoll));
 
     outstandingFrags = (*env)->GetIntField(env,
-					   msg->byte_output_stream,
+					   byte_os->byte_output_stream,
 					   fld_outstandingFrags);
 
     if (waitingInPoll && outstandingFrags == 0) {
 	IBP_VPRINTF(300, env, ("Here... outstandingFrags %d\n", outstandingFrags));
-	(*env)->CallVoidMethod(env, msg->byte_output_stream, md_finished_upcall);
+	(*env)->CallVoidMethod(env, byte_os->byte_output_stream, md_finished_upcall);
     } else {
 	IBP_VPRINTF(300, env, ("Here... outstandingFrags %d\n", outstandingFrags));
 	outstandingFrags--;
 	(*env)->SetIntField(env,
-			    msg->byte_output_stream,
+			    byte_os->byte_output_stream,
 			    fld_outstandingFrags,
 			    outstandingFrags);
     }
 
     IBP_VPRINTF(300, env, ("Here...\n"));
 
-    nativeByteOS = (*env)->GetIntField(env,
-				       msg->byte_output_stream,
-				       fld_nativeByteOS);
-    byte_os = (ibmp_byte_os_p)nativeByteOS;
     handle = byte_os->msg;
 
     // IBP_VPRINTF(300, env, ("Here... handle %x\n", handle));
@@ -429,7 +577,7 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
 	 * Ensure that there is a msg ready for a push/send for the next
 	 * message
 	 */
-	IBP_VPRINTF(720, env, ("After Async send restore obj %p byte_os->msg to %p\n", msg->byte_output_stream, msg));
+	IBP_VPRINTF(720, env, ("After Async send restore obj %p byte_os->msg to %p\n", byte_os->byte_output_stream, msg));
 	byte_os->msg = msg;
     } else if (handle != msg) {
 	assert(msg->next == NULL);
@@ -582,7 +730,6 @@ static void dump_ ## jtype(jtype *b, int len) \
 }
 #endif
 
-
 DUMP_DATA(jboolean, "d ", int8_t)
 DUMP_DATA(jbyte, "c", int8_t)
 DUMP_DATA(jchar, "d ", int16_t)
@@ -591,6 +738,8 @@ DUMP_DATA(jint, "d ", int32_t)
 DUMP_DATA(jlong, "lld ", int64_t)
 DUMP_DATA(jfloat, "f ", float)
 DUMP_DATA(jdouble, "f ", double)
+
+#undef DUMP_DATA
 
 
 static ibmp_msg_p
@@ -709,7 +858,7 @@ send_async(JNIEnv *env,
 	   jint splitTotal)
 {
     IBP_VPRINTF(300, env, ("ByteOS %p Enqueue a send-finish upcall msg %p obj %p, missing := %d proto %p\n",
-		msg->byte_output_stream, msg, this, ++ibmp_sent_msg_out,
+		byte_os->byte_output_stream, msg, this, ++ibmp_sent_msg_out,
 		msg->proto[i]));
 #ifdef IBP_VERBOSE
     if (ibmp_verbose >= 1 && ibmp_verbose < 300) {
@@ -719,7 +868,7 @@ send_async(JNIEnv *env,
 
     if (i == 0) {
 	assert(msg->state == MSG_STATE_ACCUMULATING);
-	assert(ibmp_equals(env, msg->byte_output_stream, this));
+	assert(ibmp_equals(env, byte_os->byte_output_stream, this));
 	assert(msg->outstanding_send == 0);
 
 	msg->outstanding_send += splitTotal;
@@ -810,7 +959,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     }
 
     assert(msg != NULL);
-    assert(ibmp_equals(env, msg->byte_output_stream, this));
+    assert(ibmp_equals(env, byte_os->byte_output_stream, this));
 
     splitter_increase(msg, splitTotal);
 
@@ -833,16 +982,16 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     sent_data += len;
 #endif
 
-    assert(ibmp_equals(env, msg->byte_output_stream, this));
+    assert(ibmp_equals(env, byte_os->byte_output_stream, this));
 
     if (pan_thread_nonblocking() || len >= ibmp_send_sync) {
-	IBP_VPRINTF(250, env, ("ByteOS %p Do this send in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", msg->byte_output_stream, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
+	IBP_VPRINTF(250, env, ("ByteOS %p Do this send in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", byte_os->byte_output_stream, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
 
 	return send_async(env, this, cpu, byte_os, msg, i, splitTotal);
     }
 
     /* Wow, we're allowed to do a sync send! */
-    IBP_VPRINTF(250, env, ("ByteOS %p Do this send in sync fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", msg->byte_output_stream, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
+    IBP_VPRINTF(250, env, ("ByteOS %p Do this send in sync fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", byte_os->byte_output_stream, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
 
     if (i == 0) {
 	assert(msg->state == MSG_STATE_ACCUMULATING);
@@ -909,7 +1058,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     }
 
     assert(msg != NULL);
-    assert(ibmp_equals(env, msg->byte_output_stream, this));
+    assert(ibmp_equals(env, byte_os->byte_output_stream, this));
 
     hdr = ibmp_byte_stream_hdr(msg->proto[0]);
 
@@ -930,12 +1079,12 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
 #endif
 
     IBP_VPRINTF(250, env, ("ByteOS %p Do this bcast in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n",
-		msg->byte_output_stream, msg, msgSeqno,
+		byte_os->byte_output_stream, msg, msgSeqno,
 		lastFrag ? "yes" : "no",
 		ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
 
     IBP_VPRINTF(300, env, ("ByteOS %p Enqueue a bcast-finish upcall msg %p obj %p, missing := %d proto %p\n",
-		msg->byte_output_stream, msg, this, ++ibmp_sent_msg_out,
+		byte_os->byte_output_stream, msg, this, ++ibmp_sent_msg_out,
 		msg->proto[0]));
 #ifdef IBP_VERBOSE
     if (ibmp_verbose >= 1 && ibmp_verbose < 300) {
@@ -944,7 +1093,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
 #endif
 
     assert(msg->state == MSG_STATE_ACCUMULATING);
-    assert(ibmp_equals(env, msg->byte_output_stream, this));
+    assert(ibmp_equals(env, byte_os->byte_output_stream, this));
     assert(msg->outstanding_send == 0);
 
     msg->outstanding_send++;
@@ -957,13 +1106,13 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     ibmp_msg_enq(msg);
 
     ibmp_msg_freelist_verify(env, __LINE__, byte_os);
-    IBP_VPRINTF(450, env, ("Enqueued msg %p object %p\n", msg, msg->byte_output_stream));
+    IBP_VPRINTF(450, env, ("Enqueued msg %p object %p\n", msg, byte_os->byte_output_stream));
 
     ibp_mp_bcast(env, ibmp_byte_stream_port,
 		 msg->iov, msg->iov_len,
 		 msg->proto[0], ibmp_byte_stream_proto_size);
 
-    assert(ibmp_equals(env, msg->byte_output_stream, this));
+    assert(ibmp_equals(env, byte_os->byte_output_stream, this));
 
     if (finished_from_send(env, msg)) {
 	return JNI_TRUE;
@@ -1005,6 +1154,8 @@ Java_ibis_impl_messagePassing_ByteOutputStream_init(
     ibmp_msg_p msg;
 
     byte_os->byte_output_stream = bos;
+    byte_os->buffer_cache = calloc(jprim_n_types,
+				   sizeof(*byte_os->buffer_cache));
 
     ibmp_msg_check(env, byte_os, 0);
     assert(ibmp_equals(env, byte_os->byte_output_stream, this));
@@ -1113,7 +1264,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_write(
 	msg->iov[msg->iov_len].len = sizeof(jbyte);
     }
     IBP_VPRINTF(300, env, ("Now push byte ByteOS %p msg %p data %p size %d iov %d, value %d\n",
-		msg->byte_output_stream, msg,
+		msg->byte_os->byte_output_stream, msg,
 		msg->iov[msg->iov_len].data, msg->iov[msg->iov_len].len,
 		msg->iov_len, b));
     msg->iov_len++;
@@ -1135,15 +1286,15 @@ Java_ibis_impl_messagePassing_ByteOutputStream_report(
     for (i = 0; i < msg->iov_len; i++) {
 	total += msg->iov[i].len;
     }
-    IBP_VPRINTF(300, env, ("PandaByteOutputStream: bytes %d items %d\n",
+    IBP_VPRINTF(300, env, ("ByteOutputStream: bytes %d items %d\n",
 		total, msg->iov_len));
 }
 
 
 
-#define ARRAY_WRITE(JType, jtype) \
+#define ARRAY_WRITE(JType, jtype, JPrim) \
 JNIEXPORT void JNICALL \
-Java_ibis_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
+Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
 	JNIEnv *env,  \
 	jobject this, \
 	jtype ## Array b, \
@@ -1190,27 +1341,29 @@ Java_ibis_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
 	} \
     } \
     IBP_VPRINTF(300, env, ("Now push ByteOS %p msg %p %s source %p data %p size %d iov %d total %d [%d,%d,%d,%d,...]\n", \
-		msg->byte_output_stream, msg, #JType, b, msg->iov[msg->iov_len].data, \
+		msg->byte_os->byte_output_stream, msg, #JType, b, msg->iov[msg->iov_len].data, \
 		msg->iov[msg->iov_len].len, msg->iov_len, ibmp_iovec_len(msg->iov, msg->iov_len + 1), msg->iov[0].len, msg->iov[1].len, msg->iov[2].len, msg->iov[3].len)); \
     dump_ ## jtype((jtype *)(msg->iov[msg->iov_len].data), len); \
     msg->iov_len++; \
 }
 
-ARRAY_WRITE(Boolean, jboolean)
-ARRAY_WRITE(Byte, jbyte)
-ARRAY_WRITE(Char, jchar)
-ARRAY_WRITE(Short, jshort)
-ARRAY_WRITE(Int, jint)
-ARRAY_WRITE(Long, jlong)
-ARRAY_WRITE(Float, jfloat)
-ARRAY_WRITE(Double, jdouble)
+ARRAY_WRITE(Boolean, jboolean, Z)
+ARRAY_WRITE(Byte, jbyte, B)
+ARRAY_WRITE(Char, jchar, C)
+ARRAY_WRITE(Short, jshort, S)
+ARRAY_WRITE(Int, jint, I)
+ARRAY_WRITE(Long, jlong, J)
+ARRAY_WRITE(Float, jfloat, F)
+ARRAY_WRITE(Double, jdouble, D)
+
+#undef ARRAY_WRITE
 
 
 void
 ibmp_byte_output_stream_report(JNIEnv *env, FILE *f)
 {
 #ifdef IBP_VERBOSE
-    fprintf(stderr, "%2d: PandaBufferedOutputStream.sent data %d\n", ibmp_me, sent_data);
+    fprintf(stderr, "%2d: ByteOutputStream.sent data %d\n", ibmp_me, sent_data);
 #endif
     fprintf(f, "send msg %d frag %d (skip %d sync %d) ",
 	    send_msg, send_frag, send_frag_skip, send_sync);
@@ -1220,50 +1373,58 @@ ibmp_byte_output_stream_report(JNIEnv *env, FILE *f)
 void
 ibmp_byte_output_stream_init(JNIEnv *env)
 {
-    cls_PandaByteOutputStream = (*env)->FindClass(env,
+    cls_ByteOutputStream = (*env)->FindClass(env,
 			 "ibis/impl/messagePassing/ByteOutputStream");
-    if (cls_PandaByteOutputStream == NULL) {
+    if (cls_ByteOutputStream == NULL) {
 	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ByteOutputStream\n");
     }
-    cls_PandaByteOutputStream = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_PandaByteOutputStream);
+    cls_ByteOutputStream = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_ByteOutputStream);
 
     fld_nativeByteOS       = (*env)->GetFieldID(env,
-					 cls_PandaByteOutputStream,
+					 cls_ByteOutputStream,
 					 "nativeByteOS", "I");
     if (fld_nativeByteOS == NULL) {
 	ibmp_error(env, "Cannot find static field nativeByteOS:I\n");
     }
 
     fld_waitingInPoll    = (*env)->GetFieldID(env,
-					 cls_PandaByteOutputStream,
+					 cls_ByteOutputStream,
 					 "waitingInPoll", "Z");
     if (fld_waitingInPoll == NULL) {
 	ibmp_error(env, "Cannot find static field waitingInPoll:Z\n");
     }
 
     fld_outstandingFrags = (*env)->GetFieldID(env,
-					 cls_PandaByteOutputStream,
+					 cls_ByteOutputStream,
 					 "outstandingFrags", "I");
     if (fld_outstandingFrags == NULL) {
 	ibmp_error(env, "Cannot find static field outstandingFrags:I\n");
     }
 
     fld_makeCopy = (*env)->GetFieldID(env,
-					 cls_PandaByteOutputStream,
+					 cls_ByteOutputStream,
 					 "makeCopy", "Z");
     if (fld_makeCopy == NULL) {
 	ibmp_error(env, "Cannot find static field makeCopy:Z\n");
     }
 
     fld_msgCount = (*env)->GetFieldID(env,
-					 cls_PandaByteOutputStream,
+					 cls_ByteOutputStream,
 					 "msgCount", "J");
     if (fld_msgCount == NULL) {
 	ibmp_error(env, "Cannot find static field msgCount:I\n");
     }
 
+    fld_allocator = (*env)->GetFieldID(env,
+					 cls_ByteOutputStream,
+					 "allocator",
+					 "Libis/io/DataAllocator;");
+    if (fld_allocator == NULL) {
+	ibmp_error(env, "Cannot find static field allocator:Libis.io.DataAllocator;\n");
+    }
+
     md_finished_upcall    = (*env)->GetMethodID(env,
-						cls_PandaByteOutputStream,
+						cls_ByteOutputStream,
 						"finished_upcall", "()V");
     if (md_finished_upcall == NULL) {
 	ibmp_error(env, "Cannot find method finished_upcall()V\n");

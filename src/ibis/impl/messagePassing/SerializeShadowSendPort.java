@@ -6,7 +6,6 @@ import ibis.util.ConditionVariable;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-//import java.io.ObjectInputStream;
 
 final class SerializeShadowSendPort
 	extends ShadowSendPort
@@ -162,7 +161,7 @@ final class SerializeShadowSendPort
 
 	Ibis.myIbis.unlock();
 	try {
-	    obj_in = new SunSerializationInputStream(new BufferedInputStream(in));
+	    obj_in = new SunSerializationInputStream(new BufferedInputStream(new InputStream(in)));
 	} finally {
 	    Ibis.myIbis.lock();
 	}

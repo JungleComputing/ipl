@@ -1,12 +1,16 @@
 package ibis.impl.messagePassing;
 
 import ibis.util.ConditionVariable;
+import ibis.util.TypedProperties;
+
+import ibis.io.DataAllocator;
 
 import java.io.IOException;
 
 
 final class ByteOutputStream
-	extends java.io.OutputStream
+	// extends java.io.OutputStream
+	extends ibis.io.ArrayOutputStream
 	implements PollClient {
 
     private SendPort sport;
@@ -53,6 +57,13 @@ final class ByteOutputStream
     private int		nativeByteOS;
 
 
+    /**
+     * The buffer allocator used by an IbisSerializationOutputStream on
+     * top of us. Used to reclaim buffers.
+     */
+    private ibis.io.DataAllocator allocator = null;
+
+
     ByteOutputStream(ibis.ipl.SendPort p, boolean syncMode, boolean makeCopy) {
 	this.syncMode = syncMode;
 	this.makeCopy = makeCopy;
@@ -61,6 +72,14 @@ final class ByteOutputStream
 	}
 	sport = (SendPort)p;
 	nativeByteOS = init();
+    }
+
+
+    void setAllocator(DataAllocator allocator) {
+	if (TypedProperties.booleanProperty("ibis.mp.allocator")) {
+	    System.err.println(this + ": set allocator " + allocator);
+	    this.allocator = allocator;
+	}
     }
 
 
@@ -212,7 +231,7 @@ final class ByteOutputStream
     }
 
 
-    void finish() throws IOException {
+    public void finish() throws IOException {
 	Ibis.myIbis.lock();
 	try {
 	    reset(true);
@@ -222,8 +241,95 @@ final class ByteOutputStream
     }
 
 
-    boolean completed() {
-	return outstandingFrags == 0;
+    private native void		releaseCachedBuffers();
+    private native byte[]	getCachedByteBuffer();
+    private native char[]	getCachedCharBuffer();
+    private native short[]	getCachedShortBuffer();
+    private native int[]	getCachedIntBuffer();
+    private native long[]	getCachedLongBuffer();
+    private native float[]	getCachedFloatBuffer();
+    private native double[]	getCachedDoubleBuffer();
+    private native void		clearGlobalRefs();
+
+
+    private int releaseBuffers(boolean recycle) {
+	Ibis.myIbis.checkLockOwned();
+
+	if (! recycle) {
+	    // Hand them to the GC and clear the global refs
+	    releaseCachedBuffers();
+
+	    return 0;
+	}
+
+	int returned = 0;
+
+// System.err.println("Try to release cached bufs.. nativeByteOs " + Integer.toHexString(nativeByteOS));
+	byte[] byteBuffer;
+	while ((byteBuffer = getCachedByteBuffer()) != null) {
+	    allocator.putByteArray(byteBuffer);
+	    returned++;
+	}
+	char[] charBuffer;
+	while ((charBuffer = getCachedCharBuffer()) != null) {
+	    allocator.putCharArray(charBuffer);
+	    returned++;
+	}
+	short[] shortBuffer;
+	while ((shortBuffer = getCachedShortBuffer()) != null) {
+// System.err.println("put ShortArray " + shortBuffer);
+	    allocator.putShortArray(shortBuffer);
+	    returned++;
+	}
+	int[] intBuffer;
+	while ((intBuffer = getCachedIntBuffer()) != null) {
+// System.err.println("put IntArray " + intBuffer);
+	    allocator.putIntArray(intBuffer);
+	    returned++;
+	}
+	long[] longBuffer;
+	while ((longBuffer = getCachedLongBuffer()) != null) {
+	    allocator.putLongArray(longBuffer);
+	    returned++;
+	}
+	float[] floatBuffer;
+	while ((floatBuffer = getCachedFloatBuffer()) != null) {
+	    allocator.putFloatArray(floatBuffer);
+	    returned++;
+	}
+	double[] doubleBuffer;
+	while ((doubleBuffer = getCachedDoubleBuffer()) != null) {
+	    allocator.putDoubleArray(doubleBuffer);
+	    returned++;
+	}
+
+	clearGlobalRefs();
+
+	return returned;
+    }
+
+
+    public boolean finished() throws IOException {
+	if (allocator == null) {
+	    return outstandingFrags == 0;
+	}
+
+	int returned = 0;
+// System.err.println("finished -> outstandingFrags " + outstandingFrags);
+	Ibis.myIbis.lock();
+	try {
+	    if (outstandingFrags > 0) {
+		Ibis.myIbis.pollLocked();
+	    }
+	    boolean anyOutstandingFrags = (outstandingFrags > 0);
+	    returned = releaseBuffers(anyOutstandingFrags);
+	    return ! anyOutstandingFrags
+		&& returned == 0
+		// && allocator == null
+		;
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
     }
 
 
@@ -265,7 +371,7 @@ final class ByteOutputStream
     public native void write(int b) throws IOException;
 
     public void write(byte[] b, int off, int len) throws IOException {
-	writeByteArray(b, off, len);
+	writeArray(b, off, len);
 	if (syncMode) {
 	    flush();
 	}
@@ -279,14 +385,30 @@ final class ByteOutputStream
 	msgCount = 0;
     }
 
-    native void writeBooleanArray(boolean[] array, int off, int len) throws IOException;
-    native void writeByteArray(byte[] array, int off, int len) throws IOException;
-    native void writeCharArray(char[] array, int off, int len) throws IOException;
-    native void writeShortArray(short[] array, int off, int len) throws IOException;
-    native void writeIntArray(int[] array, int off, int len) throws IOException;
-    native void writeLongArray(long[] array, int off, int len) throws IOException;
-    native void writeFloatArray(float[] array, int off, int len) throws IOException;
-    native void writeDoubleArray(double[] array, int off, int len) throws IOException;
+    public final long bytesWritten() { 
+	return getCount();
+    }
+
+    public final void resetBytesWritten() {
+	resetCount();
+    }
+
+    public native void writeArray(boolean[] array, int off, int len)
+	    throws IOException;
+    public native void writeArray(byte[] array, int off, int len)
+	    throws IOException;
+    public native void writeArray(char[] array, int off, int len)
+	    throws IOException;
+    public native void writeArray(short[] array, int off, int len)
+	    throws IOException;
+    public native void writeArray(int[] array, int off, int len)
+	    throws IOException;
+    public native void writeArray(long[] array, int off, int len)
+	    throws IOException;
+    public native void writeArray(float[] array, int off, int len)
+	    throws IOException;
+    public native void writeArray(double[] array, int off, int len)
+	    throws IOException;
 
     native void report();
 }

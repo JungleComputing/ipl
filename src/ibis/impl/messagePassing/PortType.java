@@ -26,8 +26,8 @@ public class PortType extends ibis.ipl.PortType {
 	String ser = p.find("Serialization");
 	if (ser == null) {
 	    this.p = new StaticProperties(p);
-	    this.p.add("Serialization", "sun");
-	    serializationType = SERIALIZATION_SUN;
+	    this.p.add("Serialization", "bytes");
+	    serializationType = SERIALIZATION_NONE;
 	} else if (ser.equals("object")) {
 	    serializationType = SERIALIZATION_SUN;
 	} else if (ser.equals("byte")) {

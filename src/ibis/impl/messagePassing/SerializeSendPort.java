@@ -93,7 +93,7 @@ final public class SerializeSendPort extends SendPort {
 	    Ibis.myIbis.unlock();
 	}
 
-	obj_out = new ibis.io.SunSerializationOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
+	obj_out = new ibis.io.SunSerializationOutputStream(new BufferedOutputStream(new OutputStream(out)));
 	if (replacer != null) {
 	    obj_out.setReplacer(replacer);
 	}

@@ -22,10 +22,13 @@ final public class IbisSendPort extends SendPort {
 	super(type, name, conn, r,
 	      false,	/* syncMode */
 	      false	/* makeCopy */);
-	obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
+	// obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
+	obj_out = new IbisSerializationOutputStream(out);
 	if (replacer != null) {
 	    obj_out.setReplacer(replacer);
 	}
+	out.setAllocator(obj_out.getAllocator());
+
 	if (Ibis.DEBUG) {
 	    System.err.println(">>>>>>>>>>>>>>>> Create a IbisSerializationOutputStream " + obj_out + " for IbisWriteMessage " + this);
 	}
