@@ -9,7 +9,8 @@ import java.net.Socket;
 /**
  * Ibis has no support for RMISocketFactories.
  */
-public abstract class RMISocketFactory {
+public abstract class RMISocketFactory implements RMIClientSocketFactory,
+        RMIServerSocketFactory {
 
     /**
      * Constructs an <code>RMISocketFactory</code>.

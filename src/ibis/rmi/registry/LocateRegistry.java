@@ -4,6 +4,8 @@ package ibis.rmi.registry;
 
 import ibis.rmi.RemoteException;
 import ibis.rmi.impl.RTS;
+import ibis.rmi.server.RMIClientSocketFactory;
+import ibis.rmi.server.RMIServerSocketFactory;
 
 /**
  * The <code>LocateRegistry</code> class is a container class for methods that
@@ -65,6 +67,20 @@ public final class LocateRegistry {
      * @exception RemoteException if the registry could not be created.
      */
     public static Registry createRegistry(int port) throws RemoteException {
+        return new ibis.rmi.registry.impl.RegistryImpl(port);
+    }
+
+    /**
+     * Creates and exports a <code>Registry</code> on the local host.
+     * This registry will accept requests on the specified port.
+     * @param port the port on which the registry accepts requests
+     * @param c client socket factory (ignored in ibis)
+     * @param s server socket factory (ignored in ibis)
+     * @return the registry.
+     * @exception RemoteException if the registry could not be created.
+     */
+    public static Registry createRegistry(int port, RMIClientSocketFactory c,
+            RMIServerSocketFactory s) throws RemoteException {
         return new ibis.rmi.registry.impl.RegistryImpl(port);
     }
 
