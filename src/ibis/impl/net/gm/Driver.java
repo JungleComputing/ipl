@@ -58,6 +58,7 @@ public final class Driver extends NetDriver {
 	 */
 	private final String name = "gm";
 
+	private static native void nInitGM() throws IOException;
 	static native long nInitDevice(int deviceNum) throws IOException;
 	static native void nCloseDevice(long deviceHandler) throws IOException;
 
@@ -96,6 +97,17 @@ public final class Driver extends NetDriver {
 	    gmAccessLock.lock();
 	    gmLockArray.initLock(0, false);
 	    gmAccessLock.unlock();
+
+	    try {
+		nInitGM();
+	    } catch (IOException e) {
+		throw new Error("Could not initialise GM " + e);
+	    }
+
+	    Thread timesliceWatchDog = new TimesliceWatchDog();
+	    timesliceWatchDog.setDaemon(true);
+	    timesliceWatchDog.setName("Net.GM Driver time slice watchdog");
+	    timesliceWatchDog.start();
 
 	    Runtime.getRuntime().addShutdownHook(new Thread("NetGm Driver ShutdownHook") {
 		public void run() {
@@ -140,6 +152,26 @@ public final class Driver extends NetDriver {
 		    nStatistics();
 		}
 	    });
+	}
+
+
+	private static class TimesliceWatchDog extends Thread {
+
+	    public void run() {
+		while (true) {
+		    if (gmAccessLock.tryLock()) {
+			nGmThread();
+			gmAccessLock.unlock();
+		    }
+		    try {
+			// 15 ms because that's close to a usual CPU time slice
+			Thread.sleep(15);
+		    } catch (InterruptedException e) {
+			// No idea what to do
+		    }
+		}
+	    }
+
 	}
 
 
@@ -207,11 +239,17 @@ public final class Driver extends NetDriver {
 	}
 
 
+	/**
+	 * Called from native code. Do not discard.
+	 */
 	private static void lock() {
 	    gmAccessLock.lock();
 	}
 
 
+	/**
+	 * Called from native code. Do not discard.
+	 */
 	private static void unlock() {
 	    gmAccessLock.unlock();
 	}

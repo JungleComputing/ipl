@@ -160,7 +160,6 @@ public final class GmInput extends NetBufferedInput {
                 lInfo.put("gm_mux_id", new Integer(lmuxId));
                 Hashtable rInfo = null;
 
-if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": start input connection " + cnx.getServiceLink().partner());
 		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
 
 		os.writeObject(lInfo);
@@ -178,7 +177,6 @@ if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThrea
 		rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
 		rmuxId  = ((Integer) rInfo.get("gm_mux_id") ).intValue();
 
-if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": start native input connection " + cnx.getServiceLink().partner());
                 Driver.gmAccessLock.lock();
 		nConnectInput(inputHandle, rnodeId, rportId, rmuxId);
                 Driver.gmAccessLock.unlock();
@@ -195,7 +193,6 @@ if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThrea
 		allocator = new NetAllocator(mtu);
 		this.spn = cnx.getNum();
                 startUpcallThread();
-if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": established input connection " + cnx.getServiceLink().partner());
                 log.out();
 	}
 

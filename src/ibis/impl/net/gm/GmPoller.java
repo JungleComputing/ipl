@@ -77,7 +77,6 @@ public final class GmPoller extends NetPoller {
 
 	Integer num = cnx.getNum();
 	setupConnection(cnx, num);
-if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": " + this + ".setupConnection");
 	ReceiveQueue q = (ReceiveQueue)inputMap.get(num);
 	GmInput ni = (GmInput)q.getInput();
 
@@ -125,7 +124,6 @@ if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThrea
 	    startUpcallThread();
 
 	    Driver.gmAccessLock.lock();
-if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": " + this + ".setupConnection: locked gmAccessLock");
 	    try {
 		Driver.interruptPump(oldLockIds);
 	    } finally {
@@ -139,7 +137,6 @@ if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThrea
 	    if (mtu == 0  ||  mtu > _mtu) {
 		mtu = _mtu;
 	    }
-if (false) System.err.println("t = " + NetIbis.now() + " " + Thread.currentThread() + ": " + this + " exit setupConnection");
 
 	    log.out();
 

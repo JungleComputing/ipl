@@ -554,6 +554,9 @@ static jfieldID		fld_pollers;
 static jfieldID		fld_yielders;
 static jfieldID		fld_yields;
 
+static jclass		cls_NetIbis;
+static jmethodID	md_now;
+
 static jmethodID	md_lock;
 static jmethodID	md_unlock;
 
@@ -767,6 +770,7 @@ static void pdump(void)
 /*
  *  Prototypes
  */
+static char *currentThreadName(JNIEnv *env);
 
 
 
@@ -1062,8 +1066,21 @@ ni_gm_jni_init(JNIEnv *env)
     md_lock     = ni_getStaticMethod(env, cls_Driver, "lock", "()V");
     md_unlock   = ni_getStaticMethod(env, cls_Driver, "unlock", "()V");
 
+    cls_NetIbis = ni_findClass(env, "ibis/impl/net/NetIbis");
+    cls_NetIbis = (*env)->NewGlobalRef(env, cls_NetIbis);
+
+    md_now      = ni_getStaticMethod(env, cls_NetIbis, "now", "()F");
+
     return 0;
 }
+
+
+static jfloat
+ni_gm_now(JNIEnv *env)
+{
+    return (*env)->CallStaticFloatMethod(env, cls_NetIbis, md_now);
+}
+
 
 
 static
@@ -4120,38 +4137,54 @@ ni_gm_intr_init(JNIEnv *env, struct s_dev *p_dev)
 
 
 JNIEXPORT
+void
+JNICALL
+Java_ibis_impl_net_gm_Driver_nInitGM(JNIEnv *env, jclass driver)
+{
+	struct s_drv *p_drv = NULL;
+
+	STATINC(native);
+
+	gethostname(hostname, sizeof(hostname) / sizeof(hostname[0]));
+
+	if (ni_gm_init(&p_drv))
+		goto error;
+
+	if (ni_gm_jni_init(env)) {
+	    goto error;
+	}
+
+	if (ni_gm_access_lock_init(env))
+		goto error;
+
+	if (mtu_init(env)) {
+		goto error;
+	}
+
+	ni_gm_p_drv = p_drv;
+
+	successfully_initialized = 1;
+        __out__();
+
+ error:
+        __err__();
+}
+
+
+
+JNIEXPORT
 jlong
 JNICALL
-Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint device_num) {
+Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jclass driver, jint device_num) {
         struct s_dev *p_dev  = NULL;
         jlong         result =    0;
 
         __in__();
 	STATINC(native);
-        if (!ni_gm_p_drv) {
-                struct s_drv *p_drv = NULL;
 
-		gethostname(hostname, sizeof(hostname) / sizeof(hostname[0]));
-
-                if (ni_gm_init(&p_drv))
-                        goto error;
-
-		if (ni_gm_jni_init(env)) {
-		    goto error;
-		}
-
-                if (ni_gm_access_lock_init(env))
-                        goto error;
-
-		if (mtu_init(env)) {
-			goto error;
-		}
-
-                ni_gm_p_drv = p_drv;
-
-                successfully_initialized = 1;
-        }
-
+	if (! ni_gm_p_drv) {
+		goto error;
+	}
 
         if (ni_gm_dev_init(env, ni_gm_p_drv, (int)device_num, &p_dev)) {
                 ni_gm_throw_exception(env,
@@ -4172,7 +4205,7 @@ Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint devic
 JNIEXPORT
 void
 JNICALL
-Java_ibis_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong device_handle) {
+Java_ibis_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jclass driver, jlong device_handle) {
         struct s_dev *p_dev  = NULL;
 
         __in__();
@@ -4197,8 +4230,6 @@ Java_ibis_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong dev
 }
 
 
-#if PRINT_OWNED_MONITORS
-
 #include <jvmdi.h>
 
 static jthread
@@ -4209,12 +4240,44 @@ currentThread(JNIEnv *env)
 
     if (cls_Thread == NULL) {
 	cls_Thread = ni_findClass(env, "java/lang/Thread");
+	cls_Thread = (*env)->NewGlobalRef(env, cls_Thread);
 	md_currentThread = ni_getStaticMethod(env, cls_Thread, "currentThread", "()Ljava/lang/Thread;");
     }
 
     return (jthread)(*env)->CallStaticObjectMethod(env, cls_Thread, md_currentThread);
 }
 
+
+static char *
+currentThreadName(JNIEnv *env)
+{
+    static jclass	cls_Object;
+    static jmethodID	md_toString;
+    static char		string[2048];
+    jstring		name;
+    int			len;
+    const jbyte	       *b;
+
+    if (cls_Object == NULL) {
+	cls_Object = ni_findClass(env, "java/lang/Object");
+	cls_Object = (*env)->NewGlobalRef(env, cls_Object);
+	md_toString = ni_getMethod(env, cls_Object, "toString", "()Ljava/lang/String;");
+    }
+
+    name = (*env)->CallObjectMethod(env, currentThread(env), md_toString);
+    len = (*env)->GetStringUTFLength(env, name);
+    if (len + 1 > sizeof(string)) {
+	return "<Thread.. name too long>";
+    }
+    b = (*env)->GetStringUTFChars(env, name, NULL);
+    memcpy(string, b, len + 1);
+    (*env)->ReleaseStringUTFChars(env, name, b);
+
+    return string;
+}
+
+
+#if PRINT_OWNED_MONITORS
 
 static void
 dump_monitors(JNIEnv *env)
@@ -4283,6 +4346,7 @@ dump_monitors(env);
 	    int              evt_type = GM_NO_RECV_EVENT;
 
 	    if (!ni_gm_p_drv->nb_dev) {
+		result = JNI_FALSE;
 		break;
 	    }
 
