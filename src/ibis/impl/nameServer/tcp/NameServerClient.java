@@ -58,6 +58,40 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     static IbisSocketFactory socketFactory = IbisSocketFactory.createFactory();
 
+    static Socket nsConnect(InetAddress dest, int port, InetAddress me,
+            boolean verbose, int timeout) throws IOException {
+        Socket s = null;
+        int cnt = 0;
+        while (s == null) {
+            try {
+                cnt++;
+                s = socketFactory.createSocket(dest, port, me, -1);
+            } catch (ConnectionTimedOutException e) {
+                if (cnt == 10 && verbose) {
+                    // Rather arbitrary, 10 seconds, print warning
+                    System.err.println("Nameserver client failed"
+                            + " to connect to nameserver\n at " + dest
+                            + ":" + port + ", will keep trying");
+                } else if (cnt == timeout) {
+                    if (verbose) {
+                        System.err.println("Nameserver client failed"
+                                + " to connect to nameserver\n at "
+                                + dest + ":" + port);
+                        System.err.println("Gave up after " + timeout
+                                + " seconds");
+                    }
+                    throw e;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e2) {
+                    // don't care
+                }
+            }
+        }
+        return s;
+    }
+
     public NameServerClient() {
         /* do nothing */
     }
@@ -117,35 +151,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             System.err.println("Found nameServerInet " + serverAddress);
         }
 
-        Socket s = null;
-        int cnt = 0;
-        while (s == null) {
-            try {
-                cnt++;
-                s = socketFactory.createSocket(serverAddress, port, myAddress,
-                        -1);
-                // myAddress = s.getLocalAddress();
-            } catch (ConnectionTimedOutException e) {
-                if (cnt == 10) {
-                    // Rather arbitrary, 10 seconds, print warning
-                    System.err.println("Nameserver client failed"
-                            + " to connect to nameserver\n at " + serverAddress
-                            + ":" + port + ", will keep trying");
-                } else if (cnt == 60) {
-                    // Rather arbitrary, 1 minute
-                    System.err.println("Nameserver client failed"
-                            + " to connect to nameserver\n at " + serverAddress
-                            + ":" + port);
-                    System.err.println("Gave up after 60 seconds");
-                    throw e;
-                }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e2) {
-                    // don't care
-                }
-            }
-        }
+        Socket s = nsConnect(serverAddress, port, myAddress, true, 60);
 
         serverSocket = socketFactory.createServerSocket(0, myAddress, true);
 

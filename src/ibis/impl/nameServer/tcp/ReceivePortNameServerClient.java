@@ -38,13 +38,12 @@ class ReceivePortNameServerClient implements Protocol {
 
     public ReceivePortIdentifier lookup(String name, long timeout)
             throws IOException {
-        Socket s = null;
         ObjectOutputStream out;
         ObjectInputStream in;
         ReceivePortIdentifier id = null;
         int result;
-        s = NameServerClient.socketFactory.createSocket(server, port,
-                localAddress, timeout);
+        Socket s = NameServerClient.nsConnect(server, port, localAddress,
+                false, 10);
 
         DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
         out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -111,8 +110,7 @@ class ReceivePortNameServerClient implements Protocol {
             System.err.println(this + ": bind \"" + name + "\" to " + id);
         }
 
-        s = NameServerClient.socketFactory.createSocket(server, this.port,
-                localAddress, 0 /* retry */);
+        s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
 
         DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
         out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -157,8 +155,7 @@ class ReceivePortNameServerClient implements Protocol {
             System.err.println(this + ": rebind \"" + name + "\" to " + id);
         }
 
-        s = NameServerClient.socketFactory.createSocket(server, this.port,
-                localAddress, 0 /* retry */);
+        s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
 
         DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
         out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -195,8 +192,8 @@ class ReceivePortNameServerClient implements Protocol {
         Socket s = null;
         ObjectOutputStream out;
         ObjectInputStream in;
-        s = NameServerClient.socketFactory.createSocket(server, this.port,
-                localAddress, 0 /* retry */);
+
+        s = NameServerClient.nsConnect(server, port, localAddress, false, 5);
 
         DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
         out = new ObjectOutputStream(new BufferedOutputStream(dos));
@@ -224,8 +221,7 @@ class ReceivePortNameServerClient implements Protocol {
         ObjectInputStream in;
         String[] result;
 
-        s = NameServerClient.socketFactory.createSocket(server, this.port,
-                localAddress, 0 /* retry */);
+        s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
 
         DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
         out = new ObjectOutputStream(new BufferedOutputStream(dos));

@@ -40,8 +40,7 @@ class PortTypeNameServerClient implements Protocol {
         DataInputStream in;
         int result;
 
-        s = NameServerClient.socketFactory.createSocket(server, port,
-                localAddress, 0 /* retry */);
+        s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
         DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
         out = new DataOutputStream(new BufferedOutputStream(dos, 4096));
 
@@ -81,8 +80,8 @@ class PortTypeNameServerClient implements Protocol {
     }
 
     public long getSeqno(String name) throws IOException {
-        Socket s = NameServerClient.socketFactory.createSocket(server, port,
-                localAddress, 0 /* retry */);
+        Socket s = NameServerClient.nsConnect(server, port, localAddress,
+                false, 10);
 
         DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
         DataOutputStream out = new DataOutputStream(new BufferedOutputStream(

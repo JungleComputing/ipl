@@ -38,8 +38,8 @@ class ElectionClient implements Protocol {
         // Election: candidate==null means caller is not a candidate.
         // Note: at least one caller must have a candidate.
         while (result == null) {
-            s = NameServerClient.socketFactory.createSocket(server, port,
-                    localAddress, 0 /* retry */);
+            s = NameServerClient.nsConnect(server, port, localAddress, false,
+                    10);
             DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
             out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
