@@ -733,12 +733,18 @@
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
 	<move todir="${distr}/ibis-${version}">
-	    <fileset dir="$distr}/ibis"/>
+	    <fileset dir="${distr}/ibis">
+	    </fileset>
 	</move>
+	<!--
+	  Cannot use the zip task: it strips file permissions.
 	<zip destfile="ibis-${version}-src-distr.zip"
-	     basedir="${distr}"
-	     excludes="**/CVS/* **/CVS">
 	</zip>
+	-->
+	<exec executable="/usr/bin/zip"
+	      dir="${distr}">
+	    <arg line="-qr ${ibis}/ibis-${version}-src-distr.zip ibis-${version}"/>
+	</exec>
     </target>
 
 </project>
