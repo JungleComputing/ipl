@@ -35,13 +35,13 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             if( backpos<pos-Configuration.MINIMAL_SPAN ){
                 if( text[backpos+1] == text[pos+1] && text[backpos+2] == text[pos+2] ){
                     // This is a sensible backref.
-                    // TODO: We could verify that at least the minimal span
-                    // is equal.
                     n++;
                 }
             }
             backpos = backrefs[backpos];
         }
+
+        // And now build an array with them.
         int res[] = new int[n];
         backpos = backrefs[pos];
         n = 0;
@@ -79,7 +79,6 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
     public Backref selectBestMove( byte text[], int backrefs[], int pos, int depth )
     {
-        // We always have the choice to just copy the character.
         Backref mv;
 
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
@@ -87,10 +86,14 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         }
         int sites[] = collectBackrefs( text, backrefs, pos );
         Backref results[] = new Backref[sites.length];
+        // We always have the choice to just copy the character.
         if( depth<Configuration.LOOKAHEAD_DEPTH ){
+            // Evaluate the gain of just copying the character.
             mv = selectBestMove( text, backrefs, pos+1, depth+1 );
         }
         else {
+            // At the full depth of recursion, record the character copy
+            // as a zero-gain move.
             mv = new Backref();
         }
         for( int i=0; i<sites.length; i++ ){
@@ -118,6 +121,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         int backrefs[] = buildBackrefs( text );
         int pos = 0;
         ByteBuffer out = new ByteBuffer();
+
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
             Backref mv = selectBestMove( text, backrefs, pos, 0 );
             sync();
@@ -127,11 +131,16 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                 out.append( text[pos++] );
             }
             else {
-                // There is a backreference that helps.
-                out.outputRef( pos, mv );
+                // There is a backreference that helps, write it to
+                // the output stream.
+                out.appendRef( pos, mv );
+
+                // And skip all the characters that we've backreferenced.
                 pos += mv.len;
             }
         }
+
+        // Write the last few characters without trying to compress.
         while( pos<text.length ){
             out.append( text[pos++] );
         }

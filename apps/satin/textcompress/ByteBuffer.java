@@ -47,7 +47,7 @@ class ByteBuffer implements java.io.Serializable {
         sz += len;
     }
 
-    public void outputRef( int pos, Backref ref )
+    public void appendRef( int pos, Backref ref )
     {
         int backpos = ref.backpos;
         int len = ref.len-Configuration.MINIMAL_SPAN;
