@@ -57,11 +57,20 @@ public class IbisSocketFactory {
 		}
 	}
 
-        /** A host can have multiple local IPs (sierra)
-	    if localIP is null, try to bind to the first of this machine's IP addresses. **/
-	public static Socket createSocket(InetAddress dest, int port, InetAddress localIP, boolean retry) throws IbisIOException { 
+        /** 
+	    A host can have multiple local IPs (sierra)
+	    if localIP is null, try to bind to the first of this machine's IP addresses.
+
+	    timeoutMillis < 0  means do not retry, throw exception on failure.
+	    timeoutMillis == 0 means retry until success.
+	    timeoutMillis > 0  means block at most for timeoutMillis milliseconds, then return. 
+	    An IbisIOException is thrown when the socket was not properly created within this time.
+	**/
+	public static Socket createSocket(InetAddress dest, int port, InetAddress localIP, long timeoutMillis) throws IbisIOException { 
 		boolean connected = false;
 		Socket s = null;
+		long startTime = System.currentTimeMillis();
+		long currentTime = 0;
 
 		if (localIP != null && dest.getHostAddress().equals("127.0.0.1")) {
 		    /* Avoid ConnectionRefused exception */
@@ -77,6 +86,7 @@ public class IbisSocketFactory {
 			if (DEBUG) {
 				System.err.println("Trying to connect Socket (local:" + (localIP==null?"any" : localIP.toString()) + ":" + localPort + ") to " + dest + ":" + port);
 			}
+
                         try {
 				if(localIP == null) {
 					s = new Socket(dest, port);
@@ -91,18 +101,29 @@ public class IbisSocketFactory {
                                 s.setTcpNoDelay(true);
 //				System.err.println("created socket linger = " + s.getSoLinger());
                         } catch (IOException e1) { 
-				if (!retry) { 
+				if (DEBUG) { 
+					System.err.println("Socket connect to " + dest + ":" + port + " failed (" + e1 + ")");
+					e1.printStackTrace();
+				}
+
+				if(timeoutMillis < 0) {
 					throw new IbisIOException("" + e1);
-				} else {      
-					if (DEBUG) { 
-						System.err.println("Socket connect to " + dest + ":" + port + " failed (" + e1 + "), retrying");
-						e1.printStackTrace();
-					}
-                              
+				} else if (timeoutMillis == 0) {
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e2) { 
 						// don't care
+					}
+				} else {
+					currentTime = System.currentTimeMillis();
+					if(currentTime - startTime < timeoutMillis) {
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e2) { 
+							// don't care
+						}
+					} else {
+						throw new IbisIOException("" + e1);
 					}
 				}
                         }
