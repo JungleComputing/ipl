@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import java.util.TreeSet;
 
 public final class TextIndex extends ibis.satin.SatinObject implements IndexerInterface, java.io.Serializable {
-    private static final boolean traceTreeWalk = false;
+    private static final boolean traceTreeWalk = true;
     private static final Pattern nonWord = Pattern.compile( "\\W+" );
 
     /**
@@ -47,6 +47,81 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
         }
         r.close();
         return new Index( f, set );
+    }
+
+    /**
+     * Given a directory file, returns a list of files in that
+     * directory. The list may contain null entries that should be ignored.
+     */
+    private static String [] buildFileList( File f )
+    {
+        String files[] = f.list();
+
+        if( files == null ){
+            return null;
+        }
+        for( int i=0; i<files.length; i++ ){
+            // Make these files fully qualified.
+            if( files[i].charAt( 0 ) == '.' ){
+                files[i] = null;
+            }
+            else {
+                files[i] = new File( f, files[i] ).toString();
+            }
+        }
+        return files;
+    }
+
+    /**
+     * Given a list of files, return an index of these files.
+     * @param fl The list of files.
+     */
+    public Index indexFileList( String fl[] ) throws IOException
+    {
+        if( fl.length == 0 ){
+            return null;
+        }
+        if( fl.length == 1 ){
+            String fnm = fl[0];
+
+            if( fnm == null ){
+                return null;
+            }
+            File f = new File( fnm );
+
+            if( f.isDirectory() ){
+                if( traceTreeWalk ){
+                    System.err.println( "Visiting directory " + f );
+                }
+                String fl1[] = buildFileList( f );
+                return indexFileList( fl1 );
+            }
+            if( f.isFile() ){
+                if( traceTreeWalk ){
+                    System.err.println( "Indexing plain file " + f );
+                }
+                return indexFile( fnm );
+            }
+            System.err.println( "Skipping weird file " + fnm );
+            return null;
+        }
+        // Divide and conquer...
+        int mid = fl.length/2;
+        String l1[] = new String[mid];
+        String l2[] = new String[fl.length-mid];
+
+        System.arraycopy( fl, 0, l1, 0, mid );
+        System.arraycopy( fl, mid, l2, 0, l2.length );
+        Index ix1 = indexFileList( l1 );
+        Index ix2 = indexFileList( l2 );
+        sync();
+        // Now merge them.
+        if( ix1 == null ){
+            return ix2;
+        }
+        ix1.add( ix2 );
+        return ix1;
+        
     }
 
     public Index indexDirectory( String dirnm ) throws IOException
@@ -153,7 +228,12 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
 
 	long startTime = System.currentTimeMillis();
         TextIndex ix = new TextIndex();
-        Index res = ix.indexDirectory( dir.toString() );
+        String fl[] = buildFileList( dir );
+        if( fl == null ){
+	    System.err.println( "Cannot create a file list for " + dir );
+	    System.exit( 1 );
+        }
+        Index res = ix.indexFileList( fl );
         ix.sync();
         res.write( new FileWriter( ixfile ) );
 

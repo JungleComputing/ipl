@@ -40,6 +40,9 @@ public class Index implements java.io.Serializable {
      */
     public void add( Index ix )
     {
+        if( ix == null ){
+            return;
+        }
         // The offset of the newly added entries in our index.
         int offset = files.length;
 
