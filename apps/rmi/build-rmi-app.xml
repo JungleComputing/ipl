@@ -20,6 +20,9 @@
 
     <target name="compile"
 	    depends="init,property-init">
+        <property name="class-path" refid="default.classpath"/>
+	<echo   message="class path ${class-path}"/>
+
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir=".">
@@ -41,6 +44,30 @@
 	    description="Compile RMI application for Sun RMI">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="rmic-sun"/>
+    </target>
+
+    <target name="build-karmi"
+	    depends="init"
+	    description="Compile RMI application for KaRMI">
+	<replace
+		dir="."
+		token="java.rmi."
+		value="uka.karmi.rmi."/>
+	<replace
+		dir="."
+		token="uka.karmi.rmi.RMISecurityManager"
+		value="java.rmi.RMISecurityManager"/>
+
+	<path id="3rdparty">
+	    <pathelement path="${karmi}/karmi.jar"/>
+	</path>
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<antcall inheritRefs="true" target="rmic-karmi"/>
+
+	<replace
+		dir="."
+		token="uka.karmi.rmi"
+		value="java.rmi"/>
     </target>
 
     <target name="clean">
