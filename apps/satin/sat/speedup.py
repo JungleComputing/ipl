@@ -90,7 +90,10 @@ class Thread( threading.Thread ):
          self._lck = lck
          threading.Thread.__init__( self )
     def run( self ):
-        res = runP( self._P, self._command, self._results )
+        try:
+            res = runP( self._P, self._command, self._results )
+        except:
+            print "Run for P=%d failed: %s" % (self._P, sys.exc_info())
         self._lck.acquire()
         self._lck.release()
 

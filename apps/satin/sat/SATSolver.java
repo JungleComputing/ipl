@@ -47,6 +47,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
 	}
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
+        // We must update the administration with any
+        // new clauses that we've learned recently.
+        ctx.update( p );
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level );
@@ -99,9 +102,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	// give it to the recursion.
 	// Also note that this call is a perfect candidate for tail
 	// call elimination.
-        // However, we must update the administration with any
-        // new clauses that we've learned recently.
-        ctx.update( p );
 	leafSolve( level+1, ctx, nextvar, !firstvar );
     }
 
@@ -126,6 +126,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
 
+        ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	int res;
 	if( val ){
@@ -170,7 +171,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                 // We have variable 'nextvar' to branch on.
                 SATContext firstctx = (SATContext) ctx.clone();
                 solve( level+1, firstctx, nextvar, firstvar );
-                ctx.update( p );
                 SATContext secondctx = (SATContext) ctx.clone();
                 solve( level+1, secondctx, nextvar, !firstvar );
                 sync();
@@ -204,7 +204,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                 // We have an untried value, continue with that.
             }
 	    subctx = (SATContext) ctx.clone();
-            subctx.update( p );
 	    leafSolve( level+1, subctx, nextvar, !firstvar );
 	}
     }
