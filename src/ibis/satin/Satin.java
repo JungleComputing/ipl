@@ -828,6 +828,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					}
 					
 					System.out.println("SATIN '" + ident.name() + ": Got exception from an inlet!: " + t);
+					t.printStackTrace();
+
 					if(SPAWN_STATS) {
 						aborts++;
 					}
