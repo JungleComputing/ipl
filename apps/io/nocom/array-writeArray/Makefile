@@ -1,6 +1,6 @@
 include ../../../../config.mk
 
-java: 
+java:
 	cd read && $(MAKE) $(MFLAGS) java
 
 manta:
