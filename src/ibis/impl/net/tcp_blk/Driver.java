@@ -17,18 +17,22 @@ import java.net.Socket;
  */
 public final class Driver extends NetDriver {
 
+	static final int DEFAULT_MTU	= 32 * 1024;
+
 	private static final String prefix = "ibis.net.tcp_blk.";
 
 	static final String tcpblk_rdah = prefix + "read_ahead";
 	static final String tcpblk_timeout = prefix + "timeout";
 	static final String tcpblk_cache_v = prefix + "cache.verbose";
 	static final String tcpblk_cache_enable = prefix + "cache";
+	static final String tcpblk_mtu = prefix + "mtu";
 
 	private static final String[] properties = {
 		tcpblk_rdah,
 		tcpblk_timeout,
 		tcpblk_cache_v,
-		tcpblk_cache_enable
+		tcpblk_cache_enable,
+		tcpblk_mtu
 	};
 
 	static {

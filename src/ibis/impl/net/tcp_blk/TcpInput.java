@@ -63,11 +63,12 @@ public final class TcpInput extends NetBufferedInput {
 	 * The local MTU.
 	 */
 	// private int                   lmtu            = 16 * 1024;
-	private int                   lmtu            = 32 * 1024;
+	// private int                   lmtu            = 32 * 1024;
+	private int                   lmtu            = TypedProperties.intProperty(Driver.tcpblk_mtu, Driver.DEFAULT_MTU);
 	//private int                   lmtu            = 5*1024;
 	//private int                   lmtu            = 256;
 	{
-	    if (lmtu != 32 * 1024) {
+	    if (lmtu != Driver.DEFAULT_MTU) {
 		System.err.println("net.tcp_blk.TcpInput.lmtu " + lmtu);
 	    }
 	}
@@ -189,7 +190,7 @@ public final class TcpInput extends NetBufferedInput {
 		    // recycleConnection(tcpSocket);
 		}
 		
-		tcpSocket.setSendBufferSize(0x8000);
+		tcpSocket.setSendBufferSize(lmtu);
 		tcpSocket.setTcpNoDelay(true);
 		if (interruptible) {
 		    tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
