@@ -10,7 +10,7 @@ import java.net.InetAddress;
 
 public final class RTS {
 
-	public final static boolean DEBUG = false; // true;
+	public final static boolean DEBUG = false;
 
 	//keys - impl objects, values - skeletons for those objects
 	private static Hashtable skeletons;
@@ -64,6 +64,12 @@ public final class RTS {
 				new Exception().printStackTrace();
 			    String driver = ibis_name.substring("net.".length());
 			    String path = "/";
+			    if (ibis_serialization != null && ! ibis_serialization.equals("none")) {
+				String top = "s_" + ibis_serialization;
+// System.err.println("Now register static property \"" + (path + ":Driver") + "\" as \"" + top + "\"");
+				s.add(path + ":Driver", top);
+				path = path + top;
+			    }
 			    while (true) {
 				int dot = driver.indexOf('.');
 				int end = dot;
