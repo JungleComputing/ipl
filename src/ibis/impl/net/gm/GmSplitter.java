@@ -44,6 +44,7 @@ public final class GmSplitter extends NetSplitter {
 			headerOffset = _headersLength;
 		}
 
+// System.err.println(this + ": " + cnx.getServiceLink() + ": established connection");
                 log.out();
 	}
 

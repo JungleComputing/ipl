@@ -2,10 +2,14 @@ package ibis.ipl.impl.net.tcp;
 
 import ibis.ipl.impl.net.*;
 
+import ibis.ipl.Ibis;
+import ibis.ipl.ConnectionClosedException;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 /* Only for java >= 1.4
 import java.net.SocketTimeoutException;
@@ -22,7 +26,7 @@ import java.io.OutputStream;
 import java.util.Hashtable;
 
 
-public final class TcpInput extends NetInput {
+public final class TcpInput extends NetInput implements NetPollInterruptible {
 	private ServerSocket 	   tcpServerSocket    = null;
 	private Socket             tcpSocket          = null;
 	private volatile Integer   spn  	      = null;
@@ -32,6 +36,9 @@ public final class TcpInput extends NetInput {
         private int                port               =    0;
         private ObjectInputStream _inputConvertStream = null;
         private long               seq                =    0;
+
+	private static final int   INTERRUPT_TIMEOUT  = 100; // ms
+	private boolean      interrupted = false;
 
 	TcpInput(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
@@ -86,13 +93,62 @@ public final class TcpInput extends NetInput {
 		}
 
 		if (block || tcpIs.available() > 0) {
-			tcpIs.read();
+			/* Read the first byte that signifies arrival of a
+			 * message (or an empty message).
+			 */
+			try {
+				tcpIs.read();
+			} catch (SocketTimeoutException e) {
+				if (interrupted) {
+					interrupted = false;
+					// throw Ibis.createInterruptedIOException(e);
+					return null;
+				}
+			} catch (SocketException e) {
+				String msg = e.getMessage();
+				if (tcpSocket.isClosed() ||
+				    msg.equalsIgnoreCase("socket closed") ||
+				    msg.equalsIgnoreCase("null fd object")) {
+					throw new ConnectionClosedException(e);
+				} else {
+					throw e;
+				}
+			}
 			return spn;
 		}
 
                 log.out();
 		return null;
 	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void interruptPoll() throws IOException {
+		// How can this be JMM correct?????
+		interrupted = true;
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void setInterruptible() throws IOException {
+		tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+System.err.println(this + ": interruptiblePoll support is INCOMPLETE. Please implement!");
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void clearInterruptible(NetInputUpcall upcallFunc) throws IOException {
+		tcpSocket.setSoTimeout(0);
+		this.upcallFunc = upcallFunc;
+		startUpcallThread();
+	}
+
 
         protected void doFinish() throws IOException {
                 log.in();
@@ -128,78 +184,177 @@ public final class TcpInput extends NetInput {
 
 
 	public boolean readBoolean() throws IOException {
-                log.in();
-                boolean result = tcpIs.readBoolean();
-                log.out();
+		try {
+			log.in();
+			boolean result = tcpIs.readBoolean();
+			log.out();
 
-                return result;
+			return result;
+		} catch (SocketException e) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
+				throw new ConnectionClosedException(e);
+			} else {
+				throw e;
+			}
+		}
         }
 
 
 
 	public byte readByte() throws IOException {
-                log.in();
-                byte result = tcpIs.readByte();
-                log.out();
+		try {
+			log.in();
+			byte result = tcpIs.readByte();
+			log.out();
 
-                return result;
+			return result;
+		} catch (SocketException e) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
+				throw new ConnectionClosedException(e);
+			} else {
+				throw e;
+			}
+		}
         }
 
 
 	public char readChar() throws IOException {
-                log.in();
-                char result = tcpIs.readChar();
-                log.out();
+		try {
+			log.in();
+			char result = tcpIs.readChar();
+			log.out();
 
-                return result;
+			return result;
+		} catch (SocketException e) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
+				throw new ConnectionClosedException(e);
+			} else {
+				throw e;
+			}
+		}
         }
 
 	public short readShort() throws IOException {
-                log.in();
-                short result = tcpIs.readShort();
-                log.out();
+		try {
+			log.in();
+			short result = tcpIs.readShort();
+			log.out();
 
-                return result;
+			return result;
+		} catch (SocketException e) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
+				throw new ConnectionClosedException(e);
+			} else {
+				throw e;
+			}
+		}
         }
 
 	public int readInt() throws IOException {
-                log.in();
-                int result = tcpIs.readInt();
-                log.out();
+		try {
+			log.in();
+			int result = tcpIs.readInt();
+			log.out();
 
-                return result;
+			return result;
+		} catch (SocketException e) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
+				throw new ConnectionClosedException(e);
+			} else {
+				throw e;
+			}
+		}
         }
 
 	public long readLong() throws IOException {
-                log.in();
-                long result = tcpIs.readLong();
-                log.out();
+		try {
+			log.in();
+			long result = tcpIs.readLong();
+			log.out();
 
-                return result;
+			return result;
+		} catch (SocketException e) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
+				throw new ConnectionClosedException(e);
+			} else {
+				throw e;
+			}
+		}
         }
 
 	public float readFloat() throws IOException {
-                log.in();
-                float result = tcpIs.readFloat();
-                log.out();
+		try {
+			log.in();
+			float result = tcpIs.readFloat();
+			log.out();
 
-                return result;
+			return result;
+		} catch (SocketException e) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
+				throw new ConnectionClosedException(e);
+			} else {
+				throw e;
+			}
+		}
         }
 
 	public double readDouble() throws IOException {
-                log.in();
-                double result = tcpIs.readDouble();
-                log.out();
+		try {
+			log.in();
+			double result = tcpIs.readDouble();
+			log.out();
 
-                return result;
+			return result;
+		} catch (SocketException e) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
+				throw new ConnectionClosedException(e);
+			} else {
+				throw e;
+			}
+		}
         }
 
 	public String readString() throws IOException {
-                log.in();
-                String result = tcpIs.readUTF();
-                log.out();
+		try {
+			log.in();
+			String result = tcpIs.readUTF();
+			log.out();
 
-                return result;
+			return result;
+		} catch (SocketException e) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
+				throw new ConnectionClosedException(e);
+			} else {
+				throw e;
+			}
+		}
         }
 
         public Object readObject() throws IOException, ClassNotFoundException {

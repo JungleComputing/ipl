@@ -295,6 +295,7 @@ public final class UdpInput extends NetBufferedInput {
 		}
 
                 stat.begin();
+
                 log.out();
 
 // System.err.println(this + ": poll returns " + result);
@@ -331,6 +332,7 @@ public final class UdpInput extends NetBufferedInput {
 
                 checkDeliverSeqno(temp_buffer);
                 stat.addBuffer(temp_buffer.length);
+
                 log.out();
 
                 return temp_buffer;
@@ -365,6 +367,7 @@ public final class UdpInput extends NetBufferedInput {
 
                 checkDeliverSeqno(userBuffer);
                 stat.addBuffer(userBuffer.length);
+
                 log.out();
         }
 

@@ -47,6 +47,7 @@ public abstract class NetBufferedOutput extends NetOutput {
         public void initSend() throws IOException {
                 log.in();
                 stat.begin();
+		super.initSend();	// Need this for GM, what would it break RFHH?
 		dataOffset = getHeadersLength();
 
                 //if (mtu != 0) {
@@ -65,6 +66,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 */
 	protected void flush() throws IOException {
                 log.in();
+// System.err.println(this + ": in flush(), buffer " + buffer);
 		if (buffer != null) {
                         stat.addBuffer(buffer.length);
 			sendByteBuffer(buffer);
@@ -91,6 +93,8 @@ public abstract class NetBufferedOutput extends NetOutput {
 		} else {
 			buffer = createSendBuffer(dataOffset + length);
 		}
+// System.err.println(this + ": allocated new buffer " + buffer);
+// Thread.dumpStack();
 
 		buffer.length = dataOffset;
 		bufferOffset = dataOffset;
@@ -150,6 +154,8 @@ public abstract class NetBufferedOutput extends NetOutput {
 		log.in();
                 // log.disp("IN value = "+value);
                 log.disp("IN");
+// System.err.println("Write one byte=" + value + " = '" + (char)value + "'");
+// Thread.dumpStack();
 
 		if (buffer == null) {
 			allocateBuffer(1);
@@ -159,6 +165,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 		buffer.length++;
 		bufferOffset++;
 
+// System.err.println("bufferOffset " + bufferOffset + " buffer.data.length " + buffer.data.length);
 		if (bufferOffset >= buffer.data.length) {
 			flush();
 		}
@@ -180,6 +187,8 @@ public abstract class NetBufferedOutput extends NetOutput {
                                 do {
                                         int copyLength = Math.min(mtu, length);
                                         buffer = new NetSendBuffer(userBuffer, offset, copyLength);
+// System.err.println(this + ": created new buffer " + buffer);
+// Thread.dumpStack();
                                         flush();
 
                                         offset += copyLength;
@@ -188,6 +197,8 @@ public abstract class NetBufferedOutput extends NetOutput {
 
                         } else {
                                 buffer = new NetSendBuffer(userBuffer, offset + length);
+// System.err.println(this + ": created new buffer " + buffer);
+// Thread.dumpStack();
                                 flush();
                         }
                 } else {

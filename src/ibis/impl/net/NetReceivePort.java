@@ -442,13 +442,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                 if (upcall != null && upcallsEnabled) {
                         final ReadMessage rm = _receive();
-                        currentThread = Thread.currentThread();
+                        Thread me = Thread.currentThread();
+                        currentThread = me;
                         upcall.upcall(rm);
-                        if (Thread.currentThread() == currentThread) {
+                        if (me == currentThread) {
                                 currentThread = null;
 
                                 if (emptyMsg) {
-					readByte();
+					input.handleEmptyMsg();
 
                                         emptyMsg = false;
                                 }
@@ -1054,7 +1055,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         public void finish() throws IOException {
                 log.in();
                 if (emptyMsg) {
-                        readByte();
+                        input.handleEmptyMsg();
                         emptyMsg = false;
                 }
                 trace.disp(receivePortTracePrefix, "message receive <--");

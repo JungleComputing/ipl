@@ -442,6 +442,9 @@ NS_SERVER	= mercury.cs.vu.nl
 endif
 
 NHOSTS	= $(words $(HOSTS))
+ifeq (0, $(NHOSTS))
+	NHOSTS	= 2
+endif
 
 # Print a feasible prun command; mouse this into your command line
 #

@@ -506,6 +506,7 @@ public final class NetLockArray {
 		if (lock[ids[i]].v > 0) {
 		    result = i;
 		    lock[ids[result]].v--;
+// System.err.print("L(" + i + ")");
 // if (ids[result] == 2) {
 // System.err.println("trylockFirst(" + ids[result] + ")");
 // Thread.dumpStack();

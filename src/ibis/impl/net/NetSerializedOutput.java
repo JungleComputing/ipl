@@ -97,6 +97,7 @@ public abstract class NetSerializedOutput extends NetOutput {
                         subOutput.writeByte((byte)0);
 			oss.reset();
                 }
+		needFlush = true;
 	}
 
         private void flushStream() throws IOException {
@@ -107,16 +108,15 @@ public abstract class NetSerializedOutput extends NetOutput {
         }
 
 
-        /**
-	   Block until the entire message has been sent and clean up the message. Only after finish() or reset(), the data that was written
-	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems.
-	   When a message is alive and a new messages is requested, the requester is blocked until the
-	   live message is finished. **/
+	/**
+	 * {@inheritDoc}
+	 */
         public void finish() throws IOException {
 	    super.finish();
 	    flushStream();
 	    subOutput.finish();
         }
+
 
         public synchronized void close(Integer num) throws IOException {
                 if (subOutput != null) {

@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import java.util.Hashtable;
 
@@ -28,7 +29,6 @@ public final class GmPoller extends NetPoller {
 	Integer[]		spn;
 	ReceiveQueue[]		rq;
 	int[]			pumpedIds;
-	int			signals;
 
 	/**
 	 * Constructor.
@@ -38,8 +38,7 @@ public final class GmPoller extends NetPoller {
 	 */
 	public GmPoller(NetPortType pt, NetDriver driver, String context)
 		throws IOException {
-		super(pt, driver, context);
-		upcallModeAllowed = false;
+		super(pt, driver, context, false);
                 gmDriver = (Driver)driver;
 		lockIds = new int[1];
 		lockIds[0] = 0; // main lock
@@ -55,16 +54,20 @@ public final class GmPoller extends NetPoller {
 		Integer num = cnx.getNum();
 		setupConnection(cnx, num, ni);
 
+		gmDriver.gmAccessLock.ilock(true);
+
 		int[] _lockIds = new int[lockIds.length + 1];
 		System.arraycopy(lockIds, 0, _lockIds, 0, lockIds.length - 1);
 		lockIds = _lockIds;
 		lockIds[lockIds.length - 1] = lockIds[lockIds.length - 2];
 		lockIds[lockIds.length - 2] = ni.getLockId();
-System.err.print("Now lockIds := [");
-for (int i = 0; i < lockIds.length; i++) {
-    System.err.print(lockIds[i] + ",");
+if (false) {
+    System.err.print("Now lockIds := [");
+    for (int i = 0; i < lockIds.length; i++) {
+	System.err.print(lockIds[i] + ",");
+    }
+    System.err.println("]");
 }
-System.err.println("]");
 
 		if (spn == null) {
 		    spn = new Integer[1];
@@ -82,12 +85,10 @@ System.err.println("]");
 
 		startUpcallThread();
 
-		if (pumpedIds != null) {
-System.err.println("**** Connection established while we are polling. Signal the poller thread!!!!");
-System.err.println("unlock(" + pumpedIds[0] + ")");
-		    gmDriver.gmLockArray.unlock(pumpedIds[0]);
-		    signals++;
-		}
+		gmDriver.interruptPump();
+
+		gmDriver.gmAccessLock.unlock();
+// System.err.println(this + ": " + cnx.getServiceLink() + ": established connection");
 
                 log.out();
 	}
@@ -107,34 +108,39 @@ System.err.println("unlock(" + pumpedIds[0] + ")");
 
 	    int result = -1;
 
-	    while (true) {
+	    boolean interrupted;
+	    do {
 
-		synchronized (this) {
-		    pumpedIds = lockIds;
-		}
-
+		interrupted = false;
 		if (block) {
-		    result = gmDriver.blockingPump(lockIds);
-		} else {
-		    result = gmDriver.tryPump(lockIds);
-		} 
-		if (result == -1) {
-		    System.err.println("poll failed");
-		    return null;
-		}
-
-		synchronized (this) {
-		    pumpedIds = null;
-		    if (signals > 0) {
-			signals--;
-		    } else {
-			break;
+// System.err.print("[B");
+		    try {
+			result = gmDriver.blockingPump(lockIds);
+		    } catch (InterruptedIOException e) {
+			// try once more
+			interrupted = true;
+			System.err.println("********** Catch InterruptedIOException");
 		    }
-		}
+// System.err.print("B]=" + result);
+		} else {
+// System.err.print("[?");
+		    result = gmDriver.tryPump(lockIds);
+// System.err.print("?]");
+		} 
+
+	    } while (interrupted);
+
+	    if (result == -1) {
+		System.err.println("poll failed");
+		return null;
 	    }
+
+// Driver.t_wait_reply.stop();
+// Driver.t_wait_service.start();
 
 	    activeQueue = rq[result];
 	    selectConnection(activeQueue);
+// System.err.println(Thread.currentThread() + ": " + this + ": return " + spn[result] + " = spn[" + result +"]");
 
 	    return spn[result];
 	}

@@ -85,8 +85,9 @@ public abstract class NetBufferedInput extends NetInput {
                 int offset = dataOffset;
                 int length = buffer.length - offset;
 
-                if (circularCheck)
+                if (circularCheck) {
                         throw new IbisConfigurationException("circular reference");
+		}
 
                 circularCheck = true;
                 while (length > 0) {
@@ -98,6 +99,7 @@ public abstract class NetBufferedInput extends NetInput {
                         b.free();
                 }
                 circularCheck = false;
+
                 log.out();
         }
 
@@ -109,8 +111,9 @@ public abstract class NetBufferedInput extends NetInput {
                 log.in();
                 NetReceiveBuffer b = null;
 
-                if (circularCheck)
+                if (circularCheck) {
                         throw new IbisConfigurationException("circular reference");
+		}
 
                 circularCheck = true;
                 if (mtu != 0) {
@@ -123,6 +126,7 @@ public abstract class NetBufferedInput extends NetInput {
 
                 receiveByteBuffer(b);
                 circularCheck = false;
+
                 log.out();
 
                 return b;
@@ -214,6 +218,7 @@ public abstract class NetBufferedInput extends NetInput {
 			freeBuffer();
 		}
 
+// System.err.println("Read one byte=" + value + " = '" + (char)value + "'");
                 // log.disp("OUT value = "+value);
                 log.disp("OUT");
                 log.out();

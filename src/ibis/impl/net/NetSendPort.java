@@ -773,7 +773,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	private void _finish() throws  IOException{
                 log.in();
 		if (emptyMsg) {
-			writeByte((byte)0);
+			output.handleEmptyMsg();
 		}
                 log.out();
 	}

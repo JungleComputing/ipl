@@ -1,5 +1,6 @@
 package ibis.ipl.impl.net.tcp_blk;
 
+import ibis.ipl.Ibis;
 import ibis.ipl.ConnectionClosedException;
 
 import ibis.ipl.impl.net.*;
@@ -9,6 +10,7 @@ import java.net.Socket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 /* Only for java >= 1.4
 import java.net.SocketTimeoutException;
@@ -25,7 +27,8 @@ import java.util.Hashtable;
 /**
  * The TCP input implementation (block version).
  */
-public final class TcpInput extends NetBufferedInput {
+public final class TcpInput extends NetBufferedInput
+		implements NetPollInterruptible {
 
 	/**
 	 * The connection socket.
@@ -72,6 +75,12 @@ public final class TcpInput extends NetBufferedInput {
 	private int                   port            =    0;
 	private byte []               hdr             = new byte[4];
 	private volatile NetReceiveBuffer      buf    = null;
+
+	/**
+	 * Timeout value for "interruptible" poll
+	 */
+	private static final int   INTERRUPT_TIMEOUT  = 1000; // 100; // ms
+	private boolean      interrupted = false;
 
 	/**
 	 * Constructor.
@@ -149,6 +158,34 @@ public final class TcpInput extends NetBufferedInput {
 	}
 
 
+	/**
+	 * {@inheritDoc}
+	 */
+	public void interruptPoll() throws IOException {
+		// How can this be JMM correct?????
+System.err.println(Thread.currentThread() + ": " + this + ": interruptPoll()");
+		interrupted = true;
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void setInterruptible() throws IOException {
+		tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void clearInterruptible(NetInputUpcall upcallFunc) throws IOException {
+System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible, upcallFunc " + upcallFunc);
+		installUpcallFunc(upcallFunc);
+		tcpSocket.setSoTimeout(0);
+	}
+
+
 	/* Create a NetReceiveBuffer and do a blocking receive. */
 	private NetReceiveBuffer receive() throws IOException {
 		log.in();
@@ -160,7 +197,19 @@ public final class TcpInput extends NetBufferedInput {
 
 		try {
 			do {
-				int result = tcpIs.read(b, offset, 4);
+				// Try to read ahead as far as we can. read()
+				// will return no more than has been sent in
+				// this message.
+				int result = 0;
+				try {
+					result = tcpIs.read(b, offset, b.length);
+				} catch (SocketTimeoutException e) {
+					if (interrupted) {
+						interrupted = false;
+						// throw Ibis.createInterruptedIOException(e);
+						return null;
+					}
+				}
 				if (result == -1) {
 					if (true || offset != 0) {
 						throw new ConnectionClosedException("broken pipe");
@@ -172,13 +221,23 @@ public final class TcpInput extends NetBufferedInput {
 
 			l = NetConvert.readInt(b);
 
-			do {
-				int result = tcpIs.read(b, offset, l - offset);
+			while (offset < l) {
+				int result = 0;
+				try {
+					result = tcpIs.read(b, offset, l - offset);
+				} catch (SocketTimeoutException e) {
+					if (interrupted) {
+						interrupted = false;
+						System.err.println("Please store the data already read for the resume after the InterruptedIOException");
+						// throw Ibis.createInterruptedIOException(e);
+						return null;
+					}
+				}
 				if (result == -1) {
 					throw new ConnectionClosedException("broken pipe");
 				}
 				offset += result;
-			} while (offset < l);
+			}
 		} catch (SocketException e) {
 			String msg = e.getMessage();
 			if (tcpSocket.isClosed() ||
@@ -191,6 +250,7 @@ public final class TcpInput extends NetBufferedInput {
 		}
 
 		buf.length = l;
+
 		log.out();
 
 		return buf;
@@ -209,6 +269,14 @@ public final class TcpInput extends NetBufferedInput {
 	 */
 	public Integer doPoll(boolean block) throws IOException {
 		log.in();
+		// We arrive over the normal route. Any interrupts can
+		// be safely cleared. Or should we throw an
+		// InterruptedIOException anyway?
+		if (interrupted) {
+			System.err.println("Clear the interrupted state anyway");
+			interrupted = false;
+		}
+
 		if (spn == null) {
 			log.out("not connected");
 			return null;

@@ -13,9 +13,11 @@ import java.io.OutputStream;
  * The ID output implementation.
  */
 public final class SSunOutput extends NetSerializedOutput {
+
         public SSunOutput(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
 	}
+
         public SerializationOutputStream newSerializationOutputStream() throws IOException {
                 OutputStream os = new DummyOutputStream();
 		return new SunSerializationOutputStream(os);

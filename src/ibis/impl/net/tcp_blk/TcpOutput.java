@@ -140,6 +140,7 @@ public final class TcpOutput extends NetBufferedOutput {
          */
 	public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
+// System.err.print(this + ": write[" + b.length + "] = '"); for (int i = 0; i < b.length; i++) System.err.print(b.data[i] + ","); System.err.println("'");
 		try {
 			NetConvert.writeInt(b.length, b.data, 0);
 			tcpOs.write(b.data, 0, b.length);

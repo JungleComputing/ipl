@@ -44,6 +44,12 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	private		Object		nonSpawnSyncer = new Object();
 	private         int             nonSpawnWaiters;
 
+	/**
+	 * Synchronize between threads if an upcallFunc is installed after
+	 * this Input has been in use as a downcall receive handler
+	 */
+	private		Object		upcallInstaller = new Object();
+	private		int		upcallInstallWaiters;
 
         static private volatile int     threadCount = 0;
         static private          boolean globalThreadStat = false;
@@ -170,7 +176,8 @@ waitingUpcallThreads--;
                                         activeThread = this;
 
                                         if (activeNum != null) {
-                                                throw new Error("connection unavailable: "+activeNum);
+						System.err.println(NetInput.this + ": " + Thread.currentThread() + ": connection unavailable " + activeNum);
+                                                throw new Error(Thread.currentThread() + ": connection unavailable: "+activeNum);
                                         }
 if (finishedUpcallThreads > 1) {
     // System.err.print(finishedUpcallThreads + " ");
@@ -178,6 +185,7 @@ if (finishedUpcallThreads > 1) {
 	for (int i = 0; i < finishedUpcallThreads; i++) {
 	    // threadStackLock.lock();
 	    // threadStackLock.unlock();
+// System.err.print("x");
 	    Thread.yield();
 	}
     // } catch (InterruptedIOException e) {
@@ -228,16 +236,18 @@ pollSuccess++;
                                         try {
                                                 upcallFunc.inputUpcall(NetInput.this, activeNum);
                                         } catch (InterruptedIOException e) {
-                                                if (end != true) {
+                                                if (! end) {
                                                         throw new Error(e);
                                                 }
                                                 return;
                                         } catch (ConnectionClosedException e) {
+// System.err.println("PooledUpcallThread.inputUpcall() throws ConnectionClosedException " + e);
                                                 end = true;
                                                 return;
                                         } catch (IOException e) {
 //						System.err.println("PooledUpcallThread.inputUpcall() throws IOException. Shouldn't I quit??? " + e);
 //                                                throw new Error(e);
+						end = true;
 						return;
                                         }
 // System.err.println(this + ": upcallSpawnMode " + upcallSpawnMode + " activeThread " + activeThread + " this " + this);
@@ -355,6 +365,10 @@ finishedUpcallThreads--;
 
         protected abstract void initReceive(Integer num) throws IOException;
 
+	protected void handleEmptyMsg() throws IOException {
+	    readByte();
+	}
+
 
 	protected void enableUpcallSpawnMode() {
 	    upcallSpawnMode = true;
@@ -384,6 +398,7 @@ private int pollSuccess;
 	 */
 	public final Integer poll(boolean blockForMessage) throws IOException {
                 log.in();
+
                 synchronized(this) {
                         while (activeNum != null) {
 				pollWaiters++;
@@ -404,20 +419,25 @@ private int pollSuccess;
                 synchronized(this) {
                         if (activeNum.equals(takenNum)) {
                                 if (num != null) {
-                                        activeNum = num;
 pollSuccess++;
                                 } else {
-                                        activeNum = null;
 pollFail++;
-                                        return null;
                                 }
+				activeNum = num;
                         } else {
-                                log.out("closing ?");
-                                return null;
+                                // Closing?
+                                num = null;
                         }
                 }
 
-                initReceive(num);
+		if (num != null) {
+			initReceive(num);
+		} else if (upcallInstallWaiters > 0) {
+			System.err.println("Release the install handler");
+			synchronized (upcallInstaller) {
+				upcallInstaller.notifyAll();
+			}
+		}
                 log.out();
 
                 return num;
@@ -477,6 +497,7 @@ pollFail++;
 // Thread.dumpStack();
                 threadStackLock.lock();
                 if (upcallFunc != null && upcallThreadNotStarted) {
+System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
                         upcallThreadNotStarted = false;
                         PooledUpcallThread up = new PooledUpcallThread("no "+upcallThreadNum++);
                         utStat.addAllocation();
@@ -486,6 +507,35 @@ pollFail++;
                 threadStackLock.unlock();
                 log.out();
         }
+
+
+	protected void installUpcallFunc(NetInputUpcall upcallFunc)
+		throws IOException {
+	    if (this.upcallFunc != null) {
+		throw new IllegalArgumentException("Cannot restart upcall");
+	    }
+	    this.upcallFunc = upcallFunc;
+	    /*
+	     * Fight race with poll: if an upcallFunc is installed for
+	     * a NetInput that used to do downcall receives, we must ensure
+	     * that the downcall poll has finished completely. In that case,
+	     * activeNum is null.
+	     */
+	    synchronized (upcallInstaller) {
+		while (activeNum != null) {
+		    System.err.println("Wait for release the install handler");
+		    upcallInstallWaiters++;
+		    try {
+			upcallInstaller.wait();
+		    } catch (InterruptedException e) {
+			// Ignore
+		    }
+		    upcallInstallWaiters--;
+		    System.err.println("Unwait for release the install handler");
+		}
+	    }
+	    startUpcallThread();
+	}
 
 
 	/**
@@ -640,8 +690,7 @@ pollFail++;
 
                 doFinish();
 
-                synchronized(this)
-                        {
+                synchronized(this) {
                         activeNum = null;
 			if (pollWaiters > 0) {
 			    notify();
@@ -665,11 +714,14 @@ pollFail++;
          */
        	public final void finish() throws IOException {
                 log.in();
+// System.err.println(this + " " + Thread.currentThread() + ": finish()");
+// Thread.dumpStack();
 
                 implicitFinish();
 
                 if (! upcallSpawnMode) {
 		    synchronized (nonSpawnSyncer) {
+// System.err.println("Reset activeThread from finish");
 			activeThread = null;
 			if (nonSpawnWaiters > 0) {
 			    nonSpawnSyncer.notify();

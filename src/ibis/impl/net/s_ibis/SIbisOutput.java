@@ -13,6 +13,7 @@ import java.io.IOException;
   * IbisSerializationOutputStream to actually do the serialization.
   */
 public final class SIbisOutput extends NetSerializedOutput {
+
         public SIbisOutput(NetPortType pt, NetDriver driver, String context) 
 						    throws IOException {
 		super(pt, driver, context);
@@ -24,7 +25,15 @@ public final class SIbisOutput extends NetSerializedOutput {
 
 		return new IbisSerializationOutputStream(ia);
         }
-        
+
+	/**
+	 * Ibis serialization does not require a sentinel to signal
+	 * serialization read/writes
+	 */
+	protected void handleEmptyMsg() throws IOException {
+	    super.handleEmptyMsg();
+	}
+
 	/**
 	  * Accumulator used to output the result of the serialization to
 	  * the next driver. Actually does almost nothing, just passes along

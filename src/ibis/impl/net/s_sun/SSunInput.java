@@ -13,6 +13,7 @@ import java.io.IOException;
  * The ID input implementation.
  */
 public final class SSunInput extends NetSerializedInput {
+
         public SSunInput(NetPortType pt, NetDriver driver, String context) throws IOException {
                 super(pt, driver, context);
         }

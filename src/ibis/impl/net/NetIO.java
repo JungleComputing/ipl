@@ -123,6 +123,7 @@ public abstract class NetIO {
                 // Stat object
                 boolean statOn = type.getBooleanStringProperty(this.context, "Stat", false);
                 stat = newMessageStat(statOn, s);
+// System.err.println(this + ": up...");
 	}
 
         /**
@@ -349,6 +350,8 @@ public abstract class NetIO {
 	 * @param offset the new offset.
 	 */
 	public void setHeaderOffset(int offset) {
+// System.err.println("Set header offset to " + offset);
+// Thread.dumpStack();
 		headerOffset = offset;
 	}
 

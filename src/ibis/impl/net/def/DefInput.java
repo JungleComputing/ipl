@@ -76,6 +76,7 @@ public final class DefInput extends NetBufferedInput {
 		} while (offset < l);
 
 		buf.length = l;
+
 		return buf;
 	}
 

@@ -121,16 +121,14 @@ public final class TcpOutput extends NetOutput {
 
         public void reset(boolean doSend) throws IOException {
                 log.in();
-                if (doSend) {
-                        send();
-                } else {
-                        throw new Error("full reset unimplemented");
-                }
-                
+		super.reset(doSend);
+
                 if (_outputConvertStream != null) {
 			_outputConvertStream.close();
                         _outputConvertStream = null;
                 }
+
+		tcpOs.flush();
                 first = true;
                 log.out();
         }

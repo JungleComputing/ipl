@@ -24,6 +24,8 @@ public final class Driver extends NetDriver {
 
         private static final int speculativePolls = 16;
 
+	private boolean		interrupted;	// Support poll interrupts
+
 
 	/**
 	 * The driver name.
@@ -32,8 +34,14 @@ public final class Driver extends NetDriver {
 
 	static native long nInitDevice(int deviceNum) throws IOException;
 	static native void nCloseDevice(long deviceHandler) throws IOException;
-        static native void nGmThread();
+        static native boolean nGmThread();
         static native void nGmBlockingThread();
+
+	// static ibis.util.nativeCode.Rdtsc t_wait_reply = new ibis.util.nativeCode.Rdtsc();
+	// static ibis.util.nativeCode.Rdtsc t_wait_service = new ibis.util.nativeCode.Rdtsc();
+
+	// static ibis.util.nativeCode.Rdtsc t_poll = new ibis.util.nativeCode.Rdtsc();
+	// static ibis.util.nativeCode.Rdtsc t_lock = new ibis.util.nativeCode.Rdtsc();
 
 	static {
                 if (System.getProperty("ibis.net.gm.dynamic") != null) {
@@ -47,6 +55,15 @@ public final class Driver extends NetDriver {
 
                 gmLockArray = new NetLockArray();
                 gmLockArray.initLock(0, false);
+
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+		    public void run() {
+			// System.err.println("t_wait_reply   " + t_wait_reply.nrTimes() + " " + t_wait_reply.averageTime());
+			// System.err.println("t_wait_service " + t_wait_service.nrTimes() + " " + t_wait_service.averageTime());
+			// System.err.println("t_poll         " + t_lock.nrTimes() + " " + t_poll.averageTime());
+			// System.err.println("t_lock         " + t_lock.nrTimes() + " " + t_lock.averageTime());
+		    }
+		});
 	}
 
 
@@ -95,41 +112,73 @@ public final class Driver extends NetDriver {
 	}
 
 
+	protected void interruptPump() throws IOException {
+System.err.println("********** interrupted");
+		interrupted = true;
+	}
+
+
         protected int blockingPump(int []lockIds) throws IOException {
                 int result;
+		int[] origLockIds = lockIds;
+
+		// t_poll.start();
+		// t_lock.start();
 
 		result = gmLockArray.ilockFirst(lockIds);
-// System.err.println("blockingPump: ilockFirst -> " + result);
+if (false) {
+    System.err.print(Thread.currentThread() + ": " + this + ": blockingPump: ilockFirst -> " + result + " [");
+    for (int i = 0; i < lockIds.length; i++) {
+	System.err.print(lockIds[i] + ",");
+    }
+    System.err.println("] main=" + (lockIds.length - 1));
+    Thread.dumpStack();
+}
 
-		int main = lockIds.length - 1;
+		// t_lock.stop();
 
-                if (result == main) {
+                if (result == lockIds.length - 1) {
                         /* got GM main lock, let's pump */
-			// We are NOT interested in lockIds[main], but
+			// We are NOT interested in lockIds[lockIds.length - 1], but
 			// luckily we already got that, so no fear that we
 			// get it again.
 			try {
 				do {
                                         gmAccessLock.ilock(false);
 
+// System.err.print(">");
 					nGmThread();
+// System.err.print("<");
 					gmAccessLock.unlock();
+
+					if (interrupted) {
+					    interrupted = false;
+					    throw new InterruptedIOException("got interrupted");
+					}
+
 					result = gmLockArray.trylockFirst(lockIds);
 // if (result != -1)
 // System.err.println("blockingPump: trylockFirst -> " + result);
-					if (result == main) {
+					if (result == lockIds.length - 1) {
 					    throw new Error("invalid trylock return");
+					}
+					if (result == -1) {
+						Thread.yield();
 					}
 				} while (result == -1);
 			} finally {
+				/* request completed, release GM main lock */
 				gmLockArray.unlock(0);
 			}
 
-		} else if (result > main) {
+		} else if (result > lockIds.length - 1) {
                         throw new Error("invalid state");
                 }
                 /* else: request already completed */
-// System.err.println("blockingPump: return " + result);
+// else System.err.print("A(" + result + ")");
+// System.err.println(Thread.currentThread() + ": blockingPump: return " + result);
+
+		// t_poll.stop();
 
 		return result;
         }
@@ -141,23 +190,33 @@ public final class Driver extends NetDriver {
 		result = gmLockArray.ilockFirst(lockIds);
 
                 if (result == lockIds.length - 1) {
-                        /* got GM main lock, let's pump */
-                        do {
-                                try {
-                                        gmAccessLock.ilock(false);
-					nGmThread();
-                                } finally {
-                                        gmAccessLock.unlock();
-                                }
-                        } while (!gmLockArray.trylock(lockId));
+if (lockIds[result] != 0) {
+    System.err.println("BAAAAAAAAAAAAAAAAAAAAAA");
+}
+			try {
+				/* got GM main lock, let's pump */
+				do {
+					try {
+						gmAccessLock.ilock(false);
+						nGmThread();
+					} finally {
+						gmAccessLock.unlock();
+					}
 
-                        /* request completed, release GM main lock */
-                        gmLockArray.unlock(0);
+					if (interrupted) {
+					    interrupted = false;
+					    throw new InterruptedIOException("got interrupted");
+					}
+				} while (!gmLockArray.trylock(lockId));
 
-                } /* else: request already completed */
-                else if (result > lockIds.length - 1) {
+			} finally {
+				/* request completed, release GM main lock */
+				gmLockArray.unlock(0);
+			}
+
+                } else if (result > lockIds.length - 1) {
                         throw new Error("invalid state");
-                }
+                } /* else: request already completed */
         }
 
         protected void pump(int lockId, int []lockIds) throws IOException {
@@ -166,12 +225,21 @@ public final class Driver extends NetDriver {
 		result = gmLockArray.ilockFirst(lockIds);
 
                 if (result == lockIds.length - 1) {
+if (lockIds[result] != 0) {
+    System.err.println("BAAAAAAAAAAAAAAAAAAAAAA");
+}
                         /* got GM main lock, let's pump */
                         try {
 				gmAccessLock.ilock(false);
 
 				nGmThread();
 				gmAccessLock.unlock();
+
+				if (interrupted) {
+				    interrupted = false;
+				    throw new InterruptedIOException("got interrupted");
+				}
+
 				if (!gmLockArray.trylock(lockId)) {
 					int i = speculativePolls;
 
@@ -202,10 +270,9 @@ public final class Driver extends NetDriver {
 
 
         protected int tryPump(int []lockIds) throws IOException {
-		int main = lockIds.length - 1;
                 int result = gmLockArray.trylockFirst(lockIds);
 
-                if (result == main) {
+                if (result == lockIds.length - 1) {
                         /* got GM main lock, let's pump */
 			// We are NOT interested in lockIds[main], but
 			// luckily we already got that, so no fear that we

@@ -223,4 +223,14 @@
 	</java>
     </target>
 
+
+    <!--
+	Auxilliary target to echo a prun command from ant
+    -->
+    <target name="prun" depends="property-init">
+	<echo>
+prun -v -1 -subst LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=${ibis}/build/lib:.  CLASSPATH=build:${ibis}/build -no-panda ${ibis}/bin/java_wrapper 2 ${JAVA_HOME}/bin/java  -Xmx400M -Xcomp -Dibis.name_server.host=mercury.cs.vu.nl -Dibis.name_server.port=7654 -Dibis.name_server.key=rutger`${ibis}/bin/getpid` -Dibis.pool.host_number=%d -Dibis.pool.total_hosts=%n -Dibis.pool.host_names="%h" -Dibis.name=panda MAIN args...
+	</echo>
+    </target>
+
 </project>

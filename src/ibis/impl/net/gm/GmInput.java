@@ -52,6 +52,9 @@ public final class GmInput extends NetBufferedInput {
         native int  nGetInputPortId(long inputHandle) throws IOException;
         native int  nGetInputMuxId(long inputHandle) throws IOException;
         native void nConnectInput(long inputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws IOException;
+
+	native int nPostByte(long inputHandle) throws IOException;
+
         native int nPostBuffer(long inputHandle, byte []b, int base, int length) throws IOException;
 
         native int nPostBooleanBuffer(long inputHandle, boolean []b, int base, int length) throws IOException;
@@ -108,7 +111,7 @@ public final class GmInput extends NetBufferedInput {
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
-                //System.err.println("setupConnection-->");
+                // System.err.println("setupConnection--> upcallFunc " + upcallFunc);
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
@@ -169,6 +172,9 @@ public final class GmInput extends NetBufferedInput {
                 log.out();
 	}
 
+int rcvd;
+int plld;
+
         /**
          * {@inheritDoc}
          */
@@ -192,6 +198,7 @@ public final class GmInput extends NetBufferedInput {
                 if (spn == null) {
                         throw new Error("unexpected connection closed");
                 }
+plld++;
 
                 return spn;
 	}
@@ -201,6 +208,34 @@ public final class GmInput extends NetBufferedInput {
                 super.initReceive(num);
         }
 
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The buffering in NetBuffererdOutput confuses Ibis serialization.
+	 * Provide a special implementation that bypasses that buffer.
+	 */
+	public byte readByte() throws IOException {
+	    if (firstBlock) {
+		firstBlock = false;
+	    } else {
+		/* Request reception */
+		gmDriver.blockingPump(lockId, lockIds);
+	    }
+
+
+	    Driver.gmReceiveLock.lock();
+
+	    Driver.gmAccessLock.lock(true);
+	    int result = nPostByte(inputHandle);
+	    Driver.gmAccessLock.unlock();
+
+	    Driver.gmReceiveLock.unlock();
+// System.err.println("Read single byte=" + result);
+// Thread.dumpStack();
+
+	    return (byte)(result & 0xFF);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -221,7 +256,10 @@ public final class GmInput extends NetBufferedInput {
                 int result = nPostBuffer(inputHandle, b.data, 0, b.data.length);
                 Driver.gmAccessLock.unlock();
 
+// System.err.print("<_");
+// Thread.dumpStack();
                 if (result == 0) {
+			// A rendez-vous message. Receive the data part.
                         /* Ack completion */
                         gmDriver.blockingPump(lockId, lockIds);
 
@@ -230,22 +268,22 @@ public final class GmInput extends NetBufferedInput {
 
                         if (b.length == 0) {
                                 b.length = blockLen;
-                        } else {
-                                if (b.length != blockLen) {
-                                        throw new Error("length mismatch: got "+blockLen+" bytes, "+b.length+" bytes were required");
-                                }
+                        } else if (b.length != blockLen) {
+				throw new Error("length mismatch: got "+blockLen+" bytes, "+b.length+" bytes were required");
                         }
 
                 } else {
                         if (b.length == 0) {
                                 b.length = result;
-                        } else {
-                                if (b.length != result) {
-                                        throw new Error("length mismatch: got "+result+" bytes, "+b.length+" bytes were required");
-                                }
+                        } else if (b.length != result) {
+				throw new Error("length mismatch: got "+result+" bytes, "+b.length+" bytes were required");
                         }
                 }
+// System.err.print(rcvd + ">_");
+// System.err.println("Received byte buffer " + b + " offset " + b.base + " size " + b.length);
+// Thread.dumpStack();
 
+rcvd++;
                 Driver.gmReceiveLock.unlock();
                 log.out();
         }
@@ -264,6 +302,8 @@ public final class GmInput extends NetBufferedInput {
                         Driver.gmLockArray.deleteLock(lockId);
 
                         if (inputHandle != 0) {
+// System.err.println(this + ".doClose(): call nCloseInput");
+// Thread.dumpStack();
                                 nCloseInput(inputHandle);
                                 inputHandle = 0;
                         }
@@ -292,6 +332,8 @@ public final class GmInput extends NetBufferedInput {
 
                 if (inputHandle != 0) {
                         nCloseInput(inputHandle);
+// System.err.println(this + ".doFree(): called nCloseInput");
+// Thread.dumpStack();
                         inputHandle = 0;
                 }
 
@@ -341,7 +383,13 @@ public final class GmInput extends NetBufferedInput {
                 log.out();
         }
 
-        /*
+	/**
+	 * {@inheritDoc}
+	 *
+	 * We provide our own implementation of read/writeArray(byte[])
+	 * because super's uses its own buffering, which is incompatible
+	 * with the buffering used in NetGM.
+	 */
 	public void readArray(byte [] b, int o, int l) throws IOException {
                 log.in();
                 freeBuffer();
@@ -378,7 +426,6 @@ public final class GmInput extends NetBufferedInput {
 
                 log.out();
         }
-        */
 
 	public void readArray(char [] b, int o, int l) throws IOException {
                 log.in();
@@ -434,17 +481,22 @@ public final class GmInput extends NetBufferedInput {
                         /* Request reception */
                         gmDriver.blockingPump(lockId, lockIds);
                 }
+// System.err.println(Thread.currentThread() + ": Rcve/start short array; byte offset " + o + " size " + l);
+// Thread.dumpStack();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
 
                         Driver.gmReceiveLock.lock();
 
+			int result;
                         Driver.gmAccessLock.lock(true);
-                        int result = nPostShortBuffer(inputHandle, b, o, _l);
+                        result = nPostShortBuffer(inputHandle, b, o, _l);
                         Driver.gmAccessLock.unlock();
+// System.err.println(Thread.currentThread() + ": receive chunk of short, result " + result);
 
                         if (result == 0) {
+// System.err.println(Thread.currentThread() + ": ack completion, this would be a rendez-vous msg");
                                 /* Ack completion */
                                 gmDriver.blockingPump(lockId, lockIds);
 
@@ -457,6 +509,8 @@ public final class GmInput extends NetBufferedInput {
                         l -= _l;
                         o += _l;
                 }
+// System.err.println(Thread.currentThread() + ": Done rcve short array; left " + l + " size " + b.length);
+// for (int i = 0; i < b.length; i++) { System.err.print(b[i] + ","); } System.err.println();
 
                 log.out();
         }
@@ -474,6 +528,8 @@ public final class GmInput extends NetBufferedInput {
                         /* Request reception */
                         gmDriver.blockingPump(lockId, lockIds);
                 }
+// System.err.println("Rcve/start int array; byte offset " + o + " size " + l);
+// Thread.dumpStack();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
@@ -497,6 +553,7 @@ public final class GmInput extends NetBufferedInput {
                         l -= _l;
                         o += _l;
                 }
+// System.err.print("Rcvd int array: "); for (int i = 0; i < Math.min(b.length, 32); i++) System.err.print(b[i] + " "); System.err.println();
 
                 log.out();
         }

@@ -129,6 +129,7 @@ public class NetSplitter extends NetOutput {
 	public void initSend() throws IOException {
                 log.in();
                 super.initSend();
+// System.err.println(this + ": in initSend(); notify singleton " + singleton);
 
 		if (singleton != null) {
 		    singleton.initSend();

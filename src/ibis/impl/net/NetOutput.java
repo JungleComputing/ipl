@@ -15,6 +15,14 @@ import java.util.Iterator;
  * Provide an abstraction of a network output.
  */
 public abstract class NetOutput extends NetIO implements WriteMessage {
+
+
+	/**
+	 * Check to not _finish twice
+	 */
+	private boolean		finished;
+
+
 	/**
 	 * Constructor.
 	 *
@@ -27,13 +35,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                             String           context) {
 		super(portType, driver, context);
 		// factory = new NetBufferFactory(new NetSendBufferFactoryDefaultImpl());
+		finished = false;
 	}
 
         /**
          * Prepare the output for a new message transmission.
          */
 	public void initSend() throws IOException {
-                //
+// System.err.println(this + ": in initSend");
         }
 
 
@@ -50,17 +59,34 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 //
         }
 
+
+	/**
+	 * Completes the message transmission.
+	 *
+	 * Note: if it is detected that the message is actually empty,
+	 * a single byte is forced to be sent over the network.
+	 */
+	private void _finish() throws IOException {
+	    log.in();
+	    finished = true;
+	    log.out();
+	}
+
         /**
          * Completes the current outgoing message.
          *
          * @exception IOException in case of trouble.
          */
         public void finish() throws IOException{
+		if (! finished) {
+		    _finish();
+		}
                 if (_outputConvertStream != null) {
 			_outputConvertStream.close();
 
                         _outputConvertStream = null;
                 }
+		finished = false;
         }
 
         /**
@@ -72,6 +98,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
          */
         public void reset(boolean doSend) throws IOException {
+		_finish();
+
                 if (doSend) {
                         send();
                 } else {
@@ -103,6 +131,10 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         public void resetCount() {
                 __.unimplemented__("resetCount");
         }
+
+	protected void handleEmptyMsg() throws IOException {
+	    writeByte((byte)255);
+	}
 
 
 	/**

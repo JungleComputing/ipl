@@ -4,7 +4,14 @@ import java.io.*;
 
 public final class Rdtsc extends ibis.ipl.Timer {
 	private long time;
+	// We often seem to meet overflow problems.
+	// For that, we don't just do time -= rdtsc() at start and
+	// time += rdtsc() at finish, but time += rdtsc() - t_start
+	// at finish.
+	private long t_start;
 	private static final float MHz;
+
+	private boolean started;
 
 	public static native long rdtsc();
 	private static native float getMHz();
@@ -38,12 +45,18 @@ public final class Rdtsc extends ibis.ipl.Timer {
 	}
 
 	public void start() {
-		time -= rdtsc();
+		if (! started) {
+			t_start = rdtsc();
+			started = true;
+		}
 	}
 
 	public void stop() {
-		time += rdtsc();
-		++ count;
+		if (started) {
+			time += rdtsc() - t_start;
+			++ count;
+			started = false;
+		}
 	}
 
 	public long currentTimeNanos() {

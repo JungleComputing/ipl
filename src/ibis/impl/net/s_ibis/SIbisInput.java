@@ -29,6 +29,14 @@ public final class SIbisInput extends NetSerializedInput {
 		return new IbisSerializationInputStream(id);
         }
 
+	/**
+	 * Ibis serialization does not require a sentinel to signal
+	 * serialization read/writes
+	 */
+	protected void handleEmptyMsg() throws IOException {
+	    super.handleEmptyMsg();
+	}
+
 	/*
 	 * Dissipator used to get the data from the driver below. Actually
 	 * does almost nothing, just passes the data up to the serialization.

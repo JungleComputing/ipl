@@ -10,6 +10,10 @@ import ibis.ipl.Ibis;
  */
 public final class NetPriorityMutex {
 
+	private final static boolean DEBUG = false;
+
+	private Thread owner;
+
         /**
          * Store the mutex value, which cannot be negative.
          */
@@ -57,6 +61,9 @@ public final class NetPriorityMutex {
                 if (priority) {
                         priorityvalue++;
                         while (lockvalue <= 0) {
+				if (DEBUG && owner == Thread.currentThread()) {
+					throw new IllegalMonitorStateException("Cannot lock twice");
+				}
                                 try {
 					waiters++;
                                         wait();
@@ -75,6 +82,9 @@ public final class NetPriorityMutex {
                         priorityvalue--;
                 } else {
                         while (priorityvalue > 0 || lockvalue <= 0) {
+				if (DEBUG && lockvalue <= 0 && owner == Thread.currentThread()) {
+					throw new IllegalMonitorStateException("Cannot lock twice");
+				}
 				waiters++;
 				try {
 					wait();
@@ -85,6 +95,9 @@ public final class NetPriorityMutex {
 				}
                         }
                 }
+		if (DEBUG) {
+			owner = Thread.currentThread();
+		}
 		lockvalue--;
 	}
 
@@ -108,6 +121,9 @@ public final class NetPriorityMutex {
                 if (priority) {
                         priorityvalue++;
                         while (lockvalue <= 0) {
+				if (DEBUG && owner == Thread.currentThread()) {
+					throw new IllegalMonitorStateException("Cannot lock twice");
+				}
                                 try {
 					waiters++;
                                         wait();
@@ -128,6 +144,9 @@ public final class NetPriorityMutex {
                         priorityvalue--;
                 } else {
                         while (priorityvalue > 0 || lockvalue <= 0) {
+				if (DEBUG && lockvalue <= 0 && owner == Thread.currentThread()) {
+					throw new IllegalMonitorStateException("Cannot lock twice");
+				}
 				waiters++;
 				try {
 					wait();
@@ -138,6 +157,9 @@ public final class NetPriorityMutex {
 				}
                         }
                 }
+		if (DEBUG) {
+			owner = Thread.currentThread();
+		}
 		lockvalue--;
 	}
 
@@ -154,6 +176,9 @@ public final class NetPriorityMutex {
          * been successfully acquired or not.
          */
 	public synchronized boolean trylock(boolean priority) {
+		if (DEBUG && lockvalue <= 0 && owner == Thread.currentThread()) {
+			throw new IllegalMonitorStateException("Cannot lock twice");
+		}
                 if (priority) {
                         if (lockvalue <= 0) {
                                 return false;
@@ -168,6 +193,9 @@ public final class NetPriorityMutex {
                         }
                 }
 
+		if (DEBUG) {
+			owner = Thread.currentThread();
+		}
                 lockvalue--;
                 return true;
 	}
@@ -176,6 +204,9 @@ public final class NetPriorityMutex {
          * Unlock the mutex.
          */
 	public synchronized void unlock() {
+		if (DEBUG && owner != Thread.currentThread()) {
+			throw new IllegalMonitorStateException("Cannot unlock from not owner");
+		}
 		lockvalue++;
 		if (waiters > 0) {
 			notify();

@@ -1,4 +1,5 @@
 import ibis.util.PoolInfo;
+import ibis.ipl.IbisException;
 
 import ibis.rmi.registry.*;
 import ibis.rmi.*;

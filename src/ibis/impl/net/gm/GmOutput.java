@@ -30,6 +30,7 @@ public final class GmOutput extends NetBufferedOutput {
         private int        rportId      = -1;
         private int        rmuxId       = -1;
         private Driver     gmDriver     = null;
+	private boolean    mustFlush;
 
 
         native long nInitOutput(long deviceHandle) throws IOException;
@@ -37,33 +38,38 @@ public final class GmOutput extends NetBufferedOutput {
         native int  nGetOutputPortId(long outputHandle) throws IOException;
         native int  nGetOutputMuxId(long outputHandle) throws IOException;
         native void nConnectOutput(long outputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws IOException;
-        native void nSendRequest(long outputHandle, int base, int length) throws IOException;
-        native void nSendBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
+
+	native boolean nSendByte(long outputHandle, byte value) throws IOException;
+
+        native boolean nSendRequest(long outputHandle, int base, int length) throws IOException;
+        native boolean nSendBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
         native void nSendBuffer(long outputHandle, byte []b, int base, int length) throws IOException;
 
-        native void nSendBooleanBufferIntoRequest(long outputHandle, boolean []b, int base, int length) throws IOException;
+        native boolean nSendBooleanBufferIntoRequest(long outputHandle, boolean []b, int base, int length) throws IOException;
         native void nSendBooleanBuffer(long outputHandle, boolean []b, int base, int length) throws IOException;
 
-        native void nSendByteBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
+        native boolean nSendByteBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
         native void nSendByteBuffer(long outputHandle, byte []b, int base, int length) throws IOException;
 
-         native void nSendShortBufferIntoRequest(long outputHandle, short []b, int base, int length) throws IOException;
+         native boolean nSendShortBufferIntoRequest(long outputHandle, short []b, int base, int length) throws IOException;
         native void nSendShortBuffer(long outputHandle, short []b, int base, int length) throws IOException;
 
-         native void nSendCharBufferIntoRequest(long outputHandle, char []b, int base, int length) throws IOException;
+         native boolean nSendCharBufferIntoRequest(long outputHandle, char []b, int base, int length) throws IOException;
         native void nSendCharBuffer(long outputHandle, char []b, int base, int length) throws IOException;
 
-         native void nSendIntBufferIntoRequest(long outputHandle, int []b, int base, int length) throws IOException;
+         native boolean nSendIntBufferIntoRequest(long outputHandle, int []b, int base, int length) throws IOException;
         native void nSendIntBuffer(long outputHandle, int []b, int base, int length) throws IOException;
 
-         native void nSendLongBufferIntoRequest(long outputHandle, long []b, int base, int length) throws IOException;
+         native boolean nSendLongBufferIntoRequest(long outputHandle, long []b, int base, int length) throws IOException;
         native void nSendLongBuffer(long outputHandle, long []b, int base, int length) throws IOException;
 
-         native void nSendFloatBufferIntoRequest(long outputHandle, float []b, int base, int length) throws IOException;
+         native boolean nSendFloatBufferIntoRequest(long outputHandle, float []b, int base, int length) throws IOException;
         native void nSendFloatBuffer(long outputHandle, float []b, int base, int length) throws IOException;
 
-         native void nSendDoubleBufferIntoRequest(long outputHandle, double []b, int base, int length) throws IOException;
+         native boolean nSendDoubleBufferIntoRequest(long outputHandle, double []b, int base, int length) throws IOException;
         native void nSendDoubleBuffer(long outputHandle, double []b, int base, int length) throws IOException;
+
+	native void nFlush(long outputHandle) throws IOException;
 
         native void nCloseOutput(long outputHandle) throws IOException;
 
@@ -156,6 +162,26 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * The buffering in NetBuffererdOutput confuses Ibis serialization.
+	 * Provide a special implementation that bypasses that buffer.
+	 */
+	public void writeByte(byte value) throws IOException {
+	    Driver.gmAccessLock.lock(true);
+	    boolean flushed = nSendByte(outputHandle, value);
+	    Driver.gmAccessLock.unlock();
+
+	    if (flushed) {
+		/* Wait for 'request' send completion */
+		// gmDriver.blockingPump(lockId, lockIds);
+		gmDriver.blockingPump(lockIds);
+	    }
+	    mustFlush = true;
+	}
+
+
         /**
          * {@inheritDoc}
          */
@@ -164,13 +190,25 @@ public final class GmOutput extends NetBufferedOutput {
                 if (b.length > packetMTU) {
                         /* Post the 'request' */
 // System.err.print("[");
+// System.err.println("Post a request");
                         Driver.gmAccessLock.lock(true);
-                        nSendRequest(outputHandle, b.base, b.length);
+                        boolean flushed = nSendRequest(outputHandle, b.base, b.length);
                         Driver.gmAccessLock.unlock();
 
-                        /* Wait for 'request' send completion */
-                        // gmDriver.blockingPump(lockId, lockIds);
-                        gmDriver.blockingPump(lockIds);
+			if (flushed) {
+// System.err.println("It seems our request post has caused a flush");
+				/* Wait for 'request' send completion */
+				gmDriver.blockingPump(lockId, lockIds);
+				// gmDriver.blockingPump(lockIds);
+			}
+
+// System.err.println("Wait for request sent completion");
+			/* Wait for 'request' send completion */
+			gmDriver.blockingPump(lockId, lockIds);
+
+// System.err.println("Wait for rendez-vous ack");
+			/* Wait for 'ack' completion */
+			gmDriver.blockingPump(lockId, lockIds);
 
                         /* Post the 'buffer' */
                         Driver.gmAccessLock.lock(true);
@@ -182,13 +220,21 @@ public final class GmOutput extends NetBufferedOutput {
 // System.err.print("]");
                 } else {
 // System.err.print("<*");
+// System.err.println("Send byte buffer " + b + " offset " + b.base + " size " + b.length);
+// Thread.dumpStack();
                         Driver.gmAccessLock.lock(true);
-                        nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length);
+                        boolean flushed = nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length);
                         Driver.gmAccessLock.unlock();
 
-                        /* Wait for 'request' send completion */
-                        // gmDriver.blockingPump(lockId, lockIds);
-                        gmDriver.blockingPump(lockIds);
+			if (flushed) {
+// System.err.println("It seems our eager data post has caused a flush");
+				/* Wait for buffer send completion */
+				// gmDriver.blockingPump(lockId, lockIds);
+				gmDriver.blockingPump(lockIds);
+			}
+
+			/* @@@@@@@@@@@@@@@@@ IS THIS CORRECT?????????????? */
+			mustFlush = true;
 // System.err.print(">*");
                 }
 
@@ -198,6 +244,23 @@ public final class GmOutput extends NetBufferedOutput {
 
                 log.out();
         }
+
+	/**
+	 * {@inheritDoc}
+	 */
+	protected void flush() throws IOException {
+// System.err.println(this + ": flush()");
+// Thread.dumpStack();
+	    super.flush();
+// System.err.println(this + ": past super.flush()");
+	    if (mustFlush) {
+// System.err.println(this + ": Now flush the buffers");
+		nFlush(outputHandle);
+		mustFlush = false;
+		/* Wait for 'request' send completion */
+		gmDriver.blockingPump(lockId, lockIds);
+	    }
+	}
 
         /**
          * {@inheritDoc}
@@ -250,9 +313,8 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
         public void writeArray(boolean [] b, int o, int l) throws IOException {
-                flush();
-
-                int i = 0;
+                // No, we aggregate and flush explicitly: flush();
+// System.err.println("Send boolean array; byte offset " + o + " size " + l);
 
                 while (l > 0) {
                         int _l = 0;
@@ -262,8 +324,13 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle, o, l);
+                                boolean flushed = nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
+
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
 
                                 /* Wait for 'request' send completion */
                                 gmDriver.blockingPump(lockId, lockIds);
@@ -283,11 +350,14 @@ public final class GmOutput extends NetBufferedOutput {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                nSendBooleanBufferIntoRequest(outputHandle, b, o, _l);
+                                boolean flushed = nSendBooleanBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'request' send completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
+				mustFlush = true;
                         }
 
                         l -= _l;
@@ -295,11 +365,17 @@ public final class GmOutput extends NetBufferedOutput {
                 }
         }
 
-        /*
+	/**
+	 * {@inheritDoc}
+	 *
+	 * We provide our own implementation of read/writeArray(byte[])
+	 * because super's uses its own buffering, which is incompatible
+	 * with the buffering used in NetGM.
+	 */
         public void writeArray(byte [] b, int o, int l) throws IOException {
-                flush();
+                // No, we aggregate and flush explicitly: flush();
 
-                int i = 0;
+// System.err.println("Send byte array; byte offset " + o + " size " + l);
 
                 while (l > 0) {
                         int _l = 0;
@@ -309,8 +385,13 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 // Post the 'request'
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle, o, l);
+                                boolean flushed = nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
+
+				if (flushed) {
+					// Wait for 'request' send completion
+					gmDriver.blockingPump(lockId, lockIds);
+				}
 
                                 // Wait for 'request' send completion
                                 gmDriver.blockingPump(lockId, lockIds);
@@ -330,26 +411,27 @@ public final class GmOutput extends NetBufferedOutput {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                nSendByteBufferIntoRequest(outputHandle, b, o, _l);
+                                boolean flushed = nSendByteBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                // Wait for 'request' send completion
-                                gmDriver.blockingPump(lockId, lockIds);
+				if (flushed) {
+					// Wait for 'request' send completion
+					gmDriver.blockingPump(lockId, lockIds);
+				}
+				mustFlush = true;
                         }
 
                         l -= _l;
                         o += _l;
                 }
         }
-        */
 
         public void writeArray(char [] b, int o, int l) throws IOException {
-                flush();
-
-                int i = 0;
+                // No, we aggregate and flush explicitly: flush();
 
                 l <<= 1;
                 o <<= 1;
+// System.err.println("Send char array; byte offset " + o + " size " + l);
 
                 while (l > 0) {
                         int _l = 0;
@@ -359,8 +441,13 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle, o, l);
+                                boolean flushed = nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
+
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
 
                                 /* Wait for 'request' send completion */
                                 gmDriver.blockingPump(lockId, lockIds);
@@ -380,11 +467,14 @@ public final class GmOutput extends NetBufferedOutput {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                nSendCharBufferIntoRequest(outputHandle, b, o, _l);
+                                boolean flushed = nSendCharBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'request' send completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
+				mustFlush = true;
                         }
 
                         l -= _l;
@@ -393,12 +483,13 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
         public void writeArray(short [] b, int o, int l) throws IOException {
-                flush();
-
-                int i = 0;
+                // No, we aggregate and flush explicitly: flush();
 
                 l <<= 1;
                 o <<= 1;
+// System.err.println("Send short array; byte offset " + o + " size " + l);
+// Thread.dumpStack();
+// for (int i = 0; i < b.length; i++) { System.err.print(b[i] + ","); } System.err.println();
 
                 while (l > 0) {
                         int _l = 0;
@@ -408,8 +499,13 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle, o, l);
+                                boolean flushed = nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
+
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
 
                                 /* Wait for 'request' send completion */
                                 gmDriver.blockingPump(lockId, lockIds);
@@ -429,11 +525,14 @@ public final class GmOutput extends NetBufferedOutput {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                nSendShortBufferIntoRequest(outputHandle, b, o, _l);
+                                boolean flushed = nSendShortBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'request' send completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
+				mustFlush = true;
                         }
 
                         l -= _l;
@@ -442,12 +541,12 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
         public void writeArray(int [] b, int o, int l) throws IOException {
-                flush();
-
-                int i = 0;
+                // No, we aggregate and flush explicitly: flush();
 
                 l <<= 2;
                 o <<= 2;
+// System.err.println("Send int array; byte offset " + o + " size " + l);
+// for (int i = 0; i < Math.min(b.length, 32); i++) System.err.print(b[i] + " "); System.err.println();
 
                 while (l > 0) {
                         int _l = 0;
@@ -457,8 +556,13 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle, o, l);
+                                boolean flushed = nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
+
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
 
                                 /* Wait for 'request' send completion */
                                 gmDriver.blockingPump(lockId, lockIds);
@@ -475,14 +579,19 @@ public final class GmOutput extends NetBufferedOutput {
                                 gmDriver.blockingPump(lockId, lockIds);
 
                         } else {
+// System.err.println("Send int array; byte offset " + o + " size " + l);
+// Thread.dumpStack();
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                nSendIntBufferIntoRequest(outputHandle, b, o, _l);
+                                boolean flushed = nSendIntBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'request' send completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
+				mustFlush = true;
                         }
 
                         l -= _l;
@@ -491,12 +600,11 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
         public void writeArray(long [] b, int o, int l) throws IOException {
-                flush();
-
-                int i = 0;
+                // No, we aggregate and flush explicitly: flush();
 
                 l <<= 3;
                 o <<= 3;
+// System.err.println("Send long array; byte offset " + o + " size " + l);
 
                 while (l > 0) {
                         int _l = 0;
@@ -506,8 +614,13 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle, o, l);
+                                boolean flushed = nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
+
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
 
                                 /* Wait for 'request' send completion */
                                 gmDriver.blockingPump(lockId, lockIds);
@@ -527,11 +640,14 @@ public final class GmOutput extends NetBufferedOutput {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                nSendLongBufferIntoRequest(outputHandle, b, o, _l);
+                                boolean flushed = nSendLongBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'request' send completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
+				mustFlush = true;
                         }
 
                         l -= _l;
@@ -540,12 +656,11 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
         public void writeArray(float [] b, int o, int l) throws IOException {
-                flush();
-
-                int i = 0;
+                // No, we aggregate and flush explicitly: flush();
 
                 l <<= 2;
                 o <<= 2;
+// System.err.println("Send float array; byte offset " + o + " size " + l);
 
                 while (l > 0) {
                         int _l = 0;
@@ -555,8 +670,13 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle, o, l);
+                                boolean flushed = nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
+
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
 
                                 /* Wait for 'request' send completion */
                                 gmDriver.blockingPump(lockId, lockIds);
@@ -576,11 +696,14 @@ public final class GmOutput extends NetBufferedOutput {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                nSendFloatBufferIntoRequest(outputHandle, b, o, _l);
+                                boolean flushed = nSendFloatBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'request' send completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
+				mustFlush = true;
                         }
 
                         l -= _l;
@@ -589,12 +712,11 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
         public void writeArray(double [] b, int o, int l) throws IOException {
-                flush();
-
-                int i = 0;
+                // No, we aggregate and flush explicitly: flush();
 
                 l <<= 3;
                 o <<= 3;
+// System.err.println("Send double array; byte offset " + o + " size " + l);
 
                 while (l > 0) {
                         int _l = 0;
@@ -604,8 +726,13 @@ public final class GmOutput extends NetBufferedOutput {
 
                                 /* Post the 'request' */
                                 Driver.gmAccessLock.lock(true);
-                                nSendRequest(outputHandle, o, l);
+                                boolean flushed = nSendRequest(outputHandle, o, l);
                                 Driver.gmAccessLock.unlock();
+
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
 
                                 /* Wait for 'request' send completion */
                                 gmDriver.blockingPump(lockId, lockIds);
@@ -625,11 +752,14 @@ public final class GmOutput extends NetBufferedOutput {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                nSendDoubleBufferIntoRequest(outputHandle, b, o, _l);
+                                boolean flushed = nSendDoubleBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'request' send completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+				if (flushed) {
+					/* Wait for 'request' send completion */
+					gmDriver.blockingPump(lockId, lockIds);
+				}
+				mustFlush = true;
                         }
 
                         l -= _l;

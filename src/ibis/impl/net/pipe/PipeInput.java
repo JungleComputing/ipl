@@ -80,7 +80,8 @@ public final class PipeInput extends NetBufferedInput {
 		if (block) {
 			buf = receiveByteBuffer(1);
 			return spn;
-		} else if (pipeIs.available() > 0) {
+		}
+		if (pipeIs.available() > 0) {
 			return spn;
 		}
 		log.out();
@@ -139,6 +140,7 @@ public final class PipeInput extends NetBufferedInput {
 		} while (offset < l);
 
 		buf.length = l;
+
                 log.out();
 
 		return buf;

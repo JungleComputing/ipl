@@ -90,6 +90,8 @@ public abstract class NetSerializedInput extends NetInput {
 
 	public void initReceive(Integer num) throws IOException {
                 log.in();
+// System.err.println(this + ": now in initReceive()");
+// Thread.dumpStack();
                 activeNum = num;
                 mtu          = subInput.getMaximumTransfertUnit();
                 headerOffset = subInput.getHeadersLength();
@@ -114,6 +116,7 @@ public abstract class NetSerializedInput extends NetInput {
                                 throw new Error("invalid state: stream not found");
                         }
                 }
+// System.err.println("OK, done the initReceive; control byte = " + b);
                 log.out();
 	}
 
