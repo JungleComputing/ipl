@@ -77,6 +77,7 @@ public class ExtSocketFactory
 			"ibis.connect.socketFactory.PortRangeSocketType");
 	declareNickname("SSL", 
 			"ibis.connect.socketFactory.SSLSocketType");
+	// Declare new nicknames here.
 
 	Properties p = System.getProperties();
 	String bl = p.getProperty(ConnProps.datalinks);
