@@ -266,7 +266,7 @@ public abstract class NetIO {
          public final String getMandatoryProperty(String name) {
                 String s = getProperty(name);
                 if (s == null) {
-                        throw new Error(name+" property not specified");
+                        throw new Error("`"+name+"' property not specified");
                 }
 
                 return s;
