@@ -219,7 +219,7 @@ public class NetPoller
 
 
     protected void setReadBufferedSupported() {
-	readBufferedSupported = false;
+	readBufferedSupported = true;
 	Collection c = inputMap.values();
 	Iterator i = c.iterator();
 

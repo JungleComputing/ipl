@@ -317,7 +317,7 @@ public final class NetAllocator {
 		}
 		if (maxBlock * blockSize > 2 * stack.warningIssued) {
 		    stack.warningIssued = maxBlock * blockSize;
-		    System.err.println(this + ": WARNING: buffered cache for blocksize " + blockSize + " is going to exceed " + (maxBlock * blockSize / (1 << 20)) + " MB");
+		    System.err.println(NetIbis.hostName() + ": WARNING: buffered cache for blocksize " + blockSize + " is going to exceed " + (maxBlock * blockSize / (1 << 20)) + " MB");
 		}
 
 		stack.clients++;
