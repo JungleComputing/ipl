@@ -112,7 +112,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     private boolean areCorrectlyOrdered( int i0, int i1 )
     {
         int n = commonLength( i0, i1 );
-	return isSmallerCharacter( i0+n, i1+n );
+        return isSmallerCharacter( i0+n, i1+n );
     }
 
     /** Returns true iff the indices are correctly ordered. */
@@ -727,6 +727,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                             // (But we could be wrong.)
                             //mincom = Math.max( mincom, len-1 );
                             res.add( new Step( candidates, p, len ) );
+                            break;
                         }
                         len--;
                     }
