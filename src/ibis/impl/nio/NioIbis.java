@@ -167,9 +167,6 @@ public final class NioIbis extends Ibis implements Config {
 		toBeDeletedIbises.add(deleteIdent);
 		return;
 	    }
-	    if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-		System.out.println(name + ": Ibis '" + deleteIdent.name() + "' will be deleted"); 
-	    }
 	}
 	
 	if (resizeHandler != null) {
@@ -178,9 +175,6 @@ public final class NioIbis extends Ibis implements Config {
     }
     
     public void reconfigure() {
-	    if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-		System.out.println(name + ":reconfiguration");
-	    }
 	    if (resizeHandler != null) {
 		resizeHandler.reconfigure();
 	    }

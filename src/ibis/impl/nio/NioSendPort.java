@@ -200,6 +200,8 @@ public final class NioSendPort implements SendPort, Config, Protocol {
     }
 
     public synchronized ibis.ipl.WriteMessage newMessage() throws IOException { 
+	long sequencenr = -1;
+
 	if(neverConnected) {
 	    throw new IbisIOException("port is not connected");
 	}
@@ -222,23 +224,29 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 	    }
 
 	    message = new NioWriteMessage(this, out);
+	} else {
+	    out.reset();
 	}
 
 	out.writeByte(NEW_MESSAGE);
 	
 	if(type.sequenced) {
-	    long sequencenr = ibis.getSeqno(type.name);
-
+	    sequencenr = ibis.getSeqno(type.name);
 	    out.writeLong(sequencenr);
+	}
 
-	    if (DEBUG) {
-		Debug.enter("messages", this, "new write message (# "
-			+ sequencenr + ")");
+	if (DEBUG) {
+	    String message = "new write message (# " + sequencenr + 
+		") from " + ident + " to:";
+
+
+	    ReceivePortIdentifier[] connections = accumulator.connections();
+
+	    for (int i = 0; i < connections.length; i++) {
+		message = message + " " + connections[i]; 
 	    }
-	} else {
-	    if (DEBUG) {
-		Debug.enter("messages", this, "new write message");
-	    }
+
+	    Debug.enter("messages", this, message);
 	}
 
 	return message;
@@ -302,10 +310,6 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 	    throw new IbisError("Port already freed");
 	}
 
-	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-	    System.err.println(type.ibis.name() + ": freeing sendport");
-	}
-
 	try {
 	    if(out == null) {
 		//create a new stream, just to say close :(
@@ -318,18 +322,11 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 	    out.close();
 
 	} catch (IOException e) {
-	    if(DEBUG_LEVEL >= ERROR_DEBUG_LEVEL) {
-		System.err.println("Error in NioSendPort.free: " + e);
-		e.printStackTrace();
-	    }
 	}
 
 	out = null;
 	ident = null;
 
-	if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-	    System.err.println("freeing sendport done");
-	}
     }
 
     public long getCount() {

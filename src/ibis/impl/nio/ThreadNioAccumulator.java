@@ -69,13 +69,15 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 		Debug.message("buffers", this, "sending to " + nrOfConnections
 			+ " connections");
 	    }
+
+	    SendBuffer[] copies = SendBuffer.replicate(buffer, nrOfConnections);
+
 	    for (int i = 0; i < nrOfConnections; i++) {
 		ThreadNioAccumulatorConnection connection;
 		connection = (ThreadNioAccumulatorConnection) connections[i];
 
-		copy = SendBuffer.duplicate(buffer); 
 		try {
-		    connection.addToThreadSendList(copy);
+		    connection.addToThreadSendList(copies[i]);
 		} catch (IOException e) {
 		    if (DEBUG) {
 			Debug.message("buffers", this, "connection lost");
@@ -85,6 +87,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 		    nrOfConnections--;
 		    connections[i] = connections[nrOfConnections];
 		    connections[nrOfConnections] = null;
+		    SendBuffer.recycle(copies[nrOfConnections]);
 		    i--;
 		}
 	    }

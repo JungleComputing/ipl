@@ -42,9 +42,14 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 	if (DEBUG) {
 	    Debug.enter("buffers", this, "sending a buffer");
 	}
+	buffer.mark();
+
 	for(int i = 0; i < nrOfConnections; i++) {
 	    try {
-		connections[i].sendDirectly(buffer);
+		buffer.reset();
+		while(buffer.hasRemaining()) {
+		    connections[i].channel.write(buffer.byteBuffers);
+		}
 	    } catch (IOException e) {
 		//someting went wrong, close connection 
 		connections[i].close();
@@ -59,6 +64,7 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 		i--;
 	    }
 	}
+	SendBuffer.recycle(buffer);
 	if (DEBUG) {
 	    Debug.exit("buffers", this, "done sending a buffer");
 	}

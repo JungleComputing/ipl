@@ -37,7 +37,6 @@ final class NioWriteMessage implements WriteMessage, Config {
 
     public long finish() throws IOException {
 	out.flush();
-	out.reset();
 	return port.finish();
     }
 

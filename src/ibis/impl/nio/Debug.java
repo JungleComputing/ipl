@@ -160,9 +160,9 @@ final class Debug {
 	}
 
 	if(source == null) {
-	    sourceString = pad("<static>", SOURCE_NAME_LENGTH);
+	    sourceString = "<static>";
 	} else {
-	    sourceString = pad(source.getClass().getName(), SOURCE_NAME_LENGTH);
+	    sourceString = source.getClass().getName();
 	}
 
 	if(log != null) {

@@ -162,9 +162,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
      * {@inheritDoc}
      */
     public void writeBoolean(boolean value) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeBoolean(" + value + ")");
-	}
 	if(value) {
 	    writeByte((byte) 1);
 	} else {
@@ -193,9 +190,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
      * {@inheritDoc}
      */
     public void writeChar(char value) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeChar(" + value + ")");
-	}
 	try {
 	    chars.put(value);
 	} catch (BufferOverflowException e) {
@@ -208,9 +202,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
      * {@inheritDoc}
      */
     public void writeShort(short value) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeShort(" + value + ")");
-	}
 	try {
 	    shorts.put(value);
 	} catch (BufferOverflowException e) {
@@ -223,9 +214,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
      * {@inheritDoc}
      */
     public void writeInt(int value) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeInt(" + value + ")");
-	}
 	try {
 	    ints.put(value);
 	} catch (BufferOverflowException e) {
@@ -238,9 +226,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
      * {@inheritDoc}
      */
     public void writeLong(long value) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeLong(" + value + ")");
-	}
 	try {
 	    longs.put(value);
 	} catch (BufferOverflowException e) {
@@ -253,9 +238,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
      * {@inheritDoc}
      */
     public void writeFloat(float value) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeFloat(" + value + ")");
-	}
 	try {
 	    floats.put(value);
 	} catch (BufferOverflowException e) {
@@ -268,9 +250,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
      * {@inheritDoc}
      */
     public void writeDouble(double value) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeDouble(" + value + ")");
-	}
 	try {
 	    doubles.put(value);
 	} catch (BufferOverflowException e) {
@@ -281,10 +260,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 
     public void writeArray(boolean[] array, int off, int len) 
 	    throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeArray(bool[], off = " + off
-			       + " len = " + len + ")");
-	}
 	for(int i = off; i < (off + len); i++) {
 	    if(array[i]) {
 		writeByte((byte) 1);
@@ -326,10 +301,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 
     public void writeArray(char[] array, int off, int len) 
 	    throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeArray(c[], off = " + off
-			       + " len = " + len + ")");
-	}
 	try {
 	    chars.put(array, off, len);
 	} catch (BufferOverflowException e) {
@@ -350,10 +321,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 
     public void writeArray(short[] array, int off, int len) 
 	    throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeArray(s[], off = " + off
-			       + " len = " + len + ")");
-	}
 	try {
 	    shorts.put(array, off, len);
 	} catch (BufferOverflowException e) {
@@ -373,10 +340,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
     }
 
     public void writeArray(int[] array, int off, int len) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeArray(i[], off = " + off
-			       + " len = " + len + ")");
-	}
 	try {
 	    ints.put(array, off, len);
 	} catch (BufferOverflowException e) {
@@ -396,10 +359,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
     }
 
     public void writeArray(long[] array, int off, int len) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeArray(l[], off = " + off
-			       + " len = " + len + ")");
-	}
 	try {
 	    longs.put(array, off, len);
 	} catch (BufferOverflowException e) {
@@ -419,10 +378,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
     }
 
     public void writeArray(float[] array, int off, int len) throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeArray(f[], off = " + off
-			       + " len = " + len + ")");
-	}
 	try {
 	    floats.put(array, off, len);
 	} catch (BufferOverflowException e) {
@@ -443,10 +398,6 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 
     public void writeArray(double[] array, int off, int len) 
 	    throws IOException {
-	if(DEBUG_LEVEL >=  RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioAccumulator.writeArray(d[], off = " + off
-			       + " len = " + len + ")");
-	}
 	try {
 	    doubles.put(array, off, len);
 	} catch (BufferOverflowException e) {

@@ -437,9 +437,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
 		waitForNotify(0);
 	    }
 	}
-	if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-	    System.err.println("nio receiveport close() done");
-	}
     }
 
     /**
@@ -469,30 +466,17 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
 		} catch (ReceiveTimedOutException e) {
 		    //close all remaining connections
 		    closeAllConnections();
-		    if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-			System.err.println("nio receiveport closed");
-		    }
 		    return;
 		}
 	    } else {
 		while(connectedTo().length > 0) {
 		    if(!waitForNotify(deadline)) {
 			//deadline passed, close all remaining connections
-			if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-			    System.err.println("nio receiveport closed");
-			}
 			closeAllConnections();
 		    }
 		}
 	    }
 	} catch (IOException e) {
-	    if(DEBUG_LEVEL >= ERROR_DEBUG_LEVEL) {
-		System.err.println("Exception caught while doing"
-			+ " forcedClose(timeout) " + e);
-	    }
-	}
-	if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-	    System.err.println("nio receiveport closed");
 	}
     }
 
@@ -506,9 +490,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
 	exitOnNotConnected = true;
 	notifyAll();
 	closeAllConnections();
-	if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-	    System.err.println("nio receiveport closed");
-	}
     }
 
 
@@ -544,19 +525,12 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
 		throw new IbisError("ReceiveTimedOutException caught while"
 			+ " doing a getMessage(0)! : " + e);
 	    } catch (IOException e) {
-		if(DEBUG_LEVEL >= ERROR_DEBUG_LEVEL) {
-		    System.err.println("eek! received error on getMessage(0)"
-			+ e);
-		}
 		continue;
 	    }
 
 	    if(m == null) {
 		synchronized(this) {
 		    if(exitOnNotConnected) {
-			if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-			    System.err.println("upcall thread exiting");
-			}
 			notifyAll();
 			return;
 		    }

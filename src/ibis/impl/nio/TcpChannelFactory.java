@@ -336,7 +336,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 
 	    if (DEBUG) {
 		Debug.message("connections", this,
-			"giving new connection to receiveport");
+			"giving new connection to receiveport " + rpi);
 	    }
 
 	    //register connection with receiveport

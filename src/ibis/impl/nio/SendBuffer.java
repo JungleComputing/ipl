@@ -117,11 +117,17 @@ final class SendBuffer implements Config {
     }
 
     /**
-     * copies a buffer, records how may copies are made so far
+     * create copies of a buffer, records how may copies are made so far
      */
-    synchronized static SendBuffer duplicate(SendBuffer original) {
-	SendBuffer result = new SendBuffer(original);
-	original.copies += 1;
+    synchronized static SendBuffer[] replicate(SendBuffer original, 
+					       int copies) {
+	SendBuffer[] result = new SendBuffer[copies];
+
+	for (int i = 0; i < copies; i++) {
+	    result[i] = new SendBuffer(original);
+	}
+	original.copies += copies;
+
 	return result;
     }
 

@@ -56,20 +56,6 @@ class NioAccumulatorConnection implements Config {
     }
 
     /**
-     * Sends out buffer to the channel without buffering it and recycles it.
-     * Assumes blocking channel.
-     */
-    void sendDirectly(SendBuffer buffer) throws IOException {
-	while(buffer.hasRemaining()) {
-	    long count = channel.write(buffer.byteBuffers);
-	    if (DEBUG) {
-		Debug.message("channels", this, "wrote " + count + " bytes");
-	    }
-	}
-	SendBuffer.recycle(buffer);
-    }
-
-    /**
      * Send out data while it is possible to send without blocking.
      * Assumes non-blocking channel, recycles empty buffers.
      *

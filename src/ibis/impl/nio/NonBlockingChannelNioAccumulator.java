@@ -42,12 +42,25 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
     void doSend(SendBuffer buffer) throws IOException {
 	SendBuffer copy;
 
+	if (DEBUG) {
+	    Debug.enter("channels", this, "doSend()");
+	}
+
 	if (nrOfConnections == 0) {
+	    if (DEBUG) {
+		Debug.exit("channels", this, "!not connected");
+	    }
 	    return;
 	} else if (nrOfConnections == 1) {
+	    if (DEBUG) {
+		Debug.message("channels", this, "sending to 1 connection");
+	    }
 	    try {
 		if (!connections[0].addToSendList(buffer)) {
-		    //add failed, make room and try again
+		    if (DEBUG) {
+			Debug.message("channels", this, 
+				"add failed, making room and trying again");
+		    }
 		    doFlush();
 		    connections[0].addToSendList(buffer);
 		}
@@ -62,12 +75,18 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 		nrOfConnections = 0;
 	    }
 	} else {
+	    if (DEBUG) {
+		Debug.message("channels", this, "sending to "
+			+ nrOfConnections + " connections");
+	    }
+
+	    SendBuffer[] copies = SendBuffer.replicate(buffer, nrOfConnections);
+
 	    for(int i = 0; i < nrOfConnections; i++) {
-		copy = SendBuffer.duplicate(buffer);
 		try {
-		    if (!connections[i].addToSendList(copy)) {
+		    if (!connections[i].addToSendList(copies[i])) {
 			doFlush(connections[i]);
-			connections[i].addToSendList(copy);
+			connections[i].addToSendList(copies[i]);
 		    }
 		    connections[i].send();
 		} catch (IOException e) {
@@ -80,6 +99,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 		    nrOfConnections--;
 		    connections[i] = connections[nrOfConnections];
 		    connections[nrOfConnections] = null;
+		    SendBuffer.recycle(copies[nrOfConnections]);
 		    i--;
 		}
 	    }
@@ -96,6 +116,15 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 	NioAccumulatorConnection selected;
 	SelectionKey key;
 
+	if (DEBUG) {
+	    if(connection == null) {
+		Debug.enter("channels", this, "doing a complete flush");
+	    } else {
+		Debug.enter("channels", this, "doing a flush of a single"
+			+ " connection");
+	    }
+	}
+
 	//first try to send out data one more time, and remember
 	//which connections still have data left
 	for (int i = 0; i < nrOfConnections; i++) {
@@ -105,6 +134,10 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 		    nrOfSendingConnections++;
 		} else {
 		    if(connections[i] == connection) {
+			if (DEBUG) {
+			    Debug.exit("channels", this,
+				    "flush done for requested channel");
+			}
 			return;
 		    }
 		    connections[i].key.interestOps(0);
@@ -119,9 +152,19 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 	    }
 	}
 
+	if (DEBUG) {
+	    Debug.message("channels", this, "did one send for each connection"
+		    + ", " + nrOfSendingConnections + " connections with data"
+		    + " left");
+	}
+
 	//continually do a select and send data, until all data has been send
 	while(nrOfSendingConnections > 0) {
 	    selector.select();
+	    if (DEBUG) {
+		Debug.message("channels", this, "selected "
+			+ selector.selectedKeys().size() + " channels");
+	    }
 	    keys = selector.selectedKeys().iterator();
 	    while(keys.hasNext()) {
 		key = (SelectionKey) keys.next();
@@ -132,7 +175,16 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 			key.interestOps(0);
 			nrOfSendingConnections--;
 			if(selected == connection) {
+			    if (DEBUG) {
+				Debug.exit("channels", this,
+					"done flushing given connection");
+			    }
 			    return;
+			}
+			if (DEBUG) {
+			    Debug.message("channels", this,
+				    "done flushing a connection, "
+				    + nrOfSendingConnections + " left");
 			}
 		    }
 		} catch (IOException e) {
@@ -150,6 +202,9 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 		}
 	    }
 	    selector.selectedKeys().clear();
+	}
+	if (DEBUG) {
+	    Debug.exit("channels", this, "flush done");
 	}
     }
 }

@@ -56,10 +56,6 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 
 	notifyAll();
 
-	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-	    System.err.println("BlockingChannelNioReceivePort got new"
-		    + " connection, total now: " + nrOfConnections);
-	}
     }
 
     synchronized void errorOnRead(NioDissipator dissipator, Exception cause) {
@@ -74,11 +70,6 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 		nrOfConnections--;
 		connections[i] = connections[nrOfConnections];
 		connections[nrOfConnections] = null;
-		if(DEBUG_LEVEL >= MEDIUM_DEBUG_LEVEL) {
-		    System.err.println("BlockingChannelNioReceivePort lost"
-			    + " with error \"" + cause 
-			    + "\" connection, total now: " + nrOfConnections);
-		}
 		notifyAll();
 		return;
 	    }
@@ -93,10 +84,6 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 	SelectionKey key;
 	SelectionKey[] keys = new SelectionKey[0];
 
-	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-	    System.err.println("looking for a \"ready\" dissipator");
-	}
-
 	synchronized(this) {
 	    if (nrOfConnections == 0 && exitOnNotConnected) {
 		return null;
@@ -104,9 +91,6 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 	    for (int i = 0; i < nrOfConnections; i++) { 
 		try {
 		    if (connections[i].messageWaiting()) {
-			if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-			    System.err.println("connection[" + i + "] ready");
-			}
 			return connections[i];
 		    }
 		} catch (IOException e) {
@@ -116,9 +100,6 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 	    }
 	    if (nrOfConnections == 1 && !type.manyToOne && deadline == 0) {
 		dissipator = connections[0];
-		if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-		    System.err.println("doing shortcut blocking receive");
-		}
 	    }
 	}
 
@@ -144,9 +125,6 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 	}
 	if (dissipator != null) {
 	    //message waiting now
-	    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-		System.err.println("connection[0] ready (shortcut)");
-	    }
 	    return dissipator;
 	}
 
@@ -161,10 +139,6 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 			    continue;
 			} else if (deadline == 0) {
 			    try {
-				if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-				    System.err.println("wait()ing for a"
-					    + " connection");
-				}
 				wait();
 			    } catch (InterruptedException e) {
 				//IGNORE
@@ -176,10 +150,6 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 				deadlinePassed = true;
 			    } else {
 				try {
-				    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-					System.err.println("wait()ing for a"
-						+ " connection");
-				    }
 				    wait();
 				} catch (InterruptedException e) {
 				    //IGNORE
