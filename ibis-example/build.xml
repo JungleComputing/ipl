@@ -1,0 +1,41 @@
+<project
+    name="Ibis example"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis application build.
+    </description>
+
+    <property name="ibis"        location=".."/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/apps/ibis/build-ibis-app.xml"/>
+
+    <target name="run"
+	    depends="build"
+	    description="Run test">
+	<exec dir="${basedir}"
+	      executable="../bin/ibis_nameserver"
+	      vmlauncher="false"
+	      spawn="true">
+	      <arg line="-single -port 4567 -poolport 4568"/>
+	</exec>
+	<!-- Give nameserver time to start up -->
+	<sleep seconds="2"/>
+	<exec dir="${basedir}"
+	      executable="../bin/run_ibis"
+	      vmlauncher="false"
+	      spawn="true">
+	      <arg line="0 2 blabla localhost:4567 -Dibis.name=tcp -Dibis.pool.server.port=4568 Example"/>
+	</exec>
+	<exec dir="${basedir}"
+	      executable="../bin/run_ibis"
+	      timeout="10000"
+	      failonerror="true"
+	      vmlauncher="false">
+	      <arg line="1 2 blabla localhost:4567 -Dibis.name=tcp -Dibis.pool.server.port=4568 Example"/>
+	</exec>
+    </target>
+
+</project>
