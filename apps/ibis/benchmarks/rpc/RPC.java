@@ -62,7 +62,8 @@ class RPC
 
     private RszHandler	rszHandler;
 
-    private PortType	portType;
+    private PortType	requestPortType;
+    private PortType	replyPortType;
     private SendPort    sport;
     private ReceivePort rport;
 
@@ -537,9 +538,9 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 	System.err.println(rank + ": I am " + rank + " -- client; clients " + clients + " servers " + servers + "; client port name \"client port " + rank + "\"");
 
 	if (connectUpcalls) {
-	    sport = portType.createSendPort("latency-client", (SendPortConnectUpcall)this);
+	    sport = requestPortType.createSendPort("latency-client", (SendPortConnectUpcall)this);
 	} else {
-	    sport = portType.createSendPort("latency-client");
+	    sport = requestPortType.createSendPort("latency-client");
 	}
 	if (BUFSIZ != 0) {
 	    DynamicProperties dp = sport.properties();
@@ -555,9 +556,9 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 	myIbis.openWorld();
 
 	if (connectUpcalls) {
-	    rport = portType.createReceivePort("client port " + rank, (ReceivePortConnectUpcall)this);
+	    rport = replyPortType.createReceivePort("client port " + rank, (ReceivePortConnectUpcall)this);
 	} else {
-	    rport = portType.createReceivePort("client port " + rank);
+	    rport = replyPortType.createReceivePort("client port " + rank);
 	}
 	// System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + "  created \"client port " + rank + "\"");
 
@@ -615,9 +616,9 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 	System.err.println(rank + ": I am " + rank + " -- server; clients " + clients + " servers " + servers + "; server port name \"server port " + (rank - clients) + "\"");
 
 	if (connectUpcalls) {
-	    sport = portType.createSendPort("latency-server", (SendPortConnectUpcall)this);
+	    sport = replyPortType.createSendPort("latency-server", (SendPortConnectUpcall)this);
 	} else {
-	    sport = portType.createSendPort("latency-server");
+	    sport = replyPortType.createSendPort("latency-server");
 	}
 
 	if (BUFSIZ != 0) {
@@ -635,15 +636,15 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 
 	if (upcall) {
 	    if (connectUpcalls) {
-		rport = portType.createReceivePort("server port " + (rank - clients), this, (ReceivePortConnectUpcall)this);
+		rport = requestPortType.createReceivePort("server port " + (rank - clients), this, (ReceivePortConnectUpcall)this);
 	    } else {
-		rport = portType.createReceivePort("server port " + (rank - clients), (Upcall)this);
+		rport = requestPortType.createReceivePort("server port " + (rank - clients), (Upcall)this);
 	    }
 	} else {
 	    if (connectUpcalls) {
-		rport = portType.createReceivePort("server port " + (rank - clients), (ReceivePortConnectUpcall)this);
+		rport = requestPortType.createReceivePort("server port " + (rank - clients), (ReceivePortConnectUpcall)this);
 	    } else {
-		rport = portType.createReceivePort("server port " + (rank - clients));
+		rport = requestPortType.createReceivePort("server port " + (rank - clients));
 	    }
 	}
 // System.err.println(rank + ": created \"server port " + (rank - clients) + "\"");
@@ -962,18 +963,21 @@ System.err.println("Allocated double buffer size " + size);
 	} catch (java.net.UnknownHostException e) {
 	    // let it be the default
 	}
-	String props = "OneToOne Reliable AutoUpcalls ExplicitReceipt";
+	String basicProps = "OneToOne Reliable AutoUpcalls ExplicitReceipt";
+	String requestProps = "";
+	String replyProps = "";
 	if (requireOneToMany) {
-	    props += " OneToMany ManyToOne";
+	    requestProps += " OneToMany";
+	    replyProps += " ManyToOne";
 	    if (rank == 0) {
 		System.err.println("Require a multicast/multireceive PortType");
 	    }
 	}
 	if (sequenced) {
-	    props += " Numbered";
+	    requestProps += " Numbered";
 	}
 	StaticProperties s = new StaticProperties();
-	s.add("communication", props);
+	s.add("communication", basicProps + requestProps + replyProps);
 	s.add("serialization", "object");
 	myIbis = Ibis.createIbis(s, rszHandler);
 
@@ -992,8 +996,11 @@ System.err.println("Allocated double buffer size " + size);
 	});
 
 	s = new StaticProperties();
-	s.add("communication", props);
-	portType = myIbis.createPortType("test type", s);
+	s.add("communication", basicProps + requestProps);
+	requestPortType = myIbis.createPortType("request port type", s);
+	s = new StaticProperties();
+	s.add("communication", basicProps + replyProps);
+	replyPortType = myIbis.createPortType("reply port type", s);
 
 	if (rank == -1 && rszHandler != null) {
 	    rszHandler.sync(clients + servers);
@@ -1105,7 +1112,8 @@ System.err.println(rank + ": call it quits...; I am " + (i_am_client ? "" : "not
 		System.err.println(rank + ": Forced server run; rank " + rank + " ncpus " + ncpus + " clients " + clients + " servers " + servers);
 		myIbis = client.myIbis;
 		this.rszHandler = client.rszHandler;
-		this.portType = client.portType;
+		this.requestPortType = client.requestPortType;
+		this.replyPortType = client.replyPortType;
 		registerIbis();
 	    }
 
