@@ -248,6 +248,8 @@ public final class Satin extends APIMethods
 			}
 		}
 
+		initTupleSpace();
+
 		ibis.openWorld();
 
 		if (COMM_DEBUG) {

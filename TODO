@@ -1,0 +1,6 @@
+satin:
+	- add semantic analysis to the compiler
+	  - forgotten sync statements
+	  - all params and return types must be serializable
+
+	- make return / throw an implicit sync again?

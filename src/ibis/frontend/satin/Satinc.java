@@ -1172,7 +1172,7 @@ public final class Satinc {
 		// no need to init.
 	    }
 	    else {
-		System.err.println("WARNING: Unhandled store instruction in initSpawnTargets:" + store);
+		System.err.println("WARNING: Unhandled store instruction in initSpawnTargets, opcode = " + store.getOpcode() + " ins = " + store);
 		//				System.exit(1);
 	    }
 	}
