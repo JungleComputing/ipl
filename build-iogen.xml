@@ -62,6 +62,7 @@
 		taskname="IOGenerator"
 		dir="${iogen-build}"
 		failonerror="true"
+		maxmemory="256m"
 		fork="true">
 	    <arg line="-dir ${iogen-files}"/>
 	    <classpath refid="default.classpath"/>
