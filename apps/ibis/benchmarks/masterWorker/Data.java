@@ -8,8 +8,8 @@ public final class Data implements Serializable {
     short s = -32000;
     int i = 1000 * 1000;
     long l = 405949349;
-    // float f = (float) -13.4;
-    // double d = 3.454334783478437834;
+    float f = (float) -13.4;
+    double d = 3.454334783478437834;
 
 //    int[] array = new int[32000];
 
@@ -42,8 +42,8 @@ public final class Data implements Serializable {
 		&& other.s == s
 		&& other.i == i
 		&& other.l == l
-		// && other.f == f
-		// && other.d == d
+		&& other.f == f
+		&& other.d == d
 	       );
     }
 }
