@@ -10,5 +10,5 @@ import java.io.IOException;
 
 interface CompressorInterface extends ibis.satin.Spawnable
 {
-    public ByteBuffer compress( byte text[], int pos, ByteBuffer out, CompressContext ctx );
+    public int lookahead( byte text[], int pos, CompressContext ctx, int move, int depth );
 }

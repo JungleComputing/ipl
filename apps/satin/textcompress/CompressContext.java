@@ -15,4 +15,28 @@ class CompressContext implements java.io.Serializable {
     {
         backref = new int[alsz][backrefs];
     }
+
+    public CompressContext( int arr[][] )
+    {
+        backref = arr;
+    }
+
+    public Object clone()
+    {
+        int arr[][] = new int[backref.length][];
+
+        for( int i=0; i<backref.length; i++ ){
+            arr[i] = (int []) backref[i].clone();
+        }
+        return new CompressContext( arr );
+    }
+
+    public int applyMove( byte text[], int pos, ByteBuffer out )
+    {
+        return pos;
+    }
+
+    public void registerRef( byte c, int pos )
+    {
+    }
 }
