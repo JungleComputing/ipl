@@ -14,14 +14,16 @@ public class IOGenerator {
 
 	String	write_name;
 	String	read_name;
+	String	final_read_name;
 	Type 	tp;
 	Type	param_tp;
 
 	boolean primitive;
 	
-	SerializationInfo(String wn, String rn, Type t, Type param_tp, boolean primitive) { 
+	SerializationInfo(String wn, String rn, String frn, Type t, Type param_tp, boolean primitive) { 
 	    this.write_name = wn;
 	    this.read_name  = rn;
+	    this.final_read_name = frn;
 	    this.tp  = t;
 	    this.param_tp = param_tp;
 	    this.primitive = primitive;
@@ -52,7 +54,7 @@ public class IOGenerator {
 	    return temp;
 	}
 
-	InstructionList readInstructions(String class_name, Field field, InstructionFactory fc) { 
+	InstructionList readInstructions(String class_name, Field field, InstructionFactory fc, boolean from_constructor, ClassGen cg) { 
 	    Type t = tp;
 	    InstructionList temp = new InstructionList();
 
@@ -60,24 +62,48 @@ public class IOGenerator {
 		t = Type.getType(field.getSignature());
 	    }
 
-	    temp.append(new ALOAD(0));
-	    temp.append(new ALOAD(1));
-	    temp.append(fc.createInvoke(primitive ?
-					    "ibis.io.IbisSerializationInputStream":
-					    "java.io.ObjectInputStream",
-					read_name,
-					tp,
-					Type.NO_ARGS,
-					Constants.INVOKEVIRTUAL));
+	    if (from_constructor || ! field.isFinal()) {
+		temp.append(new ALOAD(0));
+		temp.append(new ALOAD(1));
+		temp.append(fc.createInvoke(primitive ?
+						"ibis.io.IbisSerializationInputStream":
+						"java.io.ObjectInputStream",
+					    read_name,
+					    tp,
+					    Type.NO_ARGS,
+					    Constants.INVOKEVIRTUAL));
 	    
-	    if (! primitive) { 			
-		temp.append(fc.createCheckCast((ReferenceType) t));
-	    } 
+		if (! primitive) { 			
+		    temp.append(fc.createCheckCast((ReferenceType) t));
+		} 
 	
-	    temp.append(fc.createFieldAccess(class_name, 
-					     field.getName(),
-					     t,
-					     Constants.PUTFIELD));
+		temp.append(fc.createFieldAccess(class_name,
+					         field.getName(),
+					         t,
+					         Constants.PUTFIELD));
+	    }
+	    else {
+		temp.append(new ALOAD(1));
+		temp.append(new ALOAD(0));
+		int ind = cg.getConstantPool().addString(field.getName());
+		temp.append(new LDC(ind));
+		if (primitive) {
+		    temp.append(fc.createInvoke("ibis.io.IbisSerializationInputStream",
+						final_read_name,
+						Type.VOID,
+						new Type[] { Type.OBJECT, Type.STRING},
+						Constants.INVOKEVIRTUAL));
+		}
+		else {
+		    int ind2 = cg.getConstantPool().addString(field.getSignature());
+		    temp.append(new LDC(ind2));
+		    temp.append(fc.createInvoke("ibis.io.IbisSerializationInputStream",
+						final_read_name,
+						Type.VOID,
+						new Type[] { Type.OBJECT, Type.STRING, Type.STRING},
+						Constants.INVOKEVIRTUAL));
+		}
+	    }
 
 	    return temp;
 	}
@@ -109,23 +135,23 @@ public class IOGenerator {
 
 	primitiveSerialization = new Hashtable();
 
-	primitiveSerialization.put(Type.BOOLEAN, new SerializationInfo("writeBoolean", "readBoolean", Type.BOOLEAN, Type.BOOLEAN, true));
+	primitiveSerialization.put(Type.BOOLEAN, new SerializationInfo("writeBoolean", "readBoolean", "read_field_boolean", Type.BOOLEAN, Type.BOOLEAN, true));
 	
-	primitiveSerialization.put(Type.BYTE, new SerializationInfo("writeByte", "readByte", Type.BYTE, Type.INT, true));
+	primitiveSerialization.put(Type.BYTE, new SerializationInfo("writeByte", "readByte", "read_field_byte", Type.BYTE, Type.INT, true));
 	
-	primitiveSerialization.put(Type.SHORT, new SerializationInfo("writeShort", "readShort", Type.SHORT, Type.INT, true));
+	primitiveSerialization.put(Type.SHORT, new SerializationInfo("writeShort", "readShort", "read_field_short", Type.SHORT, Type.INT, true));
 	
-	primitiveSerialization.put(Type.CHAR, new SerializationInfo("writeChar", "readChar", Type.CHAR, Type.INT, true));
+	primitiveSerialization.put(Type.CHAR, new SerializationInfo("writeChar", "readChar", "read_field_char", Type.CHAR, Type.INT, true));
 	
-	primitiveSerialization.put(Type.INT, new SerializationInfo("writeInt", "readInt", Type.INT, Type.INT, true));
-	primitiveSerialization.put(Type.LONG, new SerializationInfo("writeLong", "readLong", Type.LONG, Type.LONG, true));
+	primitiveSerialization.put(Type.INT, new SerializationInfo("writeInt", "readInt", "read_field_short", Type.INT, Type.INT, true));
+	primitiveSerialization.put(Type.LONG, new SerializationInfo("writeLong", "readLong", "read_field_long", Type.LONG, Type.LONG, true));
 
-	primitiveSerialization.put(Type.FLOAT, new SerializationInfo("writeFloat", "readFloat", Type.FLOAT, Type.FLOAT, true));
+	primitiveSerialization.put(Type.FLOAT, new SerializationInfo("writeFloat", "readFloat", "read_field_float", Type.FLOAT, Type.FLOAT, true));
 
-	primitiveSerialization.put(Type.DOUBLE, new SerializationInfo("writeDouble", "readDouble", Type.DOUBLE, Type.DOUBLE, true));
-	primitiveSerialization.put(Type.STRING, new SerializationInfo("writeUTF", "readUTF", Type.STRING, Type.STRING, true));
+	primitiveSerialization.put(Type.DOUBLE, new SerializationInfo("writeDouble", "readDouble", "read_field_double", Type.DOUBLE, Type.DOUBLE, true));
+	primitiveSerialization.put(Type.STRING, new SerializationInfo("writeUTF", "readUTF", "read_field_UTF", Type.STRING, Type.STRING, true));
 
-	referenceSerialization = new SerializationInfo("writeObject", "readObject", Type.OBJECT, Type.OBJECT, false);
+	referenceSerialization = new SerializationInfo("writeObject", "readObject", "read_field_object", Type.OBJECT, Type.OBJECT, false);
     }
     
     SerializationInfo getSerializationInfo(Type tp) { 
@@ -308,20 +334,26 @@ public class IOGenerator {
 	default_read_method.addException("java.io.IOException");
 	clazz.addMethod(default_read_method.getMethod());
 
-	/* Construct a read-of-the-stream constructor */
-	il = new InstructionList();
-	il.append(new RETURN());
+	/* Construct a read-of-the-stream constructor, but only when we can actually use it. */
+
+	String super_class_name = clazz.getSuperclassName();
+
+	if (Repository.implementationOf(super_class_name, "java.io.Serializable") &&
+		(force_generated_calls || Repository.implementationOf(super_class_name, "ibis.io.Serializable"))) {
+	    il = new InstructionList();
+	    il.append(new RETURN());
 	
-	MethodGen read_cons = new MethodGen(Constants.ACC_PUBLIC,
-					    Type.VOID,
-					    new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
-					    new String[] { "is" },
-					    "<init>",
-					    clazz.getClassName(),
-					    il,
-					    clazz.getConstantPool());
-	read_cons.addException("java.io.IOException");
-	clazz.addMethod(read_cons.getMethod());
+	    MethodGen read_cons = new MethodGen(Constants.ACC_PUBLIC,
+						Type.VOID,
+						new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
+						new String[] { "is" },
+						"<init>",
+						clazz.getClassName(),
+						il,
+						clazz.getConstantPool());
+	    read_cons.addException("java.io.IOException");
+	    clazz.addMethod(read_cons.getMethod());
+	}
     }
 
     JavaClass generate_InstanceGenerator(JavaClass clazz) { 
@@ -354,15 +386,77 @@ public class IOGenerator {
 	InstructionFactory factory = new InstructionFactory(gen);
 
 	InstructionList il = new InstructionList();
+
+	String super_class_name = clazz.getSuperclassName();
+
+	JavaClass super_class = Repository.lookupClass(super_class_name);
+
+	boolean super_is_serializable = isSerializable(super_class);
+	boolean super_is_ibis_serializable = isIbisSerializable(super_class);
 	
-	il.append(factory.createNew(class_type));
-	il.append(new DUP());
-	il.append(new ALOAD(1));
-	il.append(factory.createInvoke(clazz.getClassName(),
-				       "<init>",
-				       Type.VOID,
-				       new Type [] { new ObjectType("ibis.io.IbisSerializationInputStream") },
-				       Constants.INVOKESPECIAL));
+	if (super_is_serializable && ! super_is_ibis_serializable && ! force_generated_calls) {
+	    /* This is a difficult case. We cannot call a constructor, because
+	       this constructor would be obliged to call a constructor for the super-class.
+	       So, we do it differently: generate calls to IbisSerializationInputStream methods
+	       which call native methods ... I don't know another solution to this problem.
+	    */
+	    /* First, create the object. Through a native call, because otherwise
+	       the object would be marked uninitialized, and the code would not pass
+	       bytecode verification. This native call also takes care of calling the
+	       constructor of the first non-serializable superclass.
+	    */
+	    il.append(new ALOAD(1));
+	    int ind = gen.getConstantPool().addString(clazz.getClassName());
+	    il.append(new LDC(ind));
+	    il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+					   "create_uninitialized_object",
+					   Type.OBJECT,
+					   new Type[] { Type.STRING},
+					   Constants.INVOKEVIRTUAL));
+	    il.append(factory.createCheckCast(class_type));
+	    il.append(new ASTORE(2));
+
+	    /* Now read the superclass. */
+	    il.append(new ALOAD(1));
+	    il.append(new ALOAD(2));
+	    ind = gen.getConstantPool().addString(super_class_name);
+	    il.append(new LDC(ind));
+	    il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+					   "readSerializableObject",
+					   Type.VOID,
+					   new Type[] {Type.OBJECT, Type.STRING},
+					   Constants.INVOKEVIRTUAL));
+
+	    /* Now, if the class has a readObject, call it. Otherwise, read its fields,
+	       by calling generated_DefaultReadObject.
+	    */
+	    if (has_read_object(clazz)) {
+		/* TODO !!! */
+	    }
+	    else {
+		int dpth = get_class_depth(clazz);
+
+		il.append(new ALOAD(2));
+		il.append(new ALOAD(1));
+		il.append(new SIPUSH((short)dpth));
+		il.append(factory.createInvoke(clazz.getClassName(),
+					       "generated_DefaultReadObject",
+					       Type.VOID,
+					       new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream"), Type.INT},
+					       Constants.INVOKEVIRTUAL));
+	    }
+	    il.append(new ALOAD(2));
+	}
+	else {
+	    il.append(factory.createNew(class_type));
+	    il.append(new DUP());
+	    il.append(new ALOAD(1));
+	    il.append(factory.createInvoke(clazz.getClassName(),
+					   "<init>",
+					   Type.VOID,
+					   new Type [] { new ObjectType("ibis.io.IbisSerializationInputStream") },
+					   Constants.INVOKESPECIAL));
+	}
 	il.append(new ARETURN());
 
 	/*
@@ -550,7 +644,7 @@ public class IOGenerator {
 	return write_il;
     }
 
-    private InstructionList get_default_reads(Field[] fields, InstructionFactory factory, String class_name) {
+    private InstructionList get_default_reads(Field[] fields, InstructionFactory factory, String class_name, boolean from_constructor, ClassGen cg) {
 	InstructionList read_il = new InstructionList();
 	for (int i=0;i<fields.length;i++) {
 	    Field field = fields[i];
@@ -571,6 +665,11 @@ public class IOGenerator {
 			field_class = Repository.lookupClass(((ObjectType)field_type).getClassName());
 			if (field_class != null && field_class.isFinal()) isfinal = true;
 		    }
+		    /*
+		     TODO: Check that field is serializable???
+		     TODO: Check that field is IbisSerializable???
+		     TODO: Otherwise: initialize to 0???
+		    */
 		    if (isfinal &&
 			(! (Repository.implementationOf(field_class, "java.rmi.Remote") ||
 			    Repository.implementationOf(field_class, "ibis.rmi.Remote"))) &&
@@ -634,7 +733,7 @@ public class IOGenerator {
 			gto.setTarget(target);
 		    } else { 
 			SerializationInfo info = getSerializationInfo(field_type);				
-			read_il.append(info.readInstructions(class_name, field, factory));		
+			read_il.append(info.readInstructions(class_name, field, factory, from_constructor, cg));
 		    }
 		}
 	    }
@@ -654,7 +753,7 @@ public class IOGenerator {
 		    if (verbose) System.out.println("    writing string field " + field.getName() + " of type " + field_type.getSignature());
 
 		    SerializationInfo info = getSerializationInfo(field_type);				
-		    read_il.append(info.readInstructions(class_name, field, factory));		
+		    read_il.append(info.readInstructions(class_name, field, factory, from_constructor, cg));
 		}
 	    }
 	} 			
@@ -673,7 +772,7 @@ public class IOGenerator {
 		    if (verbose) System.out.println("    writing basic field " + field.getName() + " of type " + field_type.getSignature());
 
 		    SerializationInfo info = getSerializationInfo(field_type);				
-		    read_il.append(info.readInstructions(class_name, field, factory));		
+		    read_il.append(info.readInstructions(class_name, field, factory, from_constructor, cg));
 		}
 	    }
 	} 			
@@ -800,7 +899,7 @@ public class IOGenerator {
 	read_il.append(new SIPUSH((short)dpth));
 	ifcmpne = new IF_ICMPNE(null);
 	read_il.append(ifcmpne);
-	read_il.append(get_default_reads(fields, factory, class_name));
+	read_il.append(get_default_reads(fields, factory, class_name, false, cg));
 	read_il.append(new GOTO(end));
 
 	if (super_is_ibis_serializable || super_is_serializable) { 
@@ -845,7 +944,11 @@ public class IOGenerator {
 	
 	/* Now, we need to generate the read constructor and generated_WriteObject. */
 	write_il = new InstructionList();
-	read_il = new InstructionList();
+
+	read_il = null;
+	if (super_is_ibis_serializable || ! super_is_serializable || force_generated_calls) {
+	    read_il = new InstructionList();
+	}
 
 	/* write/read the superclass if neccecary */
 	if (super_is_ibis_serializable || (force_generated_calls && super_is_serializable)) { 
@@ -857,13 +960,15 @@ public class IOGenerator {
 						 new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream")},
 						 Constants.INVOKESPECIAL));
 
-	    read_il.append(new ALOAD(0));
-	    read_il.append(new ALOAD(1));
-	    read_il.append(factory.createInvoke(super_class_name,
-						"<init>",
-						Type.VOID,
-						new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
-						Constants.INVOKESPECIAL));
+	    if (read_il != null) {
+		read_il.append(new ALOAD(0));
+		read_il.append(new ALOAD(1));
+		read_il.append(factory.createInvoke(super_class_name,
+						    "<init>",
+						    Type.VOID,
+						    new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
+						    Constants.INVOKESPECIAL));
+	    }
 	} else if (super_is_serializable) { 
 	    int ind = cg.getConstantPool().addString(super_class_name);
 	    write_il.append(new ALOAD(1));
@@ -874,38 +979,6 @@ public class IOGenerator {
 						 Type.VOID,
 						 new Type[] {Type.OBJECT, Type.STRING},
 						 Constants.INVOKEVIRTUAL));
-
-	    /* Byte-code verification does not like a call to readSerializableObject
-	       with an uninitialized object as parameter.
-	       We call the default constructor of the first non-serializable superclass
-	       first ...
-	    */
-	    JavaClass scl = super_class;
-	    String s = scl.getSuperclassName();
-
-	    do {
-		s = scl.getSuperclassName();
-		System.out.println("Serializable? " + s);
-		scl = Repository.lookupClass(s);
-	    } while(isSerializable(scl));
-
-	    read_il.append(new ALOAD(0));
-	    read_il.append(factory.createInvoke(s,
-						"<init>",
-						Type.VOID,
-						Type.NO_ARGS,
-						Constants.INVOKESPECIAL));
-	    
-	    read_il.append(new ALOAD(1));
-	    read_il.append(new ALOAD(0));
-	    read_il.append(new LDC(ind));
-	    read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
-						"readSerializableObject",
-						Type.VOID,
-						new Type[] {Type.OBJECT, Type.STRING},
-						Constants.INVOKEVIRTUAL));
-
-	    System.err.println("Warning: superclass " + super_class_name + " of " + class_name + " is serializable, but not ibis-serializable!");
 	} else {
 	    read_il.append(new ALOAD(0));
 	    read_il.append(factory.createInvoke(super_class_name,
@@ -960,46 +1033,48 @@ public class IOGenerator {
 	}
 
 	/* Now, do the same for the reading side. */
-	if (has_read_object(clazz)) {
-	    /* First, get and set IbisSerializationInputStream's idea of the current object. */
-	    read_il.append(new ALOAD(1));
-	    read_il.append(new ALOAD(0));
-	    read_il.append(new SIPUSH((short)dpth));
-	    read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
-						 "push_current_object",
-						 Type.VOID,
-						 new Type[] {Type.OBJECT, Type.INT},
-						 Constants.INVOKEVIRTUAL));
+	if (read_il != null) {
+	    if (has_read_object(clazz)) {
+		/* First, get and set IbisSerializationInputStream's idea of the current object. */
+		read_il.append(new ALOAD(1));
+		read_il.append(new ALOAD(0));
+		read_il.append(new SIPUSH((short)dpth));
+		read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+						     "push_current_object",
+						     Type.VOID,
+						     new Type[] {Type.OBJECT, Type.INT},
+						     Constants.INVOKEVIRTUAL));
 
-	    /* Then, call readObject. */
-	    read_il.append(new ALOAD(0));
-	    read_il.append(new ALOAD(1));
-	    read_il.append(factory.createInvoke(class_name,
-						 "readObject",
-						 Type.VOID,
-						 new Type[] {new ObjectType("java.io.ObjectInputStream")},
-						 Constants.INVOKESPECIAL));
+		/* Then, call readObject. */
+		read_il.append(new ALOAD(0));
+		read_il.append(new ALOAD(1));
+		read_il.append(factory.createInvoke(class_name,
+						     "readObject",
+						     Type.VOID,
+						     new Type[] {new ObjectType("java.io.ObjectInputStream")},
+						     Constants.INVOKESPECIAL));
 
-	    /* And then, restore IbisSerializationOutputStream's idea of the current object. */
-	    read_il.append(new ALOAD(1));
-	    read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
-						 "pop_current_object",
-						 Type.VOID,
-						 Type.NO_ARGS,
-						 Constants.INVOKEVIRTUAL));
+		/* And then, restore IbisSerializationOutputStream's idea of the current object. */
+		read_il.append(new ALOAD(1));
+		read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+						     "pop_current_object",
+						     Type.VOID,
+						     Type.NO_ARGS,
+						     Constants.INVOKEVIRTUAL));
+	    }
+	    else {
+		read_il.append(get_default_reads(fields, factory, class_name, true, cg));
+	    }
+
+	    MethodGen read_cons_gen = new MethodGen(class_methods[read_cons_index], class_name, cg.getConstantPool());
+	    read_il.append(read_cons_gen.getInstructionList());
+	    read_cons_gen.setInstructionList(read_il);
+
+	    read_cons_gen.setMaxStack(read_cons_gen.getMaxStack(cg.getConstantPool(), read_il, read_cons_gen.getExceptionHandlers()));
+	    read_cons_gen.setMaxLocals();
+
+	    cg.setMethodAt(read_cons_gen.getMethod(), read_cons_index);
 	}
-	else {
-	    read_il.append(get_default_reads(fields, factory, class_name));
-	}
-
-	MethodGen read_cons_gen = new MethodGen(class_methods[read_cons_index], class_name, cg.getConstantPool());
-	read_il.append(read_cons_gen.getInstructionList());
-	read_cons_gen.setInstructionList(read_il);
-
-	read_cons_gen.setMaxStack(read_cons_gen.getMaxStack(cg.getConstantPool(), read_il, read_cons_gen.getExceptionHandlers()));
-	read_cons_gen.setMaxLocals();
-
-	cg.setMethodAt(read_cons_gen.getMethod(), read_cons_index);
 
 	write_gen = new MethodGen(class_methods[write_method_index], class_name, cg.getConstantPool());
 	write_il.append(write_gen.getInstructionList());
@@ -1015,13 +1090,13 @@ public class IOGenerator {
 	Repository.removeClass(class_name);
 	Repository.addClass(clazz);
 
-// do_verify(clazz);
+do_verify(clazz);
 
 	JavaClass gen = generate_InstanceGenerator(clazz);
 
 	Repository.addClass(gen);
 
-// do_verify(gen);
+do_verify(gen);
 
 	classes_to_save.add(clazz);
 	classes_to_save.add(gen);
