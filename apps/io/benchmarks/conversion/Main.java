@@ -29,7 +29,7 @@ public final class Main {
 
     private void booleanConversion(Conversion conversion) {
 
-	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer timer = Timer.createTimer();
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 
@@ -70,7 +70,7 @@ public final class Main {
 
     private void shortConversion(Conversion conversion) {
 
-	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer timer = Timer.createTimer();
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 	    // *** shorts ***
@@ -109,7 +109,7 @@ public final class Main {
 
     private void intConversion(Conversion conversion) {
 
-	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer timer = Timer.createTimer();
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 
@@ -148,7 +148,7 @@ public final class Main {
 
     private void longConversion(Conversion conversion) {
 
-	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer timer = Timer.createTimer();
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 
@@ -189,7 +189,7 @@ public final class Main {
 
     private void floatConversion(Conversion conversion) {
 
-	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer timer = Timer.createTimer();
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 
@@ -230,7 +230,7 @@ public final class Main {
 
     private void doubleConversion(Conversion conversion) {
 
-	Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer timer = Timer.createTimer();
 
 	for(int bufferLength = MIN_BUF_SIZE; bufferLength <= MAX_BUF_SIZE; bufferLength *= 2) {
 

@@ -66,8 +66,8 @@ public final class BytesOutput
 	private Timer conversionTimer;
 	{
 	    if (timerOn) {
-		writeArrayTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-		conversionTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+		writeArrayTimer = Timer.createTimer();
+		conversionTimer = Timer.createTimer();
 	    }
 	}
 

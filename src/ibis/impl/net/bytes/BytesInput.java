@@ -81,8 +81,8 @@ public final class BytesInput
 	private Timer conversionTimer;
 	{
 	    if (timerOn) {
-		readArrayTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-		conversionTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+		readArrayTimer = Timer.createTimer();
+		conversionTimer = Timer.createTimer();
 	    }
 	}
 

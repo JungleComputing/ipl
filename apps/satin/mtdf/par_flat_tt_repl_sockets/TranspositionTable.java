@@ -37,8 +37,8 @@ final class TranspositionTable {
 
 	DataOutputStream bcastStream;
 
-	Timer bcastTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	Timer bcastHandlerTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer bcastTimer = Timer.createTimer();
+	Timer bcastHandlerTimer = Timer.createTimer();
 
 	PoolInfo info;
 	int rank;

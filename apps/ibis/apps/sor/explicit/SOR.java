@@ -26,7 +26,6 @@ import ibis.ipl.NoMatchingIbisException;
 
 import ibis.util.PoolInfo;
 import ibis.util.Timer;
-import ibis.util.nativeCode.Rdtsc;
 import ibis.util.TypedProperties;
 
 public class SOR {
@@ -73,12 +72,11 @@ public class SOR {
 
     private final static boolean TIMINGS = TypedProperties.booleanProperty("timing", false);
     private final static boolean TIMINGS_SUB_REDUCE = TypedProperties.booleanProperty("timing.reduce", false);
-    private final static String timerName = "ibis.util.nativeCode.Rdtsc";
-    private Timer t_compute        = Timer.newTimer(timerName);
-    private Timer t_communicate    = Timer.newTimer(timerName);
-    private Timer t_reduce         = Timer.newTimer(timerName);
-    private Timer t_reduce_send    = Timer.newTimer(timerName);
-    private Timer t_reduce_receive = Timer.newTimer(timerName);
+    private Timer t_compute        = Timer.createTimer();
+    private Timer t_communicate    = Timer.createTimer();
+    private Timer t_reduce         = Timer.createTimer();
+    private Timer t_reduce_send    = Timer.createTimer();
+    private Timer t_reduce_receive = Timer.createTimer();
 
     private PoolInfo info;
     private Ibis ibis;

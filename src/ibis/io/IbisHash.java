@@ -97,11 +97,11 @@ final class IbisHash {
 	newBucketSet(initsize);
 
 	if (TIMINGS) {
-	    t_insert = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	    t_find = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	    t_rebuild = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	    t_clear = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	    t_delete = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	    t_insert = Timer.createTimer();
+	    t_find = Timer.createTimer();
+	    t_rebuild = Timer.createTimer();
+	    t_clear = Timer.createTimer();
+	    t_delete = Timer.createTimer();
 	}
     }
 

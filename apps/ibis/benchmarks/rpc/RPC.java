@@ -130,13 +130,13 @@ class RPC
 
     private int		data_type = DATA_BYTES;
 
-    // private Timer t_send = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-    // private Timer t_s_finish = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-    // private Timer t_get_msg = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-    // private Timer t_rcve = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-    // private Timer t_r_finish = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-    // private Timer t_upcall = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-    // private Timer t_client = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+    // private Timer t_send = Timer.createTimer();
+    // private Timer t_s_finish = Timer.createTimer();
+    // private Timer t_get_msg = Timer.createTimer();
+    // private Timer t_rcve = Timer.createTimer();
+    // private Timer t_r_finish = Timer.createTimer();
+    // private Timer t_upcall = Timer.createTimer();
+    // private Timer t_client = Timer.createTimer();
 
 
     private void send_one(boolean is_server, int size)
@@ -1087,7 +1087,7 @@ System.err.println(rank + ": call it quits...; I am " + (i_am_client ? "" : "not
 
 	    if (client == null) {
 		createIbis();
-		// Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+		// Timer timer = Timer.createTimer();
 		// timer.start();
 		registerIbis();
 		if (servers == ncpus && rank < clients) {

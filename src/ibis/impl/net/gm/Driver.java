@@ -91,16 +91,16 @@ public final class Driver extends NetDriver {
 	private static native void nStatistics();
 
 	// If (TIMINGS)
-	static Timer t_wait_reply = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	static Timer t_wait_service = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	static Timer t_wait_reply = Timer.createTimer();
+	static Timer t_wait_service = Timer.createTimer();
 
-	static Timer t_poll = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	static Timer t_lock = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	static Timer t_native = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	static Timer t_native_poll = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	static Timer t_native_flush = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	static Timer t_native_post = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	static Timer t_native_send = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	static Timer t_poll = Timer.createTimer();
+	static Timer t_lock = Timer.createTimer();
+	static Timer t_native = Timer.createTimer();
+	static Timer t_native_poll = Timer.createTimer();
+	static Timer t_native_flush = Timer.createTimer();
+	static Timer t_native_post = Timer.createTimer();
+	static Timer t_native_send = Timer.createTimer();
 
 	static private int	yields;
 	static private int	pollers;

@@ -736,7 +736,7 @@ nCurrent++;
 	log.out();
     }
 
-// private ibis.util.Timer rcveTimer = new ibis.util.Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+// private ibis.util.Timer rcveTimer = new ibis.util.Timer.createTimer();
 
     /**
      * Called from poll() when the input indicated by ni has a message

@@ -8,6 +8,7 @@ class TimeTimer {
     public static void main(String[] args) {
 
 	String timerName = "ibis.util.nativeCode.Rdtsc";
+
 	int options = 0;
 	int n = 1000000;
 
@@ -24,8 +25,8 @@ class TimeTimer {
 	}
 
 	try {
-	    Timer timer = Timer.newTimer(timerName);
-	    Timer outerTimer = Timer.newTimer(timerName);
+	    Timer timer = Timer.createTimer(timerName);
+	    Timer outerTimer = Timer.createTimer(timerName);
 
 	    long t = System.currentTimeMillis();
 	    outerTimer.start();

@@ -1,6 +1,5 @@
 import ibis.ipl.*;
 
-import ibis.util.nativeCode.Rdtsc;
 import ibis.util.Timer;
 
 import java.text.*;
@@ -23,12 +22,6 @@ import java.util.Random;
  * The 'individual results' line also display the test cycle number. The test cycle numbered 0 is a warmup test cycle and is ignored when computing the average results.
  */
 public final class Ping {
-
-	/**
-	 * Flag indicating whether the application should use the
-	 * {@link ibis.util.nativeCode.Rdtsc} timer implementation or the
-	 * {@link ibis.util.timer implementation}. */
-	final static boolean 	    param_rdtsc_timer       = 	      false;
 
 	/**
 	 * Flag indicating whether the application should perform one-way
@@ -109,7 +102,7 @@ public final class Ping {
          * Internal variables
          *
          */
-	final static Timer	    timer                   = (param_rdtsc_timer)?(Timer)Timer.newTimer("ibis.util.nativeCode.Rdtsc") :(Timer)new ibis.util.Timer();
+	final static Timer	    timer                   = Timer.createTimer();
 	static       byte[]  	    buffer	   	    =          null;
 	static 	     int     	    rank      		    =		  0;
 	static 	     int     	    remoteRank		    =		  1;

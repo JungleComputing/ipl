@@ -41,7 +41,7 @@ final class TranspositionTable extends UnicastRemoteObject implements Transposit
 
 	TranspositionTableIntr[] others;
 
-	Timer bcastTimer = new Timer();
+	Timer bcastTimer = Timer.createTimer();
 
 	TranspositionTable() throws RemoteException {
 		Random random = new Random();

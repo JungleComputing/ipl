@@ -33,7 +33,7 @@ public final class NetLog {
         private static          Timer   timer           = null;
 
         {
-                timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+                timer = Timer.createTimer();
         }
 
 

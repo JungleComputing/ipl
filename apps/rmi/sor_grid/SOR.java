@@ -372,7 +372,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 
 		// ibis.util.Timer rdtsc = null;
 		// if (rank == 0) {
-		//     rdtsc = newTimer("ibis.util.nativeCode.Rdtsc");
+		//     rdtsc = createTimer();
 		// }
 
 		do {

@@ -6,43 +6,43 @@ public abstract class Stats extends TupleSpace {
 
 	void initTimers() {
 		if (totalTimer == null)
-			totalTimer = new Timer();
+			totalTimer = Timer.createTimer();
 		if (stealTimer == null)
-			stealTimer = new Timer();
+			stealTimer = Timer.createTimer();
 		if (handleStealTimer == null)
-			handleStealTimer = new Timer();
+			handleStealTimer = Timer.createTimer();
 		if (abortTimer == null)
-			abortTimer = new Timer();
+			abortTimer = Timer.createTimer();
 		if (idleTimer == null)
-			idleTimer = new Timer();
+			idleTimer = Timer.createTimer();
 		if (pollTimer == null)
-			pollTimer = new Timer();
+			pollTimer = Timer.createTimer();
 		if (tupleTimer == null)
-			tupleTimer = new Timer();
+			tupleTimer = Timer.createTimer();
 		if (invocationRecordWriteTimer == null)
-			invocationRecordWriteTimer = new Timer();
+			invocationRecordWriteTimer = Timer.createTimer();
 		if (invocationRecordReadTimer == null)
-			invocationRecordReadTimer = new Timer();
+			invocationRecordReadTimer = Timer.createTimer();
 		if (tupleOrderingWaitTimer == null)
-			tupleOrderingWaitTimer = new Timer();
+			tupleOrderingWaitTimer = Timer.createTimer();
 		if (lookupTimer == null)
-			lookupTimer = new Timer();
+			lookupTimer = Timer.createTimer();
 		if (updateTimer == null)
-			updateTimer = new Timer();
+			updateTimer = Timer.createTimer();
 		if (handleUpdateTimer == null)
-			handleUpdateTimer = new Timer();
+			handleUpdateTimer = Timer.createTimer();
 		if (handleLookupTimer == null)
-			handleLookupTimer = new Timer();
+			handleLookupTimer = Timer.createTimer();
 		if (tableSerializationTimer == null)
-			tableSerializationTimer = new Timer();
+			tableSerializationTimer = Timer.createTimer();
 		if (tableDeserializationTimer == null) 
-			tableDeserializationTimer = new Timer();
+			tableDeserializationTimer = Timer.createTimer();
 		if (crashTimer == null)
-			crashTimer = new Timer();
+			crashTimer = Timer.createTimer();
 		if (redoTimer == null)
-			redoTimer = new Timer();
+			redoTimer = Timer.createTimer();
 		if (addReplicaTimer == null)
-			addReplicaTimer = new Timer();
+			addReplicaTimer = Timer.createTimer();
 	}
 
 	protected StatsMessage createStats() {

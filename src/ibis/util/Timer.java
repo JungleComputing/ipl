@@ -20,7 +20,7 @@ public class Timer implements java.io.Serializable {
 	/**
 	 * Constructs a <code>Timer</code>.
 	 */
-	public Timer() {
+	protected Timer() {
 	}
 
 	/**
@@ -216,9 +216,24 @@ public class Timer implements java.io.Serializable {
 	 *            the name of the Timer implementation.
 	 * @return the new Timer instance.
 	 */
-	public static Timer newTimer(String impl) {
+	public static Timer createTimer(String impl) {
 		try {
 			Class c = Class.forName(impl);
+			return (Timer) c.newInstance();
+		} catch (Throwable t) {
+			System.err.println("Warning could not create timer " + impl + ", falling back to default");
+			return createTimer();
+		}
+	}
+
+	/**
+	 * Returns a Timer instance suitable for the system at hand.
+	 * 
+	 * @return the new Timer instance.
+	 */
+	public static Timer createTimer() {
+		try {
+			Class c = Class.forName("ibis.util.nativeCode.Rdtsc");
 			return (Timer) c.newInstance();
 		} catch (Throwable t) {
 			return new Timer();

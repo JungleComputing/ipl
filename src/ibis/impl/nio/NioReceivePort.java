@@ -27,7 +27,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
     //threadlocal object which holds a timer object for the current thread
     private static ThreadLocal timer = new ThreadLocal() {
 	protected synchronized Object initialValue() {
-	    Timer t = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	    Timer t = Timer.createTimer();
 	    timers.add(t);
 	    return t;
 	}

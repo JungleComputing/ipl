@@ -7,7 +7,7 @@ public class Timer {
 	    n = Integer.parseInt(args[0]);
 	}
 
-	ibis.util.Timer t = ibis.util.Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	ibis.util.Timer t = ibis.util.Timer.createTimer();
 	for (int i = 0; i < n; i++) {
 	    t.start();
 	    t.stop();

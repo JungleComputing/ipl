@@ -121,7 +121,7 @@ public final class RTS {
 	    t[i] = timers[i];
 	    s[i] = timerId[i];
 	}
-	t[n] = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	t[n] = Timer.createTimer();
 	s[n] = (id == null) ? "" : id;
 
 	timers = t;

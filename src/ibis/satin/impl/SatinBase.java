@@ -252,45 +252,43 @@ public abstract class SatinBase implements Config {
 	/* All victims, myself NOT included. The elements are Victims. */
 	VictimTable victims;
 
-	Timer totalTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer totalTimer = Timer.createTimer();
 
-	Timer stealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer stealTimer = Timer.createTimer();
 
-	Timer handleStealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer handleStealTimer = Timer.createTimer();
 
-	Timer abortTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer abortTimer = Timer.createTimer();
 
-	Timer idleTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer idleTimer = Timer.createTimer();
 
-	Timer pollTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer pollTimer = Timer.createTimer();
 
-	Timer tupleTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer tupleTimer = Timer.createTimer();
 
-	Timer invocationRecordWriteTimer = Timer
-			.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer invocationRecordWriteTimer = Timer.createTimer();
 
-	Timer invocationRecordReadTimer = Timer
-			.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer invocationRecordReadTimer = Timer.createTimer();
 
-	Timer tupleOrderingWaitTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer tupleOrderingWaitTimer = Timer.createTimer();
 
-	Timer lookupTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer lookupTimer = Timer.createTimer();
 
-	Timer updateTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer updateTimer = Timer.createTimer();
 
-	Timer handleUpdateTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer handleUpdateTimer = Timer.createTimer();
 
-	Timer handleLookupTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer handleLookupTimer = Timer.createTimer();
 	
-	Timer tableSerializationTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer tableSerializationTimer = Timer.createTimer();
 	
-	Timer tableDeserializationTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer tableDeserializationTimer = Timer.createTimer();
 
-	Timer crashTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer crashTimer = Timer.createTimer();
 
-	Timer redoTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer redoTimer = Timer.createTimer();
 
-	Timer addReplicaTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer addReplicaTimer = Timer.createTimer();
 
 	long prevPoll = 0;
 
@@ -393,10 +391,6 @@ public abstract class SatinBase implements Config {
 	abstract void attachToParentToBeRestarted(InvocationRecord r);
 	
 	Timer createTimer() {
-		Timer timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-		if (timer == null) {
-			timer = new Timer();
-		}
-		return timer;
+		return Timer.createTimer();
 	}
 }
