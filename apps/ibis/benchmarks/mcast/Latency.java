@@ -33,8 +33,6 @@ class Latency {
 
 		boolean upcall = false;
 
-		int count = Integer.parseInt(args[0]);
-
 		if (args.length > 1) {
 			upcall = args[1].equals("-u");
 		}
@@ -55,10 +53,11 @@ class Latency {
 			ReceivePort rport = t.createReceivePort("receive port " + rank);
 			SendPort sport = t.createSendPort("send port " + rank);
 
+			rport.enableConnections();
+
 			Latency lat = null;
 
 			if (rank == 0) {
-
 				sport.connect(rport.identifier());
 
 				System.err.println(rank + "*******  connect to myself");
@@ -90,10 +89,10 @@ class Latency {
 
 
 				System.err.println(rank + "*******  connect to 0");
+				
 				sport.connect(id);
 
-
-				System.err.println(rank + "*******  connect done ");
+				System.err.println(rank + "*******  connect done");
 
 				WriteMessage w = sport.newMessage();
 				w.writeObject(rport.identifier());
