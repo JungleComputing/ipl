@@ -70,6 +70,7 @@ class Main {
 		} 
 
 		rmiInterface = Repository.lookupClass("ibis.rmi.Remote");
+
 		if (rmiInterface == null) {
 			System.err.println("Class ibis.rmi.Remote not found");
 			System.exit(1);
@@ -90,12 +91,16 @@ class Main {
 				PrintWriter output;
 				JavaClass subject = (JavaClass) classes.get(i);
 				
+				BT_Analyzer a = new BT_Analyzer(subject, rmiInterface, verbose);
+				a.start();
+
+				if (a.specialInterfaces.size() == 0) {
+				    continue;
+				}
+
 				if (verbose) { 
 					System.out.println("Handling " + subject.getClassName());
 				}
-				
-				BT_Analyzer a = new BT_Analyzer(subject, rmiInterface, verbose);
-				a.start();
 
 				output = createFile(getFileName(a.packagename, a.classname, "rmi_stub_"));			
 				new RMIStubGenerator(a, output, verbose).generate();
