@@ -16,10 +16,85 @@
 import java.io.File;
 
 public class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
-    static final boolean traceSolver = false;
-    static final boolean printSatSolutions = true;
-    static final boolean traceNewCode = true;
-    static int label = 0;
+    private static final boolean traceSolver = false;
+    private static final boolean printSatSolutions = true;
+    private static final boolean traceNewCode = true;
+    private static int label = 0;
+
+    /**
+     * The maximum remaining solver depth before this problem
+     * is turned over to the (more lightweight, and non-parallel)
+     * leaf solver.
+     */
+    private static final int leafSolverDepth = 8;
+
+    /**
+     * Solve the leaf part of a SAT problem.
+     * The method throws a SATResultException if it finds a solution,
+     * or terminates normally if it cannot find a solution.
+     * @param level branching level
+     * @param p the SAT problem to solve
+     * @param ctx the changable context of the solver
+     * @param var the next variable to assign
+     * @param val the value to assign
+     */
+    public void leafSolve(
+	int level,
+	SATProblem p,
+	SATContext ctx,
+	int var,
+	boolean val
+    ) throws SATResultException
+    {
+	if( traceSolver ){
+	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
+	}
+	ctx.assignments[var] = val?1:0;
+	int res;
+	if( val ){
+	    res = ctx.propagatePosAssignment( p, var );
+	}
+	else {
+	    res = ctx.propagateNegAssignment( p, var );
+	}
+	if( res == -1 ){
+	    // Propagation reveals a conflict.
+	    if( traceSolver ){
+		System.err.println( "ls" + level + ": propagation found a conflict" );
+	    }
+	    return;
+	}
+	if( res == 1 ){
+	    // Propagation reveals problem is satisfied.
+	    SATSolution s = new SATSolution( ctx.assignments );
+
+	    if( traceSolver | printSatSolutions ){
+		System.err.println( "ls" + level + ": propagation found a solution: " + s );
+	    }
+	    if( !p.isSatisfied( ctx.assignments ) ){
+		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
+	    }
+	    throw new SATResultException( s );
+	}
+	int nextvar = ctx.getDecisionVariable();
+	if( nextvar<0 ){
+	    // There are no variables left to assign, clearly there
+	    // is no solution.
+	    if( traceSolver ){
+		System.err.println( "ls" + level + ": nothing to branch on" );
+	    }
+	    return;
+	}
+
+	boolean firstvar = ctx.posDominant( nextvar );
+	SATContext subctx = (SATContext) ctx.clone();
+	leafSolve( level+1, p, subctx, nextvar, firstvar );
+	// Since we won't be using our context again, we may as well
+	// give it to the recursion.
+	// Also note that this call is a perfect candidate for tail
+	// call elimination.
+	leafSolve( level+1, p, ctx, nextvar, !firstvar );
+    }
 
     /**
      * The method that implements a Satin task.
@@ -43,6 +118,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
 	ctx.assignments[var] = val?1:0;
+	int oldUnsatisfied = ctx.unsatisfied;
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var );
@@ -79,13 +155,38 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    return;
 	}
 
-	// We have variable 'nextvar' to branch on.
-	SATContext negctx = (SATContext) ctx.clone();
-	SATContext posctx = (SATContext) ctx.clone();
-	boolean firstvar = ctx.posDominant( nextvar );
-	solve( level+1, p, posctx, nextvar, firstvar );
-	solve( level+1, p, negctx, nextvar, !firstvar );
-	sync();
+	// We now estimate the number of recursions that is still 
+	// needed by looking at the remaining clauses and the number
+	// of clauses this decision variable will satisfy.
+	// This estimate is both optimistic and pessimistic.
+	// Optimistic, because the remaining variables may not
+	// satisfy as many as the current one. Pessimistic because
+	// we don't account for 
+	// chances are we will find a conflict or a solution
+	// before reaching
+	int dsat = oldUnsatisfied-ctx.unsatisfied;
+	if( dsat == 0 ){
+	    dsat = 1;
+	}
+	int depth = ctx.unsatisfied/dsat;
+        if( depth<leafSolverDepth ){
+	    // We're nearly there, use the leaf solver.
+	    // We have variable 'nextvar' to branch on.
+	    SATContext negctx = (SATContext) ctx.clone();
+	    SATContext posctx = (SATContext) ctx.clone();
+	    boolean firstvar = ctx.posDominant( nextvar );
+	    leafSolve( level+1, p, posctx, nextvar, firstvar );
+	    leafSolve( level+1, p, negctx, nextvar, !firstvar );
+	}
+	else {
+	    // We have variable 'nextvar' to branch on.
+	    SATContext negctx = (SATContext) ctx.clone();
+	    SATContext posctx = (SATContext) ctx.clone();
+	    boolean firstvar = ctx.posDominant( nextvar );
+	    solve( level+1, p, posctx, nextvar, firstvar );
+	    solve( level+1, p, negctx, nextvar, !firstvar );
+	    sync();
+	}
     }
 
     /**

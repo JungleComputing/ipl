@@ -21,7 +21,7 @@ public class SATContext implements java.io.Serializable {
     private boolean satisfied[];
 
     /** The number of unsatisfied clauses. */
-    private int unsatisfied;
+    public int unsatisfied;
 
     /**
      * Constructs a Context with the specified elements.
