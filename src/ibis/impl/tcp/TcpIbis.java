@@ -21,284 +21,284 @@ import java.util.Properties;
 
 public final class TcpIbis extends Ibis implements Config {
 
-	private TcpIbisIdentifier ident;
-	private InetAddress myAddress;
+    private TcpIbisIdentifier ident;
+    private InetAddress myAddress;
 
-	private NameServer nameServer;
-	private int poolSize;
+    private NameServer nameServer;
+    private int poolSize;
 
-	private Hashtable portTypeList = new Hashtable();
+    private Hashtable portTypeList = new Hashtable();
 
-	private boolean open = false;
+    private boolean open = false;
 
-	private ArrayList joinedIbises = new ArrayList();
-	private ArrayList leftIbises = new ArrayList();
-	private ArrayList diedIbises = new ArrayList();
+    private ArrayList joinedIbises = new ArrayList();
+    private ArrayList leftIbises = new ArrayList();
+    private ArrayList diedIbises = new ArrayList();
 
-	TcpPortHandler tcpPortHandler;
-	private boolean ended = false;
+    TcpPortHandler tcpPortHandler;
+    private boolean ended = false;
 
-	private static final boolean use_brokered_links;
-	private static final IbisSocketFactory socketFactory;
+    private static final boolean use_brokered_links;
+    private static final IbisSocketFactory socketFactory;
 
-	private boolean i_joined = false;
+    private boolean i_joined = false;
 
-	static {
+    static {
 
-	    TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+	TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
 
-	    Properties p = System.getProperties();
-	    String dl = p.getProperty("ibis.connect.enable");
+	Properties p = System.getProperties();
+	String dl = p.getProperty("ibis.connect.enable");
 
-	    use_brokered_links = 
-		dl != null &&
-		! dl.equals("false") &&
-		! dl.equals("no");
+	use_brokered_links = 
+	    dl != null &&
+	    ! dl.equals("false") &&
+	    ! dl.equals("no");
 
-	    socketFactory = IbisSocketFactory.createFactory();
+	socketFactory = IbisSocketFactory.createFactory();
+    }
+
+    public TcpIbis() {
+	try {
+	    Runtime.getRuntime().addShutdownHook(new TcpShutdown());
+	} catch (Exception e) {
+	    System.err.println("Warning: could not register tcp shutdown hook");
+	}
+    }
+
+    protected PortType newPortType(String nm, StaticProperties p)
+	throws IOException, IbisException {
+
+	TcpPortType resultPort = new TcpPortType(this, nm, p);
+	p = resultPort.properties();
+
+	if (nameServer.newPortType(nm, p)) { 
+	    /* add type to our table */
+	    portTypeList.put(nm, resultPort);
+
+	    if(DEBUG) {
+		System.out.println(this.name + ": created PortType '" + nm + "'");
+	    }
 	}
 
-	public TcpIbis() {
-		try {
-			Runtime.getRuntime().addShutdownHook(new TcpShutdown());
-		} catch (Exception e) {
-			System.err.println("Warning: could not register tcp shutdown hook");
-		}
+	return resultPort;
+    }
+
+    long getSeqno(String nm) throws IOException {
+	return nameServer.getSeqno(nm);
+    }
+
+    public Registry registry() {
+	return nameServer;
+    } 
+
+    public StaticProperties properties() { 
+	return staticProperties(implName);
+    }
+
+    public IbisIdentifier identifier() {
+	return ident;
+    }
+
+    protected void init() throws IOException { 
+	if(DEBUG) {
+	    System.err.println("In TcpIbis.init()");
 	}
-     
-	protected PortType newPortType(String nm, StaticProperties p)
-		    throws IOException, IbisException {
+	poolSize = 1;
 
-		TcpPortType resultPort = new TcpPortType(this, nm, p);
-		p = resultPort.properties();
-
-		if (nameServer.newPortType(nm, p)) { 
-			/* add type to our table */
-			portTypeList.put(nm, resultPort);
-
-			if(DEBUG) {
-				System.out.println(this.name + ": created PortType '" + nm + "'");
-			}
-		}
-
-		return resultPort;
+	myAddress = IPUtils.getLocalHostAddress();
+	if(myAddress == null) {
+	    System.err.println("ERROR: could not get my own IP address, exiting.");
+	    System.exit(1);
 	}
+	ident = new TcpIbisIdentifier(name, myAddress);
 
-	long getSeqno(String nm) throws IOException {
-		return nameServer.getSeqno(nm);
-	}
-
-	public Registry registry() {
-		return nameServer;
-	} 
-	
-	public StaticProperties properties() { 
-		return staticProperties(implName);
+	if(DEBUG) {
+	    System.err.println("Created IbisIdentifier " + ident);
 	}
 
-	public IbisIdentifier identifier() {
-		return ident;
+	nameServer = NameServer.loadNameServer(this);
+
+	tcpPortHandler = new TcpPortHandler(ident, use_brokered_links, socketFactory);
+	if(DEBUG) {
+	    System.err.println("Out of TcpIbis.init()");
+	}
+    }
+
+    /**
+     * this method forwards the join to the application running on top of ibis.
+     */
+    public void joined(IbisIdentifier joinIdent) { 
+	synchronized (this) {
+	    if(!open && resizeHandler != null) {
+		joinedIbises.add(joinIdent);
+		return;
+	    }
+
+	    if(DEBUG) {
+		System.out.println(name + ": Ibis '" + joinIdent.name() + "' joined"); 
+	    }
+
+	    poolSize++;
 	}
 
-	protected void init() throws IOException { 
-		if(DEBUG) {
-			System.err.println("In TcpIbis.init()");
+	if(resizeHandler != null) {
+	    resizeHandler.joined(joinIdent);
+	    if (! i_joined && joinIdent.equals(ident)) {
+		synchronized(this) {
+		    i_joined = true;
+		    notifyAll();
 		}
-		poolSize = 1;
+	    }
+	}
+    }
 
-		myAddress = IPUtils.getLocalHostAddress();
-		if(myAddress == null) {
-			System.err.println("ERROR: could not get my own IP address, exiting.");
-			System.exit(1);
-		}
-		ident = new TcpIbisIdentifier(name, myAddress);
+    /**
+     * this method forwards the leave to the application running on top of
+     * ibis.
+     */
+    public void left(IbisIdentifier leaveIdent) { 
+	synchronized (this) {
+	    if(!open && resizeHandler != null) {
+		leftIbises.add(leaveIdent);
+		return;
+	    }
 
-		if(DEBUG) {
-			System.err.println("Created IbisIdentifier " + ident);
-		}
 
-		nameServer = NameServer.loadNameServer(this);
-
-		tcpPortHandler = new TcpPortHandler(ident, use_brokered_links, socketFactory);
-		if(DEBUG) {
-			System.err.println("Out of TcpIbis.init()");
-		}
+	    if(DEBUG) {
+		System.out.println(name + ": Ibis '" + leaveIdent.name() + "' left"); 
+	    }
+	    poolSize--;
 	}
 
-	/**
-	 * this method forwards the join to the application running on top of ibis.
-	 */
-	public void joined(IbisIdentifier joinIdent) { 
-		synchronized (this) {
-			if(!open && resizeHandler != null) {
-				joinedIbises.add(joinIdent);
-				return;
-			}
+	if(resizeHandler != null) {
+	    resizeHandler.left(leaveIdent);
+	}
+    }
 
-			if(DEBUG) {
-				System.out.println(name + ": Ibis '" + joinIdent.name() + "' joined"); 
-			}
-			
-			poolSize++;
+    /**
+     * this method forwards the died to the application running on top of
+     * ibis.
+     */
+    public void died(IbisIdentifier[] corpses) { 
+	synchronized (this) {
+	    if(!open && resizeHandler != null) {
+		for (int i = 0; i < corpses.length; i++) {
+		    diedIbises.add(corpses[i]);
 		}
+		return;
+	    }
 
-		if(resizeHandler != null) {
-			resizeHandler.joined(joinIdent);
-			if (! i_joined && joinIdent.equals(ident)) {
-			    synchronized(this) {
-				i_joined = true;
-				notifyAll();
-			    }
-			}
+
+	    if(DEBUG) {
+		for (int i = 0; i < corpses.length; i++) {
+		    System.out.println(name + ": Ibis '" + corpses[i].name() + "' died"); 
 		}
+	    }
+	    poolSize -= corpses.length;
 	}
 
-	/**
-	 * this method forwards the leave to the application running on top of
-	 * ibis.
-	 */
-	public void left(IbisIdentifier leaveIdent) { 
-		synchronized (this) {
-			if(!open && resizeHandler != null) {
-				leftIbises.add(leaveIdent);
-				return;
-			}
+	if(resizeHandler != null) {
+	    for (int i = 0; i < corpses.length; i++) {
+		resizeHandler.died(corpses[i]);
+	    }
+	}
+    }
 
+    public PortType getPortType(String nm) { 
+	return (PortType) portTypeList.get(nm);
+    } 
 
-			if(DEBUG) {
-				System.out.println(name + ": Ibis '" + leaveIdent.name() + "' left"); 
-			}
-			poolSize--;
+    public void enableResizeUpcalls() {
+	TcpIbisIdentifier id = null;
+
+	if(resizeHandler != null) {
+	    while(true) {
+		synchronized(this) {
+		    if(joinedIbises.size() == 0) break;
+		    poolSize++;
+		    id = (TcpIbisIdentifier)joinedIbises.remove(0);
 		}
-
-		if(resizeHandler != null) {
-			resizeHandler.left(leaveIdent);
+		resizeHandler.joined(id); // Don't hold the lock during user upcall
+		if (id.equals(this.ident)) {
+		    i_joined = true;
 		}
+	    }
+
+	    while(true) {
+		synchronized(this) {
+		    if(leftIbises.size() == 0) break;
+		    poolSize--;
+		    id = (TcpIbisIdentifier)leftIbises.remove(0);
+		}
+		resizeHandler.left(id); // Don't hold the lock during user upcall
+
+	    }
+	    while(true) {
+		synchronized(this) {
+		    if(diedIbises.size() == 0) break;
+		    poolSize--;
+		    id = (TcpIbisIdentifier)diedIbises.remove(0);
+		}
+		resizeHandler.died(id); // Don't hold the lock during user upcall
+
+	    }
 	}
 
-	/**
-	 * this method forwards the died to the application running on top of
-	 * ibis.
-	 */
-	public void died(IbisIdentifier[] corpses) { 
-		synchronized (this) {
-			if(!open && resizeHandler != null) {
-			    for (int i = 0; i < corpses.length; i++) {
-				diedIbises.add(corpses[i]);
-			    }
-			    return;
-			}
-
-
-			if(DEBUG) {
-			    for (int i = 0; i < corpses.length; i++) {
-				System.out.println(name + ": Ibis '" + corpses[i].name() + "' died"); 
-			    }
-			}
-			poolSize -= corpses.length;
-		}
-
-		if(resizeHandler != null) {
-		    for (int i = 0; i < corpses.length; i++) {
-			resizeHandler.died(corpses[i]);
+	synchronized (this) {
+	    open = true;
+	    if (resizeHandler != null && ! i_joined) {
+		while (! i_joined) {
+		    try {
+			wait();
+		    } catch(Exception e) {
+			/* ignore */
 		    }
 		}
+	    }
 	}
 
-	public PortType getPortType(String nm) { 
-		return (PortType) portTypeList.get(nm);
+	if(DEBUG) {
+	    System.out.println(name + ": Ibis started"); 
+	}
+    }
+
+    public synchronized void disableResizeUpcalls() {
+	open = false;
+    }
+
+    public void end() {
+	synchronized(this) {
+	    if(ended) return;
+	    ended = true;
+	}
+	try { 
+	    if(nameServer != null) {
+		nameServer.leave();
+	    }
+	    if(tcpPortHandler != null) {
+		tcpPortHandler.quit();
+	    }
+	} catch (Exception e) { 
+	    throw new IbisRuntimeException("TcpIbisNameServerClient: leave failed ", e);
 	} 
+    }
 
-	public void enableResizeUpcalls() {
-		TcpIbisIdentifier id = null;
+    public void poll() {
+	// Empty implementation, as TCP Ibis has interrupts.
+    }
 
-		if(resizeHandler != null) {
-			while(true) {
-				synchronized(this) {
-					if(joinedIbises.size() == 0) break;
-					poolSize++;
-					id = (TcpIbisIdentifier)joinedIbises.remove(0);
-				}
-				resizeHandler.joined(id); // Don't hold the lock during user upcall
-				if (id.equals(this.ident)) {
-				    i_joined = true;
-				}
-			}
+    void bindReceivePort(String nm, ReceivePortIdentifier p) throws IOException {
+	nameServer.bind(nm, p);
+    }
 
-			while(true) {
-				synchronized(this) {
-					if(leftIbises.size() == 0) break;
-					poolSize--;
-					id = (TcpIbisIdentifier)leftIbises.remove(0);
-				}
-				resizeHandler.left(id); // Don't hold the lock during user upcall
+    void unbindReceivePort(String nm) throws IOException {
+	nameServer.unbind(nm);
+    }
 
-			}
-			while(true) {
-				synchronized(this) {
-					if(diedIbises.size() == 0) break;
-					poolSize--;
-					id = (TcpIbisIdentifier)diedIbises.remove(0);
-				}
-				resizeHandler.died(id); // Don't hold the lock during user upcall
-
-			}
-		}
-		
-		synchronized (this) {
-			open = true;
-			if (resizeHandler != null && ! i_joined) {
-			    while (! i_joined) {
-				try {
-				    wait();
-				} catch(Exception e) {
-					/* ignore */
-				}
-			    }
-			}
-		}
-
-		if(DEBUG) {
-			System.out.println(name + ": Ibis started"); 
-		}
+    class TcpShutdown extends Thread {
+	public void run() {
+	    end();
 	}
-
-	public synchronized void disableResizeUpcalls() {
-		open = false;
-	}
-
-	public void end() {
-		synchronized(this) {
-			if(ended) return;
-			ended = true;
-		}
-		try { 
-			if(nameServer != null) {
-				nameServer.leave();
-			}
-			if(tcpPortHandler != null) {
-				tcpPortHandler.quit();
-			}
-		} catch (Exception e) { 
-			throw new IbisRuntimeException("TcpIbisNameServerClient: leave failed ", e);
-		} 
-	}
-
-	public void poll() {
-		// Empty implementation, as TCP Ibis has interrupts.
-	}
-
-	void bindReceivePort(String nm, ReceivePortIdentifier p) throws IOException {
-		nameServer.bind(nm, p);
-	}
-
-	void unbindReceivePort(String nm) throws IOException {
-		nameServer.unbind(nm);
-	}
-	
-	class TcpShutdown extends Thread {
-		public void run() {
-			end();
-		}
-	}
+    }
 }
