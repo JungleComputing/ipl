@@ -679,17 +679,19 @@ public class Ibis extends ibis.ipl.Ibis {
 
     public void end() throws IOException {
 
-	myIbis.lock();
-	try {
-	    if (ended || registry == null) {
-		return;
+	if (myIbis != null) {
+	    myIbis.lock();
+	    try {
+		if (ended || registry == null) {
+		    return;
+		}
+		ended = true;
+	    } finally {
+		myIbis.unlock();
 	    }
-	    ended = true;
-	} finally {
-	    myIbis.unlock();
+	    registry.end();
 	}
 
-	registry.end();
 
 // System.err.println("Ibis.end(): grab Ibis lock");
 
