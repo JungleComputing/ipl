@@ -1,6 +1,3 @@
-
-
-
 class Polygon3D extends Plane3D
 {
   int pts;
@@ -205,6 +202,3 @@ class Polygon3D extends Plane3D
       return c;
     }
 }
-
-
-

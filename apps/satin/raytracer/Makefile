@@ -1,56 +1,15 @@
 APP_OPTIONS = pics/balls2.nff
 
-SRC  = Cone3D.java
-SRC += Light3D.java
-SRC += Object3D.java
-SRC += Polygon3D.java
-SRC += Raytracer.java
-SRC += Surface.java
-SRC += TrianglePatch3D.java
-SRC += VirtualScreen.java
-SRC += World.java
-SRC += GfxColor.java
-SRC += WorldInterface.java
-SRC += Plane3D.java
-SRC += Ray3D.java
-SRC += Sphere3D.java
-SRC += Triangle3D.java
-SRC += Vector3D.java
-SRC += WhiteSurface.java
-
-MAIN = Raytracer.java
 OUT= raytracer
-
-SERIALIZABLE	=
-SERIALIZABLE	+= GfxColor.java
-SERIALIZABLE	+= Light3D.java
-SERIALIZABLE	+= Object3D.java
-SERIALIZABLE	+= Ray3D.java
-SERIALIZABLE	+= Raytracer.java
-SERIALIZABLE	+= Sphere3D.java
-SERIALIZABLE	+= Surface.java
-SERIALIZABLE	+= Vector3D.java
-SERIALIZABLE	+= VirtualScreen.java
-SERIALIZABLE	+= Plane3D.java
-SERIALIZABLE	+= World.java
-SERIALIZABLE	+= Cone3D.java
-SERIALIZABLE	+= Triangle3D.java
-SERIALIZABLE	+= WhiteSurface.java
-SERIALIZABLE	+= Polygon3D.java
-SERIALIZABLE	+= TrianglePatch3D.java
 
 include ../../../config.mk
 include ../config.mk
 
-java: $(CLASS_FILES) $(MAIN_CLASS)
+java:
+	$(JAVAC_COMMAND) Raytracer.java
 
-satin: java
-	$(SATINC_COMMAND) -no-aborts $(MAIN_CLASS_NAME)
-	$(SATINC_COMMAND) -no-aborts World $(MAIN_CLASS_NAME)
-	$(IOC_COMMAND) Satin_*.class
-
-manta: $(MAIN) $(O_FILES)
-	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) ../../../../ibis/$(IBIS_LIB)
+satin: 
+	$(IBISC_COMMAND) Raytracer.java
 
 clean:
 	rm -f $(TRASH_FILES)

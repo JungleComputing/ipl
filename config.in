@@ -68,6 +68,9 @@ SATINC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.sat
 
 IOC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.io.IOGenerator
 
+IBISC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.ibis.Ibisc -compiler  "$(JAVAC) -classpath $(JAVACLASSPATH)"
+
+
 # When using Manta, set these values correctly and use "make manta"
 
 ifeq (, $(PANDA_NETWORK))

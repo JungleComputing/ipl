@@ -16,6 +16,7 @@ java: $(CLASS_FILES) $(MAIN_CLASS)
 
 satin: java
 	$(SATINC_COMMAND) -no-aborts $(MAIN_CLASS_NAME)
+	$(IOC_COMMAND) -v *.class
 
 manta: $(MAIN) $(O_FILES)
 	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) ../../../../ibis/$(IBIS_LIB)

@@ -1,37 +1,15 @@
 APP_OPTIONS = 44
 
-SRC  = FibInterface.java
-
-MAIN = Fib.java
 OUT= fib
 
-SERIALIZABLE	=
-SERIALIZABLE	+= Fib.java
-
 include ../../../config.mk
-
 include ../config.mk
 
-CLASSPATH	= $(JAVACLASSPATH)
-export CLASSPATH
+java:
+	$(JAVAC_COMMAND) Fib.java
 
-java: $(CLASS_FILES) $(MAIN_CLASS)
-
-satin: java
-	$(SATINC_COMMAND) -no-aborts -keep $(MAIN_CLASS_NAME)
-
-manta: $(MAIN) $(O_FILES)
-	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) $(MANTA_LIB)
-
-mantapar: $(O_FILES) satin
-	$(MANTAC_COMMAND) -c Satin_Fib_fib_InvocationRecord.java
-	$(MANTAC_COMMAND) -c Satin_Fib_fib_ReturnRecord.java
-	$(MANTAC_COMMAND) -S -o $(OUT) $(MAIN_CLASS) *.o $(MANTA_LIB)
-
-satinser: java
-	$(IOC_COMMAND) *.class
-	make satin
-	$(IOC_COMMAND) Satin_*.class
+satin: 
+	$(IBISC_COMMAND) -no-aborts -keep Fib.java
 
 clean:
 	rm -f $(TRASH_FILES)

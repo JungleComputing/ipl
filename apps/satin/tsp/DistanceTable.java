@@ -14,7 +14,6 @@ final public class DistanceTable implements java.io.Serializable {
 	final byte[][] toCity;
 	final int[][] dist;
 
-
 	public DistanceTable(int size) {
 	    toCity = new byte[size][size];
 	    dist = new int[size][size];

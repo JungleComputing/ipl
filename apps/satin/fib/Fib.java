@@ -3,6 +3,8 @@ final class Fib extends ibis.satin.SatinObject implements FibInterface, java.io.
 	public long fib(long n) {
 		long x, y;
 
+//		System.err.println("running fib " + n);
+
 		if(n < 2) return n;
 
 		x = fib(n-1);
