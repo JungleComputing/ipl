@@ -167,17 +167,19 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 
                 for( int j = 0; j<(length-jump); j++ ){
                     int i = j + jump;
-                    int ixi = indices[start+i]+offset;
-                    int ixj = indices[start+j]+offset;
+                    int ixi = indices[start+i];
+                    int ixj = indices[start+j];
 
-                    if( !rightIndexOrder( ixi, ixj ) ){
+                    if( !rightIndexOrder( ixi+offset, ixj+offset ) ){
                         // Things are in the wrong order, swap them and step back.
                         indices[start+i] = ixj;
                         indices[start+j] = ixi;
+                        if( !rightIndexOrder( ixj+offset, ixi+offset ) ){
+                            System.out.println( "There is no right order for " + ixj + " and " + ixi );
+                        }
                         done = false;
                     }
                 }
-                System.out.println( "jump=" + jump );
             } while( !done );
         }
         if( false ){
@@ -220,7 +222,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             comm[p+1] = true;
             return p+2;
         }
-        if( false ){
+        if( true ){
             //System.out.println( "Elements: " + (end-start) );
             int slot[] = new int[nextcode];
 
@@ -266,7 +268,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             // First, sort all indices in this range
             sort( indices, start, end, offset );
 
-            System.out.println( "Sorted" );
             // And then copy out all interesting spans.
             int i = start;
             short prev = -1;
@@ -284,7 +285,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                 else {
                     comm[p] = true;
                 }
-                c = prev;
+                prev = c;
                 indices1[p++] = ix;
             }
         }
@@ -364,7 +365,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                 int oldp = p;
 
                 ix++;
-                while( ix<length && comm[ix] ){
+                while( ix<l && comm[ix] ){
                     ix++;
                 }
                 p = sort1( next, indices1, comm1, p, indices, start, ix, offset );
