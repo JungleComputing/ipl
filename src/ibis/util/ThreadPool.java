@@ -37,6 +37,7 @@ class PoolThread extends Thread {
 						return;
 					}
 				}
+
 				target = (Runnable) q.dequeue();
 				ThreadPool.ready--;
 			}
@@ -82,13 +83,16 @@ public final class ThreadPool {
 	 * @param r the <code>Runnable</code> to be executed.
 	 */
 	public static void createNew(Runnable r) {
+		PoolThread p = null;
 		synchronized(q) {
 			q.enqueue(r);
-			if (ready == 0) {
-				PoolThread p = new PoolThread(q);
+			if (q.size() > ready) {
+				p = new PoolThread(q);
 				p.setDaemon(true);
-				p.start();
 			}
+		}
+		if (p != null) {
+			p.start();
 		}
 	}
 }
