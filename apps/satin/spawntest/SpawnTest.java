@@ -1,24 +1,19 @@
 class SpawnTest {
 
-	SpawnTest() {}
+    SpawnTest() {}
 
-	void start() {
-		Test t = new Test();
-		int i;
-		int[] x = new int[100];
-		int[] y = new int[100];
+    void start() {
+	Test t = new Test();
+	int x = 0, y = 0;
 
-		for (i = 0; i < 100; i++) {
-			x[i] = t.spawn_test(0);
-			y[i] = t.spawn_test(10);
-			t.sync();
-		}
-		System.out.println("application result: x = " + x[50] +
-						   " y = " + y[50]);
-	}
+	x = t.spawn100(0);
+	y = t.spawn100(10);
 
-	public static void main(String args[]) {
-		new SpawnTest().start();
-	}
+	System.out.println("application result: x = " + x + " y = " + y);
+    }
+
+    public static void main(String args[]) {
+	new SpawnTest().start();
+    }
 }
 
