@@ -26,23 +26,23 @@ public class DataAllocator implements IbisStreamFlags {
     /**
      * The cache per type
      */
-    private short[][]	index_cache  = new short[CACHE_MAX][];
-    private byte[][]	byte_cache   = new byte[CACHE_MAX][];
-    private char[][]	char_cache   = new char[CACHE_MAX][];
-    private short[][]	short_cache  = new short[CACHE_MAX][];
-    private int[][]	int_cache    = new int[CACHE_MAX][];
-    private long[][]	long_cache   = new long[CACHE_MAX][];
-    private float[][]	float_cache  = new float[CACHE_MAX][];
-    private double[][]	double_cache = new double[CACHE_MAX][];
+    private short[][]	index_cache;
+    private byte[][]	byte_cache;
+    private char[][]	char_cache;
+    private short[][]	short_cache;
+    private int[][]	int_cache;
+    private long[][]	long_cache;
+    private float[][]	float_cache;
+    private double[][]	double_cache;
 
-    private IbisHash	indexHash    = new IbisHash(2 * CACHE_MAX, true);
-    private IbisHash	byteHash     = new IbisHash(2 * CACHE_MAX, true);
-    private IbisHash	charHash     = new IbisHash(2 * CACHE_MAX, true);
-    private IbisHash	shortHash    = new IbisHash(2 * CACHE_MAX, true);
-    private IbisHash	intHash      = new IbisHash(2 * CACHE_MAX, true);
-    private IbisHash	longHash     = new IbisHash(2 * CACHE_MAX, true);
-    private IbisHash	floatHash    = new IbisHash(2 * CACHE_MAX, true);
-    private IbisHash	doubleHash   = new IbisHash(2 * CACHE_MAX, true);
+    private IbisHash	indexHash;
+    private IbisHash	byteHash;
+    private IbisHash	charHash;
+    private IbisHash	shortHash;
+    private IbisHash	intHash;
+    private IbisHash	longHash;
+    private IbisHash	floatHash;
+    private IbisHash	doubleHash;
 
     private final static boolean STATISTICS = TypedProperties.booleanProperty(IOProps.s_cache_stats);
 
@@ -72,7 +72,24 @@ public class DataAllocator implements IbisStreamFlags {
     private int cache_float;
     private int cache_double;
 
-    {
+    public DataAllocator() {
+	index_cache  = new short[CACHE_MAX][];
+	byte_cache   = new byte[CACHE_MAX][];
+	char_cache   = new char[CACHE_MAX][];
+	short_cache  = new short[CACHE_MAX][];
+	int_cache    = new int[CACHE_MAX][];
+	long_cache   = new long[CACHE_MAX][];
+	float_cache  = new float[CACHE_MAX][];
+	double_cache = new double[CACHE_MAX][];
+
+	indexHash    = new IbisHash(2 * CACHE_MAX, true);
+	byteHash     = new IbisHash(2 * CACHE_MAX, true);
+	charHash     = new IbisHash(2 * CACHE_MAX, true);
+	shortHash    = new IbisHash(2 * CACHE_MAX, true);
+	intHash      = new IbisHash(2 * CACHE_MAX, true);
+	longHash     = new IbisHash(2 * CACHE_MAX, true);
+	floatHash    = new IbisHash(2 * CACHE_MAX, true);
+	doubleHash   = new IbisHash(2 * CACHE_MAX, true);
 	if (STATISTICS) {
 	    Runtime.getRuntime().addShutdownHook(new Thread("DataAllocator ShutdownHook") {
 		public void run() {
@@ -94,6 +111,9 @@ public class DataAllocator implements IbisStreamFlags {
 		    }
 		});
 	}
+    }
+
+    DataAllocator(int dummy) {
     }
 
     /**

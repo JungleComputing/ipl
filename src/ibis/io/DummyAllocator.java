@@ -7,6 +7,10 @@ package ibis.io;
  */
 public class DummyAllocator extends DataAllocator implements IbisStreamFlags {
 
+    public DummyAllocator() {
+	super(0);
+    }
+
     /**
      * Obtain an array of shorts fit to store an IbisSerializationOutputStream
      * index descriptor. Get it from the cache if possible.
