@@ -10,6 +10,7 @@ import ibis.util.TypedProperties;
 public interface Config {
 
     static final String PROPERTY_PREFIX = "satin.";
+    static final String s_stats =        PROPERTY_PREFIX + "stats";
     static final String s_stats_spawn =  PROPERTY_PREFIX + "stats.spawn";
     static final String s_stats_steal =  PROPERTY_PREFIX + "stats.steal";
     static final String s_stats_abort =  PROPERTY_PREFIX + "stats.abort";
@@ -17,6 +18,7 @@ public interface Config {
     static final String s_stats_ft =     PROPERTY_PREFIX + "stats.ft";
     static final String s_stats_grt =    PROPERTY_PREFIX + "stats.ft.grt";
 
+    static final String s_timing =       PROPERTY_PREFIX + "timing";
     static final String s_timing_steal = PROPERTY_PREFIX + "timing.steal";
     static final String s_timing_abort = PROPERTY_PREFIX + "timing.abort";
     static final String s_timing_idle =  PROPERTY_PREFIX + "timing.idle";
@@ -49,12 +51,14 @@ public interface Config {
     static final String s_debug_ft_grt = PROPERTY_PREFIX + "debug.ft.grt";
 
     static final String[] sysprops = {
+	s_stats,
 	s_stats_spawn,
 	s_stats_steal,
 	s_stats_abort,
 	s_stats_tuple,
 	s_stats_ft,
 	s_stats_grt,
+	s_timing,
 	s_timing_steal,
 	s_timing_abort,
 	s_timing_idle,
@@ -86,59 +90,67 @@ public interface Config {
 	s_debug_ft_grt
     };
 
+    /** Must be enabled or there are no statistics at all. */
+    static final boolean STATS =
+	TypedProperties.booleanProperty(s_stats, true);
+
     /** Enable or disable statistics for spawns. */
     static final boolean SPAWN_STATS = 
-	TypedProperties.booleanProperty(s_stats_spawn, true);
+	STATS && TypedProperties.booleanProperty(s_stats_spawn, true);
 
     /** Enable or disable statistics for job stealing. */
     static final boolean STEAL_STATS =
-	TypedProperties.booleanProperty(s_stats_steal, true);
+	STATS && TypedProperties.booleanProperty(s_stats_steal, true);
 
     /** Enable or disable statistics for aborts. */
     static final boolean ABORT_STATS =
-	TypedProperties.booleanProperty(s_stats_abort, true);
+	STATS && TypedProperties.booleanProperty(s_stats_abort, true);
 
     /** Enable or disable statistics for aborts/restarts done for fault-tolerance. */
     static final boolean FT_STATS =
-	TypedProperties.booleanProperty(s_stats_ft, true);
+	STATS && TypedProperties.booleanProperty(s_stats_ft, true);
 
     /** Enable or disable statistics for the tuple space. */
     static final boolean TUPLE_STATS =
-	TypedProperties.booleanProperty(s_stats_tuple, true);
+	STATS && TypedProperties.booleanProperty(s_stats_tuple, true);
 
     /** Enable or disable statistics for the global result table. */
     static final boolean GRT_STATS =
-	TypedProperties.booleanProperty(s_stats_grt, true);
+	STATS && TypedProperties.booleanProperty(s_stats_grt, true);
+
+    /** Must be enabled or there are no timings at all. */
+    static final boolean TIMING =
+	TypedProperties.booleanProperty(s_timing, true);
 
     /** Enable or disable steal timings. */
     static final boolean STEAL_TIMING =
-	TypedProperties.booleanProperty(s_timing_steal, true);
+	TIMING && TypedProperties.booleanProperty(s_timing_steal, true);
 
     /** Enable or disable abort timings. */
     static final boolean ABORT_TIMING =
-	TypedProperties.booleanProperty(s_timing_abort, true);
+	TIMING && TypedProperties.booleanProperty(s_timing_abort, true);
 
     /** Enable or disable idle timing. */
     static final boolean IDLE_TIMING =
-	TypedProperties.booleanProperty(s_timing_idle, false);
+	TIMING && TypedProperties.booleanProperty(s_timing_idle, false);
 
     /** Enable or disable poll timing. */
     static final boolean POLL_TIMING =
-	TypedProperties.booleanProperty(s_timing_poll, false);
+	TIMING && TypedProperties.booleanProperty(s_timing_poll, false);
 
     /** Enable or disable tuple space timing. */
     static final boolean TUPLE_TIMING =
-	TypedProperties.booleanProperty(s_timing_tuple, true);
+	TIMING && TypedProperties.booleanProperty(s_timing_tuple, true);
 
     //used for fault tolerance with global result table
     static final boolean GRT_TIMING =
-	TypedProperties.booleanProperty(s_timing_grt, true);
+	TIMING && TypedProperties.booleanProperty(s_timing_grt, true);
     static final boolean CRASH_TIMING =
-	TypedProperties.booleanProperty(s_timing_crash, true);
+	TIMING && TypedProperties.booleanProperty(s_timing_crash, true);
     static final boolean TABLE_CHECK_TIMING =
-	TypedProperties.booleanProperty(s_timing_check, true);
+	TIMING && TypedProperties.booleanProperty(s_timing_check, true);
     static final boolean ADD_REPLICA_TIMING =
-	TypedProperties.booleanProperty(s_timing_repl, true);
+	TIMING && TypedProperties.booleanProperty(s_timing_repl, true);
 
 
     /**
