@@ -18,9 +18,13 @@ public abstract class IbisSocketFactory {
     private static final String sf = prefix + "class";
     private static final String rng = prefix + "port.range";
     private static final String debug = prefix + "debug";
+    private static final String inbufsize = prefix + "InputBufferSize";
+    private static final String outbufsize = prefix + "OutputBufferSize";
     private static final String[] sysprops = {
 	sf,
 	debug,
+	inbufsize,
+	outbufsize,
 	rng
     };
 
@@ -33,6 +37,8 @@ public abstract class IbisSocketFactory {
     static int portNr = 0;
     static int startRange = 0;
     static int endRange = 0;
+    static int inputBufferSize = 0;
+    static int outputBufferSize = 0;
 
     static {
 	TypedProperties.checkProperties(prefix, sysprops, null);
@@ -63,6 +69,8 @@ public abstract class IbisSocketFactory {
 		}
 	    }
 	}
+	inputBufferSize = TypedProperties.intProperty(inbufsize, 0);
+	outputBufferSize = TypedProperties.intProperty(outbufsize, 0);
     }
     
     protected IbisSocketFactory() {
@@ -166,7 +174,7 @@ public abstract class IbisSocketFactory {
     public Socket accept(ServerSocket a) throws IOException {
 	Socket s;
 	s = a.accept();
-	s.setTcpNoDelay(true);
+	tuneSocket(s);
 	if(DEBUG) {
 	    System.out.println("accepted new connection from " + s.getInetAddress() + ":" + s.getPort() + ", local = " + s.getLocalAddress() + ":" + s.getLocalPort());
 	}
@@ -237,5 +245,24 @@ public abstract class IbisSocketFactory {
 	    e.printStackTrace();
 	}
 	return null;
+    }
+
+    /**
+     * Configures a socket according to user-specified properties.
+     * Currently, the input buffer size and output buffer size can
+     * be set using the system properties
+     * "ibis.util.socketfactory.InputBufferSize"
+     * and "ibis.util.socketfactory.OutputBufferSize".
+     * @param s the socket to be configured
+     * @exception IOException when configuring fails for some reason.
+     */
+    public static void tuneSocket(Socket s) throws IOException {
+	if (inputBufferSize != 0) {
+	    s.setReceiveBufferSize(inputBufferSize);
+	}
+	if (outputBufferSize != 0) {
+	    s.setSendBufferSize(outputBufferSize);
+	}
+	s.setTcpNoDelay(true);
     }
 }

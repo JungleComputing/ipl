@@ -116,16 +116,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			    sout = s.getOutputStream();
 			}
 
-			DynamicProperties p = sp.properties();
-			Integer o = (Integer) p.find("InputBufferSize");
-			if (o != null) {
-			    s.setReceiveBufferSize(o.intValue());
-			}
-			o = (Integer) p.find("OutputBufferSize");
-			if (o != null) {
-			    s.setSendBufferSize(o.intValue());
-			}
-
 			ObjectOutputStream obj_out = new ObjectOutputStream(new DummyOutputStream(sout));
 			DataInputStream data_in = new DataInputStream(new DummyInputStream(sin));
 
@@ -296,16 +286,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			in.close();
 			s.close();
 			return;
-		}
-
-		DynamicProperties p = rp.properties();
-		Integer o = (Integer) p.find("InputBufferSize");
-		if (o != null) {
-		    s.setReceiveBufferSize(o.intValue());
-		}
-		o = (Integer) p.find("OutputBufferSize");
-		if (o != null) {
-		    s.setSendBufferSize(o.intValue());
 		}
 
 		/* It accepts the connection, now we try to find an unused stream 

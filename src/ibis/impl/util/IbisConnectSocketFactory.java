@@ -23,6 +23,7 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
     public Socket createSocket(InetAddress rAddr, int rPort) 
 	throws IOException {
 	Socket s = ExtSocketFactory.createClientSocket(rAddr, rPort);
+	tuneSocket(s);
 	return s;
     }
 
@@ -54,11 +55,6 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
 					System.err.println("DONE, local port: " + s.getLocalPort());
 				}
                                 connected = true;
-                                s.setTcpNoDelay(true);
-//				s.setSoTimeout(5*60*1000);
-//				System.err.println("set socket timeout to 10 seconds");
-
-//				System.err.println("created socket linger = " + s.getSoLinger());
                         } catch (IOException e1) { 
 				if (DEBUG) { 
 					System.err.println("Socket connect to " + dest + ":" + port + " failed (" + e1 + ")");
@@ -98,6 +94,7 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
                         }
                 } 
 
+		tuneSocket(s);
 		return s;
 	} 
 
