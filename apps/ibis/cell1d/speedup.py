@@ -34,6 +34,9 @@ timingTag = "ExecutionTime:"
 def get_time_stamp():
     return time.strftime( "%Y-%m-%d-%H:%M:%S", time.localtime())
 
+def get_time_string():
+    return time.strftime( "%d %b %Y %H:%M:%S", time.localtime())
+
 def makeNonBlocking( fd ):
     fl = fcntl.fcntl(fd, FCNTL.F_GETFL)
     try:
@@ -85,10 +88,10 @@ def build_run_command( pno, command, port ):
 
 def runP( P, command, results ):
     cmd = build_run_command( P, command, nameserverport )
-    print "Starting run for P=%d" % P
+    print "Starting run for P=%d at %s" % (P, get_time_string())
     data = getCommandOutput( cmd )
     results[P] = data
-    print "Finished run for P=%d" % P
+    print "Finished run for P=%d at %s" % (P, get_time_string())
 
 class Thread( threading.Thread ):
     def  __init__( self, P, command, results, lck ):
@@ -290,6 +293,7 @@ def main():
         if o in ("--logfile",):
             logfile = a
     ProcNos = genps( procSet )
+    ProcNos.reverse()
     run( string.join( args, ' ' ), logfile, runParallel )
 
 if __name__ == "__main__":
