@@ -12,7 +12,6 @@ import ibis.io.MantaOutputStream;
 import ibis.io.MantaInputStream;
 
 
-
 public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializable, ibis.io.Serializable {
 	public static final int serialversionID = 1;
 	InetAddress address;
@@ -21,7 +20,7 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 	public TcpIbisIdentifier() { 
 	}
 
-	public TcpIbisIdentifier(MantaInputStream stream) throws IOException, ClassNotFoundException {
+	public TcpIbisIdentifier(MantaInputStream stream) throws IbisIOException, ClassNotFoundException {
 		stream.addObjectToCycleCheck(this);
 		int handle = stream.readInt();
 		if(handle < 0) {
