@@ -705,7 +705,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	    receivePortShutter.waitPolling(1000);
 
 	    while (receivePortList != null) {
-// System.err.println("Ibis.end(): Invoke forcedClose() of " + receivePortList);
+// System.err.println("Ibis.end(): Invoke forced close() of " + receivePortList);
 		receivePortList.closeLocked(true);
 	    }
 

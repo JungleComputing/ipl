@@ -465,10 +465,27 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
     }
 
     /**
+     * Free resourced held by receiport AFTER waiting for all the connections
+     * to close down, or the timeout to pass.
+     */
+    public void close(long timeout) throws IOException {
+	if (timeout == 0L) {
+	    close();
+	}
+	else if (timeout > 0L) {
+	    forcedClose(timeout);
+	}
+	else {
+	    forcedClose();
+	}
+    }
+
+
+    /**
      * Free resources geld by receiveport after waiting for all the connections
      * to close down, or the timeout to pass
      */
-    public synchronized void forcedClose(long timeoutMillis) {
+    private synchronized void forcedClose(long timeoutMillis) {
 	long deadline = System.currentTimeMillis() + timeoutMillis;
 
 	try {
@@ -508,7 +525,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
     /**
      * close all connections. Don't wait for them to go away by themselves
      */
-    public synchronized void forcedClose() throws IOException {
+    private synchronized void forcedClose() throws IOException {
 	disableConnections();
 	ibis.nameServer.unbind(ident.name);
 	ibis.factory.deRegister(this);

@@ -100,12 +100,12 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 		in = null;
 //		ibis.tcpPortHandler.killSocket(origin, input); // not correct.
 		ibis.tcpPortHandler.releaseInput(origin, input);
-		if(!iMustDie) { // if we came in through a forcedClose, the port already knows that we are gone.
+		if(!iMustDie) { // if we came in through a forced close, the port already knows that we are gone.
 			port.leave(this, e);
 		}
 	}
 
-	/* called by forcedClose */
+	/* called by forced close */
 	void die() {
 		iMustDie = true;
 	}
@@ -140,7 +140,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 				System.err.println("handler " + this + " for port: " + port.name + " woke up");
 			}
 			opcode = in.readByte();
-			if(iMustDie) {	/* in this case, a forcedClose was done, and my port is gone... */
+			if(iMustDie) {	/* in this case, a forced close was done, and my port is gone... */
 				close(null);
 				return;
 			}

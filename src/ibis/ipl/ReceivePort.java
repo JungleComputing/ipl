@@ -167,28 +167,23 @@ public interface ReceivePort {
      */
     public void close() throws IOException;
 
-    /** 
-     * Frees the resources held by the receiveport. 
+    /**
+     * Frees the resources held by the receiveport, with timeout. 
+     * Like {@link #close()}, but blocks at most timeout milliseconds.
+     * When the close does not succeed within the timeout, this operation
+     * does a forced close.
      * Important: this call does not block until all sendports that are
      * connected to it have been freed. Therefore, messages may be lost!
      * Use this with extreme caution!
      * When this call is used, and this port is configured to maintain
      * connection administration, it updates the administration and thus
      * may generate lostConnection upcalls.
+     *
+     * @param timeoutMillis timeout in milliseconds. When zero, the call is
+     * equivalent to a {@link #close()}; when less than zero, the port is
+     * closed immediately.
      */
-    public void forcedClose() throws IOException;
-
-    /**
-     * Frees the resources held by the receiveport, with timeout. 
-     * Like {@link #close()}, but blocks at most timeout milliseconds.
-     * When the free does not succeed within the timeout, this operation
-     * does a {@link #forcedClose()}.
-     * When this call is used, and this port is configured to maintain
-     * connection administration, it updates the administration and thus
-     * may generate lostConnection upcalls.
-     * @param timeoutMillis timeout in milliseconds.
-     */
-    public void forcedClose(long timeoutMillis) throws IOException;
+    public void close(long timeoutMillis) throws IOException;
 
     /**
      * Returns the set of sendports this receiveport is connected to .

@@ -405,6 +405,18 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return res;
 	}
 
+	public void close(long timeout) throws IOException {
+	    if (timeout == 0L) {
+		close();
+	    } else if (timeout > 0L) {
+		forcedClose(timeout);
+	    } else {
+		forcedClose();
+	    }
+
+
+	}
+
 	public synchronized void close() throws IOException {
 		if (DEBUG) { 
 			System.err.println("TcpReceivePort.free: " + name + ": Starting");
@@ -486,10 +498,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	public synchronized void forcedClose() {
+	private synchronized void forcedClose() {
 		// this may be ok with a forced close.
 		if(m != null) {
-			throw new IbisError("Doing forcedClose while a msg is alive, port = " + name + " fin = " + m.isFinished);
+			throw new IbisError("Doing forced close while a msg is alive, port = " + name + " fin = " + m.isFinished);
 		}
 
 		disableConnections();
@@ -521,7 +533,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		notifyAll();
 	}
 
-	public synchronized void forcedClose(long timeoutMillis) {
+	private synchronized void forcedClose(long timeoutMillis) {
 		// @@@ this is of course "sub optimal" --Rob
 		try {
 			wait(timeoutMillis);

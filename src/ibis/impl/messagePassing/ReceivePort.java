@@ -698,7 +698,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     public void close() throws IOException {
 
 	if (DEBUG) {
-	    System.out.println(Thread.currentThread() + name + ":Starting receiveport.free upcall = " + upcall);
+	    System.out.println(Thread.currentThread() + name + ":Starting receiveport.close upcall = " + upcall);
 	}
 
 	Ibis.myIbis.lock();
@@ -710,19 +710,14 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
     }
 
-
-    public void forcedClose() throws IOException {
+    public void close(long timeout) throws IOException {
 	Ibis.myIbis.lock();
 	try {
-	    closeLocked(true);
+	    // TODO: implement close with timeout > 0
+	    closeLocked(timeout != 0L);
 	} finally {
 	    Ibis.myIbis.unlock();
 	}
-    }
-
-
-    public void forcedClose(long timeout) throws IOException {
-	forcedClose();
     }
 
 

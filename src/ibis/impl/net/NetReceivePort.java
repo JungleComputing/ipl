@@ -1069,11 +1069,25 @@ pollerThread = null;
 	}
 
 
+        /**
+         * Closes the port.
+         */
+        public void close(long timeout) throws IOException {
+	    if (timeout == 0) {
+		close(false, 0);
+	    } else if (timeout < 0) {
+		close(true, 0L);
+	    } else {
+		close(false, timeout);
+	    }
+	}
+
+
 	private void close(boolean force, long timeout) throws IOException {
                 log.in();
                 trace.disp(receivePortTracePrefix, "receive port shutdown-->");
 		if (timeout != 0) {
-		    __.unimplemented__("void forcedClose(long timeout)");
+		    __.unimplemented__("void close(long timeout)");
 		}
 
 		if (! force && connectionTable != null) {
@@ -1159,14 +1173,6 @@ pollerThread = null;
 
                 trace.disp(receivePortTracePrefix, "receive port shutdown<--");
                 log.out();
-        }
-
-        public void forcedClose() throws IOException {
-	    close(true, 0);
-        }
-
-        public void forcedClose(long timeout) throws IOException {
-	    close(false, timeout);
         }
 
         protected void finalize() throws Throwable {
