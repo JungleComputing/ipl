@@ -155,7 +155,7 @@ def extractResult( data ):
 
 def run( command, logfile, runParallel ):
     if logfile == None:
-        logfile = os.path.join( logdir, "log-" + get_time_stamp() )
+        logfile = os.path.join( logdir, "log-" + get_time_stamp() + ".txt" )
     lf = open( logfile, "w" )
     logstreams = [lf]
     allstreams = [lf,sys.stdout]
@@ -215,12 +215,13 @@ def usage():
     print "Construct a table of execution times for different numbers of processors."
     print "Usage: python speedup.py [options] [program] [parameter...parameter]"
     print "The following options are supported:"
-    print "--help\t\t\tShow this help text"
-    print "-h\t\t\tShow this help text"
-    print "--procs [spec]\t\tDo runs with the given set of processor numbers (see below)"
-    print "--parallel\t\tExecute the runs in parallel."
+    print "--help\t\t\tShow this help text."
+    print "-h\t\t\tShow this help text."
+    print "--logdir [name]\t\tUse the specified log directory."
     print "--logfile [name]\tUse the specified log file."
-    print "--logdir [name]\tUse the specified log directory."
+    print "--parallel\t\tExecute the runs in parallel."
+    print "--port [number]\t\tUse the given nameserver port."
+    print "--procs [spec]\t\tDo runs with the given set of processor numbers (see below)."
     print
     print "The set of processor numbers is given as:"
     print " <minproc>:<maxproc>:<maxstep>"
@@ -259,7 +260,7 @@ def main():
         if o in ("--logdir",):
             logdir = a
         if o in ("--port",):
-            nameserverport = a
+            nameserverport = int(a)
         if o in ("--logfile",):
             logfile = a
     ProcNos = genps( procSet )
