@@ -95,8 +95,8 @@
     -->
     <target name="bcel" depends="init">
 	<javac  destdir="${build}"
-		srcdir="${ibis}/src/bcel-additions">
-	    <include name="**/*.java"/>
+		srcdir="${ibis}/src">
+	    <include name="org/**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
@@ -471,8 +471,13 @@
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
-	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
+	<if>
+	    <istrue value="${config.is-das}"/>
+	    <then>
+		<antcall inheritAll="true" inheritRefs="true" target="javah"/>
+		<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
+	    </then>
+	</if>
     </target>
 
     <!--
@@ -492,8 +497,13 @@
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
-	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
+	<if>
+	    <istrue value="${config.is-das}"/>
+	    <then>
+		<antcall inheritAll="true" inheritRefs="true" target="javah"/>
+		<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
+	    </then>
+	</if>
     </target>
 
     <!--
