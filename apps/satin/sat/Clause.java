@@ -101,8 +101,40 @@ class Clause implements java.io.Serializable, Comparable {
 	return false;
     }
 
-    // Given an array of assignments, return true iff this clause conflicts
-    // with these assignments.
+    /**
+     * If this clause is not a positive unit clause, return -1,
+     * else return the variable that constitutes this clause.
+     */
+    public int getPosUnitVar()
+    {
+        if( neg.length != 0 ){
+	    return -1;
+	}
+        if( pos.length != 1 ){
+	    return -1;
+	}
+	return pos[0];
+    }
+
+    /**
+     * If this clause is not a negative unit clause, return -1,
+     * else return the variable that constitutes this clause.
+     */
+    public int getNegUnitVar()
+    {
+        if( pos.length != 0 ){
+	    return -1;
+	}
+        if( neg.length != 1 ){
+	    return -1;
+	}
+	return neg[0];
+    }
+
+    /**
+     * Given an array of assignments, return true iff this clause conflicts
+     * with these assignments.
+     */
     public boolean isConflicting( int assignments[] )
     {
 	// Search for any term of the clause that has an agreeing assignment

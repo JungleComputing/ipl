@@ -291,6 +291,29 @@ class SATProblem implements java.io.Serializable {
 		}
 		// TODO: a variable may occur never at all.
 	    }
+	    for( int i=0; i<clauseCount; i++ ){
+	        Clause cl = clauses[i];
+
+		if( cl == null ){
+		    continue;
+		}
+		int var = cl.getPosUnitVar();
+		if( var>=0 ){
+		    if( trace_simplification ){
+			System.err.println( "Unit clause " + cl ); 
+		    }
+		    changed |= propagatePosAssignment( var );
+		    continue;
+		}
+		var = cl.getNegUnitVar();
+		if( var>=0 ){
+		    if( trace_simplification ){
+			System.err.println( "Unit clause " + cl ); 
+		    }
+		    changed |= propagateNegAssignment( var );
+		    continue;
+		}
+	    }
 	    if( changed ){
 		compactClauses();
 	    }
