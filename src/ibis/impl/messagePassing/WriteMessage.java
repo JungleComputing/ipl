@@ -21,7 +21,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 
 	public int getCount() {
 		return -1;
-		// please implement --Rob
+		// please implement --Rob&Maik
 	}
 
 	public void resetCount() {
