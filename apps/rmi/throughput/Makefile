@@ -9,6 +9,11 @@ MAIN  = Main.java
 
 REMOTE  = Test.java
 
+SERIALIZABLE  = Data.java
+SERIALIZABLE  += Tree.java
+SERIALIZABLE  += List.java
+SERIALIZABLE  += DList.java
+
 include ../../../config.mk
 
 clean:
