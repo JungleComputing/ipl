@@ -136,7 +136,7 @@ class ByteOutputStream
     void reset(boolean finish) throws IbisIOException {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 	if (outstandingFrags > 0) {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.pollLocked();
 
 	    if (outstandingFrags > 0) {
 // System.err.println(Thread.currentThread() + "Start wait to finish msg for stream " + this);

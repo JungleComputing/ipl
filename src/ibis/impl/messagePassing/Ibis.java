@@ -33,12 +33,16 @@ public class Ibis extends ibis.ipl.Ibis {
 
     static Ibis	myIbis;
 
+    private Poll rcve_poll;
+
+
     Monitor monitor = new Monitor();
 
     ConditionVariable createCV() {
 	// return new ConditionVariable(this);
 	return monitor.createCV();
     }
+
 
     int nrCpus;
     int myCpu;
@@ -236,8 +240,6 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    Poll rcve_poll;
-
     final void waitPolling(PollClient client, long timeout, int preempt)
 	    throws IbisIOException {
 	rcve_poll.waitPolling(client, timeout, preempt);
@@ -277,7 +279,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
     native long currentTime();
     native double t2d(long t);
-
 
     final void lock() {
 	monitor.lock();
@@ -382,18 +383,23 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
+    void pollLocked() throws IbisIOException {
+	rcve_poll.poll();
+    }
+
+
     public void poll() throws IbisIOException {
 	try {
 	    myIbis.lock();
-	    rcve_poll.poll();
+	    pollLocked();
 	} finally {
 	    myIbis.unlock();
 	}
     }
 
 
-    public void resetStats() {
-	rcve_poll.reset_stats();
+    public static void resetStats() {
+	myIbis.rcve_poll.reset_stats();
     }
 
     public void end() {

@@ -43,6 +43,8 @@ static jmethodID	md_checkLockNotOwned;
 static jmethodID	md_lock;
 static jmethodID	md_unlock;
 
+static jmethodID	md_poll;
+
 jclass		ibmp_cls_Ibis;
 jobject		ibmp_obj_Ibis_ibis;
 
@@ -196,6 +198,13 @@ void
 ibmp_unlock(JNIEnv *env)
 {
     (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_unlock);
+}
+
+
+void
+ibmp_poll(JNIEnv *env)
+{
+    (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_poll);
 }
 
 
@@ -394,6 +403,12 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
     md_unlock = (*env)->GetMethodID(env, ibmp_cls_Ibis, "unlock", "()V");
     if (md_unlock == NULL) {
 	ibmp_error(env, "Cannot find method unlock\n");
+    }
+    IBP_VPRINTF(2000, env, ("here..\n"));
+
+    md_poll = (*env)->GetMethodID(env, ibmp_cls_Ibis, "pollLocked", "()V");
+    if (md_poll == NULL) {
+	ibmp_error(env, "Cannot find method pollLocked\n");
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 

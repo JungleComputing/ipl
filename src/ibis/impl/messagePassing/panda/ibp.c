@@ -28,7 +28,8 @@
 pan_key_p		ibp_env_key;
 #endif
 
-JNIEnv  *ibp_JNIEnv = NULL;
+JNIEnv	       *ibp_JNIEnv = NULL;
+int		ibp_intr_enabled = 1;
 
 
 void
@@ -303,6 +304,13 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
     ibp_pan_init(env, argc, argv);
     IBP_VPRINTF(2000, env, ("here...\n"));
 
+    if (pan_arg_bool(argc, argv, "-ibp-no-intr") == 1) {
+	ibp_intr_enabled = 0;
+    }
+    if (pan_arg_bool(argc, argv, "-ibp-intr") == 1) {
+	ibp_intr_enabled = 1;
+    }
+
     ibmp_nr = pan_nr_processes();
     ibmp_me = pan_my_pid();
 
@@ -317,6 +325,12 @@ ibp_start(JNIEnv *env)
 {
     pan_start();
     IBP_VPRINTF(10, env, ("%s.%d: ibp_start\n", __FILE__, __LINE__));
+
+    if (ibp_intr_enabled) {
+	// fprintf(stderr, "Don't enable Panda interrupts (yet)\n");
+	fprintf(stderr, "Enable Panda interrupts\n");
+	pan_comm_intr_enable();
+    }
 }
 
 

@@ -89,7 +89,7 @@ class ReceivePort
 	ident = new ReceivePortIdentifier(name, type.name());
 
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-	    livingPorts++;
+	livingPorts++;
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
@@ -169,7 +169,6 @@ System.err.println("This IS a home-only connection");
     void disconnect(ShadowSendPort sp) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 	connections.remove(sp);
-// System.err.println(Thread.currentThread() + "Disconnect SendPort " + sp + " from ReceivePort " + this + ", remaining connections " + connections.size());
 	if (connections.size() == 0) {
 	    disconnected.cv_signal();
 	}
@@ -298,6 +297,7 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 		messageArrived.cv_signal();
 	    }
 	    else if (handlingReceive == 0) {
+// System.err.println("finishMessage: Create another UpcallThread because the previous one didn't terminate");
 		createNewUpcallThread();
 	    }
 	}
@@ -421,7 +421,7 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 
 // if (upcall != null) System.err.println("Hit receive() in an upcall()");
 // for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
-// ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
+// ibis.ipl.impl.messagePassing.Ibis.myIbis.pollLocked();
 // }
 
 	if (queueFront == null) {
@@ -680,13 +680,19 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 		    if (DEBUG) {
 			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
 		    }
-// for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
-// ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
-// }
-		    // if (queueFront == null) {
+
+		    /* Maybe another request arrives really soon for this
+		     * (or some other) port. Poll a while, only then go
+		     * to wait. */
+		    for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
+			ibis.ipl.impl.messagePassing.Ibis.myIbis.pollLocked();
+		    }
+
+		    if (queueFront == null) {
 			// // // ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.NON_PREEMPTIVE);
-			ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.NON_PREEMPTIVE : Poll.NON_POLLING);
-		    // }
+			// ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.NON_PREEMPTIVE : Poll.NON_POLLING);
+			ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.NON_POLLING);
+		    }
 		    if (DEBUG) {
 			upcall_poll++;
 			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);

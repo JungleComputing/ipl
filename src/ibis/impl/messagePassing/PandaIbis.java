@@ -12,6 +12,7 @@ public class PandaIbis extends ibis.ipl.impl.messagePassing.Ibis {
     protected void init() throws IbisException, IbisIOException {
 	System.loadLibrary("ibis_mp_panda");
 	super.init();
+	// new InterruptCatcher().start();
     }
 
 }

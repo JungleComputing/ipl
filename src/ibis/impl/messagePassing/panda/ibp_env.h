@@ -5,6 +5,7 @@
 
 #include <pan_sys.h>
 
+extern int		ibp_intr_enabled;
 extern JNIEnv	       *ibp_JNIEnv;
 
 #ifndef NDEBUG
