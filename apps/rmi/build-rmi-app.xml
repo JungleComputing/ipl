@@ -260,7 +260,7 @@
 
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
-		srcdir=".">
+		srcdir=".:../shared">
 	    <classpath refid="default.classpath"/>
 	    <include name="**/*.java"/>
 	</javac>
