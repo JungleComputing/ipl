@@ -18,6 +18,7 @@ public class Splice
     private static final int defaultSendBufferSize = 64*1024;
     private static final int defaultRecvBufferSize = 64*1024;
     private static NumServer server;
+    private static final boolean setBufferSizes = ! TypedProperties.booleanProperty("ibis.connect.default.sizes");
 
     private Socket    socket = null;
     private String localHost = null;
@@ -30,6 +31,7 @@ public class Splice
      * same host and trying to set up TCPSplice connections. When this
      * is the case, there is a race when the same range of port numbers is used.
      * See the comment in the connectSplice routine.
+     * The NumServer solves that.
      */
     private static class NumServer extends Thread {
 	ServerSocket server;
@@ -73,8 +75,10 @@ public class Splice
 	throws IOException
     {
 	socket = new Socket();
-	socket.setSendBufferSize(defaultSendBufferSize);
-	socket.setReceiveBufferSize(defaultRecvBufferSize);
+	if (setBufferSizes) {
+	    socket.setSendBufferSize(defaultSendBufferSize);
+	    socket.setReceiveBufferSize(defaultRecvBufferSize);
+	}
 	try {
 	    localHost = IPUtils.getLocalHostAddress().getCanonicalHostName();
 	} catch(Exception e) {
@@ -158,8 +162,10 @@ public class Splice
 		    try {
 			socket = new Socket();
 			socket.setReuseAddress(true);
-			socket.setSendBufferSize(defaultSendBufferSize);
-			socket.setReceiveBufferSize(defaultRecvBufferSize);
+			if (setBufferSizes) {
+			    socket.setSendBufferSize(defaultSendBufferSize);
+			    socket.setReceiveBufferSize(defaultRecvBufferSize);
+			}
 			socket.bind(localAddr);
 		    } catch(IOException f) { throw new Error(f); }
 		}
