@@ -69,6 +69,8 @@ public class SendPort implements ibis.ipl.SendPort {
 
     ByteOutputStream out;
 
+    SendPort	next;
+
     protected native void ibmp_connect(int dest,
 	    			       byte[] rcvePortId,
 				       byte[] sendPortId,
@@ -84,7 +86,7 @@ public class SendPort implements ibis.ipl.SendPort {
 					  ConnectAcker syncer,
 					  int count);
 
-    SendPort() {
+    public SendPort() {
     }
 
     public SendPort(PortType type,
@@ -92,6 +94,7 @@ public class SendPort implements ibis.ipl.SendPort {
 		    boolean syncMode,
 		    boolean makeCopy)
 	    throws IOException {
+	Ibis.myIbis.registerSendPort(this);
 	this.name = name;
 	this.type = type;
 	ident = new SendPortIdentifier(name, type.name());
@@ -535,30 +538,40 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
     }
 
 
-    public void close() throws IOException {
+    void closeLocked() throws IOException {
 	if (DEBUG) {
 	    System.out.println(Ibis.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " start");
+	    Thread.dumpStack();
 	}
 
-	if (splitter == null) {
-	    // Seems we were created but never connected to anybody
-	    return;
-	}
-
-	Ibis.myIbis.lock();
 	try {
-	    byte[] sf = ident.getSerialForm();
-	    for (int i = 0; i < splitter.length; i++) {
-		ReceivePortIdentifier rid = splitter[i];
-		ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf, null,
-				messageCount);
+	    if (splitter != null) {
+		byte[] sf = ident.getSerialForm();
+		for (int i = 0; i < splitter.length; i++) {
+		    ReceivePortIdentifier rid = splitter[i];
+		    ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf, null,
+				    messageCount);
+		}
+		splitter = null;
 	    }
 	} finally {
-	    Ibis.myIbis.unlock();
+	    Ibis.myIbis.unregisterSendPort(this);
 	}
 
 	if (DEBUG) {
 	    System.out.println(Ibis.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " DONE");
+	}
+
+    }
+
+
+    public void close() throws IOException {
+
+	Ibis.myIbis.lock();
+	try {
+	    closeLocked();
+	} finally {
+	    Ibis.myIbis.unlock();
 	}
     }
 

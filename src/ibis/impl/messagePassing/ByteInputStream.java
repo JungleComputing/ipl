@@ -47,9 +47,6 @@ final class ByteInputStream
 
     public int read(byte[] b, int off, int len) throws IOException {
 // manta.runtime.RuntimeSystem.DebugMe(msgHandle, this);
-	if (off < 0 || len > 65536) {
-	    throw new Error("Improbable read bounds [" + off + ":" + len + "]");
-	}
 	Ibis.myIbis.lock();
 	try {
 	    if (Ibis.DEBUG) {

@@ -11,9 +11,6 @@ final public class IbisSendPort extends SendPort {
     IbisSerializationOutputStream obj_out;
 
 
-    IbisSendPort() {
-    }
-
     public IbisSendPort(PortType type,
 			String name)
 	    throws IOException {

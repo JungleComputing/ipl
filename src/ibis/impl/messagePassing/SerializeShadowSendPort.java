@@ -15,6 +15,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
     // private
     private final static int UNCONNECTED = 0;
     private final static int CONNECTING = UNCONNECTED + 1;
+    private final static int DISCONNECTING = CONNECTING + 1;
     private final static int CONNECTED = CONNECTING + 1;
 
     private int connectState = UNCONNECTED;
@@ -35,16 +36,6 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	this.syncer = syncer;
     }
 
-
-    private class ObjectStreamSyncer extends Syncer {
-
-	public boolean satisfied() {
-	    return cachedMessage == null;
-	}
-
-    }
-
-    private ObjectStreamSyncer objectStreamSyncer = new ObjectStreamSyncer();
 
 
     ReadMessage getMessage(int msgSeqno) throws IOException {
@@ -80,17 +71,6 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
 
     void disconnect() throws IOException {
-
-	connectState = CONNECTING;
-
-	// During our disconnect/connect, some thread may be reading a
-	// message. Wait until it is done.
-	// TODO: signal objectStreamSyncer when the message is finished
-	if (cachedMessage != null) {
-	    System.err.println(this + ": Uh oh -- live message during disconnect");
-	}
-	objectStreamSyncer.waitPolling();
-
 	connectState = UNCONNECTED;
 	obj_in = null;
     }

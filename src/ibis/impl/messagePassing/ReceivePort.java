@@ -93,12 +93,17 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     private int dequeued_msgs;
     long count;
 
+    ReceivePort	next;
+
     static {
 	if (DEBUG) {
 	    if (Ibis.myIbis.myCpu == 0) {
 		System.err.println(Thread.currentThread() + "Turn on ReceivePort.DEBUG");
 	    }
 	}
+    }
+
+    ReceivePort() {
     }
 
     ReceivePort(PortType type, String name) throws IOException {
@@ -111,6 +116,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 		ibis.ipl.ReceivePortConnectUpcall connectUpcall,
 		boolean connectionAdministration)
 	    throws IOException {
+	Ibis.myIbis.registerReceivePort(this);
 	this.type = type;
 	this.name = name;
 	this.upcall = upcall;
@@ -624,13 +630,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     }
 
 
-    public void close() {
-
-	if (DEBUG) {
-	    System.out.println(Thread.currentThread() + name + ":Starting receiveport.free upcall = " + upcall);
-	}
-
-	Ibis.myIbis.lock();
+    void closeLocked(boolean forced) throws IOException {
 
 	if (DEBUG) {
 	    System.out.println(Thread.currentThread() + name + ": got Ibis lock");
@@ -644,11 +644,13 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	if (DEBUG) {
 	    System.out.println(Thread.currentThread() + name + ": Enter shutdown.waitPolling; connections = " + connectionToString());
 	}
-	try {
+	if (! forced) {
+	    try {
 // System.out.println(connectionToString());
-	    shutdown.waitPolling();
-	} catch (IOException e) {
-	    /* well, if it throws an exception, let's quit.. */
+		shutdown.waitPolling();
+	    } catch (IOException e) {
+		/* well, if it throws an exception, let's quit.. */
+	    }
 	}
 	if (DEBUG) {
 	    System.out.println(Thread.currentThread() + name + ": Past shutdown.waitPolling");
@@ -657,6 +659,8 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	if (connectUpcall != null) {
 	    acceptThread.free();
 	}
+
+	Ibis.myIbis.unregisterReceivePort(this);
 
 	Ibis.myIbis.unlock();
 
@@ -675,20 +679,40 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	}
 
 	Ibis.myIbis.lock();
-	    livingPorts--;
-	    if (livingPorts == 0) {
-		portCounter.wakeup();
-	    }
-	Ibis.myIbis.unlock();
+	livingPorts--;
+	if (livingPorts == 0) {
+	    portCounter.wakeup();
+	}
     }
 
 
-    public void forcedClose() {
-	close();
+    public void close() throws IOException {
+
+	if (DEBUG) {
+	    System.out.println(Thread.currentThread() + name + ":Starting receiveport.free upcall = " + upcall);
+	}
+
+	Ibis.myIbis.lock();
+	try {
+	    closeLocked(false);
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
+
     }
 
 
-    public void forcedClose(long timeout) {
+    public void forcedClose() throws IOException {
+	Ibis.myIbis.lock();
+	try {
+	    closeLocked(true);
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
+    }
+
+
+    public void forcedClose(long timeout) throws IOException {
 	forcedClose();
     }
 

@@ -24,9 +24,6 @@ final public class SerializeSendPort extends SendPort {
     private ConditionVariable	connectFinished = Ibis.myIbis.createCV();
 
 
-    SerializeSendPort() {
-    }
-
     public SerializeSendPort(PortType type, String name)
 	    throws IOException {
 	super(type,
