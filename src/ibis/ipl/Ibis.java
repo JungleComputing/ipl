@@ -327,10 +327,14 @@ public abstract class Ibis {
 		System.err.println("Warning: name '" + ibisname +
 			"' not recognized, using " + defaultIbisName);
 		implementation_names.add(defaultIbisName);
+		ibisname = defaultIbisName;
 	    }
-	    else if (ibisname.startsWith("net")) {
-		StaticProperties sp =
-		    staticProperties((String)implementation_names.get(0));
+	    StaticProperties sp =
+		staticProperties((String)implementation_names.get(0));
+	    if (! combinedprops.matchProperties(sp)) {
+		throw new IbisException("Ibis " + ibisname + " does not match the required properties");
+	    }
+	    if (ibisname.startsWith("net")) {
 		sp.add("IbisName", ibisname);
 	    }
 	}
