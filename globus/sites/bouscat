@@ -1,6 +1,0 @@
-HOSTNAME=bouscat.cs.cf.ac.uk
-JAVA_HOME=/usr/java/j2sdk1.4.1_01
-RSH="gsissh -p 2222"
-RCP="scp -P 2222"
-JOBMGR=jobmanager-condor
-SPLIT=false

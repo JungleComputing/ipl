@@ -1,5 +1,0 @@
-HOSTNAME=litchi.zib.de
-JAVA_HOME=/usr/java/j2sdk1.4.1_02
-RSH="gsissh -p 2222"
-RCP="scp -P 2222"
-
