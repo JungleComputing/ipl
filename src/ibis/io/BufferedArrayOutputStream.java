@@ -49,7 +49,7 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 
 //		System.err.println("flush(" + incr + " " + always + ") : " + " " + (index + incr >= BUF_SIZE) + " "  + (index) + ")");
 
-		try {				
+		try {
 			if (always) { 
 				bytes += index;
 

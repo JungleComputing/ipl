@@ -1,12 +1,11 @@
 package ibis.io;
 
-interface IbisStreamFlags extends TypeSize { 
+public interface IbisStreamFlags { 
     public static final boolean DEBUG = false;
     public static final boolean ASSERTS = true;
 
     public static final int BUFFER_SIZE = 2*1024;
     public static final int ARRAY_BUFFER_SIZE	= 1024;
-
 
     public static final int TYPE_BIT   = (1 << 31);
     public static final int TYPE_MASK = ~TYPE_BIT;
@@ -29,6 +28,28 @@ interface IbisStreamFlags extends TypeSize {
 					 classCharArray, classShortArray, classIntArray, 
 					 classLongArray, classFloatArray, classDoubleArray, 
 					 null, null};
+
+    static final int	SIZEOF_BOOLEAN	= 1;
+    static final int	SIZEOF_BYTE	= 1;
+    static final int	SIZEOF_CHAR	= 2;
+    static final int	SIZEOF_SHORT	= 2;
+    static final int	SIZEOF_INT	= 4;
+    static final int	SIZEOF_LONG	= 8;
+    static final int	SIZEOF_FLOAT	= 4;
+    static final int	SIZEOF_DOUBLE	= 8;
+    static final int	SIZEOF_HANDLE	= 4;
+
+    static final int	TYPE_BOOLEAN	= 1;
+    static final int	TYPE_BYTE	= 2;
+    static final int	TYPE_CHAR	= 3;
+    static final int	TYPE_SHORT	= 4;
+    static final int	TYPE_INT	= 5;
+    static final int	TYPE_LONG	= 6;
+    static final int	TYPE_FLOAT	= 7;
+    static final int	TYPE_DOUBLE	= 8;
+    static final int	TYPE_HANDLE	= 9;
+
+    static final int	PRIMITIVE_TYPES	= 10;
 
     public static final int BOOLEAN_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_BOOLEAN;
     public static final int BYTE_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_BYTE;

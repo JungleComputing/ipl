@@ -4,14 +4,13 @@ import ibis.ipl.IbisIOException;
 import java.io.IOException;
 
 /**
- *
- * Extends OutputStream with read of array of primitives and readSingleInt
+ * An inputstream for reading arrays of primitive types.
  */
 
 public abstract class ArrayInputStream
-	implements TypeSize, IbisStreamFlags {
+	implements IbisStreamFlags {
 
-    protected short[]	indices_short = new short[PRIMITIVE_TYPES + 1];
+    protected short[]	indices_short  = new short[PRIMITIVE_TYPES + 1];
 
     public byte[]	byte_buffer    = new byte[BYTE_BUFFER_SIZE];
     public char[]	char_buffer    = new char[CHAR_BUFFER_SIZE];

@@ -12,34 +12,137 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamField;
 import java.io.IOException;
 
+/**
+ * The <code>AlternativeTypeInfo</code> class maintains information about
+ * a specific <code>Class</code>, such as a list of serializable fields, 
+ * whether it has <code>readObject</code> and <code>writeObject</code>
+ * methods, et cetera.
+ *
+ * The serializable fields are first ordered alphabetically, and then
+ * by type, in the order: double, long, float, int, short, char, byte,
+ * boolean, reference. This determines the order in which fields are
+ * serialized.
+ */
 final class AlternativeTypeInfo {
 
+    /**
+     * Maintains all <code>AlternativeTypeInfo</code> structures in a
+     * hashmap, to be accessed through their classname.
+     */
     private static HashMap alternativeTypes = new HashMap();
 
+    /**
+     * The <code>Class</code> structure of the class represented by this
+     * <code>AlternativeTypeInfo</code> structure.
+     */
     Class clazz;
+
+    /**
+     * The sorted list of serializable fields.
+     */
     Field [] serializable_fields;
+
+    /**
+     * For each field, indicates whether the field is final.
+     * This is significant for deserialization, because it determines the
+     * way in which the field can be assigned to. The bytecode verifier
+     * does not allow arbitraty assignments to final fields.
+     */
     boolean[] fields_final;
+
+    /**
+     * Number of <code>double</code> fields.
+     */
     int double_count;
+
+    /**
+     * Number of <code>long</code> fields.
+     */
     int long_count;
+
+    /**
+     * Number of <code>float</code> fields.
+     */
     int float_count;
+
+    /**
+     * Number of <code>int</code> fields.
+     */
     int int_count;
+
+    /**
+     * Number of <code>short</code> fields.
+     */
     int short_count;
+
+    /**
+     * Number of <code>char</code> fields.
+     */
     int char_count;
+
+    /**
+     * Number of <code>byte</code> fields.
+     */
     int byte_count;
+
+    /**
+     * Number of <code>boolean</code> fields.
+     */
     int boolean_count;
+
+    /**
+     * Number of <code>reference</code> fields.
+     */
     int reference_count;
 
+    /**
+     * Indicates whether the superclass is serializable.
+     */
     boolean superSerializable;	
+
+    /**
+     * The <code>AlternativeTypeInfo</code> structure of the superclass.
+     */
+
     AlternativeTypeInfo alternativeSuperInfo;
+
+    /**
+     * The "level" of a serializable class is computed as follows:
+     * - if its superclass is serializable:
+     *       the level of the superclass + 1.
+     * - if its superclass is not serializable:
+     *       1.
+     */
     int level;
 
+    /**
+     * serialPersistentFields of the class, if the class declares them.
+     */
     java.io.ObjectStreamField[] serial_persistent_fields = null;
 
+    /**
+     * Set if the class has a <code>readObject</code> method.
+     */
     boolean hasReadObject;
+
+    /**
+     * Set if the class has a <code>writeObject</code> method.
+     */
     boolean hasWriteObject;
+
+    /**
+     * Set if the class has a <code>writeReplace</code> method.
+     */
     boolean hasReplace;
 
+    /**
+     * A <code>Comparator</code> implementation for sorting the
+     * fields array.
+     */
     private static class FieldComparator implements Comparator {
+	/**
+	 * Compare fields alphabetically.
+	 */
 	public int compare(Object o1, Object o2) {
 	    Field f1 = (Field) o1;
 	    Field f2 = (Field) o2;
@@ -48,22 +151,56 @@ final class AlternativeTypeInfo {
 	}
     }
 
+    /**
+     * A <code>Comparator</code> for sorting the array of fields.
+     */
     private static FieldComparator fieldComparator = new FieldComparator();
 
+    /**
+     * the <code>writeObject</code> method, if there is one.
+     */
     private Method writeObjectMethod;
+
+    /**
+     * the <code>readObject</code> method, if there is one.
+     */
     private Method readObjectMethod;
+
+    /**
+     * the <code>writeReplace</code> method, if there is one.
+     */
     private Method writeReplaceMethod;
+
+    /**
+     * the <code>readResolve</code> method, if there is one.
+     */
     private Method readResolveMethod;
 
-    // This is needed for the private field access hack.
+    /**
+     * This is needed for the private field access hack.
+     */
     private Field temporary_field;
+
+    /**
+     * This is needed for the private method access hack.
+     */
     private Method temporary_method;
 
-
+    /**
+     * Return the name of the class.
+     *
+     * @return the name of the class.
+     */
     public String toString() {
 	return clazz.getName();
     }
 
+    /**
+     * Gets the <code>AlternativeTypeInfo</code> for class <code>type</code>.
+     *
+     * @param type the <code>Class</code> of the requested type.
+     * @return the <code>AlternativeTypeInfo</code> structure for this type.
+     */
     public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(Class type) { 
 	AlternativeTypeInfo t = (AlternativeTypeInfo) alternativeTypes.get(type);
 
@@ -75,6 +212,12 @@ final class AlternativeTypeInfo {
 	return t;
     }
 
+    /**
+     * Gets the <code>AlternativeTypeInfo</code> for class <code>classname</code>.
+     *
+     * @param classname the name of the requested type.
+     * @return the <code>AlternativeTypeInfo</code> structure for this type.
+     */
     public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(String classname) { 
 	Class type = null;
 
@@ -84,50 +227,40 @@ final class AlternativeTypeInfo {
 	    try {
 		type = Thread.currentThread().getContextClassLoader().loadClass(classname);
 	    } catch(Exception e2) {
+		/* Serious trouble ...
+		 * Still, is this the way to deal with it??? (TODO).
+		 */
 		System.err.println("OOPS: cannot load class " + classname + ": "  + e2);
 		e2.printStackTrace();
 		System.exit(1);
 	    }
 	}
-	AlternativeTypeInfo t = (AlternativeTypeInfo) alternativeTypes.get(type);
 
-	if (t == null) { 
-	    t = new AlternativeTypeInfo(type);
-	    alternativeTypes.put(type, t);
-	} 
-
-	return t;
+	return getAlternativeTypeInfo(type);
     }
 
-    private static void insert(Field [] array, int used, Field to_insert) {
-
-	String name = to_insert.getName();
-
-	for (int i=0;i<used;i++) { 
-	    int result = name.compareTo(array[i].getName());
-
-	    if (result < 0) { 
-		// must insert in the middle it, so move the rest
-		for (int j=used;j>i;j--) { 
-		    array[j] = array[j-1];
-		} 
-		array[i] = to_insert;
-		return;
-	    } 
-	} 
-	// must insert at the end
-	array[used] = to_insert;
-    } 
-
+    /**
+     * Gets the method with the given name, parameter types and return type.
+     *
+     * @param name		the name of the method
+     * @param paramTypes	its parameter types
+     * @param returnType	its return type
+     * @return			the requested method, or <code>null</code> if
+     * 				it cannot be found.
+     */
     private Method getMethod(String name, 
 			     Class[] paramTypes,
 			     Class returnType) {
 	try {
 	    Method method = clazz.getDeclaredMethod(name, paramTypes);
+
+	    /* Check return type. */
 	    if (method.getReturnType() != returnType) return null;
 
+	    /* Check if method is static. */
 	    if ((method.getModifiers() & Modifier.STATIC) != 0) return null;
 
+	    /* Make method accessible, so that it may be called. */
 	    if (! method.isAccessible()) {
 		temporary_method = method;
 		AccessController.doPrivileged(new PrivilegedAction() {
@@ -137,14 +270,22 @@ final class AlternativeTypeInfo {
 		    } 
 		});
 	    }
-	    /* so that we may call it ... */
-
 	    return method;
 	} catch (NoSuchMethodException ex) {
 	    return null;
 	}
     }
 
+    /**
+     * Invokes the <code>writeObject</code> method on object <code>o</code>.
+     *
+     * @param o		the object on which <code>writeObject</code> is to
+     * 			be invoked
+     * @param out	the <code>ObjectOutputStream</code> to be given
+     * 			as parameter
+     * @exception IOException
+     * 			when anything goes wrong
+     */
     void invokeWriteObject(Object o, ObjectOutputStream out)
 	    throws IOException {
 //	System.out.println("invoke writeObject");
@@ -155,6 +296,16 @@ final class AlternativeTypeInfo {
 	}
     }
 
+    /**
+     * Invokes the <code>readObject</code> method on object <code>o</code>.
+     *
+     * @param o		the object on which <code>readObject</code> is to
+     * 			be invoked
+     * @param out	the <code>ObjectInputStream</code> to be given
+     * 			as parameter
+     * @exception IOException
+     * 			when anything goes wrong
+     */
     void invokeReadObject(Object o, ObjectInputStream in)
 	    throws IOException {
 //	System.out.println("invoke readObject");
@@ -166,6 +317,14 @@ final class AlternativeTypeInfo {
 	}
     }
 
+    /**
+     * Invokes the <code>readResolve</code> method on object <code>o</code>.
+     *
+     * @param o		the object on which <code>readResolve</code> is to
+     * 			be invoked
+     * @exception IOException
+     * 			when anything goes wrong
+     */
     Object  invokeReadResolve(Object o)
 	    throws IOException {
 	try {
@@ -175,6 +334,14 @@ final class AlternativeTypeInfo {
 	}
     }
 
+    /**
+     * Invokes the <code>writeReplace</code> method on object <code>o</code>.
+     *
+     * @param o		the object on which <code>writeReplace</code> is to
+     * 			be invoked
+     * @exception IOException
+     * 			when anything goes wrong
+     */
     Object  invokeWriteReplace(Object o)
 	    throws IOException {
 	try {
@@ -184,43 +351,11 @@ final class AlternativeTypeInfo {
 	}
     }
 
-    AlternativeTypeInfo(Class clazz) { 
-	init(clazz);
-    }
-
-    private void getSerialPersistentFields() {
-	try {
-	    Field f = clazz.getDeclaredField("serialPersistentFields");
-	    int mask = Modifier.PRIVATE | Modifier.STATIC | Modifier.FINAL;
-	    if ((f.getModifiers() & mask) == mask) {
-		if (! f.isAccessible()) {
-		    temporary_field = f;
-		    AccessController.doPrivileged(new PrivilegedAction() {
-			public Object run() {
-			    temporary_field.setAccessible(true);
-			    return null;
-			} 
-		    });
-		}
-		serial_persistent_fields = (java.io.ObjectStreamField[]) f.get(null);
-	    }
-	} catch (Exception e) {
-	}
-    }
-
-    private Field findField(ObjectStreamField of) {
-	try {
-	    Field f = clazz.getDeclaredField(of.getName());
-	    if (f.getType().equals(of.getType())) {
-		return f;
-	    }
-	} catch(NoSuchFieldException e) {
-	    return null;
-	}
-	return null;
-    }
-
-    private void init(Class clazz) {
+    /**
+     * Constructor is private. Use {@link #getAlternativeTypeInfo(Class)} to
+     * obtain the <code>AlternativeTypeInfo</code> for a type.
+     */
+    private AlternativeTypeInfo(Class clazz) { 
 	this.clazz = clazz;
 	try {								
 	    /*
@@ -326,33 +461,24 @@ final class AlternativeTypeInfo {
 
 			if (field_type.isPrimitive()) {
 			    if (field_type == Boolean.TYPE) { 
-				insert(boolean_fields, boolean_count, field);
-				boolean_count++;
+				boolean_fields[boolean_count++] = field;
 			    } else if (field_type == Character.TYPE) { 
-				insert(char_fields, char_count, field);
-				char_count++;
+				char_fields[char_count++] = field;
 			    } else if (field_type == Byte.TYPE) { 
-				insert(byte_fields, byte_count, field);
-				byte_count++;
+				byte_fields[byte_count++] = field;
 			    } else if (field_type == Short.TYPE) { 
-				insert(short_fields, short_count, field);
-				short_count++;
+				short_fields[short_count++] = field;
 			    } else if (field_type == Integer.TYPE) { 
-				insert(int_fields, int_count, field);
-				int_count++;
+				int_fields[int_count++] = field;
 			    } else if (field_type == Long.TYPE) { 
-				insert(long_fields, long_count, field);
-				long_count++;
+				long_fields[long_count++] = field;
 			    } else if (field_type == Float.TYPE) { 
-				insert(float_fields, float_count, field);
-				float_count++;
+				float_fields[float_count++] = field;
 			    } else if (field_type == Double.TYPE) { 
-				insert(double_fields, double_count, field);
-				double_count++;
+				double_fields[double_count++] = field;
 			    } 
 			} else { 
-			    insert(reference_fields, reference_count, field);
-			    reference_count++;
+			    reference_fields[reference_count++] = field;
 			}
 		    }
 		}
@@ -467,8 +593,61 @@ final class AlternativeTypeInfo {
 	    e.printStackTrace();
 	    System.exit(1);
 	} 			 
-    } 
+    }
 
+    /**
+     * Looks for a declaration of serialPersistentFields, and, if present,
+     * makes it accessible, and stores it in
+     * <code>serial_persistent_fields</code>.
+     */
+    private void getSerialPersistentFields() {
+	try {
+	    Field f = clazz.getDeclaredField("serialPersistentFields");
+	    int mask = Modifier.PRIVATE | Modifier.STATIC | Modifier.FINAL;
+	    if ((f.getModifiers() & mask) == mask) {
+		if (! f.isAccessible()) {
+		    temporary_field = f;
+		    AccessController.doPrivileged(new PrivilegedAction() {
+			public Object run() {
+			    temporary_field.setAccessible(true);
+			    return null;
+			} 
+		    });
+		}
+		serial_persistent_fields = (java.io.ObjectStreamField[]) f.get(null);
+	    }
+	} catch (Exception e) {
+	}
+    }
+
+    /**
+     * Gets the field with fieldname indicated by the name in <code>of</code>.
+     * If not present, returns <code>null</code>.
+     */
+    private Field findField(ObjectStreamField of) {
+	try {
+	    Field f = clazz.getDeclaredField(of.getName());
+	    if (f.getType().equals(of.getType())) {
+		return f;
+	    }
+	} catch(NoSuchFieldException e) {
+	    return null;
+	}
+	return null;
+    }
+
+    /**
+     * Gets the index of a field with name <code>name</code> and type
+     * <code>tp</code> in either <code>SerialPersistentFields</code>, if
+     * it exists, or in the <code>serializable_fields</code> array.
+     * An exception is thrown when such a field is not found.
+     *
+     * @param name	name of the field we are looking for
+     * @param tp	type of the field we are looking for
+     * @return index in either <code>serial_persistent_fields</code> or
+     * <code>serializable_fields</code>.
+     * @exception IllegalArgumentException when no such field is found.
+     */
     int getOffset(String name, Class tp) throws IllegalArgumentException {
 	int offset = 0;
 

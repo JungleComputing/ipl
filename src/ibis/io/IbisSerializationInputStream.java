@@ -29,6 +29,15 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     private ImplGetField[] getfield_stack;
     private int max_stack_size = 0;
     private int stack_size = 0;
+
+    private static IbisTypeInfo booleanArrayInfo = IbisTypeInfo.getIbisTypeInfo(classBooleanArray);
+    private static IbisTypeInfo byteArrayInfo = IbisTypeInfo.getIbisTypeInfo(classByteArray);
+    private static IbisTypeInfo charArrayInfo = IbisTypeInfo.getIbisTypeInfo(classCharArray);
+    private static IbisTypeInfo shortArrayInfo = IbisTypeInfo.getIbisTypeInfo(classShortArray);
+    private static IbisTypeInfo intArrayInfo = IbisTypeInfo.getIbisTypeInfo(classIntArray);
+    private static IbisTypeInfo longArrayInfo = IbisTypeInfo.getIbisTypeInfo(classLongArray);
+    private static IbisTypeInfo floatArrayInfo = IbisTypeInfo.getIbisTypeInfo(classFloatArray);
+    private static IbisTypeInfo doubleArrayInfo = IbisTypeInfo.getIbisTypeInfo(classDoubleArray);
    
     /**
       * Deprecated constructor only included for backwards compatibility.
@@ -47,22 +56,15 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     public void init(IbisDissipator in) {
 	types = new IbisVector();
 	types.add(0, null);	// Vector requires this
-	types.add(TYPE_BOOLEAN,
-		new IbisTypeInfo(classBooleanArray));
-	types.add(TYPE_BYTE,
-		new IbisTypeInfo(classByteArray));
-	types.add(TYPE_CHAR,
-		new IbisTypeInfo(classCharArray));
-	types.add(TYPE_SHORT,
-		new IbisTypeInfo(classShortArray));
-	types.add(TYPE_INT,
-		new IbisTypeInfo(classIntArray));
-	types.add(TYPE_LONG,
-		new IbisTypeInfo(classLongArray));
-	types.add(TYPE_FLOAT,
-		new IbisTypeInfo(classFloatArray));
-	types.add(TYPE_DOUBLE,
-		new IbisTypeInfo(classDoubleArray));
+	types.add(TYPE_BOOLEAN,	booleanArrayInfo);
+	types.add(TYPE_BYTE,	byteArrayInfo);
+	types.add(TYPE_CHAR,	charArrayInfo);
+	types.add(TYPE_SHORT,	shortArrayInfo);
+	types.add(TYPE_SHORT,	intArrayInfo);
+	types.add(TYPE_LONG,	longArrayInfo);
+	types.add(TYPE_FLOAT,	floatArrayInfo);
+	types.add(TYPE_DOUBLE,	doubleArrayInfo);
+
 	next_type = PRIMITIVE_TYPES;
 
 	this.in = in;
@@ -560,7 +562,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		}
 	    }
 
-	    IbisTypeInfo t = new IbisTypeInfo(clazz);
+	    IbisTypeInfo t = IbisTypeInfo.getIbisTypeInfo(clazz);
 
 	    types.add(next_type, t);
 	    next_type++;

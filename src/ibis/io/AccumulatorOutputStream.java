@@ -4,35 +4,73 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * A outputstream which uses a Accumulator as a underlying implementation.
+ * A <code>OutputStream</code> which uses a <code>IbisAccumulator</code> as
+ * the underlying implementation.
  */
 public final class AccumulatorOutputStream extends OutputStream {
 
-	private IbisAccumulator out;
+    /**
+     * The underlying <code>IbisAccumulator</code>.
+     */
+    private IbisAccumulator out;
 
-	public AccumulatorOutputStream(IbisAccumulator out) {
-		super();
-		this.out = out;
-	}
+    /**
+     * Constructor. Calls parameterless constructor of superclass.
+     *
+     * @param out	the underlying <code>IbisAccumulator</code>
+     */
+    public AccumulatorOutputStream(IbisAccumulator out) {
+	super();
+	this.out = out;
+    }
 
-	public void close() throws IOException {
-		out.close();
-	}
+    /**
+     * Closes this <code>OutputStream</code>, by closing the underlying
+     * <code>IbisAccumulator</code>.
+     *
+     * @exception IOException when an IO error occurs.
+     */
+    public void close() throws IOException {
+	out.close();
+    }
 
-	public void flush() throws IOException {
-		out.flush();
-	}
+    /**
+     * Flushes this <code>OutputStream</code>, by flushing the underlying
+     * <code>IbisAccumulator</code>.
+     *
+     * @exception IOException when an IO error occurs.
+     */
+    public void flush() throws IOException {
+	out.flush();
+    }
 
-	public void write(int b) throws IOException {
-		out.writeByte((byte)b);
-	}
+    /**
+     * Writes a single byte to this <code>OutputStream</code>, by
+     * writing it to the underlying <code>IbisAccumulator</code>.
+     *
+     * @exception IOException when an IO error occurs.
+     */
+    public void write(int b) throws IOException {
+	out.writeByte((byte)b);
+    }
 
-	public void write(byte[] b) throws IOException {
-		out.writeArray(b, 0, b.length);
-	}
+    /**
+     * Writes an array of bytes to this <code>OutputStream</code>, by
+     * writing it to the underlying <code>IbisAccumulator</code>.
+     *
+     * @exception IOException when an IO error occurs.
+     */
+    public void write(byte[] b) throws IOException {
+	out.writeArray(b, 0, b.length);
+    }
 
-	public void write(byte[] b, int off, int len) throws IOException {
-		out.writeArray(b, off, len);
-	}
+    /**
+     * Writes a slice of an array of bytes to this <code>OutputStream</code>,
+     * by writing it to the underlying <code>IbisAccumulator</code>.
+     *
+     * @exception IOException when an IO error occurs.
+     */
+    public void write(byte[] b, int off, int len) throws IOException {
+	out.writeArray(b, off, len);
+    }
 }
-	

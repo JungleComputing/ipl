@@ -1,6 +1,11 @@
 package ibis.io;
 
+import java.util.HashMap;
+
 class IbisTypeInfo implements IbisStreamFlags { 
+
+    private static HashMap typeInfos = new HashMap();
+
     Class clazz;		
     boolean isArray;
     boolean isString;
@@ -12,7 +17,17 @@ class IbisTypeInfo implements IbisStreamFlags {
     // for java.io.Serializable
     AlternativeTypeInfo altInfo;
 
-    IbisTypeInfo(Class clzz) {
+    public static IbisTypeInfo getIbisTypeInfo(Class clzz) {
+	IbisTypeInfo t = (IbisTypeInfo) typeInfos.get(clzz);
+
+	if (t == null) {
+	    t = new IbisTypeInfo(clzz);
+	    typeInfos.put(clzz, t);
+	}
+	return t;
+    }
+
+    private IbisTypeInfo(Class clzz) {
 	clazz = clzz;
 	isArray = clazz.isArray();
 	isString = (clazz == java.lang.String.class);
@@ -50,7 +65,7 @@ class IbisTypeInfo implements IbisStreamFlags {
 	}
 
 	if (gen == null) { 
-	    altInfo = new AlternativeTypeInfo(clazz);
+	    altInfo = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 	}	   
     } 
 
