@@ -5,14 +5,19 @@ package ibis.ipl;
 import java.io.IOException;
 
 /**
- * A <code>PortType</code> is used to create send and receive ports.
- * A <code>PortType</code> can be created using the
+ * A <code>PortType</code> represents a class of send and receive
+ * ports with specific properties and with a specific role in the program.
+ * Each class also
+ * serves as the factory to create instances of these ports.
+ * Ports can only connect to other ports of the same type.
+ * A <code>PortType</code> is created using the
  * {@link Ibis#createPortType(String, StaticProperties)} method. 
+ * <p>
  * Support for connection downcalls can be explicitly turned on and off, because
  * it might incur some overhead. Moreover, if downcalls are used,
  * the amount of administration that must be kept is dependent on the
- * frequency of the user downcalls. If the user does never do a downcall,
- * the administration is kept indefinitely
+ * frequency of the user downcalls. If the user never does a downcall,
+ * the administration is kept indefinitely.
  */
 
 public abstract class PortType {

@@ -3,7 +3,7 @@
 package ibis.satin;
 
 /**
- * The marker interface that indicates that a class contains a method that is
+ * The marker interface that indicates which methods of a class are
  * spawnable by the Satin divide-and-conquer environment. Use this interface to
  * mark the methods that may be spawned. The way to do this is to create an
  * interface that extends <code>ibis.satin.Spawnable</code> and specifies the
