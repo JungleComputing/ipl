@@ -1,7 +1,7 @@
 import ibis.ipl.*;
 
 import java.util.Properties;
-import manta.util.Ticket;
+import ibis.util.Ticket;
 
 class Sender implements Upcall { 
 
