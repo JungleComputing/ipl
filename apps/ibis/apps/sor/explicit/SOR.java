@@ -706,8 +706,8 @@ public class SOR {
 	    }
 
 	    if (rank==0) {
-//                System.err.println(iteration + "");
-		System.err.print(".");
+		// System.err.println(iteration + "");
+		// System.err.print(".");
 	    }
 
 	    iteration++;
