@@ -470,5 +470,9 @@ public final class BufferedArrayInputStream
 		buffered_bytes -= to_convert;
 		index += to_convert;
     }
+
+    public void close() throws IOException {
+	/* Ignore */
+    }
 }
 

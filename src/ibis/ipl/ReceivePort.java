@@ -34,7 +34,8 @@ public interface ReceivePort {
 	/** explicit receive. When an receiveport is configured to generate upcalls, this is NOT allowed **/
 	public ReadMessage receive() throws IbisIOException;
 
-	/** Utility function that in essence performs:
+	/** Utility function.
+	 *  In essence, it goes through the following steps:
 	 *  <tt>
 	 *  <br>if (finishMe \!= null) finishMe.finish();
 	 *  <br>return receive();
@@ -55,7 +56,8 @@ public interface ReceivePort {
 	 **/
 	public ReadMessage receive(long timeoutMillis) throws IbisIOException;
 
-	/** Utility function that in essence performs:
+	/** Utility function.
+	 * In essence, it goes through the following steps:
 	 *  <tt>
 	 *  <br>if (finishMe \!= null) finishMe.finish();
 	 *  <br>return receive(timeoutMillis);

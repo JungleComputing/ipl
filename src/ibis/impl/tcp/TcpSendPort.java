@@ -60,7 +60,7 @@ final class TcpSendPort implements SendPort, Config {
 
 	public void connect(ReceivePortIdentifier receiver) throws IbisIOException {
 		if(DEBUG) {
-			System.err.println("Sendport '" + name +
+			System.err.println("Sendport " + this + " '" +  name +
 							   "' connecting to " + receiver); 
 		}
 

@@ -150,4 +150,6 @@ public abstract class ArrayInputStream
 
     public abstract int available()
 	    throws IbisIOException;
+
+    public abstract void close() throws IOException;
 }

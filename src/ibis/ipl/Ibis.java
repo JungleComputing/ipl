@@ -81,8 +81,9 @@ public abstract class Ibis {
 	    String hostname;
 
 	    // @@@ start of horrible code
-	    System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
-	    new Exception().printStackTrace();
+//	    System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
+//	    new Exception().printStackTrace();
+//	    But HOW?   -- Ceriel
 
 	    try {
 		hostname = InetAddress.getLocalHost().getHostName();

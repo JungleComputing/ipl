@@ -62,5 +62,9 @@ public final class SIbisInput extends NetSerializedInput {
                         return 0;
                 }
 
+		public void close() {
+			/* Ignored. */
+		}
+
         }
 }

@@ -83,8 +83,10 @@ final class ReceivePortIdentifier
 
 
     public String toString() {
-	return ("(RecPortIdent: name \"" + name + "\" type \"" + type +
-		"\" cpu " + cpu + " port " + port + " ibis \"" + ibisIdentifier.name() + "\")");
+	return ("(RecPortIdent: name \"" + ( name == null ? "null" : name ) +
+		"\" type \"" + ( type == null ? "null" : type ) +
+		"\" cpu " + cpu + " port " + port +
+		" ibis \"" + ( (ibisIdentifier == null || ibisIdentifier.name() == null) ? "null" : ibisIdentifier.name()) + "\")");
     }
 
 }

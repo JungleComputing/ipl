@@ -30,7 +30,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
     /* Type id management */
     private int next_type = 1;
-    private IbisHash types;
+    private IbisHash types = new IbisHash();
 
     /* Notion of a "current" object.
        Needed for defaultWriteObject, and maybe others.
@@ -47,15 +47,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
     public IbisSerializationOutputStream(ArrayOutputStream out) throws IOException {
 	super();
-	types = new IbisHash();
-	types.put(classBooleanArray, TYPE_BOOLEAN | TYPE_BIT);
-	types.put(classByteArray,    TYPE_BYTE | TYPE_BIT);
-	types.put(classCharArray,    TYPE_CHAR | TYPE_BIT);
-	types.put(classShortArray,   TYPE_SHORT | TYPE_BIT);
-	types.put(classIntArray,     TYPE_INT | TYPE_BIT);
-	types.put(classLongArray,    TYPE_LONG | TYPE_BIT);
-	types.put(classFloatArray,   TYPE_FLOAT | TYPE_BIT);
-	types.put(classDoubleArray,  TYPE_DOUBLE | TYPE_BIT);
+	types_clear();
 
 	next_type = PRIMITIVE_TYPES;
 	this.out    = out;
@@ -80,6 +72,19 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
     }
 
+    private void types_clear() {
+	types.clear();
+	types.put(classBooleanArray, TYPE_BOOLEAN | TYPE_BIT);
+	types.put(classByteArray,    TYPE_BYTE | TYPE_BIT);
+	types.put(classCharArray,    TYPE_CHAR | TYPE_BIT);
+	types.put(classShortArray,   TYPE_SHORT | TYPE_BIT);
+	types.put(classIntArray,     TYPE_INT | TYPE_BIT);
+	types.put(classLongArray,    TYPE_LONG | TYPE_BIT);
+	types.put(classFloatArray,   TYPE_FLOAT | TYPE_BIT);
+	types.put(classDoubleArray,  TYPE_DOUBLE | TYPE_BIT);
+	next_type = PRIMITIVE_TYPES;
+    }
+
     public String serializationImplName() {
 	return "ibis";
     }
@@ -93,6 +98,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    writeHandle(RESET_HANDLE);
 	    next_handle = CONTROL_HANDLES;
 	}
+	types_clear();
     }
 
     public void statistics() {

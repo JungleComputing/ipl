@@ -86,4 +86,8 @@ final public class ArrayInputStream
 	throw new IbisIOException("ibis.ipl.impl.messagePassing.available() not implemented");
     }
 
+    public void close() throws java.io.IOException {
+	/* Ignored. */
+    }
+
 }

@@ -36,7 +36,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	init(in);
     }
 
-    public void init(ArrayInputStream in) throws IOException {
+    public void init(ArrayInputStream in) {
 	types = new IbisVector();
 	types.add(0, null);	// Vector requires this
 	types.add(TYPE_BOOLEAN,
@@ -70,8 +70,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	if (DEBUG) {
 	    System.err.println("IN(" + this + ") reset: next handle = " + next_object + "."); 
 	}
-	objects.clear();
-	next_object = CONTROL_HANDLES;
+	init(in);
     }
 
 
@@ -501,6 +500,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    return (IbisTypeInfo) types.get(type);
 	} else {        
 	    if (next_type != type) {
+		System.err.println("type = " + type + ", next_type = " + next_type);
 		System.err.println("EEK: readType: next_type != type");
 		System.exit(1);
 	    }
@@ -872,6 +872,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     public void close() throws IOException {
+	in.close();
     }
 
     protected void readStreamHeader() {
