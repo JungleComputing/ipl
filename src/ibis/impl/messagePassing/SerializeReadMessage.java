@@ -3,6 +3,7 @@ package ibis.ipl.impl.messagePassing;
 import java.io.IOException;
 
 import ibis.ipl.IbisException;
+import manta.runtime.RuntimeSystem;
 
 class SerializeReadMessage extends ibis.ipl.impl.messagePassing.ReadMessage {
 
@@ -89,7 +90,7 @@ class SerializeReadMessage extends ibis.ipl.impl.messagePassing.ReadMessage {
     }
 
     public Object readObject() throws IbisException {
-System.err.println("SerializeReadMessage.readObject() called " + this);
+// System.err.println("SerializeReadMessage.readObject() called " + this);
 	try {
 	    return obj_in.readObject();
 	} catch (IOException e) {
@@ -169,8 +170,10 @@ System.err.println("SerializeReadMessage.readObject() called " + this);
     }
 
     public void readArrayInt(int[] destination) throws IbisException {
+	// manta.runtime.RuntimeSystem.DebugMe(this, destination);
 	try {
 	    int[] temp = (int[]) obj_in.readObject();
+	    // manta.runtime.RuntimeSystem.DebugMe(temp, destination);
 	    if (temp.length != destination.length) {
 		throw new IbisException("Destination has wrong size");
 	    }

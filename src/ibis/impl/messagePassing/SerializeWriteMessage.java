@@ -30,10 +30,10 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void send() throws IbisException {
 	try {
-	    /* sPort. */ obj_out.flush();
-// /* sPort. */ out.report();
-	    /* sPort. */ out.flush();
-	    /* sPort. */ out.send();
+	    obj_out.flush();
+// out.report();
+	    out.flush();
+	    out.send();
 	    sPort.registerSend();
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
@@ -41,19 +41,21 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
     }
 
     public void finish() throws IbisException {
-	/* sPort. */ out.finish();
+	out.finish();
+	/* Are you sure? No need to discard duplicate info here...
 	try {
-	    /* sPort. */ obj_out.reset();
+	    obj_out.reset();
 	} catch (IOException e) {
 	    throw new IbisException("ObjectOutputStream reset fails: " + e);
 	}
+	Are you sure? */
     }
 
 
     public void reset() throws IbisException {
-	/* sPort. */ out.reset();
+	out.reset();
 	try {
-	    /* sPort. */ obj_out.reset();
+	    obj_out.reset();
 	} catch (IOException e) {
 	    throw new IbisException("ObjectOutputStream reset fails: " + e);
 	}
@@ -62,7 +64,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeBoolean(boolean value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeBoolean(value);
+	    obj_out.writeBoolean(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -70,7 +72,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeByte(byte value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeByte(value);
+	    obj_out.writeByte(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -78,7 +80,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeChar(char value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeChar(value);
+	    obj_out.writeChar(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -86,7 +88,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeShort(short value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeShort(value);
+	    obj_out.writeShort(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -94,7 +96,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeInt(int value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeInt(value);
+	    obj_out.writeInt(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -102,7 +104,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeLong(long value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeLong(value);
+	    obj_out.writeLong(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -110,7 +112,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeFloat(float value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeFloat(value);
+	    obj_out.writeFloat(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -118,7 +120,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeDouble(double value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeDouble(value);
+	    obj_out.writeDouble(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -126,7 +128,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeString(String value) throws IbisException {
 	try {
-	    /* sPort. */obj_out.writeObject(value);
+	    obj_out.writeObject(value);
 // sPort.obj_out.flush();
 // sPort.out.report();
 	} catch (IOException e) {
@@ -136,9 +138,9 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeObject(Object value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeObject(value);
-// /* sPort. */ obj_out.flush();
-// /* sPort. */ out.report();
+	    obj_out.writeObject(value);
+// obj_out.flush();
+// out.report();
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -146,7 +148,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeArrayBoolean(boolean[] value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeObject(value);
+	    obj_out.writeObject(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -154,7 +156,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeArrayByte(byte[] value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeObject(value);
+	    obj_out.writeObject(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -162,7 +164,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeArrayChar(char[] value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeObject(value);
+	    obj_out.writeObject(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -170,7 +172,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeArrayShort(short[] value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeObject(value);
+	    obj_out.writeObject(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -178,7 +180,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeArrayInt(int[] value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeObject(value);
+	    obj_out.writeObject(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -186,7 +188,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeArrayLong(long[] value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeObject(value);
+	    obj_out.writeObject(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -194,7 +196,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeArrayFloat(float[] value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeObject(value);
+	    obj_out.writeObject(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -202,7 +204,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
     public void writeArrayDouble(double[] value) throws IbisException {
 	try {
-	    /* sPort. */ obj_out.writeObject(value);
+	    obj_out.writeObject(value);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -214,7 +216,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 	try {
 	    boolean[] temp = new boolean[size];
 	    System.arraycopy(value, offset, temp, 0, size);
-	    /* sPort. */ obj_out.writeObject(temp);
+	    obj_out.writeObject(temp);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -225,7 +227,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 	try {
 	    byte[] temp = new byte[size];
 	    System.arraycopy(value, offset, temp, 0, size);
-	    /* sPort. */ obj_out.writeObject(temp);
+	    obj_out.writeObject(temp);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -236,7 +238,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 	try {
 	    char[] temp = new char[size];
 	    System.arraycopy(value, offset, temp, 0, size);
-	    /* sPort. */ obj_out.writeObject(temp);
+	    obj_out.writeObject(temp);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -247,7 +249,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 	try {
 	    short[] temp = new short[size];
 	    System.arraycopy(value, offset, temp, 0, size);
-	    /* sPort. */ obj_out.writeObject(temp);
+	    obj_out.writeObject(temp);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -258,7 +260,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 	try {
 	    int[] temp = new int[size];
 	    System.arraycopy(value, offset, temp, 0, size);
-	    /* sPort. */ obj_out.writeObject(temp);
+	    obj_out.writeObject(temp);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -269,7 +271,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 	try {
 	    long[] temp = new long[size];
 	    System.arraycopy(value, offset, temp, 0, size);
-	    /* sPort. */ obj_out.writeObject(temp);
+	    obj_out.writeObject(temp);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -280,7 +282,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 	try {
 	    float[] temp = new float[size];
 	    System.arraycopy(value, offset, temp, 0, size);
-	    /* sPort. */ obj_out.writeObject(temp);
+	    obj_out.writeObject(temp);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}
@@ -291,7 +293,7 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 	try {
 	    double[] temp = new double[size];
 	    System.arraycopy(value, offset, temp, 0, size);
-	    /* sPort. */ obj_out.writeObject(temp);
+	    obj_out.writeObject(temp);
 	} catch (IOException e) {
 	    throw new IbisException("Write error", e);
 	}

@@ -231,6 +231,7 @@ public abstract class ReceivePortNameServerClient
     Lookup lookup = new Lookup();
 
     public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisException {
+System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + ": Do a ReceivePortId NS lookup(" + name + ", " + timeout + ") in " + lookup);
 	return lookup.lookup(name, timeout);
     }
 

@@ -131,6 +131,8 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 
 	System.loadLibrary("ibis_panda");
 
+	rcve_poll = createPoll();
+
 	try {
 	    pandaRegistry = new Registry();
 	} catch (java.io.IOException e) {
@@ -197,7 +199,7 @@ System.err.println("Send join message to " + i);
     }
 
 
-    Poll rcve_poll = createPoll();
+    Poll rcve_poll;
 
     protected abstract Poll createPoll();
 
