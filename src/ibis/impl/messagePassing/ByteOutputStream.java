@@ -245,7 +245,6 @@ final class ByteOutputStream
     }
 
 
-    private native void		releaseCachedBuffers();
     private native Object	getCachedBuffer();
     private native void		clearGlobalRefs();
 

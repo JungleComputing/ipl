@@ -84,6 +84,7 @@ static int	ibmp_global_refs = 0;
 #endif
 
 static jclass cls_ByteOutputStream;
+static jclass cls_DataAllocator;
 
 static jfieldID fld_nativeByteOS;
 static jfieldID fld_waitingInPoll;
@@ -95,6 +96,15 @@ static jfieldID fld_allocator;
 
 static jmethodID md_finished_upcall;
 static jmethodID md_wakeupFragWaiter;
+
+static jmethodID md_putByteArray;
+static jmethodID md_putCharArray;
+static jmethodID md_putShortArray;
+static jmethodID md_putIntArray;
+static jmethodID md_putLongArray;
+static jmethodID md_putFloatArray;
+static jmethodID md_putDoubleArray;
+static jmethodID md_putBooleanArray;
 
 typedef void (*release_func_t)(JNIEnv *env, void *array, void *data, jint mode);
 
@@ -114,7 +124,6 @@ typedef struct RELEASE {
     void	       *array;
     void	       *buf;
     jprim_type_t	type;
-    int			must_release;
 } release_t, *release_p;
 
 
@@ -134,7 +143,6 @@ struct IBMP_BUFFER_CACHE {
     void	       *array;
     void	       *buf;
     ibmp_buffer_cache_p next;
-    int			must_release;
 };
 
 
@@ -344,7 +352,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_clearGlobalRefs(
     jint	byteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
     ibmp_byte_os_p byte_os = (ibmp_byte_os_p)byteOS;
     ibmp_buffer_cache_p c;
-fprintf(stderr, "Now in clearGlobalRefs\n");
+    /* fprintf(stderr, "Now in clearGlobalRefs\n"); */
 
     while (byte_os->global_refs != NULL) {
 	c = byte_os->global_refs;
@@ -361,16 +369,14 @@ fprintf(stderr, "Now in clearGlobalRefs\n");
 #define RELEASE_ARRAY(JType, jtype) \
 \
 static void \
-release_ ## JType ## _array(JNIEnv *env, jtype ## Array array, jtype *buf, int must_release) \
+release_ ## JType ## _array(JNIEnv *env, jtype ## Array array, jtype *buf) \
 { \
     IBP_VPRINTF(800, NULL, ("%s: Now release type %s array %p buf %p\n", \
 		ibmp_currentThread(env), #JType, array, buf)); \
-    if (must_release) { \
-	(*env)->Release ## JType ## ArrayElements(env, array, buf, JNI_ABORT); \
-	IBP_VPRINTF(400, env, ("Now delete global ref %p\n", array)); \
-	(*env)->DeleteGlobalRef(env, array); \
-	IBMP_GLOBAL_REF_DEC(); \
-    } \
+    (*env)->Release ## JType ## ArrayElements(env, array, buf, JNI_ABORT); \
+    IBP_VPRINTF(400, env, ("Now delete global ref %p\n", array)); \
+    (*env)->DeleteGlobalRef(env, array); \
+    IBMP_GLOBAL_REF_DEC(); \
     IBP_VPRINTF(755, env, ("Now deleted global ref %p\n", array)); \
 }
 
@@ -382,6 +388,8 @@ RELEASE_ARRAY(Int, jint)
 RELEASE_ARRAY(Long, jlong)
 RELEASE_ARRAY(Float, jfloat)
 RELEASE_ARRAY(Double, jdouble)
+
+#undef RELEASE_ARRAY
 
 JNIEXPORT jobject JNICALL
 Java_ibis_impl_messagePassing_ByteOutputStream_getCachedBuffer(
@@ -400,15 +408,11 @@ Java_ibis_impl_messagePassing_ByteOutputStream_getCachedBuffer(
 	\
 	IBP_VPRINTF(400, NULL, ("%s: Now release type %s array %p buf %p\n", \
 		    ibmp_currentThread(env), #JType, c->array, c->buf)); \
-	if (c->must_release) { \
-	    (*env)->Release ## JType ## ArrayElements(env, \
-			    c->array, c->buf, JNI_ABORT); \
-	    \
+	(*env)->Release ## JType ## ArrayElements(env, c->array, c->buf, JNI_ABORT); \
 	/* Enqueue in the list of global refs to be cleared. We can clear the \
 	 * global ref only *after* it has been returned to Java space. */ \
-	    c->next = byte_os->global_refs; \
-	    byte_os->global_refs = c; \
-	} \
+	c->next = byte_os->global_refs; \
+	byte_os->global_refs = c; \
 	\
 	return (jobject) (c->array); \
     }
@@ -422,39 +426,9 @@ CACHED_ARRAY(Long, jlong)
 CACHED_ARRAY(Float, jfloat)
 CACHED_ARRAY(Double, jdouble)
 
+#undef CACHED_ARRAY
+
     return NULL;
-}
-
-#undef RELEASE_ARRAY
-
-
-JNIEXPORT void JNICALL
-Java_ibis_impl_messagePassing_ByteOutputStream_releaseCachedBuffers(
-	JNIEnv *env, jobject this)
-{
-    jint	byteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
-    ibmp_byte_os_p byte_os = (ibmp_byte_os_p)byteOS;
-    int		i;
-    ibmp_buffer_cache_p c;
-
-    assert(byte_os != NULL);
-#define RELEASE_ARRAY(JType) \
-    while ((c = byte_os->buffer_cache[jprim_ ## JType]) != NULL) { \
-	byte_os->buffer_cache[jprim_ ## JType] = c->next; \
-	release_ ## JType ## _array(env, c->array, c->buf, c->must_release); \
-	ibmp_buffer_cache_put(c); \
-    }
-
-RELEASE_ARRAY(Boolean)
-RELEASE_ARRAY(Byte)
-RELEASE_ARRAY(Char)
-RELEASE_ARRAY(Short)
-RELEASE_ARRAY(Int)
-RELEASE_ARRAY(Long)
-RELEASE_ARRAY(Float)
-RELEASE_ARRAY(Double)
-
-#undef RELEASE_ARRAY
 }
 
 
@@ -463,6 +437,9 @@ static void
 ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 {
     int		i;
+    jobject allocator = (*env)->GetObjectField(env,
+				       msg->byte_os->byte_output_stream,
+				       fld_allocator);
 
     if (msg->state == MSG_STATE_ACCUMULATING) {
 	/* Lazy call. Our work has already been done. */
@@ -481,10 +458,8 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 			msg, msg->iov[i].data, msg->iov[i].len));
 	    pan_free(msg->iov[i].data);
 	}
-    } else {
-	jobject allocator = (*env)->GetObjectField(env,
-					   msg->byte_os->byte_output_stream,
-					   fld_allocator);
+    }
+    if (! msg->copy || allocator != NULL) {
 	for (i = 0; i < msg->iov_len; i++) {
 	    IBP_VPRINTF(400, NULL, ("%s: Now cache msg %p iov %p size %d release type %d array %p buf %p\n",
 			ibmp_currentThread(env),
@@ -498,8 +473,7 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 		    case jprim_ ## JType: \
 			release_ ## JType ## _array(env, \
 						    msg->release[i].array, \
-						    msg->release[i].buf, \
-						    msg->release[i].must_release); \
+						    msg->release[i].buf); \
 			break; 
 
 		    RELEASE_ARRAY(Boolean)
@@ -528,7 +502,6 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 
 		    c->array = msg->release[i].array;
 		    c->buf = msg->release[i].buf;
-		    c->must_release = msg->release[i].must_release;
 #ifndef NDEBUG
 		    msg->release[i].array = NULL;
 #endif
@@ -1296,7 +1269,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_write(
     jint	nativeByteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
     ibmp_byte_os_p byte_os = (ibmp_byte_os_p)nativeByteOS;
     ibmp_msg_p	msg = ibmp_msg_check(env, byte_os, 0);
-fprintf(stderr, "I fear write(int) is broken in messagePassingIbis\n");
+    /* fprintf(stderr, "I fear write(int) is broken in messagePassingIbis\n"); */
 
     if (! msg->copy) {
 	int incr = buf_grow(env, msg, sizeof(jbyte), 0);
@@ -1359,17 +1332,16 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
 { \
     jint	nativeByteOS = (*env)->GetIntField(env, this, fld_nativeByteOS); \
     ibmp_byte_os_p byte_os = (ibmp_byte_os_p)nativeByteOS; \
+    jobject allocator = (*env)->GetObjectField(env, \
+				       byte_os->byte_output_stream, \
+				       fld_allocator); \
     ibmp_msg_p	msg = ibmp_msg_check(env, byte_os, 0); \
     jtype      *buf; \
     int		sz = len * sizeof(jtype); \
-    int		ref_lives_beyond_call = ! (msg->copy || sz < COPY_THRESHOLD); \
+    int		must_release = 0; \
     \
-    if (ref_lives_beyond_call) { \
-	b = (*env)->NewGlobalRef(env, b); \
-	IBMP_GLOBAL_REF_INC(); \
-	IBP_VPRINTF(400, env, ("%s: Now create global ref %p; msg->copy %d sz %d COPY_THRESHOLD %d\n", \
-		    ibmp_currentThread(env), b, msg->copy, sz, COPY_THRESHOLD)); \
-    } \
+    IBP_VPRINTF(400, env, ("%s: Now create global ref %p; msg->copy %d sz %d COPY_THRESHOLD %d\n", \
+		ibmp_currentThread(env), b, msg->copy, sz, COPY_THRESHOLD)); \
     if (msg->copy) { \
 	ibmp_lock(env); \
 	iovec_grow(env, msg, 1); \
@@ -1377,7 +1349,11 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
 	ibmp_unlock(env); \
 	msg->iov[msg->iov_len].data = buf; \
 	msg->iov[msg->iov_len].len = sz; \
+	msg->release[msg->iov_len].type = jprim_n_types; \
 	(*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) buf); \
+	if (allocator != NULL) { \
+	    (*env)->CallVoidMethod(env, allocator, md_put ## JType ## Array, b); \
+	} \
     } else { \
 	iovec_grow(env, msg, 0); \
 	if (sz < COPY_THRESHOLD) { \
@@ -1386,17 +1362,23 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
 	    msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]); \
 	    msg->buf_len += incr; \
 	    msg->iov[msg->iov_len].len  = sz; \
+	    msg->release[msg->iov_len].type = jprim_n_types; \
+	    if (allocator != NULL) { \
+		(*env)->CallVoidMethod(env, allocator, md_put ## JType ## Array, b); \
+	    } \
 	} \
 	else { \
+	    b = (*env)->NewGlobalRef(env, b); \
+	    IBMP_GLOBAL_REF_INC(); \
 	    jtype *a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
+	    must_release = 1; \
 	    msg->iov[msg->iov_len].data = a + off; \
 	    msg->iov[msg->iov_len].len  = sz; \
 	    msg->release[msg->iov_len].buf   = a; \
+	    msg->release[msg->iov_len].array = b; \
+	    msg->release[msg->iov_len].type  = jprim_ ## JType; \
 	} \
     } \
-    msg->release[msg->iov_len].array = b; \
-    msg->release[msg->iov_len].type  = jprim_ ## JType; \
-    msg->release[msg->iov_len].must_release = ref_lives_beyond_call; \
     IBP_VPRINTF(300, env, ("Now push ByteOS %p msg %p %s source %p data %p size %d iov %d total %d [%d,%d,%d,%d,...]\n", \
 		msg->byte_os->byte_output_stream, msg, #JType, b, msg->iov[msg->iov_len].data, \
 		msg->iov[msg->iov_len].len, msg->iov_len, ibmp_iovec_len(msg->iov, msg->iov_len + 1), msg->iov[0].len, msg->iov[1].len, msg->iov[2].len, msg->iov[3].len)); \
@@ -1440,6 +1422,13 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ByteOutputStream\n");
     }
     cls_ByteOutputStream = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_ByteOutputStream);
+
+    cls_DataAllocator = (*env)->FindClass(env,
+			 "ibis/io/DataAllocator");
+    if (cls_DataAllocator == NULL) {
+	ibmp_error(env, "Cannot find class ibis/io/DataAllocator\n");
+    }
+    cls_DataAllocator = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_DataAllocator);
 
     fld_nativeByteOS       = (*env)->GetFieldID(env,
 					 cls_ByteOutputStream,
@@ -1503,6 +1492,57 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 						"wakeupFragWaiter", "()V");
     if (md_wakeupFragWaiter == NULL) {
 	ibmp_error(env, "Cannot find method wakeupFragWaiter()V\n");
+    }
+
+    md_putByteArray       = (*env)->GetMethodID(env,
+						cls_DataAllocator,
+						"putByteArray", "([B)V");
+    if (md_putByteArray == NULL) {
+	ibmp_error(env, "Cannot find method putByteArray([B)V\n");
+    }
+
+    md_putBooleanArray    = md_putByteArray;
+
+    md_putCharArray       = (*env)->GetMethodID(env,
+						cls_DataAllocator,
+						"putCharArray", "([C)V");
+    if (md_putCharArray == NULL) {
+	ibmp_error(env, "Cannot find method putCharArray([C)V\n");
+    }
+
+    md_putShortArray      = (*env)->GetMethodID(env,
+						cls_DataAllocator,
+						"putShortArray", "([S)V");
+    if (md_putShortArray == NULL) {
+	ibmp_error(env, "Cannot find method putShortArray([S)V\n");
+    }
+
+    md_putIntArray        = (*env)->GetMethodID(env,
+						cls_DataAllocator,
+						"putIntArray", "([I)V");
+    if (md_putIntArray == NULL) {
+	ibmp_error(env, "Cannot find method putIntArray([I)V\n");
+    }
+
+    md_putLongArray       = (*env)->GetMethodID(env,
+						cls_DataAllocator,
+						"putLongArray", "([J)V");
+    if (md_putLongArray == NULL) {
+	ibmp_error(env, "Cannot find method putLongArray([J)V\n");
+    }
+
+    md_putFloatArray      = (*env)->GetMethodID(env,
+						cls_DataAllocator,
+						"putFloatArray", "([F)V");
+    if (md_putFloatArray == NULL) {
+	ibmp_error(env, "Cannot find method putFloatArray([F)V\n");
+    }
+
+    md_putDoubleArray       = (*env)->GetMethodID(env,
+						cls_DataAllocator,
+						"putDoubleArray", "([B)V");
+    if (md_putDoubleArray == NULL) {
+	ibmp_error(env, "Cannot find method putDoubleArray([B)V\n");
     }
 
     fld = (*env)->GetStaticFieldID(env, cls_ByteOutputStream,
