@@ -515,8 +515,8 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 			changed = true;
 			break;
 		    }
-		    else if( cl.joinClause( cj ) ){
-		        if( trace_simplification ){
+		    else if( cl.join( cj, vars ) ){
+		        if( trace_simplification | trace_new_code ){
 			    System.err.println( "Generalized clause: " + cl ); 
 			}
 			clauses[j] = null;

@@ -81,12 +81,76 @@ class Clause implements java.io.Serializable, Comparable {
     }
 
     /**
+     * Given an array 'a', an array 'marks', and a flag 'flag', set the
+     * given bits of all elements in 'marks' that have an index mentioned
+     * in `a'.
+     */
+    private void setMarks( int marks[], int a[], int flag )
+    {
+        for( int ix=0; ix<a.length; ix++ ){
+	    marks[a[ix]] |= flag;
+	}
+    }
+
+    /**
+     * Given two int arrays 'large' and 'small', where 'large' is exactly
+     * one element longer than the small one, check whether all elements
+     * in 'small' are in 'large'. Return the index of the one 
+     * extra element, or -1 if there are more differences.
+     * @param large the large array
+     * @param small the small array
+     */
+    private int joinHalf( int large[], int small[], int varCount )
+    {
+	// We implement this function by marking all elements in `large'
+	// and `small' in an array, and then searching for an element with
+	// a special marking.
+	int marks[] = new int[varCount];
+
+	if( large.length != small.length+1 ){
+	    System.err.println( "Large array has length " + large.length + ", but small array has length " + small.length );
+	    return -1;
+	}
+	setMarks( marks, large, 1 );
+	setMarks( marks, small, 2 );
+
+	int special = -1;
+	for( int ix=0; ix<varCount; ix++ ){
+	    int v = marks[ix];
+
+	    if( v == 2 ){
+		// This element only occurs in `small', and not in `large'.
+		// That can't be right.
+	        return -1;
+	    }
+	    if( v == 1 ){
+		// This element only occurs in `large', and not in `small'.
+		// This is probably the one we're looking for.
+		if( special != -1 ){
+		    // There already is an element that only occurs in
+		    // 'small', this can't be right.
+		    return -1;
+		}
+		special = ix;
+	    }
+	}
+	if( special != -1 ){
+	    for( int ix=0; ix<large.length; ix++ ){
+	        if( large[ix] == special ){
+		    return ix;
+		}
+	    }
+	}
+	return -1;
+    }
+
+    /**
      * Returns true iff the given clause `cy' can be joined with this
      * clause to form a more general clause. This clause is updated to
      * the more general version.
      * @param cy the clause we try to join with
      */
-    boolean joinClause( Clause cy )
+    boolean join( Clause cy, int varCount )
     {
         int posa[] = pos;
         int posb[] = cy.pos;
@@ -97,10 +161,58 @@ class Clause implements java.io.Serializable, Comparable {
 	// Looking at the sizes of the lists, there are only two
 	// interesting cases:
 	if( (posa.length+1 == posb.length) && (nega.length == negb.length+1) ){
-	    return false;
+	    int posix = joinHalf( posb, posa, varCount );
+	    if( posix<0 ){
+		// No join possible on the positive array.
+	        return false;
+	    }
+	    int negix = joinHalf( nega, negb, varCount );
+	    if( negix<0 ){
+	        // No join possible on the negative array.
+		return false;
+	    }
+	    if( posb[posix] != nega[negix] ){
+		return false;
+	    }
+	    // The two clauses only differ in a single variable, that
+	    // occurs negatively in our clause, and positively in `cy'.
+	    // We can generalize by ommiting this variable from the clause.
+
+	    // Fill the hole created by ommitting this variable by the
+	    // last element in the array. If negix == nega.length-1, this
+	    // is in essence a no-op.
+	    nega[negix] = nega[nega.length-1];
+
+	    // Now replace the neg array.
+	    neg = Helpers.cloneIntArray( nega, nega.length-1 );
+	    return true;
 	}
 	else if( (posa.length == posb.length+1) && (nega.length+1 == negb.length) ){
-	    return false;
+	    int posix = joinHalf( posa, posb, varCount );
+	    if( posix<0 ){
+		// No join possible on the positive array.
+	        return false;
+	    }
+	    int negix = joinHalf( negb, nega, varCount );
+	    if( negix<0 ){
+	        // No join possible on the negative array.
+		return false;
+	    }
+	    if( posa[posix] != negb[negix] ){
+		return false;
+	    }
+	    // The two clauses only differ in a single variable, that
+	    // occurs negatively in our clause, and positively in `cy'.
+	    // We can generalize by ommiting this variable from the clause.
+
+	    // Fill the hole created by ommitting this variable by the
+	    // last element in the array. If negix == nega.length-1, this
+	    // is in essence a no-op.
+	    posa[negix] = posa[nega.length-1];
+
+	    // Now replace the pos array.
+	    pos = Helpers.cloneIntArray( posa, posa.length-1 );
+	    return true;
 	}
 	return false;
     }
