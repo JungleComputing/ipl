@@ -1,7 +1,7 @@
 
 #start of script template
 
-if [ -z "$1" -o $# -le 1 ]
+if [ -z "$1" -o $# -le 0 ]
 then
 	echo "Usage:"
 	echo "  $0 <JVM PARAMS> <CLASS NAME> <APPLICATION PARAMS>"
