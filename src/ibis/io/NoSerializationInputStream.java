@@ -1,6 +1,7 @@
 package ibis.io;
 
 import java.io.IOException;
+import java.io.EOFException;
 import java.io.InputStream;
 
 /**
@@ -71,7 +72,12 @@ public final class NoSerializationInputStream extends SerializationInputStream {
     }
 
     public final byte readByte() throws IOException {
-	return (byte) in.read();
+	int b = in.read();
+
+	if (b == -1) {
+	    throw new EOFException("end of file reached");
+	}
+	return (byte) b;
     }
 
     public final boolean readBoolean() throws IOException {
@@ -140,8 +146,13 @@ public final class NoSerializationInputStream extends SerializationInputStream {
     }
 
     /**
-     * Read a slice of an array of bytes.
-     * See {@link #readArray(boolean[], int, int)} for a description.
+     * Reads a slice of an array in place.
+     * It is only allowed to read a complete array here.
+     *
+     * @param ref array in which the slice is stored
+     * @param off offset where the slice starts
+     * @param len length of the slice (the number of elements)
+     * @exception IOException is thrown on an IO error.
      */
     public void readArray(byte[] ref, int off, int len) throws IOException {
 	/*

@@ -412,7 +412,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 				System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
 			}
 			if (no_connectionhandler_thread) {
+			    try {
 				connections[0].reader();
+			    } catch(IOException e) {
+				connectionsIndex = 0;
+			    }
 			}
 			else {
 				try {
