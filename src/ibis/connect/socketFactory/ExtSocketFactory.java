@@ -67,14 +67,18 @@ public class ExtSocketFactory
 	    System.out.println("# ### ExtSocketFactory: starting configuration.");
 	
 	// init types table
-	nicknames.put("PlainTCP", 
-		      "ibis.connect.socketFactory.PlainTCPSocketType");
-	nicknames.put("TCPSplice",
-		      "ibis.connect.tcpSplicing.TCPSpliceSocketType");
-	nicknames.put("RoutedMessages", 
-		      "ibis.connect.routedMessages.RoutedMessagesSocketType");
-	nicknames.put("parallelstreams",
-		      "ibis.connect.parallelStreams.ParallelStreamsSocketType");
+	declareNickname("PlainTCP", 
+			"ibis.connect.socketFactory.PlainTCPSocketType");
+	declareNickname("TCPSplice",
+			"ibis.connect.tcpSplicing.TCPSpliceSocketType");
+	declareNickname("RoutedMessages", 
+			"ibis.connect.routedMessages.RoutedMessagesSocketType");
+	declareNickname("ParallelStreams",
+			"ibis.connect.parallelStreams.ParallelStreamsSocketType");
+	declareNickname("PortRange",
+			"ibis.connect.socketFactory.PortRangeSocketType");
+	declareNickname("SSL", 
+			"ibis.connect.socketFactory.SSLSocketType");
 
 	Properties p = System.getProperties();
 	String bl = p.getProperty("ibis.connect.data_links");
@@ -118,6 +122,11 @@ public class ExtSocketFactory
 	    }
     }
 
+    private static void declareNickname(String nickname, String className)
+    {
+	nicknames.put(nickname.toLowerCase(), className);
+    }
+
     /* loads a SocketType into the factory
      *   name: a fully-qualified class name which extends SocketType
      */
@@ -125,7 +134,7 @@ public class ExtSocketFactory
     {
 	SocketType t = null;
 	Constructor cons;
-	String className = (String)nicknames.get(socketType);
+	String className = (String)nicknames.get(socketType.toLowerCase());
 	if(className == null) {
 	    System.out.println("# ExtSocketFactory: socket type "+socketType+" not found.");
 	    System.out.println("#   known types are:");
@@ -250,7 +259,7 @@ public class ExtSocketFactory
 	    s = createBrokeredSocket(in, out, hintIsServer);
 	} else {
 	    if(MyDebug.VERBOSE()) {
-		System.err.println("# Selected socket type: "+st+" through properties.");
+		System.err.println("# Selected socket type '"+st+"' through properties.");
 	    }
 	    t = findSocketType(st);
 	    if(t == null)

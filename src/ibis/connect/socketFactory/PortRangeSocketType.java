@@ -1,0 +1,90 @@
+package ibis.connect.socketFactory;
+
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+import java.util.Properties;
+
+import ibis.connect.util.MyDebug;
+
+// SocketType descriptor for PortRange sockets
+// -------------------------------------------
+public class PortRangeSocketType 
+    extends SocketType
+    implements ClientServerSocketFactory, BrokeredSocketFactory
+{
+    private static int portNumber;
+    private static int startRange;
+    private static int endRange;
+
+    static {
+	Properties p = System.getProperties();
+	String range = p.getProperty("ibis.connect.port_range");
+	if(range != null) {
+	    try {
+		int pos = range.indexOf('-');
+		String from = range.substring(0, pos);
+		String to = range.substring(pos+1, range.length());
+		startRange = Integer.parseInt(from);
+		endRange = Integer.parseInt(to);
+		portNumber = startRange;
+		MyDebug.trace("# PortRange: ports = "+startRange+"-"+endRange);
+	    } catch (Exception e) {
+		throw new Error("# PortRange : specify a port range property: ibis.connect.port_range=3000-4000.");
+	    }
+	}
+    }
+    public PortRangeSocketType() { super("PortRange"); }
+
+    public Socket createClientSocket(InetAddress addr, int port)
+	throws IOException
+    {
+	Socket s = new Socket(addr, port);
+	tuneSocket(s);
+	return s;
+    }
+
+    public ServerSocket createServerSocket(InetSocketAddress addr, int backlog)
+	throws IOException
+    {
+	ServerSocket s = new ServerSocket();
+	s.setReceiveBufferSize(0x8000);
+	if(addr.getPort() == 0)
+	    addr = new InetSocketAddress(addr.getAddress(), allocLocalPort());
+	s.bind(addr, backlog);
+	return s;
+    }
+
+    public Socket createBrokeredSocket(InputStream in, OutputStream out,
+				       boolean hintIsServer,
+				       ConnectProperties p)
+	throws IOException
+    {
+	return ExtSocketFactory.createBrokeredSocketFromClientServer(this, in, out, hintIsServer);
+    }
+
+    private static void tuneSocket(Socket s)
+	throws IOException
+    {
+	s.setSendBufferSize(0x8000);
+	s.setReceiveBufferSize(0x8000);
+	s.setTcpNoDelay(true);
+    }
+
+    private synchronized int allocLocalPort() {
+	int res = portNumber++;
+	if(portNumber >= endRange) {
+	    portNumber = startRange;
+	    System.err.println("WARNING, used more ports than available within firewall range. Wrapping around");
+	}
+	return res;
+    }
+}
