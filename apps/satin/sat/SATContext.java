@@ -802,13 +802,15 @@ public final class SATContext implements java.io.Serializable {
                     verifyTermCount( p, i );
                 }
             }
-            // Now propagate unit clauses if there are any.
-            if( haveUnitClauses ){
-                for( int cno=oldCount; cno<newCount; cno++ ){
-                    if( !satisfied[cno] && terms[cno] == 1 ){
-                        int res = propagateUnitClause( p, cno, level, learnTuple );
-                        if( res != 0 ){
-                            return res;
+            if( false ){
+                // Now propagate unit clauses if there are any.
+                if( haveUnitClauses ){
+                    for( int cno=oldCount; cno<newCount; cno++ ){
+                        if( !satisfied[cno] && terms[cno] == 1 ){
+                            int res = propagateUnitClause( p, cno, level, learnTuple );
+                            if( res != 0 ){
+                                return res;
+                            }
                         }
                     }
                 }
