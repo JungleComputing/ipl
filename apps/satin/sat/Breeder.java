@@ -13,9 +13,7 @@ import ibis.satin.SatinTupleSpace;
 public final class Breeder extends ibis.satin.SatinObject implements BreederInterface {
     static final int GENERATIONS = 20;
     static final int GENERATION_SIZE = 20;
-    static final boolean globalsInTuple = false;
-
-    SATProblem pl[];
+    static final boolean globalsInTuple = true;
 
     static final class CutoffUpdater implements ibis.satin.ActiveTuple {
         int limit;
@@ -31,15 +29,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
         }
     }
 
-    Breeder( SATProblem pl[] )
-    {
-        if( globalsInTuple ){
-            this.pl = null;
-        }
-        else {
-            this.pl = pl;
-        }
-    }
+    Breeder() { }
 
     /** Maximal number decisions allowed before we give up. Can
      * be updated by the CutoffUpdater class above.
@@ -69,18 +59,19 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
      * static variable <code>cutoff</code> is honoured: if more than
      * that number of decisions are needed to solve the problem, give
      * give up.
+     * @param pl The list of problems to use.
      * @param genes The configuration to use.
      * @return The number decisions needed, or -1 if that count is
      * larger than <code>cutoff</code>.
      */
-    public int solve( Genes genes )
+    public int solve( SATProblem pl[], Genes genes )
     {
 	int total = 0;
         if( cutoff == 0 ){
             cutoff = Integer.MAX_VALUE;
         }
  
-        if( globalsInTuple ){
+        if( pl == null ){
             pl = (SATProblem []) ibis.satin.SatinTupleSpace.get( "problem" );
         }
         try {
@@ -151,7 +142,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
     /**
      * Breed the next generation.
      */
-    private Result breedNextGeneration( Random rng, Genes genes, int bestD, Genes maxGenes, Genes minGenes )
+    private Result breedNextGeneration( Random rng, SATProblem pl[], Genes genes, int bestD, Genes maxGenes, Genes minGenes )
     {
         float step = 0.15f;
         int res[] = new int[GENERATION_SIZE];
@@ -163,7 +154,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
             // If we have changed best genes, fill one trial slot
             // with an extrapolation of the change in genes.
             g[slot] = extrapolateGenes( 0.3f, genes, prevBestGenes, maxGenes, minGenes );
-            res[slot] = solve( g[slot] );
+            res[slot] = solve( pl, g[slot] );
             slot++;
         }
         prevBestGenes = null;
@@ -172,7 +163,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
             float s1 = (i<GENERATION_SIZE/2)?step:2*step;
             g[i] = mutateGenes( rng, genes, s1, maxGenes, minGenes );
             //System.err.println( "Genes = " + g[i] );
-            res[i] = solve( g[i] );
+            res[i] = solve( pl, g[i] );
         }
         sync();
 
@@ -196,7 +187,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
         return new Result( genes, bestD );
     }
 
-    public void run(){
+    public void run( SATProblem pl[] ){
 	Genes maxGenes = BreederSolver.getMaxGenes();
 	Genes minGenes = BreederSolver.getMinGenes();
 	Random rng = new Random( 2 );
@@ -205,7 +196,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
         int bestD = Integer.MAX_VALUE;
 
         for( int gen = 0; gen<GENERATIONS; gen++ ){
-            Result res = breedNextGeneration( rng, bestGenes, bestD, maxGenes, minGenes );
+            Result res = breedNextGeneration( rng, pl, bestGenes, bestD, maxGenes, minGenes );
             bestGenes = res.genes;
             bestD = res.decisions;
             System.err.println( "g" + gen + "->" + res );
@@ -246,13 +237,14 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
 
         if( globalsInTuple ){
             ibis.satin.SatinTupleSpace.add( "problem", pl );
+            pl = null;
         }
 
-        Breeder b = new Breeder( pl );
+        Breeder b = new Breeder();
 
 	long startTime = System.currentTimeMillis();
 
-        b.run();
+        b.run( pl );
 
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
