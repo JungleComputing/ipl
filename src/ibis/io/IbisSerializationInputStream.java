@@ -523,10 +523,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    objects.add(next_object++, ref);
 
 	    for (int i = 0; i < len; i++) {
-		((Object[])ref)[i] = readObject();
+		Object o = readObject();
 		if (DEBUG) {
-		    System.err.println("Read array[" + i + "] = " + ((Object[])ref)[i].getClass().getName());  
+		    System.err.println("Read array[" + i + "] = " + (o == null ? "<null>" : o.getClass().getName()));
 		}
+		((Object[])ref)[i] = o;
 	    }		
 
 	    return ref;
