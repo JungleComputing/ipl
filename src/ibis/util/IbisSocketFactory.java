@@ -46,7 +46,7 @@ public class IbisSocketFactory {
 				}
 			}
 		}
-		String useESF = p.getProperty("ibis.connect.useExtSocketFactory");
+		String useESF = p.getProperty("ibis.connect.enable");
 		if(useESF != null && !useESF.equals("false") && !useESF.equals("no")) {
                         useExtSocketFactory = true;
 		}

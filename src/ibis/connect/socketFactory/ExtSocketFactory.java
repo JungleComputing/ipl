@@ -2,6 +2,8 @@ package ibis.connect.socketFactory;
 
 import java.util.Vector;
 import java.util.Hashtable;
+import java.util.Properties;
+import java.util.Enumeration;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,53 +24,77 @@ import java.lang.reflect.Constructor;
  */
 public class ExtSocketFactory
 {
+    /** Vector of SocketTypes in the order of preference
+     * for the current strategy.
+     */
     private static Vector types = new Vector();
+
+    /** Map which converts a SocketType name into
+     * the class name which implements it.
+     */
+    private static Hashtable typesTable = new Hashtable();
+
     private static SocketType defaultClientServer = null;
     private static SocketType defaultBrokeredLink = null;
 
+    // Some possible default strategies...
     // -1- Plain TCP only- no firewall support.
-    private static final String[] strategyTCP = {
-	"ibis.connect.socketFactory.PlainTCPSocketType" };
+    private static final String[] strategyTCP = 
+    { "PlainTCP" };
 
     // -2- full range of conection methods: supports firewalls
-    private static final String[] strategyFirewall = {
-	"ibis.connect.tcpSplicing.TCPSpliceSocketType",
-	"ibis.connect.routedMessages.RoutedMessagesSocketType",
-	"ibis.connect.socketFactory.PlainTCPSocketType" }; 
+    private static final String[] strategyFirewall = 
+    { "TCPSplice", "RoutedMessages", "PlainTCP" }; 
 
     // -3- supports firewall for control only, no splicing. Usefull for tests only.
-    private static final String[] strategyControl = {
-	"ibis.connect.routedMessages.RoutedMessagesSocketType", 
-	"ibis.connect.socketFactory.PlainTCPSocketType" };
+    private static final String[] strategyControl = 
+    { "RoutedMessages", "PlainTCP" };
      
     // -4- TCP splicing only- for tests.
-    private static final String[] strategySplicing = {
-	"ibis.connect.tcpSplicing.TCPSpliceSocketType",
-	"ibis.connect.socketFactory.PlainTCPSocketType" }; 
+    private static final String[] strategySplicing = 
+    { "TCPSplice", "PlainTCP" }; 
 
-    // Pick one of the above choices:
-    //
-    // --- AD: TODO- find a clean way of chosing the protocol list
-    //         Should be a Java property.
-    //
-    private static String[] defaultTypes = strategySplicing;
+    // Pick one of the above choices for defaults
+    private static String[] defaultTypes = strategyTCP;
 
     private static final boolean VERBOSE = false;
 
     /* static constructor
      */
     static {
-	if (VERBOSE) {
+	if(VERBOSE)
 	    System.out.println("# ### ExtSocketFactory: starting configuration.");
+	
+	// init types table
+	typesTable.put("PlainTCP", 
+		       "ibis.connect.socketFactory.PlainTCPSocketType");
+	typesTable.put("TCPSplice",
+		       "ibis.connect.tcpSplicing.TCPSpliceSocketType");
+	typesTable.put("RoutedMessages", 
+		       "ibis.connect.routedMessages.RoutedMessagesSocketType");
+
+	Properties p = System.getProperties();
+	String bl = p.getProperty("ibis.connect.data_links");
+	String cs = p.getProperty("ibis.connect.control_links");
+	if(bl != null && cs != null) {
+	    defaultClientServer = loadSocketType(cs);
+	    defaultBrokeredLink = loadSocketType(bl);
+	} else {
+	    if(VERBOSE)
+		System.out.println("# Loading defaults...");
+	    for(int i=0; i<defaultTypes.length; i++)
+		{
+		    String n = defaultTypes[i];
+		    loadSocketType(n);
+		}
+	    defaultClientServer = findClientServerType();
+	    defaultBrokeredLink = findBrokeredType();
 	}
-	for(int i=0; i<defaultTypes.length; i++)
-	    {
-		String n = defaultTypes[i];
-		loadSocketType(n);
-	    }
-	defaultClientServer = findClientServerType();
-	defaultBrokeredLink = findBrokeredType();
-	if (VERBOSE) {
+	if(VERBOSE) {
+	    System.out.println("# Default for client-server: " +
+			       defaultClientServer.getSocketTypeName());
+	    System.out.println("# Default for brokered link: " +
+			       defaultBrokeredLink.getSocketTypeName());
 	    System.out.println("# ### ExtSocketFactory: configuration ok.");
 	}
     }
@@ -87,10 +113,20 @@ public class ExtSocketFactory
     /* loads a SocketType into the factory
      *   name: a fully-qualified class name which extends SocketType
      */
-    public static synchronized void loadSocketType(String className)
+    private static synchronized SocketType loadSocketType(String socketType)
     {
 	SocketType t = null;
 	Constructor cons;
+	String className = (String)typesTable.get(socketType);
+	if(className == null) {
+	    System.out.println("# ExtSocketFactory: socket type "+socketType+" not found.");
+	    System.out.println("#   known types are:");
+	    Enumeration e = typesTable.keys();
+	    while(e.hasMoreElements()) {
+		System.out.println((String)e.nextElement());
+	    }
+	    throw new Error("ExtSocketFactory: socket type "+socketType+" not found.");
+	}
 	try {
 	    Class c = Class.forName(className);
 	    cons = c.getConstructor(null);
@@ -102,14 +138,15 @@ public class ExtSocketFactory
 	    t = (SocketType)cons.newInstance(null);
 	    if (VERBOSE) {
 		System.out.println("# Registering socket type: "+t.getSocketTypeName());
-		System.out.println("    class name: "+t.getClass().getName());
-		System.out.println("    supports client/server:  "+t.supportsClientServer());
-		System.out.println("    supports brokered links: "+t.supportsBrokeredLinks());
+		System.out.println("#   class name: "+t.getClass().getName());
+		System.out.println("#   supports client/server:  "+t.supportsClientServer());
+		System.out.println("#   supports brokered links: "+t.supportsBrokeredLinks());
 	    }
 	    types.add(t);
 	} catch(Exception e) {
 	    System.out.println("# ExtSocketFactory: *not* adding: "+t.getSocketTypeName());
 	}
+	return t;
     }
 
     // Bootstrap client sockets: Socket(addr, port);
@@ -124,7 +161,9 @@ public class ExtSocketFactory
 	try {
 	    f = (ClientServerSocketFactory)t;
 	} catch(Exception e) {
-	    System.out.println("SocketFactory: internal eror- SocketType pretends to support client/sever but does not.");
+	    System.out.println("SocketFactory: SocketType "+
+			       t.getSocketTypeName()+
+			       " does not support client/sever connection establishment.");
 	    throw new Error(e);
 	}
 	s = f.createClientSocket(addr, port);
@@ -148,7 +187,9 @@ public class ExtSocketFactory
 	try {
 	    f = (ClientServerSocketFactory)t;
 	} catch(Exception e) {
-	    System.out.println("SocketFactory: internal eror- SocketType pretends to support client/sever but does not.");
+	    System.out.println("SocketFactory: SocketType "+
+			       t.getSocketTypeName()+
+			       " does not support client/sever connection establishment.");
 	    throw new Error(e);
 	}
 	s = f.createServerSocket(addr, backlog);
@@ -167,7 +208,9 @@ public class ExtSocketFactory
 	try {
 	    f = (BrokeredSocketFactory)t;
 	} catch(Exception e) {
-	    System.out.println("SocketFactory: internal eror- SocketType pretends to support brokered links but does not.");
+	    System.out.println("SocketFactory: SocketType "+
+			       t.getSocketTypeName()+
+			       " does not support brokered connection establishment.");
 	    throw new Error(e);
 	}
 	s = f.createBrokeredSocket(in, out, hintIsServer);
@@ -217,14 +260,14 @@ public class ExtSocketFactory
 		if(t.supportsClientServer())
 		    {
 			if (VERBOSE) {
-			    System.out.println("# Selected type: '"+t.getSocketTypeName()+"' for client/server connection.");
+			    System.out.println("# Selected type: '"+
+					       t.getSocketTypeName()+
+					       "' for client/server connection.");
 			}
 			return t;
 		    }
 	    }
-	if (VERBOSE) {
-	    System.out.println("# ExtSocketFactory: warning- no SocketType found for client/server link!");
-	}
+	System.out.println("# ExtSocketFactory: warning- no SocketType found for client/server link!");
 	return null;
     }
     private static synchronized SocketType findBrokeredType()
@@ -235,7 +278,9 @@ public class ExtSocketFactory
 		if(t.supportsBrokeredLinks())
 		    {
 			if (VERBOSE) {
-			    System.out.println("# Selected type: '"+t.getSocketTypeName()+"' for brokered link.");
+			    System.out.println("# Selected type: '"+
+					       t.getSocketTypeName()+
+					       "' for brokered link.");
 			}
 			return t;
 		    }

@@ -1,0 +1,94 @@
+
+  Communication methods for WAN in Ibis
+  -------------------------------------
+
+  Alexandre DENIS (Alexandre.Denis@irisa.fr)
+
+
+* Overview
+  --------
+
+The communications methods for WAN mainly address two problems:
+-- broken connectivity due to firewalls
+-- performance issues.
+
+These mechanisms are implemented in the src/ibis/connect hierarchy.
+In the current Ibis, they are disabled by default. To activate these
+methods, you must set the Java property "ibis.connect.enable".
+Althgough theoretically they may be used by any Ibis implementation,
+only NetIbis is able to use them in the current implementation.
+
+We distinguish two categories of communication links: control and
+data.  Control links are those for connection to the Ibis name service
+and the NetIbis control links. They rely on the client/server
+approach.  Data links are used to actually carry data. In NetIbis,
+there construction may involve a "control link" for parameter
+negociation.  Therefore we call them "brokered links".
+
+You can choose which method you want to use for control links and
+service links through the Java properties "ibis.connect.control_links"
+and "ibis.connect.data_links". The following methods are implemented:
+Plain TCP, RoutedMessages, TCPSplice.
+
+* Connection Establishment Methods
+  --------------------------------
+
+  -- PlainTCP: this is the plain TCP protocol, usable for both control
+     and data links. It cannot cross firewalls.
+
+  -- RoutedMessages: this protocol routes messages through a "hub". It
+     crosses firewalls and offers both client/server and brokered
+     connections. However, its poor performance makes it a bad candidate
+     for data links. You need to run a "hub" visible from every node.
+
+  -- TCPSplice: this is plain TCP except that connection establishment 
+     is based on a splicing (aka. simultaneous SYN) mechanism instead of 
+     the classic client/server handshake. This method is brokered only
+     (no client/server possible). 
+
+* Example
+  -------
+
+Example with firewalls: control links with RoutedMessages and data links
+with TCPSplice.
+
+-- Step 1- build Ibis :-)
+
+-- Step 2- configure your application to use NetIbis, and configure your
+'net_port_type_defaults.txt' file so that links WAN links use the 
+'tcp_splice' NetIbis driver. For using TCP splicing everywhere, it can
+be:
+
+/:Driver=s_ibis
+/s_ibis:Driver=bytes
+/s_ibis/bytes:Driver=tcp_splice
+
+-- Step 3- start the control hub on a machine visible from every 
+computing node, e.g.:
+
+fs0:~% java -cp $IBIS_ROOT/build/ibis-connect.jar ibis.connect.controlHub.ControlHub
+
+-- Step 4- start the Ibis name server. It is recommanded to run it on the
+same machine as the hub. Set the environment variable IBIS_HUB to the
+hub reference (in the form <host>:<port>), e.g.:
+
+fs0:~% setenv IBIS_HUB fs0.das2.cs.vu.nl:9827
+fs0:~% ibis_nameserver
+
+-- Step 5- run the application as usual, but add the flags:
+-Dibis.connect.enable 
+-Dibis.connect.hub_host=fs0.das2.cs.vu.nl
+-Dibis.connect.hub_port=9827 
+-Dibis.connect.data_links=TCPSplice 
+-Dibis.connect.control_links=RoutedMessages
+
+* Reference
+  ---------
+
+Java properties:
+
+-- ibis.connect.enable
+-- ibis.connect.control_links=<method for control links>
+-- ibis.connect.data_links=<method for data links>
+-- ibis.connect.hub_host=<hostname where the hub is running>
+-- ibis.connect.hub_port=<port the hub is listening>
