@@ -415,7 +415,9 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
         private NetMutex                 finishMutex         =  null;
 
-        private Integer                  dummyUpcallSync     =  new Integer(0);
+        private Object			dummyUpcallSync     =  new Object();
+
+	private int			upcallsPending = 0;
 
         /* --- Upcall from main input object -- */
         public void inputUpcall(NetInput input, Integer spn) throws IOException {
@@ -430,6 +432,20 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                 }
 
                 activeSendPortNum = spn;
+
+                if (upcall != null && ! upcallsEnabled) {
+		    synchronized (dummyUpcallSync) {
+			upcallsPending++;
+			while (! upcallsEnabled) {
+			    try {
+				dummyUpcallSync.wait();
+			    } catch (InterruptedException e) {
+				// Go on waiting
+			    }
+			}
+			upcallsPending--;
+		    }
+		}
 
                 if (upcall != null && upcallsEnabled) {
                         final ReadMessage rm = _receive();
@@ -447,7 +463,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
                                 trace.disp(receivePortTracePrefix, "message receive <--");
                         }
-                } else {
+		} else {
                         synchronized(dummyUpcallSync) {
                                 finishNotify = true;
                                 polledLock.unlock();
@@ -887,7 +903,12 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
          */
         public synchronized void enableUpcalls() {
                 log.in();
-                upcallsEnabled = true;
+		synchronized (dummyUpcallSync) {
+		    upcallsEnabled = true;
+		    if (upcallsPending > 0) {
+			dummyUpcallSync.notify();
+		    }
+		}
                 log.out();
         }
 
