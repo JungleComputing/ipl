@@ -644,13 +644,7 @@ class OpenCell1D implements OpenConfig {
                 boardsize = Integer.parseInt( args[i] );
             }
             else {
-                if( count == -1 ){
-                    count = Integer.parseInt( args[i] );
-                }
-                else {
-                    System.out.println( "Bad generation count `" + args[i] + "'" );
-                    usage();
-                }
+                count = Integer.parseInt( args[i] );
             }
         }
 
