@@ -24,6 +24,12 @@ class Cell1D implements Config {
     static PoolInfo info;
     static int boardsize = 3000;
 
+    // We need two extra column arrays to temporarily store the update
+    // of a column. These arrays will be circulated with the columns of
+    // the board.
+    static byte updatecol[];
+    static byte nextupdatecol[];
+
     private static void usage()
     {
         System.out.println( "Usage: Cell1D [count]" );
@@ -112,6 +118,40 @@ class Cell1D implements Config {
         m.finish();
     }
 
+    static void computeNextGeneration( byte board[][], int iter, final int myColumns )
+    {
+        byte prev[];
+        byte curr[] = board[0];
+        byte next[] = board[1];
+
+        for( int i=1; i<=myColumns; i++ ){
+            prev = curr;
+            curr = next;
+            next = board[i+1];
+            for( int j=1; j<=boardsize; j++ ){
+                updatecol[j] = Ecology.computeNextState(
+                    iter,
+                    i, j,
+                    prev[j-1],
+                    prev[j],
+                    prev[j+1],
+                    curr[j-1],
+                    curr[j],
+                    curr[j+1],
+                    next[j-1],
+                    next[j],
+                    next[j+1]
+                );
+            }
+            
+            //
+            byte tmp[] = board[i];
+            board[i] = updatecol;
+            updatecol = nextupdatecol;
+            nextupdatecol = tmp;
+        }
+    }
+
     public static void main( String [] args )
     {
         int count = GENERATIONS;
@@ -165,18 +205,14 @@ class Cell1D implements Config {
                 rightSendPort = createUpdateSendPort( t, me, me+1 );
             }
 
-            // The cells. There is a border of cells that are always empty,
-            // but make the border conditions easy to handle.
             final int myColumns = boardsize/nProcs;
 
-            // The board.
+            // The cells. There is a border of cells that are always empty,
+            // but make the border conditions easy to handle.
             byte board[][] = new byte[myColumns+2][boardsize+2];
 
-            // We need two extra column arrays to temporarily store the update
-            // of a column. These arrays will be circulated with the columns of
-            // the board.
-            byte updatecol[] = new byte[boardsize+2];
-            byte nextupdatecol[] = new byte[boardsize+2];
+            updatecol = new byte[boardsize+2];
+            nextupdatecol = new byte[boardsize+2];
 
             if( me == 0 ){
                 System.out.println( "Using " + ibis.implementationName() );
@@ -194,9 +230,6 @@ class Cell1D implements Config {
             long startTime = System.currentTimeMillis();
 
             for( int iter=0; iter<count; iter++ ){
-                byte prev[];
-                byte curr[] = board[0];
-                byte next[] = board[1];
 
                 if( showBoard && me == 0 ){
                     System.out.println( "Generation " + iter );
@@ -207,32 +240,7 @@ class Cell1D implements Config {
                         System.out.println();
                     }
                 }
-                for( int i=1; i<=myColumns; i++ ){
-                    prev = curr;
-                    curr = next;
-                    next = board[i+1];
-                    for( int j=1; j<=boardsize; j++ ){
-                        updatecol[j] = Ecology.computeNextState(
-                            iter,
-                            i, j,
-                            prev[j-1],
-                            prev[j],
-                            prev[j+1],
-                            curr[j-1],
-                            curr[j],
-                            curr[j+1],
-                            next[j-1],
-                            next[j],
-                            next[j+1]
-                        );
-                    }
-                    
-                    //
-                    byte tmp[] = board[i];
-                    board[i] = updatecol;
-                    updatecol = nextupdatecol;
-                    nextupdatecol = tmp;
-                }
+                computeNextGeneration( board, iter, myColumns );
                 if( (me % 2) == 0 ){
                     if( leftSendPort != null ){
                         send( me, leftSendPort, board[1] );
