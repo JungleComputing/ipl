@@ -265,7 +265,7 @@ class Cell1D implements Config {
         }
 
         if( count == -1 ) {
-            count = 10000;
+            count = GENERATIONS;
         }
 
         try {
@@ -283,8 +283,6 @@ class Cell1D implements Config {
             // This only works for a closed world...
             final int me = info.rank();         // My processor number.
             final int nProcs = info.size();     // Total number of procs.
-
-            System.err.println( "me=" + me + ", nProcs=" + nProcs );
 
             PortType t = ibis.createPortType( "neighbour update", s );
 
@@ -310,8 +308,8 @@ class Cell1D implements Config {
             // but make the border conditions easy to handle.
             final int myColumns = BOARDSIZE/nProcs;
 
-            byte oldboard[][] = new byte[BOARDSIZE+2][myColumns+2];
-            byte newboard[][] = new byte[BOARDSIZE+2][myColumns+2];
+            byte oldboard[][] = new byte[myColumns+2][BOARDSIZE+2];
+            byte newboard[][] = new byte[myColumns+2][BOARDSIZE+2];
 
             putTwister( oldboard, 100, 3 );
             if( me == 0 ){
@@ -322,18 +320,24 @@ class Cell1D implements Config {
             oldboard = newboard;
             newboard = tmp;
 
-            for( int iter=0; iter<GENERATIONS; iter++ ){
-                for( int i=1; i<=BOARDSIZE; i++ ){
-                    for( int j=1; j<=myColumns; j++ ){
+            for( int iter=0; iter<count; iter++ ){
+                byte prev[];
+                byte curr[] = oldboard[0];
+                byte next[] = oldboard[1];
+                for( int i=1; i<=myColumns; i++ ){
+                    prev = curr;
+                    curr = next;
+                    next = oldboard[i+1];
+                    for( int j=1; j<=BOARDSIZE; j++ ){
                         int neighbours =
-                            oldboard[i-1][j-1] +
-                            oldboard[i-1][j] +
-                            oldboard[i-1][j+1] +
-                            oldboard[i][j-1] +
-                            oldboard[i][j+1] +
-                            oldboard[i+1][j-1] +
-                            oldboard[i+1][j] +
-                            oldboard[i+1][j+1];
+                            prev[j-1] +
+                            prev[j] +
+                            prev[j+1] +
+                            curr[j-1] +
+                            curr[j+1] +
+                            next[j-1] +
+                            next[j] +
+                            next[j+1];
                         boolean alive = (neighbours == 3) || ((neighbours == 2) && (oldboard[i][j]==1));
                         newboard[i][j] = alive?(byte) 1:(byte) 0;
                     }
@@ -343,37 +347,32 @@ class Cell1D implements Config {
                         send( me, leftSendPort, oldboard[1] );
                     }
                     if( rightSendPort != null ){
-                        send( me, rightSendPort, oldboard[BOARDSIZE] );
+                        send( me, rightSendPort, oldboard[myColumns] );
                     }
                     if( leftReceivePort != null ){
                         receive( me, leftReceivePort, oldboard[0] );
                     }
                     if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, oldboard[BOARDSIZE+1] );
+                        receive( me, rightReceivePort, oldboard[myColumns+1] );
                     }
                 }
                 else {
+                    if( rightReceivePort != null ){
+                        receive( me, rightReceivePort, oldboard[myColumns+1] );
+                    }
                     if( leftReceivePort != null ){
                         receive( me, leftReceivePort, oldboard[0] );
                     }
-                    if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, oldboard[BOARDSIZE+1] );
+                    if( rightSendPort != null ){
+                        send( me, rightSendPort, oldboard[myColumns] );
                     }
                     if( leftSendPort != null ){
                         send( me, leftSendPort, oldboard[1] );
                     }
-                    if( rightSendPort != null ){
-                        send( me, rightSendPort, oldboard[BOARDSIZE] );
-                    }
                 }
                 if( showProgress ){
                     if( me == 0 ){
-                        char c = '.';
-
-                        if( (iter % 5) == 0 ){
-                            c = (char) ((iter % 10) + '0');
-                        }
-                        System.out.print( c );
+                        System.out.print( '.' );
                     }
                 }
             }
@@ -383,7 +382,9 @@ class Cell1D implements Config {
             if( !hasTwister( oldboard, 100, 3 ) ){
                 System.out.println( "Twister has gone missing" );
             }
-            System.out.println( "Done" );
+            if( me == 0 ){
+                System.out.println( "Done" );
+            }
             ibis.end();
         }
         catch( Exception e ) {
