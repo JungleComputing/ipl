@@ -4,14 +4,31 @@ import java.net.InetAddress;
 
 import java.util.Properties;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
 
 import ibis.ipl.*;
 import ibis.util.Ticket;
+import ibis.util.SpecialStack;
 import java.lang.reflect.Method;
 
 public final class Group { 
 	
 	public final static boolean DEBUG = false;
+
+	// result opcodes
+	public static final byte
+	        RESULT_VOID      = 0,
+	        RESULT_BOOLEAN   = 1,
+		RESULT_BYTE      = 2,
+		RESULT_SHORT     = 3,		
+		RESULT_CHAR      = 4,
+		RESULT_INT       = 5,
+		RESULT_LONG      = 6,
+		RESULT_FLOAT     = 7,
+		RESULT_DOUBLE    = 8,
+		RESULT_OBJECT    = 9,
+ 	        RESULT_EXCEPTION = 10;
 
 	public final static byte
 	        /* invocation modes */
@@ -24,7 +41,9 @@ public final class Group {
                 /* result modes */
 		DISCARD        = 0,
 		RETURN         = 1,
-		COMBINE        = 2;
+		FORWARD        = 2,
+		BINARYCOMBINE  = 3, 
+		FLATCOMBINE    = 4;
 	
 	public static int _rank;
 	protected static int _size;
@@ -39,17 +58,23 @@ public final class Group {
 	private static PortType portType;
 
 	private static ReceivePort receivePort;
+	private static ReceivePort combinePort;
 
 	private static ReceivePort systemIn;
 	private static SendPort    systemOut;
 
 	private static ReceivePortIdentifier [] pool;
+	private static ReceivePortIdentifier [] combine_pool;
 
 	// this must be public in order for generated classes to use it....
 	public static SendPort [] unicast;
-	public static SendPort multicast;		
+	public static SendPort [] combine_unicast;
+//	public static SendPort multicast;		
+
+	private static Hashtable multicastSendports;
        
 	private static GroupCallHandler groupCallHandler;
+	private static GroupCombineHandler groupCombineHandler;
 
 	public static Ticket ticketMaster = null;
 	protected static GroupRegistry registry;
@@ -57,22 +82,28 @@ public final class Group {
 	protected static Vector groups;
 	protected static Vector skeletons;
 
+	protected static Hashtable stubclasses;
+
+        /* This handles the stubIDs */
+	protected static SpecialStack stubIDStack;
+	private static Object stubLock;
+
 	static { 
 		try {
 			ticketMaster = new Ticket();
 			groups = new Vector();
 			skeletons = new Vector();
+			stubclasses = new Hashtable();
+			multicastSendports = new Hashtable();
 			
 			name = InetAddress.getLocalHost().getHostName();
 
 			if (DEBUG) {
 				System.out.println(name + ": init Group RTS");
 			}
-
-			
-
+		
                         ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.tcp.TcpIbis", null);
-//                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.panda.PandaIbis", null);
+//                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.messagePassing.panda.PandaIbis", null);
 			localID      = ibis.identifier();
 			ibisRegistry = ibis.registry();
 //			ibis.start);
@@ -83,9 +114,13 @@ public final class Group {
                         portType = ibis.createPortType("GMI", s);
                        
 			groupCallHandler = new GroupCallHandler();
+			groupCombineHandler = new GroupCombineHandler();
 
                         receivePort = portType.createReceivePort("GMI port on " + name, groupCallHandler);		       
 			receivePort.enableConnections();
+
+                        combinePort = portType.createReceivePort("GMI combine port on " + name, groupCombineHandler);		       
+			combinePort.enableConnections();
 
 			IbisIdentifier i = (IbisIdentifier) ibisRegistry.elect("GMI Master", localID);
 
@@ -106,6 +141,9 @@ public final class Group {
 				pool = new ReceivePortIdentifier[_size];
 				pool[0] = receivePort.identifier();
 
+				combine_pool = new ReceivePortIdentifier[_size];
+				combine_pool[0] = combinePort.identifier();
+
 				if (_size > 1) {
 
 					systemIn  = portType.createReceivePort("GMI Master");
@@ -118,15 +156,18 @@ public final class Group {
 						ReadMessage r = systemIn.receive();
 						ReceivePortIdentifier reply = (ReceivePortIdentifier) r.readObject();
 						ReceivePortIdentifier id = (ReceivePortIdentifier) r.readObject();
+						ReceivePortIdentifier combine_id = (ReceivePortIdentifier) r.readObject();
 						r.finish();
 
 //						System.err.println("GOT MESSAGE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
 						systemOut.connect(reply);
 						pool[j] = id;
+						combine_pool[j] = combine_id;
 					}
 					
 					WriteMessage w = systemOut.newMessage(); 
 					w.writeObject(pool);
+					w.writeObject(combine_pool);
 					w.send();
 					w.finish();					
 				}
@@ -158,11 +199,13 @@ public final class Group {
 				WriteMessage w = systemOut.newMessage();
 				w.writeObject(systemIn.identifier());
 				w.writeObject(receivePort.identifier());
+				w.writeObject(combinePort.identifier());
 				w.send();
 				w.finish();
 
 				ReadMessage r = systemIn.receive();
 				pool = (ReceivePortIdentifier []) r.readObject();
+				combine_pool = (ReceivePortIdentifier []) r.readObject();
 				r.finish();
 				
 				_size = pool.length;
@@ -176,15 +219,18 @@ public final class Group {
 			} 
 
 			unicast = new SendPort[_size];
+			combine_unicast = new SendPort[_size];
 			
 			for (int j=0;j<_size;j++) { 				
 				unicast[j] = portType.createSendPort("Unicast on " + name + " to " + pool[j].name());
+				combine_unicast[j] = portType.createSendPort("Unicast on " + name + " to " + combine_pool[j].name());
 
 				if (DEBUG) { 
 					System.out.println("Connecting unicast sendport " + unicast[j].identifier() + " to " + pool[j]);
 				}
 
 				unicast[j].connect(pool[j]);				
+				combine_unicast[j].connect(combine_pool[j]);				
 
 				if (DEBUG) { 
 					System.out.println("Connecting unicast sendport " + unicast[j].identifier() + " done");
@@ -192,31 +238,37 @@ public final class Group {
 
 			} 
 
-			if (localID.equals(i)) { 
-				for (int j=1;j<_size;j++) { 
+			if (_size > 1) { 
+
+				if (localID.equals(i)) { 
+					for (int j=1;j<_size;j++) { 
+						ReadMessage r = systemIn.receive();
+						r.finish();
+					}
+					
+					WriteMessage w = systemOut.newMessage(); 
+					w.send();
+					w.finish();						
+				} else { 
+					WriteMessage w = systemOut.newMessage(); 
+					w.send();
+					w.finish();	
 					ReadMessage r = systemIn.receive();
 					r.finish();
-				}
-				
-				WriteMessage w = systemOut.newMessage(); 
-				w.send();
-				w.finish();						
-			} else { 
-				WriteMessage w = systemOut.newMessage(); 
-				w.send();
-				w.finish();	
-				ReadMessage r = systemIn.receive();
-				r.finish();
-			} 
-
-			multicast = portType.createSendPort("Multicast on " + name);
-			
-			for (int j=0;j<_size;j++) { 
-				multicast.connect(pool[j]);
+				} 
 			}
 
+//			multicast = portType.createSendPort("Multicast on " + name);
+			
+//			for (int j=0;j<_size;j++) { 
+//				multicast.connect(pool[j]);
+//			}
 
 			receivePort.enableUpcalls();
+			combinePort.enableUpcalls();
+
+			stubLock = new Object();
+			stubIDStack = new SpecialStack(stubLock);
 
 			if(DEBUG) {
 				System.out.println(name + ": Group init");
@@ -229,6 +281,41 @@ public final class Group {
                 }
 	}
 
+	public static SendPort getMulticastSendport(String ID, int [] hosts) { 
+
+		// Note: for efficiency the ranks in hosts should be sorted (low->high) !!!
+		
+		if (hosts.length == 1) { 
+			return unicast[hosts[0]];
+		} else { 
+			System.out.println("Looking for multicast sendport " + ID);
+
+			SendPort temp = (SendPort) multicastSendports.get(ID);
+
+			if (temp == null) { 
+				// there is no multicast sendport to this combination of hosts yet.
+				// so create it and add it to the table.
+				System.out.println("Creating multicast sendport " + ID);
+
+				try { 
+					temp = portType.createSendPort("Multicast on " + name + " to " + ID);
+					
+					for (int i=0;i<hosts.length;i++) { 
+						temp.connect(pool[hosts[i]]);
+					}
+				} catch (IbisException e) { 
+					 System.err.println(name + ": Could not create multicast group " + ID + " " + e);
+					 e.printStackTrace();
+					 System.exit(1);
+				} 
+
+				multicastSendports.put(ID, temp);
+			}
+
+			return temp;
+		} 					
+	} 
+	
 	private static int getIntProperty(Properties p, String name) throws RuntimeException {
 
 		String temp = p.getProperty(name);
@@ -257,6 +344,10 @@ public final class Group {
 
 	protected static void registerGroupMember(int groupID, GroupSkeleton skeleton) { 
 		/* this is wrong -> fix later */
+//		if (Group.DEBUG) 
+		System.out.println("Group.registerGroupMember(" + groupID + " " + 
+				   skeleton.getClass().getName());
+		
 		groups.add(groupID, skeleton);
 	}  
 	
@@ -265,10 +356,10 @@ public final class Group {
 		return (GroupSkeleton) skeletons.get(skel);
 	}  
 	
-	public static void create(String name, int size) throws RuntimeException {
+	public static void create(String name, Class type, int size) throws RuntimeException {
 
 		try { 
-			if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") starting");
+			if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + type + ", " + size + ") starting");
 
 			int ticket = ticketMaster.get();
 
@@ -278,6 +369,7 @@ public final class Group {
 			w.writeInt(_rank);
 			w.writeInt(ticket);
 			w.writeObject(name);
+			w.writeObject(type.getName());
 			w.writeInt(size);
 			w.send();
 			w.finish();
@@ -294,12 +386,12 @@ public final class Group {
 
 			if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") done");
 
-		} catch (IbisIOException e) { 
+		} catch (IbisException e) { 
 			throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : communication error !" + e.getMessage());  
 		}
 
 	}
-       	
+
 	public static void join(String name, ibis.group.GroupMember o) throws RuntimeException {
 
 		try { 
@@ -323,6 +415,7 @@ public final class Group {
 				w.writeInt(_rank);
 				w.writeInt(ticket);
 				w.writeObject(name);
+				w.writeObject(o.groupInterfaces);
 				w.writeLong(o.myID);
 				w.send();
 				w.finish();
@@ -337,6 +430,9 @@ public final class Group {
 					if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group not found, retry");
 					break;
 
+				case GroupProtocol.JOIN_WRONG_TYPE:
+					throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Group member has wrong type!");  
+
 				case GroupProtocol.JOIN_FULL:
 					throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Group full!");  
 					
@@ -346,7 +442,8 @@ public final class Group {
 					memberIDs = (long []) r.readObject();
 					break;					
 				default:
-					System.out.println(_rank + " Group.joinGroup(" + name + ") Failed : got illegal opcode");  									System.exit(1);
+					System.out.println(_rank + " Group.joinGroup(" + name + ") Failed : got illegal opcode");  		
+					System.exit(1);
 				} 
 				
 				r.finish();
@@ -384,18 +481,104 @@ public final class Group {
 			
 			if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") done");
 
-		} catch (IbisIOException e) { 
+		} catch (IbisException e) { 
 			throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : communication error !" + e.getMessage());  
-		} catch (ClassNotFoundException e1) { 
-			throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : communication error !" + e1.getMessage());  
 		}
 	} 
+	
+	public static GroupInterface createGroupInterface(String name) { 
+	
+		GroupStubData data = (GroupStubData) stubclasses.get(name);
+	
+		if (data == null) { 
 
-	public static int rank() { 
+			try { 		
+				boolean done = false;
+
+				while (!done) { 
+					/* this group is unknown -> go and ask the registry */
+					int ticket = ticketMaster.get();;
+					WriteMessage w = unicast[0].newMessage();
+					w.writeByte(GroupProtocol.REGISTRY);
+					w.writeByte(GroupProtocol.FIND_GROUP);
+					w.writeInt(_rank);
+					w.writeInt(ticket);
+					w.writeObject(name);
+					w.send();
+					w.finish();
+					
+					data = new GroupStubData();
+				
+					ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
+					byte result = r.readByte();		
+					
+					switch (result) { 
+					case GroupProtocol.GROUP_UNKOWN:
+						r.finish();
+						throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : unknown group!");  	
+						
+					case GroupProtocol.GROUP_NOT_READY: 
+						System.err.println("Group " + name + " not ready yet -> going to sleep");						
+						r.finish();
+						try { 
+							Thread.sleep(100);
+						} catch (Exception e) { 
+							// ignore
+						}						
+						break;
+						
+					case GroupProtocol.GROUP_OK:
+						done = true;
+
+						data.groupName = name;
+						data.typeName  = (String) r.readObject();
+						data.groupID   = r.readInt();
+						data.memberIDs = (long []) r.readObject();
+						r.finish();
+						
+						try { 	
+							String classname = "";
+							String temp = data.typeName;
+							StringTokenizer s = new StringTokenizer(temp, ".");						
+							int tokens = s.countTokens();
+							
+							if (tokens > 1) { 
+								classname = s.nextToken();
+								
+								for (int i=1;i<tokens-1;i++) { 
+									classname += "." + s.nextToken();
+								}
+							} 		
+							
+							classname += "group_stub_" + s.nextToken();
+							data.stubClass = Class.forName(classname); 
+						} catch (Exception e) { 
+							throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : unknown group!");  
+						} 
+					} 
+				} 
+
+			} catch (IbisException e) { 
+				throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : " + e); 
+			} 
+
+			stubclasses.put(name, data);
+		}
+			
+		int num = 0;
+		GroupInterface s = null;;
+
+		num = stubIDStack.getPosition();
+		s = data.newStub(num);
+		stubIDStack.putData(num, s);
+		return s;
+	}
+
+	public static int getPoolRank() { 
 		return _rank;
 	}
 	
-	public static int size() { 
+	public static int getPoolSize() { 
 		return _size;
 	}       
 
@@ -445,7 +628,7 @@ public final class Group {
 				unicast[i].free();
 			} 
 			
-			multicast.free();			
+			//multicast.free();			
 			receivePort.free();			
 			ibis.end();
 			
@@ -479,204 +662,246 @@ public final class Group {
 		
 		return null;
 	} 
+
+	public static GroupMethod findMethod(GroupInterface i, String method) throws NoSuchMethodException { 
+		
+		GroupMethod m = findMethod((GroupStub)i, method);
+
+		if (m == null) { 
+			throw new NoSuchMethodException("Group method \"" + method + "\" not found");
+		}
+
+		return m;
+	}
+
+	static ForwarderReceiveThread waitingThreads = null;
+
+	static synchronized ForwarderReceiveThread getForwarderReceiveThread() { 
+		
+		ForwarderReceiveThread temp = null;
+
+		if (waitingThreads == null) { 
+			temp = new ForwarderReceiveThread();
+		} else { 
+			temp = waitingThreads;
+			waitingThreads = temp.next;			
+		}
+		return temp;
+	} 
+
+	static synchronized void returnForwarderReceiveThread(ForwarderReceiveThread t) { 
+		t.next = waitingThreads;
+		waitingThreads = t;
+	} 
+
         /* ============================= setInvoke methods ========================================== */
 
-	private static void setInvoke(GroupStub s, String method, int mode, int destination, Class personal_class, String personalize) {
+//  	private static void setInvoke(GroupStub s, String method, int mode, int destination, Class personal_class, String personalize) {
 
-		GroupMethod temp = findMethod(s, method);
+//  		GroupMethod temp = findMethod(s, method);
 
-		if (temp == null) { 
-			System.out.println("Method " + method + " not found!");
-			System.exit(1);
-		}
+//  		if (temp == null) { 
+//  			System.out.println("Method " + method + " not found!");
+//  			System.exit(1);
+//  		}
 
-		switch (mode) { 
-		case Group.LOCAL:
-	 		if (DEBUG) System.out.println("Setting mode of " + method + " to LOCAL");
-		 	temp.invocationMode = Group.LOCAL;
-			break;
+//  		switch (mode) { 
+//  		case Group.LOCAL:
+//  	 		if (DEBUG) System.out.println("Setting mode of " + method + " to LOCAL");
+//  		 	temp.invocationMode = Group.LOCAL;
+//  			break;
 
- 		case Group.REMOTE:
-	 		if (DEBUG) System.out.println("Setting mode of " + method + " to REMOTE");
+//   		case Group.REMOTE:
+//  	 		if (DEBUG) System.out.println("Setting mode of " + method + " to REMOTE");
 
-	 		if (destination >= 0 && destination < s.size) {
-		 		temp.invocationMode = Group.REMOTE;
-			 	temp.destinationMember = destination;
+//  	 		if (destination >= 0 && destination < s.size) {
+//  		 		temp.invocationMode = Group.REMOTE;
+//  			 	temp.destinationMember = destination;
 				
-				long memberID = s.memberIDs[destination];
-				temp.destinationRank = (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				temp.destinationSkeleton = (int) (memberID & 0xFFFFFFFFL);
- 			} else { 
-				System.out.println("Method " + method + " destination " + destination + " out of range");
-				System.exit(1);
-		 	}				
-			break;
+//  				long memberID = s.memberIDs[destination];
+//  				temp.destinationRank = (int) ((memberID >> 32) & 0xFFFFFFFFL);
+//  				temp.destinationSkeleton = (int) (memberID & 0xFFFFFFFFL);
+//   			} else { 
+//  				System.out.println("Method " + method + " destination " + destination + " out of range");
+//  				System.exit(1);
+//  		 	}				
+//  			break;
 
- 		case Group.GROUP:
-	 		if (DEBUG) System.out.println("Setting mode of " + method + " to GROUP");
-		 	temp.invocationMode = Group.GROUP;
-			break;
+//   		case Group.GROUP:
+//  	 		if (DEBUG) System.out.println("Setting mode of " + method + " to GROUP");
+//  		 	temp.invocationMode = Group.GROUP;
+//  			break;
 
- 		case Group.PERSONALIZE:
-	 		if (DEBUG) System.out.println("Setting mode of " + method + " to PERSONAL");
+//   		case Group.PERSONALIZE:
+//  	 		if (DEBUG) System.out.println("Setting mode of " + method + " to PERSONAL");
 
-			int p_func = 0;  //getPersonalizeMethod(personal_class, personalize, descriptor);  // should also check return type here !!
+//  			int p_func = 0;  //getPersonalizeMethod(personal_class, personalize, descriptor);  // should also check return type here !!
 		 	
-			if (p_func != 0) { 
-			 	temp.invocationMode = Group.PERSONALIZE;
-				// 				temp.personalization_method = p_func;
- 			} else { 
-				System.out.println("Method " + method + " personal not implemented yet");
-				System.exit(1);
-	 		} 
- 			break;
- 		}
-	}
+//  			if (p_func != 0) { 
+//  			 	temp.invocationMode = Group.PERSONALIZE;
+//  				// 				temp.personalization_method = p_func;
+//   			} else { 
+//  				System.out.println("Method " + method + " personal not implemented yet");
+//  				System.exit(1);
+//  	 		} 
+//   			break;
+//   		}
+//  	}
 
-	public static void setInvoke(GroupMethods m, String method, int mode) {
+//  	public static void setInvoke(GroupMethods m, String method, int mode) {
 
-		try { 
- 			GroupStub s = (GroupStub) m;
+//  		try { 
+//   			GroupStub s = (GroupStub) m;
 
-			if (mode == Group.LOCAL || mode == Group.GROUP) { 
-				setInvoke(s, method, mode, -1, null, null);
-			} else { 
-				// exception
-			}
+//  			if (mode == Group.LOCAL || mode == Group.GROUP) { 
+//  				setInvoke(s, method, mode, -1, null, null);
+//  			} else { 
+//  				// exception
+//  			}
 
-	 	} catch (ClassCastException e) { 
-		 	// exception
-			System.err.println("Group got exception " + e);
-			System.exit(1);
-		}  
-	}
+//  	 	} catch (ClassCastException e) { 
+//  		 	// exception
+//  			System.err.println("Group got exception " + e);
+//  			System.exit(1);
+//  		}  
+//  	}
 
-	public static void setInvoke(GroupMethods m, String method, int mode, int destination) {
+//  	public static void setInvoke(GroupMethods m, String method, int mode, int destination) {
 
-		try { 
-			GroupStub s = (GroupStub) m;
+//  		try { 
+//  			GroupStub s = (GroupStub) m;
 
-			// remote 
-			if (mode == Group.REMOTE) {  
-				setInvoke(s, method, mode, destination, null, null);
-			} else {  
-				// exception 
-			} 			
-		} catch (ClassCastException e) { 
-			// exception
-			System.err.println("Group got exception " + e);
-			System.exit(1);
-		}  
-	}
+//  			// remote 
+//  			if (mode == Group.REMOTE) {  
+//  				setInvoke(s, method, mode, destination, null, null);
+//  			} else {  
+//  				// exception 
+//  			} 			
+//  		} catch (ClassCastException e) { 
+//  			// exception
+//  			System.err.println("Group got exception " + e);
+//  			System.exit(1);
+//  		}  
+//  	}
 
-	public static void setInvoke(GroupMethods m, 
-				     String method, String desc, int mode, String classname, String personalize) {
-		/*
-		GroupStub s;
-		Class p_class;
+//  	public static void setInvoke(GroupMethods m, 
+//  				     String method, String desc, int mode, String classname, String personalize) {
+//  		/*
+//  		GroupStub s;
+//  		Class p_class;
 
-		try { 
-			s = (GroupStub) m;
+//  		try { 
+//  			s = (GroupStub) m;
 
-			p_class = Class.forName(classname);
+//  			p_class = Class.forName(classname);
 
-		} catch (Exception e) { 
-			// exception
-		} 
+//  		} catch (Exception e) { 
+//  			// exception
+//  		} 
 
-		if (p_class == null) { 
-			// exception 
-		}
+//  		if (p_class == null) { 
+//  			// exception 
+//  		}
 
-		// personalization
-		if (mode == PERSONAL && personalize != null) { 
-			s.setInvoke(method, desc, mode, -1, p_class, personalize);
-		} else { 
-			// exception
-		}
-		*/
-	}
+//  		// personalization
+//  		if (mode == PERSONAL && personalize != null) { 
+//  			s.setInvoke(method, desc, mode, -1, p_class, personalize);
+//  		} else { 
+//  			// exception
+//  		}
+//  		*/
+//  	}
 
         /* ============================= setResult methods ========================================== */
 
-	private static void setResult(GroupStub s, String method, int mode, Class combine_class, String combine) {
+//  	private static void setResult(GroupStub s, String method, int mode, Class combine_class, String combine) {
 
-		GroupMethod temp = findMethod(s, method);
+//  		GroupMethod temp = findMethod(s, method);
 
-		if (temp == null) { 
-			System.out.println("Method " + method + " not found!");
-			System.exit(1);
-		}
+//  		if (temp == null) { 
+//  			System.out.println("Method " + method + " not found!");
+//  			System.exit(1);
+//  		}
 
- 		switch (mode) { 
-		case Group.DISCARD:
-			temp.resultMode = Group.DISCARD;
-			break;	
-		case Group.RETURN:
-			temp.resultMode = Group.RETURN;
-			break;	
-		case Group.COMBINE:
+//   		switch (mode) { 
+//  		case Group.DISCARD:
+//  			temp.resultMode = Group.DISCARD;
+//  			break;	
+//  		case Group.RETURN:
+//  			temp.resultMode = Group.RETURN;
+//  			break;	
+//  		case Group.COMBINE:
 			
-			temp.combineMethod = findMethod(combine_class, combine, temp.combineParameters);
-
- 			if (temp.combineMethod != null) { 
-	 			temp.resultMode = Group.COMBINE;
-				temp.combineMethodName = combine;
-				temp.combineClass = combine_class;
- 			} else { 
-				System.out.print("Combine method \"" + temp.returnType.getName() + " " + combine + "(");
-
-				for (int i=0;i<temp.combineParameters.length;i++) { 
-					System.out.print(temp.combineParameters[i].getName());
-					if (i<temp.combineParameters.length-1) { 
-						System.out.print(", ");
-					}
-				} 
-				System.out.println(")\" not found!");
-				System.exit(1);
- 			} 
-	 		break;
- 		}
-	}
+//  			System.out.print("Searching for combine method \"" + temp.returnType.getName() + " " + combine + "(");
+//  			for (int i=0;i<temp.combineParameters.length;i++) { 
+//  				System.out.print(temp.combineParameters[i].getName());
+//  				if (i<temp.combineParameters.length-1) { 
+//  					System.out.print(", ");
+//  				}
+//  			} 
+//  			System.out.println(")\" in Class " + combine_class);
 
 
-	public static void setResult(GroupMethods m, String method, int mode) {
+//  			temp.combineMethod = findMethod(combine_class, combine, temp.combineParameters);
 
- 		try { 
-			GroupStub s = (GroupStub) m;
+//   			if (temp.combineMethod != null) { 
+//  	 			temp.resultMode = Group.COMBINE;
+//  				temp.combineMethodName = combine;
+//  				temp.combineClass = combine_class;
+//   			} else { 
+//  				System.out.print("Combine method \"" + temp.returnType.getName() + " " + combine + "(");
 
-			// discard or return
-			if (mode == Group.DISCARD || mode == Group.RETURN) { 
-				setResult(s, method, mode, null, null);
-			} else { 
-				// exception
-			}
- 		} catch (ClassCastException e) { 
- 			// exception
-			System.err.println("Group got exception " + e);
-			System.exit(1);
- 		} 
-	}
+//  				for (int i=0;i<temp.combineParameters.length;i++) { 
+//  					System.out.print(temp.combineParameters[i].getName());
+//  					if (i<temp.combineParameters.length-1) { 
+//  						System.out.print(", ");
+//  					}
+//  				} 
+//  				System.out.println(")\" not found!");
+//  				System.exit(1);
+//   			} 
+//  	 		break;
+//   		}
+//  	}
 
-	public static void setResult(GroupMethods m, String method, int mode, String classname, String combine) {
 
-		try { 
-			GroupStub s = (GroupStub) m;
-			Class p_class = Class.forName(classname);
+//  	public static void setResult(GroupMethods m, String method, int mode) {
 
-			// personalization
-			if (mode == Group.COMBINE && combine != null) { 
-				setResult(s, method, mode, p_class, combine);
-			} else { 
-				// exception
-			}
+//   		try { 
+//  			GroupStub s = (GroupStub) m;
 
-		} catch (Exception e) { 
-			// exception
-			System.err.println("Group got exception " + e);
-			System.exit(1);
-		} 		
-	}
+//  			// discard or return
+//  			if (mode == Group.DISCARD || mode == Group.RETURN) { 
+//  				setResult(s, method, mode, null, null);
+//  			} else { 
+//  				// exception
+//  			}
+//   		} catch (ClassCastException e) { 
+//   			// exception
+//  			System.err.println("Group got exception " + e);
+//  			System.exit(1);
+//   		} 
+//  	}
+
+//  	public static void setResult(GroupMethods m, String method, int mode, String classname, String combine) {
+
+//  		try { 
+//  			GroupStub s = (GroupStub) m;
+//  			Class p_class = Class.forName(classname);
+
+//  			// personalization
+//  			if (mode == Group.COMBINE && combine != null) { 
+//  				setResult(s, method, mode, p_class, combine);
+//  			} else { 
+//  				// exception
+//  			}
+
+//  		} catch (Exception e) { 
+//  			// exception
+//  			System.err.println("Group got exception " + e);
+//  			System.exit(1);
+//  		} 		
+//  	}
 }
 
 
