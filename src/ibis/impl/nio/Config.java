@@ -9,7 +9,7 @@ interface Config {
      * Enables debug support in nio ibis. Use the ibis.nio.debug system
      * property to select which debug statements to print. See Debug.java
      */
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     /*
      * Do we do asserts (may make it a bit slower)
