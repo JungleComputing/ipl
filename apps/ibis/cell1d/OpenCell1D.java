@@ -75,7 +75,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
     private int members = 0;
     private IbisIdentifier prev = null;
 
-    public void joined( IbisIdentifier id )
+    public synchronized void joined( IbisIdentifier id )
     {
         if( traceClusterResizing ){
             System.out.println( "Machine " + id.name() + " joins the computation" );
@@ -105,7 +105,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
         prev = id;
     }
 
-    public void left( IbisIdentifier id )
+    public synchronized void left( IbisIdentifier id )
     {
         if( traceClusterResizing ){
             System.out.println( "Machine " + id.name() + " leaves the computation" );
@@ -113,7 +113,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
         members--;
     }
 
-    public void died( IbisIdentifier id )
+    public synchronized void died( IbisIdentifier id )
     {
         if( traceClusterResizing ){
             System.out.println( "Machine " + id.name() + " died" );
@@ -697,6 +697,7 @@ class OpenCell1D implements OpenConfig {
      */
     static void updateMembership( Problem p )
     {
+        synchronized(rszHandler) {
         int members = rszHandler.getMemberCount();
         if( knownMembers<members ){
             // Some processors have joined the computation.
@@ -724,6 +725,7 @@ class OpenCell1D implements OpenConfig {
                 }
             }
             knownMembers = members;
+        }
         }
     }
 
