@@ -302,7 +302,7 @@ static void dump_ ## jtype(jtype *b, int len) \
     fprintf(stderr, "\n"); \
 }
 #else
-#define DUMP_DATA(jtype, fmt) \
+#define DUMP_DATA(jtype, fmt, cast) \
 static void dump_ ## jtype(jtype *b, int len) \
 { \
 }
