@@ -19,15 +19,15 @@ import java.io.IOException;
 public interface WriteMessage { 
 
     /**
-     * Starts sending the message to all {@link ReceivePort ReceivePorts} its
-     * {@link SendPort} is connected to.
+     * Starts sending the message to all {@link ibis.ipl.ReceivePort ReceivePorts} its
+     * {@link ibis.ipl.SendPort} is connected to.
      * Data may be streamed, so the user is not allowed to change the data
      * pushed into this message, as the send is NON-blocking.
      * It is only safe to touch the data after it has actually been
      * sent, which can be ensured by either calling {@link #finish} or
-     * a {@link sync} corresponding to this send.
+     * a {@link #sync} corresponding to this send.
      * The <code>send</code> method returns a ticket, which can be used
-     * as a parameter to the {@link sync} method, which will block until
+     * as a parameter to the {@link #sync} method, which will block until
      * the data corresponding to this ticket can be used again.
      *
      * @return a ticket.

@@ -2,6 +2,7 @@ package ibis.impl.net;
 
 import ibis.ipl.WriteMessage;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.SendPort;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -146,7 +147,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
             return b;
 	}
 
-	public ibis.ipl.SendPort localPort() {
+	public SendPort localPort() {
 		// what the @#@ should we do here --Rob
 		throw new ibis.ipl.IbisError("AAAAA");
 	}
