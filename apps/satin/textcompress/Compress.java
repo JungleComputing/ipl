@@ -189,8 +189,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                                 results[cost].len<r.len ||
                                 (results[cost].len==r.len && r.backpos>results[cost].backpos)
                             ){
-                                // This backreferences is longer than the previous
-                                // one we had registered for this cost.
+                                // This backreferences is longer than the
+                                // previous one we had registered for this cost.
                                 results[cost] = r;
                                 haveAlternatives = true;
                                 if( maxLen<r.len ){
@@ -223,9 +223,6 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             }
             return mv;
         }
-
-        // TODO: don't bother with spawning if there is only one
-        // backreference, and a copy move is not worth considering.
 
         if( traceLookahead ){
             if( mv != null ){
