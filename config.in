@@ -127,7 +127,6 @@ ifeq (,$(SRC))
 GENERATE_PACKAGERS	= 0
 endif
 ifeq (1, $(GENERATE_PACKAGERS))
-ifneq (,$(SRC))
 SERIALIZABLE_J  := $(shell $(JAVAC_COMMAND) +B +DR=$(DEPENDENCIES) $(MAIN) $(SRC); $(IBIS_ROOT)/ibis/bin/filter_Serializable < $(DEPENDENCIES))
 SERIALIZABLE_O	:= $(SERIALIZABLE_J:%.java=%.o)
 SERIALIZABLE_JAD	:= $(SERIALIZABLE_J:%.java=%.jad) $(SERIALIZABLE_J:%.java=%_ibis_io_Generator.jad)
