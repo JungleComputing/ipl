@@ -223,6 +223,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 	output.println("\t\t\tReceivePortIdentifier rpi;");
 	output.println("\t\t\ttry {");
 	output.println("\t\t\t\trpi = (ReceivePortIdentifier) r.readObject();");
+	output.println("\t\t\t\tr.finish();");
 	output.println("\t\t\t} catch(ClassNotFoundException e) {");
 	output.println("\t\t\t\tthrow new ibis.rmi.UnmarshalException(\"while reading ReceivePortIdentifier\", e);");
 	output.println("\t\t\t} catch(IOException e) {");
