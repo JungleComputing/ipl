@@ -4,9 +4,9 @@
 if [ -z "$1" -o $# -le 2 ]
 then
 	echo "Usage:"
-	echo "  run_ibis <PROC_NR> <TOTAL_NR_PROCS> <NAMESERVER_POOL> <NAMESERVER_PORT> <NAMESERVER_HOSTNAME> <CLASS NAME> <APPLICATION PARAMS>"
+	echo "  run_ibis <PROC_NR> <TOTAL_NR_PROCS> <NAMESERVER_POOL> <NAMESERVER_HOSTNAME>:<NAMESERVER_PORT> <CLASS NAME> <APPLICATION PARAMS>"
 	echo "or, when using prun:"
-	echo "  prun -1 -v run_ibis <TOTAL_NR_PROCS> <NAMESERVER_PORT> <NAMESERVER_HOSTNAME> <CLASS NAME> <APPLICATION PARAMS>"
+	echo "  prun -1 -v run_ibis <TOTAL_NR_PROCS> <NAMESERVER_HOSTNAME>:<NAMESERVER_PORT> <CLASS NAME> <APPLICATION PARAMS>"
 	exit 1
 fi
 
@@ -68,11 +68,27 @@ else
     wrapper_name="$IBIS_ROOT/bin/java_wrapper"
 fi
 
-Dns_port="-Dibis.name_server.port=$1"
-shift
-
-Dns_server="-Dibis.name_server.host=$1"
-shift
+case $1 in
+[0-9]*)
+    # "old" syntax: <portno> <nameserver-host>
+    Dns_port="-Dibis.name_server.port=$1"
+    shift
+    Dns_server="-Dibis.name_server.host=$1"
+    shift
+    ;;
+*:*)
+    # "new" syntax: <nameserver-host>:<portno>
+    Dns_port="-Dibis.name_server.port="`expr "$1" : '.*:\(.*\)'`
+    Dns_server="-Dibis.name_server.host="`expr "$1" : '\(.*\):.*'`
+    shift
+    ;;
+*)
+    # assume <nameserver-host> and default port
+    Dns_port=
+    Dns_server="-Dibis.name_server.host=$1"
+    shift
+    ;;
+esac
 
 if [ ! -z "$HOSTS" ]; then
   Dpool_names="-Dibis.pool.host_names"

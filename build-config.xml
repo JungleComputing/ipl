@@ -423,6 +423,11 @@ to the command line.
 	</concat>
 	<chmod file="${ibis}/bin/jdis" perm="+x"/>
 
+	<concat destfile="${ibis}/bin/ant">
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/ant" />
+	</concat>
+	<chmod file="${ibis}/bin/ant" perm="+x"/>
+
 	<concat destfile="${ibis}/bin/jp">
 	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/jp" />
 	</concat>
@@ -533,6 +538,11 @@ to the command line.
 	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/run_ibis.bat" />
 	</concat>
 	<chmod file="${ibis}/bin/run_ibis.bat" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/ant.bat">
+	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/ant.bat" />
+	</concat>
+	<chmod file="${ibis}/bin/ant.bat" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/ibis_nameserver.bat">
 	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/ibis_nameserver.bat" />
