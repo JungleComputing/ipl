@@ -24,7 +24,7 @@ public interface Config {
 	static final boolean ASSERTS = false;
 
 	/* Enable or disable aborts and inlets. */
-	static final boolean ABORTS = false;
+	static final boolean ABORTS = true;
 
 	/* Enable or disable an optimization for aborts. */
 	static final boolean HANDLE_ABORTS_IN_LATENCY = false;
