@@ -4,10 +4,15 @@ class ByteBuffer implements java.io.Serializable {
     byte buf[];
     int sz;
 
+    ByteBuffer( int len )
+    {
+        buf = new byte[len];
+        sz = 0;
+    }
+
     ByteBuffer()
     {
-        buf = new byte[1000];
-        sz = 0;
+        this( 1000 );
     }
 
     void append( byte b )
@@ -24,5 +29,22 @@ class ByteBuffer implements java.io.Serializable {
     {
         append( (byte) (v>>8) );
         append( (byte) (v & 255) );
+    }
+
+    void replicate( int d, int len )
+    {
+        int pos = sz-d;
+        System.err.println( "Replicate: backpos=" + pos + " sz=" + sz + " d=" + d + " len=" + len );
+        if( pos<0 ){
+            System.err.println( "Cannot replicate from beyond the start of the buffer: pos=" + pos );
+            System.exit( 1 );
+        }
+        if( sz+len>buf.length ){
+            byte newbuf[] = new byte[sz+len+10];
+            System.arraycopy( buf, 0, newbuf, 0, sz );
+            buf = newbuf;
+        }
+        System.arraycopy( buf, pos, buf, sz, len );
+        sz += len;
     }
 }

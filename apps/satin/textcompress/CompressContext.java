@@ -59,7 +59,7 @@ class CompressContext implements java.io.Serializable {
                 out.append( (byte) d );
             }
             else {
-                out.append( Magic.BACKL1D1 );
+                out.append( Magic.BACKL2D1 );
                 out.append( (short) len );
                 out.append( (byte) d );
             }
@@ -71,7 +71,7 @@ class CompressContext implements java.io.Serializable {
                 out.append( (short) d );
             }
             else {
-                out.append( Magic.BACKL1D2 );
+                out.append( Magic.BACKL2D2 );
                 out.append( (short) len );
                 out.append( (short) d );
             }

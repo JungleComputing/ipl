@@ -6,7 +6,7 @@ import java.io.FileOutputStream;
 
 class Compress extends ibis.satin.SatinObject implements CompressorInterface
 {
-    static final boolean traceMatches = true;
+    static final boolean traceMatches = false;
 
     public static byte[] readFile( File f )
         throws java.io.IOException

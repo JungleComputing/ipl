@@ -72,4 +72,15 @@ class Helpers {
         }
         return maxsz;
     }
+
+    static int decodeByte( byte b )
+    {
+        int v = b & 0xff;
+        return v;
+    }
+
+    static int decodeShort( byte high, byte low )
+    {
+        return (decodeByte( high ) << 8) + decodeByte( low );
+    }
 }
