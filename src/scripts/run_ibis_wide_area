@@ -1,3 +1,23 @@
+#!/bin/sh
+
+PRG="$0"
+
+# resolve symlinks
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+dir=`dirname "$PRG"`
+dir=`cd "$dir" && pwd`
+
+. $dir/../configuration.sh
+
 JAVACLASSPATH=build:.:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/build/lib
 
 export LD_ASSUME_KERNEL=2.2.5

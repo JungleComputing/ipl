@@ -1,3 +1,23 @@
+#!/bin/sh
+
+PRG="$0"
+
+# resolve symlinks
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+dir=`dirname "$PRG"`
+dir=`cd "$dir" && pwd`
+
+. $dir/../configuration.sh
+
 # javap with classpath
 
 export JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/build:build:$BCEL:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar

@@ -2,6 +2,12 @@
 
 if "%OS%"=="Windows_NT" @setlocal
 
+rem %~dp0 is expanded pathname of the current script under NT
+
+set DIR=%~dp0..
+
+"%DIR%\configuration.bat"
+
 set JAVACLASSPATH=%CLASSPATH%;%IBIS_ROOT%\build;
 
 set ConnectHub="-Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP"

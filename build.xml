@@ -56,12 +56,141 @@
 	</antcall>
     </target>
 
+    <target name="build-bin">
+	<mkdir dir="${ibis}/bin"/>
+	<copy
+	    file="${ibis}/src/scripts/ibisc"
+	    tofile="${ibis}/bin/ibisc"/>
+
+	<copy
+	    file="${ibis}/src/scripts/io_gen"
+	    tofile="${ibis}/bin/io_gen"/>
+
+	<copy
+	    file="${ibis}/src/scripts/ibis_nameserver"
+	    tofile="${ibis}/bin/ibis_nameserver"/>
+
+	<copy
+	    file="${ibis}/src/scripts/ibis_controlhub"
+	    tofile="${ibis}/bin/ibis_controlhub"/>
+
+	<copy
+	    file="${ibis}/src/scripts/jdis"
+	    tofile="${ibis}/bin/jdis"/>
+
+	<copy
+	    file="${ibis}/src/scripts/ant"
+	    tofile="${ibis}/bin/ant"/>
+
+	<copy
+	    file="${ibis}/src/scripts/jp"
+	    tofile="${ibis}/bin/jp"/>
+
+	<copy
+	    file="${ibis}/src/scripts/satinc"
+	    tofile="${ibis}/bin/satinc"/>
+
+	<copy
+	    file="${ibis}/src/scripts/run-ibis"
+	    tofile="${ibis}/bin/run-ibis"/>
+
+	<copy
+	    file="${ibis}/src/scripts/extract_jars"
+	    tofile="${ibis}/bin/extract_jars"/>
+
+	<copy
+	    file="${ibis}/src/scripts/tree_ioc"
+	    tofile="${ibis}/bin/tree_ioc"/>
+
+	<if>
+	    <available file="src/scripts/run_ibis"/>
+	    <then>
+		<copy
+		    file="${ibis}/src/scripts/run_ibis"
+		    tofile="${ibis}/bin/run_ibis"/>
+	    </then>
+	</if>
+
+	<if>
+	    <available file="src/scripts/run_ibis_wide_area"/>
+	    <then>
+		<copy
+		    file="${ibis}/src/scripts/run_ibis_wide_area"
+		    tofile="${ibis}/bin/run_ibis_wide_area"/>
+	    </then>
+	</if>
+
+	<if>
+	    <available file="src/scripts/run-das"/>
+	    <then>
+		<copy
+		    file="${ibis}/src/scripts/run-das"
+		    tofile="${ibis}/bin/run-das"/>
+	    </then>
+	</if>
+
+	<if>
+	    <available file="src/scripts/cluster_wrapper"/>
+	    <then>
+		<copy
+		    file="${ibis}/src/scripts/cluster_wrapper"
+		    tofile="${ibis}/bin/cluster_wrapper"/>
+	    </then>
+	</if>
+
+	<if>
+	    <available file="src/scripts/csim_run_ibis"/>
+	    <then>
+		<copy
+		    file="${ibis}/src/scripts/csim_run_ibis"
+		    tofile="${ibis}/bin/csim_run_ibis"/>
+	    </then>
+	</if>
+
+	<if>
+	    <available file="src/scripts/csim_run_ibis_tcp"/>
+	    <then>
+		<copy
+		    file="${ibis}/src/scripts/csim_run_ibis_tcp"
+		    tofile="${ibis}/bin/csim_run_ibis_tcp"/>
+	    </then>
+	</if>
+
+	<if>
+	    <available file="src/scripts/run_ibis.bat"/>
+	    <then>
+		<copy
+		    file="${ibis}/src/scripts/run_ibis.bat"
+		    tofile="${ibis}/bin/run_ibis.bat"/>
+	    </then>
+	</if>
+
+	<copy
+	    file="${ibis}/src/scripts/run-ibis.bat"
+	    tofile="${ibis}/bin/run-ibis.bat"/>
+
+	<copy
+	    file="${ibis}/src/scripts/ant.bat"
+	    tofile="${ibis}/bin/ant.bat"/>
+
+	<copy
+	    file="${ibis}/src/scripts/ibis_nameserver.bat"
+	    tofile="${ibis}/bin/ibis_nameserver.bat"/>
+
+	<copy
+	    file="${ibis}/src/scripts/ip_map.perl"
+	    tofile="${ibis}/bin/ip_map.perl"/>
+
+	<chmod file="${ibis}/bin/*" perm="+x"/>
+
+    </target>
     <!--
 	Compile, run IOGenerator, compile native code for the whole of Ibis
     -->
     <target name="build"
 	    depends="init"
 	    description="Build Ibis">
+	<antcall inheritAll="true" inheritRefs="true" target="build-bin"/>
 	<patternset id="build.sources.all">
 	    <include name="ibis/**/*.java"/>
 	    <exclude name="ibis/impl/net/nio/**/*.java"/>
@@ -738,8 +867,7 @@
 	<delete file="${distr}/ibis/src/scripts/run_ibis.bat"/>
 	<delete file="${distr}/ibis/src/scripts/run_ibis_wide_area"/>
 	<delete file="${distr}/ibis/src/scripts/run-das"/>
-	<delete file="${distr}/ibis/src/scripts/cluster_wrapper.in"/>
-	<delete file="${distr}/ibis/src/scripts/rewrite_config"/>
+	<delete file="${distr}/ibis/src/scripts/cluster_wrapper"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
 	<move todir="${distr}/ibis-${version}">

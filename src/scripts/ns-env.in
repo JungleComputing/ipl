@@ -6,9 +6,6 @@
 export IBIS_NAMESERVER_HOST=@IBIS_NS_HOST@
 export IBIS_NAMESERVER_PORT=@IBIS_NS_PORT@
 
-# retry connection to nameserver if it is not there? Set to "yes" or "no".
-export IBIS_NAMESERVER_RETRY=no
-
 # not nameserver related, but re-configuration-proof:
 # set to 1 if javawrapper must be used
 export USE_JAVAWRAPPER=0

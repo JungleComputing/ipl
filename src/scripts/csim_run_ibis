@@ -1,3 +1,23 @@
+#!/bin/sh
+
+PRG="$0"
+
+# resolve symlinks
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+dir=`dirname "$PRG"`
+dir=`cd "$dir" && pwd`
+
+. $dir/../configuration.sh
+
 #used for running ibis with the panda cluster simulator
 RANK=$1
 NODES_INCL_GATEWAYS=$2

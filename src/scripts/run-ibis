@@ -1,7 +1,23 @@
+#!/bin/sh
 
-# Start of script template. If there are shell-variable assignments before this
-# line, this is NOT the template, and is a generated script. Look in
-# $IBIS_ROOT/src/scripts/run-ibis instead.
+PRG="$0"
+
+# resolve symlinks
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+dir=`dirname "$PRG"`
+dir=`cd "$dir" && pwd`
+
+. $dir/../configuration.sh
+
 
 #
 # find out if this is a prun run ...

@@ -1,12 +1,12 @@
 @echo off
 
-rem Start of script template. If there are environment assignments before this
-rem line, this is NOT the template, and is a generated script. Look in
-rem %IBIS_ROOT%\src\scripts\run-ibis.bat instead.
-rem
-
+rem %~dp0 is expanded pathname of the current script under NT
 
 if "%OS%"=="Windows_NT" @setlocal
+
+set DIR=%~dp0..
+
+"%DIR%\configuration.bat"
 
 set PRUN_CPU_RANK=0
 set NHOSTS=1
