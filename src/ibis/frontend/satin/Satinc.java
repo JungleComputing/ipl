@@ -1053,7 +1053,7 @@ public final class Satinc {
 	    if (verbose) {
 		System.out.println("outputting post-spawn aborted check for " + m);
 	    }
-	    // insertAbortedCheck(m, il, ih.getNext());
+	    insertAbortedCheck(m, il, ih.getNext());
 	}
     }
 
