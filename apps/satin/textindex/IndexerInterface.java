@@ -6,8 +6,10 @@
  * execution framework.
  */
 import java.io.File;
+import java.io.IOException;
 
 interface IndexerInterface extends ibis.satin.Spawnable
 {
-    public void indexDirectory( File dir, File IxDir );
+    public void indexFile( File f, File ixF ) throws IOException;
+    public void indexDirectory( File dir, File IxDir ) throws IOException;
 }

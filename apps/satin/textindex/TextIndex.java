@@ -10,15 +10,35 @@
  */
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public final class TextIndex extends ibis.satin.SatinObject implements IndexerInterface, java.io.Serializable {
     private static final boolean traceTreeWalk = true;
 
-    private void indexFile( File f, String fnm, String ixDir )
+    /**
+     * @param f The file to index.
+     * @param ixF The to write the index to.
+     */
+    public void indexFile( File f, File ixF ) throws IOException
     {
+        BufferedReader r = new BufferedReader( new FileReader( f ) );
+        FileWriter iw = new FileWriter( ixF );
+
+        while( true ){
+            String s = r.readLine();
+            if( s == null ){
+                break;
+            }
+            String words[] = s.split( " " );
+        }
+        r.close();
+        iw.close();
     }
 
-    public void indexDirectory( File dir, File ixDir )
+    public void indexDirectory( File dir, File ixDir ) throws IOException
     {
         // First make sure the target index directory exists.
         if( ixDir.exists() ){
@@ -50,6 +70,7 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
                     if( traceTreeWalk ){
                         System.err.println( "Indexing plain file " + f );
                     }
+                    indexFile( f, ixf );
                 }
                 else {
                     System.err.println( "Skipping weird file " + f );
