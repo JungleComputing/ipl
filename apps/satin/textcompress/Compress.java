@@ -45,6 +45,10 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             text[p1+3] == text[p2+3];
     }
 
+    /**
+     * Returns a list of positions in the text that contain a possible
+     * text match for our current text.
+     */
     private static int[] collectBackrefs( byte text[], int backrefs[], int pos )
     {
         // First count the number of backreferences.
@@ -80,6 +84,9 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
      * Given a list of backreferences and a match length, return an
      * adapted version of the nearest (and hence cheapest) backreference that
      * covers this match length.
+     * @param results The list of backreferences to choose from.
+     * @param n The length of backreference to build.
+     * @return The constructed backreference.
      */
     Backref buildBestMove( Backref results[] , int n )
     {
@@ -97,7 +104,12 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return new Backref( r.backpos, r.pos, n );
     }
 
-    public Backref shallowEvaluateBackref( final byte text[], final int backrefs[], int backpos, int pos )
+    /**
+     * Given a text, a back position and a current position, return
+     * a backreference for this back position. The backreference contains
+     * a match length that is indirectly used to evaluate this backreference.
+     */
+    public Backref shallowEvaluateBackref( final byte text[], int backpos, int pos )
     {
         Backref r;
 
@@ -135,6 +147,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             mv = Backref.buildCopyBackref( pos );
         }
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
+            // There are too few characters left for a worthwile backref
+            // We may as well stop.
             return mv;
         }
         if( traceLookahead ){
@@ -145,7 +159,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
         Backref results[] = new Backref[Magic.MAX_COST+1];
         for( int i=0; i<sites.length; i++ ){
-            Backref r = shallowEvaluateBackref( text, backrefs, sites[i], pos );
+            Backref r = shallowEvaluateBackref( text, sites[i], pos );
 
             if( r != null ){
                 int cost = r.getCost();
@@ -153,7 +167,11 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                 // If this backreference is worth the extra trouble,
                 // register it.
                 if( pos+r.len>bestpos-cost ){
+                    // This backreference is long enough that it may
+                    // help beat the best move of the parent selectBestMove.
                     if( results[cost] == null || results[cost].len<r.len ){
+                        // This backreferences is longer than the previous
+                        // one we had registered for this cost.
                         results[cost] = r;
                         haveAlternatives = true;
                         if( maxLen<r.len ){
@@ -176,7 +194,6 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                 // compare it to other alternatives.
                 // Evaluate the gain of just copying the character.
                 Backref mv1 = selectBestMove( text, backrefs, pos+1, pos+1, depth+1 );
-                // TODO: See if we can get rid of this sync.
                 sync();
                 mv.addGain( mv1 );
             }
@@ -186,6 +203,9 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             }
             return mv;
         }
+
+        // TODO: don't bother with spawning if there is only one
+        // backreference, and a copy move is not worth considering.
 
         if( traceLookahead ){
             if( mv != null ){
