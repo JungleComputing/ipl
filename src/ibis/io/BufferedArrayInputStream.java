@@ -61,10 +61,12 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
     private final void fillBuffer(int len) throws IOException {
 
 	// This ensures that there are at least 'len' bytes in the buffer
-	// PRECONDITION: 'index + buffered_bytes' should never be larger than BUF_SIZE!!
+	// PRECONDITION: 'index + buffered_bytes' should never be larger
+	// than BUF_SIZE!!
 
 	while (buffered_bytes < len) {
-	    // System.err.println("buffer -> filled from " + index + " with " + buffered_bytes + " size " + BUF_SIZE + " read " + len);
+//	    System.err.println("buffer -> filled from " + index + " with "
+//	    	+ buffered_bytes + " size " + BUF_SIZE + " read " + len);
 	    
 	    int n = in.read(buffer, index + buffered_bytes,
 			    BUF_SIZE-(index+buffered_bytes));
@@ -129,14 +131,16 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 
     public void readArray(byte[] a, int off, int len) throws IOException {
 	if (DEBUG) {
-	    System.err.println("readArray(byte[" + off + " ... " + (off+len) + "])");
+	    System.err.println("readArray(byte[" + off + " ... " +
+				    (off+len) + "])");
 	}
 
 	if (buffered_bytes >= len) {
 	    //System.err.println("IN BUF");
 
 	    // data is already in the buffer.
-	    //System.err.println("Data is in buffer -> copying " + index + " ... " + (index+len) + " to " + off);
+//	    System.err.println("Data is in buffer -> copying " + index +
+//	    			" ... " + (index+len) + " to " + off);
 
 	    System.arraycopy(buffer, index, a, off, len);
 	    index += len;
@@ -146,7 +150,8 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 
 	} else {
 	    if (buffered_bytes != 0) {
-		//System.err.println("PARTLY IN BUF " + buffered_bytes + " " + len);
+//		System.err.println("PARTLY IN BUF " + buffered_bytes +
+//					" " + len);
 		// first, copy the data we do have to 'a' .
 		System.arraycopy(buffer, index, a, off, buffered_bytes);
 	    }
@@ -229,7 +234,8 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	throws IOException {
 
 	if (DEBUG) {
-	    System.err.println("readArray(char[" + off + " ... " + (off+len) + "])");
+	    System.err.println("readArray(char[" + off + " ... " +
+				    (off+len) + "])");
 	}
 
 	int useable, converted;
@@ -275,14 +281,15 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	throws IOException {
 
 	if (DEBUG) {
-	    System.err.println("readArray(int[" + off + " ... " + (off+len) + "])");
+	    System.err.println("readArray(int[" + off + " ... " +
+				    (off+len) + "])");
 	}
 
 	int useable, converted;
 	int to_convert = len * SIZEOF_INT;
 
-	//		System.err.println("To convert " + to_convert);
-	//		System.err.println("Buffered " + buffered_bytes);
+//	System.err.println("To convert " + to_convert);
+//	System.err.println("Buffered " + buffered_bytes);
 
 	while (buffered_bytes < to_convert) {
 	    // not enough data in the buffer
@@ -294,7 +301,8 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 		// first, copy the data we do have to 'a' .
 		useable = buffered_bytes / SIZEOF_INT;
 
-		//				System.err.println("converting " + useable + " ints from " + off);
+//		System.err.println("converting " + useable +
+//			" ints from " + off);
 		conversion.byte2int(buffer, index, a, off, useable);
 
 		len -= useable;
@@ -305,8 +313,9 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 		buffered_bytes -= converted;
 		to_convert -= converted;
 
-		//				System.err.println("Leftover " + len + " ints to convert, " + buffered_bytes + " bytes buffered" + 
-		//						   to_convert + " bytes to convert");
+//		System.err.println("Leftover " + len + " ints to convert, " +
+//			buffered_bytes + " bytes buffered" + 
+//			to_convert + " bytes to convert");
 
 		// second, copy the leftovers to the start of the buffer.
 		for (int i=0;i<buffered_bytes;i++) {
@@ -320,13 +329,15 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	}
 
 	// enough data in the buffer
-	//		System.err.println("converting " + len + " ints from " + index + " to " + off);
+//	System.err.println("converting " + len + " ints from " + index +
+//				" to " + off);
 
 	conversion.byte2int(buffer, index, a, off, len);
 	buffered_bytes -= to_convert;
 	index += to_convert;
 
-	//	System.err.println("Done converting int [], buffer contains " + buffered_bytes + " bytes (starting at " + index + ")");
+//	System.err.println("Done converting int [], buffer contains " +
+//		buffered_bytes + " bytes (starting at " + index + ")");
 
 
     }
@@ -335,7 +346,8 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	throws IOException {
 
 	if (DEBUG) {
-	    System.err.println("readArray(long[" + off + " ... " + (off+len) + "])");
+	    System.err.println("readArray(long[" + off + " ... " + (off+len) +
+		    "])");
 	}
 
 	int useable, converted;
@@ -382,7 +394,8 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	throws IOException {
 
 	if (DEBUG) {
-	    System.err.println("readArray(float[" + off + " ... " + (off+len) + "])");
+	    System.err.println("readArray(float[" + off + " ... " + (off+len) +
+		    "])");
 	}
 
 	int useable, converted;
@@ -428,7 +441,8 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	throws IOException {
 
 	if (DEBUG) {
-	    System.err.println("readArray(double[" + off + " ... " + (off+len) + "])");
+	    System.err.println("readArray(double[" + off + " ... " + (off+len)
+		    + "])");
 	}
 
 	int useable, converted;

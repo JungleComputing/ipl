@@ -8,8 +8,9 @@ import java.io.IOException;
  * This way the whole thing becomes backwards
  * compatible with older implementations.
  */
-public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFlags {
-
+public abstract class ArrayOutputStream
+	implements IbisAccumulator, IbisStreamFlags
+{
     /**
      * Constructor.
      */

@@ -11,8 +11,8 @@ public interface Serializable {
     /**
      * Takes care of writing the object, including parent objects, to the
      * <code>IbisSerializationOutputStream</code> parameter.
-     * @param out	the <code>IbisSerializationOutputStream</code> to which the
-     * 			object is written
+     * @param out the <code>IbisSerializationOutputStream</code> to which the
+     * 		  object is written
      * @exception IOException is thrown when an IO error occurs. 	
      */
     public void generated_WriteObject(IbisSerializationOutputStream out)
@@ -25,9 +25,9 @@ public interface Serializable {
      * <li> if not: 1.
      * </ul>
      *
-     * @param out	the <code>IbisSerializationOutputStream</code> to which the
-     * 			fields are written
-     * @param lvl	the "level" of the fields written
+     * @param out the <code>IbisSerializationOutputStream</code> to which the
+     * 		  fields are written
+     * @param lvl the "level" of the fields written
      * @exception IOException is thrown when an IO error occurs. 	
      */
     public void generated_DefaultWriteObject(IbisSerializationOutputStream out, int lvl)
@@ -40,11 +40,12 @@ public interface Serializable {
      * <li> if not: 1.
      * </ul>
      *
-     * @param in	the <code>IbisSerializationInputStream</code> from which the
-     * 			fields are read
-     * @param lvl	the "level" of the fields read
+     * @param in  the <code>IbisSerializationInputStream</code> from which the
+     * 		  fields are read
+     * @param lvl the "level" of the fields read
      * @exception IOException is thrown when an IO error occurs. 	
      */
-    public void generated_DefaultReadObject(IbisSerializationInputStream in, int lvl)
+    public void generated_DefaultReadObject(IbisSerializationInputStream in,
+					    int lvl)
 	throws IOException, ClassNotFoundException;
 } 

@@ -10,13 +10,13 @@ import java.io.OutputStream;
  * This abstract class is the interface provided by Ibis Serialization.
  * There are basically two ways to use this class:
  * <ul>
- * <li>Actually use <code>ObjectOutputStream</code>. In this case, the constructor
- *    version with an <code>OutputStream</code> parameter must be used. We call this
- *    the Sun serialization version.
- * <li>Redefine all of the <code>ObjectOutputStream</code>. In this case, the constructor
- *    without parameters must be used, and all methods of <code>ObjectOutputStream</code>
- *    must be redefined. This is the path taken when Ibis serialization
- *    is used.
+ * <li>Actually use <code>ObjectOutputStream</code>. In this case, the
+ *     constructor version with an <code>OutputStream</code> parameter must
+ *     be used. We call this the Sun serialization version.
+ * <li>Redefine all of the <code>ObjectOutputStream</code>. In this case,
+ *     the constructor without parameters must be used, and all methods of
+ *     <code>ObjectOutputStream</code> must be redefined. This is the path
+ *     taken when Ibis serialization is used.
  * </ul>
  */
 public abstract class SerializationOutputStream extends ObjectOutputStream {
@@ -51,7 +51,8 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
      * serialization implementation (Ibis serialization, Sun
      * serialization).
      * 
-     * @param replacer the replacer object to be associated with this output stream
+     * @param replacer the replacer object to be associated with this
+     *  output stream
      */
     public void setReplacer(Replacer replacer) {
 	try {
@@ -62,8 +63,8 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
     }
 
     /**
-     * Object replacement for Sun serialization. This method gets called by Sun object
-     * serialization when replacement is enabled.
+     * Object replacement for Sun serialization. This method gets called by
+     * Sun object serialization when replacement is enabled.
      *
      * @param obj the object to be replaced
      * @return the result of the object replacement
@@ -76,7 +77,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
     }
 
     /**
-     * Returns the actual implementation used by the stream, either "sun" or "ibis".
+     * Returns the actual implementation used by the stream.
      *
      * @return the name of the actual serialization implementation used
      */

@@ -6,8 +6,9 @@ import java.io.IOException;
  * An inputstream for reading arrays of primitive types.
  */
 
-public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipator {
-
+public abstract class ArrayInputStream
+	implements IbisStreamFlags, IbisDissipator
+{
     /**
      * Reads (a slice of) an array of booleans in place.
      *
@@ -91,7 +92,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
      * @return The number of bytes read.
      */
     public long bytesRead() {
-	System.err.println("ArrayInputStream: bytesRead() not implemented (yet)");
+	System.err.println("ArrayInputStream: bytesRead() unimplemented");
 	return 0;
     }
 
@@ -99,7 +100,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
      * Resets the bytes read counter
      */
     public void resetBytesRead() {
-	System.err.println("ArrayInputStream: resetBytesRead() not implemented (yet)");
+	System.err.println("ArrayInputStream: resetBytesRead() unimplemented");
     }
 
     /**

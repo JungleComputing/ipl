@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * A inputstream which uses a <code>IbisDissipator</code> as the underlying implementation.
+ * A inputstream which uses a <code>IbisDissipator</code> as the
+ * underlying implementation.
  */
 public final class DissipatorInputStream extends InputStream {
 

@@ -202,8 +202,11 @@ final class AlternativeTypeInfo {
      * @param type the <code>Class</code> of the requested type.
      * @return the <code>AlternativeTypeInfo</code> structure for this type.
      */
-    public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(Class type) { 
-	AlternativeTypeInfo t = (AlternativeTypeInfo) alternativeTypes.get(type);
+    public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(
+	    Class type)
+    { 
+	AlternativeTypeInfo t = (AlternativeTypeInfo)
+				    alternativeTypes.get(type);
 
 	if (t == null) { 
 	    t = new AlternativeTypeInfo(type);
@@ -214,19 +217,23 @@ final class AlternativeTypeInfo {
     }
 
     /**
-     * Gets the <code>AlternativeTypeInfo</code> for class <code>classname</code>.
+     * Gets the <code>AlternativeTypeInfo</code> for class
+     * <code>classname</code>.
      *
      * @param classname the name of the requested type.
      * @return the <code>AlternativeTypeInfo</code> structure for this type.
      */
-    public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(String classname)
-	    throws ClassNotFoundException { 
+    public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(
+		String classname)
+	    throws ClassNotFoundException
+    { 
 	Class type = null;
 
 	try {
 	    type = Class.forName(classname);
 	} catch (ClassNotFoundException e) {
-	    type = Thread.currentThread().getContextClassLoader().loadClass(classname);
+	    type = Thread.currentThread().getContextClassLoader().
+					    loadClass(classname);
 	}
 
 	return getAlternativeTypeInfo(type);
@@ -367,12 +374,14 @@ final class AlternativeTypeInfo {
 
 	    /* Now see if it has a writeObject/readObject. */
 
-	    writeObjectMethod = getMethod("writeObject",
-					  new Class[] { ObjectOutputStream.class },
-					  Void.TYPE);
-	    readObjectMethod = getMethod("readObject",
-					 new Class[] { ObjectInputStream.class },
-					 Void.TYPE);
+	    writeObjectMethod =
+		getMethod("writeObject",
+			  new Class[] { ObjectOutputStream.class },
+			  Void.TYPE);
+	    readObjectMethod =
+		getMethod("readObject",
+			  new Class[] { ObjectInputStream.class },
+			  Void.TYPE);
 
 	    hasWriteObject = writeObjectMethod != null;
 	    hasReadObject = readObjectMethod != null;
@@ -389,17 +398,18 @@ final class AlternativeTypeInfo {
 
 	    Field [] fields = clazz.getDeclaredFields(); 
 
-	    /* getDeclaredFields does not specify or guarantee a specific order.
-	     * Therefore, we sort the fields alphabetically, as does the IOGenerator.
+	    /* getDeclaredFields does not specify or guarantee a specific
+	     * order. Therefore, we sort the fields alphabetically, as does
+	     * the IOGenerator.
 	     */
 	    java.util.Arrays.sort(fields, fieldComparator);
 
 	    int len = fields.length;
 
-	    /*	Create the datastructures to cache the fields we need. Since
-		we don't know the size yet, we create large enough arrays,
-		which will later be replaced;
-	    */
+	    /* Create the datastructures to cache the fields we need. Since
+	     * we don't know the size yet, we create large enough arrays,
+	     * which will later be replaced;
+	     */
 	    if (serial_persistent_fields != null) {
 		len = serial_persistent_fields.length;
 	    }
@@ -415,10 +425,10 @@ final class AlternativeTypeInfo {
 	    Field [] reference_fields = new Field[len]; 
 
 	    if (serial_persistent_fields == null) {
-		/*  Now count and store all the difference field types (only the
-		    ones that we should write!). Note that we store them into the
-		    array sorted by name !
-		*/
+		/* Now count and store all the difference field types (only the
+		 * ones that we should write!). Note that we store them into
+		 * the array sorted by name !
+		 */
 		for (int i=0;i<fields.length;i++) { 
 		    Field field = fields[i];
 
@@ -426,21 +436,23 @@ final class AlternativeTypeInfo {
 
 		    int modifiers = field.getModifiers();
 
-		    if ((modifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0) {
+		    if ((modifiers&(Modifier.TRANSIENT|Modifier.STATIC)) == 0) {
 			Class field_type = field.getType();
 					
-			/*  This part is a bit scary. We basically switch of the
-			    Java field access checks so we are allowed to read
-			    private fields ....
-			*/
+			/* This part is a bit scary. We basically switch of the
+			 * Java field access checks so we are allowed to read
+			 * private fields ....
+			 */
 			if (!field.isAccessible()) { 
 			    temporary_field = field;
-			    AccessController.doPrivileged(new PrivilegedAction() {
-				public Object run() {
-				    temporary_field.setAccessible(true);
-				    return null;
-				} 
-			    });
+			    AccessController.doPrivileged(
+				new PrivilegedAction() {
+				    public Object run() {
+					temporary_field.setAccessible(true);
+					return null;
+				    } 
+				}
+			    );
 			}
 
 			if (field_type.isPrimitive()) {
@@ -514,37 +526,48 @@ final class AlternativeTypeInfo {
 	    if (size > 0) { 
 		serializable_fields = new Field[size];
 
-		System.arraycopy(double_fields, 0, serializable_fields, index, double_count);
+		System.arraycopy(double_fields, 0,
+				 serializable_fields, index, double_count);
 		index += double_count;
 
-		System.arraycopy(long_fields, 0, serializable_fields, index,long_count);
+		System.arraycopy(long_fields, 0,
+				 serializable_fields, index,long_count);
 		index += long_count;
 
-		System.arraycopy(float_fields, 0, serializable_fields, index, float_count);
+		System.arraycopy(float_fields, 0,
+				 serializable_fields, index, float_count);
 		index += float_count;
 
-		System.arraycopy(int_fields, 0, serializable_fields, index, int_count);
+		System.arraycopy(int_fields, 0,
+				 serializable_fields, index, int_count);
 		index += int_count;
 
-		System.arraycopy(short_fields, 0, serializable_fields, index, short_count);
+		System.arraycopy(short_fields, 0,
+				 serializable_fields, index, short_count);
 		index += short_count;
 
-		System.arraycopy(char_fields, 0, serializable_fields, index, char_count);
+		System.arraycopy(char_fields, 0,
+				 serializable_fields, index, char_count);
 		index += char_count;
 
-		System.arraycopy(byte_fields, 0, serializable_fields, index, byte_count);
+		System.arraycopy(byte_fields, 0,
+				 serializable_fields, index, byte_count);
 		index += byte_count;
 
-		System.arraycopy(boolean_fields, 0, serializable_fields, index, boolean_count);
+		System.arraycopy(boolean_fields, 0,
+				 serializable_fields, index, boolean_count);
 		index += boolean_count;
 
-		System.arraycopy(reference_fields, 0, serializable_fields, index, reference_count);
+		System.arraycopy(reference_fields, 0,
+				 serializable_fields, index, reference_count);
 
 		fields_final = new boolean[size];
 
 		for (int i = 0; i < size; i++) {
 		    if (serializable_fields[i] != null) {
-			fields_final[i] = ((serializable_fields[i].getModifiers() & Modifier.FINAL) != 0);
+			fields_final[i] =
+			    ((serializable_fields[i].getModifiers() &
+			      Modifier.FINAL) != 0);
 		    }
 		    else fields_final[i] = false;
 		}
@@ -552,7 +575,8 @@ final class AlternativeTypeInfo {
 		serializable_fields = null;
 	    }
 	} catch (Exception e) {
-	    throw new SerializationError("Cannot initialize serialization info for " + clazz.getName(), e);
+	    throw new SerializationError("Cannot initialize serialization "
+				    + "info for " + clazz.getName(), e);
 	} 			 
     }
 
@@ -575,7 +599,8 @@ final class AlternativeTypeInfo {
 			} 
 		    });
 		}
-		serial_persistent_fields = (java.io.ObjectStreamField[]) f.get(null);
+		serial_persistent_fields = (java.io.ObjectStreamField[])
+						f.get(null);
 	    }
 	} catch (Exception e) {
 	}
@@ -612,7 +637,7 @@ final class AlternativeTypeInfo {
 	    if (serial_persistent_fields != null) {
 		for (int i = 0; i < serial_persistent_fields.length; i++) {
 		    if (serial_persistent_fields[i].getType() == tp) {
-			if (name.equals(serial_persistent_fields[i].getName())) {
+			if (name.equals(serial_persistent_fields[i].getName())){
 			    return offset;
 			}
 			offset++;
@@ -652,6 +677,7 @@ final class AlternativeTypeInfo {
 		}
 	    }
 	}
-	throw new IllegalArgumentException("no field named " + name + " with type " + tp);
+	throw new IllegalArgumentException("no field named " + name +
+					    " with type " + tp);
     }
 }

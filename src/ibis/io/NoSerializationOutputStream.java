@@ -12,7 +12,9 @@ import java.io.OutputStream;
  * However, the only data that can be sent are bytes and byte arrays.
  * All other methods throw an exception.
  */
-public final class NoSerializationOutputStream extends SerializationOutputStream {
+public final class NoSerializationOutputStream
+	extends SerializationOutputStream
+{
 
     /**
      * Constructor. Calls constructor of superclass and flushes.

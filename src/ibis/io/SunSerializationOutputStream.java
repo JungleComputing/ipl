@@ -10,8 +10,9 @@ import java.io.OutputStream;
  * <code>SerializationOutputStream</code>, build on methods in
  * <code>ObjectOutputStream</code>.
  */
-public final class SunSerializationOutputStream extends SerializationOutputStream {
-
+public final class SunSerializationOutputStream
+	extends SerializationOutputStream
+{
     /**
      * Constructor. Calls constructor of superclass and flushes.
      *
@@ -67,12 +68,13 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
 		// So no cycle detection is used ...
 	    writeUnshared(ref);
 	}
-	else {
+	else
 */
+	{
 	    boolean[] temp = new boolean[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-//	}
+	}
     }
 
     /**
@@ -104,7 +106,7 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
     }
 
     /**
-     * Write a slice of an array of bytes.
+     * Write a slice of an array of shorts.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
@@ -112,16 +114,17 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
-	else {
+	else
 */
+	{
 	    short[] temp = new short[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-//	}
+	}
     }
 
     /**
-     * Write a slice of an array of bytes.
+     * Write a slice of an array of chars.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
@@ -129,16 +132,17 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
-	else {
+	else
 */
+	{
 	    char[] temp = new char[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-//	}
+	}
     }
 
     /**
-     * Write a slice of an array of bytes.
+     * Write a slice of an array of ints.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
@@ -146,16 +150,17 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
-	else {
+	else
 */
+	{
 	    int[] temp = new int[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-//	}
+	}
     }
 
     /**
-     * Write a slice of an array of bytes.
+     * Write a slice of an array of longs.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
@@ -163,16 +168,17 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
-	else {
+	else
 */
+	{
 	    long[] temp = new long[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-//	}
+	}
     }
 
     /**
-     * Write a slice of an array of bytes.
+     * Write a slice of an array of floats.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
@@ -180,16 +186,17 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
-	else {
+	else
 */
+	{
 	    float[] temp = new float[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-//	}
+	}
     }
 
     /**
-     * Write a slice of an array of bytes.
+     * Write a slice of an array of doubles.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
@@ -197,16 +204,17 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
-	else {
+	else
 */
+	{
 	    double[] temp = new double[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-//	}
+	}
     }
 
     /**
-     * Write a slice of an array of bytes.
+     * Write a slice of an array of Objects.
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(Object[] ref, int off, int len) throws IOException {
@@ -214,12 +222,13 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
 	if (off == 0 && len == ref.length) {
 	    writeUnshared(ref);
 	}
-	else {
+	else
 */
+	{
 	    Object[] temp = new Object[len];
 	    System.arraycopy(ref, off, temp, 0, len);
 	    writeObject(temp);
-//	}
+	}
     }
 
     /**

@@ -10,8 +10,9 @@ import java.io.InputStream;
  * <code>SerializationInputStream</code>, built on methods in
  * <code>ObjectInputStream</code>.
  */
-public final class SunSerializationInputStream extends SerializationInputStream {
-
+public final class SunSerializationInputStream
+	extends SerializationInputStream
+{
     /**
      * Constructor. Calls constructor of superclass and flushes.
      *
@@ -47,8 +48,8 @@ public final class SunSerializationInputStream extends SerializationInputStream 
      * Dummy reset. For Ibis, we want to be able to remove the object table in
      * a SerializationInputStream.
      * With Sun serialization, this is accomplished by sending a RESET to it.
-     * For Ibis serialization, we cannot do this because we can only send a RESET
-     * when a handle is expected.
+     * For Ibis serialization, we cannot do this because we can only send
+     * a RESET when a handle is expected.
      */
     public void clear() {
     }
@@ -75,7 +76,8 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	try {
 	    boolean[] temp = (boolean[]) readObject();
 	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
+		throw new ArrayIndexOutOfBoundsException(
+				"Received sub array has wrong len");
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
@@ -104,7 +106,8 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	try {
 	    byte[] temp = (byte[]) readObject();
 	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
+		throw new ArrayIndexOutOfBoundsException(
+				"Received sub array has wrong len");
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
@@ -120,7 +123,8 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	try {
 	    char[] temp = (char[]) readObject();
 	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
+		throw new ArrayIndexOutOfBoundsException(
+				"Received sub array has wrong len");
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
@@ -136,7 +140,8 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	try {
 	    short[] temp = (short[]) readObject();
 	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
+		throw new ArrayIndexOutOfBoundsException(
+				"Received sub array has wrong len");
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
@@ -152,7 +157,8 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	try {
 	    int[] temp = (int[]) readObject();
 	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
+		throw new ArrayIndexOutOfBoundsException(
+				"Received sub array has wrong len");
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
@@ -168,7 +174,8 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	try {
 	    long[] temp = (long[]) readObject();
 	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
+		throw new ArrayIndexOutOfBoundsException(
+				"Received sub array has wrong len");
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
@@ -184,7 +191,8 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	try {
 	    float[] temp = (float[]) readObject();
 	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
+		throw new ArrayIndexOutOfBoundsException(
+				"Received sub array has wrong len");
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
@@ -200,7 +208,8 @@ public final class SunSerializationInputStream extends SerializationInputStream 
 	try {
 	    double[] temp = (double[]) readObject();
 	    if(temp.length != len) {
-		throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
+		throw new ArrayIndexOutOfBoundsException(
+				"Received sub array has wrong len");
 	    }
 	    System.arraycopy(temp, 0, ref, off, len);
 	} catch (ClassNotFoundException f) {
@@ -212,10 +221,13 @@ public final class SunSerializationInputStream extends SerializationInputStream 
      * Read a slice of an array of Objects.
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
-    public void readArray(Object[] ref, int off, int len) throws IOException, ClassNotFoundException {
+    public void readArray(Object[] ref, int off, int len)
+	    throws IOException, ClassNotFoundException
+    {
 	Object[] temp = (Object[]) readObject();
 	if(temp.length != len) {
-	    throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
+	    throw new ArrayIndexOutOfBoundsException(
+			    "Received sub array has wrong len");
 	}
 	System.arraycopy(temp, 0, ref, off, len);
     }
