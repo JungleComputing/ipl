@@ -1,6 +1,6 @@
 // File: $Id$
 
-import junit.framework.*;
+import junit.framework.TestCase;
 
 public class Tests extends TestCase {
     final static int empty[] = new int[0];
@@ -13,6 +13,15 @@ public class Tests extends TestCase {
         Clause cl = new Clause( a, b, 5 );
         Clause cl1 = (Clause) cl.clone();
         assertEquals( cl, cl1 );
+    }
+
+    public void testClauseResolution()
+    {
+	Clause c1 = new Clause( new int[] { 0, 1 }, new int[] { 2, 3 }, 0 );
+	Clause c2 = new Clause( new int[] { 0, 2 }, new int[] { 3 }, 1 );
+	Clause res = new Clause( new int[] { 0, 1 }, new int[] { 3 }, -1 );
+
+	assertEquals( res, Clause.resolve( c1, c2, 2 ) );
     }
 
     public void testEqualArrays()
