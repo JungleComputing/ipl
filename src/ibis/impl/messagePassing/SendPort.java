@@ -328,6 +328,11 @@ for (int i = 0, n = splitter.length; i < n; i++) {
 	    System.out.println(Ibis.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " start");
 	}
 
+	if (splitter == null) {
+	    // Seems we were created but never connected to anybody
+	    return;
+	}
+
 	Ibis.myIbis.lock();
 	try {
 	    byte[] sf = ident.getSerialForm();
