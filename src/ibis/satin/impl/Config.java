@@ -38,6 +38,7 @@ public interface Config {
     static final String s_in_latency =   PROPERTY_PREFIX + "messagesInLatency";
     static final String s_tuple_multi =  PROPERTY_PREFIX + "tuplespace.multicast";
     static final String s_tuple_ordered= PROPERTY_PREFIX + "tuplespace.ordered";
+    static final String s_tuple_ordened= PROPERTY_PREFIX + "tuplespace.ordened";
     static final String s_tuple_numbered = PROPERTY_PREFIX + "tuplespace.numbered";
     static final String s_debug_comm =   PROPERTY_PREFIX + "debug.comm";
     static final String s_debug_steal =  PROPERTY_PREFIX + "debug.steal";
@@ -199,6 +200,7 @@ public interface Config {
 	TypedProperties.booleanProperty(s_tuple_multi, true);
     static final boolean TUPLE_ORDERED =
 	TypedProperties.booleanProperty(s_tuple_ordered, false)
+	|| TypedProperties.booleanProperty(s_tuple_ordened, false)
 	|| TypedProperties.booleanProperty(s_tuple_numbered, false);
 
     /** Enable or disable debug prints concerning communication. */
