@@ -49,16 +49,6 @@ class SATProblem implements java.io.Serializable {
 	}
     }
 
-    // Given an array 'a' and a size 'sz', create a new array of size 'sz'
-    // that contains the first 'sz' elements of 'a'.
-    private static int[] cloneIntArray( int a[], int sz )
-    {
-        int res[] = new int[sz];
-
-	System.arraycopy( a, 0, res, 0, sz );
-	return res;
-    }
-
     // Return the number of variables used in the problem.
     public int getVariableCount()
     {
@@ -80,8 +70,8 @@ class SATProblem implements java.io.Serializable {
 
     public int addClause( int pos[], int possz, int neg[], int negsz )
     {
-	int apos[] = cloneIntArray( pos, possz );
-	int aneg[] = cloneIntArray( neg, negsz );
+	int apos[] = Helpers.cloneIntArray( pos, possz );
+	int aneg[] = Helpers.cloneIntArray( neg, negsz );
 	Clause cl = new Clause( apos, aneg, label++ );
 
         // First see if this clause is subsumed by an existing
@@ -204,7 +194,8 @@ class SATProblem implements java.io.Serializable {
 	    if( cl == null ){
 	        continue;
 	    }
-	    if( cl.occursPos( var ) ){
+	    boolean sat = cl.propagatePosAssignment( var );
+	    if( sat ){
 	        // This clause is satisfied by the assignment. Remove it.
 		clauses[ix] = null;
 		changed = true;
@@ -229,7 +220,8 @@ class SATProblem implements java.io.Serializable {
 	    if( cl == null ){
 	        continue;
 	    }
-	    if( cl.occursNeg( var ) ){
+	    boolean sat = cl.propagateNegAssignment( var );
+	    if( sat ){
 	        // This clause is satisfied by the assignment. Remove it.
 		clauses[ix] = null;
 		changed = true;
@@ -300,7 +292,7 @@ class SATProblem implements java.io.Serializable {
 		int var = cl.getPosUnitVar();
 		if( var>=0 ){
 		    if( trace_simplification ){
-			System.err.println( "Unit clause " + cl ); 
+			System.err.println( "Propagating pos. unit clause " + cl ); 
 		    }
 		    changed |= propagatePosAssignment( var );
 		    continue;
@@ -308,7 +300,7 @@ class SATProblem implements java.io.Serializable {
 		var = cl.getNegUnitVar();
 		if( var>=0 ){
 		    if( trace_simplification ){
-			System.err.println( "Unit clause " + cl ); 
+			System.err.println( "Propagating neg. unit clause " + cl ); 
 		    }
 		    changed |= propagateNegAssignment( var );
 		    continue;

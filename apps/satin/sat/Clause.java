@@ -79,6 +79,54 @@ class Clause implements java.io.Serializable, Comparable {
     }
 
     /**
+     * Given a variable var, register the fact that this variable is
+     * known to be true. Return true iff the clause is now satisfied.
+     */
+    boolean propagatePosAssignment( int var )
+    {
+        if( memberIntList( pos, var ) ){
+	    // Clause is now satisfied.
+	    return true;
+	}
+	// Now remove any occurence of 'var' in the 'neg' terms, since
+	// they cannot satisfy the clause.
+	for( int ix=0; ix<neg.length; ix++ ){
+	    if( neg[ix] == var ){
+		int nneg[] = Helpers.cloneIntArray( neg, neg.length-1 );
+		if( ix<nneg.length ){
+		    nneg[ix] = neg[neg.length-1];
+		}
+		neg = nneg;
+	    }
+	}
+	return false;
+    }
+
+    /**
+     * Given a variable var, register the fact that this variable is
+     * known to be true. Return true iff the clause is now satisfied.
+     */
+    boolean propagateNegAssignment( int var )
+    {
+        if( memberIntList( neg, var ) ){
+	    // Clause is now satisfied.
+	    return true;
+	}
+	// Now remove any occurence of 'var' in the 'pos' terms, since
+	// they cannot satisfy the clause.
+	for( int ix=0; ix<pos.length; ix++ ){
+	    if( pos[ix] == var ){
+		int npos[] = Helpers.cloneIntArray( pos, pos.length-1 );
+		if( ix<npos.length ){
+		    npos[ix] = pos[pos.length-1];
+		}
+		pos = npos;
+	    }
+	}
+	return false;
+    }
+
+    /**
      * Given an array of assignments, return true iff this clause is
      * satisfied by these assignments.
      */
