@@ -240,16 +240,16 @@ public class IOGenerator {
 		class_vector.addUnique(BT_Class.forName("ibis.ipl.IbisIOException"));
 		write_method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
 		
-		/* Construct a read method */
-		BT_Ins read_ins[] = { 
-			BT_Ins.make(BT_Opcodes.opc_return) 
-		};
+//		/* Construct a read method */
+//		BT_Ins read_ins[] = { 
+//			BT_Ins.make(BT_Opcodes.opc_return) 
+//		};
 		
-		BT_Method read_method = new BT_Method(clazz, flags, "void", "generated_ReadObject", "(ibis.io.MantaInputStream)", new BT_CodeAttribute(read_ins));
-		class_vector = new BT_ClassVector();
-		class_vector.addUnique(BT_Class.forName("ibis.ipl.IbisIOException"));
-		class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
-		read_method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
+//		BT_Method read_method = new BT_Method(clazz, flags, "void", "generated_ReadObject", "(ibis.io.MantaInputStream)", new BT_CodeAttribute(read_ins));
+//		class_vector = new BT_ClassVector();
+//		class_vector.addUnique(BT_Class.forName("java.io.IOException"));
+//		class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
+//		read_method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
 			
 		/* Construct a read-of-the-stream constructor */
 		BT_Ins read_cons_ins[] = { 
@@ -342,8 +342,8 @@ public class IOGenerator {
 		BT_Method write_method = clazz.findMethod("void", "generated_WriteObject", "(ibis.io.MantaOutputStream)");
 		BT_CodeAttribute write_code = write_method.getCode();
 
-		BT_Method read_method = clazz.findMethod("void", "generated_ReadObject", "(ibis.io.MantaInputStream)");
-		BT_CodeAttribute read_code = read_method.getCode();
+//		BT_Method read_method = clazz.findMethod("void", "generated_ReadObject", "(ibis.io.MantaInputStream)");
+//		BT_CodeAttribute read_code = read_method.getCode();
 		
 		BT_Method read_cons = clazz.findMethod("void", "<init>", "(ibis.io.MantaInputStream)");
 		BT_CodeAttribute read_cons_code = read_cons.getCode();
@@ -362,7 +362,7 @@ public class IOGenerator {
 				if (!field_type.isBasicTypeClass && !field_type.fullName().equals("java.lang.String")) { 	       
 					if (verbose) System.out.println("    writing reference field " + field.fullName() + " of type " + field_type.fullName());
 
-					if (field_type.isFinal()) { 
+					if (field_type.isFinal() && !field_type.fullName().startsWith("java.")) { 
 
 						BT_Method rec_read = field_type.findMethod("<init>", "(ibis.io.MantaInputStream)");
 											
@@ -423,7 +423,7 @@ public class IOGenerator {
 					} else { 
 						SerializationInfo info = getSerializationInfo(field_type);				
 						write_code.insertInstructionsAt(info.writeInstructions(field), 0);		
-						read_code.insertInstructionsAt(info.readInstructions(field), 0);		
+						//read_code.insertInstructionsAt(info.readInstructions(field), 0);		
 						read_cons_code.insertInstructionsAt(info.readInstructions(field), 0);		
 					}
 				}
@@ -445,7 +445,7 @@ public class IOGenerator {
 
 					SerializationInfo info = getSerializationInfo(field_type);				
 					write_code.insertInstructionsAt(info.writeInstructions(field), 0);		
-					read_code.insertInstructionsAt(info.readInstructions(field), 0);		
+					//read_code.insertInstructionsAt(info.readInstructions(field), 0);		
 					read_cons_code.insertInstructionsAt(info.readInstructions(field), 0);		
 				}
 			}
@@ -465,7 +465,7 @@ public class IOGenerator {
 
 					SerializationInfo info = getSerializationInfo(field_type);				
 					write_code.insertInstructionsAt(info.writeInstructions(field), 0);		
-					read_code.insertInstructionsAt(info.readInstructions(field), 0);		
+					//read_code.insertInstructionsAt(info.readInstructions(field), 0);		
 					read_cons_code.insertInstructionsAt(info.readInstructions(field), 0);		
 				}
 			}
@@ -485,15 +485,15 @@ public class IOGenerator {
 
 			write_code.insertInstructionsAt(temp_write, 0);	
 
-			BT_Method super_read = super_clazz.findMethod("void", "generated_ReadObject", "(ibis.io.MantaInputStream)");
-			
-			BT_Ins temp_read[] = { 
-				BT_Ins.make(BT_Opcodes.opc_aload_0), 
-				BT_Ins.make(BT_Opcodes.opc_aload_1), 
-				BT_Ins.make(BT_Opcodes.opc_invokespecial, super_read),
-			};
-
-			read_code.insertInstructionsAt(temp_read, 0);
+//			BT_Method super_read = super_clazz.findMethod("void", "generated_ReadObject", "(ibis.io.MantaInputStream)");
+//			
+//			BT_Ins temp_read[] = { 
+//				BT_Ins.make(BT_Opcodes.opc_aload_0), 
+//				BT_Ins.make(BT_Opcodes.opc_aload_1), 
+//				BT_Ins.make(BT_Opcodes.opc_invokespecial, super_read),
+//			};
+//
+//			read_code.insertInstructionsAt(temp_read, 0);
 
 			BT_Method super_read_cons = super_clazz.findMethod("void", "<init>", "(ibis.io.MantaInputStream)");
 
