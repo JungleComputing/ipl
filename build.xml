@@ -17,7 +17,7 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="ibis-version" value="1.0"/>
+    <property name="ibis-version" value="ibis-1.0"/>
 
     <!--
 	This must come first.
@@ -826,7 +826,7 @@
 	<delete file="build-properties.backup"/>
 	<delete file="configuration.sh"/>
 	<delete file="configuration.bat"/>
-	<delete file="${ibis}/ibis-${ibis-version}-src-distr.zip"/>
+	<delete file="${ibis}/${ibis-version}-src-distr.zip"/>
 	<ant dir="${ibis}/apps" inheritAll="false" target="clean"/>
 	<ant dir="${ibis}/ibis-example" inheritAll="false" target="clean"/>
 	<delete dir="bin"/>
@@ -877,6 +877,7 @@
 	<cvs command="checkout -P"
 	     cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
 	     cvsRsh="ssh"
+	     tag="${ibis-version}"
 	     package="ibis"
 	     dest="${distr}"
 	     failonerror="true">
@@ -904,18 +905,18 @@
 	<delete file="${distr}/ibis/src/scripts/cluster_wrapper"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
-	<move todir="${distr}/ibis-${ibis-version}">
+	<move todir="${distr}/${ibis-version}">
 	    <fileset dir="${distr}/ibis">
 	    </fileset>
 	</move>
 	<!--
 	  Cannot use the zip task: it strips file permissions.
-	<zip destfile="ibis-${ibis-version}-src-distr.zip"
+	<zip destfile="${ibis-version}-src-distr.zip"
 	</zip>
 	-->
 	<exec executable="/usr/bin/zip"
 	      dir="${distr}">
-	    <arg line="-qr ${ibis}/ibis-${ibis-version}-src-distr.zip ibis-${ibis-version}"/>
+	    <arg line="-qr ${ibis}/${ibis-version}-src-distr.zip ${ibis-version}"/>
 	</exec>
     </target>
 
