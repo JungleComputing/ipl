@@ -321,7 +321,7 @@ CYGWIN*)
 esac
 
 Dlibpath="-Djava.library.path=\"$libpath\""
-Dibislibdir="-Dibis.library.path=\"ibislib\""
+Dibislibdir="-Dibis.library.path=\"$ibislib\""
 
 Xbootclasspath=
 if [ $needsbootclasspath -eq 1 ]
