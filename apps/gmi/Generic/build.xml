@@ -7,7 +7,7 @@
 	Ibis GMI application build.
     </description>
 
-    <property name="ibis"        location="../../../.."/>
+    <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
     <import file="${ibis}/apps/group/build-gmi-app.xml"/>
