@@ -43,8 +43,8 @@ public class IPUtils {
      */
     public static boolean isExternalAddress(InetAddress addr) {
 	if(addr.isLoopbackAddress()) return false;
-	if(addr.isSiteLocalAddress()) return false;
 	if(addr.isLinkLocalAddress()) return false;
+	if(addr.isSiteLocalAddress()) return false;
 
 	return true;
     }
@@ -179,12 +179,15 @@ System.err.println("Specified alt ip addr " + external);
 			    }
 			}
 		    }
-		    if (! addr.isLoopbackAddress()) {
+		    else if (! addr.isLoopbackAddress()) {
 			if (internal == null) {
 			    internal = addr;
 			} else if (! (internal instanceof Inet4Address) &&
 				   addr instanceof Inet4Address) {
 			    // Preference for IPv4
+			    internal = addr;
+			} else if (internal.isLinkLocalAddress() &&
+			    ! addr.isSiteLocalAddress()) {
 			    internal = addr;
 			}
 		    }
