@@ -1071,7 +1071,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
         public long sequenceNumber() {
                 log.in();
                 log.out();
-                return 0;
+                return -1;
         }
 
         public SendPortIdentifier origin() {

@@ -1,5 +1,7 @@
 package ibis.impl.net;
 
+import ibis.util.TypedProperties;
+
 /**
  * Provide a synchronization mutex.
  */
@@ -8,7 +10,7 @@ public final class NetMutex {
         /**
          * Activate the debugging code.
          */
-	private static final boolean DEBUG = false; // true;
+	private static final boolean DEBUG = TypedProperties.booleanProperty("ibis.net.mutex.debug");
 
         /**
          * Store the current mutex owner when DEBUG is set to
