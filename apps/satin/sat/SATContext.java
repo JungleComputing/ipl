@@ -755,14 +755,16 @@ public final class SATContext implements java.io.Serializable {
      * Update the adminstration for any new clauses in the specified
      * SAT problem.
      * @param p The SAT problem.
+     * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    public void update( SATProblem p )
+    public int update( SATProblem p, int level, boolean learnTuple ) throws SATRestartException
     {
         int newCount = p.getClauseCount();
+        boolean haveUnitClauses = false;
 
         if( newCount>satisfied.length ){
             if( traceUpdates ){
-                System.err.println( "Updating context with " + (newCount-satisfied.length) + " new clauses" );
+                System.err.println( "S" + level + ": updating context with " + (newCount-satisfied.length) + " new clauses" );
             }
             int oldCount = satisfied.length;
             // New clauses have been added. Enlarge the arrays related
@@ -785,6 +787,9 @@ public final class SATContext implements java.io.Serializable {
                 boolean issat = cl.isSatisfied( assignment );
                 satisfied[i] = issat;
                 if( !issat ){
+                    if( nterm == 1 ){
+                        haveUnitClauses = true;
+                    }
                     unsatisfied++;
                     cl.registerInfo( posinfo, neginfo, info );
                     cl.registerVariableCounts( posclauses, negclauses );
@@ -795,7 +800,19 @@ public final class SATContext implements java.io.Serializable {
                     verifyTermCount( p, i );
                 }
             }
+            // Now propagate unit clauses if there are any.
+            if( haveUnitClauses ){
+                for( int cno=oldCount; cno<newCount; cno++ ){
+                    if( !satisfied[cno] && terms[cno] == 1 ){
+                        int res = propagateUnitClause( p, cno, level, learnTuple );
+                        if( res != 0 ){
+                            return res;
+                        }
+                    }
+                }
+            }
         }
+	return SATProblem.UNDETERMINED;
     }
 
     /**
@@ -912,7 +929,7 @@ public final class SATContext implements java.io.Serializable {
 	if( tracePropagation ){
 	    System.err.println( "S" + level + ": propagating assignment v" + var + "=1" );
 	}
-	// Deduct this clause from all clauses that contain this as a
+	// Deduct this variable from all clauses that contain this as a
 	// negative term.
 	int[] neg = p.getNegClauses( var );
 	for( int i=0; i<neg.length; i++ ){
@@ -985,7 +1002,7 @@ public final class SATContext implements java.io.Serializable {
 	if( tracePropagation ){
 	    System.err.println( "S" + level + ": propagating assignment v" + var + "=0" );
 	}
-	// Deduct this clause from all clauses that contain this as a
+	// Deduct this variable from all clauses that contain this as a
 	// Positive term.
 	int pos[] = p.getPosClauses( var );
 	for( int i=0; i<pos.length; i++ ){

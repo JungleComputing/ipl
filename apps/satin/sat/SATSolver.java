@@ -73,12 +73,29 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         boolean learnTuple
     ) throws SATResultException, SATRestartException
     {
-        ctx.update( p );
+	int res = ctx.update( p, level, learnTuple );
+	if( res == SATProblem.CONFLICTING ){
+	    if( traceSolver ){
+		System.err.println( "ls" + level + ": update found a conflict" );
+	    }
+	    return;
+	}
+	if( res == SATProblem.SATISFIED ){
+	    // Propagation reveals problem is satisfied.
+	    SATSolution s = new SATSolution( ctx.assignment );
+
+	    if( traceSolver | printSatSolutions ){
+		System.err.println( "ls" + level + ": update found a solution: " + s );
+	    }
+	    if( !p.isSatisfied( ctx.assignment ) ){
+		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
+	    }
+	    throw new SATResultException( s );
+	}
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
 	}
-	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level, learnTuple );
 	}
@@ -149,12 +166,29 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         boolean learnTuple
     ) throws SATException
     {
-        ctx.update( p );
+	int res = ctx.update( p, level, learnTuple );
+	if( res == SATProblem.CONFLICTING ){
+	    if( traceSolver ){
+		System.err.println( "ls" + level + ": update found a conflict" );
+	    }
+	    return;
+	}
+	if( res == SATProblem.SATISFIED ){
+	    // Propagation reveals problem is satisfied.
+	    SATSolution s = new SATSolution( ctx.assignment );
+
+	    if( traceSolver | printSatSolutions ){
+		System.err.println( "ls" + level + ": update found a solution: " + s );
+	    }
+	    if( !p.isSatisfied( ctx.assignment ) ){
+		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
+	    }
+	    throw new SATResultException( s );
+	}
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
 	}
-	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level, learnTuple );
 	}

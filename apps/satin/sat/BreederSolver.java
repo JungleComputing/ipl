@@ -35,7 +35,7 @@ public final class BreederSolver {
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
      * @param level The branching level.
-     * @param p the SAT problem to solve
+     * @param p The SAT problem to solve.
      * @param ctx The changable context of the solver.
      * @param var The next variable to assign.
      * @param val The value to assign.
@@ -48,12 +48,29 @@ public final class BreederSolver {
 	boolean val
     ) throws SATResultException, SATRestartException, SATCutoffException
     {
-        ctx.update( p );
+	int res = ctx.update( p, level, false );
+	if( res == SATProblem.CONFLICTING ){
+	    if( traceSolver ){
+		System.err.println( "ls" + level + ": update found a conflict" );
+	    }
+	    return;
+	}
+	if( res == SATProblem.SATISFIED ){
+	    // Propagation reveals problem is satisfied.
+	    SATSolution s = new SATSolution( ctx.assignment );
+
+	    if( traceSolver | printSatSolutions ){
+		System.err.println( "ls" + level + ": update found a solution: " + s );
+	    }
+	    if( !p.isSatisfied( ctx.assignment ) ){
+		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
+	    }
+	    throw new SATResultException( s );
+	}
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
 	}
-	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level, false );
 	}
