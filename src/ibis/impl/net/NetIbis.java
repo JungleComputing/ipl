@@ -390,7 +390,7 @@ public final class NetIbis extends Ibis {
 	public void openWorld() {
 		if(resizeHandler != null) {
 			while(joinedIbises.size() > 0) {
-//				resizeHandler.join((NetIbisIdentifier)joinedIbises.remove(0));
+				resizeHandler.join((NetIbisIdentifier)joinedIbises.remove(0));
 				poolSize++;
 			}
 
