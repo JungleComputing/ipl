@@ -7,7 +7,6 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.Upcall;
 
-import java.net.ServerSocket;
 import java.net.Socket;
 
 import java.io.IOException;
@@ -40,9 +39,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	boolean allowUpcalls = false;
 	Upcall upcall;	
 	
-	/* We don't want to hold the port lock during upcalls, so create a seperate object */
-	Object upcallLock = new Object();
-	
 	private boolean started = false;
 	private boolean connection_setup_present = false;
 
@@ -55,13 +51,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		this.name   = name;
 		this.upcall = upcall;
 
-		ident = new TcpReceivePortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier());
-
 		connections = new ConnectionHandler[2];
 		connectionsSize = 2;
 		connectionsIndex = 0;
 
-		TcpIbis.tcpPortHandler.register(this);
+		int port = TcpIbis.tcpPortHandler.register(this);
+		ident = new TcpReceivePortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier(), port);
 	}
 
 	synchronized void doUpcall(ReadMessage m) { 
@@ -72,6 +67,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 				// Ignore.
 			}
 		}
+
 		upcall.upcall(m);
 
 		while (aMessageIsAlive) {
@@ -80,7 +76,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 			} catch(InterruptedException e) {
 				// Ignore.
 			}
-		}		
+		}
 	} 
 
 	public synchronized void enableConnections() {		
@@ -103,7 +99,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	}
 
 	public synchronized boolean setupConnection(TcpSendPortIdentifier id) { 
-
 		if (started) { 
 			connection_setup_present = true;
 			notifyAll();
@@ -115,16 +110,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 
 
 	public synchronized void enableUpcalls() {
-		synchronized(upcallLock) {
-			allowUpcalls = true;
-			upcallLock.notifyAll();
-		}
+		allowUpcalls = true;
+		notifyAll();
 	}
 
 	public synchronized void disableUpcalls() {
-		synchronized(upcallLock) {
-			allowUpcalls = false;
-		}
+		allowUpcalls = false;
 	}
 
 	synchronized int getSequenceNr() {
@@ -214,14 +205,14 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	public synchronized void free() {
 		
 		if (TcpIbis.DEBUG) { 
-			System.out.println("TcpReceive{ort.free: " + name + ": Starting");
+			System.err.println("TcpReceive{ort.free: " + name + ": Starting");
 		}
 
 		while (connectionsIndex > 0) {
 
 			if (upcall != null) { 
 				if (TcpIbis.DEBUG) { 
-					System.out.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
+					System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
 				}
 				try {
 					wait();
@@ -230,14 +221,14 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 				}
 			} else { 
 				if (TcpIbis.DEBUG) { 
-					System.out.println(name + " trying to close all connections (" + connectionsIndex + ")");
+					System.err.println(name + " trying to close all connections (" + connectionsIndex + ")");
 				}
 				
 				while (connectionsIndex > 0) { 
 				
 					for (int i=0;i<connectionsIndex;i++) { 
 						if (TcpIbis.DEBUG) { 
-							System.out.println(name + " trying to close " + i);
+							System.err.println(name + " trying to close " + i);
 						}
 						
 						try { 
@@ -265,7 +256,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		}
 
 		if (TcpIbis.DEBUG) { 
-			System.out.println(name + ":done receiveport.free");
+			System.err.println(name + ":done receiveport.free");
 		}
 	}
 
@@ -284,7 +275,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 				con = new MantaTypedBufferStreamConnectionHandler(origin, this, in, id);
 				break;
 			default:
-				System.out.println("EEK");
+				System.err.println("EEK: serialization type unknown");
 				System.exit(1);
 			}
 
@@ -309,7 +300,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 			notifyAll();
 
 		} catch (Exception e) { 
-			System.out.println("Got exception " + e);
+			System.err.println("Got exception " + e);
 			e.printStackTrace();
 		} 
 	}

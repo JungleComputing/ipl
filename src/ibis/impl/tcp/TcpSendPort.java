@@ -32,7 +32,6 @@ final class TcpSendPort implements SendPort {
 	}
 
 	TcpSendPort(TcpPortType type, String name) throws IbisIOException {
-
 		try { 
 			
 			this.name = name;
@@ -47,7 +46,7 @@ final class TcpSendPort implements SendPort {
 				sender = new MantaTypedBufferStreamSender(this);
 				break;
 			default:
-				System.out.println("EEK");
+				System.err.println("EEK, serialization type unknown");
 				System.exit(1);
 			}
 
@@ -63,7 +62,7 @@ final class TcpSendPort implements SendPort {
 	public void connect(ReceivePortIdentifier receiver) throws IbisIOException {
 
 		if(TcpIbis.DEBUG) {
-			System.out.println(name + " connecting to " + receiver); 
+			System.err.println(name + " connecting to " + receiver); 
 		}
 
 		/* first check the types */
@@ -78,7 +77,7 @@ final class TcpSendPort implements SendPort {
 		} 
 		
 		if(TcpIbis.DEBUG) {
-			System.out.println(name + " connecting to " + receiver + " done"); 
+			System.err.println(name + " connecting to " + receiver + " done"); 
 		}
 	}
 
@@ -111,14 +110,14 @@ final class TcpSendPort implements SendPort {
 	
 	public void free() {
 		if(TcpIbis.DEBUG) {
-			System.out.println(type.ibis.name() + ": SendPort.free start");
+			System.err.println(type.ibis.name() + ": SendPort.free start");
 		}
 
 		sender.free();
 		ident = null;
 
 		if(TcpIbis.DEBUG) {
-			System.out.println(type.ibis.name() + ": SendPort.free DONE");
+			System.err.println(type.ibis.name() + ": SendPort.free DONE");
 		}
 	}
 

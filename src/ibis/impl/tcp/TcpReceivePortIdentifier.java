@@ -14,18 +14,20 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 	String name;
 	String type;
 	TcpIbisIdentifier ibis;
+	int port;
 
-	TcpReceivePortIdentifier(String name, String type, TcpIbisIdentifier ibis) {
+	TcpReceivePortIdentifier(String name, String type, TcpIbisIdentifier ibis, int port) {
 		this.name = name;
 		this.type = type;
 		this.ibis = ibis;
+		this.port = port;
 	}
 
 	public boolean equals(TcpReceivePortIdentifier other) { 		
 		if (other == null) { 
 			return false;
 		} else { 			
-			return (type.equals(other.type) && ibis.equals(other.ibis) && name.equals(other.name));
+			return (type.equals(other.type) && ibis.equals(other.ibis) && name.equals(other.name) && port == other.port);
 		}		
 	}
 
@@ -51,7 +53,7 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 	}
 
 	public String toString() {
-		return ("(TcpRecPortIdent: name = " + name + ", type = " + type + ", ibis = " + ibis +")");
+		return ("(TcpRecPortIdent: name = " + name + ", type = " + type + ", ibis = " + ibis + "port = " + port + ")");
 	}
 }  
 

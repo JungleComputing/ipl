@@ -11,9 +11,9 @@ import ibis.ipl.*;
 final class TcpPortHandler implements Runnable, TcpProtocol { 
 
 	private FileWriter f;
-	private PrintWriter print;
+//	private PrintWriter print;
 
-	final static int SYSTEMPORT = 4521;
+//	final static int SYSTEMPORT = 4521;
 
 	private ServerSocket systemServer;
 	private boolean stop = false;
@@ -21,6 +21,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 	private Vector receivePorts;
 	private Thread thread;
 	private TcpIbisIdentifier me;
+	private int port;
 
 	TcpPortHandler(TcpIbisIdentifier me) throws IbisIOException { 
 		
@@ -30,7 +31,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 		this.me = me;
 
 		try {
-		    systemServer = TcpIbisSocketFactory.createServerSocket(SYSTEMPORT, false);
+		    systemServer = TcpIbisSocketFactory.createServerSocket(0, false);
+		    port = systemServer.getLocalPort();
 		} catch (IOException e) {
 		    throw new IbisIOException("createServerSocket throws " + e);
 		}
@@ -40,12 +42,13 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 		
 		thread = new Thread(this);
 		thread.start();
-	} 
+	}
 
-	void register(TcpReceivePort p) { 		
+	int register(TcpReceivePort p) { 		
 //		System.err.println("TcpPortHandler registered " + p.identifier());
 		receivePorts.add(p);
 		//receivePorts.put(p.identifier(), p);
+		return port;
 	} 
 
 	private synchronized Peer getPeer(TcpIbisIdentifier ibis) { 
@@ -88,16 +91,16 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 		try { 
 			boolean reuse_connection = false;
 
-//			System.out.println("Creating socket for connection to " + receiver);
-			s = TcpIbisSocketFactory.createSocket(receiver.ibis.address, SYSTEMPORT, true);
+//			System.err.println("Creating socket for connection to " + receiver);
+			s = TcpIbisSocketFactory.createSocket(receiver.ibis.address, receiver.port, true);
 
-//			System.out.println("Getting streams from socket");
+//			System.err.println("Getting streams from socket");
 			InputStream sin = s.getInputStream();
 			OutputStream sout = s.getOutputStream();
 			
 			sout.write(NEW_CONNECTION);
 
-//			System.out.println("Sending Data");
+//			System.err.println("Sending Data");
 			ObjectOutputStream obj_out = new ObjectOutputStream(new DummyOutputStream(sout));
 			DataInputStream data_in = new DataInputStream(new DummyInputStream(sin));
 
@@ -106,16 +109,16 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 			obj_out.flush();
 //			obj_out.close();
 
-//			System.out.println("Reading result");
+//			System.err.println("Reading result");
 			int result = data_in.readByte();
 
 			if (result == RECEIVER_ACCEPTED) {
-//				System.out.println("Sender Accepted"); 
+//				System.err.println("Sender Accepted"); 
 
 				/* the other side accepts the connection, finds the correct 
 				   stream */
 
-//				System.out.println("Finding peer"); 
+//				System.err.println("Finding peer"); 
 
 				Peer p = getPeer(receiver.ibis);
 
@@ -138,24 +141,25 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 					
 					p.addFreeInput(c);
 
-//					System.out.println("Created new connection to " + receiver);
+//					System.err.println("Created new connection to " + receiver);
 				} else { 
 					int remote_id = data_in.readInt();
 					int local_id = data_in.readInt();
 
 					data_in.close();
+					obj_out.flush();
 					obj_out.close();
 
 					c = p.findFreeOutput(local_id, remote_id);
 					p.addUsed(c);					
-//					System.out.println("Reused connection to " + receiver);
+//					System.err.println("Reused connection to " + receiver);
 				} 
 
-//				System.out.println("Found output " + c);
+//				System.err.println("Found output " + c);
 
 				sp.connect(receiver, c.out, c.local_id);	
 
-//				System.out.println("connection to " + receiver + " done");
+//				System.err.println("connection to " + receiver + " done");
 
 				if (!reuse_connection) { 
 					sin.close();
@@ -165,6 +169,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 					
 				return true;
 			} else { 
+				obj_out.flush();
 				obj_out.close();
 				data_in.close();
 				sin.close();
@@ -184,7 +189,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 
 	void quit() { 
 		try { 
-			Socket s = TcpIbisSocketFactory.createSocket(me.address, SYSTEMPORT, true);
+			Socket s = TcpIbisSocketFactory.createSocket(me.address, port, true);
 			OutputStream sout = s.getOutputStream();
 			sout.write(FREE);
 			sout.flush();
@@ -208,16 +213,16 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 		
 			try { 
 				if (TcpIbis.DEBUG) { 
-					print.println("systemServer on " + me + " doing new accept()");
+					System.err.println("systemServer on " + me + " doing new accept()");
 				}
 				
 				s = systemServer.accept();
 				s.setTcpNoDelay(true);
 
-///				System.out.println("********************** Accepted Socket from " + s.getInetAddress() + " on " + SYSTEMPORT + "*****************************");
+///				System.err.println("********************** Accepted Socket from " + s.getInetAddress() + " on " + SYSTEMPORT + "*****************************");
 
 				if (TcpIbis.DEBUG) { 
-					print.println("sytsemServer on " + me + " got new connection from " + s.getInetAddress() + ":" + s.getPort() + " on local port " + s.getLocalPort());
+					System.err.println("sytsemServer on " + me + " got new connection from " + s.getInetAddress() + ":" + s.getPort() + " on local port " + s.getLocalPort());
 				}
 
 //				print.println("Getting streams"); 
@@ -346,8 +351,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 					}
 					return;
 				}
-				System.err.println("EEK");
-				e.printStackTrace();		
+				System.err.println("EEK: TcpPortHandler:run: got exception: " + e);
+				e.printStackTrace();
 				System.exit(1);
 			}
 		}			

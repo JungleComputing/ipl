@@ -162,7 +162,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.out.println("SATIN '" + hostName + "': init ibis" );
 		}
 
-		for(int i=0; (i<5 && ibis == null); i++) {
+		for(int i=0; (i<1 && ibis == null); i++) {
 			try {
 				name = "ibis@" + hostName + "_" + Math.abs(random.nextInt());
 				if(panda) {
@@ -879,9 +879,22 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			} else {
 				rr = r.runRemote();
 			}
+			if(STEAL_DEBUG) {
+				System.out.println("SATIN '" + ident.name() + 
+						   "': RUNNING REMOTE CODE DONE!");
+			}
 
+			if(STEAL_DEBUG) {
+				System.out.println("SATIN '" + ident.name() + 
+						   "': REMOTE CODE SEND RESULT!");
+			}
 			// send wrapper back to the owner
 			sendResult(r, rr);
+
+			if(STEAL_DEBUG) {
+				System.out.println("SATIN '" + ident.name() + 
+						   "': REMOTE CODE SEND RESULT DONE!");
+			}
 		}
 
 		if (ABORTS) {

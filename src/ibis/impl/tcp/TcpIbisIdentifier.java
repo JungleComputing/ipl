@@ -16,11 +16,10 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 	public static final int serialversionID = 1;
 	InetAddress address; // these are transferred as strings in the form WWW.XXX.YYY.ZZZ
 	                     // to avoid (SUN) serialization problems, *NO* lookups are needed.
-	String name; 
+	String name;
 
 	public TcpIbisIdentifier() { 
 	}
-
 
 	public TcpIbisIdentifier(MantaInputStream stream) throws IbisIOException, ClassNotFoundException {
 		stream.addObjectToCycleCheck(this);
