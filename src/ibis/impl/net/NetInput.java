@@ -375,6 +375,15 @@ finishedUpcallThreads--;
 	    upcallSpawnMode = false;
 	}
 
+	public boolean readBufferedSupported() {
+	    return false;
+	}
+
+	public int readBuffered(byte[] data, int offset, int length)
+		throws IOException {
+	    throw new IOException("read buffered/incomplete byte array not supported");
+	}
+
 private int pollFail;
 private int pollSuccess;
 

@@ -73,6 +73,8 @@ public class NetPoller extends NetInput {
 	 */
 	private boolean		decouplePoller;
 
+	protected boolean	readBufferedSupported = true;
+
 	/**
 	 * Constructor.
 	 *
@@ -174,6 +176,24 @@ System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton f
 	    }
 	}
 
+	protected void setReadBufferedSupported() {
+	    readBufferedSupported = false;
+	    Collection c = inputMap.values();
+	    Iterator i = c.iterator();
+
+	    while (i.hasNext()) {
+		ReceiveQueue rq  = (ReceiveQueue)i.next();
+		if (! rq.input().readBufferedSupported()) {
+		    readBufferedSupported = false;
+		    break;
+		}
+	    }
+	}
+
+	public boolean readBufferedSupported() {
+	    return readBufferedSupported;
+	}
+
 
 	/**
          * Actually establish a connection with a remote port and
@@ -236,6 +256,8 @@ System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton f
 		if (! upcallMode) {
 		    ni.disableUpcallSpawnMode();
 		}
+
+		setReadBufferedSupported();
 
 		wakeupBlockedReceiver();
 
@@ -807,6 +829,15 @@ nCurrent++;
                         throw new ConnectionClosedException(e);
                 }
         }
+
+	public int readBuffered(byte[] data, int offset, int length)
+		throws IOException {
+	    log.in();
+	    int rd = activeInput().readBuffered(data, offset, length);
+	    log.out();
+
+	    return rd;
+	}
 
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws IOException {
                 log.in();

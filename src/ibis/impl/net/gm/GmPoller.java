@@ -85,6 +85,8 @@ if (false) {
 
 		gmDriver.interruptPump();
 
+		readBufferedSupported = true;
+
 		Driver.gmAccessLock.unlock();
 // System.err.println(this + ": " + cnx.getServiceLink() + ": established connection");
 

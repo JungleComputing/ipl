@@ -103,8 +103,8 @@ public final class GmOutput extends NetBufferedOutput {
 
 		NetBufferFactoryImpl impl = new NetSendBufferFactoryDefaultImpl();
 
-		setBufferFactory(new NetBufferFactory(Driver.byteBufferSize,
-						      impl));
+		factory = new NetBufferFactory(Driver.byteBufferSize, impl);
+		// setBufferFactory(factory);
         }
 
         /*

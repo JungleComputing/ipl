@@ -123,7 +123,7 @@ public final class TcpOutput extends NetBufferedOutput {
 		// Possibly a subclass overrode the factory, and we must leave
 		// that factory in place.
 		if (factory == null) {
-		    factory = new NetBufferFactory(new NetSendBufferFactoryDefaultImpl());
+		    factory = new NetBufferFactory(mtu, new NetSendBufferFactoryDefaultImpl());
 		} else {
 		    factory.setMaximumTransferUnit(mtu);
 		}
@@ -143,7 +143,7 @@ public final class TcpOutput extends NetBufferedOutput {
          */
 	public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
-// System.err.print(this + ": write[" + b.length + "] = '"); for (int i = 0; i < b.length; i++) System.err.print(b.data[i] + ","); System.err.println("'");
+// System.err.print(this + ": write[" + b.length + "] = '"); for (int i = 0; i < Math.min(32, b.length); i++) System.err.print(b.data[i] + ","); System.err.println("'");
 		try {
 			NetConvert.writeInt(b.length, b.data, 0);
 			tcpOs.write(b.data, 0, b.length);

@@ -6,6 +6,9 @@ import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
+import ibis.impl.net.NetBufferFactory;
+import ibis.impl.net.NetBufferFactoryImpl;
+import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -97,6 +100,9 @@ public final class GmInput extends NetBufferedInput {
                 deviceHandle = Driver.nInitDevice(0);
                 inputHandle = nInitInput(deviceHandle);
                 Driver.gmAccessLock.unlock();
+
+		NetBufferFactoryImpl impl = new NetReceiveBufferFactoryDefaultImpl();
+		factory = new NetBufferFactory(Driver.byteBufferSize, impl);
 	}
 
 	int getLockId() {

@@ -23,7 +23,17 @@ public final class SSunInput extends NetSerializedInput {
 		return new SunSerializationInputStream(is);
         }
 
+	public boolean readBufferedSupported() {
+	    return subInput.readBufferedSupported();
+	}
+
+	public int readBuffered(byte[] data, int offset, int length)
+		throws IOException {
+	    return subInput.readBuffered(data, offset, length);
+	}
+
         private final class DummyInputStream extends InputStream {
+
                 public int read() throws IOException {
                         int result = 0;
                         
@@ -31,5 +41,18 @@ public final class SSunInput extends NetSerializedInput {
 
                         return (result & 255);
                 }
+
+	    public int read(byte[] data, int offset, int length)
+		    throws IOException {
+
+		if (readBufferedSupported()) {
+System.err.println("YES!!!");
+		    return readBuffered(data, offset, length);
+		}
+System.err.println("no..... :-(( subInput " + subInput);
+
+		return super.read(data, offset, length);
+	    }
+
         }        
 }

@@ -225,16 +225,25 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 					int currentSize) {
 	    if (DEBUG) {
 		System.err.println("First segment: start at " + 0
-				    + " size " + buf.length);
+				    + " size " + buf.length
+				    + " currentSize " + currentSize
+				    + " totalSize " + totalSize);
 	    }
-	    if (totalSize == currentSize) {
-		return currentSize;
+	    if (totalSize <= currentSize) {
+		return totalSize;
 	    }
 
 	    NetReceiveBuffer b;
 	    int copySize;
 	    do {
 		b = createReceiveBuffer(0);
+		if (DEBUG) {
+		    System.err.println("Created buffer size " + b.length
+			    + " data.length " + b.data.length
+			    + " offset " + b.base
+			    + " currentSize " + currentSize
+			    + " totalSize " + totalSize);
+		}
 		int nextSize = NetConvert.readInt(buf.data, currentSize);
 		copySize = Math.min(nextSize, totalSize - currentSize);
 		System.arraycopy(buf.data, currentSize,

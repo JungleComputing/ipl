@@ -4,6 +4,7 @@ import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.IbisConfigurationException;
 
 import java.io.IOException;
+import java.io.EOFException;
 
 /**
  * Provides an abstraction of a buffered network input.
@@ -91,7 +92,7 @@ public abstract class NetBufferedInput extends NetInput {
                 circularCheck = true;
                 while (length > 0) {
                         NetReceiveBuffer b = receiveByteBuffer(length);
-                        int copyLength = Math.min(length, b.length);
+                        int copyLength = Math.max(length, b.length);
                         System.arraycopy(b.data, 0, buffer.data, dataOffset, copyLength);
                         offset += copyLength;
                         length -= copyLength;
@@ -144,7 +145,7 @@ public abstract class NetBufferedInput extends NetInput {
                 if (factory == null) {
                         factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl(), bufferAllocator);
                 } else {
-                        factory.setMaximumTransferUnit(mtu);
+                        factory.setMaximumTransferUnit(Math.max(mtu, factory.getMaximumTransferUnit()));
                 }
 
                 dataOffset = getHeadersLength();
@@ -172,6 +173,7 @@ public abstract class NetBufferedInput extends NetInput {
 	protected void freeBuffer() {
                 log.in();
 		if (buffer != null) {
+// System.err.println("Clear buffer, offset " + bufferOffset + " length " + buffer.length);
 			buffer.free();
 			buffer       = null;
                         bufferOffset =    0;
@@ -225,6 +227,38 @@ public abstract class NetBufferedInput extends NetInput {
                 log.out();
 
 		return value;
+	}
+
+	public boolean readBufferedSupported() {
+	    return true;
+	}
+
+	/**
+	 * Reads up to <code>length</code> bytes from the underlying input.
+	 *
+	 * @return the number of bytes actually read, or -1 in the case
+	 *         of end-of-file
+	 */
+	public int readBuffered(byte[] data, int offset, int length)
+		throws IOException {
+	    try {
+		if (buffer == null) {
+		    pumpBuffer(length);
+		}
+
+		length = Math.min(buffer.length - bufferOffset, length);
+System.err.print("Read buffer[" + length + "] = ("); for (int i = bufferOffset; i < Math.min(bufferOffset + length, 32); i++) System.err.print("0x" + Integer.toHexString(buffer.data[i] & 0xFF) + " "); System.err.println(")");
+		System.arraycopy(buffer.data, bufferOffset, data, offset, length);
+
+		bufferOffset += length;
+		if (bufferOffset == buffer.length) {
+		    freeBuffer();
+		}
+
+		return length;
+	    } catch (EOFException e) {
+		return -1;
+	    }
 	}
 
 	public void readArray(byte [] userBuffer,

@@ -41,6 +41,15 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 // System.err.println(this + ": in initSend");
         }
 
+	public boolean writeBufferedSupported() {
+	    return false;
+	}
+
+	public void writeBuffered(byte[] data, int offset, int length)
+		throws IOException {
+	    throw new IOException("write buffered byte array not supported");
+	}
+
 
         /* WriteMessage Interface */                
 

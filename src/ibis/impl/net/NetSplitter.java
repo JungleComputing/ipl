@@ -2,6 +2,7 @@ package ibis.impl.net;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -17,6 +18,8 @@ public class NetSplitter extends NetOutput {
 	 */
 	protected HashMap   outputMap = null;
 	private NetOutput   singleton;
+
+	protected boolean	writeBufferedSupported = true;
 
 	/**
 	 * The driver used for the outputs.
@@ -39,7 +42,7 @@ public class NetSplitter extends NetOutput {
 
 	private void setSingleton() {
 	    if (outputMap.values().size() == 1) {
-		java.util.Collection c = outputMap.values();
+		Collection c = outputMap.values();
 		Iterator i = c.iterator();
 		singleton = (NetOutput)i.next();
 	    } else {
@@ -71,6 +74,24 @@ public class NetSplitter extends NetOutput {
 
 		outputMap.put(rpn, output);
                 log.out();
+	}
+
+	protected void setWriteBufferedSupported() {
+	    writeBufferedSupported = false;
+	    Collection c = outputMap.values();
+	    Iterator i = c.iterator();
+
+	    while (i.hasNext()) {
+		NetOutput output  = (NetOutput)i.next();
+		if (! output.writeBufferedSupported()) {
+		    writeBufferedSupported = false;
+		    break;
+		}
+	    }
+	}
+
+	public boolean writeBufferedSupported() {
+	    return writeBufferedSupported;
 	}
 
 
@@ -220,6 +241,22 @@ public class NetSplitter extends NetOutput {
                 closeConnection(num);
                 log.out();
         }
+
+
+	public void writeBuffered(byte[] data, int offset, int length)
+		throws IOException {
+	    log.in();
+	    if (singleton != null) {
+		singleton.writeBuffered(data, offset, length);
+	    } else {
+		Iterator i = outputMap.values().iterator();
+		do {
+		    NetOutput no = (NetOutput)i.next();
+		    no.writeBuffered(data, offset, length);
+		} while (i.hasNext());
+	    }
+	    log.out();
+	}
 
         public void writeByteBuffer(NetSendBuffer buffer) throws IOException {
                 log.in();
