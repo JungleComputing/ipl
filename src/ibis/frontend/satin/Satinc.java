@@ -242,7 +242,7 @@ public final class Satinc implements BT_Opcodes {
 		mainCode[24] = BT_Ins.make(opc_goto, mainCode[27]);
 
 		code = new BT_CodeAttribute(mainCode);
-		code.setExceptionHandler(10, 11, 12, BT_Class.forName("java.lang.Throwable"));
+		code.setExceptionHandler(0, 28, 12, BT_Class.forName("java.lang.Throwable"));
 
 		BT_Method m = new BT_Method(c, "void", "main", "(java.lang.String[])", code);
 		m.becomePublic();
