@@ -375,7 +375,7 @@ public final class NetIbis extends Ibis {
 	public void join(IbisIdentifier joinIdent) {
 		synchronized (this) {
 			joinedIbises.add(joinIdent);
-			if(!open && resizeHandler == null) {
+			if(!open || resizeHandler == null) {
 				return;
 			}
 
