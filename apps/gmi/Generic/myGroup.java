@@ -1,6 +1,6 @@
-import ibis.group.GroupMethods;
+import ibis.group.GroupInterface;
 
-interface myGroup extends GroupMethods { 
+interface myGroup extends GroupInterface { 
 
 	public void put(int i);
 	public int get();

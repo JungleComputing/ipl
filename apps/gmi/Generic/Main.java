@@ -1,16 +1,16 @@
 import ibis.group.Group;
-import ibis.group.GroupMember;
+import ibis.group.GroupMethod;
+import ibis.group.CombineReply;
+import ibis.group.GroupInvocation;
+import ibis.group.BinaryCombiner;
+
+class Adder extends BinaryCombiner {
+    public int combine(int rank1, int result1, int rank2, int result2, int size) {
+	return result1 + result2;
+    }
+}
 
 class Main { 
-
-	public static void foo(int rank1, int rank2, int size) { 
-		//		System.out.println("foo(" + rank1 + ", " + rank2 + ", " + size + ")");
-	}
-
-	public static int add(int res1, int rank1, int res2, int rank2, int size) { 
-		//		System.out.println("add : me(" + rank1 + ") = " + res1 + " other(" + rank2 + ") = " + res2 + " total = " + size + " result = " + (res1 + res2));
-		return res1 + res2;
-	}
 
 	public static void main(String [] args) { 
 
@@ -29,7 +29,7 @@ class Main {
 		}
 
 		if (rank == 0) { 
-			Group.create("TestGroup", size);
+			Group.create("TestGroup", myGroup.class, size);
 		}
 
 		Test t = new Test();
@@ -38,29 +38,15 @@ class Main {
 		System.out.println("I am " + t.rank + " of " + size);
 
 		if (rank == 0) { 		
-			myGroup g = (myGroup) t.createGroupStub();			
-			/*
-			//Group.setInvoke(g, "void put(int)", Group.REMOTE, size-1);
-			//Group.setResult(g, "void put(int)", Group.RETURN);
-
-			Group.setInvoke(g, "void put(int)", Group.GROUP);
-			Group.setResult(g, "void put(int)", Group.COMBINE, "Main", "foo");
-
-			for (int i=0;i<count;i++) { 
-				g.put(i);
+			myGroup g = (myGroup) Group.lookup("TestGroup");
+			try {
+			    GroupMethod m = Group.findMethod(g, "int get()");
+			    m.configure(new GroupInvocation(), new CombineReply(new Adder()));
+			} catch(Exception e) {
+			    System.out.println("Caught exception: " + e);
+			    System.exit(1);
 			}
 
-			long time = System.currentTimeMillis();
-
-			for (int i=0;i<count;i++) { 
-				g.put(i);
-			}
-
-			time = System.currentTimeMillis() - time;
-			*/
-
-			Group.setInvoke(g, "int get()", Group.GROUP);
-			Group.setResult(g, "int get()", Group.COMBINE, "Main", "add");
 
 			int result = 0;
 
