@@ -265,6 +265,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	// sequential code.
 	ibis.satin.SatinObject.pause(); 
 
+        Helpers.printPlatformVersion();
         System.err.println( "Problem in tuple space: " + problemInTuple );
 	SATProblem p = SATProblem.parseDIMACSStream( f );
 	p.setReviewer( new CubeClauseReviewer() );

@@ -140,4 +140,14 @@ final class Helpers {
 	System.err.println();
     }
 
+    /** Print the platform version that is used. */
+    static void printPlatformVersion()
+    {
+        java.util.Properties p = System.getProperties();
+
+        System.out.println( "Java: " + p.getProperty( "java.version" ) + " (" + p.getProperty( "java.vendor" ) + ")" );
+        System.out.println( "JVM: " + p.getProperty( "java.vm.specification.version" ) + " " + p.getProperty( "java.vm.specification.name" ) + " (" + p.getProperty( "java.vm.specification.vendor" ) + ")" );
+        System.out.println( "Runtime environment: " + p.getProperty( "java.specification.version" ) + " " + p.getProperty( "java.specification.name" ) + " (" + p.getProperty( "java.specification.vendor" ) + ")" );
+        System.out.println( "OS: " + p.getProperty( "os.name" ) + " " + p.getProperty( "os.version" ) + " (" + p.getProperty( "os.arch" ) + ")" );
+    }
 }
