@@ -88,7 +88,7 @@ final class BarnesHut {
 		 * also doesn't include this code, I will omit it. - Maik.
 		 */
 
-		if(iterations == -1) {
+		if (iterations == -1) {
 			iterations = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
 		}
 
@@ -99,8 +99,6 @@ final class BarnesHut {
 		bodyArray = new Plummer().generate(nBodies);
 		maxLeafBodies = mlb;
 
-		
-		
 		//Plummer should make sure that a body with number x also has index x
 		for (int i = 0; i < nBodies; i++) {
 			if (ASSERTS && bodyArray[i].number != i) {
@@ -244,9 +242,9 @@ final class BarnesHut {
 				bc.repaint();
 			}
 
-			System.err.println("Iteration " + iteration + " done, "
-					+ ", comm = " + btcomTimeTmp + ", update = "
-					+ updateTimeTmp + ", force = " + forceCalcTimeTmp);
+			System.err.println("Iteration " + iteration + " done, comm = "
+					+ btcomTimeTmp + ", update = " + updateTimeTmp
+					+ ", force = " + forceCalcTimeTmp);
 		}
 
 		end = System.currentTimeMillis();
