@@ -121,6 +121,10 @@
 	    <include name="ibis/satin/**/*.java"/>
 	    <include name="ibis/classfile/**/*.java"/>
 	    <include name="ibis/rmi/**/*.java"/>
+	    <include name="ibis/repmi/**/*.java"/>
+	    <exclude name="ibis/repmi/Stub_manta_io_Generator.java"/>
+	    <exclude name="ibis/repmi/Registry.java"/>
+	    <exclude name="ibis/repmi/ReplicatedObject.java"/>
 	    <include name="ibis/util/**/*.java"/>
 
 	    <classpath refid="default.classpath"/>
