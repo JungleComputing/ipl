@@ -182,14 +182,35 @@ public final class RTS {
                 return (Skeleton) skeletons.get(skel);
         }  
 	
+	private static String get_skel_name(Class c) {
+	    String class_name = c.getName();
+	    Package pkg = c.getPackage();
+	    String package_name = pkg != null ? pkg.getName() : null;
+	    if (package_name == null || package_name.equals("")) {
+		return "repmi_skeleton_" + class_name;
+	    }
+	    return package_name + ".repmi_skeleton_" +
+		    class_name.substring(class_name.lastIndexOf('.') + 1);
+	}
+
+	private static String get_stub_name(Class c) {
+	    String class_name = c.getName();
+	    Package pkg = c.getPackage();
+	    String package_name = pkg != null ? pkg.getName() : null;
+	    if (package_name == null || package_name.equals("")) {
+		return "repmi_stub_" + class_name;
+	    }
+	    return package_name + ".repmi_stub_" +
+		    class_name.substring(class_name.lastIndexOf('.') + 1);
+	}
+
 	private static Skeleton newObject(String type) { 
 		
 		try { 
 			Class c = Class.forName(type);
 			ReplicatedObject o = (ReplicatedObject) c.newInstance();
 			
-			// this is not correct with package names !!
-			Class skel_c =  Class.forName("repmi_skeleton_" + type);
+			Class skel_c =  Class.forName(get_skel_name(c));
 			Skeleton skel = (Skeleton) skel_c.newInstance();
 			
 			skel.init(o);
@@ -249,7 +270,7 @@ public final class RTS {
 			
 			Skeleton skel = (Skeleton) skeletons.get(number);	
 			// this is not correct with package names !!
-			Class stub_class = Class.forName("repmi_stub_" + type);
+			Class stub_class = Class.forName(get_stub_name(Class.forName(type)));
 			Stub stub = (Stub) stub_class.newInstance();
 			stub.init(number, skel);
 			return stub;
