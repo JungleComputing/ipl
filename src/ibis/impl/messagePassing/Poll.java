@@ -11,14 +11,22 @@ public abstract class Poll implements Runnable {
     int		preemptive_pollers;
     Thread	peeker;
 
+    private static final boolean DEBUG = false;
+
     protected Poll() {
 	// Sun doesn't set java.compiler, so getProperty returns null --Rob
 	String compiler = java.lang.System.getProperty("java.compiler");
 	MANTA_COMPILE = compiler != null && compiler.equals("manta");
 
 	peeker = new Thread(this);
-//	manta.runtime.RuntimeSystem.DebugMe(peeker, this);
 	peeker.setDaemon(true);
+
+	if (DEBUG) {
+	    System.err.println("Turn on Poll.DEBUG");
+	}
+	if (MANTA_COMPILE) {
+	    System.err.println("Ibis/Panda knows this is Manta");
+	}
     }
 
 
@@ -47,7 +55,6 @@ public abstract class Poll implements Runnable {
 	}
 	waiting_threads = client;
 	client.setPrev(null);
-// client.setThread(Thread.currentThread());
     }
 
     private void remove(PollClient client) {
@@ -65,13 +72,14 @@ public abstract class Poll implements Runnable {
     protected abstract void msg_poll() throws IbisIOException;
     native void abort();
 
+
     void poll() throws IbisIOException {
 	poll_poll_direct++;
 	// long t = Ibis.currentTime();
 	msg_poll();
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.inputStreamPoll();
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.tMsgPoll += Ibis.currentTime() - t;
     }
+
 
     void waitPolling(PollClient client, long timeout, boolean preempt)
 	    throws IbisIOException {
@@ -86,29 +94,24 @@ public abstract class Poll implements Runnable {
 	} else {
 	    poll_non_preempt++;
 	}
-// System.err.println("  -]]]] " + Thread.currentThread() + " enter pre-poll; poller = " + poller);
 	if (preempt) {
 	    for (int i = 0; i < polls_before_yield; i++) {
 		poll();
 		// poll_poll++;
-// System.err.println("  -]]]] " + Thread.currentThread() + " in pre-poll: call client.satisfied(); poller = " + poller);
 		if (client.satisfied()) {
-// System.err.println("  -]]]] " + Thread.currentThread() + " in pre-poll: client.satisfied() succeeds; poller = " + poller);
 		    return;
 		}
-// System.err.println("  -]]]] " + Thread.currentThread() + " in pre-poll: client.satisfied() failed; poller = " + poller);
 	    }
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG &&
-		    preemptive_pollers > 0) {
-		System.err.println("Gee, some other preemptive poller active");
+	    if (DEBUG || ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		if (preemptive_pollers > 0) {
+		    System.err.println("Gee, some other preemptive poller active");
+		}
+		preemptive_pollers++;
 	    }
-	    preemptive_pollers++;
 	}
 
 	int polls = polls_before_yield;
 	Thread me = Thread.currentThread();
-// System.err.println("  -]]]] " + me + " enter poll; poller = " + poller);
-// Thread.dumpStack();
 
 	while (! client.satisfied()) {
 	    if (timeout > 0) {
@@ -119,10 +122,6 @@ public abstract class Poll implements Runnable {
 
 	    if (poller == null || preempt) {
 		// OK, let me become poller
-// if (poller == null) {
-// System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + ":  -]]]] " + me + " become the poller, preempt = " + preempt + " previous poller " + poller);
-// Thread.dumpStack();
-// }
 		poller = me;
 	    }
 
@@ -137,31 +136,29 @@ public abstract class Poll implements Runnable {
 		    if (preempt) {
 			poll_yield_preempt++;
 		    } else {
+			if (DEBUG && preemptive_pollers > 0) {
+			    System.err.println("Am non-preemptive but I seem to preempt a preemptive poller");
+			}
 			poll_yield_non_preempt++;
 		    }
-// if (! preempt) System.err.println("  -]]]] " + me + " yield in poll(), preempt = " + preempt);
+
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-		    if (true || MANTA_COMPILE || preempt) {
-			Thread.yield();
-		    } else {
+		    if (! MANTA_COMPILE && ! preempt) {
 			try {
 			    Thread.sleep(0,1);
 			} catch (InterruptedException e) {
-			    /* Ignore */
 			}
+		    } else {
+			Thread.yield();
 		    }
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-// if (! preempt) System.err.println("  -]]]] " + me + " back from yield in poll(), preempt = " + preempt);
 		}
+
 	    } else {
 		poll_wait++;
 		insert(client);
 		client.poll_wait(timeout);
-// System.err.println("  -]]]] " + me + " wakes up in poll, take a peek; poller = " + poller);
-// for (PollClient c = waiting_threads; c != null; c = c.next()) {
-    // System.err.println("    " + c.thread());
-// }
 		remove(client);
 	    }
 	}
@@ -169,17 +166,15 @@ public abstract class Poll implements Runnable {
 	if (poller == me) {
 	    // Quit being the poller
 	    poller = null;
-// System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + ":  -]]]] " + me + " quit being the poller");
 	    if (waiting_threads != null) {
 		// Wake up another poller thread
 		waiting_threads.wakeup();
 	    }
 	}
 
-if (preempt) {
-preemptive_pollers--;
-}
-// System.err.println("  -]]]] " + me + " leave poll");
+	if ((DEBUG || ibis.ipl.impl.messagePassing.Ibis.DEBUG) && preempt) {
+	    preemptive_pollers--;
+	}
     }
 
 
@@ -196,7 +191,14 @@ preemptive_pollers--;
 		    }
 		}
 	    }
-	    Thread.yield();
+	    if (! MANTA_COMPILE) {
+		try {
+		    Thread.sleep(0,1);
+		} catch (InterruptedException e) {
+		}
+	    } else {
+		Thread.yield();
+	    }
 	}
     }
 
@@ -213,6 +215,7 @@ preemptive_pollers--;
     }
 
     void reset_stats() {
+	System.err.println("Reset Ibis.Poll statistics");
 	poll_preempt = 0;
 	poll_non_preempt = 0;
 	poll_wait = 0;

@@ -509,6 +509,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	if (upcall == null) {
 	    System.err.println(Thread.currentThread() + "ReceivePort runs but upcall == null");
 	}
+System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
 
 	try {
 	    while (true) {
