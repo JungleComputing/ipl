@@ -16,14 +16,14 @@ import java.io.File;
 
 
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
-    private static final boolean traceSolver = true;
+    private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static final boolean traceLearning = false;
     private static final boolean traceRestarts = false;
     private static final boolean problemInTuple = true;
     private static int label = 0;
-    static SATProblem p;
+    static SATProblem p = null;
 
     final static class ProblemUpdater implements ibis.satin.ActiveTuple {
         Clause cl;
@@ -41,7 +41,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     }
 
     SATSolver( SATProblem p ){
-        this.p = p;
     }
 
     /**
@@ -60,13 +59,13 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	boolean val
     ) throws SATResultException, SATRestartException
     {
+        ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
 	}
         // We must update the administration with any
         // new clauses that we've learned recently.
-        ctx.update( p );
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level );
@@ -138,11 +137,15 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	boolean val
     ) throws SATException
     {
+
+        if( p == null ){
+            p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
+        }
+        ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
 	}
-        ctx.update( p );
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level );
@@ -181,7 +184,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
         boolean firstvar = ctx.posDominant( nextvar );
 
-        if( needMoreJobs() ){
+        //if( needMoreJobs() ){
+        if( true ){
             try {
                 // We have variable 'nextvar' to branch on.
                 SATContext firstctx = (SATContext) ctx.clone();
@@ -197,8 +201,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                     }
                     throw x;
                 }
-                // We have an untried value, wait for that.
-                sync();
             }
 	}
 	else {

@@ -48,6 +48,7 @@ public final class BreederSolver {
 	boolean val
     ) throws SATResultException, SATRestartException, SATCutoffException
     {
+        ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
@@ -108,7 +109,6 @@ public final class BreederSolver {
 	// give it to the recursion.
         // However, we must update the administration with any
         // new clauses that we've learned recently.
-        ctx.update( p );
 	leafSolve( level+1, p, ctx, nextvar, !firstvar );
     }
 
@@ -176,7 +176,6 @@ public final class BreederSolver {
                     return null;
                 }
             }
-            ctx.update( p );
             leafSolve( 0, p, ctx, nextvar, !firstvar );
 	}
 	catch( SATResultException r ){

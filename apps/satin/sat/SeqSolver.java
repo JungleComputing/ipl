@@ -43,6 +43,7 @@ public final class SeqSolver {
 	boolean val
     ) throws SATResultException, SATRestartException
     {
+        ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
@@ -100,7 +101,6 @@ public final class SeqSolver {
 	// give it to the recursion.
         // However, we must update the administration with any
         // new clauses that we've learned recently.
-        ctx.update( p );
 	leafSolve( level+1, p, ctx, nextvar, !firstvar );
     }
 
@@ -166,7 +166,6 @@ public final class SeqSolver {
                     return null;
                 }
             }
-            ctx.update( p );
             leafSolve( 0, p, ctx, nextvar, !firstvar );
 	}
 	catch( SATResultException r ){

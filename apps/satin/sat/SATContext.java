@@ -75,7 +75,7 @@ public final class SATContext implements java.io.Serializable {
     }
 
     private static final boolean tracePropagation = false;
-    private static final boolean traceLearning = false;
+    private static final boolean traceLearning = true;
     private static final boolean traceResolutionChain = false;
     private static final boolean traceRestarts = true;
     private static final boolean traceUpdates = false;
@@ -620,7 +620,7 @@ public final class SATContext implements java.io.Serializable {
                         System.err.println( "Restarting at level " + (cl-1) + " (now at " + level + ")" );
                     }
                     if( cl<level ){
-                        throw new SATRestartException( cl-1 );
+                        //throw new SATRestartException( cl-1 );
                     }
                 }
 	    }
