@@ -320,7 +320,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 			buf = receive();
 		}
 
-		if (buf.length > expectedLength) {
+		if (buf.length - buf.base > expectedLength) {
 		    this.buf = buf;
 		    buf = createReceiveBuffer(0);
 		    System.arraycopy(this.buf.data, this.buf.base,
