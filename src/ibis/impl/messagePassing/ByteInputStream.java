@@ -30,7 +30,6 @@ final class ByteInputStream
     public int read(byte b[]) throws IbisIOException {
 	return read(b, 0, b.length);
     }
-    
 
     static native boolean getInputStreamMsg(int tags[]);
 

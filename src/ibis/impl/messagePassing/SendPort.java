@@ -3,7 +3,7 @@ package ibis.ipl.impl.messagePassing;
 import java.util.Vector;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 public class SendPort implements ibis.ipl.SendPort, Protocol {

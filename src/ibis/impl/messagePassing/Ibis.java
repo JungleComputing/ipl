@@ -5,15 +5,16 @@ import ibis.ipl.impl.generic.IbisIdentifierTable;
 import java.util.Vector;
 import java.util.Hashtable;
 
-import ibis.io.MantaInputStream;
-import ibis.io.MantaOutputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
 
 import ibis.ipl.impl.generic.ConditionVariable;
 import ibis.ipl.impl.generic.Monitor;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 import ibis.ipl.StaticProperties;
+import ibis.ipl.impl.generic.IbisIdentifierTable;
 
 public class Ibis extends ibis.ipl.Ibis {
 
@@ -22,9 +23,9 @@ public class Ibis extends ibis.ipl.Ibis {
 
     static Ibis globalIbis;
 
-    IbisIdentifierTable identTable = new IbisIdentifierTable();
-
     private IbisIdentifier ident;
+
+    IbisIdentifierTable identTable = new IbisIdentifierTable();
 
     Registry registry;
 
@@ -268,7 +269,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     SendPort createSendPort(PortType type)
 	    throws IbisIOException {
-	return createSendPort(type, null, null);
+	return createSendPort(type, "noname", null);
     }
 
     SendPort createSendPort(PortType type, String name)
@@ -281,6 +282,11 @@ public class Ibis extends ibis.ipl.Ibis {
 	return createSendPort(type, r, null);
     }
 
+    SendPort createSendPort(PortType type, String name, Replacer r)
+	    throws IbisIOException {
+	return createSendPort(type, r, name);
+    }
+
     SendPort createSendPort(PortType type, Replacer r, String name)
 	    throws IbisIOException {
 	switch (type.serializationType) {
@@ -291,7 +297,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	    return new SerializeSendPort(type, name, new OutputConnection(), r);
 
 	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA:
-	    return new MantaSendPort(type, name, new OutputConnection(), r);
+	    return new IbisSendPort(type, name, new OutputConnection(), r);
 
 	default:
 	    throw new IbisIOException("No such serialization type " + type.serializationType);
@@ -434,7 +440,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	ConditionVariable.report(System.out);
 	ReceivePort.report(System.out);
 	rcve_poll.report(System.out);
-	MantaOutputStream.statistics();
+//	IbisSerializationOutputStream.statistics();
 	ibmp_report(1);
     }
 

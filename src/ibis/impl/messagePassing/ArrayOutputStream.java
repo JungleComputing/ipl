@@ -115,8 +115,8 @@ final public class ArrayOutputStream
     }
 
 
-    final public void flush(boolean lastFrag) throws IbisIOException {
-	out.flush(lastFrag);
+    final public void flush() throws IbisIOException {
+	out.flush();
 // System.err.println(this + ": flush; out " + out + "; out.completed " + out.completed());
 	if (! out.completed()) {
 	    indices_short = new short[PRIMITIVE_TYPES];
@@ -151,11 +151,13 @@ final public class ArrayOutputStream
 	}
     }
 
-
     final public void finish() throws IbisIOException {
 	out.finish();
     }
 
+    final public void close() throws IbisIOException {
+	out.close();
+    }
 
     public final int bytesWritten() { 
 	return -1; // please implement --Rob
@@ -165,5 +167,4 @@ final public class ArrayOutputStream
     public final void resetBytesWritten() {
 	// please implement --Rob
     }
-
 }

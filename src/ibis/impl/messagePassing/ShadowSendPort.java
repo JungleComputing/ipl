@@ -37,7 +37,7 @@ class ShadowSendPort extends SendPort {
 	    return new SerializeShadowSendPort(type, name, ibisId, send_cpu, send_port, rcve_port);
 
 	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA:
-	    return new MantaShadowSendPort(type, name, ibisId, send_cpu, send_port, rcve_port);
+	    return new IbisShadowSendPort(type, name, ibisId, send_cpu, send_port, rcve_port);
 
 	default:
 	    throw new IbisIOException("No such serialization type " + serializationType);

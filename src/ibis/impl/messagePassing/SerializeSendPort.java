@@ -4,7 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.ObjectOutputStream;
 
 import ibis.ipl.IbisIOException;
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 
 final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 

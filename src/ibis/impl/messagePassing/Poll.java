@@ -45,7 +45,7 @@ final public class Poll implements Runnable {
 		System.err.println("Turn on Poll.STATISTICS");
 	    }
 	    if (MANTA_COMPILE) {
-		System.err.println("Ibis/Panda knows this is Manta");
+		System.err.println("Ibis/Panda knows this is Ibis");
 	    }
 	}
     }

@@ -54,6 +54,10 @@ class ElectionClient implements ElectionProtocol {
     }
 
     Object elect(String election, Object candidate) throws IbisIOException {
+	if (! ElectionProtocol.NEED_ELECTION) {
+		System.err.println("elections are turned OFF!");
+		System.exit(1);
+	}
 
 // System.err.println(Thread.currentThread() + "ElectionClient: elect(): start send");
 

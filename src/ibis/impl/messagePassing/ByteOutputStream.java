@@ -205,7 +205,7 @@ final class ByteOutputStream
     }
 
 
-    public void flush(boolean lastFrag) {
+    private void flush(boolean lastFrag) {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; msgHandle 0x" + Integer.toHexString(msgHandle));
 	}
@@ -256,5 +256,4 @@ final class ByteOutputStream
     native void writeDoubleArray(double[] array, int off, int len);
 
     native void report();
-
 }

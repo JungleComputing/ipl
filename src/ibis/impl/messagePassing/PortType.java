@@ -2,7 +2,7 @@ package ibis.ipl.impl.messagePassing;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
-import ibis.ipl.Replacer;
+import ibis.io.Replacer;
 
 public class PortType implements ibis.ipl.PortType {
 
@@ -91,6 +91,18 @@ public class PortType implements ibis.ipl.PortType {
 	}
 
 	return s;
+    }
+
+    public ibis.ipl.SendPort createSendPort(String portname, Replacer r) throws IbisIOException {
+	    SendPort s;
+	    s = ibis.ipl.impl.messagePassing.Ibis.myIbis.createSendPort(this, portname, r);
+
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		    System.out.println(myIbis.name() + ": Sendport " + name + " created of of type '" +
+				       name + "'" + " cpu " + s.ident.cpu + " port " + s.ident.port);
+	    }
+	    
+	    return s;
     }
 
     public ibis.ipl.ReceivePort createReceivePort(String name)

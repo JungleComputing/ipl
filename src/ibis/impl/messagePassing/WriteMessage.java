@@ -135,61 +135,71 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	writeObject(value);
     }
 
+    public void writeArrayObject(Object[] value) throws IbisIOException {
+	writeObject(value);
+    }
 
-    public void writeSubArrayBoolean(boolean[] value, int offset,
+
+    public void writeArraySliceBoolean(boolean[] value, int offset,
 					    int size) throws IbisIOException {
 	boolean[] temp = new boolean[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeSubArrayByte(byte[] value, int offset,
+    public void writeArraySliceByte(byte[] value, int offset,
 				  int size) throws IbisIOException {
 	byte[] temp = new byte[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeSubArrayChar(char[] value, int offset,
+    public void writeArraySliceChar(char[] value, int offset,
 					 int size) throws IbisIOException {
 	char[] temp = new char[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeSubArrayShort(short[] value, int offset,
+    public void writeArraySliceShort(short[] value, int offset,
 					  int size) throws IbisIOException {
 	short[] temp = new short[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeSubArrayInt(int[] value, int offset,
+    public void writeArraySliceInt(int[] value, int offset,
 					int size) throws IbisIOException {
 	int[] temp = new int[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeSubArrayLong(long[] value, int offset,
+    public void writeArraySliceLong(long[] value, int offset,
 					 int size) throws IbisIOException {
 	long[] temp = new long[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeSubArrayFloat(float[] value, int offset,
+    public void writeArraySliceFloat(float[] value, int offset,
 					  int size) throws IbisIOException {
 	float[] temp = new float[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeSubArrayDouble(double[] value, int offset,
+    public void writeArraySliceDouble(double[] value, int offset,
 					   int size) throws IbisIOException {
 	double[] temp = new double[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
+    public void writeArraySliceObject(Object[] value, int offset,
+					   int size) throws IbisIOException {
+	Object[] temp = new Object[size];
+	System.arraycopy(value, offset, temp, 0, size);
+	writeObject(temp);
+    }
 }
