@@ -79,8 +79,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	volatile int exitReplies = 0;
 
 	// WARNING: dijkstra does not work in combination with aborts.
-	DEQueueDijkstra q = new DEQueueDijkstra(this);
-//	DEQueue q = new DEQueue(this);
+	public DEQueue q = ABORTS ? ((DEQueue) new DEQueueNormal(this)) : 
+			     ((DEQueue) new DEQueueDijkstra(this));
 	private PortType portType;
 	private ReceivePort receivePort;
 	private ReceivePort barrierReceivePort; /* Only for the master. */
@@ -164,10 +164,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			throw new IbisError("multiple satin instances are currently not supported");
 		}
 		me = this;
-
-		if(q instanceof DEQueueDijkstra && ABORTS) {
-			throw new IbisError("you cannot use Dijkstra Queues in combination with aborts");
-		}
 
 		if(stealTimer == null) {
 			System.err.println("Native timers not found, using (less accurate) java timers.");

@@ -4,7 +4,7 @@ package ibis.satin;
 // This is because we have to remove elements from random places in the queue
 // is this true???
 
-public final class DEQueueDijkstra implements Config {
+public final class DEQueueDijkstra extends DEQueue implements Config {
 
 	private static final int START_SIZE=5000;
 
@@ -18,7 +18,7 @@ public final class DEQueueDijkstra implements Config {
 		this.satin = satin;
 	}
 
-	void addToHead(InvocationRecord r) {
+	public void addToHead(InvocationRecord r) {
 		if(head == size) {
 			System.out.println("doubling DEq, new size = " + (size*2));
 			
@@ -34,7 +34,7 @@ public final class DEQueueDijkstra implements Config {
 		head++;
 	}
 
-	InvocationRecord getFromHead() {
+	public InvocationRecord getFromHead() {
 		head--;
 		if(head < tail) {
 			head++;
@@ -51,7 +51,7 @@ public final class DEQueueDijkstra implements Config {
 		return l[head];
 	}
 
-	synchronized InvocationRecord getFromTail() {
+	public synchronized InvocationRecord getFromTail() {
 		tail++;
 		if(head < tail) {
 			tail--;
@@ -61,7 +61,7 @@ public final class DEQueueDijkstra implements Config {
 		return l[tail-1];
 	}
 
-	void removeElement(int i) {
+	private void removeElement(int i) {
 		l[i] = l[head-1];
 		head--;
 	}
@@ -88,7 +88,7 @@ public final class DEQueueDijkstra implements Config {
 	}
 
 	/* hold the satin lock here! */
-	void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
+	public void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
 		if(ASSERTS) {
 			Satin.assertLocked(satin);
 		}
