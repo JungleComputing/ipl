@@ -23,8 +23,10 @@
 	    depends="property-satin-build,property-init"/>
 
     <target name="satin"
-	    depends="satin-init"
-	    description="Preprocess all classes in the build tree for Satin">
+	    depends="satin-init">
+	    <!-- Commented out description
+	    description="Preprocess all classes in the build tree for Satin"
+	    -->
 	<if>
 	    <isset property="satinc-flags"/>
 	    <then>

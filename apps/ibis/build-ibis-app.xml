@@ -18,7 +18,8 @@
     </target>
 
     <target name="compile"
-	    depends="init">
+	    depends="init"
+	    description="Compile without Ibis-serialization rewriting">
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir=".">
@@ -28,12 +29,14 @@
     </target>
 
     <target name="build"
-	    depends="init">
+	    depends="init"
+	    description="Compile with Ibis-serialization rewriting">
 	<antcall target="compile"/>
 	<antcall target="iogen"/>
     </target>
 
-    <target name="clean">
+    <target name="clean"
+	    description="Clean up the build">
 	<delete dir="${build}"/>
     </target>
 

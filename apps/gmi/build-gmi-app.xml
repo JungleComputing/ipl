@@ -29,13 +29,15 @@
     </target>
 
     <target name="build"
-	    depends="init">
+	    depends="init"
+	    description="Compile a GMI program">
 	<antcall target="compile"/>
 	<antcall target="gmi"/>
 	<antcall target="iogen"/>
     </target>
 
-    <target name="clean">
+    <target name="clean"
+	    description="Clean up the build">
 	<delete dir="${build}"/>
     </target>
 

@@ -23,8 +23,10 @@
 	    depends="property-rmic-build,property-init"/>
 
     <target name="rmic"
-	    depends="rmic-init"
-	    description="Preprocess class files in the build tree for RMI">
+	    depends="rmic-init">
+	    <!-- Commented out; not toplevel.
+	    description="Preprocess class files in the build tree for RMI"
+	    -->
 	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
 
 	<if>
@@ -90,8 +92,10 @@
     </target>
 
     <target name="rmic-sun"
-	    depends="property-init"
-	    description="Preprocess class files in the build tree for SUN RMI">
+	    depends="property-init">
+	    <!-- Commented out; not toplevel.
+	    description="Preprocess class files in the build tree for SUN RMI"
+	    -->
 
 	<path id="all-classes">
 	    <fileset dir="${build}">
@@ -170,8 +174,10 @@
     <property name="karmi" location="${ibis}/karmi/karmi-transport-1.07g"/>
 
     <target name="rmic-karmi"
-	    depends="property-init"
-	    description="Preprocess class files in the build tree for SUN RMI">
+	    depends="property-init">
+	    <!-- Commented out; not toplevel.
+	    description="Preprocess class files in the build tree for SUN RMI"
+	    -->
 
 	<path id="all-classes">
 	    <fileset dir="${build}">

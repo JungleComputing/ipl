@@ -24,8 +24,10 @@
 	    depends="property-gmi-build,property-init"/>
 
     <target name="gmi"
-	    depends="gmi-init"
-	    description="Preprocess GMI class files in the build tree">
+	    depends="gmi-init">
+	    <!-- commented out description
+	    description="Preprocess GMI class files in the build tree"
+	    -->
 	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
 	<path id="all-classes">
 	    <fileset dir="${build}">

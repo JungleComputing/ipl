@@ -18,7 +18,7 @@
 
     <target name="compile"
 	    depends="init,property-init"
-	    description="Compile for sequential execution">
+	    description="Compile Satin application for sequential execution">
 	<if>
 	    <isreference refid="src.excludes-ref"/>
 	    <then>
@@ -39,14 +39,12 @@
 	</javac>
     </target>
 
-    <target name="build-no-satin"
-	    depends="init">
+    <target name="build-no-satin">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
     </target>
 
     <target name="build"
-	    depends="init"
-	    description="Compile for parallel execution">
+	    description="Compile Satin application for parallel execution">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="satin"/>
 	<antcall inheritRefs="true" target="iogen"/>

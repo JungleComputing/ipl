@@ -29,13 +29,15 @@
     </target>
 
     <target name="build"
-	    depends="init">
+	    depends="init"
+	    description="Compile a RepMI application">
 	<antcall target="compile" inheritRefs="true"/>
 	<antcall target="repmi" inheritRefs="true"/>
 	<antcall target="iogen" inheritRefs="true"/>
     </target>
 
-    <target name="clean">
+    <target name="clean"
+	    description="Clean up the build">
 	<delete dir="${build}"/>
     </target>
 
