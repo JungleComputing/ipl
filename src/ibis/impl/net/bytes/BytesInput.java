@@ -74,6 +74,7 @@ public class BytesInput extends NetInput {
 		NetInput         input)
 		throws IbisIOException {
 		super(sp, driver, input);
+                an = new NetAllocator(anThreshold);
 	}
 
 	/*
