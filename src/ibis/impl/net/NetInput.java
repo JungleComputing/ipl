@@ -331,7 +331,7 @@ finishedUpcallThreads--;
                 // Stat object
                 String s = "//"+type.name()+this.context+".input";
                 boolean utStatOn = type.getBooleanStringProperty(this.context, "UpcallThreadStat", false);
-                utStat = new NetThreadStat(true || utStatOn, s);
+                utStat = new NetThreadStat(utStatOn, s);
 	}
 
         /**

@@ -569,7 +569,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                 this.log       = new NetLog(log,   s, "LOG");
                 this.trace     = new NetLog(trace, s, "TRACE");
-                this.disp      = new NetLog(true || disp,  s, "DISP");
+                this.disp      = new NetLog(disp,  s, "DISP");
 
                 this.trace.disp(receivePortTracePrefix+" receive port created");
         }
