@@ -61,8 +61,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	/* Options. */
 	boolean closed = false; // used in TupleSpace
-	private boolean stats = false;
-	private boolean ibisSerialization = false;
+	boolean stats = true; // used in messageHandler
+	private boolean detailedStats = false;
+	private boolean ibisSerialization = true;
 	private boolean upcallPolling = false;
 
 	/* Am I the root (the one running main)? */
@@ -100,9 +101,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private volatile boolean receivedResults = false;
 	private int stampCounter = 0;
 
-
 	private IRStack onStack = new IRStack(this);
-
 	private IRVector exceptionList = new IRVector(this);
 
 	/* abort messages are queued until the sync. */
@@ -112,10 +111,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	volatile boolean gotStealReply = false; // used in messageHandler
 	volatile boolean gotBarrierReply = false; // used in messageHandler
 	volatile boolean gotActiveTuples = false; // used in messageHandler
+	protected final boolean upcalls;
 
 	InvocationRecord stolenJob = null;
 
-	private int suggestedQueueSize = 100;
+	private int suggestedQueueSize = 1000;
 
 	/* Variables that contain statistics. */
 	private long spawns = 0;
@@ -128,16 +128,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private long stealSuccess = 0;
 	private long tupleMsgs = 0;
 	private long tupleBytes = 0;
-
 	long stolenJobs = 0; // used in messageHandler
 	long stealRequests = 0; // used in messageHandler
-	protected final boolean upcalls;
-
 	long interClusterMessages = 0;
 	long intraClusterMessages = 0;
 	long interClusterBytes = 0;
 	long intraClusterBytes = 0;
-
+	SatinStats totalStats; // used in messageHandler
+	
 	private int parentStamp = -1;
 	private IbisIdentifier parentOwner = null;
 	public InvocationRecord parent = null; // used in generated code
@@ -149,6 +147,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	/* All victims, myself NOT included. The elements are Victims. */
 	VictimTable victims;
 
+	Timer totalTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer stealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer handleStealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer abortTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
@@ -174,6 +173,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.err.println("Native timers not found, using (less accurate) java timers.");
 		}
 
+		if(totalTimer == null) totalTimer = new Timer();
 		if(stealTimer == null) stealTimer = new Timer();
 		if(handleStealTimer == null) handleStealTimer = new Timer();
 		if(abortTimer == null) abortTimer = new Timer();
@@ -182,7 +182,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(tupleTimer == null) tupleTimer = new Timer();
 		if(invocationRecordWriteTimer == null) invocationRecordWriteTimer = new Timer();
 		if(invocationRecordReadTimer == null) invocationRecordReadTimer = new Timer();
-
+		
 		Properties p = System.getProperties();
 		String hostName = null;
 		String alg = null;
@@ -220,8 +220,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				reqprops.add("name", "tcp");
 			} else if(args[i].equals("-satin-stats")) {
 				stats = true;
+			} else if(args[i].equals("-satin-no-stats")) {
+				stats = false;
+			} else if(args[i].equals("-satin-detailed-stats")) {
+				stats = true;
+				detailedStats = true;
 			} else if(args[i].equals("-satin-ibis")) {
 				ibisSerialization = true;
+			} else if(args[i].equals("-satin-sun")) {
+				ibisSerialization = false;
 			} else if(args[i].equals("-satin-no-upcalls")) {
 				doUpcalls = false;
 			} else if(args[i].equals("-satin-upcalls")) {
@@ -412,6 +419,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				    "': init ibis DONE2");
 		}
 
+		if(stats && master) {
+			totalStats = new SatinStats();
+		}
+
 		if(master) {
 			if(closed) {
 				System.err.println("SATIN '" + hostName +
@@ -476,6 +487,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(COMM_DEBUG) {
 			out.println("SATIN '" + hostName + "': post barrier" );
 		}
+
+		totalTimer.start();
 	}
 
 	public boolean inDifferentCluster(IbisIdentifier other) {
@@ -491,20 +504,168 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		return !ident.cluster().equals(other.cluster());
 	}
 
-	public void exit() {
-		/* send exit messages to all others */
+	public void printStats() {
 		int size;
-		java.text.NumberFormat nf = null;
 
-		if(!closed) {
-			ibis.closeWorld();
+		synchronized(this) {
+			size = victims.size();
 		}
 
-		if (stats) {
-			nf = java.text.NumberFormat.getInstance();
+		// add my own stats
+		SatinStats me = createStats();
+		totalStats.add(me);
+
+		java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
+//		pf.setMaximumIntegerDigits(3);
+//		pf.setMinimumIntegerDigits(3);
+
+		// for percentages
+		java.text.NumberFormat pf = java.text.NumberFormat.getInstance();
+		pf.setMaximumFractionDigits(3);
+		pf.setMinimumFractionDigits(3);
+		pf.setGroupingUsed(false);
+
+
+		out.println("-------------------------------SATIN STATISTICS--------------------------------");
+		if(SPAWN_STATS) {
+			out.println("SATIN: SPAWN:       spawns " + nf.format(totalStats.spawns) +
+				    " executed " + nf.format(totalStats.jobsExecuted) + 
+				    " syncs " + nf.format(totalStats.syncs));
+			if(ABORTS) {
+				out.println("SATIN: ABORT:       aborts " +
+					    nf.format(totalStats.aborts) +
+					    " abort msgs " + nf.format(totalStats.abortMessages) +
+					    " aborted jobs " + nf.format(totalStats.abortedJobs));
+			}
 		}
 
-		if(SPAWN_STATS && stats) {
+		if(TUPLE_STATS) {
+			out.println("SATIN: TUPLE_SPACE: bcasts " + 
+				    nf.format(totalStats.tupleMsgs) +
+				    ", bytes " + nf.format(totalStats.tupleBytes));
+		}
+
+		if(POLL_FREQ != 0 && POLL_TIMING) {
+			out.println("SATIN: POLL:        poll count = " + nf.format(totalStats.pollCount));
+		}
+
+		if(STEAL_STATS) {
+			out.println("SATIN: STEAL:       attempts " + 
+				    nf.format(totalStats.stealAttempts) +
+				    " success " + nf.format(totalStats.stealSuccess) + " (" +
+				    pf.format(((double) totalStats.stealSuccess / totalStats.stealAttempts) * 100.0) +
+				    " %)");
+
+			out.println("SATIN: MESSAGES:    intra " + 
+				    nf.format(totalStats.intraClusterMessages) +
+				    ", bytes " + nf.format(totalStats.intraClusterBytes) +
+				    " inter " + nf.format(totalStats.interClusterMessages) +
+				    ", bytes " + nf.format(totalStats.interClusterBytes));
+
+			out.println("-------------------------------SATIN TOTAL TIMES-------------------------------");
+			if(STEAL_TIMING) {
+				out.println("SATIN: STEAL_TIME:           total " +
+					    Timer.format(totalStats.stealTime) + " time/req " +
+					    Timer.format(totalStats.stealTime / totalStats.stealAttempts));
+
+				out.println("SATIN: HANDLE_STEAL_TIME:    total " + 
+					    Timer.format(totalStats.handleStealTime) +
+					    " time/handle " + 
+					    Timer.format((totalStats.handleStealTime)/totalStats.stealAttempts));
+
+				out.println("SATIN: SERIALIZATION_TIME:   total " + 
+					    Timer.format(totalStats.invocationRecordWriteTime) +
+					    " time/write " + 
+					    Timer.format(totalStats.invocationRecordWriteTime/totalStats.stealSuccess));
+				out.println("SATIN: DESERIALIZATION_TIME: total " + 
+					    Timer.format(totalStats.invocationRecordReadTime) +
+					    " time/read " + 
+					    Timer.format(totalStats.invocationRecordReadTime/totalStats.stealSuccess));
+			}
+
+			if(ABORT_TIMING) {
+				out.println("SATIN: ABORT_TIME:           total " + 
+					    Timer.format(totalStats.abortTime) +
+					  " time/abort " + Timer.format(totalStats.abortTime / totalStats.aborts));
+			}
+
+			if(TUPLE_TIMING) {
+				out.println("SATIN: TUPLE_SPACE_TIME:     total " +
+					    Timer.format(totalStats.tupleTime) + " time/bcast " +
+					    Timer.format(totalStats.tupleTime/totalStats.tupleMsgs));
+			}
+
+			if(POLL_FREQ != 0 && POLL_TIMING) {
+				out.println("SATIN: POLL_TIME:            total " +
+					    Timer.format(totalStats.pollTime) + " time/poll " +
+					    Timer.format(totalStats.pollTime/totalStats.pollCount));
+			}
+
+			out.println("-------------------------------SATIN RUN TIME BREAKDOWN------------------------");
+			out.println("SATIN: TOTAL_RUN_TIME:                          " +
+				    Timer.format(totalTimer.totalTimeVal()));
+
+			double lbTime = (totalStats.stealTime - totalStats.invocationRecordReadTime -
+					 totalStats.invocationRecordWriteTime) / size;
+			double lbPerc = lbTime/totalTimer.totalTimeVal() * 100.0;
+			double serTime = (totalStats.invocationRecordWriteTime +
+					  totalStats.invocationRecordReadTime) / size;
+			double serPerc = serTime/totalTimer.totalTimeVal() * 100.0;
+			double abortTime = totalStats.abortTime / size;
+			double abortPerc = abortTime/totalTimer.totalTimeVal() * 100.0;
+			double tupleTime = totalStats.tupleTime / size;
+			double tuplePerc = tupleTime/totalTimer.totalTimeVal() * 100.0;
+			double pollTime = totalStats.pollTime / size;
+			double pollPerc = pollTime/totalTimer.totalTimeVal() * 100.0;
+			double totalOverhead = lbTime + serTime + abortTime + tupleTime + pollTime;
+			double totalPerc = totalOverhead/totalTimer.totalTimeVal() * 100.0;
+			double appTime = totalTimer.totalTimeVal() - totalOverhead;
+			double appPerc = appTime/totalTimer.totalTimeVal() * 100.0;
+
+			if(STEAL_TIMING) {
+
+				out.println("SATIN: LOAD_BALANCING_TIME:    avg. per machine " +
+					    Timer.format(lbTime) + " (" +
+					    pf.format(lbPerc) + " %)");
+
+				out.println("SATIN: (DE)SERIALIZATION_TIME: avg. per machine " + 
+					    Timer.format(serTime) + " (" +
+					    pf.format(serPerc) + " %)");
+			}
+
+			if(ABORT_TIMING) {
+				out.println("SATIN: ABORT_TIME:             avg. per machine " + 
+					    Timer.format(abortTime) + " (" +
+					    pf.format(abortPerc) + " %)");
+			}
+
+			if(TUPLE_TIMING) {
+				out.println("SATIN: TUPLE_SPACE_TIME:       avg. per machine " +
+					    Timer.format(tupleTime) + " (" +
+					    pf.format(tuplePerc) + " %)");
+			}
+
+			if(POLL_FREQ != 0 && POLL_TIMING) {
+				out.println("SATIN: POLL_TIME:              avg. per machine " +
+					    Timer.format(pollTime) + " (" +
+					    pf.format(pollPerc) + " %)\n");
+			}
+
+			out.println("SATIN: TOTAL_SATIN_OVERHEAD:   avg. per machine " +
+				    Timer.format(totalOverhead) + " (" +
+				    pf.format(totalPerc) + " %)");
+
+			out.println("SATIN: USEFUL_APP_TIME:        avg. per machine " +
+				    Timer.format(appTime) + " (" +
+				    pf.format(appPerc) + " %)");
+
+		}
+	}
+
+	public void printDetailedStats() {
+		java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
+
+		if(SPAWN_STATS) {
 			out.println("SATIN '" + ident.name() + 
 				    "': SPAWN_STATS: spawns = " + spawns +
 				    " executed = " + jobsExecuted + 
@@ -516,12 +677,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					    " aborted jobs = " + abortedJobs);
 			}
 		}
-		if(TUPLE_STATS && stats) {
+		if(TUPLE_STATS) {
 			out.println("SATIN '" + ident.name() + 
 				    "': TUPLE_STATS 1: tuple bcast msgs: " + tupleMsgs +
 				    ", bytes = " + nf.format(tupleBytes));
 		}
-		if(STEAL_STATS && stats) {
+		if(STEAL_STATS) {
 			out.println("SATIN '" + ident.name() + 
 				    "': INTRA_STATS: messages = " + intraClusterMessages +
 				    ", bytes = " + nf.format(intraClusterBytes));
@@ -605,6 +766,19 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 			algorithm.printStats(out);
 		}
+	}
+	
+	public void exit() {
+		/* send exit messages to all others */
+		int size;
+
+		totalTimer.stop();
+
+		if(!closed) {
+			ibis.closeWorld();
+		}
+
+		if(stats && detailedStats) printDetailedStats();
 
 		synchronized(this) {
 			size = victims.size();
@@ -653,6 +827,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				
 				writeMessage = mp.newMessage();
 				writeMessage.writeByte(EXIT_REPLY);
+				if(stats) {
+					writeMessage.writeObject(createStats());
+				}
 				writeMessage.send();
 				writeMessage.finish();
 			} catch (IOException e) {
@@ -665,6 +842,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		algorithm.exit(); //give the algorithm time to clean up
 
 		barrier(); /* Wait until everybody agrees to exit. */
+
+		if(master && stats) printStats();
 
 		try {
 			if(SUPPORT_TUPLE_MULTICAST) {
@@ -2183,6 +2362,43 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	public static Satin getSatin() {
 	    return this_satin;
+	}
+
+	private SatinStats createStats() {
+		SatinStats s = new SatinStats();
+
+		s.spawns = spawns;
+		s.jobsExecuted = jobsExecuted;
+		s.syncs = syncs;
+		s.aborts = aborts;
+		s.abortMessages = abortMessages;
+		s.abortedJobs = abortedJobs;
+
+		s.stealAttempts = stealAttempts;
+		s.stealSuccess = stealSuccess;
+		s.tupleMsgs = tupleMsgs;
+		s.tupleBytes = tupleBytes;
+		s.stolenJobs = stolenJobs;
+		s.stealRequests = stealRequests;
+		s.interClusterMessages = interClusterMessages;
+		s.intraClusterMessages = intraClusterMessages;
+		s.interClusterBytes = interClusterBytes;
+		s.intraClusterBytes = intraClusterBytes;
+
+		s.stealTime = stealTimer.totalTimeVal();
+		s.handleStealTime = handleStealTimer.totalTimeVal();
+		s.abortTime = abortTimer.totalTimeVal();
+		s.idleTime = idleTimer.totalTimeVal();
+		s.idleCount = idleTimer.nrTimes();
+		s.pollTime = pollTimer.totalTimeVal();
+		s.pollCount = pollTimer.nrTimes();
+		s.tupleTime = tupleTimer.totalTimeVal();
+		s.invocationRecordWriteTime = invocationRecordWriteTimer.totalTimeVal();
+		s.invocationRecordWriteCount = invocationRecordWriteTimer.nrTimes();
+		s.invocationRecordReadTime = invocationRecordReadTimer.totalTimeVal();
+		s.invocationRecordReadCount = invocationRecordReadTimer.nrTimes();
+
+		return s;
 	}
 
         /* ------------------- pause/resume stuff ---------------------- */

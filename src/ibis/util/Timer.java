@@ -3,7 +3,7 @@ package ibis.util;
 /**
  * Utility for measuring time.
  */
-public class Timer {
+public class Timer implements java.io.Serializable {
     /**
      * Counts the number of start/stop sequences.
      */
@@ -131,15 +131,22 @@ public class Timer {
      * @param micros the time to be formatted.
      * @return the result of the format.
      */
-    public String format(double micros) {
+    public static String format(double micros) {
+	java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
+	nf.setMaximumFractionDigits(3);
+	nf.setMinimumFractionDigits(3);
+//	nf.setMaximumIntegerDigits(3);
+//	nf.setMinimumIntegerDigits(3);
+	nf.setGroupingUsed(false);
+
 	if (micros < 1.0) {
-	    return String.valueOf(micros * 1000) + " ns";
+	    return nf.format(micros * 1000) + " ns";
 	} else if (micros < 1000.0) {
-	    return String.valueOf(micros) + " us";
+	    return nf.format(micros) + " us";
 	} else if (micros < 1000000.0) {
-	    return String.valueOf(micros / 1000) + " ms";
+	    return nf.format(micros / 1000) + " ms";
 	} else {
-	    return String.valueOf(micros / 1000000) + "  s";
+	    return nf.format(micros / 1000000) + " s";
 	}
     }
 

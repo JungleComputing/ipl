@@ -20,7 +20,9 @@ public class SatinTupleSpace implements Config {
 		satin = Satin.this_satin;
 
 		if(satin != null && !satin.closed) {
-			throw new IbisError("The tuple space currently only works with a closed world. Try running with -satin-closed");
+			System.err.println("The tuple space currently only works with a closed world. Try running with -satin-closed");
+			System.exit(1);
+//			throw new IbisError("The tuple space currently only works with a closed world. Try running with -satin-closed");
 		}
 
 		space = new HashMap();

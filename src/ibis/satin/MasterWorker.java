@@ -9,6 +9,7 @@ final class MasterWorker implements Algorithm {
 		this.satin = s;
 	}
 
+	// @@@ cache the master victim in a variable here --Rob
 	public void clientIteration() {
 		InvocationRecord r;
 		Victim v;

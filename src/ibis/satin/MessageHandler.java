@@ -327,6 +327,28 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		}
 	}
 
+	private void handleExitReply(ReadMessage m) {
+
+		if(COMM_DEBUG) {
+			SendPortIdentifier ident = m.origin();
+			satin.out.println("SATIN '" + satin.ident.name() + 
+					  "': got exit ACK message from " + ident.ibis().name());
+		}
+
+		if(satin.stats) {
+			try {
+				SatinStats s = (SatinStats) m.readObject();
+				satin.totalStats.add(s);
+			} catch (Exception e) {
+				System.err.println("SATIN '" + satin.ident.name() + 
+						   "': Got Exception while reading stats: " + e);
+				System.exit(1);
+			}
+		}
+
+		satin.exitReplies++;
+	}
+
 	public void upcall(ReadMessage m) {
 		SendPortIdentifier ident;
 
@@ -348,12 +370,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				//				m.finish();
 				break;
 			case EXIT_REPLY:
-				if(COMM_DEBUG) {
-					ident = m.origin();
-					satin.out.println("SATIN '" + satin.ident.name() + 
-							  "': got exit ACK message from " + ident.ibis().name());
-				}
-				satin.exitReplies++;
+				handleExitReply(m);
 				break;
 			case STEAL_REQUEST:
 			case ASYNC_STEAL_REQUEST:
