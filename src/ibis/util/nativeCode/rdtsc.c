@@ -1,7 +1,7 @@
 #include "ibis_util_nativeCode_Rdtsc.h"
 #include <jni.h>
 
-#if _M_IX86 >= 400
+#if defined _M_IX86
 #define STRICT
 #include <windows.h>
 #endif
@@ -33,6 +33,9 @@ JNIEXPORT jlong JNICALL Java_ibis_util_nativeCode_Rdtsc_rdtsc(JNIEnv *env, jclas
     {
 	return 0;
     }
+
+#elif 0 && (defined _M_IX86)
+    QueryPerformanceCounter(&time);
 
 #else
     fprintf(stderr, "No RDTSC asm support for this platform\n");
@@ -116,6 +119,13 @@ JNIEXPORT jfloat JNICALL Java_ibis_util_nativeCode_Rdtsc_getMHz(JNIEnv *env, jcl
     } 
 
     return (jfloat)frequency;
+
+#elif 0 && (defined _M_IX86)
+    __int64   frequency;
+
+    QueryPerformanceFrequency(&frequency);
+
+    return (float)(frequency * 1000000.0);
 
 #else
     fprintf(stderr, "No RDTSC asm support for this platform\n");
