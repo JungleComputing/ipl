@@ -1,24 +1,109 @@
 package ibis.ipl.impl.net;
 
+import java.util.HashMap;
+
 /**
  * Interface to specify a NetBufferFactory.
  * Instantiate this to create custom NetBuffers.
  */
 public class NetBufferFactory {
 
+        /**
+         * Activate debugging features.
+         */
         final static boolean DEBUG = false;
+
+        /**
+         * Activate buffer allocation statistics.
+         */
         final static boolean STATISTICS = false;
 
-        private int                  mtu       =    0;
-        private NetBuffer            freeList  = null;
-        private NetBuffer            freeWrapperList;
+        /**
+         * Indicate the max length of buffer-caching list.
+         */
+        final static int bufferCacheSize = 16;
+
+        /**
+         * Store the buffer cache maps.
+         *
+         * This map is indexed by {@link #impl} class name.
+         */
+        static private final HashMap sharedFreeMap        = new HashMap();
+
+        /**
+         * Store the buffer wrapper cache maps.
+         *
+         * This map is indexed by {@link #impl} class name.
+         * <BR><B>Note:</B>&nbsp;This attribute should only be assigned once in the constructor.
+         * <BR><B>Note 2:</B>&nbsp;Access to this map should be synchronized on the map object.
+         */
+        static private final HashMap sharedFreeWrapperMap = new HashMap();
+
+        /**
+         * Local reference to the current buffer cache map.
+         *
+         * This map is indexed by the <code>Integer(mtu)</code>.
+         * <BR><B>Note:</B>&nbsp;This attribute should only be assigned once in the constructor.
+         * <BR><B>Note 2:</B>&nbsp;Access to this map should be synchronized on the map object.
+         */
+        private HashMap freeMap        = null;
+
+        /**
+         * Local reference to the current buffer wrapper cache map.
+         *
+         * This map is indexed by the <code>Integer(mtu)</code>.
+         */
+        private HashMap freeWrapperMap = null;
+
+        /**
+         * Store the current mtu.
+         */
+        private int     mtu = 0;
+
+        /**
+         * Local reference to the current buffer cache list.
+         */
+        private BufferList           freeList  = null;
+
+        /**
+         * Local reference to the current buffer wrapper cache list.
+         */
+        private BufferList           freeWrapperList = null;
+
+        /**
+         * Store the actual factory {@linkplain NetBufferFactoryImpl implementation}.
+         */
         private NetBufferFactoryImpl impl      = null;
+
+        /**
+         * Store the current memory block allocator.
+         *
+         * <BR><B>Note:</B>&nbsp;This allocator should be changed when the {@link #mtu} is changed.
+         */
         private NetAllocator         allocator = null;
 
         private int	created;
         private int	cached;
         private int	uncached;
         private int	uncachedWrapper;
+
+        /**
+         * Provide a buffer cache list.
+         */
+        protected class BufferList {
+
+                /**
+                 * Reference the head of the buffer list.
+                 */
+                NetBuffer buffer = null;
+
+                /**
+                 * Store the number of buffers currently in the list.
+                 *
+                 * <BR><B>Invariant:</B>&nbsp; <code>nb <= {@link #bufferCacheSize}</code>
+                 */
+                int       nb     =    0;
+        }
 
         /**
          * Constructor
@@ -81,6 +166,42 @@ public class NetBufferFactory {
                                 NetBufferFactoryImpl impl,
                                 NetAllocator allocator) {
                 this.mtu = mtu;
+
+                String className = impl.getClass().getName();
+
+                synchronized(sharedFreeMap) {
+                        freeMap = (HashMap)sharedFreeMap.get(className);
+                        if (freeMap == null) {
+                                freeMap = new HashMap();
+                                sharedFreeMap.put(className, freeMap);
+                        }
+                }
+
+                synchronized(sharedFreeWrapperMap) {
+                        freeWrapperMap = (HashMap)sharedFreeWrapperMap.get(className);
+                        if (freeWrapperMap == null) {
+                                freeWrapperMap = new HashMap();
+                                sharedFreeWrapperMap.put(className, freeWrapperMap);
+                        }
+                }
+
+
+                synchronized(freeMap) {
+                        freeList = (BufferList)freeMap.get(new Integer(mtu));
+                        if (freeList == null) {
+                                freeList = new BufferList();
+                                freeMap.put(new Integer(mtu), freeList);
+                        }
+                }
+
+                synchronized(freeWrapperMap) {
+                        freeWrapperList = (BufferList)freeWrapperMap.get(new Integer(mtu));
+                        if (freeWrapperList == null) {
+                                freeWrapperList = new BufferList();
+                                freeWrapperMap.put(new Integer(mtu), freeWrapperList);
+                        }
+                }
+
                 if (impl == null) {
                         this.impl = new NetBufferFactoryDefaultImpl();
                 } else {
@@ -97,7 +218,7 @@ public class NetBufferFactory {
                                 }
                                 allocator = new NetAllocator(mtu);
                         }
-                
+
                 } else {
                         if (DEBUG) {
                                 System.err.println(this + ": Install predefined allocator, mtu " + mtu);
@@ -129,9 +250,23 @@ public class NetBufferFactory {
                 public void setMaximumTransferUnit(int mtu) {
                 if (mtu != this.mtu) {
                         /* Clear both freelists. The GC will clean them up. */
-                        freeList = null;
-                        freeWrapperList = null;
                         this.mtu = mtu;
+                        synchronized(freeMap) {
+                                freeList = (BufferList)freeMap.get(new Integer(mtu));
+                                if (freeList == null) {
+                                        freeList = new BufferList();
+                                        freeMap.put(new Integer(mtu), freeList);
+                                }
+                        }
+
+                        synchronized(freeWrapperMap) {
+                                freeWrapperList = (BufferList)freeWrapperMap.get(new Integer(mtu));
+                                if (freeWrapperList == null) {
+                                        freeWrapperList = new BufferList();
+                                        freeWrapperMap.put(new Integer(mtu), freeWrapperList);
+                                }
+                        }
+
                         if (DEBUG) {
                                 System.err.println(this + ": Override with a new allocator, mtu " + mtu);
                                 Thread.dumpStack();
@@ -163,7 +298,7 @@ public class NetBufferFactory {
 
                 if (data == null) {
                         if (allocator != null) {
-                        
+
                                 data = allocator.allocate();
                                 if (data.length < length) {
                                         throw new NetIbisException(this + ": allocator blockSize " + data.length + " misfit with requested packet length" + length);
@@ -195,13 +330,18 @@ public class NetBufferFactory {
                         throw new NetIbisException("Need an mtu to create NetBuffer without explicit length");
                 }
 
-                NetBuffer b = freeList;
-                if (b == null) {
-                        b = createNewBuffer(null, mtu, allocator);
-                } else {
-                        freeList = b.next;
-                        if (STATISTICS) {
-                                uncached++;
+                NetBuffer b = null;
+
+                synchronized(freeList) {
+                        b = freeList.buffer;
+                        if (b == null) {
+                                b = createNewBuffer(null, mtu, allocator);
+                        } else {
+                                freeList.buffer = b.next;
+                                freeList.nb--;
+                                if (STATISTICS) {
+                                        uncached++;
+                                }
                         }
                 }
 
@@ -253,15 +393,24 @@ public class NetBufferFactory {
                         buffer.length = mtu;
                         buffer.base   = 0;
 
-                        buffer.next = freeList;
-                        freeList = buffer;
-
+                        synchronized(freeList){
+                                if (freeList.nb < bufferCacheSize) {
+                                        buffer.next = freeList.buffer;
+                                        freeList.buffer = buffer;
+                                        freeList.nb++;
+                                }
+                        }
                 } else {
                         buffer.allocator.free(buffer.data);
                         buffer.data = null;
 
-                        buffer.next = freeWrapperList;
-                        freeWrapperList = buffer;
+                        synchronized(freeWrapperList) {
+                                if (freeWrapperList.nb < bufferCacheSize) {
+                                        buffer.next = freeWrapperList.buffer;
+                                        freeWrapperList.buffer = buffer;
+                                        freeWrapperList.nb++;
+                                }
+                        }
                 }
         }
 
@@ -294,14 +443,19 @@ public class NetBufferFactory {
                 throws NetIbisException {
 
                 if (data != null) {
-                        NetBuffer buffer = freeWrapperList;
-                        if (buffer == null) {
-                                buffer = impl.createBuffer(data, length, allocator);
-                                buffer.factory = this;
-                        } else {
-                                freeWrapperList = buffer.next;
-                                buffer.data = data;
+                        NetBuffer buffer = null;
+                        synchronized(freeWrapperList) {
+                                buffer = freeWrapperList.buffer;
+                                if (buffer == null) {
+                                        buffer = impl.createBuffer(data, length, allocator);
+                                        buffer.factory = this;
+                                } else {
+                                        freeWrapperList.buffer = buffer.next;
+                                        freeWrapperList.nb--;
+                                        buffer.data = data;
+                                }
                         }
+
                         buffer.length = length;
                         if (STATISTICS) {
                                 uncachedWrapper++;
