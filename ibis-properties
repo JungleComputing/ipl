@@ -41,13 +41,17 @@ PropertyCategories:	communication worldmodel serialization
 #	them. The numbering is per port type.
 #   Reliable
 #	reliable communication is supported.
+#   AutoMessageUpcalls
+#	message upcalls are supported and polling for them is not required.
 #   AutoUpcalls
-#	upcalls are supported and polling for them is not required.
-#   PollUpcalls
-#	upcalls are supported but polling for them is required. When an
+#	synonym for AutoMessageUpcalls (hystorical name)
+#   PollMessageUpcalls
+#	message upcalls are supported but polling for them is required. When an
 #	Ibis implementation claims that it has this, it may also do
-#	AutoUpcalls but polling does no harm. When an application asks for
-#	this (and not AutoUpcalls), it must poll.
+#	AutoMessageUpcalls but polling does no harm. When an application asks
+#	for this (and not AutoMessageUpcalls), it must poll.
+#   PollUpcalls
+#	synonym for PollMessageUpcalls (hystorical name)
 #   ExplicitReceipt
 #	explicit receive is supported.
 #   ConnectionDowncalls
@@ -61,6 +65,7 @@ communication:	OneToOne, OneToMany, ManyToOne, \
 		FifoOrdered, Numbered, \
 		Reliable, \
 		AutoUpcalls, PollUpcalls, ExplicitReceipt, \
+		AutoMessageUpcalls, PollMessageUpcalls, \
 		ConnectionDowncalls, ConnectionUpcalls
 
 #
@@ -69,6 +74,10 @@ communication:	OneToOne, OneToMany, ManyToOne, \
 
 OneToMany:	OneToOne
 ManyToOne:	OneToOne
+AutoMessageUpcalls:	AutoUpcalls
+PollMessageUpcalls:	PollUpcalls
+AutoUpcalls:	AutoMessageUpcalls
+PollUpcalls:	PollMessageUpcalls
 
 #
 # The possible "worldmodel" properties are:

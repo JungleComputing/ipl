@@ -1,5 +1,5 @@
 serialization = ibis, sun, byte
 worldmodel = closed
 communication = OneToOne, OneToMany, ManyToOne, Poll, TotallyOrdered, \
-		FifoOrdered, Reliable, PollUpcalls, Numbered \
-		AutoUpcalls, ExplicitReceipt, ConnectionUpcalls
+		FifoOrdered, Reliable, PollMessageUpcalls, Numbered \
+		AutoMessageUpcalls, ExplicitReceipt, ConnectionUpcalls

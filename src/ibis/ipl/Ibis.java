@@ -24,6 +24,8 @@ import java.util.StringTokenizer;
  * <br>
  * - ibis.property.file;
  * <br>
+ * - a file named "properties" in the classpath.
+ * <br>
  * - current_dir/ibis_properties;
  * <br>
  * - home_dir/ibis_properties.

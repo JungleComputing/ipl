@@ -549,6 +549,7 @@
 	</copy>
 	<copy todir="${build}">
 	    <fileset dir="${ibis}">
+		<include name="ibis-sys-props"/>
 		<include name="ibis-properties"/>
 		<include name="log4j.properties"/>
 		<include name="properties"/>
@@ -587,7 +588,7 @@
 	<echo level="verbose" message="basename = ${package-basename}"/>
 	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
 		basedir="${ibis}/build"
-		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties log4j.properties ibis-properties VERSION"/>
+		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties log4j.properties ibis-properties ibis-sys-props VERSION"/>
     </target>
 
     <target name="jars"
@@ -597,7 +598,7 @@
     <target name="ibis.jar">
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
-		includes="**/*.class **/properties log4j.properties properties ibis-properties VERSION"/>
+		includes="**/*.class **/properties log4j.properties properties ibis-properties ibis-sys-props VERSION"/>
     </target>
 
     <target name="ibis-package-jars">

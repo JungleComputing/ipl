@@ -12,13 +12,14 @@
 # Nickname of the Ibis implementation to be chosen.
 # ibis.name
 
-# Communication properties.
+# Communication properties. See the file "ibis-properties".
 # ibis.communication
 
-# World model, either "open" or "closed".
+# World model, either "open" or "closed". See the file "ibis-properties".
 # ibis.worldmodel
 
 # Serialization type: "byte", "data", "sun", "ibis", "object".
+# See the file "ibis-properties".
 # ibis.serialization
 
 # When set, indicates an absolute path to a file containing a list of Ibis
