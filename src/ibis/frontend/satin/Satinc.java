@@ -1261,19 +1261,24 @@ System.out.println("findMethod: could not find method " + name + sig);
 				     spawnCounterType,
 				     Type.NO_ARGS,
 				     Constants.INVOKESTATIC));
-	m.addLocalVariable("spawn_counter", spawnCounterType, maxLocals, il.insert(insertAllocPos, new ASTORE(maxLocals)), null);
 
-	// Allocate and init outstandingSpawns at slot maxLocals+1 
-	il.insert(insertAllocPos, new ACONST_NULL());
-	m.addLocalVariable("outstanding_spawns", irType, maxLocals+1, il.insert(insertAllocPos, new ASTORE(maxLocals+1)), null);
+	// Allocate and initialize spawn_counter at slot maxLocals.
+	il.insert(insertAllocPos, new ASTORE(maxLocals));
+	InstructionHandle sp_h = il.insert(insertAllocPos, new ACONST_NULL());
+	// Allocate and initialize outstandingSpawns at slot maxLocals+1
+	il.insert(insertAllocPos, new ASTORE(maxLocals+1));
+	InstructionHandle os_h = il.insert(insertAllocPos, new ACONST_NULL());
+	// Allocate and initialize curr at slot maxLocals+2 
+	il.insert(insertAllocPos, new ASTORE(maxLocals+2));
+	InstructionHandle curr_h = il.insert(insertAllocPos, new ACONST_NULL());
+	// Allocate and initialize localRecord at slot maxLocals+3 
+	il.insert(insertAllocPos, new ASTORE(maxLocals+3));
+	InstructionHandle lr_h = il.insert(insertAllocPos, new NOP());
 
-	// Allocate and init curr at slot maxLocals+2 
-	il.insert(insertAllocPos, new ACONST_NULL());
-	m.addLocalVariable("current", irType, maxLocals+2, il.insert(insertAllocPos, new ASTORE(maxLocals+2)), null);
-
-	// Allocate and init curr at slot maxLocals+3 
-	il.insert(insertAllocPos, new ACONST_NULL());
-	m.addLocalVariable("local_record", new ObjectType("ibis.satin.LocalRecord"), maxLocals+3, il.insert(insertAllocPos, new ASTORE(maxLocals+3)), null);
+	m.addLocalVariable("spawn_counter", spawnCounterType, maxLocals, sp_h, null);
+	m.addLocalVariable("outstanding_spawns", irType, maxLocals+1, os_h, null);
+	m.addLocalVariable("current", irType, maxLocals+2, curr_h, null);
+	m.addLocalVariable("local_record", new ObjectType("ibis.satin.LocalRecord"), maxLocals+3, lr_h, null);
 
 	for (InstructionHandle i = insertAllocPos; i != null; i = i.getNext()) {
 	    if (i.getInstruction() instanceof ReturnInstruction) {
@@ -1561,7 +1566,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 				     paramtypes,
 				     Constants.INVOKESTATIC));
 
-	m.addLocalVariable("local_record", local_record_type, maxLocals, il.insert(pos, new ASTORE(maxLocals)), null);
+	il.insert(pos, new ASTORE(maxLocals));
+	m.addLocalVariable("local_record", local_record_type, maxLocals, il.insert(pos, new NOP()), null);
 
 	for (InstructionHandle i=pos; i != null; i = i.getNext()) {
 
