@@ -76,9 +76,14 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	System.out.println( "Problem: " + p );
+	System.out.println( "Problem has " + p.getVariableCount() + " variables and " + p.getClauseCount() + " clauses" );
+	long startTime = System.currentTimeMillis();
 	SATSolution res = solveSystem( p );
 
+	long endTime = System.currentTimeMillis();
+	double time = ((double) (endTime - startTime))/1000.0;
+
+	System.out.println( "Time: " + time );
 	if( res == null ){
 	    System.out.println( "There are no solutions" );
 	}

@@ -355,7 +355,7 @@ public class SATSolver {
 
 
     // Given a list of symbolic clauses, produce a list of solutions.
-    static SATSolution [] solveSystem( final SATProblem p )
+    static SATSolution [] solveSystem( final SATProblem p, boolean onesolution )
     {
 	Context ctx = new Context();
 	ctx.problem = p;
@@ -365,7 +365,7 @@ public class SATSolver {
 	ctx.solutioncount = 0;
 	ctx.level = 0;
 	ctx.assumptions = 0;
-	ctx.onesolution = false;
+	ctx.onesolution = onesolution;
 	boolean ok;
 
 	label = 0;
@@ -408,9 +408,14 @@ public class SATSolver {
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	System.out.println( "Problem: " + p );
-	SATSolution res[] = solveSystem( p );
+	System.out.println( "Problem has " + p.getVariableCount() + " variables and " + p.getClauseCount() + " clauses" );
 
+	long startTime = System.currentTimeMillis();
+	SATSolution res[] = solveSystem( p, true );
+	long endTime = System.currentTimeMillis();
+	double time = ((double) (endTime - startTime))/1000.0;
+
+	System.out.println( "Time: " + time );
 	if( res.length == 1 ){
 	    System.out.println( "There is 1 solution:" );
 	}
