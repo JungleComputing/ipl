@@ -199,13 +199,26 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	    int p = slots[i];
 	    int start = ix;
 
+	    if( i == STOP ){
+		// The hash slot for the STOP symbol is not interesting.
+		continue;
+	    }
 	    while( p != -1 ){
 		indices[ix++] = p;
 		p = next[p];
 	    }
-	    if( ix>start ){
+	    if( start+1<ix ){
 		sort( indices, commonality, start, ix );
 	    }
+	    else {
+		ix = start;
+	    }
+	}
+
+	// Fill all unused slots with uninteresting information.
+	while( ix<length ){
+	    commonality[ix] = 0;
+	    ix++;
 	}
     }
 
