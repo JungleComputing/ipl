@@ -4,7 +4,7 @@ usage() {
   echo "Usage: $0 [-port <port>]"
   echo "Start an Ibis control hub for \"RoutedMessages\" protocol."
   echo "  -port <port>       start the hub on port number <port>"
-  echo "                     (default is 9827)"
+  echo "                     (default is 9828)"
   echo "  -h, --help         display this help and exit"
 }
 

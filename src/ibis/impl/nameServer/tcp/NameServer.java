@@ -630,6 +630,8 @@ public class NameServer implements Protocol {
 		boolean pool_server = true;
 		NameServer ns = null;
 		int port = TCP_IBIS_NAME_SERVER_PORT_NR;
+		String poolport = null;
+		String hubport = null;
 		ControlHub h = null;
 
 		for (int i = 0; i < args.length; i++) {
@@ -652,7 +654,7 @@ public class NameServer implements Protocol {
 				i++;
 				try {
 					int n  = Integer.parseInt(args[i]);
-					System.setProperty("ibis.connect.hub_port", args[i]);
+					hubport = args[i];
 					control_hub = true;
 				} catch (Exception e) {
 					System.err.println("invalid port");
@@ -662,7 +664,7 @@ public class NameServer implements Protocol {
 				i++;
 				try {
 					int n  = Integer.parseInt(args[i]);
-					System.setProperty("ibis.pool.server.port", args[i]);
+					poolport = args[i];
 				} catch (Exception e) {
 					System.err.println("invalid port");
 					System.exit(1);
@@ -684,12 +686,20 @@ public class NameServer implements Protocol {
 		}
 
 		if (control_hub) {
+		    if (hubport == null) {
+			hubport = Integer.toString(port+2);
+		    }
+		    System.setProperty("ibis.connect.hub_port", hubport);
 		    h = new ControlHub();
 		    h.setDaemon(true);
 		    h.start();
 		}
 
 		if (pool_server) {
+		    if (poolport == null) {
+			poolport = Integer.toString(port+1);
+		    }
+		    System.setProperty("ibis.pool.server.port", poolport);
 		    PoolInfoServer p = new PoolInfoServer(single);
 		    p.setDaemon(true);
 		    p.start();

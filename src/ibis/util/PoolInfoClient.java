@@ -35,7 +35,9 @@ import java.net.UnknownHostException;
  * <br>
  * <pre>ibis.pool.server.port</pre>
  * must contain the port number on which the <code>PoolInfoServer</code>
- * is accepting connections. If not present, the default is used.
+ * is accepting connections. If not present, <code>ibis.name_server.port</code>
+ * is tried. If present, 1 is added and that is used as port number. If not,
+ * the default is used.
  * <br>
  * <pre>ibis.pool.server.host</pre>
  * must contain the hostname of the host on which the
@@ -82,8 +84,15 @@ public class PoolInfoClient extends PoolInfo {
 	total_hosts = TypedProperties.intProperty(s_total);
 	int remove_doubles = TypedProperties.booleanProperty(s_single) ? 1 : 0;
 
-	int serverPort = TypedProperties.intProperty(s_port,
-				PoolInfoServer.POOL_INFO_PORT);
+	int serverPort = TypedProperties.intProperty(s_port, -1);
+	if (serverPort == -1) {
+	    serverPort = TypedProperties.intProperty("ibis.name_server.port", -1);
+	    if (serverPort == -1) {
+		serverPort = PoolInfoServer.POOL_INFO_PORT;
+	    } else {
+		serverPort++;
+	    }
+	}
 	String serverName = TypedProperties.stringPropertyValue(s_host);
 	if (serverName == null) {
 	    serverName = TypedProperties.stringPropertyValue("ibis.name_server.host");

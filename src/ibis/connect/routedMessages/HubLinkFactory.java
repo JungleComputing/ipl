@@ -24,7 +24,13 @@ public class HubLinkFactory {
 	    }
 
 	    if (portString == null) {
-		port = ibis.connect.controlHub.ControlHub.defaultPort;
+		portString = p.getProperty("ibis.name_server.port");
+		if (portString != null) {
+		    port = Integer.parseInt(portString) + 2;
+		}
+		else {
+		    port = ibis.connect.controlHub.ControlHub.defaultPort;
+		}
 	    }
 	    else {
 		port = Integer.parseInt(portString);

@@ -161,7 +161,7 @@ public class ControlHub extends Thread
     private static Map nodes = new Hashtable(); // Hashtable of Ibisnodes; hash key is canonical hostname of node
     private static Map portNodeMap = new Hashtable();
     private static int nodesNum = 0;
-    public static final int defaultPort = 9827;
+    public static final int defaultPort = 9828;
 
     public ControlHub() {
     }
@@ -327,7 +327,13 @@ public class ControlHub extends Thread
 	    String portString = p.getProperty(ConnProps.hub_port);
 	    if(portString != null){
 		port = Integer.parseInt(portString);
+	    } else {
+		portString = p.getProperty("ibis.name_server.port");
+		if (portString != null) {
+		    port = Integer.parseInt(portString) + 2;
+		}
 	    }
+
 	    ServerSocket server = new ServerSocket(port);
 	    System.err.println("\n# ControlHub: listening on " +
 			       InetAddress.getLocalHost().getHostName()+ ":" +
