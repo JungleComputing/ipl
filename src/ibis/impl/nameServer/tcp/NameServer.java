@@ -529,6 +529,16 @@ public class NameServer implements Protocol {
 					System.err.println("invalid port");
 					System.exit(1);
 				}
+			} else if (args[i].equals("-hubport")) {
+				i++;
+				try {
+					int n  = Integer.parseInt(args[i]);
+					System.setProperty("ibis.connect.hub_port", args[i]);
+					control_hub = true;
+				} catch (Exception e) {
+					System.err.println("invalid port");
+					System.exit(1);
+				}
 			} else if (args[i].equals("-controlhub")) {
 				control_hub = true;
 			} else {
