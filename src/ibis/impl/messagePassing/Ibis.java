@@ -25,7 +25,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 
     private final StaticProperties systemProperties = new StaticProperties();
 
-    static Ibis	myIbis;
+    public static Ibis	myIbis;
 
     int nrCpus;
     int myCpu;

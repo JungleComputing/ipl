@@ -20,28 +20,35 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
+    private void send(boolean doSend, boolean isReset) throws IbisIOException {
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("%%%%%%%%%%%%%%% Send an Ibis /no-serial/ WriteMessage");
+	}
+
+	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    if (doSend) {
+		out.send(true);
+	    }
+	    if (isReset) {
+		out.reset(false);
+	    }
+	    sPort.registerSend();
+	}
+    }
+
+
     public void send() throws IbisIOException {
-// out.report();
-	// long t = Ibis.currentTime();
-	sPort.registerSend();
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.tSend += Ibis.currentTime() - t;
+	send(true, false);
     }
 
 
     public void finish() throws IbisIOException {
-// manta.runtime.RuntimeSystem.DebugMe(1, out);
 	out.finish();
     }
 
 
     public void reset(boolean doSend) throws IbisIOException {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    if (doSend) {
-		out.send(true);
-	    }
-	    out.reset(false);
-	}
+	send(doSend, true);
     }
 
 
