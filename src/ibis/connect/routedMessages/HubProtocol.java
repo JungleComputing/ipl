@@ -4,6 +4,8 @@ import java.net.Socket;
 
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 
 import ibis.connect.util.MyDebug;
@@ -38,9 +40,10 @@ public class HubProtocol
 	public HubWire(Socket s) throws IOException, ClassNotFoundException {
 	    socket = s;
 	    localHostName = s.getLocalAddress().getCanonicalHostName();
-	    out = new ObjectOutputStream(s.getOutputStream());
-	    in = new ObjectInputStream(s.getInputStream());
+	    out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream(), 4096));
 	    out.writeObject(localHostName);
+	    out.flush();
+	    in = new ObjectInputStream(new BufferedInputStream(s.getInputStream(), 4096));
 	    peerName = ((String)in.readObject()).toLowerCase();
 	    if(MyDebug.VERBOSE()) {
 		String canonicalPeerName = s.getInetAddress().getCanonicalHostName().toLowerCase();
@@ -56,6 +59,7 @@ public class HubProtocol
 	    if(MyDebug.VERBOSE())
 		System.err.println("# HubWire: closing wire...");
 	    in.close();
+	    out.flush();
 	    out.close();
 	    socket.close();
 	    if(MyDebug.VERBOSE())
