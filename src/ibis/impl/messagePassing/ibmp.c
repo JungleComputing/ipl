@@ -519,7 +519,7 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
 	ibp_init(env, &argc, argv);
 	java_args = c2java_args(env, argc, argv);
     } else {
-	char *argv[3];
+	char   *argv[7];
 	int	argc = 0;
 	jfieldID fld_rS =
 	    (*env)->GetFieldID(env, ibmp_cls_Ibis, "requireNumbered", "Z");
@@ -529,6 +529,11 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
 	argv[argc++] = "ibis-executable";
 	if (! requireNumbered) {
 	    argv[argc++] = "-pan-mcast-no-order";
+	}
+	argv[argc++] = "-pan-comm-no-idle-poll";
+	if (getenv("LFC_INTR_FIRST") == NULL) {
+	    argv[argc++] = "-lfc-intr-first";
+	    argv[argc++] = "100";
 	}
 	argv[argc++] = NULL;
 	argc--;
