@@ -24,7 +24,7 @@ public class UnicastServerRef extends UnicastRef implements ServerRef, java.io.S
 		throw new RemoteException(e.getMessage());
 	}
     }
-	
+
 
     public String getClientHost() throws ServerNotActiveException
     {

@@ -25,6 +25,18 @@ public abstract class Skeleton implements ibis.ipl.Upcall {
 		destination = o;
 	}    
 
+	protected void finalize() {
+	    for (int i = 0; i < stubs.length; i++) {
+		if (stubs[i] != null) {
+		    try {
+			stubs[i].free();
+		    } catch(Exception e) {
+		    }
+		}
+	    }
+	    receive.free();
+	}
+
 	protected synchronized int addStub(ReceivePortIdentifier rpi) { 
 		try { 
 			SendPort s = RTS.createSendPort();

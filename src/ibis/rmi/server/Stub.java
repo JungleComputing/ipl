@@ -33,7 +33,7 @@ public class Stub extends RemoteStub {
 			
 			reply = RTS.createReceivePort();
 			reply.enableConnections();
-System.err.println("rmi.server.Stub: create receive port " + reply);
+// System.err.println("rmi.server.Stub: create receive port " + reply);
 			
 			WriteMessage wm = send.newMessage();
 			
@@ -42,10 +42,10 @@ System.err.println("rmi.server.Stub: create receive port " + reply);
 			wm.writeObject(reply.identifier());
 			wm.send();
 			wm.finish();
-System.err.println("rmi.server.Stub: sent id");
+// System.err.println("rmi.server.Stub: sent id");
 			
 			ReadMessage rm = reply.receive();
-System.err.println("rmi.server.Stub: received reply " + rm);
+// System.err.println("rmi.server.Stub: received reply " + rm);
 			stubID = rm.readInt();
 			String stubType = (String) rm.readObject();
 			rm.finish();		
