@@ -146,7 +146,17 @@ public class NetPoller
 	}
 
 	if (VERBOSE_SINGLETON) {
-	    System.err.println(this + ": SINGLETON_FASTPATH=" + SINGLETON_FASTPATH + " on=" + on + " upcallFunc=" + upcallFunc);
+	    System.err.println(this + ": SINGLETON_FASTPATH=" + SINGLETON_FASTPATH + " on=" + on + " upcallFunc=" + upcallFunc + " now singleton=" + singleton + " current=" + q.getInput());
+	    System.err.print(this + ": Now subInputs: [");
+	    Collection c = inputMap.values();
+	    Iterator i = c.iterator();
+
+	    while (i.hasNext()) {
+		ReceiveQueue rq  = (ReceiveQueue)i.next();
+		NetInput ni = rq.getInput();
+		System.err.print(ni + "(" + ni.getUpcallFunc() + ") ");
+	    }
+	    System.err.println("]");
 	}
 	boolean switch_to_upcall = true;
 	NetInput ni = q.getInput();
@@ -328,19 +338,24 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	 */
 	ReceiveQueue q = (ReceiveQueue)inputMap.get(key);
 
-	if (q == null) {
+	boolean createNewSubInput = (q == null);
+	NetInput ni;
+	if (createNewSubInput) {
 	    q = new ReceiveQueue();
 	    inputMap.put(key, q);
-	}
-// else
-// System.err.println(this + ": recycle existing " + q + " for key " + key);
 
-	NetInput ni = newPollerSubInput(key, q);
-	q.setInput(ni);
+	    ni = newPollerSubInput(key, q);
+	    q.setInput(ni);
+	} else {
+	    ni = q.getInput();
+// System.err.println(this + ": recycle existing " + q + " for key " + key);
+	}
 
 	ni.setupConnection(cnx);
 
-	setSingleton(q, isSingleton());
+	if (createNewSubInput) {
+	    setSingleton(q, isSingleton());
+	}
 
 	/* If this NetPoller is used in downcallMode, the
 	 * upcall threads of the subInputs deliver their

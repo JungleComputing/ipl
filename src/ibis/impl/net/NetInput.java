@@ -573,6 +573,7 @@ up.setDaemon(true);
         }
 
 	protected void verifyNonSingletonPoller() {
+	    // No-op, reserve for subclasses
 	}
 
 	public NetInputUpcall getUpcallFunc() {
@@ -582,6 +583,7 @@ up.setDaemon(true);
 	protected void installUpcallFunc(NetInputUpcall upcallFunc)
 		throws IOException {
 	    if (upcallFunc != null && this.upcallFunc != null) {
+System.err.println(this + ": try to override upcall " + this.upcallFunc + " with " + upcallFunc);
 		throw new IllegalArgumentException("Cannot restart upcall");
 	    }
 	    this.upcallFunc = upcallFunc;
@@ -970,6 +972,7 @@ pollingThreads--;
 	    try {
 		finish();
 	    } catch(IOException e2) {
+		// Give up
 	    }
 	}
 

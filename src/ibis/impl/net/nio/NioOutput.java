@@ -129,7 +129,8 @@ public final class NioOutput extends NetOutput {
 		setupBuffers(peerOrder);
 
 	    } catch (ClassNotFoundException e) {
-	}
+		throw new IbisIOException("Incompatible partner: " + e);
+	    }
     }
 
     public long finish() throws IOException {

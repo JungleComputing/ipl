@@ -21,6 +21,7 @@ public abstract class NetDriver {
 	 * Constructor.
 	 */
 	public NetDriver() {
+	    // No-args constructor required by Java
 	}
 
 

@@ -105,6 +105,8 @@ public final class DefInput extends NetBufferedInput {
 	}
 
        	public void doFinish() throws IOException {
+	    // Avoid the buffer free by super
+	    // Is that correct, then?
         }
 
 

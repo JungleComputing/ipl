@@ -709,6 +709,8 @@ public final class RelInput
 
 
     public void invoke() {
+	// Currently a no-op.
+	// Maybe we will need sweeper activity for something after all, ma~nana.
     }
 
 

@@ -32,11 +32,6 @@ public final class cluster implements MultiPlugin {
          */
         static 	Hashtable 	netTable  	= null;
 
-        /**
-         * Construct the plugin.
-         */
-        public cluster() {}
-
         static {
                 Properties 	p   		= System.getProperties();
                 InetAddress 	localhost 	= IPUtils.getLocalHostAddress();

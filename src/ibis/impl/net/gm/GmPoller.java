@@ -146,6 +146,7 @@ public final class GmPoller extends NetPoller {
 
 
     public void setInterruptible(boolean interruptible) throws IOException {
+	// No-op because GmPoller is always interruptible
     }
 
 

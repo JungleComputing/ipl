@@ -48,6 +48,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Prepare the output for a new message transmission.
          */
 	public void initSend() throws IOException {
+	    // No-op, reserve for subclasses
         }
 
 	protected void writeSeqno(long seqno) throws IOException {
@@ -111,6 +112,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 		try {
 			finish();
 		} catch(IOException e2) {
+			// Give up
 		}
 	}
 
@@ -118,6 +120,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 * Reset the object state of the message that belongs to this output.
 	 */
 	public void reset() throws IOException {
+	    // No-op, reserve for subclasses
 	}
 
         /**
@@ -128,6 +131,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
          */
         public void sync(int ticket) throws IOException {
+	    throw new Error("NetIbis.sync has not been implemented");
         }
 
 	protected void handleEmptyMsg() throws IOException {

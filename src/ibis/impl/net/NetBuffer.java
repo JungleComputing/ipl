@@ -135,6 +135,7 @@ public class NetBuffer implements Cloneable {
 	 * Resets all data for recycling after the packet has been freed.
 	 */
 	public void reset() {
+	    // No-op, reserve for subclasses
 	}
 
 

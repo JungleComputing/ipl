@@ -14,6 +14,7 @@ public class MuxerKey {
 
 
     public void free() throws IOException {
+	// No-op, reserve for subclasses
     }
 
 }

@@ -900,6 +900,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		try {
 			finish();
 		} catch(IOException e2) {
+			// Give up
 		}
 	}
 

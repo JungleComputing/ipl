@@ -210,6 +210,7 @@ System.err.println(this + ": Bingo, interleaved connections. Protect");
 		laneTable.put(num, lane);
 		lane.subContext   = subContext;
 		if (! subContextTable.contains(subContext)) {
+// System.err.println(this + ": now add subContext " + subContext);
 		    subContextTable.add(subContext);
 		}
 

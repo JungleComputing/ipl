@@ -210,6 +210,7 @@ public final class NetIbis extends Ibis {
 		try {
 		    Thread.sleep(0, 1);
 		} catch (InterruptedException e) {
+		    // If interrupted, wake up
 		}
 	    } else {
 		Thread.yield();
@@ -512,6 +513,7 @@ public final class NetIbis extends Ibis {
 				try {
 				    wait();
 				} catch(Exception e) {
+				    // Ignore
 				}
 			    }
 			}
@@ -609,6 +611,7 @@ public final class NetIbis extends Ibis {
 		    try {
 			Thread.sleep(100);
 		    } catch (InterruptedException e) {
+			// Ignore
 		    }
 		}
 		// try {

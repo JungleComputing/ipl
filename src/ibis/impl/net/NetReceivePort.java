@@ -607,6 +607,7 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
 				    Thread.sleep(1000);
 				    timed_out = true;
 				} catch (InterruptedException ei) {
+				    // Give up
 				}
 			    }
 			}
@@ -1289,6 +1290,7 @@ pollerThread = null;
 		try {
 			finish();
 		} catch(IOException e2) {
+			// Give up
 		}
 	}
 
