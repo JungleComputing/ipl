@@ -1,22 +1,45 @@
 package ibis.ipl.impl.net;
 
 import ibis.ipl.impl.net.__;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  *The {@link NetAllocator} class provides cached fixed-size memory block allocation.
  */
 public final class NetAllocator {
+        /* Dummy object for display synchronization */
+        private static String dummy = Runtime.getRuntime().toString();
 
         /**
          * Activate allocator stats.
          */
         private static  final   boolean                 STATISTICS      = false;
+        private static  final   boolean                 DEBUG           = false;
 
         /**
          * The default size of the cache stack.
          */
         private static  final   int                     defaultMaxBlock = 16;
 
+        /**
+         * The default size of the cache stack if blocks are large.
+         */
+        private static  final   int                     defaultMaxBigBlock = 1;
+
+        /**
+         *  If {link #blockSize} > {link #bigBlockThreshold} the maxBlock value is set to {#link defaultMaxBigBlock} instead of {#link defaultMaxBlock} to limit the risk of memory overflow.
+         */
+        private static  final   int                     bigBlockThreshold  = 64*1024;
+
+        private static  final   HashMap                 stackMap           = new HashMap();
+
+        private                 HashMap                 debugMap           = null;
+
+        protected class BlockStack {
+                public byte[][] stack    = null;
+                public int      stackPtr =    0;
+        }
 
         /**
          * The specialization of the {@link NetStat} for the {@linkplain NetAllocator allocator} monitoring.
@@ -43,6 +66,10 @@ public final class NetAllocator {
                  */
                 private int uncached_free  = 0;
 
+                String[] callerArray = null;
+
+
+
                 /**
                  * The constructor.
                  *
@@ -51,8 +78,16 @@ public final class NetAllocator {
                  */
                 public NetAllocatorStat(boolean on, String moduleName){
                         super(on, moduleName);
+
+                        if (DEBUG) {
+                                StackTraceElement[] steArray = (new Throwable()).getStackTrace();
+                                callerArray = new String[steArray.length];
+                                for (int i = 0; i < steArray.length; i++) {
+                                        callerArray[i] = steArray[i].toString();
+                                }
+                        }
                 }
-                
+
                 /**
                  * The constructor.
                  *
@@ -79,7 +114,7 @@ public final class NetAllocator {
                                 cached_alloc++;
                         }
                 }
-                
+
                 /**
                  * Cached frees monitoring.
                  */
@@ -88,7 +123,7 @@ public final class NetAllocator {
                                 cached_free++;
                         }
                 }
-                
+
                 /**
                  * Uncached frees monitoring.
                  */
@@ -97,7 +132,7 @@ public final class NetAllocator {
                                 uncached_free ++;
                         }
                 }
-                
+
                 /**
                  * Report display.
                  */
@@ -111,12 +146,25 @@ public final class NetAllocator {
                                 reportVal(cached_alloc,     "cached allocation");
                                 reportVal(cached_free,      "cached free");
                                 reportVal(uncached_free,    "uncached free");
+
+                                if (DEBUG) {
+                                        if (uncached_alloc+cached_alloc > cached_free+uncached_free) {
+                                                System.err.println("alloc/free mismatch: "+(uncached_alloc+cached_alloc)+"/"+(cached_free+uncached_free));
+                                                for (int i = 0; i < callerArray.length; i++) {
+                                                        System.err.println("frame "+i+": "+callerArray[i]);
+                                                }
+                                                System.err.println("____________________________________");
+                                        }
+                                }
+
+                                System.err.println(" - ");
+
                         }
-                
+
                 }
-                
+
         }
-        
+
         /**
          * The allocator's specific stat object.
          */
@@ -140,12 +188,14 @@ public final class NetAllocator {
          * a Java 'Stack' object.
          * </UL>
          */
-        private byte[][]                stack           = null;
+        private BlockStack              stack           = null;
 
-        /**
+        // private byte[][]                stack           = null;
+
+        /*
          * The stack pointer.
          */
-        private int                     stackPtr        = 0;
+        //private int                     stackPtr        = 0;
 
         /**
          * Constructor allowing to select the block size and the cache
@@ -154,29 +204,62 @@ public final class NetAllocator {
          * @param blockSize The size of the memory blocks provided by this allocator.
          * @param maxBlock  The maximum number of blocks to be cached.
          */
-        public NetAllocator(int blockSize, int maxBlock) {                
+        public NetAllocator(int blockSize) {
+                int maxBlock = (blockSize >bigBlockThreshold )?defaultMaxBigBlock:defaultMaxBlock;
+
                 if (blockSize < 1) {
                         throw new Error("invalid block size");
                 }
-                
+
                 if (maxBlock < 1) {
                         throw new Error("invalid maximum block number");
                 }
-                
+
                 stat = new NetAllocatorStat(STATISTICS, "blockSize = "+blockSize+", maxBlock = "+maxBlock);
 
                 this.blockSize = blockSize;
-                stack = new byte[maxBlock][];
+
+                synchronized(stackMap) {
+                        stack = (BlockStack)stackMap.get(new Integer(blockSize));
+
+                        if (stack == null) {
+                                stack = new BlockStack();
+                                stack.stack = new byte[maxBlock][];
+                                stackMap.put(new Integer(blockSize), stack);
+                        }
+                }
+
+                if (DEBUG) {
+                        debugMap = new HashMap();
+                }
+
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+			        public void run() {
+                                        synchronized (dummy) {
+                                                shutdownHook();
+                                        }
+			        }
+		        });
+
         }
 
-        /**
-         * Constructor allowing to select the block size of the allocator and using the
-         * {@linkplain #defaultMaxBlock default cache size}.
-         *
-         * @param blocksize The size of the memory blocks provided by this allocator.
-         */
-        public NetAllocator(int blockSize) {
-                this(blockSize, defaultMaxBlock);
+        protected void shutdownHook() {
+                if (DEBUG) {
+                        Iterator i = debugMap.values().iterator();
+
+                        while (i.hasNext()) {
+                                String[] a = (String[])i.next();
+
+                                System.err.println("unfreed buffer: "+blockSize+" byte"+((blockSize > 1)?"s":""));
+                                System.err.println("---------------");
+                                for (int j = 0; j < a.length; j++) {
+                                        System.err.println("frame "+j+": "+a[j]);
+                                }
+                                System.err.println("_______________");
+                        }
+
+                }
+
         }
 
         /**
@@ -196,16 +279,31 @@ public final class NetAllocator {
          *
          * @return A memory block.
          */
-        public synchronized byte[] allocate() {
-                if (stackPtr == 0) {
-                        stat.incUncachedAlloc();
-                        return new byte[blockSize];
+        public byte[] allocate() {
+                byte []b = null;
+
+                synchronized(stack) {
+                        if (stack.stackPtr == 0) {
+                                stat.incUncachedAlloc();
+                                b = new byte[blockSize];
+                        } else {
+                                stat.incCachedAlloc();
+
+                                stack.stackPtr--;
+                                b = stack.stack[stack.stackPtr];
+                        }
                 }
 
-                stat.incCachedAlloc();
+                if (DEBUG) {
+                        StackTraceElement[] steArray    = (new Throwable()).getStackTrace();
+                        String[]            callerArray = new String[steArray.length];
+                        for (int i = 0; i < steArray.length; i++) {
+                                callerArray[i] = steArray[i].toString();
+                        }
+                        debugMap.put(b, callerArray);
+                }
 
-                stackPtr--;
-                return stack[stackPtr];
+                return b;
         }
 
         /**
@@ -219,20 +317,29 @@ public final class NetAllocator {
          *
          * @param block the memory block to free.
          */
-        public synchronized void free(byte[] block) {
-                if (block.length != blockSize) {
-                        __.abort__("invalid buffer");
+        public void free(byte[] block) {
+                if (DEBUG) {
+                        Object o = debugMap.remove(block);
+                        if (o == null) {
+                                throw new Error("invalid block");
+                        }
                 }
 
-                if (stackPtr >= defaultMaxBlock)  {
-                        stat.incUncachedFree();
-                        return;
+                synchronized(stack) {
+                        if (block.length != blockSize) {
+                                __.abort__("invalid block");
+                        }
+
+                        if (stack.stackPtr >= defaultMaxBlock)  {
+                                stat.incUncachedFree();
+                                return;
+                        }
+
+                        stat.incCachedFree();
+
+                        stack.stack[stack.stackPtr] = block;
+                        stack.stackPtr++;
                 }
-
-                stat.incCachedFree();
-
-                stack[stackPtr] = block;
-                stackPtr++;
         }
 
 }

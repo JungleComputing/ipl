@@ -38,20 +38,20 @@ public final class NetLog {
                         timer = Ibis.newTimer("ibis.util.Timer");
                 }
         }
-        
+
 
         /**
          * Constructor.
          *
          * @param on active state flag value.
          * @param moduleName logging object owner's name.
-         */        
+         */
         public NetLog(boolean on, String moduleName, String logName) {
                 this.on         = on;
                 this.moduleName = moduleName;
                 this.logName    = logName;
         }
-        
+
         private String _pre() {
                 return human?"":logName+"{";
         }
@@ -59,7 +59,7 @@ public final class NetLog {
         private String suf_() {
                 return human?": ":"}"+logName+" ";
         }
-        
+
 
         /* JDK >= 1.4 only */
 
@@ -69,7 +69,7 @@ public final class NetLog {
         private StackTraceElement getCaller() {
                 StackTraceElement[] steArray = (new Throwable()).getStackTrace();
                 int i = 1;
-                
+
                 while (i < steArray.length) {
                         StackTraceElement ste = steArray[i];
                         if (ste.getClassName() != this.getClass().getName()) {
@@ -81,7 +81,7 @@ public final class NetLog {
 
                 return null;
         }
-        
+
         /**
          * Fixed caller frame retrieval.
          *
@@ -90,14 +90,14 @@ public final class NetLog {
         private StackTraceElement getCaller(int frame) {
                 frame++;
                 StackTraceElement[] steArray = (new Throwable()).getStackTrace();
-                
+
                 if (frame < steArray.length) {
                         return steArray[frame];
                 }
 
                 return null;
         }
-        
+
         /**
          *  Generic caller function name retrieval.
          */
@@ -118,7 +118,7 @@ public final class NetLog {
          * JDK >= 1.4 only
          */
         private final static java.util.regex.Pattern p = java.util.regex.Pattern.compile("^.*[.]([^.]+[.][^.]+)$");
-        
+
         private String cleanFunctionName(String name) {
                 java.util.regex.Matcher m = p.matcher(name);
                 if (m.matches()) {
@@ -126,7 +126,7 @@ public final class NetLog {
                 }
                 return name;
         }
-        
+
 
         /*
          * To use with JDK < 1.4
@@ -134,7 +134,7 @@ public final class NetLog {
         private String getLogId() {
                 return moduleName+".<unknownMethod>";
         }
-        
+
         private String getLogId(int frame) {
                 return moduleName+".<unknownMethod>";
         }
@@ -147,7 +147,7 @@ public final class NetLog {
 
         private String buildLocationString(StackTraceElement caller) {
                 String s = "";
-                
+
                 s += caller.getClassName();
                 s += ".";
                 s += caller.getMethodName();
@@ -159,7 +159,7 @@ public final class NetLog {
 
                 return s;
         }
-        
+
 
         private String id(int f) {
                 String s = "";
@@ -173,13 +173,15 @@ public final class NetLog {
                         s += moduleName;
                         s += "|";
                         s += buildLocationString(caller);
+                        s += "|";
+                        s += Runtime.getRuntime().totalMemory()+"/"+Runtime.getRuntime().freeMemory()+"/"+Runtime.getRuntime().maxMemory();
                 } else {
                         s = cleanFunctionName(caller.getClassName()+"."+caller.getMethodName());
-                }                
-                
+                }
+
                 return _pre() + s + suf_();
         }
-        
+
 
         /**
          * Method entry point display.
@@ -189,7 +191,7 @@ public final class NetLog {
                         System.err.println(id(1)+"-->");
                 }
         }
-        
+
         /**
          * Method leave point display.
          */
@@ -198,7 +200,7 @@ public final class NetLog {
                         System.err.println(id(1)+"<--");
                 }
         }
-        
+
         /**
          * Method entry point display.
          *
@@ -209,7 +211,7 @@ public final class NetLog {
                         System.err.println(id(1)+"-- "+s+" -->");
                 }
         }
-        
+
         /**
          * Method leave point display.
          *
@@ -220,7 +222,7 @@ public final class NetLog {
                         System.err.println(id(1)+"<-- "+s+" --");
                 }
         }
-        
+
         /**
          * General purpose method-prefixed message display.
          */

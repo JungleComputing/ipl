@@ -18,7 +18,7 @@ public final class GmOutput extends NetBufferedOutput {
          * local number.
          */
         private volatile Integer rpn          = null;
-                           
+
         private long       deviceHandle =  0;
         private long       outputHandle =  0;
         private int        lnodeId      = -1;
@@ -45,7 +45,7 @@ public final class GmOutput extends NetBufferedOutput {
         /**
          * Constructor.
          *
-         * @param sp the properties of the output's 
+         * @param sp the properties of the output's
          * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
          * @param driver the GM driver instance.
          */
@@ -123,18 +123,17 @@ public final class GmOutput extends NetBufferedOutput {
                 }
 
                 this.rpn = cnx.getNum();
-        
+
                 mtu = 2*1024*1024;
                 log.out();
         }
-        
+
 
         /**
          * {@inheritDoc}
          */
         public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
                 log.in();
-                //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length);
                 if (b.length > 4096) {
                         /* Post the 'request' */
                         Driver.gmAccessLock.lock(true);
@@ -156,9 +155,7 @@ public final class GmOutput extends NetBufferedOutput {
                         gmDriver.blockingPump(lockId, lockIds);
                 } else {
                         Driver.gmAccessLock.lock(true);
-                        //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length+" - 2");
                         nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length);
-                        //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length+" - 3");
                         Driver.gmAccessLock.unlock(true);
 
                         /* Wait for 'request' send completion */
@@ -166,12 +163,9 @@ public final class GmOutput extends NetBufferedOutput {
                 }
 
 		if (! b.ownershipClaimed) {
-                        //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length+" - freeing buffer");
 			b.free();
-                        //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length+" - freeing buffer: done");
 		}
 
-                //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length+" - ok");
                 log.out();
         }
 
@@ -185,7 +179,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 nCloseOutput(outputHandle);
                                 outputHandle = 0;
                         }
-                
+
                         if (deviceHandle != 0) {
                                 Driver.nCloseDevice(deviceHandle);
                                 deviceHandle = 0;
@@ -195,7 +189,7 @@ public final class GmOutput extends NetBufferedOutput {
                 }
                 log.out();
         }
-        
+
 
         /**
          * {@inheritDoc}
@@ -211,7 +205,7 @@ public final class GmOutput extends NetBufferedOutput {
                         nCloseOutput(outputHandle);
                         outputHandle = 0;
                 }
-                
+
                 if (deviceHandle != 0) {
                         Driver.nCloseDevice(deviceHandle);
                         deviceHandle = 0;

@@ -15,7 +15,7 @@ public class NetMessageStat extends NetStat {
         private int nb_double  = 0;
         private int nb_string  = 0;
         private int nb_object  = 0;
-        
+
         private TreeMap booleanArrayMap = null;
         private TreeMap byteArrayMap    = null;
         private TreeMap charArrayMap    = null;
@@ -45,7 +45,7 @@ public class NetMessageStat extends NetStat {
                         bufferMap  = new TreeMap();
                 }
         }
-        
+
         public NetMessageStat(boolean on) {
                 this(on, "");
         }
@@ -56,68 +56,68 @@ public class NetMessageStat extends NetStat {
                         nb_msg++;
                 }
         }
-        
-        
+
+
         public void addBoolean() {
                 if (on) {
                         nb_boolean++;
                 }
         }
- 
+
         public void addByte() {
                 if (on) {
                         nb_byte++;
                 }
         }
-    
+
         public void addChar() {
                 if (on) {
                         nb_char++;
                 }
         }
-    
+
         public void addShort() {
                 if (on) {
                         nb_short++;
                 }
         }
-   
+
         public void addInt() {
                 if (on) {
                         nb_int++;
                 }
         }
-     
+
         public void addLong() {
                 if (on) {
                         nb_long++;
                 }
         }
-    
+
         public void addFloat() {
                 if (on) {
                         nb_float++;
                 }
         }
-   
+
         public void addDouble() {
                 if (on) {
                         nb_double++;
                 }
         }
- 
+
         public void addString() {
                 if (on) {
                         nb_string++;
                 }
         }
- 
+
         public void addObject() {
                 if (on) {
                         nb_object++;
                 }
         }
- 
+
         public void addBooleanArray(int l) {
                 if (on) {
                         Integer n = (Integer)booleanArrayMap.get(new Integer(l));
@@ -137,7 +137,7 @@ public class NetMessageStat extends NetStat {
                         byteArrayMap.put(new Integer(l), new Integer(n.intValue()+1));
                 }
         }
-  
+
         public void addCharArray(int l) {
                 if (on) {
                         Integer n = (Integer)charArrayMap.get(new Integer(l));
@@ -147,7 +147,7 @@ public class NetMessageStat extends NetStat {
                         charArrayMap.put(new Integer(l), new Integer(n.intValue()+1));
                 }
         }
-  
+
         public void addShortArray(int l) {
                 if (on) {
                         Integer n = (Integer)shortArrayMap.get(new Integer(l));
@@ -157,7 +157,7 @@ public class NetMessageStat extends NetStat {
                         shortArrayMap.put(new Integer(l), new Integer(n.intValue()+1));
                 }
         }
- 
+
         public void addIntArray(int l) {
                 if (on) {
                         Integer n = (Integer)intArrayMap.get(new Integer(l));
@@ -167,7 +167,7 @@ public class NetMessageStat extends NetStat {
                         intArrayMap.put(new Integer(l), new Integer(n.intValue()+1));
                 }
         }
-   
+
         public void addLongArray(int l) {
                 if (on) {
                         Integer n = (Integer)longArrayMap.get(new Integer(l));
@@ -177,7 +177,7 @@ public class NetMessageStat extends NetStat {
                         longArrayMap.put(new Integer(l), new Integer(n.intValue()+1));
                 }
         }
-  
+
         public void addFloatArray(int l) {
                 if (on) {
                         Integer n = (Integer)floatArrayMap.get(new Integer(l));
@@ -187,7 +187,7 @@ public class NetMessageStat extends NetStat {
                         floatArrayMap.put(new Integer(l), new Integer(n.intValue()+1));
                 }
         }
- 
+
         public void addDoubleArray(int l) {
                 if (on) {
                         Integer n = (Integer)doubleArrayMap.get(new Integer(l));
@@ -230,16 +230,16 @@ public class NetMessageStat extends NetStat {
                         System.err.println("Message stats for module "+moduleName);
                         System.err.println("------------------------------------");
                         reportVal(nb_msg         ," message");
-                        
-                        reportVal(nb_boolean     ," boolean"); 
-                        reportVal(nb_byte        ," byte"   );    
-                        reportVal(nb_char        ," char"   );    
-                        reportVal(nb_short       ," short"  );   
-                        reportVal(nb_int         ," int"    );     
-                        reportVal(nb_long        ," long"   );    
-                        reportVal(nb_float       ," float"  );   
-                        reportVal(nb_double      ," double" );  
-                        reportVal(nb_string      ," string" );  
+
+                        reportVal(nb_boolean     ," boolean");
+                        reportVal(nb_byte        ," byte"   );
+                        reportVal(nb_char        ," char"   );
+                        reportVal(nb_short       ," short"  );
+                        reportVal(nb_int         ," int"    );
+                        reportVal(nb_long        ," long"   );
+                        reportVal(nb_float       ," float"  );
+                        reportVal(nb_double      ," double" );
+                        reportVal(nb_string      ," string" );
                         reportVal(nb_object      ," object" );
 
                         reportMap(booleanArrayMap, "array",  "boolean" );
@@ -254,5 +254,5 @@ public class NetMessageStat extends NetStat {
                         reportMap(bufferMap ,      "buffer", "byte"  );
                         System.err.println("____________________________________");
                 }
-        }        
+        }
 }

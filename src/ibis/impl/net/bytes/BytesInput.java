@@ -25,9 +25,9 @@ public final class BytesInput extends NetInput implements Settings {
         /*
          *
          */
-        private NetAllocator a2 = new NetAllocator(2, 1024);
-        private NetAllocator a4 = new NetAllocator(4, 1024);
-        private NetAllocator a8 = new NetAllocator(8, 1024);
+        private NetAllocator a2 = new NetAllocator(2);
+        private NetAllocator a4 = new NetAllocator(4);
+        private NetAllocator a8 = new NetAllocator(8);
 
         /**
          * Pre-allocation threshold.

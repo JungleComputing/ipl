@@ -25,27 +25,109 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 * Active {@link NetConnection connection} number or <code>null</code> if
 	 * no connection is active.
 	 */
-	private		volatile 	Integer                 activeNum       = null;
-        private   	volatile 	PooledUpcallThread      activeThread    = null;
-        private   	final    	int                     threadStackSize =  256;
-        private  			int                     threadStackPtr  =    0;
-        private  			PooledUpcallThread[] 	threadStack     = new PooledUpcallThread[threadStackSize];
-        private				int                  	upcallThreadNum =    0;
+	private		volatile 	Integer                 activeNum              = null;
+        private   	volatile 	PooledUpcallThread      activeThread           = null;
+        private   	final    	int                     threadStackSize        =  256;
+        private  			int                     threadStackPtr         =    0;
+        private  			PooledUpcallThread[] 	threadStack            = new PooledUpcallThread[threadStackSize];
+        private				int                  	upcallThreadNum        =    0;
         private                         volatile boolean        upcallThreadNotStarted = true;
+        private                         NetThreadStat           utStat                 = null;
 
         /**
          * Upcall interface for incoming messages.
          */
         protected          NetInputUpcall upcallFunc = null;
 
+        static private volatile int     threadCount = 0;
+        static private          boolean globalThreadStat = false;
+        static {
+                if (globalThreadStat) {
+                        Runtime.getRuntime().addShutdownHook(new Thread() {
+                                        public void run() {
+                                                System.err.println("used "+threadCount+" Upcall threads");
+                                                System.err.println("current memory values: "+Runtime.getRuntime().totalMemory()+"/"+Runtime.getRuntime().freeMemory()+"/"+Runtime.getRuntime().maxMemory());
+                                        }
+                                });
+                }
+
+        }
+
+
+        public final class NetThreadStat extends NetStat {
+                private int nb_thread_requested = 0;
+                private int nb_thread_allocated = 0;
+                private int nb_thread_reused    = 0;
+                private int nb_thread_discarded = 0;
+                private int nb_max_thread_stack = 0;
+
+                public NetThreadStat(boolean on, String moduleName) {
+                        super(on, moduleName);
+
+                        if (on) {
+                                pluralExceptions.put("entry", "entries");
+                        }
+                }
+
+                public NetThreadStat(boolean on) {
+                        this(on, "");
+                }
+
+                public void addAllocation() {
+                        if (on) {
+                                nb_thread_allocated++;
+                                nb_thread_requested++;
+                        }
+
+                }
+
+                public void addReuse() {
+                        if (on) {
+
+                                nb_thread_requested++;
+                                nb_thread_reused++;
+                        }
+
+                }
+
+                public void addStore() {
+                        if (on) {
+                                if (nb_max_thread_stack < threadStackPtr) {
+                                        nb_max_thread_stack = threadStackPtr;
+                                }
+                        }
+                }
+
+                public void addDiscarded() {
+                        if (on) {
+                                nb_thread_discarded++;
+                        }
+
+                }
+
+                public void report() {
+                        if (on) {
+                                System.err.println();
+                                System.err.println("Upcall thread allocation stats for module "+moduleName);
+                                System.err.println("------------------------------------");
+
+                                reportVal(nb_thread_requested, " thread request");
+                                reportVal(nb_thread_allocated, " thread allocation");
+                                reportVal(nb_thread_reused   , " thread reuse");
+                                reportVal(nb_thread_discarded   , " thread discardal");
+                                reportVal(nb_max_thread_stack, " stack", "entry", "used");
+                        }
+                }
+        }
+
 
 
         private final class PooledUpcallThread extends Thread {
                 private boolean  end   = false;
                 private NetMutex sleep = new NetMutex(true);
-
                 public PooledUpcallThread(String name) {
                         super("NetInput.PooledUpcallThread: "+name);
+                        threadCount++;
                 }
 
                 public void run() {
@@ -100,12 +182,14 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                                         throw new Error(e.getMessage());
                                                 }
                                                 log.disp("reusing thread");
+                                                utStat.addReuse();
                                                 continue;
                                         } else {
                                                 synchronized (threadStack) {
                                                         if (threadStackPtr < threadStackSize) {
                                                                 threadStack[threadStackPtr++] = this;
                                                                 log.disp("storing thread into the stack");
+                                                                utStat.addStore();
                                                         } else {
                                                                 log.disp("discarding the thread");
                                                                 return;
@@ -146,6 +230,11 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                            String      context) {
 		super(portType, driver, context);
 		// setBufferFactory(new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl()));
+                // Stat object
+                String s = "//"+type.name()+this.context+".input";
+                boolean utStatOn = type.getBooleanStringProperty(this.context, "UpcallThreadStat", false);
+                //System.err.println("utStatOn = "+utStatOn);
+                utStat = new NetThreadStat(utStatOn, s);
 	}
 
         /**
@@ -250,6 +339,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         if (upcallFunc != null && upcallThreadNotStarted) {
                                 upcallThreadNotStarted = false;
                                 PooledUpcallThread up = new PooledUpcallThread("no "+upcallThreadNum++);
+                                utStat.addAllocation();
                                 up.start();
                                 up.exec();
                         }
@@ -413,9 +503,11 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         synchronized(threadStack) {
                                 if (threadStackPtr > 0) {
                                         ut = threadStack[--threadStackPtr];
+                                        utStat.addReuse();
                                 } else {
                                         ut = new PooledUpcallThread("no "+upcallThreadNum++);
                                         ut.start();
+                                        utStat.addAllocation();
                                 }
                         }
 

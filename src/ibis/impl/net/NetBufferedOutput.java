@@ -56,7 +56,7 @@ public abstract class NetBufferedOutput extends NetOutput {
                         //}
                 log.out();
         }
-        
+
 
 	/**
 	 * Sends the current buffer over the network.
@@ -88,7 +88,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 			buffer = createSendBuffer();
 		} else {
 			buffer = createSendBuffer(dataOffset + length);
-		}		
+		}
 
 		buffer.length = dataOffset;
 		bufferOffset = dataOffset;
@@ -147,7 +147,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	public void writeByte(byte value) throws NetIbisException {
 		log.in();
                 log.disp("IN value = "+value);
-                
+
 		if (buffer == null) {
 			allocateBuffer(1);
 		}
@@ -182,11 +182,11 @@ public abstract class NetBufferedOutput extends NetOutput {
                                         offset += copyLength;
                                         length -= copyLength;
                                 } while (length != 0);
-                                        
+
                         } else {
                                 buffer = new NetSendBuffer(userBuffer, offset + length);
                                 flush();
-                        }                
+                        }
                 } else {
                         while (length > 0) {
                                 if (buffer == null) {
@@ -210,5 +210,5 @@ public abstract class NetBufferedOutput extends NetOutput {
                         }
                 }
                 log.out();
-        }        
+        }
 }

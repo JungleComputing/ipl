@@ -6,7 +6,7 @@ import java.util.Hashtable;
 
 public abstract class NetStat {
         private static String dummy = Runtime.getRuntime().toString();
-        
+
         protected String  moduleName = null;
         protected boolean on         = false;
         protected Hashtable pluralExceptions = new Hashtable();
@@ -27,10 +27,10 @@ public abstract class NetStat {
 		        });
                 }
         }
-        
+
         public NetStat(boolean on) {
                 this(on, "");
-                
+
         }
 
         public abstract void report();
@@ -49,13 +49,13 @@ public abstract class NetStat {
                         if (s == null) {
                                 s = word+"s";
                         }
-                        
+
                         return s;
                 } else {
                         return word;
                 }
         }
-        
+
         /**
          * Returns plural of <code>word</code> if <code>value</code> > 1.
          *
@@ -70,13 +70,13 @@ public abstract class NetStat {
                         if (s == null) {
                                 s = word+"s";
                         }
-                        
+
                         return s;
                 } else {
                         return word;
                 }
         }
-        
+
         /**
          * Report 'a quantity of something'.
          *
@@ -87,9 +87,9 @@ public abstract class NetStat {
                 if (value < 1) {
                         return;
                 }
-                
+
                 System.err.println(value + " " + plural(type, value));
-        }        
+        }
 
         /**
          * Report 'a quantity of something'.
@@ -103,16 +103,52 @@ public abstract class NetStat {
                 if (value.longValue() < 1) {
                         return;
                 }
-                
+
                 System.err.println(value + " " + plural(type, value));
-        }        
+        }
+
+        /**
+         * Report 'a quantity of something'.
+         *
+         * Note: if <code>value</code> is lower than 1, nothing is displayed.
+         *
+         * @param value the quantity.
+         * @param begin beginning of sentence (printed after the value).
+         * @param type the singular 'name' of 'something' (e.g. 'byte', 'message').
+         * @param end end of sentence.
+         */
+        protected void reportVal(Number value,  String begin, String type, String end) {
+                if (value.longValue() < 1) {
+                        return;
+                }
+
+                System.err.println(value + " " + begin+ " " + plural(type, value) + " " + end);
+        }
+
+        /**
+         * Report 'a quantity of something'.
+         *
+         * Note: if <code>value</code> is lower than 1, nothing is displayed.
+         *
+         * @param value the quantity.
+         * @param begin beginning of sentence (printed after the value).
+         * @param type the singular 'name' of 'something' (e.g. 'byte', 'message').
+         * @param end end of sentence.
+         */
+        protected void reportVal(long value,  String begin, String type, String end) {
+                if (value < 1) {
+                        return;
+                }
+
+                System.err.println(value + " " + begin+ " " + plural(type, value) + " " + end);
+        }
 
         /**
          * Report 'a set of quantities of something'.
          * Note: if <code>m.size()</code> is lower than 1, nothing is displayed.
          *
          * @param m the tree map of quantities.
-         * @param setType the 'name' of a 'set' of something (e.g. 'array', 'buffer'). 
+         * @param setType the 'name' of a 'set' of something (e.g. 'array', 'buffer').
          * @param type the 'name' of 'something' (e.g. 'byte', 'message').
          */
         protected void reportMap(TreeMap m, String setType, String type) {
@@ -135,6 +171,6 @@ public abstract class NetStat {
                                            " of "+
                                            key+" "+plural(type, key));
                 }
-        }        
+        }
 
 }

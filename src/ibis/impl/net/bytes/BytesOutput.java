@@ -19,9 +19,9 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 */
         private NetOutput subOutput = null;
 
-        private NetAllocator a2 = new NetAllocator(2, 1024);
-        private NetAllocator a4 = new NetAllocator(4, 1024);
-        private NetAllocator a8 = new NetAllocator(8, 1024);
+        private NetAllocator a2 = new NetAllocator(2);
+        private NetAllocator a4 = new NetAllocator(4);
+        private NetAllocator a8 = new NetAllocator(8);
 
         /**
          * Pre-allocation threshold.
@@ -29,7 +29,7 @@ public final class BytesOutput extends NetOutput implements Settings {
          */
         private int          anThreshold = 8 * 256;
         private NetAllocator an = null;
-        
+
 	/**
 	 * The current buffer.
 	 */
@@ -45,7 +45,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the output's 
+	 * @param sp the properties of the output's
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
 	 */
@@ -60,7 +60,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
                 log.in();
 		NetOutput subOutput = this.subOutput;
-		
+
 		if (subOutput == null) {
 			if (subDriver == null) {
                                 String subDriverName = getProperty("Driver");
@@ -95,7 +95,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.disp("mtu is ["+mtu+"]");
 
  		int _headersLength = subOutput.getHeadersLength();
- 
+
  		if (headerOffset < _headersLength) {
  			headerOffset = _headersLength;
  		}
@@ -130,7 +130,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 }
                 log.out();
         }
-        
+
 
 	/**
 	 * Allocate a new buffer.
@@ -149,28 +149,28 @@ public final class BytesOutput extends NetOutput implements Settings {
         private boolean ensureLength(int l) throws NetIbisException {
                 log.in();
                 log.disp("param l = "+l);
-                
+
                 if (l > mtu - dataOffset) {
                         log.disp("split mandatory");
-                        
+
                         log.out();
                         return false;
                 }
-                
+
                 if (buffer == null) {
-                        log.disp("no split needed but buffer allocation required");                        
+                        log.disp("no split needed but buffer allocation required");
                         allocateBuffer();
                 } else {
                         final int availableLength = mtu - buffer.length;
                         log.disp("availableLength = "+ availableLength);
-                        
+
                         if (l > availableLength) {
                                 if (l - availableLength > splitThreshold) {
                                         log.disp("split required");
                                         log.out();
                                         return false;
                                 } else {
-                                        log.disp("split avoided, buffer allocation required");                        
+                                        log.disp("split avoided, buffer allocation required");
                                         flush();
                                         allocateBuffer();
                                 }
@@ -180,7 +180,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
                 return true;
         }
-        
+
 
 	/**
 	 * {@inheritDoc}
@@ -195,7 +195,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
         /**
 	   Block until the entire message has been sent and clean up the message. Only after finish() or reset(), the data that was written
-	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems. 
+	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems.
 	   When a message is alive and a new messages is requested, the requester is blocked until the
 	   live message is finished. **/
         public void finish() throws NetIbisException{
@@ -225,7 +225,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
 		super.free();
                 log.out();
-	}        
+	}
 
         public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
                 log.in();
@@ -244,7 +244,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         if (buffer == null) {
                                 allocateBuffer();
                         }
-                        
+
                         buffer.data[buffer.length++] = NetConvert.boolean2byte(v);
                         flushIfNeeded();
                 } else {
@@ -263,7 +263,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         if (buffer == null) {
                                 allocateBuffer();
                         }
-                        
+
                         buffer.data[buffer.length++] = v;
                         flushIfNeeded();
                 } else {
@@ -271,7 +271,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 }
                 log.out();
         }
-        
+
         /**
 	 * Writes a char v to the message.
 	 * @param     v             The char v to write.
@@ -290,7 +290,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 if (buffer == null) {
                                         allocateBuffer();
                                 }
-                        
+
                                 buffer.data[buffer.length++] = b[0];
                                 flush();
 
@@ -307,7 +307,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 }
                 log.out();
         }
-        
+
 
         /**
 	 * Writes a short v to the message.
@@ -327,7 +327,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 if (buffer == null) {
                                         allocateBuffer();
                                 }
-                        
+
                                 buffer.data[buffer.length++] = b[0];
                                 flush();
 
@@ -363,8 +363,8 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 for (int i = 0; i < 4; i++) {
                                         if (buffer == null) {
                                                 allocateBuffer();
-                                        }                        
-                                        
+                                        }
+
                                         buffer.data[buffer.length++] = b[i];
                                         flushIfNeeded();
                                 }
@@ -390,7 +390,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 if (mtu > 0) {
                         if (ensureLength(8)) {
                                 NetConvert.writeLong(v, buffer.data, buffer.length);
-                                buffer.length += 8; 
+                                buffer.length += 8;
                                 flushIfNeeded();
                         } else {
                                 byte [] b = a8.allocate();
@@ -399,8 +399,8 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 for (int i = 0; i < 8; i++) {
                                         if (buffer == null) {
                                                 allocateBuffer();
-                                        }                        
-                                        
+                                        }
+
                                         buffer.data[buffer.length++] = b[i];
                                         flushIfNeeded();
                                 }
@@ -434,8 +434,8 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 for (int i = 0; i < 4; i++) {
                                         if (buffer == null) {
                                                 allocateBuffer();
-                                        }                        
-                                        
+                                        }
+
                                         buffer.data[buffer.length++] = b[i];
                                         flushIfNeeded();
                                 }
@@ -460,7 +460,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 if (mtu > 0) {
                         if (ensureLength(8)) {
                                 NetConvert.writeDouble(v, buffer.data, buffer.length);
-                                buffer.length += 8; 
+                                buffer.length += 8;
                                 flushIfNeeded();
                         } else {
                                 byte [] b = a8.allocate();
@@ -469,8 +469,8 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 for (int i = 0; i < 8; i++) {
                                         if (buffer == null) {
                                                 allocateBuffer();
-                                        }                        
-                                        
+                                        }
+
                                         buffer.data[buffer.length++] = b[i];
                                         flushIfNeeded();
                                 }
@@ -508,7 +508,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 */
         public void writeObject(Object v) throws NetIbisException {
                 log.in();
-                subOutput.writeObject(v);                
+                subOutput.writeObject(v);
                 log.out();
         }
 
@@ -571,7 +571,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         subOutput.writeArraySliceByte(ub, o, l);
                 }
-                
+
                 log.out();
         }
 
@@ -601,7 +601,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         flush();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.writeArraySliceChar(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -610,7 +610,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                         }
                                 }
                         }
-                } else {       
+                } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 NetConvert.writeArraySliceChar(ub, o, l, b);
@@ -649,7 +649,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         flush();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.writeArraySliceShort(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -658,7 +658,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                         }
                                 }
                         }
-                } else {       
+                } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 NetConvert.writeArraySliceShort(ub, o, l, b);
@@ -673,8 +673,8 @@ public final class BytesOutput extends NetOutput implements Settings {
 
         public void writeArraySliceInt(int [] ub, int o, int l) throws NetIbisException {
                 log.in();
-                final int f = 4;                
-                
+                final int f = 4;
+
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
                                 NetConvert.writeArraySliceInt(ub, o, l, buffer.data, buffer.length);
@@ -698,7 +698,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         flush();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.writeArraySliceInt(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -707,7 +707,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                         }
                                 }
                         }
-                } else {       
+                } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 NetConvert.writeArraySliceInt(ub, o, l, b);
@@ -746,7 +746,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         flush();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.writeArraySliceLong(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -755,7 +755,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                         }
                                 }
                         }
-                } else {       
+                } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 NetConvert.writeArraySliceLong(ub, o, l, b);
@@ -764,7 +764,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         } else {
                                 subOutput.writeArrayByte(NetConvert.writeArraySliceLong(ub, o, l));
                         }
-                
+
                 }
                 log.out();
         }
@@ -795,7 +795,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         flush();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.writeArraySliceFloat(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -804,7 +804,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                         }
                                 }
                         }
-                } else {       
+                } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 NetConvert.writeArraySliceFloat(ub, o, l, b);
@@ -843,7 +843,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         flush();
                                                         continue;
                                                 }
-                                        
+
                                                 NetConvert.writeArraySliceDouble(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
@@ -852,7 +852,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                         }
                                 }
                         }
-                } else {       
+                } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 NetConvert.writeArraySliceDouble(ub, o, l, b);
@@ -863,7 +863,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         }
                 }
                 log.out();
-        }	
+        }
 
         public void writeArraySliceObject(Object [] ub, int o, int l) throws NetIbisException {
                 log.in();

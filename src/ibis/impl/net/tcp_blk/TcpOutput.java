@@ -58,7 +58,7 @@ public final class TcpOutput extends NetBufferedOutput {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the output's 
+	 * @param sp the properties of the output's
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
 	 */
@@ -82,9 +82,9 @@ public final class TcpOutput extends NetBufferedOutput {
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
-                
+
 		this.rpn = cnx.getNum();
-	
+
 		Hashtable lInfo = new Hashtable();
 		lInfo.put("tcp_mtu",     new Integer(lmtu));
 		Hashtable   rInfo = null;
@@ -108,11 +108,11 @@ public final class TcpOutput extends NetBufferedOutput {
 
 		try {
 			tcpSocket = new Socket(raddr, rport);
-                        
+
 			tcpSocket.setSendBufferSize(0x8000);
 			tcpSocket.setReceiveBufferSize(0x8000);
 			tcpSocket.setTcpNoDelay(true);
-			
+
 			tcpOs 	  = tcpSocket.getOutputStream();
 			tcpIs 	  = tcpSocket.getInputStream();
 		} catch (IOException e) {
@@ -138,10 +138,10 @@ public final class TcpOutput extends NetBufferedOutput {
  			tcpOs.flush();
  		} catch (IOException e) {
  			throw new NetIbisException(e.getMessage());
- 		} 
+ 		}
                 log.out();
 	}
-                
+
 
 	/*
 	 * {@inheritDoc}
@@ -154,11 +154,14 @@ public final class TcpOutput extends NetBufferedOutput {
                         tcpOs.flush();
  		} catch (IOException e) {
  			throw new NetIbisException(e.getMessage());
- 		} 
-                
+ 		}
+
 		if (! b.ownershipClaimed) {
 		    b.free();
-		}
+		} else {
+                        System.err.println("buffer is owned, cannot free");
+                }
+
                 log.out();
 	}
 
@@ -169,7 +172,7 @@ public final class TcpOutput extends NetBufferedOutput {
                                 if (tcpOs != null) {
                                         tcpOs.close();
                                 }
-		
+
                                 if (tcpIs != null) {
                                         tcpIs.close();
                                 }
@@ -196,7 +199,7 @@ public final class TcpOutput extends NetBufferedOutput {
 			if (tcpOs != null) {
 				tcpOs.close();
 			}
-		
+
 			if (tcpIs != null) {
 				tcpIs.close();
 			}
@@ -214,5 +217,5 @@ public final class TcpOutput extends NetBufferedOutput {
 		super.free();
                 log.out();
 	}
-	
+
 }
