@@ -168,7 +168,7 @@ public class Client {
 	    }
 
 	    if (warm_up > 0) {
-		do_rmis(s, request, warm_up);
+		eo_rmis(s, request, warm_up);
 
 		System.out.println("Done " + warm_up + " warmup RMIs size " + size);
 		s.reset();
