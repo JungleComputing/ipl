@@ -94,8 +94,6 @@ public final class GmInput extends NetBufferedInput {
                 deviceHandle = Driver.nInitDevice(0);
                 inputHandle = nInitInput(deviceHandle);
                 Driver.gmAccessLock.unlock();
-
-                arrayThreshold = 256;
 	}
 
 	int getLockId() {
