@@ -3,13 +3,19 @@ package ibis.io;
 
 final class IbisHash { 
 
-    private static final boolean ASSERTS = false; // true; // false;
+    private static final boolean ASSERTS = false;
     private static final boolean STATS = false; // true; // false;
     private static final boolean TIMINGS = false; // true; // false;
 
     private static final int MIN_BUCKETS = 32;
 
     private static final int USE_NEW_BOUND = Integer.MAX_VALUE;
+
+    /* Choose this value between 2 and 4 */
+    private static final int RESIZE_FACTOR = 2;
+
+    /* Choose this value between 1 and 3 */
+    private static final int PRE_ALLOC_FACTOR = 1;
 
     // private static final int SHIFT1  = 5;
     // private static final int SHIFT2  = 16;
@@ -182,7 +188,7 @@ final class IbisHash {
 	    t_rebuild.start();
 	}
 
-	int n = size * 4;
+	int n = size * RESIZE_FACTOR;
 
 	int new_offset = 0;
 
@@ -194,7 +200,7 @@ final class IbisHash {
 	 * free space, use first/last slice when we currently use
 	 * last/first slice. */
 	if (n + size > alloc_size) {
-	    newBucketSet(3 * n);
+	    newBucketSet(PRE_ALLOC_FACTOR * n);
 	} else if (offset == 0) {
 	    new_offset = alloc_size - n;
 	}
