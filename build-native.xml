@@ -227,16 +227,19 @@
     </target>
 
 
-    <taskdef resource="cpptasks.tasks">
-	<classpath>
-	    <pathelement location="${package.home.ant-cpptasks}/cpptasks.jar"/>
-	</classpath>
-    </taskdef>
-    <typedef resource="cpptasks.types">
-	<classpath>
-	    <pathelement location="${package.home.ant-cpptasks}/cpptasks.jar"/>
-	</classpath>
-    </typedef>
+    <target name="cpptasks-init" unless="cpptasks.initialized">
+	<taskdef resource="cpptasks.tasks">
+	    <classpath>
+		<pathelement location="${package.home.ant-cpptasks}/cpptasks.jar"/>
+	    </classpath>
+	</taskdef>
+	<typedef resource="cpptasks.types">
+	    <classpath>
+		<pathelement location="${package.home.ant-cpptasks}/cpptasks.jar"/>
+	    </classpath>
+	</typedef>
+	<property name="cpptasks.initialized" value="true"/>
+    </target>
 
 
     <path id="default.includes-ref">
@@ -249,7 +252,7 @@
     <property name="default.includes" refid="default.includes-ref"/>
 
     <target name="native-init"
-	    depends="property-native-build,property-native-local.lib,property-native-outtype">
+	    depends="property-native-build,property-native-local.lib,property-native-outtype,cpptasks-init">
 	<mkdir dir="${build}"/>
 	<mkdir dir="${build}/include"/>
 	<mkdir dir="${build}/lib"/>

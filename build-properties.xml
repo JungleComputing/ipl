@@ -45,11 +45,18 @@
 	Defines shared by the whole build
     -->
 
-    <taskdef resource="net/sf/antcontrib/antcontrib.properties">
-	<classpath>
-	    <pathelement location="${package.home.ant-contrib}/ant-contrib-0.3.jar"/>
-	</classpath>
-    </taskdef>
+
+    <target name="contrib-init" unless="contrib.initialized">
+	<echo level="verbose"
+		message="ant-contrib home is ${package.home.ant-contrib}"/>
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	    <classpath>
+		<pathelement location="${package.home.ant-contrib}/ant-contrib-0.3.jar"/>
+	    </classpath>
+	</taskdef>
+	<property name="contrib.initialized" value="true"/>
+    </target>
+
 
     <target name="proprietry-tasks">
 	<mkdir dir="${ibis}/ant-tasks/tasks"/>
@@ -65,7 +72,7 @@
 		classpath="${ibis}/ant-tasks/tasks"/>
     </target>
 
-    <target name="property-init" depends="proprietry-tasks">
+    <target name="property-init" depends="contrib-init,proprietry-tasks">
 	<!--
 	    Find the switches that indicate debug/optimize
 	-->
@@ -138,6 +145,7 @@
 
     <target name="run">
 	<property name="IBIS" value="panda"/>
+	<property name="SER"  value="ibis"/>
 	<exec outputproperty="hostname" executable="hostname"/>
 	<echo message="My hostname is ${hostname}"/>
 	<if>
@@ -157,13 +165,14 @@
 		classname="${MAIN}"
 		classpath="build:${ibis}/build">
 	    <sysproperty key="java.library.path"      value="${ibis}/build/lib"/>
-	    <sysproperty key="ibis.name_server.host"  value="192.168.1.127"/>
+	    <sysproperty key="ibis.name_server.host"  value="athlon-win2000"/>
 	    <sysproperty key="ibis.name_server.port"  value="7654"/>
 	    <sysproperty key="ibis.name_server.key"   value="rutger.0001"/>
 	    <sysproperty key="ibis.pool.host_number"  value="${host.number}"/>
 	    <sysproperty key="ibis.pool.total_hosts"  value="2"/>
 	    <sysproperty key="ibis.pool.host_names"   value="athlon-win2000 p3"/>
 	    <sysproperty key="ibis.name"              value="${IBIS}"/>
+	    <sysproperty key="ibis.serialization"     value="${SER}"/>
 	    <arg line="${ARGS}"/>
 	</java>
     </target>

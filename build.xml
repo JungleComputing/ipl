@@ -16,8 +16,13 @@
 
     <property name="ibis"        location="."/>
 
-    &sharedProperties;
+    <!--
+    This must come first, i.e. before sharedProperties.
+    We cannot require ant-contrib before we have configured.
+    -->
     &configTargets;
+
+    &sharedProperties;
 
     <property name="src"         location="${ibis}/.."/>
     <property name="build"       location="${ibis}/build"/>
@@ -223,10 +228,11 @@
 	    <property name="build" value="${build}"/>
 	    <property name="ibis" value="${ibis}"/>
 	    <!--
-	    -->
 	    <property name="optimization" value="${optimization}"/>
 	    <property name="package.home.ant-cpptasks" value="${package.home.ant-cpptasks}"/>
 	    <property name="package.home.ant-contrib" value="${package.home.ant-contrib}"/>
+	    -->
+	    <property name="contrib.initialized" value="${contrib.initialized}"/>
 	</ant>
     </target>
 
@@ -234,7 +240,7 @@
     <!--
 	Compile the native code in all directories indicated by native.src.path
     -->
-    <target name="natives">
+    <target name="natives" depends="property-init">
 	    <!-- depends="compile,javah"-->
 	<echo	level="debug"
 		message="Native directories = ${native.src.path}"/>
@@ -253,10 +259,10 @@
     -->
     <target name="build"
 	    description="Build Ibis">
-	<antcall inheritRefs="true" target="compile"/>
-	<antcall inheritRefs="true" target="iogen"/>
-	<antcall inheritRefs="true" target="javah"/>
-	<antcall inheritRefs="true" target="natives"/>
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
+	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
+	<antcall inheritAll="true" inheritRefs="true" target="natives"/>
     </target>
 
 

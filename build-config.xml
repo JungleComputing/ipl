@@ -4,38 +4,50 @@
 -->
 
 
-<target name="configure" depends="property-init">
-    <if>
+<target name="config.unix"     depends="config-set-os" if="config.os-is-unix">
+    <property name="default.home.bcel" location="/home2/ceriel/bcel-5.1"/>
+    <property name="default.home.ant-contrib" location="/usr/local/ant/ant-contrib/lib"/>
+    <property name="default.home.ant-cpptasks" location="/usr/local/ant/ant-cpptasks/cpptasks-1.0b1"/>
+
+    <property name="default.home.panda"  location="/usr/local/VU/panda/panda4.0"/>
+    <property name="default.home.daslib" location="/usr/local/VU/daslib"/>
+    <property name="default.home.lfc"    location="/usr/local/VU/lfc/lfc-gm"/>
+    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
+    <property name="default.home.gm"     location="/usr/local/gm/current"/>
+</target>
+
+<target name="config.windows" depends="config-set-os" if="config.os-is-windows">
+    <property name="default.home.bcel" location="../bcel/bcel-5.1"/>
+    <property name="default.home.ant-contrib" location="../ant-contrib/lib"/>
+    <property name="default.home.ant-cpptasks" location="../ant-cpptasks/cpptasks-1.0b1"/>
+
+    <property name="default.home.panda"  location="../panda/panda4.0"/>
+    <property name="default.home.daslib" location="../daslib"/>
+    <property name="default.home.lfc"    location="../lfc-gm"/>
+    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
+    <property name="default.home.gm"     location="../GM"/>
+</target>
+
+<target name="config.mac"     depends="config-set-os" if="config.os-is-windows">
+</target>
+
+<target name="config-set-os">
+    <condition property="config.os-is-unix"    value="true">
 	<os family="unix"/>
-	<then>
-	    <property name="default.home.bcel" location="/home2/ceriel/bcel-5.1"/>
-	    <property name="default.home.ant-contrib" location="/usr/local/ant/ant-contrib/lib"/>
-	    <property name="default.home.ant-cpptasks" location="/usr/local/ant/ant-cpptasks"/>
-
-	    <property name="default.home.panda"  location="/usr/local/VU/panda/panda4.0"/>
-	    <property name="default.home.daslib" location="/usr/local/VU/daslib"/>
-	    <property name="default.home.lfc"    location="/usr/local/VU/lfc/lfc-gm"/>
-	    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
-	    <property name="default.home.gm"     location="/usr/local/gm/current"/>
-	</then>
-    <elseif>
+    </condition>
+    <condition property="config.os-is-windows" value="true">
 	<os family="windows"/>
-	<then>
-	    <property name="default.home.bcel" location="../bcel/bcel-5.1"/>
-	    <property name="default.home.ant-contrib" location="../ant-contrib/ant-contrib/lib"/>
-	    <property name="default.home.ant-cpptasks" location="../ant-cpptasks"/>
-
-	    <property name="default.home.panda"  location="../panda/panda4.0"/>
-	    <property name="default.home.daslib" location="../daslib"/>
-	    <property name="default.home.lfc"    location="../lfc-gm"/>
-	    <property name="default.home.mpi"    location="/usr/local/mpich/mpich-gm"/>
-	    <property name="default.home.gm"     location="../GM"/>
-	</then>
-    </elseif>
+    </condition>
+    <condition property="config.os-is-mac"     value="true">
 	<os family="mac"/>
-    <else>
-    </else>
-    </if>
+    </condition>
+</target>
+
+<target name="config-init" depends="config.unix,config.windows,config.mac">
+</target>
+
+
+<target name="configure" depends="config-init">
 
     <input
 	    message="Please enter the install directory of BCEL: [${default.home.bcel}] "
@@ -76,97 +88,97 @@
     <property
 	    name="config.home.ibis"
 	    location="${ibis}"/>
-    <if>
+
+    <condition property="config.home.bcel-s" value="${default.home.bcel}">
 	<equals arg1="${install.home.bcel}" arg2=""/>
-	<then>
-	    <property name="config.home.bcel"
-		    location="${default.home.bcel}"/>
-	</then>
-	<else>
-	    <property name="config.home.bcel"
-		    location="${install.home.bcel}"/>
-	</else>
-    </if>
+    </condition>
+    <condition property="config.home.bcel-s" value="${install.home.bcel}">
+	<not>
+	    <equals arg1="${install.home.bcel}" arg2=""/>
+	</not>
+    </condition>
+    <property name="config.home.bcel"
+	    location="${config.home.bcel-s}"/>
+
     <property name="config.home.bcel-additions"
 	    location="${install.home.bcel-additions}"/>
-    <if>
-	<equals arg1="${install.home.ant-contrib}" arg2=""/>
-	<then>
-	    <property name="config.home.ant-contrib"
-		    location="${default.home.ant-contrib}"/>
-	</then>
-	<else>
-	    <property name="config.home.ant-contrib"
-		    location="${install.home.ant-contrib}"/>
-	</else>
-    </if>
-    <if>
-	<equals arg1="${install.home.ant-cpptasks}" arg2=""/>
-	<then>
-	    <property name="config.home.ant-cpptasks"
-		    location="${default.home.ant-cpptasks}"/>
-	</then>
-	<else>
-	    <property name="config.home.ant-cpptasks"
-		    location="${install.home.ant-cpptasks}"/>
-	</else>
-    </if>
 
-    <if>
+    <condition property="config.home.ant-contrib-s" value="${default.home.ant-contrib}">
+	<equals arg1="${install.home.ant-contrib}" arg2=""/>
+    </condition>
+    <condition property="config.home.ant-contrib-s" value="${install.home.ant-contrib}">
+	<not>
+	    <equals arg1="${install.home.ant-contrib}" arg2=""/>
+	</not>
+    </condition>
+    <property name="config.home.ant-contrib"
+	    location="${config.home.ant-contrib-s}"/>
+
+    <condition property="config.home.ant-cpptasks-s" value="${default.home.ant-cpptasks}">
+	<equals arg1="${install.home.ant-cpptasks}" arg2=""/>
+    </condition>
+    <condition property="config.home.ant-cpptasks-s" value="${install.home.ant-cpptasks}">
+	<not>
+	    <equals arg1="${install.home.ant-cpptasks}" arg2=""/>
+	</not>
+    </condition>
+    <property name="config.home.ant-cpptasks"
+	    location="${config.home.ant-cpptasks-s}"/>
+
+    <condition property="config.home.gm-s" value="${default.home.gm}">
 	<equals arg1="${install.home.gm}" arg2=""/>
-	<then>
-	    <property name="config.home.gm"
-		    location="${default.home.gm}"/>
-	</then>
-	<else>
-	    <property name="config.home.gm"
-		    location="${install.home.gm}"/>
-	</else>
-    </if>
-    <if>
+    </condition>
+    <condition property="config.home.gm-s" value="${install.home.gm}">
+	<not>
+	    <equals arg1="${install.home.gm}" arg2=""/>
+	</not>
+    </condition>
+    <property name="config.home.gm"
+	    location="${config.home.gm-s}"/>
+
+    <condition property="config.home.daslib-s" value="${default.home.daslib}">
 	<equals arg1="${install.home.daslib}" arg2=""/>
-	<then>
-	    <property name="config.home.daslib"
-		    location="${default.home.daslib}"/>
-	</then>
-	<else>
-	    <property name="config.home.daslib"
-		    location="${install.home.daslib}"/>
-	</else>
-    </if>
-    <if>
+    </condition>
+    <condition property="config.home.daslib-s" value="${install.home.daslib}">
+	<not>
+	    <equals arg1="${install.home.daslib}" arg2=""/>
+	</not>
+    </condition>
+    <property name="config.home.daslib"
+	    location="${config.home.daslib-s}"/>
+
+    <condition property="config.home.lfc-s" value="${default.home.lfc}">
 	<equals arg1="${install.home.lfc}" arg2=""/>
-	<then>
-	    <property name="config.home.lfc"
-		    location="${default.home.lfc}"/>
-	</then>
-	<else>
-	    <property name="config.home.lfc"
-		    location="${install.home.lfc}"/>
-	</else>
-    </if>
-    <if>
+    </condition>
+    <condition property="config.home.lfc-s" value="${install.home.lfc}">
+	<not>
+	    <equals arg1="${install.home.lfc}" arg2=""/>
+	</not>
+    </condition>
+    <property name="config.home.lfc"
+	    location="${config.home.lfc-s}"/>
+
+    <condition property="config.home.panda-s" value="${default.home.panda}">
 	<equals arg1="${install.home.panda}" arg2=""/>
-	<then>
-	    <property name="config.home.panda"
-		    location="${default.home.panda}"/>
-	</then>
-	<else>
-	    <property name="config.home.panda"
-		    location="${install.home.panda}"/>
-	</else>
-    </if>
-    <if>
+    </condition>
+    <condition property="config.home.panda-s" value="${install.home.panda}">
+	<not>
+	    <equals arg1="${install.home.panda}" arg2=""/>
+	</not>
+    </condition>
+    <property name="config.home.panda"
+	    location="${config.home.panda-s}"/>
+
+    <condition property="config.home.mpi-s" value="${default.home.mpi}">
 	<equals arg1="${install.home.mpi}" arg2=""/>
-	<then>
-	    <property name="config.home.mpi"
-		    location="${default.home.mpi}"/>
-	</then>
-	<else>
-	    <property name="config.home.mpi"
-		    location="${install.home.mpi}"/>
-	</else>
-    </if>
+    </condition>
+    <condition property="config.home.mpi-s" value="${install.home.mpi}">
+	<not>
+	    <equals arg1="${install.home.mpi}" arg2=""/>
+	</not>
+    </condition>
+    <property name="config.home.mpi"
+	    location="${config.home.mpi-s}"/>
 
 
     <!--
