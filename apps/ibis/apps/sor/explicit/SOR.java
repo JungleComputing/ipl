@@ -29,6 +29,7 @@ import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.IbisException;
 import ibis.ipl.NoMatchingIbisException;
+import ibis.ipl.Upcall;
 
 import ibis.util.PoolInfo;
 import ibis.util.Timer;
@@ -55,6 +56,7 @@ public class SOR {
 
     private boolean	reduceAlways;
     private boolean	async;
+    private boolean	upcall;
 
     private int size;
     private int rank;        /* process ranks */
@@ -78,6 +80,9 @@ public class SOR {
     private SendPort reduceSbcast;
     private ReceivePort reduceRbcast;
 
+    private Syncer leftSyncer;
+    private Syncer rightSyncer;
+
     private final static boolean TIMINGS = TypedProperties.booleanProperty("timing", false);
     private final static boolean TIMINGS_SUB_REDUCE = TypedProperties.booleanProperty("timing.reduce", false);
     private Timer t_compute        = Timer.createTimer();
@@ -93,7 +98,7 @@ public class SOR {
     private boolean finished = false;
 
 
-    SOR(int N, int maxIters, boolean reduceAlways, boolean async)
+    SOR(int N, int maxIters, boolean reduceAlways, boolean async, boolean upcall)
 	    throws IOException, IbisException {
 
 	info = PoolInfo.createPoolInfo();
@@ -118,6 +123,7 @@ public class SOR {
 	this.maxIters = maxIters;
 	this.reduceAlways = reduceAlways;
 	this.async = async;
+	this.upcall = upcall;
 
 	rank = info.rank();
 	size = info.size();
@@ -125,12 +131,13 @@ public class SOR {
 	createIbis();
 
 	String name = "SOR" + rank;
+
+	getBounds();
+
 	createNeighbourPorts(name);
 	createReducePorts(name);
 
 // System.err.println(rank + ": hi, I'm connected...");
-
-	getBounds();
 
 	if (rank == 0) {
 	    System.out.println("Starting SOR");
@@ -394,7 +401,10 @@ public class SOR {
 	PortType portTypeNeighbour = ibis.createPortType("SOR Neigbour", reqprops);
 
 	if (rank != 0) {
-	    leftR = portTypeNeighbour.createReceivePort(name + "leftR");
+	    if (upcall) {
+		leftSyncer = new Syncer(g[lb - 1]);
+	    }
+	    leftR = portTypeNeighbour.createReceivePort(name + "leftR", leftSyncer);
 	    leftS = portTypeNeighbour.createSendPort(name + "leftS");
 	    leftR.enableConnections();
 
@@ -402,7 +412,10 @@ public class SOR {
 	}
 
 	if (rank != size - 1) {
-	    rightR = portTypeNeighbour.createReceivePort(name + "rightR");
+	    if (upcall) {
+		rightSyncer = new Syncer(g[ub]);
+	    }
+	    rightR = portTypeNeighbour.createReceivePort(name + "rightR", rightSyncer);
 	    rightS = portTypeNeighbour.createSendPort(name + "rightS");
 	    rightR.enableConnections();
 
@@ -632,30 +645,79 @@ public class SOR {
 	m.finish();
     }
 
-    private void receive(boolean source, double [] col) throws IOException {
+    private static class Syncer implements Upcall {
 
-	ReadMessage m;
+	private boolean		arrived = false;
+	private boolean		consumed = true;
+	private double[]	col;
 
-	if (source == PREV) {
-	    m = leftR.receive();
-	} else {
-	    m = rightR.receive();
+	Syncer(double[] col) {
+	    this.col = col;
 	}
 
-	m.readArray(col);
-	// System.err.print("Read col " + col); for (int i = 0; i < col.length; i++) { System.err.print(col[i] + " "); } System.err.println();
-	m.finish();
+	synchronized void consume() {
+	    while (! arrived) {
+		try {
+		    wait();
+		} catch (InterruptedException e) {
+		    // ignore
+		}
+		arrived = false;
+		consumed = true;
+		notify();
+	    }
+	}
+
+	synchronized public void upcall(ReadMessage m) throws IOException {
+	    while (! consumed) {
+		try {
+		    wait();
+		} catch (InterruptedException e) {
+		    // ignore
+		}
+		consumed = false;
+		arrived = true;
+	    }
+	    m.readArray(col);
+	}
+    }
+
+    private void receive(boolean source, double [] col) throws IOException {
+
+	if (upcall) {
+	    Syncer syncer;
+	    if (source == PREV) {
+		syncer = leftSyncer;
+	    } else {
+		syncer = rightSyncer;
+	    }
+	    syncer.consume();
+
+	} else {
+	    ReadMessage m;
+
+	    if (source == PREV) {
+		m = leftR.receive();
+	    } else {
+		m = rightR.receive();
+	    }
+
+	    m.readArray(col);
+	    // System.err.print("Read col " + col); for (int i = 0; i < col.length; i++) { System.err.print(col[i] + " "); } System.err.println();
+	    m.finish();
+	}
     }
 
     private void send() throws IOException {
 	if (TIMINGS) t_communicate.start();
 
-	if (even(rank)) {
-	    if (rank != 0) send(PREV, g[lb]);
-	    if (rank != size-1) send(NEXT, g[ub-1]);
-	} else {
-	    if (rank != size-1) send(NEXT, g[ub-1]);
-	    if (rank != 0) send(PREV, g[lb]);
+	if (rank != 0) {
+	    send(PREV, g[lb]);
+// System.err.println(rank + ": S[" + lb + "]");
+	}
+	if (rank != size-1) {
+	    send(NEXT, g[ub-1]);
+// System.err.println(rank + ": S[" + (ub - 1) + "]");
 	}
 
 	if (TIMINGS) t_communicate.stop();
@@ -664,12 +726,27 @@ public class SOR {
     private void receive() throws IOException {
 	if (TIMINGS) t_communicate.start();
 
+	if (rank != 0) {
+	    receive(PREV, g[lb-1]);
+// System.err.println(rank + ": R[" + (lb - 1) + "]");
+	}
+	if (rank != size-1) {
+	    receive(NEXT, g[ub]);
+// System.err.println(rank + ": R[" + ub + "]");
+	}
+
+	if (TIMINGS) t_communicate.stop();
+    }
+
+    private void sendReceive() throws IOException {
+	if (TIMINGS) t_communicate.start();
+
 	if (even(rank)) {
-	    if (rank != 0) receive(PREV, g[lb-1]);
-	    if (rank != size-1) receive(NEXT, g[ub]);
+	    send();
+	    receive();
 	} else {
-	    if (rank != size-1) receive(NEXT, g[ub]);
-	    if (rank != 0) receive(PREV, g[lb-1]);
+	    receive();
+	    send();
 	}
 
 	if (TIMINGS) t_communicate.stop();
@@ -734,9 +811,10 @@ public class SOR {
 	do {
 	    maxdiff = 0.0;
 	    for (int color = 0; color < 2 ; color++){
-		send();
-		if (! async) {
-		    receive();
+		if (async) {
+		    send();
+		} else {
+		    sendReceive();
 		}
 
 		if (async) {
@@ -751,6 +829,7 @@ public class SOR {
 		    maxdiff = Math.max(maxdiff, compute(color, lb, ub));
 		}
 	    }
+// System.err.print(rank + " ");
 
 	    if (size > 1 && (maxIters < 0 || reduceAlways)) {
 		maxdiff = reduce(maxdiff);
@@ -758,7 +837,7 @@ public class SOR {
 
 	    if (rank==0) {
 		// System.err.println(iteration + "");
-		// System.err.print(".");
+		System.err.print(".");
 	    }
 
 	    iteration++;
@@ -799,6 +878,7 @@ public class SOR {
 	    boolean warmup = false;
 	    boolean reduce = true;
 	    boolean async = false;
+	    boolean upcall = false;
 
 	    int options = 0;
 	    for (int i = 0; i < args.length; i++) {
@@ -817,6 +897,8 @@ public class SOR {
 		    async = false;
 		} else if (args[i].equals("-sync")) {
 		    async = false;
+		} else if (args[i].equals("-upcall")) {
+		    upcall = false;
 		} else if (options == 0) {
 		    N = Integer.parseInt(args[i]);
 		    N += 2;
@@ -830,7 +912,7 @@ public class SOR {
 		}
 	    }
 
-	    SOR sor = new SOR(N, maxIters, reduce, async);
+	    SOR sor = new SOR(N, maxIters, reduce, async, upcall);
 	    if (warmup) {
 		sor.start("warmup");
 	    }
