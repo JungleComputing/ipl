@@ -321,6 +321,11 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
             while (array_index == max_array_index) {
                 receive();
             }
+            array_index++;
+            if (DEBUG) {
+                dbPrint("readArrayBoolean: " + ref + " offset: " + off
+                        + " len: " + len + " type: " + TYPE_BOOLEAN);
+            }
             in.readArray(ref, off, len);
         } else {
             // System.err.println("Special boolean array read len " + len);
@@ -341,6 +346,11 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
         } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
             while (array_index == max_array_index) {
                 receive();
+            }
+            array_index++;
+            if (DEBUG) {
+                dbPrint("readArrayByte: " + ref + " offset: " + off
+                        + " len: " + len + " type: " + TYPE_BYTE);
             }
             in.readArray(ref, off, len);
         } else {
@@ -363,6 +373,11 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
             while (array_index == max_array_index) {
                 receive();
             }
+            array_index++;
+            if (DEBUG) {
+                dbPrint("readArrayChar: " + ref + " offset: " + off
+                        + " len: " + len + " type: " + TYPE_CHAR);
+            }
             in.readArray(ref, off, len);
         } else {
             // System.err.println("Special char array read len " + len);
@@ -383,6 +398,11 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
         } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
             while (array_index == max_array_index) {
                 receive();
+            }
+            array_index++;
+            if (DEBUG) {
+                dbPrint("readArrayShort: " + ref + " offset: " + off
+                        + " len: " + len + " type: " + TYPE_SHORT);
             }
             in.readArray(ref, off, len);
         } else {
@@ -405,6 +425,11 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
             while (array_index == max_array_index) {
                 receive();
             }
+            array_index++;
+            if (DEBUG) {
+                dbPrint("readArrayInt: " + ref + " offset: " + off
+                        + " len: " + len + " type: " + TYPE_INT);
+            }
             in.readArray(ref, off, len);
         } else {
             // System.err.println("Special int array read len " + len);
@@ -425,6 +450,11 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
         } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_LONG) {
             while (array_index == max_array_index) {
                 receive();
+            }
+            array_index++;
+            if (DEBUG) {
+                dbPrint("readArrayLong: " + ref + " offset: " + off
+                        + " len: " + len + " type: " + TYPE_LONG);
             }
             in.readArray(ref, off, len);
         } else {
@@ -447,6 +477,11 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
             while (array_index == max_array_index) {
                 receive();
             }
+            array_index++;
+            if (DEBUG) {
+                dbPrint("readArrayFloat: " + ref + " offset: " + off
+                        + " len: " + len + " type: " + TYPE_FLOAT);
+            }
             in.readArray(ref, off, len);
         } else {
             // System.err.println("Special float array read len " + len);
@@ -467,6 +502,11 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
         } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
             while (array_index == max_array_index) {
                 receive();
+            }
+            array_index++;
+            if (DEBUG) {
+                dbPrint("readArrayDouble: " + ref + " offset: " + off
+                        + " len: " + len + " type: " + TYPE_DOUBLE);
             }
             in.readArray(ref, off, len);
         } else {
@@ -629,6 +669,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
         max_double_index = indices_short[TYPE_DOUBLE];
 
         if (DEBUG) {
+            dbPrint("reading arrays " + max_array_index);
             dbPrint("reading bytes " + max_byte_index);
             dbPrint("reading char " + max_char_index);
             dbPrint("reading short " + max_short_index);
