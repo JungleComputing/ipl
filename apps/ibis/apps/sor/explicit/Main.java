@@ -13,6 +13,8 @@ import java.util.Properties;
 import ibis.ipl.*;
 import ibis.util.*;
 
+import java.io.IOException;
+
 class Main {
 
 	static PoolInfo info;
@@ -66,9 +68,10 @@ class Main {
 
 			try { 			
 				send.connect(id);
-			} catch (Exception e) { 
+			} catch (IOException e) { 
 
 				if (retries++ < 10) { 
+					System.out.println("caught exception upon connecting: " + e);
 					System.out.println(info.rank() + " Could not connect " + send + " to " + id + " will retry");
 					retry = true;
 					try { 
@@ -77,6 +80,7 @@ class Main {
 						// ignore
 					}
 				} else { 
+					System.out.println("caught exception upon connecting: " + e);
 					System.out.println(info.rank() + " Could not connect " + send + " to " + id + " will NOT retry");
 				}
 			} 
@@ -124,7 +128,7 @@ class Main {
 
 			reqprops.add("serialization", "data");
 			reqprops.add("worldmodel", "closed");
-			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, ExplicitReceipt");
+			reqprops.add("communication", "OneToMany, OneToOne, ManyToOne, Reliable, ExplicitReceipt");
 
 			try {
 				ibis = Ibis.createIbis(reqprops, null);
@@ -180,7 +184,7 @@ class Main {
 
 			reqprops = new StaticProperties();
 			reqprops.add("serialization", "data");
-			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, ExplicitReceipt");
+			reqprops.add("communication", "OneToMany, OneToOne, ManyToOne, Reliable, ExplicitReceipt");
 			
 			PortType portTypeReduce = ibis.createPortType("SOR Reduce", reqprops);
 
