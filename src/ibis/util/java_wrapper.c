@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     if (sched_setaffinity(0, len, &cpu_affinity) < 0) {
 	fprintf(stderr, "%s: sched_setaffinity fails",
 		wrapper);
-	exit(35);
+//	exit(0);
     }
 #endif
 
@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
 
 	env_file = fopen(prun_env, "r");
 	if (env_file == NULL) {
-	    fprintf(stderr, "%s: want to open PRUN env file %s, but it does not exist. Quit.\n", wrapper, prun_env);
-	    exit(37);
+	    fprintf(stderr, "%s: want to open PRUN env file %s, but it does not exist.\n", wrapper, prun_env);
+//	    exit(0);
 	}
 	while (1) {
 #define ENV_LEN		4096
@@ -107,15 +107,15 @@ int main(int argc, char *argv[])
 
 	if (sigemptyset(&mask) != 0) {
 	    fprintf(stderr, "%s.%d: sigemptyset fails\n", wrapper, __LINE__);
-	    exit(47);
+//	    exit(0);
 	}
 	if (sigaddset(&mask, SIGIO) != 0) {
 	    fprintf(stderr, "%s.%d: sigaddset fails\n", wrapper, __LINE__);
-	    exit(47);
+//	    exit(0);
 	}
 	if (sigprocmask(SIG_BLOCK, &mask, NULL) != 0) {
 	    fprintf(stderr, "%s.%d: sigprocmask fails\n", wrapper, __LINE__);
-	    exit(47);
+//	    exit(0);
 	}
 	fprintf(stderr, "%s: Blocked SIGIO\n", wrapper);
     }
