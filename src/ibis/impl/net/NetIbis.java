@@ -233,6 +233,55 @@ public final class NetIbis extends Ibis {
 	}
 
 	/**
+	 * Extracts a driver stack from the properties, and create a new
+	 * property set including this driver stack.
+	 * @param sp the properties.
+	 * @return the resulting properties.
+	 */
+	private StaticProperties extractDriverStack(StaticProperties sp) {
+	    StaticProperties s = new StaticProperties(sp);
+	    String serialization = s.find("Serialization");
+	    String path = "/";
+	    if (serialization != null && ! serialization.equals("none")) {
+		String top = "s_" + serialization;
+		try {
+		    s.add(path + ":Driver", top);
+		} catch(IbisException e) {
+		    return sp;
+		}
+		path = path + top;
+	    }
+	    String driver = sp.find("IbisName");
+	    if (driver != null && driver.startsWith("net.")) {
+		driver = driver.substring("net.".length());
+		while (true) {
+		    int dot = driver.indexOf('.');
+		    int end = dot;
+		    if (end == -1) {
+			end = driver.length();
+		    }
+		    String top = driver.substring(0, end);
+		    // System.err.println("Now register static property \"" + (path + ":Driver") + "\" as \"" + top + "\"");
+		    try {
+			s.add(path + ":Driver", top);
+		    } catch(IbisException e) {
+			return sp;
+		    }
+		    if (dot == -1) {
+			break;
+		    }
+		    if (path.equals("/")) {
+			path = path + top;
+		    } else {
+			path = path + "/" + top;
+		    }
+		    driver = driver.substring(dot + 1);
+		}
+	    }
+	    return s;
+	}
+
+	/**
 	 * Creates a {@linkplain PortType port type} from a name and a set of {@linkplain StaticProperties properties}.
 	 *
 	 * @param name the name of the type.
@@ -243,6 +292,7 @@ public final class NetIbis extends Ibis {
 	synchronized
 	public PortType createPortType(String name, StaticProperties sp)
 		throws IOException, IbisException {
+		sp = extractDriverStack(sp);
 		NetPortType newPortType = new NetPortType(this, name, sp);
 		sp = newPortType.properties();
 

@@ -832,34 +832,7 @@ System.err.println("Poor-man's barrier send finished");
 
 	} else if (ibis_name != null && ibis_name.startsWith("net.")) {
 	    ibis_path = "net.NetIbis";
-	    driver = ibis_name.substring("net.".length());
-
-	    String path = "/";
-	    if (ser != null && ! ser.equals("none")) {
-		String top = "s_" + ser;
-System.err.println("Now register static property \"" + (path + ":Driver") + "\" as \"" + top + "\"");
-		ibisProperties.add(path + ":Driver", top);
-		path = path + top;
-	    }
-	    while (true) {
-		int dot = driver.indexOf('.');
-		int end = dot;
-		if (end == -1) {
-		    end = driver.length();
-		}
-		String top = driver.substring(0, end);
-System.err.println("Now register static property \"" + (path + ":Driver") + "\" as \"" + top + "\"");
-		ibisProperties.add(path + ":Driver", top);
-		if (dot == -1) {
-		    break;
-		}
-		if (path.equals("/")) {
-		    path = path + top;
-		} else {
-		    path = path + "/" + top;
-		}
-		driver = driver.substring(dot + 1);
-	    }
+	    ibisProperties.add("IbisName", ibis_name);
 
 	} else {
 	    ibis_path = "tcp.TcpIbis";

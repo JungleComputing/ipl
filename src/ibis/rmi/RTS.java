@@ -136,48 +136,19 @@ public final class RTS {
 
 	    Properties p = System.getProperties();
 	    String ibis_name = p.getProperty("ibis.name");
+	    String ibis_serialization = p.getProperty("ibis.serialization");
 
 	    StaticProperties s = new StaticProperties();
-	    String ibis_serialization = p.getProperty("ibis.serialization");
+
+	    if (ibis_name != null) {
+		s.add("IbisName", ibis_name);
+	    }
 	    if (ibis_serialization != null) {
 		System.out.println("Setting Serialization to " + ibis_serialization);
 		s.add("Serialization", ibis_serialization);
 	    } else {
 		System.out.println("Setting Serialization to ibis");
 		s.add("Serialization", "ibis");
-	    }
-
-	    if (ibis_name != null && ibis_name.startsWith("net.")) {
-		//				System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
-		//				new Exception().printStackTrace();
-		// But HOW??? --Ceriel
-		String driver = ibis_name.substring("net.".length());
-		String path = "/";
-		if (ibis_serialization != null && ! ibis_serialization.equals("none")) {
-		    String top = "s_" + ibis_serialization;
-		    // System.err.println("Now register static property \"" + (path + ":Driver") + "\" as \"" + top + "\"");
-		    s.add(path + ":Driver", top);
-		    path = path + top;
-		}
-		while (true) {
-		    int dot = driver.indexOf('.');
-		    int end = dot;
-		    if (end == -1) {
-			end = driver.length();
-		    }
-		    String top = driver.substring(0, end);
-		    // System.err.println("Now register static property \"" + (path + ":Driver") + "\" as \"" + top + "\"");
-		    s.add(path + ":Driver", top);
-		    if (dot == -1) {
-			break;
-		    }
-		    if (path.equals("/")) {
-			path = path + top;
-		    } else {
-			path = path + "/" + top;
-		    }
-		    driver = driver.substring(dot + 1);
-		}
 	    }
 
 	    // @@@ end of horrible code
