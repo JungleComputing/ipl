@@ -2,17 +2,17 @@ package ibis.ipl.impl.messagePassing;
 
 import ibis.ipl.IbisIOException;
 
-public abstract class Poll implements Runnable {
+public class Poll implements Runnable {
 
     boolean MANTA_COMPILE;
 
     Thread	poller;
-    PollClient waiting_threads;
+    PollClient	waiting_threads;
     int		preemptive_pollers;
     Thread	peeker;
     boolean	last_is_preemptive;
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     protected Poll() {
 	// Sun doesn't set java.compiler, so getProperty returns null --Rob
@@ -71,7 +71,8 @@ public abstract class Poll implements Runnable {
     }
 
 
-    protected abstract void msg_poll() throws IbisIOException;
+    protected native void msg_poll() throws IbisIOException;
+
     native void abort();
 
 

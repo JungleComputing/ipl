@@ -8,98 +8,29 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <stdarg.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #include <jni.h>
 
+#define USE_STDARG
 #include <mpi.h>
 
-#include "ibis_ipl_impl_mpi_MPIbis.h"
+#include "../ibis_ipl_impl_messagePassing_Ibis.h"
 
-#include "ibmpi.h"
+#include "../ibmp.h"
+
+#include "ibp.h"
+#include "ibp_mp.h"
+
 #include "ibmpi_mp.h"
-#include "ibmpi_connect.h"
-#include "ibmpi_disconnect.h"
-#include "ibmpi_receive_port_ns.h"
-#include "ibmpi_receive_port_identifier.h"
-#include "ibmpi_send_port.h"
-#include "ibmpi_byte_input_stream.h"
-#include "ibmpi_byte_output_stream.h"
-#include "ibmpi_poll.h"
-#include "ibmpi_join.h"
-
-
-JNIEnv  *ibmpi_JNIEnv = NULL;
-
-
-static jclass		cls_Thread;
-static jmethodID	md_yield;
-static jmethodID	md_currentThread;
-static jmethodID	md_dumpStack;
-
-static jclass		cls_Object;
-static jmethodID	md_toString;
-
-static jmethodID	md_checkLockOwned;
-static jmethodID	md_checkLockNotOwned;
-
-jclass		ibmpi_cls_MPIbis;
-jobject		ibmpi_obj_MPIbis_ibis;
-JavaVM          *vm;
-
-
-#ifdef IBMPI_VERBOSE
-
-int		ibmpi_verbose;
-
-int
-ibmpi_stderr_printf(char *fmt, ...)
-{
-    va_list	ap;
-    int		ret;
-
-    va_start(ap, fmt);
-    ret = vfprintf(stderr, fmt, ap);
-    va_end(ap);
-
-    return ret;
-}
-
-#endif
-
-
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved)
-{
-    vm = jvm;  /* cache the JavaVM pointer */
-    return JNI_VERSION_1_2;
-}
-
-char *
-ibmpi_currentThread(JNIEnv *env)
-{
-    jobject	cT = (*env)->CallStaticObjectMethod(env, cls_Thread, md_currentThread);
-    jstring	t = (*env)->CallObjectMethod(env, cT, md_toString);
-    jbyte      *b;
-    static char *c = NULL;
-    static int	n_c = 0;
-
-    b = (jbyte *)(*env)->GetStringUTFChars(env, t, NULL);
-    if (b == NULL) {
-	fprintf(stderr, "Cannot get string bytes\n");
-    }
-    if (strlen(b) + 1 > n_c) {
-	n_c = 2 * strlen(b) + 1;
-	c = realloc(c, n_c);
-    }
-    sprintf(c, "%s", b);
-
-    (*env)->ReleaseStringUTFChars(env, t, b);
-
-    return c;
-}
 
 
 jlong
-Java_ibis_ipl_impl_mpi_MPIbis_currentTime(JNIEnv *env, jclass c)
+Java_ibis_ipl_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
 {
     union lt {
 	double	t;
@@ -113,10 +44,10 @@ Java_ibis_ipl_impl_mpi_MPIbis_currentTime(JNIEnv *env, jclass c)
 
 
 jdouble
-Java_ibis_ipl_impl_mpi_MPIbis_t2d(JNIEnv *env, jclass c, jlong l)
+Java_ibis_ipl_impl_messagePassing_Ibis_t2d(JNIEnv *env, jclass c, jlong l)
 {
     union lt {
-	struct pan_time t;
+	double	t;
 	jlong	l;
     } lt;
 
@@ -125,358 +56,243 @@ Java_ibis_ipl_impl_mpi_MPIbis_t2d(JNIEnv *env, jclass c, jlong l)
 }
 
 
-void
-ibmpi_dumpStack(JNIEnv *env)
+static ibmpi_proto_p	proto_freelist;
+
+
+void *
+ibp_proto_create(unsigned int size)
 {
-    (*env)->CallStaticVoidMethod(env, cls_Thread, md_dumpStack);
-}
+    ibmpi_proto_p	p;
 
-
-void
-ibmpi_object_toString(JNIEnv *env, jobject obj)
-{
-    jstring name;
-    jbyte *b;
-IBMPI_VPRINTF(100, env, ("\n"));
-
-    name = (*env)->CallObjectMethod(env, obj, md_toString);
-IBMPI_VPRINTF(100, env, ("\n"));
-    if (name == NULL) {
-	fprintf(stderr, "Cannot call toString()\n");
+    if (size <= SEND_PROTO_CACHE_SIZE) {
+	p = proto_freelist;
+	if (p == NULL) {
+	    p = malloc(SEND_PROTO_CACHE_SIZE);
+	} else {
+	    proto_freelist = p->sn.next;
+	}
+    } else {
+	p = malloc(size);
     }
-
-    b = (jbyte *)(*env)->GetStringUTFChars(env, name, NULL);
-IBMPI_VPRINTF(100, env, ("\n"));
-    if (b == NULL) {
-	fprintf(stderr, "Cannot get string bytes\n");
-    }
-
-    printf("object = %s", b);
-    fflush(stdout);
-
-    (*env)->ReleaseStringUTFChars(env, name, b);
-}
-
-
-
-void
-ibmpi_thread_yield(JNIEnv *env)
-{
-    (*env)->CallStaticVoidMethod(env, cls_Thread, md_yield);
+    p->sn.size = size;
+	
+    return p;
 }
 
 
 void
-Java_ibis_ipl_impl_mpi_MPIbis_lock(JNIEnv *env, jobject lock)
+ibp_proto_clear(void *proto)
 {
-    if ((*env)->MonitorEnter(env, lock) < 0) {
-	fprintf(stderr, "Illegal MonitorEnter\n");
-	abort();
+    ibmpi_proto_p p = proto;
+
+    if (p->sn.size <= SEND_PROTO_CACHE_SIZE) {
+	p->sn.next = proto_freelist;
+	proto_freelist = p;
+    } else {
+	free(proto);
     }
 }
 
 
-void
-Java_ibis_ipl_impl_mpi_MPIbis_unlock(JNIEnv *env, jobject lock)
+int ibp_msg_consume_left(ibp_msg_p msg)
 {
-    if ((*env)->MonitorExit(env, lock) < 0) {
-	fprintf(stderr, "Illegal MonitorExit\n");
-	abort();
-    }
+    return msg->size - msg->start;
 }
 
 
-void
-ibmpi_lock(JNIEnv *env)
+int ibp_msg_sender(ibp_msg_p msg)
 {
-    ibmpi_lock_check_not_owned(env);
-    Java_ibis_ipl_impl_mpi_MPIbis_lock(env, ibmpi_obj_MPIbis_ibis);
-}
-
-
-void
-ibmpi_unlock(JNIEnv *env)
-{
-    ibmpi_lock_check_owned(env);
-    return Java_ibis_ipl_impl_mpi_MPIbis_unlock(env, ibmpi_obj_MPIbis_ibis);
-}
-
-#undef ibmpi_lock_check_owned
-#undef ibmpi_lock_check_not_owned
-
-void
-ibmpi_lock_check_owned(JNIEnv *env)
-{
-    (*env)->CallVoidMethod(env, ibmpi_obj_MPIbis_ibis, md_checkLockOwned);
-}
-
-
-void
-ibmpi_lock_check_not_owned(JNIEnv *env)
-{
-    (*env)->CallVoidMethod(env, ibmpi_obj_MPIbis_ibis, md_checkLockNotOwned);
+    return msg->sender;
 }
 
 
 int
-ibmpi_consume(JNIEnv *env, pan_msg_p msg, void *buf, int len)
+ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
 {
-    int		rd;
+    if (msg->size == msg->start) {
+	MPI_Status status;
+	/* Use the blast channel. */
 
-#ifndef NDEBUG
-    if (! pan_msg_sane(msg)) {
-	fprintf(stderr, "This seems an insane msg: %p\n", msg);
-	ibmpi_dumpStack(env);
-    }
-#endif
-
-#ifndef NON_BLOCKING_CONSUME
-    rd = pan_msg_consume_left(msg);
-    if (rd < len) {
-	len = rd;
-    }
-    if (len == 0) {
-	return -1;
-    }
-#endif
-
-    ibmpi_set_JNIEnv(env);
-
-    rd = 0;
-    while (1) {
-#ifndef NON_BLOCKING_CONSUME
-	rd += pan_msg_consume(msg, (char *)buf + rd, (int)len);
-#else
-	rd += pan_msg_consume_non_blocking(msg, (char *)buf + rd, (int)len);
-#endif
-	if (rd == len) {
-	    break;
+	if (MPI_Recv(buf, len, MPI_PACKED, msg->sender, msg->send_port_id,
+		     MPI_COMM_WORLD, &status) != MPI_SUCCESS) {
+	    ibmp_error("MPI_Recv of blast message fails");
 	}
-	if (pan_msg_consume_left(msg) == 0) {
-	    if (rd == 0) {
-		rd = -1;
-	    }
-	    break;
+    } else {
+	if (len > msg->size - msg->start) {
+	    len = msg->size - msg->start;
 	}
 
-	ibmpi_unlock(env);
-	ibmpi_thread_yield(env);
-	ibmpi_lock(env);
+	memcpy(buf, (char *)(msg + 1) + msg->start, len);
+	msg->start += len;
     }
 
-    ibmpi_unset_JNIEnv();
-
-    return rd;
+    return len;
 }
 
 
 jstring
-ibmpi_string_consume(JNIEnv *env, pan_msg_p msg, int len)
+ibp_string_consume(JNIEnv *env, ibp_msg_p msg, int len)
 {
     char	buf[len + 1];
 
-    ibmpi_consume(env, msg, buf, len);
+    ibp_consume(env, msg, buf, len);
     buf[len] = '\0';
-    IBMPI_VPRINTF(400, env, ("Msg consume string[%d] = \"%s\"\n", len, (char *)buf));
+    IBP_VPRINTF(400, env, ("Msg consume string[%d] = \"%s\"\n", len, (char *)buf));
     return (*env)->NewStringUTF(env, buf);
 }
 
 
-void
-ibmpi_string_push(JNIEnv *env, void *v_buf, int *offset, jstring s, int len)
+int
+ibp_string_push(JNIEnv *env, jstring s, pan_iovec_p iov)
 {
-    const jbyte *c;
-    char       *buf = v_buf;
+    iov->len = (int)(*env)->GetStringUTFLength(env, s);
+    iov->data = (void *)(*env)->GetStringUTFChars(env, s, NULL);
+    IBP_VPRINTF(400, env, ("Msg push string[%d] = \"%s\"\n",
+			    iov->len, (char *)iov->data));
 
-    assert(len == (*env)->GetStringUTFLength(env, s));
-
-    c = (void *)(*env)->GetStringUTFChars(env, s, NULL);
-    mempcy(buf + *offset, c, len);
-    IBMPI_VPRINTF(400, env, ("Msg push string[%d] = \"%s\"\n", len, (char *)c));
-    (*env)->ReleaseStringUTFChars(env, s, buf + *offset);
-
-    *offset += len;
+    return iov->len;
 }
 
 
-static int
-hostname_equal(char *h0, char *h1)
+static char *p4_options[] = {
+    "help",
+    "pg",
+    "dbg",
+    "rdbg",
+    "gm",
+    "dmn",
+    "out",
+    "rout",
+    "ssport",
+    "norem",
+    "log",
+    "version",
+    "wd",
+    "amslave"
+};
+
+static int p4_option_arg[] = {
+    0,	/* "help", */
+    1,	/* "pg", */
+    1,	/* "dbg", */
+    1,	/* "rdbg", */
+    1,	/* "gm", */
+    1,	/* "dmn", */
+    1,	/* "out", */
+    1,	/* "rout", */
+    1,	/* "ssport", */
+    0,	/* "norem", */
+    0,	/* "log", */
+    0,	/* "version" */
+    1,	/* "wd", */
+    0 	/* "amslave" */
+};
+
+
+#define P4_MAX_ARGLEN	32
+#define P4_OPTIONS	(sizeof(p4_options) / sizeof(*p4_options))
+
+
+static char **
+ibmpi_p4_args(int *argc, char *argv[])
 {
-    char       *dot0;
-    char       *dot1;
+    char	p4_env[P4_OPTIONS][P4_MAX_ARGLEN];
+    extern char **environ;
+    char      **p4_argv;
+    int		p4_argc;
+    int		x;
+    int		i;
+    int		j;
 
-    if (strcmp(h0, h1) == 0) {
-	return 1;
+    p4_argc = *argc + 1;
+    p4_argv = malloc((p4_argc + 1) * sizeof(*p4_argv));
+    p4_argv[0] = "Ibis.mpi.application";
+    for (i = 1; i < p4_argc; i++) {
+	p4_argv[i] = strdup(argv[i - 1]);
     }
-    dot0 = strchr(h0, '.');
-    dot1 = strchr(h1, '.');
+    p4_argv[i] = NULL;
 
-    if (dot0 == NULL) {
-	if (dot1 == NULL) {
-	    return 0;
+    for (i = 0; i < P4_OPTIONS; i++) {
+	sprintf(p4_env[i], "P4_%s", p4_options[i]);
+	for (j = 0; j < strlen(p4_env[i]); j++) {
+	    p4_env[i][j] = toupper(p4_env[i][j]);
 	}
-	return (strncmp(h0, h1, dot1 - h1) == 0);
-    }
-    if (dot1 == NULL) {
-	return (strncmp(h0, h1, dot0 - h0) == 0);
-    }
-    return 0;
-}
-
-
-static void
-ibmpi_mpi_init(void)
-{
-    MPI_Init(NULL, NULL);
-
-#ifdef IBMPI_VERBOSE
-    if (pan_arg_int(&argc, argv, "-ibp-v", &ibmpi_verbose) == -1) {
-	fprintf(stderr, "-ibp-v requires an integer argument\n");
-    }
-    fprintf(stderr, "ibmpi_verbose = %d\n", ibmpi_verbose);
-#endif
-}
-
-
-void
-Java_ibis_ipl_impl_mpi_MPIbis_mpi_1init(JNIEnv *env, jobject this)
-{
-    jfieldID	fld_MPIbis_ibis;
-    jfieldID	fld_MPIbis_nrCpus;
-    jfieldID	fld_MPIbis_myCpu;
-    int		me;
-    int		nr;
-
-    ibmp_init(env, this);
-
-    cls_Thread = (*env)->FindClass(env, "java/lang/Thread");
-    if (cls_Thread == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class java/lang/Thread\n", __FILE__, __LINE__);
-    }
-    cls_Thread = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Thread);
-
-    md_yield   = (*env)->GetStaticMethodID(env, cls_Thread, "yield", "()V");
-    if (md_yield == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static method yield()V\n", __FILE__, __LINE__);
     }
 
-    md_currentThread   = (*env)->GetStaticMethodID(env, cls_Thread, "currentThread", "()Ljava/lang/Thread;");
-    if (md_currentThread == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static method currentThread()Ljava/laang/Thread;\n", __FILE__, __LINE__);
+    for (x = 0; environ[x] != NULL; x++) {
+	char *e = environ[x];
+	char *eq = strchr(e, '=');
+	int	n;
+
+	if (eq == NULL) {
+	    fprintf(stderr, "Malformed environment var \"%s\"\n", e);
+	    exit(33);
+	}
+
+	if (strncmp(e, "P4_ARG", strlen("P4_ARG")) == 0) {
+	    fprintf(stderr, "Found p4 extra argument \"%s\"\n", eq + 1);
+	    n = p4_argc;
+	    p4_argc += 1;
+	    p4_argv = realloc(p4_argv, (p4_argc + 1) * sizeof(*p4_argv));
+	    p4_argv[n] = strdup(eq + 1);
+
+	} else {
+	    for (i = 0; i < P4_OPTIONS; i++) {
+		if (strncmp(e, p4_env[i], eq - e) == 0) {
+		    fprintf(stderr, "Found p4 option %s\n", p4_options[i]);
+		    n = p4_argc;
+		    p4_argc += 1 + p4_option_arg[i];
+		    p4_argv = realloc(p4_argv, (p4_argc + 1) * sizeof(*p4_argv));
+		    p4_argv[n] = malloc(strlen(p4_options[i]) + 4);
+		    sprintf(p4_argv[n], "-p4%s", p4_options[i]);
+		    if (p4_option_arg[i]) {
+			p4_argv[n + 1] = strdup(eq + 1);
+		    }
+		}
+	    }
+	}
     }
 
-    md_dumpStack   = (*env)->GetStaticMethodID(env, cls_Thread, "dumpStack", "()V");
-    if (md_dumpStack == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static method dumpStack()V\n", __FILE__, __LINE__);
-    }
+    *argc = p4_argc;
 
-    ibmpi_cls_MPIbis = (*env)->FindClass(env, "ibis/ipl/impl/mpi/MPIbis");
-    if (ibmpi_cls_MPIbis == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/mpi/MPIbis\n", __FILE__, __LINE__);
-    }
-    ibmpi_cls_MPIbis = (jclass)(*env)->NewGlobalRef(env, (jobject)ibmpi_cls_MPIbis);
-
-    fld_MPIbis_ibis = (*env)->GetStaticFieldID(env, ibmpi_cls_MPIbis, "myIbis", "Libis/ipl/impl/mpi/MPIbis;");
-    if (fld_MPIbis_ibis == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static field myIbis:Libis/ipl/impl/mpi/MPIbis;\n", __FILE__, __LINE__);
-    }
-
-    ibmpi_obj_MPIbis_ibis = (*env)->GetStaticObjectField(env, ibmpi_cls_MPIbis, fld_MPIbis_ibis);
-    ibmpi_obj_MPIbis_ibis = (*env)->NewGlobalRef(env, ibmpi_obj_MPIbis_ibis);
-
-    md_checkLockOwned = (*env)->GetMethodID(env, ibmpi_cls_MPIbis, "checkLockOwned",
-				       "()V");
-    if (md_checkLockOwned == NULL) {
-	fprintf(stderr, "Cannot find method checkLockOwned\n");
-    }
-
-    md_checkLockNotOwned = (*env)->GetMethodID(env, ibmpi_cls_MPIbis, "checkLockNotOwned",
-				       "()V");
-    if (md_checkLockNotOwned == NULL) {
-	fprintf(stderr, "Cannot find method checkLockNotOwned\n");
-    }
-
-    fld_MPIbis_nrCpus = (*env)->GetFieldID(env, ibmpi_cls_MPIbis, "nrCpus", "I");
-    if (fld_MPIbis_nrCpus == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static field nrCpus:I\n", __FILE__, __LINE__);
-    }
-    fld_MPIbis_myCpu  = (*env)->GetFieldID(env, ibmpi_cls_MPIbis, "myCpu", "I");
-    if (fld_MPIbis_myCpu == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static field myCpu:I\n", __FILE__, __LINE__);
-    }
-
-    cls_Object = (*env)->FindClass(env, "java/lang/Object");
-    if (cls_Object == NULL) {
-	fprintf(stderr, "Cannot find class java/lang/Object\n");
-    }
-    cls_Object = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Object);
-
-    md_toString = (*env)->GetMethodID(env, cls_Object, "toString", "()Ljava/lang/String;");
-    if (md_toString == NULL) {
-	fprintf(stderr, "Cannot find method toString\n");
-    }
-
-    ibmpi_mpi_init();
-    if (MPI_COMM_SIZE(MPI_COMM_WORLD, &nr) != MPI_SUCCESS) {
-	fprintf(stderr, "%s:%d MPI_COMM_SIZE() fails\n", __FILE__, __LINE__);
-    }
-    if (MPI_COMM_RANK(MPI_COMM_WORLD, &me) != MPI_SUCCESS) {
-	fprintf(stderr, "%s:%d MPI_COMM_RANK() fails\n", __FILE__, __LINE__);
-    }
-
-    (*env)->SetIntField(env, ibmpi_obj_MPIbis_ibis, fld_MPIbis_nrCpus,
-		(jint)nr());
-    (*env)->SetIntField(env, ibmpi_obj_MPIbis_ibis, fld_MPIbis_myCpu,
-		(jint)me());
-
-    ibmpi_mp_init(env);
-
-    ibmpi_join_init(env);
-
-    ibmpi_receive_port_identifier_init(env);
-    ibmpi_receive_port_ns_init(env);
-
-    ibmpi_connect_init(env);
-    ibmpi_disconnect_init(env);
-    ibmpi_send_port_init(env);
-    ibmpi_byte_output_stream_init(env);
-    ibmpi_byte_input_stream_init(env);
-
-    ibmpi_poll_init(env);
-    
-    pan_start();
-    IBMPI_VPRINTF(10, env, ("%s.%d: ibmpi_init\n", __FILE__, __LINE__));
+    return p4_argv;
 }
 
 
 void
-Java_ibis_ipl_impl_mpi_MPIbis_ibmpi_1end(JNIEnv *env, jobject this)
+ibp_init(JNIEnv *env, int *argc, char *argv[])
 {
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
+    int		p4_argc = *argc;
 
-    ibmpi_mp_end(env);
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
-    ibmpi_poll_end(env);
+    ibmp_check_ibis_name(env, "ibis.ipl.impl.messagePassing.MPIIbis");
 
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
-    ibmpi_byte_input_stream_end(env);
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
-    ibmpi_byte_output_stream_end(env);
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
-    ibmpi_send_port_end(env);
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
-    ibmpi_disconnect_end(env);
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
-    ibmpi_connect_end(env);
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
+    argv = ibmpi_p4_args(&p4_argc, argv);
 
-    ibmpi_receive_port_ns_end(env);
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
-    ibmpi_receive_port_identifier_end(env);
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
+    MPI_Init(&p4_argc, &argv);
+    ibmpi_alive = 1;
 
-    ibmpi_join_end(env);
+    if (MPI_Comm_size(MPI_COMM_WORLD, &ibmp_nr) != MPI_SUCCESS) {
+	ibmp_error("MPI_Comm_size() fails\n");
+    }
+    if (MPI_Comm_rank(MPI_COMM_WORLD, &ibmp_me) != MPI_SUCCESS) {
+	ibmp_error("MPI_Comm_rank() fails\n");
+    }
 
+    IBP_VPRINTF(10, env, ("ibpi_init\n"));
+}
+
+
+void
+ibp_start(JNIEnv *env)
+{
+    IBP_VPRINTF(10, env, ("%s.%d: ibp_start\n", __FILE__, __LINE__));
+}
+
+
+void
+ibp_end(JNIEnv *env)
+{
+    ibmpi_alive = 0;
     MPI_Finalize();
-    IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
+    IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
 }

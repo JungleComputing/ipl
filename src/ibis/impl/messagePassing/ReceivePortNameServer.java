@@ -4,7 +4,7 @@ import ibis.ipl.IbisIOException;
 
 import java.util.Hashtable;
 
-public abstract class ReceivePortNameServer implements
+class ReceivePortNameServer implements
     ReceivePortNameServerProtocol {
 
     private Hashtable ports;
@@ -13,7 +13,7 @@ public abstract class ReceivePortNameServer implements
 	ports = new Hashtable();
     }
 
-    protected abstract void bind_reply(int ret, int tag, int client);
+    native void bind_reply(int ret, int tag, int client);
 
     /* Called from native */
     private void bind(ReceivePortIdentifier ri, int tag, int client)
@@ -36,7 +36,7 @@ public abstract class ReceivePortNameServer implements
 	}
     }
 
-    protected abstract void lookup_reply(int ret, int tag, int client, String name, String type, int cpu, int port);
+    native void lookup_reply(int ret, int tag, int client, String name, String type, int cpu, int port);
 
     /* Called from native */
     private void lookup(String name, int tag, int client) throws ClassNotFoundException {

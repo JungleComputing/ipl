@@ -6,7 +6,7 @@ import ibis.ipl.IbisIOException;
  * Extends OutputStream with read of array of primitives and readSingleInt
  */
 
-public class StoreArrayInputStream extends ibis.io.ArrayInputStream {
+public final class StoreArrayInputStream extends ibis.io.ArrayInputStream {
 
 	StoreBuffer buf;
 
@@ -23,7 +23,7 @@ public class StoreArrayInputStream extends ibis.io.ArrayInputStream {
 		this.buf = buf;
 	} 
 
-	public void reset() { 
+	public final void reset() { 
 		boolean_count = 0;
 		byte_count = 0;
 		short_count = 0;
@@ -34,47 +34,47 @@ public class StoreArrayInputStream extends ibis.io.ArrayInputStream {
 		double_count = 0;
 	} 
 	
-	public void readArray(boolean[] a, int off, int len) throws IbisIOException { 
+	public final void readArray(boolean[] a, int off, int len) throws IbisIOException { 
 		System.arraycopy(buf.boolean_store, boolean_count, a, off, len);
 		boolean_count += len;
 	}
 	
-	public void readArray(byte[] a, int off, int len) throws IbisIOException { 
+	public final void readArray(byte[] a, int off, int len) throws IbisIOException { 
 		System.arraycopy(buf.byte_store, byte_count, a, off, len);
 		byte_count += len;
 	}
 	
-	public void readArray(short[] a, int off, int len) throws IbisIOException { 
+	public final void readArray(short[] a, int off, int len) throws IbisIOException { 
 		System.arraycopy(buf.short_store, short_count, a, off, len);
 		short_count += len;
 	}
 	
-	public void readArray(char[] a, int off, int len) throws IbisIOException { 
+	public final void readArray(char[] a, int off, int len) throws IbisIOException { 
 		System.arraycopy(buf.char_store, char_count, a, off, len);
 		char_count += len;
 	}
 	
-	public void readArray(int[] a, int off, int len) throws IbisIOException { 
+	public final void readArray(int[] a, int off, int len) throws IbisIOException { 
 		System.arraycopy(buf.int_store, int_count, a, off, len);
 		int_count += len;
 	}
 	
-	public void readArray(long[] a, int off, int len) throws IbisIOException { 
+	public final void readArray(long[] a, int off, int len) throws IbisIOException { 
 		System.arraycopy(buf.long_store, long_count, a, off, len);
 		long_count += len;
 	}
 	
-	public void readArray(float[] a, int off, int len) throws IbisIOException { 
+	public final void readArray(float[] a, int off, int len) throws IbisIOException { 
 		System.arraycopy(buf.float_store, float_count, a, off, len);
 		float_count += len;
 	}
 
-	public void readArray(double[] a, int off, int len) throws IbisIOException { 
+	public final void readArray(double[] a, int off, int len) throws IbisIOException { 
 		System.arraycopy(buf.double_store, double_count, a, off, len);
 		double_count += len;
 	}
 	
-	public int available() throws IbisIOException { 
+	public final int available() throws IbisIOException { 
 		return 0;
 	}
 }

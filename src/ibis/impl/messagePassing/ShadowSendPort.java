@@ -159,7 +159,9 @@ class ShadowSendPort extends SendPort {
     static void disconnect(int cpu, int port, int receiver_port, int count) {
 	ShadowSendPort sp = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupSendPort(cpu, port);
 	ReceivePort rp = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupReceivePort(receiver_port);
-	// System.err.println(Thread.currentThread() + "Receive a disconnect call from SendPort " + sp + ", disconnect from RcvePort " + rp + " count " + count + " rp.messageCount " + rp.messageCount);
+	if (ibis.ipl.impl.messagePassing.Ibis.myIbis.DEBUG) {
+	    System.err.println(Thread.currentThread() + "Receive a disconnect call from SendPort " + sp + ", disconnect from RcvePort " + rp + " count " + count + " sp.messageCount " + sp.messageCount);
+	}
 	if (rp != sp.receivePort) {
 	    System.err.println("Try to disconnect from a receive port we're not connected to...");
 	    Thread.dumpStack();

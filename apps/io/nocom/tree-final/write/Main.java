@@ -12,7 +12,7 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = 16383; // 1023;
+	public static final int LEN   = 1023;
 	public static final int COUNT = 100;
 	public static final int TESTS = 10;
 
@@ -39,6 +39,7 @@ public class Main {
 			temp = new DITree(LEN);
 			
 			System.err.println("Writing tree of " + LEN + " DITree objects");
+			// System.err.println("Writing tree " + temp);
 
 			for (int j=0;j<TESTS;j++) { 
 
@@ -74,6 +75,9 @@ public class Main {
 
 			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
 			System.out.println("" + round(best_rtp) + " " + round(best_ktp));
+
+			mout.statistics();
+
 		} catch (Exception e) {
 			System.err.println("Main got exception " + e);
 			e.printStackTrace();

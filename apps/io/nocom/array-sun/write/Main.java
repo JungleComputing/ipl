@@ -14,8 +14,8 @@ public class Main {
 
 	public static final boolean DEBUG = false;
 	public static final int LEN   = 100*1024;
-	public static final int COUNT = 1000;
-	public static final int TESTS = 10;
+	public static final int COUNT = 100;
+	public static final int TESTS = 100;
 
 
 	public static double round(double val) { 		
@@ -35,7 +35,7 @@ public class Main {
 			NullOutputStream naos = new NullOutputStream();
 			ObjectOutputStream mout = new ObjectOutputStream(naos);
 							
-			System.out.println("Writing int[" + (LEN/4) + "]");
+			System.out.print("Writing int[" + (LEN/4) + "]\t");
 
 			int [] temp1 = new int[(LEN/4)];
 
@@ -57,7 +57,7 @@ public class Main {
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Write took " + time + " ms");
+				// System.out.println("Write took " + time + " ms");
 //				System.out.println("Payload bytes written " + kb + " throughput = " + ktp + " MBytes/s");
 //				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
 
@@ -68,13 +68,13 @@ public class Main {
 			} 
 
 //			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("int [] : " + round(best_ktp));
+			System.out.println("" + round(best_ktp));
 			temp1 = null;
 			best_time = 1000000;
 			
 			/*********************/
 
-			System.out.println("Writing byte[" + LEN + "]");
+			System.out.print("Writing byte[" + LEN + "]\t");
 
 			byte [] temp2 = new byte[LEN];
 
@@ -96,7 +96,7 @@ public class Main {
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Write took " + time + " ms");
+				// System.out.println("Write took " + time + " ms");
 //				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
 //				System.out.println("Payload bytes written " + kb + " throughput = " + ktp + " MBytes/s");
 //				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
@@ -108,13 +108,13 @@ public class Main {
 			} 
 
 //			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("byte [] : " + round(best_ktp));
+			System.out.println("" + round(best_ktp));
 			temp2 = null;
 			best_time = 1000000;
 
 			/***********************************/
 
-			System.out.println("Writing double[" + (LEN/8) + "]");
+			System.out.print("Writing double[" + (LEN/8) + "]\t");
 
 			double [] temp3 = new double[LEN/8];
 
@@ -136,7 +136,7 @@ public class Main {
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Write took " + time + " ms");
+				// System.out.println("Write took " + time + " ms");
 //				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
 //				System.out.println("Payload bytes written " + kb + " throughput = " + ktp + " MBytes/s");
 //				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
@@ -148,7 +148,7 @@ public class Main {
 			} 
 
 //			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("double [] : " + round(best_ktp));
+			System.out.println("" + round(best_ktp));
 
 
 		} catch (Exception e) {

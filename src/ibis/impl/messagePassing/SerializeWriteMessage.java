@@ -63,7 +63,6 @@ class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
 
     public void finish() throws IbisIOException {
-// manta.runtime.RuntimeSystem.DebugMe(1, out);
 	out.finish();
 
 	try {

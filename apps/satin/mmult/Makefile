@@ -7,6 +7,11 @@ APP_OPTIONS = 5 0 128
 #for a matrix of 1024x1024
 #APP_OPTIONS = 4 0 64
 
+SRC	=
+SRC	+= Leaf.java
+SRC	+= Matrix.java
+SRC	+= MmultInterface.java
+
 MAIN = Mmult.java
 OUT= mmult
 

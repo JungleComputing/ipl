@@ -11,35 +11,45 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = 1024*1024;
+	public static final int LEN   = 100*1024;
 	public static final int COUNT = 100;
-	public static final int TESTS = 10;
-		
-	public static double round(double val) { 		
+	public static final int TESTS = 100;
+
+	public static final boolean DO_REWRITE_TEST = false;
+
+	public static final boolean doByte	= true;
+	public static final boolean doInt	= true;
+	public static final boolean doLong	= false;
+	public static final boolean doDouble	= true;
+
+	public static double round(double val) {
 		return (Math.ceil(val*100.0)/100.0);
-	} 
+	}
 
 	public static void main(String args[]) {
-		
+
 		try {
-			long start, end;
-			int bytes;
-		
-			double best_ktp = 0.0;
-			long best_time = 1000000;
+		    long start, end;
+		    int bytes;
+		    long m_start, m_end;
 
-			// System.out.println("Main starting");
-			
-			StoreBuffer buf = new StoreBuffer();
-			StoreArrayOutputStream out = new StoreArrayOutputStream(buf);
-			StoreArrayInputStream in = new StoreArrayInputStream(buf);
+		    double best_ktp = 0.0;
+		    long best_time;
 
-			MantaOutputStream mout = new MantaOutputStream(out);
-			MantaInputStream min = new MantaInputStream(in);
-				
+		    // System.out.println("Main starting");
+
+		    StoreBuffer buf = new StoreBuffer();
+		    StoreArrayOutputStream out = new StoreArrayOutputStream(buf);
+		    StoreArrayInputStream in = new StoreArrayInputStream(buf);
+
+		    MantaOutputStream mout = new MantaOutputStream(out);
+		    MantaInputStream min = new MantaInputStream(in);
+
+		    if (doByte) {
+			best_time = 1000000;
 			// Create array
 			byte [] temp = new byte[LEN];
-			
+
 			// System.out.println("Writing byte[" + LEN + "]");
 
 			mout.writeObject(temp);
@@ -47,7 +57,7 @@ public class Main {
 			mout.reset();
 
 //			System.out.println("Wrote " + out.getAndReset() + " bytes");
-			
+
 			System.out.print("Read +new -cnv byte[" + (LEN) + "]\t");
 			min.readObject();
 			in.reset();
@@ -62,45 +72,49 @@ public class Main {
 			bytes = out.getAndReset();
 
 //			System.out.println("Wrote " + bytes + " bytes");
-			
+
 //			System.out.println("Starting test");
 
-			for (int j=0;j<TESTS;j++) { 
+			m_start = System.currentTimeMillis();
+			for (int j=0;j<TESTS;j++) {
 
 				start = System.currentTimeMillis();
-				
+
 				for (int i=0;i<COUNT;i++) {
 					min.readObject();
 					in.reset();
 				}
-				
+
 				end = System.currentTimeMillis();
-				
+
 				long time = end-start;
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
-				
+
 //				System.out.println();
 //				System.out.println("Read took " + time + " ms");
 //				System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
 
-				if (time < best_time) { 
+				if (time < best_time) {
 					best_time = time;
 					best_ktp = ktp;
 				}
-			} 
+			}
+			m_end = System.currentTimeMillis();
 
-			System.out.println("" + round(best_ktp));
+			System.out.println("" + round(best_ktp) + " total time " + (m_end - m_start) / 1000.0);
 			temp = null;
 			in.reset();
 			buf.clear();
+		    }
+
+		    if (doInt) {
 			best_time= 1000000;
 			/*********************************/
 
-				
 			// Create array
 			int [] temp1 = new int[LEN/4];
-			
+
 			// System.out.println("Writing int[" + (LEN/4) + "]");
 
 			mout.writeObject(temp1);
@@ -108,7 +122,7 @@ public class Main {
 			mout.reset();
 
 //			System.out.println("Wrote " + out.getAndReset() + " bytes");
-			
+
 			System.out.print("Read +new -cnv int[" + (LEN/4) + "]\t");
 			min.readObject();
 			in.reset();
@@ -123,52 +137,55 @@ public class Main {
 			bytes = out.getAndReset();
 
 //			System.out.println("Wrote " + bytes + " bytes");
-			
+
 //			System.out.println("Starting test");
 
-			for (int j=0;j<TESTS;j++) { 
+			for (int j=0;j<TESTS;j++) {
 
 				start = System.currentTimeMillis();
-				
+
 				for (int i=0;i<COUNT;i++) {
 					min.readObject();
 					in.reset();
 				}
-				
+
 				end = System.currentTimeMillis();
-				
+
 				long time = end-start;
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
-				
+
 //				System.out.println();
 //				System.out.println("Read took " + time + " ms");
 //				System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
 
-				if (time < best_time) { 
+				if (time < best_time) {
 					best_time = time;
 					best_ktp = ktp;
 				}
-			} 
+			}
 
 			System.out.println("" + round(best_ktp));
 			temp1 = null;
 			in.reset();
 			buf.clear();
+		    }
+
+		    if (doLong) {
 			best_time= 1000000;
 			/*********************************/
 
 			// Create array
-			byte [] temp2 = new byte[LEN];
-			
-			System.out.println("Writing byte[" + (LEN) + "]");
+			long [] temp2 = new long[LEN / 8];
+
+			System.out.println("Writing long[" + (LEN / 8) + "]");
 
 			mout.writeObject(temp2);
 			mout.flush();
 			mout.reset();
 
 //			System.out.println("Wrote " + out.getAndReset() + " bytes");
-			
+
 			System.out.print("Read +new -cnv long[" + (LEN/8) + "]\t");
 			min.readObject();
 			in.reset();
@@ -183,44 +200,47 @@ public class Main {
 			bytes = out.getAndReset();
 
 //			System.out.println("Wrote " + bytes + " bytes");
-			
+
 //			System.out.println("Starting test");
 
-			for (int j=0;j<TESTS;j++) { 
+			for (int j=0;j<TESTS;j++) {
 
 				start = System.currentTimeMillis();
-				
+
 				for (int i=0;i<COUNT;i++) {
 					min.readObject();
 					in.reset();
 				}
-				
+
 				end = System.currentTimeMillis();
-				
+
 				long time = end-start;
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
-				
+
 //				System.out.println();
 //				System.out.println("Read took " + time + " ms");
 //				System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
 
-				if (time < best_time) { 
+				if (time < best_time) {
 					best_time = time;
 					best_ktp = ktp;
 				}
-			} 
+			}
 
 			System.out.println("" + round(best_ktp));
 			temp2 = null;
 			in.reset();
 			buf.clear();
+		    }
+
+		    if (doDouble) {
 			best_time= 1000000;
 			/*********************************/
 
 			// Create array
 			double [] temp3 = new double[LEN/8];
-			
+
 			// System.out.println("Writing double[" + (LEN/8) + "]");
 
 			mout.writeObject(temp3);
@@ -228,7 +248,7 @@ public class Main {
 			mout.reset();
 
 //			System.out.println("Wrote " + out.getAndReset() + " bytes");
-			
+
 			System.out.print("Read +new -cnv double[" + (LEN/8) + "]\t");
 			min.readObject();
 			in.reset();
@@ -243,36 +263,37 @@ public class Main {
 			bytes = out.getAndReset();
 
 //			System.out.println("Wrote " + bytes + " bytes");
-			
+
 //			System.out.println("Starting test");
 
-			for (int j=0;j<TESTS;j++) { 
+			for (int j=0;j<TESTS;j++) {
 
 				start = System.currentTimeMillis();
-				
+
 				for (int i=0;i<COUNT;i++) {
 					min.readObject();
 					in.reset();
 				}
-				
+
 				end = System.currentTimeMillis();
-				
+
 				long time = end-start;
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
-				
+
 //				System.out.println();
 //				System.out.println("Read took " + time + " ms");
 //				System.out.println("Bytes read " + kb + " throughput = " + ktp + " MBytes/s");
 
-				if (time < best_time) { 
+				if (time < best_time) {
 					best_time = time;
 					best_ktp = ktp;
 				}
-			} 
+			}
 
 			System.out.println("" + round(best_ktp));
 			temp3 = null;
+		    }
 
 
 		} catch (Exception e) {

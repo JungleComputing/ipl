@@ -19,8 +19,11 @@ ifeq ($(PROFILE), 1)
 OUT	:= $(OUT).gprof
 endif
 
+MANTACFLAGS	+= -Si
 MANTACFLAGS	+= -S
 MANTACFLAGS	+= -v
+MANTACFLAGS	+= -inline
+MANTACFLAGS	+= -show_inlining
 # MANTACFLAGS	+= -no-opt-comm
 
 java: $(CLASS_FILES) $(MAIN_CLASS)

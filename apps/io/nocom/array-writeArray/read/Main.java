@@ -12,8 +12,8 @@ public class Main {
 
 	public static final boolean DEBUG = false;
 	public static final int LEN   = 100*1024;
-	public static final int COUNT = 100;
-	public static final int TESTS = 10;
+	public static final int COUNT = 100;	// For 16K need 1000
+	public static final int TESTS = 100;
 		
 	public static double round(double val) { 		
 		return (Math.ceil(val*100.0)/100.0);

@@ -10,6 +10,9 @@ class ReceivePort
 
     private static final boolean DEBUG = false;
 
+    private static int livingPorts = 0;
+    private static Syncer portCounter = new Syncer();
+
     ibis.ipl.impl.messagePassing.PortType type;
     ReceivePortIdentifier ident;
     int connectCount = 0;
@@ -64,6 +67,10 @@ class ReceivePort
 	this.connectUpcall = connectUpcall;
 
 	ident = new ReceivePortIdentifier(name, type.name());
+
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	    livingPorts++;
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
     private boolean firstCall = true;
@@ -493,7 +500,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	    messageArrived.cv_bcast();
 
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		System.out.println(name + ": Enter shutdown.waitPolling");
+		System.out.println(name + ": Enter shutdown.waitPolling; connections = " + connectionToString());
 	    }
 	    try {
 		while (connections.size() > 0) {
@@ -550,6 +557,21 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.out.println(name + ":done receiveport.free");
 	}
+
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	    livingPorts--;
+	    if (livingPorts == 0) {
+		portCounter.s_signal(true);
+	    }
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+    }
+
+    private String connectionToString() {
+	String t = "Connections =";
+	for (int i = 0; i < connections.size(); i++) {
+	    t = t + " " + (ShadowSendPort)connections.elementAt(i);
+	}
+	return t;
     }
 
     public void run() {
@@ -581,12 +603,12 @@ System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
 		     * poll for an expected reply very expensive.
 		     * Nowadays, pass 'false' for the preempt flag. */
 		    handlingReceive++;
-// System.err.println("*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
+System.err.println("*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, false);
 		    if (DEBUG) {
 			upcall_poll++;
 		    }
-// System.err.println("*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);
+System.err.println("*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);
 
 		    while (! allowUpcalls) {
 			enable.cv_wait();
@@ -610,8 +632,15 @@ System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
 	    }
 
 	} catch (IbisIOException e) {
-	    System.err.println(e);
-	    e.printStackTrace();
+	    if (e == null) {
+		System.err.println("A NULL Exception?????");
+		System.err.println("My stack: ");
+		Thread.dumpStack();
+		manta.runtime.RuntimeSystem.DebugMe(e, e);
+	    } else {
+		System.err.println(e);
+		e.printStackTrace();
+	    }
 
 	    // System.err.println("My stack: ");
 	    // Thread.dumpStack();
@@ -621,6 +650,17 @@ System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
 	if (DEBUG) {
 	    System.err.println("Receive port " + name +
 			       " upcall thread polls " + upcall_poll);
+	}
+    }
+
+    static void end() {
+	// assert(ibis.ipl.impl.messagePassing.Ibis.myIbis.locked();
+	while (livingPorts > 0) {
+	    try {
+		portCounter.s_wait(0);
+	    } catch (ibis.ipl.IbisIOException e) {
+		break;
+	    }
 	}
     }
 

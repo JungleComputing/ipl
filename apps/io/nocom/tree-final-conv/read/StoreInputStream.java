@@ -17,20 +17,20 @@ public class StoreInputStream extends InputStream {
 		this.buf = buf;
 	} 
 
-	public void reset() { 
+	public final void reset() { 
 		byte_count = 0;
 	} 
 	
-	public int read() { 
+	public final int read() { 
 		return buf.byte_store[byte_count++];
 	}
 
-	public int read(byte[] b) { 
+	public final int read(byte[] b) { 
 		return read(b, 0, b.length);
 	}
 
 		
-	public int read(byte[] b, int off, int len) { 
+	public final int read(byte[] b, int off, int len) { 
 		int left = buf.byte_store.length-byte_count;
 
 		if (len < left) { 
@@ -44,7 +44,7 @@ public class StoreInputStream extends InputStream {
 		} 
 	} 
 
-	public int available() throws IOException { 
+	public final int available() throws IOException { 
 		return 0;
 	}
 }

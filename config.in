@@ -31,7 +31,7 @@ LFC_ROOT	= @LFC_ROOT@
 
 JAVAC_COMMAND   = $(JAVAC) $(JAVACFLAGS) $(JAVAOPTFLAGS)
 JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
-JAVACLASSPATH	= $(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT):$(IBIS_ROOT)/ibis:.:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
+JAVACLASSPATH	= .:$(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT):$(IBIS_ROOT)/ibis:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
 JAVABOOTCLASSPATH = $(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis
 JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/ibis/lib:$(JPATH)/jre/bin:$(JPATH)/jre/lib/i386
 JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH)
@@ -41,6 +41,9 @@ export CLASSPATH
 
 LD_LIBRARY_PATH	= $(IBIS_ROOT)/ibis/ipl/impl/messagePassing
 export LD_LIBRARY_PATH
+
+LD_ASSUME_KERNEL	= 2.2.5
+export LD_ASSUME_KERNEL
 
 IBERTY	        = $(MYRINET_ROOT)/libiberty.a
 BFD		= $(MYRINET_ROOT)/libbfd.a
@@ -55,6 +58,7 @@ LFC	        = $(LFC_ROOT)/lib/debug/liblfc.a
 PANDA_LIB	= $(PANDA)/panda4.0/lib/i386_linux/$(PANDA_NETWORK)/no_threads/libpanda.a
 endif
 GM		= $(GM_ROOT)/lib/libgm.a
+DASLIB		= /usr/local/VU/daslib
 
 GROUPC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.group.Main
 
@@ -105,7 +109,7 @@ LASM_CACHE	:= $(IBIS_ROOT)/ibis/LASM_IBIS_CACHE
 
 MANTA	= @MANTA_ROOT@
 export MANTA
-MANTACLASSPATH	= $(IBIS_ROOT):$(IBIS_ROOT)/ibis:$(MANTA)/javalibs:.
+MANTACLASSPATH	= .:$(IBIS_ROOT):$(IBIS_ROOT)/ibis:$(MANTA)/javalibs
 
 MANTACFLAGS	+= -classpath $(MANTACLASSPATH)
 MANTACFLAGS	+= -g
@@ -144,6 +148,17 @@ PKG_O_DOLLAR	:= $(subst $$,\$$,$(PKG_O_FILES))
 
 MANTA_LIB	= $(IBIS_ROOT)/ibis/ipl/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
+
+MANTA_LDLIBS	= $(MANTA_LIB)
+ifeq (MPI, $(MP_MODE))
+MPI		= /usr/local/mpich/mpich-gm
+MANTA_LDLIBS	+= $(IBIS_ROOT)/ibis/ipl/impl/messagePassing/libibis_mp_mpi.a
+MANTA_LDLIBS	+= -L$(MPI)/lib -lmpich
+MANTA_LDLIBS	+= $(GM)
+MANTACFLAGS	:= $(filter-out -myrinet, $(MANTACFLAGS))
+else
+MANTA_LDLIBS	+= $(IBIS_ROOT)/ibis/ipl/impl/messagePassing/libibis_mp_panda.a
+endif
 
 #JACKAL_PATCHERS	=
 #JACKAL_PATCHERS	+= $(SRC:%.java=diff_patch_%.c)
@@ -234,19 +249,19 @@ manta:	manta_local
 .PHONY:	manta_local
 manta_local:
 	@echo Make class files and serializers
-	$(MAKE) $(MFLAGS) class_files
+	$(MAKE) $(MFLAGS) BUILD_MANTA=1 class_files
 ifneq (, $(strip $(C_SRC)))
 	@echo Now make manta:.h files for native
-	$(MAKE) $(MFLAGS) h_files
+	$(MAKE) $(MFLAGS) BUILD_MANTA=1 h_files
 endif
 ifeq (,$(PACKAGE))
 ifneq (, $(OUT))
 	@echo Now make manta:out $(OUT)
-	$(MAKE) $(MFLAGS) $(OUT)
+	$(MAKE) $(MFLAGS) BUILD_MANTA=1 $(OUT)
 endif
 else
 	@echo Now make manta:manta_lib
-	$(MAKE) $(MFLAGS) manta_lib
+	$(MAKE) $(MFLAGS) BUILD_MANTA=1 manta_lib
 endif
 
 
@@ -268,11 +283,11 @@ link:
 		-o $(OUT) \
 		$(MAIN:%.java=%.o) \
 		$(O_FILES) \
-		$(MANTA_LIB)
+		$(MANTA_LDLIBS)
 
 $(OUT): $(MAIN_CLASS) $(O_FILES) $(MANTA_LIB)
 	echo O_FILES = $(O_FILES)
-	$(MANTAC_COMMAND) -o $@ $(MAIN_CLASS) $(O_FILES) $(MANTA_LIB)
+	$(MANTAC_COMMAND) -o $@ $(MAIN_CLASS) $(O_FILES) $(MANTA_LDLIBS)
 
 
 .PHONY:	run

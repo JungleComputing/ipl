@@ -14,6 +14,11 @@ final class StoreBuffer {
 	}
 
 	public void write(byte[] a, int off, int len) { 
+// System.err.println("Write into byte_store len " + len);
+// for (int i = 0; i < len; i++) {
+//     System.err.print(Integer.toHexString(a[i] & 0xff) + " ");
+// }
+// System.err.println();
 		if (byte_store == null) { 
 			byte_store = new byte[len];
 			System.arraycopy(a, off, byte_store, 0, len);
@@ -23,6 +28,11 @@ final class StoreBuffer {
 			System.arraycopy(a, off, temp, byte_store.length, len);
 			byte_store = temp;
 		} 
+// System.err.println("Stored into byte_store[" + (byte_store.length - len) + "] len " + len);
+// for (int i = 0; i < len; i++) {
+//     System.err.print(Integer.toHexString(byte_store[byte_store.length - len + i] & 0xff) + " ");
+// }
+// System.err.println();
 	}
 
 	public void clear() { 

@@ -4,8 +4,6 @@ package ibis.ipl.impl.messagePassing;
 // Make this final, make inlining possible
 final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Serializable
 {
-
-    String name;
     int cpu;
 
     IbisIdentifier(String name, int cpu) {
@@ -38,7 +36,7 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Se
     }
 
     public String toString() {
-	return ("(IbisIdent: name = " + name + ")");
+	return ("(IbisIdent: name = \"" + name + "\")");
     }
 
     public String name() {

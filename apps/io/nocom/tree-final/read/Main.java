@@ -84,9 +84,9 @@ public class Main {
 				double rtp = ((1000.0*rb)/(1024*1024))/time;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
-				System.out.println("Payload bytes read " + kb + " throughput = " + round(ktp) + " MBytes/s");
-				System.out.println("Real bytes read " + rb + " throughput = " + round(rtp) + " MBytes/s");
+				// System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
+				// System.out.println("Payload bytes read " + kb + " throughput = " + round(ktp) + " MBytes/s");
+				// System.out.println("Real bytes read " + rb + " throughput = " + round(rtp) + " MBytes/s");
 
 				if (time < best_time) { 
 					best_time = time;

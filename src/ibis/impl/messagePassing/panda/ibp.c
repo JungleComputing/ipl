@@ -1,5 +1,5 @@
 /*
- * Code shared by natives for package ibis.ipl.impl.messagePassing.panda
+ * Code for Panda natives for package ibis.ipl.impl.messagePassing
  */
 
 #include <string.h>
@@ -15,25 +15,61 @@
 #include <pan_time.h>
 #include <pan_util.h>
 
-#include "../ibmp.h"
+#include "../ibis_ipl_impl_messagePassing_Ibis.h"
 
-#include "ibis_ipl_impl_messagePassing_panda_PandaIbis.h"
+#include "../ibmp.h"
 
 #include "ibp.h"
 #include "ibp_mp.h"
-#include "ibp_receive_port_ns_bind.h"
-#include "ibp_receive_port_ns_lookup.h"
-#include "ibp_receive_port_ns_unbind.h"
-#include "ibp_connect.h"
-#include "ibp_disconnect.h"
-#include "ibp_byte_input_stream.h"
-#include "ibp_byte_output_stream.h"
-#include "ibp_poll.h"
-#include "ibp_join.h"
+
+#include "ibp_env.h"
+
+#ifndef NDEBUG
+pan_key_p		ibp_env_key;
+#endif
+
+JNIEnv  *ibp_JNIEnv = NULL;
+
+
+void
+ibp_msg_clear(JNIEnv *env, ibp_msg_p msg)
+{
+    ibp_set_JNIEnv(env);
+    pan_msg_clear((pan_msg_p)msg);
+    ibp_unset_JNIEnv();
+}
+
+
+int
+ibp_msg_consume_left(ibp_msg_p msg)
+{
+    return pan_msg_consume_left((pan_msg_p)msg);
+}
+
+
+int
+ibp_msg_sender(ibp_msg_p msg)
+{
+    return pan_msg_sender((pan_msg_p)msg);
+}
+
+
+void *
+ibp_proto_create(unsigned int size)
+{
+    return pan_proto_create(size);
+}
+
+
+void
+ibp_proto_clear(void *proto)
+{
+    pan_proto_clear(proto);
+}
 
 
 jlong
-Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_currentTime(JNIEnv *env, jclass c)
+Java_ibis_ipl_impl_messagePassing_Ibis_currentTime(JNIEnv *env, jclass c)
 {
     union lt {
 	struct pan_time t;
@@ -47,7 +83,7 @@ Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_currentTime(JNIEnv *env, jclas
 
 
 jdouble
-Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_t2d(JNIEnv *env, jclass c, jlong l)
+Java_ibis_ipl_impl_messagePassing_Ibis_t2d(JNIEnv *env, jclass c, jlong l)
 {
     union lt {
 	struct pan_time t;
@@ -55,24 +91,25 @@ Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_t2d(JNIEnv *env, jclass c, jlo
     } lt;
 
     lt.l = l;
-    return (jdouble)pan_time_t2d(&lt.t);
+   return (jdouble)pan_time_t2d(&lt.t);
 }
 
 
 int
-ibp_consume(JNIEnv *env, pan_msg_p msg, void *buf, int len)
+ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
 {
     int		rd;
 
 #ifndef NDEBUG
-    if (! pan_msg_sane(msg)) {
-	fprintf(stderr, "This seems an insane msg: %p\n", msg);
-	ibmp_dumpStack(env);
+    extern int pan_msg_sane(pan_msg_p);
+
+    if (! pan_msg_sane((pan_msg_p)msg)) {
+	ibmp_error("This seems an insane msg: %p\n", msg);
     }
 #endif
 
 #ifndef NON_BLOCKING_CONSUME
-    rd = pan_msg_consume_left(msg);
+    rd = pan_msg_consume_left((pan_msg_p)msg);
     if (rd < len) {
 	len = rd;
     }
@@ -81,40 +118,40 @@ ibp_consume(JNIEnv *env, pan_msg_p msg, void *buf, int len)
     }
 #endif
 
-    ibmp_set_JNIEnv(env);
+    ibp_set_JNIEnv(env);
 
     rd = 0;
     while (1) {
 #ifndef NON_BLOCKING_CONSUME
-	rd += pan_msg_consume(msg, (char *)buf + rd, (int)len);
+	rd += pan_msg_consume((pan_msg_p)msg, (char *)buf + rd, (int)len);
 #else
-	rd += pan_msg_consume_non_blocking(msg, (char *)buf + rd, (int)len);
+	rd += pan_msg_consume_non_blocking((pan_msg_p)msg, (char *)buf + rd, (int)len);
 #endif
 	if (rd == len) {
 	    break;
 	}
-	if (pan_msg_consume_left(msg) == 0) {
+	if (pan_msg_consume_left((pan_msg_p)msg) == 0) {
 	    if (rd == 0) {
 		rd = -1;
 	    }
 	    break;
 	}
 
-	// ibmp_unset_JNIEnv();
+	// ibp_unset_JNIEnv();
 	ibmp_unlock(env);
 	ibmp_thread_yield(env);
 	ibmp_lock(env);
-	// ibmp_set_JNIEnv(env);
+	// ibp_set_JNIEnv(env);
     }
 
-    ibmp_unset_JNIEnv();
+    ibp_unset_JNIEnv();
 
     return rd;
 }
 
 
 jstring
-ibp_string_consume(JNIEnv *env, pan_msg_p msg, int len)
+ibp_string_consume(JNIEnv *env, ibp_msg_p msg, int len)
 {
     char	buf[len + 1];
 
@@ -163,10 +200,10 @@ hostname_equal(char *h0, char *h1)
 
 
 static void
-ibp_pan_init(void)
+ibp_pan_init(int *java_argc, char **java_argv)
 {
     int         argc;
-    char       *argv[4];
+    char       *argv[*java_argc + 4];
     char        hostname[256];
     char        myproc[32];
     char        nprocs[32];
@@ -183,8 +220,7 @@ ibp_pan_init(void)
 
     orig_hosts = getenv("HOSTS");
     if (orig_hosts == NULL) {
-	fprintf(stderr, "HOSTS env var does not exist: use prun\n");
-	exit(-6);
+	ibmp_error("HOSTS env var does not exist: use prun\n");
     }
     hosts = strdup(orig_hosts);
 
@@ -201,8 +237,7 @@ ibp_pan_init(void)
     for (i = 0; i < fs_nhosts; i++) {
 	h = gethostbyname(fs_host[i]);
 	if (h == NULL) {
-	    perror("gethostbyname fails");
-	    exit(33);
+	    ibmp_error("gethostbyname fails");
 	}
 	if (h->h_length != sizeof(fs_host_inet)) {
 	    pan_panic("Inet address won't fit");
@@ -212,14 +247,16 @@ ibp_pan_init(void)
 
     /* Try to derive our identity from the environment RFHH */
 
-    argc = 3;
     argv[0] = "PandaIbis_executable";
     argv[1] = myproc;
     argv[2] = nprocs;
-    argv[3] = NULL;
+    for (i = 0; i < *java_argc + 1; i++) {
+	argv[i + 3] = java_argv[i];
+    }
+    argc = *java_argc + 3;
 
     if (gethostname(hostname, 256) == -1) {
-	exit(-5);
+	ibmp_error("Cannot get hostname");
     }
 
     env_host_id = getenv("PRUN_HOST_INDEX");
@@ -232,18 +269,15 @@ ibp_pan_init(void)
 	    }
 	}
 	if (i == fs_nhosts) {
-	    fprintf(stderr, "Host name %s does not occur in HOSTS env var %s\n",
-		    hostname, orig_hosts);
-	    exit(-7);
+	    ibmp_error("Host name %s does not occur in HOSTS env var %s\n",
+			hostname, orig_hosts);
 	}
     } else {
 	if (sscanf(env_host_id, "%d", &me) != 1) {
-	    fprintf(stderr, "Host id is not a number: %s\n", env_host_id);
-	    exit(-7);
+	    ibmp_error("Host id is not a number: %s\n", env_host_id);
 	}
 	if (me < 0 || me >= fs_nhosts) {
-	    fprintf(stderr, "Host id is out of range: %d\n", me);
-	    exit(-7);
+	    ibmp_error("Host id is out of range: %d\n", me);
 	}
     }
     sprintf(myproc, "%d", me);
@@ -252,71 +286,33 @@ ibp_pan_init(void)
     free(fs_host_inet);
 
     pan_init(&argc, argv);
+
+    for (i = 3; i < argc; i++) {
+	java_argv[i - 3] = argv[i];
+    }
+    *java_argc = argc - 3;
 }
 
 
 void
-Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_ibmp_1init(JNIEnv *env, jobject this)
+ibp_init(JNIEnv *env, int *argc, char *argv[])
 {
-    jfieldID	fld_PandaIbis_nrCpus;
-    jfieldID	fld_PandaIbis_myCpu;
+    ibmp_check_ibis_name(env, "ibis.ipl.impl.messagePassing.PandaIbis");
 
-    ibmp_init(env, this);
-    IBP_VPRINTF(2000, env, ("here...\n"));
-fprintf(stderr, "%s.%d: ibmp_cls_Ibis = %p\n", __FILE__, __LINE__, ibmp_cls_Ibis);
-
-    ibp_mp_init(env);
+    ibp_pan_init(argc, argv);
     IBP_VPRINTF(2000, env, ("here...\n"));
 
-    fld_PandaIbis_nrCpus = (*env)->GetFieldID(env, ibmp_cls_Ibis, "nrCpus", "I");
-    if (fld_PandaIbis_nrCpus == NULL) {
-	fprintf(stderr, "%s.%d Cannot find field nrCpus:I\n", __FILE__, __LINE__);
-	abort();
-    }
-    IBP_VPRINTF(2000, env, ("here...\n"));
-    fld_PandaIbis_myCpu  = (*env)->GetFieldID(env, ibmp_cls_Ibis, "myCpu", "I");
-    if (fld_PandaIbis_myCpu == NULL) {
-	fprintf(stderr, "%s.%d Cannot find field myCpu:I\n", __FILE__, __LINE__);
-	abort();
-    }
-    IBP_VPRINTF(2000, env, ("here...\n"));
+    ibmp_nr = pan_nr_processes();
+    ibmp_me = pan_my_pid();
 
-    ibp_pan_init();
-    IBP_VPRINTF(2000, env, ("here...\n"));
-
-    (*env)->SetIntField(env, ibmp_obj_Ibis_ibis, fld_PandaIbis_nrCpus,
-		(jint)pan_nr_processes());
-    IBP_VPRINTF(2000, env, ("here...\n"));
-    (*env)->SetIntField(env, ibmp_obj_Ibis_ibis, fld_PandaIbis_myCpu,
-		(jint)pan_my_pid());
-    IBP_VPRINTF(2000, env, ("here...\n"));
-
-    ibp_join_init(env);
-    IBP_VPRINTF(2000, env, ("here...\n"));
-
-    ibp_receive_port_ns_bind_init(env);
-    IBP_VPRINTF(2000, env, ("here...\n"));
-    ibp_receive_port_ns_lookup_init(env);
-    IBP_VPRINTF(2000, env, ("here...\n"));
-    ibp_receive_port_ns_unbind_init(env);
-    IBP_VPRINTF(2000, env, ("here...\n"));
-
-    ibp_connect_init(env);
-    IBP_VPRINTF(2000, env, ("here...\n"));
-    ibp_disconnect_init(env);
-    IBP_VPRINTF(2000, env, ("here...\n"));
-    ibp_byte_output_stream_init(env);
-    IBP_VPRINTF(2000, env, ("here...\n"));
-    ibp_byte_input_stream_init(env);
-    IBP_VPRINTF(2000, env, ("here...\n"));
-
-    ibp_poll_init(env);
-    IBP_VPRINTF(2000, env, ("here...\n"));
+#ifndef NDEBUG
+    ibp_env_key = pan_key_create();
+#endif
 }
 
 
 void
-Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_ibmp_1start(JNIEnv *env, jobject this)
+ibp_start(JNIEnv *env)
 {
     pan_start();
     IBP_VPRINTF(10, env, ("%s.%d: ibp_start\n", __FILE__, __LINE__));
@@ -324,33 +320,8 @@ Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_ibmp_1start(JNIEnv *env, jobje
 
 
 void
-Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_ibmp_1end(JNIEnv *env, jobject this)
+ibp_end(JNIEnv *env)
 {
     IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
-
-    ibp_mp_end(env);
-    IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
-    ibp_poll_end(env);
-
-    IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
-    ibp_byte_input_stream_end(env);
-    IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
-    ibp_byte_output_stream_end(env);
-    IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
-    ibp_disconnect_end(env);
-    IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
-    ibp_connect_end(env);
-    IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
-
-    ibp_receive_port_ns_bind_end(env);
-    ibp_receive_port_ns_lookup_end(env);
-    ibp_receive_port_ns_unbind_end(env);
-    IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
-
-    ibp_join_end(env);
-
-    ibmp_end(env, this);
-
     pan_end();
-    IBP_VPRINTF(10, env, ("%s.%d ibp_end()\n", __FILE__, __LINE__));
 }

@@ -11,7 +11,7 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = (16*1024)-1;
+	public static final int LEN   = 1 * 1024 - 1; // (16*1024)-1;
 	public static final int COUNT = 100;
 	public static final int TESTS = 10;
 		
@@ -87,9 +87,9 @@ public class Main {
 				double rtp = ((1000.0*rb)/(1024*1024))/time;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
-				System.out.println("Karmi bytes read " + kb + " throughput = " + ktp + " MBytes/s");
-				System.out.println("Real bytes read " + rb + " throughput = " + rtp + " MBytes/s");
+				// System.out.println("Read took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
+				// System.out.println("Karmi bytes read " + kb + " throughput = " + ktp + " MBytes/s");
+				// System.out.println("Real bytes read " + rb + " throughput = " + rtp + " MBytes/s");
 
 				if (time < best_time) { 
 					best_time = time;

@@ -20,6 +20,8 @@ endif
 MANTACFLAGS	+= -S
 MANTACFLAGS	+= -v
 # MANTACFLAGS	+= -no-opt-comm
+MANTACFLAGS	+= -inline
+MANTACFLAGS	+= -show_inlining
 
 java: $(CLASS_FILES) $(MAIN_CLASS)
 	java ibis.frontend.io.IOGenerator DITree.class

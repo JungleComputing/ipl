@@ -22,6 +22,7 @@ public class StoreInputStream extends InputStream {
 	} 
 	
 	public int read() { 
+// System.err.println("Read one byte " + Integer.toHexString(buf.byte_store[byte_count]));
 		return buf.byte_store[byte_count++];
 	}
 
@@ -33,6 +34,10 @@ public class StoreInputStream extends InputStream {
 	public int read(byte[] b, int off, int len) { 
 		int left = buf.byte_store.length-byte_count;
 
+// System.err.println("Read byte array[" + len + "] present " + left);
+// for (int i = 0; i < (len < left ? len : left); i++) {
+//     System.err.print(Integer.toHexString(buf.byte_store[byte_count + i] & 0xff) + " ");
+// }
 		if (len < left) { 
 			System.arraycopy(buf.byte_store, byte_count, b, off, len);
 			byte_count += len;

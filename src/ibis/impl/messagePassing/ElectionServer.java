@@ -15,7 +15,7 @@ class ElectionServer
     private boolean started = false;
     private boolean finished = false;
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
 
 
     public void upcall(ibis.ipl.ReadMessage m) {
@@ -149,7 +149,13 @@ class ElectionServer
 	    }
 	}
 	for (int i = 0; i < n; i++) {
+	    if (DEBUG) {
+		System.err.println("ElectionServer frees server port[" + i + "] = " + server_port[i]);
+	    }
 	    server_port[i].free();
+	}
+	if (DEBUG) {
+	    System.err.println("ElectionServer has freed all server ports");
 	}
     }
 

@@ -23,6 +23,12 @@ public final class DITree implements Serializable {
 			this.right = new DITree(size - leftSize - 1);
 		}
 	}
+
+	public String toString() {
+	    return "[" + (left == null ? "/" : left.toString()) +
+		   "," + (right == null ? "/" : right.toString()) + "]";
+	}
+
 }
 
 

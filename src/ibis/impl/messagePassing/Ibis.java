@@ -9,13 +9,13 @@ import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.StaticProperties;
 
-public abstract class Ibis extends ibis.ipl.Ibis {
+public class Ibis extends ibis.ipl.Ibis {
 
     public static final boolean DEBUG = false;
 
     private IbisIdentifier ident;
 
-    protected Registry registry;
+    Registry registry;
 
     private int poolSize;
 
@@ -46,9 +46,9 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     int sendPort;
     int receivePort;
 
-    protected abstract void ibmp_init();
-    protected abstract void ibmp_start();
-    protected abstract void ibmp_end();
+    native String[] ibmp_init(String[] args);
+    native void ibmp_start();
+    native void ibmp_end();
 
     long tMsgPoll;
     long tSend;
@@ -66,6 +66,8 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 	}
 
 	ibis.io.Conversion.classInit();
+
+System.err.println("inputStreamMsgTags = " + inputStreamMsgTags);
     }
 
     public ibis.ipl.PortType createPortType(String name,
@@ -79,10 +81,20 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    protected abstract ReceivePortNameServer createReceivePortNameServer() throws IbisIOException;
-    protected abstract ReceivePortNameServerClient createReceivePortNameServerClient();
+    ReceivePortNameServer createReceivePortNameServer() throws IbisIOException {
+	return new ReceivePortNameServer();
+    }
 
-    protected abstract boolean getInputStreamMsg(int tags[]);
+
+    ReceivePortNameServerClient createReceivePortNameServerClient() {
+	return new ReceivePortNameServerClient();
+    }
+
+
+
+    boolean getInputStreamMsg(int tags[]) {
+	return ByteInputStream.getInputStreamMsg(tags);
+    }
 
     public StaticProperties properties() {
 	return systemProperties;
@@ -93,15 +105,15 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    protected abstract void send_join(int to, String ident_name);
-    protected abstract void send_leave(int to, String ident_name);
+    native void send_join(int to, String ident_name);
+    native void send_leave(int to, String ident_name);
 
     /* Called from native */
     void join_upcall(String ident_name, int cpu) {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("Receive join message " + ident_name + "; now world = " + world);
 	}
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// myIbis.checkLockOwned();
 //manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 	IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
 	ibisNameService.add(id);
@@ -110,7 +122,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 
     /* Called from native */
     void leave_upcall(String ident_name, int cpu) {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// myIbis.checkLockOwned();
 	IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
 	ibisNameService.remove(id);
 	world.leave(cpu, id);
@@ -147,7 +159,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 
 	System.loadLibrary("ibis_panda");
 
-	rcve_poll = createPoll();
+	rcve_poll = new Poll();
 
 	registry = new Registry();
 
@@ -155,7 +167,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 		nrCpus;
 		myCpu;
 	     */
-	ibmp_init();
+	ibmp_init(null);
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "ibp lives...");
 	    System.err.println(Thread.currentThread() + "Ibis.poll = " + rcve_poll);
@@ -180,7 +192,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 	}
 
 	// synchronized (myIbis) {
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	myIbis.lock();
 	try {
 	    if (DEBUG) {
 		System.err.println("myCpu " + myCpu + " nrCpus " + nrCpus + " world " + world);
@@ -198,7 +210,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 	    world.join(myCpu, ident);
 	// }
 	} finally {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	    myIbis.unlock();
 	}
 
 	if (DEBUG) {
@@ -209,36 +221,52 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 
     public void openWorld() {
 	// synchronized (myIbis) {
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	myIbis.lock();
 	    world.open();
 	// }
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	myIbis.unlock();
     }
 
     public void closeWorld() {
 	// synchronized (myIbis) {
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	myIbis.lock();
 	    world.close();
 	// }
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	myIbis.unlock();
     }
 
 
     Poll rcve_poll;
-
-    protected abstract Poll createPoll();
 
     final void waitPolling(PollClient client, long timeout, boolean preempt)
 	    throws IbisIOException {
 	rcve_poll.waitPolling(client, timeout, preempt);
     }
 
-    protected abstract SendPort createSendPort(PortType type) throws IbisIOException;
-    protected abstract SendPort createSendPort(PortType type, String name) throws IbisIOException;
+    SendPort createSendPort(PortType type)
+	    throws IbisIOException {
+	return createSendPort(type, null);
+    }
 
-    protected abstract long currentTime();
-    protected abstract double t2d(long t);
+    SendPort createSendPort(PortType type, String name)
+	    throws IbisIOException {
+	switch (type.serializationType) {
+        case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE:
+	    return new SendPort(type, name, new OutputConnection());
 
+	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
+	    return new SerializeSendPort(type, name, new OutputConnection());
+
+	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA:
+	    return new MantaSendPort(type, name, new OutputConnection());
+
+	default:
+	    throw new IbisIOException("No such serialization type " + type.serializationType);
+	}
+    }
+
+    native long currentTime();
+    native double t2d(long t);
 
 
     final public void lock() {
@@ -259,9 +287,11 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 
 
     public IbisIdentifier lookupIbis(String name) {
-// System.err.println("Want to look up IbisId " + name);
-	if (ibis.ipl.impl.messagePassing.Ibis.myIbis.ident.name().equals(name)) {
-	    return ibis.ipl.impl.messagePassing.Ibis.myIbis.ident;
+// System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
+// manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
+// System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
+	if (myIbis.ident.name().equals(name)) {
+	    return myIbis.ident;
 	}
 
 	for (int i = 0; i < ibisNameService.size(); i++) {
@@ -340,13 +370,36 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    protected abstract ByteInputStream createByteInputStream();
-    protected abstract ByteOutputStream createByteOutputStream(SendPort port,
-							       boolean syncMode,
-							       boolean makeCopy);
+    ByteInputStream createByteInputStream() {
+	ByteInputStream b = new ByteInputStream();
+	return b;
+    }
 
-    protected abstract ibis.io.ArrayInputStream createMantaInputStream(ByteInputStream byte_in);
-    protected abstract ibis.io.MantaOutputStream createMantaOutputStream(ByteOutputStream byte_out);
+    ByteOutputStream createByteOutputStream(SendPort port,
+						      boolean syncMode,
+						      boolean makeCopy) {
+	return new ByteOutputStream(port, syncMode, makeCopy);
+    }
+
+
+    ibis.io.ArrayInputStream createMantaInputStream(ByteInputStream byte_in) {
+	return new ibis.ipl.impl.messagePassing.ArrayInputStream(byte_in);
+    }
+
+
+    ibis.io.MantaOutputStream createMantaOutputStream(ByteOutputStream byte_out) {
+	return new ibis.io.MantaOutputStream(new ibis.ipl.impl.messagePassing.ArrayOutputStream(byte_out));
+    }
+
+
+    public void poll() throws IbisIOException {
+	rcve_poll.poll();
+	try {
+	    myIbis.lock();
+	} finally {
+	    myIbis.unlock();
+	}
+    }
 
 
     public void resetStats() {
@@ -356,7 +409,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     public void end() {
 	// synchronized (myIbis) {
 	registry.end();
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	myIbis.lock();
 	    ibisNameService.remove(ident);
 	    for (int i = 0; i < nrCpus; i++) {
 		if (i != myCpu) {
@@ -370,9 +423,12 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 	    System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
 	    ConditionVariable.report(System.out);
 	    rcve_poll.finalize();
+
+	    ibis.ipl.impl.messagePassing.ReceivePort.end();
+
 	    ibmp_end();
 	// }
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	myIbis.unlock();
     }
 
 }

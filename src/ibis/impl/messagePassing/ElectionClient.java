@@ -36,7 +36,13 @@ class ElectionClient implements ElectionProtocol {
 	} catch (IbisIOException e) {
 	    // Ignore
 	}
+	if (ElectionServer.DEBUG) {
+	    System.err.println("ElectionClient frees receive port " + rport);
+	}
 	rport.free();
+	if (ElectionServer.DEBUG) {
+	    System.err.println("ElectionClient has freed receive port " + rport);
+	}
     }
 
     Object elect(String election, Object candidate) throws IbisIOException {

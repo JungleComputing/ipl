@@ -12,13 +12,13 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = 100 * 1024; // 1024*1024;
+	public static final int LEN   = 16*1024;
 	public static final int COUNT = 100;
-	public static final int TESTS = 10;
+	public static final int TESTS = 100;
 
 
 	public static double round(double val) { 		
-		return (Math.ceil(val*10.0)/10.0);
+		return (Math.ceil(val*100.0)/100.0);
 	} 
 
 	public static void main(String args[]) {
@@ -114,9 +114,9 @@ public class Main {
 			
 			/*********************/
 
-			System.out.println("Writing byte[" + LEN + "]");
+			System.out.print("Write obj +cnv long[" + (LEN/8) + "]\t");
 
-			byte [] temp2 = new byte[LEN];
+			long [] temp2 = new long[(LEN/8)];
 
 			for (int j=0;j<TESTS;j++) { 
 
@@ -148,7 +148,7 @@ public class Main {
 			} 
 
 //			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("byte [] : " + round(best_ktp));
+			System.out.println("" + round(best_ktp));
 			temp2 = null;
 			best_time = 1000000;
 

@@ -1,25 +1,148 @@
 /*---------------------------------------------------------------
  *
- * Layer between Panda MP and Ibis/Panda.
+ * Layer between messagePassing/MPI and Ibis/MPI.
  *
  * Send messages through here.
  * Received messages are demultiplexed and given an JNIEnv * parameter
  * (which is I guess the only reason why this layer exists).
  */
-#include <jni.h>
 
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <jni.h>
+
+#define USE_STDARG
+#include <mpi.h>
+
+#include "../ibmp.h"
+#include "../ibmp_poll.h"
 
 #include "ibp.h"
-#include "ibmpi_poll.h"
+#include "ibp_mp.h"
+
 #include "ibmpi_mp.h"
 
 
-static int	ibmpi_upcall_done;
+#define IBMPI_MSG_TAG	1
 
+
+static int		ibmpi_msg_count;
 
 static int		ibmpi_n_upcall = 0;
-static ibmpi_upcall_t   ibmpi_upcall[IBMPI_DATA_STREAM_PORT];
+static int	     (**ibmpi_upcall)(JNIEnv *, ibp_msg_p, void *) = NULL;
+
+
+static int		ibmpi_msg_cache_size = RCVE_PROTO_CACHE_SIZE;
+static ibp_msg_p	ibmpi_msg_freelist;
+
+int			ibmpi_alive = 0;
+
+
+static ibp_msg_p
+ibmpi_msg_create(int sender, int size)
+{
+    ibp_msg_p	msg;
+
+    if (size <= ibmpi_msg_cache_size) {
+	msg = ibmpi_msg_freelist;
+	if (msg == NULL) {
+	    msg = malloc(sizeof(ibp_msg_t) + ibmpi_msg_cache_size);
+	} else {
+	    ibmpi_msg_freelist = msg->next;
+	}
+    } else {
+	msg = malloc(sizeof(ibp_msg_t) + size);
+    }
+
+    msg->sender = sender;
+    msg->size   = size;
+
+    return msg;
+}
+
+
+void
+ibp_msg_clear(JNIEnv *env, ibp_msg_p msg)
+{
+    if (msg->size <= ibmpi_msg_cache_size) {
+	msg->next = ibmpi_msg_freelist;
+	ibmpi_msg_freelist = msg;
+    } else {
+	free(msg);
+    }
+}
+
+
+static void
+ibmpi_mp_upcall(JNIEnv *env, MPI_Status *status)
+{
+    ibp_msg_p	msg;
+    int		size;
+    ibmpi_proto_p proto;
+    MPI_Status	rcve_status;
+#ifdef IBP_VERBOSE
+    static int	mp_upcalls = 0;
+#endif
+
+    //    JNIEnv *env;
+
+    //    if ((*vm)->GetEnv(vm, &env, JNI_VERSION_1_2) == JNI_OK) {
+    //	    printf("Got a *env!\n");
+    //    } else {
+    //	    printf("Failed to get a *env!\n");
+    //    }
+
+    assert(ibmpi_alive);
+
+    if (MPI_Get_count(status, MPI_PACKED, &size) != MPI_SUCCESS) {
+	ibmp_error("Cannot successfully query message size");
+    }
+    msg = ibmpi_msg_create(status->MPI_SOURCE, size);
+    proto = (ibmpi_proto_p)(msg + 1);
+
+    IBP_VPRINTF(200, env,
+		 ("Receive ibp MP upcall %d msg %p sender %d size %d\n",
+		   mp_upcalls++, msg, status->MPI_SOURCE, size));
+
+    if (0) IBP_VPRINTF(200, env,
+		 ("Receive ibp MP upcall %d msg %p sender %d size %d\n",
+		   mp_upcalls++, msg, ibp_msg_sender(msg),
+		   ibp_msg_consume_left(msg)));
+
+    if (MPI_Recv(proto, size, MPI_PACKED,
+		 status->MPI_SOURCE, status->MPI_TAG,
+		 MPI_COMM_WORLD, &rcve_status) != MPI_SUCCESS) {
+	ibmp_error("Cannot successfully receive protocol msg");
+    }
+    msg->start = proto->proto_size;
+
+    if (! ibmpi_upcall[proto->port](env, msg, proto)) {
+	ibp_msg_clear(env, msg);
+    }
+}
+
+
+static int
+ibmpi_rcve_poll(JNIEnv *env)
+{
+    MPI_Status status;
+    int	present;
+
+    assert(ibmpi_alive);
+
+    MPI_Iprobe(MPI_ANY_SOURCE, IBMPI_MSG_TAG, MPI_COMM_WORLD, &present,
+	       &status);
+
+    if (! present) {
+	return 0;
+    }
+
+    ibmpi_mp_upcall(env, &status);
+
+    return 1;
+}
 
 
 typedef enum IBMPI_FINISHED_STATE {
@@ -31,50 +154,68 @@ typedef enum IBMPI_FINISHED_STATE {
 typedef struct IBMPI_FINISHED_T ibmpi_finished_t, *ibmpi_finished_p;
 
 struct IBMPI_FINISHED_T {
-    void      (*upcall)(void *);
-    void       *arg;
+    void	      (*callback)(void *);
+    void	       *arg;
+    void	       *to_free;
     ibmpi_finished_state_t	status;
+    int			index;
     ibmpi_finished_p	next;
 };
 
 
-static int		n_finished;
-static ibmp_finished_p	finished_freelist;
-static ibmp_finished_p	finished;
-static MPI_Request     *finished_req;
 static int		finished_alloc;
+static int		n_finished;
 static int		finished_max;
+static ibmpi_finished_p	finished_freelist;
+static ibmpi_finished_p	finished;
+static MPI_Request     *finished_req;
+static int	       *finished_index;
+static MPI_Status      *finished_status;
 
 
-static int
-ibmp_finished_get(void)
+static void
+finished_allocate(void)
 {
-    ibmp_finished_p f;
+#define FINISHED_INCR	32
+    int	i;
+    int	n = finished_max + FINISHED_INCR;
+
+    finished_req = realloc(finished_req, n * sizeof(*finished_req));
+    finished_index = realloc(finished_index, n * sizeof(*finished_index));
+    finished_status = realloc(finished_status, n * sizeof(*finished_status));
+
+    finished = realloc(finished, n * sizeof(*finished));
+    for (i = finished_alloc; i < n; i++) {
+	if (i == n - 1) {
+	    finished[i].next = NULL;
+	} else {
+	    finished[i].next = &finished[i + 1];
+	}
+	finished[i].status = IBMPI_free;
+	finished[i].index = i;
+	finished_req[i] = MPI_REQUEST_NULL;
+    }
+    finished_freelist = &finished[finished_alloc];
+
+    finished_alloc = n;
+}
+
+
+static ibmpi_finished_p
+ibmpi_finished_get(void)
+{
+    ibmpi_finished_p f;
     int		i;
 
     f = finished_freelist;
     if (f == NULL) {
-#define FINISHED_INCR	32
-	int	i;
-	int	n = finished_max + FINISHED_INCR;
-
-	finished = realloc(finished, n * sizeof(*finished));
-	finish[finished_alloc].next = finished_freelist;
-	finish[finished_alloc].status = IBMPI_free;
-	finished_req[finished_alloc] = MPI_REQUEST_NULL;
-	for (i = finished_alloc + 1; i < n; i++) {
-	    finish[i].next = &finish[i - 1];
-	    finish[i].status = IBMPI_free;
-	    finished_req[i] = MPI_REQUEST_NULL;
-	}
-	finished_req = realloc(finished_req, n * sizeof(*finished_req));
-	finished_alloc = n;
+	finished_allocate();
 	f = finished_freelist;
     }
     finished_freelist = f->next;
     n_finished++;
 
-    i = f - finished;
+    i = f->index;
 
     if (i > finished_max) {
 	finished_max = i;
@@ -83,17 +224,20 @@ ibmp_finished_get(void)
     f->status = IBMPI_allocated;
     assert(finished_req[i] == MPI_REQUEST_NULL);
 
-    return i;
+    return f;
 }
 
 
 static void
-ibmp_finished_put(ibmp_finished_p f)
+ibmpi_finished_put(ibmpi_finished_p f)
 {
+    assert(f->status == IBMPI_allocated);
+
     f->next = finished_freelist;
     finished_freelist = f;
+    f->status = IBMPI_free;
 
-    if (finished_max == f - finished) {
+    if (finished_max == f->index) {
 	int	i;
 
 	for (i = finished_max - 1; i >= 0; i++) {
@@ -106,84 +250,41 @@ ibmp_finished_put(ibmp_finished_p f)
 }
 
 
-static void
-ibmp_finished_register(ibmp_finished_p f)
-{
-    f->next = finished_q;
-    finished_q = f;
-}
-
-
-static void
-ibmp_finished_poll(void)
+static int
+ibmpi_finished_poll(void)
 {
     int		i;
     int		x;
+    ibmpi_finished_p f;
+    int		hits;
+
+    assert(ibmpi_alive);
 
     if (n_finished == 0) {
-	return;
+	return 0;
     }
 
-    MPI_Testsome(max_finished, finished_req, &hits, indir, finished_state);
+    MPI_Testsome(finished_max + 1,
+		 finished_req,
+		 &hits,
+		 finished_index,
+		 finished_status);
+
+    assert(hits != MPI_UNDEFINED);
 
     for (i = 0; i < hits; i++) {
-	x = indir[i];
-	finished[x].callback(finished[x].arg);
-	finished[x].status = IBMPI_free;
-	finished[x].next = finished_freelist;
-	finished_freelist = &finished[x];
+	x = finished_index[i];
+	f = &finished[x];
+	f->callback(f->arg);
+	if (f->to_free != NULL) {
+	    free(f->to_free);
+	}
+	ibmpi_finished_put(f);
     }
 
     n_finished -= hits;
-}
 
-
-
-static void
-ibmpi_mp_upcall(MPI_Status *status);
-{
-    ibmpi_mp_hdr_p	hdr = ibmpi_mp_hdr(proto);
-    ibmpi_tag_t		tag;
-#ifdef IBP_VERBOSE
-    static int mp_upcalls = 0;
-#endif
-
-    //    JNIEnv *env;
-
-    //    if ((*vm)->GetEnv(vm, &env, JNI_VERSION_1_2) == JNI_OK) {
-    //	    printf("Got a *env!\n");
-    //    } else {
-    //	    printf("Failed to get a *env!\n");
-    //    }
-
-    assert(ibmpi_JNIEnv != NULL);
-
-    tag.i = status->MPI_TAG;
-
-    IBP_VPRINTF(200, ibmpi_JNIEnv,
-		         ("Receive ibp MP upcall %d msg %p sender %d size %d\n",
-			   mp_upcalls++, msg, pan_msg_sender(msg),
-			   pan_msg_consume_left(msg)));
-
-    ibmpi_upcall_done = 1;	/* Keep polling */
-    if (IBMPI_IS_DATA_MSG(tag)) {
-	ibmpi_data_stream_upcall(status);
-    } else {
-	char   *buffer;
-	int	size;
-
-	MPI_GET_COUNT(status, MPI_PACKED, &size);
-	buffer = malloc(size);
-	if (MPI_RECV(buffer, count, MPI_PACKED, status.MPI_SOURCE,
-		     tag.i, MPI_COMM_WORLD, &rcve_status) != MPI_SUCCESS) {
-	    fprintf(stderr, "Cannot successfully receive protocol msg\n");
-	    abort();
-	}
-
-	if (! ibmpi_upcall[tag.ss.send](ibmpi_JNIEnv, msg, proto)) {
-	    free(buffer);
-	}
-    }
+    return hits;
 }
 
 
@@ -191,90 +292,164 @@ static void
 ibmpi_mp_poll(JNIEnv *env)
 {
     //fprintf(stderr, "ibmpi_mp-poll\n");
-@@@@@@@@@@@@@ hier nog van alles intikken: --- test naar gearriveerde msg, test naar finished send, ...
-    ibmpi_set_JNIEnv(env);
+    // ibmp_set_JNIEnv(env);
+    int		ibmpi_upcall_done;
 
     do {
-	ibmpi_upcall_done = 0;
-	pan_poll();
-    } while (ibmpi_upcall_done);
-    ibmpi_unset_JNIEnv();
+	if (! ibmpi_alive) {
+	    return;
+	}
+
+	ibmpi_upcall_done = 1;
+	if (ibmpi_rcve_poll(env)) {
+	    ibmpi_upcall_done = 0;
+	}
+	if (ibmpi_finished_poll() > 0) {
+	    ibmpi_upcall_done = 0;
+	}
+    } while (! ibmpi_upcall_done);
+
+    // ibmp_unset_JNIEnv();
+}
+
+
+void
+ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
+		 pan_iovec_p iov, int iov_size,
+		 void *v_proto, int proto_size)
+{
+    int		len = ibmp_iovec_len(iov, iov_size);
+    ibmpi_proto_p proto = v_proto;
+    void       *buf;
+    int		off;
+    int		i;
+
+    assert(ibmpi_alive);
+
+    proto->proto_size = proto_size;
+    proto->msg_id = ibmpi_msg_count++;
+    proto->port = port;
+
+    len += proto_size;
+    if (len > SEND_PROTO_CACHE_SIZE) {
+	buf = malloc(len);
+	memcpy(buf, proto, proto_size);
+    } else {
+	buf = proto;
+    }
+    off = proto_size;
+    for (i = 0; i < iov_size; i++) {
+	memcpy((char *)buf + off, iov[i].data, iov[i].len);
+	off += iov[i].len;
+    }
+    assert(off == len);
+
+    // ibmp_set_JNIEnv(env);
+    IBP_VPRINTF(200, env, ("Do an MPI send to %d size %d\n", cpu, len));
+    MPI_Send(buf, len, MPI_PACKED, cpu, IBMPI_MSG_TAG, MPI_COMM_WORLD);
+    IBP_VPRINTF(200, env, ("Done an MPI send\n"));
+    // ibmp_unset_JNIEnv();
+
+    if (len > SEND_PROTO_CACHE_SIZE) {
+	free(buf);
+    }
+
+    ibmpi_mp_poll(env);
+}
+
+
+void
+ibp_mp_send_async(JNIEnv *env, int cpu, int port,
+		  pan_iovec_p iov, int iov_size,
+		  void *v_proto, int proto_size,
+		  pan_clear_p sent_upcall, void *arg)
+{
+    ibmpi_finished_p f = ibmpi_finished_get();
+    int		len = ibmp_iovec_len(iov, iov_size);
+    ibmpi_proto_p proto = v_proto;
+    void       *buf;
+    int		off;
+    int		i;
+
+    assert(ibmpi_alive);
+
+    proto->proto_size = proto_size;
+    proto->msg_id = ibmpi_msg_count++;
+    proto->port = port;
+
+    f->callback = sent_upcall;
+    f->arg      = arg;
+
+    len += proto_size;
+    if (len > SEND_PROTO_CACHE_SIZE) {
+	buf = malloc(len);
+	memcpy(buf, proto, proto_size);
+	f->to_free = buf;
+    } else {
+	buf = proto;
+	f->to_free = NULL;
+    }
+    off = proto_size;
+    for (i = 0; i < iov_size; i++) {
+	memcpy((char *)buf + off, iov[i].data, iov[i].len);
+	off += iov[i].len;
+    }
+    assert(off == len);
+
+    // ibmp_set_JNIEnv(env);
+    IBP_VPRINTF(200, env, ("Do a Panda MP send async to %d size %d\n",
+		cpu, len));
+    MPI_Isend(buf, len, MPI_PACKED, cpu, IBMPI_MSG_TAG, MPI_COMM_WORLD,
+	      &finished_req[f->index]);
+    // ibmp_unset_JNIEnv();
+
+    ibmpi_mp_poll(env);
 }
 
 
 int
-ibmpi_mp_port_register(int (*upcall)(JNIEnv *, void *, MPI_Status *))
+ibp_mp_port_register(int (*upcall)(JNIEnv *, ibp_msg_p, void *))
 {
     int		port = ibmpi_n_upcall;
-    MPI_Comm	c;
-
-    if (port == IBMPI_DATA_STREAM_PORT) {
-	fprintf(stderr, "More user-defined special ports requested than provided (%d)\n", port);
-	abort();
-    }
 
     ibmpi_n_upcall++;
+    ibmpi_upcall = realloc(ibmpi_upcall, ibmpi_n_upcall * sizeof(*ibmpi_upcall));
     ibmpi_upcall[port] = upcall;
 
     return port;
 }
 
 
-static void
-no_such_upcall(JNIEnv *env, void *buf, MPI_Status *status)
+static int
+no_such_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
-    fprintf(stderr, "%2d: receive a IBIS/panda MP message for a port already cleared\n", pan_my_pid());
-    pan_msg_clear(msg);
+    fprintf(stderr, "%2d: receive a Ibis/MPI MP message for a port already cleared\n", ibmp_me);
+    return 0;
 }
 
 
 void
-ibmpi_mp_port_unregister(int port)
+ibp_mp_port_unregister(int port)
 {
     ibmpi_upcall[port] = no_such_upcall;
 }
 
 
-void
-ibmpi_send_sync(JNIEnv *env, int cpu, int tag, void *buf, int len)
+int ibp_mp_proto_offset(void)
 {
-    ibmpi_set_JNIEnv(env);
-    IBP_VPRINTF(200, env, ("Do an MPI send to %d size %d\n", cpu, len));
-    MPI_Send(buf, len, MPI_PACKED, cpu, tag, MPI_COMM_WORLD);
-    IBP_VPRINTF(200, env, ("Done an MPI send\n"));
-    ibmpi_unset_JNIEnv();
+    return sizeof(ibmpi_proto_t);
 }
 
 
 void
-ibmpi_send_async(JNIEnv *env, int cpu, int tag, void *buf, int len,
-		 void (*sent_upcall)(void *), void *arg)
+ibp_mp_init(JNIEnv *env)
 {
-    ibmpi_mp_hdr_p hdr = ibmpi_mp_hdr(proto);
-    int		i_finished = ibmp_finished_get();
-    ibmpi_finished_p finished = &finished[i_finished];
-
-    finished->upcall = sent_upcall;
-    finished->arg    = arg;
-
-    ibmpi_set_JNIEnv(env);
-    IBP_VPRINTF(200, env, ("Do a Panda MP send async to %d size %d\n",
-		cpu, len));
-    MPI_Isend(buf, len, MPI_PACKED, cpu, tag, MPI_COMM_WORLD,
-	      &finished_req[i_finished);
-    ibmpi_unset_JNIEnv();
+    ibmp_poll_register(ibmpi_mp_poll);
 }
 
 
 void
-ibmpi_mp_init(JNIEnv *env)
-{
-    ibmpi_poll_register(ibmpi_mp_poll);
-}
-
-
-void
-ibmpi_mp_end(JNIEnv *env)
+ibp_mp_end(JNIEnv *env)
 {
     ibmpi_mp_poll(env);
 }

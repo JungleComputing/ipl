@@ -170,3 +170,5 @@ chmod +x bin/satinc
 
 cat scripts/preamble configuration scripts/run_ibis > bin/run_ibis
 chmod +x bin/run_ibis
+
+(cd ipl; sed "s+@IBIS_INSTALL_PATH@+\"$IBIS_ROOT/ibis\"+" < InstallConfiguration.java.in > InstallConfiguration.java)

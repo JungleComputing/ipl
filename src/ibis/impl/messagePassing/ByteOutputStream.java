@@ -4,7 +4,7 @@ import ibis.ipl.IbisIOException;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 
-public abstract class ByteOutputStream
+public class ByteOutputStream
 	extends java.io.OutputStream
 	implements PollClient {
 
@@ -12,17 +12,15 @@ public abstract class ByteOutputStream
 
     private ConditionVariable sendComplete = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
     private int outstandingFrags;
-    protected boolean waitingInPoll = false;
-    protected boolean syncMode;
+    boolean waitingInPoll = false;
+    boolean syncMode;
 
-    protected int msgHandle;
-    protected int msgSeqno = 0;
+    int msgHandle;
+    int msgSeqno = 0;
 
-    protected boolean makeCopy;
+    boolean makeCopy;
 
-    protected abstract void init();
-
-    protected ByteOutputStream(ibis.ipl.SendPort p, boolean syncMode, boolean makeCopy) {
+    ByteOutputStream(ibis.ipl.SendPort p, boolean syncMode, boolean makeCopy) {
 	this.syncMode = syncMode;
 	this.makeCopy = makeCopy;
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
@@ -31,16 +29,6 @@ public abstract class ByteOutputStream
 	sport = (SendPort)p;
 	init();
     }
-
-
-    protected abstract boolean msg_send(int cpu,
-					int port,
-					int my_port,
-					int msgSeqno,
-					int msgHandle,
-					boolean lastSplitter,	// Frag is sent to last of the splitters in our 1-to-many
-					boolean lastFrag	// Frag is sent as last frag of a message
-					);
 
 
     public void send(boolean lastFrag) {
@@ -149,10 +137,6 @@ public abstract class ByteOutputStream
 	me = thread;
     }
 
-    /* Pass our current msgHandle field: we only want to reset
-     * a fragment that has been sent-acked */
-    protected abstract void resetMsg();
-
     void reset(boolean finish) throws IbisIOException {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 	if (outstandingFrags > 0) {
@@ -207,8 +191,6 @@ public abstract class ByteOutputStream
 	return outstandingFrags == 0;
     }
 
-    public abstract void close();
-
     public void flush() {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; msgHandle 0x" + Integer.toHexString(msgHandle));
@@ -221,13 +203,44 @@ public abstract class ByteOutputStream
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
-    public abstract void write(byte[] b, int off, int len) throws IbisIOException;
-
     public void write(byte[] b) throws IbisIOException {
 	write(b, 0, b.length);
     }
 
-    public abstract void write(int b) throws IbisIOException;
+    native void init();
 
-    public abstract void report();
+    native boolean msg_send(int cpu,
+			    int port,
+			    int my_port,
+			    int msgSeqno,
+			    int msgHandle,
+			    boolean lastSplitter,
+			    boolean lastFrag);
+
+    /* Pass our current msgHandle field: we only want to reset
+     * a fragment that has been sent-acked */
+    native void resetMsg();
+
+    public native void close();
+
+    public native void write(int b) throws IbisIOException;
+
+    public void write(byte[] b, int off, int len) throws IbisIOException {
+	writeByteArray(b, off, len);
+	if (syncMode) {
+	    flush();
+	}
+    }
+
+    native void writeBooleanArray(boolean[] array, int off, int len);
+    native void writeByteArray(byte[] array, int off, int len);
+    native void writeCharArray(char[] array, int off, int len);
+    native void writeShortArray(short[] array, int off, int len);
+    native void writeIntArray(int[] array, int off, int len);
+    native void writeLongArray(long[] array, int off, int len);
+    native void writeFloatArray(float[] array, int off, int len);
+    native void writeDoubleArray(double[] array, int off, int len);
+
+    public native void report();
+
 }

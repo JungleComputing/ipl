@@ -3,7 +3,7 @@ package ibis.ipl.impl.messagePassing;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.impl.generic.ConditionVariable;
 
-public abstract class ReceivePortNameServerClient
+class ReceivePortNameServerClient
     implements ReceivePortNameServerProtocol {
 
     class Bind implements PollClient {
@@ -74,13 +74,16 @@ public abstract class ReceivePortNameServerClient
 		ns_busy = true;
 
 		bound = false;
-// System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
+System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
 		ns_bind(id.name, id.type, id.cpu, id.port);
-// System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
+System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
 
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
+System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
+		if (bound) {
+		    System.err.println("******** Reply arrives early, bind=" + this);
+		}
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
-// System.err.println(Thread.currentThread() + "Bind reply arrived, client woken up" + this);
+System.err.println(Thread.currentThread() + "Bind reply arrived, client woken up" + this);
 
 		ns_busy = false;
 		ns_free.cv_signal();
@@ -95,15 +98,15 @@ public abstract class ReceivePortNameServerClient
     /* Called from native */
     private void bind_reply() {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
-// System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this);
+System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this + " bind = " + bind);
 	bind.bound = true;
 	bind.ns_done.cv_signal();
     }
 
-    protected abstract void ns_bind(String name,
-				String type,
-				int port_cpu,
-				int port_port);
+    native void ns_bind(String name,
+			String type,
+			int port_cpu,
+			int port_port);
 
     Bind bind = new Bind();
 
@@ -227,7 +230,7 @@ public abstract class ReceivePortNameServerClient
 
     }
 
-    protected abstract void ns_lookup(String name);
+    native void ns_lookup(String name);
 
     /* Called from native */
     private void lookup_reply(ibis.ipl.impl.messagePassing.ReceivePortIdentifier ri) {
@@ -251,7 +254,7 @@ public abstract class ReceivePortNameServerClient
 	return null;
     }
 
-    protected abstract void ns_unbind(String public_name);
+    native void ns_unbind(String public_name);
 
     void unbind(String name) {
 

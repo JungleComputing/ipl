@@ -37,7 +37,6 @@ class SerializeShadowSendPort extends ShadowSendPort {
 
 	} else {
 	    msg = new SerializeReadMessage(this, receivePort);
-// manta.runtime.RuntimeSystem.DebugMe(this, msg);
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 		System.err.println("Create a -sun- ReadMessage " + msg); 
 	    }

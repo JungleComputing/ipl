@@ -1,4 +1,8 @@
-ibis.ipl.impl.messagePassing.panda.PandaIbis
+ibis.ipl.impl.messagePassing.MPIIbis
+ipl/impl/messagePassing/mpi/properties
+system_mpi_properties
+
+ibis.ipl.impl.messagePassing.PandaIbis
 ipl/impl/messagePassing/panda/properties
 system_panda_properties
 

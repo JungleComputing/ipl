@@ -9,8 +9,13 @@ public class Main {
 
 	public static final boolean DEBUG = false;
 	public static final int LEN   = 100*1024;
-	public static final int COUNT = 1000;
-	public static final int TESTS = 10;
+	public static final int COUNT = 100;
+	public static final int TESTS = 100;
+
+	public static final boolean doByte	= true;
+	public static final boolean doInt	= true;
+	public static final boolean doLong	= false;
+	public static final boolean doDouble	= true;
 		
 	public static double round(double val) { 		
 		return (Math.ceil(val*100.0)/100.0);
@@ -19,27 +24,30 @@ public class Main {
 	public static void main(String args[]) {
 		
 		try {
-			long start, end;
-			int bytes;
-		
-			double best_ktp = 0.0;
-			long best_time = 1000000;
+		    long start, end;
+		    int bytes;
+	    
+		    double best_ktp = 0.0;
+		    long best_time = 1000000;
 
-			System.out.println("Main starting");
-			
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ObjectOutputStream mout = new ObjectOutputStream(baos);
+		    System.out.println("Main starting");
+		    
+		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		    ObjectOutputStream mout = new ObjectOutputStream(baos);
 
-			mout.reset();
-			mout.flush();
-			byte [] temp = baos.toByteArray();
+		    mout.reset();
+		    mout.flush();
 
-			int mark = temp.length;
+		    byte [] temp = baos.toByteArray();
+
+		    int mark = temp.length;
+
+		    if (doInt) {
 
 			// Create array
 			int [] temp1 = new int[LEN/4];
 			
-			System.out.println("Reading int[" + (LEN/4) + "]");
+			System.out.print("Reading int[" + (LEN/4) + "]\t");
 
 			mout.writeObject(temp1);
 			mout.flush();
@@ -85,6 +93,9 @@ public class Main {
 
 			System.out.println("" + round(best_ktp));
 			temp1 = null;
+		    }
+
+		    if (doDouble) {
 
 			// double [] 
 			best_ktp = 0.0;
@@ -102,7 +113,7 @@ public class Main {
 			// Create array
 			double [] temp2 = new double[LEN/8];
 			
-			System.out.println("Reading double[" + (LEN/8) + "]");
+			System.out.print("Reading double[" + (LEN/8) + "]\t");
 
 			mout.writeObject(temp2);
 			mout.flush();
@@ -112,8 +123,8 @@ public class Main {
 			
 			bytes = temp.length - mark;
 
-			bais = new ByteArrayInputStream(temp);
-			min = new ObjectInputStream(bais);
+			ByteArrayInputStream bais = new ByteArrayInputStream(temp);
+			ObjectInputStream min = new ObjectInputStream(bais);
 			bais.mark(bytes);
 
 			for (int j=0;j<TESTS;j++) { 
@@ -144,6 +155,9 @@ public class Main {
 
 			System.out.println("" + round(best_ktp));
 			temp2 = null;
+		    }
+
+		    if (doByte) {
 
 			// BYTE [] 
 			best_ktp = 0.0;
@@ -161,7 +175,7 @@ public class Main {
 			// Create array
 			byte [] temp3 = new byte[LEN];
 			
-			System.out.println("Reading byte[" + (LEN) + "]");
+			System.out.print("Reading byte[" + (LEN) + "]\t");
 
 			mout.writeObject(temp3);
 			mout.flush();
@@ -171,8 +185,8 @@ public class Main {
 			
 			bytes = temp.length - mark;
 
-			bais = new ByteArrayInputStream(temp);
-			min = new ObjectInputStream(bais);
+			ByteArrayInputStream bais = new ByteArrayInputStream(temp);
+			ObjectInputStream min = new ObjectInputStream(bais);
 			bais.mark(bytes);
 
 			for (int j=0;j<TESTS;j++) { 
@@ -203,6 +217,7 @@ public class Main {
 
 			System.out.println("" + round(best_ktp));
 			temp3 = null;
+		    }
 
 		} catch (Exception e) {
 			System.out.println("Main got exception " + e);

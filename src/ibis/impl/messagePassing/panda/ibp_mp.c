@@ -15,19 +15,22 @@
 #include <pan_align.h>
 
 #include "../ibmp.h"
+#include "../ibmp_poll.h"
 
 #include "ibp.h"
-#include "ibp_poll.h"
 #include "ibp_mp.h"
+
+#include "ibp_env.h"
 
 
 static int	ibp_upcall_done;
 
 
 static int		ibp_n_upcall = 0;
-static int	     (**ibp_upcall)(JNIEnv *, pan_msg_p, void *) = NULL;
+static int	     (**ibp_upcall)(JNIEnv *, ibp_msg_p, void *) = NULL;
 
 
+#if UNUSED
 static void
 proto_dump(void *proto, int size)
 {
@@ -40,6 +43,7 @@ proto_dump(void *proto, int size)
     }
     fprintf(stderr, "]\n");
 }
+#endif
 
 
 static int	ibp_mp_proto_start;
@@ -72,7 +76,6 @@ static int *mp_sends = 0;
 #endif
 
 
-
 static void
 ibp_mp_upcall(pan_msg_p msg, void *proto)
 {
@@ -86,17 +89,17 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
     //	    printf("Failed to get a *env!\n");
     //    }
 
-    assert(ibmp_JNIEnv != NULL);
+    assert(ibp_JNIEnv != NULL);
 
-    IBP_VPRINTF(200, ibmp_JNIEnv,
+    IBP_VPRINTF(200, ibp_JNIEnv,
 		     ("Receive ibp MP upcall %d msg %p sender %d size %d\n",
 		       mp_upcalls[pan_msg_sender(msg)]++, msg, pan_msg_sender(msg),
 		       pan_msg_consume_left(msg)));
 
     ibp_upcall_done = 1;	/* Keep polling */
-    if (! ibp_upcall[hdr->port](ibmp_JNIEnv, msg, proto)) {
-	IBP_VPRINTF(50, ibmp_JNIEnv, ("clear panda msg %p\n", msg));
-	ibmp_lock_check_owned(ibmp_JNIEnv);
+    if (! ibp_upcall[hdr->port](ibp_JNIEnv, (ibp_msg_p)msg, proto)) {
+	IBP_VPRINTF(50, ibp_JNIEnv, ("clear panda msg %p\n", msg));
+	ibmp_lock_check_owned(ibp_JNIEnv);
 	pan_msg_clear(msg);
     }
 }
@@ -108,17 +111,17 @@ ibp_mp_poll(JNIEnv *env)
     //fprintf(stderr, "ibp_mp-poll\n");
 
     ibmp_lock_check_owned(env);
-    ibmp_set_JNIEnv(env);
+    ibp_set_JNIEnv(env);
     do {
 	ibp_upcall_done = 0;
 	pan_poll();
     } while (ibp_upcall_done);
-    ibmp_unset_JNIEnv();
+    ibp_unset_JNIEnv();
 }
 
 
 int
-ibp_mp_port_register(int (*upcall)(JNIEnv *, pan_msg_p, void *))
+ibp_mp_port_register(int (*upcall)(JNIEnv *, ibp_msg_p, void *))
 {
     int		port = ibp_n_upcall;
 
@@ -131,7 +134,7 @@ ibp_mp_port_register(int (*upcall)(JNIEnv *, pan_msg_p, void *))
 
 
 static int
-no_such_upcall(JNIEnv *env, pan_msg_p msg, void *proto)
+no_such_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     fprintf(stderr, "%2d: receive a IBIS/panda MP message for a port already cleared\n", pan_my_pid());
     return 0;
@@ -146,39 +149,39 @@ ibp_mp_port_unregister(int port)
 
 
 void
-ibp_mp_send_sync(JNIEnv *env, int cpu, int port, pan_iovec_p iov, int iov_size,
-		 void *proto, int proto_size, pan_mp_ack_t ack)
+ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
+		 pan_iovec_p iov, int iov_size,
+		 void *proto, int proto_size)
 {
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
 
-    ibmp_set_JNIEnv(env);
+    ibp_set_JNIEnv(env);
     IBP_VPRINTF(200, env, ("Do a Panda MP send %d to %d size %d env %p\n",
-		mp_sends[cpu]++, cpu, pan_msg_iovec_len(iov, iov_size), env));
+		mp_sends[cpu]++, cpu, ibmp_iovec_len(iov, iov_size), env));
     hdr->port = port;
-    pan_mp_send_sync(cpu, ibp_mp_port, iov, iov_size, proto, proto_size, ack);
+    pan_mp_send_sync(cpu, ibp_mp_port, iov, iov_size, proto, proto_size, PAN_MP_DELAYED);
     IBP_VPRINTF(200, env, ("Done a Panda MP send\n"));
-    ibmp_unset_JNIEnv();
+    ibp_unset_JNIEnv();
 }
 
 
-int
-ibp_mp_send_async(JNIEnv *env, int cpu, int port, pan_iovec_p iov, int iov_size,
-		  void *proto, int proto_size, pan_mp_ack_t ack,
+void
+ibp_mp_send_async(JNIEnv *env, int cpu, int port,
+		  pan_iovec_p iov, int iov_size,
+		  void *proto, int proto_size,
 		  pan_clear_p sent_upcall, void *arg)
 {
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
-    int		ticket;
 
-    ibmp_set_JNIEnv(env);
+    ibp_set_JNIEnv(env);
     IBP_VPRINTF(200, env, ("Do a Panda MP send %d async to %d size %d\n",
-		mp_sends[cpu]++, cpu, pan_msg_iovec_len(iov, iov_size)));
+		mp_sends[cpu]++, cpu, ibmp_iovec_len(iov, iov_size)));
     hdr->port = port;
-    ticket = pan_mp_send_async(cpu, ibp_mp_port, iov, iov_size,
-			       proto, proto_size, ack,
-			       sent_upcall, arg);
+    pan_mp_send_async(cpu, ibp_mp_port, iov, iov_size,
+		      proto, proto_size, PAN_MP_DELAYED,
+		      sent_upcall, arg);
 
-    ibmp_unset_JNIEnv();
-    return ticket;
+    ibp_unset_JNIEnv();
 }
 
 
@@ -198,7 +201,7 @@ ibp_mp_init(JNIEnv *env)
     ibp_mp_port = pan_mp_register_port(ibp_mp_upcall);
     IBP_VPRINTF(2000, env, ("here...\n"));
 
-    ibp_poll_register(ibp_mp_poll);	// Finding this had been commented out by Jason took me another day... RFHH
+    ibmp_poll_register(ibp_mp_poll);	// Finding this had been commented out by Jason took me another day... RFHH
     IBP_VPRINTF(2000, env, ("here...\n"));
 
 #ifdef IBP_VERBOSE

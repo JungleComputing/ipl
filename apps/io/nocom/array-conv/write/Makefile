@@ -15,6 +15,7 @@ endif
 
 MANTACFLAGS	+= -S
 MANTACFLAGS	+= -v
+MANTACFLAGS	+= -inline
 # MANTACFLAGS	+= -no-opt-comm
 
 java: $(CLASS_FILES) $(MAIN_CLASS)
