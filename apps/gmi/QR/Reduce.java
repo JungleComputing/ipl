@@ -42,7 +42,7 @@ class Reduce extends GroupMember implements i_Reduce {
 	}
 
 	public synchronized void reduce_it(PivotElt elt) { 		
-		System.out.println("Got a reduce ... ");
+//		System.out.println("Got a reduce ... ");
 		solution = elt;
 		empty = false;
 		notifyAll();
@@ -52,7 +52,7 @@ class Reduce extends GroupMember implements i_Reduce {
 
 		empty = true;
 
-		System.out.println("Doing a reduce ...");
+//		System.out.println("Doing a reduce ...");
 		group.reduce_it(elt);
 
 		while (empty) {

@@ -16,7 +16,7 @@ class Broadcast extends GroupMember implements i_Broadcast {
 	} 
 
 	public synchronized void broadcast_it(double [] data) { 		
-		System.out.println("Received a broadcast");
+//		System.out.println("Received a broadcast");
 		this.data = data;
 		empty = false;
 		notifyAll();
@@ -25,7 +25,7 @@ class Broadcast extends GroupMember implements i_Broadcast {
 	public synchronized double [] broadcast(double [] in, boolean send) { 
 
 		if (send) { 
-			System.out.println("Doing a broadcast ...");
+//			System.out.println("Doing a broadcast ...");
 			group.broadcast_it(in);
 		} 
 		

@@ -50,13 +50,13 @@ public class JobQueue extends GroupMember implements i_JobQueue {
 	public synchronized Job getJob() {
 
 		if(first == null) {
-			System.out.println("getJob returns null");
+//			System.out.println("getJob returns null");
 			return null;
 		} else { 
 			Job temp = first;
 			first = first.next;
 			
-			System.out.println("Returning Job of length " + temp.length);
+//			System.out.println("Returning Job of length " + temp.length);
 			
 			count--;
 
