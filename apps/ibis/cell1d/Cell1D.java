@@ -305,6 +305,7 @@ class Cell1D implements Config {
             if( me == 0 ){
                 System.out.println( "Started" );
             }
+            long startTime = System.currentTimeMillis();
 
             for( int iter=0; iter<count; iter++ ){
                 byte prev[];
@@ -377,7 +378,12 @@ class Cell1D implements Config {
                 System.out.println( "Twister has gone missing" );
             }
             if( me == 0 ){
-                System.out.println( "Done" );
+                long endTime = System.currentTimeMillis();
+                double time = ((double) (endTime - startTime))/1000.0;
+                long updates = BOARDSIZE*BOARDSIZE*(long) GENERATIONS;
+
+                System.out.println( "ExecutionTime: " + time );
+                System.out.println( "Did " + updates + " updates" );
             }
 
             ibis.end();
