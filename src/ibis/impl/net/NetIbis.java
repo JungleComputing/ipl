@@ -36,8 +36,6 @@ public final class NetIbis extends Ibis {
 
     public static final String alloc_thres = prefix + "allocator.bigThr";
 
-    public static final String service_poolsize = prefix + "service.poolsize";
-
     public static final String mutex_debug = prefix + "mutex.debug";
 
     public static final String input_exc_v = prefix + "input.exc.verbose";
@@ -59,8 +57,8 @@ public final class NetIbis extends Ibis {
     public static final String port_yield = prefix + "port.yield";
 
     private static final String[] properties = { alloc_stats, alloc_thres,
-            service_poolsize, mutex_debug, input_exc_v, poll_single_dyn,
-            poll_single_v, cfg_filenm, cfg_file, port_single, port_yield };
+            mutex_debug, input_exc_v, poll_single_dyn, poll_single_v,
+            cfg_filenm, cfg_file, port_single, port_yield };
 
     private static final String[] excludes = { prefix + "bytes.",
             prefix + "gm.", prefix + "rel.", prefix + "tcp_blk." };

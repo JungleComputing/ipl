@@ -37,16 +37,12 @@ public final class Driver extends NetDriver {
 
     static final String gm_dynamic = prefix + "dynamic";
 
-    static final String gm_intr = prefix + "intr";
-
-    static final String gm_intr_frst = prefix + "intr.first";
-
     static final String gm_debug = prefix + "debug";
 
     static final String gm_rndzv = prefix + "rendez-vous";
 
     private static final String[] properties = { gm_mtu, gm_verbose, gm_prio,
-            gm_polls, gm_dynamic, gm_intr, gm_intr_frst, gm_debug, gm_rndzv };
+            gm_polls, gm_dynamic, gm_debug, gm_rndzv };
 
     // Native functions
     //private static native void gm_init();

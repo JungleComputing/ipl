@@ -19,14 +19,12 @@ public class NSProps {
 
     public static final String s_port = PROPERTY_PREFIX + "port";
 
-    public static final String s_retry = PROPERTY_PREFIX + "retry";
-
     public static final String s_single = PROPERTY_PREFIX + "single";
 
     public static final String s_timeout = PROPERTY_PREFIX + "timeout";
 
     private static final String[] sysprops = { s_impl, s_host, s_key, s_port,
-            s_retry, s_single, s_timeout };
+            s_single, s_timeout };
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
