@@ -11,6 +11,7 @@ import java.net.InetAddress;
 
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.Hashtable;
 
 /**
  * Provides a generic multiple network input poller.
@@ -37,6 +38,8 @@ public class MultiPoller extends NetInput {
 	 */
 	protected NetInput  activeInput = null;
 
+        protected Hashtable driverTable = null;
+
 	/**
 	 * Constructor.
 	 *
@@ -50,6 +53,7 @@ public class MultiPoller extends NetInput {
 		inputVector = new Vector();
 		isVector    = new Vector();
 		osVector    = new Vector();
+                driverTable = new Hashtable();
 	}
 
 	/**
@@ -118,9 +122,14 @@ public class MultiPoller extends NetInput {
                                 }
                         }
                 
-
-                        String    subDriverName = getProperty(subContext, "Driver");
-                        NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
+                        
+                        NetDriver subDriver = (NetDriver)driverTable.get(subContext);
+                        if (subDriver == null) {
+                                String    subDriverName = getProperty(subContext, "Driver");
+                                subDriver = driver.getIbis().getDriver(subDriverName);
+                                driverTable.put(subContext, subDriver);
+                        }
+                        
                         NetInput  ni            = newSubInput(subDriver, subContext);
 
                         ni.setupConnection(rpn, is, os, nls);

@@ -141,6 +141,7 @@ public class NetPropertyTree {
                                 }
                         }
                         
+                        //System.err.println("put: context = "+context+", level = "+level+", subLevels = "+subLevels);
                         HashMap contextMap = (HashMap)levelMap.get(level);
                         if (contextMap == null) {
                                 contextMap = new HashMap();
@@ -215,19 +216,23 @@ public class NetPropertyTree {
                                         }
                                 }
                         
+                                //System.err.println("get: context = "+context+", level = "+level+", subLevels = "+subLevels);
                                 HashMap contextMap = (HashMap)levelMap.get(level);
                                 if (contextMap == null) {
+                                        //System.err.println("get: no contextMap");
                                         break;
                                 }
 
                                 NetPropertyTree propertyTree = null;
 
                                 if (context != null) {
+                                        //System.err.println("get: context = "+context);
                                         propertyTree = (NetPropertyTree)contextMap.get(context);
                                         if (propertyTree != null) {
-                                                propertyTree.get(subLevels+":"+property);
+                                                result = propertyTree.get(subLevels+":"+property);
 
                                                 if (result != null) {
+                                                        //System.err.println("get: context = "+context+", found = "+result);
                                                         return result;
                                                 } else {
                                                         propertyTree = null;
@@ -236,6 +241,8 @@ public class NetPropertyTree {
 
                                         context = null;
                                 }
+
+                                //System.err.println("get: context = null");
 
                                 propertyTree = (NetPropertyTree)contextMap.get(null);
 
@@ -248,8 +255,7 @@ public class NetPropertyTree {
                                 } else {
                                         result = propertyTree.get(property);
                                 }   
-                        }
-                        while (false);
+                        } while (false);
 
                         if (result == null) {
                                 if (subLevels != null) {
@@ -261,7 +267,9 @@ public class NetPropertyTree {
 
                         return result;
                 } else {
-                        return valueMap.get(property);
+                        Object result = valueMap.get(property);
+                        //System.err.println("result = " + result);
+                        return result;
                 }
         }
         

@@ -11,6 +11,7 @@ import java.net.InetAddress;
 
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.Hashtable;
 
 /**
  * Provides a generic multiple network output poller.
@@ -35,6 +36,8 @@ public class MultiSplitter extends NetOutput {
 	 */
 	protected Vector    osVector     = null;
 
+        protected Hashtable driverTable = null;
+
 	/**
 	 * Constructor.
 	 *
@@ -47,6 +50,7 @@ public class MultiSplitter extends NetOutput {
 		outputVector = new Vector();
 		isVector     = new Vector();
 		osVector     = new Vector();
+                driverTable  = new Hashtable();
 	}
 
 	/**
@@ -131,8 +135,13 @@ public class MultiSplitter extends NetOutput {
                         }
                 
 
-                        String    subDriverName = getProperty(subContext, "Driver");
-                        NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
+                        NetDriver subDriver = (NetDriver)driverTable.get(subContext);
+                        if (subDriver == null) {
+                                String    subDriverName = getProperty(subContext, "Driver");
+                                subDriver = driver.getIbis().getDriver(subDriverName);
+                                driverTable.put(subContext, subDriver);
+                        }
+                        
                         NetOutput no            = newSubOutput(subDriver, subContext);
 		
                         no.setupConnection(rpn, is, os, nls);
