@@ -10,4 +10,7 @@ interface Configuration {
     static final boolean traceAdding = false;
     static final boolean traceMatches = false;
     static final boolean traceLookahead = false;
+    static final boolean traceCompressionCosts = true;
+
+    static final boolean doVerification = true;
 };

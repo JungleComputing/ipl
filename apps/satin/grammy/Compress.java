@@ -4,13 +4,12 @@ import java.io.File;
 
 class Compress extends ibis.satin.SatinObject
 {
-    static int lookahead_depth = Configuration.LOOKAHEAD_DEPTH;
     static boolean doVerification = false;
 
     public ByteBuffer compress( byte text[] )
     {
 	SuffixArray a = new SuffixArray( text );
-	ByteBuffer out = a.compress( lookahead_depth );
+	ByteBuffer out = a.compress();
         return out;
     }
 
@@ -34,7 +33,7 @@ class Compress extends ibis.satin.SatinObject
             }
             else if( args[i].equals( "-depth" ) ){
                 i++;
-                lookahead_depth = Integer.parseInt( args[i] );
+                //lookahead_depth = Integer.parseInt( args[i] );
             }
             else if( infile == null ){
                 infile = new File( args[i] );
@@ -53,8 +52,6 @@ class Compress extends ibis.satin.SatinObject
         }
         byte text[] = Helpers.readFile( infile );
 	long startTime = System.currentTimeMillis();
-
-        System.out.println( "Recursion depth: " + lookahead_depth );
 
         Compress c = new Compress();
 
