@@ -13,6 +13,7 @@ import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.AALOAD;
+import org.apache.bcel.generic.AASTORE;
 import org.apache.bcel.generic.ALOAD;
 import org.apache.bcel.generic.ARETURN;
 import org.apache.bcel.generic.ARRAYLENGTH;
@@ -23,6 +24,7 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.DUP;
+import org.apache.bcel.generic.DUP_X1;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.GOTO;
 import org.apache.bcel.generic.IAND;
@@ -43,6 +45,8 @@ import org.apache.bcel.generic.LDC;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.ArrayType;
+import org.apache.bcel.generic.POP;
 import org.apache.bcel.generic.PUSH;
 import org.apache.bcel.generic.RETURN;
 import org.apache.bcel.generic.ReferenceType;
@@ -522,11 +526,12 @@ public class IOGenerator {
 	    return temp;
 	}
 
-	private InstructionList writeReferenceField(Field field) {
+	private InstructionList writeReferenceField(Field field, MethodGen m) {
 	    Type field_type = Type.getType(field.getSignature());
 	    InstructionList write_il = new InstructionList();
 
 	    boolean isfinal = false;
+	    boolean isarray = false;
 	    JavaClass field_class = null;
 
 	    if (verbose) System.out.println("    writing reference field " + field.getName() + " of type " + field_type.getSignature());
@@ -535,6 +540,15 @@ public class IOGenerator {
 		field_class = Repository.lookupClass(((ObjectType)field_type).getClassName());
 		if (field_class != null && field_class.isFinal()) isfinal = true;
 	    }
+	    else if (field_type instanceof ArrayType) {
+		isarray = true;
+		Type el_type = ((ArrayType) field_type).getElementType();
+		if (el_type instanceof ObjectType) {
+		    field_class = Repository.lookupClass(((ObjectType)el_type).getClassName());
+		    if (field_class != null && field_class.isFinal()) isfinal = true;
+		}
+	    }
+
 	    if (isfinal &&
 		( hasIbisConstructor(field_class) ||
 		  (isSerializable(field_class) && force_generated_calls)) &&
@@ -559,18 +573,71 @@ public class IOGenerator {
 
 		write_il.append(ifcmp);
 
-		write_il.append(new ALOAD(0));
-		write_il.append(factory.createFieldAccess(classname,
-						    field.getName(),
-						    field_type,
-						    Constants.GETFIELD));
-		write_il.append(new ALOAD(1));
+		if (isarray) {
+		    write_il.append(new ALOAD(1));
+		    write_il.append(new ALOAD(0));
+		    write_il.append(factory.createFieldAccess(classname,
+							field.getName(),
+							field_type,
+							Constants.GETFIELD));
+		    write_il.append(new ARRAYLENGTH());
+		    write_il.append(new DUP_X1());
+		    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeInt", Type.VOID, new Type[] { Type.INT }, Constants.INVOKEVIRTUAL));
+		    write_il.append(new ICONST(0));
+		    write_il.append(new ISTORE(3));
+		    GOTO gto = new GOTO(null);
+		    write_il.append(gto);
 
-		write_il.append(createGeneratedWriteObjectInvocation(field_class.getClassName(), Constants.INVOKEVIRTUAL));
+		    InstructionHandle loop_body_start = write_il.append(new ALOAD(1));
+		    write_il.append(new ALOAD(0));
+		    write_il.append(factory.createFieldAccess(classname,
+							field.getName(),
+							field_type,
+							Constants.GETFIELD));
+		    write_il.append(new ILOAD(3));
+		    write_il.append(new AALOAD());
+
+		    write_il.append(factory.createInvoke(ibis_output_stream_name,
+						   "writeKnownObjectHeader",
+						   Type.INT,
+						   new Type[] { Type.OBJECT },
+						   Constants.INVOKEVIRTUAL));
+		    write_il.append(new ISTORE(2));
+		    write_il.append(new ILOAD(2));
+		    write_il.append(new ICONST(1));
+		    IF_ICMPNE ifcmp1  = new IF_ICMPNE(null);
+		    write_il.append(ifcmp1);
+
+		    write_il.append(new ALOAD(0));
+		    write_il.append(factory.createFieldAccess(classname,
+							field.getName(),
+							field_type,
+							Constants.GETFIELD));
+		    write_il.append(new ILOAD(3));
+		    write_il.append(new AALOAD());
+		    write_il.append(new ALOAD(1));
+		    write_il.append(createGeneratedWriteObjectInvocation(field_class.getClassName(), Constants.INVOKEVIRTUAL));
+
+		    ifcmp1.setTarget(write_il.append(new IINC(3, 1)));
+		    gto.setTarget(write_il.append(new DUP()));
+
+		    write_il.append(new ILOAD(3));
+		    write_il.append(new IF_ICMPGT(loop_body_start));
+		    write_il.append(new POP());
+		}
+		else {
+		    write_il.append(new ALOAD(0));
+		    write_il.append(factory.createFieldAccess(classname,
+							field.getName(),
+							field_type,
+							Constants.GETFIELD));
+		    write_il.append(new ALOAD(1));
+
+		    write_il.append(createGeneratedWriteObjectInvocation(field_class.getClassName(), Constants.INVOKEVIRTUAL));
+		}
 
 		InstructionHandle target = write_il.append(new NOP());
 		ifcmp.setTarget(target);
-
 	    } else {
 		write_il.append(writeInstructions(field));
 	    }
@@ -752,7 +819,7 @@ public class IOGenerator {
 			if (verbose) System.out.println("    writing field " + field.getName() + " of type " + field.getSignature());
 			if (! field_type.equals(Type.STRING) &&
 			    ! field_type.equals(java_lang_class_type)) {
-			    write_il.append(writeReferenceField(field));
+			    write_il.append(writeReferenceField(field, write_gen));
 			}
 			else {
 			    write_il.append(writeInstructions(field));
@@ -767,7 +834,9 @@ public class IOGenerator {
 	private InstructionList readReferenceField(Field field, boolean from_constructor) {
 	    Type field_type = Type.getType(field.getSignature());
 	    InstructionList read_il = new InstructionList();
+
 	    boolean isfinal = false;
+	    boolean isarray = false;
 	    JavaClass field_class = null;
 
 	    if (verbose) System.out.println("    reading reference field " + field.getName() + " of type " + field_type.getSignature());
@@ -775,6 +844,14 @@ public class IOGenerator {
 	    if (field_type instanceof ObjectType) {
 		field_class = Repository.lookupClass(((ObjectType)field_type).getClassName());
 		if (field_class != null && field_class.isFinal()) isfinal = true;
+	    }
+	    else if (field_type instanceof ArrayType) {
+		isarray = true;
+		Type el_type = ((ArrayType) field_type).getElementType();
+		if (el_type instanceof ObjectType) {
+		    field_class = Repository.lookupClass(((ObjectType)el_type).getClassName());
+		    if (field_class != null && field_class.isFinal()) isfinal = true;
+		}
 	    }
 
 	    if (isfinal &&
@@ -796,16 +873,105 @@ public class IOGenerator {
 		IF_ICMPNE ifcmp  = new IF_ICMPNE(null);
 		read_il.append(ifcmp);
 
-		read_il.append(new ALOAD(0));
+		if (isarray) {
+		    Type el_type = ((ArrayType) field_type).getElementType();
+		    read_il.append(new ALOAD(0));
+		    read_il.append(new ALOAD(1));
+		    read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream", "readInt", Type.INT, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+		    read_il.append(new DUP());
+		    read_il.append(new ISTORE(3));
+		    read_il.append(factory.createNewArray(((ArrayType) field_type).getElementType(), (short)1));
+		    read_il.append(factory.createFieldAccess(classname,
+							     field.getName(),
+							     field_type,
+							     Constants.PUTFIELD));
+		    read_il.append(new ALOAD(1));
+		    read_il.append(new ALOAD(0));
+		    read_il.append(factory.createFieldAccess(classname,
+							     field.getName(),
+							     field_type,
+							     Constants.GETFIELD));
 
-		read_il.append(factory.createNew((ObjectType)field_type));
-		read_il.append(new DUP());
-		read_il.append(new ALOAD(1));
-		read_il.append(createInitInvocation(field_class.getClassName(), factory));
-		read_il.append(factory.createFieldAccess(classname,
-							 field.getName(),
-							 field_type,
-							 Constants.PUTFIELD));
+		    read_il.append(factory.createInvoke(ibis_input_stream_name,
+							"addObjectToCycleCheck",
+							Type.VOID,
+							new Type[] {Type.OBJECT},
+							Constants.INVOKEVIRTUAL));
+		    read_il.append(new ICONST(0));
+		    read_il.append(new ISTORE(4));
+		    GOTO gto1 = new GOTO(null);
+		    read_il.append(gto1);
+
+
+		    InstructionHandle loop_body_start = read_il.append(new ALOAD(1));
+		    read_il.append(factory.createInvoke(ibis_input_stream_name,
+						   "readKnownTypeHeader",
+						   Type.INT,
+						   Type.NO_ARGS,
+						   Constants.INVOKEVIRTUAL));
+		    read_il.append(new ISTORE(2));
+		    read_il.append(new ILOAD(2));
+		    read_il.append(new ICONST(-1));
+
+		    IF_ICMPNE ifcmp1 = new IF_ICMPNE(null);
+		    read_il.append(ifcmp1);
+
+		    read_il.append(new ALOAD(0));
+		    read_il.append(factory.createFieldAccess(classname,
+							     field.getName(),
+							     field_type,
+							     Constants.GETFIELD));
+		    read_il.append(new ILOAD(4));
+
+		    read_il.append(factory.createNew((ObjectType)el_type));
+		    read_il.append(new DUP());
+		    read_il.append(new ALOAD(1));
+		    read_il.append(createInitInvocation(field_class.getClassName(), factory));
+		    read_il.append(new AASTORE());
+		    GOTO gto2  = new GOTO(null);
+		    read_il.append(gto2);
+		    InstructionHandle cmp_goto2 = read_il.append(new ILOAD(2));
+		    ifcmp1.setTarget(cmp_goto2);
+		    read_il.append(new ICONST(0));
+		    IF_ICMPEQ ifcmpeq2 = new IF_ICMPEQ(null);
+		    read_il.append(ifcmpeq2);
+
+		    read_il.append(new ALOAD(0));
+		    read_il.append(factory.createFieldAccess(classname,
+							     field.getName(),
+							     field_type,
+							     Constants.GETFIELD));
+		    read_il.append(new ILOAD(4));
+
+		    read_il.append(new ALOAD(1));
+		    read_il.append(new ILOAD(2));
+		    read_il.append(factory.createInvoke(ibis_input_stream_name,
+						   "getObjectFromCycleCheck",
+						   Type.OBJECT,
+						   new Type[] { Type.INT },
+						   Constants.INVOKEVIRTUAL));
+		    read_il.append(factory.createCheckCast((ReferenceType)el_type));
+		    read_il.append(new AASTORE());
+		    InstructionHandle target2 = read_il.append(new NOP());
+		    ifcmpeq2.setTarget(target2);
+		    gto2.setTarget(target2);
+		    read_il.append(new IINC(4, 1));
+		    gto1.setTarget(read_il.append(new ILOAD(3)));
+		    read_il.append(new ILOAD(4));
+		    read_il.append(new IF_ICMPGT(loop_body_start));
+		}
+		else {
+		    read_il.append(new ALOAD(0));
+
+		    read_il.append(factory.createNew((ObjectType)field_type));
+		    read_il.append(new DUP());
+		    read_il.append(new ALOAD(1));
+		    read_il.append(createInitInvocation(field_class.getClassName(), factory));
+		    read_il.append(factory.createFieldAccess(classname,
+							     field.getName(),
+							     field_type,
+							     Constants.PUTFIELD));
+		}
 
 		GOTO gto  = new GOTO(null);
 		read_il.append(gto);
@@ -826,7 +992,7 @@ public class IOGenerator {
 					       new Type[] { Type.INT },
 					       Constants.INVOKEVIRTUAL));
 
-		read_il.append(factory.createCheckCast((ObjectType)field_type));
+		read_il.append(factory.createCheckCast((ReferenceType)field_type));
 		read_il.append(factory.createFieldAccess(classname,
 						    field.getName(),
 						    field_type,
