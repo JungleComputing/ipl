@@ -15,8 +15,5 @@ java: $(CLASS_FILES) $(MAIN_CLASS)
 	$(GROUPC_COMMAND) Test
 	$(JAVAC_COMMAND) group_*.java
 
-manta: $(MAIN) $(O_FILES)
-	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) ../../../../ibis/$(IBIS_LIB)
-
 clean:
 	rm -f $(TRASH_FILES) group_*_Test.java

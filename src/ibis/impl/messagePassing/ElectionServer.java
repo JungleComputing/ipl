@@ -15,6 +15,8 @@ class ElectionServer
     private boolean started = false;
     private boolean finished = false;
 
+    final static boolean DEBUG = true;
+
 
     public void upcall(ibis.ipl.ReadMessage m) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
@@ -24,7 +26,10 @@ class ElectionServer
 	    Object o = m.readObject();
 	    m.finish();
 
-// System.err.println(Thread.currentThread() + "ElectionServer receives election " + name);
+	    if (ElectionServer.DEBUG) {
+		System.err.println(Thread.currentThread() + "ElectionServer receives election " + name + " contender " + o.toString());
+	    }
+
 	    Object e;
 	    synchronized (elections) {
 		while (! started) {
@@ -41,12 +46,16 @@ class ElectionServer
 		}
 	    }
 
-// System.err.println(Thread.currentThread() + "ElectionServer pronounces election " + name + " winner " + e);
+	    if (ElectionServer.DEBUG) {
+		System.err.println(Thread.currentThread() + "ElectionServer pronounces election " + name + " winner " + e.toString());
+	    }
 	    ibis.ipl.WriteMessage r = client_port[sender].newMessage();
 	    r.writeObject(e);
 	    r.send();
 	    r.finish();
-// System.err.println(Thread.currentThread() + "ElectionServer election " + name + " done");
+	    if (ElectionServer.DEBUG) {
+		System.err.println(Thread.currentThread() + "ElectionServer election " + name + " done");
+	    }
 	} catch (ClassNotFoundException e) {
 	    System.err.println(Thread.currentThread() + ": ElectionServer upcall exception " + e);
 	    Thread.dumpStack();

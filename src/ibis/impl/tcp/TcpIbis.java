@@ -106,6 +106,7 @@ public final class TcpIbis extends Ibis {
 
 	protected void init() throws IbisException, IbisIOException { 
 
+System.err.println("In TcpIbis.init()");
 		poolSize = 1;
 
 		Properties p = System.getProperties();
@@ -124,6 +125,7 @@ public final class TcpIbis extends Ibis {
 		} catch (UnknownHostException e) {
 			throw new IbisIOException("cannot get ip of name server", e);
 		}
+System.err.println("Found nameServerInet " + nameServerInet);
 
 		try {
 			ident = new TcpIbisIdentifier();
@@ -132,6 +134,7 @@ public final class TcpIbis extends Ibis {
 		} catch (UnknownHostException e) {
 			throw new IbisIOException("cannot get ip of local host", e);
 		}
+System.err.println("Made IbisIdentifier " + ident);
 
 		try { 
 			tcpIbisNameServerClient = new TcpIbisNameServerClient(this, ident, nameServerPool, nameServerInet, 

@@ -24,6 +24,7 @@ public abstract class Ibis {
 		Ibis impl;
 
 		try { 
+System.err.println("Create Ibis(" + name + ", " + implName + ")");
 			if (implName == null) { 
 				throw new NullPointerException("Implementation name is null");
 			} 
@@ -32,7 +33,9 @@ public abstract class Ibis {
 				throw new NullPointerException("Ibis name is null");
 			} 
 			
+System.err.println("Gonna call Ibis.newInstance");
 			impl = (Ibis) Class.forName(implName).newInstance();
+System.err.println("Created new Ibis = " + impl);
 			impl.name = name;
 			impl.resizeHandler = resizeHandler;
 			impl.init(); //@@@ EXPORT THIS !! We want to check the properties before doint an init!! 

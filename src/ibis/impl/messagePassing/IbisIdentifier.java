@@ -11,7 +11,7 @@ final class IbisIdentifier
     int cpu;
 
     IbisIdentifier(String name, int cpu) {
-	this.name = name;
+	this.name = name + "@" + cpu;
 	this.cpu  = cpu;
     }
 

@@ -107,7 +107,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 			obj_out.writeObject(receiver);
 			obj_out.writeObject(sp.identifier());
 			obj_out.flush();
-//			obj_out.close();
+			// This is a bug: obj_out.close();
 
 //			System.err.println("Reading result");
 			int result = data_in.readByte();

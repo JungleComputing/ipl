@@ -6,11 +6,12 @@
 .PHONY:		manta
 .PHONY:		java
 
-# default:	manta
-default:	java
+default:	manta
+# default:	java
 
 PROFILE		= 0
 OPTIMIZE	= 1
+MANTA_CLASS_FILE	= 1
 
 MYRINET_ROOT    = /usr/local/package/myrinet/lib/intel_linux
 GM_ROOT		= /usr/gm
@@ -58,7 +59,7 @@ GM		= $(GM_ROOT)/lib/libgm.a
 GROUPC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.group.Main
 
 GROUP_FILES = $(SRC:%.java=%.gjava)
-CLASS_FILES = $(SRC:%.java=%.class)
+CLASS_FILES = $(SRC:%.java=%.class) $(INNER_CLASS)
 MAIN_CLASS = $(MAIN:%.java=%.class)
 MAIN_CLASS_NAME = $(MAIN:%.java=%)
 
@@ -84,6 +85,7 @@ ifeq ($(OPTIMIZE), 1)
 CFLAGS		+= -O3 -DNDEBUG
 else
 MANTACFLAGS	+= -no-opt-comm
+MANTACFLAGS	+= -no-inline
 endif
 ifeq ($(PROFILE), 1)
 CFLAGS		+= -pg
@@ -104,6 +106,7 @@ LASM_CACHE	:= $(IBIS_ROOT)/ibis/LASM_IBIS_CACHE
 MANTA	= @MANTA_ROOT@
 export MANTA
 MANTACLASSPATH	= $(IBIS_ROOT):$(IBIS_ROOT)/ibis:$(MANTA)/javalibs:.
+
 MANTACFLAGS	+= -classpath $(MANTACLASSPATH)
 MANTACFLAGS	+= -g
 MANTACFLAGS	+= -no-shared-link
@@ -119,7 +122,7 @@ SRC		+= $(REMOTE)
 SRC		+= $(REMOTE:%.java=rmi_skeleton_%.java)
 SRC		+= $(REMOTE:%.java=rmi_stub_%.java)
 
-O_FILES		:= $(SRC:%.java=%.o)
+O_FILES		:= $(SRC:%.java=%.o) $(INNER_CLASS:%.class=%.o)
 
 ifneq (, $(SERIALIZABLE))
 # DEPENDENCIES	:= ibis.depend.Serializable
@@ -139,6 +142,7 @@ else
 PKG_SUF		:= .o
 endif
 PKG_O_FILES	:= $(O_FILES:%.o=%$(PKG_SUF))
+PKG_O_DOLLAR	:= $(subst $$,\$$,$(PKG_O_FILES))
 
 MANTA_LIB	= $(IBIS_ROOT)/ibis/ipl/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
@@ -163,15 +167,11 @@ TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s *.class 
 .SUFFIXES:
 .SUFFIXES:      .o .class .java .satin .c $(PKG_SUF) .jad _ibis_io_Generator.java _ibis_io_Generator.class
 
+
+ifeq (0, $(MANTA_CLASS_FILE))
+
 .java.o:
 	$(MANTAC_COMMAND) -c $*.java
-
-.class_ibis_io_Generator.class:
-ifeq (ibis.,$(findstring ibis., $(PACKAGE)))
-	cd $(IBIS_ROOT); $(IOC_COMMAND) $(PACKAGEDOT)$*
-else
-	$(IOC_COMMAND) $(PACKAGEDOT)$*
-endif
 
 .java_ibis_io_Generator.java:
 	$(JAVAC_COMMAND) $*.java
@@ -191,6 +191,20 @@ endif
 	$(JAD) -f $*_ibis_io_Generator.class
 	mv $*_ibis_io_Generator.jad $*_ibis_io_Generator.java
 
+endif
+
+
+.class.o:
+	$(MANTAC_COMMAND) -c $(subst $$,\$$,$*.class)
+
+.class_ibis_io_Generator.class:
+ifeq (ibis.,$(findstring ibis., $(PACKAGE)))
+	cd $(IBIS_ROOT); $(IOC_COMMAND) $(PACKAGEDOT)$*
+else
+	$(IOC_COMMAND) $(PACKAGEDOT)$*
+endif
+
+
 rmi_stub_%.java:	%.class
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
@@ -198,24 +212,47 @@ rmi_skeleton_%.java:	%.class
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
 .o$(PKG_SUF):
-	cp $*.o $@
+	cp $(subst $$,\$$,$*.o) $(subst $$,\$$,$@)
 
 .java.class:
 	$(JAVAC_COMMAND) $*.java
 
-manta:
-	$(MAKE) $(MFLAGS) src
-ifneq (, $(SERIALIZABLE))
-	$(MAKE) $(MFLAGS) USE_DECOMPILE=1 serializers
-endif
-	$(MAKE) $(MFLAGS) $(PKG_O_FILES)
-ifneq (, $(OUT))
-	$(MAKE) $(MFLAGS) $(OUT)
-endif
-
 manta:	$(LASM_CACHE)
 
-$(O_FILES):	$(LASM_CACHE)
+manta:
+ifeq (0, $(MANTA_CLASS_FILE))
+	@echo Now make manta:src
+	$(MAKE) $(MFLAGS) src
+endif
+ifneq (, $(SERIALIZABLE))
+	@echo Now make manta:serializers
+ifeq (0, $(MANTA_CLASS_FILE))
+	$(MAKE) $(MFLAGS) USE_DECOMPILE=1 serializers
+else
+	$(MAKE) $(MFLAGS) USE_DECOMPILE=0 serializers
+endif
+endif
+ifneq (0, $(MANTA_CLASS_FILE))
+	@echo Now make manta:class files
+	$(MAKE) $(MFLAGS) $(CLASS_FILES)
+endif
+ifneq (, $(C_SRC))
+	@echo Now make manta:.h files for native
+	$(MAKE) $(MFLAGS) h_files
+endif
+ifeq (,$(PACKAGE))
+ifneq (, $(OUT))
+	@echo Now make manta:out $(OUT)
+	$(MAKE) $(MFLAGS) $(OUT)
+endif
+else
+	@echo Now make manta:manta_lib
+	$(MAKE) $(MFLAGS) manta_lib
+endif
+
+.PHONY:	manta_lib
+manta_lib:	$(PKG_O_FILES) $(C_OBJ)
+	$(AR) ru $(MANTA_LIB) $(PKG_O_DOLLAR) $(C_OBJ)
 
 $(LASM_CACHE):
 	-mkdir -p $@
@@ -237,14 +274,14 @@ endif
 ifneq (, $(SERIALIZABLE))
 .PHONY: serializers
 ifeq (0, $(USE_DECOMPILE))
-serializers:	$(SERIALIZABLE:%.java=%_ibis_io_Generator.class) $(REMOTE:%.java=rmi_stub_%.java) $(REMOTE:%.java=rmi_skeleton_%.java)
+serializers:	$(SERIALIZABLE:%.java=%.class) $(SERIALIZABLE:%.java=%_ibis_io_Generator.class) $(REMOTE:%.java=rmi_stub_%.java) $(REMOTE:%.java=rmi_skeleton_%.java)
 else
 serializers:	$(SERIALIZABLE:%.java=%_ibis_io_Generator.java) $(REMOTE:%.java=rmi_stub_%.java) $(REMOTE:%.java=rmi_skeleton_%.java)
 endif
 endif
 
-$(OUT): $(MAIN) $(O_FILES) $(MANTA_LIB)
-	$(MANTAC_COMMAND) -o $@ $(MAIN) $(O_FILES) $(MANTA_LIB)
+$(OUT): $(MAIN:%.java=%.class) $(O_FILES) $(MANTA_LIB)
+	$(MANTAC_COMMAND) -o $@ $(MAIN:%.java=%.class) $(O_FILES) $(MANTA_LIB)
 
 .PHONY: src
 src:	$(SRC) $(REMOTE) $(MAIN)

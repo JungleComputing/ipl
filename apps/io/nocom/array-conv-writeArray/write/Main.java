@@ -12,7 +12,7 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = 1024*1024;
+	public static final int LEN   = 100*1024;
 	public static final int COUNT = 100;
 	public static final int TESTS = 10;
 
@@ -29,13 +29,57 @@ public class Main {
 			double best_ktp = 0.0;
 			long best_time = 1000000;
 
-			System.out.println("Main starting");
+			// System.out.println("Main starting");
 
 			NullOutputStream naos = new NullOutputStream();
 			BufferedArrayOutputStream baos = new BufferedArrayOutputStream(naos);
 			MantaOutputStream mout = new MantaOutputStream(baos);
 							
-			System.out.println("Writing int[" + (LEN/4) + "]");
+			System.out.print("Write arr +cnv byte[" + (LEN) + "]\t");
+
+			byte [] temp = new byte[(LEN)];
+
+			for (int x=0;x<(LEN);x++) { 
+				temp[x] = (byte)x;
+			} 
+
+			for (int j=0;j<TESTS;j++) { 
+
+				start = System.currentTimeMillis();
+				
+				for (int i=0;i<COUNT;i++) {
+					mout.writeArray(temp, 0, LEN);
+					mout.flush();
+					mout.reset();
+				}
+				
+				end = System.currentTimeMillis();
+
+				bytes = naos.getAndReset();
+				
+				long time = end-start;
+				double kb = COUNT*LEN;
+				double ktp = ((1000.0*kb)/(1024*1024))/time;
+
+				// System.out.println("Write took " + time + " ms");
+//				System.out.println("Payload bytes written " + kb + " throughput = " + ktp + " MBytes/s");
+//				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
+
+				if (time < best_time) { 
+					best_time = time;
+					best_ktp = ktp;
+				}
+			} 
+
+//			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
+			System.out.println("" + round(best_ktp));
+			temp = null;
+			best_time = 1000000;
+			
+			/*********************/
+
+							
+			System.out.print("Write arr +cnv int[" + (LEN/4) + "]\t");
 
 			int [] temp1 = new int[(LEN/4)];
 
@@ -61,7 +105,7 @@ public class Main {
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Write took " + time + " ms");
+				// System.out.println("Write took " + time + " ms");
 //				System.out.println("Payload bytes written " + kb + " throughput = " + ktp + " MBytes/s");
 //				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
 
@@ -72,13 +116,13 @@ public class Main {
 			} 
 
 //			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("int [] : " + round(best_ktp));
+			System.out.println("" + round(best_ktp));
 			temp1 = null;
 			best_time = 1000000;
 			
 			/*********************/
 
-			System.out.println("Writing long[" + (LEN/8) + "]");
+			System.out.print("Write arr +cnv long[" + (LEN/8) + "]\t");
 
 			long [] temp2 = new long[(LEN/8)];
 
@@ -100,7 +144,7 @@ public class Main {
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Write took " + time + " ms");
+				// System.out.println("Write took " + time + " ms");
 //				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
 //				System.out.println("Payload bytes written " + kb + " throughput = " + ktp + " MBytes/s");
 //				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
@@ -112,13 +156,13 @@ public class Main {
 			} 
 
 //			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("long [] : " + round(best_ktp));
+			System.out.println("" + round(best_ktp));
 			temp2 = null;
 			best_time = 1000000;
 
 			/***********************************/
 
-			System.out.println("Writing double[" + (LEN/8) + "]");
+			System.out.print("Write arr +cnv double[" + (LEN/8) + "]\t");
 
 			double [] temp3 = new double[LEN/8];
 
@@ -140,7 +184,7 @@ public class Main {
 				double kb = COUNT*LEN;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Write took " + time + " ms");
+				// System.out.println("Write took " + time + " ms");
 //				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
 //				System.out.println("Payload bytes written " + kb + " throughput = " + ktp + " MBytes/s");
 //				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
@@ -152,7 +196,7 @@ public class Main {
 			} 
 
 //			System.out.println("Best result : " + best_rtp + " MBytes/sec (" + best_ktp + " MBytes/sec)");
-			System.out.println("double [] : " + round(best_ktp));
+			System.out.println("" + round(best_ktp));
 
 
 		} catch (Exception e) {

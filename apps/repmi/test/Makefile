@@ -12,9 +12,6 @@ java: $(CLASS_FILES) $(MAIN_CLASS)
 	java manta.frontend.repmi.Main -v Test
 	$(JAVAC_COMMAND) repmi_s*.java
 
-manta: $(MAIN) $(O_FILES)
-	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) ../../../../ibis/$(IBIS_LIB)
-
 clean:
 	rm -f $(TRASH_FILES) repmi_s*_Test.java
 

@@ -200,7 +200,7 @@ public abstract class ReceivePortNameServerClient
 			ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, BACKOFF_MILLIS, true);
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri.cpu = " + ri.cpu + " ns_done = " + ns_done);
 
-			if (ri.cpu != -1) {
+			if (ri != null && ri.cpu != -1) {
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: clear lookup.ns_busy" + this);
 			    ns_busy = false;
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: signal potential waiters");

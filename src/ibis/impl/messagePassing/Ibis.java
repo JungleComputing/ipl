@@ -62,6 +62,9 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 	systemProperties.add("multicast", "false");
 	systemProperties.add("totally ordered", "false");
 	systemProperties.add("open world", "false");
+	if (DEBUG) {
+	    System.err.println("Turn on Ibis.DEBUG");
+	}
     }
 
     public ibis.ipl.PortType createPortType(String name,

@@ -50,7 +50,9 @@ class ElectionClient implements ElectionProtocol {
 	m.send();
 	m.finish();
 
-// System.err.println(Thread.currentThread() + "ElectionClient: elect(): send done, now start rcve");
+	if (ElectionServer.DEBUG) {
+	    System.err.println(Thread.currentThread() + "ElectionClient: elect(): send done, now start rcve");
+	}
 
 	ibis.ipl.ReadMessage r = rport.receive();
 	Object winner = null;
@@ -60,7 +62,9 @@ class ElectionClient implements ElectionProtocol {
 	    throw new IbisIOException(e);
 	}
 	r.finish();
-// System.err.println(Thread.currentThread() + "ElectionClient: elect() finished, winner " + winner + " my stake " + candidate);
+	if (ElectionServer.DEBUG) {
+	    System.err.println(Thread.currentThread() + "ElectionClient: elect() finished, winner " + winner + " my stake " + candidate);
+	}
 
 	return winner;
     }

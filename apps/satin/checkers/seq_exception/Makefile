@@ -13,9 +13,6 @@ OUT = checkers
 
 java: $(CLASS_FILES)
 
-manta: $(O_FILES)
-	$(MANTAC_COMMAND) $(MAIN_SRC) -o $(OUT) $(O_FILES)
-
 clean:
 	rm -rf *.class *~ JobQueue_* SharedInt_* *.c *.h *.jac *.o *core *.s $(OUT) LASM_CACHE
 

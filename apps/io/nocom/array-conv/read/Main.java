@@ -11,7 +11,7 @@ import ibis.io.MantaOutputStream;
 public class Main {
 
 	public static final boolean DEBUG = false;
-	public static final int LEN   = 1024*1024;
+	public static final int LEN   = 100*1024;
 	public static final int COUNT = 100;
 	public static final int TESTS = 10;
 		
@@ -28,7 +28,7 @@ public class Main {
 			double best_ktp = 0.0;
 			long best_time = 1000000;
 
-			System.out.println("Main starting");
+			// System.out.println("Main starting");
 			
 			StoreBuffer buf = new StoreBuffer();
 			StoreOutputStream out = new StoreOutputStream(buf);
@@ -104,13 +104,13 @@ public class Main {
 			// Create array
 			int [] temp1 = new int[LEN/4];
 			
-			System.out.println("Reading int[" + (LEN/4) + "]");
+			System.out.print("Read +new +cnv int[" + (LEN/4) + "]\t");
 
 			mout.writeObject(temp1);
 			mout.flush();
 			mout.reset();
 
-			System.out.println("Wrote " + out.getAndReset() + " bytes");
+			// System.out.println("Wrote " + out.getAndReset() + " bytes");
 			
 //			System.out.println("Reading int[" + (LEN/4) + "]");
 			min.readObject();
@@ -125,7 +125,7 @@ public class Main {
 
 			bytes = out.getAndReset();
 
-			System.out.println("Wrote " + bytes + " bytes");
+			// System.out.println("Wrote " + bytes + " bytes");
 			
 //			System.out.println("Starting test");
 
@@ -164,13 +164,13 @@ public class Main {
 			// Create array
 			long [] temp2 = new long[LEN/8];
 			
-			System.out.println("Reading long[" + (LEN/8) + "]");
+			System.out.print("Read +new +cnv long[" + (LEN/8) + "]\t");
 
 			mout.writeObject(temp2);
 			mout.flush();
 			mout.reset();
 
-			System.out.println("Wrote " + out.getAndReset() + " bytes");
+			// System.out.println("Wrote " + out.getAndReset() + " bytes");
 			
 //			System.out.println("Reading long[" + (LEN/8) + "]");
 			min.readObject();
@@ -185,7 +185,7 @@ public class Main {
 
 			bytes = out.getAndReset();
 
-			System.out.println("Wrote " + bytes + " bytes");
+			// System.out.println("Wrote " + bytes + " bytes");
 			
 //			System.out.println("Starting test");
 
@@ -224,13 +224,13 @@ public class Main {
 			// Create array
 			double [] temp3 = new double[LEN/8];
 			
-			System.out.println("Reading double[" + (LEN/8) + "]");
+			System.out.print("Read +new +cnv double[" + (LEN/8) + "]\t");
 
 			mout.writeObject(temp3);
 			mout.flush();
 			mout.reset();
 
-			System.out.println("Wrote " + out.getAndReset() + " bytes");
+			// System.out.println("Wrote " + out.getAndReset() + " bytes");
 			
 //			System.out.println("Reading double[" + (LEN/8) + "]");
 			min.readObject();
@@ -245,7 +245,7 @@ public class Main {
 
 			bytes = out.getAndReset();
 
-			System.out.println("Wrote " + bytes + " bytes");
+			// System.out.println("Wrote " + bytes + " bytes");
 			
 //			System.out.println("Starting test");
 

@@ -27,6 +27,9 @@ final class TcpSendPort implements SendPort {
 	boolean aMessageIsAlive = false;
 	Sender sender;
 
+	// Ronald needs this as a quick fix around his bugs:
+	ibis.ipl.WriteMessage ronald_wm;
+
 	TcpSendPort(TcpPortType type) throws IbisIOException {
 		this(type, null);
 	}
@@ -66,6 +69,7 @@ final class TcpSendPort implements SendPort {
 		}
 
 		/* first check the types */
+System.err.println("Connect(), my type " + type + "=" + type.name() + " receiver " + receiver);
 		if(!type.name().equals(receiver.type())) {
 			throw new IbisIOException("Cannot connect ports of different PortTypes");
 		}
@@ -85,7 +89,7 @@ final class TcpSendPort implements SendPort {
 	    System.err.println("Implement TcpSendPort.connect(receiver, timeout)");
 	}
 
-	public WriteMessage newMessage() throws IbisIOException { 
+	public ibis.ipl.WriteMessage newMessage() throws IbisIOException { 
 		synchronized(this) {
 			while(aMessageIsAlive) {
 				try {
@@ -97,7 +101,8 @@ final class TcpSendPort implements SendPort {
 			
 			aMessageIsAlive = true;
 		}
-		return sender.newMessage();
+		ronald_wm = sender.newMessage();
+		return ronald_wm;
 	}
 
 	public DynamicProperties properties() {

@@ -11,7 +11,7 @@ MAIN = Main.java
 OUT=latency
 
 SERIALIZABLE	=
-SERIALIZABLE	+= List.java
+SERIALIZABLE	+= DITree.java
 
 include ../../../../../config.mk
 
