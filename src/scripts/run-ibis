@@ -11,22 +11,26 @@ then
 	prun=0
 	Dns_pool=
 	PRUN_CPU_RANK=0
+	NHOSTS=1
 	run_name=$0
 else
 	prun=1
 	# prun mangles the program name ($0) into something like
 	# ./run-ibis.0.8949.fs0, which does not look nice.
 	run_name=run-ibis
+	NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
 	case X$1 in
-	X[0-9]*)
-		echo "$run_name: You probably forgot to pass the -no-panda flag on to prun."
-		echo "$run_name: Will now skip the first two parameters ..."
-		shift
-		shift
+	X$PRUN_CPU_RANK)
+		case X$2 in
+		X$NHOSTS)
+			# User probably forgot to pass the -no-panda flag
+			shift
+			shift
+			;;
+		esac
 		;;
 	esac
 	Dns_pool="-Dibis.name_server.key=$PRUN_ENV"
-	NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
 	Dpool_total="-Dibis.pool.total_hosts=$NHOSTS"
 	Dpool_host_num="-Dibis.pool.host_number=$PRUN_CPU_RANK"
 	Dpool_host_names="-Dibis.pool.host_names=\"$HOSTS\""
@@ -146,6 +150,8 @@ attach=0
 noJIT=0
 dedicated_nameserver=0
 singlecpu=0
+no_pool=0
+portno_specified=0
 
 JAVA_EXEC=java
 Xbootclasspath="-Xbootclasspath/p:$JAVACLASSPATH"
@@ -169,7 +175,6 @@ dir=$PWD
 
 while [ $# -gt 0 ]
 do
-        qarg="'"$1"'"
 # echo now inspect argument $1 -- left $#
         case "$1" in
 	-attach)
@@ -191,6 +196,7 @@ do
 		    ;;
 		esac
 		Dpool_total="-Dibis.pool.total_hosts=$1"
+		NHOSTS=$1
 		;;
 	-hostno)
 		shift
@@ -219,7 +225,22 @@ do
 		;;
 	-ns)
 		shift
-		Dns_server="-Dibis.name_server.host=$1"
+		case $1 in
+		*:*)
+			# "new" syntax: <nameserver-host>:<portno>
+			if [ $portno_specified -eq 1 ]
+			then
+				echo "$run_name: nameserver port specified more than once" 1>&2
+				exit 1
+			fi
+			Dns_server="-Dibis.name_server.host="`expr "$1" : '\(.*\):.*'`
+			Dns_port="-Dibis.name_server.port="`expr "$1" : '.*:\(.*\)'`
+			portno_specified=1
+			;;
+		*)
+			Dns_server="-Dibis.name_server.host=$1"
+			;;
+		esac
 		;;
 	-pg)
 		shift
@@ -230,6 +251,12 @@ do
 		prof="$1"
 		;;
 	-ns-port)
+		if [ $portno_specified -eq 1 ]
+		then
+			echo "$run_name: nameserver port specified more than once" 1>&2
+			exit 1
+		fi
+		portno_specified=1
 		shift
 		Dns_port="-Dibis.name_server.port=$1"
 		;;
@@ -260,9 +287,8 @@ do
 		JIT_OPTS="$JIT_OPTS -Dibis.util.ip.address=$ip_addr"
 		# This is required if Sun's RMI is used
 		JIT_OPTS="$JIT_OPTS -Djava.rmi.server.hostname=$ip_addr"
-		if [ -z "$PRUN_ENV" ]
-		then	:
-		else
+		if [ $prun -eq 1 ]
+		then
 		    export HOSTS="`$IBIS_ROOT/bin/ip_map.perl $ip_map $HOSTS`"
 		    # echo HOSTS $HOSTS
 		    # echo PRUN_HOSTNAMES $PRUN_HOSTNAMES
@@ -283,7 +309,6 @@ do
 		break
 		;;
         *)      
-		shift
 		break
                 ;;
         esac
@@ -294,9 +319,8 @@ done
 # if no_pool is set, kill all pool info
 #
 
-if [ -z "$no_pool" ]
-then	:
-else
+if [ $no_pool -eq 1 ]
+then
 	Dpool_total=
 	Dpool_host_num=
 	Dpool_host_names=
