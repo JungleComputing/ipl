@@ -423,11 +423,12 @@ try {
 \end{verbatim}
 \end{quote}
 
-When a receive port is created, it will not accept connections until
-the \verb+enableConnections+ method is invoked. So, the creator of
+When a receive port is created, it will not immediately accept connections.
+This must be explicitly enabled by
+invoking the \verb+enableConnections+ method. So, the creator of
 the receive port can determine when he is ready to accept connections.
-Also, if the receive port is configured for upcalls, these must
-explicitly be enabled by calling \verb+enableUpcalls+.
+If the receive port is configured for upcalls, these must
+explicitly be enabled by invoking the \verb+enableUpcalls+ method.
 
 \subsubsection{Setting Up a Connection}
 
@@ -633,6 +634,32 @@ This shutdown hook gets invoked when the program terminates.
 \mysection{Compiling and Running an Ibis Program}
 
 Before running an Ibis application it must be compiled.
+Using \emph{ant}, this is quite easy. Here is a build.xml file for
+our example program:
+
+\begin{quote}
+\begin{verbatim}
+<project
+    name="client-server"
+    default="build"
+    basedir=".">
+
+    <description>
+    Ibis application build.
+    </description>
+
+    <property name="ibis"   location="/usr/local/ibis"/>
+    <property name="build"  location="build"/>
+
+    <import file="${ibis}/apps/ibis/build-ibis-app.xml"/>
+</project>
+\end{verbatim}
+\end{quote}
+Note that the assumption here is that Ibis is installed in
+\verb+/usr/local/ibis+.
+
+Now, invoking \emph{ant} compiles the application, leaving the class files
+in a directory called \verb+build+.
 
 \mysection{The Satin Divide-and-Conquer System}
 
