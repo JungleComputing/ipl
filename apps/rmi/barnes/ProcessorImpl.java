@@ -679,9 +679,13 @@ public synchronized void setEssential( int Source, int bCount, SendBody [] b, in
 	    } else {
 	      myBods = new SendBody[ g.gdMaxTempBodies ];
 	      for (int j=0; j<g.gdMaxTempBodies; j++) {
-		myBods[j] = new SendBody();
-		myBods[j].bPos = essBody[i][j].bPos;
-		myBods[j].bMass = essBody[i][j].bMass;
+		if (essBody[i][j] != null) {
+		    myBods[j] = new SendBody();
+		    myBods[j].bPos = essBody[i][j].bPos;
+		    myBods[j].bMass = essBody[i][j].bMass;
+		} else {
+		    myBods[j] = null;
+		}
 	      }
 	      extraBods += (g.gdMaxTempBodies - essBodyCount[i]);
 	      extraCOFM += (g.gdMaxTempCentersOfMass - essCenterOfMassCount[i]);
