@@ -2,7 +2,14 @@ package ibis.group;
 
 /**
  * The {@link BinomialCombiner} class serves as a base class for user-defined
- * binomial (result) combiners.
+ * binomial (reply) combiners. This class contains methods that can be used
+ * to do a pairwise combine of the results. There is a combine method for
+ * each result type. The user-defined combiner-class should redefine the
+ * combine methods that it will use.
+ *
+ * This class is not abstract, because the user-defined combiner does not have
+ * to supply all "combine" methods (for all different result types). Therefore,
+ * default ones are supplied that just throw an exception.
  */
 public class BinomialCombiner implements java.io.Serializable { 
 
@@ -26,7 +33,11 @@ public class BinomialCombiner implements java.io.Serializable {
      * Combiner with boolean results.
      *
      * See {@link #combine(int,Exception,int,Exception,int)}
-     * for a description of the parameters.
+     * for a description of some of the parameters.
+     * The other parameters are:
+     *
+     * @param result1 the first result
+     * @param result2 the second result
      */
     public boolean combine(int rank1, boolean result1, Exception e1,
 			   int rank2, boolean result2, Exception e2,
@@ -37,7 +48,7 @@ public class BinomialCombiner implements java.io.Serializable {
     /**
      * Combiner with byte results.
      *
-     * See {@link #combine(int,Exception,int,Exception,int)}
+     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
      * for a description of the parameters.
      */
     public byte combine(int rank1, byte result1, Exception e1,
@@ -49,7 +60,7 @@ public class BinomialCombiner implements java.io.Serializable {
     /**
      * Combiner with char results.
      *
-     * See {@link #combine(int,Exception,int,Exception,int)}
+     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
      * for a description of the parameters.
      */
     public char combine(int rank1, char result1, Exception e1,
@@ -61,7 +72,7 @@ public class BinomialCombiner implements java.io.Serializable {
     /**
      * Combiner with short results.
      *
-     * See {@link #combine(int,Exception,int,Exception,int)}
+     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
      * for a description of the parameters.
      */
     public short combine(int rank1, short result1, Exception e1,
@@ -73,7 +84,7 @@ public class BinomialCombiner implements java.io.Serializable {
     /**
      * Combiner with int results.
      *
-     * See {@link #combine(int,Exception,int,Exception,int)}
+     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
      * for a description of the parameters.
      */
     public int combine(int rank1, int result1, Exception e1,
@@ -85,7 +96,7 @@ public class BinomialCombiner implements java.io.Serializable {
     /**
      * Combiner with long results.
      *
-     * See {@link #combine(int,Exception,int,Exception,int)}
+     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
      * for a description of the parameters.
      */
     public long combine(int rank1, long result1, Exception e1,
@@ -97,7 +108,7 @@ public class BinomialCombiner implements java.io.Serializable {
     /**
      * Combiner with float results.
      *
-     * See {@link #combine(int,Exception,int,Exception,int)}
+     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
      * for a description of the parameters.
      */
     public float combine(int rank1, float result1, Exception e1,
@@ -109,7 +120,7 @@ public class BinomialCombiner implements java.io.Serializable {
     /**
      * Combiner with double results.
      *
-     * See {@link #combine(int,Exception,int,Exception,int)}
+     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
      * for a description of the parameters.
      */
     public double combine(int rank1, double result1, Exception e1,
@@ -121,7 +132,7 @@ public class BinomialCombiner implements java.io.Serializable {
     /**
      * Combiner with Object results.
      *
-     * See {@link #combine(int,Exception,int,Exception,int)}
+     * See {@link #combine(int,boolean,Exception,int,boolean,Exception,int)}
      * for a description of the parameters.
      */
     public Object combine(int rank1, Object result1, Exception e1, int rank2, Object result2, Exception e2, int size) { 

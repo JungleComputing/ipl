@@ -1,6 +1,10 @@
 package ibis.group;
 
-import ibis.ipl.*;
+import ibis.ipl.WriteMessage;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.IbisIOException;
+import ibis.ipl.IbisException;
+
 import ibis.util.SpecialStack;
 
 /**

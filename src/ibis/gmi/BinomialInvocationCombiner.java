@@ -6,7 +6,7 @@ package ibis.group;
  */
 public abstract class BinomialInvocationCombiner { 
     /**
-     * The combine method, to be filled in by any class that extends
+     * The combine method, to be defined by any class that extends
      * the {@link BinomialInvocationCombiner} class.
      *
      * @param in1 the first input {@link ParameterVector}

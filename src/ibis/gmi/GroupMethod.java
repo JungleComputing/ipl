@@ -148,15 +148,23 @@ public class GroupMethod {
 	    result_mode = rep.mode;
 	    break;
 	case ReplyScheme.R_FORWARD:
+	    // Could check here that the forwarder supplied in fact has
+	    // a proper forward method for the result type of this group method!
 	    result_mode = rep.mode;
 	    break;
 	case ReplyScheme.R_COMBINE_BINOMIAL:
 	    result_mode = rep.mode;
+	    // Could check here that the combiner supplied in fact has
+	    // a proper combine method for the result type of this group method!
 	    break;
 	case ReplyScheme.R_COMBINE_FLAT:
+	    // Could check here that the combiner supplied in fact has
+	    // a proper combine method for the result type of this group method!
 	    result_mode = rep.mode;
 	    break;
 	case ReplyScheme.R_PERSONALIZED:
+	    // No checks here, the default reply personalizer could be
+	    // fine.
 	    result_mode = rep.mode + ((PersonalizeReply) rep).rs.mode;
 	    break;
 	}

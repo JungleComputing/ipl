@@ -9,6 +9,10 @@ import ibis.util.SpecialStack;
  * A forwarder is to be defined for the {@link ForwardReply} reply scheme.
  * When this reply scheme is used, all replies of a group method invocation
  * are passed to this forwarder object, through calls to a "forward" method.
+ *
+ * This class is not abstract, because the user-defined forwarder does not have
+ * to supply all "forward" methods (for all different result types). Therefore,
+ * default ones are supplied that just throw an exception.
  */
 public class Forwarder implements GroupProtocol { 
     /* Set when this forwarder is busy. */

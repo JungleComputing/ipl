@@ -7,8 +7,8 @@ import ibis.ipl.IbisIOException;
 import ibis.ipl.SendPort;
 
 /**
- * The {@link GroupSkeleton} class serves as a base class for generated skeletons.
- * It also has methods for reply combining.
+ * The {@link GroupSkeleton} class serves as a base class for generated
+ * skeletons. It also has methods for reply combining.
  */
 
 public abstract class GroupSkeleton implements GroupProtocol {
@@ -245,7 +245,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
      * @return the result of the combine.
      * @exception when combiner throws an exception, or on IO error.
      */
-    public final synchronized float combine_float(BinomialCombiner combiner, boolean to_all, int lroot, float local_result, Exception ex) throws Exception {
+    protected final synchronized float combine_float(BinomialCombiner combiner, boolean to_all, int lroot, float local_result, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;
@@ -338,7 +338,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * See {@link #combine_float}, but for a group method with a double result.
      */
-    public final synchronized double combine_double(BinomialCombiner combiner, boolean to_all, int lroot, double local_result, Exception ex) throws Exception {
+    protected final synchronized double combine_double(BinomialCombiner combiner, boolean to_all, int lroot, double local_result, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;
@@ -430,7 +430,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * See {@link #combine_float}, but for a group method with a long result.
      */
-    public final synchronized long combine_long(BinomialCombiner combiner, boolean to_all, int lroot, long local_result, Exception ex) throws Exception {
+    protected final synchronized long combine_long(BinomialCombiner combiner, boolean to_all, int lroot, long local_result, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;
@@ -520,7 +520,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * See {@link #combine_float}, but for a group method with an int result.
      */
-    public final synchronized int combine_int(BinomialCombiner combiner, boolean to_all, int lroot, int local_result, Exception ex) throws Exception {
+    protected final synchronized int combine_int(BinomialCombiner combiner, boolean to_all, int lroot, int local_result, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;
@@ -609,7 +609,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * See {@link #combine_float}, but for a group method with a short result.
      */
-    public final synchronized short combine_short(BinomialCombiner combiner, boolean to_all, int lroot, short local_result, Exception ex) throws Exception {
+    protected final synchronized short combine_short(BinomialCombiner combiner, boolean to_all, int lroot, short local_result, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;
@@ -699,7 +699,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * See {@link #combine_float}, but for a group method with a char result.
      */
-    public final synchronized char combine_char(BinomialCombiner combiner, boolean to_all, int lroot, char local_result, Exception ex) throws Exception {
+    protected final synchronized char combine_char(BinomialCombiner combiner, boolean to_all, int lroot, char local_result, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;
@@ -789,7 +789,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * See {@link #combine_float}, but for a group method with a byte result.
      */
-    public final synchronized byte combine_byte(BinomialCombiner combiner, boolean to_all, int lroot, byte local_result, Exception ex) throws Exception {
+    protected final synchronized byte combine_byte(BinomialCombiner combiner, boolean to_all, int lroot, byte local_result, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;
@@ -880,7 +880,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * See {@link #combine_float}, but for a group method with a boolean result.
      */
-    public final synchronized boolean combine_boolean(BinomialCombiner combiner, boolean to_all, int lroot, boolean local_result, Exception ex) throws Exception {
+    protected final synchronized boolean combine_boolean(BinomialCombiner combiner, boolean to_all, int lroot, boolean local_result, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;
@@ -971,7 +971,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
     /**
      * See {@link #combine_float}, but for a group method with an Object result.
      */
-    public final synchronized Object combine_Object(BinomialCombiner combiner, boolean to_all, int lroot, Object local_result, Exception ex) throws Exception {
+    protected final synchronized Object combine_Object(BinomialCombiner combiner, boolean to_all, int lroot, Object local_result, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;
@@ -1064,7 +1064,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
      * These need to be combined as well, both for synchronization purposes, and for the
      * exceptions.
      */
-    public final synchronized void combine_void(BinomialCombiner combiner, boolean to_all, int lroot, Exception ex) throws Exception {
+    protected final synchronized void combine_void(BinomialCombiner combiner, boolean to_all, int lroot, Exception ex) throws Exception {
 
 	int peer;
 	int mask = 1;

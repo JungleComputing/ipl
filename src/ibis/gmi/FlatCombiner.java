@@ -4,6 +4,10 @@ package ibis.group;
  * The {@link FlatCombiner} class serves as a base class for user-defined
  * result flat-combiners. The user-defined flatcombiner is supposed to redefine
  * the "combine" versions that the user is going to invoke.
+ *
+ * This class is not abstract, because the user-defined combiner does not have
+ * to supply all "combine" methods (for all different result types). Therefore,
+ * default ones are supplied that just throw an exception.
  */
 public class FlatCombiner { 
 

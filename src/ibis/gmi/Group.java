@@ -32,7 +32,7 @@ public final class Group implements GroupProtocol {
     /**
      * Enable/disable debugging prints.
      */
-    public final static boolean DEBUG = true;
+    public final static boolean DEBUG = false;
 
     /**
      * Ibis rank number in this run.
