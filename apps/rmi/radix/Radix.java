@@ -38,7 +38,6 @@ public class Radix {
     String output_file = null;
 
     Radix() throws IbisException {
-        startRMI();
         d = PoolInfo.createPoolInfo();
         nhosts = d.size();
         host = d.rank();
@@ -49,6 +48,7 @@ public class Radix {
         radix = DEFAULT_RADIX;
         num_Keys = DEFAULT_NUMBER_OF_KEYS;
         log2_Radix = DEFAULT_LOG2;
+        startRMI();
     }
 
     public void usage() {
