@@ -10,6 +10,7 @@ import java.util.StringTokenizer;
 
 import ibis.ipl.*;
 import ibis.util.Ticket;
+import ibis.util.PoolInfo;
 import ibis.util.SpecialStack;
 import java.lang.reflect.Method;
 
