@@ -745,7 +745,7 @@ public final class SATContext implements java.io.Serializable {
             // to the clauses, and fill them with the correct values.
 
             int newterms[] = new int[newCount];
-            System.arraycopy( terms, 0, newterms, 0, satisfied.length );
+            System.arraycopy( terms, 0, newterms, 0, terms.length );
             terms = newterms;
 
             boolean newsatisfied[] = new boolean[newCount];
@@ -763,8 +763,8 @@ public final class SATContext implements java.io.Serializable {
                 if( !issat ){
                     unsatisfied++;
                     cl.registerInfo( posinfo, neginfo, info );
+                    cl.registerVariableCounts( posclauses, negclauses );
                 }
-                cl.registerVariableCounts( posclauses, negclauses );
             }
             if( doVerification ){
                 for( int i=oldCount; i<newCount; i++ ){
