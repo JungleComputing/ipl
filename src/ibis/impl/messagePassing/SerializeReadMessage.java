@@ -12,7 +12,8 @@ final class SerializeReadMessage extends ReadMessage {
 	if (Ibis.DEBUG) {
 	    System.err.println("~~~~~~~~~ A new -sun- ReadMessage " + this);
 	}
-	obj_in = ((SerializeShadowSendPort)origin).obj_in;
+	SerializeShadowSendPort ssp = (SerializeShadowSendPort)origin;
+	obj_in = ssp.obj_in;
     }
 
     public boolean readBoolean() throws IOException {

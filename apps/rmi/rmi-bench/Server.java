@@ -1,7 +1,6 @@
-import java.net.*;
-import java.rmi.*;
-import java.rmi.server.*;
-import java.rmi.registry.*;
+import java.rmi.registry.Registry;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.io.IOException;
 
 public class Server extends UnicastRemoteObject implements i_Server, Runnable {
@@ -12,7 +11,7 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
     private Worker worker = null;
 
 
-    public Server(String[] args, Registry local) throws java.rmi.RemoteException {
+    public Server(String[] args, Registry local) throws RemoteException {
 	super();
 
 	System.err.println("Server object: constructor");
@@ -106,7 +105,7 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
     }
 
 
-    public void quit() throws java.rmi.RemoteException {
+    public void quit() throws RemoteException {
 	// System.out.println("Server receives quit request");
 	synchronized (this) {
 	    finished = true;

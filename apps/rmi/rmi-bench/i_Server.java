@@ -1,4 +1,5 @@
-import java.rmi.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
 public interface i_Server extends Remote {
 
@@ -9,6 +10,6 @@ public interface i_Server extends Remote {
     public void one_way(Object b) throws RemoteException;
 
     public void reset() throws RemoteException;
-    public void quit() throws java.rmi.RemoteException;
+    public void quit() throws RemoteException;
 
 }

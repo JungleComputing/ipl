@@ -34,7 +34,7 @@
 	    <os family="unix"/>
 	    <then>
 		<property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
-		<path id="local.includes-ref">
+		<path id="net-gm-local.includes-ref">
 		    <pathelement path="${package.home.gm}/include"/>
 		</path>
 	    </then>
@@ -42,13 +42,13 @@
 	    <os family="windows"/>
 	    <then>
 		<property name="gm.lib.dir"  location="${package.home.gm}/examples"/>
-		<path id="local.includes-ref">
+		<path id="net-gm-local.includes-ref">
 		    <pathelement path="${package.home.gm}"/>
 		</path>
 	    </then>
 	</elseif>
 	</if>
-	<property name="local.includes" refid="local.includes-ref"/>
+	<property name="local.includes" refid="net-gm-local.includes-ref"/>
 
 	<maplibrary property="library.path" name="${closure.lib}"/>
 	<echo level="warning" message="The library is ${library.path}"/>
@@ -70,7 +70,7 @@
 			runtime="dynamic"
 			incremental="true"
 			name="${c.compiler}"
-			debug="${native.debug.value}"
+			debug="${c.debug.value}"
 			warnings="severe">
 		    <libset dir="${gm.lib.dir}"    libs="gm"/>
 		    <includepath>
@@ -78,9 +78,9 @@
 			<pathelement path="${default.includes}"/>
 		    </includepath>
 		    <defineset>
-			<define name="NDEBUG" if="native.optimize"/>
+			<define name="NDEBUG" if="c.optimize"/>
 		    </defineset>
-		    <compilerarg value="${optimize.arg}" if="native.optimize"/>
+		    <compilerarg value="${c.optimize}" if="c.optimize"/>
 		    <fileset dir="." includes="*.c"/>
 		</cc>
 	    </sequential>

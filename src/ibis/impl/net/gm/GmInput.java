@@ -29,6 +29,12 @@ public final class GmInput extends NetBufferedInput {
 
 
 	/**
+	 * A negative value to signify a Rendez-vous request has
+	 * arrived
+	 */
+	final static int RENDEZ_VOUS_REQUEST = -1;
+
+	/**
 	 * The peer {@link ibis.impl.net.NetSendPort NetSendPort}
 	 * local number.
 	 */
@@ -129,7 +135,8 @@ public final class GmInput extends NetBufferedInput {
                 lmuxId  = nGetInputMuxId(inputHandle);
                 lockId  = lmuxId*2 + 2;
 
-                //System.err.println("initializing lockIds");
+// System.err.println(this + ": initializing lockIds, my lockId " + lockId);
+// Thread.dumpStack();
                 lockIds = new int[2];
                 lockIds[0] = lockId; // input lock
                 lockIds[1] = 0;      // main  lock
@@ -294,7 +301,7 @@ plld++;
                         firstBlock = false;
                 } else {
                         /* Request reception */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 }
 
                 Driver.gmReceiveLock.lock();
@@ -304,15 +311,15 @@ plld++;
                 Driver.gmAccessLock.unlock();
 
 // System.err.print("<_");
-// System.err.println("Post byte buffer request length " + b.length + " data.length " + b.data.length + " result " + result);
+// System.err.println("[" + lockId + "] Post byte buffer request length " + b.length + " data.length " + b.data.length + " result " + result);
 // Thread.dumpStack();
-                if (result == 0) {
+                if (result == RENDEZ_VOUS_REQUEST) {
 			// A rendez-vous message. Receive the data part.
                         /* Ack completion */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
 
                         /* Communication transmission */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
 
                         if (b.length == 0) {
                                 b.length = blockLen;
@@ -327,18 +334,22 @@ plld++;
 				throw new Error("length mismatch: got "+result+" bytes, "+b.length+" bytes were required");
                         }
                 }
-// System.err.print(rcvd + ">_");
+// System.err.print(rcvd + ">_[" + lockId + "]");
 // System.err.println("Received byte buffer " + b + " offset " + b.base + " size " + b.length);
 // Thread.dumpStack();
 
 rcvd++;
                 Driver.gmReceiveLock.unlock();
+		if (b.length == 0) {
+		    System.err.println("%%%%%%%%%%%%%%%%%% Receive a buffer of 0 bytes. This cannot be!");
+		}
                 log.out();
         }
 
 
         public void doFinish() throws IOException {
                 log.in();
+// System.err.println(this + ": [" + lockId + "] in doFinish");
                 //
                 log.out();
         }
@@ -414,7 +425,7 @@ rcvd++;
                         int result = nPostBooleanBuffer(inputHandle, b, o, _l);
                         Driver.gmAccessLock.unlock();
 
-                        if (result == 0) {
+                        if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
                                 pump(lockId, lockIds);
 
@@ -464,7 +475,7 @@ rcvd++;
                         Driver.gmAccessLock.unlock();
 // System.err.println(this + ": in readArray(byte[]..); result " + result + " chunk " + _l + " currently l " + l);
 
-                        if (result == 0) {
+                        if (result == RENDEZ_VOUS_REQUEST) {
                                 // Ack completion
                                 pump(lockId, lockIds);
 
@@ -504,7 +515,7 @@ rcvd++;
                         int result = nPostCharBuffer(inputHandle, b, o, _l);
                         Driver.gmAccessLock.unlock();
 
-                        if (result == 0) {
+                        if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
                                 pump(lockId, lockIds);
 
@@ -549,7 +560,7 @@ rcvd++;
                         Driver.gmAccessLock.unlock();
 // System.err.println(Thread.currentThread() + ": receive chunk of short, result " + result);
 
-                        if (result == 0) {
+                        if (result == RENDEZ_VOUS_REQUEST) {
 // System.err.println(Thread.currentThread() + ": ack completion, this would be a rendez-vous msg");
                                 /* Ack completion */
                                 pump(lockId, lockIds);
@@ -594,7 +605,7 @@ rcvd++;
                         int result = nPostIntBuffer(inputHandle, b, o, _l);
                         Driver.gmAccessLock.unlock();
 
-                        if (result == 0) {
+                        if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
                                 pump(lockId, lockIds);
 
@@ -636,7 +647,7 @@ rcvd++;
                         int result = nPostLongBuffer(inputHandle, b, o, _l);
                         Driver.gmAccessLock.unlock();
 
-                        if (result == 0) {
+                        if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
                                 pump(lockId, lockIds);
 
@@ -677,7 +688,7 @@ rcvd++;
                         int result = nPostFloatBuffer(inputHandle, b, o, _l);
                         Driver.gmAccessLock.unlock();
 
-                        if (result == 0) {
+                        if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
                                 pump(lockId, lockIds);
 
@@ -718,7 +729,7 @@ rcvd++;
                         int result = nPostDoubleBuffer(inputHandle, b, o, _l);
                         Driver.gmAccessLock.unlock();
 
-                        if (result == 0) {
+                        if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
                                 pump(lockId, lockIds);
 

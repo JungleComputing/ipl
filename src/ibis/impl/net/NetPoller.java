@@ -719,7 +719,6 @@ nCurrent++;
 	 * Call this synchronized(this)
 	 */
 	private void finishLocked(boolean implicit) throws IOException {
-// System.err.println(this + ": finish()");
                 log.in();
                 if (activeQueue != null) {
                         activeQueue.finish(implicit);
@@ -840,6 +839,9 @@ nCurrent++;
 	public int readBuffered(byte[] data, int offset, int length)
 		throws IOException {
 	    log.in();
+	    if (length < 0 || offset + length > data.length) {
+		throw new ArrayIndexOutOfBoundsException("Illegal buffer bounds");
+	    }
 	    if (! readBufferedSupported) {
 		throw new IOException("readBuffered not supported");
 	    }

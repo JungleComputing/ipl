@@ -6,8 +6,8 @@ final class NullArrayOutputStream extends ArrayOutputStream {
 	
 	long len = 0;
 
-	public final int getAndReset() { 
-		int temp = (int) len;
+	public final long getAndReset() { 
+		long temp = len;
 		len = 0;
 		return temp;
 	} 

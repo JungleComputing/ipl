@@ -21,11 +21,29 @@ public class Main {
 	} 
 
 	public static void main(String args[]) {
-		
+
+		int len = LEN;
+		int count = COUNT;
+
+		int params = 0;
+		for (int i = 0; i < args.length; i++) {
+		    if (false) {
+		    } else if (params == 0) {
+			count = Integer.parseInt(args[i]);
+			params++;
+		    } else if (params == 1) {
+			len = Integer.parseInt(args[i]);
+			params++;
+		    } else {
+			System.err.println("Main {iterations {tree size}}");
+			System.exit(33);
+		    }
+		}
+
 		try {
 			DITree temp = null;
 			long start, end;
-			int bytes;
+			long bytes;
 
 			double best_rtp = 0.0, best_ktp = 0.0;
 			long best_time = 1000000;
@@ -36,16 +54,16 @@ public class Main {
 			IbisSerializationOutputStream mout = new IbisSerializationOutputStream(naos);
 				
 			// Create tree
-			temp = new DITree(LEN);
+			temp = new DITree(len);
 			
-			System.err.println("Writing tree of " + LEN + " DITree objects");
+			System.err.println("Writing tree of " + len + " DITree objects");
 			// System.err.println("Writing tree " + temp);
 
 			for (int j=0;j<TESTS;j++) { 
 
 				start = System.currentTimeMillis();
 				
-				for (int i=0;i<COUNT;i++) {
+				for (int i=0;i<count;i++) {
 					mout.writeObject(temp);
 					mout.flush();
 					mout.reset();
@@ -57,12 +75,12 @@ public class Main {
 				
 				long time = end-start;
 				double rb = bytes;
-				double kb = COUNT*LEN*DITree.KARMI_SIZE;
+				double kb = count*len*DITree.KARMI_SIZE;
 
 				double rtp = ((1000.0*rb)/(1024*1024))/time;
 				double ktp = ((1000.0*kb)/(1024*1024))/time;
 
-				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(COUNT*LEN)) + " us/object");
+				System.out.println("Write took " + time + " ms.  => " + ((1000.0*time)/(count*len)) + " us/object");
 				System.out.println("Karmi bytes written " + kb + " throughput = " + ktp + " MBytes/s");
 				System.out.println("Real bytes written " + rb + " throughput = " + rtp + " MBytes/s");
 				mout.statistics();

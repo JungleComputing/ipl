@@ -34,8 +34,7 @@
     </target>
 
 
-    <target name="-one-javah"
-	    description="Do javah for one class in the build tree">
+    <target name="-one-javah">
 	<!--
 	-->
 	<echo	level="debug"
@@ -102,7 +101,7 @@
 
     <target name="find-natives"
 	    depends="javah-init"
-	    description="In the build tree, locate classes with native methods">
+	    description="Locate classes with native methods in the build tree">
 	<path id="all-classes">
 	    <fileset dir="${build}">
 		<include name="**/*.class"/>
@@ -165,12 +164,17 @@
 			file="${build}/NativeMethodClasses"
 			flags="g"
 			match="\n"
-			replace=" "/>
+			replace=","/>
 		<replaceregexp
 			file="${build}/NativeMethodClasses"
 			flags="g"
 			match="  *"
-			replace=" "/>
+			replace=""/>
+		<replaceregexp
+			file="${build}/NativeMethodClasses"
+			flags="g"
+			match=",$"
+			replace=""/>
 	    </sequential>
 	</outofdate>
     </target>
@@ -178,14 +182,16 @@
 
     <target name="javah"
 	    depends="javah-init,find-natives"
-	    description="Invoke javah over list in ${build}/NativeMethodClasses">
+	    description="Invoke javah over classes listed in ${build}/NativeMethodClasses">
 	<loadfile
 		property="classes.native"
 		srcFile="${build}/NativeMethodClasses">
+	    <!--
 	    <filterchain>
-		<prefixlines prefix=" "/>
+		<prefixlines prefix=","/>
 		<striplinebreaks/>
 	    </filterchain>
+	    -->
 	</loadfile>
 	<echo message="classes.native = ${classes.native}"/>
 	<if>
@@ -193,12 +199,21 @@
 	<then>
 	    <foreach
 		    list="${classes.native}"
-		    delimiter=" "
+		    delimiter=","
 		    target="-one-javah"
 		    param="native.class"
 		    inheritall="true"
 		    inheritrefs="true"
 		    />
+	    <!--
+	    <javah destdir="${build}/include">
+		<!-
+		<class name="${classes.native}"/>
+		->
+		<class name="ibis.impl.messagePassing.Ibis,ibis.impl.messagePassing.Poll"/>
+		<classpath refid="default.classpath"/>
+	    </javah>
+	    -->
 	</then>
 	</if>
     </target>
@@ -222,6 +237,59 @@
 	    local.lib		the truncated name of the lib you want to create
 
     -->
+
+    <target name="property-compiler-init"
+	    depends="property-config-init,contrib-init">
+
+	<if>
+	    <isset property="c.debug"/>
+	    <then>
+		<property name="c.debug.value" value="true"/>
+	    </then>
+	    <else>
+		<property name="c.debug.value" value="false"/>
+	    </else>
+	</if>
+
+	<if>
+	    <os family="unix"/>
+	    <then>
+		<property name="c.compiler" value="${c.compiler.unix}"/>
+		<if>
+		    <equals arg1="${c.optimization}" arg2="optimize"/>
+		    <then>
+			<property name="c.optimize" value="${c.optimize.unix}"/>
+		    </then>
+		</if>
+	    </then>
+	<elseif>
+	    <os family="windos"/>
+	    <then>
+		<property name="c.compiler" value="${c.compiler.windows}"/>
+		<if>
+		    <equals arg1="${c.optimization}" arg2="optimize"/>
+		    <then>
+			<property name="c.optimize" value="${c.optimize.windows}"/>
+		    </then>
+		</if>
+	    </then>
+	</elseif>
+	<elseif>
+	    <os family="mac"/>
+	    <then>
+		<property name="c.compiler" value="${c.compiler.mac}"/>
+		<if>
+		    <equals arg1="${c.optimization}" arg2="optimize"/>
+		    <then>
+			<property name="c.optimize" value="${c.optimize.mac}"/>
+		    </then>
+		</if>
+	    </then>
+	</elseif>
+	</if>
+
+    </target>
+
 
     <target name="property-native-outtype"
 	    depends="property-init"
@@ -247,7 +315,8 @@
 
 
     <target name="cpptasks-init" unless="cpptasks.initialized" depends="property-init">
-	<echo message="package.home.ant-cpptasks = ${package.home.ant-cpptasks}"/>
+	<echo	level="verbose"
+		message="package.home.ant-cpptasks = ${package.home.ant-cpptasks}"/>
 	<taskdef resource="cpptasks.tasks">
 	    <classpath>
 		<pathelement location="${package.home.ant-cpptasks}"/>
@@ -277,7 +346,8 @@
 	</path>
 	<property name="default.includes" refid="default.includes-ref"/>
 
-	<echo message="native.dir = ${native.dir}"/>
+	<echo	message="native.dir = ${native.dir}"
+		level="verbose"/>
 	<pathconvert pathsep=" " property="native-path">
 	    <path>
 		<pathelement path="${native.dir}"/>
@@ -321,6 +391,7 @@
 	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
 
 	<maplibrary property="library.path" name="${build}/lib/${local.lib}"/>
+
 	<outofdate>
 	    <sourcefiles>
 		<fileset dir="${native.dir}" includes="*.c"/>
@@ -330,7 +401,7 @@
 	    </targetfiles>
 
 	    <sequential>
-		<cc	debug="${native.debug}"
+		<cc	debug="${c.debug}"
 			objdir="${build}/ibis/${native-path}"
 			outfile="${build}/lib/${local.lib}"
 			outtype="${cc.outtype}"
@@ -339,9 +410,9 @@
 		    <fileset dir="${native.dir}" includes="*.c" unless="native.src"/>
 		    <fileset dir="${native.dir}" includes="${native.src}" if="native.src"/>
 		    <defineset>
-			<define name="NDEBUG" if="native.optimize"/>
+			<define name="NDEBUG" if="c.optimize"/>
 		    </defineset>
-		    <compilerarg value="${optimize.arg}" if="native.optimize"/>
+		    <compilerarg value="${c.optimize}" if="c.optimize"/>
 		    <includepath>
 			<pathelement path="${local.includes}"/>
 			<pathelement path="${default.includes}"/>
@@ -359,7 +430,8 @@
 	directory
     -->
     <target name="native"
-	    depends="native-init">
+	    depends="native-init"
+	    description="Compile native files in the current directory">
 	    <!-- ",javah" -->
 	<ant inheritAll="false" dir="." antfile="build-native.xml" target="native-compile">
 	    <property name="native.dir" value="."/>

@@ -24,7 +24,8 @@
 	    depends="property-repmi-build,property-init"/>
 
     <target name="repmi"
-	depends="repmi-init">
+	    depends="repmi-init"
+	    description="Preprocesses classes in the build tree for RepMI">
 	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
 	<path id="all-classes">
 	    <fileset dir="${build}">

@@ -10,20 +10,58 @@ otherwise, the latest version can be obtained from the ant website at
 
 Ibis requires at least version 1.6.0 of ant.
 
-To configure Ibis, type
+-------------------------------------------------------------------------
+
+I. Configuration
+
+I.1. Configuration without high-speed LAN
+
+If you don't have a high-speed LAN for which you require an Ibis
+module (like GM (Myrinet), MPI, or Panda) you have to do no configuration.
+
+I.2. Configuration with high-speed LAN
+
+If you do have a high-speed LAN for which you require an Ibis
+module (like GM (Myrinet), MPI, or Panda), you must configure
+Ibis by typing
 
 ant configure
 
 You will be asked for the path to a number of support libraries. If you
-don't have these libraries, just type <ENTER>.
+don't have one or more of these libraries, just type <ENTER>.
+The configuration setup figures out which of the support libraries
+actually exists. The Ibis build does not attempt to build the native
+code for absent modules.
 
-After Ibis has been configured, you can build it with
+I.3. Changes to your configuration
+
+If you want to change your configuration or want to set
+parameters for the build process, the preferred way is to
+change the generated file build-properties in the root Ibis
+directory.
+Changes are currently:
+ - paths to support libraries;
+ - switching on/off of java compiler optimization or debug symbol
+   generation;
+ - switching on/off of native compiler optimization or debug symbol
+   generation;
+ - native code compiler selection.
+
+-----------------------------------------------------------------------
+
+II. Build
+
+Build by typing
 
 ant
 
+-----------------------------------------------------------------------
 
+III. System-specific notes
 
 MacOS X
 =-=-=-=
 
 Set the environment variable `JAVA_HOME' to `/Library/Java/Home'.
+
+For native code generation, you are required to install the Java SDK.

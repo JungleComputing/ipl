@@ -45,15 +45,36 @@ static jmethodID	md_unlock;
 
 static jmethodID	md_poll;
 
-jclass		ibmp_cls_Ibis;
-jobject		ibmp_obj_Ibis_ibis;
+jclass			ibmp_cls_Ibis;
+jobject			ibmp_obj_Ibis_ibis;
 
-jclass		cls_java_io_IOException;
+jclass			cls_java_io_IOException;
 
-int		ibmp_me;
-int		ibmp_nr;
+int			ibmp_me;
+int			ibmp_nr;
 
 static int		ibmp_core_on_error;
+
+
+#if CATCHING_SIGNAL_HELPS
+
+#include <signal.h>
+
+static void
+attacher(int sig)
+{
+#define HOSTNAMELEN	1024
+    char	hostname[HOSTNAMELEN];
+
+    gethostname(hostname, sizeof(hostname));
+    while (1) {
+	fprintf(stderr, "%s pid %d: Catch signal %d. Attach me..\n",
+		hostname, getpid(), sig);
+	sleep(1);
+    }
+}
+
+#endif
 
 
 #ifdef IBP_VERBOSE
@@ -514,6 +535,10 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
     IBP_VPRINTF(2000, env, ("here...\n"));
     ibmp_byte_input_stream_init(env);
     IBP_VPRINTF(2000, env, ("here...\n"));
+
+#if CATCHING_SIGNAL_HELPS
+    signal(SIGSEGV, attacher);
+#endif
 
     return java_args;
 }

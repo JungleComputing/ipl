@@ -207,8 +207,25 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         /**
          * The callback function for processing incoming events.
          *
-         * <BR><B>Note 1:</B> the only {@linkplain NetPortEvent event} supported currently is the <I>close</I> {@linkplain NetPortEvent event} ({@link NetPortEvent#CLOSE_EVENT}) which is added to the eventQueue when a {@linkplain NetConnection connection} is detected to have been remotely closed. The argument of the <I>close</I> {@linkplain NetPortEvent event} is the {@linkplain NetConnection connection} identification {@link Integer}.
-         * <BR><B>Note 2:</B> there is a possible race condition in the case that the <I>close</I> {@linkplain NetPortEvent event} is triggered before the {@linkplain NetConnection connection} is added to the connection table. In that case, the {@linkplain NetPortEvent event} is ignored and when the {@linkplain NetConnection connection} later gets finally added to the connection table, there is no mechanism to remember that it has actually been closed and has no need to be kept in the connection table. There is no "simple light" solution to this problem as there is no "simple light way" to know whether a {@linkplain NetConnection connection} is not in the connection table because it has not yet been added to it or because it as already been closed earlier.
+         * <BR><B>Note 1:</B> the only {@linkplain NetPortEvent event}
+	 * supported currently is the <I>close</I> {@linkplain NetPortEvent
+	 * event} ({@link NetPortEvent#CLOSE_EVENT}) which is added to the
+	 * eventQueue when a {@linkplain NetConnection connection} is detected
+	 * to have been remotely closed. The argument of the <I>close</I>
+	 * {@linkplain NetPortEvent event} is the {@linkplain NetConnection
+	 * connection} identification {@link Integer}.
+         * <BR><B>Note 2:</B> there is a possible race condition in the case
+	 * that the <I>close</I> {@linkplain NetPortEvent event} is triggered
+	 * before the {@linkplain NetConnection connection} is added to the
+	 * connection table. In that case, the {@linkplain NetPortEvent event}
+	 * is ignored and when the {@linkplain NetConnection connection} later
+	 * gets finally added to the connection table, there is no mechanism
+	 * to remember that it has actually been closed and has no need to be
+	 * kept in the connection table. There is no "simple light" solution
+	 * to this problem as there is no "simple light way" to know whether
+	 * a {@linkplain NetConnection connection} is not in the connection
+	 * table because it has not yet been added to it or because it as
+	 * already been closed earlier.
          *
          * @param e the {@linkplain NetPortEvent event}.
          */

@@ -43,7 +43,9 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 		Collection c = outputMap.values();
 		Iterator i = c.iterator();
 		singleton = (NetOutput)i.next();
+// System.err.println(this + ": this is a singleton splitter");
 	    } else {
+// System.err.println(this + ": this is a NON-singleton splitter");
 		singleton = null;
 	    }
 	}
@@ -292,6 +294,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 		NetBufferedOutputSupport bo =
 		    (NetBufferedOutputSupport)singleton;
 		bo.writeBuffered(data, offset, length);
+// System.err.println(this + ": writeBuffered to singleton " + bo);
 	    } else {
 		Iterator i = outputMap.values().iterator();
 		do {
@@ -299,6 +302,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 		    NetBufferedOutputSupport bo =
 			(NetBufferedOutputSupport)no;
 		    bo.writeBuffered(data, offset, length);
+// System.err.println(this + ": writeBuffered to NON-singleton " + bo + (i.hasNext() ? "" : "NO ") + " more to come");
 		} while (i.hasNext());
 	    }
 	    log.out();

@@ -204,7 +204,9 @@ pollingThreads++;
 // System.err.println("pollingThreads " + pollingThreads);
                                         try {
 polls++;
+// System.err.println(this + ": do a blocking poll from loop...");
                                                 Integer num = doPoll(true);
+// System.err.println(this + ": blocking poll returns " + num);
 
                                                 if (num == null) {
                                                         // the connection was probably closed
@@ -217,16 +219,18 @@ pollSuccess++;
                                                 activeNum = num;
                                                 initReceive(activeNum);
                                         } catch (ConnectionClosedException e) {
+						// System.err.println("PooledUpcallThread + doPoll throws ConnectionClosedException. Should I quit??? " + e);
                                                 end = true;
                                                 return;
                                         } catch (InterruptedIOException e) {
+						// System.err.println("PooledUpcallThread + doPoll throws InterruptedIOException. Should I quit??? " + e);
                                                 if (end) {
                                                         return;
                                                 } else {
                                                         throw new Error(e);
                                                 }
                                         } catch (IOException e) {
-//					    System.err.println("PooledUpcallThread + doPoll throws IOException. Shouldn't I quit??? " + e);
+						System.err.println("PooledUpcallThread + doPoll throws IOException. Should I quit??? " + e);
 //                                                throw new Error(e);
 						return;
                                         }
@@ -239,11 +243,12 @@ pollSuccess++;
                                                 }
                                                 return;
                                         } catch (ConnectionClosedException e) {
-// System.err.println("PooledUpcallThread.inputUpcall() throws ConnectionClosedException " + e);
+						// System.err.println("PooledUpcallThread.inputUpcall() throws ConnectionClosedException " + e);
                                                 end = true;
                                                 return;
                                         } catch (IOException e) {
-//						System.err.println("PooledUpcallThread.inputUpcall() throws IOException. Shouldn't I quit??? " + e);
+						System.err.println("PooledUpcallThread.inputUpcall() throws IOException. Should I quit??? " + e);
+						e.printStackTrace(System.err);
 //                                                throw new Error(e);
 						end = true;
 						return;
@@ -270,7 +275,7 @@ pollingThreads--;
                                                 try {
                                                         implicitFinish();
                                                 } catch (Exception e) {
-//					    System.err.println("PooledUpcallThread,implicitFinish() throws IOException. Shouldn't I quit??? " + e);
+					    System.err.println("PooledUpcallThread,implicitFinish() throws IOException. Should I quit??? " + e);
 //                                                        throw new Error(e);
 							return;
                                                 }
@@ -504,7 +509,7 @@ pollFail++;
 // Thread.dumpStack();
                 threadStackLock.lock();
                 if (upcallFunc != null && upcallThreadNotStarted) {
-System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
+// System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
                         upcallThreadNotStarted = false;
                         PooledUpcallThread up = new PooledUpcallThread("no "+upcallThreadNum++);
                         utStat.addAllocation();

@@ -163,7 +163,7 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 		log.in();
                 // log.disp("IN value = "+value);
                 log.disp("IN");
-// System.err.println("Write one byte=" + value + " = '" + (char)value + "'");
+// System.err.println(this + ": Write one byte=" + value + " = '" + (char)value + "'");
 // Thread.dumpStack();
 
 		if (buffer == null) {
@@ -189,7 +189,7 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 	public void writeBuffered(byte[] userBuffer, int offset, int length)
 		throws IOException {
 	    log.in();
-// System.err.print("Write buffer[" + length + "] = ("); for (int i = offset; i < Math.min(length, 32); i++) System.err.print("0x" + Integer.toHexString(userBuffer[i] & 0xFF) + " "); System.err.println(")");
+// System.err.print(this + ": Write buffer[" + length + "] = ("); for (int i = offset, n = Math.min(offset + length, offset + 32); i < n; i++) System.err.print("0x" + Integer.toHexString(userBuffer[i] & 0xFF) + " "); System.err.println(")");
 // System.err.println("dataOffset " + dataOffset + " arrayThreshold " + arrayThreshold + " mtu " + mtu + " buffer " + buffer + " buffer.length " + (buffer != null ? buffer.length : -1));
 // Thread.dumpStack();
 	    if (length == 0) {

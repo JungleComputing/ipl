@@ -58,7 +58,7 @@
 			runtime="dynamic"
 			warnings="severe"
 			name="${c.compiler}"
-			debug="${native.debug.value}">
+			debug="${c.debug.value}">
 		    <libset dir="${mpi.lib.dir}"   libs="mpich"/>
 		    <libset dir="${gm.lib.dir}"    libs="gm"/>
 		    <libset dir="${das.lib.dir}"   libs="das"/>
@@ -67,9 +67,9 @@
 			<pathelement path="${default.includes}"/>
 		    </includepath>
 		    <defineset>
-			<define name="NDEBUG" if="native.optimize"/>
+			<define name="NDEBUG" if="c.optimize"/>
 		    </defineset>
-		    <compilerarg value="${optimize.arg}" if="native.optimize"/>
+		    <compilerarg value="${c.optimize}" if="c.optimize"/>
 		    <fileset dir="." includes="*.c"/>
 		</cc>
 	    </sequential>

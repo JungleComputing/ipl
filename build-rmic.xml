@@ -23,7 +23,8 @@
 	    depends="property-rmic-build,property-init"/>
 
     <target name="rmic"
-	depends="rmic-init">
+	    depends="rmic-init"
+	    description="Preprocess class files in the build tree for RMI">
 	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
 
 	<if>
@@ -77,7 +78,7 @@
 		dir="${build}"
 		failonerror="true"
 		fork="true">
-		<arg line="${rmic-flags.value} -dir ${rmic-classes}"/>
+		<arg line="${rmic-flags.value} -dir -java2ibis -v ${rmic-classes}"/>
 	    <classpath refid="default.classpath"/>
 	</java>
 	<javac	destdir="${build}"

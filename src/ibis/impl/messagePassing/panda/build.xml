@@ -69,7 +69,7 @@
 	<echo message="local.includes = ${local.includes}"/>
     </target>
 
-    <target name="panda-init-opt" depends="property-init,native-init,arch-init" if="native.optimize">
+    <target name="panda-init-opt" depends="property-init,native-init,arch-init" if="c.optimize">
 	<property
 		name="lfc.lib.dir"
 		location="${package.home.lfc}/lib/optimized"/>
@@ -77,7 +77,7 @@
 		name="panda.lib.dir"
 		location="${package.home.panda}/lib/${panda.arch}/lfc-gm/no_threads/optimized"/>
     </target>
-    <target name="panda-init-debug" depends="property-init,native-init,arch-init" unless="native.optimize">
+    <target name="panda-init-debug" depends="property-init,native-init,arch-init" unless="c.optimize">
 	<property
 		name="lfc.lib.dir"
 		location="${package.home.lfc}/lib/debug"/>
@@ -113,7 +113,7 @@
 			warnings="severe"
 			incremental="true"
 			name="${c.compiler}"
-			debug="${native.debug.value}">
+			debug="${c.debug.value}">
 		    <libset dir="${build}/lib"     libs="ibis_mp"/>
 		    <libset dir="${panda.lib.dir}" libs="panda"/>
 		    <libset dir="${lfc.lib.dir}"   libs="lfc"/>
@@ -124,9 +124,9 @@
 			<pathelement path="${default.includes}"/>
 		    </includepath>
 		    <defineset>
-			<define name="NDEBUG" if="native.optimize"/>
+			<define name="NDEBUG" if="c.optimize"/>
 		    </defineset>
-		    <compilerarg value="${optimize.arg}" if="native.optimize"/>
+		    <compilerarg value="${c.optimize}" if="c.optimize"/>
 		    <fileset dir="." includes="*.c"/>
 		</cc>
 	    </sequential>

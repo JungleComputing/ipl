@@ -10,53 +10,15 @@
 
 	    ibis          the root of the Ibis tree
 
-	Optional prior property definition:
-
-	    build         the root of the build tree
-
-
 	Specify in this file:
-
-	    package.home.ant-cpptasks	root of ant-cpptasks
-	    package.home.ant-contrib	root of ant-contrib
-	    package.home.bcel		root of bcel
-
-	    property optimization is one of
-		optimize
-		debug
-
-	    property c.compiler is one from the list in cpp-tasks cc.
-	    Suggestions:
-		gcc			if unix
-		msvc or bcc		if windows
     </description>
 
+    <property name="build-properties.xml-imported" value="true"/>
 
     <target name="property-init"
 	    depends="property-init-once"
 	    unless="property.initialized">
 	<property name="property.initialized" value="true"/>
-    </target>
-
-
-    <target name="property-init-once"
-	    depends="property-config-init,property-compiler-init,contrib-init,proprietary-tasks">
-    </target>
-
-
-    <target name="property-config-init">
-	<!--
-	    Defines shared by all projects under ibis
-	-->
-
-	<property file="${ibis}/build-properties"/>
-
-	<property name="ibisBuild"   location="${ibis}/build"/>
-    </target>
-
-
-    <target name="property-compiler-init"
-	    depends="property-config-init,contrib-init">
 
 	<path id="default.classpath">
 	    <pathelement path="${ibisBuild}"/>
@@ -64,40 +26,41 @@
 	    <pathelement path="${package.home.bcel}"/>
 	</path>
 
-	<echo message="Now set default.classpath to ${default.classpath}"/>
-
-	<!--
-	    Choose a value from
-		debug
-		optimize
-	<property name="optimization" value="optimize"/>
-	<property name="optimization" value="debug"/>
-	-->
-	<property name="optimization" value="optimize"/>
-
-	<!--
-	    If you want debug info in java or native, define these properties.
-	    It is only relevant whether they are defined - - giving them the
-	    value "true" has the same effect as giving them the value "false".
-	    To avoid debug info, just comment out the following two lines.
-	-->
-	<!--
-	-->
-	<property name="java.debug" value="true"/>
-	<property name="native.debug" value="true"/>
+	<echo	message="Now set default.classpath to ${default.classpath}"
+		level="verbose"/>
 
 	<if>
-	    <equals arg1="${optimization}" arg2="optimize"/>
+	    <os family="unix"/>
+	    <then>
+		<property name="os.family" value="unix"/>
+	    </then>
+	<elseif>
+	    <os family="windos"/>
+	    <then>
+		<property name="os.family" value="windos"/>
+	    </then>
+	</elseif>
+	<elseif>
+	    <os family="mac"/>
+	    <then>
+		<property name="os.family" value="mac"/>
+	    </then>
+	</elseif>
+	</if>
+
+	<!--
+	    Expand the settings in build-properties for optimized compilation
+	    or debug symbol generation to more usable properties
+	-->
+	<if>
+	    <equals arg1="${java.optimization}" arg2="optimize"/>
 	    <then>
 		<property name="java.optimize" value="true"/>
 		<property name="java.optimize.value" value="true"/>
-		<property name="native.optimize" value="true"/>
-		<property name="native.optimize.value" value="true"/>
 	    </then>
 	    <else>
-		<!-- The trick is to NOT set native.optimize or java.optimize -->
+		<!-- The trick is to NOT set java.optimize -->
 		<property name="java.optimize.value" value="false"/>
-		<property name="native.optimize.value" value="false"/>
 	    </else>
 	</if>
 	<if>
@@ -109,41 +72,22 @@
 		<property name="java.debug.value" value="false"/>
 	    </else>
 	</if>
-	<if>
-	    <isset property="native.debug"/>
-	    <then>
-		<property name="native.debug.value" value="true"/>
-	    </then>
-	    <else>
-		<property name="native.debug.value" value="false"/>
-	    </else>
-	</if>
+    </target>
 
+
+    <target name="property-init-once"
+	    depends="property-config-init,property-compiler-init,contrib-init,proprietary-tasks">
+    </target>
+
+
+    <target name="property-config-init">
 	<!--
-	    Choose the C compiler of your liking.
-	    Override if you are not content with the default.
+	    User-configured defines shared by all projects under ibis
 	-->
-	<if>
-	    <os family="unix"/>
-	    <then>
-		<property name="c.compiler" value="gcc"/>
-		<property name="optimize.arg" value="-O3"/>
-	    </then>
-	<elseif>
-	    <os family="windows"/>
-	    <then>
-		<property name="c.compiler" value="bcc"/>
-		<property name="optimize.arg" value="-O2"/>
-	    </then>
-	</elseif>
-	<elseif>
-	    <os family="mac"/>
-	    <then>
-		<property name="c.compiler" value="gcc"/>
-		<property name="optimize.arg" value="-O3"/>
-	    </then>
-	</elseif>
-	</if>
+
+	<property file="${ibis}/build-properties"/>
+
+	<property name="ibisBuild"   location="${ibis}/build"/>
     </target>
 
 
@@ -159,8 +103,7 @@
     </target>
 
 
-    <target name="proprietary-tasks"
-	    depends="property-config-init">
+    <target name="proprietary-tasks">
 	<mkdir dir="${ibis}/ant-tasks/tasks"/>
 	<javac
 		srcdir="${ibis}/ant-tasks"

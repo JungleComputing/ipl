@@ -77,6 +77,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 
     private int		clients = -1;
     private int		servers = 1;
+    private boolean	bcast = false;
     private boolean	i_am_client = false;
 
     private int		warmup = -1;
@@ -88,7 +89,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 
 
     private final boolean USE_RESIZEHANDLER = false;
-    private final boolean EMPTY_REPLY	= true;
+    private final boolean EMPTY_REPLY	= true; // false; // true;
 
     private boolean reset = true;
 
@@ -265,7 +266,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		}
 		send_one(false /* Not is_server */, i == count - 1);
 		rcve_one(false /* Not read_data */, partners);
-// System.err.print(".");
+System.err.print(".");
 	    }
 	}
     }
@@ -645,6 +646,9 @@ System.err.println("Poor-man's barrier send finished");
 	    } else if (args[i].equals("-clients")) {
 		clients = Integer.parseInt(args[++i]);
 
+	    } else if (args[i].equals("-bcast")) {
+		bcast = true;
+
 	    } else if (args[i].equals("-warmup")) {
 		warmup = Integer.parseInt(args[++i]);
 
@@ -789,6 +793,14 @@ System.err.println("Poor-man's barrier send finished");
 		System.exit(41);
 		break;
 	    default:
+		if (bcast) {
+		    if (clients != -1 || servers != 1) {
+			System.err.println("Cannot both specify -bcast and -cliets/-servers");
+			System.exit(33);
+		    }
+		    clients = 1;
+		    servers = ncpus - 1;
+		}
 		if (clients == -1) {
 		    clients = ncpus - 1;
 		}

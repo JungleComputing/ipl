@@ -24,7 +24,7 @@
 
     <target name="satin"
 	    depends="satin-init"
-	    description="satin all classes that implement java.io.Serializable">
+	    description="Preprocess all classes in the build tree for Satin">
 	<if>
 	    <isset property="satinc-flags"/>
 	    <then>

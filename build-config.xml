@@ -14,6 +14,13 @@
     <property name="config.home.ant-cpptasks" location="3rdparty/cpptasks-1.0-cvs.jar"/>
 
 
+    <target name="config.previous"
+	    depends="config-set-os"
+	    if="config.has-previous">
+	<echo message="Read previous configuration from build-properties.cache"/>
+	<property file="build-properties.cache"/>
+    </target>
+
     <target name="config.das"
 	    depends="config-set-os"
 	    if="config.is-das">
@@ -36,7 +43,7 @@
 
     <target name="config.workstation"
 	    depends="config-set-os"
-	    unless="config.is-das">
+	    if="config.is-workstation">
 	<property
 		name="default.home.panda"
 		location="../panda/panda4.0"/>
@@ -63,35 +70,53 @@
     <target name="config-domainname" depends="proprietary-tasks">
 	<hostname hostname="hostname" domainname="domainname"/>
 	<echo message="Hostname ${hostname} domainname ${domainname}"/>
+	<condition property="config.has-previous">
+	    <available file="build-properties.cache"/>
+	</condition>
 	<condition property="config.is-das">
-	    <or>
-		<equals arg1="${domainname}" arg2="das2.cs.vu.nl"/>
-		<!-- <equals arg1="${domainname}" arg2="cs.vu.nl"/> -->
-		<equals arg1="${domainname}" arg2="das2.liacs.nl"/>
-		<equals arg1="${domainname}" arg2="das2.nikhef.nl"/>
-		<equals arg1="${domainname}" arg2="das2.its.tudelft.nl"/>
-		<equals arg1="${domainname}" arg2="das2.phys.uu.nl"/>
+	    <and>
+		<not>
+		    <isset property="config.has-previous"/>
+		</not>
+		<or>
+		    <equals arg1="${domainname}" arg2="das2.cs.vu.nl"/>
+		    <!-- <equals arg1="${domainname}" arg2="cs.vu.nl"/> -->
+		    <equals arg1="${domainname}" arg2="das2.liacs.nl"/>
+		    <equals arg1="${domainname}" arg2="das2.nikhef.nl"/>
+		    <equals arg1="${domainname}" arg2="das2.its.tudelft.nl"/>
+		    <equals arg1="${domainname}" arg2="das2.phys.uu.nl"/>
 
-		<!-- Dunno why but the VU DAS workstations are not in
-		     the DAS domain -->
-		<equals arg1="${hostname}" arg2="mercury.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="titan.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="venus.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="mars.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="drum.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="kog.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="swpc429.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc060.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc061.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc062.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc063.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc064.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc065.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc066.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc067.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc068.cs.vu.nl"/>
-		<equals arg1="${hostname}" arg2="fspc069.cs.vu.nl"/>
-	    </or>
+		    <!-- Dunno why but the VU DAS workstations are not in
+			 the DAS domain -->
+		    <equals arg1="${hostname}" arg2="mercury.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="titan.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="venus.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="mars.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="drum.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="kog.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="swpc429.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc060.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc061.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc062.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc063.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc064.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc065.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc066.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc067.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc068.cs.vu.nl"/>
+		    <equals arg1="${hostname}" arg2="fspc069.cs.vu.nl"/>
+		</or>
+	    </and>
+	</condition>
+	<condition property="config.is-workstation">
+	    <and>
+		<not>
+		    <isset property="config.has-previous"/>
+		</not>
+		<not>
+		    <isset property="config.is-das"/>
+		</not>
+	    </and>
 	</condition>
 	<echo message="config.is-das = ${config.is-das}"/>
     </target>
@@ -108,7 +133,9 @@
 	</condition>
     </target>
 
-    <target name="config-init" depends="config.das,config.workstation,config.mac">
+    <target name="config-init" depends="config.das,config.workstation,config.mac,config.previous">
+
+	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
     </target>
 
     <target name="compile.java_wrapper" depends="cpptasks-init">
@@ -129,30 +156,31 @@
 
     <property environment="env"/>
 
-    <target name="java-home-test" depends="config-init" unless="env.JAVA_HOME">
-	<fail>Environment variable JAVA_HOME is not set!</fail>
-    </target>
+    <target name="-config-build-properties">
 
-    <target name="configure" depends="config-init, java-home-test">
+	<echo>
+----------------------------------------------------------------
+Now, your Ibis build is being configured under ${ibis}.
 
-	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
+If you don't have any fast local networks for which a special
+Ibis module is required, you may skip the following message
+by just hitting the 'enter' key.
 
+If you wish to configure Ibis modules for fast local networks,
+you have to do some extra configuration. To do so, type:
+  ant configure
+to the command line, and answer questions.
+If you don't know the answer, or don't have the native modules
+that the fast local network module depends on, just hitting
+the 'enter' key is usually OK.
+After you did this optional configuration, you must again type:
+  ant
+to the command line.
+----------------------------------------------------------------
+</echo>
 	<input
-		message="Please enter the install directory of gm: [${default.home.gm}] "
-		addproperty="install.home.gm"/>
-	<input
-		message="Please enter the install directory of daslib: [${default.home.daslib}] "
-		addproperty="install.home.daslib"/>
-	<input
-		message="Please enter the install directory of lfc: [${default.home.lfc}] "
-		addproperty="install.home.lfc"/>
-	<input
-		message="Please enter the install directory of panda: [${default.home.panda}] "
-		addproperty="install.home.panda"/>
-	<input
-		message="Please enter the install directory of mpi: [${default.home.mpi}] "
-		addproperty="install.home.mpi"/>
-
+		message="Hit the 'enter' key to contiue"
+		addproperty="answer.config.continue"/>
 
 	<property name="config.home.ibis" location="${ibis}"/>
 
@@ -211,6 +239,22 @@
 	<property name="config.home.mpi"
 		location="${config.home.mpi-s}"/>
 
+	<delete file="build-properties.cache"/>
+	<echo	file="build-properties.cache"
+		append="true">default.home.panda  = ${default.home.panda}
+</echo>
+	<echo	file="build-properties.cache"
+		append="true">default.home.daslib = ${default.home.daslib}
+</echo>
+	<echo	file="build-properties.cache"
+		append="true">default.home.lfc    = ${default.home.lfc}
+</echo>
+	<echo	file="build-properties.cache"
+		append="true">default.home.mpi    = ${default.home.mpi}
+</echo>
+	<echo	file="build-properties.cache"
+		append="true">default.home.gm     = ${default.home.gm}
+</echo>
 
 	<!--
 	<echo	file="config.status"
@@ -221,46 +265,14 @@
 	</echo>
 	-->
 
-	<property name="ibis.super" location="${config.home.ibis}"/>
-	<copy
-		overwrite="true"
-		file="${ibis}/build-properties.in"
-		tofile="${ibis}/build-properties">
-	    <filterchain>
-		<filterreader
-			classname="org.apache.tools.ant.filters.ReplaceTokens">
-		    <param  type="token"
-			    name="JAVA"
-			    value="${JAVA_HOME_ENV}"/>
-		    <param  type="token"
-			    name="IBIS"
-			    value="${config.home.ibis}"/>
-		    <param  type="token"
-			    name="BCEL_HOME"
-			    value="${config.home.bcel}"/>
-		    <param  type="token"
-			    name="ANT_CPPTASKS"
-			    value="${config.home.ant-cpptasks}"/>
-		    <param  type="token"
-			    name="ANT_CONTRIB"
-			    value="${config.home.ant-contrib}"/>
-		    <param  type="token"
-			    name="GM_HOME"
-			    value="${config.home.gm}"/>
-		    <param  type="token"
-			    name="DASLIB_HOME"
-			    value="${config.home.daslib}"/>
-		    <param  type="token"
-			    name="LFC_HOME"
-			    value="${config.home.lfc}"/>
-		    <param  type="token"
-			    name="PANDA_HOME"
-			    value="${config.home.panda}"/>
-		    <param  type="token"
-			    name="MPI_HOME"
-			    value="${config.home.mpi}"/>
-		</filterreader>
-	    </filterchain>
+	<copy	file="${ibis}/build-properties"
+		tofile="${ibis}/build-properties.backup"
+		failonerror="false"
+		overwrite="true">
+	</copy>
+	<copy	file="${ibis}/build-properties.in"
+		tofile="${ibis}/build-properties"
+		overwrite="true">
 	</copy>
 
 	<replaceregexp
@@ -268,6 +280,46 @@
 		flags="g"
 		match="\${file.separator}"
 		replace="/"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@JAVA@"
+		replace="${JAVA_HOME_ENV}"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@IBIS@"
+		replace="${config.home.ibis}"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@BCEL_HOME@"
+		replace="${config.home.bcel}"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@ANT_CPPTASKS@"
+		replace="${config.home.ant-cpptasks}"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@ANT_CONTRIB@"
+		replace="${config.home.ant-contrib}"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@GM_HOME@"
+		replace="${config.home.gm}"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@DASLIB_HOME@"
+		replace="${config.home.daslib}"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@LFC_HOME@"
+		replace="${config.home.lfc}"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@PANDA_HOME@"
+		replace="${config.home.panda}"/>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		match="@MPI_HOME@"
+		replace="${config.home.mpi}"/>
 
 
 	<!--
@@ -293,9 +345,10 @@
 		append="true"
 		file="${ibis}/configuration.sh">JAVA_ROOT=${JAVA_HOME_ENV}
 </echo>
+	<property name="config.javac" location="${JAVA_HOME_ENV}/bin/javac"/>
 	<echo
 		append="true"
-		file="${ibis}/configuration.sh">JAVAC=${JAVA_HOME_ENV}/bin/javac
+		file="${ibis}/configuration.sh">JAVAC=${config.javac}
 </echo>
 	<echo
 		append="true"
@@ -303,7 +356,7 @@
 </echo>
 	<echo
 		append="true"
-		file="${ibis}/configuration.sh">IBIS_ROOT=${ibis.super}
+		file="${ibis}/configuration.sh">IBIS_ROOT=${ibis}
 </echo>
 	<echo
 		append="true"
@@ -402,6 +455,18 @@
 	</concat>
 	<chmod file="${ibis}/bin/frun" perm="+x"/>
 
+	<!--
+	    Right for now, this is used only by me = RFHH so I hard-code
+	    ibis NS port and host. This should become a configuration
+	    thingy whenever other peope also want to use run-das
+	-->
+	<concat destfile="${ibis}/bin/run-das">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/run-das" />
+	</concat>
+	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_PORT@" value="7654"/>
+	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_HOST@" value="mercury.cs.vu.nl"/>
+	<chmod file="${ibis}/bin/run-das" perm="+x"/>
+
 	<copy
 		overwrite="true"
 		file="${ibis}/scripts/cluster_wrapper.in"
@@ -411,7 +476,7 @@
 			classname="org.apache.tools.ant.filters.ReplaceTokens">
 		    <param  type="token"
 			    name="IBIS_INSTALL_PATH"
-			    value="${ibis.super}"/>
+			    value="${ibis}"/>
 		    <param  type="token"
 			    name="JAVA"
 			    value="${JAVA_HOME_ENV}"/>
@@ -435,8 +500,78 @@
 	</concat>
 	<chmod file="${ibis}/bin/csim_run_ibis_tcp" perm="+x"/>
 
-	<antcall target="java_wrapper"/>
+	<copy
+		overwrite="true"
+		file="${ibis}/configuration.sh"
+		tofile="${ibis}/configuration.bat">
+	</copy>
+	<replaceregexp
+		file="${ibis}/configuration.bat"
+		flags="g"
+		match="#"
+		replace="rem "/>
+	<replaceregexp
+		file="${ibis}/configuration.bat"
+		flags="g"
+		match="Shell"
+		replace="Windows cmd"/>
+	<replaceregexp
+		file="${ibis}/configuration.bat"
+		flags="g"
+		match="(.*)="
+		replace="set \1="/>
 
+	<concat destfile="${ibis}/bin/run_ibis.bat">
+	    <filelist dir="${ibis}" files="configuration.bat,scripts/run_ibis.bat" />
+	</concat>
+	<chmod file="${ibis}/bin/run_ibis" perm="+x"/>
+
+	<antcall target="java_wrapper"/>
     </target>
+
+
+    <target name="-config-lazy-build-properties"
+	    unless="build-properties-available">
+	<antcall inheritRefs="true" target="-config-build-properties"/>
+    </target>
+
+
+    <target name="config-init-initial" depends="config-init">
+	<condition property="build-properties-available">
+	    <available file="build-properties"/>
+	</condition>
+	<antcall inheritRefs="true" target="-config-lazy-build-properties"/>
+    </target>
+
+
+    <target name="java-home-test" depends="config-init" unless="env.JAVA_HOME">
+	<fail>Environment variable JAVA_HOME is not set!</fail>
+    </target>
+
+
+    <target name="configure"
+	    depends="config-init, java-home-test"
+	    description="Ibis build configuration for high-speed LAN modules">
+
+	<input
+		message="Please enter the install directory of gm: [${default.home.gm}] "
+		addproperty="install.home.gm"/>
+	<input
+		message="Please enter the install directory of daslib: [${default.home.daslib}] "
+		addproperty="install.home.daslib"/>
+	<input
+		message="Please enter the install directory of lfc: [${default.home.lfc}] "
+		addproperty="install.home.lfc"/>
+	<input
+		message="Please enter the install directory of panda: [${default.home.panda}] "
+		addproperty="install.home.panda"/>
+	<input
+		message="Please enter the install directory of mpi: [${default.home.mpi}] "
+		addproperty="install.home.mpi"/>
+
+
+	<antcall inheritRefs="true" target="-config-build-properties"/>
+    </target>
+
 
 </project>

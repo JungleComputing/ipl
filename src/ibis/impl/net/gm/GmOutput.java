@@ -108,6 +108,8 @@ public final class GmOutput extends NetBufferedOutput {
 		factory = new NetBufferFactory(mtu, impl);
 		// factory = new NetBufferFactory(Driver.byteBufferSize, impl);
 		// // setBufferFactory(factory);
+		// Try to tune writeBuffered so it takes the copy route
+		arrayThreshold = mtu;
         }
 
         /*
@@ -132,6 +134,8 @@ public final class GmOutput extends NetBufferedOutput {
                 lockIds = new int[2];
                 lockIds[0] = lockId; // output lock
                 lockIds[1] = 0;      // main   lock
+// System.err.println(this + ": initializing lockIds, my lockId " + lockId);
+// Thread.dumpStack();
                 Driver.gmLockArray.initLock(lockId, true);
                 Driver.gmAccessLock.unlock();
 
@@ -330,7 +334,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                 } else {
 // System.err.print("<*");
-// System.err.println("Send byte buffer " + b + " offset " + b.base + " size " + b.length);
+// System.err.println("Send lockId " + lockId + " byte buffer " + b + " offset " + b.base + " size " + b.length);
 // Thread.dumpStack();
                         Driver.gmAccessLock.lock(true);
                         nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length);

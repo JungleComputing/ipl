@@ -368,7 +368,7 @@ public class NameServer implements Protocol {
 			try { 
 				ns = new NameServer(single, port);
 				break;
-			} catch (Exception e) { 
+			} catch (Throwable e) { 
 				System.err.println("Main got " + e + ", retry in 1 second");
 				try {Thread.sleep(1000);} catch (Exception ee) {}
 //				e.printStackTrace();

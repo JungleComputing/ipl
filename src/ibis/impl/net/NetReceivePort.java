@@ -961,9 +961,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         /**
          * Closes the port.
-         *
-         * Note: surprinsingly, ReceivePort.free is not declared to
-         * throw IOException while SendPort.free does.
          */
         public void free() throws IOException {
                 log.in();

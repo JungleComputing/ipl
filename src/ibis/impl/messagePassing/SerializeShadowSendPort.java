@@ -14,7 +14,8 @@ final class SerializeShadowSendPort
 
     java.io.ObjectInput obj_in;
 
-    private boolean initializing = false;
+    // private
+    boolean initializing = false;
     private ConditionVariable objectStreamOpened = Ibis.myIbis.createCV();
 
 
@@ -130,10 +131,11 @@ final class SerializeShadowSendPort
 	    while (! satisfied()) {
 		Ibis.myIbis.waitPolling(this, 0, Poll.PREEMPTIVE);
 	    }
-	    if (((SerializeReadMessage)msg).obj_in != null) {
-		System.err.println("NNNNNNNNNNNNNNNOOOOOOOOOOOOOOOOOO this cannot be");
+	    SerializeReadMessage smsg = (SerializeReadMessage)msg;
+	    if (smsg.obj_in != null && smsg.obj_in != obj_in) {
+		System.err.println("NNNNNNNNNNNNNNNNNNNOOOOOOOOOOOOOO this cannot be");
 	    }
-	    ((SerializeReadMessage)msg).obj_in = obj_in;
+	    smsg.obj_in = obj_in;
 	}
 
 	if (obj_in != null) {

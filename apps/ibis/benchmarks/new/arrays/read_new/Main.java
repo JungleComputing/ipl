@@ -154,6 +154,7 @@ public class Main {
 			    ibis = Ibis.createIbis(id, 
 					    "ibis.impl.tcp.TcpIbis", null);
 			}
+
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();

@@ -158,6 +158,11 @@ public abstract class NetBufferedInput extends NetInput
 
 	private void pumpBuffer(int length) throws IOException {
                 log.in();
+
+		if (buffer != null) {
+		    System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% pumpBuffer but there IS already a buffer");
+		}
+
 		buffer       = receiveByteBuffer(dataOffset+length);
                 if (buffer == null) {
                         throw new ConnectionClosedException("connection closed");
@@ -211,6 +216,8 @@ public abstract class NetBufferedInput extends NetInput
 		if (buffer == null) {
 			pumpBuffer(1);
 		}
+// System.err.println("POST-pump: readByte bufferOffset " + bufferOffset + " dataOffset " + dataOffset);
+// Thread.dumpStack();
 
 		value = buffer.data[bufferOffset++];
 
@@ -239,12 +246,15 @@ public abstract class NetBufferedInput extends NetInput
 	public int readBuffered(byte[] data, int offset, int length)
 		throws IOException {
 	    try {
+// System.err.println("PRE-pump:  readBuffered[" + offset + ":" + length + "] bufferOffset " + bufferOffset + " dataOffset " + dataOffset + " buffer.length " + buffer.length);
 		if (buffer == null) {
 		    pumpBuffer(length);
 		}
+// System.err.println("POST-pump: readBuffered[" + offset + ":" + length + "] bufferOffset " + bufferOffset + " dataOffset " + dataOffset + " buffer.length " + buffer.length);
+// Thread.dumpStack();
 
 		length = Math.min(buffer.length - bufferOffset, length);
-// System.err.print("Read buffer[" + length + "] = ("); for (int i = bufferOffset; i < Math.min(bufferOffset + length, 32); i++) System.err.print("0x" + Integer.toHexString(buffer.data[i] & 0xFF) + " "); System.err.println(")");
+// System.err.print(this + ": Read buffer[" + bufferOffset + ":" + length + "] = ("); for (int i = bufferOffset, n = Math.min(bufferOffset + length, bufferOffset + 32); i < n; i++) System.err.print("0x" + Integer.toHexString(buffer.data[i] & 0xFF) + " "); System.err.println(") buffer.length " + buffer.length + " data[" + offset + ":" + length + "] data.length " + data.length);
 		System.arraycopy(buffer.data, bufferOffset, data, offset, length);
 
 		bufferOffset += length;
@@ -263,6 +273,7 @@ public abstract class NetBufferedInput extends NetInput
 			      int     length)
 		throws IOException {
                 log.in();
+// System.err.println("Read byte array[" + offset + ":" + length + "]");
 		if (length == 0)
 			return;
 
@@ -294,6 +305,7 @@ public abstract class NetBufferedInput extends NetInput
                                 int copyLength   = Math.min(bufferLength, length);
 
                                 System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
+// System.err.print(this + ": Read Array buffer[" + bufferOffset + ":" + copyLength + "] = ("); for (int i = bufferOffset, n = Math.min(bufferOffset + copyLength, bufferOffset + 32); i < n; i++) System.err.print("0x" + Integer.toHexString(buffer.data[i] & 0xFF) + " "); System.err.println(") buffer.length " + buffer.length + " userBuffer[" + offset + ":" + copyLength + "] userBuffer.length " + userBuffer.length);
 
                                 bufferOffset += copyLength;
                                 bufferLength -= copyLength;

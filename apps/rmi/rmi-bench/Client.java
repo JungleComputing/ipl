@@ -1,7 +1,9 @@
-import java.rmi.*;
-import java.rmi.server.*;
-import java.net.*;
-import java.rmi.registry.*;
+import java.rmi.Naming;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.NotBoundException;
+
+import java.rmi.registry.Registry;
 
 public class Client {
 
@@ -122,7 +124,7 @@ public class Client {
 		} 
 		s = (i_Server)r;
 		break;
-	    } catch (java.rmi.NotBoundException eR) {
+	    } catch (NotBoundException eR) {
 		try {
 		    System.out.println("Look up server object: sleep a while... " + eR);
 		    Thread.sleep(1000);

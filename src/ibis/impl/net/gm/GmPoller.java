@@ -60,6 +60,8 @@ public final class GmPoller extends NetPoller {
 		lockIds = _lockIds;
 		lockIds[lockIds.length - 1] = lockIds[lockIds.length - 2];
 		lockIds[lockIds.length - 2] = ni.getLockId();
+// System.err.println(this + ": setup new connection; subInput " + ni + " lockId " + ni.getLockId());
+// Thread.dumpStack();
 if (false) {
     System.err.print("Now lockIds := [");
     for (int i = 0; i < lockIds.length; i++) {
@@ -114,7 +116,7 @@ if (false) {
 
 		interrupted = false;
 		if (block) {
-// System.err.print("[B");
+// System.err.print("[B" + lockIds[0]);
 		    try {
 			result = gmDriver.blockingPump(lockIds);
 		    } catch (InterruptedIOException e) {
@@ -122,7 +124,7 @@ if (false) {
 			interrupted = true;
 			System.err.println("********** Catch InterruptedIOException");
 		    }
-// System.err.print("B]=" + result);
+// System.err.print("B" + lockIds[0] + "]=" + result);
 		} else {
 // System.err.print("[?");
 		    result = gmDriver.tryPump(lockIds);

@@ -164,7 +164,7 @@ public class IbisSocketFactory {
 					throw new IOException("" + e1);
 				} else {         
 					if (DEBUG) { 
-						System.err.println("ServerSocket connect to " + port + " failed, retrying");
+						System.err.println("ServerSocket connect to " + port + " failed: " + e1 + "; retrying");
 					}
                                                          
 					try { 

@@ -66,16 +66,17 @@ public final class NetReceivePortIdentifier
 			return false;
 		}
 
+		if (this == other) {
+		    return true;
+		}
+
 		Object o1 = this.connectionInfo();
 		Object o2 = other.connectionInfo();
 
 		return (type().equals(other.type())
-			&&
-			ibis.equals(other.ibis)
-			&&
-			name().equals(other.name())
-			&&
-			o1 == o2);
+			&& ibis.equals(other.ibis)
+			&& name().equals(other.name())
+			&& o1.equals(o2));
 	}
 
 	/**

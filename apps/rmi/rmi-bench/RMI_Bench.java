@@ -1,12 +1,14 @@
 import ibis.util.PoolInfo;
 import ibis.ipl.IbisException;
 
-import java.rmi.registry.*;
-import java.rmi.*;
-import java.net.*;
-import java.io.*;
-// import java.rmi.server.RMISocketFactory;
+// import ibis.rmi.server.RMISocketFactory;
 // import FastSocket.RMI_FSSocketFactory;
+import java.rmi.RMISecurityManager;
+import java.rmi.RemoteException;
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
 import java.io.IOException;
 
 class RMI_Bench {
@@ -54,7 +56,7 @@ class RMI_Bench {
 		} else {
 		    s.run();
 		}
-	    } catch (java.rmi.RemoteException e) {
+	    } catch (RemoteException e) {
 		System.err.println("Cannot create Server object: " + e);
 		e.printStackTrace();
 		System.exit(34);

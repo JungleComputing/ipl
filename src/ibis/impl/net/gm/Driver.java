@@ -146,6 +146,9 @@ System.err.println("********** perform interrupt");
 
         private int pump(int lockId, int []lockIds) throws IOException {
 	    int result;
+// System.err.print("[B");
+// for (int i = 0; i < lockIds.length - 1; i++)
+// System.err.print(lockIds[i] + ",");
 
 	    if (TIMINGS) {
 		t_poll.start();
@@ -205,6 +208,7 @@ System.err.println("********** perform interrupt");
 	    if (TIMINGS) {
 		t_poll.stop();
 	    }
+// System.err.print("B" + lockIds[result] + "]");
 
 	    return result;
         }
