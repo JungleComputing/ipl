@@ -16,7 +16,7 @@ interface OpenConfig {
     static final boolean traceClusterResizing = false;
     static final boolean traceLoadBalancing = false;
     static final boolean traceWorkStealing = false;
-    static final boolean doWorkStealing = true;
+    static final boolean doWorkStealing = false;
     static final int DEFAULTBOARDSIZE = 4000;
     static final int GENERATIONS = 30;
     static final int SHOWNBOARDWIDTH = 60;
@@ -798,19 +798,19 @@ class OpenCell1D implements OpenConfig {
         }
         int left = Math.min( previous_lsteal, lsteal );
         int right = Math.min( previous_rsteal, rsteal );
-        double dampen = 0.3;
+        double dampen = 0.01;
 
         if( left>=right && left>0 ){
             // The left neighbour needs columns the most, send them.
             aimFirstColumn += (int) (dampen*left);
-            if( aimFirstColumn+minLoad<aimFirstNoColumn ){
+            if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstColumn = aimFirstNoColumn-minLoad;
             }
             lsteal = -1;        // Prevent a second work steal next cycle.
         }
-        else if( right>0 ){
-            aimFirstNoColumn -= (int) (dampen*right
-            if( aimFirstColumn+minLoad<aimFirstNoColumn ){
+        if( right>0 ){
+            aimFirstNoColumn -= (int) (dampen*right);
+            if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstNoColumn = aimFirstColumn+minLoad;
             }
             rsteal = -1;        // Prevent a second work steal next cycle.

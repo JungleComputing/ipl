@@ -1,6 +1,8 @@
 import sys
 import string
 
+suppressRepeats = 0
+
 def growArray( A, n, v ):
     while len( A )<=n:
         A.append( v )
@@ -84,7 +86,7 @@ def isRepeat( A, gen ):
 def dumpArray( A ):
     repeats = 0
     for gen in range( knownGenerations ):
-        if gen>0 and isRepeat( A, gen ):
+        if suppressRepeats and gen>0 and isRepeat( A, gen ):
             repeats = repeats+1
         else:
             if repeats>0:
