@@ -17,7 +17,6 @@
 
 
     <property file="${ibis}/build-properties"/>
-    <property name="ibisBuild"   location="${ibis}/build"/>
 
     <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
 
@@ -37,15 +36,31 @@
 	    -->
 	<property name="property.initialized" value="true"/>
 
-	<path id="default.classpath">
-	    <pathelement path="${ibisBuild}"/>
-	    <pathelement path="${build}"/>
-	    <pathelement path="${package.home.bcel}"/>
-	    <pathelement path="${package.home.junit}"/>
-	    <!--
-	    <path refid="3rdparty"/>
-	    -->
-	</path>
+	<if>
+	    <isreference refid="extra-classpath"/>
+	    <then>
+		<echo message="I see a ref property 'extra-classpath'"/>
+		<path id="default.classpath">
+		    <pathelement path="${ibisBuild}"/>
+		    <pathelement path="${build}"/>
+		    <pathelement path="${package.home.bcel}"/>
+		    <pathelement path="${package.home.junit}"/>
+		    <path refid="extra-classpath"/>
+		</path>
+		<property name="class-path-3" refid="default.classpath"/>
+		<echo   message="class path ${class-path-3}"/>
+
+	    </then>
+	    <else>
+		<echo message="I see NO ref property 'extra-classpath'"/>
+		<path id="default.classpath">
+		    <pathelement path="${ibisBuild}"/>
+		    <pathelement path="${build}"/>
+		    <pathelement path="${package.home.bcel}"/>
+		    <pathelement path="${package.home.junit}"/>
+		</path>
+	    </else>
+	</if>
 
 	<echo	message="Now set default.classpath to ${default.classpath}"
 		level="verbose"/>

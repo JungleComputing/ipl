@@ -35,7 +35,7 @@ fi
 #not needed any more, and not portable --Rob
 #Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/build/lib:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
 
-Dlibpath="-Djava.library.path=$IBIS_ROOT/build/lib:.::"
+Dlibpath="-Djava.library.path=$IBIS_ROOT/build/lib:.:$LD_LIBRARY_PATH:"
 
 # This is the location where all ibis native libs must go.
 # It must be *one* dir.
@@ -50,6 +50,7 @@ noJIT=0
 dedicated_nameserver=0
 
 JAVA_EXEC=java
+Xbootclasspath="-Xbootclasspath/p:$JAVACLASSPATH
 
 action=eval
 
@@ -99,6 +100,15 @@ do
 		;;
 	-ns-d)
 		dedicated_nameserver=1
+		;;
+	-karmi)
+		Xbootclasspath=""
+		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
+		;;
+	-karmi-gm)
+		Xbootclasspath=""
+		Dlibpath="$Dlibpath$KARMI/lib:"
+		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
 		;;
         *)      java_args="$java_args $qarg"
                 ;;
@@ -208,7 +218,7 @@ else
 		$Dpool_host_num $Dpool_total $Dpool_host_names \
 		$Dns_pool $Dns_port $Dns_server \
 		-Dibis.name_server.retry=yes \
-		-Xbootclasspath/p:$JAVACLASSPATH \
+		$Xbootclasspath \
 		$PROFILING \
 		-classpath $JAVACLASSPATH \
 		$java_args

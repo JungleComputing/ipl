@@ -159,6 +159,8 @@
 
     <property name="ant.home" location="3rdparty/apache-ant-1.6.1"/>
 
+    <property name="karmi" location="${ibis}/../karmi/karmi-transport-1.07g"/>
+
     <target name="-config-build-properties">
 	<if>
 	    <isset property="called-from-configure"/>
@@ -317,6 +319,10 @@ to the command line.
 		value="${config.home.mpi}"/>
 	<replace
 		file="${ibis}/build-properties"
+		token="@KARMI@"
+		value="${karmi}"/>
+	<replace
+		file="${ibis}/build-properties"
 		token="${file.separator}"
 		value="/"/>
 	<if>
@@ -384,30 +390,10 @@ to the command line.
 		append="true"
 		file="${ibis}/configuration.sh">BCEL=${package.home.bcel}
 </echo>
-	<!--
-	    Methinks there is no need at all for the run scripts
-	    to know the location of the native libraries
 	<echo
 		append="true"
-		file="${ibis}/configuration.sh">PANDA_ROOT=${config.home.panda}
+		file="${ibis}/configuration.sh">KARMI=${karmi}
 </echo>
-	<echo
-		append="true"
-		file="${ibis}/configuration.sh">LFC_ROOT=${config.home.lfc}
-</echo>
-	<echo
-		append="true"
-		file="${ibis}/configuration.sh">GM_ROOT=${config.home.gm}
-</echo>
-	<echo
-		append="true"
-		file="${ibis}/configuration.sh">DAS_LIB=${config.home.daslib}/lib/i386_Linux/libdas.a
-</echo>
-	<echo
-		append="true"
-		file="${ibis}/configuration.sh">PANDA_NETWORK=lfc
-</echo>
-	-->
 
 	<!-- Concat the stuff in scripts to the bin directory -->
 	<mkdir dir="${ibis}/bin"/>

@@ -58,11 +58,15 @@
 		token="uka.karmi.rmi.RMISecurityManager"
 		value="java.rmi.RMISecurityManager"/>
 
-	<path id="3rdparty">
+	<path id="extra-classpath">
 	    <pathelement path="${karmi}/karmi.jar"/>
 	</path>
-	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
-	<antcall inheritRefs="true" target="rmic-karmi"/>
+	<antcall inheritAll="false" inheritRefs="false" target="compile">
+	    <reference refid="extra-classpath"/>
+	</antcall>
+	<antcall inheritAll="false" inheritRefs="false" target="rmic-karmi">
+	    <reference refid="extra-classpath"/>
+	</antcall>
 
 	<replace
 		dir="."

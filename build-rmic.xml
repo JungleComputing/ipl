@@ -205,9 +205,9 @@
 		srcFile="${build}/-RMIC-Classes">
 	</loadfile>
 
-	<echo   level="debug"
+	<echo   level="warning"
 		message="All classes to be inspected: ${rmic-classes}"/>
-	<echo   level="debug"
+	<echo   level="warning"
 		message="Run frontend.rmi.Main -n -karmi over all classes under ${build}${file.separator}"/>
 	<java   classname="ibis.frontend.rmi.Main"
 		taskname="rmic locator"
