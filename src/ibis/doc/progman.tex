@@ -5,6 +5,7 @@
 \newcommand{\mysection}[1]{\section{#1}\label{#1}}
 \newcommand{\mysubsection}[1]{\subsection{#1}\label{#1}}
 \newcommand{\mysubsubsection}[1]{\subsubsection{#1}\label{#1}}
+\newcommand{\remark}[1]{[\emph{#1}]}
 
 \begin{document}
 
@@ -20,6 +21,8 @@ Programmer's Manual}
 \section{Introduction}
 
 This manual describes how to write and run Ibis applications.
+\remark{The html version contains some links that should also
+be shown in the paper version.}
 \begin{htmlonly}
 It is also available in
 \htmladdnormallink{postscript}{http://www.cs.vu.nl/ibis/progman.ps.gz}.
@@ -33,8 +36,9 @@ The \emph{docs/api} subdirectory of the Ibis installation provides
 documentation for each class and method.
 \begin{htmlonly}
 The Ibis API is also available
-\htmladdnormallink{here}{http://www.cs.vu.nl/ibis/api/index.html}.
+\htmladdnormallink{online}{http://www.cs.vu.nl/ibis/api/index.html}.
 \end{htmlonly}
+\remark{Put in instructions to build and access the JavaDoc version.}
 Fragments of an actual Ibis application will be used for illustration purposes.
 Section \ref{An Ibis Application} will discuss a typical Ibis application,
 with subsections on each phase of the program.
@@ -51,13 +55,14 @@ We also built a (not quite complete) RMI (Remote Method Invocation)
 implementation on top of Ibis. RMI documentation can be found on-line at
 {\html {\htmladdnormallink{http://java.sun.com}{http://java.sun.com}}}
 {\latex {http://java.sun.com}}.
+\remark{A more specific link would be very helpful.}
 Section \ref{Ibis RMI} briefly discusses the Ibis RMI implementation.
 
 \mysection{Some Ibis concepts}
 
 \mysubsection{The Ibis Portability Layer}
 
-The top layer of the Ibis system consists of the Ibis Portability Layer(IPL).
+The top layer of the Ibis system consists of the Ibis Portability Layer (IPL).
 The IPL consists of a set of Java interfaces that define how an Ibis application
 can make use of the Ibis components.
 The Ibis application does not need to know which specific Ibis implementations are
@@ -80,15 +85,28 @@ The Ibis identifier of this new Ibis is a parameter to the join method.
 
 \mysubsection{Send Ports and Receive Ports}
 
-The IPL provides communication primitives using send ports and receive ports.
-The Ibis application creates the send ports and receive ports, and sets up
-connections between them, using primitives provided by the IPL.
-A connection is \emph{unidirectional}, from a send port to one or more
-receive ports.
-To send a message, the Ibis application has to obtain a
-write message from a send port, put data in this write message using
-the methods provided by the write message, and \emph{finish} the
-message.
+The IPL provides primitives to communicate between send and receive ports.
+In general a connection can be between multiple send ports and multiple
+receive ports, but the user may specify that a connection will have only
+a single send or receive port, allowing Ibis to choose a more efficient
+implementation.  A connection is always \emph{unidirectional}; reverse
+connections are conceptually totally independent.
+
+All send and receive ports have a \emph{type} represented by an
+instance of \texttt{ibis.ipl.PortType}. A port type is is associated
+with communication properties such as serialization method used, message
+ordering, restriction to a single send or receive port, et cetera. The
+types are also useful for verification purposes in the application.
+Only ports of the same type can be connected.
+
+To create a connection, an Ibis application requests new send and receive
+ports from a port type, and requests that a connection is set up 
+between these ports.
+
+To send a message, the Ibis application requests a new write message from
+a send port, puts data in this write message using the provided methods,
+and invokes the \texttt{finish()} method to send the message.
+
 To receive a message, the IPL provides two mechanisms:
 \begin{description}
 \item[explicit receipt]
@@ -103,6 +121,8 @@ The upcall provides the message received as a parameter.
 The message contents will be lost when the upcall returns, so the data
 in the message must be read in the upcall.
 \end{description}
+\noindent
+\remark{There is also such a thing as polling for upcalls.}
 
 \mysubsection{Port Types}
 
@@ -116,21 +136,21 @@ to a single receive port, et cetera.
 
 \mysubsection{Serialization}
 
-Serialization is a mechanism for converting Java objects into some
-format that can be stored or transferred.
-Java has input (java.io.ObjectInputStream) and output
-(java.io.ObjectOutputStream) streams for reading and writing objects.
-In Ibis, we call this mechanism \emph{Sun serialization}.
-Ibis also has its own mechanism, which is completely compatible
-(with regard to its interface) with Sun serialization, but more efficient.
+Serialization is a mechanism for converting Java objects
+into portable data streams that can be stored or transferred.  Java
+has input (\texttt{java.io.ObjectInputStream}) and output
+(\texttt{java.io.ObjectOutputStream}) streams for reading and writing
+objects.  In Ibis, we call this mechanism \emph{Sun serialization}.
+Ibis also has its own mechanism, which is completely compatible (with
+regard to its interface) with Sun serialization, but more efficient.
 We call this mechanism \emph{Ibis serialization}.
 
-Sometimes, object serialization is not needed. For that case, two simpler
-serialization mechanisms are available: \emph{data serialization} which
-allows for sending/receiving data of basic types and arrays of basic types
-(similar to java.io.DataInputStream/java.io.DataOutputStream), and
-\emph{byte serialization} which only allows sending/receiving bytes
-and arrays of bytes.
+Sometimes, object serialization is not needed. For that case,
+two simpler serialization mechanisms are available: \emph{data
+serialization} which allows for sending/receiving data of basic types
+and arrays of basic types (similar to \texttt{java.io.DataInputStream}
+and \texttt{java.io.DataOutputStream}), and \emph{byte serialization}
+which only allows sending/receiving bytes and arrays of bytes.
 
 \mysection{An Ibis Application}
 
@@ -153,7 +173,7 @@ is connected to.
 Finishing up. Connections must be closed, and each Ibis instance must
 be ended.
 \end{itemize}
-
+\noindent
 The next few subsections will discuss each of these steps in turn,
 illustrating them with parts of an RPC-style Ibis application.
 This application will have a client and a server. As this is a toy
@@ -164,17 +184,18 @@ things a little more interesting.
 
 \subsection{Program Preamble}
 
-All Ibis applications import classes from the IPL (Ibis
+Ibis applications need to import classes from the IPL (Ibis
 Portability Layer) package, which lives in
 \verb+ibis.ipl+.
-So, the preamble of your program could just consist of one line:
+We recommend that you simply import all \texttt{ibis.ipl} classes with
+one import line:
 \begin{quote}
 \begin{verbatim}
 import ibis.ipl.*;
 \end{verbatim}
 \end{quote}
-It might also exist of an import of each class that is used,
-but this might easily result in a list of 10 or more \verb+import+s.
+Of course it is also possible to import only the needed classes, but
+this tends to result in a list of 10 or more \verb+import+s.
 
 \mysubsection{Creating an Ibis Instance}
 
@@ -240,6 +261,8 @@ connected to in the order in which they were sent.
 \item[Sequenced]
 all messages originating from any send port of a specific port type have
 a sequence number. This allows the application to do its own sequencing.
+\remark{If this doesn't enforce sequenced communication, this is a very
+unfortunate name. What about `numbered'.}
 \item[Reliable]
 reliable communication is supported, that is,
 a reliable communication protocol is used.
@@ -270,9 +293,9 @@ or a connection is lost.
 The possible ``serialization'' properties are:
 \begin{description}
 \item[Byte]
-readByte/writeByte and readArray/writeArray(byte[]) are supported.
+Only the methods \texttt{readByte()}, \texttt{writeByte()}, \verb'readArray(byte[]' and \verb'writeArray(byte[])' are supported.
 \item[Data]
-read/write and readArray/writeArray of basic types are supported.
+Only read()/write() and readArray()/writeArray() of primitive types are supported.
 \item[Object]
 Some sort of object serialization is supported. An Ibis implementation
 will, of course, specify what kind of object serialization it supports.
@@ -293,10 +316,9 @@ supported.
 The possible ``worldmodel'' properties are:
 \begin{description}
 \item[Open]
-this means that Ibises can join the run at any time during the run.
+Ibises can join the run at any time during the run.
 \item[Closed]
-this means that the Ibises that can join the run are determined
-at the start of the run.
+Ibises can only join the run at the start.
 \end{description}
 
 If a specific implementation of Ibis is required, that can be dealt with too.
@@ -305,10 +327,10 @@ for the Ibis implementation that is required.
 The currently known nicknames are:
 \begin{description}
 \item[tcp]
-This is an Ibis implementation on top of TCP sockets, and currently is
+This is an Ibis implementation on top of TCP sockets. It is currently 
 probably the most stable Ibis around, and it supports almost all properties.
 \item[panda]
-This is a messagePassing Ibis implementation on top of the Panda
+This is a message passing Ibis implementation on top of the Panda
 communication layer. It only supports the ``closed'' worldmodel,
 but on our system it gives much higher throughput and lower latencies
 because it runs on Myrinet instead of our (100Mbitps) Ethernet on which
@@ -319,36 +341,36 @@ stage.
 \item[nio]
 This is a (still experimental) Ibis implementation on top of Java NIO.
 \item[mpi]
-This is the messagePassing Ibis implementation but on top of MPI instead
+This is the message passing Ibis implementation but on top of MPI instead
 of Panda. This too is an experimental version.
 \end{description}
 
-A user running an Ibis application can override a property, or make it
-more specific. This is done by means of Java system properties, which
-in many Java implementations can be set by means of a command line option,
-for instance -D\emph{property}=\emph{value}.
-The system property name is that of the Ibis static property, prefixed
-with ``\verb+ibis.+''.
-So, adding \verb+-Dibis.serialization=ibis+ to the command line will
-cause \verb+createIbis+ to look for an Ibis that supports ibis serialization
+A user running an Ibis application can override a property, or make
+it more specific. This is done by means of Java system properties,
+which in many Java implementations can be set by means of a command
+line option.  For instance, the Sun JVM supports options of the form
+-D\emph{property}=\emph{value}.  The system property name is that
+of the Ibis static property, prefixed with ``\verb+ibis.+''.  So,
+adding \verb+-Dibis.serialization=ibis+ to the command line will cause
+\verb+createIbis+ to look for an Ibis that supports Ibis serialization
 instead of any object serialization.
 
-This completes the description of the first parameter
-of \verb+createIbis+. The second parameter specifies an upcall handler
+The second parameter of \verb+createIbis()+ specifies an upcall handler
 with \verb+join+ and \verb+leave+ upcalls that get called when an Ibis
-joins or leaves the run.
-In our RPC example, we will not use this, so we specify \verb+null+
-instead.
-However, when such a \verb+ResizeHandler+ is used, its \verb+join+
-upcall is called for every Ibis that joins the run, including the
-Ibis being created.
-To prevent upcalls from occurring before the
-creation of this Ibis is completed, these upcalls must be explicitly
-enabled by invoking the \verb+openWorld+ method of the Ibis just
-created. In addition, the \verb+openWorld+ method blocks until the
-\verb+join+ upcall for this Ibis has been invoked.
-Knowing which Ibises have joined the run, and how many there are, may
-be useful in dividing the work. See also section \ref{Which Instance Does What?}.
+joins or leaves the run.  In our RPC example, we will not use this, so we
+specify \verb+null+ instead.  However, when such a \verb+ResizeHandler+
+is used, its \verb+join+ upcall is called for every Ibis that joins the
+run, including the Ibis being created.
+Upcalls to the \verb+ResizeHandler+ must be explicitly enabled by
+invoking the \verb+openWorld+ method of the Ibis
+just created. This ensures that the \verb+ResizeHandler+ has been
+able to do the necessary initializations. In particular, it allows the
+handler to extract the name of the local Ibis.
+
+The \verb+openWorld+ method blocks until the
+\verb+join+ upcall for this Ibis has been invoked.  Knowing which Ibises
+have joined the run, and how many there are, is often useful in dividing
+the work. See also section \ref{Which Instance Does What?}.
 
 Now back to our example. 
 With the \verb+props+ as defined above, we create an Ibis as follows:
@@ -363,7 +385,7 @@ try {
 \end{verbatim}
 \end{quote}
 Note that the properties can be so specific that no matching Ibis
-can be found. Therefore, \verb+createIbis+ may throw an exception
+can be found, and therefore \verb+createIbis+ may throw an exception
 indicating this.
 
 \subsection{Setting up Communication}
@@ -375,15 +397,16 @@ create a port type;
 \item
 create a send and a receive port;
 \item
-setting up connections between them.
+set up connections between them.
 \end{itemize}
 
 The next few subsections discuss each of these steps in turn.
 
 \subsubsection{Creating a Port Type}
 
-The next step is to create a \emph{port type}, from which
-send and receive ports can be created. A port type is an object
+To be able to create send and receive ports, it is first necessary
+to create one or more \emph{port types}.
+A port type is an object
 of type \verb+ibis.ipl.PortType+.
 Within an Ibis instance,
 multiple port types, with different properties, can be created.
@@ -418,7 +441,7 @@ try {
 }
 \end{verbatim}
 \end{quote}
-
+\noindent
 In general, the port properties should be a subset of the properties
 specified when creating the Ibis instance. If a property is specified
 that was not specified when creating the Ibis instance, this could
@@ -566,7 +589,7 @@ ReceivePortIdentifier lookup(String name)
         throws IOException;
 \end{verbatim}
 \end{quote}
-
+\noindent
 This method blocks until a receive port with the specified name is found.
 Our RPC server would set up the following connection:
 
@@ -623,7 +646,7 @@ void lostConnection(ReceivePort me,
                     Exception reason);
 \end{verbatim}
 \end{quote}
-
+\noindent 
 The \verb+gotConnection+ method gets called when a send port attempts
 to connect to the receive port at hand.
 An implementation of this method can decide whether
@@ -641,8 +664,8 @@ void lostConnection(SendPort me,
                     Exception reason);
 \end{verbatim}
 \end{quote}
-
-This method gets called when an existing connection from the send port at
+\noindent 
+This method is called when an existing connection from the send port at
 hand gets lost for some reason. Note that there is no \verb+gotConnection+
 counterpart, because it is always the send port that initiates a connection.
 
@@ -664,7 +687,6 @@ that are new since the last call or the start of the program.
 that were lost since the last call or the start of the program.
 \verb+connectedTo+ returns the send port identifiers of all connections
 to this receive port.
-
 A send port has the following methods:
 
 \begin{quote}
@@ -674,7 +696,7 @@ ReceivePortIdentifier[] lostConnections();
 ReceivePortIdentifier[] connectedTo();
 \end{verbatim}
 \end{quote}
-
+\noindent
 \verb+newConnections+ returns the receive port identifiers of the connections
 that are new since the last call or the start of the program.
 \verb+lostConnections+ returns the receive port identifiers of the connections
@@ -761,9 +783,9 @@ void upcall(ReadMessage m) throws IOException {
 Note that the read message is finished before replying to the
 request. To prevent deadlocks, upcalls are not allowed to block in
 condition synchronization or network access as long as the message
-is active. This means that a thread is not allowed to write as long
+is active. \remark{What is `condition synchronization'?} This means that a thread is not allowed to write as long
 as a read message is active, and a thread is not allowed to wait for
-some condition (call \verb+Thread.wait()+).
+some condition (call \verb+Thread.wait()+) \remark{Clarify this.}.
 
 Now, we can also finish the \verb+obtainLength+ method of the client:
 \begin{quote}
@@ -817,7 +839,7 @@ Runtime.getRuntime().addShutdownHook(new Thread() {
 });
 \end{verbatim}
 \end{quote}
-
+\noindent
 This shutdown hook gets invoked when the program terminates.
 
 \mysubsection{Ibis utilities}
@@ -827,9 +849,8 @@ useful for Ibis applications. We will discuss some of them here.
 
 \mysubsubsection{PoolInfo}
 
-The \verb+ibis.util.PoolInfo+ class is a very useful utility for
-closed-world applications.
-It provides methods for finding out information about the nodes
+The \verb+ibis.util.PoolInfo+ 
+provides methods for finding out information about the nodes
 involved in the closed-world run, such as:
 \begin{itemize}
 \item
@@ -842,8 +863,8 @@ the host names of the hosts involved in the run.
 the \verb+InetAddress+ of the hosts involved in the run.
 \end{itemize}
 
-The preferred way of creating a \verb+PoolInfo+ is by means of the
-static method \verb+createPoolInfo+.
+A \verb+PoolInfo+ instance is usually created with the 
+static method \verb+ibis.util.PoolInfo.createPoolInfo()+.
 It depends on the following system properties:
 \begin{description}
 \item[ibis.pool.total\_hosts]
@@ -865,7 +886,7 @@ The \verb+ibis.util.PoolInfoClient+ is a subclass of
 \verb+ibis.util.PoolInfo+.
 It uses a \verb+PoolInfoServer+ to collect the required information.
 This \verb+PoolInfoServer+ usually is started by the Ibis nameserver
-(see Section \ref{The Ibis Nameserver}.
+(see Section \ref{The Ibis Nameserver}).
 
 \mysection{Compiling and Running an Ibis Application}
 
@@ -893,6 +914,7 @@ our example program:
 \end{quote}
 Note that the assumption here is that Ibis is installed in
 \verb+/usr/local/ibis+.
+\remark{Explain this.}
 
 Now, invoking \emph{ant} compiles the application, leaving the class files
 in a directory called \verb+build+.
@@ -900,7 +922,7 @@ in a directory called \verb+build+.
 \mysubsection{The Ibis Nameserver}
 
 Most Ibis implementations depend on a name server.
-The name server ...TODO...
+\remark{Write this section.}
 
 \mysection{The Satin Divide-and-Conquer System}
 
@@ -927,8 +949,8 @@ interface Searcher extends ibis.satin.Spawnable
 }
 \end{verbatim}
 \end{quote}
-
-all methods that implement \verb+Searcher.search()+ will be Satin jobs.
+\noindent
+All methods that implement \verb+Searcher.search()+ will be Satin jobs.
 In general such a marker interface may contain an arbitrary number
 of methods.
 When actually using Satin, invoking a Satin job puts this Satin job
@@ -939,7 +961,7 @@ Later on, the job will be executed either locally, or it will be
 The result of a Satin job can only be used after the invocation
 of the \verb+sync()+ method, which lives in \verb+ibis.satin.SatinObject+.
 (Remember that a class that implements a job method must extend
-\verb+ibis.satin.SatinObject+.) The \verb+sync()+
+\verb+ibis.satin.SatinObject+.) \remark{Remember??} The \verb+sync()+
 method is guaranteed to only terminate after the earlier job
 invocations have terminated.
 
@@ -1017,17 +1039,21 @@ class Search2 extends ibis.satin.SatinObject
 }
 \end{verbatim}
 \end{quote}
+\noindent
+Here the search is recursively divided into smaller problems until
+a problem remains that is trivially handled.
 
 \mysubsection{Exceptions and abort}
 
-A Satin job may throw exceptions in the usual way. This can be
-used to rapidly terminate a large set of jobs, for example because
-a search result was found. In such cases it is often useful to
-terminate other running jobs.  This can be done with the
-\verb+abort()+ method.
-Satin has its own exception type: \verb+ibis.satin.Inlet+.
-An \verb+Inlet+ is a \verb+Throwable+ that inhibits the generation of
-a stack trace, which is an expensive operation.
+A Satin job may throw exceptions in the usual way. This can be used
+to rapidly terminate a large set of jobs, for example because a search
+result was found. In such cases it is often useful to terminate other
+running jobs.  This can be done with the \verb+abort()+ method.  Satin has
+its own exception type: \verb+ibis.satin.Inlet+.  An \verb+Inlet+ is a
+\verb+Throwable+ that inhibits the generation of a stack trace, which
+is an expensive operation.  \remark{The name Inlet is very much jargon
+that is unimportant to the user. Even \texttt{ibis.satin.CheapException}
+would be clearer than this.}
 
 For example:
 
@@ -1094,14 +1120,15 @@ Satin offers a choice of three different job scheduling strategies:
 \item[Random work-stealing]
 when using random work-stealing, when looking for work, each Satin
 first examines its own job queue. When this job queue is empty,
-it selects another Satin and takes the first job on its job queue.
-It that job queue is empty, it selects another Satin, et cetera, et cetera.
-This strategy is the default.
+it randomly selects another Satin and takes the first job on its job queue.
+If that job queue is empty, it randomly selects another Satin, et cetera,
+et cetera.  This strategy is the default.
 \item[Cluster-aware random work-stealing]
 this strategy is very similar to random work-stealing, except that
 each participant first tries to steal jobs from other participants in its
 own cluster (thus using a local network). It will only go to participants
 from other clusters if no participant on the same cluster has work.
+\remark{No definition of `cluster' is given.}
 \item[Master-worker]
 this strategy is suitable for applications where all Satin jobs are
 generated on a single participant, the ``master''. All other participants
@@ -1125,15 +1152,15 @@ To resume Satin operation, the \verb+resume()+ method must be used.
 
 \mysubsection{Satin program arguments}
 
-The Satin system accepts the following arguments, which are
-filtered out from the program arguments, leaving the applications
+The Satin system accepts the following arguments. They are
+filtered out from the program arguments, leaving the application's
 arguments:
 \begin{description}
 \item[-satin-closed]
 Only use the initial set of hosts for the computation; do not allow
 further hosts to join the computation later on.
 \item[-satin-stats]
-Display some statistics at the end of the Satin run.
+Display some statistics at the end of the Satin run. This is the default.
 \item[-satin-detailed-stats]
 Display detailed statistics for every member at the end of the Satin run.
 \item[-satin-no-stats]
@@ -1178,11 +1205,11 @@ needMoreJobs() method).
 
 \mysubsection{The Satin Tuple Space}
 
-The \verb+ibis.satin.SatinTupleSpace+ class implements a global
-tuple space.  A tuple consists of a key (a String) and its associated data
-(a serializable object). Here, global means that the tuple space is
+The \verb+ibis.satin.SatinTupleSpace+ class implements a global tuple
+space.  A tuple consists of a key (a \texttt{String}) and its associated
+data (a serializable object). Here, global means that the tuple space is
 available on all members. The \verb+SatinTupleSpace+ has the following
-static methods:
+methods:
 
 \begin{quote}
 \begin{verbatim}
@@ -1206,7 +1233,7 @@ additions, unless the system property
 \verb+satin.tuplespace.ordered+ is defined and represents the
 boolean value \verb+true+. In this case, a global ordering is imposed.
 
-The Satin tuple space supports \emph{active tuples}.
+The Satin tuple space also supports \emph{active tuples}.
 The \verb+ibis.satin.ActiveTuple+ interface serves
 as a marker for active tuples. It contains a single method:
 
@@ -1221,8 +1248,8 @@ its \verb+handleTuple+ method will be invoked on all members.
 This can be used, for instance, for modifications of data that
 is replicated on all members.
 
-A serious limitation of the current tuple space is that it is
-currently only supported for closed-world runs.
+A serious limitation of the current tuple space implementation is that
+it is only supported for closed-world runs.
 
 \mysubsection{Compiling and running a Satin program}
 
@@ -1259,12 +1286,14 @@ See Section \ref{Compiling and Running an Ibis Application} for details.
 
 \mysection{The GMI System}
 
-TODO.
+\remark{TODO.}
 
 \mysection{Ibis RMI}
 
-TODO: limitations/restrictions.
+\remark{TODO: limitations/restrictions.}
 
 \mysection{Further Reading}
+
+\remark{TODO.}
 
 \end{document}
