@@ -8,7 +8,7 @@ import java.io.FileOutputStream;
 
 import java.util.StringTokenizer;
 
-import ibis.group.GroupMethods;
+import ibis.group.GroupInterface;
 
 import ibis.util.Analyzer;
 
@@ -44,9 +44,9 @@ class Main {
 		}
 
 		try { 
-			groupInterface = Class.forName("ibis.group.GroupMethods");
+			groupInterface = Class.forName("ibis.group.GroupInterface");
 		} catch (Exception e) { 
-			System.err.println("Class ibis.group.GroupMethods not found");
+			System.err.println("Class ibis.group.GroupInterface not found");
 			System.exit(1);
 		}
 
@@ -77,17 +77,19 @@ class Main {
 				Analyzer a = new Analyzer(subject, groupInterface, verbose);
 				a.start();
 
-				output = createFile(getFileName(a.classname, "group_stub_"));			
-				new GMIStubGenerator(a, output, verbose).generate();
-				output.flush();
+				if (subject.isInterface()) { 
+					output = createFile(getFileName(a.classname, "group_stub_"));			
+					new GMIStubGenerator(a, output, verbose).generate();
+					output.flush();
 
-				output = createFile(getFileName(a.classname, "group_skeleton_"));			
-				new GMISkeletonGenerator(a, output, verbose).generate();
-				output.flush();
-
-				output = createFile(getFileName(a.classname, "group_parametervector_"));			
-				new GMIParameterObjectGenerator(a, output, verbose).generate();
-				output.flush();
+					output = createFile(getFileName(a.classname, "group_parametervector_"));
+					new GMIParameterVectorGenerator(a, output, verbose).generate();
+					output.flush();
+				} else {
+					output = createFile(getFileName(a.classname, "group_skeleton_"));			
+					new GMISkeletonGenerator(a, output, verbose).generate();
+					output.flush();
+				}
 
 			} catch (Exception e) { 
 				System.err.println("Main got exception " + e);

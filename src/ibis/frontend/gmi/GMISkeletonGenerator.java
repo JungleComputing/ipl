@@ -35,469 +35,460 @@ class GMISkeletonGenerator extends GMIGenerator {
 		output.println("public final class group_skeleton_" + dest_name + " extends ibis.group.GroupSkeleton {");
 		output.println();		
 	} 
+	void writeResult(String spacing, Class ret) { 
+		String resultOpcode = getResultOpcode(ret);
 
-	void methodHandler(Method m) { 
+		output.println(spacing + "if (ex != null) {");			
+		output.println(spacing + "\tw.writeByte(Group.RESULT_EXCEPTION);");					
+		output.println(spacing + "\tw.writeObject(ex);");					
+		output.println(spacing + "} else {");			
+		output.println(spacing + "\tw.writeByte("+ resultOpcode +");");					
 
-		Class ret = m.getReturnType();
-		Class [] params = m.getParameterTypes();
-
-		output.print("\tpublic final " + getType(ret) + " GMI_" + m.getName() + "(Method combineMethod, boolean to_all, int lroot");
-		
-		for (int j=0;j<params.length;j++) { 			
-			output.print(", " + getType(params[j]) + " p" + j);
-		}
-
-		output.println(") throws IbisIOException {");
-		output.println();			       
-
-		//		output.print("\t\tException exception = null;");
-		//		output.print();
-
-		output.print("\t\t");
-		
 		if (!ret.equals(Void.TYPE)) { 
-			if (ret.isPrimitive()) {					
-				output.print(getType(ret) + " result = ");
-			} else { 
-				output.print(getType(ret) + " result = ");
-			}		
-		} 
+			output.println(writeMessageType(spacing + "\t", "w", ret, "result"));
+		}
 		
+		output.println(spacing + "}");		
+	}
+
+	void handleResult(String spacing, Class ret) { 
+
+//		output.println(spacing + "if ((resultMode != Group.DISCARD) && !(invocationMode != Group.REMOTE && root_object != destination.rank)) {");
+	
+		output.println(spacing + "switch (resultMode) {");
+		
+		/* discard the result */
+		output.println(spacing + "case Group.DISCARD:");			
+		output.println(spacing + "\tbreak;");
+		output.println();
+		
+		/* return the result for unicast, multicast or binarycombine */
+		output.println(spacing + "case Group.RETURN:");					
+		output.println(spacing + "case Group.BINARYCOMBINE:");	
+		output.println(spacing + "\tif (invocationMode == Group.REMOTE || root_object == destination.rank) {");			
+		output.println(spacing + "\t\tw = Group.unicast[cpu_rank].newMessage();");			
+		output.println(spacing + "\t\tw.writeByte(GroupProtocol.INVOCATION_REPLY);");			
+		output.println(spacing + "\t\tw.writeByte((byte) resultMode);");			
+		output.println(spacing + "\t\tw.writeInt(ticket);");			
+		output.println(spacing + "\t\tw.writeInt(rank);");			
+
+		writeResult(spacing + "\t\t", ret);	
+
+		output.println(spacing + "\t\tw.send();");			
+		output.println(spacing + "\t\tw.finish();");						
+		output.println(spacing + "\t}");			
+		output.println(spacing + "\tbreak;");
+		output.println();
+
+		/* return the result for flatcombine or forward */
+		output.println(spacing + "case Group.FLATCOMBINE:");
+		output.println(spacing + "case Group.FORWARD:");
+		output.println(spacing + "\tw = Group.unicast[cpu_rank].newMessage();");			
+		output.println(spacing + "\tw.writeByte(GroupProtocol.INVOCATION_REPLY);");			
+		output.println(spacing + "\tw.writeByte((byte) resultMode);");			
+		output.println(spacing + "\tw.writeInt(ticket);");
+		output.println(spacing + "\tw.writeInt(rank);");			
+
+		writeResult(spacing + "\t", ret);	
+
+		output.println(spacing + "\tw.send();");			
+		output.println(spacing + "\tw.finish();");						
+		output.println(spacing + "\tbreak;");
+		output.println();
+
+		/* the default case */
+		output.println(spacing + "default:");
+		output.println(spacing + "\tSystem.err.println(\"OOPS: group_skeleton got illegal resultMode number!\");");
+		output.println(spacing + "\tSystem.exit(1);");
+		output.println(spacing + "\tbreak;");
+		output.println();
+		
+		output.println(spacing + "}");
+		output.println();
+	} 
+
+	void handleMethodInvocation(String spacing, Method m, Class ret, Class [] params) { 
+
+		output.println(spacing + "\t/* Second - Extract the parameters */");		       
+			
+		for (int j=0;j<params.length;j++) { 
+			Class temp = params[j];
+			output.println(readMessageType(spacing + "\t", " p" + j, "r", temp, true));
+		}
+			
+		output.println(spacing + "\tr.finish();");
+		output.println();
+		
+		output.println(spacing + "\t/* Third - Invoke the method */");		       		
+
+		output.println(spacing + "\ttry {");
+		output.print(spacing + "\t\t");
+
+		if (!ret.equals(Void.TYPE)) { 
+			output.print("result = ");
+		} 
+
 		output.print("((" + dest_name + ") destination)." + m.getName() + "(");
 		
 		for (int j=0;j<params.length;j++) { 
 			output.print("p" + j);
-			
-			if (j<params.length-1) { 
+			if (j < params.length-1) { 
 				output.print(", ");
 			}
 		}
-		output.println(");");			       
-		output.println();
-		
-		output.println("\t\tif (combineMethod != null) {");
-		output.println("\t\t\t/* call combiner here */");
 
-		if (ret.isPrimitive()) { 
-			if (!ret.equals(Void.TYPE)) {
-				output.println("\t\t\t" + containerType(ret) + " resultObject = new " + containerType(ret) + "(result);");
-				output.println("\t\t\tresultObject = (" + containerType(ret) + ") GMI_combine(combineMethod, to_all, lroot, resultObject);");
-				output.println("\t\t\tresult = resultObject." + getType(ret) + "Value();");				
-			} else {
-				output.println("\t\t\tGMI_combine_void(combineMethod, to_all, lroot, null);");
+		output.println(");");
+
+		output.println(spacing + "\t} catch (Exception e) {");
+		output.println(spacing + "\t\tex = e;");
+		output.println(spacing + "\t}");
+	} 
+	
+	void methodHandler(String spacing, Method m) { 
+
+		Class ret = m.getReturnType();
+		Class [] params = m.getParameterTypes();
+
+		output.print(spacing + "public final void GMI_" + m.getName() + "(int invocationMode, int resultMode, ReadMessage r) throws IbisException {");
+		output.println();			       
+
+		output.println(spacing + "\tint cpu_rank = 0;");		
+		output.println(spacing + "\tint root_object = 0;");		
+		output.println(spacing + "\tint ticket = 0;");	
+		output.println(spacing + "\tBinaryCombiner combiner = null;");
+		output.println(spacing + "\tWriteMessage w;");
+		output.println(spacing + "\tException ex = null;");
+
+		for (int j=0;j<params.length;j++) { 			
+			output.println(spacing + "\t" + getInitedLocal(params[j], "p" + j) + ";");
+		}
+
+		if (!ret.equals(Void.TYPE)) { 
+			output.println(spacing + "\t" + getInitedLocal(ret, "result") + ";");
+		}
+
+		output.println();		
+
+		output.println(spacing + "\t/* First - Read additional data */");
+		output.println(spacing + "\tswitch (resultMode) {");
+		output.println(spacing + "\tcase Group.BINARYCOMBINE:");		
+		output.println(spacing + "\t\tcombiner = (BinaryCombiner) r.readObject();");
+//		output.println(spacing + "\t\t/* find root_object on machine cpu_rank */");	       	
+		output.println(spacing + "\t\t/* fall through */");		
+		output.println(spacing + "\tcase Group.FLATCOMBINE:");		
+		output.println(spacing + "\tcase Group.FORWARD:");		
+		output.println(spacing + "\tcase Group.RETURN:");		
+		output.println(spacing + "\t\tcpu_rank = r.readInt();");		
+		output.println(spacing + "\t\tticket   = r.readInt();");		
+		output.println(spacing + "\t\t/* fall through */");		
+		output.println(spacing + "\tcase Group.DISCARD:");		
+		output.println(spacing + "\t\tbreak;");				
+		output.println(spacing + "\t}");		
+
+		handleMethodInvocation(spacing, m, ret, params);
+		output.println();		
+
+		output.println(spacing + "/* Fourth - Handle the result */");
+
+		output.println(spacing + "\tif (combiner != null) {");
+		output.println(spacing + "\t\t/* call combiner here */");
+		output.println(spacing + "\t\ttry {");
+
+		if (ret.equals(Void.TYPE)) {
+			output.println(spacing + "\t\t\tcombine_void(combiner, (invocationMode == Group.REMOTE), cpu_rank, ex);"); 
+		} else {
+			if (ret.isPrimitive()) { 
+				output.println(spacing + "\t\t\tresult = combine_" + 
+					       getType(ret) + "(combiner, (invocationMode == Group.REMOTE), cpu_rank, result, ex);");
+			} else { 
+				output.println(spacing + "\t\t\tresult = (" + getType(ret) + ") combine_Object(combiner, (invocationMode == Group.REMOTE), cpu_rank, result, ex);");
 			}
-		} else { 
-			output.println("\t\t\tresult = (" + getType(ret) + ") GMI_combine(combineMethod, to_all, lroot, result);");
-		}
+		} 
 
-		output.println("\t\t}");
+		output.println(spacing + "\t\t} catch (Exception e) {");
+		output.println(spacing + "\t\t\tex = e;");
+		output.println(spacing + "\t\t}");
+		output.println(spacing + "\t}");
+
 		output.println();
+		handleResult(spacing + "\t", ret);
 		
-		if (ret.equals(Void.TYPE)) { 
-			output.println("\t\treturn;");
-		} else { 
-			output.println("\t\treturn result;");
-		}
-	       			
-		output.println("\t}");	
+		output.println(spacing + "}");	
 		output.println();			       
 	} 
 	
-	void methodCombiners() { 
-		methodCombinerVoid();
-		methodCombinerObject();
+//  	void methodCombiners() { 
+//  		methodCombinerVoid();
+//  		methodCombinerObject();
+//  	}
+
+//  	void methodCombinerObject() { 
+
+//  		output.print("\tpublic final Object GMI_combine(Combiner resultCombiner, boolean to_all, int lroot, Object local_result) throws IbisException {");
+//  		output.println();			       
+
+//  		output.println("\t\tint peer;");
+//  		output.println("\t\tint mask = 1;");
+//  		output.println("\t\tint size = destination.size;");
+//  		output.println("\t\tint rank = destination.rank;");
+//  		output.println("\t\tint relrank = (rank - lroot + size) % size;");
+
+//  		output.println("\t\tObject remote_result;"); 
+
+//  		output.println("\t\tObject [] combine_params = { null, new Integer(rank), null, null, new Integer(size) };");
+
+//  		output.println();
+//  		output.println("\t\tboolean exception = (local_result instanceof Exception);");
+
+//  		output.println();
+//  		output.println("\t\twhile (mask < size) {");
+//                    output.println("\t\t\tif ((mask & relrank) == 0) {");
+//  		    output.println("\t\t\t\tpeer = relrank | mask;");
+//  		    output.println("\t\t\t\tif (peer < size) {");
+//  		      output.println("\t\t\t\t\tpeer = (peer + lroot) % size;");
+//  		      output.println("\t\t\t\t\t/* receive result */");
+//  		      output.println("\t\t\t\t\tremote_result = messageQ.dequeue(peer);");
+//  		      output.println("\t\t\t\t\texception = exception || (remote_result instanceof Exception);");
+//  		      output.println("\t\t\t\t\tif (!exception) {");
+//  		        output.println("\t\t\t\t\t\t/* call combiner */");
+
+//  			output.println("\t\t\t\t\t\tcombine_params[0] = local_result;");
+//  			output.println("\t\t\t\t\t\tcombine_params[2] = remote_result;");
+//  			output.println("\t\t\t\t\t\tcombine_params[3] = new Integer(peer);");
+
+//  			output.println("\t\t\t\t\t\ttry {");			  
+//  			output.println("\t\t\t\t\t\t\tlocal_result = combineMethod.invoke(null, combine_params);");			  
+//  			output.println("\t\t\t\t\t\t} catch (InvocationTargetException e1) {");			  
+//  			output.println("\t\t\t\t\t\t} catch (IllegalAccessException e2) {");			  
+//  			output.println("\t\t\t\t\t\t} catch (IllegalArgumentException e3) {");			  
+//  			output.println("\t\t\t\t\t\t} catch (Exception e2) {");			  
+//  			output.println("\t\t\t\t\t\t}");			  
+
+//  		      output.println("\t\t\t\t\t} else {");
+//  		        output.println("\t\t\t\t\t\tif (!(local_result instanceof Exception)) local_result = (Exception) remote_result;");
+//  		      output.println("\t\t\t\t\t}");
+
+//  		    output.println("\t\t\t\t}");
+//    	          output.println("\t\t\t} else {");
+
+//  		    output.println("\t\t\t\tpeer = ((relrank & (~mask)) + lroot) % size;");
+//  		    output.println("\t\t\t\t/* send result */");
+
+//  		    output.println("\t\t\t\tlong memberID = destination.memberIDs[peer];");
+//  		    output.println("\t\t\t\tint peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);");
+//  		    output.println("\t\t\t\tint peer_skeleton = (int) (memberID & 0xFFFFFFFFL);");
+
+//  		    output.println("\t\t\t\tif (Group.DEBUG) System.out.println(\"Sending message to peer \" + peer + \" on cpu \" + peer_rank);");
+
+//  		    output.println("\t\t\t\tWriteMessage w = Group.unicast[peer_rank].newMessage();");
+//  		    output.println("\t\t\t\tw.writeByte(GroupProtocol.COMBINE);");
+//  		    output.println("\t\t\t\tw.writeInt(peer_skeleton);");
+//  		    output.println("\t\t\t\tw.writeInt(rank);");
+//  		    output.println("\t\t\t\tw.writeObject(local_result);");
+//  		    output.println("\t\t\t\tw.send();");
+//  		    output.println("\t\t\t\tw.finish();");
+//  		    output.println("\t\t\t\tbreak;");
+//  		  output.println("\t\t\t}");
+//                    output.println("\t\t\tmask <<= 1;");
+//  		output.println("\t\t}");
+
+//  		output.println();
+//  		output.println("\t\tif (to_all) {");
+//   		  output.println("\t\t\tif (rank == lroot) {");
+//  		    output.println("\t\t\t\tif (reply_to_all == null) {");
+//                      output.println("\t\t\t\t\treply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);");
+//  		    output.println("\t\t\t\t}");
+
+//  		    output.println("\t\t\t\t/* forward result to all */");
+//  		    output.println("\t\t\t\tWriteMessage w = reply_to_all.newMessage();");
+//  		    output.println("\t\t\t\tw.writeByte(GroupProtocol.COMBINE_RESULT);");
+//  		    output.println("\t\t\t\tw.writeInt(destination.groupID);");
+//  		    output.println("\t\t\t\tw.writeInt(lroot);");
+//  		    output.println("\t\t\t\tw.writeObject(local_result);");
+//  		    output.println("\t\t\t\tw.send();");
+//  		    output.println("\t\t\t\tw.finish();");
+//  	          output.println("\t\t\t}");
+//  		  output.println("\t\t\t/* receive result from root */");
+//  		  output.println("\t\t\tlocal_result = messageQ.dequeue(lroot);");
+//  		  output.println("\t\t\texception = exception || (local_result instanceof Exception);");
+//  		output.println("\t\t}");
+
+//  		output.println();
+//  		output.println("\t\tif (exception) {");
+//  		  output.println("\t\t\t/* throw exception here */");
+//  		output.println("\t\t}");
+//  		output.println();
+
+//  		output.println("\t\treturn local_result;");
+	       			
+//  		output.println("\t}");	
+//  		output.println();			       
+//  	} 
+
+//  	void methodCombinerVoid() { 
+
+//  		output.print("\tpublic final void GMI_combine_void(Method combineMethod, boolean to_all, int lroot, Object local_result) throws IbisException {");
+//  		output.println();			       
+
+//  		output.println("\t\tint peer;");
+//  		output.println("\t\tint mask = 1;");
+//  		output.println("\t\tint size = destination.size;");
+//  		output.println("\t\tint rank = destination.rank;");
+//  		output.println("\t\tint relrank = (rank - lroot + size) % size;");
+
+//  		output.println("\t\tObject remote_result;"); 
+
+//  		output.println("\t\tObject [] combine_params = { new Integer(rank), null, new Integer(size) };");
+
+//  		output.println();
+//  		output.println("\t\tboolean exception = (local_result instanceof Exception);");
+
+//  		output.println();
+//  		output.println("\t\twhile (mask < size) {");
+//                    output.println("\t\t\tif ((mask & relrank) == 0) {");
+//  		    output.println("\t\t\t\tpeer = relrank | mask;");
+//  		    output.println("\t\t\t\tif (peer < size) {");
+//  		      output.println("\t\t\t\t\tpeer = (peer + lroot) % size;");
+//  		      output.println("\t\t\t\t\t/* receive result */");
+//  		      output.println("\t\t\t\t\tremote_result = messageQ.dequeue(peer);");
+//  		      output.println("\t\t\t\t\texception = exception || (remote_result instanceof Exception);");
+//  		      output.println("\t\t\t\t\tif (!exception) {");
+//  		        output.println("\t\t\t\t\t\t/* call combiner */");
+
+//  			output.println("\t\t\t\t\t\tcombine_params[1] = new Integer(peer);");
+
+//  			output.println("\t\t\t\t\t\ttry {");			  
+//  			output.println("\t\t\t\t\t\t\tcombineMethod.invoke(null, combine_params);");			  
+//  			output.println("\t\t\t\t\t\t} catch (InvocationTargetException e1) {");			  
+//  			output.println("\t\t\t\t\t\t} catch (IllegalAccessException e2) {");			  
+//  			output.println("\t\t\t\t\t\t} catch (IllegalArgumentException e3) {");			  
+//  			output.println("\t\t\t\t\t\t} catch (Exception e2) {");			  
+//  			output.println("\t\t\t\t\t\t}");			  
+
+//  		      output.println("\t\t\t\t\t} else {");
+//  		        output.println("\t\t\t\t\t\tif (!(local_result instanceof Exception)) local_result = (Exception) remote_result;");
+//  		      output.println("\t\t\t\t\t}");
+
+//  		    output.println("\t\t\t\t}");
+//    	          output.println("\t\t\t} else {");
+//  		    output.println("\t\t\t\tpeer = ((relrank & (~mask)) + lroot) % size;");
+//  		    output.println("\t\t\t\t/* send result */");
+
+//  		    output.println("\t\t\t\tlong memberID = destination.memberIDs[peer];");
+//  		    output.println("\t\t\t\tint peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);");
+//  		    output.println("\t\t\t\tint peer_skeleton = (int) (memberID & 0xFFFFFFFFL);");
+
+//  		    output.println("\t\t\t\tif (Group.DEBUG) System.out.println(\"Sending message to peer \" + peer + \" on cpu \" + peer_rank);");		    		   
+
+//  		    output.println("\t\t\t\tWriteMessage w = Group.unicast[peer_rank].newMessage();");
+//  		    output.println("\t\t\t\tw.writeByte(GroupProtocol.COMBINE);");
+//  		    output.println("\t\t\t\tw.writeInt(peer_skeleton);");
+//  		    output.println("\t\t\t\tw.writeInt(rank);");
+//  		    output.println("\t\t\t\tw.writeObject(local_result);");
+//  		    output.println("\t\t\t\tw.send();");
+//  		    output.println("\t\t\t\tw.finish();");
+//  		    output.println("\t\t\t\tbreak;");
+//  		  output.println("\t\t\t}");
+//                    output.println("\t\t\tmask <<= 1;");
+//  		output.println("\t\t}");
+
+//  		output.println();
+//  		output.println("\t\tif (to_all) {");
+//   		  output.println("\t\t\tif (rank == lroot) {");
+//  		    output.println("\t\t\t\t/* forward result to all */");
+//  		    output.println("\t\t\t\tif (reply_to_all == null) {");
+//                      output.println("\t\t\t\t\treply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);");
+//  		    output.println("\t\t\t\t}");
+		    
+//  		    output.println("\t\t\t\tWriteMessage w = reply_to_all.newMessage();");
+//  		    output.println("\t\t\t\tw.writeByte(GroupProtocol.COMBINE);");
+//  		    output.println("\t\t\t\tw.writeObject(local_result);");
+//  		    output.println("\t\t\t\tw.send();");
+//  		    output.println("\t\t\t\tw.finish();");
+//  	          output.println("\t\t\t}");
+//  		  output.println("\t\t\t/* receive result from root */");
+//  		  output.println("\t\t\tlocal_result = messageQ.dequeue(lroot);");
+//  		  output.println("\t\t\texception = exception || (local_result instanceof Exception);");
+//  		output.println("\t\t}");
+
+//  		output.println();
+//  		output.println("\t\tif (exception) {");
+//  		  output.println("\t\t\t/* throw exception here */");
+//  		output.println("\t\t}");
+//  		output.println();
+
+//  		output.println("\t\treturn;");
+	       			
+//  		output.println("\t}");	
+//  		output.println();			       
+//  	} 
+
+	String getResultOpcode(Class ret) { 
+
+		String result = null;
+
+		if (ret.isPrimitive()) {				
+			if (ret.equals(Byte.TYPE)) { 
+				result = "Group.RESULT_BYTE";
+			} else if (ret.equals(Void.TYPE)) { 
+				result = "Group.RESULT_VOID";
+			} else if (ret.equals(Character.TYPE)) { 
+				result = "Group.RESULT_CHAR";
+			} else if (ret.equals(Short.TYPE)) {
+				result = "Group.RESULT_SHORT";
+			} else if (ret.equals(Integer.TYPE)) {
+				result = "Group.RESULT_INT";
+			} else if (ret.equals(Long.TYPE)) {
+				result = "Group.RESULT_LONG";
+			} else if (ret.equals(Float.TYPE)) {
+				result = "Group.RESULT_FLOAT";
+			} else if (ret.equals(Double.TYPE)) {
+				result = "Group.RESULT_DOUBLE";
+			} else if (ret.equals(Boolean.TYPE)) {
+				result = "Group.RESULT_BOOLEAN";
+			} 					       
+		} else { 
+			result = "Group.RESULT_OBJECT";
+		} 		
+
+		return result;
 	}
 
-	void methodCombinerObject() { 
 
-		output.print("\tpublic final Object GMI_combine(Method combineMethod, boolean to_all, int lroot, Object local_result) throws IbisIOException {");
-		output.println();			       
 
-		output.println("\t\tint peer;");
-		output.println("\t\tint mask = 1;");
-		output.println("\t\tint size = destination.size;");
-		output.println("\t\tint rank = destination.rank;");
-		output.println("\t\tint relrank = (rank - lroot + size) % size;");
+	void messageHandler(String spacing, Vector methods) { 
 
-		output.println("\t\tObject remote_result;"); 
+		output.println(spacing + "public final void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException {");
+		output.println();			
+		output.println(spacing + "\tint method = r.readInt();");	
 
-		output.println("\t\tObject [] combine_params = { null, new Integer(rank), null, null, new Integer(size) };");
-
-		output.println();
-		output.println("\t\tboolean exception = (local_result instanceof Exception);");
-
-		output.println();
-		output.println("\t\twhile (mask < size) {");
-                  output.println("\t\t\tif ((mask & relrank) == 0) {");
-		    output.println("\t\t\t\tpeer = relrank | mask;");
-		    output.println("\t\t\t\tif (peer < size) {");
-		      output.println("\t\t\t\t\tpeer = (peer + lroot) % size;");
-		      output.println("\t\t\t\t\t/* receive result */");
-		      output.println("\t\t\t\t\tremote_result = messageQ.dequeue(peer);");
-		      output.println("\t\t\t\t\texception = exception || (remote_result instanceof Exception);");
-		      output.println("\t\t\t\t\tif (!exception) {");
-		        output.println("\t\t\t\t\t\t/* call combiner */");
-
-			output.println("\t\t\t\t\t\tcombine_params[0] = local_result;");
-			output.println("\t\t\t\t\t\tcombine_params[2] = remote_result;");
-			output.println("\t\t\t\t\t\tcombine_params[3] = new Integer(peer);");
-
-			output.println("\t\t\t\t\t\ttry {");			  
-			output.println("\t\t\t\t\t\t\tlocal_result = combineMethod.invoke(null, combine_params);");			  
-			output.println("\t\t\t\t\t\t} catch (InvocationTargetException e1) {");			  
-			output.println("\t\t\t\t\t\t} catch (IllegalAccessException e2) {");			  
-			output.println("\t\t\t\t\t\t} catch (IllegalArgumentException e3) {");			  
-			output.println("\t\t\t\t\t\t} catch (Exception e2) {");			  
-			output.println("\t\t\t\t\t\t}");			  
-
-		      output.println("\t\t\t\t\t} else {");
-		        output.println("\t\t\t\t\t\tif (!(local_result instanceof Exception)) local_result = (Exception) remote_result;");
-		      output.println("\t\t\t\t\t}");
-
-		    output.println("\t\t\t\t}");
-  	          output.println("\t\t\t} else {");
-
-		    output.println("\t\t\t\tpeer = ((relrank & (~mask)) + lroot) % size;");
-		    output.println("\t\t\t\t/* send result */");
-
-		    output.println("\t\t\t\tlong memberID = destination.memberIDs[peer];");
-		    output.println("\t\t\t\tint peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);");
-		    output.println("\t\t\t\tint peer_skeleton = (int) (memberID & 0xFFFFFFFFL);");
-
-		    output.println("\t\t\t\tif (Group.DEBUG) System.out.println(\"Sending message to peer \" + peer + \" on cpu \" + peer_rank);");
-
-		    output.println("\t\t\t\tWriteMessage w = Group.unicast[peer_rank].newMessage();");
-		    output.println("\t\t\t\tw.writeByte(GroupProtocol.COMBINE);");
-		    output.println("\t\t\t\tw.writeInt(peer_skeleton);");
-		    output.println("\t\t\t\tw.writeInt(rank);");
-		    output.println("\t\t\t\tw.writeObject(local_result);");
-		    output.println("\t\t\t\tw.send();");
-		    output.println("\t\t\t\tw.finish();");
-		    output.println("\t\t\t\tbreak;");
-		  output.println("\t\t\t}");
-                  output.println("\t\t\tmask <<= 1;");
-		output.println("\t\t}");
-
-		output.println();
-		output.println("\t\tif (to_all) {");
- 		  output.println("\t\t\tif (rank == lroot) {");
-		    output.println("\t\t\t\t/* forward result to all */");
-		    output.println("\t\t\t\tWriteMessage w = Group.multicast.newMessage();");
-		    output.println("\t\t\t\tw.writeByte(GroupProtocol.COMBINE_RESULT);");
-		    output.println("\t\t\t\tw.writeInt(destination.groupID);");
-		    output.println("\t\t\t\tw.writeInt(lroot);");
-		    output.println("\t\t\t\tw.writeObject(local_result);");
-		    output.println("\t\t\t\tw.send();");
-		    output.println("\t\t\t\tw.finish();");
-	          output.println("\t\t\t}");
-		  output.println("\t\t\t/* receive result from root */");
-		  output.println("\t\t\tlocal_result = messageQ.dequeue(lroot);");
-		  output.println("\t\t\texception = exception || (local_result instanceof Exception);");
-		output.println("\t\t}");
-
-		output.println();
-		output.println("\t\tif (exception) {");
-		  output.println("\t\t\t/* throw exception here */");
-		output.println("\t\t}");
-		output.println();
-
-		output.println("\t\treturn local_result;");
-	       			
-		output.println("\t}");	
-		output.println();			       
-	} 
-
-	void methodCombinerVoid() { 
-
-		output.print("\tpublic final void GMI_combine_void(Method combineMethod, boolean to_all, int lroot, Object local_result) throws IbisIOException {");
-		output.println();			       
-
-		output.println("\t\tint peer;");
-		output.println("\t\tint mask = 1;");
-		output.println("\t\tint size = destination.size;");
-		output.println("\t\tint rank = destination.rank;");
-		output.println("\t\tint relrank = (rank - lroot + size) % size;");
-
-		output.println("\t\tObject remote_result;"); 
-
-		output.println("\t\tObject [] combine_params = { new Integer(rank), null, new Integer(size) };");
-
-		output.println();
-		output.println("\t\tboolean exception = (local_result instanceof Exception);");
-
-		output.println();
-		output.println("\t\twhile (mask < size) {");
-                  output.println("\t\t\tif ((mask & relrank) == 0) {");
-		    output.println("\t\t\t\tpeer = relrank | mask;");
-		    output.println("\t\t\t\tif (peer < size) {");
-		      output.println("\t\t\t\t\tpeer = (peer + lroot) % size;");
-		      output.println("\t\t\t\t\t/* receive result */");
-		      output.println("\t\t\t\t\tremote_result = messageQ.dequeue(peer);");
-		      output.println("\t\t\t\t\texception = exception || (remote_result instanceof Exception);");
-		      output.println("\t\t\t\t\tif (!exception) {");
-		        output.println("\t\t\t\t\t\t/* call combiner */");
-
-			output.println("\t\t\t\t\t\tcombine_params[1] = new Integer(peer);");
-
-			output.println("\t\t\t\t\t\ttry {");			  
-			output.println("\t\t\t\t\t\t\tcombineMethod.invoke(null, combine_params);");			  
-			output.println("\t\t\t\t\t\t} catch (InvocationTargetException e1) {");			  
-			output.println("\t\t\t\t\t\t} catch (IllegalAccessException e2) {");			  
-			output.println("\t\t\t\t\t\t} catch (IllegalArgumentException e3) {");			  
-			output.println("\t\t\t\t\t\t} catch (Exception e2) {");			  
-			output.println("\t\t\t\t\t\t}");			  
-
-		      output.println("\t\t\t\t\t} else {");
-		        output.println("\t\t\t\t\t\tif (!(local_result instanceof Exception)) local_result = (Exception) remote_result;");
-		      output.println("\t\t\t\t\t}");
-
-		    output.println("\t\t\t\t}");
-  	          output.println("\t\t\t} else {");
-		    output.println("\t\t\t\tpeer = ((relrank & (~mask)) + lroot) % size;");
-		    output.println("\t\t\t\t/* send result */");
-
-		    output.println("\t\t\t\tlong memberID = destination.memberIDs[peer];");
-		    output.println("\t\t\t\tint peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);");
-		    output.println("\t\t\t\tint peer_skeleton = (int) (memberID & 0xFFFFFFFFL);");
-
-		    output.println("\t\t\t\tif (Group.DEBUG) System.out.println(\"Sending message to peer \" + peer + \" on cpu \" + peer_rank);");		    		   
-
-		    output.println("\t\t\t\tWriteMessage w = Group.unicast[peer_rank].newMessage();");
-		    output.println("\t\t\t\tw.writeByte(GroupProtocol.COMBINE);");
-		    output.println("\t\t\t\tw.writeInt(peer_skeleton);");
-		    output.println("\t\t\t\tw.writeInt(rank);");
-		    output.println("\t\t\t\tw.writeObject(local_result);");
-		    output.println("\t\t\t\tw.send();");
-		    output.println("\t\t\t\tw.finish();");
-		    output.println("\t\t\t\tbreak;");
-		  output.println("\t\t\t}");
-                  output.println("\t\t\tmask <<= 1;");
-		output.println("\t\t}");
-
-		output.println();
-		output.println("\t\tif (to_all) {");
- 		  output.println("\t\t\tif (rank == lroot) {");
-		    output.println("\t\t\t\t/* forward result to all */");
-		    output.println("\t\t\t\tWriteMessage w = Group.multicast.newMessage();");
-		    output.println("\t\t\t\tw.writeByte(GroupProtocol.COMBINE);");
-		    output.println("\t\t\t\tw.writeObject(local_result);");
-		    output.println("\t\t\t\tw.send();");
-		    output.println("\t\t\t\tw.finish();");
-	          output.println("\t\t\t}");
-		  output.println("\t\t\t/* receive result from root */");
-		  output.println("\t\t\tlocal_result = messageQ.dequeue(lroot);");
-		  output.println("\t\t\texception = exception || (local_result instanceof Exception);");
-		output.println("\t\t}");
-
-		output.println();
-		output.println("\t\tif (exception) {");
-		  output.println("\t\t\t/* throw exception here */");
-		output.println("\t\t}");
-		output.println();
-
-		output.println("\t\treturn;");
-	       			
-		output.println("\t}");	
-		output.println();			       
-	} 
-
-	void body(Vector methods) { 
-
-		methodCombiners();
-
-		for (int i=0;i<methods.size();i++) { 
-			methodHandler((Method) methods.get(i));
-		}
-	}
-
-	void messageHandler(Vector methods) { 
-
-		output.println("\tpublic final void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisIOException {");
-		output.println();		
-
-		output.println("\t\tint cpu_rank = 0;");		
-		output.println("\t\tint root_object = 0;");		
-		output.println("\t\tint ticket = 0;");	
-		output.println("\t\tClass combineClass = null;");	
-		output.println("\t\tString combineName = null;");	
-		output.println("\t\tMethod combineMethod = null;");	
-		output.println();		
-
-		output.println("\t\tint method = r.readInt();");		
-		output.println();		
-		
-		output.println("\t\tswitch (resultMode) {");
-		output.println("\t\tcase Group.COMBINE:");		
-		output.println("\t\t\tcombineClass = (Class)  r.readObject();");		
-		output.println("\t\t\tcombineName  = (String) r.readObject();");		
-		output.println("\t\t\tcombineMethod = Group.findMethod(combineClass, combineName, methods[method].combineParameters);");		
-		output.println("\t\t\t/* find root_object on machine cpu_rank */");	       
-		
-		output.println("\t\t\t/* fall through */");		
-		output.println("\t\tcase Group.RETURN:");		
-		output.println("\t\t\tcpu_rank = r.readInt();");		
-		output.println("\t\t\tticket   = r.readInt();");		
-		output.println("\t\t\t/* fall through */");		
-		output.println("\t\tcase Group.DISCARD:");		
-		output.println("\t\t\tbreak;");				
-		output.println("\t\t}");		
-
-		output.println("\t\tswitch(method) {");		
-
+		output.println(spacing + "\tswitch(method) {");		
+	
 		for (int i=0;i<methods.size();i++) { 
 			Method m = (Method) methods.get(i);
-			Class ret = m.getReturnType();
-			Class [] params = m.getParameterTypes();
-			
-			output.println("\t\tcase " + i + ":");
-			
-			//			output.print("\t\t\t/* " + getType(ret) + " " + m.getName() + "(");			
-			//			for (int j=0;j<params.length;j++) { 
-			//				output.print(params[j].getName() + " p" + j);
-			//				
-			//				if (j < params.length-1) { 
-			//					output.print(", ");
-			//				}
-			//			}
-			//			output.println(") */");									
-			output.println("\t\t{");		       
-
-			output.println("\t\t\t/* First - Extract the parameters */");		       
-			
-			for (int j=0;j<params.length;j++) { 
-				Class temp = params[j];
-				/*				
-				output.print("\t\t\t");
-
-				if (temp.isPrimitive()) {								
-					if (temp.equals(Byte.TYPE)) { 
-						output.println("byte p" + j + " = r.readByte();");
-					} else if (temp.equals(Character.TYPE)) { 
-						output.println("char p" + j + " = r.readChar();");
-					} else if (temp.equals(Short.TYPE)) {
-						output.println("short p" + j + " = r.readShort();");
-					} else if (temp.equals(Integer.TYPE)) {
-						output.println("int p" + j + " = r.readInt();");
-					} else if (temp.equals(Long.TYPE)) {
-						output.println("long p" + j + " = r.readLong();");
-					} else if (temp.equals(Float.TYPE)) {
-						output.println("float p" + j + " = r.readFloat();");
-					} else if (temp.equals(Double.TYPE)) {
-						output.println("double p" + j + " = r.readDouble();");
-					} else if (temp.equals(Boolean.TYPE)) {
-						output.println("boolean p" + j + " = r.readBoolean();");
-					} 					       
-				} else { 
-					output.println("Object p" + j + " = r.readObject();");
-				} 
-				*/
-				output.println(readMessageType("\t\t\t", getType(temp) + " p" + j, "r", temp));
-			}
-			
-			output.println("\t\t\tr.finish();");
-			output.println();
-			
-			output.println("\t\t\t/* Second - Invoke the methodHandler */");		       
-
-			output.print("\t\t\t");
-			
-			if (!ret.equals(Void.TYPE)) { 
-				if (ret.isPrimitive()) {					
-					output.print(getType(ret) + " result = ");
-				} else { 
-					output.print(getType(ret) + " result = ");
-				}		
-			} 
-		
-  			output.print("GMI_" + m.getName() + "(combineMethod, false, root_object");
-		
-			for (int j=0;j<params.length;j++) { 
-				output.print(", p" + j);
-			}
-
-			output.println(");");
-			output.println();
-
-
-			output.println("\t\t\t/* Third - Handle the result */");		
-       
-			output.println("\t\t\tswitch (resultMode) {");
-			output.println("\t\t\tcase Group.DISCARD:");			
-			output.println("\t\t\t\tbreak;");
-			output.println();
-
-			output.println("\t\t\tcase Group.RETURN:");			
-			
-			output.println("\t\t\t\tif (invocationMode == Group.REMOTE || root_object == destination.rank) {");			
-			
-			output.println("\t\t\t\t\tWriteMessage w = Group.unicast[cpu_rank].newMessage();");			
-			output.println("\t\t\t\t\tw.writeByte(GroupProtocol.REPLY);");			
-			output.println("\t\t\t\t\tw.writeInt(ticket);");			
-
-			if (!ret.equals(Void.TYPE)) { 
-				output.println(writeMessageType("\t\t\t\t\t", "w", ret, "result"));
-			}
-
-			output.println("\t\t\t\t\tw.send();");			
-			output.println("\t\t\t\t\tw.finish();");						
-			output.println("\t\t\t\t}");			
-			
-			output.println("\t\t\t\tbreak;");
-			output.println();
-
-			output.println("\t\t\tcase Group.COMBINE:");	
-
-			output.println("\t\t\t\tif (invocationMode == Group.REMOTE || root_object == destination.rank) {");			
-			
-			output.println("\t\t\t\t\tWriteMessage w = Group.unicast[cpu_rank].newMessage();");			
-			output.println("\t\t\t\t\tw.writeByte(GroupProtocol.REPLY);");			
-			output.println("\t\t\t\t\tw.writeInt(ticket);");			
-
-			if (!ret.equals(Void.TYPE)) { 
-				output.println(writeMessageType("\t\t\t\t\t", "w", ret, "result"));
-			}
-
-			output.println("\t\t\t\t\tw.send();");			
-			output.println("\t\t\t\t\tw.finish();");						
-			output.println("\t\t\t\t}");			
-	
-			output.println("\t\t\t\tbreak;");
-			output.println();
-
-			output.println("\t\t\tdefault:");
-			output.println("\t\t\t\tSystem.err.println(\"OOPS: group_skeleton got illegal resultMode number!\");");
-			output.println("\t\t\t\tSystem.exit(1);");
-			output.println("\t\t\t\tbreak;");
-			output.println();
-
-			output.println("\t\t\t}");
-			output.println();
-
-			output.println("\t\t\tbreak;");
-			output.println("\t\t}");
-			output.println();
+			output.println(spacing + "\tcase " + i + ":");
+			output.println(spacing + "\t\tGMI_" + m.getName() + "(invocationMode, resultMode, r);");
+			output.println(spacing + "\t\tbreak;");
 		}
 		
-
-		output.println("\t\tdefault:");
-		output.println("\t\t\tSystem.err.println(\"OOPS: group_skeleton got illegal method number!\");");
-		output.println("\t\t\tSystem.exit(1);");
-		output.println("\t\t\tbreak;");
+		output.println(spacing + "\tdefault:");
+		output.println(spacing + "\t\tSystem.err.println(\"OOPS: group_skeleton got illegal method number!\");");
+		output.println(spacing + "\t\tSystem.exit(1);");
+		output.println(spacing + "\t\tbreak;");
 		
-		output.println("\t\t}");
-		output.println("\t}");
-		output.println();			       
-	} 
+		output.println(spacing + "\t}");
+		output.println(spacing + "}");
+	}
 	       
 	void trailer() { 
 		output.println("}\n");
 	} 
        
-	void constructor(Vector methods) { 
+	void constructor(String spacing, Vector methods) { 
 
-		output.println("\tpublic group_skeleton_" + data.classname + "() {");
+		output.println(spacing + "public group_skeleton_" + data.classname + "() {");
 
-		output.println("\t\tsuper(" + methods.size() + ");");
+		output.println(spacing + "\tsuper(" + methods.size() + ");");
 		output.println();
 
 		for (int i=0;i<methods.size();i++) { 
@@ -507,17 +498,17 @@ class GMISkeletonGenerator extends GMIGenerator {
 			Class ret = m.getReturnType();
 			Class [] params = m.getParameterTypes();
 
-			output.println("\t\tmethods[" + i + "] = new GroupMethod();");
+			output.println(spacing + "\tmethods[" + i + "] = new GroupMethod(this);");
 
-			output.println("\t\tmethods[" + i + "].name = \"" + m.getName() + "\";");
-			output.println("\t\tmethods[" + i + "].returnType = " + getType(ret) + ".class;");
-			output.println("\t\tmethods[" + i + "].parameters = new Class[" + params.length + "];");
+			output.println(spacing + "\tmethods[" + i + "].name = \"" + m.getName() + "\";");
+			output.println(spacing + "\tmethods[" + i + "].returnType = " + getType(ret) + ".class;");
+			output.println(spacing + "\tmethods[" + i + "].parameters = new Class[" + params.length + "];");
 
 			for (int j=0;j<params.length;j++) { 
-				output.println("\t\tmethods[" + i + "].parameters[" + j + "] = " + getType(params[j]) + ".class;");
+				output.println(spacing + "\tmethods[" + i + "].parameters[" + j + "] = " + getType(params[j]) + ".class;");
 			}
 
-			output.print("\t\tmethods[" + i + "].description = \"" + getType(ret) + " " + m.getName() + "(");
+			output.print(spacing + "\tmethods[" + i + "].description = \"" + getType(ret) + " " + m.getName() + "(");
 			for (int j=0;j<params.length;j++) { 
 				output.print(getType(params[j]));
 
@@ -528,43 +519,47 @@ class GMISkeletonGenerator extends GMIGenerator {
 
 			output.println(")\";");
 
-			output.println("\t\tmethods[" + i + "].personalizeParameters = new Class[" + (params.length+1) + "];");
-			output.println("\t\tmethods[" + i + "].personalizeParameters[0] = ibis.group.ParameterVector.class;");
+			output.println(spacing + "\tmethods[" + i + "].personalizeParameters = new Class[" + (params.length+1) + "];");
 
 			for (int j=0;j<params.length;j++) { 
-				output.println("\t\tmethods[" + i + "].personalizeParameters[" + (j+1) + "] = " + getType(params[j]) + ".class;");
+				output.println(spacing + "\tmethods[" + i + "].personalizeParameters[" + (j) + "] = " + getType(params[j]) + ".class;");
 			}
+			output.println(spacing + "\tmethods[" + i + "].personalizeParameters[" + params.length +"] = ibis.group.ParameterVector[].class;");
 
+
+/*
 			if (!ret.equals(Void.TYPE)) {       
-				output.println("\t\tmethods[" + i + "].combineParameters = new Class[5];");
-				output.println("\t\tmethods[" + i + "].combineParameters[0] = " + getType(ret) + ".class;");
-				output.println("\t\tmethods[" + i + "].combineParameters[1] = int.class;");
-				output.println("\t\tmethods[" + i + "].combineParameters[2] = " + getType(ret) + ".class;");
-				output.println("\t\tmethods[" + i + "].combineParameters[3] = int.class;");
-				output.println("\t\tmethods[" + i + "].combineParameters[4] = int.class;");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters = new Class[5];");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters[0] = " + getType(ret) + ".class;");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters[1] = int.class;");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters[2] = " + getType(ret) + ".class;");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters[3] = int.class;");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters[4] = int.class;");
 			} else { 
-				output.println("\t\tmethods[" + i + "].combineParameters = new Class[3];");
-				output.println("\t\tmethods[" + i + "].combineParameters[0] = int.class;");
-				output.println("\t\tmethods[" + i + "].combineParameters[1] = int.class;");
-				output.println("\t\tmethods[" + i + "].combineParameters[2] = int.class;");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters = new Class[3];");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters[0] = int.class;");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters[1] = int.class;");
+				output.println(spacing + "\tmethods[" + i + "].combineParameters[2] = int.class;");
 			}
 			output.println();			
+*/
 		}
 
-		output.println("\t}\n");
+		output.println(spacing + "}\n");
 	} 
 
+	void body(String spacing, Vector methods) { 
+		for (int i=0;i<methods.size();i++) { 
+			methodHandler(spacing, (Method) methods.get(i));
+		}
+	}
+
 	void generate() { 
-
 		dest_name = data.classname;
-
 		header();		
-		constructor(data.specialMethods);
-		//		constructor(data.specialMethods);		
-		messageHandler(data.specialMethods);
-		body(data.specialMethods);
-		
+		constructor("\t", data.specialMethods);
+		messageHandler("\t", data.specialMethods);
+		body("\t", data.specialMethods);	
 		trailer();
-
 	} 
 } 
