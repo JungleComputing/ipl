@@ -36,7 +36,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	SATContext ctx,
 	int var,
 	boolean val
-    ) throws SATException
+    ) throws SATResultException, SATRestartException
     {
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
@@ -79,11 +79,21 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
 	boolean firstvar = ctx.posDominant( nextvar );
 	SATContext subctx = (SATContext) ctx.clone();
-	leafSolve( level+1, p, subctx, nextvar, firstvar );
+        try {
+            leafSolve( level+1, p, subctx, nextvar, firstvar );
+        }
+        catch( SATRestartException x ){
+	    if( x.level<level ){
+		//System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+		throw x;
+	    }
+        }
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
-        // However, we must update the context for any new clauses
-        // that have been added.
+	// Also note that this call is a perfect candidate for tail
+	// call elimination.
+        // However, we must update the administration with any
+        // new clauses that we've learned recently.
         ctx.update( p );
 	leafSolve( level+1, p, ctx, nextvar, !firstvar );
     }

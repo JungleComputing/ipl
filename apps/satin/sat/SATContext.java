@@ -100,7 +100,7 @@ public final class SATContext implements java.io.Serializable {
     private static final boolean traceResolutionChain = false;
 
     private static final boolean doVerification = false;
-    private static final boolean doLearning = true;
+    private static final boolean doLearning = false;
     private static final boolean propagatePureVariables = true;
 
     /**

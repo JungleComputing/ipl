@@ -14,7 +14,7 @@
 
 import java.io.File;
 
-public final class SeqSolver {
+public final class Breeder {
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
@@ -195,21 +195,10 @@ public final class SeqSolver {
 	p.report( System.out );
 	p.optimize();
 	p.report( System.out );
-        SeqSolver s = new SeqSolver();
-	long startTime = System.currentTimeMillis();
-	SATSolution res = s.solveSystem( p );
 
-	long endTime = System.currentTimeMillis();
-	double time = ((double) (endTime - startTime))/1000.0;
+	Genes genes = BreederSolver.getInitialGenes();
 
-	p.report( System.out );
-	System.out.println( "ExecutionTime: " + time );
-        System.out.println( "Decisions: " + s.decisions );
-	if( res == null ){
-	    System.out.println( "There are no solutions" );
-	}
-	else {
-	    System.out.println( "There is a solution: " + res );
-	}
+	int d = BreederSolver.run( p, genes );
+	System.err.println( "Decisions: " + d );
     }
 }

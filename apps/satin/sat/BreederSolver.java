@@ -1,7 +1,7 @@
 // File: $Id$
 
 /**
- * A sequential SAT solver. Given a symbolic boolean equation in CNF, find a set
+ * A sequential SAT solver specifically used in evolution. Given a symbolic boolean equation in CNF, find a set
  * of assignments that make this equation true.
  * 
  * This implementation tries to do all the things a professional SAT
@@ -14,9 +14,9 @@
 
 import java.io.File;
 
-public final class SeqSolver {
+public final class BreederSolver {
     private static final boolean traceSolver = false;
-    private static final boolean printSatSolutions = true;
+    private static final boolean printSatSolutions = false;
     private static final boolean traceNewCode = true;
     private static int label = 0;
     private int decisions = 0;
@@ -106,7 +106,7 @@ public final class SeqSolver {
      * @param p The problem to solve.
      * @return a solution of the problem, or <code>null</code> if there is no solution
      */
-    SATSolution solveSystem( final SATProblem p )
+    protected SATSolution solveSystem( final SATProblem p )
     {
 	SATSolution res = null;
 
@@ -172,44 +172,33 @@ public final class SeqSolver {
         }
 
 	int newClauseCount = p.getClauseCount();
-	System.err.println( "Learned " + (newClauseCount-oldClauseCount) + " clauses." );
 	return res;
     }
 
-    /**
-     * Allows execution of the class.
-     * @param args The command-line arguments.
-     */
-    public static void main( String args[] ) throws java.io.IOException
+    static Genes getInitialGenes()
     {
-	if( args.length != 1 ){
-	    System.err.println( "Exactly one filename argument required." );
-	    System.exit( 1 );
-	}
-	File f = new File( args[0] );
-	if( !f.exists() ){
-	    System.err.println( "File does not exist: " + f );
-	    System.exit( 1 );
-	}
-	SATProblem p = SATProblem.parseDIMACSStream( f );
-	p.report( System.out );
-	p.optimize();
-	p.report( System.out );
-        SeqSolver s = new SeqSolver();
-	long startTime = System.currentTimeMillis();
-	SATSolution res = s.solveSystem( p );
+	float g[] = { 1.0f, 1.0f };
+	return new Genes( g, null, null );
+    }
 
-	long endTime = System.currentTimeMillis();
-	double time = ((double) (endTime - startTime))/1000.0;
+    static Genes getMaxGenes()
+    {
+	float g[] = { 50.0f, 50.0f };
+	return new Genes( g, null, null );
+    }
 
-	p.report( System.out );
-	System.out.println( "ExecutionTime: " + time );
-        System.out.println( "Decisions: " + s.decisions );
-	if( res == null ){
-	    System.out.println( "There are no solutions" );
-	}
-	else {
-	    System.out.println( "There is a solution: " + res );
-	}
+    static Genes getMinGenes()
+    {
+	float g[] = { -50.0f, -50.0f };
+	return new Genes( g, null, null );
+    }
+
+    static int run( SATProblem p_in, Genes genes )
+    {
+        BreederSolver s = new BreederSolver();
+
+	SATProblem p = (SATProblem) p_in.clone();
+	s.solveSystem( p );
+	return s.decisions;
     }
 }
