@@ -7,6 +7,7 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.PortMismatchException;
+import ibis.ipl.ConnectionTimedOutException;
 import ibis.io.Replacer;
 
 import java.util.Vector;
@@ -77,7 +78,25 @@ final class TcpSendPort implements SendPort, Config {
 	}
 
 	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IOException {
-	    System.err.println("Implement TcpSendPort.connect(receiver, timeout)");
+		long start = System.currentTimeMillis();
+		boolean success = false;
+		do {
+			if (timeout_millis > 0 &&
+				System.currentTimeMillis() > start + timeout_millis) {
+				throw new ConnectionTimedOutException("could not connect");
+			}
+			try {
+				connect(receiver);
+				success = true;
+			} catch (IOException e) {
+				int timeLeft = (int)(start + timeout_millis - System.currentTimeMillis());
+				try {
+					Thread.sleep(Math.min(timeLeft, 500));
+				} catch (InterruptedException e2) {
+					// ignore               
+				}
+			}
+		} while (!success);
 	}
 
 	public ibis.ipl.WriteMessage newMessage() throws IOException { 

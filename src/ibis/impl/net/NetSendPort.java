@@ -6,6 +6,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.ConnectionTimedOutException;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -639,7 +640,25 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 			    int                   timeout_millis)
 		throws IOException {
                 log.in();
-		__.unimplemented__("connect");
+				long start = System.currentTimeMillis();
+				boolean success = false;
+				do {
+					if (timeout_millis > 0 &&
+						System.currentTimeMillis() > start + timeout_millis) {
+						throw new ConnectionTimedOutException("could not connect");
+					}
+					try {
+						connect(rpi);
+						success = true;
+					} catch (IOException e) {
+						int timeLeft = (int)(start + timeout_millis - System.currentTimeMillis());
+						try {
+							Thread.sleep(Math.min(timeLeft, 500));
+						} catch (InterruptedException e2) {
+							// ignore               
+						}
+					}
+				} while (!success);
                 log.out();
 	}
 
