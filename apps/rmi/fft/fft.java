@@ -49,6 +49,13 @@ class fft {
 	    }
 	}
 
+	if (M <= 0 || (M & 1) != 0) {
+	    if (host == 0) {
+		System.out.println("Parameter must be even and > 0");
+	    }
+	    System.exit(1);
+	}
+
 	N = (1 << M);
 	rootN = (1 << (M / 2));
 	rowsperproc = rootN / cpus;
