@@ -5,13 +5,15 @@ import java.io.OutputStream;
 import java.io.IOException;
 
 /**
- * Implementation of an <code>ibis.io.ArrayOutputStream</code> on top of a
- * <code>ByteOutputStream</code>.
+ *
+ * Extends OutputStream with write of array of primitives and writeSingleInt
  */
+
 final public class ArrayOutputStream
 	extends ibis.io.ArrayOutputStream {
 
-    private final ByteOutputStream out;
+    private ByteOutputStream out;
+    private boolean[] touched = new boolean[PRIMITIVE_TYPES];
 
     public ArrayOutputStream(ByteOutputStream out) {
 	if (Ibis.DEBUG) {
@@ -20,76 +22,47 @@ final public class ArrayOutputStream
 	this.out = out;
     }
 
-    /**
-     * @inheritDoc
-     */
-    final public void writeArray(byte[] ref, int offset, int len)
-	    throws IOException {
-	out.writeByteArray(ref, offset, len);
-    }
 
     /**
      * @inheritDoc
      */
-    final public void writeArray(boolean[] ref, int offset, int len)
+    final public void doWriteArray(Object ref, int offset, int len, int type)
 	    throws IOException {
-	out.writeBooleanArray(ref, offset, len);
+	
+	switch (type)	{
+	case TYPE_BOOLEAN:
+	    out.writeBooleanArray( (boolean[])ref, offset, len);
+	    break;
+	case TYPE_BYTE:
+	    out.writeByteArray( (byte[])ref, offset, len);
+	    break;
+	case TYPE_CHAR:
+	    out.writeCharArray( (char[])ref, offset, len);
+	    break;
+	case TYPE_SHORT:
+	    out.writeShortArray( (short[])ref, offset, len);
+	    break;
+	case TYPE_INT:
+	    out.writeIntArray( (int[])ref, offset, len);
+	    break;
+	case TYPE_LONG:
+	    out.writeLongArray( (long[])ref, offset, len);
+	    break;
+	case TYPE_FLOAT:
+	    out.writeFloatArray( (float[])ref, offset, len);
+	    break;
+	case TYPE_DOUBLE:
+	    out.writeDoubleArray( (double[])ref, offset, len);
+	    break;
+	}
     }
 
-    /**
-     * @inheritDoc
-     */
-    final public void writeArray(char[] ref, int offset, int len)
-	    throws IOException {
-	out.writeCharArray(ref, offset, len);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    final public void writeArray(short[] ref, int offset, int len)
-	    throws IOException {
-	out.writeShortArray(ref, offset, len);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    final public void writeArray(int[] ref, int offset, int len)
-	    throws IOException {
-	out.writeIntArray(ref, offset, len);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    final public void writeArray(long[] ref, int offset, int len)
-	    throws IOException {
-	out.writeLongArray(ref, offset, len);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    final public void writeArray(float[] ref, int offset, int len)
-	    throws IOException {
-	out.writeFloatArray(ref, offset, len);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    final public void writeArray(double[] ref, int offset, int len)
-	    throws IOException {
-	out.writeDoubleArray(ref, offset, len);
-    }
-
-    final public void flush() throws IOException {
-	out.flush();
-    }
-
-    final public boolean finished() {
+    public final boolean finished() {
 	return out.completed();
+    }
+
+    final public void doFlush() throws IOException {
+	out.flush();
     }
 
     final public void finish() throws IOException {
