@@ -1,9 +1,14 @@
 package ibis.util;
 
 import java.net.InetAddress;
+import java.util.Properties;
+import java.net.UnknownHostException;
+import java.net.Socket;
 
 public class IPUtils {
 
+	static final boolean DEBUG = false;
+	
 	public static boolean isLoopbackAddress(InetAddress addr) {
 		byte[] a = addr.getAddress();
 
@@ -54,4 +59,77 @@ public class IPUtils {
 		return true;
 	}
 	
+	public static InetAddress getLocalHostAddress() {
+		InetAddress external = null;
+		InetAddress[] all = null;
+
+		Properties p = System.getProperties();
+
+		String myIp = p.getProperty("ibis.ip.address");
+		if (myIp != null) {
+			try {
+				external = InetAddress.getByName(myIp);
+				return external;
+			} catch (java.net.UnknownHostException e) {
+				System.err.println("IP addres property specified, but could not resolve it");
+			}
+		}
+
+		// backwards compatibility
+		myIp = p.getProperty("ip_address");
+		if (myIp != null) {
+			try {
+				external = InetAddress.getByName(myIp);
+				return external;
+			} catch (java.net.UnknownHostException e) {
+				System.err.println("IP addres property specified, but could not resolve it");
+			}
+		}
+
+		try {
+			String hostname = InetAddress.getLocalHost().getHostName();
+			all = InetAddress.getAllByName(hostname);
+		} catch (java.net.UnknownHostException e) {
+			System.err.println("IP addres property specified, but could not resolve it");
+		}
+
+		if(all != null) {
+			for(int i=0; i<all.length; i++) {
+				if(DEBUG) {
+					System.err.println("trying address: " + all[i] +
+							   (isExternalAddress(all[i]) ? " EXTERNAL" : " LOCAL"));
+				}
+				if(isExternalAddress(all[i])) {
+					if(external == null) {
+						external = all[i];
+					} else {
+						System.err.println("WARNING, this machine has more than one external " +
+								   "IP address, using " +
+								   external);
+						return external;
+					}
+				}
+			}
+		}
+
+		if(external == null) {
+			InetAddress a = null;
+
+			try {
+				a = InetAddress.getLocalHost();
+			} catch (java.net.UnknownHostException e) {
+				System.err.println("Could not find local IP address, you should specify the -Dibis.ip.address=A.B.C.D option");
+				return null;
+			}
+
+			if(a == null) {
+				System.err.println("Could not find local IP address, you should specify the -Dibis.ip.address=A.B.C.D option");
+				return null;
+			}
+
+			external = a;
+		}
+
+		return external;
+	}
 }

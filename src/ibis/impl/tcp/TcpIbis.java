@@ -10,6 +10,7 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -79,13 +80,10 @@ public final class TcpIbis extends Ibis implements Config {
 		}
 		poolSize = 1;
 
-		Properties p = System.getProperties();
-
-		String myIp = p.getProperty("ip_address");
-		if (myIp == null) {
-			myAddress = InetAddress.getLocalHost();
-		} else {
-			myAddress = InetAddress.getByName(myIp);
+		myAddress = IPUtils.getLocalHostAddress();
+		if(myAddress == null) {
+			System.err.println("ERROR: could not get my own IP address, exiting.");
+			System.exit(1);
 		}
 		ident = new TcpIbisIdentifier(name, myAddress);
 
