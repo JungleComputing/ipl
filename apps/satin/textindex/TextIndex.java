@@ -186,7 +186,7 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
     public static void main( String args[] ) throws java.io.IOException
     {
 	if( args.length < 2 ){
-	    System.err.println( "Usage: <indexfile> <directory> ... <directory?" );
+	    System.err.println( "Usage: <indexfile> <directory> ... <directory>" );
 	    System.exit( 1 );
 	}
 	File ixfile = new File( args[0] );
