@@ -787,13 +787,15 @@ public final class Satinc {
 	il.insert(pos, new ALOAD(maxLocals+1));
 
 	firstJumpPos.setTarget(pos.getPrev());
-	jumpTargets[idTable.size()-1] = pos.getPrev();
+	if (jumpTargets.length > 0) {
+	    jumpTargets[idTable.size()-1] = pos.getPrev();
 
-	if (idTable.size() > 1) {
-	    for (int k=0; k<idTable.size(); k++) {
-		ifcmps[k].setTarget(jumpTargets[k]);
-		if (k != idTable.size()-1) {
-		    gotos[k].setTarget(pos.getPrev());
+	    if (idTable.size() > 1) {
+		for (int k=0; k<idTable.size(); k++) {
+		    ifcmps[k].setTarget(jumpTargets[k]);
+		    if (k != idTable.size()-1) {
+			gotos[k].setTarget(pos.getPrev());
+		    }
 		}
 	    }
 	}
