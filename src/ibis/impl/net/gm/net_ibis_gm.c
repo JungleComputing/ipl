@@ -4044,7 +4044,7 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
 
 
 JNIEXPORT
-jint
+void
 JNICALL
 Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
 					 jclass  clazz)
