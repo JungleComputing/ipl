@@ -239,9 +239,11 @@ public class ExtSocketFactory
 	throws IOException
     {
 	SocketType t = defaultBrokeredLink;
+	SocketType.ConnectProperties props =
+	    new SocketType.DefaultConnectProperties();
 	if(t == null)
 	    throw new Error("no socket type found!");
-	return createBrokeredSocket(in, out, hintIsServer, t, null);
+	return createBrokeredSocket(in, out, hintIsServer, t, props);
     }
 
     public static Socket createBrokeredSocket(InputStream in, OutputStream out,

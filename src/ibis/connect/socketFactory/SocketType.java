@@ -3,9 +3,15 @@ package ibis.connect.socketFactory;
 
 public abstract class SocketType
 {
-
     public interface ConnectProperties {
 	public String getProperty(String name);
+    }
+
+    public static class DefaultConnectProperties 
+	implements ConnectProperties {
+	public String getProperty(String name) {
+	    return System.getProperties().getProperty("ibis.connect."+name);
+	}
     }
 
     private String socketTypeName = null;
