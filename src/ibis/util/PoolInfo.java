@@ -54,22 +54,30 @@ public class PoolInfo {
 		Properties p = System.getProperties();
 		
 		total_hosts = getIntProperty(p, "ibis.pool.total_hosts");
-		host_number = getIntProperty(p, "ibis.pool.host_number");
+		try {
+		    host_number = getIntProperty(p, "ibis.pool.host_number");
+		} catch (IbisException e) {
+		    host_number = -1;
+		}
 		
 		ibisHostNames = p.getProperty("ibis.pool.host_names");
 		if(ibisHostNames == null) {
 			throw new IbisException("Property ibis.pool.host_names not set!");
 		}
-		
-		if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
-			throw new IbisException("Sanity check on host numbers failed!");
-		}
-		
+
 		host_names = new String[total_hosts];
 		hosts      = new InetAddress[total_hosts];
 		
 		StringTokenizer tok = new StringTokenizer(ibisHostNames, " ", false);
 		
+		String my_hostname;
+		try {
+		    my_hostname = InetAddress.getLocalHost().getHostName();
+		} catch (java.net.UnknownHostException e) {
+		    my_hostname = null;
+		}
+		int match = 0;
+		int my_host = -1;
 		for (int i=0;i<total_hosts;i++) {
 			
 			String t = tok.nextToken();       
@@ -89,10 +97,26 @@ public class PoolInfo {
 					host_names[i] = t;
 				}
 				hosts[i]          = adres;
+
+				if (host_number == -1) {
+				    if (host_names[i].equals(my_hostname)) {
+					match++;
+					my_host = i;
+				    }
+				}
 				
 			} catch (IOException e) {
 				throw new IbisException("Could not find host name " + t);
 			}		       			
+		}
+
+		if (host_number == -1 && match == 1) {
+		    host_number = my_host;
+System.err.println("Phew... found a host number " + my_host + " for " + my_hostname);
+		}
+
+		if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
+			throw new IbisException("Sanity check on host numbers failed!");
 		}
 	}
 
