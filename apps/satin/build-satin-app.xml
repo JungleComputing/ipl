@@ -3,7 +3,9 @@
     default="build"
     basedir=".">
 
+    <!-- This one is already included in the other files
     <import file="${ibis}/build-properties.xml"/>
+    -->
     <import file="${ibis}/build-iogen.xml"/>
     <import file="${ibis}/build-native.xml"/>
     <import file="${ibis}/build-satin.xml"/>
