@@ -705,13 +705,11 @@
 	    <classpath refid="default.classpath"/>
 	    <package name="ibis.ipl"/>
 	    <package name="ibis.impl.*"/>
-	    <!--
-	    <package name="ibis.impl.net.gm"/>
-	    -->
 	    <package name="ibis.io"/>
 	    <package name="ibis.gmi"/>
 	    <package name="ibis.rmi"/>
 	    <package name="ibis.rmi.*"/>
+	    <package name="ibis.util"/>
 	    <package name="ibis.satin"/>
 	    <group title="Ibis GMI" packages="ibis.gmi"/>
 	    <group title="Ibis RMI" packages="ibis.rmi"/>
