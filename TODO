@@ -1,8 +1,8 @@
-5FIBIS:
+IBIS:
 
-+ reverse connection setup if one of the two sites has a firewall, but the other doesn't  -> much better performance than going through a central point]
-  Ceriel: not important, as this central point is only used during connection
-  setup.
+- reverse connection setup if one of the two sites has a firewall,
+  but the other doesn't  -> much better performance than going
+  through a central point
 
 - autodetect connection setup mechanism (splicing, reverse, direct, central)
   Ceriel: not so easy. Once you are trying to set up a brokered socket,
@@ -16,7 +16,7 @@ satin:
 
 	- make return / throw an implicit sync again?
 	- add comments to abort / inlet machinism
-	- do not crash on sync without spawn
+	+ do not crash on sync without spawn (Ceriel: done)
         - als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
 	- 3x print ibis serialization
 
