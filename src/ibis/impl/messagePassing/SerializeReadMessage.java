@@ -168,6 +168,15 @@ final class SerializeReadMessage extends ReadMessage {
 	}
     }
 
+    public void readArray(Object[] destination)
+	    throws IOException, ClassNotFoundException {
+	Object[] temp = (Object[]) obj_in.readObject();
+	if (temp.length != destination.length) {
+	    throw new ArrayIndexOutOfBoundsException("Destination has wrong size");
+	}
+	System.arraycopy(temp, 0, destination, 0, temp.length);
+    }
+
     public void readArray(boolean[] destination, int offset, int size)
 	    throws IOException {
 	try {
@@ -285,6 +294,13 @@ final class SerializeReadMessage extends ReadMessage {
 
 	} catch (ClassNotFoundException e3) {
 	    throw new Error("require double[]", e3);
+	}
+    }
+
+    public void readArray(Object[] destination, int offset, int size)
+	    throws IOException, ClassNotFoundException {
+	for (int i = offset; i < size; i++) {
+	    destination[i] = obj_in.readObject();
 	}
     }
 

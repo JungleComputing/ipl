@@ -1,6 +1,7 @@
 package ibis.impl.messagePassing;
 
 import ibis.util.ConditionVariable;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.Vector;
@@ -17,19 +18,12 @@ class ReceivePort
      * poll for a while. A new request might arrive in a short while,
      * and that saves an interrupt. Set this to 0 if you don't want
      * optimistic polling. */
-    private static final int polls_before_yield;
-    // private static final int DEFAULT_OPTIMISTIC_POLLS = Poll.DEFAULT_YIELD_POLLS / 2;
     private static final int DEFAULT_OPTIMISTIC_POLLS = 500;
+    private static final int polls_before_yield =
+	TypedProperties.intProperty("ibis.mp.polls.optimistic", DEFAULT_OPTIMISTIC_POLLS);
+    // private static final int DEFAULT_OPTIMISTIC_POLLS = Poll.DEFAULT_YIELD_POLLS / 2;
 
     static {
-	int  polls = DEFAULT_OPTIMISTIC_POLLS;
-
-	String envPoll = System.getProperty("ibis.mp.polls.optimistic");
-	if (envPoll != null) {
-	    polls = Integer.parseInt(envPoll);
-	}
-	polls_before_yield = polls;
-
 	if (Ibis.myIbis.myCpu == 0) {
 	    System.err.println("ReceivePort: Do " + polls_before_yield + " optimistic polls after serving an asynchronous upcall");
 	}
@@ -83,6 +77,10 @@ class ReceivePort
 
     private Vector connections = new Vector();
     private ConditionVariable disconnected = Ibis.myIbis.createCV();
+
+    private static final boolean DISABLE_INTR_MULTIFRAGMENT =
+	TypedProperties.booleanProperty("ibis.mp.intr.disable.multifragment", false);
+    private boolean interruptsDisabled;
 
     // DEBUG
     private long upcall_poll;
@@ -360,6 +358,12 @@ class ReceivePort
 	    ssp.cachedMessage = currentMessage;
 	}
 	currentMessage.finished = true;
+
+	if (DISABLE_INTR_MULTIFRAGMENT && interruptsDisabled) {
+	    interruptsDisabled = false;
+	    currentMessage.enableInterrupts();
+	}
+
 	currentMessage = null;
 	aMessageIsAlive = false;
 	if (liveWaiters > 0) {
@@ -433,37 +437,36 @@ class ReceivePort
     void receiveFragment(ShadowSendPort origin,
 			 int msgHandle,
 			 int msgSize,
-			 int msgSeqno,
-			 int group)
+			 int msgSeqno)
 	    throws IOException {
 	Ibis.myIbis.checkLockOwned();
 
-	/* Let's see whether we already have an envelope for this fragment. */
-	ReadMessage msg = locate(origin, msgSeqno);
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + " Port " + this +
 			       " receive a fragment seqno " + msgSeqno +
 			       " size " + msgSize + " that belongs to msg " +
-			       msg + "; currentMessage = " + currentMessage +
+			       locate(origin, msgSeqno & ~ByteOutputStream.SEQNO_FRAG_BITS) + "; currentMessage = " + currentMessage +
 			       (currentMessage == null ? "" :
 				(" .seqno " + currentMessage.msgSeqno)));
 	}
 
 // System.err.println(Thread.currentThread() + "Enqueue message in port " + this + " id " + identifier() + " msgHandle " + Integer.toHexString(msgHandle) + " current queueFront " + queueFront);
-	boolean lastFrag = (msgSeqno < 0);
-	if (lastFrag) {
-	    msgSeqno = -msgSeqno;
-	}
+	boolean lastFrag  = (msgSeqno & ByteOutputStream.LAST_FRAG_BIT) != 0;
+	boolean firstFrag = (msgSeqno & ByteOutputStream.FIRST_FRAG_BIT) != 0;
+	msgSeqno &= ~ByteOutputStream.SEQNO_FRAG_BITS;
 
 	/* Let's see whether our ShadowSendPort has a fragment cached */
 	ReadFragment f = origin.getFragment();
 
-	boolean firstFrag = (msg == null);
+	ReadMessage msg;
 	if (firstFrag) {
 	    /* This must be the first fragment of a new message.
 	     * Let our ShadowSendPort create an envelope, i.e. a ReadMessage
 	     * for it. */
 	    msg = origin.getMessage(msgSeqno);
+	    msg.multiFragment = ! lastFrag;
+	} else {
+	    msg = locate(origin, msgSeqno);
 	}
 
 	f.msg       = msg;
@@ -546,6 +549,11 @@ class ReceivePort
 	    return null;
 	}
 	currentMessage.setMsgHandle();
+
+	if (DISABLE_INTR_MULTIFRAGMENT && currentMessage.multiFragment) {
+	    currentMessage.disableInterrupts();
+	    interruptsDisabled = true;
+	}
 
 	// Ibis.myIbis.tReceive += Ibis.currentTime() - t;
 

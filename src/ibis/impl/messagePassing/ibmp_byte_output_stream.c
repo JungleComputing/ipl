@@ -51,7 +51,13 @@ static int	send_sync = 0;
 static int	bcast_frag = 0;
 static int	bcast_first_frag = 0;
 static int	bcast_last_frag = 0;
+static int	bcast_msg = 0;
 static int	bcast_sync = 0;
+
+static unsigned	FIRST_FRAG_BIT;
+static unsigned	LAST_FRAG_BIT;
+static unsigned	SEQNO_FRAG_BITS;
+
 
 #define COUNT_GLOBAL_REFS 0
 #if COUNT_GLOBAL_REFS
@@ -144,7 +150,6 @@ struct IBMP_MSG {
     int			outstanding_send;
     jboolean		outstanding_final;
     int			copy;
-    int			firstFrag;
     ibmp_msg_p		next;
     char		*buf;
     int			buf_alloc_len;
@@ -159,6 +164,7 @@ struct IBMP_MSG {
 struct IBMP_BYTE_OS {
     ibmp_msg_p		msg;
     jobject		byte_output_stream;
+    int			msgSeqno;
     ibmp_msg_p		ibmp_msg_freelist;
     int			freelist_size;
     ibmp_buffer_cache_p *buffer_cache;
@@ -260,7 +266,6 @@ ibmp_msg_get(JNIEnv *env, ibmp_byte_os_p byte_os)
 #endif
     }
 
-    msg->firstFrag = 1;
 #ifndef NDEBUG
     msg->next = NULL;
 #endif
@@ -528,9 +533,9 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
     jint outstandingFrags;
     ibmp_byte_os_p byte_os = msg->byte_os;
 
-    IBP_VPRINTF(300, env, ("Do a finished upcall msg %p obj %p firstFrag %s\n",
+    IBP_VPRINTF(300, env, ("Do a finished upcall msg %p obj %p byte_os->msgSeqno %d %s\n",
 		msg, msg->byte_os->byte_output_stream,
-		msg->firstFrag ? "yes" : "no"));
+		byte_os->msgSeqno));
 
 #if JASON
     pan_time_get(&now);
@@ -633,7 +638,7 @@ ibmp_msg_q_poll(JNIEnv *env)
 	    msg->next = NULL;
 #endif
 	    handle_finished_send(env, msg);
-	    IBP_VPRINTF(800, env, ("Handled sent upcall for msg %p, firstFrag %s\n", msg, msg->firstFrag ? "yes" : "no"));
+	    IBP_VPRINTF(800, env, ("Handled sent upcall for msg %p, byte_os->msgSeqno %d\n", msg, msg->byte_os->msgSeqno));
 	    done_anything = 1;
 
 	    if (prev == NULL) {
@@ -809,25 +814,14 @@ check_home_msg(jint cpu)
 static int
 empty_frag(JNIEnv *env,
 	   ibmp_msg_p msg,
-	   int forceFirstFrag,
-	   int lastFrag,
-	   int lastSplitter)
+	   int firstFrag,
+	   int lastFrag)
 {
-    if (msg != NULL) {
-	if (forceFirstFrag) {
-	    msg->firstFrag = 1;
-	    send_msg++;
-	}
-
-	if ((lastFrag && msg->firstFrag) || msg->iov_len != 0) {
-	    if (! lastFrag && lastSplitter) {
-		msg->firstFrag = 0;
-	    }
-	    return 0;
-	}
+    if ((lastFrag && firstFrag) || (msg != NULL && msg->iov_len != 0)) {
+	return 0;
     }
 
-    IBP_VPRINTF(250, env, ("Skip send of an empty non-single fragment msg %p, firstFrag %s lastFrag %s lastSplitter %s\n", msg, forceFirstFrag ? "yes" : "no", lastFrag ? "yes" : "no", lastSplitter ? "yes" : "no"));
+    IBP_VPRINTF(250, env, ("Skip send of an empty non-single fragment msg %p, firstFrag %s lastFrag %s\n", msg, firstFrag ? "yes" : "no", lastFrag ? "yes" : "no"));
 
     send_frag_skip++;
 
@@ -935,7 +929,6 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
 	jint msgSeqno,
 	jint i,			/* Split count */
 	jint splitTotal,
-	jboolean forceFirstFrag,
 	jboolean lastFrag	/* Frag is sent as last frag of a message */
 	)
 {
@@ -950,6 +943,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     int		len;
     long long int up_to_now;
     int		lastSplitter = (i == splitTotal - 1);
+    int		firstFrag;
 
 #if JASON
     pan_time_get(&st);
@@ -964,13 +958,23 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
 
     check_home_msg(cpu);
 
-    send_frag++;
-    if (msg != NULL && msg->firstFrag) send_first_frag++;
-    if (lastFrag && lastSplitter) send_last_frag++;
+    firstFrag = (byte_os->msgSeqno != msgSeqno);
 
-    if (empty_frag(env, msg, forceFirstFrag, lastFrag, lastSplitter)) {
+    if (empty_frag(env, msg, firstFrag, lastFrag)) {
 	return JNI_TRUE;
     }
+
+    if (firstFrag) {
+	send_msg++;
+	assert(byte_os->msgSeqno + 1 == msgSeqno);
+	if (lastSplitter) {
+	    byte_os->msgSeqno = msgSeqno;
+	}
+    }
+
+    send_frag++;
+    if (firstFrag) send_first_frag++;
+    if (lastFrag && lastSplitter) send_last_frag++;
 
     assert(msg != NULL);
     assert(ibmp_equals(env, byte_os->byte_output_stream, this));
@@ -982,10 +986,12 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     hdr->dest_port = port;
     hdr->src_port  = my_port;
     if (lastFrag) {
-	hdr->msgSeqno = -msgSeqno;
-    } else {
-	hdr->msgSeqno = msgSeqno;
+	msgSeqno |= LAST_FRAG_BIT;
     }
+    if (firstFrag) {
+	msgSeqno |= FIRST_FRAG_BIT;
+    }
+    hdr->msgSeqno = msgSeqno;
     hdr->group = ibis_impl_messagePassing_SendPort_NO_BCAST_GROUP;
 
     len = ibmp_iovec_len(msg->iov, msg->iov_len);
@@ -1037,7 +1043,6 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
 	jobject this,
 	jint group,
 	jint msgSeqno,
-	jboolean forceFirstFrag,
 	jboolean lastFrag	/* Frag is sent as last frag of a message */
 	)
 {
@@ -1051,6 +1056,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     ibmp_byte_stream_hdr_p hdr;
     int		len;
     long long int up_to_now;
+    int		firstFrag;
 
 #if JASON
     pan_time_get(&st);
@@ -1063,13 +1069,20 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
 	return JNI_TRUE;
     }
 
-    bcast_frag++;
-    if (msg != NULL && msg->firstFrag) bcast_first_frag++;
-    if (lastFrag) bcast_last_frag++;
+    firstFrag = byte_os->msgSeqno != msgSeqno;
 
-    if (empty_frag(env, msg, forceFirstFrag, lastFrag, JNI_TRUE)) {
+    if (empty_frag(env, msg, firstFrag, lastFrag)) {
 	return JNI_TRUE;
     }
+
+    if (firstFrag) {
+	bcast_msg++;
+	byte_os->msgSeqno = msgSeqno;
+    }
+
+    bcast_frag++;
+    if (firstFrag) bcast_first_frag++;
+    if (lastFrag) bcast_last_frag++;
 
     assert(msg != NULL);
     assert(ibmp_equals(env, byte_os->byte_output_stream, this));
@@ -1077,10 +1090,12 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     hdr = ibmp_byte_stream_hdr(msg->proto[0]);
 
     if (lastFrag) {
-	hdr->msgSeqno = -msgSeqno;
-    } else {
-	hdr->msgSeqno = msgSeqno;
+	msgSeqno |= LAST_FRAG_BIT;
     }
+    if (firstFrag) {
+	msgSeqno |= FIRST_FRAG_BIT;
+    }
+    hdr->msgSeqno = msgSeqno;
     hdr->group = group;
     hdr->home_msg = msg;
 
@@ -1171,6 +1186,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_init(
     byte_os->byte_output_stream = bos;
     byte_os->buffer_cache = calloc(jprim_n_types,
 				   sizeof(*byte_os->buffer_cache));
+    byte_os->msgSeqno = -1;
 
     ibmp_msg_check(env, byte_os, 0);
     assert(ibmp_equals(env, byte_os->byte_output_stream, this));
@@ -1389,6 +1405,8 @@ ibmp_byte_output_stream_report(JNIEnv *env, FILE *f)
 void
 ibmp_byte_output_stream_init(JNIEnv *env)
 {
+    jfieldID	fld;
+
     cls_ByteOutputStream = (*env)->FindClass(env,
 			 "ibis/impl/messagePassing/ByteOutputStream");
     if (cls_ByteOutputStream == NULL) {
@@ -1459,6 +1477,29 @@ ibmp_byte_output_stream_init(JNIEnv *env)
     if (md_wakeupFragWaiter == NULL) {
 	ibmp_error(env, "Cannot find method wakeupFragWaiter()V\n");
     }
+
+    fld = (*env)->GetStaticFieldID(env, cls_ByteOutputStream,
+	    				"FIRST_FRAG_BIT",
+					"I");
+    if (fld == NULL) {
+	ibmp_error(env, "Cannot find static field FIRST_FRAG_BIT");
+    }
+    FIRST_FRAG_BIT = (*env)->GetStaticIntField(env, cls_ByteOutputStream, fld);
+
+    fld = (*env)->GetStaticFieldID(env, cls_ByteOutputStream,
+	    				"LAST_FRAG_BIT",
+					"I");
+    if (fld == NULL) {
+	ibmp_error(env, "Cannot find static field LAST_FRAG_BIT");
+    }
+
+    fld = (*env)->GetStaticFieldID(env, cls_ByteOutputStream,
+	    				"SEQNO_FRAG_BITS",
+					"I");
+    if (fld == NULL) {
+	ibmp_error(env, "Cannot find static field SEQNO_FRAG_BITS");
+    }
+    SEQNO_FRAG_BITS = (*env)->GetStaticIntField(env, cls_ByteOutputStream, fld);
 
     ibmp_byte_stream_port = ibp_mp_port_register(ibmp_byte_stream_handle);
     ibmp_byte_stream_proto_start = align_to(ibp_mp_proto_offset(), ibmp_byte_stream_hdr_t);

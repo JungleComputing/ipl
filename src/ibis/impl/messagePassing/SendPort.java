@@ -338,9 +338,9 @@ public class SendPort implements ibis.ipl.SendPort {
 	    Ibis.myIbis.sendSerializer.lockAll(connectedCpu);
 	}
 
-	Ibis.myIbis.unlock();
-
 	ibis.ipl.WriteMessage m = cachedMessage();
+
+	Ibis.myIbis.unlock();
 	if (DEBUG) {
 	    System.err.println("Create a new writeMessage SendPort " + this + " serializationType " + type.serializationType + " message " + m);
 	}

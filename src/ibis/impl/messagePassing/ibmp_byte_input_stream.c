@@ -21,6 +21,23 @@
 static jclass	cls_PandaByteInputStream;
 static jfieldID	fld_msgHandle;
 
+JNIEXPORT void JNICALL
+Java_ibis_impl_messagePassing_ByteInputStream_enableAllInterrupts(
+	JNIEnv *env,
+	jclass clazz)
+{
+    ibp_intr_enable(env);
+}
+
+
+JNIEXPORT void JNICALL
+Java_ibis_impl_messagePassing_ByteInputStream_disableAllInterrupts(
+	JNIEnv *env,
+	jclass clazz)
+{
+    ibp_intr_disable(env);
+}
+
 
 JNIEXPORT jint JNICALL
 Java_ibis_impl_messagePassing_ByteInputStream_lockedRead(

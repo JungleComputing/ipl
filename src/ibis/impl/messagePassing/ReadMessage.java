@@ -7,23 +7,25 @@ import java.io.IOException;
 public class ReadMessage
 	implements ibis.ipl.ReadMessage, PollClient {
 
-    ShadowSendPort shadowSendPort;
+    ShadowSendPort	shadowSendPort;
 
-    private long sequenceNr = -1;
-    private ReceivePort port;
+    private long	sequenceNr = -1;
+    private ReceivePort	port;
 
-    ByteInputStream in;
+    ByteInputStream	in;
 
-    int msgSeqno;
+    int			msgSeqno;
 
-    boolean	finished;	// Use these for upcall receive without
-    Thread	creator;	// explicit finish() call
+    boolean		finished;	// Use these for upcall receive without
+    Thread		creator;	// explicit finish() call
 
-    ReadMessage	next;
-    ReadFragment fragmentFront;
-    ReadFragment fragmentTail;
+    ReadMessage		next;
+    ReadFragment	fragmentFront;
+    ReadFragment	fragmentTail;
 
-    private int		 sleepers = 0;
+    boolean		multiFragment;
+
+    private int		sleepers = 0;
 
     long before;
 
@@ -36,6 +38,16 @@ public class ReadMessage
 	this.port = port;
 	this.shadowSendPort = (ShadowSendPort)s;
 	in = this.shadowSendPort.in;
+    }
+
+
+    void enableInterrupts() {
+	in.enableInterrupts();
+    }
+
+
+    void disableInterrupts() {
+	in.disableInterrupts();
     }
 
 

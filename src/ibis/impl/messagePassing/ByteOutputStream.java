@@ -11,6 +11,10 @@ final class ByteOutputStream
 	extends ibis.io.ArrayOutputStream
 	implements PollClient {
 
+    static final int FIRST_FRAG_BIT  = (1 << 30);
+    static final int LAST_FRAG_BIT   = (1 << 31);
+    static final int SEQNO_FRAG_BITS = (FIRST_FRAG_BIT | LAST_FRAG_BIT);
+
     private SendPort sport;
 
     private ConditionVariable sendComplete = Ibis.myIbis.createCV();
@@ -42,8 +46,6 @@ final class ByteOutputStream
     private boolean syncMode;
 
     private int msgSeqno = 0;
-
-    private boolean firstFrag = true;	// Enforce firstFrag setting in native
 
     /**
      * This field is read from native code
@@ -132,7 +134,6 @@ final class ByteOutputStream
 	if (sport.group != SendPort.NO_BCAST_GROUP) {
 	    send_acked = msg_bcast(sport.group,
 				   msgSeqno,
-				   firstFrag,
 				   lastFrag);
 	} else {
 	    send_acked = true;
@@ -147,12 +148,9 @@ final class ByteOutputStream
 				      msgSeqno,
 				      i,
 				      n,
-				      firstFrag,
 				      lastFrag);
 	    }
 	}
-
-	firstFrag = lastFrag;	// Set state for next time round
 
 	if (send_acked) {
 	    outstandingFrags--;
@@ -399,11 +397,9 @@ final class ByteOutputStream
 				    int msgSeqno,
 				    int splitCount,
 				    int splitTotal,
-				    boolean forceFirstFrag,
 				    boolean lastFrag) throws IOException;
     private native boolean msg_bcast(int group,
 				     int msgSeqno,
-				     boolean forceFirstFrag,
 				     boolean lastFrag) throws IOException;
 
     public native void close();

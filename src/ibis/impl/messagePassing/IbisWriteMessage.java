@@ -134,6 +134,7 @@ final public class IbisWriteMessage extends WriteMessage {
     public void writeArray(double[] value, int offset, int size)
 	    throws IOException {
 	needs_flush = true;
+System.err.println("Call " + obj_out + ".writeArray(double[], " + offset + ", " + size + ")");
 	obj_out.writeArray(value, offset, size);
     }
 

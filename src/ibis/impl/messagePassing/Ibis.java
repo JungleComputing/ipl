@@ -476,7 +476,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	    throw new IOException("Receive message from sendport we're not connected to");
 	}
 
-	port.receiveFragment(origin, msgHandle, msgSize, msgSeqno, group);
+	port.receiveFragment(origin, msgHandle, msgSize, msgSeqno);
     }
 
 
