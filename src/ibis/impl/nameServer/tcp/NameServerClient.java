@@ -178,6 +178,16 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 				}
 			}
 
+			// at least read the tobedeleted stuff!
+			int tmp = in.readInt();
+			for (int i = 0; i < tmp; i++) {
+			    try {
+				in.readObject();
+			    } catch(ClassNotFoundException e) {
+				throw new IOException("Receive IbisIdent of unknown class " + e);
+			    }
+			}
+
 			// Should we join ourselves?
 			ibisImpl.join(id);
 
