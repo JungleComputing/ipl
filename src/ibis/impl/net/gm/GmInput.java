@@ -108,8 +108,10 @@ public class GmInput extends NetBufferedInput {
 		throws IbisIOException {
 		this.rpn = rpn;
 		 
+                Driver.gmLock.lock();
                 int lnodeId = nGetInputNodeId(inputHandle);
                 int lportId = nGetInputPortId(inputHandle);
+                Driver.gmLock.unlock();
 
                 Hashtable lInfo = new Hashtable();
                 lInfo.put("gm_node_id", new Integer(lnodeId));
@@ -119,7 +121,10 @@ public class GmInput extends NetBufferedInput {
                 Hashtable rInfo    = receiveInfoTable(is);
                 int       rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
                 int       rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
+                Driver.gmLock.lock();
+                //System.err.println(lnodeId+"["+lportId+"]"+" connecting from "+rnodeId+"["+rportId+"]");
                 nConnectInput(inputHandle, rnodeId, rportId);
+                Driver.gmLock.unlock();
                 
 		try {
                         os.write(1);

@@ -17,7 +17,7 @@
 #if 0
 #define __RDTSC__ ({jlong time;__asm__ __volatile__ ("rdtsc" : "=A" (time));time;})
 #else
-#define __RDTSC__ 0
+#define __RDTSC__ 0LL
 #endif
 
 /* Debugging macros */
@@ -37,6 +37,13 @@
 #define __in__() 
 #define __out__()
 #define __err__()
+#endif
+
+/* Error message macros */
+#if 1
+#define __error__(s, p...) fprintf(stderr, "[%Ld]:%s:%d: *error* "s"\n", __RDTSC__, __FUNCTION__, __LINE__ , ## p)
+#else
+#define __error__(s, p...)
 #endif
 
 
@@ -566,11 +573,15 @@ ni_gm_register_block(struct s_port   *p_port,
         }
 #endif
 
-        if (!(p_cache = malloc(sizeof(struct s_cache))))
+        if (!(p_cache = malloc(sizeof(struct s_cache)))) {
+                __error__("memory allocation failed");
                 goto error;
+        }
+        
 
         gms = gm_register_memory(p_gm_port, ptr, len);
         if (gms) {
+                __error__("memory registration failed");
                 ni_gm_control(gms, __LINE__);
                 free(p_cache);
                 p_cache = NULL;
@@ -613,6 +624,7 @@ ni_gm_deregister_block(struct s_port  *p_port,
                                                    p_cache->ptr,
                                                    p_cache->len);
                         if (gms) {
+                                __error__("memory deregistration failed");
                                 ni_gm_control(gms, __LINE__);
                                 goto error;
                         }
@@ -652,17 +664,20 @@ ni_gm_open_port(struct s_dev *p_dev) {
 			  "net_ibis_gm", GM_API_VERSION_1_1);
         __disp__("status %d", gms);
 	if (gms != GM_SUCCESS) {
+                __error__("gm_open failed");
 		ni_gm_control(gms, __LINE__);
                 goto error;
 	}
 	
 	p_port = malloc(sizeof(struct s_port));
 	if (!p_port) {
+                __error__("memory allocation failed");
                 goto error;
 	}
 
 	gms = gm_get_node_id(p_gm_port, &node_id);
 	if (gms != GM_SUCCESS) {
+                __error__("gm_get_node_id failed");
 		ni_gm_control(gms, __LINE__);
                 goto error;
 	}
@@ -691,12 +706,17 @@ static
 int
 ni_gm_close_port(struct s_port *p_port) {
         __in__();
-	if (p_port->ref_count)
+	if (p_port->ref_count) {
+                __error__("GM port is still in use");
 		goto error;
-
+        }
+        
         while (p_port->cache_head) {
-                if (ni_gm_deregister_block(p_port, p_port->cache_head))
+                if (ni_gm_deregister_block(p_port, p_port->cache_head)) {
+                        __error__("block deregistration failed");
                         goto error;
+                }
+                
         }
         
 	gm_close(p_port->p_gm_port);
@@ -732,6 +752,7 @@ ni_gm_output_init(struct s_dev     *p_dev,
 
         p_out = malloc(sizeof(struct s_output));
         if (!p_out) {
+                __error__("memory allocation failed");
                 goto error;
         }
 
@@ -778,6 +799,7 @@ ni_gm_connect_output(struct s_output *p_out,
         if (p_out->dst_node_id
             ||
             p_out->dst_port_id) {
+                __error__("corrupted struct");
                 goto error;
         }
 
@@ -825,8 +847,11 @@ ni_gm_output_send_post(JNIEnv *env, struct s_output *p_out, void *b, int len) {
 
         __trace__("registering %p[%d]", b, len);
 
-        if (ni_gm_register_block(p_port, b, len, &p_out->p_cache))
+        if (ni_gm_register_block(p_port, b, len, &p_out->p_cache)) {
+                __error__("block registration failed");
                 goto error;
+        }
+        
 
         __disp__("sending %d bytes with callback", len);
 
@@ -855,6 +880,7 @@ ni_gm_output_send_complete(JNIEnv *env, struct s_output *p_out, void *b, int len
                 
         __trace__("deregistering %p[%d]", b, len);
         if (ni_gm_deregister_block(p_port, p_out->p_cache)) {
+                __error__("block deregistration failed");
                 goto error;
         }
         
@@ -862,6 +888,7 @@ ni_gm_output_send_complete(JNIEnv *env, struct s_output *p_out, void *b, int len
 
         __disp__("send completed");
         if (p_out->request_status) {
+                __error__("send request failed");
                 ni_gm_control(p_out->request_status, __LINE__);
                 goto error;
         } 
@@ -901,6 +928,7 @@ ni_gm_input_init(struct s_dev    *p_dev,
 
         p_in = malloc(sizeof(struct s_input));
         if (!p_in) {
+                __error__("memory allocation failed");
                 goto error;
         }
 
@@ -933,8 +961,11 @@ ni_gm_post_buffer(JNIEnv *env, struct s_input *p_in, void *b, int length) {
         
         p_port = p_in->p_port;
         __trace__("registering %p[%d]", b, length);
-        if (ni_gm_register_block(p_port, b, length, &p_in->p_cache))
+        if (ni_gm_register_block(p_port, b, length, &p_in->p_cache)) {
+                __error__("block registration failed");
                 goto error;
+        }
+        
 
         p_in->data_available = 0;
         gm_provide_receive_buffer_with_tag(p_port->p_gm_port, b,
@@ -962,6 +993,7 @@ ni_gm_receive(struct s_input *p_in) {
         p_port = p_in->p_port;
         __trace__("deregistering %p[%d]", p_in->buffer, NI_GM_MAX_BLOCK_LEN);
         if (ni_gm_deregister_block(p_port, p_in->p_cache)) {
+                __error__("block deregistration failed");
                 goto error;
         }
         
@@ -1005,6 +1037,7 @@ ni_gm_connect_input(struct s_input *p_in,
         if (p_in->src_node_id
             ||
             p_in->src_port_id) {
+                __error__("corrupted struct");
                 goto error;
         }
 
@@ -1014,8 +1047,11 @@ ni_gm_connect_input(struct s_input *p_in,
                 assert(!p_port->input_array_size);
                 int s = remote_node_id + 1;
                 p_port->input_array = malloc(s * sizeof(struct s_input *));
-                if (!p_port->input_array)
+                if (!p_port->input_array) {
+                        __error__("memory allocation failed");
                         goto error;
+                }
+                
 
                 p_port->input_array_size = s;
                 memset(p_port->input_array, 0, s * sizeof(struct s_input *));
@@ -1025,8 +1061,11 @@ ni_gm_connect_input(struct s_input *p_in,
                 
                 assert(p_port->input_array);
                 ptr = realloc(p_port->input_array, s * sizeof(struct s_input *));
-                if (!ptr)
+                if (!ptr) {
+                        __error__("memory reallocation failed");
                         goto error;
+                }
+                
 
                 p_port->input_array = ptr;
                 memset(p_port->input_array + p_port->input_array_size, 0,
@@ -1034,8 +1073,10 @@ ni_gm_connect_input(struct s_input *p_in,
                 p_port->input_array_size = s;
         }
         
-        if (p_port->input_array[remote_node_id])
+        if (p_port->input_array[remote_node_id]) {
+                __error__("input already initialized");
                 goto error;
+        }
         
         p_port->input_array[remote_node_id] = p_in;
 
@@ -1082,6 +1123,7 @@ ni_gm_dev_init(JNIEnv        *env,
                 gms = gm_open(&p_gm_port, dev_num, NI_GM_MIN_PORT_NUM,
                               "net_ibis_gm", GM_API_VERSION_1_1);
                 if (gms != GM_SUCCESS) {
+                        __error__("gm_open failed");
                         ni_gm_control(gms, __LINE__);
                         goto error;
                 }
@@ -1090,8 +1132,10 @@ ni_gm_dev_init(JNIEnv        *env,
                 p_gm_port = NULL;
 
                 p_dev = malloc(sizeof(struct s_dev));
-                if (!p_dev)
+                if (!p_dev) {
+                        __error__("memory allocation failed");
                         goto error;
+                }
                 
                 if (!p_drv->nb_dev) {
                         p_drv->pp_dev = malloc(sizeof(struct s_dev *));
@@ -1099,6 +1143,7 @@ ni_gm_dev_init(JNIEnv        *env,
                                 free(p_dev);
                                 p_dev = NULL;
 
+                                __error__("memory allocation failed");
                                 goto error;
                         }
 
@@ -1110,6 +1155,7 @@ ni_gm_dev_init(JNIEnv        *env,
                                 free(p_dev);
                                 p_dev = NULL;
 
+                                __error__("memory reallocation failed");
                                 goto error;
                         }
 
@@ -1126,6 +1172,7 @@ ni_gm_dev_init(JNIEnv        *env,
                 p_dev->p_drv     = p_drv;
 
                 if (ni_gm_open_port(p_dev)) {
+                        __error__("port opening failed");
                         goto error;
                 }
 
@@ -1152,6 +1199,7 @@ ni_gm_dev_exit(JNIEnv *env, struct s_dev *p_dev) {
 
         if (!p_dev->ref_count) {
                 if (ni_gm_close_port(p_dev->p_port)) {
+                        __error__("port closing failed");
                         goto error;
                 }
 
@@ -1186,14 +1234,17 @@ ni_gm_init(struct s_drv **pp_drv) {
 	gms = gm_init();
         
 	if (gms != GM_SUCCESS) {
+                __error__("gm_init failed");
 		ni_gm_control(gms, __LINE__);
 		goto error;
 	}
 
 	p_drv = malloc(sizeof(struct s_drv));
-	if (!p_drv)
+	if (!p_drv) {
+                __error__("memory allocation failed");
 		goto error;
-
+        }
+        
 	p_drv->ref_count = 1;
         p_drv->nb_dev    = 0;
         p_drv->pp_dev    = NULL;
@@ -1826,7 +1877,7 @@ JNICALL
 Java_ibis_ipl_impl_net_gm_Driver_nGmThread (JNIEnv *env, jclass driver_class) {
         static int next_dev = 0;
 
-        __in__();
+        /* __in__(); */
         while (1) {
                 struct s_port   *p_port  = NULL;
                 gm_recv_event_t *p_event = NULL;
@@ -1838,7 +1889,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread (JNIEnv *env, jclass driver_class) {
                         break;
                 }
 
-                __disp__("__poll__");
+                /*__disp__("__poll__");*/
                 
                 p_drv = _p_drv;
 
@@ -1877,7 +1928,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread (JNIEnv *env, jclass driver_class) {
                 }
         }
 
-        __out__();
+        /* __out__(); */
 }
 
 

@@ -178,7 +178,7 @@ public class TcpInput extends NetBufferedInput {
 		byte [] b = allocator.allocate();
 		int     l = 0;
 		
-                // System.err.println("tcp_blk: writeByteBuffer --> : " + expectedLength);
+                //System.err.println("tcp_blk: readByteBuffer --> : " + expectedLength);
 		try {
 			int offset = 0;
 			do {
@@ -194,7 +194,7 @@ public class TcpInput extends NetBufferedInput {
 			throw new IbisIOException(e);
 		} 
 		
-                // System.err.println("tcp_blk: writeByteBuffer <-- : " + l);
+                //System.err.println("tcp_blk: readByteBuffer <-- : " + l);
 		
 		return new NetReceiveBuffer(b, l, allocator);
 	}

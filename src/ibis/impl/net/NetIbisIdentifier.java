@@ -11,7 +11,7 @@ import java.net.InetAddress;
 // see that the super class implents it, and rewrites the bytecode.
 public final class NetIbisIdentifier
 	extends IbisIdentifier
-	implements java.io.Serializable, ibis.io.Serializable {
+	implements java.io.Serializable {
 
 	/**
 	 * Serialization version ID

@@ -223,6 +223,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 						sendPortIs.put(spn, is);
 						sendPortOs.put(spn, os);
 						input.setupConnection(spn, is, os);	
+
 						/*
 						 * if (connectionUpcall) {
 						 *	// not implemented
@@ -294,9 +295,11 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 							yield();
 						continue polling_loop;
 					}
-				
+                                        //System.err.println("NetReceivePort: polling success");
 					if (upcallsEnabled && upcall != null) {
+                                                //System.err.println("NetReceivePort: upcall-->");
 						upcall.upcall(_receive());
+                                                //System.err.println("NetReceivePort: upcall<--");
 					} else {
 						polledLock.unlock();
 					}
@@ -535,6 +538,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 * {@inheritDoc}
 	 */
 	public void enableUpcalls() {
+                //System.err.println("NetReceivePort: enabling upcalls");
 		upcallsEnabled = true;
 	}
 
@@ -542,6 +546,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 * {@inheritDoc}
 	 */
 	public void disableUpcalls() {
+                //System.err.println("NetReceivePort: disabling upcalls");
 		upcallsEnabled = false;
 	}
 

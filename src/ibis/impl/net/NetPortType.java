@@ -9,6 +9,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Replacer;
 import ibis.ipl.Upcall;
+import ibis.util.Input;
 
 class NetPortType implements PortType {
 	/*
@@ -21,10 +22,70 @@ class NetPortType implements PortType {
 	// private byte             serializationType = SERIALIZATION_SUN;
 	private NetDriver        driver            = null;
 
+	private static String readKey(Input in) {
+		// Skip comment lines starting with a '#' at col 0
+		if (!in.eof() && !in.eoln() && in.nextChar() == '#') {
+			return null;
+		}
+
+		// Skip empty lines
+		if (in.eoln()) {
+			return null;
+		}
+
+		StringBuffer s = new StringBuffer();
+		while (!in.eof() && !in.eoln() && in.nextChar() != '=') {
+			s.append(in.readChar());
+		}
+
+		return s.toString();
+	}
+
+	private static String readVal(Input in) {
+		StringBuffer s = new StringBuffer();
+		while (!in.eof() && !in.eoln()) {
+			s.append(in.readChar());
+		}
+
+		return s.toString();
+	}
+	private static void readProperties(Input in, StaticProperties sp) {
+		while(!in.eof()) {
+			String key = readKey(in);
+
+			if (key == null) {
+				in.readln();
+				continue;
+			}
+			
+			in.readChar();
+			in.skipWhiteSpace();
+			String val = readVal(in);
+			in.readln();
+
+			try {
+                                if (sp.find(key) == null) {
+                                        sp.add(key, val);
+                                }
+			} catch (Exception e) {
+				System.err.println("error adding property (" + key + "," + val + ")");
+				System.exit(1);
+			}
+		}
+	}
+
 	public NetPortType (NetIbis ibis, String name, StaticProperties sp)
 		throws IbisIOException {
 		this.ibis             = ibis;
 		this.name             = name;
+
+                try {
+                        Input in = new Input("net_port_type_defaults.txt");
+                        readProperties(in, sp);
+                } catch (Exception e) {
+				// nothing
+                }
+
 		this.staticProperties = sp;
 
 		driver = ibis.getDriver(sp.find("/:Driver"));

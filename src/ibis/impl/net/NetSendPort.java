@@ -151,9 +151,11 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @return The message instance.
 	 */	
 	public WriteMessage newMessage() throws IbisIOException {
+                //System.err.println("NetSendPort: newMessage-->");
 		emptyMsg     = true;
 		outputLock.lock();
                 output.initSend();
+                //System.err.println("NetSendPort: newMessage<--");
 		return this;
 	}
 
@@ -187,6 +189,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		ObjectOutputStream 	 os	       = null;
 
 		try {
+                        //System.err.println("attempting "+identifier+" to connect to '"+remoteAddress+"'["+remotePort+"]");
 			s   = new Socket(remoteAddress, remotePort);
 			os  = new ObjectOutputStream(s.getOutputStream());
 			is  = new ObjectInputStream(s.getInputStream());
@@ -225,6 +228,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	public synchronized void free()
 		throws IbisIOException {
+                //System.err.println("NetSendPort.free() called");
 		try {
 			if (outputLock != null) {
 				outputLock.lock();
@@ -327,9 +331,11 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * Completes the message transmission and releases the send port.
 	 */
 	public void finish() throws IbisIOException{
+                //System.err.println("NetSendPort: finish-->");
 		_finish();
 		output.finish();
 		outputLock.unlock();
+                //System.err.println("NetSendPort: finish<--");
 	}
 
 	/**

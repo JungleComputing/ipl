@@ -61,7 +61,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	private void flush() throws IbisIOException {
                 //System.err.println("NetBufferedOutput: flush -->");
 		if (buffer != null) {
-                        //System.err.println("NetBufferedOutput: flushing buffer");
+                        //System.err.println("NetBufferedOutput: flushing buffer, "+buffer.length+" bytes");
 			writeByteBuffer(buffer);
 			buffer.free();
 			buffer = null;
@@ -108,8 +108,10 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * Completes the message transmission and releases the send port.
 	 */
 	public void finish() throws IbisIOException{
+                //System.err.println("NetBufferedOutput: finish-->");
                 super.finish();
                 flush();
+                //System.err.println("NetBufferedOutput: finish<--");
 	}
 
 	/**

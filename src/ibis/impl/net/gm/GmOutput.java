@@ -86,15 +86,21 @@ public class GmOutput extends NetBufferedOutput {
                 Hashtable rInfo    = receiveInfoTable(is);
                 int       rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
                 int       rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
+                Driver.gmLock.lock();
                 int       lnodeId = nGetOutputNodeId(outputHandle);
                 int       lportId = nGetOutputPortId(outputHandle);
+                Driver.gmLock.unlock();
 
                 Hashtable lInfo = new Hashtable();
                 lInfo.put("gm_node_id", new Integer(lnodeId));
                 lInfo.put("gm_port_id", new Integer(lportId));
                 sendInfoTable(os, lInfo);
 
+                Driver.gmLock.lock();
+                //System.err.println(lnodeId+"["+lportId+"]"+" connecting to "+rnodeId+"["+rportId+"]");
+                
                 nConnectOutput(outputHandle, rnodeId, rportId);
+                Driver.gmLock.unlock();
 
 		try {
                         is.read();

@@ -120,10 +120,10 @@ public class TcpOutput extends NetBufferedOutput {
          */
 	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
 		try {
-                        // System.err.println("tcp_blk: writeByteBuffer --> : " + b.length);
+                        //System.err.println("tcp_blk: writeByteBuffer --> : " + b.length);
 			writeInt(b.data, 0, b.length);
 			tcpOs.write(b.data, 0, b.length);
-                        // System.err.println("tcp_blk: writeByteBuffer <-- : " + b.length);
+                        //System.err.println("tcp_blk: writeByteBuffer <-- : " + b.length);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		} 
