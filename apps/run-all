@@ -20,7 +20,7 @@ runs=10
 
 sers="ibis sun"
 
-ibises="tcp net.multi.bytes.gen.tcp_blk panda net.multi.gm"
+ibises="tcp net.multi.bytes.gen.tcp_blk panda net.gm"
 
 sequential=0
 parallel=1
