@@ -207,6 +207,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
                                 } catch (Exception e) {
 					// TODO: pass the exception to
 					//       the application
+                                        e.printStackTrace();
 					__.fwdAbort__(e);
 				}
 
@@ -678,12 +679,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 
 	/* --- ReadMessage Part --- */
 	public void finish() throws IbisIOException {
+                //System.err.println("NetReceivePort: finish-->");
 		if (emptyMsg) {
 			readByte();
 		}
 		activeSendPortNum = null;
 		input.finish();
 		pollingLock.unlock();
+                //System.err.println("NetReceivePort: finish<--");
 	}
 
 	public long sequenceNumber() {

@@ -123,9 +123,9 @@ public class GenPoller extends NetInput {
 	 * {@inheritDoc}
 	 */
 	public void finish() throws IbisIOException {
+		super.finish();
 		activeInput.finish();
 		activeInput = null;
-		super.finish();
 	}
 
 	/**

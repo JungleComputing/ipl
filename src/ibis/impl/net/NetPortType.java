@@ -65,6 +65,7 @@ class NetPortType implements PortType {
 
 			try {
                                 if (sp.find(key) == null) {
+                                        System.err.println("NetPortType: default setting "+key+" = "+val);
                                         sp.add(key, val);
                                 }
 			} catch (Exception e) {
@@ -81,6 +82,7 @@ class NetPortType implements PortType {
 
                 try {
                         Input in = new Input("net_port_type_defaults.txt");
+                        System.err.println("NetPortType: reading defaults port settings from net_port_type_defaults.txt");
                         readProperties(in, sp);
                 } catch (Exception e) {
 				// nothing

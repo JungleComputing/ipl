@@ -49,6 +49,11 @@ public class TcpOutput extends NetOutput {
 	 */
 	private OutputStream 	         tcpOs	   = null;
 
+        private InetAddress raddr = null;
+        private int         rport =    0;
+
+
+
 	/**
 	 * Constructor.
 	 *
@@ -78,8 +83,8 @@ public class TcpOutput extends NetOutput {
 		this.rpn = rpn;
 	
 		Hashtable   remoteInfo = receiveInfoTable(is);
-		InetAddress raddr =  (InetAddress)remoteInfo.get("tcp_address");
-		int         rport = ((Integer)    remoteInfo.get("tcp_port")   ).intValue();
+		raddr =  (InetAddress)remoteInfo.get("tcp_address");
+		rport = ((Integer)    remoteInfo.get("tcp_port")   ).intValue();
 
 		try {
 			tcpSocket = new Socket(raddr, rport);
@@ -98,27 +103,12 @@ public class TcpOutput extends NetOutput {
 	 */
         public void writeByte(byte b) throws IbisIOException {
                 try {
+                        //System.err.println("sending byte: ["+b+"] to "+raddr+"("+rport+")");
 			tcpOs.write((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
         }
-        
-
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void release() {
-		// nothing
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void reset() {
-		// nothing
-	}
 
 	/**
 	 * {@inheritDoc}
@@ -148,20 +138,4 @@ public class TcpOutput extends NetOutput {
 
 		super.free();
 	}
-
-
-        /* Obsolete code */	
-	/*
-	 * {@inheritDoc}
-	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
-                // System.err.println("TCP: sendBuffer -->");
-		try {
-			tcpOs.write(b.data, 0, b.length);
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} 
-                // System.err.println("TCP: sendBuffer <--");
-	}
-	 */
-
 }

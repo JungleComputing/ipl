@@ -130,12 +130,12 @@ public class GenSplitter extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public void finish() throws IbisIOException {
+                super.finish();
 		Iterator i = outputVector.listIterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.finish();
 		} while (i.hasNext());
-                super.finish();                
 	}
 
 	/**

@@ -345,11 +345,15 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @param doSend {@inheritDoc}
 	 */
 	public void reset(boolean doSend) throws IbisIOException {
+                System.err.println("NetSendPort: reset-->");
 		if (doSend) {
 			send();
-		}
+		} else {
+                        throw new Error("full reset unimplemented");
+                }
 		_finish();
 		output.reset(doSend);
+                System.err.println("NetSendPort: reset<--");
 	}
 
 	public int getCount() {
@@ -361,6 +365,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 
 	public void writeBoolean(boolean value) throws IbisIOException {
+                //System.err.println("NetSendPort: write");
 		emptyMsg = false;
 		output.writeBoolean(value);
 	}
@@ -373,51 +378,61 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @param value the byte to append to the message.
 	 */
 	public void writeByte(byte value) throws IbisIOException {
+                //System.err.println("NetSendPort: writeByte-->");
 		emptyMsg = false;
 		output.writeByte(value);
 	}
 
 	public void writeChar(char value) throws IbisIOException {
+                //System.err.println("NetSendPort: writeChar-->");
 		emptyMsg = false;
 		output.writeChar(value);
 	}
 
 	public void writeShort(short value) throws IbisIOException {
+                //System.err.println("NetSendPort: writeShort-->");
 		emptyMsg = false;
 		output.writeShort(value);
 	}
 
 	public void writeInt(int value) throws IbisIOException {
+                //System.err.println("NetSendPort: writeInt-->");
 		emptyMsg = false;
 		output.writeInt(value);
 	}
 
 	public void writeLong(long value) throws IbisIOException {
+                //System.err.println("NetSendPort: writeLong-->");
 		emptyMsg = false;
 		output.writeLong(value);
 	}
 	
 	public void writeFloat(float value) throws IbisIOException {
+                //System.err.println("NetSendPort: writeFloat-->");
 		emptyMsg = false;
 		output.writeFloat(value);
 	}
 
 	public void writeDouble(double value) throws IbisIOException {
+                //System.err.println("NetSendPort: writeDouble-->");
 		emptyMsg = false;
 		output.writeDouble(value);
 	}
 
 	public void writeString(String value) throws IbisIOException {
+                //System.err.println("NetSendPort: writeString-->");
 		emptyMsg = false;
 		output.writeString(value);
 	}
 
 	public void writeObject(Object value) throws IbisIOException {
+                //System.err.println("NetSendPort: writeObject-->");
 		emptyMsg = false;
 		output.writeObject(value);
 	}
 
 	public void writeArrayBoolean(boolean [] userBuffer) throws IbisIOException {
+                //System.err.println("NetSendPort: writeArrayBoolean-->");
 		if (userBuffer.length == 0)
 			return;
 
@@ -433,6 +448,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @param userBuffer the byte array to append to the message.
 	 */
 	public void writeArrayByte(byte [] userBuffer) throws IbisIOException {
+                //System.err.println("NetSendPort: writeArrayByte-->");
 		if (userBuffer.length == 0)
 			return;
 
@@ -441,6 +457,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeArrayChar(char [] userBuffer) throws IbisIOException {
+                //System.err.println("NetSendPort: writeArrayChar-->");
 		if (userBuffer.length == 0)
 			return;
 
@@ -449,6 +466,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeArrayShort(short [] userBuffer) throws IbisIOException {
+                //System.err.println("NetSendPort: writeArrayShort-->");
 		if (userBuffer.length == 0)
 			return;
 
@@ -457,6 +475,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeArrayInt(int [] userBuffer) throws IbisIOException {
+                //System.err.println("NetSendPort: writeArrayInt-->");
 		if (userBuffer.length == 0)
 			return;
 
@@ -465,6 +484,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeArrayLong(long [] userBuffer) throws IbisIOException {
+                //System.err.println("NetSendPort: writeArrayLong-->");
 		if (userBuffer.length == 0)
 			return;
 
@@ -473,6 +493,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeArrayFloat(float [] userBuffer) throws IbisIOException {
+                //System.err.println("NetSendPort: writeArrayFloat-->");
 		if (userBuffer.length == 0)
 			return;
 
@@ -481,6 +502,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeArrayDouble(double [] userBuffer) throws IbisIOException {
+                //System.err.println("NetSendPort: writeArrayDouble-->");
 		if (userBuffer.length == 0)
 			return;
 
@@ -490,6 +512,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	
 
 	public void writeSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
+                //System.err.println("NetSendPort: writeSubArrayBoolean-->");
 		if (length == 0)
 			return;
 
@@ -498,6 +521,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
+                //System.err.println("NetSendPort: writeSubArrayByte-->");
 		if (length == 0)
 			return;
 
@@ -506,6 +530,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
+                //System.err.println("NetSendPort: writeSubArrayChar-->");
 		if (length == 0)
 			return;
 
@@ -514,6 +539,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
+                //System.err.println("NetSendPort: writeSubArrayShort-->");
 		if (length == 0)
 			return;
 
@@ -522,6 +548,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
+                //System.err.println("NetSendPort: writeSubArrayInt-->");
 		if (length == 0)
 			return;
 
@@ -530,6 +557,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
+                //System.err.println("NetSendPort: writeSubArrayLong-->");
 		if (length == 0)
 			return;
 
@@ -538,6 +566,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
+                //System.err.println("NetSendPort: writeSubArrayFloat-->");
                 if (length == 0)
 			return;
                 
@@ -546,6 +575,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 	
 	public void writeSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
+                //System.err.println("NetSendPort: writeSubArrayDouble-->");
 		if (length == 0)
 			return;
 

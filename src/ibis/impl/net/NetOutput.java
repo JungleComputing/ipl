@@ -72,7 +72,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                         }
 
                         _outputConvertStream = null;
-               }
+                }
                 //System.err.println("NetOutput: finish <--");
         }
 
@@ -85,9 +85,13 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	   The message stays alive for subsequent writes and sends.
 	   reset can be seen as a shorthand for (possibly send();) finish(); sendPort.newMessage() **/
         public void reset(boolean doSend) throws IbisIOException {
+                //System.err.println("NetOutput: reset("+doSend+") -->");
                 if (doSend) {
                         send();
+                } else {
+                        throw new Error("full reset unimplemented");
                 }
+                
                 if (_outputConvertStream != null) {
                         try {
                                 _outputConvertStream.close();
@@ -97,6 +101,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 
                         _outputConvertStream = null;
                 }
+                //System.err.println("NetOutput: reset <--");
         }
 
         /**

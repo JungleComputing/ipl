@@ -181,48 +181,4 @@ public class TcpInput extends NetInput {
 
 		super.free();
 	}
-
-
-        /* Obsolete code */	
-	/*
-	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: this function may block if the expected data is not there.
-	 *
-	 * @return {@inheritDoc}
-	public void receiveBuffer(NetReceiveBuffer buffer) throws IbisIOException {
-                byte [] b = buffer.data;
-		int offset = buffer.base;
-                int expectedLength = buffer.length;
-
-                //System.err.println("TCP: receiveBuffer 1 -->");
-		try {
-			do {
-				offset += tcpIs.read(b, offset, expectedLength - offset);
-			} while (offset < expectedLength);
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		} 
-                // System.err.println("TCP: receiveBuffer 1 <--");
-        }
-	 */
-        
-	/*
-	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: this function may block if the expected data is not there.
-	 *
-	 * @return {@inheritDoc}
-	public NetReceiveBuffer receiveBuffer(int expectedLength)
-		throws IbisIOException {
-                NetReceiveBuffer buffer = new NetReceiveBuffer(new byte[expectedLength], 0, expectedLength);
-
-                // System.err.println("TCP: receiveBuffer 2 -->");
-                receiveBuffer(buffer);
-                // System.err.println("TCP: receiveBuffer 2 <--");
-		
-		return buffer;
-	}
-	 */
-
 }
