@@ -7,12 +7,14 @@ include ../config.mk
 
 MAIN=Fib.java
 
+java: 
+	$(JAVAC_COMMAND) $(MAIN)
+
 satin:
 	$(IBISC_COMMAND) -no-aborts $(MAIN)
 
 manta:
 	$(IBISC_COMMAND) -no-aborts -manta -o $(OUT) $(MAIN) -v
-
 
 clean:
 	rm -f $(TRASH_FILES)

@@ -1,5 +1,5 @@
 public final class Cover extends ibis.satin.SatinObject implements CoverInterface, java.io.Serializable  {
-	static final int THRESHOLD = 28;
+	static final int THRESHOLD = 15;
 
 
 	public Return spawn_try_it(int i, int N, int no_skills, byte[][] skills,
@@ -22,7 +22,7 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 				if (act[k] == 1) act_elems++;
 			}
 			if (act_elems < opt_elems){
-				//				System.arraycopy(act, 0, ret.opt, 0, N);
+//				System.arraycopy(act, 0, ret.opt, 0, N);
 				ret.opt_elems = act_elems;
 				ret.opt = (byte[]) act.clone();
 			}
