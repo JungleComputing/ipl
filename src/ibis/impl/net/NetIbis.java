@@ -350,7 +350,8 @@ public final class NetIbis extends Ibis {
         String serialization = s.find("Serialization");
         String path = "/";
         if (serialization != null && !serialization.equals("byte")) {
-            String top = "s_ser";
+            // Add serialization driver
+            String top = "ser";
             try {
                 s.add(path + ":Driver", top);
             } catch (IbisRuntimeException e) {

@@ -352,8 +352,7 @@ in Table~\ref{tab:net-drivers}.
     \texttt{bytes}   & ``Native types'' to ``bytes'' conversion\sep
     \texttt{gen}     & Generic multi-connection splitter/poller\\
     \texttt{multi}   & Multi-protocol driver\sep
-    \texttt{s\_ibis} & \Ibis \textit{serialization} driver\\
-    \texttt{s\_sun}  & \textsc{Sun} \emph{serialization} driver\\
+    \texttt{ser}     & \textit{Serialization} driver\\
     \hline
   \end{tabular}
   \caption{Filtering Drivers}
@@ -450,18 +449,18 @@ the low-level trace debugging routines on in all the \NetIbis drivers.
 
 The following configuration lines specifies the \texttt{Driver}
 property for the port. This is the usual way to select the topmost
-driver. Here, we select the ``Ibis serialization'' filtering driver.
+driver. Here, we select the ``Serialization'' filtering driver.
 \begin{Miniverb}
 
-  /:Driver=s_ibis
+  /:Driver=ser
 
 \end{Miniverb}
 
-We now select the sub-driver for the \texttt{s\_ibis} driver, here the
+We now select the sub-driver for the \texttt{ser} driver, here the
 ``Native-type to byte conversion'' driver.
 \begin{Miniverb}
 
-  /s_ibis:Driver=bytes
+  /ser:Driver=bytes
 
 \end{Miniverb}
 
@@ -469,7 +468,7 @@ We now select the sub-driver for the \texttt{bytes} driver, here the
 ``Multi-protocol'' driver.
 \begin{Miniverb}
 
-  /s_ibis/bytes:Driver=multi
+  /ser/bytes:Driver=multi
 
 \end{Miniverb}
 
@@ -481,8 +480,8 @@ to the `\texttt{a}' sub-context and the one corresponding to the
 `\texttt{b}' sub-context) for each new network connection.
 \begin{Miniverb}
 
-  /s_ibis/bytes/multi:Driver=gen
-  /s_ibis/bytes/multi:Plugin=random
+  /ser/bytes/multi:Driver=gen
+  /ser/bytes/multi:Plugin=random
 
 \end{Miniverb}
 
@@ -493,9 +492,9 @@ Here we select the \texttt{tcp\_blk} networking driver for the
 `\texttt{b}' branch.
 \begin{Miniverb}
 
-  /s_ibis/bytes/multi:Plugin=abc
-  /s_ibis/bytes/multi#net_a/gen:Driver=tcp_blk
-  /s_ibis/bytes/multi#net_b/gen:Driver=gm
+  /ser/bytes/multi:Plugin=abc
+  /ser/bytes/multi#net_a/gen:Driver=tcp_blk
+  /ser/bytes/multi#net_b/gen:Driver=gm
 
 \end{Miniverb}
 
@@ -505,10 +504,10 @@ We just need to replace the two previous lines with the following
 ones.
 \begin{Miniverb}
 
-  /s_ibis/bytes/multi:Plugin=abc
-  /s_ibis/bytes/multi/gen:Driver=id
-  /s_ibis/bytes/multi#net_a/gen/id:Driver=tcp_blk
-  /s_ibis/bytes/multi#net_b/gen/id:Driver=gm
+  /ser/bytes/multi:Plugin=abc
+  /ser/bytes/multi/gen:Driver=id
+  /ser/bytes/multi#net_a/gen/id:Driver=tcp_blk
+  /ser/bytes/multi#net_b/gen/id:Driver=gm
 
 \end{Miniverb}
 There is no sub-context string on the first of the three lines, which
@@ -531,8 +530,8 @@ follows.
 \begin{Miniverb}
 
   Log=true
-  Driver=s_ibis
-  s_ibis:Drivers=bytes
+  Driver=ser
+  ser:Drivers=bytes
   bytes:Drivers=multi
   multi:Driver=gen
   gen:Driver=id
