@@ -17,7 +17,8 @@
     </target>
 
     <target name="compile"
-	    depends="init,property-init">
+	    depends="init,property-init"
+	    description="Compile for sequential execution">
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir=".">
@@ -32,7 +33,8 @@
     </target>
 
     <target name="build"
-	    depends="init">
+	    depends="init"
+	    description="Compile for parallel execution">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="satin"/>
 	<antcall inheritRefs="true" target="iogen"/>
