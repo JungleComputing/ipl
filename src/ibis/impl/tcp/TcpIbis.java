@@ -37,12 +37,6 @@ public final class TcpIbis extends Ibis implements Config {
 	private InetAddress myAddress;
 
 	private NameServer nameServer;
-
-	private String nameServerName;
-	private String nameServerPool;
-	private InetAddress nameServerInet;
-	private int nameServerPort;
-
 	private int poolSize;
 
 	private Hashtable portTypeList = new Hashtable();
