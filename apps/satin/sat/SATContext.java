@@ -203,7 +203,7 @@ public class SATContext implements java.io.Serializable {
     public int propagatePosAssignment( SATProblem p, int var )
     {
         assignments[var] = 1;
-	boolean haveUnitClauses = false;
+	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
 	    System.err.println( "Propagating assignment var[" + var + "]=true" );
@@ -223,8 +223,10 @@ public class SATContext implements java.io.Serializable {
 		}
 	        return -1;
 	    }
-	    if( terms[cno] == 1 ){
-	        haveUnitClauses = true;
+	    else if( terms[cno] == 1 ){
+		// Remember that we saw a unit clause, but don't
+		// propagate it yet, since the administration is inconsistent.
+		hasUnitClauses = true;
 	    }
 	}
 
@@ -241,7 +243,9 @@ public class SATContext implements java.io.Serializable {
 	    // All clauses are now satisfied, we have a winner!
 	    return 1;
 	}
-	if( haveUnitClauses ){
+
+	// Now propagate unit clauses if there are any.
+	if( hasUnitClauses ){
 	    propagateUnitClauses( p );
 	}
 	return 0;
@@ -251,7 +255,7 @@ public class SATContext implements java.io.Serializable {
     public int propagateNegAssignment( SATProblem p, int var )
     {
         assignments[var] = 0;
-	boolean haveUnitClauses = false;
+	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
 	    System.err.println( "Propagating assignment var[" + var + "]=false" );
@@ -271,8 +275,10 @@ public class SATContext implements java.io.Serializable {
 		}
 	        return -1;
 	    }
-	    if( terms[cno] == 1 ){
-	        haveUnitClauses = true;
+	    else if( terms[cno] == 1 ){
+		// Remember that we saw a unit clause, but don't
+		// propagate it yet, since the administration is inconsistent.
+		hasUnitClauses = true;
 	    }
 	}
 
@@ -289,7 +295,9 @@ public class SATContext implements java.io.Serializable {
 	    // All clauses are now satisfied, we have a winner!
 	    return 1;
 	}
-	if( haveUnitClauses ){
+
+	// Now propagate unit clauses if there are any.
+	if( hasUnitClauses ){
 	    propagateUnitClauses( p );
 	}
 	return 0;
