@@ -47,7 +47,7 @@ public class RelOutput extends NetBufferedOutput {
 	/*
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
                 /* Main connection */
 		NetOutput subOutput = this.subOutput;
 		
@@ -61,7 +61,7 @@ public class RelOutput extends NetBufferedOutput {
 			this.subOutput = subOutput;
 		}
 
-		subOutput.setupConnection(rpn, is, os);
+		subOutput.setupConnection(rpn, is, os, nls);
 
 		int _mtu = subOutput.getMaximumTransfertUnit();
 		if (mtu == 0  ||  mtu > _mtu) {
@@ -81,7 +81,7 @@ public class RelOutput extends NetBufferedOutput {
 			this.subInput = subInput;
                 }
 
-		subInput.setupConnection(new Integer(-1), is, os);
+		subInput.setupConnection(new Integer(-1), is, os, nls);
 	}
 
 	/**

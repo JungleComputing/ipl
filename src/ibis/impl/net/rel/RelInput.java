@@ -45,7 +45,7 @@ public class RelInput extends NetBufferedInput {
 	/*
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
 
                 /* Main connection */
 		NetInput subInput = this.subInput;
@@ -59,7 +59,7 @@ public class RelInput extends NetBufferedInput {
 			this.subInput = subInput;
 		}
 		
-		subInput.setupConnection(rpn, is, os);
+		subInput.setupConnection(rpn, is, os, nls);
 
                 /* Reverse connection */
 		NetOutput subOutput = this.subOutput;
@@ -68,7 +68,7 @@ public class RelInput extends NetBufferedInput {
 			this.subOutput = subOutput;
                 }
 
-		subOutput.setupConnection(new Integer(-1), is, os);
+		subOutput.setupConnection(new Integer(-1), is, os, nls);
 	}
 
 	/**

@@ -76,9 +76,10 @@ public class TcpOutput extends NetBufferedOutput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer                  rpn,
-				    ObjectInputStream 	     is,
-				    ObjectOutputStream	     os)
+	public void setupConnection(Integer            rpn,
+				    ObjectInputStream  is,
+				    ObjectOutputStream os,
+                                    NetServiceListener nls)
 		throws IbisIOException {
 		this.rpn = rpn;
 	

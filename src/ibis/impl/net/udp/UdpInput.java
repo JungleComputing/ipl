@@ -154,7 +154,8 @@ public class UdpInput extends NetBufferedInput {
 	 */
 	public void setupConnection(Integer            rpn,
 				    ObjectInputStream  is,
-				    ObjectOutputStream os)
+				    ObjectOutputStream os,
+                                    NetServiceListener nls)
 		throws IbisIOException {
 		this.rpn = rpn;
 		 

@@ -155,6 +155,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 */
 	private Hashtable                sendPortOs          =  null;
 
+	private Hashtable                sendPortNLS         =  null;
+
 	/**
 	 * Flag indicating whether incoming connections are currently enabled.
 	 */
@@ -229,8 +231,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 						sendPortSockets.put(spn, s);
 						sendPortIs.put(spn, is);
 						sendPortOs.put(spn, os);
-						input.setupConnection(spn, is, os);	
+                                                NetServiceListener nls = new NetServiceListener(is);
+                                                sendPortNLS.put(spn, nls);
 
+						input.setupConnection(spn, is, os, nls);	
+                                                nls.start();
+                                                
 						/*
 						 * if (connectionUpcall) {
 						 *	// not implemented
@@ -383,6 +389,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		sendPortSockets        = new Hashtable();
 		sendPortIs             = new Hashtable();
 		sendPortOs             = new Hashtable();
+		sendPortNLS            = new Hashtable();
 		polledLock     	       = new NetMutex(true);
 		pollingLock    	       = new NetMutex(false);
 		connectionLock 	       = new NetMutex(true);
@@ -648,6 +655,18 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			if (serverSocket != null) {
 				serverSocket.close();
 			}
+
+			if (sendPortNLS != null) {
+				Enumeration e = sendPortNLS.keys();
+
+				while (e.hasMoreElements()) {
+					Object             key   = e.nextElement();
+					Object             value = sendPortNLS.remove(key);
+					NetServiceListener nls   = (NetServiceListener)value;
+
+                                        nls.free();
+				}	
+			}		
 			
 			if (sendPortOs != null) {
 				Enumeration e = sendPortOs.keys();
@@ -700,6 +719,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 			activeSendPortNum   =  null;
 			nextSendPortNum     =  null;
 			sendPortIdentifiers =  null;
+                        sendPortNLS         =  null;
 			sendPortSockets     =  null;
 			sendPortIs          =  null;
 			sendPortOs          =  null;

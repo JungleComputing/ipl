@@ -231,7 +231,8 @@ public abstract class NetIO {
 	 */
 	public abstract void setupConnection(Integer            rpn,
 					     ObjectInputStream  is,
-					     ObjectOutputStream os)
+					     ObjectOutputStream os,
+                                             NetServiceListener nsl)
 		throws IbisIOException;
 
 

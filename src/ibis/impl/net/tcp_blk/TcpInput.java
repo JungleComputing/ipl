@@ -93,9 +93,10 @@ public class TcpInput extends NetBufferedInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer                rpn,
-				    ObjectInputStream 	   is,
-				    ObjectOutputStream	   os)
+	public void setupConnection(Integer            rpn,
+				    ObjectInputStream  is,
+				    ObjectOutputStream os,
+                                    NetServiceListener nls)
 		throws IbisIOException {
 		this.rpn = rpn;
 		 

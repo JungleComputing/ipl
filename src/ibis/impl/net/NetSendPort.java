@@ -94,6 +94,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	private Hashtable             receivePortOs          = null;
 
+	private Hashtable             receivePortNLS         = null;
 
 	/**
 	 * The empty message detection flag.
@@ -158,6 +159,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		receivePortSockets     	 = new Hashtable();
 		receivePortIs          	 = new Hashtable();
 		receivePortOs          	 = new Hashtable();
+		receivePortNLS         	 = new Hashtable();
                 this.replacer = replacer;
                 //System.err.println("NetSendPort: <init><--");
 	}
@@ -222,7 +224,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		receivePortSockets.put(rpn, s);
 		receivePortIs.put(rpn, is);
 		receivePortOs.put(rpn, os);
-		output.setupConnection(rpn, is, os);				
+                NetServiceListener nls = new NetServiceListener(is);
+		receivePortNLS.put(rpn, nls);
+		output.setupConnection(rpn, is, os, nls);
+                nls.start();
 		outputLock.unlock();
                 //System.err.println("NetSendPort: connect<--");
 	}
@@ -257,6 +262,18 @@ public final class NetSendPort implements SendPort, WriteMessage {
 				output.free();
 			}
 
+			if (receivePortNLS != null) {
+				Enumeration e = receivePortNLS.keys();
+
+				while (e.hasMoreElements()) {
+					Object             key   = e.nextElement();
+					Object             value = receivePortNLS.remove(key);
+					NetServiceListener nls   = (NetServiceListener)value;
+
+                                        nls.free();
+				}	
+			}
+		
 			if (receivePortOs != null) {
 				Enumeration e = receivePortOs.keys();
 
@@ -305,6 +322,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 			outputLock   	       = null;
 			nextReceivePortNum     = null;
 			receivePortIdentifiers = null;
+                        receivePortNLS         = null;
 			receivePortSockets     = null;
 			receivePortIs          = null;
 			receivePortOs          = null;

@@ -43,7 +43,7 @@ public class IdInput extends NetInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
 		NetInput subInput = this.subInput;
 		if (subInput == null) {
 			if (subDriver == null) {
@@ -55,7 +55,7 @@ public class IdInput extends NetInput {
 			this.subInput = subInput;
 		}
 		
-		subInput.setupConnection(rpn, is, os);
+		subInput.setupConnection(rpn, is, os, nls);
 	}
 
 	/**

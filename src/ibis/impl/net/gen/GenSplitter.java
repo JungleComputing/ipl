@@ -80,7 +80,7 @@ public class GenSplitter extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
 		if (subDriver == null) {
 			String subDriverName = getProperty("Driver");
                         subDriver = driver.getIbis().getDriver(subDriverName);
@@ -88,7 +88,7 @@ public class GenSplitter extends NetOutput {
 		
 		NetOutput no = newSubOutput(subDriver);
 		
-		no.setupConnection(rpn, is, os);
+		no.setupConnection(rpn, is, os, nls);
 		addOutput(rpn, no);
 	}
 

@@ -53,7 +53,7 @@ public class BytesOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
 		NetOutput subOutput = this.subOutput;
 		
 		if (subOutput == null) {
@@ -66,7 +66,7 @@ public class BytesOutput extends NetOutput {
 			this.subOutput = subOutput;
 		}
 
-		subOutput.setupConnection(rpn, is, os);
+		subOutput.setupConnection(rpn, is, os, nls);
 
 		int _mtu = subOutput.getMaximumTransfertUnit();
 		if (mtu == 0  ||  mtu > _mtu) {

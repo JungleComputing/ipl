@@ -67,7 +67,7 @@ public class GenPoller extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os) throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
 		if (subDriver == null) {
 			String subDriverName = getMandatoryProperty("Driver");
                         subDriver = driver.getIbis().getDriver(subDriverName);
@@ -75,7 +75,7 @@ public class GenPoller extends NetInput {
 		
 		NetInput ni = newSubInput(subDriver);
 
-		ni.setupConnection(rpn, is, os);
+		ni.setupConnection(rpn, is, os, nls);
 		addInput(ni);
 	}
 

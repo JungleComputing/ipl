@@ -93,7 +93,8 @@ public class UdpOutput extends NetBufferedOutput {
 	 */
 	public void setupConnection(Integer            rpn,
 				    ObjectInputStream  is,
-				    ObjectOutputStream os)
+				    ObjectOutputStream os,
+                                    NetServiceListener nls)
 		throws IbisIOException {
 		this.rpn = rpn;
 	

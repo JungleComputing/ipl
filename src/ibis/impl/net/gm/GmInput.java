@@ -85,10 +85,7 @@ public class GmInput extends NetBufferedInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public void setupConnection(Integer            rpn,
-				    ObjectInputStream  is,
-				    ObjectOutputStream os)
-		throws IbisIOException {
+	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
 		this.rpn = rpn;
 		 
                 Driver.gmLock.lock();
