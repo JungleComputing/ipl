@@ -360,6 +360,21 @@ sent_upcall(void *arg)
     ibmp_msg_p msg = arg;
     msg->outstanding_send--;
     IBP_VPRINTF(1, NULL, ("sent upcall msg %p outstanding := %d, missing := %d\n", msg, msg->outstanding_send, --ibmp_sent_msg_out));
+#if 0 && defined IBP_VERBOSE
+    {
+	int i;
+	int j;
+
+	fprintf(stderr, "Iovec we will clear:\n");
+	for (i = 0; i < msg->iov_len; i++) {
+	    fprintf(stderr, "buffer %p: ", msg->iov[i]);
+	    for (j = 0; j < 24; j++) {
+		fprintf(stderr, "%d ", ((int *)(msg->iov[i].data))[j]);
+	    }
+	    fprintf(stderr, "\n");
+	}
+    }
+#endif
 }
 
 
