@@ -15,7 +15,7 @@ public abstract class Conversion {
 
     // load a SimpleConversion to and from networkorder as default
     static {
-	defaultConversion = new SimpleConversion(true);
+	defaultConversion = new SimpleBigConversion();
 
     }
 
@@ -98,22 +98,9 @@ public abstract class Conversion {
      */
 
     /*
-     * Returns a Conversion Object. Tries the (faster) java.nio implementation
-     * first, and falls back to "normal" conversion if this does not work.
-     */
-    public static final Conversion loadConversion(boolean bigEndian) {
-	try {
-	    return loadConversion("ibis.io.NioConversion", bigEndian);
-	} catch (Exception e) {
-	    // loading of nio conversion failed.
-	    return new SimpleConversion(bigEndian);
-	}
-    }
-
-    /*
      * Return a conversion, given the class name of it.
      */
-    public static final Conversion loadConversion(String className, 
+    private static final Conversion loadConversion(String className, 
 	    boolean bigEndian) throws Exception {
 	/* 
 	 * Lot's of code to actually say 
@@ -129,6 +116,25 @@ public abstract class Conversion {
 	Object[] parameters = { new Boolean(bigEndian) };
 	return (Conversion)constructor.newInstance(parameters);
     }
+
+    /**
+     * Load a conversion
+     */
+    public static final Conversion loadConversion(boolean bigEndian) {
+
+/*	try {
+	    return loadConversion("ibis.io.NioConversion", bigEndian);
+	} catch (Exception e) {
+	    // loading of nio conversion failed.
+*/
+	    if(bigEndian) {
+		return new SimpleBigConversion();
+	    } else {
+		return new SimpleLittleConversion();
+	    }
+//	}
+    }
+
 
     /**
      * Returns if this conversion iconverts to big-endian or not
