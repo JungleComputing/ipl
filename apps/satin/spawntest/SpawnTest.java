@@ -4,16 +4,16 @@ class SpawnTest {
 
 	void start() {
 		Test t = new Test();
-
-		for (int i = 0; i < 100; i++) {
-			t.spawn_test(0);
-			//t.spawn_test(1);
+		int i, x = 0, y = 0;
+		for (i = 0; i < 100; i++) {
+			x = t.spawn_test(0);
+			y = t.spawn_test(10);
 		}
+		System.out.println("application result: x = " + x + " y = " + y);
 	}
 
-	static void main(String args[]) {
+	public static void main(String args[]) {
 		new SpawnTest().start();
-		System.out.println("application result: Test done");
 	}
 }
 
