@@ -75,11 +75,43 @@ public class IOGenerator {
 	    factory 		= new InstructionFactory(gen);
 	    constantpool	= gen.getConstantPool();
 
+	    versionUID();
+
 	    super_is_serializable = isSerializable(super_class);
 	    super_is_ibis_serializable = isIbisSerializable(super_class);
 	    super_has_ibis_constructor = hasIbisConstructor(super_class);
 	    has_serial_persistent_fields = hasSerialPersistentFields();
 	    final_fields = hasFinalFields();
+	}
+
+	/**
+	 * Get the serialversionuid of a class that is about to be
+	 * rewritten. If necessary, a serialVersionUID field is added.
+	 */
+	private void versionUID() {
+	    for (int i = 0; i < fields.length; i++) {
+		Field f = fields[i];
+		if (f.getName().equals("serialVersionUID") &&
+		    f.isFinal() &&
+		    f.isStatic()) {
+		    /* Already present. Just return. */
+		    return;
+		}
+	    }
+
+	    try {
+		Class	cl = Class.forName(classname);
+		java.io.ObjectStreamClass ocl = java.io.ObjectStreamClass.lookup(cl);
+		long	uid = ocl.getSerialVersionUID();
+		FieldGen f = new FieldGen(Constants.ACC_PRIVATE|Constants.ACC_FINAL|Constants.ACC_STATIC, 
+					  Type.LONG,
+					  "serialVersionUID",
+					  constantpool);
+		f.setInitValue(uid);
+		gen.addField(f.getField());
+		fields = gen.getFields();
+	    } catch(ClassNotFoundException e) {
+	    }
 	}
 
 
