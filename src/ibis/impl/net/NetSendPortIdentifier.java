@@ -4,7 +4,7 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPortIdentifier;
 
 /**
- * Provides an identifier for a {@link NetSendPort}.
+ * Provides an identifier for a {@link ibis.impl.net.NetSendPort}.
  */
 public final class NetSendPortIdentifier
 	implements SendPortIdentifier, java.io.Serializable {

@@ -71,7 +71,7 @@ public class NetBufferFactory {
         private BufferList           freeWrapperList = null;
 
         /**
-         * Store the actual factory {@linkplain NetBufferFactoryImpl implementation}.
+         * Store the actual factory {@linkplain ibis.impl.net.NetBufferFactoryImpl implementation}.
          */
         private NetBufferFactoryImpl impl      = null;
 
@@ -128,7 +128,7 @@ public class NetBufferFactory {
          * Constructor
          *
          * @param impl the NetBufferFactoryImpl. If <CODE>impl</CODE> equals null,
-         *        the {@link NetBufferFactoryDefaultImpl} is used
+         *        the {@link ibis.impl.net.NetBufferFactoryDefaultImpl} is used
          */
         public NetBufferFactory(NetBufferFactoryImpl impl) {
                 this(0, impl, null);
@@ -142,7 +142,7 @@ public class NetBufferFactory {
          *        recycling buffers if the <CODE>free()</CODE> method is invoked
          *        on them.
          * @param impl the NetBufferFactoryImpl. If <CODE>impl</CODE> equals null,
-         *        the {@link NetBufferFactoryDefaultImpl} is used
+         *        the {@link ibis.impl.net.NetBufferFactoryDefaultImpl} is used
          */
         public NetBufferFactory(int mtu, NetBufferFactoryImpl impl) {
                 this(mtu, impl, null);
@@ -156,9 +156,9 @@ public class NetBufferFactory {
          *        recycling buffers if the <CODE>free()</CODE> method is invoked
          *        on them.
          * @param impl the NetBufferFactoryImpl. If <CODE>impl</CODE> equals null,
-         *        the {@link NetBufferFactoryDefaultImpl} is used
+         *        the {@link ibis.impl.net.NetBufferFactoryDefaultImpl} is used
          * @param allocator an allocator to allocate the byte buffer inside the
-         *        {@link NetBuffer}.
+         *        {@link ibis.impl.net.NetBuffer}.
          *        If <CODE>mtu</CODE> does not equal 0, the <CODE>allocator</CODE>
          *        is responsible for creating data of size at least <CODE>mtu</CODE>
          */
@@ -374,7 +374,7 @@ public class NetBufferFactory {
          * Free a NetBuffer. If mtu does not equal 0, the buffer is linked into
          * the freeList.
          *
-         * @param buffer the {@link NetBuffer} to be released
+         * @param buffer the {@link ibis.impl.net.NetBuffer} to be released
          */
         synchronized public void free(NetBuffer buffer) {
                 if (buffer.factory != this) {

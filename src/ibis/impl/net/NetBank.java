@@ -4,11 +4,10 @@ import java.util.HashMap;
 import java.util.Random;
 
 /**
- * The {@link NetBank} class provides a repository to store global
- * objects while reasonnably preventing buggy accesses/overwrites from other
- * modules.
+ * Provides a repository to store global objects while reasonably preventing
+ * buggy accesses/overwrites from other modules.
  *
- * Objects are stored in an {@link HashMap} objects using 64bit {@link
+ * Objects are stored in a {@link HashMap} objects using 64bit {@link
  * Long} keys. Every method is synchronized. <BR><B>Note:</B>&nbsp;
  * the {@link Random} object used is not safely 'seeded' at object
  * creation time. The seed used is a static attribute

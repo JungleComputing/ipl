@@ -357,9 +357,6 @@ public final class NetLockArray {
 	    System.err.println("trylocked(" + id +")");
 	}
 	lock[id].v--;
-// if (lock[id].v > 0) {
-// System.err.println("Lock " + id + " freed multiple times, v := " + lock[id].v + ". We should notify!");
-// }
 
 	return true;
     }

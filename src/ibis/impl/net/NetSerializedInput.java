@@ -95,7 +95,6 @@ public abstract class NetSerializedInput extends NetInput {
 	    log.in();
 	    if (activeNum != null) throw new Error("Revise your calls to initReceive");
 	    activeNum = num;
-// subInput.initReceive(num);
 	    mtu          = subInput.getMaximumTransfertUnit();
 	    headerOffset = subInput.getHeadersLength();
 // System.err.println(this + " : subInput " + subInput + " mtu " + mtu + " headerOffset " + headerOffset);
@@ -122,7 +121,7 @@ public abstract class NetSerializedInput extends NetInput {
 		throw new Error("invalid state: stream not found num " + num);
 	    }
 
-// System.err.println("OK, done the initReceive; iss " + this.iss);
+// System.err.println("OK, done the initReceive; iss " + iss);
 	    log.out();
 	}
 

@@ -784,20 +784,17 @@ System.err.println(this + ": Ugh... Double");
                         }
 
                 } else if (ensureLength(Conversion.INT_SIZE*(l+1) - 1)) {
-// System.err.print("e=" + l);
 			conversion.int2byte(ub, o, l, buffer.data, buffer.length);
 			buffer.length += Conversion.INT_SIZE*l;
 			flushIfNeeded();
 
 		} else if (mtu < Conversion.INT_SIZE) {
-// System.err.print("i=" + l);
 			for (int i = 0; i < l; i++) {
 				writeInt(ub[o+i]);
 			}
 
 		} else {
 			while (l > 0) {
-// System.err.print("b=" + l);
 				if (buffer == null) {
 					allocateBuffer();
 				}
@@ -918,21 +915,17 @@ System.err.println(this + ": Ugh... Double");
 
         public void writeArray(double [] ub, int o, int l) throws IOException {
                 log.in();
-// System.err.println(this + "writeArray: mtu " + mtu + " ensureLength() " + ensureLength(Conversion.DOUBLE_SIZE * (l + 1) - 1) + " anThreshold " + ((l * Conversion.DOUBLE_SIZE) <= anThreshold));
 
 		if (timerOn) writeArrayTimer.start();
                 if (mtu <= 0) {
                         if ((l*Conversion.DOUBLE_SIZE) <= anThreshold) {
-// System.err.print("a=" + l);
                                 byte [] b = an.allocate();
 				if (timerOn) conversionTimer.start();
                                 conversion.double2byte(ub, o, l, b, 0);
 				if (timerOn) conversionTimer.stop();
-// System.err.println(this + ": write byte array"); for (int i = 0; i < l * Conversion.DOUBLE_SIZE; i++) { System.err.print("0x" + Integer.toHexString(b[i]) + " "); } System.err.println();
                                 subOutput.writeArray(b, 0, l*Conversion.DOUBLE_SIZE);
                                 an.free(b);
                         } else {
-// System.err.print("d=" + l);
 				byte[] b = new byte[l * Conversion.DOUBLE_SIZE];
 				if (timerOn) conversionTimer.start();
 				conversion.double2byte(ub, o, l, b, 0);
@@ -941,7 +934,6 @@ System.err.println(this + ": Ugh... Double");
                         }
 
                 } else if (ensureLength(Conversion.DOUBLE_SIZE*(l+1) - 1)) {
-// System.err.print("e=" + l);
 			if (timerOn) conversionTimer.start();
 			conversion.double2byte(ub, o, l, buffer.data, buffer.length);
 			if (timerOn) conversionTimer.stop();
@@ -949,13 +941,11 @@ System.err.println(this + ": Ugh... Double");
 			flushIfNeeded();
 
 		} else if (mtu < Conversion.DOUBLE_SIZE) {
-// System.err.print("i=" + l);
 			for (int i = 0; i < l; i++) {
 				writeDouble(ub[o+i]);
 			}
 
 		} else {
-// System.err.print("b=" + l);
 			while (l > 0) {
 				if (buffer == null) {
 					allocateBuffer();

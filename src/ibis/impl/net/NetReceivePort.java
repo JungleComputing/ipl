@@ -241,7 +241,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
         /* ___ LESS-IMPORTANT OBJECTS ______________________________________ */
 
         /**
-         * The {@link NetIbis} instance.
+         * The {@link ibis.impl.net.NetIbis} instance.
          */
         private NetIbis               ibis                   = null;
 
@@ -629,7 +629,7 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
         /*
          * Constructor.
          *
-         * @param type the {@linkplain NetPortType port type}.
+         * @param type the {@linkplain ibis.impl.net.NetPortType port type}.
          * @param name the name of the port.
          * @param upcall the reception upcall callback.
          */

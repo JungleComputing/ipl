@@ -145,7 +145,6 @@ public final class BytesInput
 
                 dataOffset = getHeadersLength();
 	    }
-// System.err.println(this + ": initReceive; subInput " + subInput + " mtu " + mtu + " headerOffset " + headerOffset + " dataOffset " + dataOffset);
 	    subInput.initReceive(num);
 	    log.out();
         }
@@ -212,7 +211,6 @@ public final class BytesInput
                 log.in();
 		buffer       = subInput.readByteBuffer(mtu);
 		bufferOffset = dataOffset;
-// System.err.println("pumpBuffer: bufferOffset := " + bufferOffset);
                 log.out();
 	}
 
@@ -395,7 +393,6 @@ public final class BytesInput
                         }
 
                         v = conversion.byte2boolean(buffer.data[bufferOffset++]);
-// System.err.println("readBoolean -> bufferOffset " + bufferOffset);
                         freeBufferIfNeeded();
                 } else {
                         v = conversion.byte2boolean(subInput.readByte());
@@ -452,7 +449,6 @@ public final class BytesInput
                                 v = conversion.byte2char(b, 0);
                                 a2.free(b);
                         }
-// System.err.println("readChar -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a2.allocate();
@@ -492,7 +488,6 @@ public final class BytesInput
                                 v = conversion.byte2short(b, 0);
                                 a2.free(b);
                         }
-// System.err.println("readShort -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a2.allocate();
@@ -530,7 +525,6 @@ public final class BytesInput
                                 v = conversion.byte2int(b, 0);
                                 a4.free(b);
                         }
-// System.err.println("readInt -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a4.allocate();
@@ -568,7 +562,6 @@ public final class BytesInput
                                 v = conversion.byte2long(b, 0);
                                 a8.free(b);
                         }
-// System.err.println("readLong -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a8.allocate();
@@ -606,7 +599,6 @@ public final class BytesInput
                                 v = conversion.byte2float(b, 0);
                                 a4.free(b);
                         }
-// System.err.println("readFloat -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a4.allocate();
@@ -644,7 +636,6 @@ public final class BytesInput
                                 v = conversion.byte2double(b, 0);
                                 a8.free(b);
                         }
-// System.err.println("readDouble -> bufferOffset " + bufferOffset);
 
                 } else {
                         byte [] b = a8.allocate();
@@ -711,7 +702,6 @@ public final class BytesInput
 				freeBufferIfNeeded();
 			}
                 }
-// System.err.println("readBoolean[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -740,7 +730,6 @@ public final class BytesInput
 				freeBufferIfNeeded();
 			}
 		}
-// System.err.println("readByte[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -790,7 +779,6 @@ public final class BytesInput
 				freeBufferIfNeeded();
 			}
 		}
-// System.err.println("readChar[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -841,7 +829,6 @@ public final class BytesInput
 				freeBufferIfNeeded();
 			}
 		}
-// System.err.println("readShort[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -892,7 +879,6 @@ public final class BytesInput
 				freeBufferIfNeeded();
 			}
 		}
-// System.err.println("readInt[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -942,7 +928,6 @@ public final class BytesInput
 				freeBufferIfNeeded();
 			}
 		}
-// System.err.println("readLong[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -992,20 +977,17 @@ public final class BytesInput
 				freeBufferIfNeeded();
 			}
 		}
-// System.err.println("readFloat[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
 	public void readArray(double [] ub, int o, int l) throws IOException {
                 log.in();
-// System.err.println(this + ".readArray[" + o + ":" + l + "]: mtu " + mtu + " ensureLength() " + ensureLength(Conversion.DOUBLE_SIZE * (l + 1) - 1) + " bufferOffset " + bufferOffset + " anThreshold " + ((l * Conversion.DOUBLE_SIZE) <= anThreshold));
 
 		if (timerOn) readArrayTimer.start();
                 if (mtu <= 0) {
                         if (l*Conversion.DOUBLE_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
                                 subInput.readArray(b, 0, l*Conversion.DOUBLE_SIZE);
-// System.err.println(this + ": read byte array below anThreshold"); for (int i = 0; i < l * Conversion.DOUBLE_SIZE; i++) { System.err.print("0x" + Integer.toHexString(b[i]) + " "); } System.err.println();
 				if (timerOn) conversionTimer.start();
                                 conversion.byte2double(b, 0, ub, o, l);
 				if (timerOn) conversionTimer.stop();
@@ -1013,7 +995,6 @@ public final class BytesInput
                         } else {
                                 byte [] b = new byte[Conversion.DOUBLE_SIZE*l];
                                 subInput.readArray(b);
-// System.err.println(this + ": read byte array past anThreshold"); for (int i = 0; i < l * Conversion.DOUBLE_SIZE; i++) { System.err.print("0x" + Integer.toHexString(b[i]) + " "); } System.err.println();
 				if (timerOn) conversionTimer.start();
                                 conversion.byte2double(b, 0, ub, o, l);
 				if (timerOn) conversionTimer.stop();
@@ -1053,7 +1034,6 @@ public final class BytesInput
 				freeBufferIfNeeded();
 			}
 		}
-// System.err.println("readDouble[] -> bufferOffset " + bufferOffset);
 		if (timerOn) readArrayTimer.stop();
                 log.out();
         }

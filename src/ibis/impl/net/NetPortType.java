@@ -238,7 +238,7 @@ public final class NetPortType extends PortType {
 	private StaticProperties staticProperties  = null;
 
         /**
-         * Reference the {@link NetIbis} instance.
+         * Reference the {@link ibis.impl.net.NetIbis} instance.
          */
 	private NetIbis          ibis              = null;
 
@@ -429,7 +429,7 @@ public final class NetPortType extends PortType {
         /**
          * Construct a port type.
          *
-         * @param ibis a reference to the {@link NetIbis} instance.
+         * @param ibis a reference to the {@link ibis.impl.net.NetIbis} instance.
          * @param name the unique name of the type.
          * @param sp the runtime-defined properties of the type.
          * @exception IOException if the operation fails.
@@ -452,9 +452,9 @@ if (numbered) {
 	}
 
 	/**
-	 * Return a reference to the owning {@link NetIbis} instance.
+	 * Return a reference to the owning {@link ibis.impl.net.NetIbis} instance.
          *
-         * @return a reference to the owning {@link NetIbis} instance.
+         * @return a reference to the owning {@link ibis.impl.net.NetIbis} instance.
 	 */
 	public NetIbis getIbis() {
 		return ibis;

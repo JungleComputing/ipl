@@ -33,7 +33,7 @@ public final class Driver extends NetDriver {
 	/**
 	 * Constructor.
 	 *
-	 * @param ibis the {@link NetIbis} instance.
+	 * @param ibis the {@link ibis.impl.net.NetIbis} instance.
 	 */
 	public Driver(NetIbis ibis) {
 		super(ibis);

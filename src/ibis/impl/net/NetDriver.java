@@ -12,9 +12,9 @@ import java.io.IOException;
 public abstract class NetDriver {
 
 	/**
-	 * Reference the owning {@link NetIbis} instance.
+	 * The owning {@link ibis.impl.net.NetIbis}.
 	 */
-	protected NetIbis ibis = null;
+	private NetIbis ibis = null;
 
 
 	/**
@@ -35,9 +35,9 @@ public abstract class NetDriver {
 
 
 	/**
-	 * Set the owning {@link NetIbis}
+	 * Set the owning {@link ibis.impl.net.NetIbis}
 	 *
-	 * @param ibis the owning {@link NetIbis}
+	 * @param ibis the owning {@link ibis.impl.net.NetIbis}
 	 */
 	void setIbis(NetIbis ibis) {
 	    this.ibis = ibis;
@@ -56,7 +56,7 @@ public abstract class NetDriver {
 	/**
 	 * Return the name of the driver.
 	 *
-	 * Note: the name of the driver should preferably be equals to the suffix
+	 * Note: the name of the driver should preferably be equal to the suffix
 	 * of the driver's package name.
 	 *
 	 * @return The driver's name.
@@ -64,8 +64,8 @@ public abstract class NetDriver {
 	public abstract String getName();
 
 	/**
-	 * Create a new {@link NetInput} according to the
-	 * {@linkplain NetPortType port type} settings and the context {@linkplain String string}.
+	 * Create a new {@link ibis.impl.net.NetInput} according to the
+	 * {@linkplain ibis.impl.net.NetPortType port type} settings and the context {@linkplain String string}.
 	 *
 	 * @param pt the port type.
          * @param context the context string.
@@ -78,8 +78,8 @@ public abstract class NetDriver {
 		throws IOException;
 
 	/**
-	 * Create a new {@link NetOutput} according to the
-	 * {@linkplain NetPortType port type} settings and the context {@linkplain String string}.
+	 * Create a new {@link ibis.impl.net.NetOutput} according to the
+	 * {@linkplain ibis.impl.net.NetPortType port type} settings and the context {@linkplain String string}.
 	 *
 	 * @param pt the port type.
          * @param context the context string.

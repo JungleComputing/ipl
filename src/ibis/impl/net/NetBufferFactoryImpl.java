@@ -19,6 +19,12 @@ public interface NetBufferFactoryImpl {
 				  int length,
 				  NetAllocator allocator);
 
+    /**
+     * Test type compatibility of a buffer with this factory
+     *
+     * @param buffer the buffer
+     * @return whether the buffer is compatible with this buffer factory
+     */
     public boolean isSuitableClass(NetBuffer buffer);
 
 }

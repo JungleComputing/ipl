@@ -142,12 +142,12 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 	    Iterator i = c.iterator();
 	    ReceiveQueue q = (ReceiveQueue)i.next();
 	    if (! upcallMode && q.pollIsInterruptible()) {
-// System.err.println("Set singleton fastpath, #connections = " + inputMap.values().size());
+System.err.println("Set singleton fastpath, #connections = " + inputMap.values().size());
 		singleton = q;
 	    }
 
 	} else if (singleton != null) {
-// System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton " + singleton.input + " fastpath.");
+System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton " + singleton.input + " fastpath.");
 	    while (handlingSingleton) {
 		singleton.interruptPoll();
 		waitingConnections++;

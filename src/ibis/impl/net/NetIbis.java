@@ -92,43 +92,43 @@ public final class NetIbis extends Ibis {
 	private   Hashtable         driverTable      = new Hashtable();
 
 	/**
-	 * This {@link NetIbis} instance identifier for the <I>name server</I>.
+	 * This {@link ibis.impl.net.NetIbis} instance identifier for the <I>name server</I>.
 	 */
 	private   NetIbisIdentifier identifier       = null;
 
 	private	  boolean i_joined = false;
 
 	/**
-	 * This {@link NetIbis} instance <I>name server</I> client.
+	 * This {@link ibis.impl.net.NetIbis} instance <I>name server</I> client.
 	 */
 	protected NameServer  nameServer = null;
 
 	/**
 	 * The openness of our <I>world</I>.
 	 * <DL>
-	 * <DT><CODE>true</CODE><DD>Any {@link NetIbis} instance can connect to this {@link NetIbis} instance
-	 * <DT><CODE>false</CODE><DD>No {@link NetIbis} instance can connect to this {@link NetIbis} instance
+	 * <DT><CODE>true</CODE><DD>Any {@link ibis.impl.net.NetIbis} instance can connect to this {@link ibis.impl.net.NetIbis} instance
+	 * <DT><CODE>false</CODE><DD>No {@link ibis.impl.net.NetIbis} instance can connect to this {@link ibis.impl.net.NetIbis} instance
 	 * </DL>
 	 */
 	private   boolean           open             = false;
 
 	/**
-	 * The number of {@link NetIbis} instances in our <I>name server</I> nameServer pool.
+	 * The number of {@link ibis.impl.net.NetIbis} instances in our <I>name server</I> nameServer pool.
 	 */
 	private   int 	       	    poolSize         = 0;
 
 	/**
-	 * The {@link NetIbis} instances that attempted to join our nameServer pool while our world was {@linkplain #open closed}.
+	 * The {@link ibis.impl.net.NetIbis} instances that attempted to join our nameServer pool while our world was {@linkplain #open closed}.
 	 */
 	private   Vector 	    joinedIbises     = new Vector();
 
 	/**
-	 * The {@link NetIbis} instances that attempted to leave our nameServer pool while our world was {@linkplain #open closed}.
+	 * The {@link ibis.impl.net.NetIbis} instances that attempted to leave our nameServer pool while our world was {@linkplain #open closed}.
 	 */
 	private   Vector 	    leftIbises       = new Vector();
 
 	/**
-	 * The {@link NetIbis} instances that attempted to be deleted from our pool while our world was {@linkplain #open closed}.
+	 * The {@link ibis.impl.net.NetIbis} instances that attempted to be deleted from our pool while our world was {@linkplain #open closed}.
 	 */
 	private   Vector 	    toBeDeletedIbises       = new Vector();
 
@@ -142,9 +142,9 @@ public final class NetIbis extends Ibis {
 
 
 	/**
-	 * The {@link NetIbis} {@linkplain NetBank bank}.
+	 * The {@link ibis.impl.net.NetIbis} {@linkplain ibis.impl.net.NetBank bank}.
          *
-         * This {@linkplain NetBank bank} can be used as general
+         * This {@linkplain ibis.impl.net.NetBank bank} can be used as general
          * purpose and relatively safe repository for global object
          * instances.
          */
@@ -261,9 +261,9 @@ public final class NetIbis extends Ibis {
 	}
 
 	/**
-	 * Returns the {@link NetBank}.
+	 * Returns the {@link ibis.impl.net.NetBank}.
 	 *
-	 * @return The {@link NetBank}.
+	 * @return The {@link ibis.impl.net.NetBank}.
 	 */
 	public NetBank getBank() {
 		return bank;
@@ -275,7 +275,7 @@ public final class NetIbis extends Ibis {
 	 * If the driver has not been loaded, it is instanciated on the fly. The
 	 * driver's name is the suffix to append to the NetIbis package to get
 	 * access to the driver's package. The driver's package must contain a
-	 * class named <CODE>Driver</CODE> which extends {@link NetDriver}.
+	 * class named <CODE>Driver</CODE> which extends {@link ibis.impl.net.NetDriver}.
 	 *
 	 * @param name the driver's name.
 	 * @return The driver instance.

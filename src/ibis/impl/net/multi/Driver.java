@@ -23,14 +23,10 @@ public final class Driver extends NetDriver {
 
         private Hashtable    pluginTable = new Hashtable();
 
-	static {
-	    System.err.println("**** net.multi probably broken by all optimizations");
-	}
-
 	/**
 	 * Constructor.
 	 *
-	 * @param ibis the {@link NetIbis} instance.
+	 * @param ibis the {@link ibis.impl.net.NetIbis} instance.
 	 */
 	public Driver(NetIbis ibis) {
 		super(ibis);

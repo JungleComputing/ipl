@@ -1,13 +1,12 @@
+package ibis.impl.net;
+
+import java.io.IOException;
+
 /**
  * Interface to indicate whether the output that implements it
  * supports buffered output. Examples are NetBufferedOutput or
  * NetSplitter.
  */
-
-package ibis.impl.net;
-
-import java.io.IOException;
-
 public interface NetBufferedOutputSupport {
 
     /**
@@ -16,7 +15,7 @@ public interface NetBufferedOutputSupport {
     public boolean writeBufferedSupported();
 
     /**
-     * Sends the current buffer over the network.
+     * Flush the current buffer to the underlying output.
      *
      * @throws IOException on error or if buffered writing is not supported
      */

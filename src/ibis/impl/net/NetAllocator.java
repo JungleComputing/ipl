@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- *The {@link NetAllocator} class provides cached fixed-size memory block allocation.
+ * Provide cached fixed-size memory block allocation.
  */
 public final class NetAllocator {
 
@@ -65,7 +65,7 @@ public final class NetAllocator {
         /**
          * Provide a byte block caching stack.
          */
-        protected static class BlockStack {
+        private static class BlockStack {
 
                 /**
                  * Store the previously allocated blocks.
@@ -88,9 +88,9 @@ public final class NetAllocator {
         }
 
         /**
-         * The specialization of the {@link NetStat} for the {@linkplain NetAllocator allocator} monitoring.
+         * A {@link ibis.impl.net.NetStat} for {@linkplain ibis.impl.net.NetAllocator allocator} monitoring.
          */
-        public static class NetAllocatorStat extends NetStat {
+        private static class NetAllocatorStat extends NetStat {
 
                 /**
                  * The number of blocks allocated while the cache {@link #stack} is empty.

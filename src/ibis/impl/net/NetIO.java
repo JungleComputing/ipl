@@ -3,7 +3,7 @@ package ibis.impl.net;
 import java.io.IOException;
 
 /**
- * Provide a generic abstraction of an network {@link NetInput Input} or network {@link NetOutput Output}.
+ * Provide a generic abstraction of an network {@link ibis.impl.net.NetInput Input} or network {@link ibis.impl.net.NetOutput Output}.
  */
 public abstract class NetIO {
 
@@ -57,7 +57,7 @@ public abstract class NetIO {
 	protected NetDriver 	   driver        	  = null;
 
 	/**
-	 * the 'type' of the corresponding {@linkplain NetSendPort send port} or {@linkplain NetReceivePort receive port}.
+	 * the 'type' of the corresponding {@linkplain ibis.impl.net.NetSendPort send port} or {@linkplain ibis.impl.net.NetReceivePort receive port}.
 	 */
         protected NetPortType      type                   = null;
 
@@ -114,7 +114,6 @@ public abstract class NetIO {
                 // Stat object
                 boolean statOn = type.getBooleanStringProperty(this.context, "Stat", false);
                 stat = newMessageStat(statOn, s);
-// System.err.println(this + ": up...");
 	}
 
         /**
@@ -168,46 +167,46 @@ public abstract class NetIO {
         }
 
         /**
-         * Creates and returns a new {@linkplain NetInput input} object.
+         * Creates and returns a new {@linkplain ibis.impl.net.NetInput input} object.
          *
-         * @param subDriver the new {@linkplain NetInput input}'s {@linkplain NetDriver driver}.
+         * @param subDriver the new {@linkplain ibis.impl.net.NetInput input}'s {@linkplain ibis.impl.net.NetDriver driver}.
          * @param contextValue the subcontext discriminant.
 	 * @param inputUpcall the input upcall for upcall receives, or
 	 *        <code>null</code> for downcall receives
-         * @return the new {@linkplain NetInput input}.
+         * @return the new {@linkplain ibis.impl.net.NetInput input}.
          */
         public final NetInput newSubInput(NetDriver subDriver, String contextValue, NetInputUpcall inputUpcall) throws IOException {
                 return subDriver.newInput(type, subContext(contextValue), inputUpcall);
         }
 
         /**
-         * Creates and returns a new {@linkplain NetOutput output} object.
+         * Creates and returns a new {@linkplain ibis.impl.net.NetOutput output} object.
          *
-         * @param subDriver the new {@linkplain NetOutput output}'s {@linkplain NetDriver driver}.
+         * @param subDriver the new {@linkplain ibis.impl.net.NetOutput output}'s {@linkplain ibis.impl.net.NetDriver driver}.
          * @param contextValue the subcontext discriminant.
-         * @return the new {@linkplain NetOutput output}.
+         * @return the new {@linkplain ibis.impl.net.NetOutput output}.
          */
         public final NetOutput newSubOutput(NetDriver subDriver, String contextValue) throws IOException {
                 return subDriver.newOutput(type, subContext(contextValue));
         }
 
         /**
-         * Creates and returns a new {@linkplain NetInput input} object with no subcontext discriminant.
+         * Creates and returns a new {@linkplain ibis.impl.net.NetInput input} object with no subcontext discriminant.
          *
-         * @param subDriver the new {@linkplain NetInput input}'s {@linkplain NetDriver driver}.
+         * @param subDriver the new {@linkplain ibis.impl.net.NetInput input}'s {@linkplain ibis.impl.net.NetDriver driver}.
 	 * @param inputUpcall the input upcall for upcall receives, or
 	 *        <code>null</code> for downcall receives
-         * @return the new {@linkplain NetInput input}.
+         * @return the new {@linkplain ibis.impl.net.NetInput input}.
          */
         public final NetInput newSubInput(NetDriver subDriver, NetInputUpcall inputUpcall) throws IOException {
                 return newSubInput(subDriver, null, inputUpcall);
         }
 
         /**
-         * Creates and returns a new {@linkplain NetOutput output} object with no subcontext discriminant.
+         * Creates and returns a new {@linkplain ibis.impl.net.NetOutput output} object with no subcontext discriminant.
          *
-         * @param subDriver the new {@linkplain NetOutput output}'s {@linkplain NetDriver driver}.
-         * @return the new {@linkplain NetOutput output}.
+         * @param subDriver the new {@linkplain ibis.impl.net.NetOutput output}'s {@linkplain ibis.impl.net.NetDriver driver}.
+         * @return the new {@linkplain ibis.impl.net.NetOutput output}.
          */
         public final NetOutput newSubOutput(NetDriver subDriver) throws IOException {
                 return newSubOutput(subDriver, null);
@@ -274,9 +273,9 @@ public abstract class NetIO {
 
 
 	/**
-	 * Install a custom {@link NetBufferFactory} for atomic packet allocation.
+	 * Install a custom {@link ibis.impl.net.NetBufferFactory} for atomic packet allocation.
 	 *
-	 * @param factory the {@link NetBuffer} factory
+	 * @param factory the {@link ibis.impl.net.NetBuffer} factory
 	 */
 	public void setBufferFactory(NetBufferFactory factory) {
 	    if (NetBufferFactory.DEBUG) {
@@ -290,7 +289,7 @@ public abstract class NetIO {
 	}
 
         /**
-         * Displays the current {@link NetBufferFactory}.
+         * Displays the current {@link ibis.impl.net.NetBufferFactory}.
          */
 	public void dumpBufferFactoryInfo() {
 	    if (NetBufferFactory.DEBUG) {
@@ -300,12 +299,12 @@ public abstract class NetIO {
 	}
 
 	/**
-	 * Create a {@link NetBuffer} using the installed factory.
+	 * Create a {@link ibis.impl.net.NetBuffer} using the installed factory.
 	 *
-	 * This is only valid for a {@link NetBufferFactory Factory} with MTU.
+	 * This is only valid for a {@link ibis.impl.net.NetBufferFactory Factory} with MTU.
 	 *
 	 * @throws java.lang.IllegalArgumentException if no factory is installed or the factory has no default MTU.
-         * @return the new {@link NetBuffer buffer}.
+         * @return the new {@link ibis.impl.net.NetBuffer buffer}.
 	 */
 	public NetBuffer createBuffer() {
 	    if (factory == null) {
@@ -315,12 +314,12 @@ public abstract class NetIO {
 	}
 
 	/**
-	 * Create a {@link NetBuffer} using the installed factory.
+	 * Create a {@link ibis.impl.net.NetBuffer} using the installed factory.
 	 *
 	 * @param length the length of the data to be stored in the buffer.
 	 *        The buffer is a new byte array.
 	 * @throws java.lang.IllegalArgumentException if the factory has no default MTU.
-         * @return the new {@link NetBuffer buffer}.
+         * @return the new {@link ibis.impl.net.NetBuffer buffer}.
 	 */
 	public NetBuffer createBuffer(int length) {
 	    if (factory == null) {
@@ -344,8 +343,6 @@ public abstract class NetIO {
 	 * @param offset the new offset.
 	 */
 	public void setHeaderOffset(int offset) {
-// System.err.println("Set header offset to " + offset);
-// Thread.dumpStack();
 		headerOffset = offset;
 	}
 
@@ -359,7 +356,7 @@ public abstract class NetIO {
 	}
 
 	/**
-	 * Return the atomic packet header length for this {@link NetIO}.
+	 * Return the atomic packet header length for this {@link ibis.impl.net.NetIO}.
 	 *
 	 * @return the header length.
 	 */

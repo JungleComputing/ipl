@@ -63,7 +63,7 @@ public final class NetServiceLink {
         private boolean closed = false;
 
         /**
-         * Set to true for an 'accept' side {@link NetServiceLink} object, to false for a 'connect' side {@link NetServiceLink} object.
+         * Set to true for an 'accept' side {@link ibis.impl.net.NetServiceLink} object, to false for a 'connect' side {@link ibis.impl.net.NetServiceLink} object.
          */
         private boolean      incoming = false;
 
@@ -85,14 +85,14 @@ public final class NetServiceLink {
         /**
          * Reference the main outgoing sub-stream.
          *
-         * This sub-stream is used by the {@link NetServiceLink} object to send commands to its peer object.
+         * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink} object to send commands to its peer object.
          */
         private ObjectOutputStream main_oos = null;
 
         /**
          * Reference the main incoming sub-stream.
          *
-         * This sub-stream is used by the {@link NetServiceLink} object to receive commands from its peer object.
+         * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink} object to receive commands from its peer object.
          */
         private ObjectInputStream  main_ois = null;
 
@@ -474,7 +474,7 @@ public final class NetServiceLink {
          * @param name the name associated to the stream, used to
          * match this with the corresponding input sub-stream on the peer node;
          * <B>Note:</B>&nbsp;this name will be prefixed by the {@link
-         * NetIO}'s {@linkplain NetIO#context() context string} to
+         * NetIO}'s {@linkplain ibis.impl.net.NetIO#context() context string} to
          * provide some kind of dynamic namespace.
          *
          * @exception IOException when the operation fails.
@@ -494,7 +494,7 @@ public final class NetServiceLink {
          * @param name the name associated to the stream, used to
          * match this with the corresponding output sub-stream on the peer node;
          * <B>Note:</B>&nbsp;this name will be prefixed by the {@link
-         * NetIO}'s {@linkplain NetIO#context() context string} to
+         * NetIO}'s {@linkplain ibis.impl.net.NetIO#context() context string} to
          * provide some kind of dynamic namespace.
          *
          * @exception IOException when the operation fails.

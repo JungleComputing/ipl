@@ -3,7 +3,7 @@ package ibis.impl.net;
 import java.util.Vector;
 
 /**
- * Provide a general purpose {@linkplain NetEvent event} FIFO.
+ * Provide a general purpose {@linkplain ibis.impl.net.NetEvent event} FIFO.
  */
 public class NetEventQueue {
 

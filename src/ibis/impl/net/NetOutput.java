@@ -28,7 +28,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	/**
 	 * Constructor.
 	 *
-	 * @param portType the port {@link NetPortType} type.
+	 * @param portType the port {@link ibis.impl.net.NetPortType} type.
 	 * @param driver the driver.
 	 * @param context the context.
 	 */
@@ -49,7 +49,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Prepare the output for a new message transmission.
          */
 	public void initSend() throws IOException {
-// System.err.println(this + ": in initSend");
         }
 
 	protected void writeSeqno(long seqno) throws IOException {
@@ -138,12 +137,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 
 
 	/**
-	 * Create a {@link NetSendBuffer} using the installed factory.
+	 * Create a {@link ibis.impl.net.NetSendBuffer} using the installed factory.
 	 *
 	 * This is only valid for a Factory with MTU.
 	 *
 	 * @throws an {@link IllegalArgumentException} if the factory has no default MTU
-         * @return the new {@link NetSendBuffer}.
+         * @return the new {@link ibis.impl.net.NetSendBuffer}.
 	 */
 	public NetSendBuffer createSendBuffer() {
 	    return (NetSendBuffer)createBuffer();
@@ -153,7 +152,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 * Utility function to get a NetSendBuffer from our NetBuffer factory
 	 *
 	 * @param length the length of the data stored in the buffer
-         * @return the new {@link NetSendBuffer}.
+         * @return the new {@link ibis.impl.net.NetSendBuffer}.
 	 */
 	public NetSendBuffer createSendBuffer(int length) {
 	    NetSendBuffer b = (NetSendBuffer)createBuffer(length);

@@ -33,7 +33,7 @@ public class NetBuffer implements Cloneable {
 	/**
 	 * Stores an optional allocator reference.
 	 *
-	 * If the block was allocated through a {@link NetAllocator}, a reference to
+	 * If the block was allocated through a {@link ibis.impl.net.NetAllocator}, a reference to
 	 * this allocator can be stored here by the contructor, so that the buffer
 	 * may later be freed using it.
 	 */
@@ -42,7 +42,7 @@ public class NetBuffer implements Cloneable {
 	/**
 	 * Stores an optional factory reference.
 	 *
-	 * If the block was allocated through a {@link NetBufferFactory}, a reference to
+	 * If the block was allocated through a {@link ibis.impl.net.NetBufferFactory}, a reference to
 	 * this factory can be stored here by the contructor, so that the buffer
 	 * may later be freed using it.
 	 */
@@ -164,6 +164,11 @@ public class NetBuffer implements Cloneable {
 	}
 
 
+	/**
+	 * Clone a {@link ibis.impl.net.NetBuffer}.
+	 *
+	 * @return the copied buffer
+	 */
 	public NetBuffer makeCopy() {
 	    NetBuffer copy = null;
 	    try {

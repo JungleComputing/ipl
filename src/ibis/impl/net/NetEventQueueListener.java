@@ -2,18 +2,18 @@ package ibis.impl.net;
 
 /**
  * Provide a thread dedicated to extract and dispatch {@linkplain
- * NetEvent events} from an {@linkplain NetEventQueue event queue} to
- * an {@linkplain NetEventQueueConsumer event consumer}.
+ * NetEvent events} from an {@linkplain ibis.impl.net.NetEventQueue event queue} to
+ * an {@linkplain ibis.impl.net.NetEventQueueConsumer event consumer}.
  *
  * Several listeners are allowed to be attached to the same
- * {@linkplain NetEventQueue event queue}. In that case, the
+ * {@linkplain ibis.impl.net.NetEventQueue event queue}. In that case, the
  * dispatching scheme of the events to the {@linkplain
  * NetEventQueueConsumer event consumers} is unspecified.
  */
 final class NetEventQueueListener extends Thread {
 
         /**
-         * Reference the associated {@linkplain NetEventQueueConsumer
+         * Reference the associated {@linkplain ibis.impl.net.NetEventQueueConsumer
          * event consumer}.
          */
         private NetEventQueueConsumer cons  = null;
@@ -25,7 +25,7 @@ final class NetEventQueueListener extends Thread {
         private boolean               end   = false;
 
         /**
-         * Reference the {@linkplain NetEventQueue event queue} the
+         * Reference the {@linkplain ibis.impl.net.NetEventQueue event queue} the
          * thread is listening to.
          */
         private NetEventQueue         queue = null;

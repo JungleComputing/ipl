@@ -11,8 +11,10 @@ import java.io.IOException;
  */
 public final class NetConnection {
 
+	private final static boolean DEBUG = false;
+
         /**
-         * Reference the {@link NetSendPort} or {@link NetReceivePort}
+         * Reference the {@link ibis.impl.net.NetSendPort} or {@link ibis.impl.net.NetReceivePort}
          * which created this connection, and from which the {@link
          * NetPortType} is 'inherited'.
          */
@@ -51,10 +53,15 @@ public final class NetConnection {
 	 * streams are actually closed.
 	 * TODO: check what this does to abnormal closing (link failure etc).
 	 */
-	public long			msgSeqno;
 	public long			closeSeqno;
 
-	public int			regularClosers = 0;
+	/**
+	 * Messages over this connection are counted so we can close gracefully.
+	 * Close is only allowed if {link #msgSeqno} equals {link #closeSeqno}.
+	 */
+	public long			msgSeqno;
+
+	int				regularClosers = 0;
 
 	private DataOutputStream	disconnect_os;
 
@@ -67,7 +74,7 @@ public final class NetConnection {
          *
          * The actual network connection must have already been established.
          *
-         * @param port the {@link NetSendPort} or the {@link
+         * @param port the {@link ibis.impl.net.NetSendPort} or the {@link
          * NetReceivePort} that owns this connection.
          * @param num the connection identifier.
          * @param sendId the send-side port identifier.
@@ -109,7 +116,7 @@ public final class NetConnection {
          *
          * The actual network connection must have already been established.
          *
-         * @param port the {@link NetSendPort} or the {@link
+         * @param port the {@link ibis.impl.net.NetSendPort} or the {@link
          * NetReceivePort} that owns this connection.
          * @param num the connection identifier.
          * @param sendId the send-side port identifier.
@@ -154,7 +161,7 @@ public final class NetConnection {
         /**
          * Return the owner of this connection.
          *
-         * @return the {@link NetSendPort} or the {@link NetReceivePort} that owns this connection.
+         * @return the {@link ibis.impl.net.NetSendPort} or the {@link ibis.impl.net.NetReceivePort} that owns this connection.
          */
         public synchronized NetPort getPort() {
                 return port;
@@ -170,18 +177,18 @@ public final class NetConnection {
         }
 
         /**
-         * Return the {@link NetSendPort} identifier.
+         * Return the {@link ibis.impl.net.NetSendPort} identifier.
          *
-         * @return the {@link NetSendPort} identifier.
+         * @return the {@link ibis.impl.net.NetSendPort} identifier.
          */
         public synchronized NetSendPortIdentifier getSendId() {
                 return sendId;
         }
 
         /**
-         * Return the {@link NetReceivePort} identifier.
+         * Return the {@link ibis.impl.net.NetReceivePort} identifier.
          *
-         * @return the {@link NetReceivePort} identifier.
+         * @return the {@link ibis.impl.net.NetReceivePort} identifier.
          */
         public synchronized NetReceivePortIdentifier getReceiveId() {
                 return receiveId;
@@ -196,6 +203,11 @@ public final class NetConnection {
                 return serviceLink;
         }
 
+	/**
+	 * Return the {@link Replacer} object.
+	 *
+	 * @return the {@link Replacer} object
+	 */
         public synchronized Replacer getReplacer() {
                 return replacer;
         }
@@ -206,7 +218,9 @@ public final class NetConnection {
 	    public void run() {
 		try {
 		    NetConnection.this.closeSeqno = disconnect_is.readLong();
-// System.err.println(this + ": receive closeSeqno " + closeSeqno);
+		    if (DEBUG) {
+			System.err.println(this + ": receive closeSeqno " + closeSeqno);
+		    }
 		    // disconnect_is.close();
 		    port.closeFromRemote(NetConnection.this);
 		} catch (IOException e) {
@@ -220,8 +234,18 @@ public final class NetConnection {
 
 	}
 
+	/**
+	 * Output sends a disconnect request to the matching Input. Disconnect
+	 * is graceful since the input closes only after it has processed sent
+	 * messages up to sequence number {@link #closeSeqno}.
+	 *
+	 * @param closeSeqno the matching input will close only after it has
+	 * 		processed messages up to this sequence number.
+	 */
 	public void disconnect(long closeSeqno) throws IOException {
-// System.err.println(this + ": send closeSeqno " + closeSeqno);
+	    if (DEBUG) {
+		System.err.println(this + ": send closeSeqno " + closeSeqno);
+	    }
 	    disconnect_os.writeLong(closeSeqno);
 	    disconnect_os.flush();
 	    // disconnect_os.close();

@@ -1,16 +1,19 @@
-/**
- * Interface to indicate whether the input that implements it
- * supports buffered input. Examples are NetBufferedInput or
- * NetPoller.
- */
-
 package ibis.impl.net;
 
 import java.io.IOException;
 
+/**
+ * Interface to indicate whether an input allows reading
+ * <standount>less</standout> than the specified data size.
+ * Examples are {@link ibis.impl.net.NetBufferedInput} or {@link ibis.impl.net.NetPoller}.
+ */
+
 public interface NetBufferedInputSupport {
 
     /**
+     * Indicate whether the class thats implement this interface actually
+     * implement buffered input.
+     *
      * @return whether buffered reading is actually supported
      */
     public boolean readBufferedSupported();

@@ -7,7 +7,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import java.util.Hashtable;
 
 /**
- * Provides an identifier for a {@link NetReceivePort}.
+ * Provides an identifier for a {@link ibis.impl.net.NetReceivePort}.
  */
 public final class NetReceivePortIdentifier
 	implements ReceivePortIdentifier, java.io.Serializable {

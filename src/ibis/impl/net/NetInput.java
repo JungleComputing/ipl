@@ -14,7 +14,7 @@ import java.io.IOException;
  */
 public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpcall {
 	/**
-	 * Active {@link NetConnection connection} number or <code>null</code> if
+	 * Active {@link ibis.impl.net.NetConnection connection} number or <code>null</code> if
 	 * no connection is active.
 	 */
 	private		Integer              activeNum              = null;
@@ -123,7 +123,6 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 
                 public void report() {
                         if (on) {
-// System.err.println(this + ".poll: Success " + pollSuccess + " Fail " + pollFail);
                                 System.err.println();
                                 System.err.println("Upcall thread allocation stats for module "+moduleName + " " + NetInput.this);
                                 System.err.println("------------------------------------");
@@ -350,7 +349,7 @@ finishedUpcallThreads--;
 	/**
 	 * Constructor.
 	 *
-	 * @param portType the port {@link NetPortType} type.
+	 * @param portType the port {@link ibis.impl.net.NetPortType} type.
 	 * @param driver the driver.
 	 * @param context the context.
 	 * @param inputUpcall the input upcall for upcall receives, or
@@ -381,7 +380,7 @@ finishedUpcallThreads--;
          *
          * Note: this method is only useful for filtering drivers.
          *
-         * @param input the {@link NetInput sub-input} that generated the upcall.
+         * @param input the {@link ibis.impl.net.NetInput sub-input} that generated the upcall.
          * @param num   the active connection number
          * @exception IOException in case of trouble.
          */
@@ -437,7 +436,7 @@ private int pollSuccess;
 	 *
 	 * @param blockForMessage indicates whether this method must block until
 	 *        a message has arrived, or just query the input one.
-	 * @return the {@link NetConnection connection} identifier or <code>null</code> if no data is available.
+	 * @return the {@link ibis.impl.net.NetConnection connection} identifier or <code>null</code> if no data is available.
 	 * @exception InterruptedIOException if the polling fails (!= the
 	 * polling is unsuccessful).
 	 */
@@ -504,7 +503,7 @@ pollFail++;
 	 * undefined and data might get lost. Use {@link
 	 * #getActiveSendPortNum} instead.
 	 *
-	 * @return the {@link NetConnection connection} identifier or <code>null</code> if no data is available.
+	 * @return the {@link ibis.impl.net.NetConnection connection} identifier or <code>null</code> if no data is available.
 	 * @exception InterruptedIOException if the polling fails (!= the
 	 * polling is unsuccessful).
          */
@@ -513,9 +512,9 @@ pollFail++;
 	}
 
 	/**
-	 * Return the active {@link NetConnection connection} identifier or <code>null</code> if no {@link NetConnection connection} is active.
+	 * Return the active {@link ibis.impl.net.NetConnection connection} identifier or <code>null</code> if no {@link ibis.impl.net.NetConnection connection} is active.
 	 *
-	 * @return the active {@link NetConnection connection} identifier or <code>null</code> if no {@link NetConnection connection} is active.
+	 * @return the active {@link ibis.impl.net.NetConnection connection} identifier or <code>null</code> if no {@link ibis.impl.net.NetConnection connection} is active.
 	 */
 	public final Integer getActiveSendPortNum() {
 		return activeNum;
@@ -570,15 +569,15 @@ up.setDaemon(true);
 
 
 	/**
-	 * Utility function to get a {@link NetReceiveBuffer} from our
-	 * {@link NetBufferFactory}.
+	 * Utility function to get a {@link ibis.impl.net.NetReceiveBuffer} from our
+	 * {@link ibis.impl.net.NetBufferFactory}.
 	 * This is only valid for a Factory with MTU.
 	 *
          * @param contentsLength indicates how many bytes of data must be received.
          * 0 indicates that any length is fine and that the buffer.length field
          * should be filled with the length actually read.
 	 * @throws an {@link IllegalArgumentException} if the factory has no default MTU
-         * @return the new {@link NetReceiveBuffer}.
+         * @return the new {@link ibis.impl.net.NetReceiveBuffer}.
 	 */
 	public NetReceiveBuffer createReceiveBuffer(int contentsLength) {
                 log.in();
@@ -589,14 +588,14 @@ up.setDaemon(true);
 	}
 
 	/**
-	 * Utility function to get a {@link NetReceiveBuffer} from our
-	 * {@link NetBufferFactory}.
+	 * Utility function to get a {@link ibis.impl.net.NetReceiveBuffer} from our
+	 * {@link ibis.impl.net.NetBufferFactory}.
 	 *
 	 * @param length the length of the data stored in the buffer
          * @param contentsLength indicates how many bytes of data must be received.
          * 0 indicates that any length is fine and that the buffer.length field
          * should be filled with the length actually read.
-         * @return the new {@link NetReceiveBuffer}.
+         * @return the new {@link ibis.impl.net.NetReceiveBuffer}.
 	 */
 	public NetReceiveBuffer createReceiveBuffer(int length, int contentsLength) {
                 log.in();

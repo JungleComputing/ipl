@@ -1,7 +1,7 @@
 package ibis.impl.net;
 
 /**
- * Provide a set of {@link NetSendPort} {@link NetReceivePort} state
+ * Provide a set of {@link ibis.impl.net.NetSendPort} {@link ibis.impl.net.NetReceivePort} state
  * events.
  */
 public class NetPortEvent extends NetEvent {
