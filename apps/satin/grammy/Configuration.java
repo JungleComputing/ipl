@@ -8,5 +8,5 @@ interface Configuration {
     static final int ALPHABET_SIZE = 128;
     static final int MINIMAL_SPAN = 4;
     static final int MAX_SHORTENING = 20;
-    static final boolean traceAdding = true;
+    static final boolean traceAdding = false;
 };

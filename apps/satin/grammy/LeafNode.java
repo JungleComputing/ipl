@@ -24,7 +24,12 @@ public class LeafNode extends Node {
         for( int i=0; i<indent; i++ ){
             stream.print( ' ' );
         }
-        stream.println( "[" + SuffixTree.buildString( text, start, length ) + "] @" + pos );
+        stream.println( "L" + pos + "[" + SuffixTree.buildString( text, start, length ) + "]d" + dist );
+    }
+
+    public String toString()
+    {
+        return "L" + pos + SuffixTree.buildSpan( start, length ) + "d" + dist;
     }
 
     protected Node getLongestRepeat()

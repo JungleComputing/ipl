@@ -7,9 +7,14 @@ public class SuffixTree {
     Node root = new InternalNode();
     static final short END = 256;
 
+    static String buildSpan( int start, int length )
+    {
+        return "[" + start + ":" + (start + length) + "]";
+    }
+
     static String buildString( short text[], int start, int length )
     {
-        String s = "[" + start + ":" + length + "]";
+        String s = buildSpan( start, length );
 
         for( int i = 0; i<length; i++ ){
             short c = text[i+start];
@@ -63,16 +68,14 @@ public class SuffixTree {
         buildTree( text );
     }
 
-    SuffixTree( byte t[] )
-        throws VerificationException
+    SuffixTree( byte t[] ) throws VerificationException
     {
         this.text = buildShortArray( t );
 
         buildTree( text );
     }
 
-    SuffixTree( String text )
-        throws VerificationException
+    SuffixTree( String text ) throws VerificationException
     {
         this( text.getBytes() );
     }

@@ -100,7 +100,7 @@ class InternalNode extends Node {
             stream.print( ' ' );
         }
         if( start>=0 ){
-            stream.println( "[" + SuffixTree.buildString( text, start, length ) + "]" );
+            stream.println( "I[" + SuffixTree.buildString( text, start, length ) + "]d" + dist );
         }
         Node n = child;
 
@@ -109,6 +109,7 @@ class InternalNode extends Node {
             n = n.sister;
         }
     }
+
 
     protected Node getLongestRepeat()
     {
@@ -121,12 +122,11 @@ class InternalNode extends Node {
                 Node r = p.getLongestRepeat();
 
                 if( r != null ){
-                    int l1 = r.dist+length;
+                    int l1 = r.dist+r.length;
 
                     if( max == null || l<l1 ){
                         l = l1;
                         max = r;
-                        System.out.println( max + " is now longest repeat" );
                     }
                 }
             }
@@ -136,8 +136,12 @@ class InternalNode extends Node {
         if( max == null ){
             max = this;
         }
-        System.out.println( "Returning " + max + " as longest repeat" );
         return max;
+    }
+
+    public String toString()
+    {
+        return "I" + SuffixTree.buildSpan( start, length ) + "d" + dist;
     }
 
     public void test() throws VerificationException
