@@ -810,7 +810,7 @@ public abstract class Ibis {
      * <strong>
      * Note: used by the nameserver, do not call from outside Ibis.
      * </strong>
-     * @param leaveIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     * @param deleteIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifier} of the Ibis instance that has to leave the run.
      */
      public abstract void delete(IbisIdentifier deleteIdent);

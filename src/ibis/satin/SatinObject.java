@@ -12,7 +12,7 @@ import ibis.satin.impl.Satin;
  */
 public class SatinObject {
 
-	/** Waits until all spawned methods in the current method are finished. * */
+	/** Waits until all spawned methods in the current method are finished. */
 	public void sync() {
 	}
 
