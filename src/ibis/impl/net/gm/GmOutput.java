@@ -257,7 +257,7 @@ public final class GmOutput extends NetBufferedOutput {
 	    return mustFlush;
 	}
 
-	/**
+	/*
 	 * {@inheritDoc}
 	 *
 	 * The buffering in NetBuffererdOutput confuses Ibis serialization.

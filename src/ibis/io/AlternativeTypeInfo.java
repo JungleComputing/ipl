@@ -107,6 +107,7 @@ final class AlternativeTypeInfo {
     AlternativeTypeInfo alternativeSuperInfo;
 
     /**
+     * The "level" of a serializable class.
      * The "level" of a serializable class is computed as follows:
      * - if its superclass is serializable:
      *       the level of the superclass + 1.

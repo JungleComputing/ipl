@@ -20,6 +20,7 @@
     <property name="src"         location="${ibis}/src"/>
     <property name="build"       location="${ibis}/build"/>
     <property name="docs"        location="${ibis}/docs"/>
+    <property name="devel-docs"  location="${ibis}/developer-docs"/>
 
     <target name="init" depends="property-init">
 	<tstamp/>
@@ -456,6 +457,7 @@
     <target name="clean">
 	<delete dir="${build}"/>
 	<delete dir="${docs}"/>
+	<delete dir="${devel-docs}"/>
     </target>
 
     <target name="clean-native">
@@ -481,16 +483,26 @@
 	<!-- Create the javadoc directory -->
 	<delete dir="${docs}"/>
 	<mkdir dir="${docs}"/>
-	<copy
-	    file="${ibis}/src/ibis/doc/overview.html"
-	    tofile="${ibis}/docs/overview.html">
-	</copy>
 	<mkdir dir="${docs}/api"/>
-	<javadoc packagenames="ibis.ipl,ibis.impl.*,ibis.gmi,ibis.rmi,ibis.io,ibis.satin" sourcepath="${src}" destdir="${docs}/api" author="true" version="true" use="true" windowtitle="Ibis Documentation" overview="${ibis}/docs/overview.html" doctitle="Ibis Documentation" bottom="The Ibis project">
+	<javadoc packagenames="ibis.ipl,ibis.gmi,ibis.rmi,ibis.satin" sourcepath="${src}" destdir="${docs}/api" author="true" version="true" use="true" public="true" windowtitle="Ibis Documentation" overview="${ibis}/src/ibis/doc/overview.html" doctitle="Ibis Documentation" bottom="The Ibis project">
 	    <classpath refid="default.classpath"/>
 	    <group title="Ibis GMI" packages="ibis.gmi"/>
 	    <group title="Ibis RMI" packages="ibis.rmi"/>
-	    <group title="Ibis IPL" packages="ibis.ipl*"/>
+	    <group title="Ibis IPL" packages="ibis.ipl"/>
+	    <group title="Ibis Satin" packages="ibis.satin"/>
+	</javadoc>
+    </target>
+
+    <target name="developer-docs" depends="init">
+	<!-- Create the javadoc directory -->
+	<delete dir="${devel-docs}"/>
+	<mkdir dir="${devel-docs}"/>
+	<mkdir dir="${devel-docs}/api"/>
+	<javadoc packagenames="ibis.ipl,ibis.impl.*,ibis.io,ibis.gmi,ibis.rmi,ibis.satin" sourcepath="${src}" destdir="${devel-docs}/api" author="true" version="true" use="true" private="true" windowtitle="Ibis Documentation" overview="${ibis}/src/ibis/doc/overview.html" doctitle="Ibis Documentation" bottom="The Ibis project">
+	    <classpath refid="default.classpath"/>
+	    <group title="Ibis GMI" packages="ibis.gmi"/>
+	    <group title="Ibis RMI" packages="ibis.rmi"/>
+	    <group title="Ibis IPL" packages="ibis.ipl"/>
 	    <group title="Ibis IO" packages="ibis.io"/>
 	    <group title="Ibis Satin" packages="ibis.satin"/>
 	</javadoc>

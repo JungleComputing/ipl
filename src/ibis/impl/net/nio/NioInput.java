@@ -118,8 +118,8 @@ public final class NioInput extends NetInput {
 
 
     /**
-     * return the "number"th local InetAddress. use this if there is more
-     * then one network interface in a machine
+     * Returns the "number"th local InetAddress.
+     * Use this if there is more than one network interface in a machine.
      */
     private InetAddress getLocalAddress(int number) 
 	throws IOException {

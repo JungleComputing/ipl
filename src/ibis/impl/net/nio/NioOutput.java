@@ -39,7 +39,7 @@ public final class NioOutput extends NetOutput {
     private SocketChannel socketChannel = null;
 
     /**
-     * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
+     * The peer {@link ibis.impl.net.NetReceivePort NetReceivePort}
      * local number.
      */
     private Integer rpn	= null;

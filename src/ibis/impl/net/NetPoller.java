@@ -136,12 +136,14 @@ System.err.println(this + ": OK, we enabled singleton fastpath");
 
 
 	/**
-	 * Call this synchronized (this)
+	 * Enables or disables the singleton fastpath optimization.
 	 *
 	 * If on is true and the configuration allows it (i.e. this is a
 	 * downcall receive port, and the subinput is Interruptible), enable
 	 * the singleton fastpath optimization. Else disable the singleton
 	 * fastpath optimization.
+	 *
+	 * This method must be called synchronized (this).
 	 */
 	private void setSingleton(boolean on) throws IOException {
 	    if (on) {
@@ -557,8 +559,6 @@ nCurrent++;
 
 	/**
 	 * Polls the inputs.
-	 *
-	 * {@inheritDoc}
 	 *
 	 * Opportunities for faster path:
 	 * - record whether there is exactly one subInput.
