@@ -61,7 +61,7 @@ public final class Muxer extends NetBufferedOutput {
 		String subDriverName = "muxer.udp";
 		subDriver = driver.getIbis().getDriver(subDriverName);
 		System.err.println("The subDriver is " + subDriver);
-		muxer = (MuxerOutput)subDriver.newOutput(null, null);
+		muxer = (MuxerOutput)newSubOutput(subDriver, "muxer");
 	    }
 	}
     }
@@ -94,13 +94,17 @@ public final class Muxer extends NetBufferedOutput {
      */
     public void setupConnection(NetConnection cnx)
 		throws NetIbisException {
-	if (this.rpn != null) {
-	    throw new Error("connection already established");
+	if (Driver.DEBUG) {
+	    System.err.println(this + ": setup connection, serviceLink " + cnx.getServiceLink());
+	}
+
+	if (rpn != null) {
+	    throw new Error(Thread.currentThread() + ": " + this + ": serviceLink " + cnx.getServiceLink() + " -- connection already established");
 	}                
 
 	rpn = cnx.getNum();
 
-	muxer.setupConnection(cnx);
+	muxer.setupConnection(cnx, (NetIO)this);
 
 	headerOffset = muxer.getHeaderLength();
 	headerLength = headerOffset;

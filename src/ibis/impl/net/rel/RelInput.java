@@ -194,18 +194,18 @@ public final class RelInput
 
 	try {
             NetServiceLink link = cnx.getServiceLink();
-            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "rel"));
+            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, ":request"));
             os.writeObject(relDriver.getIbis().identifier());
-	    os.flush();
+	    os.close();
 
-	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "rel"));
+	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, ":reply"));
 	    IbisIdentifier partnerId = (IbisIdentifier)is.readObject();
 	    partnerIndex = is.readInt();
 	    windowSize = is.readInt();
             is.close();
 
 	    if (DEBUG) {
-		System.err.println(this + ": set up connection with " + partnerId);
+		System.err.println(this + ": set up connection with " + partnerId + "; cnx " + cnx);
 	    }
 
 	    relDriver.registerInputConnection(this, partnerId);
@@ -217,11 +217,15 @@ public final class RelInput
 		    controlOutput = newSubOutput(subDriver, "control");
 		    this.controlOutput = controlOutput;
 		    if (DEBUG) {
-			System.err.println("My control output is " + controlOutput);
+			System.err.println(this + ": My control output is " + controlOutput);
 		    }
+	    } else {
+		if (DEBUG) {
+		    System.err.println(this + ": Recycle control output " + controlOutput);
+		}
 	    }
 
-	    controlOutput.setupConnection(new NetConnection(cnx, new Integer(-spn.intValue() - 1)));
+	    controlOutput.setupConnection(new NetConnection(cnx, new Integer(-1)));
 	    controlHeaderStart = controlOutput.getHeadersLength();
 
 	    if (controlFactory == null) {
@@ -231,6 +235,7 @@ public final class RelInput
 		controlFactory.setMaximumTransferUnit(mtu);
 	    }
 
+            os = new ObjectOutputStream(link.getOutputSubStream(this, ":handshake"));
 	    os.writeInt(1);
             os.close();
 
@@ -433,7 +438,7 @@ public final class RelInput
 	if (fillAck(ackPacket.data, controlHeaderStart, always)) {
 	    if (DEBUG_ACK) {
 		RelOutput.reportAck(System.err,
-				    ">>>>>>>>>>>>>>>>",
+				    ">>> >>> >>> >>> ",
 				    ackPacket.data,
 				    controlHeaderStart);
 	    }
@@ -557,11 +562,17 @@ public final class RelInput
 	    }
 	    handleReceiveContinuations();
 	}
+
+	dataInput.finish();
     }
 
 
     // If we want to yield() here, better call it non-synchronized
     private boolean pollDataInput(boolean block) throws NetIbisException {
+	if (DEBUG_HUGE) {
+	    System.err.println(this + ": pollDataInput(block=" + block);
+	    Thread.dumpStack();
+	}
 	boolean dataPending;
 	while (true) {
 	    dataPending = dataInput.poll(block) != null;
@@ -629,8 +640,13 @@ public final class RelInput
 	checkUnlocked();
 
 	while (front == null || front.fragCount != nextDeliver) {
-	    pollDataInput(true);
-	    receiveDataPacket();
+	    /* This is no longer true: each packet is polled and finished.
+	    // Nononono don't call poll() from here. We KNOW there will be some
+	    // data, though it may be way past ma~nana
+	    */
+	    if (pollDataInput(true)) {
+		receiveDataPacket();
+	    }
 	}
 
 	synchronized (this) {
@@ -665,13 +681,13 @@ public final class RelInput
      */
     public NetReceiveBuffer receiveByteBuffer(int length)
 	    throws NetIbisException {
-	if (DEBUG) {
+	if (DEBUG_HUGE) {
 	    System.err.println("Receive deliver request size " + length);
 	    Thread.dumpStack();
 	}
 
 	RelReceiveBuffer packet = dequeueReceiveBuffer();
-	if (DEBUG) {
+	if (DEBUG_HUGE) {
 	    System.err.println("Deliver packet " + packet.fragCount +
 		    " size " + packet.length + "; maxFragSeen " +
 		    maxFragCount + " queue front " +
@@ -709,7 +725,10 @@ public final class RelInput
      * {@inheritDoc}
      */
     public void doFinish() throws NetIbisException {
-	    dataInput.finish();
+	if (DEBUG_HUGE) {
+	    System.err.println(this + ": finish()");
+	    Thread.dumpStack();
+	}
     }
 
 

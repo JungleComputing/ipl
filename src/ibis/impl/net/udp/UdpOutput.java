@@ -101,6 +101,9 @@ public final class UdpOutput extends NetBufferedOutput {
                 }                
 
                 rpn = cnx.getNum();
+                if (Driver.DEBUG) {
+		    System.err.println(this + ": setupConnection over " + cnx);
+		}
         
                 try {
                         socket = new DatagramSocket(0, InetAddress.getLocalHost());
@@ -120,30 +123,39 @@ public final class UdpOutput extends NetBufferedOutput {
                 Hashtable rInfo = null;
 
                 try {
-                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "udp"));
+// System.err.println(this + ": setupConnection, now receive");
+                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "udp-request"));
                         rInfo = (Hashtable)is.readObject();
-                        is.close();
 
-                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "udp"));
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "udp-reply"));
                         os.writeObject(lInfo);
                         os.close();
+
+			raddr =  (InetAddress)rInfo.get("udp_address");
+			rport = ((Integer)    rInfo.get("udp_port")   ).intValue();
+			rmtu  = ((Integer)    rInfo.get("udp_mtu")    ).intValue();
+
+			mtu    = Math.min(lmtu, rmtu);
+			if (factory == null) {
+			    factory = new NetBufferFactory(mtu, new NetSendBufferFactoryDefaultImpl());
+			} else {
+			    factory.setMaximumTransferUnit(mtu);
+			}
+			packet = new DatagramPacket(new byte[0], 0, raddr, rport);
+
+			/* Wait for the receiver */
+			int ok = is.read();
+			is.close();
+			if (Driver.DEBUG) {
+			    System.err.println(this + ": setupConnection over " + cnx + "; finish by receiving OK byte");
+			}
+
                 } catch (IOException e) {
                         throw new NetIbisException(e);
                 } catch (ClassNotFoundException e) {
                         throw new Error(e);
                 }
 
-                raddr =  (InetAddress)rInfo.get("udp_address");
-                rport = ((Integer)    rInfo.get("udp_port")   ).intValue();
-                rmtu  = ((Integer)    rInfo.get("udp_mtu")    ).intValue();
-
-                mtu    = Math.min(lmtu, rmtu);
-                if (factory == null) {
-                        factory = new NetBufferFactory(mtu, new NetSendBufferFactoryDefaultImpl());
-                } else {
-                        factory.setMaximumTransferUnit(mtu);
-                }
-                packet = new DatagramPacket(new byte[0], 0, raddr, rport);
                 log.out();
         }
 
@@ -156,6 +168,9 @@ public final class UdpOutput extends NetBufferedOutput {
                         NetConvert.writeLong(seqno++, b.data, 0);
                 }
                 packet.setData(b.data, 0, b.length);
+// System.err.println(this + ": send packet size " + b.length);
+// Thread.dumpStack();
+// System.err.print("]");
                 try {
                         socket.send(packet);
                 } catch (IOException e) {

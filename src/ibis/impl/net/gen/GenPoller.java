@@ -46,20 +46,8 @@ public final class GenPoller extends NetPoller {
 
 	/**
 	 * {@inheritDoc}
-	 */
-	protected void selectInput(Integer spn) throws NetIbisClosedException {
-                log.in();
-                activeQueue = (ReceiveQueue)inputTable.get(spn);
-                if (activeQueue == null) {
-                        log.disp("setting activeQueue - input closed, spn = "+spn);
-                        throw new NetIbisClosedException("connection "+spn+" closed");
-                }
-                log.disp("setting activeQueue - ok, spn = "+spn);
-                log.out();
-	}
-
-	/**
-	 * {@inheritDoc}
+	 *
+	 * Call this synchronized (this)
 	 */
 	protected void selectConnection(ReceiveQueue rq) {
                 log.in();

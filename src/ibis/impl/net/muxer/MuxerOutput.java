@@ -11,6 +11,7 @@ import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetBufferedOutput;
 import ibis.ipl.impl.net.NetIbisException;
+import ibis.ipl.impl.net.NetConnection;
 
 public abstract class MuxerOutput extends NetBufferedOutput {
 
@@ -30,6 +31,15 @@ public abstract class MuxerOutput extends NetBufferedOutput {
 	mtu          =    0;
     }
 
+
+    public void setupConnection(NetConnection cnx)
+	    throws NetIbisException {
+	setupConnection(cnx, (NetIO)this);
+    }
+
+    public abstract void setupConnection(NetConnection cnx,
+					 NetIO io)
+	    throws NetIbisException;
 
     /*
      * At connection time, we want to pass the generated MuxerKey to this.

@@ -19,7 +19,8 @@ import ibis.ipl.impl.net.NetIbisException;
  */
 public final class Driver extends NetDriver {
 
-	final static boolean DEBUG = false;
+	final static boolean DEBUG = false; // true;
+	final static boolean DEBUG_HUGE = false; // DEBUG;
 	final static boolean STATISTICS = false;
 
 	/**

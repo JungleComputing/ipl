@@ -13,7 +13,7 @@ import java.net.DatagramSocket;
  */
 public final class Driver extends NetDriver {
 
-	final static boolean DEBUG = false;
+	final static boolean DEBUG = false; // true;
 	final static boolean STATISTICS = false;
 
 	/**

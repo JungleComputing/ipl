@@ -5,6 +5,9 @@ package ibis.ipl.impl.net;
  */
 public final class NetMutex {
 
+	private static final boolean DEBUG = false; // true;
+	private Thread owner = null;
+
 	/**
 	 * The mutex value, which cannot be negative.
 	 */
@@ -27,6 +30,11 @@ public final class NetMutex {
 	 */
 	public NetMutex(boolean locked) {
 		value = locked?0:1;
+		if (DEBUG) {
+		    if (locked) {
+			owner = Thread.currentThread();
+		    }
+		}
 	}
 
 	/**
@@ -47,6 +55,9 @@ public final class NetMutex {
 			}
 		}
 		value--;
+		if (DEBUG) {
+		    owner = Thread.currentThread();
+		}
 	}
 
 	/**
@@ -64,6 +75,9 @@ public final class NetMutex {
 			wait();
 		}
 		value--;
+		if (DEBUG) {
+		    owner = Thread.currentThread();
+		}
 	}
 
 	/** 
@@ -77,6 +91,9 @@ public final class NetMutex {
 			return false;
 		} else {
 			value--;
+			if (DEBUG) {
+			    owner = Thread.currentThread();
+			}
 			return true;
 		}
 	}

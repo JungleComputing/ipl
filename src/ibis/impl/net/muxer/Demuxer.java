@@ -59,7 +59,7 @@ public final class Demuxer extends NetBufferedInput {
 		String subDriverName = "muxer.udp";
 		subDriver = driver.getIbis().getDriver(subDriverName);
 		System.err.println("The subDriver is " + subDriver);
-		demux = (MuxerInput)subDriver.newInput(null, null);
+		demux = (MuxerInput)newSubInput(subDriver, "muxer");
 	    }
 	}
     }
@@ -90,19 +90,26 @@ dumpBufferFactoryInfo();
     /**
      * Sets up a connection over the underlying DemuxerInput.
      */
-    public void setupConnection(NetConnection cnx)
+    /*
+     * Because a blocking poll can be pending while we want
+     * to connect, the ReceivePort's inputLock cannot be taken
+     * during a connect.
+     * This implies that the blocking poll _and_ setupConnection
+     * must protect the data structures.
+     */
+    public synchronized void setupConnection(NetConnection cnx)
 	    throws NetIbisException {
 	if (Driver.DEBUG) {
-	    System.err.println(this + ": Now enter Demuxer.setupConnection, spn = " + cnx.getNum());
+	    System.err.println(this + ": setup connection, serviceLink " + cnx.getServiceLink());
 	}
 
 	if (this.spn != null) {
-	    throw new Error("connection already established");
+	    throw new Error(Thread.currentThread() + ": " + this + ": serviceLink " + cnx.getServiceLink() + " -- connection already established");
 	}
 
 	/* Set up the connection; it creates a MuxerQueue that is remembered
 	 * by our cnx */
-	demux.setupConnection(cnx);
+	demux.setupConnection(cnx, (NetIO)this);
 	/* Drag up the MuxerQueue that demux has created for us. It is
 	 * remembered by our cnx. */
 	myQueue = demux.locateQueue(cnx);
@@ -188,6 +195,7 @@ dumpBufferFactoryInfo();
      */
     public Integer doPoll(boolean block) throws NetIbisException {
 	if (myQueue == null) {
+	    System.err.println(this + ": This CANNOT be true ... setupConnection does a handshake, right?");
 	    // Still connecting, presumably
 	    return null;
 	}
@@ -216,8 +224,10 @@ dumpBufferFactoryInfo();
     public void receiveByteBuffer(NetReceiveBuffer userBuffer)
 	    throws NetIbisException {
 
-// System.err.println(this + ": receiveByteBuffer, my headerLength " + headerLength);
-// Thread.dumpStack();
+	if (Driver.DEBUG_HUGE) {
+	    System.err.println(this + ": receiveByteBuffer, my headerLength " + headerLength);
+	    Thread.dumpStack();
+	}
 	myQueue.receiveByteBuffer(userBuffer);
     }
 
@@ -226,7 +236,6 @@ dumpBufferFactoryInfo();
      * {@inheritDoc}
      */
     public void doFinish() throws NetIbisException {
-        //
     }
 
 

@@ -647,6 +647,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         checkConvertStream();
                         result = _inputConvertStream.readInt();
                 } catch (IOException e) {
+System.err.println("Catch exception " + e);
                         throw new NetIbisException(e.getMessage());
                 }
 

@@ -90,9 +90,12 @@ public final class MultiPoller extends NetPoller {
                 laneTable = new Hashtable();
         }
 
-        /**
+	/*
+	 * Deprecate?
+
+        ***
          * {@inheritDoc}
-         */
+         **
         protected void selectInput(Integer spn) throws NetIbisClosedException {
                 log.in();
                 Lane lane = (Lane)laneTable.get(spn);
@@ -106,6 +109,7 @@ public final class MultiPoller extends NetPoller {
                 }
                 log.out();
         }
+	*/
 
         private String getSubContext(NetIbisIdentifier localId, InetAddress localHostAddr, NetIbisIdentifier remoteId, InetAddress remoteHostAddr) {
                 log.in();

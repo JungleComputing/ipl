@@ -15,6 +15,7 @@ import ibis.ipl.impl.net.NetBufferFactory;
 import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetIbisException;
 import ibis.ipl.impl.net.NetVector;
+import ibis.ipl.impl.net.NetConnection;
 
 public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
@@ -161,6 +162,16 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
     private Hashtable	cnxKeyHash = new Hashtable();
 
 
+    public void setupConnection(NetConnection cnx)
+	    throws NetIbisException {
+	setupConnection(cnx, (NetIO)this);
+    }
+
+    public abstract void setupConnection(NetConnection cnx,
+					 NetIO io)
+	    throws NetIbisException;
+
+
     /**
      * @method
      *
@@ -172,8 +183,11 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 	    throws NetIbisException {
 	MuxerQueue q = new MuxerQueue(this, spn);
 	int connectionKey = keyHash.add(q);
-System.err.println(this + ": register " + q + " at key " + connectionKey);
-Thread.dumpStack();
+	if (Driver.DEBUG) {
+	    System.err.println(this + ": register " + q +
+			       " at key " + connectionKey);
+	    Thread.dumpStack();
+	}
 	q.setConnectionKey(connectionKey);
 	liveConnections++;
 	cnxKeyHash.put(key, q);

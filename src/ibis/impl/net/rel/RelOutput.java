@@ -214,14 +214,15 @@ public final class RelOutput
 
 	try {
             NetServiceLink link = cnx.getServiceLink();
-	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "rel"));
-
+	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, ":request"));
 	    partnerIbisId = (IbisIdentifier)is.readObject();
+	    is.close();
+
 	    if (DEBUG) {
 		System.err.println(this + ": my partner IbisID " + partnerIbisId);
 	    }
 
-            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "rel"));
+            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, ":reply"));
 	    os.writeObject(relDriver.getIbis().identifier());
 	    os.writeInt(myIndex);
 	    os.writeInt(windowSize);
@@ -237,7 +238,7 @@ public final class RelOutput
 		    this.controlInput = controlInput;
 	    }
 
-	    controlInput.setupConnection(new NetConnection(cnx, new Integer(-cnx.getNum().intValue() - 1)));
+	    controlInput.setupConnection(new NetConnection(cnx, new Integer(-1)));
 	    controlHeaderStart = controlInput.getHeadersLength();
 	    System.err.println("Control header: start " + controlHeaderStart + " length " + RelConstants.headerLength);
 
@@ -257,12 +258,15 @@ public final class RelOutput
 
 	    /* Synchronize with the other side, so we are sure the connection
 	     * is set up right and proper before anybody starts talking */
+	    is = new ObjectInputStream (link.getInputSubStream (this, ":handshake"));
 	    int ok = is.readInt();
 	    if (ok != 1) {
 		throw new NetIbisException(this + ": connection handshake fails");
 	    }
             is.close();
-System.err.println(this + ": Connection established");
+	    if (DEBUG) {
+		System.err.println(this + ": " + Thread.currentThread() + ": established connection");
+	    }
 	} catch (java.io.IOException e) {
 	    System.err.println("Catch exception " + e);
 	    e.printStackTrace();
@@ -418,7 +422,7 @@ System.err.println(this + ": Connection established");
 	    controlInput.readByteBuffer(ackPacket);
 	    if (DEBUG_ACK) {
 		reportAck(System.err,
-			  "<<<<<<<<<<<<<< control packet length " + ackPacket.length,
+			  "<<< <<< <<< <<< control packet length " + ackPacket.length,
 			  ackPacket.data,
 			  controlHeaderStart);
 	    }
@@ -747,7 +751,7 @@ System.err.println(this + ": Connection established");
      * {@inheritDoc}
      */
     public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
-	if (DEBUG) {
+	if (DEBUG_HUGE) {
 	    System.err.println(this + ": Try to send a buffer size " + b.length);
 	    Thread.dumpStack();
 	}

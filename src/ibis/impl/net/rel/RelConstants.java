@@ -32,6 +32,7 @@ public interface RelConstants {
     final static boolean	DEBUG_ACK = DEBUG;
     final static boolean	DEBUG_PIGGY = DEBUG;
     final static boolean	DEBUG_LOCK = DEBUG;
+    final static boolean	DEBUG_HUGE = false; // DEBUG;
 
     final static int		FIRST_PACKET_COUNT = 0;
     final static int		LAST_FRAG_BIT	= (0x1 << 31);

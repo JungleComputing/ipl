@@ -80,15 +80,20 @@ public final class UdpMuxInput extends MuxerInput {
 
 
     // synchronized
-    public void setupConnection(NetConnection cnx)
+    public void setupConnection(NetConnection cnx, NetIO io)
 	    throws NetIbisException {
 
 	if (Driver.DEBUG) {
-	    System.err.println("Now enter UdpMuxInput.setupConnection");
+	    System.err.println(this + ": Now enter UdpMuxInput.setupConnection, cnx = " + cnx + " cnx.serviceLink " + cnx.getServiceLink());
+Thread.dumpStack();
 	}
 
 	try {
-	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + spn));
+	    Integer num = cnx.getNum();
+
+	    // ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + num));
+	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(io, ":down"));
+
 	    /* We don't use the IP address of the sender port. Maybe it comes
 	     * in handy for debugging. */
 	    InetAddress raddr = (InetAddress)is.readObject();
@@ -96,9 +101,14 @@ public final class UdpMuxInput extends MuxerInput {
 	    int         rmtu  = is.readInt();
 	    is.close();
 
-	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + spn));
+	    if (Driver.DEBUG) {
+		System.err.println(this + ": in UdpMuxInput.setupConnection, Integer = " + cnx.getNum() + " start info send");
+	    }
 
-	    MuxerQueue q = createQueue(cnx, spn);
+	    // ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + num));
+	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(io, ":up"));
+
+	    MuxerQueue q = createQueue(cnx, num);
 	    os.writeObject(laddr);
 	    os.writeInt(lport);
 	    os.writeInt(lmtu);
@@ -119,11 +129,15 @@ public final class UdpMuxInput extends MuxerInput {
 		factory.setMaximumTransferUnit(max_mtu);
 	    }
 
-	    spn = cnx.getNum();
+	    spn = num;
 	} catch (ClassNotFoundException e) {
 	    throw new NetIbisException(e);
 	} catch (IOException e) {
 	    throw new NetIbisException(e);
+	}
+
+	if (Driver.DEBUG) {
+	    System.err.println(this + ": Now leave UdpMuxInput.setupConnection, Integer = " + cnx.getNum());
 	}
     }
 
@@ -145,15 +159,26 @@ public final class UdpMuxInput extends MuxerInput {
 	    return null;
 	}
 
+	if (Driver.DEBUG_HUGE) {
+	    System.err.print("z");
+	}
+
 	polls++;
 
         boolean result = false;
 
 	if (buffer != null) {
+	    if (Driver.DEBUG_HUGE) {
+		System.err.println(this + ": poll: See pending UDP packet len " + buffer.length);
+	    }
 	    /* Pending packet. Finish that first. */
 	    result = true;
 	} else {
 	    buffer = createReceiveBuffer(mtu);
+	    if (Driver.DEBUG_HUGE) {
+		System.err.println(this + ": poll creates buffer " + buffer);
+		Thread.dumpStack();
+	    }
 	    /* Make a copy of the packet pointer. Maybe the mtu and the
 	     * associated instance packet changes under our hands. */
 	    DatagramPacket packet = this.packet;
@@ -168,12 +193,20 @@ public final class UdpMuxInput extends MuxerInput {
 	    try {
 		setReceiveTimeout(timeout);
 		socket.receive(packet);
+		if (Driver.DEBUG_HUGE) {
+		    System.err.println(this + ": poll Receive UDP packet len " + packet.getLength() + " buffer " + buffer);
+		}
 		buffer.length = packet.getLength();
 		result = true;
 		// super.initReceive();
+		if (Driver.DEBUG_HUGE) {
+		    System.err.print("^");
+		}
 	    } catch (InterruptedIOException e) {
-// System.err.println(this + ": ***************** catch InterruptedIOException " + e);
-// Thread.dumpStack();
+		if (Driver.DEBUG_HUGE) {
+		    System.err.println(this + ": ***************** catch InterruptedIOException " + e);
+		    Thread.dumpStack();
+		}
 		buffer.free();
 		buffer = null;
 		if (timeout == 0) {
@@ -182,7 +215,9 @@ public final class UdpMuxInput extends MuxerInput {
 		    receiveFromPoll++;
 		    t_receiveFromPoll += System.currentTimeMillis() - start;
 		}
-// System.err.print("%");
+		if (Driver.DEBUG_HUGE) {
+		    System.err.print("%");
+		}
 	    } catch (IOException e) {
 System.err.println(this + ": ***************** catch Exception " + e);
 		buffer.free();
@@ -199,7 +234,16 @@ System.err.println(this + ": ***************** catch Exception " + e);
 	    throws NetIbisException {
 
 	while (buffer == null) {
+	    if (Driver.DEBUG_HUGE) {
+		System.err.print("Z");
+	    }
 	    doPoll(0);
+	}
+
+	if (Driver.DEBUG_HUGE) {
+	    // System.err.println(this + ": hi -- activeNum " + activeNum + " buffer " + buffer);
+	    // Thread.dumpStack();
+	    System.err.print("_");
 	}
 
 	if (Driver.STATISTICS) {

@@ -100,20 +100,31 @@ public final class UdpMuxOutput
      * @param is {@inheritDoc}
      * @param os {@inheritDoc}
      */
-    public void setupConnection(NetConnection cnx)
+    public void setupConnection(NetConnection cnx, NetIO io)
 	    throws NetIbisException {
+
+	if (Driver.DEBUG) {
+	    System.err.println(this + ": Now enter UdpMuxOutput.setupConnection, cnx = " + cnx + " suffix = " + "muxer.udp-");
+Thread.dumpStack();
+	}
 
 	liveConnections++;
 	try {
 	    rpn = cnx.getNum();
 
-	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + rpn));
+	    // ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + rpn));
+	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(io, ":down"));
 	    os.writeObject(laddr);
 	    os.writeInt(lport);
 	    os.writeInt(lmtu);
 	    os.close();
 
-	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + rpn));
+	    if (Driver.DEBUG) {
+		System.err.println(this + ": in UdpMuxOutput.setupConnection, Integer = " + cnx.getNum() + " start info receive");
+	    }
+
+	    // ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + rpn));
+	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(io, ":up"));
 	    InetAddress raddr = (InetAddress)is.readObject();
 	    int rport         = is.readInt();
 	    int rmtu          = is.readInt();
@@ -129,6 +140,10 @@ public final class UdpMuxOutput
 	    throw new NetIbisException(e);
 	} catch (IOException e) {
 	    throw new NetIbisException(e);
+	}
+
+	if (Driver.DEBUG) {
+	    System.err.println(this + ": Now leave UdpMuxOutput.setupConnection, Integer = " + cnx.getNum());
 	}
     }
 
@@ -149,7 +164,7 @@ public final class UdpMuxOutput
 
 	UdpMuxerKey uk = (UdpMuxerKey)b.connectionId;
 
-	if (Driver.DEBUG) {
+	if (Driver.DEBUG_HUGE) {
 	    System.err.println("Send packet, key " + uk);
 	    System.err.println("Send packet size " + b.length + " key " + uk.remoteKey + "@" + b.base);
 	}
@@ -158,7 +173,9 @@ public final class UdpMuxOutput
 	packet.setAddress(uk.remoteAddress);
 	packet.setPort(uk.remotePort);
 	packet.setData(b.data, 0, b.length);
-// System.err.print("|");
+	if (Driver.DEBUG_HUGE) {
+	    System.err.print("|");
+	}
 	try {
 // System.err.print("w");
 	    socket.send(packet);

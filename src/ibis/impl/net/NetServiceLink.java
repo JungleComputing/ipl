@@ -21,6 +21,8 @@ import java.net.SocketException;
 
 public final class NetServiceLink {
 
+	private final static boolean DEBUG = false;
+
         private final int _OP_eof                  = 0;
         private final int _OP_request_substream_id = 1;
         private final int _OP_receive_substream_id = 2;
@@ -61,6 +63,9 @@ public final class NetServiceLink {
 
                 try {
                         socket = ss.accept();
+			if (DEBUG) {
+			    System.err.println(this + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " accept succeeds from " + socket.getInetAddress() + "/" + socket.getPort());
+			}
                 } catch (SocketException e) {
                         throw new NetIbisInterruptedException(e);
                 } catch (IOException e) {
@@ -78,6 +83,9 @@ public final class NetServiceLink {
 
                 try {
 			socket = new Socket(raddr, rport);
+			if (DEBUG) {
+			    System.err.println(this + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " Socket - connect to " + raddr + "/" + rport);
+			}
 		} catch (IOException e) {
 			throw new NetIbisIOException(e);
 		} catch (Throwable t) {
@@ -87,6 +95,7 @@ public final class NetServiceLink {
 
 
 
+	private int threadCount = 0;
 
 
         /* ___ CONNECTION MANAGEMENT ROUTINES ______________________________ */
@@ -135,7 +144,7 @@ public final class NetServiceLink {
 
                 listenThread.start();
 
-                serviceThread = new ServiceThread("anonymous");
+                serviceThread = new ServiceThread("anonymous-" + (threadCount++));
 
                 try {
                         if (incoming) {
@@ -277,9 +286,13 @@ public final class NetServiceLink {
 
                                 oc.sos = new ServiceOutputStream(oc.id);
                                 outputMap.put(name, oc);
-                        }
+			}
                 }
 
+		if (oc.sos.closed) {
+		    System.err.println(this + ": OutputSubStream already closed!!!!!");
+		}
+                
                 return oc.sos;
         }
 
@@ -301,9 +314,14 @@ public final class NetServiceLink {
 
                                 inputVector.setElementAt(ic.sis, ic.id);
                                 inputMap.put(name, ic);
-                        }
+			}
                 }
 
+		if (ic.sis.closed) {
+		    // throw new NetIbisException("InputSubStream already closed!!!!!");
+		    System.err.println(this + ": InputSubStream already closed!!!!!");
+		}
+                
                 return ic.sis;
         }
 
@@ -316,6 +334,18 @@ public final class NetServiceLink {
         }
 
 
+	public String toString() {
+	    if (socket == null) {
+		return "NetServiceLink@" + Integer.toHexString(hashCode()) +
+			"-unconnected";
+	    } else {
+		return "NetServiceLink@" + Integer.toHexString(hashCode()) +
+			"-my_addr=" + socket.getLocalAddress() +
+			":" + socket.getLocalPort() +
+			"-rem_addr=" + socket.getInetAddress() +
+			":" + socket.getPort();
+	    }
+	}
 
 
 
