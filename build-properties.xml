@@ -42,7 +42,9 @@
 	    <pathelement path="${build}"/>
 	    <pathelement path="${package.home.bcel}"/>
 	    <pathelement path="${package.home.junit}"/>
+	    <!--
 	    <path refid="3rdparty"/>
+	    -->
 	</path>
 
 	<echo	message="Now set default.classpath to ${default.classpath}"
