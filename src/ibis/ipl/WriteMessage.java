@@ -94,10 +94,18 @@ public interface WriteMessage {
 
 	/**
 	 * Writes a Serializable object to the message.
+	 * Duplicate checks for the objects and arrays that are written are performed.
 	 * @param     value             The object value to write.
 	 */
 	public void writeObject(Object value) throws IbisIOException;
 
+	/** These methods can be used when the type of the array is known in advance.
+	    Reading can be done in-place. WARNING: No cycle checks are done!
+	    These methods are just a shortcut for doing:
+	    writeArraySliceXXX(destination, 0, destination.length);
+
+	    It is legal to use a writeArrayXXX, with a corresponding readArraySliceXXX.
+	**/
 	public void writeArrayBoolean(boolean [] destination) throws IbisIOException;
 	public void writeArrayByte(byte [] destination) throws IbisIOException;
 	public void writeArrayChar(char [] destination) throws IbisIOException;
@@ -106,13 +114,18 @@ public interface WriteMessage {
 	public void writeArrayLong(long [] destination) throws IbisIOException;
 	public void writeArrayFloat(float [] destination) throws IbisIOException;
 	public void writeArrayDouble(double [] destination) throws IbisIOException;
+	public void writeArrayObject(Object[] destination) throws IbisIOException;
 
-	public void writeSubArrayBoolean(boolean [] destination, int offset, int size) throws IbisIOException;
-	public void writeSubArrayByte(byte [] destination, int offset, int size) throws IbisIOException;
-	public void writeSubArrayChar(char [] destination, int offset, int size) throws IbisIOException;
-	public void writeSubArrayShort(short [] destination, int offset, int size) throws IbisIOException;
-	public void writeSubArrayInt(int [] destination, int offset, int size) throws IbisIOException;
-	public void writeSubArrayLong(long [] destination, int offset, int size) throws IbisIOException;
-	public void writeSubArrayFloat(float [] destination, int offset, int size) throws IbisIOException;
-	public void writeSubArrayDouble(double [] destination, int offset, int size) throws IbisIOException;
+	/** Write a clice of an array. No duplicate checks are done. 
+	    It is legal to use a writeArraySliceXXX, with a corresponding readArrayXXX.
+	**/
+	public void writeArraySliceBoolean(boolean [] destination, int offset, int size) throws IbisIOException;
+	public void writeArraySliceByte(byte [] destination, int offset, int size) throws IbisIOException;
+	public void writeArraySliceChar(char [] destination, int offset, int size) throws IbisIOException;
+	public void writeArraySliceShort(short [] destination, int offset, int size) throws IbisIOException;
+	public void writeArraySliceInt(int [] destination, int offset, int size) throws IbisIOException;
+	public void writeArraySliceLong(long [] destination, int offset, int size) throws IbisIOException;
+	public void writeArraySliceFloat(float [] destination, int offset, int size) throws IbisIOException;
+	public void writeArraySliceDouble(double [] destination, int offset, int size) throws IbisIOException;
+	public void writeArraySliceObject(Object [] destination, int offset, int size) throws IbisIOException;
 } 

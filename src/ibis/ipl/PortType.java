@@ -17,7 +17,10 @@ public interface PortType {
 	public SendPort createSendPort() throws IbisIOException;
 
 	/** Create a anonymous SendPort of this PortType, with a replacer. **/
-	public SendPort createSendPort(Replacer r) throws IbisIOException;
+	public SendPort createSendPort(ibis.io.Replacer r) throws IbisIOException;
+
+	/** Create a SendPort of this PortType, with a replacer. **/
+	public SendPort createSendPort(String name, ibis.io.Replacer r) throws IbisIOException;
 
 	/** Create a named ReceivePort of this PortType, with explicit receipt communication.
 	    New connections will not be accepted until ReceivePort.enableConnections() is invoked.

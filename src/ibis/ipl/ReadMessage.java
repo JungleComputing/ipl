@@ -1,10 +1,24 @@
 package ibis.ipl;
 
 public interface ReadMessage { 
-	/** Only one message is alive at one time for a given receiveport.
-	    This is done to prevent flow control problems. 
-	    when a message is alive, and a new messages is requested with a receive, the requester is blocked until the
-	    live message is finished. **/
+	/** Only one message is alive at one time for a given
+	    receiveport.  This is done to prevent flow control problems. 
+	    A receiveport can be configured to generate upcalls or to support blocking receive, but NOT both!
+	**/
+
+	/**
+	   This operation is used to indicate that the reader is done
+	   with the message.  After the finish, no more bytes can be read from
+	   the message.  The thread reading the message (can be an upcall) is NOT
+	   allowed to block when a message is alive but not finished.  Only after
+	   the finish is called can the thread that holds the message block.  The
+	   finish operation mush always be called when blocking receive is used.
+	   When upcalls are used, the finish can be avoided when the user is sure
+	   that the upcall never blocks / waits for a message to arrive. In that
+	   case, the message is automatically finished when the upcall
+	   terminates.  This is much more efficient, because this way, the
+	   runtime system can reuse the upcall thread!
+	 **/
        	public void finish() throws IbisIOException;
 
 	public long sequenceNumber();
@@ -21,6 +35,12 @@ public interface ReadMessage {
 	public String readString() throws IbisIOException;
 	public Object readObject() throws IbisIOException;
 
+	/** Methods to receive arrays in place. No duplicate checks are done.
+	    These methods are a shortcut for:
+	    readArraySliceXXX(destination, 0, destination.length);
+
+	    It is therefore legal to use a readArrayXXX, with a corresponding writeArraySliceXXX.
+	**/
 	public void readArrayBoolean(boolean [] destination) throws IbisIOException;
 	public void readArrayByte(byte [] destination) throws IbisIOException;
 	public void readArrayChar(char [] destination) throws IbisIOException;
@@ -29,13 +49,18 @@ public interface ReadMessage {
 	public void readArrayLong(long [] destination) throws IbisIOException;
 	public void readArrayFloat(float [] destination) throws IbisIOException;
 	public void readArrayDouble(double [] destination) throws IbisIOException;
+	public void readArrayObject(Object [] destination) throws IbisIOException;
 
-	public void readSubArrayBoolean(boolean [] destination, int offset, int size) throws IbisIOException;
-	public void readSubArrayByte(byte [] destination, int offset, int size) throws IbisIOException;
-	public void readSubArrayChar(char [] destination, int offset, int size) throws IbisIOException;
-	public void readSubArrayShort(short [] destination, int offset, int size) throws IbisIOException;
-	public void readSubArrayInt(int [] destination, int offset, int size) throws IbisIOException;
-	public void readSubArrayLong(long [] destination, int offset, int size) throws IbisIOException;
-	public void readSubArrayFloat(float [] destination, int offset, int size) throws IbisIOException;
-	public void readSubArrayDouble(double [] destination, int offset, int size) throws IbisIOException;
+	/** Read a slice of an array in place. No cycle checks are done. 
+	    It is legal to use a readArraySliceXXX, with a corresponding writeArrayXXX.
+	**/
+	public void readArraySliceBoolean(boolean [] destination, int offset, int size) throws IbisIOException;
+	public void readArraySliceByte(byte [] destination, int offset, int size) throws IbisIOException;
+	public void readArraySliceChar(char [] destination, int offset, int size) throws IbisIOException;
+	public void readArraySliceShort(short [] destination, int offset, int size) throws IbisIOException;
+	public void readArraySliceInt(int [] destination, int offset, int size) throws IbisIOException;
+	public void readArraySliceLong(long [] destination, int offset, int size) throws IbisIOException;
+	public void readArraySliceFloat(float [] destination, int offset, int size) throws IbisIOException;
+	public void readArraySliceDouble(double [] destination, int offset, int size) throws IbisIOException;
+	public void readArraySliceObject(Object [] destination, int offset, int size) throws IbisIOException;
 } 

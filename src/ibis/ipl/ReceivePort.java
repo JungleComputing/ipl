@@ -2,8 +2,10 @@ package ibis.ipl;
 
 public interface ReceivePort { 
 	/** Only one message is alive at one time for a given receiveport. This is done to prevent flow control problems. 
-	    when a message is alive, and a new messages is requested with a receive, the requester is blocked until the
-	    live message is finished. **/
+	    A receiveport can be configured to generate upcalls or to support blocking receive, but NOT both!
+	 **/
+
+	/** explicit receive. When an receiveport is configured to generate upcalls, this is NOT allowed **/
 	public ReadMessage receive() throws IbisIOException;
 
 	/** Utility function that in essence performs:

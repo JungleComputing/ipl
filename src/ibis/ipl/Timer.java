@@ -9,6 +9,7 @@ public abstract class Timer {
 	/** Returns accuracy of this timer in seconds. **/
 	public abstract double accuracy();
 
+	public abstract long currentTimeNanos();
 
 	/** Reset the timer. **/
 	public abstract void reset();
