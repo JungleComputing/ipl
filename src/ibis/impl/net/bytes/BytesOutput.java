@@ -52,7 +52,6 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 */
 	protected int dataOffset = 0;
 
-
 	/**
 	 * Constructor.
 	 *
@@ -256,10 +255,10 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 allocateBuffer();
                         }
 
-                        buffer.data[buffer.length++] = Conversion.boolean2byte(v);
+                        buffer.data[buffer.length++] = Conversion.defaultConversion.boolean2byte(v);
                         flushIfNeeded();
                 } else {
-                        subOutput.writeByte(Conversion.boolean2byte(v));
+                        subOutput.writeByte(Conversion.defaultConversion.boolean2byte(v));
                 }
                 log.out();
         }
@@ -291,12 +290,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(2)) {
-                                Conversion.char2byte(v, buffer.data, buffer.length);
+                                Conversion.defaultConversion.char2byte(v, buffer.data, buffer.length);
                                 buffer.length += 2;
                                 flushIfNeeded();
                         } else {
                                 byte [] b = a2.allocate();
-                                Conversion.char2byte(v, b, 0);
+                                Conversion.defaultConversion.char2byte(v, b, 0);
 
                                 if (buffer == null) {
                                         allocateBuffer();
@@ -312,7 +311,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         }
                 } else {
                         byte [] b = a2.allocate();
-                        Conversion.char2byte(v, b, 0);
+                        Conversion.defaultConversion.char2byte(v, b, 0);
                         subOutput.writeArray(b);
                         a2.free(b);
                 }
@@ -328,12 +327,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(2)) {
-                                Conversion.short2byte(v, buffer.data, buffer.length);
+                                Conversion.defaultConversion.short2byte(v, buffer.data, buffer.length);
                                 buffer.length += 2;
                                 flushIfNeeded();
                         } else {
                                 byte [] b = a2.allocate();
-                                Conversion.short2byte(v, b, 0);
+                                Conversion.defaultConversion.short2byte(v, b, 0);
 
                                 if (buffer == null) {
                                         allocateBuffer();
@@ -349,7 +348,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         }
                 } else {
                         byte [] b = a2.allocate();
-                        Conversion.short2byte(v, b, 0);
+                        Conversion.defaultConversion.short2byte(v, b, 0);
                         subOutput.writeArray(b);
                         a2.free(b);
                 }
@@ -364,12 +363,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(4)) {
-                                Conversion.int2byte(v, buffer.data, buffer.length);
+                                Conversion.defaultConversion.int2byte(v, buffer.data, buffer.length);
                                 buffer.length += 4;
                                 flushIfNeeded();
                         } else {
                                 byte [] b = a4.allocate();
-                                Conversion.int2byte(v, b, 0);
+                                Conversion.defaultConversion.int2byte(v, b, 0);
 
                                 for (int i = 0; i < 4; i++) {
                                         if (buffer == null) {
@@ -384,7 +383,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         }
                 } else {
                         byte [] b = a4.allocate();
-                        Conversion.int2byte(v, b, 0);
+                        Conversion.defaultConversion.int2byte(v, b, 0);
                         subOutput.writeArray(b);
                         a4.free(b);
                 }
@@ -400,12 +399,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(8)) {
-                                Conversion.long2byte(v, buffer.data, buffer.length);
+                                Conversion.defaultConversion.long2byte(v, buffer.data, buffer.length);
                                 buffer.length += 8;
                                 flushIfNeeded();
                         } else {
                                 byte [] b = a8.allocate();
-                                Conversion.long2byte(v, b, 0);
+                                Conversion.defaultConversion.long2byte(v, b, 0);
 
                                 for (int i = 0; i < 8; i++) {
                                         if (buffer == null) {
@@ -420,7 +419,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         }
                 } else {
                         byte [] b = a8.allocate();
-                        Conversion.long2byte(v, b, 0);
+                        Conversion.defaultConversion.long2byte(v, b, 0);
                         subOutput.writeArray(b);
                         a8.free(b);
                 }
@@ -435,12 +434,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(4)) {
-                                Conversion.float2byte(v, buffer.data, buffer.length);
+                                Conversion.defaultConversion.float2byte(v, buffer.data, buffer.length);
                                 buffer.length += 4;
                                 flushIfNeeded();
                         } else {
                                 byte [] b = a4.allocate();
-                                Conversion.float2byte(v, b, 0);
+                                Conversion.defaultConversion.float2byte(v, b, 0);
 
                                 for (int i = 0; i < 4; i++) {
                                         if (buffer == null) {
@@ -455,7 +454,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         }
                 } else {
                         byte [] b = a4.allocate();
-                        Conversion.float2byte(v, b, 0);
+                        Conversion.defaultConversion.float2byte(v, b, 0);
                         subOutput.writeArray(b);
                         a4.free(b);
                 }
@@ -470,12 +469,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(8)) {
-                                Conversion.double2byte(v, buffer.data, buffer.length);
+                                Conversion.defaultConversion.double2byte(v, buffer.data, buffer.length);
                                 buffer.length += 8;
                                 flushIfNeeded();
                         } else {
                                 byte [] b = a8.allocate();
-                                Conversion.double2byte(v, b, 0);
+                                Conversion.defaultConversion.double2byte(v, b, 0);
 
                                 for (int i = 0; i < 8; i++) {
                                         if (buffer == null) {
@@ -490,7 +489,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         }
                 } else {
                         byte [] b = a8.allocate();
-                        Conversion.double2byte(v, b, 0);
+                        Conversion.defaultConversion.double2byte(v, b, 0);
                         subOutput.writeArray(b);
                         a8.free(b);
                 }
@@ -528,7 +527,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(l)) {
-                                Conversion.boolean2byte(ub, o, l, buffer.data, buffer.length);
+                                Conversion.defaultConversion.boolean2byte(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += l;
                                 flushIfNeeded();
                         } else {
@@ -538,7 +537,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                         }
 
                                         int copyLength = Math.min(l, buffer.data.length - buffer.length);
-                                        Conversion.boolean2byte(ub, o, copyLength, buffer.data, buffer.length);
+                                        Conversion.defaultConversion.boolean2byte(ub, o, copyLength, buffer.data, buffer.length);
                                         o += copyLength;
                                         l -= copyLength;
                                         buffer.length += copyLength;
@@ -548,12 +547,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if (l <= anThreshold) {
                                 byte [] b = an.allocate();
-                                Conversion.boolean2byte(ub, o, l, b, 0);
+                                Conversion.defaultConversion.boolean2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b, 0, l);
                                 an.free(b);
                         } else {
 				byte[] b = new byte[l];
-				Conversion.boolean2byte(ub, o, l, b, 0);
+				Conversion.defaultConversion.boolean2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
                 }
@@ -594,7 +593,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                Conversion.char2byte(ub, o, l, buffer.data, buffer.length);
+                                Conversion.defaultConversion.char2byte(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -615,7 +614,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                Conversion.char2byte(ub, o, copyLength, buffer.data, buffer.length);
+                                                Conversion.defaultConversion.char2byte(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -626,12 +625,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                Conversion.char2byte(ub, o, l, b, 0);
+                                Conversion.defaultConversion.char2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.CHAR_SIZE];
-				Conversion.char2byte(ub, o, l, b, 0);
+				byte[] b = new byte[l * Conversion.defaultConversion.CHAR_SIZE];
+				Conversion.defaultConversion.char2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
                 }
@@ -644,7 +643,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                Conversion.short2byte(ub, o, l, buffer.data, buffer.length);
+                                Conversion.defaultConversion.short2byte(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -665,7 +664,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                Conversion.short2byte(ub, o, copyLength, buffer.data, buffer.length);
+                                                Conversion.defaultConversion.short2byte(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -676,12 +675,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                Conversion.short2byte(ub, o, l, b, 0);
+                                Conversion.defaultConversion.short2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.SHORT_SIZE];
-				Conversion.short2byte(ub, o, l, b, 0);
+				byte[] b = new byte[l * Conversion.defaultConversion.SHORT_SIZE];
+				Conversion.defaultConversion.short2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
                 }
@@ -694,7 +693,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                Conversion.int2byte(ub, o, l, buffer.data, buffer.length);
+                                Conversion.defaultConversion.int2byte(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -716,7 +715,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                Conversion.int2byte(ub, o, copyLength, buffer.data, buffer.length);
+                                                Conversion.defaultConversion.int2byte(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -727,12 +726,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                Conversion.int2byte(ub, o, l, b, 0);
+                                Conversion.defaultConversion.int2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.INT_SIZE];
-				Conversion.int2byte(ub, o, l, b, 0);
+				byte[] b = new byte[l * Conversion.defaultConversion.INT_SIZE];
+				Conversion.defaultConversion.int2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
                 }
@@ -745,7 +744,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                Conversion.long2byte(ub, o, l, buffer.data, buffer.length);
+                                Conversion.defaultConversion.long2byte(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -766,7 +765,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                Conversion.long2byte(ub, o, copyLength, buffer.data, buffer.length);
+                                                Conversion.defaultConversion.long2byte(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -777,12 +776,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                Conversion.long2byte(ub, o, l, b, 0);
+                                Conversion.defaultConversion.long2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.LONG_SIZE];
-				Conversion.long2byte(ub, o, l, b, 0);
+				byte[] b = new byte[l * Conversion.defaultConversion.LONG_SIZE];
+				Conversion.defaultConversion.long2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
 
@@ -796,7 +795,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                Conversion.float2byte(ub, o, l, buffer.data, buffer.length);
+                                Conversion.defaultConversion.float2byte(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -817,7 +816,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                Conversion.float2byte(ub, o, copyLength, buffer.data, buffer.length);
+                                                Conversion.defaultConversion.float2byte(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -828,12 +827,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                Conversion.float2byte(ub, o, l, b, 0);
+                                Conversion.defaultConversion.float2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.FLOAT_SIZE];
-				Conversion.float2byte(ub, o, l, b, 0);
+				byte[] b = new byte[l * Conversion.defaultConversion.FLOAT_SIZE];
+				Conversion.defaultConversion.float2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
                 }
@@ -846,7 +845,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 
                 if (mtu > 0) {
                         if (ensureLength(f*(l+1) - 1)) {
-                                Conversion.double2byte(ub, o, l, buffer.data, buffer.length);
+                                Conversion.defaultConversion.double2byte(ub, o, l, buffer.data, buffer.length);
                                 buffer.length += f*l;
                                 flushIfNeeded();
                         } else {
@@ -867,7 +866,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                                         continue;
                                                 }
 
-                                                Conversion.double2byte(ub, o, copyLength, buffer.data, buffer.length);
+                                                Conversion.defaultConversion.double2byte(ub, o, copyLength, buffer.data, buffer.length);
                                                 o += copyLength;
                                                 l -= copyLength;
                                                 buffer.length += f*copyLength;
@@ -878,12 +877,12 @@ public final class BytesOutput extends NetOutput implements Settings {
                 } else {
                         if ((l*f) <= anThreshold) {
                                 byte [] b = an.allocate();
-                                Conversion.double2byte(ub, o, l, b, 0);
+                                Conversion.defaultConversion.double2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.DOUBLE_SIZE];
-				Conversion.double2byte(ub, o, l, b, 0);
+				byte[] b = new byte[l * Conversion.defaultConversion.DOUBLE_SIZE];
+				Conversion.defaultConversion.double2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
                 }
