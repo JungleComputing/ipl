@@ -109,7 +109,7 @@ public final class Stats {
 
     /**
      * Returns the standard deviation as a percentage of the mean. 
-     * The result is rounded up to a houndreth of an integer.
+     * The result is rounded up to a hundredth of an integer.
      *
      * @param data array with input data (numbers)
      * @param off offset in the data at which to start calculating
