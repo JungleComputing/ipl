@@ -108,7 +108,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 			cnt++;
 			s = socketFactory.createSocket(serverAddress, 
 				port, myAddress, -1);
-			myAddress = s.getLocalAddress();
+			// myAddress = s.getLocalAddress();
 		    } catch (ConnectionTimedOutException e) {
 			if(cnt == 10) {
 			    // Rather arbitrary, 10 seconds, print warning
