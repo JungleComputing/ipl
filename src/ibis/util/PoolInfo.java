@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.NoSuchElementException;
 
 /**
  * The <code>PoolInfo</code> class provides a utility for finding out
