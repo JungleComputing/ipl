@@ -56,6 +56,7 @@ final class Data2
     }
 
 
+    /* ---------- Use inline-expanded version above
     public final void generated_WriteObject(MantaOutputStream mantaoutputstream)
 	throws IOException
     {
@@ -113,9 +114,10 @@ final class Data2
 	if(i != 0)
 	    left = (Data2)mantainputstream.getObjectFromCycleCheck(i);
     }
+    ---------- Use inline-expanded version above */
 
 
-    /*---------- Use inline-expanded version above
+    /*---------- Use inline-expanded version above */
 
     public final void generated_WriteObject(MantaOutputStream mantaoutputstream)
 	throws IOException
@@ -163,7 +165,7 @@ final class Data2
 	    left = (Data2)mantainputstream.getObjectFromCycleCheck(i);
     }
 
-    ---------- Use inline-expanded version above */
+    /* ---------- Use inline-expanded version above */
 
 
     static int fill;

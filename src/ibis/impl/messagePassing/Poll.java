@@ -23,7 +23,7 @@ public abstract class Poll implements Runnable {
 
 
     void wakeup() {
-	peeker.start();
+	// peeker.start();
     }
 
 

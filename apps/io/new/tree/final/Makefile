@@ -22,6 +22,7 @@ java: $(CLASS_FILES) $(MAIN_CLASS)
 	java ibis.frontend.io.IOGenerator DITree.class
 
 manta: $(MAIN) $(O_FILES)
+	#@echo SERIALIZABLE_J = $(SERIALIZABLE_J)
 	$(MANTAC_COMMAND) -v -o $(OUT) $(MAIN) $(O_FILES) $(MANTA_LIB)
 
 clean:

@@ -34,6 +34,8 @@ JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
 JAVACLASSPATH	= $(IBIS_ROOT):$(IBIS_ROOT)/ibis:.:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
 JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH)
 JAVAHFLAGS      += -classpath $(JAVACLASSPATH)
+CLASSPATH	= $(JAVACLASSPATH)
+export CLASSPATH
 
 LD_LIBRARY_PATH	= $(IBIS_ROOT)/ibis/ipl/impl/messagePassing
 export LD_LIBRARY_PATH
@@ -89,6 +91,12 @@ PWD		= $(shell pwd)
 PACKAGE_SLASH	= $(subst $(IBIS_ROOT)/,,$(PWD))
 PACKAGE_MANGLE	= $(subst /,_,$(PACKAGE_SLASH))
 PACKAGE		= $(subst /,.,$(PACKAGE_SLASH))
+ifeq (,$(PACKAGE))
+PACKAGEDOT	:= ""
+else
+PACKAGEDOT	:= $(PACKAGE).
+# PACKAGEDOT	:= # $(PACKAGE_SLASH)/
+endif
 
 MANTA	= @MANTA_ROOT@
 export MANTA
@@ -103,12 +111,30 @@ endif
 MANTAC_COMMAND = $(MANTA)/mantac $(MANTACFLAGS)
 
 O_FILES		:= $(SRC:%.java=%.o)
-SERIALIZABLE_J	:= $(shell grep -l Serializable $(SRC))
+
+DEPENDENCIES	:= ibis.depend.Serializable
+GENERATE_PACKAGERS	= 1
+ifeq (ibis.ipl.impl.tcp,$(PACKAGE))
+GENERATE_PACKAGERS	= 0
+endif
+ifeq (ibis.ipl.impl.messagePassing,$(PACKAGE))
+GENERATE_PACKAGERS	= 0
+endif
+ifeq (ibis.satin,$(PACKAGE))
+GENERATE_PACKAGERS	= 0
+endif
+ifeq (,$(SRC))
+GENERATE_PACKAGERS	= 0
+endif
+ifeq (1, $(GENERATE_PACKAGERS))
+ifneq (,$(SRC))
+SERIALIZABLE_J  := $(shell $(JAVAC_COMMAND) +B +DR=$(DEPENDENCIES) $(MAIN) $(SRC); $(IBIS_ROOT)/ibis/bin/filter_Serializable < $(DEPENDENCIES))
 SERIALIZABLE_O	:= $(SERIALIZABLE_J:%.java=%.o)
 SERIALIZABLE_JAD	:= $(SERIALIZABLE_J:%.java=%.jad) $(SERIALIZABLE_J:%.java=%_ibis_io_Generator.jad)
-SERIALIZABLE_JAD_O	:= $(SERIALIZABLE_J:%.java=%.jad_o)
+SERIALIZABLE_JAD_O	:= $(SERIALIZABLE_J:%.java=%_jad.o)
 O_FILES		:= $(filter-out $(SERIALIZABLE_O), $(O_FILES))
 O_FILES		:= $(O_FILES) $(SERIALIZABLE_JAD_O)
+endif
 
 PKG_SUF		:= .$(PACKAGE_MANGLE:manta_ibis%=mib%)
 PKG_O_FILES	:= $(O_FILES:%.o=%$(PKG_SUF))
@@ -116,14 +142,17 @@ PKG_O_FILES	:= $(O_FILES:%.o=%$(PKG_SUF))
 MANTA_LIB	= $(IBIS_ROOT)/ibis/ipl/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
 
-JACKAL_PATCHERS	= $(SRC:%.java=diff_patch_%.c) $(MAIN:%.java=diff_patch_%.c)
+JACKAL_PATCHERS	=
+JACKAL_PATCHERS	+= $(SRC:%.java=diff_patch_%.c)
+JACKAL_PATCHERS	+= $(MAIN:%.java=diff_patch_%.c)
+JACKAL_PATCHERS	+= $(SERIALIZE_J:%.java=diff_patch_%.c)
 
 TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s $(OUT) *.class *.lasm *.d Satin_*_InvocationRecord.java Satin_*_ReturnRecord.java -r LASM_CACHE $(O_FILES) $(PKG_O_FILES) $(JACKAL_PATCHERS) Satin_*
 
 #conversion rules
 
 .SUFFIXES:
-.SUFFIXES:      .o .java .satin .class .c $(PKG_SUF) .jad .jad_o .jad_o
+.SUFFIXES:      .o .java .satin .class .c $(PKG_SUF) .jad _jad.o
 
 .java.o:
 	$(MANTAC_COMMAND) -c $*.java
@@ -133,9 +162,14 @@ TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s $(OUT) *
 	$(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.io.IOGenerator $*
 	$(JAD) $*.class
 
-.jad.jad_o:
-	mv $*.jad $*.jad.java
-	$(MANTAC_COMMAND) -c $*.jad.java -o $*.jad_o
+.jad_jad.o:
+	cp $*.jad $*_jad.java
+	$(MANTAC_COMMAND) -keep -c $*_jad.java -o $*_jad.o
+
+TRASH_FILES	+= $(SERIALIZABLE_JAD)
+TRASH_FILES	+= $(SERIALIZABLE_JAD:%.jad=%_jad.java)
+TRASH_FILES	+= $(SERIALIZABLE_JAD_O)
+TRASH_FILES	+= $(DEPENDENCIES)
 
 .o$(PKG_SUF):
 	cp $*.o $@
