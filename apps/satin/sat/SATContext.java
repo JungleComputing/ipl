@@ -608,6 +608,8 @@ public final class SATContext implements java.io.Serializable {
     private void analyzeConflict( SATProblem p, int cno, int var, int level, boolean learnTuple )
         throws SATRestartException
     {
+        // TODO: remove this once the administration is straigthened out
+        // again: this method should never be invoked on a satisfied clause.
         if( satisfied[cno] ){
             return;
         }
