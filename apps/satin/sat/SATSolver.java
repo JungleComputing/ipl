@@ -64,6 +64,9 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    if( traceSolver | printSatSolutions ){
 		System.err.println( "s" + level + ": propagation found a solution: " + s );
 	    }
+	    if( !p.isSatisfied( ctx.assignments ) ){
+		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
+	    }
 	    throw new SATResultException( s );
 	}
 	int nextvar = ctx.getDecisionVariable();
@@ -79,14 +82,9 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	// We have variable 'nextvar' to branch on.
 	SATContext negctx = (SATContext) ctx.clone();
 	SATContext posctx = (SATContext) ctx.clone();
-	if( ctx.posDominant( nextvar ) ){
-	    solve( level+1, p, posctx, nextvar, true );
-	    solve( level+1, p, negctx, nextvar, false );
-	}
-	else {
-	    solve( level+1, p, negctx, nextvar, false );
-	    solve( level+1, p, posctx, nextvar, true );
-	}
+	boolean firstvar = ctx.posDominant( nextvar );
+	solve( level+1, p, posctx, nextvar, firstvar );
+	solve( level+1, p, negctx, nextvar, !firstvar );
 	sync();
     }
 
@@ -129,6 +127,9 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 
 	    int r = ctx.optimize( p );
 	    if( r == 1 ){
+		if( !p.isSatisfied( ctx.assignments ) ){
+		    System.err.println( "Error: solution does not satisfy problem." );
+		}
 		return new SATSolution( ctx.assignments );
 	    }
 	    if( r == -1 ){
