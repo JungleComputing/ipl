@@ -140,6 +140,7 @@ class OpenCell1D implements OpenConfig {
     static RszHandler rszHandler = new RszHandler();
     static long computeTime = 0;
     static long adminTime = 0;
+    static long communicationTime = 0;
 
     private static void usage()
     {
@@ -830,12 +831,13 @@ class OpenCell1D implements OpenConfig {
                         sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     }
                 }
+                long endTime = System.currentTimeMillis();
+                computeTime += (endComputeTime-startComputeTime);
+                communicationTime += (endTime-endComputeTime);
+                adminTime += (startComputeTime-startLoopTime);
                 if( showProgress && me == 0 ){
                     System.out.print( '.' );
                 }
-                long endTime = System.currentTimeMillis();
-                computeTime += (endComputeTime-startComputeTime);
-                adminTime += (endTime-endComputeTime)+(startComputeTime-startLoopTime);
             }
             if( showProgress && me == 0 ){
                 System.out.println();
@@ -856,7 +858,7 @@ class OpenCell1D implements OpenConfig {
 
                 System.out.println( "ExecutionTime: " + time );
                 System.out.println( "Did " + updates + " updates" );
-                System.out.println( "Spent " + (computeTime/1000.0) + "s computing, and " + (adminTime/1000.0) + "s administrating." );
+                System.out.println( "Spent " + (computeTime/1000.0) + "s computing, " + (communicationTime/1000.0) + "s communicating, and " + (adminTime/1000.0) + "s administrating." );
             }
 
             ibis.end();
