@@ -88,6 +88,19 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 		serverSocket = IbisSocketFactory.createServerSocket(0, myAddress, true);
 
+		boolean retry = false;
+
+		String retryStr = p.getProperty("ibis.name_server.retry");
+		if (retryStr != null) {
+			if(retryStr.equals("true")) {
+				retry = true;
+			} else if (retryStr.equals("false")) {
+				retry = false;
+			} else {
+				throw new IbisConfigurationException("property ibis.name_server.retry has non-boolean value");
+			}
+		}
+
 		Socket s = null;
 		boolean failed_once = false;
 		while(s == null) {
@@ -95,6 +108,9 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			s = IbisSocketFactory.createSocket(serverAddress, 
 				port, myAddress, -1);
 		    } catch (ConnectionTimedOutException e) {
+		        if(!retry) {
+			    throw new ConnectionTimedOutException("Could not connect to name server");
+			}
 			if(!failed_once) {
 			    System.err.println("Nameserver client failed"
 			       + " to connect to nameserver\n at " 
