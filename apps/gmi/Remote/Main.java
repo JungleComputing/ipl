@@ -2,6 +2,12 @@ import ibis.group.*;
 
 class Main { 
 
+	static int received;
+
+	public static void inc_count() {
+	    received++;
+	}
+
 	public static Object create(int len) { 
 		
 		Data temp = null;
@@ -18,7 +24,7 @@ class Main {
 		int size = Group.size();
 		int rank = Group.rank();
 
-		int count = 100;
+		int count = 1000;
 		int len = 100;
 
 		System.out.println("size = " + size);
@@ -46,7 +52,7 @@ class Main {
 		Group.join("TestGroup", t);
 		System.out.println("Joined group !!!");
 
-		System.out.println("I am " + t.rank + " of " + size);
+		System.out.println("I am " + t.getRank() + " of " + size);
 
 		if (rank == 0) { 		
 			Object data = create(len);
@@ -81,9 +87,9 @@ class Main {
 			System.out.println("Test took " + time + " ms. = " + ((1000.0*time)/count) + " micros/call");
 		}
 
-		else {
+		while (received < 2*count) {
 		    try {
-			Thread.sleep(50000);
+			Thread.sleep(100);
 		    } catch(Exception e) {
 		    }
 		}

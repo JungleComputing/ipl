@@ -1,5 +1,5 @@
 <project
-    name="ibis.apps.group.Remote"
+    name="ibis.apps.group.QR"
     default="build"
     basedir=".">
 
@@ -13,3 +13,5 @@
     <import file="${ibis}/apps/group/build-gmi-app.xml"/>
 
 </project>
+
+

@@ -1,0 +1,4 @@
+class NoSolutionException extends Exception {
+
+      
+}

@@ -8,26 +8,27 @@ class Test extends GroupMember implements myGroup {
 	Object data;
 
 	Test() { 
-		if (DEBUG) System.out.println(rank + ": Test()");
+		if (DEBUG) System.out.println(getRank() + ": Test()");
 	} 
 
 	public void groupInit() { 
-		i = rank;
-		if (DEBUG) System.out.println(rank + ": Test.groupInit()");
+		i = getRank();
+		if (DEBUG) System.out.println(getRank() + ": Test.groupInit()");
 	}
 
 	public void put(Object o) { 
-		if (DEBUG) System.out.println(rank + ": Test.put()");
+		if (DEBUG) System.out.println(getRank() + ": Test.put()");
 		data = o;
 	} 
 
 	public Object get() { 
-		if (DEBUG) System.out.println(rank + ": Test.get()");
+		if (DEBUG) System.out.println(getRank() + ": Test.get()");
 		return data;
 	} 
 
 	public Object put_get(Object o) { 
-		if (DEBUG) System.out.println(rank + ": Test.put_get()");
+		if (DEBUG) System.out.println(getRank() + ": Test.put_get()");
+		Main.inc_count();
 		return o;
 	} 
 } 
