@@ -137,7 +137,6 @@ public abstract class FaultTolerance extends Inlets {
 			writeMessage.writeByte(Protocol.ABORT_AND_STORE);
 			writeMessage.writeInt(r.parentStamp);
 			writeMessage.writeObject(r.parentOwner);
-			writeMessage.send();
 			long cnt = writeMessage.finish();
 			if (STEAL_STATS) {
 				if (inDifferentCluster(r.stealer)) {
@@ -308,7 +307,6 @@ public abstract class FaultTolerance extends Inlets {
 						m.writeObject(r.owner);//globally unique stamps, but
 						// let's not make things too
 						// complicated..
-						m.send();
 						m.finish();
 					} catch (IOException e) {
 						System.err

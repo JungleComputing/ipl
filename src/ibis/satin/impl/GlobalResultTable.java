@@ -139,7 +139,6 @@ public class GlobalResultTable implements Upcall, Config {
 					} else {
 						m.writeObject(satin.ident);
 					}
-					m.send();
 					m.finish();
 				} catch (IOException e) {
 					//always happens after a crash
@@ -149,7 +148,7 @@ public class GlobalResultTable implements Upcall, Config {
 			//send an update message
 			/*
 			 * try { WriteMessage m = send.newMessage(); m.writeObject(key);
-			 * m.writeObject(value); m.send(); m.finish(); } catch (IOException
+			 * m.writeObject(value); m.finish(); } catch (IOException
 			 * e) { //always happens after the crash }
 			 */
 			if (GRT_STATS) {
