@@ -1532,7 +1532,7 @@ public class IOGenerator {
     }
 
     private void addTargetClass(JavaClass clazz) {
-	if (!target_classes.contains(clazz)) {
+	if (!target_classes.contains(clazz) && ! isIbisSerializable(clazz)) {
 	    target_classes.add(clazz);
 	    if (verbose) System.out.println("Adding target class : " + clazz.getClassName());
 	}
@@ -1546,43 +1546,45 @@ public class IOGenerator {
 	    String name = ((ObjectType)t).getClassName();
 	    JavaClass c = Repository.lookupClass(name);
 	    if (c != null) {
-		addRewriteClass(c);
+		addClass(c);
 	    }
 	}
     }
 
     private void addRewriteClass(JavaClass clazz) {
-	if (!classes_to_rewrite.contains(clazz)) {
+	if (!classes_to_rewrite.contains(clazz) && ! isIbisSerializable(clazz)) {
 	    classes_to_rewrite.add(clazz);
 	    if (verbose) System.out.println("Adding rewrite class : " + clazz.getClassName());
 	}
     }
 
     private void  addClass(JavaClass clazz) {
-	boolean serializable = false;
+	if (! classes_to_rewrite.contains(clazz)) {
+	    boolean serializable = false;
 
-	if (isExternalizable(clazz)) return;
+	    if (isExternalizable(clazz)) return;
 
-	JavaClass super_classes[] = Repository.getSuperClasses(clazz);
+	    JavaClass super_classes[] = Repository.getSuperClasses(clazz);
 
-	if (super_classes != null) {
-	    for (int i = 0; i < super_classes.length; i++) {
-		if (isSerializable(super_classes[i])) {
-		    serializable = true;
-		    if (! isIbisSerializable(super_classes[i])) {
-			addRewriteClass(super_classes[i]);
-		    } else {
-			if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
+	    if (super_classes != null) {
+		for (int i = 0; i < super_classes.length; i++) {
+		    if (isSerializable(super_classes[i])) {
+			serializable = true;
+			if (! isIbisSerializable(super_classes[i])) {
+			    addRewriteClass(super_classes[i]);
+			} else {
+			    if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
+			}
 		    }
 		}
 	    }
-	}
 
-	serializable |= isSerializable(clazz);
+	    serializable |= isSerializable(clazz);
 
-	if (serializable) {
-	    addRewriteClass(clazz);
-	    addTargetClass(clazz);
+	    if (serializable) {
+		addRewriteClass(clazz);
+		addTargetClass(clazz);
+	    }
 	}
     }
 
