@@ -47,7 +47,7 @@ public final class SIbisInput extends NetSerializedInput {
 		 * Since the NetInput interface has no way to get to this
 		 * information, we don't implement this here
 		 */
-		public int bytesRead() {
+		public long bytesRead() {
 			return 0;
 		}
 

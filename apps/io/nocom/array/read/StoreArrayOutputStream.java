@@ -4,7 +4,7 @@ import ibis.io.IbisStreamFlags;
 
 final class StoreArrayOutputStream extends ArrayOutputStream { 
 	
-	int len = 0;
+	long len = 0;
 	StoreBuffer buf;
 
 	public StoreArrayOutputStream(StoreBuffer buf) { 
@@ -12,7 +12,7 @@ final class StoreArrayOutputStream extends ArrayOutputStream {
 	} 
 
 	public int getAndReset() { 
-		int temp = len;
+		int temp = (int) len;
 		len = 0;
 		return temp;
 	} 
@@ -73,7 +73,7 @@ final class StoreArrayOutputStream extends ArrayOutputStream {
 	}
 
 	public long bytesWritten() { 
-		return (long) len;
+		return len;
 	} 
 
 	public void resetBytesWritten() {

@@ -3,10 +3,10 @@ import ibis.io.ArrayOutputStream;
 
 final class NullArrayOutputStream extends ArrayOutputStream { 
 	
-	int len = 0;
+	long len = 0;
 
 	public int getAndReset() { 
-		int temp = len;
+		int temp = (int) len;
 		len = 0;
 		return temp;
 	} 
@@ -61,6 +61,6 @@ final class NullArrayOutputStream extends ArrayOutputStream {
 	}
 
 	public long bytesWritten() { 
-		return (long) len;
+		return len;
 	} 
 } 

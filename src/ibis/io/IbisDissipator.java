@@ -28,7 +28,7 @@ public interface IbisDissipator {
 	 * since the last reset of this counter
 	 * @return The number of bytes read.
 	 */
-	public int bytesRead();
+	public long bytesRead();
 
 	/**
 	 * Resets the bytes read counter

@@ -8,7 +8,7 @@ public class DummyOutputStream extends OutputStream {
 	static final boolean SUPPORT_STATS = true;
 
 	OutputStream out;
-	int count = 0;
+	long count = 0;
 
 	public DummyOutputStream(OutputStream out) {
 		this.out = out;
@@ -55,7 +55,7 @@ public class DummyOutputStream extends OutputStream {
 		count = 0;
 	}
 
-	public int getCount() {
+	public long getCount() {
 		return count;
 	}
 }

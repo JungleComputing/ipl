@@ -2,7 +2,7 @@ import java.io.*;
 
 class CountingOutputStream extends OutputStream { 
 
-	private int bytes_written;
+	private long bytes_written;
 	private OutputStream out;
 	
 	public CountingOutputStream(OutputStream out) { 
@@ -33,7 +33,7 @@ class CountingOutputStream extends OutputStream {
 		if (out != null) out.write(b);
 	} 
 	
-	public final int bytesWritten() { 
+	public final long bytesWritten() { 
 		return bytes_written;
 	} 
 } 

@@ -76,7 +76,7 @@ public final class NioInput extends NetInput implements IbisDissipator {
 	private InetAddress			addr = null;
 	private int				port = 0;
 
-	private int				bytesRead = 0;
+	private long				bytesRead = 0;
 
 	/**
 	 * if isPendingByte a byte has been read from the channel,
@@ -880,7 +880,7 @@ public final class NioInput extends NetInput implements IbisDissipator {
 		// NOTHING
 	}
 
-	public int bytesRead() {
+	public long bytesRead() {
 		return bytesRead;
 	}
 

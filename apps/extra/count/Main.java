@@ -17,14 +17,14 @@ class Main {
 			m.reset();
 			m.flush();
 
-			int bytes = c.bytesWritten();
+			long bytes = c.bytesWritten();
 			System.out.println("First writeObject -> " + bytes);
 
 			m.writeObject(t);
 			m.reset();
 			m.flush();
 
-			int bytes2 = c.bytesWritten() - bytes;
+			long bytes2 = c.bytesWritten() - bytes;
 			System.out.println("Second writeObject -> " + bytes2);
 
 			c = new CountingOutputStream(null);

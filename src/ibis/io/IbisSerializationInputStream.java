@@ -324,7 +324,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /**
      * @inheritDoc
      */
-    public int bytesRead() {
+    public long bytesRead() {
 	return in.bytesRead();
     }
 

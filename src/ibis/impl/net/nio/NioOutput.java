@@ -64,7 +64,7 @@ public final class NioOutput extends NetOutput implements IbisAccumulator {
 	/**
 	 * The number of bytes send since the last reset of this counter.
 	 */
-	private int			bytesSend	= 0;
+	private long			bytesSend	= 0;
 
 	/**
 	 * did we put anything in a buffer since the last flush
@@ -286,7 +286,7 @@ public final class NioOutput extends NetOutput implements IbisAccumulator {
 	/*
 	 * {@inheritDoc}
 	 */
-	public int getCount() {
+	public long getCount() {
 		return bytesSend;
 	}
 
@@ -693,7 +693,7 @@ public final class NioOutput extends NetOutput implements IbisAccumulator {
 	/*
 	 * {@inheritDoc}
 	 */
-	public int bytesWritten() {
+	public long bytesWritten() {
 		return getCount();
 	}
 

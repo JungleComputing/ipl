@@ -90,7 +90,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags, IbisDissipato
      * since the last reset of this counter
      * @return The number of bytes read.
      */
-    public int bytesRead() {
+    public long bytesRead() {
 	System.err.println("ArrayInputStream: bytesRead() not implemented (yet)");
 	return 0;
     }
