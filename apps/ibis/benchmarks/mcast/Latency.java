@@ -83,7 +83,7 @@ class Latency {
 				w.send();
 				w.finish();
 
-				sport.free();
+				sport.close();
 
 			} else {
 				ReceivePortIdentifier id = lookup("receive port 0");
@@ -100,7 +100,7 @@ class Latency {
 				w.send();
 				w.finish();
 
-				sport.free();
+				sport.close();
 			}
 
 			ReadMessage r = rport.receive();
@@ -109,7 +109,7 @@ class Latency {
 
 			System.out.println(rank + " got " + result);
 
-			rport.free();
+			rport.close();
 			ibis.end();
 
 		} catch (IOException e) {

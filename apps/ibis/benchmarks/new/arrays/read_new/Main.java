@@ -236,8 +236,8 @@ public class Main {
 				System.err.println("double[" + len + "]");
 				test(0, COUNT, LEN, tempdouble, rport, sport);
 
-				sport.free();
-				rport.free();
+				sport.close();
+				rport.close();
 				ibis.end();				
 			} else {
 				System.err.println("Main starting as SLAVE");
@@ -255,8 +255,8 @@ public class Main {
 				test(1, COUNT, 0, null, rport, sport);
 				test(1, COUNT, 0, null, rport, sport);
 			
-				sport.free();
-				rport.free();
+				sport.close();
+				rport.close();
 				ibis.end();	
 			}
 

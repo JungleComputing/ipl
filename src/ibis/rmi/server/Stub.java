@@ -82,7 +82,7 @@ public class Stub extends RemoteStub {
     protected void finalize() {
 	// Give up resources.
 	try {
-	    /* if (send != null) send.free(); */
+	    /* if (send != null) send.close(); */
 	    if (reply != null) {
 		RTS.putReceivePort(reply);
 	    }

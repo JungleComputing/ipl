@@ -31,7 +31,6 @@ public abstract class PortType {
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>.
-     * ConnectionAdministration is disabled.
      * 
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
@@ -44,7 +43,6 @@ public abstract class PortType {
     /**
      * Creates a named {@link SendPort} of this <code>PortType</code>.
      * The name does not have to be unique.
-     * ConnectionAdministration is disabled.
      *
      * @param name the name of this sendport.
      * @return the new sendport.
@@ -58,7 +56,6 @@ public abstract class PortType {
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
      * with a {@link Replacer}. 
-     * ConnectionAdministration is disabled.
      *
      * @param r an object replacer, used in object serialization.
      * @return the new sendport.
@@ -211,7 +208,7 @@ public abstract class PortType {
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
-    public abstract SendPort createSendPort(String name,
+    protected abstract SendPort createSendPort(String name,
 				   Replacer r,
 				   SendPortConnectUpcall cU,
 				   boolean connectionAdministration)
@@ -224,7 +221,6 @@ public abstract class PortType {
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
-     * ConnectionAdministration is disabled.
      *
      * @param name the name of this receiveport.
      * @return the new receiveport.
@@ -263,7 +259,6 @@ public abstract class PortType {
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
-     * ConnectionAdministration is disabled.
      *
      * @param name the name of this receiveport.
      * @param u the upcall handler.
@@ -282,7 +277,6 @@ public abstract class PortType {
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
-     * ConnectionAdministration is disabled.
      *
      * @param name the name of this receiveport.
      * @param u the upcall handler.
@@ -306,7 +300,6 @@ public abstract class PortType {
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
-     * ConnectionAdministration is disabled.
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.
      *
@@ -329,7 +322,6 @@ public abstract class PortType {
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
-     * ConnectionAdministration is disabled.
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.
      *
@@ -354,7 +346,6 @@ public abstract class PortType {
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
-     * ConnectionAdministration is disabled.
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.
      *
@@ -369,7 +360,7 @@ public abstract class PortType {
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
-    public abstract ReceivePort createReceivePort(String name,
+    protected  abstract ReceivePort createReceivePort(String name,
 					 Upcall u,
 					 ReceivePortConnectUpcall cU,
 					 boolean connectionAdministration)

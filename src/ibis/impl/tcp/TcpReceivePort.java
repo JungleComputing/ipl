@@ -271,12 +271,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	public synchronized ReadMessage poll(ReadMessage finishMe) throws IOException {
-		if (finishMe != null) {
-			finishMe.finish();
-		}
-		return poll();
-	}
 
 	public ReadMessage receive() throws IOException { 
 		if(upcall != null) {
@@ -291,28 +285,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return m;
 	}
 
-	public ReadMessage receive(ReadMessage finishMe) throws IOException { 
-		if (finishMe != null) {
-			finishMe.finish();
-		}
-
-		return receive();
-	}
-
 	public ReadMessage receive(long timeoutMillis) throws IOException {
 		if(upcall != null) {
 			throw new IOException("Configured Receiveport for upcalls, downcall not allowed");
 		}
 
 		return getMessage(timeoutMillis);
-	}
-
-	public ReadMessage receive(ReadMessage finishMe, long timeoutMillis) throws IOException {
-		if (finishMe != null) {
-			finishMe.finish();
-		}
-
-		return receive(timeoutMillis);
 	}
 
 	public DynamicProperties properties() {
@@ -376,7 +354,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return res;
 	}
 
-	public synchronized void free() {
+	public synchronized void close() {
 		if (DEBUG) { 
 			System.err.println("TcpReceivePort.free: " + name + ": Starting");
 		}

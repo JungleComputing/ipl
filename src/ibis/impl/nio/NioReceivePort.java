@@ -82,7 +82,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
     private boolean upcallsEnabled = false;
     private boolean connectionsEnabled = false;
 
-    //set when free() is called.
+    //set when close() is called.
     private boolean dying = false;
 
     /**
@@ -551,11 +551,6 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 	return receive(0);
     }
 
-    public ReadMessage receive(ReadMessage finishMe) 
-							throws IOException { 
-	throw new IbisError("receive(finishMe) not implemented in nio ibis");
-    }
-
     public ReadMessage receive(long timeoutMillis) 
 							throws IOException {
 	long deadline, time;
@@ -577,11 +572,6 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 	return m;
     }
 
-    public ReadMessage receive(ReadMessage finishMe, 
-				    long timeoutMillis) throws IOException {
-	throw new IbisError("receive(finishMe, timeout) not implemented in nio ibis");
-    }
-
     public ReadMessage poll() throws IOException {
 	try {
 	    return getMessage(-1);
@@ -590,11 +580,6 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 	    return null;
 	}
     }
-
-    public ReadMessage poll(ReadMessage finishMe) 
-	throws IOException {
-	    throw new IbisError("poll(finishMe) not implemented in nio ibis");
-	}
 
     public synchronized long getCount() {
 	return count;
@@ -639,7 +624,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
      *
      * @return if the free succeeded or not (it may time-out)
      */
-    private boolean free(long timeout) throws IOException {
+    private boolean close(long timeout) throws IOException {
 	long deadline;
 
 	if(timeout == 0) {
@@ -650,7 +635,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 
 	synchronized(this) {
 	    if(this.m != null) {
-		throw new IOException("free() called with message active");
+		throw new IOException("close() called with message active");
 	    }
 
 	    dying = true; // make the getMessage functions throw an exception
@@ -714,8 +699,8 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
      * Free resourced held by receiport AFTER waiting for all the connections
      * to close down
      */
-    public void free() throws IOException {
-	free(0);
+    public void close() throws IOException {
+	close(0);
     }
 
 
@@ -725,7 +710,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
      */
     public void forcedClose(long timeoutMillis) {
 	try {
-	    if(!free(timeoutMillis)) {
+	    if(!close(timeoutMillis)) {
 		forcedClose();
 	    }
 	} catch (IOException e) {

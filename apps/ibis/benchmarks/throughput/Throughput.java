@@ -144,8 +144,8 @@ System.err.println(">>>>>>>> Righto, I'm the slave");
 			}
 
 			/* free the send ports first */
-			sport.free();
-			rport.free();
+			sport.close();
+			rport.close();
 			ibis.end();
 			
 			System.exit(0);

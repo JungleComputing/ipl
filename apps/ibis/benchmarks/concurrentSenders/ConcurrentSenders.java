@@ -78,7 +78,7 @@ System.err.println(this + ": Connection established -- I'm a Sender");
 					   " seconds");
 
 			System.err.println("sender done, freeing sport");
-			sport.free();
+			sport.close();
 			System.err.println("sender done, terminating ibis");
 			ibis.end();
 			System.err.println("sender done, exit");
@@ -121,7 +121,7 @@ System.err.println(this + ": I'm a Receiver");
 					   + (time/1000.0) + " seconds");
 
 			System.err.println("receiver done, freeing rport");
-			rport.free();
+			rport.close();
 			System.err.println("receiver done, terminating ibis");
 			ibis.end();
 			System.err.println("receiver exit");

@@ -70,7 +70,7 @@ public abstract class Skeleton {
 	for (int i = 0; i < stubs.length; i++) {
 //	    if (stubs[i] != null) {
 //		try {
-//		    stubs[i].free();
+//		    stubs[i].close();
 //		} catch(Exception e) {
 //		}
 //	    }

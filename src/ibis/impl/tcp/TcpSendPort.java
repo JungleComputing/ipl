@@ -222,7 +222,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		return ident;
 	}
 	
-	public void free() throws IOException {
+	public void close() throws IOException {
 		if(aMessageIsAlive) {
 			throw new IOException("Trying to free a sendport port while a message is alive!");
 		}

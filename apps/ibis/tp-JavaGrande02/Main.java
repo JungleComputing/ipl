@@ -273,6 +273,7 @@ final class Main {
 			}
 
 			StaticProperties s = new StaticProperties();
+			s.add("serialization", "ibis");
 
 			PortType t = ibis.createPortType("test type", s);			
 			SendPort sport = t.createSendPort();					      
@@ -395,8 +396,8 @@ final class Main {
 			}
 
 			/* free the send ports first */
-                        sport.free();
-                        rport.free();
+                        sport.close();
+                        rport.close();
 			ibis.end();
 		} catch (Exception e) { 
 			System.out.println("OOPS " + e);

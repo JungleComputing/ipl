@@ -343,7 +343,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 */
 	protected void finalize() throws Throwable {
                 log.in();
-		free();
+		close();
 
                 if (eventQueueListener != null) {
                         eventQueueListener.end();
@@ -717,7 +717,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 *
 	 * Note: this function might block until the living message is finalized.
 	 */
-	public void free()
+	public void close()
 		throws IOException {
                 log.in();
                 trace.disp(sendPortTracePrefix, "send port shutdown-->");

@@ -50,25 +50,6 @@ public interface ReceivePort {
      */
     public ReadMessage receive() throws IOException;
 
-    /**
-     * Explicit blocking receive with message to be finished.
-     * In essence, it goes through the following steps:
-     * <tt>
-     * <br>if (finishMe \!= null) finishMe.finish();
-     * <br>return receive();
-     * </tt>
-     * <p>
-     * Rationale is the possibility to save on locking overhead by
-     * combining an oft-recurring sequence.
-     *
-     * @param finishMe the message to be finished.
-     * @return the message received.
-     * @exception IOException is thrown when the receiveport is configured
-     * to use upcalls, or something else is wrong.
-     */
-    public ReadMessage receive(ReadMessage finishMe) throws IOException;
-
-
     /** 
      * Explicit blocking receive with timeout.
      * This method blocks until a message arrives on this receiveport, or
@@ -87,50 +68,15 @@ public interface ReceivePort {
      **/
     public ReadMessage receive(long timeoutMillis) throws IOException;
 
-    /** 
-     * Explicit blocking receive with timeout and message to be finished..
-     * In essence, it goes through the following steps:
-     * <tt>
-     * <br>if (finishMe \!= null) finishMe.finish();
-     * <br>return receive(timeoutMillis);
-     * </tt>
-     * <p>
-     * Rationale is the possibility to save on locking overhead by
-     * combining an oft-recurring sequence.
-     *
-     * @param timeoutMillis timeout in milliseconds.
-     * @param finishMe the message to be finished.
-     * @return the message received.
-     * @exception ReceiveTimedOutException is thrown when the timeout
-     * expires and no message arrives.
-     * @exception IOException is thrown when the receiveport is configured
-     * to use upcalls, or something else is wrong.
-     */
-    public ReadMessage receive(ReadMessage finishMe, long timeoutMillis)
-	throws IOException;
-
     /**
      * Asynchronous explicit receive.
      * Returns immediately, wether or not a message is available. 
      * Also works for ports configured for upcalls, in which case it is a
      * normal poll: it will always return null, but it might generate an upcall.
      * @return the message received, or <code>null</code>.
+     * @exception IOException on IO error.
      */
     public ReadMessage poll() throws IOException;
-
-    /**
-     * Asynchronous explicit receive, with a message to be finished.
-     * In essence, it goes through the following steps:
-     * <tt>
-     * <br>if (finishMe \!= null) finishMe.finish();
-     * <br>return poll();
-     * </tt>
-     * <p>
-     * Rationale is the possibility to save on locking overhead by
-     * combining an oft-recurring sequence.
-     * @return the message received, or <code>null</code>.
-     */
-    public ReadMessage poll(ReadMessage finishMe) throws IOException;
 
     /**
      * Returns the number of bytes read from this receiveport.
@@ -191,34 +137,35 @@ public interface ReceivePort {
     public void disableConnections();
 
     /**
-     * Allows upcalls to occur.
+     * Allows message upcalls to occur.
      * This call is meaningless (and a no-op) for receiveports that were
      * created for explicit receive.
-     * Upon startup, upcalls are disabled. They must be explicitly enabled
-     * to receive upcalls.
+     * Upon startup, message upcalls are disabled.
+     * They must be explicitly enabled to receive message upcalls.
      */
     public void enableUpcalls();
 
     /**
-     * Prohibits upcalls.
-     * After this call, no upcalls will occur until {@link #enableUpcalls()}
-     * is called.
+     * Prohibits message upcalls.
+     * After this call, no message upcalls will occur until
+     * {@link #enableUpcalls()} is called.
      * The <code>disableUpcalls</code>/<code>enableUpcalls</code> mechanism
-     * allows the user to selectively allow or disallow upcalls during
-     * program run.  Remember that only one upcall can be active at the same
-     * time for each receiveport, so the
+     * allows the user to selectively allow or disallow message upcalls during
+     * program run.
+     * <strong>Note: the
      * <code>disableUpcalls</code>/<code>enableUpcalls</code>
      * mechanism is not necessary to enforce serialization of Upcalls for
-     * this port.
+     * this port.</strong> Ibis already guarantees that only one message
+     * per port is active at any time.
      */
     public void disableUpcalls();
 
     /** 
      * Frees the resources held by the receiveport. 
      * Important: this method blocks until all sendports that are
-     * connected to it have been freed. 
+     * connected to it have been closed. 
      */
-    public void free() throws IOException;
+    public void close() throws IOException;
 
     /** 
      * Frees the resources held by the receiveport. 
@@ -239,8 +186,9 @@ public interface ReceivePort {
      * When this call is used, and this port is configured to maintain
      * connection administration, it updates the administration and thus
      * may generate lostConnection upcalls.
+     * @param timeoutMillis timeout in milliseconds.
      */
-    public void forcedClose(long timeoutMillis);
+    public void forcedClose(long timeoutMillis) throws IOException;
 
     /**
      * Returns the set of sendports this receiveport is connected to .

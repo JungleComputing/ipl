@@ -600,8 +600,8 @@ public final class Ping {
                                 System.err.println("Slave: starting test");
 				slave();
 			}
-                        sport.free();
-                        rport.free();
+                        sport.close();
+                        rport.close();
 			ibis.end();
 		} catch (Exception e) {
 			System.out.println("Got exception " + e);

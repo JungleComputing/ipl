@@ -166,7 +166,7 @@ class ElectionServer
 
 	for (int i = 0; i < n; i++) {
 	    try {
-		client_port[i].free();
+		client_port[i].close();
 	    } catch (IOException e) {
 		// Ignore
 	    }
@@ -176,7 +176,7 @@ class ElectionServer
 		System.err.println("ElectionServer frees server port[" + i + "] (of " + n + ") = " + server_port[i]);
 	    }
 	    try {
-		server_port[i].free();
+		server_port[i].close();
 	    } catch (IOException e) {
 		// Ignore
 	    }

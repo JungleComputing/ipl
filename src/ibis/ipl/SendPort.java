@@ -113,12 +113,12 @@ public interface SendPort
 
     /**
      * Frees the resources held by the sendport.
-     * If a free is attempted when a message is still alive, an exception
+     * If a close is attempted when a message is still alive, an exception
      * will be thrown. Even if this call throws an exception, the connection
      * cannot be used anymore.
      * @exception IOException is thrown in case of trouble.
      */
-    public void free () throws IOException;
+    public void close () throws IOException;
 
     /** 
      * Returns the set of receiveports this sendport is connected to.

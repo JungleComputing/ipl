@@ -553,14 +553,11 @@ class ReceivePort
     }
 
 
-    private ibis.ipl.ReadMessage receive(ReadMessage finishMe, boolean block)
+    private ibis.ipl.ReadMessage receive(boolean block)
 	    throws IOException {
 	Ibis.myIbis.lock();
 	try {
 // manta.runtime.RuntimeSystem.DebugMe(this, this);
-	    if (finishMe != null) {
-		finishMe.finishLocked();
-	    }
 	    return doReceive(block);
 	} finally {
 	    Ibis.myIbis.unlock();
@@ -573,30 +570,13 @@ class ReceivePort
     }
 
 
-    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMe, long timeout) throws IOException {
-	return receive(finishMe);
-    }
-
-
     public ibis.ipl.ReadMessage receive() throws IOException {
-	return receive(null, true);
-    }
-
-
-    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMe)
-	    throws IOException {
-	return receive((ReadMessage)finishMe, true);
+	return receive(true);
     }
 
 
     public ibis.ipl.ReadMessage poll() throws IOException {
-	return receive(null, false);
-    }
-
-
-    public ibis.ipl.ReadMessage poll(ibis.ipl.ReadMessage finishMe)
-	    throws IOException {
-	return receive((ReadMessage)finishMe, false);
+	return receive(false);
     }
 
 
@@ -691,7 +671,7 @@ class ReceivePort
     }
 
 
-    public void free() {
+    public void close() {
 
 	if (DEBUG) {
 	    System.out.println(Thread.currentThread() + name + ":Starting receiveport.free upcall = " + upcall);
@@ -784,7 +764,7 @@ class ReceivePort
 
 
     public void forcedClose() {
-	free();
+	close();
     }
 
 

@@ -772,8 +772,8 @@ public class Main {
 				testFloat(0, COUNT, LEN, rport, sport);
 				testDouble(0, COUNT, LEN, rport, sport);
 				
-				sport.free();
-				rport.free();
+				sport.close();
+				rport.close();
 				ibis.end();				
 			} else {
 				ReceivePortIdentifier ident = lookup("test port 0");
@@ -790,8 +790,8 @@ public class Main {
 				testFloat(1, COUNT, LEN, rport, sport);
 				testDouble(1, COUNT, LEN, rport, sport);
 			
-				sport.free();
-				rport.free();
+				sport.close();
+				rport.close();
 				ibis.end();	
 			}
 

@@ -523,9 +523,9 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 	report();
 
 	/* free the send ports first */
-	sport.free();
+	sport.close();
 	// System.err.println("Freed my send port");
-	rport.free();
+	rport.close();
 	// System.err.println("Freed my rcve port");
     }
 
@@ -594,9 +594,9 @@ System.err.println("Poor-man's barrier send finished");
 	report();
 
 	/* free the send ports first */
-	sport.free();
+	sport.close();
 	System.err.println("Freed my send port");
-	rport.free();
+	rport.close();
 	System.err.println("Freed my rcve port");
     }
 

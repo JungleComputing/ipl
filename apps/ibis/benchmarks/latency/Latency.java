@@ -507,8 +507,8 @@ class Latency implements Config {
 			}
 
 			/* free the send ports first */
-                        sport.free();
-                        rport.free();
+                        sport.close();
+                        rport.close();
 			ibis.end();
 		} catch (Exception e) { 
 			System.err.println("Got exception " + e);

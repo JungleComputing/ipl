@@ -47,11 +47,20 @@ public abstract class Ibis {
     /** A list of available ibis implementations. */
     private static ArrayList implList;
 
+    /** A list of nicknames for available ibis implementations. */
+    private static ArrayList nicknameList;
+
     /** Properties of available ibis implementations. */
     private static ArrayList implProperties; /* StaticProperties list */
 
     /** The currently loaded Ibises. */
     private static ArrayList loadedIbises = new ArrayList();
+
+    /** The default Ibis nickname. */
+    private static String defaultIbisNickname;
+
+    /** The default Ibis classname. */
+    private static String defaultIbisName;
 
     static {
 	try {
@@ -263,11 +272,12 @@ public abstract class Ibis {
 
 	if (ibisname == null && reqprop == null) {
 	    // default Ibis
-	    ibisname = "tcp";
+	    ibisname = defaultIbisNickname;
 	}
 
+	String[] impls = list();
+
 	if (ibisname == null) {
-	    String[] impls = list();
 	    for (int i = 0; i < impls.length; i++) {
 		StaticProperties ibissp = staticProperties(impls[i]);
 //		System.out.println("try " + impls[i]);
@@ -285,20 +295,25 @@ public abstract class Ibis {
 	    }
 	}
 	else {
-	    implementationname = "ibis.impl.tcp.TcpIbis";
-	    if (ibisname.equals("panda")) {
-		implementationname =  "ibis.impl.messagePassing.PandaIbis";
-	    } else if (ibisname.equals("mpi")) {
-		implementationname =  "ibis.impl.messagePassing.MPIIbis";
-	    } else if (ibisname.equals("nio")) {
-		implementationname =  "ibis.impl.nio.NioIbis";
-	    } else if (ibisname.startsWith("net")) {
-		implementationname =  "ibis.impl.net.NetIbis";
+	    String[] nicks = nicknames();
+	    String name = ibisname;
+	    if (name.startsWith("net")) {
+		name = "net";
+	    }
+	    for (int i = 0; i < nicks.length; i++) {
+		if (name.equals(nicks[i])) {
+		    implementationname = impls[i];
+		    break;
+		}
+	    }
+	    if (implementationname == null) {
+		System.err.println("Warning: name '" + ibisname +
+			"' not recognized, using " + defaultIbisName);
+		implementationname = defaultIbisName;
+	    }
+	    else if (ibisname.startsWith("net")) {
 		StaticProperties sp = staticProperties(implementationname);
 		sp.add("IbisName", ibisname);
-	    } else if (! ibisname.equals("tcp")) {
-		System.err.println("Warning: name '" + ibisname +
-			"' not recognized, using TCP version");
 	    }
 	}
 
@@ -316,7 +331,12 @@ public abstract class Ibis {
     /**
      * Reads the properties of an ibis implementation.
      */
-    private static void addIbis(String name, Properties p) throws IOException {
+    private static void addIbis(String nickname, Properties p)
+	    throws IOException {
+	String name = p.getProperty(nickname);
+	if (name == null) {
+	    throw new IOException("no implementation given for nickname " + nickname);
+	}
 	String propertyFiles = p.getProperty(name);
 
 	if (propertyFiles != null) {
@@ -347,6 +367,10 @@ public abstract class Ibis {
 	    }
 
 	    synchronized(Ibis.class) {
+		if (nickname.equals(defaultIbisNickname)) {
+		    defaultIbisName = name;
+		}
+		nicknameList.add(nickname);
 		implList.add(name);
 		implProperties.add(sp);
 	    }
@@ -359,19 +383,26 @@ public abstract class Ibis {
      * Reads the properties of the ibis implementations available on the
      * current machine.
      * @exception IOException is thrown when a property file could not
-     *  be opened.
+     *  be opened, or the "names" property could not be found.
      */
     private static void readGlobalProperties() throws IOException {
 	InputStream in = openProperties();
 
 	implList = new ArrayList();
+	nicknameList = new ArrayList();
 	implProperties = new ArrayList();
 
 	Properties p = new Properties();
 	p.load(in);
 	in.close();
 
-	String order = p.getProperty("order");
+	String order = p.getProperty("names");
+
+	defaultIbisNickname = p.getProperty("default");
+
+	if (defaultIbisNickname == null) {
+	    throw new IOException("Error in properties file: no default ibis!");
+	}
 
 	if (order != null) {
 	    StringTokenizer st = new StringTokenizer(order,
@@ -379,14 +410,12 @@ public abstract class Ibis {
 	    while (st.hasMoreTokens()) {
 		addIbis(st.nextToken(), p);
 	    }
-	    return;
+	    if (defaultIbisName == null) {
+		throw new IOException("Error in properties file: could not find the default Ibis (" + defaultIbisNickname + ")");
+	    }
 	}
-
-	Enumeration en = p.propertyNames();
-
-	while (en.hasMoreElements()) {
-	    String name = (String) en.nextElement();
-	    addIbis(name, p);
+	else {
+	    throw new IOException("Error in properties file: no property \"names\"");
 	}
     }
 
@@ -465,6 +494,19 @@ public abstract class Ibis {
 	String[] res = new String[implList.size()];
 	for(int i=0; i<res.length; i++) {
 	    res[i] = (String) implList.get(i);
+	}
+
+	return res;
+    }
+
+    /**
+     * Returns a list of available Ibis nicknames for this system.
+     * @return the list of available Ibis implementations.
+     */
+    private static synchronized String[] nicknames() {
+	String[] res = new String[nicknameList.size()];
+	for(int i=0; i<res.length; i++) {
+	    res[i] = (String) nicknameList.get(i);
 	}
 
 	return res;

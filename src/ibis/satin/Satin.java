@@ -969,10 +969,10 @@ public final class Satin implements Config, ResizeHandler {
 
 		try {
 			if(SUPPORT_TUPLE_MULTICAST) {
-				tuplePort.free();
+				tuplePort.close();
 			}
 		} catch (Throwable e) {
-			System.err.println("tuplePort.free() throws " + e);
+			System.err.println("tuplePort.close() throws " + e);
 		}
 
 		// If not closed, free ports. Otherwise, ports will be freed in leave calls.
@@ -994,29 +994,29 @@ public final class Satin implements Config, ResizeHandler {
 				}
 			
 				if(s != null) {
-					s.free();
+					s.close();
 				}
 			
 				/*if(COMM_DEBUG) {
 				  out.println(" DONE");
 				  }*/
 			} catch (Throwable e) {
-				System.err.println("port.free() throws " + e);
+				System.err.println("port.close() throws " + e);
 			}
 		}
 		
 		try {
-			receivePort.free();
+			receivePort.close();
 
 			if(master) {
-				barrierReceivePort.free();
+				barrierReceivePort.close();
 			} else {
-				barrierSendPort.free();
+				barrierSendPort.close();
 			}
 
 			ibis.end();
 		} catch (Throwable e) {
-			System.err.println("port.free() throws " + e);
+			System.err.println("port.close() throws " + e);
 		}
 
 		if(COMM_DEBUG) {
@@ -1435,9 +1435,9 @@ public final class Satin implements Config, ResizeHandler {
 
 			if (v != null && v.s != null) {
 				try {
-					v.s.free();
+					v.s.close();
 				} catch (IOException e) {
-					System.err.println("port.free() throws " + e);
+					System.err.println("port.close() throws " + e);
 				}
 			}
 		}

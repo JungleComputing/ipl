@@ -232,8 +232,8 @@ class Latency {
 			}
 
 			/* free the send ports first */
-                        sport.free();
-                        rport.free();
+                        sport.close();
+                        rport.close();
 			ibis.end();
 
                         System.exit(0);

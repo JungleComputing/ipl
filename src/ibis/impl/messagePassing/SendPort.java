@@ -393,7 +393,7 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
 
-    public void free() throws IOException {
+    public void close() throws IOException {
 	if (DEBUG) {
 	    System.out.println(Ibis.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " start");
 	}

@@ -739,28 +739,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
         }
 
-       public ReadMessage receive(ReadMessage finishMe, long millis) throws IOException {
-               log.in();
-               if (finishMe != null) {
-                       ((NetReceivePort)finishMe).finish();
-               }
-               log.out();
-
-               return receive(millis);
-       }
-
-         /**
-         * {@inheritDoc}
-         */
-        public ReadMessage receive(ReadMessage finishMe) throws IOException {
-                log.in();
-                if (finishMe != null) {
-                        ((NetReceivePort)finishMe).finish();
-                }
-                log.out();
-
-                return receive();
-        }
 
         /**
          * Unblockingly attempts to receive a message.
@@ -789,19 +767,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return _receive();
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        public ReadMessage poll(ReadMessage finishMe) throws IOException {
-                log.in();
-                if (finishMe != null) {
-                        ((NetReceivePort)finishMe).finish();
-                }
-
-                ReadMessage rm = poll();
-                log.out();
-                return rm;
-        }
 
         public DynamicProperties properties() {
                 log.in();
@@ -962,7 +927,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         /**
          * Closes the port.
          */
-        public void free() throws IOException {
+        public void close() throws IOException {
                 log.in();
                 trace.disp(receivePortTracePrefix, "receive port shutdown-->");
                 synchronized(this) {
@@ -1027,7 +992,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         }
 
         public void forcedClose() throws IOException {
-                free();
+                close();
         }
 
         public void forcedClose(long timeout) {
@@ -1036,7 +1001,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         protected void finalize() throws Throwable {
                 log.in();
-                free();
+                close();
 
                 if (eventQueueListener != null) {
                         eventQueueListener.end();

@@ -48,8 +48,8 @@ PropertyCategories:	communication worldmodel serialization
 #	this (and not AutoUpcalls), it must poll.
 #   ExplicitReceipt
 #	explicit receive is supported.
-#   ConnectionAdministration
-#	connection administration is supported.
+#   ConnectionDowncalls
+#	connection downcalls are supported.
 #   ConnectionUpcalls
 #	connection upcalls are supported.
 #
@@ -58,7 +58,7 @@ communication:	OneToOne, OneToMany, ManyToOne, \
 		FifoOrdered, TotallyOrdered, \
 		Reliable, Unreliable, \
 		AutoUpcalls, PollUpcalls, ExplicitReceipt, \
-		ConnectionAdministration, ConnectionUpcalls
+		ConnectionDowncalls, ConnectionUpcalls
 
 #
 # There are some implied properties, for instance OneToMany implies OneToOne.

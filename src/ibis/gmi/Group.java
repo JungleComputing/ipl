@@ -978,8 +978,8 @@ public final class Group implements GroupProtocol {
 		    w.send();
 		    w.finish();
 		    
-		    systemOut.free();
-		    systemIn.free();
+		    systemOut.close();
+		    systemIn.close();
 		}
 		
 	    } else { 
@@ -995,23 +995,23 @@ public final class Group implements GroupProtocol {
 		ReadMessage r = systemIn.receive();
 		r.finish();
 
-		systemOut.free();
-		systemIn.free();				
+		systemOut.close();
+		systemIn.close();				
 
 	    }
 	    
 	    for (int i=0;i<_size;i++) { 
-		unicast[i].free();
+		unicast[i].close();
 	    } 
 
 	    Enumeration hash_elts = multicastSendports.elements();
 
 	    while (hash_elts.hasMoreElements()) {
 		SendPort p = (SendPort) (hash_elts.nextElement());
-		p.free();
+		p.close();
 	    }
 	    
-	    receivePort.free();			
+	    receivePort.close();			
 	    ibis.end();
 	    ibis = null;
 	    

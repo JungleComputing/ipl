@@ -41,11 +41,11 @@ class ElectionClient implements ElectionProtocol {
 	    return;
 	}
 
-	sport.free();
+	sport.close();
 	if (ElectionServer.DEBUG) {
 	    System.err.println("ElectionClient frees receive port " + rport);
 	}
-	rport.free();
+	rport.close();
 	if (ElectionServer.DEBUG) {
 	    System.err.println("ElectionClient has freed receive port " + rport);
 	}

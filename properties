@@ -5,10 +5,42 @@
 # filenames as property value.
 #
 # The order in this file is not significant, because
-# java.util.Properties#load(InputStream) is used to read it. Therefore,
-# at the end, a property named "order" is given, which should give
-# a "preference" order: fastest one first.
+# java.util.Properties#load(InputStream) is used to read it.
+# 
+# This file is read as follows:
+# first, the "names" property is read, to obtain the list of "nicknames"
+# of Ibis implementations.
+# Next, each of these nicknames is regarded as a property name, and its
+# corresponding value is regarded as a fully qualified classname, giving
+# the implementation of the corresponding Ibis.
+# Each of these implementation names, in turn, is regarded as a property
+# name to obtain a list of property files for this Ibis.
 #
+# The "names" property also gives a "preference" order: fastest one first.
+# The first Ibis that matches the properties required by the application
+# and is present on the system at hand is used.
+#
+# A "default" Ibis is also specified.
+#
+
+names \
+    panda \
+    tcp \
+    net \
+    nio \
+    mpi
+
+default	tcp
+
+tcp	ibis.impl.tcp.TcpIbis
+
+panda	ibis.impl.messagePassing.PandaIbis
+
+mpi	ibis.impl.messagePassing.MPIIbis
+
+net	ibis.impl.net.NetIbis
+
+nio	ibis.impl.nio.NioIbis
 
 ibis.impl.messagePassing.PandaIbis \
     ibis/impl/messagePassing/panda/properties \
@@ -27,10 +59,3 @@ ibis.impl.net.NetIbis \
 
 ibis.impl.nio.NioIbis \
     ibis/impl/nio/properties
-
-order \
-    ibis.impl.messagePassing.PandaIbis \
-    ibis.impl.messagePassing.MPIIbis \
-    ibis.impl.tcp.TcpIbis \
-    ibis.impl.net.NetIbis \
-    ibis.impl.nio.NioIbis

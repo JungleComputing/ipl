@@ -145,8 +145,8 @@ public class Main {
 						   + (((1000.0*(count*len*Data.OBJECT_SIZE))/(1024*1024))/(end-start))
 						   + " MBytes/s");
 							
-				sport.free();
-				rport.free();
+				sport.close();
+				rport.close();
 				ibis.end();				
 			} else {
 				ReceivePortIdentifier ident = lookup("test port 0");
@@ -169,8 +169,8 @@ public class Main {
 					wm.finish();
 				}
 			
-				sport.free();
-				rport.free();
+				sport.close();
+				rport.close();
 				ibis.end();	
 			}
 
