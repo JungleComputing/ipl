@@ -120,6 +120,7 @@ public class SOR {
 	    System.out.println("");
 	    System.out.println("CPUs          : " + size);
 	    System.out.println("Matrix size   : " + nrow + "x" + ncol);
+	    System.out.println("Iterations    : " + (maxIters >= 0 ? ("" + maxIters) : "dynamic"));
 	    System.out.println("");
 	}
     }
@@ -700,7 +701,7 @@ public class SOR {
 	    }
 	    if (TIMINGS) t_compute.stop();
 
-	    if (size > 1 && (maxIters <= 0 || REDUCE_ON_FIXED)) {
+	    if (size > 1 && (maxIters < 0 || REDUCE_ON_FIXED)) {
 		maxdiff = reduce(maxdiff);
 	    }
 
@@ -711,7 +712,7 @@ public class SOR {
 
 	    iteration++;
 
-	} while ((maxIters > 0) ?
+	} while ((maxIters >= 0) ?
 		    (iteration < maxIters) :
 		    (maxdiff > stopdiff));
 
