@@ -224,6 +224,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 	    }
 
 	    channel.socket().setTcpNoDelay(true);
+	    channel.socket().setSendBufferSize(0x8000);
+	    channel.socket().setReceiveBufferSize(0x8000);
 
 	    //write out rpi and spi
 	    ChannelAccumulator accumulator = new ChannelAccumulator(channel);
@@ -433,6 +435,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 	    try {
 		channel = ssc.accept();
 		channel.socket().setTcpNoDelay(true);
+		channel.socket().setSendBufferSize(0x8000);
+		channel.socket().setReceiveBufferSize(0x8000);
 		channel.configureBlocking(true);
 	    } catch (ClosedChannelException e) {
 		// the channel was closed before we started the accept

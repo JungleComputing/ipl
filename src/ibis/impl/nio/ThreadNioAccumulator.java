@@ -33,7 +33,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 						  channel, peer);
     }
 
-    void doSend(SendBuffer buffer) throws IOException {
+    boolean doSend(SendBuffer buffer) throws IOException {
 	SendBuffer copy;
 	
 	if (DEBUG) {
@@ -43,9 +43,8 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 	if (nrOfConnections == 0) {
 	    if (DEBUG) {
 		Debug.exit("buffers", this, "!no connections to send to");
-		return; // don't do normal exit message
 	    }
-	    return;
+	    return true;
 	} else if (nrOfConnections == 1) {
 	    if (DEBUG) {
 		Debug.message("buffers", this, "sending to one(1) connection");
@@ -61,7 +60,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 		nrOfConnections = 0;
 		if (DEBUG) {
 		    Debug.exit("buffers", this, "!(only) connection lost");
-		    return; // don't do normal exit message
+		    return false; // don't do normal exit message
 		}
 	    }
 	} else {
@@ -95,6 +94,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 	if (DEBUG) {
 	    Debug.exit("buffers", this, "done send");
 	}
+	return false;
     }
 
     void doFlush() throws IOException {

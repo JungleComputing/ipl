@@ -38,7 +38,7 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
      * Sends out a buffer to multiple channels.
      * Doesn't buffer anything
      */
-    void doSend(SendBuffer buffer) throws IOException {
+    boolean doSend(SendBuffer buffer) throws IOException {
 	if (DEBUG) {
 	    Debug.enter("buffers", this, "sending a buffer");
 	}
@@ -64,10 +64,10 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 		i--;
 	    }
 	}
-	SendBuffer.recycle(buffer);
 	if (DEBUG) {
 	    Debug.exit("buffers", this, "done sending a buffer");
 	}
+	return true; //signal we are done with the buffer now
     }
 
     void doFlush() throws IOException {

@@ -101,17 +101,30 @@ class NioPortType extends PortType implements Config {
 
 
 
-	String sendImpl = systemProperties.getProperty("ibis.nio.sportimpl");
+	String globalSPI = systemProperties.getProperty("ibis.nio.spi");
+	String typeSPI = systemProperties.getProperty("ibis.nio." + name 
+						      + ".spi");
 
-	if (sendImpl != null) {
-	    if (sendImpl.equalsIgnoreCase("Blocking")) {
+	if (typeSPI != null) {
+	    if (typeSPI.equalsIgnoreCase("Blocking")) {
 		sendPortImplementation = IMPLEMENTATION_BLOCKING;
-	    } else if (sendImpl.equalsIgnoreCase("NonBlocking")) {
+	    } else if (typeSPI.equalsIgnoreCase("NonBlocking")) {
 		sendPortImplementation = IMPLEMENTATION_NON_BLOCKING;
-	    } else if (sendImpl.equalsIgnoreCase("Thread")) {
+	    } else if (typeSPI.equalsIgnoreCase("Thread")) {
 		sendPortImplementation = IMPLEMENTATION_THREAD;
 	    } else {
-		throw new IbisException("unknown value \"" + sendImpl
+		throw new IbisException("unknown value \"" + typeSPI 
+			+ "\" for sendport implementation");
+	    }
+	} else if (globalSPI != null) {
+	    if (globalSPI.equalsIgnoreCase("Blocking")) {
+		sendPortImplementation = IMPLEMENTATION_BLOCKING;
+	    } else if (globalSPI.equalsIgnoreCase("NonBlocking")) {
+		sendPortImplementation = IMPLEMENTATION_NON_BLOCKING;
+	    } else if (globalSPI.equalsIgnoreCase("Thread")) {
+		sendPortImplementation = IMPLEMENTATION_THREAD;
+	    } else {
+		throw new IbisException("unknown value \"" + typeSPI
 			+ "\" for sendport implementation");
 	    }
 	} else if (oneToMany) {
@@ -120,17 +133,30 @@ class NioPortType extends PortType implements Config {
 	    sendPortImplementation = IMPLEMENTATION_BLOCKING;
 	}
 
-	String receiveImpl = systemProperties.getProperty("ibis.nio.rportimpl");
+	String globalRPI = systemProperties.getProperty("ibis.nio.rpi");
+	String typeRPI = systemProperties.getProperty("ibis.nio." 
+							+ name + ".rpi");
 
-	if (receiveImpl != null) {
-	    if (receiveImpl.equalsIgnoreCase("Blocking")) {
+	if (typeRPI != null) {
+	    if (typeRPI.equalsIgnoreCase("Blocking")) {
 		receivePortImplementation = IMPLEMENTATION_BLOCKING;
-	    } else if (receiveImpl.equalsIgnoreCase("NonBlocking")) {
+	    } else if (typeRPI.equalsIgnoreCase("NonBlocking")) {
 		receivePortImplementation = IMPLEMENTATION_NON_BLOCKING;
-		} else if (receiveImpl.equalsIgnoreCase("Thread")) {
+	    } else if (typeRPI.equalsIgnoreCase("Thread")) {
+		receivePortImplementation = IMPLEMENTATION_THREAD;
+	    } else {
+		throw new IbisException("unknown value \"" + typeRPI
+			+ "\" for receiveport implementation");
+	    }
+	} else if (globalRPI != null) {
+	    if (globalRPI.equalsIgnoreCase("Blocking")) {
+		receivePortImplementation = IMPLEMENTATION_BLOCKING;
+	    } else if (globalRPI.equalsIgnoreCase("NonBlocking")) {
+		receivePortImplementation = IMPLEMENTATION_NON_BLOCKING;
+		} else if (globalRPI.equalsIgnoreCase("Thread")) {
 		    receivePortImplementation = IMPLEMENTATION_THREAD;
 		} else {
-		    throw new IbisException("unknown value \"" + receiveImpl
+		    throw new IbisException("unknown value \"" + globalRPI
 			    + "\" for receiveport implementation");
 		}
 	} else if (manyToOne) {

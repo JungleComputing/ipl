@@ -39,7 +39,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
      * First adds buffer to pending buffers list,
      * then sends out as much data as possible
      */
-    void doSend(SendBuffer buffer) throws IOException {
+    boolean doSend(SendBuffer buffer) throws IOException {
 	SendBuffer copy;
 
 	if (DEBUG) {
@@ -50,7 +50,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 	    if (DEBUG) {
 		Debug.exit("channels", this, "!not connected");
 	    }
-	    return;
+	    return true;
 	} else if (nrOfConnections == 1) {
 	    if (DEBUG) {
 		Debug.message("channels", this, "sending to 1 connection");
@@ -104,6 +104,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 		}
 	    }
 	}
+	return false;
     }
 
     void doFlush() throws IOException {

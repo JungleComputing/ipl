@@ -25,6 +25,6 @@ interface Config {
      * Buffer sized used for primitive buffers. 
      * Must be a multiple of eight.
      */
-    static final int PRIMITIVE_BUFFER_SIZE = 1400;
+    static final int PRIMITIVE_BUFFER_SIZE = 6 * 1024;
 
 }

@@ -169,18 +169,23 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
 		}
 	    }
 
-	    if (deadline == -1) {
-		selector.selectNow();
-		deadlinePassed = true;
-	    } else if (deadline == 0) {
-		selector.select();
-	    } else {
-		time = System.currentTimeMillis();
-		if(time >= deadline) {
+	    try {
+		if (deadline == -1) {
+		    selector.selectNow();
 		    deadlinePassed = true;
+		} else if (deadline == 0) {
+		    selector.select();
 		} else {
-		    selector.select(deadline - time);
+		    time = System.currentTimeMillis();
+		    if(time >= deadline) {
+			deadlinePassed = true;
+		    } else {
+			selector.select(deadline - time);
+		    }
 		}
+	    } catch (IOException e) {
+		//FIXME: is this a good idea?
+		//IGNORE
 	    }
 
 	    keys = (SelectionKey[]) selector.selectedKeys().toArray(keys);

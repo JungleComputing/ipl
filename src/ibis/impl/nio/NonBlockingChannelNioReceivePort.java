@@ -220,7 +220,6 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 		    }
 		}
 
-		/*
 		if(firstTry && nrOfConnections == 1 && !type.manyToOne) {
 		    //optimisticly do a single receive, to avoid
 		    //the select statement below if possible
@@ -231,7 +230,6 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 		    }
 		    firstTry = false;
 		}
-		*/
 
 		for (int i = 0; i < nrOfConnections; i++) {
 		    try {

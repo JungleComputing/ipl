@@ -124,17 +124,20 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 
 	count += buffer.remaining();
 
-	doSend(buffer);
-
-	//get a new buffer
-	buffer = SendBuffer.get();
-	bytes = buffer.bytes;
-	chars = buffer.chars;
-	shorts = buffer.shorts;
-	ints = buffer.ints;
-	longs = buffer.longs;
-	floats = buffer.floats;
-	doubles = buffer.doubles;
+	if (doSend(buffer)) {
+	    //buffer was completely send, just clear it and use it again
+	    buffer.clear();
+	} else {
+	    //get a new buffer
+	    buffer = SendBuffer.get();
+	    bytes = buffer.bytes;
+	    chars = buffer.chars;
+	    shorts = buffer.shorts;
+	    ints = buffer.ints;
+	    longs = buffer.longs;
+	    floats = buffer.floats;
+	    doubles = buffer.doubles;
+	}
     }
 
     synchronized public void flush() throws IOException {
@@ -427,7 +430,11 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	    GatheringByteChannel channel, NioReceivePortIdentifier peer)
 	throws IOException;
 
-    abstract void doSend(SendBuffer buffer) throws IOException;
+    /**
+     * @return is the buffer already send or not. If it is not, the 
+     * implementation will recycle it when it's done with it.
+     */
+    abstract boolean doSend(SendBuffer buffer) throws IOException;
 
     abstract void doFlush() throws IOException;
 }
