@@ -1,6 +1,6 @@
 // File: $Id$
 //
-// Representation of a problem in CNF form.
+// Representation of a SAT problem in CNF form.
 
 import java.io.Reader;
 import java.io.FileReader;

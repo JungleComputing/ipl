@@ -7,7 +7,7 @@
 // In this implementation the solver simply takes the first unassigned
 // variable, and tries both possible assignments. These tries can
 // of course be done in parallel, making this ideally suited for Satin.
-// More subtility is definitely possible, though.
+// More subtle approaches are definitely possible, though.
 
 import java.io.File;
 
@@ -27,9 +27,6 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	if( var>=p.getVariableCount() ){
 	    // There are no variables left to assign, clearly there
 	    // isn't a solution.
-	    //
-	    // TODO: detect conflicting assignments so that the recursion
-	    // can be terminated earlier.
 	    return null;
 	}
 
