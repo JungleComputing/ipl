@@ -32,6 +32,15 @@ static int	sent_data = 0;
 #endif
 
 
+#if MAKE_GLOBAL_REF_TO_PIN
+#define save_ref(env, obj)	(*(env))->NewGlobalRef(env, obj)
+#define restore_ref(env, obj)	(*(env))->DeleteGlobalRef(env, obj)
+#else
+#define save_ref(env, obj)	(obj)
+#define restore_ref(env, obj)
+#endif
+
+
 static jclass cls_PandaByteOutputStream;
 
 static jfieldID fld_msgHandle;
@@ -161,6 +170,7 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 				 msg->release[i].array,
 				 msg->release[i].buf,
 				 JNI_ABORT);
+	    restore_ref(env, msg->release[i].array);
 	}
     }
     msg->iov_len = 0;
@@ -556,6 +566,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_report(
 }
 
 
+
 #define ARRAY_WRITE(JType, jtype) \
 void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
 	JNIEnv *env,  \
@@ -583,7 +594,7 @@ void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array(
 	iovec_grow(env, msg, 0); \
 	msg->iov[msg->iov_len].data = a + off; \
 	msg->iov[msg->iov_len].len  = len * sizeof(jtype); \
-	msg->release[msg->iov_len].array = b; \
+	msg->release[msg->iov_len].array = save_ref(env, b); \
 	msg->release[msg->iov_len].buf   = a; \
 	msg->release[msg->iov_len].func  = (release_func_t)(*env)->Release ## JType ## ArrayElements; \
     } \
