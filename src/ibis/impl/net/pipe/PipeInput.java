@@ -59,7 +59,7 @@ public final class PipeInput extends NetBufferedInput {
         }
 
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
-                System.err.println("PipeInput: setupConnection -->");
+                //System.err.println("PipeInput: setupConnection -->");
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
@@ -101,7 +101,7 @@ public final class PipeInput extends NetBufferedInput {
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread("this = "+this)).start();
                 }
-                System.err.println("PipeInput: setupConnection <--");
+                //System.err.println("PipeInput: setupConnection <--");
 	}
 
 	public Integer poll() throws NetIbisException {

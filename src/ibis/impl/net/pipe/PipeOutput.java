@@ -25,7 +25,7 @@ public final class PipeOutput extends NetBufferedOutput {
 	 * {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
-                System.err.println("PipeOutput: setupConnection -->");
+                //System.err.println("PipeOutput: setupConnection -->");
 
                 if (this.rpn != null) {
                         throw new Error("connection already established");
@@ -57,7 +57,7 @@ public final class PipeOutput extends NetBufferedOutput {
 		} catch (ClassNotFoundException e) {
 			throw new Error(e);
 		}
-                System.err.println("PipeOutput: setupConnection <--");
+                //System.err.println("PipeOutput: setupConnection <--");
 	}
 
 	public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
