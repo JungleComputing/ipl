@@ -191,6 +191,11 @@ public class SuffixArray implements Configuration, Magic {
         return buildString( 0 );
     }
 
+    String buildString( Step s )
+    {
+        return buildString( s.occurences[0], s.len );
+    }
+
     private void print( PrintStream s )
     {
 	for( int i=0; i<indices.length; i++ ){
@@ -256,7 +261,7 @@ public class SuffixArray implements Configuration, Magic {
      * to take advantage of the commonality indicated by that entry.
      * It also covers any further entries with the same commonality.
      */
-    private void applyCompression( Step s ) throws VerificationException
+    public void applyCompression( Step s ) throws VerificationException
     {
         final int oldLength = length;   // Remember the old length for verif.
 
@@ -390,7 +395,7 @@ public class SuffixArray implements Configuration, Magic {
      * Calculates the best folding step to take.
      * @return The best step, or null if there is nothing worthwile.
      */
-    private StepList selectBestSteps( int top )
+    public StepList selectBestSteps( int top )
     {
         int mincom = MINCOMMONALITY;
         int candidates[] = new int[length];
@@ -442,50 +447,9 @@ public class SuffixArray implements Configuration, Magic {
         return res;
     }
 
-    /**
-     * Applies one step in the folding process.
-     * @return True iff a useful compression step could be done.
-     */
-    public boolean applyFolding( int top ) throws VerificationException
-    {
-        if( length == 0 ){
-            return false;
-        }
-        StepList steps = selectBestSteps( top );
-
-        System.out.println( "Choices: " + steps.getLength() );
-
-        // For now, just pick the best move.
-        Step mv = steps.getBestStep();
-        if( mv != null && mv.getGain()>0 ){
-            // It is worthwile to do this compression.
-            if( traceCompressionCosts ){
-                System.out.println( "Best step: string [" + buildString( mv.occurences[0], mv.len ) + "]: " + mv );
-            }
-            applyCompression( mv );
-            if( doVerification ){
-                test();
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /** Returns a compressed version of the string represented by
-     * this suffix array.
-     */
-    public ByteBuffer compress( int top ) throws VerificationException
-    {
-        boolean success;
-
-        do {
-            success = applyFolding( top );
-            if( traceIntermediateGrammars && success ){
-                printGrammar();
-            }
-        } while( success );
-	return new ByteBuffer( text, length );
-    }
+    public int getLength() { return length; }
+    
+    public ByteBuffer getByteBuffer() { return new ByteBuffer( text, length ); }
 
     public static void main( String args[] )
     {

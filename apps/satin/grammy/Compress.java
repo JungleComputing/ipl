@@ -6,10 +6,55 @@ class Compress extends ibis.satin.SatinObject implements Configuration
 {
     static boolean doVerification = false;
 
+    /**
+     * Applies one step in the folding process.
+     * @return True iff a useful compression step could be done.
+     */
+    public static boolean applyFolding( SuffixArray a, int top ) throws VerificationException
+    {
+        if( a.getLength() == 0 ){
+            return false;
+        }
+        StepList steps = a.selectBestSteps( top );
+
+        System.out.println( "Choices: " + steps.getLength() );
+
+        // For now, just pick the best move.
+        Step mv = steps.getBestStep();
+        if( mv != null && mv.getGain()>0 ){
+            // It is worthwile to do this compression.
+            if( traceCompressionCosts ){
+                System.out.println( "Best step: string [" + a.buildString( mv )  + "]: " + mv );
+            }
+            a.applyCompression( mv );
+            if( doVerification ){
+                a.test();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /** Returns a compressed version of the string represented by
+     * this suffix array.
+     */
+    public ByteBuffer compress( SuffixArray a, int top ) throws VerificationException
+    {
+        boolean success;
+
+        do {
+            success = applyFolding( a, top );
+            if( traceIntermediateGrammars && success ){
+                a.printGrammar();
+            }
+        } while( success );
+	return a.getByteBuffer();
+    }
+
     public ByteBuffer compress( byte text[], int top ) throws VerificationException
     {
 	SuffixArray a = new SuffixArray( text );
-	ByteBuffer out = a.compress( top );
+	ByteBuffer out = compress( a, top );
         a.printGrammar();
         return out;
     }
