@@ -10,6 +10,7 @@ import ibis.ipl.IbisException;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.StaticProperties;
+import ibis.ipl.Upcall;
 
 import ibis.rmi.server.Stub;
 import ibis.rmi.server.RemoteStub;
@@ -18,7 +19,8 @@ import ibis.rmi.server.ExportException;
 
 import java.util.Properties;
 import java.util.HashMap;
-import java.util.Vector;
+import java.util.Hashtable;
+import java.util.ArrayList;
 
 import java.net.InetAddress;
 
@@ -29,11 +31,39 @@ public final class RTS {
     public final static boolean DEBUG = false;
 
     //keys - impl objects, values - skeletons for those objects
+    
+    /**
+     * Maps objects to their skeletons.
+     */
     private static HashMap skeletons;
+
+    /**
+     * Maps objects to their stubs.
+     */
     private static HashMap stubs;
+
+    /**
+     * Maps ReceivePortIdentifiers to sendports that have a connection to that
+     * receiveport.
+     */
     private static HashMap sendports;
 
-    private static Vector receiveports;
+    /**
+     * Maps an URL to a skeleton. We need this because a ReceivePortIdentifier no
+     * longer uniquely defines the skeleton. In fact, a skeleton is now identified
+     * by a number. Unfortunately, the Ibis registry can only handle ReceivePortIdentifiers.
+     */
+    private static Hashtable urlHash;	// No HashMap, this one should be synchronized.
+
+    /**
+     * This array maps skeleton ids to the corresponding skeleton.
+     */
+    private static ArrayList skeletonArray;
+
+    /**
+     * Cache receiveports from stubs.
+     */
+    private static ArrayList receiveports;
 
     protected static String hostname;
     protected static PortType portType;
@@ -44,12 +74,35 @@ public final class RTS {
 
     private static ThreadLocal clientHost;
 
+    private static ReceivePort skeletonReceivePort = null;
+
+    private static class UpcallHandler implements Upcall {
+
+	public void upcall(ReadMessage r) throws IOException {
+	    Skeleton skel;
+	    int id = r.readInt();
+
+	    if (id == -1) {
+		String url = r.readString();
+		skel = (Skeleton) urlHash.get(url);
+	    }
+	    else skel = (Skeleton)(skeletonArray.get(id));
+	    skel.upcall(r);
+	}
+    }
+
+    private static UpcallHandler upcallHandler;
+
     static {
 	try {
 	    skeletons = new HashMap();
 	    stubs = new HashMap();
 	    sendports = new HashMap();
-	    receiveports = new Vector();
+	    urlHash = new Hashtable();
+	    receiveports = new ArrayList();
+	    skeletonArray = new ArrayList();
+
+	    upcallHandler = new UpcallHandler();
 
 	    hostname = InetAddress.getLocalHost().getHostName();
 	    InetAddress adres = InetAddress.getByName(hostname);
@@ -125,6 +178,10 @@ public final class RTS {
 
 	    portType = ibis.createPortType("RMI", s);
 
+	    skeletonReceivePort = portType.createReceivePort("//" + hostname + "/rmi_skeleton", upcallHandler);
+	    skeletonReceivePort.enableConnections();
+	    skeletonReceivePort.enableUpcalls();
+
 	    clientHost = new ThreadLocal();
 
 	    if(DEBUG) {
@@ -176,7 +233,7 @@ public final class RTS {
 	    class_name.substring(class_name.lastIndexOf('.') + 1);
     }
 
-    private static Skeleton createSkel(Remote obj) throws IOException {
+    private synchronized static Skeleton createSkel(Remote obj) throws IOException {
 	try {
 	    Skeleton skel;
 	    Class c = obj.getClass();
@@ -198,13 +255,9 @@ public final class RTS {
 	    }
 	    skel = (Skeleton) skel_c.newInstance();
 
-	    String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
-	    rec = portType.createReceivePort(skel_rec_port_name, skel, skel);
-
-	    skel.init(rec, obj);
-
-	    rec.enableConnections();
-	    rec.enableUpcalls();
+	    int skelId = skeletonArray.size();
+	    skeletonArray.add(skel);
+	    skel.init(skelId, obj);
 
 	    skeletons.put(obj, skel);
 
@@ -218,19 +271,12 @@ public final class RTS {
 	}
     }
 
-    public static void removeSkeleton(Skeleton skel) {
-System.out.println("removeSkeleton called!");
-	skeletons.remove(skel.destination);
-	stubs.remove(skel.destination);
-    }
-
     public static RemoteStub exportObject(Remote obj)
 	throws Exception
     {
 	Stub stub;
 	Class c = obj.getClass();
 	Skeleton skel;
-	ReceivePort rec;
 	String classname = c.getName();
 
 	String class_name = classname.substring(classname.lastIndexOf('.') + 1);
@@ -240,7 +286,6 @@ System.out.println("removeSkeleton called!");
 	if (skel == null) {
 	    //create a skeleton
 	    skel = createSkel(obj);
-	    rec = skel.receivePort();
 	} else {
 	    throw new ExportException("object already exported");
 	}
@@ -259,7 +304,7 @@ System.out.println("removeSkeleton called!");
 	}
 	stub = (Stub) stub_c.newInstance();
 
-	stub.init(null, null, 0, rec.identifier(), false);
+	stub.init(null, null, 0, skel.skeletonId, skeletonReceivePort.identifier(), false);
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Created stub of type rmi_stub_" + classname);
@@ -305,7 +350,9 @@ System.out.println("removeSkeleton called!");
 	}
 
 	//new method
-	ibisRegistry.bind(url, skel.receivePort().identifier());
+	ibisRegistry.bind(url, skeletonReceivePort.identifier());
+
+	urlHash.put(url, skel);
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Bound to object " + url);
@@ -328,7 +375,9 @@ System.out.println("removeSkeleton called!");
 	}
 
 	//new method
-	ibisRegistry.rebind(url, skel.receivePort().identifier());
+	ibisRegistry.rebind(url, skeletonReceivePort.identifier());
+
+	urlHash.put(url, skel);
     }
 
     public static void unbind(String url)
@@ -401,6 +450,8 @@ System.out.println("removeSkeleton called!");
 	}
 
 	wm.writeInt(-1);
+	wm.writeString(url);
+	wm.writeInt(-1);
 	wm.writeInt(0);
 	wm.writeObject(r.identifier());
 	wm.send();
@@ -417,12 +468,8 @@ System.out.println("removeSkeleton called!");
 	}
 
 	int stubID = rm.readInt();
-	String stubType;
-	try {
-	    stubType = (String) rm.readObject();
-	} catch (ClassNotFoundException e) {
-	    throw new RemoteException("Unmarshall error", e);
-	}
+	int skelID = rm.readInt();
+	String stubType = rm.readString();
 	rm.finish();
 
 	if (DEBUG) {
@@ -450,7 +497,7 @@ System.out.println("removeSkeleton called!");
 	    System.out.println(hostname + ": Loaded class " + stubType);
 	}
 
-	result.init(s, r, stubID, dest, true);
+	result.init(s, r, stubID, skelID, dest, true);
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Found object " + url);

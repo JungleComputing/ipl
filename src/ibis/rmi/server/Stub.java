@@ -16,26 +16,20 @@ public class Stub extends RemoteStub {
     transient protected SendPort send;
     transient protected ReceivePort reply;
     protected ReceivePortIdentifier skeletonPortId;
+    protected int skeletonId;
     transient private boolean initialized = false;
 
     public Stub() {
     }
 
-    public void init(SendPort s, ReceivePort r, int id, ReceivePortIdentifier rpi, boolean initialized) throws IOException {
+    public void init(SendPort s, ReceivePort r, int id, int skelId, ReceivePortIdentifier rpi, boolean initialized) throws IOException {
 
 	stubID = id;
 	skeletonPortId = rpi;
 	this.initialized = initialized;
 	send = s;
 	reply = r;
-/*
-	if (send == null) {
-	    send = RTS.getSendPort(skeletonPortId);
-	}
-	if (reply == null) {
-	    reply = RTS.getReceivePort();
-	}
-*/
+	skeletonId = skelId;
     }
 
     public final void initSend() throws IOException {
@@ -56,11 +50,8 @@ public class Stub extends RemoteStub {
 
 		    ReadMessage rm = reply.receive();
 		    stubID = rm.readInt();
-		    try {
-			String stubType = (String) rm.readObject();
-		    } catch(ClassNotFoundException e) {
-			throw new Error("Class String not found", e);
-		    }
+		    rm.readInt();
+		    String stubType = rm.readString();
 		    rm.finish();		
 
 		    initialized = true;
@@ -71,12 +62,12 @@ public class Stub extends RemoteStub {
 
     public final WriteMessage newMessage() throws IOException {
 	WriteMessage w = send.newMessage();
+	w.writeInt(skeletonId);
 	return w;
     }
 
     protected void finalize() {
 	// Give up resources.
-System.out.println("Finalize stub: " + this);
 	try {
 	    /* if (send != null) send.free(); */
 	    if (reply != null) {
@@ -84,17 +75,5 @@ System.out.println("Finalize stub: " + this);
 	    }
 	} catch(Exception e) {
 	}
-// System.out.println("Stub finalized: " + this);
     }
-
-/*
-    private void readObject(java.io.ObjectInputStream i) throws IOException, ClassNotFoundException {
-	i.defaultReadObject();
-
-System.out.println("Setting up connection for " + this);
-
-	send = RTS.getSendPort(skeletonPortId);
-	reply = RTS.getReceivePort();
-    }
-*/
 }

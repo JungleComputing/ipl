@@ -14,9 +14,9 @@ import java.util.Vector;
 
 import java.io.IOException;
 
-public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
+public abstract class Skeleton implements Upcall {
 
-    private ReceivePort receive;
+    public int skeletonId;
     public Object destination;
     public SendPort[] stubs;
     public String stubType;
@@ -31,31 +31,10 @@ public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 	max_ports = INCR;
     }
 
-    public void init(ReceivePort r, Object o) { 
-	receive = r;
+    public void init(int id, Object o) { 
+	skeletonId = id;
 	destination = o;
     }    
-
-    public boolean gotConnection(SendPortIdentifier id) {
-	counter++;
-// System.out.println("Skeleton " + this + " got connection, id = " + id + ", counter = " + counter);
-	return true;
-    }
-
-    public void lostConnection(SendPortIdentifier id) {
-	counter--;
-// System.out.println("Skeleton " + this + " lost connection, id = " + id + ", counter = " + counter);
-	if (counter == 0) {
-	    /* No more remote stubs alive now. We can remove the skeleton. */
-//	    RTS.removeSkeleton(this);
-//	    cleanup();
-//	    Commented all this out, because stubs now set up connections lazily.
-//	    This means that we cannot use the connection counter as a reference
-//	    counter anymore (but then, it was not reliable anyway).
-//	    We will have to find another mechanism to clean up skeletons.
-//	    TODO!!!
-	}
-    }
 
     protected void finalize() {
 	cleanup();
@@ -93,10 +72,6 @@ public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 	return -1; 
     }
 
-    public ReceivePort receivePort() {
-	return receive;
-    } 
-
     private void cleanup() {
 	destination = null;
 	for (int i = 0; i < stubs.length; i++) {
@@ -108,17 +83,6 @@ public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 		}
 	    }
 	}
-/*
-	if (receive != null) {
-System.out.println("Freeing receiveport: " + receive);
-	    try {
-		receive.free();
-	    } catch(Exception e) {
-	    }
-System.out.println("Receiveport freed: " + receive);
-	}
-*/
-	receive = null;
     }
 
     public abstract void upcall(ReadMessage m) throws IOException;
