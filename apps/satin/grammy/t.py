@@ -1,10 +1,8 @@
-def sort1( text, indices, offset ):
+def sort1( text, next, indices, offset ):
     """ Returns an index and commonality array sorted by the character
     at the given offset."""
     slot = 256*[-1]
     prev = 256*[-1]
-    # For now we leve the range up to start unused.
-    next = len(text)*[-1]
 
     # Fill the hash buckets
     for i in indices:
@@ -15,20 +13,23 @@ def sort1( text, indices, offset ):
             else:
                 next[prev[ix]] = i
             prev[ix] = i
+    for i in prev:
+        if i != -1:
+            next[i] = -1
     res = []
     comm = []
     for i in slot:
         j = i
-        c = offset
+        c = 0
         if j != -1 and next[j] != -1:
             while j != -1:
                 res.append( j )
                 comm.append( c )
                 j = next[j]
-                c = offset+1
+                c = 1
     return (res, comm)
 
-def isAcceptable1( indices, offset ):
+def isAcceptable( indices, offset ):
     """ Determine whether the given range of indices is useful for the
     non-overlapping repeat we're searching. Too short or only overlapping
     repeats cause a reject. """
@@ -40,15 +41,11 @@ def isAcceptable1( indices, offset ):
                 return 1
     return 0
 
-def isAcceptable( indices, offset ):
-    res = isAcceptable1( indices, offset )
-    print "offset:", offset, "indices:", indices, "res:", res
-    return res
-
 def sort( text ):
     """ Returns the fully sorted text."""
-    (indices,comm) = sort1( text, range( len( text ) ), 0 )
+    next = len( text )*[0]
     offset = 0
+    (indices,comm) = sort1( text, next, range( len( text ) ), offset )
     while 1:
         indices1 = []
         comm1 = []
@@ -58,12 +55,12 @@ def sort( text ):
         while ix<len( indices ):
             start = ix
             ix = ix+1
-            while ix<len( indices ) and comm[ix] == offset:
+            while ix<len( indices ) and comm[ix] != 0:
                 ix = ix+1
-            (i1,c1) = sort1( text, indices[start:ix], offset )
+            (i1,c1) = sort1( text, next, indices[start:ix], offset )
             if isAcceptable( i1, offset ):
                 acceptable = 1
-                c1[0] = comm[start]
+                c1[0] = 0
                 indices1 += i1
                 comm1 += c1
         if acceptable == 0:
@@ -76,8 +73,8 @@ def sort2( text ):
     l = range( len( text ) )
     return sort1( text, l, 0 )
 
-text = [0, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2]
-#text = 10*[0, 1, 2]
+text = [0, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2, 2, 3,3,3]
+#text = 10*[0, 1, 2] + [0,1]
 #(ix,comm) = sort2( text )
 (offset,ix,comm) = sort( text )
 
