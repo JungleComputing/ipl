@@ -291,10 +291,8 @@ public class StaticProperties {
 	    String cat = (String) i.next();
 	    Set v1 = findSet(cat);
 	    Set v2 = sp.findSet(cat);
-	    if (v1 != null) {
-		if (v2 == null || ! v2.containsAll(v1)) {
-		    return false;
-		}
+	    if (! v2.containsAll(v1)) {
+		return false;
 	    }
 	}
 	return true;
@@ -360,8 +358,7 @@ public class StaticProperties {
     }
 
     /**
-     * Returns the value associated with the specified key, as a set,
-     * or <code>null</code>.
+     * Returns the value associated with the specified key, as a set.
      * @return the value associated with the specified key.
      */
     public Set findSet(String key) {
@@ -369,7 +366,7 @@ public class StaticProperties {
 	if (p != null) {
 	    return new HashSet(p.getSet());
 	}
-	return null;
+	return new HashSet();
     }
 
     /**
@@ -465,11 +462,9 @@ public class StaticProperties {
 		    while (i2.hasNext()) {
 			String n = (String) i2.next();
 			Set implied = ibis_properties.findSet(n);
-			if (implied != null) {
-			    if (! h.containsAll(implied)) {
-				changed = true;
-				h.addAll(implied);
-			    }
+			if (! h.containsAll(implied)) {
+			    changed = true;
+			    h.addAll(implied);
 			}
 		    }
 		} while (changed);
