@@ -39,20 +39,25 @@ public final class NetPriorityMutex {
          *
          * If the mutex is already locked, the method will block.
          *
-         * Pending high-priority requests are honoured first.
-         *
          * @param priority indicates whether the call is a
          * 'high-priority' request (<code>true</code>) or a
          * 'low-priority' request (<code>false</code>).
+         * @exception NetIbisInterruptedException if the calling thread is
+         * interrupted while the method is blocked waiting for the
+         * mutex.
          */
-	public synchronized void lock(boolean priority) {
+	public synchronized void lock(boolean priority) throws NetIbisInterruptedException{
                 if (priority) {
                         priorityvalue++;
                         while (lockvalue <= 0) {
                                 try {
                                         wait();
                                 } catch (InterruptedException e) {
-				//
+                                        synchronized(this) {
+                                                priorityvalue--;
+                                                notifyAll();
+                                        }
+                                        throw new NetIbisInterruptedException(e);
                                 }
                         }
                         priorityvalue--;
@@ -61,7 +66,7 @@ public final class NetPriorityMutex {
                                 try {
                                         wait();
                                 } catch (InterruptedException e) {
-				//
+                                        throw new NetIbisInterruptedException(e);
                                 }
                         }
                 }
@@ -88,7 +93,14 @@ public final class NetPriorityMutex {
                 if (priority) {
                         priorityvalue++;
                         while (lockvalue <= 0) {
-                                wait();
+                                try {
+                                        wait();
+                                } finally {
+                                        synchronized(this) {
+                                                priorityvalue--;
+                                                notifyAll();
+                                        }
+                                }
                         }
                         priorityvalue--;
                 } else {

@@ -412,6 +412,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         private NetMutex                 finishMutex         =  null;
 
+        private Integer                  dummyUpcallSync     =  new Integer(0);
+
         /* --- Upcall from main input object -- */
         public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
                 log.in();
@@ -446,9 +448,11 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 trace.disp(receivePortTracePrefix+"message receive <--");
                         }
                 } else {
-                        finishNotify = true;
-                        polledLock.unlock();
-                        finishMutex.lock();
+                        synchronized(dummyUpcallSync) {
+                                finishNotify = true;
+                                polledLock.unlock();
+                                finishMutex.lock();
+                        }
                 }
                 log.out();
         }
@@ -825,7 +829,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.in();
                 if (connectionEnabled) {
                         connectionEnabled = false;
-                        connectionLock.lock();
+                        while (true) {
+                                try {
+                                        connectionLock.lock();
+                                        break;
+                                } catch (NetIbisInterruptedException e) {
+                                        System.err.println("InterruptedException ignored in NetReceivePort.disableConnections");
+                                }
+                        }
                 }
                 log.out();
         }
@@ -925,7 +936,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 if (input != null) {
                                         input.free();
                                 }
-
                                 trace.disp(receivePortTracePrefix+"receive port shutdown: all inputs freed");
 
                                 if (inputLock != null) {

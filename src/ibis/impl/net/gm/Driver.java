@@ -81,11 +81,24 @@ public final class Driver extends NetDriver {
 
 
         protected void blockingPump(int lockId, int []lockIds) throws NetIbisException {
-                int result = gmLockArray.lockFirst(lockIds);
+                int result = 0;
+
+                try {
+                        result = gmLockArray.ilockFirst(lockIds);
+                } catch (InterruptedException e) {
+                        throw new NetIbisInterruptedException(e);
+                }
+
                 if (result == 1) {
                         /* got GM main lock, let's pump */
                         do {
-                                gmAccessLock.lock(false);
+                                try {
+                                        gmAccessLock.ilock(false);
+                                } catch (InterruptedException e) {
+                                        gmLockArray.unlock(0);
+                                        throw new NetIbisInterruptedException(e);
+                                }
+
                                 nGmThread();
                                 gmAccessLock.unlock();
                         } while (!gmLockArray.trylock(lockId));
@@ -100,10 +113,23 @@ public final class Driver extends NetDriver {
         }
 
         protected void pump(int lockId, int []lockIds) throws NetIbisException {
-                int result = gmLockArray.lockFirst(lockIds);
+                int result = 0;
+
+                try {
+                        result = gmLockArray.ilockFirst(lockIds);
+                } catch (InterruptedException e) {
+                        throw new NetIbisInterruptedException(e);
+                }
+
                 if (result == 1) {
                         /* got GM main lock, let's pump */
-                        gmAccessLock.lock(false);
+                        try {
+                                gmAccessLock.ilock(false);
+                        } catch (InterruptedException e) {
+                                gmLockArray.unlock(0);
+                                throw new NetIbisInterruptedException(e);
+                        }
+
                         nGmThread();
                         gmAccessLock.unlock();
                         if (!gmLockArray.trylock(lockId)) {
@@ -116,7 +142,13 @@ public final class Driver extends NetDriver {
                                                 i = speculativePolls;
                                         }
 
-                                        gmAccessLock.lock(false);
+                                        try {
+                                                gmAccessLock.ilock(false);
+                                        } catch (InterruptedException e) {
+                                                gmLockArray.unlock(0);
+                                                throw new NetIbisInterruptedException(e);
+                                        }
+
                                         nGmThread();
                                         gmAccessLock.unlock();
                                 } while (!gmLockArray.trylock(lockId));

@@ -157,11 +157,16 @@ public final class GmInput extends NetBufferedInput {
                         gmDriver.blockingPump(lockId, lockIds);
                 } else {
                         if (!gmDriver.tryPump(lockId, lockIds)) {
+                                System.err.println("poll failed");
                                 return null;
                         }
                 }
 
                 log.out();
+
+                if (spn == null) {
+                        throw new Error("unexpected connection closed");
+                }
 
                 return spn;
 	}

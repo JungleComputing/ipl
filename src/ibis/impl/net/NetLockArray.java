@@ -74,6 +74,8 @@ public final class NetLockArray {
          * @param id indicates the index of the lock.
          *
          * @exception NetIbisClosedException if the requested lock has not been initialized or gets discarded while the method is blocked on a {@link #wait}.
+         * @exception NetIbisInterruptedException if the thread is
+         * interrupted while waiting. 
          */
 	public synchronized void lock(int id) throws NetIbisException {
                 if (!m[id]) {
@@ -87,7 +89,7 @@ public final class NetLockArray {
                                         throw new NetIbisClosedException("uninitialized lock");
                                 }
 			} catch (InterruptedException e) {
-				//
+				throw new NetIbisInterruptedException(e);
 			}
 
 		}
@@ -95,7 +97,7 @@ public final class NetLockArray {
 	}
 
         /**
-         * Interruptibly lock one of the array's locks.
+         * Lock one of the array's locks.
          *
          * @param id indicates the index of the lock.
          *
@@ -140,14 +142,16 @@ public final class NetLockArray {
 		}
 	}
 
-        /**
-         * Atomically acquire a whole set of lock entries.
+        /*
+         * Atomically --- but interruptibly ---  acquire a whole set of lock entries.
          *
          * @param ids stores the set of entry indexes.
          *
          * @exception NetIbisClosedException if one of the requested locks has
          * not been initialized or or got discarded while the method is
          * blocked on a {@link #wait}.
+         * @exception InterruptedException if the thread is
+         * interrupted while waiting.
          */
 	public synchronized void lockAll(int [] ids) throws NetIbisException {
                 boolean state = true;
@@ -169,7 +173,7 @@ public final class NetLockArray {
                                         }
                                 }
 			} catch (InterruptedException e) {
-				//
+				throw new NetIbisInterruptedException(e);
 			}
 
                         state = true;
@@ -191,6 +195,8 @@ public final class NetLockArray {
          * @exception NetIbisClosedException if one of the requested locks has
          * not been initialized or or got discarded while the method is
          * blocked on a {@link #wait}.
+         * @exception InterruptedException if the thread is
+         * interrupted while waiting.
          */
 	public synchronized void ilockAll(int [] ids) throws InterruptedException, NetIbisException {
                 boolean state = true;
@@ -242,7 +248,6 @@ public final class NetLockArray {
                 return state;
 	}
 
-
 	public synchronized int lockFirst(int [] ids) throws NetIbisException {
                 int result = -1;
 
@@ -271,7 +276,7 @@ public final class NetLockArray {
                                         }
                                 }
 			} catch (InterruptedException e) {
-				//
+				throw new NetIbisInterruptedException(e);
 			}
 
                         state = false;

@@ -1,7 +1,7 @@
 package ibis.ipl.impl.net;
 
 import java.util.Iterator;
-import java.util.Hashtable;
+import java.util.HashMap;
 
 /**
  * Provides a generic multiple network output poller.
@@ -14,7 +14,7 @@ public abstract class NetSplitter extends NetOutput {
 	/**
 	 * The set of outputs.
 	 */
-	protected Hashtable   outputTable = null;
+	protected HashMap   outputMap = null;
 
 	/**
 	 * The driver used for the outputs.
@@ -31,7 +31,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
 	public NetSplitter(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
 		super(pt, driver, context);
-		outputTable = new Hashtable();
+		outputMap = new HashMap();
 	}
 
 
@@ -41,14 +41,14 @@ public abstract class NetSplitter extends NetOutput {
          * notification.
 	 *
          * @param cnx the connection attributes.
-         * @param key the connection key in the splitter {@link #outputTable table}.
+         * @param key the connection key in the splitter {@link #outputMap map}.
          * @param no the connection's output.
 	 */
 	public synchronized void setupConnection(NetConnection cnx, Object key, NetOutput no) throws NetIbisException {
                 log.in();
                 no.setupConnection(cnx);
-                if (outputTable.get(key) == null) {
-                        outputTable.put(key, no);
+                if (outputMap.get(key) == null) {
+                        outputMap.put(key, no);
                 }
                 log.out();
 	}
@@ -61,7 +61,7 @@ public abstract class NetSplitter extends NetOutput {
                 log.in();
                 super.initSend();
 
-		Iterator i = outputTable.values().iterator();
+		Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.initSend();
@@ -75,7 +75,7 @@ public abstract class NetSplitter extends NetOutput {
 	public void send() throws NetIbisException {
                 log.in();
                 super.send();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
                 do {
                         NetOutput no = (NetOutput)i.next();
                         no.send();
@@ -90,7 +90,7 @@ public abstract class NetSplitter extends NetOutput {
 	public void finish() throws NetIbisException {
                 log.in();
                 super.finish();
-		Iterator i = outputTable.values().iterator();
+		Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.finish();
@@ -99,13 +99,13 @@ public abstract class NetSplitter extends NetOutput {
 	}
 
 
-	/**
+	/*
 	 * {@inheritDoc}
-	 */
+         */
 	public void free() throws NetIbisException {
                 log.in();
-		if (outputTable != null) {
-			Iterator i = outputTable.values().iterator();
+		if (outputMap != null) {
+			Iterator i = outputMap.values().iterator();
 
 			while (i.hasNext()) {
 				NetOutput no = (NetOutput)i.next();
@@ -117,22 +117,20 @@ public abstract class NetSplitter extends NetOutput {
 		super.free();
                 log.out();
 	}
+        
+        protected abstract Object getKey(Integer num);
+        public abstract void closeConnection(Integer num) throws NetIbisException;
+
 
         public synchronized void close(Integer num) throws NetIbisException {
                 log.in();
-                if (outputTable != null) {
-                        NetOutput no = (NetOutput)outputTable.get(num);
-                        no.close(num);
-                        outputTable.remove(num);
-                }
+                closeConnection(num);
                 log.out();
         }
 
-
-
         public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeByteBuffer(buffer);
@@ -146,7 +144,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeBoolean(boolean v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeBoolean(v);
@@ -160,7 +158,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeByte(byte v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeByte(v);
@@ -174,7 +172,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeChar(char v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeChar(v);
@@ -188,7 +186,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeShort(short v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeShort(v);
@@ -202,7 +200,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeInt(int v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeInt(v);
@@ -217,7 +215,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeLong(long v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeLong(v);
@@ -231,7 +229,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeFloat(float v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeFloat(v);
@@ -245,7 +243,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeDouble(double v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeDouble(v);
@@ -259,7 +257,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeString(String v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeString(v);
@@ -273,7 +271,7 @@ public abstract class NetSplitter extends NetOutput {
 	 */
         public void writeObject(Object v) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeObject(v);
@@ -283,7 +281,7 @@ public abstract class NetSplitter extends NetOutput {
 
         public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArray(b, o, l);
@@ -293,7 +291,7 @@ public abstract class NetSplitter extends NetOutput {
 
         public void writeArray(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArray(b, o, l);
@@ -302,7 +300,7 @@ public abstract class NetSplitter extends NetOutput {
         }
         public void writeArray(char [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArray(b, o, l);
@@ -312,7 +310,7 @@ public abstract class NetSplitter extends NetOutput {
 
         public void writeArray(short [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArray(b, o, l);
@@ -322,7 +320,7 @@ public abstract class NetSplitter extends NetOutput {
 
         public void writeArray(int [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArray(b, o, l);
@@ -332,7 +330,7 @@ public abstract class NetSplitter extends NetOutput {
 
         public void writeArray(long [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArray(b, o, l);
@@ -342,7 +340,7 @@ public abstract class NetSplitter extends NetOutput {
 
         public void writeArray(float [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArray(b, o, l);
@@ -352,7 +350,7 @@ public abstract class NetSplitter extends NetOutput {
 
         public void writeArray(double [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArray(b, o, l);
@@ -362,7 +360,7 @@ public abstract class NetSplitter extends NetOutput {
 
         public void writeArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
-                Iterator i = outputTable.values().iterator();
+                Iterator i = outputMap.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
 			no.writeArray(b, o, l);

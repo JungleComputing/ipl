@@ -44,20 +44,22 @@ public final class NetMutex {
 	}
 
 	/**
-	 * Attempt to <strong>uninterruptibly</strong> lock the mutex.
+	 * Attempt to lock the mutex.
 	 *
-	 * If the mutex is already locked, the function blocks
-	 * <strong>uninterruptibly</strong> until the mutex is
-	 * released. This function should be used carefully because it
-	 * cannot be interrupted (preferably use {@link #ilock} when
-	 * possible).
-	 */
-	public synchronized void lock() {
+	 * If the mutex is already locked, the function blocks until
+	 * the mutex is released or the corresponding thread is
+	 * interrupted in which case the mutex is <strong>not</strong>
+	 * acquired.
+	 *
+	 * @exception NetIbisInterruptedException when the corresponding thread is
+	 *            interrupted. The lock is not acquired in this case.
+         */
+	public synchronized void lock() throws NetIbisInterruptedException {
 		while (value <= 0) {
 			try {
 				wait();
 			} catch (InterruptedException e) {
-				//
+				throw new NetIbisInterruptedException(e);
 			}
 		}
 		value--;

@@ -263,14 +263,15 @@ public final class TcpInput extends NetBufferedInput {
 
         public void doFinish() throws NetIbisException {
                 log.in();
-                synchronized(this) {
+                //synchronized(this)
+                        {
                         buf = null;
                 }
                 log.out();
         }
 
 
-        public synchronized void doClose(Integer num) throws NetIbisException {
+        public void doClose(Integer num) throws NetIbisException {
                 log.in();
                 if (spn == num) {
                         try {

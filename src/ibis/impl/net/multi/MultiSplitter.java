@@ -24,9 +24,12 @@ public final class MultiSplitter extends NetSplitter {
                 int           mtu          =    0;
                 ObjectInputStream  is      = null;
                 ObjectOutputStream os      = null;
+                String             subContext = null;
         }
 
-        protected Hashtable laneTable    = null;
+        private Hashtable laneTable        = null;
+
+        private MultiPlugin plugin         = null;
 
 	/**
 	 * Constructor.
@@ -37,63 +40,19 @@ public final class MultiSplitter extends NetSplitter {
 	public MultiSplitter(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
 		super(pt, driver, context);
 		laneTable   = new Hashtable();
-	}
 
-        private String getSubContext(NetIbisIdentifier localId, InetAddress localHostAddr, NetIbisIdentifier remoteId, InetAddress remoteHostAddr) {
-                log.in();
-                String subContext = null;
+                String pluginName = getProperty("Plugin");
+                //System.err.println("multi-protocol plugin: "+pluginName);
 
-                if (localId.equals(remoteId)) {
-                        subContext = "process";
-                } else {
-                        byte [] l = localHostAddr.getAddress();
-                        byte [] r = remoteHostAddr.getAddress();
-                        int n = 0;
-
-                        while (n < 4 && l[n] == r[n])
-                                n++;
-
-                        switch (n) {
-                        case 4:
-                                {
-                                        subContext = "node";
-                                        break;
-                                }
-
-                        case 3:
-                                {
-                                        subContext = "net_c";
-                                        break;
-                                }
-
-                        case 2:
-                                {
-                                        subContext = "net_b";
-                                        break;
-                                }
-
-                        case 1:
-                                {
-                                        subContext = "net_a";
-                                        break;
-                                }
-
-                        default:
-                                {
-                                        subContext = "internet";
-                                        break;
-                                }
-                        }
+                if (pluginName != null) {
+                        plugin = ((Driver)driver).loadPlugin(pluginName);
                 }
-                log.out();
-                return subContext;
-        }
-
+                //System.err.println("multi-protocol plugin loaded");
+	}
 
         private void updateSizes() throws NetIbisException {
                 log.in();
 		Iterator i = null;
-
                 i = laneTable.values().iterator();
 
                 // Pass 1
@@ -115,7 +74,11 @@ public final class MultiSplitter extends NetSplitter {
                         Lane _lane = (Lane)i.next();
 
                         try {
-                                _lane.is.readInt();
+                                int v = _lane.is.readInt();
+                                if (v != 3) {
+                                        throw new Error("invalid value");
+                                }
+
                         } catch (IOException e) {
                                 throw new NetIbisIOException(e);
                         }
@@ -130,30 +93,29 @@ public final class MultiSplitter extends NetSplitter {
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
                 log.in();
                 try {
-                        NetServiceLink link = null;
-                        link = cnx.getServiceLink();
+                        Integer num  = cnx.getNum();
+                        NetServiceLink link = cnx.getServiceLink();
+
 
                         ObjectOutputStream 	os 	= new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
                         os.flush();
 
                         ObjectInputStream  	is 	= new ObjectInputStream (link.getInputSubStream (this, "multi"));
 
-                        NetIbisIdentifier 	localId		= (NetIbisIdentifier)driver.getIbis().identifier();
+
+                        NetIbisIdentifier localId = (NetIbisIdentifier)driver.getIbis().identifier();
                         os.writeObject(localId);
                         os.flush();
 
-                        NetIbisIdentifier 	remoteId	= (NetIbisIdentifier)is.readObject();
+                        NetIbisIdentifier remoteId = (NetIbisIdentifier)is.readObject();
 
-                        InetAddress	localHostAddr	= InetAddress.getLocalHost();
-                        os.writeObject(localHostAddr);
-                        os.flush();
 
-                        InetAddress	remoteHostAddr	= (InetAddress)is.readObject();
-                        String		subContext	= getSubContext(localId, localHostAddr, remoteId, remoteHostAddr);
-                        NetOutput 	no 		= (NetOutput)outputTable.get(subContext);
+                        String          subContext      = (plugin!=null)?plugin.getSubContext(true, localId, remoteId, os, is):null;
+                        NetOutput 	no 		= (NetOutput)outputMap.get(subContext);
 
                         if (no == null) {
                                 String    subDriverName = getProperty(subContext, "Driver");
+                                trace.disp("subContext = ["+subContext+"], driver = ["+subDriverName+"]");
                                 NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
                                 no                      = newSubOutput(subDriver, subContext);
                         }
@@ -167,6 +129,7 @@ public final class MultiSplitter extends NetSplitter {
                         lane.output       = no;
                         lane.headerLength = no.getHeadersLength();
                         lane.mtu          = no.getMaximumTransfertUnit();
+                        lane.subContext   = subContext;
 
                         {
                                 boolean update = false;
@@ -201,7 +164,33 @@ public final class MultiSplitter extends NetSplitter {
                 log.out();
 	}
 
+        protected Object getKey(Integer num) {
+                log.in();
+                Lane lane = (Lane)laneTable.get(num);
+                Object key = lane.subContext;
+                log.out();
 
+                return key;
+        }
+
+        public synchronized void closeConnection(Integer num) throws NetIbisException {
+                log.in();
+                if (laneTable != null) {
+                        Lane lane = (Lane)laneTable.get(num);
+
+                        if (lane != null) {
+                                NetOutput output = lane.output;
+                                if (output != null) {
+                                        output.close(num);
+                                }
+
+                                laneTable.remove(num);
+                        }
+                }
+                log.out();
+        }
+
+        /*
         public synchronized void close(Integer num) throws NetIbisException {
                 log.in();
                 if (laneTable != null) {
@@ -217,11 +206,10 @@ public final class MultiSplitter extends NetSplitter {
                 }
                 log.out();
         }
+        */
 
-
-	/**
+	/*
 	 * {@inheritDoc}
-	 */
 	public void free() throws NetIbisException {
                 log.in();
                 if (laneTable != null) {
@@ -231,9 +219,7 @@ public final class MultiSplitter extends NetSplitter {
                                 i.remove();
                         }
                 }
-
-		super.free();
                 log.out();
 	}
-
+        */
 }

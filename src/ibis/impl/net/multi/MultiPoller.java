@@ -21,13 +21,15 @@ public final class MultiPoller extends NetPoller {
                 int           headerLength =    0;
                 int           mtu          =    0;
                 ServiceThread thread       = null;
-                ObjectInputStream  is      =  null;
-                ObjectOutputStream os      =  null;
+                ObjectInputStream  is      = null;
+                ObjectOutputStream os      = null;
+                String             subContext = null;
+
         }
 
         private final class ServiceThread extends Thread {
-                private Lane    lane    =  null;
-                private boolean exit    = false;
+                private          Lane    lane =  null;
+                private volatile boolean exit = false;
 
                 public ServiceThread(String name, Lane lane) throws NetIbisException {
                         super("ServiceThread: "+name);
@@ -46,7 +48,7 @@ public final class MultiPoller extends NetPoller {
                                                 lane.headerLength = newHeaderLength;
                                         }
 
-                                        lane.os.writeInt(1);
+                                        lane.os.writeInt(3);
                                         lane.os.flush();
                                 } catch (NetIbisInterruptedException e) {
                                         break;
@@ -78,6 +80,8 @@ public final class MultiPoller extends NetPoller {
          */
         private Hashtable laneTable = null;
 
+        private MultiPlugin plugin  = null;
+
         /**
          * Constructor.
          *
@@ -88,6 +92,13 @@ public final class MultiPoller extends NetPoller {
                 throws NetIbisException {
                 super(pt, driver, context);
                 laneTable = new Hashtable();
+
+                String pluginName = getProperty("Plugin");
+                //System.err.println("multi-protocol plugin: "+pluginName);
+                if (pluginName != null) {
+                        plugin = ((Driver)driver).loadPlugin(pluginName);
+                }
+                //System.err.println("multi-protocol plugin loaded");
         }
 
 	/*
@@ -111,63 +122,13 @@ public final class MultiPoller extends NetPoller {
         }
 	*/
 
-        private String getSubContext(NetIbisIdentifier localId, InetAddress localHostAddr, NetIbisIdentifier remoteId, InetAddress remoteHostAddr) {
-                log.in();
-                String subContext = null;
-
-                if (localId.equals(remoteId)) {
-                        subContext = "process";
-                } else {
-                        byte [] l = localHostAddr.getAddress();
-                        byte [] r = remoteHostAddr.getAddress();
-                        int n = 0;
-
-                        while (n < 4 && l[n] == r[n])
-                                n++;
-
-                        switch (n) {
-                        case 4:
-                                {
-                                        subContext = "node";
-                                        break;
-                                }
-
-                        case 3:
-                                {
-                                        subContext = "net_c";
-                                        break;
-                                }
-
-                        case 2:
-                                {
-                                        subContext = "net_b";
-                                        break;
-                                }
-
-                        case 1:
-                                {
-                                        subContext = "net_a";
-                                        break;
-                                }
-
-                        default:
-                                {
-                                        subContext = "internet";
-                                        break;
-                                }
-                        }
-                }
-                log.out();
-                
-                return subContext;
-        }
-
         /**
          * {@inheritDoc}
          */
         public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
                 log.in();
                 try {
+                        Integer num  = cnx.getNum();
                         NetServiceLink          link = cnx.getServiceLink();
 
                         ObjectInputStream       is      = new ObjectInputStream (link.getInputSubStream (this, "multi"));
@@ -175,21 +136,16 @@ public final class MultiPoller extends NetPoller {
 
                         os.flush();
 
+
                         NetIbisIdentifier       localId         = (NetIbisIdentifier)driver.getIbis().identifier();
                         NetIbisIdentifier       remoteId        = (NetIbisIdentifier)is.readObject();
 
                         os.writeObject(localId);
                         os.flush();
 
-                        InetAddress     localHostAddr   = InetAddress.getLocalHost();
-                        InetAddress     remoteHostAddr  = (InetAddress)is.readObject();
-
-                        os.writeObject(localHostAddr);
-                        os.flush();
-
                         NetInput        ni              = null;
-                        String          subContext      = getSubContext(localId, localHostAddr, remoteId, remoteHostAddr);
-                        ReceiveQueue q = (ReceiveQueue)inputTable.get(subContext);
+                        String          subContext      = (plugin!=null)?plugin.getSubContext(false, localId, remoteId, os, is):null;
+                        ReceiveQueue q = (ReceiveQueue)inputMap.get(subContext);
 
                         if (q == null) {
                                 String          subDriverName   = getProperty(subContext, "Driver");
@@ -202,10 +158,9 @@ public final class MultiPoller extends NetPoller {
                         super.setupConnection(cnx, subContext, ni);
 
                         if (q == null) {
-                                q = (ReceiveQueue)inputTable.get(subContext);
+                                q = (ReceiveQueue)inputMap.get(subContext);
                         }
 
-                        Integer num  = cnx.getNum();
                         Lane    lane = new Lane();
 
                         lane.is           = is;
@@ -215,6 +170,7 @@ public final class MultiPoller extends NetPoller {
                         lane.mtu          = is.readInt();
                         lane.headerLength = is.readInt();
                         lane.thread       = new ServiceThread("subcontext = "+subContext+", spn = "+num, lane);
+                        lane.subContext   = subContext;
 
                         laneTable.put(num, lane);
 
@@ -225,6 +181,16 @@ public final class MultiPoller extends NetPoller {
                 }
                 log.out();
         }
+
+        protected Object getKey(Integer num) {
+                log.in();
+                Lane lane = (Lane)laneTable.get(num);
+                Object key = lane.subContext;
+                log.out();
+
+                return key;
+        }
+
 
         /**
          * {@inheritDoc}
@@ -262,11 +228,10 @@ public final class MultiPoller extends NetPoller {
                 log.out();
         }
 
-        /**
+        /*
          * {@inheritDoc}
-         */
         public void free() throws NetIbisException {
-                log.in();
+                log.in();trace.in();
                 if (laneTable != null) {
                         Iterator i = laneTable.values().iterator();
                         while (i.hasNext()) {
@@ -278,7 +243,7 @@ public final class MultiPoller extends NetPoller {
                         }
                 }
 
-                super.free();
-                log.out();
+                trace.out();log.out();
         }
+        */
 }

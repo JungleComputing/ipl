@@ -1166,7 +1166,12 @@ public final class NetServiceLink {
                  * @see #_OP_receive_substream_id
                  */
                 private void receiveSubstreamId(Integer id) {
-                        requestReady.lock();
+                        try {
+                                requestReady.lock();
+                        } catch (NetIbisInterruptedException e) {
+                                return;
+                        }
+
                         requestResult = id;
                         requestCompletion.unlock();
                 }
@@ -1220,6 +1225,7 @@ public final class NetServiceLink {
                                                 }
                                         }
                                 } catch (InterruptedIOException e) {
+                                        exit = true;
                                         continue;
                                 } catch (EOFException e) {
                                         exit = true;

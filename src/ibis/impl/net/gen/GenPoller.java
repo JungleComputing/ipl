@@ -44,6 +44,10 @@ public final class GenPoller extends NetPoller {
                 log.out();
 	}
 
+        protected Object getKey(Integer num) {
+                return num;
+        }
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -64,6 +68,10 @@ public final class GenPoller extends NetPoller {
          */
         public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws NetIbisException {
                 //
+                NetInput input = rq.input();
+                if (input != null) {
+                        input.close(num);
+                }
         }
 
 }

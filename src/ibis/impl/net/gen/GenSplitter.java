@@ -47,7 +47,7 @@ public final class GenSplitter extends NetSplitter {
 			headerOffset = _headersLength;
 		}
 
-		outputTable.put(rpn, output);
+		outputMap.put(rpn, output);
                 log.out();
 	}
 
@@ -60,7 +60,7 @@ public final class GenSplitter extends NetSplitter {
 			String subDriverName = getProperty("Driver");
                         subDriver = driver.getIbis().getDriver(subDriverName);
 		}
-                
+
 		NetOutput no = newSubOutput(subDriver);
 		super.setupConnection(cnx, cnx.getNum(), no);
 
@@ -77,4 +77,15 @@ public final class GenSplitter extends NetSplitter {
 		}
                 log.out();
 	}
+
+        protected Object getKey(Integer num) {
+                return num;
+        }
+
+        public synchronized void closeConnection(Integer num) throws NetIbisException {
+                NetOutput output = (NetOutput)outputMap.get(num);
+                if (output != null) {
+                        output.close(num);
+                }
+        }
 }

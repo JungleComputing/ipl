@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Hashtable;
+import java.util.HashMap;
 
 /**
  * Provides a generic multiple network input poller.
@@ -15,7 +15,7 @@ public abstract class NetPoller extends NetInput {
 	/**
 	 * The set of inputs.
 	 */
-        protected Hashtable inputTable  = null;
+        protected HashMap inputMap  = null;
 
 	/**
 	 * The driver used for the inputs.
@@ -57,7 +57,7 @@ public abstract class NetPoller extends NetInput {
 	public NetPoller(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
                 super(pt, driver, context);
-                inputTable = new Hashtable();
+                inputMap = new HashMap();
 	}
 
 	/**
@@ -66,7 +66,7 @@ public abstract class NetPoller extends NetInput {
          * notification.
 	 *
          * @param cnx the connection attributes.
-         * @param key the connection key in the splitter {@link #inputTable table}.
+         * @param key the connection key in the splitter {@link #inputMap map}.
          * @param ni the connection's input.
 	 */
 	protected void setupConnection(NetConnection cnx,
@@ -82,21 +82,22 @@ public abstract class NetPoller extends NetInput {
                  * must protect the data structures.
                  */
                 synchronized (this) {
-                        ReceiveQueue q = (ReceiveQueue)inputTable.get(key);
+                        ReceiveQueue q = (ReceiveQueue)inputMap.get(key);
                         if (q == null) {
                                 q = new ReceiveQueue(ni);
-                                inputTable.put(key, q);
-
-                                upcallMode = (upcallFunc != null);
-
-                                 if (NetReceivePort.useBlockingPoll||upcallMode) {
-                                         ni.setupConnection(cnx, q);
-                                 } else {
-                                         ni.setupConnection(cnx, null);
-                                 }
-
-                                // Don't understand: wakeupBlockedReceiver();
+                                inputMap.put(key, q);
                         }
+
+                        upcallMode = (upcallFunc != null);
+
+                        if (NetReceivePort.useBlockingPoll||upcallMode) {
+                                ni.setupConnection(cnx, q);
+                        } else {
+                                ni.setupConnection(cnx, null);
+                        }
+
+                        // Don't understand: wakeupBlockedReceiver();
+
                 }
                 log.out();
 	}
@@ -148,43 +149,51 @@ public abstract class NetPoller extends NetInput {
 
 		public void inputUpcall(NetInput input, Integer spn)
 			throws NetIbisException {
-		    log.in();
+                        log.in();
 
-		    Thread me;
+                        Thread me;
 
-		    synchronized (NetPoller.this) {
-			if (upcallMode) {
-			    grabUpcallLock(this);
-			} else {
-			    wakeupBlockedReceiver();
-			}
-			activeNum = spn;
-			me = Thread.currentThread();
-			activeUpcallThread = me;
-			log.disp(this + ": NetPoller queue thread poll returns " + activeNum);
-		    }
+                        synchronized (NetPoller.this) {
+                                if (spn == null) {
+                                        throw new NetIbisClosedException("connection closed");
+                                }
 
-		    if (upcallMode) {
-                            log.disp("upcallFunc.inputUpcall-->");
-			upcallFunc.inputUpcall(NetPoller.this, spn);
-                            log.disp("upcallFunc.inputUpcall<--");
-			if (activeUpcallThread == me) {
-			    // implicit finish()
-			    doFinish();
-			}
-		    } else {
-			synchronized (NetPoller.this) {
-			    while (activeNum == spn) {
-				try {
-				    NetPoller.this.wait();
-				} catch (InterruptedException e) {
-                                        throw new NetIbisInterruptedException(e);
-				}
-			    }
-			}
-		    }
+                                if (upcallMode) {
+                                        grabUpcallLock(this);
+                                } else {
+                                        wakeupBlockedReceiver();
+                                }
+                                activeNum = spn;
 
-		    log.out();
+                                me = Thread.currentThread();
+                                activeUpcallThread = me;
+                                log.disp(this + ": NetPoller queue thread poll returns " + activeNum);
+                        }
+
+                        if (upcallMode) {
+                                log.disp("upcallFunc.inputUpcall-->");
+                                upcallFunc.inputUpcall(NetPoller.this, spn);
+                                log.disp("upcallFunc.inputUpcall<--");
+                                synchronized (NetPoller.this) {
+                                        if (activeUpcallThread == me) {
+                                                // implicit finish()
+                                                finishLocked();
+                                        }
+                                }
+
+                        } else {
+                                synchronized (NetPoller.this) {
+                                        while (activeNum == spn) {
+                                                try {
+                                                        NetPoller.this.wait();
+                                                } catch (InterruptedException e) {
+                                                        throw new NetIbisInterruptedException(e);
+                                                }
+                                        }
+                                }
+                        }
+
+                        log.out();
 		}
 
 
@@ -204,18 +213,18 @@ public abstract class NetPoller extends NetInput {
 
                 /* Call this from synchronized (NetPoller.this) */
                 public void finish() throws NetIbisException {
-		    log.in();
+                        log.in();
 
-		    activeNum = null;
-		    input.finish();
+                        activeNum = null;
+                        input.finish();
 
-		    if (upcallMode) {
-			releaseUpcallLock();
-		    } else {
-			NetPoller.this.notifyAll();
-		    }
+                        if (upcallMode) {
+                                releaseUpcallLock();
+                        } else {
+                                NetPoller.this.notifyAll();
+                        }
 
-		    log.out();
+                        log.out();
                 }
 
 
@@ -229,21 +238,21 @@ public abstract class NetPoller extends NetInput {
 
 
 	// Call the method synchronized(this)
-	private void grabUpcallLock(ReceiveQueue q) {
+	private void grabUpcallLock(ReceiveQueue q) throws NetIbisInterruptedException {
                 log.in();trace.in();
 
-	    while (activeQueue != null) {
-		upcallWaiters++;
-		try {
-		    wait();
-		} catch (InterruptedException e) {
-		    // Ignore
-		}
-		upcallWaiters--;
-	    }
-	    activeQueue = q;
+                while (activeQueue != null) {
+                        upcallWaiters++;
+                        try {
+                                wait();
+                        } catch (InterruptedException e) {
+                                throw new NetIbisInterruptedException(e);
+                        }
+                        upcallWaiters--;
+                }
+                activeQueue = q;
 
-	    log.out();trace.out();
+                log.out();trace.out();
 	}
 
 
@@ -251,18 +260,18 @@ public abstract class NetPoller extends NetInput {
 	private void releaseUpcallLock() {
                 log.in();trace.in();
 
-	    activeQueue = null;
-	    if (upcallWaiters > 0) {
-		notifyAll();
-	    }
+                activeQueue = null;
+                if (upcallWaiters > 0) {
+                        notifyAll();
+                }
 
-	    log.out();trace.out();
+                log.out();trace.out();
 	}
 
 
 	private void wakeupBlockedReceiver() {
                 log.in();
-// System.err.println(this + ": gonna unblock receiver thread");
+                // System.err.println(this + ": gonna unblock receiver thread");
                 if (waitingThreads > 0) {
                         notifyAll();
                 }
@@ -270,17 +279,17 @@ public abstract class NetPoller extends NetInput {
 	}
 
 
-	private void blockReceiver() {
-// System.err.println(this + ": block receiver thread");
+	private void blockReceiver() throws NetIbisException {
+                // System.err.println(this + ": block receiver thread");
                 log.in();
                 waitingThreads++;
                 try {
                         wait();
                 } catch (InterruptedException e) {
-                        // Ignore (as usual)
+                        throw new NetIbisInterruptedException(e);
                 }
                 waitingThreads++;
-// System.err.println(this + ": unblocked receiver thread");
+                // System.err.println(this + ": unblocked receiver thread");
                 log.out();
 	}
 
@@ -312,7 +321,7 @@ public abstract class NetPoller extends NetInput {
 
                 synchronized (this) {
                         while (true) {
-                                final Collection c = inputTable.values();
+                                final Collection c = inputMap.values();
                                 final int        s = c.size();
 
                                 if (s != 0) {
@@ -392,14 +401,14 @@ public abstract class NetPoller extends NetInput {
 	 * Call this synchronized(this)
 	 */
 	private void finishLocked() throws NetIbisException {
-	    log.in();
-            if (activeQueue != null) {
-                    activeQueue.finish();
-                    activeQueue = null;
-            }
-            
-	    activeUpcallThread = null;
-	    log.out();
+                log.in();
+                if (activeQueue != null) {
+                        activeQueue.finish();
+                        activeQueue = null;
+                }
+
+                activeUpcallThread = null;
+                log.out();
 	}
 
 
@@ -409,7 +418,7 @@ public abstract class NetPoller extends NetInput {
 	public void doFinish() throws NetIbisException {
                 log.in();
 		synchronized (this) {
-		    finishLocked();
+                        finishLocked();
 		}
                 log.out();
 	}
@@ -419,23 +428,27 @@ public abstract class NetPoller extends NetInput {
 	 * {@inheritDoc}
 	 */
 	public void doFree() throws NetIbisException {
-                log.in();
-		if (inputTable != null) {
-			Iterator i = inputTable.values().iterator();
+                log.in();trace.in();
+                trace.disp("0, "+this);
+		if (inputMap != null) {
+			Iterator i = inputMap.values().iterator();
 
-			if (inputTable.values().size() == 1) {
+                        trace.disp("1, "+this);
+			if (inputMap.values().size() == 1) {
                                 log.disp("Pity, missed the chance of a blocking NetPoller without thread switch");
 			} else {
-                                log.disp("No chance of a blocking NetPoller without thread switch; size " + inputTable.values().size());
+                                log.disp("No chance of a blocking NetPoller without thread switch; size " + inputMap.values().size());
 			}
 
+                        trace.disp("2, "+this);
 			while (i.hasNext()) {
 				ReceiveQueue q = (ReceiveQueue)i.next();
-				NetInput ni = q.input;
+				//NetInput ni = q.input;
 				q.free();
-				ni.free();
+				//ni.free();
                                 i.remove();
 			}
+                        trace.disp("3, "+this);
 		}
 
 		synchronized(this) {
@@ -445,26 +458,29 @@ public abstract class NetPoller extends NetInput {
                         //                          while (activeQueue != null)
                         //                                  wait();
                 }
-
+                trace.disp("4, "+this);
+                trace.out();log.out();
 	}
+
+        protected abstract Object getKey(Integer num);
 
 
         public abstract void closeConnection(ReceiveQueue rq, Integer num) throws NetIbisException;
 
         public synchronized final void doClose(Integer num) throws NetIbisException {
                 log.in();
-		if (inputTable != null) {
-                        ReceiveQueue rq = (ReceiveQueue)inputTable.get(num);
-                        closeConnection(rq, num);
+		if (inputMap != null) {
+                        Object       key = getKey(num);
+                        ReceiveQueue rq  = (ReceiveQueue)inputMap.get(num);
 
-			NetInput input = rq.input;
-                        input.close(num);
-                        inputTable.remove(num);
+                        if (rq != null) {
+                                closeConnection(rq, num);
 
-                        if (activeQueue == rq) {
-                                activeQueue = null;
-                                activeUpcallThread = null;
-                                notifyAll();
+                                if (activeQueue == rq) {
+                                        activeQueue = null;
+                                        activeUpcallThread = null;
+                                        notifyAll();
+                                }
                         }
 
                 }
