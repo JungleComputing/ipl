@@ -352,7 +352,8 @@
 
 	<echo	message="native.dir = ${native.dir}"
 		level="verbose"/>
-	<echo message="default.includes = ${default.includes}"/>
+	<echo	message="default.includes = ${default.includes}"
+		level="verbose"/>
 	<pathconvert pathsep=" " property="native-path">
 	    <path>
 		<pathelement path="${native.dir}"/>
