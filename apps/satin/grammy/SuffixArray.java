@@ -199,7 +199,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             return false;
         }
         for( int ix=start; ix<end; ix++ ){
-            for( int iy=ix+1; ix<end; ix++ ){
+            for( int iy=ix+1; iy<end; iy++ ){
                 if( (indices[ix]+offset)<=indices[iy] ){
                     return true;
                 }
@@ -207,6 +207,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         }
         return false;
     }
+
 
     class Result {
         int offset;
@@ -694,7 +695,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         }
         else {
             Result reps = selectRepeats();
-            //reps.print();
+            reps.print();
 
             boolean commonality[] = reps.comm;
             int indices[] = reps.indices;
