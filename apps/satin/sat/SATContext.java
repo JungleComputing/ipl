@@ -99,7 +99,7 @@ public final class SATContext implements java.io.Serializable {
     private static final boolean traceLearning = false;
     private static final boolean traceResolutionChain = false;
     private static final boolean doVerification = false;
-    private static final boolean doLearning = true;
+    private static final boolean doLearning = false;
     private static final boolean propagatePureVariables = true;
 
     /**
@@ -888,7 +888,7 @@ public final class SATContext implements java.io.Serializable {
 	    if( doVerification ){
 	        verifyClauseCount( p, var );
 	    }
-	    if( pc == 0 ){
+	    if( propagatePureVariables && pc == 0 ){
 		if( assignment[var] == UNASSIGNED ){
                     if( negclauses[var] != 0 ){
                         if( tracePropagation ){
@@ -897,7 +897,7 @@ public final class SATContext implements java.io.Serializable {
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
                         // adminstration is inconsistent at the moment.
-                        hasPure = propagatePureVariables;
+                        hasPure = true;
                     }
 		}
 	    }
@@ -910,7 +910,7 @@ public final class SATContext implements java.io.Serializable {
 	    if( doVerification ){
 	        verifyClauseCount( p, var );
 	    }
-	    if( nc == 0 ){
+	    if( propagatePureVariables && nc == 0 ){
 		if( assignment[var] == UNASSIGNED ){
                     if( posclauses[var] != 0 ){
                         if( tracePropagation ){
@@ -919,12 +919,12 @@ public final class SATContext implements java.io.Serializable {
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
                         // adminstration is inconsistent at the moment.
-                        hasPure = propagatePureVariables;
+                        hasPure = true;
                     }
 		}
 	    }
 	}
-	if( hasPure ){
+	if( propagatePureVariables && hasPure ){
 	    // Now propagate the pure variables.
 	    for( int i=0; i<pos.length; i++ ){
 		int var = pos[i];

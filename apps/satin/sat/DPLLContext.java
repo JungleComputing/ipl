@@ -60,6 +60,7 @@ public final class DPLLContext implements java.io.Serializable {
 
     private static final boolean tracePropagation = false;
     private static final boolean doVerification = false;
+    private static final boolean propagatePureVariables = true;
 
     /**
      * Constructs a SAT context based on the given SAT problem.
@@ -322,7 +323,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    if( doVerification ){
 	        verifyClauseCount( p, var );
 	    }
-	    if( pc == 0 ){
+	    if( propagatePureVariables && pc == 0 ){
 		if( assignment[var] == UNASSIGNED ){
                     if( negclauses[var] != 0 ){
                         if( tracePropagation ){
@@ -344,7 +345,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    if( doVerification ){
 	        verifyClauseCount( p, var );
 	    }
-	    if( nc == 0 ){
+	    if( propagatePureVariables && nc == 0 ){
 		if( assignment[var] == UNASSIGNED ){
                     if( posclauses[var] != 0 ){
                         if( tracePropagation ){
@@ -358,7 +359,7 @@ public final class DPLLContext implements java.io.Serializable {
 		}
 	    }
 	}
-	if( hasPure ){
+	if( propagatePureVariables && hasPure ){
 	    // Now propagate the pure variables.
 	    for( int i=0; i<pos.length; i++ ){
 		int var = pos[i];
