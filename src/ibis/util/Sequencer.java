@@ -10,13 +10,11 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.Upcall;
 
 import java.io.IOException;
 
 import java.util.HashMap;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.ArrayList;
 
 /**
  * The <code>Sequencer</code> class provides a global numbering.
@@ -42,49 +40,78 @@ public class Sequencer {
     private ReceivePort rcv;
     private PortType tp;
     private SendPort snd;	// Only for client
+    private int idno;
     private HashMap counters;
 
     private static HashMap sequencers = new HashMap();
 
-    private static class UpcallHandler implements Upcall {
+    private static class ServerThread extends Thread {
 
-	private HashMap sendports;
+	private ArrayList sendports;
 	private Sequencer seq;
+	private ArrayList clients;
+	private ReceivePort rcv;
 
-	UpcallHandler(Sequencer s) {
+	ServerThread(ReceivePort r, Sequencer s) {
 	    seq = s;
-	    sendports = new HashMap();
+	    rcv = r;
+	    sendports = new ArrayList();
+	    clients = new ArrayList();
 	}
 
-	public void upcall(ReadMessage m) throws IOException {
+	public void handleMessage(ReadMessage m) throws IOException {
 	    ReceivePortIdentifier rid = null;
 	    String name = null;
-	    try {
-		rid = (ReceivePortIdentifier) m.readObject();
-		name = (String) m.readObject();
-
-	    } catch(ClassNotFoundException e) {
-		throw new IOException("Got ClassNotFoundException " + e);
-	    }
-	
+	    SendPort s;
+	    int index = m.readInt();
+	    rid = (ReceivePortIdentifier) clients.get(index);
+	    name = (String) m.readString();
 	    m.finish();
-	    SendPort s = (SendPort) sendports.get(rid);
-	    if (s == null) {
-		s = seq.tp.createSendPort();
-		s.connect(rid);
-		sendports.put(rid, s);
-	    }
+	    s = (SendPort) sendports.get(index);
 	    WriteMessage w = s.newMessage();
 	    w.writeInt(seq.getNo(name));
 	    w.send();
 	    w.finish();
 	}
 
+	public void run() {
+	    try {
+		ReadMessage m = rcv.receive();
+		ReceivePortIdentifier rid = (ReceivePortIdentifier) m.readObject();
+		clients.add(rid);
+		SendPort s = seq.tp.createSendPort();
+		s.connect(rid);
+		sendports.add(s);
+		m.finish();
+		WriteMessage w = s.newMessage();
+		w.writeInt(clients.size() - 1);
+		w.send();
+		w.finish();
+	    } catch(IOException e) {
+		System.err.println("Got IOException!");
+		e.printStackTrace();
+		return;
+	    } catch(ClassNotFoundException e) {
+		System.err.println("Got ClassNotFoundException!");
+		e.printStackTrace();
+		return;
+	    }
+
+	    while (true) {
+		try {
+		    ReadMessage m = rcv.receive();
+		    handleMessage(m);
+		} catch(IOException e) {
+		    System.err.println("Got IOException!");
+		    e.printStackTrace();
+		    break;
+		}
+	    }
+	}
+
 	protected void finalize() {
-	    Collection v = sendports.values();
-	    Iterator i = v.iterator();
-	    while (i.hasNext()) {
-		SendPort s = (SendPort) (i.next());
+	    for (int i = 0; i < sendports.size(); i++) {
+		SendPort s = (SendPort) sendports.get(i);
 		try {
 		    s.close();
 		} catch(IOException e) {
@@ -102,6 +129,7 @@ public class Sequencer {
 
     private Sequencer(Ibis ibis) throws IOException {
 	ident = ibis.identifier();
+	idno = -1;
 	try {
 	    IbisIdentifier boss = (IbisIdentifier)
 			    ibis.registry().elect("sequencer", ident);
@@ -112,7 +140,7 @@ public class Sequencer {
 
 	StaticProperties p = new StaticProperties();
 	p.add("serialization", "object");
-	p.add("communication", "OneToOne, ManyToOne, AutoUpcalls, ExplicitReceipt, Reliable");
+	p.add("communication", "OneToOne, ManyToOne, ExplicitReceipt, Reliable");
 	try {
 	    tp = ibis.createPortType("sequencer", p);
 	} catch(IbisException e) {
@@ -120,10 +148,12 @@ public class Sequencer {
 	}
 
 	if (master) {
-	    rcv = tp.createReceivePort("seq recvr", new UpcallHandler(this));
-	    rcv.enableConnections();
-	    rcv.enableUpcalls();
 	    counters = new HashMap();
+	    rcv = tp.createReceivePort("seq recvr");
+	    rcv.enableConnections();
+	    ServerThread server = new ServerThread(rcv, this);
+	    server.setDaemon(true);
+	    server.start();
 	}
 	else {
 	    snd = tp.createSendPort();
@@ -131,6 +161,14 @@ public class Sequencer {
 	    rcv.enableConnections();
 	    ReceivePortIdentifier master_id = ibis.registry().lookup("seq recvr");
 	    snd.connect(master_id);
+	    ReceivePortIdentifier rid = rcv.identifier();
+	    WriteMessage w = snd.newMessage();
+	    w.writeObject(rid);
+	    w.send();
+	    w.finish();
+	    ReadMessage r = rcv.receive();
+	    idno = r.readInt();
+	    r.finish();
 	}
     }
 
@@ -181,10 +219,9 @@ public class Sequencer {
 	if (master) {
 	    return getNo(name);
 	}
-	ReceivePortIdentifier rid = rcv.identifier();
 	WriteMessage w = snd.newMessage();
-	w.writeObject(rid);
-	w.writeObject(name);
+	w.writeInt(idno);
+	w.writeString(name);
 	w.send();
 	w.finish();
 	ReadMessage r = rcv.receive();
