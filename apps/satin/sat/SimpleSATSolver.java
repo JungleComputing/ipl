@@ -11,7 +11,7 @@
 
 import java.io.File;
 
-public class SimpleSATSolver implements SimpleSATInterface, java.io.Serializable {
+public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSATInterface, java.io.Serializable {
     static final boolean traceSolver = false;
     static final boolean printSatSolutions = true;
     static int label = 0;
@@ -40,7 +40,7 @@ public class SimpleSATSolver implements SimpleSATInterface, java.io.Serializable
 	negassignments[var] = 0;
 	SATSolution posres = solve( p, posassignments, var+1 );
 	SATSolution negres = solve( p, negassignments, var+1 );
-	// sync();
+	sync();
 	if( posres != null ){
 	    return posres;
 	}
@@ -61,6 +61,7 @@ public class SimpleSATSolver implements SimpleSATInterface, java.io.Serializable
 
         // Now recursively try to find a solution.
 	SATSolution res = s.solve( p, assignments, 0 );
+	s.sync();
 
 	return res;
     }

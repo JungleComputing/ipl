@@ -1756,7 +1756,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 				if(TUPLE_STATS) {
 					tupleMsgs++;
-					count += writeMessage.getCount();
+					count = writeMessage.getCount();
 				}
 
 			} catch (IOException e) {
@@ -1777,7 +1777,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 					if(TUPLE_STATS && i == 0) {
 						tupleMsgs++;
-						count += writeMessage.getCount();
+						count = writeMessage.getCount();
 					}
 
 				} catch (IOException e) {

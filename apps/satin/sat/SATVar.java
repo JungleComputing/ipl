@@ -2,7 +2,7 @@
 //
 // Description of a single variable in the SAT solver.
 
-class SATVar {
+class SATVar implements java.io.Serializable {
     private int label;
     private IntVector pos;	// Clauses in which this var occurs as a pos.
     private IntVector neg;	// Clauses in which this var occurs as a neg.

@@ -10,7 +10,7 @@ then
 	exit 1
 fi
 
-JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/build/lib:build:.
+JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$CLASSPATH:build:.
 
 #needed for ibm 1.3 JITs and SMPs
 export LD_ASSUME_KERNEL=2.2.5
@@ -24,7 +24,6 @@ export LD_ASSUME_KERNEL=2.2.5
 
 export LFC_INTR_FIRST=100
 export IBP_SEND_SYNC=10000 
-export MANTA_NO_PANDA=1
 export PAN_COMM_NO_IDLE_POLL=1
 
 #not needed any more, and not portable --Rob
@@ -70,4 +69,4 @@ shift
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-$wrapper_name $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath/p:$IBIS_ROOT/classlibs:$IBIS_ROOT/build: $PROFILING -classpath $JAVACLASSPATH "$@"
+$wrapper_name $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"

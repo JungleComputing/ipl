@@ -8,7 +8,7 @@ import java.io.PrintStream;
 import java.io.File;
 import java.io.StreamTokenizer;
 
-class SATProblem {
+class SATProblem implements java.io.Serializable {
     private int vars;		// Number of variables in the problem.
     Clause clauses[];		// The clauses of the problem.
     private SATVar variables[];	// The variables of the problem.

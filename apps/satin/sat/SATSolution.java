@@ -1,7 +1,7 @@
 // File: $Id$
 
 // Representation of a single solution of the SAT problem.
-class SATSolution {
+class SATSolution implements java.io.Serializable {
     int pos[];
     int neg[];
 

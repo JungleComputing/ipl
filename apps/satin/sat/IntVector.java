@@ -5,7 +5,7 @@
 // they assume Object elements, while the whole point of this class is
 // to provide precise typing and an efficient array representation.
 // We try to adhere to the naming scheme of these classes, though.
-class IntVector {
+class IntVector implements java.io.Serializable {
     protected int capacityIncrement;
     protected int elementCount;
     protected int elementData[];
