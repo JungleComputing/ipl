@@ -35,6 +35,11 @@ public abstract class Conversion {
     public final static int	BOOLEAN_SIZE = 1;
 
     /**
+     * The number of bytes in a single 'byte'.
+     */
+    public final static int	BYTE_SIZE = 1;
+
+    /**
      * The number of bytes in a single 'short'.
      */
     public final static int	SHORT_SIZE = 2;
@@ -101,6 +106,7 @@ public abstract class Conversion {
     private static final Conversion loadConversion(String className)
 	throws Exception {
 
+System.err.println("Create Conversion " + className);
 	return (Conversion)Class.forName(className).newInstance();
 
     }
@@ -108,12 +114,8 @@ public abstract class Conversion {
     /**
      * Load a conversion
      */
-    public static final Conversion loadConversion(boolean bigEndian) {
-	Properties systemProperties = System.getProperties();
-
-	String conversion = systemProperties.getProperty("ibis.conversion");
-
-	if (conversion == null || conversion.equalsIgnoreCase("nio")) {
+    public static final Conversion loadConversion(boolean bigEndian, boolean useNio) {
+	if (useNio) {
 	    try {
 		if(bigEndian) {
 		    return loadConversion("ibis.io.nio.NioBigConversion");
@@ -130,6 +132,17 @@ public abstract class Conversion {
 	} else {
 	    return new SimpleLittleConversion();
 	}
+    }
+
+    /**
+     * Load a conversion
+     */
+    public static final Conversion loadConversion(boolean bigEndian) {
+	Properties systemProperties = System.getProperties();
+
+	String conversion = systemProperties.getProperty("ibis.conversion");
+
+	return loadConversion(bigEndian, (conversion == null || conversion.equalsIgnoreCase("nio")));
     }
 
 
