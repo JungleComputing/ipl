@@ -285,7 +285,15 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		try {
 			String key = (String) m.readObject();
 			Serializable data = (Serializable) m.readObject();
-			SatinTupleSpace.remoteAdd(key, data);
+
+			if(data instanceof ActiveTuple) {
+				synchronized(satin) {
+					satin.addToActiveTupleList(key, data);
+					satin.gotActiveTuples = true;
+				}
+			} else {
+				SatinTupleSpace.remoteAdd(key, data);
+			}
 		} catch (Exception e) {
 			System.err.println("SATIN '" + satin.ident.name() + 
 					   "': Got Exception while reading tuple update: " + e);

@@ -24,6 +24,7 @@ import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
+import java.util.ArrayList;
 
 /* 
    One important invariant: there is only one thread per machine that spawns
@@ -96,6 +97,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	   result of a remote job. */
 	private IRVector outstandingJobs = new IRVector(this);
 	private IRVector resultList = new IRVector(this);
+	private ArrayList activeTupleKeyList = new ArrayList();
+	private ArrayList activeTupleDataList = new ArrayList();
 	private volatile boolean receivedResults = false;
 	private int stampCounter = 0;
 
@@ -110,6 +113,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	/* used to store reply messages */
 	volatile boolean gotStealReply = false; // used in messageHandler
 	volatile boolean gotBarrierReply = false; // used in messageHandler
+	volatile boolean gotActiveTuples = false; // used in messageHandler
 
 	InvocationRecord stolenJob = null;
 
@@ -748,6 +752,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			assertLocked(this);
 		}
 		outstandingJobs.add(r);
+	}
+
+	// hold the lock when calling this
+	protected void addToActiveTupleList(String key, Serializable data) {
+		if(ASSERTS) {
+			assertLocked(this);
+		}
+		activeTupleKeyList.add(key);
+		activeTupleKeyList.add(data);
 	}
 
 	// hold the lock when calling this
@@ -1678,6 +1691,21 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(ABORTS && gotExceptions) handleExceptions();
 	}
 
+
+	synchronized void handleActiveTuples() {
+		while(true) {
+			if(activeTupleKeyList.size() > 0) {
+				// do upcall
+				String key = (String) activeTupleKeyList.remove(0);
+				ActiveTuple data = (ActiveTuple) activeTupleDataList.remove(0);
+				data.handleTuple(key);
+			} else {
+				gotActiveTuples = false;
+				return;
+			}
+		}
+	}
+
 	synchronized void handleAborts() {
 		int stamp;
 		IbisIdentifier owner;
@@ -1774,24 +1802,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(POLL_FREQ > 0 && !upcalls) satinPoll();
 		}
 
-		if (ABORTS) { // sync is poll
-			if(gotAborts) handleAborts();
-			if(gotExceptions) handleExceptions();
+		if(s.value == 0) { // sync is poll
+			if (ABORTS) { 
+				if(gotAborts) handleAborts();
+				if(gotExceptions) handleExceptions();
+			}
+			if(gotActiveTuples) handleActiveTuples();
 		}
 
 		while(s.value > 0) {
-/*
-  // this can happen with aborts, no problemo
-  if (ASSERTS && exiting) {
-  System.err.println("SATIN '" + ident.name() + 
-  ": EEK! got exit msg while syncing!, spawn counter = " + s.value + 
-  " abort list count = " + abortList.count + " excep count = " + exceptionList.count + 
-  " parent = " + parent);
-//				new Throwable().printStackTrace();
-//				exit();
-//				System.exit(1);
-}
-*/
 			//pollAsyncResult(); // for CRS
 
 			if(SPAWN_DEBUG) {
@@ -1802,6 +1821,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(POLL_FREQ > 0 && !upcalls) satinPoll();
 
 			if(receivedResults) handleResults();
+			if(gotActiveTuples) handleActiveTuples();
 
 			if(ABORTS && gotAborts) handleAborts();
 			if(ABORTS && gotExceptions) handleExceptions();
