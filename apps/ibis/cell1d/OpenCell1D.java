@@ -681,6 +681,14 @@ class OpenCell1D implements OpenConfig {
     }
 
     /**
+     * Sends a work steal request to the specified port.
+     * @param p The port to send to.
+     */
+    static void sendPing( SendPort p )
+    {
+    }
+
+    /**
      * See if any new members have joined the computation, and if so
      * update the column numbers we should try to own.
      */
@@ -833,6 +841,8 @@ class OpenCell1D implements OpenConfig {
                     rightNeighbourIdle = false;
                 }
                 computeNextGeneration( p );
+                sendPing( leftStealSendPort );
+                sendPing( rightStealSendPort );
                 generation++;
                 updateAims( p );
                 if( (me % 2) == 0 ){
