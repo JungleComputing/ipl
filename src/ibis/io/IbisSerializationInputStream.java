@@ -11,8 +11,10 @@ import java.io.StreamCorruptedException;
 import java.io.NotSerializableException;
 
 /**
- * This is the <code>SerializationInputStream</code> version that is used for Ibis serialization.
- * An effort has been made to make it look like and extend <code>java.io.ObjectInputStream</code>.
+ * This is the <code>SerializationInputStream</code> version that is used
+ * for Ibis serialization.
+ * An effort has been made to make it look like and extend
+ * <code>java.io.ObjectInputStream</code>.
  * However, versioning is not supported, like it is in Sun serialization.
  */
 public final class IbisSerializationInputStream extends SerializationInputStream implements IbisStreamFlags {
@@ -44,8 +46,9 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     private IbisVector types;
 
     /**
-     * There is a notion of a "current" object. This is needed when a user-defined
-     * <code>readObject</code> refers to <code>defaultReadObject</code> or to
+     * There is a notion of a "current" object. This is needed when a
+     * user-defined <code>readObject</code> refers to
+     * <code>defaultReadObject</code> or to
      * <code>getFields</code>.
      */
     private Object current_object;
@@ -57,12 +60,14 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * <li> if its superclass is not serializable: 1.
      * </ul>
      * This level implies a level at which an object can be seen. The "current"
-     * level is the level at which <code>current_object</code> is being processed.
+     * level is the level at which <code>current_object</code> is being
+     * processed.
      */
     private int current_level;
 
     /**
-     * The <code>current_object</code> and <code>current_level</code> are maintained in
+     * The <code>current_object</code> and <code>current_level</code>
+     * are maintained in
      * stacks, so that they can be managed by IOGenerator-generated code.
      */
     private Object[] object_stack;
@@ -73,42 +78,50 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /**
      * <code>IbisTypeInfo</code> for <code>boolean</code> arrays.
      */
-    private static IbisTypeInfo booleanArrayInfo = IbisTypeInfo.getIbisTypeInfo(classBooleanArray);
+    private static IbisTypeInfo booleanArrayInfo =
+	IbisTypeInfo.getIbisTypeInfo(classBooleanArray);
 
     /**
      * <code>IbisTypeInfo</code> for <code>byte</code> arrays.
      */
-    private static IbisTypeInfo byteArrayInfo = IbisTypeInfo.getIbisTypeInfo(classByteArray);
+    private static IbisTypeInfo byteArrayInfo =
+	IbisTypeInfo.getIbisTypeInfo(classByteArray);
 
     /**
      * <code>IbisTypeInfo</code> for <code>char</code> arrays.
      */
-    private static IbisTypeInfo charArrayInfo = IbisTypeInfo.getIbisTypeInfo(classCharArray);
+    private static IbisTypeInfo charArrayInfo =
+	IbisTypeInfo.getIbisTypeInfo(classCharArray);
 
     /**
      * <code>IbisTypeInfo</code> for <code>short</code> arrays.
      */
-    private static IbisTypeInfo shortArrayInfo = IbisTypeInfo.getIbisTypeInfo(classShortArray);
+    private static IbisTypeInfo shortArrayInfo =
+	IbisTypeInfo.getIbisTypeInfo(classShortArray);
 
     /**
      * <code>IbisTypeInfo</code> for <code>int</code> arrays.
      */
-    private static IbisTypeInfo intArrayInfo = IbisTypeInfo.getIbisTypeInfo(classIntArray);
+    private static IbisTypeInfo intArrayInfo =
+	IbisTypeInfo.getIbisTypeInfo(classIntArray);
 
     /**
      * <code>IbisTypeInfo</code> for <code>long</code> arrays.
      */
-    private static IbisTypeInfo longArrayInfo = IbisTypeInfo.getIbisTypeInfo(classLongArray);
+    private static IbisTypeInfo longArrayInfo =
+	IbisTypeInfo.getIbisTypeInfo(classLongArray);
 
     /**
      * <code>IbisTypeInfo</code> for <code>float</code> arrays.
      */
-    private static IbisTypeInfo floatArrayInfo = IbisTypeInfo.getIbisTypeInfo(classFloatArray);
+    private static IbisTypeInfo floatArrayInfo =
+	IbisTypeInfo.getIbisTypeInfo(classFloatArray);
 
     /**
      * <code>IbisTypeInfo</code> for <code>double</code> arrays.
      */
-    private static IbisTypeInfo doubleArrayInfo = IbisTypeInfo.getIbisTypeInfo(classDoubleArray);
+    private static IbisTypeInfo doubleArrayInfo =
+	IbisTypeInfo.getIbisTypeInfo(classDoubleArray);
 
     /**
      * Constructor with an <code>IbisDissipator</code>.
@@ -161,7 +174,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     private void do_reset() {
 	if (DEBUG) {
 	    System.err.println("IN(" + this + ") do_reset: next handle = " +
-							next_object + ".");
+			       next_object + ".");
 	}
 	init(false);
     }
@@ -325,14 +338,14 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     private int readHandle() throws IOException {
 	int handle = in.readInt();
 
-       /* this replaces the checks for the reset handle
+	/* this replaces the checks for the reset handle
 	   everywhere else. --N */
 	while(handle == RESET_HANDLE) {
-		if (DEBUG) {
-			System.err.println("received a RESET");
-		}
-		do_reset();
-		handle = in.readInt();
+	    if (DEBUG) {
+		System.err.println("received a RESET");
+	    }
+	    do_reset();
+	    handle = in.readInt();
 	}
 
 	if (DEBUG) {
@@ -394,8 +407,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		i++;
 	    } else if ((b[i] & ~0x0f) == 0xe0) {
 		if (i + 2 >= bn ||
-			(b[i + 1] & ~0x3f) != 0x80 ||
-			(b[i + 2] & ~0x3f) != 0x80) {
+		    (b[i + 1] & ~0x3f) != 0x80 ||
+		    (b[i + 2] & ~0x3f) != 0x80) {
 		    throw new UTFDataFormatException("UTF Data Format Exception");
 		}
 		c[len++] = (char)(((b[i] & 0x0f) << 12) | ((b[i+1] & 0x3f) << 6) | b[i+2] & 0x3f);
@@ -454,7 +467,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @exception ClassNotFoundException	when the array class could not be loaded.
      */
     private void readArrayHeader(Class clazz, int len)
-	    throws IOException, ClassNotFoundException {
+	throws IOException, ClassNotFoundException {
 
 	if (DEBUG) {
 	    System.err.println("readArrayHeader: class = " + clazz + " len = " + len);
@@ -470,12 +483,12 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 	if (ASSERTS && !clazz.isAssignableFrom(in_clazz)) {
 	    throw new ClassCastException("Cannot assign class " + clazz +
-		    " from read class " + in_clazz);
+					 " from read class " + in_clazz);
 	}
 	if (ASSERTS && in_len != len) {
 	    throw new ArrayIndexOutOfBoundsException("Cannot read " + in_len +
-		    " into " + len +
-		    " elements");
+						     " into " + len +
+						     " elements");
 	}
     }
 
@@ -604,7 +617,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @inheritDoc
      */
     public void readArray(Object[] ref, int off, int len)
-	    throws IOException, ClassNotFoundException {
+	throws IOException, ClassNotFoundException {
 	readArrayHeader(ref.getClass(), len);
 	for (int i = off; i < off + len; i++) {
 	    ref[i] = readObject();
@@ -618,11 +631,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      */
     public void addObjectToCycleCheck(Object o) {
 	objects.add(next_object, o);
-/* No print here. The object may not have been completely initialized yet, so a toString may fail.
-	if (DEBUG) {
-	    System.out.println("objects[" + next_object + "] = " + (o == null ? "null" : o));
-	}
-*/
+	/* No print here. The object may not have been completely initialized yet, so a toString may fail.
+	   if (DEBUG) {
+	   System.out.println("objects[" + next_object + "] = " + (o == null ? "null" : o));
+	   }
+	*/
 	next_object++;
     }
 
@@ -635,11 +648,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     public Object getObjectFromCycleCheck(int handle) {
 	Object o = objects.get(handle); // - CONTROL_HANDLES);
 
-/* No print here. The object may not have been completely initialized yet, so a toString may fail.
-	if (DEBUG) {
-	    System.err.println("getfromcycle: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
-	}
-*/
+	/* No print here. The object may not have been completely initialized yet, so a toString may fail.
+	   if (DEBUG) {
+	   System.err.println("getfromcycle: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
+	   }
+	*/
 
 	return o;
     }
@@ -663,7 +676,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		}
 		else {
 		    System.err.println("readKnownTypeHeader -> read OLD HANDLE " +
-			(handle_or_type - CONTROL_HANDLES));
+				       (handle_or_type - CONTROL_HANDLES));
 		}
 	    }
 	    return handle_or_type;
@@ -671,7 +684,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 	if (DEBUG) {
 	    System.err.println("readKnownTypeHeader -> read NEW HANDLE " +
-		    ((handle_or_type & TYPE_MASK) - CONTROL_HANDLES));
+			       ((handle_or_type & TYPE_MASK) - CONTROL_HANDLES));
 	}
 	return -1;
     }
@@ -692,7 +705,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @return the array read.
      */
     private Object readArray(Class arrayClass, int type)
-	    throws IOException, ClassNotFoundException {
+	throws IOException, ClassNotFoundException {
 	int len = readInt();
 
 	if (DEBUG) {
@@ -760,14 +773,17 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * This method tries to load a class given its name. It tries the default classloader,
-     * and the one from the thread context. Also, apparently some classloaders do not understand
-     * array classes, and from the Java documentation, it is not clear that they should.
-     * Therefore, if the typeName indicates an array type, and the obvious attempts to load
-     * the class fail, this method also tries to load the base type of the array.
+     * This method tries to load a class given its name. It tries the
+     * default classloader, and the one from the thread context. Also,
+     * apparently some classloaders do not understand array classes, and
+     * from the Java documentation, it is not clear that they should.
+     * Therefore, if the typeName indicates an array type, and the
+     * obvious attempts to load the class fail, this method also tries
+     * to load the base type of the array.
      *
      * @param typeName	the name of the type to be loaded
-     * @exception ClassNotFoundException is thrown when the class could not be loaded.
+     * @exception ClassNotFoundException is thrown when the class could
+     * not be loaded.
      * @return the loaded class
      */
     private Class getClassFromName(String typeName) throws ClassNotFoundException {
@@ -777,16 +793,19 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    try {
 		if (DEBUG) {
 		    System.out.println("Could not load class " + typeName + " using Class.forName(), trying Thread.currentThread().getContextClassLoader().loadClass()");
-		    System.out.println("Default class loader is " + this.getClass().getClassLoader());
-		    System.out.println("now trying " + Thread.currentThread().getContextClassLoader());
+		    System.out.println("Default class loader is " +
+				       this.getClass().getClassLoader());
+		    System.out.println("now trying " +
+				       Thread.currentThread().getContextClassLoader());
 		}
 		return Thread.currentThread().getContextClassLoader().loadClass(typeName);
 	    } catch (ClassNotFoundException e2) {
 		int dim = 0;
 
-		/* Some classloaders are not able to load array classes. Therefore, if the name
-		 * describes an array, try again with the base type.
-		 */
+				/* Some classloaders are not able to load array classes.
+				 * Therefore, if the name
+				 * describes an array, try again with the base type.
+				 */
 		if (typeName.length() > 0 && typeName.charAt(0) == '[') {
 		    char[] s = typeName.toCharArray();
 		    while (dim < s.length && s[dim] == '[') {
@@ -872,10 +891,14 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     private native void setFieldObject(Object ref, String fieldname, String osig, Object o);
 
     /**
-     * This method reads a value from the stream and assigns it to a final field.
-     * IOGenerator uses this method when assigning final fields of an object that is rewritten, 
-     * but super is not, and super is serializable. The problem with this situation is that
-     * IOGenerator cannot create a proper constructor for this object, so cannot assign
+     * This method reads a value from the stream and assigns it to a
+     * final field.
+     * IOGenerator uses this method when assigning final fields of an
+     * object that is rewritten, 
+     * but super is not, and super is serializable. The problem with
+     * this situation is that
+     * IOGenerator cannot create a proper constructor for this object,
+     * so cannot assign
      * to native fields without falling back to native code.
      *
      * @param ref		object with a final field
@@ -1054,8 +1077,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		    fieldtype = "L" + fieldtype.replace('.', '/') + ";";
 		}
 
-		// System.out.println("fieldname = " + fieldname);
-		// System.out.println("signature = " + fieldtype);
+				// System.out.println("fieldname = " + fieldname);
+				// System.out.println("signature = " + fieldtype);
 
 		setFieldObject(ref, fieldname, fieldtype, readObject());
 	    }
@@ -1064,12 +1087,12 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		if (DEBUG) {
 		    if (o == null) {
 			System.out.println("Assigning null to field " +
-				t.serializable_fields[temp].getName());
+					   t.serializable_fields[temp].getName());
 		    }
 		    else {
 			System.out.println("Assigning an object of type " +
-				o.getClass().getName() + " to field " +
-				t.serializable_fields[temp].getName());
+					   o.getClass().getName() + " to field " +
+					   t.serializable_fields[temp].getName());
 		    }
 		}
 		t.serializable_fields[temp].set(ref, o);
@@ -1090,7 +1113,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @exception ClassNotFoundException when readObject throws it.
      */
     private void alternativeReadObject(AlternativeTypeInfo t, Object ref)
-	    throws ClassNotFoundException, IllegalAccessException, IOException {
+	throws ClassNotFoundException, IllegalAccessException, IOException {
 
 	if (DEBUG) {
 	    System.err.println("alternativeReadObject " + t);
@@ -1128,7 +1151,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @exception ClassNotFoundException when readObject throws it.
      */
     public void readSerializableObject(Object ref, String classname)
-	    throws ClassNotFoundException, IOException {
+	throws ClassNotFoundException, IOException {
 	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
 	push_current_object(ref, 0);
 	try {
@@ -1152,13 +1175,13 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @exception ClassNotFoundException when readObject throws it.
      */
     public void defaultReadSerializableObject(Object ref, int depth)
-	    throws ClassNotFoundException, IOException {
+	throws ClassNotFoundException, IOException {
 	Class type = ref.getClass();
 	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
 
 	/*  Find the type info corresponding to the current invocation.
 	    See the invokeReadObject invocation in alternativeReadObject.
-	    */
+	*/
 	while (t.level > depth) {
 	    t = t.alternativeSuperInfo;
 	}
@@ -1191,7 +1214,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * loaded.
      */
     public Object create_uninitialized_object(String classname)
-	    throws ClassNotFoundException, IOException {
+	throws ClassNotFoundException, IOException {
 	Class clazz = getClassFromName(classname);
 
 	Class t2 = clazz;
@@ -1307,7 +1330,9 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 	    if (DEBUG) {
 		try {
-		    System.err.println("readobj: handle = " + (handle_or_type - CONTROL_HANDLES) + " obj = " + o);
+		    System.err.println("readobj: handle = " +
+				       (handle_or_type - CONTROL_HANDLES) +
+				       " obj = " + o);
 		} catch (Exception e) {
 		    System.out.println("Object print got an exception:" + e);
 		    System.out.println("Stacktrace: ------------");
@@ -1322,7 +1347,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	IbisTypeInfo t = readType(type);
 
 	if (DEBUG) {
-	    System.err.println("read type " + t.clazz + " isarray " + t.isArray);
+	    System.err.println("read type " + t.clazz +
+			       " isarray " + t.isArray);
 	}
 
 	Object obj;
@@ -1344,8 +1370,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    obj = t.gen.generated_newInstance(this);
 	} else if (Externalizable.class.isAssignableFrom(t.clazz)) {
 	    try {
-		// TODO: is this correct? I guess it is, when accessibility
-		// is fixed.
+				// TODO: is this correct? I guess it is, when accessibility
+				// is fixed.
 		obj = t.clazz.newInstance();
 	    } catch(Exception e) {
 		throw new ClassNotFoundException("Could not instantiate" + e);
@@ -1358,7 +1384,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    // obj = t.clazz.newInstance(); Not correct: calls wrong constructor.
 	    Class t2 = t.clazz;
 	    while (Serializable.class.isAssignableFrom(t2)) {
-		/* Find first non-serializable super-class. */
+				/* Find first non-serializable super-class. */
 		t2 = t2.getSuperclass();
 	    }
 	    // Calls constructor for non-serializable superclass.
@@ -1512,7 +1538,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @inheritDoc
      */
     public void defaultReadObject()
-	    throws ClassNotFoundException, IOException, NotActiveException {
+	throws ClassNotFoundException, IOException, NotActiveException {
 	if (current_object == null) {
 	    throw new NotActiveException("defaultReadObject without a current object");
 	}
