@@ -4,7 +4,7 @@
     basedir=".">
 
     <property name="ibis"        location="../../.."/>
-    <property name="build"       location="build"/>
+    <property name="build"       value="build"/>
 
     <property name="satinc-flags" value="-keep"/>
     <property name="satin-main-class" value="NQueens"/>

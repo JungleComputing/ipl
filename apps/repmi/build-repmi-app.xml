@@ -15,8 +15,9 @@
     <target name="property-repmi-build" unless="build">
 	<echo message="build is undefined. Set it to the default value"/>
 	<property name="build" location="build"/>
-	<mkdir dir="${build}"/>
     </target>
+
+    <property name="builddir" location="${build}"/>
 
     <target name="repmi-init"
 	    depends="property-repmi-build,property-init"/>
@@ -28,13 +29,13 @@
 	    -->
 	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
 	<path id="all-classes">
-	    <fileset dir="${build}">
+	    <fileset dir="${builddir}">
 		<include name="**/*.class"/>
 		<include name="ibis/ipl/*.class"/>
 	    </fileset>
 	</path>
 	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${build}${file.separator}" to=""/>
+	    <map from="${builddir}${file.separator}" to=""/>
 	</pathconvert>
 
 	<!--
@@ -63,17 +64,17 @@
 	<echo	level="debug"
 		message="All classes to be rewritten: ${repmi-classes}"/>
 	<echo	level="debug"
-		message="Run ibis repmi over all classes under ${build}${file.separator}"/>
+	    message="Run ibis repmi over all classes under ${builddir}${file.separator}"/>
 	<java   classname="ibis.frontend.repmi.Main"
 		taskname="ibis repmi"
-		dir="${build}"
+		dir="${builddir}"
 		failonerror="true"
 		fork="true">
 	    <arg line="-dir ${repmi-classes}"/>
 	    <classpath refid="default.classpath"/>
 	</java>
-	<javac	destdir="${build}"
-		srcdir="${build}">
+	<javac	destdir="${builddir}"
+	    srcdir="${builddir}">
 	    <include name="**/repmi_stub_*.java"/>
 	    <include name="**/repmi_skeleton_*.java"/>
 	    <classpath refid="default.classpath"/>
@@ -82,7 +83,7 @@
 
     <target name="init">
 	<tstamp/>
-	<mkdir dir="${build}"/>
+	<mkdir dir="${builddir}"/>
 	<!--
 	<echo message="os.name = ${os.name} os.arch = ${os.arch}"/>
 	<echo message="user.name = ${user.name} user.dir = ${user.dir}"/>
@@ -92,7 +93,7 @@
 
     <target name="compile"
 	    depends="init,property-init">
-	<javac  destdir="${build}"
+	    <javac  destdir="${builddir}"
 		debug="${java.debug.value}"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
@@ -110,7 +111,7 @@
 
     <target name="clean"
 	    description="Clean up the build">
-	<delete dir="${build}"/>
+	    <delete dir="${builddir}"/>
     </target>
 
 </project>

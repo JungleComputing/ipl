@@ -71,9 +71,10 @@
 
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
+		includes="**/*.java"
+		excludes="${build}/*.java"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
-	    <include name="**/*.java"/>
 	    <excludesfile name="${build}/excludes" if="src.excludes"/>
 	</javac>
     </target>
