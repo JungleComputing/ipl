@@ -224,33 +224,33 @@ public interface Config {
 
     /** Logger for communication. */
     public static final Logger commLogger
-            = Logger.getLogger("ibis.satin.impl.comm");
+            = Logger.getLogger("ibis.satin.comm");
 
     /** Logger for job stealing. */
     public static final Logger stealLogger
-            = Logger.getLogger("ibis.satin.impl.steal");
+            = Logger.getLogger("ibis.satin.steal");
 
     /** Logger for spawns. */
     public static final Logger spawnLogger
-            = Logger.getLogger("ibis.satin.impl.spawn");
+            = Logger.getLogger("ibis.satin.spawn");
 
     /** Logger for inlets. */
     public static final Logger inletLogger
-            = Logger.getLogger("ibis.satin.impl.inlet");
+            = Logger.getLogger("ibis.satin.inlet");
 
     /** Logger for aborts. */
     public static final Logger abortLogger
-            = Logger.getLogger("ibis.satin.impl.abort");
+            = Logger.getLogger("ibis.satin.abort");
 
     /** Logger for the global result table. */
     public static final Logger grtLogger
-            = Logger.getLogger("ibis.satin.impl.grt");
+            = Logger.getLogger("ibis.satin.grt");
 
     /** Logger for the tuple space. */
     public static final Logger tupleLogger
-            = Logger.getLogger("ibis.satin.impl.tuple");
+            = Logger.getLogger("ibis.satin.tuple");
 
     /** Logger for fault tolerance. */
     public static final Logger ftLogger
-            = Logger.getLogger("ibis.satin.impl.faultTolerance");
+            = Logger.getLogger("ibis.satin.faultTolerance");
 }
