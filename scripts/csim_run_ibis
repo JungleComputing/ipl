@@ -1,0 +1,15 @@
+#used for running ibis with the panda cluster simulator
+RANK=$1
+NUMHOSTS=$2
+shift 2
+
+if [ -z "$PAN_CLD" ]; then
+	PAN_CLD=0
+fi
+
+if [ $RANK -ge $(($NUMHOSTS-$PAN_CLD)) ]; then
+	export LFC_RECV_PKTS=4096
+	$1 ibis.ipl.impl.messagePassing.PandaIbis
+else
+	"$@"
+fi
