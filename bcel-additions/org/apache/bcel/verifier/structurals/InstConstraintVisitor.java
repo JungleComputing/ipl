@@ -2453,12 +2453,16 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 	public void visitPUTFIELD(PUTFIELD o){
 
 		Type objectref = stack().peek(1);
-		if (! ( (objectref instanceof ObjectType) || (objectref == Type.NULL) ) ){
+
+		if (mg.getName().equals(Constants.CONSTRUCTOR_NAME) &&
+		    (objectref instanceof UninitializedObjectType)) {
+			// Not quite correct, but it will have to do.
+		}
+		else if (! ( (objectref instanceof ObjectType) || (objectref == Type.NULL) ) ){
 			constraintViolated(o, "Stack next-to-top should be an object reference that's not an array reference, but is '"+objectref+"'.");
 		}
 		
 		Field f = findField(o);
-
 		Type value = stack().peek();
 		Type t = Type.getType(f.getSignature());
 		Type shouldbe = t;
