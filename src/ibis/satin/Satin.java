@@ -1215,8 +1215,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	    /* an incoming job result can *ALSO* decrease this variable,
 	       and I experienced decreasing is a non-atomic action (GRRR)
 	       so this decrement has to be synchronized - Maik
-	       Now value is volatile - Maik */
-	    r.spawnCounter.value--;
+	       Making value volatile didn't help with the IBM 1.4 JiT - Maik */
+	    synchronized(this) {
+		r.spawnCounter.value--;
+	    }
 
 	    if(ASSERTS && r.spawnCounter.value < 0) {
 		out.println("SATIN '" + ident.name() + ": Just made spawncounter < 0");
