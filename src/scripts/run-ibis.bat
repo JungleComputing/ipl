@@ -1,12 +1,12 @@
+@echo off
 
 rem Start of script template. If there are environment assignments before this
 rem line, this is NOT the template, and is a generated script. Look in
 rem %IBIS_ROOT%\src\scripts\run-ibis.bat instead.
 rem
 
-@echo off
 
-if "%OS%"=="Windows_NT" @beginlocal
+if "%OS%"=="Windows_NT" @setlocal
 
 set PRUN_CPU_RANK=0
 set NHOSTS=1
@@ -190,53 +190,49 @@ rem and for NT handling to skip to.
 
 :doneStart
 
-rem the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
-
-%action% %JAVA_ROOT%\bin\%JAVA_EXEC% %JIT_OPTS% -Xmx1024M %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dpool_host_names% %Dns_pool% %Dns_port% %Dns_server% %Dns_retry% %Xbootclasspath% -classpath %JAVACLASSPATH% %IBIS_APP_ARGS%
+%action% %JAVA_ROOT%\bin\%JAVA_EXEC% %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dpool_host_names% %Dns_pool% %Dns_port% %Dns_server% %Dns_retry% %Xbootclasspath% -classpath %JAVACLASSPATH% %IBIS_APP_ARGS%
 
 goto end
 
 :usage
-    echo "Usage:"
-    echo "    run-ibis <run-ibis params> <jvm params> <classname> <application params>"
-    echo "The first parameter that is not recognized as an option to run-ibis
-    echo "terminates the run-ibis parameters.
-    echo "The run-ibis options are:
-    echo "-attach
-    echo "    set jvm parameters so that jdb can attach to the running process
-    echo "-nhosts <nhosts>
-    echo "    specifies the total number of hosts involved in this run
-    echo "-hostno <hostno>
-    echo "    specifies the rank number of this host (0 .. <nhosts>-1)
-    echo "-jdb
-    echo "    execute jdb instead of java
-    echo "-no-jit
-    echo "    disable just-in-time compiling
-    echo "-no-pool
-    echo "    don't pass on any node-pool information to the application
-    echo "-n
-    echo "    only print the run command, don't actually execute it
-    echo "-ns <nameserver>
-    echo "    specifies the hostname on which the nameserver runs
-    echo "-ns-port
-    echo "    specifies the port number on which the nameserver is listening
-    echo "-ns-retry
-    echo "    specifies that the application should retry to connect to the nameserver
-    echo "    until it succeeds. The default behavior is to exit when connecting to the
-    echo "    nameserver fails
-    echo "-pg <prefix>
-    echo "    pass profiling flags on to java, use <prefix> for the result file
-    echo "-p <prefix>
-    echo "    pass different profiling flags on to java, use <prefix> for the result file
-    echo "-key <key>
-    echo "    use the specified key to identify this run with the nameserver
-    echo "-?
-    echo "    print this message
-    echo "--
-    echo "    terminates the parameters for run-ibis; following parameters are passed
-    echo "    on to java, even if they would be acceptable to run-ibis
-
-    exit 1
+    echo Usage:
+    echo     run-ibis ^<run-ibis params^> ^<jvm params^> ^<classname^> ^<application params^>
+    echo The first parameter that is not recognized as an option to run-ibis
+    echo terminates the run-ibis parameters.
+    echo The run-ibis options are:
+    echo -attach
+    echo     set jvm parameters so that jdb can attach to the running process
+    echo -nhosts ^<nhosts^>
+    echo     specifies the total number of hosts involved in this run
+    echo -hostno ^<hostno^>
+    echo     specifies the rank number of this host (0 .. ^<nhosts^>-1)
+    echo -jdb
+    echo     execute jdb instead of java
+    echo -no-jit
+    echo     disable just-in-time compiling
+    echo -no-pool
+    echo     don't pass on any node-pool information to the application
+    echo -n
+    echo     only print the run command, don't actually execute it
+    echo -ns ^<nameserver^>
+    echo     specifies the hostname on which the nameserver runs
+    echo -ns-port
+    echo     specifies the port number on which the nameserver is listening
+    echo -ns-retry
+    echo     specifies that the application should retry to connect to the nameserver
+    echo     until it succeeds. The default behavior is to exit when connecting to the
+    echo     nameserver fails
+    echo -pg ^<prefix^>
+    echo     pass profiling flags on to java, use ^<prefix^> for the result file
+    echo -p ^<prefix^>
+    echo     pass different profiling flags on to java, use ^<prefix^> for the result file
+    echo -key ^<key^>
+    echo     use the specified key to identify this run with the nameserver
+    echo -?
+    echo     print this message
+    echo --
+    echo     terminates the parameters for run-ibis; following parameters are passed
+    echo     on to java, even if they would be acceptable to run-ibis
 
 :end
 

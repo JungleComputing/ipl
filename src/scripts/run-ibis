@@ -121,7 +121,7 @@ fi
 JAVACLASSPATH=$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/junit.jar
 
 #needed for ibm 1.3 JITs and SMPs
-export LD_ASSUME_KERNEL=2.2.5
+# export LD_ASSUME_KERNEL=2.2.5
 
 #
 # Some Panda Ibis stuff
@@ -417,8 +417,6 @@ then
 	fi
 fi
 
-# the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
-
 if [ $USE_JAVAWRAPPER -eq 1 ]
 then
 	$action="$action $wrapper_name -cpu $cpumask -cd $dir"
@@ -434,7 +432,7 @@ else
 	# echo HOSTS '"'$HOSTS'"'
 	# echo PRUN_HOSTNAMES '"'$PRUN_HOSTNAMES'"'
 	$action $JAVA_ROOT/bin/$JAVA_EXEC \
-		$JIT_OPTS -Xmx1024M \
+		$JIT_OPTS \
 		$Dlibpath $Dibislibs \
 		$Dpool_host_num $Dpool_total $Dpool_host_names \
 		$Dns_pool $Dns_port $Dns_server $Dns_retry \
