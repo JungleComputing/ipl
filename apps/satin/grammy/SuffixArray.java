@@ -123,7 +123,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	return isSmallerCharacter( i0+n, i1+n );
     }
 
-
     /** Fills the given index and commonality arrays with groups
      * of elements sorted according to the character at the given offset.
      */
@@ -138,16 +137,106 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         int offset
     )
     {
+        if( end-start<1 ){
+            // A span of 1 element is never interesting.
+            return 0;
+        }
         if( end-start == 2 ){
-            if( text[indices[start]+offset] != text[indices[start+1]+offset] ){
+            // A span of 2 elements can only survive if the two
+            // are the same.
+            int i0 = indices[start]+offset;
+            int i1 = indices[start+1]+offset;
+            if( i0>=length || i1>=length || text[i0] != text[i1] ){
                 return 0;
             }
-            return 2;
+            indices1[p] = indices[start];
+            indices1[p+1] = indices[start+1];
+            comm[p] = false;
+            comm[p+1] = true;
+            return p+2;
         }
+        if( end-start == 3 ){
+            // Write out the cases for 3 elements.
+            int i0 = indices[start]+offset;
+            int i1 = indices[start+1]+offset;
+            int i2 = indices[start+2]+offset;
+            if( i0>=length ){
+                // This degenerates to the two-element case.
+                if( i1>=length || i2>=length ){
+                    return 0;
+                }
+                if( text[i1] != text[i2] ){
+                    return 0;
+                }
+                indices1[p] = i1;
+                indices1[p+1] = i2;
+                comm[p] = false;
+                comm[p+1] = true;
+                return p+2;
+            }
+            if( i1>=length ){
+                // This degenerates to the two-element case.
+                if( i2>=length ){
+                    return 0;
+                }
+                if( text[i0] != text[i2] ){
+                    return 0;
+                }
+                indices1[p] = i0;
+                indices1[p+1] = i2;
+                comm[p] = false;
+                comm[p+1] = true;
+                return p+2;
+            }
+            if( i2>=length ){
+                // This degenerates to the two-element case.
+                if( text[i0] != text[i1] ){
+                    return 0;
+                }
+                indices1[p] = i0;
+                indices1[p+1] = i1;
+                comm[p] = false;
+                comm[p+1] = true;
+                return p+2;
+            }
+            if( false ){
+                if( text[i0] == text[i1] ){
+                    if( text[i0] == text[i2] ){
+                        indices1[p] = i0;
+                        indices1[p+1] = i1;
+                        indices1[p+2] = i2;
+                        comm[p] = false;
+                        comm[p+1] = true;
+                        comm[p+2] = true;
+                        return p+3;
+                    }
+                    indices1[p] = i0;
+                    indices1[p+1] = i1;
+                    comm[p] = false;
+                    comm[p+1] = true;
+                    return p+2;
+                }
+                if( text[i0] == text[i2] ){
+                    indices1[p] = i0;
+                    indices1[p+1] = i2;
+                    comm[p] = false;
+                    comm[p+1] = true;
+                    return p+2;
+                }
+                if( text[i1] == text[i2] ){
+                    indices1[p] = i1;
+                    indices1[p+1] = i2;
+                    comm[p] = false;
+                    comm[p+1] = true;
+                    return p+2;
+                }
+                return p;
+            }
+        }
+        //System.out.println( "Elements: " + (end-start) );
         int slot[] = new int[nextcode];
 
         java.util.Arrays.fill( slot, -1 );
-
         {
             // Fill the hash buckets
             // Walk from back to front to make sure the chains are in
@@ -160,13 +249,13 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                 if( i+offset<length ){
                     short ix = text[i+offset];
 
-                    if( ix != STOP ){
-                        next[i] = slot[ix];
-                        slot[ix] = i;
-                    }
+                    next[i] = slot[ix];
+                    slot[ix] = i;
                 }
             }
         }
+
+        slot[STOP] = -1;
 
         // Write out the indices and commonalities.
         for( int n=0; n<nextcode; n++ ){
@@ -177,8 +266,8 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                 // There is a repeat, write out this chain.
                 while( i != -1 ){
                     indices1[p] = i;
-                    comm[p] = c;
                     i = next[i];
+                    comm[p] = c;
                     c = true;
                     p++;
                 }
@@ -273,17 +362,14 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                     p = oldp;
                 }
             }
-            if( !acceptable ){
-                // We have nothing left, return the previous configuration.
+            if( spans<=top ){
+                // The next step would leave too few choices, stick to
+                // the current one.
                 break;
             }
             indices = indices1;
             comm = comm1;
             l = p;
-            if( spans<=top ){
-                // We have only a few spans left, we're done.
-                break;
-            }
         }
         return new Result( offset-1, l, indices, comm );
     }
