@@ -85,7 +85,7 @@ final class AlternativeTypeInfo {
 	Class type = null;
 
 	try {
-	    type = IbisStreamTypes.doLoadClass(classname);
+	    type = Class.forName(classname);
 	} catch(Exception e) {
 	    System.err.println("OOPS: cannot load class " + classname + ": "  + e);
 	    e.printStackTrace();
