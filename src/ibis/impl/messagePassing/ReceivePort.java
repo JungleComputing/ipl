@@ -727,10 +727,11 @@ else System.err.println(Thread.currentThread() + " ReceivePort " + name + ", dae
 		}
 		mePolling = false;
 
-		while (queueFront == null) {
+		while (queueFront == null && ! stop) {
 		    // // // ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.NON_PREEMPTIVE);
 		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.NON_PREEMPTIVE : Poll.NON_POLLING);
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.NON_POLLING);
+System.err.print("-");
 		}
 		if (DEBUG) {
 		    upcall_poll++;
@@ -767,6 +768,8 @@ else System.err.println(Thread.currentThread() + " ReceivePort " + name + ", dae
 			}
 		    }
 		}
+else
+System.err.print("_");
 	    }
 
 	} catch (IbisIOException e) {
