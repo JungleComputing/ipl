@@ -1,5 +1,7 @@
 package ibis.impl.net;
 
+import ibis.util.TypedProperties;
+
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.StaticProperties;
 
@@ -36,7 +38,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     private ReceiveQueue	singleton;
     private boolean		handlingSingleton;
     private int			waitingConnections;
-    private static final boolean SINGLETON_FASTPATH = ibis.util.TypedProperties.booleanProperty("ibis.net.poller.singleton", true);
+    private static final boolean SINGLETON_FASTPATH = TypedProperties.booleanProperty("ibis.net.poller.singleton", true)
+					&& TypedProperties.booleanProperty("ibis.net.poller.singleton.dynamic", true);
 
     /**
      * The driver used for the inputs.

@@ -702,7 +702,6 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                         if (useYield) {
                                 while (!_doPoll(useBlockingPoll)) {
                                         Thread.yield();
-// System.err.print("x");
                                         // n_yield++;
                                 }
                         } else {

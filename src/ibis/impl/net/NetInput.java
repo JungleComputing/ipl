@@ -183,7 +183,6 @@ if (finishedUpcallThreads > 1) {
 	for (int i = 0; i < finishedUpcallThreads; i++) {
 	    // threadStackLock.lock();
 	    // threadStackLock.unlock();
-// System.err.print("x");
 	    Thread.yield();
 	}
     // } catch (InterruptedIOException e) {

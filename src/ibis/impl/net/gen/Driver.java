@@ -7,6 +7,8 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 
+import ibis.util.TypedProperties;
+
 import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
@@ -41,10 +43,11 @@ public final class Driver extends NetDriver {
 					   NetInputUpcall upcallFunc) {
 	    StaticProperties prop = type.properties();
 	    boolean singletonOnly = upcallFunc == null
+				&& TypedProperties.booleanProperty("ibis.net.poller.singleton", true)
 				&& ! prop.isProp("communication", "ManyToOne")
 				&& ! prop.isProp("communication", "Poll")
 				&& ! prop.isProp("communication", "ReceiveTimeout");
-	    if (true || singletonOnly) {
+	    if (false && singletonOnly) {
 		System.err.println(this + ": set Poller.singletonOnly to " + singletonOnly);
 		System.err.println(this + ": upcallFunc " + upcallFunc);
 		System.err.println(this + ": property ManyToOne " + prop.isProp("communication", "ManyToOne"));
@@ -65,8 +68,11 @@ public final class Driver extends NetDriver {
 
 	private boolean outputSingletonOnly(NetPortType type) {
 	    StaticProperties prop = type.properties();
-	    System.err.println(this + ": property OneToMany " + prop.isProp("communication", "OneToMany"));
-	    return ! prop.isProp("communication", "OneToMany");
+	    if (false) {
+		System.err.println(this + ": property OneToMany " + prop.isProp("communication", "OneToMany"));
+	    }
+	    return ! prop.isProp("communication", "OneToMany")
+		    && TypedProperties.booleanProperty("ibis.net.poller.singleton", true);
 	}
 
 	/**

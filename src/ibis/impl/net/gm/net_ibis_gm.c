@@ -83,7 +83,9 @@ void __assert_fail(__const char *__assertion, __const char *__file,
 /*
  *  Macros
  */
-#if 0
+#define CPU_MHZ			1000
+
+#if 1
 #define __RDTSC__ ({jlong time;__asm__ __volatile__ ("rdtsc" : "=A" (time));time;})
 #else
 #define __RDTSC__ 0LL
@@ -178,6 +180,37 @@ stderr_printf(char *fmt, ...)
 #define VPRINTF(n, msg)
 #define VPRINTSTR(n, msg)
 #endif
+
+
+
+#define VPRINT_BUF_SIZE		(1 << 20)
+static char	buf_print_buffer[VPRINT_BUF_SIZE];
+static char    *buf_print_start = buf_print_buffer;
+
+static int
+buf_printf(char *fmt, ...)
+{
+#if VERBOSE_BUF
+    int		w;
+    va_list	ap;
+
+    va_start(ap, fmt);
+    w = vsnprintf(buf_print_start,
+	   	  VPRINT_BUF_SIZE - (buf_print_start - buf_print_buffer),
+		  fmt,
+		  ap);
+    va_end(ap);
+
+    if (w != -1) {
+	buf_print_start += w;
+    }
+
+    return w;
+#else
+    return -1;
+#endif
+}
+
 
 /* Error message macros */
 #if 1
@@ -313,8 +346,6 @@ struct s_lock {
 
 struct s_access_lock {
         jobject   ref;
-        jmethodID lock_id;
-        jmethodID unlock_id;
         jboolean  priority;
 };
 
@@ -337,6 +368,8 @@ struct s_dev {
         struct s_port *p_port;
 	int            ref_count;
         struct s_drv  *p_drv;
+	int            intr_disabled;	/* Interrupts currently disabled */
+	int            intr_enabled;	/* Interrupts for this process */
 };
 
 struct s_packet {
@@ -499,7 +532,7 @@ static struct s_drv    *volatile ni_gm_p_drv = NULL;
 static struct s_access_lock *ni_gm_access_lock;
 
 static JavaVM	       *_p_vm = NULL;
-static JNIEnv	       *_current_env = NULL;
+static JNIEnv	       *ni_gm_current_env = NULL;
 
 static const int	pub_port_array[] = { 2, 4, 5, 6, 7 };
 static const int	nb_pub_ports   = 5;
@@ -507,6 +540,24 @@ static const int	nb_pub_ports   = 5;
 static int		mtu; /* Read this from Driver.mtu - should be immutable */
 
 static jboolean		ni_gm_copy_get_elts;
+
+static jclass		cls_Driver;
+static jfieldID		fld_pollers;
+static jfieldID		fld_yielders;
+static jfieldID		fld_yields;
+
+static jmethodID	md_lock;
+static jmethodID	md_unlock;
+
+static int		ni_gm_intr_init(JNIEnv *env, struct s_dev *p_dev);
+void			ni_gm_intr_enable(JNIEnv *env);
+void			ni_gm_intr_disable(JNIEnv *env);
+static void		intr_enable(JNIEnv *env, struct s_dev *p_dev);
+static void		intr_disable(JNIEnv *env, struct s_dev *p_dev);
+
+static jboolean		ni_gm_poll(JNIEnv *env, jboolean intr);
+static jboolean		ni_gm_last_poll_is_intr;
+static long long int	ni_gm_poll_start;
 
 
 #define COPY_SMALL_LOG	6
@@ -517,7 +568,6 @@ static jboolean		ni_gm_copy_get_elts;
 
 #include <limits.h>
 #define UINT_BITS	(CHAR_BIT * sizeof(unsigned long))
-
 
 struct stats {
     int		sent_eager;
@@ -886,7 +936,6 @@ ni_gm_lock_init(JNIEnv          *env,
                 struct s_lock  **pp_lock)
 {
     struct s_lock *p_lock = NULL;
-    jclass   driver_class;
     jclass   lock_class;
     jfieldID fid;
     jobject  lock_array;
@@ -897,10 +946,13 @@ ni_gm_lock_init(JNIEnv          *env,
     p_lock = malloc(sizeof(*p_lock));
     assert(p_lock);
 
-    driver_class      = ni_findClass(env, "ibis/impl/net/gm/Driver");
-    fid               = ni_getStaticField(env, driver_class, "gmLockArray", "Libis/impl/net/NetLockArray;");
+    assert(cls_Driver != NULL);
+    if (cls_Driver == NULL) {
+	fprintf(stderr, "Oh no -- cls_Driver uninitialized\n");
+    }
+    fid               = ni_getStaticField(env, cls_Driver, "gmLockArray", "Libis/impl/net/NetLockArray;");
 
-    lock_array        = (*env)->GetStaticObjectField(env, driver_class, fid);
+    lock_array        = (*env)->GetStaticObjectField(env, cls_Driver, fid);
     if (lock_array == NULL) {
 	fprintf(stderr, "Cannot get field \"%s\" of %s\n",
 		"gmLockArray", "ibis/impl/net/gm/Driver\n");
@@ -935,21 +987,31 @@ ni_gm_lock_init(JNIEnv          *env,
     return 0;
 }
 
+
+static JNIEnv *
+ni_gm_env(void)
+{
+    JNIEnv	       *env = ni_gm_current_env;
+
+    if (!env) {
+	fprintf(stderr, "NNNNNNNNNNNNNNNNOOOOOOOOOOOOOOOOOOOOOOO\n");
+	(*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+    }
+
+    return env;
+}
+
+
 static
 int
-ni_gm_lock_unlock(struct s_lock *p_lock)
+ni_gm_lock_unlock(JNIEnv *env, struct s_lock *p_lock)
 {
-    JNIEnv	       *env = _current_env;
     jint		value;
     jobjectArray	lock_array;
     jobject		lock;
     jobject		front;
 
     __in__();
-
-    if (!env) {
-	(*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
-    }
 
     VPRINTF(1000, ("Here...\n"));
     VPRINTF(1000, ("unlock nonnotify(%d)\n", p_lock->id));
@@ -973,22 +1035,41 @@ ni_gm_lock_unlock(struct s_lock *p_lock)
     return 0;
 }
 
+
+static
+int
+ni_gm_jni_init(JNIEnv *env)
+{
+    jclass	cls_Monitor;
+
+    cls_Driver   = ni_findClass(env, "ibis/impl/net/gm/Driver");
+    cls_Driver   = (*env)->NewGlobalRef(env, cls_Driver);
+
+    fld_pollers  = ni_getStaticField(env, cls_Driver, "pollers", "I");
+    fld_yielders = ni_getStaticField(env, cls_Driver, "yielders", "I");
+    fld_yields   = ni_getStaticField(env, cls_Driver, "yields", "I");
+
+    cls_Monitor = ni_findClass(env, "ibis/util/Monitor");
+
+    md_lock     = ni_getStaticMethod(env, cls_Driver, "lock", "()V");
+    md_unlock   = ni_getStaticMethod(env, cls_Driver, "unlock", "()V");
+}
+
+
 static
 int
 ni_gm_access_lock_init(JNIEnv *env)
 {
-    jclass	driver_class;
     jfieldID	fld_lock;
     jobject	alock_obj;
-    jclass	cls_Monitor;
 
     __in__();
     ni_gm_access_lock = malloc(sizeof(*ni_gm_access_lock));
     assert(ni_gm_access_lock);
+    assert(cls_Driver != NULL);
 
-    driver_class = ni_findClass(env, "ibis/impl/net/gm/Driver");
-    fld_lock = ni_getStaticField(env, driver_class, "gmAccessLock", "Libis/util/Monitor;");
-    alock_obj = (*env)->GetStaticObjectField(env, driver_class, fld_lock);
+    fld_lock = ni_getStaticField(env, cls_Driver, "gmAccessLock", "Libis/util/Monitor;");
+    alock_obj = (*env)->GetStaticObjectField(env, cls_Driver, fld_lock);
     if (alock_obj == NULL) {
 	fprintf(stderr, "cannot get field \"%s\" class %s\n",
 		"gmAccessLock", "Libis/util/Monitor;");
@@ -999,10 +1080,6 @@ ni_gm_access_lock_init(JNIEnv *env)
 	fprintf(stderr, "cannot create global ref \"%s\" class %s\n",
 		"gmAccessLock", "Libis/util/Monitor;");
     }
-
-    cls_Monitor = ni_findClass(env, "ibis/util/Monitor");
-    ni_gm_access_lock->lock_id = ni_getMethod(env, cls_Monitor, "lock", "(Z)V");
-    ni_gm_access_lock->unlock_id = ni_getMethod(env, cls_Monitor, "unlock", "()V");
 
     ni_gm_access_lock->priority = JNI_FALSE;
     __out__();
@@ -1015,7 +1092,7 @@ int
 ni_gm_access_lock_lock(JNIEnv *env)
 {
         __in__();
-        (*env)->CallVoidMethod(env, ni_gm_access_lock->ref, ni_gm_access_lock->lock_id, ni_gm_access_lock->priority);
+        (*env)->CallStaticVoidMethod(env, cls_Driver, md_lock, ni_gm_access_lock->priority);
 	STATINC(access_lock_lock);
         __out__();
 
@@ -1027,7 +1104,7 @@ int
 ni_gm_access_lock_unlock(JNIEnv *env)
 {
         __in__();
-        (*env)->CallVoidMethod(env, ni_gm_access_lock->ref, ni_gm_access_lock->unlock_id);
+        (*env)->CallStaticVoidMethod(env, cls_Driver, md_unlock);
 	STATINC(access_lock_unlock);
         __out__();
 
@@ -1036,15 +1113,10 @@ ni_gm_access_lock_unlock(JNIEnv *env)
 
 static
 int
-ni_gm_input_unlock(struct s_input *p_in, int len) {
+ni_gm_input_unlock(JNIEnv *env, struct s_input *p_in, int len) {
         struct s_lock *p_lock = NULL;
-        JNIEnv        *env    = _current_env;
 
         __in__();
-        if (!env) {
-                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
-        }
-
         (*env)->SetIntField(env, p_in->ref, p_in->len_id, len);
         p_lock = p_in->p_lock;
 	VPRINTF(900, ("unlock(%d)\n", p_lock->id));
@@ -1104,13 +1176,9 @@ ni_gm_mutex_init(JNIEnv          *env,
 
 static
 int
-ni_gm_mutex_unlock(struct s_mutex *p_mutex) {
-        JNIEnv        *env    = _current_env;
+ni_gm_mutex_unlock(JNIEnv *env, struct s_mutex *p_mutex) {
 
         __in__();
-        if (!env) {
-                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
-        }
         (*env)->CallVoidMethod(env, p_mutex->ref, p_mutex->unlock_id);
         __out__();
 
@@ -1120,16 +1188,12 @@ ni_gm_mutex_unlock(struct s_mutex *p_mutex) {
 
 static
 int
-ni_gm_release_output_array(struct s_output *p_out) {
-        JNIEnv        *env    = _current_env;
+ni_gm_release_output_array(JNIEnv *env, struct s_output *p_out) {
 	e_type type = p_out->type;
 	union u_j_array *pb = &p_out->java;
 	void *ptr = p_out->array;
 
         __in__();
-        if (!env) {
-                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
-        }
 
 #define RELEASE_ARRAY(E_TYPE, jarray, Jtype) \
 		case E_TYPE: \
@@ -1167,17 +1231,12 @@ ni_gm_release_output_array(struct s_output *p_out) {
 
 static
 int
-ni_gm_release_input_array(struct s_input *p_in, int length) {
-        JNIEnv          *env  = _current_env;
+ni_gm_release_input_array(JNIEnv *env, struct s_input *p_in, int length) {
         e_type           type = p_in->type;
 	union u_j_array *pb   = &p_in->java;
 	void            *ptr  = p_in->array;
 
         __in__();
-        if (!env) {
-                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
-        }
-
 #define RELEASE_ARRAY(E_TYPE, jarray, Jtype) \
 		case E_TYPE: \
 		    if (p_in->is_copy) { \
@@ -1694,7 +1753,7 @@ ni_gm_eager_callback(struct gm_port *port,
     p_out->state = NI_GM_SENDER_IDLE;
     ni_gm_packet_put(p_out->p_port, packet);
     __disp__("ni_gm_eager_callback: unlock(%d)\n", p_out->p_lock->id);
-    ni_gm_lock_unlock(p_out->p_lock);
+    ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
     VPRINTF(120, ("Received a ni_gm_eager_callback; p_out %p state := %s tokens := %d\n", p_out, ni_gm_sender_state(p_out->state), p_out->p_port->ni_gm_send_tokens));
 
     __out__();
@@ -1732,20 +1791,20 @@ ni_gm_callback(struct gm_port *port,
                 if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_REQ) {
                         p_out->state = NI_GM_SENDER_SENDING_RNDZVS_ACK;
                         __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
-                        ni_gm_lock_unlock(p_out->p_lock);
+                        ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
                 } else if (p_out->state == NI_GM_SENDER_SENDING_EAGER) {
                         p_out->state = NI_GM_SENDER_IDLE;
                         __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
-                        ni_gm_lock_unlock(p_out->p_lock);
+                        ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
                 } else if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_DATA) {
                         ni_gm_deregister_block(p_port, p_out->p_cache);
-                        ni_gm_release_output_array(p_out);
+                        ni_gm_release_output_array(ni_gm_env(), p_out);
 
                         p_out->p_cache = NULL;
                         p_out->length  = 0;
                         p_out->state   = NI_GM_SENDER_IDLE;
                         __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
-                        ni_gm_lock_unlock(p_out->p_lock);
+                        ni_gm_lock_unlock(ni_gm_env(), p_out->p_lock);
                 } else {
                         abort();
                 }
@@ -1757,7 +1816,7 @@ ni_gm_callback(struct gm_port *port,
                 p_in = p_rq->p_in;
 		VPRINTF(100, ("Receive a ni_gm_callback; p_in %p tokens := %d\n", p_in, p_port->ni_gm_send_tokens));
                 __disp__("ni_gm_callback: unlock(%d)\n", p_in->p_lock->id);
-                ni_gm_lock_unlock(p_in->p_lock);
+                ni_gm_lock_unlock(ni_gm_env(), p_in->p_lock);
         } else {
                 abort();
         }
@@ -1990,7 +2049,7 @@ ni_gm_connect_input(struct s_input *p_in,
  */
 static
 int
-ni_gm_output_send_request(struct s_output *p_out) {
+ni_gm_output_send_request(JNIEnv *env, struct s_output *p_out) {
         struct s_port    *p_port = NULL;
         struct s_request *p_rq   = NULL;
 	unsigned char    *packet_data = p_out->packet->data;
@@ -2016,6 +2075,8 @@ ni_gm_output_send_request(struct s_output *p_out) {
         }
 	VPRINTF(100, ("Send HIGH rendez-vous request p_out %p for size %d tokens %d\n", p_out, p_out->length, p_port->ni_gm_send_tokens));
 	assert(--p_port->ni_gm_send_tokens >= 0);
+	/* Protect ni_gm_callback */
+	ni_gm_current_env = env;
         gm_send_with_callback(p_port->p_gm_port,
 			      packet_data,
                               p_out->packet_size,
@@ -2024,6 +2085,11 @@ ni_gm_output_send_request(struct s_output *p_out) {
                               p_out->dst_node_id,
 			      p_out->dst_port_id,
                               ni_gm_callback, p_rq);
+	ni_gm_current_env = NULL;
+	if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_REQ) {
+	    /* Poll just once; maybe save an interrupt for the sent callback */
+	    ni_gm_poll(env, 0);
+	}
 	STATINC(sent_rndvz_req);
         __out__();
         return 0;
@@ -2039,7 +2105,7 @@ ni_gm_output_send_request(struct s_output *p_out) {
  */
 static
 int
-ni_gm_output_flush(struct s_output *p_out)
+ni_gm_output_flush(JNIEnv *env, struct s_output *p_out)
 {
     struct s_port    *p_port;
     struct s_request *p_rq;
@@ -2085,6 +2151,8 @@ ni_gm_output_flush(struct s_output *p_out)
     pstart(GM_SEND);
     VPRINTF(100, ("Send to %d HIGH data message p_out %p seqno %llu packet %p size %d mux_id %d send tokens %d\n", p_out->dst_node_id, p_out, hdr->seqno, packet, p_out->offset, hdr->mux_id, p_port->ni_gm_send_tokens));
     assert(--p_port->ni_gm_send_tokens >= 0);
+    /* Protect ni_gm_eager_callback */
+    ni_gm_current_env = env;
     gm_send_with_callback(p_port->p_gm_port,
 			  packet_data,
 			  p_out->packet_size,
@@ -2094,6 +2162,11 @@ ni_gm_output_flush(struct s_output *p_out)
 			  p_out->dst_port_id,
 			  ni_gm_eager_callback,
 			  packet);
+    ni_gm_current_env = NULL;
+    while (p_out->state == NI_GM_SENDER_SENDING_EAGER) {
+	/* Poll just once; maybe save an interrupt for the sent callback */
+	ni_gm_poll(env, 0);
+    }
     p_out->packet = ni_gm_packet_get(p_out);
     pend(GM_SEND);
     pend(GM_SEND_BUFFER);
@@ -2117,7 +2190,7 @@ error:
  */
 static
 int
-ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
+ni_gm_output_send_buffer(JNIEnv *env, struct s_output *p_out, void *b, int len) {
         struct s_port    *p_port = NULL;
         struct s_request *p_rq   = NULL;
 	ni_gm_hdr_p hdr;
@@ -2144,6 +2217,8 @@ ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
 
 	VPRINTF(100, ("Send LOW rendez-vous data p_out %p size %d tokens %d\n", p_out, len, p_port->ni_gm_send_tokens));
 	assert(--p_port->ni_gm_send_tokens >= 0);
+	/* Protect ni_gm_callback */
+	ni_gm_current_env = env;
         gm_send_with_callback(p_port->p_gm_port,
 			      b,
                               NI_GM_BLOCK_SIZE,
@@ -2152,6 +2227,11 @@ ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
                               p_out->dst_node_id,
 			      p_out->dst_port_id,
                               ni_gm_callback, p_rq);
+	ni_gm_current_env = NULL;
+	if (p_out->state == NI_GM_SENDER_SENDING_RNDZVS_DATA) {
+	    /* Poll just once; maybe save an interrupt for the sent callback */
+	    ni_gm_poll(env, 0);
+	}
 	STATINC(sent_rndvz_data);
 	STATINCN(bytes, len);
 
@@ -2286,6 +2366,8 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
     hdr->type = NI_GM_MSG_TYPE_RENDEZ_VOUS_ACK; \
     \
     assert(--p_port->ni_gm_send_tokens >= 0); \
+    /* Protect ni_gm_callback */ \
+    ni_gm_current_env = env; \
     gm_send_with_callback(p_port->p_gm_port, \
 			  p_in->ack_packet, \
 			  p_in->packet_size, \
@@ -2294,6 +2376,11 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
 			  p_in->src_node_id, \
 			  p_in->src_port_id, \
 			  ni_gm_callback, p_rq); \
+    ni_gm_current_env = NULL; \
+    if (1) { \
+	/* Poll just once; maybe save an interrupt for the sent callback */ \
+	ni_gm_poll(env, 0); \
+    } \
     \
     __out__(); \
     return 0; \
@@ -2362,7 +2449,7 @@ ni_gm_input_post_ ## Jtype ## _buffer(JNIEnv *env, \
 	} \
     } else { \
 	/* There is pending data. Signal this for the next post. */ \
-	ni_gm_lock_unlock(p_in->p_lock); \
+	ni_gm_lock_unlock(env, p_in->p_lock); \
     } \
     \
     if (is_rendez_vous) { \
@@ -2465,7 +2552,7 @@ ni_gm_input_post_byte_buffer(JNIEnv *env,
 	}
     } else {
 	/* There is pending data. Signal this for the next post. */
-	ni_gm_lock_unlock(p_in->p_lock);
+	ni_gm_lock_unlock(env, p_in->p_lock);
     }
 
     if (is_rendez_vous) {
@@ -2493,7 +2580,8 @@ error:
 
 static
 int
-ni_gm_output_flow_control(struct s_port   *p_port,
+ni_gm_output_flow_control(JNIEnv *env,
+			  struct s_port   *p_port,
                           unsigned char   *msg,
                           unsigned char   *packet) {
         struct s_output *p_out          = NULL;
@@ -2521,7 +2609,7 @@ ni_gm_output_flow_control(struct s_port   *p_port,
                                            GM_HIGH_PRIORITY,
 					   1);
 
-        ni_gm_lock_unlock(p_out->p_lock);
+        ni_gm_lock_unlock(env, p_out->p_lock);
 
         __out__();
         return 0;
@@ -2533,7 +2621,8 @@ ni_gm_output_flow_control(struct s_port   *p_port,
 
 static
 int
-ni_gm_input_flow_control(struct s_port  *p_port,
+ni_gm_input_flow_control(JNIEnv *env,
+			 struct s_port  *p_port,
                          unsigned char *msg,
                          unsigned char *packet,
 			 int            packet_length) {
@@ -2605,7 +2694,7 @@ ni_gm_input_flow_control(struct s_port  *p_port,
         __disp__("4");
         __disp__("gm_high_receive_event: unlock(%d)\n", p_in->p_lock->id);
 
-        ni_gm_lock_unlock(p_in->p_lock);
+        ni_gm_lock_unlock(env, p_in->p_lock);
 
         __out__();
         return 0;
@@ -2619,7 +2708,8 @@ ni_gm_input_flow_control(struct s_port  *p_port,
 
 static
 int
-ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
+ni_gm_process_fast_high_recv_event(JNIEnv *env,
+				   struct s_port   *p_port,
                                    gm_recv_event_t *p_event) {
         unsigned char *msg            = NULL;
         unsigned char *packet         = NULL;
@@ -2638,13 +2728,13 @@ ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
 	case NI_GM_MSG_TYPE_CONNECT:
 	case NI_GM_MSG_TYPE_RENDEZ_VOUS_REQ:
 	case NI_GM_MSG_TYPE_EAGER:
-	    if (ni_gm_input_flow_control(p_port, msg, packet, packet_length)) {
+	    if (ni_gm_input_flow_control(env, p_port, msg, packet, packet_length)) {
 		goto error;
 	    }
 	    break;
 
 	default:
-	    if (ni_gm_output_flow_control(p_port, msg, packet)) {
+	    if (ni_gm_output_flow_control(env, p_port, msg, packet)) {
 		goto error;
 	    }
         }
@@ -2661,7 +2751,8 @@ ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
 
 static
 int
-ni_gm_process_high_recv_event(struct s_port   *p_port,
+ni_gm_process_high_recv_event(JNIEnv *env,
+			      struct s_port   *p_port,
                               gm_recv_event_t *p_event)
 {
         unsigned char *packet         = NULL;
@@ -2680,13 +2771,13 @@ ni_gm_process_high_recv_event(struct s_port   *p_port,
 	case NI_GM_MSG_TYPE_EAGER:
 	case NI_GM_MSG_TYPE_RENDEZ_VOUS_REQ:
 	case NI_GM_MSG_TYPE_CONNECT:
-	    if (ni_gm_input_flow_control(p_port, NULL, packet, packet_length)) {
+	    if (ni_gm_input_flow_control(env, p_port, NULL, packet, packet_length)) {
 		goto error;
 	    }
 	    break;
 
 	default:
-	    if (ni_gm_output_flow_control(p_port, NULL, packet)) {
+	    if (ni_gm_output_flow_control(env, p_port, NULL, packet)) {
 		goto error;
 	    }
         }
@@ -2705,7 +2796,8 @@ ni_gm_process_high_recv_event(struct s_port   *p_port,
  */
 static
 int
-ni_gm_process_recv_event(struct s_port   *p_port,
+ni_gm_process_recv_event(JNIEnv *env,
+			 struct s_port   *p_port,
                          gm_recv_event_t *p_event)
 {
         struct s_input *p_in;
@@ -2719,8 +2811,8 @@ ni_gm_process_recv_event(struct s_port   *p_port,
         assert(remote_node_id == (int)p_in->src_node_id);
 
         ni_gm_deregister_block(p_port, p_in->p_cache);
-        ni_gm_release_input_array(p_in, length);
-        ni_gm_input_unlock(p_in, length);
+        ni_gm_release_input_array(env, p_in, length);
+        ni_gm_input_unlock(env, p_in, length);
         __out__();
 
         return 0;
@@ -2772,7 +2864,8 @@ ni_gm_input_exit(struct s_input *p_in)
 
 static
 int
-ni_gm_dev_init(struct s_drv  *p_drv,
+ni_gm_dev_init(JNIEnv        *env,
+	       struct s_drv  *p_drv,
                int            dev_num,
                struct s_dev **pp_dev) {
         struct s_dev *p_dev = NULL;
@@ -2829,6 +2922,12 @@ ni_gm_dev_init(struct s_drv  *p_drv,
                 }
 
                 p_drv->pp_dev[dev_num] = p_dev;
+
+#if GM_ENABLE_HERALDS
+		if (ni_gm_intr_init(env, p_dev)) {
+		    fprintf(stderr, "OHNO -- ni_gm_intr_init fails");
+		}
+#endif
         } else {
                 p_dev = p_drv->pp_dev[dev_num];
         }
@@ -3305,7 +3404,7 @@ Java_ibis_impl_net_gm_GmOutput_nSendRequest(JNIEnv     *env,
 	assert(p_out->offset == NI_GM_PACKET_HDR_LEN);
 	p_out->length = length;
 	VPRINTF(100, ("Send a rndvz req; p_out->offset %d\n", p_out->offset));
-        if (ni_gm_output_send_request(p_out)) {
+        if (ni_gm_output_send_request(env, p_out)) {
                 ni_gm_throw_exception(env, "could not send a request");
                 goto error;
         }
@@ -3332,7 +3431,7 @@ Java_ibis_impl_net_gm_GmOutput_nFlush(JNIEnv *env,
     STATINC(native);
     VPRINTF(300, ("In native nFlush\n"));
     p_out = ni_gm_handle2ptr(output_handle);
-    ni_gm_output_flush(p_out);
+    ni_gm_output_flush(env, p_out);
 }
 
 
@@ -3438,7 +3537,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
     STATINC(native); \
     pstart(SEND_BUFFER); \
     if (p_out->offset > NI_GM_PACKET_HDR_LEN) { \
-	ni_gm_output_flush(p_out); \
+	ni_gm_output_flush(env, p_out); \
     } \
     p_out->java.jarray	= (jtype ## Array)(*env)->NewGlobalRef(env, b); \
     \
@@ -3463,7 +3562,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
     p_out->is_copy      = get_region; \
     p_out->type         = E_TYPE; \
     \
-    if (ni_gm_output_send_buffer(p_out, (unsigned char *)buffer + offset, (int)length)) { \
+    if (ni_gm_output_send_buffer(env, p_out, (unsigned char *)buffer + offset, (int)length)) { \
 	    ni_gm_throw_exception(env, "could not send a buffer"); \
 	    goto error; \
     } \
@@ -3715,16 +3814,15 @@ Java_ibis_impl_net_gm_GmInput_nCloseInput(JNIEnv *env, jobject input, jlong inpu
 static int
 mtu_init(JNIEnv *env)
 {
-	jclass   driver_class;
 	jfieldID fid;
 	jbyte   *buffer;
 	jbyteArray b;
 
         __in__();
 
-	driver_class      = ni_findClass(env, "ibis/impl/net/gm/Driver");
-	fid               = ni_getStaticField(env, driver_class, "mtu", "I");
-	mtu               = (*env)->GetStaticIntField(env, driver_class, fid);
+	assert(cls_Driver != NULL);
+	fid = ni_getStaticField(env, cls_Driver, "mtu", "I");
+	mtu = (*env)->GetStaticIntField(env, cls_Driver, fid);
 
 	/* Find out whether GetByteArrayElements makes a copy of the
 	 * element array for this JVM. Record this in global variable
@@ -3755,7 +3853,8 @@ static int		ni_gm_sigthread_running = 0;
 static pthread_mutex_t	ni_gm_sigthread_lock = PTHREAD_MUTEX_INITIALIZER;
 static int		ni_gm_sigthread_runs = 0;
 static pthread_cond_t	ni_gm_sigthread_awake = PTHREAD_COND_INITIALIZER;
-static int		ni_gm_intr_disabled = 0;
+
+static long long int	poll_tick;
 
 static JNIEnv *
 attach_sigthread(void)
@@ -3787,12 +3886,44 @@ attach_sigthread(void)
 
 
 static void
-ni_gm_intr_handle(JNIEnv *env)
+ni_gm_intr_handle(JNIEnv *env, struct gm_port *p_gm_port)
 {
+    if (1) {
+	static long long last_intr = -1;
+	long long int now = __RDTSC__;
+	jint pollers  = (*env)->GetStaticIntField(env, cls_Driver, fld_pollers);
+	jint yielders = (*env)->GetStaticIntField(env, cls_Driver, fld_yielders);
+
+
+	if (last_intr == -1) {
+	    last_intr = __RDTSC__;
+	}
+	if (pollers > 0 || (now - ni_gm_poll_start) / CPU_MHZ < NI_GM_INTR_FIRST / 2) {
+	    buf_printf(
+		    "X t=%06Ld thread=0x%x last=%s Oho -- get an interrupt while pollers %d, yielders %d delay %Ld us; last intr at %6Ld GM ptr %p\n",
+		    (now - ni_gm_poll_start) / CPU_MHZ,
+		    pthread_self(),
+		    ni_gm_last_poll_is_intr ? "intr" : "downcall",
+		    pollers, yielders, (now - poll_tick) / CPU_MHZ,
+		    (now - last_intr) / CPU_MHZ,
+		    p_gm_port);
+	} else {
+	    buf_printf(
+		    "X t=%06Ld thread=0x%x last=%s (%Ld us) last intr %6Ld GM ptr %p\n",
+		    (now - ni_gm_poll_start) / CPU_MHZ,
+		    pthread_self(),
+		    ni_gm_last_poll_is_intr ? "intr" : "downcall",
+		    (now - poll_tick) / CPU_MHZ,
+		    (now - last_intr) / CPU_MHZ,
+		    p_gm_port);
+	}
+	last_intr = now;
+    }
+
     STATINCN(native, -1);
-    while (! Java_ibis_impl_net_gm_Driver_nGmThread(env, NULL)) {
+    while (ni_gm_poll(env, JNI_TRUE)) {
+	// poll
 	STATINCN(native, -1);
-	// poll the thing
     }
     // fprintf(stderr, "Would like to generate an interrupt NOW\n");
 }
@@ -3801,14 +3932,18 @@ ni_gm_intr_handle(JNIEnv *env)
 static void *
 sigthread(void *arg)
 {
-    int		next_dev = 0;
-    struct s_drv *p_drv;
+    struct s_dev *p_dev   = (struct s_dev *)arg;
+    struct s_port *p_port  = p_dev->p_port;
     JNIEnv     *env;
 
+// fprintf(stderr, "Interrupt thread=0x%x GM ptr %p NI_GM_INTR_FIRST %d\n", pthread_self(), p_port->p_gm_port, NI_GM_INTR_FIRST);
+
     pthread_mutex_lock(&ni_gm_sigthread_lock);
-    ni_gm_sigthread_runs = 1;
+    ni_gm_sigthread_runs++;
     pthread_cond_signal(&ni_gm_sigthread_awake);
     pthread_mutex_unlock(&ni_gm_sigthread_lock);
+
+    ni_gm_poll_start = __RDTSC__;
 
     env = attach_sigthread();
 
@@ -3818,21 +3953,6 @@ sigthread(void *arg)
     for (;;) {
 	gm_recv_event_t *evt;
 	int		evt_type;
-	struct s_port   *p_port;
-	struct s_dev    *p_dev;
-	int              dev;
-
-	p_drv = ni_gm_p_drv;
-
-	if (next_dev >= p_drv->nb_dev) {
-	    VPRINTF(1700, ("%s.%d: here... next_dev %d p_drv->nb_dev %d\n", __FILE__, __LINE__, next_dev, p_drv->nb_dev));
-	    VPRINTSTR(1200, ("p"));
-	    next_dev = 0;
-	}
-
-	dev     = next_dev++;
-	p_dev   = p_drv->pp_dev[dev];
-	p_port  = p_dev->p_port;
 
        /* Block in kernel for something new to arrive.
 	* We get back an internal _SLEEP event, which we pass to
@@ -3845,14 +3965,16 @@ sigthread(void *arg)
 	    ni_gm_sigthread_running--;
 	    ni_gm_access_lock_unlock(env);
 		// fprintf(stderr, "NetGM: intr thread sleeps\n");
+{ long long start = __RDTSC__;
 	    gm_unknown(p_port->p_gm_port, evt);
-		// fprintf(stderr, "NetGM: intr thread wakes up, evt %d intr_disabled %d\n", evt_type, ni_gm_intr_disabled);
+		// fprintf(stderr, "NetGM: intr thread wakes up, evt %d %s intr_disabled %d NI_GM_INTR_FIRST %d GM ptr %p sleep %Ld\n", evt_type, _gm_recv_event_name(evt_type), p_dev->intr_disabled, NI_GM_INTR_FIRST, p_port->p_gm_port, (__RDTSC__ - start) / CPU_MHZ);
+}
 	    ni_gm_access_lock_lock(env);
 	    ni_gm_sigthread_running++;
 	    STATINC(intr);
 		// fprintf(stderr, "NetGM: have the intr lock again\n");
 
-	    if (ni_gm_intr_disabled) {
+	    if (p_dev->intr_disabled) {
 	        /* got interrupt just when it was being disabled;
 		 * go back to sleep.
 		 */
@@ -3870,11 +3992,57 @@ sigthread(void *arg)
 	}
 
 	/* A message has arrived. Hand it to one of the receiver threads. */
-	ni_gm_intr_handle(env);
+	ni_gm_intr_handle(env, p_port->p_gm_port);
     }
 
     ni_gm_sigthread_running--;
     ni_gm_access_lock_unlock(env);
+}
+
+
+static void
+intr_enable(JNIEnv *env, struct s_dev *p_dev)
+{
+    struct s_port *p_port = p_dev->p_port;
+
+    if (! p_dev->intr_enabled) {
+	return;
+    }
+
+fprintf(stderr, "%s: now enable GM interrupts for port %p\n", hostname, p_port->p_gm_port);
+    if (p_dev->intr_disabled > 0) {
+	__asm__ __volatile__ ("lock decl %0" : "=m" (p_dev->intr_disabled));
+	gm_enable_wakeup(p_port->p_gm_port);
+    } else {
+	/* indicates bug */
+	__error__("ni_gm_intr_enable(): already enabled!");
+    }
+}
+
+
+static void
+intr_disable(JNIEnv *env, struct s_dev *p_dev)
+{
+    struct s_port *p_port = p_dev->p_port;
+
+    if (! p_dev->intr_enabled) {
+	return;
+    }
+
+// fprintf(stderr, "%s: now disable interrupts for port %p\n", hostname, p_port->p_gm_port);
+    __asm__ __volatile__ ("lock incl %0" : "=m" (p_dev->intr_disabled));
+    gm_disable_wakeup(p_port->p_gm_port);
+
+    /* TEMP HACK: if a signal is already being processed,
+     * block in the disable itself (only needed for CRL?).
+     */
+    if (ni_gm_sigthread_running &&
+	    ! pthread_equal(ni_gm_sigthread, pthread_self())) {
+	while (ni_gm_sigthread_running) {
+	    ni_gm_access_lock_unlock(env);
+	    ni_gm_access_lock_lock(env);
+	}
+    }
 }
 
 
@@ -3884,16 +4052,7 @@ ni_gm_intr_enable(JNIEnv *env)
     int		i;
 
     for (i = 0; i < ni_gm_p_drv->nb_dev; i++) {
-	struct s_dev  *p_dev  = ni_gm_p_drv->pp_dev[i];
-	struct s_port *p_port = p_dev->p_port;
-
-	if (ni_gm_intr_disabled > 0) {
-	    __asm__ __volatile__ ("lock decl %0" : "=m" (ni_gm_intr_disabled));
-	    gm_enable_wakeup(p_port->p_gm_port);
-	} else {
-	    /* indicates bug */
-	    __error__("ni_gm_intr_enable(): already enabled!");
-	}
+	intr_enable(env, ni_gm_p_drv->pp_dev[i]);
     }
 }
 
@@ -3904,54 +4063,15 @@ ni_gm_intr_disable(JNIEnv *env)
     int		i;
 
     for (i = 0; i < ni_gm_p_drv->nb_dev; i++) {
-	struct s_dev  *p_dev  = ni_gm_p_drv->pp_dev[i];
-	struct s_port *p_port = p_dev->p_port;
-
-	__asm__ __volatile__ ("lock incl %0" : "=m" (ni_gm_intr_disabled));
-	gm_disable_wakeup(p_port->p_gm_port);
-
-	/* TEMP HACK: if a signal is already being processed,
-	 * block in the disable itself (only needed for CRL?).
-	 */
-	if (ni_gm_sigthread_running &&
-		! pthread_equal(ni_gm_sigthread, pthread_self())) {
-	    while (ni_gm_sigthread_running) {
-		ni_gm_access_lock_unlock(env);
-		ni_gm_access_lock_lock(env);
-	    }
-	}
+	intr_disable(env, ni_gm_p_drv->pp_dev[i]);
     }
 }
 
 
-static int
-ni_gm_intr_init(JNIEnv *env)
+static void
+ni_gm_intr_start(struct s_dev *p_dev)
 {
     pthread_attr_t thread_attr;
-    char *cenv;
-
-    cenv = getenv("NI_GM_INTR_FIRST");
-    if (cenv != NULL) {
-	if (sscanf(cenv, "%d", &NI_GM_INTR_FIRST) != 1) {
-	    __error__("NI_GM_INTR_FIRST should have an int value");
-	}
-	fprintf(stderr, "NI_GM_INTR_FIRST %d\n", NI_GM_INTR_FIRST);
-    }
-
-    cenv = ni_getProperty(env, "ibis.net.gm.intr.first");
-    if (cenv != NULL) {
-	if (sscanf(cenv, "%d", &NI_GM_INTR_FIRST) != 1) {
-	    __error__("-Dibis.net.gm.intr.first should have an int value");
-	}
-	fprintf(stderr, "NI_GM_INTR_FIRST %d\n", NI_GM_INTR_FIRST);
-    }
-
-    cenv = getenv("NI_GM_NO_INTR");
-    if (cenv != NULL ||
-	    ! ni_getBooleanPropertyDflt(env, "ibis.net.gm.intr", 0)) {
-	fprintf(stderr, "NetIbis GM: interrupts disabled\n");
-	return 0;
-    }
 
     if (pthread_attr_init(&thread_attr) != 0) {
 	__error__("pthread_attr_init failed");
@@ -3960,19 +4080,60 @@ ni_gm_intr_init(JNIEnv *env)
 				    PTHREAD_CREATE_DETACHED) != 0) {
 	__error__("pthread_attr_setdetachstate failed");
     }
-    if (pthread_create(&ni_gm_sigthread, &thread_attr, sigthread, NULL) != 0) {
+    if (pthread_create(&ni_gm_sigthread, &thread_attr, sigthread, p_dev) != 0) {
 	__error__("pthread_create failed");
     }
+}
+
+
+static int
+ni_gm_intr_init(JNIEnv *env, struct s_dev *p_dev)
+{
+    char       *cenv;
+    int		n_current;
+
+    p_dev->intr_enabled = 0;
+
+    cenv = getenv("NI_GM_INTR_FIRST");
+    if (cenv != NULL) {
+	if (sscanf(cenv, "%d", &NI_GM_INTR_FIRST) != 1) {
+	    __error__("NI_GM_INTR_FIRST should have an int value");
+	}
+    }
+
+    cenv = ni_getProperty(env, "ibis.net.gm.intr.first");
+    if (cenv != NULL) {
+	if (sscanf(cenv, "%d", &NI_GM_INTR_FIRST) != 1) {
+	    __error__("-Dibis.net.gm.intr.first should have an int value");
+	}
+    }
+
+    cenv = getenv("NI_GM_NO_INTR");
+    if (cenv != NULL ||
+	    ! ni_getBooleanPropertyDflt(env, "ibis.net.gm.intr", 0)) {
+	return 0;
+    }
+
+    p_dev->intr_enabled = 1;
+    p_dev->intr_disabled = 0;
+
+    intr_disable(env, p_dev);
+
+    pthread_mutex_lock(&ni_gm_sigthread_lock);
+    n_current = ni_gm_sigthread_runs;
+    pthread_mutex_unlock(&ni_gm_sigthread_lock);
+
+    ni_gm_intr_start(p_dev);
 
     /* Nicely stop the current thread until the signal thread
      * may have finished its malloc'ing etc. */
     pthread_mutex_lock(&ni_gm_sigthread_lock);
-    while (! ni_gm_sigthread_runs) {
+    while (ni_gm_sigthread_runs < n_current + 1) {
 	pthread_cond_wait(&ni_gm_sigthread_awake, &ni_gm_sigthread_lock);
     }
     pthread_mutex_unlock(&ni_gm_sigthread_lock);
 
-fprintf(stderr, "Intpt thread dispatched\n");
+    intr_enable(env, p_dev);
 
     return 0;
 }
@@ -3997,6 +4158,10 @@ Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint devic
                 if (ni_gm_init(&p_drv))
                         goto error;
 
+		if (ni_gm_jni_init(env)) {
+		    goto error;
+		}
+
                 if (ni_gm_access_lock_init(env))
                         goto error;
 
@@ -4006,17 +4171,11 @@ Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint devic
 
                 ni_gm_p_drv = p_drv;
 
-#if GM_ENABLE_HERALDS
-		if (ni_gm_intr_init(env)) {
-		    goto error;
-		}
-#endif
-
                 successfully_initialized = 1;
         }
 
 
-        if (ni_gm_dev_init(ni_gm_p_drv, (int)device_num, &p_dev)) {
+        if (ni_gm_dev_init(env, ni_gm_p_drv, (int)device_num, &p_dev)) {
                 ni_gm_throw_exception(env, "GM device initialization failed");
                 goto error;
         }
@@ -4118,15 +4277,15 @@ dump_monitors(JNIEnv *env)
 #endif
 
 
-JNIEXPORT
-jboolean
-JNICALL
-Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
-        static int next_dev = 0;
+static jboolean
+ni_gm_poll(JNIEnv *env, jboolean intr)
+{
+        static int	next_dev = 0;
+	jboolean	result = JNI_TRUE;
 
-	jboolean result = JNI_FALSE;
+        ni_gm_current_env = env;
 
-        _current_env = env;
+	ni_gm_last_poll_is_intr = intr;
 
 dump_monitors(env);
         __in__();
@@ -4139,6 +4298,7 @@ dump_monitors(env);
 	    struct s_drv    *p_drv;
 	    struct s_dev    *p_dev;
 	    int              dev;
+	    int              evt_type = GM_NO_RECV_EVENT;
 
 	    if (!ni_gm_p_drv->nb_dev) {
 		break;
@@ -4152,65 +4312,98 @@ dump_monitors(env);
 		VPRINTF(1700, ("%s.%d: here... next_dev %d p_drv->nv_dev %d\n", __FILE__, __LINE__, next_dev, p_drv->nb_dev));
 		VPRINTSTR(1200, ("p"));
 		next_dev = 0;
-		if (result) {
+		if (1 || ! result) {
 		    break;
 		}
 	    }
+
+	    result = JNI_TRUE;
 
 	    dev     = next_dev++;
 	    p_dev   = p_drv->pp_dev[dev];
 	    p_port  = p_dev->p_port;
 	    p_event = gm_receive(p_port->p_gm_port);
+	    evt_type = gm_ntohc(p_event->recv.type) & 0xFF;
+#if GM_ENABLE_HERALDS
+	    poll_tick = __RDTSC__;
+	    if (intr) {
+		buf_printf("  t=%06Ld Intr event %2d %-30s GM ptr %p\n", (poll_tick - ni_gm_poll_start) / CPU_MHZ, evt_type, _gm_recv_event_name(evt_type), p_port->p_gm_port);
+	    } else if (evt_type != GM_NO_RECV_EVENT && evt_type != GM_SENDS_FAILED_EVENT) {
+		buf_printf("  t=%06Ld Downcall event %2d %-30s GM ptr %p\n", (poll_tick - ni_gm_poll_start) / CPU_MHZ, evt_type, _gm_recv_event_name(evt_type), p_port->p_gm_port);
+	    }
+#endif
 	    //p_event = gm_blocking_receive(p_port->p_gm_port);
 
-	    switch (gm_ntohc(p_event->recv.type)) {
+	    switch (evt_type) {
 
 #if HANDLE_FAST_SPECIALLY
 	    case GM_FAST_HIGH_PEER_RECV_EVENT:
 	    case GM_FAST_HIGH_RECV_EVENT:
 		VPRINTF(150, ("Receive FAST/HIGH packet size %d\n", gm_ntohl(p_event->recv.length)));
-		if (ni_gm_process_fast_high_recv_event(p_port, p_event))
+		if (ni_gm_process_fast_high_recv_event(env, p_port, p_event))
 			goto error;
-		result = JNI_TRUE;
 		break;
 #endif
 
 	    case GM_HIGH_PEER_RECV_EVENT:
 	    case GM_HIGH_RECV_EVENT:
 		VPRINTF(150, ("Receive from %d HIGH packet size %d\n", gm_ntohs(p_event->recv.sender_node_id), gm_ntohl(p_event->recv.length)));
-		if (ni_gm_process_high_recv_event(p_port, p_event))
+		if (ni_gm_process_high_recv_event(env, p_port, p_event))
 			goto error;
-		result = JNI_TRUE;
 		break;
 
 	    case GM_PEER_RECV_EVENT:
 	    case GM_RECV_EVENT:
 		VPRINTF(150, ("Receive data packet size %d\n", gm_ntohl(p_event->recv.length)));
-		if (ni_gm_process_recv_event(p_port, p_event))
+		if (ni_gm_process_recv_event(env, p_port, p_event))
 			goto error;
-		result = JNI_TRUE;
 		break;
 
 	    case GM_NO_RECV_EVENT:
 		VPRINTSTR(1700, ("_"));
-		result = JNI_TRUE;
+		// result = JNI_TRUE;
+		result = JNI_FALSE;
+		break;
+
+	    case _GM_SLEEP_EVENT:
+		fprintf(stderr, "A _SLEEP event in a regular poll?????\n");
+		gm_unknown (p_port->p_gm_port, p_event);
 		break;
 
 	    default:
 		gm_unknown(p_port->p_gm_port, p_event);
 		break;
 	    }
+
+#if GM_ENABLE_HERALDS
+	    if (p_dev->intr_enabled && result) {
+		gm_herald_receives(p_port->p_gm_port);
+	    }
+#endif
 	}
 
 	pend(GM_THREAD);
         __out__();
-        _current_env = NULL;
+        ni_gm_current_env = NULL;
         return result;
 
  error:
         __err__();
-        _current_env = NULL;
+        ni_gm_current_env = NULL;
 fprintf(stderr, "Oho -- error in nGmThread\n");
+}
+
+
+JNIEXPORT
+jboolean
+JNICALL
+Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
+    jboolean result = ni_gm_poll(env, JNI_FALSE);
+
+    while (ni_gm_poll(env, JNI_FALSE)) {
+	/* continue polling */
+    }
+    return result;
 }
 
 
@@ -4221,7 +4414,8 @@ void
 JNICALL
 Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class) {
         static int next_dev = 0;
-        _current_env = env;
+
+        ni_gm_current_env = env;
 
         __in__();
 	STATINC(native);
@@ -4264,7 +4458,7 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
                 case GM_FAST_HIGH_PEER_RECV_EVENT:
                 case GM_FAST_HIGH_RECV_EVENT:
 			success_flag = 1;
-			if (ni_gm_process_fast_high_recv_event(p_port, p_event))
+			if (ni_gm_process_fast_high_recv_event(env, p_port, p_event))
 				goto error;
                         break;
 #endif
@@ -4272,14 +4466,14 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
                 case GM_HIGH_PEER_RECV_EVENT:
                 case GM_HIGH_RECV_EVENT:
 			success_flag = 1;
-			if (ni_gm_process_high_recv_event(p_port, p_event))
+			if (ni_gm_process_high_recv_event(env, p_port, p_event))
 				goto error;
                         break;
 
                 case GM_PEER_RECV_EVENT:
                 case GM_RECV_EVENT:
 			success_flag = 1;
-			if (ni_gm_process_recv_event(p_port, p_event))
+			if (ni_gm_process_recv_event(env, p_port, p_event))
 				goto error;
                         break;
 
@@ -4303,12 +4497,12 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
 
 	pend(GM_BLOCKING_THREAD);
         __out__();
-        _current_env = NULL;
+        ni_gm_current_env = NULL;
         return;
 
  error:
         __err__();
-        _current_env = NULL;
+        ni_gm_current_env = NULL;
 }
 
 #endif
@@ -4320,19 +4514,19 @@ JNICALL
 Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
 					 jclass  clazz)
 {
-    jclass	driver_class;
-    jfieldID	fid;
-
     STATINC(native);
-    driver_class      = ni_findClass(env, "ibis/impl/net/gm/Driver");
-    fid               = ni_getStaticField(env, driver_class, "yields", "I");
-    stats.yield = (*env)->GetStaticIntField(env, driver_class, fid);
+    assert(cls_Driver != NULL);
+    stats.yield = (*env)->GetStaticIntField(env, cls_Driver, fld_yields);
 
-    fprintf(stderr, "%s: Net GM: sent: eager %d; rndvz req %d data %d bytes %d intpt %d yield %d\n", hostname, stats.sent_eager, stats.sent_rndvz_req, stats.sent_rndvz_data, stats.bytes, stats.intr, stats.yield);
+    fprintf(stderr, "%s: Net GM: sent: eager %d; rndvz req %d data %d bytes %d intr %d yield %d\n", hostname, stats.sent_eager, stats.sent_rndvz_req, stats.sent_rndvz_data, stats.bytes, stats.intr, stats.yield);
     fprintf(stderr, "%s: Net GM: native calls %d; locks: access %d; unlocks: array %d fast-array %d access %d input %d\n",
 	    hostname, stats.native, stats.access_lock_lock, stats.array_lock_unlock,
 	    stats.array_lock_unlock_fast, stats.access_lock_unlock,
 	    stats.input_lock_unlock);
+    if (buf_print_buffer != buf_print_start) {
+	fprintf(stderr, "strlen(buf_print_buffer) %d\n", strlen(buf_print_buffer));
+	fputs(buf_print_buffer, stderr);
+    }
 }
 
 

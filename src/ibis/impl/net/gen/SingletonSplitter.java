@@ -32,7 +32,7 @@ public class SingletonSplitter extends NetSplitter {
     public SingletonSplitter(NetPortType pt, NetDriver driver, String context)
 	    throws IOException {
 	super(pt, driver, context);
-System.err.println(this + ": hah, I live");
+// System.err.println(this + ": hah, I live");
     }
 
 

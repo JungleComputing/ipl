@@ -56,7 +56,6 @@ public final class Driver extends NetDriver {
 
 	private final static int POLLS_BEFORE_YIELD = TypedProperties.intProperty("ibis.net.gm.polls", 300);	    
 
-
 	/**
 	 * The driver name.
 	 */
@@ -83,6 +82,8 @@ public final class Driver extends NetDriver {
 	static ibis.util.nativeCode.Rdtsc t_native_send = new ibis.util.nativeCode.Rdtsc();
 
 	static private int	yields;
+	static private int	pollers;
+	static private int	yielders;
 
 
 	static {
@@ -209,6 +210,16 @@ public final class Driver extends NetDriver {
 	}
 
 
+	private static void lock() {
+	    gmAccessLock.lock();
+	}
+
+
+	private static void unlock() {
+	    gmAccessLock.unlock();
+	}
+
+
 	protected static void interruptPump(int[] lockIds) throws IOException {
 	    if (VERBOSE_INTPT) {
 		System.err.println(NetIbis.hostName()
@@ -264,7 +275,10 @@ public final class Driver extends NetDriver {
 		t_lock.stop();
 	    }
 
+	    long start = -1;
+
 	    if (result == lockIds.length - 1) {
+pollers++;
 		/* got GM main lock, let's pump */
 		// We are NOT interested in lockIds[lockIds.length - 1], but
 		// luckily we already got that, so no fear that we
@@ -272,6 +286,7 @@ public final class Driver extends NetDriver {
 		try {
 		    boolean locked;
 		    int pollsBeforeYield = POLLS_BEFORE_YIELD;	    
+
 		    do {
 // System.err.print(">");
 			if (Driver.TIMINGS) Driver.t_native_poll.start();
@@ -293,22 +308,17 @@ public final class Driver extends NetDriver {
 			    break;
 			} else if (pollsBeforeYield-- == 0) {
 			    yields++;
+yielders++;
 			    gmAccessLock.unlock();
 			    Thread.yield();
 			    gmAccessLock.lock(false);
-			    pollsBeforeYield = POLLS_BEFORE_YIELD;	    
+			    pollsBeforeYield = POLLS_BEFORE_YIELD;
+yielders--;
 			}
 		    } while (true);
-		} catch (ibis.util.IllegalLockStateException e) {
-		    System.err.println(NetIbis.hostName()
-			    + " "
-			    + Thread.currentThread()
-			    + ": catch IllegalLockStateException, first lock["
-			    + lockIds[0]
-			    + "], Driver.interrupts " + Driver.interrupts
-			    + " my interrupts " + interrupts);
-		    throw e;
+
 		} finally {
+pollers--;
 			/* request completed, release GM main lock */
 		    gmLockArray.unlock(0);
 		}

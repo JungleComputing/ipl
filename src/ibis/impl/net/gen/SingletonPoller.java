@@ -64,7 +64,7 @@ public class SingletonPoller extends NetPoller {
 			   NetInputUpcall inputUpcall)
 	    throws IOException {
 	super(pt, driver, context, decouplePoller, inputUpcall);
-System.err.println(this + ": hah, I live");
+// System.err.println(this + ": hah, I live");
     }
 
 
