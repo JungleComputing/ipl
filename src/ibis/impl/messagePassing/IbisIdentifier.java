@@ -61,13 +61,6 @@ final class IbisIdentifier
         mantaoutputstream.writeUTF(name);
     }
 
-    public final void generated_ReadObject(ibis.io.MantaInputStream mantainputstream)
-        throws ibis.ipl.IbisIOException, java.lang.ClassNotFoundException
-    {
-        cpu = mantainputstream.readInt();
-        name = mantainputstream.readUTF();
-    }
-
     public IbisIdentifier(ibis.io.MantaInputStream mantainputstream)
         throws ibis.ipl.IbisIOException, java.lang.ClassNotFoundException
     {

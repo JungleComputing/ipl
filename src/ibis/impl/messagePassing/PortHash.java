@@ -8,7 +8,6 @@ class PortHash {
     private Object[]	portDataBase;
 
     void bind(int x, Object p) {
-	// already locked: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
 	if (x >= allocPortDataBase) {

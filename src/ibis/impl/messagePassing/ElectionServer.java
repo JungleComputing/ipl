@@ -13,6 +13,8 @@ class ElectionServer
 
     static private Hashtable elections;
     private boolean started = false;
+    private boolean finished = false;
+
 
     public void upcall(ibis.ipl.ReadMessage m) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
@@ -54,8 +56,10 @@ class ElectionServer
 	}
     }
 
+
     ibis.ipl.ReceivePort[] server_port;
     ibis.ipl.SendPort[] client_port;
+
 
     ElectionServer() throws IbisIOException {
 	if (elections != null) {
@@ -66,7 +70,18 @@ class ElectionServer
 	start();
     }
 
+
+    void end() {
+	synchronized (this) {
+	    notifyAll();
+	    finished = true;
+	}
+    }
+
+
     public void run() {
+	int n = ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus;
+
 	try {
 // System.err.println(Thread.currentThread() + "ElectionServer runs");
 	    server_port = new ibis.ipl.ReceivePort[ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus];
@@ -75,7 +90,7 @@ class ElectionServer
 	    ibis.ipl.PortType type = ibis.ipl.impl.messagePassing.Ibis.myIbis.createPortType("++++ElectionPort++++",
 							  new ibis.ipl.StaticProperties());
 
-	    for (int i = 0; i < ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus; i++) {
+	    for (int i = 0; i < n; i++) {
 // System.err.println(Thread.currentThread() + "ElectionServer will create ReceivePort " + i);
 		server_port[i] = type.createReceivePort("++++ElectionServer-" +
 							    i + "++++", 
@@ -86,7 +101,7 @@ class ElectionServer
 		client_port[i] = type.createSendPort();
 	    }
 
-	    for (int i = 0; i < ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus; i++) {
+	    for (int i = 0; i < n; i++) {
 // System.err.println(Thread.currentThread() + "Now I'm gonna lookup ElectionClient receive port " + i);
 		ibis.ipl.ReceivePortIdentifier rid = ibis.ipl.impl.messagePassing.Ibis.myIbis.registry().lookup("++++ElectionClient-" + i + "++++");
 // System.err.println(Thread.currentThread() + "Now I'm gonna connect to ElectionClient receive port " + i + " RportID " + rid);
@@ -103,6 +118,29 @@ class ElectionServer
 	    System.err.println("ElectionServer meets exception " + e);
 	} catch (IbisException e2) {
 	    System.err.println("ElectionServer meets exception " + e2);
+	}
+
+
+	/* Await command to shut down */
+	synchronized (this) {
+	    while (! finished) {
+		try {
+		    wait();
+		} catch (InterruptedException e) {
+		    // Ignore
+		}
+	    }
+	}
+
+	for (int i = 0; i < n; i++) {
+	    try {
+		client_port[i].free();
+	    } catch (IbisIOException e) {
+		// Ignore
+	    }
+	}
+	for (int i = 0; i < n; i++) {
+	    server_port[i].free();
 	}
     }
 

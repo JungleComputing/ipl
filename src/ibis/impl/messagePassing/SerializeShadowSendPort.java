@@ -4,7 +4,6 @@ import java.util.Vector;
 import java.io.ObjectInputStream;
 import java.io.BufferedInputStream;
 
-import ibis.ipl.ConditionVariable;
 import ibis.ipl.IbisIOException;
 
 class SerializeShadowSendPort extends ShadowSendPort {
@@ -25,7 +24,7 @@ class SerializeShadowSendPort extends ShadowSendPort {
     }
 
 
-    ibis.ipl.impl.messagePassing.ReadMessage getMessage(int msgSeqno) 
+    ibis.ipl.impl.messagePassing.ReadMessage getMessage(int msgSeqno)
 	    throws IbisIOException {
 	ibis.ipl.impl.messagePassing.ReadMessage msg = cachedMessage;
 
@@ -68,11 +67,18 @@ class SerializeShadowSendPort extends ShadowSendPort {
 	 */
 
 	in.setMsgHandle(msg);
+
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	try {
-	    obj_in = new ObjectInputStream(new BufferedInputStream(in));
-	} catch (java.io.IOException e) {
-	    throw new IbisIOException(e);
+	    try {
+		obj_in = new ObjectInputStream(new BufferedInputStream(in));
+	    } catch (java.io.IOException e) {
+		throw new IbisIOException(e);
+	    }
+	} finally {
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	}
+
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("ShadowSendPort " + this + " has created ObjectInputStream " + obj_in);
 	    System.err.println("Clear the message that contains the ObjectStream init stuff");

@@ -9,8 +9,7 @@ class SerializeReadMessage extends ibis.ipl.impl.messagePassing.ReadMessage {
     java.io.ObjectInput obj_in;
 
     SerializeReadMessage(ibis.ipl.SendPort origin,
-			 ReceivePort port)
-	    throws IbisIOException {
+			 ReceivePort port) {
 	super(origin, port);
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("~~~~~~~~~ A new -sun- ReadMessage " + this);

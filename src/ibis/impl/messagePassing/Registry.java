@@ -33,6 +33,15 @@ class Registry implements ibis.ipl.Registry {
 	electionClient = new ElectionClient();
     }
 
+    void end() {
+	if (electionServer != null) {
+	    electionServer.end();
+	}
+	if (electionClient != null) {
+	    electionClient.end();
+	}
+    }
+
     void bind(String name, ibis.ipl.ReceivePortIdentifier id) throws IbisIOException {
 	nameServerClient.bind(name, (ReceivePortIdentifier)id);
     }

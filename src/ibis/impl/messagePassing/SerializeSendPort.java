@@ -27,7 +27,9 @@ public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 			int timeout)
 	    throws IbisIOException {
 
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	try {
 
 	    // Add the new receiver to our tables.
 	    int my_split = addConnection((ReceivePortIdentifier)receiver);
@@ -71,21 +73,24 @@ public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 	    if (! syncer[my_split].accepted) {
 		throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + receiver);
 	    }
+	// }
+	} finally {
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	}
 
-	    try {
-		obj_out = new ObjectOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
-		if (message != null) {
-		    ((SerializeWriteMessage)message).obj_out = obj_out;
-		}
-		obj_out.flush();
-		out.send(true);
-		out.finish();
-	    } catch (java.io.IOException e) {
-		throw new IbisIOException(e);
+	try {
+	    obj_out = new ObjectOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
+	    if (message != null) {
+		((SerializeWriteMessage)message).obj_out = obj_out;
 	    }
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		System.err.println(Thread.currentThread() + ">>>>>>>>>>>> Created ObjectOutputStream " + obj_out + " on top of " + out);
-	    }
+	    obj_out.flush();
+	    out.send(true);
+	    out.finish();
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
+	}
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println(Thread.currentThread() + ">>>>>>>>>>>> Created ObjectOutputStream " + obj_out + " on top of " + out);
 	}
     }
 

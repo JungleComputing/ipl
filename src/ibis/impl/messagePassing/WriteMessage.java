@@ -25,7 +25,9 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	    System.err.println("%%%%%%%%%%%%%%% Send an Ibis /no-serial/ WriteMessage");
 	}
 
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	try {
 	    if (doSend) {
 		out.send(true);
 	    }
@@ -33,6 +35,9 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 		out.reset(false);
 	    }
 	    sPort.registerSend();
+	// }
+	} finally {
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
     }
 

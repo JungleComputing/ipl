@@ -29,6 +29,9 @@ static jmethodID	md_toString;
 static jmethodID	md_checkLockOwned;
 static jmethodID	md_checkLockNotOwned;
 
+static jmethodID	md_lock;
+static jmethodID	md_unlock;
+
 jclass		ibmp_cls_Ibis;
 jobject		ibmp_obj_Ibis_ibis;
 
@@ -145,39 +148,18 @@ ibmp_thread_yield(JNIEnv *env)
 
 
 void
-Java_ibis_ipl_impl_messagePassing_Ibis_lock(JNIEnv *env, jobject lock)
-{
-    if ((*env)->MonitorEnter(env, lock) < 0) {
-	fprintf(stderr, "Illegal MonitorEnter\n");
-	abort();
-    }
-}
-
-
-void
-Java_ibis_ipl_impl_messagePassing_Ibis_unlock(JNIEnv *env, jobject lock)
-{
-    if ((*env)->MonitorExit(env, lock) < 0) {
-	fprintf(stderr, "Illegal MonitorExit\n");
-	abort();
-    }
-}
-
-
-void
 ibmp_lock(JNIEnv *env)
 {
-    ibmp_lock_check_not_owned(env);
-    Java_ibis_ipl_impl_messagePassing_Ibis_lock(env, ibmp_obj_Ibis_ibis);
+    (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_lock);
 }
 
 
 void
 ibmp_unlock(JNIEnv *env)
 {
-    ibmp_lock_check_owned(env);
-    return Java_ibis_ipl_impl_messagePassing_Ibis_unlock(env, ibmp_obj_Ibis_ibis);
+    (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_unlock);
 }
+
 
 #undef ibmp_lock_check_owned
 #undef ibmp_lock_check_not_owned
@@ -274,6 +256,20 @@ ibmp_init(JNIEnv *env, jobject this)
 				       "()V");
     if (md_checkLockNotOwned == NULL) {
 	fprintf(stderr, "Cannot find method checkLockNotOwned\n");
+	abort();
+    }
+    IBP_VPRINTF(2000, env, ("here..\n"));
+
+    md_lock = (*env)->GetMethodID(env, ibmp_cls_Ibis, "lock", "()V");
+    if (md_lock == NULL) {
+	fprintf(stderr, "Cannot find method lock\n");
+	abort();
+    }
+    IBP_VPRINTF(2000, env, ("here..\n"));
+
+    md_unlock = (*env)->GetMethodID(env, ibmp_cls_Ibis, "unlock", "()V");
+    if (md_unlock == NULL) {
+	fprintf(stderr, "Cannot find method unlock\n");
 	abort();
     }
     IBP_VPRINTF(2000, env, ("here..\n"));

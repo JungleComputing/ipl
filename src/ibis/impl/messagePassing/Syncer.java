@@ -1,9 +1,11 @@
 package ibis.ipl.impl.messagePassing;
 
+import ibis.ipl.ConditionVariable;
+
 public class Syncer implements PollClient {
     boolean	signalled;
     boolean	accepted;
-    ibis.ipl.ConditionVariable cv = new ibis.ipl.ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+    ConditionVariable cv = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 
     PollClient	next;
     PollClient	prev;

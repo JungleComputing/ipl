@@ -57,10 +57,9 @@ final class SendPortIdentifier
 
     SendPortIdentifier(java.lang.String name, java.lang.String type)
     {
-        synchronized(ibis.ipl.impl.messagePassing.Ibis.myIbis)
-        {
-            port = ibis.ipl.impl.messagePassing.Ibis.myIbis.sendPort++;
-        }
+        ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+        port = ibis.ipl.impl.messagePassing.Ibis.myIbis.sendPort++;
+        ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
         this.name = name;
         this.type = type;
         ibisId = (ibis.ipl.impl.messagePassing.IbisIdentifier)ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier();
@@ -86,15 +85,6 @@ final class SendPortIdentifier
         int i = mantaoutputstream.writeKnownObjectHeader(ibisId);
         if(i == 1)
             ibisId.generated_WriteObject(mantaoutputstream);
-    }
-
-    public final void generated_ReadObject(ibis.io.MantaInputStream mantainputstream)
-        throws ibis.ipl.IbisIOException, java.lang.ClassNotFoundException
-    {
-        port = mantainputstream.readInt();
-        cpu = mantainputstream.readInt();
-        type = mantainputstream.readUTF();
-        name = mantainputstream.readUTF();
     }
 
     public SendPortIdentifier(ibis.io.MantaInputStream mantainputstream)

@@ -2,7 +2,6 @@ package ibis.ipl.impl.messagePassing;
 
 import java.util.Vector;
 
-import ibis.ipl.ConditionVariable;
 import ibis.ipl.IbisIOException;
 
 class ShadowSendPort extends SendPort {
@@ -104,7 +103,8 @@ class ShadowSendPort extends SendPort {
     /* Serialize streams need a complicated x-phase startup because they start reading
      * in the constructor. Provide a handle to create the Serialize streams after we
      * have deposited the first msg/fragment in the queue. */
-    boolean checkStarted(ibis.ipl.impl.messagePassing.ReadMessage msg) throws IbisIOException {
+    boolean checkStarted(ibis.ipl.impl.messagePassing.ReadMessage msg)
+	    throws IbisIOException {
 	return true;
     }
 

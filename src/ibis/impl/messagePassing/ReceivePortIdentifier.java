@@ -64,10 +64,9 @@ final class ReceivePortIdentifier
 
     ReceivePortIdentifier(java.lang.String name, java.lang.String type)
     {
-        synchronized(ibis.ipl.impl.messagePassing.Ibis.myIbis)
-        {
-            port = ibis.ipl.impl.messagePassing.Ibis.myIbis.receivePort++;
-        }
+        ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+        port = ibis.ipl.impl.messagePassing.Ibis.myIbis.receivePort++;
+        ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
         cpu = ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu;
         this.name = name;
         this.type = type;
@@ -80,15 +79,6 @@ final class ReceivePortIdentifier
         mantaoutputstream.writeInt(cpu);
         mantaoutputstream.writeUTF(type);
         mantaoutputstream.writeUTF(name);
-    }
-
-    public final void generated_ReadObject(ibis.io.MantaInputStream mantainputstream)
-        throws ibis.ipl.IbisIOException, java.lang.ClassNotFoundException
-    {
-        port = mantainputstream.readInt();
-        cpu = mantainputstream.readInt();
-        type = mantainputstream.readUTF();
-        name = mantainputstream.readUTF();
     }
 
     public ReceivePortIdentifier(ibis.io.MantaInputStream mantainputstream)

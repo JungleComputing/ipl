@@ -6,7 +6,7 @@ class AcceptThread extends Thread {
 
     ReceivePort port;
     ibis.ipl.ConnectUpcall upcall;
-    ConditionVariable there_is_work = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+    ConditionVariable there_is_work = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
     boolean	stopped;
 
 
@@ -15,7 +15,7 @@ class AcceptThread extends Thread {
 	boolean		finished;
 	boolean		accept;
 	ibis.ipl.SendPortIdentifier port;
-	ConditionVariable decided = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+	ConditionVariable decided = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
     }
 
     AcceptQ	acceptQ_front;
@@ -71,9 +71,10 @@ class AcceptThread extends Thread {
 
 
     boolean checkAccept(ibis.ipl.SendPortIdentifier p) {
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	boolean	accept;
+	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	    AcceptQ q = get();
-	    boolean	accept;
 
 	    q.port = p;
 	    enqueue(q);
@@ -86,13 +87,15 @@ class AcceptThread extends Thread {
 
 	    release(q);
 
-	    return accept;
-	}
+	// }
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	return accept;
     }
 
 
     public void run() {
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	    AcceptQ q;
 
 	    while (true) {
@@ -108,7 +111,8 @@ class AcceptThread extends Thread {
 		q.finished = true;
 		q.decided.cv_signal();
 	    }
-	}
+	// }
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
 

@@ -50,10 +50,10 @@ public abstract class ReceivePortNameServerClient
 	}
 
 	boolean	ns_busy = false;
-	ConditionVariable	ns_free = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+	ConditionVariable	ns_free = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 
 	boolean	ns_is_done;
-	ConditionVariable	ns_done = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+	ConditionVariable	ns_done = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 	boolean bound;
 
 	void bind(String name, ibis.ipl.impl.messagePassing.ReceivePortIdentifier id) throws IbisIOException {
@@ -65,7 +65,9 @@ public abstract class ReceivePortNameServerClient
 	    // request a new Port.
 	    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 
-	    synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    // synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	    try {
 		while (ns_busy) {
 		    ns_free.cv_wait();
 		}
@@ -82,6 +84,9 @@ public abstract class ReceivePortNameServerClient
 
 		ns_busy = false;
 		ns_free.cv_signal();
+	    // }
+	    } finally {
+		ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	    }
 	}
 
@@ -89,7 +94,6 @@ public abstract class ReceivePortNameServerClient
 
     /* Called from native */
     private void bind_reply() {
-	// assume already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 // System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this);
 	bind.bound = true;
@@ -153,10 +157,10 @@ public abstract class ReceivePortNameServerClient
 	}
 
 	boolean	ns_busy = false;
-	ConditionVariable	ns_free = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+	ConditionVariable	ns_free = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 
 	boolean	ns_is_done;
-	ConditionVariable	ns_done = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+	ConditionVariable	ns_done = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 	ibis.ipl.impl.messagePassing.ReceivePortIdentifier ri;
 
 	private static final int BACKOFF_MILLIS = 1000;
@@ -166,16 +170,17 @@ public abstract class ReceivePortNameServerClient
 // System.err.println(Thread.currentThread() + "Lookup receive port \"" + name + "\"");
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: grab Ibis lock.....");
 
-	    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 
-	    synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    // synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 		while (ns_busy) {
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait until the previous client is finished" + this);
 		    ns_free.cv_wait();
 		}
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: set lookup.ns_busy" + this);
 		ns_busy = true;
-	    }
+	    // }
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 
 	    long start = System.currentTimeMillis();
 	    long last_try = start - BACKOFF_MILLIS;
@@ -185,7 +190,9 @@ public abstract class ReceivePortNameServerClient
 		    throw new IbisIOException("messagePassing.Ibis ReceivePort lookup failed");
 		}
 		if (now - last_try >= BACKOFF_MILLIS) {
-		    synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+		    // synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+		    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+		    try {
 			ri = null;
 			ns_lookup(name);
 
@@ -200,6 +207,9 @@ public abstract class ReceivePortNameServerClient
 			    ns_free.cv_signal();
 			    return ri;
 			}
+		    // }
+		    } finally {
+			ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 		    }
 		    last_try = System.currentTimeMillis();
 		}
@@ -221,7 +231,6 @@ public abstract class ReceivePortNameServerClient
 
     /* Called from native */
     private void lookup_reply(ibis.ipl.impl.messagePassing.ReceivePortIdentifier ri) {
-	// assume already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: lookup reply " + ri + " " + lookup.ns_done);
 	lookup.ri = ri;
@@ -244,12 +253,14 @@ public abstract class ReceivePortNameServerClient
 
     protected abstract void ns_unbind(String public_name);
 
-    void unbind(String name) throws IbisIOException {
+    void unbind(String name) {
 
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	    ns_unbind(name);
-	}
+	// }
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 }

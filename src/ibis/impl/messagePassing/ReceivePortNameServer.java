@@ -18,7 +18,6 @@ public abstract class ReceivePortNameServer implements
     /* Called from native */
     private void bind(ReceivePortIdentifier ri, int tag, int client)
 	    throws ClassNotFoundException {
-	// already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 // System.err.println(Thread.currentThread() + "" + this + ": bind receive port " + ri + " client " + client);
 
@@ -41,7 +40,6 @@ public abstract class ReceivePortNameServer implements
 
     /* Called from native */
     private void lookup(String name, int tag, int client) throws ClassNotFoundException {
-	// already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
 	ReceivePortIdentifier storedId;
@@ -59,7 +57,6 @@ public abstract class ReceivePortNameServer implements
 
     /* Called from native */
     private void unbind(String name) throws ClassNotFoundException {
-	// already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 	ports.remove(name);
     }

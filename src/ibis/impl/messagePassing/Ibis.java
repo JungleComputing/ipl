@@ -4,6 +4,7 @@ import java.util.Vector;
 import java.util.Hashtable;
 
 import ibis.ipl.ConditionVariable;
+import ibis.ipl.Monitor;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.StaticProperties;
@@ -26,6 +27,13 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     private final StaticProperties systemProperties = new StaticProperties();
 
     public static Ibis	myIbis;
+
+    Monitor monitor = new Monitor();
+
+    ConditionVariable createCV() {
+	// return new ConditionVariable(this);
+	return monitor.createCV();
+    }
 
     int nrCpus;
     int myCpu;
@@ -89,21 +97,19 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("Receive join message " + ident_name + "; now world = " + world);
 	}
-	synchronized (myIbis) {
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 //manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
-	    IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
-	    ibisNameService.add(id);
-	    world.join(cpu, id);
-	}
+	IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
+	ibisNameService.add(id);
+	world.join(cpu, id);
     }
 
     /* Called from native */
     void leave_upcall(String ident_name, int cpu) {
-	synchronized (myIbis) {
-	    IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
-	    ibisNameService.remove(id);
-	    world.leave(cpu, id);
-	}
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
+	ibisNameService.remove(id);
+	world.leave(cpu, id);
     }
 
 
@@ -164,7 +170,9 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 	    System.err.println(Thread.currentThread() + "Registry lives...");
 	}
 
-	synchronized (myIbis) {
+	// synchronized (myIbis) {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	try {
 	    if (DEBUG) {
 		System.err.println("myCpu " + myCpu + " nrCpus " + nrCpus + " world " + world);
 	    }
@@ -179,6 +187,9 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 
 	    ibisNameService.add(ident);
 	    world.join(myCpu, ident);
+	// }
+	} finally {
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	}
 
 	if (DEBUG) {
@@ -188,15 +199,19 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 
 
     public void openWorld() {
-	synchronized (myIbis) {
+	// synchronized (myIbis) {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	    world.open();
-	}
+	// }
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
     public void closeWorld() {
-	synchronized (myIbis) {
+	// synchronized (myIbis) {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	    world.close();
-	}
+	// }
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
 
@@ -204,7 +219,7 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 
     protected abstract Poll createPoll();
 
-    void waitPolling(PollClient client, long timeout, boolean preempt)
+    final void waitPolling(PollClient client, long timeout, boolean preempt)
 	    throws IbisIOException {
 	rcve_poll.waitPolling(client, timeout, preempt);
     }
@@ -212,33 +227,25 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
     protected abstract SendPort createSendPort(PortType type) throws IbisIOException;
     protected abstract SendPort createSendPort(PortType type, String name) throws IbisIOException;
 
-    native void lock();
-    native void unlock();
     protected abstract long currentTime();
     protected abstract double t2d(long t);
 
-    final void checkLockOwned() {
-	if (DEBUG) {
-	    try {
-		notify();
-	    } catch (IllegalMonitorStateException e) {
-		System.err.println("Ibis.ibis not locked");
-		Thread.dumpStack();
-		System.exit(97);
-	    }
-	}
+
+
+    final public void lock() {
+	monitor.lock();
     }
 
-    final void checkLockNotOwned() {
-	if (DEBUG) {
-	    try {
-		notify();
-		System.err.println("Ibis.ibis locked");
-		Thread.dumpStack();
-		System.exit(98);
-	    } catch (IllegalMonitorStateException e) {
-	    }
-	}
+    final public void unlock() {
+	monitor.unlock();
+    }
+
+    final public void checkLockOwned() {
+	monitor.checkImOwner();
+    }
+
+    final public void checkLockNotOwned() {
+	monitor.checkImNotOwner();
     }
 
 
@@ -291,7 +298,7 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 
     int[] inputStreamMsgTags = new int[6];
 
-    void inputStreamPoll() throws IbisIOException {
+    final void inputStreamPoll() throws IbisIOException {
 	if (getInputStreamMsg(inputStreamMsgTags)) {
 	    receiveFragment(inputStreamMsgTags[0],
 			    inputStreamMsgTags[1],
@@ -307,17 +314,17 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 				 int dest_port,
 				 int msgHandle,
 				 int msgSize,
-				 int msgSeqno) throws IbisIOException {
-	// This is already taken: synchronized (Ibis.ibis)
+				 int msgSeqno)
+	    throws IbisIOException {
 	// checkLockOwned();
 // System.err.println(Thread.currentThread() + "receiveFragment");
-	ReceivePort port = lookupReceivePort(dest_port);
+	ibis.ipl.impl.messagePassing.ReceivePort port = lookupReceivePort(dest_port);
 // System.err.println(Thread.currentThread() + "receiveFragment port " + port);
 	ShadowSendPort origin = lookupSendPort(src_cpu, src_port);
 // System.err.println(Thread.currentThread() + "receiveFragment origin " + origin);
 
 	if (origin == null) {
-	    throw new IbisIOException("They want to lookup sendPort cpu " + src_cpu + " port " + src_port + " which apparently has already been cleared");
+	    throw new IbisIOException("Receive message from sendport we're not connected to");
 	}
 
 	port.receiveFragment(origin, msgHandle, msgSize, msgSeqno);
@@ -337,21 +344,26 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 	rcve_poll.reset_stats();
     }
 
-    public synchronized void end() {
-	ibisNameService.remove(ident);
-	for (int i = 0; i < nrCpus; i++) {
-	    if (i != myCpu) {
-// System.err.println("Send join message to " + i);
-		send_leave(i, ident.name());
+    public void end() {
+	// synchronized (myIbis) {
+	registry.end();
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	    ibisNameService.remove(ident);
+	    for (int i = 0; i < nrCpus; i++) {
+		if (i != myCpu) {
+    // System.err.println("Send join message to " + i);
+		    send_leave(i, ident.name());
+		}
 	    }
-	}
-	world.leave(myCpu, ident);
+	    world.leave(myCpu, ident);
 
-	System.err.println("t native poll " + t2d(tMsgPoll) + " send " + t2d(tMsgSend));
-	System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
-	ConditionVariable.report(System.out);
-	rcve_poll.finalize();
-	ibmp_end();
+	    System.err.println("t native poll " + t2d(tMsgPoll) + " send " + t2d(tMsgSend));
+	    System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
+	    ConditionVariable.report(System.out);
+	    rcve_poll.finalize();
+	    ibmp_end();
+	// }
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
 }

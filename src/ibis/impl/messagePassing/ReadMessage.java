@@ -1,6 +1,7 @@
 package ibis.ipl.impl.messagePassing;
 
 import ibis.ipl.IbisIOException;
+import ibis.ipl.ConditionVariable;
 
 public class ReadMessage
 	implements ibis.ipl.ReadMessage,
@@ -20,7 +21,6 @@ public class ReadMessage
 
     ReadMessage(ibis.ipl.SendPort s,
 		ReceivePort port) {
-	// This is already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
 // System.err.println("**************************************************Creating new ReadMessage");
@@ -59,7 +59,7 @@ public class ReadMessage
 
     boolean	signalled;
     boolean	accepted;
-    ibis.ipl.ConditionVariable cv = new ibis.ipl.ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+    ConditionVariable cv = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 
     PollClient	poll_next;
     PollClient	poll_prev;
@@ -106,30 +106,30 @@ public class ReadMessage
 
 
     public void nextFragment() throws IbisIOException {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    while (fragmentFront.next == null) {
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this,
-								     0,
-								     true);
-	    }
-	    ReadFragment prev = fragmentFront;
-	    fragmentFront = fragmentFront.next;
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		System.err.println("Now set msg " + this + " the next fragment " + Integer.toHexString(fragmentFront.msgHandle));
-	    }
-	    in.setMsgHandle(this);
-	    prev.clear();
-	    shadowSendPort.putFragment(prev);
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	while (fragmentFront.next == null) {
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this,
+								 0,
+								 true);
 	}
+	ReadFragment prev = fragmentFront;
+	fragmentFront = fragmentFront.next;
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("Now set msg " + this + " the next fragment " + Integer.toHexString(fragmentFront.msgHandle));
+	}
+	in.setMsgHandle(this);
+	prev.clear();
+	shadowSendPort.putFragment(prev);
     }
 
 
-    public void finish() throws IbisIOException {
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+    public void finish() {
+	// synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	    clear();
 	    port.finishMessage();
-	}
+	// }
+	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
     }
 
 

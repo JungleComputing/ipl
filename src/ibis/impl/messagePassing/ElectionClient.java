@@ -30,6 +30,15 @@ class ElectionClient implements ElectionProtocol {
 // System.err.println(Thread.currentThread() + "ElectionClient: sendPort connected!");
     }
 
+    void end() {
+	try {
+	    sport.free();
+	} catch (IbisIOException e) {
+	    // Ignore
+	}
+	rport.free();
+    }
+
     Object elect(String election, Object candidate) throws IbisIOException {
 
 // System.err.println(Thread.currentThread() + "ElectionClient: elect(): start send");
