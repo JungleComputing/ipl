@@ -508,7 +508,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		int size;
 
 		synchronized(this) {
-			size = victims.size();
+			// size = victims.size();
+			// No, this is one too few. (Ceriel)
+			size = victims.size() + 1;
 		}
 
 		// add my own stats
@@ -2432,11 +2434,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(this_satin == null) {
 			return false;
 		}
-		int size = 0;
-
 		synchronized(this_satin) {
-			size = this_satin.victims.size();
-			if(size == 1 && this_satin.closed) return false; // No need to spawn work on one machine.
+			int size = this_satin.victims.size();
+			// if(size == 1 && this_satin.closed) return false; // No need to spawn work on one machine.
+			// No no, size == 1 means that there is one OTHER
+			// machine ... (Ceriel)
+			if(size == 0 && this_satin.closed) return false; // No need to spawn work on one machine.
 		
 			if(this_satin.q.size() / (size+1) > this_satin.suggestedQueueSize) return false;
 		}
