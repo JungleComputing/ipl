@@ -236,7 +236,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     /** Returns a selection of the suffix array that allows easy extraction
      * of the longest repeats.
      */
-    private Result selectRepeats()
+    private Result selectRepeats( int top )
     {
         int next[] = new int[length];
         int indices[] = new int[length];
@@ -254,6 +254,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             offset++;
             boolean acceptable = false;
             int p = 0;
+            int spans = 0;
             if( false ){
                 Result r = new Result( offset, l, indices, comm );
                 r.print();
@@ -270,17 +271,23 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                 if( isAcceptable( indices1, oldp, p, offset ) ){
                     acceptable = true;
                     comm1[oldp] = false;
+                    spans++;
                 }
                 else {
                     p = oldp;
                 }
             }
             if( !acceptable ){
+                // We have nothing left, return the previous configuration.
                 break;
             }
             indices = indices1;
             comm = comm1;
             l = p;
+            if( spans<=top ){
+                // We have only a few spans left, we're done.
+                break;
+            }
         }
         return new Result( offset-1, l, indices, comm );
     }
@@ -693,7 +700,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             }
         }
         else {
-            Result reps = selectRepeats();
+            Result reps = selectRepeats( top );
             // reps.print();
 
             boolean commonality[] = reps.comm;
@@ -726,7 +733,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                 if( p>1 && minsz>=MINCOMMONALITY ){
                     Step s = new Step( candidates, p, minsz );
                     res.add( s );
-                    System.out.println( "Adding candidate step " + s );
                 }
             }
         }
