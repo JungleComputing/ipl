@@ -1,22 +1,28 @@
 package ibis.util;
 
-import ibis.ipl.ConnectionTimedOutException;
-
-import ibis.connect.socketFactory.ExtSocketFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.InetSocketAddress;
-import java.util.Properties;
 
 public abstract class IbisSocketFactory {
-
+	
+	private static String DEFAULT_SOCKET_FACTORY = "ibis.util.IbisNormalSocketFactory";
+	private static String socketFactoryName = "null";
     static final boolean DEBUG = false;
 
+    static {
+      String sfClass = System.getProperty("ibis.socketfactory");
+      if (sfClass != null) {
+          socketFactoryName = sfClass;
+      } else {
+      	 socketFactoryName = DEFAULT_SOCKET_FACTORY;
+      }
+  }
+    
+    
     /** Simple ServerSocket factory
      */
     public abstract ServerSocket createServerSocket(int port,
@@ -60,9 +66,6 @@ public abstract class IbisSocketFactory {
 	Socket s;
 	s = a.accept();
 	s.setTcpNoDelay(true);
-//		s.setSoTimeout(1000);
-//		System.err.println("accepted socket linger = " + s.getSoLinger());
-
 	if(DEBUG) {
 	    System.out.println("accepted new connection from " + s.getInetAddress() + ":" + s.getPort() + ", local = " + s.getLocalAddress() + ":" + s.getLocalPort());
 	}
@@ -108,7 +111,21 @@ public abstract class IbisSocketFactory {
     public static IbisSocketFactory createFactory(String name) {
 	if (name.equals("ibis-connect")) {
 	    return new IbisConnectSocketFactory();
+	} else {
+		//we are not running in a specific mode, we create a factory based on the value of ibis.socketfactory
+		return initFactory();
 	}
-	return new IbisNormalSocketFactory();
+	//return new IbisNormalSocketFactory();
     }
+    
+  private synchronized static IbisSocketFactory initFactory() {
+  try {
+      Class classDefinition = Class.forName(socketFactoryName);
+      return (IbisSocketFactory) classDefinition.newInstance();
+  } catch (Exception e) {
+      e.printStackTrace();
+  }
+  return null;
+}
+    
 }
