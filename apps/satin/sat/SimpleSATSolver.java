@@ -17,8 +17,14 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     static final boolean printSatSolutions = true;
     static int label = 0;
 
+    /** If there are less than this number of variables left, we consider
+     * this a problem that is trivial enough to hand to the leaf solver.
+     */
+    static final int leafVariables = 50;
+
     /**
-     * The method that implements a Satin task.
+     * A simple solver that is used when the remaining problem is too
+     * small to justify expensive solvers.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
      * @param p the SAT problem to solve
@@ -26,10 +32,10 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
      * @param varlist the list of variables to branch on, ordered for efficiency
      * @param varix the next variable in <code>varlist</code> to branch on
      */
-    public void solve(
+    public void leafSolve(
 	SATProblem p,
-	int assignments[],
 	int varlist[],
+	int assignments[],
 	int varix
     ) throws SATResultException
     {
@@ -58,20 +64,78 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 
 	int var = varlist[varix];
 	if( traceSolver ){
+	    System.err.println( "leafSolver branches on variable " + var );
+	    System.err.flush();
+	}
+
+	assignments[var] = 1;
+	leafSolve( p, varlist, assignments, varix+1 );
+	assignments[var] = 0;
+	leafSolve( p, varlist, assignments, varix+1 );
+	assignments[var] = -1;
+    }
+
+    /**
+     * The method that implements a Satin task.
+     * The method throws a SATResultException if it finds a solution,
+     * or terminates normally if it cannot find a solution.
+     * @param p the SAT problem to solve
+     * @param assignments the current assignments
+     * @param varlist the list of variables to branch on, ordered for efficiency
+     * @param varix the next variable in <code>varlist</code> to branch on
+     */
+    public void solve(
+	Context ctx,
+	int assignments[],
+	int varix
+    ) throws SATResultException
+    {
+	if( ctx.p.isSatisfied( assignments ) ){
+	    SATSolution s = new SATSolution( assignments );
+
+	    if( traceSolver | printSatSolutions ){
+		System.err.println( "Found a solution: " + s );
+	    }
+	    throw new SATResultException( s );
+	}
+	if( ctx.p.isConflicting( assignments ) ){
+	    if( traceSolver ){
+		System.err.println( "Found a conflict" );
+	    }
+	    return;
+	}
+	if( varix>=ctx.varlist.length ){
+	    // There are no variables left to assign, clearly there
+	    // is no solution.
+	    if( traceSolver ){
+		System.err.println( "There are only " + ctx.p.getVariableCount() + " variables; nothing to branch on" );
+	    }
+	    return;
+	}
+
+	int var = ctx.varlist[varix];
+	if( traceSolver ){
 	    System.err.println( "Branching on variable " + var );
 	    System.err.flush();
 	}
 
 	// We have variable 'var' to branch on.
-	int posassignments[] = (int []) assignments.clone();
-	int negassignments[] = (int []) assignments.clone();
-	posassignments[var] = 1;
-	negassignments[var] = 0;
-
-	solve( p, posassignments, varlist, varix+1 );
-	solve( p, negassignments, varlist, varix+1 );
-	sync();
-
+	if( varix+leafVariables>=ctx.varlist.length ){
+	    assignments[var] = 1;
+	    leafSolve( ctx.p, ctx.varlist, assignments, varix+1 );
+	    assignments[var] = 0;
+	    leafSolve( ctx.p, ctx.varlist, assignments, varix+1 );
+	    assignments[var] = -1;
+	}
+	else {
+	    int posassignments[] = (int []) assignments.clone();
+	    int negassignments[] = (int []) assignments.clone();
+	    posassignments[var] = 1;
+	    negassignments[var] = 0;
+	    solve( ctx, posassignments, varix+1 );
+	    solve( ctx, negassignments, varix+1 );
+	    sync();
+	}
     }
 
     /** Given a list of symbolic clauses, produce a list of solutions. */
@@ -88,7 +152,11 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	    if( traceSolver ){
 		System.err.println( "Starting recursive solver" );
 	    }
-	    s.solve( p, assignments, varlist, 0 );
+	    Context ctx = new Context();
+
+	    ctx.p = p;
+	    ctx.varlist = varlist;
+	    s.solve( ctx, assignments, 0 );
 	    //System.err.println( "Solve finished??" );
 	    // res = null;
 	    s.sync();

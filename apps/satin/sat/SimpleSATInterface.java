@@ -6,5 +6,10 @@
  */
 interface SimpleSATInterface extends ibis.satin.Spawnable
 {
-    void solve( SATProblem p, int assignments[], int varlist[], int varix ) throws SATResultException;
+    static class Context {
+        SATProblem p;
+	int varlist[];
+    }
+
+    public void solve( Context ctx, int assignments[], int varix ) throws SATResultException;
 }
