@@ -11,9 +11,12 @@ interface Config {
     static final boolean tracePortCreation = false;
     static final boolean traceCommunication = false;
     static final boolean showProgress = true;
+    static final boolean showBoard = false;
     static final boolean traceClusterResizing = true;
     static final int BOARDSIZE = 30000;
     static final int GENERATIONS = 10;
+    static final int SHOWNBOARDWIDTH = 60;
+    static final int SHOWNBOARDHEIGHT = 30;
 }
 
 class RszHandler implements Config, ResizeHandler {
@@ -148,6 +151,14 @@ class Cell1D implements Config {
         { 0, 0, 1, 0, 0 },
         { 0, 1, 0, 1, 0 },
         { 0, 1, 0, 1, 0 },
+        { 0, 0, 1, 0, 0 },
+        { 0, 0, 0, 0, 0 },
+    };
+
+    private static byte glider[][] = {
+        { 0, 0, 0, 0, 0 },
+        { 0, 1, 1, 1, 0 },
+        { 0, 1, 0, 0, 0 },
         { 0, 0, 1, 0, 0 },
         { 0, 0, 0, 0, 0 },
     };
@@ -302,6 +313,8 @@ class Cell1D implements Config {
             byte nextupdatecol[] = new byte[BOARDSIZE+2];
 
             putTwister( board, 100, 3 );
+            putPattern( board, 4, 4, glider );
+
             if( me == 0 ){
                 System.out.println( "Started" );
             }
@@ -311,6 +324,16 @@ class Cell1D implements Config {
                 byte prev[];
                 byte curr[] = board[0];
                 byte next[] = board[1];
+
+                if( showBoard && me == 0 ){
+                    System.out.println( "Generation " + iter );
+                    for( int y=1; y<SHOWNBOARDHEIGHT; y++ ){
+                        for( int x=1; x<SHOWNBOARDWIDTH; x++ ){
+                            System.out.print( board[x][y] );
+                        }
+                        System.out.println();
+                    }
+                }
                 for( int i=1; i<=myColumns; i++ ){
                     prev = curr;
                     curr = next;
