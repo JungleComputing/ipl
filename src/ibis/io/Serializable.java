@@ -46,5 +46,5 @@ public interface Serializable {
      * @exception IOException is thrown when an IO error occurs. 	
      */
     public void generated_DefaultReadObject(IbisSerializationInputStream in, int lvl)
-	throws IOException;
+	throws IOException, ClassNotFoundException;
 } 

@@ -313,6 +313,7 @@ public class IOGenerator {
 						    constantpool);
 
 	    default_read_method.addException("java.io.IOException");
+	    default_read_method.addException("java.lang.ClassNotFoundException");
 	    gen.addMethod(default_read_method.getMethod());
 
 	    /* Construct a read-of-the-stream constructor, but only when we can actually use it. */
@@ -332,6 +333,7 @@ public class IOGenerator {
 						    il,
 						    constantpool);
 		read_cons.addException("java.io.IOException");
+		read_cons.addException("java.lang.ClassNotFoundException");
 		gen.addMethod(read_cons.getMethod());
 	    }
 	    else if (hasReadObject()) {
@@ -346,6 +348,7 @@ public class IOGenerator {
 							    il,
 							    constantpool);
 		readobjectWrapper.addException("java.io.IOException");
+		readobjectWrapper.addException("java.lang.ClassNotFoundException");
 		gen.addMethod(readobjectWrapper.getMethod());
 	    }
 
@@ -488,7 +491,7 @@ public class IOGenerator {
 		if (field_class != null && field_class.isFinal()) isfinal = true;
 	    }
 	    if (isfinal &&
-		( isIbisSerializable(field_class) ||
+		( hasIbisConstructor(field_class) ||
 		  (isSerializable(field_class) && force_generated_calls)) &&
 		(! (Repository.implementationOf(field_class, "java.rmi.Remote") ||
 		    Repository.implementationOf(field_class, "ibis.rmi.Remote")))) {
@@ -1156,6 +1159,7 @@ public class IOGenerator {
 	    method.setMaxStack(3);
 	    method.setMaxLocals();
 	    method.addException("java.io.IOException");
+	    method.addException("java.lang.ClassNotFoundException");
 	    gen.addMethod(method.getMethod());
 
 	    il = new InstructionList();
