@@ -47,6 +47,10 @@ if [ x$PANDA_ROOT = x ]
 then
 	PANDA_ROOT=/usr/local/VU/panda
 fi
+if [ x$LFC_ROOT = x ]
+then
+	LFC_ROOT=/usr/local/VU/lfc
+fi
 if [ x$DAS_LIB = x ]
 then
 	DAS_LIB=/usr/proj/daslib/lib/i386_Linux/libdas.a
@@ -74,6 +78,9 @@ do
 	--panda-root=*)
 			PANDA_ROOT=`expr $i : '--panda-root=\(.*\)'`
 			;;
+	--lfc-root=*)
+			LFC_ROOT=`expr $i : '--lfc-root=\(.*\)'`
+			;;
 	--das-lib=*)
 			DAS_LIB=`expr $i : '--das-lib=\(.*\)'`
 			;;
@@ -92,6 +99,7 @@ do
 			echo "	" --ibis-root=PATH "	" $IBIS_ROOT
 			echo "	" --manta-root=PATH "	" $MANTA_ROOT
 			echo "	" --panda-root=PATH "	" $PANDA_ROOT
+			echo "	" --lfc-root=PATH "	" $LFC_ROOT
 			echo "	" --das-lib=PATH "	" $DAS_LIB
 			echo "	" --panda-network=PATH " " $PANDA_NETWORK
 			echo "	" --jikesBT-root=PATH "	" $JIKES_BT_ROOT
@@ -120,6 +128,7 @@ s+@JAVAC@+$JAVAC+
 s+@IBIS_ROOT@+$IBIS_ROOT+
 s+@MANTA_ROOT@+$MANTA_ROOT+
 s+@PANDA_ROOT@+$PANDA_ROOT+
+s+@LFC_ROOT@+$LFC_ROOT+
 s+@DAS_LIB@+$DAS_LIB+
 s+@PANDA_NETWORK@+$PANDA_NETWORK+
 s+@JIKES_BT_ROOT@+$JIKES_BT_ROOT+
@@ -138,6 +147,7 @@ JAVAC=$JAVAC
 IBIS_ROOT=$IBIS_ROOT
 MANTA_ROOT=$MANTA_ROOT
 PANDA_ROOT=$PANDA_ROOT
+LFC_ROOT=$LFC_ROOT
 DAS_LIB=$DAS_LIB
 PANDA_NETWORK=$PANDA_NETWORK
 JIKES_BT_ROOT=$JIKES_BT_ROOT

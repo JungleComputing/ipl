@@ -10,7 +10,7 @@ PROFILE		= 0
 OPTIMIZE	= 1
 
 MYRINET_ROOT    = /usr/local/package/myrinet/lib/intel_linux
-LFC_ROOT        = /usr/local/package/lfc/lib
+GM_ROOT		= /usr/gm
 
 # -------------- end of user configuration -----------------------------
 
@@ -23,6 +23,7 @@ JIKES_BT	= @JIKES_BT_ROOT@
 ifndef IBIS_ROOT
 IBIS_ROOT	= @IBIS_ROOT@
 endif
+LFC_ROOT	= @LFC_ROOT@
 
 JAVAC_COMMAND   = $(JAVAC) $(JAVACFLAGS) $(JAVAOPTFLAGS)
 JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
@@ -39,10 +40,10 @@ LANAIDEVICE	= $(MYRINET_ROOT)/libLanaiDevice.a
 DPI		= $(MYRINET_ROOT)/libDpi.a
 ENS		= /usr/proj/FastSockets/enameserver/enameserver-0.13/libens.a
 ifeq ($(OPTIMIZE), 1)
-LFC	        = $(LFC_ROOT)/optimized/liblfc.a
+LFC	        = $(LFC_ROOT)/lib/optimized/liblfc.a
 PANDA_LIB	= $(PANDA)/panda4.0/lib/i386_linux/$(PANDA_NETWORK)/no_threads/optimized/libpanda.a
 else
-LFC	        = $(LFC_ROOT)/debug/liblfc.a
+LFC	        = $(LFC_ROOT)/lib/debug/liblfc.a
 PANDA_LIB	= $(PANDA)/panda4.0/lib/i386_linux/$(PANDA_NETWORK)/no_threads/libpanda.a
 endif
 
