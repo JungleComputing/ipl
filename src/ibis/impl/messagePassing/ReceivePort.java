@@ -132,7 +132,7 @@ class ReceivePort
 	    }
 	    if (connectUpcall != null) {
 		acceptThread = new AcceptThread(this, connectUpcall);
-System.err.println("And start another AcceptThread(this=" + this + ")");
+// System.err.println("And start another AcceptThread(this=" + this + ")");
 		acceptThread.setName("ReceivePort accept thread");
 		acceptThread.start();
 	    }
@@ -184,6 +184,8 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	} else {
 	    if (DEBUG) {
 		System.err.println("This IS a home-only connection");
+		// System.err.println("My ibis is " + ident.ibis());
+		// System.err.println("Remote ibis is " + id.ibis());
 	    }
 	}
 
@@ -216,7 +218,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	    }
 	}
 	else {
-System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because the previous one didn't terminate");
+// System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because the previous one didn't terminate");
 // Thread.dumpStack();
 	    Thread thread = new Thread(this, "ReceivePort upcall thread " + upcallThreads);
 	    upcallThreads++;

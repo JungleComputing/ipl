@@ -8,6 +8,15 @@ final public class Poll implements Runnable {
     final static int NON_PREEMPTIVE = NON_POLLING + 1;
     final static int PREEMPTIVE     = NON_PREEMPTIVE + 1;
 
+    final static String preempt(int preempt) {
+	switch (preempt) {
+	    case NON_POLLING:		return "NON_POLLING";
+	    case NON_PREEMPTIVE:	return "NON_PREEMPTIVE";
+	    case PREEMPTIVE:		return "PREEMPTIVE";
+	    default:			return "ERROR-PREEMPTIVE";
+	}
+    }
+
     private static final boolean DEBUG = false;
     private static final boolean STATISTICS = false;
     private static final boolean NEED_POLLER_THREAD = true;
@@ -112,6 +121,8 @@ final public class Poll implements Runnable {
 	    throws IOException {
 
 	Ibis.myIbis.checkLockOwned();
+// System.err.print(Thread.currentThread() + "/" + preempt(preempt) + ">");
+// Thread.dumpStack();
 
 	long t_start = 0;
 	if (timeout > 0) {
@@ -250,6 +261,7 @@ if (false)
 	if (STATISTICS && preempt == PREEMPTIVE) {
 	    preemptive_pollers--;
 	}
+// System.err.print("<");
     }
 
 

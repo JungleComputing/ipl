@@ -33,6 +33,7 @@ class ShadowSendPort extends SendPort {
 	try {
 	    rId = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortBuf);
 	    sId = (SendPortIdentifier)SerializeBuffer.readObject(sendPortBuf);
+// System.err.println("Create shadow SendPort for sendPort that belongs to Ibis " + sId.ibis());
 	} catch (ClassNotFoundException e) {
 	    throw new IOException("Cannot read Ids from stream " + e);
 	}

@@ -46,12 +46,19 @@ final class IbisIdentifier
 	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
                 int handle = cache.getHandle(out, this);
 		out.writeInt(handle);
+		// Rob, somehow you should tell the partner the CPU number
+		// the first time. It is not part of the superclass so you
+		// must do it yourself.
+		if (handle < 0) {
+		    out.defaultWriteObject();
+		}
 	}
 
 	// no need to serialize super class fields, this is done automatically
 	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
 		int handle = in.readInt();
 		if(handle < 0) {
+			in.defaultReadObject();
                         cache.addIbis(in, -handle, this);
 		} else {
                         IbisIdentifier ident = (IbisIdentifier)
