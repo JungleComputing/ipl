@@ -3,135 +3,289 @@ package ibis.ipl;
 import java.io.IOException;
 
 /** 
-    For all write methods in this class, the invariant is that the reads must match the writes one by one.
-    This means that the results are UNDEFINED when an array is written with writeXXXArray, but read with readObject.
-**/
+ * A <code>WriteMessage</code> is the Ibis abstraction for data to be written.
+ * A <code>WriteMessage</code> is obtained from a {@link SendPort} through
+ * the {@link SendPort#newMessage SendPort.newMessage} method.
+ * At most one <code>WriteMessage</code> is alive at one time for a given
+ * </code>SendPort</code>.
+ * When a message is alive and a new message is requested, the requester
+ * is blocked until the live message is finished.
+ * For all write methods in this class, the invariant is that the reads must
+ * match the writes one by one. The only exception to this rule is that an
+ * array written with any of the <code>writeArray</code> methods can be
+ * read by {@link ReadMessage#readObject ReadMessage.readObject}.
+ **/
 
 public interface WriteMessage { 
 
-	/**
-	 * Start sending the message to all ReceivePorts this SendPort is connected to.
-	 * Data may be streamed, so the user is not allowed to touch the data, as the send is NON-blocking.
-	 * @exception java.io.IOException       an error occurred 
-	 **/
-	public void send() throws IOException; 
+    /**
+     * Starts sending the message to all {@link ReceivePort ReceivePorts} its
+     * {@link SendPort} is connected to.
+     * Data may be streamed, so the user is not allowed to change the data
+     * pushed into this message, as the send is NON-blocking.
+     * It is only safe to touch the data after it has actually been
+     * sent, which can be ensured by either calling {@link #finish} or
+     * a {@link sync} corresponding to this send.
+     * The <code>send</code> method returns a ticket, which can be used
+     * as a parameter to the {@link sync} method, which will block until
+     * the data corresponding to this ticket can be used again.
+     *
+     * @return a ticket.
+     * @exception java.io.IOException	an error occurred 
+     **/
+    public int send() throws IOException; 
 
-	/**
-	   Block until the entire message has been sent and clean up the message. Only after finish() or reset(), the data that was written
-	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems. 
-	   When a message is alive and a new messages is requested, the requester is blocked until the
-	   live message is finished. **/
-	public void finish() throws IOException;
+    /**
+     * Blocks until the data of the <code>send</code> which returned
+     * the <code>ticket</code> parameter may be used again.
+     * It also synchronizes with respect to all sends before that.
+     * If <code>ticket</code> does not correspond to any <code>send</code>,
+     * it blocks until all outstanding sends have been processed.
+     *
+     * @param ticket the ticket number.
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void sync(int ticket) throws IOException;
 
-	/**
-	   If doSend, invoke send(). Then block until the entire message has been sent and clear data within the message. Only after finish() or reset(), the data that was written
-	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems. 
-	   When a message is alive and a new messages is requested, the requester is blocked until the
-	   live message is finished.
-	   The message stays alive for subsequent writes and sends.
-	   reset can be seen as a shorthand for (possibly send();) finish(); sendPort.newMessage() **/
-	public void reset(boolean doSend) throws IOException;
+    /**
+     * If needed, send, and then block until the entire message has been sent
+     * and clear the message.
+     *
+     * @exception java.io.IOException	an error occurred 
+     **/
+    public void finish() throws IOException;
 
-	/**
-	 * Returns the number of bytes that was written to the message,
-	 * in the stream dependant format.
-	 * This is the number of bytes that will be sent over the network
-	 */
-	public long getCount();
+    /**
+     * Returns the number of bytes that was written to the {@link SendPort}
+     * of this <code>WriteMessage</code> in the stream dependant format.
+     *
+     * @return the number of bytes written.
+     **/
+    public long getCount();
 
-	/** Reset the counter */
-	public void resetCount();
+    /**
+     * Resets the counter for the number of bytes that was written to the
+     * {@link SendPort} of this <code>WriteMessage</code>.
+     **/
+    public void resetCount();
 
-	public SendPort localPort();
+    /**
+     * Returns the {@link SendPort} of this <code>WriteMessage</code>.
+     *
+     * @return the {@link SendPort} of this <code>WriteMessage</code>.
+     */
+    public SendPort localPort();
 
-	/**
-	 * Writes a boolean value to the message.
-	 * @param     value             The boolean value to write.
-	 */
-	public void writeBoolean(boolean value) throws IOException;
+    /**
+     * Writes a boolean value to the message.
+     * @param     val             	the boolean value to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeBoolean(boolean val) throws IOException;
 
-	/**
-	 * Writes a byte value to the message.
-	 * @param     value             The byte value to write.
-	 */
-	public void writeByte(byte value) throws IOException;
+    /**
+     * Writes a byte value to the message.
+     * @param     val			the byte value to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeByte(byte val) throws IOException;
 
-	/**
-	 * Writes a char value to the message.
-	 * @param     value             The char value to write.
-	 */
-	public void writeChar(char value) throws IOException;
+    /**
+     * Writes a char value to the message.
+     * @param     val			the char value to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeChar(char val) throws IOException;
 
-	/**
-	 * Writes a short value to the message.
-	 * @param     value             The short value to write.
-	 */
-	public void writeShort(short value) throws IOException;
+    /**
+     * Writes a short value to the message.
+     * @param     val			the short value to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeShort(short val) throws IOException;
 
-	/**
-	 * Writes a int value to the message.
-	 * @param     value             The int value to write.
-	 */
-	public void writeInt(int value) throws IOException;
+    /**
+     * Writes a int value to the message.
+     * @param     val			the int value to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeInt(int val) throws IOException;
 
-	/**
-	 * Writes a long value to the message.
-	 * @param     value             The long value to write.
-	 */
-	public void writeLong(long value) throws IOException;
+    /**
+     * Writes a long value to the message.
+     * @param     val			the long value to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeLong(long val) throws IOException;
 
-	/**
-	 * Writes a float value to the message.
-	 * @param     value             The float value to write.
-	 */
-	public void writeFloat(float value) throws IOException;
+    /**
+     * Writes a float value to the message.
+     * @param     val			the float value to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeFloat(float val) throws IOException;
 
-	/**
-	 * Writes a double value to the message.
-	 * @param     value             The double value to write.
-	 */
-	public void writeDouble(double value) throws IOException;
+    /**
+     * Writes a double value to the message.
+     * @param     val			the double value to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeDouble(double val) throws IOException;
 
-	/**
-	 * Writes a Serializable object to the message.
-	 * @param     value             The object value to write.
-	 */
-	public void writeString(String value) throws IOException;
+    /**
+     * Writes a <code>String</code> to the message.
+     * A duplicate check for this <code>String</code> object
+     * is performed: if the object was already written to this
+     * message, a handle for this object is written instead of
+     * the object itself.
+     *
+     * @param     val			the string to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeString(String val) throws IOException;
 
-	/**
-	 * Writes a Serializable object to the message.
-	 * Duplicate checks for the objects and arrays that are written are performed.
-	 * @param     value             The object value to write.
-	 */
-	public void writeObject(Object value) throws IOException;
+    /**
+     * Writes a <code>Serializable</code> object to the message.
+     * A duplicate check for this <code>String</code> object
+     * is performed: if the object was already written to this
+     * message, a handle for this object is written instead of
+     * the object itself.
+     *
+     * @param     val			the object value to write.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeObject(Object val) throws IOException;
 
-	/** These methods can be used when the type of the array is known in advance.
-	    Reading can be done in-place. WARNING: No cycle checks are done!
-	    These methods are just a shortcut for doing:
-	    writeArray(destination, 0, destination.length);
+    /**
+     * Writes an array of booleans to the message.
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     * (See {@link #writeArray(boolean[], int, int)}).
+     *
+     * @param val			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
+     **/
+    public void writeArray(boolean[] val) throws IOException;
 
-	    It is legal to use a writeArrayXXX, with a corresponding readArray.
-	**/
-	public void writeArray(boolean [] destination) throws IOException;
-	public void writeArray(byte [] destination) throws IOException;
-	public void writeArray(char [] destination) throws IOException;
-	public void writeArray(short [] destination) throws IOException;
-	public void writeArray(int [] destination) throws IOException;
-	public void writeArray(long [] destination) throws IOException;
-	public void writeArray(float [] destination) throws IOException;
-	public void writeArray(double [] destination) throws IOException;
-	public void writeArray(Object[] destination) throws IOException;
+    /**
+     * Writes an array of bytes to the message.
+     * See {@link #writeArray(boolean[])} for a description.
+     */
+    public void writeArray(byte []val) throws IOException;
 
-	/** Write a clice of an array. No duplicate checks are done. 
-	    It is legal to use a writeArray, with a corresponding readArrayXXX.
-	**/
-	public void writeArray(boolean [] destination, int offset, int size) throws IOException;
-	public void writeArray(byte [] destination, int offset, int size) throws IOException;
-	public void writeArray(char [] destination, int offset, int size) throws IOException;
-	public void writeArray(short [] destination, int offset, int size) throws IOException;
-	public void writeArray(int [] destination, int offset, int size) throws IOException;
-	public void writeArray(long [] destination, int offset, int size) throws IOException;
-	public void writeArray(float [] destination, int offset, int size) throws IOException;
-	public void writeArray(double [] destination, int offset, int size) throws IOException;
-	public void writeArray(Object [] destination, int offset, int size) throws IOException;
+
+    /**
+     * Writes an array of chars to the message.
+     * See {@link #writeArray(boolean[])} for a description.
+     */
+    public void writeArray(char[] val) throws IOException;
+
+    /**
+     * Writes an array of shorts to the message.
+     * See {@link #writeArray(boolean[])} for a description.
+     */
+    public void writeArray(short[] val) throws IOException;
+
+    /**
+     * Writes an array of ints to the message.
+     * See {@link #writeArray(boolean[])} for a description.
+     */
+    public void writeArray(int[] val) throws IOException;
+
+    /**
+     * Writes an array of longs to the message.
+     * See {@link #writeArray(boolean[])} for a description.
+     */
+    public void writeArray(long[] val) throws IOException;
+
+    /**
+     * Writes an array of floats to the message.
+     * See {@link #writeArray(boolean[])} for a description.
+     */
+    public void writeArray(float[] val) throws IOException;
+
+    /**
+     * Writes an array of doubles to the message.
+     * See {@link #writeArray(boolean[])} for a description.
+     */
+    public void writeArray(double[] val) throws IOException;
+
+    /**
+     * Writes an array of objects to the message.
+     * See {@link #writeArray(boolean[])} for a description.
+     */
+    public void writeArray(Object[] val) throws IOException;
+
+    /**
+     * Writes a slice of an array of booleans. The slice starts
+     * at offset <code>off
+     * No duplicate check is performed for this array!
+     *
+     * @param val			the array to be written
+     * @param off			offset in the array
+     * @param len			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeArray(boolean[] val, int off, int len) throws IOException;
+
+    /**
+     * Write a slice of an array of bytes.
+     * See {@link #writeArray(boolean[], int, int)} for a description.
+     */
+    public void writeArray(byte[] val, int off, int len) throws IOException;
+
+    /**
+     * Write a slice of an array of chars.
+     * See {@link #writeArray(boolean[], int, int)} for a description.
+     */
+    public void writeArray(char[] val, int off, int len) throws IOException;
+
+    /**
+     * Write a slice of an array of shorts.
+     * See {@link #writeArray(boolean[], int, int)} for a description.
+     */
+    public void writeArray(short[] val, int off, int len) throws IOException;
+
+    /**
+     * Write a slice of an array of ints.
+     * See {@link #writeArray(boolean[], int, int)} for a description.
+     */
+    public void writeArray(int[] val, int off, int len) throws IOException;
+
+    /**
+     * Write a slice of an array of longs.
+     * See {@link #writeArray(boolean[], int, int)} for a description.
+     */
+    public void writeArray(long[] val, int off, int len) throws IOException;
+
+    /**
+     * Write a slice of an array of floats.
+     * See {@link #writeArray(boolean[], int, int)} for a description.
+     */
+    public void writeArray(float[] val, int off, int len) throws IOException;
+
+    /**
+     * Write a slice of an array of doubles.
+     * See {@link #writeArray(boolean[], int, int)} for a description.
+     */
+    public void writeArray(double[] val, int off, int len) throws IOException;
+
+    /**
+     * Write a slice of an array of objects.
+     * See {@link #writeArray(boolean[], int, int)} for a description.
+     */
+    public void writeArray(Object[] val, int off, int len) throws IOException;
 } 

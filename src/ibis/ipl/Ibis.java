@@ -5,8 +5,7 @@ package ibis.ipl;
    implementation.
    Every JVM may run multiple Ibis implementations.
    The user can request a list of available implementations, query their
-   properties, and
-   than load the desired Ibis implementation at runtime.
+   properties, and then load the desired Ibis implementation at runtime.
    An Ibis implementation offers certain PortType properties.
 
    On startup, Ibis tries to load properties files in the following order:

@@ -46,40 +46,29 @@ final class TcpWriteMessage implements WriteMessage {
 		sport.resetCount();
 	}
 
-	public void send() throws IOException {
+	public int send() throws IOException {
+		return 0;
 	}
 
 	public void finish() throws IOException {
-		reset(false);
+		try {
+			out.reset();
+		} catch (SplitterException e) {
+			forwardLosses(e);
+		}
+		try {
+			out.flush();
+		} catch (SplitterException e) {
+			forwardLosses(e);
+		}
 		sport.finishMessage();
 	}
 
-	public void reset(boolean doSend) throws IOException {
-		if (doSend) {
-			send();
-			try {
-				out.reset();
-			} catch (SplitterException e) {
-				forwardLosses(e);
-			}
-
-			try {
-				out.flush();
-			} catch (SplitterException e) {
-				forwardLosses(e);
-			}
-			sport.reset();
-		} else {
-			try {
-				out.reset();
-			} catch (SplitterException e) {
-				forwardLosses(e);
-			}
-			try {
-				out.flush();
-			} catch (SplitterException e) {
-				forwardLosses(e);
-			}
+	public void sync(int ticket) throws IOException {
+		try {
+			out.flush();
+		} catch (SplitterException e) {
+			forwardLosses(e);
 		}
 	}
 

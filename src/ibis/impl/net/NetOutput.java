@@ -61,8 +61,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
 	 * @exception IOException an error occurred 
 	 **/
-        public void send() throws IOException {
+        public int send() throws IOException {
                 //
+		return 0;
         }
 
 
@@ -91,29 +92,13 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         }
 
         /**
-         * Reset the output state.
+         * Unimplemented.
          *
-         * The full reset functionality is not implemented. When {#doSend} is true, it is equivalent to the {@link #finish} method. Otherwise, an {@link Error error} is thrown.
-         *
-         * @param doSend if <code>true</code> 
+	 * Does nothing.
+         * @param ticket the ticket number
          * @exception IOException in case of trouble.
          */
-        public void reset(boolean doSend) throws IOException {
-		_finish();
-
-                if (doSend) {
-                        send();
-                } else {
-                        throw new Error("full reset unimplemented");
-                }
-
-		/* Calling finish() here i.s.o. replicating the code above
-		 * has an extra advantage (besides code nonmultiplication):
-		 * a subclass may override finish. This happens e.g. in
-		 * multi | NetBufferedOutput.
-		 */
-		finish();
-                //System.err.println("NetOutput: reset <--");
+        public void sync(int ticket) throws IOException {
         }
 
         /**

@@ -171,7 +171,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void send() throws IOException {
+	public int send() throws IOException {
                 log.in();
                 super.send();
 		if (singleton != null) {
@@ -184,6 +184,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 		    } while (i.hasNext());
 		}
                 log.out();
+		return 0;
 	}
 
 

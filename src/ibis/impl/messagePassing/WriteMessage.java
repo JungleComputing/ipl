@@ -55,8 +55,9 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
-    public void send() throws IOException {
+    public int send() throws IOException {
 	send(true, false);
+	return 0;
     }
 
 
@@ -65,8 +66,8 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
-    public void reset(boolean doSend) throws IOException {
-	send(doSend, true);
+    public void sync(int ticketno) throws IOException {
+	send(false, true);
     }
 
 

@@ -762,10 +762,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	/**
 	 * Sends what remains to be sent.
 	 */
-	public void send() throws IOException{
+	public int send() throws IOException{
                 log.in();
-		output.send();
+		int retval = output.send();
                 log.out();
+		return retval;
 	}
 
 	/**
@@ -796,23 +797,12 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	}
 
 	/**
-	 * Unconditionnaly completes the message transmission and
-	 * releases the send port. The writeMessage is kept by
-	 * the application for the next send.
-	 *
-	 * @param doSend {@inheritDoc}
+	 * {@inheritDoc}
 	 */
-	public void reset(boolean doSend) throws IOException {
+	public void sync(int ticket) throws IOException {
                 log.in();
-		if (doSend) {
-			send();
-		} else {
-                        throw new Error("full reset unimplemented");
-                }
-		_finish();
-		output.reset(doSend);
+		output.sync(ticket);
 		emptyMsg = true;
-                output.initSend();
                 log.out();
 	}
 

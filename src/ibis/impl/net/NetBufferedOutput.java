@@ -102,10 +102,11 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 	/**
 	 * Sends what remains to be sent.
 	 */
-	public void send() throws IOException{
+	public int send() throws IOException{
                 log.in();
-                super.send();
+                int retval = super.send();
                 log.out();
+		return retval;
 	}
 
 	/**
@@ -120,15 +121,12 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 	}
 
 	/**
-	 * Unconditionaly completes the message transmission and
-	 * releases the send port.
-	 *
-	 * @param doSend {@inheritDoc}
+	 * {@inheritDoc}
 	 */
-	public void reset(boolean doSend) throws IOException {
+	public void sync(int ticket) throws IOException {
                 log.in();
                 flushBuffer();
-                super.reset(doSend);
+                super.sync(ticket);
                 log.out();
 	}
 

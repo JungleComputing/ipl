@@ -41,26 +41,21 @@ final class SerializeWriteMessage extends WriteMessage {
 	} finally {
 	    Ibis.myIbis.unlock();
 	}
-
-	if (isReset) {
-	    obj_out.reset();
-	}
     }
 
 
-    public void send() throws IOException {
+    public int send() throws IOException {
 	send(true, false);
+	return 0;
     }
 
+    public void sync(int ticket) throws IOException {
+	send(false, true);
+    }
 
     public void finish() throws IOException {
 	obj_out.reset();
 	out.finish(); // : Now
-    }
-
-
-    public void reset(boolean doSend) throws IOException {
-	send(doSend, true);
     }
 
 

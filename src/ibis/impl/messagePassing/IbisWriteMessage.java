@@ -18,7 +18,7 @@ final public class IbisWriteMessage extends WriteMessage {
     }
 
 
-    public void send() throws IOException {
+    public int send() throws IOException {
 // System.err.println("Send Ibis WriteMessage " + this + ": send its ByteOutput " + out + " flush its IbisSerializationOutputStream " + obj_out);
 	obj_out.flush();
 
@@ -27,6 +27,7 @@ final public class IbisWriteMessage extends WriteMessage {
 	Ibis.myIbis.lock();
 	sPort.registerSend();
 	Ibis.myIbis.unlock();
+	return 0;
     }
 
 
@@ -55,8 +56,13 @@ final public class IbisWriteMessage extends WriteMessage {
 	reset(false, true);
     }
 
-    public void reset(boolean doSend) throws IOException {
-	reset(doSend, false);
+    public void sync(int ticket) throws IOException {
+	Ibis.myIbis.lock();
+	try {
+	    out.reset(true);
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
     }
 
     public void writeBoolean(boolean value) throws IOException {

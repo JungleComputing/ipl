@@ -119,17 +119,9 @@ public final class TcpOutput extends NetOutput {
                 log.out();
         }
 
-        public void reset(boolean doSend) throws IOException {
+        public void sync(int ticket) throws IOException {
                 log.in();
-		super.reset(doSend);
-
-                if (_outputConvertStream != null) {
-			_outputConvertStream.close();
-                        _outputConvertStream = null;
-                }
-
-		tcpOs.flush();
-                first = true;
+		super.sync(ticket);
                 log.out();
         }
 
