@@ -6,6 +6,7 @@ public final class NQueens extends ibis.satin.SatinObject implements NQueensInte
 	
 	public void nqueens(byte[] sofar, int row, int size) throws Abort {
 		if (row >= size) { // done
+			System.err.println("found solution");
 			throw new Abort(sofar);
 		}
 
@@ -64,10 +65,12 @@ public final class NQueens extends ibis.satin.SatinObject implements NQueensInte
 		start = System.currentTimeMillis();
 		try {
 			nq.nqueens(new byte[size], 0, size);
-			nq.sync();
 		} catch (Abort a) {
+			System.err.println("in inlet");
 			board = a.result;
+			return; // exit inlet
 		}
+		nq.sync();
 		end = System.currentTimeMillis();
 		
 		System.out.print("Result:");

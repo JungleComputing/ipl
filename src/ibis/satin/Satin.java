@@ -80,7 +80,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	// WARNING: dijkstra does not work in combination with aborts.
 	public DEQueue q = ABORTS ? ((DEQueue) new DEQueueNormal(this)) : 
-			     ((DEQueue) new DEQueueDijkstra(this));
+		((DEQueue) new DEQueueDijkstra(this));
 	private PortType portType;
 	private ReceivePort receivePort;
 	private ReceivePort barrierReceivePort; /* Only for the master. */
@@ -262,7 +262,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				}
 			} catch (IbisException e) {
 				System.err.println("SATIN '" + hostName + 
-						   "': Could not start ibis with name '" +
+						   "': WARNING Could not start ibis with name '" +
 						   name + "': " + e + ", retrying.");
 				//				e.printStackTrace();
 			}
@@ -339,7 +339,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(SUPPORT_TUPLE_MULTICAST) {
 				tuplePort = 
 					portType.createSendPort("satin tuple port on " +
-						ident.name());
+								ident.name());
 			}
 		} catch (Exception e) {
 			System.err.println("SATIN '" + hostName +
@@ -770,7 +770,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(STEAL_DEBUG) {
 			out.println("SATIN '" + ident.name() + 
 				    "': sending job result to " +
-				    r.owner.name());
+				    r.owner.name() + ", exception = " + (rr.eek == null ? "null" : ("" + rr.eek)));
 		}
 
 		try {
@@ -1217,14 +1217,17 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	private void handleEmptyInlets(InvocationRecord r) {
 		if(r.parentLocals == null && r.eek != null) {
-			if(r.parentStamp == -1) { // root job
-				System.err.println("SATIN '" + ident.name() + ": Unexpected exception: " + r.eek);
-				r.eek.printStackTrace();
-				System.exit(1);
-			}
+/*
+  if(r.parentStamp == -1) { // root job
+  System.err.println("SATIN '" + ident.name() + ": handleEmptyInlets: Unexpected exception: " + r.eek);
+  r.eek.printStackTrace();
+  System.exit(1);
+  }
+*/
 
 			if(INLET_DEBUG) {
-				out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: " + r.eek + ": " + r.eek.getMessage());
+				out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: " + r.eek + 
+					    ": " + r.eek.getMessage());
 //				r.eek.printStackTrace();
 			}
 
@@ -1232,10 +1235,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				aborts++;
 			}
 			synchronized(this) {
-				r.parent.eek = r.eek;
+				r.parent.eek = r.eek; // rethrow exception
 				killChildrenOf(r.parent.stamp, r.parent.owner);
 				
-				// also kill the parent itself. it is either on the stack or on a remote machine.
+				// also kill the parent itself.
+				// It is either on the stack or on a remote machine.
 				r.parent.aborted = true;
 			}
 		}
@@ -1258,18 +1262,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		int oldParentStamp;
 		IbisIdentifier oldParentOwner;
 	
-		if(ASSERTS && ABORTS) {
-			if(r.aborted) {
-				System.err.println("EEK, running aborted job");
-			}
-		}
-	
 		if(ABORTS) {
 			oldParent = parent;
 			oldParentStamp = parentStamp;
 			oldParentOwner = parentOwner;
 		}
-	
+
 		if(ASSERTS) {
 			if(r == null) {
 				out.println("SATIN '" + ident.name() +
@@ -1281,7 +1279,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					    ": spawning aborted job!");
 				System.exit(1);
 			}
-	    
+
+			if(r.owner == null) {
+				out.println("SATIN '" + ident.name() +
+					    ": EEK, r.owner = null in callSatinFunc, r = " + r);
+				new Throwable().printStackTrace();
+				System.exit(1);
+			}
+
 			if(r.owner.equals(ident)) {
 				if(r.spawnCounter.value < 0) {
 					out.println("SATIN '" + ident.name() + 
@@ -1346,7 +1351,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					r.runLocal();
 				} catch (Throwable t) { // this can only happen if an inlet has thrown an exception.
 					if(r.parentStamp == -1) { // root job
-						System.err.println("SATIN '" + ident.name() + ": Unexpected exception: " + t);
+						System.err.println("SATIN '" + ident.name() + ": callSatinFunction: Unexpected exception: " + t);
 						t.printStackTrace();
 						System.exit(1);
 					}
@@ -1363,8 +1368,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 						r.parent.eek = t;
 						killChildrenOf(r.parent.stamp, r.parent.owner);
 
-						// also kill the parent itself. it is either on the stack or on a remote machine.
-						r.parent.aborted = true;
+						// @@@ Why was this here???? --Rob
+						// also kill the parent itself. 
+						// It is either on the stack or on a remote machine.
+//						r.parent.aborted = true;
 					}
 				}
 
@@ -1409,6 +1416,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(ABORTS) {
 				try {
 					rr = r.runRemote();
+					// May be needed if the method did not throw an exception,
+					// but its child did, and there is an empty inlet.
+					rr.eek = r.eek; 
 				} catch (Throwable t) { // @@@ handle this
 					out.println("SATIN '" + ident.name() + ": OOOhh dear, got exception in runremote: " + t);
 					t.printStackTrace();
@@ -1427,7 +1437,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 			if(STEAL_DEBUG) {
 				out.println("SATIN '" + ident.name() + 
-					    "': REMOTE CODE SEND RESULT!");
+					    "': REMOTE CODE SEND RESULT!, exception = " + (r.eek == null ? "null" : ("" + r.eek)));
 			}
 			// send wrapper back to the owner
 			sendResult(r, rr);
@@ -1447,7 +1457,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 		
 		if(ABORT_DEBUG && r.aborted) {
-			out.println("Job on the stack was aborted: " + r.stamp);
+			System.err.println("Job on the stack was aborted: " + r.stamp + " EEK = " + (r.eek == null ? "null" : ("" + r.eek)));
 		}
 
 		if(SPAWN_DEBUG) {
@@ -1558,43 +1568,50 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				out.println("SATIN '" + ident.name() + ": handling remote exception: " + r.eek + ", inv = " + r);
 			}
 
-			InvocationRecord oldParent;
-			int oldParentStamp;
-			IbisIdentifier oldParentOwner;
+			//  If there is an inlet, call it.
+			if(r.parentLocals != null) {
+				InvocationRecord oldParent;
+				int oldParentStamp;
+				IbisIdentifier oldParentOwner;
 
-			onStack.push(r);
-			oldParent = parent;
-			oldParentStamp = parentStamp;
-			oldParentOwner = parentOwner;
-			parentStamp = r.stamp;
-			parentOwner = r.owner;
-			parent = r;
+				onStack.push(r);
+				oldParent = parent;
+				oldParentStamp = parentStamp;
+				oldParentOwner = parentOwner;
+				parentStamp = r.stamp;
+				parentOwner = r.owner;
+				parent = r;
 
-			try {
-				r.parentLocals.handleException(r.spawnId, r.eek, r);
-			} catch (Throwable t) {
-				System.err.println("EEEK, got an exception from exception handler! " + t);
-				t.printStackTrace();
-				System.err.println("r = " + r);
-				System.err.println("parent = " + r.parent);
-				if(r.parent == null) {
-					System.err.println("EEEK, root job?");
-					t.printStackTrace();
-					System.exit(1);
+				try {
+					r.parentLocals.handleException(r.spawnId, r.eek, r);
+				} catch (Throwable t) {
+					if(ABORT_DEBUG) {
+						System.err.println("EEEK, got an exception from exception handler! " + t);
+//						t.printStackTrace();
+						System.err.println("r = " + r);
+						System.err.println("parent = " + r.parent);
+					}
+					if(r.parent == null) {
+						System.err.println("EEEK, root job?");
+						t.printStackTrace();
+						System.exit(1);
+					}
+					synchronized(this) {
+//						r.parent.aborted = true;
+						r.parent.eek = t;
+						killChildrenOf(r.parent.stamp, r.parent.owner);
+					}
 				}
-				synchronized(this) {
-					r.parent.aborted = true;
-					r.parent.eek = t;
-					killChildrenOf(r.parent.stamp, r.parent.owner);
-				}
+
+				// restore these, there may be more spawns afterwards...
+				parentStamp = oldParentStamp;
+				parentOwner = oldParentOwner;
+				parent = oldParent;
+				onStack.pop();
 			}
 
-			// restore these, there may be more spawns afterwards...
-			parentStamp = oldParentStamp;
-			parentOwner = oldParentOwner;
-			parent = oldParent;
-			onStack.pop();
-			
+			handleEmptyInlets(r);
+
 			r.spawnCounter.value--;
 			if(ASSERTS && r.spawnCounter.value < 0) {
 				out.println("Just made spawncounter < 0");
@@ -1629,20 +1646,21 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if (ABORTS) { // sync is poll
 			if(gotAborts) handleAborts();
 			if(gotExceptions) handleExceptions();
-
-			if(parent != null && parent.aborted) return;
 		}
 
 		while(s.value > 0) {
+/*
+  // this can happen with aborts, no problemo
 			if (ASSERTS && exiting) {
 				System.err.println("SATIN '" + ident.name() + 
 						   ": EEK! got exit msg while syncing!, spawn counter = " + s.value + 
-					" abort list count = " + abortList.count + " excep count = " + exceptionList.count + 
-					" parent = " + parent);
+						   " abort list count = " + abortList.count + " excep count = " + exceptionList.count + 
+						   " parent = " + parent);
 //				new Throwable().printStackTrace();
-				exit();
+//				exit();
 //				System.exit(1);
 			}
+*/
 			//pollAsyncResult(); // for CRS
 
 			if(SPAWN_DEBUG) {
@@ -1684,17 +1702,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				aborts++;
 			}
 
-			if(ASSERTS && exceptionThrower == null) {
-				out.println("eek, exceptionThrower is null in abort");
-				System.exit(1);
+			if(exceptionThrower != null) { // can be null if root does an abort.
+				// kill all children of the parent of the thrower.
+				if(ABORT_DEBUG) {
+					out.println("killing children of " + exceptionThrower.parentStamp);
+				}
+				killChildrenOf(exceptionThrower.parentStamp, exceptionThrower.parentOwner);
 			}
-
-			// kill all children of the parent of the thrower.
-			if(ABORT_DEBUG) {
-				out.println("killing children of " + exceptionThrower.parentStamp);
-			}
-			killChildrenOf(exceptionThrower.parentStamp, exceptionThrower.parentOwner);
-
+			
 			// now kill mine
 			if(outstandingSpawns != null) {
 				int stamp;

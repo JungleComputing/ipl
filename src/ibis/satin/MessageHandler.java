@@ -56,6 +56,16 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			System.exit(1);
 		}
 
+		if(STEAL_DEBUG) {
+			if(rr.eek != null) {
+				System.err.println("SATIN '" + satin.ident.name() + 
+						   "': handleJobResult: exception result: " + rr.eek);
+			} else {
+				System.err.println("SATIN '" + satin.ident.name() + 
+						   "': handleJobResult: normal result");
+			}
+		}
+		
 		satin.addJobResult(rr, sender, i);
 	}
 
@@ -127,6 +137,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 		/* else */
 
+		if(ASSERTS && result.aborted) {
+			System.out.println("SATIN '" + satin.ident.name() + 
+					   ": trying to send aborted job!");
+		}
+		
 		if(STEAL_STATS) {
 			satin.stolenJobs++;
 		}
@@ -221,6 +236,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		case ASYNC_STEAL_REPLY_SUCCESS:
 			try {
 				tmp = (InvocationRecord) m.readObject();
+
+				if(ASSERTS && tmp.aborted) {
+					System.out.println("SATIN '" + satin.ident.name() + 
+							   ": stole aborted job!");
+				}
 			} catch (IOException e) {
 				ident = m.origin();
 				System.err.println("SATIN '" + satin.ident.name() + 

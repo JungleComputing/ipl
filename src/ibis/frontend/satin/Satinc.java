@@ -257,6 +257,9 @@ public final class Satinc {
 		}
 		h = h.getNext();
 	    } while (h != h2);
+	    if (h == self) {
+		    return exc[j];
+	    }
 	}
 
 	return null;
@@ -582,11 +585,13 @@ public final class Satinc {
 	    System.out.println("rewriting sync, class = " + c);
 	}
 
+/*
+  // this is allowed, sync is poll operation. --Rob
 	if (idTable.size() == 0) {
 	    System.err.println("Error: sync without spawn");
 	    System.exit(1);
 	}
-
+*/
 	Instruction sync_invocation = ins_f.createInvoke("ibis.satin.Satin",
 							 "sync",
 							 Type.VOID,
@@ -597,9 +602,10 @@ public final class Satinc {
 								 satinType,
 								 Constants.GETSTATIC);
 
-	if (mtab.containsInlet(m)) {
-	    deleteIns(il, i.getPrev().getPrev(), i.getPrev());
-	}
+// Hmm, this seems to be a bug, no idea why this code was here -Rob
+//	if (mtab.containsInlet(m)) {
+//	    deleteIns(il, i.getPrev().getPrev(), i.getPrev());
+//	}
 
 	i.getPrev().setInstruction(satin_field_access);
 	i.setInstruction(new ALOAD(maxLocals));
@@ -741,7 +747,7 @@ public final class Satinc {
 	    }
 
 	    InstructionHandle abo = insertNullReturn(m, il, pos);
-	    abo = insertDeleteSpawncounter(il, abo, maxLocals);
+//	    abo = insertDeleteSpawncounter(il, abo, maxLocals);
 
 	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
 						   satinFieldName,
@@ -751,6 +757,8 @@ public final class Satinc {
 						   "parent",
 						   irType,
 						   Constants.GETFIELD));
+
+// @@@ FIX: forget to delete spawn counter here! --Rob
 
 	    // test for null (root job)
 	    il.insert(abo, new IFNULL(pos));
@@ -934,7 +942,8 @@ public final class Satinc {
 	// A spawned method invocation. Target and parameters are already on the stack.
 	// Push spawnCounter, outstandingSpawns, and the id for the result. 
 	// Then call getNewInvocationRecord 
-	// Remove the original invocation and the store of the result. 
+	// Finally we call Satin.spawn(outstandingSpawns) 
+	// Also remove the original invocation and the store of the result. 
 	
 	// Keep the store instruction, and remove it from the instruction vector. 
 	// We must give this store instruction an method-unique id. 
@@ -1190,8 +1199,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 	// optimization:
 	// find first spawn, then look if there is a jump before the spawn that jumps over it...
         // this avoids alloccing and deleting spawn counters before a spawn hapens (e.g. with thresholds)
-	//
-	if (spawnCounterOpt) {
+	// this can only be done when the method does not contain an inlet.
+	// Otherwise, the clone jumps to the inlet without creating a spawncounter. --Rob
+	if (!mtab.containsInlet(m) && spawnCounterOpt) {
 	    CodeExceptionGen[] ceg = m.getExceptionHandlers();
 	    for (int i = 0; i < ih.length; i++) {
 		if (ih[i].getInstruction() instanceof INVOKEVIRTUAL) {
@@ -2142,29 +2152,11 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 
 	// runLocal method 
+	out.println("    public void runLocal() {");
 	if (supportAborts) {
-	    out.println("    public void runLocal() {}");
-	    out.println("    public void runLocalExcptn() throws Throwable {");
-	    out.println("        if (parentLocals == null) {");
-	    if (! returnType.equals(Type.VOID)) {
-		out.print("            result = ");
-	    }
-	    out.print("            self." + m.getName() + "(");
-	    for (int i=0; i<params.length; i++) {
-		out.print("param" + i);
-		if (i != params.length-1) {
-		    out.print(", ");
-		}
-	    }
-	    out.println(");");
-	    out.println("            return;");
-	    out.println("        }");
 	    out.println("        try {");
 	}
-	else {
-	    out.println("    public void runLocalExcptn() throws Throwable {}");
-	    out.println("    public void runLocal() {");
-	}
+
 	if (! returnType.equals(Type.VOID)) {
 	    out.print("            result = ");
 	}

@@ -7,7 +7,7 @@ public interface Config {
 	/* Enable or disable statistics. */
 	static final boolean SPAWN_STATS = true;
 	static final boolean STEAL_STATS = true;
-	static final boolean ABORT_STATS = false;
+	static final boolean ABORT_STATS = true;
 	static final boolean TUPLE_STATS = true;
 
 	/* Enable or disable timings */

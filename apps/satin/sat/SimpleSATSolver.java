@@ -33,9 +33,9 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     ) throws SATResultException
     {
 	if( p.isSatisfied( assignments ) ){
-	    if( traceSolver ){
+//	    if( traceSolver ){
 		System.err.println( "Found a solution" );
-	    }
+//	    }
 	    throw new SATResultException( new SATSolution( assignments ) );
 	}
 	if( p.isConflicting( assignments ) ){
@@ -65,8 +65,13 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	posassignments[var] = 1;
 	negassignments[var] = 0;
 
-	solve( p, posassignments, varlist, varix+1 );
-	solve( p, negassignments, varlist, varix+1 );
+	try {
+		solve( p, posassignments, varlist, varix+1 );
+		solve( p, negassignments, varlist, varix+1 );
+	} catch (SATResultException e) {
+		throw e;
+	}
+
 	sync();
     }
 
