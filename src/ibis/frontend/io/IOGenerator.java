@@ -186,13 +186,23 @@ public class IOGenerator {
 		    System.err.println("IOGenerator attempts to rewrite non-Serializable class " + classname + " -- ignore");
 		    return;
 		}
-		long	uid = ocl.getSerialVersionUID();
-		FieldGen f = new FieldGen(Constants.ACC_PRIVATE|Constants.ACC_FINAL|Constants.ACC_STATIC, 
+		long uid = 0L;
+		try {
+		    uid = ocl.getSerialVersionUID();
+		} catch(Throwable e) {
+		    // Aargh, IBM141 actually invokes static initializers when
+		    // checking if there are any! X11 clients may then throw
+		    // an error if they cannot connect to an X11 server ...
+		}
+		if (uid != 0) {
+		    FieldGen f = new FieldGen(Constants.ACC_PRIVATE|Constants.ACC_FINAL|Constants.ACC_STATIC, 
 					  Type.LONG,
 					  "serialVersionUID",
 					  constantpool);
-		f.setInitValue(uid);
-		gen.addField(f.getField());
+		    f.setInitValue(uid);
+		    gen.addField(f.getField());
+
+		}
 		fields = gen.getFields();
 		java.util.Arrays.sort(fields, fieldComparator);
 	    }
