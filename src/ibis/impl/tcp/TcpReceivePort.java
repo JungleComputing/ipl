@@ -98,6 +98,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 		m.isFinished = true;
 		m = null;
+// System.err.print("x");
 		notifyAll();
 
 		if(upcall != null) {
@@ -154,6 +155,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 				// Ignore.
 			}
 		}
+// System.err.print("^");
 
 		return m;
 	}
