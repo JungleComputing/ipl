@@ -10,20 +10,8 @@
     <property name="ibis"        location=".."/>
     <property name="build"       location="build"/>
 
+    <property name="test-par-run" value="Example"/>
+
     <import file="${ibis}/apps/ibis/build-ibis-app.xml"/>
-    <import file="${ibis}/apps/build-run.xml"/>
-
-    <target name="test"
-	    depends="build"
-	    description="Run test">
-	<antcall target="run2">
-	    <param name="runjob" value="Example"/>
-	</antcall>
-    </target>
-
-    <target name="run"
-	    depends="test"
-	    description="Run test (deprecated, use 'ant test')">
-    </target>
 
 </project>
