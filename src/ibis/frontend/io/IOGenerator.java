@@ -8,9 +8,7 @@ import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
 import org.apache.bcel.verifier.*;
 
-/* TODO: Deal with SerializablePersistentFields ... For now, the alternativeReadObject
-   mechanism deals with it.
-   TODO: docs.
+/* TODO: docs.
 */
 
 public class IOGenerator {
@@ -59,6 +57,7 @@ public class IOGenerator {
 	boolean		super_is_ibis_serializable;
 	boolean		super_has_ibis_constructor;
 	boolean		has_serial_persistent_fields;
+	boolean		final_fields;
 	Field[]		fields;
 	Method[]	methods;
 	InstructionFactory factory;
@@ -80,6 +79,7 @@ public class IOGenerator {
 	    super_is_ibis_serializable = isIbisSerializable(super_class);
 	    super_has_ibis_constructor = hasIbisConstructor(super_class);
 	    has_serial_persistent_fields = hasSerialPersistentFields();
+	    final_fields = hasFinalFields();
 	}
 
 
@@ -91,6 +91,16 @@ public class IOGenerator {
 		    f.isStatic() &&
 		    f.isPrivate() &&
 		    f.getSignature().equals("[Ljava/io/ObjectStreamField;")) {
+		    return true;
+		}
+	    }
+	    return false;
+	}
+
+
+	private boolean hasFinalFields() {
+	    for (int i = 0; i < fields.length; i++) {
+		if (fields[i].isFinal()) {
 		    return true;
 		}
 	    }
@@ -436,19 +446,146 @@ public class IOGenerator {
 	    return write_il;
 	}
 
-	private InstructionList generateDefaultWrites(int dpth) {
+	private InstructionList serialPersistentWrites(MethodGen write_gen) {
+	    Instruction persistent_field_access = factory.createFieldAccess(classname, "serialPersistentFields", new ArrayType(new ObjectType("java.io.ObjectStreamField"), 1), Constants.GETSTATIC);
+	    InstructionList write_il = new InstructionList();
+	    int [] case_values = new int[] { 'B', 'C', 'D', 'F', 'I', 'J', 'S', 'Z'};
+	    InstructionHandle [] case_handles = new InstructionHandle[case_values.length];
+	    GOTO[] gotos = new GOTO[case_values.length+1];
+
+	    for (int i = 0; i < gotos.length; i++) {
+		gotos[i] = new GOTO(null);
+	    }
+
+
+	    write_il.append(new SIPUSH((short) 0));
+	    write_il.append(new ISTORE(2));
+
+	    GOTO gto = new GOTO(null);
+	    write_il.append(gto);
+
+	    InstructionHandle loop_body_start = write_il.append(persistent_field_access);
+	    write_il.append(new ILOAD(2));
+	    write_il.append(new AALOAD());
+	    write_il.append(factory.createInvoke("java.io.ObjectStreamField", "getName", Type.STRING, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+	    write_il.append(new ASTORE(3));
+
+	    write_il.append(persistent_field_access);
+	    write_il.append(new ILOAD(2));
+	    write_il.append(new AALOAD());
+	    write_il.append(factory.createInvoke("java.lang.Object", "getClass", new ObjectType("java.lang.Class"), Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+	    write_il.append(new ASTORE(4));
+
+	    InstructionHandle begin_try = write_il.append(new PUSH(constantpool, classname));
+	    write_il.append(factory.createInvoke("java.lang.Class", "forName", java_lang_class_type, new Type[] { Type.STRING}, Constants.INVOKESTATIC));
+	    write_il.append(factory.createInvoke("java.lang.Class", "getField", new ObjectType("java.lang.reflect.Field"), new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
+	    write_il.append(new ASTORE(5));
+	    
+	    write_il.append(persistent_field_access);
+	    write_il.append(new ILOAD(2));
+	    write_il.append(new AALOAD());
+	    write_il.append(factory.createInvoke("java.io.ObjectStreamField", "getTypeCode", Type.CHAR, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+
+	    case_handles[0] = write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(5));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "getBoolean", Type.BOOLEAN, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeBoolean", Type.VOID, new Type[] { Type.BOOLEAN }, Constants.INVOKEVIRTUAL));
+	    write_il.append(gotos[0]);
+
+	    case_handles[1] = write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(5));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "getChar", Type.CHAR, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeChar", Type.VOID, new Type[] { Type.INT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(gotos[1]);
+
+	    case_handles[2] = write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(5));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "getDouble", Type.DOUBLE, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeDouble", Type.VOID, new Type[] { Type.DOUBLE }, Constants.INVOKEVIRTUAL));
+	    write_il.append(gotos[2]);
+
+	    case_handles[3] = write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(5));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "getFloat", Type.FLOAT, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeFloat", Type.VOID, new Type[] { Type.FLOAT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(gotos[3]);
+
+	    case_handles[4] = write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(5));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "getInt", Type.INT, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeInt", Type.VOID, new Type[] { Type.INT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(gotos[4]);
+
+	    case_handles[5] = write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(5));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "getLong", Type.LONG, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeLong", Type.VOID, new Type[] { Type.LONG }, Constants.INVOKEVIRTUAL));
+	    write_il.append(gotos[5]);
+
+	    case_handles[6] = write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(5));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "getShort", Type.SHORT, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeShort", Type.VOID, new Type[] { Type.INT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(gotos[6]);
+
+	    case_handles[7] = write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(5));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "getBoolean", Type.BOOLEAN, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "writeBoolean", Type.VOID, new Type[] { Type.BOOLEAN }, Constants.INVOKEVIRTUAL));
+	    write_il.append(gotos[7]);
+
+	    InstructionHandle default_handle = write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(5));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(factory.createInvoke("java.lang.reflect.Field", "get", Type.OBJECT, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream", "doWriteObject", Type.VOID, new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+	    InstructionHandle end_try = write_il.append(gotos[8]);
+
+	    write_il.insert(case_handles[0], new SWITCH(case_values, case_handles, default_handle));
+
+	    InstructionHandle handler = write_il.append(new ASTORE(6));
+	    write_il.append(factory.createNew("java.io.IOException"));
+	    write_il.append(new DUP());
+	    write_il.append(factory.createNew("java.lang.StringBuffer"));
+	    write_il.append(new DUP());
+	    write_il.append(factory.createInvoke("java.lang.StringBuffer", "<init>", Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
+	    write_il.append(new PUSH(constantpool, "Could not write field "));
+	    write_il.append(factory.createInvoke("java.lang.StringBuffer", "append", Type.STRINGBUFFER, new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
+	    write_il.append(new ALOAD(3));
+	    write_il.append(factory.createInvoke("java.lang.StringBuffer", "append", Type.STRINGBUFFER, new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("java.lang.StringBuffer", "toString", Type.STRING, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+	    write_il.append(factory.createInvoke("java.io.IOException", "<init>", Type.VOID, new Type[] { Type.STRING }, Constants.INVOKESPECIAL));
+	    write_il.append(new ATHROW());
+
+	    InstructionHandle gotos_target = write_il.append(new IINC(2, 1));
+
+	    for (int i = 0; i < gotos.length; i++) {
+		gotos[i].setTarget(gotos_target);
+	    }
+	    InstructionHandle loop_test = write_il.append(new ILOAD(2));
+	    write_il.append(persistent_field_access);
+	    gto.setTarget(loop_test);
+	    write_il.append(new ARRAYLENGTH());
+	    write_il.append(new IF_ICMPLT(loop_body_start));
+
+	    write_gen.addExceptionHandler(begin_try, end_try, handler, new ObjectType("java.lang.Exception"));
+
+	    return write_il;
+	}
+
+	private InstructionList generateDefaultWrites(int dpth, MethodGen write_gen) {
 	    InstructionList write_il = new InstructionList();
 
 	    if (has_serial_persistent_fields) {
-		write_il.append(new ALOAD(1));
-		write_il.append(new ALOAD(0));
-		write_il.append(new SIPUSH((short)dpth));
-		write_il.append(factory.createInvoke(ibis_output_stream_name,
-						     "defaultWriteSerializableObject",
-						     Type.VOID,
-						     new Type[] {Type.OBJECT, Type.INT},
-						     Constants.INVOKEVIRTUAL));
-		return write_il;
+		return serialPersistentWrites(write_gen);
 	    }
 
 	    for (int i=0;i<fields.length;i++) {
@@ -586,19 +723,156 @@ public class IOGenerator {
 	    return read_il;
 	}
 
-	private InstructionList generateDefaultReads(boolean from_constructor, int dpth) {
+	private InstructionHandle generateReadField(String tpname, Type tp, InstructionList read_il, GOTO gto, boolean from_constructor) {
+	    InstructionHandle h;
+
+	    if (from_constructor || ! final_fields) {
+		h = read_il.append(new ALOAD(5));
+		read_il.append(new ALOAD(0));
+		read_il.append(new ALOAD(1));
+		if (tpname.equals("")) {
+		    read_il.append(factory.createInvoke(ibis_input_stream_name, "doReadObject", Type.OBJECT, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+		}
+		else {
+		    read_il.append(factory.createInvoke(ibis_input_stream_name, "read" + tpname, tp, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+		}
+		read_il.append(factory.createInvoke("java.lang.reflect.Field", "set" + tpname, Type.VOID, new Type[] { Type.OBJECT, tp }, Constants.INVOKEVIRTUAL));
+		read_il.append(gto);
+
+		return h;
+	    }
+
+	    h = read_il.append(new ILOAD(6));
+	    read_il.append(new PUSH(constantpool, Constants.ACC_FINAL));
+	    read_il.append(new IAND());
+	    IF_ICMPEQ eq = new IF_ICMPEQ(null);
+	    read_il.append(eq);
+	    read_il.append(new ALOAD(1));
+	    read_il.append(new ALOAD(0));
+	    read_il.append(new ALOAD(3));
+	    if (tpname.equals("")) {
+		read_il.append(new ALOAD(5));
+		read_il.append(factory.createInvoke("java.lang.reflect.Field", "getType", new ObjectType("java.lang.Class"), Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+		read_il.append(factory.createInvoke("java.lang.Class", "getName", Type.STRING, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+
+		read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream", "readFieldObject", Type.VOID, new Type[] { Type.OBJECT, Type.STRING, Type.STRING }, Constants.INVOKEVIRTUAL));
+	    }
+	    else {
+		read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream", "readField" + tpname, Type.VOID, new Type[] { Type.OBJECT, Type.STRING }, Constants.INVOKEVIRTUAL));
+	    }
+	    GOTO gto2 = new GOTO(null);
+	    read_il.append(gto2);
+	    eq.setTarget(read_il.append(new ALOAD(5)));
+	    read_il.append(new ALOAD(0));
+	    read_il.append(new ALOAD(1));
+	    if (tpname.equals("")) {
+		read_il.append(factory.createInvoke(ibis_input_stream_name, "doReadObject", tp, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+	    }
+	    else {
+		read_il.append(factory.createInvoke(ibis_input_stream_name, "read" + tpname, tp, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+	    }
+	    read_il.append(factory.createInvoke("java.lang.reflect.Field", "set" + tpname, Type.VOID, new Type[] { Type.OBJECT, tp}, Constants.INVOKEVIRTUAL));
+	    gto2.setTarget(read_il.append(gto));
+
+	    return h;
+	}
+
+	private InstructionList serialPersistentReads(boolean from_constructor, MethodGen read_gen) {
+	    Instruction persistent_field_access = factory.createFieldAccess(classname, "serialPersistentFields", new ArrayType(new ObjectType("java.io.ObjectStreamField"), 1), Constants.GETSTATIC);
+	    InstructionList read_il = new InstructionList();
+	    int [] case_values = new int[] { 'B', 'C', 'D', 'F', 'I', 'J', 'S', 'Z'};
+	    InstructionHandle [] case_handles = new InstructionHandle[case_values.length];
+	    GOTO[] gotos = new GOTO[case_values.length+1];
+
+	    for (int i = 0; i < gotos.length; i++) {
+		gotos[i] = new GOTO(null);
+	    }
+
+
+	    read_il.append(new SIPUSH((short) 0));
+	    read_il.append(new ISTORE(2));
+
+	    GOTO gto = new GOTO(null);
+	    read_il.append(gto);
+
+	    InstructionHandle loop_body_start = read_il.append(persistent_field_access);
+	    read_il.append(new ILOAD(2));
+	    read_il.append(new AALOAD());
+	    read_il.append(factory.createInvoke("java.io.ObjectStreamField", "getName", Type.STRING, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+	    read_il.append(new ASTORE(3));
+
+	    read_il.append(persistent_field_access);
+	    read_il.append(new ILOAD(2));
+	    read_il.append(new AALOAD());
+	    read_il.append(factory.createInvoke("java.lang.Object", "getClass", new ObjectType("java.lang.Class"), Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+	    read_il.append(new ASTORE(4));
+
+	    InstructionHandle begin_try = read_il.append(new PUSH(constantpool, classname));
+	    read_il.append(factory.createInvoke("java.lang.Class", "forName", java_lang_class_type, new Type[] { Type.STRING}, Constants.INVOKESTATIC));
+	    read_il.append(factory.createInvoke("java.lang.Class", "getField", new ObjectType("java.lang.reflect.Field"), new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
+	    read_il.append(new ASTORE(5));
+
+	    if (! from_constructor && final_fields) {
+		read_il.append(new ALOAD(5));
+		read_il.append(factory.createInvoke("java.lang.reflect.Field", "getModifiers", Type.INT, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+		read_il.append(new ISTORE(6));
+	    }
+	    
+	    read_il.append(persistent_field_access);
+	    read_il.append(new ILOAD(2));
+	    read_il.append(new AALOAD());
+	    read_il.append(factory.createInvoke("java.io.ObjectStreamField", "getTypeCode", Type.CHAR, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+
+	    case_handles[0] = generateReadField("Byte", Type.BYTE, read_il, gotos[0], from_constructor);
+	    case_handles[1] = generateReadField("Char", Type.CHAR, read_il, gotos[1], from_constructor);
+	    case_handles[2] = generateReadField("Double", Type.DOUBLE, read_il, gotos[2], from_constructor);
+	    case_handles[3] = generateReadField("Float", Type.FLOAT, read_il, gotos[3], from_constructor);
+	    case_handles[4] = generateReadField("Int", Type.INT, read_il, gotos[4], from_constructor);
+	    case_handles[5] = generateReadField("Long", Type.LONG, read_il, gotos[5], from_constructor);
+	    case_handles[6] = generateReadField("Short", Type.SHORT, read_il, gotos[6], from_constructor);
+	    case_handles[7] = generateReadField("Boolean", Type.BOOLEAN, read_il, gotos[7], from_constructor);
+
+	    InstructionHandle default_handle = generateReadField("", Type.OBJECT, read_il, gotos[8], from_constructor);
+
+	    InstructionHandle end_try = read_il.getEnd();
+
+	    read_il.insert(case_handles[0], new SWITCH(case_values, case_handles, default_handle));
+
+	    InstructionHandle handler = read_il.append(new ASTORE(6));
+	    read_il.append(factory.createNew("java.io.IOException"));
+	    read_il.append(new DUP());
+	    read_il.append(factory.createNew("java.lang.StringBuffer"));
+	    read_il.append(new DUP());
+	    read_il.append(factory.createInvoke("java.lang.StringBuffer", "<init>", Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
+	    read_il.append(new PUSH(constantpool, "Could not read field "));
+	    read_il.append(factory.createInvoke("java.lang.StringBuffer", "append", Type.STRINGBUFFER, new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
+	    read_il.append(new ALOAD(3));
+	    read_il.append(factory.createInvoke("java.lang.StringBuffer", "append", Type.STRINGBUFFER, new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
+	    read_il.append(factory.createInvoke("java.lang.StringBuffer", "toString", Type.STRING, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+	    read_il.append(factory.createInvoke("java.io.IOException", "<init>", Type.VOID, new Type[] { Type.STRING }, Constants.INVOKESPECIAL));
+	    read_il.append(new ATHROW());
+
+	    InstructionHandle gotos_target = read_il.append(new IINC(2, 1));
+
+	    for (int i = 0; i < gotos.length; i++) {
+		gotos[i].setTarget(gotos_target);
+	    }
+	    InstructionHandle loop_test = read_il.append(new ILOAD(2));
+	    read_il.append(persistent_field_access);
+	    gto.setTarget(loop_test);
+	    read_il.append(new ARRAYLENGTH());
+	    read_il.append(new IF_ICMPLT(loop_body_start));
+
+	    read_gen.addExceptionHandler(begin_try, end_try, handler, new ObjectType("java.lang.Exception"));
+
+	    return read_il;
+	}
+
+	private InstructionList generateDefaultReads(boolean from_constructor, int dpth, MethodGen read_gen) {
 	    InstructionList read_il = new InstructionList();
 
 	    if (has_serial_persistent_fields) {
-		read_il.append(new ALOAD(1));
-		read_il.append(new ALOAD(0));
-		read_il.append(new SIPUSH((short)dpth));
-		read_il.append(factory.createInvoke(ibis_input_stream_name,
-						    "defaultReadSerializableObject",
-						    Type.VOID,
-						    new Type[] {Type.OBJECT, Type.INT},
-						    Constants.INVOKEVIRTUAL));
-		return read_il;
+		return serialPersistentReads(from_constructor, read_gen);
 	    }
 
 	    for (int i=0;i<fields.length;i++) {
@@ -882,7 +1156,7 @@ public class IOGenerator {
 	    write_il.append(new SIPUSH((short)dpth));
 	    IF_ICMPNE ifcmpne = new IF_ICMPNE(null);
 	    write_il.append(ifcmpne);
-	    write_il.append(generateDefaultWrites(dpth));
+	    write_il.append(generateDefaultWrites(dpth, write_gen));
 	    write_il.append(new GOTO(end));
 	    if (super_is_ibis_serializable || super_is_serializable) {
 		InstructionHandle i = write_il.append(new ILOAD(2));
@@ -928,7 +1202,7 @@ public class IOGenerator {
 	    read_il.append(new SIPUSH((short)dpth));
 	    ifcmpne = new IF_ICMPNE(null);
 	    read_il.append(ifcmpne);
-	    read_il.append(generateDefaultReads(false, dpth));
+	    read_il.append(generateDefaultReads(false, dpth, read_gen));
 	    read_il.append(new GOTO(end));
 
 	    if (super_is_ibis_serializable || super_is_serializable) {
@@ -1000,6 +1274,7 @@ public class IOGenerator {
 
 	    /* Now, produce generated_WriteObject. */
 	    write_il = new InstructionList();
+	    write_gen = new MethodGen(methods[write_method_index], classname, constantpool);
 
 	    /* write the superclass if neccecary */
 	    if (super_is_ibis_serializable || (force_generated_calls && super_is_serializable)) {
@@ -1049,11 +1324,12 @@ public class IOGenerator {
 						     Constants.INVOKEVIRTUAL));
 	    }
 	    else {
-		write_il.append(generateDefaultWrites(dpth));
+		write_il.append(generateDefaultWrites(dpth, write_gen));
 	    }
 
 	    /* Now, do the same for the reading side. */
 	    if (read_il != null) {
+		MethodGen read_cons_gen = new MethodGen(methods[read_cons_index], classname, constantpool);
 		if (hasReadObject()) {
 		    /* First, get and set IbisSerializationInputStream's idea of the current object. */
 		    read_il.append(new ALOAD(1));
@@ -1079,10 +1355,9 @@ public class IOGenerator {
 							 Constants.INVOKEVIRTUAL));
 		}
 		else {
-		    read_il.append(generateDefaultReads(true, dpth));
+		    read_il.append(generateDefaultReads(true, dpth, read_cons_gen));
 		}
 
-		MethodGen read_cons_gen = new MethodGen(methods[read_cons_index], classname, constantpool);
 		read_il.append(read_cons_gen.getInstructionList());
 		read_cons_gen.setInstructionList(read_il);
 
