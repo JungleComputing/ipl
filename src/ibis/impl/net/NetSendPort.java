@@ -389,8 +389,8 @@ public final class NetSendPort extends NetPort implements SendPort,
         log.in();
         this.connectionTable = new Hashtable();
         loadMainDriver();
-        this.outputLock = new NetMutex(false);
-        this.output = driver.newOutput(type, null);
+        outputLock = new NetMutex(false);
+        output = driver.newOutput(type, null);
         log.out();
     }
 

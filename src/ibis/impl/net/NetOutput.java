@@ -19,6 +19,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
      */
     private boolean finished;
 
+    private NetBufferedOutputSupport buffered = null;
+
     private Conversion conversion;
 
     /**
@@ -37,6 +39,10 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
             // default. Select the other default, i.e. NIO.
             conversion = Conversion.loadConversion(false);
         }
+
+	if (this instanceof NetBufferedOutputSupport) {
+	    buffered = (NetBufferedOutputSupport)this;
+	}
     }
 
     /**
@@ -72,6 +78,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
      **/
     public int send() throws IOException {
         //
+	if (buffered != null) {
+	    buffered.flushBuffer();
+	}
         return 0;
     }
 
