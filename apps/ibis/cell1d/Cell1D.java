@@ -199,15 +199,6 @@ class Cell1D implements Config {
         m.finish();
     }
 
-    // Compute the next state of a cell.
-    // l=left, u=up, r=right, d=down, c=center
-    static byte computeNextState( byte lu, byte l, byte ld, byte u, byte c, byte d, byte ru, byte r, byte rd )
-    {
-        int neighbours = lu + l + ld + u + d + ru + r + rd;
-        boolean alive = (neighbours == 3) || ((neighbours == 2) && (c==1));
-        return alive?(byte) 1:(byte) 0;
-    }
-
     public static void main( String [] args )
     {
         int count = GENERATIONS;
@@ -303,7 +294,7 @@ class Cell1D implements Config {
                     curr = next;
                     next = board[i+1];
                     for( int j=1; j<=boardsize; j++ ){
-                        updatecol[j] = computeNextState(
+                        updatecol[j] = Life.computeNextState(
                             prev[j-1],
                             prev[j],
                             prev[j+1],

@@ -707,15 +707,6 @@ class OpenCell1D implements OpenConfig {
         m.writeInt( generation );
         m.finish();
     }
-    
-    // Compute the next state of a cell.
-    // l=left, u=up, r=right, d=down, c=center
-    static byte computeNextState( byte lu, byte l, byte ld, byte u, byte c, byte d, byte ru, byte r, byte rd )
-    {
-        int neighbours = lu + l + ld + u + d + ru + r + rd;
-        boolean alive = (neighbours == 3) || ((neighbours == 2) && (c==1));
-        return alive?(byte) 1:(byte) 0;
-    }
 
     static boolean haveAtLeastState( int v, byte lu, byte l, byte ld, byte u, byte d, byte ru, byte r, byte rd )
     {
@@ -790,7 +781,7 @@ class OpenCell1D implements OpenConfig {
                     next = p.rightBorder;
                 }
                 for( int j=1; j<=boardsize; j++ ){
-                    p.updatecol[j] = computeNextState(
+                    p.updatecol[j] = Life.computeNextState(
                         prev[j-1],
                         prev[j],
                         prev[j+1],
@@ -805,7 +796,7 @@ class OpenCell1D implements OpenConfig {
                 if( DISTURBANCE>0 && (me == 1) && generation>=DISTURBANCE_START ){
                     for( int iters=0; iters<DISTURBANCE; iters++ ){
                         for( int j=1; j<=boardsize; j++ ){
-                            p.updatecol[j] = computeNextState(
+                            p.updatecol[j] = Life.computeNextState(
                                 prev[j-1],
                                 prev[j],
                                 prev[j+1],
