@@ -2058,7 +2058,7 @@ public class IOGenerator {
 	for (int i=0;i<target_classes.size();i++) {
 	    JavaClass clazz = (JavaClass)target_classes.get(i);
 	    if (! clazz.isInterface()) {
-		if (true || verbose) System.out.println("  Rewrite class : " + clazz.getClassName());
+		if (verbose) System.out.println("  Rewrite class : " + clazz.getClassName());
 		new CodeGenerator(clazz).generateCode();
 	    }
 	}

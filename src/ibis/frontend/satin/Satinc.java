@@ -107,6 +107,7 @@ public final class Satinc {
 
     Vector idTable = new Vector();
     boolean verbose;
+    boolean verify;
     boolean keep;
     boolean local;
     boolean print;
@@ -177,9 +178,10 @@ public final class Satinc {
 
     private static Vector javalist = new Vector();
 
-    public Satinc(boolean verbose, boolean local, boolean keep, boolean print, boolean invocationRecordCache,
+    public Satinc(boolean verbose, boolean local, boolean verify, boolean keep, boolean print, boolean invocationRecordCache,
            String classname, String mainClassname, String compiler, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt) {
 	this.verbose = verbose;
+	this.verify = verify;
 	this.keep = keep;
 	this.print = print;
 	this.local = local;
@@ -1849,7 +1851,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 		    System.exit(1);
 		}
 
-	        if (! do_verify(newclass)) failed_verification = true;
+	        if (verify && ! do_verify(newclass)) failed_verification = true;
 	    }
 	}
     }
@@ -2254,12 +2256,16 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
 
 	if (isRewritten(c)) {
-	    System.out.println(classname + " is already rewritten");
+	    if (verbose) {
+		System.out.println(classname + " is already rewritten");
+	    }
 	    return;
 	}
 
 	if (c.isInterface()) {
-	    System.out.println(classname + " is an interface");
+	    if (verbose) {
+		System.out.println(classname + " is an interface");
+	    }
 	    return;
 	}
 
@@ -2383,12 +2389,12 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	    for (int i = 0; i < javalist.size(); i++) {
 		JavaClass cl = (JavaClass) (javalist.get(i));
-		new Satinc(verbose, local, keep, print, invocationRecordCache,
+		new Satinc(verbose, local, verify, keep, print, invocationRecordCache,
 			    cl.getClassName(), mainClassname, compiler, supportAborts, inletOpt, spawnCounterOpt).start();
 	    }
 	}
 
-	if (! do_verify(c)) failed_verification = true;
+	if (verify && ! do_verify(c)) failed_verification = true;
 
 	if (failed_verification) {
 	    System.out.println("Verification failed!");
@@ -2406,7 +2412,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	Verifier verf = VerifierFactory.getVerifier(c.getClassName());
 	boolean verification_failed = false;
 
-System.out.println("Verifying " + c.getClassName());
+	System.out.println("Verifying " + c.getClassName());
 
 	VerificationResult res = verf.doPass1();
 	if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
@@ -2448,6 +2454,7 @@ System.out.println("Verifying " + c.getClassName());
 	String target = null;
 	String mainClass = null;
 	boolean verbose = false;
+	boolean verify = false;
 	boolean keep = false;
 	boolean local = true;
 	boolean print = false;
@@ -2460,6 +2467,8 @@ System.out.println("Verifying " + c.getClassName());
 	for (int i=0; i<args.length; i++) {
 	    if (args[i].equals("-v")) {
 		verbose = true;
+	    } else if (args[i].equals("-verify")) {
+		verify = true;
 	    } else if (!args[i].startsWith("-")) {
 		if (target == null) {
 		    target = args[i];
@@ -2502,7 +2511,7 @@ System.out.println("Verifying " + c.getClassName());
 	    mainClass = target;
 	}
 
-	new Satinc(verbose, local, keep, print, invocationRecordCache, target, mainClass, compiler, supportAborts, inletOpt, spawnCounterOpt).start();
+	new Satinc(verbose, local, verify, keep, print, invocationRecordCache, target, mainClass, compiler, supportAborts, inletOpt, spawnCounterOpt).start();
     }
 
     public static void do_satinc(JavaClass cl) {

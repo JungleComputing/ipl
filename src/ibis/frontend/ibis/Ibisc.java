@@ -11,7 +11,9 @@ class Ibisc {
     JavaClass c;
     boolean verbose;
     boolean satinVerbose;
+    boolean satinVerify;
     boolean iogenVerbose;
+    boolean iogenVerify;
     boolean keep;
     boolean print;
     boolean invocationRecordCache;
@@ -30,14 +32,18 @@ class Ibisc {
     String packageName;
     String exeName;
 
-    Ibisc(boolean local, boolean verbose, boolean satinVerbose, boolean iogenVerbose, boolean keep, 
-          boolean print, boolean invocationRecordCache, Vector targets, 
+    Ibisc(boolean local, boolean verbose, 
+	  boolean satinVerbose, boolean satinVerify,
+	  boolean iogenVerbose, boolean iogenVerify,
+	  boolean keep, boolean print, boolean invocationRecordCache, Vector targets, 
           String packageName, String exeName, String compiler, String mantac, 
           boolean link, boolean doManta, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt) {
 	this.local = local;
 	this.verbose = verbose;
 	this.satinVerbose = satinVerbose;
+	this.satinVerify = satinVerify;
 	this.iogenVerbose = iogenVerbose;
+	this.iogenVerify = iogenVerify;
 	this.keep = keep;
 	this.print = print;
 	this.invocationRecordCache = invocationRecordCache;
@@ -204,7 +210,7 @@ class Ibisc {
 		if (verbose) {
 		    System.out.println("running satinc on " + factory.getList().get(i));
 		}
-		new ibis.frontend.satin.Satinc(satinVerbose, local, keep, print, invocationRecordCache, 
+		new ibis.frontend.satin.Satinc(satinVerbose, local, satinVerify, keep, print, invocationRecordCache, 
 					       (String)factory.getList().get(i), className, compiler, 
 					       supportAborts, inletOpt, spawnCounterOpt).start();
 		if (verbose) {
@@ -220,7 +226,7 @@ class Ibisc {
 	    System.out.println("running io generator on all files");
 	}
 
-	new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false, false, null).scanClass(factory.getList());
+	new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false, iogenVerify, null).scanClass(factory.getList());
 	
 	if (verbose) {
 	    System.out.println(" Done");
@@ -263,7 +269,9 @@ class Ibisc {
 	boolean inletOpt = true;
 	boolean spawnCounterOpt = true;
 	boolean satinVerbose = false;
+	boolean satinVerify = false;
 	boolean iogenVerbose = false;
+	boolean iogenVerify = false;
 	boolean link = true;
 	Vector targets = new Vector();
 	String packageName = "";
@@ -275,8 +283,12 @@ class Ibisc {
 		verbose = true;
 	    } else if (args[i].equals("-sv")) {
 		satinVerbose = true;
+	    } else if (args[i].equals("-sverify")) {
+		satinVerify = true;
 	    } else if (args[i].equals("-iv")) {
 		iogenVerbose = true;
+	    } else if (args[i].equals("-iverify")) {
+		iogenVerify = true;
 	    } else if (!args[i].startsWith("-")) {
 		targets.add(args[i]);
 	    } else if (args[i].equals("-package")) {
@@ -320,7 +332,7 @@ class Ibisc {
 	    usage();
 	}
 	
-	new Ibisc(local, verbose, satinVerbose, iogenVerbose, keep, print, invocationRecordCache, 
+	new Ibisc(local, verbose, satinVerbose, satinVerify, iogenVerbose, iogenVerify, keep, print, invocationRecordCache, 
 	          targets, packageName, exeName, compiler, mantac, link, doManta, supportAborts, inletOpt, spawnCounterOpt).start();
     }
 }
