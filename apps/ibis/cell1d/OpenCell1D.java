@@ -15,10 +15,23 @@ interface OpenConfig {
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = false;
     static final boolean traceLoadBalancing = false;
+    static final boolean traceWorkStealing = true;
+    static final boolean doWorkStealing = false;
     static final int DEFAULTBOARDSIZE = 4000;
     static final int GENERATIONS = 30;
     static final int SHOWNBOARDWIDTH = 60;
     static final int SHOWNBOARDHEIGHT = 30;
+}
+
+final class LockedInt {
+    private int v;
+
+    public LockedInt(){ v = 0; }
+    public LockedInt( int n ){ v = n; }
+
+    public synchronized int get() { return v; }
+
+    public synchronized void set( int n ) { v = n; }
 }
 
 final class Problem implements OpenConfig {
@@ -119,18 +132,46 @@ class RszHandler implements OpenConfig, ResizeHandler {
     }
 }
 
+class LevelRecorder implements ibis.ipl.Upcall {
+    int level = -1;
+
+    public LevelRecorder(){}
+
+    public synchronized int get() { return level; }
+
+    public synchronized void reset() { level = -1; }
+
+    public void upcall( ReadMessage m ) throws java.io.IOException
+    {
+        int gen = m.readInt();
+        int mygen = OpenCell1D.lockedGeneration.get();
+        if( mygen == gen ){
+            level = OpenCell1D.column.get();
+        }
+        m.finish();
+    }
+}
+
 class OpenCell1D implements OpenConfig {
     static Ibis ibis;
     static Registry registry;
     static IbisIdentifier leftNeighbour;
     static IbisIdentifier rightNeighbour;
     static IbisIdentifier myName;
-    static int computeColumn;
     static int me = -1;
-    static SendPort leftSendPort;
-    static SendPort rightSendPort;
-    static ReceivePort leftReceivePort;
-    static ReceivePort rightReceivePort;
+
+    static SendPort leftSendPort = null;
+    static SendPort rightSendPort = null;
+    static ReceivePort leftReceivePort = null;
+    static ReceivePort rightReceivePort = null;
+
+    static SendPort leftStealSendPort = null;
+    static SendPort rightStealSendPort = null;
+    static ReceivePort leftStealReceivePort = null;
+    static ReceivePort rightStealReceivePort = null;
+    static LevelRecorder leftRecorder = new LevelRecorder();
+    static LevelRecorder rightRecorder = new LevelRecorder();
+
     static int generation = -1;
     static int boardsize = DEFAULTBOARDSIZE;
     static boolean idle = true;
@@ -140,6 +181,8 @@ class OpenCell1D implements OpenConfig {
     static int knownMembers = 0;
     static RszHandler rszHandler = new RszHandler();
     static final int minLoad = 2;
+    static LockedInt column = new LockedInt();
+    static LockedInt lockedGeneration = new LockedInt( 0 );
 
     // Arrays to record statistical information for each generation. Can be
     // null if we're not interested.
@@ -150,6 +193,8 @@ class OpenCell1D implements OpenConfig {
     static long computationTime[] = null;
     static long communicationTime[] = null;
     static long administrationTime[] = null;
+    static int stealLeft[] = null;
+    static int stealRight[] = null;
 
     private static void usage()
     {
@@ -485,6 +530,10 @@ class OpenCell1D implements OpenConfig {
         m.finish();
     }
 
+    /**
+     * @param port The port to receive from.
+     * @param p The problem to update.
+     */
     static void receiveLeft( ReceivePort port, Problem p )
         throws java.io.IOException
     {
@@ -536,6 +585,7 @@ class OpenCell1D implements OpenConfig {
             }
             if( p.firstColumn>=boardsize ){
                 p.firstNoColumn = newLast+1;
+                aimFirstNoColumn = newLast+1;
             }
             else {
                 if( (newLast+1)<p.firstColumn ){
@@ -563,6 +613,10 @@ class OpenCell1D implements OpenConfig {
         }
     }
 
+    /**
+     * @param port The port to receive from.
+     * @param p The problem to update.
+     */
     static void receiveRight( ReceivePort port, Problem p )
         throws java.io.IOException
     {
@@ -592,6 +646,7 @@ class OpenCell1D implements OpenConfig {
             }
         }
         p.firstNoColumn += receiveCount;
+        aimFirstNoColumn += receiveCount;
         int ix = p.firstNoColumn;
 
         for( int i=0; i<receiveCount; i++ ){
@@ -627,6 +682,25 @@ class OpenCell1D implements OpenConfig {
         }
     }
 
+    /**
+     * Sends a steal request on the given port. The steal message contains
+     * the generation number to allow the receiver to determine whether
+     * the request is stale.
+     * @param port The port to send the steal request on.
+     * @param generation The generation we've just completed.
+     */
+    static void sendStealRequest( SendPort port, int generation )
+        throws java.io.IOException
+    {
+        if( port == null ){
+            return;
+        }
+        WriteMessage m = port.newMessage();
+        m.writeInt( generation );
+        m.send();
+        m.finish();
+    }
+    
     static void computeNextGeneration( Problem p )
     {
         if( p.firstColumn<p.firstNoColumn ){
@@ -643,7 +717,8 @@ class OpenCell1D implements OpenConfig {
                     System.out.println();
                 }
             }
-            for( computeColumn=p.firstColumn; computeColumn<p.firstNoColumn; computeColumn++ ){
+            for( int computeColumn=p.firstColumn; computeColumn<p.firstNoColumn; computeColumn++ ){
+                column.set( computeColumn );
                 prev = curr;
                 curr = next;
                 next = p.board[computeColumn+1];
@@ -679,7 +754,7 @@ class OpenCell1D implements OpenConfig {
      * See if any new members have joined the computation, and if so
      * update the column numbers we should try to own.
      */
-    static void updateAims( Problem p )
+    static void updateAims( Problem p, int lsteal, int rsteal )
     {
         int members = rszHandler.getMemberCount();
         if( knownMembers<members ){
@@ -708,6 +783,19 @@ class OpenCell1D implements OpenConfig {
                 }
             }
             knownMembers = members;
+        }
+        if( aimFirstColumn == p.firstColumn && aimFirstNoColumn == p.firstNoColumn ){
+            // Everything is stable, honour steal requests.
+            if( lsteal>0 ){
+                if( aimFirstColumn+minLoad<aimFirstNoColumn ){
+                    aimFirstColumn++;
+                }
+            }
+            if( rsteal>0 ){
+                if( aimFirstColumn+minLoad<aimFirstNoColumn ){
+                    aimFirstNoColumn--;
+                }
+            }
         }
     }
 
@@ -740,6 +828,8 @@ class OpenCell1D implements OpenConfig {
             members = new int[count];
             sentLeft = new int[count+1];
             sentRight = new int[count+1];
+            stealLeft = new int[count+1];
+            stealRight = new int[count+1];
             computationTime = new long[count];
             communicationTime = new long[count];
             administrationTime = new long[count];
@@ -760,12 +850,7 @@ class OpenCell1D implements OpenConfig {
             // TODO: be more precise about the properties for the two
             // port types.
             PortType updatePort = ibis.createPortType( "neighbour update", s );
-            PortType loadbalancePort = ibis.createPortType( "loadbalance", s );
-
-            leftSendPort = null;
-            rightSendPort = null;
-            leftReceivePort = null;
-            rightReceivePort = null;
+            PortType stealPort = ibis.createPortType( "loadbalance", s );
 
             ibis.openWorld();
 
@@ -775,6 +860,8 @@ class OpenCell1D implements OpenConfig {
             if( leftNeighbour != null ){
                 leftReceivePort = createNeighbourReceivePort( updatePort, "upstream", null );
                 leftSendPort = createNeighbourSendPort( updatePort, leftNeighbour, "downstream" );
+                leftStealReceivePort = createNeighbourReceivePort( stealPort, "upstreamSteal", leftRecorder );
+                leftStealSendPort = createNeighbourSendPort( stealPort, leftNeighbour, "downstreamSteal" );
             }
 
             if( leftNeighbour == null ){
@@ -828,11 +915,13 @@ class OpenCell1D implements OpenConfig {
                     }
                     rightReceivePort = createNeighbourReceivePort( updatePort, "downstream", null );
                     rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
+                    rightStealReceivePort = createNeighbourReceivePort( stealPort, "downstreamSteal", rightRecorder );
+                    rightStealSendPort = createNeighbourSendPort( stealPort, rightNeighbour, "upstreamSteal" );
                 }
                 if( members != null ){
                     members[generation] = rszHandler.getMemberCount();
                 }
-                updateAims( p );
+                updateAims( p, 0, 0 );
                 if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
                     // We have some work for our lazy right neighbour.
                     // give him the good news.
@@ -845,11 +934,24 @@ class OpenCell1D implements OpenConfig {
                 if( population != null ){
                     population[generation] = p.firstNoColumn-p.firstColumn;
                 }
+                leftRecorder.reset();
+                rightRecorder.reset();
                 long startComputeTime = System.currentTimeMillis();
                 computeNextGeneration( p );
                 long endComputeTime = System.currentTimeMillis();
+                if( doWorkStealing ){
+                    sendStealRequest( leftStealSendPort, generation );
+                    sendStealRequest( rightStealSendPort, generation );
+                }
                 generation++;
-                updateAims( p );
+                lockedGeneration.set( generation );
+                int lsteal = leftRecorder.get();
+                int rsteal = rightRecorder.get();
+                if( stealLeft != null ){
+                    stealLeft[generation-1] = lsteal;
+                    stealRight[generation-1] = rsteal;
+                }
+                updateAims( p, lsteal, rsteal );
                 if( (me % 2) == 0 ){
                     if( !rightNeighbourIdle ){
                         sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
@@ -911,7 +1013,7 @@ class OpenCell1D implements OpenConfig {
             if( population != null ){
                 // We blindly assume all statistics arrays exist.
                 for( int gen=0; gen<count; gen++ ){
-                    System.out.println( "STATS " + me + " " + gen + " " + members[gen] + " " + population[gen] + " " + sentLeft[gen] + " " + sentRight[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] );
+                    System.out.println( "STATS " + me + " " + gen + " " + members[gen] + " " + population[gen] + " " + sentLeft[gen] + " " + sentRight[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] + " " + stealLeft[gen] + " " + stealRight[gen] );
                 }
             }
 
