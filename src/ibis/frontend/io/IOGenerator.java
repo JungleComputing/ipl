@@ -1615,8 +1615,11 @@ public class IOGenerator {
     }
 
     private void  addClass(JavaClass clazz) {
+	boolean serializable = false;
+
+	if (! clazz.isClass()) return;
+
 	if (! classes_to_rewrite.contains(clazz)) {
-	    boolean serializable = false;
 
 	    JavaClass super_classes[] = Repository.getSuperClasses(clazz);
 
@@ -1636,11 +1639,13 @@ public class IOGenerator {
 	    }
 
 	    serializable |= isSerializable(clazz);
+	} else {
+	    serializable = true;
+	}
 
-	    if (serializable) {
-		addRewriteClass(clazz);
-		addTargetClass(clazz);
-	    }
+	if (serializable) {
+	    addRewriteClass(clazz);
+	    addTargetClass(clazz);
 	}
     }
 
