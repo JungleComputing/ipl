@@ -52,7 +52,16 @@ class RMIStubGenerator extends RMIGenerator {
 
 		output.print(" {\n");
 	}
-		
+
+	private boolean caught(ExceptionTable t, String name) {
+	    String[] names = t.getExceptionNames();
+	    for (int i = 0; i < names.length; i++) {
+		if (Repository.instanceOf(name, names[i])) {
+		    return true;
+		}
+	    }
+	    return false;
+	}
 
 	void methodBody(Method m, int number) { 
 	    Type ret          = getReturnType(m);
@@ -141,10 +150,14 @@ class RMIStubGenerator extends RMIGenerator {
 		output.println("\t\t} catch (RemoteException e0) {");
 		output.println("\t\t\tthrow e0;");
 	    }
-	    output.println("\t\t} catch (RuntimeException re) {");
-	    output.println("\t\t\tthrow re;");
-	    output.println("\t\t} catch (Exception e) {");
-	    output.println("\t\t\tthrow new RemoteException(\"undeclared checked exception\", e);");
+	    if (et == null || ! (caught(et, "java.lang.RuntimeException"))) {
+		output.println("\t\t} catch (RuntimeException re) {");
+		output.println("\t\t\tthrow re;");
+	    }
+	    if (et == null || ! (caught(et, "java.lang.Exception"))) {
+		output.println("\t\t} catch (Exception e) {");
+		output.println("\t\t\tthrow new RemoteException(\"undeclared checked exception\", e);");
+	    }
 	    output.println("\t\t}");
 	} 
 
