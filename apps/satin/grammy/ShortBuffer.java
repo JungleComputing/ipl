@@ -166,6 +166,7 @@ class ShortBuffer implements java.io.Serializable, Magic {
                     // Remove the grammar rule from the buffer.
                     sz = i;
                     expandRule( code, ruleRhs );
+                    break;
                 }
             }
         }

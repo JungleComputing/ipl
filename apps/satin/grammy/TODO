@@ -1,0 +1,6 @@
+- Fix bug that prevents the recognition of repeats such as aaaaaaaaaaaaa
+
+- Fix bug that causes the inclusion of undefined grammar rules.
+
+- Fix bug that causes garbled decompression.
+

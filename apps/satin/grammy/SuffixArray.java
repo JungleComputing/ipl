@@ -312,45 +312,56 @@ public class SuffixArray implements Configuration, Magic {
     }
 
     /** Apply one step in the folding process. */
-    public void applyFolding()
+    public boolean applyFolding()
     {
         if( length == 0 ){
-            return;
+            return false;
         }
 	int max = 0;
+        int maxgain = 0;
         int repeats = 0;
 
 	for( int i=1; i<length; i++ ){
             int r = 0;
+            int gain = -1;
 
-	    if( commonality[i]>=commonality[max] ){
+	    if( commonality[i]>2 ){
                 r = 2;
                 for( int j = i+1; j<length; j++ ){
                     if( commonality[j] == commonality[i] ){
+                        // TODO: make sure we don't look at these
+                        // again in the next top-level iteration,
+                        // since that will never be useful.
                         r++;
                     }
                     else {
                         break;
                     }
                 }
+                // We gain by replacing of `r' instances of
+                // the string with one code, but we must add a new
+                // grammar rule to the text.
+                // TODO: take the cost of encoding these things into account.
+                gain = (r*(commonality[i]-1)) - (commonality[i]+1);
             }
-	    if( r>repeats || commonality[i]>commonality[max] ){
+	    if( gain>maxgain ){
 		max = i;
                 repeats = r;
+                maxgain = gain;
 	    }
 	}
 
         // Calculate the nett gain of replacing the maximal communality:
         // the gain of using references to the new rule, minus the cost of the
         // new rule.
-        int gain = (repeats*(commonality[max]-1)) - (commonality[max]+1);
         if( traceCompressionCosts ){
-            System.out.println( "String [" + buildString( indices[max], commonality[max] ) + "] has " + repeats + " repeats: gain=" + gain );
+            System.out.println( "String [" + buildString( indices[max], commonality[max] ) + "] has " + repeats + " repeats: gain=" + maxgain );
         }
-        if( gain>0 ){
+        if( maxgain>0 ){
             // It is worthwile to do this compression.
             applyCompression( max );
         }
+        return maxgain>0;
     }
 
     /** Returns a compressed version of the string represented by
@@ -358,7 +369,11 @@ public class SuffixArray implements Configuration, Magic {
      */
     public ByteBuffer compress()
     {
-	applyFolding();
+        boolean success;
+
+        do {
+            success = applyFolding();
+        } while( success );
 	return new ByteBuffer( text, length );
     }
 
