@@ -17,7 +17,7 @@
 
 
     <property file="${ibis}/build-properties"/>
-    <property name="ibisBuild"   location="/home/rutger/ibis/build"/>
+    <property name="ibisBuild"   location="${ibis}/build"/>
 
     <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
 
