@@ -76,15 +76,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private boolean doUpcall(TcpReadMessage m) throws IOException {
 	        synchronized (this) {
 				// Wait until the previous message was finished.
-			while(this.m != null) {
-				try {
-					wait();
-				} catch (InterruptedException e) {
-					// Ignore.
-				}
-			}
-
-			while (! allowUpcalls) {
+			while(this.m != null || ! allowUpcalls) {
 				try {
 					wait();
 				} catch (InterruptedException e) {
@@ -168,7 +160,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 
-	synchronized boolean setMessage(TcpReadMessage m) throws IOException {
+	boolean setMessage(TcpReadMessage m) throws IOException {
 		
 		// We're not allowed to read from the message until 
 		// the isFinished flag is set to true, so start by 
