@@ -89,6 +89,10 @@ public class IOGenerator {
 
 	    versionUID();
 
+	    /* getFields() does not specify or guarantee a specific order. Therefore,
+	     * we sort the fields alphabetically, and the serialization code in ibis.io
+	     * should do the same.
+	     */
 	    java.util.Arrays.sort(fields, fieldComparator);
 
 	    super_is_serializable = isSerializable(super_class);
@@ -1688,7 +1692,7 @@ public class IOGenerator {
 	}
     }
 
-    public void scanClass(String [] classnames) {
+    public void scanClass(Vector classnames) {
 
 	/* do the following here....
 
@@ -1715,28 +1719,29 @@ public class IOGenerator {
 	     - save the class file
 
 	*/
+	int lngth = classnames.size();
 
-
-	if (verbose) System.out.println("Loading classes");
 	if (verbose) {
-	    for (int i = 0; i < classnames.length; i++) {
-		System.out.print(classnames[i] + " ");
+	    System.out.println("Loading classes");
+	    for (int i = 0; i < lngth; i++) {
+		System.out.print((String)(classnames.elementAt(i)) + " ");
 	    }
 	    System.out.println();
 	}
 
-	for (int i=0;i<classnames.length;i++) {
-	    if (verbose) System.out.println("  Loading class : " + classnames[i]);
+	for (int i=0;i<lngth;i++) {
+	    if (verbose) System.out.println("  Loading class : " + (String)(classnames.elementAt(i)));
 
 	    JavaClass clazz = null;
 	    if(!file) {
-		clazz = Repository.lookupClass(classnames[i]);
+		clazz = Repository.lookupClass((String)(classnames.elementAt(i)));
 	    } else {
-		String className = new String(classnames[i]);
+		String className = new String((String)(classnames.elementAt(i)));
+		String className2 = new String(className);
 
 		System.err.println("class name = " + className);
 		try {
-		    ClassParser p = new ClassParser(classnames[i].replace('.', java.io.File.separatorChar) + ".class");
+		    ClassParser p = new ClassParser(className2.replace('.', java.io.File.separatorChar) + ".class");
 		    clazz = p.parse();
 		    if (clazz != null) {
 			Repository.removeClass(className);
@@ -1851,30 +1856,59 @@ public class IOGenerator {
 	    }
 	}
 
-	String[] newArgs = new String[files.size()];
+	Vector newArgs = new Vector();
 	for(int i=0; i<files.size(); i++) {
-	    int index = ((String)files.elementAt(i)).lastIndexOf(".class");
+	    String name = (String)files.elementAt(i);
+
+	    int colon = name.indexOf(':');
+	    if (colon != -1) {
+		name = name.substring(colon + 1);
+	    }
+
+	    int index = name.lastIndexOf(".class");
 
 	    if (index != -1) {
+		name = name.substring(0, index);
+		name = name.replace(java.io.File.separatorChar, '.');
 		if(pack == null) {
-		    newArgs[i] = ((String)files.elementAt(i)).substring(0, index);
+		    newArgs.add(name);
 		} else {
-		    newArgs[i] = pack + "." + ((String)files.elementAt(i)).substring(0, index);
+		    newArgs.add(pack + "." + name);
 		}
 	    } else {
+		File f = new File(name);
+
+		name = name.replace(java.io.File.separatorChar, '.');
+
+		if (f.isDirectory()) {
+		    processDirectory(f, newArgs, name);
+		    continue;
+		}
 		if(pack == null) {
-		    newArgs[i] = (String)files.elementAt(i);
+		    newArgs.add(name);
 		} else {
-		    newArgs[i] = pack + "." + ((String)files.elementAt(i));
+		    newArgs.add(pack + "." + name);
 		}
 	    }
-	    int colon = newArgs[i].indexOf(':');
-	    if (colon != -1) {
-		newArgs[i] = newArgs[i].substring(colon + 1);
-	    }
-	    newArgs[i] = newArgs[i].replace(java.io.File.separatorChar, '.');
 	}
 
 	new IOGenerator(verbose, local, file, force_generated_calls, verify, pack).scanClass(newArgs);
+    }
+
+    private static void processDirectory(File f, Vector args, String name) {
+	File[] list = f.listFiles();
+
+	for (int i = 0; i < list.length; i++) {
+	    String fname = list[i].getName();
+	    if (list[i].isDirectory()) {
+		processDirectory(list[i], args, name + "." + fname);
+	    }
+	    else {
+		int index = fname.lastIndexOf(".class");
+		if (index != -1) {
+		    args.add(name + "." + fname.substring(0, index));
+		}
+	    }
+	}
     }
 }
