@@ -39,7 +39,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	this.in = in;
 	buffer = new byte[BUF_SIZE];
 
-	conversion = Conversion.loadConversion(true);
+	conversion = Conversion.loadConversion(false);
     }
 
     private void dump(byte[] buffer, int off, int len, String caller) {
