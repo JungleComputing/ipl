@@ -18,6 +18,7 @@ import java.util.Vector;
 import java.util.Properties;
 import ibis.util.Input;
 import java.io.File;
+import java.net.InetAddress;
 
 public abstract class Ibis { 
 
@@ -59,6 +60,54 @@ public abstract class Ibis {
 		}
 		
 		return impl;
+	}
+
+	/** Create a new Ibis instance, based on the property ibis.name.
+	    The currently recognized Ibis names are:
+	    panda	Ibis built on top of Panda.
+	    tcp		Ibis built on top of TCP (the current default).
+	    mpi		Ibis built on top of MPI.
+	    net		The future version, for tcp, udp, GM, ...
+	*/
+	public static Ibis createIbis(ResizeHandler r)
+	    throws IbisException
+	{
+	    Properties p = System.getProperties();
+	    String ibisname = p.getProperty("ibis.name");
+	    String hostname;
+
+	    try {
+		hostname = InetAddress.getLocalHost().getHostName();
+		InetAddress adres = InetAddress.getByName(hostname);
+
+		adres = InetAddress.getByName(adres.getHostAddress());
+		hostname = adres.getHostName();
+	    } catch(Exception e) {
+		hostname = "unknown";
+	    }
+
+	    if (ibisname == null) {
+		// Create a default Ibis.
+		ibisname = "tcp";
+	    }
+
+	    // Is this name unique enough?
+	    String name = "ibis:" + hostname + "@" + System.currentTimeMillis();
+
+	    if (ibisname.equals("panda")) {
+		return createIbis(name, "ibis.ipl.impl.messagePassing.PandaIbis", r);
+	    } else if (ibisname.equals("mpi")) {
+		return createIbis(name, "ibis.ipl.impl.messagePassing.MPIIbis", r);
+	    } else if (ibisname.equals("net")) {
+		return createIbis(name, "ibis.ipl.impl.net.NetIbis", r);
+	    } else {
+		// The default: tcp.
+		if (! ibisname.equals("tcp")) {
+		    System.err.println("Warning: name '" + ibisname +
+				       "' not recognized, using TCP version");
+		}
+		return createIbis(name, "ibis.ipl.impl.tcp.TCPIbis", r);
+	    }
 	}
 
 	private static String readString(Input in) {
