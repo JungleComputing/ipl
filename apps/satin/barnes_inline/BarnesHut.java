@@ -51,7 +51,7 @@ final class BarnesHut {
 
 	static final double END_TIME = 0.175;
 
-	final int ITERATIONS;
+	static int iterations = -1;
 
 	private static Body[] bodyArray;
 
@@ -88,10 +88,11 @@ final class BarnesHut {
 		 * also doesn't include this code, I will omit it. - Maik.
 		 */
 
-		//ITERATIONS = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
-		ITERATIONS = 20000; //debug mode
+		if(iterations == -1) {
+			iterations = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
+		}
 
-		forceCalcTimes = new long[ITERATIONS];
+		forceCalcTimes = new long[iterations];
 	}
 
 	static void initialize(int nBodies, int mlb) {
@@ -166,9 +167,11 @@ final class BarnesHut {
 
 		start = System.currentTimeMillis();
 
-		for (iteration = 0; iteration < ITERATIONS; iteration++) {
+		for (iteration = 0; iteration < iterations; iteration++) {
+			long btcomTimeTmp = 0, updateTimeTmp = 0;
+			long forceCalcTimeTmp = 0;
 
-			System.out.println("Starting iteration " + iteration);
+			//			System.out.println("Starting iteration " + iteration);
 
 			if (phase_timing) {
 				phaseStart = System.currentTimeMillis();
@@ -179,6 +182,7 @@ final class BarnesHut {
 			if (phase_timing) {
 				phaseEnd = System.currentTimeMillis();
 				btcomTime += phaseEnd - phaseStart;
+				btcomTimeTmp = phaseEnd - phaseStart;
 			}
 
 			//force calculation
@@ -219,6 +223,7 @@ final class BarnesHut {
 			if (phase_timing) {
 				phaseEnd = System.currentTimeMillis();
 				forceCalcTimes[iteration] = phaseEnd - phaseStart;
+				forceCalcTimeTmp = phaseEnd - phaseStart;
 				phaseStart = System.currentTimeMillis();
 			}
 
@@ -227,11 +232,16 @@ final class BarnesHut {
 			if (phase_timing) {
 				phaseEnd = System.currentTimeMillis();
 				updateTime += phaseEnd - phaseStart;
+				updateTimeTmp = phaseEnd - phaseStart;
 			}
 
-			if(viz) {
+			if (viz) {
 				bc.repaint();
 			}
+
+			System.err.println("Iteration " + iteration + " done, "
+					+ ", comm = " + btcomTimeTmp + ", update = "
+					+ updateTimeTmp + ", force = " + forceCalcTimeTmp);
 		}
 
 		end = System.currentTimeMillis();
@@ -259,8 +269,8 @@ final class BarnesHut {
 
 		start = System.currentTimeMillis();
 
-		for (iteration = 0; iteration < ITERATIONS; iteration++) {
-			System.out.println("Starting iteration " + iteration);
+		for (iteration = 0; iteration < iterations; iteration++) {
+			//			System.out.println("Starting iteration " + iteration);
 
 			//don't measure the first iteration
 			//the body update phase of the first iteration *is* measured ???
@@ -428,7 +438,7 @@ final class BarnesHut {
 	void run() {
 		int i;
 
-		System.out.println("Iterations: " + ITERATIONS + " (timings DO "
+		System.out.println("Iterations: " + iterations + " (timings DO "
 				+ "include the first iteration!)");
 
 		switch (impl) {
@@ -466,7 +476,7 @@ final class BarnesHut {
 						+ updateTime / 1000.0 + " s");
 			}
 			System.out.println("Force calculation took: ");
-			for (i = 0; i < ITERATIONS; i++) {
+			for (i = 0; i < iterations; i++) {
 				System.out.println("  iteration " + i + ": "
 						+ forceCalcTimes[i] / 1000.0 + " s");
 				total += forceCalcTimes[i];
@@ -508,6 +518,12 @@ final class BarnesHut {
 				impl = IMPL_TUPLE2;
 			} else if (argv[i].equals("-seq")) {
 				impl = IMPL_SEQ;
+
+			} else if (argv[i].equals("-it")) {
+				iterations = Integer.parseInt(argv[++i]);
+				if (iterations < 0)
+					throw new IllegalArgumentException(
+							"Illegal argument to -t: Spawn threshold must be >= 0 !");
 
 			} else if (argv[i].equals("-t")) {
 				spawn_threshold = Integer.parseInt(argv[++i]);
