@@ -37,11 +37,11 @@ O_FILES		+= $(INVOCATIONS) $(RETURNS)
 INVOCATION_CLASS	= $(INVOCATIONS:%.o=%.class)
 RETURN_CLASS		= $(RETURNS:%.o=%.class)
 
+SERIALIZABLE	= Satin_Fib_fib_InvocationRecord.class
+SERIALIZABLE	+= Satin_Fib_fib_ReturnRecord.class
+
 manta:	$(O_FILES) manta_ibisc
 	# $(IBISC_COMMAND) -no-aborts -manta -o $(OUT) $(MAIN) -v
-
-Satin_Fib_fib_InvocationRecord.class Satin_Fib_fib_ReturnRecord.class: Fib.class
-	$(IOC_COMMAND) $<
 
 Fib.class:	Fib.java
 	$(JAVAC_COMMAND) $*.java
