@@ -18,7 +18,7 @@ public class SATSolver {
 	int assumptions;
     }
 
-    static final boolean traceSolver = true;
+    static final boolean traceSolver = false;
     static final boolean printSatSolutions = true;
     static int label = 0;
 
@@ -119,7 +119,7 @@ public class SATSolver {
 	int unsat = ctx.problem.getUnsatisfied( ctx.assignments );
 
 	if( unsat>=0 ){
-	    System.err.println( "Verification failed: clause " + unsat + " is not satisfied" );
+	    System.err.println( "Verification failed: clause (" + ctx.problem.getClauseLabel( unsat ) + ") is not satisfied" );
 	}
     }
 
@@ -182,11 +182,11 @@ public class SATSolver {
 	    // use the list of positive variables of the solution as the list
 	    // of negative variables of the new clause, and vice-versa.
 
-	    if( traceSolver ){
-		System.out.println( "Avoiding duplicate solutions with new clause" );
-	    }
 	    // Note that pos and neg are reversed.
-	    ctx.problem.addClause( s.neg, s.pos );
+	    int lbl = ctx.problem.addClause( s.neg, s.pos );
+	    if( traceSolver ){
+		System.out.println( "Avoiding duplicate solutions with new clause (" + lbl + ")" );
+	    }
 	}
     }
 
@@ -198,7 +198,7 @@ public class SATSolver {
     {
 	boolean found_solution = false;
 
-	int min_terms = ctx.problem.getVariableCount();
+	int min_terms = ctx.problem.getVariableCount()+1;
 	int ix = ctx.problem.getClauseCount();
 	int terms[] = ctx.terms;
 

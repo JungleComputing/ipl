@@ -70,7 +70,7 @@ class SATProblem implements java.io.Serializable {
 	return clauseCount;
     }
 
-    public void addClause( int pos[], int possz, int neg[], int negsz )
+    public int addClause( int pos[], int possz, int neg[], int negsz )
     {
 	int apos[] = cloneIntArray( pos, possz );
 	int aneg[] = cloneIntArray( neg, negsz );
@@ -88,7 +88,8 @@ class SATProblem implements java.io.Serializable {
 		    System.err.println( "New clause " + cl + " is subsumed by existing clause " + ci ); 
 		}
 		deletedClauseCount++;
-	        return;
+		label--;	// Don't waste an unused label.
+	        return -1;
 	    }
 	    if( cl.isSubsumedClause( ci ) ){
 	        // The new clause subsumes an existing one. Remove
@@ -111,11 +112,12 @@ class SATProblem implements java.io.Serializable {
 	}
 	int clauseno = clauseCount++;
 	clauses[clauseno] = cl;
+	return cl.label;
     }
 
-    public void addClause( int pos[], int neg[] )
+    public int addClause( int pos[], int neg[] )
     {
-	addClause( pos, pos.length, neg, neg.length );
+	return addClause( pos, pos.length, neg, neg.length );
     }
 
     // Given a list of variables and a clause, register all uses
