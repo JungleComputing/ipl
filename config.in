@@ -23,6 +23,7 @@ DAS		= @DAS_LIB@
 JPATH           = @JAVA_ROOT@
 JAVAC           = @JAVAC@
 JIKES_BT	= @JIKES_BT_ROOT@
+JAD		= /home3/rob/bin/jad
 ifndef IBIS_ROOT
 IBIS_ROOT	= @IBIS_ROOT@
 endif
@@ -100,9 +101,17 @@ ifeq (lfc, $(PANDA_NETWORK))
 MANTACFLAGS	+= -myrinet
 endif
 MANTAC_COMMAND = $(MANTA)/mantac $(MANTACFLAGS)
-O_FILES = $(SRC:%.java=%.o)
-PKG_SUF	= .$(PACKAGE_MANGLE:manta_ibis%=mib%)
-PKG_O_FILES = $(O_FILES:%.o=%$(PKG_SUF))
+
+O_FILES		:= $(SRC:%.java=%.o)
+SERIALIZABLE_J	:= $(shell grep -l Serializable $(SRC))
+SERIALIZABLE_O	:= $(SERIALIZABLE_J:%.java=%.o)
+SERIALIZABLE_JAD	:= $(SERIALIZABLE_J:%.java=%.jad) $(SERIALIZABLE_J:%.java=%_ibis_io_Generator.jad)
+SERIALIZABLE_JAD_O	:= $(SERIALIZABLE_J:%.java=%.jad_o)
+O_FILES		:= $(filter-out $(SERIALIZABLE_O), $(O_FILES))
+O_FILES		:= $(O_FILES) $(SERIALIZABLE_JAD_O)
+
+PKG_SUF		:= .$(PACKAGE_MANGLE:manta_ibis%=mib%)
+PKG_O_FILES	:= $(O_FILES:%.o=%$(PKG_SUF))
 
 MANTA_LIB	= $(IBIS_ROOT)/ibis/ipl/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
@@ -114,10 +123,19 @@ TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s $(OUT) *
 #conversion rules
 
 .SUFFIXES:
-.SUFFIXES:      .o .java .satin .class .c $(PKG_SUF)
+.SUFFIXES:      .o .java .satin .class .c $(PKG_SUF) .jad .jad_o .jad_o
 
 .java.o:
 	$(MANTAC_COMMAND) -c $*.java
+
+.java.jad:
+	$(JAVAC_COMMAND) $*.java
+	$(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.io.IOGenerator $*
+	$(JAD) $*.class
+
+.jad.jad_o:
+	mv $*.jad $*.jad.java
+	$(MANTAC_COMMAND) -c $*.jad.java -o $*.jad_o
 
 .o$(PKG_SUF):
 	cp $*.o $@
