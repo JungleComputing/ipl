@@ -1,0 +1,4 @@
+// File: $Id$
+
+class Magic {
+}
