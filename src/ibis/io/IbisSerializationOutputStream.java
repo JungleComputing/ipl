@@ -26,6 +26,26 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
 	private Class stringClass;
 
+	private java.io.ObjectOutputStream object_out = null;
+
+	public java.io.ObjectOutputStream createObjectOutputStream() throws IbisIOException {
+	    if (object_out == null) {
+		/* Put a SimpleOutputStream in between, because we don't know if
+		   the ObjectOutputStream touches its array buffers before flushing.
+		*/
+		try {
+		    object_out = new java.io.ObjectOutputStream(new SimpleOutputStream(this));
+		} catch(IOException e) {
+		    throw new IbisIOException("Could not create ObjectOutputStream");
+		}
+	    }
+	    return object_out;
+	}
+
+	public void deleteObjectOutputStream() {
+	    object_out = null;
+	}
+
 	/* Type id management */
 	private int next_type = 1;
 	private IbisHash types;
@@ -63,13 +83,14 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
 
 	public void reset() throws IbisIOException {
+		writeHandle(RESET_HANDLE);
+		object_out = null;
 		if (next_handle > CONTROL_HANDLES) { 
 			if(DEBUG) {
 				System.err.println("OUT(" + this + ") reset: next handle = " + next_handle + ".");
 			}
 			references.clear();
 			next_handle = CONTROL_HANDLES;
-			writeHandle(RESET_HANDLE);
 		}
 	}
 
@@ -587,12 +608,26 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
 
 	public void flush() throws IbisIOException { 
+		if (object_out != null) {
+		    try {
+			object_out.flush();
+		    } catch(IOException e) {
+			throw new IbisIOException("failed flush of ObjectOutputStream");
+		    }
+		}
 		partial_flush();
 		out.flush();
 	} 
 
 	public void close() throws IbisIOException {
 		flush();
+		if (object_out != null) {
+		    try {
+			object_out.close();
+		    } catch(IOException e) {
+			throw new IbisIOException("failed close of ObjectOutputStream");
+		    }
+		}
 		out.close();
 	}
 }

@@ -72,6 +72,24 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 	private Class stringClass;
 
+	private java.io.ObjectInputStream object_in;
+
+	public java.io.ObjectInputStream createObjectInputStream() throws IbisIOException {
+	    if (object_in == null) {
+		/* Put a SimpleInputStream in between.  */
+		try {
+		    object_in = new java.io.ObjectInputStream(new SimpleInputStream(this));
+		} catch(IOException e) {
+		    throw new IbisIOException("Could not create ObjectInputStream");
+		}
+	    }
+	    return object_in;
+	  }
+
+	  public void deleteObjectInputStream() {
+	      object_in = null;
+	  }
+
 
 	public IbisSerializationInputStream(ArrayInputStream in) {
 		types = new IbisVector();
@@ -107,6 +125,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		}
 		objects.clear();
 		next_object = CONTROL_HANDLES;
+		object_in = null;
 	}
 
 
@@ -841,5 +860,12 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
 
 	public void close() throws IbisIOException {
+	    if (object_in != null) {
+		try {
+		    object_in.close();
+		} catch (IOException e) {
+		    throw new IbisIOException("failed close of ObjectInputStream");
+		}
+	    }
 	}
 }
