@@ -64,7 +64,7 @@ System.out.println("Called bar");
 			} else {
 				Test t = new Test();
 				Naming.bind("//bimbambom/bla", t);
-				Thread.sleep(1000000);
+				Thread.sleep(100000);
 			} 
 		} catch (Exception e) { 
 			System.out.println("OOPS");
