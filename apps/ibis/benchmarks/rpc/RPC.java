@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import ibis.ipl.*;
 import ibis.util.nativeCode.Rdtsc;
+import ibis.util.TypedProperties;
 
 
 class RszHandler implements ResizeHandler {
@@ -49,7 +50,7 @@ System.err.println(this + " See join of " + id + "; n := " + idents.size());
 
 
 class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnectUpcall {
-
+    private static int BUFSIZ = TypedProperties.intProperty("socketbuffersize", 0);
     private Ibis        myIbis;
     private Registry    registry;
 
@@ -527,6 +528,16 @@ System.err.println("Server: seen " + services + " msgs");
 	} else {
 	    sport = portType.createSendPort("latency-client");
 	}
+	if (BUFSIZ != 0) {
+	    DynamicProperties dp = sport.properties();
+	    try {
+		dp.set("InputBufferSize", new Integer(BUFSIZ));
+		dp.set("OutputBufferSize", new Integer(BUFSIZ));
+	    } catch(IbisException e) {
+		System.out.println("Something wrong in dynamic properties");
+		e.printStackTrace();
+	    }
+	}
 // manta.runtime.RuntimeSystem.DebugMe(3, 0);
 
 	myIbis.openWorld();
@@ -537,6 +548,17 @@ System.err.println("Server: seen " + services + " msgs");
 	} else {
 	    rport = portType.createReceivePort("client port " + rank);
 // System.err.println(rank + ": created \"client port " + rank + "\"");
+	}
+
+	if (BUFSIZ != 0) {
+	    DynamicProperties dp = rport.properties();
+	    try {
+		dp.set("InputBufferSize", new Integer(BUFSIZ));
+		dp.set("OutputBufferSize", new Integer(BUFSIZ));
+	    } catch(IbisException e) {
+		System.out.println("Something wrong in dynamic properties");
+		e.printStackTrace();
+	    }
 	}
 	rport.enableConnections();
 
@@ -591,6 +613,16 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 	    sport = portType.createSendPort("latency-server");
 	}
 // manta.runtime.RuntimeSystem.DebugMe(3, 0);
+	if (BUFSIZ != 0) {
+	    DynamicProperties dp = sport.properties();
+	    try {
+		dp.set("InputBufferSize", new Integer(BUFSIZ));
+		dp.set("OutputBufferSize", new Integer(BUFSIZ));
+	    } catch(IbisException e) {
+		System.out.println("Something wrong in dynamic properties");
+		e.printStackTrace();
+	    }
+	}
 
 	myIbis.openWorld();
 // manta.runtime.RuntimeSystem.DebugMe(4, 0);
@@ -609,6 +641,17 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 	    }
 	}
 // System.err.println(rank + ": created \"server port " + (rank - clients) + "\"");
+	if (BUFSIZ != 0) {
+	    DynamicProperties dp = rport.properties();
+	    try {
+		dp.set("InputBufferSize", new Integer(BUFSIZ));
+		dp.set("OutputBufferSize", new Integer(BUFSIZ));
+	    } catch(IbisException e) {
+		System.out.println("Something wrong in dynamic properties");
+		e.printStackTrace();
+	    }
+	}
+
 	rport.enableConnections();
 
 	for (int i = 0; i < clients; i++) {
