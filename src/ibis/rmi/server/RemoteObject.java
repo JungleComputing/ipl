@@ -5,8 +5,8 @@ import ibis.rmi.Remote;
 import java.io.Serializable;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
-import java.rmi.MarshalException;
-import java.rmi.UnmarshalException;
+import ibis.rmi.MarshalException;
+import ibis.rmi.UnmarshalException;
 import java.io.IOException;
 
 

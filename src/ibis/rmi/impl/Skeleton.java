@@ -36,7 +36,7 @@ public abstract class Skeleton {
     public synchronized int addStub(ReceivePortIdentifier rpi) { 
 	try { 
 	    int id = 0;
-	    SendPort s = RTS.getSendPort(rpi);
+	    SendPort s = RTS.getSkeletonSendPort(rpi);
 
 	    for (int i = 0; i <= num_ports; i++) {
 		if (stubs[i] == s) {

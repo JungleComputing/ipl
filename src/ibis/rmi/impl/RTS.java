@@ -426,13 +426,13 @@ public final class RTS {
 	    System.out.println(hostname + ": Found skeleton " + url + " connecting");
 	}
 
-	s = getSendPort(dest);
+	s = getStubSendPort(dest);
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Got sendport");
 	}
 
-	ReceivePort r = getReceivePort();
+	ReceivePort r = getStubReceivePort();
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Created receiveport for stub  -> id = " + r.identifier());
@@ -497,7 +497,7 @@ public final class RTS {
 	return s;
     }
 
-    public static synchronized SendPort getSendPort(ReceivePortIdentifier rpi)
+    public static synchronized SendPort getSkeletonSendPort(ReceivePortIdentifier rpi)
 	    throws IOException {
 	SendPort s = (SendPort) sendports.get(rpi);
 	if (s == null) {
@@ -505,16 +505,33 @@ public final class RTS {
 	    s.connect(rpi);
 	    sendports.put(rpi, s);
 	    if (DEBUG) {
-		System.out.println(hostname + ": New sendport for receiport: " + rpi);
+		System.out.println(hostname + ": New skeleton sendport for receiport: " + rpi);
 	    }
 	}
 	else if (DEBUG) {
-	    System.out.println(hostname + ": Reuse sendport for receiport: " + rpi);
+	    System.out.println(hostname + ": Reuse skeleton sendport for receiport: " + rpi);
 	}
 	return s;
     }
 
-    public static synchronized ReceivePort getReceivePort()
+    public static synchronized SendPort getStubSendPort(ReceivePortIdentifier rpi)
+	    throws IOException {
+	SendPort s = (SendPort) sendports.get(rpi);
+	if (s == null) {
+	    s = createSendPort();
+	    s.connect(rpi);
+	    sendports.put(rpi, s);
+	    if (DEBUG) {
+		System.out.println(hostname + ": New stub sendport for receiport: " + rpi);
+	    }
+	}
+	else if (DEBUG) {
+	    System.out.println(hostname + ": Reuse stub sendport for receiport: " + rpi);
+	}
+	return s;
+    }
+
+    public static synchronized ReceivePort getStubReceivePort()
 	throws IOException
     {
 	ReceivePort r;
@@ -536,7 +553,7 @@ public final class RTS {
 	return r;
     }
 
-    public static synchronized void putReceivePort(ReceivePort r) {
+    public static synchronized void putStubReceivePort(ReceivePort r) {
 	r.disableConnections();
 	if (DEBUG) {
 	    System.out.println(hostname + ": receiveport returned");

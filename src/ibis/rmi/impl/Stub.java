@@ -33,7 +33,8 @@ public class Stub extends RemoteStub {
 	reply = r;
 	skeletonId = skelId;
 
-	this.ref = ref;
+	if (ref != null) this.ref = ref;
+	// System.out.println("Stub " + this + " gets ref " + ref);
     }
 
     public final void initSend() throws IOException {
@@ -52,8 +53,8 @@ public class Stub extends RemoteStub {
 	    }
 	    if (send == null) {
 // System.out.println("Setting up connection for " + this);
-		send = RTS.getSendPort(skeletonPortId);
-		reply = RTS.getReceivePort();
+		send = RTS.getStubSendPort(skeletonPortId);
+		reply = RTS.getStubReceivePort();
 	    }
 	    WriteMessage wm = newMessage();
 	    wm.writeInt(-1);
@@ -87,7 +88,7 @@ public class Stub extends RemoteStub {
 	try {
 	    /* if (send != null) send.close(); */
 	    if (reply != null) {
-		RTS.putReceivePort(reply);
+		RTS.putStubReceivePort(reply);
 	    }
 	} catch(Exception e) {
 	}
