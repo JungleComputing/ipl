@@ -41,7 +41,9 @@ public final class ReceivePortIdentifier implements
         this.name = name;
         this.type = type;
         ibisIdentifier = Ibis.myIbis.identifier();
-        makeSerialForm();
+        if (name != null) {
+            makeSerialForm();
+        }
     }
 
     private void makeSerialForm() {
