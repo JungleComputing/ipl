@@ -106,8 +106,6 @@ public abstract class Conversion {
     public static final Conversion loadConversion(String className)
 	throws Exception {
 
-	    System.err.println("Create Conversion " + className);
-
 	return (Conversion)Class.forName(className).newInstance();
 
     }
@@ -116,8 +114,6 @@ public abstract class Conversion {
      * Load a conversion
      */
     public static final Conversion loadConversion(boolean bigEndian) {
-	System.err.println("loading conversion...");
-
 	Properties systemProperties = System.getProperties();
 
 	String conversion = systemProperties.getProperty("ibis.conversion");
@@ -152,8 +148,6 @@ public abstract class Conversion {
 	}
 
 	//loading of nio type conversions failed, return simple conversion
-	
-	System.err.println("Using simple conversion");
 
 	if(bigEndian) {
 	    return new SimpleBigConversion();
