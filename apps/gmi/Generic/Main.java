@@ -2,9 +2,9 @@ import ibis.group.Group;
 import ibis.group.GroupMethod;
 import ibis.group.CombineReply;
 import ibis.group.GroupInvocation;
-import ibis.group.BinaryCombiner;
+import ibis.group.BinomialCombiner;
 
-class Adder extends BinaryCombiner {
+class Adder extends BinomialCombiner {
     public int combine(int rank1, int result1, int rank2, int result2, int size) {
 	return result1 + result2;
     }
@@ -35,7 +35,7 @@ class Main {
 		Test t = new Test();
 		Group.join("TestGroup", t);
 
-		System.out.println("I am " + t.rank + " of " + size);
+		System.out.println("I am " + t.myGroupRank + " of " + size);
 
 		if (rank == 0) { 		
 			myGroup g = (myGroup) Group.lookup("TestGroup");

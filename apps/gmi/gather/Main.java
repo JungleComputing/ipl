@@ -80,7 +80,7 @@ class Main {
 			// everybody ready ?
 			//
 
-			int myrank = data.rank;
+			int myrank = data.myGroupRank;
 
 			if (lat) {
 				

@@ -54,7 +54,7 @@ class Main {
 			m = Group.findMethod(group, "void barrier()");
 			m.configure(new CombinedInvocation("bbb", rank, nodes, new MyCombiner(), new SingleInvocation(0)), new ReturnReply(0));
 
-			if (data.rank == 0) { 
+			if (data.myGroupRank == 0) { 
 				m = Group.findMethod(group, "void bar()");
 				m.configure(new GroupInvocation(), new DiscardReply());
 				data.init(group);
