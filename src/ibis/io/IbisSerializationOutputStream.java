@@ -439,7 +439,8 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		array_index++;
 	}
 
-	private int writeKnownObjectHeader(Object ref) throws IbisIOException {
+	/* This must be public, it is called by generated code which is in another package. --Rob */
+	public int writeKnownObjectHeader(Object ref) throws IbisIOException {
 
 		if (ref == null) {
 			writeHandle(NUL_HANDLE);
