@@ -305,26 +305,41 @@ class OpenCell1D implements OpenConfig {
     static void sendLeft( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
         throws java.io.IOException
     {
-        if( port != null ){
-            if( aimFirstColumn>p.firstColumn ){
-                if( traceLoadBalancing ){
-                    System.out.println( "P" + me + ": I should send columns " + p.firstColumn + "-" + aimFirstColumn + " to my left neighbour" );
-                }
-            }
-            send( port, p.firstColumn, p.firstColumn+1, p.board );
+        if( port == null ){
+            return;
         }
+        if( aimFirstColumn>p.firstColumn ){
+            if( traceLoadBalancing ){
+                System.out.println( "P" + me + ": I should send columns " + p.firstColumn + "-" + aimFirstColumn + " to my left neighbour" );
+            }
+        }
+        send( port, p.firstColumn, p.firstColumn+1, p.board );
     }
 
     static void sendRight( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
         throws java.io.IOException
     {
-        if( port != null ){
-            if( aimFirstNoColumn>=p.firstColumn && aimFirstNoColumn<p.firstNoColumn ){
-                if( traceLoadBalancing ){
-                    System.out.println( "P" + me + ": I should send columns " + aimFirstNoColumn + "-" + p.firstNoColumn + " to my right neighbour" );
-                }
+        if( port == null ){
+            return;
+        }
+        int firstSendCol = p.firstNoColumn-1;
+        int firstNoSendCol = p.firstNoColumn;
+        if( aimFirstNoColumn<p.firstNoColumn ){
+            firstSendCol = aimFirstNoColumn-1;
+            if( firstSendCol<p.firstColumn ){
+                firstSendCol = p.firstColumn-1;
             }
-            send( port, p.firstNoColumn-1, p.firstNoColumn, p.board );
+            if( traceLoadBalancing ){
+                System.out.println( "P" + me + ": I should send columns " + firstSendCol + "-" + firstNoSendCol + " to my right neighbour (I own " + p.firstColumn + "-" + p.firstNoColumn + ")" );
+            }
+        }
+        // Sabotage all previous calculations.
+        firstSendCol = p.firstNoColumn-1;
+        firstNoSendCol = p.firstNoColumn;
+        send( port, firstSendCol, firstNoSendCol, p.board );
+        while( p.firstNoColumn>firstSendCol+1 ){
+            p.board[p.firstNoColumn] = null;
+            p.firstNoColumn--;
         }
     }
 
@@ -339,9 +354,6 @@ class OpenCell1D implements OpenConfig {
         while( p.firstColumn>1 && p.board[p.firstColumn-2] != null ){
             p.firstColumn--;
         }
-        while( p.firstNoColumn<boardsize+1 && p.board[p.firstNoColumn+1] != null ){
-            p.firstNoColumn++;
-        }
     }
 
     static void receiveRight( ReceivePort port, Problem p )
@@ -352,9 +364,6 @@ class OpenCell1D implements OpenConfig {
         }
 
         // Now see if our responsibilities have increased.
-        while( p.firstColumn>1 && p.board[p.firstColumn-2] != null ){
-            p.firstColumn--;
-        }
         while( p.firstNoColumn<boardsize+1 && p.board[p.firstNoColumn+1] != null ){
             p.firstNoColumn++;
         }
