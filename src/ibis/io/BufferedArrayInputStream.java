@@ -43,31 +43,37 @@ public final class BufferedArrayInputStream
     }
 
     public final int read() throws IbisIOException {
-		throw new IbisIOException("int read() has no meaning for typed stream");
+	throw new IbisIOException("int read() has no meaning for typed stream");
     }
 
-    private final void fillbuffer(int len) throws IbisIOException {
+    private final void fillBuffer(int len) throws IbisIOException {
 
-		// This ensures that there are at least 'len' bytes in the buffer
-		// PRECONDITION: 'index + buffered_bytes' should never be larger than BUF_SIZE!!
+	// This ensures that there are at least 'len' bytes in the buffer
+	// PRECONDITION: 'index + buffered_bytes' should never be larger than BUF_SIZE!!
 
         try {
-			while ((buffered_bytes) < len) {
-				// System.err.println("buffer -> filled from " + index + " with " + buffered_bytes + " size " + BUF_SIZE + " read " + len);
-				buffered_bytes += in.read(buffer, index + buffered_bytes,
-										  BUF_SIZE-(index+buffered_bytes));
-			}
-			// System.err.println(buffered_bytes + " in buffer");
+	    while (buffered_bytes < len) {
+		// System.err.println("buffer -> filled from " + index + " with " + buffered_bytes + " size " + BUF_SIZE + " read " + len);
+		
+		int n = in.read(buffer, index + buffered_bytes,
+				      BUF_SIZE-(index+buffered_bytes));
+		if (n < 0) {
+		    throw new IOException("EOF encountered");
+		}
+
+		buffered_bytes += n;
+	    }
+	    // System.err.println(buffered_bytes + " in buffer");
         } catch (IOException e) {
-			throw new IbisIOException(e);
+	    throw new IbisIOException(e);
         }
     }
 
     public final int available() throws IbisIOException {
         try {
-			return (buffered_bytes + in.available());
+	    return (buffered_bytes + in.available());
         } catch (IOException e) {
-			throw new IbisIOException(e);
+	    throw new IbisIOException(e);
         }
     }
 
@@ -87,7 +93,7 @@ public final class BufferedArrayInputStream
 
 			if (buffered_bytes == 0) {
 				index = 0;
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			} else {
 				// first, copy the data we do have to 'a' .
 				useable = buffered_bytes / SIZEOF_BOOLEAN;
@@ -108,7 +114,7 @@ public final class BufferedArrayInputStream
 				index = 0;
 
 				// third, fill the buffer as far as possible.
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			}
 		}
 
@@ -118,61 +124,52 @@ public final class BufferedArrayInputStream
 		index += to_convert;
     }
 
-    public void readArray(byte[] a, int off, int len)
-		throws IbisIOException {
+    public void readArray(byte[] a, int off, int len) throws IbisIOException {
+	if (DEBUG) {
+	    System.err.println("readArray(byte[" + off + " ... " + (off+len) + "])");
+	}
 
-		if (DEBUG) {
-			System.err.println("readArray(byte[" + off + " ... " + (off+len) + "])");
+	if (buffered_bytes >= len) {
+	    //System.err.println("IN BUF");
+
+	    // data is already in the buffer.
+	    //System.err.println("Data is in buffer -> copying " + index + " ... " + (index+len) + " to " + off);
+
+	    System.arraycopy(buffer, index, a, off, len);
+	    index += len;
+	    buffered_bytes -= len;
+
+	    //System.err.println("DONE");
+
+	} else {
+	    try {
+		if (buffered_bytes != 0) {
+		    //System.err.println("PARTLY IN BUF " + buffered_bytes + " " + len);
+		    // first, copy the data we do have to 'a' .
+		    System.arraycopy(buffer, index, a, off, buffered_bytes);
 		}
+		int rd = buffered_bytes;;
+		index = 0;
+		do {
+		    int n = in.read(a, off + rd, len - rd);
+		    if (n < 0) {
+			throw new IOException("EOF encountered");
+		    }
+		    rd += n;
+		} while (rd < len);
 
-		if (buffered_bytes >= len) {
+		buffered_bytes = 0;
 
-			//System.err.println("IN BUF");
+	    } catch (IOException e) {
+		throw new IbisIOException(e);
+	    }
+	}
 
-			// data is already in the buffer.
-			//			System.err.println("Data is in buffer -> copying " + index + " ... " + (index+len) + " to " + off);
-
-			System.arraycopy(buffer, index, a, off, len);
-			index += len;
-			buffered_bytes -= len;
-
-			//System.err.println("DONE");
-
-		} else {
-			try {
-				if (buffered_bytes == 0) {
-					//System.err.println("EEK2");
-					//System.err.println("NOT IN BUF");
-					int rd = 0;
-					index = 0;
-					do {
-						rd += in.read(a, off + rd, len - rd);
-					} while (rd < len);
-				} else {
-					//System.err.println("PARTLY IN BUF " + buffered_bytes + " " + len);
-					//System.err.println("EEK3");
-					// first, copy the data we do have to 'a' .
-					System.arraycopy(buffer, index, a, off, buffered_bytes);
-					index = 0;
-
-					// next, read the rest.
-					int rd = buffered_bytes;
-					do {
-						rd += in.read(a, off + rd, len - rd);
-					} while (rd < len);
-
-					buffered_bytes = 0;
-				}
-			} catch (IOException e) {
-				throw new IbisIOException(e);
-			}
-		}
-
-		//		System.err.print("result -> byte[");
-		//		for (int i=0;i<len;i++) { 
-		//			System.err.print(a[off+i] + ",");
-		//		}
-		//		System.err.println("]");
+	//		System.err.print("result -> byte[");
+	//		for (int i=0;i<len;i++) { 
+	//			System.err.print(a[off+i] + ",");
+	//		}
+	//		System.err.println("]");
     }
 
 
@@ -190,7 +187,7 @@ public final class BufferedArrayInputStream
 
 			if (buffered_bytes == 0) {
 				index = 0;
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			} else {
 				// first, copy the data we do have to 'a' .
 				useable = buffered_bytes / SIZEOF_SHORT;
@@ -211,7 +208,7 @@ public final class BufferedArrayInputStream
 				index = 0;
 
 				// third, fill the buffer as far as possible.
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			}
 		}
 
@@ -245,7 +242,7 @@ public final class BufferedArrayInputStream
 
 			if (buffered_bytes == 0) {
 				index = 0;
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			} else {
 				// first, copy the data we do have to 'a' .
 				useable = buffered_bytes / SIZEOF_CHAR;
@@ -266,7 +263,7 @@ public final class BufferedArrayInputStream
 				index = 0;
 
 				// third, fill the buffer as far as possible.
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			}
 		}
 
@@ -294,7 +291,7 @@ public final class BufferedArrayInputStream
 
 			if (buffered_bytes == 0) {
 				index = 0;
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			} else {
 				// first, copy the data we do have to 'a' .
 				useable = buffered_bytes / SIZEOF_INT;
@@ -320,7 +317,7 @@ public final class BufferedArrayInputStream
 				index = 0;
 
 				// third, fill the buffer as far as possible.
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			}
 		}
 
@@ -351,7 +348,7 @@ public final class BufferedArrayInputStream
 
 			if (buffered_bytes == 0) {
 				index = 0;
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			} else {
 				// first, copy the data we do have to 'a' .
 				useable = buffered_bytes / SIZEOF_LONG;
@@ -372,7 +369,7 @@ public final class BufferedArrayInputStream
 				index = 0;
 
 				// third, fill the buffer as far as possible.
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			}
 		}
 
@@ -397,7 +394,7 @@ public final class BufferedArrayInputStream
 
 			if (buffered_bytes == 0) {
 				index = 0;
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			} else {
 				// first, copy the data we do have to 'a' .
 				useable = buffered_bytes / SIZEOF_FLOAT;
@@ -418,7 +415,7 @@ public final class BufferedArrayInputStream
 				index = 0;
 
 				// third, fill the buffer as far as possible.
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			}
 		}
 
@@ -443,7 +440,7 @@ public final class BufferedArrayInputStream
 
 			if (buffered_bytes == 0) {
 				index = 0;
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			} else {
 				// first, copy the data we do have to 'a' .
 				useable = buffered_bytes / SIZEOF_DOUBLE;
@@ -464,7 +461,7 @@ public final class BufferedArrayInputStream
 				index = 0;
 
 				// third, fill the buffer as far as possible.
-				fillbuffer(min(BUF_SIZE, to_convert));
+				fillBuffer(min(BUF_SIZE, to_convert));
 			}
 		}
 
