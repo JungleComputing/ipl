@@ -17,11 +17,10 @@ import ibis.rmi.server.Skeleton;
 import ibis.rmi.server.ExportException;
 
 import java.util.Properties;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Vector;
 
 import java.net.InetAddress;
-
-import java.util.HashMap;
 
 import java.io.IOException;
 
@@ -32,6 +31,9 @@ public final class RTS {
     //keys - impl objects, values - skeletons for those objects
     private static HashMap skeletons;
     private static HashMap stubs;
+    private static HashMap sendports;
+
+    private static Vector receiveports;
 
     protected static String hostname;
     protected static PortType portType;
@@ -46,6 +48,8 @@ public final class RTS {
 	try {
 	    skeletons = new HashMap();
 	    stubs = new HashMap();
+	    sendports = new HashMap();
+	    receiveports = new Vector();
 
 	    hostname = InetAddress.getLocalHost().getHostName();
 	    InetAddress adres = InetAddress.getByName(hostname);
@@ -313,7 +317,7 @@ System.out.println("removeSkeleton called!");
 	throws IbisException, IOException, InstantiationException, IllegalAccessException
     {
 	if (DEBUG) {
-	    System.out.println(hostname + ": Trying to bind object to " + url);
+	    System.out.println(hostname + ": Trying to rebind object to " + url);
 	}
 
 	Skeleton skel = (Skeleton) skeletons.get(o);
@@ -378,18 +382,13 @@ System.out.println("removeSkeleton called!");
 	    System.out.println(hostname + ": Found skeleton " + url + " connecting");
 	}
 
-	s = createSendPort();
+	s = getSendPort(dest);
 
 	if (DEBUG) {
-	    System.out.println(hostname + ": Created sendport for stub");
-	}
-	s.connect(dest);
-	if (DEBUG) {
-	    System.out.println(hostname + ": Connected the sendport of the stub to the receive port of the skeleton");
+	    System.out.println(hostname + ": Got sendport");
 	}
 
-	ReceivePort r = portType.createReceivePort("//" + hostname + "/rmi_stub" + (new java.rmi.server.UID()).toString());
-	r.enableConnections();
+	ReceivePort r = getReceivePort();
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Created receiveport for stub  -> id = " + r.identifier());
@@ -426,6 +425,10 @@ System.out.println("removeSkeleton called!");
 	}
 	rm.finish();
 
+	if (DEBUG) {
+	    System.out.println(hostname + ": read typename " + stubType);
+	}
+
 	try {
 	    result = (Stub) Class.forName(stubType).newInstance();
 	} catch (Exception e) {
@@ -437,10 +440,14 @@ System.out.println("removeSkeleton called!");
 		result = (Stub) Thread.currentThread().getContextClassLoader()
 				.loadClass(stubType).newInstance();
 	    } catch(Exception e2) {
-		s.free();
+		// s.free();
 		// r.forcedClose();
 		throw new RemoteException("stub class " + stubType + " not found", e2);
 	    }
+	}
+
+	if (DEBUG) {
+	    System.out.println(hostname + ": Loaded class " + stubType);
 	}
 
 	result.init(s, r, stubID, dest, true);
@@ -467,10 +474,51 @@ System.out.println("removeSkeleton called!");
 	return portType.createSendPort(new RMIReplacer());
     }
 
-    public static ReceivePort createReceivePort()
+    public static synchronized SendPort getSendPort(ReceivePortIdentifier rpi)
+	    throws IOException {
+	SendPort s = (SendPort) sendports.get(rpi);
+	if (s == null) {
+	    s = createSendPort();
+	    s.connect(rpi);
+	    sendports.put(rpi, s);
+	    if (DEBUG) {
+		System.out.println(hostname + ": New sendport for receiport: " + rpi);
+	    }
+	}
+	else if (DEBUG) {
+	    System.out.println(hostname + ": Reuse sendport for receiport: " + rpi);
+	}
+	return s;
+    }
+
+    public static ReceivePort getReceivePort()
 	throws IOException
     {
-	return  portType.createReceivePort("//" + hostname + "/rmi_stub" + (new java.rmi.server.UID()).toString());
+	ReceivePort r;
+	int len = receiveports.size();
+
+	if (len > 0) {
+	    r = (ReceivePort) receiveports.remove(len-1);
+	    if (DEBUG) {
+		System.out.println(hostname + ": Reuse receiveport: " + r);
+	    }
+	}
+	else {
+	    r = portType.createReceivePort("//" + hostname + "/rmi_stub" + (new java.rmi.server.UID()).toString());
+	    if (DEBUG) {
+		System.out.println(hostname + ": New receiveport: " + r);
+	    }
+	}
+	r.enableConnections();
+	return r;
+    }
+
+    public static void putReceivePort(ReceivePort r) {
+	r.disableConnections();
+	if (DEBUG) {
+	    System.out.println(hostname + ": receiveport returned");
+	}
+	receiveports.add(r);
     }
 
     public static void createRegistry(int port) throws RemoteException

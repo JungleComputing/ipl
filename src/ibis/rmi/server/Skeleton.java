@@ -38,17 +38,22 @@ public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 
     public boolean gotConnection(SendPortIdentifier id) {
 	counter++;
-	System.out.println("Skeleton " + this + " got connection, id = " + id + ", counter = " + counter);
+// System.out.println("Skeleton " + this + " got connection, id = " + id + ", counter = " + counter);
 	return true;
     }
 
     public void lostConnection(SendPortIdentifier id) {
 	counter--;
-	System.out.println("Skeleton " + this + " lost connection, id = " + id + ", counter = " + counter);
+// System.out.println("Skeleton " + this + " lost connection, id = " + id + ", counter = " + counter);
 	if (counter == 0) {
 	    /* No more remote stubs alive now. We can remove the skeleton. */
-	    RTS.removeSkeleton(this);
-	    cleanup();
+//	    RTS.removeSkeleton(this);
+//	    cleanup();
+//	    Commented all this out, because stubs now set up connections lazily.
+//	    This means that we cannot use the connection counter as a reference
+//	    counter anymore (but then, it was not reliable anyway).
+//	    We will have to find another mechanism to clean up skeletons.
+//	    TODO!!!
 	}
     }
 
@@ -58,17 +63,26 @@ public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 
     public synchronized int addStub(ReceivePortIdentifier rpi) { 
 	try { 
-	    SendPort s = RTS.createSendPort();
-	    s.connect(rpi);
+	    int id = 0;
+	    SendPort s = RTS.getSendPort(rpi);
 
-	    int id = ++num_ports;
-	    if (id >= max_ports) {
-		SendPort[] newports = new SendPort[max_ports+INCR];
-		for (int i = 0; i < max_ports; i++) newports[i] = stubs[i];
-		max_ports += INCR;
-		stubs = newports;
+	    for (int i = 0; i <= num_ports; i++) {
+		if (stubs[i] == s) {
+		    id = i;
+		    break;
+		}
 	    }
-	    stubs[id] = s;
+
+	    if (id == 0) {
+		id = ++num_ports;
+		if (id >= max_ports) {
+		    SendPort[] newports = new SendPort[max_ports+INCR];
+		    for (int i = 0; i < max_ports; i++) newports[i] = stubs[i];
+		    max_ports += INCR;
+		    stubs = newports;
+		}
+		stubs[id] = s;
+	    }
 
 	    return id;
 	} catch (Exception e) { 
@@ -88,18 +102,22 @@ public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 	for (int i = 0; i < stubs.length; i++) {
 	    if (stubs[i] != null) {
 		try {
-		    stubs[i].free();
+		    /* stubs[i].free(); */
 		    stubs[i] = null;
 		} catch(Exception e) {
 		}
 	    }
 	}
+/*
 	if (receive != null) {
+System.out.println("Freeing receiveport: " + receive);
 	    try {
-		receive.forcedClose();
+		receive.free();
 	    } catch(Exception e) {
 	    }
+System.out.println("Receiveport freed: " + receive);
 	}
+*/
 	receive = null;
     }
 

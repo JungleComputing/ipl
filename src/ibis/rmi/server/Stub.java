@@ -29,12 +29,10 @@ public class Stub extends RemoteStub {
 	reply = r;
 /*
 	if (send == null) {
-	    send = RTS.createSendPort();
-	    send.connect(skeletonPortId);
+	    send = RTS.getSendPort(skeletonPortId);
 	}
 	if (reply == null) {
-	    reply = RTS.createReceivePort();
-	    reply.enableConnections();
+	    reply = RTS.getReceivePort();
 	}
 */
     }
@@ -42,11 +40,9 @@ public class Stub extends RemoteStub {
     public final void initSend() throws IOException {
 	if (! initialized) {
 	    if (send == null) {
-System.out.println("Setting up connection for " + this);
-		send = RTS.createSendPort();
-		send.connect(skeletonPortId);
-		reply = RTS.createReceivePort();
-		reply.enableConnections();
+// System.out.println("Setting up connection for " + this);
+		send = RTS.getSendPort(skeletonPortId);
+		reply = RTS.getReceivePort();
 	    }
 	    WriteMessage wm = send.newMessage();
 	    wm.writeInt(-1);
@@ -70,22 +66,25 @@ System.out.println("Setting up connection for " + this);
 
     protected void finalize() {
 	// Give up resources.
-System.out.println("Finalize stub: " + this);
+// System.out.println("Finalize stub: " + this);
 	try {
-	    if (send != null) send.free();
-	    if (reply != null) reply.forcedClose();
+	    /* if (send != null) send.free(); */
+	    if (reply != null) {
+		RTS.putReceivePort(reply);
+	    }
 	} catch(Exception e) {
 	}
+// System.out.println("Stub finalized: " + this);
     }
 
+/*
     private void readObject(java.io.ObjectInputStream i) throws IOException, ClassNotFoundException {
 	i.defaultReadObject();
 
 System.out.println("Setting up connection for " + this);
 
-	send = RTS.createSendPort();
-	send.connect(skeletonPortId);
-	reply = RTS.createReceivePort();
-	reply.enableConnections();
+	send = RTS.getSendPort(skeletonPortId);
+	reply = RTS.getReceivePort();
     }
+*/
 }
