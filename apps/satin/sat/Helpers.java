@@ -87,11 +87,11 @@ class Helpers {
      * Prints the specified array of assignments to the error stream.
      * @param assignment The array of assignments.
      */
-    public static void dumpAssignments( String label, int assignment[] )
+    public static void dumpAssignments( String label, byte assignment[] )
     {
 	System.err.print( label + ":" );
 	for( int j=0; j<assignment.length; j++ ){
-	    int v = assignment[j];
+	    byte v = assignment[j];
 	    
 	    if( v != -1 ){
 		System.err.print( " v" + j + "=" + v );

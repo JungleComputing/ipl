@@ -15,7 +15,7 @@ public class ClauseSATSolver {
 	SATProblem problem;	// The problem to solve.
 	SATSolution solutions[];
 	int solutioncount;
-	int assignments[];
+	byte assignments[];
 	boolean satisfied[];
 	int terms[];
 	int level;
@@ -86,7 +86,7 @@ public class ClauseSATSolver {
 	final int old_terms[],
 	final Clause clauses[],
 	final int clauseCount,
-	final int assignments[]
+	final byte assignments[]
     )
     {
 	int new_terms[] = new int[clauseCount];
@@ -133,11 +133,11 @@ public class ClauseSATSolver {
      */
     static void addGeneralizedSolutionList( Context ctx )
     {
-	int gal[] = ctx.assignments;
+	byte gal[] = ctx.assignments;
 
 	for( int ix=0; ix<gal.length; ix++ ){
 	    if( gal[ix] != -1 ){
-		int olda = gal[ix];
+		byte olda = gal[ix];
 
 		gal[ix] = -1;
 		if( ctx.problem.isSatisfied( gal ) ){

@@ -6,7 +6,7 @@ final class SATSolution implements java.io.Serializable {
     int neg[];
 
     /** Given an assignment vector, constructs a solution. */
-    public SATSolution( int assignments[] ){
+    public SATSolution( byte assignments[] ){
 	int pos[];
 	int neg[];
 	int posix = 0;

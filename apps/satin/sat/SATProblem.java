@@ -327,7 +327,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param assignments the variable assignments
      * @return The index of an unsatisfied clause, or -1 if there are none.
      */
-    public int getUnsatisfied( int assignments[] )
+    public int getUnsatisfied( byte assignments[] )
     {
 	for( int ix=0; ix<clauseCount; ix++ ){
 	    if( !clauses[ix].isSatisfied( assignments ) ){
@@ -343,7 +343,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param assignments the variable assignments
      * @return <code>true</code> iff the assignments satisfy the problem
      */
-    public boolean isSatisfied( int assignments[] )
+    public boolean isSatisfied( byte assignments[] )
     {
 	for( int ix=0; ix<clauseCount; ix++ ){
 	    if( !clauses[ix].isSatisfied( assignments ) ){
@@ -361,7 +361,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param assignments the variable assignments
      * @return <code>true</code> iff the assignments conflict with the problem
      */
-    public boolean isConflicting( int assignments[] )
+    public boolean isConflicting( byte assignments[] )
     {
 	for( int ix=0; ix<clauseCount; ix++ ){
 	    if( clauses[ix].isConflicting( assignments ) ){
@@ -576,9 +576,9 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns the initial assignment array for this problem.
      * @return an array of assignments for the variables of this problem
      */
-    int [] buildInitialAssignments()
+    byte [] buildInitialAssignments()
     {
-        int res[] = new int[vars];
+        byte res[] = new byte[vars];
 
 	for( int ix=0; ix<vars; ix++ ){
 	    res[ix] = variables[ix].getAssignment();

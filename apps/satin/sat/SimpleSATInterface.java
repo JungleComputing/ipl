@@ -11,5 +11,5 @@ interface SimpleSATInterface extends ibis.satin.Spawnable
 	int varlist[];
     }
 
-    public void solve( Context ctx, int assignments[], int varix ) throws SATResultException;
+    public void solve( Context ctx, byte assignments[], int varix ) throws SATResultException;
 }

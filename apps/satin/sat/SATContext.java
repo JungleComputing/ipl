@@ -15,7 +15,7 @@ public final class SATContext implements java.io.Serializable {
     private int terms[];
 
     /** The assignments to all variables. */
-    int assignment[];
+    byte assignment[];
 
     /**
      * The antecedent clause of each variable, or -1 if it is a decision
@@ -52,7 +52,7 @@ public final class SATContext implements java.io.Serializable {
      */
     private SATContext(
 	int tl[],
-	int al[],
+	byte al[],
 	int atc[],
 	int dl[],
 	int poscl[],
@@ -77,8 +77,9 @@ public final class SATContext implements java.io.Serializable {
     private static final boolean tracePropagation = false;
     private static final boolean traceLearning = false;
     private static final boolean traceResolutionChain = false;
+    private static final boolean traceRestarts = false;
 
-    private static final boolean doVerification = false;
+    private static final boolean doVerification = true;
     private static final boolean doLearning = true;
     private static final boolean propagatePureVariables = true;
 
@@ -90,7 +91,7 @@ public final class SATContext implements java.io.Serializable {
     public static SATContext buildSATContext( SATProblem p )
     {
         int cno = p.getClauseCount();
-        int assignment[] = p.buildInitialAssignments();
+        byte assignment[] = p.buildInitialAssignments();
         int antecedent[] = new int[assignment.length];
         int dl[] = new int[assignment.length];
 
@@ -120,7 +121,7 @@ public final class SATContext implements java.io.Serializable {
     {
         return new SATContext(
 	    (int []) terms.clone(),
-	    (int []) assignment.clone(),
+	    (byte []) assignment.clone(),
 	    (int []) antecedent.clone(),
 	    (int []) dl.clone(),
 	    (int []) posclauses.clone(),
@@ -588,12 +589,14 @@ public final class SATContext implements java.io.Serializable {
 		}
 		p.addConflictClause( cc );
 		int rl = calculateRestartLevel( cc, level );
-		if( traceLearning ){
-		    System.err.println( "Restarting at level " + rl + " (now at " + level + ")" );
-		}
-		if( rl<(level-1) ){
-		    throw new SATRestartException( rl );
-		}
+                if( rl>=0 ){
+                    if( traceLearning | traceRestarts ){
+                        System.err.println( "Restarting at level " + rl + " (now at " + level + ")" );
+                    }
+                    if( rl<(level-1) ){
+                        throw new SATRestartException( rl );
+                    }
+                }
 	    }
 	}
     }
@@ -904,7 +907,7 @@ public final class SATContext implements java.io.Serializable {
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// Positive term.
-	int[] pos = p.getPosClauses( var );
+	int pos[] = p.getPosClauses( var );
 	for( int i=0; i<pos.length; i++ ){
 	    int cno = pos[i];
 
@@ -928,7 +931,7 @@ public final class SATContext implements java.io.Serializable {
 
 	// Mark all clauses that contain this variable as a negative
 	// term as satisfied.
-	int[] neg = p.getNegClauses( var );
+	int neg[] = p.getNegClauses( var );
 	for( int i=0; i<neg.length; i++ ){
 	    int cno = neg[i];
 

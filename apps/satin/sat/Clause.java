@@ -323,7 +323,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
      * @param assignments the assignments
      * @return wether the clause is now satisfied
      */
-    public boolean isSatisfied( int assignments[] )
+    public boolean isSatisfied( byte assignments[] )
     {
 	for( int ix=0; ix<pos.length; ix++ ){
 	    int v = pos[ix];
@@ -349,7 +349,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
     }
 
     /** Returns the total number of unassigned terms in the specified list. */
-    private static int unassignedCount( int l[], int assignment[] )
+    private static int unassignedCount( int l[], byte assignment[] )
     {
         int res = 0;
 
@@ -364,7 +364,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
     }
 
     /** Returns the total number of unassigned terms in this clause. */
-    public int getTermCount( int assignment[] )
+    public int getTermCount( byte assignment[] )
     {
         return unassignedCount( pos, assignment )+unassignedCount( neg, assignment );
     }
@@ -470,7 +470,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
      * @param assignments the assignments
      * @return wether the assignments conflict with this clause
      */
-    public boolean isConflicting( int assignments[] )
+    public boolean isConflicting( byte assignments[] )
     {
 	// Search for any term of the clause that has an agreeing assignment
 	// or is uncommitted.

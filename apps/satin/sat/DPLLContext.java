@@ -15,7 +15,7 @@ public final class DPLLContext implements java.io.Serializable {
     private int terms[];
 
     /** The assignments to all variables. */
-    int assignment[];
+    byte assignment[];
 
     /** The number of positive clauses of each variable. */
     private int posclauses[];
@@ -40,7 +40,7 @@ public final class DPLLContext implements java.io.Serializable {
      */
     private DPLLContext(
 	int tl[],
-	int al[],
+	byte al[],
 	int poscl[],
 	int negcl[],
 	float posinfo[],
@@ -90,7 +90,7 @@ public final class DPLLContext implements java.io.Serializable {
     {
         return new DPLLContext(
 	    (int []) terms.clone(),
-	    (int []) assignment.clone(),
+	    (byte []) assignment.clone(),
 	    (int []) posclauses.clone(),
 	    (int []) negclauses.clone(),
 	    (float []) posinfo.clone(),

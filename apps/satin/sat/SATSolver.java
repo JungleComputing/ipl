@@ -18,7 +18,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
-    private static final boolean traceRestarts = false;
+    private static final boolean traceRestarts = true;
     private static int label = 0;
     private final SATProblem p;
 
@@ -46,7 +46,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
 	}
-	ctx.assignment[var] = val?1:0;
+	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level );
@@ -126,7 +126,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
 
-	ctx.assignment[var] = val?1:0;
+	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level );

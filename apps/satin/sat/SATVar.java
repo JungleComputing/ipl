@@ -11,7 +11,7 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     private int ix;		// The index in the the original var array.
     private int pos[];	        // Clauses in which this var occurs as a pos.
     private int neg[];	        // Clauses in which this var occurs as a neg.
-    private int assignment = -1;	// 0 or 1 if it is a known variable.
+    private byte assignment = -1;	// 0 or 1 if it is a known variable.
 
     /** Constructs a new SATVar with the specified label and index. */
     public SATVar( int ix )
@@ -22,7 +22,7 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     }
 
     /** Constructs a new SATVar with the specified fields. */
-    private SATVar( int ix, int pos[], int neg[], int assignment )
+    private SATVar( int ix, int pos[], int neg[], byte assignment )
     {
 	this.ix = ix;
 	this.pos = pos;
@@ -83,13 +83,13 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
     boolean isNegOnly() { return assignment == -1 && (pos == null || pos.length == 0); }
 
     /** Registers assignment 'v' for this variable. */
-    void setAssignment( int v ) { assignment = v; }
+    void setAssignment( byte v ) { assignment = v; }
 
     /** Registers assignment 'v' for this variable. */
-    void setAssignment( boolean v ) { assignment = v?1:0; }
+    void setAssignment( boolean v ) { assignment = v? (byte) 1:(byte) 0; }
 
     /** Returns the assignment of this variable. */
-    int getAssignment() { return assignment; }
+    byte getAssignment() { return assignment; }
 
     /** Returns the index of this variable. */
     int getIndex() { return ix; }

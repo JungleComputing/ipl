@@ -51,7 +51,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
 	}
-	ctx.assignment[var] = val?1:0;
+	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var );
@@ -120,7 +120,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
             p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
         }
 
-	ctx.assignment[var] = val?1:0;
+	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var );

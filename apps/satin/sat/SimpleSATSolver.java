@@ -41,7 +41,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     public void leafSolve(
 	SATProblem p,
 	int varlist[],
-	int assignments[],
+	byte assignments[],
 	int varix
     ) throws SATResultException
     {
@@ -92,7 +92,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
      */
     public void solve(
 	Context ctx,
-	int assignments[],
+	byte assignments[],
 	int varix
     ) throws SATResultException
     {
@@ -134,8 +134,8 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	    assignments[var] = -1;
 	}
 	else {
-	    int posassignments[] = (int []) assignments.clone();
-	    int negassignments[] = (int []) assignments.clone();
+	    byte posassignments[] = (byte []) assignments.clone();
+	    byte negassignments[] = (byte []) assignments.clone();
 	    posassignments[var] = 1;
 	    negassignments[var] = 0;
 	    solve( ctx, posassignments, varix+1 );
@@ -150,7 +150,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
      */
     static SATSolution solveSystem( final SATProblem p )
     {
-	int assignments[] = p.buildInitialAssignments();
+	byte assignments[] = p.buildInitialAssignments();
 	int varlist[] = p.buildOrderedVarList();
 	SATSolution res = null;
 	int n = firstVariables;
