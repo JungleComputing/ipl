@@ -395,7 +395,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return res;
 	}
 
-	public synchronized void close() {
+	public synchronized void close() throws IOException {
 		if (DEBUG) { 
 			System.err.println("TcpReceivePort.free: " + name + ": Starting");
 		}
@@ -413,10 +413,15 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			if (DEBUG) {
 				System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
 			}
-			try {
-				wait();
-			} catch (Exception e) {
-				// Ignore.
+			if (no_connectionhandler_thread) {
+				connections[0].reader();
+			}
+			else {
+				try {
+					wait();
+				} catch (Exception e) {
+					// Ignore.
+				}
 			}
 		}
 
