@@ -73,7 +73,8 @@ class RPC
 		   ReceivePortConnectUpcall,
 		   SendPortConnectUpcall {
 
-    private static int BUFSIZ = TypedProperties.intProperty("socketbuffersize", 0);
+    private final static int BUFSIZ = TypedProperties.intProperty("socketbuffersize", 0);
+    private final static boolean VARIANCE_TIMER = TypedProperties.booleanProperty("variance-timer", false);
 
     private Ibis        myIbis;
     private Registry    registry;
@@ -297,13 +298,38 @@ class RPC
 	    }
 	    rcve_one(false /* Not read_data */, partners, 0);
 	} else {
+
+	    ibis.util.Timer t = null;
+	    ibis.util.Timer sum = null;
+	    if (VARIANCE_TIMER) {
+		t = ibis.util.Timer.createTimer("ibis.util.nativeCode.Rdtsc");
+		sum = ibis.util.Timer.createTimer("ibis.util.nativeCode.Rdtsc");
+	    }
+
 	    for (int i = 0; i < count; i++) {
 		for (int k = 0; k < client_spin; k++) {
 		    int r = rand.nextInt();
 		}
+		if (VARIANCE_TIMER) {
+		    t.reset();
+		    t.start();
+		}
 		send_one(false /* Not is_server */);
 		rcve_one(false /* Not read_data */, partners);
+		if (VARIANCE_TIMER) {
+		    t.stop();
+		    double tNow = t.totalTimeVal();
+		    double tAv  = sum.averageTimeVal();
+		    if (i > 0 && tNow > 10 * tAv) {
+			System.err.println("Now see " + tNow + "; av " + tAv);
+		    } else {
+			sum.add(t);
+		    }
+		}
 // System.err.print(".");
+	    }
+	    if (VARIANCE_TIMER) {
+		System.err.println("av " + sum.averageTimeVal());
 	    }
 	}
     }
@@ -326,14 +352,14 @@ class RPC
 	    send_one(true /* is_server */, 0);
 	} else {
 	    for (int i = 0; i < count; i++) {
-System.err.println("Server wants to receive message " + i + " out of " + count);
+// System.err.println("Server wants to receive message " + i + " out of " + count);
 		rcve_one(true /* read_data */, partners);
 // System.err.print(":");
 		for (int k = 0; k < server_spin; k++) {
 		    int r = rand.nextInt();
 		}
 		if (clients == 1 || (i + 1) % clients == 0) {
-System.err.println("Server want to send reply " + i + " out of " + count);
+// System.err.println("Server want to send reply " + i + " out of " + count);
 		    send_one(true /* is_server */);
 		}
 		if (gc_on_rcve) {
