@@ -1,7 +1,11 @@
 The compression in this program is based on a single trick: replacing
 spans of text with references to earlier spans of text.  This is
 nothing special: all mainstream text compressors have this trick as
-part of their arsenal.
+part of their arsenal. It is part of a class of compression algorithms
+that are called `dictionary-based' because they compress a text 
+by replacing text fragments with references to a dictionary of text
+fragements. In our particular case the dictionary is the previously
+compressed text.
 
 What *is* special, however, is the aggressiveness with which these
 backreferences are pursued. Texts, especially larger ones, and
