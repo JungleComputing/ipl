@@ -187,7 +187,7 @@ final class SendReceiveThread implements Runnable, Config {
 
         in = (ThreadNioDissipator) key.attachment();
 
-        in.read();
+        in.doRead();
     }
 
     /**

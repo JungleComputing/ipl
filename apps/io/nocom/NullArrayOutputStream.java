@@ -3,9 +3,9 @@
 
 import java.io.IOException;
 
-import ibis.io.ArrayOutputStream;
+import ibis.io.DataOutputStream;
 
-final class NullArrayOutputStream extends ArrayOutputStream {
+final class NullArrayOutputStream extends DataOutputStream {
 
     long len = 0;
 
@@ -17,6 +17,50 @@ final class NullArrayOutputStream extends ArrayOutputStream {
 
     public final void writeArray(boolean[] a, int off, int len)
             throws IOException {
+        this.len += len;
+    }
+
+    public final void write(int i) {
+        this.len += 1;
+    }
+
+    public final void writeByte(byte i) {
+        this.len += 1;
+    }
+
+    public final void writeBoolean(boolean i) {
+        this.len += 1;
+    }
+
+    public final void writeChar(char i) {
+        this.len += 2;
+    }
+
+    public final void writeShort(short i) {
+        this.len += 2;
+    }
+
+    public final void writeInt(int i) {
+        this.len += 4;
+    }
+
+    public final void writeFloat(float i) {
+        this.len += 4;
+    }
+
+    public final void writeDouble(double i) {
+        this.len += 8;
+    }
+
+    public final void writeLong(long i) {
+        this.len += 8;
+    }
+
+    public final void write(byte[] a) {
+        this.len += a.length;
+    }
+
+    public final void write(byte[] a, int off, int len) {
         this.len += len;
     }
 

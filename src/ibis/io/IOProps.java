@@ -20,6 +20,8 @@ class IOProps {
 
     static final String s_timer = PROPERTY_PREFIX + "serialization.timer";
 
+    static final String s_no_array_buffers = PROPERTY_PREFIX + "noarraybuffers";
+
     static final String s_timer_in = PROPERTY_PREFIX
             + "serialization.timer.input";
 

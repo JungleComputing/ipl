@@ -2,7 +2,7 @@
 
 package ibis.impl.nio;
 
-import ibis.io.SerializationInputStream;
+import ibis.io.SerializationInput;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
@@ -10,7 +10,7 @@ import ibis.ipl.SendPortIdentifier;
 import java.io.IOException;
 
 final class NioReadMessage implements ReadMessage, Config {
-    SerializationInputStream in;
+    SerializationInput in;
 
     NioDissipator dissipator;
 
@@ -101,7 +101,7 @@ final class NioReadMessage implements ReadMessage, Config {
     }
 
     public String readString() throws IOException {
-        return (String) in.readUTF();
+        return in.readString();
     }
 
     public Object readObject() throws IOException, ClassNotFoundException {

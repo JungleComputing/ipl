@@ -3,17 +3,19 @@
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 import java.util.ArrayList;
 
-import ibis.io.ArrayInputStream;
-import ibis.io.ArrayOutputStream;
+import ibis.io.DataInputStream;
+import ibis.io.DataOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.IbisSerializationOutputStream;
+import ibis.io.SunSerializationInputStream;
+import ibis.io.SunSerializationOutputStream;
+import ibis.io.SerializationInput;
+import ibis.io.SerializationOutput;
 
 public class Main {
 
@@ -197,11 +199,11 @@ public class Main {
 
             StoreBuffer buf = new StoreBuffer();
 
-            ArrayOutputStream out = null;
-            ArrayInputStream in = null;
+            DataOutputStream out = null;
+            DataInputStream in = null;
             StoreArrayInputStream sin = null;
-            ObjectOutputStream mout = null;
-            ObjectInputStream min = null;
+            SerializationOutput mout = null;
+            SerializationInput min = null;
 
             StoreOutputStream store_out = null;
             StoreInputStream store_in = null;
@@ -212,8 +214,8 @@ public class Main {
                 store_in = new StoreInputStream(buf);
 
                 if (ser == SUN) {
-                    mout = new ObjectOutputStream(store_out);
-                    min = new ObjectInputStream(store_in);
+                    mout = new SunSerializationOutputStream(store_out);
+                    min = new SunSerializationInputStream(store_in);
                     System.err
                             .println("Running SUN serialization read test of "
                                     + obj.id());
@@ -330,14 +332,14 @@ public class Main {
             double best_rtp = 0.0, best_ktp = 0.0;
             long best_time = 1000000;
 
-            ArrayOutputStream out = null;
+            DataOutputStream out = null;
             NullOutputStream os = null;
-            ObjectOutputStream mout = null;
+            SerializationOutput mout = null;
 
             if (conversion) {
                 os = new NullOutputStream();
                 if (ser == SUN) {
-                    mout = new ObjectOutputStream(os);
+                    mout = new SunSerializationOutputStream(os);
                     System.err
                             .println("Running Sun serialization write test of "
                                     + obj.id());

@@ -56,7 +56,7 @@ Java_ibis_impl_messagePassing_ByteInputStream_lockedRead(
 
     assert(msg != NULL);
 
-    IBP_VPRINTF(250, env, ("Consume 1 int from msg %p, currently holds %d\n",
+    IBP_VPRINTF(250, env, ("Consume 1 byte from msg %p, currently holds %d\n",
 		msg, ibp_msg_consume_left(msg)));
     rd = 0;
     while (rd < (int)sizeof(jbyte)) {

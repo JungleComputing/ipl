@@ -120,7 +120,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
     public void writeArray(byte[] value) throws IOException {
-        out.write(value);
+        out.writeArray(value);
     }
 
     public void writeArray(char[] value) throws IOException {

@@ -90,7 +90,7 @@ public class Main {
                 start = System.currentTimeMillis();
 
                 for (int i = 0; i < count2; i++) {
-                    mout.writeByte(1);
+                    mout.writeByte((byte) 1);
                     mout.flush();
                     min.readByte();
                 }
@@ -106,7 +106,7 @@ public class Main {
                 start = System.currentTimeMillis();
 
                 for (int i = 0; i < count3; i++) {
-                    mout.write(b);
+                    mout.writeArray(b);
                 }
 
                 mout.flush();
@@ -156,22 +156,22 @@ public class Main {
                     temp = (Data) min.readObject();
                 }
 
-                mout.writeByte(1);
+                mout.writeByte((byte) 1);
                 mout.flush();
 
                 for (int i = 0; i < count2; i++) {
                     min.readByte();
-                    mout.writeByte(1);
+                    mout.writeByte((byte) 1);
                     mout.flush();
                 }
 
                 byte[] b = new byte[1024 * 1024];
 
                 for (int i = 0; i < count3; i++) {
-                    min.readFully(b);
+                    min.readArray(b);
                 }
 
-                mout.writeByte(1);
+                mout.writeByte((byte) 1);
                 mout.flush();
 
                 s.close();

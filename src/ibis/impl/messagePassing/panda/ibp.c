@@ -682,6 +682,7 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 
     free(fs_host_inet);
 
+    fflush(stdout);
     pan_init(&argc, argv);
 
     for (i = 3; i < argc; i++) {

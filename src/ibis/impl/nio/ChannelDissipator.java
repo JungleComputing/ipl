@@ -2,9 +2,10 @@
 
 package ibis.impl.nio;
 
-import ibis.io.Dissipator;
+import ibis.io.DataInputStream;
 
 import java.io.IOException;
+import java.io.EOFException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -13,7 +14,7 @@ import java.nio.channels.ReadableByteChannel;
 /**
  * Reads data from a channel.
  */
-public final class ChannelDissipator extends Dissipator implements Config {
+public final class ChannelDissipator extends DataInputStream implements Config {
     public static final int SIZEOF_BYTE = 1;
 
     public static final int SIZEOF_CHAR = 2;
@@ -87,6 +88,14 @@ public final class ChannelDissipator extends Dissipator implements Config {
         } catch (BufferUnderflowException e) {
             readAtLeast(SIZEOF_BYTE);
             return buffer.get();
+        }
+    }
+
+    public int read() throws IOException {
+        try {
+            return readByte() & 0377;
+        } catch(EOFException e) {
+            return -1;
         }
     }
 

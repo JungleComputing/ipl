@@ -2,8 +2,8 @@
 
 package ibis.impl.nio;
 
-import ibis.io.Accumulator;
-import ibis.io.Dissipator;
+import ibis.io.DataInputStream;
+import ibis.io.DataOutputStream;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPortIdentifier;
 
@@ -25,7 +25,7 @@ public final class NioSendPortIdentifier implements SendPortIdentifier,
         this.ibis = ibis;
     }
 
-    NioSendPortIdentifier(Dissipator in) throws IOException {
+    NioSendPortIdentifier(DataInputStream in) throws IOException {
         int nameLength;
         int typeLength;
         byte[] nameBytes;
@@ -84,7 +84,7 @@ public final class NioSendPortIdentifier implements SendPortIdentifier,
         return name;
     }
 
-    public void writeTo(Accumulator out) throws IOException {
+    public void writeTo(DataOutputStream out) throws IOException {
         byte[] nameBytes;
         byte[] typeBytes;
 

@@ -2,11 +2,12 @@
 
 package ibis.impl.nio;
 
-import ibis.io.Dissipator;
-import ibis.io.SerializationInputStream;
+import ibis.io.DataInputStream;
+import ibis.io.SerializationInput;
 import ibis.ipl.IbisError;
 
 import java.io.IOException;
+import java.io.EOFException;
 import java.nio.Buffer;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -23,7 +24,7 @@ import java.nio.channels.ReadableByteChannel;
  * Reads data into a single bytebuffer, and creates views of it to
  * drain it. Depends upon a subclass to do the actual reading from somewhere
  */
-public abstract class NioDissipator extends Dissipator implements Config,
+public abstract class NioDissipator extends DataInputStream implements Config,
         Protocol {
     public static final int SIZEOF_BYTE = 1;
 
@@ -105,7 +106,7 @@ public abstract class NioDissipator extends Dissipator implements Config,
 
     private long count = 0;
 
-    SerializationInputStream sis = null;
+    SerializationInput sis = null;
 
     NioSendPortIdentifier peer;
 
@@ -492,6 +493,14 @@ public abstract class NioDissipator extends Dissipator implements Config,
         return result;
     }
 
+    public int read() throws IOException {
+        try {
+            return readByte() & 0377;
+        } catch(EOFException e) {
+            return -1;
+        }
+    }
+
     public char readChar() throws IOException {
         try {
             return chars.get();
@@ -584,6 +593,52 @@ public abstract class NioDissipator extends Dissipator implements Config,
 
             Debug.message("data", this, message);
         }
+    }
+
+    public int read(byte[] ref) throws IOException {
+        return read(ref, 0, ref.length);
+    }
+
+    public int read(byte ref[], int off, int len) throws IOException {
+        try {
+            bytes.get(ref, off, len);
+        } catch (BufferUnderflowException e) {
+            //do this the hard way
+            int left = len;
+            int offset = off;
+            int size;
+
+            try {
+                while (left > 0) {
+                    //copy as much as possible to the buffer
+                    size = Math.min(left, bytes.remaining());
+                    bytes.get(ref, offset, size);
+                    offset += size;
+                    left -= size;
+
+                    // if still needed, fetch some more bytes from the
+                    // channel
+                    if (left > 0) {
+                        receive();
+                    }
+                }
+            } catch(EOFException e2) {
+                len = offset - off;
+                if (len == 0) {
+                    return -1;
+                }
+            }
+        }
+
+        if (DEBUG) {
+            String message = "received byte[], Contents: ";
+            for (int i = off; i < (off + len); i++) {
+                message = message + ref[i] + " ";
+            }
+
+            Debug.message("data", this, message);
+        }
+        return len;
     }
 
     public void readArray(char ref[], int off, int len) throws IOException {

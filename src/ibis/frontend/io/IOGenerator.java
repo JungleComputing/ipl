@@ -987,7 +987,7 @@ public class IOGenerator {
                     Constants.INVOKEVIRTUAL));
             write_il.append(factory.createInvoke(
                     "ibis.io.IbisSerializationOutputStream",
-                    "writeObjectOverride", Type.VOID,
+                    "writeObject", Type.VOID,
                     new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
             InstructionHandle end_try = write_il.append(gotos[8]);
 
@@ -1319,7 +1319,7 @@ public class IOGenerator {
                 read_il.append(new ALOAD(1));
                 if (tpname.equals("")) {
                     read_il.append(factory.createInvoke(ibis_input_stream_name,
-                            "readObjectOverride", Type.OBJECT, Type.NO_ARGS,
+                            "readObject", Type.OBJECT, Type.NO_ARGS,
                             Constants.INVOKEVIRTUAL));
                 } else {
                     read_il.append(factory.createInvoke(ibis_input_stream_name,
@@ -1371,7 +1371,7 @@ public class IOGenerator {
             read_il.append(new ALOAD(1));
             if (tpname.equals("")) {
                 read_il.append(factory.createInvoke(ibis_input_stream_name,
-                        "readObjectOverride", tp, Type.NO_ARGS,
+                        "readObject", tp, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
             } else {
                 read_il.append(factory.createInvoke(ibis_input_stream_name,
@@ -1978,10 +1978,16 @@ public class IOGenerator {
                                 Type.OBJECT, Type.INT },
                         Constants.INVOKEVIRTUAL));
 
+                write_il.append(new ALOAD(0));
+                write_il.append(new ALOAD(1));
+                write_il.append(factory.createInvoke(
+                            ibis_output_stream_name,
+                            "getJavaObjectOutputStream",
+                            sun_output_stream,
+                            Type.NO_ARGS,
+                            Constants.INVOKEVIRTUAL));
                 if (is_externalizable) {
                     /* Invoke writeExternal */
-                    write_il.append(new ALOAD(0));
-                    write_il.append(new ALOAD(1));
                     write_il.append(
                             factory.createInvoke(classname, "writeExternal",
                                     Type.VOID, new Type[] { new ObjectType(
@@ -1989,8 +1995,6 @@ public class IOGenerator {
                                     Constants.INVOKEVIRTUAL));
                 } else {
                     /* Invoke writeObject. */
-                    write_il.append(new ALOAD(0));
-                    write_il.append(new ALOAD(1));
                     write_il.append(createWriteObjectInvocation());
                 }
 
@@ -2028,10 +2032,16 @@ public class IOGenerator {
                                     Type.OBJECT, Type.INT },
                             Constants.INVOKEVIRTUAL));
 
+                    read_il.append(new ALOAD(0));
+                    read_il.append(new ALOAD(1));
+                    read_il.append(factory.createInvoke(
+                                ibis_input_stream_name,
+                                "getJavaObjectInputStream",
+                                sun_input_stream,
+                                Type.NO_ARGS,
+                                Constants.INVOKEVIRTUAL));
                     if (is_externalizable) {
                         /* Invoke readExternal */
-                        read_il.append(new ALOAD(0));
-                        read_il.append(new ALOAD(1));
                         read_il.append(factory.createInvoke(classname,
                                 "readExternal", Type.VOID,
                                 new Type[] { new ObjectType(
@@ -2039,8 +2049,6 @@ public class IOGenerator {
                                 Constants.INVOKEVIRTUAL));
                     } else {
                         /* Invoke readObject. */
-                        read_il.append(new ALOAD(0));
-                        read_il.append(new ALOAD(1));
                         read_il.append(factory.createInvoke(classname,
                                 "readObject", Type.VOID,
                                 new Type[] { sun_input_stream },
@@ -2181,8 +2189,8 @@ public class IOGenerator {
                 "writeClass", "readClass", "readFieldClass",
                 java_lang_class_type, java_lang_class_type, true));
 
-        referenceSerialization = new SerializationInfo("writeObjectOverride",
-                "readObjectOverride", "readFieldObject", Type.OBJECT,
+        referenceSerialization = new SerializationInfo("writeObject",
+                "readObject", "readFieldObject", Type.OBJECT,
                 Type.OBJECT, false);
     }
 

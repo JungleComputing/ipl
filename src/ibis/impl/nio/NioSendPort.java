@@ -2,7 +2,7 @@
 
 package ibis.impl.nio;
 
-import ibis.io.SerializationOutputStream;
+import ibis.io.SerializationOutput;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
@@ -26,7 +26,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
     private boolean aMessageIsAlive = false;
 
-    private SerializationOutputStream out = null;
+    private SerializationOutput out = null;
 
     private NioWriteMessage message;
 

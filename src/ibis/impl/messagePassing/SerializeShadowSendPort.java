@@ -4,15 +4,15 @@ package ibis.impl.messagePassing;
 
 import ibis.io.SunSerializationInputStream;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.BufferedInputStream;
 
 /**
  * Receiver-side stub for a SendPort that performs Sun serialization
  */
 final class SerializeShadowSendPort extends ShadowSendPort {
 
-    java.io.ObjectInput obj_in;
+    SunSerializationInputStream obj_in;
 
     private int synchost;
 
@@ -80,37 +80,6 @@ final class SerializeShadowSendPort extends ShadowSendPort {
         obj_in = null;
     }
 
-    /**
-     * Sun serialization expects a standard {@link java.io.InputStream}
-     * for its input, which {@link ByteInputStream} is not.
-     * We provide a converter class.
-     */
-    private static class InputStream extends java.io.InputStream {
-
-        ByteInputStream in;
-
-        InputStream(ByteInputStream in) {
-            this.in = in;
-        }
-
-        public int read() throws IOException {
-            return in.read();
-        }
-
-        public int read(byte[] b) throws IOException {
-            return in.read(b);
-        }
-
-        public int read(byte[] b, int off, int len) throws IOException {
-            return in.read(b, off, len);
-        }
-
-        public int available() throws IOException {
-            return in.available();
-        }
-
-    }
-
     boolean checkStarted(ReadMessage msg) throws IOException {
 
         if (DEBUG) {
@@ -128,8 +97,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
         Ibis.myIbis.unlock();
         try {
-            obj_in = new SunSerializationInputStream(new BufferedInputStream(
-                    new InputStream(in)));
+            obj_in = new SunSerializationInputStream(new BufferedInputStream(in));
         } finally {
             Ibis.myIbis.lock();
         }

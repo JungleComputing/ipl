@@ -42,7 +42,7 @@ class ElectionServer implements Runnable, ibis.ipl.Upcall {
             if (ElectionServer.DEBUG) {
                 System.err.println(Thread.currentThread()
                         + "ElectionServer receives election " + name
-                        + " contender " + o.toString());
+                        + " contender " + (o == null ? "null" : o.toString()));
             }
 
             Object e;
@@ -63,14 +63,13 @@ class ElectionServer implements Runnable, ibis.ipl.Upcall {
                 }
             }
 
-            if (ElectionServer.DEBUG) {
+            if (ElectionServer.DEBUG && e != null) {
                 System.err.println(Thread.currentThread()
                         + "ElectionServer pronounces election " + name
                         + " winner " + e.toString());
             }
             ibis.ipl.WriteMessage r = client_port[sender].newMessage();
             r.writeObject(e);
-            r.send();
             r.finish();
             if (ElectionServer.DEBUG) {
                 System.err.println(Thread.currentThread()

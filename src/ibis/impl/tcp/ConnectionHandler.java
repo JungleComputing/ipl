@@ -9,16 +9,12 @@
 package ibis.impl.tcp;
 
 import ibis.io.BufferedArrayInputStream;
-import ibis.io.DataSerializationInputStream;
-import ibis.io.DummyInputStream;
-import ibis.io.IbisSerializationInputStream;
-import ibis.io.NoSerializationInputStream;
-import ibis.io.SerializationInputStream;
-import ibis.io.SunSerializationInputStream;
+import ibis.io.SerializationInput;
+import ibis.io.SerializationBase;
+import ibis.io.Conversion;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,15 +23,13 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 
     private TcpReceivePort port;
 
-    private InputStream input;
-
-    final DummyInputStream dummy;
-
-    private final BufferedArrayInputStream dummy_ibis;
+    final BufferedArrayInputStream bufferedInput;
 
     TcpSendPortIdentifier origin;
 
-    private SerializationInputStream in;
+    private SerializationInput in;
+
+    private InputStream input;
 
     TcpReadMessage m;
 
@@ -50,51 +44,14 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
         this.input = input;
         this.ibis = ibis;
 
-        switch (port.type.serializationType) {
-        case TcpPortType.SERIALIZATION_SUN:
-            // always make a new BufferedInputStream: the one in JVM1.4 
-            // has side-effect in close()
-            dummy = new DummyInputStream(new BufferedInputStream(input,
-                    60 * 1024));
-            dummy_ibis = null;
-            break;
-        case TcpPortType.SERIALIZATION_NONE:
-            // always make a new BufferedInputStream: the one in JVM1.4 
-            // has side-effect in close()
-            dummy = new DummyInputStream(new BufferedInputStream(input,
-                    60 * 1024));
-            dummy_ibis = null;
-            break;
-        case TcpPortType.SERIALIZATION_IBIS:
-        case TcpPortType.SERIALIZATION_DATA:
-            // maybe the dummy should be on the outside ??? Jason
-            dummy = new DummyInputStream(input);
-            dummy_ibis = new BufferedArrayInputStream(dummy);
-            break;
-        default:
-            throw new IbisError("EEK: serialization type unknown");
-        }
+        bufferedInput = new BufferedArrayInputStream(input);
 
         createNewStream();
     }
 
     private void createNewStream() throws IOException {
-        switch (port.type.serializationType) {
-        case TcpPortType.SERIALIZATION_SUN:
-            in = new SunSerializationInputStream(dummy);
-            break;
-        case TcpPortType.SERIALIZATION_NONE:
-            in = new NoSerializationInputStream(dummy);
-            break;
-        case TcpPortType.SERIALIZATION_IBIS:
-            in = new IbisSerializationInputStream(dummy_ibis);
-            break;
-        case TcpPortType.SERIALIZATION_DATA:
-            in = new DataSerializationInputStream(dummy_ibis);
-            break;
-        default:
-            throw new IbisError("EEK: serialization type unknown");
-        }
+        in = SerializationBase.createSerializationInput(port.type.ser,
+                bufferedInput);
 
         m = new TcpReadMessage(port, in, origin, this);
     }
@@ -200,33 +157,36 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
                 return;
             case CLOSE_ONE_CONNECTION:
                 TcpReceivePortIdentifier identifier;
+                byte[] receiverLength = new byte[Conversion.INT_SIZE];
+                byte[] receiverBytes;
                 // the identifier of the receiveport which whould disconnect
                 // is coming next
-                switch (port.type.serializationType) {
-                case TcpPortType.SERIALIZATION_SUN:
-                case TcpPortType.SERIALIZATION_IBIS:
-                    try {
-                        identifier = (TcpReceivePortIdentifier) in.readObject();
-                        if (identifier.equals(port.identifier())) {
-                            if (DEBUG) {
-                                System.out.println(port.name
-                                        + ": got a disconnect from: " + origin);
-                            }
-                            close(null);
-                            return;
-                        }
-                    } catch (ClassNotFoundException e) {
+                in.readArray(receiverLength);
+                receiverBytes = new byte[Conversion.defaultConversion.byte2int(
+                        receiverLength, 0)];
+                in.readArray(receiverBytes);
+                try {
+                    identifier = (TcpReceivePortIdentifier)
+                            Conversion.byte2object(receiverBytes);
+                    if (identifier.equals(port.identifier())) {
                         if (DEBUG) {
                             System.out.println(port.name
-                                    + ": disconnect from: " + origin
-                                    + " failed");
+                                    + ": got a disconnect from: " + origin);
                         }
+                        close(null);
                     }
-                    //someone else is closing down, just reset the stream
-                    in.close();
-                    createNewStream();
-                    break;
+                    else {
+                        //someone else is closing down, just reset the stream
+                        in.close();
+                        createNewStream();
+                    }
+                } catch(ClassNotFoundException e) {
+                    if (DEBUG) {
+                        System.out.println(port.name + ": disconnect from: "
+                                 + origin + " failed");
+                    }
                 }
+                break;
             default:
                 throw new IbisError(port.name + " EEK TcpReceivePort: "
                         + "run: got illegal opcode: " + opcode + " from: "

@@ -98,8 +98,7 @@ public class SendPort implements ibis.ipl.SendPort {
     protected native void ibmp_disconnect(int remoteCPU, byte[] receiverPortId,
             byte[] sendPortId, ConnectAcker sncer, int cnt);
 
-    public SendPort(PortType type, String name, boolean syncMode,
-            boolean makeCopy) throws IOException {
+    public SendPort(PortType type, String name) throws IOException {
         Ibis.myIbis.lock();
         try {
             Ibis.myIbis.registerSendPort(this);
@@ -110,16 +109,13 @@ public class SendPort implements ibis.ipl.SendPort {
         this.type = type;
         ident = new SendPortIdentifier(name, type.name());
         portIsFree = Ibis.myIbis.createCV();
-        out = new ByteOutputStream(this, syncMode, makeCopy);
+        out = new ByteOutputStream(this);
         count = 0;
     }
 
     public void setReplacer(Replacer r) throws IOException {
         // Is replacer unnecessary in MessagePassing? Ceriel?
-    }
-
-    public SendPort(PortType type, String name) throws IOException {
-        this(type, name, true, false);
+        // For no serialization it is.
     }
 
     protected synchronized int addConnection(ReceivePortIdentifier rid)

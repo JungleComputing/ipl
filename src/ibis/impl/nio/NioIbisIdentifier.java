@@ -2,8 +2,8 @@
 
 package ibis.impl.nio;
 
-import ibis.io.Accumulator;
-import ibis.io.Dissipator;
+import ibis.io.DataOutputStream;
+import ibis.io.DataInputStream;
 import ibis.ipl.IbisIdentifier;
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ public final class NioIbisIdentifier extends IbisIdentifier implements
         super(name);
     }
 
-    public NioIbisIdentifier(Dissipator in) throws IOException {
+    public NioIbisIdentifier(DataInputStream in) throws IOException {
         //bogus name
         super("will override this");
 
@@ -72,7 +72,7 @@ public final class NioIbisIdentifier extends IbisIdentifier implements
     /**
      * Writes out this identifier to an accumulator
      */
-    public void writeTo(Accumulator out) throws IOException {
+    public void writeTo(DataOutputStream out) throws IOException {
         byte[] nameBytes;
         byte[] clusterBytes;
 

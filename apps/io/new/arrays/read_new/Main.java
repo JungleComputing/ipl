@@ -3,8 +3,8 @@
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import ibis.io.ArrayInputStream;
-import ibis.io.ArrayOutputStream;
+import ibis.io.DataInputStream;
+import ibis.io.DataOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.IbisSerializationInputStream;
@@ -91,14 +91,14 @@ public class Main {
 		temp = (boolean []) min.readObject();
 	    }
 
-	    mout.writeByte(1);
+	    mout.writeByte((byte)1);
 	    mout.flush();
 
 	    for (int i=0;i<count;i++) {
 		temp = (boolean []) min.readObject();
 	    }
 
-	    mout.writeByte(1);
+	    mout.writeByte((byte)1);
 	    mout.flush();
 
 	} 
@@ -161,7 +161,7 @@ public class Main {
 		    temp = (byte []) min.readObject();
 		}
 
-		mout.writeByte(1);
+		mout.writeByte((byte)1);
 		mout.flush();
 	    } 
 	} 
@@ -224,7 +224,7 @@ public class Main {
 		    temp = (char []) min.readObject();
 		}
 
-		mout.writeByte(1);
+		mout.writeByte((byte)1);
 		mout.flush();
 	    } 
 	} 
@@ -287,7 +287,7 @@ public class Main {
 		    temp = (short []) min.readObject();
 		}
 
-		mout.writeByte(1);
+		mout.writeByte((byte)1);
 		mout.flush();
 	    } 
 	} 
@@ -350,7 +350,7 @@ public class Main {
 		    temp = (int []) min.readObject();
 		}
 
-		mout.writeByte(1);
+		mout.writeByte((byte)1);
 		mout.flush();
 	    } 
 	} 
@@ -413,7 +413,7 @@ public class Main {
 		    temp = (long []) min.readObject();
 		}
 
-		mout.writeByte(1);
+		mout.writeByte((byte)1);
 		mout.flush();
 	    } 
 	} 
@@ -476,7 +476,7 @@ public class Main {
 		    temp = (float []) min.readObject();
 		}
 
-		mout.writeByte(1);
+		mout.writeByte((byte)1);
 		mout.flush();
 	    } 
 	} 
@@ -539,7 +539,7 @@ public class Main {
 		    temp = (double []) min.readObject();
 		}
 
-		mout.writeByte(1);
+		mout.writeByte((byte)1);
 		mout.flush();
 	    } 
 	} 
@@ -561,8 +561,8 @@ public class Main {
 
 		s.setTcpNoDelay(true);
 
-		ArrayInputStream   in = new BufferedArrayInputStream(s.getInputStream());
-		ArrayOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
+		DataInputStream   in = new BufferedArrayInputStream(s.getInputStream());
+		DataOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
 
 		IbisSerializationInputStream   min = new IbisSerializationInputStream(in);
 		IbisSerializationOutputStream mout = new IbisSerializationOutputStream(out);
@@ -593,8 +593,8 @@ public class Main {
 
 		s.setTcpNoDelay(true);
 
-		ArrayInputStream   in = new BufferedArrayInputStream(s.getInputStream());
-		ArrayOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
+		DataInputStream   in = new BufferedArrayInputStream(s.getInputStream());
+		DataOutputStream out = new BufferedArrayOutputStream(s.getOutputStream());
 
 		IbisSerializationInputStream   min = new IbisSerializationInputStream(in);
 		IbisSerializationOutputStream mout = new IbisSerializationOutputStream(out);

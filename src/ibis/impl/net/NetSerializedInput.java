@@ -2,7 +2,7 @@
 
 package ibis.impl.net;
 
-import ibis.io.SerializationInputStream;
+import ibis.io.SerializationInput;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -27,13 +27,13 @@ public abstract class NetSerializedInput extends NetInput {
     protected NetInput subInput = null;
 
     /**
-     * The currently active {@linkplain SerializationInputStream serialization
+     * The currently active {@linkplain SerializationInput serialization
      * input stream}, or <code>null</code>.
      */
-    protected SerializationInputStream iss = null;
+    protected SerializationInput iss = null;
 
     /**
-     * The table containing each {@linkplain SerializationInputStream
+     * The table containing each {@linkplain SerializationInput
      * serialization input stream}.
      *
      * The table is indexed by connection numbers.
@@ -108,7 +108,7 @@ public abstract class NetSerializedInput extends NetInput {
         subInput.setInterruptible(interruptible);
     }
 
-    public abstract SerializationInputStream newSerializationInputStream()
+    public abstract SerializationInput newSerializationInputStream()
             throws IOException;
 
     public void initReceive(Integer num) throws IOException {
@@ -121,7 +121,7 @@ public abstract class NetSerializedInput extends NetInput {
         headerOffset = subInput.getHeadersLength();
 
         boolean makeNewStream;
-        iss = (SerializationInputStream) streamTable.get(activeNum);
+        iss = (SerializationInput) streamTable.get(activeNum);
         if (requiresStreamReinit) {
             byte b = subInput.readByte();
             makeNewStream = (b != 0);
@@ -131,6 +131,7 @@ public abstract class NetSerializedInput extends NetInput {
 
         if (makeNewStream) {
             iss = newSerializationInputStream();
+            requiresStreamReinit = iss.reInitOnNewConnection();
             if (activeNum == null) {
                 throw new Error("invalid state: activeNum is null");
             }

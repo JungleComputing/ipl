@@ -2,34 +2,49 @@
 
 package ibis.io;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * Implementation of <code>ArrayInputStream</code> on top of an
- * <code>InputStream</code>.
- */
+import ibis.io.Conversion;
 
-public final class BufferedArrayInputStream extends ArrayInputStream {
+/**
+ * This is a complete implementation of <code>DataInputStream</code>.
+ * It is built on top of an <code>InputStream</code>.
+ * There is no need to put any buffering inbetween. This implementation
+ * does all the buffering needed.
+ */
+public final class BufferedArrayInputStream extends DataInputStream
+        implements IbisStreamFlags {
+
+    /** The buffer size. */
+    private static final int BUF_SIZE = BUFFER_SIZE;
 
     /** The underlying <code>InputStream</code>. */
     private InputStream in;
 
-    /** The buffer size. */
-    private static final int BUF_SIZE = IbisStreamFlags.BUFFER_SIZE;
-
     /** The buffer. */
-    private byte[] buffer;
+    private byte[] buffer = new byte[BUF_SIZE];
 
     private int index, buffered_bytes;
+
+    /** Number of bytes read so far from the underlying layer. */
+    private long bytes = 0;
 
     /** Object used to convert primitive types to bytes. */
     private Conversion conversion;
 
     public BufferedArrayInputStream(InputStream in) {
         this.in = in;
-        buffer = new byte[BUF_SIZE];
         conversion = Conversion.loadConversion(false);
+    }
+
+    public long bytesRead() {
+        return bytes;
+    }
+
+    public void resetBytesRead() {
+        bytes = 0;
     }
 
     private static final int min(int a, int b) {
@@ -37,7 +52,12 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
     }
 
     public final int read() throws IOException {
-        throw new IOException("int read() has no meaning for typed stream");
+        try {
+            byte b = readByte();
+            return (b & 0377);
+        } catch(EOFException e) {
+            return -1;
+        }
     }
 
     private final void fillBuffer(int len) throws IOException {
@@ -46,6 +66,16 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
         // PRECONDITION: 'index + buffered_bytes' should never be larger
         // than BUF_SIZE!!
 
+        if (buffered_bytes >= len) {
+            return;
+        }
+        if (buffered_bytes == 0) {
+            index = 0;
+        } else if (index + buffered_bytes > BUF_SIZE - len) {
+            // not enough space for "len" more bytes
+            System.arraycopy(buffer, index, buffer, 0, buffered_bytes);
+            index = 0;
+        }
         while (buffered_bytes < len) {
             // System.err.println("buffer -> filled from " + index + " with "
             // 	       + buffered_bytes + " size " + BUF_SIZE + " read " + len);
@@ -55,7 +85,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
             if (n < 0) {
                 throw new java.io.EOFException("EOF encountered");
             }
-
+            bytes += n;
             buffered_bytes += n;
         }
     }
@@ -456,7 +486,123 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
         index += to_convert;
     }
 
-    public void close() {
-        /* Ignore */
+    public byte readByte() throws IOException {
+        fillBuffer(1);
+        buffered_bytes--;
+        return buffer[index++];
+    }
+
+    public boolean readBoolean() throws IOException {
+        fillBuffer(1);
+        buffered_bytes--;
+        return conversion.byte2boolean(buffer[index++]);
+    }
+
+    public char readChar() throws IOException {
+        char v;
+        fillBuffer(SIZEOF_CHAR);
+        v = conversion.byte2char(buffer, index);
+        index += SIZEOF_CHAR;
+        buffered_bytes -= SIZEOF_CHAR;
+        return v;
+    }
+
+    public short readShort() throws IOException {
+        short v;
+        fillBuffer(SIZEOF_SHORT);
+        v = conversion.byte2short(buffer, index);
+        index += SIZEOF_SHORT;
+        buffered_bytes -= SIZEOF_SHORT;
+        return v;
+    }
+
+    public int readInt() throws IOException {
+        int v;
+        fillBuffer(SIZEOF_INT);
+        v = conversion.byte2int(buffer, index);
+        index += SIZEOF_INT;
+        buffered_bytes -= SIZEOF_INT;
+        return v;
+    }
+
+    public long readLong() throws IOException {
+        long v;
+        fillBuffer(SIZEOF_LONG);
+        v = conversion.byte2long(buffer, index);
+        index += SIZEOF_LONG;
+        buffered_bytes -= SIZEOF_LONG;
+        return v;
+    }
+
+    public float readFloat() throws IOException {
+        float v;
+        fillBuffer(SIZEOF_FLOAT);
+        v = conversion.byte2float(buffer, index);
+        index += SIZEOF_FLOAT;
+        buffered_bytes -= SIZEOF_FLOAT;
+        return v;
+    }
+
+    public double readDouble() throws IOException {
+        double v;
+        fillBuffer(SIZEOF_DOUBLE);
+        v = conversion.byte2double(buffer, index);
+        index += SIZEOF_DOUBLE;
+        buffered_bytes -= SIZEOF_DOUBLE;
+        return v;
+    }
+
+    public int read(byte[] b) throws IOException {
+        return read(b, 0, b.length);
+    }
+
+    public int read(byte[] a, int off, int len) throws IOException {
+        if (DEBUG) {
+            System.err.println("read(byte[" + off + " ... " + (off + len)
+                    + "])");
+        }
+
+        if (buffered_bytes >= len) {
+            // data is already in the buffer.
+            //	    System.err.println("Data is in buffer -> copying " + index +
+            //	    			" ... " + (index+len) + " to " + off);
+
+            System.arraycopy(buffer, index, a, off, len);
+            index += len;
+            buffered_bytes -= len;
+        } else {
+            if (buffered_bytes != 0) {
+                // System.err.println("PARTLY IN BUF " + buffered_bytes
+                //         + " " + len);
+                // first, copy the data we do have to 'a' .
+                System.arraycopy(buffer, index, a, off, buffered_bytes);
+            }
+            int rd = buffered_bytes;
+            index = 0;
+            do {
+                int n = in.read(a, off + rd, len - rd);
+                if (n < 0) {
+                    len = rd;
+                }
+                else {
+                    rd += n;
+                }
+            } while (rd < len);
+
+            buffered_bytes = 0;
+        }
+
+        // System.err.print("result -> byte[");
+        // for (int i=0;i<len;i++) { 
+        //     System.err.print(a[off+i] + ",");
+        // }
+        // System.err.println("]");
+
+        return len;
+
+    }
+
+    public void close() throws IOException {
+        in.close();
     }
 }

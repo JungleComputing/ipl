@@ -26,10 +26,5 @@ final class TwoOutThree extends ibis.satin.SatinObject implements
         }
         t.sync();
         System.out.println(result);
-        if (!result.equals("foo res: 2foo res: 1")) {
-            System.out.println("Test failed!");
-            System.exit(1);
-        }
-        System.out.println("Test succeeded!");
     }
 }

@@ -4,8 +4,6 @@
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import ibis.io.ArrayInputStream;
-import ibis.io.ArrayOutputStream;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.IbisSerializationInputStream;
@@ -106,7 +104,7 @@ public class Main {
                 start = System.currentTimeMillis();
 
                 for (int i = 0; i < count2; i++) {
-                    mout.writeByte(1);
+                    mout.writeByte((byte) 1);
                     mout.flush();
                     min.readByte();
                 }
@@ -123,7 +121,7 @@ public class Main {
                     start = System.currentTimeMillis();
 
                     for (int i = 0; i < count3; i++) {
-                        mout.write(b);
+                        mout.writeArray(b);
                     }
 
                     mout.flush();
@@ -217,7 +215,7 @@ public class Main {
                     }
                 }
 
-                mout.writeByte(1);
+                mout.writeByte((byte) 1);
                 mout.flush();
 
                 for (int i = 0; i < count; i++) {
@@ -228,12 +226,12 @@ public class Main {
                     }
                 }
 
-                mout.writeByte(1);
+                mout.writeByte((byte) 1);
                 mout.flush();
 
                 for (int i = 0; i < count2; i++) {
                     min.readByte();
-                    mout.writeByte(1);
+                    mout.writeByte((byte) 1);
                     mout.flush();
                 }
 
@@ -241,17 +239,17 @@ public class Main {
 
                 for (int warmup = 0; warmup < 2; warmup++) {
                     for (int i = 0; i < count3; i++) {
-                        min.readFully(b);
+                        min.readArray(b);
                     }
 
-                    mout.writeByte(1);
+                    mout.writeByte((byte) 1);
                     mout.flush();
 
                     for (int i = 0; i < count3; i++) {
                         b = (byte[]) min.readObject();
                     }
 
-                    mout.writeByte(1);
+                    mout.writeByte((byte) 1);
                     mout.flush();
                 }
 
@@ -259,7 +257,7 @@ public class Main {
 
                     double[] d = (double[]) min.readObject();
 
-                    mout.writeByte(1);
+                    mout.writeByte((byte) 1);
                     mout.flush();
                 }
 

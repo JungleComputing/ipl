@@ -2,7 +2,7 @@
 
 package ibis.impl.tcp;
 
-import ibis.io.SerializationOutputStream;
+import ibis.io.SerializationOutput;
 import ibis.io.SplitterException;
 import ibis.ipl.IbisError;
 import ibis.ipl.SendPort;
@@ -13,7 +13,7 @@ import java.io.IOException;
 final class TcpWriteMessage implements WriteMessage {
     private TcpSendPort sport;
 
-    private SerializationOutputStream out;
+    private SerializationOutput out;
 
     private boolean connectionAdministration;
 
@@ -21,13 +21,13 @@ final class TcpWriteMessage implements WriteMessage {
 
     boolean isFinished = false;
 
-    TcpWriteMessage(TcpSendPort p, SerializationOutputStream out,
+    TcpWriteMessage(TcpSendPort p, SerializationOutput out,
             boolean connectionAdministration) {
         this.connectionAdministration = connectionAdministration;
         sport = p;
         this.out = out;
         if (Config.STATS) {
-            before = sport.dummy.getCount();
+            before = sport.bufferedStream.bytesWritten();
         }
     }
 
@@ -82,7 +82,7 @@ final class TcpWriteMessage implements WriteMessage {
         }
         sport.finishMessage();
         if (Config.STATS) {
-            long after = sport.dummy.getCount();
+            long after = sport.bufferedStream.bytesWritten();
             long retval = after - before;
             sport.count += retval;
             before = after;
@@ -119,7 +119,7 @@ final class TcpWriteMessage implements WriteMessage {
             //IGNORE
         }
 
-        before = sport.dummy.getCount();
+        before = sport.bufferedStream.bytesWritten();
         sport.finishMessage();
     }
 
@@ -249,7 +249,7 @@ final class TcpWriteMessage implements WriteMessage {
                     "Writing data to a message that was already finished");
         }
         try {
-            out.writeUTF(value);
+            out.writeString(value);
         } catch (SplitterException e) {
             forwardLosses(e);
         }

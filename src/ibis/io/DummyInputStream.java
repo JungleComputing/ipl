@@ -5,6 +5,13 @@ package ibis.io;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * An <code>InputStream</code> that can be placed on top of any existing
+ * <code>java.io.InputStream</code>. It adds statistics and prevents
+ * a <code>close</code> from propagating to the streams below. You need
+ * to use {@link #realClose()} for that.
+ */
+
 public class DummyInputStream extends InputStream {
 
     static final boolean SUPPORT_STATS = true;
@@ -57,10 +64,17 @@ public class DummyInputStream extends InputStream {
         return in.available();
     }
 
+    /**
+     * Dummy close to prevent propagating the close to the underlying
+     * streams.
+     */
     public void close() {
         /* ignore */
     }
 
+    /**
+     * Closes the underlying streams as well.
+     */
     public void realClose() throws IOException {
         in.close();
     }
@@ -77,10 +91,17 @@ public class DummyInputStream extends InputStream {
         return in.markSupported();
     }
 
+    /**
+     * Resets the "number of bytes read" counter.
+     */ 
     public void resetCount() {
         count = 0;
     }
 
+    /**
+     * Returns the number of bytes read from this stream since the last 
+     * call to {@link #resetCount} or the beginning of its existence. 
+     */
     public long getCount() {
         return count;
     }

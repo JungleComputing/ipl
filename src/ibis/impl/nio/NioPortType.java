@@ -2,16 +2,11 @@
 
 package ibis.impl.nio;
 
-import ibis.io.Accumulator;
-import ibis.io.Dissipator;
-import ibis.io.IbisSerializationInputStream;
-import ibis.io.IbisSerializationOutputStream;
-import ibis.io.NoSerializationInputStream;
-import ibis.io.NoSerializationOutputStream;
-import ibis.io.SerializationInputStream;
-import ibis.io.SerializationOutputStream;
-import ibis.io.SunSerializationInputStream;
-import ibis.io.SunSerializationOutputStream;
+import ibis.io.DataInputStream;
+import ibis.io.DataOutputStream;
+import ibis.io.SerializationInput;
+import ibis.io.SerializationOutput;
+import ibis.io.SerializationBase;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
 import ibis.ipl.PortType;
@@ -33,20 +28,7 @@ class NioPortType extends PortType implements Config {
 
     NioIbis ibis;
 
-    static final byte SERIALIZATION_BYTE = 0;
-
-    static final byte SERIALIZATION_DATA = 1;
-
-    static final byte SERIALIZATION_SUN = 2;
-
-    static final byte SERIALIZATION_IBIS = 3;
-
-    static final byte SERIALIZATION_IPL_IBIS = 4;
-
-    static final String[] SERIALIZATION_NAMES = { "Byte", "Data", "Sun",
-            "Nio Ibis", "Ipl Ibis" };
-
-    byte serializationType;
+    String serializationType;
 
     static final byte IMPLEMENTATION_BLOCKING = 0;
 
@@ -84,29 +66,16 @@ class NioPortType extends PortType implements Config {
             numbered = p.isProp("Communication", "Numbered");
         }
 
-        String ser = this.p.find("Serialization");
-        if (ser == null) {
-            this.p = new StaticProperties(p);
-            this.p.add("Serialization", "sun");
+        serializationType = this.p.find("Serialization");
+        if (serializationType == null) {
+            serializationType = "sun";
         }
 
         if (p.isProp("Serialization", "byte")) {
-            serializationType = SERIALIZATION_BYTE;
             if (numbered) {
                 throw new IbisException("Numbered communication is not"
                         + " supported on byte serialization streams");
             }
-        } else if (p.isProp("Serialization", "data")) {
-            serializationType = SERIALIZATION_DATA;
-        } else if (p.isProp("Serialization", "sun")
-                || p.isProp("Serialization", "object")) {
-            serializationType = SERIALIZATION_SUN;
-        } else if (p.isProp("Serialization", "ibis")) {
-            serializationType = SERIALIZATION_IBIS;
-        } else if (p.isProp("Serialization", "iplibis")) {
-            serializationType = SERIALIZATION_IPL_IBIS;
-        } else {
-            throw new IbisException("Unknown Serialization type");
         }
 
         String globalSPI = systemProperties.getProperty(NioIbis.s_spi);
@@ -175,7 +144,7 @@ class NioPortType extends PortType implements Config {
 
         if (p.find("verbose") != null) {
             System.out.println("serialization = "
-                    + SERIALIZATION_NAMES[serializationType]
+                    + serializationType
                     + "\nsend port implementation = "
                     + IMPLEMENTATION_NAMES[sendPortImplementation]
                     + "\nreceive port implementation = "
@@ -239,43 +208,15 @@ class NioPortType extends PortType implements Config {
         return ("(NioPortType: name = " + name + ")");
     }
 
-    SerializationOutputStream createSerializationOutputStream(Accumulator out)
-            throws IOException {
-        SerializationOutputStream result;
+    SerializationOutput createSerializationOutputStream(DataOutputStream out) {
+        return SerializationBase.createSerializationOutput(serializationType,
+                out);
 
-        switch (serializationType) {
-        case SERIALIZATION_BYTE:
-            return new NoSerializationOutputStream(out);
-        case SERIALIZATION_DATA:
-            return new NioDataSerializationOutputStream(out);
-        case SERIALIZATION_SUN:
-            return new SunSerializationOutputStream(out);
-        case SERIALIZATION_IBIS:
-            return new NioIbisSerializationOutputStream(out);
-        case SERIALIZATION_IPL_IBIS:
-            return new IbisSerializationOutputStream(out);
-        default:
-            throw new IbisError("EEK! Unknown serialization type");
-        }
+
     }
 
-    SerializationInputStream createSerializationInputStream(Dissipator in)
-            throws IOException {
-        SerializationOutputStream result;
-
-        switch (serializationType) {
-        case SERIALIZATION_BYTE:
-            return new NoSerializationInputStream(in);
-        case SERIALIZATION_DATA:
-            return new NioDataSerializationInputStream(in);
-        case SERIALIZATION_SUN:
-            return new SunSerializationInputStream(in);
-        case SERIALIZATION_IBIS:
-            return new NioIbisSerializationInputStream(in);
-        case SERIALIZATION_IPL_IBIS:
-            return new IbisSerializationInputStream(in);
-        default:
-            throw new IbisError("EEK! Unknown serialization type");
-        }
+    SerializationInput createSerializationInputStream(DataInputStream in) {
+        return SerializationBase.createSerializationInput(serializationType,
+                in);
     }
 }

@@ -2,7 +2,7 @@
 
 package ibis.impl.tcp;
 
-import ibis.io.SerializationInputStream;
+import ibis.io.SerializationInput;
 import ibis.ipl.IbisError;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
@@ -11,7 +11,7 @@ import ibis.ipl.SendPortIdentifier;
 import java.io.IOException;
 
 final class TcpReadMessage implements ReadMessage {
-    private SerializationInputStream in;
+    private SerializationInput in;
 
     private long sequenceNr = -1;
 
@@ -25,13 +25,13 @@ final class TcpReadMessage implements ReadMessage {
 
     long before;
 
-    TcpReadMessage(TcpReceivePort port, SerializationInputStream in,
+    TcpReadMessage(TcpReceivePort port, SerializationInput in,
             TcpSendPortIdentifier origin, ConnectionHandler handler) {
         this.port = port;
         this.in = in;
         this.origin = origin;
         this.handler = handler;
-        before = handler.dummy.getCount();
+        before = handler.bufferedInput.bytesRead();
     }
 
     TcpReadMessage(TcpReadMessage o) {
@@ -41,7 +41,7 @@ final class TcpReadMessage implements ReadMessage {
         this.handler = o.handler;
         this.isFinished = false;
         this.sequenceNr = o.sequenceNr;
-        before = handler.dummy.getCount();
+        before = handler.bufferedInput.bytesRead();
     }
 
     ConnectionHandler getHandler() {
@@ -73,7 +73,7 @@ final class TcpReadMessage implements ReadMessage {
         }
 
         if (Config.STATS) {
-            long after = handler.dummy.getCount();
+            long after = handler.bufferedInput.bytesRead();
             retval = after - before;
             before = after;
             port.count += retval;
@@ -126,7 +126,7 @@ final class TcpReadMessage implements ReadMessage {
             throw new IbisError(
                     "Reading data from a message that was already finished");
         }
-        return (byte) in.read();
+        return in.readByte();
     }
 
     public char readChar() throws IOException {
@@ -182,7 +182,7 @@ final class TcpReadMessage implements ReadMessage {
             throw new IbisError(
                     "Reading data from a message that was already finished");
         }
-        return in.readUTF();
+        return in.readString();
     }
 
     public Object readObject() throws IOException, ClassNotFoundException {

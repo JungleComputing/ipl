@@ -2,7 +2,7 @@
 
 package ibis.impl.nio;
 
-import ibis.io.Accumulator;
+import ibis.io.DataOutputStream;
 import ibis.ipl.IbisError;
 
 import java.io.IOException;
@@ -17,11 +17,12 @@ import java.nio.ShortBuffer;
 import java.nio.channels.GatheringByteChannel;
 
 /**
- * Nio Accumulator. Writes data to java.nio.ByteBuffer's
+ * Nio Accumulator. Writes data to java.nio.ByteBuffers.
  *
  * A NioAccumulator may not send any stream header or trailer data.
  */
-public abstract class NioAccumulator extends Accumulator implements Config {
+public abstract class NioAccumulator extends DataOutputStream
+        implements Config {
     public static final int SIZEOF_BYTE = 1;
 
     public static final int SIZEOF_CHAR = 2;
@@ -217,6 +218,10 @@ public abstract class NioAccumulator extends Accumulator implements Config {
         }
     }
 
+    public void write(int value) throws IOException {
+        writeByte((byte) value);
+    }
+
     public void writeChar(char value) throws IOException {
         try {
             chars.put(value);
@@ -309,6 +314,14 @@ public abstract class NioAccumulator extends Accumulator implements Config {
                 len -= size;
             }
         }
+    }
+
+    public void write(byte[] b) throws IOException {
+        write(b, 0, b.length);
+    }
+
+    public void write(byte[] b, int off, int len) throws IOException {
+        writeArray(b, off, len);
     }
 
     public void writeArray(char[] array, int off, int len) throws IOException {

@@ -69,7 +69,6 @@ class ElectionClient implements ElectionProtocol {
             m.writeInt(Ibis.myIbis.myCpu);
             m.writeObject(election);
             m.writeObject(candidate);
-            m.send();
             m.finish();
 
             if (ElectionServer.DEBUG) {

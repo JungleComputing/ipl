@@ -5,12 +5,14 @@ package ibis.io;
 import ibis.util.TypedProperties;
 
 import java.io.Externalizable;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamClass;
 import java.io.Serializable;
 import java.io.StreamCorruptedException;
+import java.io.InvalidObjectException;
 import java.lang.reflect.Field;
 
 import sun.misc.Unsafe;
@@ -18,9 +20,6 @@ import sun.misc.Unsafe;
 /**
  * This is the <code>SerializationInputStream</code> version that is used
  * for Ibis serialization.
- * An effort has been made to make it look like and extend
- * <code>java.io.ObjectInputStream</code>.
- * However, versioning is not supported, like it is in Sun serialization.
  */
 public class IbisSerializationInputStream extends DataSerializationInputStream
         implements IbisStreamFlags {
@@ -42,7 +41,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
 
     static {
         try {
-            // unsafe = (Unsafe.getUnsafe();
+            // unsafe = Unsafe.getUnsafe();
             // does not work when a classloader is present, so we get it
             // from ObjectStreamClass.
             Class cl
@@ -75,6 +74,9 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
 
     /** First free object index. */
     private int next_handle;
+
+    /** Handle to invalidate. */
+    private int unshared_handle = 0;
 
     /** First free type index. */
     private int next_type = 1;
@@ -165,11 +167,11 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
     }
 
     /**
-     * Constructor with an <code>Dissipator</code>.
-     * @param in		the underlying <code>Dissipator</code>
+     * Constructor with a <code>DataInputStream</code>.
+     * @param in		the underlying <code>DataInputStream</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public IbisSerializationInputStream(Dissipator in) throws IOException {
+    public IbisSerializationInputStream(DataInputStream in) throws IOException {
         super(in);
         objects = new IbisVector(1024);
         init(true);
@@ -182,6 +184,10 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         super();
         objects = new IbisVector(1024);
         init(true);
+    }
+
+    public boolean reInitOnNewConnection() {
+        return true;
     }
 
     /*
@@ -373,7 +379,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
         readArrayHeader(ref.getClass(), len);
         for (int i = off; i < off + len; i++) {
-            ref[i] = readObjectOverride();
+            ref[i] = doReadObject(false);
         }
         if (TIME_IBIS_SERIALIZATION) {
             stopTimer();
@@ -685,7 +691,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         if (DEBUG) {
             dbPrint("addObjectToCycleCheck: handle = " + next_handle);
         }
-        objects.add(next_handle, o);
+        if (unshared_handle == next_handle) {
+            objects.add(next_handle, null);
+            unshared_handle = 0;
+        } else {
+            objects.add(next_handle, o);
+        }
         next_handle++;
     }
 
@@ -792,7 +803,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             addObjectToCycleCheck(ref);
 
             for (int i = 0; i < len; i++) {
-                Object o = readObjectOverride();
+                Object o = doReadObject(false);
                 ((Object[]) ref)[i] = o;
             }
 
@@ -1173,7 +1184,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      */
     public void readFieldObject(Object ref, String fieldname, String fieldsig)
             throws IOException, ClassNotFoundException {
-        Object d = readObjectOverride();
+        Object d = doReadObject(false);
         if (unsafe != null) {
             Class cl = ref.getClass();
             try {
@@ -1299,9 +1310,9 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 // dbPrint("fieldname = " + fieldname);
                 // dbPrint("signature = " + fieldtype);
 
-                setFieldObject(ref, fieldname, fieldtype, readObjectOverride());
+                setFieldObject(ref, fieldname, fieldtype, doReadObject(false));
             } else {
-                Object o = readObjectOverride();
+                Object o = doReadObject(false);
                 if (DEBUG) {
                     if (o == null) {
                         dbPrint("Assigning null to field "
@@ -1345,7 +1356,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                     dbPrint("invoking readObject() of class "
                             + t.clazz.getName());
                 }
-                t.invokeReadObject(ref, this);
+                t.invokeReadObject(ref, getJavaObjectInputStream());
                 if (DEBUG) {
                     dbPrint("done with readObject() of class "
                             + t.clazz.getName());
@@ -1601,20 +1612,11 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         return s;
     }
 
-    /**
-     * We cannot redefine <code>readObject</code>, because it is final
-     * in <code>ObjectInputStream</code>. The trick for Ibis serialization
-     * is to have the <code>ObjectInputStream</code> be initialized with
-     * its parameter-less constructor.  This will cause its
-     * <code>readObject</code> method to call <code>readObjectOverride</code>
-     * instead of doing its own thing.
-     *
-     * @return the object read
-     * @exception IOException is thrown on an IO error.
-     * @exception ClassNotFoundException is thrown when the class of a
-     * serialized object is not found.
-     */
-    public final Object readObjectOverride() throws IOException,
+    public Object readObject() throws IOException, ClassNotFoundException {
+        return doReadObject(false);
+    }
+
+    private final Object doReadObject(boolean unshared) throws IOException,
             ClassNotFoundException {
         /*
          * ref < 0:    type
@@ -1635,7 +1637,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
 
         if ((handle_or_type & TYPE_BIT) == 0) {
-            /* Ah, it's a handle. Look it up, return the stored ptr */
+            // Ah, it's a handle. Look it up, return the stored ptr,
+            // unless it should be unshared.
+            if (unshared) {
+                if (TIME_IBIS_SERIALIZATION) {
+                    stopTimer();
+                }
+                throw new InvalidObjectException(
+                        "readUnshared got a handle instead of an object");
+            }
             Object o = objects.get(handle_or_type);
 
             if (DEBUG) {
@@ -1645,7 +1655,16 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             if (TIME_IBIS_SERIALIZATION) {
                 stopTimer();
             }
+
+            if (o == null) {
+                throw new InvalidObjectException(
+                        "readObject got handle to unshared object");
+            }
             return o;
+        }
+
+        if (unshared) {
+            unshared_handle = next_handle;
         }
 
         int type = handle_or_type & TYPE_MASK;
@@ -1683,7 +1702,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             }
             addObjectToCycleCheck(obj);
             push_current_object(obj, 0);
-            ((java.io.Externalizable) obj).readExternal(this);
+            ((java.io.Externalizable) obj).readExternal(
+                    getJavaObjectInputStream());
             pop_current_object();
         } else {
             // obj = t.clazz.newInstance(); Not correct:
@@ -1714,136 +1734,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         return obj;
     }
 
-    /**
-     * Ignored for Ibis serialization.
-     */
-    protected void readStreamHeader() {
-        // ignored
-    }
+    private JavaObjectInputStream objectStream = null;
 
-    public GetField readFields() throws IOException, ClassNotFoundException {
-        if (current_object == null) {
-            throw new NotActiveException("not in readObject");
+    public java.io.ObjectInputStream getJavaObjectInputStream()
+            throws IOException {
+        if (objectStream == null) {
+            objectStream = new JavaObjectInputStream(this);
         }
-        Class type = current_object.getClass();
-        AlternativeTypeInfo t
-                = AlternativeTypeInfo.getAlternativeTypeInfo(type);
-        ImplGetField current_getfield = new ImplGetField(t);
-        current_getfield.readFields();
-        return current_getfield;
-    }
-
-    /**
-     * The Ibis serialization implementation of <code>GetField</code>.
-     */
-    private class ImplGetField extends GetField {
-        private double[] doubles;
-
-        private long[] longs;
-
-        private int[] ints;
-
-        private float[] floats;
-
-        private short[] shorts;
-
-        private char[] chars;
-
-        private byte[] bytes;
-
-        private boolean[] booleans;
-
-        private Object[] references;
-
-        private AlternativeTypeInfo t;
-
-        ImplGetField(AlternativeTypeInfo t) {
-            doubles = new double[t.double_count];
-            longs = new long[t.long_count];
-            ints = new int[t.int_count];
-            shorts = new short[t.short_count];
-            floats = new float[t.float_count];
-            chars = new char[t.char_count];
-            bytes = new byte[t.byte_count];
-            booleans = new boolean[t.boolean_count];
-            references = new Object[t.reference_count];
-            this.t = t;
-        }
-
-        public ObjectStreamClass getObjectStreamClass() {
-            /*  I don't know how it could be used here, but ... */
-            return ObjectStreamClass.lookup(t.clazz);
-        }
-
-        public boolean defaulted(String name) {
-            return false;
-        }
-
-        public boolean get(String name, boolean dflt) {
-            return booleans[t.getOffset(name, Boolean.TYPE)];
-        }
-
-        public char get(String name, char dflt) {
-            return chars[t.getOffset(name, Character.TYPE)];
-        }
-
-        public byte get(String name, byte dflt) {
-            return bytes[t.getOffset(name, Byte.TYPE)];
-        }
-
-        public short get(String name, short dflt) {
-            return shorts[t.getOffset(name, Short.TYPE)];
-        }
-
-        public int get(String name, int dflt) {
-            return ints[t.getOffset(name, Integer.TYPE)];
-        }
-
-        public long get(String name, long dflt) {
-            return longs[t.getOffset(name, Long.TYPE)];
-        }
-
-        public float get(String name, float dflt) {
-            return floats[t.getOffset(name, Float.TYPE)];
-        }
-
-        public double get(String name, double dflt) {
-            return doubles[t.getOffset(name, Double.TYPE)];
-        }
-
-        public Object get(String name, Object dflt) {
-            return references[t.getOffset(name, Object.class)];
-        }
-
-        void readFields() throws IOException, ClassNotFoundException {
-            for (int i = 0; i < t.double_count; i++) {
-                doubles[i] = readDouble();
-            }
-            for (int i = 0; i < t.float_count; i++) {
-                floats[i] = readFloat();
-            }
-            for (int i = 0; i < t.long_count; i++) {
-                longs[i] = readLong();
-            }
-            for (int i = 0; i < t.int_count; i++) {
-                ints[i] = readInt();
-            }
-            for (int i = 0; i < t.short_count; i++) {
-                shorts[i] = readShort();
-            }
-            for (int i = 0; i < t.char_count; i++) {
-                chars[i] = readChar();
-            }
-            for (int i = 0; i < t.byte_count; i++) {
-                bytes[i] = readByte();
-            }
-            for (int i = 0; i < t.boolean_count; i++) {
-                booleans[i] = readBoolean();
-            }
-            for (int i = 0; i < t.reference_count; i++) {
-                references[i] = readObjectOverride();
-            }
-        }
+        return objectStream;
     }
 
     /**
@@ -1866,46 +1764,326 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         return false;
     }
 
-    public void defaultReadObject() throws ClassNotFoundException, IOException,
-            NotActiveException {
-        if (current_object == null) {
-            throw new NotActiveException(
-                    "defaultReadObject without a current object");
-        }
-        Object ref = current_object;
-        Class type = ref.getClass();
+    private class JavaObjectInputStream extends java.io.ObjectInputStream {
 
-        if (ref instanceof ibis.io.Serializable) {
-            // if (isIbisSerializable(type)) {
-            if (DEBUG) {
-                dbPrint("generated_DefaultReadObject, class = " + type
-                        + ", level = " + current_level);
+        IbisSerializationInputStream ibisStream;
+
+        JavaObjectInputStream(IbisSerializationInputStream s)
+                throws IOException {
+            super();
+            ibisStream = s;
+        }
+
+        public int available() throws IOException {
+            return ibisStream.available();
+        }
+
+        public void close() throws IOException {
+            ibisStream.close();
+        }
+
+        public int read() throws IOException {
+            int b;
+            try {
+                b = ibisStream.readByte();
+                return b & 0377;
+            } catch(EOFException e) {
+                return -1;
             }
-            ((ibis.io.Serializable) ref).generated_DefaultReadObject(this,
-                    current_level);
-        } else if (ref instanceof java.io.Serializable) {
+        }
+
+        public int read(byte[] b) throws IOException {
+            return read(b, 0, b.length);
+        }
+
+        public int read(byte[] b, int off, int len) throws IOException {
+            ibisStream.readArray(b, off, len);
+            return len;
+        }
+
+        public Object readObjectOverride()
+                throws IOException, ClassNotFoundException {
+            return ibisStream.doReadObject(false);
+        }
+
+        /**
+         * Ignored for Ibis serialization.
+         */
+        protected void readStreamHeader() {
+            // ignored
+        }
+
+        protected ObjectStreamClass readClassDescriptor()
+                throws IOException, ClassNotFoundException {
+            Class cl = ibisStream.readClass();
+            if (cl == null) {
+                return null;
+            }
+            return ObjectStreamClass.lookup(cl);
+        }
+
+        public void readFully(byte[] b) throws IOException {
+            ibisStream.readArray(b);
+        }
+
+        public void readFully(byte[] b, int off, int len) throws IOException {
+            ibisStream.readArray(b, off, len);
+        }
+
+        public String readLine() throws IOException {
+            // Now really deprecated :-)
+            return null;
+        }
+
+        public Object readUnshared()
+                throws IOException, ClassNotFoundException {
+            return doReadObject(true);
+        }
+
+        public void registerValidation(java.io.ObjectInputValidation obj,
+                int prio) throws NotActiveException, InvalidObjectException {
+            if (current_object != obj) {
+                throw new NotActiveException("not in readObject");
+            }
+            throw new SerializationError("registerValidation not implemented");
+        }
+
+        public Class resolveClass(ObjectStreamClass desc)
+                  throws IOException, ClassNotFoundException {
+                return desc.forClass();
+        }
+
+        public int skipBytes(int len) throws IOException {
+            throw new SerializationError("skipBytes not implemented");
+        }
+
+        public long skip(long len) throws IOException {
+            throw new SerializationError("skip not implemented");
+        }
+
+        public boolean markSupported() {
+            return false;
+        }
+
+        public void mark(int readLimit) {
+            // nothing
+        }
+
+        public void reset() throws IOException {
+            throw new IOException("mark/reset not supported");
+        }
+
+        public GetField readFields()
+                throws IOException, ClassNotFoundException {
+            if (current_object == null) {
+                throw new NotActiveException("not in readObject");
+            }
+            Class type = current_object.getClass();
             AlternativeTypeInfo t
                     = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+            ImplGetField current_getfield = new ImplGetField(t);
+            current_getfield.readFields();
+            return current_getfield;
+        }
 
-            /*  Find the type info corresponding to the current invocation.
-             *  See the invokeReadObject invocation in alternativeReadObject.
-             */
-            while (t.level > current_level) {
-                t = t.alternativeSuperInfo;
+        /**
+         * The Ibis serialization implementation of <code>GetField</code>.
+         */
+        private class ImplGetField extends GetField {
+            private double[] doubles;
+
+            private long[] longs;
+
+            private int[] ints;
+
+            private float[] floats;
+
+            private short[] shorts;
+
+            private char[] chars;
+
+            private byte[] bytes;
+
+            private boolean[] booleans;
+
+            private Object[] references;
+
+            private AlternativeTypeInfo t;
+
+            ImplGetField(AlternativeTypeInfo t) {
+                doubles = new double[t.double_count];
+                longs = new long[t.long_count];
+                ints = new int[t.int_count];
+                shorts = new short[t.short_count];
+                floats = new float[t.float_count];
+                chars = new char[t.char_count];
+                bytes = new byte[t.byte_count];
+                booleans = new boolean[t.boolean_count];
+                references = new Object[t.reference_count];
+                this.t = t;
             }
-            try {
-                alternativeDefaultReadObject(t, ref);
-            } catch (IllegalAccessException e) {
-                if (DEBUG) {
-                    dbPrint("Caught exception: " + e);
-                    e.printStackTrace();
-                    dbPrint("now rethrow as NotSerializableException ...");
+
+            public ObjectStreamClass getObjectStreamClass() {
+                /*  I don't know how it could be used here, but ... */
+                return ObjectStreamClass.lookup(t.clazz);
+            }
+
+            public boolean defaulted(String name) {
+                return false;
+            }
+
+            public boolean get(String name, boolean dflt) {
+                return booleans[t.getOffset(name, Boolean.TYPE)];
+            }
+
+            public char get(String name, char dflt) {
+                return chars[t.getOffset(name, Character.TYPE)];
+            }
+
+            public byte get(String name, byte dflt) {
+                return bytes[t.getOffset(name, Byte.TYPE)];
+            }
+
+            public short get(String name, short dflt) {
+                return shorts[t.getOffset(name, Short.TYPE)];
+            }
+
+            public int get(String name, int dflt) {
+                return ints[t.getOffset(name, Integer.TYPE)];
+            }
+
+            public long get(String name, long dflt) {
+                return longs[t.getOffset(name, Long.TYPE)];
+            }
+
+            public float get(String name, float dflt) {
+                return floats[t.getOffset(name, Float.TYPE)];
+            }
+
+            public double get(String name, double dflt) {
+                return doubles[t.getOffset(name, Double.TYPE)];
+            }
+
+            public Object get(String name, Object dflt) {
+                return references[t.getOffset(name, Object.class)];
+            }
+
+            void readFields() throws IOException, ClassNotFoundException {
+                for (int i = 0; i < t.double_count; i++) {
+                    doubles[i] = ibisStream.readDouble();
                 }
-                throw new NotSerializableException(type + " " + e);
+                for (int i = 0; i < t.float_count; i++) {
+                    floats[i] = ibisStream.readFloat();
+                }
+                for (int i = 0; i < t.long_count; i++) {
+                    longs[i] = ibisStream.readLong();
+                }
+                for (int i = 0; i < t.int_count; i++) {
+                    ints[i] = ibisStream.readInt();
+                }
+                for (int i = 0; i < t.short_count; i++) {
+                    shorts[i] = ibisStream.readShort();
+                }
+                for (int i = 0; i < t.char_count; i++) {
+                    chars[i] = ibisStream.readChar();
+                }
+                for (int i = 0; i < t.byte_count; i++) {
+                    bytes[i] = ibisStream.readByte();
+                }
+                for (int i = 0; i < t.boolean_count; i++) {
+                    booleans[i] = ibisStream.readBoolean();
+                }
+                for (int i = 0; i < t.reference_count; i++) {
+                    references[i] = ibisStream.doReadObject(false);
+                }
             }
-        } else {
-            throw new NotSerializableException("Not Serializable : "
-                    + type.toString());
+        }
+
+        public String readUTF() throws IOException {
+            return ibisStream.readUTF();
+        }
+
+        public byte readByte() throws IOException {
+            return ibisStream.readByte();
+        }
+
+        public int readUnsignedByte() throws IOException {
+            return ibisStream.readUnsignedByte();
+        }
+
+        public boolean readBoolean() throws IOException {
+            return ibisStream.readBoolean();
+        }
+
+        public short readShort() throws IOException {
+            return ibisStream.readShort();
+        }
+
+        public int readUnsignedShort() throws IOException {
+            return ibisStream.readUnsignedShort();
+        }
+
+        public char readChar() throws IOException {
+            return ibisStream.readChar();
+        }
+
+        public int readInt() throws IOException {
+            return ibisStream.readInt();
+        }
+
+        public long readLong() throws IOException {
+            return ibisStream.readLong();
+        }
+
+        public float readFloat() throws IOException {
+            return ibisStream.readFloat();
+        }
+
+        public double readDouble() throws IOException {
+            return ibisStream.readDouble();
+        }
+
+        public void defaultReadObject()
+                throws ClassNotFoundException, IOException, NotActiveException {
+            if (current_object == null) {
+                throw new NotActiveException(
+                        "defaultReadObject without a current object");
+            }
+            Object ref = current_object;
+            Class type = ref.getClass();
+
+            if (ref instanceof ibis.io.Serializable) {
+                // if (isIbisSerializable(type))
+                if (DEBUG) {
+                    dbPrint("generated_DefaultReadObject, class = " + type
+                            + ", level = " + current_level);
+                }
+                ((ibis.io.Serializable) ref).generated_DefaultReadObject(ibisStream,
+                        current_level);
+            } else if (ref instanceof java.io.Serializable) {
+                AlternativeTypeInfo t
+                        = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+
+                /*  Find the type info corresponding to the current invocation.
+                 *  See the invokeReadObject invocation in alternativeReadObject.
+                 */
+                while (t.level > current_level) {
+                    t = t.alternativeSuperInfo;
+                }
+                try {
+                    ibisStream.alternativeDefaultReadObject(t, ref);
+                } catch (IllegalAccessException e) {
+                    if (DEBUG) {
+                        dbPrint("Caught exception: " + e);
+                        e.printStackTrace();
+                        dbPrint("now rethrow as NotSerializableException ...");
+                    }
+                    throw new NotSerializableException(type + " " + e);
+                }
+            } else {
+                throw new NotSerializableException("Not Serializable : "
+                        + type.toString());
+            }
         }
     }
 }

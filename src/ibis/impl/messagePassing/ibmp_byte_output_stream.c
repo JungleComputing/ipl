@@ -90,7 +90,6 @@ static jfieldID fld_nativeByteOS;
 static jfieldID fld_waitingInPoll;
 static jfieldID fld_fragWaiting;
 static jfieldID fld_outstandingFrags;
-static jfieldID fld_makeCopy;
 static jfieldID fld_msgCount;
 static jfieldID fld_allocator;
 
@@ -117,7 +116,8 @@ typedef enum jprim_type {
     jprim_Long,
     jprim_Float,
     jprim_Double,
-    jprim_n_types
+    jprim_n_types,
+    jprim_must_free
 } jprim_type_t;
 
 typedef struct RELEASE {
@@ -163,7 +163,6 @@ struct IBMP_MSG {
     void              **proto;
     int			outstanding_send;
     jboolean		outstanding_final;
-    int			copy;
     ibmp_msg_p		next;
     char		*buf;
     int			buf_alloc_len;
@@ -451,61 +450,56 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 #ifndef NDEBUG
     msg->state = MSG_STATE_CLEARING;
 #endif
-    if (msg->copy) {
-	ibmp_lock_check_owned(env);
-	for (i = 0; i < msg->iov_len; i++) {
+    for (i = 0; i < msg->iov_len; i++) {
+	if (msg->release[i].type == jprim_must_free) {
+	    ibmp_lock_check_owned(env);
 	    IBP_VPRINTF(800, NULL, ("Now free msg %p iov %p size %d\n",
-			msg, msg->iov[i].data, msg->iov[i].len));
+		    msg, msg->iov[i].data, msg->iov[i].len));
 	    pan_free(msg->iov[i].data);
-	}
-    }
-    if (! msg->copy || allocator != NULL) {
-	for (i = 0; i < msg->iov_len; i++) {
+	} else if (msg->release[i].type != jprim_n_types) {
 	    IBP_VPRINTF(400, NULL, ("%s: Now cache msg %p iov %p size %d release type %d array %p buf %p\n",
-			ibmp_currentThread(env),
-			msg, msg->iov[i].data, msg->iov[i].len,
-			msg->release[i].type, msg->release[i].array,
-			msg->release[i].buf));
-	    if (msg->release[i].type != jprim_n_types) {
-		if (allocator == NULL) {
-		    switch (msg->release[i].type) {
+		    ibmp_currentThread(env),
+		    msg, msg->iov[i].data, msg->iov[i].len,
+		    msg->release[i].type, msg->release[i].array,
+		    msg->release[i].buf));
+	    if (allocator == NULL) {
+		switch (msg->release[i].type) {
 #define RELEASE_ARRAY(JType) \
-		    case jprim_ ## JType: \
-			release_ ## JType ## _array(env, \
-						    msg->release[i].array, \
-						    msg->release[i].buf); \
-			break; 
+		case jprim_ ## JType: \
+		    release_ ## JType ## _array(env, \
+						msg->release[i].array, \
+						msg->release[i].buf); \
+		    break; 
 
-		    RELEASE_ARRAY(Boolean)
-		    RELEASE_ARRAY(Byte)
-		    RELEASE_ARRAY(Char)
-		    RELEASE_ARRAY(Short)
-		    RELEASE_ARRAY(Int)
-		    RELEASE_ARRAY(Long)
-		    RELEASE_ARRAY(Float)
-		    RELEASE_ARRAY(Double)
+		RELEASE_ARRAY(Boolean)
+		RELEASE_ARRAY(Byte)
+		RELEASE_ARRAY(Char)
+		RELEASE_ARRAY(Short)
+		RELEASE_ARRAY(Int)
+		RELEASE_ARRAY(Long)
+		RELEASE_ARRAY(Float)
+		RELEASE_ARRAY(Double)
 #undef RELEASE_ARRAY
 
-		    default:
-			break;
-		    }
-
-		} else {
-		    ibmp_buffer_cache_p c = ibmp_buffer_cache_get();
-		    ibmp_byte_os_p byte_os = msg->byte_os;
-
-		    IBP_VPRINTF(400, env, ("enqueue array%d %p byte_os %p for reuse\n",
-				msg->release[i].type, msg->release[i].array,
-				byte_os));
-		    c->next = byte_os->buffer_cache[msg->release[i].type];
-		    byte_os->buffer_cache[msg->release[i].type] = c;
-
-		    c->array = msg->release[i].array;
-		    c->buf = msg->release[i].buf;
-#ifndef NDEBUG
-		    msg->release[i].array = NULL;
-#endif
+		default:
+		    break;
 		}
+
+	    } else {
+		ibmp_buffer_cache_p c = ibmp_buffer_cache_get();
+		ibmp_byte_os_p byte_os = msg->byte_os;
+
+		IBP_VPRINTF(400, env, ("enqueue array%d %p byte_os %p for reuse\n",
+			    msg->release[i].type, msg->release[i].array,
+			    byte_os));
+		c->next = byte_os->buffer_cache[msg->release[i].type];
+		byte_os->buffer_cache[msg->release[i].type] = c;
+
+		c->array = msg->release[i].array;
+		c->buf = msg->release[i].buf;
+#ifndef NDEBUG
+		msg->release[i].array = NULL;
+#endif
 	    }
 	}
     }
@@ -782,13 +776,6 @@ ibmp_msg_check(JNIEnv *env,
 	ibmp_unlock(env);
     }
 
-    msg->copy = (int)(*env)->GetBooleanField(env,
-					     byte_os->byte_output_stream,
-					     fld_makeCopy);
-    IBP_VPRINTF(820, env,
-		("Make %s intermediate copy in this BytOutputStream\n",
-		 msg->copy ? "an" : "NO"));
-
     return msg;
 }
 
@@ -869,7 +856,7 @@ send_async(JNIEnv *env,
 	++ibmp_sent_msg_out;
     }
 #endif
-    IBP_VPRINTF(20, env, (" SEND ( async msg %p to %d size %d\n", ibmp_me, msg, cpu, ibmp_iovec_len(msg->iov, msg->iov_len)));
+    IBP_VPRINTF(20, env, (" SEND ( async msg %p to %d size %d\n", msg, cpu, ibmp_iovec_len(msg->iov, msg->iov_len)));
 
     if (i == 0) {
 	assert(msg->state == MSG_STATE_ACCUMULATING);
@@ -1269,29 +1256,15 @@ Java_ibis_impl_messagePassing_ByteOutputStream_write(
     jint	nativeByteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
     ibmp_byte_os_p byte_os = (ibmp_byte_os_p)nativeByteOS;
     ibmp_msg_p	msg = ibmp_msg_check(env, byte_os, 0);
-    /* fprintf(stderr, "I fear write(int) is broken in messagePassingIbis\n"); */
 
-    if (! msg->copy) {
-	int incr = buf_grow(env, msg, sizeof(jbyte), 0);
-	iovec_grow(env, msg, 0);
-	*((unsigned char *) (&msg->buf[msg->buf_len])) = (unsigned char)(b & 0xFF);
-	msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]);
-	msg->iov[msg->iov_len].len = sizeof(jbyte);
-	msg->release[msg->iov_len].type = jprim_n_types;
-	msg->buf_len += incr;
+    int incr = buf_grow(env, msg, sizeof(jbyte), 0);
+    iovec_grow(env, msg, 0);
+    *((unsigned char *) (&msg->buf[msg->buf_len])) = (unsigned char)(b & 0xFF);
+    msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]);
+    msg->iov[msg->iov_len].len = sizeof(jbyte);
+    msg->release[msg->iov_len].type = jprim_n_types;
+    msg->buf_len += incr;
 
-    } else {
-	unsigned char *buf;
-
-	ibmp_lock(env);
-	iovec_grow(env, msg, 1);
-
-	buf = pan_malloc(sizeof(unsigned char));
-	ibmp_unlock(env);
-	*buf = (unsigned char)(b & 0xFF);
-	msg->iov[msg->iov_len].data = buf;
-	msg->iov[msg->iov_len].len = sizeof(jbyte);
-    }
     IBP_VPRINTF(300, env, ("Now push byte ByteOS %p msg %p data %p size %d iov %d, value %d\n",
 		msg->byte_os->byte_output_stream, msg,
 		msg->iov[msg->iov_len].data, msg->iov[msg->iov_len].len,
@@ -1338,47 +1311,31 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
     ibmp_msg_p	msg = ibmp_msg_check(env, byte_os, 0); \
     jtype      *buf; \
     int		sz = len * sizeof(jtype); \
-    int		must_release = 0; \
     \
-    IBP_VPRINTF(400, env, ("%s: Now create global ref %p; msg->copy %d sz %d COPY_THRESHOLD %d\n", \
-		ibmp_currentThread(env), b, msg->copy, sz, COPY_THRESHOLD)); \
-    if (msg->copy) { \
-	ibmp_lock(env); \
-	iovec_grow(env, msg, 1); \
-	buf = pan_malloc(sz); \
-	ibmp_unlock(env); \
-	msg->iov[msg->iov_len].data = buf; \
-	msg->iov[msg->iov_len].len = sz; \
+    IBP_VPRINTF(400, env, ("%s: Now create global ref %p; sz %d COPY_THRESHOLD %d\n", \
+		ibmp_currentThread(env), b, sz, COPY_THRESHOLD)); \
+    iovec_grow(env, msg, 0); \
+    if (sz < COPY_THRESHOLD) { \
+	int incr = buf_grow(env, msg, sz, 0); \
+	(*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) &(msg->buf[msg->buf_len])); \
+	msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]); \
+	msg->buf_len += incr; \
+	msg->iov[msg->iov_len].len  = sz; \
 	msg->release[msg->iov_len].type = jprim_n_types; \
-	(*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) buf); \
 	if (allocator != NULL) { \
 	    (*env)->CallVoidMethod(env, allocator, md_put ## JType ## Array, b); \
 	} \
-    } else { \
-	iovec_grow(env, msg, 0); \
-	if (sz < COPY_THRESHOLD) { \
-	    int incr = buf_grow(env, msg, sz, 0); \
-	    (*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) &(msg->buf[msg->buf_len])); \
-	    msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]); \
-	    msg->buf_len += incr; \
-	    msg->iov[msg->iov_len].len  = sz; \
-	    msg->release[msg->iov_len].type = jprim_n_types; \
-	    if (allocator != NULL) { \
-		(*env)->CallVoidMethod(env, allocator, md_put ## JType ## Array, b); \
-	    } \
-	} \
-	else { \
-	    jtype *a; \
-	    b = (*env)->NewGlobalRef(env, b); \
-	    IBMP_GLOBAL_REF_INC(); \
-	    a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
-	    must_release = 1; \
-	    msg->iov[msg->iov_len].data = a + off; \
-	    msg->iov[msg->iov_len].len  = sz; \
-	    msg->release[msg->iov_len].buf   = a; \
-	    msg->release[msg->iov_len].array = b; \
-	    msg->release[msg->iov_len].type  = jprim_ ## JType; \
-	} \
+    } \
+    else { \
+	jtype *a; \
+	b = (*env)->NewGlobalRef(env, b); \
+	IBMP_GLOBAL_REF_INC(); \
+	a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
+	msg->iov[msg->iov_len].data = a + off; \
+	msg->iov[msg->iov_len].len  = sz; \
+	msg->release[msg->iov_len].buf   = a; \
+	msg->release[msg->iov_len].array = b; \
+	msg->release[msg->iov_len].type  = jprim_ ## JType; \
     } \
     IBP_VPRINTF(300, env, ("Now push ByteOS %p msg %p %s source %p data %p size %d iov %d total %d [%d,%d,%d,%d,...]\n", \
 		msg->byte_os->byte_output_stream, msg, #JType, b, msg->iov[msg->iov_len].data, \
@@ -1397,6 +1354,41 @@ ARRAY_WRITE(Float, jfloat, F)
 ARRAY_WRITE(Double, jdouble, D)
 
 #undef ARRAY_WRITE
+
+JNIEXPORT void JNICALL
+Java_ibis_impl_messagePassing_ByteOutputStream_writeImpl___3BII(
+	JNIEnv *env, 
+	jobject this,
+	jbyteArray b,
+	jint off,
+	jint len)
+{
+    jint	nativeByteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
+    ibmp_byte_os_p byte_os = (ibmp_byte_os_p)nativeByteOS;
+    jobject allocator = (*env)->GetObjectField(env,
+				       byte_os->byte_output_stream,
+				       fld_allocator);
+    ibmp_msg_p	msg = ibmp_msg_check(env, byte_os, 0);
+    jbyte      *buf;
+    int		sz = len * sizeof(jbyte);
+   
+    ibmp_lock(env);
+    iovec_grow(env, msg, 1);
+    buf = pan_malloc(sz);
+    ibmp_unlock(env);
+    msg->iov[msg->iov_len].data = buf;
+    msg->iov[msg->iov_len].len = sz;
+    msg->release[msg->iov_len].type = jprim_must_free;
+    (*env)->GetByteArrayRegion(env, b, (jsize) off, (jsize) len, (jbyte *) buf);
+    if (allocator != NULL) {
+	(*env)->CallVoidMethod(env, allocator, md_putByteArray, b);
+    }
+    IBP_VPRINTF(300, env, ("Now push ByteOS %p msg %p %s source %p data %p size %d iov %d total %d [%d,%d,%d,%d,...]\n",
+		msg->byte_os->byte_output_stream, msg, "Byte", b, msg->iov[msg->iov_len].data,
+		msg->iov[msg->iov_len].len, msg->iov_len, ibmp_iovec_len(msg->iov, msg->iov_len + 1), msg->iov[0].len, msg->iov[1].len, msg->iov[2].len, msg->iov[3].len));
+    dump_jbyte((jbyte *)(msg->iov[msg->iov_len].data), len);
+    msg->iov_len++;
+}
 
 
 void
@@ -1457,13 +1449,6 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 					 "outstandingFrags", "I");
     if (fld_outstandingFrags == NULL) {
 	ibmp_error(env, "Cannot find static field outstandingFrags:I\n");
-    }
-
-    fld_makeCopy = (*env)->GetFieldID(env,
-					 cls_ByteOutputStream,
-					 "makeCopy", "Z");
-    if (fld_makeCopy == NULL) {
-	ibmp_error(env, "Cannot find static field makeCopy:Z\n");
     }
 
     fld_msgCount = (*env)->GetFieldID(env,

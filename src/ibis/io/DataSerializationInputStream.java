@@ -2,6 +2,8 @@
 
 package ibis.io;
 
+import ibis.util.TypedProperties;
+
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 
@@ -10,16 +12,17 @@ import java.io.UTFDataFormatException;
  * for Data serialization. With data serialization, you can only write
  * basic types and arrays of basic types.
  */
-public class DataSerializationInputStream extends SerializationInputStream
+public class DataSerializationInputStream extends ByteSerializationInputStream
         implements IbisStreamFlags {
+    /** When true, no buffering in this layer. */
+    private static final boolean NO_ARRAY_BUFFERS
+            = TypedProperties.booleanProperty(IOProps.s_no_array_buffers);
+
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION = true;
 
     /** Boolean count is not used, use it for arrays. */
     static final int TYPE_ARRAY = TYPE_BOOLEAN;
-
-    /** The underlying <code>Dissipator</code>. */
-    private final Dissipator in;
 
     /**
      * Each "bunch" of data is preceded by a header array, telling for
@@ -99,14 +102,15 @@ public class DataSerializationInputStream extends SerializationInputStream
     private int max_array_index;
 
     /**
-     * Constructor with an <code>Dissipator</code>.
-     * @param in		the underlying <code>Dissipator</code>
+     * Constructor with an <code>DataInputStream</code>.
+     * @param in		the underlying <code>DataInputStream</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public DataSerializationInputStream(Dissipator in) throws IOException {
-        super();
-        this.in = in;
-        initArrays();
+    public DataSerializationInputStream(DataInputStream in) throws IOException {
+        super(in);
+        if (! NO_ARRAY_BUFFERS) {
+            initArrays();
+        }
     }
 
     /**
@@ -114,7 +118,6 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     protected DataSerializationInputStream() throws IOException {
         super();
-        in = null;
     }
 
     public String serializationImplName() {
@@ -122,13 +125,19 @@ public class DataSerializationInputStream extends SerializationInputStream
     }
 
     public boolean readBoolean() throws IOException {
+        boolean a;
+
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        while (byte_index == max_byte_index) {
-            receive();
+        if (NO_ARRAY_BUFFERS) {
+            a = in.readBoolean();
+        } else {
+            while (byte_index == max_byte_index) {
+                receive();
+            }
+            a = (byte_buffer[byte_index++] != (byte) 0);
         }
-        boolean a = (byte_buffer[byte_index++] != (byte) 0);
         if (DEBUG) {
             dbPrint("read boolean: " + a);
         }
@@ -139,13 +148,19 @@ public class DataSerializationInputStream extends SerializationInputStream
     }
 
     public byte readByte() throws IOException {
+        byte a;
+
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        while (byte_index == max_byte_index) {
-            receive();
+        if (NO_ARRAY_BUFFERS) {
+            a = in.readByte();
+        } else {
+            while (byte_index == max_byte_index) {
+                receive();
+            }
+            a = byte_buffer[byte_index++];
         }
-        byte a = byte_buffer[byte_index++];
         if (DEBUG) {
             dbPrint("read byte: " + a);
         }
@@ -156,13 +171,19 @@ public class DataSerializationInputStream extends SerializationInputStream
     }
 
     public char readChar() throws IOException {
+        char a;
+
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        while (char_index == max_char_index) {
-            receive();
+        if (NO_ARRAY_BUFFERS) {
+            a = in.readChar();
+        } else {
+            while (char_index == max_char_index) {
+                receive();
+            }
+            a = char_buffer[char_index++];
         }
-        char a = char_buffer[char_index++];
         if (DEBUG) {
             dbPrint("read char: " + a);
         }
@@ -173,13 +194,19 @@ public class DataSerializationInputStream extends SerializationInputStream
     }
 
     public short readShort() throws IOException {
+        short a;
+
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        while (short_index == max_short_index) {
-            receive();
+        if (NO_ARRAY_BUFFERS) {
+            a = in.readShort();
+        } else {
+            while (short_index == max_short_index) {
+                receive();
+            }
+            a = short_buffer[short_index++];
         }
-        short a = short_buffer[short_index++];
         if (DEBUG) {
             dbPrint("read short: " + a);
         }
@@ -190,13 +217,19 @@ public class DataSerializationInputStream extends SerializationInputStream
     }
 
     public int readInt() throws IOException {
+        int a;
+
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        while (int_index == max_int_index) {
-            receive();
+        if (NO_ARRAY_BUFFERS) {
+            a = in.readInt();
+        } else {
+            while (int_index == max_int_index) {
+                receive();
+            }
+            a = int_buffer[int_index++];
         }
-        int a = int_buffer[int_index++];
         if (DEBUG) {
             dbPrint("read int[HEX]: " + a + "[0x" + Integer.toHexString(a)
                     + "]");
@@ -208,13 +241,19 @@ public class DataSerializationInputStream extends SerializationInputStream
     }
 
     public long readLong() throws IOException {
+        long a;
+
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        while (long_index == max_long_index) {
-            receive();
+        if (NO_ARRAY_BUFFERS) {
+            a = in.readLong();
+        } else {
+            while (long_index == max_long_index) {
+                receive();
+            }
+            a = long_buffer[long_index++];
         }
-        long a = long_buffer[long_index++];
         if (DEBUG) {
             dbPrint("read long: " + a);
         }
@@ -225,13 +264,19 @@ public class DataSerializationInputStream extends SerializationInputStream
     }
 
     public float readFloat() throws IOException {
+        float a;
+
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        while (float_index == max_float_index) {
-            receive();
+        if (NO_ARRAY_BUFFERS) {
+            a = in.readFloat();
+        } else {
+            while (float_index == max_float_index) {
+                receive();
+            }
+            a = float_buffer[float_index++];
         }
-        float a = float_buffer[float_index++];
         if (DEBUG) {
             dbPrint("read float: " + a);
         }
@@ -242,13 +287,19 @@ public class DataSerializationInputStream extends SerializationInputStream
     }
 
     public double readDouble() throws IOException {
+        double a;
+
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        while (double_index == max_double_index) {
-            receive();
+        if (NO_ARRAY_BUFFERS) {
+            a = in.readDouble();
+        } else {
+            while (double_index == max_double_index) {
+                receive();
+            }
+            a = double_buffer[double_index++];
         }
-        double a = double_buffer[double_index++];
         if (DEBUG) {
             dbPrint("read double: " + a);
         }
@@ -264,7 +315,9 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     protected void readBooleanArray(boolean ref[], int off, int len)
             throws IOException {
-        if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+        if (NO_ARRAY_BUFFERS) {
+            in.readArray(ref, off, len);
+        } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
             while (array_index == max_array_index) {
                 receive();
             }
@@ -283,7 +336,9 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     protected void readByteArray(byte ref[], int off, int len)
             throws IOException {
-        if (len >= SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
+        if (NO_ARRAY_BUFFERS) {
+            in.readArray(ref, off, len);
+        } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
             while (array_index == max_array_index) {
                 receive();
             }
@@ -302,7 +357,9 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     protected void readCharArray(char ref[], int off, int len)
             throws IOException {
-        if (len >= SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
+        if (NO_ARRAY_BUFFERS) {
+            in.readArray(ref, off, len);
+        } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
             while (array_index == max_array_index) {
                 receive();
             }
@@ -321,7 +378,9 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     protected void readShortArray(short ref[], int off, int len)
             throws IOException {
-        if (len >= SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
+        if (NO_ARRAY_BUFFERS) {
+            in.readArray(ref, off, len);
+        } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
             while (array_index == max_array_index) {
                 receive();
             }
@@ -340,7 +399,9 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     protected void readIntArray(int ref[], int off, int len)
             throws IOException {
-        if (len >= SMALL_ARRAY_BOUND / SIZEOF_INT) {
+        if (NO_ARRAY_BUFFERS) {
+            in.readArray(ref, off, len);
+        } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_INT) {
             while (array_index == max_array_index) {
                 receive();
             }
@@ -359,7 +420,9 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     protected void readLongArray(long ref[], int off, int len)
             throws IOException {
-        if (len >= SMALL_ARRAY_BOUND / SIZEOF_LONG) {
+        if (NO_ARRAY_BUFFERS) {
+            in.readArray(ref, off, len);
+        } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_LONG) {
             while (array_index == max_array_index) {
                 receive();
             }
@@ -378,7 +441,9 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     protected void readFloatArray(float ref[], int off, int len)
             throws IOException {
-        if (len >= SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
+        if (NO_ARRAY_BUFFERS) {
+            in.readArray(ref, off, len);
+        } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
             while (array_index == max_array_index) {
                 receive();
             }
@@ -397,7 +462,9 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     protected void readDoubleArray(double ref[], int off, int len)
             throws IOException {
-        if (len >= SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
+        if (NO_ARRAY_BUFFERS) {
+            in.readArray(ref, off, len);
+        } else if (len >= SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
             while (array_index == max_array_index) {
                 receive();
             }
@@ -408,20 +475,6 @@ public class DataSerializationInputStream extends SerializationInputStream
                 ref[i] = readDouble();
             }
         }
-    }
-
-    public int available() throws IOException {
-        return in.available() + (max_byte_index - byte_index) * SIZEOF_BYTE
-                + (max_char_index - char_index) * SIZEOF_CHAR
-                + (max_short_index - short_index) * SIZEOF_SHORT
-                + (max_int_index - int_index) * SIZEOF_INT
-                + (max_long_index - long_index) * SIZEOF_LONG
-                + (max_float_index - float_index) * SIZEOF_FLOAT
-                + (max_double_index - double_index) * SIZEOF_DOUBLE;
-    }
-
-    public void close() throws IOException {
-        in.close();
     }
 
     public void readArray(boolean[] ref, int off, int len) throws IOException {
@@ -505,14 +558,6 @@ public class DataSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void readArray(Object[] ref, int off, int len) throws IOException,
-            ClassNotFoundException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
      * Allocates arrays.
      */
     private void initArrays() {
@@ -524,65 +569,6 @@ public class DataSerializationInputStream extends SerializationInputStream
         long_buffer = new long[LONG_BUFFER_SIZE];
         float_buffer = new float[FLOAT_BUFFER_SIZE];
         double_buffer = new double[DOUBLE_BUFFER_SIZE];
-    }
-
-    /**
-     * Debugging print.
-     * @param s	the string to be printed.
-     */
-    void dbPrint(String s) {
-        debuggerPrint(this + ": " + s);
-    }
-
-    /**
-     * Debugging print, also for DataSerializationOutputStream.
-     * @param s the string to be printed.
-     */
-    protected synchronized static void debuggerPrint(String s) {
-        System.err.println(s);
-    }
-
-    public void clear() {
-        // nothing
-    }
-
-    public void statistics() {
-        // nothing
-    }
-
-    /* This is the data output / object output part */
-
-    public int read() throws IOException {
-        return readByte();
-    }
-
-    public int read(byte[] b) throws IOException {
-        return read(b, 0, b.length);
-    }
-
-    public int read(byte[] b, int off, int len) throws IOException {
-        readArray(b, off, len);
-        return len;
-    }
-
-    public long skip(long n) throws IOException {
-        throw new IOException("skip not meaningful in typed input stream");
-    }
-
-    public int skipBytes(int n) throws IOException {
-        throw new IOException("skipBytes not meaningful in typed input stream");
-    }
-
-    public String readLine() throws IOException {
-        throw new IOException("readLine() not implemented");
-    }
-
-    public void readFully(byte[] b) throws IOException {
-        readFully(b, 0, b.length);
-    }
-
-    public void readFully(byte[] b, int off, int len) throws IOException {
-        readArray(b, off, len);
     }
 
     /**
@@ -679,20 +665,14 @@ public class DataSerializationInputStream extends SerializationInputStream
         }
     }
 
-    public final int readUnsignedByte() throws IOException {
-        int i = readByte();
-        if (i < 0) {
-            i += 256;
-        }
-        return i;
-    }
-
-    public final int readUnsignedShort() throws IOException {
-        int i = readShort();
-        if (i < 0) {
-            i += 65536;
-        }
-        return i;
+    public int available() throws IOException {
+        return super.available() + (max_byte_index - byte_index) * SIZEOF_BYTE
+                + (max_char_index - char_index) * SIZEOF_CHAR
+                + (max_short_index - short_index) * SIZEOF_SHORT
+                + (max_int_index - int_index) * SIZEOF_INT
+                + (max_long_index - long_index) * SIZEOF_LONG
+                + (max_float_index - float_index) * SIZEOF_FLOAT
+                + (max_double_index - double_index) * SIZEOF_DOUBLE;
     }
 
     public String readUTF() throws IOException {
@@ -753,39 +733,7 @@ public class DataSerializationInputStream extends SerializationInputStream
         return s;
     }
 
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public Class readClass() throws IOException, ClassNotFoundException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
     public String readString() throws IOException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public Object readObjectOverride() throws IOException,
-            ClassNotFoundException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public GetField readFields() throws IOException, ClassNotFoundException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public void defaultReadObject() throws IOException, ClassNotFoundException {
-        throw new IOException("Illegal data type read");
+        return readUTF();
     }
 }

@@ -133,7 +133,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
                 // start a new thread!
                 this.m = null;
                 if (STATS) {
-                    long after = msg.getHandler().dummy.getCount();
+                    long after = msg.getHandler().bufferedInput.bytesRead();
                     count += after - msg.before;
                     msg.before = after;
                 }
@@ -194,7 +194,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             m.setSequenceNumber(m.readLong());
         }
         if (STATS) {
-            m.before = m.getHandler().dummy.getCount();
+            m.before = m.getHandler().bufferedInput.bytesRead();
         }
         if (upcall != null) {
             return doUpcall(m);

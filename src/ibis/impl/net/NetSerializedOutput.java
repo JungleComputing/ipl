@@ -2,7 +2,7 @@
 
 package ibis.impl.net;
 
-import ibis.io.SerializationOutputStream;
+import ibis.io.SerializationOutput;
 import ibis.ipl.Replacer;
 
 import java.io.IOException;
@@ -22,7 +22,7 @@ public abstract class NetSerializedOutput extends NetOutput implements NetBuffer
      */
     protected NetOutput subOutput = null;
 
-    private SerializationOutputStream oss = null;
+    private SerializationOutput oss = null;
 
     private Replacer replacer = null;
 
@@ -98,7 +98,7 @@ public abstract class NetSerializedOutput extends NetOutput implements NetBuffer
         }
     }
 
-    public abstract SerializationOutputStream newSerializationOutputStream()
+    public abstract SerializationOutput newSerializationOutputStream()
             throws IOException;
 
     public void initSend() throws IOException {
@@ -109,6 +109,7 @@ public abstract class NetSerializedOutput extends NetOutput implements NetBuffer
                 subOutput.writeByte((byte) 255);
             }
             oss = newSerializationOutputStream();
+            requiresStreamReinit = oss.reInitOnNewConnection();
             if (replacer != null) {
                 oss.setReplacer(replacer);
             }

@@ -5,9 +5,9 @@ package ibis.impl.messagePassing;
 import java.io.IOException;
 
 /**
- * Stream to manage native code for ArrayInputStreams
+ * Stream to manage native code for DataInputStreams
  */
-final class ByteInputStream extends ibis.io.ArrayInputStream implements
+final class ByteInputStream extends ibis.io.DataInputStream implements
         ibis.io.IbisStreamFlags {
 
     private int msgHandle;
@@ -17,6 +17,8 @@ final class ByteInputStream extends ibis.io.ArrayInputStream implements
     private ReadMessage msg;
 
     private int msgCount;
+
+    private long bytes;
 
     void setMsgHandle(ReadMessage msg) {
         this.msg = msg;
@@ -148,6 +150,38 @@ final class ByteInputStream extends ibis.io.ArrayInputStream implements
 
     private native int readDoubleArray(double[] array, int off, int len,
             int handle);
+
+    public boolean readBoolean() throws IOException {
+        throw new IOException("readBoolean not implemented");
+    }
+
+    public byte readByte() throws IOException {
+        throw new IOException("readByte not implemented");
+    }
+
+    public char readChar() throws IOException {
+        throw new IOException("readChar not implemented");
+    }
+
+    public short readShort() throws IOException {
+        throw new IOException("readShort not implemented");
+    }
+
+    public int readInt() throws IOException {
+        throw new IOException("readInt not implemented");
+    }
+
+    public long readLong() throws IOException {
+        throw new IOException("readLong not implemented");
+    }
+
+    public float readFloat() throws IOException {
+        throw new IOException("readFloat not implemented");
+    }
+
+    public double readDouble() throws IOException {
+        throw new IOException("readDouble not implemented");
+    }
 
     public void readArray(boolean b[], int off, int len) throws IOException {
         Ibis.myIbis.lock();
@@ -315,8 +349,7 @@ final class ByteInputStream extends ibis.io.ArrayInputStream implements
         // Ibis.myIbis.checkLockNotOwned();
     }
 
-    public synchronized void mark(int readlimit) throws IOException {
-        throw new IOException("mark/reset not supported");
+    public synchronized void mark(int readlimit) {
     }
 
     public synchronized void reset() throws IOException {
@@ -332,7 +365,15 @@ final class ByteInputStream extends ibis.io.ArrayInputStream implements
     }
 
     public void resetCount() {
+        bytes += msgCount;
         msgCount = 0;
     }
 
+    public long bytesRead() {
+        return bytes;
+    }
+
+    public void resetBytesRead() {
+        bytes = 0;
+    }
 }

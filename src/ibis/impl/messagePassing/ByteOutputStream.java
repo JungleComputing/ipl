@@ -8,9 +8,9 @@ import ibis.util.ConditionVariable;
 import java.io.IOException;
 
 /**
- * Stream to manage native code for ArrayOutputStreams
+ * Stream to manage native code for DataOutputStreams
  */
-final class ByteOutputStream extends ibis.io.ArrayOutputStream {
+final class ByteOutputStream extends ibis.io.DataOutputStream {
 
     static final int FIRST_FRAG_BIT = (1 << 30);
 
@@ -47,14 +47,7 @@ final class ByteOutputStream extends ibis.io.ArrayOutputStream {
      */
     private boolean fragWaiting = false;
 
-    private boolean syncMode;
-
     private int msgSeqno = 0;
-
-    /**
-     * This field is read from native code
-     */
-    private boolean makeCopy;
 
     /**
      * This field is read and <strong>written</strong> from native code
@@ -78,13 +71,10 @@ final class ByteOutputStream extends ibis.io.ArrayOutputStream {
 
     static private boolean warningPrinted = false;
 
-    ByteOutputStream(ibis.ipl.SendPort p, boolean syncMode, boolean makeCopy) {
-        this.syncMode = syncMode;
-        this.makeCopy = makeCopy;
+    ByteOutputStream(ibis.ipl.SendPort p) {
         if (Ibis.DEBUG) {
             System.err.println(
-                    "@@@@@@@@@@@@@@@@@@@@@ a ByteOutputStream makeCopy = "
-                    + makeCopy);
+                    "@@@@@@@@@@@@@@@@@@@@@ a ByteOutputStream");
         }
         sport = (SendPort) p;
         nativeByteOS = init();
@@ -336,11 +326,11 @@ final class ByteOutputStream extends ibis.io.ArrayOutputStream {
 
     public native void write(int b) throws IOException;
 
+    public native void writeImpl(byte[] b, int off, int len) throws IOException;
+
     public void write(byte[] b, int off, int len) throws IOException {
-        writeArray(b, off, len);
-        if (syncMode) {
-            flush();
-        }
+        writeImpl(b, off, len);
+        flush();
     }
 
     public long getCount() {
@@ -357,6 +347,38 @@ final class ByteOutputStream extends ibis.io.ArrayOutputStream {
 
     public final void resetBytesWritten() {
         resetCount();
+    }
+
+    public void writeByte(byte value) throws IOException {
+        throw new IOException("writeByte not implemented");
+    }
+
+    public void writeBoolean(boolean value) throws IOException {
+        throw new IOException("writeBoolean not implemented");
+    }
+
+    public void writeChar(char value) throws IOException {
+        throw new IOException("writeChar not implemented");
+    }
+
+    public void writeShort(short value) throws IOException {
+        throw new IOException("writeShort not implemented");
+    }
+
+    public void writeInt(int value) throws IOException {
+        throw new IOException("writeInt not implemented");
+    }
+
+    public void writeLong(long value) throws IOException {
+        throw new IOException("writeLong not implemented");
+    }
+
+    public void writeFloat(float value) throws IOException {
+        throw new IOException("writeFloat not implemented");
+    }
+
+    public void writeDouble(double value) throws IOException {
+        throw new IOException("writeDouble not implemented");
     }
 
     public native void writeArray(boolean[] array, int off, int len)

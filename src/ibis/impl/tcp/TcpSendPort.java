@@ -4,13 +4,9 @@ package ibis.impl.tcp;
 
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
-import ibis.io.DataSerializationOutputStream;
-import ibis.io.DummyOutputStream;
-import ibis.io.IbisSerializationOutputStream;
-import ibis.io.NoSerializationOutputStream;
 import ibis.io.OutputStreamSplitter;
-import ibis.io.SerializationOutputStream;
-import ibis.io.SunSerializationOutputStream;
+import ibis.io.SerializationOutput;
+import ibis.io.SerializationBase;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.DynamicProperties;
@@ -62,9 +58,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     private OutputStreamSplitter splitter;
 
-    DummyOutputStream dummy;
-
-    private SerializationOutputStream out;
+    private SerializationOutput out;
 
     private ArrayList receivers = new ArrayList();
 
@@ -79,6 +73,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     private Replacer replacer;
 
     private DynamicProperties props = new TcpDynamicProperties();
+
+    BufferedArrayOutputStream bufferedStream;
 
     long count;
 
@@ -100,23 +96,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         // if we keep administration, close connections when exception occurs.
         splitter = new OutputStreamSplitter(connectionAdministration);
 
-        switch (type.serializationType) {
-        case TcpPortType.SERIALIZATION_SUN:
-            dummy = new DummyOutputStream(new BufferedOutputStream(splitter,
-                    60 * 1024));
-            break;
-        case TcpPortType.SERIALIZATION_NONE:
-            dummy = new DummyOutputStream(new BufferedOutputStream(splitter,
-                    60 * 1024));
-            break;
-        case TcpPortType.SERIALIZATION_IBIS:
-        case TcpPortType.SERIALIZATION_DATA:
-            dummy = new DummyOutputStream(splitter);
-            break;
-        default:
-            System.err.println("EEK, serialization type unknown");
-            System.exit(1);
-        }
+        bufferedStream = new BufferedArrayOutputStream(splitter);
     }
 
     public long getCount() {
@@ -181,30 +161,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         receivers.add(c);
         splitter.add(c.out);
 
-        switch (type.serializationType) {
-        case TcpPortType.SERIALIZATION_SUN:
-            out = new SunSerializationOutputStream(dummy);
-            if (replacer != null) {
-                out.setReplacer(replacer);
-            }
-            break;
-        case TcpPortType.SERIALIZATION_NONE:
-            out = new NoSerializationOutputStream(dummy);
-            break;
-        case TcpPortType.SERIALIZATION_IBIS:
-            out = new IbisSerializationOutputStream(
-                    new BufferedArrayOutputStream(dummy));
-            if (replacer != null) {
-                out.setReplacer(replacer);
-            }
-            break;
-        case TcpPortType.SERIALIZATION_DATA:
-            out = new DataSerializationOutputStream(
-                    new BufferedArrayOutputStream(dummy));
-            break;
-        default:
-            System.err.println("EEK, serialization type unknown");
-            System.exit(1);
+        out = SerializationBase.createSerializationOutput(type.ser,
+                bufferedStream);
+        if (replacer != null) {
+            out.setReplacer(replacer);
         }
 
         message = new TcpWriteMessage(this, out, connectionAdministration);
@@ -252,21 +212,12 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         //close 
         out.writeByte(CLOSE_ONE_CONNECTION);
 
-        switch (type.serializationType) {
-        case TcpPortType.SERIALIZATION_SUN:
-        case TcpPortType.SERIALIZATION_IBIS:
-            out.writeObject(receiver);
-            break;
-        default:
-            //no writeObject available
-            receiverBytes = Conversion.object2byte(receiver);
-            receiverLength = new byte[Conversion.INT_SIZE];
-            Conversion.defaultConversion.int2byte(receiverBytes.length,
-                    receiverLength, 0);
-            out.writeArray(receiverLength);
-            out.writeArray(receiverBytes);
-            break;
-        }
+        receiverBytes = Conversion.object2byte(receiver);
+        receiverLength = new byte[Conversion.INT_SIZE];
+        Conversion.defaultConversion.int2byte(receiverBytes.length,
+                receiverLength, 0);
+        out.writeArray(receiverLength);
+        out.writeArray(receiverBytes);
         out.flush();
         out.close();
 
@@ -299,15 +250,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         out.writeByte(NEW_MESSAGE);
         if (type.numbered) {
             long seqno = ibis.getSeqno(type.name);
-            switch (type.serializationType) {
-            case TcpPortType.SERIALIZATION_SUN:
-            case TcpPortType.SERIALIZATION_DATA:
-            case TcpPortType.SERIALIZATION_IBIS:
-                out.writeLong(seqno);
-                break;
-            default:
-                throw new IOException("Something wrong here!");
-            }
+            out.writeLong(seqno);
         }
         return res;
     }

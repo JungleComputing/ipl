@@ -2,7 +2,7 @@
 
 package ibis.impl.nio;
 
-import ibis.io.SerializationOutputStream;
+import ibis.io.SerializationOutput;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
@@ -11,9 +11,9 @@ import java.io.IOException;
 final class NioWriteMessage implements WriteMessage, Config {
     private NioSendPort port;
 
-    private SerializationOutputStream out;
+    private SerializationOutput out;
 
-    NioWriteMessage(NioSendPort port, SerializationOutputStream out)
+    NioWriteMessage(NioSendPort port, SerializationOutput out)
             throws IOException {
         this.port = port;
         this.out = out;
@@ -85,7 +85,7 @@ final class NioWriteMessage implements WriteMessage, Config {
     }
 
     public void writeString(String value) throws IOException {
-        out.writeUTF(value);
+        out.writeString(value);
     }
 
     public void writeObject(Object value) throws IOException {

@@ -12,16 +12,17 @@ import java.io.IOException;
  * basic types and arrays of basic types. It also serves as a base type
  * for Ibis serialization.
  */
-public class DataSerializationOutputStream extends SerializationOutputStream
+public class DataSerializationOutputStream extends ByteSerializationOutputStream
         implements IbisStreamFlags {
+    /** When true, no buffering in this layer. */
+    private static final boolean NO_ARRAY_BUFFERS
+            = TypedProperties.booleanProperty(IOProps.s_no_array_buffers);
+
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION = true;
 
     /** Boolean count is not used, use it for arrays. */
-    static final int TYPE_ARRAY = DataSerializationInputStream.TYPE_ARRAY;
-
-    /** The underlying <code>Accumulator</code>. */
-    private final Accumulator out;
+    static final int TYPE_ARRAY = TYPE_BOOLEAN;
 
     /** Allocator for the typed buffer arrays. */
     private static final DataAllocator allocator
@@ -125,25 +126,23 @@ public class DataSerializationOutputStream extends SerializationOutputStream
     private boolean[] touched = new boolean[PRIMITIVE_TYPES];
 
     /**
-     * Constructor with an <code>Accumulator</code>.
-     * @param out		the underlying <code>Accumulator</code>
+     * Constructor with a <code>DataOutputStream</code>.
+     * @param out		the underlying <code>DataOutputStream</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public DataSerializationOutputStream(Accumulator out) throws IOException {
-        super();
-
-        this.out = out;
-        initArrays();
+    public DataSerializationOutputStream(DataOutputStream out)
+            throws IOException {
+        super(out);
+        if (! NO_ARRAY_BUFFERS) {
+            initArrays();
+        }
     }
 
     /**
      * Constructor, may be used when this class is sub-classed.
      */
     protected DataSerializationOutputStream() throws IOException {
-
         super();
-
-        out = null;
     }
 
     public String serializationImplName() {
@@ -166,10 +165,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      */
     public void writeArrayBoolean(boolean[] ref, int offset, int len)
             throws IOException {
-        if (TIME_DATA_SERIALIZATION) {
-            startTimer();
-        }
-        if (len < SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+        if (NO_ARRAY_BUFFERS) {
+            out.writeArray(ref, offset, len);
+        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
             // System.err.println("Special boolean array write len " + len);
             /* Maybe lift the check from the writeBoolean? */
             for (int i = offset; i < offset + len; i++) {
@@ -192,9 +190,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
 
             addStatSendArray(ref, TYPE_BOOLEAN, len);
         }
-        if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
-        }
     }
 
     /**
@@ -209,10 +204,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      */
     public void writeArrayByte(byte[] ref, int offset, int len)
             throws IOException {
-        if (TIME_DATA_SERIALIZATION) {
-            startTimer();
-        }
-        if (len < SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
+        if (NO_ARRAY_BUFFERS) {
+            out.writeArray(ref, offset, len);
+        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
             // System.err.println("Special byte array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeByte(ref[i]);
@@ -234,9 +228,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
 
             addStatSendArray(ref, TYPE_BYTE, len);
         }
-        if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
-        }
     }
 
     /**
@@ -251,10 +242,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      */
     public void writeArrayChar(char[] ref, int offset, int len)
             throws IOException {
-        if (TIME_DATA_SERIALIZATION) {
-            startTimer();
-        }
-        if (len < SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
+        if (NO_ARRAY_BUFFERS) {
+            out.writeArray(ref, offset, len);
+        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
             // System.err.println("Special char array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeChar(ref[i]);
@@ -276,9 +266,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
 
             addStatSendArray(ref, TYPE_CHAR, len);
         }
-        if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
-        }
     }
 
     /**
@@ -293,10 +280,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      */
     public void writeArrayShort(short[] ref, int offset, int len)
             throws IOException {
-        if (TIME_DATA_SERIALIZATION) {
-            startTimer();
-        }
-        if (len < SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
+        if (NO_ARRAY_BUFFERS) {
+            out.writeArray(ref, offset, len);
+        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
             // System.err.println("Special short array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeShort(ref[i]);
@@ -318,9 +304,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
 
             addStatSendArray(ref, TYPE_SHORT, len);
         }
-        if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
-        }
     }
 
     /**
@@ -335,10 +318,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      */
     public void writeArrayInt(int[] ref, int offset, int len)
             throws IOException {
-        if (TIME_DATA_SERIALIZATION) {
-            startTimer();
-        }
-        if (len < SMALL_ARRAY_BOUND / SIZEOF_INT) {
+        if (NO_ARRAY_BUFFERS) {
+            out.writeArray(ref, offset, len);
+        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_INT) {
             // System.err.println("Special int array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeInt(ref[i]);
@@ -360,9 +342,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
 
             addStatSendArray(ref, TYPE_INT, len);
         }
-        if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
-        }
     }
 
     /**
@@ -377,10 +356,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      */
     public void writeArrayLong(long[] ref, int offset, int len)
             throws IOException {
-        if (TIME_DATA_SERIALIZATION) {
-            startTimer();
-        }
-        if (len < SMALL_ARRAY_BOUND / SIZEOF_LONG) {
+        if (NO_ARRAY_BUFFERS) {
+            out.writeArray(ref, offset, len);
+        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_LONG) {
             // System.err.println("Special long array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeLong(ref[i]);
@@ -402,9 +380,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
 
             addStatSendArray(ref, TYPE_LONG, len);
         }
-        if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
-        }
     }
 
     /**
@@ -419,10 +394,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      */
     public void writeArrayFloat(float[] ref, int offset, int len)
             throws IOException {
-        if (TIME_DATA_SERIALIZATION) {
-            startTimer();
-        }
-        if (len < SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
+        if (NO_ARRAY_BUFFERS) {
+            out.writeArray(ref, offset, len);
+        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
             // System.err.println("Special float array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeFloat(ref[i]);
@@ -444,9 +418,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
 
             addStatSendArray(ref, TYPE_FLOAT, len);
         }
-        if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
-        }
     }
 
     /**
@@ -461,10 +432,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      */
     public void writeArrayDouble(double[] ref, int offset, int len)
             throws IOException {
-        if (TIME_DATA_SERIALIZATION) {
-            startTimer();
-        }
-        if (len < SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
+        if (NO_ARRAY_BUFFERS) {
+            out.writeArray(ref, offset, len);
+        } else if (len < SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
             // System.err.println("Special double array write len " + len);
             for (int i = offset; i < offset + len; i++) {
                 writeDouble(ref[i]);
@@ -486,9 +456,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
 
             addStatSendArray(ref, TYPE_DOUBLE, len);
         }
-        if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
-        }
     }
 
     void addStatSendArray(Object ref, int type, int len) {
@@ -509,42 +476,44 @@ public class DataSerializationOutputStream extends SerializationOutputStream
             suspendTimer();
         }
 
-        flushBuffers();
+        if (! NO_ARRAY_BUFFERS) {
+            flushBuffers();
 
-        /* Retain the order in which the arrays were pushed. This 
-         * costs a cast at receive time.
-         */
-        for (int i = 0; i < array_index; i++) {
-            ArrayDescriptor a = array[i];
-            switch (a.type) {
-            case TYPE_BOOLEAN:
-                out.writeArray(a.booleanArray, a.offset, a.len);
-                break;
-            case TYPE_BYTE:
-                out.writeArray(a.byteArray, a.offset, a.len);
-                break;
-            case TYPE_CHAR:
-                out.writeArray(a.charArray, a.offset, a.len);
-                break;
-            case TYPE_SHORT:
-                out.writeArray(a.shortArray, a.offset, a.len);
-                break;
-            case TYPE_INT:
-                out.writeArray(a.intArray, a.offset, a.len);
-                break;
-            case TYPE_LONG:
-                out.writeArray(a.longArray, a.offset, a.len);
-                break;
-            case TYPE_FLOAT:
-                out.writeArray(a.floatArray, a.offset, a.len);
-                break;
-            case TYPE_DOUBLE:
-                out.writeArray(a.doubleArray, a.offset, a.len);
-                break;
+            /* Retain the order in which the arrays were pushed. This 
+             * costs a cast at receive time.
+             */
+            for (int i = 0; i < array_index; i++) {
+                ArrayDescriptor a = array[i];
+                switch (a.type) {
+                case TYPE_BOOLEAN:
+                    out.writeArray(a.booleanArray, a.offset, a.len);
+                    break;
+                case TYPE_BYTE:
+                    out.writeArray(a.byteArray, a.offset, a.len);
+                    break;
+                case TYPE_CHAR:
+                    out.writeArray(a.charArray, a.offset, a.len);
+                    break;
+                case TYPE_SHORT:
+                    out.writeArray(a.shortArray, a.offset, a.len);
+                    break;
+                case TYPE_INT:
+                    out.writeArray(a.intArray, a.offset, a.len);
+                    break;
+                case TYPE_LONG:
+                    out.writeArray(a.longArray, a.offset, a.len);
+                    break;
+                case TYPE_FLOAT:
+                    out.writeArray(a.floatArray, a.offset, a.len);
+                    break;
+                case TYPE_DOUBLE:
+                    out.writeArray(a.doubleArray, a.offset, a.len);
+                    break;
+                }
             }
-        }
 
-        array_index = 0;
+            array_index = 0;
+        }
 
         out.flush();
 
@@ -552,35 +521,30 @@ public class DataSerializationOutputStream extends SerializationOutputStream
             resumeTimer();
         }
 
-        if (out instanceof ArrayOutputStream) {
-
-            ArrayOutputStream o = (ArrayOutputStream) out;
-
-            if (!o.finished()) {
-                indices_short = allocator.getIndexArray();
-                if (touched[TYPE_BYTE]) {
-                    byte_buffer = allocator.getByteArray();
-                }
-                if (touched[TYPE_CHAR]) {
-                    char_buffer = allocator.getCharArray();
-                }
-                if (touched[TYPE_SHORT]) {
-                    short_buffer = allocator.getShortArray();
-                }
-                if (touched[TYPE_INT]) {
-                    int_buffer = allocator.getIntArray();
-                }
-                if (touched[TYPE_LONG]) {
-                    long_buffer = allocator.getLongArray();
-                }
-                if (touched[TYPE_FLOAT]) {
-                    float_buffer = allocator.getFloatArray();
-                }
-                if (touched[TYPE_DOUBLE]) {
-                    double_buffer = allocator.getDoubleArray();
-                }
-                // unfinished++;
+        if (! NO_ARRAY_BUFFERS && !out.finished()) {
+            indices_short = allocator.getIndexArray();
+            if (touched[TYPE_BYTE]) {
+                byte_buffer = allocator.getByteArray();
             }
+            if (touched[TYPE_CHAR]) {
+                char_buffer = allocator.getCharArray();
+            }
+            if (touched[TYPE_SHORT]) {
+                short_buffer = allocator.getShortArray();
+            }
+            if (touched[TYPE_INT]) {
+                int_buffer = allocator.getIntArray();
+            }
+            if (touched[TYPE_LONG]) {
+                long_buffer = allocator.getLongArray();
+            }
+            if (touched[TYPE_FLOAT]) {
+                float_buffer = allocator.getFloatArray();
+            }
+            if (touched[TYPE_DOUBLE]) {
+                double_buffer = allocator.getDoubleArray();
+            }
+            // unfinished++;
         }
 
         for (int i = 0; i < PRIMITIVE_TYPES; i++) {
@@ -597,13 +561,17 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        if (byte_index == BYTE_BUFFER_SIZE) {
-            flush();
+        if (NO_ARRAY_BUFFERS) {
+            out.writeBoolean(value);
+        } else {
+            if (byte_index == BYTE_BUFFER_SIZE) {
+                flush();
+            }
+            byte_buffer[byte_index++] = (byte) (value ? 1 : 0);
         }
         if (DEBUG) {
             dbPrint("wrote boolean " + value);
         }
-        byte_buffer[byte_index++] = (byte) (value ? 1 : 0);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
@@ -614,17 +582,21 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      * @param     value             The byte value to write.
      * @exception IOException on IO error.
      */
-    public void writeByte(int value) throws IOException {
+    public void writeByte(byte value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        if (byte_index == BYTE_BUFFER_SIZE) {
-            flush();
+        if (NO_ARRAY_BUFFERS) {
+            out.writeByte(value);
+        } else {
+            if (byte_index == BYTE_BUFFER_SIZE) {
+                flush();
+            }
+            byte_buffer[byte_index++] = value;
         }
         if (DEBUG) {
             dbPrint("wrote byte " + value);
         }
-        byte_buffer[byte_index++] = (byte) value;
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
@@ -639,13 +611,17 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        if (char_index == CHAR_BUFFER_SIZE) {
-            flush();
+        if (NO_ARRAY_BUFFERS) {
+            out.writeChar(value);
+        } else {
+            if (char_index == CHAR_BUFFER_SIZE) {
+                flush();
+            }
+            char_buffer[char_index++] = value;
         }
         if (DEBUG) {
             dbPrint("wrote char " + value);
         }
-        char_buffer[char_index++] = value;
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
@@ -656,17 +632,21 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      * @param     value             The short value to write.
      * @exception IOException on IO error.
      */
-    public void writeShort(int value) throws IOException {
+    public void writeShort(short value) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        if (short_index == SHORT_BUFFER_SIZE) {
-            flush();
+        if (NO_ARRAY_BUFFERS) {
+            out.writeShort(value);
+        } else {
+            if (short_index == SHORT_BUFFER_SIZE) {
+                flush();
+            }
+            short_buffer[short_index++] = value;
         }
         if (DEBUG) {
             dbPrint("wrote short " + value);
         }
-        short_buffer[short_index++] = (short) value;
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
@@ -681,14 +661,18 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        if (int_index == INT_BUFFER_SIZE) {
-            flush();
+        if (NO_ARRAY_BUFFERS) {
+            out.writeInt(value);
+        } else {
+            if (int_index == INT_BUFFER_SIZE) {
+                flush();
+            }
+            int_buffer[int_index++] = value;
         }
         if (DEBUG) {
             dbPrint("wrote int[HEX] " + value + "[0x"
                     + Integer.toHexString(value) + "]");
         }
-        int_buffer[int_index++] = value;
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
@@ -703,13 +687,17 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        if (long_index == LONG_BUFFER_SIZE) {
-            flush();
+        if (NO_ARRAY_BUFFERS) {
+            out.writeLong(value);
+        } else {
+            if (long_index == LONG_BUFFER_SIZE) {
+                flush();
+            }
+            long_buffer[long_index++] = value;
         }
         if (DEBUG) {
             dbPrint("wrote long " + value);
         }
-        long_buffer[long_index++] = value;
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
@@ -724,13 +712,17 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        if (float_index == FLOAT_BUFFER_SIZE) {
-            flush();
+        if (NO_ARRAY_BUFFERS) {
+            out.writeFloat(value);
+        } else {
+            if (float_index == FLOAT_BUFFER_SIZE) {
+                flush();
+            }
+            float_buffer[float_index++] = value;
         }
         if (DEBUG) {
             dbPrint("wrote float " + value);
         }
-        float_buffer[float_index++] = value;
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
@@ -745,28 +737,21 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        if (double_index == DOUBLE_BUFFER_SIZE) {
-            flush();
+        if (NO_ARRAY_BUFFERS) {
+            out.writeDouble(value);
+        } else {
+            if (double_index == DOUBLE_BUFFER_SIZE) {
+                flush();
+            }
+            double_buffer[double_index++] = value;
         }
         if (DEBUG) {
             dbPrint("wrote double " + value);
         }
-        double_buffer[double_index++] = value;
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
     }
-
-    public void close() throws IOException {
-        flush();
-        out.close();
-    }
-
-    /*
-     * If you are overriding DataSerializationOutputStream,
-     * you can stop now :-) 
-     * The rest is built on top of these.
-     */
 
     /**
      * Allocates buffers.
@@ -798,30 +783,14 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         return allocator;
     }
 
-    /**
-     * Debugging print.
-     * @param s	the string to be printed.
-     */
-    void dbPrint(String s) {
-        DataSerializationInputStream.debuggerPrint(this + ": " + s);
-    }
-
     public void reset() throws IOException {
         // nothing
     }
 
     /* This is the data output / object output part */
 
-    public void write(int v) throws IOException {
-        writeByte((byte) (0xff & v));
-    }
-
-    public void write(byte[] b) throws IOException {
-        write(b, 0, b.length);
-    }
-
-    public void write(byte[] b, int off, int len) throws IOException {
-        writeArray(b, off, len);
+    public void writeString(String str) throws IOException {
+        writeUTF(str);
     }
 
     public void writeUTF(String str) throws IOException {
@@ -866,13 +835,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeClass(Class ref) throws IOException {
-        throw new IOException("Illegal data type written");
     }
 
     /**
@@ -950,26 +912,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         reset_indices();
     }
 
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeBytes(String s) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeChars(String s) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * We must write something before the array to ensure that the receiver
-     * reads its buffer bounds.
-     */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
@@ -980,12 +922,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * We must write something before the array to ensure that the receiver
-     * reads its buffer bounds.
-     */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
@@ -996,12 +932,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * We must write something before the array to ensure that the receiver
-     * reads its buffer bounds.
-     */
     public void writeArray(short[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
@@ -1012,12 +942,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * We must write something before the array to ensure that the receiver
-     * reads its buffer bounds.
-     */
     public void writeArray(char[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
@@ -1028,12 +952,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * We must write something before the array to ensure that the receiver
-     * reads its buffer bounds.
-     */
     public void writeArray(int[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
@@ -1044,12 +962,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * We must write something before the array to ensure that the receiver
-     * reads its buffer bounds.
-     */
     public void writeArray(long[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
@@ -1060,12 +972,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * We must write something before the array to ensure that the receiver
-     * reads its buffer bounds.
-     */
     public void writeArray(float[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
@@ -1076,12 +982,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * We must write something before the array to ensure that the receiver
-     * reads its buffer bounds.
-     */
     public void writeArray(double[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
@@ -1090,51 +990,5 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
         }
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeArray(Object[] ref, int off, int len) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeObjectOverride(Object ref) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeUnshared(Object ref) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    public void useProtocolVersion(int version) {
-        /* ignored. */
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeFields() throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public PutField putFields() throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void defaultWriteObject() throws IOException {
-        throw new IOException("Illegal data type written");
     }
 }

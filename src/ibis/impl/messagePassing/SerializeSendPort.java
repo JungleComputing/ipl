@@ -26,46 +26,11 @@ final public class SerializeSendPort extends SendPort {
     private ConditionVariable connectFinished = Ibis.myIbis.createCV();
 
     public SerializeSendPort(PortType type, String name) throws IOException {
-        super(type, name, true /* syncMode */, true /* makeCopy */);
+        super(type, name);
         if (DEBUG) {
             System.err.println("/////////// Created a new SerializeSendPort "
                     + this);
         }
-    }
-
-    /**
-     * Sun serialization requies a standard {@link java.io.OutputStream}
-     * which {@link ByteOutputStream} is not.
-     * Provide a wrapper class.
-     */
-    private static class OutputStream extends java.io.OutputStream {
-
-        private ByteOutputStream out;
-
-        OutputStream(ByteOutputStream out) {
-            this.out = out;
-        }
-
-        public void write(int b) throws IOException {
-            out.write(b);
-        }
-
-        public void write(byte[] b) throws IOException {
-            out.write(b);
-        }
-
-        public void write(byte[] b, int off, int len) throws IOException {
-            if (b == null) {
-                System.err.println("This is a bug: a null array in write()");
-                throw new Error("null array in write()");
-            }
-            out.write(b, off, len);
-        }
-
-        public void flush() throws IOException {
-            out.flush();
-        }
-
     }
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver, long timeout)
@@ -160,8 +125,7 @@ final public class SerializeSendPort extends SendPort {
             Ibis.myIbis.unlock();
         }
 
-        obj_out = new ibis.io.SunSerializationOutputStream(
-                new BufferedOutputStream(new OutputStream(out)));
+        obj_out = new ibis.io.SunSerializationOutputStream(new BufferedOutputStream(out));
         if (replacer != null) {
             obj_out.setReplacer(replacer);
         }

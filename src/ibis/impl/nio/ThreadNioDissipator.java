@@ -66,7 +66,7 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
      * Called by the send/receive thread to indicate we may read from the
      * channel now.
      */
-    synchronized void read() {
+    synchronized void doRead() {
         boolean bufferWasEmpty;
 
         synchronized (this) {

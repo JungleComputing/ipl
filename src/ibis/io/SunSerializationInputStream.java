@@ -12,27 +12,25 @@ import java.io.InputStream;
  * <code>SerializationInputStream</code>, built on methods in
  * <code>ObjectInputStream</code>.
  */
-public final class SunSerializationInputStream extends SerializationInputStream {
+public final class SunSerializationInputStream
+        extends java.io.ObjectInputStream implements SerializationInput {
+
+    private InputStream in;
+
     /**
-     * Constructor. Calls constructor of superclass and flushes.
+     * Constructor. Calls constructor of superclass.
      *
-     * @param s the underlying <code>InputStream</code>
+     * @param s the underlying <code>DataInputStream</code>
      * @exception IOException when an IO error occurs.
      */
     public SunSerializationInputStream(InputStream s) throws IOException {
-        super(s);
+        super(new DummyInputStream(s));
+        this.in = s;
     }
 
-    /**
-     * Constructor. Calls constructor of superclass with a newly created
-     * <code>InputStream</code> from the <code>Dissipator</code> parameter.
-     *
-     * @param in the <code>Dissipator</code>
-     * @exception IOException when an IO error occurs.
-     */
-
-    public SunSerializationInputStream(Dissipator in) throws IOException {
-        super(new DissipatorInputStream(in));
+    public SunSerializationInputStream(DataInputStream s) throws IOException {
+        super(new DummyInputStream(s));
+        this.in = s;
     }
 
     /**
@@ -42,6 +40,10 @@ public final class SunSerializationInputStream extends SerializationInputStream 
      */
     public String serializationImplName() {
         return "sun";
+    }
+
+    public boolean reInitOnNewConnection() {
+        return true;
     }
 
     /**
@@ -231,5 +233,55 @@ public final class SunSerializationInputStream extends SerializationInputStream 
                     "Received sub array has wrong len");
         }
         System.arraycopy(temp, 0, ref, off, len);
+    }
+
+    public void readArray(boolean[] ref) throws IOException {
+        readArray(ref, 0, ref.length);
+    }
+
+    public void readArray(byte[] ref) throws IOException {
+        readArray(ref, 0, ref.length);
+    }
+
+    public void readArray(short[] ref) throws IOException {
+        readArray(ref, 0, ref.length);
+    }
+
+    public void readArray(char[] ref) throws IOException {
+        readArray(ref, 0, ref.length);
+    }
+
+    public void readArray(int[] ref) throws IOException {
+        readArray(ref, 0, ref.length);
+    }
+
+    public void readArray(long[] ref) throws IOException {
+        readArray(ref, 0, ref.length);
+    }
+
+    public void readArray(float[] ref) throws IOException {
+        readArray(ref, 0, ref.length);
+    }
+
+    public void readArray(double[] ref) throws IOException {
+        readArray(ref, 0, ref.length);
+    }
+
+    public void readArray(Object[] ref)
+            throws IOException, ClassNotFoundException {
+        readArray(ref, 0, ref.length);
+    }
+
+    public String readString() throws IOException {
+        try {
+            return (String) readObject();
+        } catch (ClassNotFoundException e) {
+            throw new SerializationError("class 'String' not found", e);
+        }
+    }
+
+    public void realClose() throws IOException {
+        close();
+        in.close();
     }
 }

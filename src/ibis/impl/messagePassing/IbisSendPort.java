@@ -15,9 +15,7 @@ final public class IbisSendPort extends SendPort {
     IbisSerializationOutputStream obj_out;
 
     public IbisSendPort(PortType type, String name) throws IOException {
-        super(type, name, false, /* syncMode */
-        false /* makeCopy */);
-        // obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
+        super(type, name);
         obj_out = new IbisSerializationOutputStream(out);
         out.setAllocator(obj_out.getAllocator());
 

@@ -63,6 +63,54 @@ final class StoreBuffer {
         write(temp);
     }
 
+    public void writeByte(byte b) {
+        byte[] temp = new byte[1];
+        temp[0] = b;
+        writeArray(temp, 0, 1);
+    }
+
+    public void writeBoolean(boolean b) {
+        boolean[] temp = new boolean[1];
+        temp[0] = b;
+        writeArray(temp, 0, 1);
+    }
+
+    public void writeChar(char b) {
+        char[] temp = new char[1];
+        temp[0] = b;
+        writeArray(temp, 0, 1);
+    }
+
+    public void writeShort(short b) {
+        short[] temp = new short[1];
+        temp[0] = b;
+        writeArray(temp, 0, 1);
+    }
+
+    public void writeInt(int b) {
+        int[] temp = new int[1];
+        temp[0] = b;
+        writeArray(temp, 0, 1);
+    }
+
+    public void writeFloat(float b) {
+        float[] temp = new float[1];
+        temp[0] = b;
+        writeArray(temp, 0, 1);
+    }
+
+    public void writeDouble(double b) {
+        double[] temp = new double[1];
+        temp[0] = b;
+        writeArray(temp, 0, 1);
+    }
+
+    public void writeLong(long b) {
+        long[] temp = new long[1];
+        temp[0] = b;
+        writeArray(temp, 0, 1);
+    }
+
     public void writeArray(short[] a, int off, int len) {
         if (short_store == null) {
             short_store = new short[len];

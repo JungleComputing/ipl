@@ -2,6 +2,8 @@
 
 package ibis.io;
 
+import ibis.ipl.Replacer;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -11,30 +13,38 @@ import java.io.OutputStream;
  * It provides implementations for the abstract methods in
  * <code>SerializationOutputStream</code>, build on methods in
  * <code>ObjectOutputStream</code>.
+ * Sun serialization only requires an implementation of the
+ * <code>java.io.OutputStream</code> methods in the underlying
+ * {@link DataOutputStream}.
  */
-public final class SunSerializationOutputStream extends
-        SerializationOutputStream {
+public final class SunSerializationOutputStream
+        extends java.io.ObjectOutputStream implements SerializationOutput {
+
+    private Replacer replacer;
+
+    private OutputStream out;
+
     /**
-     * Constructor. Calls constructor of superclass and flushes.
+     * Constructor. Calls constructor of superclass with the
+     * <code>DataOutputStream</code> parameter (which is also a
+     * <code>java.io.OutputStream</code>) and flushes to send
+     * the serialization header out.
      *
-     * @param s the underlying <code>OutputStream</code>
+     * @param out the <code>OutputStream</code>
      * @exception java.io.IOException is thrown when an IO error occurs.
      */
-    public SunSerializationOutputStream(OutputStream s) throws IOException {
-        super(s);
+    public SunSerializationOutputStream(OutputStream out)
+            throws IOException {
+        super(new DummyOutputStream(out));
+
+        this.out = out;
         flush();
     }
 
-    /**
-     * Constructor. Calls constructor of superclass with a newly created
-     * <code>OututStream</code> from the <code>Accumulator</code>
-     * parameter and flushes.
-     *
-     * @param out the <code>Accumulator</code>
-     * @exception java.io.IOException is thrown when an IO error occurs.
-     */
-    public SunSerializationOutputStream(Accumulator out) throws IOException {
-        super(new AccumulatorOutputStream(out));
+    public SunSerializationOutputStream(DataOutputStream out)
+            throws IOException {
+        super(new DummyOutputStream(out));
+        this.out = out;
         flush();
     }
 
@@ -45,6 +55,10 @@ public final class SunSerializationOutputStream extends
      */
     public String serializationImplName() {
         return "sun";
+    }
+
+    public boolean reInitOnNewConnection() {
+        return true;
     }
 
     /**
@@ -63,13 +77,10 @@ public final class SunSerializationOutputStream extends
      * @exception java.io.IOException is thrown on an IO error.
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
-        /*
-         if (off == 0 && len == ref.length) {
-         // So no cycle detection is used ...
-             writeUnshared(ref);
-         } else
-         */
-        {
+        if (off == 0 && len == ref.length) {
+            // Use writeUnshared, so that no cycle detection is used ...
+            writeUnshared(ref);
+        } else {
             boolean[] temp = new boolean[len];
             System.arraycopy(ref, off, temp, 0, len);
             writeObject(temp);
@@ -89,14 +100,7 @@ public final class SunSerializationOutputStream extends
          */
         if (off == 0 && len == ref.length) {
             write(ref);
-        } else
-
-        /*
-         if (off == 0 && len == ref.length) {
-             writeUnshared(ref);
-         } else
-         */
-        {
+        } else {
             byte[] temp = new byte[len];
             System.arraycopy(ref, off, temp, 0, len);
             writeObject(temp);
@@ -108,12 +112,9 @@ public final class SunSerializationOutputStream extends
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
-        /*
-         if (off == 0 && len == ref.length) {
-             writeUnshared(ref);
-         } else
-         */
-        {
+        if (off == 0 && len == ref.length) {
+            writeUnshared(ref);
+        } else {
             short[] temp = new short[len];
             System.arraycopy(ref, off, temp, 0, len);
             writeObject(temp);
@@ -125,12 +126,9 @@ public final class SunSerializationOutputStream extends
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
-        /*
-         if (off == 0 && len == ref.length) {
-             writeUnshared(ref);
-         } else
-         */
-        {
+        if (off == 0 && len == ref.length) {
+            writeUnshared(ref);
+        } else {
             char[] temp = new char[len];
             System.arraycopy(ref, off, temp, 0, len);
             writeObject(temp);
@@ -142,12 +140,9 @@ public final class SunSerializationOutputStream extends
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
-        /*
-         if (off == 0 && len == ref.length) {
-             writeUnshared(ref);
-         } else
-         */
-        {
+        if (off == 0 && len == ref.length) {
+            writeUnshared(ref);
+        } else {
             int[] temp = new int[len];
             System.arraycopy(ref, off, temp, 0, len);
             writeObject(temp);
@@ -159,12 +154,9 @@ public final class SunSerializationOutputStream extends
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
-        /*
-         if (off == 0 && len == ref.length) {
-             writeUnshared(ref);
-         } else
-         */
-        {
+        if (off == 0 && len == ref.length) {
+            writeUnshared(ref);
+        } else {
             long[] temp = new long[len];
             System.arraycopy(ref, off, temp, 0, len);
             writeObject(temp);
@@ -176,12 +168,9 @@ public final class SunSerializationOutputStream extends
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
-        /*
-         if (off == 0 && len == ref.length) {
-             writeUnshared(ref);
-         } else
-         */
-        {
+        if (off == 0 && len == ref.length) {
+            writeUnshared(ref);
+        } else {
             float[] temp = new float[len];
             System.arraycopy(ref, off, temp, 0, len);
             writeObject(temp);
@@ -193,12 +182,9 @@ public final class SunSerializationOutputStream extends
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
-        /*
-         if (off == 0 && len == ref.length) {
-             writeUnshared(ref);
-         } else
-         */
-        {
+        if (off == 0 && len == ref.length) {
+            writeUnshared(ref);
+        } else {
             double[] temp = new double[len];
             System.arraycopy(ref, off, temp, 0, len);
             writeObject(temp);
@@ -210,16 +196,65 @@ public final class SunSerializationOutputStream extends
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(Object[] ref, int off, int len) throws IOException {
-        /*
-         if (off == 0 && len == ref.length) {
-             writeUnshared(ref);
-         } else
-         */
-        {
+        if (off == 0 && len == ref.length) {
+            writeUnshared(ref);
+        } else {
             Object[] temp = new Object[len];
             System.arraycopy(ref, off, temp, 0, len);
             writeObject(temp);
         }
+    }
+
+    public void writeArray(boolean[] ref) throws IOException {
+        writeArray(ref, 0, ref.length);
+    }
+
+    public void writeArray(byte[] ref) throws IOException {
+        writeArray(ref, 0, ref.length);
+    }
+
+    public void writeArray(short[] ref) throws IOException {
+        writeArray(ref, 0, ref.length);
+    }
+
+    public void writeArray(char[] ref) throws IOException {
+        writeArray(ref, 0, ref.length);
+    }
+
+    public void writeArray(int[] ref) throws IOException {
+        writeArray(ref, 0, ref.length);
+    }
+
+    public void writeArray(long[] ref) throws IOException {
+        writeArray(ref, 0, ref.length);
+    }
+
+    public void writeArray(float[] ref) throws IOException {
+        writeArray(ref, 0, ref.length);
+    }
+
+    public void writeArray(double[] ref) throws IOException {
+        writeArray(ref, 0, ref.length);
+    }
+
+    public void writeArray(Object[] ref) throws IOException {
+        writeArray(ref, 0, ref.length);
+    }
+
+    public void writeString(String ref) throws IOException {
+        writeObject(ref);
+    }
+
+    public void writeShort(short r) throws IOException {
+        super.writeShort((int) r);
+    }
+
+    public void writeChar(char r) throws IOException {
+        super.writeChar((int) r);
+    }
+
+    public void writeByte(byte r) throws IOException {
+        super.writeByte((int) r);
     }
 
     /**
@@ -227,5 +262,49 @@ public final class SunSerializationOutputStream extends
      */
     public void statistics() {
         // no statistics for Sun serialization.
+    }
+
+    public void realClose() throws IOException {
+        close();
+        out.close();
+    }
+
+    /**
+     * Set a replacer. The replacement mechanism can be used to replace
+     * an object with another object during serialization. This is used
+     * in RMI, for instance, to replace a remote object with a stub. 
+     * The replacement mechanism provided here is independent of the
+     * serialization implementation (Ibis serialization, Sun
+     * serialization).
+     * 
+     * @param replacer the replacer object to be associated with this
+     *  output stream
+     *
+     * @exception java.io.IOException is thrown when enableReplaceObject
+     *  throws an exception.
+     */
+    public void setReplacer(Replacer replacer) throws IOException {
+        try {
+            enableReplaceObject(true);
+        } catch (Exception e) {
+            // May throw a SecurityException.
+            // Don't know how to deal with that.
+            throw new IOException("enableReplaceObject threw exception: " + e);
+        }
+        this.replacer = replacer;
+    }
+
+    /**
+     * Object replacement for Sun serialization. This method gets called by
+     * Sun object serialization when replacement is enabled.
+     *
+     * @param obj the object to be replaced
+     * @return the result of the object replacement
+     */
+    protected Object replaceObject(Object obj) {
+        if (obj != null && replacer != null) {
+            obj = replacer.replace(obj);
+        }
+        return obj;
     }
 }
