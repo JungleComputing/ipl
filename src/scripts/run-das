@@ -119,8 +119,8 @@ do
 	-ip-map)
 		shift
 		ip_map="$1"
-		ip_addr=$IBIS/bin/ip_map.perl $ip_map `hostname`
-		JIT_OPTS="$JIT_OPTS -Dibis.util.ip.addr=$ip_addr"
+		ip_addr=`$IBIS_ROOT/bin/ip_map.perl $ip_map \`hostname\``
+		JIT_OPTS="$JIT_OPTS -Dibis.util.ip.address=$ip_addr"
 		;;
         *)      java_args="$java_args $qarg"
                 ;;
