@@ -55,13 +55,15 @@ class TcpPortType implements PortType, Config {
 		return name;
 	} 
 
-	public boolean equals(PortType other) {
-		if(!(other instanceof TcpPortType)) return false;
-
-		TcpPortType temp = (TcpPortType) other;
-
-		return name.equals(temp.name);
+	private boolean equals(TcpPortType other) {
+		return name.equals(other.name);
 	} 
+
+	public boolean equals(Object other) {
+		if (other == null) return false;
+		if (! (other instanceof TcpPortType)) return false;
+		return equals((TcpPortType) other);
+	}
 
 	public StaticProperties properties() { 
 		return p;

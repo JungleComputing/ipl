@@ -2,24 +2,51 @@ package ibis.ipl;
 
 import java.io.IOException;
 
+/**
+ * Signals that an attempt to set up a connection timed out. A
+ * <code>ConnectionTimedOutException</code> is thrown to indicate
+ * that a sendport connect timed out.
+ */
 public class ConnectionTimedOutException extends IOException {
 
+    /**
+     * Constructs a <code>ConnectionTimedOutException</code> with
+     * <code>null</code> as its error detail message.
+     */
     public ConnectionTimedOutException() {
 	super();
     }
 
-    public ConnectionTimedOutException(String name) {
-	super(name);
+    /**
+     * Constructs a <code>ConnectionTimedOutException</code> with
+     * the specified detail message.
+     *
+     * @param s		the detail message
+     */
+    public ConnectionTimedOutException(String s) {
+	super(s);
     }
 
-    public ConnectionTimedOutException(String name, Throwable cause) {
-	super(name);
+    /**
+     * Constructs a <code>ConnectionTimedOutException</code> with
+     * the specified detail message and cause.
+     *
+     * @param s		the detail message
+     * @param cause	the cause
+     */
+    public ConnectionTimedOutException(String s, Throwable cause) {
+	super(s);
 	initCause(cause);
     }
 
+    /**
+     * Constructs a <code>ConnectionTimedOutException</code> with
+     * the specified cause.
+     *
+     * @param cause	the cause
+     */
     public ConnectionTimedOutException(Throwable cause) {
 	super();
 	initCause(cause);
     }
-
 }

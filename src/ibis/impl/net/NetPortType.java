@@ -334,8 +334,8 @@ public final class NetPortType implements PortType {
 	/**
 	 * {@inheritDoc}
 	 */
-	public boolean equals(PortType other) {
-		if (!(other instanceof NetPortType)) {
+	public boolean equals(Object other) {
+		if (other == null || !(other instanceof NetPortType)) {
 			return false;
 		}
 

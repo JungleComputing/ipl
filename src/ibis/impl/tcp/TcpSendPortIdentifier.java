@@ -31,7 +31,8 @@ public final class TcpSendPortIdentifier implements SendPortIdentifier, java.io.
 		}
 	}
 
-	public boolean equals(SendPortIdentifier other) { 
+	public boolean equals(Object other) { 
+		if (other == null) return false;
 		if (other instanceof TcpSendPortIdentifier) {			
 			return equals((TcpSendPortIdentifier) other);
 		} else { 

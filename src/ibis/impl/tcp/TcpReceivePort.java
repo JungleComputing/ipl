@@ -38,6 +38,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private boolean connection_setup_present = false;
 
 	private SerializationStreamReadMessage m = null;
+	protected boolean shouldLeave;
 
 	TcpReceivePort(TcpPortType type, String name, Upcall upcall, ReceivePortConnectUpcall connUpcall) throws IOException {
 		this.type   = type;
@@ -140,7 +141,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	synchronized SerializationStreamReadMessage getMessage() {
-		while(m == null) {
+		while(m == null && ! shouldLeave) {
 			try {
 				wait();
 			} catch (Exception e) {
@@ -241,7 +242,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			throw new IOException("upcall receive config, downcall not allowed");
 		}
 
-		return getMessage();
+		ReadMessage m = getMessage();
+
+		if (m == null) {
+		    throw new IOException("receive port closed");
+		}
+		return m;
 	}
 
 	public ReadMessage receive(ReadMessage finishMe) throws IOException { 
@@ -296,6 +302,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		if (connUpcall != null) {
 		    connUpcall.lostConnection(si);
 		}
+		shouldLeave = true;
 		notifyAll();
 	}
 

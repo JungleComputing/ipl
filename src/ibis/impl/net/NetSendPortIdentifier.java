@@ -65,7 +65,7 @@ public final class NetSendPortIdentifier
 	 *
 	 * @return The equality result.
 	 */
-	public boolean equals(SendPortIdentifier other) {
+	public boolean equals(Object other) {
 		if (other instanceof NetSendPortIdentifier) {			
 			return equals((NetSendPortIdentifier) other);
 		} else { 

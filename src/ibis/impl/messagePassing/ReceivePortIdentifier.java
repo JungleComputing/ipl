@@ -46,19 +46,16 @@ final class ReceivePortIdentifier
     }
 
 
-    public boolean equals(ibis.ipl.ReceivePortIdentifier other) {
+    public boolean equals(Object other) {
+	if (other == null) return false;
 	if (other == this) return true;
 
 	if (!(other instanceof ReceivePortIdentifier)) {
 	    return false;
 	}
 
-	if(other instanceof ReceivePortIdentifier) {
-		ReceivePortIdentifier temp = (ReceivePortIdentifier)other;
-		return (cpu == temp.cpu && port == temp.port);
-	}
-
-	return false;
+	ReceivePortIdentifier temp = (ReceivePortIdentifier)other;
+	return (cpu == temp.cpu && port == temp.port);
     }
 
 

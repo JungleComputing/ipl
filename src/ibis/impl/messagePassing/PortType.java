@@ -48,7 +48,10 @@ public class PortType implements ibis.ipl.PortType {
 	return name;
     }
 
-    public boolean equals(ibis.ipl.PortType other) {
+    public boolean equals(Object other) {
+	if (other == null) {
+	    return false;
+	}
 	if (!(other instanceof PortType))
 	    return false;
 

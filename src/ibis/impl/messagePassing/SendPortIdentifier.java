@@ -44,15 +44,16 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     }
 
 
-    public boolean equals(ibis.ipl.SendPortIdentifier other) {
-	    if (other == this) return true;
+    public boolean equals(Object other) {
+	if (other == this) return true;
+	if (other == null) return false;
 	    
-	    if (other instanceof SendPortIdentifier) {
-		    SendPortIdentifier o = (SendPortIdentifier)other;
-		    return cpu == o.cpu && port == o.port;
-	    }
+	if (other instanceof SendPortIdentifier) {
+	    SendPortIdentifier o = (SendPortIdentifier)other;
+	    return cpu == o.cpu && port == o.port;
+	}
 	    
-	    return false;
+	return false;
     }
 
     public String name() {

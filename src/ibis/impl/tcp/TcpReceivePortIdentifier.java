@@ -32,7 +32,9 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 		}		
 	}
 
-	public boolean equals(ReceivePortIdentifier other) { 
+	public boolean equals(Object other) { 
+
+		if (other == null) return false;
 
 		if (other instanceof TcpReceivePortIdentifier) { 
 			return equals((TcpReceivePortIdentifier) other);
@@ -43,7 +45,9 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 	
 	//gosia
 	public int hashCode() {
-		return name.hashCode() + type.hashCode() + ibis.hashCode() + port;
+		int i = name.hashCode() + type.hashCode() + ibis.hashCode() + port;
+System.out.println(this + ", hash code returns " + i);
+		return i;
 	}
 	//end gosia
 

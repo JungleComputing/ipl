@@ -82,7 +82,7 @@ public final class NetReceivePortIdentifier
 	 *
 	 * @return The equality result.
 	 */
-	public boolean equals(ReceivePortIdentifier other) { 
+	public boolean equals(Object other) { 
 
 		if (other instanceof NetReceivePortIdentifier) { 
 			return equals((NetReceivePortIdentifier) other);

@@ -2,7 +2,6 @@ package ibis.ipl;
 
 import java.io.IOException;
 
-public interface SendPort {        
          /**
 	    Sendports maintain connections to one or more receive ports.
 	    The general contract is as follows.
@@ -25,19 +24,32 @@ public interface SendPort {
 	    to use the lostConnections() method to poll for connections 
 	    that are lost.
          **/
+public interface SendPort {        
 
 	/**
+	   Request a new message from this sendport.
 	   Only one message is alive at one time for a given
-	   sendport. This is done to prevent flow control problems.  when a
-	   message is alive, and a new messages is requested, the requester is
+	   sendport. This is done to prevent flow control problems.  When a
+	   message is alive, and a new message is requested, the request is
 	   blocked until the live message is finished.
 	   It is allowed to get a message for a sendport that is not connected.
 	   All data that is written into the message is then silently discarded.
+
+	   @return a <code>WriteMessage</code>.
+	   @exception IOException may be thrown when something goes wrong.
 	**/
 	public WriteMessage newMessage() throws IOException;
 
+	/**
+	   What is the idea? Currently there are no Ibis implementations
+	   that implement this! ????
+	**/
 	public DynamicProperties properties();
 
+	/**
+	   Obtain an identification for this sendport.
+	   @return the identification.
+	**/
 	public SendPortIdentifier identifier();
 
 	/**
@@ -47,29 +59,44 @@ public interface SendPort {
 	   Multiple connections to the same receiver are NOT allowed.
 	   @exception PortConfigurationException is thrown if this receive
 	   port and the send port are of different types.
+	   @param receiver identifies the <code>ReceivePort</code> to connect to
 	*/
 	public void connect(ReceivePortIdentifier receiver) throws IOException;
 
 	/**
 	   Attempt a connection with receiver.
 	   @exception ibis.ipl.ConnectionTimedOutException is thrown
-	   if an accept/deny has not arrived within timeout_millis.
-	   A value timeout_millis of 0 signifies no timeout on the connection
-	   attempt.
+	   if an accept/deny has not arrived within <code>timeout_millis</code>.
+	   A value of 0 for <code>timeout_millis</code> signifies no
+	   timeout on the connection attempt.
 	   @exception ConnectionRefusedException is thrown
 	   if the receiver denies the connection.
 	   Multiple connections to the same receiver are NOT allowed.
 	   @exception PortConfigurationException is thrown if this receive
 	   port and the send port are of different types.
+	   @param receiver identifies the <code>ReceivePort</code> to connect to
+	   @param timeout_millis timeout in milliseconds
 	*/
 	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IOException;
 
-	/** Free the resources held by the SendPort. **/
+	/** 
+	   Free the resources held by the SendPort.
+	   Even if this call throws an exception, the connection cannot be
+	   used anymore.
+	   @exception IOException in case of trouble.
+	**/
 	public void free() throws IOException;
 
-	/** Returns the set of receiveports this sendport is connected to. **/
+	/** 
+	   Returns the set of receiveports this sendport is connected to.
+	   @return a set of receiveport identifiers.
+	**/
 	public ReceivePortIdentifier[] connectedTo();
 
-	/** Poll to find out whether any connections are lost or closed. **/
+	/** 
+	   Poll to find out whether any connections are lost or closed.
+	   @return a set of receiveport identifiers to which the connection
+	   is lost.
+	**/
 	public ReceivePortIdentifier[] lostConnections();
 }
