@@ -94,6 +94,7 @@ public class Client {
 	    } else {
 		for (int i = 0; i < n; i++) {
 		    s.empty();
+// System.err.print(".");
 		}
 	    }
 	} else if (one_way) {
@@ -191,10 +192,14 @@ public class Client {
 		worker.start();
 	    }
 
+	    // System.out.println("Client starts");
+	    // System.out.flush();
+
 	    if (warm_up > 0) {
 		do_rmis(s, request, warm_up);
 
 		System.out.println("Done " + warm_up + " warmup RMIs size " + size);
+		System.out.flush();
 		s.reset();
 		System.gc();
 		// javaSocketResetStats();
