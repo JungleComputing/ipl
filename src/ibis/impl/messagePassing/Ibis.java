@@ -7,6 +7,7 @@ import ibis.ipl.impl.generic.ConditionVariable;
 import ibis.ipl.impl.generic.Monitor;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
+import ibis.ipl.Replacer;
 import ibis.ipl.StaticProperties;
 
 public class Ibis extends ibis.ipl.Ibis {
@@ -246,20 +247,30 @@ public class Ibis extends ibis.ipl.Ibis {
 
     SendPort createSendPort(PortType type)
 	    throws IbisIOException {
-	return createSendPort(type, null);
+	return createSendPort(type, null, null);
     }
 
     SendPort createSendPort(PortType type, String name)
+	    throws IbisIOException {
+	return createSendPort(type, null, name);
+    }
+
+    SendPort createSendPort(PortType type, Replacer r)
+	    throws IbisIOException {
+	return createSendPort(type, r, null);
+    }
+
+    SendPort createSendPort(PortType type, Replacer r, String name)
 	    throws IbisIOException {
 	switch (type.serializationType) {
         case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE:
 	    return new SendPort(type, name, new OutputConnection());
 
 	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
-	    return new SerializeSendPort(type, name, new OutputConnection());
+	    return new SerializeSendPort(type, name, new OutputConnection(), r);
 
 	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA:
-	    return new MantaSendPort(type, name, new OutputConnection());
+	    return new MantaSendPort(type, name, new OutputConnection(), r);
 
 	default:
 	    throw new IbisIOException("No such serialization type " + type.serializationType);

@@ -1,4 +1,4 @@
-import java.rmi.*;
+import ibis.rmi.*;
 
 interface myServer extends Remote { 	
 	public void foo() throws RemoteException;

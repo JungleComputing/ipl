@@ -58,9 +58,9 @@ class Main {
 			}
 		} 
 
-		rmiInterface = Repository.lookupClass("java.rmi.Remote");
+		rmiInterface = Repository.lookupClass("ibis.rmi.Remote");
 		if (rmiInterface == null) {
-			System.err.println("Class java.rmi.Remote not found");
+			System.err.println("Class ibis.rmi.Remote not found");
 			System.exit(1);
 		}
 

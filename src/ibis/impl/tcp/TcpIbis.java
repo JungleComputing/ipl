@@ -31,6 +31,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
 public final class TcpIbis extends Ibis implements Config {
+
+	static final boolean DEBUG = false;
+
 	static TcpIbis globalIbis;
 
 	IbisIdentifierTable identTable = new IbisIdentifierTable();
@@ -164,6 +167,9 @@ public final class TcpIbis extends Ibis implements Config {
 			tcpPortHandler = new TcpPortHandler(ident);
 		} catch (IOException e) { 
 			throw new IbisIOException("cannot create TcpIbisNameServerClient", e);
+		}
+		if(DEBUG) {
+			System.err.println("Out of TcpIbis.init()");
 		}
 	}
 

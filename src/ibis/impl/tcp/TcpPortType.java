@@ -8,6 +8,7 @@ import ibis.ipl.Upcall;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.ConnectUpcall;
+import ibis.ipl.Replacer;
 
 class TcpPortType implements PortType { 
 
@@ -32,10 +33,10 @@ class TcpPortType implements PortType {
 		} else {
 			if (ser.equals("sun")) {
 				serializationType = SERIALIZATION_SUN;
-				System.err.println("serializationType = SERIALIZATION_SUN");
+//				System.err.println("serializationType = SERIALIZATION_SUN");
 			} else if (ser.equals("manta")) {
 
-				System.err.println("serializationType = SERIALIZATION_MANTA");
+//				System.err.println("serializationType = SERIALIZATION_MANTA");
 				serializationType = SERIALIZATION_MANTA;
 			} else {
 				throw new IbisException("Unknown Serialization type " + ser);
@@ -63,6 +64,18 @@ class TcpPortType implements PortType {
 		SendPort s;
 
 		s = new TcpSendPort(this);
+
+		if(TcpIbis.DEBUG) {
+			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
+		}
+
+		return s;
+	}
+
+	public SendPort createSendPort(Replacer r) throws IbisIOException {
+		SendPort s;
+
+		s = new TcpSendPort(this, r);
 
 		if(TcpIbis.DEBUG) {
 			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");

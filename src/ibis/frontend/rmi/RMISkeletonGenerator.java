@@ -34,7 +34,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("import ibis.ipl.*;");			
 		output.println();
 	
-		output.println("public final class rmi_skeleton_" + dest_name + " extends ibis.rmi.Skeleton implements ibis.ipl.Upcall {");
+		output.println("public final class rmi_skeleton_" + dest_name + " extends ibis.rmi.server.Skeleton implements ibis.ipl.Upcall {");
 		output.println();		
 	} 
 
@@ -43,7 +43,12 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("\tpublic final void upcall(ReadMessage r) {");
 		output.println();		
 
-		output.println("\t\ttry {");		
+		output.println("\t\ttry {");
+		
+		//gosia
+		output.println("\t\t\tjava.net.InetAddress clientAddr = r.origin().ibis().address();");
+		output.println("\t\t\tRTS.setClientHost(clientAddr == null ? \"0.0.0.0\" : clientAddr.getHostAddress());");		
+		//end gosia
 
 		output.println("\t\t\tException ex = null;");		
 		output.println("\t\t\tint method = r.readInt();");		
@@ -143,6 +148,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("\t\t\tSystem.err.println(\"EEK: got exception in upcall \" + ie);");
 		output.println("\t\t\tie.printStackTrace();");
 		output.println("\t\t}");
+
 		output.println("\t}");
 		output.println();			       
 	} 

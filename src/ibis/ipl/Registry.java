@@ -38,4 +38,12 @@ public interface Registry {
 	public ReceivePortIdentifier[] query(IbisIdentifier ident)  throws IbisIOException;
 
 	public Object elect(String election, Object candidate) throws IbisIOException;
+	
+	public void bind(String name, ReceivePortIdentifier port) throws IbisIOException;
+	
+	public void rebind(String name, ReceivePortIdentifier port) throws IbisIOException;
+	
+	public void unbind(String name) throws IbisIOException;
+	
+	public String[] list(String pattern) throws IbisIOException;
 }

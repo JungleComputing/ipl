@@ -91,8 +91,11 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 
 		try { 
 			boolean reuse_connection = false;
+			
 
-//			System.err.println("Creating socket for connection to " + receiver);
+			if (TcpIbis.DEBUG) {
+			    System.err.println("Creating socket for connection to " + receiver);
+			}
 			s = TcpIbisSocketFactory.createSocket(receiver.ibis.address(), receiver.port, true);
 
 //			System.err.println("Getting streams from socket");
@@ -201,10 +204,12 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 	} 
 
 	public void run() { 
+		PrintStream print = System.err;
 
 		/* this thread handles incoming connection request from the connect(TcpSendPort) call */
 
 //		System.err.println("TcpPortHandler running");
+		
 		
 		while (!stop) {
 
@@ -220,11 +225,12 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 				s = systemServer.accept();
 				s.setTcpNoDelay(true);
 
-///				System.err.println("********************** Accepted Socket from " + s.getInetAddress() + " on " + SYSTEMPORT + "*****************************");
+//				System.err.println("********************** Accepted Socket from " + s.getInetAddress() + "*****************************");
 
 				if (TcpIbis.DEBUG) { 
 					System.err.println("sytsemServer on " + me + " got new connection from " + s.getInetAddress() + ":" + s.getPort() + " on local port " + s.getLocalPort());
 				}
+
 
 //				print.println("Getting streams"); 
 
@@ -239,14 +245,14 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 				
 					ObjectInputStream obj_in  = new ObjectInputStream(new DummyInputStream(in));
 					DataOutputStream data_out = new DataOutputStream(new DummyOutputStream(out));
-					
-//				print.println("S Reading Data"); 
+
+//				    print.println("S Reading Data"); 
 					
 					TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier) obj_in.readObject();
 					TcpSendPortIdentifier send       = (TcpSendPortIdentifier) obj_in.readObject();
 					TcpIbisIdentifier ibis           = send.ibis;
 					
-//				print.println("S finding RP"); 
+//				    print.println("S finding RP"); 
 					
 				/* First, try to find the receive port this message is for... */
 					int i = 0;
@@ -256,31 +262,30 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 						TcpReceivePort temp = (TcpReceivePort) receivePorts.get(i);
 						
 						if (receive.equals(temp.identifier())) {
-//  						print.println("TcpPortHandler found " + receive + " == " + temp.identifier());
+//  						    print.println("TcpPortHandler found " + receive + " == " + temp.identifier());
 							rp = temp;
 						}
 						i++;
 					}
 					
-//					print.println("S  RP = " + (rp == null ? "not found" : rp.identifier().toString() )); 
+//					    print.println("S  RP = " + (rp == null ? "not found" : rp.identifier().toString() )); 
 					
 //				TcpReceivePort rp = (TcpReceivePort) receivePorts.get(receive);
 					
 					if (rp == null) { 					
 						/* If we cannot find it */
-//					System.err.println("TcpPortHandler cannot find " + receive);
 						data_out.writeByte(RECEIVER_DENIED);
 						data_out.flush();
 						data_out.close();
 						obj_in.close();	
 					} else { 
-//						print.println("S testing RP.may_connect()");
+//						    print.println("S testing RP.may_connect()");
 						
 						if (rp.setupConnection(send)) { 							
 							/* It accepts the connection, now we try to find an unused stream 
 							   originating at the sending machine */ 
 							
-//							print.println("S getting peer");
+//							    print.println("S getting peer");
 							
 							Peer p = getPeer(ibis);
 							
@@ -324,7 +329,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 //							print.println("S connect done ");					
 //							print.flush();
 						} else { 	
-//							System.err.println("TcpPortHandler: receiveport denied the connection");
+//							print.println("TcpPortHandler: receiveport denied the connection");
 							data_out.writeByte(RECEIVER_DENIED);
 							data_out.flush();
 							data_out.close();

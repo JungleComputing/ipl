@@ -1,10 +1,10 @@
 import ibis.rmi.*;
 
-public class Test implements myServer { 
+public class Test extends ibis.rmi.server.UnicastRemoteObject implements myServer { 
 
 	int i;
 
-	public Test() { 
+	public Test() throws RemoteException { 
 		super();
 	} 
 

@@ -58,23 +58,27 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		ident = new TcpReceivePortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier(), port);
 	}
 
-	synchronized void doUpcall(ReadMessage m) { 
-		while (!allowUpcalls || aMessageIsAlive) {
+	void doUpcall(ReadMessage m) {
+	        synchronized (this) {  
+		    while (!allowUpcalls || aMessageIsAlive) {
 			try {
 				wait();
 			} catch(InterruptedException e) {
 				// Ignore.
 			}
-		}
+		    }
+		}	
 
 		upcall.upcall(m);
 
-		while (aMessageIsAlive) {
+		synchronized (this) { 
+		    while (aMessageIsAlive) {
 			try {
 				wait();
 			} catch(InterruptedException e) {
 				// Ignore.
 			}
+		    }
 		}
 	}
 
@@ -98,6 +102,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	}
 
 	public synchronized boolean setupConnection(TcpSendPortIdentifier id) { 
+//		System.err.println("setupConnection"); System.err.flush();
 		if (started) { 
 			connection_setup_present = true;
 			notifyAll();

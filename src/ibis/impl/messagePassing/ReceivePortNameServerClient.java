@@ -58,9 +58,11 @@ class ReceivePortNameServerClient
 
 	void bind(String name, ibis.ipl.impl.messagePassing.ReceivePortIdentifier id) throws IbisIOException {
 
-	    if (! name.equals(id.name)) {
-		throw new IbisIOException("Corrupted ReceivePort name");
-	    }
+//	    if (! name.equals(id.name)) {
+//		System.out.println("name = " + name);
+//		System.out.println("id.name = " + id.name);
+//		throw new IbisIOException("Corrupted ReceivePort name");
+//	    }
 
 	    // request a new Port.
 	    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
@@ -75,7 +77,7 @@ class ReceivePortNameServerClient
 
 		bound = false;
 // System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
-		ns_bind(id.name, id.type, id.cpu, id.port);
+		ns_bind(name, id.type, id.cpu, id.port);
 // System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
 
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
@@ -201,14 +203,14 @@ class ReceivePortNameServerClient
 			ri = null;
 			ns_lookup(name);
 
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my lookup \"" + name + "\" reply " + ns_done);
+System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my lookup \"" + name + "\" reply " + ns_done);
 			ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, BACKOFF_MILLIS, true);
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri.cpu = " + ri.cpu + " ns_done = " + ns_done);
+System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri.cpu = " + ri.cpu + " ns_done = " + ns_done);
 
 			if (ri != null && ri.cpu != -1) {
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: clear lookup.ns_busy" + this);
+System.err.println(Thread.currentThread() + "ReceivePortNSClient: clear lookup.ns_busy" + this);
 			    ns_busy = false;
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: signal potential waiters");
+System.err.println(Thread.currentThread() + "ReceivePortNSClient: signal potential waiters");
 			    ns_free.cv_signal();
 			    return ri;
 			}
@@ -218,18 +220,15 @@ class ReceivePortNameServerClient
 		    }
 		    last_try = System.currentTimeMillis();
 		}
-		Thread.yield();
+		/* Thread.yield(); */
 
-		/*
 		try {
 		    Thread.sleep(BACKOFF_MILLIS);
 		} catch (InterruptedException e) {
 		    // Well, if somebody interrupts us, would there be news?
 		}
-		*/
 	    }
 	}
-
     }
 
     native void ns_lookup(String name);

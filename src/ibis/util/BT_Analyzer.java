@@ -124,7 +124,7 @@ public class BT_Analyzer {
 
 		return result;
 	}
-	
+
 	Vector findSpecialInterfaces() { 
 		Vector specialInterfaces = new Vector();
 

@@ -16,8 +16,8 @@ class Main {
 
 	public static void main(String [] args) { 
 
-		int size = Group.size();
-		int rank = Group.rank();
+		int size = Group.getPoolSize();
+		int rank = Group.getPoolRank();
 
 		int count = 1000;
 		int len = 100;

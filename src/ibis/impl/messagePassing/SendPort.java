@@ -3,12 +3,14 @@ package ibis.ipl.impl.messagePassing;
 import java.util.Vector;
 
 import ibis.ipl.IbisIOException;
+import ibis.ipl.Replacer;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 public class SendPort implements ibis.ipl.SendPort, Protocol {
 
     ibis.ipl.impl.messagePassing.PortType type;
     SendPortIdentifier ident;
+    Replacer replacer;
 
     ReceivePortIdentifier[] splitter;
     Syncer[] syncer;
@@ -33,11 +35,13 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
     public SendPort(ibis.ipl.impl.messagePassing.PortType type,
 		    String name,
 		    OutputConnection conn,
+		    Replacer r,
 		    boolean syncMode,
 		    boolean makeCopy)
 	    throws IbisIOException {
 	this.name = name;
 	this.type = type;
+	this.replacer = r;
 	ident = new SendPortIdentifier(name, type.name());
 	portIsFree = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 	outConn = conn;
@@ -45,7 +49,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
     }
 
     public SendPort(ibis.ipl.impl.messagePassing.PortType type, String name, OutputConnection conn) throws IbisIOException {
-	this(type, name, conn, true, false);
+	this(type, name, conn, null, true, false);
     }
 
 

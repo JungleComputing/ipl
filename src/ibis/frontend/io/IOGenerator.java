@@ -409,7 +409,11 @@ public class IOGenerator {
 			field_class = Repository.lookupClass(((ObjectType)field_type).getClassName());
 			if (field_class != null && field_class.isFinal()) isfinal = true;
 		    }
-		    if (isfinal && !field_type.getSignature().startsWith("Ljava/")) {
+		    if (isfinal &&
+		        (field_class == null ||
+			 ! (Repository.implementationOf(field_class, "java.rmi.Remote") ||
+			    Repository.implementationOf(field_class, "ibis.rmi.Remote"))) &&
+			!field_type.getSignature().startsWith("Ljava/")) {
 
 			read_cons_il.append(new ALOAD(1));
 			read_cons_il.append(factory.createInvoke("ibis.io.MantaInputStream",

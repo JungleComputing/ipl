@@ -40,6 +40,12 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 			return false;		
 		}
 	} 
+	
+	//gosia
+	public int hashCode() {
+		return name.hashCode() + type.hashCode() + ibis.hashCode() + port;
+	}
+	//end gosia
 
 	public String name() {
 		return name;

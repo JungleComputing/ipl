@@ -6,6 +6,7 @@ import ibis.ipl.DynamicProperties;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.Replacer;
 
 import java.util.Vector;
 import java.io.IOException;
@@ -26,18 +27,28 @@ final class TcpSendPort implements SendPort, Config {
 	String name;
 	boolean aMessageIsAlive = false;
 	Sender sender;
+	Replacer replacer = null;
 
 	// @@@ Ronald needs this as a quick fix around his bugs:
 	ibis.ipl.WriteMessage ronald_wm;
 
 	TcpSendPort(TcpPortType type) throws IbisIOException {
-		this(type, null);
+		this(type, null, null);
+	}
+
+	TcpSendPort(TcpPortType type, Replacer r) throws IbisIOException {
+		this(type, r, null);
 	}
 
 	TcpSendPort(TcpPortType type, String name) throws IbisIOException {
+		this(type, null, name);
+	}
+
+	TcpSendPort(TcpPortType type, Replacer r, String name) throws IbisIOException {
 		try { 
 			this.name = name;
 			this.type = type;
+			this.replacer = r;
 			ident = new TcpSendPortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier());
 			
 			switch(type.serializationType) {
@@ -63,7 +74,7 @@ final class TcpSendPort implements SendPort, Config {
 
 	public void connect(ReceivePortIdentifier receiver) throws IbisIOException {
 		if(TcpIbis.DEBUG) {
-			System.err.println(name + " connecting to " + receiver); 
+//			System.err.println(name + " connecting to " + receiver); 
 		}
 
 		/* first check the types */
@@ -78,7 +89,7 @@ final class TcpSendPort implements SendPort, Config {
 		} 
 		
 		if(TcpIbis.DEBUG) {
-			System.err.println(name + " connecting to " + receiver + " done"); 
+//			System.err.println(name + " connecting to " + receiver + " done"); 
 		}
 	}
 

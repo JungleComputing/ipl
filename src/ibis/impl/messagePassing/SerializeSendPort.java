@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.ObjectOutputStream;
 
 import ibis.ipl.IbisIOException;
+import ibis.ipl.Replacer;
 
 public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 
@@ -13,8 +14,8 @@ public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
     SerializeSendPort() {
     }
 
-    public SerializeSendPort(ibis.ipl.impl.messagePassing.PortType type, String name, OutputConnection conn) throws IbisIOException {
-	super(type, name, conn,
+    public SerializeSendPort(ibis.ipl.impl.messagePassing.PortType type, String name, OutputConnection conn, Replacer r) throws IbisIOException {
+	super(type, name, conn, r,
 	      true,	/* syncMode */
 	      true	/* makeCopy */);
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
@@ -79,7 +80,12 @@ public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
 	}
 
 	try {
-	    obj_out = new ObjectOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
+	    if (replacer != null) {
+		obj_out = new ibis.rmi.RMIOutputStream(new BufferedOutputStream((java.io.OutputStream)out), replacer);
+	    }
+	    else {
+	        obj_out = new ObjectOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
+	    }
 	    if (message != null) {
 		((SerializeWriteMessage)message).obj_out = obj_out;
 	    }

@@ -45,6 +45,11 @@ final class ReceivePortIdentifier
 
 	return false;
     }
+    
+    //gosia
+    public int hashCode() {
+	return name.hashCode() + type.hashCode() + cpu + port;
+    }
 
     public String name() {
 	return name;

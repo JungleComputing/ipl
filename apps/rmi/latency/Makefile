@@ -9,7 +9,8 @@ include ../../../config.mk
 
 java: $(CLASS_FILES) $(MAIN_CLASS)
 	rm -f rmi_s*_Test.java
-	java ibis.frontend.rmi.Main -v Test
+	echo $(CLASSPATH)
+	$(JPATH)/jre/bin/java ibis.frontend.rmi.Main -v Test
 	$(JAVAC_COMMAND) rmi_s*.java
 
 manta: $(MAIN) $(O_FILES)

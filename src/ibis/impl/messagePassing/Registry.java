@@ -52,7 +52,13 @@ class Registry implements ibis.ipl.Registry {
     }
 
 
-    void bind(String name, ibis.ipl.ReceivePortIdentifier id) throws IbisIOException {
+    public void bind(String name, ibis.ipl.ReceivePortIdentifier id) throws IbisIOException {
+	nameServerClient.bind(name, (ReceivePortIdentifier)id);
+    }
+
+
+    public void rebind(String name, ibis.ipl.ReceivePortIdentifier id) throws IbisIOException {
+	nameServerClient.unbind(name);
 	nameServerClient.bind(name, (ReceivePortIdentifier)id);
     }
 
@@ -67,7 +73,7 @@ class Registry implements ibis.ipl.Registry {
     }
 
 
-    void unbind(String name) throws IbisIOException {
+    public void unbind(String name) throws IbisIOException {
 	nameServerClient.unbind(name);
     }
 
@@ -84,6 +90,11 @@ class Registry implements ibis.ipl.Registry {
     }
 
 
+    public String[] list(String pattern) throws IbisIOException {
+	/* not implemented yet */
+	return null;
+    }
+
     public ibis.ipl.ReceivePortIdentifier[] query(ibis.ipl.IbisIdentifier ident) throws
 	IbisIOException {
 	/* not implemented yet */
@@ -97,5 +108,5 @@ class Registry implements ibis.ipl.Registry {
 	}
 	throw new IbisIOException("Registry.elect not implemented");
     }
-
+    
 }
