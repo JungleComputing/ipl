@@ -17,9 +17,9 @@ public class PoolInfo {
 
 	public PoolInfo(boolean forceSequential) {
 	    if (forceSequential) {
-		sequentialPool();
+			sequentialPool();
 	    } else {
-		propertiesPool();
+			propertiesPool();
 	    }
 	}
 
@@ -57,6 +57,14 @@ public class PoolInfo {
 		if(temp == null) {
 			throw new RuntimeException("Property ibis.pool.host_names not set!");
 		}
+		
+		if (temp == null) { 
+			temp = p.getProperty("hosts");
+
+			if (temp == null) { 
+				throw new RuntimeException("Host names not found!");
+			} 
+		} 
 		
 		if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
 			throw new RuntimeException("Sanity check on host numbers failed!");
