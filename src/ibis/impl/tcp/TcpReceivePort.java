@@ -125,7 +125,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	synchronized void finishMessage() throws IOException {
 		TcpReadMessage old = m;
 
-		if(m.isFinished) {
+		if(m == null || m.isFinished) {
 			throw new IOException("Finish is called twice on this message, port = " + name);
 		}
 
@@ -231,6 +231,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private synchronized TcpReadMessage getMessage(long timeout) throws IOException {
 		if (no_connectionhandler_thread) {
 			while (connectionsIndex == 0) {
+				try {
+					wait();
+				} catch(Exception e) {
+				}
+			}
+			while (m != null && ! m.isFinished) {
 				try {
 					wait();
 				} catch(Exception e) {
