@@ -262,33 +262,6 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	}
 
 	/**
-	 * Returns the <code>InetAddress</code> of the host with the given
-	 * rank.
-	 * @param rank the rank number.
-	 * @return the <code>InetAddress</code> of the host with the given
-	 * rank.
-	 */
-	public InetAddress hostAddress(int rank) {
-		return hosts[rank];
-	}
-
-	/**
-	 * Returns the <code>InetAddress</code> of the current host.
-	 * @return the <code>InetAddress</code> of the current host.
-	 */
-	public InetAddress hostAddress() {
-		return hosts[host_number];
-	}
-
-	/**
-	 * Returns an array of <code>InetAddress</code>es of the hosts.
-	 * @return an array of <code>InetAddress</code>es of the hosts.
-	 */
-	public InetAddress[] hostAddresses() {
-		return (InetAddress[]) hosts.clone();
-	}
-
-	/**
 	 * Returns an array of hostnames of the hosts.
 	 * @return an array of hostnames of the hosts.
 	 */
