@@ -241,8 +241,8 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	}
 
 	/**
-	 * Return a Grid Cluster rank based on the lower IP byte of the host
-	 * names
+	 * Return a Grid Cluster rank based on the lower IP byte of the
+	 * host names
 	 */
 	public int[] clusterIPRank() {
 	    int[] clusterRank = new int[hosts.length];
@@ -273,6 +273,22 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	    }
 
 	    return clusterRank;
+	}
+
+	/**
+	 * Return the number of Grid Clusters based on the lower IP byte of the
+	 * host names
+	 */
+	public int clusterIPSize() {
+	    int[] clusterRank = clusterIPRank();
+
+	    int clusterSize = -1;
+	    for (int i = 0; i < clusterRank.length; i++) {
+		clusterSize = Math.max(clusterSize, clusterRank[i]);
+	    }
+	    clusterSize++;
+
+	    return clusterSize;
 	}
 
 	/**
