@@ -8,9 +8,11 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.IbisError;
 import ibis.ipl.Replacer;
 
-import java.util.Vector;
+import java.util.ArrayList;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.ObjectOutputStream;
@@ -29,45 +31,47 @@ import ibis.ipl.impl.generic.*;
 
 final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
-	private class Conn  {
+	private static class Conn  {
  		OutputStream out;
 		TcpReceivePortIdentifier ident;
 	}
 
-	TcpPortType type;
-	TcpSendPortIdentifier ident;
-	String name;
+	private TcpPortType type;
+	private TcpSendPortIdentifier ident;
+	private String name;
 	private boolean aMessageIsAlive = false;
-	Replacer replacer = null;
-	TcpIbis ibis;
-
+	private Replacer replacer = null;
+	private TcpIbis ibis;
 	private OutputStreamSplitter splitter;
-	DummyOutputStream dummy;
+	private DummyOutputStream dummy;
 	private SerializationOutputStream out;
-	private Vector receivers;
+	private ArrayList receivers = new ArrayList();
 	private SerializationStreamWriteMessage message;
+	private boolean connectionAdministration = false;
+	private SendPortConnectUpcall connectUpcall = null;
+	private ArrayList lostConnections = new ArrayList();
 
-	TcpSendPort(TcpIbis ibis, TcpPortType type) throws IOException {
-		this(ibis, type, null, null);
-	}
+	TcpSendPort(TcpIbis ibis, TcpPortType type, String name, Replacer r, 
+		    boolean connectionAdministration, SendPortConnectUpcall cU)
+		throws IOException {
 
-	TcpSendPort(TcpIbis ibis, TcpPortType type, Replacer r) throws IOException {
-		this(ibis, type, r, null);
-	}
-
-	TcpSendPort(TcpIbis ibis, TcpPortType type, String name) throws IOException {
-		this(ibis, type, null, name);
-	}
-
-	TcpSendPort(TcpIbis ibis, TcpPortType type, Replacer r, String name) throws IOException {
-		this.name = name;
+		if(name == null) {
+			this.name = "anonymous";
+		} else {
+			this.name = name;
+		}
 		this.type = type;
 		this.replacer = r;
 		this.ibis = ibis;
-		ident = new TcpSendPortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier());
+		this.connectionAdministration = connectionAdministration;
+		this.connectUpcall = cU;
+		if(cU != null) connectionAdministration = true;
 
-		receivers = new Vector();
-		splitter = new OutputStreamSplitter();
+		ident = new TcpSendPortIdentifier(name, type.name(), 
+						  (TcpIbisIdentifier) type.ibis.identifier());
+
+                // if we keep administration, close connections when exception occurs.
+		splitter = new OutputStreamSplitter(connectionAdministration); 
 
 		switch(type.serializationType) {
 		case TcpPortType.SERIALIZATION_SUN:
@@ -80,15 +84,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			System.err.println("EEK, serialization type unknown");
 			System.exit(1);
 		}
-
 	}
 
+	// probably, this whole method should be synchronized! --Rob @@@
 	public void connect(ReceivePortIdentifier receiver, long timeoutMillis) throws IOException {
-		if(DEBUG) {
-			System.err.println("Sendport " + this + " '" +  name +
-							   "' connecting to " + receiver); 
-		}
-
 		/* first check the types */
 		if(!type.name().equals(receiver.type())) {
 			throw new PortMismatchException("Cannot connect ports of different PortTypes");
@@ -96,6 +95,11 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
 		if(aMessageIsAlive) {
 			throw new IOException("A message was alive while adding a new connection");
+		}
+
+		if(DEBUG) {
+			System.err.println("Sendport " + this + " '" +  name +
+							   "' connecting to " + receiver); 
 		}
 
 		TcpReceivePortIdentifier ri = (TcpReceivePortIdentifier) receiver;
@@ -125,9 +129,11 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			out.flush();
 			out.close();
 		}
-		
-		receivers.add(c);
-		splitter.add(c.out);
+
+		synchronized(this) {
+			receivers.add(c);
+			splitter.add(c.out);
+		}
 		
 		switch(type.serializationType) {
 		case TcpPortType.SERIALIZATION_SUN:
@@ -141,11 +147,11 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			System.exit(1);
 		}
 		
-		if (replacer != null) { 
+		if (replacer != null) {
 			out.setReplacer(replacer);
-		} 
+		}
 
-		message = new SerializationStreamWriteMessage(this, out);
+		message = new SerializationStreamWriteMessage(this, out, connectionAdministration);
 
 		if(DEBUG) {
 			System.err.println("Sendport '" + name + "' connecting to " + receiver + " done"); 
@@ -157,11 +163,11 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	}
 
 	public ibis.ipl.WriteMessage newMessage() throws IOException { 
-		if(receivers.size() == 0) {
-			throw new IbisIOException("port is not connected");
-		}
-
 		synchronized(this) {
+			if(receivers.size() == 0) {
+				throw new IbisIOException("port is not connected");
+			}
+
 			while(aMessageIsAlive) {
 				try {
 					wait();
@@ -213,7 +219,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		for (int i=0;i<receivers.size();i++) { 
 			Conn c = (Conn) receivers.get(i);
 			ibis.tcpPortHandler.releaseOutput(c.ident, c.out);
-		} 
+		}
 
 		receivers = null;
 		splitter = null;
@@ -233,16 +239,50 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		dummy.resetCount();
 	}
 
-	public ReceivePortIdentifier[] connectedTo() {
-		System.err.println("connectedTo not implemented!");
-		return null;
+	public synchronized ReceivePortIdentifier[] connectedTo() {
+		Conn[] connections = (Conn[]) receivers.toArray();
+		ReceivePortIdentifier[] res = new ReceivePortIdentifier[connections.length];
+		for(int i=0; i<res.length; i++) {
+			res[i] = connections[i].ident;
+		}
+
+		return res;
 	}
 	
-	public ReceivePortIdentifier[] lostConnections() {
-		System.err.println(" not implemented!");
-		return null;
+	// called by the writeMessage
+	// the stream has already been removed from the splitter.
+	// we must remove it from our receivers table and inform the user.
+	void lostConnection(OutputStream s, Exception cause) {
+		TcpReceivePortIdentifier rec = null;
+
+		synchronized (this) {
+			for (int i=0;i<receivers.size();i++) { 
+				Conn c = (Conn) receivers.get(i);
+				if(c.out == s) {
+					receivers.remove(i);
+					rec = c.ident;
+					break;
+				}
+			}
+
+			if(rec == null) {
+				throw new IbisError("could not find connection in lostConnection");
+			}
+			if(connectUpcall != null) {
+				lostConnections.add(rec);
+				return;
+			}
+		}
+
+		// don't hold lock during upcall
+		connectUpcall.lostConnection(rec, cause);
 	}
 
+	public synchronized ReceivePortIdentifier[] lostConnections() {
+		return (ReceivePortIdentifier[]) lostConnections.toArray();
+	}
+
+	// called from writeMessage
 	void reset() throws IOException {
 		out.writeByte(NEW_MESSAGE);
 		dummy.resetCount();

@@ -94,18 +94,21 @@ class ReceivePort
     }
 
     ReceivePort(PortType type, String name) throws IOException {
-	this(type, name, null, null);
+	this(type, name, null, null, false);
     }
 
     ReceivePort(PortType type,
 	        String name,
 		ibis.ipl.Upcall upcall,
-		ibis.ipl.ReceivePortConnectUpcall connectUpcall)
+		ibis.ipl.ReceivePortConnectUpcall connectUpcall,
+		boolean connectionAdministration)
 	    throws IOException {
 	this.type = type;
 	this.name = name;
 	this.upcall = upcall;
 	this.connectUpcall = connectUpcall;
+
+/// @@@ implement connectionAdministration --Rob
 
 	ident = new ReceivePortIdentifier(name, type.name());
 // System.err.println(this + ": create ReceivePort; ibisIdent = " + ident);

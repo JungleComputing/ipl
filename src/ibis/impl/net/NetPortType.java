@@ -265,40 +265,63 @@ public final class NetPortType implements PortType {
 	 * {@inheritDoc}
 	 */
 	public SendPort createSendPort(String name) throws IOException {
-		return new NetSendPort(this, null, name, null);
+		return new NetSendPort(this, null, name, null, false);
+	}
+
+	public SendPort createSendPort(String name, boolean connectionAdministration) throws IOException {
+		return new NetSendPort(this, null, name, null, connectionAdministration);
 	}
 
         public SendPort createSendPort(String name, SendPortConnectUpcall spcu) throws IOException {
-                return new NetSendPort(this, null, name, spcu);
+                return new NetSendPort(this, null, name, spcu, true);
         }
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public SendPort createSendPort() throws IOException {
-		return new NetSendPort(this, null, null, null);
+		return new NetSendPort(this, null, null, null, false);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public SendPort createSendPort(Replacer r) throws IOException {
-		return new NetSendPort(this, r, null, null);
+		return new NetSendPort(this, r, null, null, false);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public SendPort createSendPort(String name, Replacer r) throws IOException {
-		return new NetSendPort(this, r, name, null);
+		return new NetSendPort(this, r, name, null, false);
+	}
+
+	public SendPort createSendPort(boolean connectionAdministration) throws IOException {
+		return new NetSendPort(this, null, null, null, connectionAdministration);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public SendPort createSendPort(Replacer r, boolean connectionAdministration) throws IOException {
+		return new NetSendPort(this, r, null, null, connectionAdministration);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public SendPort createSendPort(String name, Replacer r, boolean connectionAdministration) 
+		throws IOException {
+		return new NetSendPort(this, r, name, null, connectionAdministration);
 	}
 
 	public SendPort createSendPort(Replacer r, SendPortConnectUpcall spcu) throws IOException {
-                return new NetSendPort(this, r, null, spcu);
+                return new NetSendPort(this, r, null, spcu, true);
         }
 
         public SendPort createSendPort(String name, Replacer r, SendPortConnectUpcall spcu) throws IOException {
-                return new NetSendPort(this, r, name, spcu);
+                return new NetSendPort(this, r, name, spcu, true);
         }
 
 	/**
@@ -315,18 +338,44 @@ public final class NetPortType implements PortType {
 		return createReceivePort(name, u, null);
 	}
 
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public ReceivePort createReceivePort(String name, boolean connectionAdministration) 
+		throws IOException {
+                return createReceivePort(name, null, null, connectionAdministration);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public ReceivePort createReceivePort(String name, Upcall u, boolean connectionAdministration) 
+		throws IOException {
+		return createReceivePort(name, u, null, connectionAdministration);
+	}
+
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall rpcu) throws IOException {
-                return createReceivePort(name, null, rpcu);
+                return createReceivePort(name, null, rpcu, true);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall rpcu) throws IOException {
-		NetReceivePort nrp = new NetReceivePort(this, name, u, rpcu);
+		return createReceivePort(name, u, rpcu, true);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall rpcu,
+					     boolean connectionAdministration) throws IOException {
+		NetReceivePort nrp = new NetReceivePort(this, name, u, rpcu, connectionAdministration);
 
 		ibis.receivePortNameServerClient().bind(name, nrp);
 

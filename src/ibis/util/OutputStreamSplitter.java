@@ -4,16 +4,28 @@ import java.io.OutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
+/** Contract: write to multiple outputstreams.
+    when an exception occurs, store it and continue.
+    when the data is written to all streams, throw one large exception
+    that contains all previous exceptions.
+    This way, even when one of the streams dies, the rest will receive the data.
+**/
 public final class OutputStreamSplitter extends OutputStream {
 	static final int START_SIZE = 128;
 	private OutputStream [] out;
 	private int size, index;
 	private static final boolean DEBUG = false;
+	private boolean removeOnException = false;
 
-	public OutputStreamSplitter() { 
+	public OutputStreamSplitter() {
 		out = new OutputStream[START_SIZE];
 		size = START_SIZE;
 		index = 0;
+	}
+
+	public OutputStreamSplitter(boolean removeOnException) {
+		this();
+		this.removeOnException = removeOnException;
 	}
 			
 	public void add(OutputStream s) {
@@ -30,6 +42,13 @@ public final class OutputStreamSplitter extends OutputStream {
 		} 
 		
 		out[index++] = s;
+	}
+
+	private void remove(int pos) {
+		for (int i=pos+1;i<index;i++) { 
+			out[i-1] = out[i];
+		}
+		index--;
 	}
 
 	public boolean remove(OutputStream s) {
@@ -54,7 +73,7 @@ public final class OutputStreamSplitter extends OutputStream {
 	}
 
 	public void write(int b) throws IOException {
-		IOException e = null;
+		SplitterException e = null;
 		if (DEBUG) {
 			System.err.println("SPLIT: writing: " + b);
 		}
@@ -63,7 +82,14 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].write(b);
 			} catch (IOException e2) {
-				if (e == null) e = e2;
+				if (e == null) {
+					e = new SplitterException();
+				}
+				e.add(out[i], e2);
+				if(removeOnException) {
+					remove(i);
+					i--;
+				}
 			}
 		}
 
@@ -73,7 +99,7 @@ public final class OutputStreamSplitter extends OutputStream {
 	}
 
 	public void write(byte[] b) throws IOException {
-		IOException e = null;
+		SplitterException e = null;
 		if (DEBUG) {
 			System.err.println("SPLIT: writing: " + b + ", b.lenth = " + b.length);
 		}
@@ -82,7 +108,14 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].write(b);
 			} catch (IOException e2) {
-				if (e == null) e = e2;
+				if (e == null) {
+					e = new SplitterException();
+				}
+				e.add(out[i], e2);
+				if(removeOnException) {
+					remove(i);
+					i--;
+				}
 			}
 		}
 
@@ -92,7 +125,7 @@ public final class OutputStreamSplitter extends OutputStream {
 	}
 
 	public void write(byte[] b, int off, int len) throws IOException {
-		IOException e = null;
+		SplitterException e = null;
 		if (DEBUG) {
 			System.err.println("SPLIT: writing: " + b + ", off = " + off + ", len = " + len);
 		}
@@ -101,7 +134,14 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].write(b, off, len);
 			} catch (IOException e2) {
-				if (e == null) e = e2;
+				if (e == null) {
+					e = new SplitterException();
+				}
+				e.add(out[i], e2);
+				if(removeOnException) {
+					remove(i);
+					i--;
+				}
 			}
 		}
 
@@ -111,7 +151,7 @@ public final class OutputStreamSplitter extends OutputStream {
 	}
 
 	public void flush() throws IOException {
-		IOException e = null;
+		SplitterException e = null;
 		if (DEBUG) {
 			System.err.println("SPLIT: flush");
 		}
@@ -120,7 +160,14 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].flush();
 			} catch (IOException e2) {
-				if (e == null) e = e2;
+				if (e == null) {
+					e = new SplitterException();
+				}
+				e.add(out[i], e2);
+				if(removeOnException) {
+					remove(i);
+					i--;
+				}
 			}
 		}
 
@@ -130,7 +177,7 @@ public final class OutputStreamSplitter extends OutputStream {
 	}
 
 	public void close() throws IOException {
-		IOException e = null;
+		SplitterException e = null;
 		if (DEBUG) {
 			System.err.println("SPLIT: close");
 		}
@@ -139,7 +186,14 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].close();
 			} catch (IOException e2) {
-				if (e == null) e = e2;
+				if (e == null) {
+					e = new SplitterException();
+				}
+				e.add(out[i], e2);
+				if(removeOnException) {
+					remove(i);
+					i--;
+				}
 			}
 		}
 

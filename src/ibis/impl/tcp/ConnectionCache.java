@@ -14,6 +14,8 @@ import java.net.Socket;
 
 class ConnectionCache {
 
+	static final boolean DISABLE_CONNECTION_CACHE = false;
+
 	private static class Peer { //implements Config {
 
 		private static class Connection {
@@ -213,6 +215,8 @@ class ConnectionCache {
 	}
 
 	InputStream getFreeInput(TcpIbisIdentifier ibis) {
+		if(DISABLE_CONNECTION_CACHE) return null;
+
 		Peer p = getPeer(ibis);
 		return p.getFreeInput();
 	}

@@ -498,7 +498,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         }
 
                                         if (rpcu != null) {
-                                                rpcu.lostConnection(nspi);
+                                                rpcu.lostConnection(nspi, new Exception());
                                         }
 
                                         try {
@@ -536,7 +536,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         public NetReceivePort(NetPortType              type,
                               String                   name,
                               Upcall                   upcall,
-                              ReceivePortConnectUpcall rpcu)
+                              ReceivePortConnectUpcall rpcu,
+			      boolean connectionAdministration)
                 throws IOException {
                 this.type              = type;
                 this.name              = name;
@@ -993,7 +994,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 						cnx = (NetConnection)i.next();
 						if (rpcu != null) {
-							rpcu.lostConnection(cnx.getSendId());
+							rpcu.lostConnection(cnx.getSendId(), new Exception());
 						}
 						i.remove();
 					}

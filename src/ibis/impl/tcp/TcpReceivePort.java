@@ -19,6 +19,7 @@ import java.util.ArrayList;
 final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	TcpPortType type;
 	String name; // needed to unbind
+	private TcpIbis ibis;
 	private TcpReceivePortIdentifier ident;
 	private int sequenceNumber = 0;
 	private int connectCount = 0;
@@ -31,16 +32,27 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private boolean started = false;
 	private boolean connection_setup_present = false;
 	private SerializationStreamReadMessage m = null;
-	private TcpIbis ibis;
 	private boolean shouldLeave;
 	private boolean delivered = false;
+	private ArrayList lostConnections = new ArrayList();
+	private ArrayList newConnections = new ArrayList();
+	private boolean connectionAdministration = false;
 
-	TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall, ReceivePortConnectUpcall connUpcall) throws IOException {
+	TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall, 
+		       boolean connectionAdministration, ReceivePortConnectUpcall connUpcall) throws IOException {
+
 		this.type   = type;
-		this.name   = name;
 		this.upcall = upcall;
 		this.connUpcall = connUpcall;
 		this.ibis = ibis;
+		this.connectionAdministration = connectionAdministration;
+		if(connUpcall != null) connectionAdministration = true;
+
+		if(name == null) {
+			this.name = "anonymous";
+		} else {
+			this.name = name;
+		}
 
 		connections = new SerializationStreamConnectionHandler[2];
 		connectionsIndex = 0;
@@ -189,8 +201,14 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	synchronized boolean connectionAllowed(TcpSendPortIdentifier id) { 
 		if (started) { 
-			if (connUpcall != null && ! connUpcall.gotConnection(id)) {
-				return false;
+			if(connectionAdministration) {
+				if (connUpcall != null) {
+					if (! connUpcall.gotConnection(id)) {
+						return false;
+					}
+				} else {
+					newConnections.add(id);
+				}
 			}
 			connection_setup_present = true;
 			notifyAll();
@@ -236,7 +254,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		ReadMessage m = getMessage(-1);
 
 		if (m == null) {
-		    throw new IOException("receive port closed");
+			throw new IOException("receive port closed");
 		}
 		return m;
 	}
@@ -273,8 +291,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return ident;
 	}
 
-	void leave(SerializationStreamConnectionHandler leaving,
-		   TcpSendPortIdentifier si, InputStream in) {
+	// called from the connectionHander.
+	void leave(SerializationStreamConnectionHandler leaving) {
 		synchronized(this) {
 			boolean found = false;
 			if (DEBUG) {
@@ -291,22 +309,32 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			}
 
 			if(!found) {
-				System.err.println("EEEK, connection handler not found in leave");
-				System.exit(1);
+				throw new IbisError("Connection handler not found in leave");
 			}
-
-			ibis.tcpPortHandler.releaseInput(si, in);
 		}
 
 		// Don't hold the lock when calling user upcall functions. --Rob
-		if (connUpcall != null) {
-			connUpcall.lostConnection(si);
+		if(connectionAdministration) {
+			if (connUpcall != null) {
+				connUpcall.lostConnection(leaving.origin, 
+							  new Exception("sender closed connection"));
+			} else {
+				lostConnections.add(leaving.origin);
+			}
 		}
-
 		synchronized(this) {
 			shouldLeave = true;
 			notifyAll();
 		}
+	}
+
+	private synchronized SerializationStreamConnectionHandler removeConnection(int index) {
+		SerializationStreamConnectionHandler res = connections[index];
+		connections[index] = connections[connectionsIndex-1];
+		connections[connectionsIndex-1] = null;
+		connectionsIndex--;
+			
+		return res;
 	}
 
 	public synchronized void free() {
@@ -315,56 +343,29 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 
 		if(m != null) {
-			System.err.println(ident + "EEK: a msg is alive, port = " + name + " fin = " + m.isFinished);
+			throw new IbisError("Doing free while a msg is alive, port = " + name + " fin = " + m.isFinished);
+		}
+
+		/* unregister with nameserver */
+		try {
+			type.freeReceivePort(name);
+		} catch (Exception e) {
+			// Ignore.
 		}
 
 		while (connectionsIndex > 0) {
-			if (upcall != null) { 
-				if (DEBUG) { 
-					System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
-				}
-				try {
-					wait();
-				} catch (Exception e) {
-					// Ignore.
-				}
-			} else { 
-				if (DEBUG) { 
-					System.err.println(name + " trying to close all connections (" + connectionsIndex + ")");
-				}
-				
-				while (connectionsIndex > 0) { 
-					for (int i=0;i<connectionsIndex;i++) { 
-						if (DEBUG) { 
-							System.err.println(name + " trying to close " + i);
-						}
-					}
-					if(connectionsIndex > 0) {
-						try {
-							wait(500);
-							if(m != null) {
-								System.err.println(ident + "EEK2: a msg is alive, port = " + name + " fin = " + m.isFinished);
-								System.err.println("opcode = " + m.readByte());
-								System.exit(1);
-							}
-						} catch (Exception e) {
-							System.err.println("Eek3: exc: " + e);
-							// Ignore
-						}
-					}
-				}
+			if (DEBUG) {
+				System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
+			}
+			try {
+				wait();
+			} catch (Exception e) {
+				// Ignore.
 			}
 		}
 
 		if (DEBUG) { 
 			System.err.println(name + " all connections closed");
-		}
-
-		/* unregister with name server */
-		try {
-			type.freeReceivePort(name);
-		} catch (Exception e) {
-			// Ignore.
 		}
 
 		if (DEBUG) { 
@@ -375,7 +376,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	synchronized void connect(TcpSendPortIdentifier origin, InputStream in) {
 		try {
 			SerializationStreamConnectionHandler con = 
-				new SerializationStreamConnectionHandler(origin, this, in);
+				new SerializationStreamConnectionHandler(ibis, origin, this, in);
 
 			if (connections.length == connectionsIndex) { 
 				SerializationStreamConnectionHandler [] temp = 
@@ -399,26 +400,61 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	public void forcedClose() {
-		System.err.println("forcedClose not implemented!");
+		if(m != null) {
+			throw new IbisError("Doing forcedClose while a msg is alive, port = " + name + " fin = " + m.isFinished);
+		}
+
+		/* unregister with nameserver */
+		try {
+			type.freeReceivePort(name);
+		} catch (Exception e) {
+			// Ignore.
+		}
+
+		while(connectionsIndex > 0) {
+			SerializationStreamConnectionHandler conn = removeConnection(0);
+			conn.die();
+
+			if(connectionAdministration) {
+				if (connUpcall != null) {
+					connUpcall.lostConnection(conn.origin,
+						  new Exception("receiver forcibly closed connection"));
+				} else {
+					lostConnections.add(conn.origin);
+				}
+			}
+		}
 	}
 
 	public void forcedClose(long timeoutMillis) {
-		System.err.println("forcedClose not implemented!");
+		try {
+			wait(timeoutMillis);
+		} catch (Exception e) {
+				// Ignore.
+		}
+
+		forcedClose();
 	}
 
-	public SendPortIdentifier[] connectedTo() {
-		System.err.println("connectedTo not implemented!");
-		return null;
+	public synchronized SendPortIdentifier[] connectedTo() {
+		SendPortIdentifier[] res = new SendPortIdentifier[connectionsIndex];
+		for(int i=0; i<connectionsIndex; i++) {
+			res[i] = connections[i].origin;
+		}
+
+		return res;
 	}
 
-	public SendPortIdentifier[] lostConnections() {
-		System.err.println("lostConnections not implemented!");
-		return null;
+	public synchronized SendPortIdentifier[] lostConnections() {
+		SendPortIdentifier[] res = (SendPortIdentifier[]) lostConnections.toArray();
+		lostConnections.clear();
+		return res;
 	}
 
-	public SendPortIdentifier[] newConnections() {
-		System.err.println("newConnections not implemented!");
-		return null;
+	public synchronized SendPortIdentifier[] newConnections() {
+		SendPortIdentifier[] res = (SendPortIdentifier[]) newConnections.toArray();
+		newConnections.clear();
+		return res;
 	}
 
 	public int hashCode() {

@@ -82,86 +82,82 @@ class TcpPortType implements PortType, Config {
 	}
 
 	public SendPort createSendPort() throws IOException {
-		SendPort s;
-
-		s = new TcpSendPort(ibis, this);
-
-		if(DEBUG) {
-			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
-		}
-
-		return s;
+		return createSendPort(null, null, false, null);
 	}
 
 	public SendPort createSendPort(Replacer r) throws IOException {
-		SendPort s;
-
-		s = new TcpSendPort(ibis, this, r);
-
-		if(DEBUG) {
-			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
-		}
-
-		return s;
+		return createSendPort(null, r, false, null);
 	}
 
 	public SendPort createSendPort(String portname, Replacer r) throws IOException {
-		SendPort s;
-
-		s = new TcpSendPort(ibis, this, r, portname);
-
-		if(DEBUG) {
-			System.out.println(ibis.name() + ": Sendport created of of type '" + name + "'");
-		}
-
-		return s;
+		return createSendPort(portname, r, false, null);
 	}
 
 	public SendPort createSendPort(String portname) throws IOException {
-		SendPort s;
+		return createSendPort(portname, null, false, null);
+	}
 
-		s = new TcpSendPort(ibis, this, portname);
+	public SendPort createSendPort(boolean connectionAdministration) throws IOException {
+		return createSendPort(null, null, connectionAdministration, null);
+	}
 
-		if(DEBUG) {
-			System.out.println(ibis.name() + ": Sendport '" + portname + "' created of of type '" + this.name + "'");
-		}
+	public SendPort createSendPort(Replacer r, boolean connectionAdministration) throws IOException {
+		return createSendPort(null, r, connectionAdministration, null);
+	}
 
-		return s;
+	public SendPort createSendPort(String portname, Replacer r, boolean connectionAdministration) throws IOException {
+		return createSendPort(portname, r, connectionAdministration, null);
+	}
+
+	public SendPort createSendPort(String portname, boolean connectionAdministration) throws IOException {
+		return createSendPort(portname, null, connectionAdministration, null);
 	}
 
 	public SendPort createSendPort(String name, SendPortConnectUpcall cU) throws IOException {
-		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
-		return null;
+		return createSendPort(name, null, true, cU);
 	}
-
 
 	public SendPort createSendPort(Replacer r, SendPortConnectUpcall cU) throws IOException {
-		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
-		return null;
+		return createSendPort(null, r, true, cU);
 	}
 
+	public SendPort createSendPort(String name, Replacer r, 
+				       SendPortConnectUpcall cU) throws IOException {
+		return createSendPort(name, r, true, cU);
+	}
 
-	public SendPort createSendPort(String name, Replacer r, SendPortConnectUpcall cU) throws IOException {
-		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
-		return null;
+	private SendPort createSendPort(String name, Replacer r, 
+				       boolean connectionAdministration, SendPortConnectUpcall cU) throws IOException {
+		return new TcpSendPort(ibis, this, name, r, connectionAdministration, cU);
 	}
 
 	public ReceivePort createReceivePort(String name) throws IOException {
-	    return createReceivePort(name, null, null);
+	    return createReceivePort(name, null, false, null);
 	}
 
 	public ReceivePort createReceivePort(String name, Upcall u)  throws IOException { 
-	    return createReceivePort(name, u, null);
+	    return createReceivePort(name, u, false, null);
+	}
 
+	public ReceivePort createReceivePort(String name, boolean connectionAdministration) throws IOException {
+	    return createReceivePort(name, null, connectionAdministration, null);
+	}
+
+	public ReceivePort createReceivePort(String name, Upcall u, boolean connectionAdministration)  throws IOException { 
+		return createReceivePort(name, u, connectionAdministration, null);
 	}
 
 	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall cU) throws IOException {
-	    return createReceivePort(name, null, cU);
+	    return createReceivePort(name, null, true, cU);
 	}
 
-
 	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU)  throws IOException { 
-		TcpReceivePort p = new TcpReceivePort(ibis, this, name, u, cU);
+		return createReceivePort(name, u, true, cU);
+	}
+
+	private ReceivePort createReceivePort(String name, Upcall u, 
+					     boolean connectionAdministration, ReceivePortConnectUpcall cU)  throws IOException { 
+		TcpReceivePort p = new TcpReceivePort(ibis, this, name, u, connectionAdministration, cU);
 
 		if(DEBUG) {
 			System.out.println(ibis.name() + ": Receiveport created name = '" + name() + "'");

@@ -128,6 +128,9 @@ public interface ReceivePort {
 	    Free the resources held by the ReceivePort. 
 	    Important: this call does not block until all sendports that are connected to it have been freed. 
 	    Therefore, messages may be lost! Use this with extreme caution!
+	    When this call are used, and this port is configured to keep connection administration
+	    (lostConnections / newConnections upcalls and downcalls), this call updates the administration.
+	    It may thus generate lostConnection upcalls.
 	**/
 	public void forcedClose() throws IOException;
 
@@ -135,6 +138,9 @@ public interface ReceivePort {
 	   Free the resources held by the ReceivePort, with timeout. 
 	   Calls free, but blocks at most timeout milliseconds.
 	   When the free did not succeed within the timeout, this operation does a forcedClose.
+	   When this call are used, and this port is configured to keep connection administration
+	   (lostConnections / newConnections upcalls and downcalls), this call updates the administration.
+	   It may thus generate lostConnection upcalls.
 	**/
 	public void forcedClose(long timeoutMillis);
 
@@ -142,10 +148,22 @@ public interface ReceivePort {
 	public SendPortIdentifier[] connectedTo();
 
 	/** Poll to see whether any conncetion was lost due to an error,
-	    or because the sender disconnected. */
+	    or because the sender disconnected. 
+	    Returns the changes since the last lostConnections call,
+	    or, if this is the first call, all connectcions that were lost since
+	    the port was created.
+	    This call only works if the connectionAdministration parameter was true when this port was created.
+	    Otherwise, null is returned.
+	**/
 	public SendPortIdentifier[] lostConnections();
 
-	/** Poll to see whether there are any new connections 
-	    accepted by this port. **/
+	/** Poll to see whether there were any new connections 
+	    accepted by this port. 
+	    Returns the changes since the last newConnections call,
+	    or, if this is the first call, all connectcions that were created since
+	    the port was created.
+	    This call only works if the connectionAdministration parameter was true when this port was created.
+	    Otherwise, null is returned.
+	**/
 	public SendPortIdentifier[] newConnections();
 } 

@@ -248,7 +248,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                         }
 
                                         if (spcu != null) {
-                                                spcu.lostConnection(nrpi);
+                                                spcu.lostConnection(nrpi, new Exception());
                                         }
                                 }
                         break;
@@ -302,7 +302,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * @param replacer the replacer for this object.
 	 * @param name the name of the port.
 	 */
-	public NetSendPort(NetPortType type, Replacer replacer, String name, SendPortConnectUpcall spcu) throws IOException {
+	public NetSendPort(NetPortType type, Replacer replacer, String name, SendPortConnectUpcall spcu,
+			   boolean connectionAdministration) throws IOException {
 		this.name     = name;
 		this.type     = type;
                 this.replacer = replacer;
@@ -722,7 +723,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
                                                 if (cnx != null) {
 							if (spcu != null) {
-								spcu.lostConnection(cnx.getReceiveId());
+								spcu.lostConnection(cnx.getReceiveId(), new Exception());
 							}
                                                         close(cnx);
                                                 }

@@ -262,7 +262,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			}
 		}
 
-		if (cin == null) { 
+		if (cin == null) {
 			/* no unused stream found, so reuse current socket */
 			data_out.writeByte(RECEIVER_ACCEPTED);
 			data_out.writeByte(NEW_CONNECTION);
@@ -274,7 +274,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 
 			connectionCache.addFreeOutput(ibis, s, in, out);
 			cin = in;
-		} else { 
+		} else {
 			data_out.writeByte(RECEIVER_ACCEPTED);
 			data_out.writeByte(EXISTING_CONNECTION);
 			data_out.flush();
@@ -284,7 +284,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			in.close();
 			s.close();
 		}
-							
+
 		if (DEBUG) {
 			System.err.println("S connected " + cin);
 		}
