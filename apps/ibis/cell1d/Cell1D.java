@@ -226,8 +226,6 @@ class Cell1D implements Config {
             s.add( "worldmodel", "closed" );
             ibis = Ibis.createIbis( s, null );
 
-            // ibis.openWorld();
-
             registry = ibis.registry();
 
             // This only works for a closed world...
