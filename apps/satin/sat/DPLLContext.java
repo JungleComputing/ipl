@@ -545,63 +545,33 @@ public final class DPLLContext implements java.io.Serializable {
      */
     public int getDecisionVariable()
     {
-        if( false ){
-            // For the moment we return the variable that is used the most.
-            int bestvar = -1;
-            int bestusecount = 0;
-            int bestmaxcount = 0;
+        int bestvar = -1;
+        float bestinfo = -1;
+        int bestmaxcount = 0;
 
-            for( int i=0; i<assignment.length; i++ ){
-                if( assignment[i] != UNASSIGNED ){
-                    // Already assigned, so not interesting.
-                    continue;
-                }
-                int usecount = posclauses[i] + negclauses[i];
-                if( usecount>=bestusecount ){
-                    // Use maxcount to decide when usecounts are equal.
-                    int maxcount = Math.max( posclauses[i], negclauses[i] );
-
-                    if( (usecount>bestusecount) || (maxcount>bestmaxcount) ){
-                        // This is a better one.
-                        bestvar = i;
-                        bestusecount = usecount;
-                        bestmaxcount = maxcount;
-
-                    }
+        for( int i=0; i<assignment.length; i++ ){
+            if( assignment[i] != UNASSIGNED ){
+                // Already assigned, so not interesting.
+                continue;
+            }
+            if( doVerification ){
+                if( posinfo[i]<0.01 || neginfo[i]<0.01 ){
+                    System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
                 }
             }
-            return bestvar;
-        }
-        else {
-            int bestvar = -1;
-            float bestinfo = -1;
-            int bestmaxcount = 0;
+            float info = Math.max( posinfo[i], neginfo[i] );
+            if( info>=bestinfo ){
+                int maxcount = Math.max( posclauses[i], negclauses[i] );
 
-            for( int i=0; i<assignment.length; i++ ){
-                if( assignment[i] != UNASSIGNED ){
-                    // Already assigned, so not interesting.
-                    continue;
-                }
-                if( doVerification ){
-                    if( posinfo[i]<0.01 || neginfo[i]<0.01 ){
-                        System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
-                    }
-                }
-                float info = Math.max( posinfo[i], neginfo[i] );
-                if( info>=bestinfo ){
-                    int maxcount = Math.max( posclauses[i], negclauses[i] );
-
-                    if( (info>bestinfo) || (maxcount<bestmaxcount) ){
-                        // This is a better one.
-                        bestvar = i;
-                        bestinfo = info;
-                        bestmaxcount = maxcount;
-                    }
+                if( (info>bestinfo) || (maxcount<bestmaxcount) ){
+                    // This is a better one.
+                    bestvar = i;
+                    bestinfo = info;
+                    bestmaxcount = maxcount;
                 }
             }
-            //System.err.println( "Variable " + bestvar + " has " + bestinfo + " bits information" );
-            return bestvar;
         }
+        return bestvar;
     }
 
     /**

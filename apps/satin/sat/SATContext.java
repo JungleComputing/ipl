@@ -284,34 +284,59 @@ public class SATContext implements java.io.Serializable {
      */
     private Clause buildConflictClause( SATProblem p, int cno, int level )
     {
-        Clause c = p.clauses[cno];
-        Clause res = c;
+        boolean changed = false;
+        boolean anyChange = false;
+        Clause res = p.clauses[cno];
 
-	int arr[] = c.pos;
-        for( int i=0; i<arr.length; i++ ){
-            int v = arr[i];
+        do {
+            changed = false;
+            int arr[] = res.pos;
+            for( int i=0; i<arr.length; i++ ){
+                int v = arr[i];
 
-            if( dl[v] == level ){
-                int a = antecedent[v];
+                if( dl[v] == level ){
+                    int a = antecedent[v];
 
-                if( a>=0 ){
-                    res = Clause.resolve( res, p.clauses[a], v );
-                    return res;
+                    if( a>=0 ){
+                        Clause newres = Clause.resolve( res, p.clauses[a], v );
+                        if( traceLearning ){
+                            System.err.println( "Resolving on v" + v + ":" );
+                            System.err.println( "    " + res );
+                            System.err.println( "    " + p.clauses[a] + " =>" );
+                            System.err.println( "    " + newres );
+                        }
+                        changed = true;
+                        anyChange = true;
+                        res = newres;
+                        break;
+                    }
                 }
             }
-        }
-        arr = c.neg;
-        for( int i=0; i<arr.length; i++ ){
-            int v = arr[i];
+            arr = res.neg;
+            for( int i=0; i<arr.length; i++ ){
+                int v = arr[i];
 
-            if( dl[v] == level ){
-                int a = antecedent[v];
+                if( dl[v] == level ){
+                    int a = antecedent[v];
 
-                if( a>=0 ){
-                    res = Clause.resolve( res, p.clauses[a], v );
-                    return res;
+                    if( a>=0 ){
+                        Clause newres = Clause.resolve( res, p.clauses[a], v );
+                        if( traceLearning ){
+                            System.err.println( "Resolving on v" + v + ":" );
+                            System.err.println( "    " + res );
+                            System.err.println( "    " + p.clauses[a] + " =>" );
+                            System.err.println( "    " + newres );
+                        }
+                        changed = true;
+                        anyChange = true;
+                        res = newres;
+                        break;
+                    }
                 }
             }
+        } while( changed );
+        if( !anyChange ){
+            return null;
         }
         return res;
     }
@@ -342,7 +367,6 @@ public class SATContext implements java.io.Serializable {
         if( cc != null ){
             p.addConflictClause( cc );
         }
-        update( p );
     }
 
     /**
@@ -719,63 +743,33 @@ public class SATContext implements java.io.Serializable {
      */
     public int getDecisionVariable()
     {
-        if( false ){
-            // For the moment we return the variable that is used the most.
-            int bestvar = -1;
-            int bestusecount = 0;
-            int bestmaxcount = 0;
+        int bestvar = -1;
+        float bestinfo = -1;
+        int bestmaxcount = 0;
 
-            for( int i=0; i<assignment.length; i++ ){
-                if( assignment[i] != UNASSIGNED ){
-                    // Already assigned, so not interesting.
-                    continue;
-                }
-                int usecount = posclauses[i] + negclauses[i];
-                if( usecount>=bestusecount ){
-                    // Use maxcount to decide when usecounts are equal.
-                    int maxcount = Math.max( posclauses[i], negclauses[i] );
-
-                    if( (usecount>bestusecount) || (maxcount>bestmaxcount) ){
-                        // This is a better one.
-                        bestvar = i;
-                        bestusecount = usecount;
-                        bestmaxcount = maxcount;
-
-                    }
+        for( int i=0; i<assignment.length; i++ ){
+            if( assignment[i] != UNASSIGNED ){
+                // Already assigned, so not interesting.
+                continue;
+            }
+            if( doVerification ){
+                if( posinfo[i]<-0.01 || neginfo[i]<-0.01 ){
+                    System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
                 }
             }
-            return bestvar;
-        }
-        else {
-            int bestvar = -1;
-            float bestinfo = -1;
-            int bestmaxcount = 0;
+            float info = Math.max( posinfo[i], neginfo[i] );
+            if( info>=bestinfo ){
+                int maxcount = Math.max( posclauses[i], negclauses[i] );
 
-            for( int i=0; i<assignment.length; i++ ){
-                if( assignment[i] != UNASSIGNED ){
-                    // Already assigned, so not interesting.
-                    continue;
-                }
-                if( doVerification ){
-                    if( posinfo[i]<-0.01 || neginfo[i]<-0.01 ){
-                        System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
-                    }
-                }
-                float info = Math.max( posinfo[i], neginfo[i] );
-                if( info>=bestinfo ){
-                    int maxcount = Math.max( posclauses[i], negclauses[i] );
-
-                    if( (info>bestinfo) || (maxcount<bestmaxcount) ){
-                        // This is a better one.
-                        bestvar = i;
-                        bestinfo = info;
-                        bestmaxcount = maxcount;
-                    }
+                if( (info>bestinfo) || (maxcount<bestmaxcount) ){
+                    // This is a better one.
+                    bestvar = i;
+                    bestinfo = info;
+                    bestmaxcount = maxcount;
                 }
             }
-            //System.err.println( "Variable " + bestvar + " has " + bestinfo + " bits information" );
-            return bestvar;
         }
+        return bestvar;
     }
 
     /**

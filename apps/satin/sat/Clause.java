@@ -428,13 +428,15 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
         int arr[] = c1.pos;
         for( int i=0; i<arr.length; i++ ){
             int v = arr[i];
-            if( !memberIntList( c2.neg, i ) ){
+
+            if( !memberIntList( c2.neg, v ) ){
                 pos[posno++] = v;
             }
         }
         arr = c2.pos;
         for( int i=0; i<arr.length; i++ ){
             int v = arr[i];
+
             if( !memberIntList( c1.neg, v ) && !memberIntList( c1.pos, v ) ){
                 pos[posno++] = v;
             }
@@ -442,6 +444,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
         arr = c1.neg;
         for( int i=0; i<arr.length; i++ ){
             int v = arr[i];
+
             if( !memberIntList( c2.pos, v ) ){
                 neg[negno++] = v;
             }
@@ -449,6 +452,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
         arr = c2.neg;
         for( int i=0; i<arr.length; i++ ){
             int v = arr[i];
+
             if( !memberIntList( c1.pos, v ) && !memberIntList( c1.neg, v ) ){
                 neg[negno++] = v;
             }
