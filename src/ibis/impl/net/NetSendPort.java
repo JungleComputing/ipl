@@ -781,6 +781,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                         outputLock.lock();
                                 }
 
+				if (closed) {
+				    return;
+				}
+
 				closed = true;
 
                                 trace.disp(sendPortTracePrefix, "send port shutdown: output locked");

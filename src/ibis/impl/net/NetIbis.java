@@ -138,6 +138,11 @@ public final class NetIbis extends Ibis {
 	 */
 	private   Vector 	    toBeDeletedIbises       = new Vector();
 
+	/**
+	 * Make end() reentrant
+	 */
+	private boolean		ended = false;
+
 
 	/**
 	 * Maintain linked lists of our send and receive ports so they can
@@ -231,6 +236,19 @@ public final class NetIbis extends Ibis {
 		TypedProperties.checkProperties(prefix, properties, excludes);
 		if (globalIbis == null) {
 			globalIbis = this;
+		}
+
+		if (false) {
+		// This leads to port.close() throws ConcurrentModificationExceptions
+		Runtime.getRuntime().addShutdownHook(new Thread("NetIbis ShutdownHook") {
+		    public void run() {
+			try {
+			    end();
+			} catch (IOException e) {
+			    // Leave it be, if it does not want
+			}
+		    }
+		});
 		}
 
 		if (staticDriverLoading) {
@@ -602,11 +620,22 @@ public final class NetIbis extends Ibis {
 	 */
 	public void end() throws IOException {
 		synchronized (this) {
-		    while (sendPortList != null) {
-// System.err.println("Ibis.end(): Invoke close() of " + sendPortList);
-			sendPortList.close();
+		    if (ended) {
+			return;
 		    }
+		    ended = true;
 		}
+
+		// try {
+		    synchronized (this) {
+			while (sendPortList != null) {
+// System.err.println("Ibis.end(): Invoke close() of " + sendPortList);
+			    sendPortList.close();
+			}
+		    }
+		// } catch (IOException e) {
+		    // // Leave the rest alive
+		// }
 		long start = System.currentTimeMillis();
 		while (System.currentTimeMillis() - start < 1000) {
 		    synchronized (this) {
@@ -619,12 +648,16 @@ public final class NetIbis extends Ibis {
 		    } catch (InterruptedException e) {
 		    }
 		}
-		synchronized (this) {
-		    while (receivePortList != null) {
+		// try {
+		    synchronized (this) {
+			while (receivePortList != null) {
 // System.err.println("Ibis.end(): Invoke forced close() of " + receivePortList);
-			receivePortList.close(-1L);
+			    receivePortList.close(-1L);
+			}
 		    }
-		}
+		// } catch (IOException e) {
+		    // // Leave the rest alive
+		// }
 
 		nameServer.leave();
 		socketFactory.shutdown();

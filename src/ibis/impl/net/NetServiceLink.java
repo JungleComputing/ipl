@@ -1,6 +1,7 @@
 package ibis.impl.net;
 
 import ibis.io.Conversion;
+import ibis.util.ThreadPool;
 import ibis.ipl.ConnectionTimedOutException;
 
 import java.io.BufferedInputStream;
@@ -815,7 +816,7 @@ public final class NetServiceLink {
 							    requestSubstreamId(name);
 							}
 						    };
-					new Thread(r, "request_substream_id").start();
+					ThreadPool.createNew(r);
 				}
 				break;
 

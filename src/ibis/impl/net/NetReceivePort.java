@@ -423,6 +423,8 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
 	private int			maxLiveConnections	= 0;
 
+	private boolean			closed			= false;
+
 
 
 
@@ -1081,21 +1083,42 @@ pollerThread = null;
 		    __.unimplemented__("void close(long timeout)");
 		}
 
+		synchronized (this) {
+		    if (closed) {
+			return;
+		    }
+		    closed = true;
+		}
+
 		if (! force && connectionTable != null) {
 		    synchronized(connectionTable) {
-			Iterator i = connectionTable.values().iterator();
-			while (i.hasNext()) {
-			    NetConnection cnx = (NetConnection)i.next();
-			    while (cnx.msgSeqno < cnx.closeSeqno) {
-				try {
-				    cnx.regularClosers++;
-				    connectionTable.wait();
-				    cnx.regularClosers--;
-				} catch (InterruptedException e) {
-				    break;
+			boolean closing;
+			// Complicated looping construct. In the wait, we
+			// release the lock on connectionTable, so some other
+			// thread may/will modify the table. Then the Iterator
+			// is no longer valid, and we must start the whole
+			// procedure again.
+		    outer:
+			do {
+			    closing = false;
+			    Iterator i = connectionTable.values().iterator();
+		    middle:
+			    while (i.hasNext()) {
+				NetConnection cnx = (NetConnection)i.next();
+				while (cnx.msgSeqno < cnx.closeSeqno) {
+				    try {
+					cnx.regularClosers++;
+					connectionTable.wait();
+					cnx.regularClosers--;
+					closing = true;
+					// System.err.println("Do the cycle again, NetConnection iterator broken");
+					break middle;
+				    } catch (InterruptedException e) {
+					break outer;
+				    }
 				}
 			    }
-			}
+			} while (closing);
 		    }
 		}
 

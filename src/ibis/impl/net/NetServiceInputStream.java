@@ -1,6 +1,7 @@
 package ibis.impl.net;
 
 import ibis.util.TypedProperties;
+import ibis.util.ThreadPool;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,6 +73,9 @@ public class NetServiceInputStream extends InputStream {
 	private boolean handlingPopup = false;
 
 
+	/**
+	 * Why have a separate thread pool? Use ibis.util.ThreadPool instead
+	 */
 	private static class PooledThread extends Thread {
 
 	    static int	poolSize = TypedProperties.intProperty(NetIbis.service_poolsize, 8);
@@ -223,8 +227,8 @@ public class NetServiceInputStream extends InputStream {
 		    }
 		}
 	    };
-	    PooledThread t = PooledThread.getPooledThread();
-	    t.spawn(r, "popup-" + this);
+
+	    ThreadPool.createNew(r);
 	    // new Thread(r, "popup-" + this).start();
 	}
 
