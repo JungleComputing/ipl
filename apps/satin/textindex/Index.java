@@ -10,6 +10,8 @@ import java.util.HashMap;
 public class Index implements java.io.Serializable {
     protected String files[];
     protected final HashMap wordOccurences = new HashMap();
+    private static final boolean compactSpans = true;
+    private static final boolean showSpanCompaction = false;
 
     public Index()
     {
@@ -32,6 +34,80 @@ public class Index implements java.io.Serializable {
             String w = (String) it.next();
             wordOccurences.put( w, new int[] { 0 } );
         }
+    }
+
+    private static void dumpArray( int l[] )
+    {
+        System.err.print( '[' );
+        for( int i=0; i<l.length; i++ ){
+            if( i>0 ){
+                System.err.print( ' ' );
+            }
+            System.err.print( l[i] );
+        }
+        System.err.print( ']' );
+    }
+
+    /**
+     * Given two occurence lists, returns a merged occurence list.
+     */
+    private static int []mergeOccurenceLists( int l1[], int offset, int l2[] )
+    {
+        if( l2 == null || l2.length == 0 ){
+            return l1;
+        }
+        for( int i=0; i<l2.length; i++ ){
+            if( l2[i]<0 ){
+                l2[i] -= offset;
+            }
+            else {
+                l2[i] += offset;
+            }
+        }
+        if( l1 == null || l1.length == 0 ){
+            return l2;
+        }
+        if( showSpanCompaction ){
+            dumpArray( l1 );
+            dumpArray( l2 );
+        }
+        // First see if we can do something clever with spans of
+        // occurences.
+        int skip1 = 0;
+        int skip2 = 0;
+        int lastix1 = l1.length-1;
+        int last1 = l1[lastix1];
+        int first2 = l2[0];
+        if( compactSpans ){
+            if( (last1>=0) && last1+1 == first2 ){
+                // Turn this in a sort span.
+                l2[0] = -l2[0];
+                if( l2.length>1 && l2[1]<0 ){
+                   // We already had a span, merge our stuff in by deleting
+                   // entry l2[0].
+                   skip2 = 1;
+                }
+            }
+            else if( (last1<0) && (-last1)+1 == first2 ){
+                // Turn this in a sort span.
+                l2[0] = -l2[0];
+                skip1 = 1;  // We're not interested in the end of the span.
+                if( l2.length>1 && l2[1]<0 ){
+                   // We already had a span, merge our stuff in by deleting
+                   // entry l2[0].
+                   skip2 = 1;
+                }
+            }
+        }
+        int nwl[] = new int[l1.length+l2.length-(skip1+skip2)];
+        System.arraycopy( l1, 0, nwl, 0, l1.length-skip1 );
+        System.arraycopy( l2, skip2, nwl, l1.length-skip1, l2.length-skip2 );
+        if( showSpanCompaction ){
+            System.err.print( "->" );
+            dumpArray( nwl );
+            System.err.println();
+        }
+        return nwl;
     }
 
     /**
@@ -58,24 +134,11 @@ public class Index implements java.io.Serializable {
         java.util.Iterator it = ix.wordOccurences.keySet().iterator();
         while( it.hasNext() ){
             String key = (String) it.next();
-            int l1[] = (int[]) ix.wordOccurences.get( key );
-            for( int i=0; i<l1.length; i++ ){
-                l1[i] += offset;
-            }
-            Object e = wordOccurences.get( key );
-            if( e == null ){
-                // The word only occurs in the merged in entry.
-                // Create a new entry.
-                wordOccurences.put( key, l1 );
-            }
-            else {
-                // We also have entries. Concatenate them.
-                int l[] = (int []) e;
-
-                int nwl[] = new int[l.length+l1.length];
-                System.arraycopy( l, 0, nwl, 0, l.length );
-                System.arraycopy( l1, 0, nwl, l.length, l1.length );
-                wordOccurences.put( key, nwl );
+            int l1[] = (int[]) wordOccurences.get( key );
+            int l2[] = (int[]) ix.wordOccurences.get( key );
+            int l[] = mergeOccurenceLists( l1, offset, l2 );
+            if( l != null && l != l1 ){
+                wordOccurences.put( key, l );
             }
         }
     }

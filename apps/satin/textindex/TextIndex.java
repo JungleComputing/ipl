@@ -62,7 +62,8 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
         }
         for( int i=0; i<files.length; i++ ){
             // Make these files fully qualified.
-            if( files[i].charAt( 0 ) == '.' ){
+            String fnm = files[i];
+            if( fnm.equals(  "CVS" ) || fnm.charAt( 0 ) == '.' ){
                 files[i] = null;
             }
             else {
