@@ -33,9 +33,9 @@ public class IbisSerializationInputStream
     private int next_handle;
 
     /**
-     * The underlying <code>IbisDissipator</code>.
+     * The underlying <code>Dissipator</code>.
      */
-    private final IbisDissipator in;
+    private final Dissipator in;
 
     /**
      * First free type index.
@@ -254,11 +254,11 @@ public class IbisSerializationInputStream
     }
 
     /**
-     * Constructor with an <code>IbisDissipator</code>.
-     * @param in		the underlying <code>IbisDissipator</code>
+     * Constructor with an <code>Dissipator</code>.
+     * @param in		the underlying <code>Dissipator</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public IbisSerializationInputStream(IbisDissipator in) throws IOException {
+    public IbisSerializationInputStream(Dissipator in) throws IOException {
 	super();
 	objects = new IbisVector(1024);
 	init(true);

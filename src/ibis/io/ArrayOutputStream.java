@@ -3,13 +3,13 @@ package ibis.io;
 import java.io.IOException;
 
 /**
- * This is an implementation of the <code>IbisAccumulator</code> interface
+ * This is an implementation of the <code>Accumulator</code> abstract class
  * which is actually the (old) <code>ArrayOutputStream</code>.
  * This way the whole thing becomes backwards
  * compatible with older implementations.
  */
-public abstract class ArrayOutputStream
-	implements IbisAccumulator, IbisStreamFlags
+public abstract class ArrayOutputStream extends Accumulator
+	implements IbisStreamFlags
 {
     /**
      * Constructor.

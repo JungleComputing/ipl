@@ -5,7 +5,7 @@ import java.io.OutputStream;
 
 /**
  * This is an implementation of <code>ArrayOutputStream</code> (and thus also
- * of <code>IbisAccumulator</code>. It is built on top of an
+ * of <code>Accumulator</code>. It is built on top of an
  * <code>OutputStream</code>.
  */
 

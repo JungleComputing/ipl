@@ -3,7 +3,7 @@ package ibis.impl.net.s_ibis;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSerializedOutput;
-import ibis.io.IbisAccumulator;
+import ibis.io.Accumulator;
 import ibis.io.IbisSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 
@@ -22,7 +22,7 @@ public final class SIbisOutput extends NetSerializedOutput {
 
         public SerializationOutputStream newSerializationOutputStream() 
 						    throws IOException {
-                IbisAccumulator ia = new DummyAccumulator();
+                Accumulator ia = new DummyAccumulator();
 
 		return new IbisSerializationOutputStream(ia);
         }
@@ -40,7 +40,7 @@ public final class SIbisOutput extends NetSerializedOutput {
 	  * the next driver. Actually does almost nothing, just passes along
 	  * the data.
 	  */
-        private final class DummyAccumulator implements IbisAccumulator {
+        private final class DummyAccumulator extends Accumulator {
 
                 public void flush() throws IOException {
 			/* nothing to flush here, no way to flush a

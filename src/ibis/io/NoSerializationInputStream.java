@@ -24,13 +24,13 @@ public final class NoSerializationInputStream extends SerializationInputStream {
 
     /**
      * Constructor. Calls constructor of superclass with a newly created
-     * <code>InputStream</code> from the <code>IbisDissipator</code> parameter.
+     * <code>InputStream</code> from the <code>Dissipator</code> parameter.
      *
-     * @param in the <code>IbisDissipator</code>
+     * @param in the <code>Dissipator</code>
      * @exception IOException when an IO error occurs.
      */
 
-    public NoSerializationInputStream(IbisDissipator in) throws IOException {
+    public NoSerializationInputStream(Dissipator in) throws IOException {
 	super(new DissipatorInputStream(in));
     }
 

@@ -13,9 +13,9 @@ public class DataSerializationOutputStream
 	implements IbisStreamFlags
 {
     /**
-     * The underlying <code>IbisAccumulator</code>.
+     * The underlying <code>Accumulator</code>.
      */
-    private final IbisAccumulator out;
+    private final Accumulator out;
 
     /**
      * Allocator for the typed buffer arrays.
@@ -139,11 +139,11 @@ public class DataSerializationOutputStream
     private boolean[] touched = new boolean[PRIMITIVE_TYPES];
 
     /**
-     * Constructor with an <code>IbisAccumulator</code>.
-     * @param out		the underlying <code>IbisAccumulator</code>
+     * Constructor with an <code>Accumulator</code>.
+     * @param out		the underlying <code>Accumulator</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public DataSerializationOutputStream(IbisAccumulator out)
+    public DataSerializationOutputStream(Accumulator out)
 							 throws IOException {
 	super();
 

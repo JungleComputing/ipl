@@ -4,29 +4,29 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * A <code>OutputStream</code> which uses a <code>IbisAccumulator</code> as
+ * A <code>OutputStream</code> which uses a <code>Accumulator</code> as
  * the underlying implementation.
  */
 public final class AccumulatorOutputStream extends OutputStream {
 
     /**
-     * The underlying <code>IbisAccumulator</code>.
+     * The underlying <code>Accumulator</code>.
      */
-    private IbisAccumulator out;
+    private Accumulator out;
 
     /**
      * Constructor. Calls parameterless constructor of superclass.
      *
-     * @param out	the underlying <code>IbisAccumulator</code>
+     * @param out	the underlying <code>Accumulator</code>
      */
-    public AccumulatorOutputStream(IbisAccumulator out) {
+    public AccumulatorOutputStream(Accumulator out) {
 	super();
 	this.out = out;
     }
 
     /**
      * Closes this <code>OutputStream</code>, by closing the underlying
-     * <code>IbisAccumulator</code>.
+     * <code>Accumulator</code>.
      *
      * @exception IOException when an IO error occurs.
      */
@@ -36,7 +36,7 @@ public final class AccumulatorOutputStream extends OutputStream {
 
     /**
      * Flushes this <code>OutputStream</code>, by flushing the underlying
-     * <code>IbisAccumulator</code>.
+     * <code>Accumulator</code>.
      *
      * @exception IOException when an IO error occurs.
      */
@@ -46,7 +46,7 @@ public final class AccumulatorOutputStream extends OutputStream {
 
     /**
      * Writes a single byte to this <code>OutputStream</code>, by
-     * writing it to the underlying <code>IbisAccumulator</code>.
+     * writing it to the underlying <code>Accumulator</code>.
      *
      * @exception IOException when an IO error occurs.
      */
@@ -56,7 +56,7 @@ public final class AccumulatorOutputStream extends OutputStream {
 
     /**
      * Writes an array of bytes to this <code>OutputStream</code>, by
-     * writing it to the underlying <code>IbisAccumulator</code>.
+     * writing it to the underlying <code>Accumulator</code>.
      *
      * @exception IOException when an IO error occurs.
      */
@@ -66,7 +66,7 @@ public final class AccumulatorOutputStream extends OutputStream {
 
     /**
      * Writes a slice of an array of bytes to this <code>OutputStream</code>,
-     * by writing it to the underlying <code>IbisAccumulator</code>.
+     * by writing it to the underlying <code>Accumulator</code>.
      *
      * @exception IOException when an IO error occurs.
      */

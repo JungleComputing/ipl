@@ -6,8 +6,8 @@ import java.io.IOException;
  * An inputstream for reading arrays of primitive types.
  */
 
-public abstract class ArrayInputStream
-	implements IbisStreamFlags, IbisDissipator
+public abstract class ArrayInputStream extends Dissipator
+	implements IbisStreamFlags
 {
     /**
      * Reads (a slice of) an array of booleans in place.

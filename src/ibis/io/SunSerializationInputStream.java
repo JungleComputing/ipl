@@ -25,13 +25,13 @@ public final class SunSerializationInputStream
 
     /**
      * Constructor. Calls constructor of superclass with a newly created
-     * <code>InputStream</code> from the <code>IbisDissipator</code> parameter.
+     * <code>InputStream</code> from the <code>Dissipator</code> parameter.
      *
-     * @param in the <code>IbisDissipator</code>
+     * @param in the <code>Dissipator</code>
      * @exception IOException when an IO error occurs.
      */
 
-    public SunSerializationInputStream(IbisDissipator in) throws IOException {
+    public SunSerializationInputStream(Dissipator in) throws IOException {
 	super(new DissipatorInputStream(in));
     }
 

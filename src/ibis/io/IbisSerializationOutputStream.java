@@ -19,9 +19,9 @@ public class IbisSerializationOutputStream
 	implements IbisStreamFlags
 {
     /**
-     * The underlying <code>IbisAccumulator</code>.
+     * The underlying <code>Accumulator</code>.
      */
-    private final IbisAccumulator out;
+    private final Accumulator out;
 
     /**
      * The first free object handle.
@@ -209,11 +209,11 @@ public class IbisSerializationOutputStream
     private boolean[] touched = new boolean[PRIMITIVE_TYPES];
 
     /**
-     * Constructor with an <code>IbisAccumulator</code>.
-     * @param out		the underlying <code>IbisAccumulator</code>
+     * Constructor with an <code>Accumulator</code>.
+     * @param out		the underlying <code>Accumulator</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public IbisSerializationOutputStream(IbisAccumulator out)
+    public IbisSerializationOutputStream(Accumulator out)
 							 throws IOException {
 	super();
 

@@ -26,13 +26,13 @@ public final class SunSerializationOutputStream
 
     /**
      * Constructor. Calls constructor of superclass with a newly created
-     * <code>OututStream</code> from the <code>IbisAccumulator</code>
+     * <code>OututStream</code> from the <code>Accumulator</code>
      * parameter and flushes.
      *
-     * @param out the <code>IbisAccumulator</code>
+     * @param out the <code>Accumulator</code>
      * @exception <code>IOException</code> is thrown when an IO error occurs.
      */
-    public SunSerializationOutputStream(IbisAccumulator out) 
+    public SunSerializationOutputStream(Accumulator out) 
 							throws IOException {
 	super(new AccumulatorOutputStream(out));
 	flush();

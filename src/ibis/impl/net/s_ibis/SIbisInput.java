@@ -3,7 +3,7 @@ package ibis.impl.net.s_ibis;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSerializedInput;
-import ibis.io.IbisDissipator;
+import ibis.io.Dissipator;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.SerializationInputStream;
 
@@ -23,7 +23,7 @@ public final class SIbisInput extends NetSerializedInput {
 
         public SerializationInputStream newSerializationInputStream() 
 						    throws IOException {
-                IbisDissipator id = new DummyDissipator();
+                Dissipator id = new DummyDissipator();
 
 		return new IbisSerializationInputStream(id);
         }
@@ -40,7 +40,7 @@ public final class SIbisInput extends NetSerializedInput {
 	 * Dissipator used to get the data from the driver below. Actually
 	 * does almost nothing, just passes the data up to the serialization.
 	 */
-        private final class DummyDissipator implements IbisDissipator {
+        private final class DummyDissipator extends Dissipator {
 
                 public int available() throws IOException {
                         return 0; // no way to tell if anything is available */

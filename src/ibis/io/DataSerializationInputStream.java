@@ -19,9 +19,9 @@ public class DataSerializationInputStream
 	implements IbisStreamFlags
 {
     /**
-     * The underlying <code>IbisDissipator</code>.
+     * The underlying <code>Dissipator</code>.
      */
-    private final IbisDissipator in;
+    private final Dissipator in;
 
     /**
      * Each "bunch" of data is preceded by a header array, telling for
@@ -136,11 +136,11 @@ public class DataSerializationInputStream
     private int		max_double_index;
 
     /**
-     * Constructor with an <code>IbisDissipator</code>.
-     * @param in		the underlying <code>IbisDissipator</code>
+     * Constructor with an <code>Dissipator</code>.
+     * @param in		the underlying <code>Dissipator</code>
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    public DataSerializationInputStream(IbisDissipator in) throws IOException {
+    public DataSerializationInputStream(Dissipator in) throws IOException {
 	super();
 	this.in = in;
 	initArrays();
