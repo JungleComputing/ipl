@@ -232,6 +232,25 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     }
 
     /**
+     * Adds the specified clause to the problem. 
+     * @param cl the clause to add
+     * @return the label of the added clause, or -1 if the clause is redundant
+     */
+    public int addClause( Clause cl )
+    {
+	if( clauseCount>=clauses.length ){
+	    // Resize the clauses array. Even works for array of length 0.
+	    Clause nw[] = new Clause[1+clauses.length*2];
+
+	    System.arraycopy( clauses, 0, nw, 0, clauses.length );
+	    clauses = nw;
+	}
+	int clauseno = clauseCount++;
+	clauses[clauseno] = cl;
+	return cl.label;
+    }
+
+    /**
      * Adds a new clause to the problem. The clause is constructed
      * from <em>copies</em> of the arrays of positive and negative variables
      * that are given as parameters.
@@ -247,18 +266,9 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	int aneg[] = Helpers.cloneIntArray( neg, negsz );
 	sortIntArray( apos );
 	sortIntArray( aneg );
+
 	Clause cl = new Clause( apos, aneg, label++ );
-
-	if( clauseCount>=clauses.length ){
-	    // Resize the clauses array. Even works for array of length 0.
-	    Clause nw[] = new Clause[1+clauses.length*2];
-
-	    System.arraycopy( clauses, 0, nw, 0, clauses.length );
-	    clauses = nw;
-	}
-	int clauseno = clauseCount++;
-	clauses[clauseno] = cl;
-	return cl.label;
+        return addClause( cl );
     }
 
     /**

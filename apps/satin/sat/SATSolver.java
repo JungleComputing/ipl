@@ -36,7 +36,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	SATContext ctx,
 	int var,
 	boolean val
-    ) throws SATResultException
+    ) throws SATException
     {
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
@@ -83,8 +83,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	leafSolve( level+1, p, subctx, nextvar, firstvar );
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
-	// Also note that this call is a perfect candidate for tail
-	// call elimination.
 	leafSolve( level+1, p, ctx, nextvar, !firstvar );
     }
 
@@ -103,7 +101,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	SATContext ctx,
 	int var,
 	boolean val
-    ) throws SATResultException
+    ) throws SATException
     {
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
@@ -112,7 +110,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	// Get the problem from the Satin tuple space.
 	// The leafsolver can just reuse p, the paralllel
 	// solvers have to retrieve it at the beginning of the method.
-	SATProblem p = (SATProblem) ibis.satin.SatinTupleSpace.get("problem");
+	SATProblem p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
 
 	ctx.assignments[var] = val?1:0;
 	int res;
@@ -220,7 +218,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    }
 
 	    // Put the problem in the Satin tuple space.
-	    ibis.satin.SatinTupleSpace.add("problem", p);
+	    ibis.satin.SatinTupleSpace.add( "problem",  p );
 
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
@@ -235,6 +233,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    res = r.s;
 	    s.abort();
 	}
+        catch( SATException x ){
+            System.err.println( "Uncaught SATException " + x + "???" );
+        }
 
 	return res;
     }

@@ -4,7 +4,7 @@
  * The exception mechanism is used in Satin to abort a divide-and-conquer
  * problem prematurely. The exception carries the result.
  */
-class SATResultException extends Exception {
+class SATResultException extends SATException {
     SATSolution s;
 
     /** Construct an exception with the given solution.
