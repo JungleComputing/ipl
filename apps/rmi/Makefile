@@ -21,3 +21,4 @@ clean:
 	cd fft && $(MAKE) $(MFLAGS) clean
 	cd radix && $(MAKE) $(MFLAGS) clean
 	cd leq && $(MAKE) $(MFLAGS) clean
+	cd acp && $(MAKE) $(MFLAGS) clean
