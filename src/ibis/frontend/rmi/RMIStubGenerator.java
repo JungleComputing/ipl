@@ -53,7 +53,7 @@ class RMIStubGenerator extends RMIGenerator {
 
 	    output.println("\t\ttry {");
 	    output.println("\t\t\tinitSend();");
-	    output.println("\t\t\tWriteMessage w = send.newMessage();");
+	    output.println("\t\t\tWriteMessage w = newMessage();");
 	    output.println("\t\t\tw.writeInt(" + number + ");");
 	    output.println("\t\t\tw.writeInt(stubID);");
 

@@ -47,7 +47,7 @@ public class Stub extends RemoteStub {
 			send = RTS.getSendPort(skeletonPortId);
 			reply = RTS.getReceivePort();
 		    }
-		    WriteMessage wm = send.newMessage();
+		    WriteMessage wm = newMessage();
 		    wm.writeInt(-1);
 		    wm.writeInt(0);
 		    wm.writeObject(reply.identifier());
@@ -67,6 +67,11 @@ public class Stub extends RemoteStub {
 		}
 	    }
 	}
+    }
+
+    public final WriteMessage newMessage() throws IOException {
+	WriteMessage w = send.newMessage();
+	return w;
     }
 
     protected void finalize() {
