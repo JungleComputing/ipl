@@ -12,7 +12,9 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+
 import java.net.ServerSocket;
+
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -34,17 +36,9 @@ import java.util.Hashtable;
  */
 public final class NioInput extends NetInput {
 
-    public static int	BUFFER_SIZE = 1024*1024;  // bytes
+    public static boolean		DEBUG	    = false;
 
-    public static int	BYTE_BUFFER = 0,
-    CHAR_BUFFER = 1,
-    SHORT_BUFFER = 2,
-    INT_BUFFER = 3,
-    LONG_BUFFER = 4,
-    FLOAT_BUFFER = 5,
-    DOUBLE_BUFFER = 6;
-
-    public static int	NR_OF_PRIMITIVES = 7;
+    public static int			BUFFER_SIZE = 1024*1024;  // bytes
 
     /**
      * The connection socket channel.
@@ -54,7 +48,7 @@ public final class NioInput extends NetInput {
     /**
      * The communication socket channel.
      */
-    private SocketChannel			socketChannel = null;
+    private SocketChannel		socketChannel = null;
 
     /**
      * The peer NetSendPort local number.
@@ -64,41 +58,34 @@ public final class NioInput extends NetInput {
     private InetAddress			addr = null;
     private int				port = 0;
 
-    private long				bytesRead = 0;
-
     /**
      * if isPendingByte a byte has been read from the channel,
      * but has not been processed yet.
      */
     private ByteBuffer			oneByteBuffer;
-    private boolean				bytePending = false;
+    private boolean			bytePending = false;
 
-    /**
-     * an array of nio buffers used to hold all the primitive buffers.
+    /*
+     * buffer to recieve data from the network
      */
-    ByteBuffer[]	primitiveBuffers = new ByteBuffer[NR_OF_PRIMITIVES];
 
-    /**
-     * nio buffer used to hold the header
+    private ByteBuffer			byteBuffer;
+
+    /*
+     * views of the byteBuffer used to drain it
      */
-    ByteBuffer	headerByteBuffer;
-
-    /* views of the bytebuffers to fill/drain them */
-
-    IntBuffer	header;
-    ByteBuffer	byteBuffer;
-    CharBuffer	charBuffer;
-    ShortBuffer	shortBuffer;
-    IntBuffer	intBuffer;
-    LongBuffer	longBuffer;
-    FloatBuffer	floatBuffer;
-    DoubleBuffer	doubleBuffer;
+    private CharBuffer			charBuffer;
+    private ShortBuffer			shortBuffer;
+    private IntBuffer			intBuffer;
+    private LongBuffer			longBuffer;
+    private FloatBuffer			floatBuffer;
+    private DoubleBuffer		doubleBuffer;
 
     /**
      * Constructor.
      *
      * @param sp the properties of the input's 
-     * {@link ibis.impl.net.NetSendPort NetSendPort}.
+     * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
      * @param driver the Nio driver instance.
      * @param input the controlling input.
      */
@@ -109,42 +96,20 @@ public final class NioInput extends NetInput {
 
 	    /* init buffers */
 
-	    headerByteBuffer = 
-		ByteBuffer.allocateDirect(NR_OF_PRIMITIVES * 4).
+	    byteBuffer = 
+		ByteBuffer.allocateDirect(BUFFER_SIZE).
 		order(ByteOrder.nativeOrder());
-	    headerByteBuffer.clear();
 
-	    for(int i =  BYTE_BUFFER; i <= DOUBLE_BUFFER; i++) {
-		primitiveBuffers[i] = 
-		    ByteBuffer.allocateDirect(BUFFER_SIZE).
-		    order(ByteOrder.nativeOrder());
-		primitiveBuffers[i].clear();
-	    }
-
-	    header = headerByteBuffer.asIntBuffer();
-	    byteBuffer = primitiveBuffers[BYTE_BUFFER]; // just a shorthand
-	    charBuffer = primitiveBuffers[CHAR_BUFFER].asCharBuffer();
-	    shortBuffer = primitiveBuffers[SHORT_BUFFER].asShortBuffer();
-	    intBuffer = primitiveBuffers[INT_BUFFER].asIntBuffer();
-	    longBuffer = primitiveBuffers[LONG_BUFFER].asLongBuffer();
-	    floatBuffer = primitiveBuffers[FLOAT_BUFFER].asFloatBuffer();
-	    doubleBuffer = primitiveBuffers[DOUBLE_BUFFER].asDoubleBuffer();
-
-	    header.clear();
-	    /* set the buffers so that they appear empty
-	       this way they will trigger a receive when touched */
-	    byteBuffer.limit(0);
-	    charBuffer.limit(0);
-	    shortBuffer.limit(0);
-	    intBuffer.limit(0);
-	    longBuffer.limit(0);
-	    floatBuffer.limit(0);
-	    doubleBuffer.limit(0);
+	    charBuffer = byteBuffer.asCharBuffer();
+	    shortBuffer = byteBuffer.asShortBuffer();
+	    intBuffer = byteBuffer.asIntBuffer();
+	    longBuffer = byteBuffer.asLongBuffer();
+	    floatBuffer = byteBuffer.asFloatBuffer();
+	    doubleBuffer = byteBuffer.asDoubleBuffer();
 
 	    oneByteBuffer = ByteBuffer.allocateDirect(1).
 		order(ByteOrder.nativeOrder());
 	    oneByteBuffer.clear();
-
 	}
 
     public void initReceive(Integer num) {
@@ -230,8 +195,7 @@ public final class NioInput extends NetInput {
 	// use bocking mode
 	socketChannel.configureBlocking(true);
 
-	socketChannel.socket().setReceiveBufferSize(0x8000);
-	socketChannel.socket().setTcpNoDelay(true);
+//	socketChannel.socket().setTcpNoDelay(true);
 
 	addr = socketChannel.socket().getInetAddress();
 	port = socketChannel.socket().getPort();
@@ -252,6 +216,14 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public Integer doPoll(boolean block) throws IOException {
+	if(DEBUG) {
+	    if(block) {
+		System.out.println("Doing blocking poll");
+	    } else {
+		System.out.println("Doing NON blocking poll");
+	    }
+	}
+    
 	if (spn == null) {
 	    // not connected yet
 	    return null;
@@ -279,7 +251,6 @@ public final class NioInput extends NetInput {
 		if(oneByteBuffer.position() != 0) {	
 		    bytePending = true;
 		    oneByteBuffer.flip();
-		    bytesRead += 1;
 		    if(!block) {
 			socketChannel.configureBlocking(true);
 		    }
@@ -310,95 +281,35 @@ public final class NioInput extends NetInput {
     }
 
     protected void doFinish() throws IOException {
+	if (DEBUG) {
+	    System.out.println("Finish called");
+	}
 	// NOTHING
     }
 
     /**
-     * Gets the primitive buffers from the channel
+     * receive data into the ByteBuffer
      */
-    private void receive() throws IOException {
-	int lastBuffer;
+    private void receiveByteBuffer() throws IOException {
+	long bytesRead = 0;
 
-	/* fill the header from the channel */
+	while(byteBuffer.hasRemaining()) {
+	    // See if we "polled" a byte, and put it in the buffer if so.
+	    // In this while loop to save a hasRemaining() call
+	    if(bytePending) {
+		byteBuffer.put(oneByteBuffer.get(0));
+		bytePending = false;
+		bytesRead += 1;
+	    }
 
-	headerByteBuffer.clear();
+	    bytesRead += socketChannel.read(byteBuffer);
 
-	// see if we "polled" a byte, and put it in the header if so
-	if(bytePending) {
-	    headerByteBuffer.put(oneByteBuffer.get(0));
-	    bytePending = false;
-	}
-
-	do {
-	    bytesRead += socketChannel.read(headerByteBuffer);
-	} while (headerByteBuffer.remaining() != 0);
-
-	headerByteBuffer.flip();
-
-	header.position(headerByteBuffer.position() / 4);
-	header.limit(headerByteBuffer.limit() / 4);
-
-
-	/* set up the primitive buffer so they can be filled */
-
-	primitiveBuffers[BYTE_BUFFER].position(0);
-	primitiveBuffers[BYTE_BUFFER].limit(header.get(BYTE_BUFFER));
-
-	primitiveBuffers[CHAR_BUFFER].position(0);
-	primitiveBuffers[CHAR_BUFFER].limit(header.get(CHAR_BUFFER));
-
-	primitiveBuffers[SHORT_BUFFER].position(0);
-	primitiveBuffers[SHORT_BUFFER].limit(header.get(SHORT_BUFFER));
-
-	primitiveBuffers[INT_BUFFER].position(0);
-	primitiveBuffers[INT_BUFFER].limit(header.get(INT_BUFFER));
-
-	primitiveBuffers[LONG_BUFFER].position(0);
-	primitiveBuffers[LONG_BUFFER].limit(header.get(LONG_BUFFER));
-
-	primitiveBuffers[FLOAT_BUFFER].position(0);
-	primitiveBuffers[FLOAT_BUFFER].limit(header.get(FLOAT_BUFFER));
-
-	primitiveBuffers[DOUBLE_BUFFER].position(0);
-	primitiveBuffers[DOUBLE_BUFFER].limit(
-		header.get(DOUBLE_BUFFER));
-
-	lastBuffer = 0;
-	for(int i = 0; i <= DOUBLE_BUFFER; i++) {
-	    if(primitiveBuffers[i].hasRemaining()) {
-		lastBuffer = i;
+	    if(DEBUG) {
+		System.out.println("        rbb received " + bytesRead + " bytes");
 	    }
 	}
-
-	/* receive the primitive buffer from the channel */
-	do {
-	    bytesRead += socketChannel.read(primitiveBuffers);
-	} while (primitiveBuffers[lastBuffer].hasRemaining());
-
-	/* set the views of the buffers so they can be used in all the
-	 * read functions 
-	 */
-
-	primitiveBuffers[BYTE_BUFFER].flip();
-
-	charBuffer.position(0);
-	charBuffer.limit(header.get(CHAR_BUFFER) / 2);
-
-	shortBuffer.position(0);
-	shortBuffer.limit(header.get(SHORT_BUFFER) / 2);
-
-	intBuffer.position(0);
-	intBuffer.limit(header.get(INT_BUFFER) / 4);
-
-	longBuffer.position(0);
-	longBuffer.limit(header.get(LONG_BUFFER) / 8);
-
-	floatBuffer.position(0);
-	floatBuffer.limit(header.get(FLOAT_BUFFER) / 4);
-
-	doubleBuffer.position(0);
-	doubleBuffer.limit(header.get(DOUBLE_BUFFER) / 8);
     }
+
 
     public NetReceiveBuffer readByteBuffer(int expectedLength) 
 	throws IOException {
@@ -426,7 +337,20 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public boolean readBoolean() throws IOException {
-	return (readByte() == (byte)1 );
+	boolean result;
+
+	byteBuffer.position(0).limit(1);
+
+	receiveByteBuffer();
+	byteBuffer.flip();
+
+	result = (byteBuffer.get() == (byte)1);
+
+	if(DEBUG) {
+	    System.out.println("received boolean " + result);
+	}
+
+	return result;
     }
 
     /**
@@ -438,14 +362,20 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public byte readByte() throws IOException {
-	try {
-	    return byteBuffer.get();
-	} catch (BufferUnderflowException e) {
-	    // we ran out of things to read, receive some...
-	    receive();
-	    // ...and try again
-	    return readByte();
-	} 
+	byte result;
+
+	byteBuffer.position(0).limit(1);
+
+	receiveByteBuffer();
+	byteBuffer.flip();
+
+	result = byteBuffer.get();
+
+	if(DEBUG) {
+	    System.out.println("received byte " + result);
+	}
+
+	return result;
     }
 
 
@@ -458,14 +388,20 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public char readChar() throws IOException {
-	try {
-	    return charBuffer.get();
-	} catch (BufferUnderflowException e) {
-	    // we ran out of things to read, receive some...
-	    receive();
-	    // ...and try again
-	    return readChar();
+	char result;
+
+	byteBuffer.position(0).limit(2);
+
+	receiveByteBuffer();
+	byteBuffer.flip();
+
+	result = byteBuffer.getChar();
+
+	if(DEBUG) {
+	    System.out.println("received char " + result);
 	}
+
+	return result;
     }
 
     /**
@@ -477,14 +413,20 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public short readShort() throws IOException {
-	try {
-	    return shortBuffer.get();
-	} catch (BufferUnderflowException e) {
-	    // we ran out of things to read, receive some...
-	    receive();
-	    // ...and try again
-	    return readShort();
+	short result;
+
+	byteBuffer.position(0).limit(2);
+
+	receiveByteBuffer();
+	byteBuffer.flip();
+
+	result = byteBuffer.getShort();
+
+	if(DEBUG) {
+	    System.out.println("received short " + result);
 	}
+
+	return result;
     }
 
     /**
@@ -496,14 +438,20 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public int readInt() throws IOException {
-	try {
-	    return intBuffer.get();
-	} catch (BufferUnderflowException e) {
-	    // we ran out of things to read, receive some...
-	    receive();
-	    // ...and try again
-	    return readInt();
-	} 
+	int result;
+
+	byteBuffer.position(0).limit(4);
+
+	receiveByteBuffer();
+	byteBuffer.flip();
+
+	result = byteBuffer.getInt();
+
+	if(DEBUG) {
+	    System.out.println("received int " + result);
+	}
+
+	return result;
     }
 
     /**
@@ -515,14 +463,20 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public long readLong() throws IOException {
-	try {
-	    return longBuffer.get();
-	} catch (BufferUnderflowException e) {
-	    // we ran out of things to read, receive some...
-	    receive();
-	    // ...and try again
-	    return readLong();
-	} 
+	long result;
+
+	byteBuffer.position(0).limit(8);
+
+	receiveByteBuffer();
+	byteBuffer.flip();
+
+	result =  byteBuffer.getLong();
+
+	if(DEBUG) {
+	    System.out.println("received long " + result);
+	}
+
+	return result;
     }
 
 
@@ -535,14 +489,20 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public float readFloat() throws IOException {
-	try {
-	    return floatBuffer.get();
-	} catch (BufferUnderflowException e) {
-	    // we ran out of things to read, receive some...
-	    receive();
-	    // ...and try again
-	    return readFloat();
-	} 
+	float result;
+
+	byteBuffer.position(0).limit(4);
+
+	receiveByteBuffer();
+	byteBuffer.flip();
+
+	result = byteBuffer.getFloat();
+
+	if(DEBUG) {
+	    System.out.println("received float " + result);
+	}
+
+	return result;
     }
 
 
@@ -555,14 +515,20 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public double readDouble() throws IOException {
-	try {
-	    return doubleBuffer.get();
-	} catch (BufferUnderflowException e) {
-	    // we ran out of things to read, receive some...
-	    receive();
-	    // ...and try again
-	    return readDouble();
-	} 
+	double result;
+
+	byteBuffer.position(0).limit(8);
+
+	receiveByteBuffer();
+	byteBuffer.flip();
+
+	result = byteBuffer.getDouble();
+
+	if(DEBUG) {
+	    System.out.println("received double " + result);
+	}
+
+	return result;
     }
 
     /**
@@ -574,7 +540,7 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public String readString() throws IOException {
-	throw new IOException("reading Strings not implemented");
+	throw new IOException("reading Strings not implemented by net/nio");
     }
 
 
@@ -587,7 +553,7 @@ public final class NioInput extends NetInput {
      * @return {@inheritDoc}
      */
     public Object readObject() throws IOException, ClassNotFoundException {
-	throw new IOException("reading Objects not implemented");
+	throw new IOException("reading Objects not implemented by net/nio");
     }
 
 
@@ -600,100 +566,90 @@ public final class NioInput extends NetInput {
      *
      * @return {@inheritDoc}
      */
-    public void readArray(boolean [] destination, 
-	    int offset, 
-	    int size) throws IOException {
-	ByteBuffer buffer;
-
-	buffer = ByteBuffer.allocateDirect(size);
-
-	/* check if a poll was done lately...
-	   should not happen, but check anyway */
-	if(bytePending) {
-	    buffer.put(oneByteBuffer.get(0));
-	    bytePending = false;
-	}
-
-	/* receive the data from the channel */
-	do {
-	    socketChannel.read(buffer);
-	} while (buffer.hasRemaining());
-
-	buffer.flip();
-
-	for(int i = offset; i <  (offset + size); i++) {
-	    destination[i] = (buffer.get() == (byte)1);
-	}
-
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * <BR><B>Note</B>: this function may block if the expected 
-     * data is not there.
-     *
-     * @return {@inheritDoc}
-     */
-    public void readArray(byte [] destination, 
-	    int offset, 
-	    int size) throws IOException {
-	ByteBuffer wrap;
-	int length;
-
-	if (size == 0) {
-	    return; // Nothing to do...
-	}
-
-	if (size < 256) {
-	    while(size > 0) {
-		if(!byteBuffer.hasRemaining()) {
-		    receive();
-		}
-
-		length = Math.min(byteBuffer.remaining(), size);
-		byteBuffer.get(destination, offset, length);
-		size -= length;
-		offset += length;
-	    }
-	} else {
-	    wrap = ByteBuffer.wrap(destination, offset, size);
-
-	    /* check if a poll was done lately...
-	       should not happen, but check anyway */
-	    if(bytePending) {
-		wrap.put(oneByteBuffer.get(0));
-		bytePending = false;
-	    }
-
-	    /* receive the data from the channel */
-	    do {
-		socketChannel.read(wrap);
-	    } while (wrap.hasRemaining());
-	}
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <BR><B>Note</B>: this function may block if the expected 
-     * data is not there.
-     *
-     * @return {@inheritDoc}
-     */
-    public void readArray(char [] destination, 
+    public void readArray(boolean [] array, 
 	    int offset, 
 	    int size) throws IOException {
 	int length;
+
+	if(DEBUG) {
+	    System.out.println("receiving boolean[" + size + "]");
+	}
 
 	while(size > 0) {
-	    if(!charBuffer.hasRemaining()) {
-		receive();
+	    length = Math.min(byteBuffer.capacity(), size);
+
+	    byteBuffer.position(0).limit(length);
+	    receiveByteBuffer();
+
+	    byteBuffer.flip();
+	    for(int i = offset; i <  (offset + length); i++) {
+		array[i] = (byteBuffer.get() == (byte)1);
 	    }
 
-	    length = Math.min(charBuffer.remaining(), size);
-	    charBuffer.get(destination, offset, length);
+	    size -= length;
+	    offset += length;
+	}
+
+    }
+
+
+    /**
+     * {@inheritDoc}
+     *
+     * <BR><B>Note</B>: this function may block if the expected 
+     * data is not there.
+     *
+     * @return {@inheritDoc}
+     */
+    public void readArray(byte [] array, 
+	    int offset, 
+	    int size) throws IOException {
+	int length;
+
+	if(DEBUG) {
+	    System.out.println("receiving byte[" + size + "]");
+	}
+
+	while(size > 0) {
+	    length = Math.min(byteBuffer.capacity(), size);
+
+	    byteBuffer.position(0).limit(length);
+	    receiveByteBuffer();
+
+	    byteBuffer.flip();
+	    byteBuffer.get(array, offset, length);
+
+	    size -= length;
+	    offset += length;
+	}
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <BR><B>Note</B>: this function may block if the expected 
+     * data is not there.
+     *
+     * @return {@inheritDoc}
+     */
+    public void readArray(char [] array, 
+	    int offset, 
+	    int size) throws IOException {
+	int length;
+
+	if(DEBUG) {
+	    System.out.println("receiving char[" + size + "]");
+	}
+
+	while(size > 0) {
+	    length = Math.min(charBuffer.capacity(), size);
+
+	    byteBuffer.position(0).limit(length * 2);
+	    receiveByteBuffer();
+
+	    charBuffer.position(0).limit(length);
+	    charBuffer.get(array, offset, length);
+
 	    size -= length;
 	    offset += length;
 	}
@@ -709,16 +665,24 @@ public final class NioInput extends NetInput {
      *
      * @return {@inheritDoc}
      */
-    public void readArray(short [] destination, 
+    public void readArray(short [] array, 
 	    int offset, 
 	    int size) throws IOException {
 	int length;
+
+	if(DEBUG) {
+	    System.out.println("receiving short[" + size + "]");
+	}
+
 	while(size > 0) {
-	    if(!shortBuffer.hasRemaining()) {
-		receive();
-	    }
-	    length = Math.min(shortBuffer.remaining(), size);
-	    shortBuffer.get(destination, offset, length);
+	    length = Math.min(shortBuffer.capacity(), size);
+
+	    byteBuffer.position(0).limit(length * 2);
+	    receiveByteBuffer();
+
+	    shortBuffer.position(0).limit(length);
+	    shortBuffer.get(array, offset, length);
+
 	    size -= length;
 	    offset += length;
 	}
@@ -732,41 +696,24 @@ public final class NioInput extends NetInput {
      *
      * @return {@inheritDoc}
      */
-    public void readArray(int [] destination, 
+    public void readArray(int [] array, 
 	    int offset, 
 	    int size) throws IOException {
 	int length;
-	while(size > 0) {
-	    if(!intBuffer.hasRemaining()) {
-		receive();
-	    }
-	    length = Math.min(intBuffer.remaining(), size);
-	    intBuffer.get(destination, offset, length);
-	    size -= length;
-	    offset += length;
+
+	if(DEBUG) {
+	    System.out.println("receiving int[" + size + "]");
 	}
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * <BR><B>Note</B>: this function may block if the expected 
-     * data is not there.
-     *
-     * @return {@inheritDoc}
-     */
-    public void readArray(long [] destination, 
-	    int offset, 
-	    int size) throws IOException {
-	int length;
 
 	while(size > 0) {
-	    if(!longBuffer.hasRemaining()) {
-		receive();
-	    }
-	    length = Math.min(longBuffer.remaining(), size);
-	    longBuffer.get(destination, offset, length);
+	    length = Math.min(intBuffer.capacity(), size);
+
+	    byteBuffer.position(0).limit(length * 4);
+	    receiveByteBuffer();
+
+	    intBuffer.position(0).limit(length);
+	    intBuffer.get(array, offset, length);
+
 	    size -= length;
 	    offset += length;
 	}
@@ -781,16 +728,57 @@ public final class NioInput extends NetInput {
      *
      * @return {@inheritDoc}
      */
-    public void readArray(float [] destination, 
+    public void readArray(long [] array, 
 	    int offset, 
 	    int size) throws IOException {
 	int length;
+
+	if(DEBUG) {
+	    System.out.println("receiving long[" + size + "]");
+	}
+
 	while(size > 0) {
-	    if(!floatBuffer.hasRemaining()) {
-		receive();
-	    }
-	    length = Math.min(floatBuffer.remaining(), size);
-	    floatBuffer.get(destination, offset, length);
+	    length = Math.min(longBuffer.capacity(), size);
+
+	    byteBuffer.position(0).limit(length * 8);
+	    receiveByteBuffer();
+
+	    longBuffer.position(0).limit(length);
+	    longBuffer.get(array, offset, length);
+
+	    size -= length;
+	    offset += length;
+	}
+
+    }
+
+
+    /**
+     * {@inheritDoc}
+     *
+     * <BR><B>Note</B>: this function may block if the expected 
+     * data is not there.
+     *
+     * @return {@inheritDoc}
+     */
+    public void readArray(float [] array, 
+	    int offset, 
+	    int size) throws IOException {
+	int length;
+
+	if(DEBUG) {
+	    System.out.println("receiving float[" + size + "]");
+	}
+
+	while(size > 0) {
+	    length = Math.min(floatBuffer.capacity(), size);
+
+	    byteBuffer.position(0).limit(length * 4);
+	    receiveByteBuffer();
+
+	    floatBuffer.position(0).limit(length);
+	    floatBuffer.get(array, offset, length);
+
 	    size -= length;
 	    offset += length;
 	}
@@ -804,20 +792,28 @@ public final class NioInput extends NetInput {
      *
      * @return {@inheritDoc}
      */
-    public void readArray(double [] destination, 
+    public void readArray(double [] array, 
 	    int offset, 
 	    int size) throws IOException {
 	int length;
 
+	if(DEBUG) {
+	    System.out.println("receiving double[" + size + "]");
+	}
+
 	while(size > 0) {
-	    if(!doubleBuffer.hasRemaining()) {
-		receive();
-	    }
-	    length = Math.min(doubleBuffer.remaining(), size);
-	    doubleBuffer.get(destination, offset, length);
+	    length = Math.min(doubleBuffer.capacity(), size);
+
+	    byteBuffer.position(0).limit(length * 8);
+	    receiveByteBuffer();
+
+	    doubleBuffer.position(0).limit(length);
+	    doubleBuffer.get(array, offset, length);
+
 	    size -= length;
 	    offset += length;
 	}
+
     }
 
 
@@ -826,6 +822,9 @@ public final class NioInput extends NetInput {
      * {@inheritDoc}
      */
     public void doFree() throws IOException {
+	if(DEBUG) {
+	    System.out.println("doFree() called");
+	}
 
 	if(serverSocketChannel != null) {
 	    serverSocketChannel.close();
