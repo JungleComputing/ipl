@@ -346,7 +346,7 @@ public abstract class Stats extends TupleSpace {
 		double addReplicaPerc = addReplicaTime / totalTimer.totalTimeVal()
 				* 100.0;
 
-		double totalOverhead = (totalStats.stealTime / size) + abortTime + tupleTime
+		double totalOverhead = (totalStats.stealTime + totalStats.handleStealTime) / size + abortTime + tupleTime
 				+ tupleWaitTime + pollTime + tableUpdateTime + tableLookupTime
 				+ tableHandleUpdateTime + tableHandleLookupTime;
 		double totalPerc = totalOverhead / totalTimer.totalTimeVal() * 100.0;
