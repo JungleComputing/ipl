@@ -1,58 +1,6 @@
 #include <string.h>
 #include "jni.h"
 
-#include "ibis_io_Conversion.h"
-
-#define BYTE2TYPE(ntype, jtype, Type) \
-JNIEXPORT void JNICALL Java_ibis_io_Conversion_n_1byte2 ## ntype( \
-	JNIEnv *env, \
-	jclass clazz, \
-	jbyteArray buffer, \
-        jint off2, \
-	j ## ntype ## Array array, \
-	jint off, \
-	jint len) \
-{ \
-    jbyte      *buf = (*env)->GetPrimitiveArrayCritical(env, buffer, NULL); \
-    \
-    (*env)->Set ## Type ## ArrayRegion(env, array, off, len, (jtype *) (buf + off2)); \
-    \
-    (*env)->ReleasePrimitiveArrayCritical(env, buffer, buf, JNI_ABORT); \
-}
-
-BYTE2TYPE(boolean, jboolean, Boolean)
-BYTE2TYPE(short,   jshort,   Short)
-BYTE2TYPE(char,    jchar,    Char)
-BYTE2TYPE(int,     jint,     Int)
-BYTE2TYPE(long,    jlong,    Long)
-BYTE2TYPE(float,   jfloat,   Float)
-BYTE2TYPE(double,  jdouble,  Double)
-
-#define TYPE2BYTE(ntype) \
-JNIEXPORT void JNICALL Java_ibis_io_Conversion_n_1 ## ntype ## 2byte( \
-	JNIEnv *env, \
-	jclass clazz, \
-	j ## ntype ## Array array, \
-	jint off, \
-	jint len, \
-	jbyteArray buffer, \
-        jint off2) \
-{ \
-    j ## ntype      *a = (*env)->GetPrimitiveArrayCritical(env, array, NULL); \
-    \
-    (*env)->SetByteArrayRegion(env, buffer, off2, len * sizeof(j ## ntype), (jbyte *) (a + off)); \
-    \
-    (*env)->ReleasePrimitiveArrayCritical(env, array, a, JNI_ABORT); \
-}
-
-TYPE2BYTE(boolean)
-TYPE2BYTE(short)
-TYPE2BYTE(char)
-TYPE2BYTE(int)
-TYPE2BYTE(long)
-TYPE2BYTE(float)
-TYPE2BYTE(double)
-
 #include "ibis_io_IbisSerializationInputStream.h"
 
 JNIEXPORT jobject JNICALL Java_ibis_io_IbisSerializationInputStream_createUninitializedObject

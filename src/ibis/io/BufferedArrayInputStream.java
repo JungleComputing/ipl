@@ -31,9 +31,15 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
     private byte [] buffer;
     private int index, buffered_bytes;
 
+    // Object used to convert primitive types to bytes.
+    // No need to inistalize this more than once, so static.
+    private Conversion conversion;
+
     public BufferedArrayInputStream(InputStream in) {
 	this.in = in;
 	buffer = new byte[BUF_SIZE];
+
+	conversion = Conversion.loadConversion(true);
     }
 
     private void dump(byte[] buffer, int off, int len, String caller) {
@@ -94,7 +100,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	    } else {
 		// first, copy the data we do have to 'a' .
 		useable = buffered_bytes / SIZEOF_BOOLEAN;
-		Conversion.byte2boolean(buffer, index, a, off, useable);
+		conversion.byte2boolean(buffer, index, a, off, useable);
 
 		len -= useable;
 		off += useable;
@@ -116,7 +122,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	}
 
 	// enough data in the buffer
-	Conversion.byte2boolean(buffer, index, a, off, len);
+	conversion.byte2boolean(buffer, index, a, off, len);
 	buffered_bytes -= to_convert;
 	index += to_convert;
     }
@@ -183,7 +189,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	    } else {
 		// first, copy the data we do have to 'a' .
 		useable = buffered_bytes / SIZEOF_SHORT;
-		Conversion.byte2short(buffer, index, a, off, useable);
+		conversion.byte2short(buffer, index, a, off, useable);
 
 		len -= useable;
 		off += useable;
@@ -205,7 +211,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	}
 
 	// enough data in the buffer
-	Conversion.byte2short(buffer, index, a, off, len);
+	conversion.byte2short(buffer, index, a, off, len);
 	buffered_bytes -= to_convert;
 	index += to_convert;
 
@@ -238,7 +244,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	    } else {
 		// first, copy the data we do have to 'a' .
 		useable = buffered_bytes / SIZEOF_CHAR;
-		Conversion.byte2char(buffer, index, a, off, useable);
+		conversion.byte2char(buffer, index, a, off, useable);
 
 		len -= useable;
 		off += useable;
@@ -260,7 +266,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	}
 
 	// enough data in the buffer
-	Conversion.byte2char(buffer, index, a, off, len);
+	conversion.byte2char(buffer, index, a, off, len);
 	buffered_bytes -= to_convert;
 	index += to_convert;
     }
@@ -289,7 +295,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 		useable = buffered_bytes / SIZEOF_INT;
 
 		//				System.err.println("converting " + useable + " ints from " + off);
-		Conversion.byte2int(buffer, index, a, off, useable);
+		conversion.byte2int(buffer, index, a, off, useable);
 
 		len -= useable;
 		off += useable;
@@ -316,7 +322,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	// enough data in the buffer
 	//		System.err.println("converting " + len + " ints from " + index + " to " + off);
 
-	Conversion.byte2int(buffer, index, a, off, len);
+	conversion.byte2int(buffer, index, a, off, len);
 	buffered_bytes -= to_convert;
 	index += to_convert;
 
@@ -344,7 +350,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	    } else {
 		// first, copy the data we do have to 'a' .
 		useable = buffered_bytes / SIZEOF_LONG;
-		Conversion.byte2long(buffer, index, a, off, useable);
+		conversion.byte2long(buffer, index, a, off, useable);
 
 		len -= useable;
 		off += useable;
@@ -366,7 +372,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	}
 
 	// enough data in the buffer
-	Conversion.byte2long(buffer, index, a, off, len);
+	conversion.byte2long(buffer, index, a, off, len);
 	buffered_bytes -= to_convert;
 	index += to_convert;
     }
@@ -391,7 +397,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	    } else {
 		// first, copy the data we do have to 'a' .
 		useable = buffered_bytes / SIZEOF_FLOAT;
-		Conversion.byte2float(buffer, index, a, off, useable);
+		conversion.byte2float(buffer, index, a, off, useable);
 
 		len -= useable;
 		off += useable;
@@ -413,7 +419,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	}
 
 	// enough data in the buffer
-	Conversion.byte2float(buffer, index, a, off, len);
+	conversion.byte2float(buffer, index, a, off, len);
 	buffered_bytes -= to_convert;
 	index += to_convert;
     }
@@ -437,7 +443,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	    } else {
 		// first, copy the data we do have to 'a' .
 		useable = buffered_bytes / SIZEOF_DOUBLE;
-		Conversion.byte2double(buffer, index, a, off, useable);
+		conversion.byte2double(buffer, index, a, off, useable);
 
 		len -= useable;
 		off += useable;
@@ -459,7 +465,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	}
 
 	// enough data in the buffer
-	Conversion.byte2double(buffer, index, a, off, len);
+	conversion.byte2double(buffer, index, a, off, len);
 	buffered_bytes -= to_convert;
 	index += to_convert;
     }

@@ -41,6 +41,11 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     private long bytes = 0;
 
     /**
+     * Object used for conversion of primitive types to bytes
+     */
+    private Conversion conversion = null;
+
+    /**
      * {@inheritDoc}
      */
     public long bytesWritten() { 
@@ -60,6 +65,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
      */
     public BufferedArrayOutputStream(OutputStream out) {
 	this.out = out;
+	conversion = Conversion.loadConversion(false);
     }
 
     /**
@@ -101,7 +107,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
 	    int size = Math.min(BUF_SIZE-index, len);
 
-	    Conversion.boolean2byte(ref, off, size, buffer, index);
+	    conversion.boolean2byte(ref, off, size, buffer, index);
 
 	    off   += size;
 	    index += size;
@@ -150,7 +156,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
 	    int size = Math.min((BUF_SIZE-index)/SIZEOF_CHAR, len);
 
-	    Conversion.char2byte(ref, off, size, buffer, index);
+	    conversion.char2byte(ref, off, size, buffer, index);
 
 	    off   += size;
 	    len   -= size;
@@ -172,7 +178,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
 	    //			System.err.println("Room to write " + size + " shorts");
 
-	    Conversion.short2byte(ref, off, size, buffer, index);
+	    conversion.short2byte(ref, off, size, buffer, index);
 
 	    off   += size;
 	    len   -= size;
@@ -196,7 +202,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
 	    //			System.err.println("Room to write " + size + " ints");
 
-	    Conversion.int2byte(ref, off, size, buffer, index);
+	    conversion.int2byte(ref, off, size, buffer, index);
 
 	    off   += size;
 	    len   -= size;
@@ -218,7 +224,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
 	    int size = Math.min((BUF_SIZE-index)/SIZEOF_LONG, len);
 
-	    Conversion.long2byte(ref, off, size, buffer, index);
+	    conversion.long2byte(ref, off, size, buffer, index);
 
 	    off   += size;
 	    len   -= size;
@@ -237,7 +243,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
 	    int size = Math.min((BUF_SIZE-index)/SIZEOF_FLOAT, len);
 
-	    Conversion.float2byte(ref, off, size, buffer, index);
+	    conversion.float2byte(ref, off, size, buffer, index);
 
 	    off   += size;
 	    len   -= size;
@@ -257,7 +263,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
 	    int size = Math.min((BUF_SIZE-index)/SIZEOF_DOUBLE, len);
 
-	    Conversion.double2byte(ref, off, size, buffer, index);
+	    conversion.double2byte(ref, off, size, buffer, index);
 
 	    off   += size;
 	    len   -= size;
