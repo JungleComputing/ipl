@@ -9,6 +9,7 @@ public final class Rdtsc extends ibis.util.Timer {
 	private long t_start;
 	private long lastTime;
 	private static final float MHz;
+	private static final float GHz;
 
 	private boolean started;
 
@@ -29,6 +30,7 @@ public final class Rdtsc extends ibis.util.Timer {
 		} else {
 			MHz = (float)0.0;
 		}
+		GHz = MHz * 1000.0F;
 	}
 
 	public String implementationName() {
@@ -62,7 +64,7 @@ public final class Rdtsc extends ibis.util.Timer {
 	public long currentTimeNanos() {
 		long curr = rdtsc();
 
-		return (long) (curr / (MHz/1000.0));
+		return (long) (curr / GHz);
 	}
 
 	/**

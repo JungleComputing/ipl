@@ -76,6 +76,8 @@ public class PoolInfo {
 		} catch (java.net.UnknownHostException e) {
 		    my_hostname = null;
 		}
+		// System.err.println(my_hostname + ": I see rank \"" + p.getProperty("ibis.pool.rank") + "\"");
+		// System.err.println(my_hostname + ": I see host_names \"" + ibisHostNames+ "\"");
 		int match = 0;
 		int my_host = -1;
 		for (int i=0;i<total_hosts;i++) {
