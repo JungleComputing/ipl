@@ -751,7 +751,7 @@ class OpenCell1D implements OpenConfig {
                     p.updatecol[j] = alive?(byte) 1:(byte) 0;
                 }
                 if( DISTURBANCE>0 && (me == 1) && generation>=DISTURBANCE_START ){
-                    for( int iters=0; iters<3; iters++ ){
+                    for( int iters=0; iters<DISTURBANCE; iters++ ){
                         for( int j=1; j<=boardsize; j++ ){
                             int neighbours =
                                 prev[j-1] +
