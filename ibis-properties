@@ -35,6 +35,10 @@ PropertyCategories:	communication worldmodel serialization
 #	receiveports receive all messages in the same order. This is stronger
 #	than FifoOrdered, because not all messages have to come from the same
 #	sendport.
+#   Sequenced
+#	messages from sendports of a port type with this property are
+#	given global sequence numbers so that the application can order
+#	them. The sequencing is per port type.
 #   Reliable
 #	reliable communication is supported.
 #   Unreliable
