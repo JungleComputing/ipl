@@ -180,9 +180,9 @@ public abstract class NetBufferedOutput extends NetOutput {
                 if (dataOffset == 0 && length > arrayThreshold) {
                         flush();
 
-                                // Here, the NetReceiveBuffer provides a view into a
-                                // pre-existing Buffer at a varying offset. For that,
-                                // we cannot use the BufferFactory.
+			// Here, the NetReceiveBuffer provides a view into a
+			// pre-existing Buffer at a varying offset. For that,
+			// we cannot use the BufferFactory.
                         if (mtu != 0) {
                                 do {
                                         int copyLength = Math.min(mtu, length);
