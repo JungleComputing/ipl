@@ -3,7 +3,6 @@ package ibis.impl.net.rel;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetOutput;
@@ -12,6 +11,8 @@ import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetServiceLink;
 import ibis.ipl.IbisIdentifier;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -187,7 +188,7 @@ public final class RelInput
 	dataInput.setupConnection(cnx);
 
 	headerStart = dataInput.getHeadersLength();
-	ackStart     = headerStart + NetConvert.INT_SIZE;
+	ackStart     = headerStart + Conversion.INT_SIZE;
 	dataOffset   = ackStart + RelConstants.headerLength;
 	mtu          = dataInput.getMaximumTransfertUnit();
 
@@ -273,8 +274,8 @@ public final class RelInput
 
 	checkUnlocked();
 
-	int		partnerNo = NetConvert.readInt(data, offset);
-	offset += NetConvert.INT_SIZE;
+	int	partnerNo = Conversion.byte2int(data, offset);
+	offset += Conversion.INT_SIZE;
 
 	RelOutput piggyClient = relDriver.lookupPiggyPartner(partnerNo);
 	if (piggyClient != null) {
@@ -313,7 +314,7 @@ public final class RelInput
 			(windowSize / 2) + " nextNonMissing=" + nextNonMissing +
 			" nextContiguous=" + nextContiguous);
 	    }
-	    NetConvert.writeInt(-1, data, offset);
+	    Conversion.int2byte(-1, data, offset);
 	    return false;
 	}
 
@@ -349,7 +350,7 @@ public final class RelInput
 			(windowSize / 2) + " nextNonMissing=" + nextNonMissing +
 			" nextContiguous=" + nextContiguous);
 	    }
-	    NetConvert.writeInt(-1, data, offset);
+	    Conversion.int2byte(-1, data, offset);
 	    return false;
 	}
 
@@ -364,12 +365,12 @@ public final class RelInput
 
 	while (scan != null) {
 	    int x = scan.fragCount - nextContiguous;
-	    int off = x / NetConvert.BITS_PER_INT;
+	    int off = x / Conversion.BITS_PER_INT;
 	    if (off >= ACK_SET_IN_INTS) {
 		// Leave these be
 		break;
 	    }
-	    int bit = x % NetConvert.BITS_PER_INT;
+	    int bit = x % Conversion.BITS_PER_INT;
 	    ackSendSet[off] |= (0x1 << bit);
 	    if (DEBUG_ACK) {
 		if (scan.next != null &&
@@ -404,11 +405,10 @@ public final class RelInput
 		System.err.println("]");
 	    }
 	}
-	NetConvert.writeInt(nextContiguous, data, offset);
-	offset += NetConvert.INT_SIZE;
-	NetConvert.writeArray(ackSendSet, 0, ACK_SET_IN_INTS,
-				      data, offset);
-	offset += NetConvert.INT_SIZE * ACK_SET_IN_INTS;
+	Conversion.int2byte(nextContiguous, data, offset);
+	offset += Conversion.INT_SIZE;
+	Conversion.int2byte(ackSendSet, 0, ACK_SET_IN_INTS, data, offset);
+	offset += Conversion.INT_SIZE * ACK_SET_IN_INTS;
 
 	if (always ||
 		lastContiguous != nextContiguous ||
@@ -481,7 +481,7 @@ public final class RelInput
 
 	checkLocked();
 
-	int fragCount = NetConvert.readInt(packet.data, headerStart);
+	int fragCount = Conversion.byte2int(packet.data, headerStart);
 	packet.isLastFrag = ((fragCount & LAST_FRAG_BIT) != 0);
 	if (packet.isLastFrag) {
 	    fragCount &= ~LAST_FRAG_BIT;
@@ -557,7 +557,7 @@ public final class RelInput
 						   "Received Packet length " + packet.length,
 						   packet.data,
 						   0, // headerStart,
-					       headerStart / NetConvert.INT_SIZE +
+					       headerStart / Conversion.INT_SIZE +
 						   4);
 	}
 	handlePiggy(packet.data, ackStart);
@@ -709,11 +709,11 @@ public final class RelInput
 	if (DEBUG_ACK) {
 	    System.err.println("Push ack index " + partnerIndex + " offset " + offset);
 	}
-	NetConvert.writeInt(partnerIndex, data, offset);
+	Conversion.int2byte(partnerIndex, data, offset);
 	if (DEBUG_ACK) {
-	    System.err.println("Push ack data at offset " + (offset + NetConvert.INT_SIZE));
+	    System.err.println("Push ack data at offset " + (offset + Conversion.INT_SIZE));
 	}
-	fillAck(data, offset + NetConvert.INT_SIZE, true);
+	fillAck(data, offset + Conversion.INT_SIZE, true);
     }
 
 

@@ -1,6 +1,6 @@
 package ibis.impl.net.rel;
 
-import ibis.impl.net.NetConvert;
+import ibis.io.Conversion;
 
 /**
  * The NetIbis shared constants
@@ -44,14 +44,14 @@ public interface RelConstants {
 
     final static int	ACK_SET_SIZE = 32;
 
-    final static int	ACK_SET_IN_INTS = (ACK_SET_SIZE + NetConvert.BITS_PER_INT - 1) / NetConvert.BITS_PER_INT;
+    final static int	ACK_SET_IN_INTS = (ACK_SET_SIZE + Conversion.BITS_PER_INT - 1) / Conversion.BITS_PER_INT;
 
     // The length of the ack header expressed in bytes
     // Here, we don't count the frag count
     final static int	headerLength =
-	NetConvert.INT_SIZE	// the index for the reverse connection
-	+ NetConvert.INT_SIZE	// the contiguous ack
-	+ NetConvert.INT_SIZE * ACK_SET_IN_INTS; // ack bitset beyond contiguous
+	Conversion.INT_SIZE	// the index for the reverse connection
+	+ Conversion.INT_SIZE	// the contiguous ack
+	+ Conversion.INT_SIZE * ACK_SET_IN_INTS; // ack bitset beyond contiguous
 
     /**
      * Sweeper interval in ms.

@@ -3,11 +3,12 @@ package ibis.impl.net.udp;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -161,7 +162,7 @@ public final class UdpOutput extends NetBufferedOutput {
         public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
                 if (Driver.DEBUG) {
-                        NetConvert.writeLong(seqno++, b.data, 0);
+                        Conversion.long2byte(seqno++, b.data, 0);
                 }
                 packet.setData(b.data, 0, b.length);
 // System.err.println(this + ": send packet size " + b.length);

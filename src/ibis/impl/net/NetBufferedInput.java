@@ -9,7 +9,8 @@ import java.io.EOFException;
 /**
  * Provides an abstraction of a buffered network input.
  */
-public abstract class NetBufferedInput extends NetInput {
+public abstract class NetBufferedInput extends NetInput
+		implements NetBufferedInputSupport {
 
         protected int arrayThreshold = 0;
 
@@ -247,7 +248,7 @@ public abstract class NetBufferedInput extends NetInput {
 		}
 
 		length = Math.min(buffer.length - bufferOffset, length);
-System.err.print("Read buffer[" + length + "] = ("); for (int i = bufferOffset; i < Math.min(bufferOffset + length, 32); i++) System.err.print("0x" + Integer.toHexString(buffer.data[i] & 0xFF) + " "); System.err.println(")");
+// System.err.print("Read buffer[" + length + "] = ("); for (int i = bufferOffset; i < Math.min(bufferOffset + length, 32); i++) System.err.print("0x" + Integer.toHexString(buffer.data[i] & 0xFF) + " "); System.err.println(")");
 		System.arraycopy(buffer.data, bufferOffset, data, offset, length);
 
 		bufferOffset += length;

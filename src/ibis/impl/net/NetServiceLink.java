@@ -3,6 +3,8 @@ package ibis.impl.net;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.InterruptedIOException;
 
+import ibis.io.Conversion;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -615,7 +617,7 @@ public final class NetServiceLink {
                  */
                 private void writeBlock(byte[] b, int o, int l) throws IOException {
                         synchronized(os) {
-                                NetConvert.writeInt(l, intBuffer);
+                                Conversion.int2byte(l, intBuffer, 0);
                                 os.write(id);
                                 os.write(intBuffer);
                                 os.write(b, o, l);
@@ -1006,7 +1008,7 @@ public final class NetServiceLink {
                                         }
 
                                         is.read(intBuffer);
-                                        byte [] b = new byte[NetConvert.readInt(intBuffer)];
+                                        byte [] b = new byte[Conversion.byte2int(intBuffer, 0)];
                                         is.read(b);
 
                                         sis.addBuffer(b);

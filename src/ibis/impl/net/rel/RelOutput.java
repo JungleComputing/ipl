@@ -3,7 +3,6 @@ package ibis.impl.net.rel;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetOutput;
@@ -13,6 +12,8 @@ import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetServiceLink;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisIdentifier;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -212,10 +213,10 @@ public final class RelOutput
 	}
 
 	headerStart = dataOutput.getHeadersLength();
-	ackStart    = headerStart + NetConvert.INT_SIZE;
+	ackStart    = headerStart + Conversion.INT_SIZE;
 	dataOffset  = ackStart + RelConstants.headerLength;
 	if (DEBUG) {
-	    SEQNO_OFFSET = headerStart / NetConvert.INT_SIZE;
+	    SEQNO_OFFSET = headerStart / Conversion.INT_SIZE;
 	}
 
 	factory.setMaximumTransferUnit(mtu);
@@ -299,7 +300,7 @@ public final class RelOutput
 	checkLocked();
 
 	if (! USE_PIGGYBACK_ACKS) {
-	    NetConvert.writeInt(-1, frag.data, ackStart);
+	    Conversion.int2byte(-1, frag.data, ackStart);
 	    return;
 	}
 
@@ -321,8 +322,7 @@ public final class RelOutput
 			    int offset,
 			    int showLength) {
 	int[] i_packet = new int[showLength];
-	NetConvert.readArray(data, offset,
-				     i_packet, 0, i_packet.length);
+	Conversion.byte2int(data, offset, i_packet, 0, i_packet.length);
 	out.print(pre + "contains ");
 	for (int i = 0; i < i_packet.length; i++) {
 	    out.print(i_packet[i] + " ");
@@ -349,7 +349,7 @@ public final class RelOutput
 					 "Before piggy: Send packet ",
 					 frag.data,
 					 0, // headerStart,
-				     headerStart / NetConvert.INT_SIZE +
+				     headerStart / Conversion.INT_SIZE +
 					 4);
 	    if (frag.fragCount != first_int) {
 		// throw new StreamCorruptedException("Packet corrupted");
@@ -374,7 +374,7 @@ public final class RelOutput
 					 "After send: Sent packet ",
 					 frag.data,
 					 0, // headerStart,
-				     headerStart / NetConvert.INT_SIZE +
+				     headerStart / Conversion.INT_SIZE +
 					 4);
 	    if (frag.fragCount != first_int) {
 		// throw new StreamCorruptedException("Packet corrupted");
@@ -390,16 +390,16 @@ public final class RelOutput
 	if (SEQNO_OFFSET > 0) {
 	    System.err.print("Lower layer header = [");
 	    for (int i = 0; i < SEQNO_OFFSET; i++) {
-		int s = NetConvert.readInt(data, i * NetConvert.INT_SIZE);
+		int s = Conversion.byte2int(data, i * Conversion.INT_SIZE);
 		out.print("0x" + Integer.toHexString(s) + ",");
 	    }
 	    out.print("] -- ");
 	}
 	out.print(pre + " Ack packet " + ", offset " + offset +
-		") start " + NetConvert.readInt(data, offset) +
+		") start " + Conversion.byte2int(data, offset) +
 		" contains [");
 	for (int i = 0; i < ACK_SET_IN_INTS; i++) {
-	    int s = NetConvert.readInt(data, offset + (i + 1) * NetConvert.INT_SIZE);
+	    int s = Conversion.byte2int(data, offset + (i + 1) * Conversion.INT_SIZE);
 	    out.print("0x" + Integer.toHexString(s) + ",");
 	}
 	out.println("]");
@@ -532,7 +532,7 @@ checkRexmit();
 	    if (ackReceiveSet[i] != 0) {
 		maxNonemptyIndex = i + 1;
 		int bit = 0;
-		for (bit = NetConvert.BITS_PER_INT - 1; bit >= 0; bit--) {
+		for (bit = Conversion.BITS_PER_INT - 1; bit >= 0; bit--) {
 		    if ((ackReceiveSet[i] & (1 << bit)) != 0) {
 			break;
 		    }
@@ -541,7 +541,7 @@ checkRexmit();
 		    System.err.println("HAVOC HAVOC HAVOC loop is wrong");
 		    throw new Error("loop is wrong");
 		}
-		maxAcked = i * NetConvert.BITS_PER_INT + bit + 1;
+		maxAcked = i * Conversion.BITS_PER_INT + bit + 1;
 		break;
 	    }
 	}
@@ -563,7 +563,7 @@ checkRexmit();
     ack_set_loop:
 	for (int i = 0; i < maxNonemptyIndex; i++) {
 	    int mask = 1;
-	    for (int bit = 0; bit < NetConvert.BITS_PER_INT; bit++) {
+	    for (int bit = 0; bit < Conversion.BITS_PER_INT; bit++) {
 		if (scan != null && scan.fragCount > toAck) {
 		    if (DEBUG_ACK) {
 			System.err.println("It seems data channel and " +
@@ -573,13 +573,13 @@ checkRexmit();
 		    }
 		} else {
 		    if (scan == null ||
-			    i * NetConvert.BITS_PER_INT + bit >= maxAcked ||
+			    i * Conversion.BITS_PER_INT + bit >= maxAcked ||
 			    scan.fragCount - windowStart >= windowSize) {
 			if (DEBUG_ACK) {
 			    System.err.println("Ack bit set done: scan " +
 				    (scan == null ? -1 : scan.fragCount) +
 				    " ack offset " +
-				    (i * NetConvert.BITS_PER_INT + bit));
+				    (i * Conversion.BITS_PER_INT + bit));
 			}
 			break ack_set_loop;
 		    }
@@ -619,7 +619,7 @@ checkRexmit();
 		mask <<= 1;
 		toAck++;
 	    }
-	    offset += NetConvert.BITS_PER_INT;
+	    offset += Conversion.BITS_PER_INT;
 	}
 
 	while (front != null && front.acked) {
@@ -636,11 +636,10 @@ checkRexmit();
 	RelSendBuffer scan;
 	RelSendBuffer prev;
 
-	int	ackOffset = NetConvert.readInt(data, offset);
-	offset += NetConvert.INT_SIZE;
-	NetConvert.readArray(data, offset,
-				     ackReceiveSet, 0, ACK_SET_IN_INTS);
-	offset += NetConvert.INT_SIZE * ACK_SET_IN_INTS;
+	int	ackOffset = Conversion.byte2int(data, offset);
+	offset += Conversion.INT_SIZE;
+	Conversion.byte2int(data, offset, ackReceiveSet, 0, ACK_SET_IN_INTS);
+	offset += Conversion.INT_SIZE * ACK_SET_IN_INTS;
 	if (DEBUG_ACK) {
 	    System.err.println("@@@@@@@@@@@@@@@@@@@ Receive ack seqno " +
 		    ackOffset);
@@ -810,7 +809,7 @@ checkRexmit();
 			(rb.fragCount & ~LAST_FRAG_BIT) + "(" + rb.fragCount +
 			") at offset " + headerStart);
 	    }
-	    NetConvert.writeInt(rb.fragCount, rb.data, headerStart);
+	    Conversion.int2byte(rb.fragCount, rb.data, headerStart);
 	    enqueueSendBuffer(rb);
 	    handleSendContinuation();
 	}

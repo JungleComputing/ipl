@@ -2,10 +2,11 @@ package ibis.impl.net.def;
 
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -64,7 +65,7 @@ public final class DefOutput extends NetBufferedOutput {
 	 * {@inheritDoc}
 	 */
 	public void sendByteBuffer(NetSendBuffer b) throws IOException {
-		NetConvert.writeInt(b.length, b.data, 0);
+		Conversion.int2byte(b.length, b.data, 0);
 		//System.err.println("writing "+b.length+" bytes");
 		defOs.write(b.data, 0, b.length);
 		//System.err.println("writing "+b.length+" bytes - ok");

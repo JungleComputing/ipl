@@ -3,13 +3,14 @@ package ibis.impl.net.muxer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
 import ibis.ipl.ConnectionRefusedException;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -104,7 +105,7 @@ public final class Muxer extends NetBufferedOutput {
 	headerOffset = muxer.getHeaderLength();
 	headerLength = headerOffset;
 	if (Driver.DEBUG) {
-	    headerLength += NetConvert.LONG_SIZE;
+	    headerLength += Conversion.LONG_SIZE;
 	}
 
 	mtu = muxer.getMaximumTransfertUnit();
@@ -138,9 +139,9 @@ public final class Muxer extends NetBufferedOutput {
 	    System.err.println(this + ": try to send buffer size " + b.length);
 	}
 	b.connectionId = myKey;
-	NetConvert.writeInt(myKey.remoteKey, b.data, b.base + Driver.KEY_OFFSET);
+	Conversion.int2byte(myKey.remoteKey, b.data, b.base + Driver.KEY_OFFSET);
 	if (ibis.impl.net.muxer.Driver.PACKET_SEQNO) {
-	    NetConvert.writeLong(myKey.seqno++, b.data,
+	    Conversion.long2byte(myKey.seqno++, b.data,
 				 b.base + Driver.SEQNO_OFFSET);
 	}
 

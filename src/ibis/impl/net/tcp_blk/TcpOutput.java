@@ -3,12 +3,13 @@ package ibis.impl.net.tcp_blk;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
 import ibis.ipl.ConnectionClosedException;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -145,7 +146,7 @@ public final class TcpOutput extends NetBufferedOutput {
                 log.in();
 // System.err.print(this + ": write[" + b.length + "] = '"); for (int i = 0; i < Math.min(32, b.length); i++) System.err.print(b.data[i] + ","); System.err.println("'");
 		try {
-			NetConvert.writeInt(b.length, b.data, 0);
+			Conversion.int2byte(b.length, b.data, 0);
 			tcpOs.write(b.data, 0, b.length);
 			tcpOs.flush();
 

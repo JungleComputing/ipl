@@ -4,11 +4,12 @@ import ibis.impl.net.NetBank;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -128,7 +129,7 @@ public final class PipeInput extends NetBufferedInput {
 			offset += result;
 		} while (offset < 4);
 
-		l = NetConvert.readInt(b, 0);
+		l = Conversion.byte2int(b, 0);
 
 		do {
 			if (!upcallMode) {

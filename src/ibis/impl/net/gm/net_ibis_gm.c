@@ -1035,14 +1035,14 @@ ni_gm_release_output_array(struct s_output *p_out) {
                 (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
         }
 
-#define RELEASE_ARRAY(E_TYPE, pb_array, Jtype) \
+#define RELEASE_ARRAY(E_TYPE, jarray, Jtype) \
 		case E_TYPE: \
 			if (p_out->is_copy) { \
 			    cache_msg_put(ptr); \
 			} else { \
-			    (*env)->Release ## Jtype ## ArrayElements(env, pb->pb_array, ptr, JNI_ABORT); \
+			    (*env)->Release ## Jtype ## ArrayElements(env, pb->jarray, ptr, JNI_ABORT); \
 			} \
-			(*env)->DeleteGlobalRef(env, pb->pb_array); \
+			(*env)->DeleteGlobalRef(env, pb->jarray); \
 			break;
 
 	switch (type) {
@@ -1082,7 +1082,7 @@ ni_gm_release_input_array(struct s_input *p_in, int length) {
                 (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
         }
 
-#define RELEASE_ARRAY(E_TYPE, pb_array, Jtype) \
+#define RELEASE_ARRAY(E_TYPE, jarray, Jtype) \
 		case E_TYPE: \
 		    if (p_in->is_copy) { \
 			    if (cache_msg_len(ptr) < length) { \
@@ -1090,12 +1090,12 @@ ni_gm_release_input_array(struct s_input *p_in, int length) {
 					cache_msg_len(ptr), length); \
 				exit(33); \
 			    } \
-			    (*env)->Set ## Jtype ## ArrayRegion(env, pb->pb_array, cache_msg_start(ptr), length, ptr); \
+			    (*env)->Set ## Jtype ## ArrayRegion(env, pb->jarray, cache_msg_start(ptr), length, ptr); \
 			    cache_msg_put(ptr); \
 		    } else { \
-			    (*env)->Release ## Jtype ## ArrayElements(env, pb->pb_array, ptr, 0); \
+			    (*env)->Release ## Jtype ## ArrayElements(env, pb->jarray, ptr, 0); \
 		    } \
-		    (*env)->DeleteGlobalRef(env, pb->pb_array); \
+		    (*env)->DeleteGlobalRef(env, pb->jarray); \
 		    break;
 
         switch (type) {
@@ -2032,7 +2032,7 @@ static void ni_gm_throw_exception(JNIEnv *env, char *msg);
 
 
 static int
-ni_gm_packet_clear(struct s_packet *p_packet, struct s_port *p_port) \
+ni_gm_packet_clear(struct s_packet *p_packet, struct s_port *p_port)
 {
 	if (p_port->nb_packets < NI_GM_MAX_PACKETS) {
 		if (ni_gm_check_receive_tokens(p_port)) {
@@ -2411,6 +2411,7 @@ ni_gm_output_flow_control(struct s_port   *p_port,
         if (ni_gm_check_receive_tokens(p_port)) {
                 goto error;
         }
+
         gm_provide_receive_buffer_with_tag(p_port->p_gm_port,
                                            packet,
                                            p_port->packet_size,
@@ -2511,6 +2512,8 @@ ni_gm_input_flow_control(struct s_port  *p_port,
         return -1;
 }
 
+#if HANDLE_FAST_SPECIALLY
+
 static
 int
 ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
@@ -2536,6 +2539,7 @@ ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
 		goto error;
 	    }
 	    break;
+
 	default:
 	    if (ni_gm_output_flow_control(p_port, msg, packet)) {
 		goto error;
@@ -2549,6 +2553,8 @@ ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
         __err__();
         return -1;
 }
+
+#endif
 
 static
 int
@@ -2566,13 +2572,15 @@ ni_gm_process_high_recv_event(struct s_port   *p_port,
 		    ni_gm_msg_type(hdr->type), packet_length));
 
 	switch (hdr->type) {
-	case NI_GM_MSG_TYPE_CONNECT:
-	case NI_GM_MSG_TYPE_RENDEZ_VOUS_REQ:
+
 	case NI_GM_MSG_TYPE_EAGER:
+	case NI_GM_MSG_TYPE_RENDEZ_VOUS_REQ:
+	case NI_GM_MSG_TYPE_CONNECT:
 	    if (ni_gm_input_flow_control(p_port, NULL, packet, packet_length)) {
 		goto error;
 	    }
 	    break;
+
 	default:
 	    if (ni_gm_output_flow_control(p_port, NULL, packet)) {
 		goto error;
@@ -3329,6 +3337,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
     if (p_out->offset > NI_GM_PACKET_HDR_LEN) { \
 	ni_gm_output_flush(p_out); \
     } \
+    p_out->java.jarray	= (jtype ## Array)(*env)->NewGlobalRef(env, b); \
     \
     if (get_region) { \
 	buffer = cache_msg_get(p_out->p_port->p_gm_port, length, offset); \
@@ -3336,7 +3345,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
 					    length / sizeof(jtype), buffer); \
 	offset = 0; \
     } else { \
-	buffer  = (*env)->Get ## Jtype ## ArrayElements(env, b, NULL); \
+	buffer  = (*env)->Get ## Jtype ## ArrayElements(env, p_out->java.jarray, NULL); \
     } \
     \
     assert(buffer); \
@@ -3347,7 +3356,6 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
 	    goto error; \
     } \
     \
-    p_out->java.jarray	= (jtype ## Array)(*env)->NewGlobalRef(env, b); \
     p_out->array	= buffer; \
     p_out->is_copy      = get_region; \
     p_out->type         = E_TYPE; \
@@ -3781,6 +3789,7 @@ Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
 
                 switch (gm_ntohc(p_event->recv.type)) {
 
+#if HANDLE_FAST_SPECIALLY
                 case GM_FAST_HIGH_PEER_RECV_EVENT:
                 case GM_FAST_HIGH_RECV_EVENT:
                         {
@@ -3790,6 +3799,7 @@ Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
                         }
                         result = JNI_TRUE;
 			break;
+#endif
 
                 case GM_HIGH_PEER_RECV_EVENT:
                 case GM_HIGH_RECV_EVENT:
@@ -3875,6 +3885,7 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
 
                 switch (gm_ntohc(p_event->recv.type)) {
 
+#if HANDLE_FAST_SPECIALLY
                 case GM_FAST_HIGH_PEER_RECV_EVENT:
                 case GM_FAST_HIGH_RECV_EVENT:
                         {
@@ -3883,6 +3894,7 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
                                         goto error;
                         }
                         break;
+#endif
 
                 case GM_HIGH_PEER_RECV_EVENT:
                 case GM_HIGH_RECV_EVENT:

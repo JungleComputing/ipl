@@ -8,7 +8,7 @@ import java.util.Iterator;
 /**
  * Provides a generic multiple network output poller.
  */
-public class NetSplitter extends NetOutput {
+public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 
 	// These fields are 'protected' instead of 'private' to allow the
 	// class to be used as a base class for other splitters.
@@ -90,6 +90,10 @@ public class NetSplitter extends NetOutput {
 	    }
 	}
 
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public boolean writeBufferedSupported() {
 	    return writeBufferedSupported;
 	}
@@ -243,21 +247,62 @@ public class NetSplitter extends NetOutput {
         }
 
 
-	public void writeBuffered(byte[] data, int offset, int length)
-		throws IOException {
+	/**
+	 * {@inheritDoc}
+	 */
+	public void flushBuffer() throws IOException {
 	    log.in();
+	    if (! writeBufferedSupported) {
+		throw new IOException("writeBuffered not supported");
+	    }
+
 	    if (singleton != null) {
-		singleton.writeBuffered(data, offset, length);
+		NetBufferedOutputSupport bo =
+		    (NetBufferedOutputSupport)singleton;
+		bo.flushBuffer();
 	    } else {
 		Iterator i = outputMap.values().iterator();
 		do {
 		    NetOutput no = (NetOutput)i.next();
-		    no.writeBuffered(data, offset, length);
+		    NetBufferedOutputSupport bo =
+			(NetBufferedOutputSupport)no;
+		    bo.flushBuffer();
 		} while (i.hasNext());
 	    }
 	    log.out();
 	}
 
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void writeBuffered(byte[] data, int offset, int length)
+		throws IOException {
+	    log.in();
+	    if (! writeBufferedSupported) {
+		throw new IOException("writeBuffered not supported");
+	    }
+
+	    if (singleton != null) {
+		NetBufferedOutputSupport bo =
+		    (NetBufferedOutputSupport)singleton;
+		bo.writeBuffered(data, offset, length);
+	    } else {
+		Iterator i = outputMap.values().iterator();
+		do {
+		    NetOutput no = (NetOutput)i.next();
+		    NetBufferedOutputSupport bo =
+			(NetBufferedOutputSupport)no;
+		    bo.writeBuffered(data, offset, length);
+		} while (i.hasNext());
+	    }
+	    log.out();
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
         public void writeByteBuffer(NetSendBuffer buffer) throws IOException {
                 log.in();
 		if (singleton != null) {

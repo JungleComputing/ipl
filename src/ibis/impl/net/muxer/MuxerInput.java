@@ -3,13 +3,14 @@ package ibis.impl.net.muxer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetVector;
 import ibis.ipl.ConnectionClosedException;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -70,7 +71,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
     private void receive() throws IOException {
 	NetReceiveBuffer buffer = receiveByteBuffer(max_mtu);
-	int rKey = NetConvert.readInt(buffer.data, buffer.base + Driver.KEY_OFFSET);
+	int rKey = Conversion.byte2int(buffer.data, buffer.base + Driver.KEY_OFFSET);
 	MuxerQueue q = locateQueue(rKey);
 	if (q == null) {
 	    throw new ConnectionClosedException("Message arrives for MuxerInput that is closed");

@@ -3,6 +3,8 @@ package ibis.impl.net;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 
+import ibis.io.Conversion;
+
 import java.util.Hashtable;
 
 /**
@@ -47,7 +49,7 @@ public final class NetReceivePortIdentifier
 		this.type	    = type;
 		this.ibis	    = ibis;
                 try {
-                        this.infoBytes = NetConvert.object2bytes(connectionInfo);
+                        this.infoBytes = Conversion.object2byte(connectionInfo);
                 } catch (Exception e) {
                         throw new Error(e.getMessage());
                 }
@@ -137,7 +139,7 @@ public final class NetReceivePortIdentifier
 	 */
 	public Hashtable connectionInfo() {
                 try {
-                        return (Hashtable)NetConvert.bytes2object(infoBytes);
+                        return (Hashtable)Conversion.byte2object(infoBytes);
                 } catch (Exception e) {
                         throw new Error(e.getMessage());
                 }

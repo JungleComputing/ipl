@@ -3,12 +3,13 @@ package ibis.impl.net.muxer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -112,7 +113,7 @@ dumpBufferFactoryInfo();
 	headerOffset = demux.getHeaderLength();
 	headerLength = headerOffset;
 	if (Driver.DEBUG) {
-	    headerLength += NetConvert.LONG_SIZE;
+	    headerLength += Conversion.LONG_SIZE;
 	}
 	dataOffset = headerLength;
 
@@ -143,7 +144,7 @@ dumpBufferFactoryInfo();
     private void checkReceiveSeqno(NetReceiveBuffer buffer)
 	    throws IOException {
 	if (Driver.PACKET_SEQNO) {
-	    long rSeqno = NetConvert.readLong(buffer.data, buffer.base + Driver.SEQNO_OFFSET);
+	    long rSeqno = Conversion.byte2long(buffer.data, buffer.base + Driver.SEQNO_OFFSET);
 	    if (rSeqno != receiveSeqno) {
 		System.err.println("Seems a packet was lost: receive seqno " + rSeqno + "; expect " + receiveSeqno);
 		if (rSeqno < receiveSeqno) {

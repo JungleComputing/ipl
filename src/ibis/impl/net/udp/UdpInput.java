@@ -3,12 +3,13 @@ package ibis.impl.net.udp;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetMessageStat;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -201,7 +202,7 @@ public final class UdpInput extends NetBufferedInput {
         private void checkReceiveSeqno(NetReceiveBuffer buffer) {
                 log.in();
                 if (Driver.DEBUG) {
-                        long seqno = NetConvert.readLong(buffer.data, 0);
+                        long seqno = Conversion.byte2long(buffer.data, 0);
                         if (seqno < rcve_seqno) {
                                 System.err.println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Receive: packet overtakes: " + seqno + " expect " + rcve_seqno);
                         } else {
@@ -215,7 +216,7 @@ public final class UdpInput extends NetBufferedInput {
         private void checkDeliverSeqno(NetReceiveBuffer buffer) {
                 log.in();
                 if (Driver.DEBUG) {
-                        long seqno = NetConvert.readLong(buffer.data, 0);
+                        long seqno = Conversion.byte2long(buffer.data, 0);
                         if (seqno < deliver_seqno) {
                                 System.err.println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Deliver: packet overtakes: " + seqno + " expect " + deliver_seqno);
                         } else {

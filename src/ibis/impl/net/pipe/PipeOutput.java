@@ -3,10 +3,11 @@ package ibis.impl.net.pipe;
 import ibis.impl.net.NetBank;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -64,7 +65,7 @@ public final class PipeOutput extends NetBufferedOutput {
 
 	public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
-		NetConvert.writeInt(b.length, b.data, 0);
+		Conversion.int2byte(b.length, b.data, 0);
 		pipeOs.write(b.data, 0, b.length);
 		/* Flush, otherwise it takes 1 second RFHH */
 		pipeOs.flush();

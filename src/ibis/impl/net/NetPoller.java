@@ -11,7 +11,7 @@ import java.util.Iterator;
 /**
  * Provides a generic multiple network input poller.
  */
-public class NetPoller extends NetInput {
+public class NetPoller extends NetInput implements NetBufferedInputSupport {
 
 	/**
 	 * The set of inputs.
@@ -190,6 +190,10 @@ System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton f
 	    }
 	}
 
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public boolean readBufferedSupported() {
 	    return readBufferedSupported;
 	}
@@ -830,10 +834,19 @@ nCurrent++;
                 }
         }
 
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public int readBuffered(byte[] data, int offset, int length)
 		throws IOException {
 	    log.in();
-	    int rd = activeInput().readBuffered(data, offset, length);
+	    if (! readBufferedSupported) {
+		throw new IOException("readBuffered not supported");
+	    }
+
+	    NetBufferedInputSupport bi = (NetBufferedInputSupport)activeInput();
+	    int rd = bi.readBuffered(data, offset, length);
 	    log.out();
 
 	    return rd;

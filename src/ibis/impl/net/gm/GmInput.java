@@ -462,6 +462,7 @@ rcvd++;
                         Driver.gmAccessLock.lock(true);
                         int result = nPostByteBuffer(inputHandle, b, o, _l);
                         Driver.gmAccessLock.unlock();
+// System.err.println(this + ": in readArray(byte[]..); result " + result + " chunk " + _l + " currently l " + l);
 
                         if (result == 0) {
                                 // Ack completion

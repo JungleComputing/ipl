@@ -5,7 +5,7 @@ import java.io.IOException;
 /**
  * Provides an abstraction of a buffered network output.
  */
-public abstract class NetBufferedOutput extends NetOutput {
+public abstract class NetBufferedOutput extends NetOutput implements NetBufferedOutputSupport {
 
         protected int arrayThreshold = 0;
 
@@ -18,7 +18,8 @@ public abstract class NetBufferedOutput extends NetOutput {
 	/**
 	 * The current buffer offset for appending user data.
 	 */
-	private int bufferOffset = 0;
+	// Use buffer.length. bufferOffset is superfluous.
+	// private int bufferOffset = 0;
 
 	/**
 	 * The current buffer.
@@ -63,17 +64,16 @@ public abstract class NetBufferedOutput extends NetOutput {
 	/**
 	 * Sends the current buffer over the network.
 	 */
-	public
-	// protected
-	    void flush() throws IOException {
+	public void flushBuffer() throws IOException {
                 log.in();
-// System.err.println(this + ": in flush(), buffer " + buffer);
+// System.err.println(this + ": in flushBuffer(), buffer " + buffer);
 // Thread.dumpStack();
 		if (buffer != null) {
+// System.err.println(this + ": in flushBuffer(), buffer.length " + buffer.length + " bufferOffset " + buffer.length);
                         stat.addBuffer(buffer.length);
 			sendByteBuffer(buffer);
 			buffer = null;
-			bufferOffset = 0x654321;
+			// bufferOffset = 0x654321;
 		}
                 log.out();
 	}
@@ -99,7 +99,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 // Thread.dumpStack();
 
 		buffer.length = dataOffset;
-		bufferOffset = dataOffset;
+		// bufferOffset = dataOffset;
                 log.out();
 	}
 
@@ -118,7 +118,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	public void finish() throws IOException{
                 log.in();
                 super.finish();
-                flush();
+                flushBuffer();
                 stat.end();
                 log.out();
 	}
@@ -131,14 +131,14 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 */
 	public void reset(boolean doSend) throws IOException {
                 log.in();
-                flush();
+                flushBuffer();
                 super.reset(doSend);
                 log.out();
 	}
 
         public void writeByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
-                flush();
+                flushBuffer();
                 stat.addBuffer(b.length);
                 sendByteBuffer(b);
                 log.out();
@@ -163,13 +163,14 @@ public abstract class NetBufferedOutput extends NetOutput {
 			allocateBuffer(1);
 		}
 
-		buffer.data[bufferOffset] = value;
+		// buffer.data[bufferOffset] = value;
+		buffer.data[buffer.length] = value;
 		buffer.length++;
-		bufferOffset++;
+		// bufferOffset++;
 
-// System.err.println("bufferOffset " + bufferOffset + " buffer.data.length " + buffer.data.length);
-		if (bufferOffset >= buffer.data.length) {
-			flush();
+// System.err.println("bufferOffset " + buffer.length + " buffer.data.length " + buffer.data.length);
+		if (buffer.length >= buffer.data.length) {
+			flushBuffer();
 		}
 		log.out();
 	}
@@ -180,70 +181,80 @@ public abstract class NetBufferedOutput extends NetOutput {
 
 	public void writeBuffered(byte[] userBuffer, int offset, int length)
 		throws IOException {
-                log.in();
+	    log.in();
 // System.err.print("Write buffer[" + length + "] = ("); for (int i = offset; i < Math.min(length, 32); i++) System.err.print("0x" + Integer.toHexString(userBuffer[i] & 0xFF) + " "); System.err.println(")");
 // System.err.println("dataOffset " + dataOffset + " arrayThreshold " + arrayThreshold + " mtu " + mtu + " buffer " + buffer + " buffer.length " + (buffer != null ? buffer.length : -1));
 // Thread.dumpStack();
-		if (length == 0)
-			return;
+	    if (length == 0) {
+		return;
+	    }
 
-                if (dataOffset == 0 && length > arrayThreshold) {
+	    // int mtu = 1 * 1024;
 
-			if (buffer != null
-				&& length <= buffer.data.length - bufferOffset) {
-// System.err.println("Take the copy path..");
-			    System.arraycopy(userBuffer, offset,
-					     buffer.data, bufferOffset,
-					     length);
-			    bufferOffset += length;
-			} else {
-			    flush();
-			    if (mtu != 0) {
-			// Here, the NetReceiveBuffer provides a view into a
-			// pre-existing Buffer at a varying offset. For that,
-			// we cannot use the BufferFactory.
-                                do {
-                                        int copyLength = Math.min(mtu, length);
-                                        buffer = new NetSendBuffer(userBuffer, offset, copyLength);
-// System.err.println(this + ": created new buffer " + buffer);
-// Thread.dumpStack();
-                                        flush();
+	    if (dataOffset != 0 || length <= arrayThreshold) {
 
-                                        offset += copyLength;
-                                        length -= copyLength;
-                                } while (length != 0);
+		while (length > 0) {
+		    if (buffer == null) {
+			allocateBuffer(length);
+		    }
 
-			    } else {
-                                buffer = new NetSendBuffer(userBuffer, offset + length);
-// System.err.println(this + ": created new buffer " + buffer);
-// Thread.dumpStack();
-                                flush();
-			    }
-                        }
-                } else {
-                        while (length > 0) {
-                                if (buffer == null) {
-                                        allocateBuffer(length);
-                                }
-
-                                int availableLength = buffer.data.length - bufferOffset;
-                                int copyLength   = Math.min(availableLength, length);
+		    int availableLength = buffer.data.length - buffer.length;
+		    int copyLength      = Math.min(availableLength, length);
 // System.err.println("Now copy " + copyLength + " into the buffer");
 
-                                System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
+		    System.arraycopy(userBuffer, offset,
+				     buffer.data, buffer.length, copyLength);
 
-                                bufferOffset  	+= copyLength;
-                                buffer.length  	+= copyLength;
-                                availableLength -= copyLength;
-                                offset        	+= copyLength;
-                                length        	-= copyLength;
+		    // bufferOffset    += copyLength;
+		    buffer.length   += copyLength;
+		    availableLength -= copyLength;
+		    offset          += copyLength;
+		    length          -= copyLength;
 
-                                if (availableLength == 0) {
-                                        flush();
-                                }
-                        }
-                }
-                log.out();
+		    if (availableLength == 0) {
+			flushBuffer();
+		    }
+		}
+
+	    } else if (buffer != null
+			// && length <= buffer.data.length - bufferOffset
+			&& length <= buffer.data.length - buffer.length
+			) {
+
+// System.err.println("Take the copy path.. bufferOffset " + buffer.length + " buffer data length " + buffer.data.length);
+		System.arraycopy(userBuffer, offset,
+				 // buffer.data, bufferOffset,
+				 buffer.data, buffer.length,
+				 length);
+		buffer.length += length;
+		// bufferOffset += length;
+
+	    } else if (mtu != 0) {
+
+		flushBuffer();
+		// Here, the NetReceiveBuffer provides a view into a
+		// pre-existing Buffer at a varying offset. For that,
+		// we cannot use the BufferFactory.
+		do {
+		    int copyLength = Math.min(mtu, length);
+		    buffer = new NetSendBuffer(userBuffer, offset, copyLength);
+// System.err.println(this + ": mtu/created new buffer " + buffer + " length " + copyLength);
+// Thread.dumpStack();
+
+		    flushBuffer();
+		    offset += copyLength;
+		    length -= copyLength;
+		} while (length != 0);
+
+	    } else {
+
+		flushBuffer();
+		buffer = new NetSendBuffer(userBuffer, offset + length);
+// System.err.println(this + ": created new buffer " + buffer);
+// Thread.dumpStack();
+	    }
+
+	    log.out();
 	}
 
 	public void writeArray(byte [] userBuffer, int offset, int length) throws IOException {
@@ -251,6 +262,7 @@ public abstract class NetBufferedOutput extends NetOutput {
         }
 
 	protected int available() {
-	    return bufferOffset;
+	    // return bufferOffset;
+	    return buffer == null ? 0 : buffer.length;
 	}
 }

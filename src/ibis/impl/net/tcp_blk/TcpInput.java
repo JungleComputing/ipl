@@ -4,7 +4,6 @@ import ibis.impl.net.NetBuffer;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPollInterruptible;
@@ -12,6 +11,8 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
 import ibis.ipl.ConnectionClosedException;
+
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -244,7 +245,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 			    + " currentSize " + currentSize
 			    + " totalSize " + totalSize);
 		}
-		int nextSize = NetConvert.readInt(buf.data, currentSize);
+		int nextSize = Conversion.byte2int(buf.data, currentSize);
 		copySize = Math.min(nextSize, totalSize - currentSize);
 		System.arraycopy(buf.data, currentSize,
 				 b.data, b.base,
@@ -305,7 +306,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 				offset += result;
 			} while (offset < 4);
 
-			l = NetConvert.readInt(b);
+			l = Conversion.byte2int(b, 0);
 
 			buf.length = l;
 
