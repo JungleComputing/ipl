@@ -654,6 +654,7 @@
 	<delete file="configuration.sh"/>
 	<delete file="configuration.bat"/>
 	<delete dir="bin"/>
+	<delete dir="ant-tasks/tasks"/>
     </target>
 
     <target name="docs" depends="init">

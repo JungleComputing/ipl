@@ -323,6 +323,7 @@
 	    <pathelement path="${JAVA_HOME}/include"/>
 	    <pathelement path="${JAVA_HOME}/include/linux"/>
 	    <pathelement path="${JAVA_HOME}/include/win32"/>
+	    <pathelement path="${JAVA_HOME}/include/solaris"/>
 	    <pathelement path="${JAVA_HOME}/../1.3.1/Headers"/>
 	    <pathelement path="${build}/include"/>
 	    <pathelement path="${native.dir}"/>
