@@ -1,407 +1,209 @@
 // File: $Id$
-//
-// A SAT solver. Given a symbolic boolean equation in CNF, find all
-// sets of assignments that make this equation true.
+
+/** A simple but highly parallel SAT solver. Given a symbolic
+ * boolean equation in CNF, find a set of assignments that make this
+ * equation true.
+ *
+ * In this implementation the solver simply takes the first unassigned
+ * variable, and tries both possible assignments. These tries can
+ * of course be done in parallel, making this ideally suited for Satin.
+ * More subtle approaches are definitely possible, though.
+ */
 
 import java.io.File;
 
-/**
- * A SAT solver that selects the variables to branch on from the
- * clauses of the problem. Variables in small clauses are tried first.
- */
-
-public class SATSolver {
-    static class Context {
-	SATProblem problem;	// The problem to solve.
-	SATSolution solutions[];
-	int solutioncount;
-	int assignments[];
-	boolean satisfied[];
-	int terms[];
-	int level;
-	int assumptions;
-	boolean onesolution;
-    }
-
+public class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
     static final boolean traceSolver = false;
     static final boolean printSatSolutions = true;
     static int label = 0;
 
-    /** Given a set of clauses and a variable `var' that we know is true,
-     * propagate this variable to the clauses. 
+    /** If there are less than this number of variables left, we consider
+     * this a problem that is trivial enough to hand to the leaf solver.
      */
-    static void propagateTrueValue( Context ctx, final int var )
+    static final int leafVariables = 50;
+
+    /** For all combinations of the first `firstVariables' variables we
+     * apply simplification. This essentially creates 2^firstVariables
+     * sub-problems that are solved in their own context.
+     */
+    static final int firstVariables = 4;
+
+    /**
+     * A simple solver that is used when the remaining problem is too
+     * small to justify expensive solvers.
+     * The method throws a SATResultException if it finds a solution,
+     * or terminates normally if it cannot find a solution.
+     * @param p the SAT problem to solve
+     * @param assignments the current assignments
+     * @param varlist the list of variables to branch on, ordered for efficiency
+     * @param varix the next variable in <code>varlist</code> to branch on
+     */
+    public void leafSolve(
+	SATProblem p,
+	int varlist[],
+	int assignments[],
+	int varix
+    ) throws SATResultException
     {
-	final IntVector poscls = ctx.problem.getPosClauses( var );
-	final int sz = poscls.size();
-	boolean satisfied[] = ctx.satisfied;
+	if( p.isSatisfied( assignments ) ){
+	    SATSolution s = new SATSolution( assignments );
 
-	for( int ix=0; ix<sz; ix++ ){
-	    int cno = poscls.get( ix );
-
-	    satisfied[cno] = true;
+	    if( traceSolver | printSatSolutions ){
+		System.err.println( "Found a solution: " + s );
+	    }
+	    throw new SATResultException( s );
+	}
+	if( p.isConflicting( assignments ) ){
 	    if( traceSolver ){
-		System.out.println( "Assignment var[" + var + "]=true satisfies clause (" + ctx.problem.getClauseLabel( cno ) + ")" );
+		System.err.println( "Found a conflict" );
 	    }
+	    return;
 	}
-	int terms[] = ctx.terms;
-	final IntVector neg = ctx.problem.getNegClauses( var );
-	final int szt = neg.size();
-
-	for( int ix=0; ix<szt; ix++ ){
-	    int cno = neg.get( ix );
-
-	    terms[cno]--;
-	}
-    }
-
-    /** Given a set of clauses and a variable `var' that we know is false,
-     * propagate this variable to the clauses. 
-     */
-    static void propagateFalseValue( Context ctx, final int var )
-    {
-	final IntVector neg = ctx.problem.getNegClauses( var );
-	final int sz = neg.size();
-	boolean satisfied[] = ctx.satisfied;
-
-	for( int ix=0; ix<sz; ix++ ){
-	    int cno = neg.get( ix );
-
-	    satisfied[cno] = true;
+	if( varix>=varlist.length ){
+	    // There are no variables left to assign, clearly there
+	    // is no solution.
 	    if( traceSolver ){
-		System.out.println( "Assignment var[" + var + "]=false satisfies clause (" + ctx.problem.getClauseLabel( cno ) + ")" );
+		System.err.println( "There are only " + p.getVariableCount() + " variables; nothing to branch on" );
 	    }
+	    return;
 	}
-	int terms[] = ctx.terms;
-	final IntVector pos = ctx.problem.getPosClauses( var );
-	final int szt = pos.size();
 
-	for( int ix=0; ix<szt; ix++ ){
-	    int cno = pos.get( ix );
+	int var = varlist[varix];
+	if( traceSolver ){
+	    System.err.println( "leafSolver branches on variable " + var );
+	    System.err.flush();
+	}
 
-	    terms[cno]--;
+	assignments[var] = 1;
+	leafSolve( p, varlist, assignments, varix+1 );
+	assignments[var] = 0;
+	leafSolve( p, varlist, assignments, varix+1 );
+	assignments[var] = -1;
+    }
+
+    /**
+     * The method that implements a Satin task.
+     * The method throws a SATResultException if it finds a solution,
+     * or terminates normally if it cannot find a solution.
+     * @param p the SAT problem to solve
+     * @param assignments the current assignments
+     * @param varlist the list of variables to branch on, ordered for efficiency
+     * @param varix the next variable in <code>varlist</code> to branch on
+     */
+    public void solve(
+	Context ctx,
+	int assignments[],
+	int varix
+    ) throws SATResultException
+    {
+	if( ctx.p.isSatisfied( assignments ) ){
+	    SATSolution s = new SATSolution( assignments );
+
+	    if( traceSolver | printSatSolutions ){
+		System.err.println( "Found a solution: " + s );
+	    }
+	    throw new SATResultException( s );
+	}
+	if( ctx.p.isConflicting( assignments ) ){
+	    if( traceSolver ){
+		System.err.println( "Found a conflict" );
+	    }
+	    return;
+	}
+	if( varix>=ctx.varlist.length ){
+	    // There are no variables left to assign, clearly there
+	    // is no solution.
+	    if( traceSolver ){
+		System.err.println( "There are only " + ctx.p.getVariableCount() + " variables; nothing to branch on" );
+	    }
+	    return;
+	}
+
+	int var = ctx.varlist[varix];
+	if( traceSolver ){
+	    System.err.println( "Branching on variable " + var );
+	    System.err.flush();
+	}
+
+	// We have variable 'var' to branch on.
+	if( varix+leafVariables>=ctx.varlist.length ){
+	    assignments[var] = 1;
+	    leafSolve( ctx.p, ctx.varlist, assignments, varix+1 );
+	    assignments[var] = 0;
+	    leafSolve( ctx.p, ctx.varlist, assignments, varix+1 );
+	    assignments[var] = -1;
+	}
+	else {
+	    int posassignments[] = (int []) assignments.clone();
+	    int negassignments[] = (int []) assignments.clone();
+	    posassignments[var] = 1;
+	    negassignments[var] = 0;
+	    solve( ctx, posassignments, varix+1 );
+	    solve( ctx, negassignments, varix+1 );
+	    sync();
 	}
     }
 
-    /** Given the current list of clause sizes, the length of that list,
-     * the current clauses, and an the variables
-     */
-    static int [] buildNewTerms(
-	final int old_terms[],
-	final Clause clauses[],
-	final int clauseCount,
-	final int assignments[]
-    )
+    /** Given a list of symbolic clauses, produce a list of solutions. */
+    static SATSolution solveSystem( final SATProblem p )
     {
-	int new_terms[] = new int[clauseCount];
+	int assignments[] = p.getInitialAssignments();
+	int varlist[] = p.buildOrderedVarList();
+	SATSolution res = null;
+	int n = firstVariables;
 
-        // Copy the old values as much as possible.
-	System.arraycopy( old_terms, 0, new_terms, 0, old_terms.length );
-	for( int it=old_terms.length; it<clauseCount; it++ ){
-	    final Clause cl = clauses[it];
+        SATSolver s = new SATSolver();
 
-	    int n = 0;
-	    final int pos[] = cl.pos;
+	if( varlist.length<n ){
+	    n = varlist.length;
+	}
+        // Now recursively try to find a solution.
+	try {
+	    boolean busy = true;
 
-	    for( int ix=0; ix<pos.length; ix++ ){
-		if( assignments[pos[ix]] != 1 ){
-		    n++;
+	    // Start with the null vector for the first variables.
+	    for( int i=0; i<n; i++ ){
+	        assignments[i] = 0;
+	    }
+
+	    // Now keep spawning solvers until we have tried all permutations
+	    // of the first `firstVariables' variables.
+	    do {
+		if( traceSolver ){
+		    System.err.println( "Starting recursive solver" );
 		}
-	    }
-	    final int neg[] = cl.neg;
+		Context ctx = new Context();
 
-	    for( int ix=0; ix<neg.length; ix++ ){
-		if( assignments[neg[ix]] != 0 ){
-		    n++;
-		}
-	    }
-	    new_terms[it] = n;
-	}
-	return new_terms;
-    }
+		ctx.p = p;
+		ctx.varlist = varlist;
+		s.solve( ctx, assignments, 0 );
+		//System.err.println( "Solve finished??" );
+		// res = null;
 
-    /** Given the current solver context, verify that it does in fact
-     * represent a solution of the system.
-     */
-    static void verifySolution( Context ctx )
-    {
-	int unsat = ctx.problem.getUnsatisfied( ctx.assignments );
-
-	if( unsat>=0 ){
-	    System.err.println( "Verification failed: clause (" + ctx.problem.getClauseLabel( unsat ) + ") is not satisfied" );
-	}
-    }
-
-    /** Given an existing solution context, try to register a generalized
-     * version of the solution.
-     */
-    static void addGeneralizedSolutionList( Context ctx )
-    {
-	int gal[] = ctx.assignments;
-
-	for( int ix=0; ix<gal.length; ix++ ){
-	    if( gal[ix] != -1 ){
-		int olda = gal[ix];
-
-		gal[ix] = -1;
-		if( ctx.problem.isSatisfied( gal ) ){
-		    if( traceSolver || printSatSolutions ){
-			System.out.println( "Found a valid generalized solution by omitting term " + (olda==0?"!":"") + ix );
+		// Calculate the next permutation to try.
+		boolean carry = false;
+		for( int i=0; i<n; i++ ){
+		    if( assignments[i] == 0 ){
+		        assignments[i] = 1;
+			carry = false;
+			break;
 		    }
-		    addSolutionList( ctx );
+		    assignments[i] = 0;
+		    carry = true;
 		}
-		gal[ix] = olda;
+		if( carry ){
+		    busy = false;
+		}
+	    } while( busy );
+	    s.sync();
+	}
+	catch( SATResultException r ){
+	    if( r.s == null ){
+		System.err.println( "A null solution thrown???" );
 	    }
-	}
-    }
-
-    // Given an existing list of solutions, register the given assignment
-    // list as a new solution.
-    static void addSolutionList( Context ctx )
-    {
-	// There are no unsatisfied clauses left, so we have
-	// found a solution.
-	verifySolution( ctx );
-
-	int oldcount = ctx.solutioncount;
-	addGeneralizedSolutionList( ctx );
-	if( ctx.solutioncount == oldcount ){
-	    // There were no generalized solutions registered, so
-	    // register this one.
-	    SATSolution s = new SATSolution( ctx.assignments );
-
-	    if( ctx.solutioncount>=ctx.solutions.length ){
-		// TODO: grow the array if necessary.
-		SATSolution sl[] = new SATSolution[ctx.solutioncount*2];
-		System.arraycopy( ctx.solutions, 0, sl, 0, ctx.solutioncount );
-		ctx.solutions = sl;
-	    }
-	    ctx.solutions[ctx.solutioncount++] = s;
-
-	    if( printSatSolutions ){
-		System.out.println( "Found a solution: " + s );
-	    }
-
-	    // We don't want this solution to turn up again. One way to do that
-	    // is to add a clause that says this. This turns out to be easy:
-	    // just add !(solution) to the clauses. Since a solution is the
-	    // `and' of a number of terms, we can apply de-Morgan's rule to
-	    // compute the inverse of a solution: it is the `or' of the
-	    // inverse of all the terms in the solution. Given the way
-	    // we represent solutions and clauses, we can just 
-	    // use the list of positive variables of the solution as the list
-	    // of negative variables of the new clause, and vice-versa.
-
-	    // Note that pos and neg are reversed.
-	    int lbl = ctx.problem.addClause( s.neg, s.pos );
-	    if( traceSolver ){
-		System.out.println( "Avoiding duplicate solutions with new clause (" + lbl + ")" );
-	    }
-	}
-    }
-
-    // Given a set of clauses, search for an unsatisfied clause, and try all
-    // possible assignments that satisfy that clause. Return true iff
-    // we have found a solution. If necessary recurse to fill more variable
-    // assignments.
-    static boolean tryAssignments( Context ctx )
-    {
-	boolean found_solution = false;
-
-	int min_terms = ctx.problem.getVariableCount()+1;
-	int ix = ctx.problem.getClauseCount();
-	int terms[] = ctx.terms;
-
-	// First search for the unsatisfied clause with the minimum number of
-	// terms. Note that since clauses are added during the search
-	// process, the `satisfied' array may be short. We know
-	// that remaining clauses are not satisfied, since they represent
-	// solutions that we already have registered.
-	for( int is=0; is<ctx.problem.getClauseCount(); is++ ){
-	    if( is>=ctx.satisfied.length || !ctx.satisfied[is] ){
-		int thissz;
-
-		if( is<terms.length ){
-		    thissz = terms[is];
-		}
-		else {
-		    Clause cl = ctx.problem.clauses[is];
-		    thissz = cl.pos.length + cl.neg.length;
-		}
-
-		if( thissz<min_terms ){
-		    ix = is;
-		    min_terms = thissz;
-		}
-	    }
-	}
-	if( ix>=ctx.problem.getClauseCount() ){
-	    // There are no unsolved clauses left, we have a solution.
-	    addSolutionList( ctx );
-	    return true;
+	    res = r.s;
 	}
 
-	// Clause with index `ix' is not satisfied. Try all possible
-	// assignments to satisfy it.
-	final Clause cl = ctx.problem.clauses[ix];
-
-	// Start another branching level.
-	ctx.level++;
-
-	if( traceSolver ){
-	    System.err.println( "(" + ctx.level + ") branching on " + min_terms + "-unsatisfied clause (" + cl.label + ")" );
-	}
-
-	// We now have a clause `cl' that we try to satisfy by assigning
-	// one of the variables in the clause to the correct value, and
-	// seeing where that brings us.
-
-	// First, try all positive variables.
-	for( int i=0; i<cl.pos.length; i++ ){
-	    int var = cl.pos[i];
-
-	    if( ctx.assignments[var] == -1 ){
-		// This assignment doesn't cause a conflict. Update the
-		// administration, propagate unit clauses, and try
-		// further assignments.
-
-		ctx.assumptions++;
-		ctx.assignments[var] = 1;
-		if( traceSolver ){
-		    System.err.println( "(" + ctx.level + ") trying assignment var[" + var + "]=true" );
-		}
-		{
-		    // Create a new `satisfied' array for this recursion.
-		    boolean old_satisfied[] = ctx.satisfied;
-		    ctx.satisfied = new boolean[ctx.problem.getClauseCount()];
-		    // We rely on the fact that a boolean array is initialized
-		    // with false values, since we only explicitly fill
-		    // the first part of the array.
-		    System.arraycopy( old_satisfied, 0, ctx.satisfied, 0, old_satisfied.length );
-
-		    // Create a new `terms' array for this recursion.
-		    int old_terms[] = ctx.terms;
-		    ctx.terms = buildNewTerms( old_terms, ctx.problem.clauses, ctx.problem.getClauseCount(), ctx.assignments );
-
-		    // Our clause is satisfied...
-		    ctx.satisfied[ix] = true;
-		    propagateTrueValue( ctx, var );
-		    found_solution |= tryAssignments( ctx );
-		    ctx.satisfied = old_satisfied;
-		    ctx.terms = old_terms;
-		}
-		if( traceSolver ){
-		    System.err.println( "(" + ctx.level + ") retracting assignment var[" + var + "]=true" );
-		}
-
-		// Retract this assignment
-		ctx.assignments[var] = -1;
-	    }
-	    if( ctx.onesolution && found_solution ){
-		break;
-	    }
-	}
-	if( ctx.onesolution && found_solution ){
-	    ctx.level--;
-	    return found_solution;
-	}
-
-	// Then, try all negative variables.
-	for( int i=0; i<cl.neg.length; i++ ){
-	    int var = cl.neg[i];
-
-	    if( ctx.assignments[var] == -1 ){
-		// This assignment doesn't cause a conflict. Update the
-		// administration, propagate unit clauses, and try
-		// further assignments.
-
-		if( traceSolver ){
-		    System.err.println( "(" + ctx.level + ") trying assignment var["  + var + "]=false" );
-		}
-
-		ctx.assumptions++;
-		ctx.assignments[var] = 0;
-
-		{
-		    // Create a new `satisfied' array for this recursion.
-		    boolean old_satisfied[] = ctx.satisfied;
-		    ctx.satisfied = new boolean[ctx.problem.getClauseCount()];
-
-		    // We rely on the fact that a boolean array is initialized
-		    // with false values. 
-		    System.arraycopy( old_satisfied, 0, ctx.satisfied, 0, old_satisfied.length );
-
-		    // Create a new `terms' array for this recursion.
-		    int old_terms[] = ctx.terms;
-		    ctx.terms = buildNewTerms( old_terms, ctx.problem.clauses, ctx.problem.getClauseCount(), ctx.assignments );
-
-		    // Our clause is satisfied...
-		    ctx.satisfied[ix] = true;
-
-		    propagateFalseValue( ctx, var );
-		    found_solution |= tryAssignments( ctx );
-		    ctx.satisfied = old_satisfied;
-		    ctx.terms = old_terms;
-		}
-
-		if( traceSolver ){
-		    System.err.println( "(" + ctx.level + ") retracting assignment var[" + var + "]=false" );
-		}
-
-		// Retract this assignment
-		ctx.assignments[var] = -1;
-	    }
-	    if( ctx.onesolution && found_solution ){
-		break;
-	    }
-	}
-
-	// Close the branching level.
-	ctx.level--;
-
-	return found_solution;
-    }
-
-
-    // Given a list of symbolic clauses, produce a list of solutions.
-    static SATSolution [] solveSystem( final SATProblem p, boolean onesolution )
-    {
-	Context ctx = new Context();
-	ctx.problem = p;
-	ctx.assignments = p.getInitialAssignments();
-	// The list will be grown if necessary.
-	ctx.solutions = new SATSolution[20];
-	ctx.solutioncount = 0;
-	ctx.level = 0;
-	ctx.assumptions = 0;
-	ctx.onesolution = onesolution;
-	boolean ok;
-
-	label = 0;
-	ctx.problem.clauses = (Clause[]) p.clauses.clone();
-
-	// Now start with a vector of unassigned variables.
-	for( int ix=0; ix<ctx.assignments.length; ix++ ){
-	    ctx.assignments[ix] = -1;
-	}
-	ctx.satisfied = new boolean[ctx.problem.getClauseCount()];
-	int terms[] = new int[ctx.problem.getClauseCount()];
-	for( int ix=0; ix<ctx.problem.getClauseCount(); ix++ ){
-	    final Clause cl = ctx.problem.clauses[ix];
-
-	    terms[ix] = cl.pos.length + cl.neg.length;
-	}
-	ctx.terms = terms;
-	ok = tryAssignments( ctx );
-
-	if( traceSolver ){
-	    System.err.println( "Made " + ctx.assumptions + " assumptions" );
-	}
-	// Return the result in an array that is exactly large enough to
-	// contain the solutions.
-	SATSolution res[] = new SATSolution[ctx.solutioncount];
-
-	System.arraycopy( ctx.solutions, 0, res, 0, ctx.solutioncount );
 	return res;
     }
 
@@ -418,27 +220,19 @@ public class SATSolver {
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	System.out.println( "Problem has " + p.getVariableCount() + " variables and " + p.getClauseCount() + " clauses" );
-
+	System.out.println( "Problem has " + p.getVariableCount() + " variables (" + p.getKnownVariableCount() + " known) and " + p.getClauseCount() + " clauses" );
 	long startTime = System.currentTimeMillis();
-	SATSolution res[] = solveSystem( p, true );
+	SATSolution res = solveSystem( p );
+
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
 
 	System.out.println( "Time: " + time );
-	if( res.length == 1 ){
-	    System.out.println( "There is 1 solution:" );
-	}
-	else if( res.length == 0 ){
+	if( res == null ){
 	    System.out.println( "There are no solutions" );
 	}
 	else {
-	    System.out.println( "There are " + res.length + " solutions" );
-	}
-	for( int ix=0; ix<res.length; ix++ ){
-	    SATSolution s = res[ix];
-
-	    System.out.println( "" + s );
+	    System.out.println( "There is a solution: " + res );
 	}
     }
 }
