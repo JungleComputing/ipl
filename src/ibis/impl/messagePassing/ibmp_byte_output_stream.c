@@ -48,7 +48,7 @@ static int	send_msg = 0;
 static int	send_frag_skip = 0;
 static int	send_sync = 0;
 
-#define COUNT_GLOBAL_REFS 1
+#define COUNT_GLOBAL_REFS 0
 #if COUNT_GLOBAL_REFS
 static int	ibmp_global_refs = 0;
 #define IBMP_GLOBAL_REF_INC() \
