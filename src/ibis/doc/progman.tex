@@ -17,7 +17,7 @@ Programmer's Manual}
 
 \section{Introduction}
 
-This manual describes how to write and run Ibis programs.
+This manual describes how to write and run Ibis applications.
 \begin{htmlonly}
 It is also available in
 \htmladdnormallink{postscript}{http://www.cs.vu.nl/ibis/progman.ps.gz}.
@@ -30,9 +30,9 @@ and methods.
 The \emph{docs/api} subdirectory of the Ibis installation provides
 documentation for each class and method.
 Fragments of an actual Ibis application will be used for illustration purposes.
-Section \ref{An Ibis Program} will discuss a typical Ibis program,
+Section \ref{An Ibis Application} will discuss a typical Ibis application,
 with subsections on each phase of the program.
-Section \ref{Compiling and Running an Ibis Program} will discuss how to
+Section \ref{Compiling and Running an Ibis Application} will discuss how to
 actually compile and run this program.
 
 We also built several systems on top of Ibis.
@@ -52,25 +52,34 @@ Section \ref{Ibis RMI} briefly discusses the Ibis RMI implementation.
 \mysubsection{The Ibis Portability Layer}
 
 The top layer of the Ibis system consists of the Ibis Portability Layer(IPL).
-The IPL consists of a set of Java interfaces that define how an Ibis program
+The IPL consists of a set of Java interfaces that define how an Ibis application
 can make use of the Ibis components.
-The Ibis program does not need to know which specific Ibis implementations are
+The Ibis application does not need to know which specific Ibis implementations are
 available.
 It just specifies some properties that it requires, and the Ibis system
 selects the best available Ibis implementation that meets these requirements.
  
 \mysubsection{An Ibis Instance}
 
-TODO: discuss, ibis identifier, resize handler.
+A loaded Ibis implementation is called an \emph{Ibis instantiation}, or 
+\emph{Ibis instance}.
+An Ibis instance is identified by a so-called
+\emph{Ibis identifier}.
+An application can find out which Ibis instances are present in the run
+by supplying a so-called \emph{ResizeHandler}.
+This ResizeHandler is an object with, among others, a \emph{join} method
+which gets called by the Ibis system when a new Ibis instance joins the
+run.
+The Ibis identifier of this new Ibis is a parameter to the join method.
 
 \mysubsection{Send Ports and Receive Ports}
 
 The IPL provides communication primitives using send ports and receive ports.
-The Ibis program creates the send ports and receive ports, and sets up
+The Ibis application creates the send ports and receive ports, and sets up
 connections between them, using primitives provided by the IPL.
 A connection is \emph{unidirectional}, from a send port to one or more
 receive ports.
-To send a message, the Ibis program has to obtain a
+To send a message, the Ibis application has to obtain a
 write message from a send port, put data in this write message using
 the methods provided by the write message, and \emph{finish} the
 message.
@@ -82,16 +91,12 @@ received with the receive port's blocking \emph{receive} primitive.
 This method returns a \emph{read message} object. from which data can
 be extracted using its read methods.
 \item[upcalls]
-when a receive port is configured for upcalls, the Ibis program provides
+when a receive port is configured for upcalls, the Ibis application provides
 an \emph{upcall} method, which is to be called when a message arrives.
 The upcall provides the message received as a parameter.
 The message contents will be lost when the upcall returns, so the data
 in the message must be read in the upcall.
 \end{description}
-
-\mysubsection{Connections}
-
-TODO. connection upcalls/downcalls.
 
 \mysubsection{Port Types}
 
@@ -121,13 +126,13 @@ allows for sending/receiving data of basic types and arrays of basic types
 \emph{byte serialization} which only allows sending/receiving bytes
 and arrays of bytes.
 
-\mysection{An Ibis Program}
+\mysection{An Ibis Application}
 
-An Ibis program consists of several parts:
+An Ibis application consists of several parts:
 \begin{itemize}
 \item
-Creating an Ibis in each instance of the program.
-An Ibis program runs on multiple hosts. On each of these hosts, an Ibis
+Creating an Ibis in each instance of the application.
+An Ibis application runs on multiple hosts. On each of these hosts, an Ibis
 must be created.
 \item
 Setting up communication. A communication connection consists of a
@@ -153,7 +158,7 @@ things a little more interesting.
 
 \subsection{Program Preamble}
 
-All Ibis programs import classes from the IPL (Ibis
+All Ibis applications import classes from the IPL (Ibis
 Portability Layer) package, which lives in
 \verb+ibis.ipl+.
 So, the preamble of your program could just consist of one line:
@@ -226,18 +231,14 @@ sendports may connect to a single receiveport).
 \item[FifoOrdered]
 messages from a send port are delivered to the receive ports it is
 connected to in the order in which they were sent.
-\item[TotallyOrdered]
-receive ports receive all messages in the same order.
-This is stronger than FifoOrdered, because not all messages have
-to originate from the same send port.
+\item[Sequenced]
+all messages originating from any send port of a specific port type have
+a sequence number. This allows the application to do its own sequencing.
 \item[Reliable]
-reliable communication is supported, that is, messages don't get lost.
-A reliable communication protocol is used.
-\item[Unreliable]
-unreliable communication is explicitly supported, that is, an
-unreliable communication protocol is used, and messages may get lost.
-TODO: Should we keep this property or leave it out in which case
-not having "Reliable" means: don't care?
+reliable communication is supported, that is,
+a reliable communication protocol is used.
+When not specified, an Ibis may be chosen that does not explicitly
+support reliable communication.
 \item[AutoUpcalls]
 upcalls are supported and polling for them is not required.
 This means that when the user creates a receiveport with an upcall
@@ -419,7 +420,7 @@ result in an \verb+IbisException+.
 An \verb+IbisException+ could also result when the same name is
 already used for a port type with different properties.
 Port types are registered with an internal or external name server
-(this will be discussed in Section \ref{Compiling and Running an Ibis Program}).
+(this will be discussed in Section \ref{Compiling and Running an Ibis Application}).
 If communication with this name server fails, a
 \verb+java.io.IOException+ is thrown.
 
@@ -455,7 +456,9 @@ boolean i_am_server = server.equals(me);
 
 It could also be that the client and the server are separate programs.
 
-TODO: join upcalls.
+The \verb+ResizeHandler+, as discussed in Section
+\ref{Creating an Ibis Instance}, can be used to keep track of the number
+of Ibis instances currently involved in the run.
 
 \subsubsection{Creating Send and Receive Ports}
 
@@ -593,6 +596,12 @@ communication property). Also, multiple send ports can set up
 connections to the same receive port (if the port type supports
 the \verb+ManyToOne+ communication property).
 
+\subsection{Connection upcalls, connection downcalls}
+Sometimes it is useful for an application to know which send ports
+are connected to a receive port, and vice versa.
+TODO. connection upcalls/downcalls.
+
+
 \mysubsection{Communicating}
 
 As the reader may have noticed by now, communication in Ibis
@@ -714,7 +723,7 @@ ibis.end();
 \end{verbatim}
 \end{quote}
 
-As of Java 1.4, it is also possible to add a so-called shutdown hook.
+As of Java 1.3, it is also possible to add a so-called shutdown hook.
 This could be done right after the Ibis instance is created:
 \begin{quote}
 \begin{verbatim}
@@ -731,9 +740,46 @@ Runtime.getRuntime().addShutdownHook(new Thread() {
 
 This shutdown hook gets invoked when the program terminates.
 
-TODO: ibis.util
+\mysubsection{Ibis utilities}
 
-\mysection{Compiling and Running an Ibis Program}
+The \verb+ibis.util+ package contains several utilities that may be
+useful for Ibis applications. We will discuss some of them here.
+
+\mysubsubsection{PoolInfo}
+
+The \verb+ibis.util.PoolInfo+ class is a very useful utility for
+closed-world applications.
+It provides methods for finding out information about the nodes
+involved in the closed-world run, such as:
+\begin{itemize}
+\item
+the total number of hosts involved in the run.
+\item
+the rank number of the current host in the pool.
+\item
+the host names of the hosts involved in the run.
+\item
+the \verb+InetAddress+ of the hosts involved in the run.
+\end{itemize}
+
+The preferred way of creating a \verb+PoolInfo+ is by means of the
+static method \verb+createPoolInfo+.
+It depends on the following system properties:
+\begin{description}
+\item{\verb+ibis.pool.total_hosts+}
+\item{\verb+ibis.pool.host_names+}
+\item{\verb+ibis.pool.host_number+}
+\end{description}
+
+TODO
+
+\mysubsubsection{PoolInfoClient}
+
+The \verb+ibis.util.PoolInfoClient+ is a subclass of
+\verb+ibis.util.PoolInfo+.  ...TODO...
+
+
+\mysection{Compiling and Running an Ibis Application}
 
 Before running an Ibis application it must be compiled.
 Using \emph{ant}, this is quite easy. Here is a build.xml file for
@@ -762,6 +808,11 @@ Note that the assumption here is that Ibis is installed in
 
 Now, invoking \emph{ant} compiles the application, leaving the class files
 in a directory called \verb+build+.
+
+\mysubsection{The Ibis Nameserver}
+
+Most Ibis implementations depend on a name server.
+The name server ...TODO...
 
 \mysection{The Satin Divide-and-Conquer System}
 
