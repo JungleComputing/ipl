@@ -292,6 +292,7 @@ final class AlternativeTypeInfo {
 	try {
 	    writeObjectMethod.invoke(o, new Object[] { out });
 	} catch (Exception e) {
+	    e.printStackTrace();
 	    throw new IOException("invocation of writeObject failed: " + e.getMessage());
 	}
     }
@@ -486,46 +487,37 @@ final class AlternativeTypeInfo {
 	    else {
 		for (int i = 0; i < serial_persistent_fields.length; i++) {
 		    Field field = findField(serial_persistent_fields[i]);
-		    if (field == null) {
-			/*  Do we need to do anything here? 
-			    User has specified a serialPersistentField which is not a member
-			    of this class. There should be a writeObject/readObject.
-			    If not, we just ignore it.
-			*/
-		    }
-		    else {
-			Class field_type = field.getType();
-			if (!field.isAccessible()) { 
-			    temporary_field = field;
-			    AccessController.doPrivileged(new PrivilegedAction() {
-				public Object run() {
-				    temporary_field.setAccessible(true);
-				    return null;
-				} 
-			    });
-			}
-
-			if (field_type.isPrimitive()) {
-			    if (field_type == Boolean.TYPE) { 
-				boolean_fields[boolean_count++] = field;
-			    } else if (field_type == Character.TYPE) { 
-				char_fields[char_count++] = field;
-			    } else if (field_type == Byte.TYPE) { 
-				byte_fields[byte_count++] = field;
-			    } else if (field_type == Short.TYPE) { 
-				short_fields[short_count++] = field;
-			    } else if (field_type == Integer.TYPE) { 
-				int_fields[int_count++] = field;
-			    } else if (field_type == Long.TYPE) { 
-				long_fields[long_count++] = field;
-			    } else if (field_type == Float.TYPE) { 
-				float_fields[float_count++] = field;
-			    } else if (field_type == Double.TYPE) { 
-				double_fields[double_count++] = field;
+		    Class field_type = serial_persistent_fields[i].getType();
+		    if (field != null && !field.isAccessible()) { 
+			temporary_field = field;
+			AccessController.doPrivileged(new PrivilegedAction() {
+			    public Object run() {
+				temporary_field.setAccessible(true);
+				return null;
 			    } 
-			} else { 
-			    reference_fields[reference_count++] = field;
-			}
+			});
+		    }
+
+		    if (field_type.isPrimitive()) {
+			if (field_type == Boolean.TYPE) { 
+			    boolean_fields[boolean_count++] = field;
+			} else if (field_type == Character.TYPE) { 
+			    char_fields[char_count++] = field;
+			} else if (field_type == Byte.TYPE) { 
+			    byte_fields[byte_count++] = field;
+			} else if (field_type == Short.TYPE) { 
+			    short_fields[short_count++] = field;
+			} else if (field_type == Integer.TYPE) { 
+			    int_fields[int_count++] = field;
+			} else if (field_type == Long.TYPE) { 
+			    long_fields[long_count++] = field;
+			} else if (field_type == Float.TYPE) { 
+			    float_fields[float_count++] = field;
+			} else if (field_type == Double.TYPE) { 
+			    double_fields[double_count++] = field;
+			} 
+		    } else { 
+			reference_fields[reference_count++] = field;
 		    }
 		}
 	    }
@@ -568,7 +560,10 @@ final class AlternativeTypeInfo {
 		fields_final = new boolean[size];
 
 		for (int i = 0; i < size; i++) {
-		    fields_final[i] = ((serializable_fields[i].getModifiers() & Modifier.FINAL) != 0);
+		    if (serializable_fields[i] != null) {
+			fields_final[i] = ((serializable_fields[i].getModifiers() & Modifier.FINAL) != 0);
+		    }
+		    else fields_final[i] = false;
 		}
 	    } else { 
 		serializable_fields = null;
@@ -627,9 +622,6 @@ final class AlternativeTypeInfo {
     private Field findField(ObjectStreamField of) {
 	try {
 	    Field f = clazz.getDeclaredField(of.getName());
-	    if (f.getType().equals(of.getType())) {
-		return f;
-	    }
 	} catch(NoSuchFieldException e) {
 	    return null;
 	}
