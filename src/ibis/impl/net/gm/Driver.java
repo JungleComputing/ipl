@@ -97,10 +97,11 @@ public final class Driver extends NetDriver {
 
         protected int blockingPump(int []lockIds) throws IOException {
                 int result;
-		int main = lockIds.length - 1;
 
 		result = gmLockArray.ilockFirst(lockIds);
 // System.err.println("blockingPump: ilockFirst -> " + result);
+
+		int main = lockIds.length - 1;
 
                 if (result == main) {
                         /* got GM main lock, let's pump */
@@ -146,7 +147,7 @@ public final class Driver extends NetDriver {
                                         gmAccessLock.ilock(false);
 					nGmThread();
                                 } finally {
-                                        gmLockArray.unlock(0);
+                                        gmAccessLock.unlock();
                                 }
                         } while (!gmLockArray.trylock(lockId));
 
