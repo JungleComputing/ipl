@@ -834,7 +834,17 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 		    break;
 
 		default:
-		    System.err.println( tok.lineno() + ": unexpected character '" + (char) t + "'" );
+                    if( t == '%' ){
+                        // A comment line.
+                        // Eat all remaining tokens on this line.
+                        do {
+                            t = tok.nextToken();
+                        } while( t != StreamTokenizer.TT_EOF && t != StreamTokenizer.TT_EOL );
+                        nextStartOfLine = true;
+                    }
+                    else {
+                        System.err.println( tok.lineno() + ": ignoring unexpected character '" + (char) t + "'" );
+                    }
 		    break;
 	    }
 	    startOfLine = nextStartOfLine;
