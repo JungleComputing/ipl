@@ -1,0 +1,7 @@
+This program simulates the behaviour of cars and trucks on a stretch of
+3-lane road.
+
+Trucks have an average prefered speed of 80 km/h, cars 100 km/h.
+
+Trucks tolerate a slowdown of 2km/h from their prefered speed, cars a
+slowdown of 5 km/h.

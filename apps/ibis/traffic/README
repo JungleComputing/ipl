@@ -1,0 +1,8 @@
+This directory contains a simple implementation of cellular automata (CA).
+It uses the Ibis communication classes immediately.
+
+It is currently hard-coded to implement Conway's game of Life (which is
+a particular CA).
+
+The program takes one optional parameter: the number of generations to
+run this simulation. Default is 10.
