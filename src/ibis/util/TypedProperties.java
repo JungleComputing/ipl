@@ -16,7 +16,10 @@ public class TypedProperties {
 	    return false;
 	}
 
-	return prop.equals("1") || prop.equals("on") || prop.equals("true");
+	return prop.equals("1")
+	    || prop.equals("on")
+	    || prop.equals("true")
+	    || prop.equals("yes");
     }
 
     /**
