@@ -675,7 +675,7 @@
 	<ant dir="ibis-example" inheritAll="false" target="test"/>
     </target>
 
-    <target name="test" depends="test">
+    <target name="test" depends="simple-test">
 	<ant dir="apps" inheritAll="false" target="test"/>
     </target>
 
