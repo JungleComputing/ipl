@@ -3,13 +3,6 @@
 /** Helper methods. */
 
 class Helpers {
-    /**
-     * Given an array <code>a</code> and a size <code>sz</code>, create a new array of size <code>sz</code>
-     * that contains the first <code>sz</code> elements of <code>a</code>.
-     * @param a the array to clone
-     * @param sz the number of elements to clone
-     * @return the cloned array
-     */
     static private final double log2 = Math.log( 2.0 );
     static private final int INFOCACHESZ = 100;
     static private final double infocache[] = new double[INFOCACHESZ];
@@ -20,6 +13,13 @@ class Helpers {
         }
     }
 
+    /**
+     * Given an array <code>a</code> and a size <code>sz</code>, create a new array of size <code>sz</code>
+     * that contains the first <code>sz</code> elements of <code>a</code>.
+     * @param a the array to clone
+     * @param sz the number of elements to clone
+     * @return the cloned array
+     */
     static int[] cloneIntArray( int a[], int sz )
     {
         int res[] = new int[sz];
@@ -54,7 +54,7 @@ class Helpers {
      * @param n the number of choices
      * @return the information contents of this choice.
      */
-    static public double information( int n )
+    static public float information( int n )
     {
         if( false ){
             if( n>=0 && n<INFOCACHESZ ){
@@ -63,7 +63,7 @@ class Helpers {
             return calcInformation( n );
         }
         else {
-            return 1/(double) (n*n*n);
+            return 1/(float) (n*n*n);
         }
     }
 }

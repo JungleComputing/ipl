@@ -172,7 +172,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * @param p The problem to solve.
      * @return a solution of the problem, or <code>null</code> if there is no solution
      */
-    static SATSolution solveSystem( final SATProblem p )
+    static public SATSolution solveSystem( final SATProblem p )
     {
 	SATSolution res = null;
 
@@ -186,14 +186,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
         // Now recursively try to find a solution.
 	try {
-	    int var = p.getMFUVariable();
-
-	    if( traceSolver ){
-		System.err.println( "Top level: branching on variable " + var );
-	    }
-	    if( var == -1 ){
-		return null;
-	    }
 	    SATContext ctx = SATContext.buildSATContext( p );
 
 	    ctx.assignments = p.buildInitialAssignments();
@@ -217,6 +209,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 		    System.err.println( "top: nothing to branch on" );
 		}
 		return null;
+	    }
+	    if( traceSolver ){
+		System.err.println( "Top level: branching on variable " + nextvar );
 	    }
 
 	    SATContext negctx = (SATContext) ctx.clone();
