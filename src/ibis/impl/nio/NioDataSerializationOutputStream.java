@@ -2,7 +2,7 @@ package ibis.impl.nio;
 
 import ibis.io.Accumulator;
 import ibis.io.IbisStreamFlags;
-import ibis.io.SerializationOutputStream;
+import ibis.io.DataSerializationOutputStream;
 import ibis.ipl.IbisError;
 
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.io.IOException;
  * for data serialization. With data serialization, you can only write
  * basic types and arrays of basic types.
  */
-public class NioDataSerializationOutputStream extends SerializationOutputStream
+public class NioDataSerializationOutputStream extends DataSerializationOutputStream
         implements IbisStreamFlags {
     /**
      * The underlying <code>Accumulator</code>.
@@ -36,49 +36,6 @@ public class NioDataSerializationOutputStream extends SerializationOutputStream
     }
 
     public void statistics() {
-    }
-
-    /**
-     * Method to put a array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream.
-     * This method is public because it gets called from rewritten code.
-     * @param ref	the array to be written
-     * @param offset	the offset at which to start
-     * @param len	number of elements to write
-     * @param type	type of the array elements
-     *
-     * @exception IOException on IO error.
-     */
-    public void writeArray(Object ref, int offset, int len, int type)
-            throws IOException {
-        switch (type) {
-        case TYPE_BOOLEAN:
-            accumulator.writeArray((boolean[]) ref, offset, len);
-            break;
-        case TYPE_BYTE:
-            accumulator.writeArray((byte[]) ref, offset, len);
-            break;
-        case TYPE_CHAR:
-            accumulator.writeArray((char[]) ref, offset, len);
-            break;
-        case TYPE_SHORT:
-            accumulator.writeArray((short[]) ref, offset, len);
-            break;
-        case TYPE_INT:
-            accumulator.writeArray((int[]) ref, offset, len);
-            break;
-        case TYPE_LONG:
-            accumulator.writeArray((long[]) ref, offset, len);
-            break;
-        case TYPE_FLOAT:
-            accumulator.writeArray((float[]) ref, offset, len);
-            break;
-        case TYPE_DOUBLE:
-            accumulator.writeArray((double[]) ref, offset, len);
-            break;
-        default:
-            throw new IbisError("Error: writing unknown array type");
-        }
     }
 
     /**
@@ -133,50 +90,7 @@ public class NioDataSerializationOutputStream extends SerializationOutputStream
         accumulator.close();
     }
 
-    public void reset() throws IOException {
-    }
-
     /* This is the data output / object output part */
-
-    public void write(int v) throws IOException {
-        writeByte((byte) (0xff & v));
-    }
-
-    public void write(byte[] b) throws IOException {
-        write(b, 0, b.length);
-    }
-
-    public void write(byte[] b, int off, int len) throws IOException {
-        writeArray(b, off, len);
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeUTF(String str) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeClass(Class ref) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeBytes(String s) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeChars(String s) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
 
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
         accumulator.writeArray(ref, off, len);
@@ -210,49 +124,4 @@ public class NioDataSerializationOutputStream extends SerializationOutputStream
         accumulator.writeArray(ref, off, len);
     }
 
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeArray(Object[] ref, int off, int len) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeObjectOverride(Object ref) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeUnshared(Object ref) throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    public void useProtocolVersion(int version) {
-        /* ignored. */
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void writeFields() throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public PutField putFields() throws IOException {
-        throw new IOException("Illegal data type written");
-    }
-
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void defaultWriteObject() throws IOException {
-        throw new IOException("Illegal data type written");
-    }
 }

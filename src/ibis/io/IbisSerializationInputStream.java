@@ -9,7 +9,6 @@ import java.io.NotSerializableException;
 import java.io.ObjectStreamClass;
 import java.io.Serializable;
 import java.io.StreamCorruptedException;
-import java.io.UTFDataFormatException;
 import java.lang.reflect.Field;
 
 import sun.misc.Unsafe;
@@ -593,64 +592,6 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         }
 
         return handle;
-    }
-
-    public String readUTF() throws IOException {
-        if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
-        }
-        int bn = readInt();
-
-        if (DEBUG) {
-            dbPrint("readUTF: len = " + bn);
-        }
-
-        if (bn == -1) {
-            if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
-            }
-            return null;
-        }
-
-        byte[] b = new byte[bn];
-        readArray(b, 0, bn);
-
-        int len = 0;
-        char[] c = new char[bn];
-
-        for (int i = 0; i < bn; i++) {
-            if ((b[i] & ~0x7f) == 0) {
-                c[len++] = (char) (b[i] & 0x7f);
-            } else if ((b[i] & ~0x1f) == 0xc0) {
-                if (i + 1 >= bn || (b[i + 1] & ~0x3f) != 0x80) {
-                    throw new UTFDataFormatException(
-                            "UTF Data Format Exception");
-                }
-                c[len++] = (char) (((b[i] & 0x1f) << 6) | (b[i] & 0x3f));
-                i++;
-            } else if ((b[i] & ~0x0f) == 0xe0) {
-                if (i + 2 >= bn || (b[i + 1] & ~0x3f) != 0x80
-                        || (b[i + 2] & ~0x3f) != 0x80) {
-                    throw new UTFDataFormatException(
-                            "UTF Data Format Exception");
-                }
-                c[len++] = (char) (((b[i] & 0x0f) << 12)
-                        | ((b[i + 1] & 0x3f) << 6) | (b[i + 2] & 0x3f));
-            } else {
-                throw new UTFDataFormatException("UTF Data Format Exception");
-            }
-        }
-
-        String s = new String(c, 0, len);
-        // dbPrint("readUTF: " + s);
-        if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
-        }
-
-        if (DEBUG) {
-            dbPrint("read string " + s);
-        }
-        return s;
     }
 
     /**

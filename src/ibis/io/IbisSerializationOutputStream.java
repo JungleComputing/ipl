@@ -590,51 +590,6 @@ public class IbisSerializationOutputStream extends
 
     /* This is the data output / object output part */
 
-    public void writeUTF(String str) throws IOException {
-        // dbPrint("writeUTF: " + str);
-        if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
-        }
-        if (str == null) {
-            writeInt(-1);
-            if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
-            }
-            return;
-        }
-
-        if (DEBUG) {
-            dbPrint("write UTF " + str);
-        }
-        int len = str.length();
-
-        // writeInt(len);
-        // writeArray(str.toCharArray(), 0, len);
-
-        byte[] b = new byte[3 * len];
-        int bn = 0;
-
-        for (int i = 0; i < len; i++) {
-            char c = str.charAt(i);
-            if (c > 0x0000 && c <= 0x007f) {
-                b[bn++] = (byte) c;
-            } else if (c <= 0x07ff) {
-                b[bn++] = (byte) (0xc0 | (0x1f & (c >> 6)));
-                b[bn++] = (byte) (0x80 | (0x3f & c));
-            } else {
-                b[bn++] = (byte) (0xe0 | (0x0f & (c >> 12)));
-                b[bn++] = (byte) (0x80 | (0x3f & (c >> 6)));
-                b[bn++] = (byte) (0x80 | (0x3f & c));
-            }
-        }
-
-        writeInt(bn);
-        writeArray(b, 0, bn);
-        if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
-        }
-    }
-
     /**
      * Called by IOGenerator-generated code to write a Class object to this
      * stream. For a Class object, only its name is written.

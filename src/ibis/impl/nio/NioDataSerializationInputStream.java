@@ -2,7 +2,7 @@ package ibis.impl.nio;
 
 import ibis.io.Dissipator;
 import ibis.io.IbisStreamFlags;
-import ibis.io.SerializationInputStream;
+import ibis.io.DataSerializationInputStream;
 
 import java.io.IOException;
 
@@ -11,7 +11,7 @@ import java.io.IOException;
  * for Data serialization. With data serialization, you can only write
  * basic types and arrays of basic types.
  */
-public class NioDataSerializationInputStream extends SerializationInputStream
+public class NioDataSerializationInputStream extends DataSerializationInputStream
         implements IbisStreamFlags {
     /**
      * The underlying <code>Dissipator</code>.
@@ -176,105 +176,4 @@ public class NioDataSerializationInputStream extends SerializationInputStream
         readDoubleArray(ref, off, len);
     }
 
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
-    public void readArray(Object[] ref, int off, int len) throws IOException {
-        throw new IOException("Illegal data type read");
-    }
-
-    public void clear() {
-    }
-
-    public void statistics() {
-    }
-
-    /* This is the data output / object output part */
-
-    public int read() throws IOException {
-        return readByte();
-    }
-
-    public int read(byte[] b) throws IOException {
-        return read(b, 0, b.length);
-    }
-
-    public int read(byte[] b, int off, int len) throws IOException {
-        readArray(b, off, len);
-        return len;
-    }
-
-    public long skip(long n) throws IOException {
-        throw new IOException("skip not meaningful in typed input stream");
-    }
-
-    public int skipBytes(int n) throws IOException {
-        throw new IOException("skipBytes not meaningful in typed input stream");
-    }
-
-    public void readFully(byte[] b) throws IOException {
-        readFully(b, 0, b.length);
-    }
-
-    public void readFully(byte[] b, int off, int len) throws IOException {
-        readArray(b, off, len);
-    }
-
-    public final int readUnsignedByte() throws IOException {
-        int i = readByte();
-        if (i < 0) {
-            i += 256;
-        }
-        return i;
-    }
-
-    public final int readUnsignedShort() throws IOException {
-        int i = readShort();
-        if (i < 0) {
-            i += 65536;
-        }
-        return i;
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public String readUTF() throws IOException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public Class readClass() throws IOException, ClassNotFoundException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public String readString() throws IOException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public final Object readObjectOverride() throws IOException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public GetField readFields() throws IOException {
-        throw new IOException("Illegal data type read");
-    }
-
-    /**
-     * @exception IOException when called, this is illegal
-     */
-    public void defaultReadObject() throws IOException {
-        throw new IOException("Illegal data type read");
-    }
 }

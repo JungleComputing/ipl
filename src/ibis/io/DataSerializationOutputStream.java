@@ -15,6 +15,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION = true;
 
+    /** Boolean count is not used, use it for arrays. */
+    static final int TYPE_ARRAY = DataSerializationInputStream.TYPE_ARRAY;
+
     /** The underlying <code>Accumulator</code>. */
     private final Accumulator out;
 
@@ -819,11 +822,48 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         writeArray(b, off, len);
     }
 
-    /**
-     * @exception IOException is thrown, as this is not allowed.
-     */
     public void writeUTF(String str) throws IOException {
-        throw new IOException("Illegal data type written");
+        if (TIME_DATA_SERIALIZATION) {
+            startTimer();
+        }
+        if (str == null) {
+            writeInt(-1);
+            if (TIME_DATA_SERIALIZATION) {
+                stopTimer();
+            }
+            return;
+        }
+
+        if (DEBUG) {
+            dbPrint("write UTF " + str);
+        }
+        int len = str.length();
+
+        // writeInt(len);
+        // writeArray(str.toCharArray(), 0, len);
+
+        byte[] b = new byte[3 * len];
+        int bn = 0;
+
+        for (int i = 0; i < len; i++) {
+            char c = str.charAt(i);
+            if (c > 0x0000 && c <= 0x007f) {
+                b[bn++] = (byte) c;
+            } else if (c <= 0x07ff) {
+                b[bn++] = (byte) (0xc0 | (0x1f & (c >> 6)));
+                b[bn++] = (byte) (0x80 | (0x3f & c));
+            } else {
+                b[bn++] = (byte) (0xe0 | (0x0f & (c >> 12)));
+                b[bn++] = (byte) (0x80 | (0x3f & (c >> 6)));
+                b[bn++] = (byte) (0x80 | (0x3f & c));
+            }
+        }
+
+        writeInt(bn);
+        writeArray(b, 0, bn);
+        if (TIME_DATA_SERIALIZATION) {
+            stopTimer();
+        }
     }
 
     /**
@@ -853,6 +893,7 @@ public class DataSerializationOutputStream extends SerializationOutputStream
      * throws it.
      */
     private void flushBuffers() throws IOException {
+        indices_short[TYPE_ARRAY] = (short) array_index;
         indices_short[TYPE_BYTE] = (short) byte_index;
         indices_short[TYPE_CHAR] = (short) char_index;
         indices_short[TYPE_SHORT] = (short) short_index;
@@ -862,6 +903,7 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         indices_short[TYPE_DOUBLE] = (short) double_index;
 
         if (DEBUG) {
+            dbPrint("writing arrays " + array_index);
             dbPrint("writing bytes " + byte_index);
             dbPrint("writing chars " + char_index);
             dbPrint("writing shorts " + short_index);
@@ -930,7 +972,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        writeInt(len);
         writeArrayBoolean(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -947,7 +988,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        writeInt(len);
         writeArrayByte(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -964,7 +1004,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        writeInt(len);
         writeArrayShort(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -981,7 +1020,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        writeInt(len);
         writeArrayChar(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -998,7 +1036,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        writeInt(len);
         writeArrayInt(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -1015,7 +1052,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        writeInt(len);
         writeArrayLong(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -1032,7 +1068,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        writeInt(len);
         writeArrayFloat(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
@@ -1049,7 +1084,6 @@ public class DataSerializationOutputStream extends SerializationOutputStream
         if (TIME_DATA_SERIALIZATION) {
             startTimer();
         }
-        writeInt(len);
         writeArrayDouble(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
             stopTimer();
