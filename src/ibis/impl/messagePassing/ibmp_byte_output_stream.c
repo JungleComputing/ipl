@@ -929,7 +929,10 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     sent_data += len;
 #endif
 
-    IBP_VPRINTF(250, env, ("ByteOS %p Do this bcast in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", msg->byte_output_stream, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
+    IBP_VPRINTF(250, env, ("ByteOS %p Do this bcast in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n",
+		msg->byte_output_stream, msg, msgSeqno,
+		lastFrag ? "yes" : "no",
+		ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
 
     IBP_VPRINTF(300, env, ("ByteOS %p Enqueue a bcast-finish upcall msg %p obj %p, missing := %d proto %p\n",
 		msg->byte_output_stream, msg, this, ++ibmp_sent_msg_out,

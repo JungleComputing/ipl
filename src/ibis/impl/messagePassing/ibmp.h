@@ -78,7 +78,6 @@ extern JNIEnv	       *ibp_JNIEnv;
 
 #define ibp_get_JNIEnv()	(ibp_JNIEnv)
 #define ibp_set_JNIEnv(env)	do { ibp_JNIEnv = (env); } while (0)
-#define ibp_unset_JNIEnv(env)
 
 
 extern jclass		ibmp_cls_Ibis;

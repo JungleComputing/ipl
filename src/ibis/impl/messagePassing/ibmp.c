@@ -253,6 +253,7 @@ void
 ibmp_lock(JNIEnv *env)
 {
     (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_lock);
+    ibp_set_JNIEnv(env);
 }
 
 

@@ -53,7 +53,7 @@ ibp_msg_clear(JNIEnv *env, ibp_msg_p msg)
 {
     ibp_set_JNIEnv(env);
     pan_msg_clear((pan_msg_p)msg);
-    ibp_unset_JNIEnv(env);
+    assert(env == ibp_JNIEnv);
 }
 
 
@@ -156,15 +156,12 @@ assert(ibp_JNIEnv == env);
 	    break;
 	}
 
-	ibp_unset_JNIEnv(env);
 	ibmp_unlock(env);
 	ibmp_thread_yield(env);
 	ibmp_lock(env);
-	ibp_set_JNIEnv(env);
     }
 
-    ibp_unset_JNIEnv(env);
-assert(ibp_JNIEnv == env);
+    assert(ibp_JNIEnv == env);
 
     return rd;
 }
@@ -184,8 +181,6 @@ ibp_string_consume(JNIEnv *env, ibp_msg_p msg, int len)
 	buf = stack_buf;
     }
 
-    ibp_set_JNIEnv(env);
-
     ibp_consume(env, msg, buf, len);
 assert(ibp_JNIEnv == env);
     buf[len] = '\0';
@@ -196,7 +191,6 @@ assert(ibp_JNIEnv == env);
 	free(buf);
     }
 
-    ibp_unset_JNIEnv(env);
 #undef STACK_STRING
 
     return str;
@@ -235,8 +229,6 @@ ibp_byte_array_consume(JNIEnv *env, ibp_msg_p msg, int len)
 	buf = stack_buf;
     }
 
-    ibp_set_JNIEnv(env);
-
     ibp_consume(env, msg, buf, len);
 assert(ibp_JNIEnv == env);
 
@@ -247,8 +239,6 @@ assert(ibp_JNIEnv == env);
 	free(buf);
     }
 #undef STACK_STRING
-
-    ibp_unset_JNIEnv(env);
 
     return a;
 }

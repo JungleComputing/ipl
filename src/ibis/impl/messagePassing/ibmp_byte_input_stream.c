@@ -87,6 +87,8 @@ Java_ibis_impl_messagePassing_ByteInputStream_resetMsg(
 
     ibmp_lock_check_owned(env);
 
+    ibp_set_JNIEnv(env);
+
     IBP_VPRINTF(250, env, ("clear MP msg %p\n", msg));
     ibp_msg_clear(env, msg);
 }
