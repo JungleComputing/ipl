@@ -67,13 +67,23 @@ if [ -z "$NS_PORT" ]; then
 fi
 
 #check if something already runs on the specified port
-if [ -n "$(netstat -an | grep $NS_PORT | grep LISTEN)" ]; then
+if [ -n "$(netstat -alt | grep $NS_PORT | grep LISTEN)" ]; then
 	echo $0: Port $NS_PORT is already in use!
 	exit 1
 fi
 NS_PARAMS="-Dibis.name_server.host=fs0.das2.cs.vu.nl -Dibis.name_server.port=$NS_PORT"
 NS_PARAMS="$NS_PARAMS -Dibis.name_server.key=pprun$$"
 
+# find a free port for the PoolInfoServer, if there's a PoolInfoServer in the app. dir
+APP_DIR=$(pwd | cut -c$(echo $IBIS_ROOT/ | wc -c)-)
+POOL_INFO_SERVER_PORT=
+
+if [ -f $IBIS_ROOT/$APP_DIR/PoolInfoServer.class ]; then
+	POOL_INFO_SERVER_PORT=$(($NS_PORT + 1))
+	while [ -n "$(netstat -alt | grep $POOL_INFO_SERVER_PORT | grep LISTEN)" ]; do
+		POOL_INFO_SERVER_PORT=$(($POOL_INFO_SERVER_PORT + 1));
+	done
+fi
 
 #read the sites until we encounter a '-'
 declare -i TOTAL_COUNT=0
@@ -124,8 +134,6 @@ if [ -z $(pwd | egrep "^$IBIS_ROOT/ibis") ]; then
 	exit 1
 fi
 
-APP_DIR=$(pwd | cut -c$(echo $IBIS_ROOT/ | wc -c)-)
-
 #at this point all settings are read, the work can begin...
 
 #create $IBIS_ROOT/ibis.tgz
@@ -141,8 +149,18 @@ APP_DIR=$(pwd | cut -c$(echo $IBIS_ROOT/ | wc -c)-)
 	tar cfz ibis$$.tgz $FILES
 )
 
+# start the Ibis name server and (possibly) the PoolInfoServer
+echo -n "- Starting Ibis name server @ $NS_PORT..."
 $IBIS_ROOT/ibis/bin/ibis_nameserver -port $NS_PORT -single &
 NS_PID=$!
+echo "done."
+if [ -n "$POOL_INFO_SERVER_PORT" ]; then
+	echo -n "- Starting PoolInfoServer @ $POOL_INFO_SERVER_PORT..."
+	cd $IBIS_ROOT/$APP_DIR/
+	java PoolInfoServer $POOL_INFO_SERVER_PORT &
+	cd -
+	echo "done."
+fi	
 
 PRUN_PIDS=
 for s in $SITES; do
@@ -152,7 +170,7 @@ for s in $SITES; do
 	PRUN_OPTS_VAR=${s}_PRUN_OPTS
 	JAVA_ROOT_VAR=${s}_JAVA_ROOT
 
-	echo copying ibis to $s...
+	echo "- Copying ibis to $s..."
 	ssh ${!SSH_OPTS_VAR} $s mkdir tmp$$
 	scp ${!SSH_OPTS_VAR} $IBIS_ROOT/ibis$$.tgz $s:tmp$$/ibis.tgz
 
@@ -189,7 +207,7 @@ for s in $SITES; do
 	echo -n "-Dibis.name_server.host=`hostname -f` " >> pprun_remote$$$s
 	echo -n '-Dibis.pool.host_names="$HOSTS" -Xmx400M ' >> pprun_remote$$$s
 	echo -n "-Dpool.server.host=`hostname -f` " >> pprun_remote$$$s
-	echo -n "-Dpool.server.port=39457 " >> pprun_remote$$$s
+	echo -n "-Dpool.server.port=$POOL_INFO_SERVER_PORT " >> pprun_remote$$$s
 	echo -n "-Dpool.total_hosts=$TOTAL_COUNT " >> pprun_remote$$$s
 	echo -n -Xbootclasspath:'$JAVACLASSPATH ' >> pprun_remote$$$s
 	echo -n -classpath '$JAVACLASSPATH ' >> pprun_remote$$$s
@@ -217,13 +235,27 @@ for s in $SITES; do
 done
 
 #wait for the pruns to terminate
+echo -n "- Executing application..."
 for i in $PRUN_PIDS; do wait $i; done
+echo "done."
 
 # kill the name server
 echo -n "- Killing Ibis name server..."
 REAL_NS_PID=`netstat -ltp 2>/dev/null | grep LISTEN | grep $NS_PORT | sed 's/.*LISTEN//' | sed 's/[ ]*\([0-9]*\)\/java/\1/'`
-if [ -n "$REAL_NS_PID" ]; then kill -9 $REAL_NS_PID >/dev/null 2>&1; fi
+if [ -n "$REAL_NS_PID" ]; then 
+	kill -9 $REAL_NS_PID >/dev/null 2>&1; 
+fi
 echo "done."
+
+# kill the PoolInfoServer, if started
+if [ -n "$POOL_INFO_SERVER_PORT" ]; then
+	echo -n "- Killing the PoolInfoServer..."
+	REAL_PIS_PID=`netstat -ltp 2>/dev/null | grep LISTEN | grep $POOL_INFO_SERVER_PORT | sed 's/.*LISTEN//' | sed 's/[ ]*\([0-9]*\)\/java/\1/'`
+	if [ -n "$REAL_PIS_PID" ]; then
+		kill -9 $REAL_PIS_PID >/dev/null 2>&1
+	fi
+	echo "done."
+fi
 
 #copy output files
 echo gathering output...
