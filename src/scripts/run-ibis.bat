@@ -38,6 +38,7 @@ set attach=0
 set noJIT=0
 set no_pool=0
 set portno_specified=0
+set JIT_OPTS=
 
 set JAVA_EXEC=java
 set Xbootclasspath="-Xbootclasspath/p;%JAVACLASSPATH%"
@@ -190,7 +191,7 @@ rem and for NT handling to skip to.
 
 :doneStart
 
-%action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dpool_host_names% %Dns_pool% %Dns_port% %Dns_server% %Dns_retry% %Xbootclasspath% -classpath %JAVACLASSPATH% %IBIS_APP_ARGS%
+%action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dpool_host_names% %Dns_pool% %Dns_port% %Dns_server% %Dns_retry% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
 
 goto end
 
