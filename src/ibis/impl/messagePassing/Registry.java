@@ -90,9 +90,8 @@ class Registry implements ibis.ipl.Registry {
 	return null;
     }
 
-    public boolean isDead(ibis.ipl.IbisIdentifier id) throws IOException {
+    public void maybeDead(ibis.ipl.IbisIdentifier id) throws IOException {
 	/* not implemented yet */
-	return false;
     }
 
     public void dead(ibis.ipl.IbisIdentifier id) throws IOException {

@@ -219,13 +219,13 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		}
 	} 
 
-	public boolean isDead(IbisIdentifier ibisId) throws IOException {
+	public void maybeDead(IbisIdentifier ibisId) throws IOException {
 		Socket s;
 		try {
 		    s = socketFactory.createSocket(serverAddress, port, myAddress, -1);
 		} catch(ConnectionTimedOutException e) {
 		    // Apparently, the nameserver left. Assume dead.
-		    return true;
+		    return;
 		}
 		
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
@@ -239,16 +239,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 			System.err.println("NS client: isAlive sent");
 		}
 
-		DummyInputStream di = new DummyInputStream(s.getInputStream());
-		ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
-		
-		int temp = in.readByte();
-		socketFactory.close(in, out, s);
-		    
-		if(DEBUG) {
-			System.err.println("NS client: isAlive answer received: " + (temp == IBIS_ISALIVE));
-		}
-		return temp != IBIS_ISALIVE;
+		socketFactory.close(null, out, s);
 	}
 
 	public void dead(IbisIdentifier corpse) throws IOException {

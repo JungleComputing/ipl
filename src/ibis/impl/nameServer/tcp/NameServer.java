@@ -217,8 +217,6 @@ public class NameServer extends Thread implements Protocol {
 			if (temp.identifier.equals(id)) {
 			    if (! kill && doPing(temp, key)) {
 				// Its alive ...
-				out.writeByte(IBIS_ISALIVE);
-				out.flush();
 				return;
 			    }
 			}
@@ -254,10 +252,6 @@ public class NameServer extends Thread implements Protocol {
 
 			break;
 		    }
-		}
-		if (! kill) {
-		    out.writeByte(IBIS_DEAD);
-		    out.flush();
 		}
 	}
 

@@ -160,14 +160,12 @@ public interface Registry {
 
     /**
      * Notifies that an Ibis instance is suspected to be dead.
-     * Returns <code>true</code> if this suspicion is found to be true.
      *
      * @param ibis the Ibis identifier of the Ibis instance suspected
      *   to be dead.
-     * @return <code>true</code> if this Ibis instance indeed seems to be dead.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public boolean isDead(IbisIdentifier ibis) throws IOException;
+    public void maybeDead(IbisIdentifier ibis) throws IOException;
 
     /**
      * Notifies that an Ibis instance must be assumed to be dead.
