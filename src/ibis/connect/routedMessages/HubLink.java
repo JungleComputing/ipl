@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 // HubLink manages the link with the control hub
 public class HubLink extends Thread
@@ -21,11 +21,38 @@ public class HubLink extends Thread
 
     private Map serverSockets    = new Hashtable();
     private Map connectedSockets = new Hashtable();
-    Vector released = new Vector();
+    ArrayList released = new ArrayList();
+    ArrayList available_ports = new ArrayList();
     private boolean newPortBusy = false;
     private int portnum = -2;
 
+    protected synchronized int getPort() throws IOException {
+	if (available_ports.size() != 0) {
+	    return ((Integer) available_ports.remove(0)).intValue();
+	}
+	while (newPortBusy) {
+	    try {
+		wait();
+	    } catch(Exception e) {
+	    }
+	}
+	newPortBusy = true;
+
+	sendPacket("", 0, new HubProtocol.HubPacketGetPort(0));
+
+	while (available_ports.size() == 0) {
+	    try {
+		wait();
+	    } catch(Exception e) {
+	    }
+	}
+	newPortBusy = false;
+	notifyAll();
+	return ((Integer) available_ports.remove(0)).intValue();
+    }
+
     protected synchronized int newPort(int port) throws IOException {
+	if (port == 0) return getPort();
 	while (newPortBusy) {
 	    try {
 		wait();
@@ -72,14 +99,11 @@ public class HubLink extends Thread
     protected synchronized void addSocket(RMSocket s, int port) {
 	connectedSockets.put(new Integer(port), s);
     }
-    protected synchronized void removeSocket(int port) throws IOException {
+    protected synchronized void removeSocket(int port)
+	    throws IOException {
 	Integer m = new Integer(port);
 	connectedSockets.remove(m);
-	released.add(m);
-	if (released.size() > 128) {
-	    sendPacket("", 0, new HubProtocol.HubPacketReleasePort(released));
-	    released.clear();
-	}
+	available_ports.add(m);
     }
     private synchronized RMSocket resolveSocket(int port)
 	throws IOException {
@@ -167,7 +191,12 @@ public class HubLink extends Thread
 			MyDebug.out.println("# HubLink.run()- Received DATA for port = "+p.port);
 			try {
 			    RMSocket s = resolveSocket(p.port);
-			    s.enqueueFragment(p.b);
+			    if (s.remotePort == p.senderport) {
+				s.enqueueFragment(p.b);
+			    }
+			    else {
+				MyDebug.out.println("# HubLink.run()- received DATA on closed connection, port = " + p.port + ", sender = " + p.h + ":" + p.senderport);
+			    }
 			} catch(Exception e) {
 			    MyDebug.out.println("# HubLink.run()- received DATA on closed connection, port = " + p.port + ", sender = " + p.h + ":" + p.senderport);
 			}
@@ -195,6 +224,16 @@ public class HubLink extends Thread
 			synchronized(this) {
 			    MyDebug.out.println("# HubLink.run()- Received PUTPORT = "+p.resultPort);
 			    portnum = p.resultPort;
+			    notifyAll();
+			}
+		    }
+		    break;
+		case HubProtocol.PORTSET:
+		    {
+			HubProtocol.HubPacketPortSet p = (HubProtocol.HubPacketPortSet)packet;
+			synchronized(this) {
+			    MyDebug.out.println("# HubLink.run()- Received PORTSET");
+			    available_ports = p.portset;
 			    notifyAll();
 			}
 		    }

@@ -143,7 +143,7 @@ public class RMSocket extends Socket
 	MyDebug.out.println("# RMSocket.close(), localPort = " + localPort + ", remotePort = " + remotePort);
 	state = state_CLOSED;
 	if (remotePort != -1) {
-	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketClose(remotePort, localPort));
+	    // hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketClose(remotePort, localPort));
 	    hub.removeSocket(localPort);
 	}
 	localPort = -1;

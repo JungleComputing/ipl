@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
-import java.util.Vector;
+import java.util.ArrayList;
 
 /* On-the-wire protocol management for links between 
  * computing nodes and control hub. Used by the HubLink
@@ -25,9 +25,9 @@ public class HubProtocol
     public static final int CLOSE   = 5; // notification for socket close
     public static final int GETPORT = 6; // get port number from controlhub
     public static final int PUTPORT = 7; // received port number from controlhub
-    public static final int RELEASEPORT = 8; // release port numbers for controlhub
+    public static final int PORTSET = 8; // a port set
 
-    public static final String[] names = new String[] { "", "Connect", "Accept", "Reject", "Data", "Close", "Getport", "Putport", "Releaseport"};
+    public static final String[] names = new String[] { "", "Connect", "Accept", "Reject", "Data", "Close", "Getport", "Putport", "PortSet"};
 
     public static class HubWire
     {
@@ -95,7 +95,7 @@ public class HubProtocol
 		    break;
 		case PUTPORT: p = HubPacketPutPort.recv(in, host, port);
 		    break;
-		case RELEASEPORT: p = HubPacketReleasePort.recv(in, host, port);
+		case PORTSET: p = HubPacketPortSet.recv(in, host, port);
 		    break;
 		case GETPORT: p = HubPacketGetPort.recv(in, host, port);
 		    break;
@@ -233,7 +233,7 @@ public class HubProtocol
 	    resultPort = port;
 	}
 	public void send(DataOutputStream out) throws IOException {
-	    MyDebug.out.println("# HubPacketPuPort.send()- sending PUTPORT of " + resultPort + " to " + h + ":" + p);
+	    MyDebug.out.println("# HubPacketPutPort.send()- sending PUTPORT of " + resultPort + " to " + h + ":" + p);
 	    out.writeInt(resultPort);
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p)
@@ -244,28 +244,28 @@ public class HubProtocol
 	}
     }
 
-    public static class HubPacketReleasePort extends HubPacket {
-	public Vector    released;
-	public int getType() { return RELEASEPORT; }
-	public HubPacketReleasePort(Vector ports) {
-	    released = ports;
+    public static class HubPacketPortSet extends HubPacket {
+	public ArrayList    portset;
+	public int getType() { return PORTSET; }
+	public HubPacketPortSet(ArrayList ports) {
+	    portset = ports;
 	}
 	public void send(DataOutputStream out) throws IOException {
-	    MyDebug.out.println("# HubPacketReleasePort.send()- sending RELEASEPORT");
-	    out.writeInt(released.size());
-	    for (int i = 0; i < released.size(); i++) {
-		out.writeInt(((Integer) released.get(i)).intValue());
+	    MyDebug.out.println("# HubPacketPortSet.send()- sending PORTSET");
+	    out.writeInt(portset.size());
+	    for (int i = 0; i < portset.size(); i++) {
+		out.writeInt(((Integer) portset.get(i)).intValue());
 	    }
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p)
 	    throws IOException, ClassNotFoundException {
-	    Vector released = new Vector();
+	    ArrayList portset = new ArrayList();
 	    int    n = in.readInt();
-	    MyDebug.out.println("# HubPacketReleasePort.recv()- got REPEASEPORT");
+	    MyDebug.out.println("# HubPacketPortSet.recv()- got PORTSET");
 	    for (int i = 0; i < n; i++) {
-		released.add(new Integer(in.readInt()));
+		portset.add(new Integer(in.readInt()));
 	    }
-	    return new HubPacketReleasePort(released);
+	    return new HubPacketPortSet(portset);
 	}
     }
 

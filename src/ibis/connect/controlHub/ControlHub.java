@@ -3,6 +3,8 @@ package ibis.connect.controlHub;
 import ibis.connect.routedMessages.HubProtocol;
 import ibis.connect.util.MyDebug;
 
+import ibis.util.TypedProperties;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -13,6 +15,7 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ArrayList;
 
 /** Incarnates a thread dedicated to HubWire management 
  * towards a given node.
@@ -24,7 +27,8 @@ class NodeManager extends Thread
     private int hostport;
     private ControlHub hub;
     private int[] nmessages;
-    private static final boolean STATS = false;
+    private static final boolean STATS 
+	    = TypedProperties.booleanProperty("ibis.controlhub.stats");
 
     NodeManager(Socket s, ControlHub hub) 
 	throws IOException, ClassNotFoundException {
@@ -61,18 +65,22 @@ class NodeManager extends Thread
 		case HubProtocol.GETPORT: {
 		    /* packet for the hub itself: obtain port number. */
 		    HubProtocol.HubPacketGetPort p = (HubProtocol.HubPacketGetPort) packet;
-		    int prt = ControlHub.checkPort(hostname, hostport, p.proposedPort);
-		    sendPacket(hostname, hostport, new HubProtocol.HubPacketPutPort(prt));
+		    if (p.proposedPort != 0) {
+			int prt = ControlHub.checkPort(hostname, hostport, p.proposedPort);
+			sendPacket(hostname, hostport, new HubProtocol.HubPacketPutPort(prt));
+		    }
+		    else {
+			ArrayList a = ControlHub.getPorts(hostname, hostport);
+			sendPacket(hostname, hostport, new HubProtocol.HubPacketPortSet(a));
+		    }
 		    send = false;
 		    }
 		    break;
 
-		case HubProtocol.RELEASEPORT: {
-		    /* packet for the hub itself: release port number. */
-		    HubProtocol.HubPacketReleasePort p = (HubProtocol.HubPacketReleasePort) packet;
-		    for (int i = 0; i < p.released.size(); i++) {
-			ControlHub.removePort(hostname, hostport, ((Integer) p.released.get(i)).intValue());
-		    }
+		case HubProtocol.PORTSET: {
+		    /* packet for the hub itself: release port numbers. */
+		    HubProtocol.HubPacketPortSet p = (HubProtocol.HubPacketPortSet) packet;
+		    ControlHub.removePort(hostname, hostport, p.portset);
 		    send = false;
 		    }
 		    break;
@@ -200,16 +208,6 @@ public class ControlHub extends Thread
 		portNodeMap.put(hostname, h);
 	    }
 	    else h = (Hashtable) o;
-	    if (portno == 0) {
-		int i = 1;
-		while (h.containsKey(new Integer(i))) {
-		    i++;
-		}
-		h.put(new Integer(i), new Integer(hostport));
-		MyDebug.trace("# ControlHub: giving portno " + i + " to " +
-				hostname + ":" + hostport);
-		return i;
-	    }
 	    if (h.containsKey(new Integer(portno))) {
 		MyDebug.trace("# ControlHub: could not give portno " + portno +
 				" to " + hostname + ":" + hostport);
@@ -222,6 +220,30 @@ public class ControlHub extends Thread
 	}
     }
 
+    public static ArrayList getPorts(String hostname, int hostport) {
+	synchronized(portNodeMap) {
+	    Object o = portNodeMap.get(hostname);
+	    Hashtable h;
+	    if (o == null) {
+		h = new Hashtable();
+		portNodeMap.put(hostname, h);
+	    }
+	    else h = (Hashtable) o;
+	    int i = 1;
+	    ArrayList a = new ArrayList();
+	    for (int j = 0; j < 10; j++) {
+		while (h.containsKey(new Integer(i))) {
+		    i++;
+		}
+		a.add(new Integer(i));
+		h.put(new Integer(i), new Integer(hostport));
+		MyDebug.trace("# ControlHub: giving portno " + i + " to " +
+				hostname + ":" + hostport);
+	    }
+	    return a;
+	}
+    }
+
     public static void removePort(String hostname, int hostport, int portno) {
 	synchronized(portNodeMap) {
 	    Object o = portNodeMap.get(hostname);
@@ -231,6 +253,20 @@ public class ControlHub extends Thread
 	    h.remove(new Integer(portno));
 	    MyDebug.trace("# ControlHub: removing portno " + portno + " of " +
 				    hostname + ":" + hostport);
+	}
+    }
+
+    public static void removePort(String hostname, int hostport, ArrayList ports) {
+	synchronized(portNodeMap) {
+	    Object o = portNodeMap.get(hostname);
+	    Hashtable h;
+	    if (o == null) return;
+	    h = (Hashtable) o;
+	    for (int i = 0; i < ports.size(); i++) {
+		h.remove(ports.get(i));
+		MyDebug.trace("# ControlHub: removing portno " + ((Integer) ports.get(i)).intValue() + " of " +
+				    hostname + ":" + hostport);
+	    }
 	}
     }
 
