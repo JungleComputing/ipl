@@ -1,6 +1,6 @@
 import java.io.*;
 
-public class DITree implements Serializable {
+public final class DITree implements Serializable {
 
     // double	d;
     int		i;

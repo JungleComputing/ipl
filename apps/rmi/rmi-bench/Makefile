@@ -14,11 +14,18 @@ SRC		+= Int32.java
 SRC		+= DITree.java
 SRC		+= Cyclic.java
 SRC		+= Worker.java
+SRC		+= B.java
+SRC		+= A.java
 
 MAIN		= RMI_Bench.java
 
 REMOTE		=
 REMOTE		+= Server.java
+
+SERIALIZABLE	= Int32.java
+SERIALIZABLE	+= DITree.java
+SERIALIZABLE	+= Cyclic.java
+SERIALIZABLE	+= B.java
 
 OUT		= RMI_Bench
 
