@@ -7,9 +7,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-class ConnectionCache {
-
-	static final boolean DISABLE_CONNECTION_CACHE = false;
+class ConnectionCache implements Config {
 
 	private static class Peer { //implements Config {
 
@@ -42,7 +40,6 @@ class ConnectionCache {
 			}
 		} // end of inner class connection
 
-		static final boolean DEBUG = false;
 //		private TcpIbisIdentifier peer;
 		private ArrayList connections = new ArrayList();
 
@@ -252,10 +249,11 @@ class ConnectionCache {
 	}
 
 	InputStream getFreeInput(TcpIbisIdentifier ibis) {
-		if(DISABLE_CONNECTION_CACHE) return null;
-
-		Peer p = getPeer(ibis);
-		return p.getFreeInput();
+		if (CONNECTION_CACHE) {
+		    Peer p = getPeer(ibis);
+		    return p.getFreeInput();
+		}
+		return null;
 	}
 
 	void releaseOutput(TcpIbisIdentifier ibis, OutputStream out) {

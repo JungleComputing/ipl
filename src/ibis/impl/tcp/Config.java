@@ -1,7 +1,23 @@
 package ibis.impl.tcp;
 
+import ibis.util.TypedProperties;
+
 interface Config {
-	static final boolean DEBUG = false;
-	static final boolean STATS = true;
-        static final boolean ASSERTS = true;
+    static final String PROPERTY_PREFIX = "ibis.tcp.";
+    static final String s_debug = PROPERTY_PREFIX + "debug";
+    static final String s_stats = PROPERTY_PREFIX + "stats";
+    static final String s_asserts = PROPERTY_PREFIX + "asserts";
+    static final String s_cache = PROPERTY_PREFIX + "cache";
+
+    static final boolean DEBUG = TypedProperties.booleanProperty(s_debug);
+    static final boolean STATS = TypedProperties.booleanProperty(s_stats);
+    static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts);
+    static final boolean CONNECTION_CACHE = TypedProperties.booleanProperty(s_cache, true);
+
+    static final String[] sysprops = {
+	s_debug,
+	s_stats,
+	s_asserts,
+	s_cache
+    };
 }

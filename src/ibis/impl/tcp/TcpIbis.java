@@ -11,6 +11,7 @@ import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.IbisSocketFactory;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -42,6 +43,9 @@ public final class TcpIbis extends Ibis implements Config {
 	private boolean i_joined = false;
 
 	static {
+
+	    TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+
 	    Properties p = System.getProperties();
 	    String dl = p.getProperty("ibis.connect.enable");
 

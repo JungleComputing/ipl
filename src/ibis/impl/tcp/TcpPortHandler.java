@@ -23,8 +23,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
-final class TcpPortHandler implements Runnable, TcpProtocol { //, Config { 
-	static final boolean DEBUG = false;
+final class TcpPortHandler implements Runnable, TcpProtocol, Config { 
 
 	private ServerSocket systemServer;
 	private ConnectionCache connectionCache = new ConnectionCache();
