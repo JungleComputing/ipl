@@ -1,0 +1,66 @@
+#!/bin/sh
+
+reserve="-reserve 526668"
+
+ibises="panda net.gm"
+
+sers="none ibis sun"
+# sers="ibis sun"
+
+if `false`
+then
+for ibis in $ibises ; do
+	for x in 0 1 2 3 4 5 6 7 8 9 ; do
+		for ser in $sers ; do
+			sh run-rpc $ibis $ser 10000 100000 "$reserve" "" | tee -a throughput-myrinet.out 2>&1
+		done
+	done
+done
+fi
+
+sers="ibis sun"
+
+if `false`
+then
+for ibis in $ibises ; do
+	for x in 0 1 2 3 4 5 6 7 8 9 ; do
+		for ser in $sers ; do
+			sh run-rpc $ibis $ser 10000 100000 "$reserve" "-int" | tee -a throughput-myrinet.out 2>&1
+			sh run-rpc $ibis $ser 10000 100000 "$reserve" "-double" | tee -a throughput-myrinet.out 2>&1
+			sh run-rpc $ibis $ser 10000 1023 "$reserve" "-tree" | tee -a throughput-myrinet.out 2>&1
+		done
+	done
+done
+fi
+
+ibises="tcp net.bytes.gen.tcp_blk"
+# ibises="tcp"
+
+sers="none ibis sun"
+# sers="none"
+
+if `true`
+then
+for ibis in $ibises ; do
+	for x in 0 1 2 3 4 5 6 7 8 9 ; do
+		for ser in $sers ; do
+			sh run-rpc $ibis $ser 1000 100000 "$reserve" "" | tee -a throughput.out 2>&1
+		done
+	done
+done
+fi
+
+sers="ibis sun"
+
+if `true`
+then
+for ibis in $ibises ; do
+	for x in 0 1 2 3 4 5 6 7 8 9 ; do
+		for ser in $sers ; do
+			sh run-rpc $ibis $ser 1000 100000 "$reserve" "-int" | tee -a throughput.out 2>&1
+			sh run-rpc $ibis $ser 1000 100000 "$reserve" "-double" | tee -a throughput.out 2>&1
+			sh run-rpc $ibis $ser 1000 1023 "$reserve" "-tree" | tee -a throughput.out 2>&1
+		done
+	done
+done
+fi
