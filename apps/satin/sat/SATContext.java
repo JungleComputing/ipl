@@ -260,8 +260,6 @@ public class SATContext implements java.io.Serializable {
 
 	if( satisfied[cno] ){
 	    // Already marked as satisfied, nothing to do.
-	    // TODO: is calling this method when already satisfied ever
-	    // necessary?
 	    return 0;
 	}
 	satisfied[cno] = true;
@@ -284,6 +282,9 @@ public class SATContext implements java.io.Serializable {
 		if( tracePropagation ){
 		    System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
 		}
+		// Only register the fact that there is an unipolar variable.
+		// Don't propagate it yet, since the adminstration is
+		// inconsistent.
 		hasUniPolar = true;
 	    }
 	}
@@ -298,10 +299,14 @@ public class SATContext implements java.io.Serializable {
 		if( tracePropagation ){
 		    System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
 		}
+		// Only register the fact that there is an unipolar variable.
+		// Don't propagate it yet, since the adminstration is
+		// inconsistent.
 		hasUniPolar = true;
 	    }
 	}
 	if( hasUniPolar ){
+	    // Now propagate the unipolar variables.
 	    for( int i=0; i<pos.length; i++ ){
 		int var = pos[i];
 
@@ -360,14 +365,14 @@ public class SATContext implements java.io.Serializable {
 
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-		// We now have a term that cannot be satisfied. Conflict.
+		// We now have a clause that cannot be satisfied. Conflict.
 		if( tracePropagation ){
 		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=true" );
 		    dumpAssignments();
 		}
 	        return -1;
 	    }
-	    else if( terms[cno] == 1 ){
+	    if( terms[cno] == 1 ){
 		// Remember that we saw a unit clause, but don't
 		// propagate it yet, since the administration is inconsistent.
 		hasUnitClauses = true;
@@ -432,14 +437,14 @@ public class SATContext implements java.io.Serializable {
 
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-		// We now have a term that cannot be satisfied. Conflict.
+		// We now have a clause that cannot be satisfied. Conflict.
 		if( tracePropagation ){
 		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=false" );
 		    dumpAssignments();
 		}
 	        return -1;
 	    }
-	    else if( terms[cno] == 1 ){
+	    if( terms[cno] == 1 ){
 		// Remember that we saw a unit clause, but don't
 		// propagate it yet, since the administration is inconsistent.
 		hasUnitClauses = true;
