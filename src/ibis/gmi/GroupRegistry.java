@@ -119,10 +119,10 @@ final class GroupRegistry implements GroupProtocol {
 	w.writeInt(ticket);
 
 	if (groups.contains(groupName)) { 
-	    w.writeByte(CREATE_FAILED);
+	    w.writeObject(new RegistryReply(CREATE_FAILED));
 	} else { 
 	    groups.put(groupName, new GroupRegistryData(groupNumber++, groupSize, type));
-	    w.writeByte(CREATE_OK);
+	    w.writeObject(new RegistryReply(CREATE_OK));
 	}
 
 	w.finish();		
@@ -149,7 +149,7 @@ final class GroupRegistry implements GroupProtocol {
 	    w = Group.unicast[rank].newMessage();
 	    w.writeByte(REGISTRY_REPLY);
 	    w.writeInt(ticket);
-	    w.writeByte(JOIN_UNKNOWN);
+	    w.writeObject(new RegistryReply(JOIN_UNKNOWN));
 	    w.finish();		
 
 	} else if (e.joined == e.groupSize) {
@@ -157,7 +157,7 @@ final class GroupRegistry implements GroupProtocol {
 	    w = Group.unicast[rank].newMessage();
 	    w.writeByte(REGISTRY_REPLY);
 	    w.writeInt(ticket);
-	    w.writeByte(JOIN_FULL);
+	    w.writeObject(new RegistryReply(JOIN_FULL));
 	    w.finish();		
 
 	} else {
@@ -175,7 +175,7 @@ final class GroupRegistry implements GroupProtocol {
 		w = Group.unicast[rank].newMessage();
 		w.writeByte(REGISTRY_REPLY);
 		w.writeInt(ticket);
-		w.writeByte(JOIN_WRONG_TYPE);
+		w.writeObject(new RegistryReply(JOIN_WRONG_TYPE));
 		w.finish();	
 	    }
 	    
@@ -190,10 +190,10 @@ final class GroupRegistry implements GroupProtocol {
 		    w = Group.unicast[e.memberRanks[i]].newMessage();
 		    w.writeByte(REGISTRY_REPLY);
 		    w.writeInt(e.tickets[i]);
-		    w.writeByte(JOIN_OK);
-		    w.writeInt(e.groupNumber);
-		    w.writeObject(e.memberRanks);
-		    w.writeObject(e.memberSkels);
+		    w.writeObject(new RegistryReply(JOIN_OK,
+						    e.groupNumber,
+						    e.memberRanks,
+						    e.memberSkels));
 		    w.finish();		
 
 		    e.tickets[i] = 0;
@@ -222,15 +222,15 @@ final class GroupRegistry implements GroupProtocol {
 	w.writeInt(ticket);
 
 	if (e == null) { 
-	    w.writeByte(GROUP_UNKNOWN);
+	    w.writeObject(new RegistryReply(GROUP_UNKNOWN));
 	} else if (e.joined != e.groupSize) { 
-	    w.writeByte(GROUP_NOT_READY);
+	    w.writeObject(new RegistryReply(GROUP_NOT_READY));
 	} else { 
-	    w.writeByte(GROUP_OK);
-	    w.writeObject(e.type);
-	    w.writeInt(e.groupNumber);
-	    w.writeObject(e.memberRanks);
-	    w.writeObject(e.memberSkels);
+	    w.writeObject(new RegistryReply(GROUP_OK,
+					    e.type,
+					    e.groupNumber,
+					    e.memberRanks,
+					    e.memberSkels));
 	}
 	w.finish();		
     }
@@ -282,22 +282,21 @@ final class GroupRegistry implements GroupProtocol {
 	    }
 
 	    if (inf.mode != mode || inf.numInvokers != size) {
-		w.writeByte(COMBINED_FAILED);
-		w.writeObject("Inconsistent combined invocation");
+		w.writeObject(new RegistryReply(COMBINED_FAILED,
+						"Inconsistent combined invocation"));
 		return;
 	    }
 
 	    if (inf.present == size) {
-		w.writeByte(COMBINED_FAILED);
-		w.writeObject("Combined invocation full");
+		w.writeObject(new RegistryReply(COMBINED_FAILED,
+						"Combined invocation full"));
 		return;
 	    }
 	}
 
 	inf.addAndWaitUntilFull(rank, cpu);
 
-	w.writeByte(COMBINED_OK);
-	w.writeObject(inf);
+	w.writeObject(new RegistryReply(COMBINED_OK, inf));
 	w.finish();
     }
 

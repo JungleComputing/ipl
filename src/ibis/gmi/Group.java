@@ -264,7 +264,7 @@ public final class Group implements GroupProtocol {
 	    try { 
 		opcode = m.readByte();
 		
-		switch (opcode) { 
+		switch (opcode) {
 		case REGISTRY:
 		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a REGISTRY");
 		    Group.registry.handleMessage(m);
@@ -278,11 +278,9 @@ public final class Group implements GroupProtocol {
 		case REGISTRY_REPLY:
 		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a REGISTRY_REPLY");
 		    ticket = m.readInt();
+		    RegistryReply r = (RegistryReply) m.readObject();
 		    if (Group.DEBUG) System.out.println(Group._rank + ": REGISTRY_REPLY forwarded to ticketMaster (" + ticket + ")");
-		    synchronized(m) {
-			Group.ticketMaster.put(ticket, m);
-			m.wait();
-		    }
+		    Group.ticketMaster.put(ticket, r);
 		    break;
 
 		case INVOCATION_FLATCOMBINE:
@@ -652,14 +650,9 @@ public final class Group implements GroupProtocol {
 
 	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") waiting for reply on ticket(" + ticket +")");
 
-	    ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
-	    int result = r.readByte();			
-	    r.finish();
-	    synchronized(r) {
-	        r.notify();
-	    }
+	    RegistryReply r = (RegistryReply) ticketMaster.collect(ticket);
 
-	    if (result == CREATE_FAILED) { 
+	    if (r.result == CREATE_FAILED) { 
 		throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : Group already exists!");  
 	    }
 
@@ -690,8 +683,7 @@ public final class Group implements GroupProtocol {
 	    boolean retry = true;
 	    int ticket;
 	    WriteMessage w;
-	    ReadMessage r;
-	    int result;
+	    RegistryReply r;
 	    
 	    while (retry) { 
 
@@ -709,10 +701,9 @@ public final class Group implements GroupProtocol {
 
 		if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") waiting for reply on ticket(" + ticket +")");
 		
-		r = (ReadMessage) ticketMaster.collect(ticket);
-		result = r.readByte();			
+		r = (RegistryReply) ticketMaster.collect(ticket);
 		
-		switch(result) { 
+		switch(r.result) { 
 		case JOIN_UNKNOWN: 
 		    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group not found, retry");
 		    break;
@@ -725,19 +716,14 @@ public final class Group implements GroupProtocol {
 		    
 		case JOIN_OK:
 		    retry = false;
-		    groupnumber = r.readInt();
-		    memberRanks = (int []) r.readObject();
-		    memberSkels = (int []) r.readObject();
+		    groupnumber = r.groupnum;
+		    memberRanks = r.memberRanks;
+		    memberSkels = r.memberSkels;
 		    break;
 		default:
 		    System.out.println(_rank + " Group.join(" + name + ") Failed : got illegal opcode");  		
 		    System.exit(1);
 		} 
-		
-		r.finish();
-		synchronized(r) {
-		    r.notify();
-		}
 	    }
 	    
 	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group(" + groupnumber + ") found !");
@@ -780,23 +766,13 @@ public final class Group implements GroupProtocol {
 		    w.writeObject(name);
 		    w.finish();
 		    
-		    ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
-		    byte result = r.readByte();		
-		    
-		    switch (result) { 
+		    RegistryReply r = (RegistryReply) ticketMaster.collect(ticket);
+		    switch (r.result) { 
 		    case GROUP_UNKNOWN:
-			r.finish();
-			synchronized(r) {
-			    r.notify();
-			}
 			throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unknown group!");  	
 			
 		    case GROUP_NOT_READY: 
 			System.err.println("Group " + name + " not ready yet -> going to sleep");
-			r.finish();
-			synchronized(r) {
-			    r.notify();
-			}
 			try { 
 			    Thread.sleep(100);
 			} catch (Exception e) { 
@@ -808,14 +784,10 @@ public final class Group implements GroupProtocol {
 			done = true;
 
 			data.groupName = name;
-			data.typeName  = (String) r.readObject();
-			data.groupID   = r.readInt();
-			data.memberRanks = (int []) r.readObject();
-			data.memberSkels = (int []) r.readObject();
-			r.finish();
-			synchronized(r) {
-			    r.notify();
-			}
+			data.typeName  = r.str;
+			data.groupID   = r.groupnum;
+			data.memberRanks = r.memberRanks;
+			data.memberSkels = r.memberSkels;
 			
 			try { 	
 			    String classname = "";
@@ -887,26 +859,13 @@ public final class Group implements GroupProtocol {
 	    w.writeInt(mode);
 	    w.finish();
 		    
-	    ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
-	    byte result = r.readByte();		
-		    
-	    switch (result) { 
-	    case COMBINED_FAILED: {
-		String reason = (String) r.readObject();
-		r.finish();
-		synchronized(r) {
-		    r.notify();
-		}
-		throw new RuntimeException(reason);
-		}
-	    case COMBINED_OK: {
-		CombinedInvocationInfo info = (CombinedInvocationInfo) r.readObject();
-		r.finish();
-		synchronized(r) {
-		    r.notify();
-		}
-		return info;
-		}
+	    RegistryReply r = (RegistryReply) ticketMaster.collect(ticket);
+
+	    switch (r.result) { 
+	    case COMBINED_FAILED:
+		throw new RuntimeException(r.str);
+	    case COMBINED_OK:
+		return r.inf;
 	    default:
 		throw new RuntimeException("Unexpected answer on DEFINE_COMBINED");
 	    }

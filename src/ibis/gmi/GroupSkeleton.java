@@ -199,7 +199,6 @@ public abstract class GroupSkeleton implements GroupProtocol {
 	    message.exceptionResult = (Exception) m.readObject();
 	    break;
 	}
-	m.finish();
 	notifyAll();
     }
 
