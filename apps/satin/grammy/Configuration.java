@@ -10,11 +10,9 @@ interface Configuration {
     static final int DEFAULT_TOP = 2;
     static final int DEFAULT_LOOKAHEAD = 4;
 
-    static final boolean traceAdding = false;
-    static final boolean traceMatches = false;
-    static final boolean traceLookahead = false;
-    static final boolean traceCompressionCosts = true;
     static final boolean traceIntermediateGrammars = false;
+    static final boolean traceSelectedSteps = true;
+    static final boolean traceCompressionSteps = true;
 
     static final boolean doVerification = false;
 };

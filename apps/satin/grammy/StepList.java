@@ -21,6 +21,7 @@ public class StepList {
     public void add( Step s )
     {
         int gain = s.getGain();
+        int len = s.len;
 
         if( gain<=0 ){
             // Don't bother if the step gives no gain.
@@ -33,7 +34,10 @@ public class StepList {
         else {
             int i = ix-1;
 
-            if( steps[i].getGain()>=gain ){
+            if(
+                steps[i].getGain()>gain ||
+                (steps[i].getGain()>gain && steps[i].len>=len)
+            ){
                 // The new one does not even improve on the worst
                 // one in the list. Go away.
                 return;
@@ -46,7 +50,10 @@ public class StepList {
         int pos = ix;
         while( pos>1 ){
             pos--;
-            if( steps[pos].getGain()>steps[pos-1].getGain() ){
+            if(
+                steps[pos].getGain()>steps[pos-1].getGain() ||
+                (steps[pos].getGain()>steps[pos-1].getGain() && steps[pos].len>steps[pos-1].len)
+            ){
                 // Move the entry up.
                 Step tmp = steps[pos];
                 steps[pos] = steps[pos-1];

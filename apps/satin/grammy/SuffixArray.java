@@ -591,7 +591,9 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     {
         final int oldLength = length;   // Remember the old length for verif.
 
-        // System.out.println( "Applying compression step " + s );
+        if( traceCompressionSteps ){
+            System.out.println( "Applying compression step " + s );
+        }
 
         // First, move the grammar text aside.
         int len = s.len;
@@ -723,7 +725,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                             // HEURISTIC: anything shorter than this is probably
                             // not a reasonable candidate for best compression step.
                             // (But we could be wrong.)
-                            // mincom = Math.max( mincom, len-1 );
+                            //mincom = Math.max( mincom, len-1 );
                             res.add( new Step( candidates, p, len ) );
                         }
                         len--;

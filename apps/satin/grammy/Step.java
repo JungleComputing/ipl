@@ -23,7 +23,7 @@ class Step implements java.io.Serializable {
             }
             res += occurences[i];
         }
-        return res + "],len=" + len + ")";
+        return res + "],len=" + len + ",gain=" + getGain() + ")";
     }
 
     public int getGain()
