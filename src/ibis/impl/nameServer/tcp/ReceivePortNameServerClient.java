@@ -5,6 +5,7 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionTimedOutException;
 
 import ibis.util.*;
 
@@ -33,45 +34,61 @@ class ReceivePortNameServerClient implements Protocol {
 	} 
 
 	public ReceivePortIdentifier lookup(String name, long timeout) throws IOException {
-
 		Socket s = null;
 		ObjectOutputStream out;
 		ObjectInputStream in;
 		ReceivePortIdentifier id = null;
 		int result;
+		long startTime = System.currentTimeMillis();
 
-		s = IbisSocketFactory.createSocket(server, port, localAddress, timeout);
-
-		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-		out = new ObjectOutputStream(new BufferedOutputStream(dos));
-
-		// request a new Port.
-		out.writeByte(PORT_LOOKUP);
-		out.writeUTF(name);
-		out.flush();
-
-		DummyInputStream di = new DummyInputStream(s.getInputStream());
-		in  = new ObjectInputStream(new BufferedInputStream(di));
-		result = in.readByte();
-
-		switch (result) {
-		case PORT_UNKNOWN:
-			if (VERBOSE) {
-			    System.err.println("Port " + name + ": PORT_UNKNOWN");
+		do {
+			if (timeout > 0 &&
+				System.currentTimeMillis() > startTime + timeout) {
+				throw new ConnectionTimedOutException("could not connect");
 			}
-			break;
-		case PORT_KNOWN:
-			try {
-				id = (ReceivePortIdentifier) in.readObject();
-			} catch (ClassNotFoundException e) {
-				throw new IOException("Unmarshall fails " + e);
-			}
-			break;
-		default:
-			throw new StreamCorruptedException("Registry: lookup got illegal opcode " + result);
-		}
 
-		IbisSocketFactory.close(in, out, s);
+			s = IbisSocketFactory.createSocket(server, port, localAddress, timeout);
+			
+			DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+			out = new ObjectOutputStream(new BufferedOutputStream(dos));
+
+			// request a new Port.
+			out.writeByte(PORT_LOOKUP);
+			out.writeUTF(name);
+			out.flush();
+
+			DummyInputStream di = new DummyInputStream(s.getInputStream());
+			in  = new ObjectInputStream(new BufferedInputStream(di));
+			result = in.readByte();
+			
+			switch (result) {
+				case PORT_UNKNOWN:
+					if (VERBOSE) {
+						System.err.println("Port " + name + ": PORT_UNKNOWN");
+					}
+					break;
+				case PORT_KNOWN:
+					try {
+						id = (ReceivePortIdentifier) in.readObject();
+					} catch (ClassNotFoundException e) {
+						throw new IOException("Unmarshall fails " + e);
+					}
+					break;
+				default:
+					throw new StreamCorruptedException("Registry: lookup got illegal opcode " + result);
+			}
+
+			IbisSocketFactory.close(in, out, s);
+
+			if (id == null) {
+				int timeLeft = (int)(startTime + timeout - System.currentTimeMillis());
+				try {
+					if (timeLeft > 0) Thread.sleep(0, Math.min(timeLeft, 500));
+				} catch (InterruptedException e) {
+					// ignore               
+				}
+			}
+		} while (id == null);
 
 		return id;
 	}
