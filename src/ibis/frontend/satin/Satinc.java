@@ -490,12 +490,21 @@ public final class Satinc {
     }
 
     InstructionHandle insertDeleteSpawncounter(InstructionList il, InstructionHandle i, int maxLocals) {
-	il.insert(i, new ALOAD(maxLocals));
-	il.insert(i, ins_f.createInvoke("ibis.satin.Satin",
-				     "deleteSpawnCounter",
-				     Type.VOID,
-				     new Type[] { spawnCounterType },
-				     Constants.INVOKESTATIC));
+	// In this case, jumps to the return must in fact jump to
+	// the new instruction sequence! So, we change the instruction
+	// at the handle.
+
+	// First, save the return instruction.
+	Instruction r = i.getInstruction();
+
+	i.setInstruction(new ALOAD(maxLocals));
+	i = il.append(i, ins_f.createInvoke("ibis.satin.Satin",
+					    "deleteSpawnCounter",
+					    Type.VOID,
+					    new Type[] { spawnCounterType },
+					    Constants.INVOKESTATIC));
+	i = il.append(i, r);
+
 	return i;
     }
 
@@ -747,7 +756,6 @@ public final class Satinc {
 	    }
 
 	    InstructionHandle abo = insertNullReturn(m, il, pos);
-//	    abo = insertDeleteSpawncounter(il, abo, maxLocals);
 
 	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
 						   satinFieldName,
