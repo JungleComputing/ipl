@@ -17,15 +17,15 @@ public interface Config {
     static final String s_stats_ft =     PROPERTY_PREFIX + "stats.ft";
     static final String s_stats_grt =    PROPERTY_PREFIX + "stats.ft.grt";
 
-    static final String s_timing_steal = PROPERTY_PREFIX + "timimg.steal";
-    static final String s_timing_abort = PROPERTY_PREFIX + "timimg.abort";
-    static final String s_timing_idle =  PROPERTY_PREFIX + "timimg.idle";
-    static final String s_timing_poll =  PROPERTY_PREFIX + "timimg.poll";
-    static final String s_timing_tuple = PROPERTY_PREFIX + "timimg.tuple";
-    static final String s_timing_grt =   PROPERTY_PREFIX + "timimg.ft.grt";
-    static final String s_timing_crash = PROPERTY_PREFIX + "timimg.ft.crash";
-    static final String s_timing_check = PROPERTY_PREFIX + "timimg.ft.check";
-    static final String s_timing_repl =  PROPERTY_PREFIX + "timimg.ft.replica";
+    static final String s_timing_steal = PROPERTY_PREFIX + "timing.steal";
+    static final String s_timing_abort = PROPERTY_PREFIX + "timing.abort";
+    static final String s_timing_idle =  PROPERTY_PREFIX + "timing.idle";
+    static final String s_timing_poll =  PROPERTY_PREFIX + "timing.poll";
+    static final String s_timing_tuple = PROPERTY_PREFIX + "timing.tuple";
+    static final String s_timing_grt =   PROPERTY_PREFIX + "timing.ft.grt";
+    static final String s_timing_crash = PROPERTY_PREFIX + "timing.ft.crash";
+    static final String s_timing_check = PROPERTY_PREFIX + "timing.ft.check";
+    static final String s_timing_repl =  PROPERTY_PREFIX + "timing.ft.replica";
     static final String s_poll_freq =    PROPERTY_PREFIX + "pollfreq";
     static final String s_poll_port =    PROPERTY_PREFIX + "pollport";
     static final String s_asserts =      PROPERTY_PREFIX + "asserts";
