@@ -6,12 +6,20 @@ while (@ARGV) {
 
     if ($arg eq "-v") {
 	$verbose = true;
+    } elsif ($arg eq "-table") {
+	$table_flag = true;
     } elsif ($arg eq "-runtime-jgraph") {
 	$runtime_jgraph_flag = true;
     } elsif ($arg eq "-steal-jgraph") {
 	$steal_jgraph_flag = true;
-    } elsif ($arg eq "-speedup-jgraph") {
-	$speedup_jgraph_flag = true;
+    } elsif ($arg eq "-speedup-seq-jgraph") {
+	$speedup_seq_jgraph_flag = true;
+    } elsif ($arg eq "-speedup-par-jgraph") {
+	$speedup_par_jgraph_flag = true;
+    } elsif ($arg eq "-speedup-par-gnuplot") {
+	$speedup_par_gnuplot_flag = true;
+    } elsif ($arg eq "-speedup-seq-gnuplot") {
+	$speedup_seq_gnuplot_flag = true;
     } else { 
 	print "Illegal argument $arg\n";
 	die;
@@ -262,7 +270,8 @@ while ($line = <TIME>) {
 #------------------------------------------print one large table-------------------------------------------
 # print a nice legend
 
-print "LEGEND:\n" . 
+if($table_flag) {
+    print "LEGEND:\n" . 
     "app = application   type = run type (seq, par, sim)   N = number of cpus in run\n" .
     "run_time = application run time (seconds)\n" .
     "s seq = speedup relative to version with SPAWN and SYNC filtered out\n" .
@@ -275,7 +284,7 @@ printf "%-13s|%-4s|%-2s|%5s|%8s|%5s|%5s" .
     "|%10s|%10s|%6s\n",
     "app", "type", "N", "sched", "run_time", "s seq", "s one",
     "attempts", "suc", "percnt";
-
+}
 
 $last_app = "";
 
@@ -313,15 +322,17 @@ while (@keys) {
 	$fanout = 0;
     }
 
-    if ($last_app ne $app) {
-	print '-' x 77, "\n";
-	$last_app = $app;
-    }
+    if($table_flag) {
+	if ($last_app ne $app) {
+	    print '-' x 77, "\n";
+	    $last_app = $app;
+	}
     
-    printf "%-13s|%-4s|%-2d|%5s|%8.3f|%5.2f|%5.2f|" .
-	"%10d|%10d|%6.3f\n",
-	$app, $type, $cpus, $sched, $run_time, $speedup_seq, $speedup_one,
-	$attempts, $success, $percent;
+	printf "%-13s|%-4s|%-2d|%5s|%8.3f|%5.2f|%5.2f|" .
+	    "%10d|%10d|%6.3f\n",
+	    $app, $type, $cpus, $sched, $run_time, $speedup_seq, $speedup_one,
+	    $attempts, $success, $percent;
+    }
 
 
 #------------------------------------------ jgraph output -----------------------------------------
@@ -366,9 +377,27 @@ while (@keys) {
     }
 
 
-    if($speedup_jgraph_flag && $x > 0 && $cpus > 1) {
-	open(OUTFILE, ">> jgraph-$app-$my_spin-$my_throughput-speedup.dat") or die "Can't open jgraph output file: $!\n";
+    if($speedup_seq_jgraph_flag && $x > 0 && $cpus > 1) {
+	open(OUTFILE, ">> jgraph-$app-$my_spin-$my_throughput-speedup-seq.dat") or die "Can't open jgraph output file: $!\n";
 	printf OUTFILE "$x $speedup_seq (* $sched *)\n";
+	close OUTFILE;
+    }
+
+    if($speedup_par_jgraph_flag && $x > 0 && $cpus > 1) {
+	open(OUTFILE, ">> jgraph-$app-$my_spin-$my_throughput-speedup-par.dat") or die "Can't open jgraph output file: $!\n";
+	printf OUTFILE "$x $speedup_one (* $sched *)\n";
+	close OUTFILE;
+    }
+
+    if($speedup_par_gnuplot_flag && $x > 0 && $cpus > 1) {
+	open(OUTFILE, ">> gnuplot-$app-speedup-par.dat") or die "Can't open gnuplot output file: $!\n";
+	printf OUTFILE "$cpus $speedup_one\n";
+	close OUTFILE;
+    }
+
+    if($speedup_seq_gnuplot_flag && $x > 0 && $cpus > 1) {
+	open(OUTFILE, ">> gnuplot-$app-speedup-seq.dat") or die "Can't open gnuplot output file: $!\n";
+	printf OUTFILE "$cpus $speedup_seq\n";
 	close OUTFILE;
     }
 }

@@ -1,0 +1,150 @@
+#!/usr/bin/perl
+
+$dest = pop(@ARGV);
+$src2 = pop(@ARGV);
+$src1 = pop(@ARGV);
+
+printf("src1 = $src1, src2 = $src2\n");
+
+open(TIME1, "$src1/time.txt") or die "Can't open time1 file ($src1/time.txt): $!\n";
+%time1_hash = ();
+
+while ($line = <TIME1>) {
+    @words = split(" ", $line);
+    $problemsize = $words[2];
+    $time = $words[4];
+
+    ($dummy, $app, $type1, $tail) = split('-', $words[0]);
+    ($type, $dummy) = split(":", $type1);
+    if ($type eq "seq") {
+	$cpus = 1;
+	$spin = "";
+	$throughput = "";
+	$sched = "seq";
+    } elsif ($type eq "par") {
+	($dummy, $app, $type, $sched, $tail) = split('-', $words[0]);
+	($cpus, $dummy) = split(":", $tail);
+	$spin = "";
+	$throughput = "";
+    } elsif ($type eq "sim") {
+	($dummy, $dummy, $dummy, $spin, $throughput, $sched, $newtail) = split('-', $words[0]);
+	($cpus, $dummy) = split(":", $newtail);
+    } else {
+	print "ERROR in time.txt\n";
+    }
+
+    if ($cpus < 10) {
+	$cpus = "0" . $cpus;
+    }
+
+    if(!($time eq "WRONG")) {
+	$key = "$app:$cpus:$type:$spin:$throughput:$sched";
+	$data = "$app:$problemsize:$type:$cpus:$spin:$throughput:$sched:$time";
+
+	$time1_hash{$key} = $data;
+    }
+}
+
+open(TIME2, "$src2/time.txt") or die "Can't open time1 file: $!\n";
+%time2_hash = ();
+
+while ($line = <TIME2>) {
+    @words = split(" ", $line);
+    $problemsize = $words[2];
+    $time = $words[4];
+
+    ($dummy, $app, $type1, $tail) = split('-', $words[0]);
+    ($type, $dummy) = split(":", $type1);
+    if ($type eq "seq") {
+	$cpus = 1;
+	$spin = "";
+	$throughput = "";
+	$sched = "seq";
+    } elsif ($type eq "par") {
+	($dummy, $app, $type, $sched, $tail) = split('-', $words[0]);
+	($cpus, $dummy) = split(":", $tail);
+	$spin = "";
+	$throughput = "";
+    } elsif ($type eq "sim") {
+	($dummy, $dummy, $dummy, $spin, $throughput, $sched, $newtail) = split('-', $words[0]);
+	($cpus, $dummy) = split(":", $newtail);
+    } else {
+	print "ERROR in time.txt\n";
+    }
+
+    if ($cpus < 10) {
+	$cpus = "0" . $cpus;
+    }
+
+    if(!($time eq "WRONG")) {
+	$key = "$app:$cpus:$type:$spin:$throughput:$sched";
+	$data = "$app:$problemsize:$type:$cpus:$spin:$throughput:$sched:$time";
+
+	$time2_hash{$key} = $data;
+    }
+}
+
+
+#-------------------maybe has2 has entries that are not present in hash1, insert them------------------
+@tmpkeys = reverse sort keys %time2_hash;
+while (@tmpkeys) {
+    $tmpkey = pop(@tmpkeys);
+    $tmpval1 = $time1_hash{$tmpkey};
+    $tmpval2 = $time2_hash{$tmpkey};
+    ($tmpapp1, $tmpproblemsize1, $tmptype1, $tmpcpus1, $tmpspin1, $tmpthroughput1, $tmpsched1, $tmptime1) = split(':', $tmpval1);
+    ($tmpapp2, $tmpproblemsize2, $tmptype2, $tmpcpus2, $tmpspin2, $tmpthroughput2, $tmpsched2, $tmptime2) = split(':', $tmpval2);
+
+    if(!$tmptime1) {
+	printf("adding dummy value for key=$tmpkey, which is not present in $src1\n");
+	$tmpdata = "$tmpapp2:$tmpproblemsize2:$tmptype2:$tmpcpus2:$tmpspin2:$tmpthroughput2:$tmpsched2:1000000";
+	$time1_hash{$tmpkey} = $tmpdata;
+    }
+}
+
+
+#-----------------------------------------got time hashes, choose best---------------------------------
+@keys = reverse sort keys %time1_hash;
+while (@keys) {
+    $key = pop(@keys);
+    $val1 = $time1_hash{$key};
+    $val2 = $time2_hash{$key};
+
+#    printf("trying key = $key\n");
+
+    ($app1, $problemsize1, $type1, $cpus1, $spin1, $throughput1, $sched1, $time1) = split(':', $val1);
+    ($app2, $problemsize2, $type2, $cpus2, $spin2, $throughput2, $sched2, $time2) = split(':', $val2);
+
+    if(!$time1) {
+	$time1 = 10000000;
+	$type1 = $type2;
+    }
+    if(!$time2) {
+	$time2 = 10000000;
+    }
+
+    if($type1 eq "sim") {
+	if ($time1 < $time2) {
+	    printf("(time1=$time1,time2=$time2)executing: cp $src1/output-$app1-$type1-$spin1-$throughput1-$sched1-$cpus1 $dest\n");
+	    system("cp $src1/output-$app1-$type1-$spin1-$throughput1-$sched1-$cpus1 $dest\n");
+	} else {
+	    printf("(time1=$time1,time2=$time2)executing: cp $src2/output-$app2-$type2-$spin2-$throughput2-$sched2-$cpus2 $dest\n");
+	    system("cp $src2/output-$app2-$type2-$spin2-$throughput2-$sched2-$cpus2 $dest\n");
+	}
+    } elsif ($type1 eq "par") {
+	if ($time1 < $time2) {
+	    printf("(time1=$time1,time2=$time2)executing: cp $src1/output-$app1-$type1-$sched1-$cpus1 $dest\n");
+	    system("cp $src1/output-$app1-$type1-$sched1-$cpus1 $dest\n");
+	} else {
+	    printf("(time1=$time1,time2=$time2)executing: cp $src2/output-$app2-$type2-$sched2-$cpus2 $dest\n");
+	    system("cp $src2/output-$app2-$type2-$sched2-$cpus2 $dest\n");
+	}
+    } else { # seq
+	if ($time1 < $time2) {
+	    printf("(time1=$time1,time2=$time2)executing: cp $src1/output-$app1-$type1 $dest\n");
+	    system("cp $src1/output-$app1-$type1 $dest\n");
+	} else {
+	    printf("(time1=$time1,time2=$time2)executing: cp $src2/output-$app2-$type2 $dest\n");
+	    system("cp $src2/output-$app2-$type2 $dest\n");
+	}
+    }
+}
