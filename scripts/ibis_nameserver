@@ -5,8 +5,8 @@ if [ "x$IBIS_HUB" != "x" ]; then
   HUB_HOST=`echo $IBIS_HUB|cut -f 1 -d :`
   HUB_PORT=`echo $IBIS_HUB|cut -f 2 -d :`
   echo "Name service will connect to Ibis hub:"
-  echo "  ${HUB_HOST}:${HOST_PORT}"
-  Dhub="-Dibis.connect.enable -Dibis.connect.hub_host=$HUB_HOST -Dibis.connect.hub_port=$HUB_PORT"
+  echo "  ${HUB_HOST}:${HUB_PORT}"
+  Dhub="-Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.connect.hub_host=$HUB_HOST -Dibis.connect.hub_port=$HUB_PORT"
 else
   Dhub=
 fi
