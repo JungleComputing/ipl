@@ -13,8 +13,8 @@ import ibis.io.MantaInputStream;
 
 // the implements should be unnecessary, but the IOGenerator does not 
 // see that the super class implents it, and rewrites the bytecode.
-public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.Serializable, ibis.io.Serializable {
-	public static final int serialversionID = 1;
+public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.Serializable /*java.io.Externalizable*/, ibis.io.Serializable {
+	private static final long serialVersionUID = 3L;
 
 	public TcpIbisIdentifier() {
 		System.err.println("EEK, TcpIbisIdentifier default ctor!");
@@ -73,4 +73,15 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 			stream.writeUTF(name);
 		}
 	}
+/*
+	public void writeExternal(java.io.ObjectOutput out) throws IOException {
+		out.writeObject(address);
+		out.writeObject(name);
+	}
+
+	public void readExternal(java.io.ObjectInput in) throws IOException, ClassNotFoundException {
+		address = (java.net.InetAddress) in.readObject();
+		name = (String) in.readObject();
+	}
+*/
 }

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.EOFException;
 
 public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, java.io.Serializable { 
+	private static final long serialVersionUID = 4L;
 
 	String name;
 	String type;

@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 
 public final class TcpSendPortIdentifier implements SendPortIdentifier, java.io.Serializable { 
+	private static final long serialVersionUID = 5L;
 
 	String type;
 	String name;
