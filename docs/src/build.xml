@@ -67,8 +67,7 @@
 	    </exec>
     </target>
 
-    <target name="clean"
-	    depends="init">
+    <target name="clean">
 	    <delete dir="${build}"/>
     </target>
 
