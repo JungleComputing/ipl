@@ -118,7 +118,6 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 		ReceivePortConnectUpcall connectUpcall,
 		boolean connectionAdministration)
 	    throws IOException {
-	Ibis.myIbis.registerReceivePort(this);
 	this.type = type;
 	this.name = name;
 	this.upcall = upcall;
@@ -130,8 +129,12 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 // System.err.println(this + ": create ReceivePort; ibisIdent = " + ident);
 
 	Ibis.myIbis.lock();
-	livingPorts++;
-	Ibis.myIbis.unlock();
+	try {
+	    Ibis.myIbis.registerReceivePort(this);
+	    livingPorts++;
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
     }
 
     /**

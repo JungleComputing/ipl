@@ -96,7 +96,12 @@ public class SendPort implements ibis.ipl.SendPort {
 		    boolean syncMode,
 		    boolean makeCopy)
 	    throws IOException {
-	Ibis.myIbis.registerSendPort(this);
+	Ibis.myIbis.lock();
+	try {
+	    Ibis.myIbis.registerSendPort(this);
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
 	this.name = name;
 	this.type = type;
 	ident = new SendPortIdentifier(name, type.name());
@@ -540,7 +545,7 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 
     void closeLocked() throws IOException {
 	if (DEBUG) {
-	    System.out.println(Ibis.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " start");
+	    System.out.println(Ibis.myIbis.name() + ": ibis.ipl.SendPort.close " + this + " start");
 	    Thread.dumpStack();
 	}
 
@@ -559,7 +564,7 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 	}
 
 	if (DEBUG) {
-	    System.out.println(Ibis.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " DONE");
+	    System.out.println(Ibis.myIbis.name() + ": ibis.ipl.SendPort.close " + this + " DONE");
 	}
 
     }
