@@ -63,39 +63,37 @@ public class Sequencer {
 	    ReceivePortIdentifier rid = null;
 	    String name = null;
 	    SendPort s;
+	    WriteMessage w = null;
 	    int index = m.readInt();
-	    rid = (ReceivePortIdentifier) clients.get(index);
-	    name = (String) m.readString();
-	    m.finish();
-	    s = (SendPort) sendports.get(index);
-	    WriteMessage w = s.newMessage();
-	    w.writeInt(seq.getNo(name));
+
+	    if (index == -1) {
+		try {
+		    rid = (ReceivePortIdentifier) m.readObject();
+		} catch(ClassNotFoundException e) {
+		    System.err.println("Got ClassNotFoundException!");
+		    e.printStackTrace();
+		}
+		m.finish();
+		clients.add(rid);
+		s = seq.tp.createSendPort();
+		s.connect(rid);
+		sendports.add(s);
+		w = s.newMessage();
+		w.writeInt(clients.size() - 1);
+	    }
+	    else {
+		rid = (ReceivePortIdentifier) clients.get(index);
+		name = (String) m.readString();
+		m.finish();
+		s = (SendPort) sendports.get(index);
+		w = s.newMessage();
+		w.writeInt(seq.getNo(name));
+	    }
 	    w.send();
 	    w.finish();
 	}
 
 	public void run() {
-	    try {
-		ReadMessage m = rcv.receive();
-		ReceivePortIdentifier rid = (ReceivePortIdentifier) m.readObject();
-		clients.add(rid);
-		SendPort s = seq.tp.createSendPort();
-		s.connect(rid);
-		sendports.add(s);
-		m.finish();
-		WriteMessage w = s.newMessage();
-		w.writeInt(clients.size() - 1);
-		w.send();
-		w.finish();
-	    } catch(IOException e) {
-		System.err.println("Got IOException!");
-		e.printStackTrace();
-		return;
-	    } catch(ClassNotFoundException e) {
-		System.err.println("Got ClassNotFoundException!");
-		e.printStackTrace();
-		return;
-	    }
 
 	    while (true) {
 		try {
@@ -163,6 +161,7 @@ public class Sequencer {
 	    snd.connect(master_id);
 	    ReceivePortIdentifier rid = rcv.identifier();
 	    WriteMessage w = snd.newMessage();
+	    w.writeInt(-1);
 	    w.writeObject(rid);
 	    w.send();
 	    w.finish();
