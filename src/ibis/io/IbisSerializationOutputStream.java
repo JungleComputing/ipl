@@ -26,6 +26,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     private int		array_index;
 
     private Class stringClass;
+    private Class classClass;
 
     /* Type id management */
     private int next_type = 1;
@@ -69,6 +70,12 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    stringClass = Class.forName("java.lang.String");
 	} catch (Exception e) {
 	    System.err.println("Failed to find java.lang.String " + e);
+	    System.exit(1);
+	}
+	try {
+	    classClass = Class.forName("java.lang.Class");
+	} catch (Exception e) {
+	    System.err.println("Failed to find java.lang.Class " + e);
 	    System.exit(1);
 	}
     }
@@ -573,33 +580,31 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
 	    if (type.isArray()) {
 		writeArray(ref, type);
-	    } else if (type == stringClass) {
-		/* EEK this is not nice !! */
-		handle = next_handle++;
-		references.put(ref, handle);
-		if (DEBUG) {
-		    System.out.println("doWriteObject1: references[" + handle + "] = " + (ref == null ? "null" : ref));
-		}
-		writeType(type);
-		writeUTF((String)ref);
 	    } else {
 		handle = next_handle++;
 		references.put(ref, handle);
 		if (DEBUG) {
-		    System.out.println("doWriteObject2: references[" + handle + "] = " + (ref == null ? "null" : ref));
+		    System.out.println("doWriteObject: references[" + handle + "] = " + (ref == null ? "null" : ref));
 		}
 		writeType(type);
-
-		if (ref instanceof ibis.io.Serializable) { 
-		    ((ibis.io.Serializable)ref).generated_WriteObject(this);
-		} else if (ref instanceof java.io.Externalizable) {
-		    push_current_object(ref, 0);
-		    ((java.io.Externalizable) ref).writeExternal(this);
-		    pop_current_object();
-		} else if (ref instanceof java.io.Serializable) {
-		    writeSerializableObject(ref, type);
-		} else { 
-		    throw new RuntimeException("Not Serializable : " + type.toString());
+		if (type == stringClass) {
+		    /* EEK this is not nice !! */
+		    writeUTF((String)ref);
+		} else if (type == classClass) {
+		    /* EEK this is not nice !! */
+		    writeUTF(((Class)ref).getName());
+		} else {
+		    if (ref instanceof ibis.io.Serializable) { 
+			((ibis.io.Serializable)ref).generated_WriteObject(this);
+		    } else if (ref instanceof java.io.Externalizable) {
+			push_current_object(ref, 0);
+			((java.io.Externalizable) ref).writeExternal(this);
+			pop_current_object();
+		    } else if (ref instanceof java.io.Serializable) {
+			writeSerializableObject(ref, type);
+		    } else { 
+			throw new RuntimeException("Not Serializable : " + type.toString());
+		    }
 		}
 	    }
 	} else {

@@ -44,12 +44,19 @@ public final class IbisSerializationInputStream
     private IbisVector types;
 
     private static Class stringClass;
+    private static Class classClass;
 
     static {
 		try { 
 			stringClass = Class.forName("java.lang.String");
 		} catch (Exception e) { 
 			System.err.println("Failed to find java.lang.String " + e);
+			System.exit(1);
+		}
+		try { 
+			classClass = Class.forName("java.lang.Class");
+		} catch (Exception e) { 
+			System.err.println("Failed to find java.lang.Class " + e);
 			System.exit(1);
 		}
     }
@@ -565,6 +572,8 @@ public final class IbisSerializationInputStream
 				t  = new TypeInfo(clazz, true, false, g);
 			} else if (clazz == stringClass) { 
 				t = new TypeInfo(clazz, false, true, g);
+			} else if (clazz == classClass) { 
+				t = new TypeInfo(clazz, false, false, g);
 			} else { 
 				try { 
 					Class gen_class = Class.forName(typeName + "_ibis_io_Generator");
@@ -597,43 +606,43 @@ public final class IbisSerializationInputStream
     /** For IOGenerator: needed when assigning final fields of an object that is rewritten,
         but super is not, and super is serializable.
     */
-    public void read_field_double(Object ref, String fieldname) throws IOException {
+    public void readFieldDouble(Object ref, String fieldname) throws IOException {
 	setFieldDouble(ref, fieldname, readDouble());
     }
 
-    public void read_field_long(Object ref, String fieldname) throws IOException {
+    public void readFieldLong(Object ref, String fieldname) throws IOException {
 	setFieldLong(ref, fieldname, readLong());
     }
 
-    public void read_field_float(Object ref, String fieldname) throws IOException {
+    public void readFieldFloat(Object ref, String fieldname) throws IOException {
 	setFieldFloat(ref, fieldname, readFloat());
     }
 
-    public void read_field_int(Object ref, String fieldname) throws IOException {
+    public void readFieldInt(Object ref, String fieldname) throws IOException {
 	setFieldInt(ref, fieldname, readInt());
     }
 
-    public void read_field_short(Object ref, String fieldname) throws IOException {
+    public void readFieldShort(Object ref, String fieldname) throws IOException {
 	setFieldShort(ref, fieldname, readShort());
     }
 
-    public void read_field_char(Object ref, String fieldname) throws IOException {
+    public void readFieldChar(Object ref, String fieldname) throws IOException {
 	setFieldChar(ref, fieldname, readChar());
     }
 
-    public void read_field_byte(Object ref, String fieldname) throws IOException {
+    public void readFieldByte(Object ref, String fieldname) throws IOException {
 	setFieldByte(ref, fieldname, readByte());
     }
 
-    public void read_field_boolean(Object ref, String fieldname) throws IOException {
+    public void readFieldBoolean(Object ref, String fieldname) throws IOException {
 	setFieldBoolean(ref, fieldname, readBoolean());
     }
 
-    public void read_field_UTF(Object ref, String fieldname) throws IOException {
+    public void readFieldUTF(Object ref, String fieldname) throws IOException {
 	setFieldObject(ref, fieldname, "Ljava/lang/String;", readUTF());
     }
 
-    public void read_field_object(Object ref, String fieldname, String fieldsig) throws IOException, ClassNotFoundException {
+    public void readFieldObject(Object ref, String fieldname, String fieldsig) throws IOException, ClassNotFoundException {
 	setFieldObject(ref, fieldname, fieldsig, readObject());
     }
 
@@ -890,6 +899,10 @@ public final class IbisSerializationInputStream
 			obj = readArray(t.clazz, type);
 		} else if (t.isString) {
 			obj = readUTF();
+			addObjectToCycleCheck(obj);
+		} else if (t.clazz == classClass) {
+			String name = readUTF();
+			obj = Class.forName(name);
 			addObjectToCycleCheck(obj);
 		} else if (t.gen != null) {
 			obj = t.gen.generated_newInstance(this);
