@@ -31,7 +31,9 @@ LFC_ROOT	= @LFC_ROOT@
 
 JAVAC_COMMAND   = $(JAVAC) $(JAVACFLAGS) $(JAVAOPTFLAGS)
 JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
-JAVACLASSPATH	= $(IBIS_ROOT):$(IBIS_ROOT)/ibis:.:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
+JAVACLASSPATH	= $(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT):$(IBIS_ROOT)/ibis:.:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
+JAVABOOTCLASSPATH = $(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis
+JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/ibis/lib:$(JPATH)/jre/bin
 JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH)
 JAVAHFLAGS      += -classpath $(JAVACLASSPATH)
 CLASSPATH	= $(JAVACLASSPATH)

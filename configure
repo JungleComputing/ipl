@@ -167,3 +167,6 @@ chmod +x bin/jdis
 
 cat scripts/preamble configuration scripts/satinc > bin/satinc
 chmod +x bin/satinc
+
+cat scripts/preamble configuration scripts/run_ibis > bin/run_ibis
+chmod +x bin/run_ibis
