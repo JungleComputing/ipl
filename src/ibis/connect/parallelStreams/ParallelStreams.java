@@ -31,6 +31,7 @@ public class ParallelStreams
 
     private boolean readerBusy = false;
     private boolean writerBusy = false;
+    private boolean hint = false;
 
     public ParallelStreams(int n, int b, ConnectProperties props)
     {
@@ -63,6 +64,8 @@ public class ParallelStreams
 	}
 
 	BrokeredSocketFactory f = ExtSocketFactory.getBrokeredType();
+
+	this.hint = hint;
 
 	for(i=0; i<numWays; i++) {
 	    out.flush();
@@ -201,6 +204,7 @@ public class ParallelStreams
 	throws IOException
     {
 	MyDebug.out.println("PS: close()");
+	MyDebug.trace("PS: closing PS, numWays = " + numWays + ", hint = " + hint);
 	for(int i=0; i< numWays; i++)
 	    {
 		ins[i].close();
