@@ -44,61 +44,70 @@ function usage () {
 	else
 		echo "  prun -1 -v -no-panda $run_name <$run_name params> <jvm params> <classname> <application params>"
 	fi
-	echo
-	echo "The first parameter that is not recognized as an option to $run_name"
-	echo "terminates the $run_name parameters."
-	echo "The $run_name options are:"
-	echo "-attach"
-	echo "    set jvm parameters so that jdb can attach to the running process"
-	echo "-cd <dir>"
-	echo "    when using the javawrapper, make it change to directory <dir>"
-	echo "    before starting java"
-	echo "-cpu <cpuaffinity>"
-	echo "    when using the javawrapper, make it use the specified cpuaffinity"
+	cat << 'EOF' | sed "s#run-ibis#$run_name#"
+The first parameter that is not recognized as an option to run-ibis
+terminates the run-ibis parameters.
+The run-ibis options are:
+-attach
+    set jvm parameters so that jdb can attach to the running process
+-cd <dir>
+    when using the javawrapper, make it change to directory <dir>
+    before starting java
+-cpu <cpuaffinity>
+    when using the javawrapper, make it use the specified cpuaffinity
+EOF
 	if [ $prun -eq 0 ]
 	then
-		echo "-nhosts <nhosts>"
-		echo "    specifies the total number of hosts involved in this run"
-		echo "-hostno <hostno>"
-		echo "    specifies the rank number of this host (0 .. <nhosts>-1)"
+		cat << 'EOF'
+-nhosts <nhosts>
+    specifies the total number of hosts involved in this run
+-hostno <hostno>
+    specifies the rank number of this host (0 .. <nhosts>-1)
+EOF
 	fi
-	echo "-singlecpu"
-	echo "    specifies that the javawrapper must be used"
-	echo "-no-singlecpu"
-	echo "    specifies that the javawrapper must not be used"
-	echo "-jdb"
-	echo "    execute jdb instead of java"
-	echo "-no-jit"
-	echo "    disable just-in-time compiling"
-	echo "-no-pool"
-	echo "    don't pass on any node-pool information to the application"
-	echo "-n"
-	echo "    only print the run command, don't actually execute it"
-	echo "-ns <nameserver>"
-	echo "    specifies the hostname on which the nameserver runs"
-	echo "-ns-port"
-	echo "    specifies the port number on which the nameserver is listening"
-	echo "-ns-retry"
-	echo "    specifies that the application should retry to connect to the nameserver"
-	echo "    until it succeeds. The default behavior is to exit when connecting to the"
-	echo "    nameserver fails"
+	cat << 'EOF'
+-singlecpu
+    specifies that the javawrapper must be used
+-no-singlecpu
+    specifies that the javawrapper must not be used
+-jdb
+    execute jdb instead of java
+-no-jit
+    disable just-in-time compiling
+-no-pool
+    don't pass on any node-pool information to the application
+-n
+    only print the run command, don't actually execute it
+-ns <nameserver>
+    specifies the hostname on which the nameserver runs
+-ns-port
+    specifies the port number on which the nameserver is listening
+-ns-retry
+    specifies that the application should retry to connect to the nameserver
+    until it succeeds. The default behavior is to exit when connecting to the
+    nameserver fails
+EOF
 	if [ $prun -eq 1 ]
 	then
-		echo "-ns-d"
-		echo "    use a dedicated nameserver, one of the nodes in the run is used solely"
-		echo "    for this purpose"
+		cat << EOF
+-ns-d
+    use a dedicated nameserver, one of the nodes in the run is used solely
+    for this purpose
+EOF
 	fi
-	echo "-pg <prefix>"
-	echo "    pass profiling flags on to java, use <prefix> for the result file"
-	echo "-p <prefix>"
-	echo "    pass different profiling flags on to java, use <prefix> for the result file"
-	echo "-key <key>"
-	echo "    use the specified key to identify this run with the nameserver"
-	echo "-?"
-	echo "    print this message"
-	echo "--"
-	echo "    terminates the parameters for $run_name; following parameters are passed"
-	echo "    on to java, even if they would be acceptable to $run_name"
+	cat << 'EOF' | sed "s#run-ibis#$run_name#"
+-pg <prefix>
+    pass profiling flags on to java, use <prefix> for the result file
+-p <prefix>
+    pass different profiling flags on to java, use <prefix> for the result file
+-key <key>
+    use the specified key to identify this run with the nameserver
+-?
+    print this message
+--
+    terminates the parameters for run-ibis; following parameters are passed
+    on to java, even if they would be acceptable to run-ibis
+EOF
 	exit 1
 }
 
