@@ -85,6 +85,11 @@ public class SuffixTree {
         root.print( s, text, 0 );
     }
 
+    private void print( PrintStream s, Node n )
+    {
+        n.print( s, text, 0 );
+    }
+
     public void test() throws VerificationException
     {
         root.test();
@@ -100,7 +105,8 @@ public class SuffixTree {
 
             Node l = t.getLongestRepeat();
 
-            System.out.println( "Longest repeat: " + l );
+            System.out.println( "Longest repeat: " );
+            t.print( System.out, l );
         }
         catch( Exception x )
         {
