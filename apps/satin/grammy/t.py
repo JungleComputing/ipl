@@ -1,17 +1,20 @@
-def sort1( text, start, end, offset ):
+def sort1( text, indices, offset ):
+    """ Returns an index and commonality array sorted by the character
+    at the given offset."""
     slot = 256*[-1]
     prev = 256*[-1]
     # For now we leve the range up to start unused.
-    next = end*[-1]
+    next = len(text)*[-1]
 
     # Fill the hash buckets
-    for i in range( start, end ):
-        ix = text[i+offset]
-        if prev[ix] == -1:
-            slot[ix] = i
-        else:
-            next[prev[ix]] = i
-        prev[ix] = i
+    for i in indices:
+        if i+offset<len( text ):
+            ix = text[i+offset]
+            if prev[ix] == -1:
+                slot[ix] = i
+            else:
+                next[prev[ix]] = i
+            prev[ix] = i
     res = []
     comm = []
     for i in slot:
@@ -26,13 +29,32 @@ def sort1( text, start, end, offset ):
     return (res, comm)
 
 def sort( text ):
-    return sort1( text, 0, len( text ), 0 )
+    """ Returns the fully sorted text."""
+    (indices,comm) = sort1( text, range( len( text ) ), 0 )
+    indices1 = []
+    comm1 = []
+    ix = 0
+    while ix<len( indices ):
+        start = ix
+        ix = ix+1
+        while ix<len( indices ) and comm[ix] == 1:
+            ix = ix+1
+        print "range: %d:%d" % ( start, ix )
+        (i1,c1) = sort1( text, indices[start:ix], 1 )
+        if len( c1 ) != 0:
+            c1[0] = comm[start]
+        indices1 += i1
+        comm1 += c1
+    return( indices1, comm1 )
+
+def sort2( text ):
+    l = range( len( text ) )
+    return sort1( text, l, 0 )
 
 text = [0, 1, 0, 1, 2, 3, 3, 4, 2, 1, 0, 1, 2]
+#(ix,comm) = sort2( text )
 (ix,comm) = sort( text )
 
-print comm
+print "Commonality:", comm
 for i in ix:
     print "%s: %s" % (i, text[i:])
-
-
