@@ -31,6 +31,8 @@ Java_ibis_impl_messagePassing_ByteInputStream_lockedRead(
     int		rd;
     ibp_msg_p	msg = (ibp_msg_p)(*env)->GetIntField(env, this, fld_msgHandle);
 
+    ibmp_lock_check_owned(env);
+
     assert(msg != NULL);
 
     IBP_VPRINTF(250, env, ("Consume 1 int from msg %p, currently holds %d\n",
@@ -47,23 +49,27 @@ Java_ibis_impl_messagePassing_ByteInputStream_lockedRead(
 
 
 JNIEXPORT jlong JNICALL
-Java_ibis_impl_messagePassing_ByteInputStream_skip(
+Java_ibis_impl_messagePassing_ByteInputStream_nSkip(
 	JNIEnv *env,
 	jobject this,
 	jlong len)
 {
     ibp_msg_p	msg = (ibp_msg_p)(*env)->GetIntField(env, this, fld_msgHandle);
 
+    ibmp_lock_check_owned(env);
+
     return (jlong)ibp_consume(env, msg, NULL, (int)len);
 }
 
 
 JNIEXPORT jint JNICALL
-Java_ibis_impl_messagePassing_ByteInputStream_available(
+Java_ibis_impl_messagePassing_ByteInputStream_nAvailable(
 	JNIEnv *env,
 	jobject this)
 {
     ibp_msg_p	msg = (ibp_msg_p)(*env)->GetIntField(env, this, fld_msgHandle);
+
+    ibmp_lock_check_owned(env);
 
     return (jint)ibp_msg_consume_left(msg);
 }
@@ -78,6 +84,8 @@ Java_ibis_impl_messagePassing_ByteInputStream_resetMsg(
     /* This CANNOT be field_msgHandle because we are not sure the fragment
      * that clears us is actually the current fragment */
     ibp_msg_p	msg = (ibp_msg_p)msgHandle;
+
+    ibmp_lock_check_owned(env);
 
     IBP_VPRINTF(250, env, ("clear MP msg %p\n", msg));
     ibp_msg_clear(env, msg);
@@ -213,6 +221,8 @@ Java_ibis_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
     \
     assert(msg != NULL); \
     \
+    ibmp_lock_check_owned(env); \
+    \
     IBP_VPRINTF(500, env, ("ByteIS %p Start consume %d %s from msg %p, currently holds %d\n", \
 		this, (int)len, #JType, msg, \
 		ibp_msg_consume_left(msg))); \
@@ -260,6 +270,8 @@ Java_ibis_impl_messagePassing_ByteInputStream_getInputStreamMsg(
     void       *proto;
     ibmp_byte_stream_hdr_p hdr;
     int		sender;
+
+    ibmp_lock_check_owned(env);
 
     msg = ibmp_msg_q_deq(&proto);
 

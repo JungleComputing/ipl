@@ -49,8 +49,26 @@ final class ByteInputStream
 	return x;
     }
 
-    public native long skip(long n);
-    public native int available();
+    private native long nSkip(long n);
+    private native int nAvailable();
+
+    public long skip(long n) {
+	Ibis.myIbis.lock();
+	try {
+	    return nSkip(n);
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
+    }
+
+    public int available() {
+	Ibis.myIbis.lock();
+	try {
+	    return nAvailable();
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
+    }
 
     native static void resetMsg(int msgHandle);
 
