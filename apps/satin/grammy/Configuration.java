@@ -12,7 +12,7 @@ interface Configuration {
 
     static final boolean traceIntermediateGrammars = false;
     static final boolean traceSelectedSteps = true;
-    static final boolean traceCompressionSteps = true;
+    static final boolean traceCompressionSteps = false;
 
     static final boolean doVerification = false;
 };
