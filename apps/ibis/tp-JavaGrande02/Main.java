@@ -238,7 +238,7 @@ final class Main {
 				} else if (args[i].equals("-array")) { 
 					array = true;
 					i++;
-					tests += 3;
+					tests += 4;
 				} else if (args[i].equals("-objectarray")) { 
 					oarray = true;
 					i++;
@@ -337,6 +337,17 @@ final class Main {
 
 					time = runTest(rport, sport, count, retries, data, one_way, stream);
 					System.out.println("int[" + alen + "] = " + tp((one_way ? arraysize*count : 2*arraysize*count), time) + " MBytes/sec.");
+
+
+
+					alen = arraysize/8;
+					data = new long[alen];								
+					if (verbose) { 
+						System.out.println("starting long[" + alen + "] test");
+					} 
+
+					time = runTest(rport, sport, count, retries, data, one_way, stream);
+					System.out.println("long[" + alen + "] = " + tp((one_way ? arraysize*count : 2*arraysize*count), time) + " MBytes/sec.");
 
 					alen = arraysize/8;
 					data = new double[alen];				
