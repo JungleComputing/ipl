@@ -3,6 +3,11 @@ package ibis.connect.socketFactory;
 
 public abstract class SocketType
 {
+
+    public interface ConnectProperties {
+	public String getProperty(String name);
+    }
+
     private String socketTypeName = null;
     protected SocketType(String name)
     {

@@ -20,6 +20,7 @@ import java.lang.reflect.Constructor;
 
 import ibis.connect.util.MyDebug;
 
+
 /* A generalized SocketFactory which supports:
    -- client/server connection scheme
    -- brokered connections through a control link
@@ -31,10 +32,10 @@ public class ExtSocketFactory
      */
     private static Vector types = new Vector();
 
-    /** Map which converts a SocketType name into
+    /** Map which converts a SocketType nicknames into
      * the class name which implements it.
      */
-    private static Hashtable typesTable = new Hashtable();
+    private static Hashtable nicknames = new Hashtable();
 
     private static SocketType defaultClientServer = null;
     private static SocketType defaultBrokeredLink = null;
@@ -66,20 +67,19 @@ public class ExtSocketFactory
 	    System.out.println("# ### ExtSocketFactory: starting configuration.");
 	
 	// init types table
-	typesTable.put("PlainTCP", 
-		       "ibis.connect.socketFactory.PlainTCPSocketType");
-	typesTable.put("TCPSplice",
-		       "ibis.connect.tcpSplicing.TCPSpliceSocketType");
-	typesTable.put("RoutedMessages", 
-		       "ibis.connect.routedMessages.RoutedMessagesSocketType");
+	nicknames.put("PlainTCP", 
+		      "ibis.connect.socketFactory.PlainTCPSocketType");
+	nicknames.put("TCPSplice",
+		      "ibis.connect.tcpSplicing.TCPSpliceSocketType");
+	nicknames.put("RoutedMessages", 
+		      "ibis.connect.routedMessages.RoutedMessagesSocketType");
+	nicknames.put("parallelstreams",
+		      "ibis.connect.parallelStreams.ParallelStreamsSocketType");
 
 	Properties p = System.getProperties();
 	String bl = p.getProperty("ibis.connect.data_links");
 	String cs = p.getProperty("ibis.connect.control_links");
-	if(bl != null && cs != null) {
-	    defaultClientServer = loadSocketType(cs);
-	    defaultBrokeredLink = loadSocketType(bl);
-	} else {
+	if(bl == null || cs == null) {
 	    if(MyDebug.VERBOSE())
 		System.out.println("# Loading defaults...");
 	    for(int i=0; i<defaultTypes.length; i++)
@@ -87,8 +87,16 @@ public class ExtSocketFactory
 		    String n = defaultTypes[i];
 		    loadSocketType(n);
 		}
-	    defaultClientServer = findClientServerType();
+	}
+	if(bl == null) {
 	    defaultBrokeredLink = findBrokeredType();
+	} else {
+	    defaultBrokeredLink = loadSocketType(bl);
+	}
+	if(cs == null) {
+	    defaultClientServer = findClientServerType();
+	} else {
+	    defaultClientServer = loadSocketType(cs);
 	}
 	if(MyDebug.VERBOSE()) {
 	    System.out.println("# Default for client-server: " +
@@ -117,11 +125,11 @@ public class ExtSocketFactory
     {
 	SocketType t = null;
 	Constructor cons;
-	String className = (String)typesTable.get(socketType);
+	String className = (String)nicknames.get(socketType);
 	if(className == null) {
 	    System.out.println("# ExtSocketFactory: socket type "+socketType+" not found.");
 	    System.out.println("#   known types are:");
-	    Enumeration e = typesTable.keys();
+	    Enumeration e = nicknames.keys();
 	    while(e.hasMoreElements()) {
 		System.out.println((String)e.nextElement());
 	    }
@@ -196,14 +204,13 @@ public class ExtSocketFactory
 	return s;
     }
 
-    // Data connections: when a service link is available
-    public static Socket createBrokeredSocket(InputStream in, OutputStream out, boolean hintIsServer)
+    private static Socket createBrokeredSocket(InputStream in, OutputStream out,
+					       boolean hintIsServer,
+					       SocketType t,
+					       SocketType.ConnectProperties props)
 	throws IOException
     {
 	Socket s = null;
-	SocketType t = defaultBrokeredLink;
-	if(t == null)
-	    throw new Error("no socket type found!");
 	BrokeredSocketFactory f = null;
 	try {
 	    f = (BrokeredSocketFactory)t;
@@ -213,7 +220,43 @@ public class ExtSocketFactory
 			       " does not support brokered connection establishment.");
 	    throw new Error(e);
 	}
-	s = f.createBrokeredSocket(in, out, hintIsServer);
+	s = f.createBrokeredSocket(in, out, hintIsServer, props);
+	return s;
+    }
+
+    // Data connections: when a service link is available
+    public static Socket createBrokeredSocket(InputStream in, OutputStream out,
+					      boolean hintIsServer)
+	throws IOException
+    {
+	SocketType t = defaultBrokeredLink;
+	if(t == null)
+	    throw new Error("no socket type found!");
+	return createBrokeredSocket(in, out, hintIsServer, t, null);
+    }
+
+    public static Socket createBrokeredSocket(InputStream in, OutputStream out,
+					      boolean hintIsServer,
+					      SocketType.ConnectProperties props)
+	throws IOException
+    {
+	SocketType t = null;
+	String st = null;
+	Socket s;
+	if(props != null) {
+	    st = props.getProperty("SocketType");
+	}
+	if(st == null) {
+	    s = createBrokeredSocket(in, out, hintIsServer);
+	} else {
+	    if(MyDebug.VERBOSE()) {
+		System.err.println("# Selected socket type: "+st+" through properties.");
+	    }
+	    t = findSocketType(st);
+	    if(t == null)
+		throw new Error("Socket type not found: "+st);
+	    s = createBrokeredSocket(in, out, hintIsServer, t, props); 
+	}
 	return s;
     }
 
@@ -250,6 +293,19 @@ public class ExtSocketFactory
 	    s = type.createClientSocket(raddr, rport);
 	}
 	return s;
+    }
+
+    // TODO: ugly code. This should use a Hashtable.
+    private static synchronized SocketType findSocketType(String name)
+    {
+	SocketType t = null;
+	for(int i=0; i<types.size(); i++)
+	    {
+		t = (SocketType)types.get(i);
+		if(t.getSocketTypeName().equalsIgnoreCase(name))
+		    return t;
+	    }
+	return loadSocketType(name);
     }
 
     private static synchronized SocketType findClientServerType()

@@ -10,6 +10,8 @@ import java.net.InetAddress;
 
 public interface BrokeredSocketFactory
 {
-    public Socket createBrokeredSocket(InputStream in, OutputStream out, boolean hintIsServer)
+    public Socket createBrokeredSocket(InputStream in, OutputStream out,
+				       boolean hintIsServer,
+				       SocketType.ConnectProperties p)
 	throws IOException;
 }
