@@ -26,7 +26,9 @@ if [ -z $LFC_INTR_FIRST ] ; then
 	export LFC_INTR_FIRST=100
 fi
 if [ -z $IBP_SEND_SYNC ] ; then
-	export IBP_SEND_SYNC=10000 
+# this can deadlock, just use 0 for now...
+#	export IBP_SEND_SYNC=10000
+	export IBP_SEND_SYNC=0
 fi
 if [ -z $PAN_COMM_NO_IDLE_POLL ] ; then
 	export PAN_COMM_NO_IDLE_POLL=1
