@@ -6,7 +6,7 @@
 ]>
 
 <project
-    name="ibis.apps.ibis.benchmarks.rpc"
+    name="ibis.apps.ibis.benchmarks.mcast"
     default="build"
     basedir=".">
 

@@ -1,0 +1,24 @@
+<!DOCTYPE project [
+    <!ENTITY ibisAppProperties SYSTEM "../../../../build-ibis-app.xml">
+    <!ENTITY sharedProperties SYSTEM "../../../../../../build-properties.xml">
+    <!ENTITY iogenTargets     SYSTEM "../../../../../../build-iogen.xml">
+    <!ENTITY nativeTargets    SYSTEM "../../../../../../build-native.xml">
+]>
+
+<project
+    name="ibis.apps.ibis.benchmarks.new.list.normal"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis application build.
+    </description>
+
+    <property name="ibis"        location="../../../../../.."/>
+    <property name="build"       location="build"/>
+
+    &ibisAppProperties;
+
+</project>
+
+
