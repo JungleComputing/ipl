@@ -10,8 +10,16 @@ import java.util.NoSuchElementException;
 
 /**
  * The <code>PoolInfo</code> class provides a utility for finding out
- * information about the nodes involved in the run.
- * It depends on the following system properties:
+ * information about the nodes involved in a closed-world run.
+ * This class can be used when the names of the nodes involved in the
+ * run are known in advance, and can be given in the
+ * <code>ibis.pool.host_names</code> property.
+ * If these names are not known in advance, a {@link ibis.util.PoolInfoClient
+ * PoolInfoClient} can be used instead. The
+ * {@link ibis.util.PoolInfo#createPoolInfo createPoolInfo} static method
+ * can be used to take care of this automatically.
+ * <br>
+ * The <code>PoolInfo</code> class depends on the following system properties:
  * <br>
  * <pre>ibis.pool.total_hosts</pre>
  * must contain the total number of hosts involved in the run.
@@ -20,7 +28,7 @@ import java.util.NoSuchElementException;
  * must contain a space-separated list of hostnames.
  * The number of hostnames in the list must at least be equal to
  * the number of hosts involved in the run as given by the
- * <pre>ibis.pool.total_hosts</pre> property. Any additional host names
+ * <code>ibis.pool.total_hosts</code> property. Any additional host names
  * are ignored.
  * <br>
  * <pre>ibis.pool.host_number</pre>
@@ -328,5 +336,20 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 	 */
 	public static PoolInfo createPoolInfo() throws IbisException {
 		return createPoolInfo(false);
+	}
+
+	/**
+	 * Returns a string representation of the information in this
+	 * <code>PoolInfo</code>.
+	 * @return a string representation.
+	 */
+	public String toString() {
+	    String result = "pool info: size = " + total_hosts +
+		"; my rank is " + host_number + "; host list:\n";
+	    for (int i = 0; i < total_hosts; i++) {
+		result += i + ": address= " + hosts[i] + 
+		    " cluster=" + clusterName + "\n";
+	    }
+	    return result;
 	}
 }

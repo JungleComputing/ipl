@@ -9,9 +9,18 @@ import java.io.DataOutputStream;
 
 /**
  * The <code>PoolInfoClient</code> class provides a utility for finding out
- * information about the nodes involved in the run. It is a client for a
+ * information about the nodes involved in a closed-world run.
+ * It is a client for a
  * {@link ibis.util.PoolInfoServer PoolInfoServer}.
- * It depends on the following system properties:
+ * The best way to access pool information is to obtain a
+ * {@link ibis.util.PoolInfo PoolInfo} by means of the
+ * {@link ibis.util.PoolInfo#createPoolInfo PoolInfo.createPoolInfo} static
+ * method. This is the most flexible, only creating a
+ * <code>PoolInfoClient</code> when a more knowledgeable <code>PoolInfo</code>
+ * cannot be created.
+ * <br>
+ * The <code>PoolInfoClient</code> class depends on the following
+ * system properties:
  * <br>
  * <pre>ibis.pool.total_hosts</pre>
  * must be present, and contain the total number of hosts involved in the run.
@@ -125,35 +134,28 @@ public class PoolInfoClient extends PoolInfo {
     }
 
     /**
-     * Returns the cluster name for the current host.
-     * @return the cluster name.
+     * {@inheritDoc}
      */
     public String clusterName() {
 	return host_clusters[host_number];
     }
 
     /**
-     * Returns the cluster name for the host specified by the rank number.
-     * @param rank the rank number.
-     * @return the cluster name.
+     * {@inheritDoc}
      */
     public String clusterName(int rank) {
 	return host_clusters[rank];
     }
 
     /**
-     * Returns an array of cluster names, one for each host involved in
-     * the run.
-     * @return the cluster names
+     * {@inheritDoc}
      */
     public String[] clusterNames() {
 	return (String[]) host_clusters.clone();
     }
 
     /**
-     * Returns a string representation of the information in this
-     * <code>PoolInfoClient</code>.
-     * @return a string representation.
+     * {@inheritDoc}
      */
     public String toString() {
 	String result = "pool info: size = " + total_hosts +
