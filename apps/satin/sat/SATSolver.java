@@ -152,6 +152,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	}
 
         boolean firstvar = ctx.posDominant( nextvar );
+
         if( level>30 || ctx.unsatisfied<100 || !needMoreJobs() ){
 	    // We're nearly there, use the leaf solver.
 	    // We have variable 'nextvar' to branch on.
@@ -185,7 +186,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      */
     static public SATSolution solveSystem( final SATProblem p )
     {
-	SATSolution res = null;
+        SATSolution res = null;
+	long startTime = 0;
 
 	if( p.isConflicting() ){
 	    return null;
@@ -230,6 +232,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
+
+	    startTime = System.currentTimeMillis();
             s.solve( 0, negctx, nextvar, firstvar );
             s.solve( 0, ctx, nextvar, !firstvar );
             s.sync();
@@ -245,6 +249,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             System.err.println( "Uncaught " + x + "???" );
         }
 
+	long endTime = System.currentTimeMillis();
+	double time = ((double) (endTime - startTime))/1000.0;
+
+	System.out.println( "Parallel caclulation Time: " + time );
 	return res;
     }
 

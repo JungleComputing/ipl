@@ -109,7 +109,7 @@ public class IbisSocketFactory {
 				    s.close();
 				}
 
-System.err.println("Socket connect hits " + e1);
+//System.err.println("Socket connect hits " + e1);
 
 				if(timeoutMillis < 0) {
 					throw new ConnectionTimedOutException("" + e1);

@@ -10,7 +10,9 @@ final class MinimumUpdater implements ActiveTuple {
 
 	public void handleTuple(String key) {
 		if(min < Tsp.minimum) {
-//			System.err.println("updating min to " + min);
+			if(Tsp.verbose) {
+				System.err.println("updating min to " + min);
+			}
 			Tsp.minimum = min;
 		}
 	}
