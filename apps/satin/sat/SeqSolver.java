@@ -34,13 +34,15 @@ public final class SeqSolver {
      * @param ctx The changable context of the solver.
      * @param var The next variable to assign.
      * @param val The value to assign.
+     * @param learnTuple Propagate any learned clauses as active tuple?
      */
     public void leafSolve(
 	int level,
 	SATProblem p,
 	SATContext ctx,
 	int var,
-	boolean val
+	boolean val,
+        boolean learnTuple
     ) throws SATResultException, SATRestartException
     {
         ctx.update( p );
@@ -50,10 +52,10 @@ public final class SeqSolver {
 	}
 	int res;
 	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level, false );
+	    res = ctx.propagatePosAssignment( p, var, level, learnTuple );
 	}
 	else {
-	    res = ctx.propagateNegAssignment( p, var, level, false );
+	    res = ctx.propagateNegAssignment( p, var, level, learnTuple );
 	}
 	if( res == SATProblem.CONFLICTING ){
 	    if( traceSolver ){
@@ -87,7 +89,7 @@ public final class SeqSolver {
 	boolean firstvar = ctx.posDominant( nextvar );
 	SATContext subctx = (SATContext) ctx.clone();
         try {
-            leafSolve( level+1, p, subctx, nextvar, firstvar );
+            leafSolve( level+1, p, subctx, nextvar, firstvar, learnTuple );
         }
         catch( SATRestartException x ){
 	    if( x.level<level ){
@@ -101,7 +103,7 @@ public final class SeqSolver {
 	// give it to the recursion.
         // However, we must update the administration with any
         // new clauses that we've learned recently.
-	leafSolve( level+1, p, ctx, nextvar, !firstvar );
+	leafSolve( level+1, p, ctx, nextvar, !firstvar, learnTuple );
     }
 
     /**
@@ -110,7 +112,7 @@ public final class SeqSolver {
      * @param p The problem to solve.
      * @return a solution of the problem, or <code>null</code> if there is no solution
      */
-    SATSolution solveSystem( final SATProblem p )
+    SATSolution solveSystem( final SATProblem p, boolean learnTuple )
     {
 	SATSolution res = null;
 
@@ -156,7 +158,7 @@ public final class SeqSolver {
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
             try {
-                leafSolve( 0, p, negctx, nextvar, firstvar );
+                leafSolve( 0, p, negctx, nextvar, firstvar, learnTuple );
             }
             catch( SATRestartException x ){
                 if( x.level<0 ){
@@ -166,7 +168,7 @@ public final class SeqSolver {
                     return null;
                 }
             }
-            leafSolve( 0, p, ctx, nextvar, !firstvar );
+            leafSolve( 0, p, ctx, nextvar, !firstvar, learnTuple );
 	}
 	catch( SATResultException r ){
 	    res = r.s;
@@ -211,7 +213,7 @@ public final class SeqSolver {
 	p.report( System.out );
         SeqSolver s = new SeqSolver();
 	long startTime = System.currentTimeMillis();
-	SATSolution res = s.solveSystem( p );
+	SATSolution res = s.solveSystem( p, false );
 
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;

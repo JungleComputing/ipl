@@ -78,8 +78,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
 	}
-        // We must update the administration with any
-        // new clauses that we've learned recently.
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var, level, learnTuple );
@@ -103,7 +101,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    if( !p.isSatisfied( ctx.assignment ) ){
 		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
 	    }
-	    System.err.println("THROW RESULT");
 	    throw new SATResultException( s );
 	}
 	int nextvar = ctx.getDecisionVariable();
@@ -131,8 +128,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         }
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
-	// Also note that this call is a perfect candidate for tail
-	// call elimination.
 	leafSolve( level+1, ctx, nextvar, !firstvar, learnTuple );
     }
 
@@ -305,7 +300,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             s.sync();
 	}
 	catch( SATResultException r ){
-	    System.err.println("IN ROOT RESULT INLET");
 	    res = r.s;
 	    s.abort();
 	    if( res == null ){
@@ -314,7 +308,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             return res;
 	}
         catch( SATRestartException x ){
-	    System.err.println("IN ROOT RESTART INLET");
             if( traceRestarts ){
                 System.err.println( "RestartException reaches top level. Waiting for the termination of all jobs." );
             }
@@ -359,7 +352,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	ibis.satin.SatinObject.resume();
 
 	long startTime = System.currentTimeMillis();
-	SATSolution res = solveSystem( p, true );
+	SATSolution res = solveSystem( p, false );
 
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
