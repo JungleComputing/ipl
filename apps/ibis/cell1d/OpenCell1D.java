@@ -256,21 +256,23 @@ class OpenCell1D implements OpenConfig {
         m.finish();
     }
 
-    private static int receive( ReceivePort p, byte data[] )
+    private static void receive( ReceivePort p, byte data[] )
         throws java.io.IOException
     {
         if( data == null ){
             System.err.println( "P" + me + ": cannot receive from " + p + " into a null array" );
-            return -1;
+            return;
         }
         if( traceCommunication ){
             System.out.println( myName.name() + ": receiving on port " + p );
         }
         ReadMessage m = p.receive();
         int gen = m.readInt();
+        if( gen>=0 && OpenCell1D.generation<0 ){
+            OpenCell1D.generation = gen;
+        }
         m.readArray( data );
         m.finish();
-        return gen;
     }
 
     public static void main( String [] args )
@@ -467,18 +469,10 @@ class OpenCell1D implements OpenConfig {
                 }
                 else {
                     if( rightReceivePort != null ){
-                        int gen = receive( rightReceivePort, board[firstNoColumn] );
-                        if( gen>0 && generation<0  ){
-                            // We now know at which generation we are.
-                            generation = gen;
-                        }
+                        receive( rightReceivePort, board[firstNoColumn] );
                     }
                     if( leftReceivePort != null ){
-                        int gen = receive( leftReceivePort, board[firstColumn-1] );
-                        if( gen>0 && generation<0  ){
-                            // We now know at which generation we are.
-                            generation = gen;
-                        }
+                        receive( leftReceivePort, board[firstColumn-1] );
                     }
                     if( rightSendPort != null ){
                         if( aimFirstNoColumn>=firstColumn && aimFirstNoColumn<firstNoColumn ){
