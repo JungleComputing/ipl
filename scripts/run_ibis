@@ -13,7 +13,8 @@ fi
 JAVACLASSPATH=$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:
 
 #needed for ibm 1.3 JITs and SMPs
-export LD_ASSUME_KERNEL=2.2.5
+#does not work anymore --Rob
+#export LD_ASSUME_KERNEL=2.2.5
 
 #disable panda interrupts
 #export IBP_NO_INTR=1
