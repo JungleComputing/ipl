@@ -3,8 +3,9 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 	static final int
 		NSQRT		= 4,
 		NPUZZLE		= NSQRT * NSQRT - 1,
-	        BRANCH_FACTOR	= 4; // first move may be in four directions!
-
+	        BRANCH_FACTOR	= 4, // first move may be in four directions!
+	        THRESHOLD       = 10; // Spawn the top n levels. Higher is more spawns.
+	
 	static void Move(Job j, int dx, int dy, Game puzzle) {
 		int x, y, v;
 
@@ -55,6 +56,9 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		return n;
 	}
 
+	public int spawn_Expand(Job job, Game puzzle) {
+		return Expand(job, puzzle);
+	}
 
 	public int Expand(Job job, Game puzzle) {
 		int mine, child;
@@ -70,18 +74,24 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		jobs[0] = job;
 		child = MakeMoves(jobs, puzzle);
 
-		int[] solutionsArray = new int[child];
-
-		for(int i=1; i<=child; i++) {
-			solutionsArray[i-1] = Expand(jobs[i], puzzle);
+                if(job.origBound - job.bound > THRESHOLD) {
+                        for(int i=1; i<=child; i++) {
+                                solutions += Expand(jobs[i], puzzle);
+                        }
+		} else {
+			int[] solutionsArray = new int[child];
+			
+			for(int i=1; i<=child; i++) {
+				solutionsArray[i-1] = spawn_Expand(jobs[i], puzzle);
+			}
+			
+			sync();
+			
+			for(int i=0; i<child; i++) {
+				solutions += solutionsArray[i];
+			}
 		}
-
-		sync();
-
-		for(int i=0; i<child; i++) {
-			solutions += solutionsArray[i];
-		}
-
+		
 		return solutions;
 	}
 
@@ -158,6 +168,7 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 			System.out.print(bound + " ");
 			System.out.flush();
 			j.bound = bound;
+			j.origBound = bound;
 			solutions = ida.Expand(j, puzzle);
 			ida.sync();
 

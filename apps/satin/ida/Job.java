@@ -2,6 +2,7 @@ final class Job implements java.io.Serializable {
 	private byte[] board;
 	int distance;
 	int bound;
+	int origBound;
 	int blankX, blankY;
 	int prevDx, prevDy;
 
@@ -16,6 +17,7 @@ final class Job implements java.io.Serializable {
 		System.arraycopy(j.board, 0, board, 0, Ida.NSQRT * Ida.NSQRT);
 		distance = j.distance;
 		bound = j.bound;
+		origBound = j.origBound;
 		blankX = j.blankX;
 		blankY = j.blankY;
 		prevDx = j.prevDx;
