@@ -57,6 +57,7 @@ public class SOR {
     private boolean	reduceAlways;
     private boolean	async;
     private boolean	upcall;
+    private int		itersPerReduce;
 
     private int size;
     private int rank;        /* process ranks */
@@ -98,7 +99,8 @@ public class SOR {
     private boolean finished = false;
 
 
-    SOR(int N, int maxIters, boolean reduceAlways, boolean async, boolean upcall)
+    SOR(int N, int maxIters, boolean reduceAlways, boolean async,
+	    boolean upcall, int itersPerReduce)
 	    throws IOException, IbisException {
 
 	info = PoolInfo.createPoolInfo();
@@ -124,6 +126,7 @@ public class SOR {
 	this.reduceAlways = reduceAlways;
 	this.async = async;
 	this.upcall = upcall;
+	this.itersPerReduce = itersPerReduce;
 
 	rank = info.rank();
 	size = info.size();
@@ -726,13 +729,13 @@ public class SOR {
     private void receive() throws IOException {
 	if (TIMINGS) t_communicate.start();
 
-	if (rank != 0) {
-	    receive(PREV, g[lb-1]);
-// System.err.println(rank + ": R[" + (lb - 1) + "]");
-	}
 	if (rank != size-1) {
 	    receive(NEXT, g[ub]);
 // System.err.println(rank + ": R[" + ub + "]");
+	}
+	if (rank != 0) {
+	    receive(PREV, g[lb-1]);
+// System.err.println(rank + ": R[" + (lb - 1) + "]");
 	}
 
 	if (TIMINGS) t_communicate.stop();
@@ -808,8 +811,10 @@ public class SOR {
 
 	int iteration = 0;
 
+	maxdiff = Double.MAX_VALUE;
 	do {
-	    maxdiff = 0.0;
+	    double diff = Double.MAX_VALUE;
+
 	    for (int color = 0; color < 2 ; color++){
 		if (async) {
 		    send();
@@ -818,21 +823,23 @@ public class SOR {
 		}
 
 		if (async) {
-		    maxdiff = Math.max(maxdiff, compute(color, lb + 1, ub - 1));
+		    diff = compute(color, lb + 1, ub - 1);
 
 		    receive();
 
-		    maxdiff = Math.max(maxdiff, compute(color, lb, lb + 1));
-		    maxdiff = Math.max(maxdiff, compute(color, ub - 1, ub));
+		    diff = Math.max(diff, compute(color, lb, lb + 1));
+		    diff = Math.max(diff, compute(color, ub - 1, ub));
 
 		} else {
-		    maxdiff = Math.max(maxdiff, compute(color, lb, ub));
+		    diff = compute(color, lb, ub);
 		}
 	    }
 // System.err.print(rank + " ");
 
-	    if (size > 1 && (maxIters < 0 || reduceAlways)) {
-		maxdiff = reduce(maxdiff);
+	    if (size > 1
+		    && (maxIters < 0 || reduceAlways)
+		    && ((iteration + 1) % itersPerReduce == 0)) {
+		maxdiff = reduce(diff);
 	    }
 
 	    if (rank==0) {
@@ -879,6 +886,7 @@ public class SOR {
 	    boolean reduce = true;
 	    boolean async = false;
 	    boolean upcall = false;
+	    int itersPerReduce = 1;
 
 	    int options = 0;
 	    for (int i = 0; i < args.length; i++) {
@@ -899,6 +907,9 @@ public class SOR {
 		    async = false;
 		} else if (args[i].equals("-upcall")) {
 		    upcall = false;
+		} else if (args[i].equals("-reduce-fac")) {
+		    ++i;
+		    itersPerReduce = Integer.parseInt(args[i]);
 		} else if (options == 0) {
 		    N = Integer.parseInt(args[i]);
 		    N += 2;
@@ -912,7 +923,8 @@ public class SOR {
 		}
 	    }
 
-	    SOR sor = new SOR(N, maxIters, reduce, async, upcall);
+	    SOR sor = new SOR(N, maxIters, reduce, async, upcall,
+			      itersPerReduce);
 	    if (warmup) {
 		sor.start("warmup");
 	    }
