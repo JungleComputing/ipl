@@ -428,16 +428,21 @@ KARMI=${karmi}
 	</concat>
 	<chmod file="${ibis}/bin/satinc" perm="+x"/>
 
-	<concat destfile="${ibis}/bin/run_ibis">
-	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run_ibis" />
-	</concat>
 	<if>
-	    <os family="mac"/>
+	    <available file="src/scripts/run_ibis"/>
 	    <then>
-		<replace file="${ibis}/bin/run_ibis" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
+		<concat destfile="${ibis}/bin/run_ibis">
+		    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run_ibis" />
+		</concat>
+		<if>
+		    <os family="mac"/>
+		    <then>
+			<replace file="${ibis}/bin/run_ibis" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
+		    </then>
+		</if>
+		<chmod file="${ibis}/bin/run_ibis" perm="+x"/>
 	    </then>
 	</if>
-	<chmod file="${ibis}/bin/run_ibis" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/extract_jars">
 	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/extract_jars" />
@@ -449,10 +454,15 @@ KARMI=${karmi}
 	</concat>
 	<chmod file="${ibis}/bin/tree_ioc" perm="+x"/>
 
-	<concat destfile="${ibis}/bin/run_ibis_wide_area">
-	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run_ibis_wide_area" />
-	</concat>
-	<chmod file="${ibis}/bin/run_ibis_wide_area" perm="+x"/>
+	<if>
+	    <available file="src/scripts/run_ibis_wide_area"/>
+	    <then>
+		<concat destfile="${ibis}/bin/run_ibis_wide_area">
+		    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run_ibis_wide_area" />
+		</concat>
+		<chmod file="${ibis}/bin/run_ibis_wide_area" perm="+x"/>
+	    </then>
+	</if>
 
 	<!--
 	    Right for now, this is used only by me = RFHH so I choose values
@@ -460,16 +470,21 @@ KARMI=${karmi}
 	    become a configuration thingy whenever other peope also want to
 	    use run-das
 	-->
-	<concat destfile="${ibis}/bin/run-das">
-	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run-das" />
-	</concat>
 	<if>
-	    <os family="mac"/>
+	    <available file="src/scripts/run-das"/>
 	    <then>
-		<replace file="${ibis}/bin/run-das" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
+		<concat destfile="${ibis}/bin/run-das">
+		    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run-das" />
+		</concat>
+		<if>
+		    <os family="mac"/>
+		    <then>
+			<replace file="${ibis}/bin/run-das" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
+		    </then>
+		</if>
+		<chmod file="${ibis}/bin/run-das" perm="+x"/>
 	    </then>
 	</if>
-	<chmod file="${ibis}/bin/run-das" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/run-ibis">
 	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run-ibis" />
@@ -503,42 +518,62 @@ KARMI=${karmi}
 		token="#"
 		value="rem "/>
 
-	<copy
-		overwrite="true"
-		file="${ibis}/src/scripts/cluster_wrapper.in"
-		tofile="${ibis}/bin/cluster_wrapper">
-	    <filterchain>
-		<filterreader
-			classname="org.apache.tools.ant.filters.ReplaceTokens">
-		    <param  type="token"
-			    name="IBIS_INSTALL_PATH"
-			    value="${ibis}"/>
-		    <param  type="token"
-			    name="JAVA"
-			    value="${JAVA_HOME_ENV}"/>
-		</filterreader>
-	    </filterchain>
-	</copy>
-	<replace
-		file="${ibis}/bin/cluster_wrapper"
-		token="${file.separator}"
-		value="/"/>
-	<chmod file="${ibis}/bin/cluster_wrapper" perm="+x"/>
+	<if>
+	    <available file="src/scripts/cluster_wrapper.in"/>
+	    <then>
+		<copy
+			overwrite="true"
+			file="${ibis}/src/scripts/cluster_wrapper.in"
+			tofile="${ibis}/bin/cluster_wrapper">
+		    <filterchain>
+			<filterreader
+				classname="org.apache.tools.ant.filters.ReplaceTokens">
+			    <param  type="token"
+				    name="IBIS_INSTALL_PATH"
+				    value="${ibis}"/>
+			    <param  type="token"
+				    name="JAVA"
+				    value="${JAVA_HOME_ENV}"/>
+			</filterreader>
+		    </filterchain>
+		</copy>
+		<replace
+			file="${ibis}/bin/cluster_wrapper"
+			token="${file.separator}"
+			value="/"/>
+		<chmod file="${ibis}/bin/cluster_wrapper" perm="+x"/>
+	    </then>
+	</if>
 
-	<concat destfile="${ibis}/bin/csim_run_ibis">
-	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/csim_run_ibis" />
-	</concat>
-	<chmod file="${ibis}/bin/csim_run_ibis" perm="+x"/>
+	<if>
+	    <available file="src/scripts/csim_run_ibis"/>
+	    <then>
+		<concat destfile="${ibis}/bin/csim_run_ibis">
+		    <filelist dir="${ibis}" files="configuration.sh,src/scripts/csim_run_ibis" />
+		</concat>
+		<chmod file="${ibis}/bin/csim_run_ibis" perm="+x"/>
+	    </then>
+	</if>
 
-	<concat destfile="${ibis}/bin/csim_run_ibis_tcp">
-	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/csim_run_ibis_tcp" />
-	</concat>
-	<chmod file="${ibis}/bin/csim_run_ibis_tcp" perm="+x"/>
+	<if>
+	    <available file="src/scripts/csim_run_ibis_tcp"/>
+	    <then>
+		<concat destfile="${ibis}/bin/csim_run_ibis_tcp">
+		    <filelist dir="${ibis}" files="configuration.sh,src/scripts/csim_run_ibis_tcp" />
+		</concat>
+		<chmod file="${ibis}/bin/csim_run_ibis_tcp" perm="+x"/>
+	    </then>
+	</if>
 
-	<concat destfile="${ibis}/bin/run_ibis.bat">
-	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/run_ibis.bat" />
-	</concat>
-	<chmod file="${ibis}/bin/run_ibis.bat" perm="+x"/>
+	<if>
+	    <available file="src/scripts/run_ibis.bat"/>
+	    <then>
+		<concat destfile="${ibis}/bin/run_ibis.bat">
+		    <filelist dir="${ibis}" files="configuration.bat,src/scripts/run_ibis.bat" />
+		</concat>
+		<chmod file="${ibis}/bin/run_ibis.bat" perm="+x"/>
+	    </then>
+	</if>
 
 	<concat destfile="${ibis}/bin/run-ibis.bat">
 	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/run-ibis.bat" />

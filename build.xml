@@ -655,7 +655,7 @@
 	<delete file="configuration.bat"/>
 	<delete includeEmptyDirs="true">
 	    <fileset dir="${ibis}/apps" followsymlinks="false">
-		<include name="**/build"/>
+		<include name="**/build/**"/>
 	    </fileset>
 	</delete>
 	<delete dir="bin"/>
@@ -700,6 +700,14 @@
 	<delete file="${distr}/ibis/apps/get-speedup.perl"/>
 	<delete file="${distr}/ibis/TODO"/>
 	<delete file="${distr}/ibis/DISCUSSION_TOPICS"/>
+	<delete file="${distr}/ibis/src/scripts/csim_run_ibis"/>
+	<delete file="${distr}/ibis/src/scripts/csim_run_ibis_tcp"/>
+	<delete file="${distr}/ibis/src/scripts/run_ibis"/>
+	<delete file="${distr}/ibis/src/scripts/run_ibis.bat"/>
+	<delete file="${distr}/ibis/src/scripts/run_ibis_wide_area"/>
+	<delete file="${distr}/ibis/src/scripts/run-das"/>
+	<delete file="${distr}/ibis/src/scripts/cluster_wrapper.in"/>
+	<delete file="${distr}/ibis/src/scripts/rewrite_config"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
 	<zip destfile="ibis-src-distr.zip"
