@@ -1,12 +1,16 @@
 #!/bin/bash
 
-reserve="-reserve 724368"
-javaflags="-ip-map /home/rutger/myrinet-ip-map"
+# reserve="-reserve 748923"
+# javaflags="-ip-map /home/rutger/myrinet-ip-map"
+
+myrinet_N=1000000
+tcp_N=10000
+# tcp_N=100000
 
 n=10
 
 sers="ibis sun"
-# sers="ibis sun"
+# sers="sun"
 
 for (( i = 0; i < $n; i++ )) ; do
 
@@ -16,19 +20,19 @@ for (( i = 0; i < $n; i++ )) ; do
     if true ; then
 	for ibis in $ibises ; do
 	    for ser in $sers ; do
-		sh run-rpc $ibis $ser 1000000 0 "$reserve" "$javaflags" ""
+		sh run-rpc $ibis $ser $myrinet_N 0 "$reserve" "$javaflags" ""
 	    done
 	done
     fi
 
-    # ibises="net.tcp_blk net.gen.tcp_blk tcp"
-    ibises="tcp net.bytes.gen.tcp_blk"
+    ibises="net.tcp_blk net.gen.tcp_blk tcp"
+    # ibises="SUN"
 
     if true ; then
 	for ibis in $ibises ; do
 	    for (( j = 0; j < 5; j++ )); do
 		for ser in $sers ; do
-		    sh run-rpc $ibis $ser 10000 0 "$reserve" "$javaflags" ""
+		    sh run-rpc $ibis $ser $tcp_N 0 "$reserve" "$javaflags" ""
 		done
 	    done
 	done

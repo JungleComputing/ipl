@@ -11,13 +11,21 @@ prunflags="$5"
 javaflags="$6"
 appflags="$7"
 
-IBIS_ROOT=/home1/rutger/ibis
+IBIS_ROOT=`cd ../../..; pwd`
+
+nodes=2
+for a in $javaflags ; do
+	if [[ $a == "-ns-d" ]] ; then
+		echo Require dedicated nameserver host
+		nodes=3
+	fi
+done
 
 echo ibis = $ibis ser = $ser count = $count size = $size app-flags = \"$appflags\" java-flags = \"$javaflags\"
 prun -v -1 -pre-cleanup -no-panda -subst \
 	$prunflags \
 	IBP_SEND_SYNC=100 \
-	$IBIS_ROOT/bin/run-das 2 \
+	$IBIS_ROOT/bin/run-das $nodes \
 	$javaflags \
 	-Dibis.name=$ibis -Dibis.serialization=$ser \
 	-Dibis.mp.polls.optimistic=1000 \
