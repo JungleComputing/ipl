@@ -215,17 +215,29 @@ class GMISkeletonGenerator extends GMIGenerator {
 
 	output.println(spacing + "\t/* First - Read additional data */");
 	output.println(spacing + "\tif (invocationMode >= InvocationScheme.I_COMBINED) {");
-	output.println(spacing + "\t\tinfo = (CombinedInvocationInfo) r.readObject();");
+	output.println(spacing + "\t\ttry {");
+	output.println(spacing + "\t\t\tinfo = (CombinedInvocationInfo) r.readObject();");
+	output.println(spacing + "\t\t} catch(ClassNotFoundException e) {");
+	output.println(spacing + "\t\t\tthrow new Error(\"Expected CombinedInvocationInfo\", e);");
+	output.println(spacing + "\t\t}");
 	output.println(spacing + "\t}");
 
 	output.println(spacing + "\tif (resultMode >= ReplyScheme.R_PERSONALIZED) {");
 	output.println(spacing + "\t\tresultMode -= ReplyScheme.R_PERSONALIZED;");
-	output.println(spacing + "\t\tpersonalizer = (ReplyPersonalizer) r.readObject();");
+	output.println(spacing + "\t\ttry {");
+	output.println(spacing + "\t\t\tpersonalizer = (ReplyPersonalizer) r.readObject();");
+	output.println(spacing + "\t\t} catch(ClassNotFoundException e) {");
+	output.println(spacing + "\t\t\tthrow new Error(\"Expected ReplyPersonalizer\", e);");
+	output.println(spacing + "\t\t}");
 	output.println(spacing + "\t}");
 
 	output.println(spacing + "\tswitch (resultMode) {");
 	output.println(spacing + "\tcase ReplyScheme.R_COMBINE_BINOMIAL:");
-	output.println(spacing + "\t\tcombiner = (BinomialCombiner) r.readObject();");
+	output.println(spacing + "\t\ttry {");
+	output.println(spacing + "\t\t\tcombiner = (BinomialCombiner) r.readObject();");
+	output.println(spacing + "\t\t} catch(ClassNotFoundException e) {");
+	output.println(spacing + "\t\t\tthrow new Error(\"Expected BinomialCombiner\", e);");
+	output.println(spacing + "\t\t}");
 	output.println(spacing + "\t\t/* fall through */");
 	output.println(spacing + "\tcase ReplyScheme.R_COMBINE_FLAT:");
 	output.println(spacing + "\tcase ReplyScheme.R_FORWARD:");
