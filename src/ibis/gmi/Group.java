@@ -845,6 +845,8 @@ public final class Group implements GroupProtocol {
 			} catch (Exception e) { 
 			    throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unknown group!");  
 			} 
+			break;
+
 		    default:
 			throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unexpected answer!");  
 		    } 
