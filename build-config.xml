@@ -112,7 +112,9 @@
 		</not>
 	    </and>
 	</condition>
+	<!--
 	<echo message="config.is-das = ${config.is-das}"/>
+	-->
     </target>
 
     <target name="config-set-os" depends="config-domainname">
@@ -415,12 +417,6 @@ KARMI=${karmi}
 	<concat destfile="${ibis}/bin/jp">
 	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/jp" />
 	</concat>
-	<if>
-	    <os family="mac"/>
-	    <then>
-		<replace file="${ibis}/bin/jp" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
-	    </then>
-	</if>
 	<chmod file="${ibis}/bin/jp" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/satinc">
@@ -434,12 +430,6 @@ KARMI=${karmi}
 		<concat destfile="${ibis}/bin/run_ibis">
 		    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run_ibis" />
 		</concat>
-		<if>
-		    <os family="mac"/>
-		    <then>
-			<replace file="${ibis}/bin/run_ibis" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
-		    </then>
-		</if>
 		<chmod file="${ibis}/bin/run_ibis" perm="+x"/>
 	    </then>
 	</if>
@@ -476,12 +466,6 @@ KARMI=${karmi}
 		<concat destfile="${ibis}/bin/run-das">
 		    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run-das" />
 		</concat>
-		<if>
-		    <os family="mac"/>
-		    <then>
-			<replace file="${ibis}/bin/run-das" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
-		    </then>
-		</if>
 		<chmod file="${ibis}/bin/run-das" perm="+x"/>
 	    </then>
 	</if>
@@ -489,12 +473,6 @@ KARMI=${karmi}
 	<concat destfile="${ibis}/bin/run-ibis">
 	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run-ibis" />
 	</concat>
-	<if>
-	    <os family="mac"/>
-	    <then>
-		<replace file="${ibis}/bin/run-ibis" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
-	    </then>
-	</if>
 	<chmod file="${ibis}/bin/run-ibis" perm="+x"/>
 
 	<copy
