@@ -1,10 +1,10 @@
 package ibis.ipl.impl.net.muxer;
 
-import ibis.ipl.impl.net.NetIbisException;
-
 import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetAllocator;
 import ibis.ipl.impl.net.NetBufferFactory;
+
+import java.io.IOException;
 
 
 public class MuxerQueue {
@@ -96,7 +96,7 @@ public class MuxerQueue {
      */
     synchronized
     public void enqueue(NetReceiveBuffer buffer)
-	    throws NetIbisException {
+	    throws IOException {
 
 	if (! factory.isSuitableClass(buffer)) {
 	    if (true || Driver.DEBUG) {
@@ -200,9 +200,9 @@ public class MuxerQueue {
 
 
     private NetReceiveBuffer dequeue(NetReceiveBuffer buffer)
-	    throws NetIbisException {
+	    throws IOException {
 	if (userBuffer != null) {
-	    throw new NetIbisException("Racey downcall receive");
+	    throw new IOException("Racey downcall receive");
 	}
 	userBuffer = buffer;
 
@@ -210,7 +210,7 @@ public class MuxerQueue {
     }
 
 
-    public Integer poll(boolean block) throws NetIbisException {
+    public Integer poll(boolean block) throws IOException {
 	if (false && Driver.DEBUG) {
 	    System.err.println(this + ": poll; front " + front + " key " + connectionKey);
 	    if (false && connectionKey == 0) {
@@ -223,7 +223,7 @@ Thread.dumpStack();
 }
 
 	if (activeInput != null) {
-	    throw new NetIbisException(this + ": call finish before a new poll()");
+	    throw new IOException(this + ": call finish before a new poll()");
 	}
 
 	if (! MuxerInput.USE_POLLER_THREAD) {
@@ -231,7 +231,7 @@ Thread.dumpStack();
 		while (front == null && input.attemptPoll(block) != null) {
 		    // perform this poll
 		}
-	    } catch (NetIbisException e) {
+	    } catch (IOException e) {
 		// Ignore; if this fails, just continue on the normal route.
 	    }
 	}
@@ -306,7 +306,7 @@ Thread.dumpStack();
      * @return the first delivered buffer
      */
     public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-	    throws NetIbisException {
+	    throws IOException {
 
 	if (Driver.DEBUG) {
 	    System.err.println("Downcall receive q " + this + ": start dequeue");
@@ -317,7 +317,7 @@ Thread.dumpStack();
 		while (front == null && input.attemptPoll(true) != null) {
 		    // perform this poll
 		}
-	    } catch (NetIbisException e) {
+	    } catch (IOException e) {
 		// Ignore; if this fails, just continue on the normal route.
 	    }
 	}
@@ -341,7 +341,7 @@ Thread.dumpStack();
      *        a copy is incurred.
      */
     public void receiveByteBuffer(NetReceiveBuffer userBuffer)
-	    throws NetIbisException {
+	    throws IOException {
 
 	if (Driver.DEBUG) {
 	    System.err.println("Post downcall receive q " + this + " userBuffer " + userBuffer + ": start dequeue");
@@ -352,7 +352,7 @@ Thread.dumpStack();
 		while (front == null && input.attemptPoll(true) != null) {
 		    // perform this poll
 		}
-	    } catch (NetIbisException e) {
+	    } catch (IOException e) {
 		// Ignore; if this fails, just continue on the normal route.
 	    }
 	}
@@ -376,15 +376,15 @@ Thread.dumpStack();
     }
 
 
-    public void doFinish() throws NetIbisException {
+    public void doFinish() throws IOException {
 	if (activeInput == null) {
-	    throw new NetIbisException(this + ": call poll before you finish");
+	    throw new IOException(this + ": call poll before you finish");
 	}
 	activeInput = null;
     }
 
 
-    public void free() throws NetIbisException {
+    public void free() throws IOException {
 	if (Driver.STATISTICS) {
 	    System.err.println(this + ": #enqueue " + n_q +
 		    "; #wait(poll) " + n_poll_wait +

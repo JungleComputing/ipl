@@ -230,11 +230,11 @@ public final class NetAllocator {
                 int maxBlock = (blockSize >bigBlockThreshold )?defaultMaxBigBlock:defaultMaxBlock;
 
                 if (blockSize < 1) {
-                        throw new Error("invalid block size");
+                        throw new IllegalArgumentException("invalid block size");
                 }
 
                 if (maxBlock < 1) {
-                        throw new Error("invalid maximum block number");
+                        throw new IllegalArgumentException("invalid maximum block number");
                 }
 
                 stat = new NetAllocatorStat(STATISTICS, "blockSize = "+blockSize+", maxBlock = "+maxBlock);

@@ -1,6 +1,7 @@
 import ibis.ipl.*;
 
 import java.util.Properties;
+import java.io.IOException;
 
 class Sender {
 
@@ -12,7 +13,7 @@ class Sender {
 		this.sport = sport;
 	}
 
-	void send(int count) throws IbisIOException {
+	void send(int count) throws IOException {
 		// warmup
 		for(int i = 0; i< count; i++) {
 			WriteMessage writeMessage = sport.newMessage();
@@ -70,7 +71,7 @@ class ExplicitReceiver {
 		this.sport = sport;
 	}
 
-	void receive(int count) throws IbisIOException {
+	void receive(int count) throws IOException {
 		for(int i = 0; i< count; i++) {
 			ReadMessage readMessage = rport.receive();
 			byte b = readMessage.readByte();
@@ -154,7 +155,7 @@ class Latency {
 	static Ibis ibis;
 	static Registry registry;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisIOException {
+	public static ReceivePortIdentifier lookup(String name) throws IOException {
 
 		ReceivePortIdentifier temp = null;
 
@@ -237,11 +238,15 @@ class Latency {
 
                         System.exit(0);
 
-		} catch (IbisIOException e) {
+		} catch (IOException e) {
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();
 		} catch (IbisException e) {
+			System.out.println("Got exception " + e);
+			System.out.println("StackTrace:");
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();

@@ -1,6 +1,5 @@
 package ibis.io;
 
-import ibis.ipl.IbisIOException;
 import java.io.IOException;
 
 /**
@@ -234,7 +233,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
      * @exception IOException on IO error.
      */
     public abstract void readArray(boolean[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Reads (a slice of) an array of bytes in place.
@@ -242,7 +241,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
      * the parameters and exceptions.
      */
     public abstract void readArray(byte[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Reads (a slice of) an array of shorts in place.
@@ -250,7 +249,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
      * the parameters and exceptions.
      */
     public abstract void readArray(short[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Reads (a slice of) an array of chars in place.
@@ -258,7 +257,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
      * the parameters and exceptions.
      */
     public abstract void readArray(char[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Reads (a slice of) an array of ints in place.
@@ -266,7 +265,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
      * the parameters and exceptions.
      */
     public abstract void readArray(int[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Reads (a slice of) an array of longs in place.
@@ -274,7 +273,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
      * the parameters and exceptions.
      */
     public abstract void readArray(long[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Reads (a slice of) an array of floats in place.
@@ -282,7 +281,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
      * the parameters and exceptions.
      */
     public abstract void readArray(float[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Reads (a slice of) an array of doubles in place.
@@ -290,7 +289,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
      * the parameters and exceptions.
      */
     public abstract void readArray(double[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Returns the number of bytes that can safely be read without
@@ -299,8 +298,7 @@ public abstract class ArrayInputStream implements IbisStreamFlags {
      * @return number of bytes.
      * @exception IOException on IO error.
      */
-    public abstract int available()
-	    throws IbisIOException;
+    public abstract int available() throws IOException;
 
     /**
      * Tells the underlying implementation that this input stream is

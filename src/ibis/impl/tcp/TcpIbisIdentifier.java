@@ -6,8 +6,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.EOFException;
+
 import java.net.InetAddress;
+
 import ibis.ipl.IbisIdentifier;
+
 import ibis.io.Serializable;
 import ibis.io.IbisSerializationOutputStream;
 import ibis.io.IbisSerializationInputStream;
@@ -28,7 +31,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier
 	}
 
 	public TcpIbisIdentifier(IbisSerializationInputStream stream)
-		throws java.io.IOException {
+		throws IOException {
 
 		stream.addObjectToCycleCheck(this);
 		generated_DefaultReadObject(stream, 0);
@@ -36,7 +39,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier
 
 	public final void generated_DefaultReadObject
 		(IbisSerializationInputStream stream, int lvl)
-		throws java.io.IOException {
+		throws IOException {
 
 		int handle = stream.readInt();
 		if(handle < 0) {
@@ -61,7 +64,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier
 	}
 
 	public final void generated_WriteObject
-		(IbisSerializationOutputStream stream) throws java.io.IOException {
+		(IbisSerializationOutputStream stream) throws IOException {
 
 		int handle = TcpIbis.globalIbis.identTable.getHandle(stream, this);
 		stream.writeInt(handle);
@@ -74,7 +77,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier
 
 	public final void generated_DefaultWriteObject
 		(IbisSerializationOutputStream stream, int lvl)
-		throws java.io.IOException {
+		throws IOException {
 
 		generated_WriteObject(stream);
 	}

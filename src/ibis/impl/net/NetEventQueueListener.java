@@ -1,5 +1,8 @@
 package ibis.ipl.impl.net;
 
+import java.io.IOException;
+import java.io.InterruptedIOException;
+
 /**
  * Provide a thread dedicated to extract and dispatch {@linkplain
  * NetEvent events} from an {@linkplain NetEventQueue event queue} to
@@ -57,7 +60,7 @@ final class NetEventQueueListener extends Thread {
                         try {
                                 NetEvent event = queue.get();
                                 cons.event(event);
-                        } catch (InterruptedException e) {
+                        } catch (InterruptedIOException e) {
                                 end = true;
                                 continue;
                         }

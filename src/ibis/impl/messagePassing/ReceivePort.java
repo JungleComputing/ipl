@@ -1,8 +1,10 @@
 package ibis.ipl.impl.messagePassing;
 
+import java.io.IOException;
+
 import java.util.Vector;
 
-import ibis.ipl.IbisIOException;
+import ibis.ipl.IbisException;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 class ReceivePort
@@ -91,7 +93,7 @@ class ReceivePort
 	}
     }
 
-    ReceivePort(PortType type, String name) throws IbisIOException {
+    ReceivePort(PortType type, String name) throws IOException {
 	this(type, name, null, null);
     }
 
@@ -99,7 +101,7 @@ class ReceivePort
 	        String name,
 		ibis.ipl.Upcall upcall,
 		ibis.ipl.ReceivePortConnectUpcall connectUpcall)
-			throws IbisIOException {
+	    throws IOException {
 	this.type = type;
 	this.name = name;
 	this.upcall = upcall;
@@ -141,7 +143,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	    try {
 // System.err.println("In enableConnections: want to bind RPort " + this);
 		((Registry)Ibis.myIbis.registry()).bind(name, ident);
-	    } catch (ibis.ipl.IbisIOException e) {
+	    } catch (IOException e) {
 		System.err.println("registry bind of ReceivePortName fails: " + e);
 		System.exit(4);
 	    }
@@ -404,7 +406,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 			 int msgHandle,
 			 int msgSize,
 			 int msgSeqno)
-	    throws IbisIOException {
+	    throws IOException {
 	Ibis.myIbis.checkLockOwned();
 
 	/* Let's see whether we already have an envelope for this fragment. */
@@ -461,7 +463,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
     }
 
 
-    private ReadMessage doReceive(boolean block) throws IbisIOException {
+    private ReadMessage doReceive(boolean block) throws IOException {
 	Ibis.myIbis.checkLockOwned();
 
 	if (DEBUG) {
@@ -524,7 +526,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
 
     private ibis.ipl.ReadMessage receive(ReadMessage finishMe, boolean block)
-	    throws IbisIOException {
+	    throws IOException {
 	Ibis.myIbis.lock();
 	try {
 // manta.runtime.RuntimeSystem.DebugMe(this, this);
@@ -538,34 +540,34 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
     }
 
 
-    public ibis.ipl.ReadMessage receive(long timeout) throws IbisIOException {
+    public ibis.ipl.ReadMessage receive(long timeout) throws IOException {
 	return receive();
     }
 
 
-    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMe, long timeout) throws IbisIOException {
+    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMe, long timeout) throws IOException {
 	return receive(finishMe);
     }
 
 
-    public ibis.ipl.ReadMessage receive() throws IbisIOException {
+    public ibis.ipl.ReadMessage receive() throws IOException {
 	return receive(null, true);
     }
 
 
     public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMe)
-	    throws IbisIOException {
+	    throws IOException {
 	return receive((ReadMessage)finishMe, true);
     }
 
 
-    public ibis.ipl.ReadMessage poll() throws IbisIOException {
+    public ibis.ipl.ReadMessage poll() throws IOException {
 	return receive(null, false);
     }
 
 
     public ibis.ipl.ReadMessage poll(ibis.ipl.ReadMessage finishMe)
-	    throws IbisIOException {
+	    throws IOException {
 	return receive((ReadMessage)finishMe, false);
     }
 
@@ -677,7 +679,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 // System.out.println(connectionToString());
 		Ibis.myIbis.waitPolling(shutdown, 0, Poll.NON_PREEMPTIVE);
 	    }
-	} catch (IbisIOException e) {
+	} catch (IOException e) {
 	    /* well, if it throws an exception, let's quit.. */
 	}
 	if (DEBUG) {
@@ -820,7 +822,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 		    }
 		}
 
-		msg = doReceive(true /* block */);	// May throw an IbisIOException
+		msg = doReceive(true /* block */);	// May throw an IOException
 
 		if (msg != null) {
 // System.err.println(Thread.currentThread() + ": perform upcall for msg " + msg);
@@ -849,7 +851,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 		}
 	    }
 
-	} catch (IbisIOException e) {
+	} catch (IOException e) {
 	    if (e == null) {
 		System.err.println("A NULL Exception?????");
 		System.err.println("My stack: ");
@@ -889,7 +891,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	while (livingPorts > 0) {
 	    try {
 		portCounter.s_wait(0);
-	    } catch (ibis.ipl.IbisIOException e) {
+	    } catch (IOException e) {
 		break;
 	    }
 	}

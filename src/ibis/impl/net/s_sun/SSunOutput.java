@@ -13,25 +13,17 @@ import java.io.OutputStream;
  * The ID output implementation.
  */
 public final class SSunOutput extends NetSerializedOutput {
-        public SSunOutput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+        public SSunOutput(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
 	}
-        public SerializationOutputStream newSerializationOutputStream() throws NetIbisException {
+        public SerializationOutputStream newSerializationOutputStream() throws IOException {
                 OutputStream os = new DummyOutputStream();
-		try {
-		    return new SunSerializationOutputStream(os);
-		} catch(IOException e) {
-		    throw new NetIbisException("got exception", e);
-		}
+		return new SunSerializationOutputStream(os);
         }
         
         private final class DummyOutputStream extends OutputStream {
                 public void write(int b) throws IOException {
-                        try {
-                                subOutput.writeByte((byte)b);
-                        } catch (NetIbisException e) {
-                                throw new IOException(e.getMessage());
-                        }
+			subOutput.writeByte((byte)b);
                 }
         }
 

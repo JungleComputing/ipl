@@ -1,7 +1,8 @@
 package ibis.ipl.impl.messagePassing;
 
 import java.io.OutputStream;
-import ibis.ipl.IbisIOException;
+
+import java.io.IOException;
 
 /**
  *
@@ -23,48 +24,48 @@ final public class ArrayOutputStream
 
 
     final public void writeArray(boolean[] a, int off, int len)
-	    throws IbisIOException {
+	    throws IOException {
 	out.writeBooleanArray(a, off, len);
     }
 
     final public void writeArray(byte[] a, int off, int len)
-	    throws IbisIOException {
+	    throws IOException {
 	out.writeByteArray(a, off, len);
     }
 
     final public void writeArray(short[] a, int off, int len)
-	    throws IbisIOException {
+	    throws IOException {
 // System.err.println("Write messagePassing.ArrayOutputStream short[" + off + ":" + len +"]");
 	out.writeShortArray(a, off, len);
     }
 
     final public void writeArray(char[] a, int off, int len)
-	    throws IbisIOException {
+	    throws IOException {
 	out.writeCharArray(a, off, len);
     }
 
     final public void writeArray(int[] a, int off, int len)
-	    throws IbisIOException {
+	    throws IOException {
 	out.writeIntArray(a, off, len);
     }
 
     final public void writeArray(long[] a, int off, int len)
-	    throws IbisIOException {
+	    throws IOException {
 	out.writeLongArray(a, off, len);
     }
 
     final public void writeArray(float[] a, int off, int len)
-	    throws IbisIOException {
+	    throws IOException {
 	out.writeFloatArray(a, off, len);
     }
 
     final public void writeArray(double[] a, int off, int len)
-	    throws IbisIOException {
+	    throws IOException {
 	out.writeDoubleArray(a, off, len);
     }
 
 
-    final public void flushBuffers() throws IbisIOException {
+    final public void flushBuffers() throws IOException {
         indices_short[TYPE_BYTE]    = (short) byte_index;
 	indices_short[TYPE_CHAR]    = (short) char_index;
 	indices_short[TYPE_SHORT]   = (short) short_index;
@@ -115,7 +116,7 @@ final public class ArrayOutputStream
     }
 
 
-    final public void flush() throws IbisIOException {
+    final public void flush() throws IOException {
 	out.flush();
 // System.err.println(this + ": flush; out " + out + "; out.completed " + out.completed());
 	if (! out.completed()) {
@@ -151,11 +152,11 @@ final public class ArrayOutputStream
 	}
     }
 
-    final public void finish() throws IbisIOException {
+    final public void finish() throws IOException {
 	out.finish();
     }
 
-    final public void close() throws IbisIOException {
+    final public void close() throws IOException {
 	out.close();
     }
 

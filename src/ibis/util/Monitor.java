@@ -1,5 +1,7 @@
 package ibis.ipl.impl.generic;
 
+import ibis.ipl.IllegalLockStateException;
+
 public class Monitor {
 
     final static boolean DEBUG = false;
@@ -22,7 +24,7 @@ public class Monitor {
 	if (DEBUG && owner == Thread.currentThread()) {
 	    // manta.runtime.RuntimeSystem.DebugMe(1, this);
 	    Thread.dumpStack();
-	    throw new IllegalMonitorStateException("Already own monitor");
+	    throw new IllegalLockStateException("Already own monitor");
 	}
 
 	while (in_use) {
@@ -49,7 +51,7 @@ public class Monitor {
 	if (DEBUG && owner != Thread.currentThread()) {
 	    // manta.runtime.RuntimeSystem.DebugMe(2, this);
 	    Thread.dumpStack();
-	    throw new IllegalMonitorStateException("Don't own monitor");
+	    throw new IllegalLockStateException("Don't own monitor");
 	}
 
 	in_use = false;
@@ -84,7 +86,7 @@ public class Monitor {
 	if (DEBUG) {
 	    synchronized (this) {
 		if (owner != Thread.currentThread()) {
-		    throw new IllegalMonitorStateException("Don't own monitor");
+		    throw new IllegalLockStateException("Don't own monitor");
 		}
 	    }
 	}
@@ -95,7 +97,7 @@ public class Monitor {
 	if (DEBUG) {
 	    synchronized (this) {
 		if (owner == Thread.currentThread()) {
-		    throw new IllegalMonitorStateException("Already own monitor");
+		    throw new IllegalLockStateException("Already own monitor");
 		}
 	    }
 	}

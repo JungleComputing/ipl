@@ -2,7 +2,7 @@ package ibis.ipl.impl.net.nio;
 
 import ibis.ipl.impl.net.*;
 
-import ibis.ipl.IbisException;
+import ibis.ipl.ConnectionClosedException;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -109,7 +109,7 @@ public final class NioInput extends NetInput {
 	 * @param input the controlling input.
 	 */
 	NioInput(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
+		throws IOException {
 		super(pt, driver, context);
 		headerLength = 0;
 
@@ -165,46 +165,41 @@ public final class NioInput extends NetInput {
 	 * @param os {@inheritDoc}
 	 */
 	public void setupConnection(NetConnection cnx)
-		 throws NetIbisException {
+		 throws IOException {
 		log.in();
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
                 
-		try {
-			serverSocketChannel = ServerSocketChannel.open();
-			ServerSocket tcpServerSocket = 
-						serverSocketChannel.socket();
-			InetSocketAddress socketAddress = 
-			 new InetSocketAddress(InetAddress.getLocalHost(),
-					       0);
-			tcpServerSocket.bind(socketAddress, 1);
-			Hashtable lInfo    = new Hashtable();
-			lInfo.put("tcp_address", 
-					tcpServerSocket.getInetAddress());
-			lInfo.put("tcp_port", new Integer(
-					tcpServerSocket.getLocalPort()));
+		serverSocketChannel = ServerSocketChannel.open();
+		ServerSocket tcpServerSocket = 
+					serverSocketChannel.socket();
+		InetSocketAddress socketAddress = 
+		 new InetSocketAddress(InetAddress.getLocalHost(),
+				       0);
+		tcpServerSocket.bind(socketAddress, 1);
+		Hashtable lInfo    = new Hashtable();
+		lInfo.put("tcp_address", 
+				tcpServerSocket.getInetAddress());
+		lInfo.put("tcp_port", new Integer(
+				tcpServerSocket.getLocalPort()));
 
 
-			ObjectOutputStream os = new ObjectOutputStream(
-			 cnx.getServiceLink().getOutputSubStream(
-			  this, "nio"));
-			os.writeObject(lInfo);
-			os.close();
+		ObjectOutputStream os = new ObjectOutputStream(
+		 cnx.getServiceLink().getOutputSubStream(
+		  this, "nio"));
+		os.writeObject(lInfo);
+		os.close();
 
-			socketChannel = serverSocketChannel.accept();
-			// use bocking mode
-			socketChannel.configureBlocking(true);
+		socketChannel = serverSocketChannel.accept();
+		// use bocking mode
+		socketChannel.configureBlocking(true);
 
-                        addr = socketChannel.socket().getInetAddress();
-                        port = socketChannel.socket().getPort();
-			this.spn = cnx.getNum();
-                                                                                
-                        startUpcallThread();
-
-		} catch (IOException e) {
-			throw new NetIbisException(e);
-		}
+		addr = socketChannel.socket().getInetAddress();
+		port = socketChannel.socket().getPort();
+		this.spn = cnx.getNum();
+									
+		startUpcallThread();
 
 		mtu = 0;
 		log.out();
@@ -219,7 +214,7 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer doPoll(boolean block) throws NetIbisException {
+	public Integer doPoll(boolean block) throws IOException {
 		log.in();
 		if (spn == null) {
 			// not connected yet
@@ -241,8 +236,8 @@ public final class NioInput extends NetInput {
 			oneByteBuffer.clear();
 			if (socketChannel.read(oneByteBuffer) == -1) {
 				log.out("Received an end-of-stream");
-				throw new NetIbisClosedException(
-						"NetIbisClosedException");
+				throw new ConnectionClosedException(
+						"ConnectionClosedException");
 			}
 
 			if(oneByteBuffer.position() != 0) {	
@@ -258,16 +253,16 @@ public final class NioInput extends NetInput {
 
 		} catch (AsynchronousCloseException e) {
 			log.out("channel closed by another thread");
-			throw new NetIbisClosedException(e.getMessage());
-		} catch (NetIbisClosedException e) {
+			throw new ConnectionClosedException(e.getMessage());
+		} catch (ConnectionClosedException e) {
 			log.out("received an end-of-stream");
-			throw new NetIbisClosedException(e);
+			throw new ConnectionClosedException(e);
 		} catch (ClosedChannelException e) {
 			log.out("channel already closed");
-			throw new NetIbisClosedException(e.getMessage());
+			throw new ConnectionClosedException(e.getMessage());
 		} catch (IOException e) {
 			log.out("exception thrown");
-			throw new NetIbisException(e);
+			throw e;
 		} finally {
 			try {
 			    if(!block) {
@@ -283,7 +278,7 @@ public final class NioInput extends NetInput {
 		return null;
 	}
 
-	protected void doFinish() throws NetIbisException {
+	protected void doFinish() throws IOException {
 		log.in();
 		// NOTHING
 		log.out();
@@ -395,7 +390,7 @@ public final class NioInput extends NetInput {
 	}
 
 	public NetReceiveBuffer readByteBuffer(int expectedLength) 
-						throws NetIbisException {
+						throws IOException {
 		log.in();
                 int len = readInt();
                 NetReceiveBuffer buffer = createReceiveBuffer(len);
@@ -406,7 +401,7 @@ public final class NioInput extends NetInput {
                                                                                 
                                                                                 
         public void readByteBuffer(NetReceiveBuffer buffer) 
-						throws NetIbisException {
+						throws IOException {
 		log.in();
                 int len = readInt();
                 readArray(buffer.data, 0, len);
@@ -423,19 +418,15 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public boolean readBoolean() throws NetIbisException {
+	public boolean readBoolean() throws IOException {
                 log.in(); 
-		try {
-			if(!byteBuffer.hasRemaining()) {
-				receive();
-			}
-			boolean result = (byteBuffer.get() == (byte)1 );
-			log.disp("received a boolean: " + result);
-			log.out();
-			return result;
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		} 
+		if(!byteBuffer.hasRemaining()) {
+			receive();
+		}
+		boolean result = (byteBuffer.get() == (byte)1 );
+		log.disp("received a boolean: " + result);
+		log.out();
+		return result;
 	}
 
 	/**
@@ -446,19 +437,15 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public byte readByte() throws NetIbisException {
+	public byte readByte() throws IOException {
 		log.in();
-		try {
-			if(!byteBuffer.hasRemaining()) {
-				receive();
-			}
-			byte result = byteBuffer.get();
-			log.disp("received a byte: " + result);
-			log.out();
-			return result;
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		} 
+		if(!byteBuffer.hasRemaining()) {
+			receive();
+		}
+		byte result = byteBuffer.get();
+		log.disp("received a byte: " + result);
+		log.out();
+		return result;
 	}
 
 
@@ -470,19 +457,15 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public char readChar() throws NetIbisException {
+	public char readChar() throws IOException {
 		log.in();
-		try {
-			if(!charBuffer.hasRemaining()) {
-				receive();
-			}
-			char result = charBuffer.get();
-			log.disp("received a char: " + result);
-			log.out();
-			return result;
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		} 
+		if(!charBuffer.hasRemaining()) {
+			receive();
+		}
+		char result = charBuffer.get();
+		log.disp("received a char: " + result);
+		log.out();
+		return result;
 	}
 
 	/**
@@ -493,21 +476,17 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public short readShort() throws NetIbisException {
+	public short readShort() throws IOException {
                         
 		log.in();
                         
-		try {
-			if(!shortBuffer.hasRemaining()) {
-				receive();
-			}
-			short result = shortBuffer.get();
-			log.disp("received a short: " + result);
-			log.out();
-			return result;
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		} 
+		if(!shortBuffer.hasRemaining()) {
+			receive();
+		}
+		short result = shortBuffer.get();
+		log.disp("received a short: " + result);
+		log.out();
+		return result;
 	}
 
 	/**
@@ -518,20 +497,16 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public int readInt() throws NetIbisException {
+	public int readInt() throws IOException {
                         
 		log.in();
-		try {
-			if(!intBuffer.hasRemaining()) {
-				receive();
-			}
-			int result = intBuffer.get();
-			log.disp("received a int: " + result);
-			log.out();
-			return result;
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		} 
+		if(!intBuffer.hasRemaining()) {
+			receive();
+		}
+		int result = intBuffer.get();
+		log.disp("received a int: " + result);
+		log.out();
+		return result;
 	}
 
 	/**
@@ -542,20 +517,16 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public long readLong() throws NetIbisException {
+	public long readLong() throws IOException {
                         
 		log.in();
-		try {
-			if(!longBuffer.hasRemaining()) {
-				receive();
-			}
-			long result = longBuffer.get();
-			log.disp("received a long: " + result);
-			log.out();
-			return result;
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		} 
+		if(!longBuffer.hasRemaining()) {
+			receive();
+		}
+		long result = longBuffer.get();
+		log.disp("received a long: " + result);
+		log.out();
+		return result;
 	}
 
 
@@ -567,20 +538,16 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public float readFloat() throws NetIbisException {
+	public float readFloat() throws IOException {
                         
 		log.in();
-		try {
-			if(!floatBuffer.hasRemaining()) {
-				receive();
-			}
-			float result = floatBuffer.get();
-			log.disp("received a float: " + result);
-			log.out();
-			return result;
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		} 
+		if(!floatBuffer.hasRemaining()) {
+			receive();
+		}
+		float result = floatBuffer.get();
+		log.disp("received a float: " + result);
+		log.out();
+		return result;
 	}
 
 
@@ -592,20 +559,16 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public double readDouble() throws NetIbisException {
+	public double readDouble() throws IOException {
                         
 		log.in();
-		try {
-			if(!doubleBuffer.hasRemaining()) {
-				receive();
-			}
-			double result = doubleBuffer.get();
-			log.disp("received a double: " + result);
-			log.out();
-			return result;
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		} 
+		if(!doubleBuffer.hasRemaining()) {
+			receive();
+		}
+		double result = doubleBuffer.get();
+		log.disp("received a double: " + result);
+		log.out();
+		return result;
 	}
 
 	/**
@@ -616,10 +579,10 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public String readString() throws NetIbisException {
+	public String readString() throws IOException {
                         
 		log.in();
-		throw new NetIbisException("NioInput: readString not implemented (yet)");
+		throw new IOException("NioInput: readString not implemented (yet)");
 	}
 
 
@@ -631,10 +594,10 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Object readObject() throws NetIbisException {
+	public Object readObject() throws IOException, ClassNotFoundException {
         
 		log.in();
-		throw new NetIbisException("NioInput: readObject not implemented (yet)");                
+		throw new IOException("NioInput: readObject not implemented (yet)");                
 	}
 
 
@@ -649,17 +612,13 @@ public final class NioInput extends NetInput {
 	 */
 	public void readArray(boolean [] destination, 
 					  int offset, 
-					  int size) throws NetIbisException {
+					  int size) throws IOException {
 		log.in();
 		log.disp("read a boolean array at offset " + offset +
 			 " of length " + size);
-                try {
-                        for(int i = offset; i <  (offset + size); i++) {
-                                destination[i] = readBoolean();
-                        }
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+		for(int i = offset; i <  (offset + size); i++) {
+			destination[i] = readBoolean();
+		}
 		log.out();
         }
 
@@ -674,34 +633,30 @@ public final class NioInput extends NetInput {
 	 */
 	public void readArray(byte [] destination, 
 				       int offset, 
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		ByteBuffer wrap;
 		log.in();
 		log.disp("reading a byte array at offset " + offset +
 			 " of length " + size);
-                try {
-			for (int i = offset; i < (offset + size);i++) {
-				destination[i] = readByte();
-			}
+		for (int i = offset; i < (offset + size);i++) {
+			destination[i] = readByte();
+		}
 
-			/* wrap the buffer in a nio ByteBuffer */
-//			wrap = ByteBuffer.wrap(destination, offset, size);
+		/* wrap the buffer in a nio ByteBuffer */
+//		wrap = ByteBuffer.wrap(destination, offset, size);
 
 
-			/* check if a poll was done lately... */
-//			if(bytePending) {
-//				wrap.put(oneByteBuffer.get(0));
-//				bytePending = false;
-//			}
+		/* check if a poll was done lately... */
+//		if(bytePending) {
+//			wrap.put(oneByteBuffer.get(0));
+//			bytePending = false;
+//		}
 
-			/* receive the data from the channel */
-//			do {
-//				socketChannel.read(wrap);
-//			} while (wrap.hasRemaining());
+		/* receive the data from the channel */
+//		do {
+//			socketChannel.read(wrap);
+//		} while (wrap.hasRemaining());
 
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
 		log.out();
         }
 
@@ -716,26 +671,22 @@ public final class NioInput extends NetInput {
 	 */
 	public void readArray(char [] destination, 
 				       int offset, 
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
 		log.in();
 		log.disp("reading a char array at offset " + offset +
 			 " of length " + size);
-                try {
-			while(size > 0) {
-				if(!charBuffer.hasRemaining()) {
-					receive();
-				}
-
-				length = java.lang.Math.min(
-						charBuffer.remaining(), size);
-				charBuffer.get(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!charBuffer.hasRemaining()) {
+				receive();
 			}
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+
+			length = java.lang.Math.min(
+					charBuffer.remaining(), size);
+			charBuffer.get(destination, offset, length);
+			size -= length;
+			offset += length;
+		}
 		log.out();
         }
 
@@ -751,26 +702,22 @@ public final class NioInput extends NetInput {
 	 */
 	public void readArray(short [] destination, 
 				       int offset, 
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
 		log.in();
 		log.disp("reading a short array at offset " + offset +
 			 " of length " + size);
-                try {
-			while(size > 0) {
-				if(!shortBuffer.hasRemaining()) {
-					receive();
-				}
-
-				length = java.lang.Math.min(
-						shortBuffer.remaining(), size);
-				shortBuffer.get(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!shortBuffer.hasRemaining()) {
+				receive();
 			}
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+
+			length = java.lang.Math.min(
+					shortBuffer.remaining(), size);
+			shortBuffer.get(destination, offset, length);
+			size -= length;
+			offset += length;
+		}
 		log.out();
         }
 
@@ -785,25 +732,21 @@ public final class NioInput extends NetInput {
 	 */
 	public void readArray(int [] destination, 
 				       int offset, 
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
 		log.in();
 		log.disp("reading a int array at offset " + offset +
 			 " of length " + size);
-                try {
-			while(size > 0) {
-				if(!intBuffer.hasRemaining()) {
-					receive();
-				}
-
-				length = java.lang.Math.min(
-						intBuffer.remaining(), size);
-				intBuffer.get(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!intBuffer.hasRemaining()) {
+				receive();
 			}
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+
+			length = java.lang.Math.min(
+					intBuffer.remaining(), size);
+			intBuffer.get(destination, offset, length);
+			size -= length;
+			offset += length;
 		}
 		log.out();
 	}
@@ -819,25 +762,21 @@ public final class NioInput extends NetInput {
 	 */
 	public void readArray(long [] destination, 
 				       int offset, 
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
 		log.in();
 		log.disp("reading a long array at offset " + offset +
 			 " of length " + size);
-                try {
-			while(size > 0) {
-				if(!longBuffer.hasRemaining()) {
-					receive();
-				}
-
-				length = java.lang.Math.min(
-						longBuffer.remaining(), size);
-				longBuffer.get(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!longBuffer.hasRemaining()) {
+				receive();
 			}
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+
+			length = java.lang.Math.min(
+					longBuffer.remaining(), size);
+			longBuffer.get(destination, offset, length);
+			size -= length;
+			offset += length;
 		}
 		log.out();
 	}
@@ -853,25 +792,21 @@ public final class NioInput extends NetInput {
 	 */
 	public void readArray(float [] destination, 
 				       int offset, 
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
 		log.in();
 		log.disp("reading a float array at offset " + offset +
 			 " of length " + size);
-                try {
-			while(size > 0) {
-				if(!floatBuffer.hasRemaining()) {
-					receive();
-				}
-
-				length = java.lang.Math.min(
-						floatBuffer.remaining(), size);
-				floatBuffer.get(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!floatBuffer.hasRemaining()) {
+				receive();
 			}
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+
+			length = java.lang.Math.min(
+					floatBuffer.remaining(), size);
+			floatBuffer.get(destination, offset, length);
+			size -= length;
+			offset += length;
 		}
 		log.out();
 	}
@@ -886,25 +821,21 @@ public final class NioInput extends NetInput {
 	 */
 	public void readArray(double [] destination, 
 				       int offset, 
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
 		log.in();
 		log.disp("reading a double array at offset " + offset +
 			 " of length " + size);
-                try {
-			while(size > 0) {
-				if(!doubleBuffer.hasRemaining()) {
-					receive();
-				}
-
-				length = java.lang.Math.min(
-						doubleBuffer.remaining(), size);
-				doubleBuffer.get(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!doubleBuffer.hasRemaining()) {
+				receive();
 			}
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+
+			length = java.lang.Math.min(
+					doubleBuffer.remaining(), size);
+			doubleBuffer.get(destination, offset, length);
+			size -= length;
+			offset += length;
 		}
 		log.out();
 	}
@@ -914,22 +845,16 @@ public final class NioInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void doFree() throws NetIbisException {
+	public void doFree() throws IOException {
 
 		log.in();
-		try {
 
-			if(serverSocketChannel != null) {
-				serverSocketChannel.close();
-			}
+		if(serverSocketChannel != null) {
+			serverSocketChannel.close();
+		}
 
-			if(socketChannel != null) {
-				socketChannel.close();
-			}
-
-
-		} catch (Exception e) {
-			throw new NetIbisException(e);
+		if(socketChannel != null) {
+			socketChannel.close();
 		}
 
 		spn = null;
@@ -937,7 +862,7 @@ public final class NioInput extends NetInput {
 	}
 
         protected synchronized void doClose(Integer num)
-						throws NetIbisException {
+						throws IOException {
 		log.in();
                 if (spn == num) {
                         doFree();

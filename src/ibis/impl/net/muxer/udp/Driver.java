@@ -12,7 +12,6 @@ import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetPortType;
 import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetOutput;
-import ibis.ipl.impl.net.NetIbisException;
 
 /**
  * The NetIbis Muxer/UDP driver.
@@ -55,7 +54,7 @@ public final class Driver extends NetDriver {
 	 * @return The new UDP input.
 	 */
 	public NetInput newInput(NetPortType pt, String context)
-		throws NetIbisException {
+		throws IOException {
 		return new UdpMuxInput(pt, this, context);
 	}
 
@@ -68,7 +67,7 @@ public final class Driver extends NetDriver {
 	 * @return The new UDP output.
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)
-		throws NetIbisException {
+		throws IOException {
 		return new UdpMuxOutput(pt, this, context);
 	}
 }

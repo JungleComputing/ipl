@@ -1,7 +1,8 @@
 package ibis.ipl.impl.messagePassing;
 
+import java.io.IOException;
+
 import java.io.InputStream;
-import ibis.ipl.IbisIOException;
 
 /**
  *
@@ -18,7 +19,7 @@ final public class ArrayInputStream
     }
 
 
-    public void readArray(boolean[] a, int off, int len) throws IbisIOException {
+    public void readArray(boolean[] a, int off, int len) throws IOException {
 	while (len > 0) {
 	    int rd = in.read(a, off, len);
 	    len -= rd;
@@ -26,7 +27,7 @@ final public class ArrayInputStream
 	}
     }
 
-    public void readArray(byte[] a, int off, int len) throws IbisIOException {
+    public void readArray(byte[] a, int off, int len) throws IOException {
 	while (len > 0) {
 	    int rd = in.read(a, off, len);
 	    len -= rd;
@@ -34,7 +35,7 @@ final public class ArrayInputStream
 	}
     }
 
-    public void readArray(short[] a, int off, int len) throws IbisIOException {
+    public void readArray(short[] a, int off, int len) throws IOException {
 	while (len > 0) {
 	    int rd = in.read(a, off, len);
 	    len -= rd;
@@ -42,7 +43,7 @@ final public class ArrayInputStream
 	}
     }
 
-    public void readArray(char[] a, int off, int len) throws IbisIOException {
+    public void readArray(char[] a, int off, int len) throws IOException {
 	while (len > 0) {
 	    int rd = in.read(a, off, len);
 	    len -= rd;
@@ -50,7 +51,7 @@ final public class ArrayInputStream
 	}
     }
 
-    public void readArray(int[] a, int off, int len) throws IbisIOException {
+    public void readArray(int[] a, int off, int len) throws IOException {
 	while (len > 0) {
 	    int rd = in.read(a, off, len);
 	    len -= rd;
@@ -58,7 +59,7 @@ final public class ArrayInputStream
 	}
     }
 
-    public void readArray(long[] a, int off, int len) throws IbisIOException {
+    public void readArray(long[] a, int off, int len) throws IOException {
 	while (len > 0) {
 	    int rd = in.read(a, off, len);
 	    len -= rd;
@@ -66,7 +67,7 @@ final public class ArrayInputStream
 	}
     }
 
-    public void readArray(float[] a, int off, int len) throws IbisIOException {
+    public void readArray(float[] a, int off, int len) throws IOException {
 	while (len > 0) {
 	    int rd = in.read(a, off, len);
 	    len -= rd;
@@ -74,7 +75,7 @@ final public class ArrayInputStream
 	}
     }
 
-    public void readArray(double[] a, int off, int len) throws IbisIOException {
+    public void readArray(double[] a, int off, int len) throws IOException {
 	while (len > 0) {
 	    int rd = in.read(a, off, len);
 	    len -= rd;
@@ -82,11 +83,11 @@ final public class ArrayInputStream
 	}
     }
 
-    public int available() throws IbisIOException {
-	throw new IbisIOException("ibis.ipl.impl.messagePassing.available() not implemented");
+    public int available() throws IOException {
+	throw new IOException("ibis.ipl.impl.messagePassing.available() not implemented");
     }
 
-    public void close() throws java.io.IOException {
+    public void close() throws IOException {
 	/* Ignored. */
     }
 

@@ -14,7 +14,7 @@ public final class DefInput extends NetBufferedInput {
         private NetReceiveBuffer buf          = null;
 
 	DefInput(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
+		throws IOException {
 		super(pt, driver, context);
 		headerLength = 4;
 	}
@@ -23,7 +23,7 @@ public final class DefInput extends NetBufferedInput {
 	 * {@inheritDoc}
 	 */
 	synchronized public void setupConnection(NetConnection cnx)
-		throws NetIbisException {
+		throws IOException {
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
@@ -42,42 +42,38 @@ public final class DefInput extends NetBufferedInput {
 	}
 
 	/* Create a NetReceiveBuffer and do a blocking receive. */
-	private NetReceiveBuffer receive() throws NetIbisException {
+	private NetReceiveBuffer receive() throws IOException {
 
 		NetReceiveBuffer buf = createReceiveBuffer(0);
 		byte [] b = buf.data;
 		int     l = 0;
 
-		try {
-			int offset = 0;
+		int offset = 0;
 
-                        do {
-                                int result = defIs.read(b, offset, 4);
-                                if (result == -1) {
-                                        if (offset != 0) {
-                                                throw new Error("broken pipe");
-                                        }
+		do {
+			int result = defIs.read(b, offset, 4);
+			if (result == -1) {
+				if (offset != 0) {
+					throw new Error("broken pipe");
+				}
 
-                                        // System.err.println("tcp_blk: receiveByteBuffer <-- null");
-                                        return null;
-                                }
+				// System.err.println("tcp_blk: receiveByteBuffer <-- null");
+				return null;
+			}
 
-                                offset += result;
-                        } while (offset < 4);
+			offset += result;
+		} while (offset < 4);
 
-                        l = NetConvert.readInt(b);
-                        //System.err.println("received "+l+" bytes");
+		l = NetConvert.readInt(b);
+		//System.err.println("received "+l+" bytes");
 
-			do {
-				int result = defIs.read(b, offset, l - offset);
-                                if (result == -1) {
-                                        throw new Error("broken pipe");
-                                }
-                                offset += result;
-			} while (offset < l);
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		}
+		do {
+			int result = defIs.read(b, offset, l - offset);
+			if (result == -1) {
+				throw new Error("broken pipe");
+			}
+			offset += result;
+		} while (offset < l);
 
 		buf.length = l;
 		return buf;
@@ -87,28 +83,24 @@ public final class DefInput extends NetBufferedInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Integer doPoll(boolean block) throws NetIbisException {
+	public Integer doPoll(boolean block) throws IOException {
 		if (spn == null) {
 			return null;
 		}
 
-		try {
-			if (block) {
-				buf = receive();
-				if (buf != null) {
-					return spn;
-				}
-			} else if (defIs.available() > 0) {
+		if (block) {
+			buf = receive();
+			if (buf != null) {
 				return spn;
 			}
-		} catch (IOException e) {
-			throw new NetIbisException(e);
+		} else if (defIs.available() > 0) {
+			return spn;
 		}
 
 		return null;
 	}
 
-       	public void doFinish() throws NetIbisException {
+       	public void doFinish() throws IOException {
         }
 
 
@@ -119,7 +111,7 @@ public final class DefInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws NetIbisException {
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IOException {
                 if (buf != null) {
                         NetReceiveBuffer temp = buf;
                         buf = null;
@@ -130,7 +122,7 @@ public final class DefInput extends NetBufferedInput {
 		return buf;
 	}
 
-        public synchronized void doClose(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws IOException {
                 if (spn == num) {
                         try {
                                 defIs.close();
@@ -146,13 +138,9 @@ public final class DefInput extends NetBufferedInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void doFree() throws NetIbisException {
+	public void doFree() throws IOException {
                 if (defIs != null) {
-                        try {
-                                defIs.close();
-                        } catch (IOException e) {
-                                throw new Error(e);
-                        }
+			defIs.close();
                 }
 
                 spn = null;

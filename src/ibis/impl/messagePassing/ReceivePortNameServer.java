@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
 
 import java.util.Hashtable;
 
@@ -9,7 +9,7 @@ final class ReceivePortNameServer implements
 
     private Hashtable ports;
 
-    protected ReceivePortNameServer() throws IbisIOException {
+    protected ReceivePortNameServer() throws IOException {
 	ports = new Hashtable();
     }
 
@@ -17,12 +17,12 @@ final class ReceivePortNameServer implements
 
     /* Called from native */
     private void bind(String name, byte[] serialForm, int tag, int client)
-	    throws IbisIOException {
+	    throws IOException {
 	Ibis.myIbis.checkLockOwned();
 	ReceivePortIdentifier ri = null;
 	try {
 	    ri = (ReceivePortIdentifier)SerializeBuffer.readObject(serialForm);
-	} catch (IbisIOException e) {
+	} catch (ClassNotFoundException e) {
 	    System.err.println("Cannot deserialize ReceivePortId to be bound");
 	    bind_reply(PORT_REFUSED, tag, client);
 	    return;
@@ -54,7 +54,7 @@ final class ReceivePortNameServer implements
     native void lookup_reply(int ret, int tag, int client, byte[] rcvePortId);
 
     /* Called from native */
-    private void lookup(String name, int tag, int client) throws ClassNotFoundException {
+    private void lookup(String name, int tag, int client) {
 	Ibis.myIbis.checkLockOwned();
 
 	ReceivePortIdentifier storedId;
@@ -65,12 +65,8 @@ final class ReceivePortNameServer implements
 	    if (ReceivePortNameServerProtocol.DEBUG) {
 		System.err.println(Thread.currentThread() + "Give this client his ReceivePort \"" + name + "\"; cpu " + storedId.cpu + " port " + storedId.port);
 	    }
-	    try {
-		byte[] sf = storedId.getSerialForm();
-		lookup_reply(PORT_KNOWN, tag, client, sf);
-	    } catch (IbisIOException e) {
-		lookup_reply(PORT_UNKNOWN, tag, client, null);
-	    }
+	    byte[] sf = storedId.getSerialForm();
+	    lookup_reply(PORT_KNOWN, tag, client, sf);
 	} else {
 	    if (ReceivePortNameServerProtocol.DEBUG) {
 		System.err.println(Thread.currentThread() + "Cannot give this client his ReceivePort \"" + name + "\"");

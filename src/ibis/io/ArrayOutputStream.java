@@ -1,6 +1,6 @@
 package ibis.io;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
 
 /**
  * An Outputstream for writing arrays of primitive types.
@@ -97,49 +97,49 @@ public abstract class ArrayOutputStream
      * @exception IOException on an IO error
      */
     public abstract void writeArray(boolean[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Like {@link #writeArray(boolean[], int, int)} but for a byte array.
      */
     public abstract void writeArray(byte[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Like {@link #writeArray(boolean[], int, int)} but for a short array.
      */
     public abstract void writeArray(short[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Like {@link #writeArray(boolean[], int, int)} but for a char array.
      */
     public abstract void writeArray(char[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Like {@link #writeArray(boolean[], int, int)} but for a int array.
      */
     public abstract void writeArray(int[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Like {@link #writeArray(boolean[], int, int)} but for a long array.
      */
     public abstract void writeArray(long[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Like {@link #writeArray(boolean[], int, int)} but for a float array.
      */
     public abstract void writeArray(float[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Like {@link #writeArray(boolean[], int, int)} but for a double array.
      */
     public abstract void writeArray(double[] a, int off, int len)
-	    throws IbisIOException;
+	    throws IOException;
 
     /**
      * Return the number of bytes that was written to the message,
@@ -175,7 +175,7 @@ public abstract class ArrayOutputStream
      * @exception IOException is thrown when any <code>writeArray</code>
      * throws it.
      */
-    public void flushBuffers() throws IbisIOException {
+    public void flushBuffers() throws IOException {
 	indices_short[TYPE_BYTE]    = (short) byte_index;
 	indices_short[TYPE_CHAR]    = (short) char_index;
 	indices_short[TYPE_SHORT]   = (short) short_index;
@@ -214,17 +214,17 @@ public abstract class ArrayOutputStream
      * Tells the underlying implementation to flush all the data.
      * @exception IOException on IO error.
      */
-    public abstract void flush() throws IbisIOException;
+    public abstract void flush() throws IOException;
 
     /**
      * Blocks until the data is written.
      * @exception IOException on IO error.
      */
-    public abstract void finish() throws IbisIOException;
+    public abstract void finish() throws IOException;
 
     /**
      * Tells the underlying implementation that this stream is closed.
      * @exception IOException on IO error.
      */
-    public abstract void close() throws IbisIOException;
+    public abstract void close() throws IOException;
 }

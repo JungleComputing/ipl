@@ -1,5 +1,7 @@
 package ibis.ipl.impl.messagePassing;
 
+import java.io.IOException;
+
 import ibis.ipl.impl.generic.ConditionVariable;
 
 public class Syncer implements PollClient {
@@ -53,7 +55,7 @@ public class Syncer implements PollClient {
 	me = thread;
     }
 
-    boolean s_wait(int timeout) throws ibis.ipl.IbisIOException {
+    boolean s_wait(int timeout) throws IOException {
 	Ibis.myIbis.checkLockOwned();
 
 	long	t_start = 0;

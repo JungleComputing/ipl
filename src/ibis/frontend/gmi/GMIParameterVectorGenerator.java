@@ -154,7 +154,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
     } 
 
     void writeParametersMethod(Class[] params) {
-	output.println("\tpublic void writeParameters(WriteMessage w) throws IbisIOException {");
+	output.println("\tpublic void writeParameters(WriteMessage w) throws IOException {");
 	for (int i = 0; i < params.length; i++) {
 	    if (params[i].isArray()) {
 		output.println("\t\tif (p" + i + "_subarray) {");
@@ -172,7 +172,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
     void readParametersMethod(Class[] params, Method m) {
 	String name = this.name + m.getName();
-	output.println("\tpublic ParameterVector readParameters(ReadMessage r) throws IbisIOException {");
+	output.println("\tpublic ParameterVector readParameters(ReadMessage r) throws IOException {");
 	output.println("\t\t" + name + " p = new " + name + "();");
 	for (int i = 0; i < params.length; i++) {
 	    output.println(readMessageType("\t\t", "p.p" + i, "r", params[i], true));
@@ -359,8 +359,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
       
     void generate() { 
+	output.println("import java.io.IOException;\n");
 	output.println("import ibis.group.ParameterVector;\n");
-	output.println("import ibis.ipl.IbisIOException;");
 	output.println("import ibis.ipl.WriteMessage;");
 	output.println("import ibis.ipl.ReadMessage;\n");
 	for (int i=0;i<data.specialMethods.size();i++) { 

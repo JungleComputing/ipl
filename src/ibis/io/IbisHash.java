@@ -1,7 +1,5 @@
 package ibis.io;
 
-import ibis.ipl.IbisIOException;
-
 
 final class Bucket {        	
 	Object	data;
@@ -159,7 +157,6 @@ final class IbisHash {
 		    /* Found an empty slot. Use it */
 		    break;
 		} else if (b.data == ref) {
-		    // throw new IbisIOException("Want to insert key twice");
 		    break;
 		}
 		if (! collision) {

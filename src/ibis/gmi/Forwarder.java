@@ -1,7 +1,8 @@
 package ibis.group;
 
+import java.io.IOException;
+
 import ibis.ipl.ReadMessage;
-import ibis.ipl.IbisIOException;
 import ibis.util.SpecialStack;
 
 /**
@@ -151,7 +152,7 @@ public class Forwarder implements GroupProtocol {
      *
      * @param r the read message from which the reply is to be read
      */
-    protected void receive(ReadMessage r) throws IbisIOException { 
+    protected void receive(ReadMessage r) throws IOException { 
 
 	// stub is synchronized when this is called
 

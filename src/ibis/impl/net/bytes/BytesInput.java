@@ -1,6 +1,11 @@
 package ibis.ipl.impl.net.bytes;
 
+import ibis.ipl.Ibis;
+
 import ibis.ipl.impl.net.*;
+
+import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import java.util.HashMap;
 
@@ -63,7 +68,7 @@ public final class BytesInput extends NetInput implements Settings {
 	private int waiters = 0;
 
 
-	BytesInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	BytesInput(NetPortType pt, NetDriver driver, String context) {
 		super(pt, driver, context);
                 an = new NetAllocator(anThreshold);
 	}
@@ -71,7 +76,7 @@ public final class BytesInput extends NetInput implements Settings {
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		NetInput subInput = this.subInput;
 		if (subInput == null) {
@@ -116,7 +121,7 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
         }
 
-	public synchronized Integer doPoll(boolean block) throws NetIbisException {
+	public synchronized Integer doPoll(boolean block) throws IOException {
                 log.in();
                 if (activeNum != null) {
                         throw new Error("invalid call");
@@ -131,7 +136,7 @@ public final class BytesInput extends NetInput implements Settings {
 		return result;
 	}
 
-        public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
+        public void inputUpcall(NetInput input, Integer spn) throws IOException {
                 log.in();
 		Thread me = Thread.currentThread();
                 synchronized(this) {
@@ -141,7 +146,7 @@ public final class BytesInput extends NetInput implements Settings {
                                         wait();
 					waiters--;
                                 } catch (InterruptedException e) {
-                                        throw new NetIbisInterruptedException(e);
+                                        throw Ibis.createInterruptedIOException(e);
                                 }
                         }
 
@@ -169,14 +174,14 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
         }
 
-	private void pumpBuffer() throws NetIbisException {
+	private void pumpBuffer() throws IOException {
                 log.in();
 		buffer       = subInput.readByteBuffer(mtu);
 		bufferOffset = dataOffset;
                 log.out();
 	}
 
-	private void freeBuffer() throws NetIbisException {
+	private void freeBuffer() {
                 log.in();
 		if (buffer != null) {
                         log.disp(bufferOffset+"/"+buffer.length);
@@ -187,7 +192,7 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
 	}
 
-	private void freeBufferIfNeeded() throws NetIbisException {
+	private void freeBufferIfNeeded() {
                 log.in();
 		if (buffer != null && bufferOffset == buffer.length) {
                         log.disp(bufferOffset+"/"+buffer.length+" ==> flushing");
@@ -204,7 +209,7 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
 	}
 
-        private boolean ensureLength(int l) throws NetIbisException {
+        private boolean ensureLength(int l) throws IOException {
                 log.in();
                 log.disp("param l = "+l);
 
@@ -246,7 +251,7 @@ public final class BytesInput extends NetInput implements Settings {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void doFinish() throws NetIbisException {
+	public void doFinish() throws IOException {
                 log.in();
 		subInput.finish();
                 freeBuffer();
@@ -261,7 +266,7 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
 	}
 
-        public synchronized void doClose(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws IOException {
                 log.in();
                 if (subInput != null) {
                         subInput.close(num);
@@ -272,7 +277,7 @@ public final class BytesInput extends NetInput implements Settings {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void doFree() throws NetIbisException {
+	public void doFree() throws IOException {
                 log.in();
 		if (subInput != null) {
 			subInput.free();
@@ -281,7 +286,7 @@ public final class BytesInput extends NetInput implements Settings {
 	}
 
 
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IOException {
                 log.in();
                 freeBuffer();
                 NetReceiveBuffer b = subInput.readByteBuffer(expectedLength);
@@ -289,14 +294,14 @@ public final class BytesInput extends NetInput implements Settings {
                 return b;
         }
 
-        public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
+        public void readByteBuffer(NetReceiveBuffer buffer) throws IOException {
                 log.in();
                 freeBuffer();
                 subInput.readByteBuffer(buffer);
                 log.out();
         }
 
-	public boolean readBoolean() throws NetIbisException {
+	public boolean readBoolean() throws IOException {
                 log.in();
                 boolean v = false;
 
@@ -316,7 +321,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public byte readByte() throws NetIbisException {
+	public byte readByte() throws IOException {
                 log.in();
                 byte v = 0;
 
@@ -336,7 +341,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public char readChar() throws NetIbisException {
+	public char readChar() throws IOException {
                 log.in();
                 char v = 0;
 
@@ -375,7 +380,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public short readShort() throws NetIbisException {
+	public short readShort() throws IOException {
                 log.in();
                 short v = 0;
 
@@ -414,7 +419,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public int readInt() throws NetIbisException {
+	public int readInt() throws IOException {
                 log.in();
                 int v = 0;
 
@@ -451,7 +456,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public long readLong() throws NetIbisException {
+	public long readLong() throws IOException {
                 log.in();
                 long v = 0;
 
@@ -488,7 +493,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public float readFloat() throws NetIbisException {
+	public float readFloat() throws IOException {
                 log.in();
                 float v = 0;
 
@@ -525,7 +530,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public double readDouble() throws NetIbisException {
+	public double readDouble() throws IOException {
                 log.in();
                 double v = 0;
 
@@ -562,7 +567,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public String readString() throws NetIbisException {
+	public String readString() throws IOException {
                 log.in();
                 final int l = readInt();
                 char [] a = new char[l];
@@ -575,14 +580,14 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public Object readObject() throws NetIbisException {
+	public Object readObject() throws IOException, ClassNotFoundException {
                 log.in();
                 Object o = subInput.readObject();
                 log.out();
                 return o;
         }
 
-	public void readArray(boolean [] ub, int o, int l) throws NetIbisException {
+	public void readArray(boolean [] ub, int o, int l) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(l)) {
@@ -619,7 +624,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public void readArray(byte [] ub, int o, int l) throws NetIbisException {
+	public void readArray(byte [] ub, int o, int l) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(l)) {
@@ -648,7 +653,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public void readArray(char [] ub, int o, int l) throws NetIbisException {
+	public void readArray(char [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 2;
 
@@ -700,7 +705,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public void readArray(short [] ub, int o, int l) throws NetIbisException {
+	public void readArray(short [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 2;
 
@@ -753,7 +758,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public void readArray(int [] ub, int o, int l) throws NetIbisException {
+	public void readArray(int [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 4;
 
@@ -807,7 +812,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public void readArray(long [] ub, int o, int l) throws NetIbisException {
+	public void readArray(long [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 8;
 
@@ -859,7 +864,7 @@ public final class BytesInput extends NetInput implements Settings {
         }
 
 
-	public void readArray(float [] ub, int o, int l) throws NetIbisException {
+	public void readArray(float [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 4;
 
@@ -910,7 +915,7 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
         }
 
-	public void readArray(double [] ub, int o, int l) throws NetIbisException {
+	public void readArray(double [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 8;
 
@@ -961,7 +966,7 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
         }
 
-	public void readArray(Object [] ub, int o, int l) throws NetIbisException {
+	public void readArray(Object [] ub, int o, int l) throws IOException, ClassNotFoundException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         ub[o+i] = readObject();

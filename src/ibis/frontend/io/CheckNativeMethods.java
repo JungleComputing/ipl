@@ -3,6 +3,7 @@ package ibis.frontend.io;
 import java.io.BufferedReader;
 import java.io.StreamTokenizer;
 import java.io.FileReader;
+import java.io.IOException;
 
 import ibis.classfile.*;
 
@@ -19,7 +20,7 @@ public class CheckNativeMethods {
 
 
     private static void checkNativeMethods(String clazz)
-	    throws java.io.IOException {
+	    throws IOException {
 
 	// System.err.println("Inspect Class " + clazz);
 
@@ -52,7 +53,7 @@ public class CheckNativeMethods {
 
 
     private static void checkNativeMethodsFromFile(String f)
-	    throws java.io.IOException {
+	    throws IOException {
 	BufferedReader in = new BufferedReader(new FileReader(f));
 	StreamTokenizer tok = new StreamTokenizer(in);
 
@@ -83,7 +84,7 @@ public class CheckNativeMethods {
 	    } else if (args[i].equals("-f")) {
 		try {
 		    checkNativeMethodsFromFile(args[++i]);
-		} catch (java.io.IOException e) {
+		} catch (IOException e) {
 		    System.err.println("Error for arg " + args[i] + ": " + e);
 		}
 	    } else {
@@ -98,7 +99,7 @@ public class CheckNativeMethods {
 		    System.err.println("Check class " + clazz[i]);
 		}
 		checkNativeMethods(clazz[i]);
-	    } catch (java.io.IOException e) {
+	    } catch (IOException e) {
 		System.err.println("Error for class " + clazz[i] + ": " + e);
 	    }
 	}

@@ -3,8 +3,6 @@ package ibis.io;
 import java.io.InputStream;
 import java.io.IOException;
 
-import ibis.ipl.IbisIOException;
-
 /**
  * Implementation of <code>ArrayInputStream</code> on top of an
  * <code>InputStream</code>.
@@ -50,47 +48,38 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	return (a > b) ? b : a;
     }
 
-    public final int read() throws IbisIOException {
-	throw new IbisIOException("int read() has no meaning for typed stream");
+    public final int read() throws IOException {
+	throw new IOException("int read() has no meaning for typed stream");
     }
 
-    private final void fillBuffer(int len) throws IbisIOException {
+    private final void fillBuffer(int len) throws IOException {
 
 	// This ensures that there are at least 'len' bytes in the buffer
 	// PRECONDITION: 'index + buffered_bytes' should never be larger than BUF_SIZE!!
 
-	try {
-	    while (buffered_bytes < len) {
-		// System.err.println("buffer -> filled from " + index + " with " + buffered_bytes + " size " + BUF_SIZE + " read " + len);
-
-		int n = in.read(buffer, index + buffered_bytes,
-			BUF_SIZE-(index+buffered_bytes));
-		if (n < 0) {
-		    throw new IOException("EOF encountered");
-		}
-
-		buffered_bytes += n;
+	while (buffered_bytes < len) {
+	    // System.err.println("buffer -> filled from " + index + " with " + buffered_bytes + " size " + BUF_SIZE + " read " + len);
+	    
+	    int n = in.read(buffer, index + buffered_bytes,
+			    BUF_SIZE-(index+buffered_bytes));
+	    if (n < 0) {
+		throw new java.io.EOFException("EOF encountered");
 	    }
-	    // System.err.println(buffered_bytes + " in buffer");
-	} catch (IOException e) {
-	    throw new IbisIOException(e);
+
+	    buffered_bytes += n;
 	}
     }
 
-    public final int available() throws IbisIOException {
-	try {
-	    return (buffered_bytes + in.available());
-	} catch (IOException e) {
-	    throw new IbisIOException(e);
-	}
+    public final int available() throws IOException {
+	return (buffered_bytes + in.available());
     }
 
     public void readArray(boolean[] a, int off, int len)
-	throws IbisIOException {
+		throws IOException {
 
 	if (DEBUG) {
 	    System.err.println("readArray(boolean[" + off +
-		    " ... " + (off+len) + "])");
+			       " ... " + (off+len) + "])");
 	}
 
 	int useable, converted;
@@ -132,7 +121,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	index += to_convert;
     }
 
-    public void readArray(byte[] a, int off, int len) throws IbisIOException {
+    public void readArray(byte[] a, int off, int len) throws IOException {
 	if (DEBUG) {
 	    System.err.println("readArray(byte[" + off + " ... " + (off+len) + "])");
 	}
@@ -150,27 +139,22 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 	    //System.err.println("DONE");
 
 	} else {
-	    try {
-		if (buffered_bytes != 0) {
-		    //System.err.println("PARTLY IN BUF " + buffered_bytes + " " + len);
-		    // first, copy the data we do have to 'a' .
-		    System.arraycopy(buffer, index, a, off, buffered_bytes);
-		}
-		int rd = buffered_bytes;;
-		index = 0;
-		do {
-		    int n = in.read(a, off + rd, len - rd);
-		    if (n < 0) {
-			throw new IOException("EOF encountered");
-		    }
-		    rd += n;
-		} while (rd < len);
-
-		buffered_bytes = 0;
-
-	    } catch (IOException e) {
-		throw new IbisIOException(e);
+	    if (buffered_bytes != 0) {
+		//System.err.println("PARTLY IN BUF " + buffered_bytes + " " + len);
+		// first, copy the data we do have to 'a' .
+		System.arraycopy(buffer, index, a, off, buffered_bytes);
 	    }
+	    int rd = buffered_bytes;;
+	    index = 0;
+	    do {
+		int n = in.read(a, off + rd, len - rd);
+		if (n < 0) {
+		    throw new java.io.EOFException("EOF encountered");
+		}
+		rd += n;
+	    } while (rd < len);
+
+	    buffered_bytes = 0;
 	}
 
 	//		System.err.print("result -> byte[");
@@ -185,7 +169,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
     //	static int W = 0;
 
     public void readArray(short[] a, int off, int len)
-	throws IbisIOException {
+	throws IOException {
 
 	int useable, converted;
 	int to_convert = len * SIZEOF_SHORT;
@@ -236,7 +220,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
     }
 
     public void readArray(char[] a, int off, int len)
-	throws IbisIOException {
+	throws IOException {
 
 	if (DEBUG) {
 	    System.err.println("readArray(char[" + off + " ... " + (off+len) + "])");
@@ -282,7 +266,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
     }
 
     public void readArray(int[] a, int off, int len)
-	throws IbisIOException {
+	throws IOException {
 
 	if (DEBUG) {
 	    System.err.println("readArray(int[" + off + " ... " + (off+len) + "])");
@@ -342,7 +326,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
     }
 
     public void readArray(long[] a, int off, int len)
-	throws IbisIOException {
+	throws IOException {
 
 	if (DEBUG) {
 	    System.err.println("readArray(long[" + off + " ... " + (off+len) + "])");
@@ -389,7 +373,8 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
 
 
     public void readArray(float[] a, int off, int len)
-	throws IbisIOException {
+	throws IOException {
+
 	if (DEBUG) {
 	    System.err.println("readArray(float[" + off + " ... " + (off+len) + "])");
 	}
@@ -434,7 +419,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
     }
 
     public void readArray(double[] a, int off, int len)
-	throws IbisIOException {
+	throws IOException {
 
 	if (DEBUG) {
 	    System.err.println("readArray(double[" + off + " ... " + (off+len) + "])");

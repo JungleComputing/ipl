@@ -1,5 +1,4 @@
 import java.io.IOException;
-import ibis.ipl.IbisIOException;
 import ibis.io.ArrayOutputStream;
 
 final class StoreArrayOutputStream extends ArrayOutputStream { 
@@ -17,53 +16,53 @@ final class StoreArrayOutputStream extends ArrayOutputStream {
 		return temp;
 	} 
 
-	public void writeArray(boolean[] a, int off, int len) throws ibis.ipl.IbisIOException { 
+	public void writeArray(boolean[] a, int off, int len) throws IOException { 
 		this.len += len;
 		buf.writeArray(a, off, len);
 	}
 
-	public void writeArray(byte[] a, int off, int len) throws ibis.ipl.IbisIOException { 
+	public void writeArray(byte[] a, int off, int len) throws IOException { 
 		this.len += len;
 		buf.writeArray(a, off, len);
 	}
 	
-	public void writeArray(short[] a, int off, int len) throws ibis.ipl.IbisIOException { 
+	public void writeArray(short[] a, int off, int len) throws IOException { 
 		this.len += 2*len;
 		buf.writeArray(a, off, len);
 	}
 	
-	public void writeArray(char[] a, int off, int len) throws ibis.ipl.IbisIOException { 
+	public void writeArray(char[] a, int off, int len) throws IOException { 
 		this.len += 2*len;
 		buf.writeArray(a, off, len);
 	}
 	
-	public void writeArray(int[] a, int off, int len) throws ibis.ipl.IbisIOException { 
+	public void writeArray(int[] a, int off, int len) throws IOException { 
 		this.len += 4*len;
 		buf.writeArray(a, off, len);
 	}
 	
-	public void writeArray(long[] a, int off, int len) throws ibis.ipl.IbisIOException { 
+	public void writeArray(long[] a, int off, int len) throws IOException { 
 		this.len += 8*len;
 		buf.writeArray(a, off, len);
 	}
 	
-	public void writeArray(float[] a, int off, int len) throws ibis.ipl.IbisIOException { 
+	public void writeArray(float[] a, int off, int len) throws IOException { 
 		this.len += 4*len;
 		buf.writeArray(a, off, len);
 	}
 	
-	public void writeArray(double[] a, int off, int len) throws ibis.ipl.IbisIOException { 
+	public void writeArray(double[] a, int off, int len) throws IOException { 
 		this.len += 8*len;
 		buf.writeArray(a, off, len);
 	}
 	
-	public void flush() throws ibis.ipl.IbisIOException { 
+	public void flush() throws IOException { 
 	}
 
-	public void finish() throws ibis.ipl.IbisIOException { 
+	public void finish() throws IOException { 
 	}
 
-	public void close() throws ibis.ipl.IbisIOException { 
+	public void close() throws IOException { 
 	}
 
 	public int bytesWritten() { 

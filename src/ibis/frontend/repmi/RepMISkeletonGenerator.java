@@ -32,6 +32,7 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 		output.println("import ibis.repmi.*;");		
 		output.println("import ibis.ipl.*;");		
 		output.println("import java.lang.reflect.*;");		
+		output.println("import java.io.IOException;");		
 		output.println();
 	
 		output.println("public final class repmi_skeleton_" + dest_name + " extends ibis.repmi.Skeleton {");
@@ -40,7 +41,7 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 
 	void messageHandler(Vector methods) { 
 
-		output.println("\tpublic final void handleMessage(ReadMessage r) throws IbisIOException {");
+		output.println("\tpublic final void handleMessage(ReadMessage r) throws IOException {");
 		output.println();		
 
 		output.println("\t\tint method = r.readInt();");		

@@ -1,5 +1,10 @@
 package ibis.ipl.impl.net;
 
+import java.io.IOException;
+import java.io.InterruptedIOException;
+
+import ibis.ipl.Ibis;
+
 /**
  * Provide a special kind of mutex with a 2-level priority support.
  */
@@ -44,11 +49,11 @@ public final class NetPriorityMutex {
          * @param priority indicates whether the call is a
          * 'high-priority' request (<code>true</code>) or a
          * 'low-priority' request (<code>false</code>).
-         * @exception NetIbisInterruptedException if the calling thread is
+         * @exception InterruptedIOException if the calling thread is
          * interrupted while the method is blocked waiting for the
          * mutex.
          */
-	public synchronized void lock(boolean priority) throws NetIbisInterruptedException{
+	public synchronized void lock(boolean priority) throws InterruptedIOException{
                 if (priority) {
                         priorityvalue++;
                         while (lockvalue <= 0) {
@@ -64,19 +69,20 @@ public final class NetPriorityMutex {
 							// notifyAll();
 						}
                                         }
-                                        throw new NetIbisInterruptedException(e);
+                                        throw Ibis.createInterruptedIOException(e);
                                 }
                         }
                         priorityvalue--;
                 } else {
                         while (priorityvalue > 0 || lockvalue <= 0) {
-                                try {
-					waiters++;
-                                        wait();
+				waiters++;
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					throw Ibis.createInterruptedIOException(e);
+				} finally {
 					waiters--;
-                                } catch (InterruptedException e) {
-                                        throw new NetIbisInterruptedException(e);
-                                }
+				}
                         }
                 }
 		lockvalue--;
@@ -94,11 +100,11 @@ public final class NetPriorityMutex {
          * @param priority indicates whether the call is a
          * 'high-priority' request (<code>true</code>) or a
          * 'low-priority' request (<code>false</code>).
-         * @exception InterruptedException if the calling thread is
+         * @exception InterruptedIOException if the calling thread is
          * interrupted while the method is blocked waiting for the
          * mutex.
          */
-	public synchronized void ilock(boolean priority) throws InterruptedException {
+	public synchronized void ilock(boolean priority) throws InterruptedIOException {
                 if (priority) {
                         priorityvalue++;
                         while (lockvalue <= 0) {
@@ -106,6 +112,8 @@ public final class NetPriorityMutex {
 					waiters++;
                                         wait();
 					waiters--;
+				} catch (InterruptedException e) {
+					throw Ibis.createInterruptedIOException(e);
                                 } finally {
                                         synchronized(this) {
                                                 priorityvalue--;
@@ -121,8 +129,13 @@ public final class NetPriorityMutex {
                 } else {
                         while (priorityvalue > 0 || lockvalue <= 0) {
 				waiters++;
-                                wait();
-				waiters--;
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					throw Ibis.createInterruptedIOException(e);
+				} finally {
+					waiters--;
+				}
                         }
                 }
 		lockvalue--;

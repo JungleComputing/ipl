@@ -1,11 +1,15 @@
 package ibis.ipl.impl.net.rel;
 
-import ibis.ipl.impl.net.*;
-
-import ibis.ipl.IbisIdentifier;
-
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.io.StreamCorruptedException;
+
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.ConnectionRefusedException;
+
+import ibis.ipl.impl.net.*;
 
 /**
 * The REL output implementation.
@@ -105,27 +109,23 @@ public final class RelOutput
     }
 
 
-    private void checkLocked() throws NetIbisException {
+    private void checkLocked() {
 	if (DEBUG_LOCK) {
 	    try {
 		notify();
 		return;
 	    } catch (IllegalMonitorStateException e) {
-		System.err.println("I should own the lock but I DON'T");
-		Thread.dumpStack();
-		throw new NetIbisException("I should own the lock but I DON'T");
+		throw new Error("I should own the lock but I DON'T");
 	    }
 	}
     }
 
 
-    private void checkUnlocked() throws NetIbisException {
+    private void checkUnlocked() {
 	if (DEBUG_LOCK) {
 	    try {
 		notify();
-		System.err.println("I shouldn't own the lock but I DO");
-		Thread.dumpStack();
-		throw new NetIbisException("I shouldn't own the lock but I DO");
+		throw new Error("I shouldn't own the lock but I DO");
 	    } catch (IllegalMonitorStateException e) {
 		return;
 	    }
@@ -142,7 +142,7 @@ public final class RelOutput
      * @param output the controlling output.
      */
     RelOutput(NetPortType pt, NetDriver driver, String context)
-	    throws NetIbisException {
+	    throws IOException {
 
 	super(pt, driver, context);
 
@@ -173,10 +173,10 @@ public final class RelOutput
      * {@inheritDoc}
      */
     public synchronized void setupConnection(NetConnection cnx)
-	    throws NetIbisException {
+	    throws IOException {
 
 	if (rpn != null) {
-	    throw new NetIbisException("connection already established");
+	    throw new IOException("connection already established");
 	}
 
 	rpn = cnx.getNum();
@@ -218,67 +218,63 @@ public final class RelOutput
 	    System.err.println("ibis.net.rel.windowSize set to " + windowSize);
 	}
 
+	NetServiceLink link = cnx.getServiceLink();
+	ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, ":request"));
 	try {
-            NetServiceLink link = cnx.getServiceLink();
-	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, ":request"));
 	    partnerIbisId = (IbisIdentifier)is.readObject();
-	    is.close();
-
-	    if (DEBUG) {
-		System.err.println(this + ": my partner IbisID " + partnerIbisId);
-	    }
-
-            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, ":reply"));
-	    os.writeObject(relDriver.getIbis().identifier());
-	    os.writeInt(myIndex);
-	    os.writeInt(windowSize);
-            os.close();
-
-	    relDriver.registerOutputConnection(myIndex, partnerIbisId);
-
-	    NetInput controlInput = this.controlInput;
-
-	    /* Reverse connection */
-	    if (controlInput == null) {
-		    controlInput = newSubInput(subDriver, "control");
-		    this.controlInput = controlInput;
-	    }
-
-	    controlInput.setupConnection(new NetConnection(cnx, new Integer(-1)));
-	    controlHeaderStart = controlInput.getHeadersLength();
-	    System.err.println("Control header: start " + controlHeaderStart + " length " + RelConstants.headerLength);
-
-	    if (controlFactory == null) {
-		controlFactory = new NetBufferFactory(mtu, new RelReceiveBufferFactoryImpl());
-		if (DEBUG) {
-		    System.err.println(this + ": ########################## set controlInput " + controlInput + " buffer factory " + controlFactory);
-		}
-		controlInput.setBufferFactory(controlFactory);
-		if (DEBUG) {
-		    controlInput.dumpBufferFactoryInfo();
-		    System.err.println(this + ": ########################## controlInput.factory = " + controlInput.factory);
-		}
-	    } else {
-		controlFactory.setMaximumTransferUnit(mtu);
-	    }
-
-	    /* Synchronize with the other side, so we are sure the connection
-	     * is set up right and proper before anybody starts talking */
-	    is = new ObjectInputStream (link.getInputSubStream (this, ":handshake"));
-	    int ok = is.readInt();
-	    if (ok != 1) {
-		throw new NetIbisException(this + ": connection handshake fails");
-	    }
-            is.close();
-	    if (DEBUG) {
-		System.err.println(this + ": " + Thread.currentThread() + ": established connection");
-	    }
-	} catch (java.io.IOException e) {
-	    System.err.println("Catch exception " + e);
-	    e.printStackTrace();
-	    throw new NetIbisException(e);
 	} catch (java.lang.ClassNotFoundException e) {
-	    throw new NetIbisException(e);
+	    throw new Error("Cannot find class IbisIdentifier", e);
+	}
+	is.close();
+
+	if (DEBUG) {
+	    System.err.println(this + ": my partner IbisID " + partnerIbisId);
+	}
+
+	ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, ":reply"));
+	os.writeObject(relDriver.getIbis().identifier());
+	os.writeInt(myIndex);
+	os.writeInt(windowSize);
+	os.close();
+
+	relDriver.registerOutputConnection(myIndex, partnerIbisId);
+
+	NetInput controlInput = this.controlInput;
+
+	/* Reverse connection */
+	if (controlInput == null) {
+		controlInput = newSubInput(subDriver, "control");
+		this.controlInput = controlInput;
+	}
+
+	controlInput.setupConnection(new NetConnection(cnx, new Integer(-1)));
+	controlHeaderStart = controlInput.getHeadersLength();
+	System.err.println("Control header: start " + controlHeaderStart + " length " + RelConstants.headerLength);
+
+	if (controlFactory == null) {
+	    controlFactory = new NetBufferFactory(mtu, new RelReceiveBufferFactoryImpl());
+	    if (DEBUG) {
+		System.err.println(this + ": ########################## set controlInput " + controlInput + " buffer factory " + controlFactory);
+	    }
+	    controlInput.setBufferFactory(controlFactory);
+	    if (DEBUG) {
+		controlInput.dumpBufferFactoryInfo();
+		System.err.println(this + ": ########################## controlInput.factory = " + controlInput.factory);
+	    }
+	} else {
+	    controlFactory.setMaximumTransferUnit(mtu);
+	}
+
+	/* Synchronize with the other side, so we are sure the connection
+	 * is set up right and proper before anybody starts talking */
+	is = new ObjectInputStream (link.getInputSubStream (this, ":handshake"));
+	int ok = is.readInt();
+	if (ok != 1) {
+	    throw new ConnectionRefusedException(this + ": connection handshake fails");
+	}
+	is.close();
+	if (DEBUG) {
+	    System.err.println(this + ": " + Thread.currentThread() + ": established connection");
 	}
 
 	connected = true;
@@ -290,7 +286,7 @@ public final class RelOutput
     }
 
 
-    private void pushPiggy(RelSendBuffer frag) throws NetIbisException {
+    private void pushPiggy(RelSendBuffer frag) throws IOException {
 
 	checkLocked();
 
@@ -330,7 +326,7 @@ public final class RelOutput
 
     // Call this synchronized
     private void doSendBuffer(RelSendBuffer frag, long now)
-	    throws NetIbisException {
+	    throws IOException {
 
 	checkLocked();
 
@@ -348,12 +344,12 @@ public final class RelOutput
 				     headerStart / NetConvert.INT_SIZE +
 					 4);
 	    if (frag.fragCount != first_int) {
-		// throw new NetIbisException("Packet corrupted");
+		// throw new StreamCorruptedException("Packet corrupted");
 	    }
 	}
 	if (DEBUG) {
 	    if (! frag.ownershipClaimed) {
-		throw new NetIbisException("Packet ownership bit corrupted");
+		throw new StreamCorruptedException("Packet ownership bit corrupted");
 	    }
 	}
 	pushPiggy(frag);
@@ -373,7 +369,7 @@ public final class RelOutput
 				     headerStart / NetConvert.INT_SIZE +
 					 4);
 	    if (frag.fragCount != first_int) {
-		// throw new NetIbisException("Packet corrupted");
+		// throw new StreamCorruptedException("Packet corrupted");
 	    }
 	}
     }
@@ -403,7 +399,7 @@ public final class RelOutput
 
 
     // Call this synchronized
-    private boolean pollControlChannel(boolean block) throws NetIbisException {
+    private boolean pollControlChannel(boolean block) throws IOException {
 
 	checkLocked();
 
@@ -450,7 +446,7 @@ public final class RelOutput
 
     // Call this synchronized
 // synchronized
-    private void handleSendContinuation() throws NetIbisException {
+    private void handleSendContinuation() throws IOException {
 
 	checkLocked();
 
@@ -492,7 +488,7 @@ checkRexmit();
 
 
     // Call this synchronized
-    private void enqueueSendBuffer(RelSendBuffer frag) throws NetIbisException {
+    private void enqueueSendBuffer(RelSendBuffer frag) throws IOException {
 
 	checkLocked();
 
@@ -514,7 +510,7 @@ checkRexmit();
 			      int[] ackReceiveSet,
 			      int toAck,
 			      RelSendBuffer scan)
-	    throws NetIbisException {
+	    throws IOException {
 
 	checkLocked();
 
@@ -535,7 +531,7 @@ checkRexmit();
 		}
 		if (DEBUG_ACK && bit == 0) {
 		    System.err.println("HAVOC HAVOC HAVOC loop is wrong");
-		    throw new NetIbisException("loop is wrong");
+		    throw new Error("loop is wrong");
 		}
 		maxAcked = i * NetConvert.BITS_PER_INT + bit + 1;
 		break;
@@ -584,7 +580,7 @@ checkRexmit();
 			System.err.println("HAVOC HAVOC HAVOC ack " +
 				"mechanism is wrong -- missing reported " +
 				"that's not even been sent");
-			throw new NetIbisException("missing reported that " +
+			throw new Error("missing reported that " +
 				"has not yet been sent");
 		    }
 
@@ -628,7 +624,7 @@ checkRexmit();
 
 
     synchronized
-    void handleAck(byte[] data, int offset) throws NetIbisException {
+    void handleAck(byte[] data, int offset) throws IOException {
 	RelSendBuffer scan;
 	RelSendBuffer prev;
 
@@ -669,7 +665,7 @@ checkRexmit();
     }
 
 
-    private int pendingRexmits() throws NetIbisException {
+    private int pendingRexmits() throws IOException {
 	int	n = 0;
 
 	checkLocked();
@@ -697,7 +693,7 @@ checkRexmit();
 
 
     // call this synchronized
-    private void checkRexmit() throws NetIbisException {
+    private void checkRexmit() throws IOException {
 
 	checkLocked();
 
@@ -712,7 +708,7 @@ checkRexmit();
 
 
     // call this synchronized
-    private void handleRexmit() throws NetIbisException {
+    private void handleRexmit() throws IOException {
 
 	checkLocked();
 
@@ -765,7 +761,7 @@ checkRexmit();
 		pollControlChannel(false);
 		handleRexmit();
 	    }
-	} catch (NetIbisException e) {
+	} catch (IOException e) {
 	    System.err.println("RelOutput hanldeRexmit throws " + e);
 	}
     }
@@ -774,7 +770,7 @@ checkRexmit();
     /**
      * {@inheritDoc}
      */
-    public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
+    public void sendByteBuffer(NetSendBuffer b) throws IOException {
 	if (DEBUG_HUGE) {
 	    System.err.println(this + ": Try to send a buffer size " + b.length);
 	    Thread.dumpStack();
@@ -836,7 +832,7 @@ checkRexmit();
     /**
      * {@inheritDoc}
      */
-    public void initSend() throws NetIbisException {
+    public void initSend() throws IOException {
 	    super.initSend();
 	    dataOutput.initSend();
     }
@@ -852,13 +848,13 @@ checkRexmit();
     /**
      * {@inheritDoc}
      */
-    public void finish() throws NetIbisException {
+    public void finish() throws IOException {
 	    super.finish();
 	    dataOutput.finish();
     }
 
 
-    synchronized public void close(Integer num) throws NetIbisException {
+    synchronized public void close(Integer num) throws IOException {
 	// to implement
 	//
 	// - 'num' is the is the Integer identifier of the connection to close
@@ -899,7 +895,7 @@ checkRexmit();
     /**
      * {@inheritDoc}
      */
-    public void free() throws NetIbisException {
+    public void free() throws IOException {
 	if (rpn != null) {
 	    close(rpn);
 	}

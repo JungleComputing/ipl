@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.EOFException;
 
 import java.util.Hashtable;
 
@@ -72,7 +73,7 @@ public final class TcpInput extends NetInput {
 	 * @param input the controlling input.
 	 */
 	TcpInput(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
+		throws IOException {
 		super(pt, driver, context);
 		headerLength = 0;
 	}
@@ -85,33 +86,29 @@ public final class TcpInput extends NetInput {
 	 * @param os {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx)
-		throws NetIbisException {
+		throws IOException {
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
 
-		try {
-			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
-			Hashtable lInfo    = new Hashtable();
-			lInfo.put("tcp_address", tcpServerSocket.getInetAddress());
-			lInfo.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
-                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_plain"));
-			os.writeObject(lInfo);
-                        os.close();
+		tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
+		Hashtable lInfo    = new Hashtable();
+		lInfo.put("tcp_address", tcpServerSocket.getInetAddress());
+		lInfo.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
+		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_plain"));
+		os.writeObject(lInfo);
+		os.close();
 
-			tcpSocket  = tcpServerSocket.accept();
+		tcpSocket  = tcpServerSocket.accept();
 
-			tcpSocket.setSendBufferSize(0x8000);
-			tcpSocket.setReceiveBufferSize(0x8000);
-			tcpSocket.setTcpNoDelay(true);
-                        addr = tcpSocket.getInetAddress();
-                        port = tcpSocket.getPort();
+		tcpSocket.setSendBufferSize(0x8000);
+		tcpSocket.setReceiveBufferSize(0x8000);
+		tcpSocket.setTcpNoDelay(true);
+		addr = tcpSocket.getInetAddress();
+		port = tcpSocket.getPort();
 
-			tcpIs 	   = tcpSocket.getInputStream();
-			tcpOs 	   = tcpSocket.getOutputStream();
-		} catch (IOException e) {
-			throw new NetIbisException(e);
-		}
+		tcpIs 	   = tcpSocket.getInputStream();
+		tcpOs 	   = tcpSocket.getOutputStream();
 
 		mtu = 0;
 
@@ -130,27 +127,23 @@ public final class TcpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer doPoll(boolean block) throws NetIbisException {
+	public Integer doPoll(boolean block) throws IOException {
 		if (spn == null) {
 			return null;
 		}
 
-		try {
-			if (block) {
-				int i = tcpIs.read();
+		if (block) {
+			int i = tcpIs.read();
 
-				if (i < 0)
-					throw new NetIbisException("Broken pipe");
+			if (i < 0)
+				throw new EOFException("Broken pipe");
 
-				first = true;
-				firstbyte = (byte)(i & 0xFF);
+			first = true;
+			firstbyte = (byte)(i & 0xFF);
 
-				return spn;
-			} else if (tcpIs.available() > 0) {
-				return spn;
-			}
-		} catch (IOException e) {
-			throw new NetIbisException(e);
+			return spn;
+		} else if (tcpIs.available() > 0) {
+			return spn;
 		}
 
 		return null;
@@ -167,24 +160,19 @@ public final class TcpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public byte readByte() throws NetIbisException {
+	public byte readByte() throws IOException {
                 byte b = 0;
 
                 if (first) {
                         first = false;
                         b = firstbyte;
                 } else {
-                        try {
-                                int i = tcpIs.read();
-                                if (i >= 0) {
-                                        b = (byte)(i & 0xFF);
-                                } else {
-                                        throw new NetIbisException("unexpected EOF");
-                                }
-                        } catch (IOException e) {
-                                throw new NetIbisException(e.getMessage());
-                        }
-
+			int i = tcpIs.read();
+			if (i >= 0) {
+				b = (byte)(i & 0xFF);
+			} else {
+				throw new EOFException("unexpected EOF");
+			}
                 }
 
                 return b;
@@ -194,37 +182,8 @@ public final class TcpInput extends NetInput {
                 //
         }
 
-        public synchronized void doClose(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws IOException {
                 if (spn == num) {
-                        try {
-                                if (tcpOs != null) {
-                                        tcpOs.close();
-                                }
-
-                                if (tcpIs != null) {
-                                        tcpIs.close();
-                                }
-
-                                if (tcpSocket != null) {
-                                        tcpSocket.close();
-                                }
-
-                                if (tcpServerSocket != null) {
-                                        tcpServerSocket.close();
-                                }
-                        } catch (Exception e) {
-                                throw new NetIbisException(e);
-                        }
-
-                        spn = null;
-                }
-        }
-
-        /**
-	 * {@inheritDoc}
-	 */
-	public void doFree() throws NetIbisException {
-		try {
 			if (tcpOs != null) {
 				tcpOs.close();
 			}
@@ -234,15 +193,35 @@ public final class TcpInput extends NetInput {
 			}
 
 			if (tcpSocket != null) {
-                                tcpSocket.close();
+				tcpSocket.close();
 			}
 
 			if (tcpServerSocket != null) {
-                                tcpServerSocket.close();
+				tcpServerSocket.close();
 			}
+
+                        spn = null;
+                }
+        }
+
+        /**
+	 * {@inheritDoc}
+	 */
+	public void doFree() throws IOException {
+		if (tcpOs != null) {
+			tcpOs.close();
 		}
-		catch (Exception e) {
-			throw new NetIbisException(e);
+
+		if (tcpIs != null) {
+			tcpIs.close();
+		}
+
+		if (tcpSocket != null) {
+			tcpSocket.close();
+		}
+
+		if (tcpServerSocket != null) {
+			tcpServerSocket.close();
 		}
 
                 spn = null;

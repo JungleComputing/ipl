@@ -5,6 +5,7 @@ import java.io.ObjectStreamClass;
 import java.io.NotActiveException;
 import java.io.IOException;
 import java.io.ObjectOutput;
+import java.io.NotSerializableException;
 
 
 public final class IbisSerializationOutputStream extends SerializationOutputStream implements IbisStreamFlags {
@@ -489,23 +490,19 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	return -1;
     }
 
-    private void alternativeDefaultWriteObject(AlternativeTypeInfo t, Object ref) throws IOException {
+    private void alternativeDefaultWriteObject(AlternativeTypeInfo t, Object ref) throws IOException, IllegalAccessException {
 	int temp = 0;
 	int i;
 
-	try {
-	    for (i=0;i<t.double_count;i++)    writeDouble(t.serializable_fields[temp++].getDouble(ref));
-	    for (i=0;i<t.long_count;i++)      writeLong(t.serializable_fields[temp++].getLong(ref));
-	    for (i=0;i<t.float_count;i++)     writeFloat(t.serializable_fields[temp++].getFloat(ref));
-	    for (i=0;i<t.int_count;i++)       writeInt(t.serializable_fields[temp++].getInt(ref));
-	    for (i=0;i<t.short_count;i++)     writeShort(t.serializable_fields[temp++].getShort(ref));
-	    for (i=0;i<t.char_count;i++)      writeChar(t.serializable_fields[temp++].getChar(ref));
-	    for (i=0;i<t.byte_count;i++)      writeByte(t.serializable_fields[temp++].getByte(ref));
-	    for (i=0;i<t.boolean_count;i++)   writeBoolean(t.serializable_fields[temp++].getBoolean(ref));
-	    for (i=0;i<t.reference_count;i++) writeObject(t.serializable_fields[temp++].get(ref));
-	} catch(IllegalAccessException e) {
-	    throw new IOException("illegal access" + e);
-	}
+	for (i=0;i<t.double_count;i++)    writeDouble(t.serializable_fields[temp++].getDouble(ref));
+	for (i=0;i<t.long_count;i++)      writeLong(t.serializable_fields[temp++].getLong(ref));
+	for (i=0;i<t.float_count;i++)     writeFloat(t.serializable_fields[temp++].getFloat(ref));
+	for (i=0;i<t.int_count;i++)       writeInt(t.serializable_fields[temp++].getInt(ref));
+	for (i=0;i<t.short_count;i++)     writeShort(t.serializable_fields[temp++].getShort(ref));
+	for (i=0;i<t.char_count;i++)      writeChar(t.serializable_fields[temp++].getChar(ref));
+	for (i=0;i<t.byte_count;i++)      writeByte(t.serializable_fields[temp++].getByte(ref));
+	for (i=0;i<t.boolean_count;i++)   writeBoolean(t.serializable_fields[temp++].getBoolean(ref));
+	for (i=0;i<t.reference_count;i++) writeObject(t.serializable_fields[temp++].get(ref));
     }
 
 
@@ -516,7 +513,11 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
 	if (t.hasWriteObject) {
 	    current_level = t.level;
-	    t.invokeWriteObject(ref, this);
+	    try {
+		t.invokeWriteObject(ref, this);
+	    } catch (java.lang.reflect.InvocationTargetException e) {
+		throw new IllegalAccessException("writeObject method: " + e);
+	    }
 	    return;
 	}
 
@@ -565,7 +566,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    alternativeWriteObject(t, ref);
 	    pop_current_object();
 	} catch (IllegalAccessException e) {
-	    throw new RuntimeException("Serializable failed for : " + classname);
+	    throw new java.io.NotSerializableException("Serializable failed for : " + classname);
 	}
     }
 
@@ -576,7 +577,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    alternativeWriteObject(t, ref);
 	    pop_current_object();
 	} catch (IllegalAccessException e) {
-	    throw new RuntimeException("Serializable failed for : " + clazz.getName());
+	    throw new java.io.NotSerializableException("Serializable failed for : " + clazz.getName());
 	}
     }
 
@@ -656,7 +657,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		} else if (ref instanceof java.io.Serializable) {
 		    writeSerializableObject(ref, type);
 		} else { 
-		    throw new RuntimeException("Not Serializable : " + type.toString());
+		    throw new java.io.NotSerializableException("Not Serializable : " + type.toString());
 		}
 	    }
 	} else {
@@ -856,7 +857,11 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	while (t.level > depth) {
 	    t = t.alternativeSuperInfo;
 	}
-	alternativeDefaultWriteObject(t, ref);
+	try {
+	    alternativeDefaultWriteObject(t, ref);
+	} catch(IllegalAccessException e) {
+	    throw new NotSerializableException("illegal access" + e);
+	}
     }
 
     public void defaultWriteObject() throws IOException, NotActiveException {
@@ -886,9 +891,13 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    while (t.level > current_level) {
 		t = t.alternativeSuperInfo;
 	    }
-	    alternativeDefaultWriteObject(t, ref);
+	    try {
+		alternativeDefaultWriteObject(t, ref);
+	    } catch(IllegalAccessException e) {
+		throw new NotSerializableException("illegal access" + e);
+	    }
 	} else { 
-	    throw new RuntimeException("Not Serializable : " + type.toString());
+	    throw new java.io.NotSerializableException("Not Serializable : " + type.toString());
 	}
     }
 }

@@ -471,7 +471,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
     IBP_VPRINTF(100, env, ("msg_send: %d port %d seqno %d, lastSplitter %s\n", cpu, port, msgSeqno, lastSplitter ? "yes" : "no"));
 
     if (! ibmp_byte_output_stream_alive) {
-	(*env)->ThrowNew(env, cls_IbisIOException, "Ibis MessagePassing ByteOutputStream closed");
+	(*env)->ThrowNew(env, cls_java_io_IOException, "Ibis MessagePassing ByteOutputStream closed");
 	return JNI_FALSE;
     }
 

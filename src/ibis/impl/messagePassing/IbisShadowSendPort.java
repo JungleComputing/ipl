@@ -1,8 +1,10 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.io.IbisSerializationInputStream;
+import java.io.IOException;
 
-import ibis.ipl.IbisIOException;
+import ibis.ipl.IbisException;
+
+import ibis.io.IbisSerializationInputStream;
 
 final class IbisShadowSendPort extends ShadowSendPort {
 
@@ -10,14 +12,10 @@ final class IbisShadowSendPort extends ShadowSendPort {
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
     IbisShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId)
-	    throws IbisIOException {
+	    throws IOException {
 	super(rId, sId);
 // System.err.println("In IbisShadowSendPort.<init>");
-	try {
-	    obj_in = new IbisSerializationInputStream(new ArrayInputStream(in));
-	} catch(java.io.IOException e) {
-	    throw new IbisIOException("got exception", e);
-	}
+	obj_in = new IbisSerializationInputStream(new ArrayInputStream(in));
     }
 
 

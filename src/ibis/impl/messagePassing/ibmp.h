@@ -51,7 +51,7 @@ int ibmp_stderr_printf(char *fmt, ...);
 extern jclass		ibmp_cls_Ibis;
 extern jobject		ibmp_obj_Ibis_ibis;
 
-extern jclass		cls_IbisIOException;
+extern jclass		cls_java_io_IOException;
 
 extern int		ibmp_me;
 extern int		ibmp_nr;

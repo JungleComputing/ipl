@@ -5,8 +5,18 @@ import java.net.ServerSocket;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import java.io.*;
-import ibis.ipl.*;
+import java.io.PrintStream;
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.DataOutputStream;
+import java.io.DataInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+
+// import ibis.ipl.*;
+import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.impl.generic.*;
 
 final class TcpPortHandler implements Runnable, TcpProtocol, Config { 
@@ -21,19 +31,15 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 	private TcpIbisIdentifier me;
 	private int port;
 
-	TcpPortHandler(TcpIbisIdentifier me) throws IbisIOException { 
+	TcpPortHandler(TcpIbisIdentifier me) throws IOException { 
 		
 //		f = new FileWriter(me.name + ".TcpPortHandler");
 //		print = new PrintWriter(f);
 		
 		this.me = me;
 
-		try {
-			systemServer = IbisSocketFactory.createServerSocket(0, me.address(), true);
-			port = systemServer.getLocalPort();
-		} catch (IOException e) {
-			throw new IbisIOException("createServerSocket throws " + e);
-		}
+		systemServer = IbisSocketFactory.createServerSocket(0, me.address(), true);
+		port = systemServer.getLocalPort();
 
 		if(DEBUG) {
 			System.out.println("PORTHANDLER: port = " + port);
@@ -85,7 +91,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 	}
 
 
-	boolean connect(TcpSendPort sp, TcpReceivePortIdentifier receiver) throws IbisIOException { 
+	boolean connect(TcpSendPort sp, TcpReceivePortIdentifier receiver) throws IOException { 
 		Socket s = null;
 
 		try { 
@@ -190,7 +196,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			} catch (Exception e2) {
 				// Ignore.
 			}
-			throw new IbisIOException("Could not connect", e);
+			throw new ConnectionRefusedException("Could not connect" + e);
 		}
 	} 
 

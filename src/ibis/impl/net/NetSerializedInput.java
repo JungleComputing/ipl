@@ -1,11 +1,14 @@
 package ibis.ipl.impl.net;
 
+import java.util.Hashtable;
+
+import java.io.IOException;
+
 import ibis.io.ArrayInputStream;
 import ibis.io.SerializationInputStream;
 
 import ibis.ipl.impl.net.*;
-
-import java.util.Hashtable;
+import ibis.ipl.Ibis;
 
 
 
@@ -51,7 +54,7 @@ public abstract class NetSerializedInput extends NetInput {
 	private         int             waiters;
 
 
-	public NetSerializedInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	public NetSerializedInput(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
                 streamTable = new Hashtable();
 	}
@@ -59,7 +62,7 @@ public abstract class NetSerializedInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		NetInput subInput = this.subInput;
 
@@ -81,10 +84,10 @@ public abstract class NetSerializedInput extends NetInput {
                 log.out();
 	}
 
-        public abstract SerializationInputStream newSerializationInputStream() throws NetIbisException;
+        public abstract SerializationInputStream newSerializationInputStream() throws IOException;
 
 
-	public void initReceive(Integer num) throws NetIbisException {
+	public void initReceive(Integer num) throws IOException {
                 log.in();
                 activeNum = num;
                 mtu          = subInput.getMaximumTransfertUnit();
@@ -113,7 +116,7 @@ public abstract class NetSerializedInput extends NetInput {
                 log.out();
 	}
 
-        public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
+        public void inputUpcall(NetInput input, Integer spn) throws IOException {
                 log.in();
 		Thread me = Thread.currentThread();
                 synchronized(this) {
@@ -122,12 +125,13 @@ public abstract class NetSerializedInput extends NetInput {
                         }
 
                         while (activeNum != null) {
+				waiters++;
                                 try {
-					waiters++;
                                         wait();
-					waiters--;
                                 } catch (InterruptedException e) {
-                                        throw new NetIbisInterruptedException(e);
+                                        throw Ibis.createInterruptedIOException(e);
+				} finally {
+					waiters--;
                                 }
                         }
 
@@ -151,7 +155,7 @@ public abstract class NetSerializedInput extends NetInput {
                 log.out();
         }
 
-	public synchronized Integer doPoll(boolean block) throws NetIbisException {
+	public synchronized Integer doPoll(boolean block) throws IOException {
                 log.in();
                 if (subInput == null) {
                         log.out();
@@ -167,7 +171,7 @@ public abstract class NetSerializedInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void doFinish() throws NetIbisException {
+	public void doFinish() throws IOException {
                 log.in();
                 //iss.close();
 		subInput.finish();
@@ -185,7 +189,7 @@ public abstract class NetSerializedInput extends NetInput {
                 log.out();
 	}
 
-        public synchronized void doClose(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws IOException {
                 log.in();
                 if (subInput != null) {
                         subInput.close(num);
@@ -197,7 +201,7 @@ public abstract class NetSerializedInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void doFree() throws NetIbisException {
+	public void doFree() throws IOException {
                 log.in();
 		if (subInput != null) {
 			subInput.free();
@@ -206,149 +210,115 @@ public abstract class NetSerializedInput extends NetInput {
 	}
 
 
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IOException {
                 log.in();
                 NetReceiveBuffer b = subInput.readByteBuffer(expectedLength);
                 log.out();
                 return b;
         }
 
-        public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
+        public void readByteBuffer(NetReceiveBuffer buffer) throws IOException {
                 log.in();
                 subInput.readByteBuffer(buffer);
                 log.out();
         }
 
-	public boolean readBoolean() throws NetIbisException {
+	public boolean readBoolean() throws IOException {
                 boolean b = false;
 
                 log.in();
-		try {
-                        b = iss.readBoolean();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		b = iss.readBoolean();
 
                 log.out();
                 return b;
         }
 
 
-	public byte readByte() throws NetIbisException {
+	public byte readByte() throws IOException {
                 byte b = 0;
 
                 log.in();
-		try {
-                        b = iss.readByte();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		b = iss.readByte();
                 log.out();
 
                 return b;
         }
 
 
-	public char readChar() throws NetIbisException {
+	public char readChar() throws IOException {
                 char c = 0;
 
                 log.in();
-		try {
-                        c = iss.readChar();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		c = iss.readChar();
                 log.out();
 
                 return c;
         }
 
 
-	public short readShort() throws NetIbisException {
+	public short readShort() throws IOException {
                 short s = 0;
 
                 log.in();
-		try {
-                        s = iss.readShort();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		s = iss.readShort();
                 log.out();
 
                 return s;
         }
 
 
-	public int readInt() throws NetIbisException {
+	public int readInt() throws IOException {
                 int i = 0;
 
                 log.in();
-		try {
-                        i = iss.readInt();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		i = iss.readInt();
                 log.out();
 
                 return i;
         }
 
 
-	public long readLong() throws NetIbisException {
+	public long readLong() throws IOException {
                 long l = 0;
 
                 log.in();
-		try {
-                        l = iss.readLong();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		l = iss.readLong();
                 log.out();
 
                 return l;
         }
 
 
-	public float readFloat() throws NetIbisException {
+	public float readFloat() throws IOException {
                 float f = 0.0f;
 
                 log.in();
-		try {
-                        f = iss.readFloat();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		f = iss.readFloat();
                 log.out();
 
                 return f;
         }
 
 
-	public double readDouble() throws NetIbisException {
+	public double readDouble() throws IOException {
                 double d = 0.0;
 
                 log.in();
-		try {
-                        d = iss.readDouble();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		d = iss.readDouble();
                 log.out();
 
                 return d;
         }
 
 
-	public String readString() throws NetIbisException {
+	public String readString() throws IOException {
                 String s = null;
 
                 log.in();
 		try {
-                        s = (String)iss.readObject();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
+			s = (String)iss.readObject();
 		} catch(ClassNotFoundException e2) {
-                        throw new NetIbisException("got exception", e2);
+                        throw new Error("Cannot find class String", e2);
 		}
                 log.out();
 
@@ -356,118 +326,74 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 
-	public Object readObject() throws NetIbisException {
+	public Object readObject() throws IOException, ClassNotFoundException {
                 Object o = null;
 
                 log.in();
-		try {
-                        o = iss.readObject();
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		} catch(ClassNotFoundException e2) {
-                        throw new NetIbisException("got exception", e2);
-		}
+		o = iss.readObject();
                 log.out();
 
                 return o;
         }
 
-	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
+	public void readArray(boolean [] b, int o, int l) throws IOException {
                 log.in();
-		try {
-                        iss.readArray(b, o, l);
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		iss.readArray(b, o, l);
                 log.out();
         }
 
 
-	public void readArray(byte [] b, int o, int l) throws NetIbisException {
+	public void readArray(byte [] b, int o, int l) throws IOException {
                 log.in();
-		try {
-                        iss.readArray(b, o, l);
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		iss.readArray(b, o, l);
                 log.out();
         }
 
 
-	public void readArray(char [] b, int o, int l) throws NetIbisException {
+	public void readArray(char [] b, int o, int l) throws IOException {
                 log.in();
-		try {
-                        iss.readArray(b, o, l);
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		iss.readArray(b, o, l);
                 log.out();
         }
 
 
-	public void readArray(short [] b, int o, int l) throws NetIbisException {
+	public void readArray(short [] b, int o, int l) throws IOException {
                 log.in();
-		try {
-                        iss.readArray(b, o, l);
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		iss.readArray(b, o, l);
                 log.out();
         }
 
 
-	public void readArray(int [] b, int o, int l) throws NetIbisException {
+	public void readArray(int [] b, int o, int l) throws IOException {
                 log.in();
-		try {
-                        iss.readArray(b, o, l);
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		iss.readArray(b, o, l);
                 log.out();
         }
 
 
-	public void readArray(long [] b, int o, int l) throws NetIbisException {
+	public void readArray(long [] b, int o, int l) throws IOException {
                 log.in();
-		try {
-                        iss.readArray(b, o, l);
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		iss.readArray(b, o, l);
                 log.out();
         }
 
 
-	public void readArray(float [] b, int o, int l) throws NetIbisException {
+	public void readArray(float [] b, int o, int l) throws IOException {
                 log.in();
-		try {
-                        iss.readArray(b, o, l);
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		iss.readArray(b, o, l);
                 log.out();
         }
 
 
-	public void readArray(double [] b, int o, int l) throws NetIbisException {
+	public void readArray(double [] b, int o, int l) throws IOException {
                 log.in();
-		try {
-                        iss.readArray(b, o, l);
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		}
+		iss.readArray(b, o, l);
                 log.out();
         }
 
-	public void readArray(Object [] b, int o, int l) throws NetIbisException {
+	public void readArray(Object [] b, int o, int l) throws IOException, ClassNotFoundException {
                 log.in();
-		try {
-                        iss.readArray(b, o, l);
-		} catch(java.io.IOException e) {
-                        throw new NetIbisException("got exception", e);
-		} catch(ClassNotFoundException e2) {
-                        throw new NetIbisException("got exception", e2);
-		}
+		iss.readArray(b, o, l);
                 log.out();
         }
 }

@@ -1,5 +1,11 @@
 package ibis.ipl.impl.net.muxer;
 
+import java.io.ObjectInputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
+import ibis.ipl.ConnectionRefusedException;
+
 import ibis.ipl.impl.net.NetBufferedOutput;
 import ibis.ipl.impl.net.NetPortType;
 import ibis.ipl.impl.net.NetDriver;
@@ -8,17 +14,7 @@ import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetBufferFactory;
 import ibis.ipl.impl.net.NetSendBufferFactoryDefaultImpl;
 import ibis.ipl.impl.net.NetConvert;
-import ibis.ipl.impl.net.NetIbisException;
 import ibis.ipl.impl.net.NetConnection;
-
-import java.net.DatagramSocket;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.SocketException;
-
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 /**
  * The UDP Multiplexer output implementation.
@@ -51,7 +47,7 @@ public final class Muxer extends NetBufferedOutput {
      * @param driver the TCP driver instance.
      */
     Muxer(NetPortType pt, NetDriver driver, String context)
-	    throws NetIbisException {
+	    throws IOException {
 	super(pt, driver, context);
 
 	synchronized (driver) {
@@ -94,7 +90,7 @@ public final class Muxer extends NetBufferedOutput {
      * @param os {@inheritDoc}
      */
     public void setupConnection(NetConnection cnx)
-		throws NetIbisException {
+		throws IOException {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": setup connection, serviceLink " + cnx.getServiceLink());
 	}
@@ -122,15 +118,11 @@ public final class Muxer extends NetBufferedOutput {
 	myKey = muxer.getKey(cnx);
 
 	int ok = 0;
-	try {
-	    ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer"));
-	    ok = is.readInt();
-	    is.close();
-	} catch (IOException e) {
-	    throw new NetIbisException(e);
-	}
+	ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer"));
+	ok = is.readInt();
+	is.close();
 	if (ok != 1) {
-	    throw new NetIbisException("Connection handshake failed");
+	    throw new ConnectionRefusedException("Connection handshake failed");
 	}
 
 	if (Driver.DEBUG) {
@@ -142,7 +134,7 @@ public final class Muxer extends NetBufferedOutput {
     /**
      * {@inheritDoc}
      */
-    public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
+    public void sendByteBuffer(NetSendBuffer b) throws IOException {
 
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": try to send buffer size " + b.length);
@@ -173,7 +165,7 @@ public final class Muxer extends NetBufferedOutput {
     /**
      * {@inheritDoc}
      */
-    synchronized public void close(Integer num) throws NetIbisException {
+    synchronized public void close(Integer num) throws IOException {
 	if (rpn == num) {
 	    mtu   =    0;
 	    rpn   = null;
@@ -187,7 +179,7 @@ public final class Muxer extends NetBufferedOutput {
     /**
      * {@inheritDoc}
      */
-    public void free() throws NetIbisException {
+    public void free() throws IOException {
 	if (rpn == null) {
 	    return;
 	}

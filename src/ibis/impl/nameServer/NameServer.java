@@ -71,7 +71,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	private boolean singleRun;
 	private int port;
 
-	private NameServer(boolean singleRun, int port) throws IbisIOException {
+	private NameServer(boolean singleRun, int port) throws IOException {
 
 		this.singleRun = singleRun;
 
@@ -89,7 +89,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		}
 	}
 
-	private void forwardJoin(IbisInfo dest, IbisIdentifier id) throws IbisIOException { 
+	private void forwardJoin(IbisInfo dest, IbisIdentifier id) throws IOException { 
 
 		if (DEBUG) { 
 			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString() + ", dest port: " + dest.ibisNameServerport);
@@ -97,23 +97,18 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 
 		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), dest.ibisNameServerport, null, 0 /* retry */);
 
-		try {
-			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
-			out.writeByte(IBIS_JOIN);
-			out.writeObject(id);
-			IbisSocketFactory.close(null, out, s);
-		}  catch (IOException e) {
-			throw new IbisIOException(e);
-		}
+		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+		out.writeByte(IBIS_JOIN);
+		out.writeObject(id);
+		IbisSocketFactory.close(null, out, s);
 
 		if (DEBUG) { 
 			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString() + " DONE");
 		}
 	}
 
-	private void handleIbisJoin() throws IbisIOException, ClassNotFoundException { 
-	    try {
+	private void handleIbisJoin() throws IOException, ClassNotFoundException { 
 		String key = (String) in.readUTF();
 		IbisIdentifier id = (IbisIdentifier) in.readObject();
 		int port = in.readInt();
@@ -171,12 +166,9 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			
 		out.flush();
 		System.out.println("JOIN: pool " + key + " now contains " + p.pool.size() + " nodes");
-	    } catch (IOException e) {
-		throw new IbisIOException(e);
-	    }
 	}	
 
-	private void forwardLeave(IbisInfo dest, IbisIdentifier id) throws IbisIOException { 
+	private void forwardLeave(IbisInfo dest, IbisIdentifier id) throws IOException { 
 		if (DEBUG) { 
 			System.err.println("NameServer: forwarding leave of " + 
 					   id.toString() + " to " + dest.identifier.toString());
@@ -184,106 +176,94 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 
 		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), 
 							     dest.ibisNameServerport, null, 0 /* retry */);
-		try {
-			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
-			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
-			out.writeByte(IBIS_LEAVE);
-			out.writeObject(id);
-			IbisSocketFactory.close(null, out, s);
-		} catch (IOException e) {
-			throw new IbisIOException(e);
-		}
+		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+		out.writeByte(IBIS_LEAVE);
+		out.writeObject(id);
+		IbisSocketFactory.close(null, out, s);
 	}
 
-	private void killThreads(RunInfo p) throws IbisIOException {
-		try {
-			Socket s = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
-								  p.portTypeNameServer.getPort(), null, 0 /* retry */);
-			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+	private void killThreads(RunInfo p) throws IOException {
+		Socket s = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
+							  p.portTypeNameServer.getPort(), null, 0 /* retry */);
+		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 
-			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
-			out.writeByte(PORTTYPE_EXIT);
-			IbisSocketFactory.close(null, out, s);
+		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+		out.writeByte(PORTTYPE_EXIT);
+		IbisSocketFactory.close(null, out, s);
 
-			Socket s2 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
-								  p.receivePortNameServer.getPort(), null, 0 /* retry */);
-			DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
+		Socket s2 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
+							  p.receivePortNameServer.getPort(), null, 0 /* retry */);
+		DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
 
-			ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2));
-			out2.writeByte(PORT_EXIT);
-			IbisSocketFactory.close(null, out2, s2);
+		ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2));
+		out2.writeByte(PORT_EXIT);
+		IbisSocketFactory.close(null, out2, s2);
 
-			Socket s3 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
-								  p.electionServer.getPort(), null, 0 /* retry */);
-			DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
-			ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3));
-			out3.writeByte(ELECTION_EXIT);
-			IbisSocketFactory.close(null, out3, s3);
-		}  catch (IOException e) {
-			throw new IbisIOException(e);
-		}
+		Socket s3 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
+							  p.electionServer.getPort(), null, 0 /* retry */);
+		DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
+		ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3));
+		out3.writeByte(ELECTION_EXIT);
+		IbisSocketFactory.close(null, out3, s3);
 	}
 	
-	private void handleIbisLeave() throws IbisIOException, ClassNotFoundException {
-		try {
-		    String key = (String) in.readUTF();
-		    IbisIdentifier id = (IbisIdentifier) in.readObject();
-			
-		    RunInfo p = (RunInfo) pools.get(key);
+	private void handleIbisLeave() throws IOException, ClassNotFoundException {
+		String key = (String) in.readUTF();
+		IbisIdentifier id = (IbisIdentifier) in.readObject();
+		    
+		RunInfo p = (RunInfo) pools.get(key);
 
-		    if (DEBUG) { 
-			    System.err.println("NameServer: leave from pool " + key + " requested by " + id.toString());
-		    }
+		if (DEBUG) { 
+			System.err.println("NameServer: leave from pool " + key + " requested by " + id.toString());
+		}
 
-		    if (p == null) { 
-			    // new run
-			    System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
-			    return;				
-		    } else {
-			    int index = -1;
+		if (p == null) { 
+			// new run
+			System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
+			return;				
+		} else {
+			int index = -1;
 
-			    for (int i=0;i<p.pool.size();i++) { 				
-				    IbisInfo info = (IbisInfo) p.pool.get(i);
-				    if (info.identifier.equals(id)) { 
-					    index = i;
-					    break;
-				    }
-			    }
+			for (int i=0;i<p.pool.size();i++) { 				
+				IbisInfo info = (IbisInfo) p.pool.get(i);
+				if (info.identifier.equals(id)) { 
+					index = i;
+					break;
+				}
+			}
 
-			    if (index != -1) { 
-				    // found it.
-				    if (DEBUG) { 
-					    System.err.println("NameServer: leave from pool " + key + " of ibis " + id.toString() + " accepted");
-				    }
+			if (index != -1) { 
+				// found it.
+				if (DEBUG) { 
+					System.err.println("NameServer: leave from pool " + key + " of ibis " + id.toString() + " accepted");
+				}
 
-				    // Also forward the leave to the requester.
-				    // It is used as an acknowledgement, and
-				    // the leaver is only allowed to exit when it
-				    // has received its own leave message.
-				    for (int i=0; i<p.pool.size(); i++) { 
-					    forwardLeave((IbisInfo) p.pool.get(i), id);
-				    } 
-				    p.pool.remove(index);
+				// Also forward the leave to the requester.
+				// It is used as an acknowledgement, and
+				// the leaver is only allowed to exit when it
+				// has received its own leave message.
+				for (int i=0; i<p.pool.size(); i++) { 
+					forwardLeave((IbisInfo) p.pool.get(i), id);
+				} 
+				p.pool.remove(index);
 
-				    System.out.println("LEAVE: pool " + key + " now contains " + p.pool.size() + " nodes");
+				System.out.println("LEAVE: pool " + key + " now contains " + p.pool.size() + " nodes");
 
-				    if (p.pool.size() == 0) { 
-					    if (VERBOSE) { 
-						    System.err.println("NameServer: removing pool " + key);
-					    }
+				if (p.pool.size() == 0) { 
+					if (VERBOSE) { 
+						System.err.println("NameServer: removing pool " + key);
+					}
 
-					    pools.remove(key);
-					    killThreads(p);
-				    } 				
-			    } else { 
-				    System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
-			    }
+					pools.remove(key);
+					killThreads(p);
+				} 				
+			} else { 
+				System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
+			}
 
-			    out.writeByte(0);
-			    out.flush();
-		    }
-		} catch (IOException e) {
-		    throw new IbisIOException(e);
+			out.writeByte(0);
+			out.flush();
 		}
 	} 
 

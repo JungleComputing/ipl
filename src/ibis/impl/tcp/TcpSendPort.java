@@ -4,8 +4,9 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.PortMismatchException;
 import ibis.io.Replacer;
 
 import java.util.Vector;
@@ -28,29 +29,24 @@ final class TcpSendPort implements SendPort, Config {
 	SerializationStreamSender sender;
 	Replacer replacer = null;
 
-	TcpSendPort(TcpPortType type) throws IbisIOException {
+	TcpSendPort(TcpPortType type) throws IOException {
 		this(type, null, null);
 	}
 
-	TcpSendPort(TcpPortType type, Replacer r) throws IbisIOException {
+	TcpSendPort(TcpPortType type, Replacer r) throws IOException {
 		this(type, r, null);
 	}
 
-	TcpSendPort(TcpPortType type, String name) throws IbisIOException {
+	TcpSendPort(TcpPortType type, String name) throws IOException {
 		this(type, null, name);
 	}
 
-	TcpSendPort(TcpPortType type, Replacer r, String name) throws IbisIOException {
-		try { 
-			this.name = name;
-			this.type = type;
-			this.replacer = r;
-			ident = new TcpSendPortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier());
-			sender = new SerializationStreamSender(this);
-		} catch (Exception e) { 
-			e.printStackTrace();
-			throw new IbisIOException("Could not create SendPort", e);
-		}
+	TcpSendPort(TcpPortType type, Replacer r, String name) throws IOException {
+		this.name = name;
+		this.type = type;
+		this.replacer = r;
+		ident = new TcpSendPortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier());
+		sender = new SerializationStreamSender(this);
 	}
 
 	// @@@ add sanity check: no message should be alive.
@@ -58,7 +54,7 @@ final class TcpSendPort implements SendPort, Config {
 		sender.connect(ri, sout, id);
 	}
 
-	public void connect(ReceivePortIdentifier receiver) throws IbisIOException {
+	public void connect(ReceivePortIdentifier receiver) throws IOException {
 		if(DEBUG) {
 			System.err.println("Sendport " + this + " '" +  name +
 							   "' connecting to " + receiver); 
@@ -66,13 +62,13 @@ final class TcpSendPort implements SendPort, Config {
 
 		/* first check the types */
 		if(!type.name().equals(receiver.type())) {
-			throw new IbisIOException("Cannot connect ports of different PortTypes");
+			throw new PortMismatchException("Cannot connect ports of different PortTypes");
 		}
 
 		TcpReceivePortIdentifier ri = (TcpReceivePortIdentifier) receiver;
 
 		if (!TcpIbis.tcpPortHandler.connect(this, ri)) { 
-			throw new IbisIOException("Could not connect");
+			throw new ConnectionRefusedException("Could not connect");
 		} 
 		
 		if(DEBUG) {
@@ -80,11 +76,11 @@ final class TcpSendPort implements SendPort, Config {
 		}
 	}
 
-	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IbisIOException {
+	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IOException {
 	    System.err.println("Implement TcpSendPort.connect(receiver, timeout)");
 	}
 
-	public ibis.ipl.WriteMessage newMessage() throws IbisIOException { 
+	public ibis.ipl.WriteMessage newMessage() throws IOException { 
 		synchronized(this) {
 			while(aMessageIsAlive) {
 				try {
@@ -137,7 +133,7 @@ final class TcpSendPort implements SendPort, Config {
 		TcpIbis.tcpPortHandler.releaseOutput(ri, id);
 	} 
 
-	void reset() throws IbisIOException {
+	void reset() throws IOException {
 	    sender.reset();
 	}
 

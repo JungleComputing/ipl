@@ -1,5 +1,7 @@
 package ibis.ipl.impl.net.tcp_blk;
 
+import ibis.ipl.ConnectionClosedException;
+
 import ibis.ipl.impl.net.*;
 
 import java.net.Socket;
@@ -63,7 +65,7 @@ public final class TcpOutput extends NetBufferedOutput {
 	 * @param driver the TCP driver instance.
 	 */
 	TcpOutput(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
+		throws IOException {
 		super(pt, driver, context);
 		headerLength = 4;
 	}
@@ -76,7 +78,7 @@ public final class TcpOutput extends NetBufferedOutput {
 	 * @param os {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx)
-		throws NetIbisException {
+		throws IOException {
                 log.in();
 
                 if (this.rpn != null) {
@@ -88,36 +90,30 @@ public final class TcpOutput extends NetBufferedOutput {
 		Hashtable lInfo = new Hashtable();
 		lInfo.put("tcp_mtu",     new Integer(lmtu));
 		Hashtable   rInfo = null;
-                        try {
-                                ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
-                                rInfo = (Hashtable)is.readObject();
-                                is.close();
+		ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
+		try {
+			rInfo = (Hashtable)is.readObject();
+		} catch (ClassNotFoundException e) {
+			throw new Error(e);
+		}
+		is.close();
 
-                                ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
-                                os.writeObject(lInfo);
-                                os.close();
-                        } catch (IOException e) {
-                                throw new NetIbisException(e);
-                        } catch (ClassNotFoundException e) {
-                                throw new Error(e);
-                        }
+		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
+		os.writeObject(lInfo);
+		os.close();
 
 		InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
 		int         rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
 		rmtu              = ((Integer)    rInfo.get("tcp_mtu")    ).intValue();
 
-		try {
-			tcpSocket = new Socket(raddr, rport);
+		tcpSocket = new Socket(raddr, rport);
 
-			tcpSocket.setSendBufferSize(0x8000);
-			tcpSocket.setReceiveBufferSize(0x8000);
-			tcpSocket.setTcpNoDelay(true);
+		tcpSocket.setSendBufferSize(0x8000);
+		tcpSocket.setReceiveBufferSize(0x8000);
+		tcpSocket.setTcpNoDelay(true);
 
-			tcpOs 	  = tcpSocket.getOutputStream();
-			tcpIs 	  = tcpSocket.getInputStream();
-		} catch (IOException e) {
-			throw new NetIbisException(e);
-		}
+		tcpOs 	  = tcpSocket.getOutputStream();
+		tcpIs 	  = tcpSocket.getInputStream();
 
 		mtu = Math.min(lmtu, rmtu);
 		// Don't always create a new factory here, just specify the mtu.
@@ -131,14 +127,10 @@ public final class TcpOutput extends NetBufferedOutput {
                 log.out();
 	}
 
-        public void finish() throws NetIbisException {
+        public void finish() throws IOException {
                 log.in();
                 super.finish();
- 		try {
- 			tcpOs.flush();
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		}
+		tcpOs.flush();
                 log.out();
 	}
 
@@ -146,56 +138,28 @@ public final class TcpOutput extends NetBufferedOutput {
 	/*
 	 * {@inheritDoc}
          */
-	public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
-                log.in();
- 		try {
- 			NetConvert.writeInt(b.length, b.data, 0);
- 			tcpOs.write(b.data, 0, b.length);
-                        tcpOs.flush();
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		}
-
-		if (! b.ownershipClaimed) {
-		    b.free();
-		} else {
-                        System.err.println("buffer is owned, cannot free");
-                }
-
-                log.out();
-	}
-
-	public synchronized void close(Integer num) throws NetIbisException {
-                log.in();
-                if (rpn == num) {
-                        try {
-                                if (tcpOs != null) {
-                                        tcpOs.close();
-                                }
-
-                                if (tcpIs != null) {
-                                        tcpIs.close();
-                                }
-
-                                if (tcpSocket != null) {
-                                        tcpSocket.close();
-                                }
-
-                                rpn = null;
-                        }
-                        catch (Exception e) {
-                                throw new NetIbisException(e);
-                        }
-                }
-                log.out();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void free() throws NetIbisException {
+	public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
 		try {
+			NetConvert.writeInt(b.length, b.data, 0);
+			tcpOs.write(b.data, 0, b.length);
+			tcpOs.flush();
+
+			if (! b.ownershipClaimed) {
+				b.free();
+			} else {
+				throw new IOException("buffer is owned, cannot free");
+			}
+		} catch (IOException e) {
+			throw new ConnectionClosedException(e);
+		}
+
+                log.out();
+	}
+
+	public synchronized void close(Integer num) throws IOException {
+                log.in();
+                if (rpn == num) {
 			if (tcpOs != null) {
 				tcpOs.close();
 			}
@@ -205,14 +169,32 @@ public final class TcpOutput extends NetBufferedOutput {
 			}
 
 			if (tcpSocket != null) {
-                                tcpSocket.close();
+				tcpSocket.close();
 			}
 
 			rpn = null;
+                }
+                log.out();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void free() throws IOException {
+                log.in();
+		if (tcpOs != null) {
+			tcpOs.close();
 		}
-		catch (Exception e) {
-			throw new NetIbisException(e);
+
+		if (tcpIs != null) {
+			tcpIs.close();
 		}
+
+		if (tcpSocket != null) {
+			tcpSocket.close();
+		}
+
+		rpn = null;
 
 		super.free();
                 log.out();

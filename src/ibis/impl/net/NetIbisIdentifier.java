@@ -36,16 +36,11 @@ public final class NetIbisIdentifier
 		generated_DefaultReadObject(stream, 0);
 	}
 
-	public final void generated_DefaultReadObject(IbisSerializationInputStream stream, int lvl) throws java.io.IOException {
+	public final void generated_DefaultReadObject(IbisSerializationInputStream stream, int lvl) throws IOException {
 		int handle = stream.readInt();
 
 		if(handle < 0) {
-			try {
-				address = InetAddress.getByName(stream.readUTF()); // this does not do a real lookup
-			} catch (Exception e) {
-				System.err.println("could not create an inet address from a IP address");
-				System.exit(1);
-			}
+			address = InetAddress.getByName(stream.readUTF()); // this does not do a real lookup
 			name = stream.readUTF();
 			cluster = stream.readUTF();
 			NetIbis.globalIbis.identTable.addIbis(stream, -handle, this);

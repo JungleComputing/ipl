@@ -5,6 +5,8 @@ import ibis.ipl.impl.net.*;
 import java.util.Iterator;
 import java.util.HashMap;
 
+import java.io.IOException;
+
 /**
  * Provides a GM-specific multiple network output splitter.
  */
@@ -17,14 +19,14 @@ public final class GmSplitter extends NetSplitter {
 	 * @param staticProperties the port's properties.
 	 * @param driver the driver of this poller.
 	 */
-	public GmSplitter(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	public GmSplitter(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 
 		NetOutput no = new GmOutput(type, driver, null);

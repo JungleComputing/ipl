@@ -109,7 +109,7 @@ __error__(const char *s, ...)
 #define CACHE_GRANULARITY 0x1000
 
 /* The name of the NetIbis exception. */
-#define NI_IBIS_EXCEPTION  "ibis.ipl.impl.net.NetIbisException"
+#define NI_IBIS_EXCEPTION  "java.io.IOException"
 
 /* The minimal valid GM port ID.*/
 #define NI_GM_MIN_PORT_NUM 2

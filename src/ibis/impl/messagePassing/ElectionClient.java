@@ -2,8 +2,9 @@ package ibis.ipl.impl.messagePassing;
 
 import java.util.Enumeration;
 
+import java.io.IOException;
+
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 
 class ElectionClient implements ElectionProtocol {
 
@@ -11,7 +12,7 @@ class ElectionClient implements ElectionProtocol {
     ibis.ipl.SendPort sport;
     ibis.ipl.ReceivePort rport;
 
-    ElectionClient() throws IbisException, IbisIOException {
+    ElectionClient() throws IbisException, IOException {
 	if (! ElectionProtocol.NEED_ELECTION) {
 	    return;
 	}
@@ -34,16 +35,12 @@ class ElectionClient implements ElectionProtocol {
 // System.err.println(Thread.currentThread() + "ElectionClient: sendPort connected!");
     }
 
-    void end() {
+    void end() throws IOException {
 	if (! ElectionProtocol.NEED_ELECTION) {
 	    return;
 	}
 
-	try {
-	    sport.free();
-	} catch (IbisIOException e) {
-	    // Ignore
-	}
+	sport.free();
 	if (ElectionServer.DEBUG) {
 	    System.err.println("ElectionClient frees receive port " + rport);
 	}
@@ -53,7 +50,7 @@ class ElectionClient implements ElectionProtocol {
 	}
     }
 
-    Object elect(String election, Object candidate) throws IbisIOException {
+    Object elect(String election, Object candidate) throws IOException {
 	if (! ElectionProtocol.NEED_ELECTION) {
 		System.err.println("elections are turned OFF!");
 		System.exit(1);
@@ -74,7 +71,11 @@ class ElectionClient implements ElectionProtocol {
 
 	ibis.ipl.ReadMessage r = rport.receive();
 	Object winner = null;
-	winner = r.readObject();
+	try {
+	    winner = r.readObject();
+	} catch (ClassNotFoundException e) {
+	    throw new IOException("election object class not found " + e);
+	}
 	r.finish();
 	if (ElectionServer.DEBUG) {
 	    System.err.println(Thread.currentThread() + "ElectionClient: elect() finished, winner " + winner + " my stake " + candidate);

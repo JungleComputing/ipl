@@ -1,5 +1,9 @@
 package ibis.ipl.impl.net;
 
+import ibis.ipl.Ibis;
+
+import java.io.InterruptedIOException;
+
 /**
  * Provide a synchronization mutex.
  */
@@ -53,17 +57,18 @@ public final class NetMutex {
 	 * interrupted in which case the mutex is <strong>not</strong>
 	 * acquired.
 	 *
-	 * @exception NetIbisInterruptedException when the corresponding thread is
+	 * @exception InterruptedIOException when the corresponding thread is
 	 *            interrupted. The lock is not acquired in this case.
          */
-	public synchronized void lock() throws NetIbisInterruptedException {
+	public synchronized void lock() throws InterruptedIOException {
 		while (value <= 0) {
+			waiters++;
 			try {
-				waiters++;
 				wait();
-				waiters--;
 			} catch (InterruptedException e) {
-				throw new NetIbisInterruptedException(e);
+				throw Ibis.createInterruptedIOException(e);
+			} finally {
+				waiters--;
 			}
 		}
 		value--;
@@ -80,14 +85,19 @@ public final class NetMutex {
 	 * interrupted in which case the mutex is <strong>not</strong>
 	 * acquired.
 	 *
-	 * @exception InterruptedException when the corresponding thread is
+	 * @exception InterruptedIOException when the corresponding thread is
 	 *            interrupted. The lock is not acquired in this case.
 	 */
-	public synchronized void ilock() throws InterruptedException {
+	public synchronized void ilock() throws InterruptedIOException {
 		while (value <= 0) {
 			waiters++;
-			wait();
-			waiters--;
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				throw Ibis.createInterruptedIOException(e);
+			} finally {
+				waiters--;
+			}
 		}
 		value--;
 		if (DEBUG) {

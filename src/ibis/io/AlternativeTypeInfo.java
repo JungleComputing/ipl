@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamField;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * The <code>AlternativeTypeInfo</code> class maintains information about
@@ -287,14 +288,11 @@ final class AlternativeTypeInfo {
      * 			when anything goes wrong
      */
     void invokeWriteObject(Object o, ObjectOutputStream out)
-	    throws IOException {
+	    throws IllegalAccessException,
+		   IllegalArgumentException,
+		   InvocationTargetException {
 //	System.out.println("invoke writeObject");
-	try {
-	    writeObjectMethod.invoke(o, new Object[] { out });
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    throw new IOException("invocation of writeObject failed: " + e.getMessage());
-	}
+	writeObjectMethod.invoke(o, new Object[] { out });
     }
 
     /**
@@ -308,14 +306,11 @@ final class AlternativeTypeInfo {
      * 			when anything goes wrong
      */
     void invokeReadObject(Object o, ObjectInputStream in)
-	    throws IOException {
+	    throws IllegalAccessException,
+		   IllegalArgumentException,
+		   InvocationTargetException {
 //	System.out.println("invoke readObject");
-	try {
-	    readObjectMethod.invoke(o, new Object[] { in });
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    throw new IOException("invocation of readObject failed: " + e.getMessage());
-	}
+	readObjectMethod.invoke(o, new Object[] { in });
     }
 
     /**
@@ -327,12 +322,10 @@ final class AlternativeTypeInfo {
      * 			when anything goes wrong
      */
     Object  invokeReadResolve(Object o)
-	    throws IOException {
-	try {
-	    return readResolveMethod.invoke(o, new Object[0]);
-	} catch (Exception e) {
-	    throw new IOException("invocation of readResolve failed: " + e.getMessage());
-	}
+	    throws IllegalAccessException,
+		   IllegalArgumentException,
+		   InvocationTargetException {
+	return readResolveMethod.invoke(o, new Object[0]);
     }
 
     /**
@@ -344,12 +337,10 @@ final class AlternativeTypeInfo {
      * 			when anything goes wrong
      */
     Object  invokeWriteReplace(Object o)
-	    throws IOException {
-	try {
-	    return writeReplaceMethod.invoke(o, new Object[0]);
-	} catch (Exception e) {
-	    throw new IOException("invocation of writeReplace failed: " + e.getMessage());
-	}
+	    throws IllegalAccessException,
+		   IllegalArgumentException,
+		   InvocationTargetException {
+	return writeReplaceMethod.invoke(o, new Object[0]);
     }
 
     /**

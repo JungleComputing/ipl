@@ -1,7 +1,8 @@
 package ibis.ipl.impl.messagePassing;
 
+import java.io.IOException;
+
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 
 class Registry implements ibis.ipl.Registry {
 
@@ -13,10 +14,10 @@ class Registry implements ibis.ipl.Registry {
     private final static boolean EXPORT_ELECT = true;
 
 
-    Registry() throws IbisIOException {
+    Registry() throws IOException {
 	if (Ibis.myIbis.myCpu == 0) {
 	    if (nameServer != null) {
-		throw new IbisIOException("ReceivePortNameServer already initialized");
+		throw new IOException("ReceivePortNameServer already initialized");
 	    }
 	    nameServer = Ibis.myIbis.createReceivePortNameServer();
 	}
@@ -24,11 +25,11 @@ class Registry implements ibis.ipl.Registry {
     }
 
 
-    void init() throws IbisException, IbisIOException {
+    void init() throws IbisException, IOException {
 	if (EXPORT_ELECT) {
 	    if (Ibis.myIbis.myCpu == 0) {
 		if (electionServer != null) {
-		    throw new IbisIOException("ReceivePortNameServer already initialized");
+		    throw new IbisException("ReceivePortNameServer already initialized");
 		}
 		electionServer = new ElectionServer();
 	    }
@@ -37,7 +38,7 @@ class Registry implements ibis.ipl.Registry {
     }
 
 
-    void end() {
+    void end() throws IOException {
 	if (EXPORT_ELECT) {
 	    if (electionServer != null) {
 		electionServer.end();
@@ -52,61 +53,61 @@ class Registry implements ibis.ipl.Registry {
     }
 
 
-    public void bind(String name, ibis.ipl.ReceivePortIdentifier id) throws IbisIOException {
+    public void bind(String name, ibis.ipl.ReceivePortIdentifier id) throws IOException {
 	nameServerClient.bind(name, (ReceivePortIdentifier)id);
     }
 
 
-    public void rebind(String name, ibis.ipl.ReceivePortIdentifier id) throws IbisIOException {
+    public void rebind(String name, ibis.ipl.ReceivePortIdentifier id) throws IOException {
 	nameServerClient.unbind(name);
 	nameServerClient.bind(name, (ReceivePortIdentifier)id);
     }
 
 
-    public ibis.ipl.ReceivePortIdentifier lookup(String name) throws IbisIOException {
+    public ibis.ipl.ReceivePortIdentifier lookup(String name) throws IOException {
 	return lookup(name, 0);
     }
 
 
-    public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisIOException {
+    public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IOException {
 	return nameServerClient.lookup(name, timeout);
     }
 
 
-    public void unbind(String name) throws IbisIOException {
+    public void unbind(String name) throws IOException {
 	nameServerClient.unbind(name);
     }
 
 
-    public ibis.ipl.IbisIdentifier locate(String name) throws IbisIOException {
+    public ibis.ipl.IbisIdentifier locate(String name) throws IOException {
 	/* not implemented yet */
 	return locate(name, 0);
     }
 
 
-    public ibis.ipl.IbisIdentifier locate(String name, long millis) throws IbisIOException {
+    public ibis.ipl.IbisIdentifier locate(String name, long millis) throws IOException {
 	/* not implemented yet */
 	return null;
     }
 
 
-    public String[] list(String pattern) throws IbisIOException {
+    public String[] list(String pattern) throws IOException {
 	/* not implemented yet */
 	return null;
     }
 
-    public ibis.ipl.ReceivePortIdentifier[] query(ibis.ipl.IbisIdentifier ident) throws
-	IbisIOException {
+    public ibis.ipl.ReceivePortIdentifier[] query(ibis.ipl.IbisIdentifier ident)
+	    throws IOException {
 	/* not implemented yet */
 	return null;
     }
 
 
-    public Object elect(String election, Object candidate) throws IbisIOException {
+    public Object elect(String election, Object candidate) throws IOException {
 	if (EXPORT_ELECT) {
 	    return electionClient.elect(election, candidate);
 	}
-	throw new IbisIOException("Registry.elect not implemented");
+	throw new IOException("Registry.elect not implemented");
     }
     
 }

@@ -2,13 +2,14 @@ import ibis.ipl.*;
 import ibis.util.PoolInfo;
 
 import java.util.Properties;
+import java.io.IOException;
 
 class Latency {
 
 	static Ibis ibis;
 	static Registry registry;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisIOException {
+	public static ReceivePortIdentifier lookup(String name) throws IOException {
 
 		ReceivePortIdentifier temp = null;
 
@@ -37,13 +38,13 @@ class Latency {
 			upcall = args[1].equals("-u");
 		}
 
-		PoolInfo info = new PoolInfo();
-
-		int rank = info.rank();
-		int size = info.size();
-		int remoteRank = (rank == 0 ? 1 : 0);
-
 		try {
+			PoolInfo info = new PoolInfo();
+
+			int rank = info.rank();
+			int size = info.size();
+			int remoteRank = (rank == 0 ? 1 : 0);
+
 			ibis     = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.tcp.TcpIbis", null);
 			registry = ibis.registry();
 
@@ -111,7 +112,11 @@ class Latency {
 			rport.free();
 			ibis.end();
 
-		} catch (IbisIOException e) {
+		} catch (IOException e) {
+			System.out.println("Got exception " + e);
+			System.out.println("StackTrace:");
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();

@@ -2,20 +2,16 @@ package ibis.ipl.impl.net;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.ConnectionClosedException;
 
-import java.util.Hashtable;
-
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import ibis.ipl.Ibis;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.EOFException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import java.util.Hashtable;
 
 /**
  * Provide an abstraction of a network input.
@@ -184,11 +180,11 @@ if (finishedUpcallThreads > 1) {
 	    // threadStackLock.unlock();
 	    Thread.yield();
 	}
-    // } catch (NetIbisInterruptedException e) {
+    // } catch (InterruptedIOException e) {
     // }
 }
 
-                                } catch (InterruptedException e) {
+                                } catch (InterruptedIOException e) {
                                         log.disp("was interrupted...");
                                         end = true;
                                         return;
@@ -214,30 +210,32 @@ pollSuccess++;
 
                                                 activeNum = num;
                                                 initReceive(activeNum);
-                                        } catch (NetIbisClosedException e) {
+                                        } catch (ConnectionClosedException e) {
                                                 end = true;
                                                 return;
-                                        } catch (NetIbisInterruptedException e) {
+                                        } catch (InterruptedIOException e) {
                                                 if (end) {
                                                         return;
                                                 } else {
                                                         throw new Error(e);
                                                 }
-                                        } catch (NetIbisException e) {
+                                        } catch (IOException e) {
+					    System.err.println("PooledUpcallThread + doPoll throws IOException. Shouldn't I quit??? " + e);
                                                 throw new Error(e);
                                         }
 
                                         try {
                                                 upcallFunc.inputUpcall(NetInput.this, activeNum);
-                                        } catch (NetIbisInterruptedException e) {
+                                        } catch (InterruptedIOException e) {
                                                 if (end != true) {
                                                         throw new Error(e);
                                                 }
                                                 return;
-                                        } catch (NetIbisClosedException e) {
+                                        } catch (ConnectionClosedException e) {
                                                 end = true;
                                                 return;
-                                        } catch (NetIbisException e) {
+                                        } catch (IOException e) {
+						System.err.println("PooledUpcallThread.inputUpcall() throws IOException. Shouldn't I quit??? " + e);
                                                 throw new Error(e);
                                         }
 // System.err.println(this + ": upcallSpawnMode " + upcallSpawnMode + " activeThread " + activeThread + " this " + this);
@@ -262,6 +260,7 @@ pollingThreads--;
                                                 try {
                                                         implicitFinish();
                                                 } catch (Exception e) {
+					    System.err.println("PooledUpcallThread,implicitFinish() throws IOException. Shouldn't I quit??? " + e);
                                                         throw new Error(e);
                                                 }
                                                 log.disp("reusing thread");
@@ -273,7 +272,7 @@ finishedUpcallThreads--;
 }
                                                 try {
                                                         threadStackLock.lock();
-                                                } catch (NetIbisInterruptedException e) {
+                                                } catch (InterruptedIOException e) {
                                                         if (end != true) {
                                                                 throw new Error(e);
                                                         }
@@ -341,9 +340,9 @@ finishedUpcallThreads--;
          *
          * @param input the {@link NetInput sub-input} that generated the upcall.
          * @param num   the active connection number
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        public synchronized void inputUpcall(NetInput input, Integer num) throws NetIbisException {
+        public synchronized void inputUpcall(NetInput input, Integer num) throws IOException {
                 log.in();
                 activeNum = num;
                 upcallFunc.inputUpcall(this, num);
@@ -351,7 +350,7 @@ finishedUpcallThreads--;
                 log.out();
         }
 
-        protected abstract void initReceive(Integer num) throws NetIbisException;
+        protected abstract void initReceive(Integer num) throws IOException;
 
 
 	protected void enableUpcallSpawnMode() {
@@ -377,20 +376,21 @@ private int pollSuccess;
 	 * @param blockForMessage indicates whether this method must block until
 	 *        a message has arrived, or just query the input one.
 	 * @return the {@link NetConnection connection} identifier or <code>null</code> if no data is available.
-	 * @exception NetIbisException if the polling fails (!= the
+	 * @exception InterruptedIOException if the polling fails (!= the
 	 * polling is unsuccessful).
 	 */
-	public final Integer poll(boolean blockForMessage) throws NetIbisException {
+	public final Integer poll(boolean blockForMessage) throws IOException {
                 log.in();
                 synchronized(this) {
                         while (activeNum != null) {
-                                try {
-					pollWaiters++;
-                                        wait();
+				pollWaiters++;
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					throw Ibis.createInterruptedIOException(e);
+				} finally {
 					pollWaiters--;
-                                } catch (InterruptedException e) {
-                                        throw new NetIbisInterruptedException(e);
-                                }
+				}
                         }
 
                         activeNum = takenNum;
@@ -420,7 +420,7 @@ pollFail++;
                 return num;
         }
 
-	protected abstract Integer doPoll(boolean blockForMessage) throws NetIbisException;
+	protected abstract Integer doPoll(boolean blockForMessage) throws IOException;
 
 	/**
 	 * Unblockingly test for incoming data.
@@ -432,10 +432,10 @@ pollFail++;
 	 * #getActiveSendPortNum} instead.
 	 *
 	 * @return the {@link NetConnection connection} identifier or <code>null</code> if no data is available.
-	 * @exception NetIbisException if the polling fails (!= the
+	 * @exception InterruptedIOException if the polling fails (!= the
 	 * polling is unsuccessful).
          */
-	public Integer poll() throws NetIbisException {
+	public Integer poll() throws IOException {
 	    return poll(false);
 	}
 
@@ -453,13 +453,13 @@ pollFail++;
 	 *
 	 * @param cnx the connection attributes.
          * @param inputUpcall the upcall function for incoming message notification.
-	 * @exception NetIbisException if the connection setup fails.
+	 * @exception IOException if the connection setup fails.
 	 */
 	public synchronized void setupConnection(NetConnection  cnx,
-                                                 NetInputUpcall inputUpcall) throws NetIbisException {
+                                                 NetInputUpcall inputUpcall) throws IOException {
                 log.in();
                 if (freeCalled) {
-                        throw new NetIbisClosedException("input closed");
+                        throw new ConnectionClosedException("input closed");
                 }
 
                 this.upcallFunc = inputUpcall;
@@ -468,7 +468,7 @@ pollFail++;
                 log.out();
         }
 
-        protected final void startUpcallThread() throws NetIbisException {
+        protected final void startUpcallThread() throws IOException {
                 log.in();
 // System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
 // Thread.dumpStack();
@@ -493,10 +493,10 @@ pollFail++;
          * @param contentsLength indicates how many bytes of data must be received.
          * 0 indicates that any length is fine and that the buffer.length field
          * should be filled with the length actually read.
-	 * @throws an {@link NetIbisException} if the factory has no default MTU
+	 * @throws an {@link IllegalArgumentException} if the factory has no default MTU
          * @return the new {@link NetReceiveBuffer}.
 	 */
-	public NetReceiveBuffer createReceiveBuffer(int contentsLength) throws NetIbisException {
+	public NetReceiveBuffer createReceiveBuffer(int contentsLength) {
                 log.in();
                 NetReceiveBuffer b = (NetReceiveBuffer)createBuffer();
                 b.length = contentsLength;
@@ -514,8 +514,7 @@ pollFail++;
          * should be filled with the length actually read.
          * @return the new {@link NetReceiveBuffer}.
 	 */
-	public NetReceiveBuffer createReceiveBuffer(int length, int contentsLength)
-		throws NetIbisException {
+	public NetReceiveBuffer createReceiveBuffer(int length, int contentsLength) {
                 log.in();
                 NetReceiveBuffer b = (NetReceiveBuffer)createBuffer(length);
                 b.length = contentsLength;
@@ -523,7 +522,7 @@ pollFail++;
                 return b;
 	}
 
-        public final  void close(Integer num) throws NetIbisException {
+        public final  void close(Integer num) throws IOException {
 // System.err.println("********************** NetInput.close");
                 log.in();
                 synchronized(this) {
@@ -549,16 +548,16 @@ pollFail++;
                 log.out();
         }
 
-        protected abstract void doClose(Integer num) throws NetIbisException;
+        protected abstract void doClose(Integer num) throws IOException;
 
 	/*
          * Closes the I/O.
 	 *
 	 * Note: methods redefining this one should also call it, just in case
          *       we need to add something here
-         * @exception NetIbisException if this operation fails.
+         * @exception IOException if this operation fails.
 	 */
-	public void free() throws NetIbisException {
+	public void free() throws IOException {
                 log.in();trace.in("this = ", this);
                 freeCalled = true;
                 doFree();
@@ -602,7 +601,7 @@ pollFail++;
                 trace.out("this = "+this);log.out();
 	}
 
-	protected abstract void doFree() throws NetIbisException;
+	protected abstract void doFree() throws IOException;
 
 	/**
          * {@inheritDoc}
@@ -617,20 +616,20 @@ pollFail++;
 
         /* ReadMessage Interface */
 
-        private final void implicitFinish() throws NetIbisException {
+        private final void implicitFinish() throws IOException {
                 log.in();
                 if (_inputConvertStream != null) {
                         try {
                                 _inputConvertStream.close();
                         } catch (EOFException e) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         } catch (IOException e) {
                                 String msg = e.getMessage();
                                 if (msg.equalsIgnoreCase("connection closed")) {
-                                        throw new NetIbisClosedException(e);
+                                        throw new ConnectionClosedException(e);
                                 }
 
-                                throw new NetIbisException(e);
+                                throw e;
                         }
 
                         _inputConvertStream = null;
@@ -659,9 +658,9 @@ pollFail++;
          * requested with a receive, the requester is blocked until
          * the live message is finished.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-       	public final void finish() throws NetIbisException {
+       	public final void finish() throws IOException {
                 log.in();
 
                 implicitFinish();
@@ -703,7 +702,7 @@ pollingThreads--;
                 log.out();
         }
 
-        protected abstract void doFinish() throws NetIbisException;
+        protected abstract void doFinish() throws IOException;
 
         /**
          * Unimplemented.
@@ -758,23 +757,23 @@ pollingThreads--;
          * Note: this method must not be changed.
          *
          * @return the <code>boolean</code> value just read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final boolean defaultReadBoolean() throws NetIbisException {
+        private final boolean defaultReadBoolean() throws IOException {
                 boolean result = false;
 
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readBoolean();
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
 
                 return result;
@@ -786,23 +785,23 @@ pollingThreads--;
          * Note: this method must not be changed.
          *
          * @return the <code>char</code> value just read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final char defaultReadChar() throws NetIbisException {
+        private final char defaultReadChar() throws IOException {
                 char result = 0;
 
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readChar();
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
 
                 return result;
@@ -814,23 +813,23 @@ pollingThreads--;
          * Note: this method must not be changed.
          *
          * @return the <code>short</code> value just read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final short defaultReadShort() throws NetIbisException {
+        private final short defaultReadShort() throws IOException {
                 short result = 0;
 
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readShort();
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
 
                 return result;
@@ -842,23 +841,23 @@ pollingThreads--;
          * Note: this method must not be changed.
          *
          * @return the <code>int</code> value just read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final int defaultReadInt() throws NetIbisException {
+        private final int defaultReadInt() throws IOException {
                 int result = 0;
 
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readInt();
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
 
                 return result;
@@ -870,23 +869,23 @@ pollingThreads--;
          * Note: this method must not be changed.
          *
          * @return the <code>long</code> value just read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final long defaultReadLong() throws NetIbisException {
+        private final long defaultReadLong() throws IOException {
                 long result = 0;
 
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readLong();
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
 
                 return result;
@@ -898,23 +897,23 @@ pollingThreads--;
          * Note: this method must not be changed.
          *
          * @return the <code>float</code> value just read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final float defaultReadFloat() throws NetIbisException {
+        private final float defaultReadFloat() throws IOException {
                 float result = 0;
 
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readFloat();
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
 
                 return result;
@@ -926,23 +925,23 @@ pollingThreads--;
          * Note: this method must not be changed.
          *
          * @return the <code>double</code> value just read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final double defaultReadDouble() throws NetIbisException {
+        private final double defaultReadDouble() throws IOException {
                 double result = 0;
 
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readDouble();
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
 
                 return result;
@@ -954,23 +953,25 @@ pollingThreads--;
          * Note: this method must not be changed.
          *
          * @return the {@link String string} value just read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final String defaultReadString() throws NetIbisException {
+        private final String defaultReadString() throws IOException {
                 String result = null;
 
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readUTF();
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
+		/*
                 } catch (Exception e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
+		*/
                 }
 
                 return result;
@@ -982,24 +983,24 @@ pollingThreads--;
          * Note: this method must not be changed.
          *
          * @return the {@link Object object} value just read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final Object defaultReadObject() throws NetIbisException {
+        private final Object defaultReadObject() throws IOException, ClassNotFoundException {
                 Object result = null;
 
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readObject();
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
-                        throw new NetIbisException(e);
-                } catch (Exception e) {
-                        throw new NetIbisException(e);
+                        throw e;
+                // } catch (Exception e) {
+                        // throw new IOException(e);
                 }
 
                 return result;
@@ -1013,23 +1014,23 @@ pollingThreads--;
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements to read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultReadArray(boolean [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(boolean [] b, int o, int l) throws IOException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readBoolean();
                         }
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
         }
 
@@ -1041,23 +1042,23 @@ pollingThreads--;
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements to read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultReadArray(byte [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(byte [] b, int o, int l) throws IOException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readByte();
                         }
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
         }
 
@@ -1069,23 +1070,23 @@ pollingThreads--;
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements to read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultReadArray(char [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(char [] b, int o, int l) throws IOException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readChar();
                         }
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
         }
 
@@ -1097,23 +1098,23 @@ pollingThreads--;
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements to read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultReadArray(short [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(short [] b, int o, int l) throws IOException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readShort();
                         }
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
         }
 
@@ -1125,23 +1126,23 @@ pollingThreads--;
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements to read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultReadArray(int [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(int [] b, int o, int l) throws IOException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readInt();
                         }
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
         }
 
@@ -1153,23 +1154,23 @@ pollingThreads--;
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements to read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultReadArray(long [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(long [] b, int o, int l) throws IOException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readLong();
                         }
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
         }
 
@@ -1181,23 +1182,23 @@ pollingThreads--;
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements to read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultReadArray(float [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(float [] b, int o, int l) throws IOException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readFloat();
                         }
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
         }
 
@@ -1209,23 +1210,23 @@ pollingThreads--;
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements to read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultReadArray(double [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(double [] b, int o, int l) throws IOException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readDouble();
                         }
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
+                        throw e;
                 }
         }
 
@@ -1237,25 +1238,25 @@ pollingThreads--;
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements to read.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultReadArray(Object [] b, int o, int l) throws NetIbisException {
+        private final void defaultReadArray(Object [] b, int o, int l) throws IOException, ClassNotFoundException {
                 try {
                         checkConvertStream();
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readObject();
                         }
                 } catch (EOFException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 } catch (IOException e) {
                         String msg = e.getMessage();
                         if (msg.equalsIgnoreCase("connection closed")) {
-                                throw new NetIbisClosedException(e);
+                                throw new ConnectionClosedException(e);
                         }
 
-                        throw new NetIbisException(e);
-                } catch (Exception e) {
-                        throw new NetIbisException(e);
+                        throw e;
+                // } catch (Exception e) {
+                        // throw new IOException(e);
                 }
         }
 
@@ -1263,9 +1264,9 @@ pollingThreads--;
          * Atomic packet read function.
          *
          * @param expectedLength a hint about how many bytes are expected.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IOException {
                 int len = defaultReadInt();
 		NetReceiveBuffer buffer = createReceiveBuffer(len);
                 defaultReadArray(buffer.data, 0, len);
@@ -1276,9 +1277,9 @@ pollingThreads--;
          * Atomic packet read function.
          *
          * @param b the buffer to fill.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
+        public void readByteBuffer(NetReceiveBuffer buffer) throws IOException {
                 int len = defaultReadInt();
                 defaultReadArray(buffer.data, 0, len);
                 buffer.length = len;
@@ -1287,88 +1288,88 @@ pollingThreads--;
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public boolean readBoolean() throws NetIbisException {
+	public boolean readBoolean() throws IOException {
                 return defaultReadBoolean();
         }
 
         /**
          * Extract a byte from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public abstract byte readByte() throws NetIbisException;
+	public abstract byte readByte() throws IOException;
 
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public char readChar() throws NetIbisException {
+	public char readChar() throws IOException {
                 return defaultReadChar();
         }
 
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public short readShort() throws NetIbisException {
+	public short readShort() throws IOException {
                 return defaultReadShort();
         }
 
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public int readInt() throws NetIbisException {
+	public int readInt() throws IOException {
                 return defaultReadInt();
         }
 
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public long readLong() throws NetIbisException {
+	public long readLong() throws IOException {
                 return defaultReadLong();
         }
 
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public float readFloat() throws NetIbisException {
+	public float readFloat() throws IOException {
                 return defaultReadFloat();
         }
 
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public double readDouble() throws NetIbisException {
+	public double readDouble() throws IOException {
                 return defaultReadDouble();
         }
 
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public String readString() throws NetIbisException {
+	public String readString() throws IOException {
                 return (String)defaultReadString();
         }
 
         /**
          * Extract an element from the current message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public Object readObject() throws NetIbisException {
+	public Object readObject() throws IOException, ClassNotFoundException {
                 return defaultReadObject();
         }
 
@@ -1380,9 +1381,9 @@ pollingThreads--;
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
+	public void readArray(boolean [] b, int o, int l) throws IOException {
                 defaultReadArray(b, o, l);
         }
 
@@ -1393,9 +1394,9 @@ pollingThreads--;
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public void readArray(byte [] b, int o, int l) throws NetIbisException {
+	public void readArray(byte [] b, int o, int l) throws IOException {
                 defaultReadArray(b, o, l);
         }
 
@@ -1406,9 +1407,9 @@ pollingThreads--;
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public void readArray(char [] b, int o, int l) throws NetIbisException {
+	public void readArray(char [] b, int o, int l) throws IOException {
                 defaultReadArray(b, o, l);
         }
 
@@ -1419,9 +1420,9 @@ pollingThreads--;
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public void readArray(short [] b, int o, int l) throws NetIbisException {
+	public void readArray(short [] b, int o, int l) throws IOException {
                 defaultReadArray(b, o, l);
         }
 
@@ -1432,9 +1433,9 @@ pollingThreads--;
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public void readArray(int [] b, int o, int l) throws NetIbisException {
+	public void readArray(int [] b, int o, int l) throws IOException {
                 defaultReadArray(b, o, l);
         }
 
@@ -1445,9 +1446,9 @@ pollingThreads--;
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public void readArray(long [] b, int o, int l) throws NetIbisException {
+	public void readArray(long [] b, int o, int l) throws IOException {
                 defaultReadArray(b, o, l);
         }
 
@@ -1458,9 +1459,9 @@ pollingThreads--;
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public void readArray(float [] b, int o, int l) throws NetIbisException {
+	public void readArray(float [] b, int o, int l) throws IOException {
                 defaultReadArray(b, o, l);
         }
 
@@ -1471,9 +1472,9 @@ pollingThreads--;
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public void readArray(double [] b, int o, int l) throws NetIbisException {
+	public void readArray(double [] b, int o, int l) throws IOException {
                 defaultReadArray(b, o, l);
         }
 
@@ -1484,9 +1485,9 @@ pollingThreads--;
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public void readArray(Object [] b, int o, int l) throws NetIbisException {
+	public void readArray(Object [] b, int o, int l) throws IOException, ClassNotFoundException {
                 defaultReadArray(b, o, l);
         }
 
@@ -1496,9 +1497,9 @@ pollingThreads--;
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public final void readArray(boolean [] b) throws NetIbisException {
+	public final void readArray(boolean [] b) throws IOException {
                 readArray(b, 0, b.length);
         }
 
@@ -1507,9 +1508,9 @@ pollingThreads--;
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public final void readArray(byte [] b) throws NetIbisException {
+	public final void readArray(byte [] b) throws IOException {
                 readArray(b, 0, b.length);
         }
 
@@ -1518,9 +1519,9 @@ pollingThreads--;
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public final void readArray(char [] b) throws NetIbisException {
+	public final void readArray(char [] b) throws IOException {
                 readArray(b, 0, b.length);
         }
 
@@ -1529,9 +1530,9 @@ pollingThreads--;
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public final void readArray(short [] b) throws NetIbisException {
+	public final void readArray(short [] b) throws IOException {
                 readArray(b, 0, b.length);
         }
 
@@ -1540,9 +1541,9 @@ pollingThreads--;
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public final void readArray(int [] b) throws NetIbisException {
+	public final void readArray(int [] b) throws IOException {
                 readArray(b, 0, b.length);
         }
 
@@ -1551,9 +1552,9 @@ pollingThreads--;
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public final void readArray(long [] b) throws NetIbisException {
+	public final void readArray(long [] b) throws IOException {
                 readArray(b, 0, b.length);
         }
 
@@ -1562,9 +1563,9 @@ pollingThreads--;
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public final void readArray(float [] b) throws NetIbisException {
+	public final void readArray(float [] b) throws IOException {
                 readArray(b, 0, b.length);
         }
 
@@ -1573,9 +1574,9 @@ pollingThreads--;
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public final void readArray(double [] b) throws NetIbisException {
+	public final void readArray(double [] b) throws IOException {
                 readArray(b, 0, b.length);
         }
 
@@ -1584,9 +1585,9 @@ pollingThreads--;
          *
          * @param b the array.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-	public final void readArray(Object [] b) throws NetIbisException {
+	public final void readArray(Object [] b) throws IOException, ClassNotFoundException {
                 readArray(b, 0, b.length);
         }
 
@@ -1608,11 +1609,7 @@ pollingThreads--;
                 public int read() throws IOException {
                         int result = 0;
 
-                        try {
-                                result = readByte();
-                        } catch (NetIbisException e) {
-                                throw new IOException(e.getMessage());
-                        }
+			result = readByte();
 
                         return (result & 255);
                 }

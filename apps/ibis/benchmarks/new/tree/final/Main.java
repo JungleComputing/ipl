@@ -1,5 +1,7 @@
 import ibis.ipl.*;
 
+import java.io.IOException;
+
 public class Main {
 	static Ibis ibis;
 	static Registry registry;
@@ -8,7 +10,7 @@ public class Main {
 	public static final int LEN   = 1000;
 	public static final int COUNT = 1000;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
+	public static ReceivePortIdentifier lookup(String name) throws IOException { 
 		
 		ReceivePortIdentifier temp = null;
 

@@ -1,6 +1,6 @@
 package ibis.ipl.impl.net.muxer;
 
-import ibis.ipl.impl.net.NetIbisException;
+import java.io.IOException;
 
 public class MuxerKey {
 
@@ -13,7 +13,7 @@ public class MuxerKey {
     }
 
 
-    public void free() throws NetIbisException {
+    public void free() throws IOException {
     }
 
 }

@@ -1,6 +1,10 @@
 package ibis.ipl.impl.net;
 
 import ibis.ipl.StaticProperties;
+import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.ConnectionClosedException;
+
+import java.io.IOException;
 
 /**
  * Provides an abstraction of a buffered network input.
@@ -52,8 +56,7 @@ public abstract class NetBufferedInput extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetReceiveBuffer createReceiveBuffer(int length)
-		throws NetIbisException {
+	public NetReceiveBuffer createReceiveBuffer(int length) {
                 NetReceiveBuffer b = null;
 
                 log.in();
@@ -77,13 +80,13 @@ public abstract class NetBufferedInput extends NetInput {
          * Optional method for zero-copy reception.
          * Note: at least one 'receiveByteBuffer' method must be implemented.
          */
-        protected void receiveByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
+        protected void receiveByteBuffer(NetReceiveBuffer buffer) throws IOException {
                 log.in();
                 int offset = dataOffset;
                 int length = buffer.length - offset;
 
                 if (circularCheck)
-                        throw new NetIbisException("circular reference");
+                        throw new IbisConfigurationException("circular reference");
 
                 circularCheck = true;
                 while (length > 0) {
@@ -102,12 +105,12 @@ public abstract class NetBufferedInput extends NetInput {
          * Optional method for static buffer reception.
          * Note: at least one 'receiveByteBuffer' method must be implemented.
          */
-        protected NetReceiveBuffer receiveByteBuffer(int expectedLength) throws NetIbisException {
+        protected NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IOException {
                 log.in();
                 NetReceiveBuffer b = null;
 
                 if (circularCheck)
-                        throw new NetIbisException("circular reference");
+                        throw new IbisConfigurationException("circular reference");
 
                 circularCheck = true;
                 if (mtu != 0) {
@@ -127,7 +130,7 @@ public abstract class NetBufferedInput extends NetInput {
 
 
 
-        protected void initReceive(Integer num) throws NetIbisException {
+        protected void initReceive(Integer num) throws IOException {
                 log.in();
                 if (mtu != 0) {
 			if (bufferAllocator == null || bufferAllocator.getBlockSize() != mtu) {
@@ -145,25 +148,25 @@ public abstract class NetBufferedInput extends NetInput {
                 log.out();
         }
 
-        private void pumpBuffer(NetReceiveBuffer buffer) throws NetIbisException {
+        private void pumpBuffer(NetReceiveBuffer buffer) throws IOException {
                 log.in();
                 receiveByteBuffer(buffer);
                 buffer.free();
                 log.out();
         }
 
-	private void pumpBuffer(int length) throws NetIbisException {
+	private void pumpBuffer(int length) throws IOException {
                 log.in();
 		buffer       = receiveByteBuffer(dataOffset+length);
                 if (buffer == null) {
-                        throw new NetIbisClosedException("connection closed");
+                        throw new ConnectionClosedException("connection closed");
                 }
 
 		bufferOffset = dataOffset;
                 log.out();
 	}
 
-	protected void freeBuffer() throws NetIbisException {
+	protected void freeBuffer() {
                 log.in();
 		if (buffer != null) {
 			buffer.free();
@@ -173,13 +176,13 @@ public abstract class NetBufferedInput extends NetInput {
                 log.out();
 	}
 
-	public void doFinish() throws NetIbisException {
+	public void doFinish() throws IOException {
                 log.in();
  		freeBuffer();
                 log.out();
 	}
 
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IOException {
                 log.in();
                 freeBuffer();
                 NetReceiveBuffer b = receiveByteBuffer(expectedLength);
@@ -189,7 +192,7 @@ public abstract class NetBufferedInput extends NetInput {
         }
 
 
-        public void readByteBuffer(NetReceiveBuffer b) throws NetIbisException {
+        public void readByteBuffer(NetReceiveBuffer b) throws IOException {
                 log.in();
                 freeBuffer();
                 receiveByteBuffer(b);
@@ -197,7 +200,7 @@ public abstract class NetBufferedInput extends NetInput {
         }
 
 
-	public byte readByte() throws NetIbisException {
+	public byte readByte() throws IOException {
                 log.in();
 		byte value = 0;
 
@@ -221,7 +224,7 @@ public abstract class NetBufferedInput extends NetInput {
 	public void readArray(byte [] userBuffer,
 			      int     offset,
 			      int     length)
-		throws NetIbisException {
+		throws IOException {
                 log.in();
 		if (length == 0)
 			return;

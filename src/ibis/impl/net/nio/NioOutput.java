@@ -95,7 +95,7 @@ public final class NioOutput extends NetOutput {
 	 * @param output the controlling output.
 	 */
 	NioOutput(NetPortType pt, NetDriver driver, String context) 
-						throws NetIbisException {
+						throws IOException {
 		super(pt, driver, context);
 		headerLength = 0;
 
@@ -136,7 +136,7 @@ public final class NioOutput extends NetOutput {
 	 * @param os {@inheritDoc}
 	 */
 	public void setupConnection(NetConnection cnx)
-						 throws NetIbisException {
+						 throws IOException {
 		log.in();
                 if (this.rpn != null) {
                         throw new Error("connection already established");
@@ -148,30 +148,24 @@ public final class NioOutput extends NetOutput {
 			ObjectInputStream is = new ObjectInputStream(
 			 cnx.getServiceLink().
 			 getInputSubStream(this, "nio"));
-	
-		Hashtable   rInfo = (Hashtable)is.readObject();
-		is.close();
-		InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
-		int rport = ((Integer)rInfo.get("tcp_port")).intValue();
-		InetSocketAddress sa = new InetSocketAddress(raddr, rport);
 		
+			Hashtable   rInfo = (Hashtable)is.readObject();
+			is.close();
+			InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
+			int rport = ((Integer)rInfo.get("tcp_port")).intValue();
+			InetSocketAddress sa = new InetSocketAddress(raddr, rport);
+
 			socketChannel = SocketChannel.open(sa);
-		} catch (IOException e) {
-			throw new NetIbisException(e);
 		} catch (ClassNotFoundException e) {
                         throw new Error(e);
                 }
 		log.out();
 	}
 
-        public void finish() throws NetIbisException {
+        public void finish() throws IOException {
 		log.in();
                 super.finish();
-		try {
-			flush();
-		} catch (IOException e) {
-			throw new NetIbisException(e);
-		}
+		flush();
 		log.out();
 	}
 
@@ -179,15 +173,11 @@ public final class NioOutput extends NetOutput {
 	 * make sure all the data is written to the channel, so the data
 	 * can be touched by the user.
 	 */
-	public void reset(boolean doSend) throws NetIbisException {
+	public void reset(boolean doSend) throws IOException {
 		log.in();
 		super.reset(doSend);
 
-		try {
-			flush();
-		} catch (IOException e) {
-			throw new NetIbisException(e);
-		}
+		flush();
 		log.out();
 	}
 		
@@ -333,42 +323,33 @@ public final class NioOutput extends NetOutput {
 	/*
 	 * {@inheritDoc}
          */
-        public void writeBoolean(boolean value) throws NetIbisException {
+        public void writeBoolean(boolean value) throws IOException {
 		log.in();
-		try {
-			if(!byteBuffer.hasRemaining()) {
-				flush();
-			}
-		
-			/* least efficient way possible of doing this, 
-			 * i think (ideas welcome) --N
-			 */
-			byteBuffer.put((byte) (value ? 1 : 0) );
-			log.disp("put boolean " + value + 
-				 " in the byte buffer");
-
-		} catch (IOException e) {
-			throw new NetIbisException(e);
+		if(!byteBuffer.hasRemaining()) {
+			flush();
 		}
+	
+		/* least efficient way possible of doing this, 
+		 * i think (ideas welcome) --N
+		 */
+		byteBuffer.put((byte) (value ? 1 : 0) );
+		log.disp("put boolean " + value + 
+			 " in the byte buffer");
+
 		log.out();
 	}
 
 	/*
 	 * {@inheritDoc}
          */
-	public void writeByte(byte value) throws NetIbisException {
+	public void writeByte(byte value) throws IOException {
 		log.in();
- 		try {
-			if(!byteBuffer.hasRemaining()) {
-				flush();
-			}
+		if(!byteBuffer.hasRemaining()) {
+			flush();
+		}
 
-			byteBuffer.put(value);
-			log.disp("put byte " + value + " in buffer");
-		
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+		byteBuffer.put(value);
+		log.disp("put byte " + value + " in buffer");
 		log.out();
 	}
 
@@ -377,121 +358,96 @@ public final class NioOutput extends NetOutput {
 	/*
 	 * {@inheritDoc}
          */
-	public void writeChar(char value) throws NetIbisException {
+	public void writeChar(char value) throws IOException {
 		log.in();
-		try {
-			if(!charBuffer.hasRemaining()) {
-				flush();
-			}
-	
-			charBuffer.put(value);
-			log.disp("put char " + value + " in buffer");
+		if(!charBuffer.hasRemaining()) {
+			flush();
+		}
 
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		}
+		charBuffer.put(value);
+		log.disp("put char " + value + " in buffer");
 		log.out();
 	}
 
 	/*
 	 * {@inheritDoc}
          */
-	public void writeShort(short value) throws NetIbisException {
+	public void writeShort(short value) throws IOException {
 		log.in();
-		try {
-			if(!shortBuffer.hasRemaining()) {
-				flush();
-			}
-			shortBuffer.put(value);
-			log.disp("put short " + value + " in buffer");
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+		if(!shortBuffer.hasRemaining()) {
+			flush();
+		}
+		shortBuffer.put(value);
+		log.disp("put short " + value + " in buffer");
 		log.out();
 	}
 
 	/*
 	 * {@inheritDoc}
          */
-	public void writeInt(int value) throws NetIbisException {
+	public void writeInt(int value) throws IOException {
 		log.in();
-		try {
-			if(!intBuffer.hasRemaining()) {
-				flush();
-			}
-			intBuffer.put(value);
-			log.disp("put int " + value + " hex: " +
-				 Integer.toHexString(value) + " in buffer");
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		}
+		if(!intBuffer.hasRemaining()) {
+			flush();
+		}
+		intBuffer.put(value);
+		log.disp("put int " + value + " hex: " +
+			 Integer.toHexString(value) + " in buffer");
 		log.out();
 	}
 
 	/*
 	 * {@inheritDoc}
          */
-	public void writeLong(long value) throws NetIbisException {
+	public void writeLong(long value) throws IOException {
 		log.in();
-		try {
-			if(!longBuffer.hasRemaining()) {
-				flush();
-			}
-			longBuffer.put(value);
-			log.disp("put long " + value + " hex: " +
-				Long.toHexString(value) + " in buffer");
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+		if(!longBuffer.hasRemaining()) {
+			flush();
+		}
+		longBuffer.put(value);
+		log.disp("put long " + value + " hex: " +
+			Long.toHexString(value) + " in buffer");
 		log.out();
 	}
 
 	/*
 	 * {@inheritDoc}
          */
-	public void writeFloat(float value) throws NetIbisException {
+	public void writeFloat(float value) throws IOException {
 		log.in();
-		try {
-			if(!floatBuffer.hasRemaining()) {
-				flush();
-			}
-			floatBuffer.put(value);
-			log.disp("put float " + value + " in buffer");
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+		if(!floatBuffer.hasRemaining()) {
+			flush();
+		}
+		floatBuffer.put(value);
+		log.disp("put float " + value + " in buffer");
 		log.out();
 	}
 
 	/*
 	 * {@inheritDoc}
          */
-	public void writeDouble(double value) throws NetIbisException {
+	public void writeDouble(double value) throws IOException {
 		log.in();
-		try {
-			if(!doubleBuffer.hasRemaining()) {
-				flush();
-			}
-			doubleBuffer.put(value);
-			log.disp("put double " + value + " in buffer");
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+		if(!doubleBuffer.hasRemaining()) {
+			flush();
+		}
+		doubleBuffer.put(value);
+		log.disp("put double " + value + " in buffer");
 		log.out();
 	}
 
 	/*
 	 * {@inheritDoc}
          */
-	public void writeString(String value) throws NetIbisException {
-		throw new NetIbisException("NioOutput: writeString not implemented (yet?)");
+	public void writeString(String value) throws IOException {
+		throw new IOException("NioOutput: writeString not implemented (yet?)");
 	}
 
 	/*
 	 * {@inheritDoc}
          */
-	public void writeObject(Object value) throws NetIbisException {
-		throw new NetIbisException("NioOutput: writeObject not implemented (yet?)");
+	public void writeObject(Object value) throws IOException {
+		throw new IOException("NioOutput: writeObject not implemented (yet?)");
 	}
 
 	/*
@@ -499,17 +455,13 @@ public final class NioOutput extends NetOutput {
 	 */
 	public void writeArray(boolean [] destination,
 					   int offset,
-					   int size) throws NetIbisException {
+					   int size) throws IOException {
 		log.in();
-		try {
-			log.disp("writing boolean array at offset " + offset +
-				 " of length " + size);
-			for(int i = offset; i <  (offset + size); i++) {
-				writeBoolean(destination[i]);
-			}
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+		log.disp("writing boolean array at offset " + offset +
+			 " of length " + size);
+		for(int i = offset; i <  (offset + size); i++) {
+			writeBoolean(destination[i]);
+		}
 		log.out();
 	}
 
@@ -522,180 +474,147 @@ public final class NioOutput extends NetOutput {
 	 */
 	public void writeArray(byte [] destination,
 					int offset,
-					int size) throws NetIbisException {
+					int size) throws IOException {
 		ByteBuffer buffer = null;
 		log.in();
-		try {
-			for (int i = offset;i < (offset + size);i++) {
-				writeByte(destination[i]);
-			}
+		for (int i = offset;i < (offset + size);i++) {
+			writeByte(destination[i]);
+		}
 
-//			if(buffersFilled >= NR_OF_BUFFERS) {
-//				flush();
-//			}			
+//		if(buffersFilled >= NR_OF_BUFFERS) {
+//			flush();
+//		}			
 
-//			log.disp("wrapping byte array. offset: " + offset +
-//				 " length: " + size);
-//			buffers[buffersFilled] = 
-//				byteBuffer.wrap(destination, offset, size);
+//		log.disp("wrapping byte array. offset: " + offset +
+//			 " length: " + size);
+//		buffers[buffersFilled] = 
+//		byteBuffer.wrap(destination, offset, size);
 
-//			buffersFilled += 1;
-//			log.disp("number of buffers filled now " + 
-//				 buffersFilled);
+//		buffersFilled += 1;
+//		log.disp("number of buffers filled now " + 
+//			 buffersFilled);
 
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
 		log.out();
 	}
 
 	public void writeArray(char [] destination,
 					int offset,
-					int size) throws NetIbisException {
+					int size) throws IOException {
 		int length;
 		log.in();
-		try {
-			while(size > 0) {
-				if(!charBuffer.hasRemaining()) {
-					flush();
-				}
-
-				length = java.lang.Math.min(
-						charBuffer.remaining(), size);
-				log.disp("putting char array subarray [" +
-					 offset + "," +
-					 (offset + length) + "]");
-				charBuffer.put(destination, offset, length);
-				size -= length;
-				offset += length;
-
+		while(size > 0) {
+			if(!charBuffer.hasRemaining()) {
+				flush();
 			}
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+
+			length = java.lang.Math.min(
+					charBuffer.remaining(), size);
+			log.disp("putting char array subarray [" +
+				 offset + "," +
+				 (offset + length) + "]");
+			charBuffer.put(destination, offset, length);
+			size -= length;
+			offset += length;
+
+		}
 		log.out();
 	}
 
 	public void writeArray(short [] destination,
 					 int offset,
-					 int size) throws NetIbisException {
+					 int size) throws IOException {
 		int length;
-		try {
-			while(size > 0) {
-				if(!shortBuffer.hasRemaining()) {
-					flush();
-				}
-
-				length = java.lang.Math.min(
-						shortBuffer.remaining(), size);
-				shortBuffer.put(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!shortBuffer.hasRemaining()) {
+				flush();
 			}
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+
+			length = java.lang.Math.min(
+					shortBuffer.remaining(), size);
+			shortBuffer.put(destination, offset, length);
+			size -= length;
+			offset += length;
+		}
 	}
 
 	public void writeArray(int [] destination,
 				       int offset,
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
-		try {
-			while(size > 0) {
-				if(!intBuffer.hasRemaining()) {
-					flush();
-				}
-
-				length = java.lang.Math.min(
-						intBuffer.remaining(), size);
-				intBuffer.put(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!intBuffer.hasRemaining()) {
+				flush();
 			}
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+
+			length = java.lang.Math.min(
+					intBuffer.remaining(), size);
+			intBuffer.put(destination, offset, length);
+			size -= length;
+			offset += length;
+		}
 	}
 
 	public void writeArray(long [] destination,
 				       int offset,
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
-		try {
-			while(size > 0) {
-				if(!longBuffer.hasRemaining()) {
-					flush();
-				}
-
-				length = java.lang.Math.min(
-						longBuffer.remaining(), size);
-				longBuffer.put(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!longBuffer.hasRemaining()) {
+				flush();
 			}
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+
+			length = java.lang.Math.min(
+					longBuffer.remaining(), size);
+			longBuffer.put(destination, offset, length);
+			size -= length;
+			offset += length;
+		}
 	}
 
 	public void writeArray(float [] destination,
 				       int offset,
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
-		try {
-			while(size > 0) {
-				if(!floatBuffer.hasRemaining()) {
-					flush();
-				}
-
-				length = java.lang.Math.min(
-						floatBuffer.remaining(), size);
-				floatBuffer.put(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!floatBuffer.hasRemaining()) {
+				flush();
 			}
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+
+			length = java.lang.Math.min(
+					floatBuffer.remaining(), size);
+			floatBuffer.put(destination, offset, length);
+			size -= length;
+			offset += length;
+		}
 	}
 
 	public void writeArray(double [] destination,
 				       int offset,
-				       int size) throws NetIbisException {
+				       int size) throws IOException {
 		int length;
-		try {
-			while(size > 0) {
-				if(!doubleBuffer.hasRemaining()) {
-					flush();
-				}
-
-				length = java.lang.Math.min(
-						doubleBuffer.remaining(), size);
-				doubleBuffer.put(destination, offset, length);
-				size -= length;
-				offset += length;
+		while(size > 0) {
+			if(!doubleBuffer.hasRemaining()) {
+				flush();
 			}
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+
+			length = java.lang.Math.min(
+					doubleBuffer.remaining(), size);
+			doubleBuffer.put(destination, offset, length);
+			size -= length;
+			offset += length;
+		}
 	}
 
 	/*
 	 * {@inheritDoc}
          */
-	public synchronized void close(Integer num) throws NetIbisException {
+	public synchronized void close(Integer num) throws IOException {
                 if (rpn == num) {
-                        try {
-				if (socketChannel != null) {
-					flush();
-					socketChannel.close();
-				}
+			if (socketChannel != null) {
+				flush();
+				socketChannel.close();
+			}
 
-                        } catch (Exception e) {
-                                throw new NetIbisException(e);
-                        }
-                                                                            
                         rpn = null;
                 }
         }
@@ -705,16 +624,9 @@ public final class NioOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws NetIbisException {
-		try {
-			if (socketChannel != null) {
-				socketChannel = null;
-			}
-
-
-		}
-		catch (Exception e) {
-			throw new NetIbisException(e);
+	public void free() throws IOException {
+		if (socketChannel != null) {
+			socketChannel = null;
 		}
 
 		rpn       = null;

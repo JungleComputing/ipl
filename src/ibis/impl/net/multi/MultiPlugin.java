@@ -12,6 +12,6 @@ public interface MultiPlugin {
                                     NetIbisIdentifier  	localId,
                                     NetIbisIdentifier  	remoteId,
                                     ObjectOutputStream	oos,
-                                    ObjectInputStream 	ois) throws NetIbisException;
+                                    ObjectInputStream 	ois) throws IOException;
 }
 

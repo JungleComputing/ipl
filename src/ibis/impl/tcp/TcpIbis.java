@@ -8,7 +8,6 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.Registry;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.impl.generic.IbisIdentifierTable;
@@ -76,12 +75,12 @@ public final class TcpIbis extends Ibis implements Config {
 	}
      
 	public PortType createPortType(String name, StaticProperties p)
-		    throws IbisException, IbisIOException {
+		    throws IOException, IbisException {
 
 		TcpPortType resultPort = new TcpPortType(this, name, p);		
 		p = resultPort.properties();
 
-		PortTypeNameServerClient temp = tcpIbisNameServerClient.tcpPortTypeNameServerClient;
+		PortTypeNameServerClient temp = tcpIbisNameServerClient.portTypeNameServerClient;
 
 		if (temp.newPortType(name, p)) { 
 			/* add type to our table */
@@ -107,7 +106,7 @@ public final class TcpIbis extends Ibis implements Config {
 		return ident;
 	}
 
-	protected void init() throws IbisException, IbisIOException { 
+	protected void init() throws IbisException, IOException { 
 		if(DEBUG) {
 			System.err.println("In TcpIbis.init()");
 		}
@@ -136,59 +135,39 @@ public final class TcpIbis extends Ibis implements Config {
 			}
 		}
 
-		try {
-			nameServerInet = InetAddress.getByName(nameServerName);
-		} catch (UnknownHostException e) {
-			throw new IbisIOException("cannot get ip of name server", e);
-		}
+		nameServerInet = InetAddress.getByName(nameServerName);
 		if(DEBUG) {
 			System.err.println("Found nameServerInet " + nameServerInet);
 		}
 
 		String myIp = p.getProperty("ip_address");
 		if (myIp == null) {
-			try {
-				ident = new TcpIbisIdentifier(name, InetAddress.getLocalHost());
-			} catch (UnknownHostException e) {
-				throw new IbisIOException("cannot get ip of local host", e);
-			}
+			ident = new TcpIbisIdentifier(name, InetAddress.getLocalHost());
 		} else {
-			try {
-				ident = new TcpIbisIdentifier(name, InetAddress.getByName(myIp));
-			} catch (UnknownHostException e) {
-				throw new IbisIOException("cannot get ip of local host", e);
-			}
+			ident = new TcpIbisIdentifier(name, InetAddress.getByName(myIp));
 		}
 
 		if(DEBUG) {
 			System.err.println("Made IbisIdentifier " + ident);
 
-			try {
-				InetAddress[] res = InetAddress.getAllByName(myIp);
-				for(int i=0; i<res.length; i++) {
-					System.err.println("IP: " + res[i] + 
-					    (res[i].isSiteLocalAddress() ? " SL" : " !SL") + 
-					    (res[i].isLinkLocalAddress() ? " LL" : " !LL") + 
-					    (res[i].isLoopbackAddress() ? " LOOP" : " !LOOP") + 
-					    (res[i].isAnyLocalAddress() ? " ANYL" : " !ANYL") + 
-					    (res[i].isMulticastAddress() ? " MULTI" : " !MULTI"));
-				}
-			} catch (Exception e) {
-				throw new IbisIOException("cannot get ip of local host", e);
+			InetAddress[] res = InetAddress.getAllByName(myIp);
+			for(int i=0; i<res.length; i++) {
+				System.err.println("IP: " + res[i] + 
+				    (res[i].isSiteLocalAddress() ? " SL" : " !SL") + 
+				    (res[i].isLinkLocalAddress() ? " LL" : " !LL") + 
+				    (res[i].isLoopbackAddress() ? " LOOP" : " !LOOP") + 
+				    (res[i].isAnyLocalAddress() ? " ANYL" : " !ANYL") + 
+				    (res[i].isMulticastAddress() ? " MULTI" : " !MULTI"));
 			}
 		}
 
-		try { 
-			tcpIbisNameServerClient = new NameServerClient(this, ident, nameServerPool, nameServerInet, 
-									      nameServerPort);
-			tcpPortTypeNameServerClient = tcpIbisNameServerClient.tcpPortTypeNameServerClient;
-			tcpReceivePortNameServerClient = tcpIbisNameServerClient.tcpReceivePortNameServerClient;
-			tcpElectionClient = tcpIbisNameServerClient.tcpElectionClient;
-			tcpRegistry = tcpIbisNameServerClient.tcpRegistry;
-			tcpPortHandler = new TcpPortHandler(ident);
-		} catch (IOException e) { 
-			throw new IbisIOException("cannot create TcpIbisNameServerClient", e);
-		}
+		tcpIbisNameServerClient = new NameServerClient(this, ident, nameServerPool, nameServerInet, 
+							       nameServerPort);
+		tcpPortTypeNameServerClient = tcpIbisNameServerClient.portTypeNameServerClient;
+		tcpReceivePortNameServerClient = tcpIbisNameServerClient.receivePortNameServerClient;
+		tcpElectionClient = tcpIbisNameServerClient.electionClient;
+		tcpRegistry = tcpIbisNameServerClient.registry;
+		tcpPortHandler = new TcpPortHandler(ident);
 		if(DEBUG) {
 			System.err.println("Out of TcpIbis.init()");
 		}

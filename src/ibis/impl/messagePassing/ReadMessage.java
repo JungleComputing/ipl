@@ -1,6 +1,7 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
+
 import ibis.ipl.impl.generic.ConditionVariable;
 
 public class ReadMessage
@@ -121,7 +122,7 @@ public class ReadMessage
     /* End of the PollClient interface */
 
 
-    public void nextFragment() throws IbisIOException {
+    public void nextFragment() throws IOException {
 	Ibis.myIbis.checkLockOwned();
 	while (fragmentFront.next == null) {
 	    Ibis.myIbis.waitPolling(this,
@@ -167,130 +168,131 @@ public class ReadMessage
     }
 
 
-    public boolean readBoolean() throws IbisIOException {
-	throw new IbisIOException("Read Boolean not supported");
+    public boolean readBoolean() throws IOException {
+	throw new IOException("Read Boolean not supported");
     }
 
 
-    public byte readByte() throws IbisIOException {
-	throw new IbisIOException("Read Byte not supported");
+    public byte readByte() throws IOException {
+	throw new IOException("Read Byte not supported");
     }
 
 
-    public char readChar() throws IbisIOException {
-	throw new IbisIOException("Read Char not supported");
+    public char readChar() throws IOException {
+	throw new IOException("Read Char not supported");
     }
 
 
-    public short readShort() throws IbisIOException {
-	throw new IbisIOException("Read Short not supported");
+    public short readShort() throws IOException {
+	throw new IOException("Read Short not supported");
     }
 
 
-    public int  readInt() throws IbisIOException {
+    public int  readInt() throws IOException {
 	return in.read();
     }
 
 
-    public long readLong() throws IbisIOException {
-	throw new IbisIOException("Read Long not supported");
+    public long readLong() throws IOException {
+	throw new IOException("Read Long not supported");
     }
 
-    public float readFloat() throws IbisIOException {
-	throw new IbisIOException("Read Float not supported");
+    public float readFloat() throws IOException {
+	throw new IOException("Read Float not supported");
     }
 
-    public double readDouble() throws IbisIOException {
-	throw new IbisIOException("Read Double not supported");
+    public double readDouble() throws IOException {
+	throw new IOException("Read Double not supported");
     }
 
-    public String readString() throws IbisIOException {
-	throw new IbisIOException("Read String not supported");
+    public String readString() throws IOException {
+	throw new IOException("Read String not supported");
     }
 
-    public Object readObject() throws IbisIOException {
-	throw new IbisIOException("Read Object not supported");
+    public Object readObject() throws IOException, ClassNotFoundException {
+	throw new IOException("Read Object not supported");
     }
 
-    public void readArray(boolean[] destination) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(boolean[] destination) throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(byte[] destination) throws IbisIOException {
+    public void readArray(byte[] destination) throws IOException {
 	in.read(destination);
     }
 
-    public void readArray(char[] destination) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(char[] destination) throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(short[] destination) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(short[] destination) throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(int[] destination) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(int[] destination) throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(long[] destination) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(long[] destination) throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(float[] destination) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(float[] destination) throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(double[] destination) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(double[] destination) throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(Object[] destination) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(Object[] destination)
+	    throws IOException, ClassNotFoundException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(boolean[] destination, int offset,
-				    int size) throws IbisIOException {
-	throw new IbisIOException("Read Array  not supported");
+    public void readArray(boolean[] destination, int offset, int size)
+	    throws IOException {
+	throw new IOException("Read Array  not supported");
     }
 
-    public void readArray(byte[] destination, int offset,
-				 int size) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(byte[] destination, int offset, int size)
+	    throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(char[] destination, int offset,
-				 int size) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(char[] destination, int offset, int size)
+	    throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(short[] destination, int offset,
-				  int size) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(short[] destination, int offset, int size)
+	    throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(int[] destination, int offset,
-				int size) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(int[] destination, int offset, int size)
+	    throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(long[] destination, int offset,
-				 int size) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(long[] destination, int offset, int size)
+	    throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(float[] destination, int offset,
-				  int size) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(float[] destination, int offset, int size)
+	    throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(double[] destination, int offset,
-				   int size) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(double[] destination, int offset, int size)
+	    throws IOException {
+	throw new IOException("Read Array not supported");
     }
 
-    public void readArray(Object[] destination, int offset,
-				   int size) throws IbisIOException {
-	throw new IbisIOException("Read Array not supported");
+    public void readArray(Object[] destination, int offset, int size)
+	    throws IOException, ClassNotFoundException {
+	throw new IOException("Read Array not supported");
     }
 
 }

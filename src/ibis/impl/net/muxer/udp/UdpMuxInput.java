@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import ibis.ipl.ReceiveTimedOutException;
+
 import ibis.ipl.impl.net.NetPortType;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetIO;
@@ -20,7 +22,6 @@ import ibis.ipl.impl.net.NetConnection;
 import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetConvert;
 import ibis.ipl.impl.net.NetBufferFactory;
-import ibis.ipl.impl.net.NetIbisException;
 
 import ibis.ipl.impl.net.muxer.MuxerInput;
 import ibis.ipl.impl.net.muxer.MuxerQueue;
@@ -56,20 +57,14 @@ public final class UdpMuxInput extends MuxerInput {
     protected UdpMuxInput(NetPortType portType,
 			  NetDriver   driver,
 			  String      context)
-	    throws NetIbisException {
+	    throws IOException {
 
 	super(portType, driver, context);
 
-	try {
-	    socket = new DatagramSocket(0, InetAddress.getLocalHost());
-	    lmtu = Math.min(socket.getReceiveBufferSize(), UDP_MAX_MTU);
-	    laddr = socket.getLocalAddress();
-	    lport = socket.getLocalPort();
-	} catch (SocketException e) {
-	    throw new NetIbisException(e);
-	} catch (IOException e) {
-	    throw new NetIbisException(e);
-	}
+	socket = new DatagramSocket(0, InetAddress.getLocalHost());
+	lmtu = Math.min(socket.getReceiveBufferSize(), UDP_MAX_MTU);
+	laddr = socket.getLocalAddress();
+	lport = socket.getLocalPort();
 
 	min_mtu = lmtu;
 	max_mtu = UDP_MAX_MTU;
@@ -83,63 +78,60 @@ public final class UdpMuxInput extends MuxerInput {
 
     synchronized
     public void setupConnection(NetConnection cnx, NetIO io)
-	    throws NetIbisException {
+	    throws IOException {
 
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": Now enter UdpMuxInput.setupConnection, cnx = " + cnx + " cnx.serviceLink " + cnx.getServiceLink());
 Thread.dumpStack();
 	}
 
+	Integer num = cnx.getNum();
+
+	// ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + num));
+	ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(io, ":down"));
+
 	try {
-	    Integer num = cnx.getNum();
-
-	    // ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + num));
-	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(io, ":down"));
-
 	    /* We don't use the IP address of the sender port. Maybe it comes
 	     * in handy for debugging. */
 	    InetAddress raddr = (InetAddress)is.readObject();
-	    int         rport = is.readInt();
-	    int         rmtu  = is.readInt();
-	    is.close();
-
-	    if (Driver.DEBUG) {
-		System.err.println(this + ": in UdpMuxInput.setupConnection, Integer = " + cnx.getNum() + " start info send");
-	    }
-
-	    // ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + num));
-	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(io, ":up"));
-
-	    MuxerQueue q = createQueue(cnx, num);
-	    os.writeObject(laddr);
-	    os.writeInt(lport);
-	    os.writeInt(lmtu);
-	    os.writeInt(q.connectionKey());
-	    os.close();
-
-	    int mtu = Math.min(lmtu, rmtu);
-	    if (Driver.DEBUG) {
-		System.err.println("Still consider what an MTU (now becomes " + mtu + ") means for a muxer");
-	    }
-
-	    if (mtu < min_mtu) {
-		min_mtu = mtu;
-		this.mtu = mtu;
-	    }
-	    if (mtu > max_mtu) {
-		max_mtu = mtu;
-		factory.setMaximumTransferUnit(max_mtu);
-	    }
-
-	    spn = num;
-
-	    connections++;
-
 	} catch (ClassNotFoundException e) {
-	    throw new NetIbisException(e);
-	} catch (IOException e) {
-	    throw new NetIbisException(e);
+	    throw new Error("Cannot find class java.net.InetAddress", e);
 	}
+	int         rport = is.readInt();
+	int         rmtu  = is.readInt();
+	is.close();
+
+	if (Driver.DEBUG) {
+	    System.err.println(this + ": in UdpMuxInput.setupConnection, Integer = " + cnx.getNum() + " start info send");
+	}
+
+	// ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + num));
+	ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(io, ":up"));
+
+	MuxerQueue q = createQueue(cnx, num);
+	os.writeObject(laddr);
+	os.writeInt(lport);
+	os.writeInt(lmtu);
+	os.writeInt(q.connectionKey());
+	os.close();
+
+	int mtu = Math.min(lmtu, rmtu);
+	if (Driver.DEBUG) {
+	    System.err.println("Still consider what an MTU (now becomes " + mtu + ") means for a muxer");
+	}
+
+	if (mtu < min_mtu) {
+	    min_mtu = mtu;
+	    this.mtu = mtu;
+	}
+	if (mtu > max_mtu) {
+	    max_mtu = mtu;
+	    factory.setMaximumTransferUnit(max_mtu);
+	}
+
+	spn = num;
+
+	connections++;
 
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": Now leave UdpMuxInput.setupConnection, Integer = " + cnx.getNum());
@@ -159,7 +151,7 @@ Thread.dumpStack();
 
 
     protected Integer doPoll(int timeout)
-	    throws NetIbisException {
+	    throws IOException {
 	if (spn == null) {
 	    return null;
 	}
@@ -215,7 +207,7 @@ Thread.dumpStack();
 		buffer.free();
 		buffer = null;
 		if (timeout == 0) {
-		    throw new NetIbisException(e);
+		    throw new ReceiveTimedOutException(e);
 		} else if (Driver.STATISTICS) {
 		    receiveFromPoll++;
 		    t_receiveFromPoll += System.currentTimeMillis() - start;
@@ -227,7 +219,7 @@ Thread.dumpStack();
 System.err.println(this + ": ***************** catch Exception " + e);
 		buffer.free();
 		buffer = null;
-		throw new NetIbisException(e);
+		throw e;
 	    }
 	}
 
@@ -236,7 +228,7 @@ System.err.println(this + ": ***************** catch Exception " + e);
 
 
     protected NetReceiveBuffer receiveByteBuffer(int expectedLength)
-	    throws NetIbisException {
+	    throws IOException {
 
 	while (buffer == null) {
 	    if (Driver.DEBUG_HUGE) {
@@ -266,7 +258,7 @@ System.err.println(this + ": ***************** catch Exception " + e);
     }
 
 
-    synchronized public void doClose(Integer num) throws NetIbisException {
+    synchronized public void doClose(Integer num) throws IOException {
 	System.err.println(this + ": close. connections " + connections);
 	if (num == spn) {
 	    if (socket != null) {
@@ -283,7 +275,7 @@ System.err.println(this + ": ***************** catch Exception " + e);
     }
 
 
-    public void doFree() throws NetIbisException {
+    public void doFree() throws IOException {
 	System.err.println(this + ": doFree. connections " + connections);
 
 	if (spn == null) {

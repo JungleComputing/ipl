@@ -1,8 +1,9 @@
 package ibis.group;
 
+import java.io.IOException;
+
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.IbisIOException;
 
 /**
  * The {@link ParameterVector} class provides a base class for generated
@@ -43,14 +44,14 @@ public abstract class ParameterVector {
      * @param r the message from which the parameters are to be read
      * @return The resulting parameter vector.
      */
-    public abstract ParameterVector readParameters(ReadMessage r) throws IbisIOException;
+    public abstract ParameterVector readParameters(ReadMessage r) throws IOException;
 
     /**
      * Writes this parameter vector to a message.
      *
      * @param w the message to which the parameters are to be appended
      */
-    public abstract void writeParameters(WriteMessage w) throws IbisIOException;
+    public abstract void writeParameters(WriteMessage w) throws IOException;
 
     /**
      * Creates a new parameter vector of the same type.

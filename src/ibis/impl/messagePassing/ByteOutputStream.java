@@ -1,6 +1,7 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
+
 import ibis.ipl.impl.generic.ConditionVariable;
 
 
@@ -34,7 +35,7 @@ final class ByteOutputStream
     }
 
 
-    void send(boolean lastFrag) throws IbisIOException {
+    void send(boolean lastFrag) throws IOException {
 	Ibis.myIbis.checkLockOwned();
 // if (lastFrag)
 // System.err.print("L");
@@ -64,7 +65,7 @@ try {
 		send_acked = false;
 	    }
 	}
-} catch (IbisIOException e) {
+} catch (IOException e) {
     System.err.println("msg_send throws exception " + e);
     Thread.dumpStack();
 }
@@ -72,7 +73,7 @@ try {
 	if (false && ! lastFrag) {
 	    try {
 		Ibis.myIbis.pollLocked();
-	    } catch (IbisIOException e) {
+	    } catch (IOException e) {
 		System.err.println("pollLocked throws " + e);
 	    }
 	}
@@ -95,7 +96,7 @@ try {
     }
 
 
-    void send() throws IbisIOException {
+    void send() throws IOException {
 	Ibis.myIbis.lock();
 	send(true);
 	Ibis.myIbis.unlock();
@@ -161,7 +162,7 @@ try {
 	me = thread;
     }
 
-    void reset(boolean finish) throws IbisIOException {
+    void reset(boolean finish) throws IOException {
 	Ibis.myIbis.checkLockOwned();
 	if (outstandingFrags > 0) {
 	    Ibis.myIbis.pollLocked();
@@ -187,7 +188,7 @@ try {
     }
 
 
-    void reset() throws IbisIOException {
+    void reset() throws IOException {
 	Ibis.myIbis.lock();
 	try {
 	    reset(false);
@@ -197,7 +198,7 @@ try {
     }
 
 
-    void finish() throws IbisIOException {
+    void finish() throws IOException {
 	Ibis.myIbis.lock();
 	try {
 	    reset(true);
@@ -212,12 +213,12 @@ try {
     }
 
 
-    public void flush() throws IbisIOException {
+    public void flush() throws IOException {
 	flush(false);
     }
 
 
-    private void flush(boolean lastFrag) throws IbisIOException {
+    private void flush(boolean lastFrag) throws IOException {
 	if (Ibis.DEBUG) {
 	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; msgHandle 0x" + Integer.toHexString(msgHandle));
 	}
@@ -228,7 +229,7 @@ try {
     }
 
 
-    public void write(byte[] b) throws IbisIOException {
+    public void write(byte[] b) throws IOException {
 	write(b, 0, b.length);
     }
 
@@ -241,17 +242,17 @@ try {
 			    int msgSeqno,
 			    int msgHandle,
 			    boolean lastSplitter,
-			    boolean lastFrag) throws IbisIOException;
+			    boolean lastFrag) throws IOException;
 
     /* Pass our current msgHandle field: we only want to reset
      * a fragment that has been sent-acked */
-    native void resetMsg() throws IbisIOException;
+    native void resetMsg() throws IOException;
 
     public native void close();
 
-    public native void write(int b) throws IbisIOException;
+    public native void write(int b) throws IOException;
 
-    public void write(byte[] b, int off, int len) throws IbisIOException {
+    public void write(byte[] b, int off, int len) throws IOException {
 	writeByteArray(b, off, len);
 	if (syncMode) {
 	    flush();
@@ -266,14 +267,14 @@ try {
 	msgCount = 0;
     }
 
-    native void writeBooleanArray(boolean[] array, int off, int len) throws IbisIOException;
-    native void writeByteArray(byte[] array, int off, int len) throws IbisIOException;
-    native void writeCharArray(char[] array, int off, int len) throws IbisIOException;
-    native void writeShortArray(short[] array, int off, int len) throws IbisIOException;
-    native void writeIntArray(int[] array, int off, int len) throws IbisIOException;
-    native void writeLongArray(long[] array, int off, int len) throws IbisIOException;
-    native void writeFloatArray(float[] array, int off, int len) throws IbisIOException;
-    native void writeDoubleArray(double[] array, int off, int len) throws IbisIOException;
+    native void writeBooleanArray(boolean[] array, int off, int len) throws IOException;
+    native void writeByteArray(byte[] array, int off, int len) throws IOException;
+    native void writeCharArray(char[] array, int off, int len) throws IOException;
+    native void writeShortArray(short[] array, int off, int len) throws IOException;
+    native void writeIntArray(int[] array, int off, int len) throws IOException;
+    native void writeLongArray(long[] array, int off, int len) throws IOException;
+    native void writeFloatArray(float[] array, int off, int len) throws IOException;
+    native void writeDoubleArray(double[] array, int off, int len) throws IOException;
 
     native void report();
 }

@@ -1,6 +1,11 @@
 package ibis.ipl.impl.net;
 
+import ibis.ipl.Ibis;
+
 import java.util.Vector;
+
+import java.io.IOException;
+import java.io.InterruptedIOException;
 
 /**
  * Provide a general purpose {@linkplain NetEvent event} FIFO.
@@ -39,12 +44,16 @@ public class NetEventQueue {
          * added to the queue.
          *
          * @return the first event in the queue.
-         * @exception InterruptedException if the method is
+         * @exception InterruptedIOException if the method is
          * interrupted while waiting for an event.
          */
-        synchronized public NetEvent get() throws InterruptedException {
+        synchronized public NetEvent get() throws InterruptedIOException {
                 if (v.size() == 0) {
-                        wait();
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				throw Ibis.createInterruptedIOException(e);
+			}
                 }
 
                 return (NetEvent)v.remove(0);

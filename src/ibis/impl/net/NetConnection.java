@@ -2,6 +2,8 @@ package ibis.ipl.impl.net;
 
 import ibis.io.Replacer;
 
+import java.io.IOException;
+
 /**
  * Provide set of attributes describing a NetIbis connection.
  */
@@ -174,9 +176,9 @@ public final class NetConnection {
          * This method also closes the connection's {@linkplain
          * #serviceLink service link}.
          *
-         * @exception NetIbisException if the operation fails.
+         * @exception IOException if the operation fails.
          */
-        public synchronized void close() throws NetIbisException {
+        public synchronized void close() throws IOException {
                 if (serviceLink != null) {
                         serviceLink.close();
                 }

@@ -1,23 +1,21 @@
 package ibis.ipl.impl.net.muxer;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import java.util.Hashtable;
+
+import java.io.IOException;
 
 import ibis.ipl.impl.net.NetConvert;
 import ibis.ipl.impl.net.NetPortType;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetBufferedOutput;
-import ibis.ipl.impl.net.NetIbisException;
 import ibis.ipl.impl.net.NetConnection;
 
 public abstract class MuxerOutput extends NetBufferedOutput {
 
 
     public abstract void disconnect(MuxerKey key)
-	    throws NetIbisException;
+	    throws IOException;
 
 
     /**
@@ -33,13 +31,13 @@ public abstract class MuxerOutput extends NetBufferedOutput {
 
 
     public void setupConnection(NetConnection cnx)
-	    throws NetIbisException {
+	    throws IOException {
 	setupConnection(cnx, (NetIO)this);
     }
 
     public abstract void setupConnection(NetConnection cnx,
 					 NetIO io)
-	    throws NetIbisException;
+	    throws IOException;
 
     /*
      * At connection time, we want to pass the generated MuxerKey to this.
@@ -51,7 +49,7 @@ public abstract class MuxerOutput extends NetBufferedOutput {
 
     synchronized
     protected void registerKey(Object key, MuxerKey q)
-	    throws NetIbisException {
+	    throws IOException {
 	keyHash.put(key, q);
     }
 

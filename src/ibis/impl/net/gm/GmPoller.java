@@ -5,6 +5,8 @@ import ibis.ipl.impl.net.*;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import java.io.IOException;
+
 import java.util.Hashtable;
 
 /**
@@ -35,7 +37,7 @@ public final class GmPoller extends NetPoller {
 	 * @param driver the driver of this poller.
 	 */
 	public GmPoller(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
+		throws IOException {
 		super(pt, driver, context);
 		upcallModeAllowed = false;
                 gmDriver = (Driver)driver;
@@ -46,7 +48,7 @@ public final class GmPoller extends NetPoller {
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 
 		GmInput ni = new GmInput(type, driver, null);
@@ -91,12 +93,12 @@ System.err.println("unlock(" + pumpedIds[0] + ")");
 	}
 
 
-	protected void initReceive(Integer num) throws NetIbisException {
+	protected void initReceive(Integer num) throws IOException {
 	    ((GmInput)activeInput()).initReceive(num);
 	}
 
 
-	public Integer doPoll(boolean block) throws NetIbisException {
+	public Integer doPoll(boolean block) throws IOException {
 	    /* Find something to resemble this:
 	    if (spn == nul) {
 		    return null;

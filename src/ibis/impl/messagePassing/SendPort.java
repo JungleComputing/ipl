@@ -2,8 +2,13 @@ package ibis.ipl.impl.messagePassing;
 
 import java.util.Vector;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
+
 import ibis.io.Replacer;
+import ibis.ipl.PortMismatchException;
+import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.IbisException;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 public class SendPort implements ibis.ipl.SendPort, Protocol {
@@ -48,7 +53,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 		    Replacer r,
 		    boolean syncMode,
 		    boolean makeCopy)
-	    throws IbisIOException {
+	    throws IOException {
 	this.name = name;
 	this.type = type;
 	this.replacer = r;
@@ -58,13 +63,13 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	out = new ByteOutputStream(this, syncMode, makeCopy);
     }
 
-    public SendPort(PortType type, String name, OutputConnection conn) throws IbisIOException {
+    public SendPort(PortType type, String name, OutputConnection conn)
+	    throws IOException {
 	this(type, name, conn, null, true, false);
     }
 
 
-    int addConnection(ReceivePortIdentifier rid)
-	    throws IbisIOException {
+    int addConnection(ReceivePortIdentifier rid) throws IOException {
 
 	int	my_split;
 	if (splitter == null) {
@@ -74,7 +79,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	}
 
 	if (rid.cpu < 0) {
-	    throw new IbisIOException("invalid ReceivePortIdentifier");
+	    throw new IllegalArgumentException("invalid ReceivePortIdentifier");
 	}
 
 	Ibis.myIbis.checkLockNotOwned();
@@ -84,7 +89,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	}
 
 	if (!type.name().equals(rid.type())) {
-	    throw new IbisIOException("Cannot connect ports of different PortTypes: " + type.name() + " vs. " + rid.type());
+	    throw new PortMismatchException("Cannot connect ports of different PortTypes: " + type.name() + " vs. " + rid.type());
 	}
 
 	int n;
@@ -115,7 +120,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver,
 			int timeout)
-	    throws IbisIOException {
+	    throws IOException {
 
 	Ibis.myIbis.lock();
 	try {
@@ -138,10 +143,10 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	    }
 
 	    if (! syncer[my_split].s_wait(timeout)) {
-		throw new ibis.ipl.IbisConnectionTimedOutException("No connection to " + rid);
+		throw new ConnectionTimedOutException("No connection to " + rid);
 	    }
 	    if (! syncer[my_split].accepted) {
-		throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + rid);
+		throw new ConnectionRefusedException("No connection to " + rid);
 	    }
 
 	    if (ident.ibis().equals(receiver.ibis())) {
@@ -157,12 +162,13 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
     }
 
 
-    public void connect(ibis.ipl.ReceivePortIdentifier receiver) throws IbisIOException {
+    public void connect(ibis.ipl.ReceivePortIdentifier receiver)
+	    throws IOException {
 	connect(receiver, 0);
     }
 
 
-    ibis.ipl.WriteMessage cachedMessage() throws IbisIOException {
+    ibis.ipl.WriteMessage cachedMessage() throws IOException {
 	if (message == null) {
 	    message = new WriteMessage(this);
 	}
@@ -171,7 +177,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
     }
 
 
-    public ibis.ipl.WriteMessage newMessage() throws IbisIOException {
+    public ibis.ipl.WriteMessage newMessage() throws IOException {
 
 	Ibis.myIbis.lock();
 	while (aMessageIsAlive) {
@@ -196,7 +202,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
     }
 
 
-    void registerSend() throws IbisIOException {
+    void registerSend() throws IOException {
 	messageCount++;
 	if (homeConnection) {
 	    for (int i = 0; i < homeConnectionPolls; i++) {
@@ -237,7 +243,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
     }
 
 
-    public void free() throws IbisIOException {
+    public void free() throws IOException {
 	if (DEBUG) {
 	    System.out.println(type.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " start");
 	}

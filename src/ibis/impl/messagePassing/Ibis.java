@@ -1,19 +1,19 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.impl.generic.IbisIdentifierTable;
-
 import java.util.Vector;
 import java.util.Hashtable;
 
+import java.io.IOException;
+
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.IbisSerializationOutputStream;
+import ibis.io.Replacer;
 
+import ibis.ipl.impl.generic.IbisIdentifierTable;
 import ibis.ipl.impl.generic.ConditionVariable;
 import ibis.ipl.impl.generic.Monitor;
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.SendPortConnectUpcall;
-import ibis.io.Replacer;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.impl.generic.IbisIdentifierTable;
 
@@ -120,7 +120,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    ReceivePortNameServer createReceivePortNameServer() throws IbisIOException{
+    ReceivePortNameServer createReceivePortNameServer() throws IOException{
 		return new ReceivePortNameServer();
     }
 
@@ -148,7 +148,7 @@ public class Ibis extends ibis.ipl.Ibis {
     native void send_leave(int to, byte[] serialForm);
 
     /* Called from native */
-    void join_upcall(byte[] serialForm) throws IbisIOException {
+    void join_upcall(byte[] serialForm) throws IOException {
 		checkLockOwned();
 		//manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 
@@ -167,7 +167,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	    IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
 	    ibisNameService.remove(id);
 	    world.leave(id);
-	} catch (IbisIOException e) {
+	} catch (IOException e) {
 	    // just ignore the leave call, then
 	}
     }
@@ -193,10 +193,10 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    protected void init() throws IbisException, IbisIOException {
+    protected void init() throws IbisException, IOException {
 
 	if (myIbis != null) {
-	    throw new IbisIOException("Only one Ibis allowed");
+	    throw new IbisException("Only one Ibis allowed");
 	} else {
 	    myIbis = this;
 	}
@@ -278,56 +278,8 @@ public class Ibis extends ibis.ipl.Ibis {
 
 
     final void waitPolling(PollClient client, long timeout, int preempt)
-	    throws IbisIOException {
+	    throws IOException {
 		rcve_poll.waitPolling(client, timeout, preempt);
-    }
-
-    /* Methinks best put the overloading into PortType. Here we only
-     * need one method with all parameters.
-    SendPort createSendPort(PortType type)
-	    throws IbisIOException {
-		return createSendPort(type, "noname", null);
-    }
-
-    SendPort createSendPort(PortType type, String name)
-	    throws IbisIOException {
-	return createSendPort(type, null, name);
-    }
-
-    SendPort createSendPort(PortType type, Replacer r)
-	    throws IbisIOException {
-	return createSendPort(type, r, null);
-    }
-
-    SendPort createSendPort(PortType type, String name, Replacer r)
-	    throws IbisIOException {
-	return createSendPort(type, r, name);
-    }
-    */
-
-    SendPort createSendPort(PortType type, Replacer r, String name, SendPortConnectUpcall cU)
-	    throws IbisIOException {
-
-	if (cU != null) {
-	    System.err.println(this + ": createSendPort with ConnectUpcall. UNIMPLEMENTED");
-	}
-
-	switch (type.serializationType) {
-        case PortType.SERIALIZATION_NONE:
-// System.err.println("MSG: NO SER, name = " + name);
-	    return new SendPort(type, name, new OutputConnection());
-
-	case PortType.SERIALIZATION_SUN:
-// System.err.println("MSG: SUN SER, name = " + name);
-	    return new SerializeSendPort(type, name, new OutputConnection(), r);
-
-	case PortType.SERIALIZATION_IBIS:
-// System.err.println("MSG: IBIS SER, name = " + name);
-	    return new IbisSendPort(type, name, new OutputConnection(), r);
-
-	default:
-	    throw new IbisIOException("No such serialization type " + type.serializationType);
-	}
     }
 
     native long currentTime();
@@ -354,7 +306,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    IbisIdentifier lookupIbis(String name, int cpu) throws IbisIOException {
+    IbisIdentifier lookupIbis(String name, int cpu) throws IOException {
 // System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
 // manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
 // System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
@@ -374,7 +326,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    IbisIdentifier lookupIbis(byte[] serialForm) throws IbisIOException {
+    IbisIdentifier lookupIbis(byte[] serialForm) throws IOException {
 // System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
 // manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
 // System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
@@ -430,7 +382,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     int[] inputStreamMsgTags = new int[6];
 
-    final boolean inputStreamPoll() throws IbisIOException {
+    final boolean inputStreamPoll() throws IOException {
 	if (getInputStreamMsg(inputStreamMsgTags)) {
 	    receiveFragment(inputStreamMsgTags[0],
 			    inputStreamMsgTags[1],
@@ -451,7 +403,7 @@ public class Ibis extends ibis.ipl.Ibis {
 				 int msgHandle,
 				 int msgSize,
 				 int msgSeqno)
-	    throws IbisIOException {
+	    throws IOException {
 	checkLockOwned();
 // System.err.println(Thread.currentThread() + "receiveFragment");
 	ReceivePort port = lookupReceivePort(dest_port);
@@ -460,19 +412,19 @@ public class Ibis extends ibis.ipl.Ibis {
 // System.err.println(Thread.currentThread() + "receiveFragment origin " + origin);
 
 	if (origin == null) {
-	    throw new IbisIOException("Receive message from sendport we're not connected to");
+	    throw new IOException("Receive message from sendport we're not connected to");
 	}
 
 	port.receiveFragment(origin, msgHandle, msgSize, msgSeqno);
     }
 
 
-    boolean pollLocked() throws IbisIOException {
+    boolean pollLocked() throws IOException {
 	return rcve_poll.poll();
     }
 
 
-    public void poll() throws IbisIOException {
+    public void poll() throws IOException {
 	try {
 	    myIbis.lock();
 	    pollLocked();
@@ -502,7 +454,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private boolean ended = false;
 
-    public void end() {
+    public void end() throws IOException {
 	if (ended) {
 	    return;
 	}
@@ -522,7 +474,7 @@ public class Ibis extends ibis.ipl.Ibis {
 		    send_leave(i, sf);
 		}
 	    }
-	} catch (IbisIOException e) {
+	} catch (IOException e) {
 	    System.err.println("Cannot send leave msg");
 	}
 	world.leave(ident);

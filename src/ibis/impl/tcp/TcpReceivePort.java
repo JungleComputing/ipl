@@ -39,7 +39,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	private SerializationStreamReadMessage m = null;
 
-	TcpReceivePort(TcpPortType type, String name, Upcall upcall, ReceivePortConnectUpcall connUpcall) throws IbisIOException {
+	TcpReceivePort(TcpPortType type, String name, Upcall upcall, ReceivePortConnectUpcall connUpcall) throws IOException {
 		this.type   = type;
 		this.name   = name;
 		this.upcall = upcall;
@@ -54,13 +54,13 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	// returns:  was the message already finised?
-	boolean doUpcall(SerializationStreamReadMessage m) {
+	private boolean doUpcall(SerializationStreamReadMessage m) throws IOException {
 	        synchronized (this) {
 				// Wait until the previous message was finished.
 				while(this.m != null) {
 					try {
 						wait();
-					} catch (Exception e) {
+					} catch (InterruptedException e) {
 						// Ignore.
 					}
 				}
@@ -106,7 +106,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 
-	boolean setMessage(SerializationStreamReadMessage m) {
+	boolean setMessage(SerializationStreamReadMessage m) throws IOException {
 		m.isFinished = false;
 		if(upcall != null) {
 			return doUpcall(m);
@@ -199,7 +199,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return sequenceNr++;
 	}
 
-	public ReadMessage poll() throws IbisIOException {
+	public ReadMessage poll() throws IOException {
 		if(upcall != null) {
 			Thread.yield();
 			return null;
@@ -229,22 +229,22 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	public synchronized ReadMessage poll(ReadMessage finishMe) throws IbisIOException {
+	public synchronized ReadMessage poll(ReadMessage finishMe) throws IOException {
 		if (finishMe != null) {
 			finishMe.finish();
 		}
 		return poll();
 	}
 
-	public ReadMessage receive() throws IbisIOException { 
+	public ReadMessage receive() throws IOException { 
 		if(upcall != null) {
-			throw new IbisIOException("illegal receive");
+			throw new IOException("upcall receive config, downcall not allowed");
 		}
 
 		return getMessage();
 	}
 
-	public ReadMessage receive(ReadMessage finishMe) throws IbisIOException { 
+	public ReadMessage receive(ReadMessage finishMe) throws IOException { 
 		if (finishMe != null) {
 			finishMe.finish();
 		}
@@ -253,12 +253,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 
-	public ReadMessage receive(long timeoutMillis) throws IbisIOException {
+	public ReadMessage receive(long timeoutMillis) throws IOException {
 		System.err.println("receive with timeout not implemented!");
 		return null;
 	}
 
-	public ReadMessage receive(ReadMessage finishMe, long timeoutMillis) throws IbisIOException {
+	public ReadMessage receive(ReadMessage finishMe, long timeoutMillis) throws IOException {
 		System.err.println("receive with timeout not implemented!");
 		return null;
 	}

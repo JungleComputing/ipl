@@ -2,6 +2,8 @@ package ibis.ipl.impl.net.bytes;
 
 import ibis.ipl.impl.net.*;
 
+import java.io.IOException;
+
 /**
  * The byte conversion output implementation.
  */
@@ -49,7 +51,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
 	 */
-	BytesOutput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	BytesOutput(NetPortType pt, NetDriver driver, String context) {
 		super(pt, driver, context);
                 an = new NetAllocator(anThreshold);
 	}
@@ -57,7 +59,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		NetOutput subOutput = this.subOutput;
 
@@ -103,7 +105,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
 	}
 
-	private void flush() throws NetIbisException {
+	private void flush() throws IOException {
                 log.in();
 		if (buffer != null) {
                         log.disp(buffer.length+"/"+buffer.data.length);
@@ -115,7 +117,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
 	}
 
-        private void flushIfNeeded() throws NetIbisException {
+        private void flushIfNeeded() throws IOException {
                 log.in();
 		if (buffer != null && buffer.length == buffer.data.length) {
                         log.disp(buffer.length+"/"+buffer.data.length+" ==> flushing");
@@ -135,7 +137,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	/**
 	 * Allocate a new buffer.
 	 */
-	private void allocateBuffer() throws NetIbisException {
+	private void allocateBuffer() {
                 log.in();
 		if (buffer != null) {
 			buffer.free();
@@ -146,7 +148,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
 	}
 
-        private boolean ensureLength(int l) throws NetIbisException {
+        private boolean ensureLength(int l) throws IOException {
                 log.in();
                 log.disp("param l = "+l);
 
@@ -185,7 +187,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void initSend() throws NetIbisException {
+	public void initSend() throws IOException {
                 log.in();
                 dataOffset = getHeadersLength();
 		subOutput.initSend();
@@ -198,7 +200,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems.
 	   When a message is alive and a new messages is requested, the requester is blocked until the
 	   live message is finished. **/
-        public void finish() throws NetIbisException{
+        public void finish() throws IOException{
                 log.in();
                 super.finish();
                 flush();
@@ -206,7 +208,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
         }
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void close(Integer num) throws IOException {
                 log.in();
 		if (subOutput != null) {
                         subOutput.close(num);
@@ -217,7 +219,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws NetIbisException {
+	public void free() throws IOException {
                 log.in();
 		if (subOutput != null) {
 			subOutput.free();
@@ -227,7 +229,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
 	}
 
-        public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
+        public void writeByteBuffer(NetSendBuffer buffer) throws IOException {
                 log.in();
                 flush();
                 subOutput.writeByteBuffer(buffer);
@@ -238,7 +240,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Writes a boolean v to the message.
 	 * @param     v             The boolean v to write.
 	 */
-        public void writeBoolean(boolean v) throws NetIbisException {
+        public void writeBoolean(boolean v) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (buffer == null) {
@@ -257,7 +259,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Writes a byte v to the message.
 	 * @param     v             The byte v to write.
 	 */
-        public void writeByte(byte v) throws NetIbisException {
+        public void writeByte(byte v) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (buffer == null) {
@@ -276,7 +278,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Writes a char v to the message.
 	 * @param     v             The char v to write.
 	 */
-        public void writeChar(char v) throws NetIbisException {
+        public void writeChar(char v) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(2)) {
@@ -313,7 +315,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Writes a short v to the message.
 	 * @param     v             The short v to write.
 	 */
-        public void writeShort(short v) throws NetIbisException {
+        public void writeShort(short v) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(2)) {
@@ -349,7 +351,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Writes a int v to the message.
 	 * @param     v             The int v to write.
 	 */
-        public void writeInt(int v) throws NetIbisException {
+        public void writeInt(int v) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(4)) {
@@ -385,7 +387,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Writes a long v to the message.
 	 * @param     v             The long v to write.
 	 */
-        public void writeLong(long v) throws NetIbisException {
+        public void writeLong(long v) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(8)) {
@@ -420,7 +422,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Writes a float v to the message.
 	 * @param     v             The float v to write.
 	 */
-        public void writeFloat(float v) throws NetIbisException {
+        public void writeFloat(float v) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(4)) {
@@ -455,7 +457,7 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Writes a double v to the message.
 	 * @param     v             The double v to write.
 	 */
-        public void writeDouble(double v) throws NetIbisException {
+        public void writeDouble(double v) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(8)) {
@@ -491,7 +493,7 @@ public final class BytesOutput extends NetOutput implements Settings {
          * Note: uses writeObject to send the string.
 	 * @param     v             The string v to write.
 	 */
-        public void writeString(String v) throws NetIbisException {
+        public void writeString(String v) throws IOException {
                 log.in();
                 final int l = v.length();
                 char []   a = new char[v.length()];
@@ -506,14 +508,14 @@ public final class BytesOutput extends NetOutput implements Settings {
 	 * Writes a Serializable object to the message.
 	 * @param     v             The object v to write.
 	 */
-        public void writeObject(Object v) throws NetIbisException {
+        public void writeObject(Object v) throws IOException {
                 log.in();
                 subOutput.writeObject(v);
                 log.out();
         }
 
 
-        public void writeArray(boolean [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(boolean [] ub, int o, int l) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(l)) {
@@ -547,7 +549,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
         }
 
-        public void writeArray(byte [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(byte [] ub, int o, int l) throws IOException {
                 log.in();
                 if (mtu > 0) {
                         if (ensureLength(l)) {
@@ -575,7 +577,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
         }
 
-        public void writeArray(char [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(char [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 2;
 
@@ -623,7 +625,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
         }
 
-        public void writeArray(short [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(short [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 2;
 
@@ -671,7 +673,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
         }
 
-        public void writeArray(int [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(int [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 4;
 
@@ -720,7 +722,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
         }
 
-        public void writeArray(long [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(long [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 8;
 
@@ -769,7 +771,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
         }
 
-        public void writeArray(float [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(float [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 4;
 
@@ -817,7 +819,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
         }
 
-        public void writeArray(double [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(double [] ub, int o, int l) throws IOException {
                 log.in();
                 final int f = 8;
 
@@ -865,7 +867,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                 log.out();
         }
 
-        public void writeArray(Object [] ub, int o, int l) throws NetIbisException {
+        public void writeArray(Object [] ub, int o, int l) throws IOException {
                 log.in();
                 for (int i = 0; i < l; i++) {
                         writeObject(ub[o+i]);

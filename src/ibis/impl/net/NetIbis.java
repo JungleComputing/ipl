@@ -6,10 +6,13 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
+import ibis.ipl.IbisConfigurationException;
 
 import ibis.ipl.impl.generic.IbisIdentifierTable;
 
 import ibis.ipl.impl.nameServer.*;
+
+import java.io.IOException;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -133,6 +136,10 @@ public final class NetIbis extends Ibis {
 	 * Default constructor.
 	 *
 	 * Loads compile-time known drivers if {@link #staticDriverLoading} is set.
+	 *
+	 * @exception IbisConfigurationException if the requested driver class
+	 * 		could not be loaded or the requested driver instance
+	 * 		could not be initialized.
 	 */
 	public NetIbis() {
 		if (globalIbis == null) {
@@ -158,7 +165,7 @@ public final class NetIbis extends Ibis {
 			    NetDriver d = (NetDriver)clazz.newInstance();
 			    d.setIbis(this);
 			} catch (java.lang.Exception e) {
-			    System.err.println("Cannot instantiate class " + drivers[i]);
+			    throw new IbisConfigurationException("Cannot instantiate class " + drivers[i], e);
 			}
 		    }
 		}
@@ -197,23 +204,24 @@ public final class NetIbis extends Ibis {
 	 *
 	 * @param name the driver's name.
 	 * @return The driver instance.
-	 * @exception NetIbisException if the requested driver class could not be loaded or the requested driver instance could not be initialized.
+	 * @exception IbisConfigurationException if the requested driver class
+	 * 		could not be loaded or the requested driver instance
+	 * 		could not be initialized.
 	 */
 	/* This must be synchronized: two threads may attempt to create a
 	 * port concurrently; if not synch, the driver may be created twice
 	 *							RFHH
 	 */
 	synchronized
-	public NetDriver getDriver(String name) throws NetIbisException{
+	public NetDriver getDriver(String name) {
 		NetDriver driver = (NetDriver)driverTable.get(name);
 
 		if (driver == null) {
+			String clsName  = getClass().getPackage().getName()
+					    + "."
+					    + name
+					    + ".Driver";
 			try {
-				String      clsName  =
-					getClass().getPackage().getName()
-					+ "."
-					+ name
-					+ ".Driver";
 				Class       cls      = Class.forName(clsName);
 				Class []    clsArray = { getClass() };
 				Constructor cons     = cls.getConstructor(clsArray);
@@ -221,7 +229,7 @@ public final class NetIbis extends Ibis {
 
 				driver = (NetDriver)cons.newInstance(objArray);
 			} catch (Exception e) {
-				throw new NetIbisException(e);
+				throw new IbisConfigurationException("Cannot create NetIbis driver " + clsName, e);
 			}
 
 			driverTable.put(name, driver);
@@ -236,22 +244,18 @@ public final class NetIbis extends Ibis {
 	 * @param name the name of the type.
 	 * @param sp   the properties of the type.
 	 * @return     The port type.
-	 * @exception  NetIbisException if the name server refused to register the new type.
+	 * @exception  IbisException if the name server refused to register the new type.
 	 */
 	synchronized
 	public PortType createPortType(String name, StaticProperties sp)
-		throws NetIbisException {
+		throws IOException, IbisException {
 		NetPortType newPortType = new NetPortType(this, name, sp);
 		sp = newPortType.properties();
 
-		PortTypeNameServerClient client = nameServerClient.tcpPortTypeNameServerClient;
-                try {
-                        if (client.newPortType(name, sp)) {
-                                portTypeTable.put(name, newPortType);
-                        }
-                } catch (ibis.ipl.IbisIOException e) {
-                        throw new NetIbisException(e);
-                }
+		PortTypeNameServerClient client = nameServerClient.portTypeNameServerClient;
+		if (client.newPortType(name, sp)) {
+			portTypeTable.put(name, newPortType);
+		}
 
 		return newPortType;
 	}
@@ -262,7 +266,7 @@ public final class NetIbis extends Ibis {
 	 * @return A reference to the instance's registry access.
 	 */
 	public Registry registry() {
-		return nameServerClient.tcpRegistry;
+		return nameServerClient.registry;
 	}
 
 	/**
@@ -289,18 +293,14 @@ public final class NetIbis extends Ibis {
 	 * This function should be called before any attempt to use the NetIbis instance.
 	 * <B>This function is not automatically called by the constructor</B>.
 	 *
-	 * @exception IbisException if the system-wide Ibis properties where not correctly set.
-	 * @exception NetIbisException if the local host name cannot be found or if the <I>name server</I> cannot be reached.
+	 * @exception IbisConfigurationException if the system-wide Ibis properties where not correctly set.
+	 * @exception IOException if the local host name cannot be found or if the <I>name server</I> cannot be reached.
 	 */
-	protected void init() throws IbisException, NetIbisException {
+	protected void init() throws IbisException, IOException {
 
                 /* Builds the instance identifier out of our {@link InetAddress}. */
-		try {
-			InetAddress addr = InetAddress.getLocalHost();
-			identifier = new NetIbisIdentifier(name, addr);
-		} catch (UnknownHostException e) {
-			throw new NetIbisException(e);
-		}
+		InetAddress addr = InetAddress.getLocalHost();
+		identifier = new NetIbisIdentifier(name, addr);
 
                 /* Decodes <I>name server</I> properties informations. */
 		{
@@ -308,12 +308,12 @@ public final class NetIbis extends Ibis {
 
 			nameServerName = p.getProperty("ibis.name_server.host");
                         if (nameServerName == null) {
-                                throw new IbisException("property ibis.name_server.host is not specified");
+                                throw new IbisConfigurationException("property ibis.name_server.host is not specified");
                         }
 
 			nameServerPool = p.getProperty("ibis.name_server.key");
                         if (nameServerPool == null) {
-                                throw new IbisException("property ibis.name_server.key is not specified");
+                                throw new IbisConfigurationException("property ibis.name_server.key is not specified");
                         }
 
                         String nameServerPortString = p.getProperty("ibis.name_server.port");
@@ -331,22 +331,14 @@ public final class NetIbis extends Ibis {
 		}
 
                 /* Gets <I>name server<I> {@link InetAddress} */
-		try {
-			nameServerInet = InetAddress.getByName(nameServerName);
-		} catch (UnknownHostException e) {
-			throw new NetIbisException(e);
-		}
+		nameServerInet = InetAddress.getByName(nameServerName);
 
                 /* Connects to the <I>name server<I> */
-                try {
-                        nameServerClient = new NameServerClient(this,
-                                                                identifier,
-                                                                nameServerPool,
-                                                                nameServerInet,
-                                                                nameServerPort);
-                } catch (ibis.ipl.IbisIOException e) {
-                        throw new NetIbisException(e);
-                }
+		nameServerClient = new NameServerClient(this,
+							identifier,
+							nameServerPool,
+							nameServerInet,
+							nameServerPort);
 	}
 
 	/**
@@ -355,7 +347,7 @@ public final class NetIbis extends Ibis {
 	 * @return A reference to the instance's receive-port name registry access.
 	 */
 	public ReceivePortNameServerClient receivePortNameServerClient() {
-		return nameServerClient.tcpReceivePortNameServerClient;
+		return nameServerClient.receivePortNameServerClient;
 	}
 
         /*
@@ -441,12 +433,8 @@ public final class NetIbis extends Ibis {
 
 	/** Requests the NetIbis instance to leave the Name Server pool.
 	 */
-	public void end() {
-		try {
-			nameServerClient.leave();
-		} catch (Exception e) {
-			__.fwdAbort__(e);
-		}
+	public void end() throws IOException {
+		nameServerClient.leave();
 	}
 
 	public void poll() {

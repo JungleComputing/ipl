@@ -1,5 +1,7 @@
 package ibis.ipl.impl.net;
 
+import java.io.IOException;
+
 import java.util.Iterator;
 import java.util.HashMap;
 
@@ -30,7 +32,7 @@ public class NetSplitter extends NetOutput {
 	 * @param driver the driver of this poller.
 	 * @param output the controlling output.
 	 */
-	public NetSplitter(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	public NetSplitter(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
 		outputMap = new HashMap();
 	}
@@ -76,7 +78,7 @@ public class NetSplitter extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		if (subDriver == null) {
 			String subDriverName = getProperty("Driver");
@@ -110,7 +112,7 @@ public class NetSplitter extends NetOutput {
          * @param key the connection key in the splitter {@link #outputMap map}.
          * @param no the connection's output.
 	 */
-	public synchronized void setupConnection(NetConnection cnx, Object key, NetOutput no) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx, Object key, NetOutput no) throws IOException {
                 log.in();
                 no.setupConnection(cnx);
                 if (outputMap.get(key) == null) {
@@ -124,7 +126,7 @@ public class NetSplitter extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void initSend() throws NetIbisException {
+	public void initSend() throws IOException {
                 log.in();
                 super.initSend();
 
@@ -143,7 +145,7 @@ public class NetSplitter extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void send() throws NetIbisException {
+	public void send() throws IOException {
                 log.in();
                 super.send();
 		if (singleton != null) {
@@ -162,7 +164,7 @@ public class NetSplitter extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void finish() throws NetIbisException {
+	public void finish() throws IOException {
                 log.in();
                 super.finish();
 		if (singleton != null) {
@@ -181,7 +183,7 @@ public class NetSplitter extends NetOutput {
 	/*
 	 * {@inheritDoc}
          */
-	public void free() throws NetIbisException {
+	public void free() throws IOException {
                 log.in();
 		if (outputMap != null) {
 			Iterator i = outputMap.values().iterator();
@@ -205,7 +207,7 @@ public class NetSplitter extends NetOutput {
         }
 
 
-        public synchronized void closeConnection(Integer num) throws NetIbisException {
+        public synchronized void closeConnection(Integer num) throws IOException {
                 NetOutput output = (NetOutput)outputMap.get(num);
                 if (output != null) {
                         output.close(num);
@@ -213,13 +215,13 @@ public class NetSplitter extends NetOutput {
         }
 
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void close(Integer num) throws IOException {
                 log.in();
                 closeConnection(num);
                 log.out();
         }
 
-        public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
+        public void writeByteBuffer(NetSendBuffer buffer) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeByteBuffer(buffer);
@@ -237,7 +239,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a boolean v to the message.
 	 * @param     v             The boolean v to write.
 	 */
-        public void writeBoolean(boolean v) throws NetIbisException {
+        public void writeBoolean(boolean v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeBoolean(v);
@@ -255,7 +257,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a byte v to the message.
 	 * @param     v             The byte v to write.
 	 */
-        public void writeByte(byte v) throws NetIbisException {
+        public void writeByte(byte v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeByte(v);
@@ -273,7 +275,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a char v to the message.
 	 * @param     v             The char v to write.
 	 */
-        public void writeChar(char v) throws NetIbisException {
+        public void writeChar(char v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeChar(v);
@@ -291,7 +293,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a short v to the message.
 	 * @param     v             The short v to write.
 	 */
-        public void writeShort(short v) throws NetIbisException {
+        public void writeShort(short v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeShort(v);
@@ -309,7 +311,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a int v to the message.
 	 * @param     v             The int v to write.
 	 */
-        public void writeInt(int v) throws NetIbisException {
+        public void writeInt(int v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeInt(v);
@@ -328,7 +330,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a long v to the message.
 	 * @param     v             The long v to write.
 	 */
-        public void writeLong(long v) throws NetIbisException {
+        public void writeLong(long v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeLong(v);
@@ -346,7 +348,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a float v to the message.
 	 * @param     v             The float v to write.
 	 */
-        public void writeFloat(float v) throws NetIbisException {
+        public void writeFloat(float v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeFloat(v);
@@ -364,7 +366,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a double v to the message.
 	 * @param     v             The double v to write.
 	 */
-        public void writeDouble(double v) throws NetIbisException {
+        public void writeDouble(double v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeDouble(v);
@@ -382,7 +384,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a Serializable object to the message.
 	 * @param     v             The object v to write.
 	 */
-        public void writeString(String v) throws NetIbisException {
+        public void writeString(String v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeString(v);
@@ -400,7 +402,7 @@ public class NetSplitter extends NetOutput {
 	 * Writes a Serializable object to the message.
 	 * @param     v             The object v to write.
 	 */
-        public void writeObject(Object v) throws NetIbisException {
+        public void writeObject(Object v) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeObject(v);
@@ -414,7 +416,7 @@ public class NetSplitter extends NetOutput {
                 log.out();
         }
 
-        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
+        public void writeArray(boolean [] b, int o, int l) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeArray(b, o, l);
@@ -428,7 +430,7 @@ public class NetSplitter extends NetOutput {
 		log.out();
         }
 
-        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
+        public void writeArray(byte [] b, int o, int l) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeArray(b, o, l);
@@ -441,21 +443,7 @@ public class NetSplitter extends NetOutput {
 		}
                 log.out();
         }
-        public void writeArray(char [] b, int o, int l) throws NetIbisException {
-                log.in();
-		if (singleton != null) {
-		    singleton.writeArray(b, o, l);
-		} else {
-		    Iterator i = outputMap.values().iterator();
-		    do {
-			    NetOutput no = (NetOutput)i.next();
-			    no.writeArray(b, o, l);
-		    } while (i.hasNext());
-		}
-                log.out();
-        }
-
-        public void writeArray(short [] b, int o, int l) throws NetIbisException {
+        public void writeArray(char [] b, int o, int l) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeArray(b, o, l);
@@ -469,7 +457,7 @@ public class NetSplitter extends NetOutput {
                 log.out();
         }
 
-        public void writeArray(int [] b, int o, int l) throws NetIbisException {
+        public void writeArray(short [] b, int o, int l) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeArray(b, o, l);
@@ -483,7 +471,7 @@ public class NetSplitter extends NetOutput {
                 log.out();
         }
 
-        public void writeArray(long [] b, int o, int l) throws NetIbisException {
+        public void writeArray(int [] b, int o, int l) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeArray(b, o, l);
@@ -497,7 +485,7 @@ public class NetSplitter extends NetOutput {
                 log.out();
         }
 
-        public void writeArray(float [] b, int o, int l) throws NetIbisException {
+        public void writeArray(long [] b, int o, int l) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeArray(b, o, l);
@@ -511,7 +499,7 @@ public class NetSplitter extends NetOutput {
                 log.out();
         }
 
-        public void writeArray(double [] b, int o, int l) throws NetIbisException {
+        public void writeArray(float [] b, int o, int l) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeArray(b, o, l);
@@ -525,7 +513,21 @@ public class NetSplitter extends NetOutput {
                 log.out();
         }
 
-        public void writeArray(Object [] b, int o, int l) throws NetIbisException {
+        public void writeArray(double [] b, int o, int l) throws IOException {
+                log.in();
+		if (singleton != null) {
+		    singleton.writeArray(b, o, l);
+		} else {
+		    Iterator i = outputMap.values().iterator();
+		    do {
+			    NetOutput no = (NetOutput)i.next();
+			    no.writeArray(b, o, l);
+		    } while (i.hasNext());
+		}
+                log.out();
+        }
+
+        public void writeArray(Object [] b, int o, int l) throws IOException {
                 log.in();
 		if (singleton != null) {
 		    singleton.writeArray(b, o, l);

@@ -176,46 +176,51 @@ public final class cluster implements MultiPlugin {
                                     NetIbisIdentifier  	localId,
                                     NetIbisIdentifier  	remoteId,
                                     ObjectOutputStream	os,
-                                    ObjectInputStream 	is) throws NetIbisException {
-                try {
-                        if (isOutgoing) {
-                                Iterator i = netVector.iterator();
+                                    ObjectInputStream 	is) throws IOException {
+		if (isOutgoing) {
+			Iterator i = netVector.iterator();
 
-                                while (i.hasNext()) {
-                                        String s = (String)i.next();
-                                        os.writeObject(s);
-                                        os.flush();
-                                        Boolean b = (Boolean)is.readObject();
-                                        if (b.booleanValue()) {
-                                                //System.err.println("Outgoing: subcontext string = ["+s+"]");
-                                                return s;
-                                        }
-                                }
+			while (i.hasNext()) {
+				String s = (String)i.next();
+				os.writeObject(s);
+				os.flush();
+				Boolean b;
+				try {
+					b = (Boolean)is.readObject();
+				} catch (ClassNotFoundException e) {
+					throw new Error("Cannot find class Boolean", e);
+				}
+				if (b.booleanValue()) {
+					//System.err.println("Outgoing: subcontext string = ["+s+"]");
+					return s;
+				}
+			}
 
-                                os.writeObject("");
-                                os.flush();
-                                return null;
-                        } else {
-                                while (true) {
-                                        String s = (String)is.readObject();
-                                        if (s.equals("")) {
-                                                return null;
-                                        }
+			os.writeObject("");
+			os.flush();
+			return null;
+		} else {
+			while (true) {
+				String s;
+				try {
+					s = (String)is.readObject();
+				} catch (ClassNotFoundException e) {
+					throw new Error("Cannot find class String", e);
+				}
+				if (s.equals("")) {
+					return null;
+				}
 
-                                        if (netTable.get(s) != null) {
-                                                os.writeObject(new Boolean(true));
-                                                os.flush();
-                                                //System.err.println("Incoming: subcontext string = ["+s+"]");
-                                                return s;
-                                        }
-                                        os.writeObject(new Boolean(false));
-                                        os.flush();
-                                }
-                        }
-                } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new NetIbisException(e);
-                }
+				if (netTable.get(s) != null) {
+					os.writeObject(new Boolean(true));
+					os.flush();
+					//System.err.println("Incoming: subcontext string = ["+s+"]");
+					return s;
+				}
+				os.writeObject(new Boolean(false));
+				os.flush();
+			}
+		}
         }
 }
 

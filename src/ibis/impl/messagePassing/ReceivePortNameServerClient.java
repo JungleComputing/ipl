@@ -1,6 +1,10 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
+import java.io.StreamCorruptedException;
+
+import ibis.ipl.ConnectionTimedOutException;
+
 import ibis.ipl.impl.generic.ConditionVariable;
 
 final class ReceivePortNameServerClient
@@ -69,7 +73,8 @@ final class ReceivePortNameServerClient
 	ConditionVariable	ns_done = Ibis.myIbis.createCV();
 	boolean bound;
 
-	void bind(String name, ReceivePortIdentifier id) throws IbisIOException {
+	void bind(String name, ReceivePortIdentifier id)
+		throws IOException {
 
 	    if (ReceivePortNameServerProtocol.DEBUG) {
 		System.err.println("Try to bind ReceivePortId " + id + " ibis " + id.ibis().name());
@@ -78,7 +83,7 @@ final class ReceivePortNameServerClient
 //	    if (! name.equals(id.name)) {
 //		System.out.println("name = " + name);
 //		System.out.println("id.name = " + id.name);
-//		throw new IbisIOException("Corrupted ReceivePort name");
+//		throw new StreamCorruptedException("Corrupted ReceivePort name");
 //	    }
 
 	    // request a new Port.
@@ -138,7 +143,8 @@ final class ReceivePortNameServerClient
 
     Bind bind = new Bind();
 
-    public void bind(String name, ReceivePortIdentifier id) throws IbisIOException {
+    public void bind(String name, ReceivePortIdentifier id)
+	    throws IOException {
 	bind.bind(name, id);
     }
 
@@ -200,7 +206,8 @@ final class ReceivePortNameServerClient
 
 	private static final int BACKOFF_MILLIS = 1000;
 
-	public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisIOException {
+	public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout)
+		throws IOException {
 
 	    if (ReceivePortNameServerProtocol.DEBUG) {
 		System.err.println(Thread.currentThread() + "Lookup receive port \"" + name + "\"");
@@ -229,7 +236,7 @@ final class ReceivePortNameServerClient
 		    ns_busy = false;
 		    ns_free.cv_signal();
 		    Ibis.myIbis.unlock();
-		    throw new IbisIOException("messagePassing.Ibis ReceivePort lookup failed");
+		    throw new ibis.ipl.ConnectionTimedOutException("messagePassing.Ibis ReceivePort lookup failed");
 		}
 		if (now - last_try >= BACKOFF_MILLIS) {
 		    Ibis.myIbis.lock();
@@ -282,7 +289,10 @@ final class ReceivePortNameServerClient
 	    try {
 		lookup.ri = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortId);
 		lookup.ns_done.cv_signal();
-	    } catch (IbisIOException e) {
+	    } catch (ClassNotFoundException e) {
+		System.err.println("Cannot deserialize ReceivePortId");
+		Thread.dumpStack();
+	    } catch (IOException e) {
 		System.err.println("Cannot deserialize ReceivePortId");
 		Thread.dumpStack();
 	    }
@@ -291,14 +301,16 @@ final class ReceivePortNameServerClient
 
     Lookup lookup = new Lookup();
 
-    public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisIOException {
+    public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout)
+	    throws IOException {
 	if (ReceivePortNameServerProtocol.DEBUG) {
 	    System.err.println(Ibis.myIbis.myCpu + ": Do a ReceivePortId NS lookup(" + name + ", " + timeout + ") in " + lookup);
 	}
 	return lookup.lookup(name, timeout);
     }
 
-    public ibis.ipl.ReceivePortIdentifier[] query(ibis.ipl.IbisIdentifier ident) throws IbisIOException {
+    public ibis.ipl.ReceivePortIdentifier[] query(ibis.ipl.IbisIdentifier ident)
+	    throws IOException {
 	/* not implemented yet */
 	return null;
     }

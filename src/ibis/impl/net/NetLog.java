@@ -2,6 +2,7 @@ package ibis.ipl.impl.net;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.Timer;
+import ibis.ipl.Ibis;
 
 
 /**

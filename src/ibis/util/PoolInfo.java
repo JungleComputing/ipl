@@ -4,6 +4,10 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.net.InetAddress;
 
+import java.io.IOException;
+
+import ibis.ipl.IbisException;
+
 public class PoolInfo {
 
 	int total_hosts;
@@ -11,11 +15,11 @@ public class PoolInfo {
 	String [] host_names;
 	InetAddress [] hosts;
 
-	public PoolInfo() {
+	public PoolInfo() throws IbisException {
 	    this(false);
 	}
 
-	public PoolInfo(boolean forceSequential) {
+	public PoolInfo(boolean forceSequential) throws IbisException {
 	    if (forceSequential) {
 			sequentialPool();
 	    } else {
@@ -40,12 +44,12 @@ public class PoolInfo {
 			hosts[host_number]      = adres;
 			
 		} catch (Exception e) {
-			throw new RuntimeException("Could not find my host name");
+			throw new Error("Could not find my host name");
 		}		       			
 	}
 
 
-	private void propertiesPool() {
+	private void propertiesPool() throws IbisException {
 		String temp;
 		
 		Properties p = System.getProperties();
@@ -55,19 +59,19 @@ public class PoolInfo {
 		
 		temp = p.getProperty("ibis.pool.host_names");
 		if(temp == null) {
-			throw new RuntimeException("Property ibis.pool.host_names not set!");
+			throw new IbisException("Property ibis.pool.host_names not set!");
 		}
 		
 		if (temp == null) { 
 			temp = p.getProperty("hosts");
 
 			if (temp == null) { 
-				throw new RuntimeException("Host names not found!");
+				throw new IbisException("Host names not found!");
 			} 
 		} 
 		
 		if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
-			throw new RuntimeException("Sanity check on host numbers failed!");
+			throw new IbisException("Sanity check on host numbers failed!");
 		}
 		
 		host_names = new String[total_hosts];
@@ -90,13 +94,13 @@ public class PoolInfo {
 				host_names[i]     = adres.getHostName();
 				if (! host_names[i].equals(t) &&
 				    host_names[i].toUpperCase().equals(t.toUpperCase())) {
-				    System.err.println("This is probably M$ Windows. Restore lower case in host name " + t);
+				    System.err.println("This is probably M$ Windows. Restored lower case in host name " + t);
 				    host_names[i] = t;
 				}
 				hosts[i]          = adres;
 				
-			} catch (Exception e) {
-				throw new RuntimeException("Could not find host name " + t);
+			} catch (IOException e) {
+				throw new IbisException("Could not find host name " + t);
 			}		       			
 		}
 	}
@@ -133,12 +137,12 @@ public class PoolInfo {
 		return host_names;
 	}
 
-	private static int getIntProperty(Properties p, String name) throws RuntimeException {
+	private static int getIntProperty(Properties p, String name) throws IbisException {
 
 		String temp = p.getProperty(name);
 		
 		if (temp == null) { 
-			throw new RuntimeException("Property " + name + " not found !");
+			throw new IbisException("Property " + name + " not found !");
 		}
 		
 		return Integer.parseInt(temp);

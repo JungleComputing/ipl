@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import ibis.ipl.IbisIOException;
-
     class InputBuffer extends java.io.InputStream {
 
 	private byte[] buffer;
@@ -113,31 +111,23 @@ import ibis.ipl.IbisIOException;
 
 class SerializeBuffer {
 
-    static byte[] writeObject(Serializable obj) throws IbisIOException {
-	try {
-	    SerializeOutputBuffer addrBuffer = new SerializeOutputBuffer();
-	    addrBuffer.objOut.writeObject(obj);
-	    addrBuffer.objOut.flush();
-	    addrBuffer.objOut.close();
+    static byte[] writeObject(Serializable obj) throws IOException {
+	SerializeOutputBuffer addrBuffer = new SerializeOutputBuffer();
+	addrBuffer.objOut.writeObject(obj);
+	addrBuffer.objOut.flush();
+	addrBuffer.objOut.close();
 
-	    return addrBuffer.getData();
-	} catch (java.io.IOException e) {
-	    throw new IbisIOException(e);
-	}
+	return addrBuffer.getData();
     }
 
 
-    static Serializable readObject(byte[] serialForm) throws IbisIOException {
-	try {
-	    SerializeInputBuffer addrBuffer = new SerializeInputBuffer(serialForm);
-	    Serializable obj = (Serializable)addrBuffer.objIn.readObject();
-	    addrBuffer.objIn.close();
+    static Serializable readObject(byte[] serialForm)
+	    throws IOException, ClassNotFoundException {
+	SerializeInputBuffer addrBuffer = new SerializeInputBuffer(serialForm);
+	Serializable obj = (Serializable)addrBuffer.objIn.readObject();
+	addrBuffer.objIn.close();
 
-	    return obj;
-	} catch (Exception e) {
-System.err.println("And the serialization throws " + e);
-	    throw new IbisIOException(e);
-	}
+	return obj;
     }
 
 }

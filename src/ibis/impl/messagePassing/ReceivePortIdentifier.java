@@ -1,10 +1,8 @@
 package ibis.ipl.impl.messagePassing;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
+import java.io.IOException;
 
-import ibis.ipl.IbisIOException;
+import ibis.ipl.IbisException;
 
 final class ReceivePortIdentifier
 	implements ibis.ipl.ReceivePortIdentifier,
@@ -18,8 +16,7 @@ final class ReceivePortIdentifier
     transient byte[] serialForm;
 
 
-    ReceivePortIdentifier(String name, String type)
-	    throws IbisIOException {
+    ReceivePortIdentifier(String name, String type) {
 
 	synchronized (Ibis.myIbis) {
 	    port = Ibis.myIbis.receivePort++;
@@ -32,12 +29,16 @@ final class ReceivePortIdentifier
     }
 
 
-    private void makeSerialForm() throws IbisIOException {
-	serialForm = SerializeBuffer.writeObject(this);
+    private void makeSerialForm() {
+	try {
+	    serialForm = SerializeBuffer.writeObject(this);
+	} catch (IOException e) {
+	    throw new Error("Cannot serialize myself", e);
+	}
     }
 
 
-    byte[] getSerialForm() throws IbisIOException {
+    byte[] getSerialForm() {
 	if (serialForm == null) {
 	    makeSerialForm();
 	}

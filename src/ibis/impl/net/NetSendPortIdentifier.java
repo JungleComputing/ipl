@@ -2,6 +2,7 @@ package ibis.ipl.impl.net;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.Ibis;
 
 /**
  * Provides an identifier for a {@link NetSendPort}.

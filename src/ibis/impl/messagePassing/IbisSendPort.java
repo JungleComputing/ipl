@@ -1,8 +1,9 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.io.IbisSerializationOutputStream;
+import java.io.IOException;
 
-import ibis.ipl.IbisIOException;
+import ibis.ipl.IbisException;
+import ibis.io.IbisSerializationOutputStream;
 import ibis.io.Replacer;
 
 final public class IbisSendPort extends SendPort {
@@ -14,19 +15,19 @@ final public class IbisSendPort extends SendPort {
     IbisSendPort() {
     }
 
-    public IbisSendPort(PortType type, String name, OutputConnection conn, Replacer r) throws IbisIOException {
+    public IbisSendPort(PortType type,
+			String name,
+			OutputConnection conn,
+			Replacer r)
+	    throws IOException {
 	super(type, name, conn, r,
 	      false,	/* syncMode */
 	      false	/* makeCopy */);
-	try {
-	    if (replacer != null) {
-		obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
-		obj_out.setReplacer(replacer);
-	    } else {
-		obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
-	    }
-	} catch (java.io.IOException e) {
-	    throw new IbisIOException("could not create IbisSerializationOutputStream", e);
+	if (replacer != null) {
+	    obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
+	    obj_out.setReplacer(replacer);
+	} else {
+	    obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));
 	}
 	if (Ibis.DEBUG) {
 	    System.err.println(">>>>>>>>>>>>>>>> Create a IbisSerializationOutputStream " + obj_out + " for IbisWriteMessage " + this);
@@ -34,7 +35,7 @@ final public class IbisSendPort extends SendPort {
     }
 
 
-    ibis.ipl.WriteMessage cachedMessage() throws IbisIOException {
+    ibis.ipl.WriteMessage cachedMessage() throws IOException {
 	if (message == null) {
 	    message = new IbisWriteMessage(this);
 	}

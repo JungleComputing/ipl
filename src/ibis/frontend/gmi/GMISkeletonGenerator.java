@@ -30,6 +30,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println("import ibis.group.*;");
 	output.println("import ibis.ipl.*;");
 	output.println("import java.lang.reflect.*;");
+	output.println("import java.io.IOException;");
 	output.println();
 
 	output.println("public final class group_skeleton_" + dest_name + " extends ibis.group.GroupSkeleton {");
@@ -190,7 +191,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 	Class ret = m.getReturnType();
 	Class [] params = m.getParameterTypes();
 
-	output.print(spacing + "private final void GMI_" + m.getName() + "(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IbisIOException {");
+	output.print(spacing + "private final void GMI_" + m.getName() + "(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IOException {");
 	output.println();
 
 	output.println(spacing + "\tint cpu_rank = 0;");
@@ -308,7 +309,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 
     void messageHandler(String spacing, Vector methods) {
 
-	output.println(spacing + "public final void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IbisIOException {");
+	output.println(spacing + "public final void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IOException {");
 	output.println();
 	output.println(spacing + "\tint method = r.readInt();");
 

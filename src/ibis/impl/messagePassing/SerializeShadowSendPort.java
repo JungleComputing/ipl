@@ -3,8 +3,9 @@ package ibis.ipl.impl.messagePassing;
 import java.util.Vector;
 import java.io.ObjectInputStream;
 import java.io.BufferedInputStream;
+import java.io.IOException;
 
-import ibis.ipl.IbisIOException;
+import ibis.ipl.IbisException;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 final class SerializeShadowSendPort extends ShadowSendPort {
@@ -16,14 +17,13 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
     SerializeShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId)
-	    throws IbisIOException {
+	    throws IOException {
 	super(rId, sId);
 // System.err.println("In SerializeShadowSendPort.<init>");
     }
 
 
-    ReadMessage getMessage(int msgSeqno)
-	    throws IbisIOException {
+    ReadMessage getMessage(int msgSeqno) throws IOException {
 	ReadMessage msg = cachedMessage;
 
 	if (Ibis.DEBUG) {
@@ -46,8 +46,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
     }
 
 
-    boolean checkStarted(ReadMessage msg)
-	    throws IbisIOException {
+    boolean checkStarted(ReadMessage msg) throws IOException {
 
 	if (initializing) {
 	    if (Ibis.DEBUG) {
@@ -92,16 +91,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
 	Ibis.myIbis.unlock();
 	try {
-	    try {
-		obj_in = new ObjectInputStream(new BufferedInputStream(in));
-	    } catch (java.io.IOException e) {
-		if (Ibis.DEBUG) {
-		    System.err.println("new ObjectInputStream throws an exception " + e);
-		    e.printStackTrace(System.err);
-		    System.err.println("Reading msg " + msg + " native 0x" + Integer.toHexString(msg.fragmentFront.msgHandle));
-		}
-		throw new IbisIOException(e);
-	    }
+	    obj_in = new ObjectInputStream(new BufferedInputStream(in));
 	} finally {
 	    Ibis.myIbis.lock();
 	}

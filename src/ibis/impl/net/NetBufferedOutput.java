@@ -2,6 +2,8 @@ package ibis.ipl.impl.net;
 
 import ibis.ipl.StaticProperties;
 
+import java.io.IOException;
+
 /**
  * Provides an abstraction of a buffered network output.
  */
@@ -40,9 +42,9 @@ public abstract class NetBufferedOutput extends NetOutput {
 		super(portType, driver, context);
 	}
 
-        protected abstract void sendByteBuffer(NetSendBuffer buffer) throws NetIbisException;
+        protected abstract void sendByteBuffer(NetSendBuffer buffer) throws IOException;
 
-        public void initSend() throws NetIbisException {
+        public void initSend() throws IOException {
                 log.in();
                 stat.begin();
 		dataOffset = getHeadersLength();
@@ -61,7 +63,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	/**
 	 * Sends the current buffer over the network.
 	 */
-	protected void flush() throws NetIbisException {
+	protected void flush() throws IOException {
                 log.in();
 		if (buffer != null) {
                         stat.addBuffer(buffer.length);
@@ -78,7 +80,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * @param the preferred length. This is just a hint. The
 	 * actual buffer length may differ.
 	 */
-	private void allocateBuffer(int length) throws NetIbisException {
+	private void allocateBuffer(int length) throws IOException {
                 log.in();
 		if (buffer != null) {
 			buffer.free();
@@ -98,7 +100,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	/**
 	 * Sends what remains to be sent.
 	 */
-	public void send() throws NetIbisException{
+	public void send() throws IOException{
                 log.in();
                 super.send();
                 log.out();
@@ -107,7 +109,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	/**
 	 * Completes the message transmission and releases the send port.
 	 */
-	public void finish() throws NetIbisException{
+	public void finish() throws IOException{
                 log.in();
                 super.finish();
                 flush();
@@ -121,14 +123,14 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 *
 	 * @param doSend {@inheritDoc}
 	 */
-	public void reset(boolean doSend) throws NetIbisException {
+	public void reset(boolean doSend) throws IOException {
                 log.in();
                 flush();
                 super.reset(doSend);
                 log.out();
 	}
 
-        public void writeByteBuffer(NetSendBuffer b) throws NetIbisException {
+        public void writeByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
                 flush();
                 stat.addBuffer(b.length);
@@ -144,7 +146,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 *
 	 * @param value the byte to append to the message.
 	 */
-	public void writeByte(byte value) throws NetIbisException {
+	public void writeByte(byte value) throws IOException {
 		log.in();
                 // log.disp("IN value = "+value);
                 log.disp("IN");
@@ -163,7 +165,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 		log.out();
 	}
 
-	public void writeArray(byte [] userBuffer, int offset, int length) throws NetIbisException {
+	public void writeArray(byte [] userBuffer, int offset, int length) throws IOException {
                 log.in();
 		if (length == 0)
 			return;

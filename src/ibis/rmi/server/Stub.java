@@ -1,5 +1,7 @@
 package ibis.rmi.server;
 
+import java.io.IOException;
+
 import ibis.ipl.*;
 import ibis.io.*;
 import ibis.rmi.*;
@@ -25,7 +27,7 @@ public class Stub extends RemoteStub {
     
 	//serialize & deserialize
 
-	public final void initSend() throws IbisIOException {
+	public final void initSend() throws IOException {
 	    if (! initialized) {
 		if (send == null) {
 		    send = RTS.createSendPort();
@@ -42,7 +44,11 @@ public class Stub extends RemoteStub {
 
 		ReadMessage rm = reply.receive();
 		stubID = rm.readInt();
-		String stubType = (String) rm.readObject();
+		try {
+		    String stubType = (String) rm.readObject();
+		} catch (ClassNotFoundException e) {
+		    throw new Error("Class String not found", e);
+		}
 		rm.finish();		
 
 		initialized = true;
@@ -58,7 +64,7 @@ public class Stub extends RemoteStub {
 	    }
 	}
 
-//	private void readObject(java.io.ObjectInputStream i) throws java.io.IOException, ClassNotFoundException {
+//	private void readObject(java.io.ObjectInputStream i) throws IOException, ClassNotFoundException {
 //	    i.defaultReadObject();
 //	    try {
 //		if (! skeletonPortId.ibis().address().equals(java.net.InetAddress.getLocalHost())) {

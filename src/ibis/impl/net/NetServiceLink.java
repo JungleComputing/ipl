@@ -17,6 +17,10 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
+
+import ibis.ipl.Ibis;
+import ibis.ipl.ConnectionTimedOutException;
 
 
 /**
@@ -175,10 +179,10 @@ public final class NetServiceLink {
          *
          * @param portEventQueue a reference to the port's event queue.
          * @param ss the TCP {@link ServerSocket server socket} to listen to.
-         * @exception NetIbisException if the 'accept' syscall over
+         * @exception IOException if the 'accept' syscall over
          * the server socket fails.
          */
-        protected NetServiceLink(NetEventQueue portEventQueue, ServerSocket ss) throws NetIbisException {
+        protected NetServiceLink(NetEventQueue portEventQueue, ServerSocket ss) throws IOException {
                 this.portEventQueue = portEventQueue;
                 incoming = true;
 
@@ -187,12 +191,8 @@ public final class NetServiceLink {
 			if (DEBUG) {
 			    System.err.println(this + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " accept succeeds from " + socket.getInetAddress() + "/" + socket.getPort());
 			}
-                } catch (SocketException e) {
-                        throw new NetIbisInterruptedException(e);
-                } catch (IOException e) {
-                        throw new NetIbisIOException(e);
-		} catch (Throwable t) {
-			throw new NetIbisException(t);
+                } catch (SocketTimeoutException e) {
+                        throw new ConnectionTimedOutException(e);
                 }
         }
 
@@ -207,22 +207,16 @@ public final class NetServiceLink {
          * should be stored as an {@link Integer} under the
          * <code>"accept_port"</code>.
          */
-        protected NetServiceLink(NetEventQueue portEventQueue, Hashtable nfo) throws NetIbisException {
+        protected NetServiceLink(NetEventQueue portEventQueue, Hashtable nfo) throws IOException {
                 this.portEventQueue = portEventQueue;
                 incoming = false;
                 InetAddress raddr =  (InetAddress)nfo.get("accept_address");
 		int         rport = ((Integer)    nfo.get("accept_port"   )).intValue();
 
-                try {
-			socket = new Socket(raddr, rport);
-			if (DEBUG) {
-			    System.err.println(this + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " Socket - connect to " + raddr + "/" + rport);
-			}
-		} catch (IOException e) {
-			throw new NetIbisIOException(e);
-		} catch (Throwable t) {
-			throw new NetIbisException(t);
-                }
+		socket = new Socket(raddr, rport);
+		if (DEBUG) {
+		    System.err.println(this + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " Socket - connect to " + raddr + "/" + rport);
+		}
         }
 
 
@@ -237,20 +231,14 @@ public final class NetServiceLink {
          *
          * @param num the connection id associated to the connection.
          */
-        protected synchronized void init(Integer num) throws NetIbisException {
+        protected synchronized void init(Integer num) throws IOException {
                 if (this.num != null) {
                         throw new Error("invalid call");
                 }
                 this.num = num;
 
-		try {
-			os = socket.getOutputStream();
-			is = socket.getInputStream();
-		} catch (IOException e) {
-			throw new NetIbisIOException(e);
-		} catch (Throwable t) {
-			throw new NetIbisException(t);
-                }
+		os = socket.getOutputStream();
+		is = socket.getInputStream();
 
                 inputMap  = new HashMap();
                 outputMap = new HashMap();
@@ -283,19 +271,15 @@ public final class NetServiceLink {
 
                 serviceThread = new ServiceThread("anonymous-" + (threadCount++));
 
-                try {
-                        if (incoming) {
-                                main_ois = new ObjectInputStream(sis);
-                                main_oos = new ObjectOutputStream(sos);
-                                main_oos.flush();
-                        } else {
-                                main_oos = new ObjectOutputStream(sos);
-                                main_oos.flush();
-                                main_ois = new ObjectInputStream(sis);
-                        }
-                } catch (IOException e) {
-                        throw new NetIbisIOException(e);
-                }
+		if (incoming) {
+			main_ois = new ObjectInputStream(sis);
+			main_oos = new ObjectOutputStream(sos);
+			main_oos.flush();
+		} else {
+			main_oos = new ObjectOutputStream(sos);
+			main_oos.flush();
+			main_ois = new ObjectInputStream(sis);
+		}
 
 
                 serviceThread.start();
@@ -307,7 +291,7 @@ public final class NetServiceLink {
          * The service link cannot be reopened once it has been closed.
          * This method can safely be called multiple time.
          */
-        public synchronized void close() throws NetIbisException {
+        public synchronized void close() throws IOException {
                 if (closed) {
                         return;
                 }
@@ -351,11 +335,7 @@ public final class NetServiceLink {
                                 while (i.hasNext()) {
                                         OutputClient oc = (OutputClient)i.next();
 
-                                        try {
-                                                oc.sos.close();
-                                        } catch (IOException e) {
-                                                throw new NetIbisIOException(e);
-                                        }
+					oc.sos.close();
                                 }
 
                                 outputMap.clear();
@@ -373,11 +353,7 @@ public final class NetServiceLink {
                                 while (i.hasNext()) {
                                         InputClient ic  = (InputClient)i.next();
 
-                                        try {
-                                                ic.sis.close();
-                                        } catch (IOException e) {
-                                                throw new NetIbisIOException(e);
-                                        }
+					ic.sis.close();
                                 }
 
 
@@ -386,15 +362,9 @@ public final class NetServiceLink {
                         }
                 }
 
-		try {
-			os.close();
-			is.close();
-                        socket.close();
-		} catch (IOException e) {
-			throw new NetIbisIOException(e);
-		} catch (Throwable t) {
-			throw new NetIbisException(t);
-                }
+		os.close();
+		is.close();
+		socket.close();
         }
 
         /**
@@ -404,9 +374,9 @@ public final class NetServiceLink {
          * <BR><B>Note 2:</B>&nbsp;Requesting a {@linkplain ServiceOutputStream output sub-stream} after it has been closed will <B>not</B> reopen the stream.
          *
          * @param name the name associated to the stream, used to match this with the corresponding {@linkplain ServiceInputStream input sub-stream} on the peer node.
-         * @exception NetIbisException when the operation fails.
+         * @exception IOException when the operation fails.
          */
-        protected synchronized OutputStream getOutputSubStream(String name) throws NetIbisException {
+        protected synchronized OutputStream getOutputSubStream(String name) throws IOException {
                 OutputClient oc = null;
 
                 synchronized(outputMap) {
@@ -415,15 +385,11 @@ public final class NetServiceLink {
                         if (oc == null) {
                                 oc = new OutputClient();
 
-                                try {
-                                        synchronized(main_oos) {
-                                                main_oos.writeInt(_OP_request_substream_id);
-                                                main_oos.writeUTF(name);
-                                                main_oos.flush();
-                                        }
-                                } catch (IOException e) {
-                                        throw new NetIbisIOException(e);
-                                }
+				synchronized(main_oos) {
+					main_oos.writeInt(_OP_request_substream_id);
+					main_oos.writeUTF(name);
+					main_oos.flush();
+				}
 
                                 requestReady.unlock();
                                 requestCompletion.lock();
@@ -457,9 +423,9 @@ public final class NetServiceLink {
          * match this with the corresponding {@linkplain
          * ServiceOutputStream output sub-stream} on the peer node.
          *
-         * @exception NetIbisException when the operation fails.
+         * @exception IOException when the operation fails.
          */
-        protected synchronized InputStream getInputSubStream(String name) throws NetIbisException {
+        protected synchronized InputStream getInputSubStream(String name) throws IOException {
                 InputClient ic = null;
 
                 synchronized(inputMap) {
@@ -481,7 +447,7 @@ public final class NetServiceLink {
                 }
 
 		if (ic.sis.closed) {
-		    // throw new NetIbisException("InputSubStream already closed!!!!!");
+		    // throw new IOException("InputSubStream already closed!!!!!");
 		    System.err.println(this + ": InputSubStream already closed!!!!!");
 		}
 
@@ -504,9 +470,9 @@ public final class NetServiceLink {
          * NetIO}'s {@linkplain NetIO#context() context string} to
          * provide some kind of dynamic namespace.
          *
-         * @exception NetIbisException when the operation fails.
+         * @exception IOException when the operation fails.
          */
-        public OutputStream getOutputSubStream(NetIO io, String name) throws NetIbisException {
+        public OutputStream getOutputSubStream(NetIO io, String name) throws IOException {
                 return getOutputSubStream(io.context()+name);
         }
 
@@ -526,9 +492,9 @@ public final class NetServiceLink {
          * NetIO}'s {@linkplain NetIO#context() context string} to
          * provide some kind of dynamic namespace.
          *
-         * @exception NetIbisException when the operation fails.
+         * @exception IOException when the operation fails.
          */
-        public InputStream getInputSubStream (NetIO io, String name) throws NetIbisException {
+        public InputStream getInputSubStream (NetIO io, String name) throws IOException {
                 return getInputSubStream(io.context()+name);
         }
 
@@ -646,7 +612,7 @@ public final class NetServiceLink {
                  * @param b the byte block.
                  * @param o the offset in the block of the first byte to write.
                  * @param l the number of bytes to write.
-                 * @exception IOException when the write operation to the {@link #os socket stream} fails.
+                 * @exception IOtion when the write operation to the {@link #os socket stream} fails.
                  */
                 private void writeBlock(byte[] b, int o, int l) throws IOException {
                         synchronized(os) {
@@ -912,7 +878,7 @@ public final class NetServiceLink {
                                                 return -1;
                                         }
                                 } catch (InterruptedException e) {
-                                        throw new InterruptedIOException(e.getMessage());
+                                        throw Ibis.createInterruptedIOException(e);
                                 }
                         }
 
@@ -957,7 +923,7 @@ public final class NetServiceLink {
                                                         break;
                                                 }
                                         } catch (InterruptedException e) {
-                                                throw new InterruptedIOException(e.getMessage());
+                                                throw Ibis.createInterruptedIOException(e);
                                         }
                                 }
 
@@ -1037,7 +1003,7 @@ public final class NetServiceLink {
                                         }
 
                                         if (sis == null) {
-                                                throw new NetIbisException("invalid id");
+                                                throw new Error("invalid id");
                                         }
 
                                         is.read(intBuffer);
@@ -1064,15 +1030,11 @@ public final class NetServiceLink {
                  * Set the {@link #exit} flag to true and close the
                  * {@linkplain #is incoming socket stream}.
                  *
-                 * @exception NetIbisException it the close operation fails.
+                 * @exception IOException it the close operation fails.
                  */
-                protected void end() throws NetIbisException {
+                protected void end() throws IOException {
                         exit = true;
-                        try {
-                                is.close();
-                        } catch (IOException e) {
-                                throw new NetIbisIOException(e);
-                        }
+			is.close();
                 }
         }
 
@@ -1101,16 +1063,12 @@ public final class NetServiceLink {
                  * {@linkplain #main_oos main output sub-stream} and the
                  * {@linkplain #main_ois main input sub-stream}.
                  *
-                 * @exception NetIbisException when the operation fails.
+                 * @exception IOException when the operation fails.
                  */
-                protected void end() throws NetIbisException {
+                protected void end() throws IOException {
                         exit = true;
-                        try {
-                                main_oos.close();
-                                main_ois.close();
-                        } catch (IOException e) {
-                                throw new NetIbisIOException(e);
-                        }
+			main_oos.close();
+			main_ois.close();
                 }
 
                 /**
@@ -1169,7 +1127,7 @@ public final class NetServiceLink {
                 private void receiveSubstreamId(Integer id) {
                         try {
                                 requestReady.lock();
-                        } catch (NetIbisInterruptedException e) {
+                        } catch (InterruptedIOException e) {
                                 return;
                         }
 
@@ -1222,7 +1180,7 @@ public final class NetServiceLink {
 
                                         default:
                                                 {
-                                                        throw new NetIbisException("invalid operation");
+                                                        throw new Error("invalid operation");
                                                 }
                                         }
                                 } catch (InterruptedIOException e) {

@@ -4,8 +4,12 @@ import ibis.ipl.impl.net.*;
 
 import java.util.Hashtable;
 
+import java.io.IOException;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+
+import ibis.ipl.Ibis;
 
 /**
  * The multieric splitter/poller virtual driver.
@@ -38,18 +42,18 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, String context) throws NetIbisException {
+	public NetInput newInput(NetPortType pt, String context) throws IOException {
 		return new MultiPoller(pt, this, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, String context) throws NetIbisException {
+	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
 		return new MultiSplitter(pt, this, context);
 	}
 
-        protected MultiPlugin loadPlugin(String name) throws NetIbisException {
+        protected MultiPlugin loadPlugin(String name) throws IOException {
 		MultiPlugin plugin = (MultiPlugin)pluginTable.get(name);
 
                 if (plugin == null) {
@@ -67,7 +71,7 @@ public final class Driver extends NetDriver {
 
                                 plugin = (MultiPlugin)cons.newInstance(null);
 			} catch (Exception e) {
-				throw new NetIbisException(e);
+				throw Ibis.createIOException(e);
 			}
 
 			pluginTable.put(name, plugin);

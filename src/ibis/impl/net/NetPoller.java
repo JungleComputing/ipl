@@ -2,10 +2,15 @@ package ibis.ipl.impl.net;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.HashMap;
+
+import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.Ibis;
 
 /**
  * Provides a generic multiple network input poller.
@@ -53,7 +58,7 @@ public class NetPoller extends NetInput {
 	 * @param context the context string.
 	 */
 	public NetPoller(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
+		throws IOException {
                 super(pt, driver, context);
                 inputMap = new HashMap();
 		upcallModeAllowed = true;	// default, override at will
@@ -62,7 +67,7 @@ public class NetPoller extends NetInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 
 		if (subDriver == null) {
@@ -105,7 +110,7 @@ public class NetPoller extends NetInput {
 	public void setupConnection(NetConnection cnx,
 				    Object key,
 				    NetInput ni)
-		throws NetIbisException {
+		throws IOException {
 
 		if (false && singleton != null) {
 		    System.err.println("Race between NetPoller.connect and poll(block = true). Repair by having one lock :-(");
@@ -202,14 +207,14 @@ private int nCurrent;
                 }
 
 		public void inputUpcall(NetInput input, Integer spn)
-			throws NetIbisException {
+			throws IOException {
                         log.in();
 
                         Thread me;
 
                         synchronized (NetPoller.this) {
                                 if (spn == null) {
-                                        throw new NetIbisClosedException("connection closed");
+                                        throw new ConnectionClosedException("connection closed");
                                 }
 
                                 if (upcallMode) {
@@ -244,7 +249,7 @@ nCurrent++;
                                                         NetPoller.this.wait();
 							waitingThreads--;
                                                 } catch (InterruptedException e) {
-                                                        throw new NetIbisInterruptedException(e);
+                                                        throw Ibis.createInterruptedIOException(e);
                                                 }
                                         }
                                 }
@@ -255,18 +260,18 @@ nCurrent++;
 
 
                 /* Call this from synchronized (NetPoller.this) */
-                Integer poll(boolean block) throws NetIbisException {
+                Integer poll(boolean block) throws IOException {
                         log.in();
 			if (upcallModeAllowed) {
 			    if (! NetReceivePort.useBlockingPoll && activeNum == null) {
 				    activeNum = input.poll(block);
 			    }
-else if (NetReceivePort.useBlockingPoll)
-System.err.print("_");
+// else if (NetReceivePort.useBlockingPoll)
+// System.err.print("_");
 			} else {
-System.err.print("P>");
+// System.err.print("P>");
 			    activeNum = input.poll(block); // (false);
-System.err.print("<");
+// System.err.print("<");
 			}
 
                         return activeNum;
@@ -274,7 +279,7 @@ System.err.print("<");
 
 
                 /* Call this from synchronized (NetPoller.this) */
-                Integer poll() throws NetIbisException {
+                Integer poll() throws IOException {
                         log.in();
 // System.err.print("p");
                         if (! NetReceivePort.useBlockingPoll && activeNum == null) {
@@ -289,7 +294,7 @@ System.err.print("<");
 
 
                 /* Call this from synchronized (NetPoller.this) */
-                public void finish(boolean implicit) throws NetIbisException {
+                public void finish(boolean implicit) throws IOException {
                         log.in();
 
                         activeNum = null;
@@ -308,7 +313,7 @@ System.err.print("<");
                 }
 
 
-                void free() throws NetIbisException {
+                void free() throws IOException {
                         log.in();
 			input.free();
                         log.out();
@@ -318,7 +323,7 @@ System.err.print("<");
 
 
 	// Call the method synchronized(this)
-	private void grabUpcallLock(ReceiveQueue q) throws NetIbisInterruptedException {
+	private void grabUpcallLock(ReceiveQueue q) throws InterruptedIOException {
                 log.in();trace.in();
 
                 while (activeQueue != null) {
@@ -326,9 +331,10 @@ System.err.print("<");
                         try {
                                 wait();
                         } catch (InterruptedException e) {
-                                throw new NetIbisInterruptedException(e);
-                        }
-                        upcallWaiters--;
+                                throw Ibis.createInterruptedIOException(e);
+                        } finally {
+				upcallWaiters--;
+			}
                 }
                 activeQueue = q;
 
@@ -361,16 +367,17 @@ System.err.print("<");
 	}
 
 
-	private void blockReceiver() throws NetIbisException {
+	private void blockReceiver() throws IOException {
                 // System.err.println(this + ": block receiver thread");
                 log.in();
                 waitingThreads++;
                 try {
                         wait();
                 } catch (InterruptedException e) {
-                        throw new NetIbisInterruptedException(e);
-                }
-                waitingThreads--;
+                        throw Ibis.createInterruptedIOException(e);
+                } finally {
+			waitingThreads--;
+		}
                 // System.err.println(this + ": unblocked receiver thread");
                 log.out();
 	}
@@ -394,7 +401,7 @@ System.err.print("<");
 	}
 
 
-        protected void initReceive(Integer num) throws NetIbisException {
+        protected void initReceive(Integer num) throws IOException {
                 //
         }
 
@@ -416,14 +423,14 @@ System.err.print("<");
 	 *   catch the exception or ourselves send a control message to the
 	 *   thread.)
 	 */
-	public Integer doPoll(boolean block) throws NetIbisException {
+	public Integer doPoll(boolean block) throws IOException {
                 log.in();
 
 		Integer      spn = null;
 
                 synchronized (this) {
 		    if (activeQueue != null) {
-			    throw new NetIbisException("Call message.finish before calling Net.poll");
+			    throw new IOException("Call message.finish before calling Net.poll");
 		    }
 
 // System.err.print("[");
@@ -527,7 +534,7 @@ System.err.print("<");
 	 *
 	 * Call this synchronized(this)
 	 */
-	private void finishLocked(boolean implicit) throws NetIbisException {
+	private void finishLocked(boolean implicit) throws IOException {
                 log.in();
                 if (activeQueue != null) {
                         activeQueue.finish(implicit);
@@ -542,7 +549,7 @@ System.err.print("<");
 	/**
 	 * {@inheritDoc}
 	 */
-	public void doFinish() throws NetIbisException {
+	public void doFinish() throws IOException {
                 log.in();
 		synchronized (this) {
                         finishLocked(false);
@@ -554,7 +561,7 @@ System.err.print("<");
 	/**
 	 * {@inheritDoc}
 	 */
-	public void doFree() throws NetIbisException {
+	public void doFree() throws IOException {
                 log.in();trace.in();
                 trace.disp("0, ", this);
 // // if (singleton != null)
@@ -602,7 +609,7 @@ System.err.print("<");
         /**
          * {@inheritDoc}
          */
-        public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws NetIbisException {
+        public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws IOException {
                 //
                 NetInput input = rq.input();
                 if (input != null) {
@@ -611,7 +618,7 @@ System.err.print("<");
         }
 
 
-        public synchronized final void doClose(Integer num) throws NetIbisException {
+        public synchronized final void doClose(Integer num) throws IOException {
                 log.in();
 		if (inputMap != null) {
                         Object       key = getKey(num);
@@ -631,151 +638,151 @@ System.err.print("<");
                 log.out();
         }
 
-        protected NetInput activeInput() throws NetIbisException {
+        protected NetInput activeInput() throws IOException {
                 try {
                         ReceiveQueue  rq    = activeQueue;
                         NetInput      input = rq.input;
                         if (input == null) {
-                                throw new NetIbisClosedException("input closed");
+                                throw new ConnectionClosedException("input closed");
                         }
                         return input;
                 } catch (NullPointerException e) {
-                        throw new NetIbisClosedException(e);
+                        throw new ConnectionClosedException(e);
                 }
         }
 
-        public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
+        public NetReceiveBuffer readByteBuffer(int expectedLength) throws IOException {
                 log.in();
                 NetReceiveBuffer b = activeInput().readByteBuffer(expectedLength);
                 log.out();
                 return b;
         }
 
-        public void readByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
+        public void readByteBuffer(NetReceiveBuffer buffer) throws IOException {
                 log.in();
                 activeInput().readByteBuffer(buffer);
                 log.out();
         }
 
-	public boolean readBoolean() throws NetIbisException {
+	public boolean readBoolean() throws IOException {
                 log.in();
                 boolean v = activeInput().readBoolean();
                 log.out();
                 return v;
         }
 
-	public byte readByte() throws NetIbisException {
+	public byte readByte() throws IOException {
                 log.in();
                 byte v = activeInput().readByte();
                 log.out();
                 return v;
         }
 
-	public char readChar() throws NetIbisException {
+	public char readChar() throws IOException {
                 log.in();
                 char v = activeInput().readChar();
                 log.out();
                 return v;
         }
 
-	public short readShort() throws NetIbisException {
+	public short readShort() throws IOException {
                 log.in();
                 short v = activeInput().readShort();
                 log.out();
                 return v;
         }
 
-	public int readInt() throws NetIbisException {
+	public int readInt() throws IOException {
                 log.in();
                 int v = activeInput().readInt();
                 log.out();
                 return v;
         }
 
-	public long readLong() throws NetIbisException {
+	public long readLong() throws IOException {
                 log.in();
                 long v = activeInput().readLong();
                 log.out();
                 return v;
         }
 
-	public float readFloat() throws NetIbisException {
+	public float readFloat() throws IOException {
                 log.in();
                 float v = activeInput().readFloat();
                 log.out();
                 return v;
         }
 
-	public double readDouble() throws NetIbisException {
+	public double readDouble() throws IOException {
                 log.in();
                 double v = activeInput().readDouble();
                 log.out();
                 return v;
         }
 
-	public String readString() throws NetIbisException {
+	public String readString() throws IOException {
                 log.in();
                 String v = (String)activeInput().readString();
                 log.out();
                 return v;
         }
 
-	public Object readObject() throws NetIbisException {
+	public Object readObject() throws IOException, ClassNotFoundException {
                 log.in();
                 Object v = activeInput().readObject();
                 log.out();
                 return v;
         }
 
-	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
+	public void readArray(boolean [] b, int o, int l) throws IOException {
                 log.in();
                 activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArray(byte [] b, int o, int l) throws NetIbisException {
+	public void readArray(byte [] b, int o, int l) throws IOException {
                 log.in();
                 activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArray(char [] b, int o, int l) throws NetIbisException {
+	public void readArray(char [] b, int o, int l) throws IOException {
                 log.in();
                 activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArray(short [] b, int o, int l) throws NetIbisException {
+	public void readArray(short [] b, int o, int l) throws IOException {
                 log.in();
                 activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArray(int [] b, int o, int l) throws NetIbisException {
+	public void readArray(int [] b, int o, int l) throws IOException {
                 log.in();
                 activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArray(long [] b, int o, int l) throws NetIbisException {
+	public void readArray(long [] b, int o, int l) throws IOException {
                 log.in();
                 activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArray(float [] b, int o, int l) throws NetIbisException {
+	public void readArray(float [] b, int o, int l) throws IOException {
                 log.in();
                 activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArray(double [] b, int o, int l) throws NetIbisException {
+	public void readArray(double [] b, int o, int l) throws IOException {
                 log.in();
                 activeInput().readArray(b, o, l);
                 log.out();
         }
 
-	public void readArray(Object [] b, int o, int l) throws NetIbisException {
+	public void readArray(Object [] b, int o, int l) throws IOException, ClassNotFoundException {
                 log.in();
                 activeInput().readArray(b, o, l);
                 log.out();

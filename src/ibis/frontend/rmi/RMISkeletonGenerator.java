@@ -32,6 +32,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("import ibis.rmi.*;");		
 		output.println("import java.lang.reflect.*;");	
 		output.println("import ibis.ipl.*;");			
+		output.println("import java.io.IOException;");		
 		output.println();
 	
 		output.println("public final class rmi_skeleton_" + dest_name + " extends ibis.rmi.server.Skeleton implements ibis.ipl.Upcall {");
@@ -144,7 +145,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("\t\t\t\tbreak;");
 		
 		output.println("\t\t\t}");
-		output.println("\t\t} catch (IbisIOException ie) {");
+		output.println("\t\t} catch (IOException ie) {");
 		output.println("\t\t\tSystem.err.println(\"EEK: got exception in upcall \" + ie);");
 		output.println("\t\t\tie.printStackTrace();");
 		output.println("\t\t}");

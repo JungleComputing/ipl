@@ -175,7 +175,7 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
 
     if (! ibp_mp_alive) {
-	(*env)->ThrowNew(env, cls_IbisIOException, "Ibis/Panda MP closed");
+	(*env)->ThrowNew(env, cls_java_io_IOException, "Ibis/Panda MP closed");
     }
 
 #ifndef NDEBUG
@@ -200,7 +200,7 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
 
     if (! ibp_mp_alive) {
-	(*env)->ThrowNew(env, cls_IbisIOException, "Ibis/Panda MP closed");
+	(*env)->ThrowNew(env, cls_java_io_IOException, "Ibis/Panda MP closed");
     }
 
 #ifndef NDEBUG
@@ -229,7 +229,7 @@ sigabort(int sig)
     fprintf(stderr, "SIGBART: Now throw an exception\n");
     ibmp_dumpStack(ibp_JNIEnv);
     (*ibp_JNIEnv)->ThrowNew(ibp_JNIEnv,
-			    cls_IbisIOException,
+			    cls_java_io_IOException,
 			    "Receive a SIGABORT in native code");
 }
 

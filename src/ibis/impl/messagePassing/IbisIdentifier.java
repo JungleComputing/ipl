@@ -2,12 +2,13 @@
 // We cache these identifiers for efficiency, Satin sends them frequently.
 package ibis.ipl.impl.messagePassing;
 
+import java.io.IOException;
+import java.io.StreamCorruptedException;
+import java.net.InetAddress;
+
 import ibis.io.IbisSerializationOutputStream;
 import ibis.io.IbisSerializationInputStream;
-import java.net.InetAddress;
 import ibis.ipl.impl.generic.IbisIdentifierTable;
-
-import ibis.ipl.IbisIOException;
 
 // Make this final, make inlining possible
 final class IbisIdentifier
@@ -18,7 +19,7 @@ final class IbisIdentifier
 	private transient byte[] serialForm;
 
 
-	IbisIdentifier(String name, int cpu) throws IbisIOException {
+	IbisIdentifier(String name, int cpu) throws IOException {
 
 	    try {
 		    this.address = java.net.InetAddress.getLocalHost();
@@ -35,14 +36,14 @@ final class IbisIdentifier
 	}
 
 
-	public IbisIdentifier(IbisSerializationInputStream stream) throws java.io.IOException {
+	public IbisIdentifier(IbisSerializationInputStream stream) throws IOException {
 		stream.addObjectToCycleCheck(this);
 		generated_DefaultReadObject(stream, 0);
 	}
 
 	public final void generated_DefaultReadObject
 		(IbisSerializationInputStream stream, int lvl)
-		throws java.io.IOException {
+		throws IOException {
 
 		int handle = stream.readInt();
 		if(handle < 0) {
@@ -70,9 +71,13 @@ final class IbisIdentifier
 
 
 	static IbisIdentifier createIbisIdentifier(byte[] serialForm)
-		throws IbisIOException {
-	    IbisIdentifier id = (IbisIdentifier)
-			SerializeBuffer.readObject(serialForm);
+		throws IOException {
+	    IbisIdentifier id;
+	    try {
+		id = (IbisIdentifier) SerializeBuffer.readObject(serialForm);
+	    } catch (ClassNotFoundException e) {
+		throw new StreamCorruptedException("serialForm corrupted " + e);
+	    }
 
 	    id.serialForm = serialForm;
 
@@ -80,12 +85,12 @@ final class IbisIdentifier
 	}
 
 
-	private void makeSerialForm() throws IbisIOException {
+	private void makeSerialForm() throws IOException {
 	    serialForm = SerializeBuffer.writeObject(this);
 	}
 
 
-	byte[] getSerialForm() throws IbisIOException {
+	byte[] getSerialForm() throws IOException {
 	    if (serialForm == null) {
 			makeSerialForm();
 	    }
@@ -93,7 +98,7 @@ final class IbisIdentifier
 	}
 
 
-	public final void generated_WriteObject(IbisSerializationOutputStream stream) throws java.io.IOException {
+	public final void generated_WriteObject(IbisSerializationOutputStream stream) throws IOException {
 		int handle = Ibis.myIbis.identTable.getHandle(stream, this);
 		stream.writeInt(handle);
 		if(handle < 0) { // First time, send it.
@@ -104,7 +109,7 @@ final class IbisIdentifier
 		}
 	}
 
-	public final void generated_DefaultWriteObject(IbisSerializationOutputStream stream, int lvl) throws java.io.IOException {
+	public final void generated_DefaultWriteObject(IbisSerializationOutputStream stream, int lvl) throws IOException {
 		generated_WriteObject(stream);
 	}
 

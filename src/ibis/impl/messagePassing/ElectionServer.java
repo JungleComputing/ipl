@@ -4,7 +4,8 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Hashtable;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
+
 import ibis.ipl.IbisException;
 
 class ElectionServer
@@ -22,8 +23,14 @@ class ElectionServer
 	Ibis.myIbis.checkLockNotOwned();
 	try {
 	    int sender = m.readInt();
-	    String name = (String)m.readObject();
-	    Object o = m.readObject();
+	    String name;
+	    Object o;
+	    try {
+		name = (String)m.readObject();
+		o = m.readObject();
+	    } catch (ClassNotFoundException e) {
+		throw new RuntimeException("class not found " + e);
+	    }
 	    m.finish();
 
 	    if (ElectionServer.DEBUG) {
@@ -56,7 +63,7 @@ class ElectionServer
 	    if (ElectionServer.DEBUG) {
 		System.err.println(Thread.currentThread() + "ElectionServer election " + name + " done");
 	    }
-	} catch (IbisIOException e) {
+	} catch (IOException e) {
 	    System.err.println(Thread.currentThread() + ": ElectionServer upcall exception " + e);
 	    Thread.dumpStack();
 	}
@@ -67,13 +74,13 @@ class ElectionServer
     ibis.ipl.SendPort[] client_port;
 
 
-    ElectionServer() throws IbisIOException {
+    ElectionServer() throws IbisException {
 	if (! ElectionProtocol.NEED_ELECTION) {
 	    return;
 	}
 
 	if (elections != null) {
-	    throw new IbisIOException("Can have only one ElectionServer");
+	    throw new IbisException("Can have only one ElectionServer");
 	}
 	elections = new Hashtable();
 
@@ -139,7 +146,7 @@ class ElectionServer
 	    }
 
 // System.err.println(Thread.currentThread() + "ElectionServer up");
-	} catch (IbisIOException e) {
+	} catch (IOException e) {
 	    System.err.println("ElectionServer meets exception " + e);
 	} catch (IbisException e2) {
 	    System.err.println("ElectionServer meets exception " + e2);
@@ -160,7 +167,7 @@ class ElectionServer
 	for (int i = 0; i < n; i++) {
 	    try {
 		client_port[i].free();
-	    } catch (IbisIOException e) {
+	    } catch (IOException e) {
 		// Ignore
 	    }
 	}
@@ -168,7 +175,11 @@ class ElectionServer
 	    if (DEBUG) {
 		System.err.println("ElectionServer frees server port[" + i + "] (of " + n + ") = " + server_port[i]);
 	    }
-	    server_port[i].free();
+	    try {
+		server_port[i].free();
+	    } catch (IOException e) {
+		// Ignore
+	    }
 	}
 	if (DEBUG) {
 	    System.err.println("ElectionServer has freed all server ports");

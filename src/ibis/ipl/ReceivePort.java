@@ -1,5 +1,7 @@
 package ibis.ipl;
 
+import java.io.IOException;
+
 public interface ReceivePort { 
 	/**
 	   A receiveport maintains connections to one or more send
@@ -31,8 +33,8 @@ public interface ReceivePort {
 	   not correct to put it in a global variable / queue.
 	 **/
 
-	/** explicit receive. When an receiveport is configured to generate upcalls, this is NOT allowed **/
-	public ReadMessage receive() throws IbisIOException;
+	/** explicit receive. When an receiveport is configured to generate upcalls, this is NOT allowed; in that case a PortConfigurationException is thrown **/
+	public ReadMessage receive() throws IOException;
 
 	/** Utility function.
 	 *  In essence, it goes through the following steps:
@@ -44,7 +46,7 @@ public interface ReceivePort {
 	 *  Rationale is the possibility to save on locking overhead by
 	 *  combining an oft-recurring sequence.
 	 **/
-	public ReadMessage receive(ReadMessage finishMe) throws IbisIOException;
+	public ReadMessage receive(ReadMessage finishMe) throws IOException;
 
 
 	/** 
@@ -54,7 +56,7 @@ public interface ReceivePort {
 	    null when no message has been received.  A timeoutMillis <= 0 means
 	    just do a blocking receive.
 	 **/
-	public ReadMessage receive(long timeoutMillis) throws IbisIOException;
+	public ReadMessage receive(long timeoutMillis) throws IOException;
 
 	/** Utility function.
 	 * In essence, it goes through the following steps:
@@ -66,15 +68,15 @@ public interface ReceivePort {
 	 *  Rationale is the possibility to save on locking overhead by
 	 *  combining an oft-recurring sequence.
 	 **/
-	public ReadMessage receive(ReadMessage finishMe, long timeoutMillis) throws IbisIOException;
+	public ReadMessage receive(ReadMessage finishMe, long timeoutMillis) throws IOException;
 
 	/** Asynchronous receive. Return immediately when no message is available. 
 	 Also works for upcalls, then it is a normal poll. **/
-	public ReadMessage poll() throws IbisIOException;
+	public ReadMessage poll() throws IOException;
 
 	/** Asynchronous receive, as above, but free an old message.
 	    Also works for upcalls, then it is a normal poll. **/
-	public ReadMessage poll(ReadMessage finishMe) throws IbisIOException;
+	public ReadMessage poll(ReadMessage finishMe) throws IOException;
 
 	public DynamicProperties properties();
 
@@ -115,14 +117,14 @@ public interface ReceivePort {
 	    Free the resources held by the ReceivePort. 
 	    Important: the free blocks until all sendports that are connected to it have been freed. 
 	**/
-	public void free();
+	public void free() throws IOException;
 
 	/** 
 	    Free the resources held by the ReceivePort. 
 	    Important: this call does not block until all sendports that are connected to it have been freed. 
 	    Therefore, messages may be lost! Use this with extreme caution!
 	**/
-	public void forcedClose();
+	public void forcedClose() throws IOException;
 
 	/**
 	   Free the resources held by the ReceivePort, with timeout. 

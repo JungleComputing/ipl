@@ -7,6 +7,8 @@ import ibis.io.Replacer;
 
 import ibis.ipl.impl.net.*;
 
+import java.io.IOException;
+
 /**
  * The ID output implementation.
  */
@@ -36,16 +38,15 @@ public abstract class NetSerializedOutput extends NetOutput {
 	 * @param driver the ID driver instance.
 	 * @param output the controlling output.
 	 */
-	public NetSerializedOutput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	public NetSerializedOutput(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
 		NetOutput subOutput = this.subOutput;
-                try {
 
 		if (subOutput == null) {
 			if (subDriver == null) {
@@ -77,18 +78,15 @@ public abstract class NetSerializedOutput extends NetOutput {
                  * in order to ensure consistency between multiple receivers.
                  */
                 oss = null;
-		} catch (Exception e) {
-                        throw new Error(e);
-                }
 	}
 
-        public abstract SerializationOutputStream newSerializationOutputStream() throws NetIbisException;
+        public abstract SerializationOutputStream newSerializationOutputStream() throws IOException;
 
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void initSend() throws NetIbisException {
+	public void initSend() throws IOException {
                 super.initSend();
                 subOutput.initSend();
                 if (oss == null) {
@@ -97,15 +95,11 @@ public abstract class NetSerializedOutput extends NetOutput {
                         if (replacer != null) oss.setReplacer(replacer);
                 } else {
                         subOutput.writeByte((byte)0);
-                        try {
-                                oss.reset();
-                        } catch(java.io.IOException e) {
-                                throw new NetIbisException("got exception", e);
-                        }
+			oss.reset();
                 }
 	}
 
-        private void flushStream() throws java.io.IOException {
+        private void flushStream() throws IOException {
                 if (needFlush) {
                         oss.flush();
                         needFlush = false;
@@ -118,17 +112,13 @@ public abstract class NetSerializedOutput extends NetOutput {
 	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems.
 	   When a message is alive and a new messages is requested, the requester is blocked until the
 	   live message is finished. **/
-        public void finish() throws NetIbisException {
-	    try {
-                super.finish();
-                flushStream();
-                subOutput.finish();
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void finish() throws IOException {
+	    super.finish();
+	    flushStream();
+	    subOutput.finish();
         }
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void close(Integer num) throws IOException {
                 if (subOutput != null) {
                         subOutput.close(num);
                 }
@@ -138,7 +128,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws NetIbisException {
+	public void free() throws IOException {
 		if (subOutput != null) {
 			subOutput.free();
 		}
@@ -146,78 +136,54 @@ public abstract class NetSerializedOutput extends NetOutput {
 		super.free();
 	}
 
-        public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
-	    try {
-                flushStream();
-                subOutput.writeByteBuffer(buffer);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeByteBuffer(NetSendBuffer buffer) throws IOException {
+	    flushStream();
+	    subOutput.writeByteBuffer(buffer);
         }
 
         /**
 	 * Writes a boolean value to the message.
 	 * @param     value             The boolean value to write.
 	 */
-        public void writeBoolean(boolean value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeBoolean(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeBoolean(boolean value) throws IOException {
+	    needFlush = true;
+	    oss.writeBoolean(value);
         }
 
         /**
 	 * Writes a byte value to the message.
 	 * @param     value             The byte value to write.
 	 */
-        public void writeByte(byte value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeByte(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeByte(byte value) throws IOException {
+	    needFlush = true;
+	    oss.writeByte(value);
         }
 
         /**
 	 * Writes a char value to the message.
 	 * @param     value             The char value to write.
 	 */
-        public void writeChar(char value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeChar(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeChar(char value) throws IOException {
+	    needFlush = true;
+	    oss.writeChar(value);
         }
 
         /**
 	 * Writes a short value to the message.
 	 * @param     value             The short value to write.
 	 */
-        public void writeShort(short value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeShort(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeShort(short value) throws IOException {
+	    needFlush = true;
+	    oss.writeShort(value);
         }
 
         /**
 	 * Writes a int value to the message.
 	 * @param     value             The int value to write.
 	 */
-        public void writeInt(int value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeInt(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeInt(int value) throws IOException {
+	    needFlush = true;
+	    oss.writeInt(value);
         }
 
 
@@ -225,39 +191,27 @@ public abstract class NetSerializedOutput extends NetOutput {
 	 * Writes a long value to the message.
 	 * @param     value             The long value to write.
 	 */
-        public void writeLong(long value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeLong(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeLong(long value) throws IOException {
+	    needFlush = true;
+	    oss.writeLong(value);
         }
 
         /**
 	 * Writes a float value to the message.
 	 * @param     value             The float value to write.
 	 */
-        public void writeFloat(float value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeFloat(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeFloat(float value) throws IOException {
+	    needFlush = true;
+	    oss.writeFloat(value);
         }
 
         /**
 	 * Writes a double value to the message.
 	 * @param     value             The double value to write.
 	 */
-        public void writeDouble(double value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeDouble(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeDouble(double value) throws IOException {
+	    needFlush = true;
+	    oss.writeDouble(value);
         }
 
         /**
@@ -265,107 +219,63 @@ public abstract class NetSerializedOutput extends NetOutput {
          * Note: uses writeObject to send the string.
 	 * @param     value             The string value to write.
 	 */
-        public void writeString(String value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeObject(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeString(String value) throws IOException {
+	    needFlush = true;
+	    oss.writeObject(value);
         }
 
         /**
 	 * Writes a Serializable object to the message.
 	 * @param     value             The object value to write.
 	 */
-        public void writeObject(Object value) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeObject(value);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeObject(Object value) throws IOException {
+	    needFlush = true;
+	    oss.writeObject(value);
         }
 
-        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeArray(b, o, l);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeArray(boolean [] b, int o, int l) throws IOException {
+	    needFlush = true;
+	    oss.writeArray(b, o, l);
         }
 
-        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeArray(b, o, l);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeArray(byte [] b, int o, int l) throws IOException {
+	    needFlush = true;
+	    oss.writeArray(b, o, l);
         }
 
-        public void writeArray(char [] b, int o, int l) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeArray(b, o, l);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeArray(char [] b, int o, int l) throws IOException {
+	    needFlush = true;
+	    oss.writeArray(b, o, l);
         }
 
-        public void writeArray(short [] b, int o, int l) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeArray(b, o, l);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeArray(short [] b, int o, int l) throws IOException {
+	    needFlush = true;
+	    oss.writeArray(b, o, l);
         }
 
-        public void writeArray(int [] b, int o, int l) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeArray(b, o, l);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeArray(int [] b, int o, int l) throws IOException {
+	    needFlush = true;
+	    oss.writeArray(b, o, l);
         }
 
-        public void writeArray(long [] b, int o, int l) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeArray(b, o, l);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeArray(long [] b, int o, int l) throws IOException {
+	    needFlush = true;
+	    oss.writeArray(b, o, l);
         }
 
-        public void writeArray(float [] b, int o, int l) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeArray(b, o, l);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeArray(float [] b, int o, int l) throws IOException {
+	    needFlush = true;
+	    oss.writeArray(b, o, l);
         }
 
-        public void writeArray(double [] b, int o, int l) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeArray(b, o, l);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeArray(double [] b, int o, int l) throws IOException {
+	    needFlush = true;
+	    oss.writeArray(b, o, l);
         }
 
-        public void writeArray(Object [] b, int o, int l) throws NetIbisException {
-	    try {
-                needFlush = true;
-                oss.writeArray(b, o, l);
-	    } catch(java.io.IOException e) {
-		throw new NetIbisException("got exception", e);
-	    }
+        public void writeArray(Object [] b, int o, int l) throws IOException {
+	    needFlush = true;
+	    oss.writeArray(b, o, l);
         }
 
 }

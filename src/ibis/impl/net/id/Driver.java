@@ -1,7 +1,5 @@
 package ibis.ipl.impl.net.id;
 
-import ibis.ipl.IbisException;
-
 import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
@@ -51,7 +49,7 @@ public final class Driver extends NetDriver {
 	 * @return The new Id input.
 	 */
 	public NetInput newInput(NetPortType pt, String context)
-		throws NetIbisException {
+		throws IOException {
 		return new IdInput(pt, this, context);
 	}
 
@@ -63,7 +61,7 @@ public final class Driver extends NetDriver {
 	 * @return The new Id output.
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)
-		throws NetIbisException {
+		throws IOException {
 		return new IdOutput(pt, this, context);
 	}
 }

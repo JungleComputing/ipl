@@ -47,30 +47,30 @@ public final class GmInput extends NetBufferedInput {
         private Driver               gmDriver     = null;
 
 
-	native long nInitInput(long deviceHandle) throws NetIbisException;
-        native int  nGetInputNodeId(long inputHandle) throws NetIbisException;
-        native int  nGetInputPortId(long inputHandle) throws NetIbisException;
-        native int  nGetInputMuxId(long inputHandle) throws NetIbisException;
-        native void nConnectInput(long inputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws NetIbisException;
-        native int nPostBuffer(long inputHandle, byte []b, int base, int length) throws NetIbisException;
+	native long nInitInput(long deviceHandle) throws IOException;
+        native int  nGetInputNodeId(long inputHandle) throws IOException;
+        native int  nGetInputPortId(long inputHandle) throws IOException;
+        native int  nGetInputMuxId(long inputHandle) throws IOException;
+        native void nConnectInput(long inputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws IOException;
+        native int nPostBuffer(long inputHandle, byte []b, int base, int length) throws IOException;
 
-        native int nPostBooleanBuffer(long inputHandle, boolean []b, int base, int length) throws NetIbisException;
+        native int nPostBooleanBuffer(long inputHandle, boolean []b, int base, int length) throws IOException;
 
-        native int nPostByteBuffer(long inputHandle, byte []b, int base, int length) throws NetIbisException;
+        native int nPostByteBuffer(long inputHandle, byte []b, int base, int length) throws IOException;
 
-        native int nPostShortBuffer(long inputHandle, short []b, int base, int length) throws NetIbisException;
+        native int nPostShortBuffer(long inputHandle, short []b, int base, int length) throws IOException;
 
-        native int nPostCharBuffer(long inputHandle, char []b, int base, int length) throws NetIbisException;
+        native int nPostCharBuffer(long inputHandle, char []b, int base, int length) throws IOException;
 
-        native int nPostIntBuffer(long inputHandle, int []b, int base, int length) throws NetIbisException;
+        native int nPostIntBuffer(long inputHandle, int []b, int base, int length) throws IOException;
 
-        native int nPostLongBuffer(long inputHandle, long []b, int base, int length) throws NetIbisException;
+        native int nPostLongBuffer(long inputHandle, long []b, int base, int length) throws IOException;
 
-        native int nPostFloatBuffer(long inputHandle, float []b, int base, int length) throws NetIbisException;
+        native int nPostFloatBuffer(long inputHandle, float []b, int base, int length) throws IOException;
 
-        native int nPostDoubleBuffer(long inputHandle, double []b, int base, int length) throws NetIbisException;
+        native int nPostDoubleBuffer(long inputHandle, double []b, int base, int length) throws IOException;
 
-	native void nCloseInput(long inputHandle) throws NetIbisException;
+	native void nCloseInput(long inputHandle) throws IOException;
 
         static final int packetMTU = 4096;
 
@@ -82,7 +82,7 @@ public final class GmInput extends NetBufferedInput {
 	 * @param driver the GM driver instance.
 	 */
 	GmInput(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
+		throws IOException {
                 super(pt, driver, context);
 
                 gmDriver = (Driver)driver;
@@ -106,7 +106,7 @@ public final class GmInput extends NetBufferedInput {
 	 * @param is {@inheritDoc}
 	 * @param os {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
                 //System.err.println("setupConnection-->");
                 if (this.spn != null) {
@@ -133,35 +133,33 @@ public final class GmInput extends NetBufferedInput {
                 Hashtable rInfo = null;
 
 
+		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
+		os.flush();
+
+		ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream (this, "gm"));
+		os.writeObject(lInfo);
+		os.flush();
+
 		try {
-                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
-                        os.flush();
-
-                        ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream (this, "gm"));
-                        os.writeObject(lInfo);
-                        os.flush();
-
                         rInfo = (Hashtable)is.readObject();
-
-                        rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
-                        rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
-                        rmuxId  = ((Integer) rInfo.get("gm_mux_id") ).intValue();
-
-                        Driver.gmAccessLock.lock(false);
-                        nConnectInput(inputHandle, rnodeId, rportId, rmuxId);
-                        Driver.gmAccessLock.unlock();
-
-                        os.write(1);
-                        os.flush();
-                        is.read();
-
-                        os.close();
-                        is.close();
-		} catch (IOException e) {
-			throw new NetIbisException(e);
 		} catch (ClassNotFoundException e) {
                         throw new Error(e);
                 }
+
+		rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
+		rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
+		rmuxId  = ((Integer) rInfo.get("gm_mux_id") ).intValue();
+
+		Driver.gmAccessLock.lock(false);
+		nConnectInput(inputHandle, rnodeId, rportId, rmuxId);
+		Driver.gmAccessLock.unlock();
+
+		os.write(1);
+		os.flush();
+		is.read();
+
+		os.close();
+		is.close();
 
                 mtu = Driver.mtu;
 
@@ -174,7 +172,7 @@ public final class GmInput extends NetBufferedInput {
         /**
          * {@inheritDoc}
          */
-	public Integer doPoll(boolean block) throws NetIbisException {
+	public Integer doPoll(boolean block) throws IOException {
                 log.in();
                 if (spn == null) {
                         return null;
@@ -198,7 +196,7 @@ public final class GmInput extends NetBufferedInput {
                 return spn;
 	}
 
-        public void initReceive(Integer num) throws NetIbisException {
+        public void initReceive(Integer num) throws IOException {
                 firstBlock = true;
                 super.initReceive(num);
         }
@@ -207,7 +205,7 @@ public final class GmInput extends NetBufferedInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void receiveByteBuffer(NetReceiveBuffer b) throws NetIbisException {
+	public void receiveByteBuffer(NetReceiveBuffer b) throws IOException {
                 log.in();
 
                 if (firstBlock) {
@@ -253,13 +251,13 @@ public final class GmInput extends NetBufferedInput {
         }
 
 
-        public void doFinish() throws NetIbisException {
+        public void doFinish() throws IOException {
                 log.in();
                 //
                 log.out();
         }
 
-        public synchronized void doClose(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws IOException {
                 log.in();
                 if (spn == num) {
                         Driver.gmAccessLock.lock(true);
@@ -285,7 +283,7 @@ public final class GmInput extends NetBufferedInput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void doFree() throws NetIbisException {
+	public void doFree() throws IOException {
                 log.in();
 		spn = null;
 
@@ -306,7 +304,7 @@ public final class GmInput extends NetBufferedInput {
                 log.out();
 	}
 
-	public void readArray(boolean [] b, int o, int l) throws NetIbisException {
+	public void readArray(boolean [] b, int o, int l) throws IOException {
                 log.in();
                 freeBuffer();
 
@@ -344,7 +342,7 @@ public final class GmInput extends NetBufferedInput {
         }
 
         /*
-	public void readArray(byte [] b, int o, int l) throws NetIbisException {
+	public void readArray(byte [] b, int o, int l) throws IOException {
                 log.in();
                 freeBuffer();
 
@@ -382,7 +380,7 @@ public final class GmInput extends NetBufferedInput {
         }
         */
 
-	public void readArray(char [] b, int o, int l) throws NetIbisException {
+	public void readArray(char [] b, int o, int l) throws IOException {
                 log.in();
                 freeBuffer();
 
@@ -423,7 +421,7 @@ public final class GmInput extends NetBufferedInput {
         }
 
 
-	public void readArray(short [] b, int o, int l) throws NetIbisException {
+	public void readArray(short [] b, int o, int l) throws IOException {
                 log.in();
                 freeBuffer();
 
@@ -464,7 +462,7 @@ public final class GmInput extends NetBufferedInput {
         }
 
 
-	public void readArray(int [] b, int o, int l) throws NetIbisException {
+	public void readArray(int [] b, int o, int l) throws IOException {
                 log.in();
 
                 l <<= 2;
@@ -504,7 +502,7 @@ public final class GmInput extends NetBufferedInput {
         }
 
 
-	public void readArray(long [] b, int o, int l) throws NetIbisException {
+	public void readArray(long [] b, int o, int l) throws IOException {
                 log.in();
                 freeBuffer();
 
@@ -545,7 +543,7 @@ public final class GmInput extends NetBufferedInput {
         }
 
 
-	public void readArray(float [] b, int o, int l) throws NetIbisException {
+	public void readArray(float [] b, int o, int l) throws IOException {
                 log.in();
                 freeBuffer();
 
@@ -586,7 +584,7 @@ public final class GmInput extends NetBufferedInput {
         }
 
 
-	public void readArray(double [] b, int o, int l) throws NetIbisException {
+	public void readArray(double [] b, int o, int l) throws IOException {
                 log.in();
                 freeBuffer();
 

@@ -2,9 +2,10 @@ package ibis.group;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.IbisIOException;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.io.IOException;
+import java.io.StreamCorruptedException;
 
 /**
  * The group registry keeps track of which groups there are, and deals with
@@ -114,9 +115,9 @@ final class GroupRegistry implements GroupProtocol {
      * @param rank the node identification of the requester
      * @param ticket ticket number for the reply
      * @param type the group interface for this new group
-     * @exception {@link ibis.ipl.IbisIOException} on an IO error.
+     * @exception {@link java.io.IOException} on an IO error.
      */
-    private synchronized void newGroup(String groupName, int groupSize, int rank, int ticket, String type) throws IbisIOException {
+    private synchronized void newGroup(String groupName, int groupSize, int rank, int ticket, String type) throws IOException {
            
 	WriteMessage w;
 
@@ -144,9 +145,9 @@ final class GroupRegistry implements GroupProtocol {
      * @param rank the node identification of the requester
      * @param ticket ticket number for the reply
      * @param interfaces the group interfaces that this requester implements
-     * @exception {@link ibis.ipl.IbisIOException} on an IO error.
+     * @exception {@link io.IOException} on an IO error.
      */
-    private synchronized void joinGroup(String groupName, int memberSkel, int rank, int ticket, String [] interfaces) throws IbisIOException { 	
+    private synchronized void joinGroup(String groupName, int memberSkel, int rank, int ticket, String [] interfaces) throws IOException { 	
 
 	WriteMessage w;
 
@@ -221,14 +222,13 @@ final class GroupRegistry implements GroupProtocol {
      * @param groupName the name of the group to be found
      * @param rank the node identification of the requester
      * @param ticket ticket number for the reply
-     * @exception {@link ibis.ipl.IbisIOException} on an IO error.
+     * @exception {@link java.io.IOException} on an IO error.
      */
-    private synchronized void findGroup(String groupName, int rank, int ticket) throws IbisIOException { 	
+    private synchronized void findGroup(String groupName, int rank, int ticket) throws IOException { 	
 
 	WriteMessage w;
 
 	GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
-
 	w = Group.unicast[rank].newMessage();
 	w.writeByte(REGISTRY_REPLY);
 	w.writeInt(ticket);
@@ -254,9 +254,9 @@ final class GroupRegistry implements GroupProtocol {
      * requested information.
      *
      * @param r the request message
-     * @exception {@link ibis.ipl.IbisIOException} on an IO error.
+     * @exception {@link java.io.IOException} on an IO error.
      */
-    private void defineCombinedInvocation(ReadMessage r) throws IbisIOException {
+    private void defineCombinedInvocation(ReadMessage r) throws IOException {
 	String name;
 	String method;
 	int rank;
@@ -269,8 +269,12 @@ final class GroupRegistry implements GroupProtocol {
 	groupID = r.readInt();
 	cpu = r.readInt();
 	ticket = r.readInt();
-	name = (String) r.readObject();
-	method = (String) r.readObject();
+	try {
+	    name = (String) r.readObject();
+	    method = (String) r.readObject();
+	} catch (ClassNotFoundException e) {
+	    throw new StreamCorruptedException(e.toString());
+	}
 	rank = r.readInt();
 	size = r.readInt();
 	mode = r.readInt();

@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.IOException;
 
 /**
  * Provide a set of methods to convert native Java types to and from bytes.
@@ -1338,7 +1339,7 @@ public final class NetConvert {
 
 
         /* Object to/from byte array */
-        public static byte[] object2bytes(Object o) throws Exception {
+        public static byte[] object2bytes(Object o) throws IOException {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 ObjectOutputStream    oos = new ObjectOutputStream(bos);
                 oos.writeObject(o);
@@ -1347,7 +1348,7 @@ public final class NetConvert {
                 return bos.toByteArray();
         }
 
-        public static Object bytes2object(byte [] b) throws Exception {
+        public static Object bytes2object(byte [] b) throws IOException, ClassNotFoundException {
                 ByteArrayInputStream bis = new ByteArrayInputStream(b);
                 ObjectInputStream    ois = new ObjectInputStream(bis);
                 Object               o   = ois.readObject();

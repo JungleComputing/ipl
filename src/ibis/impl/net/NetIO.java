@@ -182,7 +182,7 @@ public abstract class NetIO {
          * @param contextValue the {@link #subContext sub-context} discriminant.
          * @return the new {@linkplain NetInput input}.
          */
-        public final NetInput newSubInput(NetDriver subDriver, String contextValue) throws NetIbisException {
+        public final NetInput newSubInput(NetDriver subDriver, String contextValue) throws IOException {
                 return subDriver.newInput(type, subContext(contextValue));
         }
 
@@ -193,7 +193,7 @@ public abstract class NetIO {
          * @param contextValue the {@link #subContext sub-context} discriminant.
          * @return the new {@linkplain NetOutput output}.
          */
-        public final NetOutput newSubOutput(NetDriver subDriver, String contextValue) throws NetIbisException {
+        public final NetOutput newSubOutput(NetDriver subDriver, String contextValue) throws IOException {
                 return subDriver.newOutput(type, subContext(contextValue));
         }
 
@@ -203,7 +203,7 @@ public abstract class NetIO {
          * @param subDriver the new {@linkplain NetInput input}'s {@linkplain NetDriver driver}.
          * @return the new {@linkplain NetInput input}.
          */
-        public final NetInput newSubInput(NetDriver subDriver) throws NetIbisException {
+        public final NetInput newSubInput(NetDriver subDriver) throws IOException {
                 return newSubInput(subDriver, null);
         }
 
@@ -213,7 +213,7 @@ public abstract class NetIO {
          * @param subDriver the new {@linkplain NetOutput output}'s {@linkplain NetDriver driver}.
          * @return the new {@linkplain NetOutput output}.
          */
-        public final NetOutput newSubOutput(NetDriver subDriver) throws NetIbisException {
+        public final NetOutput newSubOutput(NetDriver subDriver) throws IOException {
                 return newSubOutput(subDriver, null);
         }
 
@@ -309,12 +309,12 @@ public abstract class NetIO {
 	 *
 	 * This is only valid for a {@link NetBufferFactory Factory} with MTU.
 	 *
-	 * @throws NetIbisException if the factory has no default MTU.
+	 * @throws java.lang.IllegalArgumentException if no factory is installed or the factory has no default MTU.
          * @return the new {@link NetBuffer buffer}.
 	 */
-	public NetBuffer createBuffer() throws NetIbisException {
+	public NetBuffer createBuffer() {
 	    if (factory == null) {
-		throw new NetIbisException("Need a factory with MTU");
+		throw new IllegalArgumentException("Need a factory with MTU");
 	    }
 	    return factory.createBuffer();
 	}
@@ -324,10 +324,10 @@ public abstract class NetIO {
 	 *
 	 * @param length the length of the data to be stored in the buffer.
 	 *        The buffer is a new byte array.
-	 * @throws NetIbisException if the factory has no default MTU.
+	 * @throws java.lang.IllegalArgumentException if the factory has no default MTU.
          * @return the new {@link NetBuffer buffer}.
 	 */
-	public NetBuffer createBuffer(int length) throws NetIbisException {
+	public NetBuffer createBuffer(int length) {
 	    if (factory == null) {
 		factory = new NetBufferFactory();
 	    }
@@ -383,9 +383,9 @@ public abstract class NetIO {
 	 * Actually establish a connection with a remote port.
 	 *
 	 * @param cnx the connection attributes.
-	 * @exception NetIbisException if the connection setup fails.
+	 * @exception IOException if the connection setup fails.
 	 */
-	public abstract void setupConnection(NetConnection cnx) throws NetIbisException;
+	public abstract void setupConnection(NetConnection cnx) throws IOException;
 
 
 	/**
@@ -393,18 +393,18 @@ public abstract class NetIO {
 	 *
 	 * Note: this method should not block and can be called at any time and several time for the same connection.
          * @param num the connection identifier
-         * @exception NetIbisException if this operation fails (that should not happen).
+         * @exception IOException if this operation fails (that should not happen).
 	 */
-        public abstract void close(Integer num) throws NetIbisException;
+        public abstract void close(Integer num) throws IOException;
 
 	/**
 	 * Closes the I/O.
 	 *
 	 * Note: methods redefining this one should also call it, just in case
          *       we need to add something here
-         * @exception NetIbisException if this operation fails.
+         * @exception IOException if this operation fails.
 	 */
-	public void free() throws NetIbisException {
+	public void free() throws IOException {
                 //stat.report();
 	}
 

@@ -92,7 +92,10 @@ public abstract class Skeleton implements Upcall, ReceivePortConnectUpcall {
 	    }
 	}
 	if (receive != null) {
-	    receive.forcedClose();
+	    try {
+		receive.forcedClose();
+	    } catch(Exception e) {
+	    }
 	}
 	receive = null;
     }

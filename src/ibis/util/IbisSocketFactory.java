@@ -8,8 +8,9 @@ import java.net.Socket;
 import java.net.ServerSocket;
 import java.net.InetAddress;
 
-import ibis.ipl.IbisIOException;
 import java.util.*;
+
+import ibis.ipl.ConnectionTimedOutException;
 
 public class IbisSocketFactory {
 	private static final boolean DEBUG = false;
@@ -64,9 +65,9 @@ public class IbisSocketFactory {
 	    timeoutMillis < 0  means do not retry, throw exception on failure.
 	    timeoutMillis == 0 means retry until success.
 	    timeoutMillis > 0  means block at most for timeoutMillis milliseconds, then return. 
-	    An IbisIOException is thrown when the socket was not properly created within this time.
+	    An IOException is thrown when the socket was not properly created within this time.
 	**/
-	public static Socket createSocket(InetAddress dest, int port, InetAddress localIP, long timeoutMillis) throws IbisIOException { 
+	public static Socket createSocket(InetAddress dest, int port, InetAddress localIP, long timeoutMillis) throws IOException { 
 		boolean connected = false;
 		Socket s = null;
 		long startTime = System.currentTimeMillis();
@@ -74,11 +75,7 @@ public class IbisSocketFactory {
 
 		if (localIP != null && dest.getHostAddress().equals("127.0.0.1")) {
 		    /* Avoid ConnectionRefused exception */
-		    try {
-			    dest = InetAddress.getLocalHost();
-		    } catch (IOException e1) { 
-			    throw new IbisIOException("" + e1);
-		    }
+		    dest = InetAddress.getLocalHost();
 		}
 
 		while (!connected) {
@@ -107,7 +104,7 @@ public class IbisSocketFactory {
 				}
 
 				if(timeoutMillis < 0) {
-					throw new IbisIOException("" + e1);
+					throw new ConnectionTimedOutException("" + e1);
 				} else if (timeoutMillis == 0) {
 					try {
 						Thread.sleep(1000);
@@ -123,7 +120,7 @@ public class IbisSocketFactory {
 							// don't care
 						}
 					} else {
-						throw new IbisIOException("" + e1);
+						throw new ConnectionTimedOutException("" + e1);
 					}
 				}
                         }
@@ -135,17 +132,13 @@ public class IbisSocketFactory {
         /** A host can have multiple local IPs (sierra)
 	    if localIP is null, try to bind to the first of this machine's IP addresses.
             port of 0 means choose a free port **/
-	public static ServerSocket createServerSocket(int port, InetAddress localAddress, boolean retry) throws IbisIOException { 
+	public static ServerSocket createServerSocket(int port, InetAddress localAddress, boolean retry) throws IOException { 
 		boolean connected = false;
 		/*Ibis*/ServerSocket s = null;
 		int localPort;
 
 		if(localAddress == null) {
-			try {
-				localAddress = InetAddress.getLocalHost();
-			} catch (IOException e1) { 
-				throw new IbisIOException("" + e1);
-			}
+			localAddress = InetAddress.getLocalHost();
 		}
 
 		while (!connected) { 
@@ -168,7 +161,7 @@ public class IbisSocketFactory {
                                 connected = true;
                         } catch (IOException e1) {
 				if (!retry) {
-					throw new IbisIOException("" + e1);
+					throw new IOException("" + e1);
 				} else {         
 					if (DEBUG) { 
 						System.err.println("ServerSocket connect to " + port + " failed, retrying");
@@ -187,15 +180,11 @@ public class IbisSocketFactory {
 	} 
 
 	/** Use this to accept, it sets the socket parameters. **/
-	public static Socket accept(ServerSocket a) throws IbisIOException {
+	public static Socket accept(ServerSocket a) throws IOException {
 		Socket s;
-		try {
-			s = a.accept();
-			s.setTcpNoDelay(true);
-//			System.err.println("accepted socket linger = " + s.getSoLinger());
-		} catch (IOException e) {
-			throw new IbisIOException("Accept got an error ", e);
-		}
+		s = a.accept();
+		s.setTcpNoDelay(true);
+//		System.err.println("accepted socket linger = " + s.getSoLinger());
 
 		if(DEBUG) {
 			System.out.println("accepted new connection from " + s.getInetAddress() + ":" + s.getPort() + ", local = " + s.getLocalAddress() + ":" + s.getLocalPort());
@@ -205,22 +194,18 @@ public class IbisSocketFactory {
 	}
 
 	/** Use this to close sockets, it nicely shuts down the streams, etc. **/
-	public static void close(InputStream in, OutputStream out, Socket s) throws IbisIOException {
-		try {
-			if(out != null) {
-				out.flush();
-				out.close();
-			}
+	public static void close(InputStream in, OutputStream out, Socket s) throws IOException {
+		if(out != null) {
+			out.flush();
+			out.close();
+		}
 
-			if(in != null) {
-				in.close();
-			}
+		if(in != null) {
+			in.close();
+		}
 
-			if(s != null) {
-				s.close();
-			}
-		} catch (IOException e) {
-			throw new IbisIOException("Accept got an error ", e);
+		if(s != null) {
+			s.close();
 		}
 	}
 }

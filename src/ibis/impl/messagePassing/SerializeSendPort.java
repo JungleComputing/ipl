@@ -2,8 +2,12 @@ package ibis.ipl.impl.messagePassing;
 
 import java.io.BufferedOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.IOException;
 
-import ibis.ipl.IbisIOException;
+import ibis.ipl.IbisException;
+import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.ConnectionRefusedException;
+
 import ibis.io.Replacer;
 
 final public class SerializeSendPort extends SendPort {
@@ -13,7 +17,8 @@ final public class SerializeSendPort extends SendPort {
     SerializeSendPort() {
     }
 
-    public SerializeSendPort(PortType type, String name, OutputConnection conn, Replacer r) throws IbisIOException {
+    public SerializeSendPort(PortType type, String name, OutputConnection conn, Replacer r)
+	    throws IOException {
 	super(type, name, conn, r,
 	      true,	/* syncMode */
 	      true	/* makeCopy */);
@@ -25,16 +30,12 @@ final public class SerializeSendPort extends SendPort {
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver,
 			int timeout)
-	    throws IbisIOException {
+	    throws IOException {
 
 	// Reset all our previous connections so the
 	// ObjectStream(BufferedStream()) may go through a stop/restart.
 	if (obj_out != null) {
-	    try {
-		obj_out.reset();
-	    } catch (java.io.IOException e) {
-		throw new IbisIOException(e);
-	    }
+	    obj_out.reset();
 	}
 
 	Ibis.myIbis.lock();
@@ -71,33 +72,29 @@ final public class SerializeSendPort extends SendPort {
 	    }
 
 	    if (! syncer[my_split].s_wait(timeout)) {
-		throw new ibis.ipl.IbisConnectionTimedOutException("No connection to " + receiver);
+		throw new ConnectionTimedOutException("No connection to " + receiver);
 	    }
 	    if (! syncer[my_split].accepted) {
-		throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + receiver);
+		throw new ConnectionRefusedException("No connection to " + receiver);
 	    }
 	} finally {
 	    Ibis.myIbis.unlock();
 	}
 
+	obj_out = new ibis.io.SunSerializationOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
+	if (replacer != null) {
+	    obj_out.setReplacer(replacer);
+	}
+	if (message != null) {
+	    ((SerializeWriteMessage)message).obj_out = obj_out;
+	}
+	obj_out.flush();
+	Ibis.myIbis.lock();
 	try {
-	    obj_out = new ibis.io.SunSerializationOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
-	    if (replacer != null) {
-		obj_out.setReplacer(replacer);
-	    }
-	    if (message != null) {
-		((SerializeWriteMessage)message).obj_out = obj_out;
-	    }
-	    obj_out.flush();
-	    Ibis.myIbis.lock();
-	    try {
-		out.send(true);
-		out.reset(true);
-	    } finally {
-		Ibis.myIbis.unlock();
-	    }
-	} catch (java.io.IOException e) {
-	    throw new IbisIOException(e);
+	    out.send(true);
+	    out.reset(true);
+	} finally {
+	    Ibis.myIbis.unlock();
 	}
 	if (Ibis.DEBUG) {
 	    System.err.println(Thread.currentThread() + ">>>>>>>>>>>> Created ObjectOutputStream " + obj_out + " on top of " + out);
@@ -105,7 +102,7 @@ final public class SerializeSendPort extends SendPort {
     }
 
 
-    ibis.ipl.WriteMessage cachedMessage() throws IbisIOException {
+    ibis.ipl.WriteMessage cachedMessage() throws IOException {
 	if (message == null) {
 	    message = new SerializeWriteMessage(this);
 	}

@@ -8,6 +8,8 @@ import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
+import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.ConnectionTimedOutException;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -15,6 +17,7 @@ import java.net.Socket;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -71,9 +74,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 NetServiceLink link = null;
                                 try {
                                         link = new NetServiceLink(eventQueue, serverSocket);
-                                } catch (NetIbisInterruptedException e) {
+                                } catch (ConnectionTimedOutException e) {
                                         continue accept_loop;
-                                } catch (NetIbisException e) {
+                                } catch (IOException e) {
                                         __.fwdAbort__(e);
                                 }
 
@@ -84,7 +87,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                                 try {
                                         link.init(num);
-                                } catch (NetIbisException e) {
+                                } catch (IOException e) {
                                         __.fwdAbort__(e);
                                 }
 
@@ -137,7 +140,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                                                 //inputLock.unlock();
                                                 connectionLock.unlock();
-                                        } catch (InterruptedException e) {
+                                        } catch (InterruptedIOException e) {
                                                 continue connect_loop;
                                         } catch (Exception e) {
                                                 System.err.println(e.getMessage());
@@ -173,16 +176,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
                 */
 
-                protected void end() {
+                protected void end() throws IOException {
                         log.in();
                         end = true;
 
                         if (serverSocket != null) {
-                                try {
-                                        serverSocket.close();
-                                } catch (Exception e) {
-                                        throw new Error(e);
-                                }
+				serverSocket.close();
                         }
 
                         this.interrupt();
@@ -426,7 +425,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         private Integer                  dummyUpcallSync     =  new Integer(0);
 
         /* --- Upcall from main input object -- */
-        public void inputUpcall(NetInput input, Integer spn) throws NetIbisException {
+        public void inputUpcall(NetInput input, Integer spn) throws IOException {
                 log.in();
                 if (this.input == null) {
                         __.warning__("message lost");
@@ -447,11 +446,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 currentThread = null;
 
                                 if (emptyMsg) {
-                                        try {
-                                                readByte();
-                                        } catch (Exception e) {
-                                                throw new Error(e.getMessage());
-                                        }
+					readByte();
 
                                         emptyMsg = false;
                                 }
@@ -506,7 +501,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                                         try {
                                                 close(cnx);
-                                        } catch (NetIbisException nie) {
+                                        } catch (IOException nie) {
                                                 throw new Error(nie);
                                         }
                                 }
@@ -540,7 +535,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                               String                   name,
                               Upcall                   upcall,
                               ReceivePortConnectUpcall rpcu)
-                throws NetIbisException {
+                throws IOException {
                 this.type              = type;
                 this.name              = name;
                 this.upcall            = upcall;
@@ -586,18 +581,18 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
         }
 
-        private void initMainInput() throws NetIbisException {
+        private void initMainInput() throws IOException {
                 log.in();
                 NetIbis ibis           = type.getIbis();
                 String  mainDriverName = type.getStringProperty("/", "Driver");
 
                 if (mainDriverName == null) {
-                        throw new NetIbisException("root driver not specified");
+                        throw new IbisConfigurationException("root driver not specified");
                 }
 
                 driver = ibis.getDriver(mainDriverName);
                 if (driver == null) {
-                        throw new NetIbisException("driver not found");
+                        throw new IbisConfigurationException("driver not found");
                 }
 
                 input = driver.newInput(type, null);
@@ -622,13 +617,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
         }
 
-        private void initServerSocket() throws NetIbisException {
+        private void initServerSocket() throws IOException {
                 log.in();
-                try {
-                        serverSocket = new ServerSocket(0, 1, InetAddress.getLocalHost());
-                } catch (IOException e) {
-                        throw new NetIbisException(e);
-                }
+		serverSocket = new ServerSocket(0, 1, InetAddress.getLocalHost());
                 log.out();
         }
 
@@ -671,7 +662,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          * the network input locking operation. The function may block
          * if the {@linkplain #inputLock network input lock} is not available.
          */
-        private boolean _doPoll(boolean block) throws NetIbisException {
+        private boolean _doPoll(boolean block) throws IOException {
                 log.in();
                 inputLock.lock();
                 activeSendPortNum = input.poll(block);
@@ -689,7 +680,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         /**
          * Internally initializes a new reception.
          */
-        private ReadMessage _receive() throws NetIbisException {
+        private ReadMessage _receive() throws IOException {
                 log.in();
                 emptyMsg = true;
                 if (trace.on()) {
@@ -709,7 +700,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          *
          * @return A {@link ReadMessage} instance.
          */
-        public ReadMessage receive() throws NetIbisException {
+        public ReadMessage receive() throws IOException {
                 log.in();
                 if (useUpcall) {
                         polledLock.lock();
@@ -729,7 +720,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return _receive();
         }
 
-        public ReadMessage receive(long millis) throws NetIbisException {
+        public ReadMessage receive(long millis) throws IOException {
                 if (millis == 0) {
                         return receive();
                 } else {
@@ -746,7 +737,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
         }
 
-       public ReadMessage receive(ReadMessage finishMe, long millis) throws NetIbisException {
+       public ReadMessage receive(ReadMessage finishMe, long millis) throws IOException {
                log.in();
                if (finishMe != null) {
                        ((NetReceivePort)finishMe).finish();
@@ -759,7 +750,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          /**
          * {@inheritDoc}
          */
-        public ReadMessage receive(ReadMessage finishMe) throws NetIbisException {
+        public ReadMessage receive(ReadMessage finishMe) throws IOException {
                 log.in();
                 if (finishMe != null) {
                         ((NetReceivePort)finishMe).finish();
@@ -778,7 +769,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          * @return A {@link ReadMessage} instance or <code>null</code> if polling
          * was unsuccessful.
          */
-        public ReadMessage poll()  throws NetIbisException {
+        public ReadMessage poll()  throws IOException {
                 log.in();
                 if (useUpcall) {
                         if (!polledLock.trylock())
@@ -799,7 +790,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         /**
          * {@inheritDoc}
          */
-        public ReadMessage poll(ReadMessage finishMe) throws NetIbisException {
+        public ReadMessage poll(ReadMessage finishMe) throws IOException {
                 log.in();
                 if (finishMe != null) {
                         ((NetReceivePort)finishMe).finish();
@@ -910,8 +901,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 try {
                                         connectionLock.lock();
                                         break;
-                                } catch (NetIbisInterruptedException e) {
-                                        System.err.println("InterruptedException ignored in NetReceivePort.disableConnections");
+                                } catch (InterruptedIOException e) {
+                                        System.err.println("InterruptedIOException ignored in NetReceivePort.disableConnections");
                                 }
                         }
                 }
@@ -938,7 +929,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 
 
-        private void close(NetConnection cnx) throws NetIbisException {
+        private void close(NetConnection cnx) throws IOException {
                 log.in();
                 if (cnx == null) {
                         log.out("cnx = null");
@@ -961,78 +952,73 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          * Closes the port.
          *
          * Note: surprinsingly, ReceivePort.free is not declared to
-         * throw NetIbisException while SendPort.free does.
+         * throw IOException while SendPort.free does.
          */
-        public void free() {
+        public void free() throws IOException {
                 log.in();
                 trace.disp(receivePortTracePrefix, "receive port shutdown-->");
                 synchronized(this) {
-                        try {
-                                if (inputLock != null) {
-                                        inputLock.lock();
-                                }
+			if (inputLock != null) {
+				inputLock.lock();
+			}
 
-                                trace.disp(receivePortTracePrefix, "receive port shutdown: input locked");
+			trace.disp(receivePortTracePrefix, "receive port shutdown: input locked");
 
-                                if (acceptThread != null) {
-                                        acceptThread.end();
+			if (acceptThread != null) {
+				acceptThread.end();
 
-                                        while (true) {
-                                                try {
-                                                        acceptThread.join();
-                                                        break;
-                                                } catch (InterruptedException e) {
-                                                        //
-                                                }
-                                        }
-                                }
+				while (true) {
+					try {
+						acceptThread.join();
+						break;
+					} catch (InterruptedException e) {
+						//
+					}
+				}
+			}
 
-                                trace.disp(receivePortTracePrefix, "receive port shutdown: accept thread terminated");
+			trace.disp(receivePortTracePrefix, "receive port shutdown: accept thread terminated");
 
-                                if (connectionTable != null) {
-                                        while (true) {
-                                                NetConnection cnx = null;
+			if (connectionTable != null) {
+				while (true) {
+					NetConnection cnx = null;
 
-                                                synchronized(connectionTable) {
-                                                        Iterator i = connectionTable.values().iterator();
-                                                        if (!i.hasNext())
-                                                                break;
+					synchronized(connectionTable) {
+						Iterator i = connectionTable.values().iterator();
+						if (!i.hasNext())
+							break;
 
-                                                        cnx = (NetConnection)i.next();
-							if (rpcu != null) {
-								rpcu.lostConnection(cnx.getSendId());
-							}
-                                                        i.remove();
-                                                }
+						cnx = (NetConnection)i.next();
+						if (rpcu != null) {
+							rpcu.lostConnection(cnx.getSendId());
+						}
+						i.remove();
+					}
 
-                                                if (cnx != null) {
-                                                        close(cnx);
-                                                }
-                                        }
-                                }
+					if (cnx != null) {
+						close(cnx);
+					}
+				}
+			}
 
-                                trace.disp(receivePortTracePrefix, "receive port shutdown: all connections closed");
+			trace.disp(receivePortTracePrefix, "receive port shutdown: all connections closed");
 
-                                if (input != null) {
-                                        input.free();
-                                }
-                                trace.disp(receivePortTracePrefix, "receive port shutdown: all inputs freed");
+			if (input != null) {
+				input.free();
+			}
+			trace.disp(receivePortTracePrefix, "receive port shutdown: all inputs freed");
 
-                                if (inputLock != null) {
-                                        inputLock.unlock();
-                                }
-                                trace.disp(receivePortTracePrefix, "receive port shutdown: input lock released");
-                        } catch (Exception e) {
-                                e.printStackTrace();
-                                __.fwdAbort__(e);
-                        }
+			if (inputLock != null) {
+				inputLock.unlock();
+			}
+			trace.disp(receivePortTracePrefix, "receive port shutdown: input lock released");
                 }
 
                 trace.disp(receivePortTracePrefix, "receive port shutdown<--");
                 log.out();
         }
 
-        public void forcedClose() {
+        public void forcedClose() throws IOException {
                 free();
         }
 
@@ -1061,7 +1047,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         }
 
         /* --- ReadMessage Part --- */
-        public void finish() throws NetIbisException {
+        public void finish() throws IOException {
                 log.in();
                 if (emptyMsg) {
                         readByte();
@@ -1098,7 +1084,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         }
 
 
-        public boolean readBoolean() throws NetIbisException {
+        public boolean readBoolean() throws IOException {
                 log.in();
                 emptyMsg = false;
                 boolean v = input.readBoolean();
@@ -1106,7 +1092,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return v;
         }
 
-        public byte readByte() throws NetIbisException {
+        public byte readByte() throws IOException {
                 log.in();
                 emptyMsg = false;
                 byte v = input.readByte();
@@ -1114,7 +1100,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return v;
         }
 
-        public char readChar() throws NetIbisException {
+        public char readChar() throws IOException {
                 log.in();
                 emptyMsg = false;
                 char v = input.readChar();
@@ -1122,7 +1108,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return v;
         }
 
-        public short readShort() throws NetIbisException {
+        public short readShort() throws IOException {
                 log.in();
                 emptyMsg = false;
                 short v = input.readShort();
@@ -1130,7 +1116,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return v;
         }
 
-        public int readInt() throws NetIbisException {
+        public int readInt() throws IOException {
                 log.in();
                 emptyMsg = false;
                 int v = input.readInt();
@@ -1138,7 +1124,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return v;
         }
 
-        public long readLong() throws NetIbisException {
+        public long readLong() throws IOException {
                 log.in();
                 emptyMsg = false;
                 long v = input.readLong();
@@ -1146,7 +1132,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return v;
         }
 
-        public float readFloat() throws NetIbisException {
+        public float readFloat() throws IOException {
                 log.in();
                 emptyMsg = false;
                 float v = input.readFloat();
@@ -1154,7 +1140,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return v;
         }
 
-        public double readDouble() throws NetIbisException {
+        public double readDouble() throws IOException {
                 log.in();
                 emptyMsg = false;
                 double v = input.readDouble();
@@ -1162,7 +1148,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return v;
         }
 
-        public String readString() throws NetIbisException {
+        public String readString() throws IOException {
                 log.in();
                 emptyMsg = false;
                 String v = input.readString();
@@ -1170,7 +1156,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return v;
         }
 
-        public Object readObject() throws NetIbisException {
+        public Object readObject() throws IOException, ClassNotFoundException {
                 log.in();
                 emptyMsg = false;
                 Object v = input.readObject();
@@ -1179,62 +1165,62 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         }
 
 
-        public void readArray(boolean [] b) throws NetIbisException {
+        public void readArray(boolean [] b) throws IOException {
                 log.in();
                 readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArray(byte [] b) throws NetIbisException {
+        public void readArray(byte [] b) throws IOException {
                 log.in();
                 readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArray(char [] b) throws NetIbisException {
+        public void readArray(char [] b) throws IOException {
                 log.in();
                 readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArray(short [] b) throws NetIbisException {
+        public void readArray(short [] b) throws IOException {
                 log.in();
                 readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArray(int [] b) throws NetIbisException {
+        public void readArray(int [] b) throws IOException {
                 log.in();
                 readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArray(long [] b) throws NetIbisException {
+        public void readArray(long [] b) throws IOException {
                 log.in();
                 readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArray(float [] b) throws NetIbisException {
+        public void readArray(float [] b) throws IOException {
                 log.in();
                 readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArray(double [] b) throws NetIbisException {
+        public void readArray(double [] b) throws IOException {
                 log.in();
                 readArray(b, 0, b.length);
                 log.out();
         }
 
-        public void readArray(Object [] b) throws NetIbisException {
+        public void readArray(Object [] b) throws IOException, ClassNotFoundException {
                 log.in();
                 readArray(b, 0, b.length);
                 log.out();
         }
 
 
-        public void readArray(boolean [] b, int o, int l) throws NetIbisException {
+        public void readArray(boolean [] b, int o, int l) throws IOException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1245,7 +1231,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 input.readArray(b, o, l);
         }
 
-        public void readArray(byte [] b, int o, int l) throws NetIbisException {
+        public void readArray(byte [] b, int o, int l) throws IOException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1256,7 +1242,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 input.readArray(b, o, l);
         }
 
-        public void readArray(char [] b, int o, int l) throws NetIbisException {
+        public void readArray(char [] b, int o, int l) throws IOException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1267,7 +1253,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 input.readArray(b, o, l);
         }
 
-        public void readArray(short [] b, int o, int l) throws NetIbisException {
+        public void readArray(short [] b, int o, int l) throws IOException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1278,7 +1264,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 input.readArray(b, o, l);
         }
 
-        public void readArray(int [] b, int o, int l) throws NetIbisException {
+        public void readArray(int [] b, int o, int l) throws IOException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1289,7 +1275,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 input.readArray(b, o, l);
         }
 
-        public void readArray(long [] b, int o, int l) throws NetIbisException {
+        public void readArray(long [] b, int o, int l) throws IOException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1300,7 +1286,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 input.readArray(b, o, l);
         }
 
-        public void readArray(float [] b, int o, int l) throws NetIbisException {
+        public void readArray(float [] b, int o, int l) throws IOException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1311,7 +1297,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 input.readArray(b, o, l);
         }
 
-        public void readArray(double [] b, int o, int l) throws NetIbisException {
+        public void readArray(double [] b, int o, int l) throws IOException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");
@@ -1322,7 +1308,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 input.readArray(b, o, l);
         }
 
-        public void readArray(Object [] b, int o, int l) throws NetIbisException {
+        public void readArray(Object [] b, int o, int l) throws IOException, ClassNotFoundException {
                 log.in();
                 if (l == 0) {
                         log.out("l = 0");

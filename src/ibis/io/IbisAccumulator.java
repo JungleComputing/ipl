@@ -1,6 +1,6 @@
 package ibis.io;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
 
 /**
  * A general data accumulator.
@@ -19,7 +19,7 @@ public interface IbisAccumulator {
      *
      * @exception IOException on IO error.
      */
-    public void flush() throws IbisIOException;
+    public void flush() throws IOException;
 
     /**
      * Tells the underlying implementation that the stream is closing
@@ -27,7 +27,7 @@ public interface IbisAccumulator {
      *
      * @exception IOException on IO error.
      */
-    public void close() throws IbisIOException;
+    public void close() throws IOException;
 
     /**
      * Return the number of bytes that was written to the message, 
@@ -46,56 +46,56 @@ public interface IbisAccumulator {
      * @param     value         the boolean value to write
      * @exception IOException	on an IO error
      */
-    public void writeBoolean(boolean value) throws IbisIOException;
+    public void writeBoolean(boolean value) throws IOException;
 
     /**
      * Writes a byte value to the accumulator.
      * @param     value         the byte value to write
      * @exception IOException	on an IO error
      */
-    public void writeByte(byte value) throws IbisIOException;
+    public void writeByte(byte value) throws IOException;
 
     /**
      * Writes a char value to the accumulator.
      * @param     value         the char value to write
      * @exception IOException	on an IO error
      */
-    public void writeChar(char value) throws IbisIOException;
+    public void writeChar(char value) throws IOException;
 
     /**
      * Writes a short value to the accumulator.
      * @param     value         the short value to write
      * @exception IOException	on an IO error
      */
-    public void writeShort(short value) throws IbisIOException;
+    public void writeShort(short value) throws IOException;
 
     /**
      * Writes a int value to the accumulator.
      * @param     value         the int value to write
      * @exception IOException	on an IO error
      */
-    public void writeInt(int value) throws IbisIOException;
+    public void writeInt(int value) throws IOException;
 
     /**
      * Writes a long value to the accumulator.
      * @param     value         the long value to write
      * @exception IOException	on an IO error
      */
-    public void writeLong(long value) throws IbisIOException;
+    public void writeLong(long value) throws IOException;
 
     /**
      * Writes a float value to the accumulator.
      * @param     value         the float value to write
      * @exception IOException	on an IO error
      */
-    public void writeFloat(float value) throws IbisIOException;
+    public void writeFloat(float value) throws IOException;
 
     /**
      * Writes a double value to the accumulator.
      * @param     value         the double value to write
      * @exception IOException	on an IO error
      */
-    public void writeDouble(double value) throws IbisIOException;
+    public void writeDouble(double value) throws IOException;
 
     /**
      * Writes (a slice of) an array of Booleans into the accumulator.
@@ -106,7 +106,7 @@ public interface IbisAccumulator {
      */
     public void writeArray(boolean [] source, 
 	    int offset,
-	    int size) throws IbisIOException;
+	    int size) throws IOException;
 
     /**
      * Writes (a slice of) an array of Bytes into the accumulator.
@@ -117,7 +117,7 @@ public interface IbisAccumulator {
      */
     public void writeArray(byte [] source, 
 	    int offset, 
-	    int size) throws IbisIOException;
+	    int size) throws IOException;
 
     /**
      * Writes (a slice of) an array of Characters into the accumulator.
@@ -128,7 +128,7 @@ public interface IbisAccumulator {
      */
     public void writeArray(char [] source, 
 	    int offset, 
-	    int size) throws IbisIOException;
+	    int size) throws IOException;
 
     /**
      * Writes (a slice of) an array of Short Integers into the accumulator.
@@ -139,7 +139,7 @@ public interface IbisAccumulator {
      */
     public void writeArray(short [] source, 
 	    int offset, 
-	    int size) throws IbisIOException;
+	    int size) throws IOException;
 
     /**
      * Writes (a slice of) an array of Integers into the accumulator.
@@ -150,7 +150,7 @@ public interface IbisAccumulator {
      */
     public void writeArray(int [] source, 
 	    int offset, 
-	    int size) throws IbisIOException;
+	    int size) throws IOException;
 
     /**
      * Writes (a slice of) an array of Long Integers into the accumulator.
@@ -161,7 +161,7 @@ public interface IbisAccumulator {
      */
     public void writeArray(long [] source, 
 	    int offset, 
-	    int size) throws IbisIOException;
+	    int size) throws IOException;
 
     /**
      * Writes (a slice of) an array of Floats into the accumulator.
@@ -172,7 +172,7 @@ public interface IbisAccumulator {
      */
     public void writeArray(float [] source, 
 	    int offset, 
-	    int size) throws IbisIOException;
+	    int size) throws IOException;
 
     /**
      * Writes (a slice of) an array of Doubles into the accumulator.
@@ -183,5 +183,5 @@ public interface IbisAccumulator {
      */
     public void writeArray(double [] source, 
 	    int offset, 
-	    int size) throws IbisIOException;
+	    int size) throws IOException;
 }

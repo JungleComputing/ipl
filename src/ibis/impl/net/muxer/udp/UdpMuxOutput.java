@@ -18,7 +18,6 @@ import ibis.ipl.impl.net.NetConnection;
 import ibis.ipl.impl.net.NetSendBuffer;
 import ibis.ipl.impl.net.NetConvert;
 import ibis.ipl.impl.net.NetBufferFactory;
-import ibis.ipl.impl.net.NetIbisException;
 
 import ibis.ipl.impl.net.muxer.MuxerOutput;
 import ibis.ipl.impl.net.muxer.MuxerKey;
@@ -72,20 +71,14 @@ public final class UdpMuxOutput
      */
     public UdpMuxOutput(NetPortType portType,
 		        NetDriver   driver,
-		        String      context) throws NetIbisException {
+		        String      context) throws IOException {
 
 	super(portType, driver, context);
 
-	try {
-	    socket = new DatagramSocket(0, InetAddress.getLocalHost());
-	    lmtu   = Math.min(socket.getSendBufferSize(), 32768);//TOCHANGE
-	    laddr  = socket.getLocalAddress();
-	    lport  = socket.getLocalPort();
-	} catch (SocketException e) {
-	    throw new NetIbisException(e);
-	} catch (IOException e) {
-	    throw new NetIbisException(e);
-	}
+	socket = new DatagramSocket(0, InetAddress.getLocalHost());
+	lmtu   = Math.min(socket.getSendBufferSize(), 32768);//TOCHANGE
+	laddr  = socket.getLocalAddress();
+	lport  = socket.getLocalPort();
 
 	packet = new DatagramPacket(new byte[0], 0, null, 0);
     }
@@ -101,7 +94,7 @@ public final class UdpMuxOutput
      * @param os {@inheritDoc}
      */
     public void setupConnection(NetConnection cnx, NetIO io)
-	    throws NetIbisException {
+	    throws IOException {
 
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": Now enter UdpMuxOutput.setupConnection, cnx = " + cnx + " suffix = " + "muxer.udp-");
@@ -109,38 +102,36 @@ Thread.dumpStack();
 	}
 
 	liveConnections++;
-	try {
-	    rpn = cnx.getNum();
+	rpn = cnx.getNum();
 
-	    // ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + rpn));
-	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(io, ":down"));
-	    os.writeObject(laddr);
-	    os.writeInt(lport);
-	    os.writeInt(lmtu);
-	    os.close();
+	// ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + rpn));
+	ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(io, ":down"));
+	os.writeObject(laddr);
+	os.writeInt(lport);
+	os.writeInt(lmtu);
+	os.close();
 
-	    if (Driver.DEBUG) {
-		System.err.println(this + ": in UdpMuxOutput.setupConnection, Integer = " + cnx.getNum() + " start info receive");
-	    }
-
-	    // ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + rpn));
-	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(io, ":up"));
-	    InetAddress raddr = (InetAddress)is.readObject();
-	    int rport         = is.readInt();
-	    int rmtu          = is.readInt();
-	    int rKey          = is.readInt();
-	    is.close();
-
-	    MuxerKey key = new UdpMuxerKey(raddr, rport, rKey);
-	    registerKey(cnx, key);
-
-	    mtu    = Math.min(lmtu, rmtu);
-
-	} catch (ClassNotFoundException e) {
-	    throw new NetIbisException(e);
-	} catch (IOException e) {
-	    throw new NetIbisException(e);
+	if (Driver.DEBUG) {
+	    System.err.println(this + ": in UdpMuxOutput.setupConnection, Integer = " + cnx.getNum() + " start info receive");
 	}
+
+	// ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + rpn));
+	ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(io, ":up"));
+	InetAddress raddr;
+	try {
+	    raddr = (InetAddress)is.readObject();
+	} catch (ClassNotFoundException e) {
+	    throw new Error("I cannot create java.net.InetAddress", e);
+	}
+	int rport = is.readInt();
+	int rmtu  = is.readInt();
+	int rKey  = is.readInt();
+	is.close();
+
+	MuxerKey key = new UdpMuxerKey(raddr, rport, rKey);
+	registerKey(cnx, key);
+
+	mtu    = Math.min(lmtu, rmtu);
 
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": Now leave UdpMuxOutput.setupConnection, Integer = " + cnx.getNum());
@@ -148,7 +139,7 @@ Thread.dumpStack();
     }
 
 
-    public void disconnect(MuxerKey key) throws NetIbisException {
+    public void disconnect(MuxerKey key) throws IOException {
 	if (--liveConnections == 0) {
 	    free();
 	}
@@ -160,7 +151,7 @@ Thread.dumpStack();
      */
     synchronized
     public void sendByteBuffer(NetSendBuffer b)
-	    throws NetIbisException {
+	    throws IOException {
 
 	UdpMuxerKey uk = (UdpMuxerKey)b.connectionId;
 
@@ -175,19 +166,15 @@ Thread.dumpStack();
 	if (Driver.DEBUG_HUGE) {
 	    System.err.print("|");
 	}
-	try {
 // System.err.print("w");
-	    socket.send(packet);
-	} catch (IOException e) {
-	    throw new NetIbisException(e);
-	}
+	socket.send(packet);
 	if (! b.ownershipClaimed) {
 	    b.free();
 	}
     }
 
 
-    synchronized public void close(Integer num) throws NetIbisException {
+    synchronized public void close(Integer num) throws IOException {
 	if (rpn == num) {
 	    if (socket != null) {
 		socket.close();
@@ -198,7 +185,7 @@ Thread.dumpStack();
     }
 
 
-    public void free() throws NetIbisException {
+    public void free() throws IOException {
 	if (rpn == null) {
 	    return;
 	}

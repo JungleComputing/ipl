@@ -2,6 +2,8 @@ package ibis.ipl.impl.net.s_ibis;
 
 import ibis.ipl.impl.net.*;
 
+import java.io.IOException;
+
 public final class Driver extends NetDriver {
 
 	/**
@@ -29,14 +31,14 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, String context) throws NetIbisException {
+	public NetInput newInput(NetPortType pt, String context) throws IOException {
 		return new SIbisInput(pt, this, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, String context) throws NetIbisException {
+	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
 		return new SIbisOutput(pt, this, context);
 	}
 }

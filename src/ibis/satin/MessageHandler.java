@@ -1,4 +1,7 @@
 package ibis.satin;
+
+import java.io.IOException;
+
 import ibis.ipl.*;
 
 final class MessageHandler implements Upcall, Protocol, Config {
@@ -15,9 +18,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			stamp = m.readInt();
 			owner = (IbisIdentifier) m.readObject();
 //			m.finish();
-		} catch (IbisIOException e) {
+		} catch (IOException e) {
 			System.err.println("SATIN '" + satin.ident.name() + 
 					   "': got exception while reading job result: " + e);
+			System.exit(1);
+		} catch (ClassNotFoundException e1) {
+			System.err.println("SATIN '" + satin.ident.name() + 
+					   "': got exception while reading job result: " + e1);
 			System.exit(1);
 		}
 		synchronized(satin) {
@@ -33,9 +40,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			i = (IbisIdentifier) m.readObject();
 			rr = (ReturnRecord) m.readObject();
 //			m.finish();
-		} catch (IbisIOException e) {
+		} catch (IOException e) {
 			System.err.println("SATIN '" + satin.ident.name() + 
 					   "': got exception while reading job result: " + e);
+			System.exit(1);
+		} catch (ClassNotFoundException e1) {
+			System.err.println("SATIN '" + satin.ident.name() + 
+					   "': got exception while reading job result: " + e1);
 			System.exit(1);
 		}
 
@@ -118,7 +129,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				}
 
 				return;
-			} catch (IbisIOException e) {
+			} catch (IOException e) {
 				System.err.println("SATIN '" + satin.ident.name() + 
 						   "': trying to send FAILURE back, but got exception: " + e);
 			}
@@ -168,7 +179,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				satin.handleStealTimer.stop();
 			}
 			return;
-		} catch (IbisIOException e) {
+		} catch (IOException e) {
 			System.err.println("SATIN '" + satin.ident.name() + 
 					   "': trying to send a job back, but got exception: " + e);
 		}
@@ -220,12 +231,19 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		case ASYNC_STEAL_REPLY_SUCCESS:
 			try {
 				tmp = (InvocationRecord) m.readObject();
-			} catch (IbisIOException e) {
+			} catch (IOException e) {
 				ident = m.origin();
 				System.err.println("SATIN '" + satin.ident.name() + 
 								   "': Got Exception while reading steal " +
 								   "reply from " + ident.name() + ", opcode:" +
 								   + opcode + ", exception: " + e);
+				System.exit(1);
+			} catch (ClassNotFoundException e1) {
+				ident = m.origin();
+				System.err.println("SATIN '" + satin.ident.name() + 
+								   "': Got Exception while reading steal " +
+								   "reply from " + ident.name() + ", opcode:" +
+								   + opcode + ", exception: " + e1);
 				System.exit(1);
 			}
 			satin.algorithm.stealReplyHandler(tmp, opcode);
@@ -302,7 +320,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 						   "': Illegal opcode " + opcode + " in MessageHandler");
 				System.exit(1);
 			}
-		} catch (IbisIOException e) {
+		} catch (IOException e) {
 			System.err.println("satin msgHandler upcall: " + e);
 				// Ignore.
 		}

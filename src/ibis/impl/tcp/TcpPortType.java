@@ -1,12 +1,13 @@
 package ibis.ipl.impl.tcp;
 
+import java.io.IOException;
+
 import ibis.ipl.PortType;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.SendPort;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Upcall;
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.io.Replacer;
@@ -66,7 +67,7 @@ class TcpPortType implements PortType, Config {
 		return p;
 	}
 
-	public SendPort createSendPort() throws IbisIOException {
+	public SendPort createSendPort() throws IOException {
 		SendPort s;
 
 		s = new TcpSendPort(this);
@@ -78,7 +79,7 @@ class TcpPortType implements PortType, Config {
 		return s;
 	}
 
-	public SendPort createSendPort(Replacer r) throws IbisIOException {
+	public SendPort createSendPort(Replacer r) throws IOException {
 		SendPort s;
 
 		s = new TcpSendPort(this, r);
@@ -90,7 +91,7 @@ class TcpPortType implements PortType, Config {
 		return s;
 	}
 
-	public SendPort createSendPort(String portname, Replacer r) throws IbisIOException {
+	public SendPort createSendPort(String portname, Replacer r) throws IOException {
 		SendPort s;
 
 		s = new TcpSendPort(this, r, portname);
@@ -102,7 +103,7 @@ class TcpPortType implements PortType, Config {
 		return s;
 	}
 
-	public SendPort createSendPort(String portname) throws IbisIOException {
+	public SendPort createSendPort(String portname) throws IOException {
 		SendPort s;
 
 		s = new TcpSendPort(this, portname);
@@ -114,38 +115,38 @@ class TcpPortType implements PortType, Config {
 		return s;
 	}
 
-	public SendPort createSendPort(String name, SendPortConnectUpcall cU) throws IbisIOException {
+	public SendPort createSendPort(String name, SendPortConnectUpcall cU) throws IOException {
 		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
 		return null;
 	}
 
 
-	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall cU) throws IbisIOException {
+	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall cU) throws IOException {
 		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
 		return null;
 	}
 
 
-	public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall cU) throws IbisIOException {
+	public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall cU) throws IOException {
 		System.err.println("Must implement createSendPort(..., ReceivePortConnectUpcall)");
 		return null;
 	}
 
-	public ReceivePort createReceivePort(String name) throws IbisIOException {
+	public ReceivePort createReceivePort(String name) throws IOException {
 	    return createReceivePort(name, null, null);
 	}
 
-	public ReceivePort createReceivePort(String name, Upcall u)  throws IbisIOException { 
+	public ReceivePort createReceivePort(String name, Upcall u)  throws IOException { 
 	    return createReceivePort(name, u, null);
 
 	}
 
-	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall cU) throws IbisIOException {
+	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall cU) throws IOException {
 	    return createReceivePort(name, null, cU);
 	}
 
 
-	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU)  throws IbisIOException { 
+	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU)  throws IOException { 
 		TcpReceivePort p = new TcpReceivePort(this, name, u, cU);
 
 		if(DEBUG) {
@@ -161,7 +162,7 @@ class TcpPortType implements PortType, Config {
 		return p;
 	}
 
-	void freeReceivePort(String name) throws IbisIOException {
+	void freeReceivePort(String name) throws IOException {
 		ibis.tcpReceivePortNameServerClient.unbind(name);
 	}
 

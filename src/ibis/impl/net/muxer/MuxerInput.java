@@ -3,7 +3,11 @@ package ibis.ipl.impl.net.muxer;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import java.io.IOException;
+
 import java.util.Hashtable;
+
+import ibis.ipl.ConnectionClosedException;
 
 import ibis.ipl.impl.net.NetConvert;
 import ibis.ipl.impl.net.NetPortType;
@@ -13,7 +17,6 @@ import ibis.ipl.impl.net.NetAllocator;
 import ibis.ipl.impl.net.NetBufferedInput;
 import ibis.ipl.impl.net.NetBufferFactory;
 import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetIbisException;
 import ibis.ipl.impl.net.NetVector;
 import ibis.ipl.impl.net.NetConnection;
 
@@ -71,12 +74,12 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
     }
 
 
-    private void receive() throws NetIbisException {
+    private void receive() throws IOException {
 	NetReceiveBuffer buffer = receiveByteBuffer(max_mtu);
 	int rKey = NetConvert.readInt(buffer.data, buffer.base + Driver.KEY_OFFSET);
 	MuxerQueue q = locateQueue(rKey);
 	if (q == null) {
-	    throw new NetIbisException("Message arrives for MuxerInput that is closed");
+	    throw new ConnectionClosedException("Message arrives for MuxerInput that is closed");
 	}
 	if (Driver.DEBUG) {
 	    System.err.println("Receive downcall UDP packet len " + buffer.length + " data " + buffer.data + "; key " + rKey + " /bound to " + q);
@@ -90,13 +93,13 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
      *
      * @param timeout poll timeout in msec. 0 signifies indefinite timeout.
      */
-    abstract protected Integer doPoll(int timeout) throws NetIbisException;
+    abstract protected Integer doPoll(int timeout) throws IOException;
 
 
     /**
      * {@inheritDoc}
      */
-    public Integer doPoll(boolean block) throws NetIbisException {
+    public Integer doPoll(boolean block) throws IOException {
 
 	if (! USE_POLLER_THREAD) {
 	    synchronized (this) {
@@ -131,7 +134,7 @@ System.err.println("Returned from doPoll(0)");
      *        This parameter indicates whether it is to be a blocking
      *        poll or a nonblocking poll.
      */
-    protected Integer attemptPoll(boolean block) throws NetIbisException {
+    protected Integer attemptPoll(boolean block) throws IOException {
 	boolean proceed;
 	Integer r = null;
 
@@ -167,13 +170,13 @@ System.err.println("Returned from doPoll(0)");
 
 
     public void setupConnection(NetConnection cnx)
-	    throws NetIbisException {
+	    throws IOException {
 	setupConnection(cnx, (NetIO)this);
     }
 
     public abstract void setupConnection(NetConnection cnx,
 					 NetIO io)
-	    throws NetIbisException;
+	    throws IOException;
 
 
     /**
@@ -184,7 +187,7 @@ System.err.println("Returned from doPoll(0)");
      */
     synchronized
     protected MuxerQueue createQueue(Object key, Integer spn)
-	    throws NetIbisException {
+	    throws IOException {
 	MuxerQueue q = new MuxerQueue(this, spn);
 	int connectionKey = keyHash.add(q);
 	if (Driver.DEBUG) {
@@ -207,11 +210,11 @@ System.err.println("Returned from doPoll(0)");
 
 
     public void startQueue(MuxerQueue queue, NetBufferFactory factory)
-	    throws NetIbisException {
+	    throws IOException {
 	if (max_ever_mtu == -1) {
 	    max_ever_mtu = max_mtu;
 	} else if (max_mtu > max_ever_mtu) {
-	    throw new NetIbisException("Cannot increase mtu beyond " + max_ever_mtu);
+	    throw new IOException("Cannot increase mtu beyond " + max_ever_mtu);
 	}
 	factory.setMaximumTransferUnit(max_ever_mtu);
 	queue.setBufferFactory(factory);
@@ -224,7 +227,7 @@ System.err.println("Returned from doPoll(0)");
     }
 
 
-    public void disconnect(MuxerQueue q) throws NetIbisException {
+    public void disconnect(MuxerQueue q) throws IOException {
 	if (Driver.DEBUG) {
 	    Thread.dumpStack();
 	    System.err.println("Now disconnect localQueue " + q.connectionKey() + " liveConnections was " + liveConnections());
@@ -243,7 +246,7 @@ System.err.println("Returned from doPoll(0)");
 
 
     synchronized
-    protected void releaseQueue(MuxerQueue key) throws NetIbisException {
+    protected void releaseQueue(MuxerQueue key) throws IOException {
 System.err.println(this + ": disconnect; connections was " + liveConnections);
 	keyHash.delete(key);
 	liveConnections--;

@@ -1,7 +1,8 @@
 package ibis.ipl.impl.messagePassing;
 
+import java.io.IOException;
+
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.io.Replacer;
@@ -61,59 +62,81 @@ public class PortType implements ibis.ipl.PortType {
     }
 
 
-    public ibis.ipl.SendPort createSendPort() throws IbisIOException {
+    public ibis.ipl.SendPort createSendPort() throws IOException {
 	return createSendPort("noname", null, null);
     }
 
-    public ibis.ipl.SendPort createSendPort(String portname) throws IbisIOException {
+    public ibis.ipl.SendPort createSendPort(String portname) throws IOException {
 	return createSendPort(portname, null, null);
     }
 
-    public ibis.ipl.SendPort createSendPort(String portname, SendPortConnectUpcall cU) throws IbisIOException {
+    public ibis.ipl.SendPort createSendPort(String portname, SendPortConnectUpcall cU) throws IOException {
 	return createSendPort(portname, null, cU);
     }
 
-    public ibis.ipl.SendPort createSendPort(Replacer r) throws IbisIOException {
+    public ibis.ipl.SendPort createSendPort(Replacer r) throws IOException {
 	return createSendPort("noname", r, null);
     }
 
-    public ibis.ipl.SendPort createSendPort(Replacer r, SendPortConnectUpcall cU) throws IbisIOException {
+    public ibis.ipl.SendPort createSendPort(Replacer r, SendPortConnectUpcall cU) throws IOException {
 	return createSendPort("noname", r, cU);
     }
 
-    public ibis.ipl.SendPort createSendPort(String portname, Replacer r) throws IbisIOException {
+    public ibis.ipl.SendPort createSendPort(String portname, Replacer r) throws IOException {
 	return createSendPort(portname, r, null);
     }
 
-    public ibis.ipl.SendPort createSendPort(String portname, Replacer r, SendPortConnectUpcall cU) throws IbisIOException {
-	    SendPort s;
-	    s = Ibis.myIbis.createSendPort(this, r, portname, cU);
+    public ibis.ipl.SendPort createSendPort(String portname, Replacer r, SendPortConnectUpcall cU) throws IOException {
 
-	    if (Ibis.DEBUG) {
-		    System.out.println(myIbis.name() + ": Sendport " + name + " created of of type '" +
-				       name + "'" + " cpu " + s.ident.cpu + " port " + s.ident.port);
-	    }
-	    
-	    return s;
+	if (cU != null) {
+	    System.err.println(this + ": createSendPort with ConnectUpcall. UNIMPLEMENTED");
+	}
+
+	SendPort s;
+
+	switch (serializationType) {
+        case PortType.SERIALIZATION_NONE:
+// System.err.println("MSG: NO SER, name = " + portname);
+	    s = new SendPort(this, portname, new OutputConnection());
+	    break;
+
+	case PortType.SERIALIZATION_SUN:
+// System.err.println("MSG: SUN SER, name = " + portname);
+	    s = new SerializeSendPort(this, portname, new OutputConnection(), r);
+	    break;
+
+	case PortType.SERIALIZATION_IBIS:
+// System.err.println("MSG: IBIS SER, name = " + portname);
+	    s = new IbisSendPort(this, portname, new OutputConnection(), r);
+	    break;
+
+	default:
+	    throw new Error("No such serialization type " + serializationType);
+	}
+
+	if (Ibis.DEBUG) {
+	    System.out.println(Ibis.myIbis.name() + ": Sendport " + portname +
+				" created of of type '" + this + "'" +
+				" cpu " + s.ident.cpu +
+				" port " + s.ident.port);
+	}
+	
+	return s;
     }
 
 
     public ibis.ipl.ReceivePort createReceivePort(String name)
-	    throws IbisIOException {
+	    throws IOException {
 	return createReceivePort(name, null, null);
     }
 
-    public ibis.ipl.ReceivePort createReceivePort(
-					String name,
-					ibis.ipl.Upcall u)
-					    throws IbisIOException {
+    public ibis.ipl.ReceivePort createReceivePort(String name, ibis.ipl.Upcall u)
+	    throws IOException {
 	return createReceivePort(name, u, null);
     }
 
-    public ibis.ipl.ReceivePort createReceivePort(
-					String name,
-					ibis.ipl.ReceivePortConnectUpcall cU)
-					    throws IbisIOException {
+    public ibis.ipl.ReceivePort createReceivePort(String name, ibis.ipl.ReceivePortConnectUpcall cU)
+	    throws IOException {
 	return createReceivePort(name, null, cU);
     }
 
@@ -121,7 +144,7 @@ public class PortType implements ibis.ipl.PortType {
 					String name,
 					ibis.ipl.Upcall u,
 					ibis.ipl.ReceivePortConnectUpcall cU)
-					    throws IbisIOException {
+	    throws IOException {
 
 	ReceivePort p = new ReceivePort(this, name, u, cU);
 
@@ -140,7 +163,7 @@ public class PortType implements ibis.ipl.PortType {
 	return p;
     }
 
-    void freeReceivePort(String name) throws IbisIOException {
+    void freeReceivePort(String name) throws IOException {
 	((Registry)myIbis.registry()).unbind(name);
     }
 

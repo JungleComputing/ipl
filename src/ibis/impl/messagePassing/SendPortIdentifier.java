@@ -1,6 +1,8 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
+
+import ibis.ipl.IbisException;
 
 final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     java.io.Serializable {
@@ -13,9 +15,7 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     transient byte[] serialForm;
 
 
-    SendPortIdentifier(String name, String type)
-	    throws IbisIOException {
-
+    SendPortIdentifier(String name, String type) {
 	synchronized (Ibis.myIbis) {
 	    port = Ibis.myIbis.sendPort++;
 	}
@@ -27,12 +27,16 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     }
 
 
-    private void makeSerialForm() throws IbisIOException {
-	serialForm = SerializeBuffer.writeObject(this);
+    private void makeSerialForm() {
+	try {
+	    serialForm = SerializeBuffer.writeObject(this);
+	} catch (IOException e) {
+	    throw new Error("Cannot serialize myself", e);
+	}
     }
 
 
-    byte[] getSerialForm() throws IbisIOException {
+    byte[] getSerialForm() {
 	if (serialForm == null) {
 	    makeSerialForm();
 	}

@@ -37,7 +37,7 @@ public final class MultiSplitter extends NetSplitter {
 	 * @param staticProperties the port's properties.
 	 * @param driver the driver of this poller.
 	 */
-	public MultiSplitter(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	public MultiSplitter(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
 		laneTable   = new Hashtable();
 
@@ -50,7 +50,7 @@ public final class MultiSplitter extends NetSplitter {
                 //System.err.println("multi-protocol plugin loaded");
 	}
 
-        private void updateSizes() throws NetIbisException {
+        private void updateSizes() throws IOException {
                 log.in();
 		Iterator i = null;
                 i = laneTable.values().iterator();
@@ -59,13 +59,9 @@ public final class MultiSplitter extends NetSplitter {
                 while (i.hasNext()) {
                         Lane _lane = (Lane)i.next();
 
-                        try {
-                                _lane.os.writeInt(mtu);
-                                _lane.os.writeInt(headerOffset);
-                                _lane.os.flush();
-                        } catch (IOException e) {
-                                throw new NetIbisIOException(e);
-                        }
+			_lane.os.writeInt(mtu);
+			_lane.os.writeInt(headerOffset);
+			_lane.os.flush();
                 }
 
                 i = laneTable.values().iterator();
@@ -73,15 +69,10 @@ public final class MultiSplitter extends NetSplitter {
                 while (i.hasNext()) {
                         Lane _lane = (Lane)i.next();
 
-                        try {
-                                int v = _lane.is.readInt();
-                                if (v != 3) {
-                                        throw new Error("invalid value");
-                                }
-
-                        } catch (IOException e) {
-                                throw new NetIbisIOException(e);
-                        }
+			int v = _lane.is.readInt();
+			if (v != 3) {
+				throw new Error("invalid value");
+			}
                 }
                 log.out();
         }
@@ -90,77 +81,75 @@ public final class MultiSplitter extends NetSplitter {
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
-                try {
-                        Integer num  = cnx.getNum();
-                        NetServiceLink link = cnx.getServiceLink();
+		Integer num  = cnx.getNum();
+		NetServiceLink link = cnx.getServiceLink();
 
 
-                        ObjectOutputStream 	os 	= new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
-                        os.flush();
+		ObjectOutputStream 	os 	= new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
+		os.flush();
 
-                        ObjectInputStream  	is 	= new ObjectInputStream (link.getInputSubStream (this, "multi"));
-
-
-                        NetIbisIdentifier localId = (NetIbisIdentifier)driver.getIbis().identifier();
-                        os.writeObject(localId);
-                        os.flush();
-
-                        NetIbisIdentifier remoteId = (NetIbisIdentifier)is.readObject();
+		ObjectInputStream  	is 	= new ObjectInputStream (link.getInputSubStream (this, "multi"));
 
 
-                        String          subContext      = (plugin!=null)?plugin.getSubContext(true, localId, remoteId, os, is):null;
-                        NetOutput 	no 		= (NetOutput)outputMap.get(subContext);
+		NetIbisIdentifier localId = (NetIbisIdentifier)driver.getIbis().identifier();
+		os.writeObject(localId);
+		os.flush();
 
-                        if (no == null) {
-                                String    subDriverName = getProperty(subContext, "Driver");
-                                trace.disp("subContext = ["+subContext+"], driver = ["+subDriverName+"]");
-                                NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
-                                no                      = newSubOutput(subDriver, subContext);
-                        }
+		NetIbisIdentifier remoteId;
+		try {
+			remoteId = (NetIbisIdentifier)is.readObject();
+		} catch (ClassNotFoundException e) {
+			throw new Error("Cannot find class NetIbisIdentifier", e);
+		}
 
-                        super.setupConnection(cnx, subContext, no);
 
-                        Lane lane = new Lane();
-                        lane.os           = os;
-                        lane.is           = is;
-                        lane.cnx          = cnx;
-                        lane.output       = no;
-                        lane.headerLength = no.getHeadersLength();
-                        lane.mtu          = no.getMaximumTransfertUnit();
-                        lane.subContext   = subContext;
+		String          subContext      = (plugin!=null)?plugin.getSubContext(true, localId, remoteId, os, is):null;
+		NetOutput 	no 		= (NetOutput)outputMap.get(subContext);
 
-                        {
-                                boolean update = false;
+		if (no == null) {
+			String    subDriverName = getProperty(subContext, "Driver");
+			trace.disp("subContext = ["+subContext+"], driver = ["+subDriverName+"]");
+			NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
+			no                      = newSubOutput(subDriver, subContext);
+		}
 
-                                if (mtu == 0  ||  mtu > lane.mtu) {
-                                        update = true;
-                                        mtu    = lane.mtu;
-					if (factory != null) {
-					    factory.setMaximumTransferUnit(mtu);
-					}
-                                }
+		super.setupConnection(cnx, subContext, no);
 
-                                if (headerOffset < lane.headerLength) {
-                                        update       = true;
-                                        headerOffset = lane.headerLength;
-                                }
+		Lane lane = new Lane();
+		lane.os           = os;
+		lane.is           = is;
+		lane.cnx          = cnx;
+		lane.output       = no;
+		lane.headerLength = no.getHeadersLength();
+		lane.mtu          = no.getMaximumTransfertUnit();
+		lane.subContext   = subContext;
 
-                                os.writeInt(mtu);
-                                os.writeInt(headerOffset);
-                                os.flush();
+		boolean update = false;
 
-                                if (update) {
-                                        updateSizes();
-                                }
-                        }
+		if (mtu == 0  ||  mtu > lane.mtu) {
+			update = true;
+			mtu    = lane.mtu;
+			if (factory != null) {
+			    factory.setMaximumTransferUnit(mtu);
+			}
+		}
 
-                        laneTable.put(cnx.getNum(), lane);
-                } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new NetIbisException(e);
-                }
+		if (headerOffset < lane.headerLength) {
+			update       = true;
+			headerOffset = lane.headerLength;
+		}
+
+		os.writeInt(mtu);
+		os.writeInt(headerOffset);
+		os.flush();
+
+		if (update) {
+			updateSizes();
+		}
+
+		laneTable.put(cnx.getNum(), lane);
                 log.out();
 	}
 
@@ -173,7 +162,7 @@ public final class MultiSplitter extends NetSplitter {
                 return key;
         }
 
-        public synchronized void closeConnection(Integer num) throws NetIbisException {
+        public synchronized void closeConnection(Integer num) throws IOException {
                 log.in();
                 if (laneTable != null) {
                         Lane lane = (Lane)laneTable.get(num);
@@ -191,7 +180,7 @@ public final class MultiSplitter extends NetSplitter {
         }
 
         /*
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void close(Integer num) throws IOException {
                 log.in();
                 if (laneTable != null) {
                         Lane lane = (Lane)laneTable.get(num);
@@ -210,7 +199,7 @@ public final class MultiSplitter extends NetSplitter {
 
 	/*
 	 * {@inheritDoc}
-	public void free() throws NetIbisException {
+	public void free() throws IOException {
                 log.in();
                 if (laneTable != null) {
                         Iterator i = laneTable.values().iterator();

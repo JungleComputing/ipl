@@ -1,8 +1,9 @@
 import ibis.ipl.*;
 
 import java.util.Properties;
-
 import java.util.Random;
+
+import java.io.IOException;
 
 interface Config {
 	static final boolean DEBUG = false;
@@ -119,7 +120,7 @@ class ExplicitReceiver implements Config {
 		this.c = c;
 	} 
 
-	void receive(int count, int repeat) throws IbisIOException {
+	void receive(int count, int repeat) throws IOException {
 		
 		for (int r=0;r<repeat;r++) {
 			for(int i = 0; i< count; i++) {

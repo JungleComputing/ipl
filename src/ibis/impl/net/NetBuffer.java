@@ -148,7 +148,7 @@ public class NetBuffer implements Cloneable {
 	 * Otherwise this method is a no-op, and the GC will reclaim the buffer.
 	 *
 	 */
-	public void free() throws NetIbisException {
+	public void free() {
 		if (factory != null) {
 		    factory.free(this);
 		} else {
@@ -169,7 +169,7 @@ public class NetBuffer implements Cloneable {
 	    try {
 		copy = (NetBuffer)clone();
 	    } catch (CloneNotSupportedException e) {
-		System.err.println("What's up NOW: NetBuffer IS cloneable!");
+		throw new Error("What's up NOW: NetBuffer IS cloneable!");
 	    }
 	    return copy;
 	}

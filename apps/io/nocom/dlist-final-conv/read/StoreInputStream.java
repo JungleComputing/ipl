@@ -1,5 +1,4 @@
 import java.io.IOException;
-import ibis.ipl.IbisIOException;
 import java.io.InputStream;
 
 /**

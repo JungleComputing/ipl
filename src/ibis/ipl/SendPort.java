@@ -1,5 +1,7 @@
 package ibis.ipl;
 
+import java.io.IOException;
+
 public interface SendPort {        
          /**
 	    Sendports maintain connections to one or more receive ports.
@@ -32,7 +34,7 @@ public interface SendPort {
 	   It is allowed to get a message for a sendport that is not connected.
 	   All data that is written into the message is then silently discarded.
 	**/
-	public WriteMessage newMessage() throws IbisIOException;
+	public WriteMessage newMessage() throws IOException;
 
 	public DynamicProperties properties();
 
@@ -40,26 +42,30 @@ public interface SendPort {
 
 	/**
 	   Attempt a connection with receiver.
-	   If receiver denies the connection, an
-	   IbisConnectionRefusedException is thrown.
+	   @exception ConnectionRefusedException is thrown
+	   if the receiver denies the connection.
 	   Multiple connections to the same receiver are NOT allowed.
+	   @exception PortConfigurationException is thrown if this receive
+	   port and the send port are of different types.
 	*/
-	public void connect(ReceivePortIdentifier receiver) throws IbisIOException;
+	public void connect(ReceivePortIdentifier receiver) throws IOException;
 
 	/**
 	   Attempt a connection with receiver.
-	   If receiver denies the connection, an
-	   IbisConnectionRefusedException is thrown.
-	   If an accept/deny has not arrived within timeout_millis, an
-	   IbisConnectionTimedOutException is thrown.
+	   @exception ibis.ipl.ConnectionTimedOutException is thrown
+	   if an accept/deny has not arrived within timeout_millis.
 	   A value timeout_millis of 0 signifies no timeout on the connection
 	   attempt.
+	   @exception ConnectionRefusedException is thrown
+	   if the receiver denies the connection.
 	   Multiple connections to the same receiver are NOT allowed.
+	   @exception PortConfigurationException is thrown if this receive
+	   port and the send port are of different types.
 	*/
-	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IbisIOException;
+	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IOException;
 
 	/** Free the resources held by the SendPort. **/
-	public void free() throws IbisIOException;
+	public void free() throws IOException;
 
 	/** Returns the set of receiveports this sendport is connected to. **/
 	public ReceivePortIdentifier[] connectedTo();

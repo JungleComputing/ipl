@@ -1,6 +1,6 @@
 package ibis.io;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
 
 /**
  * A general data dissipator.
@@ -16,13 +16,13 @@ public interface IbisDissipator {
 	 * Returns the number of bytes that can safely be read without
 	 * blocking
 	 */
-	public int available() throws IbisIOException;
+	public int available() throws IOException;
 
 	/**
          * Tells the underlying implementation that the stream is closing
          * down. After a call to close, nothing is required to work.
          */
-        public void close() throws IbisIOException;
+        public void close() throws IOException;
 
 	/**
 	 * The number of bytes read from the network 
@@ -40,49 +40,49 @@ public interface IbisDissipator {
 	 * Reads a Boolean from the dissipator
 	 * @return	The Boolean read from the Buffer
 	 */
-	public boolean readBoolean() throws IbisIOException;
+	public boolean readBoolean() throws IOException;
 
 	/**
 	 * Reads a Byte from the dissipator
 	 * @return	The Byte read from the Buffer
 	 */
-	public byte readByte() throws IbisIOException;
+	public byte readByte() throws IOException;
 	
 	/**
 	 * Reads a Character from the dissipator
 	 * @return	The Character read from the Buffer
 	 */
-	public char readChar() throws IbisIOException;
+	public char readChar() throws IOException;
 
 	/**
 	 * Reads a Short from the dissipator
 	 * @return	The Short read from the Buffer
 	 */
-	public short readShort() throws IbisIOException;
+	public short readShort() throws IOException;
 
 	/**
 	 * Reads a Integer from the dissipator
 	 * @return	The Integer read from the Buffer
 	 */
-	public int readInt() throws IbisIOException;
+	public int readInt() throws IOException;
 
 	/**
 	 * Reads a Long from the dissipator
 	 * @return	The Long read from the Buffer
 	 */
-	public long readLong() throws IbisIOException;
+	public long readLong() throws IOException;
 
 	/**
 	 * Reads a Float from the dissipator
 	 * @return	The Float read from the Buffer
 	 */
-	public float readFloat() throws IbisIOException;
+	public float readFloat() throws IOException;
 
 	/**
 	 * Reads a Double from the dissipator
 	 * @return	The Double read from the Buffer
 	 */
-	public double readDouble() throws IbisIOException;
+	public double readDouble() throws IOException;
 
 	                                                                    
 	/**
@@ -93,7 +93,7 @@ public interface IbisDissipator {
 	 */
 	public void readArray(boolean [] destination, 
 			      int offset, 
-			      int size) throws IbisIOException;
+			      int size) throws IOException;
 
 	/**
 	 * Reads a (slice of) an array of Booleans out of the dissipator
@@ -103,7 +103,7 @@ public interface IbisDissipator {
 	 */
         public void readArray(byte [] destination, 
 			      int offset, 
-			      int size) throws IbisIOException;
+			      int size) throws IOException;
 
 	/**
 	 * Reads a (slice of) an array of Chacacters out of the dissipator
@@ -113,7 +113,7 @@ public interface IbisDissipator {
 	 */
         public void readArray(char [] destination, 
 			      int offset, 
-			      int size) throws IbisIOException;
+			      int size) throws IOException;
 
 	/**
 	 * Reads a (slice of) an array of Short Integers out of the dissipator
@@ -123,7 +123,7 @@ public interface IbisDissipator {
 	 */
         public void readArray(short [] destination, 
 	                      int offset, 
-			      int size) throws IbisIOException;
+			      int size) throws IOException;
 
 	/**
 	 * Reads a (slice of) an array of Integers out of the dissipator
@@ -133,7 +133,7 @@ public interface IbisDissipator {
 	 */
         public void readArray(int [] destination, 
 			      int offset, 
-			      int size) throws IbisIOException;
+			      int size) throws IOException;
 
 	/**
 	 * Reads a (slice of) an array of Long Integers  out of the dissipator
@@ -143,7 +143,7 @@ public interface IbisDissipator {
 	 */
         public void readArray(long [] destination, 
 			      int offset, 
-			      int size) throws IbisIOException;
+			      int size) throws IOException;
 
 	/**
 	 * Reads a (slice of) an array of Floats out of the dissipator
@@ -153,7 +153,7 @@ public interface IbisDissipator {
 	 */
         public void readArray(float [] destination, 
 			      int offset, 
-			      int size) throws IbisIOException;
+			      int size) throws IOException;
 
 	/**
 	 * Reads a (slice of) an array of Doubles out of the dissipator
@@ -163,7 +163,7 @@ public interface IbisDissipator {
 	 */
         public void readArray(double [] destination, 
 			      int offset, 
-			      int size) throws IbisIOException;
+			      int size) throws IOException;
  
 }
 	

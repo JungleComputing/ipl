@@ -18,7 +18,7 @@ public final class PipeInput extends NetBufferedInput {
         private NetReceiveBuffer buf          = null;
         private boolean          upcallMode   = false;
 
-	PipeInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	PipeInput(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
 		headerLength = 4;
 		// Create the factory in the constructor. This allows
@@ -26,7 +26,7 @@ public final class PipeInput extends NetBufferedInput {
 		factory = new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl());
 	}
 
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
                 if (this.spn != null) {
                         throw new Error("connection already established");
@@ -37,28 +37,24 @@ public final class PipeInput extends NetBufferedInput {
                 if (upcallFunc != null) {
                         upcallMode = true;
                 }
-		try {
-			pipeIs = new PipedInputStream();
+		pipeIs = new PipedInputStream();
 
-			NetBank bank = driver.getIbis().getBank();
-			Long    key  = bank.getUniqueKey();
-			bank.put(key, pipeIs);
+		NetBank bank = driver.getIbis().getBank();
+		Long    key  = bank.getUniqueKey();
+		bank.put(key, pipeIs);
 
-			Hashtable info = new Hashtable();
-			info.put("pipe_mtu",         new Integer(mtu));
-			info.put("pipe_istream_key", key);
-			info.put("pipe_upcall_mode", new Boolean(upcallMode));
+		Hashtable info = new Hashtable();
+		info.put("pipe_mtu",         new Integer(mtu));
+		info.put("pipe_istream_key", key);
+		info.put("pipe_upcall_mode", new Boolean(upcallMode));
 
-			ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "pipe"));
-			os.writeObject(info);
-			os.flush();
-                        InputStream is = cnx.getServiceLink().getInputSubStream(this, "pipe");
-			int ack = is.read();
-                        os.close();
-                        is.close();
-		} catch (IOException e) {
-			throw new NetIbisException(e);
-		}
+		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "pipe"));
+		os.writeObject(info);
+		os.flush();
+		InputStream is = cnx.getServiceLink().getInputSubStream(this, "pipe");
+		int ack = is.read();
+		os.close();
+		is.close();
 
 		// Don't create a new factory here, just specify the mtu.
 		// Possibly a subclass overrode the factory, and we must leave
@@ -74,29 +70,25 @@ public final class PipeInput extends NetBufferedInput {
                 //
         }
 
-	public Integer doPoll(boolean block) throws NetIbisException {
+	public Integer doPoll(boolean block) throws IOException {
                 log.in();
 		if (spn == null) {
                         log.out("not connected");
 			return null;
 		}
 
-		try {
-                        if (block) {
-                                buf = receiveByteBuffer(1);
-                                return spn;
-                        } else if (pipeIs.available() > 0) {
-                                return spn;
-			}
-		} catch (IOException e) {
-			throw new NetIbisException(e);
+		if (block) {
+			buf = receiveByteBuffer(1);
+			return spn;
+		} else if (pipeIs.available() > 0) {
+			return spn;
 		}
-                log.out();
+		log.out();
 
 		return null;
 	}
 
-	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws NetIbisException {
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IOException {
                 log.in();
                 if (buf != null) {
                         NetReceiveBuffer temp = buf;
@@ -109,46 +101,42 @@ public final class PipeInput extends NetBufferedInput {
 		byte [] b = buf.data;
 		int     l = 0;
 
-		try {
-			int offset = 0;
-			do {
-                                if (!upcallMode) {
-                                        while (pipeIs.available() < 4) {
-                                                Thread.currentThread().yield();
-                                        }
-                                }
+		int offset = 0;
+		do {
+			if (!upcallMode) {
+				while (pipeIs.available() < 4) {
+					Thread.currentThread().yield();
+				}
+			}
 
-                                int result = pipeIs.read(b, offset, 4);
-                                if (result == -1) {
-                                        if (offset != 0) {
-                                                throw new Error("broken pipe");
-                                        }
+			int result = pipeIs.read(b, offset, 4);
+			if (result == -1) {
+				if (offset != 0) {
+					throw new Error("broken pipe");
+				}
 
-                                        log.out("connection lost");
-                                        return null;
-                                }
+				log.out("connection lost");
+				return null;
+			}
 
-				offset += result;
-			} while (offset < 4);
+			offset += result;
+		} while (offset < 4);
 
-			l = NetConvert.readInt(b, 0);
+		l = NetConvert.readInt(b, 0);
 
-			do {
-                                if (!upcallMode) {
-                                        while (pipeIs.available() < (l - offset)) {
-                                                Thread.currentThread().yield();
-                                        }
-                                }
+		do {
+			if (!upcallMode) {
+				while (pipeIs.available() < (l - offset)) {
+					Thread.currentThread().yield();
+				}
+			}
 
-				int result = pipeIs.read(b, offset, l - offset);
-                                if (result == -1) {
-                                        throw new Error("broken pipe");
-                                }
-                                offset += result;
-			} while (offset < l);
-		} catch (Exception e) {
-			throw new NetIbisException(e);
-		}
+			int result = pipeIs.read(b, offset, l - offset);
+			if (result == -1) {
+				throw new Error("broken pipe");
+			}
+			offset += result;
+		} while (offset < l);
 
 		buf.length = l;
                 log.out();
@@ -156,32 +144,22 @@ public final class PipeInput extends NetBufferedInput {
 		return buf;
 	}
 
-        public synchronized void doClose(Integer num) throws NetIbisException {
+        public synchronized void doClose(Integer num) throws IOException {
                 log.in();
                 if (spn == num) {
-                        try {
-                                if (pipeIs != null) {
-                                        pipeIs.close();
-                                }
-                        }
-                        catch (Exception e) {
-                                throw new NetIbisException(e);
-                        }
+			if (pipeIs != null) {
+				pipeIs.close();
+			}
 
                         spn = null;
                 }
                 log.out();
         }
 
-	public synchronized void doFree() throws NetIbisException {
+	public synchronized void doFree() throws IOException {
                 log.in();
-		try {
-			if (pipeIs != null) {
-				pipeIs.close();
-			}
-		}
-		catch (Exception e) {
-			throw new NetIbisException(e);
+		if (pipeIs != null) {
+			pipeIs.close();
 		}
 
                 spn = null;

@@ -1,8 +1,9 @@
 package ibis.group;
 
+import java.io.IOException;
+
 import ibis.ipl.WriteMessage;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.IbisException;
 
 import ibis.util.SpecialStack;
@@ -198,7 +199,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      * @param ticket the ticket number of this reply
      * @param resultMode the reply handling scheme
      */
-    protected final void handleResultMessage(ReadMessage r, int ticket, byte resultMode) throws IbisException, IbisIOException { 
+    protected final void handleResultMessage(ReadMessage r, int ticket, byte resultMode) throws IbisException, IOException { 
 
 	if (resultMode == ReplyScheme.R_FORWARD) { 
 	    Forwarder f = (Forwarder) replyStack.peekData(ticket);
@@ -290,7 +291,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
     } 
 
     /* Fill a writeMessage and send it out. */
-    private final void do_message(WriteMessage w, GroupMethod m, ReplyPersonalizer personalizer, int dest, ParameterVector v) throws IbisIOException {
+    private final void do_message(WriteMessage w, GroupMethod m, ReplyPersonalizer personalizer, int dest, ParameterVector v) throws IOException {
 	w.writeByte(INVOCATION);
 	w.writeInt(dest);
 	w.writeByte((byte) m.invocation_mode);
@@ -315,7 +316,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
     /**
      * When all parameters have been combined, actually invokes the group method.
      */
-    private final void do_invoke(GroupMethod m, CombinedInvocation inv, ReplyPersonalizer personalizer) throws IbisIOException {
+    private final void do_invoke(GroupMethod m, CombinedInvocation inv, ReplyPersonalizer personalizer) throws IOException {
 	switch (inv.inv.mode) {
 	case InvocationScheme.I_SINGLE:
 	    {
@@ -374,7 +375,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      * TODO: Deal with exceptions.
      *
      */
-    protected final GroupMessage flatCombineInvoke(ParameterVector params, GroupMethod m) throws IbisIOException {
+    protected final GroupMessage flatCombineInvoke(ParameterVector params, GroupMethod m) throws IOException {
 
 	CombinedInvocation inv = (CombinedInvocation) m.inv;
 	CombinedInvocationInfo info = m.info;
@@ -473,7 +474,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      * TODO: Deal with exceptions.
      *
      */
-    protected final GroupMessage binCombineInvoke(ParameterVector params, GroupMethod m) throws IbisIOException {
+    protected final GroupMessage binCombineInvoke(ParameterVector params, GroupMethod m) throws IOException {
 	CombinedInvocation inv = (CombinedInvocation) m.inv;
 	CombinedInvocationInfo info = m.info;
 	ReplyPersonalizer personalizer = null;
@@ -590,7 +591,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      *
      * @param msg the message containing the invocation parameters
      */
-    protected final void handleFlatInvocationCombineMessage(ReadMessage msg) throws IbisIOException {
+    protected final void handleFlatInvocationCombineMessage(ReadMessage msg) throws IOException {
 	GroupMethod m = methods[msg.readInt()];
 	int rank = msg.readInt();
 	int ticket = 0;
@@ -632,7 +633,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      *
      * @param msg the message containing the invocation parameters
      */
-    protected final void handleBinInvocationCombineMessage(ReadMessage msg) throws IbisIOException {
+    protected final void handleBinInvocationCombineMessage(ReadMessage msg) throws IOException {
 	GroupMethod m = methods[msg.readInt()];
 	int rank = msg.readInt();
 	int ticket = 0;
@@ -642,7 +643,12 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	    ticket = msg.readInt();
 	}
 
-	int[] stbs = (int[]) msg.readObject();
+	int[] stbs;
+	try {
+	    stbs = (int[]) msg.readObject();
+	} catch (ClassNotFoundException e) {
+	    throw new ClassCastException("Expect an int[] but " + e);
+	}
 	ParameterVector p = m.parameters.readParameters(msg);
 	msg.finish();
 

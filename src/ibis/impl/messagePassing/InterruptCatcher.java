@@ -1,5 +1,7 @@
 package ibis.ipl.impl.messagePassing;
 
+import java.io.IOException;
+
 class InterruptCatcher extends Thread {
 
     /**
@@ -80,7 +82,7 @@ class InterruptCatcher extends Thread {
 		Ibis.myIbis.unlock();
 
 		waitForSignal();
-	    } catch (ibis.ipl.IbisIOException e) {
+	    } catch (IOException e) {
 		System.err.println("From interrupt handler: exception " + e);
 	    }
 	}

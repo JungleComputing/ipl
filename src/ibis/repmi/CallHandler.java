@@ -1,5 +1,7 @@
 package ibis.repmi;
 
+import java.io.IOException;
+
 import ibis.ipl.*;
 
 final class CallHandler implements Protocol, Upcall { 
@@ -26,7 +28,10 @@ final class CallHandler implements Protocol, Upcall {
 			default: 
 				System.out.println(RTS._rank + ": Got an illegal opcode !");
 			} 
-		} catch (IbisIOException e) { 
+		} catch (ClassNotFoundException ec) { 
+			System.out.println(RTS._rank + ": Got an exception in GroupCallHandler !" + ec);
+			ec.printStackTrace();
+		} catch (IOException e) { 
 			System.out.println(RTS._rank + ": Got an exception in GroupCallHandler !" + e);
 			e.printStackTrace();
 		} 

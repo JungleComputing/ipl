@@ -2,6 +2,9 @@ package ibis.ipl.impl.net.rel;
 
 import ibis.ipl.impl.net.*;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.Ibis;
+
+import java.io.IOException;
 
 
 /**
@@ -54,7 +57,7 @@ public final class Driver extends NetDriver implements RelConstants {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, String context) throws NetIbisException {
+	public NetInput newInput(NetPortType pt, String context) throws IOException {
 		RelInput input = new RelInput(pt, this, context);
 		return input;
 	}
@@ -62,7 +65,7 @@ public final class Driver extends NetDriver implements RelConstants {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, String context) throws NetIbisException {
+	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
 		return new RelOutput(pt, this, context);
 	}
 

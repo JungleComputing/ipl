@@ -290,18 +290,22 @@ public class NetBufferFactory {
         }
 
 
-        /* Call this synchronized */
+        /**
+	 * Call this synchronized
+	 *
+	 * @exception throws a java.lang.IllegalArgumentException if the
+	 * 	requested buffer length exceeds the factory block size
+	 */
         private NetBuffer createNewBuffer(byte[] data,
                                           int length,
-                                          NetAllocator allocator)
-                throws NetIbisException {
+                                          NetAllocator allocator) {
 
                 if (data == null) {
                         if (allocator != null) {
 
                                 data = allocator.allocate();
                                 if (data.length < length) {
-                                        throw new NetIbisException(this + ": allocator blockSize " + data.length + " misfit with requested packet length" + length);
+                                        throw new IllegalArgumentException(this + ": allocator blockSize " + data.length + " misfit with requested packet length" + length);
                                 }
                         } else {
                                 data = new byte[length];
@@ -323,11 +327,13 @@ public class NetBufferFactory {
          * Create a NetBuffer of length <CODE>mtu</CODE>.
          *
          * Call this synchronized.
+	 *
+	 * @exception throws a java.lang.IllegalArgumentException if the
+	 * 	factory has no default mtu
          */
-        private NetBuffer createBuffer(NetAllocator allocator)
-                throws NetIbisException {
+        private NetBuffer createBuffer(NetAllocator allocator) {
                 if (mtu == 0) {
-                        throw new NetIbisException("Need an mtu to create NetBuffer without explicit length");
+                        throw new IllegalArgumentException("Need an mtu to create NetBuffer without explicit length");
                 }
 
                 NetBuffer b = null;
@@ -358,7 +364,7 @@ public class NetBufferFactory {
         /**
          * Create a NetBuffer of length <CODE>mtu</CODE>.
          */
-        synchronized public NetBuffer createBuffer() throws NetIbisException {
+        synchronized public NetBuffer createBuffer() {
                 return createBuffer(allocator);
         }
 
@@ -369,9 +375,9 @@ public class NetBufferFactory {
          *
          * @param buffer the {@link NetBuffer} to be released
          */
-        synchronized public void free(NetBuffer buffer) throws NetIbisException {
+        synchronized public void free(NetBuffer buffer) {
                 if (buffer.factory != this) {
-                        throw new NetIbisException("Cannot recycle NetBuffer that is not manufactured by me");
+                        throw new Error("Cannot recycle NetBuffer that is not manufactured by me");
                 }
 
                 if (mtu == 0) {
@@ -425,7 +431,7 @@ public class NetBufferFactory {
          *
          * @param length the length of the data stored in the buffer
          */
-        public NetBuffer createBuffer(int length) throws NetIbisException {
+        public NetBuffer createBuffer(int length) {
                 if (mtu != 0 && length <= mtu) {
                         NetBuffer b = createBuffer(allocator);
                         b.length = length;
@@ -444,8 +450,7 @@ public class NetBufferFactory {
         synchronized
                 public NetBuffer createBuffer(byte[] data,
                                               int length,
-                                              NetAllocator allocator)
-                throws NetIbisException {
+                                              NetAllocator allocator) {
 
                 if (data != null) {
                         NetBuffer buffer = null;

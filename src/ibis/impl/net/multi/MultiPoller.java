@@ -4,11 +4,16 @@ import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.io.EOFException;
 
 import java.net.InetAddress;
 
 import java.util.Hashtable;
 import java.util.Iterator;
+
+import ibis.ipl.ConnectionClosedException;
 
 /**
  * Provides a generic multiple network input poller.
@@ -31,7 +36,7 @@ public final class MultiPoller extends NetPoller {
                 private          Lane    lane =  null;
                 private volatile boolean exit = false;
 
-                public ServiceThread(String name, Lane lane) throws NetIbisException {
+                public ServiceThread(String name, Lane lane) throws IOException {
                         super("ServiceThread: "+name);
                         this.lane = lane;
                 }
@@ -50,11 +55,9 @@ public final class MultiPoller extends NetPoller {
 
                                         lane.os.writeInt(3);
                                         lane.os.flush();
-                                } catch (NetIbisInterruptedException e) {
+                                } catch (InterruptedIOException e) {
                                         break;
-                                } catch (NetIbisClosedException e) {
-                                        break;
-                                } catch (java.io.InterruptedIOException e) {
+                                } catch (ConnectionClosedException e) {
                                         break;
                                 } catch (java.io.EOFException e) {
                                         break;
@@ -89,7 +92,7 @@ public final class MultiPoller extends NetPoller {
          * @param driver the driver of this poller.
          */
         public MultiPoller(NetPortType pt, NetDriver driver, String context)
-                throws NetIbisException {
+                throws IOException {
                 super(pt, driver, context);
                 laneTable = new Hashtable();
 
@@ -107,16 +110,16 @@ public final class MultiPoller extends NetPoller {
         ***
          * {@inheritDoc}
          **
-        protected void selectInput(Integer spn) throws NetIbisClosedException {
+        protected void selectInput(Integer spn) throws ConnectionClosedException {
                 log.in();
                 Lane lane = (Lane)laneTable.get(spn);
                 if (lane == null) {
-                        throw new NetIbisClosedException("connection "+spn+" closed");
+                        throw new ConnectionClosedException("connection "+spn+" closed");
                 }
 
                 activeQueue = lane.queue;
                 if (activeQueue == null) {
-                        throw new NetIbisClosedException("connection "+spn+" closed");
+                        throw new ConnectionClosedException("connection "+spn+" closed");
                 }
                 log.out();
         }
@@ -125,60 +128,61 @@ public final class MultiPoller extends NetPoller {
         /**
          * {@inheritDoc}
          */
-        public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+        public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
-                try {
-                        Integer num  = cnx.getNum();
-                        NetServiceLink          link = cnx.getServiceLink();
+		Integer num  = cnx.getNum();
+		NetServiceLink          link = cnx.getServiceLink();
 
-                        ObjectInputStream       is      = new ObjectInputStream (link.getInputSubStream (this, "multi"));
-                        ObjectOutputStream      os      = new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
+		ObjectInputStream       is      = new ObjectInputStream (link.getInputSubStream (this, "multi"));
+		ObjectOutputStream      os      = new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
 
-                        os.flush();
+		os.flush();
 
 
-                        NetIbisIdentifier       localId         = (NetIbisIdentifier)driver.getIbis().identifier();
-                        NetIbisIdentifier       remoteId        = (NetIbisIdentifier)is.readObject();
+		NetIbisIdentifier       localId         = (NetIbisIdentifier)driver.getIbis().identifier();
+		NetIbisIdentifier       remoteId;
+		try {
+			remoteId        = (NetIbisIdentifier)is.readObject();
+		} catch (ClassNotFoundException e) {
+			throw new Error("Cannot find clss NetIbisIdentifier", e);
+		}
 
-                        os.writeObject(localId);
-                        os.flush();
+		os.writeObject(localId);
+		os.flush();
 
-                        NetInput        ni              = null;
-                        String          subContext      = (plugin!=null)?plugin.getSubContext(false, localId, remoteId, os, is):null;
-                        ReceiveQueue q = (ReceiveQueue)inputMap.get(subContext);
+		NetInput        ni              = null;
+		String          subContext      = (plugin!=null)?plugin.getSubContext(false, localId, remoteId, os, is):null;
+		ReceiveQueue q = (ReceiveQueue)inputMap.get(subContext);
 
-                        if (q == null) {
-                                String          subDriverName   = getProperty(subContext, "Driver");
-                                NetDriver       subDriver       = driver.getIbis().getDriver(subDriverName);
-                                ni = newSubInput(subDriver, subContext);
-                        } else {
-                                ni = q.input();
-                        }
+		if (q == null) {
+			String          subDriverName   = getProperty(subContext, "Driver");
+			NetDriver       subDriver       = driver.getIbis().getDriver(subDriverName);
+			ni = newSubInput(subDriver, subContext);
+		} else {
+			ni = q.input();
+		}
 
-                        super.setupConnection(cnx, subContext, ni);
+		super.setupConnection(cnx, subContext, ni);
 
-                        if (q == null) {
-                                q = (ReceiveQueue)inputMap.get(subContext);
-                        }
+		if (q == null) {
+			q = (ReceiveQueue)inputMap.get(subContext);
+		}
 
-                        Lane    lane = new Lane();
+		Lane    lane = new Lane();
 
-                        lane.is           = is;
-                        lane.os           = os;
-                        lane.cnx          = cnx;
-                        lane.queue        = q;
-                        lane.mtu          = is.readInt();
-                        lane.headerLength = is.readInt();
-                        lane.thread       = new ServiceThread("subcontext = "+subContext+", spn = "+num, lane);
-                        lane.subContext   = subContext;
+		lane.is           = is;
+		lane.os           = os;
+		lane.cnx          = cnx;
+		lane.queue        = q;
+		lane.mtu          = is.readInt();
+		lane.headerLength = is.readInt();
+		lane.thread       = new ServiceThread("subcontext = "+subContext+", spn = "+num, lane);
+		lane.subContext   = subContext;
 
-                        laneTable.put(num, lane);
+		laneTable.put(num, lane);
 
-                        lane.thread.start();
-                } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new NetIbisException(e);
-                }
+		lane.thread.start();
+
                 log.out();
         }
 
@@ -208,7 +212,7 @@ public final class MultiPoller extends NetPoller {
         /**
          * {@inheritDoc}
          */
-        public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws NetIbisException {
+        public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws IOException {
                 log.in();
                 if (laneTable != null) {
                         Lane lane = (Lane)laneTable.get(num);
@@ -230,7 +234,7 @@ public final class MultiPoller extends NetPoller {
 
         /*
          * {@inheritDoc}
-        public void free() throws NetIbisException {
+        public void free() throws IOException {
                 log.in();trace.in();
                 if (laneTable != null) {
                         Iterator i = laneTable.values().iterator();

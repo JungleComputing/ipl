@@ -16,7 +16,7 @@ public final class PipeOutput extends NetBufferedOutput {
 	private PipedOutputStream pipeOs     = null;
         private boolean           upcallMode = false;
 
-	PipeOutput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	PipeOutput(NetPortType pt, NetDriver driver, String context) throws IOException {
 		super(pt, driver, context);
 		headerLength = 4;
 	}
@@ -24,7 +24,7 @@ public final class PipeOutput extends NetBufferedOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
                 if (this.rpn != null) {
                         throw new Error("connection already established");
@@ -32,65 +32,56 @@ public final class PipeOutput extends NetBufferedOutput {
                 
 		this.rpn = cnx.getNum();
 	
+		ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "pipe"));
+
+		Hashtable info;
 		try {
-                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "pipe"));
-
-			Hashtable info = (Hashtable)is.readObject();
-			mtu  	       = ((Integer)info.get("pipe_mtu")).intValue();
-                        upcallMode     = ((Boolean)info.get("pipe_upcall_mode")).booleanValue();
-
-			NetBank          bank   = driver.getIbis().getBank();
-			Long             key    = (Long)info.get("pipe_istream_key");
-                        
-			PipedInputStream pipeIs = (PipedInputStream)bank.discardKey(key);
-
-			pipeOs = new PipedOutputStream(pipeIs);
-                        OutputStream os = cnx.getServiceLink().getOutputSubStream(this, "pipe");
-                                
-                        os.write(1); // Connection ack
-                        os.flush();
-                        is.close();
-                        os.close();
-		} catch (IOException e) {
-			throw new NetIbisException(e);
+			info = (Hashtable)is.readObject();
 		} catch (ClassNotFoundException e) {
 			throw new Error(e);
 		}
+		mtu  	       = ((Integer)info.get("pipe_mtu")).intValue();
+		upcallMode     = ((Boolean)info.get("pipe_upcall_mode")).booleanValue();
+
+		NetBank          bank   = driver.getIbis().getBank();
+		Long             key    = (Long)info.get("pipe_istream_key");
+		
+		PipedInputStream pipeIs = (PipedInputStream)bank.discardKey(key);
+
+		pipeOs = new PipedOutputStream(pipeIs);
+		OutputStream os = cnx.getServiceLink().getOutputSubStream(this, "pipe");
+			
+		os.write(1); // Connection ack
+		os.flush();
+		is.close();
+		os.close();
                 log.out();
 	}
 
-	public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
+	public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
-		try {
-			NetConvert.writeInt(b.length, b.data, 0);
-			pipeOs.write(b.data, 0, b.length);
-			/* Flush, otherwise it takes 1 second RFHH */
-			pipeOs.flush();
-                        if (!upcallMode) {
-                                Thread.currentThread().yield();
-                        }
-                        
-		} catch (IOException e) {
-			throw new NetIbisException(e);
-		} 
+		NetConvert.writeInt(b.length, b.data, 0);
+		pipeOs.write(b.data, 0, b.length);
+		/* Flush, otherwise it takes 1 second RFHH */
+		pipeOs.flush();
+		if (!upcallMode) {
+			Thread.currentThread().yield();
+		}
+			
 		if (! b.ownershipClaimed) {
 			b.free();
 		}
-                log.out();
+		log.out();
 	}
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void close(Integer num) throws IOException {
                 log.in();
                 if (rpn == num) {
-                        try {
-                                if (pipeOs != null) {
-                                        pipeOs.close();
-                                }
-		
-                                rpn = null;
-                        } catch (Exception e) {
-                                throw new NetIbisException(e);
-                        }
+			if (pipeOs != null) {
+				pipeOs.close();
+			}
+	
+			rpn = null;
                 }
                 log.out();
         }
@@ -98,18 +89,13 @@ public final class PipeOutput extends NetBufferedOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws NetIbisException {
+	public void free() throws IOException {
                 log.in();
-		try {
-			if (pipeOs != null) {
-				pipeOs.close();
-			}
-		
-			rpn = null;
+		if (pipeOs != null) {
+			pipeOs.close();
 		}
-		catch (Exception e) {
-			throw new NetIbisException(e);
-		}
+	
+		rpn = null;
 
 		super.free();
                 log.out();

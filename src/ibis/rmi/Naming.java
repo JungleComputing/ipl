@@ -106,7 +106,7 @@ public final class Naming {
 	Registry registry = getRegistry(parsed);
 
 	if (obj == null)
-	    throw new NullPointerException("cannot bind to null");
+	    throw new IllegalArgumentException("cannot bind to null");
 
 	System.out.println("Binding parsed name: " +  parsed.name);
 
@@ -155,7 +155,7 @@ public final class Naming {
 // System.err.println("Naming.rebind: registry = " + registry);
 
 	if (obj == null)
-	    throw new NullPointerException("cannot bind to null");
+	    throw new IllegalArgumentException("cannot bind to null");
 
 	registry.rebind(parsed.name, obj);
 // System.err.println("Naming.rebind: done");

@@ -3,9 +3,11 @@ package ibis.ipl.impl.net.rel;
 import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.Ibis;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.IOException;
 
 /**
  * The REL input implementation.
@@ -101,27 +103,23 @@ public final class RelInput
     }
 
 
-    private void checkLocked() throws NetIbisException {
+    private void checkLocked() {
 	if (DEBUG_LOCK) {
 	    try {
 		notify();
 		return;
 	    } catch (IllegalMonitorStateException e) {
-		System.err.println("I should own the lock but I DON'T");
-		Thread.dumpStack();
-		throw new NetIbisException("I should own the lock but I DON'T");
+		throw new Error("I should own the lock but I DON'T");
 	    }
 	}
     }
 
 
-    private void checkUnlocked() throws NetIbisException {
+    private void checkUnlocked() {
 	if (DEBUG_LOCK) {
 	    try {
 		notify();
-		System.err.println("I shouldn't own the lock but I DO");
-		Thread.dumpStack();
-		throw new NetIbisException("I shouldn't own the lock but I DO");
+		throw new Error("I shouldn't own the lock but I DO");
 	    } catch (IllegalMonitorStateException e) {
 		return;
 	    }
@@ -136,7 +134,7 @@ public final class RelInput
      * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
      * @param driver the REL driver instance.
      */
-    RelInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+    RelInput(NetPortType pt, NetDriver driver, String context) throws IOException {
 	super(pt, driver, context);
 
 	relDriver = (Driver)driver;
@@ -162,7 +160,7 @@ public final class RelInput
      * {@inheritDoc}
      */
     public synchronized void setupConnection(NetConnection cnx)
-	    throws NetIbisException {
+	    throws IOException {
 
 	Integer spn = cnx.getNum();
 
@@ -196,65 +194,62 @@ public final class RelInput
 	    subFactory.setMaximumTransferUnit(mtu);
 	}
 
+	NetServiceLink link = cnx.getServiceLink();
+	ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, ":request"));
+	os.writeObject(relDriver.getIbis().identifier());
+	os.close();
+
+	ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, ":reply"));
+	IbisIdentifier partnerId;
 	try {
-            NetServiceLink link = cnx.getServiceLink();
-            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, ":request"));
-            os.writeObject(relDriver.getIbis().identifier());
-	    os.close();
-
-	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, ":reply"));
-	    IbisIdentifier partnerId = (IbisIdentifier)is.readObject();
-	    partnerIndex = is.readInt();
-	    windowSize = is.readInt();
-            is.close();
-
-	    if (DEBUG) {
-		System.err.println(this + ": set up connection with " + partnerId + "; cnx " + cnx);
-	    }
-
-	    relDriver.registerInputConnection(this, partnerId);
-
-	    /* Reverse connection */
-	    NetOutput controlOutput = this.controlOutput;
-
-	    if (controlOutput == null) {
-		    controlOutput = newSubOutput(subDriver, "control");
-		    this.controlOutput = controlOutput;
-		    if (DEBUG) {
-			System.err.println(this + ": My control output is " + controlOutput);
-		    }
-	    } else {
-		if (DEBUG) {
-		    System.err.println(this + ": Recycle control output " + controlOutput);
-		}
-	    }
-
-	    controlOutput.setupConnection(new NetConnection(cnx, new Integer(-1)));
-	    controlHeaderStart = controlOutput.getHeadersLength();
-
-	    if (controlFactory == null) {
-		controlFactory = new NetBufferFactory(mtu, new RelSendBufferFactoryImpl());
-		controlOutput.setBufferFactory(controlFactory);
-	    } else {
-		controlFactory.setMaximumTransferUnit(mtu);
-	    }
-
-            os = new ObjectOutputStream(link.getOutputSubStream(this, ":handshake"));
-	    os.writeInt(1);
-            os.close();
-
-            this.spn = spn;
-            startUpcallThread();
-
-	    if (DEBUG) {
-		System.err.println(this + ": " + Thread.currentThread() + ": established connection with " + partnerId + "; upcallFunc = " + upcallFunc);
-	    }
-	} catch (java.io.IOException e) {
-	    System.err.println("Catch exception " + e);
-	    e.printStackTrace();
-	    throw new NetIbisException(e);
+	    partnerId = (IbisIdentifier)is.readObject();
 	} catch (java.lang.ClassNotFoundException e) {
-	    throw new NetIbisException(e);
+	    throw new Error("Cannot find class IbisIdentifier", e);
+	}
+	partnerIndex = is.readInt();
+	windowSize = is.readInt();
+	is.close();
+
+	if (DEBUG) {
+	    System.err.println(this + ": set up connection with " + partnerId + "; cnx " + cnx);
+	}
+
+	relDriver.registerInputConnection(this, partnerId);
+
+	/* Reverse connection */
+	NetOutput controlOutput = this.controlOutput;
+
+	if (controlOutput == null) {
+		controlOutput = newSubOutput(subDriver, "control");
+		this.controlOutput = controlOutput;
+		if (DEBUG) {
+		    System.err.println(this + ": My control output is " + controlOutput);
+		}
+	} else {
+	    if (DEBUG) {
+		System.err.println(this + ": Recycle control output " + controlOutput);
+	    }
+	}
+
+	controlOutput.setupConnection(new NetConnection(cnx, new Integer(-1)));
+	controlHeaderStart = controlOutput.getHeadersLength();
+
+	if (controlFactory == null) {
+	    controlFactory = new NetBufferFactory(mtu, new RelSendBufferFactoryImpl());
+	    controlOutput.setBufferFactory(controlFactory);
+	} else {
+	    controlFactory.setMaximumTransferUnit(mtu);
+	}
+
+	os = new ObjectOutputStream(link.getOutputSubStream(this, ":handshake"));
+	os.writeInt(1);
+	os.close();
+
+	this.spn = spn;
+	startUpcallThread();
+
+	if (DEBUG) {
+	    System.err.println(this + ": " + Thread.currentThread() + ": established connection with " + partnerId + "; upcallFunc = " + upcallFunc);
 	}
     }
 
@@ -266,7 +261,7 @@ public final class RelInput
 
     // Call this non-synchronized
     private void handlePiggy(byte[] data, int offset)
-	    throws NetIbisException {
+	    throws IOException {
 
 	checkUnlocked();
 
@@ -289,7 +284,7 @@ public final class RelInput
      */
     // Call this synchronized
     private boolean fillAck(byte[] data, int offset, boolean always)
-	    throws NetIbisException {
+	    throws IOException {
 
 	checkLocked();
 
@@ -425,7 +420,7 @@ public final class RelInput
      * irrespective of our position in the window.
      */
     // Call this synchronized
-    private void sendExplicitAck(boolean always) throws NetIbisException {
+    private void sendExplicitAck(boolean always) throws IOException {
 
 	checkLocked();
 
@@ -457,7 +452,7 @@ public final class RelInput
 
 
     private void handleDuplicate(RelReceiveBuffer packet)
-	    throws NetIbisException {
+	    throws IOException {
 
 	checkLocked();
 
@@ -474,7 +469,7 @@ public final class RelInput
 
     // Call this synchronized
     private void enqueueReceiveBuffer(RelReceiveBuffer packet)
-	    throws NetIbisException {
+	    throws IOException {
 
 	checkLocked();
 
@@ -544,7 +539,7 @@ public final class RelInput
     /* Call this if you know there is a packet because dataInput.poll() has
      * succeeded. */
     // Call this non-synchronized
-    private void receiveDataPacket() throws NetIbisException {
+    private void receiveDataPacket() throws IOException {
 
 	checkUnlocked();
 
@@ -572,7 +567,7 @@ public final class RelInput
 
 
     // If we want to yield() here, better call it non-synchronized
-    private boolean pollDataInput(boolean block) throws NetIbisException {
+    private boolean pollDataInput(boolean block) throws IOException {
 	if (DEBUG_HUGE) {
 	    System.err.println(this + ": pollDataInput(block=" + block);
 	    Thread.dumpStack();
@@ -587,7 +582,7 @@ public final class RelInput
 	}
     }
 
-    protected void initReceive() throws NetIbisException {
+    protected void initReceive() throws IOException {
         //
     }
 
@@ -613,7 +608,7 @@ public final class RelInput
      * {@inheritDoc}
      */
     // Call this non-synchronized
-    public Integer doPoll(boolean block) throws NetIbisException {
+    public Integer doPoll(boolean block) throws IOException {
         boolean result = false;
 
 	checkUnlocked();
@@ -639,7 +634,7 @@ public final class RelInput
 
     /* Block until we have got the buffer we want */
     // Call this nonsynchronized
-    private RelReceiveBuffer dequeueReceiveBuffer() throws NetIbisException {
+    private RelReceiveBuffer dequeueReceiveBuffer() throws IOException {
 
 	checkUnlocked();
 
@@ -670,7 +665,7 @@ public final class RelInput
 
 
     // Call this synchronized
-    private void handleReceiveContinuations() throws NetIbisException {
+    private void handleReceiveContinuations() throws IOException {
 
 	checkLocked();
 
@@ -684,7 +679,7 @@ public final class RelInput
      * {@inheritDoc}
      */
     public NetReceiveBuffer receiveByteBuffer(int length)
-	    throws NetIbisException {
+	    throws IOException {
 	if (DEBUG_HUGE) {
 	    System.err.println("Receive deliver request size " + length);
 	    Thread.dumpStack();
@@ -702,7 +697,7 @@ public final class RelInput
 
 
     synchronized
-    void pushAck(byte[] data, int offset) throws NetIbisException {
+    void pushAck(byte[] data, int offset) throws IOException {
 	if (DEBUG_ACK) {
 	    System.err.println("Push ack index " + partnerIndex + " offset " + offset);
 	}
@@ -728,7 +723,7 @@ public final class RelInput
     /**
      * {@inheritDoc}
      */
-    public void doFinish() throws NetIbisException {
+    public void doFinish() throws IOException {
 	if (DEBUG_HUGE) {
 	    System.err.println(this + ": finish()");
 	    Thread.dumpStack();
@@ -736,7 +731,7 @@ public final class RelInput
     }
 
 
-    synchronized public void doClose(Integer num) throws NetIbisException {
+    synchronized public void doClose(Integer num) throws IOException {
             // to implement
             //
             // - 'num' is the is the Integer identifier of the connection to close
@@ -781,7 +776,7 @@ public final class RelInput
     /**
      * {@inheritDoc}
      */
-    public void doFree() throws NetIbisException {
+    public void doFree() throws IOException {
 	if (spn != null) {
 	    close(spn);
 	}

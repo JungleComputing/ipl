@@ -22,69 +22,68 @@ public final class abc implements MultiPlugin {
                                     NetIbisIdentifier  	localId,
                                     NetIbisIdentifier  	remoteId,
                                     ObjectOutputStream	os,
-                                    ObjectInputStream 	is) throws NetIbisException {
+                                    ObjectInputStream 	is) throws IOException {
                 String subContext = null;
 
-                try {
-                        InetAddress localHostAddr  = InetAddress.getLocalHost();
-                        InetAddress remoteHostAddr = null;
+		InetAddress localHostAddr  = InetAddress.getLocalHost();
+		InetAddress remoteHostAddr = null;
 
-                        if (isOutgoing) {
-                                os.writeObject(localHostAddr);
-                                os.flush();
-                                remoteHostAddr = (InetAddress)is.readObject();
-                        } else {
-                                remoteHostAddr = (InetAddress)is.readObject();
-                                os.writeObject(localHostAddr);
-                                os.flush();
-                        }
+		try {
+			if (isOutgoing) {
+				os.writeObject(localHostAddr);
+				os.flush();
+				remoteHostAddr = (InetAddress)is.readObject();
+			} else {
+				remoteHostAddr = (InetAddress)is.readObject();
+				os.writeObject(localHostAddr);
+				os.flush();
+			}
+		} catch (ClassNotFoundException e) {
+			throw new Error("Cannot find class InetAddress", e);
+		}
 
-                        if (localId.equals(remoteId)) {
-                                subContext = "process";
-                        } else {
-                                byte [] l = localHostAddr.getAddress();
-                                byte [] r = remoteHostAddr.getAddress();
-                                int n = 0;
+		if (localId.equals(remoteId)) {
+			subContext = "process";
+		} else {
+			byte [] l = localHostAddr.getAddress();
+			byte [] r = remoteHostAddr.getAddress();
+			int n = 0;
 
-                                while (n < 4 && l[n] == r[n])
-                                        n++;
+			while (n < 4 && l[n] == r[n])
+				n++;
 
-                                switch (n) {
-                                case 4:
-                                        {
-                                                subContext = "node";
-                                                break;
-                                        }
+			switch (n) {
+			case 4:
+				{
+					subContext = "node";
+					break;
+				}
 
-                                case 3:
-                                        {
-                                                subContext = "net_c";
-                                                break;
-                                        }
+			case 3:
+				{
+					subContext = "net_c";
+					break;
+				}
 
-                                case 2:
-                                        {
-                                                subContext = "net_b";
-                                                break;
-                                        }
+			case 2:
+				{
+					subContext = "net_b";
+					break;
+				}
 
-                                case 1:
-                                        {
-                                                subContext = "net_a";
-                                                break;
-                                        }
+			case 1:
+				{
+					subContext = "net_a";
+					break;
+				}
 
-                                default:
-                                        {
-                                                subContext = "internet";
-                                                break;
-                                        }
-                                }
-                        }
-                } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new NetIbisException(e);
-                }
+			default:
+				{
+					subContext = "internet";
+					break;
+				}
+			}
+		}
 
                 return subContext;
         }

@@ -2,6 +2,8 @@ import ibis.ipl.*;
 
 import java.util.Properties;
 
+import java.io.IOException;
+
 class Throughput extends Thread { 
 
 	int count = 1000;
@@ -22,7 +24,7 @@ class Throughput extends Thread {
 		new Throughput(args).start();
 	}
 
-	void send() throws IbisIOException {
+	void send() throws IOException {
 		int w = windowSize;
 		for(int i = 0; i< count; i++) {
 			WriteMessage writeMessage = sport.newMessage();
@@ -40,7 +42,7 @@ class Throughput extends Thread {
 	}
 
 
-	void rcve() throws IbisIOException {
+	void rcve() throws IOException {
 		int w = windowSize;
 		for(int i = 0; i< count; i++) {
 			ReadMessage readMessage = rport.receive();
@@ -150,7 +152,12 @@ System.err.println(">>>>>>>> Righto, I'm the slave");
 			System.out.println("StackTrace:");
 			e.printStackTrace();
 
-		} catch (IbisIOException e) { 
+		} catch (ClassNotFoundException e) { 
+			System.out.println("Got exception " + e);
+			System.out.println("StackTrace:");
+			e.printStackTrace();
+
+		} catch (IOException e) { 
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();

@@ -2,7 +2,11 @@ package ibis.ipl.impl.messagePassing;
 
 import java.util.Vector;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
+import java.io.StreamCorruptedException;
+
+import ibis.ipl.IbisException;
+import ibis.ipl.PortMismatchException;
 
 class ShadowSendPort extends SendPort {
 
@@ -20,13 +24,18 @@ class ShadowSendPort extends SendPort {
 
     static ShadowSendPort createShadowSendPort(byte[] rcvePortBuf,
 					       byte[] sendPortBuf)
-	    throws IbisIOException {
+	    throws IOException {
 
 // System.err.println("createShadowSendPort: rcvePortBuf[" + rcvePortBuf.length + "] sendPortBuf[" + sendPortBuf.length + "]");
 	ReceivePortIdentifier rId;
 	SendPortIdentifier sId;
-	rId = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortBuf);
-	sId = (SendPortIdentifier)SerializeBuffer.readObject(sendPortBuf);
+
+	try {
+	    rId = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortBuf);
+	    sId = (SendPortIdentifier)SerializeBuffer.readObject(sendPortBuf);
+	} catch (ClassNotFoundException e) {
+	    throw new IOException("Cannot read Ids from stream " + e);
+	}
 
 	PortType portType = Ibis.myIbis.getPortTypeLocked(sId.type);
 // System.err.println("Sender port type " + sId.type + " = " + portType);
@@ -45,14 +54,14 @@ class ShadowSendPort extends SendPort {
 	    return new IbisShadowSendPort(rId, sId);
 
 	default:
-	    throw new IbisIOException("No such serialization type " + serializationType);
+	    throw new Error("No such serialization type " + serializationType);
 	}
     }
 
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
     ShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId)
-	    throws IbisIOException {
+	    throws IOException {
 
 	if (Ibis.DEBUG) {
 	    System.err.println("In ShadowSendPort.<init>");
@@ -64,7 +73,7 @@ class ShadowSendPort extends SendPort {
 	receivePort = Ibis.myIbis.lookupReceivePort(rId.port);
 	if (! rId.type().equals(ident.type())) {
 	    System.err.println("********************** ShadowSendPort type does not equal connected ReceivePort type");
-	    throw new IbisIOException("************************** Want to connect send port and receive port of different types: " + type + " <-> " + receivePort.type.name());
+	    throw new PortMismatchException("************************** Want to connect send port and receive port of different types: " + type + " <-> " + receivePort.type.name());
 	}
 	this.type = receivePort.type;
 	connected = false;
@@ -80,7 +89,7 @@ class ShadowSendPort extends SendPort {
     }
 
 
-    ReadMessage getMessage(int msgSeqno) throws IbisIOException {
+    ReadMessage getMessage(int msgSeqno) throws IOException {
 	ReadMessage msg = cachedMessage;
 
 	if (Ibis.DEBUG) {
@@ -106,7 +115,7 @@ class ShadowSendPort extends SendPort {
      * in the constructor. Provide a handle to create the Serialize streams after we
      * have deposited the first msg/fragment in the queue. */
     boolean checkStarted(ReadMessage msg)
-	    throws IbisIOException {
+	    throws IOException {
 	return true;
     }
 
@@ -134,8 +143,8 @@ class ShadowSendPort extends SendPort {
 				byte[] rcvePortId,
 				byte[] sendPortId,
 				Syncer syncer)
-	    throws IbisIOException {
-	throw new IbisIOException("ShadowSendPort cannot (dis)connect");
+	    throws IOException {
+	throw new IOException("ShadowSendPort cannot (dis)connect");
     }
 
 
@@ -143,8 +152,8 @@ class ShadowSendPort extends SendPort {
 				   byte[] rcvePortId,
 				   byte[] sendPortId,
 				   int messageCount)
-	    throws IbisIOException {
-	throw new IbisIOException("ShadowSendPort cannot (dis)connect");
+	    throws IOException {
+	throw new IOException("ShadowSendPort cannot (dis)connect");
     }
 
 
@@ -157,16 +166,15 @@ class ShadowSendPort extends SendPort {
     }
 
 
-    static void disconnect(byte[] rcvePortId, byte[] sendPortId, int count) {
+    static void disconnect(byte[] rcvePortId, byte[] sendPortId, int count)
+	    throws IOException {
 	ReceivePortIdentifier rId = null;
 	SendPortIdentifier sId = null;
 	try {
 	    rId = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortId);
 	    sId = (SendPortIdentifier)SerializeBuffer.readObject(sendPortId);
-	} catch (IbisIOException e) {
-	    System.err.println("Cannot deserialize PortIdentifiers");
-	    Thread.dumpStack();
-	    return;
+	} catch (ClassNotFoundException e) {
+	    throw new IOException("Cannot read Ids from stream " + e);
 	}
 
 	ShadowSendPort sp = Ibis.myIbis.lookupSendPort(sId.cpu, sId.port);
@@ -183,8 +191,7 @@ class ShadowSendPort extends SendPort {
 	    Ibis.myIbis.unbindSendPort(sp.ident.cpu, sp.ident.port);
 	    rp.disconnect(sp);
 	} else if (sp.messageCount > count) {
-	    System.err.println("This cannot happen...");
-	    Thread.dumpStack();
+	    throw new StreamCorruptedException("This cannot happen...");
 	} else {
 	    sp.quitCount = count;
 	}

@@ -1,7 +1,5 @@
 package ibis.ipl.impl.net.tcp;
 
-import ibis.ipl.IbisException;
-
 import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
@@ -48,7 +46,7 @@ public final class Driver extends NetDriver {
 	 * @return The new TCP input.
 	 */
 	public NetInput newInput(NetPortType pt, String context)
-		throws NetIbisException {
+		throws IOException {
 		return new TcpInput(pt, this, context);
 	}
 
@@ -61,7 +59,7 @@ public final class Driver extends NetDriver {
 	 * @return The new TCP output.
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)
-		throws NetIbisException {
+		throws IOException {
 		return new TcpOutput(pt, this, context);
 	}
 }

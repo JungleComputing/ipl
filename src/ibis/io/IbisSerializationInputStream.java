@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.Serializable;
 import java.io.Externalizable;
-import ibis.ipl.IbisIOException;
+import java.io.UTFDataFormatException;
+import java.io.StreamCorruptedException;
+import java.io.NotSerializableException;
 
 public final class IbisSerializationInputStream extends SerializationInputStream implements IbisStreamFlags {
 
@@ -96,7 +98,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     public void resetBytesRead() {
                 in.resetBytesRead();
     }
-
 
     /* This is the data output / object output part */
 
@@ -229,7 +230,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		c[len++] = (char)(b[i] & 0x7f);
 	    } else if ((b[i] & ~0x1f) == 0xc0) {
 		if (i + 1 >= bn || (b[i + 1] & ~0x3f) != 0x80) {
-		    throw new IOException("UTF Data Format Exception");
+		    throw new UTFDataFormatException("UTF Data Format Exception");
 		}
 		c[len++] = (char)(((b[i] & 0x1f) << 6) | (b[i] & 0x3f));
 		i++;
@@ -237,11 +238,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		if (i + 2 >= bn ||
 			(b[i + 1] & ~0x3f) != 0x80 ||
 			(b[i + 2] & ~0x3f) != 0x80) {
-		    throw new IOException("UTF Data Format Exception");
-			}
+		    throw new UTFDataFormatException("UTF Data Format Exception");
+		}
 		c[len++] = (char)(((b[i] & 0x0f) << 12) | ((b[i+1] & 0x3f) << 6) | b[i+2] & 0x3f);
 	    } else {
-		throw new IOException("UTF Data Format Exception");
+		throw new UTFDataFormatException("UTF Data Format Exception");
 	    }
 	}
 
@@ -286,7 +287,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     private void readArrayHeader(Class clazz, int len)
-	throws IOException {
+	    throws IOException, ClassNotFoundException {
 
 	if (DEBUG) {
 	    System.err.println("readArrayHeader: class = " + clazz + " len = " + len);
@@ -294,7 +295,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	int type = readHandle();
 
 	if (ASSERTS && ((type & TYPE_BIT) == 0)) {
-	    throw new IOException("Array slice header but I receive a HANDLE!");
+	    throw new StreamCorruptedException("Array slice header but I receive a HANDLE!");
 	}
 
 	Class in_clazz = readType(type & TYPE_MASK).clazz;
@@ -330,56 +331,80 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	return new String(chars);
     }
 
-    public void readArray(boolean[] ref, int off, int len)
-	throws IOException {
-	readArrayHeader(classBooleanArray, len);
+    public void readArray(boolean[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classBooleanArray, len);
+	} catch (ClassNotFoundException e) {
+	    throw new Error("require boolean[]", e);
+	}
 	in.readArray(ref, off, len);
     }
 
-    public void readArray(byte[] ref, int off, int len)
-	throws IOException {
-	readArrayHeader(classByteArray, len);
+    public void readArray(byte[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classByteArray, len);
+	} catch (ClassNotFoundException e) {
+	    throw new Error("require byte[]", e);
+	}
 	in.readArray(ref, off, len);
     }
 
-    public void readArray(char[] ref, int off, int len)
-	throws IOException {
-	readArrayHeader(classCharArray, len);
+    public void readArray(char[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classCharArray, len);
+	} catch (ClassNotFoundException e) {
+	    throw new Error("require char[]", e);
+	}
 	in.readArray(ref, off, len);
     }
 
-    public void readArray(short[] ref, int off, int len)
-	throws IOException {
-	readArrayHeader(classShortArray, len);
+    public void readArray(short[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classShortArray, len);
+	} catch (ClassNotFoundException e) {
+	    throw new Error("require short[]", e);
+	}
 	in.readArray(ref, off, len);
     }
 
-    public void readArray(int[] ref, int off, int len)
-	throws IOException {
-	readArrayHeader(classIntArray, len);
+    public void readArray(int[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classIntArray, len);
+	} catch (ClassNotFoundException e) {
+	    throw new Error("require int[]", e);
+	}
 	in.readArray(ref, off, len);
     }
 
-    public void readArray(long[] ref, int off, int len)
-	throws IOException {
-	readArrayHeader(classLongArray, len);
+    public void readArray(long[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classLongArray, len);
+	} catch (ClassNotFoundException e) {
+	    throw new Error("require long[]", e);
+	}
 	in.readArray(ref, off, len);
     }
 
-    public void readArray(float[] ref, int off, int len)
-	throws IOException {
-	readArrayHeader(classFloatArray, len);
+    public void readArray(float[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classFloatArray, len);
+	} catch (ClassNotFoundException e) {
+	    throw new Error("require float[]", e);
+	}
 	in.readArray(ref, off, len);
     }
 
-    public void readArray(double[] ref, int off, int len)
-	throws IOException {
-	readArrayHeader(classDoubleArray, len);
+    public void readArray(double[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classDoubleArray, len);
+	} catch (ClassNotFoundException e) {
+	    throw new Error("require double[]", e);
+	}
 	in.readArray(ref, off, len);
     }
 
     public void readArray(Object[] ref, int off, int len)
-	throws IOException, ClassNotFoundException {
+	    throws IOException, ClassNotFoundException {
 	readArrayHeader(ref.getClass(), len);
 	for (int i = off; i < off + len; i++) {
 	    ref[i] = readObject();
@@ -431,7 +456,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	return -1;
     }
 
-    Object readArray(Class arrayClass, int type) throws IOException, ClassNotFoundException {
+    Object readArray(Class arrayClass, int type)
+	    throws IOException, ClassNotFoundException {
 	int len = readInt();
 
 	if (DEBUG) {
@@ -500,75 +526,70 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
     }
 
-    public IbisTypeInfo readType(int type) throws IOException {
+    public IbisTypeInfo readType(int type) throws IOException, ClassNotFoundException {
 	if (DEBUG) {
 	    System.err.println("Read type_number " + Integer.toHexString(type) + ", next = " + Integer.toHexString(next_type));
 	}
 	if (type < next_type) {
 	    return (IbisTypeInfo) types.get(type);
-	} else {        
-	    if (next_type != type) {
-		System.err.println("type = " + type + ", next_type = " + next_type);
-		System.err.println("EEK: readType: next_type != type");
-		System.exit(1);
-	    }
-
-	    if (DEBUG) {
-		System.err.println("NEW TYPE: reading utf");
-	    }
-	    String typeName = readUTF();
-	    if (DEBUG) {
-		System.err.println("New type " + typeName);
-	    }
-
-
-	    Class clazz = null;
-	    try {
-		clazz = Class.forName(typeName);
-	    } catch (ClassNotFoundException e) {
-		try {
-		    if (DEBUG) {
-			System.out.println("Could not load class " + typeName + " using Class.forName(), trying Thread.currentThread().getContextClassLoader().loadClass()");
-			System.out.println("Default class loader is " + this.getClass().getClassLoader());
-			System.out.println("now trying " + Thread.currentThread().getContextClassLoader());
-		    }
-		    int dim = 0;
-
-		    if (typeName.length() > 0 && typeName.charAt(0) == '[') {
-			char[] s = typeName.toCharArray();
-			while (dim < s.length && s[dim] == '[') {
-			    dim++;
-			}
-			int begin = dim;
-			int end = s.length;
-			if (dim < s.length && s[dim] == 'L') {
-			    begin++;
-			}
-			if (s[end-1] == ';') {
-			    end--;
-			}
-			typeName = typeName.substring(begin, end);
-		    }
-		    clazz = Thread.currentThread().getContextClassLoader().loadClass(typeName);
-		    if (dim > 0) {
-			int dims[] = new int[dim];
-			for (int i = 0; i < dim; i++) dims[i] = 0;
-			Object o = java.lang.reflect.Array.newInstance(clazz, dims);
-			clazz = o.getClass();
-		    }
-
-		} catch (ClassNotFoundException e2) {
-		    throw new IOException("class " + typeName + " not found");
-		}
-	    }
-
-	    IbisTypeInfo t = IbisTypeInfo.getIbisTypeInfo(clazz);
-
-	    types.add(next_type, t);
-	    next_type++;
-
-	    return t;
 	}
+
+	if (next_type != type) {
+	    System.err.println("type = " + type + ", next_type = " + next_type);
+	    System.err.println("EEK: readType: next_type != type");
+	    System.exit(1);
+	}
+
+	if (DEBUG) {
+	    System.err.println("NEW TYPE: reading utf");
+	}
+	String typeName = readUTF();
+	if (DEBUG) {
+	    System.err.println("New type " + typeName);
+	}
+
+	Class clazz = null;
+	try {
+	    clazz = Class.forName(typeName);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		System.out.println("Could not load class " + typeName + " using Class.forName(), trying Thread.currentThread().getContextClassLoader().loadClass()");
+		System.out.println("Default class loader is " + this.getClass().getClassLoader());
+		System.out.println("now trying " + Thread.currentThread().getContextClassLoader());
+	    }
+	    int dim = 0;
+
+	    if (typeName.length() > 0 && typeName.charAt(0) == '[') {
+		char[] s = typeName.toCharArray();
+		while (dim < s.length && s[dim] == '[') {
+		    dim++;
+		}
+		int begin = dim;
+		int end = s.length;
+		if (dim < s.length && s[dim] == 'L') {
+		    begin++;
+		}
+		if (s[end-1] == ';') {
+		    end--;
+		}
+		typeName = typeName.substring(begin, end);
+	    }
+	    clazz = Thread.currentThread().getContextClassLoader().loadClass(typeName);
+	    if (dim > 0) {
+		int dims[] = new int[dim];
+		for (int i = 0; i < dim; i++) dims[i] = 0;
+		Object o = java.lang.reflect.Array.newInstance(clazz, dims);
+		clazz = o.getClass();
+	    }
+
+	}
+
+	IbisTypeInfo t = IbisTypeInfo.getIbisTypeInfo(clazz);
+
+	types.add(next_type, t);
+	next_type++;
+
+	return t;
     }
 
     private native void setFieldDouble(Object ref, String fieldname, double d);
@@ -628,121 +649,116 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	setFieldObject(ref, fieldname, fieldsig, readObject());
     }
 
-    private void alternativeDefaultReadObject(AlternativeTypeInfo t, Object ref) throws IOException {
+    private void alternativeDefaultReadObject(AlternativeTypeInfo t, Object ref) throws ClassNotFoundException, IllegalAccessException, IOException {
 	int temp = 0;
-	try {
-	    for (int i=0;i<t.double_count;i++) {
-		if (t.fields_final[temp]) {
-		    setFieldDouble(ref, t.serializable_fields[temp].getName(), readDouble());
-		}
-		else {
-		    t.serializable_fields[temp].setDouble(ref, readDouble());
-		}
-		temp++;
+	for (int i=0;i<t.double_count;i++) {
+	    if (t.fields_final[temp]) {
+		setFieldDouble(ref, t.serializable_fields[temp].getName(), readDouble());
 	    }
-	    for (int i=0;i<t.long_count;i++) {
-		if (t.fields_final[temp]) {
-		    setFieldLong(ref, t.serializable_fields[temp].getName(), readLong());
-		}
-		else {
-		    t.serializable_fields[temp].setLong(ref, readLong());
-		}
-		temp++;
+	    else {
+		t.serializable_fields[temp].setDouble(ref, readDouble());
 	    }
-	    for (int i=0;i<t.float_count;i++) {
-		if (t.fields_final[temp]) {
-		    setFieldFloat(ref, t.serializable_fields[temp].getName(), readFloat());
-		}
-		else {
-		    t.serializable_fields[temp].setFloat(ref, readFloat());
-		}
-		temp++;
+	    temp++;
+	}
+	for (int i=0;i<t.long_count;i++) {
+	    if (t.fields_final[temp]) {
+		setFieldLong(ref, t.serializable_fields[temp].getName(), readLong());
 	    }
-	    for (int i=0;i<t.int_count;i++) {
-		if (t.fields_final[temp]) {
-		    setFieldInt(ref, t.serializable_fields[temp].getName(), readInt());
-		}
-		else {
-		    t.serializable_fields[temp].setInt(ref, readInt());
-		}
-		temp++;
+	    else {
+		t.serializable_fields[temp].setLong(ref, readLong());
 	    }
-	    for (int i=0;i<t.short_count;i++) {
-		if (t.fields_final[temp]) {
-		    setFieldShort(ref, t.serializable_fields[temp].getName(), readShort());
-		}
-		else {
-		    t.serializable_fields[temp].setShort(ref, readShort());
-		}
-		temp++;
+	    temp++;
+	}
+	for (int i=0;i<t.float_count;i++) {
+	    if (t.fields_final[temp]) {
+		setFieldFloat(ref, t.serializable_fields[temp].getName(), readFloat());
 	    }
-	    for (int i=0;i<t.char_count;i++) {
-		if (t.fields_final[temp]) {
-		    setFieldChar(ref, t.serializable_fields[temp].getName(), readChar());
-		}
-		else {
-		    t.serializable_fields[temp].setChar(ref, readChar());
-		}
-		temp++;
+	    else {
+		t.serializable_fields[temp].setFloat(ref, readFloat());
 	    }
-	    for (int i=0;i<t.byte_count;i++) {
-		if (t.fields_final[temp]) {
-		    setFieldByte(ref, t.serializable_fields[temp].getName(), readByte());
-		}
-		else {
-		    t.serializable_fields[temp].setByte(ref, readByte());
-		}
-		temp++;
+	    temp++;
+	}
+	for (int i=0;i<t.int_count;i++) {
+	    if (t.fields_final[temp]) {
+		setFieldInt(ref, t.serializable_fields[temp].getName(), readInt());
 	    }
-	    for (int i=0;i<t.boolean_count;i++) {
-		if (t.fields_final[temp]) {
-		    setFieldBoolean(ref, t.serializable_fields[temp].getName(), readBoolean());
-		}
-		else {
-		    t.serializable_fields[temp].setBoolean(ref, readBoolean());
-		}
-		temp++;
+	    else {
+		t.serializable_fields[temp].setInt(ref, readInt());
 	    }
-	    for (int i=0;i<t.reference_count;i++) {
-		if (t.fields_final[temp]) {
-		    String fieldname = t.serializable_fields[temp].getName();
-		    String fieldtype = t.serializable_fields[temp].getType().getName();
+	    temp++;
+	}
+	for (int i=0;i<t.short_count;i++) {
+	    if (t.fields_final[temp]) {
+		setFieldShort(ref, t.serializable_fields[temp].getName(), readShort());
+	    }
+	    else {
+		t.serializable_fields[temp].setShort(ref, readShort());
+	    }
+	    temp++;
+	}
+	for (int i=0;i<t.char_count;i++) {
+	    if (t.fields_final[temp]) {
+		setFieldChar(ref, t.serializable_fields[temp].getName(), readChar());
+	    }
+	    else {
+		t.serializable_fields[temp].setChar(ref, readChar());
+	    }
+	    temp++;
+	}
+	for (int i=0;i<t.byte_count;i++) {
+	    if (t.fields_final[temp]) {
+		setFieldByte(ref, t.serializable_fields[temp].getName(), readByte());
+	    }
+	    else {
+		t.serializable_fields[temp].setByte(ref, readByte());
+	    }
+	    temp++;
+	}
+	for (int i=0;i<t.boolean_count;i++) {
+	    if (t.fields_final[temp]) {
+		setFieldBoolean(ref, t.serializable_fields[temp].getName(), readBoolean());
+	    }
+	    else {
+		t.serializable_fields[temp].setBoolean(ref, readBoolean());
+	    }
+	    temp++;
+	}
+	for (int i=0;i<t.reference_count;i++) {
+	    if (t.fields_final[temp]) {
+		String fieldname = t.serializable_fields[temp].getName();
+		String fieldtype = t.serializable_fields[temp].getType().getName();
 
-		    if (fieldtype.startsWith("[")) {
-		    } else {
-			fieldtype = "L" + fieldtype.replace('.', '/') + ";";
+		if (fieldtype.startsWith("[")) {
+		} else {
+		    fieldtype = "L" + fieldtype.replace('.', '/') + ";";
+		}
+
+		// System.out.println("fieldname = " + fieldname);
+		// System.out.println("signature = " + fieldtype);
+
+		setFieldObject(ref, fieldname, fieldtype, readObject());
+	    }
+	    else {
+		Object o = readObject();
+		if (DEBUG) {
+		    if (o == null) {
+			System.out.println("Assigning null to field " +
+				t.serializable_fields[temp].getName());
 		    }
-
-		    // System.out.println("fieldname = " + fieldname);
-		    // System.out.println("signature = " + fieldtype);
-
-		    setFieldObject(ref, fieldname, fieldtype, readObject());
-		}
-		else {
-		    Object o = readObject();
-		    if (DEBUG) {
-			if (o == null) {
-			    System.out.println("Assigning null to field " +
-				    t.serializable_fields[temp].getName());
-			}
-			else {
-			    System.out.println("Assigning an object of type " +
-				    o.getClass().getName() + " to field " +
-				    t.serializable_fields[temp].getName());
-			}
+		    else {
+			System.out.println("Assigning an object of type " +
+				o.getClass().getName() + " to field " +
+				t.serializable_fields[temp].getName());
 		    }
-		    t.serializable_fields[temp].set(ref, o);
 		}
-		temp++;
+		t.serializable_fields[temp].set(ref, o);
 	    }
-	} catch(ClassNotFoundException e) {
-	    throw new IbisIOException("class not found exception", e);
-	} catch(IllegalAccessException e2) {
-	    throw new IbisIOException("illegal access exception", e2);
+	    temp++;
 	}
     }
 
-    private void alternativeReadObject(AlternativeTypeInfo t, Object ref) throws IOException {
+    private void alternativeReadObject(AlternativeTypeInfo t, Object ref)
+	    throws ClassNotFoundException, IllegalAccessException, IOException {
 
 	if (DEBUG) {
 	    System.err.println("alternativeReadObject " + t);
@@ -753,7 +769,11 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 	if (t.hasReadObject) {
 	    current_level = t.level;
-	    t.invokeReadObject(ref, this);
+	    try {
+		t.invokeReadObject(ref, this);
+	    } catch (java.lang.reflect.InvocationTargetException e) {
+		throw new IllegalAccessException("readObject method: " + e);
+	    }
 	    return;
 	}
 
@@ -765,14 +785,20 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     } 
 
 
-    public void readSerializableObject(Object ref, String classname) throws IOException {
+    public void readSerializableObject(Object ref, String classname)
+	    throws ClassNotFoundException, IOException {
 	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
 	push_current_object(ref, 0);
-	alternativeReadObject(t, ref);
+	try {
+	    alternativeReadObject(t, ref);
+	} catch (IllegalAccessException e) {
+	    throw new NotSerializableException(classname + " " + e);
+	}
 	pop_current_object();
     }
 
-    public void defaultReadSerializableObject(Object ref, int depth) throws IOException {
+    public void defaultReadSerializableObject(Object ref, int depth)
+	    throws ClassNotFoundException, IOException {
 	Class type = ref.getClass();
 	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
 
@@ -782,21 +808,22 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	while (t.level > depth) {
 	    t = t.alternativeSuperInfo;
 	}
-	alternativeDefaultReadObject(t, ref);
+	try {
+	    alternativeDefaultReadObject(t, ref);
+	} catch (IllegalAccessException e) {
+	    throw new NotSerializableException(type + " " + e);
+	}
     }
 
     private native Object createUninitializedObject(Class type, Class non_serializable_super);
 
-    public Object create_uninitialized_object(String classname) throws IOException {
+    public Object create_uninitialized_object(String classname)
+	    throws ClassNotFoundException, IOException {
 	Class clazz = null;
 	try {
 	    clazz = Class.forName(classname);
 	} catch(Exception e) {
-	    try {
-		clazz = Thread.currentThread().getContextClassLoader().loadClass(classname);
-	    } catch (ClassNotFoundException e2) {
-		throw new IOException("class " + classname + " not found");
-	    }
+	    clazz = Thread.currentThread().getContextClassLoader().loadClass(classname);
 	}
 
 	Class t2 = clazz;
@@ -867,7 +894,12 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    return o;
 	}
 
-	IbisTypeInfo t = readType(handle & TYPE_MASK);
+	IbisTypeInfo t;
+	try {
+	    t = readType(handle & TYPE_MASK);
+	} catch (ClassNotFoundException e) {
+	    throw new Error("Cannot find class java.lang.String?", e);
+	}
 
 	String s = readUTF();
 	if (DEBUG) {
@@ -942,31 +974,29 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		// is fixed.
 		obj = t.clazz.newInstance();
 	    } catch(Exception e) {
-		throw new RuntimeException("Could not instantiate" + e);
+		throw new ClassNotFoundException("Could not instantiate" + e);
 	    }
 	    addObjectToCycleCheck(obj);
 	    push_current_object(obj, 0);
 	    ((java.io.Externalizable) obj).readExternal(this);
 	    pop_current_object();
 	} else {
-	    // this is for java.io.Serializable
-	    try {
-		// obj = t.clazz.newInstance(); Not correct: calls wrong constructor.
-		Class t2 = t.clazz;
-		while (Serializable.class.isAssignableFrom(t2)) {
-		    /* Find first non-serializable super-class. */
-		    t2 = t2.getSuperclass();
-		}
-		// Calls constructor for non-serializable superclass.
-		obj = createUninitializedObject(t.clazz, t2);
-		addObjectToCycleCheck(obj);
-		push_current_object(obj, 0);
-		alternativeReadObject(t.altInfo, obj);
-		pop_current_object();
-	    } catch (Exception e) {
-		e.printStackTrace();
-		throw new RuntimeException("Couldn't deserialize or create object " + e);
+	    // obj = t.clazz.newInstance(); Not correct: calls wrong constructor.
+	    Class t2 = t.clazz;
+	    while (Serializable.class.isAssignableFrom(t2)) {
+		/* Find first non-serializable super-class. */
+		t2 = t2.getSuperclass();
 	    }
+	    // Calls constructor for non-serializable superclass.
+	    obj = createUninitializedObject(t.clazz, t2);
+	    addObjectToCycleCheck(obj);
+	    push_current_object(obj, 0);
+	    try {
+		alternativeReadObject(t.altInfo, obj);
+	    } catch (IllegalAccessException e) {
+		throw new NotSerializableException(type + " " + e);
+	    }
+	    pop_current_object();
 	}
 	return obj;
     }
@@ -1084,7 +1114,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	return false;
     }
 
-    public void defaultReadObject() throws IOException, NotActiveException {
+    public void defaultReadObject()
+	    throws ClassNotFoundException, IOException, NotActiveException {
 	if (current_object == null) {
 	    throw new NotActiveException("defaultReadObject without a current object");
 	}
@@ -1102,9 +1133,13 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    while (t.level > current_level) {
 		t = t.alternativeSuperInfo;
 	    }
-	    alternativeDefaultReadObject(t, ref);
+	    try {
+		alternativeDefaultReadObject(t, ref);
+	    } catch (IllegalAccessException e) {
+		throw new NotSerializableException(type + " " + e);
+	    }
 	} else {
-	    throw new RuntimeException("Not Serializable : " + type.toString());
+	    throw new NotSerializableException("Not Serializable : " + type.toString());
 	}
     }
 

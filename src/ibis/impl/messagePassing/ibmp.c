@@ -47,7 +47,7 @@ static jmethodID	md_poll;
 jclass		ibmp_cls_Ibis;
 jobject		ibmp_obj_Ibis_ibis;
 
-jclass		cls_IbisIOException;
+jclass		cls_java_io_IOException;
 
 int		ibmp_me;
 int		ibmp_nr;
@@ -96,7 +96,7 @@ ibmp_error_printf(JNIEnv *env, const char *fmt, ...)
     if (ibmp_core_on_error) {
 	abort();
     } else {
-	(*env)->ThrowNew(env, cls_IbisIOException, msg);
+	(*env)->ThrowNew(env, cls_java_io_IOException, msg);
 #if EXIT_ON_ERROR
 	exit(33);
 #endif
@@ -396,11 +396,11 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
 	ibmp_error(env, "Cannot find static field myIbis:Libis/ipl/impl/messagePassing/Ibis;\n");
     }
 
-    cls_IbisIOException = (*env)->FindClass(env, "ibis/ipl/IbisIOException");
-    if (cls_IbisIOException == NULL) {
-	ibmp_error(env, "Cannot find class ibis/ipl/IbisIOException\n");
+    cls_java_io_IOException = (*env)->FindClass(env, "java/io/IOException");
+    if (cls_java_io_IOException == NULL) {
+	ibmp_error(env, "Cannot find class java/io/IOException\n");
     }
-    cls_IbisIOException = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_IbisIOException);
+    cls_java_io_IOException = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_java_io_IOException);
 
     ibmp_obj_Ibis_ibis = (*env)->GetStaticObjectField(env, ibmp_cls_Ibis, fld_Ibis_ibis);
     ibmp_obj_Ibis_ibis = (*env)->NewGlobalRef(env, ibmp_obj_Ibis_ibis);

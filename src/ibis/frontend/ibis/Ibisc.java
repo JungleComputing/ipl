@@ -81,7 +81,7 @@ class Ibisc {
 			    break;
 			}
 			System.err.print((char)c);
-		    } catch (java.io.IOException e) {
+		    } catch (IOException e) {
 			break;
 		    }
 		}
@@ -93,7 +93,7 @@ class Ibisc {
 			    break;
 			}
 			System.err.print((char)c);
-		    } catch (java.io.IOException e) {
+		    } catch (IOException e) {
 			break;
 		    }
 		}

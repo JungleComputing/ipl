@@ -17,7 +17,7 @@ public final class DefOutput extends NetBufferedOutput {
 	 * @param driver the DEF driver instance.
 	 */
 	DefOutput(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
+		throws IOException {
 		super(pt, driver, context);
 		headerLength = 4;
 	}
@@ -25,7 +25,7 @@ public final class DefOutput extends NetBufferedOutput {
 	/*
 	 * {@inheritDoc}
 	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }                
@@ -39,19 +39,15 @@ public final class DefOutput extends NetBufferedOutput {
 	/*
 	 * {@inheritDoc}
 	 */
-        public void finish() throws NetIbisException{
+        public void finish() throws IOException{
                 super.finish();
-                try {
-                        defOs.flush();
-                } catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+		defOs.flush();
         }
 
 	/*
 	 * {@inheritDoc}
 	 */
-        public void reset(boolean doSend) throws NetIbisException {
+        public void reset(boolean doSend) throws IOException {
                 if (doSend) {
                         send();
                 } else {
@@ -62,25 +58,16 @@ public final class DefOutput extends NetBufferedOutput {
 	/*
 	 * {@inheritDoc}
 	 */
-	public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
- 		try {
- 			NetConvert.writeInt(b.length, b.data, 0);
-                        //System.err.println("writing "+b.length+" bytes");
- 			defOs.write(b.data, 0, b.length);
-                        //System.err.println("writing "+b.length+" bytes - ok");
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+	public void sendByteBuffer(NetSendBuffer b) throws IOException {
+		NetConvert.writeInt(b.length, b.data, 0);
+		//System.err.println("writing "+b.length+" bytes");
+		defOs.write(b.data, 0, b.length);
+		//System.err.println("writing "+b.length+" bytes - ok");
 	}
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void close(Integer num) throws IOException {
                 if (rpn == num) {
-                        try {
-                                defOs.close();
-                        } catch (IOException e) {
-                                throw new Error(e);
-                        }
-
+			defOs.close();
                         rpn = null;
                 }
         }
@@ -89,13 +76,9 @@ public final class DefOutput extends NetBufferedOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void free() throws NetIbisException {
+	public void free() throws IOException {
                 if (defOs != null) {
-                        try {
-                                defOs.close();
-                        } catch (IOException e) {
-                                throw new Error(e);
-                        }
+			defOs.close();
                 }
                 
                 rpn = null;

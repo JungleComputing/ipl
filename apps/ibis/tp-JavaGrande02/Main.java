@@ -1,6 +1,8 @@
 import ibis.ipl.*;
 import ibis.util.PoolInfo;
 
+import java.io.IOException;
+
 final class Receiver implements Upcall { 
 
 	SendPort sport;
@@ -98,7 +100,7 @@ final class Main {
 		} while (!success);
 	}
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
+	public static ReceivePortIdentifier lookup(String name) throws IOException { 
 		
 		ReceivePortIdentifier temp = null;
 

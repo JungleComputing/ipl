@@ -1,5 +1,7 @@
 package ibis.group;
 
+import java.io.IOException;
+
 import java.net.InetAddress;
 
 import java.util.Properties;
@@ -21,7 +23,7 @@ import ibis.ipl.WriteMessage;
 import ibis.ipl.Registry;
 import ibis.ipl.Upcall;
 import ibis.ipl.StaticProperties;
-import ibis.ipl.IbisIOException;
+import ibis.ipl.IbisException;
 
 /**
  * The {@link Group} class takes care of the startup, and has methods
@@ -502,7 +504,11 @@ public final class Group implements GroupProtocol {
 	    Runtime.getRuntime().addShutdownHook(new Thread() {
 		public void run() {
 		    if (ibis != null) {
-			ibis.end();
+			try {
+			    ibis.end();
+			} catch (IOException e) {
+			    throw new Error(e);
+			}
 			ibis = null;
 		    }
 		    // System.err.println("Ended Ibis");
@@ -543,13 +549,19 @@ public final class Group implements GroupProtocol {
 
 	    try { 
 		temp = portType.createSendPort("Multicast on " + name + " to " + ID);
+	    } catch (IOException e) { 
+		 System.err.println(name + ": Could not create multicast group " + ID + " " + e);
+		 e.printStackTrace();
+		 System.exit(1);
+	    } 
 		
+	    try {
 		for (int i=0;i<hosts.length;i++) { 
 		    temp.connect(pool[hosts[i]]);
 		    System.out.println("Connected to " + hosts[i] + ", " + pool[hosts[i]]);
 		}
-	    } catch (IbisIOException e) { 
-		 System.err.println(name + ": Could not create multicast group " + ID + " " + e);
+	    } catch (IOException e) { 
+		 System.err.println(name + ": Could not interconnect multicast group " + ID + " " + e);
 		 e.printStackTrace();
 		 System.exit(1);
 	    } 
@@ -664,7 +676,7 @@ public final class Group implements GroupProtocol {
 
 	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") done");
 
-	} catch (IbisIOException e) { 
+	} catch (IOException e) { 
 	    throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : communication error !" + e.getMessage());  
 	}
     }

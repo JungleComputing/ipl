@@ -7,6 +7,7 @@ import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.Upcall;
+import ibis.ipl.IbisException;
 
 import ibis.io.Replacer;
 
@@ -15,6 +16,8 @@ import ibis.util.Input;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
+
+import java.io.IOException;
 
 /**
  * Provide a NetIbis'specific implementation of the {@link PortType} interface.
@@ -117,8 +120,7 @@ public final class NetPortType implements PortType {
                                         sp.add(key, val);
                                 }
 			} catch (Exception e) {
-				System.err.println("error adding property (" + key + "," + val + ")");
-				System.exit(1);
+				throw new Error("error adding property (" + key + "," + val + ")", e);
 			}
 		}
 	}
@@ -186,8 +188,7 @@ public final class NetPortType implements PortType {
                         try {
                                 staticProperties.add("/:Driver", "gen");
                         } catch (Exception e) {
-                                System.err.println("error adding property (/:Driver, gen)");
-                                System.exit(1);
+                                throw new Error("error adding property (/:Driver, gen)", e);
                         }
 
                         if (staticProperties.find("/gen:Driver") == null) {
@@ -196,8 +197,7 @@ public final class NetPortType implements PortType {
 
                                         staticProperties.add("/gen:Driver", "def");
                                 } catch (Exception e) {
-                                        System.err.println("error adding property (/gen:Driver, def)");
-                                        System.exit(1);
+                                        throw new Error("error adding property (/gen:Driver, def)", e);
                                 }
                         }
                 }
@@ -222,9 +222,9 @@ public final class NetPortType implements PortType {
          * @param ibis a reference to the {@link NetIbis} instance.
          * @param name the unique name of the type.
          * @param sp the runtime-defined properties of the type.
-         * @exception NetIbisException if the operation fails.
+         * @exception IOException if the operation fails.
          */
-	public NetPortType (NetIbis ibis, String name, StaticProperties sp) throws NetIbisException {
+	public NetPortType (NetIbis ibis, String name, StaticProperties sp) throws IOException {
 		this.ibis             = ibis;
 		this.name             = name;
                 this.propertyTree     = new NetPropertyTree();
@@ -262,75 +262,71 @@ public final class NetPortType implements PortType {
 	/**
 	 * {@inheritDoc}
 	 */
-	public SendPort createSendPort(String name) throws NetIbisException {
+	public SendPort createSendPort(String name) throws IOException {
 		return new NetSendPort(this, null, name, null);
 	}
 
-        public SendPort createSendPort(String name, SendPortConnectUpcall spcu) throws NetIbisException {
+        public SendPort createSendPort(String name, SendPortConnectUpcall spcu) throws IOException {
                 return new NetSendPort(this, null, name, spcu);
         }
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public SendPort createSendPort() throws NetIbisException {
+	public SendPort createSendPort() throws IOException {
 		return new NetSendPort(this, null, null, null);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public SendPort createSendPort(Replacer r) throws NetIbisException {
+	public SendPort createSendPort(Replacer r) throws IOException {
 		return new NetSendPort(this, r, null, null);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public SendPort createSendPort(String name, Replacer r) throws NetIbisException {
+	public SendPort createSendPort(String name, Replacer r) throws IOException {
 		return new NetSendPort(this, r, name, null);
 	}
 
-	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall spcu) throws NetIbisException {
+	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall spcu) throws IOException {
                 return new NetSendPort(this, r, null, spcu);
         }
 
-        public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall spcu) throws NetIbisException {
+        public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall spcu) throws IOException {
                 return new NetSendPort(this, r, name, spcu);
         }
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public ReceivePort createReceivePort(String name) throws NetIbisException {
+	public ReceivePort createReceivePort(String name) throws IOException {
                 return createReceivePort(name, null, null);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public ReceivePort createReceivePort(String name, Upcall u) throws NetIbisException {
+	public ReceivePort createReceivePort(String name, Upcall u) throws IOException {
 		return createReceivePort(name, u, null);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall rpcu) throws NetIbisException {
+	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall rpcu) throws IOException {
                 return createReceivePort(name, null, rpcu);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall rpcu) throws NetIbisException {
+	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall rpcu) throws IOException {
 		NetReceivePort nrp = new NetReceivePort(this, name, u, rpcu);
 
-                try {
-                        ibis.receivePortNameServerClient().bind(name, nrp);
-                } catch (ibis.ipl.IbisIOException e) {
-                        throw new NetIbisException(e);
-                }
+		ibis.receivePortNameServerClient().bind(name, nrp);
 
 		return nrp;
 	}

@@ -1,9 +1,10 @@
 package ibis.group;
 
+import java.io.IOException;
+
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.SendPort;
 
 /**
@@ -155,7 +156,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
      *
      * @param m the message received
      */
-    public synchronized final void handleCombineMessage(ReadMessage m) throws IbisIOException { 
+    public synchronized final void handleCombineMessage(ReadMessage m) throws IOException, ClassNotFoundException { 
 	int rank = m.readInt();
 	byte result_type = m.readByte();
 
@@ -1154,5 +1155,5 @@ public abstract class GroupSkeleton implements GroupProtocol {
      * @param resultMode     summary of the result scheme of this invocation
      * @param r              the message
      */
-    public abstract void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IbisIOException;	
+    public abstract void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IOException;	
 }

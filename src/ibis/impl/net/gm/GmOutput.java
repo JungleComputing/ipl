@@ -32,40 +32,40 @@ public final class GmOutput extends NetBufferedOutput {
         private Driver     gmDriver     = null;
 
 
-        native long nInitOutput(long deviceHandle) throws NetIbisException;
-        native int  nGetOutputNodeId(long outputHandle) throws NetIbisException;
-        native int  nGetOutputPortId(long outputHandle) throws NetIbisException;
-        native int  nGetOutputMuxId(long outputHandle) throws NetIbisException;
-        native void nConnectOutput(long outputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws NetIbisException;
-        native void nSendRequest(long outputHandle, int base, int length) throws NetIbisException;
-        native void nSendBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws NetIbisException;
-        native void nSendBuffer(long outputHandle, byte []b, int base, int length) throws NetIbisException;
+        native long nInitOutput(long deviceHandle) throws IOException;
+        native int  nGetOutputNodeId(long outputHandle) throws IOException;
+        native int  nGetOutputPortId(long outputHandle) throws IOException;
+        native int  nGetOutputMuxId(long outputHandle) throws IOException;
+        native void nConnectOutput(long outputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws IOException;
+        native void nSendRequest(long outputHandle, int base, int length) throws IOException;
+        native void nSendBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
+        native void nSendBuffer(long outputHandle, byte []b, int base, int length) throws IOException;
 
-        native void nSendBooleanBufferIntoRequest(long outputHandle, boolean []b, int base, int length) throws NetIbisException;
-        native void nSendBooleanBuffer(long outputHandle, boolean []b, int base, int length) throws NetIbisException;
+        native void nSendBooleanBufferIntoRequest(long outputHandle, boolean []b, int base, int length) throws IOException;
+        native void nSendBooleanBuffer(long outputHandle, boolean []b, int base, int length) throws IOException;
 
-        native void nSendByteBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws NetIbisException;
-        native void nSendByteBuffer(long outputHandle, byte []b, int base, int length) throws NetIbisException;
+        native void nSendByteBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
+        native void nSendByteBuffer(long outputHandle, byte []b, int base, int length) throws IOException;
 
-         native void nSendShortBufferIntoRequest(long outputHandle, short []b, int base, int length) throws NetIbisException;
-        native void nSendShortBuffer(long outputHandle, short []b, int base, int length) throws NetIbisException;
+         native void nSendShortBufferIntoRequest(long outputHandle, short []b, int base, int length) throws IOException;
+        native void nSendShortBuffer(long outputHandle, short []b, int base, int length) throws IOException;
 
-         native void nSendCharBufferIntoRequest(long outputHandle, char []b, int base, int length) throws NetIbisException;
-        native void nSendCharBuffer(long outputHandle, char []b, int base, int length) throws NetIbisException;
+         native void nSendCharBufferIntoRequest(long outputHandle, char []b, int base, int length) throws IOException;
+        native void nSendCharBuffer(long outputHandle, char []b, int base, int length) throws IOException;
 
-         native void nSendIntBufferIntoRequest(long outputHandle, int []b, int base, int length) throws NetIbisException;
-        native void nSendIntBuffer(long outputHandle, int []b, int base, int length) throws NetIbisException;
+         native void nSendIntBufferIntoRequest(long outputHandle, int []b, int base, int length) throws IOException;
+        native void nSendIntBuffer(long outputHandle, int []b, int base, int length) throws IOException;
 
-         native void nSendLongBufferIntoRequest(long outputHandle, long []b, int base, int length) throws NetIbisException;
-        native void nSendLongBuffer(long outputHandle, long []b, int base, int length) throws NetIbisException;
+         native void nSendLongBufferIntoRequest(long outputHandle, long []b, int base, int length) throws IOException;
+        native void nSendLongBuffer(long outputHandle, long []b, int base, int length) throws IOException;
 
-         native void nSendFloatBufferIntoRequest(long outputHandle, float []b, int base, int length) throws NetIbisException;
-        native void nSendFloatBuffer(long outputHandle, float []b, int base, int length) throws NetIbisException;
+         native void nSendFloatBufferIntoRequest(long outputHandle, float []b, int base, int length) throws IOException;
+        native void nSendFloatBuffer(long outputHandle, float []b, int base, int length) throws IOException;
 
-         native void nSendDoubleBufferIntoRequest(long outputHandle, double []b, int base, int length) throws NetIbisException;
-        native void nSendDoubleBuffer(long outputHandle, double []b, int base, int length) throws NetIbisException;
+         native void nSendDoubleBufferIntoRequest(long outputHandle, double []b, int base, int length) throws IOException;
+        native void nSendDoubleBuffer(long outputHandle, double []b, int base, int length) throws IOException;
 
-        native void nCloseOutput(long outputHandle) throws NetIbisException;
+        native void nCloseOutput(long outputHandle) throws IOException;
 
         static final int packetMTU = 4096;
 
@@ -77,7 +77,7 @@ public final class GmOutput extends NetBufferedOutput {
          * @param driver the GM driver instance.
          */
         GmOutput(NetPortType pt, NetDriver driver, String context)
-                throws NetIbisException {
+                throws IOException {
                 super(pt, driver, context);
 
                 gmDriver = (Driver)driver;
@@ -97,7 +97,7 @@ public final class GmOutput extends NetBufferedOutput {
          * @param is {@inheritDoc}
          * @param os {@inheritDoc}
          */
-        public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+        public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
                 if (this.rpn != null) {
                         throw new Error("connection already established");
@@ -121,33 +121,32 @@ public final class GmOutput extends NetBufferedOutput {
                 lInfo.put("gm_mux_id", new Integer(lmuxId));
                 Hashtable rInfo = null;
 
+		ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream (this, "gm"));
+		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
+		os.flush();
+
 		try {
-                        ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream (this, "gm"));
-                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
-                        os.flush();
-
                         rInfo = (Hashtable)is.readObject();
-                        rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
-                        rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
-                        rmuxId  = ((Integer) rInfo.get("gm_mux_id") ).intValue();
-                        os.writeObject(lInfo);
-                        os.flush();
-
-                        Driver.gmAccessLock.lock(false);
-                        nConnectOutput(outputHandle, rnodeId, rportId, rmuxId);
-                        Driver.gmAccessLock.unlock();
-
-                        is.read();
-                        os.write(1);
-                        os.flush();
-
-                        is.close();
-                        os.close();
-		} catch (IOException e) {
-			throw new NetIbisException(e);
 		} catch (ClassNotFoundException e) {
                         throw new Error(e);
                 }
+
+		rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
+		rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
+		rmuxId  = ((Integer) rInfo.get("gm_mux_id") ).intValue();
+		os.writeObject(lInfo);
+		os.flush();
+
+		Driver.gmAccessLock.lock(false);
+		nConnectOutput(outputHandle, rnodeId, rportId, rmuxId);
+		Driver.gmAccessLock.unlock();
+
+		is.read();
+		os.write(1);
+		os.flush();
+
+		is.close();
+		os.close();
 
                 this.rpn = cnx.getNum();
 
@@ -160,7 +159,7 @@ public final class GmOutput extends NetBufferedOutput {
         /**
          * {@inheritDoc}
          */
-        public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
+        public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
                 if (b.length > packetMTU) {
                         /* Post the 'request' */
@@ -203,7 +202,7 @@ public final class GmOutput extends NetBufferedOutput {
         /**
          * {@inheritDoc}
          */
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void close(Integer num) throws IOException {
                 log.in();
                 if (rpn == num) {
                         Driver.gmAccessLock.lock(true);
@@ -228,7 +227,7 @@ public final class GmOutput extends NetBufferedOutput {
         /**
          * {@inheritDoc}
          */
-        public void free() throws NetIbisException {
+        public void free() throws IOException {
                 log.in();
                 rpn = null;
 
@@ -250,7 +249,7 @@ public final class GmOutput extends NetBufferedOutput {
                 log.out();
         }
 
-        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
+        public void writeArray(boolean [] b, int o, int l) throws IOException {
                 flush();
 
                 int i = 0;
@@ -297,7 +296,7 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
         /*
-        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
+        public void writeArray(byte [] b, int o, int l) throws IOException {
                 flush();
 
                 int i = 0;
@@ -344,7 +343,7 @@ public final class GmOutput extends NetBufferedOutput {
         }
         */
 
-        public void writeArray(char [] b, int o, int l) throws NetIbisException {
+        public void writeArray(char [] b, int o, int l) throws IOException {
                 flush();
 
                 int i = 0;
@@ -393,7 +392,7 @@ public final class GmOutput extends NetBufferedOutput {
                 }
         }
 
-        public void writeArray(short [] b, int o, int l) throws NetIbisException {
+        public void writeArray(short [] b, int o, int l) throws IOException {
                 flush();
 
                 int i = 0;
@@ -442,7 +441,7 @@ public final class GmOutput extends NetBufferedOutput {
                 }
         }
 
-        public void writeArray(int [] b, int o, int l) throws NetIbisException {
+        public void writeArray(int [] b, int o, int l) throws IOException {
                 flush();
 
                 int i = 0;
@@ -491,7 +490,7 @@ public final class GmOutput extends NetBufferedOutput {
                 }
         }
 
-        public void writeArray(long [] b, int o, int l) throws NetIbisException {
+        public void writeArray(long [] b, int o, int l) throws IOException {
                 flush();
 
                 int i = 0;
@@ -540,7 +539,7 @@ public final class GmOutput extends NetBufferedOutput {
                 }
         }
 
-        public void writeArray(float [] b, int o, int l) throws NetIbisException {
+        public void writeArray(float [] b, int o, int l) throws IOException {
                 flush();
 
                 int i = 0;
@@ -589,7 +588,7 @@ public final class GmOutput extends NetBufferedOutput {
                 }
         }
 
-        public void writeArray(double [] b, int o, int l) throws NetIbisException {
+        public void writeArray(double [] b, int o, int l) throws IOException {
                 flush();
 
                 int i = 0;

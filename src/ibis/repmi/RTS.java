@@ -4,6 +4,8 @@ import java.net.InetAddress;
 import java.util.Properties;
 import java.util.Vector;
 
+import java.io.IOException;
+
 import ibis.ipl.*;
 import ibis.util.PoolInfo;
 
@@ -226,7 +228,7 @@ public final class RTS {
 		return null;
 	} 
 
-	protected static void newObject(ReadMessage m) throws IbisIOException { 
+	protected static void newObject(ReadMessage m) throws IOException, ClassNotFoundException { 
 		/* Invoked by callhandler */		
 
 		int num = m.readInt();

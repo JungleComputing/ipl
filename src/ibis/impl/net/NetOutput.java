@@ -2,10 +2,6 @@ package ibis.ipl.impl.net;
 
 import ibis.ipl.WriteMessage;
 
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.Socket;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -36,7 +32,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
          * Prepare the output for a new message transmission.
          */
-	public void initSend() throws NetIbisException {
+	public void initSend() throws IOException {
                 //
         }
 
@@ -48,24 +44,20 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * Does nothing.
          *
-	 * @exception NetIbisException an error occurred 
+	 * @exception IOException an error occurred 
 	 **/
-        public void send() throws NetIbisException {
+        public void send() throws IOException {
                 //
         }
 
         /**
          * Completes the current outgoing message.
          *
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        public void finish() throws NetIbisException{
+        public void finish() throws IOException{
                 if (_outputConvertStream != null) {
-                        try {
-                                _outputConvertStream.close();
-                        } catch (IOException e) {
-                                throw new NetIbisException(e.getMessage());
-                        }
+			_outputConvertStream.close();
 
                         _outputConvertStream = null;
                 }
@@ -77,9 +69,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * The full reset functionality is not implemented. When {#doSend} is true, it is equivalent to the {@link #finish} method. Otherwise, an {@link Error error} is thrown.
          *
          * @param doSend if <code>true</code> 
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        public void reset(boolean doSend) throws NetIbisException {
+        public void reset(boolean doSend) throws IOException {
                 if (doSend) {
                         send();
                 } else {
@@ -117,10 +109,10 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 *
 	 * This is only valid for a Factory with MTU.
 	 *
-	 * @throws an {@link NetIbisException} if the factory has no default MTU
+	 * @throws an {@link IllegalArgumentException} if the factory has no default MTU
          * @return the new {@link NetSendBuffer}.
 	 */
-	public NetSendBuffer createSendBuffer() throws NetIbisException {
+	public NetSendBuffer createSendBuffer() {
 	    return (NetSendBuffer)createBuffer();
 	}
 
@@ -130,8 +122,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 * @param length the length of the data stored in the buffer
          * @return the new {@link NetSendBuffer}.
 	 */
-	public NetSendBuffer createSendBuffer(int length)
-		throws NetIbisException {
+	public NetSendBuffer createSendBuffer(int length) {
 	    NetSendBuffer b = (NetSendBuffer)createBuffer(length);
             return b;
 	}
@@ -167,16 +158,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Note: this method must not be changed.
          *
          * @param value the value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteBoolean(boolean value) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        _outputConvertStream.writeBoolean(value);
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteBoolean(boolean value) throws IOException {
+		checkConvertStream();
+		_outputConvertStream.writeBoolean(value);
+		_outputConvertStream.flush();
         }
 
         /**
@@ -185,16 +172,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Note: this method must not be changed.
          *
          * @param value the value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteChar(char value) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        _outputConvertStream.writeChar(value);
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteChar(char value) throws IOException {
+		checkConvertStream();
+		_outputConvertStream.writeChar(value);
+		_outputConvertStream.flush();
         }
 
         /**
@@ -203,16 +186,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Note: this method must not be changed.
          *
          * @param value the value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteShort(short value) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        _outputConvertStream.writeShort(value);
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteShort(short value) throws IOException {
+		checkConvertStream();
+		_outputConvertStream.writeShort(value);
+		_outputConvertStream.flush();
         }
 
         /**
@@ -221,16 +200,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Note: this method must not be changed.
          *
          * @param value the value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteInt(int value) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        _outputConvertStream.writeInt(value);
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteInt(int value) throws IOException {
+		checkConvertStream();
+		_outputConvertStream.writeInt(value);
+		_outputConvertStream.flush();
         }
 
         /**
@@ -239,16 +214,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Note: this method must not be changed.
          *
          * @param value the value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteLong(long value) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        _outputConvertStream.writeLong(value);
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteLong(long value) throws IOException {
+		checkConvertStream();
+		_outputConvertStream.writeLong(value);
+		_outputConvertStream.flush();
         }
 
         /**
@@ -257,16 +228,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Note: this method must not be changed.
          *
          * @param value the value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteFloat(float value) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        _outputConvertStream.writeFloat(value);
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteFloat(float value) throws IOException {
+		checkConvertStream();
+		_outputConvertStream.writeFloat(value);
+		_outputConvertStream.flush();
         }
 
         /**
@@ -275,16 +242,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Note: this method must not be changed.
          *
          * @param value the value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteDouble(double value) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        _outputConvertStream.writeDouble(value);
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteDouble(double value) throws IOException {
+		checkConvertStream();
+		_outputConvertStream.writeDouble(value);
+		_outputConvertStream.flush();
         }
 
         /**
@@ -293,16 +256,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Note: this method must not be changed.
          *
          * @param value the value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteString(String value) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        _outputConvertStream.writeUTF(value);
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteString(String value) throws IOException {
+		checkConvertStream();
+		_outputConvertStream.writeUTF(value);
+		_outputConvertStream.flush();
         }
 
         /**
@@ -311,16 +270,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * Note: this method must not be changed.
          *
          * @param value the value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteObject(Object value) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        _outputConvertStream.writeObject(value);
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteObject(Object value) throws IOException {
+		checkConvertStream();
+		_outputConvertStream.writeObject(value);
+		_outputConvertStream.flush();
         }
 
         /**
@@ -331,18 +286,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteArray(boolean [] b, int o, int l) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                _outputConvertStream.writeBoolean(b[o++]);
-                        }
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteArray(boolean [] b, int o, int l) throws IOException {
+		checkConvertStream();
+		while (l-- > 0) {
+			_outputConvertStream.writeBoolean(b[o++]);
+		}
+		_outputConvertStream.flush();
         }
 
         /**
@@ -353,18 +304,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteArray(byte [] b, int o, int l) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                _outputConvertStream.writeByte(b[o++]);
-                                _outputConvertStream.flush();
-                        }
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteArray(byte [] b, int o, int l) throws IOException {
+		checkConvertStream();
+		while (l-- > 0) {
+			_outputConvertStream.writeByte(b[o++]);
+			_outputConvertStream.flush();
+		}
         }
         
         /**
@@ -375,18 +322,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteArray(char [] b, int o, int l) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                _outputConvertStream.writeChar(b[o++]);
-                        }
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteArray(char [] b, int o, int l) throws IOException {
+		checkConvertStream();
+		while (l-- > 0) {
+			_outputConvertStream.writeChar(b[o++]);
+		}
+		_outputConvertStream.flush();
         }
 
         /**
@@ -397,18 +340,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteArray(short [] b, int o, int l) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                _outputConvertStream.writeShort(b[o++]);
-                        }
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteArray(short [] b, int o, int l) throws IOException {
+		checkConvertStream();
+		while (l-- > 0) {
+			_outputConvertStream.writeShort(b[o++]);
+		}
+		_outputConvertStream.flush();
         }
 
         /**
@@ -419,18 +358,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteArray(int [] b, int o, int l) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                _outputConvertStream.writeInt(b[o++]);
-                        }
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteArray(int [] b, int o, int l) throws IOException {
+		checkConvertStream();
+		while (l-- > 0) {
+			_outputConvertStream.writeInt(b[o++]);
+		}
+		_outputConvertStream.flush();
         }
 
         /**
@@ -441,18 +376,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteArray(long [] b, int o, int l) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                _outputConvertStream.writeLong(b[o++]);
-                        }
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteArray(long [] b, int o, int l) throws IOException {
+		checkConvertStream();
+		while (l-- > 0) {
+			_outputConvertStream.writeLong(b[o++]);
+		}
+		_outputConvertStream.flush();
         }
 
         /**
@@ -463,18 +394,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteArray(float [] b, int o, int l) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                _outputConvertStream.writeFloat(b[o++]);
-                        }
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteArray(float [] b, int o, int l) throws IOException {
+		checkConvertStream();
+		while (l-- > 0) {
+			_outputConvertStream.writeFloat(b[o++]);
+		}
+		_outputConvertStream.flush();
         }
 
         /**
@@ -485,18 +412,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteArray(double [] b, int o, int l) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                _outputConvertStream.writeDouble(b[o++]);
-                        }
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteArray(double [] b, int o, int l) throws IOException {
+		checkConvertStream();
+		while (l-- > 0) {
+			_outputConvertStream.writeDouble(b[o++]);
+		}
+		_outputConvertStream.flush();
         }
 
         /**
@@ -507,26 +430,22 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param b the array.
          * @param o the offset.
          * @param l the number of elements.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        private final void defaultWriteArray(Object [] b, int o, int l) throws NetIbisException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                _outputConvertStream.writeObject(b[o++]);
-                        }
-                        _outputConvertStream.flush();
-                } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
-                }
+        private final void defaultWriteArray(Object [] b, int o, int l) throws IOException {
+		checkConvertStream();
+		while (l-- > 0) {
+			_outputConvertStream.writeObject(b[o++]);
+		}
+		_outputConvertStream.flush();
         }
 
         /**
          * Atomic packet write function.
          * @param b the buffer to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
          */
-        public void writeByteBuffer(NetSendBuffer b) throws NetIbisException {
+        public void writeByteBuffer(NetSendBuffer b) throws IOException {
                 defaultWriteInt(b.length);
                 defaultWriteArray(b.data, 0, b.length);
 		if (! b.ownershipClaimed) {
@@ -537,43 +456,43 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a boolean value to the message.
 	 * @param     value             The boolean value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public void writeBoolean(boolean value) throws NetIbisException {
+        public void writeBoolean(boolean value) throws IOException {
                 defaultWriteBoolean(value);
         }
 
         /**
 	 * Writes a byte value to the message.
 	 * @param     value             The byte value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public abstract void writeByte(byte value) throws NetIbisException;
+        public abstract void writeByte(byte value) throws IOException;
 
         /**
 	 * Writes a char value to the message.
 	 * @param     value             The char value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public void writeChar(char value) throws NetIbisException {
+        public void writeChar(char value) throws IOException {
                 defaultWriteChar(value);
         }
 
         /**
 	 * Writes a short value to the message.
 	 * @param     value             The short value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public void writeShort(short value) throws NetIbisException {
+        public void writeShort(short value) throws IOException {
                 defaultWriteShort(value);
         }
 
         /**
 	 * Writes a int value to the message.
 	 * @param     value             The int value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public void writeInt(int value) throws NetIbisException {
+        public void writeInt(int value) throws IOException {
                 defaultWriteInt(value);
         }
 
@@ -581,45 +500,45 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a long value to the message.
 	 * @param     value             The long value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public void writeLong(long value) throws NetIbisException {
+        public void writeLong(long value) throws IOException {
                 defaultWriteLong(value);
         }
 
         /**
 	 * Writes a float value to the message.
 	 * @param     value             The float value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public void writeFloat(float value) throws NetIbisException {
+        public void writeFloat(float value) throws IOException {
                 defaultWriteFloat(value);
         }
 
         /**
 	 * Writes a double value to the message.
 	 * @param     value             The double value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public void writeDouble(double value) throws NetIbisException {
+        public void writeDouble(double value) throws IOException {
                 defaultWriteDouble(value);
         }
 
         /**
 	 * Writes a Serializable object to the message.
 	 * @param     value             The object value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public void writeString(String value) throws NetIbisException {
+        public void writeString(String value) throws IOException {
                 defaultWriteString(value);
         }
 
         /**
 	 * Writes a Serializable object to the message.
 	 * @param     value             The object value to write.
-         * @exception NetIbisException in case of trouble.
+         * @exception IOException in case of trouble.
 	 */
-        public void writeObject(Object value) throws NetIbisException {
+        public void writeObject(Object value) throws IOException {
                 defaultWriteObject(value);
         }
 
@@ -630,9 +549,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public void writeArray(boolean [] b, int o, int l) throws NetIbisException {
+        public void writeArray(boolean [] b, int o, int l) throws IOException {
                 defaultWriteArray(b, o, l);
         }
 
@@ -643,9 +562,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public void writeArray(byte [] b, int o, int l) throws NetIbisException {
+        public void writeArray(byte [] b, int o, int l) throws IOException {
                 defaultWriteArray(b, o, l);
         }
 
@@ -656,9 +575,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public void writeArray(char [] b, int o, int l) throws NetIbisException {
+        public void writeArray(char [] b, int o, int l) throws IOException {
                 defaultWriteArray(b, o, l);
         }
 
@@ -669,9 +588,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public void writeArray(short [] b, int o, int l) throws NetIbisException {
+        public void writeArray(short [] b, int o, int l) throws IOException {
                 defaultWriteArray(b, o, l);
         }
 
@@ -682,9 +601,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public void writeArray(int [] b, int o, int l) throws NetIbisException {
+        public void writeArray(int [] b, int o, int l) throws IOException {
                 defaultWriteArray(b, o, l);
         }
 
@@ -695,9 +614,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public void writeArray(long [] b, int o, int l) throws NetIbisException {
+        public void writeArray(long [] b, int o, int l) throws IOException {
                 defaultWriteArray(b, o, l);
         }
 
@@ -708,9 +627,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public void writeArray(float [] b, int o, int l) throws NetIbisException {
+        public void writeArray(float [] b, int o, int l) throws IOException {
                 defaultWriteArray(b, o, l);
         }
 
@@ -721,9 +640,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public void writeArray(double [] b, int o, int l) throws NetIbisException {
+        public void writeArray(double [] b, int o, int l) throws IOException {
                 defaultWriteArray(b, o, l);
         }
 
@@ -734,9 +653,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public void writeArray(Object [] b, int o, int l) throws NetIbisException {
+        public void writeArray(Object [] b, int o, int l) throws IOException {
                 defaultWriteArray(b, o, l);
         }
 
@@ -747,9 +666,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public final void writeArray(boolean [] b) throws NetIbisException {
+        public final void writeArray(boolean [] b) throws IOException {
                 writeArray(b, 0, b.length);
         }
 
@@ -760,9 +679,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public final void writeArray(byte [] b) throws NetIbisException {
+        public final void writeArray(byte [] b) throws IOException {
                 writeArray(b, 0, b.length);
         }
 
@@ -773,9 +692,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public final void writeArray(char [] b) throws NetIbisException {
+        public final void writeArray(char [] b) throws IOException {
                 writeArray(b, 0, b.length);
         }
 
@@ -786,9 +705,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public final void writeArray(short [] b) throws NetIbisException {
+        public final void writeArray(short [] b) throws IOException {
                 writeArray(b, 0, b.length);
         }
 
@@ -799,9 +718,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public final void writeArray(int [] b) throws NetIbisException {
+        public final void writeArray(int [] b) throws IOException {
                 writeArray(b, 0, b.length);
         }
 
@@ -812,9 +731,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public final void writeArray(long [] b) throws NetIbisException {
+        public final void writeArray(long [] b) throws IOException {
                 writeArray(b, 0, b.length);
         }
 
@@ -825,9 +744,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public final void writeArray(float [] b) throws NetIbisException {
+        public final void writeArray(float [] b) throws IOException {
                 writeArray(b, 0, b.length);
         }
 
@@ -838,9 +757,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public final void writeArray(double [] b) throws NetIbisException {
+        public final void writeArray(double [] b) throws IOException {
                 writeArray(b, 0, b.length);
         }
 
@@ -851,9 +770,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @param o the offset.
          * @param l the number of elements to extract.
          *
-         * @exception NetIbisException in case of trouble. 
+         * @exception IOException in case of trouble. 
          */
-        public final void writeArray(Object [] b) throws NetIbisException {
+        public final void writeArray(Object [] b) throws IOException {
                 writeArray(b, 0, b.length);
         }
 
@@ -872,11 +791,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                  *
                  */
                 public void write(int b) throws IOException {
-                        try {
-                                writeByte((byte)b);
-                        } catch (NetIbisException e) {
-                                throw new IOException(e.getMessage());
-                        }
+			writeByte((byte)b);
                 }
         }
 }

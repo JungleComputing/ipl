@@ -1,5 +1,7 @@
 package ibis.ipl.impl.net;
 
+import java.io.IOException;
+
 /**
  * Provide a generic interface for the low level network drivers.
  *
@@ -68,10 +70,10 @@ public abstract class NetDriver {
 	 * @param pt the port type.
          * @param context the context string.
 	 *
-	 * @exception NetIbisException if the input creation fail.
+	 * @exception IOException if the input creation fail.
 	 */
 	public abstract NetInput newInput(NetPortType pt, String context)
-		throws NetIbisException;
+		throws IOException;
 
 	/**
 	 * Create a new {@link NetOutput} according to the
@@ -80,8 +82,8 @@ public abstract class NetDriver {
 	 * @param pt the port type.
          * @param context the context string.
 	 *
-	 * @exception NetIbisException if the output creation fail.
+	 * @exception IOException if the output creation fail.
 	 */
 	public abstract NetOutput newOutput(NetPortType pt, String context)
-		throws NetIbisException;
+		throws IOException;
 }

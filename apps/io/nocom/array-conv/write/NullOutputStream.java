@@ -1,4 +1,5 @@
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 
 final class NullOutputStream extends OutputStream { 
 

@@ -39,7 +39,7 @@ public final class Driver extends NetDriver {
 	 * {@inheritDoc}
 	 */
 	public NetInput newInput(NetPortType pt, String context)
-		throws NetIbisException {
+		throws IOException {
 		return new DefInput(pt, this, context);
 	}
 
@@ -47,7 +47,7 @@ public final class Driver extends NetDriver {
 	 * {@inheritDoc}
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)
-		throws NetIbisException {
+		throws IOException {
 		return new DefOutput(pt, this, context);
 	}
 }

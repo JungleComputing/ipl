@@ -2,6 +2,8 @@ package ibis.ipl.impl.net.tcp_plain;
 
 import ibis.ipl.impl.net.*;
 
+import java.io.IOException;
+
 /**
  * The NetIbis TCP driver with pipelined block transmission.
  */
@@ -32,14 +34,14 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, String context) throws NetIbisException {
+	public NetInput newInput(NetPortType pt, String context) throws IOException {
 		return new TcpInput(pt, this, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, String context) throws NetIbisException {
+	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
 		return new TcpOutput(pt, this, context);
 	}
 }

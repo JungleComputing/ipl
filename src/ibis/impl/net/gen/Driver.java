@@ -1,6 +1,8 @@
 package ibis.ipl.impl.net.gen;
 import ibis.ipl.impl.net.*;
 
+import java.io.IOException;
+
 /**
  * The generic splitter/poller virtual driver.
  */
@@ -30,14 +32,14 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, String context) throws NetIbisException {
+	public NetInput newInput(NetPortType pt, String context) throws IOException {
 		return new GenPoller(pt, this, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, String context) throws NetIbisException {
+	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
 		return new GenSplitter(pt, this, context);
 	}
 }

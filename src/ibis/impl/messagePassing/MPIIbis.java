@@ -1,7 +1,8 @@
 package ibis.ipl.impl.messagePassing;
 
+import java.io.IOException;
+
 import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
 
 public class MPIIbis extends Ibis {
 
@@ -9,7 +10,7 @@ public class MPIIbis extends Ibis {
 	super();
     }
 
-    protected void init() throws IbisException, IbisIOException {
+    protected void init() throws IbisException, IOException {
 	System.loadLibrary("ibis_mp_mpi");
 	super.init();
     }

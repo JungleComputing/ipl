@@ -24,26 +24,26 @@ public final class random implements MultiPlugin {
                                     NetIbisIdentifier  	localId,
                                     NetIbisIdentifier  	remoteId,
                                     ObjectOutputStream	os,
-                                    ObjectInputStream 	is) throws NetIbisException {
+                                    ObjectInputStream 	is) throws IOException {
                 String  subContext = null;
                 boolean value      = false;
 
-                try {
-                        if (isOutgoing) {
-                                synchronized(r) {
-                                        value = r.nextBoolean();
-                                }
+		if (isOutgoing) {
+			synchronized(r) {
+				value = r.nextBoolean();
+			}
 
-                                os.writeObject(new Boolean(value));
-                                os.flush();
-                        } else {
-                                Boolean b = (Boolean)is.readObject();
-                                value = b.booleanValue();
-                        }
-                } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new NetIbisException(e);
-                }
+			os.writeObject(new Boolean(value));
+			os.flush();
+		} else {
+			Boolean b;
+			try {
+				b = (Boolean)is.readObject();
+			} catch (ClassNotFoundException e) {
+				throw new Error("Cannot find class Boolean", e);
+			}
+			value = b.booleanValue();
+		}
 
                 if (value) {
                         subContext = "a";

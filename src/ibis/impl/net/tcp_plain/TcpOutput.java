@@ -53,7 +53,7 @@ public final class TcpOutput extends NetOutput {
 	 * @param driver the TCP driver instance.
 	 */
 	TcpOutput(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
+		throws IOException {
 		super(pt, driver, context);
 		headerLength = 0;
 	}
@@ -66,45 +66,40 @@ public final class TcpOutput extends NetOutput {
 	 * @param os {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx)
-		throws NetIbisException {
+		throws IOException {
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
                 
 		this.rpn = cnx.getNum();
 
-                try {
                         ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_plain"));
-                        Hashtable rInfo = (Hashtable)is.readObject();
-                        is.close();
-
-                        raddr =  (InetAddress)rInfo.get("tcp_address");
-                        rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
-
-			tcpSocket = new Socket(raddr, rport);
-
-			tcpSocket.setSendBufferSize(0x8000);
-			tcpSocket.setReceiveBufferSize(0x8000);
-			tcpSocket.setTcpNoDelay(true);
-			
-			tcpOs = tcpSocket.getOutputStream();
-			tcpIs = tcpSocket.getInputStream();
-		} catch (IOException e) {
-			throw new NetIbisException(e);
+		Hashtable rInfo;
+                try {
+                        rInfo = (Hashtable)is.readObject();
 		} catch (ClassNotFoundException e) {
                         throw new Error(e);
                 }
+		is.close();
+
+		raddr =  (InetAddress)rInfo.get("tcp_address");
+		rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
+
+		tcpSocket = new Socket(raddr, rport);
+
+		tcpSocket.setSendBufferSize(0x8000);
+		tcpSocket.setReceiveBufferSize(0x8000);
+		tcpSocket.setTcpNoDelay(true);
+		
+		tcpOs = tcpSocket.getOutputStream();
+		tcpIs = tcpSocket.getInputStream();
 
 		mtu = 0;
 	}
 
-        public void finish() throws NetIbisException {
+        public void finish() throws IOException {
                 super.finish();
- 		try {
- 			tcpOs.flush();
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+		tcpOs.flush();
 	}
                 
 
@@ -112,56 +107,44 @@ public final class TcpOutput extends NetOutput {
 	/*
 	 * {@inheritDoc}
          */
-	public void writeByte(byte b) throws NetIbisException {
+	public void writeByte(byte b) throws IOException {
                 //System.err.println("TcpOutput: "+raddr+"["+rport+"]writing byte "+b);
- 		try {
- 			tcpOs.write(b);
- 		} catch (IOException e) {
- 			throw new NetIbisException(e.getMessage());
- 		} 
+		tcpOs.write(b);
 	}
 
-        public synchronized void close(Integer num) throws NetIbisException {
+        public synchronized void close(Integer num) throws IOException {
                 if (rpn == num) {
-                        try {
-                                if (tcpOs != null) {
-                                        tcpOs.close();
-                                }
-		
-                                if (tcpIs != null) {
-                                        tcpIs.close();
-                                }
-
-                                if (tcpSocket != null) {
-                                        tcpSocket.close();
-                                }
-                        } catch (Exception e) {
-                                throw new NetIbisException(e);
-                        }
-
-                        rpn = null;
-                }
-        }
-        
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void free() throws NetIbisException {
-		try {
 			if (tcpOs != null) {
 				tcpOs.close();
 			}
-		
+	
 			if (tcpIs != null) {
 				tcpIs.close();
 			}
 
 			if (tcpSocket != null) {
-                                tcpSocket.close();
+				tcpSocket.close();
 			}
-		} catch (Exception e) {
-			throw new NetIbisException(e);
+
+			rpn = null;
+		}
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void free() throws IOException {
+		if (tcpOs != null) {
+			tcpOs.close();
+		}
+	
+		if (tcpIs != null) {
+			tcpIs.close();
+		}
+
+		if (tcpSocket != null) {
+			tcpSocket.close();
 		}
 
                 rpn = null;

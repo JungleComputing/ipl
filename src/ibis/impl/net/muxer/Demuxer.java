@@ -9,12 +9,6 @@ import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetConnection;
 import ibis.ipl.impl.net.NetConvert;
 import ibis.ipl.impl.net.NetReceiveBufferFactoryDefaultImpl;
-import ibis.ipl.impl.net.NetIbisException;
-
-import java.net.DatagramSocket;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.SocketException;
 
 /* Only for java >= 1.4
 * import java.net.SocketTimeoutException;
@@ -23,6 +17,7 @@ import java.io.InterruptedIOException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 
 
 /**
@@ -49,7 +44,7 @@ public final class Demuxer extends NetBufferedInput {
      * {@inheritDoc}
      */
     Demuxer(NetPortType pt, NetDriver driver, String context)
-	    throws NetIbisException {
+	    throws IOException {
 	super(pt, driver, context);
 
 	synchronized (driver) {
@@ -98,7 +93,7 @@ dumpBufferFactoryInfo();
      * must protect the data structures.
      */
     public synchronized void setupConnection(NetConnection cnx)
-	    throws NetIbisException {
+	    throws IOException {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": setup connection, serviceLink " + cnx.getServiceLink());
 	}
@@ -135,15 +130,11 @@ dumpBufferFactoryInfo();
 	}
 	demux.startQueue(myQueue, factory);
 
-	try {
-	    /* The demuxer has reset its buffers to a sufficient size. Let the
-	     * other side start sending if it feels like it. */
-	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer"));
-	    os.writeInt(1);
-	    os.close();
-	} catch (IOException e) {
-	    throw new NetIbisException(e);
-	}
+	/* The demuxer has reset its buffers to a sufficient size. Let the
+	 * other side start sending if it feels like it. */
+	ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer"));
+	os.writeInt(1);
+	os.close();
 
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": my queue is " + myQueue);
@@ -155,13 +146,13 @@ dumpBufferFactoryInfo();
 
 
     private void checkReceiveSeqno(NetReceiveBuffer buffer)
-	    throws NetIbisException {
+	    throws IOException {
 	if (Driver.PACKET_SEQNO) {
 	    long rSeqno = NetConvert.readLong(buffer.data, buffer.base + Driver.SEQNO_OFFSET);
 	    if (rSeqno != receiveSeqno) {
 		System.err.println("Seems a packet was lost: receive seqno " + rSeqno + "; expect " + receiveSeqno);
 		if (rSeqno < receiveSeqno) {
-		    throw new NetIbisException("Packet count goes back");
+		    throw new StreamCorruptedException("Packet count goes back");
 		}
 	    }
 	    receiveSeqno = rSeqno + 1;
@@ -183,7 +174,7 @@ dumpBufferFactoryInfo();
      *
      * @return {@inheritDoc}
      */
-    public Integer doPoll(boolean block) throws NetIbisException {
+    public Integer doPoll(boolean block) throws IOException {
 	if (myQueue == null) {
 	    System.err.println(this + ": This CANNOT be true ... setupConnection does a handshake, right?");
 	    // Still connecting, presumably
@@ -204,7 +195,7 @@ dumpBufferFactoryInfo();
      * @return {@inheritDoc}
      */
     public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-	    throws NetIbisException {
+	    throws IOException {
 
 	NetReceiveBuffer b = myQueue.receiveByteBuffer(expectedLength);
 	checkReceiveSeqno(b);
@@ -213,7 +204,7 @@ dumpBufferFactoryInfo();
 
 
     public void receiveByteBuffer(NetReceiveBuffer userBuffer)
-	    throws NetIbisException {
+	    throws IOException {
 
 	if (Driver.DEBUG_HUGE) {
 	    System.err.println(this + ": receiveByteBuffer, my headerLength " + headerLength);
@@ -227,7 +218,7 @@ dumpBufferFactoryInfo();
     /**
      * {@inheritDoc}
      */
-    public void doFinish() throws NetIbisException {
+    public void doFinish() throws IOException {
 	myQueue.doFinish();
     }
 
@@ -235,7 +226,7 @@ dumpBufferFactoryInfo();
     /**
      * {@inheritDoc}
      */
-    public synchronized void doClose(Integer num) throws NetIbisException {
+    public synchronized void doClose(Integer num) throws IOException {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": doClose.");
 	    Thread.dumpStack();
@@ -255,7 +246,7 @@ dumpBufferFactoryInfo();
     /**
      * {@inheritDoc}
      */
-    public void doFree() throws NetIbisException {
+    public void doFree() throws IOException {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": doFree.");
 	    Thread.dumpStack();

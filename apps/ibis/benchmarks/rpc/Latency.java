@@ -3,6 +3,8 @@ import ibis.ipl.*;
 import java.util.Properties;
 import ibis.util.Ticket;
 
+import java.io.IOException;
+
 class Sender implements Upcall { 
 
 	Ticket t;
@@ -14,7 +16,7 @@ class Sender implements Upcall {
 		t = new Ticket();
 	} 
 	
-	void send(int count) throws IbisIOException {
+	void send(int count) throws IOException {
 		// warmup
 		for(int i = 0; i< count; i++) {
 			int ticket = t.get();
@@ -141,7 +143,7 @@ class Latency {
 	static Ibis ibis;
 	static Registry registry;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
+	public static ReceivePortIdentifier lookup(String name) throws IOException { 
 		
 		ReceivePortIdentifier temp = null;
 
@@ -216,7 +218,12 @@ class Latency {
 
                         System.exit(0);
 
-		} catch (IbisIOException e) { 
+		} catch (IOException e) { 
+			System.out.println("Got exception " + e);
+			System.out.println("StackTrace:");
+			e.printStackTrace();
+
+		} catch (ClassNotFoundException e) { 
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();

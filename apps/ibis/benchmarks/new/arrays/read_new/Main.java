@@ -1,5 +1,7 @@
 import ibis.ipl.*;
 
+import java.io.IOException;
+
 public class Main {
 
 	public static final boolean DEBUG = false;
@@ -87,7 +89,7 @@ public class Main {
 		} 
 	} 
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
+	public static ReceivePortIdentifier lookup(String name) throws IOException { 
 		
 		ReceivePortIdentifier temp = null;
 

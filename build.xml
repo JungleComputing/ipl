@@ -91,11 +91,11 @@
 	The list of directories that contain native sources.
     -->
     <path id="native.src.dirs">
+	<!--
+	-->
 	<pathelement path="${ibis}/io"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing/panda"/>
-	<!--
-	-->
 	<!--
 	<pathelement path="${ibis}/ipl/impl/messagePassing/mpi"/>
 	-->
@@ -141,6 +141,7 @@
 
 	    <include name="ibis/ipl/**/*.java"/>
 	    <exclude name="ibis/ipl/impl/net/nio/**/*.java"/>
+	    <exclude name="ibis/ipl/impl/net/gm2/**/*.java"/>
 	    <exclude name="ibis/ipl/impl/net/muxer/tcp_blk/**/*.java"/>
 	    <exclude name="ibis/ipl/impl/messagePassing/panda/**/*.java"/>
 
@@ -238,13 +239,34 @@
     </target>
 
 
+    <target name="tcp" depends="init">
+	<javac  destdir="${build}"
+		debug="${java.debug.value}"
+		srcdir="${src}">
+	    <include name="ibis/ipl/impl/tcp/**/*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
+
+
     <target name="net" depends="init">
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir="${src}">
 	    <include name="ibis/ipl/impl/net/**/*.java"/>
 	    <exclude name="ibis/ipl/impl/net/nio/**/*.java"/>
+	    <exclude name="ibis/ipl/impl/net/gm2/**/*.java"/>
 	    <exclude name="ibis/ipl/impl/net/muxer/tcp_blk/**/*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
+
+
+    <target name="rmi" depends="init">
+	<javac  destdir="${build}"
+		debug="${java.debug.value}"
+		srcdir="${src}">
+	    <include name="ibis/rmi/**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>

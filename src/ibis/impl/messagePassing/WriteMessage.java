@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
 
 class WriteMessage implements ibis.ipl.WriteMessage {
 
@@ -29,7 +29,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
-    private void send(boolean doSend, boolean isReset) throws IbisIOException {
+    private void send(boolean doSend, boolean isReset) throws IOException {
 	if (Ibis.DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%% Send an Ibis /no-serial/ WriteMessage");
 	}
@@ -49,156 +49,156 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
-    public void send() throws IbisIOException {
+    public void send() throws IOException {
 	send(true, false);
     }
 
 
-    public void finish() throws IbisIOException {
+    public void finish() throws IOException {
 	out.finish();
     }
 
 
-    public void reset(boolean doSend) throws IbisIOException {
+    public void reset(boolean doSend) throws IOException {
 	send(doSend, true);
     }
 
 
-    public void writeBoolean(boolean value) throws IbisIOException {
-	throw new IbisIOException("Write Boolean not supported");
+    public void writeBoolean(boolean value) throws IOException {
+	throw new IOException("Write Boolean not supported");
     }
 
-    public void writeByte(byte value) throws IbisIOException {
+    public void writeByte(byte value) throws IOException {
 	out.write(value);
     }
 
-    public void writeChar(char value) throws IbisIOException {
-	throw new IbisIOException("Write Char not supported");
+    public void writeChar(char value) throws IOException {
+	throw new IOException("Write Char not supported");
     }
 
-    public void writeShort(short value) throws IbisIOException {
-	throw new IbisIOException("Write Short not supported");
+    public void writeShort(short value) throws IOException {
+	throw new IOException("Write Short not supported");
     }
 
-    public void writeInt(int value) throws IbisIOException {
-	throw new IbisIOException("Write Int not supported");
+    public void writeInt(int value) throws IOException {
+	throw new IOException("Write Int not supported");
     }
 
-    public void writeLong(long value) throws IbisIOException {
-	throw new IbisIOException("Write Long not supported");
+    public void writeLong(long value) throws IOException {
+	throw new IOException("Write Long not supported");
     }
 
-    public void writeFloat(float value) throws IbisIOException {
-	throw new IbisIOException("Write Float not supported");
+    public void writeFloat(float value) throws IOException {
+	throw new IOException("Write Float not supported");
     }
 
-    public void writeDouble(double value) throws IbisIOException {
-	throw new IbisIOException("Write Double not supported");
+    public void writeDouble(double value) throws IOException {
+	throw new IOException("Write Double not supported");
     }
 
-    public void writeString(String value) throws IbisIOException {
-	throw new IbisIOException("Write String not supported");
+    public void writeString(String value) throws IOException {
+	throw new IOException("Write String not supported");
     }
 
-    public void writeObject(Object value) throws IbisIOException {
-	throw new IbisIOException("Write Object not supported");
+    public void writeObject(Object value) throws IOException {
+	throw new IOException("Write Object not supported");
     }
 
-    public void writeArray(boolean[] value) throws IbisIOException {
+    public void writeArray(boolean[] value) throws IOException {
 	writeObject(value);
     }
 
-    public void writeArray(byte[] value) throws IbisIOException {
+    public void writeArray(byte[] value) throws IOException {
 	out.write(value);
     }
 
-    public void writeArray(char[] value) throws IbisIOException {
+    public void writeArray(char[] value) throws IOException {
 	writeObject(value);
     }
 
-    public void writeArray(short[] value) throws IbisIOException {
+    public void writeArray(short[] value) throws IOException {
 	writeObject(value);
     }
 
-    public void writeArray(int[] value) throws IbisIOException {
+    public void writeArray(int[] value) throws IOException {
 	writeObject(value);
     }
 
-    public void writeArray(long[] value) throws IbisIOException {
+    public void writeArray(long[] value) throws IOException {
 	writeObject(value);
     }
 
-    public void writeArray(float[] value) throws IbisIOException {
+    public void writeArray(float[] value) throws IOException {
 	writeObject(value);
     }
 
-    public void writeArray(double[] value) throws IbisIOException {
+    public void writeArray(double[] value) throws IOException {
 	writeObject(value);
     }
 
-    public void writeArray(Object[] value) throws IbisIOException {
+    public void writeArray(Object[] value) throws IOException {
 	writeObject(value);
     }
 
 
-    public void writeArray(boolean[] value, int offset,
-					    int size) throws IbisIOException {
+    public void writeArray(boolean[] value, int offset, int size)
+	    throws IOException {
 	boolean[] temp = new boolean[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArray(byte[] value, int offset,
-				  int size) throws IbisIOException {
+    public void writeArray(byte[] value, int offset, int size)
+	    throws IOException {
 	byte[] temp = new byte[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArray(char[] value, int offset,
-					 int size) throws IbisIOException {
+    public void writeArray(char[] value, int offset, int size)
+	    throws IOException {
 	char[] temp = new char[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArray(short[] value, int offset,
-					  int size) throws IbisIOException {
+    public void writeArray(short[] value, int offset, int size)
+	    throws IOException {
 	short[] temp = new short[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArray(int[] value, int offset,
-					int size) throws IbisIOException {
+    public void writeArray(int[] value, int offset, int size)
+	    throws IOException {
 	int[] temp = new int[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArray(long[] value, int offset,
-					 int size) throws IbisIOException {
+    public void writeArray(long[] value, int offset, int size)
+	    throws IOException {
 	long[] temp = new long[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArray(float[] value, int offset,
-					  int size) throws IbisIOException {
+    public void writeArray(float[] value, int offset, int size)
+	    throws IOException {
 	float[] temp = new float[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArray(double[] value, int offset,
-					   int size) throws IbisIOException {
+    public void writeArray(double[] value, int offset, int size)
+	    throws IOException {
 	double[] temp = new double[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);
     }
 
-    public void writeArray(Object[] value, int offset,
-					   int size) throws IbisIOException {
+    public void writeArray(Object[] value, int offset, int size)
+	    throws IOException {
 	Object[] temp = new Object[size];
 	System.arraycopy(value, offset, temp, 0, size);
 	writeObject(temp);

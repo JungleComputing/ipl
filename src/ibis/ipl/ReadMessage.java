@@ -1,5 +1,9 @@
 package ibis.ipl;
 
+import java.io.IOException;
+
+import ibis.ipl.ConnectionClosedException;
+
 public interface ReadMessage { 
 	/** Only one message is alive at one time for a given
 	    receiveport.  This is done to prevent flow control problems. 
@@ -19,48 +23,75 @@ public interface ReadMessage {
 	   terminates.  This is much more efficient, because this way, the
 	   runtime system can reuse the upcall thread!
 	 **/
-	public void finish() throws IbisIOException;
+	public void finish() throws IOException;
 
 	public long sequenceNumber();
 	public SendPortIdentifier origin();
 
-	public boolean readBoolean() throws IbisIOException;
-	public byte readByte() throws IbisIOException;
-	public char readChar() throws IbisIOException;
-	public short readShort() throws IbisIOException;
-	public int readInt() throws IbisIOException;
-	public long readLong() throws IbisIOException;	
-	public float readFloat() throws IbisIOException;
-	public double readDouble() throws IbisIOException;
-	public String readString() throws IbisIOException;
-	public Object readObject() throws IbisIOException;
+	public boolean readBoolean() throws IOException;
+	public byte readByte() throws IOException;
+	public char readChar() throws IOException;
+	public short readShort() throws IOException;
+	public int readInt() throws IOException;
+	public long readLong() throws IOException;	
+	public float readFloat() throws IOException;
+	public double readDouble() throws IOException;
+	public String readString() throws IOException;
+	/**
+	 * @exception May throw a ClassNotFoundException if an object arrives
+	 *	of a class that cannot be loaded locally
+	 */
+	public Object readObject() throws IOException, ClassNotFoundException;
 
 	/** Methods to receive arrays in place. No duplicate checks are done.
 	    These methods are a shortcut for:
 	    readArray(destination, 0, destination.length);
 
 	    It is therefore legal to use a readArrayXXX, with a corresponding writeArray.
+	    @exception
+		If an object of a different type than requested arrives, a
+		ClassCastException is thrown.
+	    @exception
+		If an array of the correct type but of different size arrives,
+		an ArrayIndexOutOfBoundsException is thrown.
+	    @exception
+		If the connection is broken, 
+		a ConnectionClosedException is thrown.
 	**/
-	public void readArray(boolean [] destination) throws IbisIOException;
-	public void readArray(byte [] destination) throws IbisIOException;
-	public void readArray(char [] destination) throws IbisIOException;
-	public void readArray(short [] destination) throws IbisIOException;
-	public void readArray(int [] destination) throws IbisIOException;
-	public void readArray(long [] destination) throws IbisIOException;
-	public void readArray(float [] destination) throws IbisIOException;
-	public void readArray(double [] destination) throws IbisIOException;
-	public void readArray(Object [] destination) throws IbisIOException;
+	public void readArray(boolean [] destination) throws IOException;
+	public void readArray(byte [] destination) throws IOException;
+	public void readArray(char [] destination) throws IOException;
+	public void readArray(short [] destination) throws IOException;
+	public void readArray(int [] destination) throws IOException;
+	public void readArray(long [] destination) throws IOException;
+	public void readArray(float [] destination) throws IOException;
+	public void readArray(double [] destination) throws IOException;
+	/**
+	 * @exception May throw a ClassNotFoundException if an object arrives
+	 *	of a class that cannot be loaded locally
+	 */
+	public void readArray(Object [] destination) throws IOException, ClassNotFoundException;
 
 	/** Read a slice of an array in place. No cycle checks are done. 
 	    It is legal to use a readArray, with a corresponding writeArrayXXX.
+
+	    @exception
+		If an object of a different type than requested arrives, a
+		ClassCastException is thrown.
+	    @exception
+		If an array of the correct type but of different size arrives,
+		an ArrayIndexOutOfBoundsException is thrown.
+	    @exception
+		If the connection is broken, 
+		a ConnectionClosedException is thrown.
 	**/
-	public void readArray(boolean [] destination, int offset, int size) throws IbisIOException;
-	public void readArray(byte [] destination, int offset, int size) throws IbisIOException;
-	public void readArray(char [] destination, int offset, int size) throws IbisIOException;
-	public void readArray(short [] destination, int offset, int size) throws IbisIOException;
-	public void readArray(int [] destination, int offset, int size) throws IbisIOException;
-	public void readArray(long [] destination, int offset, int size) throws IbisIOException;
-	public void readArray(float [] destination, int offset, int size) throws IbisIOException;
-	public void readArray(double [] destination, int offset, int size) throws IbisIOException;
-	public void readArray(Object [] destination, int offset, int size) throws IbisIOException;
+	public void readArray(boolean [] destination, int offset, int size) throws IOException;
+	public void readArray(byte [] destination, int offset, int size) throws IOException;
+	public void readArray(char [] destination, int offset, int size) throws IOException;
+	public void readArray(short [] destination, int offset, int size) throws IOException;
+	public void readArray(int [] destination, int offset, int size) throws IOException;
+	public void readArray(long [] destination, int offset, int size) throws IOException;
+	public void readArray(float [] destination, int offset, int size) throws IOException;
+	public void readArray(double [] destination, int offset, int size) throws IOException;
+	public void readArray(Object [] destination, int offset, int size) throws IOException, ClassNotFoundException;
 } 

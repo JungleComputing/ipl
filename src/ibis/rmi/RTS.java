@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 import java.net.InetAddress;
 
+import java.io.IOException;
+
 import java.util.WeakHashMap;
 
 public final class RTS {
@@ -124,8 +126,12 @@ public final class RTS {
 	 */
 	Runtime.getRuntime().addShutdownHook(new Thread() {
 	    public void run() {
-		ibis.end();
-		// System.err.println("Ended Ibis");
+		try {
+		    ibis.end();
+		    // System.err.println("Ended Ibis");
+		} catch (IOException e) {
+		    System.err.println("ibis.end throws " + e);
+		}
 	    }
 	});
 	/* End of 1.4-specific code */
@@ -153,38 +159,46 @@ public final class RTS {
 	    class_name.substring(class_name.lastIndexOf('.') + 1);
     }
 
-    private static Skeleton createSkel(Remote obj) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IbisIOException {
-	Skeleton skel;
-	Class c = obj.getClass();
-	ReceivePort rec;
+    private static Skeleton createSkel(Remote obj) throws IOException {
+	try {
+	    Skeleton skel;
+	    Class c = obj.getClass();
+	    ReceivePort rec;
 
-	String skel_name = get_skel_name(c);
-	// System.out.println("skel_name = " + skel_name);
+	    String skel_name = get_skel_name(c);
+	    // System.out.println("skel_name = " + skel_name);
 
-	// Use the classloader of the original class!
-	// Fix is by Fabrice Huet.
-	ClassLoader loader = c.getClassLoader();
+	    // Use the classloader of the original class!
+	    // Fix is by Fabrice Huet.
+	    ClassLoader loader = c.getClassLoader();
 
-	Class skel_c = null;
-	if (loader != null) {
-	    skel_c = loader.loadClass(skel_name);
+	    Class skel_c = null;
+	    if (loader != null) {
+		skel_c = loader.loadClass(skel_name);
+	    }
+	    else {
+		skel_c = Class.forName(skel_name);
+	    }
+	    skel = (Skeleton) skel_c.newInstance();
+
+	    String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
+	    rec = portType.createReceivePort(skel_rec_port_name, skel, skel);
+
+	    skel.init(rec, obj);
+
+	    rec.enableConnections();
+	    rec.enableUpcalls();
+
+	    skeletons.put(obj, skel);
+
+	    return skel;
+	} catch (ClassNotFoundException ec) {
+	    throw new RemoteException("Cannot create skeleton", ec);
+	} catch (InstantiationException en) {
+	    throw new RemoteException("Cannot create skeleton", en);
+	} catch (IllegalAccessException el) {
+	    throw new RemoteException("Cannot create skeleton", el);
 	}
-	else {
-	    skel_c = Class.forName(skel_name);
-	}
-	skel = (Skeleton) skel_c.newInstance();
-
-	String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
-	rec = portType.createReceivePort(skel_rec_port_name, skel, skel);
-
-	skel.init(rec, obj);
-
-	rec.enableConnections();
-	rec.enableUpcalls();
-
-	skeletons.put(obj, skel);
-
-	return skel;
     }
 
     public static void removeSkeleton(Skeleton skel) {
@@ -246,7 +260,7 @@ System.out.println("removeSkeleton called!");
 
 
     public static synchronized void bind(String url, Remote o)
-	throws AlreadyBoundException, IbisException, IbisIOException, ClassNotFoundException, InstantiationException, IllegalAccessException
+	throws AlreadyBoundException, IbisException, IOException, InstantiationException, IllegalAccessException
     {
 	//	String url = "//" + RTS.hostname + "/" + name;
 
@@ -258,7 +272,7 @@ System.out.println("removeSkeleton called!");
 
 	try {
 	    dest = ibisRegistry.lookup(url, 1);
-	} catch(IbisIOException e) {
+	} catch(IOException e) {
 	}
 
 	if (dest != null) {
@@ -283,7 +297,7 @@ System.out.println("removeSkeleton called!");
     }
 
     public static synchronized void rebind(String url, Remote o)
-	throws IbisException, IbisIOException, ClassNotFoundException, InstantiationException, IllegalAccessException
+	throws IbisException, IOException, InstantiationException, IllegalAccessException
     {
 	if (DEBUG) {
 	    System.out.println(hostname + ": Trying to bind object to " + url);
@@ -301,7 +315,7 @@ System.out.println("removeSkeleton called!");
     }
 
     public static void unbind(String url)
-	throws NotBoundException, IbisException, IbisIOException
+	throws NotBoundException, ClassNotFoundException, IOException
     {
 	if (DEBUG) {
 	    System.out.println(hostname + ": Trying to unbind object from " + url);
@@ -311,7 +325,7 @@ System.out.println("removeSkeleton called!");
 
 	try {
 	    dest = ibisRegistry.lookup(url, 1);
-	} catch (IbisIOException e) {
+	} catch (IOException e) {
 	}
 
 	if (dest == null) {
@@ -323,7 +337,7 @@ System.out.println("removeSkeleton called!");
     }
 
 
-    public static Remote lookup(String url)  throws NotBoundException, IbisException, IbisIOException {
+    public static Remote lookup(String url)  throws NotBoundException, IOException {
 
 	Stub result;
 	SendPort s = null;
@@ -338,7 +352,7 @@ System.out.println("removeSkeleton called!");
 	    try {
 		dest = ibisRegistry.lookup(url, 1);
 		// System.err.println("ibisRegistry.lookup(" + url + ". 1) is " + dest);
-	    } catch(IbisIOException e) {
+	    } catch(IOException e) {
 		// System.err.println("ibisRegistry.lookup(" + url + ". 1) throws " + e);
 	    }
 	}
@@ -391,7 +405,12 @@ System.out.println("removeSkeleton called!");
 	}
 
 	int stubID = rm.readInt();
-	String stubType = (String) rm.readObject();
+	String stubType;
+	try {
+	    stubType = (String) rm.readObject();
+	} catch (ClassNotFoundException e) {
+	    throw new RemoteException("Unmarshall error", e);
+	}
 	rm.finish();
 
 	try {
@@ -407,7 +426,7 @@ System.out.println("removeSkeleton called!");
 	    } catch(Exception e2) {
 		s.free();
 		// r.forcedClose();
-		throw new IbisException("stub class " + stubType + " not found" + e2);
+		throw new RemoteException("stub class " + stubType + " not found", e2);
 	    }
 	}
 
@@ -419,7 +438,7 @@ System.out.println("removeSkeleton called!");
 	return (Remote) result;
     }
 
-    public static String[] list(String url) throws IbisIOException
+    public static String[] list(String url) throws IOException
     {
 	int urlLength = url.length();
 	String[] names = ibisRegistry.list(url /*+ ".*"*/);
@@ -430,13 +449,13 @@ System.out.println("removeSkeleton called!");
     }
 
     public static SendPort createSendPort()
-	throws IbisIOException
+	throws IOException
     {
 	return portType.createSendPort(new RMIReplacer());
     }
 
     public static ReceivePort createReceivePort()
-	throws IbisIOException
+	throws IOException
     {
 	return  portType.createReceivePort("//" + hostname + "/rmi_stub" + (new java.rmi.server.UID()).toString());
     }
@@ -446,7 +465,7 @@ System.out.println("removeSkeleton called!");
 	String url = "registry://" + hostname + ":" + port;
 	try {
 	    portType.createReceivePort(url);
-	} catch (IbisIOException e) {
+	} catch (IOException e) {
 	    throw new RemoteException("there already is a registry running on port " + port);
 	}
     }

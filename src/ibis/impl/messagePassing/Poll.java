@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.IbisIOException;
+import java.io.IOException;
 
 final public class Poll implements Runnable {
 
@@ -91,12 +91,12 @@ final public class Poll implements Runnable {
     }
 
 
-    protected native boolean msg_poll() throws IbisIOException;
+    protected native boolean msg_poll() throws IOException;
 
     native void abort();
 
 
-    final boolean poll() throws IbisIOException {
+    final boolean poll() throws IOException {
 	boolean result;
 
 	if (STATISTICS) {
@@ -109,7 +109,7 @@ final public class Poll implements Runnable {
 
 
     final void waitPolling(PollClient client, long timeout, int preempt)
-	    throws IbisIOException {
+	    throws IOException {
 
 	Ibis.myIbis.checkLockOwned();
 
@@ -265,7 +265,7 @@ if (false)
 		    if (STATISTICS) {
 			poll_from_thread++;
 		    }
-		} catch (IbisIOException e) {
+		} catch (IOException e) {
 		    System.err.println("Poll throws " + e);
 		    e.printStackTrace(System.err);
 		}
