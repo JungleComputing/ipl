@@ -8,6 +8,6 @@ class Truck extends Vehicle implements Configuration {
 
     public String toString()
     {
-	return "Truck " + label + " @" + position + " v=" + velocity;
+	return "Truck " + label + " " + super.toString();
     }
 }

@@ -47,8 +47,8 @@ class SeqRoad implements Configuration {
 	for( int i=0; i<positions.length; i++ ){
 	    Vehicle v = positions[i];
 
-	    if( v != null && (lane<0 || v.position<pos) ){
-		pos = v.position;
+	    if( v != null && (lane<0 || v.getPosition()<pos) ){
+		pos = v.getPosition();
 		lane = i;
 	    }
 	}
@@ -79,47 +79,97 @@ class SeqRoad implements Configuration {
 		System.out.println( "Update vehicle in lane " + lane + ": " + v );
 	    }
 	    Vehicle vfront = v.next;
-	    double frontpos = v.position+2*SAFE_DISTANCE;
-	    double frontVelocity = 2*v.preferedVelocity;
+	    double frontpos = 2*ROAD_LENGTH;
+	    double frontVelocity = 2*ROAD_LENGTH;
 
 	    if( lane+1<LANES ){
 		// If there is a car in the next lane, watch its speed.
 		Vehicle vn = front[lane+1];
 		if( vn != null ){
-		    frontpos = vn.position;
-		    frontVelocity = vn.velocity;
+		    frontpos = vn.getPosition();
+		    frontVelocity = vn.getVelocity();
 		}
 	    }
 	    if( v.next != null ){
 		// If there is a car in front of us, watch its speed.
 		Vehicle vn = v.next;
 
-		frontpos = Math.min( frontpos, vn.position );
-		frontVelocity = Math.min( frontVelocity, vn.velocity );
+		frontpos = Math.min( frontpos, vn.getPosition() );
+		frontVelocity = Math.min( frontVelocity, vn.getVelocity() );
 	    }
 
-	    if( v.position+SAFE_DISTANCE>frontpos ){
-		// If we're too close, brake 
-		v.velocity = v.velocity-STRONG_BRAKE_VELOCITY;
+	    if( v.isDangerouslyClose( v.next ) ){
+		// If we're too close to the next car in this lane, brake 
+		v.brake();
 		if( traceBraking ){
-		    System.out.println( "T" + tick + ": strong braking of " + v );
+		    System.out.println( "T" + tick + ": brake for next vehicle: " + v  + " lane " + lane + " culpit: " + v.next );
 		}
 	    }
-	    else if( v.position+COMFORTABLE_DISTANCE>frontpos ){
-		// Too close for comfort but safe, adapt velocity.
-		v.velocity = Math.max( v.velocity-COMFORTABLE_BRAKE_VELOCITY, frontVelocity );
-		if( v.velocity<frontVelocity ){
-		    v.velocity = Math.min( frontVelocity, v.velocity+COMFORTABLE_BRAKE_VELOCITY );
+	    else if( v.isUncomfortablyClose( frontpos ) ){
+		boolean switchedLane = false;
+		if( !v.isComfortableVelocity( frontVelocity ) ){
+		    // We want to switch to a faster lane.
+		    if( lane+1<LANES ){
+			boolean safeSwitch = true;
+
+			Vehicle pv = prev[lane+1];
+			if( v.isUncomfortablyClose( prev[lane+1] ) ){
+			    // There is a vehicle in the next lane that blocks
+			    // a lane switch.
+			    safeSwitch = false;
+			}
+			if( v.isUncomfortablyClose( front[lane+1] )){
+			    // There is a vehicle in the next lane that blocks
+			    // a lane switch.
+			    safeSwitch = false;
+			}
+
+			if( safeSwitch ){
+			    // Ok, switch lanes.
+			    if( traceLaneSwitching ){
+				System.out.println( "T" + tick + ": switch to lane " + (lane+1) + ": " + v  + " lane " + lane + " culpit: " + v.next );
+			    }
+			    // Extract the vehicle from this lane.
+			    if( prev[lane] == null ){
+				lanes[lane] = v.next;
+			    }
+			    else {
+				prev[lane].next = v.next;
+			    }
+			    front[lane] = v.next;
+
+			    lane++;
+
+			    // Insert the vehicle in the next lane.
+			    v.next = front[lane];
+			    if( prev[lane] == null ){
+				lanes[lane] = v;
+			    }
+			    else {
+				prev[lane].next = v;
+			    }
+			    front[lane] = v;
+			    switchedLane = true;
+			}
+		    }
 		}
-		if( traceBraking ){
-		    System.out.println( "T" + tick + ": comfort adjustment of " + v );
+		if( !switchedLane ){
+		    // Too close for comfort but safe, adapt velocity.
+		    boolean changed = v.adjustToVelocity( frontVelocity );
+		    if( changed && traceBraking ){
+			System.out.println( "T" + tick + ": comfort adjustment of " + v  + " lane " + lane );
+		    }
 		}
 	    }
 	    else {
-		v.velocity = v.preferedVelocity;
+		// We're not close to a car, adjust velocity to what we like.
+		boolean changed = v.relaxVelocity();
+		if( changed && traceBraking ){
+		    System.out.println( "T" + tick + ": relaxed velocity of " + v  + " lane " + lane );
+		}
 	    }
-	    v.position += v.velocity;
-	    if( v.position>= ROAD_LENGTH ){
+	    v.updatePosition();
+	    if( v.getPosition() >= ROAD_LENGTH ){
 		// Retire this car.
 		if( traceCreateRetire ){
 		    System.out.println( "T" + tick + ": retiring " + v );
@@ -136,8 +186,6 @@ class SeqRoad implements Configuration {
 	    }
 	    front[lane] = v.next;
 	}
-
-	// TODO: retire vehicles.
     }
 
     private void runTick( int tick )
