@@ -506,6 +506,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 		}
 		int var = cl.getPosUnitVar();
 		if( var>=0 ){
+		    // This is a positive unit clause. Propagate.
 		    if( trace_simplification ){
 			System.err.println( "Propagating pos. unit clause " + cl ); 
 		    }
@@ -514,6 +515,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 		}
 		var = cl.getNegUnitVar();
 		if( var>=0 ){
+		    // This is a negative unit clause. Propagate.
 		    if( trace_simplification ){
 			System.err.println( "Propagating neg. unit clause " + cl ); 
 		    }
@@ -554,30 +556,6 @@ public class SATProblem implements Cloneable, java.io.Serializable {
     }
 
     /**
-     * Given a list of assignments, specializes the SAT problem to incorporate
-     * all definite assignments in the list.
-     * @param assignments the assignments
-     */
-    private void specialize( int assignments[] )
-    {
-	boolean changed = true;
-
-        for( int ix=0; ix<assignments.length; ix++ ){
-	    int a = assignments[ix];
-
-	    if( a == 1 ){
-		changed |= propagatePosAssignment( ix );
-	    }
-	    else if( a == 0 ){
-		changed |= propagateNegAssignment( ix );
-	    }
-	}
-	if( changed ){
-	    optimize();
-	}
-    }
-
-    /**
      * Returns the initial assignment array for this problem.
      * @return an array of assignments for the variables of this problem
      */
@@ -587,6 +565,20 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 
 	for( int ix=0; ix<res.length; ix++ ){
 	    res[ix] = variables[ix].getAssignment();
+	}
+	return res;
+    }
+
+    /**
+     * Returns a new array that contains the number of terms in
+     * each clause.
+     */
+    int [] buildTermCounts()
+    {
+        int res[] = new int[clauseCount];
+
+	for( int i=0; i<clauseCount; i++ ){
+	    res[i] = clauses[i].getTermCount();
 	}
 	return res;
     }

@@ -8,6 +8,9 @@
  * variable, and tries both possible assignments. These tries can
  * of course be done in parallel, making this ideally suited for Satin.
  * More subtle approaches are definitely possible, though.
+ *
+ * @author Kees van Reeuwijk
+ * @version $Revision$
  */
 
 import java.io.File;
@@ -152,8 +155,8 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    leafSolve( level+1, ctx.p, ctx.varlist, assignments, varix+1, true );
 	}
 	else {
-	    solve( level+1, ctx, (int[])assignments.clone(), varix+1, false );
-	    solve( level+1, ctx, (int[])assignments.clone(), varix+1, true );
+	    solve( level+1, ctx, (int[]) assignments.clone(), varix+1, false );
+	    solve( level+1, ctx, (int[]) assignments.clone(), varix+1, true );
 	    sync();
 	}
 	assignments[var] = -1;
@@ -225,6 +228,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 
 	    ctx.p = p;
 	    ctx.varlist = p.buildOrderedVarList();
+	    ctx.terms = p.buildTermCounts();
 
 	    if( ctx.varlist.length == 0 ){
 		// There are no variables left to assign, clearly there

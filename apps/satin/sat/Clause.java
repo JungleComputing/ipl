@@ -315,6 +315,12 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	return false;
     }
 
+    /** Returns the total number of terms in this clause. */
+    public int getTermCount()
+    {
+        return pos.length+neg.length;
+    }
+
     /**
      * If this clause is not a positive unit clause, return -1,
      * else return the variable that constitutes this clause.

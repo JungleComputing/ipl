@@ -5,9 +5,10 @@
  * Satin divide-and-conquer parallel execution framework.
  */
 /*static*/ class Context implements java.io.Serializable {
-        SATProblem p;
-	int varlist[];
-    }
+    SATProblem p;
+    int varlist[];
+    int terms[];	/* The number of open terms of each clause. */
+}
 
 interface SATInterface extends ibis.satin.Spawnable
 {

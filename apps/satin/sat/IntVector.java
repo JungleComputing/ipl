@@ -49,8 +49,9 @@ public final class IntVector implements java.io.Serializable, Cloneable {
      * @param v the vector 
      */
     public IntVector( IntVector v ){
-	this( v.size(), 0 );
+	this( v.elementCount, 0 );
 	System.arraycopy( v.elementData, 0, elementData, 0, v.size() );
+	elementCount = v.elementCount;
     }
 
     /**
