@@ -58,6 +58,10 @@ final public class SerializeSendPort extends SendPort {
 	}
 
 	public void write(byte[] b, int off, int len) throws IOException {
+	    if (b == null) {
+		System.err.println("This is a bug: a null array in write()");
+		throw new Error("null array in write()");
+	    }
 	    out.write(b, off, len);
 	}
 

@@ -255,7 +255,7 @@ final class ByteOutputStream
 
 	int returned = 0;
 
-// System.err.println("Try to release cached bufs.. nativeByteOs " + Integer.toHexString(nativeByteOS));
+System.err.println("Try to release cached bufs.. nativeByteOs " + Integer.toHexString(nativeByteOS));
 
 	Object buffer;
 

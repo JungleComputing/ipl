@@ -61,7 +61,9 @@ unsigned	IBMP_LAST_FRAG_BIT;
 unsigned	IBMP_SEQNO_FRAG_BITS;
 
 
-#define COUNT_GLOBAL_REFS 0
+#ifndef NDEBUG
+#define COUNT_GLOBAL_REFS 1
+#endif
 #if COUNT_GLOBAL_REFS
 static int	ibmp_global_refs = 0;
 #define IBMP_GLOBAL_REF_INC() \
@@ -342,11 +344,12 @@ Java_ibis_impl_messagePassing_ByteOutputStream_clearGlobalRefs(
     jint	byteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
     ibmp_byte_os_p byte_os = (ibmp_byte_os_p)byteOS;
     ibmp_buffer_cache_p c;
+fprintf(stderr, "Now in clearGlobalRefs\n");
 
     while (byte_os->global_refs != NULL) {
 	c = byte_os->global_refs;
 	byte_os->global_refs = c->next;
-	IBP_VPRINTF(300, env, ("Now delete global ref %p\n", c->array));
+	IBP_VPRINTF(400, env, ("Now delete global ref %p\n", c->array));
 	(*env)->DeleteGlobalRef(env, c->array);
 	IBMP_GLOBAL_REF_DEC();
 	IBP_VPRINTF(755, env, ("Now deleted global ref %p\n", c->array));
@@ -364,10 +367,10 @@ release_ ## JType ## _array(JNIEnv *env, jtype ## Array array, jtype *buf, int m
 		ibmp_currentThread(env), #JType, array, buf)); \
     if (must_release) { \
 	(*env)->Release ## JType ## ArrayElements(env, array, buf, JNI_ABORT); \
+	IBP_VPRINTF(400, env, ("Now delete global ref %p\n", array)); \
+	(*env)->DeleteGlobalRef(env, array); \
+	IBMP_GLOBAL_REF_DEC(); \
     } \
-    IBP_VPRINTF(300, env, ("Now delete global ref %p\n", array)); \
-    (*env)->DeleteGlobalRef(env, array); \
-    IBMP_GLOBAL_REF_DEC(); \
     IBP_VPRINTF(755, env, ("Now deleted global ref %p\n", array)); \
 }
 
@@ -395,17 +398,17 @@ Java_ibis_impl_messagePassing_ByteOutputStream_getCachedBuffer(
     if (c != NULL) { \
 	byte_os->buffer_cache[jprim_ ## JType] = c->next; \
 	\
-	IBP_VPRINTF(1, NULL, ("%s: Now release type %s array %p buf %p\n", \
+	IBP_VPRINTF(400, NULL, ("%s: Now release type %s array %p buf %p\n", \
 		    ibmp_currentThread(env), #JType, c->array, c->buf)); \
 	if (c->must_release) { \
 	    (*env)->Release ## JType ## ArrayElements(env, \
 			    c->array, c->buf, JNI_ABORT); \
 	    \
-	} \
 	/* Enqueue in the list of global refs to be cleared. We can clear the \
 	 * global ref only *after* it has been returned to Java space. */ \
-	c->next = byte_os->global_refs; \
-	byte_os->global_refs = c; \
+	    c->next = byte_os->global_refs; \
+	    byte_os->global_refs = c; \
+	} \
 	\
 	return (jobject) (c->array); \
     }
@@ -483,7 +486,7 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 					   msg->byte_os->byte_output_stream,
 					   fld_allocator);
 	for (i = 0; i < msg->iov_len; i++) {
-	    IBP_VPRINTF(800, NULL, ("%s: Now cache msg %p iov %p size %d release type %d array %p buf %p\n",
+	    IBP_VPRINTF(400, NULL, ("%s: Now cache msg %p iov %p size %d release type %d array %p buf %p\n",
 			ibmp_currentThread(env),
 			msg, msg->iov[i].data, msg->iov[i].len,
 			msg->release[i].type, msg->release[i].array,
@@ -517,7 +520,7 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 		    ibmp_buffer_cache_p c = ibmp_buffer_cache_get();
 		    ibmp_byte_os_p byte_os = msg->byte_os;
 
-		    IBP_VPRINTF(1, env, ("enqueue array%d %p byte_os %p for reuse\n",
+		    IBP_VPRINTF(400, env, ("enqueue array%d %p byte_os %p for reuse\n",
 				msg->release[i].type, msg->release[i].array,
 				byte_os));
 		    c->next = byte_os->buffer_cache[msg->release[i].type];
@@ -553,7 +556,7 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
     jint outstandingFrags;
     ibmp_byte_os_p byte_os = msg->byte_os;
 
-    IBP_VPRINTF(300, env, ("Do a finished upcall msg %p obj %p byte_os->msgSeqno %d\n",
+    IBP_VPRINTF(400, env, ("Do a finished upcall msg %p obj %p byte_os->msgSeqno %d\n",
 		msg, byte_os->byte_output_stream,
 		byte_os->msgSeqno));
 
@@ -1293,6 +1296,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_write(
     jint	nativeByteOS = (*env)->GetIntField(env, this, fld_nativeByteOS);
     ibmp_byte_os_p byte_os = (ibmp_byte_os_p)nativeByteOS;
     ibmp_msg_p	msg = ibmp_msg_check(env, byte_os, 0);
+fprintf(stderr, "I fear write(int) is broken in messagePassingIbis\n");
 
     if (! msg->copy) {
 	int incr = buf_grow(env, msg, sizeof(jbyte), 0);
@@ -1358,11 +1362,14 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
     ibmp_msg_p	msg = ibmp_msg_check(env, byte_os, 0); \
     jtype      *buf; \
     int		sz = len * sizeof(jtype); \
+    int		ref_lives_beyond_call = ! (msg->copy || sz < COPY_THRESHOLD); \
     \
-    b = (*env)->NewGlobalRef(env, b); \
-    IBMP_GLOBAL_REF_INC(); \
-    IBP_VPRINTF(1, env, ("%s: Now create global ref %p\n", \
-		ibmp_currentThread(env), b)); \
+    if (ref_lives_beyond_call) { \
+	b = (*env)->NewGlobalRef(env, b); \
+	IBMP_GLOBAL_REF_INC(); \
+	IBP_VPRINTF(400, env, ("%s: Now create global ref %p; msg->copy %d sz %d COPY_THRESHOLD %d\n", \
+		    ibmp_currentThread(env), b, msg->copy, sz, COPY_THRESHOLD)); \
+    } \
     if (msg->copy) { \
 	ibmp_lock(env); \
 	iovec_grow(env, msg, 1); \
@@ -1371,7 +1378,6 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
 	msg->iov[msg->iov_len].data = buf; \
 	msg->iov[msg->iov_len].len = sz; \
 	(*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) buf); \
-	msg->release[msg->iov_len].must_release = 0; \
     } else { \
 	iovec_grow(env, msg, 0); \
 	if (sz < COPY_THRESHOLD) { \
@@ -1380,18 +1386,17 @@ Java_ibis_impl_messagePassing_ByteOutputStream_writeArray___3 ## JPrim ## II( \
 	    msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]); \
 	    msg->buf_len += incr; \
 	    msg->iov[msg->iov_len].len  = sz; \
-	    msg->release[msg->iov_len].must_release = 0; \
 	} \
 	else { \
 	    jtype *a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
 	    msg->iov[msg->iov_len].data = a + off; \
 	    msg->iov[msg->iov_len].len  = sz; \
 	    msg->release[msg->iov_len].buf   = a; \
-	    msg->release[msg->iov_len].must_release = 1; \
 	} \
     } \
     msg->release[msg->iov_len].array = b; \
     msg->release[msg->iov_len].type  = jprim_ ## JType; \
+    msg->release[msg->iov_len].must_release = ref_lives_beyond_call; \
     IBP_VPRINTF(300, env, ("Now push ByteOS %p msg %p %s source %p data %p size %d iov %d total %d [%d,%d,%d,%d,...]\n", \
 		msg->byte_os->byte_output_stream, msg, #JType, b, msg->iov[msg->iov_len].data, \
 		msg->iov[msg->iov_len].len, msg->iov_len, ibmp_iovec_len(msg->iov, msg->iov_len + 1), msg->iov[0].len, msg->iov[1].len, msg->iov[2].len, msg->iov[3].len)); \
