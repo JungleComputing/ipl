@@ -736,10 +736,10 @@ public final class SATContext implements java.io.Serializable {
     {
         int newCount = p.getClauseCount();
 
-        if( traceUpdates ){
-            System.err.println( "S" + level + ": updating context with " + (newCount-satisfied.length) + " new clauses" );
-        }
         if( newCount>satisfied.length ){
+            if( traceUpdates ){
+                System.err.println( "S" + level + ": updating context with " + (newCount-satisfied.length) + " new clauses" );
+            }
             int oldCount = satisfied.length;
             // New clauses have been added. Enlarge the arrays related
             // to the clauses, and fill them with the correct values.
