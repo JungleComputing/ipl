@@ -120,7 +120,7 @@ class Conversion {
 	public static final void long2byte(long[] src, int off, int len, byte [] dst, int off2) {
 
 //		if (len < LONG2BYTE_THRESHOLD) { 
-
+/*
 			long temp = 0;
 			int count = off2;
 			
@@ -135,6 +135,28 @@ class Conversion {
 				dst[count++] = (byte)(0xff & (temp >> 48));
 				dst[count++] = (byte)(0xff & (temp >> 56));
 			} 
+*/
+			int temp2 = 0;
+			long temp;
+			int count = off2;
+			
+			for (int i=0;i<len;i++) { 		
+				temp = src[off+i];
+				temp2 = (int) (0xffffffff & temp);
+
+				dst[count++] = (byte)(0xff & temp2);
+				dst[count++] = (byte)(0xff & (temp2 >> 8));
+				dst[count++] = (byte)(0xff & (temp2 >> 16));
+				dst[count++] = (byte)(0xff & (temp2 >> 24));
+
+				temp2 = (int) (0xffffffff & (temp >> 32));
+
+				dst[count++] = (byte)(0xff & temp2);
+				dst[count++] = (byte)(0xff & (temp2 >> 8));
+				dst[count++] = (byte)(0xff & (temp2 >> 16));
+				dst[count++] = (byte)(0xff & (temp2 >> 24));
+			} 
+
 //		} else { 
 //			n_long2byte(src, off, len, dst, off2);
 //		}
@@ -162,11 +184,11 @@ class Conversion {
 	public static final void double2byte(double[] src, int off, int len, byte [] dst, int off2) {
 
 //		if (len < DOUBLE2BYTE_THRESHOLD) { 
-
-			long temp = 0;
-			int count = off2;
-			
-			for (int i=0;i<len;i++) { 			
+/*
+ 			long temp = 0;
+	 		int count = off2;
+		 	
+			 for (int i=0;i<len;i++) { 			
 				temp = Double.doubleToLongBits(src[off+i]);
 				dst[count++] = (byte)(0xff & temp);
 				dst[count++] = (byte)(0xff & (temp >> 8));
@@ -177,6 +199,29 @@ class Conversion {
 				dst[count++] = (byte)(0xff & (temp >> 48));
 				dst[count++] = (byte)(0xff & (temp >> 56));
 			} 
+*/
+		        long temp = 0;
+			int temp2 = 0;
+			int count = off2;
+			
+			for (int i=0;i<len;i++) { 			
+				temp = Double.doubleToLongBits(src[off+i]);
+
+				temp2 = (int) (0xffffffff & temp);
+
+				dst[count++] = (byte)(0xff & temp2);
+				dst[count++] = (byte)(0xff & (temp2 >> 8));
+				dst[count++] = (byte)(0xff & (temp2 >> 16));
+				dst[count++] = (byte)(0xff & (temp2 >> 24));
+
+				temp2 = (int) (0xffffffff & (temp >> 32));
+
+				dst[count++] = (byte)(0xff & temp2);
+				dst[count++] = (byte)(0xff & (temp2 >> 8));
+				dst[count++] = (byte)(0xff & (temp2 >> 16));
+				dst[count++] = (byte)(0xff & (temp2 >> 24));
+			} 
+
 //		} else { 
 //			n_double2byte(src, off, len, dst, off2);
 //		}
