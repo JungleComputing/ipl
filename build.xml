@@ -652,6 +652,8 @@
 	    -->
 	    <package name="ibis.gmi"/>
 	    <package name="ibis.rmi"/>
+	    <package name="ibis.rmi.server"/>
+	    <package name="ibis.rmi.registry"/>
 	    <package name="ibis.satin"/>
 	    <group title="Ibis GMI" packages="ibis.gmi"/>
 	    <group title="Ibis RMI" packages="ibis.rmi"/>
@@ -685,6 +687,7 @@
 	    <package name="ibis.io"/>
 	    <package name="ibis.gmi"/>
 	    <package name="ibis.rmi"/>
+	    <package name="ibis.rmi.*"/>
 	    <package name="ibis.satin"/>
 	    <group title="Ibis GMI" packages="ibis.gmi"/>
 	    <group title="Ibis RMI" packages="ibis.rmi"/>
