@@ -96,6 +96,7 @@ public final class RunProcess {
 	try {
 	    p = r.exec(command);
 	} catch(Exception e) {
+	    // Should not happen. At least there is a non-zero exit status.
 	    return;
 	}
 
