@@ -33,7 +33,7 @@ then
 fi
 if [ x$JAVAC = x ]
 then
-	JAVAC=$(JAVA_ROOT)/bin/javac
+	JAVAC=$JAVA_ROOT/bin/javac
 fi
 if [ x$MANTA_ROOT = x ]
 then
