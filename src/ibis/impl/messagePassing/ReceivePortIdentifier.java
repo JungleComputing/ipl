@@ -20,7 +20,7 @@ final class ReceivePortIdentifier
 	this.type = type;
 	this.cpu = cpu;
 	this.port = port;
-	ibisIdentifier = Ibis.myIbis.lookupIbis(ibisName, cpu);
+	if (ibisName != null) ibisIdentifier = Ibis.myIbis.lookupIbis(ibisName, cpu);
     }
 
 
