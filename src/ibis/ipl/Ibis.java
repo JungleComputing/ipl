@@ -314,7 +314,7 @@ public abstract class Ibis {
 				in = new Input(s);
 				return in;
 			} catch (Exception e) {
-				System.err.println("ibis.property.file set, but could not read file");
+				System.err.println("ibis.property.file set, but could not read file " + s);
 			}
 		}
 
