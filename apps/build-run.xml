@@ -38,16 +38,16 @@
 
     <target name="set-ibis-name">
 
-	<condition property="ibis-nickname" value="tcp">
+	<condition property="ibis-name" value="tcp">
 	    <not>
-		<isset property="ibis-nickname"/>
+		<isset property="ibis-name"/>
 	    </not>
 	</condition>
 
-	<condition property="ibis-name" value="&quot;-Dibis.name^=${ibis-nickname}&quot;">
+	<condition property="ibis-name" value="&quot;-Dibis.name^=${ibis-name}&quot;">
 	    <os family="windows"/>
 	</condition>
-	<condition property="ibis-name" value="&quot;-Dibis.name=${ibis-nickname}&quot;">
+	<condition property="ibis-name" value="&quot;-Dibis.name=${ibis-name}&quot;">
 	    <not>
 		<isset property="ibis-name"/>
 	    </not>
@@ -83,7 +83,7 @@
 		<isset property="prun-nprocs"/>
 	    </not>
 	</condition>
-	<echo message="Running parallel test on ${prun-nprocs} nodes, ${ibis-nickname} Ibis"/>
+	<echo message="Running parallel test on ${prun-nprocs} nodes, ${ibis-name} Ibis"/>
 	<exec dir="${basedir}"
 	      executable="/usr/local/bin/prun"
 	      vmlauncher="false">
