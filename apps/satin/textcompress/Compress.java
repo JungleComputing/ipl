@@ -99,7 +99,11 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             Backref b = results[i];
 
             if( b != null && b.len>=n ){
+                // This backreference can cover our need for a span of
+                // at least n bytes.
                 if( r == null || r.backpos<b.backpos ){
+                    // This is the first backreference, or this one is
+                    // closer to our current position.
                     r = b;
                 }
             }
@@ -136,9 +140,10 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
      * @param pos The position to select the move for.
      * @param bestpos First uncompressed byte by the best move known to parent.
      * @param depth The recursion depth of this selection.
+     * @param max_depth The maximal recursion depth.
      * @return The best move, or null if we can't better bestpos.
      */
-    public Backref selectBestMove( byte text[], int backrefs[], int pos, int bestpos, int depth )
+    public Backref selectBestMove( byte text[], int backrefs[], int pos, int bestpos, int depth, int max_depth )
     {
         Backref mv = null;
         boolean haveAlternatives = false;
@@ -202,15 +207,14 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             }
         }
 
-        //if( !haveAlternatives ){
-        if( false ){
+        if( !haveAlternatives ){
             // The only possible move is a copy.
-            if( mv != null && depth>0 && depth<lookahead_depth ){
+            if( mv != null && depth>0 && depth<max_depth ){
                 // It is permitted and useful to evaluate the copy move
                 // using recursion, so that higher levels can accurately
                 // compare it to other alternatives.
                 // Evaluate the gain of just copying the character.
-                Backref mv1 = selectBestMove( text, backrefs, pos+1, pos+1, depth+1 );
+                Backref mv1 = selectBestMove( text, backrefs, pos+1, pos+1, depth+1, max_depth );
                 mv.addGain( mv1 );
             }
             if( traceLookahead ){
@@ -228,16 +232,18 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                 generateIndent( System.out, depth );
                 System.out.println( "D" + depth + ":  considering move " + mv );
             }
-            for( int c=0; c<results.length; c++ ){
-                Backref r = results[c];
-                if( r != null ){
-                    generateIndent( System.out, depth );
-                    System.out.println( "D" + depth + ":  considering move " + r );
+            if( results != null ){
+                for( int c=0; c<results.length; c++ ){
+                    Backref r = results[c];
+                    if( r != null ){
+                        generateIndent( System.out, depth );
+                        System.out.println( "D" + depth + ":  considering move " + r );
+                    }
                 }
             }
         }
 
-        if( depth<lookahead_depth ){
+        if( depth<max_depth ){
             Backref mv1 = null;
 
             // We have some recursion depth left. We know we can backreference
@@ -262,11 +268,11 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
             // Spawn recurrent processes to evaluate a character copy
             // and backreferences of a range of lengths.
-            if( mv != null ){
-                mv1 = selectBestMoveJob( text, backrefs, pos+1, pos+1, depth+1 );
-            }
             for( int i=minLen; i<=maxLen; i++ ){
-                a[i] = selectBestMoveJob( text, backrefs, pos+i, pos+maxLen, depth+1 );
+                a[i] = selectBestMoveJob( text, backrefs, pos+i, pos+maxLen, depth+1, max_depth );
+            }
+            if( mv != null ){
+                mv1 = selectBestMoveJob( text, backrefs, pos+1, pos+1, depth+1, max_depth );
             }
             sync();
             int bestGain = -1;
@@ -320,12 +326,12 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return mv;
     }
 
-    public Backref selectBestMoveJob( byte text[], int backrefs[], int pos, int bestpos, int depth )
+    public Backref selectBestMoveJob( byte text[], int backrefs[], int pos, int bestpos, int depth, int max_depth )
     {
-        return selectBestMove( text, backrefs, pos, bestpos, depth );
+        return selectBestMove( text, backrefs, pos, bestpos, depth, max_depth );
     }
 
-    public ByteBuffer compress( byte text[] )
+    public ByteBuffer compress( byte text[], int max_depth )
     {
         int backrefs[] = buildBackrefs( text );
         int pos = 0;
@@ -335,7 +341,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             out.append( text[pos++] );
         }
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
-            Backref mv = selectBestMove( text, backrefs, pos, pos, 0 );
+            Backref mv = selectBestMove( text, backrefs, pos, pos, 0, max_depth );
             if( mv.backpos<0 ){
                 // There is no backreference that gives any gain, so
                 // just copy the character.
@@ -406,7 +412,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
         Compress c = new Compress();
 
-        ByteBuffer buf = c.compress( text );
+        ByteBuffer buf = c.compress( text, lookahead_depth );
 
         Helpers.writeFile( outfile, buf );
 
