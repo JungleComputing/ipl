@@ -10,6 +10,8 @@
 
 #include "java_properties.h"
 
+static int global_refs = 0;
+
 #define DEPRECATED		0
 
 /* How do we easily configure this in a portable way? */
@@ -641,7 +643,7 @@ typedef struct CACHE_MSG cache_msg_t, *cache_msg_p;
 struct CACHE_MSG {
     jsize	start;
     jsize	len;
-    jsize	log_size;
+    jsize	cache_bucket;
     cache_msg_p	next;
 };
 
@@ -669,6 +671,7 @@ cache_msg_get(struct gm_port *gm_port, int len, int start)
 {
     cache_msg_p	c;
     int		twopow;
+    int		cache_bucket;
 
     /* Round towards nearest upper power of two. This hopefully helps
      * against unlimited growth of the cache. */
@@ -676,23 +679,26 @@ cache_msg_get(struct gm_port *gm_port, int len, int start)
     while ((1 << twopow) < len) {
 	twopow++;
     }
+    cache_bucket = twopow - COPY_SMALL_LOG;
 
     if (len > CACHE_LIMIT) {
 	c = gm_dma_malloc(gm_port, sizeof(*c) + (1UL << twopow));
     } else {
-	c = cache[twopow - COPY_SMALL_LOG];
+	c = cache[cache_bucket];
 	if (c == NULL) {
 	    c = gm_dma_malloc(gm_port, sizeof(*c) + (1UL << twopow));
-	    if (c == NULL) {
-		fprintf(stderr, "Ughhhh... out of memory -- quits\n");
-		exit(17);
-	    }
 	} else {
-	    cache[twopow - COPY_SMALL_LOG] = c->next;
+	    cache[cache_bucket] = c->next;
 	}
     }
 
-    c->log_size = twopow;
+    if (c == NULL) {
+	fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
+		__FILE__, __LINE__);
+	exit(17);
+    }
+
+    c->cache_bucket = cache_bucket;
     c->len = len;
     c->start = start;
 
@@ -708,8 +714,8 @@ cache_msg_put(void *data)
     if (c->len > CACHE_LIMIT) {
 	free(c);
     } else {
-	c->next = cache[c->log_size];
-	cache[c->log_size] = c;
+	c->next = cache[c->cache_bucket];
+	cache[c->cache_bucket] = c;
     }
 }
 
@@ -1185,64 +1191,6 @@ ni_gm_input_unlock(JNIEnv *env, struct s_input *p_in, int len) {
         return 0;
 }
 
-#if 0
-static
-int
-ni_gm_mutex_init(JNIEnv          *env,
-                 jobject          object,
-                 char            *field,
-                 struct s_mutex **pp_mutex) {
-        struct s_mutex *p_mutex = NULL;
-
-        __in__();
-        p_mutex = malloc(sizeof(struct s_mutex));
-        assert(p_mutex);
-
-        {
-                jclass   object_class = 0;
-                jclass   mutex_class  = 0;
-                jfieldID fid          = 0;
-                jobject  mutex        = 0;
-
-                object_class = (*env)->GetObjectClass(env, object);
-                assert(object_class);
-
-                fid = (*env)->GetFieldID(env, object_class, field,
-                                         "Libis/impl/net/NetMutex;");
-                assert(fid);
-
-                mutex = (*env)->GetObjectField(env, object, fid);
-                assert(mutex);
-
-                p_mutex->ref = (*env)->NewGlobalRef(env, mutex);
-                assert(p_mutex->ref);
-
-                mutex_class = (*env)->FindClass(env, "ibis/impl/net/NetMutex");
-                assert(mutex_class);
-
-                p_mutex->unlock_id =
-                        (*env)->GetMethodID(env, mutex_class, "unlock", "()V");
-                assert(p_mutex->unlock_id);
-        }
-
-        assert(!*pp_mutex);
-        *pp_mutex = p_mutex;
-        __out__();
-
-        return 0;
-}
-
-static
-int
-ni_gm_mutex_unlock(JNIEnv *env, struct s_mutex *p_mutex) {
-
-        __in__();
-        (*env)->CallVoidMethod(env, p_mutex->ref, p_mutex->unlock_id);
-        __out__();
-
-        return 0;
-}
-#endif
 
 static
 int
@@ -1260,6 +1208,7 @@ ni_gm_release_output_array(JNIEnv *env, struct s_output *p_out) {
 			} else { \
 			    (*env)->Release ## Jtype ## ArrayElements(env, pb->jarray, ptr, JNI_ABORT); \
 			} \
+global_refs--; \
 			(*env)->DeleteGlobalRef(env, pb->jarray); \
 			break;
 
@@ -1315,6 +1264,7 @@ ni_gm_release_input_array(JNIEnv *env, struct s_input *p_in, int length) {
 		    } else { \
 			    (*env)->Release ## Jtype ## ArrayElements(env, pb->jarray, ptr, 0); \
 		    } \
+global_refs--; \
 		    (*env)->DeleteGlobalRef(env, pb->jarray); \
 		    break;
 
@@ -1591,7 +1541,11 @@ ni_gm_open_port(struct s_dev *p_dev) {
                 assert(p_packet);
 
                 p_packet->data      = gm_dma_malloc(p_gm_port, NI_GM_PACKET_LEN);
-                assert(p_packet->data);
+		if (p_packet->data == NULL) {
+		    fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
+			    __FILE__, __LINE__);
+		    exit(17);
+		}
 
                 p_port->packet_head = p_packet;
                 p_packet->next      = p_packet;
@@ -1606,7 +1560,11 @@ ni_gm_open_port(struct s_dev *p_dev) {
                          assert(p_packet);
 
                          p_packet->data = gm_dma_malloc(p_gm_port, NI_GM_PACKET_LEN);
-                         assert(p_packet->data);
+			if (p_packet->data == NULL) {
+			    fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
+				    __FILE__, __LINE__);
+			    exit(17);
+			}
 
                          p_packet->previous       = p_port->packet_head->previous;
                          p_packet->next           = p_port->packet_head;
@@ -1768,6 +1726,11 @@ ni_gm_packet_get(struct s_output *p_out)
     if (packet == NULL) {
 	packet = malloc(sizeof(*packet));
 	packet->data = gm_dma_malloc(port->p_gm_port, NI_GM_PACKET_LEN);
+	if (packet->data == NULL) {
+	    fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
+		    __FILE__, __LINE__);
+	    exit(17);
+	}
     } else {
 	port->send_packet_cache = packet->next;
     }
@@ -2026,7 +1989,12 @@ ni_gm_init_input(struct s_dev    *p_dev,
                            sizeof(struct s_input *));
         assert(!p_port->local_input_array[p_in->local_mux_id]);
         p_in->ack_packet = gm_dma_malloc(p_port->p_gm_port, NI_GM_PACKET_LEN);
-        assert(p_in->ack_packet);
+	if (p_in->ack_packet == NULL) {
+	    fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
+		    __FILE__, __LINE__);
+	    exit(17);
+	}
+
         p_in->packet_size   = gm_min_size_for_length(NI_GM_PACKET_LEN);
 
 	p_in->state          = NI_GM_RECEIVER_IDLE;
@@ -2454,6 +2422,7 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
     ni_gm_register_block(p_port, (unsigned char *)buffer + offset, len, &p_in->p_cache); \
     p_in->length       = len; \
     p_in->java.jarray  = (jtype ## Array)(*env)->NewGlobalRef(env, b); \
+if (++global_refs > 1000) fprintf(stderr, "%s.%d: Live GlobalRefs %s\n", __FILE__, __LINE__, global_refs); \
     p_in->array        = buffer; \
     p_in->is_copy      = get_region; \
     if (ni_gm_check_receive_tokens(p_port)) { \
@@ -2812,7 +2781,11 @@ ni_gm_input_flow_control(JNIEnv *env,
                 assert(p_packet);
 
                 p_packet->data = gm_dma_malloc(p_port->p_gm_port, NI_GM_PACKET_LEN);
-                assert(p_packet->data);
+		if (p_packet->data == NULL) {
+		    fprintf(stderr, "%s.%d: Ughhhh... out of memory -- quits\n",
+			    __FILE__, __LINE__);
+		    exit(17);
+		}
 
                 if (ni_gm_check_receive_tokens(p_port)) {
                         goto error;
@@ -3686,6 +3659,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
 	ni_gm_output_flush(env, p_out); \
     } \
     p_out->java.jarray	= (jtype ## Array)(*env)->NewGlobalRef(env, b); \
+if (++global_refs > 1000) fprintf(stderr, "%s.%d: Live GlobalRefs %s\n", __FILE__, __LINE__, global_refs); \
     \
     if (get_region) { \
 	buffer = cache_msg_get(p_out->p_port->p_gm_port, length, offset / sizeof(jtype)); \
