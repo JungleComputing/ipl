@@ -22,7 +22,7 @@ public class SuffixTree {
 
         String buildString( short text[], int start, int length )
         {
-            String s = "";
+            String s = "[" + start + ":" + length + "]";
 
             for( int i = 0; i<length; i++ ){
                 short c = text[i+start];
@@ -56,7 +56,7 @@ public class SuffixTree {
         /** Creates the root node. */
         InternalNode()
         {
-            super( -1, 0 );
+            super( 0, 0 );
         }
 
         void add( short text[], int start, int length, int pos )
@@ -77,8 +77,9 @@ public class SuffixTree {
                     match = true;
                     int l = Math.min( length, p.length );
                     int n = 1;
+
                     while( n<l ){
-                        if( text[start] != text[p.start] ){
+                        if( text[start+n] != text[p.start+n] ){
                             break;
                         }
                         n++;
@@ -139,7 +140,7 @@ public class SuffixTree {
             Node n = child;
 
             while( n != null ){
-                n.print( stream, indent+length );
+                n.print( stream, indent+1 );
                 n = n.sister;
             }
         }
@@ -185,6 +186,7 @@ public class SuffixTree {
             int l = (text.length-1)-i;
 
             root.add( text, i, l, i );
+            root.print( System.out, 1 );
         }
     }
 
