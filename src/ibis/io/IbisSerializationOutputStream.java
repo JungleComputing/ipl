@@ -34,7 +34,12 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
        Needed for defaultWriteObject, and maybe others.
     */
     private Object current_object;
-    private int current_depth;
+    private int current_level;
+
+    private Object[] object_stack;
+    private int[] level_stack;
+    private int max_stack_size = 0;
+    private int stack_size = 0;
 
     public IbisSerializationOutputStream(ArrayOutputStream out) throws IOException {
 	super();
@@ -475,7 +480,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	} 
 
 	if (t.hasWriteObject) {
-	    current_depth = t.level;
+	    current_level = t.level;
 	    t.invokeWriteObject(ref, this);
 	    return;
 	}
@@ -487,11 +492,51 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	alternativeDefaultWriteObject(t, ref);
     } 
 
-    public Object set_current_object(Object ref, int level) {
-        Object sav_current_object = current_object;
+    public void push_current_object(Object ref, int level) {
+	if (stack_size >= max_stack_size) {
+	    max_stack_size = 2 * max_stack_size + 10;
+	    Object[] new_o_stack = new Object[max_stack_size];
+	    int[] new_l_stack = new int[max_stack_size];
+	    for (int i = 0; i < stack_size; i++) {
+		new_o_stack[i] = object_stack[i];
+		new_l_stack[i] = level_stack[i];
+	    }
+	    object_stack = new_o_stack;
+	    level_stack = new_l_stack;
+	}
+	object_stack[stack_size] = current_object;
+	level_stack[stack_size] = current_level;
+	stack_size++;
 	current_object = ref;
-	current_depth = level;
-	return sav_current_object;
+	current_level = level;
+    }
+
+    public void pop_current_object() {
+	stack_size--;
+	current_object = object_stack[stack_size];
+	current_level = level_stack[stack_size];
+    }
+
+    public void writeSerializableObject(Object ref, String classname) throws IOException {
+	try {
+	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+	    push_current_object(ref, 0);
+	    alternativeWriteObject(t, ref);
+	    pop_current_object();
+	} catch (IllegalAccessException e) {
+	    throw new RuntimeException("Serializable failed for : " + classname);
+	}
+    }
+
+    private void writeSerializableObject(Object ref, Class clazz) throws IOException {
+	try {
+	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
+	    push_current_object(ref, 0);
+	    alternativeWriteObject(t, ref);
+	    pop_current_object();
+	} catch (IllegalAccessException e) {
+	    throw new RuntimeException("Serializable failed for : " + clazz.getName());
+	}
     }
 
     public void doWriteObject(Object ref) throws IOException {
@@ -536,18 +581,11 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		if (ref instanceof ibis.io.Serializable) { 
 		    ((ibis.io.Serializable)ref).generated_WriteObject(this);
 		} else if (ref instanceof java.io.Externalizable) {
-		    Object sav_current_object = set_current_object(ref, 0);
+		    push_current_object(ref, 0);
 		    ((java.io.Externalizable) ref).writeExternal(this);
-		    current_object = sav_current_object;
+		    pop_current_object();
 		} else if (ref instanceof java.io.Serializable) {
-		    try { 
-			AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
-			Object sav_current_object = set_current_object(ref, 0);
-			alternativeWriteObject(t, ref);
-			current_object = sav_current_object;
-		    } catch (IllegalAccessException e) { 
-			throw new RuntimeException("Serializable failed for : " + type.toString());
-		    }
+		    writeSerializableObject(ref, type);
 		} else { 
 		    throw new RuntimeException("Not Serializable : " + type.toString());
 		}
@@ -639,6 +677,19 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	return null;
     }
 
+    public void defaultWriteSerializableObject(Object ref, int depth) throws IOException {
+	Class type = ref.getClass();
+	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+
+	/*  Find the type info corresponding to the current invocation.
+	    See the invokeWriteObject invocation in alternativeWriteObject.
+	*/
+	while (t.level > depth) {
+	    t = t.alternativeSuperInfo;
+	}
+	alternativeDefaultWriteObject(t, ref);
+    }
+
     public void defaultWriteObject() throws IOException, NotActiveException {
 	if (current_object == null) {
 	    throw new NotActiveException("defaultWriteObject without a current object");
@@ -652,10 +703,10 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
 	if (ref instanceof ibis.io.Serializable) { 
 	    /* Note that this will take the generated_DefaultWriteObject of the
-	       dynamic type of ref. The current_depth variable actually indicates
+	       dynamic type of ref. The current_level variable actually indicates
 	       which instance of generated_DefaultWriteObject should do some work.
 	    */
-	    ((ibis.io.Serializable)ref).generated_DefaultWriteObject(this, current_depth);
+	    ((ibis.io.Serializable)ref).generated_DefaultWriteObject(this, current_level);
 	} else if (ref instanceof java.io.Serializable) {
 	    Class type = ref.getClass();
 	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
@@ -663,7 +714,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    /*	Find the type info corresponding to the current invocation.
 		See the invokeWriteObject invocation in alternativeWriteObject.
 	    */
-	    while (t.level > current_depth) {
+	    while (t.level > current_level) {
 		t = t.alternativeSuperInfo;
 	    }
 	    alternativeDefaultWriteObject(t, ref);

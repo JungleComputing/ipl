@@ -61,6 +61,26 @@ final class AlternativeTypeInfo {
 	return t;
     }
 
+    public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(String classname) { 
+	Class type = null;
+
+	try {
+	    type = Class.forName(classname);
+	} catch(Exception e) {
+	    System.err.println("OOPS: cannot load class " + classname + ": "  + e);
+	    e.printStackTrace();
+	    System.exit(1);
+	}
+	AlternativeTypeInfo t = (AlternativeTypeInfo) alternativeTypes.get(type);
+
+	if (t == null) { 
+	    t = new AlternativeTypeInfo(type);
+	    alternativeTypes.put(type, t);
+	} 
+
+	return t;
+    }
+
     private static void insert(Field [] array, int used, Field to_insert) {
 
 	String name = to_insert.getName();
@@ -144,6 +164,54 @@ final class AlternativeTypeInfo {
     }
 
     AlternativeTypeInfo(Class clazz) { 
+	init(clazz);
+    }
+
+    private Field[] getSerialPersistentFields(Class clazz) {
+	java.io.ObjectStreamField[] serialPersistentFields = null;
+	try {
+	    Field f = clazz.getDeclaredField("serialPersistentFields");
+	    int mask = Modifier.PRIVATE | Modifier.STATIC | Modifier.FINAL;
+	    if ((f.getModifiers() & mask) == mask) {
+		if (! f.isAccessible()) {
+		    temporary_field = f;
+		    AccessController.doPrivileged(new PrivilegedAction() {
+			public Object run() {
+			    temporary_field.setAccessible(true);
+			    return null;
+			} 
+		    });
+		}
+		serialPersistentFields = (java.io.ObjectStreamField[]) f.get(null);
+	    }
+	} catch (Exception e) {
+	}
+	if (serialPersistentFields == null) {
+	    return null;
+	} else if (serialPersistentFields.length == 0) {
+	    return new Field[0];
+	}
+	
+	Field[] fields = new Field[serialPersistentFields.length];
+	int j = 0;
+	for (int i = 0; i < serialPersistentFields.length; i++) {
+	    java.io.ObjectStreamField osf = serialPersistentFields[i];
+	    try {
+		Field f = clazz.getDeclaredField(osf.getName());
+		if ((f.getType() == osf.getType()) && ((f.getModifiers() & Modifier.STATIC) == 0))
+		{
+		    fields[j++] = f;
+		}
+	    } catch (NoSuchFieldException ex) {
+		/*  TODO:
+		    What to do here??? And, what to do if the field is static or its type does not match?
+		*/
+	    }
+	}
+	return fields;
+    }
+
+    private void init(Class clazz) {
 	try {								
 	    /*
 	      Here we figure out what field the type contains, and which fields 
@@ -152,7 +220,13 @@ final class AlternativeTypeInfo {
 	      this so we only do it once for each type.
 	    */
 
-	    Field [] fields = clazz.getDeclaredFields(); 
+	    Field [] fields = getSerialPersistentFields(clazz);
+	    int mods = Modifier.STATIC;
+	    
+	    if (fields == null) {
+		mods |= Modifier.TRANSIENT;
+		fields = clazz.getDeclaredFields(); 
+	    }
 
 	    /*	Create the datastructures to cache the fields we need. Since
 		we don't know the size yet, we create large enough arrays,
@@ -175,9 +249,12 @@ final class AlternativeTypeInfo {
 	    for (int i=0;i<fields.length;i++) { 
 
 		Field field = fields[i];
+
+		if (field == null) continue;
+
 		int modifiers = field.getModifiers();
 
-		if ((modifiers & (Modifier.STATIC | Modifier.TRANSIENT)) == 0) {
+		if ((modifiers & mods) == 0) {
 		    Class field_type = field.getType();
 				    
 		    /*	This part is a bit scary. We basically switch of the
@@ -274,7 +351,7 @@ final class AlternativeTypeInfo {
 		    level = alternativeSuperInfo.level + 1;
 		} else { 
 		    superSerializable = false;
-		    level = 0;
+		    level = 1;
 		}								
 	    } 
 

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.Serializable;
 import java.io.Externalizable;
+import ibis.ipl.IbisIOException;
 
 public final class IbisSerializationInputStream extends SerializationInputStream
 	implements IbisStreamFlags {
@@ -74,7 +75,12 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
     /* Notion of a current object, needed for defaultWriteObject. */
     private Object current_object;
-    private int current_depth;
+    private int current_level;
+
+    private Object[] object_stack;
+    private int[] level_stack;
+    private int max_stack_size = 0;
+    private int stack_size = 0;
 
     public IbisSerializationInputStream(ArrayInputStream in) throws IOException {
 	super();
@@ -613,30 +619,32 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
     }
     
-    private void alternativeDefaultReadObject(AlternativeTypeInfo t, Object ref) throws IOException, IllegalAccessException {
+    private void alternativeDefaultReadObject(AlternativeTypeInfo t, Object ref) throws IOException {
 	int temp = 0;
-	for (int i=0;i<t.double_count;i++)    t.serializable_fields[temp++].setDouble(ref, readDouble());
-	for (int i=0;i<t.long_count;i++)      t.serializable_fields[temp++].setLong(ref, readLong());
-	for (int i=0;i<t.float_count;i++)     t.serializable_fields[temp++].setFloat(ref, readFloat());
-	for (int i=0;i<t.int_count;i++)       t.serializable_fields[temp++].setInt(ref, readInt());
-	for (int i=0;i<t.short_count;i++)     t.serializable_fields[temp++].setShort(ref, readShort());
-	for (int i=0;i<t.char_count;i++)      t.serializable_fields[temp++].setChar(ref, readChar());
-	for (int i=0;i<t.boolean_count;i++)   t.serializable_fields[temp++].setBoolean(ref, readBoolean());
 	try {
+	    for (int i=0;i<t.double_count;i++)    t.serializable_fields[temp++].setDouble(ref, readDouble());
+	    for (int i=0;i<t.long_count;i++)      t.serializable_fields[temp++].setLong(ref, readLong());
+	    for (int i=0;i<t.float_count;i++)     t.serializable_fields[temp++].setFloat(ref, readFloat());
+	    for (int i=0;i<t.int_count;i++)       t.serializable_fields[temp++].setInt(ref, readInt());
+	    for (int i=0;i<t.short_count;i++)     t.serializable_fields[temp++].setShort(ref, readShort());
+	    for (int i=0;i<t.char_count;i++)      t.serializable_fields[temp++].setChar(ref, readChar());
+	    for (int i=0;i<t.boolean_count;i++)   t.serializable_fields[temp++].setBoolean(ref, readBoolean());
 	    for (int i=0;i<t.reference_count;i++) t.serializable_fields[temp++].set(ref, readObject());
-	} catch(ClassNotFoundException e2) {
-	    throw new IOException("class not found exception" + e2);
+	} catch(ClassNotFoundException e) {
+	    throw new IbisIOException("class not found exception", e);
+	} catch(IllegalAccessException e2) {
+	    throw new IbisIOException("illegal access exception", e2);
 	}
     }
 
-    private void alternativeReadObject(AlternativeTypeInfo t, Object ref) throws IOException, IllegalAccessException {
+    private void alternativeReadObject(AlternativeTypeInfo t, Object ref) throws IOException {
 	    
 	if (t.superSerializable) { 
 	    alternativeReadObject(t.alternativeSuperInfo, ref);
 	} 
 
 	if (t.hasReadObject) {
-	    current_depth = t.level;
+	    current_level = t.level;
 	    t.invokeReadObject(ref, this);
 	    return;
 	}
@@ -649,13 +657,51 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     } 
 
 
+    public void readSerializableObject(Object ref, String classname) throws IOException {
+	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+	push_current_object(ref, 0);
+	alternativeReadObject(t, ref);
+	pop_current_object();
+    }
+
+    public void defaultReadSerializableObject(Object ref, int depth) throws IOException {
+	Class type = ref.getClass();
+	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+
+	/*  Find the type info corresponding to the current invocation.
+	    See the invokeReadObject invocation in alternativeReadObject.
+	*/
+	while (t.level > depth) {
+	    t = t.alternativeSuperInfo;
+	}
+	alternativeDefaultReadObject(t, ref);
+    }
+
     private native Object createUninitializedObject(Class type);
 
-    public Object set_current_object(Object ref, int depth) {
-        Object sav_current_object = current_object;
+    public void push_current_object(Object ref, int level) {
+	if (stack_size >= max_stack_size) {
+	    max_stack_size = 2 * max_stack_size + 10;
+	    Object[] new_o_stack = new Object[max_stack_size];
+	    int[] new_l_stack = new int[max_stack_size];
+	    for (int i = 0; i < stack_size; i++) {
+		new_o_stack[i] = object_stack[i];
+		new_l_stack[i] = level_stack[i];
+	    }
+	    object_stack = new_o_stack;
+	    level_stack = new_l_stack;
+	}
+	object_stack[stack_size] = current_object;
+	level_stack[stack_size] = current_level;
+	stack_size++;
 	current_object = ref;
-	current_depth = depth;
-	return sav_current_object;
+	current_level = level;
+    }
+
+    public void pop_current_object() {
+	stack_size--;
+	current_object = object_stack[stack_size];
+	current_level = level_stack[stack_size];
     }
 
     public Object doReadObject() throws IOException, ClassNotFoundException {
@@ -713,18 +759,18 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    } catch(Exception e) {
 		throw new RuntimeException("Could not instantiate" + e);
 	    }
-	    Object sav_current_object = set_current_object(obj, 0);
+	    push_current_object(obj, 0);
 	    ((java.io.Externalizable) obj).readExternal(this);
-	    current_object = sav_current_object;
+	    pop_current_object();
 	} else {
 	    // this is for java.io.Serializable
 	    try {
 		// obj = t.clazz.newInstance(); // this is not correct --> need native call ??? !!!
 		obj = createUninitializedObject(t.clazz);
 		addObjectToCycleCheck(obj);
-		Object sav_current_object = set_current_object(obj, 0);
+		push_current_object(obj, 0);
 		alternativeReadObject(t.altInfo, obj);
-		current_object = sav_current_object;
+		pop_current_object();
 	    } catch (Exception e) {
 		throw new RuntimeException("Couldn't deserialize or create object " + e);
 	    }
@@ -848,22 +894,18 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	Object ref = current_object;
 
 	if (ref instanceof ibis.io.Serializable) {
-	    ((ibis.io.Serializable)ref).generated_DefaultReadObject(this, current_depth);
+	    ((ibis.io.Serializable)ref).generated_DefaultReadObject(this, current_level);
 	} else if (ref instanceof java.io.Serializable) {
 	    Class type = ref.getClass();
-	    try {
-		AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
 
-		/*  Find the type info corresponding to the current invocation.
-		    See the invokeReadObject invocation in alternativeReadObject.
-		*/
-		while (t.level > current_depth) {
-		    t = t.alternativeSuperInfo;
-		}
-		alternativeDefaultReadObject(t, ref);
-	    } catch (IllegalAccessException e) {
-		throw new RuntimeException("Serializable failed for : " + type.toString());
+	    /*  Find the type info corresponding to the current invocation.
+		See the invokeReadObject invocation in alternativeReadObject.
+	    */
+	    while (t.level > current_level) {
+		t = t.alternativeSuperInfo;
 	    }
+	    alternativeDefaultReadObject(t, ref);
 	} else {
 	    Class type = ref.getClass();
 	    throw new RuntimeException("Not Serializable : " + type.toString());

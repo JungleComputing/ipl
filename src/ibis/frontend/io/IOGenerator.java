@@ -87,6 +87,7 @@ public class IOGenerator {
     boolean verbose = false;
     boolean local = true;
     boolean file = false;
+    boolean force_generated_calls = false;
     String pack;
 
     Hashtable primitiveSerialization;
@@ -94,13 +95,14 @@ public class IOGenerator {
 
     Vector classes_to_rewrite, target_classes, classes_to_save;
 
-    public IOGenerator(boolean verbose, boolean local, boolean file, String[] args, int num, String pack) { 
+    public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, String[] args, int num, String pack) { 
 	ObjectType tp;
 
 	this.verbose = verbose;
 	this.local = local;
 	this.file = file;
 	this.pack = pack;
+	this.force_generated_calls = force_generated_calls;
 
 	classes_to_rewrite = new Vector();
 	target_classes = new Vector();
@@ -170,6 +172,24 @@ public class IOGenerator {
     void  addClass(JavaClass clazz) { 
 
 	boolean serializable = false;
+
+        Field[] fields = clazz.getFields();
+
+	for (int i = 0; i < fields.length; i++) {
+	    Field f = fields[i];
+	    if (f.getName().equals("serialPersistentFields") &&
+		f.isFinal() &&
+		f.isStatic() &&
+		f.isPrivate() &&
+		f.getSignature().equals("[Ljava/io/ObjectStreamField;")) {
+		/*  Don't touch these. alternativeWriteObject and friends should deal with this.
+		    In general, it is probably not possible to handle this in the IOGenerator.
+		*/
+		System.err.println("class " + clazz.getClassName() + " has serialPersistentFields, so is not rewritten");
+		return;
+	    }
+	}
+
 	JavaClass super_classes[] = Repository.getSuperClasses(clazz);
 
 	if (super_classes != null) {
@@ -388,10 +408,10 @@ public class IOGenerator {
 	return gen.getJavaClass();
     } 
 
-    private static int get_class_depth(JavaClass clazz) {
+    private int get_class_depth(JavaClass clazz) {
 	String class_name = clazz.getClassName();
 
-	if (class_name.equals("java.lang.Object")) return 0;
+	if (! isSerializable(clazz)) return 0;
 	return 1 + get_class_depth(Repository.lookupClass(clazz.getSuperclassName()));
     }
 
@@ -711,8 +731,8 @@ public class IOGenerator {
 		if (level == dpth) {
 		    ... write fields ... (the code resulting from the get_default_writes() call).
 		}
-		else if (level > dpth) {
-		    super.generated_DefaultWriteObject(out, level-1);
+		else if (level < dpth) {
+		    super.generated_DefaultWriteObject(out, level);
 		}
 	   }
 	*/
@@ -728,26 +748,36 @@ public class IOGenerator {
 	write_il.append(ifcmpne);
 	write_il.append(get_default_writes(fields, factory, class_name));
 	write_il.append(new GOTO(end));
-	if (! super_is_ibis_serializable && ! super_is_serializable) {
-	    if (super_is_serializable) {
-		/* TODO !!! */
-	    }
-	    ifcmpne.setTarget(end);
-	}
-	else {
+	if (super_is_ibis_serializable || super_is_serializable) { 
 	    InstructionHandle i = write_il.append(new ILOAD(2));
 	    ifcmpne.setTarget(i);
 	    write_il.append(new SIPUSH((short)dpth));
 	    write_il.append(new IF_ICMPGT(end));
-	    write_il.append(new IINC(2, -1));
-	    write_il.append(new ALOAD(0));
-	    write_il.append(new ALOAD(1));
-	    write_il.append(new ILOAD(2));
-	    write_il.append(factory.createInvoke(super_class_name,
-						 "generated_DefaultWriteObject",
-						 Type.VOID,
-						 new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream"), Type.INT},
-						 Constants.INVOKESPECIAL));
+	    if (super_is_ibis_serializable || force_generated_calls) {
+		write_il.append(new ALOAD(0));
+		write_il.append(new ALOAD(1));
+		write_il.append(new ILOAD(2));
+		write_il.append(factory.createInvoke(super_class_name,
+						     "generated_DefaultWriteObject",
+						     Type.VOID,
+						     new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream"), Type.INT},
+						     Constants.INVOKESPECIAL));
+	    }
+	    else {
+		/*  Superclass is not rewritten.
+		*/
+		write_il.append(new ALOAD(1));
+		write_il.append(new ALOAD(0));
+		write_il.append(new ILOAD(2));
+		write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
+						     "defaultWriteSerializableObject",
+						     Type.VOID,
+						     new Type[] {Type.OBJECT, Type.INT},
+						     Constants.INVOKEVIRTUAL));
+	    }
+	}
+	else {
+	    ifcmpne.setTarget(end);
 	}
 	write_il.append(write_gen.getInstructionList());
 
@@ -768,26 +798,39 @@ public class IOGenerator {
 	read_il.append(ifcmpne);
 	read_il.append(get_default_reads(fields, factory, class_name));
 	read_il.append(new GOTO(end));
-	// TODO !!!
-	// if (! super_is_ibis_serializable) {
-	if (! super_is_serializable) {
-	    ifcmpne.setTarget(end);
-	}
-	else {
+
+	if (super_is_ibis_serializable || super_is_serializable) { 
 	    InstructionHandle i = read_il.append(new ILOAD(2));
 	    ifcmpne.setTarget(i);
 	    read_il.append(new SIPUSH((short)dpth));
 	    read_il.append(new IF_ICMPGT(end));
-	    read_il.append(new IINC(2, -1));
-	    read_il.append(new ALOAD(0));
-	    read_il.append(new ALOAD(1));
-	    read_il.append(new ILOAD(2));
-	    read_il.append(factory.createInvoke(super_class_name,
-						"generated_DefaultReadObject",
-						Type.VOID,
-						new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream"), Type.INT},
-						Constants.INVOKESPECIAL));
+	    if (super_is_ibis_serializable || force_generated_calls) {
+		read_il.append(new ALOAD(0));
+		read_il.append(new ALOAD(1));
+		read_il.append(new ILOAD(2));
+		read_il.append(factory.createInvoke(super_class_name,
+						     "generated_DefaultReadObject",
+						     Type.VOID,
+						     new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream"), Type.INT},
+						     Constants.INVOKESPECIAL));
+	    }
+	    else {
+		/*  Superclass is not rewritten.
+		*/
+		read_il.append(new ALOAD(1));
+		read_il.append(new ALOAD(0));
+		read_il.append(new ILOAD(2));
+		read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+						     "defaultReadSerializableObject",
+						     Type.VOID,
+						     new Type[] {Type.OBJECT, Type.INT},
+						     Constants.INVOKEVIRTUAL));
+	    }
 	}
+	else {
+	    ifcmpne.setTarget(end);
+	}
+
 	read_il.append(read_gen.getInstructionList());
 
 	read_gen.setInstructionList(read_il);
@@ -801,7 +844,7 @@ public class IOGenerator {
 	read_il = new InstructionList();
 	
 	/* write/read the superclass if neccecary */
-	if (super_is_ibis_serializable || super_is_serializable) { 
+	if (super_is_ibis_serializable || (force_generated_calls && super_is_serializable)) { 
 	    write_il.append(new ALOAD(0));
 	    write_il.append(new ALOAD(1));
 	    write_il.append(factory.createInvoke(super_class_name,
@@ -818,9 +861,25 @@ public class IOGenerator {
 						new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
 						Constants.INVOKESPECIAL));
 	} else if (super_is_serializable) { 
-	    /* TODO !!! */
-	    System.err.println("superclass " + super_class_name + " of " + class_name + " is serializable, but not ibis-serializable!");
-	    System.exit(1);
+	    int ind = cg.getConstantPool().addString(super_class_name);
+	    write_il.append(new ALOAD(1));
+	    write_il.append(new ALOAD(0));
+	    write_il.append(new LDC(ind));
+	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
+						 "writeSerializableObject",
+						 Type.VOID,
+						 new Type[] {Type.OBJECT, Type.STRING},
+						 Constants.INVOKEVIRTUAL));
+	    read_il.append(new ALOAD(1));
+	    read_il.append(new ALOAD(0));
+	    read_il.append(new LDC(ind));
+	    read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
+						"readSerializableObject",
+						Type.VOID,
+						new Type[] {Type.OBJECT, Type.STRING},
+						Constants.INVOKEVIRTUAL));
+
+	    System.err.println("Warning: superclass " + super_class_name + " of " + class_name + " is serializable, but not ibis-serializable!");
 	} else {
 	    read_il.append(new ALOAD(0));
 	    read_il.append(factory.createInvoke(super_class_name,
@@ -848,11 +907,10 @@ public class IOGenerator {
 	    write_il.append(new ALOAD(0));
 	    write_il.append(new SIPUSH((short)dpth));
 	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
-						 "set_current_object",
-						 Type.OBJECT,
+						 "push_current_object",
+						 Type.VOID,
 						 new Type[] {Type.OBJECT, Type.INT},
 						 Constants.INVOKEVIRTUAL));
-	    write_il.append(new ASTORE(2));
 
 	    /* Then, call writeObject. */
 	    write_il.append(new ALOAD(0));
@@ -865,14 +923,11 @@ public class IOGenerator {
 
 	    /* And then, restore IbisSerializationOutputStream's idea of the current object. */
 	    write_il.append(new ALOAD(1));
-	    write_il.append(new ALOAD(2));
-	    write_il.append(new ICONST(0));
 	    write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
-						 "set_current_object",
-						 Type.OBJECT,
-						 new Type[] {Type.OBJECT, Type.INT},
+						 "pop_current_object",
+						 Type.VOID,
+						 Type.NO_ARGS,
 						 Constants.INVOKEVIRTUAL));
-	    write_il.append(new ASTORE(2));
 	}
 	else {
 	    write_il.append(get_default_writes(fields, factory, class_name));
@@ -885,11 +940,10 @@ public class IOGenerator {
 	    read_il.append(new ALOAD(0));
 	    read_il.append(new SIPUSH((short)dpth));
 	    read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
-						 "set_current_object",
-						 Type.OBJECT,
+						 "push_current_object",
+						 Type.VOID,
 						 new Type[] {Type.OBJECT, Type.INT},
 						 Constants.INVOKEVIRTUAL));
-	    read_il.append(new ASTORE(2));
 
 	    /* Then, call readObject. */
 	    read_il.append(new ALOAD(0));
@@ -902,14 +956,11 @@ public class IOGenerator {
 
 	    /* And then, restore IbisSerializationOutputStream's idea of the current object. */
 	    read_il.append(new ALOAD(1));
-	    read_il.append(new ALOAD(2));
-	    read_il.append(new ICONST(0));
 	    read_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
-						 "set_current_object",
-						 Type.OBJECT,
-						 new Type[] {Type.OBJECT, Type.INT},
+						 "pop_current_object",
+						 Type.VOID,
+						 Type.NO_ARGS,
 						 Constants.INVOKEVIRTUAL));
-	    read_il.append(new ASTORE(2));
 	}
 	else {
 	    read_il.append(get_default_reads(fields, factory, class_name));
@@ -1170,6 +1221,7 @@ System.out.println("verifying method " + methods[i].getName());
 	boolean verbose = false;
 	boolean local = true;
 	boolean file = false;
+	boolean force_generated_calls = false;
 	Vector files = new Vector();
 	String pack = null;
 
@@ -1186,6 +1238,8 @@ System.out.println("verifying method " + methods[i].getName());
 		local = false;
 	    } else if (args[i].equals("-file")) {
 		file = true;
+	    } else if (args[i].equals("-force")) {
+		force_generated_calls = true;
 	    } else if (args[i].equals("-package")) {
 		pack = args[i+1];
 		i++; // skip arg
@@ -1213,6 +1267,6 @@ System.out.println("verifying method " + methods[i].getName());
 	    }
 	}
 
-	new IOGenerator(verbose, local, file, newArgs, newArgs.length, pack).scanClass(newArgs, newArgs.length);
+	new IOGenerator(verbose, local, file, force_generated_calls, newArgs, newArgs.length, pack).scanClass(newArgs, newArgs.length);
     }
 }
