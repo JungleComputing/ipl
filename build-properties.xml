@@ -138,17 +138,31 @@
 
     <target name="run">
 	<property name="IBIS" value="panda"/>
+	<exec outputproperty="hostname" executable="hostname"/>
+	<echo message="My hostname is ${hostname}"/>
+	<if>
+	    <equals arg1="${hostname}" arg2="athlon-win2000"/>
+	    <then>
+		<property name="host.number" value="0"/>
+	    </then>
+	<elseif>
+	    <equals arg1="${hostname}" arg2="p3"/>
+	    <then>
+		<property name="host.number" value="1"/>
+	    </then>
+	</elseif>
+	</if>
 	<java
 		fork="true"
 		classname="${MAIN}"
 		classpath="build:${ibis}/build">
 	    <sysproperty key="java.library.path"      value="${ibis}/build/lib"/>
-	    <sysproperty key="ibis.name_server.host"  value="mercury.cs.vu.nl"/>
+	    <sysproperty key="ibis.name_server.host"  value="192.168.1.127"/>
 	    <sysproperty key="ibis.name_server.port"  value="7654"/>
 	    <sysproperty key="ibis.name_server.key"   value="rutger.0001"/>
-	    <sysproperty key="ibis.pool.host_number"  value="0"/>
+	    <sysproperty key="ibis.pool.host_number"  value="${host.number}"/>
 	    <sysproperty key="ibis.pool.total_hosts"  value="2"/>
-	    <sysproperty key="ibis.pool.hosts"        value="athlon-win2000 p3"/>
+	    <sysproperty key="ibis.pool.host_names"   value="athlon-win2000 p3"/>
 	    <sysproperty key="ibis.name"              value="${IBIS}"/>
 	    <arg line="${ARGS}"/>
 	</java>
