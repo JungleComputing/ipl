@@ -11,8 +11,6 @@ public class UnicastServerRef extends UnicastRef implements ServerRef, java.io.S
 	GUID = "//" + RTS.getHostname() + "/" + (new java.rmi.server.UID()).toString();    
     }
     
-
-    
     public RemoteStub exportObject(Remote impl, Object portData)
 	throws RemoteException
     {
@@ -21,12 +19,12 @@ public class UnicastServerRef extends UnicastRef implements ServerRef, java.io.S
 	    RemoteStub.setRef(stub, new UnicastRef(GUID));	    
 	    return stub;
 	} catch (Exception e) {
-if (RTS.DEBUG)
-	    e.printStackTrace();	
-	    throw new RemoteException(e.getMessage());
+		if (RTS.DEBUG)
+			e.printStackTrace();	
+		throw new RemoteException(e.getMessage());
 	}
     }
-
+	
 
     public String getClientHost() throws ServerNotActiveException
     {

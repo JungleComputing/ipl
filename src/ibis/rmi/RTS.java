@@ -35,11 +35,9 @@ public final class RTS {
                         stubs = new Hashtable();
 
 			hostname = InetAddress.getLocalHost().getHostName();
-//			System.out.println("hostname = " + hostname);
 			InetAddress adres = InetAddress.getByName(hostname);
 			adres = InetAddress.getByName(adres.getHostAddress());
 			hostname = adres.getHostName();
-//			System.out.println("hostname = " + hostname);
 
                         if (DEBUG) {
                                 System.out.println(hostname + ": init RMI RTS");
@@ -62,7 +60,8 @@ public final class RTS {
 			    if (DEBUG) {
 				System.out.println(hostname + ": creating tcp ibis");
 			    }
-			    ibis = Ibis.createIbis("ibis:" + hostname + "/" + (new java.rmi.server.UID()).toString(), "ibis.ipl.impl.tcp.TcpIbis", null);
+			    String ibisInstanceName = "ibis:" + hostname + "/" + (new java.rmi.server.UID()).toString();
+			    ibis = Ibis.createIbis(ibisInstanceName, "ibis.ipl.impl.tcp.TcpIbis", null);
 			}
 			
 			if (DEBUG) {
@@ -73,7 +72,7 @@ public final class RTS {
                         ibisRegistry = ibis.registry();
 			
                         StaticProperties s = new StaticProperties();
-                        s.add("Serialization", "manta");
+                        s.add("Serialization", "ibis");
 
                         portType = ibis.createPortType("RMI", s);
                        
@@ -428,12 +427,3 @@ public final class RTS {
 	}
 	
 } 
-
-
-
-
-
-
-
-
-

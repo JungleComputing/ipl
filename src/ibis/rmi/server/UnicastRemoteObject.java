@@ -47,7 +47,6 @@ public class UnicastRemoteObject extends RemoteServer
 		((RemoteObject)obj).ref = ref;
 	    }
 	    return ref.exportObject(obj, null);
-	    
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
