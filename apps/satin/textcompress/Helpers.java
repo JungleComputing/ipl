@@ -1,5 +1,9 @@
 // File: $Id$
 
+import java.io.FileInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+
 class Helpers {
     /**
      * Given a span size, returns the number of bytes required to
@@ -82,5 +86,29 @@ class Helpers {
     static int decodeShort( byte high, byte low )
     {
         return (decodeByte( high ) << 8) + decodeByte( low );
+    }
+
+    public static byte[] readFile( File f )
+        throws java.io.IOException
+    {
+        int sz = (int) f.length();
+
+        byte buf[] = new byte[sz];
+
+        FileInputStream s = new FileInputStream( f );
+        int n = s.read( buf );
+        if( n != sz ){
+            System.err.println( "File is " + sz + " bytes, but I could only read " + n + " bytes. I give up." );
+            System.exit( 1 );
+        }
+        return buf;
+    }
+
+    public static void writeFile( File f, ByteBuffer buf )
+        throws java.io.IOException
+    {
+        FileOutputStream output = new FileOutputStream( f );
+        output.write( buf.buf, 0, buf.sz );
+        output.close();
     }
 }
