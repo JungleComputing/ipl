@@ -7,7 +7,7 @@ import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
 
-public class PortType implements ibis.ipl.PortType {
+public class PortType extends ibis.ipl.PortType {
 
     private StaticProperties p;
     private String name;
@@ -71,62 +71,7 @@ public class PortType implements ibis.ipl.PortType {
 	return p;
     }
 
-
-    public ibis.ipl.SendPort createSendPort() throws IOException {
-	return createSendPort("noname", null, null, false);
-    }
-
-    public ibis.ipl.SendPort createSendPort(String portname) throws IOException {
-	return createSendPort(portname, null, null, false);
-    }
-
-    public ibis.ipl.SendPort createSendPort(boolean connectionAdministration) throws IOException {
-	return createSendPort("noname", null, null, connectionAdministration);
-    }
-
-    public ibis.ipl.SendPort createSendPort(String portname, 
-					    boolean connectionAdministration) throws IOException {
-	return createSendPort(portname, null, null, connectionAdministration);
-    }
-
-    public ibis.ipl.SendPort createSendPort(String portname, SendPortConnectUpcall cU) throws IOException {
-	    if(cU == null) {
-		    throw new IOException("connection upcall is null");
-	    }
-	return createSendPort(portname, null, cU, true);
-    }
-
-    public ibis.ipl.SendPort createSendPort(Replacer r) throws IOException {
-	return createSendPort("noname", r, null, false);
-    }
-
-    public ibis.ipl.SendPort createSendPort(Replacer r, 
-					    boolean connectionAdministration) throws IOException {
-	return createSendPort("noname", r, null, connectionAdministration);
-    }
-
-    public ibis.ipl.SendPort createSendPort(Replacer r, SendPortConnectUpcall cU) throws IOException {
-	    if(cU == null) {
-		    throw new IOException("connection upcall is null");
-	    }
-	return createSendPort("noname", r, cU, true);
-    }
-
-    public ibis.ipl.SendPort createSendPort(String portname, Replacer r) throws IOException {
-	return createSendPort(portname, r, null, false);
-    }
-
-    public ibis.ipl.SendPort createSendPort(String portname, Replacer r, 
-					    boolean connectionAdministration) throws IOException {
-	return createSendPort(portname, r, null, connectionAdministration);
-    }
-
-    public ibis.ipl.SendPort createSendPort(String portname, Replacer r, SendPortConnectUpcall cU) 
-	    throws IOException {
-	return createSendPort(portname, r, cU, true);
-    }
-
-    private ibis.ipl.SendPort createSendPort(String portname, Replacer r, SendPortConnectUpcall cU, 
+    public ibis.ipl.SendPort createSendPort(String portname, Replacer r, SendPortConnectUpcall cU, 
 					    boolean connectionAdministration) throws IOException {
 
 	if (cU != null) {
@@ -170,40 +115,6 @@ public class PortType implements ibis.ipl.PortType {
 	return s;
     }
 
-
-    public ibis.ipl.ReceivePort createReceivePort(String name)
-	    throws IOException {
-	return createReceivePort(name, null, null, false);
-    }
-
-    public ibis.ipl.ReceivePort createReceivePort(String name, ibis.ipl.Upcall u)
-	    throws IOException {
-	return createReceivePort(name, u, null, false);
-    }
-
-    public ibis.ipl.ReceivePort createReceivePort(String name, ibis.ipl.ReceivePortConnectUpcall cU)
-	    throws IOException {
-	return createReceivePort(name, null, cU, true);
-    }
-
-    public ibis.ipl.ReceivePort createReceivePort(String name, boolean connectionAdministration)
-	    throws IOException {
-	return createReceivePort(name, null, null, connectionAdministration);
-    }
-
-    public ibis.ipl.ReceivePort createReceivePort(String name, ibis.ipl.Upcall u
-						  , boolean connectionAdministration)
-	    throws IOException {
-	return createReceivePort(name, u, null, connectionAdministration);
-    }
-
-    public ibis.ipl.ReceivePort createReceivePort(
-					String name,
-					ibis.ipl.Upcall u,
-					ibis.ipl.ReceivePortConnectUpcall cU)
-	    throws IOException {
-	return createReceivePort(name, u, cU, true);
-    }
 
     public ibis.ipl.ReceivePort createReceivePort(
 					String name,

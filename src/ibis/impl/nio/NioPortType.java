@@ -15,7 +15,7 @@ import ibis.ipl.Upcall;
 import java.io.IOException;
 import java.util.ArrayList;
 
-class NioPortType implements PortType, Config { 
+class NioPortType extends PortType implements Config { 
 
     StaticProperties p;
     String name;
@@ -94,82 +94,15 @@ class NioPortType implements PortType, Config {
 	return p;
     }
 
-    public SendPort createSendPort() throws IOException {
-	return createSendPort(null, null, false, null);
-    }
-
-    public SendPort createSendPort(Replacer r) throws IOException {
-	return createSendPort(null, r, false, null);
-    }
-
-    public SendPort createSendPort(String portname, Replacer r) throws IOException {
-	return createSendPort(portname, r, false, null);
-    }
-
-    public SendPort createSendPort(String portname) throws IOException {
-	return createSendPort(portname, null, false, null);
-    }
-
-    public SendPort createSendPort(boolean connectionAdministration) throws IOException {
-	return createSendPort(null, null, connectionAdministration, null);
-    }
-
-    public SendPort createSendPort(Replacer r, boolean connectionAdministration) throws IOException {
-	return createSendPort(null, r, connectionAdministration, null);
-    }
-
-    public SendPort createSendPort(String portname, Replacer r, boolean connectionAdministration) throws IOException {
-	return createSendPort(portname, r, connectionAdministration, null);
-    }
-
-    public SendPort createSendPort(String portname, boolean connectionAdministration) throws IOException {
-	return createSendPort(portname, null, connectionAdministration, null);
-    }
-
-    public SendPort createSendPort(String name, SendPortConnectUpcall cU) throws IOException {
-	return createSendPort(name, null, true, cU);
-    }
-
-    public SendPort createSendPort(Replacer r, SendPortConnectUpcall cU) throws IOException {
-	return createSendPort(null, r, true, cU);
-    }
-
     public SendPort createSendPort(String name, Replacer r, 
-	    SendPortConnectUpcall cU) throws IOException {
-	return createSendPort(name, r, true, cU);
-    }
-
-    private SendPort createSendPort(String name, Replacer r, 
-	    boolean connectionAdministration, SendPortConnectUpcall cU) throws IOException {
+	    SendPortConnectUpcall cU,
+	    boolean connectionAdministration) throws IOException {
 	return new NioSendPort(ibis, this, name, r, connectionAdministration, cU);
     }
 
-    public ReceivePort createReceivePort(String name) throws IOException {
-	return createReceivePort(name, null, false, null);
-    }
-
-    public ReceivePort createReceivePort(String name, Upcall u)  throws IOException { 
-	return createReceivePort(name, u, false, null);
-    }
-
-    public ReceivePort createReceivePort(String name, boolean connectionAdministration) throws IOException {
-	return createReceivePort(name, null, connectionAdministration, null);
-    }
-
-    public ReceivePort createReceivePort(String name, Upcall u, boolean connectionAdministration)  throws IOException { 
-	return createReceivePort(name, u, connectionAdministration, null);
-    }
-
-    public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall cU) throws IOException {
-	return createReceivePort(name, null, true, cU);
-    }
-
-    public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU)  throws IOException { 
-	return createReceivePort(name, u, true, cU);
-    }
-
-    private ReceivePort createReceivePort(String name, Upcall u, 
-	    boolean connectionAdministration, ReceivePortConnectUpcall cU)  
+    public ReceivePort createReceivePort(String name, Upcall u, 
+	    ReceivePortConnectUpcall cU,
+	    boolean connectionAdministration)  
 							throws IOException { 
 	return new NioReceivePort(ibis, this, name, u, 
 						connectionAdministration, cU);
