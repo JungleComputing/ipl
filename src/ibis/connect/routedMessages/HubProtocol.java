@@ -14,6 +14,8 @@ import ibis.connect.util.MyDebug;
  */
 public class HubProtocol
 {
+    private static final boolean VERBOSE = false;
+
     public static final int CONNECT = 1; // connection request
     public static final int ACCEPT  = 2; // notification for an accepted connection
     public static final int REJECT  = 3; // notification for a refused connection
@@ -43,20 +45,24 @@ public class HubProtocol
 	    in = new ObjectInputStream(s.getInputStream());
 	    out.writeObject(localHostName);
 	    peerName = ((String)in.readObject()).toLowerCase();
-	    String canonicalPeerName = s.getInetAddress().getCanonicalHostName().toLowerCase();
-	    String msg = "# HubWire: new hub wire- local: "+localHostName+"; remote: "+peerName;
-	    if(!canonicalPeerName.equals(peerName)) {
-		msg = msg + " (seen from hub: "+canonicalPeerName+":"+s.getPort()+")";
+	    if(VERBOSE) {
+		String canonicalPeerName = s.getInetAddress().getCanonicalHostName().toLowerCase();
+		String msg = "# HubWire: new hub wire- local: "+localHostName+"; remote: "+peerName;
+		if(!canonicalPeerName.equals(peerName)) {
+		    msg = msg + " (seen from hub: "+canonicalPeerName+":"+s.getPort()+")";
+		}
+		System.out.println(msg);
 	    }
-	    System.out.println(msg);
 	    hubConnected = true;
 	}
 	public void close() throws IOException {
-	    System.out.println("# HubWire: closing wire...");
+	    if(VERBOSE)
+		System.out.println("# HubWire: closing wire...");
 	    in.close();
 	    out.close();
 	    socket.close();
-	    System.out.println("# HubWire: closed.");
+	    if(VERBOSE)
+		System.out.println("# HubWire: closed.");
 	}
 	public String getPeerName() { return peerName; }
 	public String getLocalName() { return localHostName; }

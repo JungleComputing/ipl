@@ -14,8 +14,9 @@ import java.io.ObjectOutputStream;
 
 import ibis.connect.util.MyDebug;
 
-public class HubLinkFactory
-{
+public class HubLinkFactory {
+    private static final boolean VERBOSE = false;
+
     private static HubLink hub = null;
     private static boolean closed = false;
     private static boolean enabled = false;
@@ -27,11 +28,12 @@ public class HubLinkFactory
 	    String portString = p.getProperty("ibis.connect.hub_port");
 	    if(host != null && portString != null){
 		int port = Integer.parseInt(portString);
-		System.out.println("# Creating link to hub- host="+host+"; port="+port);
+		if(VERBOSE)
+		    System.out.println("# Creating link to hub- host="+host+"; port="+port);
 		hub = new HubLink(host, port);
 		hub.start();
 		enabled = true;
-	    } else {
+	    } else if(VERBOSE) {
 		System.out.println("# HubLinkFactory: 'hub' properties not set");
 		System.out.println("# (ibis.connect.hub_host, ibis.connect.hub_port).");
 		System.out.println("# Not creating wire to hub.");
