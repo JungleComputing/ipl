@@ -1106,10 +1106,18 @@ public class IOGenerator {
 		}
 	    }
 
-	    if (! directImplementationOf(clazz, "ibis.io.Serializable")) {
-		addClass(clazz);
-	    } else { 
-		if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
+	    try {
+		/* BCEL throws an exception here if it cannot find some class.
+		 * In this case, we won't rewrite.
+		 */
+		if (! directImplementationOf(clazz, "ibis.io.Serializable")) {
+		    addClass(clazz);
+		} else { 
+		    if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
+		}
+	    } catch(Exception e) {
+		System.out.println("Got an exception while checking " + clazz.getClassName() + ", not rewritten");
+		// System.out.println("Exception = " + e);
 	    }
 	}
 
