@@ -597,6 +597,11 @@ public final class SATContext implements java.io.Serializable {
                         throw new SATRestartException( rl );
                     }
                 }
+                else {
+                    if( traceRestarts ){
+                        System.err.println( "No useful restart level for " + cc );
+                    }
+                }
 	    }
 	}
     }

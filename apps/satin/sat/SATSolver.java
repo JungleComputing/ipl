@@ -18,7 +18,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
-    private static final boolean traceRestarts = true;
+    private static final boolean traceRestarts = false;
     private static int label = 0;
     private final SATProblem p;
 
