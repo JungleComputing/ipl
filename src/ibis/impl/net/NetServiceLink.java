@@ -19,44 +19,165 @@ import java.net.Socket;
 import java.net.SocketException;
 
 
+/**
+ * Provide a TCP connection parallel to an actual application network connection and dedicated for internal use.
+ *
+ * This service link is supposed to be used by the various drivers that compose the driver stack. It is split into
+ * several multiplexed 'sub-streams' that can be allocated dynamically.
+ */
 public final class NetServiceLink {
 
 	private final static boolean DEBUG = false;
 
+        /**
+         * 'End of file' opcode for the commands sent over the main sub-stream.
+         *
+         * @see ServiceThread#run
+         */
         private final int _OP_eof                  = 0;
+
+        /**
+         * 'Request substream id' opcode for the commands sent over the main sub-stream.
+         *
+         *  This opcode is sent by a node when allocating a new outgoing sub-stream in order to
+         *  get the identification value for packets corresponding to thus sub-stream.
+         * @see ServiceThread#requestSubstreamId
+         * @see ServiceThread#run
+         */
         private final int _OP_request_substream_id = 1;
+
+        /**
+         * 'Receive substream id' opcode for the commands sent over the main sub-stream.
+         *
+         * This opcode is sent along with the answer to the {@link #_OP_request_substream_id 'Request substream id'} request.
+         * @see ServiceThread#receiveSubstreamId
+         * @see ServiceThread#run
+         */
         private final int _OP_receive_substream_id = 2;
 
+        /**
+         * Set to true once the link is closed.
+         */
         private volatile boolean closed = false;
 
+        /**
+         * Set to true for an 'accept' side {@link NetServiceLink} object, to false for a 'connect' side {@link NetServiceLink} object.
+         */
         private boolean      incoming = false;
+
+        /**
+         * Reference the TCP socket supporting the service link.
+         */
         private Socket       socket   = null;
+
+        /**
+         * Reference the outgoing TCP {@link #socket} stream.
+         */
         private OutputStream os       = null;
+
+        /**
+         * Reference the incoming TCP {@link #socket} stream.
+         */
         private InputStream  is       = null;
 
+        /**
+         * Reference the main outgoing sub-stream.
+         *
+         * This sub-stream is used by the {@link NetServiceLink} object to send commands to its peer object.
+         */
         private ObjectOutputStream main_oos = null;
+
+        /**
+         * Reference the main incoming sub-stream.
+         *
+         * This sub-stream is used by the {@link NetServiceLink} object to receive commands from its peer object.
+         */
         private ObjectInputStream  main_ois = null;
 
+        /**
+         * Store the {@linkplain OutputClient output client} info structures.
+         *
+         * This map is indexed by the name of the sub-streams.
+         */
         private HashMap            outputMap    = null;
+
+        /**
+         * Store the {@linkplain InputClient input client} info structures.
+         *
+         * This map is indexed by the name of the sub-streams.
+         */
         private HashMap            inputMap     = null;
+
+        /**
+         * Store references to the incoming sub-streams.
+         *
+         * This vector is indexed by the sub-stream ids.
+         */
         private Vector             inputVector  = null;
 
-        private int                nextId       =    1;
+        /**
+         * Store the next incoming sub-stream id.
+         */
+        private volatile int       nextId       =    1;
 
+        /**
+         * Store the reference to the thread responsible of listening
+         * to the {@link #is incoming socket stream} and to dispatch
+         * the packets over the various active input sub-streams.
+         */
         private ListenerThread     listenThread = null;
 
+        /**
+         * Store the reference to the thread responsible of listening to the
+         * main incoming sub-stream in order to process internal commands.
+         */
         private ServiceThread      serviceThread     = null;
+
+        /**
+         * Control the synchronization on request completion.
+         */
         private NetMutex           requestCompletion = new NetMutex(true);
+
+        /**
+         * Control the synchronization on request posting.
+         */
         private NetMutex           requestReady      = new NetMutex(false);
+
+        /**
+         * Store the optional request result.
+         *
+         * Access to this attribute should be properly synchronized.
+         */
         private Object             requestResult     = null;
 
+        /**
+         * Reference to the port's event queue used.
+         *
+         * Used to send events to the port. Currently, the only known
+         * event is the 'close' event which indicates that the link
+         * (hence the connection) is closed.
+         */
         private NetEventQueue      portEventQueue    = null;
 
+        /**
+         * Store the network connection id.
+         *
+         * <BR><B>Note:</B>&nbsp;This attribute is set by the {@link
+         * #init} method, not by the constructor.
+         */
         private Integer            num               = null;
 
 
         /* ___ CONSTRUCTORS ________________________________________________ */
 
+        /**
+         * Incoming connection constructor.
+         *
+         * @param portEventQueue a reference to the port's event queue.
+         * @param ss the TCP {@link ServerSocket server socket} to listen to.
+         * @exception NetIbisException if the 'accept' syscall over
+         * the server socket fails.
+         */
         protected NetServiceLink(NetEventQueue portEventQueue, ServerSocket ss) throws NetIbisException {
                 this.portEventQueue = portEventQueue;
                 incoming = true;
@@ -75,6 +196,17 @@ public final class NetServiceLink {
                 }
         }
 
+        /**
+         * Outgoing connection constructor.
+         *
+         * @param portEventQueue a reference to the port's event queue.
+         * @param nfo a {@link Hashtable table} containing the peer
+         * TCP connection info. The peer address should be stored as
+         * an {@link InetAddress} under the
+         * <code>"accept_address"</code> key and the peer port number
+         * should be stored as an {@link Integer} under the
+         * <code>"accept_port"</code>.
+         */
         protected NetServiceLink(NetEventQueue portEventQueue, Hashtable nfo) throws NetIbisException {
                 this.portEventQueue = portEventQueue;
                 incoming = false;
@@ -100,6 +232,11 @@ public final class NetServiceLink {
 
         /* ___ CONNECTION MANAGEMENT ROUTINES ______________________________ */
 
+        /**
+         * Initialize the service link.
+         *
+         * @param num the connection id associated to the connection.
+         */
         protected synchronized void init(Integer num) throws NetIbisException {
                 if (this.num != null) {
                         throw new Error("invalid call");
@@ -164,8 +301,13 @@ public final class NetServiceLink {
                 serviceThread.start();
         }
 
+        /**
+         * Close the service link.
+         *
+         * The service link cannot be reopened once it has been closed.
+         * This method can safely be called multiple time.
+         */
         public synchronized void close() throws NetIbisException {
-                // System.err.println("NetServiceLink: close-->");
                 if (closed) {
                         return;
                 }
@@ -174,7 +316,7 @@ public final class NetServiceLink {
 
                 if (listenThread != null) {
                         listenThread.end();
-                        //System.err.println("waiting for ServiceLink listen thread to join");
+
                         while (true) {
                                 try {
                                         listenThread.join();
@@ -183,7 +325,6 @@ public final class NetServiceLink {
                                         //
                                 }
                         }
-                        //System.err.println("ServiceLink listen thread joined");
 
                         listenThread = null;
                 }
@@ -191,7 +332,6 @@ public final class NetServiceLink {
                 if (serviceThread != null) {
                         serviceThread.end();
 
-                        //System.err.println("waiting for ServiceLink service thread to join");
                         while (true) {
                                 try {
                                         serviceThread.join();
@@ -200,7 +340,6 @@ public final class NetServiceLink {
                                         //
                                 }
                         }
-                        //System.err.println("ServiceLink service thread joined");
 
                         serviceThread = null;
                 }
@@ -256,10 +395,17 @@ public final class NetServiceLink {
 		} catch (Throwable t) {
 			throw new NetIbisException(t);
                 }
-
-                // System.err.println("NetServiceLink: close<--");
         }
 
+        /**
+         * Allocate a new {@linkplain ServiceOutputStream output sub-stream}.
+         *
+         * <BR><B>Note:</B>&nbsp;The peer node is not required to synchronously allocate the corresponding {@linkplain ServiceInputStream input sub-stream}.
+         * <BR><B>Note 2:</B>&nbsp;Requesting a {@linkplain ServiceOutputStream output sub-stream} after it has been closed will <B>not</B> reopen the stream.
+         *
+         * @param name the name associated to the stream, used to match this with the corresponding {@linkplain ServiceInputStream input sub-stream} on the peer node.
+         * @exception NetIbisException when the operation fails.
+         */
         protected synchronized OutputStream getOutputSubStream(String name) throws NetIbisException {
                 OutputClient oc = null;
 
@@ -296,6 +442,23 @@ public final class NetServiceLink {
                 return oc.sos;
         }
 
+        /**
+         * Allocate a new {@linkplain ServiceInputStream input sub-stream}.
+         *
+         * <BR><B>Note:</B>&nbsp;The peer node is not required to
+         * synchronously allocate the corresponding {@linkplain
+         * ServiceOutputStream output sub-stream}.
+         *
+         * <BR><B>Note 2:</B>&nbsp;Requesting a {@linkplain
+         * ServiceInputStream input sub-stream} after it has been
+         * closed will <B>not</B> reopen the stream.
+         *
+         * @param name the name associated to the stream, used to
+         * match this with the corresponding {@linkplain
+         * ServiceOutputStream output sub-stream} on the peer node.
+         *
+         * @exception NetIbisException when the operation fails.
+         */
         protected synchronized InputStream getInputSubStream(String name) throws NetIbisException {
                 InputClient ic = null;
 
@@ -325,11 +488,47 @@ public final class NetServiceLink {
                 return ic.sis;
         }
 
+        /**
+         * Allocate a new {@linkplain ServiceOutputStream output
+         * sub-stream}.
+         *
+         * @see #getOutputSubStream(String)
+         *
+         * @param io the input or output object requesting the
+         * sub-stream.
+         *
+         * @param name the name associated to the stream, used to
+         * match this with the corresponding {@linkplain
+         * ServiceInputStream input sub-stream} on the peer node;
+         * <B>Note:</B>&nbsp;this name will be prefixed by the {@link
+         * NetIO}'s {@linkplain NetIO#context() context string} to
+         * provide some kind of dynamic namespace.
+         *
+         * @exception NetIbisException when the operation fails.
+         */
         public OutputStream getOutputSubStream(NetIO io, String name) throws NetIbisException {
                 return getOutputSubStream(io.context()+name);
         }
 
-        public InputStream  getInputSubStream (NetIO io, String name) throws NetIbisException {
+        /**
+         * Allocate a new {@linkplain ServiceInputStream input
+         * sub-stream}.
+         *
+         * @see #getInputSubStream(String)
+         *
+         * @param io the input or output object requesting the
+         * sub-stream.
+         *
+         * @param name the name associated to the stream, used to
+         * match this with the corresponding {@linkplain
+         * ServiceOutputStream output sub-stream} on the peer node;
+         * <B>Note:</B>&nbsp;this name will be prefixed by the {@link
+         * NetIO}'s {@linkplain NetIO#context() context string} to
+         * provide some kind of dynamic namespace.
+         *
+         * @exception NetIbisException when the operation fails.
+         */
+        public InputStream getInputSubStream (NetIO io, String name) throws NetIbisException {
                 return getInputSubStream(io.context()+name);
         }
 
@@ -351,31 +550,104 @@ public final class NetServiceLink {
 
         /* ___ INTERNAL CLASSES ____________________________________________ */
 
+        /**
+         * Store some information about an outgoing sub-stream.
+         */
         private final class OutputClient {
+
+                /**
+                 * The 'name' of the output sub-stream.
+                 *
+                 * This 'name' must match the name of the peer input sub-stream.
+                 */
                 String              name = null;
+
+                /**
+                 * The packet identificator.
+                 */
                 int                 id   = 0;
+
+                /**
+                 * The output sub-stream.
+                 */
                 ServiceOutputStream sos  = null;
         }
 
 
 
+        /**
+         * Store some information about an incoming sub-stream.
+         */
         private final class InputClient {
-                String              name = null;
+
+                /**
+                 * The 'name' of the input sub-stream.
+                 *
+                 * This 'name' must match the name of the peer output sub-stream.
+                 */
+                String             name = null;
+
+                /**
+                 * The packet identificateor.
+                 */
                 int                id   = 0;
+
+                /**
+                 * The input sub-stream.
+                 */
                 ServiceInputStream sis = null;
         }
 
 
 
+        /**
+         * Provide a multiplexed output sub-stream over the {@linkplain #os socket output stream}.
+         */
         public final class ServiceOutputStream extends OutputStream  {
 
+                /**
+                 * Set to true once the stream is closed.
+                 *
+                 * The stream cannot be re-opened after having been closed (same semantics as a socket stream).
+                 */
                 private boolean   closed    = false;
+
+                /**
+                 * Store the packet identifier.
+                 */
                 private int       id        = -1;
+
+                /**
+                 * Indicate the length of the buffer.
+                 */
                 private final int length    = 65536;
+
+                /**
+                 * Store the current bufferized bytes.
+                 */
                 private byte []   buffer    = new byte[length];
+
+                /**
+                 * Store the current offset in the buffer.
+                 */
                 private int       offset    = 0;
+
+                /**
+                 * Permanent 4-byte buffer for 'buffer-length to bytes' conversion.
+                 */
                 private byte []   intBuffer = new byte[4];
 
+
+                /**
+                 * Write a byte block to the sub-stream.
+                 *
+                 * Only this method actually access the sub-stream.
+                 *
+                 * @param b the byte block.
+                 * @param o the offset in the block of the first byte to write.
+                 * @param l the number of bytes to write.
+                 * @exception IOException when the write operation to the {@link #os socket stream} fails.
+                 */
                 private void writeBlock(byte[] b, int o, int l) throws IOException {
                         synchronized(os) {
                                 NetConvert.writeInt(l, intBuffer);
@@ -386,28 +658,42 @@ public final class NetServiceLink {
                 }
 
 
-
+                /**
+                 * Construct an outgoing sub-stream.
+                 *
+                 * The {@link #id} value must be unique among this
+                 * service link outgoing sub-streams.
+                 *
+                 * @param id the sub-stream packets id.
+                 */
                 public ServiceOutputStream(int id) {
                         this.id = id;
                 }
 
+                /**
+                 * Flush the {@link #buffer} to the stream if the
+                 * current {@link #offset} is not <code>0</code>.
+                 *
+                 * @exception IOException when the flush operation fails.
+                 */
                 private void doFlush() throws IOException {
-                        // System.err.println("ServiceOutputStream("+id+").doFlush-->");
                         if (offset > 0) {
                                 writeBlock(buffer, 0, offset);
                                 offset = 0;
                         }
-                        // System.err.println("ServiceOutputStream("+id+").doFlush<--");
                 }
 
-
+                /**
+                 * {@inheritDoc}
+                 */
                 public void close() throws IOException {
-                        // System.err.println("ServiceOutputStream("+id+").close-->");
                         closed = true;
                         doFlush();
-                        // System.err.println("ServiceOutputStream("+id+").close<--");
                 }
 
+                /**
+                 * {@inheritDoc}
+                 */
                 public void flush() throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
@@ -415,6 +701,9 @@ public final class NetServiceLink {
                         doFlush();
                 }
 
+                /**
+                 * {@inheritDoc}
+                 */
                 public void write(byte[] buf) throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
@@ -423,6 +712,9 @@ public final class NetServiceLink {
                         write(buf, 0, buf.length);
                 }
 
+                /**
+                 * {@inheritDoc}
+                 */
                 public void write(byte[] buf, int off, int len) throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
@@ -441,6 +733,9 @@ public final class NetServiceLink {
                         }
                 }
 
+                /**
+                 * {@inheritDoc}
+                 */
                 public void write(int val) throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
@@ -457,26 +752,83 @@ public final class NetServiceLink {
 
 
 
+        /**
+         * Provide a multiplexed input sub-stream over the {@linkplain #is socket input stream}.
+         */
         public final class ServiceInputStream extends InputStream {
 
+                /**
+                 * Provide a double-linked list of incoming buffers.
+                 */
                 private class BufferList {
+
+                        /**
+                         * Reference the previous buffer list element.
+                         */
                         BufferList    previous = null;
+
+                        /**
+                         * Reference the next buffer list element.
+                         */
                         BufferList    next     = null;
+
+                        /**
+                         * Reference the list element's buffer.
+                         */
                         byte       [] buf      = null;
                 }
 
-
+                /**
+                 * Reference the buffer list head.
+                 */
                 private BufferList first  = null;
+
+                /**
+                 * Reference the buffer list tail.
+                 */
                 private BufferList last   = null;
+
+                /**
+                 * Set to true once the stream is closed.
+                 *
+                 * The stream cannot be re-opened after having been closed (same semantics as a socket stream).
+                 */
                 private volatile boolean closed = false;
+
+                /**
+                 * Store the packet identifier.
+                 */
                 private int id     = -1;
+
+                /**
+                 * Store the total number of bytes available in the
+                 * incoming buffer list.
+                 */
                 private int avail  =  0;
+
+                /**
+                 * Store the reading offset in the current buffer.
+                 */
                 private int offset =  0;
 
+                /**
+                 * Construct an incoming sub-stream.
+                 *
+                 * The {@link #id} value must be unique among this
+                 * service link incoming sub-streams.
+                 *
+                 * @param id the sub-stream packets id.
+                 */
                 public ServiceInputStream(int id) {
                         this.id = id;
                 }
 
+                /**
+                 * Called by the {@link #listenThread} to add a block of bytes
+                 * to the incoming buffer list.
+                 *
+                 * @param b the byte block to add to the list.
+                 */
                 protected synchronized void addBuffer(byte [] b) {
                         BufferList bl = new BufferList();
                         bl.buf = b;
@@ -495,19 +847,41 @@ public final class NetServiceLink {
                         notifyAll();
                 }
 
+                /**
+                 * Return the number of bytes immediately availables.
+                 *
+                 * The value returned is the value of the {@link
+                 * #avail} attribute.
+                 *
+                 * @return the number of bytes immediately availables.
+                 * @exception IOException to conform to the {@link
+                 * InputStream} definition.
+                 */
                 public synchronized int available() throws IOException {
                         return avail;
                 }
 
+                /**
+                 * Close the stream.
+                 *
+                 * The stream cannot be re-opened afterwards. Any
+                 * unread data is lost.
+                 */
                 public synchronized void close() throws IOException {
                         closed = true;
                         notifyAll();
                 }
 
+                /**
+                 * Return false.
+                 */
                 public boolean markSupported() {
                         return false;
                 }
 
+                /**
+                 * Switch to the next block in the incoming buffer list.
+                 */
                 private void nextBlock() {
                         offset = 0;
                         if (first.next == null) {
@@ -521,7 +895,9 @@ public final class NetServiceLink {
                         }
                 }
 
-
+                /**
+                 * {@inheritDoc}
+                 */
                 public synchronized int read() throws IOException {
                         if (closed && avail == 0) {
                                 throw new EOFException("stream closed");
@@ -552,10 +928,16 @@ public final class NetServiceLink {
                         return result;
                 }
 
+                /**
+                 * {@inheritDoc}
+                 */
                 public int read(byte[] b) throws IOException {
                         return read(b, 0, b.length);
                 }
 
+                /**
+                 * {@inheritDoc}
+                 */
                 public synchronized int read(byte[] buf, int off, int len) throws IOException {
                         if (closed && avail == 0) {
                                 throw new EOFException("stream closed");
@@ -602,14 +984,39 @@ public final class NetServiceLink {
 
         /* ..... LISTENER THREAD ___________________________________________ */
 
+        /**
+         * Provide a thread responsible of listening to a incoming
+         * multiplexed byte stream an to dispatch incoming packets to
+         * their corresponding incoming sub-streams.
+         */
         private final class ListenerThread extends Thread {
+
+                /**
+                 * If set to true, the end of the thread has been requested.
+                 */
                 volatile boolean exit = false;
+
+                /**
+                 * Provide a buffer dedicated to integer reception.
+                 */
                 private byte[]  intBuffer = new byte[4];
 
+                /**
+                 * Constructor.
+                 *
+                 * @param name the name of the thread, used mainly for
+                 * debugging purpose.
+                 */
                 ListenerThread(String name) {
                         super("ListenerThread: "+name);
                 }
 
+                /**
+                 * Listen to the {@link #is incoming socket stream}
+                 * and dispatch the incoming packets to their
+                 * corresponding input sub-streams according to their
+                 * id.
+                 */
                 public void run() {
                 main_loop:
                         while (!exit) {
@@ -652,6 +1059,12 @@ public final class NetServiceLink {
                         }
                 }
 
+                /**
+                 * Set the {@link #exit} flag to true and close the
+                 * {@linkplain #is incoming socket stream}.
+                 *
+                 * @exception NetIbisException it the close operation fails.
+                 */
                 protected void end() throws NetIbisException {
                         exit = true;
                         try {
@@ -662,13 +1075,33 @@ public final class NetServiceLink {
                 }
         }
 
+        /**
+         * Provide a thread processing commands received over the {@linkplain #main_ois main input sub-stream}.
+         */ 
         private final class ServiceThread extends Thread {
+
+                /**
+                 * If set to true, the end of the thread has been requested.
+                 */
                 volatile boolean exit = false;
 
+                /**
+                 * Constructor.
+                 *
+                 * @param name the name of the thread, used mainly for
+                 * debugging purpose.
+                 */
                 ServiceThread(String name) {
                         super("ServiceThread: "+name);
                 }
 
+                /**
+                 * Set the {@link #exit} flag to true and close the
+                 * {@linkplain #main_oos main output sub-stream} and the
+                 * {@linkplain #main_ois main input sub-stream}.
+                 *
+                 * @exception NetIbisException when the operation fails.
+                 */
                 protected void end() throws NetIbisException {
                         exit = true;
                         try {
@@ -679,6 +1112,22 @@ public final class NetServiceLink {
                         }
                 }
 
+                /**
+                 * Process a request for a sub-stream id.
+                 *
+                 * Such a request is supposed to be send by the node
+                 * that is creating the {@linkplain
+                 * NetServiceLink.ServiceOutputStream output sub-stream} end of the
+                 * sub-stream and is processed by the node that owns
+                 * the {@linkplain NetServiceLink.ServiceInputStream input
+                 * sub-stream} part of the stream. If the {@linkplain
+                 * NetServiceLink.ServiceInputStream input sub-stream} corresponding
+                 * to the <code>name</code> parameter does not already exist,
+                 * it is created on the fly.
+                 *
+                 * @param name the name of the sub-stream.
+                 * @see #_OP_request_substream_id
+                 */
                 private void requestSubstreamId(String name) {
 
                         synchronized(inputMap) {
@@ -709,13 +1158,32 @@ public final class NetServiceLink {
                         }
                 }
 
-
-                private void receiveSubstreamId(Object o) {
+                /**
+                 * Process an answer to the {@linkplain
+                 * #requestSubstreamId sub-stream id request}.
+                 *
+                 * @param id the sub-stream id.
+                 * @see #_OP_receive_substream_id
+                 */
+                private void receiveSubstreamId(Integer id) {
                         requestReady.lock();
-                        requestResult = o;
+                        requestResult = id;
                         requestCompletion.unlock();
                 }
 
+                /**
+                 * Read commands from the {@linkplain #main_ois main object input sub-stream} and dispatch those commands to the right functions.
+                 *
+                 * <BR><B>Note:</B>&nbsp;With the exception of the
+                 * '{@link #_OP_eof End of file}', each command is
+                 * currently run asynchronously on a separate thread
+                 * to avoid deadlocks. <BR><B>Note: 2</B>&nbsp;Only
+                 * this thread is allowed to read from the {@linkplain
+                 * #main_ois main object input sub-stream}, and in
+                 * particular, the methods implementing the various
+                 * commands should not attempt to extract any data
+                 * from this sub-stream.
+                 */
                 public void run() {
                         while (!exit) {
                                 try {
@@ -740,8 +1208,8 @@ public final class NetServiceLink {
 
                                         case _OP_receive_substream_id:
                                                 {
-                                                        final Object o = main_ois.readObject();
-                                                        Runnable r = new Runnable() {public void run() {receiveSubstreamId(o);}};
+                                                        final Integer id = (Integer)main_ois.readObject();
+                                                        Runnable r = new Runnable() {public void run() {receiveSubstreamId(id);}};
                                                         (new Thread(r)).start();
                                                 }
                                                 break;
