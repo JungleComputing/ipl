@@ -19,7 +19,6 @@ import java.util.Properties;
 import java.util.Vector;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Provides a generic {@link Ibis} implementation for pluggable network driver
@@ -30,7 +29,7 @@ public final class NetIbis extends Ibis {
 	/**
          * The compiler name.
          */
-	private static final String compiler = java.lang.System.getProperty("java.lang.compiler");
+	private static final String COMPILER = java.lang.System.getProperty("java.lang.compiler");
 
 	/**
 	 * The driver loading mode.
@@ -39,10 +38,10 @@ public final class NetIbis extends Ibis {
 	 * <DT><CODE>true</CODE><DD>known drivers are statically loaded at initialization time.
 	 * <DT><CODE>false</CODE><DD>every driver is loaded dynamically.
 	 * </DL>
-         * Note: if {@linkplain #compiler} is set and equals <code>manta</code>, this
+         * Note: if {@linkplain #COMPILER} is set and equals <code>manta</code>, this
          * flag is automatically set to <code>true</code>
 	 */
-	private static final boolean staticDriverLoading = (compiler != null && compiler.equals("manta")) || false;
+	private static final boolean staticDriverLoading = (COMPILER != null && COMPILER.equals("manta")) || false;
 
 	/**
 	 * The cache for previously created port types.

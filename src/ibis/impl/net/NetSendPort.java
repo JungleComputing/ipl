@@ -307,8 +307,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * @param replacer the replacer for this object.
 	 * @param name the name of the port.
 	 */
-	public NetSendPort(NetPortType type, Replacer replacer, String name)
-		throws NetIbisException {
+	public NetSendPort(NetPortType type, Replacer replacer, String name) throws NetIbisException {
 		this.name     = name;
 		this.type     = type;
                 this.replacer = replacer;
