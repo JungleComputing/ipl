@@ -84,8 +84,8 @@ public class ExtSocketFactory
 			"ibis.connect.socketFactory.AnyTCPSocketType");
 	// Declare new nicknames here.
 
-	String bl = TypedProperties.stringPropertyValue(ConnProps.datalinks);
-	String cs = TypedProperties.stringPropertyValue(ConnProps.controllinks);
+	String bl = TypedProperties.stringProperty(ConnProps.datalinks);
+	String cs = TypedProperties.stringProperty(ConnProps.controllinks);
 
 	if (bl != null) {
 	    StringTokenizer st = new StringTokenizer(bl, " ,\t\n\r\f");

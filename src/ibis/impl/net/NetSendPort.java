@@ -105,6 +105,11 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 	private boolean		messageInUse = false;
 
+	/**
+	 * Count how much data we sent.
+	 */
+	private int		byteCount;
+
 
 
 
@@ -872,17 +877,22 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 */
 	public long finish() throws IOException{
                 log.in();
+		long l = 0;
 		try {
 		    _finish();
-		    output.finish();
+		    l = output.finish();
 		    stat.end();
 		    trace.disp(sendPortTracePrefix, "message send <--");
 		} finally {
 		    messageInUse = false;
 		    outputLock.unlock();
 		}
+
+		/* Should this be synchronized (this) ? */
+		byteCount += l;
+
 		log.out();
-		return 0;
+		return l;
 	}
 
 	public void finish(IOException e) {
@@ -914,13 +924,14 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 	public long getCount() {
                 log.in();
+		return byteCount;
                 log.out();
 		return 0;
 	}
 
 	public void resetCount() {
                 log.in();
-		//
+		byteCount = 0;
                 log.out();
 	}
 

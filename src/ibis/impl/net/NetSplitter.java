@@ -160,10 +160,15 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	    singleton.initSend();
 	} else {
 	    Iterator i = outputMap.values().iterator();
+	    boolean empty = true;
 	    do {
+		empty = false;
 		NetOutput no = (NetOutput)i.next();
 		no.initSend();
 	    } while (i.hasNext());
+	    if (empty) {
+		throw new Error(this + ": initSend without subOutputs");
+	    }
 	}
 	super.initSend();
 	log.out();

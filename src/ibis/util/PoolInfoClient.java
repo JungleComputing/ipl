@@ -93,16 +93,16 @@ public class PoolInfoClient extends PoolInfo {
 		serverPort++;
 	    }
 	}
-	String serverName = TypedProperties.stringPropertyValue(s_host);
+	String serverName = TypedProperties.stringProperty(s_host);
 	if (serverName == null) {
-	    serverName = TypedProperties.stringPropertyValue("ibis.name_server.host");
+	    serverName = TypedProperties.stringProperty("ibis.name_server.host");
 	    if (serverName == null) {
 		throw new RuntimeException("property " + s_host + " is not specified");
 	    }
 	}
-	String key = TypedProperties.stringPropertyValue(s_key);
+	String key = TypedProperties.stringProperty(s_key);
 	if (key == null) {
-	    key = TypedProperties.stringPropertyValue("ibis.name_server.key");
+	    key = TypedProperties.stringProperty("ibis.name_server.key");
 	    if (key == null) {
 		// System.err.println("Warning: " + s_key + " property not set, using 'unknown'");
 		key = "unknown";

@@ -134,7 +134,7 @@ public class TypedProperties {
      * @param name property name
      * @param match value to be matched
      */
-    public static boolean stringProperty(String name, String match) {
+    public static boolean stringPropertyMatch(String name, String match) {
 	String prop = System.getProperty(name);
 	return prop != null && prop.equals(match);
     }
@@ -145,7 +145,7 @@ public class TypedProperties {
      * @return the value of the property or <code>null</code> if it is not set
      * @param name property name
      */
-    public static String stringPropertyValue(String name) {
+    public static String stringProperty(String name) {
 	return System.getProperty(name);
     }
 
@@ -155,7 +155,7 @@ public class TypedProperties {
      * @return the value of the property or <code>null</code> if it is not set
      * @param name property name
      */
-    public static String stringPropertyValue(String name, String dflt) {
+    public static String stringProperty(String name, String dflt) {
 	String prop = System.getProperty(name);
 	if (prop == null) {
 	    return dflt;

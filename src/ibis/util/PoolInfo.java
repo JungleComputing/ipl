@@ -66,7 +66,7 @@ public class PoolInfo {
 
 	static {
 		TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
-		clusterName = TypedProperties.stringPropertyValue(s_cluster);
+		clusterName = TypedProperties.stringProperty(s_cluster);
 		if (clusterName == null) {
 		    clusterName = "unknown";
 		}
@@ -340,7 +340,7 @@ System.err.println("Phew... found a host number " + my_host + " for " + my_hostn
 		if (forceSeq) {
 			return new PoolInfo(true);
 		}
-		if (TypedProperties.stringPropertyValue(s_names) != null) {
+		if (TypedProperties.stringProperty(s_names) != null) {
 			return new PoolInfo();
 		}
 		try {

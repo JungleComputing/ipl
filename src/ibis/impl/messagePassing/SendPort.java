@@ -19,7 +19,7 @@ public class SendPort implements ibis.ipl.SendPort {
     protected final static boolean DEBUG = Ibis.DEBUG;
 
     private final static boolean USE_BCAST =
-	TypedProperties.stringProperty(MPProps.s_broadcast, "native") ||
+	TypedProperties.stringPropertyMatch(MPProps.s_broadcast, "native") ||
 	TypedProperties.booleanProperty(MPProps.s_bc_native, true);
     private final static boolean USE_BCAST_ALL =
 		TypedProperties.booleanProperty(MPProps.s_bc_all);

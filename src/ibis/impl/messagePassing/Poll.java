@@ -51,7 +51,7 @@ final public class Poll implements Runnable {
 	POLLS_BEFORE_YIELD = polls;
 
 	USE_SLEEP_FOR_YIELD = ! TypedProperties.booleanProperty(MPProps.s_yield)
-		&& ! TypedProperties.stringProperty("java.compiler", "manta");
+		&& ! TypedProperties.stringPropertyMatch("java.compiler", "manta");
 
 	if (Ibis.myIbis.myCpu == 0) {
 	    if (DEBUG) {
@@ -67,7 +67,7 @@ final public class Poll implements Runnable {
 	    if (STATISTICS) {
 		System.err.println("Turn on Poll.STATISTICS");
 	    }
-	    if (TypedProperties.stringProperty("java.compiler", "manta")) {
+	    if (TypedProperties.stringPropertyMatch("java.compiler", "manta")) {
 		System.err.println("Ibis/Panda knows this is Manta");
 	    }
 	}
