@@ -251,15 +251,11 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	    return true;
 	}
 	// Now remove any occurence of 'var' in the 'neg' terms, since
-	// they cannot satisfy the clause.
+	// it cannot satisfy the clause.
 	for( int ix=0; ix<neg.length; ix++ ){
 	    if( neg[ix] == var ){
-		int nneg[] = Helpers.cloneIntArray( neg, neg.length-1 );
-		if( ix<nneg.length ){
-		    // Fill the hole with the last element.
-		    nneg[ix] = neg[neg.length-1];
-		}
-		neg = nneg;
+		neg[ix] = neg[neg.length-1];
+		neg = Helpers.cloneIntArray( neg, neg.length-1 );
 	    }
 	}
 	return false;
@@ -278,15 +274,11 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	    return true;
 	}
 	// Now remove any occurence of 'var' in the 'pos' terms, since
-	// they cannot satisfy the clause.
+	// it cannot satisfy the clause.
 	for( int ix=0; ix<pos.length; ix++ ){
 	    if( pos[ix] == var ){
-		int npos[] = Helpers.cloneIntArray( pos, pos.length-1 );
-		if( ix<npos.length ){
-		    // Fill the hole with the last element.
-		    npos[ix] = pos[pos.length-1];
-		}
-		pos = npos;
+		pos[ix] = pos[pos.length-1];
+		pos = Helpers.cloneIntArray( pos, pos.length-1 );
 	    }
 	}
 	return false;

@@ -220,7 +220,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 
 	// Not yet solved, we'll have to do some work to solve it.
 
-	if( level<firstVariables ){
+	if( level<=firstVariables ){
 	    // Do another level of agressive solving.
 	    int nextvar = p.getMFUVariable();
 

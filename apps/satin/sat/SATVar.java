@@ -53,13 +53,23 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
      * Registers the fact that clause 'cno' uses this variable as
      * a positive variable.
      */
-    void registerPosClause( int cno ) { pos.add( cno ); }
+    void registerPosClause( int cno ) {
+	if( assignment != -1 ){
+	    System.err.println( "Error: registering preassigned variable " + ix + " is pointless" );
+	}
+	pos.add( cno );
+    }
 
     /**
      * Registers the fact that clause 'cno' uses this variable as
      * a negative variable.
      */
-    void registerNegClause( int cno ) { neg.add( cno ); }
+    void registerNegClause( int cno ) {
+	if( assignment != -1 ){
+	    System.err.println( "Error: registering preassigned variable " + ix + " is pointless" );
+	}
+	neg.add( cno );
+    }
 
     void clearClauseRegister() { neg.clear(); pos.clear(); }
 

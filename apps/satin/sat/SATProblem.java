@@ -31,9 +31,10 @@ public class SATProblem implements Cloneable, java.io.Serializable {
     /** The number of deleted clauses. */
     private int deletedClauseCount;
 
-    private static final boolean trace_simplification = false;
+    private static final boolean traceSimplification = false;
     private static final boolean tracePropagation = false;
-    private static final boolean trace_new_code = true;
+    private static final boolean traceNewCode = true;
+    private static final boolean traceStats = true;
     private int label = 0;
 
     /**
@@ -185,7 +186,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
      * @param possz the number of elements in <code>pos</code> to use
      * @param neg the array of negative variables
      * @param negsz the number of elements in <code>neg</code> to use
-     * @return the label of the added clause
+     * @return the label of the added clause, or -1 if the clause is redundant
      */
     public int addClause( int pos[], int possz, int neg[], int negsz )
     {
@@ -201,7 +202,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	    if( ci.isSubsumed( cl ) ){
 		// The new clause is subsumed by an existing one,
 		// don't bother to register it.
-		if( trace_simplification ){
+		if( traceSimplification ){
 		    System.err.println( "New clause " + cl + " is subsumed by existing clause " + ci ); 
 		}
 		deletedClauseCount++;
@@ -212,7 +213,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	        // The new clause subsumes an existing one. Remove
 		// it, move the last clause to this slot, and
 		// update clauseCount.
-		if( trace_simplification ){
+		if( traceSimplification ){
 		    System.err.println( "New clause " + cl + " subsumes existing clause " + ci ); 
 		}
 		deleteClause( i );
@@ -396,14 +397,14 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	    }
 	    if( sat ){
 	        // This clause is satisfied by the assignment. Remove it.
-		clauses[ix] = null;
+		clauses[cno] = null;
 		changed = true;
-		if( trace_simplification ){
+		if( traceSimplification ){
 		    System.err.println( "Clause " + c + " is satisfied by var[" + var + "]=" + val ); 
 		}
 	    }
 	}
-	return false;
+	return changed;
     }
 
     /**
@@ -422,13 +423,15 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	    boolean oldVal = (oldAssignment == 1);
 	    if( oldVal != val ){
 		System.err.println( "Cannot propagate val[" + var + "]=" + val + ", since it contradicts an existing assignment" );
-		return false;
 	    }
 	    return false;
 	}
 	knownVars++;
 	SATVar v = variables[var];
 	v.setAssignment( val );
+	if( v.getUseCount() == 0 ){
+	    System.err.println( "Error: zero use count of variable " + v );
+	}
 	changed |= propagateAssignment( v.getPosClauses(), var, val );
 	changed |= propagateAssignment( v.getNegClauses(), var, val );
 	return changed;
@@ -465,11 +468,15 @@ public class SATProblem implements Cloneable, java.io.Serializable {
     public void optimize()
     {
 	boolean changed;
+	int unitClauses = 0;
+	int iters = 0;
+	int unipolars = 0;
+	int subsumptions = 0;
 
-	if( false ){
 	do {
 	    changed = false;
 
+	    iters++;
 	    buildAdministration();
 	    for( int ix=0; ix<variables.length; ix++ ){
 		SATVar v = variables[ix];
@@ -481,19 +488,21 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 		    // Variable 'v' only occurs in positive terms, we may as
 		    // well assign to this variable, and propagate this
 		    // assignment.
-		    if( trace_simplification ){
+		    if( traceSimplification ){
 			System.err.println( "Variable " + v + " only occurs as positive term" ); 
 		    }
 		    changed |= propagateAssignment( ix, true );
+		    unipolars++;
 		}
 		else if( v.isNegOnly() ){
 		    // Variable 'v' only occurs in negative terms, we may as
 		    // well assign to this variable, and propagate this
 		    // assignment.
-		    if( trace_simplification ){
+		    if( traceSimplification ){
 			System.err.println( "Variable " + v + " only occurs as negative term" ); 
 		    }
 		    changed |= propagateAssignment( ix, false );
+		    unipolars++;
 		}
 	    }
 	    for( int i=0; i<clauseCount; i++ ){
@@ -505,24 +514,30 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 		int var = cl.getPosUnitVar();
 		if( var>=0 ){
 		    // This is a positive unit clause. Propagate.
-		    if( trace_simplification ){
+		    if( traceSimplification ){
 			System.err.println( "Propagating pos. unit clause " + cl ); 
 		    }
-		    propagateAssignment( var, true );
-		    clauses[i] = null;
-		    changed = true;
+		    changed |= propagateAssignment( var, true );
+		    if( clauses[i] != null ){
+		        System.err.println( "Error: positive unit propagation didn't eliminate originating clause " + cl );
+		    }
+		    unitClauses++;
 		    continue;
 		}
-		var = cl.getNegUnitVar();
-		if( var>=0 ){
-		    // This is a negative unit clause. Propagate.
-		    if( trace_simplification ){
-			System.err.println( "Propagating neg. unit clause " + cl ); 
+		else {
+		    var = cl.getNegUnitVar();
+		    if( var>=0 ){
+			// This is a negative unit clause. Propagate.
+			if( traceSimplification ){
+			    System.err.println( "Propagating neg. unit clause " + cl ); 
+			}
+			propagateAssignment( var, false );
+			if( clauses[i] != null ){
+			    System.err.println( "Error: negative unit propagation didn't eliminate originating clause " + cl );
+			}
+			unitClauses++;
+			continue;
 		    }
-		    propagateAssignment( var, false );
-		    clauses[i] = null;
-		    changed = true;
-		    continue;
 		}
 		for( int j=i+1; j<clauseCount; j++ ){
 		    Clause cj = clauses[j];
@@ -531,26 +546,30 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 			continue;
 		    }
 		    if( cl.isSubsumed( cj ) ){
-		        if( trace_simplification ){
+			if( traceSimplification ){
 			    System.err.println( "Clause " + cl + " subsumes clause " + cj ); 
 			}
 			clauses[j] = null;
 			changed = true;
+			subsumptions++;
 		    }
 		    else if( cj.isSubsumed( cl ) ){
-		        if( trace_simplification ){
+			if( traceSimplification ){
 			    System.err.println( "Clause " + cj + " subsumes clause " + cl ); 
 			}
 			clauses[i] = null;
 			changed = true;
+			subsumptions++;
 			break;
 		    }
-		    else if( cl.join( cj, vars ) ){
-		        if( trace_simplification | trace_new_code ){
-			    System.err.println( "Generalized clause: " + cl ); 
+		    if( false ){
+			if( cl.join( cj, vars ) ){
+			    if( traceSimplification | traceNewCode ){
+				System.err.println( "Generalized clause: " + cl ); 
+			    }
+			    clauses[j] = null;
+			    changed = true;
 			}
-			clauses[j] = null;
-			changed = true;
 		    }
 		}
 	    }
@@ -560,10 +579,14 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 
 	// For the moment, sort the clauses into shortest-first order.
 	java.util.Arrays.sort( clauses, 0, clauseCount );
-	}
 
 	buildAdministration();
-
+	if( traceStats ){
+	    System.err.println( "Propagated " + unitClauses + " unit clauses" );
+	    System.err.println( "Propagated " + unipolars + " unipolar variables" );
+	    System.err.println( "Did " + subsumptions + " subsumptions" );
+	    System.err.println( "Did " + iters + " optimization iterations" );
+	}
     }
 
     /**
