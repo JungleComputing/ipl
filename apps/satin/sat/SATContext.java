@@ -82,7 +82,7 @@ public final class SATContext implements java.io.Serializable {
 
     private static final boolean doVerification = false;
     private static final boolean doLearning = true;
-    private static final boolean doJumps = false;
+    private static final boolean doJumps = true;
     private static final boolean propagatePureVariables = true;
 
     /**
@@ -367,6 +367,17 @@ public final class SATContext implements java.io.Serializable {
         }
     }
 
+    /**
+     * Given a list of variables of a clause, calculates the nearest dominator
+     * of these variables.
+     * @param p The SAT problem we're solving.
+     * @param arr The list of positive or negative variables of the clause we're examining.
+     * @param cno The index of the clause we're examining.
+     * @param level The current recursion level of the search process.
+     * @param dist The shortest distances to a dominator for each clause.
+     * @param distFromConflict The distance of this clause to the conflict in antecedent steps.
+     * @return The index of the nearest dominator clause, or -1 if there isn't one.
+     */
     private int calculateNearestDominator( SATProblem p, int arr[], int cno, int level, int dist[], int distFromConflict )
     {
         int bestDom = -1;
@@ -409,7 +420,14 @@ public final class SATContext implements java.io.Serializable {
     }
 
     /**
-     * Returns the index of the nearest dominator clause, or -1 if there
+     * Given a list of variables of a clause, calculates the nearest dominator
+     * of these variables.
+     * @param p The SAT problem we're solving.
+     * @param cno The index of the clause we're examining.
+     * @param level The current recursion level of the search process.
+     * @param dist The shortest distances to a dominator for each clause.
+     * @param distFromConflict The distance of this clause to the conflict in antecedent steps.
+     * @return The index of the nearest dominator clause, or -1 if there
      * is no dominator.
      */
     private int calculateNearestDominator( SATProblem p, int cno, int level, int dist[], int distFromConflict )
@@ -455,6 +473,14 @@ public final class SATContext implements java.io.Serializable {
         return bestDom;
     }
 
+    /**
+     * Given a list of variables of a clause, calculates the nearest dominator
+     * of these variables.
+     * @param p The SAT problem we're solving.
+     * @param cno The index of the clause we're examining.
+     * @param level The current recursion level of the search process.
+     * @return The index of the nearest dominator clause, or -1 if there isn't one.
+     */
     private int calculateNearestDominator( SATProblem p, int cno, int level )
     {
         // The distance of each clause to the conflicting clause. The 
@@ -472,7 +498,7 @@ public final class SATContext implements java.io.Serializable {
      * @param cno The clause that is in conflict.
      * @param var The variable that is in conflict.
      * @param level The decision level of the conflict.
-     * @return A new clause that should improve the efficiency of the search process, or null if no helpful clause can be constructed.
+     * @return A new clause that should improve the efficiency of the search process, or <code>null</code> if no helpful clause can be constructed.
      */
     private Clause buildConflictClause( SATProblem p, int cno, int var, int level )
     {
@@ -483,13 +509,10 @@ public final class SATContext implements java.io.Serializable {
         boolean usedAntecedent[] = new boolean[satisfied.length];
 
         int bestDom = calculateNearestDominator( p, cno, level );
-        if( false ){
-            // Force an `array out of bounds' exception.
-            usedAntecedent[usedAntecedent.length] = true;
-        }
         do {
-            changed = false;
             int arr[] = res.pos;
+
+            changed = false;
             for( int i=0; i<arr.length; i++ ){
                 int v = arr[i];
 
@@ -605,30 +628,27 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem.
      * @param arr A list of variables.
      * @param cno The index of the clause the variables come from.
+     * @param highLevel The current highest level.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictLevel( SATProblem p, int arr[], int cno )
+    private int calculateConflictLevel( SATProblem p, int arr[], int cno, int highLevel )
     {
-        int level = -1;
+        int level = highLevel;
 
         for( int i=0; i<arr.length; i++ ){
             int v = arr[i];
             int l = dl[v];
-            int a = antecedent[v];
 
-            if( a>=0 ){
-                if( a != cno ){
-                    int l1 = calculateConflictLevel( p, p.clauses[a], a );
-                    if( l1>level ){
-                        level = l1;
+            if( l>level  ){
+                int a = antecedent[v];
+
+                level = l;
+                if( a>=0 ){
+                    if( a != cno ){
+                        level = calculateConflictLevel( p, p.clauses[a], a, level );
                     }
                 }
             }
-            else {
-                if( l>level  ){
-                    level = l;
-                }
-	    }
         }
         return level;
     }
@@ -639,16 +659,14 @@ public final class SATContext implements java.io.Serializable {
      * @param p The SAT problem.
      * @param c The clause to calculate the restart level for.
      * @param cno The index of the clause.
+     * @param highLevel The current highest level.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictLevel( SATProblem p, Clause c, int cno )
+    private int calculateConflictLevel( SATProblem p, Clause c, int cno, int highLevel )
     {
-        int level = calculateConflictLevel( p, c.pos, cno );
-        int neglevel = calculateConflictLevel( p, c.neg, cno );
-        if( neglevel>level ){
-            level = neglevel;
-        }
-	return level;
+        int level = calculateConflictLevel( p, c.pos, cno, highLevel );
+        int neglevel = calculateConflictLevel( p, c.neg, cno, level );
+	return neglevel;
     }
 
     /**
@@ -721,7 +739,7 @@ public final class SATContext implements java.io.Serializable {
 	    }
 
 	    if( doJumps ){
-		int cl = calculateConflictLevel( p, cc, -1 );
+		int cl = calculateConflictLevel( p, cc, -1, -1 );
 
 		if( cl>=0 && cl<level ){
 		    if( traceLearning | traceJumps ){
@@ -742,7 +760,7 @@ public final class SATContext implements java.io.Serializable {
      * @param level The current recursion level of the solver.
      * @param learnAsTuple Propagate any learned clauses as active tuple?
      * @param learn Do any learning?
-     * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
+     * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise.
      */
     private int propagateUnitClause( SATProblem p, int i, int level, boolean learnAsTuple, boolean learn )
         throws SATJumpException
