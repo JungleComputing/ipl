@@ -59,8 +59,7 @@ class ShadowSendPort extends SendPort {
         PortType portType = Ibis.myIbis.getPortTypeLocked(sId.type());
         int serializationType = portType.serializationType;
         if (DEBUG) {
-            System.err
-                    .println("********** Create a ShadowSendPort, my type is "
+            System.err.println("********** Create a ShadowSendPort, my type is "
                             + serializationType);
         }
         switch (serializationType) {
