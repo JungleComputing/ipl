@@ -8,5 +8,5 @@
 
 interface CompressorInterface extends ibis.satin.Spawnable
 {
-    public Backref selectBestMove( byte text[], int backrefs[], int pos, int bestpos, int depth );
+    public Backref selectBestMoveJob( byte text[], int backrefs[], int pos, int bestpos, int depth );
 }

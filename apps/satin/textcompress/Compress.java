@@ -149,7 +149,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             mv = Backref.buildCopyBackref( pos );
         }
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
-            // There are too few characters left for a worthwile backref
+            // There are too few characters left for a worthwile backref,
+            // or there are no previous text spans.
             // We may as well stop.
             return mv;
         }
@@ -157,31 +158,39 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             generateIndent( System.out, depth );
             System.out.println( "D" +  depth + ": @" + pos + ": selecting best move improving on @" + bestpos );
         }
-        int sites[] = collectBackrefs( text, backrefs, pos );
 
-        Backref results[] = new Backref[Magic.MAX_COST+1];
-        for( int i=0; i<sites.length; i++ ){
-            Backref r = shallowEvaluateBackref( text, sites[i], pos );
+        Backref results[] = null;
 
-            if( r != null ){
-                int cost = r.getCost();
+        if( backrefs[pos] != -1 ){
+            int sites[] = collectBackrefs( text, backrefs, pos );
 
-                // If this backreference is worth the extra trouble,
-                // register it.
-                if( pos+r.len>bestpos-cost ){
-                    // This backreference is long enough that it may
-                    // help beat the best move of the parent selectBestMove.
-                    if( results[cost] == null || results[cost].len<r.len ){
-                        // This backreferences is longer than the previous
-                        // one we had registered for this cost.
-                        results[cost] = r;
-                        haveAlternatives = true;
-                        if( maxLen<r.len ){
-                            maxLen = r.len;
-                        }
-                        int minl = 1+cost;
-                        if( minl<minLen ){
-                            minLen = minl;
+            if( sites.length != 0 ){
+                results = new Backref[Magic.MAX_COST+1];
+
+                for( int i=0; i<sites.length; i++ ){
+                    Backref r = shallowEvaluateBackref( text, sites[i], pos );
+
+                    if( r != null ){
+                        int cost = r.getCost();
+
+                        // If this backreference is worth the extra trouble,
+                        // register it.
+                        if( pos+r.len>bestpos-cost ){
+                            // This backreference is long enough that it may
+                            // help beat the best move of the parent selectBestMove.
+                            if( results[cost] == null || results[cost].len<r.len ){
+                                // This backreferences is longer than the previous
+                                // one we had registered for this cost.
+                                results[cost] = r;
+                                haveAlternatives = true;
+                                if( maxLen<r.len ){
+                                    maxLen = r.len;
+                                }
+                                int minl = 1+cost;
+                                if( minl<minLen ){
+                                    minLen = minl;
+                                }
+                            }
                         }
                     }
                 }
@@ -249,10 +258,10 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             // Spawn recurrent processes to evaluate a character copy
             // and backreferences of a range of lengths.
             if( mv != null ){
-                mv1 = selectBestMove( text, backrefs, pos+1, pos+1, depth+1 );
+                mv1 = selectBestMoveJob( text, backrefs, pos+1, pos+1, depth+1 );
             }
             for( int i=minLen; i<=maxLen; i++ ){
-                a[i] = selectBestMove( text, backrefs, pos+i, pos+maxLen, depth+1 );
+                a[i] = selectBestMoveJob( text, backrefs, pos+i, pos+maxLen, depth+1 );
             }
             sync();
             int bestGain = -1;
@@ -300,6 +309,11 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return mv;
     }
 
+    public Backref selectBestMoveJob( byte text[], int backrefs[], int pos, int bestpos, int depth )
+    {
+        return selectBestMove( text, backrefs, pos, bestpos, depth );
+    }
+
     public ByteBuffer compress( byte text[] )
     {
         int backrefs[] = buildBackrefs( text );
@@ -311,7 +325,6 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         }
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
             Backref mv = selectBestMove( text, backrefs, pos, pos, 0 );
-            sync();
             if( mv.backpos<0 ){
                 // There is no backreference that gives any gain, so
                 // just copy the character.
