@@ -74,21 +74,21 @@ if(RTS.DEBUG)  {
 	try {
 	    return RTS.lookup(url);
 	} catch (NotBoundException e1) {
-	    throw new NotBoundException(e1.getMessage());
+	    throw new NotBoundException(e1.getMessage(), e1);
 	} catch (Exception e2) {
 	    throw new RemoteException(e2.getMessage());
 	}
     }
     
     public void bind(String name, Remote obj)
-	throws RemoteException, AlreadyBoundException, AccessException
+	throws RemoteException, AlreadyBoundException
     {
 	checkreg();
 	String url = "rmi://" + host + ":" + port + "/" + name;
 	try {
 	    RTS.bind(url, obj);
 	} catch (AlreadyBoundException e1) {
-	    throw new AlreadyBoundException(e1.getMessage());
+	    throw new AlreadyBoundException(e1.getMessage(), e1);
 	} catch (Exception e2) {
 if (RTS.DEBUG)
 	    e2.printStackTrace();		    
@@ -98,7 +98,7 @@ if (RTS.DEBUG)
     }
     
     public void rebind(String name, Remote obj)
-	throws RemoteException, AccessException
+	throws RemoteException
     {
 	checkreg();
 	String url = "rmi://" + host + ":" + port + "/" + name;	
@@ -111,7 +111,7 @@ if (RTS.DEBUG)
     }
     
     public void unbind(String name)
-	throws RemoteException, NotBoundException, AccessException
+	throws RemoteException, NotBoundException
     {
 	checkreg();
 	String url = "rmi://" + host + ":" + port + "/" + name;	
@@ -125,7 +125,7 @@ if (RTS.DEBUG)
     }
     
     public String[] list()
-	throws RemoteException, AccessException
+	throws RemoteException
     {
 	try {
 	    String url = "rmi://" + host + ":" + port + "/";
@@ -139,11 +139,10 @@ if (RTS.DEBUG)
     }
     
     private void checkreg() 
-	throws AccessException
     {
 	String localhost = localhostName();
 	if (!host.equals(localhost)) {
-	//    throw new AccessException("Registry: " + host + "!=" + localhost);
+	//    throw new RemoteException("Registry: " + host + "!=" + localhost);
 	}
     }
     

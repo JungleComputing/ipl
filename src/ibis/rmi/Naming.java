@@ -66,7 +66,6 @@ public final class Naming {
      * @return a reference for a remote object
      * @exception NotBoundException if name is not currently bound
      * @exception RemoteException if registry could not be contacted
-     * @exception AccessException if this operation is not permitted
      * @exception MalformedURLException if the name is not an appropriately
      *  formatted URL
      * @since JDK1.1
@@ -81,6 +80,9 @@ public final class Naming {
 
 	if (parsed.name == null)
 	    return registry;
+
+	System.out.println("looking up parsed name: " +  parsed.name);
+
 	return registry.lookup(parsed.name);
     }
 
@@ -93,8 +95,6 @@ public final class Naming {
      * @exception MalformedURLException if the name is not an appropriately
      *  formatted URL
      * @exception RemoteException if registry could not be contacted
-     * @exception AccessException if this operation is not permitted (if
-     * originating from a non-local host, for example)
      * @since JDK1.1
      */
     public static void bind(String name, Remote obj)
@@ -108,6 +108,8 @@ public final class Naming {
 	if (obj == null)
 	    throw new NullPointerException("cannot bind to null");
 
+	System.out.println("Binding parsed name: " +  parsed.name);
+
 	registry.bind(parsed.name, obj);
     }
 
@@ -120,8 +122,6 @@ public final class Naming {
      * @exception MalformedURLException if the name is not an appropriately
      *  formatted URL
      * @exception RemoteException if registry could not be contacted
-     * @exception AccessException if this operation is not permitted (if
-     * originating from a non-local host, for example)
      * @since JDK1.1
      */
     public static void unbind(String name)
@@ -144,8 +144,6 @@ public final class Naming {
      * @exception MalformedURLException if the name is not an appropriately
      *  formatted URL
      * @exception RemoteException if registry could not be contacted
-     * @exception AccessException if this operation is not permitted (if
-     * originating from a non-local host, for example)
      * @since JDK1.1
      */
     public static void rebind(String name, Remote obj)

@@ -13,35 +13,26 @@ public final class LocateRegistry
 
     public static Registry getRegistry() throws RemoteException
     {
-	try {
-	    return getRegistry(null, Registry.REGISTRY_PORT);
-	} catch (UnknownHostException e) {
-	}
-	return null;
+	return getRegistry(null, Registry.REGISTRY_PORT);
     }
 
     public static Registry getRegistry(int port) throws RemoteException
     {
-	try {
-	    return getRegistry(null, port);
-	} catch (UnknownHostException e) {
-	}
-	return null;
+	return getRegistry(null, port);
     }
     
-    public static Registry getRegistry(String host) throws RemoteException, UnknownHostException
+    public static Registry getRegistry(String host) throws RemoteException
     {
 	return getRegistry(host, Registry.REGISTRY_PORT);
     }
     
-    public static Registry getRegistry(String host, int port) throws RemoteException, UnknownHostException
+    public static Registry getRegistry(String host, int port) throws RemoteException
     {
 	if (handler != null) {
 	    return handler.registryStub(host, port);
 	}
 
 	throw new RemoteException("Registry handler not present");
-
     }
 
     public static Registry createRegistry(int port) throws RemoteException

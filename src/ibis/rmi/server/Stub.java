@@ -10,7 +10,7 @@ public class Stub extends RemoteStub {
 	transient protected SendPort send;
 	transient protected ReceivePort reply;
 	protected ReceivePortIdentifier skeletonPortId;
-	private boolean initialized = false;
+	transient private boolean initialized = false;
 
 	public Stub() {};
     
