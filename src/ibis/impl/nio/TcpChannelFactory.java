@@ -29,7 +29,7 @@ import org.apache.log4j.Logger;
  */
 class TcpChannelFactory implements ChannelFactory, Protocol {
 
-    static Logger logger = Logger.getLogger(TcpChannelFactory.class.getName());
+    private static Logger logger = Logger.getLogger(TcpChannelFactory.class);
 
     // Server socket Channel we listen for new connection on
     private ServerSocketChannel ssc;
@@ -101,7 +101,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
      * @return the address of the socket we wil listen for connections on
      */
     public synchronized InetSocketAddress register(NioReceivePort rp) {
-        if (logger.isDebugEnabled()) {
+        if (logger.isInfoEnabled()) {
             logger.info("Receiveport \"" + rp + "\" registered with factory");
         }
 
@@ -113,7 +113,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
     public synchronized void deRegister(NioReceivePort rp) throws IOException {
         NioReceivePort temp;
 
-        if (logger.isDebugEnabled()) {
+        if (logger.isInfoEnabled()) {
             logger.info("Receiveport[" + rp + "] DE-registers with factory");
         }
 
@@ -168,7 +168,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
         long time;
 
         if (logger.isDebugEnabled()) {
-            logger.info("connecting \"" + spi + "\" to \"" + rpi + "\"");
+            logger.debug("connecting \"" + spi + "\" to \"" + rpi + "\"");
         }
 
         if (timeoutMillis > 0) {
@@ -185,9 +185,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 time = System.currentTimeMillis();
 
                 if (time >= deadline) {
-                    if (logger.isDebugEnabled()) {
-                        logger.error("timeout on connecting");
-                    }
+                    logger.error("timeout on connecting");
 
                     throw new IOException("timeout on connecting");
                 }
@@ -202,10 +200,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 if (selector.select(deadline - time) == 0) {
                     // nothing selected, so we had a timeout
 
-                    if (logger.isDebugEnabled()) {
-                        logger.error("timed out while connecting socket "
-                                + "to receiver");
-                    }
+                    logger.error("timed out while connecting socket "
+                            + "to receiver");
 
                     throw new ConnectionTimedOutException("timed out while"
                             + " connecting socket to receiver");
@@ -233,17 +229,14 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             accumulator.flush();
 
             if (logger.isDebugEnabled()) {
-                logger.info("waiting for reply on connect");
+                logger.debug("waiting for reply on connect");
             }
 
             if (timeoutMillis > 0) {
                 time = System.currentTimeMillis();
 
                 if (time >= deadline) {
-                    if (logger.isDebugEnabled()) {
-                        logger
-                                .info("timeout on waiting for reply on connecting");
-                    }
+                    logger.warn("timeout on waiting for reply on connecting");
                     throw new IOException("timeout on waiting for reply");
                 }
 
@@ -260,9 +253,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                         // IGNORE
                     }
 
-                    if (logger.isDebugEnabled()) {
-                        logger.error("timed out while for reply from receiver");
-                    }
+                    logger.error("timed out while for reply from receiver");
 
                     throw new ConnectionTimedOutException("timed out while"
                             + " waiting for reply from receiver");
@@ -277,15 +268,13 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             dissipator.close();
 
             if (reply == CONNECTION_DENIED) {
-                if (logger.isDebugEnabled()) {
-                    logger.error("Receiver denied connection");
-                }
+                logger.error("Receiver denied connection");
                 channel.close();
                 throw new ConnectionRefusedException(
                         "Receiver denied connection");
             } else if (reply == CONNECTION_ACCEPTED) {
                 if (logger.isDebugEnabled()) {
-                    logger.info("made new connection from \"" + spi
+                    logger.debug("made new connection from \"" + spi
                             + "\" to \"" + rpi + "\"");
                 }
                 channel.configureBlocking(true);
@@ -305,9 +294,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 // and retry
                 continue;
             } else {
-                if (logger.isDebugEnabled()) {
-                    logger.error("illigal opcode in ChannelFactory.connect()");
-                }
+                logger.error("illigal opcode in ChannelFactory.connect()");
                 throw new IbisError("illigal opcode in"
                         + " ChannelFactory.connect()");
             }
@@ -326,7 +313,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
         ChannelAccumulator accumulator = new ChannelAccumulator(channel);
 
         if (logger.isDebugEnabled()) {
-            logger.info("got new connection from "
+            logger.debug("got new connection from "
                     + channel.socket().getInetAddress() + ":"
                     + channel.socket().getPort());
         }
@@ -335,9 +322,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             request = dissipator.readByte();
 
             if (request != CONNECTION_REQUEST) {
-                if (logger.isDebugEnabled()) {
-                    logger.error("received unknown request");
-                }
+                logger.error("received unknown request");
                 try {
                     dissipator.close();
                     accumulator.close();
@@ -355,10 +340,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             rp = findReceivePort(rpi);
 
             if (rp == null) {
-                if (logger.isDebugEnabled()) {
-                    logger
-                            .error("could not find receiveport, connection denied");
-                }
+                logger.error("could not find receiveport, connection denied");
                 accumulator.writeByte(CONNECTION_DENIED);
                 accumulator.flush();
                 accumulator.close();
@@ -367,7 +349,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.info("giving new connection to receiveport " + rpi);
+                logger.debug("giving new connection to receiveport " + rpi);
             }
 
             // register connection with receiveport
@@ -380,16 +362,14 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 
             if (reply != CONNECTION_ACCEPTED) {
                 channel.close();
-                if (logger.isDebugEnabled()) {
-                    logger.error("receiveport rejected connection");
+                if (logger.isInfoEnabled()) {
+                    logger.info("receiveport rejected connection");
                 }
                 return;
             }
         } catch (IOException e) {
-            if (logger.isDebugEnabled()) {
-                logger.error("got an exception on handling an incoming request"
-                        + ", closing channel" + e);
-            }
+            logger.error("got an exception on handling an incoming request"
+                    + ", closing channel" + e);
             try {
                 channel.close();
             } catch (IOException e2) {
@@ -399,7 +379,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("set up new connection");
+            logger.debug("set up new connection");
         }
     }
 

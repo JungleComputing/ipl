@@ -65,7 +65,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
 
     protected static final int SIZEOF_HEADER = 16;
 
-    static Logger logger = Logger.getLogger(NioDissipator.class.getName());
+    private static Logger logger = Logger.getLogger(NioDissipator.class);
 
     /**
      * Circular buffer used for holding data. It contains "currently in use" (by
@@ -158,7 +158,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         int limit;
 
         if (logger.isDebugEnabled()) {
-            logger.info("initializing views in " + order + " byte order");
+            logger.debug("initializing views in " + order + " byte order");
         }
 
         // remember position and limit;
@@ -205,7 +205,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         view.position(start / dataSize);
 
         if (logger.isDebugEnabled()) {
-            logger.info("setView: set view: position(" + view.position()
+            logger.debug("setView: set view: position(" + view.position()
                     + ") limit(" + view.limit() + "), in bytes: position("
                     + (view.position() * dataSize) + ") limit("
                     + (view.limit() * dataSize) + ")");
@@ -245,18 +245,15 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         short[] headerArray = new short[SIZEOF_HEADER / SIZEOF_SHORT];
 
         if (logger.isDebugEnabled()) {
-            logger.info("receiving buffer");
+            logger.debug("receiving buffer");
         }
 
         if (ASSERT && (remaining() > 0)) {
-            if (logger.isDebugEnabled()) {
-                logger.error("receiving with data still left in the buffer"
-                        + ", content: " + "l[" + longs.remaining() + "] d["
-                        + doubles.remaining() + "] i[" + ints.remaining()
-                        + "] f[" + floats.remaining() + "] s["
-                        + shorts.remaining() + "] c[" + chars.remaining()
-                        + "] b[" + bytes.remaining() + "]");
-            }
+            logger.error("receiving with data still left in the buffer"
+                    + ", content: " + "l[" + longs.remaining() + "] d["
+                    + doubles.remaining() + "] i[" + ints.remaining() + "] f["
+                    + floats.remaining() + "] s[" + shorts.remaining() + "] c["
+                    + chars.remaining() + "] b[" + bytes.remaining() + "]");
             throw new IbisError("tried receive() while there was data"
                     + " left in the buffer");
         }
@@ -274,7 +271,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("usedPosition = " + usedPosition + " buffer.position("
+            logger.debug("usedPosition = " + usedPosition + " buffer.position("
                     + buffer.position() + ") buffer.limit(" + buffer.limit()
                     + ")");
         }
@@ -308,8 +305,8 @@ public abstract class NioDissipator extends DataInputStream implements Config,
                 + headerArray[CHARS] + headerArray[BYTES] + paddingLength;
 
         if (logger.isDebugEnabled()) {
-            logger.info("total size of buffer we're receiving is: " + totalSize
-                    + " padding: " + paddingLength);
+            logger.debug("total size of buffer we're receiving is: "
+                    + totalSize + " padding: " + paddingLength);
         }
 
         if (unUsedLength() < totalSize) {
@@ -328,7 +325,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         next = setView(bytes, next, headerArray[BYTES], SIZEOF_BYTE);
 
         if (logger.isDebugEnabled()) {
-            logger.info("received: l[" + longs.remaining() + "] d["
+            logger.debug("received: l[" + longs.remaining() + "] d["
                     + doubles.remaining() + "] i[" + ints.remaining() + "] f["
                     + floats.remaining() + "] s[" + shorts.remaining() + "] c["
                     + chars.remaining() + "] b[" + bytes.remaining() + "]");
@@ -396,7 +393,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         int count;
 
         if (logger.isDebugEnabled()) {
-            logger.info("reading into buffer, position(" + buffer.position()
+            logger.debug("reading into buffer, position(" + buffer.position()
                     + ") limit(" + buffer.limit() + ")");
         }
 
@@ -407,7 +404,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         this.count += count;
 
         if (logger.isDebugEnabled()) {
-            logger.info("read " + count + " bytes, total" + " bytes read now "
+            logger.debug("read " + count + " bytes, total" + " bytes read now "
                     + this.count);
         }
 
@@ -417,7 +414,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
             buffer.position(0);
             buffer.limit(usedPosition - 1);
             if (logger.isDebugEnabled()) {
-                logger.info("buffer wrapped, position(" + buffer.position()
+                logger.debug("buffer wrapped, position(" + buffer.position()
                         + ") limit(" + buffer.limit() + ")");
             }
         }
@@ -487,7 +484,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("received byte: " + result);
+            logger.debug("received byte: " + result);
         }
 
         return result;
@@ -591,7 +588,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
                 message = message + ref[i] + " ";
             }
 
-            logger.info(message);
+            logger.debug(message);
         }
     }
 
@@ -636,7 +633,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
                 message = message + ref[i] + " ";
             }
 
-            logger.info(message);
+            logger.debug(message);
         }
         return len;
     }

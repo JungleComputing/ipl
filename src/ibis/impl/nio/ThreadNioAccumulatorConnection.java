@@ -11,8 +11,8 @@ import org.apache.log4j.Logger;
 final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
         implements Config {
 
-    static Logger logger = Logger
-            .getLogger(ThreadNioAccumulatorConnection.class.getName());
+    private static Logger logger = Logger
+            .getLogger(ThreadNioAccumulatorConnection.class);
 
     boolean sending = false;
 
@@ -40,7 +40,7 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
         while (full()) {
             try {
                 if (logger.isDebugEnabled()) {
-                    logger.info("waiting for the sendlist"
+                    logger.debug("waiting for the sendlist"
                             + " to have a free spot");
                 }
                 wait();

@@ -40,7 +40,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
 
     static final int INITIAL_CONNECTIONS_SIZE = 8;
 
-    static Logger logger = Logger.getLogger(NioAccumulator.class.getName());
+    private static Logger logger = Logger.getLogger(NioAccumulator.class);
 
     private SendBuffer buffer;
 
@@ -208,7 +208,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
 
     public void writeByte(byte value) throws IOException {
         if (logger.isDebugEnabled()) {
-            logger.info("writeByte(" + value + ")");
+            logger.debug("writeByte(" + value + ")");
         }
         try {
             bytes.put(value);
@@ -290,14 +290,16 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
     }
 
     public void writeArray(byte[] array, int off, int len) throws IOException {
-        if (logger.isDebugEnabled()) {
+        if (logger.isInfoEnabled()) {
             String message = "NioAccumulator.writeArray(byte[], off = " + off
                     + " len = " + len + ") Contents: ";
 
             for (int i = off; i < (off + len); i++) {
                 message = message + array[i] + " ";
             }
-            logger.info(message);
+            if (logger.isDebugEnabled()) {
+                logger.debug(message);
+            }
         }
 
         try {

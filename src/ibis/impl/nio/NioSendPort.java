@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 
 public final class NioSendPort implements SendPort, Config, Protocol {
 
-    static Logger logger = Logger.getLogger(NioSendPort.class.getName());
+    private static Logger logger = Logger.getLogger(NioSendPort.class);
 
     final NioPortType type;
 
@@ -98,41 +98,32 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
         // FIXME: Retry on "receiveport not ready"
 
-        if (logger.isDebugEnabled()) {
+        if (logger.isInfoEnabled()) {
             logger.info("Sendport " + this + " '" + ident.name
                     + "' connecting to " + receiver);
         }
 
         if (!type.name().equals(receiver.type())) {
-            if (logger.isDebugEnabled()) {
-                logger.error("Cannot connect ports of different PortTypes");
-            }
+            logger.error("Cannot connect ports of different PortTypes");
             throw new PortMismatchException("Cannot connect ports of "
                     + "different PortTypes");
         }
 
         if (aMessageIsAlive) {
-            if (logger.isDebugEnabled()) {
-                logger.error("Cannot connect while a message is alive");
-            }
+            logger.error("Cannot connect while a message is alive");
             throw new IOException("A message was alive while adding a new "
                     + "connection");
         }
 
         if (timeoutMillis < 0) {
-            if (logger.isDebugEnabled()) {
-                logger.error("negative timeout");
-            }
+            logger.error("negative timeout");
             throw new IOException(
                     "NioSendport.connect(): timeout must be positive, or 0");
         }
 
         if (!type.oneToMany && (connectedTo().length > 0)) {
-            if (logger.isDebugEnabled()) {
-                logger
-                        .error("Cannot connect, port already connected to a receiver"
-                                + " and OneToMany not supported");
-            }
+            logger.error("Cannot connect, port already connected to a receiver"
+                    + " and OneToMany not supported");
             throw new IOException("This sendport is already connected to a"
                     + " receiveport, and doesn't support multicast");
         }
@@ -144,9 +135,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
         if (ASSERT) {
             if (!(channel instanceof GatheringByteChannel)) {
-                if (logger.isDebugEnabled()) {
-                    logger.error("factory returned wrong type of channel");
-                }
+                logger.error("factory returned wrong type of channel");
                 throw new IbisError("factory returned wrong type of channel");
             }
         }
@@ -154,10 +143,8 @@ public final class NioSendPort implements SendPort, Config, Protocol {
         // close output stream (if it exist). The new receiver needs the
         // stream headers and such.
         if (out != null) {
-            if (logger.isDebugEnabled()) {
-                logger.error("letting all the other"
-                        + " receivers know there's a new connection");
-            }
+            logger.info("letting all the other"
+                    + " receivers know there's a new connection");
             out.writeByte(NEW_RECEIVER);
             out.flush();
             out.close();
@@ -170,7 +157,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
         neverConnected = false;
 
         if (logger.isDebugEnabled()) {
-            logger.info("done connecting");
+            logger.debug("done connecting " + ident + " to " + receiver);
         }
     }
 
@@ -243,7 +230,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
                 message = message + " " + connections[i];
             }
 
-            logger.info(message);
+            logger.debug(message);
         }
 
         if (out == null) {
@@ -275,7 +262,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
         notifyAll();
 
         if (logger.isDebugEnabled()) {
-            logger.info("end of write message, messageCount: " + messageCount);
+            logger.debug("end of write message, messageCount: " + messageCount);
         }
 
         return messageCount;
@@ -299,9 +286,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
         notifyAll();
 
-        if (logger.isDebugEnabled()) {
-            logger.error("end of write message with error");
-        }
+        logger.error("end of write message with error");
 
     }
 

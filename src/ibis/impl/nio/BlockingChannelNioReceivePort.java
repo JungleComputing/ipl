@@ -15,9 +15,14 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 
+import org.apache.log4j.Logger;
+
 final class BlockingChannelNioReceivePort extends NioReceivePort implements
         Config {
     static final int INITIAL_DISSIPATOR_SIZE = 8;
+
+    private static Logger logger = Logger
+            .getLogger(BlockingChannelNioReceivePort.class);
 
     private BlockingChannelNioDissipator[] connections;
 
@@ -36,16 +41,14 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
     synchronized void newConnection(NioSendPortIdentifier spi, Channel channel)
             throws IOException {
 
-        if (!((channel instanceof ReadableByteChannel) 
-                && (channel instanceof SelectableChannel))) {
+        if (!((channel instanceof ReadableByteChannel) && (channel instanceof SelectableChannel))) {
             throw new IOException("wrong type of channel on"
                     + " creating connection");
         }
 
         if (nrOfConnections == connections.length) {
             BlockingChannelNioDissipator[] newConnections;
-            newConnections = new BlockingChannelNioDissipator[
-                                                      connections.length * 2];
+            newConnections = new BlockingChannelNioDissipator[connections.length * 2];
             for (int i = 0; i < connections.length; i++) {
                 newConnections[i] = connections[i];
             }

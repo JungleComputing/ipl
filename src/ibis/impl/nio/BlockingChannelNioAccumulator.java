@@ -10,8 +10,8 @@ import org.apache.log4j.Logger;
 
 final class BlockingChannelNioAccumulator extends NioAccumulator {
 
-    static Logger logger = Logger.getLogger(BlockingChannelNioAccumulator.class
-            .getName());
+    private static Logger logger = Logger
+            .getLogger(BlockingChannelNioAccumulator.class);
 
     private final NioSendPort port;
 
@@ -24,7 +24,7 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
             NioReceivePortIdentifier peer) throws IOException {
         NioAccumulatorConnection result;
 
-        logger.info("registering new connection");
+        logger.debug("registering new connection");
 
         if ((nrOfConnections + 1) > 1) {
             logger.warn("" + (nrOfConnections + 1) + " connections from a `"
@@ -37,7 +37,7 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 
         result = new NioAccumulatorConnection(channel, peer);
 
-        logger.info("registered new connection");
+        logger.debug("registered new connection");
 
         return result;
     }
@@ -47,7 +47,7 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
      */
     boolean doSend(SendBuffer buffer) throws IOException {
         if (logger.isDebugEnabled()) {
-            logger.info("sending a buffer");
+            logger.debug("sending a buffer");
         }
         buffer.mark();
 
@@ -72,7 +72,7 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
             }
         }
         if (logger.isDebugEnabled()) {
-            logger.info("done sending a buffer");
+            logger.debug("done sending a buffer");
         }
         return true; // signal we are done with the buffer now
     }

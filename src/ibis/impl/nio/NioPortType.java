@@ -41,7 +41,7 @@ class NioPortType extends PortType implements Config {
     static final String[] IMPLEMENTATION_NAMES = { "Blocking", "Non Blocking",
             "Thread" };
 
-    static Logger logger = Logger.getLogger(NioPortType.class.getName());
+    private static Logger logger = Logger.getLogger(NioPortType.class);
 
     byte sendPortImplementation;
 
@@ -146,12 +146,12 @@ class NioPortType extends PortType implements Config {
             receivePortImplementation = IMPLEMENTATION_BLOCKING;
         }
 
-        logger.info("new port type: serialization = " + serializationType
-                + "\nsend port implementation = "
+        logger.info("new port type " + name + ": serialization = "
+                + serializationType + ", send port implementation = "
                 + IMPLEMENTATION_NAMES[sendPortImplementation]
-                + "\nreceive port implementation = "
+                + ", receive port implementation = "
                 + IMPLEMENTATION_NAMES[receivePortImplementation]
-                + "\nnumbered = " + numbered + "\n");
+                + ", numbered = " + numbered);
 
     }
 

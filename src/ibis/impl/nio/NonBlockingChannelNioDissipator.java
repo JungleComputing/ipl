@@ -19,8 +19,8 @@ import org.apache.log4j.Logger;
 final class NonBlockingChannelNioDissipator extends NioDissipator implements
         Config {
 
-    static Logger logger = Logger
-            .getLogger(NonBlockingChannelNioDissipator.class.getName());
+    private static Logger logger = Logger
+            .getLogger(NonBlockingChannelNioDissipator.class);
 
     Selector selector;
 
@@ -46,7 +46,7 @@ final class NonBlockingChannelNioDissipator extends NioDissipator implements
      */
     protected void fillBuffer(int minimum) throws IOException {
         if (logger.isDebugEnabled()) {
-            logger.info("filling buffer");
+            logger.debug("filling buffer");
         }
 
         // Always do one read, even if it isn't strictly needed
@@ -55,7 +55,7 @@ final class NonBlockingChannelNioDissipator extends NioDissipator implements
 
         while (unUsedLength() < minimum) {
             if (logger.isDebugEnabled()) {
-                logger.info("doing a select for data");
+                logger.debug("doing a select for data");
             }
             selector.select();
             selector.selectedKeys().clear();
@@ -63,7 +63,7 @@ final class NonBlockingChannelNioDissipator extends NioDissipator implements
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("filled buffer");
+            logger.debug("filled buffer");
         }
     }
 

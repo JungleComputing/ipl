@@ -22,8 +22,8 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
         Config {
     static final int INITIAL_ARRAY_SIZE = 8;
 
-    static Logger logger = Logger
-            .getLogger(NonBlockingChannelNioReceivePort.class.getName());
+    private static Logger logger = Logger
+            .getLogger(NonBlockingChannelNioReceivePort.class);
 
     private NonBlockingChannelNioDissipator[] connections;
 
@@ -53,13 +53,11 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
         NonBlockingChannelNioDissipator dissipator;
 
         if (logger.isDebugEnabled()) {
-            logger.info("registering new connection");
+            logger.debug("registering new connection");
         }
 
         if (!((channel instanceof ReadableByteChannel) && (channel instanceof SelectableChannel))) {
-            if (logger.isDebugEnabled()) {
-                logger.error("!wrong channel type");
-            }
+            logger.error("wrong channel type");
             throw new IOException("wrong type of channel on"
                     + " creating connection");
         }
@@ -92,7 +90,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
         nrOfPendingConnections++;
 
         if (logger.isDebugEnabled()) {
-            logger.info("waking up selector");
+            logger.debug("waking up selector");
         }
 
         // wake up selector if needed
@@ -103,23 +101,19 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("registerred new connection");
+            logger.debug("registerred new connection");
         }
     }
 
     synchronized void errorOnRead(NioDissipator dissipator, Exception cause) {
-        if (logger.isDebugEnabled()) {
-            logger.error("lost connection: " + cause);
-        }
+        logger.error("lost connection: " + cause);
 
         for (int i = 0; i < nrOfPendingConnections; i++) {
             if (dissipator == pendingConnections[i]) {
                 nrOfPendingConnections--;
                 pendingConnections[i] = pendingConnections[nrOfPendingConnections];
                 pendingConnections[nrOfPendingConnections] = null;
-                if (logger.isDebugEnabled()) {
-                    logger.info("lost connection removed from pending list");
-                }
+                logger.debug("lost connection removed from pending list");
             }
         }
 
@@ -137,26 +131,24 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
 
                 if (nrOfConnections == 0) {
                     if (logger.isDebugEnabled()) {
-                        logger.info("no more connections, waking up selector");
+                        logger.debug("no more connections, waking up selector");
                     }
                     selector.wakeup();
                 }
                 if (logger.isDebugEnabled()) {
-                    logger.info("removed connection");
+                    logger.debug("removed connection");
                 }
                 return;
             }
         }
-        if (logger.isDebugEnabled()) {
-            logger.error("lost connection not found");
-        }
+        logger.error("lost connection not found");
     }
 
     synchronized void registerPendingConnections() throws IOException {
         SelectableChannel sh;
 
         if (logger.isDebugEnabled() && nrOfPendingConnections > 0) {
-            logger.info("registerring " + nrOfPendingConnections
+            logger.debug("registerring " + nrOfPendingConnections
                     + " connections");
         }
 
@@ -178,7 +170,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
         NonBlockingChannelNioDissipator dissipator = null;
 
         if (logger.isDebugEnabled()) {
-            logger.info("trying to find a dissipator"
+            logger.debug("trying to find a dissipator"
                     + " with a message waiting");
         }
 
@@ -188,8 +180,8 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
             synchronized (this) {
                 if (nrOfConnections == 0) {
                     if (closing) {
-                        if (logger.isDebugEnabled()) {
-                            logger.error("exiting because we have no "
+                        if (logger.isInfoEnabled()) {
+                            logger.info("exiting because we have no "
                                     + "connections (as requested)");
                         }
                         throw new ConnectionClosedException();
@@ -200,7 +192,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                         } else if (deadline == 0) {
                             try {
                                 if (logger.isDebugEnabled()) {
-                                    logger.info("wait()ing for a connection");
+                                    logger.debug("wait()ing for a connection");
                                 }
                                 wait();
                             } catch (InterruptedException e) {
@@ -215,7 +207,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                                 try {
                                     if (logger.isDebugEnabled()) {
                                         logger
-                                                .info("wait()ing for a connection");
+                                                .debug("wait()ing for a connection");
                                     }
                                     wait();
                                 } catch (InterruptedException e) {
@@ -241,7 +233,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                     try {
                         if (connections[i].messageWaiting()) {
                             if (logger.isDebugEnabled()) {
-                                logger.info("returning connection " + i);
+                                logger.debug("returning connection " + i);
                             }
                             return connections[i];
                         }
@@ -254,7 +246,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
 
             if (deadline == -1) {
                 if (logger.isDebugEnabled()) {
-                    logger.info("doing a selectNow");
+                    logger.debug("doing a selectNow");
                 }
                 try {
                     selector.selectNow();
@@ -264,8 +256,8 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                 deadlinePassed = true;
             } else if (deadline == 0) {
                 if (logger.isDebugEnabled()) {
-                    logger.info("doing a select() on " + selector.keys().size()
-                            + " connections");
+                    logger.debug("doing a select() on "
+                            + selector.keys().size() + " connections");
                 }
                 try {
                     selector.select();
@@ -279,7 +271,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                     deadlinePassed = true;
                 } else {
                     if (logger.isDebugEnabled()) {
-                        logger.info("doing a select(timeout)");
+                        logger.debug("doing a select(timeout)");
                     }
                     try {
                         selector.select(deadline - time);
@@ -291,7 +283,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
             }
 
             if (logger.isDebugEnabled()) {
-                logger.info("selected " + selector.selectedKeys().size()
+                logger.debug("selected " + selector.selectedKeys().size()
                         + " connections");
             }
 
@@ -310,7 +302,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
             selector.selectedKeys().clear();
         } // end of while(!deadlinePassed)
         if (logger.isDebugEnabled()) {
-            logger.error("deadline passed");
+            logger.debug("deadline passed");
         }
         throw new ReceiveTimedOutException("timeout while waiting"
                 + " for dissipator");

@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         Protocol {
 
-    static Logger logger = Logger.getLogger(NioReceivePort.class.getName());
+    private static Logger logger = Logger.getLogger(NioReceivePort.class);
 
     protected NioPortType type;
 
@@ -96,34 +96,28 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
      */
     byte connectionRequested(NioSendPortIdentifier spi, Channel channel) {
         if (logger.isDebugEnabled()) {
-            logger.info("handling connection request");
+            logger.debug("handling connection request");
         }
 
         synchronized (this) {
             if (!connectionsEnabled) {
-                if (logger.isDebugEnabled()) {
-                    logger.error("connections disabled");
-                }
+                logger.error("connections disabled");
                 return CONNECTIONS_DISABLED;
             }
         }
 
         if (!type.manyToOne && (connectedTo().length > 0)) {
             // many2one not supported...
-            if (logger.isDebugEnabled()) {
-                logger.error("many2one not supported");
-            }
+            logger.error("many2one not supported");
             return CONNECTION_DENIED;
         }
 
         if (connUpcall != null) {
             if (logger.isDebugEnabled()) {
-                logger.info("passing connection request to user");
+                logger.debug("passing connection request to user");
             }
             if (!connUpcall.gotConnection(this, spi)) {
-                if (logger.isDebugEnabled()) {
-                    logger.error("user denied connection");
-                }
+                logger.error("user denied connection");
                 return CONNECTION_DENIED;
             }
         }
@@ -134,9 +128,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             if (connUpcall != null) {
                 connUpcall.lostConnection(this, spi, e);
             }
-            if (logger.isDebugEnabled()) {
-                logger.error("newConnection() failed");
-            }
+            logger.error("newConnection() failed");
             return CONNECTION_DENIED;
         }
 
@@ -146,9 +138,10 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             }
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.info("connection allowed");
+        if (logger.isInfoEnabled()) {
+            logger.info("new incoming connection from " + spi + " to " + ident);
         }
+
         return CONNECTION_ACCEPTED;
     }
 
@@ -216,16 +209,13 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         long sequencenr = -1;
 
         if (logger.isDebugEnabled()) {
-            logger.info("trying to fetch message");
+            logger.debug("trying to fetch message");
         }
 
         synchronized (this) {
             while (m != null) {
                 if (!waitForNotify(deadline)) {
-                    if (logger.isDebugEnabled()) {
-                        logger
-                                .error("timeout while waiting on previous message");
-                    }
+                    logger.error("timeout while waiting on previous message");
                     throw new ReceiveTimedOutException("previous message"
                             + " not finished yet");
                 }
@@ -267,7 +257,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("new message received (#" + sequencenr + ")");
+            logger.debug("new message received (#" + sequencenr + ")");
         }
 
         return message;
@@ -280,7 +270,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
     void finish(NioReadMessage m, long messageCount) throws IOException {
 
         if (logger.isDebugEnabled()) {
-            logger.info("finishing read message");
+            logger.debug("finishing read message");
         }
 
         synchronized (this) {
@@ -305,7 +295,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("finished read message, received " + messageCount
+            logger.debug("finished read message, received " + messageCount
                     + " bytes");
         }
     }
@@ -315,9 +305,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
      * lost. Close it.
      */
     synchronized void finish(NioReadMessage m, Exception e) {
-        if (logger.isDebugEnabled()) {
-            logger.error("finishing read message with error");
-        }
+        logger.error("finishing read message with error");
         m.isFinished = true;
 
         // inform the subclass an error occured
@@ -334,10 +322,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             // this finish was called from an upcall! Create a new thread to
             // fetch the next message (this upcall might not exit for a while)
             ThreadPool.createNew(this);
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.info("!finished read message with error");
         }
     }
 
@@ -577,7 +561,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
 
             try {
                 if (logger.isDebugEnabled()) {
-                    logger.info("doing upcall");
+                    logger.debug("doing upcall");
                 }
                 upcall.upcall(m);
             } catch (IOException e) {

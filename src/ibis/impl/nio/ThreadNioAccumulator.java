@@ -12,8 +12,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 
     static final int LOST_CONNECTION_SIZE = 8;
 
-    static Logger logger = Logger.getLogger(ThreadNioAccumulator.class
-            .getName());
+    private static Logger logger = Logger.getLogger(ThreadNioAccumulator.class);
 
     NioSendPort port;
 
@@ -32,7 +31,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
         sChannel.configureBlocking(false);
 
         if (logger.isDebugEnabled()) {
-            logger.info("creating new" + " ThreadNioAccumulatorConnection");
+            logger.debug("creating new" + " ThreadNioAccumulatorConnection");
         }
 
         return new ThreadNioAccumulatorConnection(thread, channel, peer);
@@ -42,17 +41,17 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
         SendBuffer copy;
 
         if (logger.isDebugEnabled()) {
-            logger.info("doing send");
+            logger.debug("doing send");
         }
 
         if (nrOfConnections == 0) {
-            if (logger.isDebugEnabled()) {
-                logger.error("no connections to send to");
+            if (logger.isInfoEnabled()) {
+                logger.info("no connections to send to");
             }
             return true;
         } else if (nrOfConnections == 1) {
             if (logger.isDebugEnabled()) {
-                logger.info("sending to one(1) connection");
+                logger.debug("sending to one(1) connection");
             }
             ThreadNioAccumulatorConnection connection;
             connection = (ThreadNioAccumulatorConnection) connections[0];
@@ -63,14 +62,14 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
                 port.lostConnection(connection.peer, e);
                 connections[0] = null;
                 nrOfConnections = 0;
-                if (logger.isDebugEnabled()) {
+                if (logger.isInfoEnabled()) {
                     logger.error("(only) connection lost");
                     return false; // don't do normal exit message
                 }
             }
         } else {
             if (logger.isDebugEnabled()) {
-                logger.info("sending to " + nrOfConnections + " connections");
+                logger.debug("sending to " + nrOfConnections + " connections");
             }
 
             SendBuffer[] copies = SendBuffer.replicate(buffer, nrOfConnections);
@@ -82,7 +81,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
                 try {
                     connection.addToThreadSendList(copies[i]);
                 } catch (IOException e) {
-                    if (logger.isDebugEnabled()) {
+                    if (logger.isInfoEnabled()) {
                         logger.info("connection lost");
                     }
                     connection.close();
@@ -96,7 +95,7 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
             }
         }
         if (logger.isDebugEnabled()) {
-            logger.info("done send");
+            logger.debug("done send");
         }
         return false;
     }

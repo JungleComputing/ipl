@@ -2,7 +2,6 @@
 
 package ibis.impl.nio;
 
-import ibis.connect.routedMessages.HubLink;
 import ibis.io.DataOutputStream;
 
 import java.io.IOException;
@@ -18,7 +17,7 @@ import org.apache.log4j.Logger;
  */
 public final class ChannelAccumulator extends DataOutputStream {
 
-    static Logger logger = Logger.getLogger(HubLink.class.getName());
+    private static Logger logger = Logger.getLogger(ChannelAccumulator.class);
 
     public static final int SIZEOF_BYTE = 1;
 

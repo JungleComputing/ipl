@@ -15,8 +15,8 @@ import org.apache.log4j.Logger;
 
 final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
-    static Logger logger = Logger
-            .getLogger(NonBlockingChannelNioAccumulator.class.getName());
+    private static Logger logger = Logger
+            .getLogger(NonBlockingChannelNioAccumulator.class);
 
     private final NioSendPort port;
 
@@ -52,22 +52,21 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
         SendBuffer copy;
 
         if (logger.isDebugEnabled()) {
-            logger.info("doSend()");
+            logger.debug("doSend()");
         }
 
         if (nrOfConnections == 0) {
-            if (logger.isDebugEnabled()) {
-                logger.error("!not connected");
-            }
+            logger.error("not connected");
             return true;
         } else if (nrOfConnections == 1) {
             if (logger.isDebugEnabled()) {
-                logger.info("sending to 1 connection");
+                logger.debug("sending to 1 connection");
             }
             try {
                 if (!connections[0].addToSendList(buffer)) {
                     if (logger.isDebugEnabled()) {
-                        logger.info("add failed, making room and trying again");
+                        logger
+                                .debug("add failed, making room and trying again");
                     }
                     doFlush();
                     connections[0].addToSendList(buffer);
@@ -84,7 +83,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
             }
         } else {
             if (logger.isDebugEnabled()) {
-                logger.info("sending to " + nrOfConnections + " connections");
+                logger.debug("sending to " + nrOfConnections + " connections");
             }
 
             SendBuffer[] copies = SendBuffer.replicate(buffer, nrOfConnections);
@@ -127,9 +126,9 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
         if (logger.isDebugEnabled()) {
             if (connection == null) {
-                logger.info("doing a complete flush");
+                logger.debug("doing a complete flush");
             } else {
-                logger.info("doing a flush of a single connection");
+                logger.debug("doing a flush of a single connection");
             }
         }
 
@@ -170,13 +169,13 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
         if (done || (nrOfSendingConnections == 0)) {
             if (logger.isDebugEnabled()) {
-                logger.info("flush done");
+                logger.debug("flush done");
             }
             return;
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("did one send for each connection" + ", "
+            logger.debug("did one send for each connection" + ", "
                     + nrOfSendingConnections + " connections with data"
                     + " left");
         }
@@ -190,7 +189,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
                 // IGNORE
             }
             if (logger.isDebugEnabled()) {
-                logger.info("selected " + selector.selectedKeys().size()
+                logger.debug("selected " + selector.selectedKeys().size()
                         + " channels");
             }
 
@@ -211,7 +210,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
                                 || nrOfSendingConnections == 0) {
                             done = true;
                             if (logger.isDebugEnabled()) {
-                                logger.info("done flushing a connection, "
+                                logger.debug("done flushing a connection, "
                                         + nrOfSendingConnections + " left");
                             }
                         }
@@ -241,7 +240,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("flush done");
+            logger.debug("flush done");
         }
     }
 }

@@ -11,8 +11,8 @@ import org.apache.log4j.Logger;
 class NioAccumulatorConnection implements Config {
     static final int MAX_SEND_BUFFERS = 32;
 
-    static Logger logger = Logger.getLogger(NioAccumulatorConnection.class
-            .getName());
+    private static Logger logger = Logger
+            .getLogger(NioAccumulatorConnection.class);
 
     GatheringByteChannel channel;
 
@@ -56,7 +56,7 @@ class NioAccumulatorConnection implements Config {
         pendingBuffers[bufferLimit] = buffer;
 
         if (logger.isDebugEnabled()) {
-            logger.info("adding new buffer to send list" + " at position "
+            logger.debug("adding new buffer to send list" + " at position "
                     + bufferLimit);
         }
         bufferLimit = (bufferLimit + 1) % MAX_SEND_BUFFERS;
@@ -75,18 +75,18 @@ class NioAccumulatorConnection implements Config {
         long count;
 
         if (logger.isDebugEnabled()) {
-            logger.info("sending");
+            logger.debug("sending");
         }
         while (!empty()) {
             count = channel.write(pendingBuffers[bufferPosition].byteBuffers);
 
             if (logger.isDebugEnabled()) {
-                logger.info("send " + count + " bytes");
+                logger.debug("send " + count + " bytes");
             }
 
             if (pendingBuffers[bufferPosition].hasRemaining()) {
                 if (logger.isDebugEnabled()) {
-                    logger.info("buffer has some bytes" + " remaining");
+                    logger.debug("buffer has some bytes" + " remaining");
                 }
                 return false;
             } else {
@@ -94,13 +94,13 @@ class NioAccumulatorConnection implements Config {
 
                 bufferPosition = (bufferPosition + 1) % MAX_SEND_BUFFERS;
                 if (logger.isDebugEnabled()) {
-                    logger.info("completely send buffer,"
+                    logger.debug("completely send buffer,"
                             + " trying next one too");
                 }
             }
         }
         if (logger.isDebugEnabled()) {
-            logger.info("done sending");
+            logger.debug("done sending");
         }
         return true;
     }

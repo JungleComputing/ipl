@@ -67,7 +67,7 @@ final class SendBuffer implements Config {
 
     static int cacheSize = 0;
 
-    static Logger logger = Logger.getLogger(SendBuffer.class.getName());
+    private static Logger logger = Logger.getLogger(SendBuffer.class);
 
     /**
      * Static method to get a sendbuffer out of the cache
@@ -75,14 +75,14 @@ final class SendBuffer implements Config {
     synchronized static SendBuffer get() {
         if (cacheSize > 0) {
             if (logger.isDebugEnabled()) {
-                logger.info("SendBuffer: got empty buffer from cache");
+                logger.debug("SendBuffer: got empty buffer from cache");
             }
             cacheSize--;
             cache[cacheSize].clear();
             return cache[cacheSize];
         } else {
             if (logger.isDebugEnabled()) {
-                logger.info("SendBuffer: got new empty buffer");
+                logger.debug("SendBuffer: got new empty buffer");
             }
             return new SendBuffer();
         }
@@ -98,7 +98,7 @@ final class SendBuffer implements Config {
             }
             if (cacheSize >= BUFFER_CACHE_SIZE) {
                 if (logger.isDebugEnabled()) {
-                    logger.info("SendBuffer: cache full"
+                    logger.debug("SendBuffer: cache full"
                             + " apon recycling buffer, throwing away");
                 }
                 return;
@@ -106,17 +106,17 @@ final class SendBuffer implements Config {
             cache[cacheSize] = buffer;
             cacheSize++;
             if (logger.isDebugEnabled()) {
-                logger.info("SendBuffer: recycled buffer");
+                logger.debug("SendBuffer: recycled buffer");
             }
         } else {
             if (logger.isDebugEnabled()) {
-                logger.info("SendBuffer: recycling child buffer");
+                logger.debug("SendBuffer: recycling child buffer");
             }
             buffer.parent.copies--;
             if (buffer.parent.copies == 0) {
                 if (cacheSize >= BUFFER_CACHE_SIZE) {
                     if (logger.isDebugEnabled()) {
-                        logger.info("SendBuffer: cache full"
+                        logger.debug("SendBuffer: cache full"
                                 + " apon recycling parent of child buffer,"
                                 + " throwing away");
                     }
@@ -125,7 +125,7 @@ final class SendBuffer implements Config {
                 cache[cacheSize] = buffer.parent;
                 cacheSize++;
                 if (logger.isDebugEnabled()) {
-                    logger.info("SendBuffer: recycled parent buffer");
+                    logger.debug("SendBuffer: recycled parent buffer");
                 }
             }
         }
@@ -303,7 +303,7 @@ final class SendBuffer implements Config {
         byteBuffers[HEADER].put(1, (byte) paddingLength);
 
         if (logger.isDebugEnabled()) {
-            logger.info("flipping buffer, sending: l[" + longs.position()
+            logger.debug("flipping buffer, sending: l[" + longs.position()
                     + "] d[" + doubles.position() + "] i[" + ints.position()
                     + "] f[" + floats.position() + "] s[" + shorts.position()
                     + "] c[" + chars.position() + "] b[" + bytes.position()

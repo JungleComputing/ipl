@@ -21,7 +21,7 @@ final class SendReceiveThread implements Runnable, Config {
 
     static final int INITIAL_ARRAY_SIZE = 8;
 
-    static Logger logger = Logger.getLogger(SendReceiveThread.class.getName());
+    private static Logger logger = Logger.getLogger(SendReceiveThread.class);
 
     private ArrayList pendingChannels = new ArrayList();
 
@@ -84,7 +84,7 @@ final class SendReceiveThread implements Runnable, Config {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.info("registering " + pendingChannels.size() + " channels");
+            logger.debug("registering " + pendingChannels.size() + " channels");
         }
 
         for (int i = 0; i < pendingChannels.size(); i++) {
@@ -108,7 +108,7 @@ final class SendReceiveThread implements Runnable, Config {
      */
     synchronized void enableWriting(SelectionKey key) {
         if (logger.isDebugEnabled()) {
-            logger.info("queueing write enable");
+            logger.debug("queueing write enable");
         }
 
         if (nrOfReadyWriteKeys == readyWriteKeys.length) {
@@ -130,7 +130,7 @@ final class SendReceiveThread implements Runnable, Config {
      */
     synchronized void enableReading(SelectionKey key) {
         if (logger.isDebugEnabled()) {
-            logger.info("queueing read enable");
+            logger.debug("queueing read enable");
         }
 
         if (nrOfReadyReadKeys == readyReadKeys.length) {
@@ -151,7 +151,7 @@ final class SendReceiveThread implements Runnable, Config {
         if (logger.isDebugEnabled()) {
             if (nrOfReadyWriteKeys != 0 || nrOfReadyReadKeys != 0) {
                 logger
-                        .info("enabling " + nrOfReadyWriteKeys
+                        .debug("enabling " + nrOfReadyWriteKeys
                                 + " write keys and " + nrOfReadyReadKeys
                                 + " read keys");
             }
@@ -218,13 +218,13 @@ final class SendReceiveThread implements Runnable, Config {
 
         while (true) {
             if (logger.isDebugEnabled()) {
-                logger.info("looking for work");
+                logger.debug("looking for work");
             }
 
             synchronized (this) {
                 if (exit) {
                     if (logger.isDebugEnabled()) {
-                        logger.info("done looking for work");
+                        logger.debug("done looking for work");
                     }
                     return;
                 }
@@ -233,7 +233,7 @@ final class SendReceiveThread implements Runnable, Config {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.info("doing a select on " + selector.keys().size()
+                logger.debug("doing a select on " + selector.keys().size()
                         + " channels");
             }
 
@@ -248,7 +248,7 @@ final class SendReceiveThread implements Runnable, Config {
             }
 
             if (logger.isDebugEnabled()) {
-                logger.info("selected " + selector.selectedKeys().size()
+                logger.debug("selected " + selector.selectedKeys().size()
                         + " channel(s)");
             }
 
@@ -276,7 +276,7 @@ final class SendReceiveThread implements Runnable, Config {
             selector.selectedKeys().clear();
 
             if (logger.isDebugEnabled()) {
-                logger.info("done");
+                logger.debug("done");
             }
 
         }
