@@ -222,6 +222,7 @@ public class ControlHub extends Thread
     }
 
     public static int checkPort(String hostname, int hostport, int portno) {
+	hostname = hostname.toLowerCase();
 	synchronized(portNodeMap) {
 	    Object o = portNodeMap.get(hostname);
 	    Hashtable h;
@@ -243,6 +244,7 @@ public class ControlHub extends Thread
     }
 
     public static ArrayList getPorts(String hostname, int hostport) {
+	hostname = hostname.toLowerCase();
 	synchronized(portNodeMap) {
 	    Object o = portNodeMap.get(hostname);
 	    Hashtable h;
@@ -267,6 +269,7 @@ public class ControlHub extends Thread
     }
 
     public static void removePort(String hostname, int hostport, int portno) {
+	hostname = hostname.toLowerCase();
 	synchronized(portNodeMap) {
 	    Object o = portNodeMap.get(hostname);
 	    Hashtable h;
@@ -279,6 +282,7 @@ public class ControlHub extends Thread
     }
 
     public static void removePort(String hostname, int hostport, ArrayList ports) {
+	hostname = hostname.toLowerCase();
 	synchronized(portNodeMap) {
 	    Object o = portNodeMap.get(hostname);
 	    Hashtable h;
@@ -293,6 +297,7 @@ public class ControlHub extends Thread
     }
 
     public static void removeHostPort(String hostname, int hostport) {
+	hostname = hostname.toLowerCase();
 	synchronized(portNodeMap) {
 	    Object o = portNodeMap.get(hostname);
 	    Hashtable h;
@@ -312,6 +317,7 @@ public class ControlHub extends Thread
     }
 
     public static boolean hasPort(String hostname, int hostport, int portno) {
+	hostname = hostname.toLowerCase();
 	synchronized(portNodeMap) {
 	    Object o = portNodeMap.get(hostname);
 	    Hashtable h;
@@ -322,6 +328,7 @@ public class ControlHub extends Thread
     }
 
     public static int resolvePort(String hostname, int portno) {
+	hostname = hostname.toLowerCase();
 	synchronized(portNodeMap) {
 	    Object o = portNodeMap.get(hostname);
 	    Hashtable h;
