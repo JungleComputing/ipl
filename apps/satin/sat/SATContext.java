@@ -296,6 +296,7 @@ public class SATContext implements java.io.Serializable {
 
                 if( a>=0 ){
                     res = Clause.resolve( res, p.clauses[a], v );
+                    return res;
                 }
             }
         }
@@ -308,6 +309,7 @@ public class SATContext implements java.io.Serializable {
 
                 if( a>=0 ){
                     res = Clause.resolve( res, p.clauses[a], v );
+                    return res;
                 }
             }
         }
