@@ -306,25 +306,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		try {
 			Registry r = ibis.registry();
-
-			if(ibisSerialization) {
-				s.add("Serialization", "ibis");
-				System.err.println("satin: using Ibis serialization");
-			}
-
-			portType = ibis.createPortType("satin porttype", s);
-
-			messageHandler = new MessageHandler(this);
-
-			if(upcalls) {
-				receivePort = portType.createReceivePort("satin port on " + 
-									 ident.name(), messageHandler);
-			} else {
-				System.err.println("using blocking receive");
-				receivePort = portType.createReceivePort("satin port on " + 
-									 ident.name());
-			}
-
 			masterIdent = (IbisIdentifier) r.elect("satin master", ident);
 
 			if(masterIdent.equals(ident)) {
@@ -339,6 +320,26 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					out.println("SATIN '" + hostName +
 						    "': init ibis I am slave" );
 				}
+			}
+
+			if(ibisSerialization) {
+				s.add("Serialization", "ibis");
+				if(master) {
+					System.err.println("SATIN: using Ibis serialization");
+				}
+			}
+
+			portType = ibis.createPortType("satin porttype", s);
+
+			messageHandler = new MessageHandler(this);
+
+			if(upcalls) {
+				receivePort = portType.createReceivePort("satin port on " + 
+									 ident.name(), messageHandler);
+			} else {
+				System.err.println("using blocking receive");
+				receivePort = portType.createReceivePort("satin port on " + 
+									 ident.name());
 			}
 
 			if(master) {
@@ -932,11 +933,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		// Replaced this wait call, do something useful instead:
 		// handleExceptions and aborts.
 		if(upcalls) {
-			if(ABORTS && HANDLE_ABORTS_IN_LATENCY) {
+			if(ABORTS && HANDLE_MESSAGES_IN_LATENCY) {
 				while(true) {
-					if(ABORTS && gotAborts) handleAborts();
-					if(ABORTS && gotExceptions) handleExceptions();
-					if(gotActiveTuples) handleActiveTuples();
+					handleDelayedMessages();
 
 					synchronized(this) {
 						if(gotStealReply) {
@@ -1225,6 +1224,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		return true;
 	}
 
+	private void handleDelayedMessages() {
+		if (ABORTS) { 
+			if(gotAborts) handleAborts();
+			if(gotExceptions) handleExceptions();
+		}
+		if(receivedResults) handleResults();
+		if(gotActiveTuples) handleActiveTuples();
+	}
+
 	// This does not need to be synchronized, only one thread spawns.
 	static public SpawnCounter newSpawnCounter() {
 		if(spawnCounterCache == null) {
@@ -1426,12 +1434,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		int oldParentStamp;
 		IbisIdentifier oldParentOwner;
 
-		if(gotActiveTuples) handleActiveTuples();
+		handleDelayedMessages();
 
 		if(ABORTS) {
-			if(gotAborts) handleAborts();
-			if(gotExceptions) handleExceptions();
-
 			oldParent = parent;
 			oldParentStamp = parentStamp;
 			oldParentOwner = parentOwner;
@@ -1715,9 +1720,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				    ", stamp = " + r.stamp + ", parentStamp = " + r.parentStamp +
 				    ", owner = " + r.owner + ", parentOwner = " + r.parentOwner);
 		}
-
-//		if(ABORTS && gotAborts) handleAborts();
-//		if(ABORTS && gotExceptions) handleExceptions();
 	}
 
 
@@ -1840,11 +1842,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 
 		if(s.value == 0) { // sync is poll
-			if (ABORTS) { 
-				if(gotAborts) handleAborts();
-				if(gotExceptions) handleExceptions();
-			}
-			if(gotActiveTuples) handleActiveTuples();
+			handleDelayedMessages();
 		}
 
 		while(s.value > 0) {
@@ -1857,11 +1855,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 			if(POLL_FREQ > 0 && !upcalls) satinPoll();
 
-			if(receivedResults) handleResults();
-			if(gotActiveTuples) handleActiveTuples();
-
-			if(ABORTS && gotAborts) handleAborts();
-			if(ABORTS && gotExceptions) handleExceptions();
+			handleDelayedMessages();
 
 			r = q.getFromHead(); // Try the local queue
 			if(r != null) {
@@ -2137,7 +2131,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 	}
 
-        /* ------------------- pause/resume space stuff ---------------------- */
+        /* ------------------- pause/resume stuff ---------------------- */
 
 	/** Pause Satin operation. 
 	    This method can optionally be called before a large sequential part in a program.

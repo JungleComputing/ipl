@@ -81,6 +81,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 	/* Just make this method synchronized, than all the methods we call
 	   don't have to be. */
 	// Furthermore, this makes sure that nobody changes tables while I am busy.
+	// But, it is scary, then we are sending a reply while holding a lock... --Rob
 	void handleStealRequest(SendPortIdentifier ident, int opcode) {
 		SendPort s = null;
 
@@ -231,6 +232,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 						  ident.ibis().name() + ": FAILED");
 			} 
 		}
+
 		if(COMM_DEBUG) {
 			ident = m.origin();
 			if(opcode == BARRIER_REPLY) {

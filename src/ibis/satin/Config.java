@@ -30,8 +30,8 @@ public interface Config {
 	/* Enable or disable aborts and inlets. */
 	static final boolean ABORTS = true;
 
-	/* Enable or disable an optimization for aborts. */
-	static final boolean HANDLE_ABORTS_IN_LATENCY = false;
+	/* Enable or disable an optimization for handling delayed messages. */
+	static final boolean HANDLE_MESSAGES_IN_LATENCY = true;
 
 	/* Support the combination of upcalls and polling */
 	static final boolean SUPPORT_UPCALL_POLLING = false;
