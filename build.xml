@@ -91,7 +91,7 @@
     -->
     <target name="bcel" depends="init">
 	<javac  destdir="${build}"
-		srcdir="${ibis}/bcel-additions">
+		srcdir="${ibis}/src/bcel-additions">
 	    <include name="**/*.java"/>
 	    <classpath refid="default.classpath"/>
 	</javac>
@@ -393,7 +393,6 @@
 		level="verbose"/>
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
-		listfiles="true"
 		srcdir="${src}">
 	    <patternset refid="build.sources"/>
 
