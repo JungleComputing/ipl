@@ -26,25 +26,6 @@ import java.util.Hashtable;
 public class RelOutput extends NetOutput {
 
 	/**
-	 * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
-	 * local number.
-	 */
-	private Integer                  rpn 	   = null;
-
-	/**
-	 * The communication input stream.
-	 *
-	 * Note: this stream is not really needed but may be used for debugging
-	 *       purpose.
-	 */
-	private InputStream  	         relIs	   = null;
-
-	/**
-	 * The communication output stream.
-	 */
-	private OutputStream 	         relOs	   = null;
-
-	/**
 	 * The driver used for the 'real' output.
 	 */
 	private NetDriver                subDriver = null;
@@ -84,18 +65,18 @@ public class RelOutput extends NetOutput {
 				    ObjectInputStream 	     is,
 				    ObjectOutputStream	     os)
 		throws IbisIOException {
-		if (this.subOutput != null)
-			__.abort__("already connected");
+		NetOutput subOutput = this.subOutput;
+		
+		if (subOutput == null) {
+			if (subDriver == null) {
+				subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			}
 
-		this.rpn = rpn;
-
-		if (subDriver == null) {
-			subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			subOutput = subDriver.newOutput(staticProperties, this);
+			this.subOutput = subOutput;
 		}
 
-		NetOutput subOutput = subDriver.newOutput(staticProperties, this);
 		subOutput.setupConnection(rpn, is, os);
-		this.subOutput = subOutput;
 
 		int _mtu = subOutput.getMaximumTransfertUnit();
 
@@ -142,9 +123,6 @@ public class RelOutput extends NetOutput {
 			subOutput = null;
 		}
 		
-		rpn       = null;
-		relIs     = null;
-		relOs     = null;
 		subDriver = null;
 
 		super.free();

@@ -34,33 +34,14 @@ import java.util.Hashtable;
 public class IdInput extends NetInput {
 
 	/**
-	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
-	 * local number.
-	 */
-	private Integer               rpn  	= null;
-
-	/**
-	 * The communication input stream.
-	 */
-	private InputStream  	      idIs	= null;
-
-	/**
-	 * The communication output stream.
-	 *
-	 * <BR><B>Note</B>: this stream is not really needed but may be used 
-	 * for debugging purpose.
-	 */
-	private OutputStream 	      idOs	= null;
-
-	/**
 	 * The driver used for the 'real' input.
 	 */
-	private NetDriver             subDriver = null;
+	private NetDriver subDriver = null;
 
 	/**
 	 * The 'real' input.
 	 */
-	private NetInput              subInput  = null;
+	private NetInput  subInput  = null;
 
 	/**
 	 * Constructor.
@@ -71,8 +52,8 @@ public class IdInput extends NetInput {
 	 * @param input the controlling input.
 	 */
 	IdInput(StaticProperties sp,
-		 NetDriver        driver,
-		 NetInput         input)
+		NetDriver        driver,
+		NetInput         input)
 		throws IbisIOException {
 		super(sp, driver, input);
 	}
@@ -88,18 +69,17 @@ public class IdInput extends NetInput {
 				    ObjectInputStream 	   is,
 				    ObjectOutputStream	   os)
 		throws IbisIOException {
-		if (this.subInput != null)
-			__.abort__("already connected");
+		NetInput subInput = this.subInput;
+		if (subInput == null) {
+			if (subDriver == null) {
+				subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			}
 
-		this.rpn = rpn;
-
-		if (subDriver == null) {
-			subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			subInput = subDriver.newInput(staticProperties, this);
+			this.subInput = subInput;
 		}
-
-		NetInput subInput = subDriver.newInput(staticProperties, this);
+		
 		subInput.setupConnection(rpn, is, os);
-		this.subInput = subInput;
 		 
 		int _mtu = subInput.getMaximumTransfertUnit();
 
@@ -166,9 +146,7 @@ public class IdInput extends NetInput {
 			subInput.free();
 			subInput = null;
 		}
-		rpn       = null;
-		idIs      = null;
-		idOs      = null;
+
 		subDriver = null;
 		
 		super.free();

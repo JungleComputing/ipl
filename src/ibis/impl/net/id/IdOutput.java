@@ -26,33 +26,14 @@ import java.util.Hashtable;
 public class IdOutput extends NetOutput {
 
 	/**
-	 * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
-	 * local number.
-	 */
-	private Integer                  rpn 	   = null;
-
-	/**
-	 * The communication input stream.
-	 *
-	 * Note: this stream is not really needed but may be used for debugging
-	 *       purpose.
-	 */
-	private InputStream  	         idIs	   = null;
-
-	/**
-	 * The communication output stream.
-	 */
-	private OutputStream 	         idOs	   = null;
-
-	/**
 	 * The driver used for the 'real' output.
 	 */
-	private NetDriver                subDriver = null;
+	private NetDriver subDriver = null;
 
 	/**
 	 * The 'real' output.
 	 */
-	private NetOutput                subOutput = null;
+	private NetOutput subOutput = null;
 
 	/**
 	 * Constructor.
@@ -63,8 +44,8 @@ public class IdOutput extends NetOutput {
 	 * @param output the controlling output.
 	 */
 	IdOutput(StaticProperties sp,
-		  NetDriver   	   driver,
-		  NetOutput   	   output)
+		 NetDriver   	  driver,
+		 NetOutput   	  output)
 		throws IbisIOException {
 		super(sp, driver, output);
 	}
@@ -80,18 +61,18 @@ public class IdOutput extends NetOutput {
 				    ObjectInputStream 	     is,
 				    ObjectOutputStream	     os)
 		throws IbisIOException {
-		if (this.subOutput != null)
-			__.abort__("already connected");
+		NetOutput subOutput = this.subOutput;
+		
+		if (subOutput == null) {
+			if (subDriver == null) {
+				subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			}
 
-		this.rpn = rpn;
-
-		if (subDriver == null) {
-			subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			subOutput = subDriver.newOutput(staticProperties, this);
+			this.subOutput = subOutput;
 		}
 
-		NetOutput subOutput = subDriver.newOutput(staticProperties, this);
 		subOutput.setupConnection(rpn, is, os);
-		this.subOutput = subOutput;
 
 		int _mtu = subOutput.getMaximumTransfertUnit();
 
@@ -138,9 +119,6 @@ public class IdOutput extends NetOutput {
 			subOutput = null;
 		}
 		
-		rpn       = null;
-		idIs      = null;
-		idOs      = null;
 		subDriver = null;
 
 		super.free();

@@ -34,25 +34,6 @@ import java.util.Hashtable;
 public class RelInput extends NetInput {
 
 	/**
-	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
-	 * local number.
-	 */
-	private Integer               rpn  	= null;
-
-	/**
-	 * The communication input stream.
-	 */
-	private InputStream  	      relIs	= null;
-
-	/**
-	 * The communication output stream.
-	 *
-	 * <BR><B>Note</B>: this stream is not really needed but may be used 
-	 * for debugging purpose.
-	 */
-	private OutputStream 	      relOs	= null;
-
-	/**
 	 * The driver used for the 'real' input.
 	 */
 	private NetDriver             subDriver = null;
@@ -91,18 +72,17 @@ public class RelInput extends NetInput {
 				    ObjectInputStream 	   is,
 				    ObjectOutputStream	   os)
 		throws IbisIOException {
-		if (this.subInput != null)
-			__.abort__("already connected");
+		NetInput subInput = this.subInput;
+		if (subInput == null) {
+			if (subDriver == null) {
+				subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			}
 
-		this.rpn = rpn;
-
-		if (subDriver == null) {
-			subDriver = driver.getIbis().getDriver(getProperty("Driver"));
+			subInput = subDriver.newInput(staticProperties, this);
+			this.subInput = subInput;
 		}
-
-		NetInput subInput = subDriver.newInput(staticProperties, this);
+		
 		subInput.setupConnection(rpn, is, os);
-		this.subInput = subInput;
 		 
 		int _mtu = subInput.getMaximumTransfertUnit();
 
@@ -170,9 +150,6 @@ public class RelInput extends NetInput {
 			subInput = null;
 		}
 
-		rpn       = null;
-		relIs     = null;
-		relOs     = null;
 		subDriver = null;
 		
 		super.free();
