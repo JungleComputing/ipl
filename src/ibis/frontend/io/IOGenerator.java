@@ -146,7 +146,7 @@ public class IOGenerator {
 	}
 
 
-	private Instruction createGeneratedDefaultReadObjectInvocation(String name) {
+	private Instruction createGeneratedDefaultReadObjectInvocation(String name, InstructionFactory factory) {
 	    return factory.createInvoke(name,
 					"generated_DefaultReadObject",
 					Type.VOID,
@@ -784,7 +784,7 @@ public class IOGenerator {
 		    il.append(new ALOAD(2));
 		    il.append(new ALOAD(1));
 		    il.append(new SIPUSH((short)dpth));
-		    il.append(createGeneratedDefaultReadObjectInvocation(classname));
+		    il.append(createGeneratedDefaultReadObjectInvocation(classname, factory));
 		}
 		il.append(new ALOAD(2));
 	    }
@@ -940,7 +940,7 @@ public class IOGenerator {
 		    read_il.append(new ALOAD(0));
 		    read_il.append(new ALOAD(1));
 		    read_il.append(new ILOAD(2));
-		    read_il.append(createGeneratedDefaultReadObjectInvocation(super_classname));
+		    read_il.append(createGeneratedDefaultReadObjectInvocation(super_classname, factory));
 		}
 		else {
 		    /*  Superclass is not rewritten.
