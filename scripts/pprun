@@ -1,0 +1,227 @@
+#!/bin/sh #emacs likes this :-)
+
+#Questions? Ask me! (maik@cs.vu.nl)
+
+#This script uses ssh to start prun at multiple das-sites (including das0fs)
+#I don't know if it works if you don't have a public ssh key at all sites
+#you want to run at.
+
+#options: -d : debug, don't delete temp files / trees
+#         -t <time as with prun> : max. runtime to give to prun
+
+#The first parameter is the port at which to run the nameserver
+#(to allow multiple simultanuous runs with pprun).
+
+#The following parameters are of the form <site> <count> where
+#    <site> is a file in the sites-dir with settings for a site
+#and <count> is the number of processors to allocate at that site
+
+#The <site> <count> pairs are terminated by a - , after which the java
+#class and its parameters follow
+
+GRUN_PATH=$IBIS_ROOT/ibis/globus
+SITES_PATH=$GRUN_PATH/sites
+
+USAGE="usage: $0 [-d] [-t <time>] <nameserver-port> [ <site> <count> ]+ -
+      <class name> <parameters>"
+
+DEBUG=off
+TIME_OPT=
+#read any options
+while true; do
+	case $1 in
+	-help | -h)
+		echo $USAGE
+		exit 1 ;;
+	-d | -debug)
+		DEBUG=on
+		shift ;;
+    -t | -time)
+		TIME_OPT="-t $2"
+		shift 2 ;;
+	-*)
+		echo invalid option: $1
+		echo $USAGE
+		exit 1 ;;
+	*)
+		break ;;
+	esac
+done
+
+NS_PORT=$1
+shift 1
+if [ -z "$NS_PORT" ]; then
+	echo $USAGE
+	exit 1
+fi
+
+#check if something already runs on the specified port
+if [ -n "$(netstat -an | grep $NS_PORT | grep LISTEN)" ]; then
+	echo $0: Port $NS_PORT is already in use!
+	exit 1
+fi
+NS_PARAMS="-Dname_server=fs0.das2.cs.vu.nl -Dname_server_port=$NS_PORT"
+NS_PARAMS="$NS_PARAMS -Dname_server_pool=pprun$$"
+
+
+#read the sites until we encounter a '-'
+declare -i TOTAL_COUNT=0
+declare -i COUNT
+SITES=
+
+while [ "$1" != "-" ]; do
+	if [ $2 -le 0 ]; then
+		echo Illegal count '('$2')' for site $1.
+		exit 1
+	fi
+
+	SITES="$SITES $1"
+	eval $1_COUNT=$2
+
+	case "$1" in
+	das0fs*)
+		eval $1_SSH_OPTS=-oProtocol=1	 #sshv2 to das0fs doesn't work
+		eval SSH_OPTS_VAR=$1_SSH_OPTS    #used below
+		eval $1_PRUN_OPTS=\"-no-panda $TIME_OPT -asocial\"
+
+		#JAVA_ROOT is overwritten at das0fs
+		if ssh ${!SSH_OPTS_VAR} das0fs test ! -d ~/java; then
+			echo Directory ~/java not found at das0fs!
+			exit 1
+		fi
+		eval $1_JAVA_ROOT=~/java
+		;;
+	fs0* | fs1* | fs2* | fs3* | fs4*)
+		eval $1_SSH_OPTS=
+		eval $1_PRUN_OPTS=\"-no-panda -1 $TIME_OPT\"
+		eval $1_JAVA_ROOT=$JAVA_ROOT
+		;;
+	*)
+		echo $0: warning: site $1 unkown!
+		;;
+	esac
+
+	TOTAL_COUNT=$TOTAL_COUNT+$2
+	shift 2
+done
+
+shift 1 #skip the '-'
+APP_CLASS_PARAMS=$*
+
+if [ -z $(pwd | egrep "^$IBIS_ROOT/ibis") ]; then
+	echo $0: You are not running an application in the ibis tree!
+	exit 1
+fi
+
+APP_DIR=$(pwd | cut -c$(echo $IBIS_ROOT/ | wc -c)-)
+
+#at this point all settings are read, the work can begin...
+
+#create $IBIS_ROOT/ibis.tgz
+(
+	cd $IBIS_ROOT
+	FILES=`find ibis -name *.class -or -name *properties`
+	#also include subdirs in $APP_DIR
+	FILES="$FILES $(find $APP_DIR -path "$APP_DIR/*/*")"
+
+	rm -f ibis$$.tgz
+	tar cfz ibis$$.tgz $FILES
+)
+
+$IBIS_ROOT/ibis/bin/ibis_nameserver -port $NS_PORT -single &
+NS_PID=$!
+
+PRUN_PIDS=
+for s in $SITES; do
+	#create (indirect) variables for use later on
+	COUNT_VAR=${s}_COUNT
+	SSH_OPTS_VAR=${s}_SSH_OPTS
+	PRUN_OPTS_VAR=${s}_PRUN_OPTS
+	JAVA_ROOT_VAR=${s}_JAVA_ROOT
+
+	echo copying ibis to $s...
+	ssh ${!SSH_OPTS_VAR} $s mkdir tmp$$
+	scp ${!SSH_OPTS_VAR} $IBIS_ROOT/ibis$$.tgz $s:tmp$$/ibis.tgz
+
+	#create a script to unpack the tree and run java from the right directory
+	echo '#!/bin/sh' > pprun_remote$$$s
+	echo '. .bashrc' >> pprun_remote$$$s
+
+	echo "cd ~/tmp$$" >> pprun_remote$$$s
+	echo "tar xfz ibis.tgz" >> pprun_remote$$$s
+
+	echo JAVA_ROOT=${!JAVA_ROOT_VAR} >> pprun_remote$$$s
+	echo -n JAVACLASSPATH= >> pprun_remote$$$s
+	echo -n '$HOME'/tmp$$/ibis/classlibs:'$HOME'/tmp$$:.: >> pprun_remote$$$s
+	echo -n ${!JAVA_ROOT_VAR}/jre/lib/rt.jar: >> pprun_remote$$$s
+	echo -n ${!JAVA_ROOT_VAR}/jre/lib/core.jar: >> pprun_remote$$$s
+	echo -n ${!JAVA_ROOT_VAR}/jre/lib/server.jar: >> pprun_remote$$$s
+	echo ${!JAVA_ROOT_VAR}/jre/lib/security.jar >> pprun_remote$$$s
+
+	echo "cd ~/tmp$$/$APP_DIR" >> pprun_remote$$$s
+	echo -n "prun ${!PRUN_OPTS_VAR} -o ~/tmp$$/pprun$$$s " >> pprun_remote$$$s
+	echo -n "-subst LD_ASSUME_KERNEL=2.2.5 " >> pprun_remote$$$s
+	echo -n '$HOME'"/tmp$$/run_java " >> pprun_remote$$$s
+	echo -n "${!COUNT_VAR} " >> pprun_remote$$$s
+	echo -n "-Dsun.boot.library.path=" >> pprun_remote$$$s
+	echo -n '$HOME'"/tmp$$/ibis/lib:" >> pprun_remote$$$s
+    echo -n "${!JAVA_ROOT_VAR}/jre/bin:" >> pprun_remote$$$s
+	echo -n "${!JAVA_ROOT_VAR}/jre/lib/i386 " >> pprun_remote$$$s
+	echo -n "-Dibis.property.file=" >> pprun_remote$$$s
+	echo -n '$HOME'"/tmp$$/ibis/properties " >> pprun_remote$$$s
+	echo -n "-Dpool_total_hosts=$TOTAL_COUNT " >> pprun_remote$$$s
+	echo -n "-Dcluster=$s " >> pprun_remote$$$s
+	echo -n "-Dname_server_pool=pprun$$ " >> pprun_remote$$$s
+	echo -n "-Dname_server_port=$NS_PORT " >> pprun_remote$$$s
+	echo -n "-Dname_server=`hostname -f` " >> pprun_remote$$$s
+	echo -n '-Dhosts="$HOSTS" -Xmx400M ' >> pprun_remote$$$s
+	echo -n -Xbootclasspath:'$JAVACLASSPATH ' >> pprun_remote$$$s
+	echo -n -classpath '$JAVACLASSPATH ' >> pprun_remote$$$s
+	echo "$APP_CLASS_PARAMS" >> pprun_remote$$$s
+	chmod a+x pprun_remote$$$s
+	
+	#create a script that just runs java
+
+	#this is useful because when java is run directly, prun makes a symlink
+	#to java (because of NFS synchronization) and ssh <node> killall java
+	#doesn't work, because the java process' name is the name of the symlink
+
+	#now prun runs a symlink to the script that runs java, so the
+	#java process' name is java again
+
+	echo "#!/bin/sh" > run_java$$$s
+	echo ${!JAVA_ROOT_VAR}/bin/java '"$@"' >> run_java$$$s
+	chmod a+x run_java$$$s
+
+	scp ${!SSH_OPTS_VAR} pprun_remote$$$s $s:tmp$$/pprun_remote
+	scp ${!SSH_OPTS_VAR} run_java$$$s $s:tmp$$/run_java
+	if [ "$DEBUG" = "off" ]; then rm pprun_remote$$$s run_java$$$s; fi
+	ssh ${!SSH_OPTS_VAR} $s tmp$$/pprun_remote &
+	PRUN_PIDS="$PRUN_PIDS $!"
+done
+
+#wait for the pruns to terminate
+for i in $PRUN_PIDS; do wait $i; done
+
+#copy output files
+echo gathering output...
+mkdir -p pprun_output
+for s in $SITES; do
+	#create indirect variables for use later on
+	SSH_OPTS_VAR=${s}_SSH_OPTS
+
+	scp ${!SSH_OPTS_VAR} $s:tmp$$/pprun$$$s.* pprun_output/
+done
+
+
+#remove temp files
+if [ "$DEBUG" = "off" ]; then
+	echo removing temporary ibis trees..
+	rm $IBIS_ROOT/ibis$$.tgz
+
+	#remove the temp ibis tree here
+	for s in $SITES; do
+		SSH_OPTS_VAR=${s}_SSH_OPTS
+		ssh ${!SSH_OPTS_VAR} $s rm -rf tmp$$ &
+	done
+fi
