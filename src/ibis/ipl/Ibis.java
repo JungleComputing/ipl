@@ -19,9 +19,7 @@ package ibis.ipl;
 import java.util.ArrayList;
 import java.util.Properties;
 import ibis.util.Input;
-import java.io.File;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.InetAddress;
 
 public abstract class Ibis { 

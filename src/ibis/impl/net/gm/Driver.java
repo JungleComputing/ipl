@@ -5,8 +5,6 @@ import ibis.impl.net.*;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 
-import ibis.ipl.Ibis;
-
 /**
  * The NetIbis GM driver with pipelined block transmission.
  */

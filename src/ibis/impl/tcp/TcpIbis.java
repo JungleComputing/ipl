@@ -2,34 +2,21 @@ package ibis.impl.tcp;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.PortType;
-import ibis.ipl.SendPort;
-import ibis.ipl.ReceivePort;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.Upcall;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.IbisException;
 import ibis.ipl.Registry;
 import ibis.ipl.IbisIdentifier;
-import ibis.util.IbisIdentifierTable;
 import ibis.ipl.ReadMessage;
 
 import ibis.impl.nameServer.NameServer;
 
-import java.net.Socket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import java.util.StringTokenizer;
 import java.util.Properties;
-import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
 import java.io.IOException;
-import java.io.EOFException;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 
 public final class TcpIbis extends Ibis implements Config {
 

@@ -2,8 +2,6 @@ package ibis.util;
 
 import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.*;
-
 import java.util.*;
 
 public class BT_Analyzer { 

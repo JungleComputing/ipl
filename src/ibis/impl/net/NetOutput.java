@@ -3,12 +3,8 @@ package ibis.impl.net;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-
-import java.util.Hashtable;
-import java.util.Iterator;
 
 
 /**

@@ -1,8 +1,6 @@
 package ibis.rmi.server;
 
 import ibis.rmi.RTS;
-import java.io.OutputStream;
-import java.io.PrintStream;
 
     // TODO: getClientHost
 

@@ -1,9 +1,6 @@
 package ibis.impl.net;
 
-import java.io.IOException;
-
 import ibis.ipl.InterruptedIOException;
-import ibis.ipl.Ibis;
 
 /**
  * Provide a special kind of mutex with a 2-level priority support.

@@ -1,15 +1,6 @@
 package ibis.impl.net;
 
-import ibis.ipl.StaticProperties;
-
-import java.io.ObjectInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import java.util.Hashtable;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 
 /**
  * Provide a generic abstraction of an network {@link NetInput Input} or network {@link NetOutput Output}.

@@ -1,7 +1,6 @@
 package ibis.util;
 
 import java.io.*;
-import java.util.*;
 
 /**
  * An Input object which enables input like in Pascal. 

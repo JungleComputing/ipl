@@ -3,8 +3,6 @@ package ibis.impl.net.muxer.udp;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.SocketException;
-
 /* Only for java >= 1.4
  * import java.net.SocketTimeoutException;
  */
@@ -20,9 +18,6 @@ import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetReceiveBuffer;
-import ibis.impl.net.NetConvert;
-import ibis.impl.net.NetBufferFactory;
-
 import ibis.impl.net.muxer.MuxerInput;
 import ibis.impl.net.muxer.MuxerQueue;
 

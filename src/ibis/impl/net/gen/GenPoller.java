@@ -2,12 +2,7 @@ package ibis.impl.net.gen;
 
 import ibis.impl.net.*;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import java.io.IOException;
-
-import java.util.Hashtable;
 
 /**
  * Provides a generic multiple network input poller.

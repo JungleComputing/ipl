@@ -1,7 +1,5 @@
 package ibis.ipl;
 
-import java.io.IOException;
-
 /**
  * Signals that an attempt to set up a connection timed out. A
  * <code>ConnectionTimedOutException</code> is thrown to indicate

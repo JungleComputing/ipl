@@ -6,8 +6,6 @@ import ibis.io.SerializationInputStream;
 
 import ibis.impl.net.*;
 
-import java.util.Hashtable;
-
 import java.io.IOException;
 
 

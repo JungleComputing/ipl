@@ -1,7 +1,5 @@
 package ibis.impl.net;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.IOException;
 
 import java.util.Collection;
@@ -10,7 +8,6 @@ import java.util.HashMap;
 
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.InterruptedIOException;
-import ibis.ipl.Ibis;
 
 /**
  * Provides a generic multiple network input poller.

@@ -2,8 +2,6 @@ package ibis.impl.net.rel;
 
 import ibis.impl.net.*;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.Ibis;
-
 import java.io.IOException;
 
 

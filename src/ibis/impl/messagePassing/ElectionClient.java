@@ -1,7 +1,5 @@
 package ibis.impl.messagePassing;
 
-import java.util.Enumeration;
-
 import java.io.IOException;
 
 import ibis.ipl.IbisException;

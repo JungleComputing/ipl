@@ -2,7 +2,6 @@ package ibis.util;
 
 import java.io.OutputStream;
 import java.io.IOException;
-import java.util.Vector;
 
 /** Contract: write to multiple outputstreams.
     when an exception occurs, store it and continue.

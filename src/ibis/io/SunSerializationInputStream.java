@@ -1,6 +1,5 @@
 package ibis.io;
 
-import java.io.ObjectInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 

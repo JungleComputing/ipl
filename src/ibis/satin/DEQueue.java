@@ -1,7 +1,5 @@
 package ibis.satin;
 
-import ibis.ipl.*;
-
 // No need to delete aborted invocation records, the spawner keeps an
 // outstandingJobs list.
 

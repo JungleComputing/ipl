@@ -5,7 +5,6 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 
-import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ConnectionRefusedException;
 

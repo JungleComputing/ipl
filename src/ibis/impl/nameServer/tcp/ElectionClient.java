@@ -1,21 +1,15 @@
 package ibis.impl.nameServer.tcp;
 
-import ibis.ipl.StaticProperties;
-
 import ibis.util.*;
 
 import java.net.Socket;
 import java.net.InetAddress;
 
 import java.io.IOException;
-import java.io.EOFException;
-
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-
-import java.util.Enumeration;
 
 class ElectionClient implements Protocol {
 

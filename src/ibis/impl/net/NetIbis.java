@@ -15,8 +15,6 @@ import ibis.impl.nameServer.NameServer;
 import java.io.IOException;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;

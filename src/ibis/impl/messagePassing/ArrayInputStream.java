@@ -2,8 +2,6 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
-import java.io.InputStream;
-
 /**
  *
  * Extends InputStream with read of array of primitives

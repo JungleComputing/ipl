@@ -1,7 +1,6 @@
 package ibis.repmi;
 
 import java.net.InetAddress;
-import java.util.Properties;
 import java.util.Vector;
 
 import java.io.IOException;

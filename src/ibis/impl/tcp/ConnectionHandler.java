@@ -6,11 +6,6 @@
 
 package ibis.impl.tcp;
 
-import ibis.ipl.ReceivePort;
-import ibis.ipl.ReadMessage;
-import ibis.ipl.DynamicProperties;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.Upcall;
 import ibis.ipl.IbisError;
 
 import ibis.io.*;
@@ -19,10 +14,9 @@ import ibis.util.*;
 
 import java.io.InputStream;
 import java.io.BufferedInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 
-final class Connectionhandler implements Runnable, TcpProtocol { //, Config {
+final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 	private static boolean DEBUG = false;
 
 	private TcpReceivePort port;
@@ -35,7 +29,7 @@ final class Connectionhandler implements Runnable, TcpProtocol { //, Config {
 	volatile boolean iMustDie = false;
 	TcpIbis ibis;
 
-	Connectionhandler(TcpIbis ibis, 
+	ConnectionHandler(TcpIbis ibis, 
 					     TcpSendPortIdentifier origin, 
 					     TcpReceivePort port, 
 					     InputStream input) throws IOException {

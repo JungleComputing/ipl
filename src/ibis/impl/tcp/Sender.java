@@ -1,7 +1,5 @@
 package ibis.impl.tcp;
 
-import ibis.ipl.WriteMessage;
-
 import java.io.OutputStream;
 import java.io.IOException;
 

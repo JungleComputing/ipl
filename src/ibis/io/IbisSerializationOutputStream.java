@@ -1,10 +1,9 @@
 package ibis.io;
 
-import java.io.ObjectOutputStream;
+import java.io.ObjectOutput;
 import java.io.ObjectStreamClass;
 import java.io.NotActiveException;
 import java.io.IOException;
-import java.io.ObjectOutput;
 import java.io.NotSerializableException;
 
 
@@ -260,7 +259,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      */
     public void statistics() {
 	System.err.println("IbisOutput:");
-	references.statistics();
+	IbisHash.statistics();
     }
 
     /* This is the data output / object output part */
@@ -1457,6 +1456,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    for (int i = 0; i < t.boolean_count; i++) o.writeBoolean(booleans[i]);
 	    for (int i = 0; i < t.reference_count; i++) o.writeObject(references[i]);
 	}
+
 
 	void writeFields() throws IOException {
 	    for (int i = 0; i < t.double_count; i++) writeDouble(doubles[i]);

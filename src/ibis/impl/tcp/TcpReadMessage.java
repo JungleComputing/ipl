@@ -4,21 +4,19 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.ReceivePort;
 
-import java.io.InputStream;
 import java.io.IOException;
 import ibis.io.SerializationInputStream;
-import java.io.DataInputStream;
 
 final class TcpReadMessage implements ReadMessage { 
 	private SerializationInputStream in;
 	private long sequenceNr = -1;
 	private TcpReceivePort port;
 	private TcpSendPortIdentifier origin;
-	private Connectionhandler handler;
+	private ConnectionHandler handler;
 	boolean isFinished = false;
 
 	TcpReadMessage(TcpReceivePort port, SerializationInputStream in, 
-				       TcpSendPortIdentifier origin, Connectionhandler handler) {
+				       TcpSendPortIdentifier origin, ConnectionHandler handler) {
 		this.port = port;
 		this.in = in;
 		this.origin = origin;
@@ -34,7 +32,7 @@ final class TcpReadMessage implements ReadMessage {
 		this.sequenceNr = o.sequenceNr;
 	}
 
-	Connectionhandler getHandler() {
+	ConnectionHandler getHandler() {
 		return handler;
 	}
 

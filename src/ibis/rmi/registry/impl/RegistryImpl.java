@@ -50,17 +50,17 @@ if(RTS.DEBUG)
 		    System.err.println("Hostname " + host + " is unknown?");
 		}
 	    }
-	    this.host = host;
+	    RegistryImpl.host = host;
 	} else {
-	    this.host = localhostName();
+	    RegistryImpl.host = localhostName();
 	}
 	if (port <= 0) {
-	    this.port = Registry.REGISTRY_PORT;
+	    RegistryImpl.port = Registry.REGISTRY_PORT;
 	} else {	    
-	    this.port = port;
+	    RegistryImpl.port = port;
 	}
 if(RTS.DEBUG)  {
-    System.out.println("RegistryImpl<init>: host = "  + this.host + " port = " + this.port);
+    System.out.println("RegistryImpl<init>: host = "  + RegistryImpl.host + " port = " + RegistryImpl.port);
 }
 	
     }

@@ -1,7 +1,5 @@
 package ibis.impl.messagePassing;
 
-import java.util.Enumeration;
-import java.util.Vector;
 import java.util.Hashtable;
 
 import java.io.IOException;

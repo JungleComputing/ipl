@@ -1,13 +1,7 @@
 package ibis.frontend.io;
 
-import java.io.BufferedReader;
-import java.io.StreamTokenizer;
-import java.io.FileReader;
-import java.io.IOException;
-
 import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.*;
 
 public class CheckNativeMethods {
 

@@ -1,7 +1,5 @@
 package ibis.impl.messagePassing;
 
-import java.io.OutputStream;
-
 import java.io.IOException;
 
 /**

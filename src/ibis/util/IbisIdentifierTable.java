@@ -1,6 +1,5 @@
 package ibis.util;
 
-import ibis.io.*;
 import java.util.HashMap;
 import ibis.ipl.*;
 

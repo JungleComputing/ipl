@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.SendPortConnectUpcall;
-import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.Replacer;
 
 public class PortType implements ibis.ipl.PortType {

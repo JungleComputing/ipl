@@ -1,13 +1,11 @@
 package ibis.impl.tcp;
 
 import ibis.ipl.SendPort;
-import ibis.ipl.WriteMessage;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.PortMismatchException;
-import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.IbisError;
 import ibis.ipl.Replacer;
@@ -15,11 +13,6 @@ import ibis.ipl.Replacer;
 import java.util.ArrayList;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.ObjectOutputStream;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.BufferedOutputStream;
 
 import ibis.io.SerializationOutputStream;

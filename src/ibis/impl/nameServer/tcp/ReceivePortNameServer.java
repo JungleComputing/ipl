@@ -8,8 +8,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import java.io.IOException;
-import java.io.EOFException;
-
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
@@ -17,7 +15,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 
 import java.util.Enumeration;
-import java.util.Vector;
 import java.util.Hashtable;
 import java.util.ArrayList;
 

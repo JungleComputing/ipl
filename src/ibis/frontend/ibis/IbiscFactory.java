@@ -1,9 +1,8 @@
 package ibis.frontend.ibis;
 
-import java.util.*;
-
 import org.apache.bcel.*;
-import org.apache.bcel.classfile.*;
+
+import java.util.*;
 
 final class IbiscFactory implements RepositoryObserver {
 

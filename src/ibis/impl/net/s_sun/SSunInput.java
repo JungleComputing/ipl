@@ -1,6 +1,5 @@
 package ibis.impl.net.s_sun;
 
-import ibis.io.ArrayInputStream;
 import ibis.io.SunSerializationInputStream;
 import ibis.io.SerializationInputStream;
 

@@ -6,7 +6,6 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ConnectionTimedOutException;
@@ -14,14 +13,9 @@ import ibis.ipl.InterruptedIOException;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
-
-import java.io.InputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-
 import java.util.Iterator;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -711,7 +705,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 } else {
                         if (useYield) {
                                 while (!_doPoll(useBlockingPoll)) {
-                                        Thread.currentThread().yield();
+                                        Thread.yield();
 // System.err.print("x");
                                         // n_yield++;
                                 }

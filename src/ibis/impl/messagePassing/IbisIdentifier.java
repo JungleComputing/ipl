@@ -2,10 +2,6 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 import java.io.StreamCorruptedException;
-import java.net.InetAddress;
-
-import ibis.io.IbisSerializationOutputStream;
-import ibis.io.IbisSerializationInputStream;
 import ibis.util.IbisIdentifierTable;
 
 // Make this final, make inlining possible

@@ -3,17 +3,13 @@ package ibis.frontend.gmi;
 import ibis.util.BT_Analyzer;
 
 import java.util.Vector;
-import java.util.StringTokenizer;
 
 import java.io.PrintWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import ibis.gmi.GroupInterface;
-
 import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.*;
 
 
 class Main { 

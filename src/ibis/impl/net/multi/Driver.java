@@ -7,9 +7,6 @@ import java.util.Hashtable;
 import java.io.IOException;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
-import ibis.ipl.Ibis;
 import ibis.ipl.IbisIOException;
 
 /**

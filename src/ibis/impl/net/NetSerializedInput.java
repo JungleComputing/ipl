@@ -6,8 +6,6 @@ import java.io.IOException;
 
 import ibis.io.SerializationInputStream;
 
-import ibis.impl.net.*;
-import ibis.ipl.Ibis;
 import ibis.ipl.InterruptedIOException;
 
 

@@ -6,8 +6,6 @@ import ibis.impl.net.*;
 
 import java.net.Socket;
 import java.net.InetAddress;
-import java.net.SocketException;
-
 import java.io.ObjectInputStream;
 import java.io.InputStream;
 import java.io.IOException;

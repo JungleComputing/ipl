@@ -1,7 +1,6 @@
 package ibis.impl.net.muxer;
 
 import ibis.impl.net.NetReceiveBuffer;
-import ibis.impl.net.NetAllocator;
 import ibis.impl.net.NetBufferFactory;
 
 import java.io.IOException;

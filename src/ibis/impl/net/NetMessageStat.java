@@ -1,6 +1,5 @@
 package ibis.impl.net;
 
-import java.util.Iterator;
 import java.util.TreeMap;
 
 public class NetMessageStat extends NetStat {

@@ -32,7 +32,7 @@ public class PandaIbis extends Ibis {
 
 	    System.err.println("Cluster gateway: run a stripped " + i.getClass().getName());
 
-	    i.myIbis = i;
+	    Ibis.myIbis = i;
 	    i.ibmp_init(arg);
 	    if (i.myCpu < i.nrCpus) {
 		throw new IbisException("Use Ibis.main() only for cluster gateways");

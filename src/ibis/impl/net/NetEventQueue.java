@@ -1,10 +1,7 @@
 package ibis.impl.net;
 
-import ibis.ipl.Ibis;
-
 import java.util.Vector;
 
-import java.io.IOException;
 import ibis.ipl.InterruptedIOException;
 
 /**

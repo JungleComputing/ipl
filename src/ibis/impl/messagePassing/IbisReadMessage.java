@@ -1,7 +1,6 @@
 package ibis.impl.messagePassing;
 
 import java.io.IOException;
-import java.io.StreamCorruptedException;
 
 final public class IbisReadMessage extends ReadMessage {
 

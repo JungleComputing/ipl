@@ -1,6 +1,5 @@
 package ibis.satin;
 
-import ibis.ipl.*;
 import java.util.*;
 
 final class Cluster {

@@ -2,18 +2,9 @@ package ibis.impl.tcp;
 
 import ibis.ipl.*;
 
-import java.net.Socket;
-
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.ObjectInputStream;
-import java.io.BufferedInputStream;
-
-import ibis.io.*;
 import ibis.util.*;
-import java.io.*;
 import java.util.ArrayList;
 
 // why was shouldLeave here?
@@ -28,7 +19,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private TcpReceivePortIdentifier ident;
 	private int sequenceNumber = 0;
 	private int connectCount = 0;
-	private Connectionhandler [] connections;
+	private ConnectionHandler [] connections;
 	private int connectionsIndex;
 	private volatile boolean stop = false;
 	private boolean allowUpcalls = false;
@@ -59,7 +50,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			this.name = name;
 		}
 
-		connections = new Connectionhandler[2];
+		connections = new ConnectionHandler[2];
 		connectionsIndex = 0;
 
 		int port = ibis.tcpPortHandler.register(this);
@@ -124,7 +115,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			 * a finish(), the TcpReadMessage is used for new
 			 * messages!
 			 */
-			Connectionhandler h = old.getHandler();
+			ConnectionHandler h = old.getHandler();
 			h.m = new TcpReadMessage(old);
 			ThreadPool.createNew(h);
 		}
@@ -305,7 +296,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	// called from the connectionHander.
-	void leave(Connectionhandler leaving, Exception e) {
+	void leave(ConnectionHandler leaving, Exception e) {
 		synchronized(this) {
 			boolean found = false;
 			if (DEBUG) {
@@ -345,8 +336,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	private synchronized Connectionhandler removeConnection(int index) {
-		Connectionhandler res = connections[index];
+	private synchronized ConnectionHandler removeConnection(int index) {
+		ConnectionHandler res = connections[index];
 		connections[index] = connections[connectionsIndex-1];
 		connections[connectionsIndex-1] = null;
 		connectionsIndex--;
@@ -392,12 +383,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	synchronized void connect(TcpSendPortIdentifier origin, InputStream in) {
 		try {
-			Connectionhandler con = 
-				new Connectionhandler(ibis, origin, this, in);
+			ConnectionHandler con = 
+				new ConnectionHandler(ibis, origin, this, in);
 
 			if (connections.length == connectionsIndex) { 
-				Connectionhandler [] temp = 
-					new Connectionhandler[2*connections.length];
+				ConnectionHandler [] temp = 
+					new ConnectionHandler[2*connections.length];
 				for (int i=0;i<connectionsIndex;i++) { 
 					temp[i] = connections[i];
 				}
@@ -429,7 +420,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 
 		while(connectionsIndex > 0) {
-			Connectionhandler conn = removeConnection(0);
+			ConnectionHandler conn = removeConnection(0);
 			conn.die();
 
 			if(connectionAdministration) {

@@ -1,7 +1,5 @@
 package ibis.rmi;
 
-import java.io.IOException;
-
 public class RemoteException extends ibis.ipl.IbisIOException
 {
 	public RemoteException() {

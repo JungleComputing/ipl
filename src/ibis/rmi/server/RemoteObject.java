@@ -3,10 +3,6 @@ package ibis.rmi.server;
 import ibis.rmi.Remote;
 
 import java.io.Serializable;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.IOException;
-import java.lang.ClassNotFoundException;
 
 
 public abstract class RemoteObject implements Remote, Serializable

@@ -1,6 +1,5 @@
 package ibis.impl.net;
 
-import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 

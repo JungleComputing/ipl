@@ -23,7 +23,6 @@ import ibis.ipl.WriteMessage;
 import ibis.ipl.Registry;
 import ibis.ipl.Upcall;
 import ibis.ipl.StaticProperties;
-import ibis.ipl.IbisException;
 
 /**
  * The {@link Group} class takes care of the startup, and has methods

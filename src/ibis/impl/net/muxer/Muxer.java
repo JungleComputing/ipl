@@ -2,8 +2,6 @@ package ibis.impl.net.muxer;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-
 import ibis.ipl.ConnectionRefusedException;
 
 import ibis.impl.net.NetBufferedOutput;

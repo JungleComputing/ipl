@@ -1225,7 +1225,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	LocalVariableInstruction curr = (LocalVariableInstruction)(i.getInstruction());
 	Type type = mtab.getLocalType(m, curr, i.getPosition());
 	String name = mtab.getLocalName(m, curr, i.getPosition());
-	String fieldName = mtab.generatedLocalName(type, name);
+	String fieldName = MethodTable.generatedLocalName(type, name);
 
 	i.setInstruction(new ALOAD(maxLocals));
 	i = i.getNext();
@@ -1248,7 +1248,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	LocalVariableInstruction curr = (LocalVariableInstruction)(i.getInstruction());
 	Type type = mtab.getLocalType(m, curr, i.getPosition());
 	String name = mtab.getLocalName(m, curr, i.getPosition());
-	String fieldName = mtab.generatedLocalName(type, name);
+	String fieldName = MethodTable.generatedLocalName(type, name);
 
 	i.setInstruction(new ALOAD(maxLocals));
 	i = i.getNext();
@@ -1501,13 +1501,13 @@ System.out.println("findMethod: could not find method " + name + sig);
 		    il.insert(i, new DUP());
 
 		    il.insert(i, ins_f.createFieldAccess(localClassName,
-							 mtab.generatedLocalName(fieldType, fieldName),
+							 MethodTable.generatedLocalName(fieldType, fieldName),
 							 fieldType,
 							 Constants.GETFIELD));
 		    il.insert(i, new BIPUSH((byte)val));
 		    il.insert(i, new IADD());
 		    i = il.insert(i, ins_f.createFieldAccess(localClassName,
-							 mtab.generatedLocalName(fieldType, fieldName),
+							 MethodTable.generatedLocalName(fieldType, fieldName),
 							 fieldType,
 							 Constants.PUTFIELD));
 		} else {
@@ -1723,9 +1723,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 		if (! clone.isStatic()) {
 		    // push this
-		    String thisName = mtab.getParamName(m, 0);
+		    String thisName = MethodTable.getParamName(m, 0);
 		    Type thisType = mtab.getParamType(m, 0);
-		    String thisFieldName = mtab.generatedLocalName(thisType, thisName);
+		    String thisFieldName = MethodTable.generatedLocalName(thisType, thisName);
 
 		    il.append(new ALOAD(0));
 		    il.append(ins_f.createFieldAccess(local_record_name,
@@ -1795,7 +1795,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	out.println("final class " + name + " extends ibis.satin.LocalRecord {");
 	out.println("    static " + name + " cache;");
 
-	String[] allLvs = mtab.getAllLocalDecls(m);
+	String[] allLvs = MethodTable.getAllLocalDecls(m);
 
 	for (int i=0; i<allLvs.length; i++) {
 		out.println("    " + allLvs[i]);
@@ -1810,9 +1810,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 	out.print("    " + name + "(");
 
 	for (int i=0; i<params.length; i++) {
-	    String paramName = mtab.getParamName(m, i);
+	    String paramName = MethodTable.getParamName(m, i);
 
-	    out.print(params[i] + " " + mtab.generatedLocalName(params[i], paramName));
+	    out.print(params[i] + " " + MethodTable.generatedLocalName(params[i], paramName));
 	    if (i != params.length-1) {
 		out.print(", ");
 	    }
@@ -1820,10 +1820,10 @@ System.out.println("findMethod: could not find method " + name + sig);
 	out.println(") {");
 
 	for (int i=0; i<params.length; i++) {
-		String paramName = mtab.getParamName(m, i);
+		String paramName = MethodTable.getParamName(m, i);
 
-		out.println("        this." + mtab.generatedLocalName(params[i], paramName) + 
-		        " = " + mtab.generatedLocalName(params[i], paramName) + ";");
+		out.println("        this." + MethodTable.generatedLocalName(params[i], paramName) + 
+		        " = " + MethodTable.generatedLocalName(params[i], paramName) + ";");
 	}
 
 	out.println("    }\n");
@@ -1832,9 +1832,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 	out.print("    static " + name + " getNew(");
 
 	for (int i=0; i<params.length; i++) {
-	    String paramName = mtab.getParamName(m, i);
+	    String paramName = MethodTable.getParamName(m, i);
 
-	    out.print(params[i] + " " + mtab.generatedLocalName(params[i], paramName));
+	    out.print(params[i] + " " + MethodTable.generatedLocalName(params[i], paramName));
 	    if (i != params.length-1) {
 		out.print(", ");
 	    }
@@ -1844,9 +1844,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 	out.println("        if (cache == null) {");
 	out.print("            return new " + name + "(");
 	for (int i=0; i<params.length; i++) {
-	    String paramName = mtab.getParamName(m, i);
+	    String paramName = MethodTable.getParamName(m, i);
 
-	    out.print( mtab.generatedLocalName(params[i], paramName));
+	    out.print( MethodTable.generatedLocalName(params[i], paramName));
 	    if (i != params.length-1) {
 		out.print(", ");
 	    }
@@ -1858,10 +1858,10 @@ System.out.println("findMethod: could not find method " + name + sig);
 	out.println("        cache = (" + name + ") cache.next;");
 
 	for (int i=0; i<params.length; i++) {
-		String paramName = mtab.getParamName(m, i);
+		String paramName = MethodTable.getParamName(m, i);
 
-		out.println("        result." + mtab.generatedLocalName(params[i], paramName) + 
-		        " = " + mtab.generatedLocalName(params[i], paramName) + ";");
+		out.println("        result." + MethodTable.generatedLocalName(params[i], paramName) + 
+		        " = " + MethodTable.generatedLocalName(params[i], paramName) + ";");
 	}
 
 	out.println("        result.next = null;");
@@ -1872,8 +1872,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	out.println("    static void delete(" + name + " curr) {");
 
 	// wipe fields for gc
-	Type[] ltypes = mtab.getAllLocalTypes(m);
-	String[] lnames = mtab.getAllLocalNames(m);
+	Type[] ltypes = MethodTable.getAllLocalTypes(m);
+	String[] lnames = MethodTable.getAllLocalNames(m);
 
 	for (int i=0; i<ltypes.length; i++) {
 		if (ltypes[i] instanceof ReferenceType) {

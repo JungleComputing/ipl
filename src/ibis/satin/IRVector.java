@@ -76,7 +76,7 @@ final class IRVector implements Config {
 		for(int i=0; i<count; i++) {
 			curr = l[i];
 			if((curr.parent != null && curr.parent.aborted) || 
-			   satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
 				curr.aborted = true;
 				if(ABORT_DEBUG) {
 					System.out.println("found stolen child: " + curr.stamp + ", it depends on " + targetStamp);

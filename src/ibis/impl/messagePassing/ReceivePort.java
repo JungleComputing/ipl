@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import java.util.Vector;
 
-import ibis.ipl.IbisException;
 import ibis.util.ConditionVariable;
 
 class ReceivePort

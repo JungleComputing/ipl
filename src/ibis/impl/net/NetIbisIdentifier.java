@@ -1,14 +1,11 @@
 package ibis.impl.net;
 
 import java.io.IOException;
-import java.io.EOFException;
-
 import java.net.InetAddress;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisError;
 
-import ibis.io.Serializable;
 import ibis.util.IbisIdentifierTable;
 
 public final class NetIbisIdentifier extends IbisIdentifier implements java.io.Serializable {

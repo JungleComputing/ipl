@@ -3,10 +3,8 @@ package ibis.impl.nameServer.tcp;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.ReceivePort;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
 
 import ibis.impl.nameServer.NameServer;
@@ -18,7 +16,6 @@ import java.net.Socket;
 import java.net.InetAddress;
 
 import java.io.IOException;
-import java.io.EOFException;
 import java.io.StreamCorruptedException;
 
 import java.io.ObjectInputStream;
@@ -27,8 +24,6 @@ import java.io.ObjectOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 
-import java.util.Vector;
-import java.util.Hashtable;
 import java.util.Properties;
 
 public class NameServerClient extends NameServer implements Runnable, Protocol {

@@ -4,7 +4,6 @@ import ibis.impl.net.*;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -65,7 +64,7 @@ public final class PipeOutput extends NetBufferedOutput {
 		/* Flush, otherwise it takes 1 second RFHH */
 		pipeOs.flush();
 		if (!upcallMode) {
-			Thread.currentThread().yield();
+			Thread.yield();
 		}
 			
 		if (! b.ownershipClaimed) {

@@ -18,7 +18,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
-import ibis.ipl.Ibis;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.InterruptedIOException;
 

@@ -5,9 +5,6 @@ import org.apache.bcel.classfile.*;
 
 import java.util.Vector;
 import java.io.IOException;
-import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
-import java.io.PrintStream;
 import java.io.File;
 
 class Ibisc {

@@ -2,9 +2,6 @@ package ibis.impl.net.gen;
 
 import ibis.impl.net.*;
 
-import java.util.Iterator;
-import java.util.HashMap;
-
 import java.io.IOException;
 
 /**

@@ -2,11 +2,7 @@ package ibis.impl.net.def;
 
 import ibis.impl.net.*;
 
-import java.io.ObjectInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import java.net.DatagramSocket;
 
 /**
  * The NetIbis DEF driver.

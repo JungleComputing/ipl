@@ -1,9 +1,5 @@
 package ibis.ipl;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-
 /**
  * Signals that a connection has been closed. A
  * <code>ConnectionClosedException</code> is thrown to indicate

@@ -1,7 +1,5 @@
 package ibis.ipl;
 
-import java.io.IOException;
-
 public class ReceiveTimedOutException extends IbisIOException {
 
     public ReceiveTimedOutException() {

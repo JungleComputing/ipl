@@ -1,11 +1,8 @@
 package ibis.impl.messagePassing;
 
-import java.util.Vector;
-
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.PortMismatchException;
 
 class ShadowSendPort extends SendPort {
@@ -181,7 +178,7 @@ class ShadowSendPort extends SendPort {
 	ShadowSendPort sp = Ibis.myIbis.lookupSendPort(sId.cpu, sId.port);
 	ReceivePort rp = Ibis.myIbis.lookupReceivePort(rId.port);
 
-	if (Ibis.myIbis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println(Thread.currentThread() + "Receive a disconnect call from SendPort " + sp + ", disconnect from RcvePort " + rp + " count " + count + " sp.messageCount " + sp.messageCount);
 	}
 	if (rp != sp.receivePort) {

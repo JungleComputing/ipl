@@ -1,6 +1,5 @@
 package ibis.impl.messagePassing;
 
-import java.io.ObjectInput;
 import java.io.IOException;
 
 final class SerializeReadMessage extends ReadMessage {

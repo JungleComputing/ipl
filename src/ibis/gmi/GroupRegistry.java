@@ -3,7 +3,6 @@ package ibis.gmi;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
 import java.util.Hashtable;
-import java.util.Vector;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 

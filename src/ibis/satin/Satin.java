@@ -2,14 +2,11 @@ package ibis.satin;
 
 import ibis.ipl.*;
 import ibis.ipl.Timer;
-import ibis.util.*;
 import java.util.Random;
 import java.util.Properties;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
-import java.util.Enumeration;
-
 import java.io.IOException;
 import java.io.Serializable;
 

@@ -1,6 +1,5 @@
 package ibis.impl.net;
 
-import ibis.ipl.StaticProperties;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ConnectionClosedException;
 

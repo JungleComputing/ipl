@@ -6,13 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.io.EOFException;
-
-import java.net.InetAddress;
-
 import java.util.Hashtable;
-import java.util.Iterator;
-
 import ibis.ipl.ConnectionClosedException;
 
 /**

@@ -2,13 +2,8 @@ package ibis.impl.net.gm;
 
 import ibis.impl.net.*;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import java.io.IOException;
 import java.io.InterruptedIOException;
-
-import java.util.Hashtable;
 
 /**
  * Provides a GM-specific multiple network input poller.
@@ -54,7 +49,7 @@ public final class GmPoller extends NetPoller {
 		Integer num = cnx.getNum();
 		setupConnection(cnx, num, ni);
 
-		gmDriver.gmAccessLock.ilock(true);
+		Driver.gmAccessLock.ilock(true);
 
 		int[] _lockIds = new int[lockIds.length + 1];
 		System.arraycopy(lockIds, 0, _lockIds, 0, lockIds.length - 1);
@@ -87,7 +82,7 @@ if (false) {
 
 		gmDriver.interruptPump();
 
-		gmDriver.gmAccessLock.unlock();
+		Driver.gmAccessLock.unlock();
 // System.err.println(this + ": " + cnx.getServiceLink() + ": established connection");
 
                 log.out();

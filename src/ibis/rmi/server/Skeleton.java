@@ -2,15 +2,9 @@ package ibis.rmi.server;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.Upcall;
-import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPort;
-import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPortIdentifier;
-
 import ibis.rmi.RTS;
-
-import java.util.Vector;
 
 import java.io.IOException;
 

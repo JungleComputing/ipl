@@ -1,16 +1,10 @@
 package ibis.impl.net.muxer.udp;
 
-import java.io.ObjectInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import java.net.DatagramSocket;
-
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetPortType;
-import ibis.impl.net.NetIO;
 import ibis.impl.net.NetOutput;
 
 /**

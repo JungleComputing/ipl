@@ -2,33 +2,22 @@ package ibis.impl.net.nio;
 
 import ibis.impl.net.*;
 
-import java.net.Socket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
-
 import java.io.ObjectInputStream;
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-
 import java.util.Hashtable;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
-import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.FloatBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.ByteOrder;
 import java.nio.BufferOverflowException;
-
-import ibis.io.IbisAccumulator;
-import ibis.io.IbisSerializationOutputStream;
 
 /**
  * The NIO TCP output implementation.
@@ -504,7 +493,7 @@ public final class NioOutput extends NetOutput {
 	    }			
 
 	    buffers[nextBufferToFill] = 
-		byteBuffer.wrap(destination, offset, size);
+		ByteBuffer.wrap(destination, offset, size);
 
 	    nextBufferToFill += 1;
 

@@ -1,7 +1,5 @@
 package ibis.impl.messagePassing;
 
-import java.io.BufferedOutputStream;
-import java.io.ObjectOutputStream;
 import java.io.IOException;
 
 final class SerializeWriteMessage extends WriteMessage {

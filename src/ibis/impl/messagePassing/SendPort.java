@@ -1,14 +1,11 @@
 package ibis.impl.messagePassing;
 
-import java.util.Vector;
-
 import java.io.IOException;
 
 import ibis.ipl.Replacer;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.ConnectionRefusedException;
-import ibis.ipl.IbisException;
 import ibis.util.ConditionVariable;
 
 public class SendPort implements ibis.ipl.SendPort, Protocol {

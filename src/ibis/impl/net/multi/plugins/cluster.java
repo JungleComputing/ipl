@@ -3,7 +3,6 @@ package ibis.impl.net.multi.plugins;
 import ibis.impl.net.*;
 import ibis.impl.net.multi.*;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

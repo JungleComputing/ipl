@@ -1,10 +1,7 @@
 package ibis.frontend.rmi;
 
-import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
-import org.apache.bcel.util.*;
-
 import java.util.Vector;
 import java.io.PrintWriter;
 import ibis.util.BT_Analyzer;

@@ -3,9 +3,7 @@ package ibis.impl.net.def;
 import ibis.impl.net.*;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.InputStream;
-import java.net.SocketException;
 
 public final class DefInput extends NetBufferedInput {
 

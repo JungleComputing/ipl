@@ -4,8 +4,6 @@ import ibis.io.SerializationOutputStream;
 
 import ibis.ipl.Replacer;
 
-import ibis.impl.net.*;
-
 import java.io.IOException;
 
 /**

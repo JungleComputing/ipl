@@ -1,7 +1,6 @@
 package ibis.frontend.io;
 
 import java.util.*;
-import java.util.jar.*;
 import java.io.*;
 import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
@@ -1258,7 +1257,7 @@ public class IOGenerator {
 	    write_il.append(write_gen.getInstructionList());
 
 	    write_gen.setInstructionList(write_il);
-	    write_gen.setMaxStack(write_gen.getMaxStack(constantpool, write_il, write_gen.getExceptionHandlers()));
+	    write_gen.setMaxStack(MethodGen.getMaxStack(constantpool, write_il, write_gen.getExceptionHandlers()));
 	    write_gen.setMaxLocals();
 
 	    gen.setMethodAt(write_gen.getMethod(), default_write_method_index);
@@ -1306,7 +1305,7 @@ public class IOGenerator {
 	    read_il.append(read_gen.getInstructionList());
 
 	    read_gen.setInstructionList(read_il);
-	    read_gen.setMaxStack(read_gen.getMaxStack(constantpool, read_il, read_gen.getExceptionHandlers()));
+	    read_gen.setMaxStack(MethodGen.getMaxStack(constantpool, read_il, read_gen.getExceptionHandlers()));
 	    read_gen.setMaxLocals();
 
 	    gen.setMethodAt(read_gen.getMethod(), default_read_method_index);
@@ -1482,7 +1481,7 @@ public class IOGenerator {
 		read_il.append(mgen.getInstructionList());
 		mgen.setInstructionList(read_il);
 
-		mgen.setMaxStack(mgen.getMaxStack(constantpool, read_il, mgen.getExceptionHandlers()));
+		mgen.setMaxStack(MethodGen.getMaxStack(constantpool, read_il, mgen.getExceptionHandlers()));
 		mgen.setMaxLocals();
 
 		gen.setMethodAt(mgen.getMethod(), index);
@@ -1492,7 +1491,7 @@ public class IOGenerator {
 	    write_il.append(write_gen.getInstructionList());
 	    write_gen.setInstructionList(write_il);
 
-	    write_gen.setMaxStack(write_gen.getMaxStack(constantpool, write_il, write_gen.getExceptionHandlers()));
+	    write_gen.setMaxStack(MethodGen.getMaxStack(constantpool, write_il, write_gen.getExceptionHandlers()));
 	    write_gen.setMaxLocals();
 
 	    gen.setMethodAt(write_gen.getMethod(), write_method_index);

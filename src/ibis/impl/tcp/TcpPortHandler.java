@@ -5,17 +5,14 @@ package ibis.impl.tcp;
 
 import java.net.Socket;
 import java.net.ServerSocket;
-import java.util.HashMap;
 import java.util.ArrayList;
 
-import java.io.PrintStream;
 import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import ibis.ipl.ConnectionRefusedException;

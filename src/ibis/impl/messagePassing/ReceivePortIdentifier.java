@@ -2,8 +2,6 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
-import ibis.ipl.IbisException;
-
 public final class ReceivePortIdentifier
 	implements ibis.ipl.ReceivePortIdentifier,
 		   java.io.Serializable {

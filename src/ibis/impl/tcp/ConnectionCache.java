@@ -7,10 +7,6 @@ import java.net.Socket;
 
 import java.util.ArrayList;
 import java.io.IOException;
-import ibis.ipl.IbisError;
-import java.io.OutputStream;
-import java.io.InputStream;
-import java.net.Socket;
 
 class ConnectionCache {
 

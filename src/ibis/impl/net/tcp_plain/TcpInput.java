@@ -7,19 +7,15 @@ import ibis.impl.net.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
-import java.net.SocketException;
 
 /* Only for java >= 1.4
 import java.net.SocketTimeoutException;
 */
-import java.io.InterruptedIOException;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.EOFException;
-
 import java.util.Hashtable;
 
 /**

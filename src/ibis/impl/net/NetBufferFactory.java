@@ -169,8 +169,6 @@ public class NetBufferFactory {
 
                 if (impl == null) {
                         impl = new NetBufferFactoryDefaultImpl();
-                } else {
-                        impl = impl;
                 }
 
                 String className = impl.getClass().getName();

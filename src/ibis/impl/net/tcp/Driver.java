@@ -2,11 +2,7 @@ package ibis.impl.net.tcp;
 
 import ibis.impl.net.*;
 
-import java.io.ObjectInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import java.net.DatagramSocket;
 
 /**
  * The NetIbis TCP driver.

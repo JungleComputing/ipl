@@ -1,6 +1,5 @@
 package ibis.satin;
 import ibis.ipl.IbisIdentifier;
-import java.io.IOException;
 
 public abstract class InvocationRecord implements java.io.Serializable, Config {
 	/* Of all fields, only the owner and the stamp must be sent over the network. Parents too .*/

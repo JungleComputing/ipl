@@ -1,7 +1,5 @@
 package ibis.ipl;
 
-import java.io.IOException;
-
 /**
  * Signals that a connection has been refused. A
  * <code>ConnectionRefusedException</code> is thrown to indicate

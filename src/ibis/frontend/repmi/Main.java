@@ -4,14 +4,12 @@ import java.io.PrintWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 import ibis.util.BT_Analyzer;
 
 import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
-import org.apache.bcel.generic.*;
 
 class Main { 
 

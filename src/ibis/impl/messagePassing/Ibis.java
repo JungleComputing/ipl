@@ -5,16 +5,11 @@ import java.util.Hashtable;
 
 import java.io.IOException;
 
-import ibis.io.IbisSerializationInputStream;
-import ibis.io.IbisSerializationOutputStream;
-
 import ibis.util.IbisIdentifierTable;
 import ibis.util.ConditionVariable;
 import ibis.util.Monitor;
 import ibis.ipl.IbisException;
-import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
-import ibis.util.IbisIdentifierTable;
 
 public class Ibis extends ibis.ipl.Ibis {
 

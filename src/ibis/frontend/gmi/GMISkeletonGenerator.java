@@ -4,7 +4,6 @@ import java.util.Vector;
 import java.io.PrintWriter;
 import ibis.util.BT_Analyzer;
 
-import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
 

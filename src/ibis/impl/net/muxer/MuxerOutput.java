@@ -4,7 +4,6 @@ import java.util.Hashtable;
 
 import java.io.IOException;
 
-import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;

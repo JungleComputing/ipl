@@ -3,9 +3,7 @@ package ibis.impl.net.pipe;
 import ibis.impl.net.*;
 
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 
@@ -106,7 +104,7 @@ public final class PipeInput extends NetBufferedInput {
 		do {
 			if (!upcallMode) {
 				while (pipeIs.available() < 4) {
-					Thread.currentThread().yield();
+					Thread.yield();
 				}
 			}
 
@@ -128,7 +126,7 @@ public final class PipeInput extends NetBufferedInput {
 		do {
 			if (!upcallMode) {
 				while (pipeIs.available() < (l - offset)) {
-					Thread.currentThread().yield();
+					Thread.yield();
 				}
 			}
 

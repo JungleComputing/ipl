@@ -1,6 +1,5 @@
 package ibis.impl.nameServer.tcp;
 
-import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceivePort;
@@ -13,7 +12,6 @@ import java.net.Socket;
 import java.net.InetAddress;
 
 import java.io.IOException;
-import java.io.EOFException;
 import java.io.StreamCorruptedException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

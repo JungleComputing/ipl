@@ -7,7 +7,6 @@ import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.Upcall;
-import ibis.ipl.IbisException;
 import ibis.ipl.Replacer;
 
 import ibis.util.Input;

@@ -1,10 +1,8 @@
 package ibis.impl.messagePassing;
 
 import java.io.BufferedOutputStream;
-import java.io.ObjectOutputStream;
 import java.io.IOException;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.Replacer;

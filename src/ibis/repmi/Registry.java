@@ -1,10 +1,8 @@
-package ibis.gmi;
+package ibis.repmi;
 
 import java.io.IOException;
 
 import ibis.ipl.*;
-
-import java.util.Hashtable;
 
 final class Registry {
 
@@ -27,7 +25,7 @@ final class Registry {
 				
 
 		} catch (IOException e) {
-			System.out.println(Group._rank + ": Error in GroupRegistry " + e);
+			System.out.println("Error in Registry " + e);
 			System.exit(1);
 		}
 	}        

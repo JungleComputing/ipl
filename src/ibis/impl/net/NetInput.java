@@ -5,13 +5,10 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.InterruptedIOException;
 
-import ibis.ipl.Ibis;
-
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.EOFException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 /**
  * Provide an abstraction of a network input.

@@ -1,13 +1,9 @@
 package ibis.impl.net.bytes;
 
-import ibis.ipl.Ibis;
-
 import ibis.impl.net.*;
 
 import java.io.IOException;
 import ibis.ipl.InterruptedIOException;
-
-import java.util.HashMap;
 
 /**
  * The ID input implementation.

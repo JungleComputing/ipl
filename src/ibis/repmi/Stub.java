@@ -3,8 +3,6 @@ package ibis.repmi;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.Serializable;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.IbisSerializationOutputStream;
 

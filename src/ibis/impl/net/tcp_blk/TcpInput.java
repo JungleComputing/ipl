@@ -1,6 +1,5 @@
 package ibis.impl.net.tcp_blk;
 
-import ibis.ipl.Ibis;
 import ibis.ipl.ConnectionClosedException;
 
 import ibis.impl.net.*;
@@ -15,7 +14,7 @@ import java.net.SocketTimeoutException;
 /* Only for java >= 1.4
 import java.net.SocketTimeoutException;
 */
-import java.io.InterruptedIOException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;

@@ -5,11 +5,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import ibis.rmi.RemoteException;
-import ibis.rmi.RTS;
-
 import java.lang.reflect.Method;
-
-import ibis.ipl.ReceivePortIdentifier;
 
 public class UnicastRef implements RemoteRef, java.io.Serializable
 {

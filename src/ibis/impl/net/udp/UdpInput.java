@@ -5,7 +5,6 @@ import ibis.impl.net.*;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.SocketException;
 
 /* Only for java >= 1.4
  * import java.net.SocketTimeoutException;

@@ -1,6 +1,5 @@
 package ibis.impl.net;
 
-import java.io.IOException;
 import ibis.ipl.InterruptedIOException;
 
 /**

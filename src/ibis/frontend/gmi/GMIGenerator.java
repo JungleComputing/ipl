@@ -1,10 +1,5 @@
 package ibis.frontend.gmi;
 
-import java.util.Vector;
-import java.io.PrintWriter;
-
-import org.apache.bcel.*;
-import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
 
 class GMIGenerator { 

@@ -3,10 +3,7 @@ package ibis.impl.net;
 import ibis.util.Monitor;
 import ibis.util.ConditionVariable;
 
-import java.io.IOException;
-
 import ibis.ipl.InterruptedIOException;
-import ibis.ipl.Ibis;
 import ibis.ipl.IllegalLockStateException;
 
 /**

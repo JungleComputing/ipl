@@ -1,8 +1,5 @@
 package ibis.impl.net.muxer;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import java.io.IOException;
 
 import java.util.Hashtable;
@@ -13,7 +10,6 @@ import ibis.impl.net.NetConvert;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
-import ibis.impl.net.NetAllocator;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetReceiveBuffer;
