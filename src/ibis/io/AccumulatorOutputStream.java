@@ -51,7 +51,7 @@ public final class AccumulatorOutputStream extends OutputStream {
      * @exception IOException when an IO error occurs.
      */
     public void write(int b) throws IOException {
-	out.writeByte((byte)b);
+	out.writeByte((byte) (0xff & b));
     }
 
     /**

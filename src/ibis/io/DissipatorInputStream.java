@@ -34,7 +34,7 @@ public final class DissipatorInputStream extends InputStream {
      * {@inheritDoc}
      */
     public int read() throws IOException {
-	return (int)in.readByte();
+	return in.readByte();
     }
 
     /**
