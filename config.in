@@ -191,11 +191,12 @@ endif
 	$(JAD) -f $*_ibis_io_Generator.class
 	mv $*_ibis_io_Generator.jad $*_ibis_io_Generator.java
 
-endif
-
+else
 
 .class.o:
 	$(MANTAC_COMMAND) -c $(subst $$,\$$,$*.class)
+
+endif
 
 .class_ibis_io_Generator.class:
 ifeq (ibis.,$(findstring ibis., $(PACKAGE)))
