@@ -148,7 +148,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	}
 
         boolean firstvar = ctx.posDominant( nextvar );
-        if( !needMoreJobs() ){
+        if( needMoreJobs() ){
 	    DPLLContext firstctx = (DPLLContext) ctx.clone();
 	    solve( level+1, firstctx, nextvar, firstvar );
 	    DPLLContext secondctx = (DPLLContext) ctx.clone();
