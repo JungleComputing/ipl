@@ -53,10 +53,14 @@ public class ExtSocketFactory
     //
     private static String[] defaultTypes = strategySplicing;
 
+    private static final boolean VERBOSE = false;
+
     /* static constructor
      */
     static {
-	System.out.println("# ### ExtSocketFactory: starting configuration.");
+	if (VERBOSE) {
+	    System.out.println("# ### ExtSocketFactory: starting configuration.");
+	}
 	for(int i=0; i<defaultTypes.length; i++)
 	    {
 		String n = defaultTypes[i];
@@ -64,7 +68,9 @@ public class ExtSocketFactory
 	    }
 	defaultClientServer = findClientServerType();
 	defaultBrokeredLink = findBrokeredType();
-	System.out.println("# ### ExtSocketFactory: configuration ok.");
+	if (VERBOSE) {
+	    System.out.println("# ### ExtSocketFactory: configuration ok.");
+	}
     }
 
     /* static destructor
@@ -94,10 +100,12 @@ public class ExtSocketFactory
 	}
 	try {
 	    t = (SocketType)cons.newInstance(null);
-	    System.out.println("# Registering socket type: "+t.getSocketTypeName());
-	    System.out.println("    class name: "+t.getClass().getName());
-	    System.out.println("    supports client/server:  "+t.supportsClientServer());
-	    System.out.println("    supports brokered links: "+t.supportsBrokeredLinks());
+	    if (VERBOSE) {
+		System.out.println("# Registering socket type: "+t.getSocketTypeName());
+		System.out.println("    class name: "+t.getClass().getName());
+		System.out.println("    supports client/server:  "+t.supportsClientServer());
+		System.out.println("    supports brokered links: "+t.supportsBrokeredLinks());
+	    }
 	    types.add(t);
 	} catch(Exception e) {
 	    System.out.println("# ExtSocketFactory: *not* adding: "+t.getSocketTypeName());
@@ -208,11 +216,15 @@ public class ExtSocketFactory
 		SocketType t = (SocketType)types.get(i);
 		if(t.supportsClientServer())
 		    {
-			System.out.println("# Selected type: '"+t.getSocketTypeName()+"' for client/server connection.");
+			if (VERBOSE) {
+			    System.out.println("# Selected type: '"+t.getSocketTypeName()+"' for client/server connection.");
+			}
 			return t;
 		    }
 	    }
-	System.out.println("# ExtSocketFactory: warning- no SocketType found for client/server link!");
+	if (VERBOSE) {
+	    System.out.println("# ExtSocketFactory: warning- no SocketType found for client/server link!");
+	}
 	return null;
     }
     private static synchronized SocketType findBrokeredType()
@@ -222,7 +234,9 @@ public class ExtSocketFactory
 		SocketType t = (SocketType)types.get(i);
 		if(t.supportsBrokeredLinks())
 		    {
-			System.out.println("# Selected type: '"+t.getSocketTypeName()+"' for brokered link.");
+			if (VERBOSE) {
+			    System.out.println("# Selected type: '"+t.getSocketTypeName()+"' for brokered link.");
+			}
 			return t;
 		    }
 	    }
