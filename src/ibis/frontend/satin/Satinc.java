@@ -122,6 +122,7 @@ public final class Satinc {
     boolean inletOpt;
     boolean spawnCounterOpt;
     boolean faultTolerance;
+    boolean errors = false;
     MethodTable mtab;
     boolean failed_verification = false;
     private static boolean toplevel = true;
@@ -2094,10 +2095,26 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    String[] params_types_as_names = new String[params.length];
 
 	    for (int i = 0; i < params.length; i++) {
+		if (params[i] instanceof ObjectType) {
+		    String clnam = ((ObjectType)params[i]).getClassName();
+		    if (! Repository.implementationOf(clnam, "java.io.Serializable")) {
+			System.err.println(classname + ": parameter of spawnable method " + m.getName() + " with non-serializable type " + clnam);
+			System.err.println(classname + ": all parameters of a spawnable method must be serializable.");
+			errors = true;
+		    }
+		}
 		params_types_as_names[i] = params[i].toString();
 	    }
 
 	    Type returnType = m.getReturnType();
+	    if (returnType instanceof ObjectType) {
+		String onam = ((ObjectType) returnType).getClassName();
+		if (! Repository.implementationOf(onam, "java.io.Serializable")) {
+		    System.err.println(classname + ": spawnable method " + m.getName() + " has non-serializable return type: " + onam + ".");
+		    System.err.println(classname + ": the return type of a spawnable method must be serializable.");
+		    errors = true;
+		}
+	    }
 
 	    out.println("import ibis.satin.impl.*;\n");
 	    out.println("import ibis.satin.*;\n");
@@ -2874,6 +2891,10 @@ System.out.println("findMethod: could not find method " + name + sig);
 		new Satinc(verbose, local, verify, keep, print, invocationRecordCache,
 			    cl.getClassName(), compiler, supportAborts, inletOpt, spawnCounterOpt, faultTolerance).start();
 	    }
+	}
+
+	if (errors) {
+	    System.exit(1);
 	}
 
 	if (verify && ! do_verify(c)) failed_verification = true;
