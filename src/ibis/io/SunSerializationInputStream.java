@@ -88,6 +88,19 @@ public final class SunSerializationInputStream extends SerializationInputStream 
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public void readArray(byte[] ref, int off, int len) throws IOException {
+	/*
+	 * Calling write() and read() here turns out to be much, much faster.
+	 * So, we go ahead and implement a fast path just for byte[].
+	 * RFHH
+	 */
+	if (off == 0 && ref.length == len) {
+	    int rd = 0;
+	    do {
+		rd += read(ref, rd, len - rd);
+	    } while (rd < len);
+	    return;
+	}
+
 	try {
 	    byte[] temp = (byte[]) readObject();
 	    if(temp.length != len) {
