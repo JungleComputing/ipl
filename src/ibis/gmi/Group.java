@@ -375,7 +375,7 @@ public final class Group implements GroupProtocol {
 		registry = new GroupRegistry();
 
 		/* I am the master */				
-		PoolInfo info = new PoolInfo();
+		PoolInfo info = PoolInfo.createPoolInfo();
 
 		_size = info.size();
 		_rank = 0;
