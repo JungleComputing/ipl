@@ -266,7 +266,13 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 	/* Create a NetReceiveBuffer and do a blocking receive. */
 	private NetReceiveBuffer receive() throws IOException {
 		log.in();
-		NetReceiveBuffer buf = createReceiveBuffer(0);
+
+		NetReceiveBuffer buf = surplusDequeue();
+		if (buf != null) {
+		    return buf;
+		}
+
+		buf = createReceiveBuffer(0);
 		byte [] b = buf.data;
 		int     l = 0;
 
