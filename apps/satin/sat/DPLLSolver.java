@@ -18,12 +18,18 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
+    private static final boolean putProblemInTuple = true;
     private static int label = 0;
-    final SATProblem p;
+    SATProblem p;
 
     public DPLLSolver( SATProblem p )
     {
-        this.p = p;
+        if( putProblemInTuple ){
+            this.p = null;
+        }
+        else {
+            this.p = p;
+        }
     }
 
     /**
@@ -110,6 +116,10 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
 
+        if( putProblemInTuple ){
+            p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
+        }
+
 	ctx.assignment[var] = val?1:0;
 	int res;
 	if( val ){
@@ -180,6 +190,9 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	if( p.isSatisfied() ){
 	    return new SATSolution( p.buildInitialAssignments() );
 	}
+        if( putProblemInTuple ){
+            ibis.satin.SatinTupleSpace.add( "problem", p );
+        }
         DPLLSolver s = new DPLLSolver( p );
 
         // Now recursively try to find a solution.

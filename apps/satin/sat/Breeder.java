@@ -26,12 +26,19 @@ final class CutoffUpdater implements ibis.satin.ActiveTuple {
 
 public final class Breeder extends ibis.satin.SatinObject implements BreederInterface {
     static final int GENERATIONS = 20;
-    static final int GENERATION_SIZE = 12;
-    final SATProblem pl[];
+    static final int GENERATION_SIZE = 20;
+    static final boolean globalsInTuple = false;
+
+    SATProblem pl[];
 
     Breeder( SATProblem pl[] )
     {
-        this.pl = pl;
+        if( globalsInTuple ){
+            this.pl = null;
+        }
+        else {
+            this.pl = pl;
+        }
     }
 
     /** Maximal number decisions allowed before we give up. Can
@@ -72,7 +79,10 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
         if( cutoff == 0 ){
             cutoff = Integer.MAX_VALUE;
         }
-
+ 
+        if( globalsInTuple ){
+            pl = (SATProblem []) ibis.satin.SatinTupleSpace.get( "problem" );
+        }
         try {
             for( int i=0; i<pl.length; i++ ){
                 int d = BreederSolver.run( pl[i], genes, cutoff-total );
@@ -177,9 +187,6 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
                     prevBestGenes = genes;
                     genes = g[i];
                 }
-                else if( nextD == bestD ){
-                    genes = g[i];
-                }
             }
             else {
                 System.err.print( "** " );
@@ -233,6 +240,10 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
 	    p.report( System.out );
 	    pl[i] = p;
 	}
+
+        if( globalsInTuple ){
+            ibis.satin.SatinTupleSpace.add( "problem", pl );
+        }
 
         Breeder b = new Breeder( pl );
 

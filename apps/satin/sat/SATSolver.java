@@ -165,27 +165,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
         boolean firstvar = ctx.posDominant( nextvar );
 
-        if( !needMoreJobs() ){
-	    // We're nearly there, use the leaf solver.
-	    // We have variable 'nextvar' to branch on.
-	    SATContext subctx = (SATContext) ctx.clone();
-            try {
-                leafSolve( level+1, subctx, nextvar, firstvar );
-            }
-            catch( SATRestartException x ){
-                if( x.level<level ){
-                    if( traceRestarts ){
-                        System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
-                    }
-                    throw x;
-                }
-                // We have an untried value, continue with that.
-            }
-	    subctx = (SATContext) ctx.clone();
-            subctx.update( p );
-	    leafSolve( level+1, subctx, nextvar, !firstvar );
-	}
-	else {
+        if( needMoreJobs() ){
             try {
                 // We have variable 'nextvar' to branch on.
                 SATContext firstctx = (SATContext) ctx.clone();
@@ -206,6 +186,26 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                 // We have an untried value, wait for that.
                 sync();
             }
+	}
+	else {
+	    // We're nearly there, use the leaf solver.
+	    // We have variable 'nextvar' to branch on.
+	    SATContext subctx = (SATContext) ctx.clone();
+            try {
+                leafSolve( level+1, subctx, nextvar, firstvar );
+            }
+            catch( SATRestartException x ){
+                if( x.level<level ){
+                    if( traceRestarts ){
+                        System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                    }
+                    throw x;
+                }
+                // We have an untried value, continue with that.
+            }
+	    subctx = (SATContext) ctx.clone();
+            subctx.update( p );
+	    leafSolve( level+1, subctx, nextvar, !firstvar );
 	}
     }
 
