@@ -36,7 +36,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 */
         private boolean                  useUpcallThreadPool = true;
 
-	private boolean                  usePollingThread    = true;
+	private boolean                  usePollingThread    = false;
 
 	private boolean                  useUpcallThread     = true;
 
@@ -230,7 +230,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 	/* --- Upcall from main input object -- */
         public synchronized void inputUpcall(NetInput input, Integer spn) {
-                //System.err.println("inputUpcall["+this+"]-->");
+                //System.err.println("NetReceivePort: inputUpcall-->");
                 if (this.input == null) {
                         __.warning__("message lost");
                         return;
@@ -240,14 +240,27 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 if (upcall != null && upcallsEnabled) {
                         final ReadMessage rm = _receive();
                         if (!useUpcallThread) {
+                                //System.err.println("NetReceivePort: upcall-->");
                                 upcall.upcall(rm);
+                                //System.err.println("NetReceivePort: upcall<--");
+                                if (emptyMsg) {
+                                        try {
+                                                readByte();
+                                        } catch (Exception e) {
+                                                throw new Error(e.getMessage());
+                                        }
+                                        
+                                        emptyMsg = false;
+                                }
                         } else {
                                 finishNotify = true;
 
                                 if (!useUpcallThreadPool) {
                                         Runnable r = new Runnable() {
                                                         public void run() {
+                                                                //System.err.println("NetReceivePort: threaded upcall-->");
                                                                 upcall.upcall(rm);
+                                                                //System.err.println("NetReceivePort: threaded upcall<--");
 
                                                                 if (currentThread == this) {
                                                                         try {
@@ -285,7 +298,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         polledLock.unlock();
                         finishMutex.lock();
                 }
-                //System.err.println("inputUpcall["+this+"]<--");
+                //System.err.println("NetReceivePort: inputUpcall<--");
         }
         
 
@@ -640,9 +653,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 * @return A {@link ReadMessage} instance.
 	 */
 	public ReadMessage receive() throws IbisIOException {
+                //System.err.println("NetReceivePort: receive-->");
 		if (usePollingThread || useUpcall || upcall != null) {
+                        //System.err.println("NetReceivePort: receive - blocking wait");
 			polledLock.lock();
 		} else {
+                        //System.err.println("NetReceivePort: receive - active wait");
 			if (useYield) {
 				while (!_doPoll())
 					Thread.currentThread().yield();
@@ -652,6 +668,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 			
 		}
 		
+                //System.err.println("NetReceivePort: receive<--");
 		return _receive();
 	}
 
@@ -674,15 +691,19 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 * was unsuccessful.
 	 */
 	public ReadMessage poll()  throws IbisIOException {
+                //System.err.println("NetReceivePort: poll-->");
 		if (usePollingThread || useUpcall || upcall != null) {
 			if (!polledLock.trylock())
+                                //System.err.println("NetReceivePort: poll<-- failed 1");
 				return null;
 		} else {
 			if (!_doPoll()) {
+                                //System.err.println("NetReceivePort: poll<-- failed 2");
 				return null;
 			}
 		}
 		
+                //System.err.println("NetReceivePort: poll<--");
 		return _receive();
 	}
 	
@@ -901,9 +922,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	/* --- ReadMessage Part --- */
 	public void finish() throws IbisIOException {
                 //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish-->");
-                //System.err.println("NetReceivePort["+identifier+"]: finish-->");
+                //System.err.println("NetReceivePort: finish-->");
 		if (emptyMsg) {
 			readByte();
+                        emptyMsg = false;
 		}
 		activeSendPortNum = null;
 		input.finish();
@@ -919,7 +941,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         pollingLock.unlock();
                 }
 
-                //System.err.println("NetReceivePort["+identifier+"]: finish<--");
+                //System.err.println("NetReceivePort: finish<--");
                 //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish<--");
 	}
 

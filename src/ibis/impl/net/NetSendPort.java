@@ -169,9 +169,11 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */	
 	public WriteMessage newMessage() throws IbisIOException {
                 //System.err.println("NetSendPort["+identifier+"]: newMessage-->");
+                //System.err.println("NetSendPort: newMessage-->");
 		outputLock.lock();
 		emptyMsg     = true;
                 output.initSend();
+                //System.err.println("NetSendPort: newMessage<--");
                 //System.err.println("NetSendPort["+identifier+"]: newMessage<--");
 		return this;
 	}
@@ -371,9 +373,11 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	public void finish() throws IbisIOException{
                 //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetSendPort finish-->");
                 //System.err.println("NetSendPort["+identifier+"]: finish-->");
+                //System.err.println("NetSendPort: finish-->");
 		_finish();
 		output.finish();
 		outputLock.unlock();
+                //System.err.println("NetSendPort: finish<--");
                 //System.err.println("NetSendPort["+identifier+"]: finish<--");
                 //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetSendPort finish<--");
 	}

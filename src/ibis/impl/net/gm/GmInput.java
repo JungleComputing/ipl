@@ -17,6 +17,9 @@ import java.util.Hashtable;
  */
 public final class GmInput extends NetBufferedInput {
 
+        private final boolean         useUpcallThreadOpt = false;
+
+
 	/**
 	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
 	 * local number.
@@ -41,6 +44,13 @@ public final class GmInput extends NetBufferedInput {
         private int                   blockLen       =    0;
         private boolean               firstBlock     = true;
         private UpcallThread          upcallThread   = null;
+        private volatile Runnable    currentThread   =  null;
+        private final int            threadStackSize = 256;
+        private int                  threadStackPtr  = 0;
+        private PooledUpcallThread[] threadStack     = new PooledUpcallThread[threadStackSize];
+        private int                  upcallThreadNum = 0;
+
+
         
         static private byte [] dummyBuffer = new byte[4];
 	native long nInitInput(long deviceHandle) throws IbisIOException;
@@ -68,6 +78,72 @@ public final class GmInput extends NetBufferedInput {
                 inputHandle = nInitInput(deviceHandle);
                 Driver.gmAccessLock.unlock(false);
 	}
+
+        private final class PooledUpcallThread extends Thread {
+                private boolean  end   = false;
+                private NetMutex sleep = new NetMutex(true);
+
+                public PooledUpcallThread(String name) {
+                        super("GmInput.PooledUpcallThread: "+name);
+                        this.setDaemon(true);
+                }                
+
+                public void run() {
+                        while (!end) {
+                                //System.err.println("trying to get lock");
+                                try {
+                                        sleep.ilock();
+                                        currentThread = this;
+                                } catch (InterruptedException e) {
+                                        continue;
+                                }
+                                
+                                while (!end) {
+                                        //System.err.println("got lock, pumping");
+                                        pump();
+                                        //System.err.println("got message, starting upcall");
+                                        activeNum = spn;
+                                        firstBlock = true;
+                                        initReceive();
+                                        upcallFunc.inputUpcall(GmInput.this, activeNum);
+                                        //System.err.println("upcall completed");
+                                        activeNum = null;
+
+                                        if (currentThread == this) {
+                                                
+                                                try {
+                                                        GmInput.super.finish();
+                                                } catch (Exception e) {
+                                                        throw new Error(e.getMessage());
+                                                }
+                                                
+                                                //System.err.println("reusing thread");
+                                                continue;
+                                        } else {
+                                                synchronized (threadStack) {
+                                                        if (threadStackPtr < threadStackSize) {
+                                                                //System.err.println("storing thread");
+                                                                threadStack[threadStackPtr++] = this;
+                                                        } else {
+                                                                //System.err.println("distroying thread");
+                                                                return;
+                                                        }
+                                                }
+                                                break;
+                                        }
+                                }
+                        }
+                }
+
+                public void exec() {
+                        sleep.unlock();
+                }
+
+                public void finish() {
+                        end = true;
+                        this.interrupt();
+                }
+        }
 
         private final class UpcallThread extends Thread {
                 private boolean end = false;
@@ -146,7 +222,13 @@ public final class GmInput extends NetBufferedInput {
                 mtu       = 2*1024*1024;
 		allocator = new NetAllocator(mtu);
                 if (upcallFunc != null) {
-                        (upcallThread = new UpcallThread(lnodeId+":"+lportId+"("+lmuxId+") --> "+rnodeId+":"+rportId+"("+rmuxId+")")).start();
+                        if (useUpcallThreadOpt) {
+                                PooledUpcallThread up = new PooledUpcallThread(lnodeId+":"+lportId+"("+lmuxId+") --> "+rnodeId+":"+rportId+"("+rmuxId+")");
+                                up.start();
+                                up.exec();
+                        } else {
+                                (upcallThread = new UpcallThread(lnodeId+":"+lportId+"("+lmuxId+") --> "+rnodeId+":"+rportId+"("+rmuxId+")")).start();
+                        }
                 }
 	}
 
@@ -269,6 +351,32 @@ public final class GmInput extends NetBufferedInput {
                 Driver.gmReceiveLock.unlock();
         }
         
+
+        public void finish() throws IbisIOException {
+                super.finish();
+                
+                //System.err.println("GmInput: finish-->");
+                if (currentThread != null) {
+                        //System.err.println("GmInput: finish, need to select another thread");
+
+                        PooledUpcallThread ut = null;
+                                        
+                        synchronized(threadStack) {
+                                if (threadStackPtr > 0) {
+                                        ut = threadStack[--threadStackPtr];
+                                } else {
+                                        ut = new PooledUpcallThread("no "+upcallThreadNum++);
+                                        ut.start();
+                                }        
+                        }
+
+                        currentThread = ut;
+                        ut.exec();
+                }
+                //System.err.println("GmInput: finish<--");
+        }
+
+
 
 	/**
 	 * {@inheritDoc}
