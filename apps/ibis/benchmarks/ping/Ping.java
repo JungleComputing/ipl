@@ -65,7 +65,7 @@ public final class Ping {
 	/**
 	 * The minimum message size.
 	 */
-	final static int     	    param_min_size          =             1;
+	final static int     	    param_min_size          =             4;
 
 	/**
 	 * The maximum message size.
@@ -97,10 +97,12 @@ public final class Ping {
 	 */
 	final static byte    	    param_fill_buffer_value = 		  1;
 
+	final static boolean 	    param_log               = 	      false;
 
 	/* Internal variables */
 	final static Timer	    timer                   = (param_rdtsc_timer)?(Timer)new Rdtsc():(Timer)new ibis.util.Timer();
-	final static byte[]  	    buffer	   	    = new byte[param_max_size];
+	// final static byte[]  	    buffer	   	    = new byte[param_max_size];
+	static       byte[]  	    buffer	   	    =          null;
 	static 	     int     	    rank      		    =		  0;
 	static 	     int     	    remoteRank		    =		  1;
 	static       SendPort       sport                   =          null;
@@ -191,27 +193,41 @@ public final class Ping {
 			}
 
 			while ((nb_samples--) > 0) {
+                                if (param_log) {
+                                        System.err.println("Ping: sending: --> "+nb_samples);
+                                }
+                                
 				WriteMessage out = sport.newMessage();
-				out.writeSubArrayByte(buffer, 0, _size);
+				out.writeArrayByte(buffer);
 				out.send();
-				out.finish();
-			}
+				
+                                out.finish();
+                                if (param_log) {
+                                        System.err.println("Ping: sending: <-- "+nb_samples);
+                                }
+                        }
+                        
 
 			if (param_control_receive) {
 				clear_buffer();
 			}
 
+                        if (param_log) {
+                                System.err.println("Ping: receiving: -->");
+                        }
+                        
 			ReadMessage in = rport.receive();
+                        in.readArrayByte(buffer);
+                        in.finish();
 
 			if (param_control_receive) {
-				in.readSubArrayByte(buffer, 0, _size);
-				in.finish();
 				control_buffer(_size);
 			}
-			else {
-				in.finish();
-			}			
 
+                        if (param_log) {
+                                System.err.println("Ping: receiving: <--");
+                        }
+                        
 			time = 1000 * (System.currentTimeMillis() - time);
 			timer.stop();
 			double _time =  timer.totalTimeVal();
@@ -243,19 +259,33 @@ public final class Ping {
 					mark_buffer(_size);
 				}
 
+                                if (param_log) {
+                                        System.err.println("Ping: sending: --> "+nb_samples);
+                                }
+                                
 				WriteMessage out = sport.newMessage();
-				out.writeSubArrayByte(buffer, 0, _size);
+				out.writeArrayByte(buffer);
 				out.send();
 				out.finish();
-
+                                if (param_log) {
+                                        System.err.println("Ping: sending: <-- "+nb_samples);
+                                }
+                                
 				if (param_control_receive) {
 					clear_buffer();
 				}
 
+                                if (param_log) {
+                                        System.err.println("Ping: receiving: --> "+nb_samples);
+                                }
+                                
 				ReadMessage in = rport.receive();
-				in.readSubArrayByte(buffer, 0, _size);
+				in.readArrayByte(buffer);
 				in.finish();
-
+                                if (param_log) {
+                                        System.err.println("Ping: receiving: <-- "+nb_samples);
+                                }
+                                
 				if (param_control_receive) {
 					control_buffer(_size);
 				}
@@ -283,19 +313,31 @@ public final class Ping {
 			int nb_samples = param_nb_samples;;
 
 			while ((nb_samples--) > 0) {
+                                if (param_log) {
+                                        System.err.println("Pong: sending: --> "+nb_samples);
+                                }
+                                
 				ReadMessage in = rport.receive();
-				in.readSubArrayByte(buffer, 0, _size);
+				in.readArrayByte(buffer);
 				in.finish();
+                                if (param_log) {
+                                        System.err.println("Pong: sending: <-- "+nb_samples);
+                                }
+                                
 			}
 			
+                        if (param_log) {
+                                System.err.println("Pong: receiving: -->");
+                        }
 			WriteMessage out = sport.newMessage();
 
-			if (param_control_receive) {
-				out.writeSubArrayByte(buffer, 0, _size);
-			}
+                        out.writeArrayByte(buffer);
 
 			out.send();
 			out.finish();
+                        if (param_log) {
+                                System.err.println("Pong: receiving: <--");
+                        }
 		}
 	}
 	
@@ -307,27 +349,43 @@ public final class Ping {
 			int nb_samples = param_nb_samples;;
 
 			while ((nb_samples--) > 0) {
+                                if (param_log) {
+                                        System.err.println("Pong: sending: --> "+nb_samples);
+                                }
+                                
 				ReadMessage in = rport.receive();
-				in.readSubArrayByte(buffer, 0, _size);
+				in.readArrayByte(buffer);
 				in.finish();
+                                if (param_log) {
+                                        System.err.println("Pong: sending: <-- "+nb_samples);
+                                }
+                                
 
+                                if (param_log) {
+                                        System.err.println("Pong: receiving: --> "+nb_samples);
+                                }
+                                
 				WriteMessage out = sport.newMessage();
-				out.writeSubArrayByte(buffer, 0, _size);
+				out.writeArrayByte(buffer);
 				out.send();
 				out.finish();
+                                if (param_log) {
+                                        System.err.println("Pong: receiving: <-- "+nb_samples);
+                                }
 			}
 		}
 	}
 
 	static void ping() throws Exception {
-		if (param_fill_buffer) {
-			fill_buffer();
-		}
-
 		int size = 0;
 		for (size = param_min_size; size <= param_max_size; size = (param_step != 0)?size + param_step:size * 2) {
 			final int _size = (size == 0 && param_no_zero)?1:size;
 			double    result  = 0;
+
+                        buffer = new byte[_size];
+                        if (param_fill_buffer) {
+                                fill_buffer();
+                        }
 
 			System.err.println("--------------------");
 			System.err.println("size = "+_size+"\n");
@@ -340,6 +398,8 @@ public final class Ping {
 
 			System.err.println();
 			dispAverageResult(_size, result);
+
+                        buffer = null;
 		}
 	}
 
@@ -349,11 +409,15 @@ public final class Ping {
 		for (size = param_min_size; size <= param_max_size; size = (param_step != 0)?size + param_step:size * 2) {
 			final int _size = (size == 0 && param_no_zero)?1:size;
 
+                        buffer = new byte[_size];
+
 			if (param_one_way) {
 				oneWayPong(_size);
 			} else {	   
 				twoWayPong(_size);
-			}			
+			}
+
+                        buffer = null;
 		}
 	}
 
@@ -472,6 +536,7 @@ public final class Ping {
 			
 			String id   = "ibis:" + (new Random()).nextInt();
 			//String name = "ibis.ipl.impl.tcp.TcpIbis";
+			//String name = "ibis.ipl.impl.messagePassing.PandaIbis";
 			String name = "ibis.ipl.impl.net.NetIbis";
 			ibis = Ibis.createIbis(id, name, null);
 
