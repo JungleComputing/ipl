@@ -13,6 +13,8 @@ import ibis.ipl.Ibis;
 
 import java.io.IOException;
 
+import java.util.Hashtable;
+
 /**
  * The NetIbis GM driver with pipelined block transmission.
  */
@@ -38,7 +40,7 @@ public final class Driver extends NetDriver {
 
         private static final int speculativePolls = 16;
 
-	private boolean		interrupted;	// Support poll interrupts
+	private static int	interrupts = 0;	// Support poll interrupts
 
 
 	/**
@@ -97,6 +99,21 @@ public final class Driver extends NetDriver {
 	}
 
 
+	private static Hashtable lockIdVerifyTable = new Hashtable();
+
+	static synchronized void verifyUnique(int lockId) {
+	    Integer i = new Integer(lockId);
+	    if (lockIdVerifyTable.contains(i)) {
+		throw new Error("lockId not unique");
+	    }
+	    lockIdVerifyTable.put(i, i);
+	}
+
+	static synchronized String getLockTable() {
+	    return lockIdVerifyTable.toString();
+	}
+
+
 	/**
 	 * Constructor.
 	 *
@@ -142,15 +159,26 @@ public final class Driver extends NetDriver {
 	}
 
 
-	protected void interruptPump() throws IOException {
-System.err.println("********** perform interrupt");
-	    interrupted = true;
+	protected void interruptPump(int[] lockIds) throws IOException {
+System.err.println(NetIbis.poolInfo.hostName()
+	// + " "
+	// + Thread.currentThread()
+	+ ":********** perform interrupt");
+// Thread.dumpStack();
+	    gmLockArray.interrupt(lockIds);
+	    interrupts++;
 	}
 
 
-        private int pump(int lockId, int []lockIds) throws IOException {
+	int interrupts() {
+	    return interrupts;
+	}
+
+
+        private int pump(int interrupts, int lockId, int[] lockIds)
+		throws IOException {
 	    int result;
-// System.err.print("[b");
+// System.err.print(NetIbis.poolInfo.hostName() + " " + Thread.currentThread() + " [b");
 // for (int i = 0; i < lockIds.length - 1; i++)
 // System.err.print(lockIds[i] + ",");
 
@@ -179,8 +207,7 @@ System.err.println("********** perform interrupt");
 // System.err.print("<");
 			gmAccessLock.unlock();
 
-			if (interrupted) {
-			    interrupted = false;
+			if (interrupts != this.interrupts) {
 			    throw new InterruptedIOException("got interrupted");
 			}
 
@@ -212,19 +239,21 @@ System.err.println("********** perform interrupt");
 	    if (TIMINGS) {
 		t_poll.stop();
 	    }
-// System.err.print("b" + lockIds[result] + "]");
+// System.err.println("b" + lockIds[result] + "]");
 
 	    return result;
         }
 
 
-        protected int blockingPump(int []lockIds) throws IOException {
-	    return pump(-1, lockIds);
+        protected int blockingPump(int interrupts, int[] lockIds)
+	    	throws IOException {
+	    return pump(interrupts, -1, lockIds);
 	}
 
 
-        protected void blockingPump(int lockId, int []lockIds) throws IOException {
-	    pump(lockId, lockIds);
+        protected void blockingPump(int interrupts, int lockId, int[] lockIds)
+	    	throws IOException {
+	    pump(interrupts, lockId, lockIds);
 	}
 
 

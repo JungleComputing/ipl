@@ -2,6 +2,7 @@ package ibis.impl.net.gm;
 
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetPoller;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.InterruptedIOException;
@@ -14,7 +15,7 @@ import java.io.IOException;
  * The special thing here is to ensure:
  *  - for upcall mode:
  *    that there is only one thread that polls all our subinputs
- *    (i.s.o. one thread per subinput)
+ *    (i.s.o. one thread per subinput), i.e. one thread per ReceivePort
  *  - for downcall mode:
  *    that there are no threads to poll our subinputs: let the downcall
  *    thread perform a non-blocking poll of all subinputs
@@ -57,19 +58,25 @@ public final class GmPoller extends NetPoller {
 
 		Driver.gmAccessLock.lock(true);
 
+		int[] oldLockIds = lockIds;
 		int[] _lockIds = new int[lockIds.length + 1];
 		System.arraycopy(lockIds, 0, _lockIds, 0, lockIds.length - 1);
 		lockIds = _lockIds;
 		lockIds[lockIds.length - 1] = lockIds[lockIds.length - 2];
 		lockIds[lockIds.length - 2] = ni.getLockId();
+
+		Driver.verifyUnique(ni.getLockId());
+
 // System.err.println(this + ": setup new connection; subInput " + ni + " lockId " + ni.getLockId());
-if (false) {
-    System.err.print("Now lockIds " + lockIds + " := [");
-    for (int i = 0; i < lockIds.length; i++) {
-	System.err.print(lockIds[i] + ",");
-    }
-    System.err.println("]");
-}
+		if (false) {
+		    System.err.print(NetIbis.poolInfo.hostName() + " "
+			    // + this
+			    + ": Now lockIds " + lockIds + " := [");
+		    for (int i = 0; i < lockIds.length; i++) {
+			System.err.print(lockIds[i] + ",");
+		    }
+		    System.err.println("]");
+		}
 
 		if (spn == null) {
 		    spn = new Integer[1];
@@ -92,7 +99,7 @@ if (false) {
 		 */
 		startUpcallThread();
 
-		gmDriver.interruptPump();
+		gmDriver.interruptPump(oldLockIds);
 
 		readBufferedSupported = true;
 
@@ -130,7 +137,11 @@ if (false) {
 // System.err.println("Somebody polling concurrently with me!!!");
 // }
 		    try {
-			result = gmDriver.blockingPump(lockIds);
+			gmDriver.gmAccessLock.lock(false);
+			int interrupts = gmDriver.interrupts();
+			int[] lockIds = this.lockIds;
+			gmDriver.gmAccessLock.unlock();
+			result = gmDriver.blockingPump(interrupts, lockIds);
 // System.err.print("B");
 // for (int i = 0; i < lockIds.length - 1; i++) System.err.print(lockIds[i] + ",");
 // System.err.print("]=" + result);
@@ -141,8 +152,11 @@ if (false) {
 			    // for lockIds
 			}
 			interrupted = true;
-			System.err.println(Thread.currentThread() + ": " + this + ": ********** Catch InterruptedIOException");
-			System.err.print("lockIds " + lockIds + " = {");
+			System.err.print(NetIbis.poolInfo.hostName() + " "
+				// + Thread.currentThread()
+				// + ": " + this
+				+ ": ********** Catch InterruptedIOException");
+			System.err.print("; lockIds " + lockIds + " = {");
 			for (int i = 0; i < lockIds.length; i++) {
 			    System.err.print(lockIds[i] + ",");
 			}

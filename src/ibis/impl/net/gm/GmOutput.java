@@ -183,6 +183,7 @@ public final class GmOutput extends NetBufferedOutput {
 	/**
 	 * Pump in the face of InterruptedIOExceptions
 	 */
+	/*
 	private void pump(int[] lockIds) throws IOException {
 	    boolean interrupted;
 	    do {
@@ -196,16 +197,17 @@ public final class GmOutput extends NetBufferedOutput {
 		}
 	    } while (interrupted);
 	}
+	*/
 
 
 	/**
 	 * Pump in the face of InterruptedIOExceptions
 	 */
-	private void pump(int lockId, int[] lockIds) throws IOException {
+	private void pump() throws IOException {
 	    boolean interrupted;
 	    do {
 		try {
-		    gmDriver.blockingPump(lockId, lockIds);
+		    gmDriver.blockingPump(gmDriver.interrupts(), lockId, lockIds);
 		    interrupted = false;
 		} catch (InterruptedIOException e) {
 		    // try once more
@@ -231,7 +233,7 @@ public final class GmOutput extends NetBufferedOutput {
 	    Driver.gmAccessLock.unlock();
 	    mustFlush = false;
 	    /* Wait for buffer send completion */
-	    pump(lockId, lockIds);
+	    pump();
 	}
 
 	/**
@@ -276,11 +278,11 @@ public final class GmOutput extends NetBufferedOutput {
 
 // System.err.println("Wait for request sent completion");
 	    /* Wait for 'request' send completion */
-	    pump(lockId, lockIds);
+	    pump();
 
 // System.err.println("Wait for rendez-vous ack");
 	    /* Wait for 'ack' completion */
-	    pump(lockId, lockIds);
+	    pump();
 // System.err.print("]");
 	}
 
@@ -308,7 +310,7 @@ public final class GmOutput extends NetBufferedOutput {
                         Driver.gmAccessLock.unlock();
 
                         /* Wait for 'buffer' send completion */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        gmDriver.blockingPump(gmDriver.interrupts(), lockId, lockIds);
 // System.err.print("]");
 
                 } else {
@@ -401,7 +403,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                         } else {
                                 _l = l;
@@ -446,7 +448,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 Driver.gmAccessLock.unlock();
 
                                 // Wait for 'buffer' send completion
-                                pump(lockId, lockIds);
+                                pump();
 
                         } else {
                                 _l = l;
@@ -485,7 +487,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                         } else {
                                 _l = l;
@@ -526,7 +528,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                         } else {
                                 _l = l;
@@ -567,7 +569,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                         } else {
 // System.err.println("Send int array; byte offset " + o + " size " + l);
@@ -608,7 +610,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                         } else {
                                 _l = l;
@@ -647,7 +649,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                         } else {
                                 _l = l;
@@ -686,7 +688,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 Driver.gmAccessLock.unlock();
 
                                 /* Wait for 'buffer' send completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                         } else {
                                 _l = l;

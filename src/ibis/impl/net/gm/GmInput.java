@@ -190,6 +190,7 @@ public final class GmInput extends NetBufferedInput {
 	/**
 	 * Pump in the face of InterruptedIOExceptions
 	 */
+	/*
 	private void pump(int[] lockIds) throws IOException {
 	    boolean interrupted;
 	    do {
@@ -203,16 +204,21 @@ public final class GmInput extends NetBufferedInput {
 		}
 	    } while (interrupted);
 	}
+	*/
 
 
 	/**
 	 * Pump in the face of InterruptedIOExceptions
 	 */
-	private void pump(int lockId, int[] lockIds) throws IOException {
+	private void pump() throws IOException {
 	    boolean interrupted;
 	    do {
 		try {
-		    gmDriver.blockingPump(lockId, lockIds);
+		    gmDriver.gmAccessLock.lock(false);
+		    int interrupts = gmDriver.interrupts();
+		    int[] lockIds = this.lockIds;
+		    gmDriver.gmAccessLock.unlock();
+		    gmDriver.blockingPump(interrupts, lockId, lockIds);
 		    interrupted = false;
 		} catch (InterruptedIOException e) {
 		    // try once more
@@ -236,7 +242,7 @@ int plld;
 		}
 
                 if (block) {
-                        pump(lockId, lockIds);
+                        pump();
                 } else {
                         if (!gmDriver.tryPump(lockId, lockIds)) {
                                 System.err.println("poll failed");
@@ -265,7 +271,7 @@ plld++;
 		firstBlock = false;
 	    } else {
 		/* Request reception */
-		pump(lockId, lockIds);
+		pump();
 	    }
 	}
 
@@ -289,10 +295,10 @@ plld++;
                 if (result == RENDEZ_VOUS_REQUEST) {
 			// A rendez-vous message. Receive the data part.
                         /* Ack completion */
-                        pump(lockId, lockIds);
+                        pump();
 
                         /* Communication transmission */
-                        pump(lockId, lockIds);
+                        pump();
 
                         if (b.length == 0) {
                                 b.length = blockLen;
@@ -395,10 +401,10 @@ rcvd++;
 
                         if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                                 /* Communication transmission */
-                                pump(lockId, lockIds);
+                                pump();
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -440,10 +446,10 @@ rcvd++;
 
                         if (result == RENDEZ_VOUS_REQUEST) {
                                 // Ack completion
-                                pump(lockId, lockIds);
+                                pump();
 
                                 // Communication transmission
-                                pump(lockId, lockIds);
+                                pump();
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -475,10 +481,10 @@ rcvd++;
 
                         if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                                 /* Communication transmission */
-                                pump(lockId, lockIds);
+                                pump();
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -514,10 +520,10 @@ rcvd++;
                         if (result == RENDEZ_VOUS_REQUEST) {
 // System.err.println(Thread.currentThread() + ": ack completion, this would be a rendez-vous msg");
                                 /* Ack completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                                 /* Communication transmission */
-                                pump(lockId, lockIds);
+                                pump();
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -551,10 +557,10 @@ rcvd++;
 
                         if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                                 /* Communication transmission */
-                                pump(lockId, lockIds);
+                                pump();
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -588,10 +594,10 @@ rcvd++;
 
                         if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                                 /* Communication transmission */
-                                pump(lockId, lockIds);
+                                pump();
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -624,10 +630,10 @@ rcvd++;
 
                         if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                                 /* Communication transmission */
-                                pump(lockId, lockIds);
+                                pump();
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -660,10 +666,10 @@ rcvd++;
 
                         if (result == RENDEZ_VOUS_REQUEST) {
                                 /* Ack completion */
-                                pump(lockId, lockIds);
+                                pump();
 
                                 /* Communication transmission */
-                                pump(lockId, lockIds);
+                                pump();
                         }
 
                         Driver.gmReceiveLock.unlock();

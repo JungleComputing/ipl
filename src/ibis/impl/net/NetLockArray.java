@@ -9,25 +9,33 @@ import ibis.util.Monitor;
  */
 public final class NetLockArray {
 
-    private static class Lock {
+    private static final boolean DEBUG = false;
+
+    private class Lock {
 	/**
-	 * Store the lock values.
+	 * Lock value. <code>v > 0</code>means lock is free.
 	 */
 	private int	v;
 
 	/**
-	 * Store the lock mask.
-	 *
-	 * Only the lock entries for whom the mask is
-	 * <code>true</code> are alive.
+	 * Lock liveness mask.
 	 */
 	private boolean m;
+
+	/**
+	 * Maintain an interrupt count. On an interrupt, this is set to the
+	 * global interrupt count, which is incremented for each interrupt.
+	 * Around a cv_wait, we must check if the interrupt count has
+	 * increased. If so, we suffered an interrupt, and must throw an
+	 * {@link #InterruptedIOException}.
+	 */
+	private int	interrupts;
 
 	private ConditionVariable cv;
 	private WaitingOn front;
 	private WaitingOn tail;
 
-	Lock(Monitor mon) {
+	Lock() {
 	    cv = mon.createCV(true);
 	}
     };
@@ -36,21 +44,32 @@ public final class NetLockArray {
 
     private Monitor	mon;
 
+    private int		interrupts;
+
 
     /**
-     * Construct a lock array with a single lock entry and no alive locks.
+     * Construct a lock array with a single lock entry and no live locks.
      */
     public NetLockArray() {
-	mon = new Monitor();
+	this(new Monitor());
+    }
+
+    /**
+     * Construct a lock array with a single lock entry and no live locks.
+     *
+     * @param mon The {@link #Monitor} that governs access to the lock array.
+     */
+    public NetLockArray(Monitor mon) {
+	this.mon = mon;
 	lock = new Lock[1];
-	lock[0] = new Lock(mon);
+	lock[0] = new Lock();
     }
 
     /**
      * Initialize a new lock.
      *
-     * @param id indicates the index of the lock in the lock array.
-     * @param locked indicates the initial state of the new lock.
+     * @param id index of the lock into the lock array.
+     * @param locked initial state of the new lock.
      */
     public void initLock(int id, boolean locked) {
 	mon.lock();
@@ -61,7 +80,7 @@ public final class NetLockArray {
 		System.arraycopy(lock, 0, _lock, 0, lock.length);
 
 		for (int i = lock.length; i < _lock.length; i++) {
-		    _lock[i] = new Lock(mon);
+		    _lock[i] = new Lock();
 		}
 
 		lock = _lock;
@@ -71,11 +90,8 @@ public final class NetLockArray {
 		throw new IllegalLockStateException("lock already initialized");
 	    }
 
-	    lock[id].v = locked?0:1;
+	    lock[id].v = locked ? 0 : 1;
 	    lock[id].m = true;
-// if (id == 2) {
-// System.err.println("Initialize lock(" + id + ") as " + (locked ? "locked" : "unlocked"));
-// }
 	} finally {
 	    mon.unlock();
 	}
@@ -83,10 +99,9 @@ public final class NetLockArray {
 
     /**
      * Initialize a new lock.
-     *
      * The new lock is initially unlocked.
      *
-     * @param id indicates the index of the lock in the lock array.
+     * @param id index of the lock into the lock array.
      */
     public void initLock(int id) {
 	initLock(id, false);
@@ -143,17 +158,21 @@ public final class NetLockArray {
 	    q.tail.next = w;
 	}
 	q.tail = w;
-// System.err.print("Enqueue(" + wait_id + "); Wait queue[" + id + "] := (");
-// for (w = q.front; w != null; w = w.next) {
-    // System.err.print(w.id + ",");
-// }
-// System.err.println(")");
+
+	if (DEBUG) {
+	    System.err.print("Enqueue(" + wait_id + "); Wait queue[" + id
+		    + "] := (");
+	    for (w = q.front; w != null; w = w.next) {
+		System.err.print(w.id + ",");
+	    }
+	    System.err.println(")");
+	}
     }
 
 
     /**
-     * Apparently we have been signalled. Remove our wait request
-     * from the queue.
+     * Remove our wait request from the queue.
+     * Apparently we have been signalled.
      */
     private void unregisterWaitingOn(int id, int wait_id) {
 	WaitingOn scan;
@@ -166,14 +185,18 @@ public final class NetLockArray {
 	    }
 	    prev = scan;
 	}
-// System.err.print("Dequeue(" + wait_id + "); Wait queue[" + id + "] was (");
-// for (WaitingOn w = q.front; w != null; w = w.next) {
-    // System.err.print(w.id + ",");
-// }
-// System.err.println(")");
+	if (DEBUG) {
+	    System.err.print("Dequeue(" + wait_id + "); Wait queue[" + id
+		    + "] was (");
+	    for (WaitingOn w = q.front; w != null; w = w.next) {
+		System.err.print(w.id + ",");
+	    }
+	    System.err.println(")");
+	}
 
 	if (scan == null) {
-	    throw new Error("Multi-wait queue[" + id + "," + wait_id + "] corrupt");
+	    throw new Error("Multi-wait queue[" + id + "," + wait_id
+		    + "] corrupt");
 	}
 
 	if (prev == null) {
@@ -190,27 +213,51 @@ public final class NetLockArray {
 	}
 
 	putWaitingOn(scan);
-// System.err.print("Dequeue(" + wait_id + "); Wait queue[" + id + "] := (");
-// for (WaitingOn w = q.front; w != null; w = w.next) {
-    // System.err.print(w.id + ",");
-// }
-// System.err.println(")");
+	if (DEBUG) {
+	    System.err.print("Dequeue(" + wait_id + "); Wait queue[" + id
+		    + "] := (");
+	    for (WaitingOn w = q.front; w != null; w = w.next) {
+		System.err.print(w.id + ",");
+	    }
+	    System.err.println(")");
+	}
+    }
+
+
+    /**
+     * Wait on condition variable that belongs to <code>lock[id]</code>.
+     * If the condition variable has been interrupted, its interrupt variable
+     * is incremented. In that case, throw an InterruptedIOException.
+     */
+    private void iwait(int id) throws InterruptedIOException {
+	int interrupts = lock[id].interrupts;
+	try {
+	    lock[id].cv.cv_wait();
+	} catch (InterruptedException e) {
+	    throw new InterruptedIOException(e);
+	}
+	if (lock[id].interrupts > interrupts) {
+	    throw new InterruptedIOException();
+	}
     }
 
 
     /**
      * Lock one of the array's locks.
+     * No support for interrupt of the lock operation.
      *
      * @param id indicates the index of the lock.
      *
-     * @exception IllegalLockStateException if the requested lock has not been initialized or gets discarded while the method is blocked on a {@link #wait}.
-     * @exception InterruptedIOException if the thread is
-     * interrupted while waiting. 
+     * @exception IllegalLockStateException if the requested lock has not
+     * been initialized or gets discarded while the method is blocked on a
+     * {@link #wait}.
      */
-    public void lock(int id) throws InterruptedIOException {
+    public void lock(int id) {
 
 	mon.lock();
-// System.err.println("enter lock(" + id +")");
+	if (DEBUG) {
+	    System.err.println("enter lock(" + id +")");
+	}
 	try {
 	    if (!lock[id].m) {
 		throw new IllegalLockStateException("uninitialized lock");
@@ -219,9 +266,9 @@ public final class NetLockArray {
 	    while (lock[id].v <= 0) {
 		registerWaitingOn(id, id);
 		try {
-		    lock[id].cv.cv_wait();
-		} catch (InterruptedException e) {
-		    throw new InterruptedIOException(e);
+		    iwait(id);
+		} catch (InterruptedIOException e) {
+		    // Don't care about interrupts. Retry grabbing the lock.
 		} finally {
 		    unregisterWaitingOn(id, id);
 		}
@@ -231,30 +278,34 @@ public final class NetLockArray {
 		}
 	    }
 
-// if (id == 2) {
-// System.err.println("lock(" + id + ")");
-// Thread.dumpStack();
-// }
 	    lock[id].v--;
-// System.err.println("locked(" + id +")");
+	    if (DEBUG) {
+		System.err.println("locked(" + id +")");
+	    }
 
 	} finally {
 	    mon.unlock();
 	}
     }
 
+
     /**
      * Lock one of the array's locks.
+     * Support interrupt of the lock operation.
      *
      * @param id indicates the index of the lock.
      *
-     * @exception IllegalLockStateException if the requested lock has not been initialized or gets discarded while the method is blocked on a {@link #wait}.
+     * @exception IllegalLockStateException if the requested lock has not been
+     * initialized or gets discarded while the method is blocked on a
+     * {@link #wait}.
      * @exception InterruptedIOException if the thread is
-     * interrupted while waiting.
+     * {@link #interrupt}ed while waiting.
      */
     public void ilock(int id) throws InterruptedIOException {
 	mon.lock();
-// System.err.println("enter ilock(" + id +")");
+	if (DEBUG) {
+	    System.err.println("enter ilock(" + id +")");
+	}
 
 	try {
 
@@ -265,9 +316,7 @@ public final class NetLockArray {
 	    while (lock[id].v <= 0) {
 		registerWaitingOn(id, id);
 		try {
-		    lock[id].cv.cv_wait();
-		} catch (InterruptedException e) {
-		    throw new InterruptedIOException(e);
+		    iwait(id);
 		} finally {
 		    unregisterWaitingOn(id, id);
 		}
@@ -276,11 +325,9 @@ public final class NetLockArray {
 		}
 	    }
 	    lock[id].v--;
-// if (id == 2) {
-// System.err.println("ilock(" + id + ")");
-// Thread.dumpStack();
-// }
-// System.err.println("ilocked(" + id +")");
+	    if (DEBUG) {
+		System.err.println("ilocked(" + id +")");
+	    }
 
 	} finally {
 	    mon.unlock();
@@ -296,7 +343,7 @@ public final class NetLockArray {
      * @return true if the lock was successfully acquired, false otherwise.
      *
      * @exception IllegalLockStateException if the requested lock has
-     * not been initialized
+     * not been initialized or has been cleared.
      */
     public boolean trylock(int id) {
 	mon.lock();
@@ -309,11 +356,9 @@ public final class NetLockArray {
 		return false;
 	    }
 
-// System.err.println("trylocked(" + id +")");
-// if (id == 2) {
-// System.err.println("trylock(" + id + ")");
-// Thread.dumpStack();
-// }
+	    if (DEBUG) {
+		System.err.println("trylocked(" + id +")");
+	    }
 	    lock[id].v--;
 
 	    return true;
@@ -324,118 +369,103 @@ public final class NetLockArray {
     }
 
 
-    /*
-     * Atomically --- but interruptibly ---  acquire a whole set of lock entries.
+    /**
+     * Lock the first free lock in the array indexed by <code>ids</code>.
+     * No support for interrupt of the lock operation.
+     * 
+     * @param ids array of indexes into our lock array
      *
-     * @param ids stores the set of entry indexes.
+     * @return the index into <code>ids</code> of the lock that is taken
      *
-     * @exception IllegalLockStateException if one of the requested locks has
-     * not been initialized or or got discarded while the method is
-     * blocked on a {@link #wait}.
-     * @exception InterruptedIOException if the thread is
-     * interrupted while waiting.
+     * @exception IllegalLockStateException if the requested lock has
+     * not been initialized or has been cleared.
      */
-    public void lockAll(int[] ids) throws InterruptedIOException {
-	throw new RuntimeException("lockAll is not implemented");
+    public int lockFirst(int[] ids) {
+	int wait_id = ids[0];
+
+	mon.lock();
+	if (DEBUG) {
+	    System.err.print("enter lockFirst(");
+	    for (int i = 0; i < ids.length; i++) {
+		System.err.print(ids[i] + ",");
+	    }
+	    System.err.println(")");
+	}
+	try {
+	    int result = -1;
+
+outer:
+	    while (true) {
+		for (int i = 0; i < ids.length; i++) {
+		    if (!lock[ids[i]].m) {
+			throw new IllegalLockStateException("uninitialized lock");
+		    }
+		}
+
+		for (int i = 0; i < ids.length; i++) {
+		    if (lock[ids[i]].v > 0) {
+			result = i;
+			break outer;
+		    }
+		}
+
+		for (int i = 0; i < ids.length; i++) {
+		    registerWaitingOn(ids[i], wait_id);
+		}
+		try {
+		    if (DEBUG) {
+			System.err.println("lockFirst wait(" + wait_id + ")");
+		    }
+		    iwait(wait_id);
+		} catch (InterruptedIOException e) {
+		    // Don't care about interrupts. Retry grabbing the lock.
+		} finally {
+		    for (int i = 0; i < ids.length; i++) {
+			unregisterWaitingOn(ids[i], wait_id);
+		    }
+		}
+	    }
+
+	    if (DEBUG) {
+		System.err.println("lockFirst(" + ids[result] + ")");
+	    }
+	    lock[ids[result]].v--;
+
+	    return result;
+	} finally {
+	    mon.unlock();
+	}
     }
 
 
     /**
-     * Atomically --- but interruptibly --- acquire a whole set of lock entries.
+     * Lock the first free lock in the array indexed by <code>ids</code>.
+     * Support interrupt of the lock operation.
+     * 
+     * @param ids array of indexes into our lock array
      *
-     * @param ids stores the set of entry indexes.
+     * @return the index into <code>ids</code> of the lock that is taken
      *
-     * @exception IllegalLockStateException if one of the requested locks has
-     * not been initialized or or got discarded while the method is
-     * blocked on a {@link #wait}.
-     * @exception InterruptedIOException if the thread is
-     * interrupted while waiting.
+     * @exception InterruptedIOException when some lock that we wait on
+     * 		has been {@link #interrupt}ed.
+     * @exception IllegalLockStateException if the requested lock has
+     * not been initialized or has been cleared.
      */
-    public void ilockAll(int[] ids) throws InterruptedIOException {
-	throw new RuntimeException("ilockAll is not implemented");
-    }
-
-
-    public boolean trylockAll(int[] ids) {
-	throw new RuntimeException("trylockAll is not implemented");
-    }
-
-
-    public synchronized int lockFirst(int[] ids) throws InterruptedIOException {
-	int wait_id = ids[0];
-
-	mon.lock();
-// System.err.print("enter lockFirst(");
-// for (int i = 0; i < ids.length; i++) {
-    // System.err.print(ids[i] + ",");
-// }
-// System.err.println(")");
-	try {
-	    int result = -1;
-
-	    boolean state = false;
-
-	    while (true) {
-		for (int i = 0; i < ids.length; i++) {
-		    if (!lock[ids[i]].m) {
-			throw new IllegalLockStateException("uninitialized lock");
-		    }
-		}
-
-		for (int i = 0; i < ids.length; i++) {
-		    if (lock[ids[i]].v > 0) {
-			result = i;
-			state  = true;
-			break;
-		    }
-		}
-
-		if (state) {
-		    break;
-		}
-
-		for (int i = 0; i < ids.length; i++) {
-		    registerWaitingOn(ids[i], wait_id);
-		}
-		try {
-// System.err.println("lockFirst wait(" + wait_id + ")");
-		    lock[wait_id].cv.cv_wait();
-		} catch (InterruptedException e) {
-		    throw new InterruptedIOException(e);
-		} finally {
-		    for (int i = 0; i < ids.length; i++) {
-			unregisterWaitingOn(ids[i], wait_id);
-		    }
-		}
-	    }
-
-// if (ids[result] == 2) {
-// System.err.println("lockFirst(" + ids[result] + ")");
-// Thread.dumpStack();
-// }
-// System.err.println("lockFirst(" + ids[result] + ")");
-	    lock[ids[result]].v--;
-
-	    return result;
-	} finally {
-	    mon.unlock();
-	}
-    }
-
     public int ilockFirst(int[] ids) throws InterruptedIOException {
 	int wait_id = ids[0];
 
 	mon.lock();
-// System.err.print("enter ilockFirst(");
-// for (int i = 0; i < ids.length; i++) {
-    // System.err.print(ids[i] + ",");
-// }
-// System.err.println(")");
+	if (DEBUG) {
+	    System.err.print("enter ilockFirst(");
+	    for (int i = 0; i < ids.length; i++) {
+		System.err.print(ids[i] + ",");
+	    }
+	    System.err.println(")");
+	}
 	try {
 	    int result = -1;
 
-	    boolean state = false;
-
+outer:
 	    while (true) {
 
 		for (int i = 0; i < ids.length; i++) {
@@ -447,23 +477,18 @@ public final class NetLockArray {
 		for (int i = 0; i < ids.length; i++) {
 		    if (lock[ids[i]].v > 0) {
 			result = i;
-			state  = true;
-			break;
+			break outer;
 		    }
 		}
 
-		if (state) {
-		    break;
+		if (DEBUG) {
+		    System.err.println("ilockFirst wait(" + wait_id + ")");
 		}
-
-// System.err.println("ilockFirst wait(" + wait_id + ")");
 		for (int i = 0; i < ids.length; i++) {
 		    registerWaitingOn(ids[i], wait_id);
 		}
 		try {
-		    lock[wait_id].cv.cv_wait();
-		} catch (InterruptedException e) {
-		    throw new InterruptedIOException(e);
+		    iwait(wait_id);
 		} finally {
 		    for (int i = 0; i < ids.length; i++) {
 			unregisterWaitingOn(ids[i], wait_id);
@@ -471,11 +496,9 @@ public final class NetLockArray {
 		}
 	    }
 
-// if (ids[result] == 2) {
-// System.err.println("ilockFirst(" + ids[result] + ")");
-// Thread.dumpStack();
-// }
-// System.err.println("ilockFirst(" + ids[result] + ")");
+	    if (DEBUG) {
+		System.err.println("ilockFirst(" + ids[result] + ")");
+	    }
 	    lock[ids[result]].v--;
 
 	    return result;
@@ -485,6 +508,18 @@ public final class NetLockArray {
     }
 
 
+    /**
+     * Try to lock some free lock in the array indexed by <code>ids</code>,
+     * with preference for lower indices.
+     * 
+     * @param ids array of indexes into our lock array
+     *
+     * @return the index into <code>ids</code> of the lock that is taken or -1
+     * 		if none was free
+     *
+     * @exception IllegalLockStateException if the requested lock has
+     * not been initialized or has been cleared.
+     */
     public int trylockFirst(int[] ids) {
 	mon.lock();
 	try {
@@ -501,11 +536,9 @@ public final class NetLockArray {
 		if (lock[ids[i]].v > 0) {
 		    result = i;
 		    lock[ids[result]].v--;
-// System.err.print("L(" + i + ")");
-// if (ids[result] == 2) {
-// System.err.println("trylockFirst(" + ids[result] + ")");
-// Thread.dumpStack();
-// }
+		    if (DEBUG) {
+			System.err.print("L(" + i + ")");
+		    }
 		    break;
 		}
 	    }
@@ -521,10 +554,10 @@ public final class NetLockArray {
 	if (!lock[id].m) {
 	    throw new IllegalLockStateException("uninitialized lock");
 	}
-	/** It seems NetIbis allows unlocking of a free lock?????
+	/* It seems NetIbis allows unlocking of a free lock????? *
 	if (lock[id].v > 0) {
-System.err.println("Unlock free lock");
-Thread.dumpStack();
+	    System.err.println("Unlock free lock");
+	    Thread.dumpStack();
 	    throw new IllegalLockStateException("Unlock free lock");
 	}
 	*/
@@ -533,7 +566,10 @@ Thread.dumpStack();
 	    if (false && true) {
 		WaitingOn w = lock[id].front;
 		while (w != null) {
-// System.err.println("Signal(" + w.id + ") from unlock(" + id +")");
+		    if (DEBUG) {
+			System.err.println("Signal(" + w.id + ") from unlock("
+				+ id +")");
+		    }
 		    lock[w.id].cv.cv_signal();
 		    w = w.next;
 		}
@@ -547,15 +583,18 @@ Thread.dumpStack();
 	    }
 	}
 
-// System.err.println("Unlocked(" + id +")");
-// if (id == 2) {
-// System.err.println("unlock(" + id + ")");
-// Thread.dumpStack();
-// }
+	if (DEBUG) {
+	    System.err.println("Unlocked(" + id +")");
+	}
 	lock[id].v++;
     }
 
 
+    /**
+     * Unlock the lock in our array indexed by <code>id</code>
+     *
+     * @param id index into the lock array
+     */
     public void unlock(int id) {
 	mon.lock();
 	try {
@@ -566,18 +605,11 @@ Thread.dumpStack();
     }
 
 
-    public void unlockAll(int [] ids) {
-	mon.lock();
-	try {
-	    for (int i = 0; i < ids.length; i++) {
-		unlockLocked(ids[i]);
-	    }
-	} finally {
-	    mon.unlock();
-	}
-    }
-
-
+    /**
+     * Delete the lock in our array indexed by <code>id</code>
+     *
+     * @param id index into the lock array
+     */
     public void deleteLock(int id) {
 	mon.lock();
 	try {
@@ -586,6 +618,64 @@ Thread.dumpStack();
 	    while (w != null) {
 		lock[w.id].cv.cv_bcast();
 		w = w.next;
+	    }
+	} finally {
+	    mon.unlock();
+	}
+    }
+
+
+    private void interruptLocked(int id) {
+	WaitingOn w = lock[id].front;
+	while (w != null) {
+	    Lock lck = lock[w.id];
+	    if (w.id != 0 && lck.interrupts < interrupts) {
+		lck.interrupts = interrupts;
+		lck.cv.cv_bcast();
+	    }
+	    w = w.next;
+	}
+	Lock lck = lock[id];
+	if (lck.front != null && lck.interrupts < interrupts && id != 0) {
+	    lck.interrupts = interrupts;
+	    lck.cv.cv_bcast();
+	}
+    }
+
+
+    /**
+     * Interrupt all threads that wait on any of the lock indexed by
+     * <code>id</code>. If the threads are in any of the routines that
+     * support interrupts ({@link #ilock}, {@link #ilockFirst}), they return
+     * from that routine with an {@link InterruptedIOException}.
+     *
+     * @param id index into the lock array
+     */
+    public void interrupt(int id) {
+	mon.lock();
+	interrupts++;
+	try {
+	    interruptLocked(id);
+	} finally {
+	    mon.unlock();
+	}
+    }
+
+
+    /**
+     * Interrupt all threads that wait on any of the locks indexed by
+     * <code>lockIds</code>. If the threads are in any of the routines that
+     * support interrupts ({@link #ilock}, {@link #ilockFirst}), they return
+     * from that routine with an {@link InterruptedIOException}.
+     *
+     * @param lockIds indices into the lock array
+     */
+    public void interrupt(int[] lockIds) {
+	mon.lock();
+	try {
+	    interrupts++;
+	    for (int i = 0; i < lockIds.length; i++) {
+		interruptLocked(lockIds[i]);
 	    }
 	} finally {
 	    mon.unlock();
