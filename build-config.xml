@@ -522,10 +522,6 @@ to the command line.
 	</copy>
 	<replace
 		file="${ibis}/configuration.bat"
-		token="#"
-		value="rem "/>
-	<replace
-		file="${ibis}/configuration.bat"
 		token="Shell"
 		value="Windows cmd"/>
 	<replaceregexp
@@ -533,6 +529,14 @@ to the command line.
 		flags="g"
 		match="(.*)="
 		replace="set \1="/>
+	<replace
+		file="${ibis}/configuration.bat"
+		token="set #"
+		value="rem set"/>
+	<replace
+		file="${ibis}/configuration.bat"
+		token="#"
+		value="rem "/>
 
 	<concat destfile="${ibis}/bin/run_ibis.bat">
 	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/run_ibis.bat" />
