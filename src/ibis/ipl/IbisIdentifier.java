@@ -1,52 +1,88 @@
 package ibis.ipl;
 
 /**
-   Be careful, classes implementing this abstact class should override the methods
-   equals() and hashCode().
-   note: if an IbisIdentifier is sent over the network, it is not guaranteed
-   that the object on the remote side will be a new one. This allows the Ibis
-   implementation to cache IbisIdentifiers.
-**/
+ * Identifies an Ibis on the network.
+ * Be careful, classes implementing this abstract class should override the methods
+ * <code>equals</code>() and <code>hashCode</code>().
+ * note: if an <code>IbisIdentifier</code> is sent over the network,
+ * it is not guaranteed that the object on the remote side will be a new one.
+ * This allows the Ibis implementation to cache <code>IbisIdentifier</code>s.
+ */
 public abstract class IbisIdentifier implements java.io.Serializable {
-	protected String name;
+    /**
+     * The name of this Ibis, given to it when it was created.
+     */
+    protected String name;
 
-	/**
-	 * This field is used to indicate to which virtual or physical cluster
-	 * this ibis belongs. It is set according to the 'cluster' System
-	 * property. Nodes which don't have that property set will get
-	 * "unknown".
-	 */
-	protected String cluster;
+    /**
+     * This field is used to indicate to which virtual or physical cluster
+     * this ibis belongs. It is set according to the 'cluster' System
+     * property. Nodes which don't have that property set will get
+     * "unknown".
+     */
+    protected String cluster;
 
-	protected IbisIdentifier() {
-		throw new IbisError("No arg constructor of IbisIdentifier, this should not happen.");
+    /**
+     * Parameter-less constructor should not happen, therefore private.
+     */
+    private IbisIdentifier() {
+	throw new IbisError("No arg constructor of IbisIdentifier, this should not happen.");
+    }
+
+    /**
+     * Constructs an <code>IbisIdentifier</code>.
+     * @param name the name of this ibis.
+     */
+    protected IbisIdentifier(String name) { //, java.net.InetAddress address) { 
+	this.name = name;
+	init_cluster();
+    }
+
+    /**
+     * Compares two Ibis identifiers.
+     * Note: should be redefined by all Ibis implementations.
+     * @exception IbisError is thrown when this method is not redefined
+     * by the ibis implementation.
+     */
+    public boolean equals(Object o) {
+	throw new IbisError("Subclasses of IbisIdentifier should override equals");
+    }
+
+    /**
+     * Computes the hashcode.
+     * Note: should be redefined by all Ibis implementations.
+     * @return the hashcode.
+     * @exception IbisError is thrown when this method is not redefined
+     * by the ibis implementation.
+     */
+    public int hashCode() {
+	throw new IbisError("Subclasses of IbisIdentifier should override hashCode");
+    }
+
+    /**
+     * Initializes the <code>cluster</code> field.
+     */
+    protected void init_cluster() {
+	cluster = System.getProperty("cluster");
+	if (cluster == null) {
+	    cluster = "unknown";
 	}
+    }
 
-	protected IbisIdentifier(String name) { //, java.net.InetAddress address) { 
-		this.name = name;
-		init_cluster();
-	}
+    /**
+     * Returns the name of this Ibis.
+     * @return the Ibis name.
+     */
+    public String name() {
+	return name;
+    }
 
-	public boolean equals(Object o) {
-		throw new IbisError("Subclasses of IbisIdentifier should override equals");
-	}
-
-	public int hashCode() {
-		throw new IbisError("Subclasses of IbisIdentifier should override hashCode");
-	}
-
-	protected void init_cluster() {
-		cluster = System.getProperty("cluster");
-		if (cluster == null) {
-			cluster = "unknown";
-		}
-	}
-
-	public String name() {
-		return name;
-	}
-
-	public String cluster() {
-		return cluster;
-	}
+    /**
+     * Returns the name of the virtual or physical cluster this Ibis
+     * belongs to. If not set in the System property, it is "unknown".
+     * @return the cluster name.
+     */
+    public String cluster() {
+	return cluster;
+    }
 }

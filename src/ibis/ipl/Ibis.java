@@ -77,8 +77,11 @@ public abstract class Ibis {
 	 * 	throws at its initialization
 	 * @exception IllegalArgumentException name or implName are null, or
 	 * 	do not correspond to an existing Ibis implementation
+	    @exception ConnectionRefusedException is thrown when the name turns out to
+	     be not unique.
 	 */
-	public static Ibis createIbis(String name, String implName, ResizeHandler resizeHandler) throws IbisException {
+	public static Ibis createIbis(String name, String implName, ResizeHandler resizeHandler)
+			throws IbisException, ConnectionRefusedException {
 		Ibis impl;
 
 		try {
@@ -116,6 +119,8 @@ public abstract class Ibis {
 
 		try {
 			impl.init();
+		} catch(ConnectionRefusedException e) {
+			throw e;
 		} catch (IOException e3) {
 			throw new IbisException("Could not initialize Ibis", e3);
 		}
@@ -152,9 +157,12 @@ public abstract class Ibis {
 	    tcp		Ibis built on top of TCP (the current default).
 	    mpi		Ibis built on top of MPI.
 	    net.*	The future version, for tcp, udp, GM, ...
+
+	    @exception ConnectionRefusedException is thrown when the name turns out to
+	     be not unique.
 	**/
 	public static Ibis createIbis(ResizeHandler r)
-	    throws IbisException
+	    throws IbisException, ConnectionRefusedException
 	{
 	    Properties p = System.getProperties();
 	    String ibisname = p.getProperty("ibis.name");
@@ -181,7 +189,7 @@ public abstract class Ibis {
 	    }
 
 	    // Is this name unique enough?
-	    String name = "ibis:" + hostname + "@" + System.currentTimeMillis();
+	    String name = "ibis:" + hostname + "@" + (new Object()).hashCode() + "_" + System.currentTimeMillis();
 
 	    if (ibisname.equals("panda")) {
 		return createIbis(name, "ibis.impl.messagePassing.PandaIbis", r);

@@ -13,10 +13,6 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements java.io.S
 	private InetAddress address;
 	private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
-	public TcpIbisIdentifier() {
-		throw new IbisError("EEK, TcpIbisIdentifier default ctor!");
-	}
-
 	public TcpIbisIdentifier(String name, InetAddress address) {
 		super(name);
 		this.address = address;

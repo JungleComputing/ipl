@@ -9,7 +9,7 @@ public class IbisIOException extends IOException {
     Throwable cause = null;
 
     /**
-     * Constructs a <code>IbisIOException</code> with
+     * Constructs an <code>IbisIOException</code> with
      * <code>null</code> as its error detail message.
      */
     public IbisIOException() {
@@ -17,7 +17,7 @@ public class IbisIOException extends IOException {
     }
 
     /**
-     * Constructs a <code>IbisIOException</code> with
+     * Constructs an <code>IbisIOException</code> with
      * the specified detail message.
      *
      * @param s		the detail message
@@ -27,7 +27,7 @@ public class IbisIOException extends IOException {
     }
 
     /**
-     * Constructs a <code>IbisIOException</code> with
+     * Constructs an <code>IbisIOException</code> with
      * the specified detail message and cause.
      *
      * @param s		the detail message
@@ -39,7 +39,7 @@ public class IbisIOException extends IOException {
     }
 
     /**
-     * Constructs a <code>IbisIOException</code> with
+     * Constructs an <code>IbisIOException</code> with
      * the specified cause.
      *
      * @param cause	the cause

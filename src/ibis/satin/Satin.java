@@ -3,6 +3,7 @@ package ibis.satin;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
+import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -260,11 +261,17 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					ibis = Ibis.createIbis(name,
 							       "ibis.impl.tcp.TcpIbis", this);
 				}
-			} catch (IbisException e) {
+			} catch (ConnectionRefusedException e) {
 				System.err.println("SATIN '" + hostName + 
 						   "': WARNING Could not start ibis with name '" +
 						   name + "': " + e + ", retrying.");
 				//				e.printStackTrace();
+			} catch (IbisException e) {
+				System.err.println("SATIN '" + hostName + 
+						   "': WARNING Could not start ibis with name '" +
+						   name + "': " + e);
+				e.printStackTrace();
+				break;
 			}
 		}
 		if(ibis == null) {
@@ -512,7 +519,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 				out.println("SATIN '" + ident.name() + 
 					    "': COMM_STATS: software comm time = " +
-					    Timer.format(stealTimer.totalTimeVal() +
+					    pollTimer.format(stealTimer.totalTimeVal() +
 							 handleStealTimer.totalTimeVal() -
 							 idleTimer.totalTimeVal()));
 			}
