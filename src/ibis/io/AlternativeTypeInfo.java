@@ -1,8 +1,12 @@
 package ibis.io;
 
-import java.lang.reflect.*;
-import java.security.*;
-import java.util.*;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.HashMap;
+import java.util.Comparator;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamField;
