@@ -2,6 +2,7 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.connect.controlHub.ControlHub;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisRuntimeException;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.util.PoolInfoServer;
@@ -505,7 +506,7 @@ public class NameServer implements Protocol {
 		try { 
 			serverSocket.close();
 		} catch (Exception e) {
-			throw new RuntimeException("NameServer got an error " + e.getMessage());
+			throw new IbisRuntimeException("NameServer got an error" , e);
 		}
 
 		if (VERBOSE) {

@@ -1,6 +1,7 @@
 package ibis.impl.nameServer.tcp;
 
 import ibis.ipl.StaticProperties;
+import ibis.ipl.IbisRuntimeException;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 
@@ -126,7 +127,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 			try {
 				s = NameServerClient.socketFactory.accept(serverSocket);
 			} catch (Exception e) {
-				throw new RuntimeException("PortTypeNameServer: got an error " + e.getMessage());
+				throw new IbisRuntimeException("PortTypeNameServer: got an error ", e);
 			}
 
 			try {

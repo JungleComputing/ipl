@@ -3,6 +3,8 @@ package ibis.impl.nameServer.tcp;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 
+import ibis.ipl.IbisRuntimeException;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -77,7 +79,7 @@ class ElectionServer extends Thread implements Protocol {
 			try {
 				s = NameServerClient.socketFactory.accept(serverSocket);
 			} catch (Exception e) {
-				throw new RuntimeException("ElectionServer: got an error " + e.getMessage());
+				throw new IbisRuntimeException("ElectionServer: got an error", e);
 			}
 
 			try {

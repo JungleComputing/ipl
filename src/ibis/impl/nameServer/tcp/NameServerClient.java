@@ -8,6 +8,7 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
+import ibis.ipl.IbisRuntimeException;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.util.IPUtils;
@@ -313,7 +314,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 					}
 					return;
                                 }
-				throw new RuntimeException("NameServerClient: got an error " + e.getMessage());
+				throw new IbisRuntimeException("NameServerClient: got an error", e);
 			}
 	
 			int opcode = 666;
