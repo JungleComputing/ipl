@@ -75,7 +75,9 @@ public interface SendPort
     public String name ();
 
     /**
-     * Returns the number of bytes that have been written to this sendport.
+     * Returns the sum of all {@link ibis.ipl.WriteMessage#finish()} 
+     * results. This is the total number of bytes written to all write
+     * messages coming from this port.
      * @return the number of bytes written.
      */
     public long getCount ();
