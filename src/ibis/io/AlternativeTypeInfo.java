@@ -5,6 +5,7 @@ import java.security.*;
 import java.util.*;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectStreamField;
 import java.io.IOException;
 
 final class AlternativeTypeInfo {
@@ -12,7 +13,9 @@ final class AlternativeTypeInfo {
     private static HashMap alternativeTypes = new HashMap();
     private static Class javaSerializableClass;
 
+    Class clazz;
     Field [] serializable_fields;
+    boolean[] fields_final;
     int double_count;
     int long_count;
     int float_count;
@@ -26,6 +29,8 @@ final class AlternativeTypeInfo {
     boolean superSerializable;	
     AlternativeTypeInfo alternativeSuperInfo;
     int level;
+
+    java.io.ObjectStreamField[] serial_persistent_fields = null;
 
     boolean hasReadObject;
     boolean hasWriteObject;
@@ -101,11 +106,11 @@ final class AlternativeTypeInfo {
 	array[used] = to_insert;
     } 
 
-    private Method getMethod(Class cl, String name, 
+    private Method getMethod(String name, 
 			     Class[] paramTypes,
 			     Class returnType) {
 	try {
-	    Method method = cl.getDeclaredMethod(name, paramTypes);
+	    Method method = clazz.getDeclaredMethod(name, paramTypes);
 	    if (method.getReturnType() != returnType) return null;
 
 	    if ((method.getModifiers() & Modifier.STATIC) != 0) return null;
@@ -129,6 +134,7 @@ final class AlternativeTypeInfo {
 
     void invokeWriteObject(Object o, ObjectOutputStream out)
 	    throws IOException {
+	System.out.println("invoke writeObject");
 	try {
 	    writeObjectMethod.invoke(o, new Object[] { out });
 	} catch (Exception e) {
@@ -138,9 +144,11 @@ final class AlternativeTypeInfo {
 
     void invokeReadObject(Object o, ObjectInputStream in)
 	    throws IOException {
+	System.out.println("invoke readObject");
 	try {
 	    readObjectMethod.invoke(o, new Object[] { in });
 	} catch (Exception e) {
+	    e.printStackTrace();
 	    throw new IOException("invocation of readObject failed: " + e.getMessage());
 	}
     }
@@ -167,8 +175,7 @@ final class AlternativeTypeInfo {
 	init(clazz);
     }
 
-    private Field[] getSerialPersistentFields(Class clazz) {
-	java.io.ObjectStreamField[] serialPersistentFields = null;
+    private void getSerialPersistentFields() {
 	try {
 	    Field f = clazz.getDeclaredField("serialPersistentFields");
 	    int mask = Modifier.PRIVATE | Modifier.STATIC | Modifier.FINAL;
@@ -182,36 +189,26 @@ final class AlternativeTypeInfo {
 			} 
 		    });
 		}
-		serialPersistentFields = (java.io.ObjectStreamField[]) f.get(null);
+		serial_persistent_fields = (java.io.ObjectStreamField[]) f.get(null);
 	    }
 	} catch (Exception e) {
 	}
-	if (serialPersistentFields == null) {
-	    return null;
-	} else if (serialPersistentFields.length == 0) {
-	    return new Field[0];
-	}
-	
-	Field[] fields = new Field[serialPersistentFields.length];
-	int j = 0;
-	for (int i = 0; i < serialPersistentFields.length; i++) {
-	    java.io.ObjectStreamField osf = serialPersistentFields[i];
-	    try {
-		Field f = clazz.getDeclaredField(osf.getName());
-		if ((f.getType() == osf.getType()) && ((f.getModifiers() & Modifier.STATIC) == 0))
-		{
-		    fields[j++] = f;
-		}
-	    } catch (NoSuchFieldException ex) {
-		/*  TODO:
-		    What to do here??? And, what to do if the field is static or its type does not match?
-		*/
+    }
+
+    private Field findField(ObjectStreamField of) {
+	try {
+	    Field f = clazz.getDeclaredField(of.getName());
+	    if (f.getType().equals(of.getType())) {
+		return f;
 	    }
+	} catch(NoSuchFieldException e) {
+	    return null;
 	}
-	return fields;
+	return null;
     }
 
     private void init(Class clazz) {
+	this.clazz = clazz;
 	try {								
 	    /*
 	      Here we figure out what field the type contains, and which fields 
@@ -220,90 +217,174 @@ final class AlternativeTypeInfo {
 	      this so we only do it once for each type.
 	    */
 
-	    Field [] fields = getSerialPersistentFields(clazz);
-	    int mods = Modifier.STATIC;
-	    
-	    if (fields == null) {
-		mods |= Modifier.TRANSIENT;
-		fields = clazz.getDeclaredFields(); 
-	    }
+	    getSerialPersistentFields();
+
+	    /* see if the supertype is serializable */			
+	    Class superClass = clazz.getSuperclass();
+
+	    if (superClass != null) { 
+		if (javaSerializableClass.isAssignableFrom(superClass)) { 
+		    superSerializable = true;
+		    alternativeSuperInfo = getAlternativeTypeInfo(superClass);
+		    level = alternativeSuperInfo.level + 1;
+		} else { 
+		    superSerializable = false;
+		    level = 1;
+		}								
+	    } 
+
+	    /* Now see if it has a writeObject/readObject. */
+
+	    writeObjectMethod = getMethod("writeObject",
+					  new Class[] { ObjectOutputStream.class },
+					  Void.TYPE);
+	    readObjectMethod = getMethod("readObject",
+					 new Class[] { ObjectInputStream.class },
+					 Void.TYPE);
+
+	    hasWriteObject = writeObjectMethod != null;
+	    hasReadObject = readObjectMethod != null;
+
+	    writeReplaceMethod = getMethod("writeReplace",
+					   new Class[0],
+					   Object.class);
+
+	    readResolveMethod = getMethod("readResolve",
+					  new Class[0],
+					  Object.class);
+
+	    hasReplace = writeReplaceMethod != null;
+
+	    Field [] fields = clazz.getDeclaredFields(); 
+	    int len = fields.length;
 
 	    /*	Create the datastructures to cache the fields we need. Since
 		we don't know the size yet, we create large enough arrays,
 		which will later be replaced;
 	    */
-	    Field [] double_fields    = new Field[fields.length]; 
-	    Field [] long_fields      = new Field[fields.length]; 
-	    Field [] float_fields     = new Field[fields.length]; 
-	    Field [] int_fields       = new Field[fields.length]; 
-	    Field [] short_fields     = new Field[fields.length]; 
-	    Field [] char_fields      = new Field[fields.length]; 
-	    Field [] byte_fields      = new Field[fields.length]; 
-	    Field [] boolean_fields   = new Field[fields.length]; 
-	    Field [] reference_fields = new Field[fields.length]; 
+	    if (serial_persistent_fields != null) {
+		len = serial_persistent_fields.length;
+	    }
 
-	    /*	Now count and store all the difference field types (only the
-		ones that we should write!). Note that we store them into the
-		array sorted by name !
-	    */
-	    for (int i=0;i<fields.length;i++) { 
+	    Field [] double_fields    = new Field[len]; 
+	    Field [] long_fields      = new Field[len]; 
+	    Field [] float_fields     = new Field[len]; 
+	    Field [] int_fields       = new Field[len]; 
+	    Field [] short_fields     = new Field[len]; 
+	    Field [] char_fields      = new Field[len]; 
+	    Field [] byte_fields      = new Field[len]; 
+	    Field [] boolean_fields   = new Field[len]; 
+	    Field [] reference_fields = new Field[len]; 
 
-		Field field = fields[i];
+	    if (serial_persistent_fields == null) {
+		/*  Now count and store all the difference field types (only the
+		    ones that we should write!). Note that we store them into the
+		    array sorted by name !
+		*/
+		for (int i=0;i<fields.length;i++) { 
+		    Field field = fields[i];
 
-		if (field == null) continue;
+		    if (field == null) continue;
 
-		int modifiers = field.getModifiers();
+		    int modifiers = field.getModifiers();
 
-		if ((modifiers & mods) == 0) {
-		    Class field_type = field.getType();
-				    
-		    /*	This part is a bit scary. We basically switch of the
-			Java field access checks so we are allowed to read
-			private fields ....
-		    */
-		    if (!field.isAccessible()) { 
-			temporary_field = field;
-			AccessController.doPrivileged(new PrivilegedAction() {
-			    public Object run() {
-				temporary_field.setAccessible(true);
-				return null;
+		    if ((modifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0) {
+			Class field_type = field.getType();
+					
+			/*  This part is a bit scary. We basically switch of the
+			    Java field access checks so we are allowed to read
+			    private fields ....
+			*/
+			if (!field.isAccessible()) { 
+			    temporary_field = field;
+			    AccessController.doPrivileged(new PrivilegedAction() {
+				public Object run() {
+				    temporary_field.setAccessible(true);
+				    return null;
+				} 
+			    });
+			}
+
+			if (field_type.isPrimitive()) {
+			    if (field_type == Boolean.TYPE) { 
+				insert(boolean_fields, boolean_count, field);
+				boolean_count++;
+			    } else if (field_type == Character.TYPE) { 
+				insert(char_fields, char_count, field);
+				char_count++;
+			    } else if (field_type == Byte.TYPE) { 
+				insert(byte_fields, byte_count, field);
+				byte_count++;
+			    } else if (field_type == Short.TYPE) { 
+				insert(short_fields, short_count, field);
+				short_count++;
+			    } else if (field_type == Integer.TYPE) { 
+				insert(int_fields, int_count, field);
+				int_count++;
+			    } else if (field_type == Long.TYPE) { 
+				insert(long_fields, long_count, field);
+				long_count++;
+			    } else if (field_type == Float.TYPE) { 
+				insert(float_fields, float_count, field);
+				float_count++;
+			    } else if (field_type == Double.TYPE) { 
+				insert(double_fields, double_count, field);
+				double_count++;
 			    } 
-			});
-		    }
-
-		    if (field_type.isPrimitive()) {
-			if (field_type == Boolean.TYPE) { 
-			    insert(boolean_fields, boolean_count, field);
-			    boolean_count++;
-			} else if (field_type == Character.TYPE) { 
-			    insert(char_fields, char_count, field);
-			    char_count++;
-			} else if (field_type == Byte.TYPE) { 
-			    insert(byte_fields, byte_count, field);
-			    byte_count++;
-			} else if (field_type == Short.TYPE) { 
-			    insert(short_fields, short_count, field);
-			    short_count++;
-			} else if (field_type == Integer.TYPE) { 
-			    insert(int_fields, int_count, field);
-			    int_count++;
-			} else if (field_type == Long.TYPE) { 
-			    insert(long_fields, long_count, field);
-			    long_count++;
-			} else if (field_type == Float.TYPE) { 
-			    insert(float_fields, float_count, field);
-			    float_count++;
-			} else if (field_type == Double.TYPE) { 
-			    insert(double_fields, double_count, field);
-			    double_count++;
-			} 
-		    } else { 
-			insert(reference_fields, reference_count, field);
-			reference_count++;
+			} else { 
+			    insert(reference_fields, reference_count, field);
+			    reference_count++;
+			}
 		    }
 		}
 	    }
-	
+	    else {
+		for (int i = 0; i < serial_persistent_fields.length; i++) {
+		    Field field = findField(serial_persistent_fields[i]);
+		    if (field == null) {
+			/*  Do we need to do anything here? 
+			    User has specified a serialPersistentField which is not a member
+			    of this class. There should be a writeObject/readObject.
+			    If not, we just ignore it.
+			*/
+		    }
+		    else {
+			Class field_type = field.getType();
+			if (!field.isAccessible()) { 
+			    temporary_field = field;
+			    AccessController.doPrivileged(new PrivilegedAction() {
+				public Object run() {
+				    temporary_field.setAccessible(true);
+				    return null;
+				} 
+			    });
+			}
+
+			if (field_type.isPrimitive()) {
+			    if (field_type == Boolean.TYPE) { 
+				boolean_fields[boolean_count++] = field;
+			    } else if (field_type == Character.TYPE) { 
+				char_fields[char_count++] = field;
+			    } else if (field_type == Byte.TYPE) { 
+				byte_fields[byte_count++] = field;
+			    } else if (field_type == Short.TYPE) { 
+				short_fields[short_count++] = field;
+			    } else if (field_type == Integer.TYPE) { 
+				int_fields[int_count++] = field;
+			    } else if (field_type == Long.TYPE) { 
+				long_fields[long_count++] = field;
+			    } else if (field_type == Float.TYPE) { 
+				float_fields[float_count++] = field;
+			    } else if (field_type == Double.TYPE) { 
+				double_fields[double_count++] = field;
+			    } 
+			} else { 
+			    reference_fields[reference_count++] = field;
+			}
+		    }
+		}
+	    }
+
 	    // Now resize the datastructures.
 	    int size = double_count + long_count + float_count + int_count
 		       + short_count + char_count + byte_count + boolean_count
@@ -312,6 +393,7 @@ final class AlternativeTypeInfo {
 
 	    if (size > 0) { 
 		serializable_fields = new Field[size];
+
 		System.arraycopy(double_fields, 0, serializable_fields, index, double_count);
 		index += double_count;
 
@@ -337,49 +419,16 @@ final class AlternativeTypeInfo {
 		index += boolean_count;
 
 		System.arraycopy(reference_fields, 0, serializable_fields, index, reference_count);
+
+		fields_final = new boolean[size];
+
+		for (int i = 0; i < size; i++) {
+		    fields_final[i] = ((serializable_fields[i].getModifiers() & Modifier.FINAL) != 0);
+		}
 	    } else { 
 		serializable_fields = null;
 	    }
 
-	    /* see if the supertype is serializable */			
-	    Class superClass = clazz.getSuperclass();
-
-	    if (superClass != null) { 
-		if (javaSerializableClass.isAssignableFrom(superClass)) { 
-		    superSerializable = true;
-		    alternativeSuperInfo = getAlternativeTypeInfo(superClass);
-		    level = alternativeSuperInfo.level + 1;
-		} else { 
-		    superSerializable = false;
-		    level = 1;
-		}								
-	    } 
-
-	    /* Now see if it has a writeObject/readObject. */
-
-	    writeObjectMethod = getMethod(clazz,
-					  "writeObject",
-					  new Class[] { ObjectOutputStream.class },
-					  Void.TYPE);
-	    readObjectMethod = getMethod(clazz,
-					 "readObject",
-					 new Class[] { ObjectInputStream.class },
-					 Void.TYPE);
-
-	    hasWriteObject = writeObjectMethod != null;
-	    hasReadObject = readObjectMethod != null;
-
-	    writeReplaceMethod = getMethod(clazz,
-					   "writeReplace",
-					   new Class[0],
-					   Object.class);
-
-	    readResolveMethod = getMethod(clazz,
-					  "readResolve",
-					  new Class[0],
-					  Object.class);
-
-	    hasReplace = writeReplaceMethod != null;
 
 /*
 	    System.err.println("Class " + clazz.getName() + " contains " + size + " serializable fields :");
@@ -400,4 +449,54 @@ final class AlternativeTypeInfo {
 	    System.exit(1);
 	} 			 
     } 
+
+    int getOffset(String name, Class tp) throws IllegalArgumentException {
+	int offset = 0;
+
+	if (tp.isPrimitive()) {
+	    if (serial_persistent_fields != null) {
+		for (int i = 0; i < serial_persistent_fields.length; i++) {
+		    if (serial_persistent_fields[i].getType() == tp) {
+			if (name.equals(serial_persistent_fields[i].getName())) {
+			    return offset;
+			}
+			offset++;
+		    }
+		}
+	    }
+	    else if (serializable_fields != null) {
+		for (int i = 0; i < serializable_fields.length; i++) {
+		    if (serializable_fields[i].getType() == tp) {
+			if (name.equals(serializable_fields[i].getName())) {
+			    return offset;
+			}
+			offset++;
+		    }
+		}
+	    }
+	}
+	else {
+	    if (serial_persistent_fields != null) {
+		for (int i = 0; i < serial_persistent_fields.length; i++) {
+		    if (! serial_persistent_fields[i].getType().isPrimitive()) {
+			if (name.equals(serial_persistent_fields[i].getName())) {
+			    return offset;
+			}
+			offset++;
+		    }
+		}
+	    }
+	    else if (serializable_fields != null) {
+		for (int i = 0; i < serializable_fields.length; i++) {
+		    if (! serializable_fields[i].getType().isPrimitive()) {
+			if (name.equals(serializable_fields[i].getName())) {
+			    return offset;
+			}
+			offset++;
+		    }
+		}
+	    }
+	}
+	throw new IllegalArgumentException("no field named " + name + " with type " + tp);
+    }
 }

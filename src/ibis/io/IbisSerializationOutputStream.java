@@ -4,6 +4,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.io.NotActiveException;
 import java.io.IOException;
+import java.io.ObjectOutput;
 
 final class ArrayDescriptor {
 	int		type;
@@ -35,9 +36,11 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     */
     private Object current_object;
     private int current_level;
+    private ImplPutField current_putfield;
 
     private Object[] object_stack;
     private int[] level_stack;
+    private ImplPutField[] putfield_stack;
     private int max_stack_size = 0;
     private int stack_size = 0;
 
@@ -120,6 +123,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     public void writeUTF(String str) throws IOException {
+// System.out.println("WriteUTF: " + str);
 	if(str == null) {
 	    writeInt(-1);
 	    return;
@@ -466,6 +470,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    for (i=0;i<t.int_count;i++)       writeInt(t.serializable_fields[temp++].getInt(ref));
 	    for (i=0;i<t.short_count;i++)     writeShort(t.serializable_fields[temp++].getShort(ref));
 	    for (i=0;i<t.char_count;i++)      writeChar(t.serializable_fields[temp++].getChar(ref));
+	    for (i=0;i<t.byte_count;i++)      writeByte(t.serializable_fields[temp++].getByte(ref));
 	    for (i=0;i<t.boolean_count;i++)   writeBoolean(t.serializable_fields[temp++].getBoolean(ref));
 	    for (i=0;i<t.reference_count;i++) writeObject(t.serializable_fields[temp++].get(ref));
 	} catch(IllegalAccessException e) {
@@ -497,24 +502,30 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    max_stack_size = 2 * max_stack_size + 10;
 	    Object[] new_o_stack = new Object[max_stack_size];
 	    int[] new_l_stack = new int[max_stack_size];
+	    ImplPutField[] new_p_stack = new ImplPutField[max_stack_size];
 	    for (int i = 0; i < stack_size; i++) {
 		new_o_stack[i] = object_stack[i];
 		new_l_stack[i] = level_stack[i];
+		new_p_stack[i] = putfield_stack[i];
 	    }
 	    object_stack = new_o_stack;
 	    level_stack = new_l_stack;
+	    putfield_stack = new_p_stack;
 	}
 	object_stack[stack_size] = current_object;
 	level_stack[stack_size] = current_level;
+	putfield_stack[stack_size] = current_putfield;
 	stack_size++;
 	current_object = ref;
 	current_level = level;
+	current_putfield = null;
     }
 
     public void pop_current_object() {
 	stack_size--;
 	current_object = object_stack[stack_size];
 	current_level = level_stack[stack_size];
+	current_putfield = putfield_stack[stack_size];
     }
 
     public void writeSerializableObject(Object ref, String classname) throws IOException {
@@ -669,12 +680,117 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     */
 
     public void writeFields() throws IOException {
-	/* TODO: TO BE WRITTEN! */
+	if (current_putfield == null) {
+	    throw new NotActiveException("no PutField object");
+	}
+	current_putfield.writeFields();
     }
 
-    public PutField putFields() {
-	/* TODO: TO BE WRITTEN! */
-	return null;
+    public PutField putFields() throws IOException {
+	if (current_putfield == null) {
+	    if (current_object == null) {
+		throw new NotActiveException("not in writeObject");
+	    }
+	    Class type = current_object.getClass();
+	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+	    current_putfield = new ImplPutField(t);
+	}
+	return current_putfield;
+    }
+
+    private class ImplPutField extends PutField {
+	double[]  doubles;
+	long[]	  longs;
+	int[]	  ints;
+	float[]   floats;
+	short[]   shorts;
+	char[]    chars;
+	byte[]	  bytes;
+	boolean[] booleans;
+	Object[]  references;
+	AlternativeTypeInfo t;
+
+	ImplPutField(AlternativeTypeInfo t) {
+	    doubles = new double[t.double_count];
+	    longs = new long[t.long_count];
+	    ints = new int[t.int_count];
+	    shorts = new short[t.short_count];
+	    floats = new float[t.float_count];
+	    chars = new char[t.char_count];
+	    bytes = new byte[t.byte_count];
+	    booleans = new boolean[t.boolean_count];
+	    references = new Object[t.reference_count];
+	    this.t = t;
+	}
+
+	public void put(String name, boolean value)
+	    throws IllegalArgumentException {
+	    booleans[t.getOffset(name, Boolean.TYPE)] = value;
+	}
+
+	public void put(String name, char value)
+	    throws IllegalArgumentException {
+	    chars[t.getOffset(name, Character.TYPE)] = value;
+	}
+
+	public void put(String name, byte value)
+	    throws IllegalArgumentException {
+	    bytes[t.getOffset(name, Byte.TYPE)] = value;
+	}
+
+	public void put(String name, short value)
+	    throws IllegalArgumentException {
+	    shorts[t.getOffset(name, Short.TYPE)] = value;
+	}
+
+	public void put(String name, int value)
+	    throws IllegalArgumentException {
+	    ints[t.getOffset(name, Integer.TYPE)] = value;
+	}
+
+	public void put(String name, long value)
+	    throws IllegalArgumentException {
+	    longs[t.getOffset(name, Long.TYPE)] = value;
+	}
+
+	public void put(String name, float value)
+	    throws IllegalArgumentException {
+	    floats[t.getOffset(name, Float.TYPE)] = value;
+	}
+
+	public void put(String name, double value)
+	    throws IllegalArgumentException {
+	    doubles[t.getOffset(name, Double.TYPE)] = value;
+	}
+
+	public void put(String name, Object value) {
+	    // throws IllegalArgumentException {
+	    references[t.getOffset(name, Object.class)] = value;
+	}
+
+	public void write(ObjectOutput out) throws IOException {
+	    for (int i = 0; i < t.double_count; i++) out.writeDouble(doubles[i]);
+	    for (int i = 0; i < t.float_count; i++) out.writeFloat(floats[i]);
+	    for (int i = 0; i < t.long_count; i++) out.writeLong(longs[i]);
+	    for (int i = 0; i < t.int_count; i++) out.writeInt(ints[i]);
+	    for (int i = 0; i < t.short_count; i++) out.writeShort(shorts[i]);
+	    for (int i = 0; i < t.char_count; i++) out.writeChar(chars[i]);
+	    for (int i = 0; i < t.byte_count; i++) out.writeByte(bytes[i]);
+	    for (int i = 0; i < t.boolean_count; i++) out.writeBoolean(booleans[i]);
+	    for (int i = 0; i < t.reference_count; i++) out.writeObject(references[i]);
+	}
+
+	void writeFields() throws IOException {
+	    for (int i = 0; i < t.double_count; i++) writeDouble(doubles[i]);
+	    for (int i = 0; i < t.float_count; i++) writeFloat(floats[i]);
+	    for (int i = 0; i < t.long_count; i++) writeLong(longs[i]);
+	    for (int i = 0; i < t.int_count; i++) writeInt(ints[i]);
+	    for (int i = 0; i < t.short_count; i++) writeShort(shorts[i]);
+	    for (int i = 0; i < t.char_count; i++) writeChar(chars[i]);
+	    for (int i = 0; i < t.byte_count; i++) writeByte(bytes[i]);
+	    for (int i = 0; i < t.boolean_count; i++) writeBoolean(booleans[i]);
+	    for (int i = 0; i < t.reference_count; i++) writeObject(references[i]);
+	}
     }
 
     public void defaultWriteSerializableObject(Object ref, int depth) throws IOException {

@@ -10,23 +10,23 @@ import ibis.ipl.IbisIOException;
 public abstract class ArrayOutputStream
 	implements TypeSize, IbisStreamFlags {
 
-    /* protected */ public byte[]   byte_buffer   = new byte[BYTE_BUFFER_SIZE];
-    /* protected */ public char[]   char_buffer   = new char[CHAR_BUFFER_SIZE];
-    /* protected */ public short[]  short_buffer  = new short[SHORT_BUFFER_SIZE];
-    /* protected */ public int[]    int_buffer    = new int[INT_BUFFER_SIZE];
-    /* protected */ public long[]   long_buffer   = new long[LONG_BUFFER_SIZE];
-    /* protected */ public float[]  float_buffer  = new float[FLOAT_BUFFER_SIZE];
-    /* protected */ public double[] double_buffer = new double[DOUBLE_BUFFER_SIZE];
-    /* protected */ public int[]    handle_buffer = new int[HANDLE_BUFFER_SIZE];
+    public byte[]   byte_buffer   = new byte[BYTE_BUFFER_SIZE];
+    public char[]   char_buffer   = new char[CHAR_BUFFER_SIZE];
+    public short[]  short_buffer  = new short[SHORT_BUFFER_SIZE];
+    public int[]    int_buffer    = new int[INT_BUFFER_SIZE];
+    public long[]   long_buffer   = new long[LONG_BUFFER_SIZE];
+    public float[]  float_buffer  = new float[FLOAT_BUFFER_SIZE];
+    public double[] double_buffer = new double[DOUBLE_BUFFER_SIZE];
+    public int[]    handle_buffer = new int[HANDLE_BUFFER_SIZE];
 
-    /* protected */ public int	byte_index;
-    /* protected */ public int	char_index;
-    /* protected */ public int	short_index;
-    /* protected */ public int	int_index;
-    /* protected */ public int	long_index;
-    /* protected */ public int	float_index;
-    /* protected */ public int	double_index;
-    /* protected */ public int	handle_index;
+    public int	byte_index;
+    public int	char_index;
+    public int	short_index;
+    public int	int_index;
+    public int	long_index;
+    public int	float_index;
+    public int	double_index;
+    public int	handle_index;
 
     public abstract void writeArray(boolean[] a, int off, int len)
 	    throws IbisIOException;
@@ -79,16 +79,7 @@ public abstract class ArrayOutputStream
 	indices_short[TYPE_FLOAT]   = (short) float_index;
 	indices_short[TYPE_DOUBLE]  = (short) double_index;
 	indices_short[TYPE_HANDLE]  = (short) handle_index;
-/*
-	System.err.println("flushing bytes " + byte_index);
-	System.err.println("flushing char " + char_index);
-	System.err.println("flushing short " + short_index);
-	System.err.println("flushing int " + int_index);
-	System.err.println("flushing long " + long_index);
-	System.err.println("flushing float " + float_index);
-	System.err.println("flushing double " + double_index);
-	System.err.println("flushing handle " + handle_index);
-*/
+
 //    indices_short[PRIMITIVE_TYPES] = (short)  (eof ? 1 : 0);
 
 	writeArray(indices_short, 0, PRIMITIVE_TYPES);

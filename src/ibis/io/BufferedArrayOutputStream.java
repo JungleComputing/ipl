@@ -159,12 +159,10 @@ public final class BufferedArrayOutputStream extends ibis.io.ArrayOutputStream {
 		} 
 	}
 		
-	static int W = 0;
-
 	public void writeArray(short[] a, int off, int len) throws IbisIOException {
 
 		if (DEBUG) { 
-			System.err.print("writeArray(short " + (W++) + " [");
+			System.err.print("writeArray(short[");
 			for (int i=0;i<len;i++) { 
 				System.err.print(a[off+i] + ",");
 			}

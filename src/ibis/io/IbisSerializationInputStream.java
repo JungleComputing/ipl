@@ -1,6 +1,7 @@
 package ibis.io;
 
 import java.io.ObjectInput;
+import java.io.ObjectStreamClass;
 import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.Serializable;
@@ -9,35 +10,6 @@ import ibis.ipl.IbisIOException;
 
 public final class IbisSerializationInputStream extends SerializationInputStream
 	implements IbisStreamFlags {
-
-    private short[]	indices        = new short[PRIMITIVE_TYPES + 1];
-    public byte[]	byte_buffer    = new byte[BYTE_BUFFER_SIZE];
-    public char[]	char_buffer    = new char[CHAR_BUFFER_SIZE];
-    public short[]	short_buffer   = new short[SHORT_BUFFER_SIZE];
-    public int[]	int_buffer     = new int[INT_BUFFER_SIZE];
-    public long[]	long_buffer    = new long[LONG_BUFFER_SIZE];
-    public float[]	float_buffer   = new float[FLOAT_BUFFER_SIZE];
-    public double[]	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
-
-    public int[]	handle_buffer  = new int[HANDLE_BUFFER_SIZE];
-
-    public int		byte_index;
-    public int		char_index;
-    public int		short_index;
-    public int		int_index;
-    public int		long_index;
-    public int		float_index;
-    public int		double_index;
-    public int		handle_index;
-
-    public int		max_byte_index;
-    public int		max_char_index;
-    public int		max_short_index;
-    public int		max_int_index;
-    public int		max_long_index;
-    public int		max_float_index;
-    public int		max_double_index;
-    public int		max_handle_index;
 
     class TypeInfo { 
 	Class clazz;		
@@ -65,25 +37,40 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     IbisVector objects = new IbisVector();
     int next_object;
 
-    ArrayInputStream in;
+    public ArrayInputStream in;
 
     /* Type id management */
     private int next_type = 1;
     private IbisVector types;
 
-    private Class stringClass;
+    private static Class stringClass;
+
+    static {
+	try { 
+	    stringClass = Class.forName("java.lang.String");
+	} catch (Exception e) { 
+	    System.err.println("Failed to find java.lang.String " + e);
+	    System.exit(1);
+	}
+    }
 
     /* Notion of a current object, needed for defaultWriteObject. */
     private Object current_object;
     private int current_level;
+    private ImplGetField current_getfield;
 
     private Object[] object_stack;
     private int[] level_stack;
+    private ImplGetField[] getfield_stack;
     private int max_stack_size = 0;
     private int stack_size = 0;
 
     public IbisSerializationInputStream(ArrayInputStream in) throws IOException {
 	super();
+	init(in);
+    }
+
+    public void init(ArrayInputStream in) throws IOException {
 	types = new IbisVector();
 	types.add(0, null);	// Vector requires this
 	types.add(TYPE_BOOLEAN, new TypeInfo(classBooleanArray, true, false, null));
@@ -96,12 +83,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	types.add(TYPE_DOUBLE,  new TypeInfo(classDoubleArray, true, false, null));
 	next_type = PRIMITIVE_TYPES;
 
-	try { 
-	    stringClass = Class.forName("java.lang.String");
-	} catch (Exception e) { 
-	    System.err.println("Failed to find java.lang.String " + e);
-	    System.exit(1);
-	}
 	this.in = in;
 	objects.clear();
 	next_object = CONTROL_HANDLES;
@@ -134,13 +115,23 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	System.err.println("IbisSerializationInputStream: resetBytesRead() not yet implemented");
     }
 
+    private void receive() throws IOException {
+	int leftover = in.max_handle_index - in.handle_index;
+
+	if (leftover == 1 && in.handle_buffer[in.handle_index] == RESET_HANDLE) {
+	    reset();
+	    in.handle_index++;
+	}
+	in.receive();
+    }
+
     /* This is the data output / object output part */
 
     public int read() throws IOException {
-	if (byte_index == max_byte_index) {
+	while (in.byte_index == in.max_byte_index) {
 	    receive();
 	}
-	return byte_buffer[byte_index++];
+	return in.byte_buffer[in.byte_index++];
     }
 
     public int read(byte[] b) throws IOException {
@@ -164,14 +155,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     public int available() throws IOException {
 	/* @@@ NOTE: this is not right. There are also some buffered arrays.. */
 
-	return (max_byte_index - byte_index) +
-		(max_char_index - char_index) +
-		(max_short_index - short_index) +
-		(max_int_index - int_index) +
-		(max_long_index - long_index) +
-		(max_float_index - float_index) +
-		(max_double_index - double_index) +
-		in.available();
+	return in.available();
     }
 
     public void readFully(byte[] b) throws IOException {
@@ -185,26 +169,26 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 
     public boolean readBoolean() throws IOException {
-	if (byte_index == max_byte_index) {
+	while (in.byte_index == in.max_byte_index) {
 	    receive();
 	}
-	return (byte_buffer[byte_index++] == 1);
+	return (in.byte_buffer[in.byte_index++] == 1);
     }
 
 
     public byte readByte() throws IOException {
-	if (byte_index == max_byte_index) {
+	while (in.byte_index == in.max_byte_index) {
 	    receive();
 	}
-	return byte_buffer[byte_index++];
+	return in.byte_buffer[in.byte_index++];
     }
 
 
     public int readUnsignedByte() throws IOException {
-	if (byte_index == max_byte_index) {
+	while (in.byte_index == in.max_byte_index) {
 	    receive();
 	}
-	int i = byte_buffer[byte_index++];
+	int i = in.byte_buffer[in.byte_index++];
 	if (i < 0) {
 	    i += 256;
 	}
@@ -213,18 +197,18 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 
     public short readShort() throws IOException {
-	if (short_index == max_short_index) {
+	while (in.short_index == in.max_short_index) {
 	    receive();
 	}
-	return short_buffer[short_index++];
+	return in.short_buffer[in.short_index++];
     }
 
 
     public int readUnsignedShort() throws IOException {
-	if (short_index == max_short_index) {
+	while (in.short_index == in.max_short_index) {
 	    receive();
 	}
-	int i = short_buffer[short_index++];
+	int i = in.short_buffer[in.short_index++];
 	if (i < 0) {
 	    i += 65536;
 	}
@@ -233,52 +217,52 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 
     public char readChar() throws IOException {
-	if (char_index == max_char_index) {
+	while (in.char_index == in.max_char_index) {
 	    receive();
 	}
-	return char_buffer[char_index++];
+	return in.char_buffer[in.char_index++];
     }
 
 
     public int readInt() throws IOException {
-	if (int_index == max_int_index) {
+	while (in.int_index == in.max_int_index) {
 	    receive();
 	}
-	return int_buffer[int_index++];
+	return in.int_buffer[in.int_index++];
     }
 
     public int readHandle() throws IOException {
-	if (handle_index == max_handle_index) {
+	while (in.handle_index == in.max_handle_index) {
 	    receive();
 	}
 	if(DEBUG) {
-	    System.err.println("read handle [" + handle_index + "] = " + Integer.toHexString(handle_buffer[handle_index]));
+	    System.err.println("read handle [" + in.handle_index + "] = " + Integer.toHexString(in.handle_buffer[in.handle_index]));
 	}
 
-	return handle_buffer[handle_index++];
+	return in.handle_buffer[in.handle_index++];
     }
 
     public long readLong() throws IOException {
-	if (long_index == max_long_index) {
+	while (in.long_index == in.max_long_index) {
 	    receive();
 	}
-	return long_buffer[long_index++];
+	return in.long_buffer[in.long_index++];
     }
 
 
     public float readFloat() throws IOException {
-	if (float_index == max_float_index) {
+	while (in.float_index == in.max_float_index) {
 	    receive();
 	}
-	return float_buffer[float_index++];
+	return in.float_buffer[in.float_index++];
     }
 
 
     public double readDouble() throws IOException {
-	if (double_index == max_double_index) {
+	while (in.double_index == in.max_double_index) {
 	    receive();
 	}
-	return double_buffer[double_index++];
+	return in.double_buffer[in.double_index++];
     }
 
 
@@ -331,6 +315,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
 
 	String s = new String(c, 0, len);
+// System.out.println("readUTF: " + s);
 
 	if(DEBUG) {
 	    System.err.println("read string "  + s);
@@ -457,7 +442,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
 
     public void addObjectToCycleCheck(Object o) {
-	objects.add(next_object++, o);
+	objects.add(next_object, o);
+	next_object++;
     }
 
 
@@ -618,18 +604,110 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    return t;
 	}
     }
+
+    private native void setFieldDouble(Object ref, String fieldname, double d);
+    private native void setFieldLong(Object ref, String fieldname, long l);
+    private native void setFieldFloat(Object ref, String fieldname, float f);
+    private native void setFieldInt(Object ref, String fieldname, int i);
+    private native void setFieldShort(Object ref, String fieldname, short s);
+    private native void setFieldChar(Object ref, String fieldname, char c);
+    private native void setFieldByte(Object ref, String fieldname, byte b);
+    private native void setFieldBoolean(Object ref, String fieldname, boolean b);
+    private native void setFieldObject(Object ref, String fieldname, String osig, Object o);
     
     private void alternativeDefaultReadObject(AlternativeTypeInfo t, Object ref) throws IOException {
 	int temp = 0;
 	try {
-	    for (int i=0;i<t.double_count;i++)    t.serializable_fields[temp++].setDouble(ref, readDouble());
-	    for (int i=0;i<t.long_count;i++)      t.serializable_fields[temp++].setLong(ref, readLong());
-	    for (int i=0;i<t.float_count;i++)     t.serializable_fields[temp++].setFloat(ref, readFloat());
-	    for (int i=0;i<t.int_count;i++)       t.serializable_fields[temp++].setInt(ref, readInt());
-	    for (int i=0;i<t.short_count;i++)     t.serializable_fields[temp++].setShort(ref, readShort());
-	    for (int i=0;i<t.char_count;i++)      t.serializable_fields[temp++].setChar(ref, readChar());
-	    for (int i=0;i<t.boolean_count;i++)   t.serializable_fields[temp++].setBoolean(ref, readBoolean());
-	    for (int i=0;i<t.reference_count;i++) t.serializable_fields[temp++].set(ref, readObject());
+	    for (int i=0;i<t.double_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldDouble(ref, t.serializable_fields[temp].getName(), readDouble());
+		}
+		else {
+		    t.serializable_fields[temp].setDouble(ref, readDouble());
+		}
+		temp++;
+	    }
+	    for (int i=0;i<t.long_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldLong(ref, t.serializable_fields[temp].getName(), readLong());
+		}
+		else {
+		    t.serializable_fields[temp].setLong(ref, readLong());
+		}
+		temp++;
+	    }
+	    for (int i=0;i<t.float_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldFloat(ref, t.serializable_fields[temp].getName(), readFloat());
+		}
+		else {
+		    t.serializable_fields[temp].setFloat(ref, readFloat());
+		}
+		temp++;
+	    }
+	    for (int i=0;i<t.int_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldInt(ref, t.serializable_fields[temp].getName(), readInt());
+		}
+		else {
+		    t.serializable_fields[temp].setInt(ref, readInt());
+		}
+		temp++;
+	    }
+	    for (int i=0;i<t.short_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldShort(ref, t.serializable_fields[temp].getName(), readShort());
+		}
+		else {
+		    t.serializable_fields[temp].setShort(ref, readShort());
+		}
+		temp++;
+	    }
+	    for (int i=0;i<t.char_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldChar(ref, t.serializable_fields[temp].getName(), readChar());
+		}
+		else {
+		    t.serializable_fields[temp].setChar(ref, readChar());
+		}
+		temp++;
+	    }
+	    for (int i=0;i<t.char_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldChar(ref, t.serializable_fields[temp].getName(), readChar());
+		}
+		else {
+		    t.serializable_fields[temp].setChar(ref, readChar());
+		}
+		temp++;
+	    }
+	    for (int i=0;i<t.byte_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldByte(ref, t.serializable_fields[temp].getName(), readByte());
+		}
+		else {
+		    t.serializable_fields[temp].setByte(ref, readByte());
+		}
+		temp++;
+	    }
+	    for (int i=0;i<t.boolean_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldBoolean(ref, t.serializable_fields[temp].getName(), readBoolean());
+		}
+		else {
+		    t.serializable_fields[temp].setBoolean(ref, readBoolean());
+		}
+		temp++;
+	    }
+	    for (int i=0;i<t.reference_count;i++) {
+		if (t.fields_final[temp]) {
+		    setFieldObject(ref, t.serializable_fields[temp].getName(), t.serializable_fields[temp].getClass().getName(), readObject());
+		}
+		else {
+		    t.serializable_fields[temp].set(ref, readObject());
+		}
+		temp++;
+	    }
 	} catch(ClassNotFoundException e) {
 	    throw new IbisIOException("class not found exception", e);
 	} catch(IllegalAccessException e2) {
@@ -677,22 +755,26 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	alternativeDefaultReadObject(t, ref);
     }
 
-    private native Object createUninitializedObject(Class type);
+    private native Object createUninitializedObject(Class type, Class non_serializable_super);
 
     public void push_current_object(Object ref, int level) {
 	if (stack_size >= max_stack_size) {
 	    max_stack_size = 2 * max_stack_size + 10;
 	    Object[] new_o_stack = new Object[max_stack_size];
 	    int[] new_l_stack = new int[max_stack_size];
+	    ImplGetField[] new_g_stack = new ImplGetField[max_stack_size];
 	    for (int i = 0; i < stack_size; i++) {
 		new_o_stack[i] = object_stack[i];
 		new_l_stack[i] = level_stack[i];
+		new_g_stack[i] = getfield_stack[i];
 	    }
 	    object_stack = new_o_stack;
 	    level_stack = new_l_stack;
+	    getfield_stack = new_g_stack;
 	}
 	object_stack[stack_size] = current_object;
 	level_stack[stack_size] = current_level;
+	getfield_stack[stack_size] = current_getfield;
 	stack_size++;
 	current_object = ref;
 	current_level = level;
@@ -702,6 +784,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	stack_size--;
 	current_object = object_stack[stack_size];
 	current_level = level_stack[stack_size];
+	current_getfield = getfield_stack[stack_size];
     }
 
     public Object doReadObject() throws IOException, ClassNotFoundException {
@@ -755,6 +838,8 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    obj = t.gen.generated_newInstance(this);
 	} else if (Externalizable.class.isAssignableFrom(t.clazz)) {
 	    try {
+		// TODO: is this correct? I guess it is, when accessibility
+		// is fixed.
 		obj = t.clazz.newInstance();
 	    } catch(Exception e) {
 		throw new RuntimeException("Could not instantiate" + e);
@@ -765,114 +850,25 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	} else {
 	    // this is for java.io.Serializable
 	    try {
-		// obj = t.clazz.newInstance(); // this is not correct --> need native call ??? !!!
-		obj = createUninitializedObject(t.clazz);
+		// obj = t.clazz.newInstance(); Not correct: calls wrong constructor.
+		Class t2 = t.clazz;
+		while (Serializable.class.isAssignableFrom(t2)) {
+		    /* Find first non-serializable super-class. */
+		    t2 = t2.getSuperclass();
+		}
+		// Calls constructor for non-serializable superclass.
+		obj = createUninitializedObject(t.clazz, t2);
 		addObjectToCycleCheck(obj);
 		push_current_object(obj, 0);
 		alternativeReadObject(t.altInfo, obj);
 		pop_current_object();
 	    } catch (Exception e) {
+		e.printStackTrace();
 		throw new RuntimeException("Couldn't deserialize or create object " + e);
 	    }
 	}
 
 	return obj;
-    }
-
-    private void receive() throws IOException {
-	int leftover = (max_handle_index - handle_index);
-
-	if (leftover == 1 && handle_buffer[handle_index] == RESET_HANDLE) { 
-	    // there is a 'reset' leftover
-	    reset();
-	    handle_index++;
-	}
-	if(ASSERTS) {
-	    int sum = (max_byte_index - byte_index) + 
-		    (max_char_index - char_index) + 
-		    (max_short_index - short_index) + 
-		    (max_int_index - int_index) + 
-		    (max_long_index - long_index) + 
-		    (max_float_index - float_index) + 
-		    (max_double_index - double_index) +
-		    (max_handle_index - handle_index);
-	    if (sum != 0) { 
-		System.err.println("EEEEK : receiving while there is data in buffer !!!");
-		System.err.println("byte_index "   + (max_byte_index - byte_index));
-		System.err.println("char_index "   + (max_char_index - char_index));
-		System.err.println("short_index "  + (max_short_index -short_index));
-		System.err.println("int_index "    + (max_int_index - int_index));
-		System.err.println("long_index "   + (max_long_index -long_index));
-		System.err.println("double_index " + (max_double_index -double_index));
-		System.err.println("float_index "  + (max_float_index - float_index));
-		System.err.println("handle_index " + (max_handle_index -handle_index));
-		new Exception().printStackTrace();
-		
-		if ((max_handle_index -handle_index) > 0) { 
-		    for (int i=handle_index;i<max_handle_index;i++) { 
-			System.err.println("Handle(" + i + ") = " + handle_buffer[i]);
-		    }
-		}
-		
-		System.exit(1);
-	    }
-	}
-	in.readArray(indices, 0, PRIMITIVE_TYPES);
-
-	byte_index    = 0;
-	char_index    = 0;
-	short_index   = 0;
-	int_index     = 0;
-	long_index    = 0;
-	float_index   = 0;
-	double_index  = 0;
-	handle_index  = 0;
-
-	max_byte_index    = indices[TYPE_BYTE];
-	max_char_index    = indices[TYPE_CHAR];
-	max_short_index   = indices[TYPE_SHORT];
-	max_int_index     = indices[TYPE_INT];
-	max_long_index    = indices[TYPE_LONG];
-	max_float_index   = indices[TYPE_FLOAT];
-	max_double_index  = indices[TYPE_DOUBLE];
-	max_handle_index  = indices[TYPE_HANDLE];
-
-	if(DEBUG) {
-	    System.err.println("reading bytes " + max_byte_index);
-	    System.err.println("reading char " + max_char_index);
-	    System.err.println("reading short " + max_short_index);
-	    System.err.println("reading int " + max_int_index);
-	    System.err.println("reading long " + max_long_index);
-	    System.err.println("reading float " + max_float_index);
-	    System.err.println("reading double " + max_double_index);
-	    System.err.println("reading handle " + max_handle_index);
-	}
-//        eof               = indices[PRIMITIVE_TYPES] == 1;
-
-	if (max_byte_index > 0) {
-	    in.readArray(byte_buffer, 0, max_byte_index);
-	}
-	if (max_char_index > 0) {
-	    in.readArray(char_buffer, 0, max_char_index);
-	}
-	if (max_short_index > 0) {
-	    in.readArray(short_buffer, 0, max_short_index);
-	}
-	if (max_int_index > 0) {
-	    in.readArray(int_buffer, 0, max_int_index);
-	}
-	if (max_long_index > 0) {
-	    in.readArray(long_buffer, 0, max_long_index);
-	}
-	if (max_float_index > 0) {
-	    in.readArray(float_buffer, 0, max_float_index);
-	}
-	if (max_double_index > 0) {
-	    in.readArray(double_buffer, 0, max_double_index);
-	}
-	if (max_handle_index > 0) {
-	    in.readArray(handle_buffer, 0, max_handle_index);
-	}
     }
 
     public void close() throws IOException {
@@ -882,9 +878,98 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	/* ignored */
     }
 
-    public GetField readFields() throws IOException {
-	/* TODO: TO BE WRITTEN! */
-	return null;
+    public GetField readFields() throws IOException, ClassNotFoundException {
+	if (current_object == null) {
+	    throw new NotActiveException("not in readObject");
+	}
+	Class type = current_object.getClass();
+	AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+	current_getfield = new ImplGetField(t);
+	current_getfield.readFields();
+	return current_getfield;
+    }
+
+    private class ImplGetField extends GetField {
+	double[]  doubles;
+	long[]	  longs;
+	int[]	  ints;
+	float[]   floats;
+	short[]   shorts;
+	char[]    chars;
+	byte[]	  bytes;
+	boolean[] booleans;
+	Object[]  references;
+	AlternativeTypeInfo t;
+
+	ImplGetField(AlternativeTypeInfo t) {
+	    doubles = new double[t.double_count];
+	    longs = new long[t.long_count];
+	    ints = new int[t.int_count];
+	    shorts = new short[t.short_count];
+	    floats = new float[t.float_count];
+	    chars = new char[t.char_count];
+	    bytes = new byte[t.byte_count];
+	    booleans = new boolean[t.boolean_count];
+	    references = new Object[t.reference_count];
+	    this.t = t;
+	}
+
+	public ObjectStreamClass getObjectStreamClass() {
+	    /*  I don't know how it could be used here, but ... */
+	    return ObjectStreamClass.lookup(t.clazz);
+	}
+
+	public boolean defaulted(String name) {
+	    return false;
+	}
+
+	public boolean get(String name, boolean dflt) {
+	    return booleans[t.getOffset(name, Boolean.TYPE)];
+	}
+
+	public char get(String name, char dflt) {
+	    return chars[t.getOffset(name, Character.TYPE)];
+	}
+
+	public byte get(String name, byte dflt) {
+	    return bytes[t.getOffset(name, Byte.TYPE)];
+	}
+
+	public short get(String name, short dflt) {
+	    return shorts[t.getOffset(name, Short.TYPE)];
+	}
+
+	public int get(String name, int dflt) {
+	    return ints[t.getOffset(name, Integer.TYPE)];
+	}
+
+	public long get(String name, long dflt) {
+	    return longs[t.getOffset(name, Long.TYPE)];
+	}
+
+	public float get(String name, float dflt) {
+	    return floats[t.getOffset(name, Float.TYPE)];
+	}
+
+	public double get(String name, double dflt) {
+	    return doubles[t.getOffset(name, Double.TYPE)];
+	}
+
+	public Object get(String name, Object dflt) {
+	    return references[t.getOffset(name, Object.class)];
+	}
+
+	void readFields() throws IOException, ClassNotFoundException {
+	    for (int i = 0; i < t.double_count; i++) doubles[i] = readDouble();
+	    for (int i = 0; i < t.float_count; i++) floats[i] = readFloat();
+	    for (int i = 0; i < t.long_count; i++) longs[i] = readLong();
+	    for (int i = 0; i < t.int_count; i++) ints[i] = readInt();
+	    for (int i = 0; i < t.short_count; i++) shorts[i] = readShort();
+	    for (int i = 0; i < t.char_count; i++) chars[i] = readChar();
+	    for (int i = 0; i < t.byte_count; i++) bytes[i] = readByte();
+	    for (int i = 0; i < t.boolean_count; i++) booleans[i] = readBoolean();
+	    for (int i = 0; i < t.reference_count; i++) references[i] = readObject();
+	}
     }
 
     public void defaultReadObject() throws IOException, NotActiveException {
@@ -909,6 +994,15 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	} else {
 	    Class type = ref.getClass();
 	    throw new RuntimeException("Not Serializable : " + type.toString());
+	}
+    }
+
+    static {
+	try {
+	    /*  Need conversion for allocation of uninitialized objects. */
+	    System.loadLibrary("conversion");
+	} catch(Exception e) {
+	    System.err.println("Could not load libconversion");
 	}
     }
 }
