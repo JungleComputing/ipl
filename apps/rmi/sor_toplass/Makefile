@@ -9,7 +9,6 @@
 SRC		=
 SRC		+= Main.java
 SRC		+= RMI_init.java
-SRC		+= SendThread.java
 SRC		+= WaitingSendThread.java
 SRC		+= i_GlobalData.java
 SRC		+= i_SOR.java
