@@ -244,7 +244,11 @@ public abstract class Initialization extends SatinBase {
 		StaticProperties ibisProperties = new StaticProperties(
 				requestedProperties);
 
-		ibisProperties.add("serialization", "object");
+		if (ibisSerialization) {
+		    ibisProperties.add("serialization", "byte, ibis");
+		}
+		else ibisProperties.add("serialization", "byte, object");
+
 		if (closed) {
 			ibisProperties.add("worldmodel", "closed");
 		} else {
