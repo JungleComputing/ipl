@@ -7,9 +7,9 @@
 // In this implementation the solver simply takes the first unassigned
 // variable, and tries both possible assignments. These tries can
 // of course be done in parallel, making this ideally suited for Satin.
+// More subtility is definitely possible, though.
 
 import java.io.File;
-
 
 public class SimpleSATSolver implements SimpleSATInterface, java.io.Serializable {
     static final boolean traceSolver = false;
@@ -20,6 +20,9 @@ public class SimpleSATSolver implements SimpleSATInterface, java.io.Serializable
     {
 	if( p.isSatisfied( assignments ) ){
 	    return new SATSolution( assignments );
+	}
+	if( p.isConflicting( assignments ) ){
+	    return null;
 	}
 	if( var>=p.getVariableCount() ){
 	    // There are no variables left to assign, clearly there
@@ -78,7 +81,7 @@ public class SimpleSATSolver implements SimpleSATInterface, java.io.Serializable
 	SATSolution res = solveSystem( p );
 
 	if( res == null ){
-	    System.out.println( "There is no solution" );
+	    System.out.println( "There are no solutions" );
 	}
 	else {
 	    System.out.println( "There is a solution: " + res );

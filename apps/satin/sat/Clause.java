@@ -37,6 +37,29 @@ class Clause {
 	return false;
     }
 
+    // Given an array of assignments, return true iff this clause conflicts
+    // with these assignments.
+    public boolean isConflicting( int assignments[] )
+    {
+	// Search for any term of the clause that has an agreeing assignment
+	// or is uncommitted.
+	for( int ix=0; ix<pos.length; ix++ ){
+	    int v = pos[ix];
+
+	    if( assignments[v] != 0 ){
+		return false;
+	    }
+	}
+	for( int ix=0; ix<neg.length; ix++ ){
+	    int v = neg[ix];
+
+	    if( assignments[v] != 1 ){
+		return false;
+	    }
+	}
+	return true;
+    }
+
     // Given an output stream, print the clause to it in DIMACS format.
     public void printDIMACS( PrintStream s )
     {

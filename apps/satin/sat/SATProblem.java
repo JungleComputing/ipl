@@ -141,6 +141,16 @@ class SATProblem {
 	return true;
     }
 
+    public boolean isConflicting( int assignments[] )
+    {
+	for( int ix=0; ix<clauseCount; ix++ ){
+	    if( clauses[ix].isConflicting( assignments ) ){
+		return true;
+	    }
+	}
+	return false;
+    }
+
     // A CNF problem parser. Given a problem in DIMACS format,
     // return a SATProblem instance for it.
     //
@@ -300,7 +310,7 @@ class SATProblem {
     {
 	String res = "";
 
-	for( int ix=0; ix<clauses.length; ix++ ){
+	for( int ix=0; ix<clauseCount; ix++ ){
 	    res += "(" + clauses[ix] + ")";
 	}
 	return res;

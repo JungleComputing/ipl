@@ -1,0 +1,16 @@
+This directory contains several implementations of a solver for the
+Satisfiability (SAT) problem. Some variants are very simple but
+highly parallel, others are more sophisticated, but are more difficult
+to parallelize.
+
+All variants take exactly one argument: the name of the problem file.
+This file should be in DIMACS file format, see
+www.intellektik.informatik.tu-darmstadt.de/SATLIB/Benchmarks/SAT/satformat.ps
+
+Note that none of the solvers here is comparable to professional SAT
+solvers.
+
+The variants:
+
+SATSolver.java		Fairly sophisticated solver, mainly sequential.
+SimpleSATSolver.java	Simple, highly parallel solver.
