@@ -16,9 +16,10 @@ interface OpenConfig {
     static final boolean traceClusterResizing = false;
     static final boolean traceLoadBalancing = false;
     static final boolean traceWorkStealing = false;
-    static final boolean doWorkStealing = false;
+    static final boolean doWorkStealing = true;
+    static final int disturbance = 0;
     static final int DEFAULTBOARDSIZE = 4000;
-    static final int GENERATIONS = 30;
+    static final int DEFAULTGENERATIONS = 30;
     static final int SHOWNBOARDWIDTH = 60;
     static final int SHOWNBOARDHEIGHT = 30;
 }
@@ -196,8 +197,8 @@ class OpenCell1D implements OpenConfig {
     static int requestedByLeft[] = null;
     static int requestedByRight[] = null;
 
-    static int previous_lsteal = -1;
-    static int previous_rsteal = -1;
+    static int max_lsteal = 0;
+    static int max_rsteal = 0;
 
     private static void usage()
     {
@@ -561,6 +562,7 @@ class OpenCell1D implements OpenConfig {
         }
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
+            max_lsteal = 0;
             if( traceLoadBalancing ){
                 System.out.println( "P" + me + ":" + generation + ": receiving " + receiveCount + " columns from P" + (me-1) );
             }
@@ -644,6 +646,7 @@ class OpenCell1D implements OpenConfig {
         }
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
+            max_rsteal = 0;
             if( traceLoadBalancing ){
                 System.out.println( "P" + me + ":" + generation + ": receiving " + receiveCount + " columns from P" + (me+1) );
             }
@@ -757,7 +760,7 @@ class OpenCell1D implements OpenConfig {
      * See if any new members have joined the computation, and if so
      * update the column numbers we should try to own.
      */
-    static void updateAims( Problem p )
+    static void updateMembership( Problem p )
     {
         int members = rszHandler.getMemberCount();
         if( knownMembers<members ){
@@ -792,37 +795,45 @@ class OpenCell1D implements OpenConfig {
     private static void evaluateStealRequests( Problem p, int lsteal, int rsteal )
     {
         if( aimFirstColumn != p.firstColumn && aimFirstNoColumn != p.firstNoColumn ){
-            previous_lsteal = -1;
-            previous_rsteal = -1;
+            max_lsteal = 1;
+            max_rsteal = 1;
             return;
         }
-        int left = Math.min( previous_lsteal, lsteal );
-        int right = Math.min( previous_rsteal, rsteal );
-        double dampen = 0.01;
+        double dampen = 0.3;
 
-        if( left>=right && left>0 ){
+        if( lsteal>0 && rsteal>0 ){
+            // Don't give away our work to *both* neighbours at the
+            // same time.
+            dampen *= 2;
+        }
+        if( lsteal>0 ){
             // The left neighbour needs columns the most, send them.
-            aimFirstColumn += (int) (dampen*left);
+            int stolen = (int) (dampen*lsteal);
+            aimFirstColumn += Math.min( stolen, max_lsteal );
             if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstColumn = aimFirstNoColumn-minLoad;
             }
-            lsteal = -1;        // Prevent a second work steal next cycle.
+            max_lsteal = 1+Math.min( max_lsteal, stolen );
         }
-        if( right>0 ){
-            aimFirstNoColumn -= (int) (dampen*right);
+        else {
+            max_lsteal = 1;
+        }
+        if( rsteal>0 ){
+            int stolen = (int) (dampen*rsteal);
+            aimFirstNoColumn -= Math.min( stolen, max_rsteal );
             if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstNoColumn = aimFirstColumn+minLoad;
             }
-            rsteal = -1;        // Prevent a second work steal next cycle.
+            max_rsteal = 1+Math.min( max_rsteal, stolen );
         }
-
-        previous_lsteal = lsteal;
-        previous_rsteal = rsteal;
+        else {
+            max_rsteal = 1;
+        }
     }
 
     public static void main( String [] args )
     {
-        int count = GENERATIONS;
+        int count = DEFAULTGENERATIONS;
         boolean collectStatistics = false;
 
         /** The first column that is my responsibility. */
@@ -881,8 +892,10 @@ class OpenCell1D implements OpenConfig {
             if( leftNeighbour != null ){
                 leftReceivePort = createNeighbourReceivePort( updatePort, "upstream", null );
                 leftSendPort = createNeighbourSendPort( updatePort, leftNeighbour, "downstream" );
-                leftStealReceivePort = createNeighbourReceivePort( stealPort, "upstreamSteal", leftRecorder );
-                leftStealSendPort = createNeighbourSendPort( stealPort, leftNeighbour, "downstreamSteal" );
+                if( doWorkStealing ){
+                    leftStealReceivePort = createNeighbourReceivePort( stealPort, "upstreamSteal", leftRecorder );
+                    leftStealSendPort = createNeighbourSendPort( stealPort, leftNeighbour, "downstreamSteal" );
+                }
             }
 
             if( leftNeighbour == null ){
@@ -902,6 +915,7 @@ class OpenCell1D implements OpenConfig {
 
             if( me == 0 ){
                 System.out.println( "Using " + ibis.implementationName() );
+                System.out.println( "disturbance=" + disturbance );
                 System.out.println( "Started a run of " + count + " generations on a " + boardsize + "x" + boardsize + " board" );
             }
 
@@ -927,6 +941,9 @@ class OpenCell1D implements OpenConfig {
             }
 
             while( generation<count ){
+                if( disturbance>0 && me == 1 ){
+                    Thread.sleep( disturbance );
+                }
                 long startLoopTime = System.currentTimeMillis();
                 if( rightNeighbour != null && rightReceivePort == null ){
                     // We now have a right neightbour. Set up communication
@@ -936,13 +953,15 @@ class OpenCell1D implements OpenConfig {
                     }
                     rightReceivePort = createNeighbourReceivePort( updatePort, "downstream", null );
                     rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
-                    rightStealReceivePort = createNeighbourReceivePort( stealPort, "downstreamSteal", rightRecorder );
-                    rightStealSendPort = createNeighbourSendPort( stealPort, rightNeighbour, "upstreamSteal" );
+                    if( doWorkStealing ){
+                        rightStealReceivePort = createNeighbourReceivePort( stealPort, "downstreamSteal", rightRecorder );
+                        rightStealSendPort = createNeighbourSendPort( stealPort, rightNeighbour, "upstreamSteal" );
+                    }
                 }
                 if( members != null ){
                     members[generation] = rszHandler.getMemberCount();
                 }
-                updateAims( p );
+                updateMembership( p );
                 if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
                     // We have some work for our lazy right neighbour.
                     // give him the good news.
@@ -955,8 +974,10 @@ class OpenCell1D implements OpenConfig {
                 if( population != null ){
                     population[generation] = p.firstNoColumn-p.firstColumn;
                 }
-                leftRecorder.reset();
-                rightRecorder.reset();
+                if( doWorkStealing ){
+                    leftRecorder.reset();
+                    rightRecorder.reset();
+                }
                 long startComputeTime = System.currentTimeMillis();
                 computeNextGeneration( p );
                 long endComputeTime = System.currentTimeMillis();
@@ -965,15 +986,17 @@ class OpenCell1D implements OpenConfig {
                     sendStealRequest( rightStealSendPort, generation );
                 }
                 generation++;
-                lockedGeneration.set( generation );
-                int lsteal = leftRecorder.get();
-                int rsteal = rightRecorder.get();
-                if( requestedByLeft != null ){
-                    requestedByLeft[generation-1] = lsteal;
-                    requestedByRight[generation-1] = rsteal;
+                updateMembership( p );
+                if( doWorkStealing ){
+                    lockedGeneration.set( generation );
+                    int lsteal = leftRecorder.get();
+                    int rsteal = rightRecorder.get();
+                    if( requestedByLeft != null ){
+                        requestedByLeft[generation] = lsteal;
+                        requestedByRight[generation] = rsteal;
+                    }
+                    evaluateStealRequests( p, lsteal, rsteal );
                 }
-                updateAims( p );
-                evaluateStealRequests( p, lsteal, rsteal );
                 if( (me % 2) == 0 ){
                     if( !rightNeighbourIdle ){
                         sendToRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
