@@ -435,7 +435,11 @@ public class SuffixArray implements Configuration, Magic {
 			j++;
 		    }
 		    maxlen = len;
-		    mincom = len;
+
+                    // HEURISTIC: anything shorter than this is probably
+                    // not a reasonable candidate for best compression step.
+                    // (But we could be wrong.)
+		    mincom = len-1;
                     res.add( new Step( candidates, p, maxlen ) );
 		}
             }
