@@ -311,7 +311,10 @@
 
 
     <target name="native-init"
-	    depends="property-native-build,property-native-local.lib,property-native-outtype">
+	    depends="property-native-build,
+		     property-native-local.lib,
+		     property-native-outtype,
+		     property-compiler-init">
 	<mkdir dir="${build}"/>
 	<mkdir dir="${build}/include"/>
 	<mkdir dir="${build}/lib"/>

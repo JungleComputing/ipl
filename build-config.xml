@@ -351,6 +351,18 @@ to the command line.
 		append="true"
 		file="${ibis}/configuration.sh">JAVA_ROOT=${JAVA_HOME_ENV}
 </echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh"># JAVA_ROOT=/usr/local/ibm-java/IBMJava2-141
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh"># JAVA_ROOT=/usr/local/sun-java/jdk1.4
+</echo>
+	<echo
+		append="true"
+		file="${ibis}/configuration.sh"># JAVA_ROOT=/usr/local/sun-java/j2sdk1.5.0
+</echo>
 	<property name="config.javac" location="${JAVA_HOME_ENV}/bin/javac"/>
 	<echo
 		append="true"
@@ -572,6 +584,30 @@ to the command line.
 	    <available file="build-properties"/>
 	</condition>
 	<antcall inheritRefs="true" target="-config-lazy-build-properties"/>
+    </target>
+
+
+    <target name="property-init-once"
+	    depends="property-compiler-init,proprietary-tasks">
+    </target>
+
+
+    <target name="proprietary-tasks">
+	<mkdir dir="${ibis}/ant-tasks/tasks"/>
+	<javac
+		srcdir="${ibis}/ant-tasks"
+		destdir="${ibis}/ant-tasks/tasks">
+	    <include name="**/*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+	<taskdef
+		name="maplibrary"
+		classname="MapLibraryName"
+		classpath="${ibis}/ant-tasks/tasks"/>
+	<taskdef
+		name="hostname"
+		classname="HostName"
+		classpath="${ibis}/ant-tasks/tasks"/>
     </target>
 
 

@@ -27,8 +27,10 @@
 
 
     <target name="property-init"
-	    depends="property-init-once"
 	    unless="property.initialized">
+	    <!--
+	    depends="property-init-once"
+	    -->
 	<property name="property.initialized" value="true"/>
 
 	<path id="default.classpath">
@@ -91,30 +93,6 @@
 		<property name="java.debug.value" value="false"/>
 	    </else>
 	</if>
-    </target>
-
-
-    <target name="property-init-once"
-	    depends="property-compiler-init,proprietary-tasks">
-    </target>
-
-
-    <target name="proprietary-tasks">
-	<mkdir dir="${ibis}/ant-tasks/tasks"/>
-	<javac
-		srcdir="${ibis}/ant-tasks"
-		destdir="${ibis}/ant-tasks/tasks">
-	    <include name="**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
-	<taskdef
-		name="maplibrary"
-		classname="MapLibraryName"
-		classpath="${ibis}/ant-tasks/tasks"/>
-	<taskdef
-		name="hostname"
-		classname="HostName"
-		classpath="${ibis}/ant-tasks/tasks"/>
     </target>
 
 

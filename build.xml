@@ -47,9 +47,8 @@
     <target name="compile"
 	    depends="init">
 	<patternset id="build.sources.all">
-	    <include name="**/*.java"/>
+	    <include name="ibis/**/*.java"/>
 	    <exclude name="ibis/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
 	<antcall inheritAll="true" inheritRefs="true" target="-compile">
@@ -64,9 +63,8 @@
 	    depends="init"
 	    description="Build Ibis">
 	<patternset id="build.sources.all">
-	    <include name="**/*.java"/>
+	    <include name="ibis/**/*.java"/>
 	    <exclude name="ibis/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
 	<antcall inheritAll="true" inheritRefs="true" target="-compile">
@@ -251,6 +249,7 @@
 	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.mp" torefid="build.sources"/>
 	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="natives.mp"/>
     </target>
 
 
@@ -277,11 +276,13 @@
     <target name="net" depends="init">
 	<patternset id="build.sources.net">
 	    <include name="ibis/impl/net/**/*.java"/>
+	    <exclude name="ibis/impl/net/gm/aside*/*.java"/>
 	    <exclude name="ibis/impl/net/nio/**/*.java"/>
 	</patternset>
 	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.net" torefid="build.sources"/>
 	</antcall>
+	<antcall inheritAll="true" inheritRefs="true" target="natives.net"/>
     </target>
 
     <import file="${ibis}/build-native.xml"/>
@@ -360,7 +361,11 @@
 	</if>
     </target>
 
-    <target name="natives" depends="natives.misc,natives.mp,natives.net"/>
+    <target name="natives"
+	    depends="natives.misc,
+	    	     natives.mp,
+		     natives.net,
+		     proprietary-tasks"/>
 
     <target name="copyProperties"
 	    depends="init"

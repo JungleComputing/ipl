@@ -7,7 +7,11 @@
 	Ibis iogen target.
 
 	Require prior definition of properties:
-	default.classpath	refid of classpath
+	ibis			location of ibis root
+	default.classpath	refid of ibis classpath
+
+	Optional prior definition of properties:
+	default.classpath	refid of application classpath
 
 	Targets:
 
@@ -31,14 +35,19 @@
     <target name="property-iogen-build"
 	    depends="property-init"
 	    unless="iogen-build">
+	    <!--
+	    -->
 	<echo message="iogen-build is undefined. Set it to the default value ${build}"/>
 	<property name="iogen-build" location="${build}"/>
 	<mkdir dir="${iogen-build}"/>
     </target>
 
     <target name="property-iogen-files"
-	    depends="property-init,property-iogen-build"
+	    depends="property-iogen-build"
 	    unless="iogen-files">
+	    <!--
+	    depends="property-init,property-iogen-build"
+	    -->
 	<path id="prep-iogen-all-classes">
 	    <fileset dir="${iogen-build}">
 		<include name="**/*.class"/>
@@ -58,6 +67,15 @@
     <target name="iogen-files" depends="iogen-init">
 	<mkdir dir="${iogen-build}"/>
 	<echo level="debug" message="All files to be rewritten: ${iogen-files}"/>
+	<if>
+	    <not>
+	    <isreference refid="app.classpath"/>
+	    </not>
+	    <then>
+		<path id="app.classpath"/>
+		<echo message="Define a default empty app.classpath"/>
+	    </then>
+	</if>
 	<java   classname="ibis.frontend.io.IOGenerator"
 		taskname="IOGenerator"
 		dir="${iogen-build}"
@@ -66,6 +84,7 @@
 		fork="true">
 	    <arg line="-dir ${iogen-files}"/>
 	    <classpath refid="default.classpath"/>
+	    <classpath refid="app.classpath"/>
 	</java>
     </target>
 
