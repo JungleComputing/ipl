@@ -42,12 +42,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 private NetMutex         sleep = new NetMutex(true);
                 private ReadMessage      rm    = null;
                 private volatile boolean end  = false;
-                
+
                 public UpcallThread(String name) {
                         super("NetReceivePort.UpcallThread: ");
                         start();
                 }
-                
+
                 public void run() {
                         log.in("upcall thread starting");
                         while (!end) {
@@ -57,7 +57,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 } catch (InterruptedException e) {
                                         continue;
                                 }
-                                
+
                                 upcall.upcall(rm);
 
                                 if (currentThread == this) {
@@ -87,7 +87,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         sleep.unlock();
                         log.out();
                 }
-                
+
                 protected void end() {
                         log.in();
                         end = true;
@@ -97,7 +97,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         }
 
 
-        
+
         /* --- incoming connection manager thread -- */
 
         /**
@@ -124,7 +124,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                  */
                 public void run() {
                         log.in("accept thread starting");
-                        
+
                 accept_loop:
                         while (!end) {
                                 NetServiceLink link = null;
@@ -140,7 +140,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 NetSendPortIdentifier spi = null;
 
                                 num = new Integer(nextSendPortNum++);
-                                
+
                                 try {
                                         link.init(num);
                                 } catch (NetIbisException e) {
@@ -162,39 +162,29 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         try {
                                                 connectionLock.ilock();
                                                 //inputLock.lock();
-                                                
+
                                                 NetConnection cnx  = new NetConnection(NetReceivePort.this, num, spi, identifier, link);
 
                                                 synchronized(connectionTable) {
                                                         connectionTable.put(num, cnx);
                                                 }
 
-                                                if (useUpcall || (upcall != null && !usePollingThread)) {
+                                                if (useUpcall || upcall != null) {
                                                         input.setupConnection(cnx, NetReceivePort.this);
                                                 } else {
                                                         input.setupConnection(cnx, null);
-                                                }
-                                                
-                                                if (num.intValue() == 0) {
-                                                        /*
-                                                         * We got our first connection,
-                                                         * let's start polling it
-                                                         */
-                                                        if (pollingThread != null) {
-                                                                pollingThread.start();
-                                                        }
                                                 }
 
                                                 //inputLock.unlock();
                                                 connectionLock.unlock();
                                         } catch (InterruptedException e) {
                                                 System.err.println("Accept thread interrupted");
-                                                
+
                                                 continue connect_loop;
                                         } catch (Exception e) {
                                                 System.err.println(e.getMessage());
                                                 e.printStackTrace();
-                                        } 
+                                        }
 
                                         break connect_loop;
                                 }
@@ -209,7 +199,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 /*
                 protected void prepareEnd() {
                         end = true;
-                        
+
                         if (serverSocket != null) {
                                 try {
                                         serverSocket.close();
@@ -224,11 +214,11 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         this.interrupt();
                 }
                 */
-                
+
                 protected void end() {
                         log.in();
                         end = true;
-                        
+
                         if (serverSocket != null) {
                                 try {
                                         serverSocket.close();
@@ -240,110 +230,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         this.interrupt();
                         log.out();
                 }
-                
+
         }
 
-        /**
-         * The optional asynchronous polling thread class.
-         */
-        private final class PollingThread extends Thread {
-                private volatile boolean end = false;
 
-                public PollingThread(String name) {
-                        super("NetReceivePort.PollingThread: "+name);
-                        setDaemon(true);
-                }
-
-                /**
-                 * The asynchronous polling function.
-                 * Note: the thread is <strong>uninterruptible</strong>
-                 * during the network input locking.
-                 */
-                public void run() {
-                        log.in();
-                polling_loop:
-                        while (!end) {
-                                try {
-                                        pollingLock.ilock();
-                                        pollingNotify = true;
-                                        
-                                        inputLock.lock();
-                                        activeSendPortNum = input.poll(false);
-                                        inputLock.unlock();
-
-                                        if (activeSendPortNum == null) {
-                                                pollingLock.unlock();
-                                                if (useYield) {
-                                                        yield();
-                                                }
-                                                
-                                                continue polling_loop;
-                                        }
-
-                                        if (upcallsEnabled && upcall != null) {
-                                                final ReadMessage rm = _receive();
-
-                                                if (!useUpcallThread) {
-                                                        upcall.upcall(rm);
-                                                } else {
-                                                        if (!useUpcallThreadPool) {
-                                                                Runnable r = new Runnable() {
-                                                                                public void run() {
-                                                                                        log.in("anonymous upcall thread starting");
-                                                                                        upcall.upcall(rm);
-                                                                                        if (currentThread == this) {
-                                                                                                try {
-                                                                                                        finish();
-                                                                                                } catch (Exception e) {
-                                                                                                        throw new Error(e.getMessage());
-                                                                                                }
-                                                                                        }
-                                                                                        log.out("anonymous upcall thread leaving");
-                                                                                }
-                                                                        };
-                                                                currentThread = r;
-                                                                (new Thread(r)).start();
-                                                        } else {
-                                                                UpcallThread ut = null;
-                                        
-                                                                synchronized(threadStack) {
-                                                                        if (threadStackPtr > 0) {
-                                                                                ut = threadStack[--threadStackPtr];
-                                                                        } else {
-                                                                                ut = new UpcallThread("no "+upcallThreadNum++);
-                                                                        }        
-                                                                }
-
-                                                                currentThread = ut;
-                                                                ut.exec(rm);
-                                                        }
-                                                }                                                
-                                        } else {
-                                                polledLock.unlock();
-                                        }
-                                } catch (InterruptedException e) {
-                                        pollingLock.unlock();
-                                        continue polling_loop;
-                                } catch (NetIbisException e) {
-                                        // TODO: pass the exception back
-                                        //       to the application
-                                        __.fwdAbort__(e);
-                                }
-                        }
-                        log.out();
-                }
-
-                /**
-                 * Requests for the thread completion.
-                 */
-                protected void end() {
-                        log.in();
-                        end = true;
-                        this.interrupt();
-                        log.out();
-                }
-        }
-        
 
 
 
@@ -353,11 +243,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 
         private boolean                  useUpcallThreadPool = true;
-
-        /**
-         * Flag indicating whether the port use a polling thread.
-         */
-        private boolean                  usePollingThread    = false;
 
         private boolean                  useUpcallThread     = true;
 
@@ -455,7 +340,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          * This logging object should only be used temporarily for debugging purpose.
          */
         protected NetLog           disp                   = null;
-        
+
 
 
 
@@ -483,11 +368,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          * The incoming connection management thread.
          */
         private AcceptThread             acceptThread        =  null;
-
-        /**
-         * The optionnal asynchronous polling thread.
-         */
-        private PollingThread            pollingThread       =  null;
 
         private final int                threadStackSize     = 256;
 
@@ -569,9 +449,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 if (spn == null) {
                         throw new Error("invalid state");
                 }
-        
+
                 activeSendPortNum = spn;
-                
+
                 if (upcall != null && upcallsEnabled) {
                         final ReadMessage rm = _receive();
                         if (!useUpcallThread) {
@@ -583,7 +463,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         } catch (Exception e) {
                                                 throw new Error(e.getMessage());
                                         }
-                                        
+
                                         emptyMsg = false;
                                 }
                         } else {
@@ -608,18 +488,18 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                                         currentThread = r;
                                         (new Thread(r)).start();
-                                                
+
                                         finishMutex.lock();
 
                                 } else {
                                         UpcallThread ut = null;
-                                        
+
                                         synchronized(threadStack) {
                                                 if (threadStackPtr > 0) {
                                                         ut = threadStack[--threadStackPtr];
                                                 } else {
                                                         ut = new UpcallThread("no "+upcallThreadNum++);
-                                                }        
+                                                }
                                         }
 
                                         currentThread = ut;
@@ -634,7 +514,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
                 log.out();
         }
-        
+
 
 
         /* --- NetEventQueueConsumer part --- */
@@ -643,9 +523,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 NetPortEvent event = (NetPortEvent)e;
 
                 log.disp("IN: event.code() = "+event.code());
-                
+
                 switch (event.code()) {
-                        case NetPortEvent.CLOSE_EVENT: 
+                        case NetPortEvent.CLOSE_EVENT:
                                 {
                                         Integer num = (Integer)event.arg();
                                         NetConnection cnx = null;
@@ -658,7 +538,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         synchronized(connectionTable) {
                                                 cnx = (NetConnection)connectionTable.remove(num);
                                         }
-                                                
+
                                         if (cnx != null) {
                                                 try {
                                                         close(cnx);
@@ -674,7 +554,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
                 log.out();
         }
-        
+
 
         /* --- NetPort part --- */
         public NetPortType getPortType() {
@@ -682,7 +562,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return type;
         }
-        
+
 
         /* --- NetReceivePort part --- */
         /*
@@ -724,20 +604,20 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         private void initDebugStreams() {
                 String  s      = "//"+type.name()+" receivePort("+name+")/";
-                              
+
                 boolean log    = type.getBooleanStringProperty(null, "Log",   false);
                 boolean trace  = type.getBooleanStringProperty(null, "Trace", false);
                 boolean disp   = type.getBooleanStringProperty(null, "Disp",  true);
-                              
+
                 this.log       = new NetLog(log,   s, "LOG");
                 this.trace     = new NetLog(trace, s, "TRACE");
                 this.disp      = new NetLog(disp,  s, "DISP");
         }
-        
+
         private void initPassiveObjects() {
                 log.in();
                 connectionTable  = new Hashtable();
-                                
+
                 polledLock       = new NetMutex(true);
                 pollingLock      = new NetMutex(false);
                 connectionLock   = new NetMutex(true);
@@ -745,7 +625,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 finishMutex      = new NetMutex(true);
                 log.out();
         }
-        
+
         private void initMainInput() throws NetIbisException {
                 log.in();
                 NetIbis ibis           = type.getIbis();
@@ -754,33 +634,29 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 if (mainDriverName == null) {
                         throw new NetIbisException("root driver not specified");
                 }
-                        
+
                 driver = ibis.getDriver(mainDriverName);
                 if (driver == null) {
                         throw new NetIbisException("driver not found");
                 }
-                
+
                 input = driver.newInput(type, null);
                 log.out();
         }
 
         private void initGlobalSettings(boolean upcallSpecified) {
                 log.in();
-                usePollingThread       = type.getBooleanStringProperty(null, "UsePollingThread",    usePollingThread   );
                 useUpcallThread        = type.getBooleanStringProperty(null, "UseUpcallThread",     useUpcallThread    );
                 useUpcallThreadPool    = type.getBooleanStringProperty(null, "UseUpcallThreadPool", useUpcallThreadPool);
                 useYield               = type.getBooleanStringProperty(null, "UseYield",            useYield           );
                 useUpcall              = type.getBooleanStringProperty(null, "UseUpcall",           useUpcall          );
                 //                useBlockingPoll        = type.getBooleanStringProperty(null, "UseBlockingPoll",     useBlockingPoll    );
 
-                if (usePollingThread) {
-                        useUpcall = false;
-                } else if (!useUpcall && upcallSpecified) {
+                if (!useUpcall && upcallSpecified) {
                         useUpcall = true;
                 }
 
                 disp.disp("__ Configuration ____");
-                disp.disp("Polling thread......." + __.state__(usePollingThread));
                 disp.disp("Upcall thread........" + __.state__(useUpcallThread));
                 disp.disp("Upcall thread pool..." + __.state__(useUpcallThreadPool));
                 disp.disp("Upcall engine........" + __.state__(useUpcall));
@@ -789,7 +665,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 disp.disp("_____________________");
                 log.out();
         }
-        
+
         private void initServerSocket() throws NetIbisException {
                 log.in();
                 try {
@@ -799,14 +675,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
                 log.out();
         }
-        
+
         private void initIdentifier() {
                 log.in();
                 Hashtable info = new Hashtable();
 
                 InetAddress addr = serverSocket.getInetAddress();
                 int         port = serverSocket.getLocalPort();
-                
+
                 info.put("accept_address", addr);
                 info.put("accept_port",    new Integer(port));
                 NetIbis           ibis   = type.getIbis();
@@ -814,27 +690,22 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 identifier = new NetReceivePortIdentifier(name, type.name(), ibisId, info);
                 log.out();
         }
-        
+
         private void initActiveObjects() {
                 log.in();
-                acceptThread = new AcceptThread(name);
-
-                if (usePollingThread) {
-                        pollingThread = new PollingThread(name);
-                }
-                
+                acceptThread       = new AcceptThread(name);
                 eventQueue         = new NetEventQueue();
                 eventQueueListener = new NetEventQueueListener(this, "ReceivePort: "+name, eventQueue);
                 log.out();
         }
-        
+
         private void start() {
                 log.in();
                 eventQueueListener.start();
                 acceptThread.start();
                 log.out();
         }
-        
+
         /**
          * The internal synchronous polling function.
          *
@@ -867,7 +738,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         final String messageId = readString();
                         trace.disp("message "+messageId+" receive -->");
                 }
-                
+
                 log.out();
                 return this;
         }
@@ -882,7 +753,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          */
         public ReadMessage receive() throws NetIbisException {
                 log.in();
-                if (usePollingThread || useUpcall || upcall != null) {
+                if (useUpcall || upcall != null) {
                         polledLock.lock();
                 } else {
                         if (useYield) {
@@ -893,9 +764,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         } else {
                                 while (!_doPoll(useBlockingPoll));
                         }
-                        
+
                 }
-                
+
                 log.out();
                 return _receive();
         }
@@ -909,10 +780,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         ((NetReceivePort)finishMe).finish();
                 }
                 log.out();
-                
+
                 return receive();
         }
-        
+
         /**
          * Unblockingly attempts to receive a message.
          *
@@ -924,7 +795,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          */
         public ReadMessage poll()  throws NetIbisException {
                 log.in();
-                if (usePollingThread || useUpcall || upcall != null) {
+                if (useUpcall || upcall != null) {
                         if (!polledLock.trylock())
                                 log.out("poll failure 1");
                                 return null;
@@ -934,12 +805,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 return null;
                         }
                 }
-                
+
                 log.out("poll success");
-                
+
                 return _receive();
         }
-        
+
         /**
          * {@inheritDoc}
          */
@@ -953,12 +824,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return rm;
         }
-        
+
         public DynamicProperties properties() {
                 log.in();
                 log.out();
                 return null;
-        }       
+        }
 
         /**
          * {@inheritDoc}
@@ -984,7 +855,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                 if (activeSendPortNum == null)
                         throw new Error("no active sendPort");
-                
+
                 NetConnection cnx = (NetConnection)connectionTable.get(activeSendPortNum);
                 if (cnx.getSendId() == null) {
                         throw new Error("invalid state");
@@ -1044,7 +915,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 if (cnx == null) {
                         log.out("cnx = null");
                         return;
-                }                
+                }
 
                 input.close(cnx.getNum());
 
@@ -1057,7 +928,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         }
 
         /**
-         * Closes the port. 
+         * Closes the port.
          *
          * Note: surprinsingly, ReceivePort.free is not declared to
          * throw NetIbisException while SendPort.free does.
@@ -1086,7 +957,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 if (connectionTable != null) {
                                         while (true) {
                                                 NetConnection cnx = null;
-                                        
+
                                                 synchronized(connectionTable) {
                                                         Iterator i = connectionTable.values().iterator();
                                                         if (!i.hasNext())
@@ -1095,7 +966,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                         cnx = (NetConnection)i.next();
                                                         i.remove();
                                                 }
-                                                
+
                                                 if (cnx != null) {
                                                         close(cnx);
                                                 }
@@ -1116,7 +987,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
                 log.out();
         }
-        
+
         protected void finalize() throws Throwable {
                 log.in();
                 free();
@@ -1124,7 +995,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 synchronized(threadStack) {
                         for (int i = 0; i < threadStackSize; i++) {
                                 UpcallThread ut = threadStack[i];
-                        
+
                                 if (ut != null) {
                                         ut.end();
 
@@ -1136,19 +1007,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                         //
                                                 }
                                         }
-                                }
-                        }
-                }
-
-                if (pollingThread != null) {
-                        pollingThread.end();
-
-                        while (true) {
-                                try {
-                                        pollingThread.join();
-                                        break;
-                                } catch (InterruptedException e) {
-                                        //
                                 }
                         }
                 }
@@ -1165,7 +1023,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 }
                         }
                 }
-                        
+
                 super.finalize();
                 log.out();
         }
@@ -1181,7 +1039,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 activeSendPortNum = null;
                 input.finish();
                 currentThread = null;
-                
+
                 if (finishNotify) {
                         finishNotify = false;
                         finishMutex.unlock();
@@ -1199,7 +1057,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return 0;
         }
-        
+
         public SendPortIdentifier origin() {
                 log.in();
                 SendPortIdentifier spi = getActiveSendPortIdentifier();
@@ -1215,7 +1073,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
         public byte readByte() throws NetIbisException {
                 log.in();
                 emptyMsg = false;
@@ -1223,7 +1081,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
         public char readChar() throws NetIbisException {
                 log.in();
                 emptyMsg = false;
@@ -1231,7 +1089,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
         public short readShort() throws NetIbisException {
                 log.in();
                 emptyMsg = false;
@@ -1239,7 +1097,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
         public int readInt() throws NetIbisException {
                 log.in();
                 emptyMsg = false;
@@ -1247,7 +1105,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
         public long readLong() throws NetIbisException {
                 log.in();
                 emptyMsg = false;
@@ -1255,7 +1113,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
         public float readFloat() throws NetIbisException {
                 log.in();
                 emptyMsg = false;
@@ -1263,7 +1121,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
         public double readDouble() throws NetIbisException {
                 log.in();
                 emptyMsg = false;
@@ -1271,7 +1129,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
         public String readString() throws NetIbisException {
                 log.in();
                 emptyMsg = false;
@@ -1279,7 +1137,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
         public Object readObject() throws NetIbisException {
                 log.in();
                 emptyMsg = false;
@@ -1287,7 +1145,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return v;
         }
-        
+
 
         public void readArrayBoolean(boolean [] b) throws NetIbisException {
                 log.in();
@@ -1350,7 +1208,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         log.out("l = 0");
                         return;
                 }
-                
+
                 emptyMsg = false;
                 input.readArraySliceBoolean(b, o, l);
         }
@@ -1443,5 +1301,5 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 input.readArraySliceObject(b, o, l);
                 log.out();
         }
-        
-} 
+
+}

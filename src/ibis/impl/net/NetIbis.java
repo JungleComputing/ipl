@@ -26,7 +26,7 @@ import java.lang.reflect.InvocationTargetException;
  * support.
  */
 public final class NetIbis extends Ibis {
-	
+
 	/**
          * The compiler name.
          */
@@ -113,7 +113,7 @@ public final class NetIbis extends Ibis {
          *
          * This {@linkplain NetBank bank} can be used as general
          * purpose and relatively safe repository for global object
-         * instances. 
+         * instances.
          */
 	private   NetBank           bank             = new NetBank();
 
@@ -141,7 +141,7 @@ public final class NetIbis extends Ibis {
 		}
 
 		if (staticDriverLoading) {
-		    String[] drivers = { 
+		    String[] drivers = {
 					"gen"
 					, "bytes"
 					, "id"
@@ -170,13 +170,13 @@ public final class NetIbis extends Ibis {
                 if (pool_total_hosts != null) {
                         closedPoolSize = Integer.parseInt(pool_total_hosts);
                 }
-                
+
                 String pool_host_number = p.getProperty("pool_host_number");
                 if (pool_total_hosts != null) {
                         closedPoolRank = Integer.parseInt(pool_host_number);
                 }
-                
-                        
+
+
 	}
 
 	/**
@@ -193,7 +193,7 @@ public final class NetIbis extends Ibis {
 	 *
 	 * If the driver has not been loaded, it is instanciated on the fly. The
 	 * driver's name is the suffix to append to the NetIbis package to get
-	 * access to the driver's package. The driver's package must contain a 
+	 * access to the driver's package. The driver's package must contain a
 	 * class named <CODE>Driver</CODE> which extends {@link NetDriver}.
 	 *
 	 * @param name the driver's name.
@@ -227,10 +227,10 @@ public final class NetIbis extends Ibis {
 
 			driverTable.put(name, driver);
 		}
-			
+
 		return driver;
 	}
-     
+
 	/**
 	 * Creates a {@linkplain PortType port type} from a name and a set of {@linkplain StaticProperties properties}.
 	 *
@@ -247,14 +247,14 @@ public final class NetIbis extends Ibis {
 
 		PortTypeNameServerClient client = nameServerClient.tcpPortTypeNameServerClient;
                 try {
-                        if (client.newPortType(name, sp)) { 
+                        if (client.newPortType(name, sp)) {
                                 portTypeTable.put(name, newPortType);
                         }
                 } catch (ibis.ipl.IbisIOException e) {
                         throw new NetIbisException(e);
                 }
-                
-		return newPortType;	
+
+		return newPortType;
 	}
 
 	/**
@@ -264,7 +264,7 @@ public final class NetIbis extends Ibis {
 	 */
 	public Registry registry() {
 		return nameServerClient.tcpRegistry;
-	} 
+	}
 
 	/**
 	 * Returns the {@linkplain StaticProperties properties} of the {@link NetIbis} instance.
@@ -293,7 +293,7 @@ public final class NetIbis extends Ibis {
 	 * @exception IbisException if the system-wide Ibis properties where not correctly set.
 	 * @exception NetIbisException if the local host name cannot be found or if the <I>name server</I> cannot be reached.
 	 */
-	protected void init() throws IbisException, NetIbisException { 
+	protected void init() throws IbisException, NetIbisException {
 
                 /* Builds the instance identifier out of our {@link InetAddress}. */
 		try {
@@ -302,11 +302,11 @@ public final class NetIbis extends Ibis {
 		} catch (UnknownHostException e) {
 			throw new NetIbisException(e);
 		}
-		
+
                 /* Decodes <I>name server</I> properties informations. */
 		{
 			Properties p = System.getProperties();
-		
+
 			nameServerName = p.getProperty("name_server");
                         if (nameServerName == null) {
                                 throw new IbisException("property name_server is not specified");
@@ -330,7 +330,7 @@ public final class NetIbis extends Ibis {
                                 }
                         }
 		}
-		
+
                 /* Gets <I>name server<I> {@link InetAddress} */
 		try {
 			nameServerInet = InetAddress.getByName(nameServerName);
@@ -343,7 +343,7 @@ public final class NetIbis extends Ibis {
                         nameServerClient = new NameServerClient(this,
                                                                 identifier,
                                                                 nameServerPool,
-                                                                nameServerInet, 
+                                                                nameServerInet,
                                                                 nameServerPort);
                 } catch (ibis.ipl.IbisIOException e) {
                         throw new NetIbisException(e);
@@ -358,7 +358,7 @@ public final class NetIbis extends Ibis {
 	public ReceivePortNameServerClient receivePortNameServerClient() {
 		return nameServerClient.tcpReceivePortNameServerClient;
 	}
-	
+
         /*
 	 * Handles synchronous/asynchronous Ibises pool joins.
 	 *
@@ -367,13 +367,13 @@ public final class NetIbis extends Ibis {
 	/**
          * {@inheritDoc}
          */
-	public void join(IbisIdentifier joinIdent) { 
+	public void join(IbisIdentifier joinIdent) {
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				joinedIbises.add(joinIdent);
 				return;
 			}
-			
+
 			poolSize++;
 		}
 
@@ -390,7 +390,7 @@ public final class NetIbis extends Ibis {
 	/**
          * {@inheritDoc}
          */
-	public void leave(IbisIdentifier leaveIdent) { 
+	public void leave(IbisIdentifier leaveIdent) {
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				leftIbises.add(leaveIdent);
@@ -417,7 +417,7 @@ public final class NetIbis extends Ibis {
 				poolSize--;
 			}
 		}
-		
+
 		synchronized (this) {
 			open = true;
 		}
@@ -436,9 +436,9 @@ public final class NetIbis extends Ibis {
 	 * @return A reference to the port type or <code>null</CODE> if the given name is not the name of a valid port type.
 	 */
 	synchronized
-	public PortType getPortType(String name) { 
+	public PortType getPortType(String name) {
 		return (PortType) portTypeTable.get(name);
-	} 
+	}
 
 	/** Requests the NetIbis instance to leave the Name Server pool.
 	 */
@@ -457,10 +457,10 @@ public final class NetIbis extends Ibis {
         protected int _closedPoolRank() {
                 return closedPoolRank;
         }
-        
+
         protected int _closedPoolSize() {
                 return closedPoolSize;
         }
-        
-                
+
+
 }
