@@ -45,6 +45,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private boolean stats = false;
 	private boolean panda = false;
 	private boolean mpi = false;
+	private boolean net = false;
 	private boolean mantaSerialization = false;
 
 	/* Am I the root (the one running main)? */
@@ -156,6 +157,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				panda = true;
 			} else if(args[i].equals("-satin-mpi")) {
 				mpi = true;
+			} else if(args[i].equals("-satin-net")) {
+				net = true;
 			} else if(args[i].equals("-satin-tcp")) {
 			} else if(args[i].equals("-satin-stats")) {
 				stats = true;
@@ -196,6 +199,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					ibis = Ibis.createIbis(name, "ibis.ipl.impl.messagePassing.PandaIbis", this);
 				} else if (mpi) {
 					ibis = Ibis.createIbis(name, "ibis.ipl.impl.messagePassing.MPIIbis", this);
+				} else if (net) {
+					ibis = Ibis.createIbis(name, "ibis.ipl.impl.net.NetIbis", this);
 				} else {
 					ibis = Ibis.createIbis(name, "ibis.ipl.impl.tcp.TcpIbis", this);
 				}
