@@ -1,10 +1,10 @@
 package ibis.impl.nio;
 
-import java.io.IOException;
-
-import ibis.io.SerializationInputStream;
 import ibis.io.Dissipator;
 import ibis.io.IbisStreamFlags;
+import ibis.io.SerializationInputStream;
+
+import java.io.IOException;
 
 
 

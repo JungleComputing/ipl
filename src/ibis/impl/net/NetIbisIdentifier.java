@@ -1,8 +1,8 @@
 package ibis.impl.net;
 
+import ibis.impl.util.IbisIdentifierTable;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
-import ibis.impl.util.IbisIdentifierTable;
 
 import java.io.IOException;
 import java.net.InetAddress;

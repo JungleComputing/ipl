@@ -53,14 +53,18 @@ public final class Rdtsc extends ibis.util.Timer {
 	}
 
 	public void start() {
-		if (! started) {
+		if(started) {
+			throw new Error("timer started twice");
+		} else {
 			t_start = rdtsc();
 			started = true;
 		}
 	}
 
 	public void stop() {
-		if (started) {
+		if (!started) {
+			throw new Error("timer stopped, but was not started");
+		} else {
 			lastTime = rdtsc() - t_start;
 			time += lastTime;
 			++ count;

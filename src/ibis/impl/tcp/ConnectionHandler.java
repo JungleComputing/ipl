@@ -8,13 +8,13 @@ package ibis.impl.tcp;
 
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.DataSerializationInputStream;
+import ibis.io.DummyInputStream;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.NoSerializationInputStream;
 import ibis.io.SerializationInputStream;
 import ibis.io.SunSerializationInputStream;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
-import ibis.io.DummyInputStream;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;

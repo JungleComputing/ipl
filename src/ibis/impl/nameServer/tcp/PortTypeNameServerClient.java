@@ -1,8 +1,8 @@
 package ibis.impl.nameServer.tcp;
 
-import ibis.ipl.StaticProperties;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
+import ibis.ipl.StaticProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

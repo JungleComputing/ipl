@@ -2,8 +2,8 @@ package ibis.impl.net;
 
 import ibis.ipl.Replacer;
 
-import java.io.DataOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**

@@ -3,8 +3,8 @@ package ibis.satin.impl;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
-import ibis.ipl.ReceivePort;
 import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.util.Timer;
 

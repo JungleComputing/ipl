@@ -1,13 +1,12 @@
 package ibis.util;
 
+import ibis.ipl.IbisException;
+
+import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.DataOutputStream;
-
-import ibis.ipl.IbisException;
 
 /**
  * The <code>PoolInfoClient</code> class provides a utility for finding out

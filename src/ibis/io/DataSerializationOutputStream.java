@@ -282,7 +282,7 @@ public class DataSerializationOutputStream
 		flush();
 	    }
 	    if (DEBUG) {
-		dbPrint("writeArrayChar: " + ref + " offset: " 
+		dbPrint("writeArrayChar: " + new String(ref) + " offset: " 
 			+ offset + " len: " + len + " type: " + TYPE_CHAR);
 	    }
 	    array[array_index].type   = TYPE_CHAR;

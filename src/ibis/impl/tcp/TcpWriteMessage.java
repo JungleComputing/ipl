@@ -2,10 +2,9 @@ package ibis.impl.tcp;
 
 import ibis.io.SerializationOutputStream;
 import ibis.io.SplitterException;
-
+import ibis.ipl.IbisError;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.IbisError;
 
 import java.io.IOException;
 

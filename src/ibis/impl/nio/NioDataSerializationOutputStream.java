@@ -1,11 +1,11 @@
 package ibis.impl.nio;
 
-import java.io.IOException;
-
-import ibis.io.SerializationOutputStream;
 import ibis.io.Accumulator;
 import ibis.io.IbisStreamFlags;
+import ibis.io.SerializationOutputStream;
 import ibis.ipl.IbisError;
+
+import java.io.IOException;
 
 
 /**

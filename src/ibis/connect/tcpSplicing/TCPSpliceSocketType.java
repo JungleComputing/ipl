@@ -1,17 +1,17 @@
 package ibis.connect.tcpSplicing;
 
-import ibis.connect.util.MyDebug;
 import ibis.connect.socketFactory.BrokeredSocketFactory;
-import ibis.connect.socketFactory.SocketType;
 import ibis.connect.socketFactory.PlainTCPSocketType;
+import ibis.connect.socketFactory.SocketType;
+import ibis.connect.util.MyDebug;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.net.Socket;
 
 

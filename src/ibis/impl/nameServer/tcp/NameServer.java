@@ -1,10 +1,10 @@
 package ibis.impl.nameServer.tcp;
 
 import ibis.connect.controlHub.ControlHub;
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisRuntimeException;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisRuntimeException;
 import ibis.util.PoolInfoServer;
 import ibis.util.TypedProperties;
 

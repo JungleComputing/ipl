@@ -6,9 +6,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.ArrayList;
 
 // HubLink manages the link with the control hub
 public class HubLink extends Thread

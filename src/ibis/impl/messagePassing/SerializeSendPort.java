@@ -1,9 +1,6 @@
 package ibis.impl.messagePassing;
 
-import ibis.ipl.ConnectionRefusedException;
-import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Replacer;
-
 import ibis.util.ConditionVariable;
 
 import java.io.BufferedOutputStream;

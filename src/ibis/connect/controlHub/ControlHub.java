@@ -2,7 +2,6 @@ package ibis.connect.controlHub;
 
 import ibis.connect.routedMessages.HubProtocol;
 import ibis.connect.util.MyDebug;
-
 import ibis.util.TypedProperties;
 
 import java.io.EOFException;
@@ -11,11 +10,11 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Hashtable;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
-import java.util.ArrayList;
 
 /** Incarnates a thread dedicated to HubWire management 
  * towards a given node.

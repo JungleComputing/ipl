@@ -4,7 +4,6 @@ import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisException;
 
 import java.util.Enumeration;
-import java.util.NoSuchElementException;
 import java.util.Hashtable;
 
 public class TcpDynamicProperties extends DynamicProperties { 

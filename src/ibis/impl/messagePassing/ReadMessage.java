@@ -1,7 +1,5 @@
 package ibis.impl.messagePassing;
 
-import ibis.util.ConditionVariable;
-
 import java.io.IOException;
 
 public class ReadMessage implements ibis.ipl.ReadMessage {

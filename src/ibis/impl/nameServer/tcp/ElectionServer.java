@@ -2,7 +2,6 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
-
 import ibis.ipl.IbisRuntimeException;
 
 import java.io.BufferedInputStream;

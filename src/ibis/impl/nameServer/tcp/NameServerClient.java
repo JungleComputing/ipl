@@ -1,16 +1,16 @@
 package ibis.impl.nameServer.tcp;
 
 import ibis.impl.nameServer.NameServer;
+import ibis.io.DummyInputStream;
+import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
-import ibis.ipl.IbisRuntimeException;
-import ibis.io.DummyInputStream;
-import ibis.io.DummyOutputStream;
 import ibis.util.IPUtils;
 import ibis.util.IbisSocketFactory;
 import ibis.util.TypedProperties;

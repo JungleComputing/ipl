@@ -8,8 +8,8 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetLockArray;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
-import ibis.ipl.Ibis;
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.Ibis;
 import ibis.util.Monitor;
 import ibis.util.TypedProperties;
 

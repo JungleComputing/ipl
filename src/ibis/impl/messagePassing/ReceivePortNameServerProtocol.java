@@ -1,6 +1,5 @@
 package ibis.impl.messagePassing;
 
-import ibis.util.TypedProperties;
 
 interface ReceivePortNameServerProtocol {
 

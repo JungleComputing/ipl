@@ -192,7 +192,7 @@ final class IRStack implements Config {
 	 **/
 	void storeOrphansOf(IbisIdentifier crashedIbis) {
 		if (ASSERTS) {
-			s.assertLocked(s);
+			Satin.assertLocked(s);
 		}
 		
 		InvocationRecord curr;

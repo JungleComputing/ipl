@@ -1,9 +1,9 @@
 package ibis.impl.tcp;
 
 import ibis.io.SerializationInputStream;
+import ibis.ipl.IbisError;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
-import ibis.ipl.IbisError;
 import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;

@@ -1,6 +1,5 @@
 package ibis.io;
 
-import ibis.util.TypedProperties;
 import ibis.util.Timer;
 
 public class SerializationTimer {

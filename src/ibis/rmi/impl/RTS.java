@@ -12,10 +12,6 @@ import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
-
-import ibis.util.Timer;
-import ibis.util.TypedProperties;
-
 import ibis.rmi.AlreadyBoundException;
 import ibis.rmi.NotBoundException;
 import ibis.rmi.Remote;
@@ -25,6 +21,8 @@ import ibis.rmi.server.ExportException;
 import ibis.rmi.server.RemoteRef;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.SkeletonNotFoundException;
+import ibis.util.Timer;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.net.InetAddress;

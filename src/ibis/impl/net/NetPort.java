@@ -1,6 +1,5 @@
 package ibis.impl.net;
 
-import java.io.IOException;
 
 /**
  * Provide a common interface to both {@link NetSendPort} and {@link

@@ -1,12 +1,10 @@
 package ibis.impl.messagePassing;
 
+import ibis.impl.util.IbisIdentifierTable;
 import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
 import ibis.util.ConditionVariable;
 import ibis.util.Monitor;
-import ibis.util.TypedProperties;
-
-import ibis.impl.util.IbisIdentifierTable;
 
 import java.io.IOException;
 import java.util.Hashtable;

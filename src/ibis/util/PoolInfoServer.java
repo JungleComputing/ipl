@@ -1,12 +1,11 @@
 package ibis.util;
 
-import java.util.Properties;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.ServerSocket;
-import java.io.IOException;
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashMap;
 
 /**

@@ -1,12 +1,11 @@
 package ibis.impl.nio;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.StringTokenizer;
-
-import java.io.IOException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 
 final class Debug {
 

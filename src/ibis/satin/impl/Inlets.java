@@ -1,7 +1,7 @@
 package ibis.satin.impl;
 
-import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisError;
+import ibis.ipl.IbisIdentifier;
 
 public abstract class Inlets extends Aborts {
 	// trace back from the exception, and execute inlets / empty imlets back to

@@ -3,8 +3,6 @@ package ibis.impl.messagePassing;
 import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
 
-import ibis.util.TypedProperties;
-
 import java.io.IOException;
 import java.util.Hashtable;
 

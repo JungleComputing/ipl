@@ -1,13 +1,10 @@
 package ibis.impl.net.multi;
 
-import ibis.impl.net.NetBufferedInputSupport;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetInputUpcall;
-import ibis.impl.net.NetPoller;
 import ibis.impl.net.NetPortType;
-import ibis.impl.net.NetReceiveBuffer;
 
 import java.io.IOException;
 

@@ -1,12 +1,11 @@
 package ibis.satin.impl;
 
 import ibis.ipl.IbisError;
-import ibis.ipl.SendPort;
-import ibis.ipl.WriteMessage;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 import ibis.satin.ActiveTuple;
-import ibis.util.Sequencer;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

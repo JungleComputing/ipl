@@ -1,12 +1,12 @@
 package ibis.impl.nameServer.tcp;
 
+import ibis.io.DummyInputStream;
+import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.io.DummyInputStream;
-import ibis.io.DummyOutputStream;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

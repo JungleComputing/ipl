@@ -1,8 +1,7 @@
 package ibis.io;
 
-import ibis.util.TypedProperties;
-
 import ibis.ipl.Replacer;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
