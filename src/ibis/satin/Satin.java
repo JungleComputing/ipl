@@ -1561,10 +1561,20 @@ public final class Satin implements Config, ResizeHandler {
 
 	boolean satinPoll() {
 		if(POLL_FREQ == 0) { // polling is disabled
+		    if(HANDLE_MESSAGES_IN_LATENCY) {
+			System.err.println("Polling is disabled while messages are handled in the latency.\n" + 
+					   "This is a configureation error.");
+			System.exit(1);
+		    }
 			return false;
 		} 
 
 		if(upcalls && !upcallPolling) { // we are using upcalls, but don't want to poll
+		    if(HANDLE_MESSAGES_IN_LATENCY) {
+			System.err.println("Polling is disabled while messages are handled in the latency.\n" + 
+					   "This is a configureation error.");
+			System.exit(1);
+		    }
 			return false;
 		}
 
