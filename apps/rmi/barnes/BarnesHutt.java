@@ -67,7 +67,7 @@ strictfp public class BarnesHutt {
 	      //	      System.out.println("Using " + bhGd.gdSoft + " as epsilon");
 	    }
 
-	    if (args[i].equals("-das")) {
+	    if (args[i].equals("-das") || args[i].equals("-distributed")) {
               foundArg = true;
               bhDistributed = true;
 	    }
