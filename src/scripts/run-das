@@ -142,8 +142,8 @@ do
 done
 
 
+NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
 if [ -z "$no_pool" ] ; then
-	NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
 	Dpool_total="-Dibis.pool.total_hosts=$NHOSTS"
 	Dpool_host_num="-Dibis.pool.host_number=$PRUN_CPU_RANK"
 	Dpool_host_names="-Dibis.pool.host_names=\"$HOSTS\""
@@ -172,7 +172,10 @@ fi
 
 DEFAULT_USE_JAVA_WRAPPER=1
 
-wrapper_name="$IBIS_ROOT/bin/java_wrapper"
+wrapper_name="$IBIS_ROOT/bin/java_wrapper -cpu $cpumask -cd $dir"
+if [ ! -x wrapper_name ] ; then
+	wrapper_name=""
+fi
 
 # Given a list, return the last element
 function last_array_elt () {
@@ -198,6 +201,7 @@ function strip_array () {
 	echo "$RESULT"
 }
 
+i_am_nameserver=0
 if [ $dedicated_nameserver -eq 1 ]
 then
 	# A dedicated nameserver is run on HOSTS[#HOSTS - 1]
@@ -216,15 +220,18 @@ then
 	# echo Dpool_host_names $Dpool_host_names
 
 	export PRUN_HOSTNAMES=`strip_array $PRUN_HOSTNAMES`
+
+	if [ $PRUN_CPU_RANK -eq $NHOSTS ] ; then
+		i_am_nameserver=1
+	fi
 fi
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-if [ $PRUN_CPU_RANK -eq $NHOSTS ]
+if [ $i_am_nameserver -eq 1 ]
 then
 	echo Start run-once name server on `hostname`
 	$action $wrapper_name \
-		-cpu $cpumask -cd $dir \
 		$JAVA_ROOT/bin/$JAVA_EXEC \
 		-classpath $JAVACLASSPATH \
 		ibis.impl.nameServer.tcp.NameServer -single
@@ -232,7 +239,6 @@ else
 	# echo HOSTS '"'$HOSTS'"'
 	# echo PRUN_HOSTNAMES '"'$PRUN_HOSTNAMES'"'
 	$action $wrapper_name \
-		-cpu $cpumask -cd $dir \
 		$JAVA_ROOT/bin/$JAVA_EXEC \
 		$JIT_OPTS -Xmx1024M \
 		$Dlibpath $Dibislibs \
