@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class ArrayContainer implements TestObject {
     public static final int BYTE = 1;
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class TranspositionTableEntry {
     static final byte LOWER_BOUND = 1;
 

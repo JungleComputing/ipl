@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class TTEntry implements java.io.Serializable {
     long tag;
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class World extends ibis.satin.SatinObject implements WorldInterface,
         java.io.Serializable {
     final static int MAX_RAY_DEPTH = 5;

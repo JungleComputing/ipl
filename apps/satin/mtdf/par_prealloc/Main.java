@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Main {
     int depth;
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Sphere3D extends Object3D implements java.io.Serializable {
     Vector3D origin;
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 strictfp
 public class SetEssentialThread extends Thread {
 

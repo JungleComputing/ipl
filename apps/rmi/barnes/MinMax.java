@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final public class MinMax implements java.io.Serializable {
     vec3 min, max;
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class Cover extends ibis.satin.SatinObject implements
         CoverInterface, java.io.Serializable {
     static final int THRESHOLD = 15;

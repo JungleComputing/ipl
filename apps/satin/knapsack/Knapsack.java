@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class Knapsack extends ibis.satin.SatinObject implements
         KnapsackInterface, java.io.Serializable {
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class Game implements java.io.Serializable {
     private int[][] start = new int[Ida.NSQRT + 1][Ida.NSQRT + 1];
 

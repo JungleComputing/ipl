@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.io;
 
 public class SerializationError extends Error {

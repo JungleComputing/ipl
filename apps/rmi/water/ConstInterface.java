@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public interface ConstInterface {
 
     public static final int MAXODR = 8; //was 7

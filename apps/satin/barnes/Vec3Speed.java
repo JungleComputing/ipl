@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /**
  * This class is used for testing the speed of using Vec3 objects compared
  * to not using them

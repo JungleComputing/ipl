@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 import ibis.satin.SatinTupleSpace;
 import ibis.satin.ActiveTuple;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class NQueens {
 
     /** 

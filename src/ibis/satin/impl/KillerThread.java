@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.satin.impl;
 
 class KillerThread extends Thread {

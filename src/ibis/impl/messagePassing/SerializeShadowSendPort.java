@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.impl.messagePassing;
 
 import ibis.io.SunSerializationInputStream;

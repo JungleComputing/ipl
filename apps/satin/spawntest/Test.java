@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Test extends ibis.satin.SatinObject implements TestInterface,
         java.io.Serializable {
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class B4 extends B { 
 
     Thread waiter;

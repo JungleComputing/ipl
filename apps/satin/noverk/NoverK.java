@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class NoverK extends ibis.satin.SatinObject implements
         NoverKInterface, java.io.Serializable {
 

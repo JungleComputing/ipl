@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class WaitingSendThread extends Thread {
 
     i_SOR dest;

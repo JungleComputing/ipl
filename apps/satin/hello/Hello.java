@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class Hello extends ibis.satin.SatinObject implements HelloInterface,
         java.io.Serializable {
 

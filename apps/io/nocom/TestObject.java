@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public interface TestObject extends java.io.Serializable {
     int object_size();
 

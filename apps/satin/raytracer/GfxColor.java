@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public class GfxColor implements java.io.Serializable {
     float r, g, b;
 

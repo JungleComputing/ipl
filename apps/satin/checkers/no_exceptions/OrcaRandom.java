@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /*
  # Implementation in orca of Numerical Recipes ran1() but with integer result
  # in the range 0 .. 2^31 -1.

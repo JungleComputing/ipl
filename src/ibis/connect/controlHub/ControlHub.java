@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.connect.controlHub;
 
 import ibis.connect.routedMessages.HubProtocol;

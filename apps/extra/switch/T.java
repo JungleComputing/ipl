@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class T extends Thread { 
 
     B b;	

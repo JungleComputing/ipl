@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Bench {
 
     private static final int LEN = 16 * 1024;

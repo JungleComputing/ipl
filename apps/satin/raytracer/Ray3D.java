@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Ray3D implements java.io.Serializable {
     Vector3D pos;
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class StoreBuffer {
 
     // This is the write part. It's slow, but we don't care

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 import java.rmi.registry.Registry;
 import java.rmi.Remote;

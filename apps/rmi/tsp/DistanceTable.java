@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class DistanceTable {
 
     private int[][] table;

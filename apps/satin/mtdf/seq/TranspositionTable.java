@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class TranspositionTable {
     static final boolean SUPPORT_TT = true;
 

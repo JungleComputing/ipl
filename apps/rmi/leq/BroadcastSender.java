@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class BroadcastSender extends Thread {
 
     i_BroadcastObject dest;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class TwoOutThree extends ibis.satin.SatinObject implements
         TwoOutThreeInterface, java.io.Serializable {
     public void foo() throws Done {

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 class TrianglePatch3D extends Triangle3D {
     Vector3D n1, n2, n3;

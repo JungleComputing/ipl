@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Monitor extends Thread {
 
     Work w;

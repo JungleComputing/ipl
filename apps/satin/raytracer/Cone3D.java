@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 class Cone3D extends Object3D {
     Vector3D p1, p2;

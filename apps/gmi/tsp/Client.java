@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public class Client {
 
     DistanceTable distanceTable;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public class DistanceTable implements java.io.Serializable {
 
     private int[][] table;

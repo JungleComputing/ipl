@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.impl.nameServer;
 
 import ibis.util.TypedProperties;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class DDTree implements TestObject {
 
     static final int OBJECT_SIZE = 2 * 4 + 8 + 2 * 4;

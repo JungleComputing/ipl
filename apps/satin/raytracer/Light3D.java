@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Light3D extends Sphere3D implements java.io.Serializable {
     float intensity;
 

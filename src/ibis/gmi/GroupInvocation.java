@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.gmi;
 
 /** The {@link GroupInvocation} class is to be used when configuring a group

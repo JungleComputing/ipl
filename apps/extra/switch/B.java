@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class B { 
 
     boolean b = false;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.satin.impl;
 
 /** The master-worker distribution algorithm. */

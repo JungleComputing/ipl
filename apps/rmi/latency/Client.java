@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Client {
 
     public static final int COUNT = 10000;

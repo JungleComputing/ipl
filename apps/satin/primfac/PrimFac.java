@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class PrimFac extends ibis.satin.SatinObject implements
         PrimFacInterface, java.io.Serializable {
     static final int THRESHOLD = 10000;

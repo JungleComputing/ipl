@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.gmi;
 
 /** Container class for a registry reply. */

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Vector3D implements java.io.Serializable {
     double x, y, z;
 

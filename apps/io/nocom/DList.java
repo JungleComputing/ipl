@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class DList implements TestObject {
 
     static final int OBJECT_SIZE = 4 * 4 + 2 * 4;

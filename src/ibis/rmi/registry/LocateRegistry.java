@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.rmi.registry;
 
 import ibis.rmi.RemoteException;

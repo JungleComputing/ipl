@@ -1,3 +1,5 @@
+/* $Id$ */
+
 // do the inlet test in a seperate method, as multiple inlets in a method are more expensive.
 final class Lowlevel extends ibis.satin.SatinObject implements
         LowlevelInterface, java.io.Serializable {

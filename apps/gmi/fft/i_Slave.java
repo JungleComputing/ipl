@@ -1,3 +1,5 @@
+/* $Id$ */
+
 interface i_Slave extends ibis.gmi.GroupInterface {
 
     public void setValues(int i, double[] values);

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class DoneIntOverridden extends Throwable {
     int i;
 

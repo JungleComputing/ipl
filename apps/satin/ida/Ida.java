@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class Ida extends ibis.satin.SatinObject implements IdaInterface,
         java.io.Serializable {
 

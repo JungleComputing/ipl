@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public abstract class NodeType {
     short score = 0;
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public class Main {
     public static final int LEN = 100 * 1024;
 

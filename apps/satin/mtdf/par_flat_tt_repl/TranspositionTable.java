@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 import java.rmi.*;
 import java.rmi.registry.*;

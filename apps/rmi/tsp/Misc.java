@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Misc {
     public static final int MAX_HOPS = 4, // Search depth of master.
             MAX_JOBS = 10000, MAX_CLIENTS = 100;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 import java.awt.*;
 import java.rmi.RemoteException;

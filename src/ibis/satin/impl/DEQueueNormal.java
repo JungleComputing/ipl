@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.satin.impl;
 
 /** The `normal' implementation of a double-ended queue. */

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class DoneInt extends Throwable {
     int i;
 

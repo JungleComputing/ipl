@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class Fib extends ibis.satin.SatinObject implements FibInterface,
         java.io.Serializable {
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class DoubleVector {
 
     int n;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public class B extends A implements java.io.Serializable {
     int j;
     transient Object tO;

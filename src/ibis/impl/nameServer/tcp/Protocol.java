@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.impl.nameServer.tcp;
 
 interface Protocol {

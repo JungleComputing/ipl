@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class B2 extends B { 
 
     private boolean b = false;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Matrix {
 
     private double[] matrix;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.satin.impl;
 
 class DumpThread extends Thread {

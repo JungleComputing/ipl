@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 class Triangle3D extends Polygon3D {
     static Vector3D[] CreateArray(Vector3D p1, Vector3D p2, Vector3D p3) {

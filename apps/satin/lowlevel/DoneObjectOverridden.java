@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class DoneObjectOverridden extends Throwable {
     SerializableObject o;
 

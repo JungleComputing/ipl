@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class List implements TestObject {
 
     static final int OBJECT_SIZE = 4 * 4 + 1 * 4;

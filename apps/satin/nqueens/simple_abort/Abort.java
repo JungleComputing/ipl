@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Abort extends Exception implements java.io.Serializable {
     byte[] result;
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.frontend.io;
 
 import java.io.ByteArrayOutputStream;

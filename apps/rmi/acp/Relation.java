@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Relation implements java.io.Serializable {
 
     boolean rel[][];

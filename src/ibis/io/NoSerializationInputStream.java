@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.io;
 
 import java.io.EOFException;

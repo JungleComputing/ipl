@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.util.nativeCode;
 
 public final class Rdtsc extends ibis.util.Timer {

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Object3D implements java.io.Serializable {
     Object3D Next;
 

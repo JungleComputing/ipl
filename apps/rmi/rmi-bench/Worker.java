@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Worker extends Thread {
 
     static final int JOBSIZE = 10000;

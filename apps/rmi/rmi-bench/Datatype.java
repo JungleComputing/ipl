@@ -1,3 +1,5 @@
+/* $Id$ */
+
 interface Datatype {
 
     static final int BYTE	= 1;

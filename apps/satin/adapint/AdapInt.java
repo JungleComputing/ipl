@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class AdapInt extends ibis.satin.SatinObject implements AdapIntInterface,
         java.io.Serializable {
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class B3 extends B { 
 
     B3() { 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public final class Test implements myServer {
 
     boolean done = false;

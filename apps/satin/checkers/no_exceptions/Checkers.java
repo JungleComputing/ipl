@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /*
  * This program plays rudimentary checkers, without double jumps. It is
  * not interactive, both colors are played by the computer. Also a good

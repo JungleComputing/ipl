@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class SpawnTest {
 
     SpawnTest() {

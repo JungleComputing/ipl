@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Polygon3D extends Plane3D {
     int pts;
 

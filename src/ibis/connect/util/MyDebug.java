@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.connect.util;
 
 import java.io.OutputStream;

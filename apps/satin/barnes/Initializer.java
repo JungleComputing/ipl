@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /**
  * Active tuple: initializes the BarnesHut app at each node
  */

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.connect.util;
 
 import ibis.util.TypedProperties;

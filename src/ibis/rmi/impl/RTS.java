@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.rmi.impl;
 
 import ibis.ipl.BindingException;

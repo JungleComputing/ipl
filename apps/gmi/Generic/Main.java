@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 import ibis.gmi.Group;
 import ibis.gmi.GroupMethod;

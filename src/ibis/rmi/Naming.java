@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.rmi;
 
 import ibis.rmi.registry.LocateRegistry;

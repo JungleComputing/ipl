@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class WithInner implements java.io.Serializable {
 
     static int count;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import java.io.Serializable;
 
 public final class DITree implements Serializable {

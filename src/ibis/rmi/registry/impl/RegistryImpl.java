@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.rmi.registry.impl;
 
 import ibis.rmi.AlreadyBoundException;

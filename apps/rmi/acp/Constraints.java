@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Constraints implements java.io.Serializable {
 
     Relation[][] cons;

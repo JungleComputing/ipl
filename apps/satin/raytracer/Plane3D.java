@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 class Plane3D extends Object3D {
     Vector3D normal, origin, normalized_normal;

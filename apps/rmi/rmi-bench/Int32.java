@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import java.io.Serializable;
 
 public class Int32 implements Serializable {

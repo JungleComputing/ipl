@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public class Barrier {
     private int goal;
 

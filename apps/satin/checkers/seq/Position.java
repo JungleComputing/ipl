@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Position {
     int ply_of_game; /* must be even for black, odd for white */
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public class A {
     int i = 0;
 

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class Return implements java.io.Serializable {
     byte[] opt;
 

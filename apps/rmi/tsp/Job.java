@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Job implements java.io.Serializable {
     int[] path = null;
 

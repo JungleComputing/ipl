@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.satin.impl;
 
 /** The Dijkstra implementation of a double-ended queue. */

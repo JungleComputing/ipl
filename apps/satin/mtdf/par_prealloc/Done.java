@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class Done extends Throwable {
     short score;
 

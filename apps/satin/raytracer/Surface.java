@@ -1,3 +1,5 @@
+/* $Id$ */
+
 
 class Surface implements java.io.Serializable {
     GfxColor color = new GfxColor(1, 1, 1);

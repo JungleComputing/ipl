@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class Done extends Exception {
     int res;
 

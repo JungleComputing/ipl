@@ -1,3 +1,5 @@
+/* $Id$ */
+
 // Salishan Paraffins Problem:
 // Given an integer n, output the chemical structure of all
 // paraffin molecules for i<=n, without repetition and in 

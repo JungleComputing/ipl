@@ -1,3 +1,5 @@
+/* $Id$ */
+
 class LEQ {
 
     DoubleVector x_val;

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 import ibis.gmi.*;
 
 public class BinTPCombiner extends BinomialInvocationCombiner { 

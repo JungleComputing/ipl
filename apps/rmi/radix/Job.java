@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public class Job implements java.io.Serializable {
 
     ProcArg proc;

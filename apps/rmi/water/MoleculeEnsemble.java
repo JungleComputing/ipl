@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /*
  * This class contains arrays for each of the interaction dimensions
  * (DISP, ACC, FORCES, orders).

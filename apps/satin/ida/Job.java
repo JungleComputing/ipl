@@ -1,3 +1,5 @@
+/* $Id$ */
+
 final class Job implements java.io.Serializable {
     private byte[] board;
 

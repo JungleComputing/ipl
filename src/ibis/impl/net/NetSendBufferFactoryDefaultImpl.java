@@ -1,3 +1,5 @@
+/* $Id$ */
+
 package ibis.impl.net;
 
 public class NetSendBufferFactoryDefaultImpl implements

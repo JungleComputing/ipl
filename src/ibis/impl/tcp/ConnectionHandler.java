@@ -1,3 +1,5 @@
+/* $Id$ */
+
 // problem: blocking receive does not work.
 // solution:
 // A receiveport has a single slot for a message.

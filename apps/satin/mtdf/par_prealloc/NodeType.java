@@ -1,3 +1,5 @@
+/* $Id$ */
+
 public abstract class NodeType implements java.io.Serializable {
     short score = 0;
 
