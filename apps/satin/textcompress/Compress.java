@@ -79,6 +79,7 @@ class Compress extends ibis.satin.SatinObject
     {
         Backref mv = Backref.buildCopyBackref( pos );
         boolean haveAlternatives = false;
+        maxLen = 0;
 
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
             return mv;
@@ -94,23 +95,26 @@ class Compress extends ibis.satin.SatinObject
                 if( results[cost] == null || results[cost].len<r.len ){
                     results[cost] = r;
                     haveAlternatives = true;
+                    if( maxLen<r.len ){
+                        maxLen = r.len;
+                    }
                 }
             }
         }
 
         if( !haveAlternatives && depth == 0 ){
             // The only possible move is a copy, so don't bother to evaluate
-            // it any further.
-            if( traceLookahead ){
-                System.out.println( "At pos=" + pos + " only a copy is possible" );
-            }
+            // it any further. Note that we can only do this at top
+            // level, because at all other levels we must accurately
+            // calculate the gain of this move, so that the higher levels
+            // can do a valid comparison.
             return mv;
         }
 
         if( depth<Configuration.LOOKAHEAD_DEPTH ){
             // Evaluate the gain of just copying the character.
             Backref mv1 = selectBestMove( text, backrefs, pos+1, depth+1 );
-	    // See if we can get rid of this sync.
+	    // TODO: See if we can get rid of this sync.
 	    sync();
             mv.addGain( mv1 );
         }
