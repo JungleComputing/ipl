@@ -729,7 +729,10 @@ public class DataSerializationOutputStream
 	for (int i = 0; i < ARRAY_BUFFER_SIZE; i++) {
 	    array[i] = new ArrayDescriptor();
 	}
-	allocator = new DataAllocator();
+	// allocator = new DataAllocator();
+	// No, as long as the leaks in MessagePassing are not fixed:
+	allocator = new DummyAllocator();
+
 	indices_short  = allocator.getIndexArray();
 	byte_buffer    = allocator.getByteArray();
 	char_buffer    = allocator.getCharArray();
