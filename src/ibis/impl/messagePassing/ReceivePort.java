@@ -8,7 +8,7 @@ import ibis.ipl.impl.generic.ConditionVariable;
 class ReceivePort
     implements ibis.ipl.ReceivePort, Protocol, Runnable, PollClient {
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private static int livingPorts = 0;
     private static Syncer portCounter = new Syncer();
@@ -81,7 +81,7 @@ class ReceivePort
     private boolean firstCall = true;
 
     public synchronized void enableConnections() {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("Enable connections on " + this + " firstCall=" + firstCall);
 	}
 	if (firstCall) {
@@ -116,6 +116,9 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
     }
 
     public synchronized void enableUpcalls() {
+	if (DEBUG) {
+		System.err.println("*********** Enable upcalls");
+	}
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	allowUpcalls = true;
 	enable.cv_signal();
@@ -123,6 +126,9 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
     }
 
     public synchronized void disableUpcalls() {
+	if (DEBUG) {
+		System.err.println("*********** Disable upcalls");
+	}
 	allowUpcalls = false;
     }
 
@@ -156,7 +162,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
     private ibis.ipl.impl.messagePassing.ReadMessage locate(ShadowSendPort ssp,
 							    int msgSeqno) {
 	if (ssp.msgSeqno > msgSeqno && ssp.msgSeqno != -1) {
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (DEBUG) {
 		System.err.println("This is a SERIOUS BUG: the msgSeqno goes BACK!!!!!!!!!");
 	    }
 	    ssp.msgSeqno = msgSeqno;
@@ -182,7 +188,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 
     void enqueue(ibis.ipl.impl.messagePassing.ReadMessage msg) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "Enqueue message " + msg + " in port " + this + " msgHandle " + Integer.toHexString(msg.fragmentFront.msgHandle) + " current queueFront " + queueFront);
 	}
 	if (queueFront == null) {
@@ -220,7 +226,7 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 	ibis.ipl.impl.messagePassing.ReadMessage msg = queueFront;
 
 	if (msg != null) {
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (DEBUG) {
 		System.err.println("Now dequeue msg " + msg);
 	    }
 	    queueFront = msg.next;
@@ -237,7 +243,7 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("******* Now finish this ReceivePort message: " + currentMessage);
 	    // Thread.dumpStack();
 	}
@@ -310,7 +316,7 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 
 	/* Let's see whether we already have an envelope for this fragment. */
 	ibis.ipl.impl.messagePassing.ReadMessage msg = locate(origin, msgSeqno);
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + " Port " + this + " receive a fragment seqno " + msgSeqno + " size " + msgSize + " that belongs to msg " + msg + "; currentMessage = " + currentMessage + (currentMessage == null ? "" : (" .seqno " + currentMessage.msgSeqno)));
 	}
 
@@ -352,15 +358,18 @@ System.err.println("Create another UpcallThread because the previous one didn't 
     ibis.ipl.ReadMessage doReceive() throws IbisIOException {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "******** enter ReceivePort.receive()" + this.ident);
 	}
 	while (aMessageIsAlive && ! stop) {
 	    liveWaiters++;
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " aMessageIsAlive is true");
 	    }
 	    messageHandled.cv_wait();
+	    if (DEBUG) {
+		System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + this.ident + " aMessageIsAlive is true");
+	    }
 	    liveWaiters--;
 	}
 	aMessageIsAlive = true;
@@ -373,15 +382,16 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 }
 
 	if (queueFront == null) {
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " queue " + queueFront + " " + messageArrived);
 	    }
 	    arrivedWaiters++;
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
 	    arrivedWaiters--;
-	}
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-	    System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + this.ident);
+
+	    if (DEBUG) {
+		System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + this.ident);
+	    }
 	}
 
 	currentMessage = dequeue();
@@ -493,7 +503,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 
     public void free() {
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.out.println(name + ":Starting receiveport.free upcall = " + upcall);
 	}
 
@@ -501,7 +511,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.out.println(name + ": got Ibis lock");
 	}
 
@@ -510,7 +520,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	messageHandled.cv_bcast();
 	messageArrived.cv_bcast();
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.out.println(name + ": Enter shutdown.waitPolling; connections = " + connectionToString());
 	}
 	try {
@@ -520,7 +530,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	} catch (IbisIOException e) {
 	    /* well, if it throws an exception, let's quit.. */
 	}
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.out.println(name + ": Past shutdown.waitPolling");
 	}
 	/*
@@ -528,7 +538,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	    disconnected.cv_wait();
 
 	    if (upcall != null) {
-		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		if (DEBUG) {
 		    System.out.println(name +
 				       " waiting for all connections to close ("
 				       + connections.size() + ")");
@@ -539,7 +549,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 		    // Ignore.
 		}
 	    } else {
-		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		if (DEBUG) {
 		    System.out.println(name +
 				       " trying to close all connections (" +
 				       connections.size() + ")");
@@ -557,7 +567,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 
 	/* unregister with name server */
 	try {
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (DEBUG) {
 		System.out.println(name + ": unregister with name server");
 	    }
 	    type.freeReceivePort(name);
@@ -565,7 +575,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	    // Ignore.
 	}
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.out.println(name + ":done receiveport.free");
 	}
 
@@ -590,7 +600,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	if (upcall == null) {
 	    System.err.println(Thread.currentThread() + "ReceivePort runs but upcall == null");
 	}
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
 	}
 
@@ -615,7 +625,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 		     * poll for an expected reply very expensive.
 		     * Nowadays, pass 'false' for the preempt flag. */
 		    handlingReceive++;
-		    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		    if (DEBUG) {
 			System.err.println("*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
 		    }
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, false);
@@ -636,7 +646,7 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 		}
 
 		if (msg != null) {
-		    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		    if (DEBUG) {
 			System.err.println("Now process this msg " + msg + " msg.fragmentFront.msgHandle " + Integer.toHexString(((ibis.ipl.impl.messagePassing.ReadMessage)msg).fragmentFront.msgHandle));
 		    }
 		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();

@@ -572,7 +572,7 @@ void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array(
     jtype      *a; \
     jtype      *buf; \
     \
-    if (msg->copy) { \
+    if (! msg->copy) { \
 	b = (*env)->NewGlobalRef(env, b); \
     } \
     a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
