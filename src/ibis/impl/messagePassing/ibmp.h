@@ -24,8 +24,6 @@ void ibmp_lock_check_not_owned(JNIEnv *env);
 #define IBP_STATISTICS
 #endif
 
-#define IBP_VERBOSE
-
 #ifdef __GNUC__
 #define IBP_INLINE	    inline
 #elif defined _M_IX86
