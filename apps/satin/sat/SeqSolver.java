@@ -45,7 +45,7 @@ public final class SeqSolver {
         boolean learnTuple
     ) throws SATResultException, SATRestartException
     {
-	int res = ctx.update( p, level, learnTuple );
+	int res = ctx.update( p, level );
 	if( res == SATProblem.CONFLICTING ){
 	    if( traceSolver ){
 		System.err.println( "ls" + level + ": update found a conflict" );
@@ -69,10 +69,10 @@ public final class SeqSolver {
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
 	}
 	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level, learnTuple );
+	    res = ctx.propagatePosAssignment( p, var, level, learnTuple, true );
 	}
 	else {
-	    res = ctx.propagateNegAssignment( p, var, level, learnTuple );
+	    res = ctx.propagateNegAssignment( p, var, level, learnTuple, true );
 	}
 	if( res == SATProblem.CONFLICTING ){
 	    if( traceSolver ){

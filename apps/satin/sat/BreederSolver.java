@@ -48,7 +48,7 @@ public final class BreederSolver {
 	boolean val
     ) throws SATResultException, SATRestartException, SATCutoffException
     {
-	int res = ctx.update( p, level, false );
+	int res = ctx.update( p, level );
 	if( res == SATProblem.CONFLICTING ){
 	    if( traceSolver ){
 		System.err.println( "ls" + level + ": update found a conflict" );
@@ -72,10 +72,10 @@ public final class BreederSolver {
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
 	}
 	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level, false );
+	    res = ctx.propagatePosAssignment( p, var, level, false, true );
 	}
 	else {
-	    res = ctx.propagateNegAssignment( p, var, level, false );
+	    res = ctx.propagateNegAssignment( p, var, level, false, true );
 	}
 	if( res == SATProblem.CONFLICTING ){
 	    if( traceSolver ){
