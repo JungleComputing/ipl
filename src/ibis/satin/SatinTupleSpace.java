@@ -13,8 +13,8 @@ public class SatinTupleSpace implements Config {
 	// space must be synchronized, adds and dels arrive asynchronously
 	private static Satin satin;
 	private static HashMap space;
-	private static ArrayList newKeys;
-	private static ArrayList newData;
+//	private static ArrayList newKeys;
+//	private static ArrayList newData;
 
 	static {
 		satin = Satin.this_satin;
@@ -23,8 +23,8 @@ public class SatinTupleSpace implements Config {
 		}
 
 		space = new HashMap();
-		newKeys = new ArrayList();
-		newData = new ArrayList();
+//		newKeys = new ArrayList();
+//		newData = new ArrayList();
 	}
 
 	/** add an element to the global tuple space. 
@@ -36,6 +36,8 @@ public class SatinTupleSpace implements Config {
 			}
 
 			space.put(key, data);
+//			newKeys.add(key);
+//			newData.add(data);
 		}
 
 		if(TUPLE_DEBUG) {
@@ -103,10 +105,10 @@ public class SatinTupleSpace implements Config {
 			space.remove(key);
 			
 			// also remove it from the new lists (if there)
-			int index = newKeys.indexOf(key);
-			if(index != -1) {
-				newData.remove(index);
-			}
+//			int index = newKeys.indexOf(key);
+//			if(index != -1) {
+//				newData.remove(index);
+//			}
 		}
 
 		if(TUPLE_DEBUG) {
@@ -124,6 +126,7 @@ public class SatinTupleSpace implements Config {
 	    machine.
 	    This call does not work for active tuples.
 	 **/
+/*
 	public static Tuple getNew() {
 		synchronized(space) {
 			if(newKeys.size() == 0) {
@@ -137,7 +140,7 @@ public class SatinTupleSpace implements Config {
 			return res;
 		}
 	}
-
+*/
 	protected static void remoteAdd(String key, Serializable data) {
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": remote add of key " + key);
@@ -145,8 +148,8 @@ public class SatinTupleSpace implements Config {
 
 		synchronized(space) {
 			space.put(key, data);
-			newKeys.add(key);
-			newData.add(data);
+//			newKeys.add(key);
+//			newData.add(data);
 			space.notifyAll();
 		}
 	}
@@ -159,10 +162,10 @@ public class SatinTupleSpace implements Config {
 			space.remove(key);
 
 			// also remove it from the new lists (if there)
-			int index = newKeys.indexOf(key);
-			if(index != -1) {
-				newData.remove(index);
-			}
+//			int index = newKeys.indexOf(key);
+//			if(index != -1) {
+//				newData.remove(index);
+//			}
 		}
 	}
 }
