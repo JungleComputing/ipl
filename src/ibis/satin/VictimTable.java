@@ -5,6 +5,8 @@ import java.util.*;
 
 final class VictimTable implements Config {
 	private Vector victims = new Vector();
+	private Vector remoteVictims = new Vector();
+	private Vector localVictims = new Vector();
 	private HashMap victimsHash = new HashMap();
 	private Satin satin;
 
@@ -21,6 +23,12 @@ final class VictimTable implements Config {
 		v.s = port;
 		victims.add(v);
 		victimsHash.put(ident, port);
+
+		if(satin.inDifferentCluster(ident)) {
+			remoteVictims.add(v);
+		} else {
+			localVictims.add(v);
+		}
 	}
 
 	Victim remove(IbisIdentifier ident) {
@@ -35,6 +43,12 @@ final class VictimTable implements Config {
 		if(i < 0) {
 			return null;
 		}
+
+		try {
+			localVictims.remove(v);
+			remoteVictims.remove(v);
+		} catch (Exception e) {}
+
 		return (Victim) victims.remove(i);
 	}
 
@@ -49,6 +63,12 @@ final class VictimTable implements Config {
 
 		Victim v = (Victim) victims.remove(i);
 		victimsHash.remove(v.ident);
+
+		try {
+			localVictims.remove(v);
+			remoteVictims.remove(v);
+		} catch (Exception e) {}
+
 		return v;
 	}
 	
@@ -84,15 +104,70 @@ final class VictimTable implements Config {
 	}
 
 	Victim getRandomVictim() {
-		Victim v;
+		Victim v = null;
 		int index;
+
 		if(ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
-		index = Math.abs(satin.random.nextInt()) % victims.size();
+		try {
+			index = Math.abs(satin.random.nextInt()) % victims.size();
+			v = ((Victim)victims.get(index));
+		} catch (Exception e) {
+			System.err.println(e);
+		}
 
-		v = ((Victim)victims.get(index));
+		if(ASSERTS && v == null) {
+			System.err.println("EEK, v is null");
+			System.exit(1);
+		}
+
+		return v;
+	}
+
+	Victim getLocalRandomVictim() {
+		Victim v = null;
+		int index;
+
+		if(ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+
+		try {
+			index = Math.abs(satin.random.nextInt()) % localVictims.size();
+			v = ((Victim)localVictims.get(index));
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+
+		if(ASSERTS && v == null) {
+			System.err.println("EEK, v is null");
+			System.exit(1);
+		}
+
+		return v;
+	}
+
+	Victim getRemoteRandomVictim() {
+		Victim v = null;
+		int index;
+
+		if(ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+
+		try {
+			index = Math.abs(satin.random.nextInt()) % remoteVictims.size();
+			v = ((Victim)remoteVictims.get(index));
+		} catch (Exception e) {
+			System.err.println(e);
+		}
+
+		if(ASSERTS && v == null) {
+			System.err.println("EEK, v is null");
+			System.exit(1);
+		}
 
 		return v;
 	}

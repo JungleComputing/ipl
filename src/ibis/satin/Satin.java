@@ -89,8 +89,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	/* used to store reply messages */
 	boolean gotStealReply = false; // used in messageHandler
 	boolean gotBarrierReply = false; // used in messageHandler
+	volatile boolean asyncStealInProgress = false; // used in messageHandler
+	boolean gotAsyncStealReply = false; // used in messageHandler
 
-	InvocationRecord stolenJob;
+	InvocationRecord stolenJob = null;
+	InvocationRecord asyncStolenJob = null;
 
 	/* Variables that contain statistics. */
 	private long spawns = 0;
@@ -99,7 +102,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	public long abortedJobs = 0; // used in dequeue
 	long abortMessages = 0;
 	private long stealAttempts = 0;
+	private long asyncStealAttempts = 0;
 	private long stealSuccess = 0;
+	private long asyncStealSuccess = 0;
+
 	long stolenJobs = 0; // used in messageHandler
 	long stealRequests = 0; // used in messageHandler
 	boolean upcalls = true;
@@ -224,7 +230,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				}
 			} catch (IbisException e) {
 				System.err.println("SATIN '" + hostName + 
-                    "': Could not start ibis with name '" + name + "': " + e);
+                    "': Could not start ibis with name '" + name + "': " + e ", retrying.");
 //				e.printStackTrace();
 			}
 		}
@@ -246,6 +252,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			StaticProperties s = new StaticProperties();
 			if(ibisSerialization) {
 				s.add("Serialization", "ibis");
+				System.err.println("satin: IBIS SER");
 			}
 
 			portType = ibis.createPortType("satin porttype", s);
@@ -314,6 +321,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(alg.equals("RS")) {
 			a = new RandomWorkStealing(this);
+		} else if(alg.equals("CRS")) {
+			a = new ClusterAwareRandomWorkStealing(this);
 		} else {
 			System.err.println("SATIN '" + hostName + "': satin_algorithm '" + alg + "' unknown");
 			System.exit(1);
@@ -398,6 +407,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 			out.println("SATIN '" + ident.name() + 
 					   "': STEAL_STATS 2: requests = " + stealRequests + " jobs stolen = " + stolenJobs);
+
+			out.println("SATIN '" + ident.name() + 
+					   "': STEAL_STATS 9: async attempts = " + asyncStealAttempts + " success = " + asyncStealSuccess + 
+					   " (" + (((double) asyncStealSuccess / asyncStealAttempts) * 100.0) + " %)");
 
 			if(STEAL_TIMING) {
 				out.println("SATIN '" + ident.name() + 
@@ -675,6 +688,70 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 	}
 
+	private void pollAsyncResult() {
+		if (!asyncStealInProgress) return;
+
+//		System.err.print("P");
+
+		InvocationRecord myJob = null;
+
+		synchronized(this) {
+			if(gotAsyncStealReply) {
+//				System.err.println("poll: got async repy, " + (asyncStolenJob == null ? "FAILED" : "SUCCESS"));
+				asyncStealInProgress = false;
+				gotAsyncStealReply = false;
+				if(asyncStolenJob == null) {
+					return;
+				}
+
+				myJob = asyncStolenJob;
+				asyncStolenJob = null;
+
+				asyncStealSuccess++;
+			} else {
+				return;
+			} 
+		}
+
+		// we got a job back!
+		callSatinFunction(myJob);
+//		q.addToHead(myJob);
+	}
+
+	protected void sendAsynchronousStealRequest(Victim v) {
+		asyncStealInProgress = true;
+
+		if(STEAL_STATS) {
+			asyncStealAttempts++;
+		}
+		if(STEAL_DEBUG) {
+			System.err.println("SATIN '" + ident.name() + 
+					   "': sending ASYNC steal message to " +
+					   v.ident.name());
+		}
+
+		try {
+			SendPort s = v.s;
+			WriteMessage writeMessage = s.newMessage();
+			writeMessage.writeByte(ASYNC_STEAL_REQUEST);
+			writeMessage.send();
+			writeMessage.finish();
+			if(STEAL_STATS) {
+				if(inDifferentCluster(v.ident)) {
+					interClusterMessages++;
+					interClusterBytes += writeMessage.getCount();
+				} else {
+					intraClusterMessages++;
+					intraClusterBytes += writeMessage.getCount();
+				}
+			}
+		} catch (IbisIOException e) {
+			System.err.println("SATIN '" + ident.name() + 
+						   "': Got Exception while sending async steal request: " + e);
+			System.exit(1);
+		}
+	}
+
 	protected boolean stealJob(Victim v) {
 		if(STEAL_TIMING) {
 			stealTimer.start();
@@ -758,6 +835,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			idleTimer.stop();
 		}
 
+		if(STEAL_TIMING) {
+			stealTimer.stop();
+		}
+
 		if(exiting) return false;
 
 		if(STEAL_DEBUG) {
@@ -771,10 +852,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 //			long tend = System.currentTimeMillis();
 //			System.err.println("failed steal took " + (tend - tstart));
 
-			if(STEAL_TIMING) {
-				stealTimer.stop();
-			}
-
 			return false;
 		}
 
@@ -786,10 +863,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 //		long tend = System.currentTimeMillis();
 //		System.err.println("succ steal took " + (tend - tstart));
-
-		if(STEAL_TIMING) {
-			stealTimer.stop();
-		}
 
 		callSatinFunction(stolenJob);
 
@@ -980,20 +1053,28 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(POLL_TIMING) pollTimer.start();
 
 		ReadMessage m = null;
+		if(POLL_RECEIVEPORT) {
 
-		try {
-			m = receivePort.poll();
-		} catch (IbisIOException e) {
-			System.err.println("SATIN '" + ident.name() + 
-					   "': Got Exception while polling: " + e);
-		}
-
-		if(m != null) {
-			messageHandler.upcall(m);
 			try {
-				m.finish(); // Finish the message, the upcall does not need to do this.
+				m = receivePort.poll();
+			} catch (IbisIOException e) {
+				System.err.println("SATIN '" + ident.name() + 
+						   "': Got Exception while polling: " + e);
+			}
+
+			if(m != null) {
+				messageHandler.upcall(m);
+				try {
+					m.finish(); // Finish the message, the upcall does not need to do this.
+				} catch (Exception e) {
+					System.err.println("error in finish: " + e);
+				}
+			}
+		} else {
+			try {
+				ibis.poll(); // does not return message, but triggers upcall.
 			} catch (Exception e) {
-				System.err.println("error in finish: " + e);
+				System.err.println("polling failed, continuing anyway");
 			}
 		}
 
@@ -1212,6 +1293,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		while(!exiting) {
 			// steal and run jobs
 
+			pollAsyncResult(); // for CRS
+
 			if(!upcalls) {
 				satinPoll();
 			}
@@ -1359,6 +1442,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			syncs++;
 		}
 
+		pollAsyncResult(); // for CRS
+
 		if(upcalls && upcallPolling) {
 			satinPoll();
 		}
@@ -1369,6 +1454,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(ABORTS && gotExceptions) handleExceptions();
 		}
 		while(s.value > 0) {
+			pollAsyncResult(); // for CRS
+
 			if(SPAWN_DEBUG) {
 				out.println("SATIN '" + ident.name() + 
 						   "': Sync, counter = " + s.value);
