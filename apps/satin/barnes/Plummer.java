@@ -1,34 +1,15 @@
-import java.util.*;
+//import java.util.*;
 
-strictfp class Plummer {
-    private Random rand;
+/**
+ * see ../../rmi/barnes/Plummer.java for the original version
+ */
+
+class Plummer {
+    private RandomNumber rand;
 
     Plummer() {
-	rand = new Random();
-	rand.setSeed( 1230 );
-    }
-
-    private void pickShell( Vec3 point, double radius ) {
-
-	double rsq, rsc;
-
-	do {
-
-	    point.x = -1.0 + 2 * rand.nextDouble();
-	    point.y = -1.0 + 2 * rand.nextDouble();
-	    point.z = -1.0 + 2 * rand.nextDouble();
-
-	    // System.out.println("x = " + point.x + ", y = " + point.y + ", z = " + point.z);
-
-	    rsq = point.x * point.x + point.y * point.y + point.z * point.z;
-
-	} while ( rsq > 1.0 );
-    
-	rsc = radius / Math.sqrt( rsq );
-
-	point.x *= rsc;
-	point.y *= rsc;
-	point.z *= rsc;
+	rand = new RandomNumber();
+	rand.setSeed( 123 );
     }
 
     public Body[] generate(int numBodies) {
@@ -53,11 +34,12 @@ strictfp class Plummer {
 	for ( i=0; i<hNumBodies; i++ ) {
 
 	    do {
-		r = 1 / Math.sqrt( Math.pow(rand.nextDouble(), -2.0/3.0) - 1);
-				// System.out.println("r = " + r);
+		r = 1 / Math.sqrt(Math.pow( rand.xRand( 0.0, 0.999 ),
+					     -2.0/3.0) - 1);
+		//System.out.println("r = " + r);
 	    } while (r > 9.0);
 
-	    pickShell( bodies[i].pos, rsc * r );
+	    rand.pickShell( bodies[i].pos, rsc * r );
 	    // System.out.println(" ");
 
 	    //System.out.println("i = " + i +
@@ -65,27 +47,23 @@ strictfp class Plummer {
 	    //		   ", y = " + bodies[i].pos.y + 
 	    //		   ", z = " + bodies[i].pos.z);
 		
-	    cmr.x += bodies[i].pos.x;
-	    cmr.y += bodies[i].pos.y;
-	    cmr.z += bodies[i].pos.z;
+	    cmr.add(bodies[i].pos);
 
 	    do {
-		x = rand.nextDouble();
-		y = rand.nextDouble() / 10.0;
+		x = rand.xRand( 0.0, 1.0 );
+		y = rand.xRand( 0.0, 0.1 );
 	    } while (y > x*x * Math.pow(1 - x*x, 3.5));
 
 	    v = Math.sqrt(2.0) * x / Math.pow(1 + r*r, 0.25);
   
-	    pickShell( bodies[i].vel, vsc * v );
+	    rand.pickShell( bodies[i].vel, vsc * v );
 
 	    // System.out.println("i = " + i +
 	    //		   ", vx = " + bodies[i].bVel.x + 
 	    //		   ", vy = " + bodies[i].bVel.y + 
 	    //		   ", vz = " + bodies[i].bVel.z);
 
-	    cmv.x += bodies[i].vel.x;
-	    cmv.y += bodies[i].vel.y;
-	    cmv.z += bodies[i].vel.z;
+	    cmv.add(bodies[i].vel);
 	}
 
 
@@ -115,61 +93,39 @@ strictfp class Plummer {
 
 	    bodies[i].pos.x = bodies[i-hNumBodies].pos.x + offset;      
 
-	    cmr.x += bodies[i].pos.x;
-	    cmr.y += bodies[i].pos.y;
-	    cmr.z += bodies[i].pos.z;
+	    cmr.add(bodies[i].pos);
 
 	    bodies[i].vel.x = bodies[i-hNumBodies].vel.x;
 
-	    cmv.x += bodies[i].vel.x;
-	    cmv.y += bodies[i].vel.y;
-	    cmv.z += bodies[i].vel.z;
+	    cmv.add(bodies[i].vel);
 
 	    bodies[i].pos.y = bodies[i-hNumBodies].pos.y + offset;      
 
-	    cmr.x += bodies[i].pos.x;
-	    cmr.y += bodies[i].pos.y;
-	    cmr.z += bodies[i].pos.z;
+	    cmr.add(bodies[i].pos);
 
 	    bodies[i].vel.y = bodies[i-hNumBodies].vel.y;      
 
-	    cmv.x += bodies[i].vel.x;
-	    cmv.y += bodies[i].vel.y;
-	    cmv.z += bodies[i].vel.z;
+	    cmv.add(bodies[i].vel);
 
 	    bodies[i].pos.z = bodies[i-hNumBodies].pos.z + offset;      
 
-	    cmr.x += bodies[i].pos.x;
-	    cmr.y += bodies[i].pos.y;
-	    cmr.z += bodies[i].pos.z;
+	    cmr.add(bodies[i].pos);
 
 	    bodies[i].vel.z = bodies[i-hNumBodies].vel.z;      
 
-	    cmv.x += bodies[i].vel.x;
-	    cmv.y += bodies[i].vel.y;
-	    cmv.z += bodies[i].vel.z;
+	    cmv.add(bodies[i].vel);
 	}
 
-
-	cmr.x /= (double)(numBodies);
-	cmr.y /= (double)(numBodies);
-	cmr.z /= (double)(numBodies);
-
-	cmv.x /= (double)(numBodies);
-	cmv.y /= (double)(numBodies);
-	cmv.z /= (double)(numBodies);
+	cmr.div((double)(numBodies));
+	cmv.div((double)(numBodies));
 
 	for ( i=0; i<numBodies; i++ ) {
 
 	    bodies[i].number = i;
 
-	    bodies[i].pos.x -= cmr.x;
-	    bodies[i].pos.y -= cmr.y;
-	    bodies[i].pos.z -= cmr.z;
+	    bodies[i].pos.sub(cmr);
 
-	    bodies[i].vel.x -= cmv.x;
-	    bodies[i].vel.y -= cmv.y;
-	    bodies[i].vel.z -= cmv.z;
+	    bodies[i].vel.sub(cmv);
 
 	    bodies[i].mass = mass;
 

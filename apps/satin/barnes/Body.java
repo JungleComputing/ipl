@@ -1,9 +1,8 @@
 import java.io.*;
 
-strictfp public final class Body 
+public final class Body 
     implements Cloneable, Comparable, Serializable {
 
-    //  public static int InstanceCount = 0;
     public int number;
 
     public Vec3 pos;
@@ -15,49 +14,38 @@ strictfp public final class Body
     transient public Vec3 oldAcc;
     transient public Vec3 acc;
 
-    transient public boolean updated = false; //used for debugging the rmi updates
-
-    /* this field counts the number of interactions with this body
-       were done in the *previous) iteration, we don't need it with satin */
-    //public int weight; 
+    transient public boolean updated = false; //used for debugging
 
     void initialize() {
-	pos = new Vec3();
-	vel = new Vec3();
 	//oldAcc = acc = null;
 	mass = 1.0;
 
 	number = 0;
-	//InstanceCount++;
     }
 
     Body() {
+	pos = new Vec3();
+	vel = new Vec3();
 	initialize();
     }
 
     Body(double x, double y, double z) {
-	this();
-	pos.x = x;
-	pos.y = y;
-	pos.z = z;
+	pos = new Vec3(x, y, z);
+	vel = new Vec3();
+	initialize();
     }
 
     Body(double x, double y, double z, double vx, double vy, double vz) {
-	this(x, y, z);
-	vel.x = vx;
-	vel.y = vy;
-	vel.z = vz;
+	pos = new Vec3(x, y, z);
+	vel = new Vec3(vx, vy, vz);
+	initialize();
     }
 
-    //used for sorting bodies
+    //used for sorting bodies, they're sorted using the 'number' field
     public int compareTo(Object o) {
 	Body other = (Body) o;
 
-	if (pos.compareTo(other.pos) != 0) {
-	    return pos.compareTo(other.pos);
-	} else {
-	    return vel.compareTo(other.vel);
-	}
+	return this.number - other.number;
     }
 
 
@@ -65,16 +53,12 @@ strictfp public final class Body
     public void computeNewPosition(boolean useOldAcc, double dt, Vec3 acc) {
 	Vec3 v;
 
-	//System.out.println("acc: " + acc.x + ", " + oldAcc.x);
-
 	if (useOldAcc) {
 	    v = new Vec3(acc); //vel += (acc-oldacc) * DT_HALF
 	    v.sub(oldAcc);
 	    v.mul(dt / 2.0);
 	    vel.add(v);
 	}
-
-	//System.out.println("vel: " + vel.x);
 
 	v = new Vec3(acc); //pos += (acc * DT_HALF + vel) * DT
 	v.mul(dt / 2.0);
@@ -86,11 +70,7 @@ strictfp public final class Body
 	v.mul(dt);
 	vel.add(v);
 
-	//System.out.println("pos, vel: " + pos.x + ", " + vel.x);
-
 	//prepare for next call of BodyTreeNode.barnes()
 	oldAcc = acc;
-	acc = new Vec3(0.0, 0.0, 0.0);
-
     }			
 }

@@ -1,20 +1,30 @@
 //import javax.swing.*;
 import java.util.*;
-import java.rmi.*;
-import java.rmi.registry.*;
-import java.rmi.server.*;
 
-strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
+class BarnesHut {
 
-    public static final boolean DEBUG = true;
-    public static final int RMI_PORT = (int) (('B' << 8) | 'H');
+    public static final boolean DEBUG = false;
+    public static final boolean ASSERTS = true;
+
+    public static boolean USE_STABLE = false; //use -stable to modify
+    public static final boolean USE_TUPLES = true;
+    public static final int SPAWN_THRESHOLD = 4;
+
+    // true: Collect statistics about the various phases in each iteration
+    public static final boolean PHASE_TIMING = true;
+
+    private long treeBuildTime = 0, CoMTime = 0;
+    private long forceCalcTime = 0, updateTime = 0;
 
     static final double START_TIME = 0.0;
-    static final double DEFAULT_END_TIME = 10.0;
-    static final double DEFAULT_DT = 0.025;
-    static final double DEFAULT_THETA = 2.0;
+
+    //These values are from the barnes version in the splash2 suite:
+    static final double DEFAULT_THETA = 1.0; //cell subdivision tolerance
+    static final double DEFAULT_END_TIME = 0.075; //time to stop integration
+    static final double DEFAULT_DT = 0.025; //integration time-step
 
     Body[] bodyArray;
+    //int[] bodyIndices; //used to translate body nrs to indices in bodyArray
     final int maxLeafBodies;
 
     final double DT;
@@ -22,131 +32,251 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
     final double THETA;
     final int ITERATIONS;
 
-    BarnesHut(int nBodies, int mlb) throws RemoteException {
+    BarnesHut(int nBodies, int mlb) {
 	bodyArray = new Plummer().generate(nBodies);
+	//bodyIndices = new int[nBodies];
+
+	//Plummer makes sure that a body with number x also has index x
+	for (int i = 0; i < nBodies; i++) {
+	    if (ASSERTS && bodyArray[i].number != i) {
+		System.err.println("EEK! Plummer generated an inconsistent " +
+				   "body number");
+		System.exit(1);
+	    }
+	    //bodyIndices[i] = i;
+	}
+	
 	maxLeafBodies = mlb;
 
-	//some magic copied from the RMI version...
-	double scale = Math.pow( nBodies / 16384.0, -0.25 );
-	DT = DEFAULT_DT * scale;
-	END_TIME = DEFAULT_END_TIME * scale;
-	THETA = DEFAULT_THETA / scale;
+	/* The RMI version contained magic code equivalent to this:
+	   (the DEFAULT_* variables were different)
 
-	ITERATIONS = (int)(((END_TIME - START_TIME) / DT) + 1.1);
+	   double scale = Math.pow( nBodies / 16384.0, -0.25 );
+	   DT = DEFAULT_DT * scale;
+	   END_TIME = DEFAULT_END_TIME * scale;
+	   THETA = DEFAULT_THETA / scale;
 
+	   Since Rutger didn't know where it came from, and barnes from
+	   splash2 also doesn't include this code, I will omit it. - Maik. */
+
+	DT = DEFAULT_DT;
+	END_TIME = DEFAULT_END_TIME;
+	THETA = DEFAULT_THETA;
+
+	ITERATIONS = (int)( (END_TIME + 0.1*DT - START_TIME) / DT);
     }
 
+    void printBodies() {
+	Body b;
+	int i;
+
+	Body[] sorted = new Body[bodyArray.length]; //copy bodyArray
+	for (i = 0; i < bodyArray.length; i++) sorted[i] = bodyArray[i];
+
+	Arrays.sort(sorted); //sort the copied bodyArray (by bodyNumber)
+
+	for (i = 0; i < bodyArray.length; i++) {
+	    b = sorted[i];
+	    System.out.println("0: Body " + i + ": [ " + b.pos.x + ", " +
+			       b.pos.y + ", " + b.pos.z + " ]" );
+	    System.out.println("0:      " + i + ": [ " + b.vel.x + ", " +
+			       b.vel.y + ", " + b.vel.z + " ]" );
+	    if (b.acc != null) {
+		System.out.println("0:      " + i + ": [ " + b.acc.x + ", " +
+				   b.acc.y + ", " + b.acc.z + " ]" );
+	    } else {
+		System.out.println("0:      " + i + ": [ 0.0, 0.0, 0.0 ]");
+	    }
+	    System.out.println("0:      " + i + ": " + b.number );
+ 	}
+    }
+
+
     void run(boolean printResult) {
-	//???debug: generate only one body
-	/*bodies = new ArrayList();
-	  bodies.add(new Body(1.0, 1.0, 1.0, 0.0, 0.0, 0.0));
-	  bodies.add(new Body(-1.0, -1.0, -1.0, 0.0, 0.0, 0.0));*/
+	Body b;
+	int i;
 
 	long time = runSim();
+
 	System.out.println("application barnes took " +
 			   (double)(time/1000.0) + " s");
 
+	if (PHASE_TIMING) {
+	    System.out.println("    tree building took: " +
+			       treeBuildTime/1000.0 + " s");
+	    System.out.println("  CoM computation took: " +
+			       CoMTime/1000.0 + " s");
+	    System.out.println("Force calculation took: " +
+			       forceCalcTime/1000.0 + " s");
+	    System.out.println("  Updating bodies took: " +
+			       updateTime/1000.0 + " s");
+	}
+	
 	if (printResult) {
-	    Body b;
-	    int i;
-
-	    System.out.print("application result: ");
-
-	    Arrays.sort(bodyArray); //??? moet straks weg
-	    //Collections.sort(bodies);
-
-	    for (i = 0; i < bodyArray.length; i++) {
-		b = bodyArray[i];
-	    //for (i = 0; i < bodies.size(); i++) {
-		//b = (Body)bodies.get(i);
-
-		System.out.print(i + ": " + b.pos + ", " + b.vel + "; ");
-	    }
-
+	    //System.out.println("application result: ");
 	    System.out.println();
+	    printBodies();
 	}
     }	
 
     long runSim() {
-	int i, j;
+	int i, iteration;
 	BodyTreeNode btRoot;
 	long start, end;
+	long phaseStart, phaseEnd;
 
 	LinkedList result;
 	Iterator it;
-	int[] bNumbers;
-	Vec3[] accs;
 
 	Body b;
-	BodyManager rmiStub = null; //RMI stub to 'this'
 
 	//BodyCanvas bc = visualize();
 
-	/*try {
-	    Registry reg = LocateRegistry.createRegistry(RMI_PORT);
-	    reg.bind("BarnesHut.BodyManager", this);
-	    rmiStub = (BodyManager) Naming.lookup("//localhost:" + RMI_PORT +
-						  "/BarnesHut.BodyManager");
-	} catch (Exception e) {
-	    System.err.println("EEK! Error while making RMI stub:" + e);
-	    System.exit(1);
-	    }*/
-
 	System.out.println("BarnesHut: doing " + ITERATIONS +
-			   " iterations with " + bodyArray.length + " bodies");
+			   " iterations with " + bodyArray.length +
+			   " bodies, " + maxLeafBodies + " bodies/leaf node");
+			   
+	if (USE_STABLE) {
+	    if (DEBUG) {
+		System.out.println("Using sequential debug version");
+	    } else {
+		System.out.println("Using spawn-for-each-body version");
+	    }
+	} else {
+	    System.out.println("Using optimized hierarchical version");
+	}
+
 	start = System.currentTimeMillis();
 		
-	for (j = 0; j < ITERATIONS; j++) {
-	    //System.out.println("Starting iteration " + j);
+	for (iteration = 0; iteration < ITERATIONS; iteration++) {
+	//for (iteration = 0; iteration < 1; iteration++) {
+	    if (DEBUG) System.out.println("Starting iteration " + iteration);
+
+	    if (PHASE_TIMING) phaseStart = System.currentTimeMillis();
+
 	    //build tree
 	    btRoot = new BodyTreeNode(bodyArray, maxLeafBodies, THETA);
+
+	    if (PHASE_TIMING) {
+		phaseEnd = System.currentTimeMillis();
+		treeBuildTime += phaseEnd - phaseStart;
+		phaseStart = System.currentTimeMillis();
+	    }
 
 	    //compute centers of mass
 	    btRoot.computeCentersOfMass();
 
-	    //compute forces
+	    if (PHASE_TIMING) {
+		phaseEnd = System.currentTimeMillis();
+		CoMTime += phaseEnd - phaseStart;
+		phaseStart = System.currentTimeMillis();
+	    }
 
-	    //with recursive tree splitup & RMI:
-	    //btRoot.barnes(btRoot, rmiStub);
-	    //btRoot.sync();
-	    
-	    //recursive tree splitup that returns lists:
-	    /*result = btRoot.barnes(btRoot);
-	    btRoot.sync();
-	    it = result.iterator();
-	    while(it.hasNext()) {
-		bNumbers = (int []) it.next();
-		accs = (Vec3 []) it.next();
-		for (i = 0; i < bNumbers.length; i++) {
-		    bodyArray[bNumbers[i]].acc = accs[i];
-		    bodyArray[bNumbers[i]].updated = true;
+	    //force calculation
+
+	    if (USE_STABLE) {
+		if (DEBUG) {
+		    //(sequential) debug version
+		    btRoot.barnes(bodyArray, iteration);
+		} else {
+		    //this version spawns a job for each body
+		    btRoot.barnes(bodyArray);
 		}
-		}*/
+	    } else {
+		// these versions recursively split up the tree,
+		// they return a list with bodyNumbers and corresponding accs
+
+		//necessaryTree version
+		result = btRoot.barnes(btRoot, SPAWN_THRESHOLD);
+		btRoot.sync();
+
+		//satintuple version
+		/*BodyTreeNode dummyNode = new BodyTreeNode();
+		String rootId = "root" + iteration;
+		ibis.satin.SatinTupleSpace.add(rootId, btRoot);
+		result = dummyNode.barnes(null, rootId, SPAWN_THRESHOLD);
+		dummyNode.sync();
+		*/
+
+		it = result.iterator();
+
+		/* I tried putting bodies computed by the same leaf job
+		   together in the array of bodies, by creating a new
+		   bodyArray every time (to find the current position of
+		   a body an extra int[] lookup table was used, which
+		   of course had to be updated every iteration)
+
+		   I thought this would improve locality during the next
+		   tree building phase, and indeed, the tree building phase
+		   was shorter with a sequential run with ibm 1.4.1 with jitc
+		   (with 4000 bodies/10 maxleafbodies: 0.377 s vs 0.476 s)
+		   (the CoM and update phases were also slightly shorter)
+
+		   but the force calc phase was longer, in the end the
+		   total run time was longer ( 18.24 s vs 17.66 s ) */
+
+		int[] bodyNumbers;
+		Vec3[] accs;
+
+		//Body[] newArray = new Body[bodyArray.length];
+		//int newIndex = 0, oldIndex;
+
+		while(it.hasNext()) {
+		    bodyNumbers = (int []) it.next();
+		    accs = (Vec3 []) it.next();
+		    for (i = 0; i < bodyNumbers.length; i++) {
+			//oldIndex = bodyIndices[bodyNumbers[i]];
+			//bodyIndices[bodyNumbers[i]] = newIndex;
+
+			//newArray[newIndex] = bodyArray[oldIndex];
+			//newArray[newIndex].acc = accs[i];
+			//if (ASSERTS) newArray[newIndex].updated = true;
+
+			//newIndex++;
+
+			bodyArray[bodyNumbers[i]].acc = accs[i];
+			if (ASSERTS) bodyArray[bodyNumbers[i]].updated = true;
+		    }
+		}
+		//bodyArray = newArray;
+
+	    }
 	    
-	    /* this version spawns a job for each body
-	       bodyArray is updated by BodyTreeNode */
-	    btRoot.barnes(bodyArray);
+	    if (PHASE_TIMING) {
+		phaseEnd = System.currentTimeMillis();
+		forceCalcTime += phaseEnd - phaseStart;
+		phaseStart = System.currentTimeMillis();
+	    }
 
 	    //update bodies
 	    for (i = 0; i < bodyArray.length; i++) {
 		b = bodyArray[i];
-		/*if (DEBUG && !b.updated) {
+		if (ASSERTS && !b.updated) {
 		    System.err.println("EEK! Body " + i + " wasn't updated!");
 		    System.exit(1);
-		    }*/
-		b.computeNewPosition(j != 0, DT, b.acc);
-		//if (DEBUG) b.updated = false;
+		}
+		if (ASSERTS && b.acc.x > 1.0E4) { //This shouldn't happen
+		    System.err.println("EEK! Acc too large for body #" +
+				       b.number + " in iteration: " +
+				       iteration);
+		    System.err.println("acc = " + b.acc);
+		    System.exit(1);
+		}
+
+		b.computeNewPosition(iteration != 0, DT, b.acc);
+		if (ASSERTS) b.updated = false;
+		//??? max + min posities hier berekenen ipv bij boom bouwen
 	    }
 
-	    //try {
-	    //	Thread.sleep(400);
-	    //} catch (InterruptedException e) {}
-	    //System.out.print(".");
+	    if (PHASE_TIMING) {
+		phaseEnd = System.currentTimeMillis();
+		updateTime += phaseEnd - phaseStart;
+	    }
+	    
 	    //bc.repaint();
 	}
 
 	end = System.currentTimeMillis();
-	System.err.print(".");
 	return end - start;
     }
 
@@ -177,32 +307,7 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
 	}
     }
 
-    // ??? maybe optimize by using acc.x, acc.y and acc.z as parameters
-    // instead of the Vec3 object (could also be done elsewhere, eliminating
-    // the Vec3 object)
-    /**
-     * updates the acceleration fields of the specified bodies
-     * @param bNumbers the numbers of the bodies
-     * @param accs the corresponding accelerations
-     */
-    public void setAccs(int[] bNumbers, Vec3[] accs) throws RemoteException {
-	int i;
-
-	if (DEBUG && bNumbers.length != accs.length) {
-	    throw new IllegalArgumentException("bNumbers.length!=accs.length");
-	}
-
-	for (i = 0; i < bNumbers.length; i++) {
-	    bodyArray[bNumbers[i]].acc = accs[i];
-	    if (DEBUG) {
-		bodyArray[bNumbers[i]].updated = true;
-	    }
-	}
-    }
-    
-
     public static void main(String argv[]) {
-	//arguments
 	int nBodies = 0, mlb = 0;
 	boolean printResult = false;
 
@@ -211,8 +316,11 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
 	//parse arguments
 	for (i = 0; i < argv.length; i++) {
 	    //options
-	    if (argv[i].equals("-test")) {
+	    if (argv[i].equals("-v")) {
 		printResult = true;
+
+	    } else if (argv[i].equals("-stable")) {
+		USE_STABLE = true;
 
 	    } else { //final arguments
 		nBodies = Integer.parseInt(argv[i]);
@@ -225,11 +333,11 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
 	    nBodies = 100;
 	}
 
-	try {
+	try {  
 	    new BarnesHut(nBodies, mlb).run(printResult);
-	} catch (RemoteException e) {
-	    System.err.println("EEK! Couldn't initialize barneshut: " + e);
-	    System.exit(1);
+	} catch (StackOverflowError e) {
+	    System.err.println("EEK!" + e + ":");
+	    e.printStackTrace();
 	}
     }
 }
