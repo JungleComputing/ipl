@@ -46,8 +46,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("\t\ttry {");
 		
 		//gosia
-		output.println("\t\t\tjava.net.InetAddress clientAddr = r.origin().ibis().address();");
-		output.println("\t\t\tRTS.setClientHost(clientAddr == null ? \"0.0.0.0\" : clientAddr.getHostAddress());");		
+		output.println("\t\t\tRTS.setClientHost(r.origin().ibis().address());");		
 		//end gosia
 
 		output.println("\t\t\tException ex = null;");		

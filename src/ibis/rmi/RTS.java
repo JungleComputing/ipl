@@ -416,12 +416,15 @@ public final class RTS {
 	    return hostname;
 	}	
 	
-	public static void setClientHost(String hostname) {
-	    clientHost.set(hostname);
+	public static void setClientHost(java.net.InetAddress host) {
+	    clientHost.set(host);
 	}
 	
 	public static String getClientHost() {
-	    return (String) clientHost.get();
+	    Object o = clientHost.get();
+	    if (o == null) return "0.0.0.0";
+	    java.net.InetAddress a = (java.net.InetAddress) o;
+	    return a.getHostAddress();
 	}
 	
 } 
