@@ -216,7 +216,8 @@ public final class NetIbis extends Ibis {
 	 */
 	private StaticProperties extractDriverStack(StaticProperties sp) {
 	    StaticProperties s = (StaticProperties) sp.clone();
-	    String serialization = s.find("Serialization");
+	    // Ceriel, ik snap dit niet RFHH: String serialization = s.find("Serialization");
+	    String serialization = System.getProperty("ibis.serialization");
 	    String path = "/";
 	    if (serialization != null && ! serialization.equals("none")) {
 		String top = "s_" + serialization;
@@ -292,14 +293,6 @@ public final class NetIbis extends Ibis {
 	 */
 	public Registry registry() {
 		return nameServer;
-	}
-
-	/**
-	 * Returns the {@linkplain StaticProperties properties} of the {@link NetIbis} instance.
-	 * @return the static properties.
-	 */
-	public StaticProperties properties() {
-		return staticProperties(implName);
 	}
 
 	/**

@@ -412,6 +412,7 @@ public final class NetPortType implements PortType {
                 if (context != null) {
                         name = context+":"+name;
                 }
+		name = name.toLowerCase();
 
                 Object result = null;
 
