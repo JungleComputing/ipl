@@ -196,7 +196,7 @@ public class SuffixArray implements Configuration, Magic {
                 // TODO: only first occurence is a grammar def'n.
                 if( text[i] >= FIRSTCODE ){
                     // We have a grammar rule, print it, and move on.
-                    System.out.println( "<" + text[i] + "> -> [" + buildString( start, i-start ) + "]" );
+                    System.out.println( "<" + text[i] + "> -> [" + buildString( start, i-start ) + "] (start=" + start + ", i=" + i + ")" );
                     start = i+1;
                     break;
                 }
@@ -274,8 +274,12 @@ public class SuffixArray implements Configuration, Magic {
         // Now assign a new variable 
         short variable = nextcode++;
         pos = 1+replace( pos-1, len, variable );
+        System.out.println( "After first replacement" );
+        printGrammar();
         while( pos<length && commonality[pos] == len ){
             pos = replace( pos, len, variable );
+            System.out.println( "After subsequent replacement" );
+            printGrammar();
             pos++;
         }
 
@@ -298,6 +302,9 @@ public class SuffixArray implements Configuration, Magic {
 
         length += len+1;
         sort();
+
+        System.out.println( "After adding grammar rule" );
+        printGrammar();
     }
 
     public void test() throws VerificationException
