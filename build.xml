@@ -17,7 +17,7 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="ibis-version" value="0.2"/>
+    <property name="ibis-version" value="0.3"/>
 
     <!--
 	This must come first.
@@ -816,20 +816,21 @@
 	</delete>
     </target>
 
+    <property name="distr"        location="${ibis}/ibis-src-distr"/>
+
     <target name="distclean"
 	    depends="clean,rewritten-clean"
 	    description="Clean up, also configuration cache and rewritten classlibs">
 	<delete file="build-properties"/>
 	<delete file="build-properties.cache"/>
 	<delete file="build-properties.backup"/>
-	<delete file="config.mk"/>
-	<delete file="config.mk.old"/>
-	<delete file="config.mk.orig"/>
 	<delete file="configuration.sh"/>
 	<delete file="configuration.bat"/>
+	<delete file="${ibis}/ibis-${ibis-version}-src-distr.zip"/>
 	<ant dir="${ibis}/apps" inheritAll="false" target="clean"/>
 	<ant dir="${ibis}/ibis-example" inheritAll="false" target="clean"/>
 	<delete dir="bin"/>
+	<delete dir="${distr}"/>
 	<delete dir="ant-tasks/tasks"/>
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
     </target>
@@ -869,8 +870,6 @@
     <target name="ibis-apps-test" depends="build">
 	<ant dir="apps/ibis" inheritAll="false" target="test"/>
     </target>
-
-    <property name="distr"        location="${ibis}/ibis-src-distr"/>
 
     <target name="src-distr">
 	<delete dir="${distr}"/>
