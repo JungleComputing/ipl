@@ -345,50 +345,22 @@ public final class Main {
 
 	    System.out.println("Testing available conversions one-by-one");
 
-	    // big endian simple conversion (we hope)
-	    conversion = Conversion.defaultConversion;
-
-	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.Conversion.defaultConversion" 
-			+ " is not a valid big endian Conversion");
-		System.exit(1);
-	    }
-
-	    // little endian best-possible (probably nio) conversion
-	    conversion = Conversion.loadConversion(false);
-
-	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.Conversion.loadConversion(false)" 
-			+ " is not a valid little endian Conversion");
-		System.exit(1);
-	    }
-
-	    // big endian best-possible (probably nio) conversion
-	    conversion = Conversion.loadConversion(true);
-
-	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.Conversion.loadConversion(true)" 
-			+ " is not a valid big endian Conversion");
-		System.exit(1);
-	    }
 
 	    // little endian NioConversion
-	    conversion = Conversion.loadConversion("ibis.io.NioConversion", 
-		    false);
+	    conversion = new NioLittleConversion();
 
 	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.NioConversion"
+		System.err.println("ibis.io.NioLittleConversion"
 			+ " is not a valid little endian Conversion");
 		System.exit(1);
 	    }
 
 
 	    // big endian NioConversion
-	    conversion = Conversion.loadConversion("ibis.io.NioConversion", 
-		    true);
+	    conversion = new NioBigConversion();
 
 	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.NioConversion"
+		System.err.println("ibis.io.NioBigConversion"
 			+ " is not a valid big endian Conversion");
 		System.exit(1);
 	    }
@@ -398,7 +370,7 @@ public final class Main {
 	    conversion = new SimpleLittleConversion(); 
 
 	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.SimpleConversion"
+		System.err.println("ibis.io.SimpleLittleConversion"
 			+ " is not a valid little endian Conversion");
 		System.exit(1);
 	    }
@@ -408,7 +380,7 @@ public final class Main {
 	    conversion = new SimpleBigConversion(); 
 
 	    if(!checkConversion(conversion)) {
-		System.err.println("ibis.io.SimpleConversion"
+		System.err.println("ibis.io.SimpleBigConversion"
 			+ " is not a valid big endian Conversion");
 		System.exit(1);
 	    }
