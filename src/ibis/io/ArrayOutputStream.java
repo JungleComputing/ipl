@@ -104,7 +104,12 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
     /**
      * Collects all indices of the <code>..._buffer</code> arrays.
      */
-    protected short[]	indices_short  = new short[PRIMITIVE_TYPES + 1];
+    protected short[]	indices_short  = new short[PRIMITIVE_TYPES];
+
+    /**
+     * For each 
+     */
+    private boolean[] touched = new boolean[PRIMITIVE_TYPES];
 
     /**
      * Constructor.
@@ -146,7 +151,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
     private void writeArray(Object ref, int offset, int len, int type)
 	    throws IOException {
 	if (array_index == ARRAY_BUFFER_SIZE) {
-	    doFlush();
+	    Flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing array " + ref + " offset: " 
@@ -163,7 +168,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * Flushes everything collected sofar.
      * @exception IOException on an IO error.
      */
-    private void doFlush() throws IOException {
+    private void Flush() throws IOException {
 	if (array_index == 0 &&
 	    byte_index == 0 &&
 	    char_index == 0 &&
@@ -194,7 +199,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException is thrown when any <code>writeArray</code>
      * throws it.
      */
-    public void flushBuffers() throws IOException {
+    public final void flushBuffers() throws IOException {
 	indices_short[TYPE_BYTE]    = (short) byte_index;
 	indices_short[TYPE_CHAR]    = (short) char_index;
 	indices_short[TYPE_SHORT]   = (short) short_index;
@@ -215,16 +220,38 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
 
 	doWriteArray(indices_short, 0, PRIMITIVE_TYPES, TYPE_SHORT);
 
-	if (byte_index > 0)    doWriteArray(byte_buffer, 0, byte_index, TYPE_BYTE);
-	if (char_index > 0)    doWriteArray(char_buffer, 0, char_index, TYPE_CHAR);
-	if (short_index > 0)   doWriteArray(short_buffer, 0, short_index, TYPE_SHORT);
-	if (int_index > 0)     doWriteArray(int_buffer, 0, int_index, TYPE_INT);
-	if (long_index > 0)    doWriteArray(long_buffer, 0, long_index, TYPE_LONG);
-	if (float_index > 0)   doWriteArray(float_buffer, 0, float_index, TYPE_FLOAT);
-	if (double_index > 0)  doWriteArray(double_buffer, 0, double_index, TYPE_DOUBLE);
+	if (byte_index > 0) {
+	    doWriteArray(byte_buffer, 0, byte_index, TYPE_BYTE);
+	    touched[TYPE_BYTE] = true;
+	}
+	if (char_index > 0) {
+	    doWriteArray(char_buffer, 0, char_index, TYPE_CHAR);
+	    touched[TYPE_CHAR] = true;
+	}
+	if (short_index > 0) {
+	    doWriteArray(short_buffer, 0, short_index, TYPE_SHORT);
+	    touched[TYPE_SHORT] = true;
+	}
+	if (int_index > 0) {
+	    doWriteArray(int_buffer, 0, int_index, TYPE_INT);
+	    touched[TYPE_INT] = true;
+	}
+	if (long_index > 0) {
+	    doWriteArray(long_buffer, 0, long_index, TYPE_LONG);
+	    touched[TYPE_LONG] = true;
+	}
+	if (float_index > 0) {
+	    doWriteArray(float_buffer, 0, float_index, TYPE_FLOAT);
+	    touched[TYPE_FLOAT] = true;
+	}
+	if (double_index > 0) {
+	    doWriteArray(double_buffer, 0, double_index, TYPE_DOUBLE);
+	    touched[TYPE_DOUBLE] = true;
+	}
 
 	reset_indices();
     }
+
     /**
      * Flushes the array to the underlying layer.
      * @param ref	the array to be written
@@ -238,16 +265,56 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
 	    throws IOException;
 
     /**
+     * Flush routine of the underlying implementation.
+     * @exception IOException on IO error.
+     */
+    public abstract void doFlush() throws IOException;
+
+    /**
      * Tells the underlying implementation to flush all the data.
-     * An <code>ArrayOutputStream</code> implementation will probably
-     * redefine this method. If so, it must not forget to call
-     * "super.flush()" first.
      *
      * @exception IOException on IO error.
      */
-    public void flush() throws IOException {
+    public final void flush() throws IOException {
+	Flush();
 	doFlush();
+	if (! finished()) {
+	    indices_short = new short[PRIMITIVE_TYPES];
+	    if (touched[TYPE_BYTE]) {
+		byte_buffer   = new byte[BYTE_BUFFER_SIZE];
+	    }
+	    if (touched[TYPE_CHAR]) {
+		char_buffer   = new char[CHAR_BUFFER_SIZE];
+	    }
+	    if (touched[TYPE_SHORT]) {
+		short_buffer  = new short[SHORT_BUFFER_SIZE];
+	    }
+	    if (touched[TYPE_INT]) {
+		int_buffer    = new int[INT_BUFFER_SIZE];
+	    }
+	    if (touched[TYPE_LONG]) {
+		long_buffer   = new long[LONG_BUFFER_SIZE];
+	    }
+	    if (touched[TYPE_FLOAT]) {
+		float_buffer  = new float[FLOAT_BUFFER_SIZE];
+	    }
+	    if (touched[TYPE_DOUBLE]) {
+		double_buffer = new double[DOUBLE_BUFFER_SIZE];
+	    }
+	}
+
+	for (int i = 0; i < PRIMITIVE_TYPES; i++) {
+	    touched[i] = false;
+	}
     }
+
+    /**
+     * Checks whether all data has been written after a flush.
+     * Used in the flush routine to check if new buffers must be
+     * allocated.
+     * @return true if all data has been written after a flush.
+     */
+    public abstract boolean finished();
 
     /**
      * Blocks until the data is written.
@@ -281,7 +348,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeBoolean(boolean value) throws IOException {
 	if (byte_index == BYTE_BUFFER_SIZE) {
-	    doFlush();
+	    Flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing boolean " + value);
@@ -297,7 +364,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeByte(byte value) throws IOException {
 	if (byte_index == BYTE_BUFFER_SIZE) {
-	    doFlush();
+	    Flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing byte " + value);
@@ -312,7 +379,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeChar(char value) throws IOException {
 	if (char_index == CHAR_BUFFER_SIZE) {
-	    doFlush();
+	    Flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing char " + value);
@@ -327,7 +394,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeShort(short value) throws IOException {
 	if (short_index == SHORT_BUFFER_SIZE) {
-	    doFlush();
+	    Flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing short " + value);
@@ -342,7 +409,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeInt(int value) throws IOException {
 	if (int_index == INT_BUFFER_SIZE) {
-	    doFlush();
+	    Flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing int[HEX] " + value + "[" +
@@ -358,7 +425,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeLong(long value) throws IOException {
 	if (long_index == LONG_BUFFER_SIZE) {
-	    doFlush();
+	    Flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing long " + value);
@@ -373,7 +440,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeFloat(float value) throws IOException {
 	if (float_index == FLOAT_BUFFER_SIZE) {
-	    doFlush();
+	    Flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing float " + value);
@@ -388,7 +455,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     public void writeDouble(double value) throws IOException {
 	if (double_index == DOUBLE_BUFFER_SIZE) {
-	    doFlush();
+	    Flush();
 	}
 	if (DEBUG) {
 	    System.out.println(" Writing double " + value);

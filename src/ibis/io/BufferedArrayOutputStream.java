@@ -262,8 +262,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     /**
      * @inheritDoc
      */
-    public final void flush() throws IOException {
-	super.flush();
+    public final void doFlush() throws IOException {
 	if (DEBUG) {
 	    System.out.println("Flushing ...");
 	}
@@ -275,6 +274,13 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
      * @inheritDoc
      */
     public final void finish() throws IOException {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public final boolean finished() {
+	return true;
     }
 
     /**

@@ -29,8 +29,9 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 
     /**
      * The underlying <code>IbisDissipator</code>.
+     * Must be public so that IOGenerator-generated code can access it.
      */
-    private final IbisDissipator in;
+    public final IbisDissipator in;
 
     /**
      * First free type index.

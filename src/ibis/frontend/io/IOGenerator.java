@@ -16,11 +16,15 @@ public class IOGenerator {
     private static final String ibis_output_stream_name= "ibis.io.IbisSerializationOutputStream";
     private static final String sun_input_stream_name  = "java.io.ObjectInputStream";
     private static final String sun_output_stream_name = "java.io.ObjectOutputStream";
+    private static final String ibis_dissipator_name = "ibis.io.IbisDissipator";
+    private static final String ibis_accumulator_name = "ibis.io.IbisAccumulator";
 
     private static final ObjectType ibis_input_stream  = new ObjectType(ibis_input_stream_name);
     private static final ObjectType ibis_output_stream = new ObjectType(ibis_output_stream_name);
     private static final ObjectType sun_input_stream   = new ObjectType(sun_input_stream_name);
     private static final ObjectType sun_output_stream  = new ObjectType(sun_output_stream_name);
+    private static final ObjectType ibis_dissipator = new ObjectType(ibis_dissipator_name);
+    private static final ObjectType ibis_accumulator = new ObjectType(ibis_accumulator_name);
 
     private static final Type[] ibis_input_stream_arrtp = new Type[] { ibis_input_stream };
     private static final Type[] ibis_output_stream_arrtp = new Type[] { ibis_output_stream };
@@ -372,18 +376,34 @@ public class IOGenerator {
 	    }
 
 	    temp.append(new ALOAD(1));
+	    if (t instanceof BasicType) {
+		temp.append(factory.createFieldAccess(ibis_output_stream_name,
+						      "out",
+						      ibis_accumulator,
+						      Constants.GETFIELD));
+	    }
 	    temp.append(new ALOAD(0));
 	    temp.append(factory.createFieldAccess(classname,
 						  field.getName(),
 						  t,
 						  Constants.GETFIELD));
-	    temp.append(factory.createInvoke(info.primitive ?
-						ibis_output_stream_name :
-						sun_output_stream_name,
-					     info.write_name,
-					     Type.VOID,
-					     info.param_tp_arr,
-					     Constants.INVOKEVIRTUAL));
+
+	    if (t instanceof BasicType) {
+		temp.append(factory.createInvoke(ibis_accumulator_name,
+						 info.write_name,
+						 Type.VOID,
+						 info.param_tp_arr,
+						 Constants.INVOKEINTERFACE));
+	    }
+	    else {
+		temp.append(factory.createInvoke(info.primitive ?
+						    ibis_output_stream_name :
+						    sun_output_stream_name,
+						 info.write_name,
+						 Type.VOID,
+						 info.param_tp_arr,
+						 Constants.INVOKEVIRTUAL));
+	    }
 
 	    return temp;
 	}
@@ -403,13 +423,26 @@ public class IOGenerator {
 	    if (from_constructor || ! field.isFinal()) {
 		temp.append(new ALOAD(0));
 		temp.append(new ALOAD(1));
-		temp.append(factory.createInvoke(info.primitive ?
-						    ibis_input_stream_name:
-						    sun_input_stream_name,
-						 info.read_name,
-						 info.tp,
-						 Type.NO_ARGS,
-						 Constants.INVOKEVIRTUAL));
+		if (t instanceof BasicType) {
+		    temp.append(factory.createFieldAccess(ibis_input_stream_name,
+							  "in",
+							  ibis_dissipator,
+							  Constants.GETFIELD));
+		    temp.append(factory.createInvoke(ibis_dissipator_name,
+						     info.read_name,
+						     info.tp,
+						     Type.NO_ARGS,
+						     Constants.INVOKEINTERFACE));
+		}
+		else {
+		    temp.append(factory.createInvoke(info.primitive ?
+							ibis_input_stream_name:
+							sun_input_stream_name,
+						     info.read_name,
+						     info.tp,
+						     Type.NO_ARGS,
+						     Constants.INVOKEVIRTUAL));
+		}
 
 		if (! info.primitive) {
 		    temp.append(factory.createCheckCast((ReferenceType) t));

@@ -16,8 +16,9 @@ import java.io.NotSerializableException;
 public final class IbisSerializationOutputStream extends SerializationOutputStream implements IbisStreamFlags {
     /**
      * The underlying <code>IbisAccumulator</code>.
+     * Must be public so that IOGenerator-generated code can access it.
      */
-    private IbisAccumulator out;
+    public final IbisAccumulator out;
 
     /**
      * The first free object handle.
