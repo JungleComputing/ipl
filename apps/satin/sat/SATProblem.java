@@ -45,7 +45,7 @@ class SATProblem implements java.io.Serializable {
 	variables = new SATVar[n];
 
 	for( int i=0; i<n; i++ ){
-	    variables[i] = new SATVar( i );
+	    variables[i] = new SATVar( i, i );
 	}
     }
 
@@ -327,11 +327,24 @@ class SATProblem implements java.io.Serializable {
     // most effective in solving the problem as fast as possible.
     int [] buildOrderedVarList()
     {
-	int res[] = new int[vars];
+	int varix = 0;
 
-	for( int i=0; i<res.length; i++ ){
+	SATVar sorted_vars[] = new SATVar[vars];
+
+	for( int i=0; i<vars; i++ ){
+	    SATVar v = variables[i];
+
+	    if( v != null || v.getAssignment() != -1 ){
+		sorted_vars[varix++] = v;
+	    }
+	}
+	//java.util.Arrays.sort( sorted_vars, 0, varix );
+
+	int res[] = new int[varix];
+	for( int i=0; i<varix; i++ ){
 	    // For the moment just use the unit mapping.
-	    res[i] = i;
+	    int ix = sorted_vars[i].getIndex();
+	    res[i] = ix;
 	}
 	return res;
     }

@@ -12,7 +12,7 @@
 import java.io.File;
 
 public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSATInterface, java.io.Serializable {
-    static final boolean traceSolver = true;
+    static final boolean traceSolver = false;
     static final boolean printSatSolutions = true;
     static int label = 0;
 

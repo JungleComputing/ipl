@@ -2,15 +2,17 @@
 //
 // Description of a single variable in the SAT solver.
 
-class SATVar implements java.io.Serializable {
+class SATVar implements java.io.Serializable, Comparable {
     private int label;
+    private int ix;		// The index in the the original var array.
     private IntVector pos;	// Clauses in which this var occurs as a pos.
     private IntVector neg;	// Clauses in which this var occurs as a neg.
     private int assignment = -1;	// 0 or 1 if it is a known variable.
 
-    public SATVar( int lbl )
+    public SATVar( int lbl, int ix )
     {
 	label = lbl;
+	this.ix = ix;
         pos = new IntVector();
 	neg = new IntVector();
     }
@@ -38,8 +40,27 @@ class SATVar implements java.io.Serializable {
     // Get the assignment of this variable.
     int getAssignment() { return assignment; }
 
+    int getIndex() { return ix; }
+
     public String toString()
     {
         return "(" + label + ")";
+    }
+   
+    // Note: this comparator imposes orderings that are inconsistent
+    // with equals.
+    public int compareTo( Object other )
+    {
+	SATVar co = (SATVar) other;
+	int nthis = pos.size() + neg.size();
+	int nother = co.pos.size() + co.neg.size();
+
+	if( nthis>nother ){
+	    return -1;
+	}
+	if( nthis<nother ){
+	    return 1;
+	}
+	return 0;
     }
 }
