@@ -7,32 +7,69 @@ import java.net.InetAddress;
 
 public class HostName extends Task {
 
+    private final static boolean DEBUG = false;
+
     private String hostname;		// What is this used for?
     private String domainname;		// What is this used for?
 
 
+    private String domainName(String hostName) {
+	int dot = hostName.indexOf('.');
+	if (dot == -1) {
+	    return null;
+	}
+
+	return hostName.substring(dot + 1);
+    }
+
     public void execute() throws BuildException {
-	String hostName;
-	String domainName;
+	String hostName = null;
+	String domainName = null;
+	InetAddress addr = null;
 
 	try {
-	    InetAddress addr     = InetAddress.getLocalHost();
-	    InetAddress nameAddr = InetAddress.getByName(addr.getHostAddress());
-	    hostName             = nameAddr.getHostName();
+	    addr = InetAddress.getLocalHost();
+	    if (DEBUG) {
+		System.err.println("getLocalHost -> " + addr);
+	    }
+	    InetAddress[] nameAddr = InetAddress.getAllByName(addr.getHostAddress());
+
+	    for (int i = 0; i < nameAddr.length; i++) {
+		if (DEBUG) {
+		    System.err.println("getByName(getHostaddress)[" + i
+					+ "] -> " + nameAddr[i]);
+		}
+		hostName = nameAddr[i].getHostName();
+		if (DEBUG) {
+		    System.err.println("getHostName(--) -> " + hostName);
+		}
+		domainName = domainName(hostName);
+		if (domainName != null) {
+		    break;
+		}
+	    }
 
 	} catch (Exception e) {
 	    throw new BuildException("Could not find my host name" + e);
 	}
 
-	int dot = hostName.indexOf('.');
-	if (dot == -1) {
-	    domainName = "";
-	} else {
-	    domainName = hostName.substring(dot + 1);
+	if (domainName == null && addr != null) {
+	    /* It seems our reverse lookup has failed miserably.
+	     * Maybe the direct lookup can help a bit... */
+	    String unchecked = addr.toString();
+	    int slash = unchecked.indexOf('/');
+	    if (slash > 0) {
+		hostName = unchecked.substring(0, slash);
+		domainName = domainName(hostName);
+	    }
 	}
 
-	// System.err.println("hostname " + hostName);
-	// System.err.println("domainname " + domainName);
+	if (hostname == null) {
+	    hostname = "(localhost)";
+	}
+	if (domainname == null) {
+	    domainname = "(none)";
+	}
 
 	addProperty("hostname", hostName);
 	addProperty("domainname", domainName);
