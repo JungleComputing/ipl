@@ -7,7 +7,7 @@
     <property name="build"       location="build"/>
 
     <property name="satinc-flags" value=""/>
-    <property name="satin-main-class" value="SpawnTest"/>
+    <property name="satin-main-class" value="SpawnTest Test"/>
 
     <property name="test-par-run" value="SpawnTest -satin-closed"/>
     <property name="test-seq-run" value="SpawnTest -satin-closed"/>
