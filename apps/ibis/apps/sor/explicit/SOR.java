@@ -12,7 +12,7 @@
 import ibis.ipl.*;
 import ibis.util.nativeCode.Rdtsc;
 
-strictfp class SOR {
+class SOR {
 
 	private static final double TOLERANCE = 0.00001;         /* termination criterion */
 	private static final double LOCAL_STEPS = 0;

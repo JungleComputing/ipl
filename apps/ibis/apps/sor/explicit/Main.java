@@ -15,7 +15,7 @@ import ibis.util.*;
 
 import java.io.IOException;
 
-strictfp class Main {
+class Main {
 
 	static PoolInfo info;
 	static Ibis ibis; 
