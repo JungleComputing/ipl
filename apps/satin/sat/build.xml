@@ -1,5 +1,5 @@
 <project
-    name="ibis.apps.satin.fib"
+    name="ibis.apps.satin.sat"
     default="build"
     basedir=".">
 
