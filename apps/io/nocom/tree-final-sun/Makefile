@@ -2,6 +2,7 @@ include ../../../../config.mk
 
 java: 
 	cd read && $(MAKE) $(MFLAGS) java
+	cd read_externalizable && $(MAKE) $(MFLAGS) java
 	cd write && $(MAKE) $(MFLAGS) java
 
 manta:
@@ -11,4 +12,5 @@ manta:
 clean:
 	rm -f $(TRASH_FILES)
 	cd read && $(MAKE) $(MFLAGS) clean
+	cd read_externalizable && $(MAKE) $(MFLAGS) clean
 	cd write && $(MAKE) $(MFLAGS) clean

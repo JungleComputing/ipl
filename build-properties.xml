@@ -85,8 +85,10 @@
 	    value "true" has the same effect as giving them the value "false".
 	    To avoid debug info, just comment out the following two lines.
 	-->
+	<!--
 	<property name="java.debug" value="true"/>
 	<property name="native.debug" value="true"/>
+	-->
 
 	<if>
 	    <equals arg1="${optimization}" arg2="optimize"/>
