@@ -601,10 +601,6 @@ to the command line.
 	    <classpath refid="default.classpath"/>
 	</javac>
 	<taskdef
-		name="maplibrary"
-		classname="MapLibraryName"
-		classpath="${ibis}/ant-tasks/tasks"/>
-	<taskdef
 		name="hostname"
 		classname="HostName"
 		classpath="${ibis}/ant-tasks/tasks"/>

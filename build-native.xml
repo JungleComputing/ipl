@@ -339,30 +339,46 @@
 	    <map from="${ibis}${file.separator}" to=""/>
 	</pathconvert>
 
-	<mkdir dir="${build}/ibis/${native-path}"/>
+	<propertyregex
+	       input="${native-path}"
+	       property="native-rel-path"
+	       regexp="src\${file.separator}"
+	       replace=""/>
+	<echo level="verbose" message="native-path ${native-path}"/>
+	<echo level="verbose" message="native-rel-path ${native-rel-path}"/>
+
+	<mkdir dir="${build}/${native-rel-path}"/>
 
 	<!--
 	    Do regexp from ${native-path} -> ${package}
 		%s/\${file.separator}/_/g
 		%s/^/ibis_/
 	-->
-	<echo message="${native-path}" file="${build}/ibis/${native-path}/package"/>
+	<property
+		name="native-package"
+		location="${build}/${native-rel-path}/package"/>
+	<echo message="${native-path}" file="${native-package}"/>
 	<replaceregexp
 		byline="true"
-		file="${build}/ibis/${native-path}/package"
+		file="${native-package}"
 		flags="g"
 		match="\${file.separator}"
 		replace="_"/>
 	<replaceregexp
 		byline="true"
-		file="${build}/ibis/${native-path}/package"
+		file="${native-package}"
 		match=""
 		replace="ibis_"/>
 	<loadfile
 		property="package"
-		srcFile="${build}/ibis/${native-path}/package"/>
+		srcFile="${native-package}"/>
 
 	<property name="local.lib" value="${package}"/>
+
+	<taskdef
+		name="maplibrary"
+		classname="MapLibraryName"
+		classpath="${ibis}/ant-tasks/tasks"/>
     </target>
 
 
@@ -397,7 +413,7 @@
 	    <sequential>
 
 		<cc	debug="${c.debug}"
-			objdir="${build}/ibis/${native-path}"
+			objdir="${build}/${native-rel-path}"
 			outfile="${build}/lib/${local.lib}"
 			outtype="${cc.outtype}"
 			libtool="${use-libtool}"
