@@ -48,6 +48,7 @@ public final class TcpIbis extends Ibis implements Config {
 	private final StaticProperties systemProperties = new StaticProperties();	
 
 	TcpPortHandler tcpPortHandler;
+	private volatile boolean ended = false;
 
 	public TcpIbis() throws IbisException {
 		// Set my properties.
@@ -56,6 +57,13 @@ public final class TcpIbis extends Ibis implements Config {
 		systemProperties.add("totally ordered multicast", "false") ;
 
 		ibis.io.Conversion.classInit();
+
+		// this is a 1.4 method.
+		try {
+			Runtime.getRuntime().addShutdownHook(new TcpShutdown());
+		} catch (Exception e) {
+			System.err.println("Warning: could not register tcp shutdown hook");
+		}
 	}
      
 	public PortType createPortType(String name, StaticProperties p)
@@ -203,6 +211,8 @@ public final class TcpIbis extends Ibis implements Config {
 	}
 
 	public void end() {
+		if(ended) return;
+		ended = true;
 		try { 
 			nameServer.leave();
 			tcpPortHandler.quit();			
@@ -231,5 +241,11 @@ public final class TcpIbis extends Ibis implements Config {
 
 	void unbindReceivePort(String name) throws IOException {
 		nameServer.unbind(name);
+	}
+
+	class TcpShutdown extends Thread {
+		public void run() {
+			end();
+		}
 	}
 }
