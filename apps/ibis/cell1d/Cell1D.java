@@ -215,6 +215,7 @@ class Cell1D implements Config {
             nextupdatecol = new byte[boardsize+2];
 
             if( me == 0 ){
+                System.out.println( Helpers.getPlatformVersion() );
                 System.out.println( "Using " + ibis.implementationName() );
                 System.out.println( "Started" );
             }
