@@ -1107,6 +1107,38 @@ public class IbisSerializationOutputStream
     }
 
     /**
+     * writes a (new or old) handle for array of primitives <code>ref</code>
+     * to the output stream. returns 1 if the object is new, -1 if not.
+     * @param ref		the object whose handle is to be written
+     * @param typehandle	the type number
+     * @exception IOException	gets thrown when an IO error occurs.
+     * @return			1 if it is a new object, -1 if it is not.
+     */
+    public int writeKnownArrayHeader(Object ref, int typehandle)
+	    throws IOException
+    {
+	if (ref == null) {
+	    writeHandle(NUL_HANDLE);
+	    return 0;
+	}
+
+	int handle = references.lazyPut(ref, next_handle);
+	if (handle == next_handle) {
+// System.err.write("+");
+	    next_handle++;
+	    writeInt(typehandle | TYPE_BIT);
+	    return 1;
+	}
+
+	if(DEBUG) {
+	    dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+	}
+	writeHandle(handle);
+
+	return -1;
+    }
+
+    /**
      * Writes the serializable fields of an object <code>ref</code> using the
      * type information <code>t</code>.
      *

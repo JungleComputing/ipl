@@ -537,11 +537,24 @@ public class IOGenerator {
 						    field.getName(),
 						    field_type,
 						    Constants.GETFIELD));
-		write_il.append(factory.createInvoke(ibis_output_stream_name,
-					       "writeKnownObjectHeader",
-					       Type.INT,
-					       new Type[] { Type.OBJECT },
-					       Constants.INVOKEVIRTUAL));
+		if (basicname != null) {
+		    write_il.append(factory.createFieldAccess("ibis.io.IbisStreamFlags",
+							      "TYPE_" + basicname.toUpperCase(),
+							      Type.INT,
+							      Constants.GETSTATIC));
+		    write_il.append(factory.createInvoke(ibis_output_stream_name,
+						   "writeKnownArrayHeader",
+						   Type.INT,
+						   new Type[] { Type.OBJECT, Type.INT },
+						   Constants.INVOKEVIRTUAL));
+		}
+		else {
+		    write_il.append(factory.createInvoke(ibis_output_stream_name,
+						   "writeKnownObjectHeader",
+						   Type.INT,
+						   new Type[] { Type.OBJECT },
+						   Constants.INVOKEVIRTUAL));
+		}
 		write_il.append(new ISTORE(2));
 		write_il.append(new ILOAD(2));
 		write_il.append(new ICONST(1));
