@@ -1,8 +1,8 @@
 // File: $Id$
 
-class ByteBuffer implements java.io.Serializable {
-    byte buf[];
-    int sz;
+public final class ByteBuffer implements java.io.Serializable {
+    private byte buf[];
+    private int sz;
 
     public ByteBuffer( int len )
     {
@@ -46,6 +46,8 @@ class ByteBuffer implements java.io.Serializable {
         append( (byte) (v & 255) );
     }
 
+    public int getLength() { return sz; }
+
     public void replicate( int d, int len )
     {
         int pos = sz-d;
@@ -60,6 +62,12 @@ class ByteBuffer implements java.io.Serializable {
         }
         System.arraycopy( buf, pos, buf, sz, len );
         sz += len;
+    }
+
+    public void write( java.io.OutputStream s )
+        throws java.io.IOException
+    {
+        s.write( buf, 0, sz );
     }
 
     public void appendRef( int pos, Backref ref )

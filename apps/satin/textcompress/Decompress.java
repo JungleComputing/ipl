@@ -4,6 +4,9 @@ import java.io.File;
 
 class Decompress
 {
+    /** Private constructor to prevent instantiation of this class. */
+    private Decompress() {}
+
     public static ByteBuffer decompress( byte text[] )
     {
         int pos = 0;
@@ -66,6 +69,6 @@ class Decompress
 	double time = ((double) (endTime - startTime))/1000.0;
 
 	System.out.println( "ExecutionTime: " + time );
-        System.out.println( "In: " + text.length + " bytes, out: " + buf.sz + " bytes." );
+        System.out.println( "In: " + text.length + " bytes, out: " + buf.getLength() + " bytes." );
     }
 }
