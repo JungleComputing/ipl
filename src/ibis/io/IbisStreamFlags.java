@@ -55,4 +55,6 @@ public interface IbisStreamFlags {
     public static final int LONG_BUFFER_SIZE	= BSIZ / SIZEOF_LONG;
     public static final int FLOAT_BUFFER_SIZE	= BSIZ / SIZEOF_FLOAT;
     public static final int DOUBLE_BUFFER_SIZE	= BSIZ / SIZEOF_DOUBLE;
+
+    public static final int SMALL_ARRAY_BOUND   = 256; // byte
 } 

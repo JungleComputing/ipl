@@ -38,36 +38,65 @@ final class NioIbisSerializationOutputStream
     /**
      * {@inheritDoc}
      */
-    public void writeArray(Object ref, int offset, int len, int type)
+    public void writeArrayBoolean(boolean[] ref, int offset, int len)
 							throws IOException {
-	switch(type) {
-	    case TYPE_BOOLEAN:
-		accumulator.writeArray((boolean[]) ref, offset, len);
-		break;
-	    case TYPE_BYTE:
-		accumulator.writeArray((byte[]) ref, offset, len);
-		break;
-	    case TYPE_CHAR:
-		accumulator.writeArray((char[]) ref, offset, len);
-		break;
-	    case TYPE_SHORT:
-		accumulator.writeArray((short[]) ref, offset, len);
-		break;
-	    case TYPE_INT:
-		accumulator.writeArray((int[]) ref, offset, len);
-		break;
-	    case TYPE_LONG:
-		accumulator.writeArray((long[]) ref, offset, len);
-		break;
-	    case TYPE_FLOAT:
-		accumulator.writeArray((float[]) ref, offset, len);
-		break;
-	    case TYPE_DOUBLE:
-		accumulator.writeArray((double[]) ref, offset, len);
-		break;
-	    default:
-		throw new IbisError("unknown array type");
-	}
+	accumulator.writeArray(ref, offset, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeArrayByte(byte[] ref, int offset, int len)
+							throws IOException {
+	accumulator.writeArray(ref, offset, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeArrayChar(char[] ref, int offset, int len)
+							throws IOException {
+	accumulator.writeArray(ref, offset, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeArrayShort(short[] ref, int offset, int len)
+							throws IOException {
+	accumulator.writeArray(ref, offset, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeArrayInt(int[] ref, int offset, int len)
+							throws IOException {
+	accumulator.writeArray(ref, offset, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeArrayLong(long[] ref, int offset, int len)
+							throws IOException {
+	accumulator.writeArray(ref, offset, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeArrayFloat(float[] ref, int offset, int len)
+							throws IOException {
+	accumulator.writeArray(ref, offset, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeArrayDouble(double[] ref, int offset, int len)
+							throws IOException {
+	accumulator.writeArray(ref, offset, len);
     }
 
     public void flush() throws IOException {

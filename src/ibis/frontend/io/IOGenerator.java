@@ -499,6 +499,10 @@ public class IOGenerator {
 	    return temp;
 	}
 
+	private String writeCallName(String name) {
+	    return "writeArray" + name.substring(0, 1).toUpperCase() + name.substring(1);
+	}
+
 	private InstructionList writeReferenceField(Field field, MethodGen m) {
 	    Type field_type = Type.getType(field.getSignature());
 	    InstructionList write_il = new InstructionList();
@@ -587,14 +591,10 @@ public class IOGenerator {
 								  Constants.GETFIELD));
 			write_il.append(new ICONST(0));
 			write_il.append(new ILOAD(4));
-			write_il.append(factory.createFieldAccess("ibis.io.IbisStreamFlags",
-								  "TYPE_" + basicname.toUpperCase(),
-								  Type.INT,
-								  Constants.GETSTATIC));
 			write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
-							     "writeArray",
+							     writeCallName(basicname),
 							     Type.VOID,
-							     new Type[] { Type.OBJECT, Type.INT, Type.INT, Type.INT },
+							     new Type[] { field_type, Type.INT, Type.INT },
 							     Constants.INVOKEVIRTUAL));
 		    }
 		    else {
@@ -847,7 +847,7 @@ public class IOGenerator {
 	    return write_il;
 	}
 
-	private String getCallName(String name) {
+	private String readCallName(String name) {
 	    return "readArray" + name.substring(0, 1).toUpperCase() + name.substring(1);
 	}
 
@@ -899,7 +899,7 @@ public class IOGenerator {
 
 		if (isarray) {
 		    if (basicname != null) {
-			String callname = getCallName(basicname);
+			String callname = readCallName(basicname);
 
 			read_il.append(new ALOAD(0));
 			read_il.append(new ALOAD(1));

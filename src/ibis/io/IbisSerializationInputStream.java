@@ -20,6 +20,27 @@ public class IbisSerializationInputStream
 	extends SerializationInputStream
 	implements IbisStreamFlags
 {
+    /**
+     * Record how many objects of any class are sent the expensive way:
+     * via the uninitialized native creator.
+     */
+    private static final boolean STATS_NONREWRITTEN = ibis.util.TypedProperties.booleanProperty("ibis.stats.io.nonrewritten");
+
+    // if STATS_NONREWRITTEN
+    private static java.util.Hashtable nonRewritten = new java.util.Hashtable();
+
+    static {
+	if (STATS_NONREWRITTEN) {
+	    System.out.println("IbisSerializationInputStream.STATS_NONREWRITTEN enabled");
+	    Runtime.getRuntime().addShutdownHook(new Thread() {
+		public void run() {
+		    System.out.print("Serializable objects created nonrewritten: ");
+		    System.out.println(nonRewritten);
+		}
+	    });
+	}
+    }
+
     private static ClassLoader customClassLoader;
       
     /**
@@ -400,7 +421,14 @@ public class IbisSerializationInputStream
      */
     protected void readBooleanArray(boolean ref[], int off, int len)
 	    throws IOException {
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special boolean array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readBoolean();
+	    }
+	}
     }
 
     /**
@@ -409,7 +437,14 @@ public class IbisSerializationInputStream
      */
     protected void readByteArray(byte ref[], int off, int len)
 	    throws IOException {
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special byte array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readByte();
+	    }
+	}
     }
 
     /**
@@ -418,7 +453,14 @@ public class IbisSerializationInputStream
      */
     protected void readCharArray(char ref[], int off, int len)
 	    throws IOException {
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special char array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readChar();
+	    }
+	}
     }
 
     /**
@@ -427,7 +469,14 @@ public class IbisSerializationInputStream
      */
     protected void readShortArray(short ref[], int off, int len)
 	    throws IOException {
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special short array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readShort();
+	    }
+	}
     }
 
     /**
@@ -436,7 +485,14 @@ public class IbisSerializationInputStream
      */
     protected void readIntArray(int ref[], int off, int len)
 	    throws IOException {
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special int array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readInt();
+	    }
+	}
     }
 
     /**
@@ -445,7 +501,14 @@ public class IbisSerializationInputStream
      */
     protected void readLongArray(long ref[], int off, int len)
 	    throws IOException {
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special long array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readLong();
+	    }
+	}
     }
 
     /**
@@ -454,7 +517,14 @@ public class IbisSerializationInputStream
      */
     protected void readFloatArray(float ref[], int off, int len)
 	    throws IOException {
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special float array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readFloat();
+	    }
+	}
     }
 
     /**
@@ -463,7 +533,14 @@ public class IbisSerializationInputStream
      */
     protected void readDoubleArray(double ref[], int off, int len)
 	    throws IOException {
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special double array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readDouble();
+	    }
+	}
     }
 
     /**
@@ -1973,6 +2050,15 @@ public class IbisSerializationInputStream
 	    // obj = t.clazz.newInstance(); Not correct:
 	    // calls wrong constructor.
 	    Class t2 = t.clazz;
+	    if (STATS_NONREWRITTEN) {
+		Integer n = (Integer)nonRewritten.get(t2);
+		if (n == null) {
+		    n = new Integer(1);
+		} else {
+		    n = new Integer(n.intValue() + 1);
+		}
+		nonRewritten.put(t2, n);
+	    }
 	    while (Serializable.class.isAssignableFrom(t2)) {
 		// Find first non-serializable super-class.
 		t2 = t2.getSuperclass();

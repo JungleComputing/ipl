@@ -19,6 +19,120 @@ public class IbisSerializationOutputStream
 	implements IbisStreamFlags
 {
     /**
+     * Record how many objects of any class are sent.
+     */
+    private static final boolean STATS_OBJECTS = ibis.util.TypedProperties.booleanProperty("ibis.stats.io.written");
+
+    // if STATS_OBJECTS
+    private static java.util.Hashtable statSendObjects;
+    private static final int[] statArrayCount;
+    private static int statObjectHandle;
+    private static final int[] statArrayHandle;
+    private static final long[] statArrayLength;
+
+    private static String primitiveName(int i) {
+	switch (i) {
+	case TYPE_BOOLEAN:
+	    return "boolean";
+	case TYPE_BYTE:
+	    return "byte";
+	case TYPE_CHAR:
+	    return "char";
+	case TYPE_SHORT:
+	    return "short";
+	case TYPE_INT:
+	    return "int";
+	case TYPE_LONG:
+	    return "long";
+	case TYPE_FLOAT:
+	    return "float";
+	case TYPE_DOUBLE:
+	    return "double";
+	}
+
+	return null;
+    }
+
+    private static int primitiveBytes(int i) {
+	switch (i) {
+	case TYPE_BOOLEAN:
+	    return SIZEOF_BOOLEAN;
+	case TYPE_BYTE:
+	    return SIZEOF_BYTE;
+	case TYPE_CHAR:
+	    return SIZEOF_CHAR;
+	case TYPE_SHORT:
+	    return SIZEOF_SHORT;
+	case TYPE_INT:
+	    return SIZEOF_INT;
+	case TYPE_LONG:
+	    return SIZEOF_LONG;
+	case TYPE_FLOAT:
+	    return SIZEOF_FLOAT;
+	case TYPE_DOUBLE:
+	    return SIZEOF_DOUBLE;
+	}
+
+	return 0;
+    }
+
+
+    private static int arrayClassType(Class arrayClass) {
+	if (false) {
+	} else if (arrayClass == classByteArray) {
+	    return TYPE_BYTE;
+	} else if (arrayClass == classIntArray) {
+	    return TYPE_INT;
+	} else if (arrayClass == classBooleanArray) {
+	    return TYPE_BOOLEAN;
+	} else if (arrayClass == classDoubleArray) {
+	    return TYPE_DOUBLE;
+	} else if (arrayClass == classCharArray) {
+	    return TYPE_CHAR;
+	} else if (arrayClass == classShortArray) {
+	    return TYPE_SHORT;
+	} else if (arrayClass == classLongArray) {
+	    return TYPE_LONG;
+	} else if (arrayClass == classFloatArray) {
+	    return TYPE_FLOAT;
+	}
+	return -1;
+    }
+
+
+    static {
+	if (STATS_OBJECTS) {
+	    System.out.println("IbisSerializationOutputStream.STATS_OBJECTS enabled");
+	    statSendObjects = new java.util.Hashtable();
+	    statArrayCount = new int[PRIMITIVE_TYPES];
+	    statArrayHandle = new int[PRIMITIVE_TYPES];
+	    statArrayLength = new long[PRIMITIVE_TYPES];
+	    Runtime.getRuntime().addShutdownHook(new Thread() {
+		public void run() {
+		    System.out.print("Serializable objects sent: ");
+		    System.out.println(statSendObjects);
+		    System.out.println("Non-array handles sent "
+		       	+ statObjectHandle);
+		    for (int i = BEGIN_TYPES; i < PRIMITIVE_TYPES; i++) {
+			if (statArrayCount[i] + statArrayHandle[i] > 0) {
+			    System.out.println("       "
+				+ primitiveName(i) + " arrays "
+				+ statArrayCount[i] + " total bytes "
+				+ (statArrayLength[i] * primitiveBytes(i))
+				+ " handles " + statArrayHandle[i]);
+			}
+		    }
+		}
+	    });
+	} else {
+	    statSendObjects = null;
+	    statArrayCount = null;
+	    statArrayLength = null;
+	    statArrayHandle = null;
+	}
+    }
+
+    /**
      * The underlying <code>Accumulator</code>.
      */
     private final Accumulator out;
@@ -182,10 +296,17 @@ public class IbisSerializationOutputStream
      * Structure summarizing an array write.
      */
     private static final class ArrayDescriptor {
-	int	type;
-	Object	array;
-	int	offset;
-	int	len;
+	int		type;
+	boolean[]	booleanArray;
+	byte[]		byteArray;
+	char[]		charArray;
+	short[]		shortArray;
+	int[]		intArray;
+	long[]		longArray;
+	float[]		floatArray;
+	double[]	doubleArray;
+	int		offset;
+	int		len;
     }
 
     /**
@@ -272,31 +393,294 @@ public class IbisSerializationOutputStream
      * comment tells you otherwise.
      */
 
+
     /**
-     * Method to put a array in the "array cache". If the cache is full
+     * Method to put a boolean array in the "array cache". If the cache is full
      * it is written to the arrayOutputStream.
      * This method is public because it gets called from rewritten code.
      * @param ref	the array to be written
      * @param offset	the offset at which to start
      * @param len	number of elements to write
-     * @param type	type of the array elements
      *
      * @exception IOException on IO error.
      */
-    public void writeArray(Object ref, int offset, int len, int type)
+    public void writeArrayBoolean(boolean[] ref, int offset, int len)
 	    throws IOException {
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+// System.err.println("Special boolean array write len " + len);
+	    /* Maybe lift the check from the writeBoolean? */
+	    for (int i = offset; i < offset + len; i++) {
+		writeBoolean(ref[i]);
+	    }
+	    return;
+	}
+
 	if (array_index == ARRAY_BUFFER_SIZE) {
 	    flush();
 	}
 	if (DEBUG) {
 	    dbPrint("writeArray: " + ref + " offset: " 
-		    + offset + " len: " + len + " type: " + type);
+		    + offset + " len: " + len + " type: " + TYPE_BOOLEAN);
 	}
-	array[array_index].type   = type;
+	array[array_index].type   = TYPE_BOOLEAN;
 	array[array_index].offset = offset;
 	array[array_index].len 	  = len;
-	array[array_index].array  = ref;
+	array[array_index].booleanArray  = ref;
 	array_index++;
+
+	addStatSendArray(ref, TYPE_BOOLEAN, len);
+    }
+
+    /**
+     * Method to put a byte array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayByte(byte[] ref, int offset, int len)
+	    throws IOException {
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
+// System.err.println("Special byte array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeByte(ref[i]);
+	    }
+	    return;
+	}
+
+	if (array_index == ARRAY_BUFFER_SIZE) {
+	    flush();
+	}
+	if (DEBUG) {
+	    dbPrint("writeArray: " + ref + " offset: " 
+		    + offset + " len: " + len + " type: " + TYPE_BYTE);
+	}
+	array[array_index].type   = TYPE_BYTE;
+	array[array_index].offset = offset;
+	array[array_index].len 	  = len;
+	array[array_index].byteArray  = ref;
+	array_index++;
+
+	addStatSendArray(ref, TYPE_BYTE, len);
+    }
+
+    /**
+     * Method to put a char array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayChar(char[] ref, int offset, int len)
+	    throws IOException {
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
+// System.err.println("Special char array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeChar(ref[i]);
+	    }
+	    return;
+	}
+
+	if (array_index == ARRAY_BUFFER_SIZE) {
+	    flush();
+	}
+	if (DEBUG) {
+	    dbPrint("writeArray: " + ref + " offset: " 
+		    + offset + " len: " + len + " type: " + TYPE_CHAR);
+	}
+	array[array_index].type   = TYPE_CHAR;
+	array[array_index].offset = offset;
+	array[array_index].len 	  = len;
+	array[array_index].charArray  = ref;
+	array_index++;
+
+	addStatSendArray(ref, TYPE_CHAR, len);
+    }
+
+    /**
+     * Method to put a short array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayShort(short[] ref, int offset, int len)
+	    throws IOException {
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
+// System.err.println("Special short array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeShort(ref[i]);
+	    }
+	    return;
+	}
+
+	if (array_index == ARRAY_BUFFER_SIZE) {
+	    flush();
+	}
+	if (DEBUG) {
+	    dbPrint("writeArray: " + ref + " offset: " 
+		    + offset + " len: " + len + " type: " + TYPE_SHORT);
+	}
+	array[array_index].type   = TYPE_SHORT;
+	array[array_index].offset = offset;
+	array[array_index].len 	  = len;
+	array[array_index].shortArray  = ref;
+	array_index++;
+
+	addStatSendArray(ref, TYPE_SHORT, len);
+    }
+
+    /**
+     * Method to put a int array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayInt(int[] ref, int offset, int len)
+	    throws IOException {
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_INT) {
+// System.err.println("Special int array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeInt(ref[i]);
+	    }
+	    return;
+	}
+
+	if (array_index == ARRAY_BUFFER_SIZE) {
+	    flush();
+	}
+	if (DEBUG) {
+	    dbPrint("writeArray: " + ref + " offset: " 
+		    + offset + " len: " + len + " type: " + TYPE_INT);
+	}
+	array[array_index].type   = TYPE_INT;
+	array[array_index].offset = offset;
+	array[array_index].len 	  = len;
+	array[array_index].intArray  = ref;
+	array_index++;
+
+	addStatSendArray(ref, TYPE_INT, len);
+    }
+
+    /**
+     * Method to put a long array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayLong(long[] ref, int offset, int len)
+	    throws IOException {
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_LONG) {
+// System.err.println("Special long array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeLong(ref[i]);
+	    }
+	    return;
+	}
+
+	if (array_index == ARRAY_BUFFER_SIZE) {
+	    flush();
+	}
+	if (DEBUG) {
+	    dbPrint("writeArray: " + ref + " offset: " 
+		    + offset + " len: " + len + " type: " + TYPE_LONG);
+	}
+	array[array_index].type   = TYPE_LONG;
+	array[array_index].offset = offset;
+	array[array_index].len 	  = len;
+	array[array_index].longArray  = ref;
+	array_index++;
+
+	addStatSendArray(ref, TYPE_LONG, len);
+    }
+
+    /**
+     * Method to put a float array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayFloat(float[] ref, int offset, int len)
+	    throws IOException {
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
+// System.err.println("Special float array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeFloat(ref[i]);
+	    }
+	    return;
+	}
+
+	if (array_index == ARRAY_BUFFER_SIZE) {
+	    flush();
+	}
+	if (DEBUG) {
+	    dbPrint("writeArray: " + ref + " offset: " 
+		    + offset + " len: " + len + " type: " + TYPE_FLOAT);
+	}
+	array[array_index].type   = TYPE_FLOAT;
+	array[array_index].offset = offset;
+	array[array_index].len 	  = len;
+	array[array_index].floatArray  = ref;
+	array_index++;
+
+	addStatSendArray(ref, TYPE_FLOAT, len);
+    }
+
+    /**
+     * Method to put a double array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayDouble(double[] ref, int offset, int len)
+	    throws IOException {
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
+// System.err.println("Special double array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeDouble(ref[i]);
+	    }
+	    return;
+	}
+
+	if (array_index == ARRAY_BUFFER_SIZE) {
+	    flush();
+	}
+	if (DEBUG) {
+	    dbPrint("writeArray: " + ref + " offset: " 
+		    + offset + " len: " + len + " type: " + TYPE_DOUBLE);
+	}
+	array[array_index].type   = TYPE_DOUBLE;
+	array[array_index].offset = offset;
+	array[array_index].len 	  = len;
+	array[array_index].doubleArray  = ref;
+	array_index++;
+
+	addStatSendArray(ref, TYPE_DOUBLE, len);
     }
 
     /**
@@ -317,28 +701,28 @@ public class IbisSerializationOutputStream
 	    ArrayDescriptor a = array[i];
 	    switch(a.type) {
 	    case TYPE_BOOLEAN:
-		out.writeArray( (boolean[])(a.array), a.offset, a.len);
+		out.writeArray(a.booleanArray, a.offset, a.len);
 		break;
 	    case TYPE_BYTE:
-		out.writeArray( (byte[])(a.array), a.offset, a.len);
+		out.writeArray(a.byteArray, a.offset, a.len);
 		break;
 	    case TYPE_CHAR:
-		out.writeArray( (char[])(a.array), a.offset, a.len);
+		out.writeArray(a.charArray, a.offset, a.len);
 		break;
 	    case TYPE_SHORT:
-		out.writeArray( (short[])(a.array), a.offset, a.len);
+		out.writeArray(a.shortArray, a.offset, a.len);
 		break;
 	    case TYPE_INT:
-		out.writeArray( (int[])(a.array), a.offset, a.len);
+		out.writeArray(a.intArray, a.offset, a.len);
 		break;
 	    case TYPE_LONG:
-		out.writeArray( (long[])(a.array), a.offset, a.len);
+		out.writeArray(a.longArray, a.offset, a.len);
 		break;
 	    case TYPE_FLOAT:
-		out.writeArray( (float[])(a.array), a.offset, a.len);
+		out.writeArray(a.floatArray, a.offset, a.len);
 		break;
 	    case TYPE_DOUBLE:
-		out.writeArray( (double[])(a.array), a.offset, a.len);
+		out.writeArray(a.doubleArray, a.offset, a.len);
 		break;
 	    }
 	}
@@ -806,7 +1190,7 @@ public class IbisSerializationOutputStream
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classBooleanArray, len, false)) {
-	    writeArray(ref, off, len, TYPE_BOOLEAN);
+	    writeArrayBoolean(ref, off, len);
 	}
     }
 
@@ -815,7 +1199,7 @@ public class IbisSerializationOutputStream
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classByteArray, len, false)) {
-	    writeArray(ref, off, len, TYPE_BYTE);
+	    writeArrayByte(ref, off, len);
 	}
     }
 
@@ -824,7 +1208,7 @@ public class IbisSerializationOutputStream
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classShortArray, len, false)) {
-	    writeArray(ref, off, len, TYPE_SHORT);
+	    writeArrayShort(ref, off, len);
 	}
     }
 
@@ -833,7 +1217,7 @@ public class IbisSerializationOutputStream
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classCharArray, len, false)) {
-	    writeArray(ref, off, len, TYPE_CHAR);
+	    writeArrayChar(ref, off, len);
 	}
     }
 
@@ -842,7 +1226,7 @@ public class IbisSerializationOutputStream
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classIntArray, len, false)) {
-	    writeArray(ref, off, len, TYPE_INT);
+	    writeArrayInt(ref, off, len);
 	}
     }
 
@@ -851,7 +1235,7 @@ public class IbisSerializationOutputStream
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classLongArray, len, false)) {
-	    writeArray(ref, off, len, TYPE_LONG);
+	    writeArrayLong(ref, off, len);
 	}
     }
 
@@ -860,7 +1244,7 @@ public class IbisSerializationOutputStream
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classFloatArray, len, false)) {
-	    writeArray(ref, off, len, TYPE_FLOAT);
+	    writeArrayFloat(ref, off, len);
 	}
     }
 
@@ -869,7 +1253,7 @@ public class IbisSerializationOutputStream
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
 	if(writeArrayHeader(ref, classDoubleArray, len, false)) {
-	    writeArray(ref, off, len, TYPE_DOUBLE);
+	    writeArrayDouble(ref, off, len);
 	}
     }
 
@@ -952,6 +1336,8 @@ public class IbisSerializationOutputStream
 
 	writeInt(len);
 
+	addStatSendArrayHandle(ref, len);
+
 	if (DEBUG) {
 	    dbPrint("writeArrayHeader " + clazz.getName() + " length = " + len);
 	}
@@ -973,49 +1359,49 @@ public class IbisSerializationOutputStream
 	    byte[] a = (byte[])ref;
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArray(a, 0, len, TYPE_BYTE);
+		writeArrayByte(a, 0, len);
 	    }
 	} else if (arrayClass == classIntArray) {
 	    int[] a = (int[])ref;
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, !unshared)) {
-		writeArray(a, 0, len, TYPE_INT);
+		writeArrayInt(a, 0, len);
 	    }
 	} else if (arrayClass == classBooleanArray) {
 	    boolean[] a = (boolean[])ref;
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArray(a, 0, len, TYPE_BOOLEAN);
+		writeArrayBoolean(a, 0, len);
 	    }
 	} else if (arrayClass == classDoubleArray) {
 	    double[] a = (double[])ref;
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArray(a, 0, len, TYPE_DOUBLE);
+		writeArrayDouble(a, 0, len);
 	    }
 	} else if (arrayClass == classCharArray) {
 	    char[] a = (char[])ref;
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArray(a, 0, len, TYPE_CHAR);
+		writeArrayChar(a, 0, len);
 	    }
 	} else if (arrayClass == classShortArray) {
 	    short[] a = (short[])ref;
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArray(a, 0, len, TYPE_SHORT);
+		writeArrayShort(a, 0, len);
 	    }
 	} else if (arrayClass == classLongArray) {
 	    long[] a = (long[])ref;
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArray(a, 0, len, TYPE_LONG);
+		writeArrayLong(a, 0, len);
 	    }
 	} else if (arrayClass == classFloatArray) {
 	    float[] a = (float[])ref;
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
-		writeArray(a, 0, len, TYPE_FLOAT);
+		writeArrayFloat(a, 0, len);
 	    }
 	} else {
 	    Object[] a = (Object[])ref;
@@ -1373,6 +1759,50 @@ public class IbisSerializationOutputStream
 	}
     }
 
+
+    private static void addStatSendObject(Object ref) {
+	if (STATS_OBJECTS) {
+	    Class clazz = ref.getClass();
+	    Integer n = (Integer)statSendObjects.get(clazz);
+	    if (n == null) {
+		n = new Integer(1);
+	    } else {
+		n = new Integer(n.intValue() + 1);
+	    }
+	    statSendObjects.put(clazz, n);
+	}
+    }
+
+
+    private static void addStatSendObjectHandle(Object ref) {
+	if (STATS_OBJECTS) {
+	    statObjectHandle++;
+	}
+    }
+
+
+    private static void addStatSendArray(Object ref, int type, int len) {
+	if (STATS_OBJECTS) {
+	    addStatSendObject(ref);
+	    statArrayCount[type]++;
+	    statArrayLength[type] += len;
+	}
+    }
+
+
+    private static void addStatSendArrayHandle(Object ref, int len) {
+	if (STATS_OBJECTS) {
+	    Class arrayClass = ref.getClass();
+	    int type = arrayClassType(arrayClass);
+	    if (type == -1) {
+		statObjectHandle++;
+	    } else {
+		statArrayHandle[type]++;
+	    }
+	}
+    }
+
+
     /**
      * Write objects and arrays.
      * Duplicates are deteced when this call is used.
@@ -1444,6 +1874,8 @@ public class IbisSerializationOutputStream
 		    throw new NotSerializableException("Not Serializable : " +
 							clazz.getName());
 		}
+
+		addStatSendObject(ref);
 	    }
 	    if (DEBUG) {
 		dbPrint("finished writeObject of class " + clazz.getName());
@@ -1454,6 +1886,8 @@ public class IbisSerializationOutputStream
 			    " class = " + ref.getClass());
 	    }
 	    writeHandle(handle);
+
+	    addStatSendObjectHandle(ref);
 	}
     }
 
