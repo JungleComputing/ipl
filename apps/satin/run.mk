@@ -3,6 +3,11 @@ seqrun:
 	echo running: "$(SEQ_RUN_COMMAND)"
 	$(SEQ_RUN_COMMAND)
 
+3seqrun:
+	make VERS=1 seqrun
+	make VERS=2 seqrun
+	make VERS=3 seqrun
+
 
 parrun:
 	(for q in $(PAR_SCHEDULING); do \
@@ -15,6 +20,10 @@ parrun:
 		done) \
 	done)
 
+3parrun:
+	make VERS=1 parrun
+	make VERS=2 parrun
+	make VERS=3 parrun
 
 simrun:
 	(for q in $(SIM_SCHEDULING); do \
@@ -69,17 +78,17 @@ test_java:
 test:
 	../../../bin/ibis_nameserver -single -port $(NAMESERVER_PORT) &
 	sleep 1
-	PRUN_ENV=test_one_pool ../../../bin/run_ibis 0 1 $(NAMESERVER_PORT) localhost $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-tcp -satin-stats -satin-closed > test_out 2> test_err
+	PRUN_ENV=test_one_pool USE_JAVA_WRAPPER= ../../../bin/run_ibis 0 1 $(NAMESERVER_PORT) localhost $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-tcp -satin-stats -satin-closed > test_out 2> test_err
 	grep "application result" test_out > test_res
 	diff test_res test_goal
 
 test_par:
 	../../../bin/ibis_nameserver -single -port $(NAMESERVER_PORT) &
 	sleep 2
-	rm -f test_par_out test_par_err test_par_res
-	PRUN_ENV=test_par_pool ../../../bin/run_ibis 0 2 $(NAMESERVER_PORT) localhost $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out 2>> test_par_err &
-	PRUN_ENV=test_par_pool ../../../bin/run_ibis 1 2 $(NAMESERVER_PORT) localhost $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out 2>> test_par_err
-	grep "application result" test_par_out > test_par_res
+	rm -f test_par_out.[01] test_par_err.[01] test_par_res
+	PRUN_ENV=test_par_pool USE_JAVA_WRAPPER= ../../../bin/run_ibis 0 2 $(NAMESERVER_PORT) localhost $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out.0 2>> test_par_err.0 &
+	PRUN_ENV=test_par_pool USE_JAVA_WRAPPER= ../../../bin/run_ibis 1 2 $(NAMESERVER_PORT) localhost $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) $(PAR_TEST_OPTIONS) -satin-stats -satin-closed >> test_par_out.1 2>> test_par_err.1
+	grep "application result" test_par_out.[01] > test_par_res
 	diff test_par_res test_goal
 
 PANDA_SATIN_PARAMS=-satin-closed -satin-stats -satin-panda -satin-ibis -satin-alg $(ALG)
@@ -109,33 +118,33 @@ panda_runs:
 PPRUN_PARAMS=$(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME)
 PPRUN_SATIN_PARAMS=-satin-stats -satin-closed -satin-ibis -satin-alg $(ALG)
 pprun_test:
-	make PPRUN_APP_OPTS=$(TEST_APP_OPTIONS) pprunner
+	make PPRUN_APP_OPTS="$(TEST_APP_OPTIONS)" pprunner
 
 pprun_small:
-	make PPRUN_APP_OPTS=$(SMALL_APP_OPTIONS) pprunner
+	make PPRUN_APP_OPTS="$(SMALL_APP_OPTIONS)" pprunner
 
 pprun:
-	make PPRUN_APP_OPTS=$(APP_OPTIONS) pprunner
+	make PPRUN_APP_OPTS="$(APP_OPTIONS)" pprunner
 
 pprunner:
 	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
 	if [ -z "$(ALG)" ]; then echo ALG not set; exit 1; fi
-	../../../globus/pprun $(PPRUN_PARAMS) $(PPRUN_APP_OPTS)  $(PPRUN_SATIN_PARAMS)
+	../../../bin/pprun $(PPRUN_PARAMS) $(PPRUN_APP_OPTS)  $(PPRUN_SATIN_PARAMS)
 
 GRUN_SATIN_PARAMS=-satin-stats -satin-closed -satin-alg $(ALG)
 grun_test:
-	make GRUN_APP_OPTS=$(TEST_APP_OPTIONS) grunner
+	make GRUN_APP_OPTS="$(TEST_APP_OPTIONS)" grunner
 
 grun_small:
-	make GRUN_APP_OPTS=$(SMALL_APP_OPTIONS) grunner
+	make GRUN_APP_OPTS="$(SMALL_APP_OPTIONS)" grunner
 
 grun:
-	make GRUN_APP_OPTS=$(APP_OPTIONS) grunner
+	make GRUN_APP_OPTS="$(APP_OPTIONS)" grunner
 
 grunner:
 	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
 	if [ -z "$(ALG)" ]; then echo ALG not set; exit 1; fi
-	../../../globus/grun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(GRUN_APP_OPTS) $(GRUN_SATIN_PARAMS)
+	../../../bin/grun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(GRUN_APP_OPTS) $(GRUN_SATIN_PARAMS)
 
 logclean:
 	rm -rf *.ps *~ out.plot *.dvi out.ps *.aux plots.log *.tmp out.log out.tex
