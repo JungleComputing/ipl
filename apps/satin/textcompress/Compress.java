@@ -62,7 +62,16 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
         r.backpos = backpos;
         r.len = Helpers.matchSpans( text, backpos, pos );
+        if( r.len >= Configuration.MINIMAL_SPAN ){
+            r.gain = r.len-Helpers.refEncodingSize( pos-backpos, r.len );
 
+            if( traceMatches ){
+                System.out.println( "A match " + r + " at " + pos );
+            }
+        }
+        else {
+            r.gain = -1;
+        }
         return r;
     }
 
@@ -70,16 +79,10 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
     {
         Backref r = swallowEvaluateBackref( text, backrefs, backpos, pos );
 
-        if( r.len>=Configuration.MINIMAL_SPAN ){
-            r.gain = r.len-Helpers.refEncodingSize( pos-backpos, r.len );
-            if( traceMatches ){
-                System.out.println( "A match " + r + " at " + pos );
-            }
-            if( r.gain>0 && depth<Configuration.LOOKAHEAD_DEPTH ){
-                Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
-                sync();
-                r.gain += m.gain;
-            }
+        if( r.gain>0 && depth<Configuration.LOOKAHEAD_DEPTH ){
+            Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
+            sync();
+            r.gain += m.gain;
         }
         return r;
     }
