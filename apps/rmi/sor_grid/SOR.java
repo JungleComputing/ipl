@@ -372,7 +372,7 @@ System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 			*/
 
 			if(visualization) {
-				((GlobalData)global).putMatrix(g);
+				global.putMatrix(g);
 			}
 
 			diff = 0.0;

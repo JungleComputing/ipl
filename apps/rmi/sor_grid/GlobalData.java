@@ -29,6 +29,8 @@ class GlobalData extends UnicastRemoteObject implements i_GlobalData {
 		nodes     = new i_SOR[total_num];
 		num_nodes = 0;
 		this.synchronous = synchronous;
+System.err.println(this + ": in ctor");
+Thread.dumpStack();
 	}
 
 	public synchronized i_SOR [] table(i_SOR me, int node) throws RemoteException {
@@ -209,7 +211,7 @@ public synchronized void sync() throws RemoteException {
 		return rawData;
 	}
 
-	synchronized void putMatrix(double[][] m) {
+	public synchronized void putMatrix(double[][] m)  throws RemoteException{
 
 		if(synchronous) {
 			while(newDataAvailable) {
@@ -227,7 +229,7 @@ public synchronized void sync() throws RemoteException {
 		double max = -1000;
 
 		for(int i=0; i<m.length; i++) {
-			for (int j=0; j<m[0].length; j++) {
+			for (int j=0; j<m[i].length; j++) {
 				if(m[i][j] < min) {
 					min = m[i][j];
 				}
