@@ -5,34 +5,22 @@ package ibis.gmi;
  */
 public class ReplyScheme { 
 
-    /**
-     * For reply discarding, see {@link DiscardReply}.
-     */
+    /** For reply discarding, see {@link DiscardReply}. */
     public static final int R_DISCARD                       = 0; 
 
-    /**
-     * For returning a reply, see {@link ReturnReply}.
-     */
+    /** For returning a reply, see {@link ReturnReply}. */
     public static final int R_RETURN                        = 1; 
 
-    /**
-     * For forwarding replies, see {@link ForwardReply}.
-     */
+    /** For forwarding replies, see {@link ForwardReply}. */
     public static final int R_FORWARD                       = 2; 
 
-    /**
-     * For flat-combining replies, see {@link CombineReply}.
-     */
+    /** For flat-combining replies, see {@link CombineReply}. */
     public static final int R_COMBINE_FLAT                  = 3; 
 
-    /**
-     * For binomial-combining replies, see {@link CombineReply}.
-     */
+    /** For binomial-combining replies, see {@link CombineReply}. */
     public static final int R_COMBINE_BINOMIAL              = 4; 
 
-    /**
-     * Mode for personalized replies, see {@link PersonalizeReply}.
-     */
+    /** Mode for personalized replies, see {@link PersonalizeReply}. */
     public static final int R_PERSONALIZED                  = 16;
 
     /**
@@ -59,9 +47,7 @@ public class ReplyScheme {
      */
     public static final int R_PERSONALIZED_COMBINE_BINOMIAL = R_PERSONALIZED + R_COMBINE_BINOMIAL; 
 
-    /**
-     * Indicates one of the basic reply schemes. 
-     */
+    /** Indicates one of the basic reply schemes. */
     int mode;
 
     /**

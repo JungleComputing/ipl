@@ -8,9 +8,7 @@ package ibis.gmi;
  */
 public class ReturnReply extends ReplyScheme { 
 
-    /**
-     * The rank of the group member that is supposed to deliver the reply.
-     */
+    /** The rank of the group member that is supposed to deliver the reply. */
     int rank;
 
     /**

@@ -10,9 +10,7 @@ package ibis.gmi;
  */
 public class PersonalizeReply extends ReplyScheme { 
 
-    /**
-     * The reply personalizer.
-     */
+    /** The reply personalizer. */
     public ReplyPersonalizer rp;
 
     /**

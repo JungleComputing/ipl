@@ -6,9 +6,7 @@ package ibis.gmi;
  */
 public class PersonalizedInvocation extends InvocationScheme { 
 
-    /**
-     * The personalizer.
-     */
+    /** The personalizer. */
     public Personalizer p;
 
     /**

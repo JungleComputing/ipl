@@ -20,14 +20,10 @@ public class GroupMethod {
      */
     public ReplyScheme rep;
 
-    /**
-     * A summary of the invocation scheme.
-     */
+    /** A summary of the invocation scheme. */
     public int invocation_mode;
     
-    /**
-     * A summary of the reply scheme.
-     */
+    /** A summary of the reply scheme. */
     public int result_mode;
 
     /**
@@ -36,9 +32,7 @@ public class GroupMethod {
      */
     public SendPort sendport;
 
-    /**
-     * A number uniquely defining this method.
-     */
+    /** A number uniquely defining this method. */
     public int index;
 
     /**
@@ -51,9 +45,7 @@ public class GroupMethod {
      */
     String descriptor;
 
-    /**
-     * A reference to the stub that could invoke, a.o., this method.
-     */
+    /** A reference to the stub that could invoke, a.o., this method. */
     GroupStub parent_stub;
     
     /**

@@ -13,34 +13,22 @@ public class CombinedInvocationInfo implements java.io.Serializable {
      */
     int groupID;
 
-    /**
-     * Name of the group method.
-     */
+    /** Name of the group method. */
     String method;
 
-    /**
-     * Identifier of this combined invocation.
-     */
+    /** Identifier of this combined invocation. */
     String name;
 
-    /**
-     * Invocation mode, see {@link InvocationScheme}.
-     */
+    /** Invocation mode, see {@link InvocationScheme}. */
     int mode;
 
-    /**
-     * The number of nodes involved in this combined invocation.
-     */
+    /** The number of nodes involved in this combined invocation. */
     public int numInvokers;
 
-    /**
-     * The global rank numbers of the participating nodes.
-     */
+    /** The global rank numbers of the participating nodes. */
     public int [] participating_cpus;
 
-    /**
-     * Identification of where the reply is to be sent.
-     */
+    /** Identification of where the reply is to be sent. */
     public int [] stubids_tickets;
 
     /**
@@ -63,6 +51,7 @@ public class CombinedInvocationInfo implements java.io.Serializable {
      */
     transient int myInvokerRank;
 
+    /** Number of invokers. */
     transient int present;
 
     /**

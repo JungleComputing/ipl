@@ -15,19 +15,19 @@ import java.io.IOException;
  * default ones are supplied that just throw an exception.
  */
 public class Forwarder implements GroupProtocol { 
-    /* Set when this forwarder is busy. */
+    /** Set when this forwarder is busy. */
     private boolean inUse = false;
 
-    /* The number of results to be expected. */
+    /** The number of results to be expected. */
     private int numResults = 0;
 
-    /* The number of results received sofar. */
+    /** The number of results received sofar. */
     private int receivedResults = 0;
 
-    /* Ticket for the reply stack. */
+    /** Ticket for the reply stack. */
     private int ticket;
 
-    /* The stub that did the invocation from which this forwarder gets results. */
+    /** The stub that did the invocation from which this forwarder gets results. */
     private GroupStub stub;
 
     /**

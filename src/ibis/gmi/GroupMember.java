@@ -8,19 +8,13 @@ import java.util.Vector;
  * and extent the {@link GroupMember} class.
  */
 public class GroupMember { 
-    /**
-     * An identification of the group of which this is a member.
-     */
+    /** An identification of the group of which this is a member. */
     public int groupID;
 
-    /**
-     * Skeleton identifications of all group members.
-     */
+    /** Skeleton identifications of all group members. */
     public int [] memberSkels;
 
-    /**
-     * Node identifications of all group members.
-     */
+    /** Node identifications of all group members. */
     public int [] memberRanks;
 
     /**
@@ -29,34 +23,22 @@ public class GroupMember {
      */
     protected int [] multicastHosts;
 
-    /**
-     * The string identifying the multicast send port.
-     */
+    /** The string identifying the multicast send port. */
     protected String multicastHostsID;
 
-    /**
-     * My skeleton.
-     */
+    /** My skeleton. */
     private GroupSkeleton skeleton;
 
-    /**
-     * Identification of my skeleton.
-     */
+    /** Identification of my skeleton. */
     protected int mySkel;
 
-    /**
-     * All group interfaces implemented by this member.
-     */
+    /** All group interfaces implemented by this member. */
     protected String [] groupInterfaces;
 
-    /**
-     * rank within the group of this member.
-     */
+    /** rank within the group of this member. */
     public  int myGroupRank;
 
-    /**
-     * Size of the group of this member.
-     */
+    /** Size of the group of this member. */
     public  int groupSize;
 
     /**

@@ -14,23 +14,18 @@ package ibis.gmi;
 public class CombinedInvocation extends InvocationScheme { 
     
     /**
-     * The name of this combined invocation scheme (used for identification purposes).
+     * The name of this combined invocation scheme (used for
+     * identification purposes).
      */
     String id;
 
-    /**
-     * The flat combiner.
-     */
+    /** The flat combiner. */
     FlatInvocationCombiner flatCombiner;
 
-    /**
-     * The binomial combiner.
-     */
+    /** The binomial combiner. */
     BinomialInvocationCombiner binCombiner;
 
-    /**
-     * The underlying invocation scheme, single, group, or personalized.
-     */
+    /** The underlying invocation scheme, single, group, or personalized. */
     InvocationScheme inv;
 
     /**
@@ -40,9 +35,7 @@ public class CombinedInvocation extends InvocationScheme {
      */
     int rank;
 
-    /**
-     * The total number of invokers in this combined invocation.
-     */
+    /** The total number of invokers in this combined invocation. */
     int size;
 
     /**

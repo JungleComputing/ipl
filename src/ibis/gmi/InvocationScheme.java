@@ -5,34 +5,22 @@ package ibis.gmi;
  */
 public class InvocationScheme { 
 
-    /**
-     * "Single" invocation mode, see {@link SingleInvocation}.
-     */
+    /** "Single" invocation mode, see {@link SingleInvocation}. */
     public final static int I_SINGLE            = 0;
 
-    /**
-     * "Group" invocation mode, see {@link GroupInvocation}.
-     */
+    /** "Group" invocation mode, see {@link GroupInvocation}. */
     public final static int I_GROUP             = 1;
 
-    /**
-     * "Personalized" invocation mode, see {@link PersonalizedInvocation}.
-     */
+    /** "Personalized" invocation mode, see {@link PersonalizedInvocation}. */
     public final static int I_PERSONAL          = 2;
 
-    /**
-     * "Flat-combined" invocation mode, see {@link CombinedInvocation}.
-     */
+    /** "Flat-combined" invocation mode, see {@link CombinedInvocation}. */
     public final static int I_COMBINED_FLAT     = 16;
 
-    /**
-     * "Binomial-combined" invocation mode, see {@link CombinedInvocation}.
-     */
+    /** "Binomial-combined" invocation mode, see {@link CombinedInvocation}. */
     public final static int I_COMBINED_BINOMIAL = 32;
 
-    /**
-     * A mode equal or larger than this is a combined invocation.
-     */
+    /** A mode equal or larger than this is a combined invocation. */
     public final static int I_COMBINED	= I_COMBINED_FLAT;
 
     /**
@@ -71,9 +59,7 @@ public class InvocationScheme {
      */
     public final static int I_COMBINED_BINOMIAL_PERSONAL = I_COMBINED_BINOMIAL + I_PERSONAL; 
 
-    /**
-     * Type of this invocation scheme.
-     */
+    /** Type of this invocation scheme. */
     int mode;
 
     /**

@@ -11,19 +11,13 @@ import java.io.IOException;
  */
 public abstract class ParameterVector { 
 
-    /**
-     * Set to true when the parameter vector is completely initialized.
-     */
+    /** Set to true when the parameter vector is completely initialized. */
     public boolean done = false;
 
-    /**
-     * Keeps track of the number of initialized vector elements.
-     */
+    /** Keeps track of the number of initialized vector elements. */
     protected int set_count = 0;
 
-    /**
-     * Array of booleans, keeping track of which elements have been initialized.
-     */
+    /** Array of booleans, keeping track of which elements have been initialized. */
     protected boolean [] set;
 
     /**

@@ -13,29 +13,20 @@ import java.io.IOException;
  */
 
 public abstract class GroupSkeleton implements GroupProtocol {
-    /**
-     * Indicates the group member for which this is the skeleton.
-     */
+
+    /** Indicates the group member for which this is the skeleton. */
     protected GroupMember destination;
 
-    /**
-     * A multicast send port to all members in the group.
-     */
+    /** A multicast send port to all members in the group. */
     protected SendPort reply_to_all;
 
-    /**
-     * Rank of this member in the group.
-     */
+    /** Rank of this member in the group. */
     protected int myGroupRank;
 
-    /**
-     * The number of group members.
-     */
+    /** The number of group members. */
     protected int groupSize;
 
-    /**
-     * Group message cache and collector of combine-reply messages.
-     */
+    /** Group message cache and collector of combine-reply messages. */
     private GroupMessageQueue messageQ;
 
     /**
@@ -43,14 +34,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
      */
     static private final class GroupMessageQueue { 
 
-	/**
-	 * Queues of received group messages for each node.
-	 */
+	/** Queues of received group messages for each node. */
 	private GroupMessage [] qs; 
 
-	/**
-	 * Group message cache.
-	 */
+	/** Group message cache. */
 	private GroupMessage cache;
 
 	/**

@@ -11,14 +11,10 @@ package ibis.gmi;
  */
 public class CombineReply extends ReplyScheme { 
 
-    /**
-     * The gather style combiner.
-     */
+    /** The gather style combiner. */
     public FlatCombiner flatCombiner;
 
-    /**
-     * The reduce style combiner.
-     */
+    /** The reduce style combiner. */
     public BinomialCombiner binomialCombiner;
 
     /**

@@ -13,14 +13,10 @@ import java.io.IOException;
 
 public class GroupStub implements GroupInterface, GroupProtocol { 
 
-    /**
-     * The identification of the target group.
-     */
+    /** The identification of the target group. */
     protected int groupID;
 
-    /**
-     * The number of members in the target group.
-     */
+    /** The number of members in the target group. */
     protected int targetGroupSize;
 
     /**
@@ -29,9 +25,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      */
     protected int [] memberRanks;
 
-    /**
-     * The member skeleton identifications.
-     */
+    /** The member skeleton identifications. */
     protected int [] memberSkels;
 
     /**
@@ -48,7 +42,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      */
     protected String multicastHostsID;
     
-    /* Identification of this stub. */
+    /** Identification of this stub. */
     private int realStubID;
 
     /**
@@ -58,14 +52,10 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      */
     protected int shiftedStubID;
 
-    /**
-     * Where the replies are pushed, identified by tickets.
-     */
+    /** Where the replies are pushed, identified by tickets. */
     protected Ticket replyStack;
 
-    /**
-     * A list of the methods in this group.
-     */
+    /** A list of the methods in this group. */
     protected GroupMethod [] methods;
 
     /**
@@ -75,9 +65,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      */
     private int invocation_count = 0;
 
-    /**
-     * True when the current cpu has started a combined invocation.
-     */
+    /** True when the current cpu has started a combined invocation. */
     private boolean started = false;
 
     private int waiters = 0;

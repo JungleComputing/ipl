@@ -35,40 +35,26 @@ public final class Group implements GroupProtocol {
 
     private static final String[] properties = { DBG };
     
-    /**
-     * Enable/disable debugging prints.
-     */
+    /** Enable/disable debugging prints. */
     public final static boolean DEBUG =
 	TypedProperties.booleanProperty(DBG, false);
 
-    /**
-     * Ibis rank number in this run.
-     */
+    /** Ibis rank number in this run. */
     static int _rank;
 
-    /**
-     * To get tickets from.
-     */
+    /** To get tickets from. */
     static Ticket ticketMaster = null;
 
-    /**
-     * Unicast send ports, one for each node.
-     */
+    /** Unicast send ports, one for each node. */
     static SendPort [] unicast;
 
-    /**
-     * The total number of nodes involved in this run.
-     */
+    /** The total number of nodes involved in this run. */
     private static int _size;
 
-    /**
-     * The local hostname.
-     */
+    /** The local hostname. */
     private static String name;
 
-    /**
-     * The group registry, only lives on the node elected as the master.
-     */
+    /** The group registry, only lives on the node elected as the master. */
     static GroupRegistry registry;
 
     /**
@@ -77,79 +63,49 @@ public final class Group implements GroupProtocol {
      */
     private static Hashtable stubclasses;
 
-    /**
-     * My local ibis.
-     */
+    /** My local ibis. */
     static Ibis ibis;
 
-    /**
-     * My local Ibis identifier.
-     */
+    /** My local Ibis identifier. */
     private static IbisIdentifier localID;
 
-    /**
-     * Ibis registry, used for setting up stuff.
-     */
+    /** Ibis registry, used for setting up stuff. */
     private static Registry ibisRegistry;
     
-    /**
-     * Port type for ports used in GMI.
-     */
+    /** Port type for ports used in GMI. */
     private static PortType portType;
 
-    /**
-     * Port on which group messages are received.
-     */
+    /** Port on which group messages are received. */
     private static ReceivePort receivePort;
 
-    /**
-     * For receiving messages from the GMI master.
-     */
+    /** For receiving messages from the GMI master. */
     private static ReceivePort systemIn;
 
-    /**
-     * For sending messages to the GMI master.
-     */
+    /** For sending messages to the GMI master. */
     private static SendPort    systemOut;
 
-    /**
-     * ReceivePort identifiers, one for each node.
-     */
+    /** ReceivePort identifiers, one for each node. */
     private static ReceivePortIdentifier [] pool;
 
-    /**
-     * Currently allocated multicast send ports.
-     */
+    /** Currently allocated multicast send ports. */
     private static Hashtable multicastSendports;
 
-    /**
-     * Upcall handler.
-     */
+    /** Upcall handler. */
     private static GroupCallHandler groupCallHandler;
 
-    /**
-     * Skeletons available through group identification.
-     */
+    /** Skeletons available through group identification. */
     private static GroupSkeleton[] groups;
 
-    /**
-     * The current number of existing groups.
-     */
+    /** The current number of existing groups. */
     private static int groups_max;
 
-    /**
-     * Skeletons on this node.
-     */
+    /** Skeletons on this node. */
     private static Vector skeletons;
 
-    /**
-     * Stubs and stub identifications.
-     */
+    /** Stubs and stub identifications. */
     static GroupStub stubIDStack[] = new GroupStub[16];
 
-    /**
-     * The stub counter, used to allocate stubs.
-     */
+    /** The stub counter, used to allocate stubs. */
     static int stubCounter;
 
     /**
@@ -157,14 +113,10 @@ public final class Group implements GroupProtocol {
      */
     static private final class GroupStubData { 
 
-	/**
-	 * The group name.
-	 */
+	/** The group name. */
 	String groupName;	
 
-	/**
-	 * The name of the group interface for this group.
-	 */
+	/** The name of the group interface for this group. */
 	String typeName;	
 
 	/**
@@ -173,19 +125,13 @@ public final class Group implements GroupProtocol {
 	 */
 	Class stubClass;
 
-	/**
-	 * The group identification.
-	 */
+	/** The group identification. */
 	int groupID;
 
-	/**
-	 * The node identifications for all group members.
-	 */
+	/** The node identifications for all group members. */
 	int [] memberRanks; 
 
-	/**
-	 * The skeleton identifications for all group members.
-	 */
+	/** The skeleton identifications for all group members. */
 	int [] memberSkels; 
 
 	/**
