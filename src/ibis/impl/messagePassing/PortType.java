@@ -30,7 +30,7 @@ public class PortType implements ibis.ipl.PortType {
 	    serializationType = SERIALIZATION_NONE;
 	} else if (ser.equals("sun")) {
 	    serializationType = SERIALIZATION_SUN;
-	} else if (ser.equals("ibis")) {
+	} else if (ser.equals("manta")) {
 	    // For backwards compatibility ...
 	    serializationType = SERIALIZATION_IBIS;
 	} else if (ser.equals("ibis")) {

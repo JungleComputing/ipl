@@ -11,6 +11,8 @@ int ibmp_poll(JNIEnv *env);
 int ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len);
 jstring ibp_string_consume(JNIEnv *env, ibp_msg_p msg, int len);
 int ibp_string_push(JNIEnv *env, jstring s, pan_iovec_p iov);
+jbyteArray ibp_byte_array_consume(JNIEnv *env, ibp_msg_p msg, int len);
+int ibp_byte_array_push(JNIEnv *env, jbyteArray a, pan_iovec_p iov);
 
 void ibp_msg_clear(JNIEnv *env, ibp_msg_p msg);
 int ibp_msg_consume_left(ibp_msg_p msg);

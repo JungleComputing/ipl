@@ -19,10 +19,11 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 			    String name,
 			    String ibisId,
 			    int send_cpu,
+			    byte[] inetAddr,
 			    int send_port,
 			    int rcve_port)
 	    throws IbisIOException {
-	super(type, name, ibisId, send_cpu, send_port, rcve_port);
+	super(type, name, ibisId, send_cpu, inetAddr, send_port, rcve_port);
 // System.err.println("In SerializeShadowSendPort.<init>");
     }
 

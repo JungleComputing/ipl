@@ -15,12 +15,18 @@ final class ReceivePortIdentifier
     ibis.ipl.IbisIdentifier ibisIdentifier;
 
 
-    ReceivePortIdentifier(String name, String type, String ibisName, int cpu, int port) {
+    ReceivePortIdentifier(String name, String type, String ibisName, int cpu, byte[] inetAddr, int port) {
 	this.name = name;
 	this.type = type;
 	this.cpu = cpu;
 	this.port = port;
-	if (ibisName != null) ibisIdentifier = Ibis.myIbis.lookupIbis(ibisName, cpu);
+	if (ibisName != null) {
+	    try {
+		ibisIdentifier = Ibis.myIbis.lookupIbis(ibisName, cpu, inetAddr);
+	    } catch (ibis.ipl.IbisIOException e) {
+		System.err.println("lookup fails " + e);
+	    }
+	}
     }
 
 

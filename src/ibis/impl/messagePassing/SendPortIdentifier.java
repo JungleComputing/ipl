@@ -21,11 +21,11 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     }
 
     SendPortIdentifier(String name, String type, String ibisId,
-			    int cpu, int port) {
+		       int cpu, byte[] inetAddr, int port) throws ibis.ipl.IbisIOException {
 	this.name = name;
 	this.type = type;
 // System.err.println("SendPortIdentifier.<ctor>: Lookup ibisId " + ibisId);
-	this.ibisId = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupIbis(ibisId, cpu);
+	this.ibisId = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupIbis(ibisId, cpu, inetAddr);
 	this.cpu = cpu;
 	this.port = port;
     }

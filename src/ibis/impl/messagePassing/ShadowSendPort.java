@@ -22,6 +22,7 @@ class ShadowSendPort extends SendPort {
 					       String name,
 					       String ibisId,
 					       int send_cpu,
+					       byte[] inetAddr,
 					       int send_port,
 					       int rcve_port,
 					       int serializationType)
@@ -31,13 +32,13 @@ class ShadowSendPort extends SendPort {
 	}
 	switch (serializationType) {
 	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE:
-	    return new ShadowSendPort(type, name, ibisId, send_cpu, send_port, rcve_port);
+	    return new ShadowSendPort(type, name, ibisId, send_cpu, inetAddr, send_port, rcve_port);
 
 	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
-	    return new SerializeShadowSendPort(type, name, ibisId, send_cpu, send_port, rcve_port);
+	    return new SerializeShadowSendPort(type, name, ibisId, send_cpu, inetAddr, send_port, rcve_port);
 
 	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_IBIS:
-	    return new IbisShadowSendPort(type, name, ibisId, send_cpu, send_port, rcve_port);
+	    return new IbisShadowSendPort(type, name, ibisId, send_cpu, inetAddr, send_port, rcve_port);
 
 	default:
 	    throw new IbisIOException("No such serialization type " + serializationType);
@@ -50,13 +51,14 @@ class ShadowSendPort extends SendPort {
 		   String name,
 		   String ibisId,
 		   int send_cpu,
+		   byte[] inetAddr,
 		   int send_port,
 		   int rcve_port)
 	    throws IbisIOException {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("In ShadowSendPort.<init>");
 	}
-	ident = new SendPortIdentifier(name, type, ibisId, send_cpu, send_port);
+	ident = new SendPortIdentifier(name, type, ibisId, send_cpu, inetAddr, send_port);
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.bindSendPort(this, ident.cpu, ident.port);
 	receivePort = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupReceivePort(rcve_port);
 	if (! receivePort.type.name().equals(type)) {
@@ -133,6 +135,7 @@ class ShadowSendPort extends SendPort {
 				int my_port,
 				String type,
 				String ibisId,
+				byte[] inetAddr,
 				Syncer syncer,
 				int serializationType) throws IbisIOException {
 	throw new IbisIOException("ShadowSendPort cannot (dis)connect");

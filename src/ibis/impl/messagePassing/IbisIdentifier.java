@@ -7,11 +7,21 @@ import ibis.io.IbisSerializationInputStream;
 import java.net.InetAddress;
 import ibis.ipl.impl.generic.IbisIdentifierTable;
 
+import ibis.ipl.IbisIOException;
+
 // Make this final, make inlining possible
 final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Serializable, ibis.io.Serializable {
-	int cpu;
 
-	IbisIdentifier(String name, int cpu) {
+	private int cpu;
+	private transient byte[] serialForm;
+
+	IbisIdentifier(String name, int cpu) throws IbisIOException {
+	    this(name, cpu, null);
+	}
+
+	IbisIdentifier(String name, int cpu, byte[] inetAddr)
+		throws IbisIOException {
+	    if (inetAddr == null) {
 		try {
 			this.address = java.net.InetAddress.getLocalHost();
 		} catch (java.net.UnknownHostException e) {
@@ -19,8 +29,23 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Se
 			System.err.println("EEk: could not get my own IP address: " + e);
 			System.exit(1);
 		}
-		this.name = new String(name);
-		this.cpu  = cpu;
+
+	    } else {
+		SerializeInputBuffer addrBuffer = null;
+		java.net.InetAddress addr = null;
+		try {
+		    addrBuffer = new SerializeInputBuffer(inetAddr);
+		    addr = (java.net.InetAddress)addrBuffer.objIn.readObject();
+		    addrBuffer.objIn.close();
+		} catch (Exception e) {
+System.err.println("And the serialization throws " + e);
+		    throw new IbisIOException(e);
+		}
+		this.address = addr;
+	    }
+	    this.name = new String(name);
+	    this.cpu  = cpu;
+	    makeSerialForm();
 	}
 
 	public IbisIdentifier(IbisSerializationInputStream stream) throws ibis.ipl.IbisIOException {
@@ -52,6 +77,23 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Se
 			stream.writeInt(cpu);
 			stream.writeUTF(name);
 		}
+	}
+
+	private void makeSerialForm() throws IbisIOException {
+	    SerializeOutputBuffer addrBuffer = null;
+	    try {
+		addrBuffer = new SerializeOutputBuffer();
+		addrBuffer.objOut.writeObject(address);
+		addrBuffer.objOut.flush();
+		addrBuffer.objOut.close();
+	    } catch (java.io.IOException e) {
+		throw new IbisIOException(e);
+	    }
+	    serialForm = addrBuffer.getData();
+	}
+
+	byte[] getSerialForm() {
+	    return serialForm;
 	}
 
 	// Compare ranks here, much faster. This is method critical for Satin. --Rob

@@ -64,7 +64,8 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1lookup(
 
     IBP_VPRINTF(50, env, ("Send a lookup request to server %d, name %s\n",
 		ibmp_ns_server, (char *)iov[0].data));
-    ibp_mp_send_sync(env, ibmp_ns_server, ibp_ns_lookup_port, iov, 1,
+    ibp_mp_send_sync(env, ibmp_ns_server, ibp_ns_lookup_port,
+		     iov, sizeof(iov) / sizeof(iov[0]),
 		     proto, ibp_ns_lookup_proto_size);
 
     ibp_proto_clear(proto);
@@ -98,6 +99,7 @@ typedef struct ibp_ns_lookup_reply_hdr {
     int		name_length;
     int		type_length;
     int		ibis_length;
+    int		addr_length;
     jint	client;
 } ibp_ns_lookup_reply_hdr_t, *ibp_ns_lookup_reply_hdr_p;
 
@@ -110,7 +112,7 @@ ibp_ns_lookup_reply_hdr(void *proto)
 
 typedef struct LOOKUP_REPLY {
     void       *proto;
-    pan_iovec_t	iov[3];
+    pan_iovec_t	iov[4];
 } lookup_reply_t, *lookup_reply_p;
 
 
@@ -123,6 +125,7 @@ lookup_reply_clear(void *v)
     pan_free(r->iov[0].data);
     pan_free(r->iov[1].data);
     pan_free(r->iov[2].data);
+    pan_free(r->iov[3].data);
 
     pan_free(r);
 }
@@ -139,6 +142,7 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
 	jstring type,
 	jstring ibis_name,
 	jint cpu,
+	jbyteArray inetAddr,
 	jint port)
 {
     ibp_ns_lookup_reply_hdr_p hdr;
@@ -169,15 +173,22 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
 	hdr->ibis_length = ibp_string_push(env, ibis_name, &r->iov[2]);
 	c = pan_malloc(r->iov[2].len);
 	memcpy(c, r->iov[2].data, r->iov[2].len);
-	(*env)->ReleaseStringUTFChars(env, type, r->iov[2].data);
+	(*env)->ReleaseStringUTFChars(env, ibis_name, r->iov[2].data);
 	r->iov[2].data = c;
 
-	iov_len = 3;
+	hdr->addr_length = ibp_byte_array_push(env, inetAddr, &r->iov[3]);
+	c = pan_malloc(r->iov[3].len);
+	memcpy(c, r->iov[3].data, r->iov[3].len);
+	(*env)->ReleaseByteArrayElements(env, inetAddr, r->iov[3].data, JNI_ABORT);
+	r->iov[3].data = c;
+
+	iov_len = 4;
 
     } else {
 	r->iov[0].data = NULL;
 	r->iov[1].data = NULL;
 	r->iov[2].data = NULL;
+	r->iov[3].data = NULL;
 	iov_len = 0;
     }
 
@@ -186,7 +197,8 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
     hdr->port = port;
     hdr->client = client;
 
-    ibp_mp_send_async(env, (int)tag, ibp_ns_lookup_reply_port, r->iov, iov_len,
+    ibp_mp_send_async(env, (int)tag, ibp_ns_lookup_reply_port,
+		      r->iov, iov_len,
 		      r->proto, ibp_ns_lookup_reply_proto_size,
 		      lookup_reply_clear, r);
 }
@@ -196,21 +208,19 @@ static int
 ibp_ns_lookup_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     ibp_ns_lookup_reply_hdr_p hdr = ibp_ns_lookup_reply_hdr(proto);
-    jstring	name;
-    jstring	type;
-    jstring	ibis_name;
     jobject	id;
     jobject	client = (jobject)hdr->client;
 
     if (hdr->ret == PORT_KNOWN) {
-	name = ibp_string_consume(env, msg, hdr->name_length);
-	type = ibp_string_consume(env, msg, hdr->type_length);
-	ibis_name = ibp_string_consume(env, msg, hdr->ibis_length);
+	jstring	name = ibp_string_consume(env, msg, hdr->name_length);
+	jstring	type = ibp_string_consume(env, msg, hdr->type_length);
+	jstring	ibis_name = ibp_string_consume(env, msg, hdr->ibis_length);
+	jbyteArray inetAddr = ibp_byte_array_consume(env, msg, hdr->addr_length);
 
 	id = ibmp_new_ReceivePortIdentifier(env, name, type, ibis_name,
-					    hdr->cpu, hdr->port);
+					    hdr->cpu, inetAddr, hdr->port);
     } else {
-	id = ibmp_new_ReceivePortIdentifier(env, NULL, NULL, NULL, -1, -1);
+	id = ibmp_new_ReceivePortIdentifier(env, NULL, NULL, NULL, -1, NULL, -1);
     }
 
     (*env)->CallVoidMethod(env,

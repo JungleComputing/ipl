@@ -49,7 +49,8 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1unbind(
 
     hdr->name_length = ibp_string_push(env, name, &iov[0]);
 
-    ibp_mp_send_sync(env, ibmp_ns_server, ibp_ns_unbind_port, iov, 1,
+    ibp_mp_send_sync(env, ibmp_ns_server, ibp_ns_unbind_port,
+		     iov, sizeof(iov) / sizeof(iov[0]),
 		     proto, ibp_ns_unbind_proto_size);
 
     ibp_proto_clear(proto);

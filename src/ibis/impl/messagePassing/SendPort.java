@@ -125,8 +125,9 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 		System.err.println(Thread.currentThread() + "Now do native connect call to " + rid + "; me = " + ident);
 	    }
+	    IbisIdentifier ibisId = (IbisIdentifier)Ibis.myIbis.identifier();
 	    outConn.ibmp_connect(rid.cpu, rid.port, ident.port, ident.type,
-				 ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name(),
+				 ibisId.name(), ibisId.getSerialForm(),
 				 syncer[my_split], type.serializationType);
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 		System.err.println(Thread.currentThread() + "Done native connect call to " + rid + "; me = " + ident);

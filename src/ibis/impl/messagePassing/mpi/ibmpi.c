@@ -162,6 +162,29 @@ ibp_string_push(JNIEnv *env, jstring s, pan_iovec_p iov)
 }
 
 
+jbyteArray
+ibp_byte_array_consume(JNIEnv *env, ibp_msg_p msg, int len)
+{
+    jbyteArray	a = (*env)->NewByteArray(env, len);
+    jbyte	buf[len];
+
+    ibp_consume(env, msg, buf, len);
+    (*env)->SetByteArrayRegion(env, a, 0, len, buf);
+
+    return a;
+}
+
+
+int
+ibp_byte_array_push(JNIEnv *env, jbyteArray a, pan_iovec_p iov)
+{
+    iov->len  = (int)(*env)->GetArrayLength(env, a);
+    iov->data = (*env)->GetByteArrayElements(env, a, NULL);
+
+    return iov->len;
+}
+
+
 void
 ibp_intr_enable(JNIEnv *env)
 {

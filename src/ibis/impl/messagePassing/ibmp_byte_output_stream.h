@@ -19,6 +19,8 @@ struct IBP_BYTE_STREAM_HDR {
 #define ibmp_byte_stream_hdr(proto) \
     (ibmp_byte_stream_hdr_p)((char *)proto + ibmp_byte_stream_proto_start)
 
+void ibmp_byte_output_stream_report(JNIEnv *env);
+
 void ibmp_byte_output_stream_init(JNIEnv *env);
 void ibmp_byte_output_stream_end(JNIEnv *env);
 

@@ -5,8 +5,9 @@
 
 
 jboolean ibmp_send_port_new(JNIEnv *env, jstring type, jstring name,
-			   jstring ibisId, jint cpu, jint port,
-			   jint receiver_port, jint serializationType);
+			   jstring ibisId, jint cpu, jbyteArray inetAddr,
+			   jint port, jint receiver_port,
+			   jint serializationType);
 void ibmp_send_port_disconnect(JNIEnv *env, jint sender, jint port,
 			      jint receiver_port, jint messageCount);
 

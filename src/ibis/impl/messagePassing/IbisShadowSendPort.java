@@ -13,10 +13,11 @@ final class IbisShadowSendPort extends ShadowSendPort {
 		        String name,
 		        String ibisId,
 		        int send_cpu,
+			byte[] inetAddr,
 		        int send_port,
 		        int rcve_port)
 	    throws IbisIOException {
-	super(type, name, ibisId, send_cpu, send_port, rcve_port);
+	super(type, name, ibisId, send_cpu, inetAddr, send_port, rcve_port);
 // System.err.println("In IbisShadowSendPort.<init>");
 	obj_in = new IbisSerializationInputStream(new ArrayInputStream(in));
     }
@@ -36,7 +37,7 @@ final class IbisShadowSendPort extends ShadowSendPort {
 	} else {
 	    msg = new IbisReadMessage(this, receivePort);
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		System.err.println("Create a -manta- ReadMessage " + msg); 
+		System.err.println("Create an -ibis-serialization- ReadMessage " + msg); 
 	    }
 	}
 

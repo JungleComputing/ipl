@@ -58,8 +58,9 @@ final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPo
 		    System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier() " + ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier());
 		    System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name() " + ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name());
 		}
+		IbisIdentifier ibisId = (IbisIdentifier)Ibis.myIbis.identifier();
 		outConn.ibmp_connect(r.cpu, r.port, ident.port, ident.type,
-				     ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name(),
+				     ibisId.name(), ibisId.getSerialForm(),
 				     i == my_split ? syncer[i] : null,
 				     type.serializationType);
 		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {

@@ -92,7 +92,9 @@ final class ReceivePortNameServerClient
 		    System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
 		    Thread.dumpStack();
 		}
-		ns_bind(name, id.type, id.ibis().name(), id.cpu, id.port);
+
+		IbisIdentifier ibisId = (IbisIdentifier)id.ibis();
+		ns_bind(name, id.type, ibisId.name(), id.cpu, ibisId.getSerialForm(), id.port);
 // System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
 
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
@@ -125,6 +127,7 @@ final class ReceivePortNameServerClient
 			String type,
 			String ibis_name,
 			int port_cpu,
+			byte[] inetAddr,
 			int port_port);
 
     Bind bind = new Bind();

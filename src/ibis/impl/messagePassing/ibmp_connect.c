@@ -79,6 +79,7 @@ struct IBP_CONNECT_HDR {
     jint	send_port;
     int		type_length;
     int		ibisId_length;
+    int		addr_length;
     jobject	syncer;
     jint	serializationType;
 };
@@ -99,12 +100,13 @@ Java_ibis_ipl_impl_messagePassing_OutputConnection_ibmp_1connect(
 	jint send_port,
 	jstring type,
 	jstring ibisId,
+	jbyteArray inetAddr,
 	jobject syncer,
 	jint serializationType)
 {
     void       *proto;
     ibmp_connect_hdr_p hdr;
-    pan_iovec_t iov[2];
+    pan_iovec_t iov[3];
 
     proto = ibp_proto_create(ibmp_connect_proto_size);
     hdr = ibmp_connect_hdr(proto);
@@ -113,18 +115,22 @@ Java_ibis_ipl_impl_messagePassing_OutputConnection_ibmp_1connect(
     hdr->rcve_port = rcve_port;
     hdr->type_length = ibp_string_push(env, type, &iov[0]);
     hdr->ibisId_length = ibp_string_push(env, ibisId, &iov[1]);
+    hdr->addr_length = ibp_byte_array_push(env, inetAddr, &iov[2]);
     if (syncer != NULL) {
 	syncer = (*env)->NewGlobalRef(env, syncer);
     }
     hdr->syncer = syncer;
     hdr->serializationType = serializationType;
 
-    ibp_mp_send_sync(env, (int)rcve_cpu, ibmp_connect_port, iov, 2,
+    ibp_mp_send_sync(env, (int)rcve_cpu, ibmp_connect_port,
+		     iov, sizeof(iov) / sizeof(iov[0]),
 		     proto, ibmp_connect_proto_size);
 
     ibp_proto_clear(proto);
 
     (*env)->ReleaseStringUTFChars(env, type, iov[0].data);
+    (*env)->ReleaseStringUTFChars(env, ibisId, iov[1].data);
+    (*env)->ReleaseByteArrayElements(env, inetAddr, iov[2].data, JNI_ABORT);
 }
 
 
@@ -135,14 +141,16 @@ ibmp_connect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     jint sender = (jint)ibp_msg_sender(msg);
     jstring type = ibp_string_consume(env, msg, hdr->type_length);
     jstring ibisId = ibp_string_consume(env, msg, hdr->ibisId_length);
+    jbyteArray inetAddr = ibp_byte_array_consume(env, msg, hdr->addr_length);
     jboolean accept;
 
     ibmp_lock_check_owned(env);
     IBP_VPRINTF(100, env, ("ibp MP port %d start upcall connect_handle() cpu %d port %d local port %d\n",
 		    ibmp_connect_port, (int)sender,
 		    (int)hdr->send_port, (int)hdr->rcve_port));
-    accept = ibmp_send_port_new(env, type, NULL, ibisId, sender, hdr->send_port,
-				hdr->rcve_port, hdr->serializationType);
+    accept = ibmp_send_port_new(env, type, NULL, ibisId, sender, inetAddr,
+				hdr->send_port, hdr->rcve_port,
+				hdr->serializationType);
 
     if (hdr->syncer != NULL) {
 	IBP_VPRINTF(100, env, ("ibp MP port %d send connect_reply()\n",

@@ -136,17 +136,18 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    native void send_join(int to, String ident_name);
+    native void send_join(int to, String ident_name, byte[] inetAddr);
     native void send_leave(int to, String ident_name);
 
     /* Called from native */
-    void join_upcall(String ident_name, int cpu) {
+    void join_upcall(String ident_name, int cpu, byte[] inetAddr) throws IbisIOException {
 	if (DEBUG) {
-	    System.err.println("Receive join message " + ident_name + "; now world = " + world);
+	    System.err.println("Receive join message " + ident_name + "; now world = " + world + "; inetAddr[" + inetAddr.length + "] = " + inetAddr);
 	}
 	// checkLockOwned();
 //manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
-	IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
+
+	IbisIdentifier id = new IbisIdentifier(ident_name, cpu, inetAddr);
 	ibisNameService.add(id);
 	world.join(cpu, id);
     }
@@ -154,9 +155,13 @@ public class Ibis extends ibis.ipl.Ibis {
     /* Called from native */
     void leave_upcall(String ident_name, int cpu) {
 	// checkLockOwned();
-	IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
-	ibisNameService.remove(id);
-	world.leave(cpu, id);
+	try {
+	    IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
+	    ibisNameService.remove(id);
+	    world.leave(cpu, id);
+	} catch (IbisIOException e) {
+	    // just ignore the leave call, then
+	}
     }
 
 
@@ -229,12 +234,13 @@ public class Ibis extends ibis.ipl.Ibis {
 	    if (DEBUG) {
 		System.err.println("myCpu " + myCpu + " nrCpus " + nrCpus + " world " + world);
 	    }
+
 	    for (int i = 0; i < nrCpus; i++) {
 		if (i != myCpu) {
 		    if (DEBUG) {
 			System.err.println("Send join message to " + i);
 		    }
-		    send_join(i, ident.name());
+		    send_join(i, ident.name(), ident.getSerialForm());
 		}
 	    }
 
@@ -325,7 +331,8 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    IbisIdentifier lookupIbis(String name, int cpu) {
+    IbisIdentifier lookupIbis(String name, int cpu, byte[] inetAddr)
+	    throws IbisIOException {
 // System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
 // manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
 // System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
@@ -341,11 +348,21 @@ public class Ibis extends ibis.ipl.Ibis {
 	    }
 	}
 
-	IbisIdentifier id = new IbisIdentifier(name, cpu);
+	if (inetAddr == null) {
+	    throw new IbisIOException("Cannot look up Ibis ID that is not registered");
+	}
+
+	IbisIdentifier id = new IbisIdentifier(name, cpu, inetAddr);
 	ibisNameService.add(id);
 
 	return id;
     }
+
+    IbisIdentifier lookupIbis(String name, int cpu)
+	    throws IbisIOException {
+	return lookupIbis(name, cpu, null);
+    }
+
 
     public ibis.ipl.PortType getPortType(String name) {
 	return (ibis.ipl.PortType)portTypeList.get(name);
