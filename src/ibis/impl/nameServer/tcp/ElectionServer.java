@@ -62,8 +62,13 @@ class ElectionServer extends Thread implements Protocol {
 			elections.put(election, candidate);
 			out.writeObject(candidate);
 		} else if (temp.equals(formerRuler)) {
-			elections.put(election, candidate);
-			out.writeObject(candidate);		
+			if (candidate.equals(formerRuler)) {
+			    out.writeObject(null);
+			}
+			else {
+			    elections.put(election, candidate);
+			    out.writeObject(candidate);		
+			}
 		} else { 			
 			out.writeObject(temp);
 		}

@@ -114,8 +114,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 		Enumeration names = ports.keys();
 		while (names.hasMoreElements()) {
 		    String name = (String) names.nextElement();
-		    //if(name.matches(pattern)) {
-		    if(name.startsWith(pattern)) {
+		    if(name.matches(pattern)) {
 			goodNames.add(name);
 		    }
 		}
