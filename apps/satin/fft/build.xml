@@ -1,0 +1,19 @@
+<project
+    name="ibis.apps.satin.fft"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       location="build"/>
+
+    <property name="satinc-flags" value=""/>
+    <property name="satin-main-class" value="FFT"/>
+
+    <property name="test-par-run" value="FFT 524288"/>
+    <property name="test-seq-run" value="FFT 524288"/>
+
+    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+
+</project>
+
+
