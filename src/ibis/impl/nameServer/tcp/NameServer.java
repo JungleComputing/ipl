@@ -471,14 +471,18 @@ public class NameServer implements Protocol {
 		
 			p.toBeDeleted.add(id);
 			
-			System.out.println("DELETE: pool " + key);
+			if (VERBOSE) {
+			    System.out.println("DELETE: pool " + key);
+			}
 
 			for (int i=0;i<p.pool.size();i++) { 
 				IbisInfo temp = (IbisInfo) p.pool.get(i);
 				forwardDelete(temp, id);
 			}
 			
-			System.err.println("all deletes forwarded");
+			if (VERBOSE) {
+			    System.out.println("all deletes forwarded");
+			}
 
 		} else {
 		    System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " was requested to be deleted");

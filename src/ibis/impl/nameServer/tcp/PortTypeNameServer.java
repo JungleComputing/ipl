@@ -109,8 +109,8 @@ class PortTypeNameServer extends Thread implements Protocol {
 				out.writeByte(PORTTYPE_ACCEPTED);
 			} else { 
 				out.writeByte(PORTTYPE_REFUSED);
-				System.err.println("PortTypeNameServer: PortType " + name + " refused because of incompatible properties\n" + 
-						   temp + "----\n" + p);				
+				// System.err.println("PortTypeNameServer: PortType " + name + " refused because of incompatible properties\n" + 
+				//		   temp + "----\n" + p);				
 			}
 		}
 	} 
