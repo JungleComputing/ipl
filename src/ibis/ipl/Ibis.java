@@ -148,6 +148,7 @@ public abstract class Ibis {
 						e2);
 	}
 	impl.name = name;
+	impl.implName = implName;
 	impl.resizeHandler = resizeHandler;
 
 	try {
