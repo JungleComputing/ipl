@@ -74,9 +74,9 @@
 			outtype="shared"
 			runtime="dynamic"
 			incremental="true"
-			warnings="severe"
 			name="${c.compiler}"
 			debug="${native.debug.value}">
+			<!-- warnings="severe" -->
 		    <libset dir="${gm.lib.dir}"    libs="gm"/>
 		    <includepath>
 			<pathelement path="${local.includes}"/>

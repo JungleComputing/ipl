@@ -5,7 +5,25 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+
+#ifdef __BORLANDC__
+#pragma warn - 8004
+#pragma warn - 8008
+#pragma warn - 8027
+#pragma warn - 8066
+#pragma warn - 8071
+#pragma warn - 8080
+#endif
+
 #include <gm.h>
+
+#ifdef __BORLANDC__
+#pragma warn . 8008
+// #pragma warn . 8027
+#pragma warn . 8066
+#pragma warn . 8071
+// #pragma warn . 8080
+#endif
 
 #include "ibis_ipl_impl_net_gm_Driver.h"
 #include "ibis_ipl_impl_net_gm_GmInput.h"
@@ -32,7 +50,7 @@
 #ifdef __GNUC__
 #define __trace__(s, p...)
 #else
-#define __trace(s)
+#define __trace__(s)
 #endif
 #endif
 
