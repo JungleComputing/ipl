@@ -107,7 +107,7 @@ public class NetPoller extends NetInput {
 				    NetInput ni)
 		throws NetIbisException {
 
-		if (0 && singleton != null) {
+		if (singleton != null) {
 		    System.err.println("Race between NetPoller.connect and poll(block = true). Repair by having one lock :-(");
 		}
 
