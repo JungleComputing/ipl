@@ -138,7 +138,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
      */
     private Result breedNextGeneration( Random rng, SATProblem pl[], Genes genes, int bestD, Genes maxGenes, Genes minGenes )
     {
-        float step = 0.2f;
+        float step = 0.15f;
         int res[] = new int[GENERATION_SIZE];
         Genes g[] = new Genes[GENERATION_SIZE];
         int slot = 0;
@@ -154,7 +154,8 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
         prevBestGenes = null;
         for( int i=slot; i<GENERATION_SIZE; i++ ){
             // Fill all remaining slots with mutations
-            g[i] = mutateGenes( rng, genes, step, maxGenes, minGenes );
+            float s1 = (i<GENERATION_SIZE/2)?step:2*step;
+            g[i] = mutateGenes( rng, genes, s1, maxGenes, minGenes );
             //System.err.println( "Genes = " + g[i] );
             res[i] = solve( pl, g[i] );
         }
@@ -163,14 +164,16 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
         // Now evaluate the results.
         for( int i=0; i<GENERATION_SIZE; i++ ){
             int nextD = res[i];
-            Genes nextGenes = g[i];
 
             if( nextD>=0 ){
                 System.err.print( nextD + " " );
                 if( nextD<bestD ){
                     bestD = nextD;
                     prevBestGenes = genes;
-                    genes = nextGenes;
+                    genes = g[i];
+                }
+                else if( nextD == bestD ){
+                    genes = g[i];
                 }
             }
             else {

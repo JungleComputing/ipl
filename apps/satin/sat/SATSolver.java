@@ -15,9 +15,10 @@
 import java.io.File;
 
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
-    private static final boolean traceSolver = true;
+    private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
+    private static final boolean traceRestarts = false;
     private static int label = 0;
 
     /**
@@ -84,7 +85,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         }
         catch( SATRestartException x ){
 	    if( x.level<level ){
-		//System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                if( traceRestarts ){
+                    System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                }
 		throw x;
 	    }
         }
@@ -172,7 +175,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             }
             catch( SATRestartException x ){
                 if( x.level<level ){
-                    //System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                    if( traceRestarts ){
+                        System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                    }
                     throw x;
                 }
                 // We have an untried value, continue with that.
@@ -193,7 +198,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             }
             catch( SATRestartException x ){
                 if( x.level<level ){
-                    //System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                    if( traceRestarts ){
+                        System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
+                    }
                     abort();
                     throw x;
                 }
@@ -272,6 +279,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    s.abort();
 	}
         catch( SATRestartException x ){
+            if( traceRestarts ){
+                System.err.println( "RestartException reaches top level. Waiting for the termination of all jobs." );
+            }
             s.sync();
         }
         catch( SATException x ){
