@@ -29,7 +29,7 @@ class GlobalData extends UnicastRemoteObject implements i_GlobalData {
 		nodes     = new i_SOR[total_num];
 		num_nodes = 0;
 		this.synchronous = synchronous;
-// System.err.println(this + ": in ctor");
+System.err.println(this + ": in ctor");
 // Thread.dumpStack();
 	}
 
@@ -190,7 +190,7 @@ public synchronized void sync() throws RemoteException {
 }
 	// used for visualization
 	public void setRawDataSize(int width, int height) throws RemoteException {
-// System.err.println(this + ": setRawDataSize " + width + " x " + height);
+System.err.println(this + ": setRawDataSize " + width + " x " + height);
 		this.width = width;
 		this.height = height;
 		rawData = new float[height][width];
@@ -198,7 +198,7 @@ public synchronized void sync() throws RemoteException {
 
 	public synchronized float[][] getRawData() throws RemoteException {
 		// never send the same data twice...
-// System.err.println(this + ": attempt to collect RawData");
+System.err.println(this + ": attempt to collect RawData");
 		while(!newDataAvailable) {
 			try {
 				wait();
@@ -209,7 +209,7 @@ public synchronized void sync() throws RemoteException {
 
 		newDataAvailable = false;
 		notifyAll();
-// System.err.println(this + ": collected RawData");
+System.err.println(this + ": collected RawData");
 
 		return rawData;
 	}
@@ -264,6 +264,6 @@ public synchronized void sync() throws RemoteException {
 
 		newDataAvailable = true;
 		notifyAll();
-// System.err.println(this + ": deposited matrix[" + height + "][" + width + "]");
+System.err.println(this + ": deposited matrix[" + height + "][" + width + "]");
 	}
 }
