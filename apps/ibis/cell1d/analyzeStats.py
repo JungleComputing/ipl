@@ -1,15 +1,6 @@
 import sys
 import string
 
-population = [[ ]]
-members = [[ ]]
-Tcomm = [[ ]]
-Tcomp = [[ ]]
-Tadmin = [[ ]]
-
-knownMembers = 0
-knownGenerations = -1
-
 def growArray( A, n, v ):
     while len( A )<=n:
         A.append( v )
@@ -17,14 +8,27 @@ def growArray( A, n, v ):
 
 def growSubArrays( A, n ):
     for i in range( len( A ) ):
-        A[i] = growArray( A[i], n, 0 )
+        A[i] = growArray( A[i], n, -1  )
     return A
 
 def growMembers( A, n, gen ):
-    return growArray( A, n, (gen+1)*[0] )
+    while len( A )<=n:
+        A.append( (gen+1)*[-n] )
+    return A
+
+population = []
+members = []
+sentLeft = []
+sentRight = []
+Tcomm = []
+Tcomp = []
+Tadmin = []
+
+knownMembers = 0
+knownGenerations = -1
 
 def registerLog( arg ):
-    global population, members, Tcomm, Tcomp, Tadmin
+    global population, members, sentLeft, sentRight, Tcomm, Tcomp, Tadmin
     global knownMembers, knownGenerations
 
     f = open( arg )
@@ -34,27 +38,33 @@ def registerLog( arg ):
             break
         words = l.split()
         if len( words ) != 0 and words[0] == 'STATS':
-            [key,SP,gen,mem,pop,tp,tc,ta] = words
+            [key,SP,gen,mem,pop,sl,sr,tp,tc,ta] = words
             g = int( gen )
             P = int( SP )
-            if P>=knownMembers:
-                knownMembers = P+1
-                population = growMembers( population, knownMembers, knownGenerations )
-                members = growMembers( members, knownMembers, knownGenerations )
-                Tcomm = growMembers( Tcomm, knownMembers, knownGenerations )
-                Tcomp = growMembers( Tcomp, knownMembers, knownGenerations )
-                Tadmin = growMembers( Tadmin, knownMembers, knownGenerations )
             if g>knownGenerations:
                 knownGenerations = g
                 population = growSubArrays( population, g )
                 members = growSubArrays( members, g )
+                sentLeft = growSubArrays( sentLeft, g )
+                sentRight = growSubArrays( sentRight, g )
                 Tcomm = growSubArrays( Tcomm, g )
                 Tcomp = growSubArrays( Tcomp, g )
                 Tadmin = growSubArrays( Tadmin, g )
+            if P>=knownMembers:
+                knownMembers = P+1
+                population = growMembers( population, knownMembers, knownGenerations )
+                members = growMembers( members, knownMembers, knownGenerations )
+                sentLeft = growMembers( sentLeft, knownMembers, knownGenerations )
+                sentRight = growMembers( sentRight, knownMembers, knownGenerations )
+                Tcomm = growMembers( Tcomm, knownMembers, knownGenerations )
+                Tcomp = growMembers( Tcomp, knownMembers, knownGenerations )
+                Tadmin = growMembers( Tadmin, knownMembers, knownGenerations )
             population[P][g] = int( pop )
             members[P][g] = int( mem )
-            Tcomm[P][g] = int( tc )
+            sentLeft[P][g] = int( sl )
+            sentRight[P][g] = int( sr )
             Tcomp[P][g] = int( tp )
+            Tcomm[P][g] = int( tc )
             Tadmin[P][g] = int( ta )
 
 def dumpArray( A ):
@@ -72,6 +82,12 @@ def main():
     print 
     print "members"
     dumpArray( members )
+    print
+    print "sentLeft"
+    dumpArray( sentLeft )
+    print
+    print "sentRight"
+    dumpArray( sentRight )
     print 
     print "Tcomm"
     dumpArray( Tcomm )

@@ -14,7 +14,7 @@ interface OpenConfig {
     static final boolean showProgress = false;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = false;
-    static final boolean traceLoadBalancing = false;
+    static final boolean traceLoadBalancing = true;
     static final int DEFAULTBOARDSIZE = 4000;
     static final int GENERATIONS = 30;
     static final int SHOWNBOARDWIDTH = 60;
@@ -139,11 +139,14 @@ class OpenCell1D implements OpenConfig {
     static int aimFirstNoColumn;
     static int knownMembers = 0;
     static RszHandler rszHandler = new RszHandler();
+    static final int MinLoad = 2;
 
     // Arrays to record statistical information for each generation. Can be
     // null if we're not interested.
     static int population[] = null;
     static int members[] = null;
+    static int sentLeft[] = null;
+    static int sentRight[] = null;
     static long computationTime[] = null;
     static long communicationTime[] = null;
     static long administrationTime[] = null;
@@ -326,6 +329,9 @@ class OpenCell1D implements OpenConfig {
         else {
             sendCount = 0;
         }
+        if( sentLeft != null ){
+            sentLeft[generation] = sendCount;
+        }
         if( sendCount>0 ){
             if( traceLoadBalancing ){
                 System.out.println( "P" + me + ":" + generation + ": sending " + sendCount + " columns to P" + (me+1) );
@@ -413,6 +419,9 @@ class OpenCell1D implements OpenConfig {
         else {
             sendCount = 0;
         }
+        if( sentRight != null ){
+            sentRight[generation] = sendCount;
+        }
         if( sendCount>0 ){
             rightNeighbourIdle = false;
 
@@ -452,6 +461,7 @@ class OpenCell1D implements OpenConfig {
         // ... and always send our first column as border to the neighbour.
         if( p.firstColumn<p.firstNoColumn ){
             int ix = p.firstNoColumn-1;
+
             m.writeInt( ix );
             if( traceCommunication ){
                 System.out.println( "P" + me + ":" + generation + ": sending border column " + ix + " to P" + (me+1) );
@@ -682,11 +692,11 @@ class OpenCell1D implements OpenConfig {
 
             // Take into account that each node should have at least
             // two columns.
-            if( aimFirstColumn<2*me ){
-                aimFirstColumn = 2*me;
+            if( aimFirstColumn<MinLoad*me ){
+                aimFirstColumn = MinLoad*me;
             }
-            if( aimFirstNoColumn<aimFirstColumn+2 ){
-                aimFirstNoColumn = aimFirstColumn+2;
+            if( aimFirstNoColumn<aimFirstColumn+MinLoad ){
+                aimFirstNoColumn = aimFirstColumn+MinLoad;
             }
             if( traceLoadBalancing ){
                 System.out.println( "P" + me + ":" + generation + ": there are now " + members + " nodes in the computation (was " + knownMembers + ")" );
@@ -728,6 +738,8 @@ class OpenCell1D implements OpenConfig {
         if( collectStatistics ){
             population = new int[count];
             members = new int[count];
+            sentLeft = new int[count+1];
+            sentRight = new int[count+1];
             computationTime = new long[count];
             communicationTime = new long[count];
             administrationTime = new long[count];
@@ -887,7 +899,7 @@ class OpenCell1D implements OpenConfig {
             if( population != null ){
                 // We blindly assume all statistics arrays exist.
                 for( int gen=0; gen<count; gen++ ){
-                    System.out.println( "STATS " + me + " " + gen + " " + members[gen] + " " + population[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] );
+                    System.out.println( "STATS " + me + " " + gen + " " + members[gen] + " " + population[gen] + " " + sentLeft[gen] + " " + sentRight[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] );
                 }
             }
 
