@@ -576,7 +576,6 @@ public class SATContext implements java.io.Serializable {
             return bestvar;
         }
         else {
-            // For the moment we return the variable that is used the most.
             int bestvar = -1;
             float bestinfo = -1;
             int bestmaxcount = 0;
