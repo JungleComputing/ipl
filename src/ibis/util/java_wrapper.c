@@ -76,10 +76,13 @@ int main(int argc, char *argv[])
 		    wrapper, cpu_affinity);
 	}
     }
-    if (sched_setaffinity(0, len, &cpu_affinity) < 0) {
-	fprintf(stderr, "%s: sched_setaffinity fails",
+    if (sched_setaffinity(0,
+#if ! defined __cpu_set_t_defined
+			  len,
+#endif
+			  &cpu_affinity) < 0) {
+	fprintf(stderr, "%s: sched_setaffinity fails, continue with default affinity\n",
 		wrapper);
-//	exit(0);
     }
 #endif
 
