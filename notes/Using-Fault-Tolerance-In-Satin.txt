@@ -1,0 +1,134 @@
+
+ Using Fault Tolerance in Satin
+ ------------------------------
+ 
+ Gosia WRZESINSKA
+ 
+ Fault tolerance in Satin is implemented by recomputing jobs lost as a
+ result of processor crashes. To improve the performance of the
+ algorithm, we use Global Result Table in which we store results of
+ so-called "orphan" jobs, which otherwise would have to be discarded.
+ The results of orphan jobs are reused while recomputing jobs lost in
+ crashes. 
+
+ Fault tolerance in Satin comes in many flavours:
+
+ 1. The job results in the Global Result Table can be identified either
+ by job parameters or job identifiers (integer numbers). Using job
+ identifiers is benefitial for applications with large job parameters.
+ However, using job identifiers is only possible, when the maximal
+ branching factor of the Satin execution tree can be determined.
+ 
+ 2. The Global Result Table can be either replicated or distributed.
+ With replicated table, each processor has an identical copy of the
+ table. Storing a job result in the table means broadcasting this result
+ to all processors. For applications with large job results (e.g.
+ Raytracer) this is inefficient, and using distributed table is
+ recommended. With distributed table, a job result is stored only in the
+ local replica of the table and a _pointer_ (i.e. processor ID) is
+ broadcast to other processors. 
+ 
+ 3. There are two approaches to storing orphan jobs in the Global Result
+ Table. In the first approach ("with aborts"), we store only those parts
+ of the orphan jobs that are finished when a crash is detected. The rest
+ is aborted. In the second approach ("without aborts"), when a crash is
+ detected, we store a special "lock" entry for each unfinished, _whole_
+ orphan job (most of them are unfinished, for finished ones we simply
+ store the results). When the job is finished, we replace the lock entry
+ with the job result. At the moment, the "with aborts" version performs
+ better. The "withouts aborts" version, although it saves more work,
+ influences load balancing which results in worse performance. However,
+ it does much fewer broadcasts (about 20 times).
+ 
+ 4. For comparison purposes, we also implemented a "naive" version of
+ fault tolerance, which recomputes jobs lost in a crash, but does not
+ use the Global Result Table and simply discards orphan jobs.
+ 
+ 
+ How to use fault tolerance:
+ 
+ STEP 1 ----------------------------------------------------------------- 
+ enable fault tolerance
+
+ 1A ---------------------------
+ in ibis.satin.impl.Config.java set
+ 
+	FAULT_TOLERANCE = true;
+	
+ and recompile Satin (go to main ibis directory ant type ./ant)
+
+ 1B ----------------------------    	 
+ in build.xml in the application directory set -fault-tolerance as one of 
+ the Satinc flags: add the following line to build.xml
+ 
+	<property name="satinc-flags" value="-fault-tolerance"/>
+
+ or combine it with other Satinc flags, for example:
+
+	<property name="satinc-flags" value="-no-aborts -fault-tolerance"/>
+	
+ and recompile the application (type ant in the application directory)
+
+ STEP 2 ------------------------------------------------------------------
+ chose the flavour
+ 
+ 2A ----------------------------
+ to use job identifiers instead of job paremeters add
+ 
+	-satin-branching-factor <n>
+	
+ to the appliation command line. n is the branching factor for the
+ application. Here are branching factors for our applications:
+
+ Adaptive Integration (adapint): 2
+ Barnes Hut (barnes_inline): 8 
+ Set Cover (cover): 2
+ Fibonacci (fib, fib_threshold): 2
+ Ida* (ida): 4
+ Knapsack (knapsack): 2
+ Matrix Multiplication (mmult): 8
+ N over K (noverk): 2
+ N Queens (nqueens): the same as problem size
+ Prime Factorization (primfac): 2
+ Raytracer (raytracer): 4
+ SAT Solver (sat): 2 (DPLLSolver)
+ Travelling Salesman Problem (tsp): the same as problem size
+ 
+ 2B ----------------------------
+ to use replicated Global Result Table, set
+    
+	GLOBAL_RESULT_TABLE_REPLICATED = true;
+    
+ in ibis.satin.impl.Config.java
+ 
+ to use distributed Global Result Table, set
+    
+	GLOBAL_RESULT_TABLE_REPLICATED = false;
+	
+ 2C ----------------------------
+ to use the "with aborts" version, set
+ 
+	FT_WITHOUT_ABORTS = false;
+
+ in ibis.satin.impl.Config.java
+ 
+ to use the "without aborts" version, set
+ 
+	FT_WITHOUT_ABORTS = true;
+ 
+ 2D -----------------------------
+ to use the naive version, set
+ 
+	FT_NAIVE = true;
+	FT_WITHOUT_ABORTS = false;
+	
+ in ibis.satin.impl.Config.java
+ 
+ 
+ after choosing the flavour, recompile Satin
+ 
+ 
+ STEP 3 -----------------------------------------------------------------
+ run the application (see Running-Satin-Applications.txt) and try to kill
+ some nodes, for example with prkill
+ 
