@@ -1422,14 +1422,14 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    il.insert(pos, new GOTO(catchTarget));
 	}
 
-	jumpTargets[catches.size()] = pos;
+	InstructionHandle t = il.insert(pos, new ALOAD(exceptionPos));
+	il.insert(pos, new ATHROW());
+
+	jumpTargets[catches.size()] = t;
 
 	for (int i=0; i<catches.size(); i++) {
 	    jumps[i].setTarget(jumpTargets[i+1]);
 	}
-
-	il.insert(pos, new ALOAD(exceptionPos));
-	il.insert(pos, new ATHROW());
 
 	return pos;
     }
