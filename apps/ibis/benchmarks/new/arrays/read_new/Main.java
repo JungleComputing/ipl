@@ -10,6 +10,7 @@ public class Main {
 
 	public static final int LEN   = 1024;
 	public static final int COUNT = 100000;
+//	public static final int COUNT = 2;
 
 	public static final int BOOLEAN_SIZE = 1;
 	public static final int BYTE_SIZE    = 1;
@@ -112,35 +113,41 @@ public class Main {
 	} 
 
 	public static void connect(SendPort s, ReceivePortIdentifier ident) {
-		boolean success = false;
-		do {
-			try {
-				s.connect(ident);
-				success = true;
-			} catch (Exception e) {
-				try {
-					Thread.sleep(500);
-				} catch (Exception e2) {
-					// ignore
-				}
-			}
-		} while (!success);
+	    boolean success = false;
+	    do {
+		try {
+		    s.connect(ident);
+		    success = true;
+		} catch (Exception e) {
+		    System.err.println("got exception on connect " + e);
+		    e.printStackTrace();
+		    try {
+			Thread.sleep(500);
+		    } catch (Exception e2) {
+			// ignore
+		    }
+		}
+	    } while (!success);
 	}
 
 	public static void main(String args[]) {
 		
 		try {			
-			boolean manta = true;
+			boolean ibis_ser = true;
 			boolean net = false;
+			boolean nio = false;
 			int rank = 0, remoteRank = 1;
 			String id;
 
 			for(int i=0; i<args.length; i++) {
-				if(args[i].equals("-manta")) {
-					manta = true;
+				if(args[i].equals("-sun")) {
+					ibis_ser = false;
 				} 
 				if(args[i].equals("-net")) {
 					net = true;
+				} 
+				if(args[i].equals("-nio")) {
+					nio = true;
 				} 
 				
 			}
@@ -150,6 +157,9 @@ public class Main {
 			if (net) {		
 			    ibis = Ibis.createIbis(id, 
 					    "ibis.impl.net.NetIbis", null);
+			} else if(nio) {
+			    ibis = Ibis.createIbis(id, 
+					    "ibis.impl.nio.NioIbis", null);
 			} else {
 			    ibis = Ibis.createIbis(id, 
 					    "ibis.impl.tcp.TcpIbis", null);
@@ -158,8 +168,10 @@ public class Main {
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();
-			if (manta) { 
+			if(ibis_ser) {
 			    s.add("Serialization", "ibis");
+			} else {
+			    s.add("Serialization", "sun");
 			}
 		
 			PortType t = ibis.createPortType("test type", s);
@@ -178,7 +190,7 @@ public class Main {
 
 			if (rank == 0) {
 								
-				System.err.println("Main starting");
+				System.err.println("Main starting as MASTER");
 				rport = t.createReceivePort("test port 0");
 				rport.enableConnections();
 				ReceivePortIdentifier ident = lookup("test port 1");
@@ -228,6 +240,7 @@ public class Main {
 				rport.free();
 				ibis.end();				
 			} else {
+				System.err.println("Main starting as SLAVE");
 				ReceivePortIdentifier ident = lookup("test port 0");
 				connect(sport, ident);
 				rport = t.createReceivePort("test port 1");
