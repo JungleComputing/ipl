@@ -444,6 +444,84 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     }
 
     /** Sorts the administration arrays to implement ordering. */
+    private void buildAdministrationUnused( int indices[], int commonality[] )
+    {
+        /**
+         * This version uses pre-sorting in slots based on two characters.
+         * In principle, that should be faster because more different sets
+         * are created, but unfortunately, the cost of maintaining more
+         * slots makes it slower than the standard one. Only a truely
+         * cunning plan can save this version.
+         */
+
+        int slots[][] = new int[nextcode][];
+        int next[] = new int[length];
+        int filledSlots;
+
+        {
+            // First, construct the chains for the single character case.
+            // We guarantee that the positions are in increasing order.
+
+
+            // Fill each next array element with the next element with the
+            // same character. We walk the string from back to front to
+            // get the links in the correct order.
+            int i = length;
+            while( i>0 ){
+                i--;
+                int ix = text[i];
+                int iy = text[i+1];
+
+                if( ix != STOP && iy != STOP ){
+                    if( slots[ix] == null ){
+                        int n[] = new int[nextcode];
+                        Arrays.fill( n, -1 );
+                        slots[ix] = n;
+                    }
+                    int s[] = slots[ix];
+
+                    next[i] = s[iy];
+                    s[iy] = i;
+                }
+            }
+        }
+
+        // Now copy out the slots into the indices array.
+        int ix = 0;	// Next entry in the indices array.
+
+        for( int i=0; i<slots.length; i++ ){
+            if( slots[i] != null ){
+                int s[] = slots[i];
+
+                for( int j=0; j<s.length; j++ ){
+                    int p = s[j];
+                    int start = ix;
+
+                    while( p != -1 ){
+                        indices[ix++] = p;
+                        p = next[p];
+                    }
+                    if( start+1<ix ){
+                        sort( indices, commonality, start, ix );
+                    }
+                    else {
+                        // A single entry is not interesting, remove it
+                        // from the list of indices.
+                        ix = start;
+                    }
+                }
+            }
+        }
+
+        // Fill all unused slots (due to removed entries) with
+        // uninteresting information.
+        while( ix<length ){
+            commonality[ix] = 0;
+            ix++;
+        }
+    }
+
+    /** Sorts the administration arrays to implement ordering. */
     private void buildAdministration( int indices[], int commonality[] )
     {
 	int slots[] = new int[nextcode];
