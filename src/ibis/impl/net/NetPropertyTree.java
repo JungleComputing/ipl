@@ -224,7 +224,7 @@ public class NetPropertyTree {
 
                                 if (context != null) {
                                         propertyTree = (NetPropertyTree)contextMap.get(context);
-                                        if (propertyTree == null) {
+                                        if (propertyTree != null) {
                                                 propertyTree.get(subLevels+":"+property);
 
                                                 if (result != null) {
