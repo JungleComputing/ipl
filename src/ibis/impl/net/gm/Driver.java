@@ -9,6 +9,7 @@ import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetPriorityMutex;
 import ibis.impl.net.InterruptedIOException;
+import ibis.ipl.Ibis;
 
 import java.io.IOException;
 
@@ -60,10 +61,10 @@ public final class Driver extends NetDriver {
 
 	static {
                 if (System.getProperty("ibis.net.gm.dynamic") != null) {
-                        ibis.ipl.Ibis.loadLibrary("gm");
+                        Ibis.loadLibrary("gm");
                 }
 
-		ibis.ipl.Ibis.loadLibrary("net_ibis_gm");
+		Ibis.loadLibrary("net_ibis_gm");
                 gmReceiveLock = new NetMutex(false);
 
                 gmAccessLock = new NetPriorityMutex(false);
