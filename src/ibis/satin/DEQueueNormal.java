@@ -107,7 +107,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 		length--;
 	}
 
-	private int size() {
+	int size() {
 		synchronized(satin) {
 			return length;
 		}

@@ -38,14 +38,15 @@ public class SatinTupleSpace implements Config {
 			space.put(key, data);
 		}
 
-		if(data instanceof ActiveTuple) {
-			((ActiveTuple)data).handleTuple(key);
-		}
-
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": added key " + key);
 		}
 		satin.broadcastTuple(key, data);
+
+		if(data instanceof ActiveTuple) {
+			((ActiveTuple)data).handleTuple(key);
+		}
+
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": bcast key " + key + " done");
 		}

@@ -20,6 +20,12 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 		this.satin = satin;
 	}
 
+	int size() {
+		synchronized(satin) {
+			return head - tail;
+		}
+	}
+
 	void addToHead(InvocationRecord r) {
 		if(head == size) {
 //			System.err.println("doubling DEq, new size = " + (size*2));

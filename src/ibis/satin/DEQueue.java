@@ -11,4 +11,5 @@ abstract class DEQueue implements Config {
 	abstract InvocationRecord getFromTail();
 	abstract void addToHead(InvocationRecord o);
 	abstract void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner);
+	abstract int size();
 }
