@@ -27,7 +27,7 @@ static final boolean NEXT = false;
 static final int   SYNC_SEND = 0;
 static final int  ASYNC_SEND = 1;
 
-static PoolInfo info = new PoolInfo();
+PoolInfo info;
 
 i_GlobalData global;
 
@@ -39,6 +39,8 @@ double r,omega,                   /* some float values */
        stopdiff,maxdiff,diff;     /* differences btw grid points in iters */
 
 int nodes, rank;                   /* process ranks */
+
+private double[] nodeSpeed;	/* Speed of node[i] */
 
 int lb,ub;                        /* lower and upper bound of grid stripe [lb ... ub] -> NOTE: ub is inclusive*/
 
@@ -54,7 +56,9 @@ int nit, sync;
 
 WaitingSendThread prevSender, nextSender;
 
-SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global) throws RemoteException {
+SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global, PoolInfo info) throws RemoteException {
+
+    this.info = info;
 
     this.nrow = nrow; // Add two rows to borders.
     this.ncol = ncol; // Add two columns to borders.
@@ -68,6 +72,35 @@ SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global) throws RemoteExc
     
     nodes = info.size();
     rank = info.rank();
+    nodeSpeed = new double[nodes];
+
+    double speed;
+
+    try {
+	String hostname = java.net.InetAddress.getLocalHost().getHostName();
+	java.net.InetAddress address = java.net.InetAddress.getByName(hostname);
+	address = java.net.InetAddress.getByName(address.getHostAddress());
+	hostname = address.getHostName();
+
+	if (hostname.indexOf("das2") != -1) {
+	    speed = 1000.0;
+	} else if (hostname.indexOf("das") != -1) {
+	    speed = 200.0;
+	} else {
+	    System.err.println(rank + ": Cannot determine my cpu speed");
+	    speed = 1.0;
+	}
+
+speed *= (rank + 1);
+
+	nodeSpeed = global.scatter2all(rank, speed);
+	for (int i = 0; i < nodes; i++) {
+	    System.err.println(rank + ": cpu " + i + " speed " + nodeSpeed[i]);
+	}
+
+    } catch (java.net.UnknownHostException uE) {
+	throw new RemoteException(uE.toString());
+    }
     
     if (sync == ASYNC_SEND) { 
 
@@ -125,19 +158,51 @@ private void get_bounds() {
 	int llb      = 0;
 	int grain    = 0; 
 	
+	double speed_avg = 0;
 	for (int i=0;i<nodes;i++) {
-		grain = (nrow-2-llb) / (nodes-i);
-		
+	    speed_avg += nodeSpeed[i];
+	}
+	speed_avg /= nodes;
+	boolean homogeneous = true;
+	for (int i = 0; i < nodes; i++) {
+	    if (nodeSpeed[i] != speed_avg) {
+		homogeneous = false;
+		break;
+	    }
+	}
+System.err.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg);
+	
+	if (homogeneous) {
+	    for (int i=0;i<nodes;i++) {
+		    grain = (nrow-2-llb) / (nodes-i);
+		    
+		    if (i == rank) {
+			    lb = llb;
+			    ub = llb+grain+1;
+			    break;
+		    }
+		    
+		    llb += grain;
+	    }
+	} else {
+	    for (int i=0;i<nodes;i++) {
+		if (i == nodes - 1) {
+		    grain = nrow - 2 - llb;
+		} else {
+		    grain = (int)(((nrow-2) * nodeSpeed[i]) / (nodes * speed_avg));
+		}
+
 		if (i == rank) {
 			lb = llb;
 			ub = llb+grain+1;
 			break;
 		}
-		
+
 		llb += grain;
+	    }
 	}
-	
-	// System.out.println(rank + " [" + lb + " ... " + ub + "]");
+	    
+	System.out.println(rank + " [" + lb + " ... " + ub + "]");
 }
 
 

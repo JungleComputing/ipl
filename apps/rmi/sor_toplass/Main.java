@@ -17,27 +17,24 @@ import ibis.rmi.registry.*;
 
 class Main {
 
-static PoolInfo info = SOR.info;
-
 private static void usage(String[] args) {
 
-	if (info.rank() == 0) {
+	System.out.println("Usage: sor <NROW> <NCOL> <ITERATIONS> <COMMUNICATION> <THREAD>");
+	System.out.println("");
+	System.out.println("NROW x NCOL   : (int, int). Problem matrix size");
+	System.out.println("ITERATIONS    : (int). Number of iterations to calculate. 0 means dynamic termination detection.");
+	System.out.println("COMMUNICATION : ( \"sync\", \"async\"). Communication type. \"async\" = always split phase calculation.");
+	System.out.println("THREAD        : communication thread type. Only legal value is \"wait\", a single thread is reused");
+	System.out.println("");
 
-		System.out.println("Usage: sor <NROW> <NCOL> <ITERATIONS> <COMMUNICATION> <THREAD>");
-		System.out.println("");
-		System.out.println("NROW x NCOL   : (int, int). Problem matrix size");
-		System.out.println("ITERATIONS    : (int). Number of iterations to calculate. 0 means dynamic termination detection.");
-		System.out.println("COMMUNICATION : ( \"sync\", \"async\"). Communication type. \"async\" = always split phase calculation.");
-		System.out.println("THREAD        : communication thread type. Only legal value is \"wait\", a single thread is reused");
-		System.out.println("");
-
-		for (int i=0;i<args.length;i++) {
-			System.out.println(i + " : " + args[i]);
-		}
+	for (int i=0;i<args.length;i++) {
+		System.out.println(i + " : " + args[i]);
 	}
 }
 
 public static void main (String[] args) {
+
+    PoolInfo info = new PoolInfo();
 
     SOR local = null;
     i_SOR [] table = null;
@@ -66,7 +63,7 @@ public static void main (String[] args) {
 				    System.exit(1);
 			    } else if (args[4].equals("wait")) {
 				    // Now default and only option, but still recognized.
-			    } else {
+			    } else if (info.rank() == 0) {
 				    usage(args);
 				    System.exit(1);
 			    }
@@ -75,8 +72,8 @@ public static void main (String[] args) {
 			    
 			    sync = SOR.SYNC_SEND;
 			    
-		    } else {
-			    
+		    } else  if (info.rank() == 0) {
+
 			    usage(args);
 			    System.exit(1);
 			    
@@ -92,12 +89,12 @@ public static void main (String[] args) {
 			    sync = SOR.SYNC_SEND;
 		    } else if (args[3].equals("async")) {
 			    sync = SOR.ASYNC_SEND;
-		    } else {
+		    } else if (info.rank() == 0) {
 			    usage(args);
 			    System.exit(1);
 		    }   
 		    
-	    } else { 	    
+	    } else if (info.rank() == 0) {
 		    usage(args);
 		    System.exit(1);
 	    }
@@ -153,7 +150,7 @@ public static void main (String[] args) {
 
 	    }
 	    
-	    local = new SOR(nrow, ncol, nit, sync, global);	    
+	    local = new SOR(nrow, ncol, nit, sync, global, info);	    
 
 	    table = global.table((i_SOR) local, info.rank());
 	    local.setTable(table);
