@@ -20,6 +20,9 @@ public class PoolInfo {
 		host_number = getIntProperty(p, "ibis.pool.host_number");
 		
 		temp = p.getProperty("ibis.pool.host_names");
+		if(temp == null) {
+			throw new RuntimeException("Property ibis.pool.host_names not set!");
+		}
 		
 		if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
 			throw new RuntimeException("Sanity check on host numbers failed!");
