@@ -2,8 +2,8 @@ package ibis.ipl;
 
 /**
  * Identifies an Ibis on the network.
- * Be careful, classes implementing this abstract class should override the methods
- * <code>equals</code>() and <code>hashCode</code>().
+ * Be careful, classes implementing this abstract class should override
+ * the methods <code>equals</code>() and <code>hashCode</code>().
  * note: if an <code>IbisIdentifier</code> is sent over the network,
  * it is not guaranteed that the object on the remote side will be a new one.
  * This allows the Ibis implementation to cache <code>IbisIdentifier</code>s.
@@ -26,7 +26,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * Parameter-less constructor should not happen, therefore private.
      */
     private IbisIdentifier() {
-	throw new IbisError("No arg constructor of IbisIdentifier, this should not happen.");
+	throw new IbisError("No args constructor of IbisIdentifier");
     }
 
     /**
@@ -45,7 +45,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * by the ibis implementation.
      */
     public boolean equals(Object o) {
-	throw new IbisError("Subclasses of IbisIdentifier should override equals");
+	throw new IbisError("IbisIdentifier subclass must override equals");
     }
 
     /**
@@ -56,7 +56,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * by the ibis implementation.
      */
     public int hashCode() {
-	throw new IbisError("Subclasses of IbisIdentifier should override hashCode");
+	throw new IbisError("IbisIdentifier subclass must override hashCode");
     }
 
     /**

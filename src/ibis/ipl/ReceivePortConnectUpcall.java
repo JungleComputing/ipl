@@ -13,15 +13,15 @@ public interface ReceivePortConnectUpcall {
      * with this {@link ReceivePort}.
      * This upcall should return true to accept the connection and false to
      * refuse the connection.
-     * If the connection is refused, the connect call at the {@link SendPort} throws
-     * a {@link ConnectionRefusedException}.
+     * If the connection is refused, the connect call at the
+     * {@link SendPort} throws a {@link ConnectionRefusedException}.
      * <P>
      * This upcall may run completely asynchronously, but only at most one is
      * alive at any time.
      *
      * @param me the {@link ReceivePort} receiving a connection attempt.
-     * @param applicant identifier for the {@link SendPort} attempting to set up a
-     * connection.
+     * @param applicant identifier for the {@link SendPort} attempting to
+     * 			set up a connection.
      */
     public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant);
 
@@ -36,8 +36,11 @@ public interface ReceivePortConnectUpcall {
      * but only at most one is alive at any time.
      *
      * @param me the {@link ReceivePort} losing a connection.
-     * @param johnDoe identifier for the {@link SendPort} to which the connection is lost.
+     * @param johnDoe identifier for the {@link SendPort} to which the
+     * 		      connection is lost.
      * @param reason the reason for this upcall.
      */
-    public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe, Exception reason);
+    public void lostConnection(ReceivePort me,
+			       SendPortIdentifier johnDoe,
+			       Exception reason);
 }

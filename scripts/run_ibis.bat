@@ -33,8 +33,6 @@ rem PROFILING=-Xhprof;cpu=samples,file=profile.%1,depth=3
 set PROFILING=
 shift
 
-set Dprops="-Dibis.property.file=%IBIS_ROOT%\properties"
-
 set Dpool_total="-Dibis.pool.total_hosts=%1"
 shift
 
@@ -79,6 +77,6 @@ rem and for NT handling to skip to.
 rem  the -Xmx800M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 rem  choose 800, so jobs don't start paging.
 
-%JAVA_ROOT%\bin\java -Xmx400M %Dlibpath% %Dibislibs% %Dpool_host_num% %Dprops%  %Dpool_total% %Dns_pool% %Dns_port% %Dns_server% -Dibis.pool.host_names="%HOSTS%" -Xbootclasspath/p:%JAVACLASSPATH% %PROFILING% -classpath %JAVACLASSPATH% %IBIS_APP_ARGS%
+%JAVA_ROOT%\bin\java -Xmx400M %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dns_pool% %Dns_port% %Dns_server% -Dibis.pool.host_names="%HOSTS%" -Xbootclasspath/p:%JAVACLASSPATH% %PROFILING% -classpath %JAVACLASSPATH% %IBIS_APP_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal

@@ -1,12 +1,18 @@
-ibis.impl.messagePassing.MPIIbis
-ibis/impl/messagePassing/mpi/properties
-system_mpi_properties
+#
+# This file lists the Ibis implementations, and their property files.
+# The format is that described in de java.util.Properties#load(InputStream),
+# with an implementation name as propertey key, and a list of property
+# filenames as property value.
+#
+ibis.impl.messagePassing.MPIIbis \
+    ibis/impl/messagePassing/mpi/properties \
+    system_mpi_properties
 
-ibis.impl.messagePassing.PandaIbis
-ibis/impl/messagePassing/panda/properties
-system_panda_properties
+ibis.impl.messagePassing.PandaIbis \
+    ibis/impl/messagePassing/panda/properties \
+    system_panda_properties
 
-ibis.impl.tcp.TcpIbis
-ibis/impl/tcp/properties
-system_tcp_properties
+ibis.impl.tcp.TcpIbis \
+    ibis/impl/tcp/properties \
+    system_tcp_properties
 

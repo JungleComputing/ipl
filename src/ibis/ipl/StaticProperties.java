@@ -19,18 +19,21 @@ public class StaticProperties extends Properties {
 
     /**
      * Adds a key/value pair to the properties.
-     * If the key is already bound, an {@link ibis.ipl.IbisRuntimeException IbisRuntimeException}
+     * If the key is already bound, an
+     * {@link ibis.ipl.IbisRuntimeException IbisRuntimeException}
      * is thrown. If either the key or the value is <code>null</code>,
      * a <code>NullPointer</code> is thrown.
      *
      * @param key the key to be bound.
      * @param value the value to bind to the key.
      * @exception IbisRuntimeException is thrown when the key is already bound.
-     * @exception NullPointerException is thrown when either key or value is <code>null</code>.
+     * @exception NullPointerException is thrown when either key or value
+     *  is <code>null</code>.
      */
     public void add(String key, String value) { 
 	if (containsKey(key)) { 
-	    throw new IbisRuntimeException("Property " + key + " already exists");
+	    throw new IbisRuntimeException("Property " + key +
+					   " already exists");
 	} else { 
 	    super.setProperty(key, value);
 	} 

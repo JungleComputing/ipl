@@ -4,11 +4,12 @@ import java.io.IOException;
 
 /** 
  * The Ibis abstraction for data to be read.
- * A <code>ReadMessage</code> is obtained from a {@link ibis.ipl.ReceivePort receiveport}, either
+ * A <code>ReadMessage</code> is obtained from a
+ * {@link ibis.ipl.ReceivePort receiveport}, either
  * by means of an upcall, or by means of an explicit receive, which is
  * accomplished by call to {@link ibis.ipl.ReceivePort#receive() receive}.
- * A {@link ibis.ipl.ReceivePort receiveport} can be configured to generate upcalls
- * or to support blocking receive, but NOT both!
+ * A {@link ibis.ipl.ReceivePort receiveport} can be configured to generate
+ * upcalls or to support blocking receive, but NOT both!
  * At most one <code>ReadMessage</code> is alive at one time for a given
  * </code>ReceivePort</code>.
  * For all read methods in this class, the invariant is that the reads must
@@ -39,9 +40,11 @@ public interface ReadMessage {
     public long finish() throws IOException;
 
     /**
-     * Returns the {@link ibis.ipl.ReceivePort receiveport} of this <code>ReadMessage</code>.
+     * Returns the {@link ibis.ipl.ReceivePort receiveport} of this
+     * <code>ReadMessage</code>.
      *
-     * @return the {@link ibis.ipl.ReceivePort receiveport} of this <code>ReadMessage</code>.
+     * @return the {@link ibis.ipl.ReceivePort receiveport} of this
+     * <code>ReadMessage</code>.
      */
     public ReceivePort localPort();
 
@@ -197,7 +200,8 @@ public interface ReadMessage {
      * @exception ClassNotFoundException when an object arrives
      * of a class that cannot be loaded locally.
      */
-    public void readArray(Object [] destination) throws IOException, ClassNotFoundException;
+    public void readArray(Object [] destination)
+	throws IOException, ClassNotFoundException;
 
     /**
      * Reads a slice of an array in place. No cycle checks are done. 
@@ -207,47 +211,56 @@ public interface ReadMessage {
      * @param size        length of the slice (the number of elements)
      * @exception IOException is thrown on an IO error.
      */
-    public void readArray(boolean [] destination, int offset, int size) throws IOException;
+    public void readArray(boolean [] destination, int offset, int size)
+	throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
-    public void readArray(byte [] destination, int offset, int size) throws IOException;
+    public void readArray(byte [] destination, int offset, int size)
+	throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
-    public void readArray(char [] destination, int offset, int size) throws IOException;
+    public void readArray(char [] destination, int offset, int size)
+	throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
-    public void readArray(short [] destination, int offset, int size) throws IOException;
+    public void readArray(short [] destination, int offset, int size)
+	throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
-    public void readArray(int [] destination, int offset, int size) throws IOException;
+    public void readArray(int [] destination, int offset, int size)
+	throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
-    public void readArray(long [] destination, int offset, int size) throws IOException;
+    public void readArray(long [] destination, int offset, int size)
+	throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
-    public void readArray(float [] destination, int offset, int size) throws IOException;
+    public void readArray(float [] destination, int offset, int size)
+	throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      */
-    public void readArray(double [] destination, int offset, int size) throws IOException;
+    public void readArray(double [] destination, int offset, int size)
+	throws IOException;
 
     /**
      * See {@link #readArray(boolean[], int, int)} for a description.
      * @exception ClassNotFoundException when an object arrives
      * of a class that cannot be loaded locally.
      */
-    public void readArray(Object [] destination, int offset, int size) throws IOException, ClassNotFoundException;
+    public void readArray(Object [] destination, int offset, int size)
+	throws IOException, ClassNotFoundException;
 } 

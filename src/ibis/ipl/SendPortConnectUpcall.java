@@ -16,8 +16,11 @@ public interface SendPortConnectUpcall {
      * but only at most one is alive at any time.
      *
      * @param me the {@link SendPort} losing a connection.
-     * @param johnDoe identifier for the {@link ReceivePort} to which the connection is lost.
+     * @param johnDoe identifier for the {@link ReceivePort} to which the
+     *  connection is lost.
      * @param reason the reason for this upcall.
      */
-    public void lostConnection(SendPort me, ReceivePortIdentifier johnDoe, Exception reason);
+    public void lostConnection(SendPort me,
+			       ReceivePortIdentifier johnDoe,
+			       Exception reason);
 }

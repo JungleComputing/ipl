@@ -9,7 +9,8 @@ import java.io.IOException;
  * {@link SendPortConnectUpcall} object.
  * When a connection is lost for some reason (normal close or 
  * link error), the 
- * {@link SendPortConnectUpcall#lostConnection(SendPort, ReceivePortIdentifier, Exception)} upcall is invoked.
+ * {@link SendPortConnectUpcall#lostConnection(SendPort,
+ * ReceivePortIdentifier, Exception)} upcall is invoked.
  * This upcall is completely asynchronous, but Ibis ensures that 
  * at most one is alive at any given time.
  *
@@ -43,9 +44,10 @@ public interface SendPort
     public WriteMessage newMessage () throws IOException;
 
     /**
-     * Returns the {@link ibis.ipl.DynamicProperties DynamicProperties} of this port.
-     * The user can set some implementation-specific dynamic properties of the
-     * port, by means of the {@link ibis.ipl.DynamicProperties#set(String, Object)
+     * Returns the {@link ibis.ipl.DynamicProperties DynamicProperties} of
+     * this port. The user can set some implementation-specific dynamic
+     * properties of the port, by means of the
+     * {@link ibis.ipl.DynamicProperties#set(String, Object)
      * DynamicProperties.set} method.
      */
     public DynamicProperties properties ();

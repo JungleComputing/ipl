@@ -335,6 +335,7 @@
 	<copy todir="${build}">
 	    <fileset dir="${ibis}">
 		<include name="*_properties"/>
+		<include name="properties"/>
 	    </fileset>
 	</copy>
     </target>
@@ -370,14 +371,14 @@
 	<echo level="verbose" message="basename = ${package-basename}"/>
 	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
 		basedir="${ibis}/build"
-		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties *_properties"/>
+		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties *_properties"/>
     </target>
 
     <target name="jars"
 	    description="Generate jar files for ibis">
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
-		includes="**/*.class **/properties *_properties"/>
+		includes="**/*.class **/properties properties *_properties"/>
 	<foreach target="jar.package"
 		param="ibis.sub-package">
 	    <path>

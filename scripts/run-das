@@ -46,8 +46,6 @@ Dpool_host_num="-Dibis.pool.host_number=$PRUN_CPU_RANK"
 #PROFILING=-Xhprof:cpu=samples,file=profile.$1,depth=3
 PROFILING=
 
-Dprops="-Dibis.property.file=$IBIS_ROOT/properties"
-
 NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
 Dpool_total="-Dibis.pool.total_hosts=$NHOSTS"
 
@@ -78,4 +76,4 @@ Dns_server="-Dibis.name_server.host=@IBIS_NS_HOST@"
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-$wrapper_name $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
+$wrapper_name $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"

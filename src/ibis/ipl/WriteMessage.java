@@ -19,8 +19,8 @@ import java.io.IOException;
 public interface WriteMessage { 
 
     /**
-     * Starts sending the message to all {@link ibis.ipl.ReceivePort ReceivePorts} its
-     * {@link ibis.ipl.SendPort} is connected to.
+     * Starts sending the message to all {@link ibis.ipl.ReceivePort
+     * ReceivePorts} its {@link ibis.ipl.SendPort} is connected to.
      * Data may be streamed, so the user is not allowed to change the data
      * pushed into this message, as the send is NON-blocking.
      * It is only safe to touch the data after it has actually been

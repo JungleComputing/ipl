@@ -38,9 +38,12 @@ public interface PortType {
      * connection administration to support the lostConnections and
      * newConnections downcalls.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public SendPort createSendPort(String name, boolean connectionAdministration) throws IOException;
+    public SendPort createSendPort(String name,
+				   boolean connectionAdministration)
+	throws IOException;
 
     /**
      * Creates a named {@link SendPort} of this <code>PortType</code>.
@@ -49,7 +52,8 @@ public interface PortType {
      *
      * @param name the name of this sendport.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
     public SendPort createSendPort(String name) throws IOException;
 
@@ -60,18 +64,22 @@ public interface PortType {
      *
      * @param name the name of this sendport.
      * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(SendPort, ReceivePortIdentifier, Exception)} method.
+     * {@link SendPortConnectUpcall#lostConnection(SendPort,
+     * ReceivePortIdentifier, Exception)} method.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public SendPort createSendPort(String name, SendPortConnectUpcall cU) throws IOException;
+    public SendPort createSendPort(String name, SendPortConnectUpcall cU)
+	throws IOException;
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>.
      * ConnectionAdministration is disabled.
      * 
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
     public SendPort createSendPort() throws IOException;
 
@@ -82,9 +90,11 @@ public interface PortType {
      * connection administration to support the lostConnections and
      * newConnections downcalls.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public SendPort createSendPort(boolean connectionAdministration) throws IOException;
+    public SendPort createSendPort(boolean connectionAdministration)
+	throws IOException;
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
@@ -95,9 +105,11 @@ public interface PortType {
      * connection administration to support the lostConnections and
      * newConnections downcalls.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public SendPort createSendPort(Replacer r, boolean connectionAdministration) throws IOException;
+    public SendPort createSendPort(Replacer r, boolean connectionAdministration)
+	throws IOException;
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
@@ -106,7 +118,8 @@ public interface PortType {
      *
      * @param r an object replacer, used in object serialization.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
     public SendPort createSendPort(Replacer r) throws IOException;
 
@@ -120,9 +133,13 @@ public interface PortType {
      * connection administration to support the lostConnections and
      * newConnections downcalls.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public SendPort createSendPort(String name, Replacer r, boolean connectionAdministration) throws IOException;
+    public SendPort createSendPort(String name,
+				   Replacer r,
+				   boolean connectionAdministration)
+	throws IOException;
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
@@ -130,11 +147,14 @@ public interface PortType {
      *
      * @param r an object replacer, used in object serialization.
      * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(SendPort, ReceivePortIdentifier, Exception)} method.
+     * {@link SendPortConnectUpcall#lostConnection(SendPort,
+     * ReceivePortIdentifier, Exception)} method.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public SendPort createSendPort(Replacer r, SendPortConnectUpcall cU) throws IOException;
+    public SendPort createSendPort(Replacer r, SendPortConnectUpcall cU)
+	throws IOException;
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
@@ -143,23 +163,30 @@ public interface PortType {
      * @param name the name of this sendport.
      * @param r an object replacer, used in object serialization.
      * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(SendPort, ReceivePortIdentifier, Exception)} method.
+     * {@link SendPortConnectUpcall#lostConnection(SendPort,
+     * ReceivePortIdentifier, Exception)} method.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public SendPort createSendPort(String name, Replacer r, SendPortConnectUpcall cU) throws IOException;
+    public SendPort createSendPort(String name,
+				   Replacer r,
+				   SendPortConnectUpcall cU)
+	throws IOException;
 
 
     /**
      * Creates a named {@link ReceivePort} of this <code>PortType</code>,
      * with explicit receipt communication.
-     * New connections will not be accepted until {@link ReceivePort#enableConnections()} is invoked.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      * ConnectionAdministration is disabled.
      *
      * @param name the name of this receiveport.
      * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
     public ReceivePort createReceivePort(String name) throws IOException;
 
@@ -167,7 +194,8 @@ public interface PortType {
     /** 
      * Creates a named {@link ReceivePort} of this <code>PortType</code>,
      * with explicit receipt communication.
-     * New connections will not be accepted until {@link ReceivePort#enableConnections()} is invoked.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      *
      * @param name the name of this receiveport.
@@ -175,28 +203,35 @@ public interface PortType {
      * connection administration to support the lostConnections and
      * newConnections downcalls.
      * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public ReceivePort createReceivePort(String name, boolean connectionAdministration) throws IOException;
+    public ReceivePort createReceivePort(String name,
+					 boolean connectionAdministration)
+	throws IOException;
 
     /** 
      * Creates a named {@link ReceivePort} of this <code>PortType</code>,
      * with upcall based communication.
-     * New connections will not be accepted until {@link ReceivePort#enableConnections()} is invoked.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      * ConnectionAdministration is disabled.
      *
      * @param name the name of this receiveport.
      * @param u the upcall handler.
      * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public ReceivePort createReceivePort(String name, Upcall u) throws IOException;
+    public ReceivePort createReceivePort(String name, Upcall u)
+	throws IOException;
 
     /** 
      * Creates a named {@link ReceivePort} of this <code>PortType</code>,
      * with upcall based communication.
-     * New connections will not be accepted until {@link ReceivePort#enableConnections()} is invoked.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      * ConnectionAdministration is disabled.
      *
@@ -206,57 +241,76 @@ public interface PortType {
      * connection administration to support the lostConnections and
      * newConnections downcalls.
      * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public ReceivePort createReceivePort(String name, Upcall u, boolean connectionAdministration) throws IOException;
+    public ReceivePort createReceivePort(String name,
+					 Upcall u,
+					 boolean connectionAdministration)
+	throws IOException;
 
     /** 
      * Creates a named {@link ReceivePort} of this <code>PortType</code>,
      * with explicit receipt communication.
-     * New connections will not be accepted until {@link ReceivePort#enableConnections()} is invoked.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      * ConnectionAdministration is disabled.
-     * When a new connection request arrives, or when a connection is lost, a ConnectUpcall is performed.
+     * When a new connection request arrives, or when a connection is lost,
+     * a ConnectUpcall is performed.
      *
      * @param name the name of this receiveport.
-     * @param cU object implementing <code>gotConnection</code>() and <code>lostConnection</code>()
-     * upcalls.
+     * @param cU object implementing <code>gotConnection</code>() and
+     * <code>lostConnection</code>() upcalls.
      * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall cU) throws IOException;
+    public ReceivePort createReceivePort(String name,
+					 ReceivePortConnectUpcall cU)
+	throws IOException;
 
     /** 
      * Creates a named {@link ReceivePort} of this <code>PortType</code>,
      * with upcall based communication.
-     * New connections will not be accepted until {@link ReceivePort#enableConnections()} is invoked.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      * ConnectionAdministration is disabled.
-     * When a new connection request arrives, or when a connection is lost, a ConnectUpcall is performed.
+     * When a new connection request arrives, or when a connection is lost,
+     * a ConnectUpcall is performed.
      *
      * @param name the name of this receiveport.
      * @param u the upcall handler.
-     * @param cU object implementing <code>gotConnection</code>() and <code>lostConnection</code>()
-     * upcalls.
+     * @param cU object implementing <code>gotConnection</code>() and
+     * <code>lostConnection</code>() upcalls.
      * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be created.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
      */
-    public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU) throws IOException;
+    public ReceivePort createReceivePort(String name,
+					 Upcall u,
+					 ReceivePortConnectUpcall cU)
+	throws IOException;
 
     /**
-     * The hashCode method is mentioned here just as a reminder that an implementation
-     * must probably redefine it, because two objects representing the same porttype
-     * must result in the same hashcode (and compare equal). To explicitly specify
-     * it in the interface does not help, because java.lang.Object already implements it,
+     * The hashCode method is mentioned here just as a reminder that an
+     * implementation must probably redefine it, because two objects
+     * representing the same porttype must result in the same hashcode
+     * (and compare equal).
+     * To explicitly specify it in the interface does not help,
+     * because java.lang.Object already implements it,
      * but, anyway, here it is:
      */
     public int hashCode();
 
     /**
-     * The equals method is mentioned here just as a reminder that an implementation
-     * must probably redefine it, because two objects representing the same porttype
-     * must compare equal (and result in the same hashcode). To explicitly specify
-     * it in the interface does not help, because java.lang.Object already implements it,
+     * The equals method is mentioned here just as a reminder that an
+     * implementation must probably redefine it, because two objects
+     * representing the same porttype must compare equal (and result
+     * in the same hashcode).
+     * To explicitly specify it in the interface does not help,
+     * because java.lang.Object already implements it,
      * but, anyway, here it is:
      *
      * @param other the object to compare with.

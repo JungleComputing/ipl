@@ -1,12 +1,14 @@
 package ibis.ipl;
 
-import ibis.util.Input;
-
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.Enumeration;
 
 /**
  * This class defines the Ibis API, which can be implemented by an Ibis
@@ -16,10 +18,13 @@ import java.util.Properties;
  * An Ibis implementation offers certain PortType properties.
  *
  * On startup, Ibis tries to load properties files in the following order:
+ * <br>
  * - ibis.property.file;
+ * <br>
  * - current_dir/ibis_properties;
+ * <br>
  * - home_dir/ibis_properties.
- *
+ * <br>
  */
 
 public abstract class Ibis { 
@@ -46,7 +51,7 @@ public abstract class Ibis {
 	try {
 	    readGlobalProperties();
 	} catch(IOException e) {
-	    System.err.println("exception while trying to read properties: " + e);
+	    System.err.println("exception in readGlobalProperties: " + e);
 	    e.printStackTrace();
 	    System.exit(1);
 	}
@@ -65,14 +70,16 @@ public abstract class Ibis {
       @exception SecurityException may be thrown by loadLibrary.
       @exception UnsatisfiedLinkError may be thrown by loadLibrary.
      **/
-    public static void loadLibrary(String name) throws SecurityException, UnsatisfiedLinkError {
+    public static void loadLibrary(String name)
+	    throws SecurityException, UnsatisfiedLinkError
+    {
 	Properties p = System.getProperties();
 	String libPath = p.getProperty("ibis.library.path");
 
 	if(libPath != null) {
 	    String s = System.mapLibraryName(name);
 
-	    //			System.err.println("LOADING IBIS LIB: " + libPath + "/" + s);
+//	    System.err.println("LOADING IBIS LIB: " + libPath + "/" + s);
 
 	    System.load(libPath + "/" + s);
 	    return;
@@ -80,7 +87,8 @@ public abstract class Ibis {
 
 	// Fall back to regular loading.
 	// This might not work, or it might not :-)
-	//		System.err.println("LOADING NON IBIS LIB: " + name);
+//	System.err.println("LOADING NON IBIS LIB: " + name);
+
 	System.loadLibrary(name);
     }
 
@@ -93,7 +101,7 @@ public abstract class Ibis {
      * @param name a unique name, identifying this Ibis instance.
      * @param implName the name of the implementation.
      * @param resizeHandler will be invoked when Ibises join and leave, and
-     * may be null to indicate that resize notifications are not wanted.
+     *  may be null to indicate that resize notifications are not wanted.
      * @return the new Ibis instance.
      *
      * @exception ibis.ipl.IbisException two Ibis instances with the same
@@ -101,19 +109,19 @@ public abstract class Ibis {
      * 	throws at its initialization
      * @exception IllegalArgumentException name or implName are null, or
      * 	do not correspond to an existing Ibis implementation
-     *  @exception ConnectionRefusedException is thrown when the name turns out to
-     *   be not unique.
+     * @exception ConnectionRefusedException is thrown when the name turns
+     *  out to be not unique.
      */
-    public static Ibis createIbis(String name, String implName, ResizeHandler resizeHandler)
-	throws IbisException, ConnectionRefusedException {
+    public static Ibis createIbis(String name, 
+				  String implName,
+				  ResizeHandler resizeHandler)
+	    throws IbisException, ConnectionRefusedException
+    {
 	Ibis impl;
 
 	try {
 	    loadLibrary("conversion");
 	} catch (Throwable t) {
-	    System.err.println("WARNING: Could not load conversion library");
-	    System.err.println("This might be a problem if you did not rewrite the class libraries");
-	    System.err.println("If you did, or if you don't use Ibis serialization, you can safely ignore this warning");
 	}
 
 	if (implName == null) { 
@@ -136,7 +144,8 @@ public abstract class Ibis {
 	} catch (InstantiationException e) {
 	    throw new IllegalArgumentException("Could not initialize Ibis" + e);
 	} catch (IllegalAccessException e2) {
-	    throw new IllegalArgumentException("Could not initialize Ibis" + e2);
+	    throw new IllegalArgumentException("Could not initialize Ibis" +
+						e2);
 	}
 	impl.name = name;
 	impl.resizeHandler = resizeHandler;
@@ -158,11 +167,11 @@ public abstract class Ibis {
 	return impl;
     }
 
-    /** Returns a list of all Ibis implementations that are currently loaded.
-      When no Ibises are loaded, this method returns null
-
-      @return the list of loaded Ibis implementations.
-     **/
+    /**
+     * Returns a list of all Ibis implementations that are currently loaded.
+     * When no Ibises are loaded, this method returns null.
+     * @return the list of loaded Ibis implementations.
+     */
     public static synchronized Ibis[] loadedIbises() {
 	if(loadedIbises == null || loadedIbises.size() == 0) {
 	    return null;
@@ -189,13 +198,13 @@ public abstract class Ibis {
      * <br>
      * net.*	The future version, for tcp, udp, GM, ...
      * <br>
-     *
-     * @param  r a {@link ibis.ipl.ResizeHandler ResizeHandler} instance if upcalls
-     *   for joining or leaving ibis instances are required, or <code>null</code>.
+     * @param  r a {@link ibis.ipl.ResizeHandler ResizeHandler} instance
+     *  if upcalls for joining or leaving ibis instances are required,
+     *  or <code>null</code>.
      * @return the new Ibis instance.
      *
-     * @exception ConnectionRefusedException is thrown when the name turns out to
-     *  be not unique.
+     * @exception ConnectionRefusedException is thrown when the name turns
+     *  out to be not unique.
      */
     public static Ibis createIbis(ResizeHandler r)
 	throws IbisException, ConnectionRefusedException
@@ -204,7 +213,8 @@ public abstract class Ibis {
 	String hostname;
 
 	// @@@ start of horrible code
-	//	    System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
+	//	    System.err.println("AARG! This code completely violates the
+	//	    whole Ibis philosophy!!!! please fix me! --Rob & Jason");
 	//	    new Exception().printStackTrace();
 	//	    But HOW?   -- Ceriel
 
@@ -251,71 +261,50 @@ public abstract class Ibis {
 	}
     }
 
-    /**
-     * Reads a string from the input.
-     * The string is delimited by end-of-file, end-of-line, or whitespace.
-     * @param in the input from which the string is to be read.
-     * @return the string.
-     */
-    private static String readString(Input in) {
-	StringBuffer s = new StringBuffer();
-	while (!in.eof() && !in.eoln() && !Character.isWhitespace(in.nextChar())) {
-	    char c = in.readChar();
-	    s.append(c);
-	}
-
-	return s.toString();
-    }
 
     /**
-     * Reads an implementation name + its properties from the input.
-     * @param in	from which the input is read.
-     */
-    private static void readImpl(Input in) {
-	String name = readString(in);
-	in.readln();
-
-	StaticProperties sp = new StaticProperties();
-
-	while(!in.eof() && !in.eoln()) {
-	    String file = readString(in);
-	    in.readln();
-	    InputStream in2 = ClassLoader.getSystemClassLoader().getResourceAsStream(file);
-
-	    // file is relative to properties file.
-	    if (in2 == null) {
-		System.err.println("could not open " + file);
-		System.exit(1);
-	    }
-
-	    try {
-		sp.load(in2);
-	    } catch(IOException e) {
-		System.err.println("could not load properties from " + file);
-		System.exit(1);
-	    }
-	}
-	if(!in.eof()) in.readln();
-
-	synchronized(Ibis.class) {
-	    implList.add(name);
-	    implProperties.add(sp);
-	}
-    }
-
-
-    /**
-     * Reads the properties of the ibis implementations available on the current machine.
-     * @exception IOException is thrown when a property file could not be opened.
+     * Reads the properties of the ibis implementations available on the
+     * current machine.
+     * @exception IOException is thrown when a property file could not
+     *  be opened.
      */
     private static void readGlobalProperties() throws IOException {
-	Input in = openProperties();
+	InputStream in = openProperties();
 
 	implList = new ArrayList();
 	implProperties = new ArrayList();
 
-	while(!in.eof()) {
-	    readImpl(in);
+	Properties p = new Properties();
+	p.load(in);
+	in.close();
+
+	Enumeration en = p.propertyNames();
+
+	while (en.hasMoreElements()) {
+	    String name = (String) en.nextElement();
+
+	    StaticProperties sp = new StaticProperties();
+	    String propertyFiles = p.getProperty(name);
+	    if (propertyFiles != null) {
+		StringTokenizer st = new StringTokenizer(propertyFiles,
+							 " ,\t\n\r\f");
+		while (st.hasMoreTokens()) {
+		    String file = st.nextToken();
+		    in = ClassLoader.getSystemClassLoader().
+					getResourceAsStream(file);
+		    if (in == null) {
+			System.err.println("could not open " + file);
+			System.exit(1);
+		    }
+		    sp.load(in);
+		    in.close();
+		}
+	    }
+
+	    synchronized(Ibis.class) {
+		implList.add(name);
+		implProperties.add(sp);
+	    }
 	}
     }
 
@@ -325,6 +314,8 @@ public abstract class Ibis {
      * <br>
      * First, the system property ibis.property.file is tried.
      * <br>
+     * Next, a file named properties is tried using the system classloader.
+     * <br>
      * Next, current_dir/ibis_properties is tried, where current_dir indicates
      * the value of the system property user.dir.
      * <br>
@@ -332,20 +323,28 @@ public abstract class Ibis {
      * the value of the system property user.home.
      * <br>
      * If any of this fails, a message is printed, and an exception is thrown.
-     * @return descriptor from which properties can be read.
-     * @exception IOException is thrown when a property file could not be opened.
+     * <br>
+     * @return input stream from which properties can be read.
+     * @exception IOException is thrown when a property file could not
+     *  be opened.
      */
-    private static Input openProperties() throws IOException {
-	Input in = null;
+    private static InputStream openProperties() throws IOException {
 	Properties p = System.getProperties();
 	String s = p.getProperty("ibis.property.file");
+	InputStream in;
 	if(s != null) {
 	    try {
-		in = new Input(s);
-		return in;
-	    } catch (Exception e) {
-		System.err.println("ibis.property.file set, but could not read file " + s);
+		return new FileInputStream(s);
+	    } catch(FileNotFoundException e) {
+		System.err.println("ibis.property.file set, " + 
+				   "but could not read file " + s);
 	    }
+	}
+
+	in = ClassLoader.getSystemClassLoader().
+				getResourceAsStream("properties");
+	if (in != null) {
+	    return in;
 	}
 
 	String sep = p.getProperty("file.separator");
@@ -358,10 +357,8 @@ public abstract class Ibis {
 	if(s != null) {
 	    s += sep + "ibis_properties";
 	    try {
-		in = new Input(s);
-		return in;
-	    } catch (Exception e) {
-		// Ignore.
+		return new FileInputStream(s);
+	    } catch(FileNotFoundException e) {
 	    }
 	}
 
@@ -370,25 +367,11 @@ public abstract class Ibis {
 	if(s != null) {
 	    s += sep + "ibis_properties";
 	    try {
-		in = new Input(s);
-		return in;
-	    } catch (Exception e) {
-		// Ignore.
+		return new FileInputStream(s);
+	    } catch(FileNotFoundException e) {
 	    }
 	}
 
-	/* try install dir */
-	/*              // This is a bug. It makes it impossible to just copy a IPL.jar to another location and use it. --Rob
-			s = ibis.ipl.InstallConfiguration.path;
-			s += sep + "properties";
-			try {
-			in = new Input(s);
-			return in;
-			} catch (Exception e) {
-			System.err.println("Fail to open " + s);
-	// Ignore.
-			}
-			*/
 	throw new IOException("Could not find property file");
     }
 
@@ -405,12 +388,15 @@ public abstract class Ibis {
 	return res;
     }
 
-    /** Returns the static properties for a certain implementation.
-     * @param implName implementation name of an Ibis for which properties are requested.
-     * @return the static properties for a given implementation, or <code>null</code>
-     * if not present.
+    /**
+     * Returns the static properties for a certain implementation.
+     * @param implName implementation name of an Ibis for which
+     * properties are requested.
+     * @return the static properties for a given implementation,
+     *  or <code>null</code> if not present.
      */
-    public static synchronized StaticProperties staticProperties(String implName) {
+    public static synchronized StaticProperties staticProperties(
+	    String implName) {
 	int index = implList.indexOf(implName);
 	if (index < 0) return null;
 	return (StaticProperties) implProperties.get(index);
@@ -431,34 +417,42 @@ public abstract class Ibis {
      */
     public abstract void end() throws IOException;
 
-    /** Creates a {@link ibis.ipl.PortType PortType}.
-      A name is given to the <code>PortType</code> (e.g. "satin porttype" or "RMI porttype"), and
-      Port properties are specified (for example ports are "totally-ordered" and 
-      "reliable" and support "NWS"). The name and properties <strong>together</strong>
-      define the <code>PortType</code>.
-      If two Ibis implementations want to communicate, they must both create a <code>PortType</code>
-      with the same name and properties.
-      If multiple implementations try to create a <code>PortType</code> with the same name but
-      different properties, an IbisException will be thrown.
-      A <code>PortType</code> can be used to create {@link ibis.ipl.ReceivePort ReceivePorts}
-      and {@link ibis.ipl.SendPort SendPorts}.
-      Only <code>ReceivePort</code>s and <code>SendPort</code>s of the same <code>PortType</code> can communicate.
-      Any number of <code>ReceivePort</code>s and <code>SendPort</code>s can be created on a JVM
-      (even of the same <code>PortType</code>).
-      @param name name of the porttype.
-      @param p properties of the porttype.
-      @return the porttype.
-      @exception IbisException is thrown when Ibis configuration, name or p are misconfigured
-      @exception IOException may be thrown for instance when communication
-      with a nameserver fails.
-     **/
-    public abstract PortType createPortType(String name, StaticProperties p) throws IOException, IbisException;
+    /**
+     * Creates a {@link ibis.ipl.PortType PortType}.
+     * A name is given to the <code>PortType</code> (e.g. "satin porttype"
+     * or "RMI porttype"), and Port properties are specified (for example
+     * ports are "totally-ordered" and "reliable" and support "NWS").
+     * The name and properties <strong>together</strong> define the
+     * <code>PortType</code>.
+     * If two Ibis implementations want to communicate, they must both
+     * create a <code>PortType</code> with the same name and properties.
+     * If multiple implementations try to create a <code>PortType</code>
+     * with the same name but different properties, an IbisException will
+     * be thrown.
+     * A <code>PortType</code> can be used to create
+     * {@link ibis.ipl.ReceivePort ReceivePorts} and
+     * {@link ibis.ipl.SendPort SendPorts}.
+     * Only <code>ReceivePort</code>s and <code>SendPort</code>s of
+     * the same <code>PortType</code> can communicate.
+     * Any number of <code>ReceivePort</code>s and <code>SendPort</code>s
+     * can be created on a JVM (even of the same <code>PortType</code>).
+     * @param name name of the porttype.
+     * @param p properties of the porttype.
+     * @return the porttype.
+     * @exception IbisException is thrown when Ibis configuration,
+     *  name or p are misconfigured
+     * @exception IOException may be thrown for instance when communication
+     *  with a nameserver fails.
+     */
+    public abstract PortType createPortType(String name, StaticProperties p)
+	throws IOException, IbisException;
 
     /**
-     * Returns the {@link ibis.ipl.PortType PortType} corresponding to the given name.
-     *
+     * Returns the {@link ibis.ipl.PortType PortType} corresponding to
+     * the given name.
      * @param name the name of the requested port type.
-     * @return a reference to the port type, or <code>null</code> if the given name is not the name of a valid port type.
+     * @return a reference to the port type, or <code>null</code>
+     * if the given name is not the name of a valid port type.
      */
     public abstract PortType getPortType(String name);
 
@@ -510,18 +504,22 @@ public abstract class Ibis {
     /**
      * Notifies this Ibis instance that another Ibis instance has
      * joined the run.
-     * <B>Note: used by the nameserver, do not call from outside Ibis.</B>
-     * @param joinIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier identifier}
-     * of the Ibis instance joining the run.
+     * <strong>
+     * Note: used by the nameserver, do not call from outside Ibis.
+     * </strong>
+     * @param joinIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     * identifier} of the Ibis instance joining the run.
      */
     public abstract void join(IbisIdentifier joinIdent);
 
     /**
      * Notifies this Ibis instance that another Ibis instance has
      * left the run.
-     * <B>Note: used by the nameserver, do not call from outside Ibis.</B>
-     * @param leaveIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier identifier}
-     * of the Ibis instance leaving the run.
+     * <strong>
+     * Note: used by the nameserver, do not call from outside Ibis.
+     * </strong>
+     * @param leaveIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     *  identifier} of the Ibis instance leaving the run.
      */
     public abstract void leave(IbisIdentifier leaveIdent);
 } 

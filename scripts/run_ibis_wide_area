@@ -19,8 +19,6 @@ Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/build/lib:$JAVA_ROOT/jre/bin:$JAVA_
 Dpool_host_num="-Dibis.pool.host_number=$1"
 shift
 
-Dprops="-Dibis.property.file=$IBIS_ROOT/properties"
-
 #Dpool_total="-Dibis.pool.total_hosts=$1"
 shift
 
@@ -41,4 +39,4 @@ shift
 Dpool_total="-Dibis.pool.total_hosts=$1"
 shift
 
-$JAVA_ROOT/bin/java $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Xmx1024M -Xbootclasspath/p:$JAVACLASSPATH -classpath $JAVACLASSPATH: "$@"
+$JAVA_ROOT/bin/java $Dlibpath $Dpool_host_num $Dpool_total $Dns_pool $Dns_port $Dns_server -Xmx1024M -Xbootclasspath/p:$JAVACLASSPATH -classpath $JAVACLASSPATH: "$@"

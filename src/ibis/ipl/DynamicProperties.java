@@ -1,6 +1,7 @@
 package ibis.ipl;
 
 import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 /**
  * Dynamic properties associated with a send or receive port.
@@ -12,11 +13,13 @@ import java.util.Enumeration;
  */
 public class DynamicProperties { 
     /**
-     * Empty dynamic properties set. May be used by {@link ibis.ipl.ReceivePort#properties()
-     * ReceivePort.properties()} or {@link ibis.ipl.SendPort#properties() SendPort.properties()}
+     * Empty dynamic properties set. May be used by
+     * {@link ibis.ipl.ReceivePort#properties() ReceivePort.properties()}
+     * or {@link ibis.ipl.SendPort#properties() SendPort.properties()}
      * when these ports don't implement specific dynamic properties.
      */
-    public static final DynamicProperties NoDynamicProperties = new DynamicProperties();
+    public static final DynamicProperties NoDynamicProperties = 
+	new DynamicProperties();
 
     /**
      * Sets the property associated with the specified key to the
@@ -53,7 +56,7 @@ public class DynamicProperties {
 	    }
 
 	    public Object nextElement() {
-		throw new java.util.NoSuchElementException("DynamicProperties Enumeration");
+		throw new NoSuchElementException("DynamicProperties keys()");
 	    }
 	};
     }

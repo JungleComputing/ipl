@@ -76,8 +76,8 @@ public interface Registry {
      * Returns the list of receiveport identifiers that are registered
      * with this registry, and have the specified ibis as their
      * controlling ibis.
-     * @exception ClassNotFoundException is thrown if an any receiveport identifier
-     * 	is returned whose class is locally unknown.
+     * @exception ClassNotFoundException is thrown if an any receiveport
+     *  identifier is returned whose class is locally unknown.
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public ReceivePortIdentifier[] query(IbisIdentifier ident)
@@ -137,7 +137,7 @@ public interface Registry {
      *
      * @param pattern all strings in the result must start with this.
      * @return an array of names starting with <code>pattern</code> that have
-     * a receiveport identifier bound to it.
+     *  a receiveport identifier bound to it.
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public String[] list(String pattern)
