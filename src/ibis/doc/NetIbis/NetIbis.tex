@@ -1,0 +1,2305 @@
+\documentclass[11pt]{book}
+
+
+%% Packages
+
+% Language
+\usepackage[english]{babel}
+
+% Page dimensions
+\usepackage{fullpage}
+
+% Fonts
+\usepackage{palatino}
+
+% Images
+\usepackage{graphicx}
+
+% Fx objects
+\usepackage{shadow}
+\usepackage{boxedminipage}
+\usepackage{ulem}
+
+% Special text environments
+\usepackage{fancyvrb}
+\usepackage[obeyspaces]{url}
+
+% Programming tools
+\usepackage{xspace}
+\usepackage{ifthen}
+\usepackage{calc}
+
+% Gray levels management
+\usepackage{color}
+
+
+%% Setup of packages
+
+% Ulem
+\normalem
+
+% FancyVrb
+\fvset{numbers=left}
+\fvset{numbersep=2pt}
+%\fvset{obeytabs=true}
+\fvset{obeytabs=false}
+\fvset{resetmargins=true}
+\fvset{frame=lines}
+\fvset{framerule=0mm}
+\fvset{framesep=1mm}
+
+
+% ...... Background grays ............................................
+\definecolor{light}{gray}{.85}
+\definecolor{vlight}{gray}{.95}
+
+% ...... Aux. objects ................................................
+\newcounter{mylstline}
+\newlength{\mylstlength}
+
+% ...... Listing logic ...............................................
+\makeatletter
+\def\DefineVerbatimEnvironmentEx#1#2#3#4{%
+  \@namedef{#1}{\renewcommand{\FancyVerbFormatLine}{#4}\FV@Environment{#3}{#2}}%
+  \@namedef{end#1}{\@nameuse{FVE@#2}}%
+  \@namedef{#1*}{\renewcommand{\FancyVerbFormatLine}{#4}\FV@Environment{#3,showspaces}{#2}}%
+  \@namedef{end#1*}{\@nameuse{FVE@#2}}}
+\makeatother
+%\renewcommand{\FancyVerbFormatLine}[1]%
+\newcommand{\FancyVerbFormatLineRegular}[1]%
+{%
+  \footnotesize%
+  {%
+    \setcounter{mylstline}{\value{FancyVerbLine}/2*2}%
+    \setlength{\mylstlength}{\linewidth - 1em - 2pt}%
+    \ifthenelse%
+    {%
+      \value{mylstline} = \value{FancyVerbLine}%
+    }%
+    {%
+      \makebox[0pt][l]%
+      {%
+        \colorbox{light}%
+        {%
+          \rule[-0.5ex]{0cm}{.9\baselineskip}%
+          \hspace{\mylstlength}%
+        }%
+      }%
+    }%
+    {%
+      \makebox[0pt][l]%
+      {%
+        \colorbox{vlight}%
+        {%
+          \rule[-0.5ex]{0cm}{.9\baselineskip}%
+          \hspace{\mylstlength}%
+        }%
+      }%
+      \makebox[0pt][l]%
+      {%
+        \begin{picture}(0,0)(-5,-2)\put(0,0){\circle{4}}\end{picture}%
+      }%
+      \makebox[0pt][l]%
+      {%
+        \color{white}%
+        \begin{picture}(0,0)(-5,-2)%
+          \put(0,0){\circle*{2}}%
+        \end{picture}%
+      }%
+      \makebox[0pt][l]%
+      {%
+        \hspace{\mylstlength}%
+        \begin{picture}(0,0)(0,-2)%
+           \put(0,0){\circle{4}}%
+        \end{picture}%
+      }%
+      \makebox[0pt][l]%
+      {%
+        \hspace{\mylstlength}%
+        \color{white}%
+        \begin{picture}(0,0)(0,-2)%
+          \put(0,0){\circle*{2}}%
+        \end{picture}%
+      }%
+    }%
+%
+    \hspace{1cm}#1%
+  }%
+}
+
+\newlength{\deffvrbindent}
+\setlength{\deffvrbindent}{\parindent}
+
+
+\newcommand{\FancyVerbFormatLineMini}[1]%
+{%
+  \footnotesize%
+  \setlength{\baselineskip}{1.5ex}
+  {%
+    \setcounter{mylstline}{\value{FancyVerbLine}/2*2}%
+    \setlength{\mylstlength}{\linewidth - 1em - 2pt}%
+    \ifthenelse%
+    {%
+      \value{mylstline} = \value{FancyVerbLine}%
+    }%
+    {%
+      \makebox[0pt][l]%
+      {%
+        \colorbox{light}%
+        {%
+          \rule[-0.25ex]{0cm}{\baselineskip}%
+          \hspace{\mylstlength}%
+        }%
+      }%
+    }%
+    {%
+      \makebox[0pt][l]%
+      {%
+        \colorbox{vlight}%
+        {%
+          \rule[-0.25ex]{0cm}{\baselineskip}%
+          \hspace{\mylstlength}%
+        }%
+      }%
+      \makebox[0pt][l]%
+      {%
+        \begin{picture}(0,0)(-5,-2)\put(0,0){\circle{4}}\end{picture}%
+      }%
+      \makebox[0pt][l]%
+      {%
+        \color{white}%
+        \begin{picture}(0,0)(-5,-2)%
+          \put(0,0){\circle*{2}}%
+        \end{picture}%
+      }%
+      \makebox[0pt][l]%
+      {%
+        \hspace{\mylstlength}%
+        \begin{picture}(0,0)(0,-2)%
+           \put(0,0){\circle{4}}%
+        \end{picture}%
+      }%
+      \makebox[0pt][l]%
+      {%
+        \hspace{\mylstlength}%
+        \color{white}%
+        \begin{picture}(0,0)(0,-2)%
+          \put(0,0){\circle*{2}}%
+        \end{picture}%
+      }%
+    }%
+%
+    %\hspace{1cm}#1%
+    \hspace{\deffvrbindent}#1%
+  }%
+}
+
+\renewcommand{\FancyVerbFormatLine}{\FancyVerbFormatLineRegular}
+\DefineVerbatimEnvironmentEx{Miniverb}{Verbatim}{%
+baselinestretch=0}{%
+\FancyVerbFormatLineMini%
+}
+
+%%
+\let\bfseriesaux=\bfseries \def\bfseries{\sffamily\bfseriesaux}
+\sloppy
+
+
+%% Definitions
+
+\newcommand{\newdoublepage}{\newpage\cleardoublepage}
+
+\def\sep{\\[0.5ex]}
+
+\def\Java{\textsc{Java}\xspace}
+\def\Ibis{\textsc{Ibis}\xspace}
+\def\NetIbis{\textsc{NetIbis}\xspace}
+\def\TcpIbis{\textsc{TcpIbis}\xspace}
+\def\PandaIbis{\textsc{PandaIbis}\xspace}
+
+\def\ibis{\texttt{Ibis}\xspace}
+\def\netibis{\texttt{NetIbis}\xspace}
+
+\def\jd{\textsc{JavaDoc}\xspace}
+\def\ins{\textsc{Name~Server}\xspace}
+
+%% First page information
+\title{The NetIbis Manual}
+\author{Olivier Aumage}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+\tableofcontents
+\listoffigures
+\listoftables
+\mainmatter
+%______________________________________________________________________
+
+%%%%
+\chapter{User's guide}
+\label{cha:users-guide}
+
+This chapter presents \NetIbis from the user --- that is from the
+application programmer --- point of view. Section~\ref{sec:concepts}
+presents the various entities and notions needed to understand the
+basic use of \NetIbis. Section~\ref{sec:configuration} describe the
+configuration rules. Section~\ref{sec:progr-interf} details the \NetIbis
+application programming interface.
+
+%%%
+\section{Concepts}
+\label{sec:concepts}
+
+Several entities and notions are involved during a distributed
+computing session with \NetIbis. We now review the ones that are
+visible from the user application.
+
+%%
+\subsection{Ibis/NetIbis}
+\label{sec:ibisnetibis}
+
+\NetIbis is an implementation of the \Ibis Programming Layer (IPL) as
+\TcpIbis and \PandaIbis are. \netibis is also a subclass of the \ibis
+class written in \textsc{Java}. Instantiating the \netibis class both
+initializes the core part of \NetIbis and provide an entry-point to
+the \NetIbis programming interface. Even if it might work in some
+cases, it is considered \emph{unsafe} to create more than one \netibis
+instance --- and more generally, more than one \ibis instance --- in
+the same process, during the lifetime of that process.
+
+%%
+\subsection{Communication Ports}
+\label{sec:communication-ports}
+
+\Ibis uses the concept of communication port as an entry-point for
+outgoing communication (send port) or incoming communication (receive
+port). A send port can be connected to one or more receive ports. A
+receive port may accept incoming connections from one or more send
+ports.
+
+%
+\subsubsection{Connections}
+\label{sec:connections}
+
+In the Ibis context a connection is a unidirectional FIFO-ordered
+virtual communication link between two (possibly not distinct)
+processes. Connections are isolated from each other unless the
+underlying communication software/hardware prevents this.
+
+
+\subsubsection{Send Ports}
+\label{sec:send-ports}
+
+Sending a message through a send port actually sends the message to
+each of the peer receive ports of this send port. Thus, connecting a
+send port to more than one receive port is a way to achieve multi-cast
+communication, provided that a multi-casting driver has been included
+in the port's driver tree (see \ref{sec:driver-trees}).
+
+
+\subsubsection{Receive Ports}
+\label{sec:receive-ports}
+
+This behavior is of course not completely symmetrical on the receive
+side. In the case that a receive port accepted more than one incoming
+connection, the incoming messages over these connections are
+serialized. It is not possible to extract a new message while the
+previous one has not been completely extracted.
+
+\subsubsection{Port Type}
+\label{sec:port-type}
+
+The send and receive port may be configured, either in a configuration
+file or dynamically at the creation of the port. The set of
+configuration properties of a port is called a \textit{port type}. The
+port type of a send port and the port type of a receive port must
+exactly match in order to be connected to each other.
+
+
+%%%
+\section{Configuration}
+\label{sec:configuration}
+
+The \NetIbis implementation of \Ibis has been designed to make the
+send port/receive port communication paths completely configurable,
+according to the actual needs (or non-needs) of the application. These
+communication paths are built using one or more \textit{drivers}
+organized as a \textit{driver tree}.
+
+\subsection{The Driver Trees}
+\label{sec:driver-trees}
+
+Each driver provide one \textit{added value}, for instance a
+\textit{filtering} added value like the ``serialization of Java
+objects into Java native types'' or a \textit{networking} added value
+like the ``transmission of blocks of bytes over GM''. Thus, the
+\NetIbis drivers should be seen has basic building blocks for
+communication stacks. The filtering drivers are listed in
+Table~\ref{tab:filter-drivers} and the networking drivers are listed
+in Table~\ref{tab:net-drivers}.
+
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{p{2cm}p{10cm}}
+    \hline
+    \textbf{Name}    & \textbf{Added value} \sep
+    \texttt{id}      & \textit{Identity} driver, does nothing\\
+    \texttt{rel}     & \textit{Reliability} driver\\
+    \texttt{bytes}   & ``Native types'' to ``bytes'' conversion\sep
+    \texttt{gen}     & Generic multi-connection splitter/poller\\
+    \texttt{multi}   & Multi-protocol driver\sep
+    \texttt{s\_ibis} & \Ibis \textit{serialization} driver\\
+    \texttt{s\_sun}  & \textsc{Sun} \emph{serialization} driver\\
+    \hline
+  \end{tabular}
+  \caption{Filtering Drivers}
+  \label{tab:filter-drivers}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{p{2cm}p{10cm}}
+    \hline
+    \textbf{Name}    & \textbf{Added value} \sep
+    \texttt{def}        & Default driver (data goes through the service connection)\sep
+    \texttt{pipe}       & Pipe-based loop-back driver (for intra process communication)\\
+    \texttt{gm}         & Driver Myricom GM networks\\
+    \texttt{udp}        & UDP driver (\emph{unreliable}) \sep
+    \texttt{tcp}        & TCP+DataStream\\
+    \texttt{tcp\_blk}   & TCP with block transfers\\
+    \texttt{tcp\_plain} & Pure TCP driver\\
+    \hline
+  \end{tabular}
+  \caption{Networking Drivers}
+  \label{tab:net-drivers}
+\end{table}
+
+Each filtering driver may have one or more sub-drivers. As a result,
+the general case of a configured send or receive port communication
+stack is a tree of zero or more filtering drivers with each leaf being
+a networking driver. The \textit{multi-protocol} driver is an example
+of a driver owning one or more sub-drivers, which is its main purpose.
+
+\subsection{The Configuration File}
+\label{sec:configuration-file}
+
+The communication stack of a port can be specified as a set of
+specially formatted properties. Each property is a \texttt{(name,
+  value)} pair.
+
+These properties may be written into a configuration file and/or set
+at run-time when the port type is being created. Both means are
+equivalent with the exception that any run-time specified property
+takes precedence over the same property in a configuration file. By
+decreasing order of priority, the actual configuration file used is
+chosen as follows.
+
+\begin{itemize}
+\item The value of the \texttt{netibis.config.filename} system
+  property.
+\item The file named \texttt{net\_port\_type\_default.txt} in the
+  \emph{current} directory.
+\item The file named \texttt{net\_port\_type\_default.txt} in the
+  \emph{home} directory.
+\item No configuration file.
+\end{itemize}
+
+The format of the configuration file is line oriented. Each line may
+contain one of the following contents.
+
+\begin{itemize}
+\item A property specified as: \texttt{<name>=<value>}.
+\item A comment beginning with \texttt{\#}.
+\item A blank line.
+\end{itemize}
+
+The \emph{name} of the
+property is either a single word or a string conforming to the
+following format.
+
+\begin{Miniverb}
+
+  [/][context1[#subcontext1][/cntxt2[#subcntxt2].../cntxtN[#subcntxtN]]]:word
+
+\end{Miniverb}
+
+The square brackets indicate optional parts. The \emph{context} words and the
+\emph{sub-context}\label{subcontext} words specify in which restricted context the property
+named \texttt{word} will be available. The \emph{context} word is
+(usually) the name of a driver. The optional \emph{sub-context} word is
+used to \emph{narrow} the context of the property.
+
+The part of the property name before the colon should be seen as a
+kind of \emph{path} into the driver tree. If the leading slash is
+used, the path is an \emph{absolute} path, otherwise it is a relative
+path, just like with usual \textsc{Unix} file-systems paths. A single
+slash corresponds to the port itself. Here are a few examples of
+property settings.
+
+A single word property (\texttt{Log}). This configuration line turns
+the low-level trace debugging routines on in all the \NetIbis drivers.
+\begin{Miniverb}
+
+  Log=true
+
+\end{Miniverb}
+
+The following configuration lines specifies the \texttt{Driver}
+property for the port. This is the usual way to select the topmost
+driver. Here, we select the ``Ibis serialization'' filtering driver.
+\begin{Miniverb}
+
+  /:Driver=s_ibis
+
+\end{Miniverb}
+
+We now select the sub-driver for the \texttt{s\_ibis} driver, here the
+``Native-type to byte conversion'' driver.
+\begin{Miniverb}
+
+  /s_ibis:Driver=bytes
+
+\end{Miniverb}
+
+We now select the sub-driver for the \texttt{bytes} driver, here the
+``Multi-protocol'' driver.
+\begin{Miniverb}
+
+  /s_ibis/bytes:Driver=multi
+
+\end{Miniverb}
+
+Then, we set some properties for the \texttt{multi} driver. We select
+a sub-driver, here the generic multi-cast driver. We also select a
+multi-protocol scheme plug-in, here the \texttt{random} plug-in which
+randomly selects a driver subtree out of two (the subtree corresponding
+to the `\texttt{a}' sub-context and the one corresponding to the
+`\texttt{b}' sub-context) for each new network connection.
+\begin{Miniverb}
+
+  /s_ibis/bytes/multi:Driver=gen
+  /s_ibis/bytes/multi:Plugin=random
+
+\end{Miniverb}
+
+We concludes this example configuration by selecting two networking
+drivers, one for each subtree generated by the \texttt{multi} driver.
+Here we select the \texttt{tcp\_blk} networking driver for the
+`\texttt{a}' branch and the \texttt{gm} networking driver for the
+`\texttt{b}' branch.
+\begin{Miniverb}
+
+  /s_ibis/bytes/multi#a/gen:Driver=tcp_blk
+  /s_ibis/bytes/multi#b/gen:Driver=gm
+
+\end{Miniverb}
+
+Suppose we want to include the dummy ``identity'' driver in-between
+the \texttt{gen} driver and the networking drivers on both sub-trees.
+We just need to replace the two previous lines with the following
+ones.
+\begin{Miniverb}
+
+  /s_ibis/bytes/multi/gen:Driver=id
+  /s_ibis/bytes/multi#a/gen/id:Driver=tcp_blk
+  /s_ibis/bytes/multi#b/gen/id:Driver=gm
+
+\end{Miniverb}
+There is no sub-context string on the first of the three lines, which
+signify that the property value will be used as a default for the two
+subtrees. The somewhat general rule is that the more narrow the
+context of the property is, the more priority it gets.
+
+A side effect of this rule is that a property specified with an
+absolute path always gets the priority over a property with a relative
+path. Therefore, any attempt to simplify the configuration should be
+accompanied with a careful checking of potential collision.
+
+Another side effect is that a property specified with a single word
+always gets the lowest priority. This can be used to set a general
+default property than can later be overridden locally.
+
+If we suppose that our example configuration does not contain any
+other setting, the configuration can therefore be simplified as
+follows.
+\begin{Miniverb}
+
+  Log=true
+  Driver=s_ibis
+  s_ibis:Drivers=bytes
+  bytes:Drivers=multi
+  multi:Driver=gen
+  gen:Driver=id
+  multi#a/gen/id:Driver=tcp_blk
+  multi#b/gen/id:Driver=gm
+
+\end{Miniverb}
+
+%%%
+\section{Programming Interface}
+\label{sec:progr-interf}
+Let us now have a look at how to use \NetIbis in distributed
+application programming. We first explain the major steps required in
+setting-up the application for a communication session \emph{before}
+entering the application core computing part and in cleaning the
+communication session \emph{after} it.
+
+%%
+\subsection{NetIbis Instance}
+\label{sec:netibis-instance}
+
+As explained in section~\ref{sec:ibisnetibis}, the main entry point of
+the \NetIbis application programming interface (API) is the \netibis
+class. The first step an application should do in order to use
+\NetIbis is therefore to create an instance of the \netibis class.
+
+%
+\subsubsection{Initialization}
+\label{sec:initialization}
+
+One way to create a \netibis instance is to use the
+\texttt{createIbis} static method of the \texttt{Ibis} class. Here is
+an example:
+
+\begin{Miniverb}
+
+  Ibis ibisInstance = null;
+
+  try {
+    ibisInstance = Ibis.createIbis(null);
+  } catch (IbisException e) {
+    throw new Error(e);
+  }
+
+\end{Miniverb}
+
+The first and only argument of the \texttt{createIbis} method may be
+used to specify a handler to be notified of configuration size
+changes. See \jd for more details. The actual \Ibis implementation to
+instantiate may be selected through the \texttt{ibis.name}
+command-line system property. Set this property to \texttt{"net"} in
+order to select \NetIbis as the \Ibis implementation to use.
+
+%
+\subsubsection{Clean-up}
+\label{sec:clean-up}
+
+At the end of the computing session, the \netibis instance should be
+cleaned using its \texttt{end} method, after any other \NetIbis object
+has been disposed of. Among other things, this ensures that the \ins
+is properly made aware that the current node is about to leave.
+
+%%
+\subsection{Ports}
+\label{sec:ports}
+
+Once the \netibis instance is ready, it can be used for creating port
+types. These port types may in turn be used in creating send and
+receive ports conforming to these port types.
+
+%
+\subsubsection{Initialization}
+\label{sec:initialization-2}
+
+Creating a \emph{port type} is done using the \texttt{createPortType}
+method of the \netibis class instance. This method requires a name and
+a set of properties. The set of properties will be completed with the
+contents of the \NetIbis configuration file if used. The port name
+visibility range is the whole session. Therefore, if a process creates
+a port type \texttt{a} with a set of properties \texttt{A} and next
+another process creates another port type named \texttt{a} with a set
+of properties \texttt{B}, the sets \texttt{A} and \texttt{B} must
+exactly match. they must have the same number of properties with the
+same name and the same value. This requirement is necessary to ensure
+that the two ports with the same port type will be compatible.
+
+Creating send and receive ports involve the use of the various
+\texttt{createSendPort} and \texttt{createReceivePort} methods of the
+port type object. The creation of a send port only requires an
+optional name (useful mainly for debugging) and an optional send port
+replacer~\footnote{TO-DO: Give a definition of a replacer.}.
+
+The creation of a receive port requires a \emph{mandatory}
+\texttt{name}, an optional \texttt{up-call handler} for asynchronous
+message receiving and an optional \texttt{connection up-call} for
+incoming connection notification\footnote{The incoming connection
+  notification feature is actually not supported in the current
+  implementation of \NetIbis}. The \texttt{name} argument is the name
+that will be used by other nodes to refer to this receive port when
+later requesting the \emph{receive port identifier} to the name server.
+
+%
+\subsubsection{Incoming Connection Setup}
+\label{sec:incom-conn-setup}
+
+Accepting a new incoming connection on a receive port does not require
+any special step. In should only be insured that the receive port is
+currently \emph{allowing} incoming connections.
+
+Incoming connections are initially disabled. They can be enabled using
+the \texttt{enableConnections} method of the receive port and can
+later be disabled again using the \texttt{disableConnections} method.
+In \NetIbis, both methods can be safely called multiple times in a
+row, but two or more calls do not stack. Hence, a single call to
+\texttt{enableConnections} always enable the incoming connections, no
+matter how many times \texttt{disableConnections} was called.
+Similarly, a single call to \texttt{disableConnections} always
+disables incoming connections, no matter how many times
+\texttt{enableConnections} was called.
+
+
+\paragraph{Note:}
+\label{sec:note}
+
+The \texttt{disableConnections} method may block if a pending
+incoming connection is currently being processed.
+
+%
+\subsubsection{Outgoing Connection Setup}
+\label{sec:outg-conn-setup}
+
+In order to connect a send port to a receive port, the \emph{receive
+  port identifier} is necessary. This receive port identifier can be
+obtain using by requesting a lookup to the session's name server using
+the receive port name.
+
+Actually connecting a send port to a receive port is done using the
+send port \texttt{connect} method. This method requires the targeted
+receive port identifier and an optional millisecond
+timeout\footnote{The timeout version of the \texttt{connect} method is
+  currently not implemented in \NetIbis}. This method does not return
+anything but may throw an exception if the connection request fails.
+
+%
+\subsubsection{Communication}
+\label{sec:communication-1}
+
+The \Ibis communication model is a \emph{message passing} model.
+Therefor, communication between nodes involves the construction (on
+the sending side) and extraction (on the receiving side) of
+symmetrical delimited series of pieces of data.
+
+\paragraph{Sending A Message}
+\label{sec:sending-message}
+
+The message construction sequence begins with a call to the
+\texttt{newMessage} method of the send port. This method does not require
+any argument in contrast with some other message passing environments,
+because the destination(s) of the message is (are) the receive port(s)
+to which the send port is currently connected. It should be noted that
+with the current version of \NetIbis, attempting to send a message
+through a send port that does not have any outgoing connections will
+cause the \texttt{newMessage} method to throw an exception.
+
+If successful, the call to the \texttt{newMessage} method returns a
+\texttt{WriteMessage} object which will be use to actually append
+pieces of data to the message. In the case of the \NetIbis
+implementation, the \texttt{WriteMessage} object is actually the send
+port itself\footnote{\texttt{WriteMessage} is an interface.} but other
+\Ibis implementations might use different approaches.
+
+The application appends data to the message using the appropriates
+\texttt{write*} methods of the \texttt{WriteMessage} object (see \jd
+for the details). The \NetIbis implementation may or may not
+immediately send each piece of data. The application should not rely
+on the specific behavior of an implementation. In particular, the
+application should not modify any piece of data already appended to
+the message while this message is still under construction.
+
+The message construction ends with a call to the \texttt{send} method
+of the \texttt{WriteMessage} object followed by a call to the
+\texttt{finish} method of the same object. The \texttt{send} call
+maybe used by some implementations that fully bufferize the whole
+message to know that this message is complete and can be sent. The
+\texttt{finish} call is used to wait for the send request completion.
+Once the \texttt{finish} call returns, the message has been sent.
+This method also `discard' the \texttt{WriteMessage} object.
+
+\paragraph{Receiving A Message}
+\label{sec:receiving-message}
+
+There are two main ways to receive a message, either with an
+\emph{explicit receive} operation or with an \emph{up-call}. The former
+one is synchronous while the later one is asynchronous.
+
+An synchronous message receive can be done using the \texttt{receive}
+method or the \texttt{poll} method of the receive port. The
+\texttt{receive} method is \emph{blocking}. It will not return until
+an incoming message is ready to extract. The \texttt{poll} method is
+the corresponding \emph{non-blocking} version. Both methods return a
+\texttt{ReadMessage} object in case of success. In the case of
+\NetIbis, the \texttt{ReadMessage} object is actually the receive port
+itself. The \texttt{poll} method returns \texttt{null} if there is not
+any message to extract immediately.
+
+It should be noted that when a \texttt{poll} or \texttt{receive} call
+successfully returns, the incoming message \emph{must} be extracted
+before doing a new \texttt{poll} or \texttt{receive} call again.
+Multiple \texttt{poll} calls in a row are only allowed while the
+polling requests are unsuccessful\footnote{There is of course no
+  problem with \texttt{receive} as this method only returns when a
+  message is available}.
+
+The asynchronous message receive support requires the application to
+register an \emph{up-call handler} at the receive port creation time,
+by providing an object that implements the \texttt{ibis.ipl.Upcall}
+interface. This interface only has a single method called
+\texttt{upcall}. The \texttt{upcall} method gets a
+\texttt{ReadMessage} object as its first and only argument.
+
+Whether obtained through a synchronous receive or an up-call handler,
+the \texttt{ReadMessage} object can be used to extract the
+corresponding incoming message. This is done using the set of
+\texttt{read} methods of the \texttt{ReadMessage} object. The series
+of extraction calls to receive the pieces of data constituting the
+message must \emph{exactly match} the series of construction calls
+that was used to send this message. By ``exactly match'', we mean that
+the order and the number of calls must be the same on each side of the
+connection\footnote{Or the connection\textbf{s} interface the send
+  port is connected to multiple receive ports}. In particular, sending
+an array or array slice as one single piece and receiving it as
+several smaller pieces or single array elements (or the other way
+round) will result in unspecified behavior. It is also unspecified to
+send (receive) a native type array as an object while receiving
+(sending) it as a plain native type array (or array slice).
+
+Once the extraction is complete, the \texttt{ReadMessage} object is
+discarded using its \texttt{finish} method. In the special case of an
+up-call handler, simply returning from the up-call handler is (almost) equivalent
+to calling \texttt{finish}, and the \texttt{finish} call is therefore
+optional. The only difference between a \texttt{finish} and up-call
+handler return is that the application is allowed to ``keep'' using
+the up-call thread after calling \texttt{finish}. In that case, an
+subsequent incoming message will result in executing the corresponding
+up-call on a new fresh thread. It should be noted that no new up-call
+may be generated while a former message extraction has no been
+completed by either calling \texttt{finish} or leaving the up-call
+handler.
+
+The actual generation of up-calls may be controlled by the
+\texttt{enableUpcalls} and the \texttt{disableUpcalls} method of the
+\texttt{ReceivePort} object and are initially disabled. If an up-call
+handler was provided when the receive port was created but the up-call
+generation is currently disabled, an incoming message may be extracted
+using the regular synchronous receive methods. If the up-call
+generation is currently enabled, up-calls get the priority over
+synchronous receive calls. As a result, any synchronous receive call
+will not be served until the up-call generation gets disabled and a new
+incoming message is detected. Nevertheless, programs should probably
+avoid using synchronous receive calls while up-call generation is
+enabled, as a general rule.
+
+%
+\subsubsection{Clean-up}
+\label{sec:clean-up-2}
+
+The send ports and receive ports should be disposed of using their
+\texttt{free} method when not used anymore. It is up to the
+application to ensure that no more messages are to be expected on a
+given receive port and that it is safe to close it.
+
+Once all the send ports and receive ports have been disposed of, the
+\Ibis instance itself may be discarded by calling its \texttt{free}
+method. Actually, these clean-up calls are not strictly mandatory but
+are considered good practice and could be used in the future to tell
+an unexpected connection lost from a regular end-of-session connection
+close.
+
+
+\subsection{Example}
+\label{sec:example}
+
+\begin{figure}[htbp]
+  \centering
+\begin{Miniverb}
+import ibis.ipl.*;
+
+public final class Mini {
+  public static void main(String [] args) {
+    try {
+      Ibis ibis         = Ibis.createIbis(null);
+      PortType t        = ibis.createPortType("example_port", null);
+      Registry registry = ibis.registry();
+      IbisIdentifier id = ibis.identifier();
+
+      if (id.equals(registry.elect("example_master", id))) {
+        SendPort sport = t.createSendPort();
+        ReceivePortIdentifier ident = null;
+
+        do {
+          ident = registry.lookup("example_slave_port");
+          if (ident == null) {
+            Thread.sleep(500);
+          }
+        } while (ident == null);
+        sport.connect(ident);
+
+        WriteMessage out = sport.newMessage();
+        out.writeByte((byte)1);
+        out.send();
+        out.finish();
+
+        sport.free();
+      } else {
+        ReceivePort rport = t.createReceivePort("example_slave_port");
+        rport.enableConnections();
+
+        ReadMessage in = rport.receive();
+        byte b = in.readByte();
+        System.err.println("b = "+b);
+        in.finish();
+
+        rport.free();
+      }
+
+      ibis.end();
+    } catch (Exception e) {
+      throw new Error(e);
+    }
+  }
+}
+\end{Miniverb}
+
+  \caption{A Minimalistic Example}
+  \label{fig:mini-example}
+\end{figure}
+
+Let's now have a look at a minimalistic but complete example. This
+example assume a 2-processes session where one process (the
+\emph{master}) sends a single byte to the other process (the
+\emph{slave}). The full listing is presented on
+figure~\ref{fig:mini-example}. The first line declares the imports
+required to use Ibis.
+\begin{Miniverb}
+import ibis.ipl.*;
+\end{Miniverb}
+
+Then, we initialize \Ibis and our port type. In this example, we do
+not specify any run-time properties for the port type, so all the
+properties will be read from the configuration file.
+\begin{Miniverb}
+      Ibis ibis  = Ibis.createIbis(null);
+      PortType t = ibis.createPortType("example_port", null);
+\end{Miniverb}
+
+After that we retrieve the \emph{registry} and the local \Ibis
+instance \emph{identifier} and we use the registry to elect the
+\emph{master} process (and hence the \emph{slave} process too).
+\begin{Miniverb}
+      Registry registry = ibis.registry();
+      IbisIdentifier id = ibis.identifier();
+
+      if (id.equals(registry.elect("example_master", id))) {
+        . . .  // Master part
+      } else {
+        . . .  // Slave  part
+      }
+\end{Miniverb}
+The registry symbolizes an access to the session \emph{name server}.
+It can be used to perform various interprocess operations, like
+organizing elections as above.
+
+The first parameter of the \texttt{elect} method is the name of the
+election, used to identify this election, and the second argument is
+an \texttt{Object} which will be returned to all processes
+participating to the election if the current process wins the
+election.
+
+An election is not a barrier and participating processes do not wait
+for each other. This means that several elections may be conducted
+simultaneously as long as each election has a unique identifier. An
+election identifier may not subsequently be reused during the same
+session.
+
+The master side creates a send port. It then looks up the slave
+receive port's identifier, again using the registry. Once the receive
+port identifier has been found, the master connects its send port to
+the slave's receive port.
+\begin{Miniverb}
+        SendPort sport = t.createSendPort();
+        ReceivePortIdentifier ident = null;
+
+        do {
+          ident = registry.lookup("example_slave_port");
+          if (ident == null) {
+            Thread.sleep(500);
+          }
+        } while (ident == null);
+        sport.connect(ident);
+\end{Miniverb}
+
+Meanwhile, the slave creates a receive port and enable incoming
+connections.
+\begin{Miniverb}
+        ReceivePort rport = t.createReceivePort("example_slave_port");
+        rport.enableConnections();
+\end{Miniverb}
+
+After the master send port has been successfully connected to the
+slave receive port, the actual communication can start. On the master
+side, the process first creates a new outgoing message. Using the
+\texttt{WriteMessage} object it just obtained, it appends a byte of
+data to this message. Just in case the underlying layer was waiting
+for sending the message, the master process calls \texttt{send}. And
+finally, it waits for the transfer completion by calling
+\texttt{finish}.
+\begin{Miniverb}
+        WriteMessage out = sport.newMessage();
+        out.writeByte((byte)1);
+        out.send();
+        out.finish();
+\end{Miniverb}
+
+On the other side, the slave process performs a synchronous
+\texttt{receive} call in order to wait for the master's message. Upon
+message arrival, the \texttt{receive} method returns a
+\texttt{ReadMessage} object which the slave use to extract the data
+byte from the message and subsequently complete the reception by a
+\texttt{finish} call.
+\begin{Miniverb}
+        ReceivePort rport = t.createReceivePort("example_slave_port");
+        rport.enableConnections();
+\end{Miniverb}
+
+To conclude, the master closes its send port and the slave does the
+same with its receive port.
+\begin{Miniverb}
+    . . .
+        // Master part
+        sport.free();
+    . . .
+        // Slave  part
+        rport.free();
+    . . .
+\end{Miniverb}
+
+Finally, the session ends with the termination of the \Ibis instance.
+\begin{Miniverb}
+      ibis.end();
+\end{Miniverb}
+
+%______________________________________________________________________
+
+%%%%
+\chapter{Programmer's Guide}
+\label{cha:programmers-guide}
+
+This chapter presents some technical information about the \NetIbis
+internals. It explains the current organization of the existing code
+and gives some details about how to extend the functionality of
+\NetIbis through writing new drivers.
+
+%%%
+\section{Overview}
+\label{sec:overview}
+
+We start with a general overview of \NetIbis from the internal point
+of view. This tour of the internals is completed with a set of
+programming guidelines that should help keeping new added code
+consistent with existing code.
+
+%%
+\subsection{Main Architecture}
+\label{sec:main-architecture}
+
+\NetIbis is basically organized in a two-layer fashion. The upper
+layer implements the \Ibis Programming Layer interface (IPL) in a
+generic manner independent from underlying networking hardware
+details. The lower layer is responsible for dealing with these
+details. It is made of a set of \emph{driver boxes} that may be used
+together to build a driver tree fitting both the networking resource
+characteristics and the actual specific application needs.
+
+%%
+\subsection{Programming guidelines}
+\label{sec:progr-guid}
+
+Before going further into \NetIbis internals' details, a few general
+guidelines should be followed when adding code into \NetIbis. These
+guidelines are presented below, without any specific order.
+
+% - name all the threads
+
+\paragraph{Name all the threads.}
+\label{sec:name-all-threads}
+\NetIbis uses a \textbf{lot} of threads for many kinds of jobs.
+Uniquely naming new threads is therefore important to simplify
+debugging sessions and to detect blocked threads at the end of the
+session.
+
+% - avoid non-interruptible locks
+
+\paragraph{Avoid non-interruptible locks.}
+\label{sec:avoid-non-interr}
+
+\NetIbis has been designed to provide a minimum level of network-fault
+tolerance. That especially means that no part of the \NetIbis code
+should be irrecoverably locked when a internal thread is waiting for
+some event on a given connection and that connection suddenly needs to
+be closed due to a network failure. The various locks provided by the
+\NetIbis distribution (see~\ref{sec:locks}) should be safe in that
+respect. On the contrary, the \textsc{Java}'s \texttt{synchronized}
+keyword is not safe in that respect as it is not interruptible and as
+result should be used carefully. Typically, this keyword should only
+be used in cases where the synchronization does not depend from
+successfully sending or receiving something on the network.
+
+% - propagate close and interrupt events
+
+\paragraph{Propagate close and interrupt events.}
+\label{sec:prop-close-interr}
+
+This guideline is directly related to the previous one. It requires
+\texttt{InterruptedException} interrupts and ``closed connection''
+notifications to be propagated using the
+\texttt{NetIbisInterruptedException} and the
+\texttt{NetIbisClosedException} respectively. Proper propagation of
+these exception is critical to the network-fault tolerance support in
+\NetIbis.
+
+% - beware of multiple caching levels
+
+\paragraph{Beware of multiple caching levels.}
+\label{sec:beware-mult-cach}
+
+The highly modular organization of \NetIbis may lead to unexpected
+effects if all modules get equipped with various kind of memory
+caching mechanisms without taking into account other existing memory
+block caching pools. As a rule of thumb, caching should be done using
+class-level pools (that is \texttt{static} entities in the
+\textsc{Java} meaning) instead of instance-levels pools. 
+
+%%%
+\section{User Programming Interface}
+\label{sec:user-progr-interf}
+
+This section describe the upper layer of the \NetIbis architecture
+which implements the user visible programming interface and the
+various objects involved in building this layer.
+
+%%
+\subsection{Connections}
+\label{sec:connections-1}
+
+While not directly visible from and manipulated by the user, the
+\emph{connection} is the fundamental concept in \NetIbis networking.
+It symbolizes an isolated and unidirectional virtual networking link
+going from a source to a destination node. A \NetIbis connection is
+FIFO-ordered and completely isolated from other connections, unless
+the underlying networking environment used by this connection prevents
+it.
+
+\NetIbis connections actually are made of two network links. The
+\emph{application} link is a unidirectional link and uses the
+networking software/hardware selected by the user. It is exclusively
+used by the application. The \emph{service} link is a bi-directional
+link made of a pair of streams\footnote{TCP streams in the current
+  \NetIbis implementation.} and may be used by the \NetIbis internals
+to exchanges data between the source and destination nodes of the
+connection, for connection setup information transfer and
+synchronization, and for features involving in-session dynamic
+negotiation.
+
+In order to prevent dead-locks and to avoid the needs of complex
+synchronizations, the service link input and output streams of a
+connection are not accessed directly. Instead they are indirectly
+accessed through multiplexed virtual sub-streams that can be
+dynamically allocated at any time during the session. Each virtual
+sub-stream is made of a \Java object stream transparently multiplexed
+with other existing virtual sub-streams on the actual input or output
+service link stream.
+
+%%
+\subsection{SendPort Objects}
+\label{sec:sendport-objects}
+
+The \texttt{NetSendPort} class implements the \texttt{SendPort} and
+\texttt{WriteMessage} interfaces of the IPL. The reason for not
+providing a separate class in order to implement the
+\texttt{WriteMessage} interface is that both interfaces actually
+requires access to almost the same set of class members. As a result,
+separating the \texttt{NetSendPort} class into two classes would imply
+either to copy a lot of data from the \texttt{SendPort} instance to
+each new instance of the \texttt{WriteMessage} class or to give each
+\texttt{WriteMessage} instance an access to the \texttt{SendPort} data
+members. Both solutions are therefore not really interesting.
+
+The \texttt{NetSendPort} object also implements two internal \NetIbis
+interfaces.  The first one is the \texttt{NetPort} interface and
+the second one is the \texttt{NetEventQueueConsumer} interface.
+
+The \texttt{NetPort}'s purpose is to provide a unified way to
+reference both \texttt{NetSendPort} and \texttt{NetReceivePort}
+objects in contexts where the actual nature of a given port does not
+matter. This \texttt{NetPort} interface currently provide the
+\texttt{getPortType} method.
+
+The \texttt{NetEventQueueConsumer} interface implementation is the means
+through which a \NetIbis class enables itself to subscribe to a
+\texttt{NetEventQueue} instance using a \texttt{NetEventQueueListener}
+object. In the current \NetIbis send port implementation, event queues
+are used to asynchronously inform the send port about connection close
+events.
+
+%%
+\subsection{ReceivePort Objects}
+\label{sec:receiveport-objects}
+
+Like the \texttt{NetSendPort} class, the \texttt{NetReceivePort}
+implements the \texttt{NetPort} and the \texttt{NetEventQueueConsumer}
+interfaces. Symmetrically with respect to the \texttt{NetSendPort}
+class, it also implements the \texttt{ReceivePort} and
+\texttt{ReadMessage}. On top of that, the \texttt{NetReceivePort}
+class implements a fifth interface called \texttt{NetInputUpcall}.
+
+The \texttt{NetInputUpcall} interface provide an entry point for each
+lower layer drivers to trigger incoming message up-calls in the
+\texttt{NetReceivePort}. The \texttt{NetInputUpcall} interface export
+a single method \texttt{inputUpcall}. In the \texttt{NetReceivePort},
+the implementation of this method is, among other thing, responsible
+of triggering the user defined incoming message up-call.
+
+%%%
+\section{Driver Programming Interface}
+\label{sec:driv-progr-interf}
+
+The lower layer of \NetIbis is responsible for interfacing the generic
+IPL implementation provided by the upper \NetIbis layer with the
+networking resources. It is built out of boxes called \emph{drivers}.
+Each driver box may itself provide \emph{input} boxes and
+\emph{output} boxes. Input and output boxes are used to actually carry
+network connections (see Section~\ref{sec:connections-1}).
+
+The programming interfaces of these three different sets of boxes
+(driver, input and output) are uniform in each set. The consequence of
+this characteristic is that all drivers are used the same way and are
+therefore transparently exchangeable (unless their semantics prevents
+this\footnote{For instance, a driver managing a physical network will
+  always be in the lowest position}). The same is true for input and
+output boxes.
+
+Each input (resp. output box) may control one or more input (resp.
+output) boxes and optionally one or more output (resp. input) boxes
+from possibly different drivers. An example of output object managing
+several output is a multi-cast output. An example of an output object
+managing both an output and an input is a reliability driver's output
+that would use the output for its main data connection and the input
+for the reverse acknowledgment connection. Finally a driver could do
+the other way round and mix several output or input's connections into
+one single multiplexed output or input.
+
+%%
+\subsection{Driver Objects}
+\label{sec:driver-objects}
+
+Each driver should provide a \texttt{Driver} class extending the
+\texttt{NetDriver} abstract class and located in a sub-directory of
+the \NetIbis \texttt{"net"} directory. This \texttt{Driver} class will
+be instantiated at most once per \NetIbis session.\footnote{Actually,
+  each driver is instantiated at most once by a \texttt{NetIbis} \emph{instance}
+  so, theoretically, a process running more than one \texttt{NetIbis}
+  instance could have more than one instance of the same driver but
+  running multiple \texttt{NetIbis} instances in the same process is
+  not officially supported.}
+
+The \texttt{Driver} class is used to manage the state of each
+networking object and related networking resource controlled by this
+driver at any time during the session. This means that an instance of a
+\texttt{Driver} class has a global view of the entities involved in
+networking with this driver.
+
+Each \texttt{NetDriver} subclass should define the following three
+methods that are declared \texttt{abstract} in \texttt{NetDriver}.
+\begin{itemize}
+
+\item The method \texttt{getName} should return the name of the
+  driver. The driver's name should match the driver's directory name.
+
+\item The method \texttt{newInput} is called in order to create a new
+  driver-specific sub-class instance of the \texttt{NetInput} class.
+
+\item Similarly, the method \texttt{newOutput} is called when the
+  creation of a new driver-specific sub-class instance of the
+  \texttt{NetOutput} class.
+
+\end{itemize}
+The \texttt{newInput} and \texttt{newOutput} methods both take a
+port-type parameter and a context-string parameter in order to
+specialize the communication object creation according to the port
+settings and to the position of the new I/O object in the port's driver
+hierarchy.
+
+%%
+\subsection{Input and Output}
+\label{sec:input-output}
+
+The input and output objects are responsible for managing the network
+connections. Each object may control one or more connection. Each
+connection may go through one or more objects before reaching the
+network.
+
+%
+\subsubsection{Common Characteristics}
+\label{sec:comm-char}
+An I/O object is providing an \emph{added value} (possibly empty)
+applied to the data passing through the connections it manages. The
+series of output objects encountered by an outgoing network connection
+should match the reversed series of input objects encountered on the
+corresponding incoming connection on the other side.
+
+%
+\subsubsection{Output Objects}
+\label{sec:output-objects}
+
+
+\paragraph{Single Added Value Concept}
+\label{sec:single-added-value}
+
+An output object is supposed to take care about one or more outgoing
+connections. The actual way these connections are taken care of is up
+to the implementation. Here are some examples of scenarios:
+\begin{itemize}
+
+\item Put the data carried through each connection onto the network.
+  Here, the considered output object is acting as a network driver.
+
+\item Forward all the connections to a single lower-level output
+  object. Here, the considered output object is acting as filter on
+  the data.
+
+\item Forward the connections as one or more sub-sets to as many
+  sub-output objects. Here, the considered output object is acting as
+  multi-cast splitter.
+
+\item Forward all the connections onto one single sub-connection
+  passed to a single sub-output object. Here, the considered output
+  object is acting as a connection multiplexer.
+
+\item Provide reliability by using both outgoing sub-connections for
+  data and incoming sub-connections for acknowledgments.
+
+\end{itemize}
+
+It is advised to limit the \emph{action} performed by an output object
+to a single added-value to keep each output object as simple as
+possible. Moreover, taking care of writing an output object without
+any assumption on the internals of sub-connection (both outgoing and
+incoming ones) will ensure that this object can be used anywhere in
+the communication stack\footnote{Of course, there are particular
+  cases, as for example the network drivers which always are at the
+  lowest place in the communication stack.}.
+
+
+\paragraph{Data Types}
+\label{sec:data-types}
+
+Each output object is supposed to be able to process all the Java
+types, that is the native types, the arrays and the objects. The
+\texttt{NetOutput} abstract class, which is the base class of each
+output object, provide a set of default methods that will convert
+every type of data to series of single bytes so that basic output
+objects only have to provide a method for sending bytes.
+
+Of course, more advanced output objects may override the sending
+methods for other types, either for efficiency or because the added
+value they provide implies it. The \texttt{NetBufferedOutput} abstract
+class, for instance, provides a default behavior for output objects
+that work on byte arrays. It is more efficient than the
+\texttt{NetOutput} base class for this specific use because it
+overrides the methods for sending aggregates of bytes with versions
+that process these aggregates directly instead of splitting those
+aggregates into single bytes.
+
+It should be noted that overriding the methods for writing various
+types of data should be done carefully to avoid cycles. For instance,
+a method converting an array of bytes to single bytes which in turn
+calls a method that aggregates multiples bytes into arrays of bytes
+and so on would obviously not work.
+
+
+\paragraph{Communication}
+\label{sec:communication}
+
+The communication unit of \Ibis and \NetIbis is the \emph{message}.
+The message unit concept is also found in the interface of the
+\texttt{NetOutput} classes. An \texttt{NetOutput} object instance may
+only send one single message at a time. An other way to put it is that
+a message is considered atomic from the point of view of the user of a
+\texttt{NetOutput} object instance. When a \texttt{NetOutput} instance
+manages more than one connection, each message it process is supposed
+to be traveling on all the connections at the same time.
+
+A message is initiated with the \texttt{initSend} method. Then, the
+actual message contents is constructed incrementally by using the
+\texttt{write*} methods. The \texttt{NetOutput} instance is not
+required to bufferize the pieces of message until the message
+completion and may freely decide whether to immediately send a piece
+of data or at a later point in time. The message completion is reached
+when the \texttt{finish} method is called.
+
+It should be stressed that the atomic characteristic of a message
+managed by a given \texttt{NetOutput} instance is only required to be
+true from the point of view of code \emph{using} this instance. The
+instance is not required to preserve that atomicity \emph{internally}
+and the message may well be sent as a series of sub-messages
+interleaved with sub-messages from other messages (coming from other
+\texttt{NetOutput} instances) if needed, when several output objects
+are multiplexed, for instance.
+
+\paragraph{Initialization and Clean-Up}
+\label{sec:init-clean-up}
+
+Initializing a \texttt{NetOutput} object for communication involves
+two steps. The first one is the construction of the object itself, the
+second one is the initialization of the connection(s) managed by the
+object.
+
+A \texttt{NetOutput} object should be constructed through a call to
+the \texttt{newOutput} method of its related \texttt{Driver} class. It
+should be avoided to construct the object directly. Failing to do so
+would bypass its \texttt{Driver} class and therefore would probably
+prevent the drivers that rely on this feature such as multiplexing
+drivers to work properly.
+
+The constructor of the \texttt{NetOutput} subclasses should require at
+least a \texttt{NetPortType} argument providing access to the settings
+of the enclosing communication port, a \texttt{NetDriver} argument
+referencing the output's related driver instance and a \texttt{String}
+argument containing the output's creation context in order to ensure
+subsequent settings queries to access the right settings. The
+constructor must also invocate its superclass constructor with these
+arguments.
+
+Each new connection creation involves the recursive calls of the
+\texttt{setupConnection} method of each \texttt{NetOutput} object it
+goes through. By default, this method takes a single argument, a
+\texttt{NetConnection} reference to the connection being created.
+
+If a \texttt{NetOutput} object needs to exchange some \emph{meta} data
+with its peer \texttt{NetInput} object on a given connection, either
+during the connection setup or any time later while the connection is
+still active, it has the option to allocate a stream on the
+connection's \emph{service link}'. See Section~\ref{sec:connections-1}
+for a description of the service link. The service link itself can be
+accessed through the \texttt{getServiceLink} method of the
+\texttt{connection} object. This method returns a
+\texttt{NetServiceLink} object. The stream itself may be allocated
+using the \texttt{getOutputSubStream} method or the
+\texttt{getInputSubStream} method of the \texttt{NetServiceLink}
+object for allocating a out-going or a in-coming stream respectively.
+Both methods expect a \texttt{name} argument which will should
+identically be specified by the peer \texttt{NetInput} object for
+allocating the other end of the stream. The name is automatically
+prefixed with the prefix of the \texttt{NetOutput} object
+(\texttt{NetInput} on the other side). As a result, a stream name only
+needs to be unique inside a given \texttt{NetOutput/Input} object for
+a given connexion and a given stream direction.
+
+If the service link of a connection happens to be lost either because
+the peer connection side has been closed intentionally or not, the
+connection is considered to have been closed. It should therefore be
+stressed that there is no difference made between a broken connection
+and a regularly closed connection.
+
+%
+\subsubsection{Input Objects}
+\label{sec:input-objects}
+
+The \texttt{NetInput} objects work in a way very similar to that of
+the \texttt{NetOutput} objects as far as connection setup and data
+carrying are concerned. Hence, we will presents a few relevant details
+here.
+
+
+\paragraph{Initialization}
+\label{sec:initialization-1}
+
+In contrast to many existing communication tools, \NetIbis does not
+require the \texttt{NetInput} objects to take care of the listening
+for new incoming connections. This step is controlled by the \NetIbis
+core code as part of the management of service links. As a result,
+when a new incoming connection is setup through a series of recursive
+\texttt{SetupConnection} calls on the \texttt{NetInput} objects used
+by this connection, each \texttt{NetInput} object may assume that
+there is a peer \texttt{NetOutput} object on the other side which is
+ready to connect. Pairs of peered \texttt{NetInput}/\texttt{NetOutput}
+objects may allocate and use one or more sub-streams of the service
+link, in order to exchange information about the connection being setup.
+
+
+\paragraph{Asymmetrical Behavior}
+\label{sec:asymm-behav}
+
+The main difference between a \texttt{NetInput} object and a
+\texttt{NetOutput} object is that a \texttt{NetOutput} object is
+supposed to multi-cast each message to all the connections it manages.
+On the other hand, a \texttt{NetInput} is expected to serialize
+incoming messages from multiple connections. An other way to put it is
+that in a \texttt{NetOutput} object, all the connections are either
+active or inactive at the same time, while at most one connection is
+allowed to be active at any time in a \texttt{NetInput} object.
+This asymmetrical scheme is actually quite natural as it would not
+make sense to mix data coming from multiple connections.
+
+
+\paragraph{Communication}
+\label{sec:communication-2}
+
+As for the \texttt{NetOutput} objects, messages are also considered
+atomic from the point at the interface level of the \texttt{NetInput}
+objects. An atomic receive sequence begins with a \emph{successful}
+call to the \texttt{poll} method of the \texttt{NetInput} object and
+ends with a call to the \texttt{finish} method of that same object.
+
+It should be stressed here that the atomic sequence \emph{only} begins
+in the case that the \texttt{poll} call is successful. Otherwise,
+\texttt{poll} has to be repetitively called again until it succeeds.
+As a convenience, the \texttt{poll} method takes a boolean as its
+single argument which may be set to \texttt{true} in order to request
+a \emph{blocking} poll. In that case, the \texttt{poll} method only
+returns on success or if the connection has been closed or broken.
+
+It should equally be stressed that if the \texttt{poll} method
+succeeds, the corresponding message \emph{must} be extracted
+completely before attempting subsequent new poll requests. Calling
+\texttt{poll} before the message has fully been extracted or just
+after a successful poll will result in unspecified behavior and most
+likely in communication stream corruption.
+
+Nevertheless, as for the case of the \texttt{NetOutput} objects, a
+pair of \texttt{poll}/\texttt{finish} method calls on a given
+\texttt{NetInput} object may be mapped on multiple pairs of
+\texttt{poll}/\texttt{finish} calls to the \texttt{NetInput} object
+below and these smaller atomic sequences may be interleaved with other
+atomic sequences.
+
+%%%
+\section{Drivers}
+\label{sec:drivers}
+
+This section presents the currently available drivers in \NetIbis and
+gives some details about their implementation. The first subsection is
+dedicated to the network drivers also called physical drivers. The
+other subsections deal with the various kind of virtual drivers.
+
+%%
+\subsection{Network Drivers}
+\label{sec:network-drivers}
+
+The network drivers are responsible for managing the configuration networking
+resources used during the computing session. They are therefore always
+put at the deepest level in the driver tree.
+
+%
+\subsubsection{Generic Classes}
+\label{sec:generic-classes}
+
+Most networking software/hardware combinations have in common to only
+be able to carry blocks of bytes. As a result, most \NetIbis network
+driver implementations would have to provide very similar byte block
+building logics to prepare pieces of data for network travel (remember
+that by default, the \NetIbis generic \texttt{NetOutput} class reduce
+every piece of data to a flow of single bytes).
+
+In order to avoid code duplication among most network drivers,
+\NetIbis provides a pair of
+\texttt{NetBufferedInput}/\texttt{NetBufferedOutput} abstract classes.
+These classes override the necessary \texttt{NetInput} and
+\texttt{NetOutput} methods in order to reduce the flow of data pieces
+to a flow of bytes blocks. These bytes blocks are called buffers,
+hence the name of the classes. This pair of classes may also be used
+in building virtual drivers. It is not dedicated to network drivers.
+Nevertheless, it is mentioned here because most network drivers rely
+on it.
+
+
+\paragraph{NetBufferedOutput}
+\label{sec:netbufferedoutput}
+
+The \texttt{NetBufferedOutput} abstract class provide the default
+behavior for sending bytes buffers over the network or to a lower
+\texttt{NetOutput} object. A non-abstract \texttt{NetBufferedOutput}
+sub-class must implement at least the \texttt{setupConnection}, the
+\texttt{sendByteBuffer} and the \texttt{close} methods.
+
+The \texttt{sendByteBuffer} method takes a reference to a
+\texttt{NetSendBuffer} or sub-class object. In the current \NetIbis
+implementation, the \texttt{NetSendBuffer} class is only a wrapper
+over an array, which means that it's purpose is not to provide
+encapsulation but instead to attach some meta-data to the byte array
+used for buffering. As a result, most fields of the
+\texttt{NetSendBuffer} class are supposed to be accessed directly.
+Until this interface is revised, sub-classes of the
+\texttt{NetSendBuffer} class should be carefully designed to use the
+public fields of \texttt{NetSendBuffer} in a way consistent with the
+default \texttt{NetSendBuffer} implementation.
+
+The main public fields of a \texttt{NetSendBuffer} class are the
+\texttt{data} field, which is the byte array used for buffering, the
+\texttt{base} field indicating the first byte to send in the buffer
+and the \texttt{length} field the total length of data in the buffer.
+Subclasses of the \texttt{NetBufferedOutput} class should set their
+\texttt{mtu} --- maximum transfer unit --- field to the preferred (and
+maximum) size of buffer it is able to send as a single piece. If the
+managed network may carry buffers of any size, the \texttt{mtu} field
+should be set to 0, which means no mtu.
+
+
+\paragraph{NetBufferedInput}
+\label{sec:netbufferedinput}
+
+The \texttt{NetBufferedInput} abstract class provide the same kind of
+service than the \texttt{NetBufferedOutput} class but for the
+receiving side. A non-abstract \texttt{NetBufferedInput} sub-class
+must implement at least one of the two \texttt{receiveByteBuffer}
+methods as well as the following methods.
+\begin{itemize}
+\item \texttt{SetupConnection}.
+\item \texttt{doPoll}.
+\item \texttt{doFinish}.
+\item \texttt{doClose}.
+\item \texttt{doFree}.
+\end{itemize}
+If the \texttt{initReceive} method is overridden, the super-class
+\texttt{initReceive} method should be called somewhere in the
+overriding \texttt{initReceive} body.
+
+Two versions of the \texttt{receiveByteBuffer} method are available.
+One version takes a \texttt{NetReceiveBuffer} object that wraps a byte
+array that should be filled by the method. The other version takes an
+\texttt{expectedLength} integer and should return a
+\texttt{NetReceiveBuffer} containing a piece of data read from the
+network. The \texttt{expectedLength} integer is only a hint for the
+network drivers that do not send meta-data indicating the length of
+each piece of data as part of the network data flow. 
+
+If only one of the two versions of this method is overridden, a
+default implementation of the other one is provided on top of the one
+that is overridden. If none of the two methods are overridden, an
+\texttt{error} is thrown at run time as this would create a cycle
+between the two default implementations. It is not possible to detect
+this error at compile-time.
+
+%
+\subsubsection{Default Driver}
+\label{sec:default-driver}
+
+If no driver is specified for the driver tree, the \texttt{default}
+driver is automatically selected in a single node tree. This driver is
+not designed to be efficient. Each network connection opened with this
+driver use its own service link to carry both any internal service
+stream allocated for this connection (as usual) as well as the
+application data stream corresponding to this connection.
+
+Because the service link is always open (over TCP in the current
+\NetIbis implementation) for each network connection, the
+\emph{default} driver is guaranteed to work in any situation where
+\NetIbis as a whole has a chance to work. It should also be noted that
+this driver uses less networking resources than the other ones because
+of the multiplexing of the data stream with the service streams on
+each connection. The cost of using less network resources is of course
+that the data stream bandwidth is shared with service streams and that
+the data stream latency includes the transfer of the multiplexing
+meta-data.
+
+%
+\subsubsection{TCP Drivers}
+\label{sec:tcp-drivers}
+
+The current \NetIbis sources provide three different implementations
+of a TCP driver: the regular one (simply called TCP driver), the
+\emph{plain} TCP driver and the \emph{block} TCP driver.
+
+\paragraph{TCP Driver}
+\label{sec:tcp-driver}
+
+This driver is an example of a network driver providing communication
+routines for each kind of \textsc{Java} data type. It is built using a
+pair of \texttt{DataOutputStream}/\texttt{DataInputStream} on top of
+the socket stream for each connection. It is more designed as a
+starting point for writing other similar network drivers than as a
+driver for production use.
+
+\paragraph{TCP `plain' Driver}
+\label{sec:tcp-plain-driver}
+
+The \emph{plain} version of the TCP driver is also an example of a
+network driver but this time a minimalistic one. It relies on the
+\NetIbis internal automatic reduction of data types to a stream of
+single bytes. It is therefore mostly made of a method sending single
+bytes and a method receiving single bytes. Obviously, it is not
+dedicated to efficiency but, like the regular TCP driver, to provide a
+starting point for quick prototyping of new network drivers. 
+
+\paragraph{TCP `block' Driver}
+\label{sec:tcp-block-driver}
+
+The \emph{block} version of the TCP driver is both a driver for real
+applications and an example of a driver built on top of the
+\texttt{NetBufferedOutput}/\texttt{NetBufferedInput} pair of abstract
+classes. With this driver, each piece of data is accumulated as a
+block of bytes into a fixed-size buffer. This buffer is sent as soon
+as it gets completely filled, or upon a \texttt{finish} call at the
+end of a message construction. In the current implementation of this
+driver, the size of the buffers is set to 32~KB.
+
+
+%
+\subsubsection{GM Driver}
+\label{sec:gm-driver}
+
+Like the \emph{block} version of the TCP driver, the GM driver is also
+based on the \texttt{NetBufferedOutput}/\texttt{NetBufferedInput} pair
+of abstract classes. The size of the buffers is set to 2~MB.
+GM is able to send packets up to 4~GB, so the driver should
+theoretically not enforce a 2~MB boundary on the size of the buffers
+but we want to be able to maintain a cache of allocated buffers to
+avoid multiple expensive allocation and free of buffers. 
+
+It should be noted that, in contrast with the TCP \emph{block} driver,
+the GM driver has a zero copy capability. As a result, 2~MB buffers
+will only be allocated in the situations where a copy cannot be
+avoided (when an object has to be serialized, for instance). If a user
+application block is eligible for zero-copy transmission but is larger
+than 2~MB, it is automatically sent using multiple shorter zero-copy
+transmissions.
+
+Internally, the GM driver may send packets using two different
+protocols. Small packets up to 4~KB are sent using an \emph{eager}
+protocol. Larger packets are sent using a \emph{rendez-vous} protocol.
+
+The \emph{rendez-vous} protocol transmission is done in three phases.
+First, a \emph{request} packet is sent by the sender node to the
+receiver node. Once the receiver node is ready to receive the piece of
+data, it answers the request from the sender with an
+\emph{acknowledgment} packet. Upon receiving the acknowledgment
+packet, the sender node sends the actual piece of data as a raw
+\emph{data} packet to the receiver node.
+
+The \emph{eager} protocol transmission only uses the first step of the
+\emph{rendez-vous} protocol. As a counter part, the piece of data is
+copied directly in the \emph{request} packet.
+
+The GM API does not provide any multiplexing mechanism with the
+exception of the communication ports which should be reserved to
+process level multiplexing. On the other hand, the GM API provides
+means to selectively receive high or low priority packets which
+indirectly results in disposing of two independent flows of packets.
+As a result, in order to avoid receiving a \emph{request} packet or a
+\emph{acknowledgment} packet when a \emph{data} packet is expected in
+the \emph{rendez-vous} protocol, the \emph{request} and
+\emph{acknowledgment} packets are sent using the
+\texttt{GM\_HIGH\_PRIORITY} attribute while the \emph{data} packets are
+sent using the \texttt{GM\_LOW\_PRIORITY} attribute.
+
+The GM driver of \NetIbis has been designed to rely completely on the
+\textsc{Java} virtual machine as far as the synchronization and
+multi-threading mechanisms are concerned. This design orientation,
+which might induce some performance penalty was followed in order to
+avoid the direct use of these often heavily unportable constructions.
+
+%
+\subsubsection{Pipe Loop-back Driver}
+\label{sec:pipe-loopback-driver}
+
+The \emph{Pipe} driver of \NetIbis is dedicated to in-process
+loop-back communication. It is built on the \texttt{PipedInputStream}
+and \texttt{PipedOutputStream} objects of the \textsc{Java} library.
+This driver is not supposed to be used to build connections across
+multiple processes, even on the same physical node. It is only
+dedicated to communication between threads of the same process in
+multi-threaded applications. According to the specifications of the
+\texttt{PipedInputStream} and \texttt{PipedOutputStream} classes in
+the \textsc{Java} library, it is not safe to send and receive data
+on the same piped stream within the same thread as the internal buffer
+of the piped stream could get filled and result in a dead-lock. 
+
+With the exception of the use restrictions just mentioned, the
+architecture of the \emph{pipe} driver is basically the same as the
+architecture of the \emph{block} TCP driver. There is only a slight
+difference in the \texttt{setupConnection} method implementation.
+Indeed, the piped stream is not socket based. In order to connect a
+\texttt{PipedOutputStream} instance to a \texttt{PipedInputStream}
+instance, you need to apply the \texttt{connect} method of the
+\texttt{PipedInputStream} instance to the instance of the
+\texttt{PipedOutputStream}. The problem here is that it is not
+possible to send the \texttt{PipedOutputStream} object through the
+service link as it is done with the \texttt{address} and \texttt{port
+  number} in the case of the TCP driver. So, instead the \emph{pipe}
+driver uses the \NetIbis \emph{bank} facility (see~\ref{sec:bank}).
+
+As a result, the thread responsible of initializing the sending side
+of the pipe stream simply store its \texttt{PipedOutputStream}
+instance into the \NetIbis bank and send the corresponding key to the
+receiving side through the service link. Then, the receiving side
+retrieve the \texttt{PipedOutputStream} instance from the bank using
+the key and connect it to its \texttt{PipedInputStream} instance.
+
+%
+\subsubsection{UDP Driver}
+\label{sec:udp-driver}
+The \NetIbis UDP driver is yet another straightforward buffered driver
+very similar to the TCP \emph{block} version. The only significant
+difference is that the UDP driver does not provide reliability (which
+is achieved in a generic manner using the \texttt{reliability} virtual
+driver, see Section~\ref{sec:reliability-driver}), so packets may be
+lost, duplicated or received out-of-order. No assumption should
+therefore be made about which packet is going to be extracted after a
+successful \texttt{poll} call and it should be avoided to receive
+multiple packets in a row after a poll operation as there is no reason
+for the packets of the series to actually be related, and hence no
+reason to process the series of packets atomically.
+
+%%
+\subsection{Multi-Connection Drivers}
+\label{sec:multi-conn-driv}
+All the network drivers that we have seen so far share the
+characteristics of being single connection oriented. Each instance of
+their \texttt{Input} or \texttt{Output} classes will only manage one
+single connection at a time (though that connection might very well
+multiplex multiple streams if a multiplexing virtual driver is used
+above in the driver stack).
+
+We are now going to present two multi-connection drivers, namely the
+\emph{generic multi-cast} driver and the \emph{multi-protocol} driver.
+Both drivers actually share some code and hence derive from a common
+set of multi-connection-specific abstract classes.
+
+%
+\subsubsection{Abstract Classes}
+\label{sec:abstract-classes}
+In order to avoid code duplication among the \emph{generic multi-cast}
+driver and the \emph{multi-protocol} driver, and possibly future
+multi-connection drivers, \NetIbis provides the \texttt{NetSplitter}
+and \texttt{NetPoller} abstract classes. These classes manage the
+common behavior shared by these multi-connection drivers.
+
+The \texttt{NetSplitter} class is responsible for managing multiple
+connections on the sending side. It \emph{splits} its set of
+connections into smaller sets mapped on multiple (and possibly
+identical) sub-trees of drivers. Each message constructed using a
+\texttt{NetSplitter} instance during the session is then forwarded to
+each sub-tree through its corresponding \texttt{NetOutput} object
+instance. 
+
+Each sub-tree entry-point \texttt{NetOutput} object is internally
+stored in an \texttt{HashMap} object. Classes extending the
+\texttt{NetSplitter} class basically need to provided a special
+implementation of its \texttt{setupConnection} method that must call
+the \texttt{NetSplitter}'s version of the \texttt{setupConnection}
+with the connection instance, the (possibly new) \texttt{HashMap} key
+of the sub-tree \texttt{NetOutput} object on which the connection is
+to be forwarded and a reference to the \texttt{NetOutput} object
+itself as arguments. \texttt{NetSplitter} sub-classes must also
+provide a implementation for the abstract \texttt{closeConnection}
+method which is responsible for cleaning-up a given connection.
+
+The algorithm used for forwarding messages to sub-trees is not
+optimized in any way. The \texttt{NetSplitter} generic methods simply
+retrieve an \texttt{Iterator} over the internal \texttt{HashMap}
+values, that precisely happen to be the sub-tree \texttt{NetOutput}
+entry-point objects. In particular, the set of sub-\texttt{NetOutput}
+objects is iterated \emph{sequentially}.
+
+The \texttt{NetPoller} class is responsible for managing multiple
+connections on the receive side. Unlike the \texttt{NetSplitter}
+class, the \texttt{NetPoller} class processes incoming messages in a
+sequential way roughly following the order of arrival of messages (see
+Section~\ref{sec:asymm-behav}). It also introduces a notion of
+\emph{receive queue} which encapsulates a sub-\texttt{NetInput}.
+
+Classes extending the \texttt{NetPoller} class need to follow the same
+guidelines as for the \texttt{NetSplitter} class. Moreover, they need
+to provide a \texttt{selectConnection} which is called by the
+\texttt{NetPoller} internals when a connection is activated upon a
+polling request success. This method can therefore be used to execute
+any required connection initialization stuff.
+
+The rule used for building the sub-sets of connections is to be
+provided by the non-abstract sub-classes of the \texttt{NetSplitter}
+and must match the rule used on the \texttt{NetPoller} side. This rule
+simply correspond to sub-input/sub-output key generation function.
+
+%
+\subsubsection{Generic Multi-cast Driver}
+\label{sec:gener-mult-driv}
+The \emph{generic multi-cast} driver implementation is very
+straightforward, as most of the mechanisms are handled by the generic
+methods of the \texttt{NetSplitter} and \texttt{NetPoller} abstract
+classes. The key used for mapping a connection onto sub-input/output
+objects is simply the \texttt{Integer} identifier of the connection
+itself. Consequently, a \texttt{GenSplitter} instance generate one
+sub-\texttt{NetOutput} object instance (of a unique class) for each
+new connection. The same is true for the \texttt{GenPoller} class with
+regard to sub-\texttt{NetInput} objects.
+
+%
+\subsubsection{Multi-protocol Driver}
+\label{sec:multi-prot-driv}
+The purpose of the \emph{multi-protocol} driver is to allow a driver
+tree to split into multiple \emph{different} sub-trees. The rule for
+sub-tree generation is provided by the means of plug-ins. The role of
+such a plug-in is to generate \emph{sub-context strings} (see
+Section~\ref{subcontext}, page~\pageref{subcontext}) according to some
+given \emph{pattern}. These sub-context strings may then be mapped
+onto driver sub-trees in the port configuration file. It should be
+noted than new plug-in implementation should be carefully designed to
+ensure that the instances of the plug-in on both side of a new
+connection being setup take consistent decisions by selecting the
+\emph{same} sub-context string. One way to do that is for example to
+let only one of the two plug-in instances take the decision and send
+the result to the other instance.
+
+The implementation of the \emph{multi-protocol} driver is very close
+to the implementation of the \emph{generic multi-cast} driver. The
+main difference is that the key used to select sub-\texttt{NetInput}
+or sub-\texttt{NetOutput} objects is the sub-context string in the
+case of the \emph{multi-protocol} driver.
+
+The current \NetIbis implementation provides three pattern generator
+plug-ins for the \emph{multi-protocol} driver. We now briefly present
+these plug-ins.
+
+\paragraph{Random Plug-in}
+\label{sec:random-plugin}
+The \emph{Random} plug-in randomly selects one sub driver-tree out of
+two for each new connection. This behavior is implemented by randomly
+selecting a context string among \texttt{"a"} and \texttt{"b"}. Of
+course, the purpose of this plug-in is more to demonstrate the
+mechanism of plug-ins but with a good quality random number generator,
+it might be used to balance a set of connections over two different
+networks.
+
+\paragraph{ABC Plug-in}
+\label{sec:abc-plugin}
+The \emph{ABC plug-in}'s purpose is also more dedicated to providing a
+plug-in implementation example than a really useful piece of code. It
+selects a context string according to some comparison of the IP
+addresses of the two peer nodes. First, if the peer nodes are actually
+one unique process, the plug-in selects the \texttt{"process"}
+sub-context string. If not, the plug-in compares the bytes of both IP
+addresses sequentially, outermost-to-innermost, until either all the
+bytes successfully matched or the two bytes being compared do not
+match. At each iteration, a counter (initially set to 0) is
+incremented. Once the comparison loop is terminated, the plug-in
+selects a context string according to the value of the counter. 
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{p{4cm}p{6cm}}
+    \hline
+    \textbf{value}    & \textbf{string} \sep
+    \texttt{0}        & \texttt{"internet"}\sep
+    \texttt{1}        & \texttt{"net\_a"}\\
+    \texttt{2}        & \texttt{"net\_b"}\\
+    \texttt{3}        & \texttt{"net\_c"}\sep
+    \texttt{4}        & \texttt{"node"}\sep
+    Same process      & \texttt{"process"}\\
+    \hline
+  \end{tabular}
+  \caption{ABC plug-in context strings}
+  \label{tab:abc-strings}
+\end{table}
+The context strings for values from 1 to 3 are roughly inspired by
+IP network \emph{classes}.
+
+\paragraph{Cluster Plug-in}
+\label{sec:cluster-plugin}
+The \emph{cluster} plug-in is designed to allow \NetIbis to easily run
+onto multiple clusters potentially interconnected with different
+networks. When the cluster plug-in class is loaded in a \NetIbis
+instance, the class-initialization code look-up a
+\texttt{net\_multi\_cluster\_topology.txt} in order to determine to
+which network(s) the current process has direct access. The
+\texttt{net\_multi\_cluster\_topology.txt} file format is simply a
+series of one or more network descriptions separated by a blank line.
+
+A network description starts with a user-chosen network name
+immediately followed by a colon on the first line and followed by a
+series of fully qualified host names that have access to this network,
+one per line. The series of machine names does not need to be complete
+and the topology description file is not required to be unique among
+all the nodes used in a given session.
+
+Once a new connection is being setup, the sending side process
+sequentially sends each network name it belongs to, in the order that
+the networks where listed in its topology description file. For each
+network name, the receive side process looks up his own table of
+networks it belongs to. If the network name sent by the sender process
+is found the in the receiver process table, it means that both
+processes belongs to the same network and therefore the current
+network name is selected as the sub-context string and there is no
+attempt to find other matching networks in that case. On the contrary,
+if the network name sent by the sender process is not found in the
+receiver process, the sender process iterates to its next network and
+so on. If no matching networks are found, no sub-context string is
+selected which results in selecting the \emph{default} sub driver-tree
+configured in the configuration file (the one that does not mention
+any sub-context for the \emph{multi-protocol} driver).
+
+%%
+\subsection{Serialization Drivers}
+\label{sec:seri-driv}
+The serialization drivers are responsible for converting \textsc{Java}
+objects, which are ``black boxes'' in nature, into pieces of data that
+can be processed and carried onto the network, and used to reconstruct
+the object on the other side. Just like the multi-connection drivers
+above (see Section~\ref{sec:multi-conn-driv}), the source code common
+to all the serialization drivers has been extracted as a pair of
+abstract classes.
+
+%
+\subsubsection{Generic Classes}
+\label{sec:generic-classes-1}
+The \texttt{NetSerializedOutput} and \texttt{NetSerializedInput}
+abstract classes provide the generic behavior common to the
+serialization drivers. Typically, the \texttt{NetSerializedOutput}
+class should be seen as some kind of wrapper that controls both the
+interface and the resulting stream of a
+\texttt{SerializationOutputStream}. It forces \textsc{Java} objects
+(and more generally any \textsc{Java} data type) to enter the
+\texttt{SerializationOutputStream}.
+
+The \texttt{SerializationOutputStream} is an \textsc{Ibis} abstract
+class extending the \texttt{ObjectOutputStream} class of the
+\textsc{Java} library. The classes extending the
+\texttt{NetSerializedOutput} class are required to provide a
+\texttt{newSerializationOutputStream} that is responsible for
+instantiating a subclass of the of the
+\texttt{SerializationOutputStream}. The extension classes should also
+provide some code to intercept the pieces of data resulting from the
+processing performed by the \texttt{SerializationOutputStream}, in
+order to push them deeper in the driver tree.
+
+The \texttt{NetSerializedInput} does the opposite job on the other
+side and extract \textsc{Java} objects (and more generally any
+\textsc{Java} data type) from a \texttt{SerializedInputStream}
+subclass instantiated and feed by a \texttt{NetSerializedInput}
+subclass using pieces of data coming from the network.
+
+%
+\subsubsection{Ibis Serialization}
+\label{sec:ibis-serialization}
+The current \emph{Ibis serialization} driver uses the \textsc{Ibis}
+serialization infrastructure located in the \texttt{/ibis/io}
+directory in order to produce arrays of native types out of whatever
+data is submitted for being transmitted. Technically, the
+\texttt{SerializationOutputStream} used is an
+\texttt{IbisSerializationOutputStream}. The
+\texttt{IbisSerializationOutputStream} itself is initialized on top of
+an \texttt{ArrayOutputStream} subclass provided by the \emph{Ibis
+  serialization} driver of \NetIbis. The \texttt{ArrayOutputStream}
+subclass allows the driver to catch the resulting arrays of the
+\textsc{Ibis} serialization engine and forward them to the next
+\texttt{NetOutput} object in the driver tree. The same organization is
+used on the receive side.
+
+%
+\subsubsection{Sun Serialization}
+\label{sec:sun-serialization}
+The \emph{Sun serialization} driver on the other side is really
+straightforward. The \texttt{SerializationOutputStream} used is a
+\texttt{SunSerializationOutputStream} which in turn takes a
+\texttt{OutputStream} subclass as argument at construction time. The
+\texttt{OutputStream} subclass implementation is provided by the
+driver and simply forward bytes to the next \texttt{NetOutput} object
+in the driver tree.
+
+%%
+\subsection{Other Drivers}
+\label{sec:other-drivers}
+\NetIbis also provides a few other drivers that cannot really be put
+in the previous categories. We now present these drivers.
+
+%
+\subsubsection{Identity Driver}
+\label{sec:identity-driver}
+The \emph{identity} driver is an example virtual driver. It can be put
+anywhere in the driver tree (and even multiple time) with the
+exception of the leaves --- the leaves are reserved to physical
+drivers --- and it simply passes data untouched to the next
+\texttt{NetOutput} object in the driver tree, or the previous
+\texttt{NetInput} object on the receive side. Its purpose is basically
+to test the modular driver structure of \NetIbis as well as port
+configuration system.
+
+%
+\subsubsection{Reliability Driver}
+\label{sec:reliability-driver}
+TO-DO: Rutger
+
+%
+\subsubsection{Multiplexing Driver}
+\label{sec:multiplexing-driver}
+TO-DO: Rutger
+
+
+%%%
+\section{Other Features}
+\label{sec:other-features}
+The \NetIbis source tree also provides a few helper routines and
+features that are not directly related to communication. These
+features are presented in the following sections.
+
+%%
+\subsection{Debugging Support}
+\label{sec:debugging-support}
+\NetIbis features a logging mechanism in order to provide debugging
+information about the code behavior. The logging mechanism is
+implemented by the \texttt{NetLog} class. 
+
+The \texttt{NetLog} class can be configured at compile time to select
+the format of logged events, either \emph{human-readable} or not. Set
+or clear the \texttt{human} boolean static field in the
+\texttt{NetLog.java} file. The non-human-readable version provide much
+more information on each event display and is formatted to be easy to
+parse using so tools such as \textsc{Perl} scripts. 
+
+The code of \texttt{NetLog} class can of coursed be tuned for both
+modes to display the desired information. In the current
+implementation, the \emph{non-human} version displays the following
+information for each event.
+\begin{enumerate}
+\item A time-stamp.
+\item The current thread name.
+\item The "module name", which is a user-defined string that can be
+  specified when the logging object is created.
+\item The location of the event in the source code (class name, method, file
+  and line number).
+\item The memory state of the JVM.
+\item The event message.
+\end{enumerate}
+The human-readable version displays the following information for each
+event.
+\begin{enumerate}
+\item The class name (with its short package name).
+\item The method name.
+\item The event message.
+\end{enumerate}
+
+Moreover, each \texttt{NetLog} instance may be independently be turned
+\texttt{on} or \texttt{off} at instantiation time. In particular, no
+\texttt{NetLog} instance should be active on the communication
+critical path in a \NetIbis session involving performance measurements
+as logging an event is quite expensive, especially with the verbose
+non-human-readable logging mode. On the contrary, this feature has
+proved \emph{really} useful in many situations.
+
+It should be noted that the \texttt{NetLog} class relies on JDK~1.4.x
+features, namely the \texttt{getStackTrace} method of the
+\texttt{Throwable} standard class which is not available and does not
+seem to be implementable with earlier JDKs and the \emph{regular
+  expression} support which is also unavailable in earlier JDKs (but
+is only used cosmetically in \texttt{NetLog}). Nevertheless, the
+logging commands may safely be commented out in the case the \NetIbis
+needs to be run on earlier JDK versions.
+
+The \texttt{NetLog} class may be used as-is for general purpose
+logging. It is also the basis of a permanent logging infrastructure in
+\NetIbis which is deployed in the \texttt{NetSendPort} and
+\texttt{NetReceivePort} classes as well as in the \texttt{NetIO} class
+and all its subclasses (hence, all the \texttt{NetInput} and
+\texttt{NetOutput} classes, as \texttt{NetIO} is their common superclass).
+
+This infrastructure may be used to log the \texttt{NetIbis}
+communication internals' state while initializing, connecting and
+communicating. The logging infrastructure activation control can be
+managed from the \texttt{NetIbis} configuration file. Three levels are
+provided.
+\begin{enumerate}
+\item Disp: dedicated to important logging information,
+  \emph{activated} by default.
+\item Trace: medium-level task-based logging information, \emph{not
+    activated} by default. This level can especially be used to track
+  messages as well as send port connecting to receive port, which is
+  useful to find out information such as ``which particular message
+  was lost'', ``which particular was just received before the node
+  crashed'' or ``which send port failed to connect to which receive
+  port''.
+\item Log: low-level control-flow-based logging information, \emph{not
+    activated} by activated. This level prints out information about
+  events such as method entered and left and low level communication
+  operations.
+\end{enumerate}
+Each level can be turned \texttt{on} or \texttt{off} by setting the
+property of the same name to \texttt{true} or \texttt{false}
+respectively. Each level can also be selectively activated on a driver
+basis by prefixing the property name with a context path.
+
+%%
+\subsection{Stat Support}
+\label{sec:stat-support}
+The debugging support of \NetIbis described in the previous section is
+completed by a simple infrastructure for gathering statistical
+information about any kind of event or situation. This infrastructure
+is provided by the \texttt{NetStat} abstract class.
+
+The \texttt{NetStat} class provides a very basic framework for writing
+classes that record information like the occurrence number of some
+kind of event or the amount of some quantity and print a report at the
+end of the session. The method exported by \texttt{NetStat} are
+dedicated to the output of result values in the final report. These
+methods are the \texttt{reportVal} and the \texttt{reportMap} methods.
+The \texttt{reportVal} method simply prints a sentence presenting a
+single value resulting from the statistical gathering throughout the
+session. The \texttt{reportMap} method prints a series of sentences
+presenting a series of results stored in a \texttt{HashMap} object
+(unless the map is empty in which case nothing is printed).
+
+The \texttt{report} method itself --- which is called at the end of
+the session to report all the results gathered by the \texttt{NetStat}
+subclass instance --- is abstract and must therefore be
+provided by subclasses of \texttt{NetStat}. The calling of this method
+at closing time is ensured by the \texttt{NetStat} constructor which
+registers a wrapper of this method to the JVM using the
+\texttt{addShutdownHook} method of the current instance of the
+\texttt{Runtime} class.
+
+Like the \texttt{NetLog} class, the \texttt{NetStat} class provides a
+way to turn new instances \emph{on} or \emph{off} at construction
+time. It also allows the programmer to specify a \texttt{moduleName}
+argument to identify the instance location and purpose to the user.
+
+The \texttt{NetMessageStat} class of \NetIbis is an example of
+non-abstract subclass of \texttt{NetStat}. It can be used to record
+the number of messages and the number and size (for arrays) of pieces
+of data of any type used to construct these messages.
+
+
+\subsection{Locks}
+\label{sec:locks}
+
+Three different synchronization classes are provided inside \NetIbis
+to fit various locking schemes. The simplest one is the
+\texttt{NetMutex} class which implements a \emph{semaphore of mutual
+  exclusion} commonly called \emph{mutex}. A mutex is either in the
+locked or in the unlocked state. If a given mutex is in the locked
+state, any attempt by a given thread to lock it again will block this
+thread until the mutex is unlocked by some other thread.
+
+The \texttt{NetPriorityMutex} class is similar to the
+\texttt{NetMutex} class but it introduce two levels of priority
+(\texttt{low} and \texttt{high}) in the locking scheme. No pending
+\texttt{low} priority locking request will be honored while one or
+more \texttt{high} priority locking requests are also pending. It
+should be stressed that the priority level only affects request
+\emph{ordering}. In particular, no request will be honored while the
+mutex is locked no matter the priority level of the pending requests.
+
+The \texttt{NetLockArray} class allow to atomically controls the state
+a set of locks. Current provided operations include locking a single
+lock, locking a subset of the locks in a single step and locking the
+first available lock in a subset of the locks. The locks are indexed
+by an integer. The set of locks is initially empty and additional lock
+indexes may be allocated at any time. A lock index may also be freed
+(in which case its state is not changed). It should probably be
+avoided to reallocate a lock index that as previously been deleted,
+unless the programmer really know what he is doing. The indexes of the
+locks are not required to be contiguous.
+
+
+\subsection{Memory Allocator}
+\label{sec:memory-allocator}
+
+\NetIbis, being a communication support, obviously makes use of a lot
+of memory buffers. Repeatedly allocating and freeing buffers can be
+extremely expensive and either put a high pressure on the JVM's
+garbage collector or may help fragmenting the heap's memory. On the
+other hand, most allocated buffers are not arbitrarily sized but
+instead depends on some fixed value such as the MTU of a given driver.
+As a result, many buffers actually belong to series of identical size
+buffers.
+
+The \NetIbis integrated memory allocator implemented by the
+\texttt{NetAllocator} class provides a means for caching buffers of
+a given size and reuses previously allocated buffers each time it is
+possible instead of allocating new ones. In order to use it, the
+programmer only needs to construct a \texttt{NetAllocator} with the
+wanted buffer size as argument. Buffers may then be allocated using
+the \texttt{allocate} method and freed using the \texttt{free} method
+of the newly created \texttt{NetAllocator} instance.
+
+As with the famous \texttt{malloc}/\texttt{free} commands of the
+C~language, it is important that an allocated buffer be freed once it
+is of no use anymore. Failing to do so simply makes the
+\texttt{NetAllocator} mechanism useless, unless the buffer is cached
+somewhere else in which case it is fine to keep it allocated (but
+beware of potential memory leaks in that case). 
+
+The \texttt{DEBUG} static boolean field of the \texttt{NetAllocator}
+class may be set to \texttt{true} at compile time to activate the
+internal debugging support of the memory allocator. This support
+allows to keep track of which method asked for a given buffer. At the
+end of the session, a report is printed which lists for each remaining
+not freed buffer the location in the code where it was allocated.
+
+Similarly, the \texttt{STATISTICS} static boolean field of the
+\texttt{NetAllocator} class may be set to \texttt{true} at compile
+time to activate the internal buffer allocation statistics recorder,
+which is of course a subclass of the \texttt{NetStat} class. It prints
+the number of cached and not cached allocations as well as cached and
+not cached frees\footnote{The cache size of each allocator instance is
+  bounded to avoid memory explosion.}. If the debugging mode is also
+activated, the statistics report also gives a comparison between the
+number of allocated and the number of freed buffers.
+
+
+\subsection{Buffer Factories}
+\label{sec:buffer-factories}
+TO-DO: Rutger
+
+\subsection{The Bank}
+\label{sec:bank}
+
+The \NetIbis bank is a storage data structure where the process may
+store objects and get one key in return for each stored object in
+order to be able to access these objects later again. The bank
+facility is global to a \NetIbis instance, so it is possible for one
+thread to store an object and for an other thread to later access
+provided that it obtained the object's key in some way. The bank can
+store any \textsc{Java} \texttt{Object} and is backed by a
+\texttt{HashMap} from the \textsc{Java} library. Keys are 64-bit
+random values in order to limit the risk of a key misuse.
+
+
+
+%______________________________________________________________________
+\newdoublepage
+\backmatter
+\pagestyle{empty}
+\vspace{3cm}
+\begin{center}
+-=-=-=-
+\end{center}
+\newdoublepage
+
+\end{document}
+
+% LocalWords:  NetIbis IPL htbp Myricom DataStream UDP udp tcp blk netibis txt
+% LocalWords:  config subcontext cntxt subcntxt cntxtN subcntxtN Plugin API ipl
+% LocalWords:  createIbis ibisInstance MyIbis IbisException createPortType mtu
+% LocalWords:  createSendPort createReceivePort enableConnections SendPort vous
+% LocalWords:  disableConnections ReceivePort newMessage WriteMessage bufferize
+% LocalWords:  NetSendPort NetReceivePort NetPort ReadMessage enableUpcalls IP
+% LocalWords:  disableUpcalls NetEventQueueConsumer getPortType NetEventQueue
+% LocalWords:  NetEventQueueListener NetInputUpcall inputUpcall NetDriver io
+% LocalWords:  getName newInput newOutput NetInput NetOutput NetBufferedOutput
+% LocalWords:  initSend NetPortType setupConnection NetConnection NetSendBuffer
+% LocalWords:  getServiceLink NetServiceLink getOutputSubStream sendByteBuffer
+% LocalWords:  getInputSubStream NetBufferedInput NetReceiveByteBuffer doPoll
+% LocalWords:  initReceive doFinish doClose doFree receiveByteBuffer rendez JDK
+% LocalWords:  NetReceiveBuffer expectedLength DataOutputStream DataInputStream
+% LocalWords:  PipedInputStream PipedOutputStream LocalWords HashMap NetPoller
+% LocalWords:  NetSplitter closeConnection selectConnection GenSplitter NetLog
+% LocalWords:  GenPoller internet NetSerializedOutput NetSerializedInput JVM
+% LocalWords:  SerializationOutputStream ObjectOutputStream ArrayOutputStream
+% LocalWords:  newSerializationOutputStream SerializedInputStream OutputStream
+% LocalWords:  IbisSerializationOutputStream SunSerializationOutputStream JDKs
+% LocalWords:  getStackTrace Throwable NetIO Disp NetStat NetMessageStat JVM's
+% LocalWords:  reportVal reportMap addShutdownHook moduleName NetAllocator
+% LocalWords:  malloc NetMutex mutex NetPriorityMutex NetLockArray synchronised
+% LocalWords:  InterruptedException NetIbisInterruptedException
+% LocalWords:  NetIbisClosedException
