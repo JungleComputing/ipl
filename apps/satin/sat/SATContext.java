@@ -483,6 +483,10 @@ public final class SATContext implements java.io.Serializable {
         boolean usedAntecedent[] = new boolean[satisfied.length];
 
         int bestDom = calculateNearestDominator( p, cno, level );
+        if( false ){
+            // Force an `array out of bounds' exception.
+            usedAntecedent[usedAntecedent.length] = true;
+        }
         do {
             changed = false;
             int arr[] = res.pos;
