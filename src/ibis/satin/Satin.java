@@ -159,10 +159,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.exit(1);
 		}
 
-		/* Parse commandline parameters. Remove everything that starts with satin. */
+		/* Parse commandline parameters. Remove everything that starts
+		   with satin. */
 		Vector tempArgs = new Vector();
 		for(int i=0; i<args.length; i++) {
-			if(args[i].equals("-satin-closed")) { /* Closed world assumption. */
+			if(args[i].equals("-satin-closed")) {/* Closed world assumption. */
 				closed = true;
 			} else if(args[i].equals("-satin-panda")) {
 				panda = true;
@@ -209,16 +210,21 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			try {
 				name = "ibis@" + hostName + "_" + Math.abs(random.nextInt());
 				if(panda) {
-					ibis = Ibis.createIbis(name, "ibis.ipl.impl.messagePassing.PandaIbis", this);
+					ibis = Ibis.createIbis(name,
+                           "ibis.ipl.impl.messagePassing.PandaIbis", this);
 				} else if (mpi) {
-					ibis = Ibis.createIbis(name, "ibis.ipl.impl.messagePassing.MPIIbis", this);
+					ibis = Ibis.createIbis(name,
+                           "ibis.ipl.impl.messagePassing.MPIIbis", this);
 				} else if (net) {
-					ibis = Ibis.createIbis(name, "ibis.ipl.impl.net.NetIbis", this);
+					ibis = Ibis.createIbis(name,
+                           "ibis.ipl.impl.net.NetIbis", this);
 				} else {
-					ibis = Ibis.createIbis(name, "ibis.ipl.impl.tcp.TcpIbis", this);
+					ibis = Ibis.createIbis(name,
+                           "ibis.ipl.impl.tcp.TcpIbis", this);
 				}
 			} catch (IbisException e) {
-				System.err.println("SATIN '" + hostName + "': Could not start ibis with name '" + name + "': " + e);
+				System.err.println("SATIN '" + hostName + 
+                    "': Could not start ibis with name '" + name + "': " + e);
 //				e.printStackTrace();
 			}
 		}
@@ -265,7 +271,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				master = true;
 			} else {
 				if(COMM_DEBUG) {
-					out.println("SATIN '" + hostName + "': init ibis I an slave" );
+					out.println("SATIN '" + hostName + "': init ibis I am slave" );
 				}
 			}
 
@@ -473,34 +479,35 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 		}
 
-//		barrier(); /* Wait until everybody agrees to exit. */
+		barrier(); /* Wait until everybody agrees to exit. */
 
 		// If not closed, free ports. Otherwise, ports will be freed in leave calls.
 		while(true) {
 		    try {
-			SendPort s;
+				SendPort s;
 			
-			synchronized(this) {
-				if(victims.size() == 0) break;
+				synchronized(this) {
+					if(victims.size() == 0) break;
 
-				s = victims.getPort(0);
-
-				if(COMM_DEBUG) {
-					out.print("SATIN '" + ident.name() + 
-							 "': freeing sendport to " + victims.getIdent(0));
+					s = victims.getPort(0);
+					
+					if(COMM_DEBUG) {
+						out.print("SATIN '" + ident.name() + 
+								  "': freeing sendport to " +
+								  victims.getIdent(0));
+					}
+					victims.remove(0);
 				}
-				victims.remove(0);
-			}
 			
-			if(s != null) {
-				s.free();
-			}
+				if(s != null) {
+					s.free();
+				}
 			
-			if(COMM_DEBUG) {
-				out.println(" DONE");
-			}
+				if(COMM_DEBUG) {
+					out.println(" DONE");
+				}
 		    } catch (IbisIOException e) {
-			System.err.println("port.free() throws " + e);
+				System.err.println("port.free() throws " + e);
 		    }
 		}
 		
@@ -718,7 +725,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					if(ABORTS && gotExceptions) handleExceptions();
 					synchronized(this) {
 						if(gotStealReply) {
-							/* Imediately reset gotStealReply, we know that a reply has arrived. */
+							/* Immediately reset gotStealReply, we know that
+							   a reply has arrived. */
 							gotStealReply = false;
 							break;
 						}
@@ -727,19 +735,20 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				}
 			} else {
 				synchronized(this) {
-					while(!gotStealReply) {
+					while(!gotStealReply && !exiting) {
 						try {
 							wait();
 						} catch (InterruptedException e) {
 							// Ignore.
 						}
 					}
-                                        /* Imediately reset gotStealReply, we know that a reply has arrived. */
+					/* Immediately reset gotStealReply, we know that a
+					   reply has arrived. */
 					gotStealReply = false;
 				}
 			}
 		} else { // poll for reply
-			while(!gotStealReply/* && !exiting*/) {
+			while(!gotStealReply && !exiting) {
 				satinPoll();
 			}
 			gotStealReply = false;
@@ -749,10 +758,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			idleTimer.stop();
 		}
 
+		if(exiting) return false;
+
 		if(STEAL_DEBUG) {
 			out.println("SATIN '" + ident.name() + 
-					   "': got steal reply from " +
-					   v.ident.name() + ", " + (stolenJob == null ? "FAILED" : "SUCCESS"));
+					   "': got steal reply from " + v.ident.name() + ", " +
+						(stolenJob == null ? "FAILED" : "SUCCESS"));
 		}
 
 		/* If successfull, we now have a job in stolenJob. */
@@ -790,7 +801,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(COMM_DEBUG) {
 			out.println("SATIN '" + ident.name() + 
-						   "': '" + joiner.name() + "' is trying to join");
+						"': '" + joiner.name() + "' is trying to join");
 		}
 		try {
 			ReceivePortIdentifier r = null;
@@ -905,8 +916,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			s = victims.getReplyPort(ident);
 			if(s == null) {
 				if(COMM_DEBUG) {
-					out.println("SATIN '" + ident.name() + 
-							   "': could not get reply port, retrying");
+					
+					out.println("SATIN '" + this.ident.name() + 
+							   "': could not get reply port to " +
+								ident.name() + ", retrying");
 				}
 				try {
 					wait();
@@ -1199,8 +1212,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		while(!exiting) {
 			// steal and run jobs
 
-			if(!upcalls) satinPoll();
-			if (exiting) break;
+			if(!upcalls) {
+				satinPoll();
+			}
+			// if (exiting) break;
 
 			r = q.getFromHead();
 			if(r != null) {

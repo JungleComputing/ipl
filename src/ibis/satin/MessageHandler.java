@@ -176,22 +176,26 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				if(COMM_DEBUG) {
 					ident = m.origin();
 					satin.out.println("SATIN '" + satin.ident.name() + 
-							   "': got exit message from " + ident.ibis().name());
+					   "': got exit message from " + ident.ibis().name());
 				}
 				satin.exiting = true;
+				synchronized(satin) {
+					satin.notifyAll();
+				}
+
 //				m.finish();
 				break;
 			case EXIT_REPLY:
 				if(COMM_DEBUG) {
 					ident = m.origin();
 					satin.out.println("SATIN '" + satin.ident.name() + 
-							   "': got exit ACK message from " + ident.ibis().name());
+					   "': got exit ACK message from " + ident.ibis().name());
 				}
 				satin.exitReplies++;
 				break;
 			case STEAL_REQUEST:
 				ident = m.origin();
-//				m.finish();
+//              m.finish();
 				handleStealRequest(ident);
 				break;
 			case STEAL_REPLY_FAILED:
@@ -201,17 +205,19 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					ident = m.origin();
 					if(opcode == STEAL_REPLY_SUCCESS) {
 						satin.out.println("SATIN '" + satin.ident.name() + 
-								   "': got steal reply message from " + ident.ibis().name() + ": SUCCESS");
+							"': got steal reply message from " +
+							ident.ibis().name() + ": SUCCESS");
 					} else if(opcode == STEAL_REPLY_FAILED) {
 						satin.out.println("SATIN '" + satin.ident.name() + 
-								   "': got steal reply message from " + ident.ibis().name() + ": FAILED");
+							"': got steal reply message from " +
+							ident.ibis().name() + ": FAILED");
 					} 
 				}
 				if(COMM_DEBUG) {
 					ident = m.origin();
 					if(opcode == BARRIER_REPLY) {
 						satin.out.println("SATIN '" + satin.ident.name() + 
-								   "': got barrier reply message from " + ident.ibis().name());
+							"': got barrier reply message from " + ident.ibis().name());
 					}
 				}
 				synchronized(satin) {
