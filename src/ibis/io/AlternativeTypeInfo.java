@@ -138,7 +138,7 @@ final class AlternativeTypeInfo {
 
     void invokeWriteObject(Object o, ObjectOutputStream out)
 	    throws IOException {
-	System.out.println("invoke writeObject");
+//	System.out.println("invoke writeObject");
 	try {
 	    writeObjectMethod.invoke(o, new Object[] { out });
 	} catch (Exception e) {
@@ -148,7 +148,7 @@ final class AlternativeTypeInfo {
 
     void invokeReadObject(Object o, ObjectInputStream in)
 	    throws IOException {
-	System.out.println("invoke readObject");
+//	System.out.println("invoke readObject");
 	try {
 	    readObjectMethod.invoke(o, new Object[] { in });
 	} catch (Exception e) {
