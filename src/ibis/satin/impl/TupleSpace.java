@@ -12,6 +12,7 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
 public abstract class TupleSpace extends Communication {
 
@@ -512,5 +513,28 @@ public abstract class TupleSpace extends Communication {
 	private static void enableActiveTupleOrdening() {
 		if (this_satin == null) return;
 		connect(this_satin.tuplePort, this_satin.tupleReceivePort.identifier());
+	}
+
+
+	/* ------------------- for fault tolerance ---------------------- */
+
+	//returns ready to send contents of the table
+	Map getContents() {
+		if (ASSERTS) {
+			Satin.assertLocked(this_satin);
+		}
+
+		return space;
+	}
+
+	void addContents(Map contents) {
+		if (ASSERTS) {
+			Satin.assertLocked(this_satin);
+		}
+
+		synchronized(space) {
+		    space.putAll(contents);
+		    space.notifyAll();
+		}
 	}
 }

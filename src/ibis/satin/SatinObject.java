@@ -10,7 +10,7 @@ import ibis.satin.impl.Satin;
  * spawnable methods, and calls to {@link #sync()}and {@link #abort()}will be
  * rewritten.
  */
-public class SatinObject {
+public class SatinObject implements java.io.Serializable {
 
 	/** Waits until all spawned methods in the current method are finished. */
 	public void sync() {
