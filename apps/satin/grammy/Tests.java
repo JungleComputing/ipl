@@ -38,7 +38,7 @@ public class Tests extends TestCase {
     public void testCompressor()
         throws java.io.IOException
     {
-        String args[] = { "-quiet", "-short", "2", "-depth", "2", "-verify", "-string", sample };
+        String args[] = { "-quiet", "-verify", "-string", sample };
 	Compress.main( args );
     }
 }

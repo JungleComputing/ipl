@@ -87,15 +87,17 @@ class Compress extends ibis.satin.SatinObject implements Configuration
 
             Compress c = new Compress();
             ByteBuffer buf = c.compress( text, top );
-            Helpers.writeFile( outfile, buf );
+            if( outfile != null ){
+                Helpers.writeFile( outfile, buf );
+            }
 
-	long endTime = System.currentTimeMillis();
-	double time = ((double) (endTime - startTime))/1000.0;
+            long endTime = System.currentTimeMillis();
+            double time = ((double) (endTime - startTime))/1000.0;
 
-        if( !quiet ){
-            System.out.println( "ExecutionTime: " + time );
-            System.out.println( "In: " + text.length + " bytes, out: " + buf.getLength() + " bytes." );
-	}
+            if( !quiet ){
+                System.out.println( "ExecutionTime: " + time );
+                System.out.println( "In: " + text.length + " bytes, out: " + buf.getLength() + " bytes." );
+            }
             if( doVerification ){
                 ByteBuffer debuf = Decompress.decompress( buf );
                 byte nt[] = debuf.getText();
