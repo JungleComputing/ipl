@@ -31,7 +31,9 @@ class Main {
 				} while (s == null);		    
 				
 				s.foo();
+System.out.println("Called foo");
 				s.bar();	
+System.out.println("Called bar");
 
 				for (int j=0;j<10;j++) { 
 
@@ -39,6 +41,7 @@ class Main {
 					
 					for (int i=0;i<COUNT;i++) { 
 						s.foo();
+						// System.out.println(i);
 					} 
 					
 					long end = System.currentTimeMillis();	
@@ -56,11 +59,12 @@ class Main {
 					long end = System.currentTimeMillis();	
 					System.out.println("null latency (" + (COUNT*j) + ") = " + ((1000.0*(end-start))/(j*COUNT)) + " usec/call");
 				}*/
-				System.exit(0);
+				// System.exit(0);
 
 			} else {
 				Test t = new Test();
 				Naming.bind("//bimbambom/bla", t);
+				Thread.sleep(1000000);
 			} 
 		} catch (Exception e) { 
 			System.out.println("OOPS");
