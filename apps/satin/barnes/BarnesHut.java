@@ -3,15 +3,20 @@ import java.util.*;
 
 class BarnesHut {
 
-    public static final boolean DEBUG = false;
-    public static final boolean ASSERTS = true;
+    private static boolean debug = false;   //use -(no)debug to modify
+    private static boolean verbose = false; //use -v to turn on
+    static final boolean ASSERTS = true;  //also used in other barnes classes
 
-    public static boolean USE_STABLE = false; //use -stable to modify
-    public static final boolean USE_TUPLES = true;
-    public static final int SPAWN_THRESHOLD = 4;
+    private static final int IMPL_ITER = 0;  // -iter option
+    private static final int IMPL_NTC = 1;   // -ntc option
+    private static final int IMPL_TUPLE = 2; // -tuple option
+    private static int impl = IMPL_NTC;
 
-    // true: Collect statistics about the various phases in each iteration
-    public static final boolean PHASE_TIMING = true;
+    //recursion depth at which the ntc/tuple impl work sequentially
+    private static int spawn_threshold = 4; //use -t <threshold> to modify
+
+    //true: Collect statistics about the various phases in each iteration
+    public static boolean phase_timing = true; //use -(no)timing to modify
 
     private long treeBuildTime = 0, CoMTime = 0;
     private long forceCalcTime = 0, updateTime = 0;
@@ -92,7 +97,7 @@ class BarnesHut {
     }
 
 
-    void run(boolean printResult) {
+    void run() {
 	Body b;
 	int i;
 
@@ -101,7 +106,7 @@ class BarnesHut {
 	System.out.println("application barnes took " +
 			   (double)(time/1000.0) + " s");
 
-	if (PHASE_TIMING) {
+	if (phase_timing) {
 	    System.out.println("    tree building took: " +
 			       treeBuildTime/1000.0 + " s");
 	    System.out.println("  CoM computation took: " +
@@ -112,7 +117,7 @@ class BarnesHut {
 			       updateTime/1000.0 + " s");
 	}
 	
-	if (printResult) {
+	if (verbose) {
 	    //System.out.println("application result: ");
 	    System.out.println();
 	    printBodies();
@@ -123,9 +128,9 @@ class BarnesHut {
 	int i, iteration;
 	BodyTreeNode btRoot;
 	long start, end;
-	long phaseStart, phaseEnd;
+	long phaseStart = 0, phaseEnd;
 
-	LinkedList result;
+	LinkedList result = null;
 	Iterator it;
 
 	Body b;
@@ -136,28 +141,34 @@ class BarnesHut {
 			   " iterations with " + bodyArray.length +
 			   " bodies, " + maxLeafBodies + " bodies/leaf node");
 			   
-	if (USE_STABLE) {
-	    if (DEBUG) {
-		System.out.println("Using sequential debug version");
+	switch(impl) {
+	case IMPL_ITER:
+	    if (debug) {
+		System.out.println("Using iterative debug impl");
 	    } else {
-		System.out.println("Using spawn-for-each-body version");
+		System.out.println("Using iterative spawn-for-each-body impl");
 	    }
-	} else {
-	    System.out.println("Using optimized hierarchical version");
+	    break;
+	case IMPL_NTC:
+	    System.out.println("Using necessary tree impl");
+	    break;
+	case IMPL_TUPLE:
+	    System.out.println("Using satin tuple impl");
+	    break;
 	}
 
 	start = System.currentTimeMillis();
 		
 	for (iteration = 0; iteration < ITERATIONS; iteration++) {
 	//for (iteration = 0; iteration < 1; iteration++) {
-	    if (DEBUG) System.out.println("Starting iteration " + iteration);
+	    if (debug) System.out.println("Starting iteration " + iteration);
 
-	    if (PHASE_TIMING) phaseStart = System.currentTimeMillis();
+	    if (phase_timing) phaseStart = System.currentTimeMillis();
 
 	    //build tree
 	    btRoot = new BodyTreeNode(bodyArray, maxLeafBodies, THETA);
 
-	    if (PHASE_TIMING) {
+	    if (phase_timing) {
 		phaseEnd = System.currentTimeMillis();
 		treeBuildTime += phaseEnd - phaseStart;
 		phaseStart = System.currentTimeMillis();
@@ -166,7 +177,7 @@ class BarnesHut {
 	    //compute centers of mass
 	    btRoot.computeCentersOfMass();
 
-	    if (PHASE_TIMING) {
+	    if (phase_timing) {
 		phaseEnd = System.currentTimeMillis();
 		CoMTime += phaseEnd - phaseStart;
 		phaseStart = System.currentTimeMillis();
@@ -174,30 +185,32 @@ class BarnesHut {
 
 	    //force calculation
 
-	    if (USE_STABLE) {
-		if (DEBUG) {
-		    //(sequential) debug version
-		    btRoot.barnes(bodyArray, iteration);
+	    switch(impl) {
+	    case IMPL_ITER:
+		if (debug) {
+		    btRoot.barnesDbg(bodyArray, iteration);
 		} else {
-		    //this version spawns a job for each body
 		    btRoot.barnes(bodyArray);
 		}
-	    } else {
-		// these versions recursively split up the tree,
-		// they return a list with bodyNumbers and corresponding accs
-
-		//necessaryTree version
-/*
-		result = btRoot.barnes(btRoot, SPAWN_THRESHOLD);
+		break;
+	    case IMPL_NTC:
+		result = btRoot.barnes(btRoot, spawn_threshold);
 		btRoot.sync();
-*/
-		//satintuple version
+		break;
+	    case IMPL_TUPLE:
 		BodyTreeNode dummyNode = new BodyTreeNode();
+
 		String rootId = "root" + iteration;
 		ibis.satin.SatinTupleSpace.add(rootId, btRoot);
-		result = dummyNode.barnes(null, rootId, SPAWN_THRESHOLD);
+
+		result = dummyNode.barnes(null, rootId, spawn_threshold);
 		dummyNode.sync();
-		
+		break;
+	    }
+
+	    if (impl == IMPL_NTC || impl == IMPL_TUPLE) {
+		/* these implementations return a list with bodyNumbers
+		   and corresponding accs, which has to be processed */
 
 		it = result.iterator();
 
@@ -243,7 +256,7 @@ class BarnesHut {
 
 	    }
 	    
-	    if (PHASE_TIMING) {
+	    if (phase_timing) {
 		phaseEnd = System.currentTimeMillis();
 		forceCalcTime += phaseEnd - phaseStart;
 		phaseStart = System.currentTimeMillis();
@@ -269,7 +282,7 @@ class BarnesHut {
 		//??? max + min posities hier berekenen ipv bij boom bouwen
 	    }
 
-	    if (PHASE_TIMING) {
+	    if (phase_timing) {
 		phaseEnd = System.currentTimeMillis();
 		updateTime += phaseEnd - phaseStart;
 	    }
@@ -310,22 +323,37 @@ class BarnesHut {
 
     public static void main(String argv[]) {
 	int nBodies = 0, mlb = 0;
-	boolean printResult = false;
-
 	int i;
 
 	//parse arguments
 	for (i = 0; i < argv.length; i++) {
 	    //options
-	    if (argv[i].equals("-v")) {
-		printResult = true;
+	    if (argv[i].equals("-debug")) {
+		debug = true;
+	    } else if (argv[i].equals("-nodebug")) {
+		debug = false;
+	    } else if (argv[i].equals("-v")) {
+		verbose = true;
 
-	    } else if (argv[i].equals("-stable")) {
-		USE_STABLE = true;
+	    } else if (argv[i].equals("-iter")) {
+		impl = IMPL_ITER;
+	    } else if (argv[i].equals("-ntc")) {
+		impl = IMPL_NTC;
+	    } else if (argv[i].equals("-tuple")) {
+		impl = IMPL_TUPLE;
+
+	    } else if (argv[i].equals("-t")) {
+		spawn_threshold = Integer.parseInt(argv[i+1]);
+		if (spawn_threshold < 0) throw new IllegalArgumentException("Illegal argument to -t: Spawn threshold must be > 0 !");
+
+	    } else if (argv[i].equals("-timing")) {
+		phase_timing = true;
+	    } else if (argv[i].equals("-no_timing")) {
+		phase_timing = false;
 
 	    } else { //final arguments
-		nBodies = Integer.parseInt(argv[i]);
-		mlb = Integer.parseInt(argv[i+1]);
+		nBodies = Integer.parseInt(argv[i]); //nr of bodies to simulate
+		mlb = Integer.parseInt(argv[i+1]);   //max bodies per leaf node
 		break;
 	    }
 	}
@@ -335,7 +363,7 @@ class BarnesHut {
 	}
 
 	try {  
-	    new BarnesHut(nBodies, mlb).run(printResult);
+	    new BarnesHut(nBodies, mlb).run();
 	} catch (StackOverflowError e) {
 	    System.err.println("EEK!" + e + ":");
 	    e.printStackTrace();

@@ -73,11 +73,6 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	   floating point inaccuracy (value copied from splash2-barnes) */
 	size *= 1.00002; 
 
-	if (BarnesHut.DEBUG) {
-	    center = new Vec3(); //use some 'simple'/easily readable numbers
-	    size = 32.0;
-	}
-
 	halfSize = size / 2.0;
 	maxTheta = theta * theta * halfSize * halfSize;
     }
@@ -406,7 +401,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	   The (square) distance computed here is *LARGER* than the
 	   distance computed by the necessaryTree construction (which
 	   uses the boundary of the job we're working on), so we can
-	   still test if the distance is large enough to my CoM */
+	   still test if the distance is large enough to use my CoM */
 
 	if (distsq >= maxTheta) {
 	    distsq += SOFT_SQ;
@@ -461,9 +456,9 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 
     /**
      * Computes the acceleration that the bodies in 'this' give to 'b'
-     * ( debug version of void barnes(pos) )
+     * ( debug version of void barnesBody(pos) )
      */
-    public Vec3 barnesDebug( Vec3 pos, boolean debug ) {
+    public Vec3 barnesBodyDbg( Vec3 pos, boolean debug ) {
 	Vec3 diff;
 	double dist, distsq, factor;
 	int i;
@@ -521,12 +516,6 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 		if (debug) {
 		    System.out.println("  Interaction with " +
 				       bodies[i].number);
-		    System.out.println("  his pos = " + bodies[i].pos);
-		    System.out.println("  diff = " + diff.x + ", " +
-				       diff.y + ", " + diff.z);
-		    System.out.println("  diffsq = " + (diff.x * diff.x) +
-				       ", " + (diff.y * diff.y) + ", " +
-				       diff.z * diff.z);
 		}
 
 		distsq = diff.x * diff.x + diff.y * diff.y;
@@ -547,7 +536,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	} else { // Cell node
 	    for (i = 0; i < 8; i++) {
 		if (children[i] != null) {
-		    totalAcc.add( children[i].barnesDebug(pos, debug) );
+		    totalAcc.add( children[i].barnesBodyDbg(pos, debug) );
 		}
 	    }
 	}
@@ -576,13 +565,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 
 	    for (i = 0; i < bodies.length; i++) {
 		bodyNumbers[i] = bodies[i].number;
-		if (BarnesHut.DEBUG) {
-		    System.out.println("Calculating body #" +bodies[i].number);
-		    accs[i] = interactTree.barnesDebug(bodies[i].pos, false);
-		    //bodies[i].number == 1);
-		} else {
-		    accs[i] = interactTree.barnesBody(bodies[i].pos);
-		}
+		accs[i] = interactTree.barnesBody(bodies[i].pos);
 	    }
 	    result = new LinkedList();
 	    result.add(bodyNumbers);
@@ -813,10 +796,10 @@ final class BodyTreeNode extends ibis.satin.SatinObject
     }
 
     //debug version of the method above
-    public void barnes( Body[] bodies, int iteration) {
+    public void barnesDbg( Body[] bodies, int iteration) {
 	for (int i = 0; i < bodies.length; i++) {
-	    //bodies[i].acc = barnes(bodies[i], iteration == 19 && i == 5);
-	    bodies[i].acc = barnesDebug(bodies[i].pos, false);
+	    bodies[i].acc = barnesBodyDbg(bodies[i].pos, i == 0);
+	    //bodies[i].acc = barnesBodyDbg(bodies[i].pos, false);
 	    if (BarnesHut.ASSERTS) bodies[i].updated = true;
 	}
     }
