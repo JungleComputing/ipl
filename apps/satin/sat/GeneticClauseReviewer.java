@@ -11,15 +11,14 @@
 
 class GeneticClauseReviewer extends ClauseReviewer {
     float weights[];
-
     ClauseReviewer filteredReviewer = new CubeClauseReviewer();
 
-    public GeneticClauseReviewer(float genes[]) {
-        weights = new float[genes.length + 3];
+    public GeneticClauseReviewer( float genes[] ){
+        weights = new float[genes.length+3];
 
         weights[0] = weights[1] = weights[2] = 1.0f;
 
-        System.arraycopy(genes, 0, weights, 3, genes.length);
+        System.arraycopy( genes, 0, weights, 3, genes.length );
     }
 
     /**
@@ -28,11 +27,12 @@ class GeneticClauseReviewer extends ClauseReviewer {
      * @param n The number of choices.
      * @return The information contents of this clause.
      */
-    float info(int n) {
-        if (n >= weights.length) {
+    float info( int n )
+    {
+        if( n>=weights.length ){
             n = weights.length - 1;
         }
-        return weights[n] * filteredReviewer.info(n);
+        return weights[n] * filteredReviewer.info( n );
     }
 
 }

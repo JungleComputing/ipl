@@ -44,11 +44,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     private int deletedClauseCount;
 
     private static final boolean traceSimplification = false;
-
     private static final boolean tracePropagation = false;
-
     private static final boolean traceNewCode = true;
-
     private static final boolean traceClauses = false;
 
     private int label = 0;
@@ -58,19 +55,29 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     /**
      * Constructs an empty SAT Problem.
      */
-    private SATProblem() {
+    private SATProblem()
+    {
         vars = 0;
         knownVars = 0;
-        createVarArray(0);
+        createVarArray( 0 );
         clauses = new Clause[0];
     }
 
     /**
      * Constructs a SAT Problem with the given fields.
      */
-    private SATProblem(int vars, int knownVars, int clauseCount,
-            Clause clauses[], SATVar variables[], byte assignments[],
-            int deletedClauseCount, int label, ClauseReviewer r) {
+    private SATProblem(
+        int vars,
+        int knownVars,
+        int clauseCount,
+        Clause clauses[],
+        SATVar variables[],
+        byte assignments[],
+        int deletedClauseCount,
+        int label,
+        ClauseReviewer r
+    )
+    {
         this.vars = vars;
         this.knownVars = knownVars;
         this.clauseCount = clauseCount;
@@ -82,36 +89,47 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
         reviewer = r;
     }
 
-    public void setReviewer(ClauseReviewer r) {
+    public void setReviewer( ClauseReviewer r )
+    {
         reviewer = r;
     }
 
     /** Returns a clone of this SAT problem. The newly created SATProblem
      * also has cloned clauses and variables.
      */
-    public Object clone() {
+    public Object clone()
+    {
         Clause cl[] = null;
         SATVar vl[] = null;
 
-        if (clauses != null) {
+        if( clauses != null ){
             cl = new Clause[clauseCount];
-            for (int i = 0; i < clauseCount; i++) {
-                if (clauses[i] == null) {
+            for( int i=0; i<clauseCount; i++ ){
+                if( clauses[i] == null ){
                     cl[i] = null;
-                } else {
+                }
+                else {
                     cl[i] = (Clause) clauses[i].clone();
                 }
             }
         }
-        if (variables != null) {
+        if( variables != null ){
             vl = new SATVar[vars];
-            for (int i = 0; i < vars; i++) {
+            for( int i=0; i<vars; i++ ){
                 vl[i] = (SATVar) variables[i].clone();
             }
         }
-        return new SATProblem(vars, knownVars, clauseCount, cl, vl,
-                (byte[]) assignments.clone(), deletedClauseCount, label,
-                reviewer);
+        return new SATProblem( 
+            vars,
+            knownVars,
+            clauseCount,
+            cl,
+            vl,
+            (byte []) assignments.clone(),
+            deletedClauseCount,
+            label,
+            reviewer
+        );
     }
 
     /**
@@ -121,9 +139,9 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param v the number of variables in the problem
      * @param cl the clauses of the problem
      */
-    public SATProblem(int v, Clause cl[]) {
+    public SATProblem( int v, Clause cl[] ){
         vars = v;
-        createVarArray(v);
+        createVarArray( v );
         clauses = cl;
         clauseCount = cl.length;
     }
@@ -135,10 +153,10 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param v the number of variables in the problem
      * @param n the number of clauses of the problem
      */
-    private SATProblem(int v, int n) {
+    private SATProblem( int v, int n ){
         vars = v;
         clauses = new Clause[n];
-        createVarArray(v);
+        createVarArray( v );
         clauseCount = 0;
     }
 
@@ -148,30 +166,34 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      *
      * @param n The number of variables.
      */
-    private void createVarArray(int n) {
+    private void createVarArray( int n )
+    {
         variables = new SATVar[n];
 
-        for (int i = 0; i < n; i++) {
-            variables[i] = new SATVar(i);
+        for( int i=0; i<n; i++ ){
+            variables[i] = new SATVar( i );
         }
         assignments = new byte[n];
-        for (int i = 0; i < n; i++) {
+        for( int i=0; i<n; i++ ){
             assignments[i] = -1;
         }
     }
 
     /** Returns the number of variables used in the problem.  */
-    public int getVariableCount() {
+    public int getVariableCount()
+    {
         return vars;
     }
 
     /** Returns the number of known variables in the problem.  */
-    public int getKnownVariableCount() {
+    public int getKnownVariableCount()
+    {
         return knownVars;
     }
 
     /** Returns the number of clauses of the problem.  */
-    public int getClauseCount() {
+    public int getClauseCount()
+    {
         return clauseCount;
     }
 
@@ -179,7 +201,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Given a clause 'i', deletes it from the list.
      * @param i the index of the clause to delete
      */
-    private void deleteClause(int i) {
+    private void deleteClause( int i )
+    {
         clauseCount--;
         clauses[i] = clauses[clauseCount];
         deletedClauseCount++;
@@ -190,12 +213,13 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param cl the clause to add
      * @return the label of the added clause, or -1 if the clause is redundant
      */
-    public int addClause(Clause cl) {
-        if (clauseCount >= clauses.length) {
+    public int addClause( Clause cl )
+    {
+        if( clauseCount>=clauses.length ){
             // Resize the clauses array. Even works for array of length 0.
-            Clause nw[] = new Clause[1 + clauses.length * 2];
+            Clause nw[] = new Clause[1+clauses.length*2];
 
-            System.arraycopy(clauses, 0, nw, 0, clauses.length);
+            System.arraycopy( clauses, 0, nw, 0, clauses.length );
             clauses = nw;
         }
         int clauseno = clauseCount++;
@@ -213,14 +237,15 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param negsz the number of elements in <code>neg</code> to use
      * @return the label of the added clause, or -1 if the clause is redundant
      */
-    public int addClause(int pos[], int possz, int neg[], int negsz) {
-        int apos[] = Helpers.cloneIntArray(pos, possz);
-        int aneg[] = Helpers.cloneIntArray(neg, negsz);
-        Helpers.sortIntArray(apos);
-        Helpers.sortIntArray(aneg);
+    public int addClause( int pos[], int possz, int neg[], int negsz )
+    {
+        int apos[] = Helpers.cloneIntArray( pos, possz );
+        int aneg[] = Helpers.cloneIntArray( neg, negsz );
+        Helpers.sortIntArray( apos );
+        Helpers.sortIntArray( aneg );
 
-        Clause cl = new Clause(apos, aneg, label++);
-        return addClause(cl);
+        Clause cl = new Clause( apos, aneg, label++ );
+        return addClause( cl );
     }
 
     /**
@@ -231,8 +256,9 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param neg the array of negative variables
      * @return the label of the added clause
      */
-    public int addClause(int pos[], int neg[]) {
-        return addClause(pos, pos.length, neg, neg.length);
+    public int addClause( int pos[], int neg[] )
+    {
+        return addClause( pos, pos.length, neg, neg.length );
     }
 
     /**
@@ -240,12 +266,13 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * conflict administration.
      * @param cl The conflict clause to add.
      */
-    public void addConflictClause(Clause cl) {
+    public void addConflictClause( Clause cl )
+    {
         int cno = clauseCount;
-        addClause(cl);
-        registerClauseVariables(cl, cno);
-        if (traceClauses) {
-            System.err.println("Adding clause " + cno + ": " + cl);
+        addClause( cl );
+        registerClauseVariables( cl, cno );
+        if( traceClauses ){
+            System.err.println( "Adding clause " + cno + ": " + cl );
         }
     }
 
@@ -255,22 +282,23 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param cl the clause to register
      * @param clauseno the index of the clause to register
      */
-    private void registerClauseVariables(Clause cl, int clauseno) {
-        if (cl == null) {
+    private void registerClauseVariables( Clause cl, int clauseno )
+    {
+        if( cl == null ){
             return;
         }
         int arr[] = cl.pos;
 
-        for (int ix = 0; ix < arr.length; ix++) {
+        for( int ix=0; ix<arr.length; ix++ ){
             int var = arr[ix];
 
-            variables[var].registerPosClause(clauseno);
+            variables[var].registerPosClause( clauseno );
         }
         arr = cl.neg;
-        for (int ix = 0; ix < arr.length; ix++) {
+        for( int ix=0; ix<arr.length; ix++ ){
             int var = arr[ix];
 
-            variables[var].registerNegClause(clauseno);
+            variables[var].registerNegClause( clauseno );
         }
     }
 
@@ -281,7 +309,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param var The variable to return the vector for.
      * @return a vector of clause indices
      */
-    public int[] getPosClauses(int var) {
+    public int[] getPosClauses( int var )
+    {
         return variables[var].getPosClauses();
     }
 
@@ -292,7 +321,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param var The variable to return the vector for.
      * @return a vector of clause indices
      */
-    public int[] getNegClauses(int var) {
+    public int[] getNegClauses( int var )
+    {
         return variables[var].getNegClauses();
     }
 
@@ -301,7 +331,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param n The index of the clause.
      * @return The label of the clause.
      */
-    public int getClauseLabel(int n) {
+    public int getClauseLabel( int n ){
         return clauses[n].label;
     }
 
@@ -311,9 +341,10 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param assignments the variable assignments
      * @return The index of an unsatisfied clause, or -1 if there are none.
      */
-    public int getUnsatisfied(byte assignments[]) {
-        for (int ix = 0; ix < clauseCount; ix++) {
-            if (!clauses[ix].isSatisfied(assignments)) {
+    public int getUnsatisfied( byte assignments[] )
+    {
+        for( int ix=0; ix<clauseCount; ix++ ){
+            if( !clauses[ix].isSatisfied( assignments ) ){
                 return ix;
             }
         }
@@ -326,9 +357,10 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param assignments The variable assignments.
      * @return <code>true</code> iff the assignments satisfy the problem
      */
-    public boolean isSatisfied(byte assignments[]) {
-        for (int ix = 0; ix < clauseCount; ix++) {
-            if (!clauses[ix].isSatisfied(assignments)) {
+    public boolean isSatisfied( byte assignments[] )
+    {
+        for( int ix=0; ix<clauseCount; ix++ ){
+            if( !clauses[ix].isSatisfied( assignments ) ){
                 return false;
             }
         }
@@ -341,18 +373,19 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param sol The solution.
      * @return <code>true</code> iff the assignments satisfy the problem.
      */
-    public boolean isSatisfied(SATSolution sol) {
-        byte a[] = (byte[]) assignments.clone();
+    public boolean isSatisfied( SATSolution sol )
+    {
+        byte a[] = (byte []) assignments.clone();
 
         int pos[] = sol.pos;
-        for (int i = 0; i < pos.length; i++) {
+        for( int i=0; i<pos.length; i++ ){
             a[pos[i]] = 1;
         }
         int neg[] = sol.neg;
-        for (int i = 0; i < neg.length; i++) {
+        for( int i=0; i<neg.length; i++ ){
             a[neg[i]] = 0;
         }
-        return isSatisfied(a);
+        return isSatisfied( a );
     }
 
     /**
@@ -363,9 +396,10 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param assignments the variable assignments
      * @return <code>true</code> iff the assignments conflict with the problem
      */
-    public boolean isConflicting(byte assignments[]) {
-        for (int ix = 0; ix < clauseCount; ix++) {
-            if (clauses[ix].isConflicting(assignments)) {
+    public boolean isConflicting( byte assignments[] )
+    {
+        for( int ix=0; ix<clauseCount; ix++ ){
+            if( clauses[ix].isConflicting( assignments ) ){
                 return true;
             }
         }
@@ -376,7 +410,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns true iff this problem is known to be conflicting for
      * all assignments.
      */
-    public boolean isConflicting() {
+    public boolean isConflicting()
+    {
         // For now, I know nothing.
         return false;
     }
@@ -385,9 +420,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns true iff this problem is known to be satisfied for
      * all assignments.
      */
-    public boolean isSatisfied() {
-        return clauseCount == 0;
-    }
+    public boolean isSatisfied() { return clauseCount == 0; }
 
     /**
      * Propagates the fact that the specified variable is true to the
@@ -396,29 +429,30 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param var the variable to propagate
      * @param val the value of the variable
      */
-    private boolean propagateAssignment(int l[], int var, boolean val) {
+    private boolean propagateAssignment( int l[], int var, boolean val )
+    {
         boolean changed = false;
 
-        for (int ix = 0; ix < l.length; ix++) {
+        for( int ix=0; ix<l.length; ix++ ){
             int cno = l[ix];
             Clause c = clauses[cno];
 
-            if (c == null) {
+            if( c == null ){
                 continue;
             }
             boolean sat;
-            if (val) {
-                sat = c.propagatePosAssignment(var);
-            } else {
-                sat = c.propagateNegAssignment(var);
+            if( val ){
+                sat = c.propagatePosAssignment( var );
             }
-            if (sat) {
+            else {
+                sat = c.propagateNegAssignment( var );
+            }
+            if( sat ){
                 // This clause is satisfied by the assignment. Remove it.
                 clauses[cno] = null;
                 changed = true;
-                if (traceSimplification) {
-                    System.err.println("Clause " + c + " is satisfied by var["
-                            + var + "]=" + val);
+                if( traceSimplification ){
+                    System.err.println( "Clause " + c + " is satisfied by var[" + var + "]=" + val ); 
                 }
             }
         }
@@ -432,56 +466,59 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param val The value of the variable.
      * @return <code>true</code> iff the propagation deleted any clauses
      */
-    public boolean propagateAssignment(int var, boolean val) {
+    public boolean propagateAssignment( int var, boolean val )
+    {
         boolean changed = false;
 
         int oldAssignment = assignments[var];
-        if (oldAssignment != -1) {
+        if( oldAssignment != -1 ){
             boolean oldVal = (oldAssignment == 1);
-            if (oldVal != val) {
-                System.err.println("Cannot propagate val[" + var + "]=" + val
-                        + ", since it contradicts an existing assignment");
+            if( oldVal != val ){
+                System.err.println( "Cannot propagate val[" + var + "]=" + val + ", since it contradicts an existing assignment" );
             }
             return false;
         }
         knownVars++;
-        assignments[var] = val ? (byte) 1 : (byte) 0;
+        assignments[var] = val? (byte) 1: (byte) 0;
         SATVar v = variables[var];
-        if (v.getUseCount() == 0) {
-            System.err.println("Error: zero use count of variable " + v);
+        if( v.getUseCount() == 0 ){
+            System.err.println( "Error: zero use count of variable " + v );
         }
-        changed |= propagateAssignment(v.getPosClauses(), var, val);
-        changed |= propagateAssignment(v.getNegClauses(), var, val);
+        changed |= propagateAssignment( v.getPosClauses(), var, val );
+        changed |= propagateAssignment( v.getNegClauses(), var, val );
         return changed;
     }
 
     /** Removes null clauses from the clauses array. */
-    private void compactClauses() {
+    private void compactClauses()
+    {
         int ix = clauseCount;
 
-        while (ix > 0) {
+        while( ix>0 ){
             ix--;
 
-            if (clauses[ix] == null) {
-                deleteClause(ix);
+            if( clauses[ix] == null ){
+                deleteClause( ix );
             }
         }
     }
 
     /** Builds the variable use administration. */
-    public void buildAdministration() {
-        for (int ix = 0; ix < variables.length; ix++) {
+    public void buildAdministration()
+    {
+        for( int ix=0; ix<variables.length; ix++ ){
             SATVar v = variables[ix];
 
             v.clearClauseRegister();
         }
-        for (int i = 0; i < clauseCount; i++) {
-            registerClauseVariables(clauses[i], i);
+        for( int i=0; i<clauseCount; i++ ){
+            registerClauseVariables( clauses[i], i );
         }
     }
 
     /** Optimizes the problem for solving. */
-    public void optimize(boolean traceStats) {
+    public void optimize( boolean traceStats )
+    {
         boolean changed;
         int unitClauses = 0;
         int iters = 0;
@@ -493,86 +530,80 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 
             iters++;
             buildAdministration();
-            for (int ix = 0; ix < variables.length; ix++) {
+            for( int ix=0; ix<variables.length; ix++ ){
                 SATVar v = variables[ix];
 
-                if (!v.isUsed()) {
+                if( !v.isUsed() ){
                     continue;
                 }
-                if (assignments[ix] == -1 && v.isPosOnly()) {
+                if( assignments[ix] == -1 && v.isPosOnly() ){
                     // Variable 'v' only occurs in positive terms, we may as
                     // well assign to this variable, and propagate this
                     // assignment.
-                    if (traceSimplification) {
-                        System.err.println("Variable " + v
-                                + " only occurs as positive term");
+                    if( traceSimplification ){
+                        System.err.println( "Variable " + v + " only occurs as positive term" ); 
                     }
-                    changed |= propagateAssignment(ix, true);
+                    changed |= propagateAssignment( ix, true );
                     purevars++;
-                } else if (assignments[ix] == -1 && v.isNegOnly()) {
+                }
+                else if( assignments[ix] == -1 && v.isNegOnly() ){
                     // Variable 'v' only occurs in negative terms, we may as
                     // well assign to this variable, and propagate this
                     // assignment.
-                    if (traceSimplification) {
-                        System.err.println("Variable " + v
-                                + " only occurs as negative term");
+                    if( traceSimplification ){
+                        System.err.println( "Variable " + v + " only occurs as negative term" ); 
                     }
-                    changed |= propagateAssignment(ix, false);
+                    changed |= propagateAssignment( ix, false );
                     purevars++;
                 }
             }
-            for (int i = 0; i < clauseCount; i++) {
+            for( int i=0; i<clauseCount; i++ ){
                 Clause cl = clauses[i];
 
-                if (cl == null) {
+                if( cl == null ){
                     continue;
                 }
                 int var = cl.getPosUnitVar();
-                if (var >= 0) {
+                if( var>=0 ){
                     // This is a positive unit clause. Propagate.
-                    if (traceSimplification) {
-                        System.err
-                                .println("Propagating pos. unit clause " + cl);
+                    if( traceSimplification ){
+                        System.err.println( "Propagating pos. unit clause " + cl ); 
                     }
-                    changed |= propagateAssignment(var, true);
-                    if (clauses[i] != null) {
-                        System.err
-                                .println("Error: positive unit propagation didn't eliminate originating clause "
-                                        + cl);
+                    changed |= propagateAssignment( var, true );
+                    if( clauses[i] != null ){
+                        System.err.println( "Error: positive unit propagation didn't eliminate originating clause " + cl );
                     }
                     unitClauses++;
                     continue;
-                } else {
+                }
+                else {
                     var = cl.getNegUnitVar();
-                    if (var >= 0) {
+                    if( var>=0 ){
                         // This is a negative unit clause. Propagate.
-                        if (traceSimplification) {
-                            System.err.println("Propagating neg. unit clause "
-                                    + cl);
+                        if( traceSimplification ){
+                            System.err.println( "Propagating neg. unit clause " + cl ); 
                         }
-                        propagateAssignment(var, false);
-                        if (clauses[i] != null) {
-                            System.err
-                                    .println("Error: negative unit propagation didn't eliminate originating clause "
-                                            + cl);
+                        propagateAssignment( var, false );
+                        if( clauses[i] != null ){
+                            System.err.println( "Error: negative unit propagation didn't eliminate originating clause " + cl );
                         }
                         unitClauses++;
                         continue;
                     }
                 }
             }
-        } while (changed);
+        } while( changed );
 
         compactClauses();
 
         // For the moment, sort the clauses into shortest-first order.
-        java.util.Arrays.sort(clauses, 0, clauseCount);
+        java.util.Arrays.sort( clauses, 0, clauseCount );
 
         buildAdministration();
-        if (traceStats) {
-            System.err.println("Propagated " + unitClauses + " unit clauses");
-            System.err.println("Propagated " + purevars + " pure variables");
-            System.err.println("Did " + iters + " optimization iterations");
+        if( traceStats ){
+            System.err.println( "Propagated " + unitClauses + " unit clauses" );
+            System.err.println( "Propagated " + purevars + " pure variables" );
+            System.err.println( "Did " + iters + " optimization iterations" );
         }
     }
 
@@ -580,18 +611,20 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns the initial assignment array for this problem.
      * @return an array of assignments for the variables of this problem
      */
-    byte[] buildInitialAssignments() {
-        return (byte[]) assignments.clone();
+    byte [] buildInitialAssignments()
+    {
+        return (byte []) assignments.clone();
     }
 
     /**
      * Returns a new array that contains the number of terms in
      * each clause.
      */
-    int[] buildTermCounts() {
+    int [] buildTermCounts()
+    {
         int res[] = new int[clauseCount];
 
-        for (int i = 0; i < clauseCount; i++) {
+        for( int i=0; i<clauseCount; i++ ){
             res[i] = clauses[i].getTermCount();
         }
         return res;
@@ -601,10 +634,11 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns a new array that contains the number of clauses in which
      * a variable occurs positively.
      */
-    int[] buildPosClauses() {
+    int [] buildPosClauses()
+    {
         int res[] = new int[vars];
 
-        for (int ix = 0; ix < vars; ix++) {
+        for( int ix=0; ix<vars; ix++ ){
             res[ix] = variables[ix].getPosCount();
         }
         return res;
@@ -614,10 +648,11 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns a new array that contains the number of clauses in which
      * a variable occurs negatively.
      */
-    int[] buildNegClauses() {
+    int [] buildNegClauses()
+    {
         int res[] = new int[vars];
 
-        for (int ix = 0; ix < vars; ix++) {
+        for( int ix=0; ix<vars; ix++ ){
             res[ix] = variables[ix].getNegCount();
         }
         return res;
@@ -627,11 +662,12 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns a new array that contains the information of the
      * positive assignment of each variable.
      */
-    float[] buildPosInfo() {
+    float [] buildPosInfo()
+    {
         float res[] = new float[vars];
 
-        for (int ix = 0; ix < vars; ix++) {
-            res[ix] = variables[ix].getPosInfo(clauses, reviewer);
+        for( int ix=0; ix<vars; ix++ ){
+            res[ix] = variables[ix].getPosInfo( clauses, reviewer );
         }
         return res;
     }
@@ -640,11 +676,12 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns a new array that contains the information of the
      * negative assignment of each variable.
      */
-    float[] buildNegInfo() {
+    float [] buildNegInfo()
+    {
         float res[] = new float[vars];
 
-        for (int ix = 0; ix < vars; ix++) {
-            res[ix] = variables[ix].getNegInfo(clauses, reviewer);
+        for( int ix=0; ix<vars; ix++ ){
+            res[ix] = variables[ix].getNegInfo( clauses, reviewer );
         }
         return res;
     }
@@ -654,16 +691,17 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Assigned variables are not considered.
      * @return the index of the most frequently used variable, or -1 if there are no unassigned variables
      */
-    int getMFUVariable() {
+    int getMFUVariable()
+    {
         SATVar bestvar = null;
         int bestuse = 0;
 
-        for (int i = 0; i < vars; i++) {
-            if (assignments[i] == -1) {
+        for( int i=0; i<vars; i++ ){
+            if( assignments[i] == -1 ){
                 SATVar v = variables[i];
                 int use = v.getUseCount();
 
-                if (bestuse < use) {
+                if( bestuse<use ){
                     bestvar = v;
                     bestuse = use;
                 }
@@ -677,22 +715,23 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * most effective in solving the problem as fast as possible.
      * @return an ordered list of variables
      */
-    int[] buildOrderedVarList() {
+    int [] buildOrderedVarList()
+    {
         int varix = 0;
 
         SATVar sorted_vars[] = new SATVar[vars];
 
-        for (int i = 0; i < vars; i++) {
+        for( int i=0; i<vars; i++ ){
             SATVar v = variables[i];
 
-            if (v != null && assignments[i] == -1) {
+            if( v != null && assignments[i] == -1 ){
                 sorted_vars[varix++] = v;
             }
         }
-        java.util.Arrays.sort(sorted_vars, 0, varix);
+        java.util.Arrays.sort( sorted_vars, 0, varix );
 
         int res[] = new int[varix];
-        for (int i = 0; i < varix; i++) {
+        for( int i=0; i<varix; i++ ){
             int ix = sorted_vars[i].getIndex();
             res[i] = ix;
         }
@@ -708,8 +747,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param in The reader that provides the stream to parse.
      * @return The parsed problem.
      */
-    public static SATProblem parseDIMACSStream(Reader in)
-            throws java.io.IOException {
+    public static SATProblem parseDIMACSStream( Reader in ) throws java.io.IOException
+    {
         int varcount = 0;
         int promisedClauseCount = 0;
 
@@ -727,144 +766,132 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
         boolean done = false;
         SATProblem res = null;
 
-        StreamTokenizer tok = new StreamTokenizer(in);
-        tok.eolIsSignificant(true); // Because of 'c' and 'p' lines.
-        tok.lowerCaseMode(false); // Don't fold UC to LC.
+        StreamTokenizer tok = new StreamTokenizer( in );
+        tok.eolIsSignificant( true );	// Because of 'c' and 'p' lines.
+        tok.lowerCaseMode( false );	// Don't fold UC to LC.
 
-        while (!done) {
+        while( !done ){
             int t = tok.nextToken();
             boolean startOfLine = true;
             boolean nextStartOfLine = false;
 
             // System.out.println( "Token [" + tok.sval + "," + tok.nval + "] startOfLine=" + startOfLine );
-            switch (t) {
-            case StreamTokenizer.TT_EOF:
-                done = true;
-                break;
+            switch( t ){
+                case StreamTokenizer.TT_EOF:
+                    done = true;
+                    break;
 
-            case StreamTokenizer.TT_EOL:
-                nextStartOfLine = true;
-                break;
+                case StreamTokenizer.TT_EOL:
+                    nextStartOfLine = true;
+                    break;
 
-            case StreamTokenizer.TT_NUMBER:
-                if (res == null) {
-                    System.err.println(tok.lineno()
-                            + ": clause given before `p' line");
-                    return null;
-                }
-                if (tok.nval == 0) {
-                    if (posix != 0 || negix != 0) {
-                        // Only add a real clause. Some naughty people
-                        // put empty clauses in the problem, usually
-                        // at the end of the input file. Strictly speaking
-                        // this makes the entire problem unsatisfiable, but
-                        // this is clearly not the intention.
-                        res.addClause(pos, posix, neg, negix);
-                        posix = 0;
-                        negix = 0;
+                case StreamTokenizer.TT_NUMBER:
+                    if( res == null ){
+                        System.err.println( tok.lineno() + ": clause given before `p' line" );
+                        return null;
                     }
-                } else if (tok.nval < 0) {
-                    neg[negix++] = ((int) -tok.nval) - 1;
-                } else {
-                    pos[posix++] = ((int) tok.nval) - 1;
-                }
-                break;
+                    if( tok.nval == 0 ){
+                        if( posix != 0 || negix != 0 ){
+                            // Only add a real clause. Some naughty people
+                            // put empty clauses in the problem, usually
+                            // at the end of the input file. Strictly speaking
+                            // this makes the entire problem unsatisfiable, but
+                            // this is clearly not the intention.
+                            res.addClause( pos, posix, neg, negix );
+                            posix = 0;
+                            negix = 0;
+                        }
+                    }
+                    else if( tok.nval<0 ){
+                        neg[negix++] = ((int) -tok.nval) - 1;
+                    }
+                    else {
+                        pos[posix++] = ((int) tok.nval) - 1;
+                    }
+                    break;
 
-            case StreamTokenizer.TT_WORD:
-                // We got a word. This should only happen for
-                // 'c' and 'f' lines.
-                if (startOfLine) {
-                    if (tok.sval.equals("c")) {
+                case StreamTokenizer.TT_WORD:
+                    // We got a word. This should only happen for
+                    // 'c' and 'f' lines.
+                    if( startOfLine ){
+                        if( tok.sval.equals( "c" ) ){
+                            // A comment line.
+                            // Eat all remaining tokens on this line.
+                            do {
+                                t = tok.nextToken();
+                            } while( t != StreamTokenizer.TT_EOF && t != StreamTokenizer.TT_EOL );
+                            nextStartOfLine = true;
+                        }
+                        else if( tok.sval.equals( "p" ) ){
+                            // A format line. Read the information.
+                            if( res != null ){
+                                System.err.println( tok.lineno() + ": duplicate `p' line" );
+                                return null;
+                            }
+                            t = tok.nextToken();
+                            if( t != StreamTokenizer.TT_WORD || !tok.sval.equals( "cnf" ) ){
+                                System.err.println( tok.lineno() + ": expected \"cnf\", but got \"" + tok.sval + "\"" );
+                                return null;
+                            }
+                            t = tok.nextToken();
+                            if( t != StreamTokenizer.TT_NUMBER ){
+                                System.err.println( tok.lineno() + ": expected a number" );
+                                return null;
+                                
+                            }
+                            varcount = (int) tok.nval;
+                            t = tok.nextToken();
+                            if( t != StreamTokenizer.TT_NUMBER ){
+                                System.err.println( tok.lineno() + ": expected a number" );
+                                return null;
+                            }
+                            promisedClauseCount = (int) tok.nval;
+                            t = tok.nextToken();
+                            if( t != StreamTokenizer.TT_EOL ){
+                                System.err.println( tok.lineno() + ": spurious text after `f' line" );
+                                return null;
+                            }
+                            nextStartOfLine = true;
+                            res = new SATProblem( varcount, promisedClauseCount );
+                            pos = new int[varcount];
+                            neg = new int[varcount];
+                            posix = 0;
+                            negix = 0;
+                        }
+                        else {
+                            System.err.println( tok.lineno() + ": unexpected word \"" + tok.sval + "\" at start of line" );
+                            return null;
+                        }
+                    }
+                    else {
+                        System.err.println( tok.lineno() + ": unexpected word \"" + tok.sval + "\"" );
+                        return null;
+                    }
+                    break;
+
+                default:
+                    if( t == '%' ){
                         // A comment line.
                         // Eat all remaining tokens on this line.
                         do {
                             t = tok.nextToken();
-                        } while (t != StreamTokenizer.TT_EOF
-                                && t != StreamTokenizer.TT_EOL);
+                        } while( t != StreamTokenizer.TT_EOF && t != StreamTokenizer.TT_EOL );
                         nextStartOfLine = true;
-                    } else if (tok.sval.equals("p")) {
-                        // A format line. Read the information.
-                        if (res != null) {
-                            System.err.println(tok.lineno()
-                                    + ": duplicate `p' line");
-                            return null;
-                        }
-                        t = tok.nextToken();
-                        if (t != StreamTokenizer.TT_WORD
-                                || !tok.sval.equals("cnf")) {
-                            System.err.println(tok.lineno()
-                                    + ": expected \"cnf\", but got \""
-                                    + tok.sval + "\"");
-                            return null;
-                        }
-                        t = tok.nextToken();
-                        if (t != StreamTokenizer.TT_NUMBER) {
-                            System.err.println(tok.lineno()
-                                    + ": expected a number");
-                            return null;
-
-                        }
-                        varcount = (int) tok.nval;
-                        t = tok.nextToken();
-                        if (t != StreamTokenizer.TT_NUMBER) {
-                            System.err.println(tok.lineno()
-                                    + ": expected a number");
-                            return null;
-                        }
-                        promisedClauseCount = (int) tok.nval;
-                        t = tok.nextToken();
-                        if (t != StreamTokenizer.TT_EOL) {
-                            System.err.println(tok.lineno()
-                                    + ": spurious text after `f' line");
-                            return null;
-                        }
-                        nextStartOfLine = true;
-                        res = new SATProblem(varcount, promisedClauseCount);
-                        pos = new int[varcount];
-                        neg = new int[varcount];
-                        posix = 0;
-                        negix = 0;
-                    } else {
-                        System.err.println(tok.lineno()
-                                + ": unexpected word \"" + tok.sval
-                                + "\" at start of line");
-                        return null;
                     }
-                } else {
-                    System.err.println(tok.lineno() + ": unexpected word \""
-                            + tok.sval + "\"");
-                    return null;
-                }
-                break;
-
-            default:
-                if (t == '%') {
-                    // A comment line.
-                    // Eat all remaining tokens on this line.
-                    do {
-                        t = tok.nextToken();
-                    } while (t != StreamTokenizer.TT_EOF
-                            && t != StreamTokenizer.TT_EOL);
-                    nextStartOfLine = true;
-                } else {
-                    System.err.println(tok.lineno()
-                            + ": ignoring unexpected character '" + (char) t
-                            + "'");
-                }
-                break;
+                    else {
+                        System.err.println( tok.lineno() + ": ignoring unexpected character '" + (char) t + "'" );
+                    }
+                    break;
             }
             startOfLine = nextStartOfLine;
         }
 
-        if (posix != 0 || negix != 0) {
+        if( posix != 0 || negix != 0 ){
             // There are some pending terms, flush the clause.
-            res.addClause(pos, posix, neg, negix);
+            res.addClause( pos, posix, neg, negix );
         }
-        if (res.clauseCount + res.deletedClauseCount < promisedClauseCount) {
-            System.out.println("There are only "
-                    + (res.clauseCount + res.deletedClauseCount)
-                    + " clauses, although " + promisedClauseCount
-                    + " were promised");
+        if( res.clauseCount+res.deletedClauseCount<promisedClauseCount ){
+            System.out.println( "There are only " +  (res.clauseCount+res.deletedClauseCount) + " clauses, although " + promisedClauseCount + " were promised" );
         }
         return res;
     }
@@ -875,15 +902,15 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param f the file to parse
      * @return the parsed problem
      */
-    public static SATProblem parseDIMACSStream(File f)
-            throws java.io.IOException {
+    public static SATProblem parseDIMACSStream( File f ) throws java.io.IOException
+    {
         String fnm = f.getName();
 
-        InputStream s = new FileInputStream(f);
-        if (fnm.endsWith(".gz")) {
-            s = new java.util.zip.GZIPInputStream(s);
+        InputStream s = new FileInputStream( f );
+        if( fnm.endsWith( ".gz" ) ){
+            s = new java.util.zip.GZIPInputStream( s );
         }
-        return parseDIMACSStream(new InputStreamReader(s));
+        return parseDIMACSStream( new InputStreamReader( s ) );
     }
 
     /**
@@ -892,10 +919,13 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param str The string to parse.
      * @return The parsed problem.
      */
-    public static SATProblem parseDIMACSString(String str) {
+    public static SATProblem parseDIMACSString( String str )
+    {
         try {
-            return parseDIMACSStream(new StringReader(str));
-        } catch (java.io.IOException x) {
+            return parseDIMACSStream( new StringReader( str ) );
+        }
+        catch( java.io.IOException x )
+        {
         }
         return null;
     }
@@ -904,18 +934,20 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Given an output stream, prints the problem to it in DIMACS format.
      * @param s the stream to print to
      */
-    public void printDIMACS(PrintStream s) {
-        s.println("p cnf " + vars + " " + clauses.length);
-        for (int ix = 0; ix < clauses.length; ix++) {
-            clauses[ix].printDIMACS(s);
+    public void printDIMACS( PrintStream s )
+    {
+        s.println( "p cnf " + vars + " " + clauses.length );
+        for( int ix=0; ix<clauses.length; ix++ ){
+            clauses[ix].printDIMACS( s );
         }
     }
 
     /** Returns a string representation of the SAT problem. */
-    public String toString() {
+    public String toString()
+    {
         String res = "";
 
-        for (int ix = 0; ix < clauseCount; ix++) {
+        for( int ix=0; ix<clauseCount; ix++ ){
             res += "(" + clauses[ix] + ")";
         }
         return res;
@@ -926,14 +958,14 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * PrintStream.
      * @param s the stream to print to
      * */
-    public void report(java.io.PrintStream s) {
+    public void report( java.io.PrintStream s )
+    {
         String knownString = "";
 
-        if (knownVars != 0) {
+        if( knownVars != 0 ){
             knownString = " (" + knownVars + " known)";
         }
-        s.println("Problem has " + vars + " variables" + knownString + " and "
-                + clauseCount + " clauses");
+        s.println( "Problem has " + vars + " variables" + knownString + " and " + clauseCount + " clauses" );
     }
 }
 

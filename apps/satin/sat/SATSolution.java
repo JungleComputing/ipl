@@ -3,11 +3,10 @@
 /** A single solution of the SAT problem. */
 final class SATSolution implements java.io.Serializable {
     int pos[];
-
     int neg[];
 
     /** Given an assignment vector, constructs a solution. */
-    public SATSolution(byte assignments[]) {
+    public SATSolution( byte assignments[] ){
         int pos[];
         int neg[];
         int posix = 0;
@@ -17,14 +16,15 @@ final class SATSolution implements java.io.Serializable {
          * count the number of elements in the pos and neg arrays,
          * and then create and fill them.
          */
-
+        
         // First count them.
-        for (int ix = 0; ix < assignments.length; ix++) {
+        for( int ix=0; ix<assignments.length; ix++ ){
             int a = assignments[ix];
 
-            if (a == 0) {
+            if( a == 0 ){
                 negix++;
-            } else if (a == 1) {
+            }
+            else if( a == 1 ){
                 posix++;
             }
         }
@@ -36,12 +36,13 @@ final class SATSolution implements java.io.Serializable {
         // Fill the arrays.
         posix = 0;
         negix = 0;
-        for (int ix = 0; ix < assignments.length; ix++) {
+        for( int ix=0; ix<assignments.length; ix++ ){
             int a = assignments[ix];
 
-            if (a == 0) {
+            if( a == 0 ){
                 neg[negix++] = ix;
-            } else if (a == 1) {
+            }
+            else if( a == 1 ){
                 pos[posix++] = ix;
             }
         }
@@ -50,22 +51,25 @@ final class SATSolution implements java.io.Serializable {
     }
 
     /** Returns a string representation of this solution. */
-    public String toString() {
+    public String toString()
+    {
         String res = "";
         boolean first = true;
 
-        for (int ix = 0; ix < pos.length; ix++) {
-            if (!first) {
+        for( int ix=0; ix<pos.length; ix++ ){
+            if( !first ){
                 res += " ";
-            } else {
+            }
+            else {
                 first = false;
             }
             res += pos[ix];
         }
-        for (int ix = 0; ix < neg.length; ix++) {
-            if (!first) {
+        for( int ix=0; ix<neg.length; ix++ ){
+            if( !first ){
                 res += " ";
-            } else {
+            }
+            else {
                 first = false;
             }
             res += "-" + neg[ix];

@@ -5,6 +5,7 @@
  * interface the class can be handled by the Satin divide-and-conquer parallel
  * execution framework.
  */
-interface BreederInterface extends ibis.satin.Spawnable {
-    public int solve(SATProblem pl[], Genes genes);
+interface BreederInterface extends ibis.satin.Spawnable
+{
+    public int solve( SATProblem pl[], Genes genes );
 }

@@ -10,11 +10,12 @@ class CubeClauseReviewer extends ClauseReviewer {
      * @param n The number of choices.
      * @return The information contents of this clause.
      */
-    float info(int n) {
-        if (n == 0) {
+    float info( int n )
+    {
+        if( n == 0 ){
             n = 1;
         }
-        float res = 1.0f / (n * n * n);
+        float res = 1.0f/(n*n*n);
         return res;
     }
 

@@ -4,13 +4,12 @@
  * By implementing this interface the class can be handled by the
  * Satin divide-and-conquer parallel execution framework.
  */
-interface SimpleSATInterface extends ibis.satin.Spawnable {
+interface SimpleSATInterface extends ibis.satin.Spawnable
+{
     static class Context implements java.io.Serializable {
         SATProblem p;
-
         int varlist[];
     }
 
-    public void solve(Context ctx, byte assignments[], int varix)
-            throws SATResultException;
+    public void solve( Context ctx, byte assignments[], int varix ) throws SATResultException;
 }

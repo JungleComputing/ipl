@@ -10,7 +10,5 @@ class SATResultException extends SATException {
     /** Construct an exception with the given solution.
      * @param s The solution to carry in this exception.
      */
-    SATResultException(SATSolution s) {
-        this.s = s;
-    }
+    SATResultException( SATSolution s ){ this.s = s; }
 }

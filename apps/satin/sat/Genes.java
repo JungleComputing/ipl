@@ -4,14 +4,13 @@
 // This is just a bunch of arrays of sensible gene types, and some helper
 // functions on genes.
 
+
 class Genes implements java.io.Serializable {
     public float floats[];
-
     public int ints[];
-
     public boolean bools[];
 
-    public Genes(float f[], int i[], boolean b[]) {
+    public Genes( float f[], int i[], boolean b[] ){
         floats = f;
         ints = i;
         bools = b;
@@ -25,57 +24,61 @@ class Genes implements java.io.Serializable {
         int i[] = ints;
         boolean b[] = bools;
 
-        if (f != null) {
+        if( f != null ){
             f = (float[]) f.clone();
         }
-        if (i != null) {
+        if( i != null ){
             i = (int[]) i.clone();
         }
-        if (b != null) {
+        if( b != null ){
             b = (boolean[]) b.clone();
         }
-        return new Genes(f, i, b);
+        return new Genes( f, i, b );
     }
 
-    public String toString() {
+    public String toString()
+    {
         String res = "";
 
-        if (floats != null && floats.length != 0) {
+        if( floats != null && floats.length != 0 ){
             boolean first = true;
             res += "[";
-            for (int i = 0; i < floats.length; i++) {
-                if (first) {
+            for( int i=0; i<floats.length; i++ ){
+                if( first ){
                     first = false;
-                } else {
+                }
+                else {
                     res += ' ';
                 }
                 res += floats[i];
             }
             res += "]";
         }
-        if (ints != null && ints.length != 0) {
+        if( ints != null && ints.length != 0 ){
             boolean first = true;
             res += "[";
-            for (int i = 0; i < ints.length; i++) {
-                if (first) {
+            for( int i=0; i<ints.length; i++ ){
+                if( first ){
                     first = false;
-                } else {
+                }
+                else {
                     res += ' ';
                 }
                 res += ints[i];
             }
             res += "]";
         }
-        if (bools != null && bools.length != 0) {
+        if( bools != null && bools.length != 0 ){
             boolean first = true;
             res += "[";
-            for (int i = 0; i < bools.length; i++) {
-                if (first) {
+            for( int i=0; i<bools.length; i++ ){
+                if( first ){
                     first = false;
-                } else {
+                }
+                else {
                     res += ' ';
                 }
-                res += bools[i] ? '1' : '0';
+                res += bools[i]?'1':'0';
             }
             res += "]";
         }
