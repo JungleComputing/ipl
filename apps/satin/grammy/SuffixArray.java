@@ -151,13 +151,15 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             if( i+offset<length ){
                 short ix = text[i+offset];
 
-                if( prev[ix] == -1 ){
-                    slot[ix] = i;
+                if( ix != STOP ){
+                    if( prev[ix] == -1 ){
+                        slot[ix] = i;
+                    }
+                    else {
+                        next[prev[ix]] = i;
+                    }
+                    prev[ix] = i;
                 }
-                else {
-                    next[prev[ix]] = i;
-                }
-                prev[ix] = i;
             }
         }
 
@@ -175,7 +177,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             int i = slot[n];
             boolean c = false;
 
-            if( i != -1 && next[i] != -1 && i != STOP ){
+            if( i != -1 && next[i] != -1 ){
                 // There is a repeat, write out this chain.
                 while( i != -1 ){
                     indices1[p] = i;
@@ -240,20 +242,22 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         int indices[] = new int[length];
         boolean comm[] = new boolean[length];
         int offset = 0;
-        int indices1[] = new int[length];
-        boolean comm1[] = new boolean[length];
 
         for( int i=0; i<length; i++ ){
             indices[i] = i;
         }
         int l = sort1( next, indices, comm, 0, indices, 0, length, offset );
         for(;;){
+            int indices1[] = new int[l];
+            boolean comm1[] = new boolean[l];
             int ix = 0;
             offset++;
             boolean acceptable = false;
             int p = 0;
-            Result r = new Result( offset, l, indices, comm );
-            r.print();
+            if( false ){
+                Result r = new Result( offset, l, indices, comm );
+                r.print();
+            }
             while( ix<l ){
                 int start = ix;
                 int oldp = p;
@@ -274,13 +278,8 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             if( !acceptable ){
                 break;
             }
-            // Swap the scratch version and the accepted version.
-            int h[] = indices;
             indices = indices1;
-            indices1 = h;
-            boolean hc[] = comm;
             comm = comm1;
-            comm1 = hc;
             l = p;
         }
         return new Result( offset-1, l, indices, comm );
@@ -553,7 +552,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     {
         final int oldLength = length;   // Remember the old length for verif.
 
-        //System.out.println( "Applying compression step " + s );
+        // System.out.println( "Applying compression step " + s );
 
         // First, move the grammar text aside.
         int len = s.len;
@@ -695,7 +694,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         }
         else {
             Result reps = selectRepeats();
-            reps.print();
+            // reps.print();
 
             boolean commonality[] = reps.comm;
             int indices[] = reps.indices;
@@ -724,10 +723,10 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                     }
                     ix++;
                 }
-                if( p>1 ){
+                if( p>1 && minsz>=MINCOMMONALITY ){
                     Step s = new Step( candidates, p, minsz );
-                    System.out.println( "Added step " + s );
                     res.add( s );
+                    System.out.println( "Adding candidate step " + s );
                 }
             }
         }

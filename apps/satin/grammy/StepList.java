@@ -22,6 +22,11 @@ public class StepList {
     {
         int gain = s.getGain();
 
+        if( gain<=0 ){
+            // Don't bother if the step gives no gain.
+            // TODO: should such a step be added at all?
+            return;
+        }
         if( ix<steps.length ){
             steps[ix++] = s;
         }

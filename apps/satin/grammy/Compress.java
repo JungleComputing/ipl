@@ -46,8 +46,9 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 	    return a;
 	}
 
-        // For now, just pick the best move.
-	if( levels<2 ){
+        // TODO: even if top is larger than 1, there may be only one
+        // possibility.
+	if( levels<2 || top == 1 ){
 	    Step s = steps.getBestStep();
 	    res = (SuffixArray) a.clone();
 
