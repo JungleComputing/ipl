@@ -1542,7 +1542,7 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 						cls_DataAllocator,
 						"putDoubleArray", "([D)V");
     if (md_putDoubleArray == NULL) {
-	ibmp_error(env, "Cannot find method putDoubleArray([B)V\n");
+	ibmp_error(env, "Cannot find method putDoubleArray([D)V\n");
     }
 
     fld = (*env)->GetStaticFieldID(env, cls_ByteOutputStream,
