@@ -3,27 +3,41 @@
 import java.io.PrintStream;
 
 public class SuffixArray {
-    short text[];
+    /** The buffer containing the compressed text. */
+    private short text[];
+
+    /** The number of elements in `text' that are relevant. */
+    private int length;
+
+    /** The indices in increasing alphabetical order of their suffix. */
     int indices[];
+
+    /** For each position in `indices', the number of elements it
+     * has in common with the previous entry, or -1 for element 0.
+     * The commonality should not cause an overlap.
+     */
     int commonality[];
+
+    /** TODO, remove this encoding. */
     static final short END = 0;
 
     private short[] buildShortArray( byte text[] )
     {
-        short arr[] = new short[text.length+1];
+        length = text.length;
+        short arr[] = new short[length+1];
 
-        for( int i=0; i<text.length; i++ ){
+        for( int i=0; i<length; i++ ){
             arr[i] = (short) text[i];
         }
-        arr[text.length] = END;
+        arr[length] = END;
         return arr;
     }
 
     /** Returns the number of common characters in the two given spans. */
-    private int commonLength( short text[], int i0, int i1 )
+    private int commonLength( int i0, int i1 )
     {
 	int n = 0;
-	while( i0<text.length && i1<text.length && text[i0] == text[i1] ){
+	while( i0<length && i1<length && text[i0] == text[i1] ){
 	    i0++;
 	    i1++;
 	    n++;
@@ -32,12 +46,9 @@ public class SuffixArray {
     }
 
     /** Returns true iff i0 refers to a smaller text than i1. */
-    private boolean areCorrectlyOrdered( short text[], int i0, int i1 )
+    private boolean areCorrectlyOrdered( int i0, int i1 )
     {
-	while( i0<text.length && i1<text.length && text[i0] == text[i1] ){
-	    i0++;
-	    i1++;
-	}
+        int n = commonLength( i0, i1 );
 	if( text[i0] == END ){
 	    // The sortest string is first, this is as it should be.
 	    return true;
@@ -50,10 +61,10 @@ public class SuffixArray {
     }
 
     /** Build the suffix array and the commonality array. */
-    private void buildArray( short text[] )
+    private void buildArray()
     {
-	indices = new int[text.length-1];
-	commonality = new int[text.length-1];
+	indices = new int[length-1];
+	commonality = new int[length-1];
 
 	commonality[0] = -1;
 	for( int i=0; i<indices.length; i++ ){
@@ -71,7 +82,7 @@ public class SuffixArray {
 	    else {
 		int i0 = indices[i-1];
 		int i1 = indices[i];
-		int l = commonLength( text, i0, i1 );
+		int l = commonLength( i0, i1 );
 		
 		if( i0<i1 ){
 		    commonality[i] = Math.min( l, i1-i0 );
@@ -98,14 +109,14 @@ public class SuffixArray {
     {
         this.text = text;
 
-        buildArray( text );
+        buildArray();
     }
 
     SuffixArray( byte t[] )
     {
-        this.text = buildShortArray( t );
+        text = buildShortArray( t );
 
-        buildArray( text );
+        buildArray();
     }
 
     SuffixArray( String text )
@@ -168,8 +179,26 @@ public class SuffixArray {
 	}
     }
 
-    public void test()
+    /**
+     * Replaces the string at the given position and with
+     * the given length with the given code. Also updates the administration.
+     */
+    private void replace( int pos, int len, short code )
     {
+        
+    }
+
+    public void test() throws VerificationException
+    {
+        // Verify that the elements are in fact ordered, and that the
+        // commonality entry is correct.
+        for( int i=1; i<indices.length; i++ ){
+            if( !areCorrectlyOrdered( i-1, i ) ){
+                throw new VerificationException(
+                    "suffix array is not incorrect order between " + (i-1) + " and " + i
+                );
+            }
+        }
     }
 
     /** Apply one step in the folding process. */
