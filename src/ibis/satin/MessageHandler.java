@@ -171,6 +171,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		}
 
 		try {
+			if(STEAL_TIMING) {
+			    satin.invocationRecordWriteTimer.start();
+			}
 			WriteMessage m = s.newMessage();
 			if(opcode == STEAL_REQUEST) {
 				m.writeByte(STEAL_REPLY_SUCCESS);
@@ -178,15 +181,12 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				m.writeByte(ASYNC_STEAL_REPLY_SUCCESS);
 			}
 
-			if(STEAL_TIMING) {
-			    satin.invocationRecordWriteTimer.start();
-			}
 			m.writeObject(result);
+			m.send();
+			long cnt = m.finish();
 			if(STEAL_TIMING) {
 			    satin.invocationRecordWriteTimer.stop();
 			}
-			m.send();
-			long cnt = m.finish();
 			if(STEAL_STATS) {
 				if(satin.inDifferentCluster(ident.ibis())) {
 					satin.interClusterMessages++;
