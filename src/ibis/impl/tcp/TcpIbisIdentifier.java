@@ -20,6 +20,7 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 	public TcpIbisIdentifier() { 
 	}
 
+
 	public TcpIbisIdentifier(MantaInputStream stream) throws IbisIOException, ClassNotFoundException {
 		stream.addObjectToCycleCheck(this);
 		int handle = stream.readInt();

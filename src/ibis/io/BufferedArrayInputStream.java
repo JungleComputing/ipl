@@ -21,7 +21,7 @@ public final class BufferedArrayInputStream
 
     private InputStream in;
 
-    private static final int BUF_SIZE = 4*1024;
+    private static final int BUF_SIZE = 16*1024;
     private byte [] buffer;
     private int index, buffered_bytes;
 

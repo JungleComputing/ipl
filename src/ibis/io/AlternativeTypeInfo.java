@@ -103,7 +103,7 @@ final class AlternativeTypeInfo {
 				Field field = fields[i];
 				int modifiers = field.getModifiers();
 				
-				if ((modifiers & (Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT)) == 0) { 
+				if ((modifiers & (Modifier.STATIC | Modifier.TRANSIENT)) == 0) { 
 					
 					Class field_type = field.getType();
 					

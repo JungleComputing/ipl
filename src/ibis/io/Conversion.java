@@ -15,7 +15,9 @@ final class Conversion {
          */
 
 	static void classInit() {
+//		System.err.println("pre load");
 		System.loadLibrary("conversion");
+//		System.err.println("post load");
 	}
 	
 	static {
@@ -85,7 +87,7 @@ final class Conversion {
 			for (int i=0;i<len;i++) { 			
 				temp = src[off+i];
 				dst[count++] = (byte) (temp & 0xff);
-				dst[count++] = (byte) ((temp >> 8)  & 0xff);
+				dst[count++] = (byte) ((temp >>> 8)  & 0xff);
 			} 
 //		} else { 
 //			n_char2byte(src, off, len, dst, off2);
@@ -113,13 +115,13 @@ final class Conversion {
 	static final void short2byte(short[] src, int off, int len, byte [] dst, int off2) {
 
 //		if (len < SHORT2BYTE_THRESHOLD) { 
-			short temp = 0;
+			short v = 0;
 			int count = off2;
 			
 			for (int i=0;i<len;i++) { 			
-				temp = src[off+i];								
-				dst[count++] = (byte)(0xff & temp);
-				dst[count++] = (byte)(0xff & (temp >> 8));
+				v = src[off+i];	
+				dst[count++] = (byte)(0xff & (v >> 8));
+				dst[count++] = (byte)(0xff & v);
 			} 
 //		} else { 
 //			n_short2byte(src, off, len, dst, off2);
@@ -131,10 +133,7 @@ final class Conversion {
 //		if (len < BYTE2SHORT_THRESHOLD) { 
 			int count = index_src;
 			for (int i=0;i<len;i++) { 			
-				dst[index_dst+i] = (short)((src[count+1] << 8) | (src[count] & 0xff));
-//				dst[index_dst+i] = (short) 
-//					((short)(src[count] & 0xff) | 
-//					((short)(src[count+1] & 0xff) << 8));
+				dst[index_dst+i] = (short)((src[count] << 8) | (src[count+1] & 0xff));
 				count+=2;
 			}
 //		} else { 			
@@ -146,15 +145,16 @@ final class Conversion {
 
 //		if (len < INT2BYTE_THRESHOLD) { 
 		
-			int temp = 0;
+			int v = 0;
 			int count = off2;
 			
 			for (int i=0;i<len;i++) { 			
-				temp = src[off+i];
-				dst[count++] = (byte) (temp & 0xff);
-				dst[count++] = (byte) ((temp >> 8)  & 0xff);
-				dst[count++] = (byte) ((temp >> 16) & 0xff);
-				dst[count++] = (byte) ((temp >> 24) & 0xff);
+				v = src[off+i];
+
+				dst[count++] = (byte)(0xff & (v >> 24));
+				dst[count++] =(byte)(0xff  & (v >> 16));
+				dst[count++] =(byte)(0xff  & (v >> 8));
+				dst[count++] =(byte)(0xff  & v);
 			} 
 
 //		} else { 
@@ -167,12 +167,17 @@ final class Conversion {
 //		if (len < BYTE2INT_THRESHOLD) { 
 			int count = index_src;
 			for (int i=0;i<len;i++) { 			
-				dst[index_dst+i] = (int)
-					((int)(src[count] & 0xff) | 
-					((int)(src[count+1] & 0xff) <<  8) |
-					((int)(src[count+2] & 0xff) << 16) |
-					((int)(src[count+3] & 0xff) << 24));
-				count+=4;
+//				dst[index_dst+i] = (int)
+//					((int)(src[count] & 0xff) | 
+//					((int)(src[count+1] & 0xff) <<  8) |
+//					((int)(src[count+2] & 0xff) << 16) |
+//					((int)(src[count+3] & 0xff) << 24));
+
+				 dst[index_dst+i] = (((src[count] & 0xff) << 24)   | 
+						     ((src[count+1] & 0xff) << 16) |
+						     ((src[count+2] & 0xff) << 8)  | 
+						     (src[count+3] & 0xff));
+				 count+=4;
 			}
 //		} else { 			
 //			n_byte2int(src, index_src, dst, index_dst, len);
@@ -182,43 +187,20 @@ final class Conversion {
 	static final void long2byte(long[] src, int off, int len, byte [] dst, int off2) {
 
 //		if (len < LONG2BYTE_THRESHOLD) { 
-/*
-			long temp = 0;
-			int count = off2;
-			
-			for (int i=0;i<len;i++) { 			
-				temp = src[off+i];
-				dst[count++] = (byte)(0xff & temp);
-				dst[count++] = (byte)(0xff & (temp >> 8));
-				dst[count++] = (byte)(0xff & (temp >> 16));
-				dst[count++] = (byte)(0xff & (temp >> 24));
-				dst[count++] = (byte)(0xff & (temp >> 32));
-				dst[count++] = (byte)(0xff & (temp >> 40));
-				dst[count++] = (byte)(0xff & (temp >> 48));
-				dst[count++] = (byte)(0xff & (temp >> 56));
-			} 
-*/
-			int temp2 = 0;
-			long temp;
+			long v;
 			int count = off2;
 			
 			for (int i=0;i<len;i++) { 		
-				temp = src[off+i];
+				v = src[off+i];
 
-				temp2 = (int) (0xffffffff & temp);
-
-				dst[count] = (byte)(0xff & temp2);
-				dst[count+1] = (byte)(0xff & (temp2 >>> 8));
-				dst[count+2] = (byte)(0xff & (temp2 >>> 16));
-				dst[count+3] = (byte)(0xff & (temp2 >>> 24));
-
-				temp2 = (int) (0xffffffff & (temp >>> 32));
-
-				dst[count+4] = (byte)(0xff & temp2);
-				dst[count+5] = (byte)(0xff & (temp2 >>> 8));
-				dst[count+6] = (byte)(0xff & (temp2 >>> 16));
-				dst[count+7] = (byte)(0xff & (temp2 >>> 24));			
-				count += 8;
+				dst[count++] = (byte)(0xff & (v >> 56));
+				dst[count++] = (byte)(0xff & (v >> 48));
+				dst[count++] = (byte)(0xff & (v >> 40));
+				dst[count++] = (byte)(0xff & (v >> 32));
+				dst[count++] = (byte)(0xff & (v >> 24));
+				dst[count++] = (byte)(0xff & (v >> 16));
+				dst[count++] = (byte)(0xff & (v >>  8));
+				dst[count++] = (byte)(0xff & v);
 			}
 
 //		} else { 
@@ -233,33 +215,16 @@ final class Conversion {
 			int count = index_src;
 			
 			for (int i=0;i<len;i++) { 	
-
-				int temp1 = ((int)(src[count] & 0xff))    |
- 					((int)(src[count+1] & 0xff) << 8)   |
-					((int)(src[count+2] & 0xff) << 16)  |
-					((int)(src[count+3] & 0xff) << 24);
-
-				int temp2 = ((int)(src[count+4] & 0xff))    |
-					((int)(src[count+5] & 0xff) << 8)   |
-					((int)(src[count+6] & 0xff) << 16)  |
-					((int)(src[count+7] & 0xff) << 24);
-
-				long x = temp2;
-				x = x << 32;
-				x |= (temp1 & 0xffffffffL);
-				dst[index_dst+i] = x; 
+ 				dst[index_dst+i] = (((long)(src[count] & 0xff) << 56) |
+						    ((long)(src[count+1] & 0xff) << 48) |
+						    ((long)(src[count+2] & 0xff) << 40) |
+						    ((long)(src[count+3] & 0xff) << 32) |
+						    ((long)(src[count+4] & 0xff) << 24) |
+						    ((long)(src[count+5] & 0xff) << 16) |
+						    ((long)(src[count+6] & 0xff) <<  8) |
+						    ((long)(src[count+8] & 0xff)));
 				count += 8;
-				/*
- 				dst[index_dst+i] = (long)
-  					(((long)(src[count] & 0xff))        |
-	 				 ((long)(src[count+1] & 0xff) << 8)   |
-		 			 ((long)(src[count+2] & 0xff) << 16)  |
-			 		 ((long)(src[count+3] & 0xff) << 24)  |
-				 	 ((long)(src[count+4] & 0xff) << 32)  |
-					 ((long)(src[count+5] & 0xff) << 40)  |
-					 ((long)(src[count+6] & 0xff) << 48)  |
-					 ((long)(src[count+7] & 0xff) << 56));					 
-				*/
+
 			}
 //		} else { 			
 //			n_byte2long(src, index_src, dst, index_dst, len);
@@ -270,15 +235,15 @@ final class Conversion {
 
 //		if (len < FLOAT2BYTE_THRESHOLD) { 
 
-			int temp = 0;
+			int v = 0;
 			int count = off2;
 			
 			for (int i=0;i<len;i++) { 			
-				temp = Float.floatToIntBits(src[off+i]);
-				dst[count++] = (byte) (temp & 0xff);
-				dst[count++] = (byte) ((temp >> 8)  & 0xff);
-				dst[count++] = (byte) ((temp >> 16) & 0xff);
-				dst[count++] = (byte) ((temp >> 24) & 0xff);
+				v = Float.floatToIntBits(src[off+i]);
+				dst[count++] = (byte)(0xff & (v >> 24));
+				dst[count++] = (byte)(0xff & (v >> 16));
+				dst[count++] = (byte)(0xff & (v >> 8));
+				dst[count++] = (byte)(0xff & v);
 			} 
 //		} else { 
 //			n_float2byte(src, off, len, dst, off2);
@@ -292,10 +257,11 @@ final class Conversion {
 			int count = index_src;
 			
 			for (int i=0;i<len;i++) { 			
-				temp =	((int)(src[count] & 0xff))       |
-					((int)(src[count+1] & 0xff) << 8)  |
-					((int)(src[count+2] & 0xff) << 16) |
-					((int)(src[count+3] & 0xff) << 24);
+
+				temp = (((src[count] & 0xff) << 24) | 
+					((src[count+1] & 0xff) << 16) |
+					((src[count+2] & 0xff) << 8)  | 
+					(src[count+3] & 0xff));
 				dst[index_dst+i] = Float.intBitsToFloat(temp);
 				count += 4;
 			}
@@ -304,48 +270,28 @@ final class Conversion {
 //		}
 	} 
 
-       private static native void doublesToBytes(double src[], int double_index, byte dest[], int byte_index, int num_doubles);
+//       private static native void doublesToBytes(double src[], int double_index, byte dest[], int byte_index, int num_doubles);
 
 	static final void double2byte(double[] src, int off, int len, byte [] dst, int off2) {
 
 //		if (len < DOUBLE2BYTE_THRESHOLD) { 
-/*
- 			long temp = 0;
-	 		int count = off2;
-		 	
-			 for (int i=0;i<len;i++) { 			
-				temp = Double.doubleToLongBits(src[off+i]);
-				dst[count++] = (byte)(0xff & temp);
-				dst[count++] = (byte)(0xff & (temp >> 8));
-				dst[count++] = (byte)(0xff & (temp >> 16));
-				dst[count++] = (byte)(0xff & (temp >> 24));
-				dst[count++] = (byte)(0xff & (temp >> 32));
-				dst[count++] = (byte)(0xff & (temp >> 40));
-				dst[count++] = (byte)(0xff & (temp >> 48));
-				dst[count++] = (byte)(0xff & (temp >> 56));
-			} 
-*/
-		        long temp = 0;
+		        long v = 0;
 			int temp2 = 0;
 			int temp3 = 0;
 			int count = off2;
 			
 			for (int i=0;i<len;i++) { 			
-				temp = Double.doubleToLongBits(src[off++]);
+				v = Double.doubleToLongBits(src[off++]);
 
-				temp2 = (int) (0xffffffff & temp);
-				temp3 = (int) (0xffffffff & (temp >>> 32));
-
-				dst[count++] = (byte)(0xff & temp2);
-				dst[count++] = (byte)(0xff & (temp2 >>> 8));
-				dst[count++] = (byte)(0xff & (temp2 >>> 16));
-				dst[count++] = (byte)(0xff & (temp2 >>> 24));
-
-				dst[count++] = (byte)(0xff & temp2);
-				dst[count++] = (byte)(0xff & (temp2 >>> 8));
-				dst[count++] = (byte)(0xff & (temp2 >>> 16));
-				dst[count++] = (byte)(0xff & (temp2 >>> 24));
-			} 
+				dst[count++] = (byte)(0xff & (v >> 56));
+				dst[count++] = (byte)(0xff & (v >> 48));
+				dst[count++] = (byte)(0xff & (v >> 40));
+				dst[count++] = (byte)(0xff & (v >> 32));
+				dst[count++] = (byte)(0xff & (v >> 24));
+				dst[count++] = (byte)(0xff & (v >> 16));
+				dst[count++] = (byte)(0xff & (v >>  8));
+				dst[count++] = (byte)(0xff & v);
+			}
 
 //		} else { 
 //			n_double2byte(src, off, len, dst, off2);
@@ -360,30 +306,15 @@ final class Conversion {
 			int count = index_src;
 			
 			for (int i=0;i<len;i++) { 			
-/*
-				temp = ((long)(src[count++] & 0xff)        |
-					((long)(src[count++] & 0xff) << 8)  |
-					((long)(src[count++] & 0xff) << 16) |
-					((long)(src[count++] & 0xff) << 24) |
-					((long)(src[count++] & 0xff) << 32) |
-					((long)(src[count++] & 0xff) << 40) |
-					((long)(src[count++] & 0xff) << 48) |
-					((long)(src[count++] & 0xff) << 56));
-				dst[index_dst+i] = Double.longBitsToDouble(temp);
-*/
-				int temp1 = ((int)(src[count] & 0xff))    |
-					((int)(src[count+1] & 0xff) << 8)   |
-					((int)(src[count+2] & 0xff) << 16)  |
-					((int)(src[count+3] & 0xff) << 24);
+				long x = (((long)(src[count] & 0xff) << 56) |
+					  ((long)(src[count+1] & 0xff) << 48) |
+					  ((long)(src[count+2] & 0xff) << 40) |
+					  ((long)(src[count+3] & 0xff) << 32) |
+					  ((long)(src[count+4] & 0xff) << 24) |
+					  ((long)(src[count+5] & 0xff) << 16) |
+					  ((long)(src[count+6] & 0xff) <<  8) |
+					  ((long)(src[count+7] & 0xff)));
 
-				int temp2 = ((int)(src[count+4] & 0xff))    |
-					((int)(src[count+5] & 0xff) << 8)   |
-					((int)(src[count+6] & 0xff) << 16)  |
-					((int)(src[count+7] & 0xff) << 24);
-
-				long x = temp2;
-				x = x << 32;
-				x |= (temp1 & 0xffffffffL);
  				dst[index_dst+i] = Double.longBitsToDouble(x);
 				count += 8;
 			}
