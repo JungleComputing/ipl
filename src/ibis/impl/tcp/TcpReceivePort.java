@@ -418,7 +418,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 
 		if(m != null) {
-			throw new IbisError("Doing free while a msg is alive, port = " + name + " fin = " + m.isFinished);
+			// throw new IbisError("Doing free while a msg is alive, port = " + name + " fin = " + m.isFinished);
+			// No, this can happen when an application closes after
+			// processing an upcall. Just let it go.
 		}
 
 		disableConnections();
