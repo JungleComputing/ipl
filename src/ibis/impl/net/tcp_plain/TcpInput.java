@@ -131,7 +131,6 @@ public final class TcpInput extends NetInput {
 		mtu = 0;
 
 		this.spn = cnx.getNum();
-                startUpcallThread();
 	}
 
 	/**

@@ -569,9 +569,9 @@ outer:
      * @param id index into the lock array
      *
      * <br>
-     * <standout>NOTE</standout> This method is called from native code.
+     * <strong>NOTE</strong> This method is called from native code.
      * <br>
-     * <standout>NOTE</standout> This method is also emulated from native
+     * <strong>NOTE</strong> This method is also emulated from native
      * code, for the case where it is known that no notify is necessary.
      * The native code is completely aware of the fields of this and of
      * lock[id]. If anything is changed here, be sure to also check function

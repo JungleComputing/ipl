@@ -66,17 +66,6 @@ public class SingletonPoller extends GenPoller {
 
 	subInput = newSubInput(subDriver, null);
 
-	if (decouplePoller) {
-	    /*
-	     * If our subclass is a multiplexer, it starts all necessary
-	     * upcall threads. Then we do not want an upcall thread in
-	     * this class.
-	     */
-	} else {
-// System.err.println(this + ": start upcall thread");
-	    startUpcallThread();
-	}
-
 	subInput.setupConnection(cnx);
 
 	mtu = subInput.getMaximumTransfertUnit();
@@ -84,6 +73,11 @@ public class SingletonPoller extends GenPoller {
 // System.err.println(this + ": my subInput " + subInput + " mtu " + mtu);
 
 	log.out();
+    }
+
+
+    public void startReceive() throws IOException {
+	subInput.startReceive();
     }
 
 

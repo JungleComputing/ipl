@@ -106,6 +106,11 @@ public class SingletonPoller extends MultiPoller {
     }
 
 
+    public void startReceive() throws IOException {
+	subInput.startReceive();
+    }
+
+
     public Integer doPoll(boolean block) throws IOException {
 	log.in();
 	if (subInput == null) {

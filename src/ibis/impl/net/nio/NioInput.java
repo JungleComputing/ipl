@@ -194,8 +194,6 @@ public final class NioInput extends NetInput {
 	port = socketChannel.socket().getPort();
 	this.spn = cnx.getNum();
 
-	startUpcallThread();
-
 	mtu = 0;
     }
 

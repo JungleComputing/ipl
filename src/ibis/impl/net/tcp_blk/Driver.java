@@ -18,9 +18,11 @@ public final class Driver extends NetDriver {
 	private static final String prefix = "ibis.net.tcp_blk.";
 
 	static final String tcpblk_rdah = prefix + "read_ahead";
+	static final String tcpblk_timeout = prefix + "timeout";
 
 	private static final String[] properties = {
-		tcpblk_rdah
+		tcpblk_rdah,
+		tcpblk_timeout
 	};
 
 	static {

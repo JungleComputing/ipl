@@ -45,7 +45,6 @@ public final class DefInput extends NetBufferedInput {
 		}
 
 		this.spn = cnx.getNum();
-                startUpcallThread();
 	}
 
 	/* Create a NetReceiveBuffer and do a blocking receive. */

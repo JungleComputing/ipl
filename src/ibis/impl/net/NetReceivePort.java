@@ -136,6 +136,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                 }
 
 						input.setupConnection(cnx);
+						input.startReceive();
 
                                                 //inputLock.unlock();
 					    } finally {

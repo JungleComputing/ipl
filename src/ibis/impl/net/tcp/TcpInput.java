@@ -7,7 +7,6 @@ import ibis.impl.net.NetIO;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
 import ibis.impl.net.NetInputUpcall;
-import ibis.impl.net.NetPollInterruptible;
 import ibis.impl.net.NetPort;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
@@ -27,7 +26,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 
-public final class TcpInput extends NetInput implements NetPollInterruptible {
+public final class TcpInput extends NetInput {
 	private Socket             tcpSocket          = null;
 	private Integer            spn  	      = null;
 	private DataInputStream    tcpIs	      = null;
@@ -36,6 +35,7 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
 
 	private static final int   INTERRUPT_TIMEOUT  = 100; // ms
 	private boolean      interrupted = false;
+	private boolean      interruptible = false;
 
 	TcpInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) throws IOException {
 		super(pt, driver, context, inputUpcall);
@@ -93,11 +93,14 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
 		brokered_in.close();
 		brokered_out.close();
 
+		if (interruptible) {
+		    tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+		}
+
 		tcpIs 	   = new DataInputStream(tcpSocket.getInputStream());
 		tcpOs 	   = new DataOutputStream(tcpSocket.getOutputStream());
 		this.spn = cnx.getNum();
 
-		startUpcallThread();
                 log.out();
 	}
 
@@ -145,22 +148,44 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
 	}
 
 
-	public void interruptPoll() throws IOException {
-		// How can this be JMM correct?????
-		interrupted = true;
+	protected boolean pollIsInterruptible() throws IOException {
+	    return true;
 	}
 
 
-	public void setInterruptible() throws IOException {
-		tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+	protected void interruptPoll() throws IOException {
+	    synchronized (new Object()) {
+		// Make this JMM hard
+	    }
+	    interrupted = true;
+	}
+
+
+	protected void setInterruptible(boolean interruptible)
+		throws IOException {
+	    this.interruptible = interruptible;
+	    if (tcpSocket != null) {
+		if (interruptible) {
+		    tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+		} else {
+		    tcpSocket.setSoTimeout(0);
+		}
+	    }
+	}
+
+
+	/*
+	protected void switchToDowncallMode() throws IOException {
+	    tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+	    installUpcallFunc(null);
 System.err.println(this + ": interruptiblePoll support is INCOMPLETE. Please implement!");
 	}
+	*/
 
 
-	public void clearInterruptible(NetInputUpcall upcallFunc) throws IOException {
-		tcpSocket.setSoTimeout(0);
-		this.upcallFunc = upcallFunc;
-		startUpcallThread();
+	protected void switchToUpcallMode(NetInputUpcall upcallFunc) throws IOException {
+	    tcpSocket.setSoTimeout(0);
+	    installUpcallFunc(upcallFunc);
 	}
 
 

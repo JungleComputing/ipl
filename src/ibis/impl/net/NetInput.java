@@ -6,6 +6,8 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 
+import ibis.util.TypedProperties;
+
 import java.io.IOException;
 
 /**
@@ -24,6 +26,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         private         NetMutex             threadStackLock        = new NetMutex(false);
         private		int                  upcallThreadNum        =    0;
         private		boolean        	     upcallThreadNotStarted = true;
+	private		boolean              receiveStarted         = false;
         private                              NetThreadStat           utStat                 = null;
         private 	boolean        	     freeCalled             = false;
         final 		private              Integer                 takenNum               = new Integer(-1);
@@ -35,9 +38,14 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
          */
         protected       NetInputUpcall       upcallFunc = null;
 
+	/**
+	 * The top level input must spawn a new thread if the thread continues
+	 * in application space <strong>after</strong> the finish.
+	 */
 	private		boolean		     upcallSpawnMode = true;
 	private		Object		     nonSpawnSyncer = new Object();
 	private         int                  nonSpawnWaiters;
+	private static final boolean VERBOSE_INPUT_EXCEPTION = TypedProperties.booleanProperty(NetIbis.input_exc_v, false);
 
 	/**
 	 * Synchronize between threads if an upcallFunc is installed after
@@ -188,6 +196,9 @@ if (finishedUpcallThreads > 1) {
 }
 
                                 } catch (InterruptedIOException e) {
+                                        if (VERBOSE_INPUT_EXCEPTION) {
+					    System.err.println("Sleeping upcall thread catches " + e);
+					}
                                         log.disp("was interrupted...");
                                         end = true;
                                         return;
@@ -220,11 +231,15 @@ pollSuccess++;
                                                 activeNum = num;
                                                 initReceive(activeNum);
                                         } catch (ConnectionClosedException e) {
-						// System.err.println("PooledUpcallThread + doPoll throws ConnectionClosedException. Should I quit??? " + e);
+						if (VERBOSE_INPUT_EXCEPTION) {
+						    System.err.println("PooledUpcallThread + doPoll throws ConnectionClosedException. Should I quit??? " + e);
+						}
                                                 end = true;
                                                 return;
                                         } catch (InterruptedIOException e) {
-						System.err.println("PooledUpcallThread + doPoll throws InterruptedIOException; end " + end + ". Should I quit??? " + e);
+						if (VERBOSE_INPUT_EXCEPTION) {
+						    System.err.println("PooledUpcallThread + doPoll throws InterruptedIOException; end " + end + ". Should I quit??? " + e);
+						}
                                                 if (end) {
                                                         return;
                                                 } else {
@@ -244,12 +259,15 @@ pollSuccess++;
                                         try {
                                                 upcallFunc.inputUpcall(NetInput.this, activeNum);
                                         } catch (InterruptedIOException e) {
+						System.err.println("Sleeping upcall thread catches " + e);
                                                 if (! end) {
                                                         throw new Error(e);
                                                 }
                                                 return;
                                         } catch (ConnectionClosedException e) {
-						// System.err.println("PooledUpcallThread.inputUpcall() throws ConnectionClosedException " + e);
+						if (VERBOSE_INPUT_EXCEPTION) {
+						    System.err.println("PooledUpcallThread.inputUpcall() throws ConnectionClosedException " + e);
+						}
                                                 end = true;
                                                 return;
                                         } catch (IOException e) {
@@ -286,7 +304,7 @@ pollingThreads--;
                                                 try {
                                                         implicitFinish();
                                                 } catch (Exception e) {
-					    System.err.println("PooledUpcallThread,implicitFinish() throws IOException. Should I quit??? " + e);
+							System.err.println("PooledUpcallThread,implicitFinish() throws IOException. Should I quit??? " + e);
 //                                                        throw new Error(e);
 							return;
                                                 }
@@ -300,6 +318,9 @@ finishedUpcallThreads--;
                                                 try {
                                                         threadStackLock.lock();
                                                 } catch (InterruptedIOException e) {
+							if (VERBOSE_INPUT_EXCEPTION) {
+							    System.err.println("PooledUpcallThread throws " + e);
+							}
                                                         if (! end) {
                                                                 throw new Error(e);
                                                         }
@@ -519,16 +540,35 @@ pollFail++;
 		return activeNum;
 	}
 
+
+	/**
+	 * Second phase of the NetInput a 2-phase connection start.
+	 * First, all data structures are initialized and all properties
+	 * between inputs (like upcall/downcall mode for {@link NetPoller
+	 * Pollers} and their subInputs) are negotiated from {@link
+	 * setupConnection}. After that, the receiver threads are started.
+	 */
+	public void startReceive() throws IOException {
+	    startUpcallThread();
+	}
+
+	/**
+	 * Lazy start of a receiver thread for this NetInput if {@link
+	 * upcallFunc} is non<code>null</code>.
+	 */
         protected final void startUpcallThread() throws IOException {
                 log.in();
 // System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
-// Thread.dumpStack();
                 threadStackLock.lock();
+		receiveStarted = true;
                 if (upcallFunc != null && upcallThreadNotStarted) {
-// System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
+// System.err.println(this + ": start UpcallThread; upcallFunc " + upcallFunc);
+// Thread.dumpStack();
+			verifyNonSingletonPoller();
                         upcallThreadNotStarted = false;
                         PooledUpcallThread up = new PooledUpcallThread("no "+upcallThreadNum++);
                         utStat.addAllocation();
+// Should the thread be a daemon, or should we join it?? Uhum... dunno
 up.setDaemon(true);
                         up.start();
                         up.exec();
@@ -537,10 +577,12 @@ up.setDaemon(true);
                 log.out();
         }
 
+	protected void verifyNonSingletonPoller() {
+	}
 
 	protected void installUpcallFunc(NetInputUpcall upcallFunc)
 		throws IOException {
-	    if (this.upcallFunc != null) {
+	    if (upcallFunc != null && this.upcallFunc != null) {
 		throw new IllegalArgumentException("Cannot restart upcall");
 	    }
 	    this.upcallFunc = upcallFunc;
@@ -563,7 +605,162 @@ up.setDaemon(true);
 		    System.err.println("Unwait for release the install handler");
 		}
 	    }
-	    startUpcallThread();
+	    if (receiveStarted) {
+		startUpcallThread();
+	    }
+	}
+
+
+	/**
+	 * {@linkplain NetInput}s may be capable of switching between upcall
+	 * mode and downcall mode on-the-fly by invoking {@link
+	 * switchToUpcallMode} or {@link switchToDowncallMode}.
+	 *
+	 * <BR>
+	 * The capacity to switch on-the-fly between upcall and downcall mode
+	 * is equivalent to the capacity to interrupt a blocking poll or
+	 * receiving upcall thread.
+	 *
+	 * <BR>
+	 * This value <strong>cannot</strong> be cached between calls to
+	 * {@link switchToDowncallMode} and {@link switchToUpcallMode}. E.g.,
+	 * NetInputs may support only one of the two transitions.
+	 *
+	 * @see	{@link pollIsInterruptible}
+	 * @see	{@link interruptPoll}
+	 * @see	{@link switchToDowncallMode}
+	 * @see	{@link switchToUpcallMode}
+	 *
+	 * @return whether blocking poll is interruptible, which is equivalent
+	 * 		to whether this {@linkplain NetInput} supports
+	 * 		switching between upcall mode and downcall mode.
+	 */
+	protected boolean pollIsInterruptible() throws IOException {
+	    return false;
+	}
+
+
+	/**
+	 * Provide a hint that switching between upcall mode and downcall mode
+	 * is desired or not desired. The rationale for this method is that some
+	 * {@linkplain NetInput}s can provide interruptibility but only at
+	 * an extra cost: <code>tcp_blk</code> is a case in point.
+	 *
+	 * @see	{@link pollIsInterruptible}
+	 * @see	{@link interruptPoll}
+	 * @see	{@link switchToDowncallMode}
+	 * @see	{@link switchToUpcallMode}
+	 *
+	 * @param  interruptible switch interruptibility on/off
+	 * @throws {@link IllegalArgumentException} if this {@linkplain
+	 * 		NetInput} does not actually support poll interrupts.
+	 */
+	protected void setInterruptible(boolean interruptible)
+		throws IOException {
+	    throw new IllegalArgumentException("Upcall/downcall mode switch not supported");
+	}
+
+
+	/**
+	 * Interrupt threads that block in a blocking poll (in the case of
+	 * downcall receive) or receive (in the case of an upcall thread).
+	 * Upon an interruptPoll(), a thread that is blocked in a (blocking)
+	 * poll returns abnormally by throwing an {@link
+	 * InterruptedIOException}. A thread that is blocked in a receive
+	 * generates an {@link NetInputUpcall#interruptedUpcall}.
+	 *
+	 * <BR>
+	 * Method {@link pollIsInterruptible} informs whether this
+	 * {@linkplain NetInput} supports poll interrupts and switching between
+	 * upcall mode and downcall mode.
+	 *
+	 * <BR>
+	 * The implementation of this method may be costly.
+	 *
+	 * @see	{@link pollIsInterruptible}
+	 * @see	{@link interruptPoll}
+	 * @see	{@link switchToDowncallMode}
+	 * @see	{@link switchToUpcallMode}
+	 *
+	 * @throws {@link IllegalArgumentException} if this {@linkplain
+	 * 		NetInput} does not actually support poll interrupts.
+	 */
+	protected void interruptPoll() throws IOException {
+	    throw new IllegalArgumentException("Upcall/downcall mode switch not supported");
+	}
+
+
+	/*
+	**
+	 * Switch this {@linkplain NetInput} to downcall mode.
+	 *
+	 * Threads that are blocked in a receive must be interrupted before this
+	 * switch by calling {@link interruptPoll}. These threads will return
+	 * abnormally by throwing an {@link InterruptedIOException}.
+	 *
+	 * <BR>
+	 * Any previously registered {@link InputUpcall} is cleared and
+	 * forgotten. The {@linkplain NetInput} of which this is a subInput is
+	 * responsible for doing downcall receives from now on.
+	 *
+	 * <BR>
+	 * Method {@link pollIsInterruptible} informs whether this
+	 * {@linkplain NetInput} supports poll interrupts and switching between
+	 * upcall mode and downcall mode.
+	 *
+	 * <BR>
+	 * The implementation of this method may be costly.
+	 *
+	 * @see	{@link pollIsInterruptible}
+	 * @see	{@link interruptPoll}
+	 * @see	{@link switchToDowncallMode}
+	 * @see	{@link switchToUpcallMode}
+	 *
+	 * @throws {@link IllegalArgumentException} if this {@linkplain
+	 * 		NetInput} does not actually support poll interrupts.
+	protected void switchToDowncallMode() throws IOException {
+	    throw new IllegalArgumentException("Upcall/downcall mode switch not supported");
+	}
+	 */
+
+
+	/**
+	 * Switch this {@linkplain NetInput} to upcall mode.
+	 *
+	 * Threads that are blocked in a receive must be interrupted before this
+	 * switch by calling {@link interruptPoll}. These threads will return
+	 * abnormally by throwing an {@link InterruptedIOException}.
+	 *
+	 * <BR>
+	 * If the caller is certain that no downcall receive may have been
+	 * posted yet, this method may be called without first interrupting
+	 * the poll. In that case this {@linkplain NetInput} need not be
+	 * {@linkplain pollIsInterruptible}. This occurs for instance when
+	 * the poll and the connect are protected by one lock, that is still
+	 * taken indivisibly with the connect when this method is invoked.
+	 *
+	 * <BR>
+	 * Method {@link pollIsInterruptible} informs whether this
+	 * {@linkplain NetInput} supports poll interrupts and switching between
+	 * upcall mode and downcall mode.
+	 *
+	 * <BR>
+	 * The implementation of this method may be costly.
+	 *
+	 * @see	{@link pollIsInterruptible}
+	 * @see	{@link interruptPoll}
+	 * @see	{@link switchToDowncallMode}
+	 * @see	{@link switchToUpcallMode}
+	 *
+	 * @param inputUpcall if this parameter is nonnull, message receipt will
+	 * 		be done using this upcall after switching off the
+	 * 		interruptibility has been handled.
+	 * @throws {@link IllegalArgumentException} if this {@linkplain
+	 * 		NetInput} does not actually support poll interrupts.
+	 */
+	protected void switchToUpcallMode(NetInputUpcall inputUpcall)
+		throws IOException {
+	    installUpcallFunc(inputUpcall);
 	}
 
 

@@ -88,6 +88,10 @@ public abstract class NetSerializedInput extends NetInput {
                 log.out();
 	}
 
+	public void startReceive() throws IOException {
+	    subInput.startReceive();
+	}
+
         public abstract SerializationInputStream newSerializationInputStream() throws IOException;
 
 

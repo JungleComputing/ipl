@@ -72,7 +72,6 @@ public final class PipeInput extends NetBufferedInput {
 		factory.setMaximumTransferUnit(mtu);
 
 		this.spn = cnx.getNum();
-                startUpcallThread();
                 log.out();
 	}
 

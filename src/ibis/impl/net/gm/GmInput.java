@@ -189,7 +189,6 @@ public final class GmInput extends NetBufferedInput {
 
 		allocator = new NetAllocator(mtu);
 		this.spn = cnx.getNum();
-                startUpcallThread();
                 log.out();
 	}
 
@@ -249,6 +248,9 @@ int plld;
 	public Integer doPoll(boolean block) throws IOException {
 	    log.in();
 	    System.err.println(this + ": WARNING: nowadays, you should use GmPoller i.s.o. GmInput");
+	    if (true) {
+		throw new Error("nowadays, you should use GmPoller i.s.o. GmInput");
+	    }
 
 	    if (spn == null) {
 		return null;

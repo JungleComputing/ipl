@@ -259,7 +259,6 @@ public final class RelInput
 	os.close();
 
 	this.spn = spn;
-	startUpcallThread();
 
 	if (DEBUG) {
 	    System.err.println(this + ": " + Thread.currentThread() + ": established connection with " + partnerId + "; upcallFunc = " + upcallFunc);

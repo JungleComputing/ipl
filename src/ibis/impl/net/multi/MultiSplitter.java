@@ -1,5 +1,6 @@
 package ibis.impl.net.multi;
 
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbisIdentifier;
@@ -7,6 +8,8 @@ import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetServiceLink;
 import ibis.impl.net.NetSplitter;
+
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -18,6 +21,8 @@ import java.util.Iterator;
  * Provides a generic multiple network output poller.
  */
 public final class MultiSplitter extends NetSplitter {
+
+	private static final boolean IS_GEN = TypedProperties.booleanProperty(NetIbis.multi_gen, false);
 
         private final static class Lane {
                 NetOutput     output       = null;
@@ -105,7 +110,7 @@ public final class MultiSplitter extends NetSplitter {
 		String          subContext      = (plugin!=null)?plugin.getSubContext(true, localId, remoteId, os, is):null;
 		NetOutput 	no 		= (NetOutput)outputMap.get(subContext);
 
-		if (no == null) {
+		if (IS_GEN || no == null) {
 			String    subDriverName = getProperty(subContext, "Driver");
 			trace.disp("subContext = ["+subContext+"], driver = ["+subDriverName+"]");
 			NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);

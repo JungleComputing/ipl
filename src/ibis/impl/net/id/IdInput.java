@@ -52,6 +52,10 @@ public final class IdInput extends NetInput {
 		subInput.setupConnection(cnx);
 	}
 
+	public void startReceive() throws IOException {
+		subInput.startReceive();
+	}
+
         public synchronized void inputUpcall(NetInput input, Integer spn) throws IOException {
                 // Note: the IdInput instance is bypassed during upcall reception
                 upcallFunc.inputUpcall(input, spn);

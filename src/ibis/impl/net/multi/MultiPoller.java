@@ -110,30 +110,19 @@ public class MultiPoller extends NetPoller {
                 //System.err.println("multi-protocol plugin loaded");
         }
 
-	/*
-	 * Deprecate?
-
-        protected void selectInput(Integer spn) throws ConnectionClosedException {
-                log.in();
-                Lane lane = (Lane)laneTable.get(spn);
-                if (lane == null) {
-                        throw new ConnectionClosedException("connection "+spn+" closed");
-                }
-
-                activeQueue = lane.queue;
-                if (activeQueue == null) {
-                        throw new ConnectionClosedException("connection "+spn+" closed");
-                }
-                log.out();
-        }
-	*/
-
 
 	protected NetInput newPollerSubInput(Object key, ReceiveQueue q)
 	    	throws IOException {
 	    NetInput ni = q.getInput();
 
 	    if (ni != null) {
+		/*
+		 * If there is already a subInput associated with this lane
+		 * (i.e. this subContext, i.e. the driver stack that belongs
+		 * to our plugin), use that.
+		 * Else, go on and create a new subInput.
+		 */
+		// System.err.println(this + ": recycle existing subInput " + ni);
 		return ni;
 	    }
 
@@ -142,10 +131,17 @@ public class MultiPoller extends NetPoller {
 	    String    subDriverName = getProperty(subContext, "Driver");
 	    NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
 
-	    if (upcallFunc == null) {
+	    if (false && upcallFunc == null) {
 		System.err.println(ibis.impl.net.NetIbis.hostName() + "-" + this + ": Create a MultiPoller downcall with ReceiveQueue " + q + " upcallFunc " + upcallFunc + " subDriver " + subDriver + " subContext " + subContext);
 	    }
-	    return newSubInput(subDriver, subContext, q);
+
+	    if (decouplePoller && upcallFunc != null) {
+		ni = newSubInput(subDriver, subContext, q);
+	    } else {
+		ni = newSubInput(subDriver, subContext, null);
+	    }
+
+	    return ni;
 	}
 
 

@@ -193,10 +193,9 @@ public final class UdpInput extends NetBufferedInput {
 		}
 
 		spn = cnx.getNum();
-		startUpcallThread();
 
 		log.out();
-    }
+	}
 
 
         private void checkReceiveSeqno(NetReceiveBuffer buffer) {

@@ -33,19 +33,24 @@ public final class NetIbis extends Ibis {
 
 	public static final String mutex_debug = prefix + "mutex.debug";
 
-	public static final String poll_single = prefix + "poller.singleton";
+	public static final String input_exc_v = prefix + "input.exc.verbose";
+
 	public static final String poll_single_dyn = prefix + "poller.singleton.dynamic";
+	public static final String poll_single_v = prefix + "poller.singleton.verbose";
 	public static final String cfg_filenm =  prefix + "config.filename";
 	public static final String cfg_file =    prefix + "config.file";
 
 	public static final String port_single = prefix + "porttype.singleton";
 
+	public static final String multi_gen = prefix + "multi.gen";
+
 	private static final String[] properties = {
 	    alloc_stats,
 	    alloc_thres,
 	    mutex_debug,
-	    poll_single,
+	    input_exc_v,
 	    poll_single_dyn,
+	    poll_single_v,
 	    cfg_filenm,
 	    cfg_file,
 	    port_single

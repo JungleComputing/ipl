@@ -140,7 +140,6 @@ dumpBufferFactoryInfo();
 	}
 
 	this.spn = cnx.getNum();
-        startUpcallThread();
     }
 
 

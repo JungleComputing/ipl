@@ -118,6 +118,10 @@ public final class BytesInput
                 log.out();
 	}
 
+	public void startReceive() throws IOException {
+	    subInput.startReceive();
+	}
+
         public void initReceive(Integer num) throws IOException {
 	    log.in();
 	    synchronized(this) {

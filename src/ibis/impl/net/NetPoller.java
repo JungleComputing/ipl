@@ -4,6 +4,7 @@ import ibis.ipl.ConnectionClosedException;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,7 +12,14 @@ import java.util.Iterator;
 /**
  * Provides a generic multiple network input poller.
  */
-public class NetPoller extends NetInput implements NetBufferedInputSupport {
+public class NetPoller
+	extends NetInput
+	implements NetBufferedInputSupport {
+
+    /**
+     * Verbosity at manipulation of dynamic singleton state
+     */
+    private static final boolean VERBOSE_SINGLETON = TypedProperties.booleanProperty(NetIbis.poll_single_v, false);
 
     /**
      * The set of inputs.
@@ -36,8 +44,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     private ReceiveQueue	singleton;
     private boolean		handlingSingleton;
     private int			waitingConnections;
-    private static final boolean SINGLETON_FASTPATH = TypedProperties.booleanProperty(NetIbis.poll_single, true)
-					&& TypedProperties.booleanProperty(NetIbis.poll_single_dyn, false);
+    private static final boolean SINGLETON_FASTPATH = TypedProperties.booleanProperty(NetIbis.poll_single_dyn, true);
 
     /**
      * The driver used for the inputs.
@@ -57,13 +64,16 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      */
     protected int		waitingThreads = 0;
 
+    /**
+     * Support for interrupting poller threads.
+     */
+    private boolean		interrupted = false;
+
 
     /**
      * The first queue that should be polled first next time we have to poll the queues.
      */
     private int			firstToPoll  = 0;
-
-    private boolean		upcallMode;
 
     /**
      * In the downcall case, this module usually starts an upcall thread
@@ -113,7 +123,6 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 	super(pt, driver, context, inputUpcall);
 	inputMap = new HashMap();
 	this.decouplePoller = decouplePoller;
-	upcallMode = (upcallFunc != null);
     }
 
 
@@ -126,28 +135,62 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      * fastpath optimization.
      *
      * This method must be called synchronized (this).
+     * This method must be called after connecting the subInput, because the
+     * subInput must be queried as to its interruptibility.
      */
-    private void setSingleton(boolean on) throws IOException {
+    private void setSingleton(ReceiveQueue q, boolean on) throws IOException {
+	if (upcallFunc != null) {
+	    return;
+	}
+	if (type.inputSingletonOnly()) {
+	    return;
+	}
+
+// System.err.println(this + ": SINGLETON_FASTPATH=" + SINGLETON_FASTPATH + " on=" + on + " upcallFunc=" + upcallFunc);
+	boolean switch_to_upcall = true;
+	NetInput ni = q.getInput();
+
 	if (SINGLETON_FASTPATH && on) {
+
 	    if (singleton != null) {
 		throw new IllegalArgumentException("Only one singleton is allowed");
 	    }
 
 	    Collection c = inputMap.values();
-
 	    if (c.size() != 1) {
 		throw new IllegalArgumentException("Cannot enable singleton if #connections != 1");
 	    }
 
-	    Iterator i = c.iterator();
-	    ReceiveQueue q = (ReceiveQueue)i.next();
-	    if (! upcallMode && q.pollIsInterruptible()) {
-System.err.println("Set singleton fastpath, #connections = " + inputMap.values().size());
-		singleton = q;
+	    try {
+		ni.setInterruptible(true);
+// System.err.println("Set the thing to interruptible");
+// System.err.println(this + ": " + q.getInput() + " pollIsInterruptible " + q.pollIsInterruptible());
+		if (q.pollIsInterruptible()) {
+
+		    if (VERBOSE_SINGLETON) {
+			System.err.println(this + ": Set singleton fastpath, subInput " + q.getInput());
+		    }
+		    singleton = q;
+		    switch_to_upcall = false;
+		    // singleton.switchToDowncallMode();
+		} else {
+		    ni.setInterruptible(false);
+		}
+	    } catch (IllegalArgumentException e) {
+// System.err.println(this + ": " + q.getInput() + " does not support setInterruptible. Give up singleton");
+		// Ah well, the subInput does not even support setInterruptible.
+		// Give up.
 	    }
 
 	} else if (singleton != null) {
-System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton " + singleton.input + " fastpath.");
+	    if (VERBOSE_SINGLETON) {
+		System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton " + singleton.input + " fastpath.");
+	    }
+
+	    if (q == singleton) {
+		throw new Error(this + ": cannot be multipoller and also be the singleton " + singleton);
+	    }
+
 	    while (handlingSingleton) {
 		singleton.interruptPoll();
 		waitingConnections++;
@@ -159,10 +202,21 @@ System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton "
 		waitingConnections--;
 	    }
 	    notifyAll();
-	    singleton.clearInterruptible();
+	    singleton.switchToUpcallMode();
+	    singleton.setInterruptible(false);
+
 	    singleton = null;
 	}
+
+	if (switch_to_upcall) {
+// System.err.println(this + ": " + q.getInput() + " Switch to upcall mode");
+	    // Since we own the lock on this, no downcall receive can have
+	    // occurred yet. We may safely switch the subInput to upcall mode
+	    // without interrupting.
+	    q.switchToUpcallMode();
+	}
     }
+
 
     protected void setReadBufferedSupported() {
 	readBufferedSupported = false;
@@ -203,28 +257,35 @@ System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton "
 if (false && singleton != null)
 System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fastpath");
 
+	log.out();
+    }
+
+    public void startReceive() throws IOException {
 	if (decouplePoller) {
+	} else {
 	    /*
 	     * If our subclass is a multiplexer, it starts all necessary
 	     * upcall threads. Then we do not want an upcall thread in
 	     * this class.
 	     */
-	} else {
-// System.err.println(this + ": start upcall thread");
 	    startUpcallThread();
 	}
-	log.out();
+
+	Collection c = inputMap.values();
+	Iterator i = c.iterator();
+
+	while (i.hasNext()) {
+	    ReceiveQueue rq  = (ReceiveQueue)i.next();
+// System.err.println(this + ": startReceive in " + rq.getInput());
+	    rq.getInput().startReceive();
+	}
     }
 
     protected NetInput newPollerSubInput(Object key, ReceiveQueue q)
 	    throws IOException {
 	NetInput ni;
 
-	// Don't test here whether singleton is null. Singleton is set/cleared
-	// only *after* this call, and the subInput is interrupted accordingly
-	// if it becomes a singleton.
-	if (decouplePoller &&
-		(NetReceivePort.useBlockingPoll || upcallMode)) {
+	if (decouplePoller && upcallFunc != null) {
 	    ni = newSubInput(subDriver, q);
 	} else {
 	    ni = newSubInput(subDriver, null);
@@ -262,19 +323,14 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	    q = new ReceiveQueue(cnx);
 	    inputMap.put(key, q);
 	}
+	boolean only = (inputMap.values().size() == 1);
 
 	NetInput ni = newPollerSubInput(key, q);
 	q.setInput(ni);
 
-	boolean only = inputMap.values().size() == 1;
-	setSingleton(only);
-
-	if (singleton == q) {
-// System.err.println("Set the thing to interruptible");
-	    singleton.setInterruptible();
-	}
-
 	ni.setupConnection(cnx);
+
+	setSingleton(q, only);
 
 	/* If this NetPoller is used in downcallMode, the
 	 * upcall threads of the subInputs deliver their
@@ -284,7 +340,7 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	 * possible spawning of other upcall threads.
 	 * 				RFHH
 	 */
-	if (! upcallMode) {
+	if (upcallFunc == null) {
 	    ni.disableUpcallSpawnMode();
 	}
 
@@ -293,6 +349,84 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	wakeupBlockedReceiver();
 
 	log.out();
+    }
+
+
+    protected boolean pollIsInterruptible() throws IOException {
+	return singleton != null && singleton.pollIsInterruptible();
+    }
+
+
+    protected void interruptPoll() throws IOException {
+	if (singleton != null && singleton.pollIsInterruptible()) {
+	    singleton.interruptPoll();
+	} else {
+	    System.err.println(this + ": OH HO.... interruptPoll on a nonsingleton!");
+	    if (true) {
+		throw new Error("interruptPoll was designed for singletons, but now used on nonsingleton");
+	    } else {
+		synchronized (this) {
+		    interrupted = true;
+		    wakeupBlockedReceiver();
+		}
+	    }
+	}
+    }
+
+
+    protected void setInterruptible(boolean interruptible) throws IOException {
+	if (singleton != null) {
+	    singleton.setInterruptible(interruptible);
+	} else {
+	    super.setInterruptible(interruptible);
+	}
+    }
+
+
+    /*
+    protected void switchToDowncallMode() throws IOException {
+	installUpcallFunc(null);
+	// Should we manage upcallSpawnMode?
+    }
+    */
+
+
+    /**
+     * {@inheritDoc}
+     *
+     * <BR>
+     * If we are in singleton mode, just pass on the inputUpcall to the
+     * singleton subInput.
+     * If we are not, kinda panic.
+     */
+    synchronized
+    protected void switchToUpcallMode(NetInputUpcall inputUpcall)
+	    throws IOException {
+// System.err.println(this + ": switchToUpcallMode singleton " + (singleton == null ? null : singleton.getInput()) + " interruptible " + (singleton == null ? "N/A" : (singleton.pollIsInterruptible() ? "true" : "false")));
+	if (activeUpcallThread != null) {
+	    System.err.println(this + ": want to switch to UpcallMode but some Downy already present -- what can we do????????????????");
+	}
+
+	if (singleton != null && singleton.pollIsInterruptible()) {
+	    upcallFunc = inputUpcall;
+	    singleton.switchToUpcallMode();
+	} else {
+	    System.err.println(this + ": OH HO.... switchToUpcall on a nonsingleton!");
+	    if (false) {
+		throw new Error("switchToUpcallMode was designed for singletons, but now used on nonsingleton");
+	    } else {
+		installUpcallFunc(inputUpcall);
+	    }
+	}
+// System.err.println(this + ": switchToUpcall done, upcallFunc " + upcallFunc);
+	// Should we manage upcallSpawnMode?
+    }
+
+
+    protected void verifyNonSingletonPoller() {
+	if (singleton != null) {
+	    throw new Error("Cannot be a singleton Poller AND have upcall threads");
+	}
     }
 
 
@@ -326,7 +460,6 @@ private int nCurrent;
 
 	private NetInput		input     = null;
 	private Integer			activeNum = null;
-	private NetPollInterruptible	intpt = null;
 	private int			waitingPollers = 0;
 
 	ReceiveQueue(NetConnection cnx) {
@@ -342,9 +475,6 @@ private int nCurrent;
 
 	public void setInput(NetInput input) {
 	    this.input = input;
-	    if (input instanceof NetPollInterruptible) {
-		intpt = (NetPollInterruptible)input;
-	    }
 	}
 
 	public void inputUpcall(NetInput input, Integer spn)
@@ -355,17 +485,35 @@ private int nCurrent;
 		throw new ConnectionClosedException("connection closed");
 	    }
 	    Thread me = Thread.currentThread();
+	    boolean upcallMode;
 
-	    if (upcallMode) {
-		synchronized (NetPoller.this) {
+	    /*
+	     * Must lock NetPoller.this <strong>before</strong> we attempt
+	     * to read upcallFunc. Its value may be changed by
+	     * switchTo*callMode with the lock on NetPoller.this held.
+	     */
+	    synchronized (NetPoller.this) {
+		upcallMode = (upcallFunc != null);
+// System.err.println(this + ": inputUpcall; upcallFunc " + upcallFunc + " poller " + NetPoller.this);
+		if (upcallMode) {
 
-			grabUpcallLock(this);
-			activeNum = spn;
-			activeUpcallThread = me;
-			log.disp("NetPoller queue thread poll returns ",activeNum);
+		    grabUpcallLock(this);
+		    activeNum = spn;
+		    activeUpcallThread = me;
+		    log.disp("NetPoller queue thread poll returns ",activeNum);
+nCurrent++;
+		} else {
+		    wakeupBlockedReceiver();
+		    activeNum = spn;
+		    // Do we require currentThread in the
+		    // downcall case?????
+		    activeUpcallThread = me;
+		    log.disp("NetPoller queue thread poll returns ",activeNum);
 nCurrent++;
 		}
+	    }
 
+	    if (upcallMode) {
 		/* Must release the lock because some other
 		 * thread may finish the message */
 		log.disp("upcallFunc.inputUpcall-->");
@@ -380,15 +528,6 @@ nCurrent++;
 		}
 
 	    } else {
-		synchronized (NetPoller.this) {
-		    wakeupBlockedReceiver();
-		    activeNum = spn;
-		    // Do we require currentThread in the
-		    // downcall case?????
-		    activeUpcallThread = me;
-		    log.disp("NetPoller queue thread poll returns ",activeNum);
-nCurrent++;
-		}
 
 		synchronized (this) {
 		    while (activeNum == spn) {
@@ -402,6 +541,7 @@ nCurrent++;
 		    }
 		}
 	    }
+// System.err.println(this + ": inputUpcall finished; upcallFunc " + upcallFunc + " poller " + NetPoller.this);
 
 	    log.out();
 	}
@@ -441,27 +581,43 @@ nCurrent++;
 	}
 
 
-	boolean pollIsInterruptible() {
-	    return intpt != null;
+	boolean pollIsInterruptible() throws IOException {
+	    return input.pollIsInterruptible();
 	}
 
 
-	void setInterruptible() throws IOException {
-	    intpt.setInterruptible();
+	void setInterruptible(boolean interruptible) throws IOException {
+	    input.setInterruptible(interruptible);
 	}
 
 
-	void clearInterruptible() throws IOException {
-	    if (NetReceivePort.useBlockingPoll || upcallMode) {
-		intpt.clearInterruptible(this);
+	/*
+	void switchToDowncallMode() throws IOException {
+	    input.switchToDowncallMode();
+	}
+	*/
+
+
+	/**
+	 * Switch our subInput to upcall mode so it delivers messages to our
+	 * queue, where we pick them up to handle them.
+	 */
+	void switchToUpcallMode() throws IOException {
+	    if (NetReceivePort.useBlockingPoll || upcallFunc != null) {
+		input.switchToUpcallMode(this);
 	    } else {
-		intpt.clearInterruptible(null);
+		System.err.println(this + "OHHHH HOOOOO switchToUpcallMode and upcall null");
+		if (true) {
+		    throw new Error(this + ": switchToUpcallMode is only supported for blockingPoll or upcall receives");
+		} else {
+		    input.switchToUpcallMode(null);
+		}
 	    }
 	}
 
 
 	void interruptPoll() throws IOException {
-	    intpt.interruptPoll();
+	    input.interruptPoll();
 	}
 
 
@@ -474,7 +630,7 @@ nCurrent++;
 		input.finish();
 	    }
 
-	    if (upcallMode) {
+	    if (upcallFunc != null) {
 		releaseUpcallLock();
 	    } else {
 		synchronized (this) {
@@ -514,6 +670,7 @@ nCurrent++;
 	activeQueue = q;
 	mtu = activeQueue.input.getMaximumTransfertUnit();
 	headerOffset = activeQueue.input.getHeadersLength();
+// System.err.println(this + ": grabUpcallLock() activeQueue " + activeQueue);
 
 	log.out();trace.out();
     }
@@ -523,6 +680,7 @@ nCurrent++;
     private void releaseUpcallLock() {
 	log.in();trace.in();
 
+// System.err.println(this + ": releaseUpcallLock() clear activeQueue");
 	activeQueue = null;
 	if (upcallWaiters > 0) {
 	    notify();
@@ -562,6 +720,10 @@ nCurrent++;
 	    // is always called from within a loop that tests the
 	    // associated condition.
 	    wait();
+	    if (interrupted) {
+		interrupted = false;
+		throw new InterruptedIOException("Wait interrupted");
+	    }
 	} catch (InterruptedException e) {
 	    throw new InterruptedIOException(e);
 	} finally {
@@ -637,6 +799,7 @@ nCurrent++;
 	try {
 	    if ((spn = singleton.poll(block)) != null) {
 		activeQueue = singleton;
+// System.err.println(this + ": pollSingleton sets activeQueue " + activeQueue);
 		selectConnection(singleton);
 	    }
 	} catch (InterruptedIOException e) {
@@ -709,6 +872,7 @@ nCurrent++;
 
 		if (spn != null) {
 		    activeQueue = rq;
+// System.err.println(this + ": pollNonSingleton sets activeQueue " + activeQueue);
 		    selectConnection(rq);
 		    break;
 		}
@@ -729,19 +893,27 @@ nCurrent++;
 
 	Integer      spn = null;
 
+	if (activeQueue != null) {
+	    System.err.println(Thread.currentThread() + " " + this + ": want to doPoll but some Downy (activeQueue " + activeQueue + " already present -- what can we do????????????????");
+	    selectConnection(activeQueue);
+	    return activeQueue.activeNum();
+	}
+
 	do {
 
-// System.err.print("[");
+// System.err.print(this + ": doPoll [");
 
 	    // Here, should have synchronized access on singleton
 	    if (singleton == null) {
 // System.err.print("BLA ");
 		spn = pollNonSingleton(block);
 	    } else {
+// System.err.print("BLUB ");
 		spn = pollSingleton(block);
 	    }
 
-// System.err.print("] spn=" + spn);
+// System.err.print("] doPoll spn=" + spn + " activeQueue=" + activeQueue + " " + activeQueue.getInput());
+// System.err.println();
 	} while (block && spn == null);
 
 	if (false) {
@@ -767,6 +939,7 @@ nCurrent++;
 	log.in();
 	if (activeQueue != null) {
 	    activeQueue.finish(implicit);
+// System.err.println(this + ": finishLocked() clear activeQueue");
 	    activeQueue = null;
 	}
 
@@ -863,7 +1036,7 @@ nCurrent++;
     protected NetInput activeInput() throws IOException {
 	try {
 	    ReceiveQueue  rq    = activeQueue;
-	    NetInput      input = rq.input;
+	    NetInput      input = rq.getInput();
 	    if (input == null) {
 		throw new ConnectionClosedException("input closed");
 	    }

@@ -9,7 +9,6 @@ import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
 import ibis.impl.net.NetInputUpcall;
-import ibis.impl.net.NetPollInterruptible;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
@@ -30,8 +29,7 @@ import java.util.Hashtable;
 /**
  * The TCP input implementation (block version).
  */
-public final class TcpInput extends NetBufferedInput
-		implements NetPollInterruptible {
+public final class TcpInput extends NetBufferedInput {
 
 	/**
 	 * Debug switch
@@ -76,14 +74,14 @@ public final class TcpInput extends NetBufferedInput
 
 	private InetAddress           addr            = null;
 	private int                   port            =    0;
-	private byte []               hdr             = new byte[4];
 	private NetReceiveBuffer      buf    = null;
 
 	/**
 	 * Timeout value for "interruptible" poll
 	 */
 	private static final int   INTERRUPT_TIMEOUT  = 1000; // 100; // ms
-	private boolean      interrupted = false;
+	private boolean         interrupted = false;
+	private boolean		interruptible = false;
 
 	static {
 	    if (false) {
@@ -150,6 +148,10 @@ public final class TcpInput extends NetBufferedInput
 		}
 		// AD: --- end ---
 
+		if (interruptible) {
+		    tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+		}
+
 		addr = tcpSocket.getInetAddress();
 		port = tcpSocket.getPort();
 
@@ -167,27 +169,54 @@ public final class TcpInput extends NetBufferedInput
 		}
 
 		this.spn = cnx.getNum();
-		startUpcallThread();
 		log.out();
 	}
 
 
-	public void interruptPoll() throws IOException {
-		// How can this be JMM correct?????
+	protected boolean pollIsInterruptible() throws IOException {
+	    return interruptible;
+	}
+
+
+	protected void interruptPoll() throws IOException {
+	    synchronized (new Object()) {
+		// Make this JMM correct?????
+	    }
 // System.err.println(Thread.currentThread() + ": " + this + ": interruptPoll()");
-		interrupted = true;
+	    interrupted = true;
 	}
 
 
-	public void setInterruptible() throws IOException {
+	protected void setInterruptible(boolean interruptible)
+		throws IOException {
+	    this.interruptible = interruptible;
+	    if (tcpSocket != null) {
+		if (interruptible) {
+		    tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+		} else {
+		    tcpSocket.setSoTimeout(0);
+		}
+	    }
+	}
+
+
+	/*
+	protected void switchToDowncallMode() throws IOException {
+	    installUpcallFunc(null);
+	    if (tcpSocket != null) {
 		tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
+	    }
 	}
+	*/
 
 
-	public void clearInterruptible(NetInputUpcall upcallFunc) throws IOException {
+	public void switchToUpcallMode(NetInputUpcall upcallFunc)
+		throws IOException {
 // System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible, upcallFunc " + upcallFunc);
-		installUpcallFunc(upcallFunc);
+	    installUpcallFunc(upcallFunc);
+	    if (tcpSocket != null) {
 		tcpSocket.setSoTimeout(0);
+	    }
 	}
 
 

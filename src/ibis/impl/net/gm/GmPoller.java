@@ -113,13 +113,6 @@ public final class GmPoller extends NetPoller {
 	    spn[spn.length - 1] = num;
 	    rq[spn.length - 1]  = (ReceiveQueue)inputMap.get(num);
 
-	    /* This does a lazy allocation of an upcall thread.
-	     * Multiple connections into this port, i.e. into this GmPoller,
-	     * are serviced by one thread (unless the thread does a blocking
-	     * upcall of course).
-	     */
-	    startUpcallThread();
-
 	    Driver.gmAccessLock.lock();
 	    try {
 		Driver.interruptPump(oldLockIds);
@@ -139,6 +132,43 @@ public final class GmPoller extends NetPoller {
 
 // System.err.println(this + ": " + cnx.getServiceLink() + ": established connection");
 	}
+    }
+
+
+    public void startReceive() throws IOException {
+	startUpcallThread();
+    }
+
+
+    protected boolean pollIsInterruptible() {
+	return true;
+    }
+
+
+    protected void setInterruptible(boolean interruptible) throws IOException {
+    }
+
+
+    protected void interruptPoll() throws IOException {
+	Driver.gmAccessLock.lock();
+	try {
+	    Driver.interruptPump(lockIds);
+	} finally {
+	    Driver.gmAccessLock.unlock();
+	}
+    }
+
+
+    /*
+    protected void switchToDowncallMode() throws IOException {
+	installUpcallFunc(null);
+    }
+    */
+
+
+    protected void switchToUpcallMode(NetInputUpcall inputUpcall)
+	    throws IOException {
+	installUpcallFunc(inputUpcall);
     }
 
 

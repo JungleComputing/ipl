@@ -4,7 +4,7 @@ import java.io.IOException;
 
 /**
  * Interface to indicate whether an input allows reading
- * <standount>less</standout> than the specified data size.
+ * <strong>less</strong> than the specified data size.
  * Examples are {@link ibis.impl.net.NetBufferedInput} or {@link ibis.impl.net.NetPoller}.
  */
 
