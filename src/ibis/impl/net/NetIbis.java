@@ -452,7 +452,7 @@ public final class NetIbis extends Ibis {
 		nameServer = NameServer.loadNameServer(this);
 	}
 
-	public void join(IbisIdentifier joinIdent) {
+	public void joined(IbisIdentifier joinIdent) {
 		synchronized (this) {
 			joinedIbises.add(joinIdent);
 			if(!open || resizeHandler == null) {
@@ -473,7 +473,7 @@ public final class NetIbis extends Ibis {
 		}
 	}
 
-	public void leave(IbisIdentifier leaveIdent) {
+	public void left(IbisIdentifier leaveIdent) {
 		synchronized (this) {
 			if(!open && resizeHandler == null) {
 				leftIbises.add(leaveIdent);

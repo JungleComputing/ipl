@@ -93,7 +93,7 @@ class IbisWorld implements Runnable {
 		}
 	    }
 	    Ibis.myIbis.unlock();
-	    Ibis.myIbis.join(joinId[i]);
+	    Ibis.myIbis.joined(joinId[i]);
 	}
 
 	for (int i = 0; isOpen && i < Ibis.myIbis.nrCpus; i++) {
@@ -106,7 +106,7 @@ class IbisWorld implements Runnable {
 		}
 	    }
 	    Ibis.myIbis.unlock();
-	    Ibis.myIbis.leave(leaveId[i]);
+	    Ibis.myIbis.left(leaveId[i]);
 	}
     }
 

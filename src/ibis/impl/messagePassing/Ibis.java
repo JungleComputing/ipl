@@ -151,7 +151,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    public void join(ibis.ipl.IbisIdentifier id) {
+    public void joined(ibis.ipl.IbisIdentifier id) {
 	if (DEBUG) {
 	    System.err.println(myCpu + ": An Ibis.join call for " + id);
 	    Thread.dumpStack();
@@ -168,7 +168,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    public void leave(ibis.ipl.IbisIdentifier id) {
+    public void left(ibis.ipl.IbisIdentifier id) {
 	if (resizeHandler != null) {
 	    resizeHandler.left(id);
 	}

@@ -188,7 +188,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 				if(DEBUG) {
 					System.out.println("NameServerClient: join of " + newid);
 				}
-				ibisImpl.join(newid);
+				ibisImpl.joined(newid);
 				if(DEBUG) {
 					System.out.println("NameServerClient: join of " + newid + " DONE");
 				}
@@ -205,7 +205,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 			}
 
 			// Should we join ourselves?
-			ibisImpl.join(id);
+			ibisImpl.joined(id);
 
 			socketFactory.close(in, out, s);
 			Thread t = new Thread(this, "NameServerClient accept thread");
@@ -328,7 +328,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 					    System.out.println("NameServerClient: receive join request " + id);
 					}
 					socketFactory.close(in, null, s);
-					ibisImpl.join(id);
+					ibisImpl.joined(id);
 					break;
 				case (IBIS_LEAVE):
 					id = (IbisIdentifier) in.readObject();
@@ -340,7 +340,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 						}
 						return;
 					} else {
-						ibisImpl.leave(id);
+						ibisImpl.left(id);
 					}
 					break;
 				default: 

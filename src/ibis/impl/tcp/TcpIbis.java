@@ -127,7 +127,7 @@ public final class TcpIbis extends Ibis implements Config {
 	/**
 	 * this method forwards the join to the application running on top of ibis.
 	 */
-	public void join(IbisIdentifier joinIdent) { 
+	public void joined(IbisIdentifier joinIdent) { 
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				joinedIbises.add(joinIdent);
@@ -156,7 +156,7 @@ public final class TcpIbis extends Ibis implements Config {
 	 * this method forwards the leave to the application running on top of
 	 * ibis.
 	 */
-	public void leave(IbisIdentifier leaveIdent) { 
+	public void left(IbisIdentifier leaveIdent) { 
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				leftIbises.add(leaveIdent);

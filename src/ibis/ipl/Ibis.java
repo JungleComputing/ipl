@@ -853,7 +853,7 @@ public abstract class Ibis {
      * @param joinIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
      * identifier} of the Ibis instance joining the run.
      */
-    public abstract void join(IbisIdentifier joinIdent);
+    public abstract void joined(IbisIdentifier joinIdent);
 
     /**
      * Notifies this Ibis instance that another Ibis instance has
@@ -864,5 +864,5 @@ public abstract class Ibis {
      * @param leaveIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifier} of the Ibis instance leaving the run.
      */
-    public abstract void leave(IbisIdentifier leaveIdent);
+    public abstract void left(IbisIdentifier leaveIdent);
 } 
