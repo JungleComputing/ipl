@@ -6,12 +6,28 @@ class Compress extends ibis.satin.SatinObject
 {
     static final boolean traceMatches = false;
 
+    // Given a byte array, build an array of backreferences. That is,
+    // construct an array that at each text position gives the index
+    // of the previous occurence of that hash code, or -1 if there is none.
+    private int[] buildBackrefs( byte text[] )
+    {
+        int heads[] = new int[Configuration.ALPHABET_SIZE];
+        int backrefs[] = new int[text.length];
+
+        for( int i=0; i<Configuration.ALPHABET_SIZE; i++ ){
+            heads[i] = -1;
+        }
+        for( int i=0; i<text.length; i++ ){
+            int hashcode = (int) text[i];
+            backrefs[i] = heads[hashcode];
+            heads[hashcode] = i;
+        }
+        return backrefs;
+    }
+
     public ByteBuffer compress( byte text[] )
     {
-        CompressContext ctx = new CompressContext( 
-            Configuration.ALPHABET_SIZE,
-            text.length
-        );
+        int backrefs[] = buildBackrefs( text );
         int pos = 0;
         ByteBuffer out = new ByteBuffer();
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
@@ -20,7 +36,7 @@ class Compress extends ibis.satin.SatinObject
             final int hashcode = (int) text[pos];
 
             mv.backpos = -1;
-            int backpos = ctx.heads[hashcode];
+            int backpos = backrefs[pos];
 
             while( backpos>=0 ){
                 if( backpos<pos-Configuration.MINIMAL_SPAN ){
@@ -38,23 +54,18 @@ class Compress extends ibis.satin.SatinObject
                         }
                     }
                 }
-                backpos = ctx.backrefs[backpos];
+                backpos = backrefs[backpos];
             }
             // TODO: calculate the gain of just copying the character.
             if( mv.backpos<0 ){
                 // There is no backreference that gives any gain, so
                 // just copy the character.
-                ctx.registerRef( text[pos], pos );
                 out.append( text[pos++] );
             }
             else {
                 // There is a backreference that helps.
-                ctx.outputRef( text, pos, mv, out );
-                int endpos = pos+mv.len;
-                while( pos<endpos ){
-                    ctx.registerRef( (int) text[pos], pos );
-                    pos++;
-                }
+                out.outputRef( pos, mv );
+                pos += mv.len;
             }
         }
         while( pos<text.length ){

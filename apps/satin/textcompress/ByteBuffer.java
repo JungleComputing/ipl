@@ -34,7 +34,6 @@ class ByteBuffer implements java.io.Serializable {
     void replicate( int d, int len )
     {
         int pos = sz-d;
-        System.err.println( "Replicate: backpos=" + pos + " sz=" + sz + " d=" + d + " len=" + len );
         if( pos<0 ){
             System.err.println( "Cannot replicate from beyond the start of the buffer: pos=" + pos );
             System.exit( 1 );
@@ -46,5 +45,44 @@ class ByteBuffer implements java.io.Serializable {
         }
         System.arraycopy( buf, pos, buf, sz, len );
         sz += len;
+    }
+
+    public void outputRef( int pos, Backref ref )
+    {
+        int backpos = ref.backpos;
+        int len = ref.len-Configuration.MINIMAL_SPAN;
+        int d = (pos-backpos)-Configuration.MINIMAL_SPAN;
+        if( len<0 ){
+            System.err.println( "bad match encoding attempt: len=" + len );
+            System.exit( 1 );
+        }
+        if( d<0 ){
+            System.err.println( "bad match encoding attempt: d=" + d );
+            System.exit( 1 );
+        }
+        if( d<256 ){
+            if( len<256 ){
+                append( Magic.BACKL1D1 );
+                append( (byte) len );
+                append( (byte) d );
+            }
+            else {
+                append( Magic.BACKL2D1 );
+                append( (short) len );
+                append( (byte) d );
+            }
+        }
+        else {
+            if( len<256 ){
+                append( Magic.BACKL1D2 );
+                append( (byte) len );
+                append( (short) d );
+            }
+            else {
+                append( Magic.BACKL2D2 );
+                append( (short) len );
+                append( (short) d );
+            }
+        }
     }
 }
