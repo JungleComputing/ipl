@@ -301,6 +301,9 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 
 	handle = next_handle++;
 	references.put(ref, handle);
+	if (DEBUG) {
+	    System.out.println("writeTypeHandle: references[" + handle + "] = " + (ref == null ? "null" : ref));
+	}
 
 	return false;
     }
@@ -438,7 +441,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    handle = next_handle++;
 	    references.put(ref, handle);
 	    if(DEBUG) {
-		System.err.println("writeKnownObjectHeader -> writing NEW HANDLE" + handle);
+		System.err.println("writeKnownObjectHeader -> references[" + handle + "] = " + (ref == null ? "null" : ref));
 	    }
 	    writeHandle(handle | TYPE_BIT);
 	    return 1;
@@ -574,11 +577,17 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		/* EEK this is not nice !! */
 		handle = next_handle++;
 		references.put(ref, handle);
+		if (DEBUG) {
+		    System.out.println("doWriteObject1: references[" + handle + "] = " + (ref == null ? "null" : ref));
+		}
 		writeType(type);
 		writeUTF((String)ref);
 	    } else {
 		handle = next_handle++;
 		references.put(ref, handle);
+		if (DEBUG) {
+		    System.out.println("doWriteObject2: references[" + handle + "] = " + (ref == null ? "null" : ref));
+		}
 		writeType(type);
 
 		if (ref instanceof ibis.io.Serializable) { 

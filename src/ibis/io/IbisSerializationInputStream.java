@@ -423,6 +423,9 @@ public final class IbisSerializationInputStream
 
     public void addObjectToCycleCheck(Object o) {
 		objects.add(next_object, o);
+		if (DEBUG) {
+		    System.out.println("objects[" + next_object + "] = " + (o == null ? "null" : o));
+		}
 		next_object++;
     }
 
@@ -682,7 +685,7 @@ public final class IbisSerializationInputStream
 
 					if (fieldtype.startsWith("[")) {
 					} else {
-					    fieldtype = "L" + fieldtype.replace('/', '.') + ";";
+					    fieldtype = "L" + fieldtype.replace('.', '/') + ";";
 					}
 
 // System.out.println("fieldname = " + fieldname);
@@ -704,21 +707,24 @@ public final class IbisSerializationInputStream
 
     private void alternativeReadObject(AlternativeTypeInfo t, Object ref) throws IOException {
 	    
-		if (t.superSerializable) { 
-			alternativeReadObject(t.alternativeSuperInfo, ref);
-		} 
+	if (DEBUG) {
+		System.err.println("alternativeReadObject " + t);
+	}
+	if (t.superSerializable) { 
+		alternativeReadObject(t.alternativeSuperInfo, ref);
+	} 
 
-		if (t.hasReadObject) {
-			current_level = t.level;
-			t.invokeReadObject(ref, this);
-			return;
-		}
+	if (t.hasReadObject) {
+		current_level = t.level;
+		t.invokeReadObject(ref, this);
+		return;
+	}
 
-		if (DEBUG) {
-			System.err.println("Using alternative readObject for " + ref.getClass().getName());
-		}
+	if (DEBUG) {
+		System.err.println("Using alternative readObject for " + ref.getClass().getName());
+	}
 
-		alternativeDefaultReadObject(t, ref);
+	alternativeDefaultReadObject(t, ref);
     } 
 
 

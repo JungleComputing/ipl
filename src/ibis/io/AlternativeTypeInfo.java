@@ -55,6 +55,10 @@ final class AlternativeTypeInfo {
 	} 
     } 
 
+    public String toString() {
+	return clazz.getName();
+    }
+
     public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(Class type) { 
 	AlternativeTypeInfo t = (AlternativeTypeInfo) alternativeTypes.get(type);
 
