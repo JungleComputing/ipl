@@ -135,6 +135,8 @@
 		listfiles="true"
 		srcdir="${src}">
 
+	    <include name="java/**/*.java"/>
+
 	    <include name="ibis/frontend/**/*.java"/>
 	    <include name="ibis/group/**/*.java"/>
 	    <include name="ibis/io/**/*.java"/>
@@ -359,7 +361,7 @@
 	-->
 	<path id="java.jar.ref">
 	    <fileset dir="${JAVA_HOME}/jre/lib">
-		<include name="*.jar"/>
+		<include name="**/*.jar"/>
 	    </fileset>
 	</path>
 	<property name="java.jar.files" refid="java.jar.ref"/>
