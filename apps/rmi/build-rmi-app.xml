@@ -256,7 +256,7 @@
 
     <target name="compile"
 	depends="clean,init,property-init">
-        <property name="class-path" refid="default.classpath"/>
+	<property name="class-path" refid="default.classpath"/>
 	<echo   message="class path ${class-path}"/>
 
 	<javac  destdir="${builddir}"
@@ -293,10 +293,17 @@
 		dir="."
 		token="uka.karmi.rmi.RMISecurityManager"
 		value="java.rmi.RMISecurityManager"/>
-
-	<path id="extra-classpath">
-	    <pathelement path="${karmi}/karmi.jar"/>
-	</path>
+	<if>
+	    <available file="${karmi}/karmi.jar"/>
+	    <then>
+		<path id="extra-classpath">
+		    <pathelement path="${karmi}/karmi.jar"/>
+		</path>
+	    </then>
+	    <else>
+		<path id="extra-classpath"/>
+	    </else>
+	</if>
 	<antcall inheritAll="false" inheritRefs="false" target="compile">
 	    <reference refid="extra-classpath"/>
 	</antcall>
