@@ -61,7 +61,7 @@ connect_reply(JNIEnv *env,
     hdr->accept = accept;
     hdr->type   = tp;
 
-    IBP_VPRINTF(10, env, ("Send %sconnect ack to %d, syncer %p\n", tp == IBMP_CONNECT ? "" : "dis", (int)sender, syncer));
+    IBP_VPRINTF(10, env, (" ] Send %sconnect ack to %d, syncer %p\n", tp == IBMP_CONNECT ? "" : "dis", (int)sender, syncer));
 
     ibp_mp_send_async(env, (int)sender, ibmp_connect_reply_port, NULL, 0,
 		      proto, ibmp_connect_reply_proto_size,
@@ -76,7 +76,7 @@ ibmp_connect_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 
     ibmp_lock_check_owned(env);
 
-    IBP_VPRINTF(10, env, ("Do %sconnect ack from %d, syncer %p accept %d\n", hdr->type == IBMP_CONNECT ? "" : "dis", ibp_msg_sender(msg), hdr->syncer, hdr->accept));
+    IBP_VPRINTF(10, env, (" ] Get reply %sconnect ack from %d, syncer %p accept %d\n", hdr->type == IBMP_CONNECT ? "" : "dis", ibp_msg_sender(msg), hdr->syncer, hdr->accept));
 
     (*env)->CallVoidMethod(env, hdr->syncer, md_signal, hdr->accept);
 
@@ -143,7 +143,7 @@ Java_ibis_impl_messagePassing_SendPort_ibmp_1connect(
     hdr->startSeqno      = startSeqno;
     hdr->group           = group;
     hdr->groupStartSeqno = groupStartSeqno;
-    IBP_VPRINTF(10, env, ("Connect to remote port at %d, syncer %p delayed_syncer %p\n",
+    IBP_VPRINTF(10, env, (" [ Connect to remote port at %d, syncer %p delayed_syncer %p\n",
 		(int)rcve_cpu, syncer, delayed_syncer));
 
     ibp_mp_send_sync(env, (int)rcve_cpu, ibmp_connect_port,
@@ -201,7 +201,7 @@ ibmp_connect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     assert(env == ibp_JNIEnv);
 
     ibmp_lock_check_owned(env);
-    IBP_VPRINTF(10, env, ("Do connect upcall from %d msg %p delayed syncer %p startSeqno %d group %d groupStart %d\n", (int)sender, msg, hdr->delayed_syncer, hdr->startSeqno, hdr->group, hdr->groupStartSeqno));
+    IBP_VPRINTF(10, env, (" [ Do connect upcall from %d msg %p delayed syncer %p startSeqno %d group %d groupStart %d\n", (int)sender, msg, hdr->delayed_syncer, hdr->startSeqno, hdr->group, hdr->groupStartSeqno));
     IBP_VPRINTF(100, env, ("ibp MP port %d from %d start upcall connect_handle()\n",
 		    ibmp_connect_port, (int)sender));
     accept = ibmp_send_port_new(env,

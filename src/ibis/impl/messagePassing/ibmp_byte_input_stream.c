@@ -110,7 +110,7 @@ Java_ibis_impl_messagePassing_ByteInputStream_resetMsg(
 
     ibp_set_JNIEnv(env);
 
-    IBP_VPRINTF(250, env, ("clear MP msg %p\n", msg));
+    IBP_VPRINTF(250, env, (" RECV } clear MP msg %p\n", msg));
     ibp_msg_clear(env, msg);
 }
 
@@ -333,7 +333,7 @@ Java_ibis_impl_messagePassing_ByteInputStream_getInputStreamMsg(
 
     hdr = ibmp_byte_stream_hdr(proto);
     sender  = ibp_msg_sender(msg);
-    IBP_VPRINTF(1500, env, ("Got msg %p from %d home_msg %p port %p group %d\n", msg, ibp_msg_sender(msg), hdr->home_msg, hdr->dest_port, hdr->group));
+    IBP_VPRINTF(1500, env, (" RECV { got msg %p from %d home_msg %p port %p group %d\n", msg, ibp_msg_sender(msg), hdr->home_msg, hdr->dest_port, hdr->group));
 
     if (hdr->group != ibmp_byte_stream_NO_BCAST_GROUP && sender == ibp_me) {
 	jobject h;

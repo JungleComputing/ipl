@@ -694,7 +694,7 @@ sent_upcall(void *arg)
 {
     ibmp_msg_p msg = arg;
     msg->outstanding_send--;
-    IBP_VPRINTF(1, NULL, ("sent upcall msg %p outstanding := %d, missing := %d\n", msg, msg->outstanding_send, --ibmp_sent_msg_out));
+    IBP_VPRINTF(1, NULL, (" SEND ) async upcall msg %p outstanding := %d, missing := %d\n", msg, msg->outstanding_send, --ibmp_sent_msg_out));
 #if 0 && defined IBP_VERBOSE
     {
 	int i;
@@ -875,6 +875,7 @@ send_async(JNIEnv *env,
 	++ibmp_sent_msg_out;
     }
 #endif
+    IBP_VPRINTF(20, env, (" SEND ( async msg %p to %d size %d\n", ibmp_me, msg, cpu, ibmp_iovec_len(msg->iov, msg->iov_len)));
 
     if (i == 0) {
 	assert(msg->state == MSG_STATE_ACCUMULATING);
