@@ -61,11 +61,11 @@
     -->
     <path id="native.src.dirs">
 	<!--
+	-->
 	<pathelement path="${ibis}/io"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing/panda"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing/mpi"/>
-	-->
 	<pathelement path="${ibis}/ipl/impl/net/gm"/>
 	<pathelement path="${ibis}/util/nativeCode"/>
     </path>
@@ -108,17 +108,21 @@
 		srcDir="${src}"
 		destDir="${build}"
 		cache="${build}/depCache"
-		classpath="${src}"
+		closure="yes"
 		dump="true"
-		>
-		<!-- closure="yes" -->
+		/>
+	    <!--
+		classpath="${src}"
 	    <include name="ibis/**/*.java"/>
 	    <exclude name="${package.home.ant-contrib}/**/*.java"/>
 	    <exclude name="${package.home.ant-cpptasks}/**/*.java"/>
+	    -->
 	    <!--
 	    <include name="${src.files}"/>
 	    -->
+	<!--
 	</depend>
+	-->
     </target>
 
 
@@ -386,38 +390,72 @@
 
 
     <target name="configure">
-	<input	message="Please enter the install directory of BCEL: "
-		addproperty="config.home.bcel"/>
+	<property name="default.home.bcel" location="/home2/ceriel/bcel-5.1"/>
+	<property name="default.home.ant-contrib" location="/usr/local/ant/ant-contrib"/>
+	<property name="default.home.ant-cpptasks" location="/usr/local/ant/ant-cpptasks"/>
+	<input	message="Please enter the install directory of BCEL: [${default.home.bcel}] "
+		addproperty="install.home.bcel"/>
+	<!--
 	<input	message="Please enter the install directory of BCEL-additions: "
-		addproperty="config.home.bcel-additions"/>
-	<input	message="Please enter the install directory of ant-contrib: "
-		addproperty="config.home.ant-contrib"/>
-	<input	message="Please enter the install directory of ant-cpptasks: "
-		addproperty="config.home.ant-cpptasks"/>
+		addproperty="install.home.bcel-additions"/>
+	-->
+	<property name="install.home.bcel-additions" location="${ibis}/bcel-additions"/>
 
-	<property name="package.home.ibis"
+	<input	message="Please enter the install directory of ant-contrib: [${default.home.ant-contrib}] "
+		addproperty="install.home.ant-contrib"/>
+	<input	message="Please enter the install directory of ant-cpptasks: [${default.home.ant-cpptasks}] "
+		addproperty="install.home.ant-cpptasks"/>
+
+	<property name="config.home.ibis"
 		location="${ibis}"/>
-	<property name="package.home.bcel"
-		location="${config.home.bcel}"/>
-	<property name="package.home.bcel-additions"
-		location="${config.home.bcel-additions}"/>
-	<property name="package.home.ant-contrib"
-		location="${config.home.ant-contrib}"/>
-	<property name="package.home.ant-cpptasks"
-		location="${config.home.ant-cpptasks}"/>
+	<if>
+	    <equals arg1="${install.home.bcel}" arg2=""/>
+	    <then>
+		<property name="config.home.bcel"
+			location="${default.home.bcel}"/>
+	    </then>
+	    <else>
+		<property name="config.home.bcel"
+			location="${install.home.bcel}"/>
+	    </else>
+	</if>
+	<if>
+	    <equals arg1="${install.home.ant-contrib}" arg2=""/>
+	    <then>
+		<property name="config.home.ant-contrib"
+			location="${default.home.ant-contrib}"/>
+	    </then>
+	    <else>
+		<property name="config.home.ant-contrib"
+			location="${install.home.ant-contrib}"/>
+	    </else>
+	</if>
+	<if>
+	    <equals arg1="${install.home.ant-cpptasks}" arg2=""/>
+	    <then>
+		<property name="config.home.ant-cpptasks"
+			location="${default.home.ant-cpptasks}"/>
+	    </then>
+	    <else>
+		<property name="config.home.ant-cpptasks"
+			location="${install.home.ant-cpptasks}"/>
+	    </else>
+	</if>
+	<property name="config.home.bcel-additions"
+		location="${install.home.bcel-additions}"/>
 
 	<!--
 	<echo	file="config.status"
-		append="false">${package.home.bcel}
+		append="false">${config.home.bcel}
 	</echo>
 	<echo	file="config.status"
-		append="true">${package.home.bcel-additions}
+		append="true">${config.home.bcel-additions}
 	</echo>
 	<echo	file="config.status"
-		append="true">${package.home.ant-contrib}
+		append="true">${config.home.ant-contrib}
 	</echo>
 	<echo	file="config.status"
-		append="true">${package.home.ant-cpptasks}
+		append="true">${config.home.ant-cpptasks}
 	</echo>
 	-->
 
@@ -430,19 +468,19 @@
 			classname="org.apache.tools.ant.filters.ReplaceTokens">
 		    <param  type="token"
 			    name="IBIS"
-			    value="${package.home.ibis}"/>
+			    value="${config.home.ibis}"/>
 		    <param  type="token"
 			    name="BCEL_HOME"
-			    value="${package.home.bcel}"/>
+			    value="${config.home.bcel}"/>
 		    <param  type="token"
 			    name="BCEL_ADDITIONS"
-			    value="${package.home.bcel-additions}"/>
+			    value="${config.home.bcel-additions}"/>
 		    <param  type="token"
 			    name="ANT_CONTRIB"
-			    value="${package.home.ant-contrib}"/>
+			    value="${config.home.ant-contrib}"/>
 		    <param  type="token"
 			    name="ANT_CPPTASKS"
-			    value="${package.home.ant-cpptasks}"/>
+			    value="${config.home.ant-cpptasks}"/>
 		</filterreader>
 	    </filterchain>
 	</copy>

@@ -29,20 +29,20 @@
     <property name="local.lib" value="ibis_local_net_gm"/>
     <property name="closure.lib" value="net_ibis_gm"/>
 
-    <!--
     <property name="gm"       location="/usr/local/gm/current"/>
     <property name="gm.lib.dir"  location="${gm}/lib"/>
     <path id="local.includes-ref">
 	<pathelement path="${gm}/include"/>
     </path>
-    -->
+    <!--
     <property name="gm"       location="C:/werk/ibis/GM"/>
     <property name="gm.lib.dir"  location="${gm}"/>
-
     <path id="local.includes-ref">
 	<pathelement path="${gm}"/>
     </path>
+    -->
     <property name="local.includes" refid="local.includes-ref"/>
+
 
     &sharedProperties;
     &nativeTargets;

@@ -551,6 +551,32 @@ public final class Ping {
 			// Local communication setup
 			StaticProperties s = new StaticProperties();
 
+			if (false) {
+			    String ibis_name = "net.rel.muxer.udp";
+			    String ibis_path = "net.NetIbis";
+			    String driver = ibis_name.substring("net.".length());
+			    String path = "/";
+			    while (true) {
+				int dot = driver.indexOf('.');
+				int end = dot;
+				if (end == -1) {
+				    end = driver.length();
+				}
+				String top = driver.substring(0, end);
+				System.err.println("Now register static property \"" + (path + ":Driver") + "\" as \"" + top + "\"");
+				s.add(path + ":Driver", top);
+				if (dot == -1) {
+				    break;
+				}
+				if (path.equals("/")) {
+				    path = path + top;
+				} else {
+				    path = path + "/" + top;
+														}
+				driver = driver.substring(dot + 1);
+			    }
+			}
+
 			PortType t = ibis.createPortType("ping", s);
 			sport  	   = t.createSendPort();
 			rport  	   = null;
