@@ -15,3 +15,7 @@ clean:
 	cd asp_toplass; $(MAKE) $(MFLAGS) clean
 	cd rmi-bench; $(MAKE) $(MFLAGS) clean
 	cd sor_toplass; $(MAKE) $(MFLAGS) clean
+	cd barnes; $(MAKE) $(MFLAGS) clean
+	cd water; $(MAKE) $(MFLAGS) clean
+	cd tsp; $(MAKE) $(MFLAGS) clean
+	cd fft; $(MAKE) $(MFLAGS) clean

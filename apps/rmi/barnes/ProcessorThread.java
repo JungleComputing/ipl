@@ -5,12 +5,14 @@ import java.lang.*;
 import ibis.rmi.server.*;
 import java.util.*;
 
+import ibis.util.PoolInfo;
+
 //import DasUtils.*;
 
 public class ProcessorThread extends Thread {
 
   GlobalData g;
-  DasInfo d;
+  PoolInfo d;
   int myProc, numProcs;
   OrbTree orbTree;
   Procs p;
@@ -296,13 +298,13 @@ public class ProcessorThread extends Thread {
   }
 
 
-  ProcessorThread( GlobalData g, DasInfo d, Procs p ) {
+  ProcessorThread( GlobalData g, PoolInfo d, Procs p ) {
 
     this.g = g;
     this.p = p;
     this.d = d;
-    this.myProc = d.hostNumber();
-    this.numProcs = d.totalHosts();
+    this.myProc = d.rank();
+    this.numProcs = d.size();
 
     g.gdMyProc = myProc;
     g.OpenOutputFile( "Processor" + myProc + ".log" );

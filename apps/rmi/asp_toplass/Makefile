@@ -25,9 +25,5 @@ EXEC		= asp
 
 include ../../../config.mk
 
-# MANTAC_FLAGS	+= -no-opt_comm
-# MANTAC_FLAGS	+= -pg -no-shared-link
-# MANTAC_FLAGS	+= -no-shared-link
-
 clean:
 	-rm -f $(TRASH_FILES)

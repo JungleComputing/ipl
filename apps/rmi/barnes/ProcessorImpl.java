@@ -5,6 +5,8 @@ import java.lang.*;
 import ibis.rmi.server.*;
 import java.util.*;
 
+import ibis.util.PoolInfo;
+
 //import DasUtils.*;
 
 class ThreadSyncer {
@@ -40,7 +42,7 @@ strictfp class ProcessorImpl extends UnicastRemoteObject implements Processor {
   static final int Proc0ScanInterval = 500;
   static final int ProcRMIPort = 2222;
 
-  DasInfo d;
+  PoolInfo d;
   Procs p;
 
   Processor Processors[];
@@ -190,14 +192,14 @@ strictfp class ProcessorImpl extends UnicastRemoteObject implements Processor {
     initialize();
   }
 
-  ProcessorImpl( GlobalData g, DasInfo d, Procs p )  throws RemoteException {
+  ProcessorImpl( GlobalData g, PoolInfo d, Procs p )  throws RemoteException {
 	  super();
 	  System.err.println("ProcessorImpl()");
     this.g = g;
     this.d = d;
     this.p = p;
-    this.ProcessorCount = d.totalHosts();
-    this.myProc = d.hostNumber();
+    this.ProcessorCount = d.size();
+    this.myProc = d.rank();
     initialize();
   }
 

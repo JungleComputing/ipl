@@ -1,11 +1,9 @@
 SRC  = Body.java
-SRC  = SendBody.java
+SRC += SendBody.java
 SRC += BodyTree.java		    
 SRC += BodyTreeNode.java			    
 SRC += CenterOfMass.java		    
-SRC += DasInfo.java	    
 SRC += GlobalData.java		    
-SRC += NodeID.java		    
 SRC += OrbTree.java		    
 SRC += Plummer.java
 SRC += Processor.java    
@@ -25,7 +23,6 @@ SERIALIZABLE = SendBody.java
 SERIALIZABLE += Body.java
 SERIALIZABLE += CenterOfMass.java
 SERIALIZABLE += GlobalData.java
-SERIALIZABLE += NodeID.java
 SERIALIZABLE += vec3.java
 SERIALIZABLE += MinMax.java
 
