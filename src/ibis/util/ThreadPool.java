@@ -25,30 +25,17 @@ public final class ThreadPool {
 
     private static final int minPoolSize = 4;
 
-    private static int poolSize;
+    private static int poolSize
+            = TypedProperties.intProperty("ibis.pool.total_hosts", 28)
+                + minPoolSize;
 
     // dequeue from N - 1 downwards
     // Do lazy creation of pool threads, but bound fixed at poolSize.
-    private static PoolThread[] pool;
+    private static PoolThread[] pool = new PoolThread[poolSize];
 
     // Might also synchronize on pool but if we ever want to make a flexy-size
     // pool we are going to need a separate lock
     private static final Object lock = new Object();
-
-    static {
-        int size;
-        try {
-            PoolInfo info = PoolInfo.createPoolInfo();
-            size = info.size() + minPoolSize;
-            info = null;
-        } catch (RuntimeException e) {
-            // No pool, just guess
-            size = 32;
-        }
-        poolSize = size;
-        pool = new PoolThread[poolSize];
-        poolPtr = 0;
-    }
 
     /**
      * Double the pool size. Currently unused, but if we ever want to make a
