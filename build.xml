@@ -511,6 +511,14 @@
     <target name="distclean"
 	    depends="clean"
 	    description="Clean up, also configuration cache and rewritten classlibs">
+	<!--
+	    If ${rewritten-classlibs} is a sym-link, it is better to
+	    throw away the symlink and let the directory live on. In
+	    this case, I suppose the user knows what he is up to. If
+	    it isn't a symlink (which is the normal case) go ahead and
+	    throw away all your rewritten stuff.	RFHH
+	-->
+	<delete file="${rewritten-classlibs}"/>
 	<delete dir="${rewritten-classlibs}"/>
 	<delete file="build-properties"/>
 	<delete file="build-properties.cache"/>

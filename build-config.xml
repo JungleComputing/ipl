@@ -166,6 +166,11 @@ If you don't have any fast local networks for which a special
 Ibis module is required, you may skip the following message
 by just hitting the 'enter' key.
 
+If you just typed
+  ant configure
+please ignore the rest of this message and continue: just hit
+the 'enter' key and go on answering questions.
+
 If you wish to configure Ibis modules for fast local networks,
 you have to do some extra configuration. To do so, type:
   ant configure
