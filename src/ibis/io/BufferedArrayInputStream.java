@@ -10,7 +10,7 @@ import ibis.ipl.IbisIOException;
  * Extends OutputStream with read of array of primitives and readSingleInt
  */
 
-public class BufferedArrayInputStream
+public final class BufferedArrayInputStream
 	extends ibis.io.ArrayInputStream {
 
 //	static {
@@ -21,7 +21,7 @@ public class BufferedArrayInputStream
 
     private InputStream in;
 
-    private static final int BUF_SIZE = 63*1024;
+    private static final int BUF_SIZE = 4*1024;
     private byte [] buffer;
     private int index, buffered_bytes;
 
@@ -53,8 +53,10 @@ public class BufferedArrayInputStream
 
 	    try {
 		while ((buffered_bytes) < len) {
+//			System.out.println("buffer -> filled from " + index + " with " + buffered_bytes + " size " + BUF_SIZE + " read " + len);
 			buffered_bytes += in.read(buffer, index + buffered_bytes, BUF_SIZE-(index+buffered_bytes));
 		}
+//		System.out.println(buffered_bytes + " in buffer");
 	    } catch (IOException e) {
 		throw new IbisIOException(e);
 	    }
@@ -128,6 +130,8 @@ public class BufferedArrayInputStream
 //System.out.println("IN BUF");
 
 			// data is already in the buffer.
+//			System.out.println("Data is in buffer -> copying " + index + " ... " + (index+len) + " to " + off);
+
 			System.arraycopy(buffer, index, a, off, len);
 			index += len;
 			buffered_bytes -= len;
@@ -163,7 +167,17 @@ public class BufferedArrayInputStream
 			throw new IbisIOException(e);
 		    }
 		}
+
+//		System.out.print("result -> byte[");
+//		for (int i=0;i<len;i++) { 
+//			System.out.print(a[off+i] + ",");
+//		}
+//		System.out.println("]");
 	}
+
+
+//	static int R = 0;
+//	static int W = 0;
 
 	public void readArray(short[] a, int off, int len)
 		throws IbisIOException {
@@ -207,7 +221,7 @@ public class BufferedArrayInputStream
 		index += to_convert;
 
 		if (DEBUG) {
-			System.out.print("readArray(short[");
+//			System.out.print("readArray(short " + (R++) + " [");
 			for (int i=0;i<len;i++) {
 				System.out.print(a[off+i] + ",");
 			}
@@ -271,6 +285,9 @@ public class BufferedArrayInputStream
 		int useable, converted;
 		int to_convert = len * SIZEOF_INT;
 
+//		System.out.println("To convert " + to_convert);
+//		System.out.println("Buffered " + buffered_bytes);
+
 		while (buffered_bytes < to_convert) {
 			// not enough data in the buffer
 
@@ -280,6 +297,8 @@ public class BufferedArrayInputStream
 			} else {
 				// first, copy the data we do have to 'a' .
 				useable = buffered_bytes / SIZEOF_INT;
+
+//				System.out.println("converting " + useable + " ints from " + off);
 				Conversion.byte2int(buffer, index, a, off, useable);
 
 				len -= useable;
@@ -289,6 +308,9 @@ public class BufferedArrayInputStream
 				index += converted;
 				buffered_bytes -= converted;
 				to_convert -= converted;
+
+//				System.out.println("Leftover " + len + " ints to convert, " + buffered_bytes + " bytes buffered" + 
+//						   to_convert + " bytes to convert");
 
 				// second, copy the leftovers to the start of the buffer.
 				for (int i=0;i<buffered_bytes;i++) {
@@ -302,9 +324,15 @@ public class BufferedArrayInputStream
 		}
 
 		// enough data in the buffer
+//		System.out.println("converting " + len + " ints from " + index + " to " + off);
+	
 		Conversion.byte2int(buffer, index, a, off, len);
 		buffered_bytes -= to_convert;
 		index += to_convert;
+
+	//	System.out.println("Done converting int [], buffer contains " + buffered_bytes + " bytes (starting at " + index + ")");
+
+
 	}
 
 	public void readArray(long[] a, int off, int len)

@@ -52,6 +52,8 @@ public abstract class ArrayOutputStream
     public abstract void writeArray(double[] a, int off, int len)
 	    throws IbisIOException;
 
+    public abstract int bytesWritten();
+
     final protected void reset_indices() {
 	byte_index = 0;
 	char_index = 0;
@@ -76,7 +78,16 @@ public abstract class ArrayOutputStream
 	indices_short[TYPE_FLOAT]   = (short) float_index;
 	indices_short[TYPE_DOUBLE]  = (short) double_index;
 	indices_short[TYPE_HANDLE]  = (short) handle_index;
-
+/*
+	System.out.println("flushing bytes " + byte_index);
+	System.out.println("flushing char " + char_index);
+	System.out.println("flushing short " + short_index);
+	System.out.println("flushing int " + int_index);
+	System.out.println("flushing long " + long_index);
+	System.out.println("flushing float " + float_index);
+	System.out.println("flushing double " + double_index);
+	System.out.println("flushing handle " + handle_index);
+*/
 //    indices_short[PRIMITIVE_TYPES] = (short)  (eof ? 1 : 0);
 
 	writeArray(indices_short, 0, PRIMITIVE_TYPES);

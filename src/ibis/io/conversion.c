@@ -75,3 +75,4 @@ jobject Java_ibis_io_MantaInputStream_createUninitializedObject(
 { 
 	return (*env)->AllocObject(env, type);
 }
+
