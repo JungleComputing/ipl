@@ -22,9 +22,6 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
         throws VerificationException
     {
         a.applyCompression( s );
-        if( traceIntermediateGrammars ){
-            a.printGrammar();
-        }
 	if( levels>0 ){
 	    a = applyFolding( a, levels );
 	}
@@ -51,7 +48,6 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 	if( steps.getLength() == 0 ){
 	    return a;
 	}
-        System.out.println( "Choices: " + steps.getLength() );
 
         // For now, just pick the best move.
         Step mv[] = steps.toArray();
@@ -80,7 +76,9 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 	    // until there no longer is progress.
 	    startLength = a.getLength();
 	    a = applyFolding( a, lookahead );
-	    a.printGrammar();
+	    if( traceIntermediateGrammars ){
+		a.printGrammar();
+	    }
 	} while( a.getLength()<startLength );
         return a.getByteBuffer();
     }

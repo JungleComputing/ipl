@@ -16,5 +16,5 @@ interface Configuration {
     static final boolean traceCompressionCosts = true;
     static final boolean traceIntermediateGrammars = false;
 
-    static final boolean doVerification = true;
+    static final boolean doVerification = false;
 };

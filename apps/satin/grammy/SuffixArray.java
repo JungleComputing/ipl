@@ -89,9 +89,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     private int commonLength( int i0, int i1 )
     {
 	int n = 0;
-	while( (text[i0] == text[i1]) && (text[i0] != STOP) ){
-	    i0++;
-	    i1++;
+	while( (text[i0+n] == text[i1+n]) && (text[i0+n] != STOP) ){
 	    n++;
 	}
 	return n;
@@ -120,19 +118,25 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	return n;
     }
 
+    /** Returns true iff i0 refers to a smaller character than i1. */
+    private boolean isSmallerCharacter( int i0, int i1 )
+    {
+	if( text[i0] == STOP ){
+	    // The sortest string is first, this is as it should be.
+	    return true;
+	}
+	if( text[i1] == STOP ){
+	    // The sortest string is last, this is not good.
+	    return false;
+	}
+	return (text[i0]<text[i1]);
+    }
+
     /** Returns true iff i0 refers to a smaller text than i1. */
     private boolean areCorrectlyOrdered( int i0, int i1 )
     {
         int n = commonLength( i0, i1 );
-	if( text[i0+n] == STOP ){
-	    // The sortest string is first, this is as it should be.
-	    return true;
-	}
-	if( text[i1+n] == STOP ){
-	    // The sortest string is last, this is not good.
-	    return false;
-	}
-	return (text[i0+n]<text[i1+n]);
+	return isSmallerCharacter( i0+n, i1+n );
     }
 
     /** Sorts the administration arrays to implement ordering. */
@@ -152,25 +156,47 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             do {
                 done = true;
 
-                for( int j = 0; j<(length-jump); j++ ){
-                    int i = j + jump;
+		if( jump == 1 ){
+		    for( int j = 0; j<(length-1); j++ ){
+			int i = j + 1;
+			int ixi = indices[i];
+			int ixj = indices[j];
 
-                    if( !areCorrectlyOrdered( indices[j], indices[i] ) ){
-                        // Things are in the wrong order, swap them and step back.
-                        int tmp = indices[i];
-                        indices[i] = indices[j];
-                        indices[j] = tmp;
-                        done = false;
-                    }
-                }
+			int n = commonLength( ixi, ixj );
+			commonality[i] = n;
+			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
+			    // Things are in the wrong order, swap them and step back.
+			    indices[i] = ixj;
+			    indices[j] = ixi;
+			    done = false;
+			}
+		    }
+		}
+		else {
+		    for( int j = 0; j<(length-jump); j++ ){
+			int i = j + jump;
+			int ixi = indices[i];
+			int ixj = indices[j];
+
+			int n = commonLength( ixi, ixj );
+			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
+			    // Things are in the wrong order, swap them and step back.
+			    indices[i] = ixj;
+			    indices[j] = ixi;
+			    done = false;
+			}
+		    }
+		}
             } while( !done );
         }
 
-        // TODO: integrate this with the stuff above.
-        for( int i=1; i<length; i++ ){
-            commonality[i] = commonLength( indices[i-1], indices[i] );
+	commonality[0] = -1;
+	if( false ){
+	    // TODO: integrate this with the stuff above.
+	    for( int i=1; i<length; i++ ){
+		commonality[i] = commonLength( indices[i-1], indices[i] );
+	    }
         }
-        commonality[0] = -1;
     }
 
     /** Builds the suffix array and the commonality array. */
