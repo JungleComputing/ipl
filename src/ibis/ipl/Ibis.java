@@ -1,9 +1,11 @@
 package ibis.ipl;
 
 /**
-   This class defines the Ibis API, which can be implemented by an Ibis implementation.
+   This class defines the Ibis API, which can be implemented by an Ibis
+   implementation.
    Every JVM may run multiple Ibis implementations.
-   The user can request a list of available implementations, query their properties, and
+   The user can request a list of available implementations, query their
+   properties, and
    than load the desired Ibis implementation at runtime.
    An Ibis implementation offers certain PortType properties.
 
@@ -33,11 +35,13 @@ public abstract class Ibis {
 	}
 
 	/** 
-	    Creates a new Ibis instance. Instances must be given a unique name, which identifies the
-	    instance. Lookups are done using this name. If the user tries to create two instances
-	    with the same name, an IbisException will be thrown.
-	    The resizeHandler will be invoked when Ibises join and leave, and may be null to indicate that
-	    resize notifications are not wanted. **/
+	 * Creates a new Ibis instance. Instances must be given a unique name,
+	 * which identifies the instance. Lookups are done using this name. If
+	 * the user tries to create two instances with the same name, an
+	 * IbisException will be thrown.
+	 * The resizeHandler will be invoked when Ibises join and leave, and
+	 * may be null to indicate that resize notifications are not wanted.
+	 */
 	public static Ibis createIbis(String name, String implName, ResizeHandler resizeHandler) throws IbisException {
 		Ibis impl;
 

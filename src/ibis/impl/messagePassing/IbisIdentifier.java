@@ -19,6 +19,7 @@ final class IbisIdentifier
 
 
 	IbisIdentifier(String name, int cpu) throws IbisIOException {
+
 	    try {
 		    this.address = java.net.InetAddress.getLocalHost();
 	    } catch (java.net.UnknownHostException e) {
@@ -29,6 +30,7 @@ final class IbisIdentifier
 
 	    this.name = new String(name);
 	    this.cpu  = cpu;
+		init_cluster();
 	    makeSerialForm();
 	}
 
@@ -38,22 +40,30 @@ final class IbisIdentifier
 		generated_DefaultReadObject(stream, 0);
 	}
 
-	public final void generated_DefaultReadObject(IbisSerializationInputStream stream, int lvl) throws java.io.IOException {
+	public final void generated_DefaultReadObject
+		(IbisSerializationInputStream stream, int lvl)
+		throws java.io.IOException {
+
 		int handle = stream.readInt();
 		if(handle < 0) {
 			try {
-				address = InetAddress.getByName(stream.readUTF()); // this does not do a real lookup
+				// this does not do a real lookup
+				address = InetAddress.getByName(stream.readUTF());
 			} catch (Exception e) {
 				System.err.println("EEK, could not create an inet address from a IP address. This should not happen:" + e);
 				System.exit(1);
 			}
 			cpu = stream.readInt();
 			name = stream.readUTF();
+			cluster = stream.readUTF();
 			Ibis.myIbis.identTable.addIbis(stream, -handle, this);
 		} else {
-			IbisIdentifier ident = (IbisIdentifier) Ibis.myIbis.identTable.getIbis(stream, handle);
+			IbisIdentifier ident = (IbisIdentifier) 
+				Ibis.myIbis.identTable.getIbis(stream, handle);
+
 			address = ident.address;
 			name = ident.name;
+			cluster = ident.cluster;
 			cpu = ident.cpu;
 		}
 	}
@@ -61,7 +71,9 @@ final class IbisIdentifier
 
 	static IbisIdentifier createIbisIdentifier(byte[] serialForm)
 		throws IbisIOException {
-	    IbisIdentifier id = (IbisIdentifier)SerializeBuffer.readObject(serialForm);
+	    IbisIdentifier id = (IbisIdentifier)
+			SerializeBuffer.readObject(serialForm);
+
 	    id.serialForm = serialForm;
 
 	    return id;
@@ -75,7 +87,7 @@ final class IbisIdentifier
 
 	byte[] getSerialForm() throws IbisIOException {
 	    if (serialForm == null) {
-		makeSerialForm();
+			makeSerialForm();
 	    }
 	    return serialForm;
 	}
@@ -88,6 +100,7 @@ final class IbisIdentifier
 			stream.writeUTF(address.getHostAddress());
 			stream.writeInt(cpu);
 			stream.writeUTF(name);
+			stream.writeUTF(cluster);
 		}
 	}
 

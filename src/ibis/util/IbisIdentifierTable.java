@@ -47,7 +47,8 @@ final public class IbisIdentifierTable {
 //	int cachehits=0;
 
 	// returns -handle for never sent before, or +handle.
-	public synchronized int getHandle(IbisSerializationOutputStream stream, IbisIdentifier ident) {
+	public synchronized int getHandle(IbisSerializationOutputStream stream,
+									  IbisIdentifier ident) {
 		tmpSendNode.ident = ident;
 		tmpSendNode.outStream = stream;
 

@@ -46,10 +46,9 @@ public class Ibis extends ibis.ipl.Ibis {
     Monitor monitor = new Monitor();
 
     ConditionVariable createCV() {
-	// return new ConditionVariable(this);
-	return monitor.createCV();
+		// return new ConditionVariable(this);
+		return monitor.createCV();
     }
-
 
     int nrCpus;
     int myCpu;
@@ -93,10 +92,10 @@ public class Ibis extends ibis.ipl.Ibis {
 	 * This is an 1.3 feature; cannot we use it please?
 	 */
 	Runtime.getRuntime().addShutdownHook(new Thread() {
-	    public void run() {
-		report();
-	    }
-	});
+			public void run() {
+				report();
+			}
+		});
 	/* */
     }
 
@@ -105,41 +104,41 @@ public class Ibis extends ibis.ipl.Ibis {
 					    StaticProperties p)
 	    throws IbisException {
 
-	myIbis.lock();
-	PortType tp = new PortType(this, name, p);
-	portTypeList.put(name, tp);
-	myIbis.unlock();
-
-	return tp;
+		myIbis.lock();
+		PortType tp = new PortType(this, name, p);
+		portTypeList.put(name, tp);
+		myIbis.unlock();
+		
+		return tp;
     }
 
 
     public ibis.ipl.Registry registry() {
-	return registry;
+		return registry;
     }
 
 
-    ReceivePortNameServer createReceivePortNameServer() throws IbisIOException {
-	return new ReceivePortNameServer();
+    ReceivePortNameServer createReceivePortNameServer() throws IbisIOException{
+		return new ReceivePortNameServer();
     }
 
 
     ReceivePortNameServerClient createReceivePortNameServerClient() {
-	return new ReceivePortNameServerClient();
+		return new ReceivePortNameServerClient();
     }
 
 
 
     boolean getInputStreamMsg(int tags[]) {
-	return ByteInputStream.getInputStreamMsg(tags);
+		return ByteInputStream.getInputStreamMsg(tags);
     }
 
     public StaticProperties properties() {
-	return systemProperties;
+		return systemProperties;
     }
 
     public ibis.ipl.IbisIdentifier identifier() {
-	return ident;
+		return ident;
     }
 
 
@@ -148,15 +147,15 @@ public class Ibis extends ibis.ipl.Ibis {
 
     /* Called from native */
     void join_upcall(byte[] serialForm) throws IbisIOException {
-	// checkLockOwned();
-//manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
+		// checkLockOwned();
+		//manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 
-	IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
-	if (DEBUG) {
-	    System.err.println("Receive join message " + id.name() + "; now world = " + world + "; serialForm[" + serialForm.length + "] = " + serialForm);
-	}
-	ibisNameService.add(id);
-	world.join(id);
+		IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
+		if (DEBUG) {
+			System.err.println("Receive join message " + id.name() + "; now world = " + world + "; serialForm[" + serialForm.length + "] = " + serialForm);
+		}
+		ibisNameService.add(id);
+		world.join(id);
     }
 
     /* Called from native */
@@ -278,12 +277,12 @@ public class Ibis extends ibis.ipl.Ibis {
 
     final void waitPolling(PollClient client, long timeout, int preempt)
 	    throws IbisIOException {
-	rcve_poll.waitPolling(client, timeout, preempt);
+		rcve_poll.waitPolling(client, timeout, preempt);
     }
 
     SendPort createSendPort(PortType type)
 	    throws IbisIOException {
-	return createSendPort(type, "noname", null);
+		return createSendPort(type, "noname", null);
     }
 
     SendPort createSendPort(PortType type, String name)
