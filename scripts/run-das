@@ -54,16 +54,18 @@ Dpool_total="-Dibis.pool.total_hosts=$NHOSTS"
 Dns_pool="-Dibis.name_server.key=$PANDA_HOST_PORT_KEY"
 
 JAVA_WRAPPER=DEFAULT_USE_JAVA_WRAPPER
-if [ -z $NO_USE_JAVA_WRAPPER ]
+echo USE_JAVA_WRAPPER $USE_JAVA_WRAPPER
+echo NO_USE_JAVA_WRAPPER $NO_USE_JAVA_WRAPPER
+if [ ! -z $NO_USE_JAVA_WRAPPER ]
 then
 	JAVA_WRAPPER=0
 fi
-if [ -z $USE_JAVA_WRAPPER ]
+if [ ! -z $USE_JAVA_WRAPPER ]
 then
 	JAVA_WRAPPER=1
 fi
 
-if [ $JAVA_WRAPPER = 1 ]
+if [ $JAVA_WRAPPER -eq 1 ]
 then
     wrapper_name="$IBIS_ROOT/bin/java_wrapper"
 else
