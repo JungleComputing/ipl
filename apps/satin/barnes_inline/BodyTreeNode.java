@@ -657,6 +657,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 		    if (threshold > 0) {
 			//necessaryTree creation
 			  BodyTreeNode necessaryTree =
+			      children[i] == interactTree ? interactTree :
 			      new BodyTreeNode(interactTree, children[i]);
 			  res[i] = children[i].barnesNTC(necessaryTree,
   						       threshold-1);

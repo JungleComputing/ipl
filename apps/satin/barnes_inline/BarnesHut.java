@@ -411,9 +411,7 @@ final class BarnesHut {
 	    for (i = 0; i < ITERATIONS; i++) {
 		System.out.println("  iteration " + i + ": " +
 				   forceCalcTimes[i]/1000.0 + " s");
-		if (i >= 1) {
-		    total += forceCalcTimes[i];
-		}
+		total += forceCalcTimes[i];
 	    }
 	    System.out.println("               total: " +
 			       total/1000.0 + " s");
