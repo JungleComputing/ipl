@@ -83,8 +83,9 @@ public class CombinedInvocation extends InvocationScheme {
                     + inv);
         }
 
-        if (Group.DEBUG) { 
-            System.out.println(Group.rank() + ": CombinedInvocation.constructor("
+        if (Group.logger.isDebugEnabled()) { 
+            Group.logger.debug(Group.rank()
+                    + ": CombinedInvocation.constructor("
                     + identifier + ", " + size + ", FLAT): mode = " + mode);
         }
     }
@@ -130,8 +131,9 @@ public class CombinedInvocation extends InvocationScheme {
                     + inv);
         }
 
-        if (Group.DEBUG) { 
-            System.out.println(Group.rank() + ": CombinedInvocation.constructor("
+        if (Group.logger.isDebugEnabled()) { 
+            Group.logger.debug(Group.rank()
+                    + ": CombinedInvocation.constructor("
                     + identifier + ", " + size + ", BINOMIAL): mode = " + mode);
         }
     }

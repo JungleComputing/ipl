@@ -95,7 +95,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      * @param stubID the identification of this stub
      */
     protected void init(int gid, int mranks[], int[] mskels, int stubID) {
-        if (Group.DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(Group._rank + ": init(" + stubID + ") started");
         }
 
@@ -137,7 +137,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
         shiftedStubID = stubID << 16;
         replyStack = new Ticket();
 
-        if (Group.DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(Group._rank + ": init(" + stubID
                     + ") done, multicastHostsID = " + multicastHostsID);
         }
@@ -325,7 +325,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
             ReplyPersonalizer personalizer) throws IOException {
         switch (inv.inv.mode) {
         case InvocationScheme.I_SINGLE: {
-            if (Group.DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug(Group._rank + ": do_invoke(...) - Single invoke");
             }
             WriteMessage w = m.sendport.newMessage();
@@ -333,7 +333,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
         }
             break;
         case InvocationScheme.I_GROUP: {
-            if (Group.DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug(Group._rank + ": do_invoke(...) - Group invoke");
             }
             WriteMessage w = m.sendport.newMessage();
@@ -342,7 +342,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
         }
             break;
         case InvocationScheme.I_PERSONAL: {
-            if (Group.DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug(Group._rank + ": do_invoke(...) - " + 
                         "Personalized invoke");
             }

@@ -55,7 +55,7 @@ public class GroupMember {
      */
     public GroupMember() {
 
-        if (Group.DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(Group._rank + ": constructor() starting");
         }
 
@@ -76,7 +76,7 @@ public class GroupMember {
 
             String my_name = s.nextToken();
 
-            if (Group.DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug(Group._rank +": constructor() my type is " + my_package
                         + my_name);
             }
@@ -86,7 +86,7 @@ public class GroupMember {
                     my_package + "group_skeleton_" + my_name).newInstance();
             mySkel = Group.getNewSkeletonID(skeleton);
 
-            if (Group.DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug(Group._rank +": constructor() skelID is " + mySkel);
             }
 
@@ -109,7 +109,7 @@ public class GroupMember {
 
             groupInterfaces = new String[group_interfaces.size()];
 
-            if (Group.DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug(Group._rank +": constructor() type "
                         + myClass.getName() + " implements the group interfaces : ");
             }
@@ -125,7 +125,7 @@ public class GroupMember {
             System.exit(1);
         }
 
-        if (Group.DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(Group._rank +": GroupMember.constructor() done");
         }
     }
@@ -179,7 +179,7 @@ public class GroupMember {
      * @param skels the skeleton identifications of all members in the group
      */
     protected void init(int groupNumber, int[] ranks, int[] skels) {
-        if (Group.DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(Group._rank + ": GroupMember.init() - starting");
         }
 
@@ -196,7 +196,7 @@ public class GroupMember {
             }
             multicastHosts[i] = memberRanks[i];
 
-            if (Group.DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug(Group._rank + ": GroupMember.init() - " + 
                         "Member " + i + " is on machine " + memberRanks[i]);
             }
@@ -219,7 +219,7 @@ public class GroupMember {
         skeleton.init(this);
         Group.registerGroupMember(groupID, skeleton);
 
-        if (Group.DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(Group._rank + ": GroupMember.init() - " + 
                     "myGroupRank = " + myGroupRank + " groupSize = " + 
                     groupSize + ", init done");
@@ -234,7 +234,7 @@ public class GroupMember {
      * object or the size of the group.
      */
     public void groupInit() {
-        if (Group.DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(Group._rank + ": GroupMember.groupInit()");
         }
     }

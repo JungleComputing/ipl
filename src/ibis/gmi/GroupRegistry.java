@@ -116,7 +116,7 @@ final class GroupRegistry implements GroupProtocol {
             tickets = new int[groupSize];
 
             for (int i=0;i<groupSize;i++) { 
-                	rankAvailable[i] = true;                
+                rankAvailable[i] = true;                
             }
             
             joined = 0;
@@ -288,8 +288,8 @@ final class GroupRegistry implements GroupProtocol {
     private synchronized void newGroup(String groupName, int groupSize,
             int rank, int ticket, String type) throws IOException {
 
-        if (Group.DEBUG) {
-            System.out.println(Group._rank + ": GroupRegistry.newGroup("
+        if (logger.isDebugEnabled()) {
+            logger.debug(Group._rank + ": GroupRegistry.newGroup("
                     + groupName + ", " + groupSize + ", " + rank + ", " + 
                     ticket + ", " + type);                    
         }
@@ -328,8 +328,8 @@ final class GroupRegistry implements GroupProtocol {
         // TODO Implement timeout.         
         WriteMessage w;
 
-        if (Group.DEBUG) {
-            System.out.println(Group._rank + ": GroupRegistry.joinGroup(" + 
+        if (logger.isDebugEnabled()) {
+            logger.debug(Group._rank + ": GroupRegistry.joinGroup(" + 
                     groupName +", " + memberSkel + ", " + machineRank + ", " + 
                     requestedRank + ", " + ticket + ", " + interfaces + ", " + 
                     timeout +")");                      
@@ -340,8 +340,8 @@ final class GroupRegistry implements GroupProtocol {
         // Check if the group exists
         if (e == null) {
             
-            if (Group.DEBUG) {
-                System.out.println(Group._rank + ": GroupRegistry.joinGroup " + 
+            if (logger.isDebugEnabled()) {
+                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
                         "- Group \"" + groupName + "\" not found!");                      
             }
             
@@ -356,8 +356,8 @@ final class GroupRegistry implements GroupProtocol {
         // Check if the group is full
         if (e.full()) {
             
-            if (Group.DEBUG) {
-                System.out.println(Group._rank + ": GroupRegistry.joinGroup " + 
+            if (logger.isDebugEnabled()) {
+                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
                         "- Group \"" + groupName + "\" full!");                      
             }
             
@@ -372,8 +372,8 @@ final class GroupRegistry implements GroupProtocol {
         // Check if the requested rank is legal
         if (!e.legalRank(requestedRank)) {
             
-            if (Group.DEBUG) {
-                System.out.println(Group._rank + ": GroupRegistry.joinGroup " + 
+            if (logger.isDebugEnabled()) {
+                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
                         "- Group \"" + groupName + "\" - Rank " + requestedRank +
                         " not legal!");                      
             }
@@ -389,8 +389,8 @@ final class GroupRegistry implements GroupProtocol {
         // Check if the requested rank is still available       
         if (!e.rankAvailable(requestedRank)) {
             
-            if (Group.DEBUG) {
-                System.out.println(Group._rank + ": GroupRegistry.joinGroup " + 
+            if (logger.isDebugEnabled()) {
+                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
                         "- Group \"" + groupName + "\" - Rank " + requestedRank +
                         " not available!");                      
             }
@@ -406,8 +406,8 @@ final class GroupRegistry implements GroupProtocol {
         // Check it the type of the group is correct 
         if (!e.checkType(interfaces)) {             
             
-            if (Group.DEBUG) {
-                System.out.println(Group._rank + ": GroupRegistry.joinGroup " + 
+            if (logger.isDebugEnabled()) {
+                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
                         " - Group \"" + groupName + "\" - Rank " + requestedRank +
                         " not legal!");                      
             }
@@ -427,8 +427,8 @@ final class GroupRegistry implements GroupProtocol {
         if (e.full()) {
 
             // Last one, so send everyone the reply            
-            if (Group.DEBUG) {
-                System.out.println(Group._rank + ": GroupRegistry.joinGroup " + 
+            if (logger.isDebugEnabled()) {
+                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
                         "- Group " + groupName + " full, sending replies!");                      
             }
             
@@ -443,7 +443,7 @@ final class GroupRegistry implements GroupProtocol {
                 w.writeObject(new RegistryReply(JOIN_OK, e.groupNumber, 
                         machines, skeletons));
                 w.finish();
-            }	                
+            }              
         }
     }
 
@@ -459,8 +459,8 @@ final class GroupRegistry implements GroupProtocol {
     private synchronized void findGroup(String groupName, int rank, int ticket)
             throws IOException {
         
-        if (Group.DEBUG) {
-            System.out.println(Group._rank + ": GroupRegistry.findGroup("
+        if (logger.isDebugEnabled()) {
+            logger.debug(Group._rank + ": GroupRegistry.findGroup("
                     + groupName + ", " + rank + ", " + ticket + ")");                    
         }
         
@@ -621,7 +621,7 @@ final class GroupRegistry implements GroupProtocol {
                 size = r.readInt();
                 r.finish();
 
-                if (Group.DEBUG) { 
+                if (logger.isDebugEnabled()) { 
                     logger.debug(Group._rank + ": Got a CREATE_GROUP("
                             + name + ", " + type + ", " + size + ") from "
                             + machineRank + " ticket(" + ticket + ")");
@@ -629,7 +629,7 @@ final class GroupRegistry implements GroupProtocol {
                 
                 newGroup(name, size, machineRank, ticket, type);
 
-                if (Group.DEBUG) { 
+                if (logger.isDebugEnabled()) { 
                     logger.debug(Group._rank + ": CREATE_GROUP(" + name
                             + ", " + type + ", " + size + ") from " + machineRank
                             + " HANDLED");
@@ -646,7 +646,7 @@ final class GroupRegistry implements GroupProtocol {
                 timeout = r.readLong();
                 r.finish();
                 
-                if (Group.DEBUG) { 
+                if (logger.isDebugEnabled()) { 
                     logger.debug(Group._rank + ": Got a JOIN_GROUP("
                             + name + ", " + requestedRank + ", "  + timeout 
                             + ") from " + machineRank);
@@ -663,7 +663,7 @@ final class GroupRegistry implements GroupProtocol {
                 name = r.readString();
                 r.finish();
 
-                if (Group.DEBUG) { 
+                if (logger.isDebugEnabled()) { 
                     logger.debug(Group._rank + ": Got a FIND_GROUP(" + name 
                             + ")");
                 }

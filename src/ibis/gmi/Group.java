@@ -33,16 +33,6 @@ import org.apache.log4j.Logger;
  */
 public final class Group implements GroupProtocol {
 
-    private static final String PROPERTY_PREFIX = "gmi.";
-
-    private static final String DBG = PROPERTY_PREFIX + "debug";
-
-    private static final String[] properties = { DBG };
-
-    /** Enable/disable debugging prints. */
-    public final static boolean DEBUG = TypedProperties.booleanProperty(DBG,
-            false);
-     
     public static Logger logger = Logger.getLogger(Group.class.getName());
      
     /** Ibis rank number in this run. */
@@ -196,7 +186,7 @@ public final class Group implements GroupProtocol {
             case InvocationScheme.I_COMBINED_FLAT_GROUP: {
                 GroupSkeleton s = Group.getSkeletonByGroupID(dest);
 
-                if (Group.DEBUG) {
+                if (logger.isDebugEnabled()) {
                     logger.debug(Group._rank + 
                             ": GroupCallHandler.handleInvocation() - "
                             + "It is a GROUP INVOCATION");
@@ -232,10 +222,10 @@ public final class Group implements GroupProtocol {
                 switch (opcode) {
                 case REGISTRY:
 
-                    if (Group.DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(Group._rank + 
-                            ": GroupCallHandler.upcall() - " + 
-                        	"Got a REGISTRY");
+                                ": GroupCallHandler.upcall() - "
+                                + "Got a REGISTRY");
                     }
 
                     Group.registry.handleMessage(m);
@@ -243,10 +233,10 @@ public final class Group implements GroupProtocol {
 
                 case INVOCATION:
 
-                    if (Group.DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - " +
-                        		"Got an INVOCATION");
+                                ": GroupCallHandler.upcall() - "
+                                + "Got an INVOCATION");
                     }
 
                     handleInvocation(m);
@@ -254,16 +244,16 @@ public final class Group implements GroupProtocol {
 
                 case REGISTRY_REPLY:
 
-                    if (Group.DEBUG) {
-                        logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - " +
-                        		"Got a REGISTRY_REPLY");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(Group._rank
+                                + ": GroupCallHandler.upcall() - "
+                                + "Got a REGISTRY_REPLY");
                     }
 
                     ticket = m.readInt();
                     RegistryReply r = (RegistryReply) m.readObject();
 
-                    if (Group.DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(Group._rank + 
                                 ": GroupCallHandler.upcall() - " +
                                 "REGISTRY_REPLY forwarded to ticketMaster (" +
@@ -279,10 +269,10 @@ public final class Group implements GroupProtocol {
 
                 case INVOCATION_FLATCOMBINE:
 
-                    if (Group.DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - " +
-                        		"Got a INVOCATION_FLATCOMBINE");
+                                ": GroupCallHandler.upcall() - "
+                                + "Got a INVOCATION_FLATCOMBINE");
                     }
 
                     stubIDStack[m.readInt()].handleFlatInvocationCombineMessage(
@@ -291,7 +281,7 @@ public final class Group implements GroupProtocol {
 
                 case INVOCATION_BINCOMBINE:
 
-                    if (Group.DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(Group._rank + 
                                 ": GroupCallHandler.upcall() - " +
                                 "Got a INVOCATION_BINCOMBINE");
@@ -302,7 +292,7 @@ public final class Group implements GroupProtocol {
                     break;
 
                 case INVOCATION_REPLY:
-                    if (Group.DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(Group._rank + 
                                 ": GroupCallHandler.upcall() - " +
                                 "Got a INVOCATION_REPLY");
@@ -313,7 +303,7 @@ public final class Group implements GroupProtocol {
                     int stub = ticket >> 16;
                     ticket = ticket & 0xFFFF;
                     
-                    if (Group.DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(Group._rank + 
                                 ": GroupCallHandler.upcall() - " +
                                 "INVOCATION_REPLY forwarded to stub (" + 
@@ -325,10 +315,10 @@ public final class Group implements GroupProtocol {
                     break;
 
                 case COMBINE:
-                    if (Group.DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - " + 
-                        		"Got a COMBINE");
+                                ": GroupCallHandler.upcall() - "
+                                + "Got a COMBINE");
                     }
 
                     s = Group.getSkeleton(m.readInt());
@@ -337,10 +327,10 @@ public final class Group implements GroupProtocol {
 
                 case COMBINE_RESULT:
 
-                    if (Group.DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(Group._rank + 
-                                ": GroupCallHandler.upcall() - " +
-                        		"Got a COMBINE_RESULT");
+                                ": GroupCallHandler.upcall() - "
+                                + "Got a COMBINE_RESULT");
                     }
                     
                     s = Group.getSkeletonByGroupID(m.readInt());
@@ -348,8 +338,8 @@ public final class Group implements GroupProtocol {
                     break;
                 default:                    
                     logger.warn(Group._rank + 
-                            ": GroupCallHandler.upcall() - " +
-                    		"Got an illegal opcode !");
+                            ": GroupCallHandler.upcall() - "
+                            + "Got an illegal opcode !");
                 }
             } catch (Exception e) {
                 logger.warn(Group._rank + 
@@ -364,8 +354,6 @@ public final class Group implements GroupProtocol {
      * group registry, creates send and receive ports.
      */
     static {
-        TypedProperties.checkProperties(PROPERTY_PREFIX, properties,
-                new String[] {});
         try {
             ticketMaster = new Ticket();
             groups = new GroupSkeleton[10];
@@ -376,7 +364,7 @@ public final class Group implements GroupProtocol {
 
             name = IPUtils.getLocalHostAddress().getHostName();
 
-            if (DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug("?: <static> - " +
                         name + "- Init Group RTS");
             }
@@ -411,7 +399,7 @@ public final class Group implements GroupProtocol {
 
             if (info.rank() == 0) {
 
-                if (DEBUG) {
+                if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + name +
                             " I am master");
                 }
@@ -448,7 +436,7 @@ public final class Group implements GroupProtocol {
                     w.finish();
                 }
             } else {
-                if (DEBUG) {
+                if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             name + " I am client");
                 }
@@ -499,7 +487,7 @@ public final class Group implements GroupProtocol {
                 unicast[j] = portType.createSendPort("Unicast on " + name
                         + " to " + pool[j].name());
 
-                if (DEBUG) {
+                if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             "Connecting unicast sendport "
                             + unicast[j].identifier() + " to " + pool[j]);
@@ -507,7 +495,7 @@ public final class Group implements GroupProtocol {
 
                 unicast[j].connect(pool[j]);
 
-                if (DEBUG) {
+                if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             "Connecting unicast sendport "
                             + unicast[j].identifier() + " done");
@@ -533,7 +521,7 @@ public final class Group implements GroupProtocol {
 
             receivePort.enableUpcalls();
 
-            if (DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug(_rank + ": <static> - " + name + ": Group init");
             }
 
@@ -558,8 +546,7 @@ public final class Group implements GroupProtocol {
             /* End of 1.3-specific code */
 
         } catch (Exception e) {
-            System.err.println(name + ": Could not init Group RTS " + e);
-            e.printStackTrace();
+            logger.fatal(name + ": Could not init Group RTS " + e, e);
             System.exit(1);
         }
     }
@@ -581,8 +568,8 @@ public final class Group implements GroupProtocol {
             return unicast[hosts[0]];
         }
      
-        if (DEBUG) { 
-            System.out.println(_rank + ": Group.getMulticastSendport - " + 
+        if (logger.isDebugEnabled()) { 
+            logger.debug(_rank + ": Group.getMulticastSendport - " + 
                     "Looking for multicast sendport " + ID);
         }
 
@@ -591,8 +578,8 @@ public final class Group implements GroupProtocol {
         if (temp == null) {
             // there is no multicast sendport to this combination of hosts yet.
             // so create it and add it to the table.
-            if (DEBUG) { 
-                System.out.println(_rank + ": Group.getMulticastSendport - " + 
+            if (logger.isDebugEnabled()) { 
+                logger.debug(_rank + ": Group.getMulticastSendport - " + 
                         "Creating multicast sendport " + ID);
             }
 
@@ -600,9 +587,8 @@ public final class Group implements GroupProtocol {
                 temp = portType.createSendPort("Multicast on " + name + " to "
                         + ID);
             } catch (IOException e) {
-                System.err.println(name + ": Could not create multicast group "
-                        + ID + " " + e);
-                e.printStackTrace();
+                logger.fatal(name + ": Could not create multicast group "
+                        + ID + " " + e, e);
                 System.exit(1);
             }
 
@@ -610,24 +596,23 @@ public final class Group implements GroupProtocol {
                 for (int i = 0; i < hosts.length; i++) {
                     temp.connect(pool[hosts[i]]);
                     
-                    if (DEBUG) { 
-                        System.out.println(_rank + ": Group.getMulticastSendport - " +    
+                    if (logger.isDebugEnabled()) { 
+                        logger.debug(_rank + ": Group.getMulticastSendport - " +    
                                 "Connected to " + hosts[i] + ", " + pool[hosts[i]]);
                     }
                 }
             } catch (IOException e) {
-                System.err.println(name
+                logger.fatal(name
                         + ": Could not interconnect multicast group " + ID
-                        + " " + e);
-                e.printStackTrace();
+                        + " " + e, e);
                 System.exit(1);
             }
 
             multicastSendports.put(ID, temp);
         }
         
-        if (DEBUG) { 
-            System.out.println(_rank + ": Group.getMulticastSendport - " +                     
+        if (logger.isDebugEnabled()) { 
+            logger.debug(_rank + ": Group.getMulticastSendport - " +                     
                     "Found multicast send port " + temp);
         }
         return temp;
@@ -659,7 +644,7 @@ public final class Group implements GroupProtocol {
     protected static void registerGroupMember(int groupID,
             GroupSkeleton skeleton) {
 
-        if (Group.DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(_rank + ": <static> - " + 
                     "Group.registerGroupMember(" + groupID + " "
                     + skeleton.getClass().getName());
@@ -711,7 +696,7 @@ public final class Group implements GroupProtocol {
             throws RuntimeException {
 
         try {
-            if (DEBUG) {
+            if (logger.isDebugEnabled()) {
                 logger.debug(_rank + ": create(" + nm + ", " + type
                         + ", " + size + ") starting");
             }
@@ -790,7 +775,7 @@ public final class Group implements GroupProtocol {
         RegistryReply r;
         RuntimeException exception = null;
         
-        if (DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(_rank + ": join(" + nm + ", " + o
                     + ", " + rank + ") starting");
         }
@@ -821,7 +806,7 @@ public final class Group implements GroupProtocol {
                 switch (r.result) {
                 case JOIN_UNKNOWN:
 
-                    if (DEBUG) {
+                    if (logger.isDebugEnabled()) {
                         logger.debug(_rank + ": join(" + nm
                                 + ", " + rank + ") group not found, retry");
                     }
@@ -836,19 +821,19 @@ public final class Group implements GroupProtocol {
                 case JOIN_FULL:
                     exception = new RuntimeException(_rank + " Group.join(" + nm
                             + ", " + rank + ") Failed : Group full!");
-                    break;	
+                    break;
                     
-                case JOIN_RANK_TAKEN: 	
+                case JOIN_RANK_TAKEN:
                     exception = new RuntimeException(_rank + " Group.join(" + nm
                             + ", " + rank + ") Failed : Group rank already taken!");
                     break;
                     
-                case JOIN_ILLEGAL_RANK: 	
+                case JOIN_ILLEGAL_RANK:
                     exception = new RuntimeException(_rank + " Group.join(" + nm
                             + ", " + rank + ") Failed : Illegal rank specified!");
                     break;
                 
-                case JOIN_TIMEOUT: 	
+                case JOIN_TIMEOUT:
                     exception = new RuntimeException(_rank + " Group.join(" + nm
                             + ", " + rank + ") Failed : Timeout");
                     break;
@@ -879,14 +864,14 @@ public final class Group implements GroupProtocol {
             throw exception;        
         }
         
-        if (DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(_rank + ": join(" + nm + ") group("
                     + groupnumber + ") found !");
-        }	
+        }
 
         o.init(groupnumber, memberRanks, memberSkels);
             
-        if (DEBUG) {
+        if (logger.isDebugEnabled()) {
             logger.debug(_rank + ": join(" + nm + ", " + o
                     + ") done");
         }
@@ -976,9 +961,9 @@ public final class Group implements GroupProtocol {
                     // Unknown group 
                     case GROUP_UNKNOWN:
                         
-                        if (DEBUG) {  
-                    		logger.debug(_rank + ": lookup(" + nm
-                    		     + ", " + timeout + ") - Group not known.");                        		
+                        if (logger.isDebugEnabled()) {  
+                            logger.debug(_rank + ": lookup(" + nm
+                                    + ", " + timeout + ") - Group not known.");
                         } 
                         
                         if (timeout == 0) {                         
@@ -987,13 +972,13 @@ public final class Group implements GroupProtocol {
                                     + ") Failed : unknown group!");                        
                         } 
                         break;
-                        	
+
                     // Known, group which isn't complete yet
                     case GROUP_NOT_READY:
                         
-                        if (DEBUG) {  
-                    		logger.debug(_rank + ": lookup(" + nm
-                    		     + ", " + timeout + ") - Group not ready.");                        		
+                        if (logger.isDebugEnabled()) {  
+                            logger.debug(_rank + ": lookup(" + nm
+                                    + ", " + timeout + ") - Group not ready.");
                         } 
                         
                         if (timeout == 0) {
@@ -1006,9 +991,9 @@ public final class Group implements GroupProtocol {
                     // Found a group      
                     case GROUP_OK:
                         
-                        if (DEBUG) {  
-                    		logger.debug(_rank + ": lookup(" + nm
-                    		     + ", " + timeout + ") - Group OK.");                        		
+                        if (logger.isDebugEnabled()) {  
+                            logger.debug(_rank + ": lookup(" + nm
+                                    + ", " + timeout + ") - Group OK.");
                         } 
                         
                         done = true;
@@ -1039,10 +1024,10 @@ public final class Group implements GroupProtocol {
                             data.stubClass = Class.forName(classname);
                         } catch (Exception e) {
                             
-                            if (DEBUG) {  
-                        		logger.debug(_rank + ": lookup(" 
-                        		        + nm + ", " + timeout + ") - class " + 
-                        		        classname + " not found!" + e);                         	
+                            if (logger.isDebugEnabled()) {  
+                                logger.debug(_rank + ": lookup(" + nm
+                                        + ", " + timeout + ") - class "
+                                        + classname + " not found!" + e);
                             }                             
                             throw new Error(_rank + " Group.lookup(" + nm + ", "
                                     + timeout + ") - class " + classname + 
@@ -1053,11 +1038,10 @@ public final class Group implements GroupProtocol {
                     // Registry returned gibberish     
                     default:
                         
-                        if (DEBUG) {  
-                    		logger.debug(_rank + ": lookup(" 
-                    		        + nm + ", " + timeout 
-                    		        + ") - internal error - "  
-                    		        + "got unexpected answer " + r.result);                	
+                        if (logger.isDebugEnabled()) {  
+                            logger.debug(_rank + ": lookup(" + nm
+                                    + ", " + timeout + ") - internal error - "
+                                    + "got unexpected answer " + r.result);
                         }                             
                         
                         throw new Error(_rank + " Group.lookup(" + nm + ", "
@@ -1067,16 +1051,16 @@ public final class Group implements GroupProtocol {
                 
                     if (!done) {  
                         // We're not done yet, but maybe there was a timeout 
-                        // which has expired.                        	
+                        // which has expired.
                         if (timeout > 0) { 
                             long current = System.currentTimeMillis();
                         
                             if (current - time >= timeout) {
                             
-                                if (DEBUG) {  
+                                if (logger.isDebugEnabled()) {  
                                     logger.debug(_rank + ": lookup(" 
                                             + nm + ", " + timeout 
-                                            + ") - timeout!");                	
+                                            + ") - timeout!");
                                 }                             
                                                        
                                 throw new RuntimeException(Group._rank
@@ -1117,11 +1101,11 @@ public final class Group implements GroupProtocol {
      * @param ci      the combined invocation scheme
      * @param groupID the group identification
      * @param method  the method descriptor
-     * @param nm    the name used for registering this combined invocation
+     * @param nm      the name used for registering this combined invocation
      * @param mode    summary of the combined invocation scheme
      * @param rank    node identification of caller
      * @param size    total number of nodes that will be involved in this
-     * 		      combined invocation
+     *                combined invocation
      * @return the combined invocation info structure.
      * @exception RuntimeException when there is a failure.
      */
@@ -1235,7 +1219,7 @@ public final class Group implements GroupProtocol {
 
             if (_rank == 0) {
 
-                if (DEBUG) {
+                if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": exit() - " +name + " master doing exit");
                 }
 
@@ -1255,7 +1239,7 @@ public final class Group implements GroupProtocol {
 
             } else {
 
-                if (DEBUG) {
+                if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": exit() - " +name + " client doing exit");
                 }
 
@@ -1285,7 +1269,7 @@ public final class Group implements GroupProtocol {
             ibis.end();
             ibis = null;
 
-            if (DEBUG) { 	
+            if (logger.isDebugEnabled()) {
                 logger.debug(_rank + ": exit()- " +"Group exit done");
             } 
 

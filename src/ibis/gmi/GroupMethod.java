@@ -94,9 +94,10 @@ public class GroupMethod {
         switch (invscheme.mode) {
         case InvocationScheme.I_SINGLE:
             
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting invocation mode to SINGLE");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting invocation mode to SINGLE");
                 
             }
             
@@ -131,9 +132,10 @@ public class GroupMethod {
 
         case InvocationScheme.I_GROUP:
 
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting invocation mode to GROUP");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting invocation mode to GROUP");
                 
             }
             
@@ -144,9 +146,10 @@ public class GroupMethod {
 
         case InvocationScheme.I_PERSONAL:
 
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting invocation mode to PERSONAL");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting invocation mode to PERSONAL");
                 
             }
             
@@ -156,9 +159,10 @@ public class GroupMethod {
         case InvocationScheme.I_COMBINED_FLAT:            
         case InvocationScheme.I_COMBINED_BINOMIAL: {
 
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting invocation mode to COMBINED");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting invocation mode to COMBINED");
                 
             }
             
@@ -177,9 +181,10 @@ public class GroupMethod {
         switch (repscheme.mode) {
         case ReplyScheme.R_DISCARD:
 
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting reply mode to DISCARD");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting reply mode to DISCARD");
                 
             }
             
@@ -187,9 +192,10 @@ public class GroupMethod {
             break;
         case ReplyScheme.R_RETURN:
 
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting reply mode to RETURN");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting reply mode to RETURN");
                 
             }
 
@@ -197,9 +203,10 @@ public class GroupMethod {
             break;
         case ReplyScheme.R_FORWARD:
 
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting reply mode to FORWARD");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting reply mode to FORWARD");
                 
             }
 
@@ -209,9 +216,10 @@ public class GroupMethod {
             break;
         case ReplyScheme.R_COMBINE_BINOMIAL:
 
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting reply mode to COMBINE_BINOMIAL");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting reply mode to COMBINE_BINOMIAL");
                 
             }
 
@@ -221,9 +229,10 @@ public class GroupMethod {
             break;
         case ReplyScheme.R_COMBINE_FLAT:
 
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting reply mode to COMBINE_FLAT");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting reply mode to COMBINE_FLAT");
                 
             }
 
@@ -233,9 +242,10 @@ public class GroupMethod {
             break;
         case ReplyScheme.R_PERSONALIZED:
 
-            if (Group.DEBUG) { 
-                System.out.println(Group._rank + ": GroupMethod.configure(...) - " + 
-                        " Setting reply mode to PERSONALIZED");
+            if (Group.logger.isDebugEnabled()) { 
+                Group.logger.debug(Group._rank
+                        + ": GroupMethod.configure(...) - "
+                        + " Setting reply mode to PERSONALIZED");
                 
             }
 
