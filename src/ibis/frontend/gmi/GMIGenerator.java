@@ -2,6 +2,7 @@
 
 package ibis.frontend.gmi;
 
+import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.Type;
@@ -154,5 +155,31 @@ class GMIGenerator {
         temp += message + ".read" + printType(c) + "();";
 
         return temp;
+    }
+
+    public static String getUniqueName(Method m) {                 
+        StringBuffer name = new StringBuffer(m.getName());        
+        StringBuffer temp = new StringBuffer(m.getSignature());
+        
+        for (int i=0;i<temp.length();i++) { 
+            char c = temp.charAt(i);
+            
+            switch (c) { 
+            case '(':
+            case ')':
+            case '/':                
+                c = '_';
+                break;
+            case '[': 
+                c = 'a';
+                break;
+            }            
+            temp.setCharAt(i, c);            
+        }        
+        return name.append(temp).toString(); 
+    }
+    
+    public static String getUniqueMethodName(Method m) {
+        return "GMI_" + getUniqueName(m);
     }
 }

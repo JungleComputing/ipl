@@ -182,6 +182,14 @@ class GMISkeletonGenerator extends GMIGenerator {
     void handleMethodInvocation(String spacing, Method m, Type ret,
             Type[] params) {
 
+        String methodName = GMIGenerator.getUniqueMethodName(m);
+        
+        output.println(spacing
+                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                "\": group_skeleton_" + dest_name + "." + methodName + 
+                "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
+                " - Extracting parameters\");");
+           
         output.println(spacing + "\t/* Second - Extract the parameters */");
 
         for (int j = 0; j < params.length; j++) {
@@ -205,6 +213,12 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println(spacing + "\tr.finish();");
         output.println();
 
+        output.println(spacing
+                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                "\": group_skeleton_" + dest_name + "." + methodName + 
+                "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
+                " - Invoking method\");");
+         
         output.println(spacing + "\t/* Third - Invoke the method */");
 
         output.println(spacing + "\ttry {");
@@ -234,12 +248,19 @@ class GMISkeletonGenerator extends GMIGenerator {
 
         Type ret = m.getReturnType();
         Type[] params = m.getArgumentTypes();
-
-        output.print(spacing + "private final void GMI_" + m.getName()
+        String methodName = GMIGenerator.getUniqueMethodName(m);        
+        
+        output.print(spacing + "private final void " + methodName 
                 + "(int invocationMode, int resultMode, ReadMessage r) "
                 + "throws IbisException, IOException {");
         output.println();
 
+        output.println(spacing
+                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                "\": group_skeleton_" + dest_name + "." + methodName + 
+                "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
+                " - Starting\");");
+              
         output.println(spacing + "\tint cpu_rank = 0;");
         output.println(spacing + "\tint root_object = 0;");
         output.println(spacing + "\tint ticket = 0;");
@@ -261,6 +282,12 @@ class GMISkeletonGenerator extends GMIGenerator {
 
         output.println();
 
+        output.println(spacing
+                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                "\": group_skeleton_" + dest_name + "." + methodName + 
+                "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
+                " - Reading additional data.\");");
+               
         output.println(spacing + "\t/* First - Read additional data */");
         output.println(spacing
                 + "\tif (invocationMode >= InvocationScheme.I_COMBINED) {");
@@ -312,6 +339,13 @@ class GMISkeletonGenerator extends GMIGenerator {
         handleMethodInvocation(spacing, m, ret, params);
         output.println();
 
+        output.println(spacing
+                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                "\": group_skeleton_" + dest_name + "." + methodName + 
+                "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
+                " - Handling result \");");
+        
+        
         output.println(spacing + "/* Fourth - Handle the result */");
 
         //	TODO: call personalizer if present.
@@ -340,8 +374,16 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println(spacing + "\t\t\tex = e;");
         output.println(spacing + "\t\t}");
         output.println(spacing + "\t}");
-
         output.println();
+        
+        output.println(spacing
+                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                "\": group_skeleton_" + dest_name + "." + methodName + 
+                "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
+                " - Done\");");
+        
+        output.println();
+               
         handleResult(spacing + "\t", ret);
 
         output.println(spacing + "}");
@@ -392,8 +434,11 @@ class GMISkeletonGenerator extends GMIGenerator {
 
         for (int i = 0; i < methods.size(); i++) {
             Method m = (Method) methods.get(i);
+            
+            String methodName = GMIGenerator.getUniqueMethodName(m);
+            
             output.println(spacing + "\tcase " + i + ":");
-            output.println(spacing + "\t\tGMI_" + m.getName()
+            output.println(spacing + "\t\t" + methodName
                     + "(invocationMode, resultMode, r);");
             output.println(spacing + "\t\tbreak;");
         }
@@ -414,7 +459,6 @@ class GMISkeletonGenerator extends GMIGenerator {
     }
 
     void constructor(String spacing) {
-
         output.println(spacing + "public group_skeleton_" + data.classname
                 + "() {}");
     }

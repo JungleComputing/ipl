@@ -15,7 +15,8 @@ import org.apache.bcel.classfile.JavaClass;
 class Main {
 
     static boolean local = true;
-
+    static boolean verbose = false;
+    
     public static String getFileName(String pkg, String name, String pre) {
         if (!local && pkg != null && !pkg.equals("")) {
             return pkg.replace('.', '/') + '/' + pre + name + ".java";
@@ -25,6 +26,10 @@ class Main {
 
     public static PrintWriter createFile(String name) throws Exception {
 
+        if (verbose) { 
+            System.out.println("Creating file: " + name);
+        }
+        
         File f = new File(name);
 
         if (!f.createNewFile()) {
@@ -39,8 +44,7 @@ class Main {
 
     public static void main(String[] args) {
 
-        Vector classes = new Vector();
-        boolean verbose = false;
+        Vector classes = new Vector();        
         JavaClass groupInterface = null;
 
         if (args.length == 0) {
