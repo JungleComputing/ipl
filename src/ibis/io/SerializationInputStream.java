@@ -72,56 +72,56 @@ public abstract class SerializationInputStream extends ObjectInputStream {
     }
 
     /**
-     * See {@link #readArray(boolean[]) for a description.
+     * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(byte[] dest) throws IOException {
 		readArray(dest, 0, dest.length);
     }
 
     /**
-     * See {@link #readArray(boolean[]) for a description.
+     * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(short[] dest) throws IOException {
 		readArray(dest, 0, dest.length);
     }
 
     /**
-     * See {@link #readArray(boolean[]) for a description.
+     * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(char[] dest) throws IOException {
 		readArray(dest, 0, dest.length);
     }
 
     /**
-     * See {@link #readArray(boolean[]) for a description.
+     * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(int[] dest) throws IOException {
 		readArray(dest, 0, dest.length);
     }
 
     /**
-     * See {@link #readArray(boolean[]) for a description.
+     * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(long[] dest) throws IOException {
 		readArray(dest, 0, dest.length);
     }
 
     /**
-     * See {@link #readArray(boolean[]) for a description.
+     * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(float[] dest) throws IOException {
 		readArray(dest, 0, dest.length);
     }
 
     /**
-     * See {@link #readArray(boolean[]) for a description.
+     * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(double[] dest) throws IOException {
 		readArray(dest, 0, dest.length);
     }
 
     /**
-     * See {@link #readArray(boolean[]) for a description.
+     * See {@link #readArray(boolean[])} for a description.
      */
     public void readArray(Object[] dest) throws IOException, ClassNotFoundException {
 		readArray(dest, 0, dest.length);
@@ -139,49 +139,49 @@ public abstract class SerializationInputStream extends ObjectInputStream {
 		throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int) for a description.
+     * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(byte[] ref, int off, int len)
 		throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int) for a description.
+     * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(char[] ref, int off, int len)
 		throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int) for a description.
+     * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(short[] ref, int off, int len)
 		throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int) for a description.
+     * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(int[] ref, int off, int len)
 		throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int) for a description.
+     * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(long[] ref, int off, int len)
 		throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int) for a description.
+     * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(float[] ref, int off, int len)
 		throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int) for a description.
+     * See {@link #readArray(boolean[], int, int)} for a description.
      */
     public abstract void readArray(double[] ref, int off, int len)
 		throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int) for a description.
+     * See {@link #readArray(boolean[], int, int)} for a description.
      * This one may also throw a <code>ClassNotFoundException</code>.
      *
      * @exception ClassNotFoundException is thrown when the class of a
