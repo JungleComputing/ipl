@@ -125,4 +125,33 @@ public final class ByteBuffer implements java.io.Serializable, Magic {
     {
         s.write( buf, 0, sz );
     }
+
+    public ShortBuffer decodeByteStream()
+    {
+        // Under-estimate the expected size of the resulting buffer as
+        // half the byte buffer.
+        ShortBuffer res = new ShortBuffer( sz/2 );
+
+        for( int i=0; i<sz; i++ ){
+            short v = (short) Helpers.decodeByte( buf[i] );
+
+            if( v<128 ){
+                res.append( v );
+            }
+            else if( v == ESCAPE1 ){
+                i++;
+                res.append( (short) Helpers.decodeByte( buf[i] ) );
+            }
+            else if( v == ESCAPE2 ){
+                i++;
+                res.append( (short) Helpers.decodeShort( buf[i], buf[i+1] ) );
+                i++;
+            }
+            else {
+                res.append( (short) ((Helpers.decodeShort( buf[i], buf[i+1] ) ) - (128<<8)) );
+                i++;
+            }
+        }
+        return res;
+    }
 }
