@@ -26,8 +26,7 @@ import java.io.IOException;
  * operating system buffers, or in the network itself. 
  *
  * For a given sendport, only one message is alive at any time.
- * Only one message is alive at one time for a given
- * sendport. This is done to prevent flow control problems.  When a
+ * This is done to prevent flow control problems.  When a
  * message is alive, and a new message is requested, the request is
  * blocked until the live message is finished.
  */
