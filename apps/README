@@ -1,6 +1,6 @@
 This directory contains a collection of Ibis example programs, organized
-into a number of sub-directories:
-
+into a number of sub-directories (some of which may not be present in your
+Ibis installation):
 
 gmi             Programs using the gmi framework.
 ibis            Programs using the Ibis communication layer directly.
@@ -10,11 +10,9 @@ rmi             Programs using Java RMI as communication mechanism.
 satin           Programs using the Satin divide-and-conquer framework.
 extra           Unclassified example programs.
 
-The build-all script builds all applications, or, when supplied with
-one of the names above, builds the applications of that sub-directory.
-
-The clean-all script cleans up what build-all creates.
-
-get-plot.perl
-get-speedup.perl
-run-all
+build.xml	Ant build file for building Ibis applications.
+		"ant build" (or simply: "ant") will build all applications that
+		are present in your Ibis installation. "ant clean" will remove
+		what "ant build" made.
+    
+build-apps.xml	Ant build file used internally for building Ibis applications.
