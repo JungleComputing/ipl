@@ -19,39 +19,67 @@ final public class ArrayInputStream
 
 
     public void readArray(boolean[] a, int off, int len) throws IbisIOException {
-	in.read(a, off, len);
+	while (len > 0) {
+	    int rd = in.read(a, off, len);
+	    len -= rd;
+	    off += rd;
+	}
     }
 
     public void readArray(byte[] a, int off, int len) throws IbisIOException {
-	in.read(a, off, len);
+	while (len > 0) {
+	    int rd = in.read(a, off, len);
+	    len -= rd;
+	    off += rd;
+	}
     }
 
     public void readArray(short[] a, int off, int len) throws IbisIOException {
-	in.read(a, off, len);
+	while (len > 0) {
+	    int rd = in.read(a, off, len);
+	    len -= rd;
+	    off += rd;
+	}
     }
 
     public void readArray(char[] a, int off, int len) throws IbisIOException {
-	in.read(a, off, len);
+	while (len > 0) {
+	    int rd = in.read(a, off, len);
+	    len -= rd;
+	    off += rd;
+	}
     }
 
     public void readArray(int[] a, int off, int len) throws IbisIOException {
-	in.read(a, off, len);
-// System.err.println("Read array " + a + " of " + len + " ints, " + len * SIZEOF_INT + " bytes");
-// for (int i = 0; i < len; i++) {
-    // System.err.print(a[i] + " ");
-// }
+	while (len > 0) {
+	    int rd = in.read(a, off, len);
+	    len -= rd;
+	    off += rd;
+	}
     }
 
     public void readArray(long[] a, int off, int len) throws IbisIOException {
-	in.read(a, off, len);
+	while (len > 0) {
+	    int rd = in.read(a, off, len);
+	    len -= rd;
+	    off += rd;
+	}
     }
 
     public void readArray(float[] a, int off, int len) throws IbisIOException {
-	in.read(a, off, len);
+	while (len > 0) {
+	    int rd = in.read(a, off, len);
+	    len -= rd;
+	    off += rd;
+	}
     }
 
     public void readArray(double[] a, int off, int len) throws IbisIOException {
-	in.read(a, off, len);
+	while (len > 0) {
+	    int rd = in.read(a, off, len);
+	    len -= rd;
+	    off += rd;
+	}
     }
 
     public int available() throws IbisIOException {

@@ -569,6 +569,9 @@ buf_grow(JNIEnv *env, ibmp_msg_p msg, int incr, int locked)
 {
     incr = (incr + 7) & ~7;
     if (msg->buf_len + incr > msg->buf_alloc_len) {
+	char *old_buf = msg->buf;
+	int i;
+
 	if (! locked) {
 	    ibmp_lock(env);
 	}
@@ -582,6 +585,13 @@ buf_grow(JNIEnv *env, ibmp_msg_p msg, int incr, int locked)
 	msg->buf = pan_realloc(msg->buf, msg->buf_alloc_len);
 	if (! locked) {
 	    ibmp_unlock(env);
+	}
+	for (i = 0; i < msg->iov_len; i++) {
+	    if ((char *)(msg->iov[i].data) >= old_buf &&
+		(char *)(msg->iov[i].data) < old_buf + msg->buf_len) {
+		int diff = (char *) (msg->iov[i].data) - old_buf;
+		msg->iov[i].data = msg->buf + diff;
+	    }
 	}
     }
     return incr;
@@ -672,9 +682,6 @@ void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array(
 	iovec_grow(env, msg, 0); \
 	if (sz < COPY_THRESHOLD) { \
 	    int incr = buf_grow(env, msg, sz, 0); \
-if (0) { \
-fprintf(stderr, "iov_len = %d, buf_len = %d\n", msg->iov_len, msg->buf_len); \
-} \
 	    (*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) &(msg->buf[msg->buf_len])); \
 	    msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]); \
 	    msg->buf_len += incr; \
