@@ -145,9 +145,6 @@ final class Helpers {
     {
         java.util.Properties p = System.getProperties();
 
-        System.out.println( "Java: " + p.getProperty( "java.version" ) + " (" + p.getProperty( "java.vendor" ) + ")" );
-        System.out.println( "JVM: " + p.getProperty( "java.vm.specification.version" ) + " " + p.getProperty( "java.vm.specification.name" ) + " (" + p.getProperty( "java.vm.specification.vendor" ) + ")" );
-        System.out.println( "Runtime environment: " + p.getProperty( "java.specification.version" ) + " " + p.getProperty( "java.specification.name" ) + " (" + p.getProperty( "java.specification.vendor" ) + ")" );
-        System.out.println( "OS: " + p.getProperty( "os.name" ) + " " + p.getProperty( "os.version" ) + " (" + p.getProperty( "os.arch" ) + ")" );
+        System.out.println( "Java " + p.getProperty( "java.version" ) + " (" + p.getProperty( "java.vendor" ) + ") on " + p.getProperty( "os.name" ) + " " + p.getProperty( "os.version" ) + " (" + p.getProperty( "os.arch" ) + ")" );
     }
 }
