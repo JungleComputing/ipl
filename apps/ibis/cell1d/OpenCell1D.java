@@ -666,9 +666,9 @@ class OpenCell1D implements OpenConfig {
                 aimFirstNoColumn = aimFirstColumn+2;
             }
             if( traceLoadBalancing ){
-                System.out.println( "P" + me + ": there are now " + members + " nodes in the computation (was " + knownMembers + ")" );
+                System.out.println( "P" + me + ":" + generation + ": there are now " + members + " nodes in the computation (was " + knownMembers + ")" );
                 if( p.firstColumn>=p.firstNoColumn ){
-                    System.out.println( "P" + me + ": I am idle, I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
+                    System.out.println( "P" + me + ": I am idle, I should have columns " + aimFirstColumn + "-" + aimFirstNoColumn );
                 }
                 else {
                     System.out.println( "P" + me + ": I have columns " + p.firstColumn + "-" + p.firstNoColumn + ", I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
@@ -768,7 +768,7 @@ class OpenCell1D implements OpenConfig {
             Problem p = new Problem( boardsize, firstColumn, firstNoColumn );
 
             // Put a few fixed objects on the board to do a sanity check.
-            putTwister( p, 100, 3 );
+            putTwister( p, 3, 100 );
             putPattern( p, 4, 4, glider );
 
             if( idle ){
@@ -817,7 +817,7 @@ class OpenCell1D implements OpenConfig {
             }
 
             // Do a sanity check.
-            if( !hasTwister( p, 100, 3 ) ){
+            if( !hasTwister( p, 3, 100 ) ){
                 System.out.println( "Twister has gone missing" );
             }
 
