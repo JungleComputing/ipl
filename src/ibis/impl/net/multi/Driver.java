@@ -9,7 +9,6 @@ import ibis.impl.net.NetPortType;
 import ibis.ipl.IbisIOException;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.Hashtable;
 
 /**
@@ -67,9 +66,7 @@ public final class Driver extends NetDriver {
                                         + name;
 
                                 Class       cls      = Class.forName(clsName);
-                                Constructor cons     = cls.getConstructor(null);
-
-                                plugin = (MultiPlugin)cons.newInstance(null);
+                                plugin = (MultiPlugin)cls.newInstance();
 			} catch (Exception e) {
 				throw new IbisIOException(e);
 			}
