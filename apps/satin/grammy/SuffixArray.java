@@ -49,6 +49,28 @@ public class SuffixArray implements Configuration, Magic {
 	return n;
     }
 
+    /** Given two text positions, calculates the non-overlapping
+     * match of these two.
+     */
+    private int disjunctMatch( int ix0, int ix1 )
+    {
+	int n = 0;
+        if( ix0 == ix1 ){
+            // TODO: complain, this should never happen.
+            return 0;
+        }
+
+        if( ix0>ix1 ){
+            int h = ix0;
+            ix0 = ix1;
+            ix1 = h;
+        }
+	while( (ix0+n)<ix1 && (text[ix0+n] == text[ix1+n]) && (text[ix0+n] != STOP) ){
+	    n++;
+	}
+	return n;
+    }
+
     /** Returns true iff i0 refers to a smaller text than i1. */
     private boolean areCorrectlyOrdered( int i0, int i1 )
     {
@@ -324,28 +346,6 @@ public class SuffixArray implements Configuration, Magic {
                 );
             }
         }
-    }
-
-    /** Given two text positions, calculates the non-overlapping
-     * match of these two.
-     */
-    private int disjunctMatch( int ix0, int ix1 )
-    {
-	int n = 0;
-        if( ix0 == ix1 ){
-            // TODO: complain, this should never happen.
-            return 0;
-        }
-
-        if( ix0>ix1 ){
-            int h = ix0;
-            ix0 = ix1;
-            ix1 = h;
-        }
-	while( (ix0+n)<ix1 && (text[ix0+n] == text[ix1+n]) && (text[ix0+n] != STOP) ){
-	    n++;
-	}
-	return n;
     }
 
     /**
