@@ -250,7 +250,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 			}
 		}
 
-		buf.length = l;
+		buf.length = offset;
 
 		log.out();
 
@@ -286,7 +286,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 		if (block) {
 			if (buf != null) {
 				log.out("early return");
-				return null;
+				return spn;
 			}
 			buf = receive();
 			if (buf == null) {
@@ -312,15 +312,24 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 	 */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IOException {
 		log.in();
+		NetReceiveBuffer buf = this.buf;
 		if (buf != null) {
-			NetReceiveBuffer temp = buf;
-			buf = null;
+			this.buf = null;
 			log.out("early receive");
-
-			return temp;
+		} else {
+			buf = receive();
 		}
 
-		NetReceiveBuffer buf = receive();
+		if (buf.length > expectedLength) {
+		    this.buf = buf;
+		    buf = createReceiveBuffer(0);
+		    System.arraycopy(this.buf.data, this.buf.base,
+				     buf.data, buf.base,
+				     expectedLength);
+		    buf.length = expectedLength;
+		    this.buf.base += expectedLength;
+		}
+
 		log.out();
 
 		return buf;
@@ -331,7 +340,9 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 		log.in();
 		//synchronized(this)
 		{
-			buf = null;
+// System.err.print("doFinish: buf " + buf); if (buf != null) System.err.print("; [" + buf.base + ".." + buf.length + "]"); System.err.println();
+			// buf may contain data for the next msg. Retain it.
+			// buf = null;
 		}
 		log.out();
 	}
