@@ -12,7 +12,7 @@ class Main {
 	public static void do_main(String[] args) {
 		boolean verbose = false;
 		int option = 0;
-		int depth = 11;
+		int depth = 13;
 		String file = null;
 
 		for (int i = 0; i < args.length; i++) {
@@ -36,10 +36,17 @@ class Main {
                 }
 
 		Main m = new Main(depth, verbose, file);
-		m.search();
+		String result = m.search();
+		if (args.length == 0) {
+		    if (! result.equals("  5 |    |  4 |  4 |  4 |  4 |  5 |  5 |  5 |  4 |  4 |  4 |score = 0")) {
+			System.out.println("Test failed!");
+			System.exit(1);
+		    }
+		    System.out.println("Test succeeded!");
+		}
 	}
 
-	void search() {
+	String search() {
 		AwariBoard root;
 		AwariBoard bestChild = null;
 
@@ -68,7 +75,6 @@ class Main {
 		bestChild.mirror().print();
 		System.out.println("application time Awari (" + depth + "," + (file == null ? "start" : file) + ") took " + ((double)(end - start) / 1000.0) + " seconds");
 		System.out.print("application result Awari (" + depth + "," + (file == null ? "start" : file) + ") = ");
-		bestChild.printCompact();
-		System.out.println();
+		return bestChild.compact();
 	}
 }

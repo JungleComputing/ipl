@@ -48,15 +48,22 @@ final class AdapInt extends ibis.satin.SatinObject implements AdapIntInterface, 
 		double res;
 		AdapInt adap = new AdapInt();
 
-		if(args.length != 3) {
+		if (args.length == 0) {
+			a = 0.0;
+			b = 64000.0;
+			epsilon = 0.1;
+		}
+		else {
+		    if (args.length != 3) {
 			System.out.println("Usage: adapint <start> <end> <epsilon>");
 			System.out.println("Try: adapint 0 400 0.0001");
 			System.exit(-6);
-		}
+		    }
 
-		a = Double.parseDouble(args[0]);
-		b = Double.parseDouble(args[1]);
-		epsilon = Double.parseDouble(args[2]);
+		    a = Double.parseDouble(args[0]);
+		    b = Double.parseDouble(args[1]);
+		    epsilon = Double.parseDouble(args[2]);
+		}
 
 		System.out.println("Starting integrate, from " + a + " to " + b + " epsilon = " + epsilon);
 
@@ -70,5 +77,14 @@ final class AdapInt extends ibis.satin.SatinObject implements AdapIntInterface, 
 				   ") took " + time + " s");
 		System.out.println("application result integrate (" + (int)a + "," + (int)b + "," + epsilon + 
 				   ") result = " + res);
+		if (args.length == 0) {
+			double diff = res - -5535.065343835229;
+
+			if (diff > 0.0001 || diff < -0.0001) {
+			    System.out.println("Result should be -5535.065343835229");
+			    System.out.println("Test failed!");
+			    System.exit(1);
+			}
+		}
 	}
 }

@@ -19,7 +19,7 @@ final class MinimumUpdater implements ActiveTuple {
 }
 
 final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.Serializable  {
-	static final int N_TOWNS = 17;	        /* Default nr of towns */
+	static final int N_TOWNS = 11;	        /* Default nr of towns */
 	static final int INIT_SEED = 1;         /* Default random seed */
 	static final int MAXX = 100;
 	static final int MAXY = 100;
@@ -131,6 +131,7 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 		int NTowns = N_TOWNS;
 		int global_minimum = Integer.MAX_VALUE;
 		Tsp tsp = new Tsp();
+		boolean testing = args.length == 0;
 
 		for (int i = 0; i < args.length; i++) {
 			if (false) {
@@ -169,7 +170,6 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 
 		System.out.println("tsp " + NTowns + " seed = " + seed + ", bound = " + global_minimum + (verbose ? "verbose" : ""));
 
-		int res;
 		SatinTupleSpace.add("distanceTable", distance);
 		SatinTupleSpace.add("min", new MinimumUpdater(global_minimum));
 		start = System.currentTimeMillis();
@@ -182,5 +182,12 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 
 		System.out.println("application time tsp (" + NTowns + ") took " + time + " s");
 		System.out.println("application result tsp (" + NTowns + ") = " + minimum);
+		if (testing) {
+			if (minimum != 218) {
+				System.out.println("Test failed!");
+				System.exit(1);
+			}
+			System.out.println("Test succeeded!");
+		}
 	}
 }

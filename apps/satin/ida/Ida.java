@@ -96,7 +96,7 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 
 	public static void main(String args[]) {
 		/* Use a suitable default value. */
-		int length = 58;
+		int length = 54;
 		long start, stop;
 		int v;
 		int bound;
@@ -181,5 +181,14 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		System.out.println("\napplication time ida (" + fileName + "," + maxDepth + ") took " + time + 
 				   " s");
 		System.out.println("\napplication result ida (" + fileName + "," + maxDepth + ") = " + solutions + " solutions of " + j.bound + " steps");
+		if (args.length == 0) {
+		    if (j.bound != 54 || solutions != 1) {
+			System.out.println("Test failed!");
+			System.exit(1);
+		    }
+		    else {
+			System.out.println("Test succeeded!");
+		    }
+		}
 	}
 }

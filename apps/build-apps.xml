@@ -92,4 +92,23 @@
 	<ant dir="${build.dir}" target="clean" inheritAll="false"/>
     </target>
 
+    <!--
+	Test
+    -->
+    <target name="clean"
+	    depends="-list-build-files"
+	    description="Run tests in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-test-one"
+		param="build.file"/>
+    </target>
+
+    <target name="-test-one">
+	<dirname file="${build.file}" property="build.dir"/>
+	<echo message="Running 'ant test' in ${build.dir}"/>
+	<ant dir="${build.dir}" target="test" inheritAll="false"/>
+    </target>
+
 </project>

@@ -176,7 +176,7 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 
 
 	public static void main(String[] args) {
-		int N, i, limw, totv = 0;
+		int N = 0, i, limw, totv = 0;
 		byte[] s, opts;
 		long start, end;
 		double time;
@@ -186,12 +186,15 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 		Knapsack k = new Knapsack();
 		Return ret;
 
-		if(args.length != 1) {
+		if (args.length == 0) {
+			N = 18;
+		} else if (args.length != 1) {
 			System.out.println("Usage: knapsack <size>");
 			System.exit(99);
 		}
-
-		N = Integer.parseInt(args[0]);
+		else {
+			N = Integer.parseInt(args[0]);
+		}
 
 		s = new byte[N+1];
 		opts = new byte[N+1];
@@ -241,6 +244,15 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 		for (i=1; i<=N; i++) {
 			if (ret.opts[i]==1) {
 				System.out.println("( " + weights[i] + " " + values[i] + " )");
+			}
+		}
+		if (args.length == 0) {
+			if (ret.maxv != 17909) {
+				System.out.println("Test failed!");
+				System.exit(1);
+			}
+			else {
+				System.out.println("Test succeeded!");
 			}
 		}
 	}

@@ -12,6 +12,13 @@
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
+    <target name="test"
+	    depends="build"
+	    description="Run test">
+	<antcall target="run2">
+		<param name="runjob" value="NQueens -satin-closed 14"/>
+	</antcall>
+    </target>
 </project>
 
 

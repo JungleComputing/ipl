@@ -31,6 +31,28 @@ public final class NQueens extends ibis.satin.SatinObject implements NQueensInte
 		sync();
 	}
 
+	public boolean checkResult(byte[] board) {
+		boolean found;
+
+		for(int row=0; row<board.length; row++) {
+			found = false;
+                        tryNewRow: for (int q = 0; q <board.length; q++) {
+				// Check if can place queen in column q of next row
+				for (int i = 0; i < row; i++) {
+					int p = board[i]-q;
+					if (p == 0 || p == (row - i) || p == -(row - i)) {
+						continue tryNewRow;
+					}
+				}
+				found = true;
+			}
+
+			if(!found) return false;
+		}
+
+		return true;
+	}
+
 	public static void main(String[] args) {
 		
 		int option;
@@ -74,6 +96,12 @@ public final class NQueens extends ibis.satin.SatinObject implements NQueensInte
 		}
 		nq.sync();
 		end = System.currentTimeMillis();
+
+		if(!nq.checkResult(board)) {
+			System.out.println("application time nqueens (" + size + ") gave WRONG RESULT");
+			System.out.println("application result nqueens (" + size + ") gave WRONG RESULT");
+			System.exit(1);
+		}
 		
 		System.out.print("Result:");
 		

@@ -55,6 +55,8 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 			}
 		}
 
+		boolean aborted = false;
+
 		for (short i = (short)(children.length-1); i >= 0; i--) {
 			if(BEST_FIRST && i == currChild) continue;
 
@@ -67,11 +69,13 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 					node.score = (short) -d.score;
 					
 					if (DO_ABORT && node.score >= pivot) {
+						aborted = true;
 						abort();
 					}
 				}
 				return null;
 			}
+			if (aborted) break;
 		}
 
 		sync();

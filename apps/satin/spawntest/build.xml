@@ -1,5 +1,5 @@
 <project
-    name="ibis.apps.satin.fib"
+    name="ibis.apps.satin.spawntest"
     default="build"
     basedir=".">
 
@@ -8,7 +8,7 @@
 
     <property name="satinc-flags" value=""/>
 
-    <property name="satin-main-class" value="Fib"/>
+    <property name="satin-main-class" value="SpawnTest"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
@@ -16,9 +16,8 @@
 	    depends="build"
 	    description="Run test">
 	<antcall target="run2">
-		<param name="runjob" value="Fib -satin-closed"/>
+		<param name="runjob" value="SpawnTest -satin-closed"/>
 	</antcall>
     </target>
+
 </project>
-
-

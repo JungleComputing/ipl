@@ -64,6 +64,42 @@ class VirtualScreen implements java.io.Serializable
 		}
 	}
 	
+	boolean check(String filename) {
+	    try {
+		FileInputStream s = new FileInputStream(filename);
+		StreamTokenizer d = new StreamTokenizer(new InputStreamReader(s));
+
+		d.eolIsSignificant(false);
+
+		d.nextToken();
+		d.nextToken();
+		if (d.nval != (double) w) return false;
+		d.nextToken();
+		if (d.nval != (double) h) return false;
+		d.nextToken();
+		if (d.nval != 255.0) return false;
+		for (int py = 0; py<h; py++) {
+			for (int px = 0; px<w; px++) {
+				int c = bitmap[px][py];
+				int r = GfxColor.getR(c);
+				int g = GfxColor.getG(c);
+				int b = GfxColor.getB(c);
+				d.nextToken();
+				if (d.nval != (double) r) return false;
+				d.nextToken();
+				if (d.nval != (double) g) return false;
+				d.nextToken();
+				if (d.nval != (double) b) return false;
+			}
+		}
+
+		return true;
+
+	    } catch (Exception e) {
+		System.out.println("check error: " + e);
+		return false;
+	    }
+	}
 
 	void Set(int x, int y, int w, int h, VirtualScreen s)
 	{

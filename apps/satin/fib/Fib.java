@@ -48,13 +48,16 @@ final class Fib extends ibis.satin.SatinObject implements FibInterface, java.io.
 
 	public static void main(String[] args) {
 		long res, res2;
+		int n = 0;
 
-		if (args.length == 0 || args.length > 2) {
-			System.err.println("Usage: fib <n> [ <threshold> ]");
+		if (args.length == 0) {
+		    n = 30;
+		} else if (args.length > 2) {
+			System.out.println("Usage: fib <n> [ <threshold> ]");
 			System.exit(1);
+		} else {
+		    n = Integer.parseInt(args[0]);
 		}
-
-		int n = Integer.parseInt(args[0]);
 		int threshold = 0;
 
 		if (args.length == 2) {
@@ -72,12 +75,18 @@ final class Fib extends ibis.satin.SatinObject implements FibInterface, java.io.
 		double time = (double) (System.currentTimeMillis() - start) / 1000.0;
 
 		if(res != res2) {
-			System.err.println("application time fib GAVE WRONG RESULT! " + res + " should be " + res2);
-			System.err.println("application result fib GAVE WRONG RESULT! " + res + " should be " + res2);
+			System.out.println("application result fib GAVE WRONG RESULT! " + res + " should be " + res2);
+			if (args.length == 0) {
+			    System.out.println("Test failed!");
+			    System.exit(1);
+			}
 		} else {
 			System.out.println("application time fib (" + n + ") took " + time + 
 					   " s");
 			System.out.println("application result fib (" + n + ") = " + res);
+			if (args.length == 0) {
+			    System.out.println("Test succeeded!");
+			}
 		}
 	}
 }

@@ -147,17 +147,21 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 	}
 
 	public static void main(String[] args) {
-		int no_skills, no_elems;
+		int no_skills = 0, no_elems;
 		int opt_elms;
 		OrcaRandom rand = new OrcaRandom();
 		Cover cover = new Cover();
 
-		if(args.length != 1) {
+		if (args.length == 0) {
+			no_skills = 40;
+		}
+		else if (args.length == 1) {
+			no_skills = Integer.parseInt(args[0]) * 2;
+		} else {
 			System.out.println("Usage: cover <size>");
-			System.exit(-6);
+			System.exit(1);
 		}
 
-		no_skills = Integer.parseInt(args[0]) * 2;
 		no_elems = no_skills/2;
 
 		byte[][] skills = new byte[no_elems][no_skills];
@@ -193,15 +197,25 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 			System.out.println("A cover does not exist!");
 		}
 
+		String result = "";
 		for (int i=0;i<no_elems;i++) {
 			if (ret.opt[i] == 1) {
-				System.out.print("Element " + i);
+				result = result + "Element " + i;
 				for (int j=0; j<no_skills; j++) {
-					System.out.print(skills[i][j] == 1 ? "* " : "_ ");
+					result = result + (skills[i][j] == 1 ? "* " : "_ ");
 				}
-//				System.out.println();
 			}
 		}
-		System.out.println();
+		System.out.println(result);
+
+		if (args.length == 0) {
+		    if (! result.equals("Element 0* _ * * * _ _ _ * _ * _ _ * * _ _ * _ _ * * * _ _ _ _ _ _ _ _ _ * * _ _ _ _ * _ Element 2_ * _ _ _ _ * _ _ _ _ _ _ * _ _ _ _ _ * _ * _ * _ _ _ _ * * _ * _ _ _ * * _ _ * Element 5_ * _ _ _ _ _ * _ * _ * * _ _ * * * _ _ _ _ * * _ * * _ _ * * _ * * * _ _ * _ _ Element 11_ * * * * * _ _ * _ * _ * * _ * _ * * * * * _ _ * _ _ * * _ _ _ _ _ * * _ * _ _ ")) {
+			System.out.println("Test failed!");
+			System.exit(1);
+		    }
+		    else {
+			System.out.println("Test succeeded!");
+		    }
+		}
 	}
 }

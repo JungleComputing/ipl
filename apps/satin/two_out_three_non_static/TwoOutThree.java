@@ -6,6 +6,7 @@ final class TwoOutThree extends ibis.satin.SatinObject implements TwoOutThreeInt
 	public static void main(String[] args) {
 		TwoOutThree t = new TwoOutThree();
 		int n = 0;
+		String result = "";
 
 		System.out.print("application result two_out_of_three result = ");
 
@@ -13,7 +14,7 @@ final class TwoOutThree extends ibis.satin.SatinObject implements TwoOutThreeInt
 			try {
 				t.foo(i);
 			} catch (Done d) {
-				System.out.print("foo res: " + d.res);
+				result = result + "foo res: " + d.res;
 				if (++n == 2) {
 					t.abort();
 				}
@@ -21,6 +22,11 @@ final class TwoOutThree extends ibis.satin.SatinObject implements TwoOutThreeInt
 			}
 		}
 		t.sync();
-		System.out.println();
+		System.out.println(result);
+		if (! result.equals("foo res: 2foo res: 1")) {
+		    System.out.println("Test failed!");
+		    System.exit(1);
+		}
+		System.out.println("Test succeeded!");
 	}
 }

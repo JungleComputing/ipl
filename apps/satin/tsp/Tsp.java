@@ -1,5 +1,5 @@
 final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.Serializable  {
-	static final int N_TOWNS = 17;	        /* Default nr of towns */
+	static final int N_TOWNS = 11;	        /* Default nr of towns */
 	static final int INIT_SEED = 1;         /* Default random seed */
 	static final int MAXX = 100;
 	static final int MAXY = 100;
@@ -103,7 +103,11 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 		int NTowns = N_TOWNS;
 		int global_minimum = Integer.MAX_VALUE;
 		Tsp tsp = new Tsp();
+		boolean testing = false;
 
+		if (args.length == 0) {
+		    testing = true;
+		}
 		for (int i = 0; i < args.length; i++) {
 			if (false) {
 			} else if (args[i].equals("-seed")) {
@@ -152,5 +156,12 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 
 		System.out.println("application time tsp (" + NTowns + ") took " + time + " s");
 		System.out.println("application result tsp (" + NTowns + ") = " + res);
+		if (testing) {
+			if (res != 218) {
+				System.out.println("Test failed!");
+				System.exit(1);
+			}
+			System.out.println("Test succeeded!");
+		}
 	}
 }

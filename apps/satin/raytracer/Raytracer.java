@@ -154,6 +154,7 @@ class Raytracer { // implements java.io.Serializable {
 	public static void main(String arg[]) {
 		String input = null;
 		boolean dump = false;
+		boolean test = false;
 
 		for (int i=0;i<arg.length;i++) {
 			if(arg[i].equals("-dump")) {
@@ -165,14 +166,19 @@ class Raytracer { // implements java.io.Serializable {
 				System.exit(1);
 			}
 		}
+		if (input == null) {
+			input = "pics" + System.getProperty("file.separator") + "balls2_small.nff";
+			test = true;
+		}
 
 		ReadFile(input);
 
-		Raytracer raytracer = new Raytracer(dump, input);
+		Raytracer raytracer = new Raytracer(dump, input, test);
+
 	}
 
 
-	public Raytracer(boolean dump, String input) {
+	public Raytracer(boolean dump, String input, boolean test) {
 		VirtualScreen s;
 
 		this.dump = dump;
@@ -190,6 +196,7 @@ class Raytracer { // implements java.io.Serializable {
 
 		System.out.println("application time raytrace (" + input + ") took " + time + 
 				   " s");
+
 		System.out.println("application result raytrace (" + input + ") = OK");
 
 		if(dump) {
@@ -198,5 +205,14 @@ class Raytracer { // implements java.io.Serializable {
 			System.out.println("Done");
 		}
 
+		if (test) {
+			if (s.check("test_goal.ppm")) {
+				System.out.println("Test succeeded!");
+			}
+			else {
+				System.out.println("Test failed!");
+				System.exit(1);
+			}
+		}
 	}
 }

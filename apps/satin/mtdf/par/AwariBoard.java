@@ -125,13 +125,13 @@ final class AwariBoard extends NodeType implements Cloneable {
 		}
 	}
 
-	private void printPit(int seeds) {
+	private String  printPit(int seeds) {
 		if(seeds == 0) {
-			System.out.print("    |");
+			return "    |";
 		} else if (seeds < 10) {
-			System.out.print("  " + seeds + " |");
+			return "  " + seeds + " |";
 		} else {
-			System.out.print(" " + seeds + " |");
+			return " " + seeds + " |";
 		}
 	}
 
@@ -139,29 +139,30 @@ final class AwariBoard extends NodeType implements Cloneable {
 		System.out.print("+----+----+----+----+----+----+\n|");
 
 		for (int i=12; --i >=6; ) {
-			printPit(pits[i]);
+			System.out.print(printPit(pits[i]));
 		}
 
 		System.out.print("\n+----+----+----+----+----+----+\n|");
 
 		for (int i=0; i<6; i++) {
-			printPit(pits[i]);
+			System.out.print(printPit(pits[i]));
 		}
 
 		System.out.print("\n+----+----+----+----+----+----+\n");
 		System.out.println("score = " + score + "\n");
 	}
 
-	void printCompact() {
+	String compact() {
+		String result = "";
 		for (int i=12; --i >=6; ) {
-			printPit(pits[i]);
+			result = result + printPit(pits[i]);
 		}
 
 		for (int i=0; i<6; i++) {
-			printPit(pits[i]);
+			result = result + printPit(pits[i]);
 		}
 
-		System.out.print("score = " + score);
+		return result + "score = " + score;
 	}
 
 	static AwariBoard getRoot() {

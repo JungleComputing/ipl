@@ -26,16 +26,20 @@ public final class NoverK extends ibis.satin.SatinObject implements NoverKInterf
 
 
 	public static void main(String[] args) {
-		int N;
+		int N = 28;
 		long res;
 		NoverK n = new NoverK();
 
-		if(args.length != 1) {
+		if (args.length == 0) {
+		}
+		else if (args.length == 1) {
+			N = Integer.parseInt(args[0]);
+		}
+		else {
 			System.out.println("Usage: noverk <n>");
 			System.exit(-6);
 		}
 
-		N = Integer.parseInt(args[0]);
 
 		System.out.println("n_over_k(" + N + " " + (N/2) + ") started");
 
@@ -49,5 +53,14 @@ public final class NoverK extends ibis.satin.SatinObject implements NoverKInterf
 				   ") took " + time + " s");
 		System.out.println("application result n_over_k (" + N + "," + (N/2) + 
 				   ") = " + res);
+		if (args.length == 0) {
+			if (res != 40116600) {
+				System.out.println("Test failed!");
+				System.exit(1);
+			}
+			else {
+				System.out.println("Test succeeded!");
+			}
+		}
 	}
 }
