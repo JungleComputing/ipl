@@ -1,7 +1,0 @@
-package ibis.ipl;
-
-interface InstallConfiguration {
-
-    final String path = @IBIS_INSTALL_PATH@;
-
-}

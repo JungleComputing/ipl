@@ -312,6 +312,7 @@ public abstract class Ibis {
 		}
 
 		/* try install dir */
+/*              // This is a bug. It makes it impossible to just copy a IPL.jar to another location and use it. --Rob
 		s = ibis.ipl.InstallConfiguration.path;
 		s += sep + "properties";
 		try {
@@ -321,7 +322,7 @@ public abstract class Ibis {
 			System.err.println("Fail to open " + s);
 			// Ignore.
 		}
-
+*/
 		System.err.println("Could not find property file");
 		System.exit(1);
 		return null;

@@ -42,42 +42,6 @@
 	<echo message="package.home.ant-contrib    = ${package.home.ant-contrib}"/>
 	<echo message="package.home.ant-cpptasks   = ${package.home.ant-cpptasks}"/>
 	<mkdir dir="${build}"/>
-
-	<!--
-	==============================================================
-	    'sed' InstallConfiguration.java.in to InstallConfiguration.
-	-->
-
-	<!-- On M$ Windows, the path separator is '\'. Now, this happens
-	    to be the escape character within Java strings. To get it
-	    into the string, '\' itself must be escaped.
-	-->
-	<echo level="debug" message="Want to replace '\' with '\\' inside ${ibis}"/>
-	<propertyregex
-		property="ibis.escaped"
-		input="${ibis}"
-		regexp="\\"
-		replace="\\\\\\\\"
-		global="true"/>
-	<!--
-	    If the match failed, we need to copy the original value
-	    by hand into ibis.escaped. :-(
-	-->
-	<property name="ibis.escaped" value="${ibis}"/>
-
-	<copy
-		file="${ibis}/src/ibis/ipl/InstallConfiguration.java.in"
-		tofile="${ibis}/src/ibis/ipl/InstallConfiguration.java">
-	    <filterchain>
-		<filterreader
-			classname="org.apache.tools.ant.filters.ReplaceTokens">
-		    <param  type="token"
-			    name="IBIS_INSTALL_PATH"
-			    value='"${ibis.escaped}"'/>
-		</filterreader>
-	    </filterchain>
-	</copy>
-
     </target>
 
 
@@ -172,6 +136,16 @@
 	For a number of source modules, provide a separate target
 	so we may compile only this source module, which is quicker.
     -->
+
+    <target name="ipl" depends="init">
+        <javac  destdir="${build}"
+                debug="${java.debug.value}"
+                srcdir="${src}">
+            <include name="ibis/ipl/**/*.java"/>
+            <classpath refid="default.classpath"/>
+        </javac>
+    </target>
+
 
     <target name="util" depends="init">
 	<javac  destdir="${build}"
