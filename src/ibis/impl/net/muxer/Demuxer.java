@@ -132,8 +132,10 @@ dumpBufferFactoryInfo();
 	/* Set up the connection */
 	demux.setupConnection(spn, is, os, nls);
 
-System.err.println(this + ": Input connect spn " + spn + " creates queue " + myQueue);
-Thread.dumpStack();
+	if (Driver.DEBUG) {
+	    System.err.println(this + ": Input connect spn " + spn + " creates queue " + myQueue);
+	    Thread.dumpStack();
+	}
 
 	headerOffset = demux.getHeaderLength();
 	headerLength = headerOffset;

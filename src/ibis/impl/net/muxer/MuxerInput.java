@@ -189,6 +189,8 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 		System.err.println("************************ Poller thread handles exception " + e);
 	    }
 	}
+
+	System.err.println(this + ": poller thread quits");
     }
 
 }

@@ -18,6 +18,12 @@ public class MuxerQueue extends MuxerKey {
 
     private int			waitingReceivers;
 
+    private long		t_enqueue;
+    private long		t_queued;
+    private int			n_q;
+    private int			n_q_wait;
+    private int			n_q_present;
+
 
     /**
      * @Constructor
@@ -65,7 +71,7 @@ public class MuxerQueue extends MuxerKey {
 	    throws IbisIOException {
 
 	if (! factory.isSuitableClass(buffer)) {
-	    if (Driver.DEBUG) {
+	    if (true || Driver.DEBUG) {
 		System.err.println(this + ": A pity upon enqueue: received buffer type does not match requested buffer, now transfer");
 	    }
 	    NetReceiveBuffer b =
@@ -99,6 +105,11 @@ public class MuxerQueue extends MuxerKey {
 	tail = buffer;
 	buffer.next = null;
 
+	if (Driver.STATISTICS) {
+	    t_enqueue = System.currentTimeMillis();
+	    n_q++;
+	}
+
 	if (waitingReceivers > 0) {
 	    notify();
 	}
@@ -109,7 +120,15 @@ public class MuxerQueue extends MuxerKey {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": enter dequeue, front = " + front);
 	}
+	if (Driver.STATISTICS) {
+	    if (front == null) {
+		n_q_wait++;
+	    } else {
+		n_q_present++;
+	    }
+	}
 	while (front == null) {
+	    System.err.println("z");
 	    waitingReceivers++;
 	    try {
 		wait();
@@ -117,6 +136,18 @@ public class MuxerQueue extends MuxerKey {
 		// Just continue
 	    }
 	    waitingReceivers--;
+	}
+
+	if (Driver.STATISTICS) {
+	    long now = System.currentTimeMillis();
+	    t_queued += now - t_enqueue;
+	    if (Driver.DEBUG && (n_q % 1000) == 0) {
+		System.err.println("<Queue delay> " + n_q + " " + (t_queued / (1000.0 * n_q)) + " s");
+		System.err.println("Dequeue: present " + n_q_present + " wait " + n_q_wait);
+	    }
+	    if (now - t_enqueue > 5) {
+		// System.err.println("Queue delay " + (now - t_enqueue) / 1000.0 + " s");
+	    }
 	}
 
 	NetReceiveBuffer buffer = front;
@@ -206,7 +237,7 @@ public class MuxerQueue extends MuxerKey {
 	if (buffer != userBuffer) {
 	    // The message was delivered before we could post our buffer.
 	    // Incur a copy.
-	    if (true || Driver.DEBUG) {
+	    if (Driver.DEBUG) {
 		System.err.println(this + ": blocking receive q " + this + " in nonposted buffer, copy the thing; length " + buffer.length + " base " + buffer.base + " data.length " + buffer.data.length + " userBuffer.base " + userBuffer.base + " userBuffer.data.length " + (userBuffer.data.length - userBuffer.base));
 	    }
 	    System.arraycopy(buffer.data, 0,

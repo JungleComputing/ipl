@@ -41,6 +41,9 @@ public final class UdpMuxInput extends MuxerInput {
 
     private int			receiveFromPoll;
     private long		t_receiveFromPoll;
+    private int			polls;
+    private long		t_poll_start;
+    private long		t_receive_delay;
 
     private boolean		receiverBlocked;
 
@@ -142,6 +145,8 @@ public final class UdpMuxInput extends MuxerInput {
 	    return null;
 	}
 
+	polls++;
+
 	if (buffer != null) {
 	    /* Pending packet. Finish that first. */
 	    activeNum = spn;
@@ -155,12 +160,13 @@ public final class UdpMuxInput extends MuxerInput {
 			   buffer.base,
 			   buffer.data.length - buffer.base);
 	    long start = 0;
-	    if (timeout != 0) {
+	    if (Driver.STATISTICS || timeout != 0) {
 		start = System.currentTimeMillis();
 	    }
 
 	    try {
-		setReceiveTimeout(timeout);
+		// setReceiveTimeout(timeout);
+		setReceiveTimeout(0);
 		socket.receive(packet);
 		buffer.length = packet.getLength();
 		activeNum = spn;
@@ -181,6 +187,14 @@ System.err.println(this + ": ***************** catch Exception " + e);
 		buffer = null;
 		throw new IbisIOException(e);
 	    }
+
+	    if (Driver.STATISTICS) {
+		t_poll_start = System.currentTimeMillis();
+		t_receiveFromPoll += t_poll_start - start;
+		if (Driver.DEBUG && (polls % 1000) == 0) {
+		    System.err.println("UdpMuxInput: <receive> " + polls + " takes " + (t_receiveFromPoll / (1000.0 * polls)) + " s)");
+		}
+	    }
 	}
 
 	return activeNum;
@@ -192,6 +206,14 @@ System.err.println(this + ": ***************** catch Exception " + e);
 
 	while (buffer == null) {
 	    poll(0);
+	}
+
+	if (Driver.STATISTICS) {
+	    long now = System.currentTimeMillis();
+	    t_receive_delay += now - t_poll_start;
+	    if (Driver.DEBUG && (polls % 1000) == 0) {
+		System.err.println("<Time between poll and receive>: " + polls + " = " + t_receive_delay / (1000.0 * polls) + " s");
+	    }
 	}
 
 	NetReceiveBuffer delivered = buffer;
