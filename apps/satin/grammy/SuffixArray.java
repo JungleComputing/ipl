@@ -94,6 +94,8 @@ public class SuffixArray {
 	int i = 0;
 
 	// Now sort the indices. Uses `gnome sort' for the moment.
+	// Since we need the computation anyway, also fill the commonality
+	// array.
 	while( i<indices.length ){
 	    if( i == 0 ){
 		i++;
