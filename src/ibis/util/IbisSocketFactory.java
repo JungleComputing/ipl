@@ -2,12 +2,15 @@ package ibis.util;
 
 import ibis.ipl.ConnectionTimedOutException;
 
+import ibis.connect.socketFactory.ExtSocketFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.InetSocketAddress;
 import java.util.Properties;
 
 public class IbisSocketFactory {
@@ -17,6 +20,8 @@ public class IbisSocketFactory {
 	private static int portNr = 0;
 	private static int startRange = 0;
 	private static int endRange = 0;
+
+        private static boolean useExtSocketFactory = false;
 
 	static {
 		Properties p = System.getProperties();
@@ -41,7 +46,37 @@ public class IbisSocketFactory {
 				}
 			}
 		}
+		String useESF = p.getProperty("ibis.connect.useExtSocketFactory");
+		if(useESF != null && !useESF.equals("false") && !useESF.equals("no")) {
+                        useExtSocketFactory = true;
+		}
 	}
+
+    /** Simple ServerSocket factory
+     */
+    public static ServerSocket createServerSocket(int port, int backlog, InetAddress addr) 
+	throws IOException {
+	ServerSocket s = null;
+	if(useExtSocketFactory) {
+	    s = ExtSocketFactory.createServerSocket(new InetSocketAddress(addr, port), backlog);
+	} else {
+	    s = new ServerSocket(port, backlog, addr);
+	}
+	return s;
+    }
+
+    /** Simple client Socket factory
+     */
+    public static Socket createSocket(InetAddress rAddr, int rPort) 
+	throws IOException {
+	Socket s = null;
+	if(useExtSocketFactory) {
+	    s = ExtSocketFactory.createClientSocket(rAddr, rPort);
+	} else {
+	    s = new Socket(rAddr, rPort);
+	}
+	return s;
+    }
 
 	public synchronized static int allocLocalPort() {
 		if(firewall) {
@@ -87,10 +122,14 @@ public class IbisSocketFactory {
                         try {
 				s = null;
 
-				if(localIP == null) {
-					s = new Socket(dest, port);
+				if(useExtSocketFactory) {
+				        s = ExtSocketFactory.createClientSocket(dest, port);
 				} else {
-					s = new Socket(dest, port, localIP, localPort);
+				        if(localIP == null) {
+					    s = new Socket(dest, port);
+					} else {
+					    s = new Socket(dest, port, localIP, localPort);
+					}
 				}
 
 				if (DEBUG) {
@@ -137,6 +176,8 @@ public class IbisSocketFactory {
 
 		return s;
 	} 
+
+    
 	
         /** A host can have multiple local IPs (sierra)
 	    if localIP is null, try to bind to the first of this machine's IP addresses.
@@ -161,8 +202,8 @@ public class IbisSocketFactory {
 				if (DEBUG) {
 					System.err.println("Creating new ServerSocket on " + localAddress + ":" + localPort);
 				}
-
-				s = new /*Ibis*/ServerSocket(localPort, 50, localAddress);
+				
+				s = createServerSocket(localPort, 50, localAddress);
 
 				if (DEBUG) {
 					System.err.println("DONE, with port = " + s.getLocalPort());

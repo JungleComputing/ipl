@@ -1,5 +1,7 @@
 package ibis.impl.net;
 
+import ibis.util.IbisSocketFactory;
+
 import ibis.ipl.ConnectionTimedOutException;
 
 import ibis.io.Conversion;
@@ -19,7 +21,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
-
 
 /**
  * Provide a TCP connection parallel to an actual application network connection and dedicated for internal use.
@@ -213,7 +214,7 @@ public final class NetServiceLink {
                 InetAddress raddr =  (InetAddress)nfo.get("accept_address");
 		int         rport = ((Integer)    nfo.get("accept_port"   )).intValue();
 
-		socket = new Socket(raddr, rport);
+		socket = IbisSocketFactory.createSocket(raddr, rport);
 		// Else, I fear the read() would appear high up in the profile:
 		socket.setSoTimeout(0);
 		if (DEBUG) {

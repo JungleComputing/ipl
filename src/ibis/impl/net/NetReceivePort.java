@@ -11,6 +11,8 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 
+import ibis.util.IbisSocketFactory;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -19,7 +21,6 @@ import java.net.ServerSocket;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
-
 
 /**
  * Provides an implementation of the {@link ReceivePort} and {@link
@@ -618,7 +619,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
         private void initServerSocket() throws IOException {
                 log.in();
-		serverSocket = new ServerSocket(0, 1, InetAddress.getLocalHost());
+		serverSocket = IbisSocketFactory.createServerSocket(0, 1, InetAddress.getLocalHost());
                 log.out();
         }
 

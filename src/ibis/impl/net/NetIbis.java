@@ -11,6 +11,8 @@ import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 import ibis.util.IbisIdentifierTable;
 
+import ibis.connect.socketFactory.ExtSocketFactory;
+
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
@@ -428,6 +430,7 @@ public final class NetIbis extends Ibis {
 	 */
 	public void end() throws IOException {
 		nameServer.leave();
+		ExtSocketFactory.shutdown();
 	}
 
 	public void poll() throws IOException {
