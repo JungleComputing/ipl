@@ -454,12 +454,12 @@
     </target>
 
     <target name="clean">
-	<delete dir="${rewritten-classlibs}"/>
 	<delete dir="${build}"/>
 	<delete dir="${docs}"/>
     </target>
 
     <target name="distclean" depends="clean">
+	<delete dir="${rewritten-classlibs}"/>
 	<delete file="build-properties"/>
 	<delete file="config.mk"/>
 	<delete file="config.mk.old"/>

@@ -78,7 +78,7 @@ JAVARUNFLAGS	+= -server
 endif
 endif
 JAVACLASSPATH	= build:.:$(IBIS_ROOT)/build:$(BCEL):$(IBIS_ROOT)/classlibs
-JAVABOOTCLASSPATH = $(IBIS_ROOT)/classlibs:$(IBIS_ROOT)/build
+JAVABOOTCLASSPATH = build:$(IBIS_ROOT)/classlibs:$(IBIS_ROOT)/build
 JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/build/lib:$(JPATH)/jre/bin:$(JPATH)/jre/lib/i386
 JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH):
 JAVAHFLAGS      += -classpath $(JAVACLASSPATH):
@@ -435,7 +435,7 @@ run:
 GETPID	= $(IBIS_ROOT)/bin/getpid
 
 ifeq (x$(NS_PORT), x)
-NS_PORT		= 7654
+NS_PORT		= 9826
 endif
 ifeq (x$(NS_SERVER), x)
 NS_SERVER	= mercury.cs.vu.nl
@@ -451,8 +451,8 @@ endif
 .PHONY:	prun
 prun:
 ifeq (1, $(BUILD_MANTA))
-	@echo "prun LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH): $(OUT) $(NHOSTS) -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger\`$(GETPID)\` -Dibis.name=panda $(JAVACFLAGS) 'args ...'"
+	@echo "prun LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. $(OUT) $(NHOSTS) -Xbootclasspath/p:$(JAVABOOTCLASSPATH) $(JAVABOOTLIBPATH) -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger\`$(GETPID)\` -Dibis.name=panda $(JAVACFLAGS) 'args ...'"
 else
-	@echo "prun -v -1 -subst LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):.  CLASSPATH=$(CLASSPATH): -no-panda $(IBIS_ROOT)/bin/java_wrapper $(NHOSTS) $(JPATH)/bin/java $(JAVARUNFLAGS) -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger\`$(GETPID)\` -Dibis.pool.host_number=%d -Dibis.pool.total_hosts=%n -Dibis.pool.host_names=\"%h\" -Dibis.name=panda $(MAIN:%.java=%) args..."
+	@echo "prun -v -1 -subst LFC_INTR_FIRST=100 IBP_SEND_SYNC=100 MANTA_NO_PANDA=1 PAN_COMM_NO_IDLE_POLL=1 LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):. -no-panda $(IBIS_ROOT)/bin/java_wrapper $(NHOSTS) $(JPATH)/bin/java -Xbootclasspath/p:$(JAVABOOTCLASSPATH) $(JAVABOOTLIBPATH) $(JAVARUNFLAGS) -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger\`$(GETPID)\` -Dibis.pool.host_number=%d -Dibis.pool.total_hosts=%n -Dibis.pool.host_names=\"%h\" -Dibis.property.file=$(IBIS_ROOT)/properties -Dibis.name=panda $(MAIN:%.java=%) args..."
 endif
-	@echo $(IBIS_ROOT)/bin/java_wrapper $(JPATH)/bin/java $(JAVARUNFLAGS) -Dibis.pool.total_hosts=$(NHOSTS) -Dibis.pool.host_number=$$PRUN_CPU_RANK -Dibis.pool.host_names=\"$$HOSTS\" -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger0000 -Dibis.name=panda $(MAIN:%.java=%)
+	@echo $(IBIS_ROOT)/bin/java_wrapper $(JPATH)/bin/java -Xbootclasspath/p:$(JAVABOOTCLASSPATH) $(JAVABOOTLIBPATH) $(JAVARUNFLAGS) -Dibis.pool.total_hosts=$(NHOSTS) -Dibis.pool.host_number='$$'PRUN_CPU_RANK -Dibis.pool.host_names=\"'$$'HOSTS\" -Dibis.name_server.host=$(NS_SERVER) -Dibis.name_server.port=$(NS_PORT) -Dibis.name_server.key=rutger0000 -Dibis.property.file=$(IBIS_ROOT)/properties -Dibis.name=panda $(MAIN:%.java=%)

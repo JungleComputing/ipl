@@ -109,6 +109,16 @@
     <target name="config-init" depends="config.das,config.workstation,config.mac">
     </target>
 
+    <target name="java_wrapper" if="config.is-das" depends="cpptasks-init">
+	<echo message="Now compile this java_wrapper"/>
+	<cc	outfile="${ibis}/bin/java_wrapper"
+		outtype="executable">
+	    <fileset dir="${ibis}/src/ibis/util">
+		<include name="java_wrapper.c"/>
+	    </fileset>
+	</cc>
+    </target>
+
 
     <target name="configure" depends="config-init">
 
@@ -408,6 +418,8 @@
 	    <filelist dir="${ibis}" files="configuration.sh,scripts/csim_run_ibis_tcp" />
 	</concat>
 	<chmod file="${ibis}/bin/csim_run_ibis_tcp" perm="+x"/>
+
+	<antcall target="java_wrapper"/>
 
     </target>
 
