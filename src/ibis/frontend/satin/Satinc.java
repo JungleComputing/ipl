@@ -741,6 +741,7 @@ public final class Satinc {
 	    }
 
 	    InstructionHandle abo = insertNullReturn(m, il, pos);
+	    abo = insertDeleteSpawncounter(il, abo, maxLocals);
 
 	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
 						   satinFieldName,
@@ -1189,13 +1190,25 @@ System.out.println("findMethod: could not find method " + name + sig);
 	// optimization:
 	// find first spawn, then look if there is a jump before the spawn that jumps over it...
         // this avoids alloccing and deleting spawn counters before a spawn hapens (e.g. with thresholds)
+	//
 	if (spawnCounterOpt) {
+	    CodeExceptionGen[] ceg = m.getExceptionHandlers();
 	    for (int i = 0; i < ih.length; i++) {
 		if (ih[i].getInstruction() instanceof INVOKEVIRTUAL) {
 		    Method target = findMethod((INVOKEVIRTUAL) (ih[i].getInstruction()));
 		    JavaClass cl = findMethodClass((INVOKEVIRTUAL) (ih[i].getInstruction()));
 		    if (mtab.isSpawnable(target, cl)) {
 			for (int j = 0; j < i; j++) {
+			    for (int k = 0; k < ceg.length; k++) {
+				if (ih[j] == ceg[k].getStartPC()) {
+				    // Give up the optimization for now.
+				    insertAllocPos = il.getStart();
+				    break;
+				}
+			    }
+			    if (insertAllocPos != null) {
+				break;
+			    }
 			    if (ih[j] instanceof BranchHandle) {
 				InstructionHandle jumpTarget = ((BranchHandle)(ih[j])).getTarget();
 				boolean found = false;
@@ -2129,9 +2142,28 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 
 	// runLocal method 
-	out.println("    public void runLocal() {");
 	if (supportAborts) {
+	    out.println("    public void runLocal() {}");
+	    out.println("    public void runLocalExcptn() throws Throwable {");
+	    out.println("        if (parentLocals == null) {");
+	    if (! returnType.equals(Type.VOID)) {
+		out.print("            result = ");
+	    }
+	    out.print("            self." + m.getName() + "(");
+	    for (int i=0; i<params.length; i++) {
+		out.print("param" + i);
+		if (i != params.length-1) {
+		    out.print(", ");
+		}
+	    }
+	    out.println(");");
+	    out.println("            return;");
+	    out.println("        }");
 	    out.println("        try {");
+	}
+	else {
+	    out.println("    public void runLocalExcptn() throws Throwable {}");
+	    out.println("    public void runLocal() {");
 	}
 	if (! returnType.equals(Type.VOID)) {
 	    out.print("            result = ");
