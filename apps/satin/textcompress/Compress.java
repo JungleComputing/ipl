@@ -178,7 +178,11 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                         if( pos+r.len>bestpos-cost ){
                             // This backreference is long enough that it may
                             // help beat the best move of the parent selectBestMove.
-                            if( results[cost] == null || results[cost].len<r.len ){
+                            if(
+                                results[cost] == null ||
+                                results[cost].len<r.len ||
+                                (results[cost].len==r.len && r.backpos>results[cost].backpos)
+                            ){
                                 // This backreferences is longer than the previous
                                 // one we had registered for this cost.
                                 results[cost] = r;
@@ -276,7 +280,10 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                     mymv.addGain( r );
                     int g = mymv.getGain();
 
-                    if( g>bestGain ){
+                    if(
+                        g>bestGain ||
+                        (g == bestGain && mymv.backpos>mv.backpos)
+                    ){
                         mv = mymv;
                         bestGain = g;
                     }
