@@ -22,7 +22,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
     GMIParameterVectorGenerator(BT_Analyzer data, PrintWriter output) {
         this.data = data;
         this.output = output;
-        name = "group_parameter_vector_" + data.subject.getClassName() + "_";
+        name = "group_parameter_vector_" + data.classname + "_";
     }
 
     void header(Method m) {
@@ -403,6 +403,10 @@ class GMIParameterVectorGenerator extends GMIGenerator {
     }
 
     void generate() {
+        if (data.packagename != null && ! data.packagename.equals("")) {
+            output.println("package " + data.packagename + ";");
+            output.println();
+        }
         output.println("import java.io.IOException;\n");
         output.println("import ibis.gmi.ParameterVector;\n");
         output.println("import ibis.ipl.WriteMessage;");
