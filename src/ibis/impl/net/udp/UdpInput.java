@@ -272,6 +272,27 @@ public class UdpInput extends NetInput {
 		return temp_buffer;
 	}
 
+	public void receiveBuffer(NetReceiveBuffer userBuffer)
+		throws IbisIOException {
+		if (buffer == null) {
+                        //
+			packet.setData(userBuffer.data, userBuffer.base, userBuffer.length);
+
+			try {
+				setReceiveTimeout(receiveTimeout);
+				socket.receive(packet);
+			} catch (InterruptedIOException e) {
+				__.abort__("UDP packet lost");
+			} catch (IOException e) {
+				throw new IbisIOException(e);
+			}
+		} else {
+                        System.arraycopy(buffer.data, 0, userBuffer.data, userBuffer.base, userBuffer.length);
+                        buffer.free();
+                        buffer = null;
+                }
+	}
+
 	public void release() {
 		super.release();
 		buffer = null;

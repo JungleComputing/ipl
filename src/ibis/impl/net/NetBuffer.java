@@ -18,9 +18,14 @@ public class NetBuffer {
 	 */
 	public byte[] data = null;
 
+        /**
+         * The first byte index of data stored in the buffer.
+         */
+        public int base = 0;
+
 	/**
 	 * The length of the data stored in the buffer. We should always have
-	 * <CODE>length <= {@link #data}.length</CODE>.
+	 * <CODE>base + length <= {@link #data}.length</CODE>.
 	 */
 	public int length = 0;
 
@@ -58,6 +63,21 @@ public class NetBuffer {
 		this.data      = data;
 		this.length    = length;
 		this.allocator = allocator;
+	}
+
+	/**
+	 * Constructor.
+         *
+	 * @param data the buffer.
+         * @param base the base index of the data stored in the buffer.
+	 * @param length the length of the data stored in the buffer.
+	 */
+	public NetBuffer(byte[]       data,
+                         int          base,
+			 int          length) {
+		this.data      = data;
+                this.base      = base;
+		this.length    = length;
 	}
 
 	/**

@@ -35,6 +35,14 @@ public abstract class NetOutput extends NetIO {
 		super(staticProperties, driver, output);
 	}
 
+        /**
+         * Prepare the output for a new message transmission.
+         */
+	public void initSend() throws IbisIOException {
+                // Default function is empty
+        }
+        
+
 	/**
 	 * Sends a buffer over the network.
 	 *

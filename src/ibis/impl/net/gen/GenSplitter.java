@@ -136,6 +136,17 @@ public class GenSplitter extends NetOutput {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	public void initSend() throws IbisIOException {
+		Iterator i = outputVector.listIterator();
+		do {
+			NetOutput no = (NetOutput)i.next();
+			no.initSend();
+		} while (i.hasNext());
+	}
+
+	/**
 	 * Send a buffer to each peer receive port.
 	 */
 	public void sendBuffer(NetSendBuffer b)

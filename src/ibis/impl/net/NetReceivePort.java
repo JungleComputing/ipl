@@ -684,6 +684,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	}
 
 	/* --- ReadMessage Part --- */
+        void receiveBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+                input.receiveBuffer(buffer);
+                buffer.free();
+        }
 
 	void receiveBuffer(int length) throws IbisIOException {
 		buffer       = input.receiveBuffer(length);
@@ -824,46 +828,55 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 				     int     offset,
 				     int     length)
 		throws IbisIOException {
-		//System.err.println("read: "+offset+", "+length);
+		// System.err.println("read: "+offset+", "+length);
 		if (length == 0)
 			return;
 
 		emptyMsg = false;
 
-		if (buffer != null) {
-			int bufferLength = buffer.length - bufferOffset;
-			int copyLength   = Math.min(bufferLength, length);
+                if (dataOffset == 0) {
+                        if (buffer != null) {
+                                freeBuffer();
+                        }
 
-			System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
+                        receiveBuffer(new NetReceiveBuffer(userBuffer, offset, length));
+                } else {
+                        if (buffer != null) {
+                                int bufferLength = buffer.length - bufferOffset;
+                                int copyLength   = Math.min(bufferLength, length);
 
-			bufferOffset += copyLength;
-			bufferLength -= copyLength;
-			offset       += copyLength;
-			length       -= copyLength;
+                                System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
 
-			if (bufferLength == 0) {
-				freeBuffer();
-			}
-		}
+                                bufferOffset += copyLength;
+                                bufferLength -= copyLength;
+                                offset       += copyLength;
+                                length       -= copyLength;
 
-		while (length > 0) {
-			receiveBuffer(length);
+                                if (bufferLength == 0) {
+                                        freeBuffer();
+                                }
+                        }
 
-			int bufferLength = buffer.length - bufferOffset;
-			int copyLength   = Math.min(bufferLength, length);
+                        while (length > 0) {
+                                receiveBuffer(length);
 
-			System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
+                                int bufferLength = buffer.length - bufferOffset;
+                                int copyLength   = Math.min(bufferLength, length);
 
-			bufferOffset += copyLength;
-			bufferLength -= copyLength;
-			offset       += copyLength;
-			length       -= copyLength;
+                                System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
 
-			if (bufferLength == 0) {
-				freeBuffer();
-			}
-		}
-		//System.err.println("read: "+offset+", "+length+": ok");
+                                bufferOffset += copyLength;
+                                bufferLength -= copyLength;
+                                offset       += copyLength;
+                                length       -= copyLength;
+
+                                if (bufferLength == 0) {
+                                        freeBuffer();
+                                }
+                        }
+                }
+                
+		// System.err.println("read: "+offset+", "+length+": ok");
 	}
 
 	public void readSubArrayChar(char [] destination,

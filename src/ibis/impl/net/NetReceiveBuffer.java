@@ -28,4 +28,17 @@ public final class NetReceiveBuffer extends NetBuffer {
 				NetAllocator allocator) {
 		super(data, length, allocator);
 	}
+
+	/**
+	 * Constructor.
+         *
+	 * @param data the buffer.
+         * @param base the base index of the data stored in the buffer.
+	 * @param length the length of the data stored in the buffer.
+	 */
+	public NetReceiveBuffer(byte[] data,
+                                int    base,
+                                int    length) {
+		super(data, base, length);
+	}
 }

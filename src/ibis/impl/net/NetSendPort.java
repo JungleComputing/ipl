@@ -162,6 +162,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		emptyMsg     = true;
 		bufferOffset = 0;
 		outputLock.lock();
+                output.initSend();
 		return this;
 	}
 
@@ -550,41 +551,65 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		
 		emptyMsg = false;
 
-		if (buffer != null) {
-			int availableLength = buffer.data.length - bufferOffset;
-			int copyLength      = Math.min(availableLength, length);
+                if (dataOffset == 0) {
+                        if (buffer != null) {
+                                flush();
+                        }
 
-			System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
+                        if (mtu != 0) {
+                                int base = offset;
 
-			bufferOffset  	 += copyLength;
-			buffer.length 	 += copyLength;
-			availableLength  -= copyLength;
-			offset        	 += copyLength;
-			length        	 -= copyLength;
+                                do {
+                                        int copyLength = Math.min(mtu, length);
+                                        buffer = new NetSendBuffer(userBuffer, base, copyLength);
+                                        flush();
 
-			if (availableLength == 0) {
-				flush();
-			}
-		}
+                                        base   += copyLength;
+                                        length -= copyLength;
+                                } while (length != 0);
+                                        
+                        } else {
+                                buffer = new NetSendBuffer(userBuffer, offset, length);
+                                flush();
+                        }
+                } else {
+                        if (buffer != null) {
+                                int availableLength = buffer.data.length - bufferOffset;
+                                int copyLength      = Math.min(availableLength, length);
+
+                                System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
+
+                                bufferOffset  	 += copyLength;
+                                buffer.length 	 += copyLength;
+                                availableLength  -= copyLength;
+                                offset        	 += copyLength;
+                                length        	 -= copyLength;
+
+                                if (availableLength == 0) {
+                                        flush();
+                                }
+                        }
 		
-		while (length > 0) {
-			allocateBuffer(length);
+                        while (length > 0) {
+                                allocateBuffer(length);
 
-			int availableLength = buffer.data.length - bufferOffset;
-			int copyLength   = Math.min(availableLength, length);
+                                int availableLength = buffer.data.length - bufferOffset;
+                                int copyLength   = Math.min(availableLength, length);
 
-			System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
+                                System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
 
-			bufferOffset  	+= copyLength;
-			buffer.length 	+= copyLength;
-			availableLength -= copyLength;
-			offset        	+= copyLength;
-			length        	-= copyLength;
+                                bufferOffset  	+= copyLength;
+                                buffer.length 	+= copyLength;
+                                availableLength -= copyLength;
+                                offset        	+= copyLength;
+                                length        	-= copyLength;
 
-			if (availableLength == 0) {
-				flush();
-			}
-		}
+                                if (availableLength == 0) {
+                                        flush();
+                                }
+                        }
+                }
+                
 		// System.err.println("write: "+offset+", "+length+": ok");
 	}
 	

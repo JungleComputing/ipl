@@ -140,11 +140,11 @@ public class TcpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer receiveBuffer(int expectedLength)
-		throws IbisIOException {
+	public void receiveBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+                byte [] b = buffer.data;
+		int offset = buffer.base;
+                int expectedLength = buffer.length;
 
-		byte [] b = new byte[expectedLength];
-		int offset = 0;
 		try {
 			do {
 				offset += tcpIs.read(b, offset,
@@ -153,8 +153,22 @@ public class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		} 
+        }
+        
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <BR><B>Note</B>: this function may block if the expected data is not there.
+	 *
+	 * @return {@inheritDoc}
+	 */
+	public NetReceiveBuffer receiveBuffer(int expectedLength)
+		throws IbisIOException {
+                NetReceiveBuffer buffer = new NetReceiveBuffer(new byte[expectedLength], 0, expectedLength);
+
+                receiveBuffer(buffer);
 		
-		return new NetReceiveBuffer(b, expectedLength);
+		return buffer;
 	}
 
 	/**

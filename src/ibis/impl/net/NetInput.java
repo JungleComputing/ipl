@@ -42,6 +42,20 @@ public abstract class NetInput extends NetIO {
 
 	/**
 	 * Blockingly receives a buffer.
+         *
+	 * <BR><B>Note</B>: This method should be implemented only if
+         * the corresponding driver do not use any header and is
+         * called only if the total header length is 0;
+	 *
+	 * @param buffer the buffer in which to receive the data.
+	 *
+	 * @exception IbisIOException if the reception fails. */
+	public void receiveBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+                __.unimplemented__("receiveBuffer");
+        }
+
+	/**
+	 * Blockingly receives a buffer.
 	 *
 	 * @param expectedLength the number of bytes the caller
 	 * would like to receive. It is only a hint, not a hard

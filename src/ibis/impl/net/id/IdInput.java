@@ -124,6 +124,18 @@ public class IdInput extends NetInput {
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * <BR><B>Note</B>: this function may block if the expected data is not there.
+	 *
+	 * @return {@inheritDoc}
+	 */
+	public void receiveBuffer(NetReceiveBuffer buffer)
+		throws IbisIOException {
+		subInput.receiveBuffer(buffer);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public void release() {
 		super.release();

@@ -130,6 +130,16 @@ public class GenPoller extends NetInput {
 	}
 
 	/**
+	 * Receive a buffer over the active input.
+	 *
+	 * {@inheritDoc}
+	 */
+	public void receiveBuffer(NetReceiveBuffer buffer)
+		throws IbisIOException {
+		activeInput.receiveBuffer(buffer);
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public void release() {

@@ -38,7 +38,7 @@ public class NetMutex {
 	 * cannot be interrupted (preferably use {@link #ilock} when
 	 * possible).
 	 */
-	synchronized void lock() {
+	public synchronized void lock() {
 		while (value <= 0) {
 			try {
 				wait();
@@ -59,7 +59,7 @@ public class NetMutex {
 	 * @exception InterruptedException when the corresponding thread is 
 	 *            interrupted. The lock is not acquired in this case.
 	 */
-	synchronized void ilock() throws InterruptedException {
+	public synchronized void ilock() throws InterruptedException {
 		while (value <= 0) {
 			wait();
 		}
@@ -72,7 +72,7 @@ public class NetMutex {
 	 * @return <code>true</code> if the lock was successfully acquired and
 	 *         <code>false</code> otherwise.
 	 */
-	synchronized boolean trylock() {
+	public synchronized boolean trylock() {
 		if (value <= 0) {
 			return false;
 		} else {
@@ -91,7 +91,7 @@ public class NetMutex {
 	 *       however unsafe and <strong>discouraged</strong>. 
 	 *       Use a semaphore instead.
 	 */
-	synchronized void unlock() {
+	public synchronized void unlock() {
 		value++;
 		notifyAll();
 	}

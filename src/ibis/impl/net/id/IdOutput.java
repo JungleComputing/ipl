@@ -92,6 +92,13 @@ public class IdOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
+	public void initSend() throws IbisIOException {
+		subOutput.initSend();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
 		subOutput.sendBuffer(b);
 	}
