@@ -25,6 +25,7 @@ public class Radix{
     String output_file = null;
  
     Radix() throws IbisException {
+        startRMI();
 	d = PoolInfo.createPoolInfo();
         nhosts = d.size();
         host  = d.rank();
@@ -141,7 +142,6 @@ public class Radix{
 	SlaveSort l;
 	Thread masterThread = null;
         parseCommandLine(argv);
-        startRMI();
         if (host == 0) {
 	    masterThread = createMaster();
 	}
