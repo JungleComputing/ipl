@@ -65,6 +65,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private boolean panda = false;
 	private boolean mpi = false;
 	private boolean net = false;
+	private boolean nio = false;
 	private boolean ibisSerialization = false;
 	private boolean upcallPolling = false;
 
@@ -212,6 +213,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				mpi = true;
 			} else if(args[i].equals("-satin-net")) {
 				net = true;
+			} else if(args[i].equals("-satin-nio")) {
+				nio = true;
 			} else if(args[i].equals("-satin-tcp")) {
 			} else if(args[i].equals("-satin-stats")) {
 				stats = true;
@@ -265,6 +268,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				} else if (net) {
 					ibis = Ibis.createIbis(name,
 							       "ibis.impl.net.NetIbis", this);
+
+				} else if (nio) {
+					ibis = Ibis.createIbis(name,
+							       "ibis.impl.nio.NioIbis", this);
 
 				} else {
 					ibis = Ibis.createIbis(name,
