@@ -2,9 +2,9 @@ import java.rmi.*;
 import java.rmi.registry.*;
 import java.rmi.server.*;
 import java.util.Random;
-import javatimer.*;
 
 import ibis.util.PoolInfo;
+import ibis.util.Timer;
 
 final class TranspositionTable extends UnicastRemoteObject implements TranspositionTableIntr {
 

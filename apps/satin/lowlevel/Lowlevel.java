@@ -3,7 +3,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 
 	static DoneVoid doneVoid = new DoneVoid();
 	static DoneInt doneInt = new DoneInt(0);
-	static DoneObject doneObject = new DoneObject(new Object());
+	static DoneObject doneObject = new DoneObject(new SerializableObject());
 
 	public void spawn_void() {
 		return;
@@ -13,7 +13,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		return i;
 	}
 
-	public Object spawn_Object(Object o) {
+	public SerializableObject spawn_Object(SerializableObject o) {
 		return o;
 	}
 
@@ -25,7 +25,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		return i;
 	}
 
-	public Object call_Object(Object o) {
+	public SerializableObject call_Object(SerializableObject o) {
 		return o;
 	}
 
@@ -37,7 +37,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		throw new DoneInt(i);
 	}
 
-	public void inlet_spawn_Object(Object o) throws DoneObject {
+	public void inlet_spawn_Object(SerializableObject o) throws DoneObject {
 		throw new DoneObject(o);
 	}
 
@@ -49,7 +49,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		throw new DoneInt(i);
 	}
 
-	public void exception_call_Object(Object o) throws DoneObject {
+	public void exception_call_Object(SerializableObject o) throws DoneObject {
 		throw new DoneObject(o);
 	}
 
@@ -61,7 +61,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		throw Lowlevel.doneInt;
 	}
 
-	public void inlet_spawn_Object_no_new(Object o) throws DoneObject {
+	public void inlet_spawn_Object_no_new(SerializableObject o) throws DoneObject {
 		throw Lowlevel.doneObject;
 	}
 
@@ -73,7 +73,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		throw new DoneIntOverridden(i);
 	}
 
-	public void inlet_spawn_Object_overridden(Object o) throws DoneObjectOverridden {
+	public void inlet_spawn_Object_overridden(SerializableObject o) throws DoneObjectOverridden {
 		throw new DoneObjectOverridden(o);
 	}
 
@@ -85,7 +85,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		throw Lowlevel.doneInt;
 	}
 
-	public void exception_call_Object_no_new(Object o) throws DoneObject {
+	public void exception_call_Object_no_new(SerializableObject o) throws DoneObject {
 		throw Lowlevel.doneObject;
 	}
 
@@ -126,7 +126,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 	public static void doObjectExceptionCallTest(Lowlevel l, int n) {
 		long start, end;
 		double time;
-		Object o = new Object();
+		SerializableObject o = new SerializableObject();
 
 		start = System.currentTimeMillis();
 		for(int i=0; i<n; i++) {
@@ -180,7 +180,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 	public static void doObjectInletSpawnTest(Lowlevel l, int n) {
 		long start, end;
 		double time;
-		Object o = new Object();
+		SerializableObject o = new SerializableObject();
 
 		start = System.currentTimeMillis();
 		for(int i=0; i<n; i++) {
@@ -235,7 +235,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 	public static void doObjectInletSpawnOverriddenTest(Lowlevel l, int n) {
 		long start, end;
 		double time;
-		Object o = new Object();
+		SerializableObject o = new SerializableObject();
 
 		start = System.currentTimeMillis();
 		for(int i=0; i<n; i++) {
@@ -288,7 +288,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 	public static void doObjectExceptionCallTestNoNew(Lowlevel l, int n) {
 		long start, end;
 		double time;
-		Object o = new Object();
+		SerializableObject o = new SerializableObject();
 
 		start = System.currentTimeMillis();
 		for(int i=0; i<n; i++) {
@@ -342,7 +342,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 	public static void doObjectInletSpawnTestNoNew(Lowlevel l, int n) {
 		long start, end;
 		double time;
-		Object o = new Object();
+		SerializableObject o = new SerializableObject();
 
 		start = System.currentTimeMillis();
 		for(int i=0; i<n; i++) {
@@ -361,11 +361,11 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 	public static void doNewTest(int n) {
 		long start, end;
 		double time;
-		Object x = new Object();
+		SerializableObject x = new SerializableObject();
 
 		start = System.currentTimeMillis();
 		for (int i=0; i<n; i++) {
-			Object o = new Object();
+			SerializableObject o = new SerializableObject();
 		}
 		end = System.currentTimeMillis();
 		time = (double)(end - start);
@@ -418,7 +418,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 	public static void doCallTest(Lowlevel l, int n) {
 		long start, end;
 		double time;
-		Object o = new Object();
+		SerializableObject o = new SerializableObject();
 
 		start = System.currentTimeMillis();
 		for(int i=0; i<n; i++) {
@@ -457,7 +457,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 	public static void doSpawnTest(Lowlevel l, int n) {
 		long start, end;
 		double time;
-		Object o = new Object();
+		SerializableObject o = new SerializableObject();
 
 		start = System.currentTimeMillis();
 		for(int i=0; i<n; i++) {
@@ -498,7 +498,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 	public static void main(String[] args) {
 		long start, end;
 		double time;
-		Object o = new Object();
+		SerializableObject o = new SerializableObject();
 
 		if(args.length != 1) {
 			System.err.println("application lowlevel got wrong number of parameters, need one");

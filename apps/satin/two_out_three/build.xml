@@ -6,7 +6,7 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
-    <property name="satinc-flags" value="-v -keep"/>
+    <property name="satinc-flags" value="-keep"/>
 
     <property name="satin-main-class" value="TwoOutThree"/>
 

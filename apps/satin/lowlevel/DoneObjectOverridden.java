@@ -1,7 +1,7 @@
 final class DoneObjectOverridden extends Throwable {
-	Object o;
+	SerializableObject o;
 
-	DoneObjectOverridden(Object o) {
+	DoneObjectOverridden(SerializableObject o) {
 		this.o = o;
 	}
 

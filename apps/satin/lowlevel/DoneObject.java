@@ -1,7 +1,7 @@
 final class DoneObject extends Throwable {
-	Object o;
+	SerializableObject o;
 
-	DoneObject(Object o) {
+	DoneObject(SerializableObject o) {
 		this.o = o;
 	}
 }
