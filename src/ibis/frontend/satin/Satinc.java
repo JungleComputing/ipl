@@ -1201,6 +1201,10 @@ public final class Satinc {
 	String sig  = ins.getSignature(cpg);
 	String cls  = ins.getClassName(cpg);
 
+	if (cls.startsWith("[")) {
+	    cls = "java.lang.Object";
+	}
+
 	JavaClass cl = Repository.lookupClass(cls);
 	
 	if (cl == null) {
@@ -1231,6 +1235,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 	String sig  = ins.getSignature(cpg);
 	String cls  = ins.getClassName(cpg);
 
+	if (cls.startsWith("[")) {
+	    cls = "java.lang.Object";
+	}
 	JavaClass cl = Repository.lookupClass(cls);
 	
 	if (cl == null) {
