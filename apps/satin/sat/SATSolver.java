@@ -399,8 +399,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	// sequential code.
 	ibis.satin.SatinObject.pause(); 
 
-        Helpers.printPlatformVersion();
-        System.err.println( "Put problem in tuple space: " + problemInTuple );
+        System.err.println( Helpers.getPlatformVersion() );
+        System.err.println( "Problem stored in tuple space: " + problemInTuple );
 	SATProblem p = SATProblem.parseDIMACSStream( f );
 	p.setReviewer( new CubeClauseReviewer() );
 	p.report( System.out );

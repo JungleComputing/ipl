@@ -140,11 +140,11 @@ final class Helpers {
 	System.err.println();
     }
 
-    /** Print the platform version that is used. */
-    static void printPlatformVersion()
+    /** Return a string describing the platform version that is used. */
+    static String getPlatformVersion()
     {
         java.util.Properties p = System.getProperties();
 
-        System.out.println( "Java " + p.getProperty( "java.version" ) + " (" + p.getProperty( "java.vendor" ) + ") on " + p.getProperty( "os.name" ) + " " + p.getProperty( "os.version" ) + " (" + p.getProperty( "os.arch" ) + ")" );
+        return "Java " + p.getProperty( "java.version" ) + " (" + p.getProperty( "java.vendor" ) + ") on " + p.getProperty( "os.name" ) + " " + p.getProperty( "os.version" ) + " (" + p.getProperty( "os.arch" ) + ")";
     }
 }
