@@ -96,7 +96,7 @@ public final class RunProcess {
 
     /**
      * Runs the command as specified.
-     * Blocks until the command is finished, and returns its exit status.
+     * Blocks until the command is finished.
      * @param command the specified command.
      */
     public RunProcess(String command) {
