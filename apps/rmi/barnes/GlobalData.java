@@ -4,10 +4,12 @@ import java.io.Serializable;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 
+import org.apache.log4j.Logger;
+
 strictfp
 public class GlobalData implements Cloneable, Serializable {
 
-    final static boolean DEBUG = false;
+    static Logger logger = Logger.getLogger(GlobalData.class.getName());
 
     public Body gdBodies[];
 
@@ -156,9 +158,7 @@ public class GlobalData implements Cloneable, Serializable {
 	      Out[gdMyProc].flush(); 
 	      }
 	      */
-	if (DEBUG) {
-	    System.out.println( gdMyProc + ": " + s );
-	}
+	logger.debug(gdMyProc + ": " + s );
     }
 
     GlobalData() {

@@ -7,8 +7,6 @@ import ibis.util.PoolInfo;
 
 class QR_Pivot {
 
-    static final boolean DEBUG = false;
-
     static final int PIVOT_ELT_ELTS = 5;
 
     static final double FLT_EPSILON = 1.19209290E-07;

@@ -10,6 +10,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
+
 /**
  * A <code>PoolInfoServer</code> runs as a separate program or thread, and
  * collects information about nodes involved in a run. It is a bit like
@@ -34,7 +37,7 @@ public class PoolInfoServer extends Thread {
      */
     public static final int POOL_INFO_PORT = 9827;
 
-    static final boolean DEBUG = TypedProperties.booleanProperty("ibis.pool.debug", false);
+    static Logger logger = Logger.getLogger(PoolInfoServer.class.getName());
 
     static class RunInfo {
         int total_hosts;
@@ -90,12 +93,10 @@ public class PoolInfoServer extends Thread {
                     }
                 }
             }
-            if (DEBUG) {
-                System.err.println("PoolInfoServer: Key " + key + " Host "
-                        + connected_hosts + " ("
-                        + socket.getInetAddress().getHostName() + ")"
-                        + " has connected");
-            }
+            logger.debug("PoolInfoServer: Key " + key + " Host "
+                    + connected_hosts + " ("
+                    + socket.getInetAddress().getHostName() + ")"
+                    + " has connected");
             host_clusters[connected_hosts] = cluster;
             host_addresses[connected_hosts] = addr;
             host_sockets[connected_hosts] = socket;
@@ -105,11 +106,9 @@ public class PoolInfoServer extends Thread {
         }
 
         void broadcast() throws IOException {
-            if (DEBUG) {
-                System.err.println("PoolInfoServer: Key " + key
-                        + ": All hosts have connected, "
-                        + "now broadcasting host info...");
-            }
+            logger.debug("PoolInfoServer: Key " + key
+                    + ": All hosts have connected, "
+                    + "now broadcasting host info...");
 
             total_hosts -= removed_hosts;
 
@@ -126,10 +125,7 @@ public class PoolInfoServer extends Thread {
                 host_sockets[i].close();
             }
 
-            if (DEBUG) {
-                System.err.println("PoolInfoServer: Key " + key
-                        + ": Broadcast done");
-            }
+            logger.debug("PoolInfoServer: Key " + key + ": Broadcast done");
         }
     }
 
@@ -219,11 +215,9 @@ public class PoolInfoServer extends Thread {
 
         try {
             while (!stop) {
-                if (DEBUG) {
-                    System.err.println("PoolInfoServer: starting run, "
-                            + "listening on port " + port
-                            + " waiting for a host to connect...");
-                }
+                logger.debug("PoolInfoServer: starting run, "
+                        + "listening on port " + port
+                        + " waiting for a host to connect...");
                 socket = serverSocket.accept();
                 in = new DataInputStream(socket.getInputStream());
                 String key = in.readUTF();

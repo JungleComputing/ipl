@@ -15,11 +15,14 @@ import ibis.util.PoolInfo;
 import java.net.Socket;
 import java.net.ServerSocket;
 
+import org.apache.log4j.Logger;
+
 public class Main {
 
-    public static final boolean DEBUG = false;
     public static final int LEN   = 100;
     public static final int COUNT = 1000;
+
+    static Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String args[]) {
 
@@ -61,9 +64,7 @@ public class Main {
 		    mout.writeObject(temp);					
 		    mout.flush();
 		    mout.reset();
-		    if (DEBUG) { 
-			System.err.println("+");
-		    }
+		    logger.debug("+");
 		}
 
 		min.readByte();
@@ -117,9 +118,7 @@ public class Main {
 
 		for (int i=0;i<count;i++) {
 		    temp = (Data) min.readObject();
-		    if (DEBUG) { 
-			System.err.print("-");
-		    } 
+		    logger.debug("-");
 		}
 
 		mout.writeByte((byte)1);

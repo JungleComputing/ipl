@@ -9,31 +9,31 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 /**
  * Some utilities that deal with IP addresses.
  */
 public class IPUtils {
     private static final String prefix = "ibis.util.ip.";
 
-    private static final String dbg = prefix + "debug";
-
     private static final String addr = prefix + "address";
 
     private static final String alt_addr = prefix + "alt-address";
 
-    private static final String[] sysprops = { dbg, addr, alt_addr };
+    private static final String[] sysprops = { addr, alt_addr };
 
     static {
         TypedProperties.checkProperties(prefix, sysprops, null);
     }
-
-    private static final boolean DEBUG = TypedProperties.booleanProperty(dbg);
 
     private static InetAddress localaddress = null;
 
     private static InetAddress alt_localaddress = null;
 
     private static InetAddress detected = null;
+
+    static Logger logger = Logger.getLogger(IPUtils.class.getName());
 
     private IPUtils() {
         /* do nothing */
@@ -71,9 +71,7 @@ public class IPUtils {
             // To make sure that a hostname is filled in:
             localaddress.getHostName();
 
-            if (DEBUG) {
-                System.err.println("Found address: " + localaddress);
-            }
+            logger.debug("Found address: " + localaddress);
         }
         return localaddress;
     }
@@ -90,9 +88,7 @@ public class IPUtils {
             // To make sure that a hostname is filled in:
             alt_localaddress.getHostName();
 
-            if (DEBUG) {
-                System.err.println("Found alt address: " + alt_localaddress);
-            }
+            logger.debug("Found alt address: " + alt_localaddress);
         }
         return alt_localaddress;
     }
@@ -119,10 +115,7 @@ public class IPUtils {
             if (myIp != null) {
                 try {
                     external = InetAddress.getByName(myIp);
-                    if (DEBUG) {
-                        System.err.println("Found specified address "
-                                + external);
-                    }
+                    logger.debug("Found specified address " + external);
                     return external;
                 } catch (java.net.UnknownHostException e) {
                     System.err.println("IP addres property specified, "
@@ -162,19 +155,14 @@ public class IPUtils {
                 for (int i = 0; i < all.length; i++) {
                     if (isExternalAddress(all[i])) {
                         external = all[i];
-                        if (DEBUG) {
-                            System.err.println("trying address: " + external
-                                    + " EXTERNAL");
-                        }
+                        logger.debug("trying address: " + external
+                                + " EXTERNAL");
                         break;
                     }
                 }
             }
         } catch (java.net.UnknownHostException e) {
-            if (DEBUG) {
-                System.err.println("InetAddress.getLocalHost().getHostName() "
-                        + "failed");
-            }
+            logger.debug("InetAddress.getLocalHost().getHostName() failed");
         }
 
         if (detected != null) {
@@ -185,10 +173,7 @@ public class IPUtils {
         try {
             e = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException ex) {
-            if (DEBUG) {
-                System.err.println("Could not get network interfaces. "
-                        + "Trying local.");
-            }
+            logger.debug("Could not get network interfaces. Trying local.");
         }
         boolean first = true;
         /*
@@ -207,12 +192,9 @@ public class IPUtils {
                 for (Enumeration e2 = nw.getInetAddresses();
                         e2.hasMoreElements();) {
                     InetAddress address = (InetAddress) e2.nextElement();
-                    if (DEBUG) {
-                        System.err.println("trying address: "
-                                + address
-                                + (isExternalAddress(address) ? " EXTERNAL"
+                    logger.debug("trying address: " + address
+                            + (isExternalAddress(address) ? " EXTERNAL"
                                         : " LOCAL"));
-                    }
                     if (isExternalAddress(address)) {
                         if (external == null) {
                             external = address;
@@ -222,17 +204,15 @@ public class IPUtils {
                                 && address instanceof Inet4Address) {
                             // Preference for IPv4
                             external = address;
-                        } else if (DEBUG || (address instanceof Inet4Address)) {
+                        } else {
                             if (first) {
                                 first = false;
-                                System.err.println("WARNING, this machine has "
-                                        + "more than one external "
-                                        + "IP address, using "
-                                        + external);
-                                System.err.println("  but found " + address
+                                logger.info("WARNING, this machine has more "
+                                        + "than one external IP address, using "
+                                        + external + "  but found " + address
                                         + " as well");
                             } else {
-                                System.err.println("  ... and found " + address
+                                logger.info("  ... and found " + address
                                         + " as well");
                             }
                         }

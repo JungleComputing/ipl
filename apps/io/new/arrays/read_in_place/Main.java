@@ -15,12 +15,14 @@ import ibis.util.PoolInfo;
 import java.net.Socket;
 import java.net.ServerSocket;
 
-public class Main {
+import org.apache.log4j.Logger;
 
-    public static final boolean DEBUG = false;
+public class Main {
 
     public static final int LEN   = 1024*1024;
     public static final int COUNT = 100;
+
+    static Logger logger = Logger.getLogger(Main.class.getName());
 
     public static final int BOOLEAN_SIZE = 1;
     public static final int BYTE_SIZE    = 1;
@@ -49,9 +51,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);					
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Warmup "+ i);
-		}
+		logger.debug("Warmup "+ i);
 	    }
 
 	    min.readByte();
@@ -63,14 +63,10 @@ public class Main {
 		mout.writeArray(temp, 0, len);
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Test "+ i);
-		}
+		logger.debug("Test "+ i);
 	    }
 
-	    if (DEBUG) { 
-		System.err.println("Test done");
-	    }
+	    logger.debug("Test done");
 
 	    min.readByte();
 
@@ -122,9 +118,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);					
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Warmup "+ i);
-		}
+		logger.debug("Warmup "+ i);
 	    }
 
 	    min.readByte();
@@ -136,9 +130,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Test "+ i);
-		}
+		logger.debug("Test "+ i);
 	    }
 
 	    min.readByte();
@@ -186,9 +178,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);					
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Warmup "+ i);
-		}
+		logger.debug("Warmup "+ i);
 	    }
 
 	    min.readByte();
@@ -200,9 +190,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Test "+ i);
-		}
+		logger.debug("Test "+ i);
 	    }
 
 	    min.readByte();
@@ -250,9 +238,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);					
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Warmup "+ i);
-		}
+		logger.debug("Warmup "+ i);
 	    }
 
 	    min.readByte();
@@ -264,9 +250,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Test "+ i);
-		}
+		logger.debug("Test "+ i);
 	    }
 
 	    min.readByte();
@@ -316,9 +300,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);					
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Warmup "+ i);
-		}
+		logger.debug("Warmup "+ i);
 	    }
 
 	    min.readByte();
@@ -330,9 +312,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Test "+ i);
-		}
+		logger.debug("Test "+ i);
 	    }
 
 	    min.readByte();
@@ -381,9 +361,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);					
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Warmup "+ i);
-		}
+		logger.debug("Warmup "+ i);
 	    }
 
 	    min.readByte();
@@ -395,9 +373,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Test "+ i);
-		}
+		logger.debug("Test "+ i);
 	    }
 
 	    min.readByte();
@@ -446,9 +422,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);					
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Warmup "+ i);
-		}
+		logger.debug("Warmup "+ i);
 	    }
 
 	    min.readByte();
@@ -460,9 +434,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Test "+ i);
-		}
+		logger.debug("Test "+ i);
 	    }
 
 	    min.readByte();
@@ -509,9 +481,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);					
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Warmup "+ i);
-		}
+		logger.debug("Warmup "+ i);
 	    }
 
 	    min.readByte();
@@ -523,9 +493,7 @@ public class Main {
 		mout.writeArray(temp, 0, len);
 		mout.flush();
 		mout.reset();
-		if (DEBUG) { 
-		    System.err.println("Test "+ i);
-		}
+		logger.debug("Test "+ i);
 	    }
 
 	    min.readByte();

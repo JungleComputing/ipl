@@ -2,6 +2,8 @@
 
 package ibis.util;
 
+import org.apache.log4j.Logger;
+
 /**
  * The <code>ThreadPool</code> class maintains a pool of daemon threads that
  * can be used to run any {@link Runnable}.
@@ -14,8 +16,6 @@ package ibis.util;
  * 	   Also make PoolThread a static inner class.
  */
 public final class ThreadPool {
-
-    private static final boolean DEBUG = false;
 
     // static int		numthreads = 0;
     // static int		ready = 0;
@@ -36,6 +36,8 @@ public final class ThreadPool {
     // Might also synchronize on pool but if we ever want to make a flexy-size
     // pool we are going to need a separate lock
     private static final Object lock = new Object();
+
+    static Logger logger = Logger.getLogger(ThreadPool.class.getName());
 
     /**
      * Double the pool size. Currently unused, but if we ever want to make a
@@ -111,9 +113,8 @@ public final class ThreadPool {
                     poolPtr == poolSize - 1) {
                         // ready--;
                         // numthreads--;
-                        if (DEBUG) {
-                            System.out.println("Poolthread exits");
-                        }
+
+                        logger.debug("Poolthread exits");
 
                         /* No afterlife for me, too many ready threads */
                         return;

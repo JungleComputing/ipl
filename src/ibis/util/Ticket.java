@@ -2,6 +2,8 @@
 
 package ibis.util;
 
+import org.apache.log4j.Logger;
+
 /**
  * The <code>Ticket</code> class provides a mechanism that enables a user to
  * first obtain an identification number, give that identification number to
@@ -14,15 +16,13 @@ package ibis.util;
  * an object has been connected to the ticket, and then return that object.
  */
 public class Ticket {
-    /**
-     * Enables/disables debugging prints.
-     */
-    private final static boolean DEBUG = false;
 
     /**
      * Initial number of tickets.
      */
     private final static int INIT_SIZE = 16;
+
+    static Logger logger = Logger.getLogger(Ticket.class.getName());
 
     /**
      * Bucket associated with a ticket. It contains room for the object
@@ -232,9 +232,7 @@ public class Ticket {
         top = initialSize;
         size = initialSize;
 
-        if (DEBUG) {
-            System.out.println("Ticket(" + initialSize + ") done");
-        }
+        logger.debug("Ticket(" + initialSize + ") done");
     }
 
     /**
@@ -244,16 +242,12 @@ public class Ticket {
      */
     public synchronized int get() {
 
-        if (DEBUG) {
-            System.out.println("Ticket.get() starting");
-        }
+        logger.debug("Ticket.get() starting");
 
         if (top == 0) {
 
-            if (DEBUG) {
-                System.out.println("Ticket.get() resizing from " + size
-                        + " to " + (size * 2));
-            }
+            logger.debug("Ticket.get() resizing from " + size + " to "
+                    + (size * 2));
 
             // resize the lot.
             int new_size = size * 2;
@@ -282,10 +276,7 @@ public class Ticket {
 
         buckets[ticket].setValid();
 
-        if (DEBUG) {
-            System.out.println("Ticket.get() returning tickets[" + top + "] = "
-                    + ticket);
-        }
+        logger.debug("Ticket.get() returning tickets[" + top + "] = " + ticket);
 
         return ticket;
     }
@@ -303,23 +294,17 @@ public class Ticket {
     public void put(int ticket, Object object) {
         Bucket bucket;
 
-        if (DEBUG) {
-            System.out.println("Ticket.put(" + ticket + ") starting");
-        }
+        logger.debug("Ticket.put(" + ticket + ") starting");
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        if (DEBUG) {
-            System.out.println("Ticket.put() got a bucket");
-        }
+        logger.debug("Ticket.put() got a bucket");
 
         bucket.put(object);
 
-        if (DEBUG) {
-            System.out.println("Ticket.put() done");
-        }
+        logger.debug("Ticket.put() done");
     }
 
     /**
@@ -333,31 +318,23 @@ public class Ticket {
         Bucket bucket;
         Object result;
 
-        if (DEBUG) {
-            System.out.println("Ticket.collect(" + ticket + ") starting");
-        }
+        logger.debug("Ticket.collect(" + ticket + ") starting");
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        if (DEBUG) {
-            System.out.println("Ticket.collect() got a bucket");
-        }
+        logger.debug("Ticket.collect() got a bucket");
 
         result = bucket.collect();
 
-        if (DEBUG) {
-            System.out.println("Ticket.collect() got a result");
-        }
+        logger.debug("Ticket.collect() got a result");
 
         synchronized (this) {
             tickets[top++] = ticket;
         }
 
-        if (DEBUG) {
-            System.out.println("Ticket.collect() done");
-        }
+        logger.debug("Ticket.collect() done");
 
         return result;
     }
@@ -373,23 +350,17 @@ public class Ticket {
         Object result;
         Bucket bucket;
 
-        if (DEBUG) {
-            System.out.println("Ticket.peek(" + ticket + ") starting");
-        }
+        logger.debug("Ticket.peek(" + ticket + ") starting");
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        if (DEBUG) {
-            System.out.println("Ticket.peek() got a bucket");
-        }
+        logger.debug("Ticket.peek() got a bucket");
 
         result = bucket.peek();
 
-        if (DEBUG) {
-            System.out.println("Ticket.peek() done");
-        }
+        logger.debug("Ticket.peek() done");
 
         return result;
     }
@@ -407,23 +378,17 @@ public class Ticket {
         Object result;
         Bucket bucket;
 
-        if (DEBUG) {
-            System.out.println("Ticket.get(" + ticket + ") starting");
-        }
+        logger.debug("Ticket.get(" + ticket + ") starting");
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        if (DEBUG) {
-            System.out.println("Ticket.get() got a bucket");
-        }
+        logger.debug("Ticket.get() got a bucket");
 
         result = bucket.get();
 
-        if (DEBUG) {
-            System.out.println("Ticket.get() done");
-        }
+        logger.debug("Ticket.get() done");
 
         return result;
     }

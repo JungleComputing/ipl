@@ -16,6 +16,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.apache.log4j.Logger;
+
 public class IbisNormalSocketFactory extends IbisSocketFactory {
 
     /**
@@ -65,11 +67,9 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 
         while (!connected) {
             int localPort = allocLocalPort();
-            if (DEBUG) {
-                System.err.println("Trying to connect Socket (local:"
-                        + (localIP == null ? "any" : localIP.toString()) + ":"
-                        + localPort + ") to " + dest + ":" + port);
-            }
+            logger.debug("Trying to connect Socket (local:"
+                    + (localIP == null ? "any" : localIP.toString()) + ":"
+                    + localPort + ") to " + dest + ":" + port);
 
             try {
                 s = null;
@@ -80,16 +80,11 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
                     s = new Socket(dest, port, localIP, localPort);
                 }
 
-                if (DEBUG) {
-                    System.err.println("DONE, local port: " + s.getLocalPort());
-                }
+                logger.debug("DONE, local port: " + s.getLocalPort());
                 connected = true;
             } catch (IOException e1) {
-                if (DEBUG) {
-                    System.err.println("Socket connect to " + dest + ":" + port
-                            + " failed (" + e1 + ")");
-                    e1.printStackTrace();
-                }
+                logger.debug("Socket connect to " + dest + ":" + port
+                        + " failed (" + e1 + ")");
 
                 if (s != null) {
                     try {
@@ -149,25 +144,19 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
                     localPort = port;
                 }
 
-                if (DEBUG) {
-                    System.err.println("Creating new ServerSocket on "
-                            + localAddress + ":" + localPort);
-                }
+                logger.debug("Creating new ServerSocket on " + localAddress
+                        + ":" + localPort);
 
                 s = createServerSocket(localPort, 50, localAddress);
 
-                if (DEBUG) {
-                    System.err.println("DONE, with port = " + s.getLocalPort());
-                }
+                logger.debug("DONE, with port = " + s.getLocalPort());
                 connected = true;
             } catch (IOException e1) {
                 if (!retry) {
                     throw e1;
                 }
-                if (DEBUG) {
-                    System.err.println("ServerSocket connect to " + port
-                            + " failed: " + e1 + "; retrying");
-                }
+                logger.debug("ServerSocket connect to " + port + " failed: "
+                        + e1 + "; retrying");
 
                 try {
                     Thread.sleep(1000);

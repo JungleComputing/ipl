@@ -28,16 +28,12 @@ import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 public class NameServer extends Thread implements Protocol {
 
     public static final int TCP_IBIS_NAME_SERVER_PORT_NR
             = TypedProperties.intProperty(NSProps.s_port, 9826);
-
-    static final boolean DEBUG
-            = TypedProperties.booleanProperty(NSProps.s_debug);
-
-    static final boolean VERBOSE
-            = TypedProperties.booleanProperty(NSProps.s_verbose);
 
     static int PINGER_TIMEOUT = TypedProperties.intProperty(NSProps.s_timeout,
             300) * 1000; // Property is in seconds, convert to milliseconds.
@@ -134,6 +130,8 @@ public class NameServer extends Thread implements Protocol {
 
     private static ControlHub h = null;
 
+    static Logger logger = Logger.getLogger(NameServer.class.getName());
+
     private NameServer(boolean singleRun, boolean poolserver,
             boolean controlhub) throws IOException {
 
@@ -179,9 +177,7 @@ public class NameServer extends Thread implements Protocol {
             poolServerStarted = true;
         }
 
-        if (DEBUG) {
-            System.err.println("NameServer: singleRun = " + singleRun);
-        }
+        logger.info("NameServer: singleRun = " + singleRun);
 
         // Create a server socket.
         serverSocket = NameServerClient.socketFactory.createServerSocket(port,
@@ -189,19 +185,15 @@ public class NameServer extends Thread implements Protocol {
 
         pools = new Hashtable();
 
-        if (VERBOSE) {
-            System.err.println("NameServer: created server on " + serverSocket);
-        }
+        logger.info("NameServer: created server on " + serverSocket);
 
     }
 
     private void forwardJoin(IbisInfo dest, IbisIdentifier id) {
 
-        if (DEBUG) {
-            System.err.println("NameServer: forwarding join of "
-                    + id.toString() + " to " + dest.ibisNameServerAddress
-                    + ", dest port: " + dest.ibisNameServerport);
-        }
+        logger.debug("NameServer: forwarding join of "
+                + id.toString() + " to " + dest.ibisNameServerAddress
+                + ", dest port: " + dest.ibisNameServerport);
         try {
 
             Socket s = NameServerClient.socketFactory.createSocket(
@@ -215,11 +207,9 @@ public class NameServer extends Thread implements Protocol {
             out2.writeObject(id);
             NameServerClient.socketFactory.close(null, out2, s);
 
-            if (DEBUG) {
-                System.err.println("NameServer: forwarding join of "
-                        + id.toString() + " to " + dest.identifier.toString()
-                        + " DONE");
-            }
+            logger.debug("NameServer: forwarding join of "
+                    + id.toString() + " to " + dest.identifier.toString()
+                    + " DONE");
         } catch (Exception e) {
             System.err.println("Could not forward join of " + id.toString()
                     + " to " + dest.identifier.toString() + "error = " + e);
@@ -342,11 +332,8 @@ public class NameServer extends Thread implements Protocol {
         InetAddress address = (InetAddress) in.readObject();
         int port = in.readInt();
 
-        if (DEBUG) {
-            System.err.print("NameServer: join to pool " + key);
-            System.err.print(" requested by " + id.toString());
-            System.err.println(", port " + port);
-        }
+        logger.debug("NameServer: join to pool " + key + " requested by "
+                + id.toString() +", port " + port);
 
         IbisInfo info = new IbisInfo(id, address, port);
         RunInfo p = (RunInfo) pools.get(key);
@@ -359,18 +346,14 @@ public class NameServer extends Thread implements Protocol {
             pools.put(key, p);
             joined = true;
 
-            if (VERBOSE) {
-                System.err.println("NameServer: new pool " + key + " created");
-            }
+            logger.info("NameServer: new pool " + key + " created");
         }
 
         if (p.pool.contains(info)) {
             out.writeByte(IBIS_REFUSED);
 
-            if (DEBUG) {
-                System.err.println("NameServer: join to pool " + key
-                        + " of ibis " + id.toString() + " refused");
-            }
+            logger.debug("NameServer: join to pool " + key + " of ibis "
+                    + id.toString() + " refused");
             out.flush();
         } else {
             out.writeByte(IBIS_ACCEPTED);
@@ -378,10 +361,8 @@ public class NameServer extends Thread implements Protocol {
             out.writeInt(p.receivePortNameServer.getPort());
             out.writeInt(p.electionServer.getPort());
 
-            if (DEBUG) {
-                System.err.println("NameServer: join to pool " + key
-                        + " of ibis " + id.toString() + " accepted");
-            }
+            logger.debug("NameServer: join to pool " + key + " of ibis "
+                    + id.toString() + " accepted");
 
             // first send all existing nodes to the new one.
             out.writeInt(p.pool.size());
@@ -414,9 +395,7 @@ public class NameServer extends Thread implements Protocol {
     }
 
     private void poolPinger(String key) {
-        if (DEBUG) {
-            System.err.print("NameServer: ping pool " + key);
-        }
+        logger.debug("NameServer: ping pool " + key);
 
         RunInfo p = (RunInfo) pools.get(key);
 
@@ -446,10 +425,8 @@ public class NameServer extends Thread implements Protocol {
     }
 
     private void forwardLeave(IbisInfo dest, IbisIdentifier id) {
-        if (DEBUG) {
-            System.err.println("NameServer: forwarding leave of "
-                    + id.toString() + " to " + dest.identifier.toString());
-        }
+        logger.debug("NameServer: forwarding leave of "
+                + id.toString() + " to " + dest.identifier.toString());
 
         try {
             Socket s = NameServerClient.socketFactory.createSocket(
@@ -532,10 +509,8 @@ public class NameServer extends Thread implements Protocol {
 
         RunInfo p = (RunInfo) pools.get(key);
 
-        if (DEBUG) {
-            System.err.println("NameServer: leave from pool " + key
-                    + " requested by " + id.toString());
-        }
+        logger.debug("NameServer: leave from pool " + key
+                + " requested by " + id.toString());
 
         if (p == null) {
             // new run
@@ -555,10 +530,8 @@ public class NameServer extends Thread implements Protocol {
 
         if (index != -1) {
             // found it.
-            if (DEBUG) {
-                System.err.println("NameServer: leave from pool " + key
-                        + " of ibis " + id.toString() + " accepted");
-            }
+            logger.debug("NameServer: leave from pool " + key
+                    + " of ibis " + id.toString() + " accepted");
 
             // Let the election server know about it.
             electionKill(p, new IbisIdentifier[] { id });
@@ -580,9 +553,7 @@ public class NameServer extends Thread implements Protocol {
             id.free();
 
             if (p.pool.size() == 0) {
-                if (VERBOSE) {
-                    System.err.println("NameServer: removing pool " + key);
-                }
+                logger.info("NameServer: removing pool " + key);
 
                 pools.remove(key);
                 killThreads(p);
@@ -604,16 +575,11 @@ public class NameServer extends Thread implements Protocol {
         while (!stop) {
 
             try {
-                if (DEBUG) {
-                    System.err.println("NameServer: accepting incoming "
-                            + "connections... ");
-                }
+                logger.info("NameServer: accepting incoming connections... ");
                 s = NameServerClient.socketFactory.accept(serverSocket);
 
-                if (DEBUG) {
-                    System.err.println("NameServer: incoming connection from "
-                            + s.toString());
-                }
+                logger.debug("NameServer: incoming connection from "
+                        + s.toString());
 
             } catch (Exception e) {
                 System.err.println("NameServer got an error " + e.getMessage());
@@ -675,9 +641,7 @@ public class NameServer extends Thread implements Protocol {
             h.waitForCount(1);
         }
 
-        if (VERBOSE) {
-            System.err.println("NameServer: exit");
-        }
+        logger.info("NameServer: exit");
     }
 
     static synchronized NameServer createNameServer(boolean singleRun,

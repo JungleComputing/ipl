@@ -11,6 +11,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.apache.log4j.Logger;
+
 /**
  * Abstract socket factory class for creating client and server sockets.
  * An implementation can be chosen by means of the
@@ -24,14 +26,15 @@ public abstract class IbisSocketFactory {
 
     private static final String rng = prefix + "port.range";
 
-    private static final String debug = prefix + "debug";
-
     private static final String inbufsize = prefix + "InputBufferSize";
 
     private static final String outbufsize = prefix + "OutputBufferSize";
 
-    private static final String[] sysprops = { sf, debug, inbufsize,
+    private static final String[] sysprops = { sf, inbufsize,
             outbufsize, rng };
+
+    protected static Logger logger
+            = Logger.getLogger(IbisSocketFactory.class.getName());
 
     private static String DEFAULT_SOCKET_FACTORY
             = "ibis.impl.util.IbisConnectSocketFactory";
@@ -40,9 +43,6 @@ public abstract class IbisSocketFactory {
 //            = "ibis.impl.util.IbisNormalSocketFactory";
 
     private static String socketFactoryName;
-
-    protected static final boolean DEBUG 
-            = TypedProperties.booleanProperty(debug, false);
 
     static boolean firewall = false;
 
@@ -82,9 +82,8 @@ public abstract class IbisSocketFactory {
                     endRange = Integer.parseInt(to);
                     firewall = true;
                     portNr = startRange;
-		    if(DEBUG) {
-			System.err.println("IbisSocketFactory: using port range " + startRange + " - " + endRange);
-		    }
+		    logger.debug("IbisSocketFactory: using port range "
+                            + startRange + " - " + endRange);
                 } catch (Exception e) {
                     System.err.println("Port range format: 3000-4000 or 3000,4000. Ignoring");
 //                    System.exit(1);
@@ -145,9 +144,8 @@ public abstract class IbisSocketFactory {
                         + "within specified range. Wrapping around");
             }
 
-	    if(DEBUG) {
-		System.err.println("allocating local port in open range, returning: " + res);
-	    }
+	    logger.debug("allocating local port in open range, returning: "
+                    + res);
             return res;
         }
         return 0; /* any free port */
@@ -203,11 +201,9 @@ public abstract class IbisSocketFactory {
         Socket s;
         s = a.accept();
         tuneSocket(s);
-        if (DEBUG) {
-            System.out.println("accepted new connection from "
-                    + s.getInetAddress() + ":" + s.getPort() + ", local = "
-                    + s.getLocalAddress() + ":" + s.getLocalPort());
-        }
+        logger.debug("accepted new connection from "
+                + s.getInetAddress() + ":" + s.getPort() + ", local = "
+                + s.getLocalAddress() + ":" + s.getLocalPort());
 
         return s;
     }

@@ -3,40 +3,37 @@
 
 import ibis.gmi.GroupMember;
 
-class Test extends GroupMember implements myGroup {
+import org.apache.log4j.Logger;
 
-    public final static boolean DEBUG = false;
+class Test extends GroupMember implements myGroup {
 
     int i;
 
     Object data;
 
+    static Logger logger = Logger.getLogger(Test.class.getName());
+
     Test() {
-        if (DEBUG)
-            System.out.println(getRank() + ": Test()");
+        logger.debug(getRank() + ": Test()");
     }
 
     public void groupInit() {
         i = getRank();
-        if (DEBUG)
-            System.out.println(getRank() + ": Test.groupInit()");
+        logger.debug(getRank() + ": Test.groupInit()");
     }
 
     public void put(Object o) {
-        if (DEBUG)
-            System.out.println(getRank() + ": Test.put()");
+        logger.debug(getRank() + ": Test.put()");
         data = o;
     }
 
     public Object get() {
-        if (DEBUG)
-            System.out.println(getRank() + ": Test.get()");
+        logger.debug(getRank() + ": Test.get()");
         return data;
     }
 
     public Object put_get(Object o) {
-        if (DEBUG)
-            System.out.println(getRank() + ": Test.put_get()");
+        logger.debug(getRank() + ": Test.put_get()");
         Main.inc_count();
         return o;
     }

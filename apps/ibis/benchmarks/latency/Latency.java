@@ -8,9 +8,7 @@ import java.util.Random;
 
 import java.io.IOException;
 
-interface Config {
-    static final boolean DEBUG = false;
-}
+import org.apache.log4j.Logger;
 
 class Computer extends Thread {
 
@@ -71,7 +69,7 @@ class Computer extends Thread {
     }
 }
 
-class Sender implements Config {
+class Sender {
     SendPort sport;
 
     ReceivePort rport;
@@ -89,13 +87,9 @@ class Sender implements Config {
 
             for (int i = 0; i < count; i++) {
                 WriteMessage writeMessage = sport.newMessage();
-                if (DEBUG) {
-                    System.out.println("LAT: finish message");
-                }
+                Latency.logger.debug("LAT: finish message");
                 writeMessage.finish();
-                if (DEBUG) {
-                    System.out.println("LAT: message done");
-                }
+                Latency.logger.debug("LAT: message done");
 
                 ReadMessage readMessage = rport.receive();
                 readMessage.finish();
@@ -113,7 +107,7 @@ class Sender implements Config {
     }
 }
 
-class ExplicitReceiver implements Config {
+class ExplicitReceiver {
 
     SendPort sport;
 
@@ -131,17 +125,11 @@ class ExplicitReceiver implements Config {
 
         for (int r = 0; r < repeat; r++) {
             for (int i = 0; i < count; i++) {
-                if (DEBUG) {
-                    System.out.println("LAT: in receive");
-                }
+                Latency.logger.debug("LAT: in receive");
                 ReadMessage readMessage = rport.receive();
-                if (DEBUG) {
-                    System.out.println("LAT: receive done");
-                }
+                Latency.logger.debug("LAT: receive done");
                 readMessage.finish();
-                if (DEBUG) {
-                    System.out.println("LAT: finish done");
-                }
+                Latency.logger.debug("LAT: finish done");
 
                 WriteMessage writeMessage = sport.newMessage();
                 writeMessage.finish();
@@ -224,7 +212,7 @@ class UpcallReceiver implements Upcall {
     }
 }
 
-class UpcallSender implements Upcall, Config {
+class UpcallSender implements Upcall {
     SendPort sport;
 
     int count, max;
@@ -293,17 +281,11 @@ class UpcallSender implements Upcall, Config {
                 }
             }
 
-            if (DEBUG) {
-                System.err.println("SEND pre new");
-            }
+            Latency.logger.debug("SEND pre new");
             WriteMessage writeMessage = sport.newMessage();
-            if (DEBUG) {
-                System.err.println("SEND pre fin");
-            }
+            Latency.logger.debug("SEND pre fin");
             writeMessage.finish();
-            if (DEBUG) {
-                System.err.println("SEND post fin");
-            }
+            Latency.logger.debug("SEND post fin");
 
             if (delayedFinish) {
                 readMessage.finish();
@@ -329,7 +311,9 @@ class UpcallSender implements Upcall, Config {
     }
 }
 
-class Latency implements Config {
+class Latency {
+
+    static Logger logger = Logger.getLogger(Latency.class.getName());
 
     static Ibis ibis;
 
@@ -449,24 +433,16 @@ class Latency implements Config {
             ReceivePort rport;
             Latency lat = null;
 
-            if (DEBUG) {
-                System.out.println("LAT: pre elect");
-            }
+            logger.debug("LAT: pre elect");
             IbisIdentifier master = registry.elect("latency");
-            if (DEBUG) {
-                System.out.println("LAT: post elect");
-            }
+            logger.debug("LAT: post elect");
 
             if (master.equals(ibis.identifier())) {
-                if (DEBUG) {
-                    System.out.println("LAT: I am master");
-                }
+                logger.debug("LAT: I am master");
                 rank = 0;
                 remoteRank = 1;
             } else {
-                if (DEBUG) {
-                    System.out.println("LAT: I am slave");
-                }
+                logger.debug("LAT: I am slave");
                 rank = 1;
                 remoteRank = 0;
             }
@@ -485,9 +461,7 @@ class Latency implements Config {
                     connect(sport, ident);
                     Sender sender = new Sender(rport, sport);
 
-                    if (DEBUG) {
-                        System.out.println("LAT: starting send test");
-                    }
+                    logger.debug("LAT: starting send test");
                     sender.send(count, repeat, c);
                 } else {
                     UpcallSender sender = new UpcallSender(sport, count,
@@ -526,9 +500,7 @@ class Latency implements Config {
 
                     ExplicitReceiver receiver = new ExplicitReceiver(rport,
                             sport, c);
-                    if (DEBUG) {
-                        System.out.println("LAT: starting test receiver");
-                    }
+                    logger.debug("LAT: starting test receiver");
                     receiver.receive(count, repeat);
                 }
             }

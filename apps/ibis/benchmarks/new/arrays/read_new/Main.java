@@ -6,13 +6,15 @@ import java.util.Random;
 
 import java.io.IOException;
 
-public class Main {
+import org.apache.log4j.Logger;
 
-    public static final boolean DEBUG = false;
+public class Main {
 
     public static final int LEN   = 1024;
     public static final int COUNT = 100000;
     //	public static final int COUNT = 2;
+
+    static Logger logger = Logger.getLogger(Main.class.getName());
 
     public static final int BOOLEAN_SIZE = 1;
     public static final int BYTE_SIZE    = 1;
@@ -38,9 +40,7 @@ public class Main {
 		WriteMessage wm = s.newMessage();
 		wm.writeObject(temp);
 		wm.finish();
-		if (DEBUG) { 
-		    System.err.println("Warmup "+ i);
-		}
+		logger.debug("Warmup "+ i);
 	    }
 
 	    ReadMessage rm = r.receive();
@@ -53,14 +53,10 @@ public class Main {
 		WriteMessage wm = s.newMessage();
 		wm.writeObject(temp);
 		wm.finish();
-		if (DEBUG) { 
-		    System.err.println("Test "+ i);
-		}
+		logger.debug("Test "+ i);
 	    }
 
-	    if (DEBUG) { 
-		System.err.println("Test done");
-	    }
+	    logger.debug("Test done");
 
 	    rm = r.receive();
 	    rm.finish();

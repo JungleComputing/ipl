@@ -21,16 +21,12 @@ public class NSProps {
 
     public static final String s_retry = PROPERTY_PREFIX + "retry";
 
-    public static final String s_debug = PROPERTY_PREFIX + "debug";
-
     public static final String s_single = PROPERTY_PREFIX + "single";
-
-    public static final String s_verbose = PROPERTY_PREFIX + "verbose";
 
     public static final String s_timeout = PROPERTY_PREFIX + "timeout";
 
     private static final String[] sysprops = { s_impl, s_host, s_key, s_port,
-            s_retry, s_debug, s_single, s_verbose, s_timeout };
+            s_retry, s_single, s_timeout };
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);

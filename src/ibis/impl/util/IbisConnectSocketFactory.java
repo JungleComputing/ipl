@@ -66,25 +66,17 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
         long currentTime = 0;
 
         while (!connected) {
-            if (DEBUG) {
-                System.err.println(
-                        "ibis-connect: Trying to connect Socket (local:"
-                        + (localIP == null ? "any" : localIP.toString())
-                        + ") to " + dest + ":" + port);
-            }
+            logger.debug("ibis-connect: Trying to connect Socket (local:"
+                    + (localIP == null ? "any" : localIP.toString())
+                    + ") to " + dest + ":" + port);
 
             try {
                 s = ExtSocketFactory.createClientSocket(dest, port);
-                if (DEBUG) {
-                    System.err.println("DONE, local port: " + s.getLocalPort());
-                }
+                logger.debug("DONE, local port: " + s.getLocalPort());
                 connected = true;
             } catch (IOException e1) {
-                if (DEBUG) {
-                    System.err.println("Socket connect to " + dest + ":" + port
-                            + " failed (" + e1 + ")");
-                    e1.printStackTrace();
-                }
+                logger.debug("Socket connect to " + dest + ":" + port
+                        + " failed (" + e1 + ")");
 
                 if (s != null) {
                     try {

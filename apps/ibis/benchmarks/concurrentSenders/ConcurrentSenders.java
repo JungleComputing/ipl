@@ -9,11 +9,9 @@ import java.util.HashMap;
 
 import java.io.IOException;
 
-interface Config {
-    static final boolean DEBUG = false;
-}
+import org.apache.log4j.Logger;
 
-class Sender extends Thread implements Config {
+class Sender extends Thread {
     int count, repeat;
 
     Ibis ibis;
@@ -54,22 +52,16 @@ class Sender extends Thread implements Config {
 
                 for (int i = 0; i < count; i++) {
                     WriteMessage writeMessage = sport.newMessage();
-                    if (DEBUG) {
-                        System.out.println("LAT: send message");
-                    }
+                    ConcurrentSenders.logger.debug("LAT: send message");
                     if (sendTree) {
                         writeMessage.writeObject(tree);
                     } else {
                         writeMessage.writeObject("total world domination");
                     }
 
-                    if (DEBUG) {
-                        System.out.println("LAT: finish message");
-                    }
+                    ConcurrentSenders.logger.debug("LAT: finish message");
                     writeMessage.finish();
-                    if (DEBUG) {
-                        System.out.println("LAT: message done");
-                    }
+                    ConcurrentSenders.logger.debug("LAT: message done");
                 }
 
                 time = System.currentTimeMillis() - time;
@@ -180,9 +172,11 @@ class Receiver implements Upcall {
     }
 }
 
-class ConcurrentSenders implements Config {
+class ConcurrentSenders {
 
     static Ibis ibis;
+
+    static Logger logger = Logger.getLogger(ConcurrentSenders.class.getName());
 
     static Registry registry;
 
@@ -242,23 +236,15 @@ class ConcurrentSenders implements Config {
 
             registry = ibis.registry();
 
-            if (DEBUG) {
-                System.out.println("LAT: pre elect");
-            }
+            logger.debug("LAT: pre elect");
             IbisIdentifier master = registry.elect("latency");
-            if (DEBUG) {
-                System.out.println("LAT: post elect");
-            }
+            logger.debug("LAT: post elect");
 
             if (master.equals(ibis.identifier())) {
-                if (DEBUG) {
-                    System.out.println("LAT: I am master");
-                }
+                logger.debug("LAT: I am master");
                 rank = 0;
             } else {
-                if (DEBUG) {
-                    System.out.println("LAT: I am slave");
-                }
+                logger.debug("LAT: I am slave");
                 rank = 1;
             }
 

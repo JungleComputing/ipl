@@ -19,6 +19,8 @@ import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import org.apache.log4j.Logger;
+
 class ReceivePortNameServerClient implements Protocol {
 
     InetAddress server;
@@ -27,7 +29,8 @@ class ReceivePortNameServerClient implements Protocol {
 
     InetAddress localAddress;
 
-    private static final boolean VERBOSE = false;
+    private static Logger logger
+            = Logger.getLogger(ReceivePortNameServerClient.class.getName());
 
     ReceivePortNameServerClient(InetAddress localAddress, InetAddress server,
             int port) {
@@ -57,21 +60,15 @@ class ReceivePortNameServerClient implements Protocol {
         DummyInputStream di = new DummyInputStream(s.getInputStream());
         in = new ObjectInputStream(new BufferedInputStream(di));
         result = in.readByte();
-        if (VERBOSE) {
-            System.err.println(this + ": lookup port \"" + name + "\"");
-        }
+        logger.debug(this + ": lookup port \"" + name + "\"");
 
         switch (result) {
         case PORT_UNKNOWN:
-            if (VERBOSE) {
-                System.err.println("Port " + name + ": PORT_UNKNOWN");
-            }
+            logger.debug("Port " + name + ": PORT_UNKNOWN");
             NameServerClient.socketFactory.close(in, out, s);
             throw new ConnectionTimedOutException("could not connect");
         case PORT_KNOWN:
-            if (VERBOSE) {
-                System.err.println("Port " + name + ": PORT_KNOWN");
-            }
+            logger.debug("Port " + name + ": PORT_KNOWN");
             try {
                 id = (ReceivePortIdentifier) in.readObject();
             } catch (ClassNotFoundException e) {
@@ -106,9 +103,7 @@ class ReceivePortNameServerClient implements Protocol {
         ObjectInputStream in;
         int result;
 
-        if (VERBOSE) {
-            System.err.println(this + ": bind \"" + name + "\" to " + id);
-        }
+        logger.debug(this + ": bind \"" + name + "\" to " + id);
 
         s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
 
@@ -138,9 +133,7 @@ class ReceivePortNameServerClient implements Protocol {
                     "Registry: bind got illegal opcode " + result);
         }
 
-        if (VERBOSE) {
-            System.err.println(this + ": bound \"" + name + "\" to " + id);
-        }
+        logger.debug(this + ": bound \"" + name + "\" to " + id);
 
     }
 
@@ -151,9 +144,7 @@ class ReceivePortNameServerClient implements Protocol {
         ObjectInputStream in;
         int result;
 
-        if (VERBOSE) {
-            System.err.println(this + ": rebind \"" + name + "\" to " + id);
-        }
+        logger.debug(this + ": rebind \"" + name + "\" to " + id);
 
         s = NameServerClient.nsConnect(server, port, localAddress, false, 10);
 
@@ -180,9 +171,7 @@ class ReceivePortNameServerClient implements Protocol {
                     "Registry: bind got illegal opcode " + result);
         }
 
-        if (VERBOSE) {
-            System.err.println(this + ": rebound \"" + name + "\" to " + id);
-        }
+        logger.debug(this + ": rebound \"" + name + "\" to " + id);
     }
 
     //end gosia

@@ -550,6 +550,7 @@
 	<copy todir="${build}">
 	    <fileset dir="${ibis}">
 		<include name="ibis-properties"/>
+		<include name="log4j.properties"/>
 		<include name="properties"/>
 	    </fileset>
 	</copy>
@@ -586,7 +587,7 @@
 	<echo level="verbose" message="basename = ${package-basename}"/>
 	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
 		basedir="${ibis}/build"
-		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties ibis-properties VERSION"/>
+		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties log4j.properties ibis-properties VERSION"/>
     </target>
 
     <target name="jars"
@@ -596,7 +597,7 @@
     <target name="ibis.jar">
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
-		includes="**/*.class **/properties properties ibis-properties VERSION"/>
+		includes="**/*.class **/properties log4j.properties properties ibis-properties VERSION"/>
     </target>
 
     <target name="ibis-package-jars">
@@ -741,7 +742,7 @@
 
     <target name="rewrite"
 	    depends="init"
-	    description="Preprocess all serializable classes bundled with the standard java">
+	    description="Preprocess all serializable classes of standard Java">
 	<!--
 	    First, find and extract jars.
 	-->
@@ -839,7 +840,8 @@
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
     </target>
 
-    <target name="docs">
+    <target name="docs"
+	    description="Build the Ibis API documentation">
 	<ant dir="${docs}" inheritAll="false" target="api"/>
     </target>
 
@@ -847,7 +849,8 @@
 	<ant dir="${docs}" inheritAll="false" target="developer-api"/>
     </target>
 
-    <target name="progman">
+    <target name="progman"
+	    description="Build the Ibis programmers manual">
 	<ant dir="${docs}" inheritAll="false" target="progman"/>
     </target>
 

@@ -4,13 +4,16 @@ import ibis.ipl.*;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 public class Main {
     static Ibis ibis;
     static Registry registry;
 
-    public static final boolean DEBUG = false;
     public static final int LEN   = 1000;
     public static final int COUNT = 1000;
+
+    static Logger logger = Logger.getLogger(Main.class.getName());
 
     public static ReceivePortIdentifier lookup(String name) throws IOException { 
 
@@ -109,9 +112,7 @@ public class Main {
 		    WriteMessage wm = sport.newMessage();
 		    wm.writeObject(temp);					
 		    wm.finish();
-		    if (DEBUG) { 
-			System.err.println("Warmup "+ i);
-		    }
+		    logger.debug("Warmup "+ i);
 		}
 
 		ReadMessage rm = rport.receive();
@@ -124,9 +125,7 @@ public class Main {
 		    WriteMessage wm = sport.newMessage();
 		    wm.writeObject(temp);					
 		    wm.finish();
-		    if (DEBUG) { 
-			System.err.println("Test "+ i);
-		    }
+		    logger.debug("Test "+ i);
 		}
 
 		rm = rport.receive();
@@ -159,9 +158,7 @@ public class Main {
 			ReadMessage rm = rport.receive();
 			rm.readObject();
 			rm.finish();
-			if (DEBUG) { 
-			    System.err.println("Test "+ i);
-			}
+			logger.debug("Test "+ i);
 		    }
 
 		    WriteMessage wm = sport.newMessage();

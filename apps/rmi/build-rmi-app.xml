@@ -261,7 +261,7 @@
 
 	<javac  destdir="${builddir}"
 		debug="${java.debug.value}"
-		srcdir=".:../shared">
+		srcdir=".:${ibis}/apps/rmi/shared">
 	    <classpath refid="default.classpath"/>
 	    <include name="**/*.java"/>
 	</javac>

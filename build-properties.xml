@@ -28,6 +28,10 @@
 	    name="package.home.junit"
 	    location="${ibis}/3rdparty/junit.jar"/>
 
+    <property
+	    name="package.home.log4j"
+	    location="${ibis}/3rdparty/log4j-1.2.9.jar"/>
+
 
     <target name="property-init"
 	    unless="property.initialized">
@@ -43,6 +47,7 @@
 		    <pathelement path="${ibisBuild}"/>
 		    <pathelement path="${build}"/>
 		    <pathelement path="${package.home.bcel}"/>
+		    <pathelement path="${package.home.log4j}"/>
 		    <pathelement path="${package.home.junit}"/>
 		    <path refid="extra-classpath"/>
 		</path>
@@ -55,6 +60,7 @@
 		    <pathelement path="${ibisBuild}"/>
 		    <pathelement path="${build}"/>
 		    <pathelement path="${package.home.bcel}"/>
+		    <pathelement path="${package.home.log4j}"/>
 		    <pathelement path="${package.home.junit}"/>
 		</path>
 	    </else>

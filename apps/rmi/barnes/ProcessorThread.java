@@ -359,10 +359,6 @@ public class ProcessorThread extends Thread {
         //    g.debugStr("Created Processor Implementation");
     }
 
-    void Debug(String debugString) {
-        System.out.println(myProc + ": " + debugString);
-    }
-
     public void run() {
 
         try {
