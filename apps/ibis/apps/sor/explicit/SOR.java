@@ -27,6 +27,7 @@ class SOR {
 	private final int rank;        /* process ranks */
 	private final int lb;
 	private final int ub;          /* lower and upper bound of grid stripe [lb ... ub] -> NOTE: ub is inclusive*/
+	private final int maxIters;
 
 	private final double[][] g;
 
@@ -37,7 +38,7 @@ class SOR {
 	private final SendPort reduceS;
 	private final ReceivePort reduceR;
 	
-	SOR(int nrow, int ncol, int N, int rank, int size, 
+	SOR(int nrow, int ncol, int N, int rank, int size, int maxIters,
 	    SendPort leftS, SendPort rightS, 
 	    ReceivePort leftR, ReceivePort rightR, 
 	    SendPort reduceS, ReceivePort reduceR) {
@@ -55,6 +56,8 @@ class SOR {
 		/* ranks of predecessor and successor for row exchanges */
 		this.size = size;
 		this.rank = rank;
+
+		this.maxIters = maxIters;
 		
 		// getBounds 
 		int n = N-1;
@@ -247,7 +250,7 @@ class SOR {
 			
 			iteration++;
 			
-		} while (maxdiff > stopdiff);
+		} while ((maxIters > 0) ? (iteration < maxIters) : (maxdiff > stopdiff));
 		
 		t_end = System.currentTimeMillis();
 		

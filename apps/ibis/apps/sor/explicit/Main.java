@@ -25,12 +25,10 @@ class Main {
 		
 		if (info.rank() == 0) {
 			
-			System.out.println("Usage: sor <NROW> <NCOL> <ITERATIONS> <COMMUNICATION> <THREAD>");
+			System.out.println("Usage: sor {<N> {<ITERATIONS>}}");
 			System.out.println("");
-			System.out.println("NROW x NCOL   : (int, int). Problem matrix size");
+			System.out.println("N x N   : (int, int). Problem matrix size");
 			System.out.println("ITERATIONS    : (int). Number of iterations to calculate. 0 means dynamic termination detection.");
-			System.out.println("COMMUNICATION : ( \"sync\", \"async\"). Communication type. \"async\" = always split phase calculation.");
-			System.out.println("THREAD        : communication thread type. Only legal value is \"wait\", a single thread is reused");
 			System.out.println("");
 			
 			for (int i=0;i<args.length;i++) {
@@ -93,17 +91,29 @@ class Main {
 		try {
 			/* set up problem size */
 			
-			int N = 1000;					
+			int N = 1026;					
 			// int N = 200;					
 			int nrow = 0;
 			int ncol = 0;
+			int maxIters = -1;
 			
 			info = PoolInfo.createPoolInfo();
 
-			if (args.length == 1) {
-				N = Integer.parseInt(args[0]);
+			int options = 0;
+			for (int i = 0; i < args.length; i++) {
+			    if (false) {
+			    } else if (options == 0) {
+				N = Integer.parseInt(args[i]);
 				N += 2;
-			} 	    
+				options++;
+			    } else if (options == 1) {
+				maxIters = Integer.parseInt(args[i]);
+				options++;
+			    } else {
+				usage(args);
+				System.exit(33);
+			    }
+			}
 			
 			if ( N < info.size()) {
 				/* give each process at least one row */
@@ -130,6 +140,7 @@ class Main {
 			reqprops.add("serialization", "data");
 			reqprops.add("worldmodel", "closed");
 			reqprops.add("communication", "OneToMany, OneToOne, ManyToOne, Reliable, ExplicitReceipt");
+			// reqprops.add("communication", "OneToOne, Reliable, ExplicitReceipt");
 
 			try {
 				ibis = Ibis.createIbis(reqprops, null);
@@ -185,6 +196,7 @@ class Main {
 
 			reqprops = new StaticProperties();
 			reqprops.add("serialization", "data");
+			// reqprops.add("communication", "OneToOne, Reliable, ExplicitReceipt");
 			reqprops.add("communication", "OneToMany, OneToOne, ManyToOne, Reliable, ExplicitReceipt");
 			
 			PortType portTypeReduce = ibis.createPortType("SOR Reduce", reqprops);
@@ -216,7 +228,7 @@ class Main {
 				System.out.println("");
 			}
 
-			SOR local = new SOR(nrow, ncol, N, info.rank(), info.size(), leftS, rightS, leftR, rightR, reduceS, reduceR);	    
+			SOR local = new SOR(nrow, ncol, N, info.rank(), info.size(), maxIters, leftS, rightS, leftR, rightR, reduceS, reduceR);	    
 			local.start();
 
                         // This seems to produce a lot of core dumps on PandaIbis ??
