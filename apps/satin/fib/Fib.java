@@ -50,10 +50,12 @@ final class Fib extends ibis.satin.SatinObject implements FibInterface, java.io.
 		double time = (double) (System.currentTimeMillis() - start) / 1000.0;
 
 		if(res != res2) {
-			System.err.println("application fib GAVE WRONG RESULT! " + res + " should be " + res2);
+			System.err.println("application time fib GAVE WRONG RESULT! " + res + " should be " + res2);
+			System.err.println("application result fib GAVE WRONG RESULT! " + res + " should be " + res2);
 		} else {
-			System.out.println("application fib (" + n + ") took " + time + 
-					   " seconds, result = " + res);
+			System.out.println("application time fib (" + n + ") took " + time + 
+					   " s");
+			System.out.println("application result fib (" + n + ") = " + res);
 		}
 	}
 }

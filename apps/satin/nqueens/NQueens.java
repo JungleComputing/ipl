@@ -126,11 +126,12 @@ public final class NQueens extends ibis.satin.SatinObject implements NQueensInte
 		end = System.currentTimeMillis();
 		
 		if(!nq.checkResult(board)) {
-			System.out.println("application nqueens (" + size + ") gave WRONG RESULT");
+			System.out.println("application time nqueens (" + size + ") gave WRONG RESULT");
+			System.out.println("application result nqueens (" + size + ") gave WRONG RESULT");
 			System.exit(1);
 		}
 
-		System.out.print("Result:");
+		System.out.print("application result nqueens (" + size + ") = ");
 		
 		for (int i = 0; i < board.length; ++i) {
 			System.out.print(" " + board[i]);
@@ -140,6 +141,6 @@ public final class NQueens extends ibis.satin.SatinObject implements NQueensInte
 		time = end - start;
 		time /= 1000.0;
 
-		System.out.println("application nqueens (" + size + ") took " + time + " seconds");
+		System.out.println("application time nqueens (" + size + ") took " + time + " s");
 	}
 }

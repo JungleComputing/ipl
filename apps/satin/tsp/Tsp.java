@@ -150,6 +150,7 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface, java.io.
 		time = (double) end - start;
 		time /= 1000.0;
 
-		System.out.println("application tsp (" + NTowns + ") took " + time + " s, min = " + res);
+		System.out.println("application time tsp (" + NTowns + ") took " + time + " s");
+		System.out.println("application result tsp (" + NTowns + ") = " + res);
 	}
 }

@@ -30,15 +30,12 @@ import java.io.EOFException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
-public final class TcpIbis extends Ibis {
-
-	static final boolean DEBUG = false;
-
+public final class TcpIbis extends Ibis implements Config {
 	static TcpIbis globalIbis;
 
 	IbisIdentifierTable identTable = new IbisIdentifierTable();
 
-	private TcpIbisIdentifier ident; 
+	private TcpIbisIdentifier ident;
 
 	protected NameServerClient        tcpIbisNameServerClient;
 	protected PortTypeNameServerClient    tcpPortTypeNameServerClient;
@@ -163,7 +160,7 @@ public final class TcpIbis extends Ibis {
 				joinedIbises.add(joinIdent);
 				return;
 			}
-		
+
 			// this method forwards the join to the application running on top of ibis.		
 			if(DEBUG) {
 				System.out.println(name + ": Ibis '" + joinIdent.name() + "' joined"); 

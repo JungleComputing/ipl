@@ -18,8 +18,8 @@ public final class Conversion {
 //		System.err.println("pre load");
 		try {
 			System.loadLibrary("conversion");
-		} catch (RuntimeException e) {
-			System.err.println("could not laod native library for data conversions: " + e);
+		} catch (Throwable e) {
+			System.err.println("Could not load native library for data conversions, falling back to Java conversion ");
 		}
 //		System.err.println("post load");
 	}

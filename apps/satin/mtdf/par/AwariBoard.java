@@ -151,6 +151,18 @@ final class AwariBoard extends NodeType implements Cloneable {
 		System.out.println("score = " + score + "\n");
 	}
 
+	void printCompact() {
+		for (int i=12; --i >=6; ) {
+			printPit(pits[i]);
+		}
+
+		for (int i=0; i<6; i++) {
+			printPit(pits[i]);
+		}
+
+		System.out.print("score = " + score);
+	}
+
 	static AwariBoard getRoot() {
 		AwariBoard root = new AwariBoard();
 		for(int i=0; i<PITS; i++) {

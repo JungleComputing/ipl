@@ -155,11 +155,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			
 			switch(opcode) {
 			case EXIT:
-//				if(COMM_DEBUG) {
+				if(COMM_DEBUG) {
 					ident = m.origin();
 					System.out.println("SATIN '" + satin.ident.name() + 
 							   "': got exit message from " + ident.ibis().name());
-//				}
+				}
 				satin.exiting = true;
 				m.finish();
 				break;
@@ -181,13 +181,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 								   "': got steal reply message from " + ident.ibis().name() + ": FAILED");
 					}
 				}
-//				if(COMM_DEBUG) {
+				if(COMM_DEBUG) {
 					ident = m.origin();
 					if(opcode == BARRIER_REPLY) {
 						System.out.println("SATIN '" + satin.ident.name() + 
 								   "': got barrier reply message from " + ident.ibis().name());
 					}
-//				}
+				}
 				synchronized(satin) {
 					if(opcode == BARRIER_REPLY) {
 						satin.gotBarrierReply = true;

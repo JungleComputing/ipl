@@ -39,6 +39,8 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		}
 	}
 
+//	public abstract void delete();
+
 	/* @@@ many of these are not necesary, but useful for debugging */
 	final public void clear() {
 		owner = null;

@@ -53,11 +53,12 @@ final class FibThreshold extends ibis.satin.SatinObject implements FibThresholdI
 		double time = (double) (System.currentTimeMillis() - start) / 1000.0;
 
 		if(res != res2) {
-			System.err.println("application fib_threshold GAVE WRONG RESULT! " + res2 + " should be " + res);
+			System.err.println("application time fib_threshold GAVE WRONG RESULT! " + res2 + " should be " + res);
+			System.err.println("application result fib_threshold GAVE WRONG RESULT! " + res2 + " should be " + res);
 			System.exit(1);
 		} else {
-			System.out.println("application fib_threshold (" + n + ") took " + time + 
-					   " seconds, result = " + res);
+			System.out.println("application time fib_threshold (" + n + ") took " + time + " s");
+			System.out.println("application result fib_threshold (" + n + ") = " + res);
 		}
 	}
 }

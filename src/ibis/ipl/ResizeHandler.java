@@ -16,8 +16,6 @@ public interface ResizeHandler {
 	    <BR>
 	      - For any given ident, only a single leave will be generated
 	        before a join call.
-
-		@@@ must also invoke join on local machine! @@@
 	**/
 	public void join(IbisIdentifier ident);
 	public void leave(IbisIdentifier ident);

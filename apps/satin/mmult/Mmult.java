@@ -98,10 +98,14 @@ final class Mmult extends ibis.satin.SatinObject implements MmultInterface, java
 		if(c.check(task, rec, (float) cells)) {
 			//    System.out.println("\nC:");
 			//    c.print(task, rec, loop);
-			System.out.println("application Mmult (" + task + "," + rec + "," +
-					   loop + "," + cells + ") took " + time + " seconds");
+			System.out.println("application time Mmult (" + task + "," + rec + "," +
+					   loop + "," + cells + ") took " + time + " s");
+			System.out.println("application result Mmult (" + task + "," + rec + "," +
+					   loop + "," + cells + ") = OK");
 		} else {
-			System.out.println("application Mmult (" + task + "," + rec + "," +
+			System.out.println("application time Mmult (" + task + "," + rec + "," +
+					   loop + "," + cells + ") GAVE WRONG RESULT!");
+			System.out.println("application result Mmult (" + task + "," + rec + "," +
 					   loop + "," + cells + ") GAVE WRONG RESULT!");
 		}
 	}

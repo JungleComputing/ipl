@@ -45,7 +45,9 @@ public final class NoverK extends ibis.satin.SatinObject implements NoverKInterf
 		long end = System.currentTimeMillis();
 		double time = (end-start)/1000.0;
 
-		System.out.println("application n_over_k (" + N + "," + (N/2) + 
-				   ") took " + time + " seconds, result = " + res);
+		System.out.println("application time n_over_k (" + N + "," + (N/2) + 
+				   ") took " + time + " s");
+		System.out.println("application result n_over_k (" + N + "," + (N/2) + 
+				   ") = " + res);
 	}
 }

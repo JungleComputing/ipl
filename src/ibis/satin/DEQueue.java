@@ -1,7 +1,9 @@
-// @@@ aarg, delete aborted invocation records!!!!
 package ibis.satin;
 
 import ibis.ipl.*;
+
+// No need to delete aborted invocation records, the spawner keeps an
+// outstandingJobs list.
 
 public final class DEQueue implements Config {
 	public InvocationRecord head = null;
@@ -50,6 +52,9 @@ public final class DEQueue implements Config {
 	}
 
 	public void addToHead(InvocationRecord o) {
+		if(length > 10000) {
+			System.err.println("LARGE Q");
+		}
 		synchronized(satin) {
 			if (length == 0) {
 				head = tail = o;
@@ -63,6 +68,9 @@ public final class DEQueue implements Config {
 	}
 
 	public void addtoTail(InvocationRecord o) {
+		if(length > 10000) {
+			System.err.println("LARGE Q");
+		}
 		synchronized(satin) {
 			if (length == 0) {
 				head = tail = o;
@@ -107,7 +115,7 @@ public final class DEQueue implements Config {
 		}
 	}
 
-	public void removeElement(InvocationRecord curr) { // curr MUST be in q, Must hold satin lock
+	public void removeElement(InvocationRecord curr) { // curr MUST be in q.
 		if(ASSERTS) {
 			Satin.assertLocked(satin);
 		}
@@ -137,8 +145,11 @@ public final class DEQueue implements Config {
 		}
 	}
 
-	// hold satin lock
 	void print(java.io.PrintStream out) {
+		if(ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+
 		out.println("work queue: " + length + " elements");
 		InvocationRecord curr = head;
 		while(curr != null) {
@@ -147,68 +158,6 @@ public final class DEQueue implements Config {
 		}
 	}
 
-	// hold the satin lock
-	void oldkillChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
-		if(ASSERTS) {
-			Satin.assertLocked(satin);
-		}
-
-		InvocationRecord curr = head;
-		int oldStamp = -666;
-		IbisIdentifier oldOwner = null;
-		boolean oldAbort = false;
-//		System.err.println("--------------");
-
-		while(curr != null) {
-//			System.err.println("stamp = " + curr.stamp + " parent = " + curr.parentStamp);
-			if(curr.parentStamp == oldStamp && curr.parentOwner.equals(oldOwner)) {
-				System.out.print("+");
-				// great, my parent is above me on the stack.
-				// if it was to be aborted, so am I.
-				if(oldAbort) {
-					if(ABORT_DEBUG) {
-						System.out.println("found local child: " + curr.stamp + ", it depends on " + targetStamp);
-					}
-					
-					curr.spawnCounter.value--;
-					if(ASSERTS && curr.spawnCounter.value < 0) {
-						System.out.println("Just made spawncounter < 0");
-						new Exception().printStackTrace();
-						System.exit(1);
-					}
-					if(ABORT_STATS) {
-						satin.abortedJobs++;
-					}
-					removeElement(curr);
-				}
-			} else {
-				if(Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
-					if(ABORT_DEBUG) {
-						System.out.println("found local child: " + curr.stamp + ", it depends on " + targetStamp);
-					}
-					
-					curr.spawnCounter.value--;
-					if(ASSERTS && curr.spawnCounter.value < 0) {
-						System.out.println("Just made spawncounter < 0");
-						new Exception().printStackTrace();
-						System.exit(1);
-					}
-					if(ABORT_STATS) {
-						satin.abortedJobs++;
-					}
-					removeElement(curr);
-					oldAbort = true;
-				} else {
-					oldAbort = false;
-				}
-			}
-			oldStamp = curr.stamp;
-			oldOwner = curr.owner;
-			curr = curr.qnext;
-		}
-	}
-
-	// hold the satin lock
 	void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
 		if(ASSERTS) {
 			Satin.assertLocked(satin);
@@ -218,7 +167,6 @@ public final class DEQueue implements Config {
 		while(curr != null) {
 			if((curr.parent != null && curr.parent.aborted) ||
 			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
-//				if(curr.parent != null && curr.parent.aborted) System.err.print("!");
 
 				if(ABORT_DEBUG) {
 					System.out.println("found local child: " + curr.stamp + ", it depends on " + targetStamp);
@@ -234,20 +182,13 @@ public final class DEQueue implements Config {
 					satin.abortedJobs++;
 				}
 				curr.aborted = true;
-				removeElement(curr); // put it in the cache
+				removeElement(curr);
 			}
-			
+
 			curr = curr.qprev;
 		}
-/*
-		curr = head;
-		while(curr != null) {
-			if(curr.aborted) removeElement(curr);
-			// @@@ put it in the cache!!!
-			curr = curr.qnext;
-		}
-*/
 	}
 }
+
 
 

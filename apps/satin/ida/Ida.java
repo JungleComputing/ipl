@@ -23,7 +23,6 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		j.blankY = y;
 	}
 
-
 	static int MakeMoves(Job[] jobs, Game puzzle) {
 		/* Optimization: do not generate (cyclic) moves that undo the last move. */
 		int n = 0;
@@ -94,7 +93,6 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		
 		return solutions;
 	}
-
 
 	public static void main(String args[]) {
 		/* Use a suitable default value. */
@@ -173,14 +171,15 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 			ida.sync();
 
 			bound += 2; /* Property of 15-puzzle and Manhattan distance */
-			if(bound > maxDepth) break;
+			if(maxDepth != -1 && bound > maxDepth) break;
 		} while(solutions == 0);
 		stop = System.currentTimeMillis();
 
 		time = (double) stop - start;
 		time /= 1000.0;
 		
-		System.out.println("\napplication ida (" + fileName + "," + maxDepth + ") took " + time + 
-				   " seconds, result = " + solutions + " solutions of " + j.bound + " steps");
+		System.out.println("\napplication time ida (" + fileName + "," + maxDepth + ") took " + time + 
+				   " s");
+		System.out.println("\napplication result ida (" + fileName + "," + maxDepth + ") = " + solutions + " solutions of " + j.bound + " steps");
 	}
 }

@@ -179,7 +179,8 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 		time = (double) end - start;
 		time /= 1000.0;
 
-		System.out.println("application knapsack (" + N + ") took " + time + " seconds, result = max weight " +
+		System.out.println("application time knapsack (" + N + ") took " + time + " s");
+		System.out.println("application result knapsack (" + N + ") = max weight " +
 				   limw + " has the value " + ret.maxv);
 
 		for (i=1; i<=N; i++) {

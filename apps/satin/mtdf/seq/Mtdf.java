@@ -1,6 +1,6 @@
 public final class Mtdf {
 
-	static final boolean BEST_FIRST =false;
+	static final boolean BEST_FIRST =true;
 	static final boolean DO_ABORT = true;
 
 	static final int INF = 10000;

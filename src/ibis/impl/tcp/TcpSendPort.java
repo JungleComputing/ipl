@@ -19,7 +19,7 @@ import java.io.BufferedOutputStream;
 
 import ibis.io.*;
 
-final class TcpSendPort implements SendPort {
+final class TcpSendPort implements SendPort, Config {
 
 	TcpPortType type;
 	TcpSendPortIdentifier ident;
@@ -27,7 +27,7 @@ final class TcpSendPort implements SendPort {
 	boolean aMessageIsAlive = false;
 	Sender sender;
 
-	// Ronald needs this as a quick fix around his bugs:
+	// @@@ Ronald needs this as a quick fix around his bugs:
 	ibis.ipl.WriteMessage ronald_wm;
 
 	TcpSendPort(TcpPortType type) throws IbisIOException {
@@ -36,7 +36,6 @@ final class TcpSendPort implements SendPort {
 
 	TcpSendPort(TcpPortType type, String name) throws IbisIOException {
 		try { 
-			
 			this.name = name;
 			this.type = type;
 			ident = new TcpSendPortIdentifier(name, type.name(), (TcpIbisIdentifier) type.ibis.identifier());
@@ -63,7 +62,6 @@ final class TcpSendPort implements SendPort {
 	}
 
 	public void connect(ReceivePortIdentifier receiver) throws IbisIOException {
-
 		if(TcpIbis.DEBUG) {
 			System.err.println(name + " connecting to " + receiver); 
 		}
@@ -113,7 +111,11 @@ final class TcpSendPort implements SendPort {
 	}
 	
 	public void free() {
-		// @@@ assert no message is alive
+		if(ASSERTS) {
+			if(aMessageIsAlive) {
+				System.err.println("Trying to free a sendport port while a message is alive!");
+			}
+		}
 
 		if(TcpIbis.DEBUG) {
 			System.err.println(type.ibis.name() + ": SendPort.free start");

@@ -2,6 +2,9 @@ package ibis.satin;
 
 public interface Config {
 	
+	/* General configuration options. */
+	static final boolean HANDLE_ABORTS_IN_LATENCY = true;
+
 	/* Enable or disable statistics. */
 	static final boolean SPAWN_STATS = true;
 	static final boolean STEAL_STATS = true;

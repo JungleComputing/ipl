@@ -207,9 +207,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	}
 
 	public synchronized void free() {
-//		if (TcpIbis.DEBUG) { 
+		if (TcpIbis.DEBUG) { 
 			System.err.println("TcpReceivePort.free: " + name + ": Starting");
-//		}
+		}
 
 			if(aMessageIsAlive) {
 				System.err.println("EEK: a msg is alive!");
@@ -218,25 +218,25 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		while (connectionsIndex > 0) {
 
 			if (upcall != null) { 
-//				if (TcpIbis.DEBUG) { 
+				if (TcpIbis.DEBUG) { 
 					System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
-//				}
+				}
 				try {
 					wait();
 				} catch (Exception e) {
 					// Ignore.
 				}
 			} else { 
-//				if (TcpIbis.DEBUG) { 
+				if (TcpIbis.DEBUG) { 
 					System.err.println(name + " trying to close all connections (" + connectionsIndex + ")");
-//				}
+				}
 				
 				while (connectionsIndex > 0) { 
 				
 					for (int i=0;i<connectionsIndex;i++) { 
-//						if (TcpIbis.DEBUG) { 
+						if (TcpIbis.DEBUG) { 
 							System.err.println(name + " trying to close " + i);
-//						}
+						}
 						
 						try {
 							ReadMessage m = connections[i].poll();
@@ -262,9 +262,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 			}
 		}
 
-//				if (TcpIbis.DEBUG) { 
+				if (TcpIbis.DEBUG) { 
 					System.err.println(name + " all connections closed");
-//				}
+				}
 
 		/* unregister with name server */
 		try {
@@ -273,9 +273,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 			// Ignore.
 		}
 
-//		if (TcpIbis.DEBUG) { 
+		if (TcpIbis.DEBUG) { 
 			System.err.println(name + ":done receiveport.free");
-//		}
+		}
 	}
 
 	synchronized void connect(TcpSendPortIdentifier origin, InputStream in, int id) {	

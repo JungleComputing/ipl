@@ -36,7 +36,7 @@ public final class PrimFac extends ibis.satin.SatinObject implements PrimFacInte
 							nn /= i;
 							f++;
 						}
-						System.out.println("result: " + f + " times factor " + i);
+						System.out.print("|" + f + " times factor " + i);
 					}
 				}
 			}
@@ -62,13 +62,16 @@ public final class PrimFac extends ibis.satin.SatinObject implements PrimFacInte
 
 		System.out.println("primfac(" + N + ") started");
 
+		System.out.print("application result (" + N + 
+				   ") = ");
+
 		long start = System.currentTimeMillis();
 		p.spawn_primfac(N, 2, N);
 		p.sync();
 		long end = System.currentTimeMillis();
 		double time = (end-start)/1000.0;
 
-		System.out.println("application primfac (" + N + 
-				   ") took " + time + " seconds");
+		System.out.println("\napplication time primfac (" + N + 
+				   ") took " + time + " s");
 	}
 }

@@ -66,7 +66,9 @@ final class AdapInt extends ibis.satin.SatinObject implements AdapIntInterface, 
 		long end = System.currentTimeMillis();
 		double time = (end - start) / 1000.0;
 
-		System.out.println("application integrate (" + (int)a + "," + (int)b + "," + epsilon + 
-				   ") took " + time + " seconds, result = " + res);
+		System.out.println("application time integrate (" + (int)a + "," + (int)b + "," + epsilon + 
+				   ") took " + time + " s");
+		System.out.println("application result integrate (" + (int)a + "," + (int)b + "," + epsilon + 
+				   ") result = " + res);
 	}
 }

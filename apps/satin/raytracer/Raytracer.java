@@ -188,8 +188,9 @@ class Raytracer { // implements java.io.Serializable {
 		long end = System.currentTimeMillis();
                 double time = ((double) end - start) / 1000.0;
 
-		System.out.println("application raytrace (" + input + ") took " + time + 
-				   " seconds");
+		System.out.println("application time raytrace (" + input + ") took " + time + 
+				   " s");
+		System.out.println("application result raytrace (" + input + ") = OK");
 
 		if(dump) {
 			System.out.println("Dumping output to out.ppm");

@@ -15,11 +15,9 @@ import java.io.File;
 // maxLocals+3 = temp invocationrecord, cast to correct invocationRecord type
 
 // @@@ optimizations TODO:
-// @@@ If there is only one spawn in a method, no need to test for ids. (o.a. for inlets).
-// @@@ only rewrite variables that are actually used in the inlet.
-// @@@ exception handler in non-clone is unreachable, delete.
-// @@@ simple path: conditional return before spawn. do not alloc spawncounter on this path.
-// @@@ initialisations of locals. delete if not needed.
+//     If there is only one spawn in a method, no need to test for ids. (o.a. for inlets).
+//     exception handler in non-clone is unreachable, delete.
+//     initialisations of locals. delete if not needed.
 
 public final class Satinc implements BT_Opcodes {
 	BT_Class satinObjectClass;
@@ -659,7 +657,8 @@ public final class Satinc implements BT_Opcodes {
 			int targetPos = pos+16;
 			pos += 16;
 
-*/ pos += 8;
+*/
+			pos += 8;
 
 			pos += insertNullReturn(c, m, ins, pos);
 
@@ -1026,7 +1025,6 @@ public final class Satinc implements BT_Opcodes {
 		// find first spawn, then look if there is a jump before the spawn that jumps over it...
                 // this avoids alloccing and deleting spawn counters before a spawn hapens (e.g. with thresholds)
 		if(spawnCounterOpt) {
-			System.out.println("spawnCounterOpt on");
 			for(int i=0; i<ins.size(); i++) {
 				int opcode = ins.elementAt(i).opcode;
 				
@@ -1045,7 +1043,6 @@ public final class Satinc implements BT_Opcodes {
 						
 						if(insertAllocPos == -1) { // no jumps
 							insertAllocPos = i;
-							System.out.println("spawnCounterOpt triggered");
 						}
 					break;
 					}
@@ -1432,8 +1429,7 @@ public final class Satinc implements BT_Opcodes {
 					}
 				}
 
-			}
-			if(isLocalLoad(ins.elementAt(i))) {
+			} else if(isLocalLoad(ins.elementAt(i))) {
 				BT_LocalIns curr = (BT_LocalIns) ins.elementAt(i);
 				if(!inletOpt || mtab.isLocalUsedInInlet(m, curr.localNr)) {
 					if(verbose) {
@@ -1445,34 +1441,35 @@ public final class Satinc implements BT_Opcodes {
 						System.out.println(m + ": NOT rewriting local " + curr.localNr);
 					}
 				}
-			}
-			switch(opcode) {
-//@@@ add other instructions here...
-			case opc_iinc:
-				BT_IIncIns curr = (BT_IIncIns)ins.elementAt(i);
-				if(!inletOpt || mtab.isLocalUsedInInlet(m, curr.localNr)) {
-					if(verbose) {
-						System.out.println(m + ": rewriting local " + curr.localNr);
-					}
+			} else {
+				switch(opcode) {
 
-					int val = ((BT_IIncIns)ins.elementAt(i)).constant;
-					String fieldName = mtab.getLocalName(m, curr);
-					String fieldType = mtab.getLocalType(m, curr);
-					BT_Field f = localClass.findField(mtab.generatedLocalName(fieldType, fieldName));
+				case opc_iinc:
+					BT_IIncIns curr = (BT_IIncIns)ins.elementAt(i);
+					if(!inletOpt || mtab.isLocalUsedInInlet(m, curr.localNr)) {
+						if(verbose) {
+							System.out.println(m + ": rewriting local " + curr.localNr);
+						}
+
+						int val = ((BT_IIncIns)ins.elementAt(i)).constant;
+						String fieldName = mtab.getLocalName(m, curr);
+						String fieldType = mtab.getLocalType(m, curr);
+						BT_Field f = localClass.findField(mtab.generatedLocalName(fieldType, fieldName));
 					
-					overwriteIns(ins, BT_Ins.make(opc_aload, maxLocals), i);
-					ins.insertElementAt(BT_Ins.make(opc_dup), i+1);
-					ins.insertElementAt(BT_Ins.make(opc_getfield, f), i+2);
-					ins.insertElementAt(BT_Ins.make(opc_bipush, val), i+3);
-					ins.insertElementAt(BT_Ins.make(opc_iadd), i+4);
-					ins.insertElementAt(BT_Ins.make(opc_putfield, f), i+5);
-					i += 5;
-				} else {
-					if(verbose) {
-						System.out.println(m + ": NOT rewriting local " + curr.localNr);
+						overwriteIns(ins, BT_Ins.make(opc_aload, maxLocals), i);
+						ins.insertElementAt(BT_Ins.make(opc_dup), i+1);
+						ins.insertElementAt(BT_Ins.make(opc_getfield, f), i+2);
+						ins.insertElementAt(BT_Ins.make(opc_bipush, val), i+3);
+						ins.insertElementAt(BT_Ins.make(opc_iadd), i+4);
+						ins.insertElementAt(BT_Ins.make(opc_putfield, f), i+5);
+						i += 5;
+					} else {
+						if(verbose) {
+							System.out.println(m + ": NOT rewriting local " + curr.localNr);
+						}
 					}
+					break;
 				}
-				break;
 			}
 		}
 
@@ -2000,7 +1997,7 @@ public final class Satinc implements BT_Opcodes {
 			out.println("    }\n");
 		}
 
-		// delete method 
+		// static delete method 
 		out.println("    static void delete(" + name + " w) {");
 		if(invocationRecordCache) {
 			if(!m.isVoidMethod()) {
@@ -2019,6 +2016,29 @@ public final class Satinc implements BT_Opcodes {
 			out.println("        invocationRecordCache = w;");
 		}
 		out.println("    }\n");
+
+                // unused ...
+		// delete method (for abort)
+/*
+		out.println("    public void delete() {");
+		if(invocationRecordCache) {
+			if(!m.isVoidMethod()) {
+				out.println("        array = null;");
+			}
+			// Set everything to null, don't keep references live for gc. 
+			out.println("        clear();");
+			out.println("        self = null;");
+			
+			for(int i=0; i<params.length; i++) {
+				if(isRefType(params[i])) {
+					out.println("        param" + i + " = null;");
+				}
+			}
+			out.println("        cacheNext = invocationRecordCache;");
+			out.println("        invocationRecordCache = this;");
+		}
+		out.println("    }\n");
+*/
 
 		// runLocal method 
 		out.println("    public void runLocal() {");

@@ -127,8 +127,10 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 		long end = System.currentTimeMillis();
 		double time = (end-start) / 1000.0;
 
-		System.out.println("application cover (" + no_skills + "," + no_elems + 
-				   ") took " + time + " seconds.");
+		System.out.println("application time cover (" + no_skills + "," + no_elems + 
+				   ") took " + time + " s");
+		System.out.print("application result cover (" + no_skills + "," + no_elems + 
+				   ") = ");
 
 		if (ret.opt_elems == no_elems+1 ) {
 			System.out.println("A cover does not exist!");
@@ -136,12 +138,13 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 
 		for (int i=0;i<no_elems;i++) {
 			if (ret.opt[i] == 1) {
-				System.out.println("Element " + i);
+				System.out.print("Element " + i);
 				for (int j=0; j<no_skills; j++) {
 					System.out.print(skills[i][j] == 1 ? "* " : "_ ");
 				}
-				System.out.println();
+//				System.out.println();
 			}
 		}
+		System.out.println();
 	}
 }

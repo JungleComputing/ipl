@@ -118,8 +118,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			System.err.println(" requested by " + id.toString());
 		}
 
-		IbisInfo info = new IbisInfo(id, port);
-	       
+		IbisInfo info = new IbisInfo(id, port);	       
 		RunInfo p = (RunInfo) pools.get(key);
 
 		if (p == null) { 
@@ -130,7 +129,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			if (VERBOSE) { 
 				System.err.println("NameServer: new pool " + key + " created");
 			}
-		} 
+		}
 		
 		if (p.pool.contains(info)) { 
 			out.writeByte(IBIS_REFUSED);
@@ -173,11 +172,9 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	}	
 
 	private void forwardLeave(IbisInfo dest, IbisIdentifier id) throws IbisIOException { 
-
-
-
 		if (DEBUG) { 
-			System.err.println("NameServer: forwarding leave of " + id.toString() + " to " + dest.identifier.toString());
+			System.err.println("NameServer: forwarding leave of " + 
+					   id.toString() + " to " + dest.identifier.toString());
 		}
 
 		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), 
@@ -284,7 +281,6 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	} 
 
 	public void run() {
-
 		int opcode;
 		Socket s;
 		boolean stop = false;
@@ -299,7 +295,8 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 				}
 
 			} catch (Exception e) {
-				throw new RuntimeException("NameServer got an error " + e.getMessage());
+				System.err.println("NameServer got an error " + e.getMessage());
+				continue;
 			}
 
 			try {
@@ -322,13 +319,13 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 					}
 					break;					
 				default: 
-					System.err.println("NameServer got an illegal opcode " + opcode);					
+					System.err.println("NameServer got an illegal opcode: " + opcode);
 				}
 
 				IbisSocketFactory.close(in, out, s);
 			} catch (Exception e1) {
 				System.err.println("Got an exception in NameServer.run " + e1.toString());
-				e1.printStackTrace();
+//				e1.printStackTrace();
 				if (s != null) { 
 					try { 
 						IbisSocketFactory.close(null, null, s);
@@ -351,20 +348,38 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	}
 
 	public static void main(String [] args) { 
-		try { 
-			boolean temp;
+		boolean single = false;
+		NameServer ns = null;
 
+		for (int i = 0; i < args.length; i++) {
+			if (false) {
+			} else if (args[i].equals("-single")) {
+				single = true;
+			} else {
+				System.err.println("No such option: " + args[i]);
+				System.exit(1);
+			}
+		}
+
+		if(!single) {
 			Properties p = System.getProperties();
-			String single = p.getProperty("single_run");
+			String singleS = p.getProperty("single_run");
+			
+			single = (singleS != null && singleS.equals("true")); 
+		}
 
-			temp = (single != null && single.equals("true")); 
-			NameServer i = new NameServer(temp);
-			i.run();
+		while (true) {
+			try { 
+				ns = new NameServer(single);
+				break;
+			} catch (Exception e) { 
+				System.err.println("Main got " + e + ", rety in 1 second");
+				try {Thread.sleep(1000);} catch (Exception ee) {}
+//				e.printStackTrace();
+			}
+		}
 
-			System.exit(1);
-		} catch (Exception e) { 
-			System.err.println("Main got " + e);
-			e.printStackTrace();
-		} 
+		ns.run();
+		System.exit(0);
 	} 
 }

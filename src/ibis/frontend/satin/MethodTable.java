@@ -16,18 +16,31 @@ final class MethodTable implements BT_Opcodes {
 
 		SpawnTableEntry() {}
 
-// @@@ not correct yet. there may be a jump over the return/throw!
 		boolean[] analyseUsedLocals(BT_Method m, BT_ExceptionTableEntry catchBlock, int handlerIndex, 
 					    boolean verbose) {
 			int maxLocals = m.getCode().maxLocals;
 			BT_InsVector ins = m.getCode().ins;
+			int end = getEndOfCatchBlock(m, catchBlock, handlerIndex);
+
+			// Start with all false.
+			boolean[] used = new boolean[maxLocals];
 
 			if(verbose) {
 				System.out.println("analysing used locals for " + m + ", maxLocals = " + maxLocals);
 			}
 
-			// Start with all false.
-			boolean[] used = new boolean[maxLocals];
+			BT_Ins endIns = ins.elementAt(end);
+			if (!Satinc.isRetIns(endIns) && endIns.opcode != opc_athrow) {
+				if(verbose) {
+					System.out.println("no return at end of inlet, assuming all locals are used");
+				}
+
+				// They are all used.
+				for(int j=0; j<maxLocals; j++) {
+					used[j] = true;
+				}
+				return used;
+			}
 
 			for (int i=handlerIndex; i<ins.size(); i++) {
 				BT_Ins curr = ins.elementAt(i);
@@ -37,12 +50,12 @@ final class MethodTable implements BT_Opcodes {
 				if(curr instanceof BT_JumpIns) {
 					int dest = ins.indexOf(((BT_JumpIns)curr).target);
 					if(dest < handlerIndex || // backjump out of handler
-					   dest > getEndOfCatchBlock(m, catchBlock, handlerIndex)) { // forward jump beyond catch
+					   dest > end) { // forward jump beyond catch
 						if(verbose) {
-							System.out.println("exit jump, all is used");
+							System.out.println("inlet contains a jump to exit, assuming all locals are used");
 						}
 
-						// all is used
+						// They are all used.
 						for(int j=0; j<maxLocals; j++) {
 							used[j] = true;
 						}
@@ -57,6 +70,7 @@ final class MethodTable implements BT_Opcodes {
 							}
 						}
 					}
+//					System.out.println("inlet local opt triggered");
 					return used;
 				} else if (curr instanceof BT_LocalIns) {
 					BT_LocalIns l = (BT_LocalIns) curr;
