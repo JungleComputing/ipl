@@ -21,23 +21,45 @@ import java.util.Hashtable;
  */
 public final class Driver extends NetDriver {
 
+	static final String prefix = "ibis.net.gm.";
+
+	static final String gm_mtu =      prefix + "mtu";
+	static final String gm_verbose =  prefix + "intr.verbose";
+	static final String gm_prio =     prefix + "prioritymutex";
+	static final String gm_polls =    prefix + "polls";
+	static final String gm_dynamic =  prefix + "dynamic";
+	static final String gm_intr =     prefix + "intr";
+	static final String gm_intr_frst =prefix + "intr.first";
+	static final String gm_debug =    prefix + "debug";
+
+	private static final String[] properties = {
+	    gm_mtu,
+	    gm_verbose,
+	    gm_prio,
+	    gm_polls,
+	    gm_dynamic,
+	    gm_intr,
+	    gm_intr_frst,
+	    gm_debug
+	};
+
 	// Native functions
 	//private static native void gm_init();
 	//private static native void gm_exit();
 
-	static final boolean	DEBUG = false; // true; // false;
+	static final boolean	DEBUG = TypedProperties.booleanProperty(gm_debug, false);
 
 	static final boolean	VERBOSE_INTPT = DEBUG
-	    || TypedProperties.booleanProperty(NetIbis.gm_intr_v, false);
+	    || TypedProperties.booleanProperty(gm_verbose, false);
 
 	static final boolean	TIMINGS = false; // true;
 
         static Monitor		gmAccessLock  = null;
         static NetLockArray	gmLockArray   = null;
 
-	static final boolean	PRIORITY = TypedProperties.booleanProperty(NetIbis.gm_prio, true);
+	static final boolean	PRIORITY = TypedProperties.booleanProperty(gm_prio, true);
 
-	static final int        mtu = TypedProperties.intProperty(NetIbis.gm_mtu, 128 * 1024);
+	static final int        mtu = TypedProperties.intProperty(gm_mtu, 128 * 1024);
 
         static final int	packetMTU = 16384; // 4096;
 
@@ -51,7 +73,7 @@ public final class Driver extends NetDriver {
 
 	private static int	interrupts = 0;	// Support poll interrupts
 
-	private final static int POLLS_BEFORE_YIELD = TypedProperties.intProperty(NetIbis.gm_polls, 300);	    
+	private final static int POLLS_BEFORE_YIELD = TypedProperties.intProperty(gm_polls, 300);	    
 
 	/**
 	 * The driver name.
@@ -85,7 +107,8 @@ public final class Driver extends NetDriver {
 
 
 	static {
-	    if (System.getProperty(NetIbis.gm_dynamic) != null) {
+	    TypedProperties.checkProperties(prefix, properties, null);
+	    if (System.getProperty(gm_dynamic) != null) {
 		Ibis.loadLibrary("gm");
 	    }
 

@@ -102,7 +102,7 @@ public final class TcpInput extends NetBufferedInput
 	private static final int   INTERRUPT_TIMEOUT  = 1000; // 100; // ms
 	private boolean		interrupted = false;
 	private boolean		interruptible = false;
-	private final static boolean READ_AHEAD = TypedProperties.booleanProperty(NetIbis.tcpblk_rdah, true);
+	private final static boolean READ_AHEAD = TypedProperties.booleanProperty(Driver.tcpblk_rdah, true);
 
 	static {
 	    if (false) {

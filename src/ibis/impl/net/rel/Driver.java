@@ -17,6 +17,18 @@ import java.io.IOException;
  */
 public final class Driver extends NetDriver implements RelConstants {
 
+	private static final String prefix = "ibis.net.rel.";
+
+	static final String rel_window = prefix + "window";
+
+	private static final String[] properties = {
+		rel_window
+	};
+
+	static {
+		ibis.util.TypedProperties.checkProperties(prefix, properties, null);
+	}
+
 	/**
 	 * The driver name.
 	 */

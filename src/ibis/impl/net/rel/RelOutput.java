@@ -221,7 +221,7 @@ public final class RelOutput
 
 	factory.setMaximumTransferUnit(mtu);
 
-	String windowPreset = System.getProperty(NetIbis.rel_window);
+	String windowPreset = System.getProperty(Driver.rel_window);
 	if (windowPreset != null) {
 	    windowSize = Integer.parseInt(windowPreset);
 	    System.err.println("ibis.net.rel.windowSize set to " + windowSize);

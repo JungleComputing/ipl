@@ -14,6 +14,18 @@ import java.io.IOException;
  */
 public final class Driver extends NetDriver {
 
+	private static final String prefix = "ibis.net.tcp_blk.";
+
+	static final String tcpblk_rdah = prefix + "read_ahead";
+
+	private static final String[] properties = {
+		tcpblk_rdah
+	};
+
+	static {
+		ibis.util.TypedProperties.checkProperties(prefix, properties, null);
+	}
+
 	/**
 	 * The driver name.
 	 */

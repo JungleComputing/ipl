@@ -11,6 +11,17 @@ import ibis.impl.net.NetPortType;
  */
 public final class Driver extends NetDriver {
 
+	static final String prefix = "ibis.net.bytes.";
+	static final String bytes_mtu = prefix + "mtu";
+	private static final String[] properties = {
+	    bytes_mtu
+	};
+
+	static {
+	    ibis.util.TypedProperties.checkProperties(prefix, properties, null);
+	}
+
+
 	/**
 	 * The driver name.
 	 */

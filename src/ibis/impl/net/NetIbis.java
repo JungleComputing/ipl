@@ -29,8 +29,6 @@ public final class NetIbis extends Ibis {
 
 	static final String prefix = "ibis.net.";
 
-	public static final String bytes_mtu =   prefix + "bytes.mtu";
-
 	public static final String alloc_stats = prefix + "allocator.stats";
 	public static final String alloc_thres = prefix + "allocator.bigThr";
 
@@ -43,20 +41,7 @@ public final class NetIbis extends Ibis {
 
 	public static final String port_single = prefix + "porttype.singleton";
 
-	public static final String gm_mtu =      prefix + "gm.mtu";
-	public static final String gm_intr_v =   prefix + "gm.intr.verbose";
-	public static final String gm_prio =     prefix + "gm.prioritymutex";
-	public static final String gm_polls =    prefix + "gm.polls";
-	public static final String gm_dynamic =  prefix + "gm.dynamic";
-	public static final String gm_intr =     prefix + "gm.intr";
-	public static final String gm_intr_frst =prefix + "gm.intr.first";
-
-	public static final String rel_window =  prefix + "rel.window";
-
-	public static final String tcpblk_rdah = prefix + "tcp_blk.read_ahead";
-
-	public static final String[] properties = {
-	    bytes_mtu,
+	private static final String[] properties = {
 	    alloc_stats,
 	    alloc_thres,
 	    mutex_debug,
@@ -64,16 +49,14 @@ public final class NetIbis extends Ibis {
 	    poll_single_dyn,
 	    cfg_filenm,
 	    cfg_file,
-	    port_single,
-	    gm_mtu,
-	    gm_intr_v,
-	    gm_prio,
-	    gm_polls,
-	    gm_dynamic,
-	    gm_intr,
-	    gm_intr_frst,
-	    rel_window,
-	    tcpblk_rdah
+	    port_single
+	};
+
+	private static final String[] excludes = {
+	    prefix + "bytes.",
+	    prefix + "gm.",
+	    prefix + "rel.",
+	    prefix + "tcp_blk."
 	};
 
 	/**
@@ -236,7 +219,7 @@ public final class NetIbis extends Ibis {
 	 * 		could not be initialized.
 	 */
 	public NetIbis() {
-		TypedProperties.checkProperties(prefix, properties, null);
+		TypedProperties.checkProperties(prefix, properties, excludes);
 		if (globalIbis == null) {
 			globalIbis = this;
 		}
