@@ -33,10 +33,16 @@ public final class Timer extends ibis.ipl.Timer {
 	}
 
 	public double averageTimeVal() {
-		return 1000.0*(double) time / (count);
+		if(count > 0) {
+			return 1000.0*(double) time / (count);
+		}
+		return 0.0;
 	}
 
 	public String averageTime() {
-		return format(1000*time / (count));
+		if(count > 0) {
+			return format(1000*time / (count));
+		}
+		return "0.0";
 	}
 }
