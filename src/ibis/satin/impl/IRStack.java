@@ -56,6 +56,7 @@ final class IRStack implements Config {
 		}
 
 		count--;
+		l[count] = null;
 	}
 
 	/*

@@ -76,6 +76,7 @@ final class IRVector implements Config {
 				l[i] = l[count];
 				//				System.err.println("SATIN: " + satin.ident.address() +
 				// "remove1 count is: " + count);
+				l[count] = null;
 				return res;
 			}
 		}
@@ -96,6 +97,7 @@ final class IRVector implements Config {
 				InvocationRecord res = l[i];
 				count--;
 				l[i] = l[count];
+				l[count] = null;
 				//				System.err.println("SATIN: " + satin.ident.address() +
 				// "remove2 count is: " + count);
 				return res;
@@ -307,6 +309,7 @@ final class IRVector implements Config {
 		InvocationRecord res = l[i];
 		count--;
 		l[i] = l[count];
+		l[count] = null;
 		return res;
 	}
 
