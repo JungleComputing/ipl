@@ -1,0 +1,11 @@
+To label a method as a Satin task, it must be listed in a sub-interface of
+
+
+-satin-closed
+
+    Only use the initial set of hosts for the computation; do not allow
+    further hosts to join the computation later on.
+
+-satin-stats
+
+    Show some statistics on the ibis run.
