@@ -109,7 +109,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 				port, myAddress, -1);
 		    } catch (ConnectionTimedOutException e) {
 		        if(!retry) {
-			    throw new ConnectionTimedOutException("Could not connect to name server");
+			    throw new ConnectionTimedOutException("Could not connect to name server "+server);
 			}
 			if(!failed_once) {
 			    System.err.println("Nameserver client failed"
