@@ -693,7 +693,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 		    for (int i = 0;
 			 queueFront == null && i < Poll.polls_before_yield;
 			 i++) {
-			Ibis.myIbis.pollLocked();
+			if (Ibis.myIbis.pollLocked()) break;
 		    }
 
 		    if (queueFront == null) {
