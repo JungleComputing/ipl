@@ -16,7 +16,7 @@ interface OpenConfig {
     static final boolean traceClusterResizing = false;
     static final boolean traceLoadBalancing = false;
     static final boolean traceWorkStealing = false;
-    static final boolean doWorkStealing = false;
+    static final boolean doWorkStealing = true;
     static final int DEFAULTBOARDSIZE = 4000;
     static final int GENERATIONS = 30;
     static final int SHOWNBOARDWIDTH = 60;
@@ -754,7 +754,7 @@ class OpenCell1D implements OpenConfig {
      * See if any new members have joined the computation, and if so
      * update the column numbers we should try to own.
      */
-    static void updateAims( Problem p, int lsteal, int rsteal )
+    static void updateAims( Problem p )
     {
         int members = rszHandler.getMemberCount();
         if( knownMembers<members ){
@@ -784,6 +784,10 @@ class OpenCell1D implements OpenConfig {
             }
             knownMembers = members;
         }
+    }
+
+    private static void evaluateStealRequests( Problem p, int lsteal, int rsteal )
+    {
         if( aimFirstColumn == p.firstColumn && aimFirstNoColumn == p.firstNoColumn ){
             int weight = 10;
 
@@ -931,7 +935,7 @@ class OpenCell1D implements OpenConfig {
                 if( members != null ){
                     members[generation] = rszHandler.getMemberCount();
                 }
-                updateAims( p, 0, 0 );
+                updateAims( p );
                 if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
                     // We have some work for our lazy right neighbour.
                     // give him the good news.
@@ -961,7 +965,8 @@ class OpenCell1D implements OpenConfig {
                     requestedByLeft[generation-1] = lsteal;
                     requestedByRight[generation-1] = rsteal;
                 }
-                updateAims( p, lsteal, rsteal );
+                updateAims( p );
+                evaluateStealRequests( p, lsteal, rsteal );
                 if( (me % 2) == 0 ){
                     if( !rightNeighbourIdle ){
                         sendToRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
