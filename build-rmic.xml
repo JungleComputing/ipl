@@ -25,6 +25,16 @@
     <target name="rmic"
 	depends="rmic-init">
 	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
+
+	<if>
+	    <isset property="rmic-flags"/>
+	    <then>
+		<property name="rmic-flags.value" value="${rmic-flags}"/>
+	    </then>
+	    <else>
+		<property name="rmic-flags.value" value=""/>
+	    </else>
+	</if>
 	<path id="all-classes">
 	    <fileset dir="${build}">
 		<include name="**/*.class"/>
@@ -66,7 +76,7 @@
 		taskname="ibis rmic"
 		dir="${build}"
 		fork="true">
-	    <arg line="-dir ${rmic-classes}"/>
+		<arg line="${rmic-flags.value} -dir ${rmic-classes}"/>
 	    <classpath refid="default.classpath"/>
 	</java>
 	<javac	destdir="${build}"

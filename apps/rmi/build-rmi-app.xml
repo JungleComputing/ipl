@@ -24,15 +24,15 @@
 		debug="${java.debug.value}"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
-	    <include name="*.java"/>
+	    <include name="**/*.java"/>
 	</javac>
     </target>
 
     <target name="build"
 	    depends="init">
-	<antcall target="compile"/>
-	<antcall target="rmic"/>
-	<antcall target="iogen"/>
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<antcall inheritRefs="true" target="rmic"/>
+	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
     <target name="clean">
