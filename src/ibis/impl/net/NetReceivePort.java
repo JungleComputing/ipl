@@ -737,7 +737,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 		useUpcallThreadPool    = (type.getBooleanStringProperty(null, "UseUpcallThreadPool",  new Boolean(useUpcallThreadPool))).booleanValue();
 		useYield               = (type.getBooleanStringProperty(null, "UseYield",             new Boolean(useYield))).booleanValue();
 		useUpcall              = (type.getBooleanStringProperty(null, "UseUpcall",            new Boolean(useUpcall))).booleanValue();
-		useBlockingPoll        = (type.getBooleanStringProperty(null, "UseBlockingPoll",      new Boolean(useBlockingPoll))).booleanValue();
+		//useBlockingPoll        = (type.getBooleanStringProperty(null, "UseBlockingPoll",      new Boolean(useBlockingPoll))).booleanValue();
 
                 boolean log        = (type.getBooleanStringProperty(null, "Log",      new Boolean(false))).booleanValue();
                 this.log = new NetLog(log, "//"+type.name()+" receivePort/");

@@ -114,7 +114,6 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	public void setupConnection(NetConnection  cnx,
                                     NetInputUpcall inputUpcall) throws NetIbisException {
                 this.upcallFunc = inputUpcall;
-System.err.println(this + ": setupConnection; upcallFunc := " + upcallFunc);
                 setupConnection(cnx);
         }
 
