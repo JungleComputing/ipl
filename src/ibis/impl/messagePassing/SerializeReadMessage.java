@@ -60,7 +60,6 @@ final class SerializeReadMessage extends ReadMessage {
     }
 
     public Object readObject() throws IOException, ClassNotFoundException {
-// System.err.println("SerializeReadMessage.readObject() called " + this);
 	return obj_in.readObject();
     }
 
@@ -118,10 +117,8 @@ final class SerializeReadMessage extends ReadMessage {
     }
 
     public void readArray(int[] destination) throws IOException {
-	// manta.runtime.RuntimeSystem.DebugMe(this, destination);
 	try {
 	    int[] temp = (int[]) obj_in.readObject();
-	    // manta.runtime.RuntimeSystem.DebugMe(temp, destination);
 	    if (temp.length != destination.length) {
 		throw new ArrayIndexOutOfBoundsException("Destination has wrong size");
 	    }

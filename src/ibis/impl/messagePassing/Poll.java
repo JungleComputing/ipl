@@ -135,8 +135,6 @@ final public class Poll implements Runnable {
 	    throws IOException {
 
 	Ibis.myIbis.checkLockOwned();
-// System.err.print(Thread.currentThread() + "/" + preempt(preempt) + ">");
-// Thread.dumpStack();
 
 	long t_start = 0;
 	if (timeout > 0) {
@@ -266,7 +264,6 @@ if (false)
 	if (STATISTICS && preempt == PREEMPTIVE) {
 	    preemptive_pollers--;
 	}
-// System.err.print("<");
     }
 
     private void doYield(boolean sleep) {
@@ -283,13 +280,10 @@ if (false)
 
 
     public void run() {
-	// System.err.println("Poll peeker lives");
 	while (comm_lives) {
 	    if (Ibis.myIbis != null) {
 		Ibis.myIbis.lock();
-// System.err.println(Ibis.myIbis.myCpu + " do a peeker poll...");
 		try {
-		    // while (poll());
 		    poll();
 		    if (STATISTICS) {
 			poll_from_thread++;

@@ -14,13 +14,11 @@ final class SerializeWriteMessage extends WriteMessage {
     SerializeWriteMessage(SendPort sPort) throws IOException {
 	super(sPort);
 	obj_out = ((SerializeSendPort)sPort).obj_out;
-// System.err.println("**************************************************Creating new SerializeWriteMessage");
     }
 
     public int send() throws IOException {
 	if (DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%%% Send an Ibis SerializeWriteMessage");
-// Thread.dumpStack();
 	}
 	obj_out.flush();
 	return out.getSentFrags();
@@ -73,14 +71,10 @@ final class SerializeWriteMessage extends WriteMessage {
 
     public void writeString(String value) throws IOException {
 	obj_out.writeObject(value);
-// obj_out.flush();
-// sPort.out.report();
     }
 
     public void writeObject(Object value) throws IOException {
 	obj_out.writeObject(value);
-// obj_out.flush();
-// out.report();
     }
 
     public void writeArray(boolean[] value) throws IOException {
