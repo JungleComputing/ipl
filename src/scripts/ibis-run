@@ -17,7 +17,7 @@ dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
 if [ -z "$IBIS_CONFIG_SEEN" ]; then
-. $dir/../configuration.sh
+. "$dir"/../configuration.sh
 fi
 
 Dns_pool=
@@ -80,7 +80,7 @@ then
 	usage
 fi
 
-JAVACLASSPATH=$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/junit.jar
+JAVACLASSPATH="$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/junit.jar:.:"
 
 #needed for ibm 1.3 JITs and SMPs
 # export LD_ASSUME_KERNEL=2.2.5
@@ -110,11 +110,11 @@ fi
 # java.library.path and ibis.library.path ...
 #
 
-Dlibpath="-Djava.library.path=$IBIS_ROOT/build/lib:.:$LD_LIBRARY_PATH:"
+Dlibpath="-Djava.library.path=\"$IBIS_ROOT/build/lib:.:$LD_LIBRARY_PATH:\""
 
 # This is the location where all ibis native libs must go.
 # It must be *one* dir.
-Dibislibs="-Dibis.library.path=$IBIS_ROOT/build/lib"
+Dibislibs="-Dibis.library.path=\"$IBIS_ROOT/build/lib\""
 
 #
 # Some defaults ...
@@ -126,13 +126,13 @@ portno_specified=0
 ip_map=
 
 JAVA_EXEC=java
-Xbootclasspath="-Xbootclasspath/p:$JAVACLASSPATH"
+Xbootclasspath="-Xbootclasspath/p:\"$JAVACLASSPATH\""
 
 #
 # nameserver defaults
 #
 
-. $IBIS_ROOT/bin/ns-env
+. "$IBIS_ROOT"/bin/ns-env
 
 Dns_server="-Dibis.name_server.host=$IBIS_NAMESERVER_HOST"
 Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
@@ -254,17 +254,17 @@ done
 
 if [ ! -z "$ip_map" ]
 then
-    ip_addr=`$IBIS_ROOT/bin/ip_map.perl $ip_map \`hostname\``
+    ip_addr=`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" \`hostname\``
     JIT_OPTS="$JIT_OPTS -Dibis.util.ip.address=$ip_addr"
     # This is required if Sun's RMI is used
     JIT_OPTS="$JIT_OPTS -Djava.rmi.server.hostname=$ip_addr"
     if [ ! -z $HOSTS ]
     then
-	export HOSTS="`$IBIS_ROOT/bin/ip_map.perl $ip_map $HOSTS`"
+	export HOSTS="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $HOSTS`"
     fi
     if [ ! -z $PRUN_HOSTNAMES ]
     then
-	export PRUN_HOSTNAMES="`$IBIS_ROOT/bin/ip_map.perl $ip_map $PRUN_HOSTNAMES`"
+	export PRUN_HOSTNAMES="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $PRUN_HOSTNAMES`"
     fi
 fi
 
@@ -298,11 +298,11 @@ then
     fi
 fi
 
-$action $JAVA_ROOT/bin/$JAVA_EXEC \
+$action "$JAVA_ROOT"/bin/$JAVA_EXEC \
 	$JIT_OPTS \
 	$Dlibpath $Dibislibs \
 	$Dpool_host_num $Dpool_total $Dpool_host_names \
 	$Dns_key $Dns_port $Dns_server \
 	$Xbootclasspath \
-	-classpath $JAVACLASSPATH \
+	-classpath "$JAVACLASSPATH" \
 	"$@"

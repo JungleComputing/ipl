@@ -16,8 +16,8 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. $dir/../configuration.sh
+. "$dir"/../configuration.sh
 
-JAVACLASSPATH=$CLASSPATH:$IBIS_ROOT/build:
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:"
 
-$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.util.PoolInfoServer"$@"
+"$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.util.PoolInfoServer "$@"

@@ -16,6 +16,6 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. $dir/../configuration.sh
+. "$dir"/../configuration.sh
 
-$IBIS_ROOT/3rdparty/apache-ant-1.6.1/bin/ant "$@"
+"$IBIS_ROOT"/3rdparty/apache-ant-1.6.1/bin/ant "$@"

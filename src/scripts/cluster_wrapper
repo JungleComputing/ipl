@@ -16,7 +16,7 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. $dir/../configuration.sh
+. "$dir"/../configuration.sh
 
 mycpu=$PRUN_CPU_RANK
 host_array=($HOSTS)
@@ -64,8 +64,8 @@ do
 	esac
 done
 
-export CLASSPATH=$IBIS_ROOT/build:
-export LD_LIBRARY_PATH=$IBIS_ROOT/build/lib:
+export CLASSPATH="$IBIS_ROOT/build:"
+export LD_LIBRARY_PATH="$IBIS_ROOT/build/lib:"
 
 # export PAN_COMM_NO_INTR=1
 export PAN_COMM_NO_IDLE_POLL=1
@@ -95,10 +95,10 @@ then
 	done
 	# echo host_array = ${host_array[@]}
 	hosts="'"${host_array[@]}"'"
-	$ACT $IBIS_ROOT/bin/java_wrapper \
-		$JAVA_ROOT/bin/java \
+	$ACT "$IBIS_ROOT"/bin/java_wrapper \
+		"$JAVA_ROOT"/bin/java \
 		-Xmx400M -Xcomp \
-		-Djava.library.path=$IBIS_ROOT/build/lib \
+		-Djava.library.path="$IBIS_ROOT/build/lib" \
 		-Dibis.pool.host_names="$hosts" \
 		-Dibis.pool.total_hosts="${#host_array[@]}" \
 		-Dibis.pool.host_number=$PRUN_CPU_RANK \
@@ -108,9 +108,9 @@ then
 		$ARGS
 else
 	# echo "I am cluster coordinator, it seems; PRUN_CPU_RANK $PRUN_CPU_RANK"
-	$IBIS_ROOT/bin/java_wrapper \
-		$JAVA_ROOT/bin/java \
+	"$IBIS_ROOT"/bin/java_wrapper \
+		"$JAVA_ROOT"/bin/java \
 		-Xmx400M -Xcomp \
-		-Djava.library.path=$IBIS_ROOT/build/lib \
+		-Djava.library.path="$IBIS_ROOT/build/lib" \
 		ibis.impl.messagePassing.PandaIbis
 fi

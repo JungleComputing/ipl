@@ -16,20 +16,20 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. $dir/../configuration.sh
+. "$dir"/../configuration.sh
 
 # rewrite all class files in the current tree.
 
-export JAVACLASSPATH=$IBIS_ROOT/build:$IBIS_ROOT/build/lib:build:$BCEL:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:build:$BCEL:.:"
 
 case X$# in
 X0)
     find . -name '*.class' -print |
 	sed 's/^..//' |
 	tr '\n' ' ' |
-	xargs $JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator -dir "$@"
+	xargs "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.io.IOGenerator -dir "$@"
 	;;
 X*)
-    $JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator -dir "$@"
+    "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.io.IOGenerator -dir "$@"
     ;;
 esac

@@ -251,6 +251,7 @@ fi
 if [ $i_am_nameserver -eq 1 ]
 then
 	echo Start run-once name server on `hostname`
+	JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:"
 	$JAVA_ROOT/bin/java \
 		-classpath $JAVACLASSPATH \
 		ibis.impl.nameServer.tcp.NameServer -single

@@ -16,9 +16,9 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. $dir/../configuration.sh
+. "$dir"/../configuration.sh
 
-JAVACLASSPATH=$CLASSPATH:$IBIS_ROOT/build:
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:"
 
 usage() {
   echo "Usage: $0 [-port <port>]"
@@ -52,4 +52,4 @@ if [ ! -z "${IBIS_HUB_PORT}" ]; then
   Dhub="-Dibis.connect.hub_port=${IBIS_HUB_PORT}"
 fi
 
-$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH $Dhub ibis.connect.controlHub.ControlHub
+"$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" $Dhub ibis.connect.controlHub.ControlHub

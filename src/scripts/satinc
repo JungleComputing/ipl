@@ -16,7 +16,7 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. $dir/../configuration.sh
+. "$dir"/../configuration.sh
 
-JAVACLASSPATH=$IBIS_ROOT/build:$IBIS_ROOT/build/lib:build:$BCEL:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar
-$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH java ibis.frontend.satin.Satinc $*
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:build:$BCEL:.:"
+"$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.satin.Satinc "$@"

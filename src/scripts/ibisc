@@ -16,14 +16,8 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. $dir/../configuration.sh
+. "$dir"/../configuration.sh
 
-JAVACLASSPATH=$IBIS_ROOT/build:$IBIS_ROOT/build/lib:build:$BCEL:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar
-LASM_CACHE=$IBIS_ROOT/ibis/LASM_IBIS_CACHE
-MANTACFLAGS="-classpath $JAVACLASSPATH -g -no-shared-link -panda $PANDA_ROOT/panda4.0 -output_cc $LASM_CACHE -user_cc $LASM_CACHE"
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:build:$BCEL:.:"
 
-MANTAC_COMMAND="$MANTA_ROOT/mantac $MANTACFLAGS"
-
-$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.ibis.Ibisc -compiler  "$JAVAC -g -classpath $JAVACLASSPATH" -mantac "$MANTAC_COMMAND" $@
-
-# we should make a choice between udp/myrinet for the mantac command
+"$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.ibis.Ibisc -compiler "$JAVAC -g -classpath \"$JAVACLASSPATH\"" $@

@@ -16,10 +16,10 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. $dir/../configuration.sh
+. "$dir"/../configuration.sh
 
 # javap with classpath
 
-export JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/build:build:$BCEL:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:build:$BCEL:.:"
 
-$JAVA_ROOT/bin/javap -classpath $JAVACLASSPATH -bootclasspath $JAVACLASSPATH "$@"
+"$JAVA_ROOT"/bin/javap -classpath "$JAVACLASSPATH" -bootclasspath "$JAVACLASSPATH" "$@"
