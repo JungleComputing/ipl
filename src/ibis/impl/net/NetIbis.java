@@ -64,7 +64,10 @@ public final class NetIbis extends Ibis {
          */
 	private static final String COMPILER = java.lang.System.getProperty("java.lang.compiler");
 
-	static IbisSocketFactory socketFactory = IbisSocketFactory.createFactory();
+	/**
+	 * The Ibis socket factory
+	 */
+	public static IbisSocketFactory socketFactory = IbisSocketFactory.createFactory();
 
 	/**
 	 * The driver loading mode.

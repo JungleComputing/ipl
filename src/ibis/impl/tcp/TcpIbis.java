@@ -45,18 +45,12 @@ public final class TcpIbis extends Ibis implements Config {
 	static {
 	    Properties p = System.getProperties();
 	    String dl = p.getProperty("ibis.connect.enable");
+
 	    use_brokered_links = 
 		dl != null &&
 		! dl.equals("false") &&
 		! dl.equals("no");
-	    if (use_brokered_links) {
-		if (p.getProperty("ibis.connect.data_links") == null) {
-		    System.setProperty("ibis.connect.data_links", "TCPSplice");
-		}
-		if (p.getProperty("ibis.connect.control_links") == null) {
-		    System.setProperty("ibis.connect.control_links", "RoutedMessages");
-		}
-	    }
+
 	    socketFactory = IbisSocketFactory.createFactory();
 	}
 

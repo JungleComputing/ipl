@@ -1,5 +1,6 @@
 package ibis.impl.net.tcp;
 
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
@@ -9,28 +10,22 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.ipl.ConnectionClosedException;
 
+import java.io.ObjectInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.Hashtable;
 
 
 public final class TcpInput extends NetInput implements NetPollInterruptible {
-	private ServerSocket 	   tcpServerSocket    = null;
 	private Socket             tcpSocket          = null;
 	private Integer            spn  	      = null;
 	private DataInputStream    tcpIs	      = null;
 	private DataOutputStream   tcpOs	      = null;
-        private InetAddress        addr               = null;
-        private int                port               =    0;
         private ObjectInputStream _inputConvertStream = null;
 
 	private static final int   INTERRUPT_TIMEOUT  = 100; // ms
@@ -50,17 +45,18 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
                         throw new Error("connection already established");
                 }
 
-		tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
-		Hashtable info    = new Hashtable();
-		info.put("tcp_address", tcpServerSocket.getInetAddress());
-		info.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
-		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp"));
-		os.writeObject(info);
-		os.close();
+		InputStream brokered_in =
+		    cnx.getServiceLink().getInputSubStream(this, "tcp_brokering");
+		OutputStream brokered_out =
+		    cnx.getServiceLink().getOutputSubStream(this, "tcp_brokering");
 
-		tcpSocket  = tcpServerSocket.accept();
-		addr = tcpSocket.getInetAddress();
-		port = tcpSocket.getPort();
+		tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
+			brokered_in,
+			brokered_out,
+			true);
+
+		brokered_in.close();
+		brokered_out.close();
 
 		tcpIs 	   = new DataInputStream(tcpSocket.getInputStream());
 		tcpOs 	   = new DataOutputStream(tcpSocket.getOutputStream());
@@ -463,10 +459,6 @@ System.err.println(this + ": interruptiblePoll support is INCOMPLETE. Please imp
 
 		if (tcpSocket != null) {
 			tcpSocket.close();
-		}
-
-		if (tcpServerSocket != null) {
-			tcpServerSocket.close();
 		}
 
                 spn = null;

@@ -1,5 +1,6 @@
 package ibis.impl.net.tcp_plain;
 
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetOutput;
@@ -9,9 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Hashtable;
 
 /**
  * The TCP output implementation (block version).
@@ -41,8 +40,6 @@ public final class TcpOutput extends NetOutput {
 	 * The communication output stream.
 	 */
 	private OutputStream 	         tcpOs	   = null;
-        private InetAddress              raddr     = null;
-        private int                      rport     = 0;
         
 	/**
 	 * Constructor.
@@ -72,19 +69,17 @@ public final class TcpOutput extends NetOutput {
                 
 		this.rpn = cnx.getNum();
 
-                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_plain"));
-		Hashtable rInfo;
-                try {
-                        rInfo = (Hashtable)is.readObject();
-		} catch (ClassNotFoundException e) {
-                        throw new Error(e);
-                }
-		is.close();
+		InputStream brokering_in =
+			cnx.getServiceLink().getInputSubStream(this, "tcp_plain_brokering");
+		OutputStream brokering_out =
+			cnx.getServiceLink().getOutputSubStream(this, "tcp_plain_brokering");
+		tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
+			brokering_in,
+			brokering_out,
+			false);
 
-		raddr =  (InetAddress)rInfo.get("tcp_address");
-		rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
-
-		tcpSocket = new Socket(raddr, rport);
+		brokering_in.close();
+		brokering_out.close();
 
 		tcpSocket.setSendBufferSize(0x8000);
 		tcpSocket.setReceiveBufferSize(0x8000);
@@ -109,7 +104,7 @@ public final class TcpOutput extends NetOutput {
 	 * {@inheritDoc}
          */
 	public void writeByte(byte b) throws IOException {
-                //System.err.println("TcpOutput: "+raddr+"["+rport+"]writing byte "+b);
+                //System.err.println("TcpOutput: writing byte "+b);
 		tcpOs.write(b);
 	}
 

@@ -20,18 +20,14 @@ import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.OutputStream;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
-import java.util.Hashtable;
 
 /**
  * The TCP input implementation (block version).
@@ -44,10 +40,6 @@ public final class TcpInput extends NetBufferedInput
 	 */
 	private final static boolean DEBUG = false; // true;
 
-	/**
-	 * The connection socket.
-	 */
-	private ServerSocket 	      tcpServerSocket = null;
 
 	/**
 	 * The communication socket.
@@ -91,8 +83,6 @@ public final class TcpInput extends NetBufferedInput
 	 */
 	private int                   rmtu            =   0;
 
-	private InetAddress           addr            = null;
-	private int                   port            =    0;
 	private byte []               hdr             = new byte[4];
 	private volatile NetReceiveBuffer      buf    = null;
 
@@ -138,30 +128,27 @@ public final class TcpInput extends NetBufferedInput
 			throw new Error("connection already established");
 		}
 
-		tcpServerSocket   = new ServerSocket();
-		tcpServerSocket.setReceiveBufferSize(0x8000);
-		tcpServerSocket.bind(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
-		Hashtable lInfo = new Hashtable();
-		lInfo.put("tcp_address", tcpServerSocket.getInetAddress());
-		lInfo.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
-		lInfo.put("tcp_mtu",     new Integer(lmtu));
-		Hashtable rInfo = null;
-
-		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
-		os.writeObject(lInfo);
+		DataOutputStream os = new DataOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
+		os.writeInt(lmtu);
+		os.flush();
 		os.close();
 
-		ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
-		try {
-			rInfo = (Hashtable)is.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new Error(e);
-		}
+		DataInputStream is = new DataInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
+		rmtu = is.readInt();
 		is.close();
+		
+		InputStream brokered_in =
+		    cnx.getServiceLink().getInputSubStream(this, "tcp_blk_brokering");
+		OutputStream brokered_out =
+		    cnx.getServiceLink().getOutputSubStream(this, "tcp_blk_brokering");
 
-		rmtu = ((Integer) rInfo.get("tcp_mtu")).intValue();
+		tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
+			brokered_in,
+			brokered_out,
+			true);
 
-		tcpSocket  = tcpServerSocket.accept();
+		brokered_in.close();
+		brokered_out.close();
 
 		tcpSocket.setSendBufferSize(0x8000);
 		tcpSocket.setTcpNoDelay(true);
@@ -169,9 +156,6 @@ public final class TcpInput extends NetBufferedInput
 		    tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
 		    upcallFunc = null;
 		}
-
-		addr = tcpSocket.getInetAddress();
-		port = tcpSocket.getPort();
 
 		tcpIs = tcpSocket.getInputStream();
 		tcpOs = tcpSocket.getOutputStream();
@@ -516,10 +500,6 @@ public final class TcpInput extends NetBufferedInput
 			if (tcpSocket != null) {
 				tcpSocket.close();
 			}
-
-			if (tcpServerSocket != null) {
-				tcpServerSocket.close();
-			}
 		}
 		log.out();
 	}
@@ -542,9 +522,6 @@ public final class TcpInput extends NetBufferedInput
 			tcpSocket.close();
 		}
 
-		if (tcpServerSocket != null) {
-			tcpServerSocket.close();
-		}
 		log.out();
 	}
 

@@ -2,8 +2,13 @@ package ibis.impl.util;
 
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.util.IbisSocketFactory;
+import ibis.util.IPUtils;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,9 +19,7 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
      */
     public ServerSocket createServerSocket(int port, int backlog, InetAddress addr) 
 	throws IOException {
-	ServerSocket s = null;
-	s = new ServerSocket(port, backlog, addr);
-	return s;
+	return new ServerSocket(port, backlog, addr);
     }
 
     /** Simple client Socket factory
@@ -164,4 +167,29 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 
 		return s;
 	} 
+
+	public Socket createBrokeredSocket(InputStream in,
+					   OutputStream out,
+					   boolean isServer) throws IOException {
+	    Socket s = null;
+	    if(isServer) {
+		ServerSocket server = this.createServerSocket(0, 1, IPUtils.getLocalHostAddress());
+		ObjectOutputStream os = new ObjectOutputStream(out);
+		os.writeObject(server.getInetAddress());
+		os.writeInt(server.getLocalPort());
+		os.flush();
+		s = server.accept();
+	    } else {
+		ObjectInputStream is = new ObjectInputStream(in);
+		InetAddress raddr;
+		try {
+		    raddr = (InetAddress)is.readObject();
+		} catch (ClassNotFoundException e) {
+		    throw new Error(e);
+		}
+		int rport = is.readInt();
+		s = this.createSocket(raddr, rport);
+	    }
+	    return s;
+	}
 }

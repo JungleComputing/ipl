@@ -1,5 +1,6 @@
 package ibis.impl.net.tcp_plain;
 
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetAllocator;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
@@ -12,20 +13,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Hashtable;
 
 /**
  * The TCP input implementation.
  */
 public final class TcpInput extends NetInput {
-
-	/**
-	 * The connection socket.
-	 */
-	private ServerSocket 	      tcpServerSocket = null;
 
 	/**
 	 * The communication socket.
@@ -58,8 +51,6 @@ public final class TcpInput extends NetInput {
 
         private boolean               first          = false;
         private byte                  firstbyte      = 0;
-        private InetAddress           addr           = null;
-        private int                   port           =    0;
 
 	/**
 	 * Constructor.
@@ -87,21 +78,21 @@ public final class TcpInput extends NetInput {
                         throw new Error("connection already established");
                 }
 
-		tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
-		Hashtable lInfo    = new Hashtable();
-		lInfo.put("tcp_address", tcpServerSocket.getInetAddress());
-		lInfo.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
-		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_plain"));
-		os.writeObject(lInfo);
-		os.close();
+		InputStream brokering_in =
+			cnx.getServiceLink().getInputSubStream(this, "tcp_blk_brokering");
+		OutputStream brokering_out =
+			cnx.getServiceLink().getOutputSubStream(this, "tcp_blk_brokering");
+		tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
+			brokering_in,
+			brokering_out,
+			false);
 
-		tcpSocket  = tcpServerSocket.accept();
+		brokering_in.close();
+		brokering_out.close();
 
 		tcpSocket.setSendBufferSize(0x8000);
 		tcpSocket.setReceiveBufferSize(0x8000);
 		tcpSocket.setTcpNoDelay(true);
-		addr = tcpSocket.getInetAddress();
-		port = tcpSocket.getPort();
 
 		tcpIs 	   = tcpSocket.getInputStream();
 		tcpOs 	   = tcpSocket.getOutputStream();
@@ -191,10 +182,6 @@ public final class TcpInput extends NetInput {
 				tcpSocket.close();
 			}
 
-			if (tcpServerSocket != null) {
-				tcpServerSocket.close();
-			}
-
                         spn = null;
                 }
         }
@@ -213,10 +200,6 @@ public final class TcpInput extends NetInput {
 
 		if (tcpSocket != null) {
 			tcpSocket.close();
-		}
-
-		if (tcpServerSocket != null) {
-			tcpServerSocket.close();
 		}
 
                 spn = null;

@@ -1,5 +1,6 @@
 package ibis.impl.net.tcp;
 
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetOutput;
@@ -11,10 +12,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Hashtable;
 
 /**
  * The TCP output implementation.
@@ -50,9 +51,6 @@ public final class TcpOutput extends NetOutput {
          */
         private ObjectOutputStream _outputConvertStream = null;
 
-
-        private InetAddress raddr = null;
-        private int         rport =    0;
         private boolean     first = true;
 
 	/**
@@ -82,21 +80,18 @@ public final class TcpOutput extends NetOutput {
                 
 		this.rpn = cnx.getNum();
 	
-		ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp"));
-		Hashtable remoteInfo;
-		try {
-                        remoteInfo = (Hashtable)is.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new Error(e);
-		}
-		is.close();
-		
-		raddr =  (InetAddress)remoteInfo.get("tcp_address");
-		rport = ((Integer)    remoteInfo.get("tcp_port")   ).intValue();
-		log.disp("raddr = ", raddr);
-		log.disp("rport = ", rport);
+		InputStream brokering_in =
+			cnx.getServiceLink().getInputSubStream(this, "tcp_brokering");
+		OutputStream brokering_out =
+			cnx.getServiceLink().getOutputSubStream(this, "tcp_brokering");
+		tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
+			brokering_in,
+			brokering_out,
+			false);
 
-		tcpSocket = new Socket(raddr, rport);
+		brokering_in.close();
+		brokering_out.close();
+
 		tcpOs 	  = new DataOutputStream(tcpSocket.getOutputStream());
 		tcpIs 	  = new DataInputStream(tcpSocket.getInputStream());
 

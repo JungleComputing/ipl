@@ -183,6 +183,34 @@ public abstract class IbisSocketFactory {
     }
 
     /**
+     * Creates a brokered socket, using the specified socket to negotiate.
+     * The default implementation just returns this socket.
+     * @param s socket to negotiate on
+     * @param isServer must be set to true on one side, false on the other.
+     * @return the socket created
+     * @exception IOException is thrown when the socket could not
+     *   be created for some reason.
+     */
+    public Socket createBrokeredSocket(Socket s, boolean isServer) throws IOException {
+	return s;
+    }
+
+    /**
+     * Creates a brokered socket, using the specified streams to negotiate
+     * and determine addresses.
+     * The default implementation returns null.
+     * @param in input stream
+     * @param out output stream
+     * @param isServer must be set to true on one side, false on the other.
+     * @return the socket created
+     * @exception IOException is thrown when the socket could not
+     *   be created for some reason.
+     */
+    public Socket createBrokeredSocket(InputStream in, OutputStream out, boolean isServer) throws IOException {
+	return null;
+    }
+
+    /**
      * Closes a socket and streams that are associated with it.
      * These streams are given as separate parameters, because they may be
      * streams that are built on top of the actual socket streams.

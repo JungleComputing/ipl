@@ -2,7 +2,6 @@
  **/
 package ibis.impl.tcp;
 
-import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
@@ -102,19 +101,16 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 		    do {
 			s = socketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), timeout);
 
+			if (use_brokered_links) {
+			    Socket s1 = socketFactory.createBrokeredSocket(s, false);
+			    if (s1 != s) {
+				s.close();
+				s = s1;
+			    }
+			}
+
 			InputStream sin = s.getInputStream();
 			OutputStream sout = s.getOutputStream();
-
-			if (use_brokered_links) {
-			    Socket s1 = ExtSocketFactory.createBrokeredSocket(sin, sout, false);
-			    sin.close();
-			    sout.close();
-			    s.close();
-
-			    s = s1;
-			    sin = s.getInputStream();
-			    sout = s.getOutputStream();
-			}
 
 			ObjectOutputStream obj_out = new ObjectOutputStream(new DummyOutputStream(sout));
 			DataInputStream data_in = new DataInputStream(new DummyInputStream(sin));
@@ -389,19 +385,17 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 					return;
 				}
 
-				InputStream sin = s.getInputStream();
-				OutputStream sout = s.getOutputStream();
 
 				if (use_brokered_links) {
-				    Socket s1 = ExtSocketFactory.createBrokeredSocket(sin, sout, true);
-				    sin.close();
-				    sout.close();
-				    s.close();
-
-				    s = s1;
-				    sin = s.getInputStream();
-				    sout = s.getOutputStream();
+				    Socket s1 = socketFactory.createBrokeredSocket(s, true);
+				    if (s != s1) {
+					s.close();
+					s = s1;
+				    }
 				}
+
+				InputStream sin = s.getInputStream();
+				OutputStream sout = s.getOutputStream();
 
 				handleRequest(s, sin, sout);
 

@@ -1,5 +1,6 @@
 package ibis.impl.net.tcp_blk;
 
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
@@ -12,12 +13,10 @@ import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Hashtable;
 
 /**
  * The TCP output implementation (block version).
@@ -102,26 +101,26 @@ public final class TcpOutput extends NetBufferedOutput {
 
 		this.rpn = cnx.getNum();
 
-		Hashtable lInfo = new Hashtable();
-		lInfo.put("tcp_mtu",     new Integer(lmtu));
-		Hashtable   rInfo = null;
-		ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
-		try {
-			rInfo = (Hashtable)is.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new Error(e);
-		}
+		DataInputStream is = new DataInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
+		rmtu = is.readInt();
 		is.close();
 
-		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
-		os.writeObject(lInfo);
+		DataOutputStream os = new DataOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
+		os.writeInt(lmtu);
+		os.flush();
 		os.close();
 
-		InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
-		int         rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
-		rmtu              = ((Integer)    rInfo.get("tcp_mtu")    ).intValue();
+		InputStream brokering_in =
+			cnx.getServiceLink().getInputSubStream(this, "tcp_blk_brokering");
+		OutputStream brokering_out =
+			cnx.getServiceLink().getOutputSubStream(this, "tcp_blk_brokering");
+		tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
+			brokering_in,
+			brokering_out,
+			false);
 
-		tcpSocket = new Socket(raddr, rport);
+		brokering_in.close();
+		brokering_out.close();
 
 		tcpSocket.setSendBufferSize(0x8000);
 		tcpSocket.setReceiveBufferSize(0x8000);
