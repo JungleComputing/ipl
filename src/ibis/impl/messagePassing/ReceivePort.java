@@ -237,10 +237,13 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	}
 
 	if (arrivedWaiters > 0) {
+// System.err.println("Receiveport signalled");
 	    messageArrived.cv_signal();
 	}
 
 	if (upcall != null) {
+//	    This wakeup() call is not needed. It is already done above. (wakeup does a
+//	    messageArrived.cv_signal()).
 //	    wakeup();
 
 	    if (ibis.ipl.impl.messagePassing.Ibis.STATISTICS) {
@@ -319,7 +322,9 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 
     public void poll_wait(long timeout) {
 	arrivedWaiters++;
+// System.err.println("ReceivePort poll_wait");
 	messageArrived.cv_wait(timeout);
+// System.err.println("ReceivePort woke up");
 	arrivedWaiters--;
     }
 
