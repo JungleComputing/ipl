@@ -14,9 +14,9 @@ class Backref implements java.io.Serializable {
     }
 
     /** Returns a new backref that represents a character copy. */
-    public static Backref buildCopyBackref()
+    public static Backref buildCopyBackref( int pos )
     {
-        return new Backref( -1, -1, -1 );
+        return new Backref( -1, pos, -1 );
     }
 
     /** Returns true iff this backref represents a character copy. */
@@ -55,6 +55,9 @@ class Backref implements java.io.Serializable {
 
     public String toString()
     {
+        if( len == -1 ){
+            return "pos=" + pos + " (copy)";
+        }
         return "pos=" + pos + ", backpos=" + backpos + ", len=" + len +  ", gain=" + getGain();
     }
 }

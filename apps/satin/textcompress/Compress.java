@@ -5,6 +5,7 @@ import java.io.File;
 class Compress extends ibis.satin.SatinObject
 {
     static final boolean traceMatches = false;
+    static final boolean traceLookahead = false;
 
     // Given a byte array, build an array of backreferences. That is,
     // construct an array that at each text position gives the index
@@ -76,14 +77,36 @@ class Compress extends ibis.satin.SatinObject
 
     public Backref selectBestMove( byte text[], int backrefs[], int pos, int depth )
     {
-        Backref mv = Backref.buildCopyBackref();
+        Backref mv = Backref.buildCopyBackref( pos );
+        boolean haveAlternatives = false;
 
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
             return mv;
         }
         int sites[] = collectBackrefs( text, backrefs, pos );
-        Backref results[] = new Backref[sites.length];
-        // We always have the choice to just copy the character.
+
+        Backref results[] = new Backref[Magic.MAX_COST+1];
+        for( int i=0; i<sites.length; i++ ){
+            Backref r = shallowEvaluateBackref( text, backrefs, sites[i], pos );
+            if( r != null ){
+                int cost = r.getCost();
+
+                if( results[cost] == null || results[cost].len<r.len ){
+                    results[cost] = r;
+                    haveAlternatives = true;
+                }
+            }
+        }
+
+        if( !haveAlternatives && depth == 0 ){
+            // The only possible move is a copy, so don't bother to evaluate
+            // it any further.
+            if( traceLookahead ){
+                System.out.println( "At pos=" + pos + " only a copy is possible" );
+            }
+            return mv;
+        }
+
         if( depth<Configuration.LOOKAHEAD_DEPTH ){
             // Evaluate the gain of just copying the character.
             Backref mv1 = selectBestMove( text, backrefs, pos+1, depth+1 );
@@ -91,17 +114,27 @@ class Compress extends ibis.satin.SatinObject
 	    sync();
             mv.addGain( mv1 );
         }
-        else {
-            // At the full depth of recursion, record the character copy
-            // as a zero-gain move.
+
+        if( traceLookahead ){
+            for( int i=0; i<depth; i++ ){
+                System.out.print( ' ' );
+            }
+            System.out.println( "D" + depth + ": considering move: " + mv );
+            for( int c=0; c<results.length; c++ ){
+                Backref r = results[c];
+                if( r != null ){
+                    for( int i=0; i<depth; i++ ){
+                        System.out.print( ' ' );
+                    }
+                    System.out.println( "D" + depth + ": considering move: " + r );
+                }
+            }
         }
-        for( int i=0; i<sites.length; i++ ){
-            results[i] = shallowEvaluateBackref( text, backrefs, sites[i], pos );
-        }
+
         if( depth<Configuration.LOOKAHEAD_DEPTH ){
             // We have some recursion left, add the best gain from the recursion
             // to our own score.
-            for( int i=0; i<sites.length; i++ ){
+            for( int i=0; i<results.length; i++ ){
                 Backref r = results[i];
 
                 if( r != null ){
@@ -125,6 +158,12 @@ class Compress extends ibis.satin.SatinObject
                 }
             }
         }
+        if( traceLookahead ){
+            for( int i=0; i<depth; i++ ){
+                System.out.print( ' ' );
+            }
+            System.out.println( "D" + depth + ": best move is: " + mv );
+        }
         return mv;
     }
 
@@ -134,6 +173,9 @@ class Compress extends ibis.satin.SatinObject
         int pos = 0;
         ByteBuffer out = new ByteBuffer();
 
+        while( pos<Configuration.MINIMAL_SPAN && pos<text.length ){
+            out.append( text[pos++] );
+        }
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
             Backref mv = selectBestMove( text, backrefs, pos, 0 );
             sync();
