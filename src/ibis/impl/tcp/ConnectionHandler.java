@@ -8,6 +8,7 @@ package ibis.impl.tcp;
 
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.IbisSerializationInputStream;
+import ibis.io.DataSerializationInputStream;
 import ibis.io.SerializationInputStream;
 import ibis.io.SunSerializationInputStream;
 import ibis.io.NoSerializationInputStream;
@@ -54,6 +55,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 				dummy_ibis = null;
 			break;
 		case TcpPortType.SERIALIZATION_IBIS:
+		case TcpPortType.SERIALIZATION_DATA:
 				// maybe the dummy should be on the outside ??? Jason
 				dummy = new DummyInputStream(input);
 				dummy_ibis = new BufferedArrayInputStream(dummy);
@@ -75,6 +77,9 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 			break;
 		case TcpPortType.SERIALIZATION_IBIS:
 			in = new IbisSerializationInputStream(dummy_ibis);
+			break;
+		case TcpPortType.SERIALIZATION_DATA:
+			in = new DataSerializationInputStream(dummy_ibis);
 			break;
 		default:
 			throw new IbisError("EEK: serialization type unknown");

@@ -22,7 +22,8 @@ class TcpPortType implements PortType, Config {
 	
 	static final byte SERIALIZATION_SUN = 0;
 	static final byte SERIALIZATION_IBIS = 1;
-	static final byte SERIALIZATION_NONE = 2;
+	static final byte SERIALIZATION_DATA = 2;
+	static final byte SERIALIZATION_NONE = 3;
 
 	byte serializationType = SERIALIZATION_SUN;
 
@@ -47,7 +48,10 @@ class TcpPortType implements PortType, Config {
 
 //				System.err.println("serializationType = SERIALIZATION_NONE");
 				serializationType = SERIALIZATION_NONE;
-			} else if (ser.equals("ibis") || ser.equals("data")) {
+			} else if (ser.equals("data")) {
+//				System.err.println("serializationType = SERIALIZATION_DATA");
+				serializationType = SERIALIZATION_DATA;
+			} else if (ser.equals("ibis")) {
 
 //				System.err.println("serializationType = SERIALIZATION_IBIS");
 				serializationType = SERIALIZATION_IBIS;

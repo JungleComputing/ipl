@@ -42,12 +42,12 @@ public final class NoSerializationOutputStream
     }
 
     /**
-     * Returns the name of the current serialization implementation: "none".
+     * Returns the name of the current serialization implementation: "byte".
      *
      * @return the name of the current serialization implementation.
      */
     public String serializationImplName() {
-	return "none";
+	return "byte";
     }
 
     /**

@@ -35,12 +35,12 @@ public final class NoSerializationInputStream extends SerializationInputStream {
     }
 
     /**
-     * Returns the name of the current serialization implementation: "sun".
+     * Returns the name of the current serialization implementation: "byte".
      *
      * @return the name of the current serialization implementation.
      */
     public String serializationImplName() {
-	return "none";
+	return "byte";
     }
 
     /**

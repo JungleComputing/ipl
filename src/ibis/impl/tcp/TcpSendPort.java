@@ -2,6 +2,7 @@ package ibis.impl.tcp;
 
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.IbisSerializationOutputStream;
+import ibis.io.DataSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 import ibis.io.SunSerializationOutputStream;
 import ibis.io.NoSerializationOutputStream;
@@ -76,6 +77,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			dummy = new DummyOutputStream(new BufferedOutputStream(splitter, 60*1024));
 			break;
 		case TcpPortType.SERIALIZATION_IBIS:
+		case TcpPortType.SERIALIZATION_DATA:
 			dummy = new DummyOutputStream(splitter);
 			break;
 		default:
@@ -154,6 +156,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			break;
 		case TcpPortType.SERIALIZATION_IBIS:
 			out = new IbisSerializationOutputStream(new BufferedArrayOutputStream(dummy));
+			break;
+		case TcpPortType.SERIALIZATION_DATA:
+			out = new DataSerializationOutputStream(new BufferedArrayOutputStream(dummy));
 			break;
 		default:
 			System.err.println("EEK, serialization type unknown");
