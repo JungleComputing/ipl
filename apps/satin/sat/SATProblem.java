@@ -46,6 +46,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
     private static final boolean traceStats = true;
     private int label = 0;
 
+    public ClauseReviewer reviewer = null;
+
     /**
      * Constructs an empty SAT Problem.
      */
@@ -67,7 +69,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	Clause clauses[],
 	SATVar variables[],
 	int deletedClauseCount,
-	int label
+	int label,
+	ClauseReviewer r
     )
     {
         this.vars = vars;
@@ -77,6 +80,12 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
         this.variables = variables;
         this.deletedClauseCount = deletedClauseCount;
         this.label = label;
+	reviewer = r;
+    }
+
+    public void setReviewer( ClauseReviewer r )
+    {
+	reviewer = r;
     }
 
     /** Returns a clone of this SAT problem. The newly created SATProblem
@@ -111,7 +120,8 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	    cl,
 	    vl,
 	    deletedClauseCount,
-	    label
+	    label,
+	    reviewer
 	);
     }
 
@@ -628,7 +638,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
         float res[] = new float[vars];
 
 	for( int ix=0; ix<vars; ix++ ){
-	    res[ix] = variables[ix].getPosInfo( clauses );
+	    res[ix] = variables[ix].getPosInfo( clauses, reviewer );
 	}
 	return res;
     }
@@ -642,7 +652,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
         float res[] = new float[vars];
 
 	for( int ix=0; ix<vars; ix++ ){
-	    res[ix] = variables[ix].getNegInfo( clauses );
+	    res[ix] = variables[ix].getNegInfo( clauses, reviewer );
 	}
 	return res;
     }

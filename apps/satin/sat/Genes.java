@@ -16,6 +16,28 @@ class Genes {
 	bools = b;
     }
 
+    /**
+     * Returns a clone of this vector. The copy will contain a reference to a
+     * clone of the internal data array, not a reference to the internal data
+     * array of this IntVector object.
+     */
+    public Object clone() {
+	float f[] = floats;
+	int i[] = ints;
+	boolean b[] = bools;
+
+	if( f != null ){
+	    f = (float[]) f.clone();
+	}
+	if( i != null ){
+	    i = (int[]) i.clone();
+	}
+	if( b != null ){
+	    b = (boolean[]) b.clone();
+	}
+	return new Genes( f, i, b );
+    }
+
     public String toString()
     {
 	String res = "";

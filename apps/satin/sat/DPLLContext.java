@@ -410,7 +410,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    int cno = neg.get( i );
 
             // Deduct the old info of this clause.
-            posinfo[var] -= Helpers.information( terms[cno] );
+            posinfo[var] -= p.reviewer.info( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
                 analyzeConflict( p, cno, var );
@@ -423,7 +423,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    }
             else {
                 // Add the new information of this clause.
-                posinfo[var] += Helpers.information( terms[cno] );
+                posinfo[var] += p.reviewer.info( terms[cno] );
             }
 	}
 
@@ -435,7 +435,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    int cno = pos.get( i );
 
 	    if( !satisfied[cno] ){
-                posinfo[var] -= Helpers.information( terms[cno] );
+                posinfo[var] -= p.reviewer.info( terms[cno] );
 		int res = markClauseSatisfied( p, cno );
 
 		if( res != 0 ){
@@ -484,7 +484,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    int cno = pos.get( i );
 
             // Deduct the old info of this clause.
-            posinfo[var] -= Helpers.information( terms[cno] );
+            posinfo[var] -= p.reviewer.info( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
                 analyzeConflict( p, cno, var );
@@ -497,7 +497,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    }
             else {
                 // Add the new information of this clause.
-                posinfo[var] += Helpers.information( terms[cno] );
+                posinfo[var] += p.reviewer.info( terms[cno] );
             }
 	}
 
@@ -509,7 +509,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    int cno = neg.get( i );
 
 	    if( !satisfied[cno] ){
-                neginfo[var] -= Helpers.information( terms[cno] );
+                neginfo[var] -= p.reviewer.info( terms[cno] );
 		int res = markClauseSatisfied( p, cno );
 
 		if( res != 0 ){

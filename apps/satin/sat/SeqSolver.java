@@ -192,6 +192,7 @@ public final class SeqSolver {
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
+	p.setReviewer( new CubeClauseReviewer() );
 	p.report( System.out );
 	p.optimize();
 	p.report( System.out );

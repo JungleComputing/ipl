@@ -19,20 +19,6 @@ class Helpers {
     }
 
     /**
-     * Given a number of choices in a clause, returns the information
-     * content of this choice.
-     * @param n The number of choices.
-     * @return The information contents of this choice.
-     */
-    static public float information( int n )
-    {
-	if( n == 0 ){
-	    n = 1;
-	}
-        return 1.0f/(n*n*n);
-    }
-
-    /**
      * Given an array and an index range in that array, return the
      * index of the smallest element. If the range is empty,
      * return the first index in the range.

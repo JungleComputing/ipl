@@ -21,6 +21,8 @@ public final class BreederSolver {
     private static final boolean traceNewCode = true;
     private static int label = 0;
     private int decisions = 0;
+    private int maxDecisions;
+    private static final int GENECOUNT = 8;
 
     /**
      * Solve the leaf part of a SAT problem.
@@ -38,7 +40,7 @@ public final class BreederSolver {
 	SATContext ctx,
 	int var,
 	boolean val
-    ) throws SATResultException, SATRestartException
+    ) throws SATResultException, SATRestartException, SATCutoffException
     {
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
@@ -79,6 +81,9 @@ public final class BreederSolver {
 	    return;
 	}
         decisions++;
+	if( decisions>maxDecisions ){
+	    throw new SATCutoffException();
+	}
 
 	boolean firstvar = ctx.posDominant( nextvar );
 	SATContext subctx = (SATContext) ctx.clone();
@@ -105,11 +110,14 @@ public final class BreederSolver {
      * Given a SAT problem, returns a solution, or <code>null</code> if
      * there is no solution.
      * @param p The problem to solve.
+     * @param cutoff The maximum number of decisions to try.
      * @return a solution of the problem, or <code>null</code> if there is no solution
      */
-    protected SATSolution solveSystem( final SATProblem p )
+    protected SATSolution solveSystem( final SATProblem p, int cutoff )
+	throws SATCutoffException
     {
 	SATSolution res = null;
+	maxDecisions = cutoff;
 
 	if( p.isConflicting() ){
 	    return null;
@@ -168,8 +176,9 @@ public final class BreederSolver {
 	    }
 	    res = r.s;
 	}
-        catch( SATException x ){
-            System.err.println( "Uncaught " + x + "???" );
+        catch( SATRestartException x ){
+	    // No solution found.
+            res = null;
         }
 
 	int newClauseCount = p.getClauseCount();
@@ -178,28 +187,66 @@ public final class BreederSolver {
 
     static Genes getInitialGenes()
     {
-	float g[] = { 1.0f, 1.0f };
+	float g[] = new float[GENECOUNT];
+
+	for( int i=0; i<g.length; i++ ){
+	    g[i] = 1.0f;
+	}
 	return new Genes( g, null, null );
     }
 
     static Genes getMaxGenes()
     {
-	float g[] = { 50.0f, 50.0f };
+	float g[] = new float[GENECOUNT];
+
+	for( int i=0; i<g.length; i++ ){
+	    g[i] = 100.0f;
+	}
 	return new Genes( g, null, null );
     }
 
     static Genes getMinGenes()
     {
-	float g[] = { -50.0f, -50.0f };
+	float g[] = new float[GENECOUNT];
+
+	for( int i=0; i<g.length; i++ ){
+	    g[i] = 1e-6f;
+	}
 	return new Genes( g, null, null );
     }
 
-    static int run( SATProblem p_in, Genes genes )
+    static int run( final SATProblem p_in, Genes genes, int cutoff )
     {
         BreederSolver s = new BreederSolver();
 
+	//System.err.println( "Using genes: " + genes );
 	SATProblem p = (SATProblem) p_in.clone();
-	s.solveSystem( p );
+	p.reviewer = new GeneticClauseReviewer( genes.floats );
+	try {
+	    s.solveSystem( p, cutoff );
+	}
+	catch( SATCutoffException x ){
+	    return -1;
+	}
 	return s.decisions;
+    }
+
+    static int run( final SATProblem pl[], Genes genes, int cutoff )
+    {
+	int total = 0;
+
+	for( int i=0; i<pl.length; i++ ){
+	    int d = run( pl[i], genes, cutoff );
+
+	    if( d<0 ){
+		// Over the budget, we're done.
+		System.err.print( "** " );
+		return d;
+	    }
+	    System.err.print( d + " " );
+	    total += d;
+	    cutoff -= d;	// Deduct our expenses from the limit.
+	}
+	return total;
     }
 }

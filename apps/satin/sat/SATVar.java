@@ -111,16 +111,15 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
      * @param clauses the clauses of the problem
      * @return the amount of information in bit
      */
-    static private float getInfo( IntVector v, Clause clauses[] )
+    static private float getInfo( IntVector v, Clause clauses[], ClauseReviewer r )
     {
         int sz = v.size();
         float info = 0;
 
         for( int i=0; i<sz; i++ ){
             int cno = v.get( i );
-            Clause c = clauses[cno];
 
-            info += Helpers.information( c.pos.length+c.neg.length );
+            info += r.info( clauses[cno] );
         }
         return info;
     }
@@ -131,8 +130,8 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
      * @param clauses the clauses of the problem
      * @return the amount of information in bit
      */
-    float getPosInfo( Clause clauses[] ) {
-       return getInfo( pos, clauses );
+    float getPosInfo( Clause clauses[], ClauseReviewer r ) {
+       return getInfo( pos, clauses, r );
     }
 
     /**
@@ -141,8 +140,8 @@ final class SATVar implements java.io.Serializable, Comparable, Cloneable {
      * @param clauses the clauses of the problem
      * @return the amount of information in bit
      */
-    float getNegInfo( Clause clauses[] ) {
-       return getInfo( neg, clauses );
+    float getNegInfo( Clause clauses[], ClauseReviewer r ) {
+       return getInfo( neg, clauses, r );
     }
 
     public String toString()

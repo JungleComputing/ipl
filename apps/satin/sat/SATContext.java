@@ -49,7 +49,7 @@ public final class SATContext implements java.io.Serializable {
 
     // One step in the chain of resolutions that help to construct
     // a good conflict clause.
-    private final class Resolution {
+    private static final class Resolution {
         Resolution next;        // The next one in the chain.
         int cno;                // The clause to resolve with.
         int var;                // The variable to resolve on.
@@ -883,11 +883,12 @@ public final class SATContext implements java.io.Serializable {
                 Clause cl = p.clauses[i];
 
                 int nterm = cl.getTermCount( assignment );
+		float info = p.reviewer.info( nterm );
                 terms[i] = nterm;
                 boolean issat = cl.isSatisfied( assignment );
                 if( !issat ){
                     unsatisfied++;
-                    cl.registerInfo( posinfo, neginfo, nterm );
+                    cl.registerInfo( posinfo, neginfo, info );
                 }
                 cl.registerVariableCounts( posclauses, negclauses );
                 if( doVerification ){
@@ -1017,7 +1018,7 @@ public final class SATContext implements java.io.Serializable {
 	    int cno = neg.get( i );
 
             // Deduct the old info of this clause.
-            posinfo[var] -= Helpers.information( terms[cno] );
+            posinfo[var] -= p.reviewer.info( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
                 analyzeConflict( p, cno, var, level );
@@ -1030,7 +1031,7 @@ public final class SATContext implements java.io.Serializable {
 	    }
             else {
                 // Add the new information of this clause.
-                posinfo[var] += Helpers.information( terms[cno] );
+                posinfo[var] += p.reviewer.info( terms[cno] );
             }
 	}
 
@@ -1042,7 +1043,7 @@ public final class SATContext implements java.io.Serializable {
 	    int cno = pos.get( i );
 
 	    if( !satisfied[cno] ){
-                posinfo[var] -= Helpers.information( terms[cno] );
+                posinfo[var] -= p.reviewer.info( terms[cno] );
 		int res = markClauseSatisfied( p, cno, level );
 
 		if( res != 0 ){
@@ -1093,7 +1094,7 @@ public final class SATContext implements java.io.Serializable {
 	    int cno = pos.get( i );
 
             // Deduct the old info of this clause.
-            posinfo[var] -= Helpers.information( terms[cno] );
+            posinfo[var] -= p.reviewer.info( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
                 analyzeConflict( p, cno, var, level );
@@ -1106,7 +1107,7 @@ public final class SATContext implements java.io.Serializable {
 	    }
             else {
                 // Add the new information of this clause.
-                posinfo[var] += Helpers.information( terms[cno] );
+                posinfo[var] += p.reviewer.info( terms[cno] );
             }
 	}
 
@@ -1118,7 +1119,7 @@ public final class SATContext implements java.io.Serializable {
 	    int cno = neg.get( i );
 
 	    if( !satisfied[cno] ){
-                neginfo[var] -= Helpers.information( terms[cno] );
+                neginfo[var] -= p.reviewer.info( terms[cno] );
 		int res = markClauseSatisfied( p, cno, level );
 
 		if( res != 0 ){
@@ -1178,6 +1179,7 @@ public final class SATContext implements java.io.Serializable {
                 }
             }
         }
+	//System.err.println( "Best var: v" + bestvar + " has info " + bestinfo );
         return bestvar;
     }
 

@@ -1,178 +1,58 @@
 // File: $Id$
 
 /**
- * A sequential SAT solver. Given a symbolic boolean equation in CNF, find a set
- * of assignments that make this equation true.
- * 
- * This implementation tries to do all the things a professional SAT
- * solver would do, although we are limited by implementation time and
- * the fact that we need to parallelize the stuff.
- * 
  * @author Kees van Reeuwijk
  * @version $Revision$
  */
 
 import java.io.File;
+import java.util.Random;
 
 public final class Breeder {
-    private static final boolean traceSolver = false;
-    private static final boolean printSatSolutions = true;
-    private static final boolean traceNewCode = true;
-    private static int label = 0;
-    private int decisions = 0;
+    static final int MAXGEN = 400;
 
-    /**
-     * Solve the leaf part of a SAT problem.
-     * The method throws a SATResultException if it finds a solution,
-     * or terminates normally if it cannot find a solution.
-     * @param level branching level
-     * @param p the SAT problem to solve
-     * @param ctx the changable context of the solver
-     * @param var the next variable to assign
-     * @param val the value to assign
-     */
-    public void leafSolve(
-	int level,
-	SATProblem p,
-	SATContext ctx,
-	int var,
-	boolean val
-    ) throws SATResultException, SATRestartException
+    // Given genes, and old, slightly worse genes, an extrapolated clone.
+    private static Genes extrapolateGenes( float scale, Genes g, Genes oldG, Genes max, Genes min )
     {
-	if( traceSolver ){
-	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
-	}
-	ctx.assignment[var] = val?1:0;
-	int res;
-	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level );
-	}
-	else {
-	    res = ctx.propagateNegAssignment( p, var, level );
-	}
-	if( res == SATProblem.CONFLICTING ){
-	    if( traceSolver ){
-		System.err.println( "ls" + level + ": propagation found a conflict" );
-	    }
-	    return;
-	}
-	if( res == SATProblem.SATISFIED ){
-	    // Propagation reveals problem is satisfied.
-	    SATSolution s = new SATSolution( ctx.assignment );
+	Genes res = (Genes) g.clone();
 
-	    if( traceSolver | printSatSolutions ){
-		System.err.println( "ls" + level + ": propagation found a solution: " + s );
-	    }
-	    if( !p.isSatisfied( ctx.assignment ) ){
-		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
-	    }
-	    throw new SATResultException( s );
-	}
-	int nextvar = ctx.getDecisionVariable();
-	if( nextvar<0 ){
-	    // There are no variables left to assign, clearly there
-	    // is no solution.
-	    if( traceSolver ){
-		System.err.println( "ls" + level + ": nothing to branch on" );
-	    }
-	    return;
-	}
-        decisions++;
+	// We blindly assume oldG has same existence and length als g arrays.
+	if( g.floats != null ){
+	    float f[] = g.floats;
+	    float fo[] = oldG.floats;
 
-	boolean firstvar = ctx.posDominant( nextvar );
-	SATContext subctx = (SATContext) ctx.clone();
-        try {
-            leafSolve( level+1, p, subctx, nextvar, firstvar );
-        }
-        catch( SATRestartException x ){
-	    if( x.level<level ){
-		//System.err.println( "RestartException passes level " + level + " heading for level " + x.level );
-		throw x;
+	    for( int ix=0; ix<f.length; ix++ ){
+		float delta = f[ix]-fo[ix];
+
+		res.floats[ix] += scale*delta;
+		if( res.floats[ix]<min.floats[ix] ){
+		    res.floats[ix] = min.floats[ix];
+		}
+		if( res.floats[ix]>max.floats[ix] ){
+		    res.floats[ix] = max.floats[ix];
+		}
 	    }
-        }
-	// Since we won't be using our context again, we may as well
-	// give it to the recursion.
-	// Also note that this call is a perfect candidate for tail
-	// call elimination.
-        // However, we must update the administration with any
-        // new clauses that we've learned recently.
-        ctx.update( p );
-	leafSolve( level+1, p, ctx, nextvar, !firstvar );
+	}
+	// For the boolean array nothing useful can be done.
+
+	// TODO: also do something for the ints.
+	return res;
     }
 
-    /**
-     * Given a SAT problem, returns a solution, or <code>null</code> if
-     * there is no solution.
-     * @param p The problem to solve.
-     * @return a solution of the problem, or <code>null</code> if there is no solution
-     */
-    SATSolution solveSystem( final SATProblem p )
+    // Given genes, return a mutated clone (hur, hur).
+    private static Genes mutateGenes( Random rng, Genes g, float step, Genes max, Genes min )
     {
-	SATSolution res = null;
-
-	if( p.isConflicting() ){
-	    return null;
+	Genes res = (Genes) g.clone();
+	int ix = rng.nextInt( res.floats.length );
+	if( ix<g.floats.length ){
+	    res.floats[ix] += ((step/2.0f) - (step*rng.nextFloat()));
+	    if( res.floats[ix]<min.floats[ix] ){
+		res.floats[ix] = min.floats[ix];
+	    }
+	    if( res.floats[ix]>max.floats[ix] ){
+		res.floats[ix] = max.floats[ix];
+	    }
 	}
-	if( p.isSatisfied() ){
-	    return new SATSolution( p.buildInitialAssignments() );
-	}
-	int oldClauseCount = p.getClauseCount();
-
-        // Now recursively try to find a solution.
-	try {
-	    SATContext ctx = SATContext.buildSATContext( p );
-
-	    ctx.assignment = p.buildInitialAssignments();
-
-	    int r = ctx.optimize( p );
-	    if( r == SATProblem.SATISFIED ){
-		if( !p.isSatisfied( ctx.assignment ) ){
-		    System.err.println( "Error: solution does not satisfy problem." );
-		}
-		return new SATSolution( ctx.assignment );
-	    }
-	    if( r == SATProblem.CONFLICTING ){
-		return null;
-	    }
-
-	    int nextvar = ctx.getDecisionVariable();
-	    if( nextvar<0 ){
-		// There are no variables left to assign, clearly there
-		// is no solution.
-		if( traceSolver | traceNewCode ){
-		    System.err.println( "top: nothing to branch on" );
-		}
-		return null;
-	    }
-	    if( traceSolver ){
-		System.err.println( "Top level: branching on variable " + nextvar );
-	    }
-            decisions++;
-
-	    SATContext negctx = (SATContext) ctx.clone();
-	    boolean firstvar = ctx.posDominant( nextvar );
-            try {
-                leafSolve( 0, p, negctx, nextvar, firstvar );
-            }
-            catch( SATRestartException x ){
-                // Restart the search here, since we have an untried
-                // value.
-            }
-            ctx.update( p );
-            leafSolve( 0, p, ctx, nextvar, !firstvar );
-	}
-	catch( SATResultException r ){
-	    if( r.s == null ){
-		System.err.println( "A null solution thrown???" );
-	    }
-	    res = r.s;
-	}
-        catch( SATException x ){
-            System.err.println( "Uncaught " + x + "???" );
-        }
-
-	int newClauseCount = p.getClauseCount();
-	System.err.println( "Learned " + (newClauseCount-oldClauseCount) + " clauses." );
 	return res;
     }
 
@@ -182,23 +62,89 @@ public final class Breeder {
      */
     public static void main( String args[] ) throws java.io.IOException
     {
-	if( args.length != 1 ){
-	    System.err.println( "Exactly one filename argument required." );
+
+	if( args.length == 0 ){
+	    System.err.println( "A list of filename arguments required." );
 	    System.exit( 1 );
 	}
-	File f = new File( args[0] );
-	if( !f.exists() ){
-	    System.err.println( "File does not exist: " + f );
-	    System.exit( 1 );
+
+	Random rng = new Random( 2 );
+	SATProblem pl[] = new SATProblem[args.length];
+
+	for( int i=0; i<args.length; i++ ){
+	    File f = new File( args[i] );
+	    if( !f.exists() ){
+		System.err.println( "File does not exist: " + f );
+		System.exit( 1 );
+	    }
+	    SATProblem p = SATProblem.parseDIMACSStream( f );
+	    System.err.println( "Problem file: " + args[i] );
+	    p.report( System.out );
+	    p.optimize();
+	    p.report( System.out );
+	    pl[i] = p;
 	}
-	SATProblem p = SATProblem.parseDIMACSStream( f );
-	p.report( System.out );
-	p.optimize();
-	p.report( System.out );
+
+	Genes maxGenes = BreederSolver.getMaxGenes();
+	Genes minGenes = BreederSolver.getMinGenes();
 
 	Genes genes = BreederSolver.getInitialGenes();
 
-	int d = BreederSolver.run( p, genes );
-	System.err.println( "Decisions: " + d );
+	Genes bestGenes = genes;
+	Genes prevBestGenes = null;
+	int bestD = BreederSolver.run( pl, genes, Integer.MAX_VALUE );
+	if( bestD == -1 ){
+	    System.err.println( "Initial run is hopeless???" );
+	    System.exit( 1 );
+	}
+	System.err.println( "Decisions: " + bestD );
+	System.err.println( "Initial (" + bestD + ") " + bestGenes );
+	float step = 0.2f;
+
+	for( int gen = 0; gen<MAXGEN; gen++ ){
+	    Genes nextGenes;
+	    boolean extrapolating = false;
+
+	    if( prevBestGenes != null ){
+		nextGenes = extrapolateGenes( 0.3f, bestGenes, prevBestGenes, maxGenes, minGenes );
+		System.err.println( "Extrapolating ..." );
+		extrapolating = true;
+	    }
+	    else {
+		nextGenes = mutateGenes( rng, bestGenes, step, maxGenes, minGenes );
+	    }
+	    prevBestGenes = null;
+	    int nextD = BreederSolver.run( pl, nextGenes, (3*bestD)/2 );
+	    if( nextD<0 ){
+		// Way out of line. Perhaps a smaller step leads to something
+		// useful.
+		if( extrapolating ){
+		    System.err.println( "Hopeless" );
+		}
+		else {
+		    step *= 0.98;
+		    System.err.println( "Hopeless; step=" + step );
+		}
+	    }
+	    else {
+		System.err.print( "Decisions: " + nextD );
+	    
+		if( nextD == bestD ){
+		    // Nothing interesting happens
+		    if( !extrapolating ){
+			step *= 1.02;
+			System.err.print( " step=" + step );
+		    }
+		}
+		System.err.println();
+		if( nextD<bestD ){
+		    bestD = nextD;
+		    prevBestGenes = bestGenes;
+		    bestGenes = nextGenes;
+		    System.err.println( "New optimum (" + bestD + ") " + bestGenes );
+		}
+	    }
+	}
+	System.out.println( "Best result (" + bestD + ") " + bestGenes );
     }
 }

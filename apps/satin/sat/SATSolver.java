@@ -287,6 +287,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	ibis.satin.SatinObject.pause(); 
 
 	SATProblem p = SATProblem.parseDIMACSStream( f );
+	p.setReviewer( new CubeClauseReviewer() );
 	p.report( System.out );
 	p.optimize();
 	p.report( System.out );
