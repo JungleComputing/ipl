@@ -19,7 +19,7 @@ import ibis.ipl.impl.generic.IbisIdentifierTable;
 public class Ibis extends ibis.ipl.Ibis {
 
     static final boolean DEBUG = false;
-    static final boolean STATISTICS = true;
+    static final boolean STATISTICS = false;
 
     static Ibis globalIbis;
 

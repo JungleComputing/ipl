@@ -9,7 +9,7 @@ final public class Poll implements Runnable {
     final static int PREEMPTIVE     = NON_PREEMPTIVE + 1;
 
     private static final boolean DEBUG = false;
-    private static final boolean STATISTICS = true;
+    private static final boolean STATISTICS = false;
     private static final boolean NEED_POLLER_THREAD = true;
     private static final boolean NONPREEMPTIVE_MAY_POLL = false;
     private static final boolean PREEMPTIVE_MAY_POLL = true;
