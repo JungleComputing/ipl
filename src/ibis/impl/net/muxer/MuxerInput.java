@@ -69,7 +69,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
     private void receive() throws IOException {
 	NetReceiveBuffer buffer = receiveByteBuffer(max_mtu);
-	int rKey = Conversion.byte2int(buffer.data, buffer.base + Driver.KEY_OFFSET);
+	int rKey = Conversion.defaultConversion.byte2int(buffer.data, buffer.base + Driver.KEY_OFFSET);
 	MuxerQueue q = locateQueue(rKey);
 	if (q == null) {
 	    throw new ConnectionClosedException("Message arrives for MuxerInput that is closed");

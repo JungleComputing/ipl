@@ -146,7 +146,7 @@ public final class TcpOutput extends NetBufferedOutput {
                 log.in();
 // System.err.print(this + ": write[" + b.length + "] = '"); for (int i = 0; i < Math.min(32, b.length); i++) System.err.print(b.data[i] + ","); System.err.println("'");
 		try {
-			Conversion.int2byte(b.length, b.data, 0);
+			Conversion.defaultConversion.int2byte(b.length, b.data, 0);
 			tcpOs.write(b.data, 0, b.length);
 			tcpOs.flush();
 

@@ -139,9 +139,9 @@ public final class Muxer extends NetBufferedOutput {
 	    System.err.println(this + ": try to send buffer size " + b.length);
 	}
 	b.connectionId = myKey;
-	Conversion.int2byte(myKey.remoteKey, b.data, b.base + Driver.KEY_OFFSET);
+	Conversion.defaultConversion.int2byte(myKey.remoteKey, b.data, b.base + Driver.KEY_OFFSET);
 	if (ibis.impl.net.muxer.Driver.PACKET_SEQNO) {
-	    Conversion.long2byte(myKey.seqno++, b.data,
+	    Conversion.defaultConversion.long2byte(myKey.seqno++, b.data,
 				 b.base + Driver.SEQNO_OFFSET);
 	}
 

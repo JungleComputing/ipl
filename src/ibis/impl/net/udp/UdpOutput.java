@@ -162,7 +162,7 @@ public final class UdpOutput extends NetBufferedOutput {
         public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
                 if (Driver.DEBUG) {
-                        Conversion.long2byte(seqno++, b.data, 0);
+                        Conversion.defaultConversion.long2byte(seqno++, b.data, 0);
                 }
                 packet.setData(b.data, 0, b.length);
 // System.err.println(this + ": send packet size " + b.length);

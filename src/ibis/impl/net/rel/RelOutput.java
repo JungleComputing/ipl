@@ -300,7 +300,7 @@ public final class RelOutput
 	checkLocked();
 
 	if (! USE_PIGGYBACK_ACKS) {
-	    Conversion.int2byte(-1, frag.data, ackStart);
+	    Conversion.defaultConversion.int2byte(-1, frag.data, ackStart);
 	    return;
 	}
 
@@ -322,7 +322,7 @@ public final class RelOutput
 			    int offset,
 			    int showLength) {
 	int[] i_packet = new int[showLength];
-	Conversion.byte2int(data, offset, i_packet, 0, i_packet.length);
+	Conversion.defaultConversion.byte2int(data, offset, i_packet, 0, i_packet.length);
 	out.print(pre + "contains ");
 	for (int i = 0; i < i_packet.length; i++) {
 	    out.print(i_packet[i] + " ");
@@ -390,16 +390,16 @@ public final class RelOutput
 	if (SEQNO_OFFSET > 0) {
 	    System.err.print("Lower layer header = [");
 	    for (int i = 0; i < SEQNO_OFFSET; i++) {
-		int s = Conversion.byte2int(data, i * Conversion.INT_SIZE);
+		int s = Conversion.defaultConversion.byte2int(data, i * Conversion.INT_SIZE);
 		out.print("0x" + Integer.toHexString(s) + ",");
 	    }
 	    out.print("] -- ");
 	}
 	out.print(pre + " Ack packet " + ", offset " + offset +
-		") start " + Conversion.byte2int(data, offset) +
+		") start " + Conversion.defaultConversion.byte2int(data, offset) +
 		" contains [");
 	for (int i = 0; i < ACK_SET_IN_INTS; i++) {
-	    int s = Conversion.byte2int(data, offset + (i + 1) * Conversion.INT_SIZE);
+	    int s = Conversion.defaultConversion.byte2int(data, offset + (i + 1) * Conversion.INT_SIZE);
 	    out.print("0x" + Integer.toHexString(s) + ",");
 	}
 	out.println("]");
@@ -636,9 +636,9 @@ checkRexmit();
 	RelSendBuffer scan;
 	RelSendBuffer prev;
 
-	int	ackOffset = Conversion.byte2int(data, offset);
+	int	ackOffset = Conversion.defaultConversion.byte2int(data, offset);
 	offset += Conversion.INT_SIZE;
-	Conversion.byte2int(data, offset, ackReceiveSet, 0, ACK_SET_IN_INTS);
+	Conversion.defaultConversion.byte2int(data, offset, ackReceiveSet, 0, ACK_SET_IN_INTS);
 	offset += Conversion.INT_SIZE * ACK_SET_IN_INTS;
 	if (DEBUG_ACK) {
 	    System.err.println("@@@@@@@@@@@@@@@@@@@ Receive ack seqno " +
@@ -809,7 +809,7 @@ checkRexmit();
 			(rb.fragCount & ~LAST_FRAG_BIT) + "(" + rb.fragCount +
 			") at offset " + headerStart);
 	    }
-	    Conversion.int2byte(rb.fragCount, rb.data, headerStart);
+	    Conversion.defaultConversion.int2byte(rb.fragCount, rb.data, headerStart);
 	    enqueueSendBuffer(rb);
 	    handleSendContinuation();
 	}

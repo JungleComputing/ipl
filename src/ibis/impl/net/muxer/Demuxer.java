@@ -144,7 +144,7 @@ dumpBufferFactoryInfo();
     private void checkReceiveSeqno(NetReceiveBuffer buffer)
 	    throws IOException {
 	if (Driver.PACKET_SEQNO) {
-	    long rSeqno = Conversion.byte2long(buffer.data, buffer.base + Driver.SEQNO_OFFSET);
+	    long rSeqno = Conversion.defaultConversion.byte2long(buffer.data, buffer.base + Driver.SEQNO_OFFSET);
 	    if (rSeqno != receiveSeqno) {
 		System.err.println("Seems a packet was lost: receive seqno " + rSeqno + "; expect " + receiveSeqno);
 		if (rSeqno < receiveSeqno) {

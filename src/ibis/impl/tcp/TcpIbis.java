@@ -32,7 +32,6 @@ public final class TcpIbis extends Ibis implements Config {
 	private ArrayList leftIbises = new ArrayList();
 
 	private final StaticProperties systemProperties = new StaticProperties();	
-
 	TcpPortHandler tcpPortHandler;
 	private boolean ended = false;
 
@@ -41,8 +40,6 @@ public final class TcpIbis extends Ibis implements Config {
 		systemProperties.add("reliability", "true");
 		systemProperties.add("multicast", "true") ;
 		systemProperties.add("totally ordered multicast", "false") ;
-
-		ibis.io.Conversion.classInit();
 
 		// this is a 1.4 method.
 		try {

@@ -245,7 +245,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 			    + " currentSize " + currentSize
 			    + " totalSize " + totalSize);
 		}
-		int nextSize = Conversion.byte2int(buf.data, currentSize);
+		int nextSize = Conversion.defaultConversion.byte2int(buf.data, currentSize);
 		copySize = Math.min(nextSize, totalSize - currentSize);
 		System.arraycopy(buf.data, currentSize,
 				 b.data, b.base,
@@ -306,7 +306,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible,
 				offset += result;
 			} while (offset < 4);
 
-			l = Conversion.byte2int(b, 0);
+			l = Conversion.defaultConversion.byte2int(b, 0);
 
 			buf.length = l;
 

@@ -274,7 +274,7 @@ public final class RelInput
 
 	checkUnlocked();
 
-	int	partnerNo = Conversion.byte2int(data, offset);
+	int	partnerNo = Conversion.defaultConversion.byte2int(data, offset);
 	offset += Conversion.INT_SIZE;
 
 	RelOutput piggyClient = relDriver.lookupPiggyPartner(partnerNo);
@@ -314,7 +314,7 @@ public final class RelInput
 			(windowSize / 2) + " nextNonMissing=" + nextNonMissing +
 			" nextContiguous=" + nextContiguous);
 	    }
-	    Conversion.int2byte(-1, data, offset);
+	    Conversion.defaultConversion.int2byte(-1, data, offset);
 	    return false;
 	}
 
@@ -350,7 +350,7 @@ public final class RelInput
 			(windowSize / 2) + " nextNonMissing=" + nextNonMissing +
 			" nextContiguous=" + nextContiguous);
 	    }
-	    Conversion.int2byte(-1, data, offset);
+	    Conversion.defaultConversion.int2byte(-1, data, offset);
 	    return false;
 	}
 
@@ -405,9 +405,9 @@ public final class RelInput
 		System.err.println("]");
 	    }
 	}
-	Conversion.int2byte(nextContiguous, data, offset);
+	Conversion.defaultConversion.int2byte(nextContiguous, data, offset);
 	offset += Conversion.INT_SIZE;
-	Conversion.int2byte(ackSendSet, 0, ACK_SET_IN_INTS, data, offset);
+	Conversion.defaultConversion.int2byte(ackSendSet, 0, ACK_SET_IN_INTS, data, offset);
 	offset += Conversion.INT_SIZE * ACK_SET_IN_INTS;
 
 	if (always ||
@@ -481,7 +481,7 @@ public final class RelInput
 
 	checkLocked();
 
-	int fragCount = Conversion.byte2int(packet.data, headerStart);
+	int fragCount = Conversion.defaultConversion.byte2int(packet.data, headerStart);
 	packet.isLastFrag = ((fragCount & LAST_FRAG_BIT) != 0);
 	if (packet.isLastFrag) {
 	    fragCount &= ~LAST_FRAG_BIT;
@@ -709,7 +709,7 @@ public final class RelInput
 	if (DEBUG_ACK) {
 	    System.err.println("Push ack index " + partnerIndex + " offset " + offset);
 	}
-	Conversion.int2byte(partnerIndex, data, offset);
+	Conversion.defaultConversion.int2byte(partnerIndex, data, offset);
 	if (DEBUG_ACK) {
 	    System.err.println("Push ack data at offset " + (offset + Conversion.INT_SIZE));
 	}

@@ -202,7 +202,7 @@ public final class UdpInput extends NetBufferedInput {
         private void checkReceiveSeqno(NetReceiveBuffer buffer) {
                 log.in();
                 if (Driver.DEBUG) {
-                        long seqno = Conversion.byte2long(buffer.data, 0);
+                        long seqno = Conversion.defaultConversion.byte2long(buffer.data, 0);
                         if (seqno < rcve_seqno) {
                                 System.err.println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Receive: packet overtakes: " + seqno + " expect " + rcve_seqno);
                         } else {
@@ -216,7 +216,7 @@ public final class UdpInput extends NetBufferedInput {
         private void checkDeliverSeqno(NetReceiveBuffer buffer) {
                 log.in();
                 if (Driver.DEBUG) {
-                        long seqno = Conversion.byte2long(buffer.data, 0);
+                        long seqno = Conversion.defaultConversion.byte2long(buffer.data, 0);
                         if (seqno < deliver_seqno) {
                                 System.err.println("WHHHHHHHHHOOOOOOOOOOOAAAAAA UDP Deliver: packet overtakes: " + seqno + " expect " + deliver_seqno);
                         } else {

@@ -129,7 +129,7 @@ public final class PipeInput extends NetBufferedInput {
 			offset += result;
 		} while (offset < 4);
 
-		l = Conversion.byte2int(b, 0);
+		l = Conversion.defaultConversion.byte2int(b, 0);
 
 		do {
 			if (!upcallMode) {
