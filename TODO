@@ -7,6 +7,9 @@ IBIS:
 - Satin barnes_inline performance: why do we not get the same performance
   that Maik got in March 2004? (Ibis serialization, MP Ibis, NTC version of
   Barnes).
+- investigate CvR's problem with an Ibis run involving 2 imacs/ibooks, a windows
+  machine and a linux machine. It seems to hang (or compute forever) if the
+  windows machine is added to the pool???
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
     After distribution.
 
