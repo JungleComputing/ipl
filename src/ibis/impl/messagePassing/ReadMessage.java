@@ -110,7 +110,7 @@ public class ReadMessage
 	while (fragmentFront.next == null) {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this,
 								 0,
-								 true);
+								 Poll.PREEMPTIVE);
 	}
 	ReadFragment prev = fragmentFront;
 	fragmentFront = fragmentFront.next;

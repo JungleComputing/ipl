@@ -88,7 +88,7 @@ class ReceivePortNameServerClient
 			System.err.println("******** Reply arrives early, bind=" + this);
 		    }
 		}
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
+		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.PREEMPTIVE);
 // System.err.println(Thread.currentThread() + "Bind reply arrived, client woken up" + this);
 
 		ns_busy = false;
@@ -208,7 +208,7 @@ class ReceivePortNameServerClient
 			ns_lookup(name);
 
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my lookup \"" + name + "\" reply " + ns_done);
-			ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, BACKOFF_MILLIS, true);
+			ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, BACKOFF_MILLIS, Poll.PREEMPTIVE);
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Lookup reply says ri.cpu = " + ri.cpu + " ns_done = " + ns_done);
 
 			if (ri != null && ri.cpu != -1) {

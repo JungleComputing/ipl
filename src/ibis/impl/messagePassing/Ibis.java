@@ -238,7 +238,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     Poll rcve_poll;
 
-    final void waitPolling(PollClient client, long timeout, boolean preempt)
+    final void waitPolling(PollClient client, long timeout, int preempt)
 	    throws IbisIOException {
 	rcve_poll.waitPolling(client, timeout, preempt);
     }

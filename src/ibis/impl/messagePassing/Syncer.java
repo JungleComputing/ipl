@@ -58,7 +58,7 @@ public class Syncer implements PollClient {
 	    t_start = System.currentTimeMillis();
 	}
 	while (! signalled) {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, timeout, true);
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, timeout, Poll.PREEMPTIVE);
 	    if (timeout > 0) {
 		if (System.currentTimeMillis() >= t_start + timeout) {
 		    return false;

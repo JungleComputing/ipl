@@ -141,7 +141,7 @@ class ByteOutputStream
 	    if (outstandingFrags > 0) {
 // System.err.println(Thread.currentThread() + "Start wait to finish msg for stream " + this);
 		waitingInPoll = true;
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
+		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.PREEMPTIVE);
 		waitingInPoll = false;
 	    }
 	}

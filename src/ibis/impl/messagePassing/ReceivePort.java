@@ -8,8 +8,13 @@ import ibis.ipl.impl.generic.ConditionVariable;
 class ReceivePort
     implements ibis.ipl.ReceivePort, Protocol, Runnable, PollClient {
 
+    /* A connection between a send port and a receive port within the
+     * same Ibis should not lead to polling for the reply, but to quick
+     * reversion to some other thread */
+    private static final boolean HOME_CONNECTION_PREEMPTS = false;
+
     private static final boolean DEBUG = false;
-    private static final int max_sleepers = 8;
+    private static final int max_sleepers = 8; // 0; // 8;
 
     private static int livingPorts = 0;
     private static Syncer portCounter = new Syncer();
@@ -418,7 +423,7 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 		System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " queue " + queueFront + " " + messageArrived);
 	    }
 	    arrivedWaiters++;
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, ! homeConnection);
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.PREEMPTIVE : Poll.NON_POLLING);
 	    arrivedWaiters--;
 
 	    if (DEBUG) {
@@ -558,7 +563,7 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 	}
 	try {
 	    while (connections.size() > 0) {
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(shutdown, 0, false);
+		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(shutdown, 0, Poll.NON_PREEMPTIVE);
 	    }
 	} catch (IbisIOException e) {
 	    /* well, if it throws an exception, let's quit.. */
@@ -644,8 +649,7 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 
 		try {
-		    handlingReceive++;
-		    if (stop || (handlingReceive > 1 && sleeping_receivers >= max_sleepers)) {
+		    if (stop || (handlingReceive > 0 && sleeping_receivers >= max_sleepers)) {
 			if (DEBUG) {
 			    System.err.println(Thread.currentThread() + "Receive port daemon " + this +
 					       " upcall thread polls " + upcall_poll);
@@ -664,6 +668,7 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 			continue;
 		    }
 
+		    handlingReceive++;
 		    /* Avoid waiting threads in waitPolling. Having too many
 		     * (like always one server in this ReceivePort) makes the
 		     * poll for an expected reply very expensive.
@@ -671,10 +676,13 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 		    if (DEBUG) {
 			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
 		    }
-for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
-ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
-}
-		    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, false);
+// for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
+// ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
+// }
+		    // if (queueFront == null) {
+			// // // ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, Poll.NON_PREEMPTIVE);
+			ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.NON_PREEMPTIVE : Poll.NON_POLLING);
+		    // }
 		    if (DEBUG) {
 			upcall_poll++;
 			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);
@@ -685,9 +693,11 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 		    }
 
 		    msg = doReceive();	// May throw an IbisIOException
+		    /* Should be in the finally clause: */
+		    handlingReceive--;
 
 		} finally {
-		    handlingReceive--;
+		    // handlingReceive--;
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 		}
 
