@@ -74,7 +74,7 @@
 		    <defineset>
 			<define name="NDEBUG" if="native.optimize"/>
 		    </defineset>
-		    <compilerarg value="-O3" if="native.optimize"/>
+		    <compilerarg value="${optimize.arg}" if="native.optimize"/>
 		    <fileset dir="." includes="*.c"/>
 		</cc>
 	    </sequential>

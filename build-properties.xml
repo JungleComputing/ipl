@@ -37,7 +37,7 @@
 	    debug
 	    optimize
     -->
-    <property name="optimization" value="debug"/>
+    <property name="optimization" value="optimize"/>
 
 
 
@@ -66,16 +66,6 @@
     </target>
 
     <target name="property-init" depends="proprietry-tasks">
-	<condition property="os-is-mac">
-	    <os family="mac"/>
-	</condition>
-	<condition property="os-is-unix">
-	    <os family="unix"/>
-	</condition>
-	<condition property="os-is-windows">
-	    <os family="windows"/>
-	</condition>
-
 	<!--
 	    Find the switches that indicate debug/optimize
 	-->
@@ -113,15 +103,27 @@
 	    Choose the C compiler of your liking.
 	    Override if you are not content with the default.
 	-->
-	<condition property="c.compiler" value="gcc">
-	    <isset property="os-is-unix"/>
-	</condition>
-	<condition property="c.compiler" value="bcc">
-	    <isset property="os-is-windows"/>
-	</condition>
-	<condition property="c.compiler" value="gcc">
-	    <isset property="os-is-mac"/>
-	</condition>
+	<if>
+	    <os family="unix"/>
+	    <then>
+		<property name="c.compiler" value="gcc"/>
+		<property name="optimize.arg" value="-O3"/>
+	    </then>
+	<elseif>
+	    <os family="windows"/>
+	    <then>
+		<property name="c.compiler" value="bcc"/>
+		<property name="optimize.arg" value="-O2"/>
+	    </then>
+	</elseif>
+	<elseif>
+	    <os family="mac"/>
+	    <then>
+		<property name="c.compiler" value="gcc"/>
+		<property name="optimize.arg" value="-O3"/>
+	    </then>
+	</elseif>
+	</if>
     </target>
 
     <property name="ibisBuild"   location="${ibis}/build"/>

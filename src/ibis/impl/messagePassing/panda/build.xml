@@ -34,28 +34,10 @@
 
     <target name="arch-init" depends="property-init">
 
-	<condition property="panda.arch" value="i386_linux">
-	    <isset property="os-is-unix"/>
-	</condition>
-	<condition property="panda.arch" value="i386_win32">
-	    <isset property="os-is-windows"/>
-	</condition>
-	<condition property="panda.arch" value="ppc_osX">
-	    <isset property="os-is-mac"/>
-	</condition>
-
-	<path id="local.includes-ref">
-	    <pathelement path="${native.dir}/../include"/>
-	    <pathelement path="${package.home.panda}/include"/>
-	    <pathelement path="${package.home.panda}/include/${panda.arch}/lfc/no_threads"/>
-	    <pathelement path="${package.home.daslib}/include"/>
-	</path>
-	<property name="local.includes" refid="local.includes-ref"/>
-	<echo message="local.includes = ${local.includes}"/>
-
 	<if>
 	    <os family="unix"/>
 	    <then>
+		<property name="panda.arch" value="i386_linux"/>
 		<property name="das.lib.dir" location="${package.home.daslib}/lib/i386_Linux"/>
 		<property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
 		<path id="local.includes-ref">
@@ -65,6 +47,7 @@
 	<elseif>
 	    <os family="windows"/>
 	    <then>
+		<property name="panda.arch" value="i386_win32"/>
 		<property name="das.lib.dir" location="${package.home.daslib}/lib/i386_win32"/>
 		<property name="gm.lib.dir" location="${package.home.gm}/examples"/>
 		<path id="local.includes-ref">
@@ -72,7 +55,22 @@
 		</path>
 	    </then>
 	</elseif>
+	<elseif>
+	    <os family="mac"/>
+	    <then>
+		<property name="panda.arch" value="ppc_osX"/>
+	    </then>
+	</elseif>
 	</if>
+
+	<path id="local.includes-ref">
+	    <pathelement path="${native.dir}/../include"/>
+	    <pathelement path="${package.home.panda}/include"/>
+	    <pathelement path="${package.home.panda}/include/${panda.arch}/lfc/no_threads"/>
+	    <pathelement path="${package.home.daslib}/include"/>
+	</path>
+	<property name="local.includes" refid="local.includes-ref"/>
+	<echo message="local.includes = ${local.includes}"/>
 	<property name="local.includes" refid="local.includes-ref"/>
     </target>
 
@@ -133,7 +131,7 @@
 		    <defineset>
 			<define name="NDEBUG" if="native.optimize"/>
 		    </defineset>
-		    <compilerarg value="-O3" if="native.optimize"/>
+		    <compilerarg value="${optimize.arg}" if="native.optimize"/>
 		    <fileset dir="." includes="*.c"/>
 		</cc>
 	    </sequential>

@@ -35,15 +35,24 @@
 
     <target name="arch-init" depends="property-init">
 
-	<condition property="panda.arch" value="i386_linux">
-	    <isset property="os-is-unix"/>
-	</condition>
-	<condition property="panda.arch" value="i386_win32">
-	    <isset property="os-is-windows"/>
-	</condition>
-	<condition property="panda.arch" value="ppc_osX">
-	    <isset property="os-is-mac"/>
-	</condition>
+	<if>
+	    <os family="unix"/>
+	    <then>
+		<property name="panda.arch" value="i386_linux"/>
+	    </then>
+	<elseif>
+	    <os family="windows"/>
+	    <then>
+		<property name="panda.arch" value="i386_win32"/>
+	    </then>
+	</elseif>
+	<elseif>
+	    <os family="mac"/>
+	    <then>
+		<property name="panda.arch" value="ppc_osX"/>
+	    </then>
+	</elseif>
+	</if>
 
 	<path id="local.includes-ref">
 	    <pathelement path="${native.dir}/include"/>
