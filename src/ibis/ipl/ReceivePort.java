@@ -180,7 +180,7 @@ public interface ReceivePort {
 
     /**
      * Frees the resources held by the receiveport, with timeout. 
-     * Like {@link #free()}, but blocks at most timeout milliseconds.
+     * Like {@link #close()}, but blocks at most timeout milliseconds.
      * When the free does not succeed within the timeout, this operation
      * does a {@link #forcedClose()}.
      * When this call is used, and this port is configured to maintain

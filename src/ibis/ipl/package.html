@@ -48,11 +48,11 @@ way.  Additional ReceivePorts may be connected at any time.
 A SendPort can be disconnected from one or more ReceivePorts using
 their ReceivePortIdentifiers. Additional ReceivePorts may be
 disconnected at any time
-When a SendPort is no longer used it must be freed 
-using the {@link ibis.ipl.SendPort#free() free} method.
+When a SendPort is no longer used it must be closed 
+using the {@link ibis.ipl.SendPort#close() close} method.
 All connections the SendPort has are disconnected.
-When a ReceivePort is no longer used it must be freed using the 
-{@link ibis.ipl.ReceivePort#free() free} method.  This call will block until
+When a ReceivePort is no longer used it must be closed using the 
+{@link ibis.ipl.ReceivePort#close() close} method.  This call will block until
 connections to SendPorts are disconnected (by the SendPorts).
 <br>
 A {@link ibis.ipl.WriteMessage message} can be send from an SendPort to the
