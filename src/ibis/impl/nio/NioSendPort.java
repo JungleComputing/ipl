@@ -1,10 +1,5 @@
 package ibis.impl.nio;
 
-import ibis.io.BufferedArrayOutputStream;
-import ibis.io.IbisSerializationOutputStream;
-import ibis.io.SerializationOutputStream;
-import ibis.io.SunSerializationOutputStream;
-import ibis.io.NoSerializationOutputStream;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
@@ -15,47 +10,41 @@ import ibis.ipl.Replacer;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
-import ibis.util.DummyOutputStream;
-import ibis.util.OutputStreamSplitter;
 
-import java.io.BufferedOutputStream;
+import ibis.io.SerializationOutputStream;
+
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 
 import java.nio.channels.Channel;
 import java.nio.channels.GatheringByteChannel;
 
-final class NioSendPort implements SendPort, Config, NioProtocol {
+public final class NioSendPort implements SendPort, Config, Protocol {
 
-    //class to keep track of a single connection
-    private static class Connection {
-	NioReceivePortIdentifier rpi;
-	GatheringByteChannel channel;
-
-	Connection(NioReceivePortIdentifier rpi,
-		GatheringByteChannel channel) {
-	    this.rpi = rpi;
-	    this.channel = channel;
-	}
-    }
-
-
-    private NioPortType type;
+    private final NioPortType type;
     private NioSendPortIdentifier ident;
     private boolean aMessageIsAlive = false;
-    private NioIbis ibis;
-    private NioChannelSplitter splitter;
-    private NioOutputStream nos = null;
     private SerializationOutputStream out = null;
-    private ArrayList receivers = new ArrayList();
     private NioWriteMessage message;
-    private boolean connectionAdministration;
-    private SendPortConnectUpcall connectUpcall;
-    private ArrayList lostConnections = new ArrayList();
-    private Replacer replacer = null;
     private long count = 0; //number of byte send since last resetCount();
 
+    private final NioAccumulator accumulator;
+
+    private final boolean connectionAdministration;
+    private final SendPortConnectUpcall connectUpcall;
+    private final NioIbis ibis;
+
+    private ArrayList lostConnections = new ArrayList();
+    private Replacer replacer = null;
+
+    private boolean neverConnected;
+
+    /**
+     * Abstract class that implements a SendPort in the NioIbis Implementation
+     *
+     * NOTE: The subclass of this class should also look out for any lost
+     * connections.
+     */
     NioSendPort(NioIbis ibis, NioPortType type, String name,
 	    boolean connectionAdministration, SendPortConnectUpcall cU)
 							throws IOException {
@@ -63,20 +52,41 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	this.ibis = ibis;
 	this.connectionAdministration = connectionAdministration;
 	this.connectUpcall = cU;
-	if(cU != null) connectionAdministration = true;
 
 	ident = new NioSendPortIdentifier(name, type.name(), 
-		(NioIbisIdentifier) type.ibis.identifier());
+		(NioIbisIdentifier) ibis.identifier());
 
-	splitter = new NioChannelSplitter(); 
-
+	switch (type.sendPortImplementation) {
+	    case NioPortType.IMPLEMENTATION_BLOCKING:
+		accumulator = new BlockingChannelNioAccumulator(this);
+		break;
+	    case NioPortType.IMPLEMENTATION_NON_BLOCKING:
+		accumulator = new NonBlockingChannelNioAccumulator(this);
+		break;
+	    case NioPortType.IMPLEMENTATION_THREAD:
+		accumulator = new ThreadNioAccumulator(this, 
+			ibis.sendReceiveThread());
+		break;
+	    default:
+		throw new IbisError("unknown send port implementation type");
+	}
     }
 
-    public synchronized void connect(ReceivePortIdentifier receiver, long timeoutMillis) throws IOException {
-	/* first check the types */
+    /**
+     * Generates a list of all "lost connections"
+     */
+    public synchronized ReceivePortIdentifier[] lostConnections() {
+	ReceivePortIdentifier[] result;
+	result = (ReceivePortIdentifier[]) lostConnections.toArray();
+	lostConnections.clear();
+	return result;
+    }
+
+    public final synchronized void connect(ReceivePortIdentifier receiver, 
+	    long timeoutMillis) throws IOException {
 	if(!type.name().equals(receiver.type())) {
 	    throw new PortMismatchException("Cannot connect ports of "
-						    + "different PortTypes");
+		    + "different PortTypes");
 	}
 
 	if(aMessageIsAlive) {
@@ -88,9 +98,14 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	    throw new IOException("NioSendport.connect(): timeout must be positive, or 0");
 	}
 
-	if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-	    System.err.println("Sendport " + this + " '" +  ident.name +
-		    "' connecting to " + receiver); 
+	if(!type.oneToMany && (connectedTo().length > 0)) {
+	    throw new IOException("This sendport is already connected to a"
+		    + " receiveport, and doesn't support multicast");
+	}
+
+	if(DEBUG) {
+	    Debug.enter("connections", this, "Sendport " + this + " '" + 
+		    ident.name + "' connecting to " + receiver); 
 	}
 
 	NioReceivePortIdentifier rpi = (NioReceivePortIdentifier) receiver;
@@ -105,26 +120,26 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	    }
 	}
 
-	// we have a new receiver, now add it to our tables.
-	Connection connection = 
-	    new Connection(rpi, (GatheringByteChannel) channel);
-
-	//if this is not the first receiver, reset the output stream
-	if (out != null) { 
-
+	//close output stream (if it exist). The new receiver needs the
+	//stream headers and such.
+	if(out != null) {
+	    if (DEBUG) {
+		Debug.message("connections", this, "letting all the other"
+			+ " receivers know there's a new connection");
+	    }
 	    out.writeByte(NEW_RECEIVER);
-
 	    out.flush();
 	    out.close();
-
 	    out = null;
 	}
 
-	receivers.add(connection);
-	splitter.add((GatheringByteChannel) connection.channel);
+	//register this new connection with the sendport somehow.
+	accumulator.add(rpi, (GatheringByteChannel) channel);
 
-	if(DEBUG_LEVEL >= MEDIUM_DEBUG_LEVEL) {
-	    System.err.println("Sendport '" + ident.name + "' connecting to " + receiver + " done"); 
+	neverConnected = false;
+
+	if (DEBUG) {
+	    Debug.exit("connections", this, "done connecting");
 	}
     }
 
@@ -132,42 +147,41 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	connect(receiver, 0);
     }
 
-    public void disconnect(ReceivePortIdentifier receiver) throws IOException {
-	/* Niels: TODO! */
-    }
-
-    /**
-     * Create a new nos/out pair.
-     */
-    private void newOutputStream() throws IOException {
-	switch(type.serializationType) {
-	    case NioPortType.SERIALIZATION_SUN:
-		nos = new NioOutputStream(splitter);
-		out = new SunSerializationOutputStream(nos);
-		if (replacer != null) out.setReplacer(replacer);
-		break;
-	    case NioPortType.SERIALIZATION_NONE:
-		nos = new NioOutputStream(splitter);
-		out = nos;
-		break;
-	    case NioPortType.SERIALIZATION_IBIS:
-	    case NioPortType.SERIALIZATION_DATA:
-		out = new NioIbisSerializationOutputStream(splitter);
-		if (replacer != null) out.setReplacer(replacer);
-		break;
-	    default:
-		System.err.println("EEK, serialization type unknown");
-		System.exit(1);
+    public synchronized void disconnect(ReceivePortIdentifier receiver) 
+							throws IOException {
+	if(!(receiver instanceof NioReceivePortIdentifier)) {
+	    throw new IOException("receiver not of this ibis");
 	}
+
+	if(aMessageIsAlive) {
+	    throw new IOException("A message was alive while adding a new "
+							    + "connection");
+	}
+
+	if(out != null) {
+	    //tell out peer someone is going to have to disconnect
+	    out.writeByte(CLOSE_ONE_CONNECTION);
+
+	    // write serialization stream footer
+	    out.flush();
+	    out.close();
+	    out = null;
+
+	    //write identification of receiver which has to leave
+	    ((NioReceivePortIdentifier)receiver).writeTo(accumulator);
+	    accumulator.flush();
+	}
+
+	accumulator.remove((NioReceivePortIdentifier) receiver);
     }
 
-    public void setReplacer(Replacer r) {
+    public synchronized void setReplacer(Replacer r) {
 	replacer = r;
 	if (out != null) out.setReplacer(r);
     }
 
     public synchronized ibis.ipl.WriteMessage newMessage() throws IOException { 
-	if(receivers.size() == 0) {
+	if(neverConnected) {
 	    throw new IbisIOException("port is not connected");
 	}
 
@@ -182,25 +196,66 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 
 	if(out == null) {
 	    //set up a stream to send data through
-	    newOutputStream();
+	    out = type.createSerializationOutputStream(accumulator);
 
 	    message = new NioWriteMessage(this, out);
 	}
 
 	out.writeByte(NEW_MESSAGE);
+	
+	if(type.sequenced) {
+	    long sequencenr = ibis.getSeqno(type.name);
+
+	    out.writeLong(sequencenr);
+
+	    if (DEBUG) {
+		Debug.enter("messages", this, "new write message (# "
+			+ sequencenr + ")");
+	    }
+	} else {
+	    if (DEBUG) {
+		Debug.enter("messages", this, "new write message");
+	    }
+	}
+
 	return message;
     }
 
     synchronized long finish() {
-	long messageCount = splitter.getCount();
+	long messageCount = accumulator.bytesWritten();
+	accumulator.resetBytesWritten();
 	count += messageCount;
-	splitter.resetCount();
 
 	aMessageIsAlive = false;
 
 	notifyAll();
 
+	if (DEBUG) {
+	    Debug.exit("messages", this, "end of write message, messageCount: "
+		       + messageCount);
+	}
+
 	return messageCount;
+    }
+
+    synchronized void finish(IOException e) {
+	//since we have no idea which connection caused the error,
+	//we close them all.
+
+	NioReceivePortIdentifier[] connections = accumulator.connections();
+
+	for(int i = 0; i < connections.length; i++) { 
+	    accumulator.remove(connections[i]);
+	}
+
+	aMessageIsAlive = false;
+
+	notifyAll();
+
+	if (DEBUG) {
+	    Debug.exit("messages", this, "!end of write message with error");
+	}
+
     }
 
     public DynamicProperties properties() {
@@ -231,10 +286,10 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	try {
 	    if(out == null) {
 		//create a new stream, just to say close :(
-		newOutputStream();
+		type.createSerializationOutputStream(accumulator);
 	    }
 
-	    out.writeByte(CLOSE_CONNECTION);
+	    out.writeByte(CLOSE_ALL_CONNECTIONS);
 	    out.reset();
 	    out.flush();
 	    out.close();
@@ -246,18 +301,11 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	    }
 	}
 
-	for (int i=0; i<receivers.size(); i++) { 
-	    Connection c = (Connection) receivers.get(i);
-	    ibis.factory.recycle(c.rpi, c.channel);
-	}
-
-	receivers = null;
-	splitter = null;
 	out = null;
 	ident = null;
 
-	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-	    System.err.println(type.ibis.name() + ": freeing sendport DONE");
+	if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
+	    System.err.println("freeing sendport done");
 	}
     }
 
@@ -269,64 +317,27 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	count = 0;
     }
 
+    /**
+     * Called by the accumulator to tell us a connections was lost.
+     *
+     * @throw IOException when the connectionadministration is disabled.
+     */
+    protected synchronized void lostConnection(ReceivePortIdentifier peer
+				    , IOException reason) throws IOException {
+	if(connectUpcall != null) {
+	    // do upcall(may block!)
+	    connectUpcall.lostConnection(this, peer, reason);
+	} else if(connectionAdministration) {
+	    lostConnections.add(peer);
+	} else {
+	    throw reason;
+	}
+    }
+
+    /**
+     * Generates a list of all the receiveports we are connected to
+     */
     public synchronized ReceivePortIdentifier[] connectedTo() {
-	ReceivePortIdentifier[] result = 
-				new ReceivePortIdentifier[receivers.size()];
-	for(int i = 0; i < result.length; i++) {
-	    result[i] = ((Connection) receivers.get(i)).rpi;
-	}
-
-	return result;
+	return accumulator.connections();
     }
-
-    // called by the writeMessage
-    // the stream(s) has/have already been removed from the splitter.
-    // we must remove it from our receivers table and inform the user.
-    void lostConnections(NioSplitterException e) throws IOException {
-	NioReceivePortIdentifier rpi = null;
-	Channel channel;
-	Exception cause;
-
-	if(DEBUG_LEVEL >= ERROR_DEBUG_LEVEL) {
-	    System.out.println("sendport " + ident.name + " lost connection!");
-	}
-
-	if(!connectionAdministration) {
-	    throw e;
-	}
-
-	for(int i = 0; i < e.count(); i++) {
-	    channel = e.getChannel(i);
-	    cause = e.getException(i);
-
-
-	    synchronized (this) {
-		for (int j= 0; j < receivers.size(); i++) { 
-		    Connection c = (Connection) receivers.get(j);
-		    if(c.channel == channel) {
-			receivers.remove(c);
-			rpi = c.rpi;
-			break;
-		    }
-		}
-
-		if(rpi == null) {
-		    throw new IbisError("could not find connection in lostConnection");
-		}
-		if(connectUpcall == null) {
-		    lostConnections.add(rpi);
-		}
-
-	    }
-
-	    if(connectUpcall != null) {
-		connectUpcall.lostConnection(this, rpi, cause);
-	    }
-	}
-    }
-
-    public synchronized ReceivePortIdentifier[] lostConnections() {
-	return (ReceivePortIdentifier[]) lostConnections.toArray();
-    }
-
 }

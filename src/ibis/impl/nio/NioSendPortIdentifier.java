@@ -1,19 +1,43 @@
 package ibis.impl.nio;
 
+import java.io.IOException;
+
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPortIdentifier;
+
+import ibis.io.Dissipator;
+import ibis.io.Accumulator;
 
 public final class NioSendPortIdentifier implements SendPortIdentifier, java.io.Serializable { 
     private static final long serialVersionUID = 5L;
 
-    String type;
     String name;
+    String type;
     NioIbisIdentifier ibis;
 
     NioSendPortIdentifier(String name, String type, NioIbisIdentifier ibis) {
 	this.name = name;
 	this.type = type;
 	this.ibis = ibis;
+    }
+
+    NioSendPortIdentifier(Dissipator in) throws IOException {
+	int nameLength;
+	int typeLength;
+	byte[] nameBytes;
+	byte[] typeBytes;
+
+	nameLength = in.readInt();
+	nameBytes = new byte[nameLength];
+	in.readArray(nameBytes, 0, nameLength);
+	name = new String(nameBytes, "UTF-8");
+
+	typeLength = in.readInt();
+	typeBytes = new byte[typeLength];
+	in.readArray(typeBytes, 0, typeLength);
+	type = new String(typeBytes, "UTF-8");
+
+	ibis = new NioIbisIdentifier(in);
     }
 
     public boolean equals(NioSendPortIdentifier other) {
@@ -45,10 +69,7 @@ public final class NioSendPortIdentifier implements SendPortIdentifier, java.io.
     }
 
     public final String type() {
-	if (type != null) {
-	    return type;
-	}
-	return "__notype__";
+	return type;
     }
 
     public IbisIdentifier ibis() {
@@ -56,6 +77,21 @@ public final class NioSendPortIdentifier implements SendPortIdentifier, java.io.
     }
 
     public String toString() {
-	return ("(NioSendPortIdent: name = " + name() + ", type = " + type() + ", ibis = " + ibis + ")");
+	return name;
+    }
+
+    public void writeTo(Accumulator out) throws IOException {
+	byte[] nameBytes;
+	byte[] typeBytes;
+
+	nameBytes = name.getBytes("UTF-8");
+	out.writeInt(nameBytes.length);
+	out.writeArray(nameBytes, 0, nameBytes.length);
+
+	typeBytes = type.getBytes("UTF-8");
+	out.writeInt(typeBytes.length);
+	out.writeArray(typeBytes, 0, typeBytes.length);
+
+	ibis.writeTo(out);
     }
 }

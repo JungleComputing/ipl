@@ -11,33 +11,18 @@ import java.io.IOException;
  * implementation should also handle incoming connections in the run() 
  * method and register them with the receiveport.
  */
-public interface NioChannelFactory extends Runnable, Config {
+public interface ChannelFactory extends Runnable, Config {
 
     /**
      * Tries to connect to sendport to the given receiveport 
      * for tileoutMillis milliseconds and returns the writechannel
      * if it succeeded. A timeout of 0 means try forever.
      *
-     * @return a new WritableChannel connected to "rpi". May also be a
-     * GatheringByteChannel
+     * @return a new Channel connected to "rpi".
      */
     public Channel connect(NioSendPortIdentifier spi,
 	    NioReceivePortIdentifier rpi,
 	    long timeoutMillis) throws IOException;
-
-    /**
-     * Returns a write channel to the factory for recycling or destruction.
-     */
-    public void recycle(NioReceivePortIdentifier rpi, 
-	    Channel channel) throws IOException;
-
-    /**
-     * Returns a read channel to the factory for recycling or destruction.
-     * Will save the given attachment and give it to the receiveport if it's
-     * connected again (usefull for keeping buffers)
-     */
-    public void recycle(NioSendPortIdentifier spi, 
-	    Channel channel) throws IOException;
 
     /**
      * Register a receiveport with this factory, so it will listen for

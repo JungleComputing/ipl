@@ -5,8 +5,14 @@ package ibis.impl.nio;
  */
 interface Config {
 
+    /**
+     * Enables debug support in nio ibis. Use the ibis.nio.debug system
+     * property to select which debug statements to print. See Debug.java
+     */
+    static final boolean DEBUG = false;
 
-    // Debug levels supported in NioIbis
+
+    //DEBUG LEVELS (deprecated)
 
     /**
      * Debug level which turns debugging support OFF
@@ -39,22 +45,22 @@ interface Config {
      */
     static final int RIDICULOUSLY_HIGH_DEBUG_LEVEL = 5;
 
-
-    //*** START OF CONFIGURABLE OPTIONS ***\\
-
-    /*
-     * Current Debug level.
-     */
-    static final int DEBUG_LEVEL = LOW_DEBUG_LEVEL;
+    static final int DEBUG_LEVEL = ERROR_DEBUG_LEVEL;
 
     /*
-     * Do we we asserts (make make it a bit slower)
+     * Do we do asserts (may make it a bit slower)
      */
     static final boolean ASSERT = true;
 
     /**
-     * Buffer sized used in ibis serialization. Must be a multiple of eight.
+     * Byte buffer size used. Must be a multiple of eight.
      */
-    static final int BUFFER_SIZE = 1048;
+    static final int BYTE_BUFFER_SIZE = 60 * 1024;
+
+    /**
+     * Buffer sized used for primitive buffers. 
+     * Must be a multiple of eight.
+     */
+    static final int PRIMITIVE_BUFFER_SIZE = 1400;
 
 }

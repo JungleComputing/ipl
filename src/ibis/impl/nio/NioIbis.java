@@ -30,40 +30,43 @@ public final class NioIbis extends Ibis implements Config {
     private ArrayList leftIbises = new ArrayList();
     private ArrayList toBeDeletedIbises = new ArrayList();
 
-    private final StaticProperties systemProperties = new StaticProperties();	
-    NioChannelFactory factory;
+    ChannelFactory factory;
     private boolean ended = false;
 
-    public NioIbis() throws IbisException {
-	// Set my properties.
-	systemProperties.add("reliability", "true");
-	systemProperties.add("multicast", "true") ;
-	systemProperties.add("totally ordered multicast", "false") ;
+    private SendReceiveThread sendReceiveThread = null;
 
+    public NioIbis() throws IbisException {
 	try {
 	    Runtime.getRuntime().addShutdownHook(new NioShutdown());
 	} catch (Exception e) {
-	    System.err.println("Warning: could not register nio shutdown hook");
+	    if (DEBUG) {
+		Debug.message("general", this,
+			      "!could not register nio shutdown hook");
+	    }
 	}
     }
 
-    protected PortType newPortType(String name, StaticProperties p)
+    synchronized protected PortType newPortType(String name, StaticProperties p)
 	throws IOException, IbisException {
 
-	    NioPortType resultPort = new NioPortType(this, name, p);
-	    p = resultPort.properties();
+	NioPortType resultPort = new NioPortType(this, name, p);
+	p = resultPort.properties();
 
-	    if (nameServer.newPortType(name, p)) { 
-		/* add type to our table */
-		portTypeList.put(name, resultPort);
+	if (nameServer.newPortType(name, p)) { 
+	    /* add type to our table */
+	    portTypeList.put(name, resultPort);
 
-		if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-		    System.out.println(this.name + ": created PortType '" + name + "'");
-		}
+	    if (DEBUG) {
+		Debug.message("connections", this,
+			"created PortType `" + name + "'");
 	    }
-
-	    return resultPort;
 	}
+	return resultPort;
+    }
+
+    long getSeqno(String name) throws IOException {
+	return nameServer.getSeqno(name);
+    }
 
     public Registry registry() {
 	return nameServer;
@@ -77,10 +80,6 @@ public final class NioIbis extends Ibis implements Config {
 	nameServer.delete(ident);
     } 
 
-    public StaticProperties properties() { 
-	return systemProperties;
-    }
-
     public IbisIdentifier identifier() {
 	return ident;
     }
@@ -90,22 +89,25 @@ public final class NioIbis extends Ibis implements Config {
     }
 
     protected void init() throws IbisException, IOException { 
-	if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-	    System.err.println("Initializing NioIbis");
+	if (DEBUG) {
+	    Debug.enter("general", this, "initializing NioIbis");
 	}
+
 	poolSize = 1;
 
 	ident = new NioIbisIdentifier(name);
 
-	if(DEBUG_LEVEL >= MEDIUM_DEBUG_LEVEL) {
-	    System.err.println("Created IbisIdentifier " + ident);
+	if (DEBUG) {
+	    Debug.message("general", this,
+				 "created IbisIdentifier" + ident);
 	}
 
 	nameServer = NameServer.loadNameServer(this);
 
-	factory = new TcpNioChannelFactory();
-	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-	    System.err.println("NioIbis initialization compleet");
+	factory = new TcpChannelFactory();
+
+	if (DEBUG) {
+	    Debug.exit("general", this, "initialized NioIbis");
 	}
     }
 
@@ -119,10 +121,9 @@ public final class NioIbis extends Ibis implements Config {
 		return;
 	    }
 
-	    //FIXME : what if !open && reziseHandler == null ??
-
-	    if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-		System.out.println(name + ": Ibis '" + joinIdent.name() + "' joined"); 
+	    if (DEBUG) {
+		Debug.message("general", this,
+			      "ibis '" + joinIdent.name() + "' joined"); 
 	    }
 
 	    poolSize++;
@@ -145,9 +146,11 @@ public final class NioIbis extends Ibis implements Config {
 	    }
 
 
-	    if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
-		System.out.println(name + ": Ibis '" + leaveIdent.name() + "' left"); 
+	    if (DEBUG) {
+		Debug.message("general", this,
+			    "ibis '" + leaveIdent.name() + "' left"); 
 	    }
+
 	    poolSize--;
 	}
 
@@ -189,6 +192,10 @@ public final class NioIbis extends Ibis implements Config {
     public void openWorld() {
 	NioIbisIdentifier ident = null;
 
+	if (DEBUG) {
+	    Debug.enter("general", this, "opening world");
+	}
+
 	if(resizeHandler != null) {
 	    while(true) {
 		synchronized(this) {
@@ -214,8 +221,8 @@ public final class NioIbis extends Ibis implements Config {
 	    open = true;
 	}
 
-	if(DEBUG_LEVEL >= MEDIUM_DEBUG_LEVEL) {
-	    System.out.println(name + ": Ibis world open"); 
+	if (DEBUG) {
+	    Debug.exit("general", this, "world opened"); 
 	}
     }
 
@@ -237,6 +244,9 @@ public final class NioIbis extends Ibis implements Config {
 	    if(factory != null) {
 		factory.quit();
 	    }
+	    if(sendReceiveThread != null) {
+		sendReceiveThread.quit();
+	    }
 	} catch (Exception e) { 
 	    throw new IbisRuntimeException("NioIbis: end failed ", e);
 	} 
@@ -257,4 +267,10 @@ public final class NioIbis extends Ibis implements Config {
 	}
     }
 
+    synchronized SendReceiveThread sendReceiveThread() throws IOException {
+	if (sendReceiveThread == null) {
+	    sendReceiveThread = new SendReceiveThread();
+	}
+	return sendReceiveThread;
+    }
 }

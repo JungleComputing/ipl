@@ -1,4 +1,4 @@
-serialization = ibis, sun, byte
+serialization = ibis, sun, byte, data
 worldmodel = open, closed
 communication = OneToOne, OneToMany, ManyToOne, \
 		Poll, ReceiveTimeout, \

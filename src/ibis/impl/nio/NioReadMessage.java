@@ -9,46 +9,50 @@ import java.io.IOException;
 
 final class NioReadMessage implements ReadMessage, Config { 
     SerializationInputStream in;
-    NioInputStream nis;
-    private NioReceivePort port;
-    private NioSendPortIdentifier origin;
+    NioDissipator dissipator;
+    NioReceivePort port;
     boolean isFinished = false;
+    private long sequencenr;
 
-    NioReadMessage(NioReceivePort port, SerializationInputStream in, 
-	    NioInputStream nis, NioSendPortIdentifier origin) {
+    NioReadMessage(NioReceivePort port, NioDissipator dissipator,
+		   long sequencenr) throws IOException {
 	this.port = port;
-	this.in = in;
-	this.nis = nis;
-	this.origin = origin;
+	this.dissipator = dissipator;
+	this.sequencenr = sequencenr;
+
+	if(dissipator != null) {
+	    in = dissipator.sis;
+	}
+
     }
 
     public ReceivePort localPort() {
 	return port;
     }
 
-    protected int available() throws IOException {
-	return in.available();
-    }
-
     public long finish() throws IOException {
+	long messageCount;
+	
 	in.clear();
-	return port.finish(this);
+
+	messageCount = dissipator.bytesRead();
+	dissipator.resetBytesRead();
+
+	port.finish(this, messageCount);
+
+	return messageCount;
     }
 
     public void finish(IOException e) {
-	// What to do here? Niels?
-	try {
-	    finish();
-	} catch(IOException e2) {
-	}
+	port.finish(this, e);
     }
 
     public SendPortIdentifier origin() {
-	return origin;
+	return dissipator.peer;
     }
 
     public long sequenceNumber() { 
-	return -1;
+	return sequencenr;
     }
 
     public boolean readBoolean() throws IOException { 

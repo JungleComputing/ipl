@@ -8,6 +8,10 @@ import java.net.InetAddress;
 
 import java.io.IOException;
 
+import ibis.io.Dissipator;
+import ibis.io.Accumulator;
+
+
 public final class NioReceivePortIdentifier implements ReceivePortIdentifier, java.io.Serializable { 
     private static final long serialVersionUID = 4L;
 
@@ -22,6 +26,38 @@ public final class NioReceivePortIdentifier implements ReceivePortIdentifier, ja
 	this.type = type;
 	this.ibis = ibis;
 	this.address = address;
+    }
+
+    NioReceivePortIdentifier(Dissipator in) throws IOException {
+	int nameLength;
+	int typeLength;
+	int addressLength;
+	byte[] nameBytes;
+	byte[] typeBytes;
+	byte[] addressBytes;;
+	InetAddress inetAddress;
+	int port;
+
+	nameLength = in.readInt();
+	nameBytes = new byte[nameLength];
+	in.readArray(nameBytes, 0, nameLength);
+	name = new String(nameBytes, "UTF-8");
+
+	typeLength = in.readInt();
+	typeBytes = new byte[typeLength];
+	in.readArray(typeBytes, 0, typeLength);
+	type = new String(typeBytes, "UTF-8");
+
+	addressLength = in.readInt();
+	addressBytes = new byte[addressLength];
+	in.readArray(addressBytes, 0, addressLength);
+	inetAddress = InetAddress.getByAddress(addressBytes);
+
+	port = in.readInt();
+
+	address = new InetSocketAddress(inetAddress, port);
+
+	ibis = new NioIbisIdentifier(in);
     }
 
     public boolean equals(NioReceivePortIdentifier other) { 		
@@ -67,7 +103,7 @@ public final class NioReceivePortIdentifier implements ReceivePortIdentifier, ja
     }
 
     public String toString() {
-	return ("(NioRecPortIdent: name = " + name + ", type = " + type + ", ibis = " + ibis + "address = " + address.toString() + ")");
+	return name + "@" + address.toString();
     }
 
     /**
@@ -113,5 +149,27 @@ public final class NioReceivePortIdentifier implements ReceivePortIdentifier, ja
 
 	address = new InetSocketAddress(inetAddress, port);
 
+    }
+
+    public void writeTo(Accumulator out) throws IOException {
+	byte[] nameBytes;
+	byte[] typeBytes;
+	byte[] addressBytes;
+
+	nameBytes = name.getBytes("UTF-8");
+	out.writeInt(nameBytes.length);
+	out.writeArray(nameBytes, 0, nameBytes.length);
+
+	typeBytes = type.getBytes("UTF-8");
+	out.writeInt(typeBytes.length);
+	out.writeArray(typeBytes, 0, typeBytes.length);
+
+	addressBytes = address.getAddress().getAddress();
+	out.writeInt(addressBytes.length);
+	out.writeArray(addressBytes, 0, addressBytes.length);
+
+	out.writeInt(address.getPort());
+
+	ibis.writeTo(out);
     }
 }  
