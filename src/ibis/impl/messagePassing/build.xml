@@ -28,7 +28,6 @@
 
     &sharedProperties;
 
-    <property name="local.lib" value="ibis_mp"/>
     <property name="cc.outtype" value="static"/>
 
     &nativeTargets;
@@ -39,17 +38,20 @@
 	    <os family="unix"/>
 	    <then>
 		<property name="panda.arch" value="i386_linux"/>
+		<property name="local.lib" value="libibis_mp"/>
 	    </then>
 	<elseif>
 	    <os family="windows"/>
 	    <then>
 		<property name="panda.arch" value="i386_win32"/>
+		<property name="local.lib" value="ibis_mp"/>
 	    </then>
 	</elseif>
 	<elseif>
 	    <os family="mac"/>
 	    <then>
 		<property name="panda.arch" value="ppc_osX"/>
+		<property name="local.lib" value="libibis_mp"/>
 	    </then>
 	</elseif>
 	</if>
