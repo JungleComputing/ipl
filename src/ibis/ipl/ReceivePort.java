@@ -15,6 +15,14 @@ public interface ReceivePort {
 	 **/
 	public ReadMessage receive(ReadMessage finishMe) throws IbisIOException;
 
+	/** Asynchronous receive. Return immediately when no message is available. 
+	 Also works for upcalls, then it is a normal poll. **/
+	public ReadMessage poll() throws IbisIOException;
+
+	/** Asynchronous receive, as above, but free an old message.
+	    Also works for upcalls, then it is a normal poll. **/
+	public ReadMessage poll(ReadMessage finishMe) throws IbisIOException;
+
 	public DynamicProperties properties();
 
 	public ReceivePortIdentifier identifier();

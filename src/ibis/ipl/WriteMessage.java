@@ -31,6 +31,14 @@ public interface WriteMessage {
 	public void reset(boolean doSend) throws IbisIOException;
 
 	/**
+	   Return the number of bytes that was written to the message, in the stream dependant format.
+	   This is the number of bytes that will be sent over the network **/
+	public int getCount();
+
+	/** Reset the counter */
+	public void resetCount();
+
+	/**
 	 * Writes a boolean value to the message.
 	 * @param     value             The boolean value to write.
 	 */
