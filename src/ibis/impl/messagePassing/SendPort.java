@@ -108,39 +108,6 @@ public class SendPort implements ibis.ipl.SendPort {
 	this(type, name, true, false);
     }
 
-
-    protected class ConnectAcker extends Syncer {
-
-	private boolean accepted;
-	private int	acks = 1;
-
-	public void setAcks(int acks) {
-	    this.acks = acks;
-	}
-
-	public boolean satisfied() {
-	    return acks == 0;
-	}
-
-	public boolean accepted() {
-	    return accepted;
-	}
-
-	public void s_signal(boolean accepted) {
-	    this.accepted = accepted;
-	    --acks;
-	    wakeup();
-	}
-
-	public void s_bcast(boolean accepted) {
-	    this.accepted = accepted;
-	    --acks;
-	    wakeupAll();
-	}
-
-    }
-
-
     protected int addConnection(ReceivePortIdentifier rid) throws IOException {
 
 	int	my_split;
@@ -264,15 +231,20 @@ System.err.println(this + ": switch on totally ordered bcast");
 	if (! p.isProp("Communication", "OneToMany")) {
 	    return false;
 	}
+	if (splitter.length < Ibis.myIbis.nrCpus / 2) {
+	    return false;
+	}
+	/*
 	if (USE_BCAST_ALL ? splitter.length != Ibis.myIbis.nrCpus :
 			    splitter.length >= Ibis.myIbis.nrCpus - 1) {
 	    return false;
 	}
+	*/
 	if (! USE_BCAST_AT_TWO && splitter.length == 1) {
 	    return false;
 	}
 if (group == NO_BCAST_GROUP)
-System.err.println(this + ": switch on fast bcast. Consider disableng ordering");
+System.err.println(this + ": switch on fast bcast. Consider disabling ordering");
 
 	return true;
     }
@@ -319,16 +291,12 @@ System.err.println(this + ": switch on fast bcast. Consider disableng ordering")
 	    return;
 	}
 
-	/*
-	 * This is a bcast group, new or existing.
-	 */
-
 	boolean hasHomeBcastConnection = false;
 	for (int i = 0, n = splitter.length; i < n; i++) {
 	    ReceivePortIdentifier ri = (ReceivePortIdentifier)splitter[i];
 	    if (ri.cpu == Ibis.myIbis.myCpu) {
 		hasHomeBcastConnection = true;
-		if (! USE_BCAST_ALL && ! total) {
+		if (false && (! USE_BCAST_ALL || ! total)) {
 		    group = NO_BCAST_GROUP;
 // System.err.println("home bcast: give up");
 		    return;
@@ -336,20 +304,21 @@ System.err.println(this + ": switch on fast bcast. Consider disableng ordering")
 	    }
 	}
 
+	/*
+	 * This is a bcast group, new or existing.
+	 */
 	if (group == NO_BCAST_GROUP) {
-
-	    // Apply for a bcast group id with the group id server
+	    /* A new bcast group. Apply for a bcast group id with the
+	     * group id server. */
 	    ConnectAcker s = new ConnectAcker();
 	    requestGroupID(s);
 
-	    if (! s.s_wait(0)) {
-		throw new ConnectionRefusedException("No connection to group ID server");
-	    }
+	    s.waitPolling();
 	    if (group == NO_BCAST_GROUP) {
 		throw new IOException("Retrieval of group ID failed");
 	    }
 
-	    if (Ibis.BCAST_VERBOSE) {
+	    if (DEBUG || Ibis.BCAST_VERBOSE) {
 		System.err.println(ident + ": have broadcast group " + group + " receiver(s) ");
 		for (int i = 0, n = splitter.length; i < n; i++) {
 		    System.err.println("    " + (ReceivePortIdentifier)splitter[i]);
@@ -395,6 +364,7 @@ System.err.println(this + ": switch on fast bcast. Consider disableng ordering")
 		System.err.println(Thread.currentThread() + "Now do native connect call to " + rid + "; me = " + ident);
 	    }
 	    IbisIdentifier ibisId = (IbisIdentifier)Ibis.myIbis.identifier();
+	    syncer[my_split].setAcks(1);
 	    ibmp_connect(rid.cpu, rid.getSerialForm(), ident.getSerialForm(),
 			 syncer[my_split], null, messageCount,
 			 group, out.getMsgSeqno());
@@ -402,7 +372,7 @@ System.err.println(this + ": switch on fast bcast. Consider disableng ordering")
 		System.err.println(Thread.currentThread() + "Done native connect call to " + rid + "; me = " + ident);
 	    }
 
-	    if (! syncer[my_split].s_wait(timeout)) {
+	    if (! syncer[my_split].waitPolling(timeout)) {
 		throw new ConnectionTimedOutException("No connection to " + rid);
 	    }
 	    if (! syncer[my_split].accepted()) {

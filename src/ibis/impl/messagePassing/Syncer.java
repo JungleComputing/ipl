@@ -44,7 +44,7 @@ public abstract class Syncer implements PollClient {
 	}
     }
 
-    public void poll_wait(long timeout) {
+    public void waitNonPolling(long timeout) {
 	try {
 	    waiters++;
 	    cv.cv_wait(timeout);
@@ -64,7 +64,11 @@ public abstract class Syncer implements PollClient {
 	me = thread;
     }
 
-    boolean s_wait(long timeout) throws IOException {
+    void waitPolling() throws IOException {
+	waitPolling(0);
+    }
+
+    boolean waitPolling(long timeout) throws IOException {
 	Ibis.myIbis.checkLockOwned();
 
 	long	t_start = 0;

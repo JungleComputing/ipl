@@ -25,10 +25,8 @@ static jfieldID		fld_connect_allowed;
 
 static int		global_group_count = 0;
 
-static jclass		cls_Syncer;
 static jmethodID	md_wakeup;
 
-static jclass		cls_SendPort;
 static jfieldID		fld_group;
 
 
@@ -251,6 +249,9 @@ ibmp_send_port_disconnect(JNIEnv *env,
 void
 ibmp_send_port_init(JNIEnv *env)
 {
+    jclass	cls_Syncer;
+    jclass	cls_SendPort;
+
     cls_ShadowSendPort = (*env)->FindClass(env,
 				   "ibis/impl/messagePassing/ShadowSendPort");
     if (cls_ShadowSendPort == NULL) {
@@ -297,9 +298,9 @@ ibmp_send_port_init(JNIEnv *env)
     ibmp_group_id_proto_size  = ibmp_group_id_proto_start +
 					sizeof(ibmp_group_id_hdr_t);
 
-    cls_Syncer = (*env)->FindClass(env, "ibis/impl/messagePassing/Syncer");
+    cls_Syncer = (*env)->FindClass(env, "ibis/impl/messagePassing/ConnectAcker");
     if (cls_Syncer == NULL) {
-	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/Syncer\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ConnectAcker\n");
     }
     cls_Syncer = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Syncer);
 

@@ -11,7 +11,7 @@ interface PollClient {
 
     void wakeup();
 
-    void poll_wait(long timeout);
+    void waitNonPolling(long timeout);
 
     Thread thread();
     void setThread(Thread thread);

@@ -15,7 +15,7 @@
 #include "ibmp_send_port.h"
 
 
-static jmethodID	md_s_signal;
+static jmethodID	md_wakeup;
 
 static jfieldID		fld_connect_allowed;
 
@@ -77,7 +77,7 @@ ibmp_connect_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 
     IBP_VPRINTF(10, env, ("Do %sconnect ack from %d, syncer %p\n", hdr->type == IBMP_CONNECT ? "" : "dis", ibp_msg_sender(msg), hdr->syncer));
 
-    (*env)->CallVoidMethod(env, hdr->syncer, md_s_signal, hdr->accept);
+    (*env)->CallVoidMethod(env, hdr->syncer, md_wakeup, hdr->accept);
 
     (*env)->DeleteGlobalRef(env, hdr->syncer);
 
@@ -251,17 +251,17 @@ ibmp_connect_init(JNIEnv *env)
     fld_connect_allowed = (*env)->GetFieldID(env, cls_ShadowSendPort,
 					     "connect_allowed", "Z");
 
-    cls_Syncer = (*env)->FindClass(env, "ibis/impl/messagePassing/SendPort$ConnectAcker");
+    cls_Syncer = (*env)->FindClass(env, "ibis/impl/messagePassing/ConnectAcker");
     if (cls_Syncer == NULL) {
-	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/SendPort$ConnectAcker\n");
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/ConnectAcker\n");
     }
 
-    md_s_signal = (*env)->GetMethodID(env,
+    md_wakeup = (*env)->GetMethodID(env,
 					  cls_Syncer,
-					  "s_signal",
+					  "wakeup",
 					  "(Z)V");
-    if (md_s_signal == NULL) {
-	ibmp_error(env, "Cannot find method s_signal(Z)V\n");
+    if (md_wakeup == NULL) {
+	ibmp_error(env, "Cannot find method wakeup(Z)V\n");
     }
 
 }

@@ -54,7 +54,7 @@ class ShadowSendPort extends SendPort {
 	PortType portType = Ibis.myIbis.getPortTypeLocked(sId.type());
 // System.err.println("Sender port type " + sId.type + " = " + portType);
 	int serializationType = portType.serializationType;
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("********** Create a ShadowSendPort, my type is " + serializationType);
 	}
 	switch (serializationType) {
@@ -85,7 +85,7 @@ class ShadowSendPort extends SendPort {
 		   int groupStartSeqno)
 	    throws IOException {
 
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("In ShadowSendPort.<init>");
 	}
 
@@ -106,7 +106,7 @@ class ShadowSendPort extends SendPort {
 	    Ibis.myIbis.unbindSendPort(ident.cpu, ident.port);
 System.err.println(this + ": cannot connect to local ReceivePort " + receivePort);
 	} else if (group != NO_BCAST_GROUP) {
-	    if (Ibis.DEBUG) {
+	    if (DEBUG) {
 		System.err.println("Bind group " + group + " to port " + rId.port + "; sender " + sId.cpu + " port " + sId.port + " startSeqno " + startSeqno);
 	    }
 	    Ibis.myIbis.bindGroup(group, receivePort, this);
@@ -114,7 +114,7 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 	}
 
 	in = new ByteInputStream();
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "Created shadow send port " + this + " (" + sId.cpu + "," + sId.port + "), connect to local port " + rId.port);
 	}
     }
@@ -135,7 +135,7 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 	if (ssp == null) {
 	    throw new IOException("Cannot locate ShadowSendPort " + sId);
 	}
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("Bind/later group " + group + " to port " + ((ReceivePortIdentifier)ssp.receivePort.identifier()).port + "; sender " + sId.cpu + " port " + sId.port);
 	}
 	Ibis.myIbis.bindGroup(group, ssp.receivePort, ssp);
@@ -150,7 +150,7 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
     ReadMessage getMessage(int msgSeqno) throws IOException {
 	ReadMessage msg = cachedMessage;
 
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("Get a NONE ReadMessage ");
 	}
 
@@ -159,7 +159,7 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 
 	} else {
 	    msg = new ReadMessage(this, receivePort);
-	    if (Ibis.DEBUG) {
+	    if (DEBUG) {
 		System.err.println("Create a -none- ReadMessage " + msg); 
 	    }
 	}
@@ -246,7 +246,7 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 	ShadowSendPort sp = Ibis.myIbis.lookupSendPort(sId.cpu, sId.port);
 	ReceivePort rp = Ibis.myIbis.lookupReceivePort(rId.port);
 
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "Receive a disconnect call from SendPort " + sp + ", disconnect from RcvePort " + rp + " count " + count + " sp.messageCount " + sp.messageCount);
 	}
 	if (rp != sp.receivePort) {

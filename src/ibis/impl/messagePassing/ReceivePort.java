@@ -646,7 +646,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	}
 	try {
 // System.out.println(connectionToString());
-	    shutdown.s_wait(0);
+	    shutdown.waitPolling();
 	} catch (IOException e) {
 	    /* well, if it throws an exception, let's quit.. */
 	}
@@ -820,7 +820,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	// assert(Ibis.myIbis.locked();
 	while (livingPorts > 0) {
 	    try {
-		portCounter.s_wait(0);
+		portCounter.waitPolling();
 	    } catch (IOException e) {
 		break;
 	    }

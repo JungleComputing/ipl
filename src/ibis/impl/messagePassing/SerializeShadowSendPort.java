@@ -8,8 +8,6 @@ import java.io.IOException;
 
 final class SerializeShadowSendPort extends ShadowSendPort {
 
-    private final static boolean DEBUG = Ibis.DEBUG || ShadowSendPort.DEBUG;
-
     java.io.ObjectInput obj_in;
 
     private int syncer;
@@ -91,7 +89,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	if (cachedMessage != null) {
 	    System.err.println(this + ": Uh oh -- live message during disconnect");
 	}
-	objectStreamSyncer.s_wait(0);
+	objectStreamSyncer.waitPolling();
 
 	connectState = UNCONNECTED;
 	obj_in = null;
@@ -111,20 +109,6 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	}
 
 	connectState = CONNECTING;
-
-	if (DEBUG) {
-	    System.err.println(Thread.currentThread() + ": Lock ShadowSendPort " + this + " to avoid ObjectStream init race");
-	}
-
-	/* This is so sick. Panda has a message abstraction, Ibis has a
-	 * message abstraction, but ObjectInputStream flattens all.
-	 * This _is_ a problem: in the constructor, the ObjectInputStream
-	 * starts reading. However, the application may previously have posted
-	 * a receive. Therefore we cannot just follow the normal route here
-	 * and get a ReadMessage from the Ibis connection -- there may be
-	 * a pending ReadMessage that blocks us, and wants to read before us.
-	 * So we must circumvent the queue and handle the message specially.
-	 */
 
 	in.setMsgHandle(msg);
 

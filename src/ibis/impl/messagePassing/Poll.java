@@ -238,7 +238,7 @@ if (false)
 		if (NONPREEMPTIVE_MAY_POLL || preempt == PREEMPTIVE) {
 		    insert(client);
 		}
-		client.poll_wait(timeout);
+		client.waitNonPolling(timeout);
 		if (NONPREEMPTIVE_MAY_POLL || preempt == PREEMPTIVE) {
 		    remove(client);
 		}

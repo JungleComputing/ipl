@@ -76,6 +76,7 @@ class ElectionServer
 
     ElectionServer() throws IbisException {
 	if (! ElectionProtocol.NEED_ELECTION) {
+	    halted = true;
 	    return;
 	}
 
