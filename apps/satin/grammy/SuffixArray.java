@@ -1,6 +1,7 @@
 // File: $Id$
 
 import java.io.PrintStream;
+import java.util.Arrays;
 
 public class SuffixArray implements Configuration, Magic {
     /** The buffer containing the compressed text. */
@@ -226,10 +227,7 @@ public class SuffixArray implements Configuration, Magic {
     {
         text[ix] = code;
 
-        for( int i=1; i<len; i++ ){
-            // TODO: make sure there is no overlap.
-            deleted[ix+i] = true;
-        }
+        Arrays.fill( deleted, ix+1, ix+len, true );
     }
 
     /** Given an entry in the suffix array, creates a new grammar rule
