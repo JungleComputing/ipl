@@ -15,76 +15,25 @@
     <target name="iogen-init"
 	    depends="property-iogen-build"/>
 
-    <target name="iogen-smart"
-	    depends="iogen-init"
-	    description="iogen all classes that implement java.io.Serializable">
-
-	<path id="all-classes">
-	    <fileset dir="${build}">
-		<include name="**/*.class"/>
-	    </fileset>
-	</path>
-	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${build}/" to=""/>
-	</pathconvert>
-	<!--
-	<echo message="List of all class files: ${classes.all}"/>
-	-->
-
-	<java   classname="ibis.util.CheckInterfaces"
-		dir="${build}"
-		output="${build}/SerializableClasses"
-		fork="true">
-	    <arg line="-match java.io.Serializable ${classes.all}"/>
-	    <classpath refid="default.classpath"/>
-	</java>
-
-	<replaceregexp
-		byline="true"
-		file="${build}/SerializableClasses"
-		match=".class"
-		replace=""/>
-	<replaceregexp
-		byline="true"
-		file="${build}/SerializableClasses"
-		flags="g"
-		match="/"
-		replace="."/>
-	<loadfile
-		property="serializable-classes"
-		srcFile="${build}/SerializableClasses">
-	    <filterchain>
-		<prefixlines prefix=" "/>
-		<striplinebreaks/>
-	    </filterchain>
-	</loadfile>
-	<!--
-	<echo message="List of serializable classes: ${serializable-classes}"/>
-	-->
-
-	<java   classname="ibis.frontend.io.IOGenerator"
-		dir="${build}"
-		fork="true">
-	    <arg line="-dir ${serializable-classes}"/>
-	    <classpath refid="default.classpath"/>
-	</java>
-    </target>
-
     <target name="iogen"
-	    depends="iogen-init">
+	depends="iogen-init">
+	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
 	<path id="all-classes">
 	    <fileset dir="${build}">
 		<include name="**/*.class"/>
+		<include name="ibis/ipl/*.class"/>
 	    </fileset>
 	</path>
 	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${build}/" to=""/>
+	    <map from="${build}" to=""/>
+	    <map from="\${file.separator}" to=""/>
 	</pathconvert>
-	<echo message="Run IOGenerator over all classes under ${build}/"/>
+	<echo message="All files to be rewritten: ${classes.all}"/>
+	<echo message="Run IOGenerator over all classes under ${build}${file.separator}"/>
 	<java   classname="ibis.frontend.io.IOGenerator"
 		dir="${build}"
 		fork="true">
-	    <arg line="-dir ${classes.all}"/>
+	    <arg line="-dir -v ${classes.all}"/>
 	    <classpath refid="default.classpath"/>
 	</java>
     </target>

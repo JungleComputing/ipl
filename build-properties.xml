@@ -13,11 +13,11 @@
 
     <taskdef resource="net/sf/antcontrib/antcontrib.properties">
 	<classpath>
-	    <pathelement location="${ibis}/ant-contrib/lib/ant-contrib-0.3.jar"/>
+	    <pathelement location="${ibis}/../ant-contrib/lib/ant-contrib-0.3.jar"/>
 	</classpath>
     </taskdef>
 
-    <property name="bcelRoot"    location="/home/ceriel/bcel-5.1"/>
+    <property name="bcelRoot"    location="${ibis}/../bcel-5.1"/>
 
     <property name="ibisBuild"   location="${ibis}/build"/>
 
@@ -26,7 +26,7 @@
 	<pathelement path="${build}/"/>
 	<pathelement path="bcel-additions/"/>
 	<pathelement path="${bcelRoot}/bcel-5.1.jar/"/>
-	<pathelement path="${bcelRoot}/lib"/>
+	<pathelement path="${bcelRoot}/lib/"/>
     </path>
 
     <!--

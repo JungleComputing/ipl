@@ -52,9 +52,9 @@
     -->
     <path id="native.src.dirs">
 	<pathelement path="${src}/ibis/io"/>
-	<pathelement path="${src}/ibis/ipl/impl/messagePassing"/>
-	<pathelement path="${src}/ibis/ipl/impl/messagePassing/panda"/>
-	<pathelement path="${src}/ibis/ipl/impl/messagePassing/mpi"/>
+	<!-- <pathelement path="${src}/ibis/ipl/impl/messagePassing"/> -->
+	<!-- <pathelement path="${src}/ibis/ipl/impl/messagePassing/panda"/> -->
+	<!-- <pathelement path="${src}/ibis/ipl/impl/messagePassing/mpi"/> -->
 	<!-- <pathelement path="${src}/ibis/ipl/impl/net/gm"/> -->
 	<!-- <pathelement path="${src}/ibis/util"/> -->
 	<pathelement path="${src}/ibis/util/nativeCode"/>
@@ -71,7 +71,6 @@
 	    depends="init,bcel"
 	    description="Compile Ibis to .class">
 	<javac  destdir="${build}"
-		deprecation="true"
 		debug="true">
 	    <src path="${src}/ibis/frontend"/>
 	    <src path="${src}/ibis/frontend/group"/>
@@ -183,9 +182,10 @@
 
     <target name="natives">
 	    <!-- depends="compile,javah"-->
+	<echo message="Native directories = ${native.src.path}"/>
 	<foreach
 		list="${native.src.path}"
-		delimiter=":"
+		delimiter="${path.separator}"
 		param="native.dir"
 		target="build-native"/>
     </target>

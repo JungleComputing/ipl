@@ -21,7 +21,7 @@
 	<java   classname="ibis.frontend.satin.Satinc"
 		dir="${build}"
 		fork="true">
-	    <arg line="-v -keep -compiler '${JAVA_HOME}/bin/javac -classpath ${satin-class-path}:' ${satin-class}"/>
+	    <arg line="-v -keep -compiler '${JAVA_HOME}/bin/javac -classpath ${satin-class-path}${path.separator}' ${satin-class}"/>
 	    <classpath refid="default.classpath"/>
 	</java>
     </target>
@@ -36,7 +36,7 @@
 	    </fileset>
 	</path>
 	<pathconvert pathsep="," property="classes.all" refid="all-classes">
-	    <map from="${build}/" to=""/>
+	    <map from="${build}${file.separator}" to=""/>
 	</pathconvert>
 	<echo message="${classes.all}" file="${build}/SatinClasses"/>
 	<replaceregexp
@@ -49,13 +49,13 @@
 		byline="true"
 		file="${build}/SatinClasses"
 		flags="g"
-		match="/"
+		match="\${file.separator}"
 		replace="."/>
 	<loadfile
 		property="satin-classes"
 		srcFile="${build}/SatinClasses">
 	</loadfile>
-	<echo message="Run Satinc over all classes under ${build}/"/>
+	<echo message="Run Satinc over all classes under ${build}${file.separator}"/>
 	<echo message="List of all class files: ${satin-classes}"/>
 	<!--
 	-->

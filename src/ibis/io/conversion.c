@@ -4,7 +4,7 @@
 #include "ibis_io_Conversion.h"
 
 #define BYTE2TYPE(ntype, jtype, Type) \
-void Java_ibis_io_Conversion_n_1byte2 ## ntype( \
+JNIEXPORT void JNICALL Java_ibis_io_Conversion_n_1byte2 ## ntype( \
 	JNIEnv *env, \
 	jclass clazz, \
 	jbyteArray buffer, \
@@ -34,7 +34,7 @@ BYTE2TYPE(float,   jfloat,   Float)
 BYTE2TYPE(double,  jdouble,  Double)
 
 #define TYPE2BYTE(ntype, jtype, Type) \
-void Java_ibis_io_Conversion_n_1 ## ntype ## 2byte( \
+JNIEXPORT void JNICALL Java_ibis_io_Conversion_n_1 ## ntype ## 2byte( \
 	JNIEnv *env, \
 	jclass clazz, \
 	j ## ntype ## Array array, \
@@ -68,6 +68,7 @@ TYPE2BYTE(double,  jdouble,  Double)
 JNIEXPORT jobject JNICALL Java_ibis_io_IbisSerializationInputStream_createUninitializedObject
   (JNIEnv *, jobject, jclass, jclass);
 
+#if THIS_CANNOT_BE
 JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldDouble
   (JNIEnv *, jobject, jobject, jstring, jdouble);
 JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldLong
@@ -86,9 +87,9 @@ JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldBoolean
   (JNIEnv *, jobject, jobject, jstring, jboolean);
 JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldObject
   (JNIEnv *, jobject, jobject, jstring, jstring, jobject);
+#endif
 
-
-jobject Java_ibis_io_IbisSerializationInputStream_createUninitializedObject(
+JNIEXPORT jobject JNICALL Java_ibis_io_IbisSerializationInputStream_createUninitializedObject(
 	JNIEnv *env, 
 	jobject this, 
 	jclass type,
@@ -103,7 +104,7 @@ jobject Java_ibis_io_IbisSerializationInputStream_createUninitializedObject(
 	return obj;
 }
 
-void Java_ibis_io_IbisSerializationInputStream_setFieldDouble(
+JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldDouble(
     JNIEnv *env,
     jobject this,
     jobject ref,
@@ -118,7 +119,7 @@ void Java_ibis_io_IbisSerializationInputStream_setFieldDouble(
     }
 }
 
-void Java_ibis_io_IbisSerializationInputStream_setFieldLong(
+JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldLong(
     JNIEnv *env,
     jobject this,
     jobject ref,
@@ -133,7 +134,7 @@ void Java_ibis_io_IbisSerializationInputStream_setFieldLong(
     }
 }
 
-void Java_ibis_io_IbisSerializationInputStream_setFieldFloat(
+JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldFloat(
     JNIEnv *env,
     jobject this,
     jobject ref,
@@ -148,7 +149,7 @@ void Java_ibis_io_IbisSerializationInputStream_setFieldFloat(
     }
 }
 
-void Java_ibis_io_IbisSerializationInputStream_setFieldInt(
+JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldInt(
     JNIEnv *env,
     jobject this,
     jobject ref,
@@ -163,7 +164,7 @@ void Java_ibis_io_IbisSerializationInputStream_setFieldInt(
     }
 }
 
-void Java_ibis_io_IbisSerializationInputStream_setFieldShort(
+JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldShort(
     JNIEnv *env,
     jobject this,
     jobject ref,
@@ -178,7 +179,7 @@ void Java_ibis_io_IbisSerializationInputStream_setFieldShort(
     }
 }
 
-void Java_ibis_io_IbisSerializationInputStream_setFieldChar(
+JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldChar(
     JNIEnv *env,
     jobject this,
     jobject ref,
@@ -193,7 +194,7 @@ void Java_ibis_io_IbisSerializationInputStream_setFieldChar(
     }
 }
 
-void Java_ibis_io_IbisSerializationInputStream_setFieldByte(
+JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldByte(
     JNIEnv *env,
     jobject this,
     jobject ref,
@@ -208,7 +209,7 @@ void Java_ibis_io_IbisSerializationInputStream_setFieldByte(
     }
 }
 
-void Java_ibis_io_IbisSerializationInputStream_setFieldBoolean(
+JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldBoolean(
     JNIEnv *env,
     jobject this,
     jobject ref,
@@ -223,7 +224,7 @@ void Java_ibis_io_IbisSerializationInputStream_setFieldBoolean(
     }
 }
 
-void Java_ibis_io_IbisSerializationInputStream_setFieldObject(
+JNIEXPORT void JNICALL Java_ibis_io_IbisSerializationInputStream_setFieldObject(
     JNIEnv *env,
     jobject this,
     jobject ref,

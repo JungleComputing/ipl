@@ -1087,6 +1087,11 @@ public class IOGenerator {
 		read_il.append(get_default_reads(fields, factory, class_name, true, cg));
 	    }
 
+	    if (read_cons_index == -1) {
+		System.err.println("WATCHOUT....... Class " + clazz.getClassName() +
+				   " has no read_cons_index");
+	    }
+	    
 	    MethodGen read_cons_gen = new MethodGen(class_methods[read_cons_index], class_name, cg.getConstantPool());
 	    read_il.append(read_cons_gen.getInstructionList());
 	    read_cons_gen.setInstructionList(read_il);
@@ -1214,7 +1219,7 @@ do_verify(gen);
 	    } else {
 		String className = new String(classnames[i]);
 
-		className.replace('/', '.');
+		// className = className.replace(java.io.File.separatorChar, '.');
 		System.err.println("class name = " + className);
 		try {
 		    ClassParser p = new ClassParser(classnames[i] + ".class");
@@ -1239,7 +1244,9 @@ do_verify(gen);
 		    if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
 		}
 	    } catch(Exception e) {
-		System.out.println("Got an exception while checking " + clazz.getClassName() + ", not rewritten");
+		System.out.println("Got an exception while checking " +
+				   ((clazz == null) ? "<none>" : clazz.getClassName()) +
+				   ", not rewritten");
 		// System.out.println("Exception = " + e);
 	    }
 	}
@@ -1291,7 +1298,7 @@ do_verify(gen);
 		    int index = cl.lastIndexOf('.');
 		    classfile = cl.substring(index+1) + ".class";
 		} else {
-		    classfile = cl.replace('.', '/') + ".class";
+		    classfile = cl.replace('.', java.io.File.separatorChar) + ".class";
 		}
 		if (verbose) System.out.println("  Saving class : " + classfile);
 		clazz.dump(classfile);
@@ -1312,7 +1319,9 @@ do_verify(gen);
 	Verifier verf = VerifierFactory.getVerifier(c.getClassName());
 	boolean verification_failed = false;
 
-System.out.println("Verifying " + c.getClassName());
+	if (verbose) {
+	    System.out.println("Verifying " + c.getClassName());
+	}
 
 	VerificationResult res = verf.doPass1();
 	if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
@@ -1366,7 +1375,7 @@ System.out.println("Verifying " + c.getClassName());
 	}
 
 	for(int i=0; i<args.length; i++) {
-	    if(args[i].equals("-v")) {
+		if(args[i].equals("-v")) {
 		verbose = true;
 	    } else if(!args[i].startsWith("-")) {
 		files.add(args[i]);
@@ -1403,6 +1412,11 @@ System.out.println("Verifying " + c.getClassName());
 		    newArgs[i] = pack + "." + ((String)files.elementAt(i));
 		}
 	    }
+	    int colon = newArgs[i].indexOf(':');
+	    if (colon != -1) {
+		newArgs[i] = newArgs[i].substring(colon + 1);
+	    }
+	    newArgs[i] = newArgs[i].replace(java.io.File.separatorChar, '.');
 	}
 
 	new IOGenerator(verbose, local, file, force_generated_calls, newArgs, newArgs.length, pack).scanClass(newArgs, newArgs.length);

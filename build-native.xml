@@ -31,12 +31,12 @@
 
     <taskdef resource="cpptasks.tasks">
 	<classpath>
-	    <pathelement location="${ibis}/ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
+	    <pathelement location="${ibis}/../ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
 	</classpath>
     </taskdef>
     <typedef resource="cpptasks.types">
 	<classpath>
-	    <pathelement location="${ibis}/ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
+	    <pathelement location="${ibis}/../ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
 	</classpath>
     </typedef>
 
@@ -48,6 +48,7 @@
     <path id="default.includes-ref">
 	<pathelement path="${JAVA_HOME}/include"/>
 	<pathelement path="${JAVA_HOME}/include/linux"/>
+	<pathelement path="${JAVA_HOME}/include/win32"/>
 	<pathelement path="${build}/include"/>
 	<pathelement path="${native.dir}"/>
     </path>
@@ -63,7 +64,7 @@
 	    <path>
 		<pathelement path="${native.dir}"/>
 	    </path>
-	    <map from="${ibis}/" to=""/>
+	    <map from="${ibis}${file.separator}" to=""/>
 	</pathconvert>
 
 	<mkdir dir="${build}/ibis/${native-path}"/>
@@ -73,7 +74,7 @@
 		byline="true"
 		file="${build}/ibis/${native-path}/package"
 		flags="g"
-		match="/"
+		match="\${file.separator}"
 		replace="_"/>
 	<replaceregexp
 		byline="true"
@@ -98,17 +99,17 @@
     </target>
 
 
-    <compiler name="gcc"/>
-
     <target name="native-compile"
 	    depends="native-init">
 
-	<echo message="Invoke cc in ${native.dir}/"/>
+	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
 	<echo message="Lib is ${build}/lib ${local.lib}"/>
+	<echo message="Include path is ${default.includes}"/>
 	<cc	debug="true"
 		objdir="${build}/ibis/${native-path}"
 		outfile="${build}/lib/${local.lib}"
 		outtype="shared"
+		name="msvc"
 		warnings="severe">
 	    <fileset dir="${native.dir}" includes="*.c"/>
 	    <defineset>
@@ -121,5 +122,6 @@
 	    </includepath>
 	    <!-- <compilerarg location="mid" value="-E"/> -->
 	    <!-- <compilerarg location="mid" value="-v"/> -->
+	    <!-- <compilerarg location="mid" value="/I${ibis}/build/include"/> -->
 	</cc>
     </target>
