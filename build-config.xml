@@ -365,6 +365,7 @@ IBIS_ROOT=${ibis}
 MANTA_ROOT=/usr/local/VU/manta
 BCEL=${package.home.bcel}
 KARMI=${karmi}
+IBIS_CONFIG_SEEN=1
 </echo>
 
 	<echo
@@ -379,6 +380,7 @@ KARMI=${karmi}
 @set MANTA_ROOT=/usr/local/VU/manta
 @set BCEL=${package.home.bcel}
 @set KARMI=${karmi}
+@set IBIS_CONFIG_SEEN=1
 </echo>
 
 	<mkdir dir="${ibis}/bin"/>
