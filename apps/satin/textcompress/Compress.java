@@ -26,6 +26,19 @@ class Compress extends ibis.satin.SatinObject
         return backrefs;
     }
 
+    /**
+     * Returns true iff the given text matches over MINIMAL_SPAN at the
+     * two given positions. No explicit bounds checking or overlap
+     * checking is done.
+     */
+    private static boolean matchesMinSpan( byte text[], int p1, int p2 )
+    {
+        return text[p1] == text[p2] &&
+            text[p1+1] == text[p2+1] &&
+            text[p1+2] == text[p2+2] &&
+            text[p1+3] == text[p2+3];
+    }
+
     private static int[] collectBackrefs( byte text[], int backrefs[], int pos )
     {
         // First count the number of backreferences.
@@ -34,7 +47,7 @@ class Compress extends ibis.satin.SatinObject
         int backpos = backrefs[pos];
         while( backpos>=0 ){
             if( backpos<pos-Configuration.MINIMAL_SPAN ){
-                if( text[backpos+1] == text[pos+1] && text[backpos+2] == text[pos+2] ){
+                if( matchesMinSpan( text, backpos, pos ) ){
                     // This is a sensible backref.
                     n++;
                 }
@@ -48,7 +61,7 @@ class Compress extends ibis.satin.SatinObject
         n = 0;
         while( backpos>=0 ){
             if( backpos<pos-Configuration.MINIMAL_SPAN ){
-                if( text[backpos+1] == text[pos+1] && text[backpos+2] == text[pos+2] ){
+                if( matchesMinSpan( text, backpos, pos ) ){
                     res[n++] = backpos;
                 }
             }
@@ -79,7 +92,7 @@ class Compress extends ibis.satin.SatinObject
     {
         Backref mv = Backref.buildCopyBackref( pos );
         boolean haveAlternatives = false;
-        maxLen = 0;
+        int maxLen = 0;
 
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
             return mv;
