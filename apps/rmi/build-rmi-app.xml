@@ -19,7 +19,7 @@
     </target>
 
     <target name="compile"
-	    depends="init,property-init">
+	depends="clean,init,property-init">
         <property name="class-path" refid="default.classpath"/>
 	<echo   message="class path ${class-path}"/>
 
@@ -32,7 +32,7 @@
     </target>
 
     <target name="build"
-	    depends="init, clean"
+	    depends="init"
 	    description="Compile RMI application for Ibis RMI">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="rmic"/>
