@@ -44,3 +44,4 @@ is the number of the nameserver port for this example. It is usually
 wise to specify -satin-closed to tell the system nobody will join the
 computation later on.
 
+It may also be necessary to specify -Dsatin.tuplespace.ordened=true

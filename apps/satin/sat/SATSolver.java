@@ -13,7 +13,7 @@
  */
 
 import java.io.File;
-
+import ibis.satin.SatinTupleSpace;
 
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
     private static final boolean traceSolver = false;
@@ -376,6 +376,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      */
     public static void main( String args[] ) throws java.io.IOException
     {
+        //SatinTupleSpace.enableActiveTupleOrdening();
 	if( args.length != 1 ){
 	    System.err.println( "Exactly one filename argument required, but I have " + args.length + ":" );
             for( int i=0; i<args.length; i++ ){
