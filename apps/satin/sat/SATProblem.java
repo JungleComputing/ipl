@@ -13,6 +13,15 @@ import java.io.*;
  */
 
 public final class SATProblem implements Cloneable, java.io.Serializable {
+    /** Symbolic value for a conflicting problem. */
+    public static final int CONFLICTING = -1;
+
+    /** Symbolic value for a satisfied problem. */
+    public static final int SATISFIED = 1;
+
+    /** Symbolic value for an as-yet undetermined problem. */
+    public static final int UNDETERMINED = 0;
+
     /** The number of variables in the problem. */
     private int vars;
 

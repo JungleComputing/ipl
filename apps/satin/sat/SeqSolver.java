@@ -19,7 +19,7 @@ public final class SeqSolver {
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static int label = 0;
-    private static int decisions = 0;
+    private int decisions = 0;
 
     /**
      * Solve the leaf part of a SAT problem.
@@ -31,7 +31,7 @@ public final class SeqSolver {
      * @param var the next variable to assign
      * @param val the value to assign
      */
-    public static void leafSolve(
+    public void leafSolve(
 	int level,
 	SATProblem p,
 	SATContext ctx,
@@ -50,14 +50,14 @@ public final class SeqSolver {
 	else {
 	    res = ctx.propagateNegAssignment( p, var );
 	}
-	if( res == -1 ){
+	if( res == SATProblem.CONFLICTING ){
 	    // Propagation reveals a conflict.
 	    if( traceSolver ){
 		System.err.println( "ls" + level + ": propagation found a conflict" );
 	    }
 	    return;
 	}
-	if( res == 1 ){
+	if( res == SATProblem.SATISFIED ){
 	    // Propagation reveals problem is satisfied.
 	    SATSolution s = new SATSolution( ctx.assignments );
 
@@ -96,7 +96,7 @@ public final class SeqSolver {
      * @param p The problem to solve.
      * @return a solution of the problem, or <code>null</code> if there is no solution
      */
-    static SATSolution solveSystem( final SATProblem p )
+    SATSolution solveSystem( final SATProblem p )
     {
 	SATSolution res = null;
 
@@ -109,26 +109,18 @@ public final class SeqSolver {
 
         // Now recursively try to find a solution.
 	try {
-	    int var = p.getMFUVariable();
-
-	    if( traceSolver ){
-		System.err.println( "Top level: branching on variable " + var );
-	    }
-	    if( var == -1 ){
-		return null;
-	    }
 	    SATContext ctx = SATContext.buildSATContext( p );
 
 	    ctx.assignments = p.buildInitialAssignments();
 
 	    int r = ctx.optimize( p );
-	    if( r == 1 ){
+	    if( r == SATProblem.SATISFIED ){
 		if( !p.isSatisfied( ctx.assignments ) ){
 		    System.err.println( "Error: solution does not satisfy problem." );
 		}
 		return new SATSolution( ctx.assignments );
 	    }
-	    if( r == -1 ){
+	    if( r == SATProblem.CONFLICTING ){
 		return null;
 	    }
 
@@ -140,6 +132,9 @@ public final class SeqSolver {
 		    System.err.println( "top: nothing to branch on" );
 		}
 		return null;
+	    }
+	    if( traceSolver ){
+		System.err.println( "Top level: branching on variable " + nextvar );
 	    }
             decisions++;
 
@@ -177,14 +172,15 @@ public final class SeqSolver {
 	p.report( System.out );
 	p.optimize();
 	p.report( System.out );
+        SeqSolver s = new SeqSolver();
 	long startTime = System.currentTimeMillis();
-	SATSolution res = solveSystem( p );
+	SATSolution res = s.solveSystem( p );
 
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;
 
 	System.out.println( "Time: " + time );
-        System.out.println( "Decisions: " + decisions );
+        System.out.println( "Decisions: " + s.decisions );
 	if( res == null ){
 	    System.out.println( "There are no solutions" );
 	}
