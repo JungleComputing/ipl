@@ -150,7 +150,7 @@ public abstract class PortType {
 	    }
 	}
 	if (name == null) {
-	    name = "__Send__" + name() + "__" + anon_counter++;
+	    name = name() + " send port " + anon_counter++;
 	}
 
 	return createSendPort(name, cU, connectionDowncalls);
@@ -368,7 +368,7 @@ public abstract class PortType {
 	    }
 	}
 	if (name == null) {
-	    name = "__Receive__" + name() + "__" + anon_counter++;
+	    name = name() + " receive port " + anon_counter++;
 	}
 
 	return createReceivePort(name, u, cU, connectionDowncalls);
