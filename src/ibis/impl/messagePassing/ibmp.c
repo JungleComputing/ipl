@@ -88,6 +88,24 @@ ibmp_dumpStack(JNIEnv *env)
 }
 
 
+char *
+ibmp_jstring2c(JNIEnv *env, jstring name)
+{
+    jbyte *b;
+    char *c;
+
+    if (name == NULL) {
+	return "<null>";
+    }
+
+    b = (jbyte *)(*env)->GetStringUTFChars(env, name, NULL);
+    c = strdup((char *)b);
+
+    (*env)->ReleaseStringUTFChars(env, name, b);
+    return c;
+}
+
+
 void
 ibmp_object_toString(JNIEnv *env, jobject obj)
 {

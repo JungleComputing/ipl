@@ -9,16 +9,21 @@ public abstract class Poll implements Runnable {
     Thread	poller;
     PollClient waiting_threads;
     int		preemptive_pollers;
+    Thread	peeker;
 
     protected Poll() {
 	// Sun doesn't set java.compiler, so getProperty returns null --Rob
 	String compiler = java.lang.System.getProperty("java.compiler");
 	MANTA_COMPILE = compiler != null && compiler.equals("manta");
 
-	Thread peeker = new Thread(this);
+	peeker = new Thread(this);
 //	manta.runtime.RuntimeSystem.DebugMe(peeker, this);
 	peeker.setDaemon(true);
-	// peeker.start();
+    }
+
+
+    void wakeup() {
+	peeker.start();
     }
 
 
@@ -134,7 +139,7 @@ public abstract class Poll implements Runnable {
 // if (! preempt) System.err.println("  -]]]] " + me + " yield in poll(), preempt = " + preempt);
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-		    if (MANTA_COMPILE || preempt) {
+		    if (true || MANTA_COMPILE || preempt) {
 			Thread.yield();
 		    } else {
 			try {
@@ -181,6 +186,7 @@ preemptive_pollers--;
 	    if (ibis.ipl.impl.messagePassing.Ibis.myIbis != null) {
 		synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 		    try {
+// System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + " do a peeker poll...");
 			poll();
 		    } catch (IbisException e) {
 			System.err.println("Poll peeker catches exception " + e);

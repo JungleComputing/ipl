@@ -10,7 +10,7 @@ import java.io.ObjectInput;
 import ibis.ipl.ConditionVariable;
 import ibis.ipl.IbisException;
 
-abstract class ShadowSendPort extends SendPort {
+class ShadowSendPort extends SendPort {
 
     ByteInputStream in;	// Only for the shadow SendPort
     ibis.io.ArrayInputStream a_in;	// Only for the shadow SendPort
@@ -28,6 +28,7 @@ abstract class ShadowSendPort extends SendPort {
     ShadowSendPort(String type, String name, String ibisId,
 			int send_cpu, int send_port,
 		        int rcve_port) throws IbisException {
+System.err.println("In ShadowSendPort.<init>");
 	ident = new SendPortIdentifier(name, type, ibisId, send_cpu, send_port);
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.bindSendPort(this, ident.cpu, ident.port);
 	receivePort = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupReceivePort(rcve_port);
@@ -56,21 +57,26 @@ abstract class ShadowSendPort extends SendPort {
 	if (! connect_allowed) {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unbindSendPort(this);
 	}
-// System.err.println(Thread.currentThread() + "Created shadow send port (" + send_cpu + "," + send_port + "), connect to local port " + rcve_port);
+System.err.println(Thread.currentThread() + "Created shadow send port (" + send_cpu + "," + send_port + "), connect to local port " + rcve_port);
     }
 
 
-    protected abstract void ibmp_connect(int cpu,
-					 int port,
-					 int my_port,
-					 String type,
-					 String id,
-					 Syncer syncer);
+    protected void ibmp_connect(int cpu,
+				int port,
+				int my_port,
+				String type,
+				String ibisId,
+				Syncer syncer) throws IbisException {
+	throw new IbisException("ShadowSendPort cannot (dis)connect");
+    }
 
-    protected abstract void ibmp_disconnect(int cpu,
-					    int port,
-					    int rport,
-					    int count);
+
+    protected void ibmp_disconnect(int cpu,
+				   int port,
+				   int receiver_port,
+				   int messageCount) throws IbisException {
+	throw new IbisException("ShadowSendPort cannot (dis)connect");
+    }
 
 
     void checkConnection(ibis.ipl.impl.messagePassing.ReadMessage msg)

@@ -87,7 +87,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 
     /* Called from native */
     void join_upcall(String ident_name, int cpu) {
-// System.err.println("Receive join message " + ident_name + "; now world = " + world);
+System.err.println("Receive join message " + ident_name + "; now world = " + world);
 	synchronized (myIbis) {
 //manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 	    IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
@@ -107,7 +107,7 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 
 
     void join(IbisIdentifier id) {
-if (DEBUG) System.err.println("An Ibis.join call for " + id);
+if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 	if (resizeHandler != null) {
 	    resizeHandler.join(id);
 	}
@@ -158,6 +158,7 @@ if (DEBUG) System.err.println("An Ibis.join call for " + id);
 	rcvePorts = new PortHash();
 
 	ibmp_start();
+	rcve_poll.wakeup();
 
 	pandaRegistry.init();
 	if (DEBUG) {
@@ -168,7 +169,7 @@ if (DEBUG) System.err.println("An Ibis.join call for " + id);
 	    System.err.println("myCpu " + myCpu + " nrCpus " + nrCpus + " world " + world);
 	    for (int i = 0; i < nrCpus; i++) {
 		if (i != myCpu) {
-// System.err.println("Send join message to " + i);
+System.err.println("Send join message to " + i);
 		    send_join(i, ident.name());
 		}
 	    }

@@ -4,6 +4,7 @@
 #include <jni.h>
 
 void ibmp_object_toString(JNIEnv *env, jobject obj);
+char *ibmp_jstring2c(JNIEnv *env, jstring name);
 void ibmp_thread_yield(JNIEnv *env);
 void ibmp_lock(JNIEnv *env);
 void ibmp_unlock(JNIEnv *env);
@@ -18,14 +19,15 @@ void ibmp_lock_check_not_owned(JNIEnv *env);
 #define IBP_STATISTICS
 #endif
 
-// #define IBP_VERBOSE
+#undef IBP_VERBOSE
 
 #ifdef IBP_VERBOSE
+#include <pan_sys.h>
 extern int ibmp_verbose;
 int ibmp_stderr_printf(char *fmt, ...);
 #define IBP_VPRINTF(n, env, s) \
 	    do if ((n) <= ibmp_verbose) { \
-		fprintf(stderr, "%s.%d ", __FILE__, __LINE__); \
+		fprintf(stderr, "%2d: %s.%d ", pan_my_pid(), __FILE__, __LINE__); \
 		if ((env) != NULL) fprintf(stderr, "%s: ", ibmp_currentThread(env)); \
 		ibmp_stderr_printf s; \
 	    } while (0)

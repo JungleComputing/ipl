@@ -1,5 +1,6 @@
 #include <jni.h>
 
+#include "ibmp.h"
 #include "ibmp_send_port.h"
 
 
@@ -9,20 +10,27 @@ static jmethodID	md_disconnect;
 static jfieldID		fld_connect_allowed;
 
 
+
 jboolean
 ibmp_send_port_new(JNIEnv *env, jstring type, jstring name, jstring ibisId,
 		   jint cpu, jint port,
 		   jint receiver_port)
 {
-    jobject s = (*env)->NewObject(env,
-			     cls_ShadowSendPort,
-			     ctor_ShadowSendPort,
-			     type,
-			     name,
-			     ibisId,
-			     cpu,
-			     port,
-			     receiver_port);
+    jobject s;
+
+    s = (*env)->NewObject(env,
+			  cls_ShadowSendPort,
+			  ctor_ShadowSendPort,
+			  type,
+			  name,
+			  ibisId,
+			  cpu,
+			  port,
+			  receiver_port);
+    if ((*env)->ExceptionOccurred(env) != NULL) {
+	(*env)->ExceptionDescribe(env);
+    }
+
     return (*env)->GetBooleanField(env, s, fld_connect_allowed);
 }
 

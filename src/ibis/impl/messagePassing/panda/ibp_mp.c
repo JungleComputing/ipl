@@ -145,8 +145,8 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port, pan_iovec_p iov, int iov_size,
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
 
     ibmp_set_JNIEnv(env);
-    IBP_VPRINTF(200, env, ("Do a Panda MP send to %d size %d\n",
-		cpu, pan_msg_iovec_len(iov, iov_size)));
+    IBP_VPRINTF(200, env, ("Do a Panda MP send to %d size %d env %p\n",
+		cpu, pan_msg_iovec_len(iov, iov_size), env));
     hdr->port = port;
     pan_mp_send_sync(cpu, ibp_mp_port, iov, iov_size, proto, proto_size, ack);
     IBP_VPRINTF(200, env, ("Done a Panda MP send\n"));
