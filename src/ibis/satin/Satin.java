@@ -178,7 +178,7 @@ public final class Satin implements Config, ResizeHandler {
 	 * this constructor.
 	 * Which ibis is chosen depends, a.o., on these arguments.
 	 * All flags destined for Satin start with "satin_".
-	 * The flags recognized are:
+	 * The flags that are recognized are:
 	 * <table>
 	 * <tr>
 	 * <td>-satin-closed</td>
