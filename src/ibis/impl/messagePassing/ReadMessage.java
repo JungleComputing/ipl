@@ -159,10 +159,13 @@ public class ReadMessage
     }
 
 
-    public void finish() {
+    public long finish() {
 	Ibis.myIbis.lock();
 	finishLocked();
 	Ibis.myIbis.unlock();
+
+	// TODO: return size of message
+	return 0;
     }
 
 

@@ -7,7 +7,6 @@ final public class IbisWriteMessage extends WriteMessage {
     private SendPort sPort;
     private ibis.io.IbisSerializationOutputStream obj_out;
 
-
     IbisWriteMessage() {
     }
 
@@ -52,12 +51,20 @@ final public class IbisWriteMessage extends WriteMessage {
     }
 
 
-    public void finish() throws IOException {
+    public long finish() throws IOException {
 	reset(false, true);
+	long after = (long) out.getCount();
+	long retval = after - before;
+	sPort.count += retval;
+	before = after;
+	return retval;
     }
 
     public void reset() throws IOException {
 	reset(false, false);
+	long after = (long) out.getCount();
+	sPort.count += after - before;
+	before = after;
     }
 
     public void sync(int ticket) throws IOException {

@@ -704,7 +704,7 @@ System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
          *
          * @exception IOException in case of trouble.
          */
-       	public final void finish() throws IOException {
+       	public long finish() throws IOException {
                 log.in();
 // System.err.println(this + " " + Thread.currentThread() + ": finish()");
 // Thread.dumpStack();
@@ -747,6 +747,9 @@ pollingThreads--;
                         }
                 }
                 log.out();
+
+		// TODO: return size of message.
+		return 0;
         }
 
         protected abstract void doFinish() throws IOException;

@@ -123,12 +123,14 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 	/**
 	 * Completes the message transmission and releases the send port.
 	 */
-	public void finish() throws IOException{
+	public long finish() throws IOException{
                 log.in();
                 super.finish();
                 flushBuffer();
                 stat.end();
                 log.out();
+		// TODO: return byte count of message.
+		return 0;
 	}
 
 	/**

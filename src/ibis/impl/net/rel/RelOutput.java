@@ -855,9 +855,11 @@ checkRexmit();
     /**
      * {@inheritDoc}
      */
-    public void finish() throws IOException {
+    public long finish() throws IOException {
 	    super.finish();
 	    dataOutput.finish();
+	    // TODO: return byte count of message
+	    return 0;
     }
 
 

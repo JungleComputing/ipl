@@ -79,9 +79,10 @@ public final class IdOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void finish() throws IOException {
-		subOutput.finish();
+	public long finish() throws IOException {
+		long retval = subOutput.finish();
 		super.finish();
+		return retval;
 	}
 
 	/**

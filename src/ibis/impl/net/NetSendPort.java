@@ -786,7 +786,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	/**
 	 * Completes the message transmission and releases the send port.
 	 */
-	public void finish() throws IOException{
+	public long finish() throws IOException{
                 log.in();
 		_finish();
 		output.finish();
@@ -794,6 +794,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 trace.disp(sendPortTracePrefix, "message send <--");
 		outputLock.unlock();
                 log.out();
+		return 0;
 	}
 
 	/**

@@ -6,6 +6,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 
     protected SendPort sPort;
     protected ByteOutputStream out;
+    long      before;
 
 
     WriteMessage() {
@@ -17,21 +18,12 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	}
 	this.sPort = sPort;
 	out = sPort.out;
+	before = (long) out.getCount();
     }
 
 
     public ibis.ipl.SendPort localPort() {
 	return sPort;
-    }
-
-
-    public long getCount() {
-	return out.getCount();
-    }
-
-
-    public void resetCount() {
-	out.resetCount();
     }
 
 
@@ -62,11 +54,19 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 
     public void reset() throws IOException {
 	send(true, true);
+	long after = (long) out.getCount();
+	sPort.count += after - before;
+	before = after;
     }
 
 
-    public void finish() throws IOException {
+    public long finish() throws IOException {
 	out.finish();
+	long after = (long) out.getCount();
+	long retval = after - before;
+	before = after;
+	sPort.count += retval;
+	return retval;
     }
 
 

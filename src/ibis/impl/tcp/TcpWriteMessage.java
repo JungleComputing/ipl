@@ -11,12 +11,14 @@ final class TcpWriteMessage implements WriteMessage {
 	private TcpSendPort sport;
 	private SerializationOutputStream out;
 	private boolean connectionAdministration;
+	private long before;
 
 	TcpWriteMessage(TcpSendPort p, SerializationOutputStream out,
 					boolean connectionAdministration) throws IOException {
 		this.connectionAdministration = connectionAdministration;
 		sport = p;
 		this.out = out;
+		before = sport.dummy.getCount();
 	}
 
 	// if we keep connectionAdministration, forward exception to upcalls / downcalls.
@@ -38,21 +40,27 @@ final class TcpWriteMessage implements WriteMessage {
 		return sport;
 	}
 
-	public long getCount() {
-		return sport.getCount();
-	}
-
-	public void resetCount() {
-		sport.resetCount();
-	}
-
 	public int send() throws IOException {
 		return 0;
 	}
 
-	public void finish() throws IOException {
-		reset();
+	public long finish() throws IOException {
+		try {
+			out.reset();
+		} catch (SplitterException e) {
+			forwardLosses(e);
+		}
+		try {
+			out.flush();
+		} catch (SplitterException e) {
+			forwardLosses(e);
+		}
 		sport.finishMessage();
+		long after = sport.dummy.getCount();
+		long retval = after - before;
+		sport.count += retval;
+		before = after;
+		return retval;
 	}
 
 	public void reset() throws IOException {
@@ -66,6 +74,9 @@ final class TcpWriteMessage implements WriteMessage {
 		} catch (SplitterException e) {
 			forwardLosses(e);
 		}
+		long after = sport.dummy.getCount();
+		sport.count += after - before;
+		before = after;
 	}
 
 	public void sync(int ticket) throws IOException {

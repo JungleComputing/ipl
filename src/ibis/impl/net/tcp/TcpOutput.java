@@ -106,7 +106,7 @@ public final class TcpOutput extends NetOutput {
                 log.out();
 	}
 
-        public void finish() throws IOException{
+        public long finish() throws IOException{
                 log.in();
                 super.finish();
                 if (_outputConvertStream != null) {
@@ -117,6 +117,8 @@ public final class TcpOutput extends NetOutput {
 		tcpOs.flush();
                 first = true;
                 log.out();
+		// TODO: return byte count of message
+		return 0;
         }
 
         public void reset() throws IOException{

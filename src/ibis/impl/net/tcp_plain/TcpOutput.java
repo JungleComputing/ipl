@@ -96,9 +96,11 @@ public final class TcpOutput extends NetOutput {
 		mtu = 0;
 	}
 
-        public void finish() throws IOException {
+        public long finish() throws IOException {
                 super.finish();
 		tcpOs.flush();
+		// TODO: return byte count of message
+		return 0;
 	}
                 
 

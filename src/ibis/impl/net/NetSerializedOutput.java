@@ -108,10 +108,12 @@ public abstract class NetSerializedOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-        public void finish() throws IOException {
+        public long finish() throws IOException {
 	    super.finish();
 	    flushStream();
 	    subOutput.finish();
+	    // TODO: return byte count of message
+	    return 0;
         }
 
 

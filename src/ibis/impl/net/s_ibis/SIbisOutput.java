@@ -52,11 +52,11 @@ public final class SIbisOutput extends NetSerializedOutput {
                 }
 
                 public long bytesWritten() {
-			return subOutput.getCount();
+			return subOutput.localPort().getCount();
                 }
 
                 public void resetBytesWritten() {
-			subOutput.resetCount();
+			subOutput.localPort().resetCount();
                 }
 
 		public void writeBoolean(boolean value)

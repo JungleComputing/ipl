@@ -780,15 +780,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeObject(r.owner); 
 			writeMessage.writeObject(rr);
 			writeMessage.send();
-			writeMessage.finish();
+			long cnt = writeMessage.finish();
 
 			if(STEAL_STATS) {
 				if(inDifferentCluster(r.owner)) {
 					interClusterMessages++;
-					interClusterBytes += writeMessage.getCount();
+					interClusterBytes += cnt;
 				} else {
 					intraClusterMessages++;
-					intraClusterBytes += writeMessage.getCount();
+					intraClusterBytes += cnt;
 				}
 			} 
 		} catch (IOException e) {
@@ -842,14 +842,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeByte(synchronous ? STEAL_REQUEST :
 					       ASYNC_STEAL_REQUEST);
 			writeMessage.send();
-			writeMessage.finish();
+			long cnt = writeMessage.finish();
 			if(STEAL_STATS) {
 				if(inDifferentCluster(v.ident)) {
 					interClusterMessages++;
-					interClusterBytes += writeMessage.getCount();
+					interClusterBytes += cnt;
 				} else {
 					intraClusterMessages++;
-					intraClusterBytes += writeMessage.getCount();
+					intraClusterBytes += cnt;
 				}
 			}
 		} catch (IOException e) {
@@ -1093,14 +1093,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeInt(r.parentStamp);
 			writeMessage.writeObject(r.parentOwner);
 			writeMessage.send();
-			writeMessage.finish();
+			long cnt = writeMessage.finish();
 			if(STEAL_STATS) {
 				if(inDifferentCluster(r.stealer)) {
 					interClusterMessages++;
-					interClusterBytes += writeMessage.getCount();
+					interClusterBytes += cnt;
 				} else {
 					intraClusterMessages++;
-					intraClusterBytes += writeMessage.getCount();
+					intraClusterBytes += cnt;
 				}
 			} 
 		} catch (IOException e) {
@@ -1813,11 +1813,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				writeMessage.writeObject(key);
 				writeMessage.writeObject(data);
 				writeMessage.send();
-				writeMessage.finish();
 
 				if(TUPLE_STATS) {
 					tupleMsgs++;
-					count = writeMessage.getCount();
+					count = writeMessage.finish();
+				}
+				else {
+					writeMessage.finish();
 				}
 
 			} catch (IOException e) {
@@ -1834,11 +1836,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					writeMessage.writeObject(key);
 					writeMessage.writeObject(data);
 					writeMessage.send();
-					writeMessage.finish();
 
 					if(TUPLE_STATS && i == 0) {
 						tupleMsgs++;
-						count = writeMessage.getCount();
+						count = writeMessage.finish();
+					}
+					else {
+						writeMessage.finish();
 					}
 
 				} catch (IOException e) {
@@ -1877,11 +1881,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				writeMessage.writeByte(TUPLE_DEL);
 				writeMessage.writeObject(key);
 				writeMessage.send();
-				writeMessage.finish();
 
 				if(TUPLE_STATS) {
 					tupleMsgs++;
-					count += writeMessage.getCount();
+					count += writeMessage.finish();
+				}
+				else {
+					writeMessage.finish();
 				}
 
 			} catch (IOException e) {
@@ -1897,11 +1903,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					writeMessage.writeByte(TUPLE_DEL);
 					writeMessage.writeObject(key);
 					writeMessage.send();
-					writeMessage.finish();
 
 					if(TUPLE_STATS && i == 0) {
 						tupleMsgs++;
-						count += writeMessage.getCount();
+						count += writeMessage.finish();
+					}
+					else {
+						writeMessage.finish();
 					}
 
 				} catch (IOException e) {

@@ -83,6 +83,19 @@ public interface ReceivePort {
 	**/
 	public ReadMessage poll(ReadMessage finishMe) throws IOException;
 
+	/**
+	 * Returns the number of bytes read from this receiveport.
+	 *
+	 * @return the number of bytes read.
+	 **/
+	public long getCount();
+
+	/**
+	 * Resets the counter for the number of bytes read from this receive port
+	 * to zero.
+	 **/
+	public void resetCount();
+
 	public DynamicProperties properties();
 
 	public ReceivePortIdentifier identifier();

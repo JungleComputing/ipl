@@ -51,6 +51,8 @@ public class SendPort implements ibis.ipl.SendPort {
 
     protected OutputConnection outConn;
 
+    protected long count;
+
     ByteOutputStream out;
 
 
@@ -71,6 +73,7 @@ public class SendPort implements ibis.ipl.SendPort {
 	portIsFree = Ibis.myIbis.createCV();
 	outConn = conn;
 	out = new ByteOutputStream(this, syncMode, makeCopy);
+	count = 0;
     }
 
     public SendPort(PortType type, String name, OutputConnection conn)
@@ -129,6 +132,20 @@ public class SendPort implements ibis.ipl.SendPort {
 
 
     private native void requestGroupID(Syncer syncer);
+
+    /**
+     * {@inheritDoc}
+     */
+    public long getCount() {
+	return count;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void resetCount() {
+	count = 0;
+    }
 
 
     protected void checkBcastGroup() throws IOException {
@@ -272,7 +289,6 @@ for (int i = 0, n = splitter.length; i < n; i++) {
 	if (DEBUG) {
 	    System.err.println("Create a new writeMessage SendPort " + this + " serializationType " + type.serializationType + " message " + m);
 	}
-	m.resetCount();
 
 	return m;
     }

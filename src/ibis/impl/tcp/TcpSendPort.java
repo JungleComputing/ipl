@@ -37,13 +37,14 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	private Replacer replacer = null;
 	private TcpIbis ibis;
 	private OutputStreamSplitter splitter;
-	private DummyOutputStream dummy;
+	DummyOutputStream dummy;
 	private SerializationOutputStream out;
 	private ArrayList receivers = new ArrayList();
 	private TcpWriteMessage message;
 	private boolean connectionAdministration = false;
 	private SendPortConnectUpcall connectUpcall = null;
 	private ArrayList lostConnections = new ArrayList();
+	long count;
 
 	TcpSendPort(TcpIbis ibis, TcpPortType type, String name, Replacer r, 
 		    boolean connectionAdministration, SendPortConnectUpcall cU)
@@ -82,6 +83,21 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			System.exit(1);
 		}
 	}
+
+	/**
+	 * {@inheritDoc}
+	 **/
+	public long getCount() {
+		return count;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 **/
+	public void resetCount() {
+		count = 0;
+	}
+
 
 	public synchronized void connect(ReceivePortIdentifier receiver, long timeoutMillis) throws IOException {
 		/* first check the types */
@@ -176,7 +192,6 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			aMessageIsAlive = true;
 		}
 
-		dummy.resetCount();
 		out.writeByte(NEW_MESSAGE);
 		return message;
 	}
@@ -238,14 +253,6 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		}
 	}
 
-	long getCount() {
-		return dummy.getCount();
-	}
-
-	void resetCount() {
-		dummy.resetCount();
-	}
-
 	public synchronized ReceivePortIdentifier[] connectedTo() {
 		Conn[] connections = (Conn[]) receivers.toArray();
 		ReceivePortIdentifier[] res = new ReceivePortIdentifier[connections.length];
@@ -298,6 +305,5 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	// called from writeMessage
 	void reset() throws IOException {
 		out.writeByte(NEW_MESSAGE);
-		dummy.resetCount();
 	}
 }

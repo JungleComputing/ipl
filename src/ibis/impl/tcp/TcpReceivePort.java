@@ -166,6 +166,21 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 **/
+	public long getCount() {
+		// TODO
+		return 0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 **/
+	public void resetCount() {
+		// TODO
+	}
+
 	private synchronized TcpReadMessage getMessage(long timeout) {
 		while((m == null || delivered)/* && ! shouldLeave*/) {
 			try {

@@ -12,9 +12,10 @@ final public class IbisReadMessage extends ReadMessage {
 	obj_in = ((IbisShadowSendPort)origin).obj_in;
     }
 
-    public void finish() {
-	super.finish();
+    public long finish() {
+	long cnt = super.finish();
 	obj_in.clear();
+	return cnt;
     }
 
     public boolean readBoolean() throws IOException {

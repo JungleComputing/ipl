@@ -116,6 +116,21 @@ class ReceivePort
 	Ibis.myIbis.unlock();
     }
 
+    /**
+     * {@inheritDoc}
+     **/
+    public long getCount() {
+	// TODO
+	return 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     **/
+    public void resetCount() {
+	// TODO
+    }
+
     private boolean firstCall = true;
 
     public synchronized void enableConnections() {

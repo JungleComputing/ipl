@@ -56,6 +56,18 @@ public interface SendPort {
 	public String name();
 
 	/**
+	 * Returns the number of bytes that was written to this sendport.
+	 * @return the number of bytes written.
+	 **/
+	public long getCount();
+
+	/**
+	 * Resets the counter for the number of bytes that was written to this sendport
+	 * to zero.
+	 **/
+	public void resetCount();
+
+	/**
 	   Attempt a connection with receiver.
 	   @exception ConnectionRefusedException is thrown
 	   if the receiver denies the connection, or if the port was already

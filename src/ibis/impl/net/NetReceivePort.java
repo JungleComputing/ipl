@@ -1054,8 +1054,23 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
         }
 
+	/**
+	 * {@inheritDoc}
+	 **/
+	public long getCount() {
+		// TODO
+		return 0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 **/
+	public void resetCount() {
+		// TODO
+	}
+
         /* --- ReadMessage Part --- */
-        public void finish() throws IOException {
+        public long finish() throws IOException {
                 log.in();
                 if (emptyMsg) {
                         input.handleEmptyMsg();
@@ -1076,6 +1091,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         pollingLock.unlock();
                 }
                 log.out();
+		// TODO: return byte count of message
+		return 0;
         }
 
         public long sequenceNumber() {

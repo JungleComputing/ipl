@@ -60,14 +60,22 @@ final class SerializeWriteMessage extends WriteMessage {
 	} finally {
 	    Ibis.myIbis.unlock();
 	}
+	long after = out.getCount();
+	sPort.count += after - before;
+	before = after;
     }
 
-    public void finish() throws IOException {
+    public long finish() throws IOException {
 	if (DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%%% Finish SerializeWriteMessage");
 	}
 	obj_out.reset();
 	out.finish(); // : Now
+	long after = out.getCount();
+	long retval = after - before;
+	before = after;
+	sPort.count += retval;
+	return retval;
     }
 
 

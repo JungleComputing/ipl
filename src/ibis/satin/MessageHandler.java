@@ -107,14 +107,14 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					m.writeByte(ASYNC_STEAL_REPLY_FAILED);
 				}
 				m.send();
-				m.finish();
+				long cnt = m.finish();
 				if(STEAL_STATS) {
 					if(satin.inDifferentCluster(ident.ibis())) {
 						satin.interClusterMessages++;
-						satin.interClusterBytes += m.getCount();
+						satin.interClusterBytes += cnt;
 					} else {
 						satin.intraClusterMessages++;
-						satin.intraClusterBytes += m.getCount();
+						satin.intraClusterBytes += cnt;
 					}
 				} 
 
@@ -169,14 +169,14 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 			m.writeObject(result);
 			m.send();
-			m.finish();
+			long cnt = m.finish();
 			if(STEAL_STATS) {
 				if(satin.inDifferentCluster(ident.ibis())) {
 					satin.interClusterMessages++;
-					satin.interClusterBytes += m.getCount();
+					satin.interClusterBytes += cnt;
 				} else {
 					satin.intraClusterMessages++;
-					satin.intraClusterBytes += m.getCount();
+					satin.intraClusterBytes += cnt;
 				}
 			} 
 

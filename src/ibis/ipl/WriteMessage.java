@@ -64,23 +64,10 @@ public interface WriteMessage {
      * If needed, send, and then block until the entire message has been sent
      * and clear the message.
      *
+     * @return the number of bytes written in this message.
      * @exception java.io.IOException	an error occurred 
      **/
-    public void finish() throws IOException;
-
-    /**
-     * Returns the number of bytes that was written to the {@link SendPort}
-     * of this <code>WriteMessage</code> in the stream dependant format.
-     *
-     * @return the number of bytes written.
-     **/
-    public long getCount();
-
-    /**
-     * Resets the counter for the number of bytes that was written to the
-     * {@link SendPort} of this <code>WriteMessage</code>.
-     **/
-    public void resetCount();
+    public long finish() throws IOException;
 
     /**
      * Returns the {@link SendPort} of this <code>WriteMessage</code>.

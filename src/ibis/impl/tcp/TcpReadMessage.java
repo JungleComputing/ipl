@@ -44,9 +44,11 @@ final class TcpReadMessage implements ReadMessage {
 		return in.available();
 	}
 
-      	public void finish() throws IOException {
+      	public long finish() throws IOException {
 		port.finishMessage();
 		in.clear();
+		// TODO: return byte count of message
+		return 0;
 	}
 
 	public SendPortIdentifier origin() {

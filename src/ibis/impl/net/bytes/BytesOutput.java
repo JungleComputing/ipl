@@ -208,12 +208,13 @@ public final class BytesOutput extends NetOutput implements Settings {
 	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems.
 	   When a message is alive and a new messages is requested, the requester is blocked until the
 	   live message is finished. **/
-        public void finish() throws IOException{
+        public long finish() throws IOException{
                 log.in();
                 super.finish();
                 flush();
-                subOutput.finish();
+                long l = subOutput.finish();
                 log.out();
+		return l;
         }
 
         public synchronized void close(Integer num) throws IOException {

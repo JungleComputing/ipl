@@ -45,9 +45,11 @@ public final class DefOutput extends NetBufferedOutput {
 	/*
 	 * {@inheritDoc}
 	 */
-        public void finish() throws IOException{
+        public long finish() throws IOException{
                 super.finish();
 		defOs.flush();
+		// TODO: return byte count of message
+		return 0;
         }
 
 	/*

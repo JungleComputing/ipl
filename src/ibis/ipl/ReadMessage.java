@@ -33,8 +33,10 @@ public interface ReadMessage {
      * to arrive. In that case, the message is automatically finished when
      * the upcall terminates. This is much more efficient, because in this way,
      * the runtime system can reuse the upcall thread!
+     *
+     * @return the number of bytes read from this message.
      **/
-    public void finish() throws IOException;
+    public long finish() throws IOException;
 
     /**
      * Returns the {@link ibis.ipl.ReceivePort receiveport} of this <code>ReadMessage</code>.

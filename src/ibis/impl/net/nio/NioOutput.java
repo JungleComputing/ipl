@@ -141,21 +141,21 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    public void finish() throws IOException {
+    /**
+     * {@inheritDoc}
+     */
+    public long finish() throws IOException {
 	super.finish();
+	long retval = bytesSend;
+	bytesSend = 0;
+	return retval;
     }
 
-    /*
+    /**
      * {@inheritDoc}
      */
-    public long getCount() {
-	return bytesSend;
-    }
-
-    /*
-     * {@inheritDoc}
-     */
-    public void resetCount() {
+    public void reset() throws IOException {
+	super.reset();
 	bytesSend = 0;
     }
 
@@ -175,7 +175,7 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /*
+    /**
      * {@inheritDoc}
      */
     public void writeBoolean(boolean value) throws IOException {

@@ -131,11 +131,13 @@ public final class TcpOutput extends NetBufferedOutput {
                 log.out();
 	}
 
-        public void finish() throws IOException {
+        public long finish() throws IOException {
                 log.in();
                 super.finish();
 		tcpOs.flush();
                 log.out();
+		// TODO: return byte count of message
+		return 0;
 	}
 
 

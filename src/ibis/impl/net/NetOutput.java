@@ -85,11 +85,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          *
          * @exception IOException in case of trouble.
          */
-        public void finish() throws IOException{
+        public long finish() throws IOException{
 		if (! finished) {
 		    _finish();
 		}
 		finished = false;
+		return 0;
         }
 
 	/**
@@ -116,23 +117,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
          */
         public void sync(int ticket) throws IOException {
-        }
-
-        /**
-         * Unimplemented.
-         *
-         * @return 0.
-         */
-        public long getCount() {
-                __.unimplemented__("getCount");
-                return 0;
-        }
-
-        /**
-         * Unimplemented.
-         */
-        public void resetCount() {
-                __.unimplemented__("resetCount");
         }
 
 	protected void handleEmptyMsg() throws IOException {
