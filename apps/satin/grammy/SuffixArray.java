@@ -278,11 +278,20 @@ public class SuffixArray implements Configuration, Magic {
         short t[] = new short[len];
         System.arraycopy( text, indices[pos], t, 0, len );
 
+        // Count the number of repeats.
+        int repeats = 2;
+        int i = pos+1;
+        while( i<length && commonality[i] == len ){
+            repeats++;
+            i++;
+        }
         // Now assign a new variable and replace all occurences.
         short variable = nextcode++;
         pos = 1+replace( pos-1, len, variable );
-        while( pos<length && commonality[pos] == len ){
+        repeats--;
+        while( repeats>0 ){
             pos = 1+replace( pos, len, variable );
+            repeats--;
         }
 
         // Separate the previous stuff from the grammar rule that follows.
@@ -291,7 +300,7 @@ public class SuffixArray implements Configuration, Magic {
 
         // Add the new grammar rule.
         System.arraycopy( t, 0, text, length, len );
-        for( int i=0; i<len; i++ ){
+        for( i=0; i<len; i++ ){
             indices[length+i] = length+i;
         }
         length += len;
@@ -389,10 +398,10 @@ public class SuffixArray implements Configuration, Magic {
 	}
 
         if( maxgain>0 ){
+            // It is worthwile to do this compression.
             if( traceCompressionCosts ){
                 System.out.println( "String [" + buildString( indices[max], commonality[max] ) + "] has " + repeats + " repeats: gain=" + maxgain );
             }
-            // It is worthwile to do this compression.
             applyCompression( max );
             if( doVerification ){
                 test();
