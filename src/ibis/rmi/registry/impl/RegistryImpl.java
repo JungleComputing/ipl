@@ -33,11 +33,11 @@ public class RegistryImpl implements Registry {
             try {
                 InetAddress adres = InetAddress.getByName(host);
                 if (adres.getHostAddress().equals("127.0.0.1")) {
-                    adres = InetAddress.getByName(
-                            IPUtils.getLocalHostAddress().getHostName());
+                    host = localhostName();
                 }
-                adres = InetAddress.getByName(adres.getHostAddress());
-                host = adres.getHostName();
+                else {
+                    host = adres.getCanonicalHostName();
+                }
             } catch (java.net.UnknownHostException e) {
                 if (RTS.DEBUG) {
                     System.err.println("Hostname " + host + " is unknown?");
