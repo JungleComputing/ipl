@@ -47,8 +47,11 @@ public final class ChannelAccumulator extends Accumulator {
 
     public void close() throws IOException {
 	flush();
-	buffer = null;
-	channel = null;
+    }
+
+    public void reallyClose() throws IOException {
+	flush();
+	channel.close();
     }
 
     public long bytesWritten() {

@@ -780,6 +780,10 @@ public abstract class NioDissipator extends Dissipator
 	}
     }
 
+    public void close() throws IOException {
+	//IGNORED
+    }
+
     /**
      * fills the buffer upto at least "minimum" bytes.
      *
@@ -790,6 +794,6 @@ public abstract class NioDissipator extends Dissipator
     /**
      * Closes this dissipator
      */
-    public abstract void close() throws IOException;
+    public abstract void reallyClose() throws IOException;
 
 }

@@ -117,7 +117,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 	for (int i = 0; i < nrOfConnections; i++) {
 	    if(dissipator == connections[i]) {
 		try {
-		    dissipator.close();
+		    dissipator.reallyClose();
 		} catch (IOException e) {
 		    //IGNORE
 		}
@@ -307,7 +307,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
     synchronized void closeAllConnections() {
 	for(int i = 0; i < nrOfConnections; i++) {
 	    try {
-		connections[i].close();
+		connections[i].reallyClose();
 	    } catch (IOException e) {
 		//IGNORE
 	    }

@@ -137,7 +137,7 @@ public class NioDataSerializationOutputStream extends SerializationOutputStream 
      * {@inheritDoc}
      */
     public void close() throws IOException {
-	accumulator.flush();
+	accumulator.close();
     }
 
     /**

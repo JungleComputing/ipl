@@ -142,7 +142,14 @@ public abstract class NioAccumulator extends Accumulator implements Config {
 	doFlush();
     }
 
+    /**
+     * flushes accumulator. Doesn't actually close it...
+     */
     synchronized public void close() throws IOException {
+	flush();
+    }
+
+    synchronized void reallyClose() throws IOException {
 	if(!buffer.isEmpty()) {
 	    doSend(buffer);
 	    doFlush();

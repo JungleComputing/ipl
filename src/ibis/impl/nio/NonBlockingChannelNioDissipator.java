@@ -61,7 +61,7 @@ final class NonBlockingChannelNioDissipator extends NioDissipator
 	}
     }
 
-    public void close() throws IOException {
+    public void reallyClose() throws IOException {
 	selector.close();
 	channel.close();
     }

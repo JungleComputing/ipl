@@ -141,7 +141,7 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
 	super.resetBytesRead();
     }
 
-    public void close() throws IOException {
+    public void reallyClose() throws IOException {
 	key = null;
 	channel.close();
     }

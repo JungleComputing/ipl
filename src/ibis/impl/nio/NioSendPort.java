@@ -324,9 +324,10 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 	    out.reset();
 	    out.flush();
 	    out.close();
-
 	} catch (IOException e) {
+	    //IGNORE
 	}
+	accumulator.reallyClose();
 
 	out = null;
 	ident = null;

@@ -38,8 +38,11 @@ public final class ChannelDissipator extends Dissipator implements Config {
     }
 
     public void close() throws IOException {
-	channel = null;
-	buffer = null;
+	//NOTHING
+    }
+
+    public void reallyClose() throws IOException {
+	channel.close();
     }
 
     public long bytesRead() {

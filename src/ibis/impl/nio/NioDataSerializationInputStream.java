@@ -178,7 +178,7 @@ public class NioDataSerializationInputStream
      * {@inheritDoc}
      */
     public void close() throws IOException {
-	//NOTHING (don't close dissipator, we might need it
+	dissipator.close();
     }
 
     /**
