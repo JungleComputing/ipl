@@ -315,7 +315,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
                                                 //System.err.println("NetReceivePort["+identifier+"] - "+Thread.currentThread()+": poll success");
                                                 final ReadMessage rm = _receive();
 
-                                                if (useUpcallThread) {
+                                                if (!useUpcallThread) {
                                                         upcall.upcall(rm);
                                                 } else {
                                                         Runnable r = new Runnable() {
@@ -454,7 +454,18 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 		}
 				
 		if (upcallsEnabled && upcall != null) {
-			upcall.upcall(_receive());
+                        final ReadMessage rm = _receive();
+
+                        if (useUpcallThread) {
+                                upcall.upcall(rm);
+                        } else {
+                                Runnable r = new Runnable() {
+                                                public void run() {
+                                                        upcall.upcall(rm);
+                                                }
+                                        };
+                                (new Thread(r)).start();
+                        }
 			return false;
 		}
 
