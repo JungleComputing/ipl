@@ -69,19 +69,30 @@ public class SuffixArray implements Configuration, Magic {
     /** Sorts the administration arrays to implement ordering. */
     private void sort()
     {
-        if( false ){
-            for( int k = 0; k < incs.length; k++){
-                for( int h = incs[k], i = 0+h; i<length; i++ ){ 
-                    int v = indices[i];
-                    int j = i;
+        if( true ){
+            int jump = length;
+            boolean done;
 
-                    while( j > h && !areCorrectlyOrdered( indices[j-h], v ) ){
-                        indices[j] = indices[j-h];
-                        j -= h;
+            while( jump>1 ){
+                jump /= 2;
+
+                do {
+                    done = true;
+
+                    for( int j = 0; j<(length-jump); j++ ){
+                        int i = j + jump;
+
+                        if( !areCorrectlyOrdered( indices[j], indices[i] ) ){
+                            // Things are in the wrong order, swap them and step back.
+                            int tmp = indices[i];
+                            indices[i] = indices[j];
+                            indices[j] = tmp;
+                            done = false;
+                        }
                     }
-                    indices[j] = v; 
-                } 
+                } while( !done );
             }
+
             // TODO: integrate this with the stuff above.
             for( int i=1; i<length; i++ ){
                 commonality[i] = commonLength( indices[i-1], indices[i] );
