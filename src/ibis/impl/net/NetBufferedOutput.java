@@ -59,7 +59,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	/**
 	 * Sends the current buffer over the network.
 	 */
-	private void flush() throws IbisIOException {
+	protected void flush() throws IbisIOException {
                 //System.err.println("NetBufferedOutput: flush -->");
 		if (buffer != null) {
                         //System.err.println("NetBufferedOutput: flushing buffer, "+buffer.length+" bytes");
@@ -160,9 +160,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 			return;
 		
                 if (dataOffset == 0) {
-                        if (buffer != null) {
-                                flush();
-                        }
+                        flush();
 
                         if (mtu != 0) {
                                 int base = offset;

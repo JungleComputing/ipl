@@ -118,7 +118,7 @@ public abstract class NetBufferedInput extends NetInput {
 		bufferOffset = dataOffset;
 	}
 
-	private void freeBuffer() {
+	protected void freeBuffer() {
 		if (buffer != null) {
 			buffer.free();
 			buffer       = null;
