@@ -131,7 +131,7 @@ class SATProblem {
 	return -1;
     }
 
-    public boolean isSatisified( int assignments[] )
+    public boolean isSatisfied( int assignments[] )
     {
 	for( int ix=0; ix<clauseCount; ix++ ){
 	    if( !clauses[ix].isSatisfied( assignments ) ){

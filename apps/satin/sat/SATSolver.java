@@ -365,7 +365,7 @@ public class SATSolver {
 	ctx.problem.clauses = (Clause[]) p.clauses.clone();
 
 	// Now start with a vector of unassigned variables.
-	for( int ix=0; ix<ctx.problem.getVariableCount(); ix++ ){
+	for( int ix=0; ix<assignments.length; ix++ ){
 	    ctx.assignments[ix] = -1;
 	}
 	ctx.satisfied = new boolean[ctx.problem.getClauseCount()];
