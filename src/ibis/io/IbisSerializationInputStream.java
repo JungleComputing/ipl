@@ -923,6 +923,9 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @param o		the object to be added
      */
     public void addObjectToCycleCheck(Object o) {
+	if (DEBUG) {
+	    dbPrint("addObjectToCycleCheck: handle = " + next_handle);
+	}
 	objects.add(next_handle, o);
 	next_handle++;
     }
@@ -936,11 +939,9 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     public Object getObjectFromCycleCheck(int handle) {
 	Object o = objects.get(handle); // - CONTROL_HANDLES);
 
-	/* No print here. The object may not have been completely initialized yet, so a toString may fail.
-	   if (DEBUG) {
-	   dbPrint("getfromcycle: handle = " + (handle - CONTROL_HANDLES) + " obj = " + o);
-	   }
-	*/
+	if (DEBUG) {
+	    dbPrint("getObjectFromCycleCheck: handle = " + handle);
+	}
 
 	return o;
     }
