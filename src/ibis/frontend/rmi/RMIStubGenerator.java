@@ -5,6 +5,7 @@ import ibis.util.BT_Analyzer;
 import java.io.PrintWriter;
 import java.util.Vector;
 
+import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.ExceptionTable;
@@ -97,9 +98,43 @@ class RMIStubGenerator extends RMIGenerator {
 	    ExceptionTable et = m.getExceptionTable();
 	    if (et != null) {
 		String[] names = et.getExceptionNames();
+
+		/* If the method throws E1 and E2 and E2 is a superclass of E1,
+		 * this will yield a compiler error:
+		 * } catch (E2 e2) {
+		 * ....
+		 * } catch (E1 e1) {
+		 * ....
+		 * because e1 has already been caught under the E2 clause.
+		 * Solution: traverse the hierarchy for the exceptions, and
+		 * disable catching for all E1s that have a superclass that
+		 * is also caught.
+		 *						RFHH
+		 */
+		JavaClass[] excpt = new JavaClass[names.length];
+		for (int i = 0, n = names.length; i < n; i++) {
+		    excpt[i] = Repository.lookupClass(names[i]);
+		}
+		boolean[] disable = new boolean[names.length];
+		for (int i = 0, n = names.length; i < n; i++) {
+		    disable[i] = false;
+		    JavaClass[] supers = excpt[i].getSuperClasses();
+		outer:
+		    for (int s = 0; s < supers.length; s++) {
+			for (int j = 0; j < i; j++) {
+			    if (excpt[j].equals(supers[s])) {
+				disable[i] = true;
+				break outer;
+			    }
+			}
+		    }
+		}
+
 		for (int i = 0; i < names.length; i++) {
-		    output.println("\t\t} catch (" + names[i] + " e" + i + ") {");
-		    output.println("\t\t\tthrow e" + i + ";");
+		    if (! disable[i]) {
+			output.println("\t\t} catch (" + names[i] + " e" + i + ") {");
+			output.println("\t\t\tthrow e" + i + ";");
+		    }
 		}
 	    }
 	    else {
