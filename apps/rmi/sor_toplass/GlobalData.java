@@ -142,4 +142,42 @@ public synchronized double[] scatter2all(int rank, double value) throws RemoteEx
 }
 
 
+private int sync_release = -1;
+private int sync_hit = 0;
+
+public synchronized void sync() throws RemoteException {
+    if (sync_release == -1) {
+	sync_release = total_num;
+    }
+
+    while (sync_release != total_num) {
+	try {
+	    wait();
+	} catch (InterruptedException e) {
+	    throw new RemoteException(e.toString());
+	}
+    }
+
+    sync_hit++;
+    if (sync_hit == total_num) {
+	sync_release = 0;
+	notifyAll();
+    } else {
+	while (sync_hit < total_num) {
+	    try {
+		wait();
+	    } catch (InterruptedException e) {
+		throw new RemoteException(e.toString());
+	    }
+	}
+    }
+
+    sync_release++;
+    if (sync_release == total_num) {
+	sync_hit = 0;
+	notifyAll();
+    }
+}
+
+
 }

@@ -40,8 +40,6 @@ double r,omega,                   /* some float values */
 
 int nodes, rank;                   /* process ranks */
 
-private double[] nodeSpeed;	/* Speed of node[i] */
-
 int lb,ub;                        /* lower and upper bound of grid stripe [lb ... ub] -> NOTE: ub is inclusive*/
 
 i_SOR[] table;                      /* a table of all SOR threads */
@@ -55,6 +53,10 @@ int prevIndex, nextIndex;
 int nit, sync;
 
 WaitingSendThread prevSender, nextSender;
+
+private double[] nodeSpeed;	/* Speed of node[i] */
+
+private long t_start,t_end;             /* time values */
 
 SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global, PoolInfo info) throws RemoteException {
 
@@ -72,34 +74,10 @@ SOR(int nrow, int ncol, int nit, int sync, i_GlobalData global, PoolInfo info) t
     
     nodes = info.size();
     rank = info.rank();
-    nodeSpeed = new double[nodes];
 
-    double speed;
-
-    try {
-	String hostname = java.net.InetAddress.getLocalHost().getHostName();
-	java.net.InetAddress address = java.net.InetAddress.getByName(hostname);
-	address = java.net.InetAddress.getByName(address.getHostAddress());
-	hostname = address.getHostName();
-
-	if (hostname.indexOf("das2") != -1) {
-	    speed = 1000.0;
-	} else if (hostname.indexOf("das") != -1) {
-	    speed = 200.0;
-	} else {
-	    System.err.println(rank + ": Cannot determine my cpu speed");
-	    speed = 1.0;
-	}
-
-speed *= (rank + 1);
-
-	nodeSpeed = global.scatter2all(rank, speed);
-	for (int i = 0; i < nodes; i++) {
-	    System.err.println(rank + ": cpu " + i + " speed " + nodeSpeed[i]);
-	}
-
-    } catch (java.net.UnknownHostException uE) {
-	throw new RemoteException(uE.toString());
+    this.nodeSpeed = new double[nodes];
+    for (int i = 0; i < nodes; i++) {
+	this.nodeSpeed[i] = 1.0;
     }
     
     if (sync == ASYNC_SEND) { 
@@ -110,6 +88,15 @@ speed *= (rank + 1);
 	    prevSender.start();
 	    nextSender.start();
     }
+}
+
+
+long getElapsedTime() {
+    return t_end - t_start;
+}
+
+void setNodeSpeed(double[] nodeSpeed) {
+    this.nodeSpeed = nodeSpeed;
 }
 
 public void setTable(i_SOR[] table) {
@@ -344,7 +331,6 @@ public void start () throws RemoteException {
 
 	int phase;
 	int iteration;               /* counters */
-	long t_start,t_end;             /* time values */
 
 	r        = 0.5 * ( Math.cos( Math.PI / (ncol) ) + Math.cos( Math.PI / (nrow) ) );
 	omega    = 2.0 / ( 1.0 + Math.sqrt( 1.0 - r * r ) );
@@ -363,6 +349,7 @@ public void start () throws RemoteException {
 		System.out.println("lb      : " + lb);
 		System.out.println("ub      : " + ub);
 		System.out.println("");
+System.err.println(rank + ": start my SOR");
 	} 
 
 	/* now do the "real" computation */

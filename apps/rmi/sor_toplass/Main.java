@@ -47,55 +47,52 @@ public static void main (String[] args) {
     try {
 
 	    sync = nit = nrow = ncol = 0;
+	    boolean hetero_speed = false;
 	    
-	    if (args.length == 5) {
-		    nrow = Integer.parseInt(args[0]);
-		    ncol = Integer.parseInt(args[1]);
-		    nit  = Integer.parseInt(args[2]);
-		    
-		    if (args[3].equals("async")) {
+	    int param = 0;
+	    for (int i = 0; i < args.length; i++) {
+		if (false) {
+		} else if (args[i].equals("async")) {
+			sync = SOR.ASYNC_SEND;
 
-			    sync = SOR.ASYNC_SEND;
-			    
-			    if (args[4].equals("new")) {
-				    // Historical, now obsolete, never working, option.
-				    System.out.println("'async new' is not supported");
-				    System.exit(1);
-			    } else if (args[4].equals("wait")) {
-				    // Now default and only option, but still recognized.
-			    } else if (info.rank() == 0) {
-				    usage(args);
-				    System.exit(1);
-			    }
-			    
-		    } else if (args[3].equals("sync")) {
-			    
-			    sync = SOR.SYNC_SEND;
-			    
-		    } else  if (info.rank() == 0) {
+		} else if (args[i].equals("sync")) {
+			sync = SOR.SYNC_SEND;
+		
+		} else if (args[i].equals("new")) {
+			// Historical, now obsolete, never working, option.
+			System.out.println("'async new' is not supported");
+			System.exit(1);
 
+		} else if (args[i].equals("wait")) {
+			// Now default and only option, but still recognized.
+
+		} else if (args[i].equals("-var-cpu")) {
+			hetero_speed = true;
+
+		} else if (param == 0) {
+		    nrow = Integer.parseInt(args[i]);
+		    param++;
+		
+		} else if (param == 1) {
+		    ncol = Integer.parseInt(args[i]);
+		    param++;
+		
+		} else if (param == 2) {
+		    nit  = Integer.parseInt(args[i]);
+		    param++;
+			
+		} else {
+			if (info.rank() == 0) {
 			    usage(args);
-			    System.exit(1);
-			    
-		    }   
-		    
-	    } else if (args.length == 4) {
+			}
+			System.exit(1);
+		}
+	    }
 
-		    nrow = Integer.parseInt(args[0]);
-		    ncol = Integer.parseInt(args[1]);
-		    nit  = Integer.parseInt(args[2]);
-		    
-		    if (args[3].equals("sync")) {
-			    sync = SOR.SYNC_SEND;
-		    } else if (args[3].equals("async")) {
-			    sync = SOR.ASYNC_SEND;
-		    } else if (info.rank() == 0) {
-			    usage(args);
-			    System.exit(1);
-		    }   
-		    
-	    } else if (info.rank() == 0) {
-		    usage(args);
+	    if (param != 3) {
+		    if (info.rank() == 0) {
+			usage(args);
+		    }
 		    System.exit(1);
 	    }
 	    
@@ -149,8 +146,28 @@ public static void main (String[] args) {
 		    }
 
 	    }
+
+	    double[] nodeSpeed = null;	/* Speed of node[i] */
+	    double speed = 1.0;
+	    if (hetero_speed) {
+		PoolInfo seqInfo = new PoolInfo(true);
+		GlobalData seqGlobal = new GlobalData(seqInfo);
+		local = new SOR(1024, 1024, nit, sync, seqGlobal, seqInfo);
+		table = seqGlobal.table((i_SOR) local, seqInfo.rank());
+		local.setTable(table);
+		local.start();
+		speed = 1.0 / local.getElapsedTime();
+	    }
 	    
 	    local = new SOR(nrow, ncol, nit, sync, global, info);	    
+	    if (hetero_speed) {
+		nodeSpeed = global.scatter2all(local.rank, speed);
+		for (int i = 0; i < local.nodes; i++) {
+		    System.err.println(local.rank + ": cpu " + i + " speed " + nodeSpeed[i]);
+		}
+		local.setNodeSpeed(nodeSpeed);
+		global.sync();
+	    }
 
 	    table = global.table((i_SOR) local, info.rank());
 	    local.setTable(table);
