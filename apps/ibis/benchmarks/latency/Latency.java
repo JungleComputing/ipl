@@ -50,9 +50,21 @@ class Sender implements Config {
 		long time = System.currentTimeMillis();
 
 		for(int i = 0; i< count; i++) {
+			if(DEBUG) {
+				System.out.println("LAT: get new message");
+			}
 			WriteMessage writeMessage = sport.newMessage();
+			if(DEBUG) {
+				System.out.println("LAT: send message");
+			}
 			writeMessage.send();
+			if(DEBUG) {
+				System.out.println("LAT: finish message");
+			}
 			writeMessage.finish();
+			if(DEBUG) {
+				System.out.println("LAT: message done");
+			}
 			
 			ReadMessage readMessage = rport.receive();
 			readMessage.finish();
@@ -97,9 +109,7 @@ class ExplicitReceiver implements Config {
 } 
 
 class UpcallReceiver implements Upcall { 
-
 	SendPort sport;
-
 	int count = 0;
 	int max;
 	boolean earlyFinish;
@@ -156,10 +166,8 @@ class UpcallReceiver implements Upcall {
 	} 
 } 
 
-class UpcallSender implements Upcall { 
-
+class UpcallSender implements Upcall, Config {
 	SendPort sport;
-
 	int count, max;
 	long time;
 	boolean earlyFinish;
@@ -209,9 +217,21 @@ class UpcallSender implements Upcall {
 				return;
 			} 
 			
+			if(DEBUG) {
+				System.err.println("SEND pre new");
+			}
 			WriteMessage writeMessage = sport.newMessage();
+			if(DEBUG) {
+				System.err.println("SEND pre send");
+			}
 			writeMessage.send();
+			if(DEBUG) {
+				System.err.println("SEND pre fin");
+			}
 			writeMessage.finish();
+			if(DEBUG) {
+				System.err.println("SEND post fin");
+			}
 
 			if(delayedFinish) {
 				readMessage.finish();
@@ -332,7 +352,7 @@ class Latency implements Config {
 			if(!panda) {
 				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.ipl.impl.tcp.TcpIbis", null);
 			} else {
-				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.ipl.impl.messagePassing.panda.PandaIbis", null);
+				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.ipl.impl.messagePassing.PandaIbis", null);
 			}
 
 			registry = ibis.registry();

@@ -26,7 +26,7 @@ public final class Ping {
 	 * Flag indicating whether the application should use the
 	 * {@link ibis.util.nativeCode.Rdtsc} timer implementation or the
 	 * {@link ibis.util.timer implementation}. */
-	final static boolean 	    param_rdtsc_timer       = 	      true;
+	final static boolean 	    param_rdtsc_timer       = 	      false;
 
 	/**
 	 * Flag indicating whether the application should perform one-way
@@ -536,8 +536,8 @@ public final class Ping {
 			
 			String id   = "ibis:" + (new Random()).nextInt();
 			//String name = "ibis.ipl.impl.tcp.TcpIbis";
-			//String name = "ibis.ipl.impl.messagePassing.PandaIbis";
-			String name = "ibis.ipl.impl.net.NetIbis";
+			String name = "ibis.ipl.impl.messagePassing.PandaIbis";
+			//String name = "ibis.ipl.impl.net.NetIbis";
 			ibis = Ibis.createIbis(id, name, null);
 
 			// Configuration information
