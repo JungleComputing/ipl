@@ -22,16 +22,9 @@ maxRunTime = "10:00"
 
 orderedTuples = 0
 
+verbose = 0
+
 results = {}
-
-#problem = "examples/qg/qg6-12.cnf.gz"
-#problem = "examples/qg/qg3-09.cnf.gz"
-#problem = "examples/ais/ais10.cnf.gz"
-
-#ProcNos = [ 1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 64 ]
-ProcNos = [ 1, 2, 4, 8, 16, 32, 48, 64 ]
-#ProcNos = [ 2, 4, 8 ]
-#ProcNos = [ 2 ]
 
 nameserverport = 2001
 
@@ -51,6 +44,8 @@ def makeNonBlocking( fd ):
 # Run the given command. Return a tuple with the exit code, the stdout text,
 # and the stderr text.
 def getCommandOutput( command ):
+    if verbose:
+        print "Executing: " + command
     child = popen2.Popen3(command, 1) # capture stdout and stderr from command
     child.tochild.close()             # don't need to talk to child
     outfile = child.fromchild 
@@ -239,7 +234,9 @@ def usage():
     print "--parallel\t\tExecute the runs in parallel."
     print "--port <number>\t\tUse the given nameserver port."
     print "--procs <spec>\t\tDo runs with the given set of processor numbers (see below)."
-    print "--time <time>\t\tMaximal time per run <time> = [hh:]mm:]ss."
+    print "--time <time>\t\tMaximal time per run <time> = [[hh:]mm:]ss."
+    print "--verbose\t\tShow some progress information."
+    print "-v\t\t\tShow some progress information."
     print
     print "The set of processor numbers is given as:"
     print " <minproc>:<maxproc>:<maxstep>"
@@ -254,9 +251,9 @@ def usage():
     print "The default processor set is `" + defaultProcSet + "'."
 
 def main():
-    global ProcNos, nameserverport, maxRunTime, orderedTuples
+    global ProcNos, nameserverport, maxRunTime, orderedTuples, timingTag, verbose
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "parallel", "logfile=", "logdir=", "tag=", "port=", "procs=", "time=","ordered-tuples"])
+        opts, args = getopt.getopt(sys.argv[1:], "hv", ["help", "parallel", "logfile=", "logdir=", "verbose", "tag=", "port=", "procs=", "time=","ordered-tuples"])
     except getopt.GetoptError:
         # print help information and exit:
         usage()
@@ -268,6 +265,8 @@ def main():
         #print "Option [%s][%s]" % (o, a)
         if o in ("--procs", ):
             procSet = a
+        if o in ("-v", "--verbose"):
+            verbose = 1
         if o in ("--ordered-tuples", ):
             orderedTuples = 1
         if o in ("--parallel", ):

@@ -10,19 +10,11 @@ import threading
 import time
 import types
 
-ibisdir = "~/ibis"
-
-run_ibis = os.path.join( ibisdir, "bin", "run_ibis" )
-
 logdir = "logs"
-
-maxRunTime = "10:00"
 
 verbose = 0
 
 results = {}
-
-nameserverport = 2001
 
 # The timing result line starts with this string
 timingTag = "ExecutionTime:"
@@ -50,9 +42,8 @@ def getCommandOutput( command ):
     errfd = errfile.fileno()
     makeNonBlocking( outfd )            # don't deadlock!
     makeNonBlocking( errfd )
-    errdata = ''
+    outdata = errdata = ''
     outeof = erreof = 0
-    outdata = 'Command: ' + command + '\n'
     while 1:
 	ready = select.select([outfd,errfd],[],[]) # wait for input
 	if outfd in ready[0]:
@@ -73,11 +64,11 @@ def getCommandOutput( command ):
     err = child.wait()
     return (err, outdata, errdata)
 
-def build_run_command( pno, command, port ):
-    return "prun -1 -t %s %s %d %d fs0.das2.cs.vu.nl %s" % (maxRunTime, run_ibis, pno, port, command)
+def build_run_command( command ):
+    return "prun -1 -no-panda /usr/bin/time 1 " + command
 
 def runP( command ):
-    cmd = build_run_command( 1, command, nameserverport )
+    cmd = build_run_command( command )
     print "Starting sequential run"
     data = getCommandOutput( cmd )
     print "Finished sequential run"
@@ -142,22 +133,21 @@ def run( command, logfile ):
     lf.close()
 
 def usage():
-    print "Execute the given Ibis program on a single node of a parallel cluster."
-    print "Usage: python seq.py [options] [program] [parameter...parameter]"
+    print "Execute the given command on a single node of a parallel cluster."
+    print "Usage: python seqcmd.py [options] [program] [parameter...parameter]"
     print "The following options are supported:"
     print "--help\t\t\tShow this help text."
     print "-h\t\t\tShow this help text."
     print "--logdir [name]\t\tUse the specified log directory."
     print "--logfile [name]\tUse the specified log file."
-    print "--port <number>\t\tUse the given nameserver port."
-    print "--time <time>\t\tMaximal time per run <time> = [[hh:]mm:]ss"
-    print "--verbose\t\tShow some progress information."
+    print "--port [number]\t\tUse the given nameserver port."
+    print "--verbose\t\t\tShow some progress information."
     print "-v\t\t\tShow some progress information."
 
 def main():
-    global ProcNos, nameserverport, timingTag, maxRunTime, verbose
+    global ProcNos, timingTag, verbose
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hv", ["help", "logfile=", "logdir=", "verbose", "port=", "time=", "tag="])
+        opts, args = getopt.getopt(sys.argv[1:], "hv", ["help", "logfile=", "logdir=", "verbose", "tag="])
     except getopt.GetoptError:
         # print help information and exit:
         usage()
@@ -174,12 +164,8 @@ def main():
             sys.exit()
         if o in ("--tag",):
             timingTag = a
-        if o in ("--time",):
-            maxRunTime = a
         if o in ("--logdir",):
             logdir = a
-        if o in ("--port",):
-            nameserverport = int(a)
         if o in ("--logfile",):
             logfile = a
     run( string.join( args, ' ' ), logfile )
