@@ -187,7 +187,7 @@ System.err.println("Specified alt ip addr " + external);
 			    // Preference for IPv4
 			    internal = addr;
 			} else if (internal.isLinkLocalAddress() &&
-			    ! addr.isSiteLocalAddress()) {
+			    addr.isSiteLocalAddress()) {
 			    internal = addr;
 			}
 		    }
