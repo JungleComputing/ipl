@@ -2,12 +2,7 @@
 //
 // Representation of a SAT problem in CNF form.
 
-import java.io.Reader;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.PrintStream;
-import java.io.File;
-import java.io.StreamTokenizer;
+import java.io.*;
 
 /**
  * A <code>SATProblem</code> object represents a SAT problem in
@@ -758,7 +753,8 @@ public class SATProblem implements Cloneable, java.io.Serializable {
      */
     public static SATProblem parseDIMACSStream( File f ) throws java.io.IOException
     {
-	return parseDIMACSStream( new BufferedReader( new FileReader( f ) ) );
+	InputStream s = new FileInputStream( f );
+	return parseDIMACSStream( new BufferedReader( new InputStreamReader( s ) ) );
     }
 
     /**
