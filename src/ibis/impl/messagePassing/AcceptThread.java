@@ -36,6 +36,7 @@ final class AcceptThread extends Thread {
 	} else {
 	    acceptQ_tail.next = q;
 	}
+	there_is_work.cv_signal();
 	acceptQ_tail = q;
     }
 
@@ -73,7 +74,7 @@ final class AcceptThread extends Thread {
     boolean checkAccept(ibis.ipl.SendPortIdentifier p) {
 	boolean	accept;
 
-	Ibis.myIbis.lock();
+	Ibis.myIbis.checkLockOwned();
 
 	AcceptQ q = get();
 
@@ -91,8 +92,6 @@ final class AcceptThread extends Thread {
 	accept = q.accept;
 
 	release(q);
-
-	Ibis.myIbis.unlock();
 
 	return accept;
     }
@@ -130,5 +129,4 @@ final class AcceptThread extends Thread {
 	stopped = true;
 	there_is_work.cv_signal();
     }
-
 }
