@@ -175,7 +175,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             int i = slot[n];
             boolean c = false;
 
-            if( i != -1 && next[i] != -1 ){
+            if( i != -1 && next[i] != -1 && i != STOP ){
                 // There is a repeat, write out this chain.
                 while( i != -1 ){
                     indices1[p] = i;
@@ -220,6 +220,13 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
             this.l = l;
             this.indices = indices;
             this.comm = comm;
+        }
+
+        void print()
+        {
+            for( int i=0; i<l; i++ ){
+                System.out.println( "c=" + comm[i] + " indices=" + indices[i] );
+            }
         }
     }
 
@@ -671,6 +678,8 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         }
         else {
             Result reps = selectRepeats();
+            reps.print();
+
             boolean commonality[] = reps.comm;
             int indices[] = reps.indices;
             int l = reps.l;
@@ -683,18 +692,25 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                 int start = ix;
                 candidates[0] = indices[ix];
                 int p = 1;
+                int minsz = length;
 
                 ix++;
                 while( ix<l && commonality[ix] ){
                     int posj = indices[ix];
 
-                    if( !areOverlapping( candidates, p, posj, offset ) ){
+                    int sz = disjunctMatch( candidates[p-1], posj );
+                    if( sz>=offset ){
                         candidates[p++] = posj;
+                        if( sz<minsz ){
+                            minsz = sz;
+                        }
                     }
                     ix++;
                 }
                 if( p>1 ){
-                    res.add( new Step( candidates, p, offset ) );
+                    Step s = new Step( candidates, p, minsz );
+                    System.out.println( "Added step " + s );
+                    res.add( s );
                 }
             }
         }
