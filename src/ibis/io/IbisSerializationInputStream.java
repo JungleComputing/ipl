@@ -380,241 +380,75 @@ public class IbisSerializationInputStream
     }
 
     /**
-     * {@inheritDoc}
+     * Reads (part of) an array of booleans.
+     * This method is here to make extending this class easier.
      */
-    public void readArray(boolean[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classBooleanArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require boolean[]", e);
-	}
+    protected void readBooleanArray(boolean ref[], int off, int len)
+	    throws IOException {
 	in.readArray(ref, off, len);
     }
 
     /**
-     * {@inheritDoc}
+     * Reads (part of) an array of bytes.
+     * This method is here to make extending this class easier.
      */
-    public void readArray(byte[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classByteArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require byte[]", e);
-	}
+    protected void readByteArray(byte ref[], int off, int len)
+	    throws IOException {
 	in.readArray(ref, off, len);
     }
 
     /**
-     * {@inheritDoc}
+     * Reads (part of) an array of chars.
+     * This method is here to make extending this class easier.
      */
-    public void readArray(char[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classCharArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require char[]", e);
-	}
+    protected void readCharArray(char ref[], int off, int len)
+	    throws IOException {
 	in.readArray(ref, off, len);
     }
 
     /**
-     * {@inheritDoc}
+     * Reads (part of) an array of shorts.
+     * This method is here to make extending this class easier.
      */
-    public void readArray(short[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classShortArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require short[]", e);
-	}
+    protected void readShortArray(short ref[], int off, int len)
+	    throws IOException {
 	in.readArray(ref, off, len);
     }
 
     /**
-     * {@inheritDoc}
+     * Reads (part of) an array of ints.
+     * This method is here to make extending this class easier.
      */
-    public void readArray(int[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classIntArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require int[]", e);
-	}
+    protected void readIntArray(int ref[], int off, int len)
+	    throws IOException {
 	in.readArray(ref, off, len);
     }
 
     /**
-     * {@inheritDoc}
+     * Reads (part of) an array of longs.
+     * This method is here to make extending this class easier.
      */
-    public void readArray(long[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classLongArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require long[]", e);
-	}
+    protected void readLongArray(long ref[], int off, int len)
+	    throws IOException {
 	in.readArray(ref, off, len);
     }
 
     /**
-     * {@inheritDoc}
+     * Reads (part of) an array of floats.
+     * This method is here to make extending this class easier.
      */
-    public void readArray(float[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classFloatArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require float[]", e);
-	}
+    protected void readFloatArray(float ref[], int off, int len)
+	    throws IOException {
 	in.readArray(ref, off, len);
     }
 
     /**
-     * {@inheritDoc}
+     * Reads (part of) an array of doubles.
+     * This method is here to make extending this class easier.
      */
-    public void readArray(double[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classDoubleArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require double[]", e);
-	}
+    protected void readDoubleArray(double ref[], int off, int len)
+	    throws IOException {
 	in.readArray(ref, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readArray(Object[] ref, int off, int len)
-	throws IOException, ClassNotFoundException {
-	readArrayHeader(ref.getClass(), len);
-	for (int i = off; i < off + len; i++) {
-	    ref[i] = readObjectOverride();
-	}
-    }
-
-    /**
-     * Allocates and reads an array of bytes from the input stream.
-     * This method is used by IOGenerator-generated code.
-     * @return the array read.
-     * @exception IOException in case of error.
-     */
-    public byte[] readArrayByte() throws IOException {
-	int len = readInt();
-	byte[] b = new byte[len];
-	addObjectToCycleCheck(b);
-	in.readArray(b, 0, len);
-	return b;
-    }
-
-    /**
-     * See {@link #readArrayByte()}, this one is for an array of boolans.
-     */
-    public boolean[] readArrayBoolean() throws IOException {
-	int len = readInt();
-	boolean[] b = new boolean[len];
-	addObjectToCycleCheck(b);
-	in.readArray(b, 0, len);
-	return b;
-    }
-
-    /**
-     * See {@link #readArrayByte()}, this one is for an array of chars.
-     */
-    public char[] readArrayChar() throws IOException {
-	int len = readInt();
-	char[] b = new char[len];
-	addObjectToCycleCheck(b);
-	in.readArray(b, 0, len);
-	return b;
-    }
-
-    /**
-     * See {@link #readArrayByte()}, this one is for an array of shorts.
-     */
-    public short[] readArrayShort() throws IOException {
-	int len = readInt();
-	short[] b = new short[len];
-	addObjectToCycleCheck(b);
-	in.readArray(b, 0, len);
-	return b;
-    }
-
-    /**
-     * See {@link #readArrayByte()}, this one is for an array of ints.
-     */
-    public int[] readArrayInt() throws IOException {
-	int len = readInt();
-	int[] b = new int[len];
-	addObjectToCycleCheck(b);
-	in.readArray(b, 0, len);
-	return b;
-    }
-
-    /**
-     * See {@link #readArrayByte()}, this one is for an array of longs.
-     */
-    public long[] readArrayLong() throws IOException {
-	int len = readInt();
-	long[] b = new long[len];
-	addObjectToCycleCheck(b);
-	in.readArray(b, 0, len);
-	return b;
-    }
-
-    /**
-     * See {@link #readArrayByte()}, this one is for an array of floats.
-     */
-    public float[] readArrayFloat() throws IOException {
-	int len = readInt();
-	float[] b = new float[len];
-	addObjectToCycleCheck(b);
-	in.readArray(b, 0, len);
-	return b;
-    }
-
-    /**
-     * See {@link #readArrayByte()}, this one is for an array of doubles.
-     */
-    public double[] readArrayDouble() throws IOException {
-	int len = readInt();
-	double[] b = new double[len];
-	addObjectToCycleCheck(b);
-	in.readArray(b, 0, len);
-	return b;
     }
 
     /**
@@ -639,6 +473,244 @@ public class IbisSerializationInputStream
      * you can stop now :-) 
      * The rest is built on top of these.
      */
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(boolean[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classBooleanArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require boolean[]", e);
+	}
+	readBooleanArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(byte[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classByteArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require byte[]", e);
+	}
+	readByteArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(char[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classCharArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require char[]", e);
+	}
+	readCharArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(short[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classShortArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require short[]", e);
+	}
+	readShortArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(int[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classIntArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require int[]", e);
+	}
+	readIntArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(long[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classLongArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require long[]", e);
+	}
+	readLongArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(float[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classFloatArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require float[]", e);
+	}
+	readFloatArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(double[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classDoubleArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require double[]", e);
+	}
+	readDoubleArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(Object[] ref, int off, int len)
+	throws IOException, ClassNotFoundException {
+	readArrayHeader(ref.getClass(), len);
+	for (int i = off; i < off + len; i++) {
+	    ref[i] = readObjectOverride();
+	}
+    }
+
+    /**
+     * Allocates and reads an array of bytes from the input stream.
+     * This method is used by IOGenerator-generated code.
+     * @return the array read.
+     * @exception IOException in case of error.
+     */
+    public byte[] readArrayByte() throws IOException {
+	int len = readInt();
+	byte[] b = new byte[len];
+	addObjectToCycleCheck(b);
+	readByteArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of boolans.
+     */
+    public boolean[] readArrayBoolean() throws IOException {
+	int len = readInt();
+	boolean[] b = new boolean[len];
+	addObjectToCycleCheck(b);
+	readBooleanArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of chars.
+     */
+    public char[] readArrayChar() throws IOException {
+	int len = readInt();
+	char[] b = new char[len];
+	addObjectToCycleCheck(b);
+	readCharArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of shorts.
+     */
+    public short[] readArrayShort() throws IOException {
+	int len = readInt();
+	short[] b = new short[len];
+	addObjectToCycleCheck(b);
+	readShortArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of ints.
+     */
+    public int[] readArrayInt() throws IOException {
+	int len = readInt();
+	int[] b = new int[len];
+	addObjectToCycleCheck(b);
+	readIntArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of longs.
+     */
+    public long[] readArrayLong() throws IOException {
+	int len = readInt();
+	long[] b = new long[len];
+	addObjectToCycleCheck(b);
+	readLongArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of floats.
+     */
+    public float[] readArrayFloat() throws IOException {
+	int len = readInt();
+	float[] b = new float[len];
+	addObjectToCycleCheck(b);
+	readFloatArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of doubles.
+     */
+    public double[] readArrayDouble() throws IOException {
+	int len = readInt();
+	double[] b = new double[len];
+	addObjectToCycleCheck(b);
+	readDoubleArray(b, 0, len);
+	return b;
+    }
 
     /**
      * Allocates arrays.
