@@ -326,8 +326,10 @@ public final class Driver extends NetDriver {
 	    try {
 		result = gmLockArray.ilockFirst(lockIds);
 	    } catch (ibis.util.IllegalLockStateException e) {
-		System.err.println("On ilockFirst[" + lockIds[0] + "]: catch IllegalLockStateException; Driver.interrupts " + interrupts + " was " + interrupts);
-		System.err.println("Presume our channel was closed under our hands");
+		if (DEBUG) {
+		    System.err.println("On ilockFirst[" + lockIds[0] + "]: catch IllegalLockStateException; Driver.interrupts " + interrupts + " was " + interrupts);
+		    System.err.println("Presume our channel was closed under our hands");
+		}
 		throw new ConnectionClosedException(e);
 	    }
 
