@@ -25,6 +25,9 @@ interface IbisStreamFlags extends TypeSize {
     static final Class classDoubleArray  = IbisStreamTypes.getClass("[D");
 
     static final Class classIbisSerializable = IbisStreamTypes.getClass("ibis.io.Serializable");
+    static final Class classJavaSerializable = IbisStreamTypes.getClass("java.io.Serializable");
+    static final Class classString	 = IbisStreamTypes.getClass("java.lang.String");
+    static final Class classClass	 = IbisStreamTypes.getClass("java.lang.Class");
 
     /* This array can be indexed using a TYPE_XXX variable */
     static final Class[] arrayClasses = {null, classBooleanArray, classByteArray, 
