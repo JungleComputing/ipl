@@ -20,6 +20,7 @@ class IOProps {
     static final String s_cache_stats = PROPERTY_PREFIX + "allocator.statistics";
     static final String s_dbg = PROPERTY_PREFIX + "debug";
     static final String s_asserts = PROPERTY_PREFIX + "assert";
+    static final String s_small_array_bound = PROPERTY_PREFIX + "smallarraybound";
     static final String s_hash_asserts = PROPERTY_PREFIX + "hash.assert";
     static final String s_hash_stats = PROPERTY_PREFIX + "hash.stats";
     static final String s_hash_timings = PROPERTY_PREFIX + "hash.timings";
@@ -35,6 +36,9 @@ class IOProps {
 	s_cache,
 	s_cache_max,
 	s_cache_stats,
+	s_dbg,
+	s_asserts,
+	s_small_array_bound,
 	s_hash_asserts,
 	s_hash_stats,
 	s_hash_timings

@@ -9,6 +9,9 @@ public interface IbisStreamFlags {
     public static final boolean ASSERTS =
 	TypedProperties.booleanProperty(IOProps.s_asserts, false);
 
+    public static final int SMALL_ARRAY_BOUND   =
+	TypedProperties.intProperty(IOProps.s_small_array_bound, 256); // byte
+
     public static final int BUFFER_SIZE = 2*1024;
     public static final int ARRAY_BUFFER_SIZE	= 1024;
 
@@ -60,6 +63,4 @@ public interface IbisStreamFlags {
     public static final int LONG_BUFFER_SIZE	= BSIZ / SIZEOF_LONG;
     public static final int FLOAT_BUFFER_SIZE	= BSIZ / SIZEOF_FLOAT;
     public static final int DOUBLE_BUFFER_SIZE	= BSIZ / SIZEOF_DOUBLE;
-
-    public static final int SMALL_ARRAY_BOUND   = 256; // byte
 } 

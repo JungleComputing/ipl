@@ -21,10 +21,14 @@ public class IbisSerializationOutputStream
 	extends DataSerializationOutputStream
 	implements IbisStreamFlags
 {
+    /** If <code>false</code>, makes all timer calls disappear. */
+    private static final boolean TIME_IBIS_SERIALIZATION = true;
+
     /**
      * Record how many objects of any class are sent.
      */
-    private static final boolean STATS_OBJECTS = TypedProperties.booleanProperty(IOProps.s_stats_written);
+    private static final boolean STATS_OBJECTS =
+	TypedProperties.booleanProperty(IOProps.s_stats_written);
 
     // if STATS_OBJECTS
     static java.util.Hashtable statSendObjects;
@@ -567,10 +571,14 @@ public class IbisSerializationOutputStream
 
     public void writeUTF(String str) throws IOException {
 	// dbPrint("writeUTF: " + str);
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if(str == null) {
 	    writeInt(-1);
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return;
 	}
 
@@ -601,7 +609,9 @@ public class IbisSerializationOutputStream
 
 	writeInt(bn);
 	writeArray(b, 0, bn);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     /**
@@ -611,10 +621,14 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown when an IO error occurs.
      */
     public void writeClass(Class ref) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if (ref == null) {
 	    writeHandle(NUL_HANDLE);
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return;
 	}
 	int hashCode = references.getHashCode(ref);
@@ -627,7 +641,9 @@ public class IbisSerializationOutputStream
 	} else {
 	    writeHandle(handle);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     /**
@@ -654,7 +670,9 @@ public class IbisSerializationOutputStream
 
     public void writeBytes(String s) throws IOException {
 
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if (s != null) {
 	    byte[] bytes = s.getBytes();
 	    int len = bytes.length;
@@ -663,12 +681,16 @@ public class IbisSerializationOutputStream
 		writeByte(bytes[i]);
 	    }
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeChars(String s) throws IOException {
 
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if (s != null) {
 	    int len = s.length();
 	    writeInt(len);
@@ -676,82 +698,120 @@ public class IbisSerializationOutputStream
 		writeChar(s.charAt(i));
 	    }
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if(writeArrayHeader(ref, classBooleanArray, len, false)) {
 	    writeArrayBoolean(ref, off, len);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeArray(byte[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if(writeArrayHeader(ref, classByteArray, len, false)) {
 	    writeArrayByte(ref, off, len);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeArray(short[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if(writeArrayHeader(ref, classShortArray, len, false)) {
 	    writeArrayShort(ref, off, len);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeArray(char[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if(writeArrayHeader(ref, classCharArray, len, false)) {
 	    writeArrayChar(ref, off, len);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeArray(int[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if(writeArrayHeader(ref, classIntArray, len, false)) {
 	    writeArrayInt(ref, off, len);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeArray(long[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if(writeArrayHeader(ref, classLongArray, len, false)) {
 	    writeArrayLong(ref, off, len);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeArray(float[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if(writeArrayHeader(ref, classFloatArray, len, false)) {
 	    writeArrayFloat(ref, off, len);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeArray(double[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if(writeArrayHeader(ref, classDoubleArray, len, false)) {
 	    writeArrayDouble(ref, off, len);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeArray(Object[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	Class clazz = ref.getClass();
 	if (writeArrayHeader(ref, clazz, len, false)) {
 	    for (int i = off; i < off + len; i++) {
 		writeObjectOverride(ref[i]);
 	    }
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     /**
@@ -1246,13 +1306,17 @@ public class IbisSerializationOutputStream
      * @exception IOException	gets thrown on IO error
      */
     public void writeString(String ref) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if (ref == null) {
 	    if (DEBUG) {
 		dbPrint("writeString: --> null");
 	    }
 	    writeHandle(NUL_HANDLE);
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return;
 	}
 
@@ -1271,7 +1335,9 @@ public class IbisSerializationOutputStream
 	    }
 	    writeHandle(handle);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
 
@@ -1338,10 +1404,14 @@ public class IbisSerializationOutputStream
 	 * ref > 0:	handle
 	 */
 
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	if (ref == null) {
 	    writeHandle(NUL_HANDLE);
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return;
 	}
 	/* TODO: deal with writeReplace! This should be done before
@@ -1407,7 +1477,9 @@ public class IbisSerializationOutputStream
 
 	    addStatSendObjectHandle(ref);
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void writeUnshared(Object ref) throws IOException {

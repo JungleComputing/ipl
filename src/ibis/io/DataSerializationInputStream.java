@@ -11,6 +11,9 @@ public class DataSerializationInputStream
 	extends SerializationInputStream
 	implements IbisStreamFlags
 {
+    /** If <code>false</code>, makes all timer calls disappear. */
+    private static final boolean TIME_DATA_SERIALIZATION = true;
+
     /** The underlying <code>Dissipator</code>. */
     private final Dissipator in;
 
@@ -109,7 +112,9 @@ public class DataSerializationInputStream
     }
 
     public boolean readBoolean() throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	while(byte_index == max_byte_index) {
 	    receive();
 	}
@@ -117,12 +122,16 @@ public class DataSerializationInputStream
 	if (DEBUG) {
 	    dbPrint("read boolean: " + a);
 	}
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
 	return a;
     }
 
     public byte readByte() throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	while (byte_index == max_byte_index) {
 	    receive();
 	}
@@ -130,12 +139,16 @@ public class DataSerializationInputStream
 	if (DEBUG) {
 	    dbPrint("read byte: " + a);
 	}
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
 	return a;
     }
 
     public char readChar() throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	while (char_index == max_char_index) {
 	    receive();
 	}
@@ -143,12 +156,16 @@ public class DataSerializationInputStream
 	if (DEBUG) {
 	    dbPrint("read char: " + a);
 	}
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
 	return a;
     }
 
     public short readShort() throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	while (short_index == max_short_index) {
 	    receive();
 	}
@@ -156,12 +173,16 @@ public class DataSerializationInputStream
 	if (DEBUG) {
 	    dbPrint("read short: " + a);
 	}
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
 	return a;
     }
 
     public int readInt() throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	while (int_index == max_int_index) {
 	    receive();
 	}
@@ -170,12 +191,16 @@ public class DataSerializationInputStream
 	    dbPrint("read int[HEX]: " + a + "[0x" +
 		    Integer.toHexString(a) + "]");
 	}
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
 	return a;
     }
 
     public long readLong() throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	while (long_index == max_long_index) {
 	    receive();
 	}
@@ -183,12 +208,16 @@ public class DataSerializationInputStream
 	if (DEBUG) {
 	    dbPrint("read long: " + a);
 	}
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
 	return a;
     }
 
     public float readFloat() throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	while (float_index == max_float_index) {
 	    receive();
 	}
@@ -196,12 +225,16 @@ public class DataSerializationInputStream
 	if (DEBUG) {
 	    dbPrint("read float: " + a);
 	}
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
 	return a;
     }
 
     public double readDouble() throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	while (double_index == max_double_index) {
 	    receive();
 	}
@@ -209,7 +242,9 @@ public class DataSerializationInputStream
 	if (DEBUG) {
 	    dbPrint("read double: " + a);
 	}
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
 	return a;
     }
 
@@ -357,58 +392,91 @@ public class DataSerializationInputStream
     }
 
     public void readArray(boolean[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	readInt();
 	readBooleanArray(ref, off, len);
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(byte[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	readInt();
 	readByteArray(ref, off, len);
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(char[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	readInt();
 	readCharArray(ref, off, len);
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(short[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	readInt();
 	readShortArray(ref, off, len);
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(int[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	readInt();
 	readIntArray(ref, off, len);
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(long[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	readInt();
 	readLongArray(ref, off, len);
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(float[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	readInt();
 	readFloatArray(ref, off, len);
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(double[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    startTimer();
+	}
 	readInt();
 	readDoubleArray(ref, off, len);
-	stopTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     /**
@@ -484,6 +552,7 @@ public class DataSerializationInputStream
 	throw new IOException("readLine() not implemented");
     }
 
+
     public void readFully(byte[] b) throws IOException {
 	readFully(b, 0, b.length);
     }
@@ -523,7 +592,9 @@ public class DataSerializationInputStream
 	    }
 	}
 
-	suspendTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    suspendTimer();
+	}
 
 	in.readArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES-BEGIN_TYPES);
 
@@ -575,7 +646,9 @@ public class DataSerializationInputStream
 	    in.readArray(double_buffer, 0, max_double_index);
 	}
 
-	resumeTimer();
+	if (TIME_DATA_SERIALIZATION) {
+	    resumeTimer();
+	}
     }
 
     public final int readUnsignedByte() throws IOException {

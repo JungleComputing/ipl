@@ -25,11 +25,15 @@ public class IbisSerializationInputStream
 	extends DataSerializationInputStream
 	implements IbisStreamFlags
 {
+    /** If <code>false</code>, makes all timer calls disappear. */
+    private static final boolean TIME_IBIS_SERIALIZATION = true;
+
     /**
      * Record how many objects of any class are sent the expensive way:
      * via the uninitialized native creator.
      */
-    private static final boolean STATS_NONREWRITTEN = TypedProperties.booleanProperty(IOProps.s_stats_nonrewritten);
+    private static final boolean STATS_NONREWRITTEN =
+	TypedProperties.booleanProperty(IOProps.s_stats_nonrewritten);
 
     // if STATS_NONREWRITTEN
     private static java.util.Hashtable nonRewritten = new java.util.Hashtable();
@@ -196,7 +200,9 @@ public class IbisSerializationInputStream
      */
 
     public void readArray(boolean[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	try {
 	    readArrayHeader(classBooleanArray, len);
 	} catch (ClassNotFoundException e) {
@@ -208,11 +214,15 @@ public class IbisSerializationInputStream
 	    throw new SerializationError("require boolean[]", e);
 	}
 	readBooleanArray(ref, off, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(byte[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	try {
 	    readArrayHeader(classByteArray, len);
 	} catch (ClassNotFoundException e) {
@@ -224,11 +234,15 @@ public class IbisSerializationInputStream
 	    throw new SerializationError("require byte[]", e);
 	}
 	readByteArray(ref, off, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(char[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	try {
 	    readArrayHeader(classCharArray, len);
 	} catch (ClassNotFoundException e) {
@@ -240,11 +254,15 @@ public class IbisSerializationInputStream
 	    throw new SerializationError("require char[]", e);
 	}
 	readCharArray(ref, off, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(short[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	try {
 	    readArrayHeader(classShortArray, len);
 	} catch (ClassNotFoundException e) {
@@ -256,11 +274,15 @@ public class IbisSerializationInputStream
 	    throw new SerializationError("require short[]", e);
 	}
 	readShortArray(ref, off, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(int[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	try {
 	    readArrayHeader(classIntArray, len);
 	} catch (ClassNotFoundException e) {
@@ -272,11 +294,15 @@ public class IbisSerializationInputStream
 	    throw new SerializationError("require int[]", e);
 	}
 	readIntArray(ref, off, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(long[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	try {
 	    readArrayHeader(classLongArray, len);
 	} catch (ClassNotFoundException e) {
@@ -288,11 +314,15 @@ public class IbisSerializationInputStream
 	    throw new SerializationError("require long[]", e);
 	}
 	readLongArray(ref, off, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(float[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	try {
 	    readArrayHeader(classFloatArray, len);
 	} catch (ClassNotFoundException e) {
@@ -304,11 +334,15 @@ public class IbisSerializationInputStream
 	    throw new SerializationError("require float[]", e);
 	}
 	readFloatArray(ref, off, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(double[] ref, int off, int len) throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	try {
 	    readArrayHeader(classDoubleArray, len);
 	} catch (ClassNotFoundException e) {
@@ -320,17 +354,23 @@ public class IbisSerializationInputStream
 	    throw new SerializationError("require double[]", e);
 	}
 	readDoubleArray(ref, off, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     public void readArray(Object[] ref, int off, int len)
 	    throws IOException, ClassNotFoundException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	readArrayHeader(ref.getClass(), len);
 	for (int i = off; i < off + len; i++) {
 	    ref[i] = readObjectOverride();
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
     }
 
     /**
@@ -340,12 +380,16 @@ public class IbisSerializationInputStream
      * @exception IOException in case of error.
      */
     public byte[] readArrayByte() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int len = readInt();
 	byte[] b = new byte[len];
 	addObjectToCycleCheck(b);
 	readByteArray(b, 0, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return b;
     }
 
@@ -353,12 +397,16 @@ public class IbisSerializationInputStream
      * See {@link #readArrayByte()}, this one is for an array of boolans.
      */
     public boolean[] readArrayBoolean() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int len = readInt();
 	boolean[] b = new boolean[len];
 	addObjectToCycleCheck(b);
 	readBooleanArray(b, 0, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return b;
     }
 
@@ -366,12 +414,16 @@ public class IbisSerializationInputStream
      * See {@link #readArrayByte()}, this one is for an array of chars.
      */
     public char[] readArrayChar() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int len = readInt();
 	char[] b = new char[len];
 	addObjectToCycleCheck(b);
 	readCharArray(b, 0, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return b;
     }
 
@@ -379,12 +431,16 @@ public class IbisSerializationInputStream
      * See {@link #readArrayByte()}, this one is for an array of shorts.
      */
     public short[] readArrayShort() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int len = readInt();
 	short[] b = new short[len];
 	addObjectToCycleCheck(b);
 	readShortArray(b, 0, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return b;
     }
 
@@ -392,12 +448,16 @@ public class IbisSerializationInputStream
      * See {@link #readArrayByte()}, this one is for an array of ints.
      */
     public int[] readArrayInt() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int len = readInt();
 	int[] b = new int[len];
 	addObjectToCycleCheck(b);
 	readIntArray(b, 0, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return b;
     }
 
@@ -405,12 +465,16 @@ public class IbisSerializationInputStream
      * See {@link #readArrayByte()}, this one is for an array of longs.
      */
     public long[] readArrayLong() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int len = readInt();
 	long[] b = new long[len];
 	addObjectToCycleCheck(b);
 	readLongArray(b, 0, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return b;
     }
 
@@ -418,12 +482,16 @@ public class IbisSerializationInputStream
      * See {@link #readArrayByte()}, this one is for an array of floats.
      */
     public float[] readArrayFloat() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int len = readInt();
 	float[] b = new float[len];
 	addObjectToCycleCheck(b);
 	readFloatArray(b, 0, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return b;
     }
 
@@ -431,12 +499,16 @@ public class IbisSerializationInputStream
      * See {@link #readArrayByte()}, this one is for an array of doubles.
      */
     public double[] readArrayDouble() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int len = readInt();
 	double[] b = new double[len];
 	addObjectToCycleCheck(b);
 	readDoubleArray(b, 0, len);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return b;
     }
 
@@ -518,7 +590,9 @@ public class IbisSerializationInputStream
     }
 
     public String readUTF() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int bn = readInt();
 
 	if (DEBUG) {
@@ -526,7 +600,9 @@ public class IbisSerializationInputStream
 	}
 
 	if (bn == -1) {
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return null;
 	}
 
@@ -563,7 +639,9 @@ public class IbisSerializationInputStream
 
 	String s = new String(c, 0, len);
 	// dbPrint("readUTF: " + s);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 
 	if (DEBUG) {
 	    dbPrint("read string "  + s);
@@ -578,11 +656,15 @@ public class IbisSerializationInputStream
      * @return the <code>Class</code> object read.
      */
     public Class readClass() throws IOException, ClassNotFoundException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int handle = readHandle();
 
 	if (handle == NUL_HANDLE) {
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return null;
 	}
 
@@ -603,7 +685,9 @@ public class IbisSerializationInputStream
 	Class c = getClassFromName(s);
 
 	addObjectToCycleCheck(c);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return c;
     }
 
@@ -1537,14 +1621,18 @@ public class IbisSerializationInputStream
      * @return the string read.
      */
     public String readString() throws IOException {
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int handle = readHandle();
 
 	if (handle == NUL_HANDLE) {
 	    if (DEBUG) {
 		dbPrint("readString: --> null");
 	    }
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return null;
 	}
 
@@ -1556,7 +1644,9 @@ public class IbisSerializationInputStream
 		dbPrint("readString: duplicate handle = " + handle +
 			    " string = " + o);
 	    }
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return o;
 	}
 
@@ -1576,7 +1666,9 @@ public class IbisSerializationInputStream
 	    dbPrint("readString returns " + s);
 	}
 	addObjectToCycleCheck(s);
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 	return s;
     }
 
@@ -1602,11 +1694,15 @@ public class IbisSerializationInputStream
 	 * ref > 0:    handle
 	 */
 
-	startTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    startTimer();
+	}
 	int handle_or_type = readHandle();
 
 	if (handle_or_type == NUL_HANDLE) {
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return null;
 	}
 
@@ -1618,7 +1714,9 @@ public class IbisSerializationInputStream
 		dbPrint("readObject: duplicate handle " + handle_or_type +
 			" class = " + o.getClass());
 	    }
-	    stopTimer();
+	    if (TIME_IBIS_SERIALIZATION) {
+		stopTimer();
+	    }
 	    return o;
 	}
 
@@ -1677,7 +1775,9 @@ public class IbisSerializationInputStream
 	    }
 	    pop_current_object();
 	}
-	stopTimer();
+	if (TIME_IBIS_SERIALIZATION) {
+	    stopTimer();
+	}
 
 	if (DEBUG) {
 	    dbPrint("finished readObject of class " + t.clazz.getName());
