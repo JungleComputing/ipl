@@ -63,7 +63,7 @@ class Helpers {
             return calcInformation( n );
         }
         else {
-            return 1/(double) n;
+            return 1/(double) (n*n*n);
         }
     }
 }
