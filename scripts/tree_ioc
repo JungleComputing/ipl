@@ -2,7 +2,14 @@
 
 export JAVACLASSPATH=$IBIS_ROOT/ibis/build:$IBIS_ROOT/ibis/build/lib:$IBIS_ROOT:build:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar:$IBIS_ROOT/ibis/bcel-additions:$BCEL_ROOT/bcel-5.1.jar:$BCEL_ROOT/lib
 
-find . -name '*.class' -print |
-    sed 's/^..//' |
-    tr '\n' ' ' |
-    xargs $JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator -dir "$@"
+case X$# in
+X0)
+    find . -name '*.class' -print |
+	sed 's/^..//' |
+	tr '\n' ' ' |
+	xargs $JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator -dir "$@"
+	;;
+X*)
+    $JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator -dir "$@"
+    ;;
+esac
