@@ -13,6 +13,8 @@
 {\latex {Ibis}}
 Programmer's Manual}
 
+\author{The Ibis Group}
+
 \maketitle
 
 \section{Introduction}
@@ -596,11 +598,85 @@ communication property). Also, multiple send ports can set up
 connections to the same receive port (if the port type supports
 the \verb+ManyToOne+ communication property).
 
-\subsection{Connection upcalls, connection downcalls}
-Sometimes it is useful for an application to know which send ports
-are connected to a receive port, and vice versa.
-TODO. connection upcalls/downcalls.
+\mysubsection{Connection upcalls, connection downcalls}
 
+Sometimes it is useful for an application to know which send ports
+are connected to a receive port, and vice versa, or which connections
+are being closed.
+Ibis implementations may support two different mechanisms for obtaining
+this type of information: connection upcalls and connection downcalls.
+
+When a port type is configured for using connection upcalls,
+a receive port may be instantiated with a \verb+ReceivePortConnectUpcall+
+object. This is an interface with two methods:
+
+\begin{quote}
+\begin{verbatim}
+boolean gotConnection(ReceivePort me,
+                      SendPortIdentifier applicant);
+void lostConnection(ReceivePort me,
+                    SendPortIdentifier johndoe,
+                    Exception reason);
+\end{verbatim}
+\end{quote}
+
+The \verb+gotConnection+ method gets called when a send port attempts
+to connect to the receive port at hand.
+An implementation of this method can decide whether
+to allow this connection or not.
+The \verb+lostConnection+ method gets called when an existing connection
+to the receive port at hand gets lost for some reason.
+
+A send port can be instantiated with a
+\verb+SendPortConnectUpcall+ object. This is an interface with a single method:
+
+\begin{quote}
+\begin{verbatim}
+void lostConnection(SendPort me,
+                    ReceivePortIdentifier johndoe,
+                    Exception reason);
+\end{verbatim}
+\end{quote}
+
+This method gets called when an existing connection from the send port at
+hand gets lost for some reason. Note that there is no \verb+gotConnection+
+counterpart, because it is always the send port that initiates a connection.
+
+When port type is configured for using connection downcalls, receive ports
+and send ports of this type maintain connection information.
+A receive port has the following methods:
+
+\begin{quote}
+\begin{verbatim}
+SendPortIdentifier[] newConnections();
+SendPortIdenfifier[] lostConnections();
+SendPortIdentifier[] connectedTo();
+\end{verbatim}
+\end{quote}
+
+\verb+newConnections+ returns the send port identifiers of the connections
+that are new since the last call or the start of the program.
+\verb+lostConnections+ returns the send port identifiers of the connections
+that were lost since the last call or the start of the program.
+\verb+connectedTo+ returns the send port identifiers of all connections
+to this receive port.
+
+A send port has the following methods:
+
+\begin{quote}
+\begin{verbatim}
+ReceivePortIdentifier[] newConnections();
+ReceivePortIdenfifier[] lostConnections();
+ReceivePortIdentifier[] connectedTo();
+\end{verbatim}
+\end{quote}
+
+\verb+newConnections+ returns the receive port identifiers of the connections
+that are new since the last call or the start of the program.
+\verb+lostConnections+ returns the receive port identifiers of the connections
+that were lost since the last call or the start of the program.
+\verb+connectedTo+ returns the receive port identifiers of all connections
+from this send port.
 
 \mysubsection{Communicating}
 
@@ -766,18 +842,26 @@ The preferred way of creating a \verb+PoolInfo+ is by means of the
 static method \verb+createPoolInfo+.
 It depends on the following system properties:
 \begin{description}
-\item{\verb+ibis.pool.total_hosts+}
-\item{\verb+ibis.pool.host_names+}
-\item{\verb+ibis.pool.host_number+}
+\item[ibis.pool.total\_hosts]
+This system property must be present for closed-world runs.
+It indicates the total number of hosts involved in the run.
+\item[ibis.pool.host\_names]
+If present, this system property contains the list of host names
+involved in the run.
+If not present, \verb+createPoolInfo+ will a \verb+PoolInfoClient+
+that will collect this information during startup.
+\item[ibis.pool.host\_number]
+If present, this system property indicates the rank number of the
+current host. If not present, the system will provide a rank number.
 \end{description}
-
-TODO
 
 \mysubsubsection{PoolInfoClient}
 
 The \verb+ibis.util.PoolInfoClient+ is a subclass of
-\verb+ibis.util.PoolInfo+.  ...TODO...
-
+\verb+ibis.util.PoolInfo+.
+It uses a \verb+PoolInfoServer+ to collect the required information.
+This \verb+PoolInfoServer+ usually is started by the Ibis nameserver
+(see Section \ref{The Ibis Nameserver}.
 
 \mysection{Compiling and Running an Ibis Application}
 
@@ -816,7 +900,358 @@ The name server ...TODO...
 
 \mysection{The Satin Divide-and-Conquer System}
 
-TODO.
+Satin is a parallel programming environment for divide-and-conquer
+parallelization, and (as a special case) worker-farmer parallelization.
+Satin extends Java with two simple Cilk-like primitives for
+divide-and-conquer programming.  The Satin byte-code rewriter and
+runtime system cooperate to implement these primitives efficiently on
+Ibis, using work stealing to distribute the jobs.
+
+\mysubsection{Satin jobs}
+
+To use Satin, the programmer must label one or more methods in the program
+as Satin jobs. This is done by defining an interface that extends
+the Satin interface \verb+ibis.satin.Spawnable+.
+All methods that implement a method in such an
+interface are Satin jobs. For example, given the following interface:
+
+\begin{quote}
+\begin{verbatim}
+interface Searcher extends ibis.satin.Spawnable
+{
+    public int search( int a[], int from, int to, int val );
+}
+\end{verbatim}
+\end{quote}
+
+all methods that implement \verb+Searcher.search()+ will be Satin jobs.
+In general such a marker interface may contain an arbitrary number
+of methods.
+When actually using Satin, invoking a Satin job puts this Satin job
+on a job queue instead of invoking it directly.
+Later on, the job will be executed either locally, or it will be
+``stolen'' and executed by another processor.
+
+The result of a Satin job can only be used after the invocation
+of the \verb+sync()+ method, which lives in \verb+ibis.satin.SatinObject+.
+(Remember that a class that implements a job method must extend
+\verb+ibis.satin.SatinObject+.) The \verb+sync()+
+method is guaranteed to only terminate after the earlier job
+invocations have terminated.
+
+Satin imposes one restriction on the type of parameters and return type
+of a Satin job: they must be serializable.
+A class that implements such an interface must extend
+\verb+ibis.satin.SatinObject+, and must itself be serializable
+(implement \verb+java.io.Serializable+).
+These two restrictions ensure that a Satin job can be stored and
+moved from one processor to another (not while it is running, but before
+it is started).
+
+As an example, we could provide the following implementation of the
+search method shown above:
+
+\begin{quote}
+\begin{verbatim}
+class Search1 extends ibis.satin.SatinObject
+              implements java.io.Serializable {
+    public int search( int a[], int from, int to, int val )
+    {
+        for( int i=from; i<to; i++ ){
+            if( a[i] == val ) return i;
+        }
+        return -1;
+    }
+}
+\end{verbatim}
+\end{quote}
+
+Now, this method can be invoked as follows:
+
+\begin{quote}
+\begin{verbatim}
+    Search1 s = new Search1();
+    int a[] = new int[200];
+
+    // Do searches on two sub-domains of the array.
+    int res1 = s.search( a, 0, 100, 0 );
+    int res2 = s.search( a, 100, 200, 0 );
+
+    // Wait for results of the two invocations above.
+    s.sync();
+
+    // Now compute an overall result.
+    int res = (res1>0)?res1:res2;
+\end{verbatim}
+\end{quote}
+
+As part of the Satin `contract', Satin is free to execute the two
+invocations to \verb+search()+ in parallel.
+In general, an arbitrary number of
+invocations to Satin job methods may be done.
+
+It is also allowed to invoke job methods from job methods, for example:
+
+\begin{quote}
+\begin{verbatim}
+class Search2 extends ibis.satin.SatinObject
+              implements java.io.Serializable {
+    public int search( int a[], int from, int to, int val )
+    {
+        if( from==to ){
+            return -1;
+        }
+        if( from+1==to ){
+            return (a[from] == val)?from:-1);
+        }
+        int mid = (from+to)/2;
+        int res1 = search( a, from, mid, val );
+        int res2 = search( a, mid, to, val );
+        sync();
+        return (res1>0)?res1:res2;
+    }
+}
+\end{verbatim}
+\end{quote}
+
+\mysubsection{Exceptions and abort}
+
+A Satin job may throw exceptions in the usual way. This can be
+used to rapidly terminate a large set of jobs, for example because
+a search result was found. In such cases it is often useful to
+terminate other running jobs.  This can be done with the
+\verb+abort()+ method.
+Satin has its own exception type: \verb+ibis.satin.Inlet+.
+An \verb+Inlet+ is a \verb+Throwable+ that inhibits the generation of
+a stack trace, which is an expensive operation.
+
+For example:
+
+\begin{quote}
+\begin{verbatim}
+class SearchResultException extends ibis.satin.Inlet {
+    int pos;
+    SearchResultException( int p ) { pos = p; }
+}
+
+class Search3 extends ibis.satin.SatinObject
+              implements java.io.Serializable {
+    public void search( int a[], int from, int to, int val )
+    {
+        if( from==to ){
+            return;
+        }
+        if( from+1==to ){
+            if( a[from] == val ){
+                throw new SearchResultException( from );
+            }
+            return;
+        }
+        int mid = (from+to)/2;
+        search( a, from, mid, val );
+        search( a, mid, to, val );
+        sync();
+    }
+}
+\end{verbatim}
+\end{quote}
+
+Note that in this version the search method doesn't return a value,
+since it will only terminate if no result is found.
+
+At top level this exception must be caught, and the other search
+jobs must be terminated. For example:
+
+\begin{quote}
+\begin{verbatim}
+    Search3 s = new Search3();
+    int a[] = new int[200];
+    int res = -1;
+
+    try {
+        // Do searches on two sub-domains of the array.
+        s.search( a, 0, 100, 0 );
+        s.search( a, 100, 200, 0 );
+
+        // Wait for results of the two invocations above.
+        s.sync();
+    }
+    catch( SearchResultException x ){
+        res = x.pos;
+        s.abort();
+    }
+\end{verbatim}
+\end{quote}
+
+\mysubsection{Satin job scheduling}
+
+Satin offers a choice of three different job scheduling strategies:
+\begin{description}
+\item[Random work-stealing]
+when using random work-stealing, when looking for work, each Satin
+first examines its own job queue. When this job queue is empty,
+it selects another Satin and takes the first job on its job queue.
+It that job queue is empty, it selects another Satin, et cetera, et cetera.
+This strategy is the default.
+\item[Cluster-aware random work-stealing]
+this strategy is very similar to random work-stealing, except that
+each participant first tries to steal jobs from other participants in its
+own cluster (thus using a local network). It will only go to participants
+from other clusters if no participant on the same cluster has work.
+\item[Master-worker]
+this strategy is suitable for applications where all Satin jobs are
+generated on a single participant, the ``master''. All other participants
+are ``workers'', they obtain jobs from the master and execute them.
+\end{description}
+
+Making sure that all participants always can find work to do may need
+some tuning. Jobs must not be too small, because otherwise the mechanism
+for obtaining jobs, which may involve network traffic, is too expensive.
+On the other hand, there must be enough jobs to keep everybody busy.
+The \verb+SatinObject+ class has a boolean method \verb+needMoreJobs()+,
+which indicates whether it would be useful to generate more jobs.
+
+\mysubsection{Other SatinObject methods}
+
+The \verb+pause()+ method pauses Satin operation. When the application
+contains a large sequential part, this method can be called to temporarily
+pause Satin's internal load distribution strategies to avoid communication
+overhead during the execution of sequential code.
+To resume Satin operation, the \verb+resume()+ method must be used.
+
+\mysubsection{Satin program arguments}
+
+The Satin system accepts the following arguments, which are
+filtered out from the program arguments, leaving the applications
+arguments:
+\begin{description}
+\item[-satin-closed]
+Only use the initial set of hosts for the computation; do not allow
+further hosts to join the computation later on.
+\item[-satin-stats]
+Display some statistics at the end of the Satin run.
+\item[-satin-detailed-stats]
+Display detailed statistics for every member at the end of the Satin run.
+\item[-satin-no-stats]
+Don't display statistics at the end of the Satin run.
+\item[-satin-panda]
+Use the Panda version of Ibis.
+\item[-satin-mpi]
+Use the MPI version of Ibis.
+\item[-satin-net]
+Use NetIbis.
+\item[-satin-nio]
+Use NIO Ibis.
+\item[-satin-tcp]
+Use the TCP version of Ibis. This is the default.
+\item[-satin-ibis]
+Use Ibis serialization. When no serialization is specified,
+the object serialization used is determined by Ibis.
+\item[-satin-sun]
+Use Sun serialization.
+\item[-satin-upcalls]
+Use upcalls for receiving messages. This is the default.
+\item[-satin-no-upcalls]
+Use explicit receipt for receiving messages.
+\item[-satin-upcall-polling]
+Use upcalls for receiving messages, but Satin must explicitly poll to get
+upcalls.
+\item[-satin-alg \emph{algorithm}]
+Specify the load-balancing algorithm to use. The possible values for
+\emph{algorithm} are: RS for random work-stealing, CRS for cluster-aware
+random-work stealing, and MW for master-worker
+\end{description}
+
+The following flags are for tuning by the developers of Satin,
+and should not be used unless you really know what you are doing.
+\begin{description}
+\item[-satin-queue-size \emph{integer}]
+The maximum desirable job queue size. If the current work queue 
+has more than this number of jobs, Satin indicates that 
+it does not need more jobs (as can be asked though the
+needMoreJobs() method).
+\end{description}
+
+\mysubsection{The Satin Tuple Space}
+
+The \verb+ibis.satin.SatinTupleSpace+ class implements a global
+tuple space.  A tuple consists of a key (a String) and its associated data
+(a serializable object). Here, global means that the tuple space is
+available on all members. The \verb+SatinTupleSpace+ has the following
+static methods:
+
+\begin{quote}
+\begin{verbatim}
+static void add(String key, Serializable data);
+static Serializable get(String key);
+static Serializable peek(String key);
+static void remove(String key);
+\end{verbatim}
+\end{quote}
+
+The \verb+add+ method adds a tuple to the tuple space, associating the
+specified key with the specified data.
+The \verb+get+ method obtains the data associated with the specified key.
+It blocks until there is actually data associated with the key.
+The \verb+peek+ method, in contrast, does not block, but returns
+\verb+null+ instead.
+The \verb+remove+ method removes the tuple that has the specified key.
+
+All members can add tuples, and no global ordering is imposed on the
+additions, unless the system property
+\verb+satin.tuplespace.ordened+ is defined and represents the
+boolean value \verb+true+. In this case, a global ordering is imposed.
+
+The Satin tuple space supports \emph{active tuples}.
+The \verb+ibis.satin.ActiveTuple+ interface serves
+as a marker for active tuples. It contains a single method:
+
+\begin{quote}
+\begin{verbatim}
+void handleTuple(String key);
+\end{verbatim}
+\end{quote}
+
+When an active tuple is added (as data) to the tuple space,
+its \verb+handleTuple+ method will be invoked on all members.
+This can be used, for instance, for modifications of data that
+is replicated on all members.
+
+A serious limitation of the current tuple space is that it is
+currently only supported for closed-world runs.
+
+\mysubsection{Compiling and running a Satin program}
+
+Before running a Satin application it must be compiled.
+Using \emph{ant}, this is quite easy. Here is a build.xml file for
+our example program:
+
+\begin{quote}
+\begin{verbatim}
+<project
+    name="Search"
+    default="build"
+    basedir=".">
+
+    <description>
+    Satin application build.
+    </description>
+
+    <property name="ibis"   location="/usr/local/ibis"/>
+    <property name="build"  location="build"/>
+
+    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+</project>
+\end{verbatim}
+\end{quote}
+Note that the assumption here is that Ibis is installed in
+\verb+/usr/local/ibis+.
+
+Now, invoking \emph{ant} compiles the application, leaving the class files
+in a directory called \verb+build+.
+
+Running a Satin program is very much like running an Ibis application.
+See Section \ref{Compiling and Running an Ibis Application} for details.
 
 \mysection{The GMI System}
 
