@@ -45,8 +45,84 @@ We also built a (not quite complete) RMI (Remote Method Invocation)
 implementation on top of Ibis. RMI documentation can be found on-line at
 {\html {\htmladdnormallink{http://java.sun.com}{http://java.sun.com}}}
 {\latex {http://java.sun.com}}.
+Section \ref{Ibis RMI} briefly discusses the Ibis RMI implementation.
+
+\mysection{Some Ibis concepts}
+
+\mysubsection{The Ibis Portability Layer}
+
+The top layer of the Ibis system consists of the Ibis Portability Layer(IPL).
+The IPL consists of a set of Java interfaces that define how an Ibis program
+can make use of the Ibis components.
+The Ibis program does not need to know which specific Ibis implementations are
+available.
+It just specifies some properties that it requires, and the Ibis system
+selects the best available Ibis implementation that meets these requirements.
  
+\mysubsection{An Ibis Instance}
+
+TODO: discuss, ibis identifier, resize handler.
+
+\mysubsection{Send Ports and Receive Ports}
+
+The IPL provides communication primitives using send ports and receive ports.
+The Ibis program creates the send ports and receive ports, and sets up
+connections between them, using primitives provided by the IPL.
+A connection is \emph{unidirectional}, from a send port to one or more
+receive ports.
+To send a message, the Ibis program has to obtain a
+write message from a send port, put data in this write message using
+the methods provided by the write message, and \emph{finish} the
+message.
+To receive a message, the IPL provides two mechanisms:
+\begin{description}
+\item[explicit receipt]
+when a receive port is configured for explicit receipt, a message can be
+received with the receive port's blocking \emph{receive} primitive.
+This method returns a \emph{read message} object. from which data can
+be extracted using its read methods.
+\item[upcalls]
+when a receive port is configured for upcalls, the Ibis program provides
+an \emph{upcall} method, which is to be called when a message arrives.
+The upcall provides the message received as a parameter.
+The message contents will be lost when the upcall returns, so the data
+in the message must be read in the upcall.
+\end{description}
+
+\mysubsection{Connections}
+
+TODO. connection upcalls/downcalls.
+
+\mysubsection{Port Types}
+
+Send and receive ports are \emph{typed} by means of a \emph{port type}.
+A port type is defined and configured with properties.
+Only ports of the same type can be connected.
+Port type properties that can be configured are, for instance, the
+serialization method used, reliability, wether a send port can connect
+to more than one receive port, wether more than one send port can connect
+to a single receive port, et cetera.
+
+\mysubsection{Serialization}
+
+Serialization is a mechanism for converting Java objects into some
+format that can be stored or transferred.
+Java has input (java.io.ObjectInputStream) and output
+(java.io.ObjectOutputStream) streams for reading and writing objects.
+In Ibis, we call this mechanism \emph{Sun serialization}.
+Ibis also has its own mechanism, which is completely compatible
+(with regard to its interface) with Sun serialization, but more efficient.
+We call this mechanism \emph{Ibis serialization}.
+
+Sometimes, object serialization is not needed. For that case, two simpler
+serialization mechanisms are available: \emph{data serialization} which
+allows for sending/receiving data of basic types and arrays of basic types
+(similar to java.io.DataInputStream/java.io.DataOutputStream), and
+\emph{byte serialization} which only allows sending/receiving bytes
+and arrays of bytes.
+
 \mysection{An Ibis Program}
+
 An Ibis program consists of several parts:
 \begin{itemize}
 \item
@@ -54,12 +130,13 @@ Creating an Ibis in each instance of the program.
 An Ibis program runs on multiple hosts. On each of these hosts, an Ibis
 must be created.
 \item
-Setting up communication. Communication connections consist of so-called
-send ports, through which messages can be sent, and receive ports, through
-which messages can be received, and a connection between the two.
+Setting up communication. A communication connection consists of a
+\emph{send port}, through which messages can be sent, and one or
+more \emph{receive ports},
+through which messages can be received, and a connection between them.
 \item
-Actually communicating. A send port can be used to create a so-called
-write-message, which can be sent to the receive ports that this send port
+Actually communicating. A send port is used to create a 
+\emph{write message}, which is sent to the receive ports that this send port
 is connected to.
 \item
 Finishing up. Connections must be closed, and each Ibis instance must
@@ -74,7 +151,7 @@ The client will send the string, and receive the result.
 The server will have to do some other work as well, just to make
 things a little more interesting.
 
-\subsection{Preamble}
+\subsection{Program Preamble}
 
 All Ibis programs import classes from the IPL (Ibis
 Portability Layer) package, which lives in
@@ -102,14 +179,14 @@ Ibis createIbis(StaticProperties props,
         throws IbisException;
 \end{verbatim}
 \end{quote}
-There may be several Ibis implementations available, and the
-idea is that the system selects the best one for you, based on some
+There may be several Ibis implementations available, and
+the system selects the best one for you, based on some
 user-specified requirements.
-These requirements in fact tell the system what features must be supported
+These requirements tell the system what features must be supported
 by the selected Ibis.
 They are summarized in an object of the
 \verb+ibis.ipl.StaticProperties+ class.
-Below is a snippet from the RPC example:
+For example, below is a snippet from the RPC example:
 \begin{quote}
 \begin{verbatim}
 StaticProperties props = new StaticProperties();
@@ -127,13 +204,14 @@ receipt of messages at the receiver side.
 explicit receipt for the client side).
 In addition, the selected Ibis must support some form of object
 serialization (a string must be sent),
-and must support the "closed" worldmodel, which means
+and must support the ``closed'' worldmodel, which means
 that all participating Ibises join at the start of the run, and a
 synchronization takes place before \verb+createIbis+ returns.
 (in the example we have a client and a server).
 
 A complete list of property values is given below.
-The possible property values of the "communication" property are:
+The possible property values of the ``communication'' property are
+(capitals are not significant):
 \begin{description}
 \item[OneToOne]
 One-to-one (unicast) communication is supported (if an Ibis does not support
@@ -153,13 +231,18 @@ receive ports receive all messages in the same order.
 This is stronger than FifoOrdered, because not all messages have
 to originate from the same send port.
 \item[Reliable]
-reliable communication is supported.
+reliable communication is supported, that is, messages don't get lost.
+A reliable communication protocol is used.
 \item[Unreliable]
-unreliable communication is explicitly supported.
+unreliable communication is explicitly supported, that is, an
+unreliable communication protocol is used, and messages may get lost.
+TODO: Should we keep this property or leave it out in which case
+not having "Reliable" means: don't care?
 \item[AutoUpcalls]
 upcalls are supported and polling for them is not required.
-This means that when a message arrives at a receive port, 
-a user-specified upcall handler is invoked.
+This means that when the user creates a receiveport with an upcall
+handler installed, when a message arrives at that receive port, 
+this upcall handler is invoked automatically.
 \item[PollUpcalls]
 upcalls are supported but polling for them is required. When an
 Ibis implementation claims that it has this, it may also do
@@ -167,31 +250,32 @@ AutoUpcalls but polling does no harm. When an application asks for
 this (and not AutoUpcalls), it must poll.
 \item[ExplicitReceipt]
 explicit receive is supported.
-This is the alternative way for receiving messages.
+This is the alternative way to upcalls for receiving messages.
 \item[ConnectionDowncalls]
 connection downcalls are supported. This means that the user can
 invoke methods to see which connections were lost or created.
 \item[ConnectionUpcalls]
-connection upcalls are supported. This means that un upcall
+connection upcalls are supported. This means that an upcall
 handler can be installed that is invoked whenever a new connection arrives
 or a connection is lost.
 \end{description}
 
-The possible "serialization" properties are:
+The possible ``serialization'' properties are:
 \begin{description}
 \item[Byte]
 readByte/writeByte and readArray/writeArray(byte[]) are supported.
 \item[Data]
-read/write and readArray/writeArray of primitive types are supported.
+read/write and readArray/writeArray of basic types are supported.
 \item[Object]
 Some sort of object serialization is supported. An Ibis implementation
 will, of course, specify what kind of object serialization it supports.
-The "Object" property allows a user to just ask for object
+The ``Object'' property allows a user to just ask for object
 serialization, and not care if it is Ibis or Sun serialization.
 \item[Ibis]
 Ibis serialization is supported.
 This is the fastest object serialization supported in Ibis. Its drawback
-is that it does not support versioning, and does not support
+is that it requires identical Java implementations on sender and
+receiver side, and does not support
 non-symmetrical writeObject/readObject methods (where readObject does not
 read everything that writeObject writes).
 \item[Sun]
@@ -199,7 +283,7 @@ Sun serialization (through java.io.ObjectOutputStream/InputStream) is
 supported.
 \end{description}
 
-The possible "worldmodel" properties are:
+The possible ``worldmodel'' properties are:
 \begin{description}
 \item[Open]
 this means that Ibises can join the run at any time during the run.
@@ -209,7 +293,7 @@ at the start of the run.
 \end{description}
 
 If a specific implementation of Ibis is required, that can be delt with too.
-There is a property called "name", which can be used to supply a nickname
+There is a property called ``name'', which can be used to supply a nickname
 for the Ibis implementation that is required.
 The currently known nicknames are:
 \begin{description}
@@ -217,8 +301,8 @@ The currently known nicknames are:
 This is an Ibis implementation on top of TCP sockets, and currently is
 probably the most stable Ibis around, and it supports almost all properties.
 \item[panda]
-This is a "messagePassing Ibis implementation on top of the Panda
-communication layer. It only supports the "closed" worldmodel,
+This is a messagePassing Ibis implementation on top of the Panda
+communication layer. It only supports the ``closed'' worldmodel,
 but on our system it gives much higher throughput and lower latencies
 because it runs on Myrinet instead of our (100Mbitps) Ethernet on which
 the tcp version runs.
@@ -237,7 +321,7 @@ more specific. This is done by means of Java system properties, which
 in many Java implementations can be set by means of a command line option,
 for instance -D\emph{property}=\emph{value}.
 The system property name is that of the Ibis static property, prefixed
-with "\verb+ibis.+".
+with ``\verb+ibis.+''.
 So, adding \verb+-Dibis.serialization=ibis+ to the command line will
 cause \verb+createIbis+ to look for an Ibis that supports ibis serialization
 instead of any object serialization.
@@ -248,7 +332,19 @@ with \verb+join+ and \verb+leave+ upcalls that get called when an Ibis
 joins or leaves the run.
 In our RPC example, we will not use this, so we specify \verb+null+
 instead.
-So, with the \verb+props+ as defined above, we create an Ibis as follows:
+However, when such a \verb+ResizeHandler+ is used, its \verb+join+
+upcall is called for every Ibis that joins the run, including the
+Ibis being created.
+To prevent upcalls from occuring before the
+creation of this Ibis is completed, these upcalls must be explicitly
+enabled by invoking the \verb+openWorld+ method of the Ibis just
+created. In addition, the \verb+openWorld+ method blocks until the
+\verb+join+ upcall for this Ibis has been invoked.
+Knowing which Ibises have joined the run, and how many there are, may
+be useful in dividing the work. See also section \ref{Which Instance Does What?}.
+
+Now back to our example. 
+With the \verb+props+ as defined above, we create an Ibis as follows:
 \begin{quote}
 \begin{verbatim}
 try {
@@ -279,7 +375,7 @@ The next few subsections discuss each of these steps in turn.
 
 \subsubsection{Creating a Port Type}
 
-The next step is to create a so-called port type, from which
+The next step is to create a \emph{port type}, from which
 send and receive ports can be created. A port type is an object
 of type \verb+ibis.ipl.PortType+.
 Within an Ibis instance,
@@ -327,7 +423,7 @@ Port types are registered with an internal or external name server
 If communication with this name server fails, a
 \verb+java.io.IOException+ is thrown.
 
-\subsubsection{Which Instance Does What?}
+\mysubsubsection{Which Instance Does What?}
 
 Up until now, we have discussed only matters that all instances of
 the Ibis application should do, but now, things become different.
@@ -342,7 +438,7 @@ Ibis also provides the \verb+ibis.ipl.IbisIdentifier+ class.
 the \verb+ibis.ipl.Ibis.identifier+ method returns such an
 Ibis identifier, which identifies this specific Ibis instance.
 Now it is possible to decide, in the RPC example, who is going
-to be the server by means of an "election": the Ibis registry
+to be the server by means of an ``election'': the Ibis registry
 provides a method \verb+elect+ which (globally) selects one of
 a number of invokers.
 For our RPC example this would go as follows:
@@ -358,6 +454,8 @@ boolean i_am_server = server.equals(me);
 \end{quote}
 
 It could also be that the client and the server are separate programs.
+
+TODO: join upcalls.
 
 \subsubsection{Creating Send and Receive Ports}
 
@@ -574,7 +672,9 @@ void upcall(ReadMessage m) throws IOException {
 Note that the read message is finished before replying to the
 request. To prevent deadlocks, upcalls are not allowed to block in
 condition sychronization or network access as long as the message
-is active.
+is active. This means that a thread is not allowed to write as long
+as a read message is active, and a thread is not allowed to wait for
+some condition (call \verb+Thread.wait()+).
 
 Now, we can also finish the \verb+obtainLength+ method of the client:
 \begin{quote}
@@ -631,6 +731,8 @@ Runtime.getRuntime().addShutdownHook(new Thread() {
 
 This shutdown hook gets invoked when the program terminates.
 
+TODO: ibis.util
+
 \mysection{Compiling and Running an Ibis Program}
 
 Before running an Ibis application it must be compiled.
@@ -663,7 +765,15 @@ in a directory called \verb+build+.
 
 \mysection{The Satin Divide-and-Conquer System}
 
+TODO.
+
 \mysection{The GMI System}
+
+TODO.
+
+\mysection{Ibis RMI}
+
+TODO: limitations/restrictions.
 
 \mysection{Further Reading}
 
