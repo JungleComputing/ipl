@@ -82,7 +82,7 @@ public final class SATContext implements java.io.Serializable {
 
     private static final boolean doVerification = false;
     private static final boolean doLearning = true;
-    private static final boolean doJumps = true;
+    private static final boolean doJumps = false;
     private static final boolean propagatePureVariables = true;
 
     /**
@@ -604,7 +604,7 @@ public final class SATContext implements java.io.Serializable {
      * to jump to.
      * @param p The SAT problem.
      * @param arr A list of variables.
-     * @param c The clause to calculate the restart level for.
+     * @param cno The index of the clause the variables come from.
      * @return The recursion level to restart at.
      */
     private int calculateConflictLevel( SATProblem p, int arr[], int cno )
@@ -638,7 +638,7 @@ public final class SATContext implements java.io.Serializable {
      * to start the recursion at.
      * @param p The SAT problem.
      * @param c The clause to calculate the restart level for.
-     * @param c The index of the clause.
+     * @param cno The index of the clause.
      * @return The recursion level to restart at.
      */
     private int calculateConflictLevel( SATProblem p, Clause c, int cno )
@@ -771,11 +771,13 @@ public final class SATContext implements java.io.Serializable {
 		if( tracePropagation ){
 		    System.err.println( "S" + level + ": propagating positive unit variable " + v + " from clause " + c );
 		}
-                antecedent[v] = i;
-		int res = propagatePosAssignment( p, v, level, learnAsTuple, learn );
-		if( (res != 0) || !doVerification ){
-		    return res;
-		}
+                if( antecedent[v]<0 ){
+                    antecedent[v] = i;
+                }
+                else {
+                    System.err.println( "v" + v + " has more than one antecedent" );
+                }
+		return propagatePosAssignment( p, v, level, learnAsTuple, learn );
 	    }
 	}
 
@@ -788,13 +790,13 @@ public final class SATContext implements java.io.Serializable {
 		if( tracePropagation ){
 		    System.err.println( "S" + level + ": propagating negative unit variable " + v + " from clause " + c );
 		}
-                antecedent[v] = i;
-		int res = propagateNegAssignment( p, v, level, learnAsTuple, learn );
-		if( (res != 0) || !doVerification ){
-		    // The problem is now conflicting/satisfied, we're
-		    // done.
-		    return res;
-		}
+                if( antecedent[v]<0 ){
+                    antecedent[v] = i;
+                }
+                else {
+                    System.err.println( "v" + v + " has more than one antecedent" );
+                }
+		return propagateNegAssignment( p, v, level, learnAsTuple, learn );
 	    }
 	}
 	return SATProblem.UNDETERMINED;
@@ -904,7 +906,7 @@ public final class SATContext implements java.io.Serializable {
 		if( assignment[var] == UNASSIGNED ){
                     if( negclauses[var] != 0 ){
                         if( tracePropagation ){
-                            System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
+                            System.err.println( "v" + var + " only occurs negatively (0," + negclauses[var] + ")"  );
                         }
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
@@ -926,7 +928,7 @@ public final class SATContext implements java.io.Serializable {
 		if( assignment[var] == UNASSIGNED ){
                     if( posclauses[var] != 0 ){
                         if( tracePropagation ){
-                            System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
+                            System.err.println( "v" + var + " only occurs positively (" + posclauses[var] + ",0)"  );
                         }
                         // Only register the fact that there is an pure
                         // variable. Don't propagate it yet, since the
@@ -942,9 +944,14 @@ public final class SATContext implements java.io.Serializable {
 		int var = pos[i];
 
 		if( assignment[var] == UNASSIGNED && posclauses[var] == 0 && negclauses[var] != 0 ){
-                    antecedent[var] = cno;
+                    if( antecedent[var]<0 ){
+                        antecedent[var] = cno;
+                    }
+                    else {
+                        System.err.println( "v" + var + " has more than one antecedent" );
+                    }
 		    int res = propagateNegAssignment( p, var, level, learnAsTuple, learn );
-		    if( res != 0 ){
+		    if( res != SATProblem.UNDETERMINED ){
 			return res;
 		    }
 		}
@@ -953,9 +960,14 @@ public final class SATContext implements java.io.Serializable {
 		int var = neg[i];
 
 		if( assignment[var] == UNASSIGNED && negclauses[var] == 0 && posclauses[var] != 0 ){
-                    antecedent[var] = cno;
+                    if( antecedent[var]<0 ){
+                        antecedent[var] = cno;
+                    }
+                    else {
+                        System.err.println( "v" + var + " has more than one antecedent" );
+                    }
 		    int res = propagatePosAssignment( p, var, level, learnAsTuple, learn );
-		    if( res != 0 ){
+		    if( res != SATProblem.UNDETERMINED ){
 			return res;
 		    }
 		}
