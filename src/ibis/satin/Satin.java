@@ -247,6 +247,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			out.println("SATIN '" + hostName + "': init ibis" );
 		}
 
+		StaticProperties s = new StaticProperties();
+
 		for(int i=0; (i<10 && ibis == null); i++) {
 			try {
 				name = "ibis@" + hostName + "_" + Math.abs(random.nextInt());
@@ -259,6 +261,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				} else if (net) {
 					ibis = Ibis.createIbis(name,
 							       "ibis.impl.net.NetIbis", this);
+
+					Properties sysP = System.getProperties();
+					String ibisName = sysP.getProperty("ibis.name");
+					s.add("IbisName", ibisName);
+
 				} else {
 					ibis = Ibis.createIbis(name,
 							       "ibis.impl.tcp.TcpIbis", this);
@@ -296,7 +303,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		try {
 			Registry r = ibis.registry();
 
-			StaticProperties s = new StaticProperties();
 			if(ibisSerialization) {
 				s.add("Serialization", "ibis");
 				System.err.println("satin: using Ibis serialization");
