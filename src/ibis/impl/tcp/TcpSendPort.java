@@ -279,7 +279,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			if(rec == null) {
 				throw new IbisError("could not find connection in lostConnection");
 			}
-			if(connectUpcall != null) {
+			if(connectUpcall == null) {
 				lostConnections.add(rec);
 				return;
 			}

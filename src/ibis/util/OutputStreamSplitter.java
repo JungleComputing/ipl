@@ -54,7 +54,6 @@ public final class OutputStreamSplitter extends OutputStream {
 		boolean found = false;
 
 		for (int i=0;i<index;i++) { 
-
 			if (found) { 
 				out[i-1] = out[i];
 			} else { 
