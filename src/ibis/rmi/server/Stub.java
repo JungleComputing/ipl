@@ -24,37 +24,24 @@ public class Stub extends RemoteStub {
     
 	//serialize & deserialize
 
-	private void readObject(java.io.ObjectInputStream in) throws java.io.IOException { 
-		try { 
-// System.err.println("rmi.server.Stub: defaultReadObject ...");
-			in.defaultReadObject();
+	public final void initSend() throws IbisIOException {
+	    if (send == null) {
+		send = RTS.createSendPort();
+		send.connect(skeletonPortId);
+		reply = RTS.createReceivePort();
+		reply.enableConnections();
 
-// System.err.println("rmi.server.Stub: createSendPort ...");
-			send = RTS.createSendPort();
-// System.err.println("rmi.server.Stub: connect ...");
-			send.connect(skeletonPortId);
-			
-// System.err.println("rmi.server.Stub: createReceivePort ...");
-			reply = RTS.createReceivePort();
-			reply.enableConnections();
-// System.err.println("rmi.server.Stub: create receive port " + reply);
+		WriteMessage wm = send.newMessage();
+		wm.writeInt(-1);
+		wm.writeInt(0);
+		wm.writeObject(reply.identifier());
+		wm.send();
+		wm.finish();
 
-			WriteMessage wm = send.newMessage();
-			
-			wm.writeInt(-1);
-			wm.writeInt(0);
-			wm.writeObject(reply.identifier());
-			wm.send();
-			wm.finish();
-// System.err.println("rmi.server.Stub: sent id");
-			
-			ReadMessage rm = reply.receive();
-// System.err.println("rmi.server.Stub: received reply " + rm);
-			stubID = rm.readInt();
-			String stubType = (String) rm.readObject();
-			rm.finish();		
-		} catch (Exception e) { 
-			throw new java.io.IOException("EEK in readObject " + e);
-		} 
-	} 
+		ReadMessage rm = reply.receive();
+		stubID = rm.readInt();
+		String stubType = (String) rm.readObject();
+		rm.finish();		
+	    }
+	}
 }
