@@ -38,8 +38,11 @@ public interface ReadMessage {
 	public double readDouble() throws IOException;
 	public String readString() throws IOException;
 	/**
-	 * @exception May throw a ClassNotFoundException if an object arrives
-	 *	of a class that cannot be loaded locally
+	 * Note: implementations should take care that an array, written with one
+	 * of the writeArray variants, can be read with <code>readObject</code>.
+	 *
+	 * @exception ClassNotFoundException is thrown when an object arrives
+	 *	of a class that cannot be loaded locally.
 	 */
 	public Object readObject() throws IOException, ClassNotFoundException;
 
