@@ -107,11 +107,3 @@ Java properties:
 -- ibis.connect.hub_port=<port the hub is listening on>
    Information on how to contact the hub control process.
    Required when RoutedMessages are used; useless else.
-
--- ibis.connect.debug=(true|false)
-   Enable/disable full debug messages in ibis.connect.
-   Optional. Default is: disabled.
-
--- ibis.connect.verbose=(true|false)
-   Enable/disable verbose execution in ibis.connect.
-   Optional. Default is: disabled.

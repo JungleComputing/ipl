@@ -20,8 +20,8 @@ public abstract class Communication extends SpawnSync {
                 s.connect(ident);
                 success = true;
             } catch (IOException e) {
-                e.printStackTrace();
-                System.err.println("connecting to: " + ident);
+                grtLogger.info("IOException in connect to " + ident + ": "
+                        + e, e);
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e2) {
@@ -40,8 +40,8 @@ public abstract class Communication extends SpawnSync {
                 s.connect(ident, timeoutMillis);
                 success = true;
             } catch (IOException e) {
-                e.printStackTrace();
-                System.err.println("connecting to: " + ident);
+                grtLogger.info("IOException in connect to " + ident + ": "
+                        + e, e);
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e2) {
@@ -67,12 +67,9 @@ public abstract class Communication extends SpawnSync {
         do {
             s = victims.getReplyPort(id);
             if (s == null) {
-                if (COMM_DEBUG) {
-
-                    out.println("SATIN '" + this.ident.name()
-                            + "': could not get reply port to " + id.name()
-                            + ", retrying");
-                }
+                commLogger.debug("SATIN '" + this.ident.name()
+                        + "': could not get reply port to " + id.name()
+                        + ", retrying");
                 try {
                     wait();
                 } catch (Exception e) {
@@ -96,7 +93,7 @@ public abstract class Communication extends SpawnSync {
     boolean satinPoll() {
         if (POLL_FREQ == 0) { // polling is disabled
             if (HANDLE_MESSAGES_IN_LATENCY) {
-                System.err.println("Polling is disabled while messages are "
+                commLogger.fatal("Polling is disabled while messages are "
                         + "handled in the latency.\n"
                         + "This is a configuration error.");
                 System.exit(1);
@@ -107,7 +104,7 @@ public abstract class Communication extends SpawnSync {
         if (upcalls && !upcallPolling) {
             // we are using upcalls, but don't want to poll
             if (HANDLE_MESSAGES_IN_LATENCY) {
-                System.err .println("Polling is disabled while messages are "
+                commLogger.fatal("Polling is disabled while messages are "
                         + "handled in the latency.\n"
                         + "This is a configuration error.");
                 System.exit(1);
@@ -132,8 +129,8 @@ public abstract class Communication extends SpawnSync {
             try {
                 m = receivePort.poll();
             } catch (IOException e) {
-                System.err.println("SATIN '" + ident.name()
-                        + "': Got Exception while polling: " + e);
+                commLogger.warn("SATIN '" + ident.name()
+                        + "': Got Exception while polling: " + e, e);
             }
 
             if (m != null) {
@@ -142,14 +139,14 @@ public abstract class Communication extends SpawnSync {
                     // Finish the message, the upcall does not need to do this.
                     m.finish();
                 } catch (Exception e) {
-                    System.err.println("error in finish: " + e);
+                    commLogger.warn("error in finish: " + e, e);
                 }
             }
         } else {
             try {
                 ibis.poll(); // does not return message, but triggers upcall.
             } catch (Exception e) {
-                System.err.println("polling failed, continuing anyway");
+                commLogger.warn("polling failed, continuing anyway: " + e, e);
             }
         }
 
@@ -205,9 +202,7 @@ public abstract class Communication extends SpawnSync {
 
     /* Only allowed when not stealing. */
     void barrier() {
-        if (COMM_DEBUG) {
-            out.println("SATIN '" + ident.name() + "': barrier start");
-        }
+        commLogger.debug("SATIN '" + ident.name() + "': barrier start");
 
         // Close the world, no more join and leave upcalls will be received.
         if (!closed) {
@@ -267,8 +262,8 @@ public abstract class Communication extends SpawnSync {
                 }
             }
         } catch (IOException e) {
-            System.err.println(
-                    "SATIN '" + ident.name() + "': error in barrier");
+            commLogger.fatal("SATIN '" + ident.name() + "': error in barrier: "
+                    + e, e);
             System.exit(1);
         }
 
@@ -276,8 +271,6 @@ public abstract class Communication extends SpawnSync {
             ibis.enableResizeUpcalls();
         }
 
-        if (COMM_DEBUG) {
-            out.println("SATIN '" + ident.name() + "': barrier DONE");
-        }
+        commLogger.debug("SATIN '" + ident.name() + "': barrier DONE");
     }
 }

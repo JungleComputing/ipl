@@ -97,7 +97,7 @@ class RepMIStubGenerator extends RepMIGenerator {
         }
 
         if (!write) {
-            output.println("\t\t\tif (RTS.DEBUG) System.out.println("
+            output.println("\t\t\tRTS.logger.debug("
                     + "\"repmi_stub_" + data.classname + "." + m.getName()
                     + " doing LOCAL call\");");
             output.print("\t\t\t");
@@ -119,7 +119,7 @@ class RepMIStubGenerator extends RepMIGenerator {
             output.println(");");
             output.println();
         } else {
-            output.println("\t\t\tif (RTS.DEBUG) System.out.println("
+            output.println("\t\t\tRTS.logger.debug("
                     + "\"repmi_stub_" + data.classname + "." + m.getName()
                     + " doing GROUP call\");");
 

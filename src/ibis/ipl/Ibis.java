@@ -658,8 +658,9 @@ public abstract class Ibis {
      * ports are "totally-ordered" and "reliable" and support "NWS").
      * If no static properties are given, the properties that were
      * requested from the Ibis implementation are used, possibly combined
-     * with properties specified by the user (using the -Dibis.<category>="..."
-     * mechanism). If static properties <strong>are</strong> given,
+     * with properties specified by the user (using the
+     * -Dibis.&#60category&#62="..." mechanism).
+     * If static properties <strong>are</strong> given,
      * the default properties described above are used for categories 
      * not specifiedby the given properties.
      * <p>
@@ -677,6 +678,7 @@ public abstract class Ibis {
      * the same <code>PortType</code> can communicate.
      * Any number of <code>ReceivePort</code>s and <code>SendPort</code>s
      * can be created on a JVM (even of the same <code>PortType</code>).
+     * </p>
      * @param nm name of the porttype.
      * @param p properties of the porttype.
      * @return the porttype.

@@ -3,7 +3,6 @@
 package ibis.connect.socketFactory;
 
 import ibis.connect.tcpSplicing.TCPSpliceSocketType;
-import ibis.connect.util.MyDebug;
 import ibis.util.IPUtils;
 
 import java.io.BufferedInputStream;
@@ -17,6 +16,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.apache.log4j.Logger;
+
 /**
  * Socket type that attempts to set up a brokered connection in several ways.
  * First, an ordinary client/server connection is tried. If that fails,
@@ -27,6 +28,9 @@ import java.net.Socket;
  */
 public class AnyTCPSocketType extends SocketType implements
         BrokeredSocketFactory {
+
+    static Logger logger = Logger.getLogger(AnyTCPSocketType.class.getName());
+
     private static class ServerInfo implements Runnable {
         ServerSocket server;
 
@@ -50,7 +54,8 @@ public class AnyTCPSocketType extends SocketType implements
             try {
                 accpt = server.accept();
             } catch (Exception e) {
-                MyDebug.trace("AnyTCPSocketType server accept got " + e);
+                AnyTCPSocketType.logger.debug("AnyTCPSocketType server accept "
+                        + "got exception", e);
             }
             if (accpt != null) {
                 synchronized (this) {
@@ -86,12 +91,12 @@ public class AnyTCPSocketType extends SocketType implements
 
         for (int i = 0; i < 2; i++) {
             if (hint) {
-                MyDebug.trace("AnyTCPSocketType server side attempt");
+                logger.debug("AnyTCPSocketType server side attempt");
                 ServerInfo srv = getServerSocket();
                 String host
                     = srv.server.getInetAddress().getCanonicalHostName();
                 int port = srv.server.getLocalPort();
-                MyDebug.trace("AnyTCPSocketType server side host = " + host
+                logger.debug("AnyTCPSocketType server side host = " + host
                         + ", port = " + port);
                 os.writeUTF(host);
                 os.writeInt(port);
@@ -104,14 +109,14 @@ public class AnyTCPSocketType extends SocketType implements
                 srv.server.close(); // will cause exception in accept
                 // when it is still running.
                 if (success != 0) {
-                    MyDebug.trace("AnyTCPSocketType server side succeeds");
+                    logger.debug("AnyTCPSocketType server side succeeds");
                     return s;
                 }
-                MyDebug.trace("AnyTCPSocketType server side fails");
+                logger.debug("AnyTCPSocketType server side fails");
             } else {
                 String host = is.readUTF();
                 int port = is.readInt();
-                MyDebug.trace("AnyTCPSocketType client got host = " + host
+                logger.debug("AnyTCPSocketType client got host = " + host
                         + ", port = " + port);
                 InetSocketAddress target = new InetSocketAddress(host, port);
                 s = new Socket();
@@ -120,7 +125,7 @@ public class AnyTCPSocketType extends SocketType implements
                     // s.connect(target);
                     // No, a connect without timeout sometimes just hangs.
                 } catch (Exception e) {
-                    MyDebug.trace("AnyTCPSocketType client got exception " + e);
+                    logger.debug("AnyTCPSocketType client got exception", e);
                     os.writeInt(0); // failure
                     s = null;
                 }
@@ -129,17 +134,17 @@ public class AnyTCPSocketType extends SocketType implements
                 }
                 os.flush();
                 if (s != null) {
-                    MyDebug.trace("AnyTCPSocketType client side attempt "
+                    logger.debug("AnyTCPSocketType client side attempt "
                             + "succeeds");
                     return s;
                 }
-                MyDebug.trace("AnyTCPSocketType client side attempt fails");
+                logger.debug("AnyTCPSocketType client side attempt fails");
             }
 
             hint = !hint; // try the other way around
         }
 
-        MyDebug.trace("AnyTCPSocketType TCPSplice attempt");
+        logger.debug("AnyTCPSocketType TCPSplice attempt");
 
         TCPSpliceSocketType tp = new TCPSpliceSocketType();
         return tp.createBrokeredSocket(in, out, hint, p);

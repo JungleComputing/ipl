@@ -100,7 +100,7 @@ public class GlobalResultTable implements Upcall, Config {
                 str += "(POINTER,owner:" + owner + ")";
                 break;
             default:
-                System.err.println("SATIN '" + Satin.this_satin.ident.name()
+                grtLogger.error("SATIN '" + Satin.this_satin.ident.name()
                         + "': illegal type in value");
             }
             return str;
@@ -157,10 +157,9 @@ public class GlobalResultTable implements Upcall, Config {
             receive.enableConnections();
 
         } catch (IOException e) {
-            System.err.println("SATIN '" + satin.ident.name()
+            grtLogger.error("SATIN '" + satin.ident.name()
                     + "': Global result table - unable to create ports - "
-                    + e.getMessage());
-            e.printStackTrace();
+                    + e.getMessage(), e);
         }
     }
 
@@ -181,11 +180,9 @@ public class GlobalResultTable implements Upcall, Config {
 
         Value value = (Value) entries.get(key);
 
-        if (GRT_DEBUG) {
-            if (value != null) {
-                System.err.println("SATIN '" + satin.ident.name()
+        if (grtLogger.isDebugEnabled() && value != null) {
+            grtLogger.debug("SATIN '" + satin.ident.name()
                         + "': lookup successful " + key);
-            }
         }
         if (GRT_STATS && stats) {
             if (value != null) {
@@ -251,10 +248,8 @@ public class GlobalResultTable implements Upcall, Config {
                 }
                 satin.updatesToSend = true;
             } else {
-                // if (GRT_DEBUG) {
-                System.err.println("SATIN '" + satin.ident.name()
+                grtLogger.info("SATIN '" + satin.ident.name()
                         + "': sending update: " + key + "," + value);
-                // }
 
                 //send an update message
                 Iterator sendIter = sends.entrySet().iterator();
@@ -297,12 +292,10 @@ public class GlobalResultTable implements Upcall, Config {
                     try {
                         size = m.finish();
 
-                        /*
-                         * System.err.println("SATIN '" + satin.ident.name()
-                         *         + "': " + size + " sent in "
-                         *         + satin.tableSerializationTimer.lastTimeVal()
-                         *         + " to " + entry.getKey());
-                         */
+                        grtLogger.debug("SATIN '" + satin.ident.name()
+                                + "': " + size + " sent in "
+                                + satin.tableSerializationTimer.lastTimeVal()
+                                + " to " + entry.getKey());
 
                     } catch (IOException e) {
                         //always happens after a crash
@@ -323,10 +316,8 @@ public class GlobalResultTable implements Upcall, Config {
                  *     //always happens after the crash
                  * }
                  */
-                // if (GRT_DEBUG) {
-                System.err.println("SATIN '" + satin.ident.name()
+                grtLogger.info("SATIN '" + satin.ident.name()
                         + "': update sent: " + key + "," + value);
-                // }
             }
 
         }
@@ -338,10 +329,8 @@ public class GlobalResultTable implements Upcall, Config {
                 numLockUpdates++;
             }
         }
-        if (GRT_DEBUG) {
-            System.err.println("SATIN '" + satin.ident.name()
-                    + "': update complete: " + key + "," + value);
-        }
+        grtLogger.debug("SATIN '" + satin.ident.name()
+                + "': update complete: " + key + "," + value);
 
         if (GRT_TIMING) {
             updateTimer.stop();
@@ -380,7 +369,7 @@ public class GlobalResultTable implements Upcall, Config {
         Timer tableSerializationTimer = null;
 
         if (ASSERTS && !GRT_MESSAGE_COMBINING) {
-            System.err.println("SATIN '" + satin.ident.name()
+            grtLogger.error("SATIN '" + satin.ident.name()
                     + "': EEK send updates with GRT_MESSAGE_COMBINING off!");
             return;
         }
@@ -435,12 +424,10 @@ public class GlobalResultTable implements Upcall, Config {
             try {
                 long size = m.finish();
 
-                /*
-                 * System.err.println("SATIN '" + satin.ident.name() + "': "
-                 *         + size " sent in "
-                 *         + satin.tableSerializationTimer.lastTimeVal()
-                 *         + " to " + entry.getKey());
-                 */
+                grtLogger.debug("SATIN '" + satin.ident.name() + "': "
+                        + size + " sent in "
+                        + satin.tableSerializationTimer.lastTimeVal()
+                        + " to " + entry.getKey());
 
             } catch (IOException e) {
                 //always happens after a crash
@@ -482,7 +469,7 @@ public class GlobalResultTable implements Upcall, Config {
                     newEntries.put(key, value);
                     break;
                 default:
-                    System.err.println("SATIN '" + satin.ident.name()
+                    grtLogger.error("SATIN '" + satin.ident.name()
                             + "': EEK invalid value type in getContents()");
                 }
             }
@@ -495,7 +482,7 @@ public class GlobalResultTable implements Upcall, Config {
             Satin.assertLocked(satin);
         }
 
-        // System.err.println("adding contents");
+        grtLogger.debug("adding contents");
 
         entries.putAll(contents);
 
@@ -523,13 +510,12 @@ public class GlobalResultTable implements Upcall, Config {
             if (Satin.connect(send, r, satin.connectTimeout)) {
                 numReplicas++;
             } else {
-                System.err.println("SATN '" + satin.ident.name()
+                grtLogger.error("SATN '" + satin.ident.name()
                         + "': Transpositon table - unable to add new replica");
             }
         } catch (IOException e) {
-            System.err.println("SATN '" + satin.ident.name()
-                    + "': Transpositon table - unable to add new replica");
-            e.printStackTrace();
+            grtLogger.error("SATN '" + satin.ident.name()
+                    + "': Transpositon table - unable to add new replica", e);
         }
 
     }
@@ -559,9 +545,8 @@ public class GlobalResultTable implements Upcall, Config {
             }
             receive.close();
         } catch (IOException e) {
-            System.err.println("SATIN '" + satin.ident.name()
-                    + "': Unable to free global result table ports");
-            e.printStackTrace();
+            grtLogger.error("SATIN '" + satin.ident.name()
+                    + "': Unable to free global result table ports", e);
         }
     }
 
@@ -595,13 +580,11 @@ public class GlobalResultTable implements Upcall, Config {
             }
 
         } catch (IOException e) {
-            System.err.println("SATIN '" + satin.ident.name()
-                    + "': Global result table - error reading message");
-            e.printStackTrace();
+            grtLogger.error("SATIN '" + satin.ident.name()
+                    + "': Global result table - error reading message", e);
         } catch (ClassNotFoundException e1) {
-            System.err.println("SATIN '" + satin.ident.name()
-                    + "': Global result table - error reading message");
-            e1.printStackTrace();
+            grtLogger.error("SATIN '" + satin.ident.name()
+                    + "': Global result table - error reading message", e1);
         }
 
         if (GRT_TIMING) {
@@ -632,12 +615,12 @@ public class GlobalResultTable implements Upcall, Config {
             }
         }
 
-        if (GRT_DEBUG) {
+        if (grtLogger.isDebugEnabled()) {
             if (GRT_MESSAGE_COMBINING) {
-                System.err.println("SATIN '" + satin.ident.name()
+                grtLogger.debug("SATIN '" + satin.ident.name()
                         + "': upcall finished: " + entries.size());
             } else {
-                System.err.println("SATIN '" + satin.ident.name()
+                grtLogger.debug("SATIN '" + satin.ident.name()
                         + "': upcall finished:" + key + "," + value + ","
                         + entries.size());
             }
@@ -647,8 +630,6 @@ public class GlobalResultTable implements Upcall, Config {
             handleUpdateTimer.stop();
             satin.handleUpdateTimer.add(handleUpdateTimer);
         }
-        // System.err.println("handle update time: "
-        //         + satin.handleUpdateTimer.lastTimeVal());
     }
 
     public void print(java.io.PrintStream out) {

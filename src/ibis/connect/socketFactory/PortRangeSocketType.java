@@ -3,7 +3,6 @@
 package ibis.connect.socketFactory;
 
 import ibis.connect.util.ConnectionProperties;
-import ibis.connect.util.MyDebug;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,10 +13,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 // SocketType descriptor for PortRange sockets
 // -------------------------------------------
 public class PortRangeSocketType extends SocketType implements
         ClientServerSocketFactory, BrokeredSocketFactory {
+
+    static Logger logger
+            = Logger.getLogger(PortRangeSocketType.class.getName());
+
     private static int portNumber;
 
     private static int startRange;
@@ -38,7 +43,7 @@ public class PortRangeSocketType extends SocketType implements
                 startRange = Integer.parseInt(from);
                 endRange = Integer.parseInt(to);
                 portNumber = startRange;
-                MyDebug.trace("# PortRange: ports = " + startRange + "-"
+                logger.debug("# PortRange: ports = " + startRange + "-"
                         + endRange);
             } catch (Exception e) {
                 throw new Error(
@@ -79,7 +84,7 @@ public class PortRangeSocketType extends SocketType implements
         int res = portNumber++;
         if (portNumber >= endRange) {
             portNumber = startRange;
-            System.err.println("WARNING, used more ports than available within "
+            logger.warn("WARNING, used more ports than available within "
                     + "firewall range. Wrapping around");
         }
         return res;

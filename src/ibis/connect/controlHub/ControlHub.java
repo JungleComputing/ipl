@@ -4,7 +4,6 @@ package ibis.connect.controlHub;
 
 import ibis.connect.routedMessages.HubProtocol;
 import ibis.connect.util.ConnectionProperties;
-import ibis.connect.util.MyDebug;
 import ibis.util.TypedProperties;
 
 import java.io.EOFException;
@@ -18,6 +17,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
+
+import org.apache.log4j.Logger;
 
 /** Incarnates a thread dedicated to HubWire management 
  * towards a given node.
@@ -118,19 +119,20 @@ class NodeManager extends Thread {
                             destHost, destPort);
                     /* packet to forward */
                     if (node == null) {
-                        System.err.println("# ControlHub: node not found: "
-                                + destHost + ":" + destPort);
+                        ControlHub.logger.error(
+                                "# ControlHub: node not found: " + destHost
+                                + ":" + destPort);
                     } else {
                         /* replaces the destination with the sender. */
                         node.sendPacket(hostname, hostport, packet);
                     }
                 }
             } catch (EOFException e) {
-                System.err.println("# ControlHub: EOF detected for " + hostname
-                        + ":" + hostport);
+                ControlHub.logger.error("# ControlHub: EOF detected for "
+                        + hostname + ":" + hostport);
                 nodeRunning = false;
             } catch (SocketException e) {
-                System.err.println("# ControlHub: error detected for "
+                ControlHub.logger.error("# ControlHub: error detected for "
                         + hostname + ":" + hostport + "; wire closed.");
                 nodeRunning = false;
             } catch (Exception e) {
@@ -182,6 +184,8 @@ public class ControlHub extends Thread {
     private static Map nodes = new Hashtable();
 
     private static Map portNodeMap = new Hashtable();
+
+    public static Logger logger = Logger.getLogger(ControlHub.class.getName());
 
     private static int nodesNum = 0;
 
@@ -261,11 +265,11 @@ public class ControlHub extends Thread {
                 h = (Hashtable) o;
             }
             if (h.containsKey(new Integer(portno))) {
-                MyDebug.trace("# ControlHub: could not give portno " + portno
+                logger.debug("# ControlHub: could not give portno " + portno
                         + " to " + hostname + ":" + hostport);
                 return -1;
             }
-            MyDebug.trace("# ControlHub: giving portno " + portno + " to "
+            logger.debug("# ControlHub: giving portno " + portno + " to "
                     + hostname + ":" + hostport);
             h.put(new Integer(portno), new Integer(hostport));
             return portno;
@@ -291,7 +295,7 @@ public class ControlHub extends Thread {
                 }
                 a.add(new Integer(i));
                 h.put(new Integer(i), new Integer(hostport));
-                MyDebug.trace("# ControlHub: giving portno " + i + " to "
+                logger.debug("# ControlHub: giving portno " + i + " to "
                         + hostname + ":" + hostport);
             }
             return a;
@@ -308,7 +312,7 @@ public class ControlHub extends Thread {
             }
             h = (Hashtable) o;
             h.remove(new Integer(portno));
-            MyDebug.trace("# ControlHub: removing portno " + portno + " of "
+            logger.debug("# ControlHub: removing portno " + portno + " of "
                     + hostname + ":" + hostport);
         }
     }
@@ -325,7 +329,7 @@ public class ControlHub extends Thread {
             h = (Hashtable) o;
             for (int i = 0; i < ports.size(); i++) {
                 h.remove(ports.get(i));
-                MyDebug.trace("# ControlHub: removing portno "
+                logger.debug("# ControlHub: removing portno "
                         + ((Integer) ports.get(i)).intValue() + " of "
                         + hostname + ":" + hostport);
             }
@@ -349,7 +353,7 @@ public class ControlHub extends Thread {
                     h.remove(i);
                 }
             }
-            MyDebug.trace("# ControlHub: removing hostport " + hostport
+            logger.debug("# ControlHub: removing hostport " + hostport
                     + " of " + hostname);
         }
     }
@@ -360,14 +364,14 @@ public class ControlHub extends Thread {
             Object o = portNodeMap.get(hostname);
             Hashtable h;
             if (o == null) {
-                System.err.println("# ControlHub: could not resolve " + portno
+                logger.error("# ControlHub: could not resolve " + portno
                         + " for host " + hostname);
                 return -1;
             }
             h = (Hashtable) o;
             o = h.get(new Integer(portno));
             if (o == null) {
-                System.err.println("# ControlHub: could not resolve " + portno
+                logger.error("# ControlHub: could not resolve " + portno
                         + " for host " + hostname);
                 return -1;
             }

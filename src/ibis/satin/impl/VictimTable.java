@@ -131,11 +131,12 @@ final class VictimTable implements Config {
      *     try {
      *         v = ((Victim)victims.get(0));
      *     } catch (Exception e) {
-     *         System.err.println(e);
+     *         commLogger.fatal("Exception in getMasterVictim: " + e, e);
+     *         System.exit(1);
      *     }
      * 
      *     if(ASSERTS && v == null) {
-     *         System.err.println("EEK, v is null in getMasterVictim");
+     *         commLogger.fatal("getMasterVictim: v == null");
      *         System.exit(1);
      *     }
      * 
@@ -154,11 +155,11 @@ final class VictimTable implements Config {
             try {
                 v = ((Victim) victims.get(i));
             } catch (Exception e) {
-                System.err.println(e);
+                commLogger.debug("Exception in getVictim: " + e, e);
             }
 
             if (ASSERTS && v == null) {
-                System.err.println("EEK, v is null in getVictim");
+                commLogger.fatal("getVictim: v == null!");
                 System.exit(1);
             }
 
@@ -187,13 +188,12 @@ final class VictimTable implements Config {
             index = Math.abs(satin.random.nextInt()) % victims.size();
             v = ((Victim) victims.get(index));
         } catch (Exception e) {
-            System.err.println(e);
-            e.printStackTrace();
+            commLogger.fatal("Exception in getRandomVictim: " + e, e);
             System.exit(1);
         }
 
         if (ASSERTS && v == null) {
-            System.err.println("EEK, v is null in getRandomVictim");
+            commLogger.fatal("getRandomVictim: v == null");
             System.exit(1);
         }
 
@@ -216,13 +216,11 @@ final class VictimTable implements Config {
             return null;
         }
 
-        // try {
         index = Math.abs(satin.random.nextInt()) % clusterSize;
         v = thisCluster.get(index);
-        // } catch (Exception e) { System.err.println(e); }
 
         if (ASSERTS && v == null) {
-            System.err.println("EEK, v is null");
+            commLogger.fatal("getRandomLocalVictim: v == null");
             System.exit(1);
         }
 
@@ -244,8 +242,7 @@ final class VictimTable implements Config {
         }
 
         if (ASSERTS && clusters.get(0) != thisCluster) {
-            System.err.println("EEK I'm a bug in VictimTable,"
-                    + "firstCluster != me, please fix me!");
+            commLogger.fatal("getRandomRemoteVictim: firstCluster != me");
             System.exit(1);
         }
 
@@ -269,7 +266,7 @@ final class VictimTable implements Config {
         v = c.get(vIndex);
 
         if (ASSERTS && v == null) {
-            System.err.println("EEK, v is null");
+            commLogger.fatal("getRandomRemoteVictim: v == null");
             System.exit(1);
         }
 

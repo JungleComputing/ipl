@@ -26,6 +26,7 @@ import java.io.IOException;
  * active.</strong>
  * However, upcalls <strong>are</strong> allowed to enter/exit
  * synchronized methods for critical section operation.
+ * </p>
  */
 public interface Upcall {
     /**

@@ -16,9 +16,11 @@ import ibis.util.PoolInfo;
 import java.io.IOException;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 public final class RTS {
 
-    public final static boolean DEBUG = false;
+    public static Logger logger = Logger.getLogger(RTS.class.getName());
 
     public static int _rank;
 
@@ -60,9 +62,7 @@ public final class RTS {
 
             name = IPUtils.getLocalHostAddress().getHostName();
 
-            if (DEBUG) {
-                System.out.println(name + ": init RepMI RTS");
-            }
+            logger.debug(name + ": init RepMI RTS");
 
             ibis = Ibis.createIbis("ibis:" + name, "ibis.impl.tcp.TcpIbis",
                     null);
@@ -83,9 +83,7 @@ public final class RTS {
 
             if (localID.equals(i)) {
 
-                if (DEBUG) {
-                    System.out.println(name + " I am master");
-                }
+                logger.debug(name + " I am master");
 
                 /* I am the master */
                 PoolInfo info = PoolInfo.createPoolInfo();
@@ -123,9 +121,7 @@ public final class RTS {
 
             } else {
 
-                if (DEBUG) {
-                    System.out.println(name + " I am client");
-                }
+                logger.debug(name + " I am client");
 
                 systemIn = portType.createReceivePort("RepMI Client " + name);
                 systemIn.enableConnections();
@@ -173,9 +169,7 @@ public final class RTS {
 
             receivePort.enableUpcalls();
 
-            if (DEBUG) {
-                System.out.println(name + ": RepMI_RTS init");
-            }
+            logger.debug(name + ": RepMI_RTS init");
 
         } catch (Exception e) {
             System.err.println(name + ": Could not init RepMI_RTS " + e);

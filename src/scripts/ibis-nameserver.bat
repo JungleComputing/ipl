@@ -14,7 +14,6 @@ set ConnectHub="-Dibis.connect.enable -Dibis.connect.control_links=RoutedMessage
 
 set NS_ARGS=
 set JAVA_ARGS=
-set Ddebug=
 set Dhub=
 set Dport=
 set Dpoolport=
@@ -42,21 +41,6 @@ if "%1"=="-no-poolserver" (
 
 if "%1"=="-no-controlhub" (
     set NS_ARGS=%NS_ARGS% -no-controlhub
-    goto nextarg
-)
-
-if "%1"=="-debug" (
-    set Ddebug="-Dibis.connect.debug=true -Dibis.connect.verbose=true"
-    goto nextarg
-)
-
-if "%1"=="-d" (
-    set Ddebug=%Ddebug% "-Dibis.name_server.debug=true"
-    goto nextarg
-)
-
-if "%1"=="-v" (
-    set Ddebug=%Ddebug% "-Dibis.name_server.verbose=true"
     goto nextarg
 )
 
@@ -145,7 +129,7 @@ rem and for NT handling to skip to.
 
 :doneArgs
 
-"%JAVA_ROOT%\bin\java" -classpath "%JAVACLASSPATH%" %Ddebug% %Dhub% %Dport% %Dpoolport% %Dhubport% %Dhubhost% %JAVA_ARGS% ibis.impl.nameServer.tcp.NameServer %NS_ARGS%
+"%JAVA_ROOT%\bin\java" -classpath "%JAVACLASSPATH%" %Dhub% %Dport% %Dpoolport% %Dhubport% %Dhubhost% %JAVA_ARGS% ibis.impl.nameServer.tcp.NameServer %NS_ARGS%
 
 goto end
 
@@ -189,13 +173,6 @@ goto end
     echo     specifies the hostname with the controlhub that is to be used by the
     echo     nameserver. All communication with the nameserver will go through this
     echo     controlhub.
-    echo -v
-    echo     make the nameserver more verbose.
-    echo -d
-    echo     enable debugging prints in the nameserver.
-    echo -hubdebug
-    echo     enable debugging prints of communication with the controlhub (extremely
-    echo     verbose).
     echo -?
     echo     print this message
     echo -h

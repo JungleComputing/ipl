@@ -3,7 +3,6 @@
 package ibis.connect.socketFactory;
 
 import ibis.connect.util.ConnectionProperties;
-import ibis.connect.util.MyDebug;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
@@ -21,11 +20,15 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 /* A generalized SocketFactory which supports:
  -- client/server connection scheme
  -- brokered connections through a control link
  */
 public class ExtSocketFactory {
+    static Logger logger = Logger.getLogger(ExtSocketFactory.class.getName());
+
     /** Vector of SocketTypes in the order of preference
      * for the current strategy.
      */
@@ -66,9 +69,7 @@ public class ExtSocketFactory {
      */
     static {
         ConnectionProperties.checkProps();
-        if (MyDebug.VERBOSE()) {
-            System.err.println("# ExtSocketFactory: starting configuration."); 
-        }
+        logger.info("# ExtSocketFactory: starting configuration."); 
         // init types table
         declareNickname("PlainTCP",
                 "ibis.connect.socketFactory.PlainTCPSocketType");
@@ -104,9 +105,7 @@ public class ExtSocketFactory {
         }
 
         if (bl == null || cs == null) {
-            if (MyDebug.VERBOSE()) {
-                System.err.println("# Loading defaults...");
-            }
+            logger.info("# Loading defaults...");
             for (int i = 0; i < defaultTypes.length; i++) {
                 String n = defaultTypes[i];
                 loadSocketType(n);
@@ -122,13 +121,11 @@ public class ExtSocketFactory {
         } else {
             defaultClientServer = loadSocketType(cs);
         }
-        if (MyDebug.VERBOSE()) {
-            System.err.println("# Default for client-server: "
-                    + defaultClientServer.getSocketTypeName());
-            System.err.println("# Default for brokered link: "
-                    + defaultBrokeredLink.getSocketTypeName());
-            System.err.println("# ### ExtSocketFactory: configuration ok.");
-        }
+        logger.info("# Default for client-server: "
+                + defaultClientServer.getSocketTypeName());
+        logger.info("# Default for brokered link: "
+                + defaultBrokeredLink.getSocketTypeName());
+        logger.info("# ### ExtSocketFactory: configuration ok.");
     }
 
     /* static destructor
@@ -158,34 +155,29 @@ public class ExtSocketFactory {
         try {
             c = Class.forName(className);
         } catch (Exception e) {
-            System.err.println("# ExtSocketFactory: socket type " + socketType
+            logger.error("# ExtSocketFactory: socket type " + socketType
                     + " not found.");
-            System.err.println("#   known types are:");
+            logger.error("#   known types are:");
             Enumeration i = nicknames.keys();
             while (i.hasMoreElements()) {
-                System.err.println((String) i.nextElement());
+                logger.error((String) i.nextElement());
             }
             throw new Error("ExtSocketFactory: class not found: " + className,
                     e);
         }
         try {
             t = (SocketType) c.newInstance();
-            if (MyDebug.VERBOSE()) {
-                System.err.println("# Registering socket type: "
-                        + t.getSocketTypeName());
-                System.err.println("#   class name: " + t.getClass().getName());
-                System.err.println("#   supports client/server:  "
-                        + t.supportsClientServer());
-                System.err.println("#   supports brokered links: "
-                        + t.supportsBrokeredLinks());
-            }
+            logger.info("# Registering socket type: " + t.getSocketTypeName());
+            logger.info("#   class name: " + t.getClass().getName());
+            logger.info("#   supports client/server:  "
+                    + t.supportsClientServer());
+            logger.info("#   supports brokered links: "
+                    + t.supportsBrokeredLinks());
             types.add(t);
         } catch (Exception e) {
-            System.err.println("# ExtSocketFactory: Socket type constructor "
-                    + className + " got exception:");
-            e.printStackTrace();
-            System.err.println("# ExtSocketFactory: loadSocketType "
-                    + "returns null");
+            logger.error("# ExtSocketFactory: Socket type constructor "
+                    + className + " got exception:", e);
+            logger.error("# ExtSocketFactory: loadSocketType returns null");
         }
         return t;
     }
@@ -202,10 +194,9 @@ public class ExtSocketFactory {
         try {
             f = (ClientServerSocketFactory) t;
         } catch (Exception e) {
-            System.err.println("SocketFactory: SocketType "
-                               + t.getSocketTypeName()
-                               + " does not support client/sever connection "
-                               + "establishment.");
+            logger.error("SocketFactory: SocketType " + t.getSocketTypeName()
+                   + " does not support client/sever connection establishment"
+                   , e);
             throw new Error(e);
         }
         s = f.createClientSocket(addr, port);
@@ -230,10 +221,9 @@ public class ExtSocketFactory {
         try {
             f = (ClientServerSocketFactory) t;
         } catch (Exception e) {
-            System.err.println("SocketFactory: SocketType "
-                               + t.getSocketTypeName()
-                               + " does not support client/sever connection "
-                               + "establishment.");
+            logger.error("SocketFactory: SocketType " + t.getSocketTypeName()
+                   + " does not support client/sever connection establishment",
+                   e);
             throw new Error(e);
         }
         s = f.createServerSocket(addr, backlog);
@@ -248,12 +238,11 @@ public class ExtSocketFactory {
         try {
             f = (BrokeredSocketFactory) t;
         } catch (Exception e) {
-            System.err.println("SocketFactory: SocketType "
-                    + t.getSocketTypeName()
-                    + " does not support brokered connection establishment.");
+            logger.error("SocketFactory: SocketType " + t.getSocketTypeName()
+                    + " does not support brokered connection establishment", e);
             throw new Error(e);
         }
-        MyDebug.debug("SocketFactory: creating brokered socket- hint="
+        logger.debug("SocketFactory: creating brokered socket- hint="
                 + hintIsServer + "; type=" + t.getSocketTypeName());
         s = f.createBrokeredSocket(in, out, hintIsServer, props);
         tuneSocket(s, props);
@@ -284,10 +273,8 @@ public class ExtSocketFactory {
             t = parallel ? loadSocketType("ParallelStreams")
                     : defaultBrokeredLink;
         } else {
-            if (MyDebug.VERBOSE()) {
-                System.err.println("# Selected socket type '" + st
-                        + "' through properties.");
-            }
+            logger.info("# Selected socket type '" + st
+                    + "' through properties.");
             t = findSocketType(st);
         }
         if (t == null) {
@@ -354,15 +341,12 @@ public class ExtSocketFactory {
         for (int i = 0; i < types.size(); i++) {
             SocketType t = (SocketType) types.get(i);
             if (t.supportsClientServer()) {
-                if (MyDebug.VERBOSE()) {
-                    System.err.println("# Selected type: '"
-                            + t.getSocketTypeName()
+                logger.info("# Selected type: '" + t.getSocketTypeName()
                             + "' for client/server connection.");
-                }
                 return t;
             }
         }
-        System.err.println("# ExtSocketFactory: warning- no SocketType found "
+        logger.error("# ExtSocketFactory: warning- no SocketType found "
                 + "for client/server link!");
         return null;
     }
@@ -374,14 +358,12 @@ public class ExtSocketFactory {
         for (int i = 0; i < types.size(); i++) {
             SocketType t = (SocketType) types.get(i);
             if (t.supportsBrokeredLinks()) {
-                if (MyDebug.VERBOSE()) {
-                    System.err.println("# Selected type: '"
-                            + t.getSocketTypeName() + "' for brokered link.");
-                }
+                logger.info("# Selected type: '" + t.getSocketTypeName()
+                        + "' for brokered link.");
                 return t;
             }
         }
-        System.err.println("# ExtSocketFactory: warning- no SocketType found "
+        logger.warn("# ExtSocketFactory: warning- no SocketType found "
                 + "for brokered links!");
         return null;
     }

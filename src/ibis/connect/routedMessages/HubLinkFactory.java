@@ -3,13 +3,16 @@
 package ibis.connect.routedMessages;
 
 import ibis.connect.util.ConnectionProperties;
-import ibis.connect.util.MyDebug;
 
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 public class HubLinkFactory {
     private static HubLink hub = null;
+
+    static Logger logger = Logger.getLogger(HubLinkFactory.class.getName());
 
     private static boolean closed = false;
 
@@ -39,23 +42,21 @@ public class HubLinkFactory {
             }
 
             if (host != null) {
-                if (MyDebug.VERBOSE()) {
-                    System.err.println("# Creating link to hub- host=" + host
-                            + "; port=" + port);
-                }
+                logger.info("# Creating link to hub- host=" + host + "; port="
+                        + port);
                 hub = new HubLink(host, port);
                 hub.setDaemon(true);
                 hub.start();
                 enabled = true;
-            } else if (MyDebug.VERBOSE()) {
-                System.err.println(
+            } else {
+                logger.info(
                         "# HubLinkFactory: 'hub' properties not set");
-                System.err.println(
+                logger.info(
                         "# (ibis.connect.hub_host or ibis.name_server.host).");
-                System.err.println("# Not creating wire to hub.");
+                logger.info("# Not creating wire to hub.");
             }
         } catch (Exception e) {
-            System.err.println("# HubLinkFactory: Cannot create wire to hub.");
+            logger.error("# HubLinkFactory: Cannot create wire to hub.");
         }
     }
 

@@ -5,6 +5,8 @@ package ibis.gmi;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 /**
  * To be part of a group, an object must implement the {@link GroupInterface}
  * and extent the {@link GroupMember} class.
@@ -12,6 +14,9 @@ import java.util.Vector;
 public class GroupMember {
     /** An identification of the group of which this is a member. */
     public int groupID;
+
+    protected static Logger logger
+            = Logger.getLogger(GroupMember.class.getName());
 
     /** Skeleton identifications of all group members. */
     public int[] memberSkels;
@@ -49,9 +54,7 @@ public class GroupMember {
      */
     public GroupMember() {
 
-        if (Group.DEBUG) {
-            System.out.println("GroupMember() starting");
-        }
+        logger.debug("GroupMember() starting");
 
         try {
             String my_package = "";
@@ -70,19 +73,14 @@ public class GroupMember {
 
             String my_name = s.nextToken();
 
-            if (Group.DEBUG) {
-                System.out.println("GroupMember() my type is " + my_package
-                        + my_name);
-            }
+            logger.debug("GroupMember() my type is " + my_package + my_name);
 
             /* Now create a skeleton. */
             skeleton = (GroupSkeleton) Class.forName(
                     my_package + "group_skeleton_" + my_name).newInstance();
             mySkel = Group.getNewSkeletonID(skeleton);
 
-            if (Group.DEBUG) {
-                System.out.println("GroupMember() skelID is " + mySkel);
-            }
+            logger.debug("GroupMember() skelID is " + mySkel);
 
             Vector group_interfaces = new Vector();
 
@@ -103,33 +101,21 @@ public class GroupMember {
 
             groupInterfaces = new String[group_interfaces.size()];
 
-            if (Group.DEBUG) {
-                System.out.print("GroupMember type " + myClass.getName()
+            logger.debug("GroupMember type " + myClass.getName()
                         + " implements the group interfaces : ");
-            }
 
             for (int i = 0; i < group_interfaces.size(); i++) {
                 groupInterfaces[i]
                         = ((Class) group_interfaces.get(i)).getName();
-                if (Group.DEBUG) {
-                    System.out.print(groupInterfaces[i] + " ");
-                }
+                logger.debug("\t" + groupInterfaces[i]);
             }
 
-            if (Group.DEBUG) {
-                System.out.println();
-            }
         } catch (Exception e) {
-            if (Group.DEBUG) {
-                System.out.println(" not found");
-            }
             System.out.println("GroupMember could not init " + e);
             System.exit(1);
         }
 
-        if (Group.DEBUG) {
-            System.out.println("GroupMember() done");
-        }
+        logger.debug("GroupMember() done");
     }
 
     /**
@@ -181,9 +167,7 @@ public class GroupMember {
      * @param skels the skeleton identifications of all members in the group
      */
     protected void init(int groupNumber, int[] ranks, int[] skels) {
-        if (Group.DEBUG) {
-            System.out.println("GroupMember.init() starting");
-        }
+        logger.debug("GroupMember.init() starting");
 
         groupID = groupNumber;
         memberRanks = ranks;
@@ -199,10 +183,8 @@ public class GroupMember {
             }
             multicastHosts[i] = memberRanks[i];
 
-            if (Group.DEBUG) {
-                System.out.println("GroupMember " + i + " is on machine "
-                        + memberRanks[i]);
-            }
+            logger.debug("GroupMember " + i + " is on machine "
+                    + memberRanks[i]);
         }
 
         /* sort multicastranks low...high (bubble sort) */
@@ -230,11 +212,8 @@ public class GroupMember {
         skeleton.init(this);
         Group.registerGroupMember(groupID, skeleton);
 
-        if (Group.DEBUG) {
-            System.out.println("GroupMember.init() myGroupRank = "
-                    + myGroupRank + " groupSize = " + groupSize);
-            System.out.println("GroupMember.init() done");
-        }
+        logger.debug("GroupMember.init() myGroupRank = " + myGroupRank
+                + " groupSize = " + groupSize + ": done");
 
         groupInit();
     }
@@ -245,8 +224,6 @@ public class GroupMember {
      * object or the size of the group.
      */
     public void groupInit() {
-        if (Group.DEBUG) {
-            System.out.println("GroupMember.groupInit()");
-        }
+        logger.debug("GroupMember.groupInit()");
     }
 }

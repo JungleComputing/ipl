@@ -188,7 +188,7 @@ class GMIStubGenerator extends GMIGenerator {
         writeSpecialHeader(spacing, m, "COMBINED_" + caps_type);
 
         output.println(spacing
-                + "\tif (Group.DEBUG) System.out.println(\"group_stub_"
+                + "\tlogger.debug(\"group_stub_"
                 + data.classname + "." + m.getName() + " doing COMBINED_"
                 + caps_type + " call\");");
 
@@ -243,7 +243,7 @@ class GMIStubGenerator extends GMIGenerator {
         writeSpecialHeader(spacing, m, "SINGLE");
 
         output.println(spacing
-                + "\tif (Group.DEBUG) System.out.println(\"group_stub_"
+                + "\tlogger.debug(\"group_stub_"
                 + data.classname + "." + m.getName()
                 + " doing SINGLE call\");");
         output.println(spacing + "\tGroupMessage r;");
@@ -428,7 +428,7 @@ class GMIStubGenerator extends GMIGenerator {
         writeSpecialHeader(spacing, m, "GROUP");
 
         output.println(spacing
-                + "\tif (Group.DEBUG) System.out.println(\"group_stub_"
+                + "\tlogger.debug(\"group_stub_"
                 + data.classname + "." + m.getName() + " doing GROUP call\");");
 
         output.println(spacing + "\tGroupMessage r;");
@@ -469,7 +469,7 @@ class GMIStubGenerator extends GMIGenerator {
         writeSpecialHeader(spacing, m, "PERSONAL");
 
         output.println(spacing
-                + "\tif (Group.DEBUG) System.out.println(\"group_stub_"
+                + "\tlogger.debug(\"group_stub_"
                 + data.classname + "." + m.getName()
                 + " doing PERSONAL call\");");
 

@@ -87,16 +87,13 @@ public final class Satin extends APIMethods implements ResizeHandler,
         PoolInfo pool = null;
         int poolSize = 0; /* Only used with closed world. */
 
-        if (COMM_DEBUG) {
-            out.println("SATIN '" + hostName + "': init ibis");
-        }
+        commLogger.debug("SATIN '" + hostName + "': init ibis");
 
         try {
             ibis = Ibis.createIbis(ibisProperties, this);
         } catch (IbisException e) {
-            System.err.println("SATIN '" + hostName
-                    + "': Could not start ibis: " + e.getMessage());
-            // e.printStackTrace();
+            commLogger.fatal("SATIN '" + hostName
+                    + "': Could not start ibis: " + e, e);
             System.exit(1);
         }
 
@@ -112,10 +109,8 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
         victims = new VictimTable(this); //victimTable accesses ident..
 
-        if (COMM_DEBUG) {
-            out.println("SATIN '" + hostName + "': init ibis DONE, "
-                    + "my cluster is '" + ident.cluster() + "'");
-        }
+        commLogger.debug("SATIN '" + hostName + "': init ibis DONE, "
+                + "my cluster is '" + ident.cluster() + "'");
 
         try {
             Registry r = ibis.registry();
@@ -128,17 +123,12 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
             if (masterIdent.equals(ident)) {
                 /* I an the master. */
-                if (COMM_DEBUG) {
-                    out.println("SATIN '" + hostName
-                            + "': init ibis: I am the master");
-                }
-                // System.out.println("master is " + masterIdent);
+                commLogger.info("SATIN '" + hostName
+                        + "': init ibis: I am the master");
                 master = true;
             } else {
-                if (COMM_DEBUG) {
-                    out.println("SATIN '" + hostName
-                            + "': init ibis I am slave");
-                }
+                commLogger.info("SATIN '" + hostName
+                        + "': init ibis I am slave");
             }
 
             if (FAULT_TOLERANCE) {
@@ -148,7 +138,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
                     if (clusterCoordinatorIdent.equals(ident)) {
                         /* I am the cluster coordinator */
                         clusterCoordinator = true;
-                        System.out.println("cluster coordinator for cluster "
+                        ftLogger.info("cluster coordinator for cluster "
                                 + ident.cluster() + " is "
                                 + clusterCoordinatorIdent);
                     }
@@ -171,7 +161,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
                             + ident.name(), messageHandler, this);
                 } else {
                     if (master) {
-                        System.err.println("SATIN: using blocking receive");
+                        commLogger.info("SATIN: using blocking receive");
                     }
                     receivePort = portType.createReceivePort("satin port on "
                             + ident.name(), this);
@@ -182,7 +172,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
                             + ident.name(), messageHandler);
                 } else {
                     if (master) {
-                        System.err.println("SATIN: using blocking receive");
+                        commLogger.info("SATIN: using blocking receive");
                     }
                     receivePort = portType.createReceivePort("satin port on "
                             + ident.name());
@@ -216,15 +206,12 @@ public final class Satin extends APIMethods implements ResizeHandler,
                         + ident.name());
             }
         } catch (Exception e) {
-            System.err.println("SATIN '" + hostName
-                    + "': Could not start ibis: " + e);
-            e.printStackTrace();
+            commLogger.fatal("SATIN '" + hostName
+                    + "': Could not start ibis: " + e, e);
             System.exit(1);
         }
 
-        if (COMM_DEBUG) {
-            out.println("SATIN '" + ident.name() + "': init ibis DONE2");
-        }
+        commLogger.debug("SATIN '" + ident.name() + "': init ibis DONE2");
 
         if (stats && master) {
             totalStats = new StatsMessage();
@@ -232,18 +219,16 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
         if (master) {
             if (closed) {
-                System.out.println("SATIN '" + hostName
+                commLogger.info("SATIN '" + hostName
                         + "': running with closed world, " + poolSize
                         + " host(s)");
             } else {
-                System.err.println("SATIN '" + hostName
+                commLogger.info("SATIN '" + hostName
                         + "': running with open world");
             }
         }
 
-        if (COMM_DEBUG) {
-            out.println("SATIN '" + hostName + "': algorithm created");
-        }
+        commLogger.debug("SATIN '" + hostName + "': algorithm created");
 
         if (upcalls) {
             receivePort.enableUpcalls();
@@ -265,9 +250,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
         ibis.enableResizeUpcalls();
 
-        if (COMM_DEBUG) {
-            out.println("SATIN '" + hostName + "': pre barrier");
-        }
+        commLogger.debug("SATIN '" + hostName + "': pre barrier");
 
         if (closed) {
             synchronized (this) {
@@ -275,14 +258,11 @@ public final class Satin extends APIMethods implements ResizeHandler,
                     try {
                         wait();
                     } catch (InterruptedException e) {
-                        System.err.println("eek: " + e);
                         // Ignore.
                     }
                 }
-                if (COMM_DEBUG) {
-                    out.println("SATIN '" + hostName
-                            + "': barrier, everybody has joined");
-                }
+                commLogger.debug("SATIN '" + hostName
+                        + "': barrier, everybody has joined");
 
                 // ibis.closeWorld();
             }
@@ -291,9 +271,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
         }
 
-        if (COMM_DEBUG) {
-            out.println("SATIN '" + hostName + "': post barrier");
-        }
+        commLogger.debug("SATIN '" + hostName + "': post barrier");
 
         if (killTime > 0) {
             (new KillerThread(killTime)).start();
@@ -317,15 +295,15 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
         if (FAULT_TOLERANCE) {
             if (FT_NAIVE) {
-                System.out.println("naive FT on");
+                ftLogger.info("naive FT on");
             } else {
-                System.out.println("FT on, GRT "
+                ftLogger.info("FT on, GRT "
                         + (GLOBAL_RESULT_TABLE_REPLICATED ? "replicated"
                                 : "distributed, message combining ")
                         + (GRT_MESSAGE_COMBINING ? "on" : "off"));
             }
         } else {
-            // System.out.println("FT off");
+            ftLogger.info("FT off");
         }
 
         totalTimer.start();

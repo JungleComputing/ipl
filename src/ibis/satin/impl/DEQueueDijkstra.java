@@ -33,7 +33,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 
     void addToHead(InvocationRecord r) {
         if (head == size) {
-            // System.err.println("doubling DEq, new size = " + (size*2));
+            spawnLogger.debug("doubling DEq, new size = " + (size*2));
 
             synchronized (satin) {
                 size *= 2;
@@ -118,23 +118,21 @@ final class DEQueueDijkstra extends DEQueue implements Config {
         for (int i = tail; i < head; i++) {
             InvocationRecord curr = l[i];
             if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
-                if (ABORT_DEBUG) {
-                    System.err.println("found local child: " + curr.stamp
-                            + ", it depends on " + targetStamp);
-                }
+                abortLogger.debug("found local child: " + curr.stamp
+                        + ", it depends on " + targetStamp);
 
                 curr.aborted = true;
                 if (ABORT_STATS) {
                     satin.abortedJobs++;
                 }
-                if (SPAWN_DEBUG) {
+                if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
                     curr.spawnCounter.value--;
                 }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
-                    System.err.println("Just made spawncounter < 0");
-                    new Exception().printStackTrace();
+                    spawnLogger.fatal("Just made spawncounter < 0",
+                            new Throwable());
                     System.exit(1);
                 }
                 removeJob(i);
@@ -168,14 +166,14 @@ final class DEQueueDijkstra extends DEQueue implements Config {
                     || curr.owner.equals(owner)) {
                 // Should'nt happen.
                 curr.aborted = true;
-                if (SPAWN_DEBUG) {
+                if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
                     curr.spawnCounter.value--;
                 }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
-                    System.out.println("Just made spawncounter < 0");
-                    new Exception().printStackTrace();
+                    spawnLogger.fatal("Just made spawncounter < 0",
+                            new Throwable());
                     System.exit(1);
                 }
                 removeJob(i);

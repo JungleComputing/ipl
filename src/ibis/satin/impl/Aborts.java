@@ -26,14 +26,12 @@ public abstract class Aborts extends WorkStealing {
         // it is just used for assigning results.
         // get the lock, so no-one can steal jobs now, and no-one can change my
         // tables.
-        //		System.err.println("q " + q.size() + ", s " + onStack.size() + ", o "
-        // + outstandingJobs.size());
+        abortLogger.debug("q " + q.size() + ", s " + onStack.size() + ", o "
+                + outstandingJobs.size());
         try {
-            if (ABORT_DEBUG) {
-                out.println("SATIN '" + ident.name()
-                        + "': Abort, outstanding = " + outstandingSpawns
-                        + ", thrower = " + exceptionThrower);
-            }
+            abortLogger.debug("SATIN '" + ident.name()
+                    + "': Abort, outstanding = " + outstandingSpawns
+                    + ", thrower = " + exceptionThrower);
             if (SPAWN_STATS) {
                 aborts++;
             }
@@ -41,10 +39,8 @@ public abstract class Aborts extends WorkStealing {
             if (exceptionThrower != null) { // can be null if root does an
                 // abort.
                 // kill all children of the parent of the thrower.
-                if (ABORT_DEBUG) {
-                    out.println("killing children of "
-                            + exceptionThrower.parentStamp);
-                }
+                abortLogger.debug("killing children of "
+                        + exceptionThrower.parentStamp);
                 killChildrenOf(exceptionThrower.parentStamp,
                         exceptionThrower.parentOwner);
             }
@@ -58,18 +54,13 @@ public abstract class Aborts extends WorkStealing {
                     stamp = outstandingSpawns.parent.stamp;
                 }
 
-                if (ABORT_DEBUG) {
-                    out.println("killing children of my own: " + stamp);
-                }
+                abortLogger.debug("killing children of my own: " + stamp);
                 killChildrenOf(stamp, ident);
             }
 
-            if (ABORT_DEBUG) {
-                out.println("SATIN '" + ident.name() + "': Abort DONE");
-            }
+            abortLogger.debug("SATIN '" + ident.name() + "': Abort DONE");
         } catch (Exception e) {
-            System.err.println("GOT EXCEPTION IN RTS!: " + e);
-            e.printStackTrace();
+            abortLogger.warn("GOT EXCEPTION IN RTS!: " + e, e);
         }
     }
 
@@ -85,7 +76,7 @@ public abstract class Aborts extends WorkStealing {
          * while(true) {
          *     long abortCount = abortedJobs;
          * 
-         *     System.err.println("killChildrenOf: iter = " + iter 
+         *     abortLogger.debug("killChildrenOf: iter = " + iter 
          *             + " abort cnt = " + abortedJobs);
          */
         // try work queue, outstanding jobs and jobs on the stack
@@ -150,7 +141,6 @@ public abstract class Aborts extends WorkStealing {
      *                 child.parentOwners.get(i);
      * 
      *         if (currStamp == targetStamp && currOwner.equals(targetOwner)) {
-     *             System.err.print("t");
      *             return true;
      *         }
      *     }
@@ -162,11 +152,9 @@ public abstract class Aborts extends WorkStealing {
      * unlikely that one node stole more than one job from me
      */
     void sendAbortMessage(InvocationRecord r) {
-        if (ABORT_DEBUG) {
-            out.println("SATIN '" + ident.name()
-                    + ": sending abort message to: " + r.stealer + " for job "
-                    + r.stamp);
-        }
+        abortLogger.debug("SATIN '" + ident.name()
+                + ": sending abort message to: " + r.stealer + " for job "
+                + r.stamp);
 
         if (deadIbises.contains(r.stealer)) {
             /* don't send abort and store messages to crashed ibises */
@@ -194,11 +182,12 @@ public abstract class Aborts extends WorkStealing {
                 }
             }
         } catch (IOException e) {
-            System.err.println("SATIN '" + ident.name()
-                    + "': Got Exception while sending abort message: " + e);
+            abortLogger.info("SATIN '" + ident.name()
+                    + "': Got Exception while sending abort message: " + e, e);
             // This should not be a real problem, it is just inefficient.
             // Let's continue...
             // System.exit(1);
+            // if we don't continue, make this a "fatal".
         }
     }
 
@@ -206,9 +195,7 @@ public abstract class Aborts extends WorkStealing {
         if (ASSERTS) {
             assertLocked(this);
         }
-        if (ABORT_DEBUG) {
-            out.println("SATIN '" + ident.name() + ": got abort message");
-        }
+        abortLogger.debug("SATIN '" + ident.name() + ": got abort message");
         abortList.add(stamp, owner);
         gotAborts = true;
     }
@@ -227,11 +214,9 @@ public abstract class Aborts extends WorkStealing {
                 return;
             }
 
-            if (ABORT_DEBUG) {
-                out.println("SATIN '" + ident.name()
-                        + ": handling abort message: stamp = " + stamp
-                        + ", owner = " + owner);
-            }
+            abortLogger.debug("SATIN '" + ident.name()
+                    + ": handling abort message: stamp = " + stamp
+                    + ", owner = " + owner);
 
             if (ABORT_STATS) {
                 aborts++;
@@ -239,11 +224,9 @@ public abstract class Aborts extends WorkStealing {
 
             killChildrenOf(stamp, owner);
 
-            if (ABORT_DEBUG) {
-                out.println("SATIN '" + ident.name()
-                        + ": handling abort message: stamp = " + stamp
-                        + ", owner = " + owner + " DONE");
-            }
+            abortLogger.debug("SATIN '" + ident.name()
+                    + ": handling abort message: stamp = " + stamp
+                    + ", owner = " + owner + " DONE");
         }
     }
 }

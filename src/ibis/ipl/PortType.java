@@ -18,6 +18,7 @@ import java.io.IOException;
  * the amount of administration that must be kept is dependent on the
  * frequency of the user downcalls. If the user never does a downcall,
  * the administration is kept indefinitely.
+ * </p>
  */
 
 public abstract class PortType {

@@ -126,11 +126,9 @@ final class IRVector implements Config {
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
                 curr.aborted = true;
-                if (ABORT_DEBUG) {
-                    System.out.println("found stolen child: " + curr.stamp
-                            + ", it depends on " + targetStamp);
-                }
-                if (SPAWN_DEBUG) {
+                abortLogger.debug("found stolen child: " + curr.stamp
+                        + ", it depends on " + targetStamp);
+                if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
                     curr.spawnCounter.value--;
@@ -173,11 +171,9 @@ final class IRVector implements Config {
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
                 curr.aborted = true;
-                if (ABORT_DEBUG) {
-                    System.out.println("found stolen child: " + curr.stamp
-                            + ", it depends on " + targetStamp);
-                }
-                if (SPAWN_DEBUG) {
+                abortLogger.debug("found stolen child: " + curr.stamp
+                        + ", it depends on " + targetStamp);
+                if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
                     curr.spawnCounter.value--;
@@ -221,11 +217,9 @@ final class IRVector implements Config {
                     || curr.owner.equals(targetOwner)) {
                 //this shouldnt happen, actually
                 curr.aborted = true;
-                if (ABORT_DEBUG) {
-                    System.out.println("found stolen child: " + curr.stamp
-                            + ", it depends on " + targetOwner);
-                }
-                if (SPAWN_DEBUG) {
+                abortLogger.debug("found stolen child: " + curr.stamp
+                        + ", it depends on " + targetOwner);
+                if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
                     curr.spawnCounter.value--;
@@ -269,7 +263,7 @@ final class IRVector implements Config {
                     || curr.owner.equals(targetOwner)) {
                 //this shouldnt happen, actually
                 curr.aborted = true;
-                if (SPAWN_DEBUG) {
+                if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
                     curr.spawnCounter.value--;
@@ -297,7 +291,7 @@ final class IRVector implements Config {
         for (int i = 0; i < count; i++) {
             curr = l[i];
             curr.aborted = true;
-            if (SPAWN_DEBUG) {
+            if (spawnLogger.isDebugEnabled()) {
                 curr.spawnCounter.decr(curr);
             } else {
                 curr.spawnCounter.value--;

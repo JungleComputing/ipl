@@ -90,13 +90,6 @@ The nameserver parameters are:
     specifies the hostname with the controlhub that is to be used by the
     nameserver. All communication with the nameserver will go through this
     controlhub.
--v
-    make the nameserver more verbose.
--d
-    enable debugging prints in the nameserver.
--hubdebug
-    enable debugging prints of communication with the controlhub (extremely
-    verbose).
 -?
 -h
 -help
@@ -114,9 +107,6 @@ do
     case "$1" in
     -\?|-h|-help|--help)
 	usage
-	;;
-    -hubdebug)
-	Ddefines="$Ddefines -Dibis.connect.debug=true -Dibis.connect.verbose=true"
 	;;
     -poolserver|-no-poolserver|-single|-no-controlhub)
 	args="$args $1"
@@ -168,12 +158,6 @@ do
 	    Ddefines="$Ddefines -Dibis.connect.hub_host=$1"
 	fi
 	has_enable=1
-	;;
-    -v)
-	Ddefines="$Ddefines -Dibis.name_server.verbose=true"
-	;;
-    -d)
-	Ddefines="$Ddefines -Dibis.name_server.debug=true"
 	;;
     *)
 	javaargs="$javaargs $1"

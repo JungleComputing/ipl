@@ -17,13 +17,9 @@ public class ConnectionProperties {
 
     public static final String enable = PROPERTY_PREFIX + "enable";
 
-    public static final String debug = PROPERTY_PREFIX + "debug";
-
     public static final String par_numways = PROPERTY_PREFIX + "NumWays";
 
     public static final String par_blocksize = PROPERTY_PREFIX + "BlockSize";
-
-    public static final String verbose = PROPERTY_PREFIX + "verbose";
 
     public static final String port_range = PROPERTY_PREFIX + "port_range";
 
@@ -42,8 +38,8 @@ public class ConnectionProperties {
     public static final String osize = PROPERTY_PREFIX + "OutputBufferSize";
 
     private static final String[] sysprops = { hub_port, hub_host, enable,
-            debug, verbose, port_range, splice_port, hub_stats, datalinks,
-            controllinks, par_numways, par_blocksize, sizes, isize, osize };
+            port_range, splice_port, hub_stats, datalinks, controllinks,
+            par_numways, par_blocksize, sizes, isize, osize };
 
     public static void checkProps() {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);

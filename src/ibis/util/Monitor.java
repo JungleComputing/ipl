@@ -17,13 +17,13 @@ public final class Monitor {
 
     final private static String PROPERTY_PREFIX = "ibis.util.monitor.";
 
-    final private static String dbg = PROPERTY_PREFIX + "debug";
+    final private static String asserts = PROPERTY_PREFIX + "assert";
 
     final private static String stats = PROPERTY_PREFIX + "stats";
 
-    final private static String[] props = { dbg, stats };
+    final private static String[] props = { asserts, stats };
 
-    final static boolean DEBUG = TypedProperties.booleanProperty(dbg, false);
+    final static boolean ASSERTS = TypedProperties.booleanProperty(asserts);
 
     final static boolean STATISTICS = TypedProperties.booleanProperty(stats,
             false);
@@ -37,7 +37,7 @@ public final class Monitor {
     // if (PRIORITY)
     private int prio_waiters;
 
-    // if (DEBUG)
+    // if (ASSERTS)
     private Thread owner;
 
     // if (STATISTICS)
@@ -51,8 +51,8 @@ public final class Monitor {
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, props, null);
-        if (DEBUG) {
-            System.err.println("Turn on Monitor.DEBUG");
+        if (ASSERTS) {
+            System.err.println("Turn on Monitor.ASSERTS");
         }
         if (STATISTICS) {
             Runtime.getRuntime().addShutdownHook(
@@ -101,7 +101,7 @@ public final class Monitor {
             throw new Error("Lock with priority=true for non-PRIORITY Monitor");
         }
 
-        if (DEBUG && owner == Thread.currentThread()) {
+        if (ASSERTS && owner == Thread.currentThread()) {
             throw new IllegalLockStateException("Already own monitor");
         }
 
@@ -131,7 +131,7 @@ public final class Monitor {
         }
         locked = true;
 
-        if (DEBUG) {
+        if (ASSERTS) {
             owner = Thread.currentThread();
         }
     }
@@ -150,7 +150,7 @@ public final class Monitor {
      * Leaves the Monitor, making it available for other threads.
      */
     public synchronized void unlock() {
-        if (DEBUG && owner != Thread.currentThread()) {
+        if (ASSERTS && owner != Thread.currentThread()) {
             Thread.dumpStack();
             throw new IllegalLockStateException("Don't own monitor");
         }
@@ -179,7 +179,7 @@ public final class Monitor {
             }
         }
 
-        if (DEBUG) {
+        if (ASSERTS) {
             owner = null;
         }
     }
@@ -211,7 +211,7 @@ public final class Monitor {
      *     does not own the Monitor.
      */
     final public void checkImOwner() {
-        if (DEBUG) {
+        if (ASSERTS) {
             synchronized (this) {
                 if (owner != Thread.currentThread()) {
                     throw new IllegalLockStateException("Don't own monitor");
@@ -227,7 +227,7 @@ public final class Monitor {
      *     the Monitor.
      */
     final public void checkImNotOwner() {
-        if (DEBUG) {
+        if (ASSERTS) {
             synchronized (this) {
                 if (owner == Thread.currentThread()) {
                     throw new IllegalLockStateException("Already own monitor");

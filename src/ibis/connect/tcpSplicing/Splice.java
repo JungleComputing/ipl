@@ -3,7 +3,6 @@
 package ibis.connect.tcpSplicing;
 
 import ibis.connect.util.ConnectionProperties;
-import ibis.connect.util.MyDebug;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
@@ -16,7 +15,11 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.apache.log4j.Logger;
+
 public class Splice {
+    static Logger logger = Logger.getLogger(Splice.class.getName());
+
     static int serverPort = TypedProperties.intProperty(ConnectionProperties.splice_port,
             20246);
 
@@ -53,7 +56,7 @@ public class Splice {
         NumServer() {
             try {
                 srvr = new ServerSocket(serverPort);
-                MyDebug.trace("# Splice: numserver created");
+                logger.debug("# Splice: numserver created");
                 Runtime.getRuntime().addShutdownHook(
                         new Thread("NumServer killer") {
                             public void run() {
@@ -70,7 +73,7 @@ public class Splice {
                 // System.out.println("Could not create server socket");
                 // e.printStackTrace();
                 srvr = null;
-                MyDebug.trace("# Splice: numserver refused");
+                logger.debug("# Splice: numserver refused");
             }
         }
 
@@ -88,7 +91,7 @@ public class Splice {
                     out.close();
                     s.close();
                 } catch (Exception e) {
-                    MyDebug.trace("# Splice: numserver got " + e);
+                    logger.debug("# Splice: numserver got " + e);
                 }
             }
         }
@@ -143,14 +146,14 @@ public class Splice {
                 throw new Error(e);
             }
             try {
-                MyDebug.trace("# Splice: trying port " + port);
+                logger.debug("# Splice: trying port " + port);
                 socket.bind(localAddr);
                 localPort = port;
             } catch (IOException e) {
                 localPort = -1;
             }
         } while (localPort == -1);
-        MyDebug.trace("# Splice: found port " + localPort);
+        logger.debug("# Splice: found port " + localPort);
         return localPort;
     }
 
@@ -166,15 +169,15 @@ public class Splice {
         int i = 0;
         boolean connected = false;
 
-        MyDebug.trace("# Splice: connecting to: " + rHost + ":" + rPort);
+        logger.debug("# Splice: connecting to: " + rHost + ":" + rPort);
         while (!connected) {
             try {
                 InetSocketAddress remoteAddr = new InetSocketAddress(rHost,
                         rPort);
                 socket.connect(remoteAddr);
                 connected = true;
-                MyDebug.trace("# Splice: success! i=" + i);
-                MyDebug.trace("# Splice:   tcpSendBuffer="
+                logger.debug("# Splice: success! i=" + i);
+                logger.debug("# Splice:   tcpSendBuffer="
                         + socket.getSendBufferSize() + "; tcpReceiveBuffer="
                         + socket.getReceiveBufferSize());
             } catch (IOException e) {

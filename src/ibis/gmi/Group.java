@@ -25,6 +25,8 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 /**
  * The {@link Group} class takes care of the startup, and has methods
  * to create, join, lookup, and exit a group.
@@ -33,13 +35,9 @@ public final class Group implements GroupProtocol {
 
     private static final String PROPERTY_PREFIX = "gmi.";
 
-    private static final String DBG = PROPERTY_PREFIX + "debug";
+    private static final String[] properties = { };
 
-    private static final String[] properties = { DBG };
-
-    /** Enable/disable debugging prints. */
-    public final static boolean DEBUG = TypedProperties.booleanProperty(DBG,
-            false);
+    public static Logger logger = Logger.getLogger(Group.class.getName());
 
     /** Ibis rank number in this run. */
     static int _rank;
@@ -191,11 +189,8 @@ public final class Group implements GroupProtocol {
             case InvocationScheme.I_GROUP:
             case InvocationScheme.I_COMBINED_FLAT_GROUP: {
                 GroupSkeleton s = Group.getSkeletonByGroupID(dest);
-                if (Group.DEBUG) {
-                    System.out.println(Group._rank
-                            + ": It is a GROUP INVOCATION");
-                    System.out.println(Group._rank + ": skeleton = " + s);
-                }
+                logger.debug(Group._rank + ": It is a GROUP INVOCATION, "
+                        + "skeleton = " + s);
                 s.handleMessage(inv, res, r);
             }
                 break;
@@ -224,84 +219,60 @@ public final class Group implements GroupProtocol {
 
                 switch (opcode) {
                 case REGISTRY:
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank + ": Got a REGISTRY");
-                    }
+                    logger.debug(Group._rank + ": Got a REGISTRY");
                     Group.registry.handleMessage(m);
                     break;
 
                 case INVOCATION:
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank + ": Got an INVOCATION");
-                    }
+                    logger.debug(Group._rank + ": Got an INVOCATION");
                     handleInvocation(m);
                     break;
 
                 case REGISTRY_REPLY:
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank
-                                + ": Got a REGISTRY_REPLY");
-                    }
+                    logger.debug(Group._rank + ": Got a REGISTRY_REPLY");
                     ticket = m.readInt();
                     RegistryReply r = (RegistryReply) m.readObject();
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank
-                                + ": REGISTRY_REPLY forwarded to ticketMaster ("
-                                + ticket + ")");
-                    }
                     m.finish(); // ticketMaster may block.
+                    logger.debug(Group._rank
+                            + ": REGISTRY_REPLY forwarded to ticketMaster ("
+                            + ticket + ")");
                     Group.ticketMaster.put(ticket, r);
                     break;
 
                 case INVOCATION_FLATCOMBINE:
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank
-                                + ": Got a INVOCATION_FLATCOMBINE");
-                    }
+                    logger.debug(Group._rank
+                            + ": Got a INVOCATION_FLATCOMBINE");
                     stubIDStack[m.readInt()].handleFlatInvocationCombineMessage(
                             m);
                     break;
 
                 case INVOCATION_BINCOMBINE:
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank
-                                + ": Got a INVOCATION_BINCOMBINE");
-                    }
+                    logger.debug(Group._rank + ": Got a INVOCATION_BINCOMBINE");
                     stubIDStack[m.readInt()].handleBinInvocationCombineMessage(
                             m);
                     break;
 
                 case INVOCATION_REPLY:
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank
-                                + ": Got a INVOCATION_REPLY");
-                    }
+                    logger.debug(Group._rank + ": Got a INVOCATION_REPLY");
                     resultMode = m.readByte();
                     ticket = m.readInt();
                     int stub = ticket >> 16;
                     ticket = ticket & 0xFFFF;
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank
-                                + ": INVOCATION_REPLY forwarded to stub ("
-                                + stub + ", " + ticket + ")");
-                    }
+                    logger.debug(Group._rank
+                            + ": INVOCATION_REPLY forwarded to stub ("
+                            + stub + ", " + ticket + ")");
                     stubIDStack[stub].handleResultMessage(m,
                             ticket, resultMode);
                     break;
 
                 case COMBINE:
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank + ": Got a COMBINE");
-                    }
+                    logger.debug(Group._rank + ": Got a COMBINE");
                     s = Group.getSkeleton(m.readInt());
                     s.handleCombineMessage(m);
                     break;
 
                 case COMBINE_RESULT:
-                    if (Group.DEBUG) {
-                        System.out.println(Group._rank
-                                + ": Got a COMBINE_RESULT");
-                    }
+                    logger.debug(Group._rank + ": Got a COMBINE_RESULT");
                     s = Group.getSkeletonByGroupID(m.readInt());
                     s.handleCombineMessage(m);
                     break;
@@ -334,9 +305,7 @@ public final class Group implements GroupProtocol {
 
             name = IPUtils.getLocalHostAddress().getHostName();
 
-            if (DEBUG) {
-                System.out.println(name + ": init Group RTS");
-            }
+            logger.debug(name + ": init Group RTS");
 
             StaticProperties reqprops = new StaticProperties();
             reqprops.add("serialization", "object");
@@ -366,9 +335,7 @@ public final class Group implements GroupProtocol {
 
             if (info.rank() == 0) {
 
-                if (DEBUG) {
-                    System.out.println(name + " I am master");
-                }
+                logger.debug(name + " I am master");
 
                 registry = new GroupRegistry();
 
@@ -402,9 +369,7 @@ public final class Group implements GroupProtocol {
                     w.finish();
                 }
             } else {
-                if (DEBUG) {
-                    System.out.println(name + " I am client");
-                }
+                logger.debug(name + " I am client");
 
                 systemIn = portType.createReceivePort("GMI Client "
                         + localID.name());
@@ -452,17 +417,13 @@ public final class Group implements GroupProtocol {
                 unicast[j] = portType.createSendPort("Unicast on " + name
                         + " to " + pool[j].name());
 
-                if (DEBUG) {
-                    System.out.println("Connecting unicast sendport "
-                            + unicast[j].identifier() + " to " + pool[j]);
-                }
+                logger.debug("Connecting unicast sendport "
+                        + unicast[j].identifier() + " to " + pool[j]);
 
                 unicast[j].connect(pool[j]);
 
-                if (DEBUG) {
-                    System.out.println("Connecting unicast sendport "
-                            + unicast[j].identifier() + " done");
-                }
+                logger.debug("Connecting unicast sendport "
+                        + unicast[j].identifier() + " done");
             }
 
             if (_size > 1) {
@@ -484,9 +445,7 @@ public final class Group implements GroupProtocol {
 
             receivePort.enableUpcalls();
 
-            if (DEBUG) {
-                System.out.println(name + ": Group init");
-            }
+            logger.debug(name + ": Group init");
 
             /****
              * This is only supported in SDK 1.3 and upwards. Comment out
@@ -595,10 +554,8 @@ public final class Group implements GroupProtocol {
      */
     protected static void registerGroupMember(int groupID,
             GroupSkeleton skeleton) {
-        if (Group.DEBUG) {
-            System.out.println("Group.registerGroupMember(" + groupID + " "
-                    + skeleton.getClass().getName());
-        }
+        logger.debug("Group.registerGroupMember(" + groupID + " "
+                + skeleton.getClass().getName());
 
         if (groupID >= groups_max) {
             int new_max = 2 * groupID + 1;
@@ -646,10 +603,8 @@ public final class Group implements GroupProtocol {
             throws RuntimeException {
 
         try {
-            if (DEBUG) {
-                System.out.println(_rank + ": Group.create(" + nm + ", " + type
-                        + ", " + size + ") starting");
-            }
+            logger.debug(_rank + ": Group.create(" + nm + ", " + type + ", "
+                    + size + ") starting");
 
             int ticket = ticketMaster.get();
 
@@ -663,10 +618,8 @@ public final class Group implements GroupProtocol {
             w.writeInt(size);
             w.finish();
 
-            if (DEBUG) {
-                System.out.println(_rank + ": Group.create(" + nm + ", " + size
-                        + ") waiting for reply on ticket(" + ticket + ")");
-            }
+            logger.debug(_rank + ": Group.create(" + nm + ", " + size
+                    + ") waiting for reply on ticket(" + ticket + ")");
 
             RegistryReply r = (RegistryReply) ticketMaster.collect(ticket);
 
@@ -675,10 +628,8 @@ public final class Group implements GroupProtocol {
                         + size + ") Failed : Group already exists!");
             }
 
-            if (DEBUG) {
-                System.out.println(_rank + ": Group.create(" + nm + ", " + size
-                        + ") done");
-            }
+            logger.debug(_rank + ": Group.create(" + nm + ", " + size
+                    + ") done");
 
         } catch (IOException e) {
             throw new RuntimeException(_rank + " Group.create(" + nm + ", "
@@ -699,10 +650,8 @@ public final class Group implements GroupProtocol {
     public static void join(String nm, GroupMember o) throws RuntimeException {
 
         try {
-            if (DEBUG) {
-                System.out.println(_rank + ": Group.join(" + nm + ", " + o
-                        + ") starting");
-            }
+            logger.debug(_rank + ": Group.join(" + nm + ", " + o
+                    + ") starting");
 
             int groupnumber = 0;
             int[] memberRanks = null;
@@ -726,19 +675,15 @@ public final class Group implements GroupProtocol {
                 w.writeInt(o.mySkel);
                 w.finish();
 
-                if (DEBUG) {
-                    System.out.println(_rank + ": Group.join(" + nm
-                            + ") waiting for reply on ticket(" + ticket + ")");
-                }
+                logger.debug(_rank + ": Group.join(" + nm
+                        + ") waiting for reply on ticket(" + ticket + ")");
 
                 r = (RegistryReply) ticketMaster.collect(ticket);
 
                 switch (r.result) {
                 case JOIN_UNKNOWN:
-                    if (DEBUG) {
-                        System.out.println(_rank + ": Group.join(" + nm
-                                + ") group not found, retry");
-                    }
+                    logger.debug(_rank + ": Group.join(" + nm
+                            + ") group not found, retry");
                     break;
 
                 case JOIN_WRONG_TYPE:
@@ -762,16 +707,11 @@ public final class Group implements GroupProtocol {
                 }
             }
 
-            if (DEBUG) {
-                System.out.println(_rank + ": Group.join(" + nm + ") group("
-                        + groupnumber + ") found !");
-            }
+            logger.debug(_rank + ": Group.join(" + nm + ") group("
+                    + groupnumber + ") found !");
 
             o.init(groupnumber, memberRanks, memberSkels);
-            if (DEBUG) {
-                System.out.println(_rank + ": Group.join(" + nm + ", " + o
-                        + ") done");
-            }
+            logger.debug(_rank + ": Group.join(" + nm + ", " + o + ") done");
 
         } catch (Exception e) {
             System.err.println("Got exception" + e);
@@ -1004,9 +944,7 @@ public final class Group implements GroupProtocol {
 
             if (_rank == 0) {
 
-                if (DEBUG) {
-                    System.out.println(name + " master doing exit");
-                }
+                logger.debug(name + " master doing exit");
 
                 if (_size > 1) {
 
@@ -1024,9 +962,7 @@ public final class Group implements GroupProtocol {
 
             } else {
 
-                if (DEBUG) {
-                    System.out.println(name + " client doing exit");
-                }
+                logger.debug(name + " client doing exit");
 
                 WriteMessage w = systemOut.newMessage();
                 w.finish();

@@ -61,7 +61,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 
     void addToHead(InvocationRecord o) {
         if (ASSERTS && length > 10000) {
-            System.err.println("LARGE Q");
+            spawnLogger.warn("LARGE Q");
         }
         synchronized (satin) {
             if (length == 0) {
@@ -77,7 +77,7 @@ final class DEQueueNormal extends DEQueue implements Config {
 
     void addToTail(InvocationRecord o) {
         if (ASSERTS && length > 10000) {
-            System.err.println("LARGE Q");
+            spawnLogger.warn("LARGE Q");
         }
         synchronized (satin) {
             if (length == 0) {
@@ -139,19 +139,17 @@ final class DEQueueNormal extends DEQueue implements Config {
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 
-                if (ABORT_DEBUG) {
-                    System.err.println("found local child: " + curr.stamp
-                            + ", it depends on " + targetStamp);
-                }
+                abortLogger.debug("found local child: " + curr.stamp
+                        + ", it depends on " + targetStamp);
 
-                if (SPAWN_DEBUG) {
+                if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
                     curr.spawnCounter.value--;
                 }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
-                    System.err.println("Just made spawncounter < 0");
-                    new Exception().printStackTrace();
+                    spawnLogger.fatal("Just made spawncounter < 0",
+                            new Throwable());
                     System.exit(1);
                 }
                 if (ABORT_STATS) {
@@ -194,14 +192,14 @@ final class DEQueueNormal extends DEQueue implements Config {
                     || Aborts.isDescendentOf1(curr, owner)
                     || curr.owner.equals(owner)) {
                 //shouldn't happen
-                if (SPAWN_DEBUG) {
+                if (spawnLogger.isDebugEnabled()) {
                     curr.spawnCounter.decr(curr);
                 } else {
                     curr.spawnCounter.value--;
                 }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
-                    System.out.println("Just made spawncouter < )");
-                    new Exception().printStackTrace();
+                    spawnLogger.fatal("Just made spawncounter < 0",
+                            new Throwable());
                     System.exit(1);
                 }
 

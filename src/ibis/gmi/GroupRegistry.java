@@ -8,12 +8,17 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import org.apache.log4j.Logger;
+
 /**
  * The group registry keeps track of which groups there are, and deals with
  * joinGroup, findGroup, and createGroup requests. It also keeps track if
  * combined invocation structures.
  */
 final class GroupRegistry implements GroupProtocol {
+
+    private static Logger logger
+            = Logger.getLogger(GroupRegistry.class.getName());
 
     /** Hash table for the groups. */
     private Hashtable groups;
@@ -393,19 +398,15 @@ final class GroupRegistry implements GroupProtocol {
                 size = r.readInt();
                 r.finish();
 
-                if (Group.DEBUG) {
-                    System.out.println(Group._rank + ": Got a CREATE_GROUP("
-                            + name + ", " + type + ", " + size + ") from "
-                            + rank + " ticket(" + ticket + ")");
-                }
+                logger.debug(Group._rank + ": Got a CREATE_GROUP("
+                        + name + ", " + type + ", " + size + ") from "
+                        + rank + " ticket(" + ticket + ")");
 
                 newGroup(name, size, rank, ticket, type);
 
-                if (Group.DEBUG) {
-                    System.out.println(Group._rank + ": CREATE_GROUP(" + name
-                            + ", " + type + ", " + size + ") from " + rank
-                            + " HANDLED");
-                }
+                logger.debug(Group._rank + ": CREATE_GROUP(" + name
+                        + ", " + type + ", " + size + ") from " + rank
+                        + " HANDLED");
                 break;
 
             case JOIN_GROUP:
@@ -416,10 +417,8 @@ final class GroupRegistry implements GroupProtocol {
                 memberSkel = r.readInt();
                 r.finish();
 
-                if (Group.DEBUG) {
-                    System.out.println(Group._rank + ": Got a JOIN_GROUP("
-                            + name + ", " + interfaces + ") from " + rank);
-                }
+                logger.debug(Group._rank + ": Got a JOIN_GROUP("
+                        + name + ", " + interfaces + ") from " + rank);
 
                 joinGroup(name, memberSkel, rank, ticket, interfaces);
                 break;
@@ -430,10 +429,7 @@ final class GroupRegistry implements GroupProtocol {
                 name = r.readString();
                 r.finish();
 
-                if (Group.DEBUG) {
-                    System.out.println(Group._rank + ": Got a FIND_GROUP("
-                            + name + ")");
-                }
+                logger.debug(Group._rank + ": Got a FIND_GROUP(" + name + ")");
 
                 findGroup(name, rank, ticket);
                 break;

@@ -8,12 +8,16 @@ import ibis.util.Ticket;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 /**
  * The {@link GroupStub} class provides a base class for generated stubs.
  * A GroupStub provides an interface through which group methods can be called.
  */
 
 public class GroupStub implements GroupInterface, GroupProtocol {
+
+    protected static Logger logger = Logger.getLogger(GroupStub.class.getName());
 
     /** The identification of the target group. */
     protected int groupID;
@@ -91,9 +95,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      * @param stubID the identification of this stub
      */
     protected void init(int gid, int mranks[], int[] mskels, int stubID) {
-        if (Group.DEBUG) {
-            System.out.println("GroupStub.init(" + stubID + ") started");
-        }
+        logger.debug("GroupStub.init(" + stubID + ") started");
 
         this.groupID = gid;
         this.memberRanks = mranks;
@@ -132,10 +134,8 @@ public class GroupStub implements GroupInterface, GroupProtocol {
         realStubID = stubID;
         shiftedStubID = stubID << 16;
         replyStack = new Ticket();
-        if (Group.DEBUG) {
-            System.out.println("GroupStub.init(" + stubID
-                    + ") done, multicastHostsID = " + multicastHostsID);
-        }
+        logger.debug("GroupStub.init(" + stubID
+                + ") done, multicastHostsID = " + multicastHostsID);
     }
 
     /**
@@ -320,26 +320,20 @@ public class GroupStub implements GroupInterface, GroupProtocol {
             ReplyPersonalizer personalizer) throws IOException {
         switch (inv.inv.mode) {
         case InvocationScheme.I_SINGLE: {
-            if (Group.DEBUG) {
-                System.out.println("Single invoke");
-            }
+            logger.debug("Single invoke");
             WriteMessage w = m.sendport.newMessage();
             do_message(w, m, personalizer, m.destinationSkeleton, m.info.out);
         }
             break;
         case InvocationScheme.I_GROUP: {
-            if (Group.DEBUG) {
-                System.out.println("Group invoke");
-            }
+            logger.debug("Group invoke");
             WriteMessage w = m.sendport.newMessage();
             // System.out.println("Sendport = " + m.sendport);
             do_message(w, m, personalizer, groupID, m.info.out);
         }
             break;
         case InvocationScheme.I_PERSONAL: {
-            if (Group.DEBUG) {
-                System.out.println("Personalized invoke");
-            }
+            logger.debug("Personalized invoke");
             ParameterVector[] personal = new ParameterVector[targetGroupSize];
             for (int i = 0; i < targetGroupSize; i++) {
                 personal[i] = m.info.out.getVector();

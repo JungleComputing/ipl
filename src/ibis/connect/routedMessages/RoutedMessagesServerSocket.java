@@ -2,7 +2,6 @@
 
 package ibis.connect.routedMessages;
 
-import ibis.connect.util.MyDebug;
 import ibis.util.IPUtils;
 
 import java.io.IOException;
@@ -12,7 +11,13 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
+
 public class RoutedMessagesServerSocket extends ServerSocket {
+
+    static Logger logger
+            = Logger.getLogger(RoutedMessagesServerSocket.class.getName());
+
     private HubLink hub = null;
 
     private int serverPort = -1;
@@ -43,7 +48,7 @@ public class RoutedMessagesServerSocket extends ServerSocket {
         this.addr = addr;
         socketOpened = true;
         hub.addServer(this, serverPort);
-        MyDebug.out.println("# RoutedMessagesServerSocket() addr=" + addr + "; port="
+        logger.debug("# RoutedMessagesServerSocket() addr=" + addr + "; port="
                 + serverPort);
     }
 
@@ -56,20 +61,20 @@ public class RoutedMessagesServerSocket extends ServerSocket {
                 throw new Error(e);
             }
         }
-        MyDebug.out.println(
-                "# RoutedMessagesServerSocket.getInetAddress() addr=" + address);
+        logger.debug("# RoutedMessagesServerSocket.getInetAddress() addr="
+                + address);
         return address;
     }
 
     public int getLocalPort() {
-        MyDebug.out.println("# RoutedMessagesServerSocket.getLocalPort() port="
+        logger.debug("# RoutedMessagesServerSocket.getLocalPort() port="
                 + serverPort);
         return serverPort;
     }
 
     public Socket accept() throws IOException {
         Socket s = null;
-        MyDebug.out.println("# RoutedMessagesServerSocket.accept()- waiting on port "
+        logger.debug("# RoutedMessagesServerSocket.accept()- waiting on port "
                 + serverPort);
         hub = HubLinkFactory.getHubLink();
         Request r = null;
@@ -87,13 +92,14 @@ public class RoutedMessagesServerSocket extends ServerSocket {
         }
 
         int localPort = hub.newPort(0);
-        MyDebug.out.println("# RoutedMessagesServerSocket.accept()- on port " + serverPort
-                + " unlocked; from port=" + r.requestPort + "; host="
-                + r.requestHost);
+        logger.debug("# RoutedMessagesServerSocket.accept()- on port "
+                + serverPort + " unlocked; from port=" + r.requestPort
+                + "; host=" + r.requestHost);
         s = new RoutedMessagesSocket(r.requestHost, r.requestPort, localPort,
                 r.requestHubPort);
-        MyDebug.out.println("# RoutedMessagesServerSocket.accept()- new RoutedMessagesSocket created "
-                + "on port=" + localPort + "- Sending ACK.");
+        logger.debug("# RoutedMessagesServerSocket.accept()- new "
+                + "RoutedMessagesSocket created on port=" + localPort
+                + "- Sending ACK.");
         hub.sendPacket(r.requestHost, r.requestHubPort,
                 new HubProtocol.HubPacketAccept(r.requestPort,
                         hub.localHostName, localPort));
@@ -101,7 +107,8 @@ public class RoutedMessagesServerSocket extends ServerSocket {
     }
 
     public synchronized void close() {
-        MyDebug.out.println("# RoutedMessagesServerSocket.close() of port " + serverPort);
+        logger.debug("# RoutedMessagesServerSocket.close() of port "
+                + serverPort);
         socketOpened = false;
         this.notifyAll();
         hub.removeServer(serverPort);
@@ -113,10 +120,10 @@ public class RoutedMessagesServerSocket extends ServerSocket {
     protected synchronized void enqueueConnect(String clientHost,
             int clientPort, int clienthubport) {
         requests.add(new Request(clientPort, clientHost, clienthubport));
-        MyDebug.out.println("# RoutedMessagesServerSocket.enqueueConnect() for port "
+        logger.debug("# RoutedMessagesServerSocket.enqueueConnect() for port "
                 + serverPort + ", size = " + requests.size());
         if (requests.size() == 1) {
-            MyDebug.out.println("# RoutedMessagesServerSocket.enqueueConnect(): notify");
+            logger.debug("# RoutedMessagesServerSocket.enqueueConnect(): notify");
             this.notify();
         }
     }

@@ -19,16 +19,12 @@ final class CallHandler implements Protocol, Upcall {
             switch (opcode) {
 
             case NEW_OBJECT:
-                if (RTS.DEBUG) {
-                    System.out.println(RTS._rank + ": Got a REGISTRY");
-                }
+                RTS.logger.debug(RTS._rank + ": Got a REGISTRY");
                 RTS.newObject(m);
                 break;
 
             case INVOCATION:
-                if (RTS.DEBUG) {
-                    System.out.println(RTS._rank + ": Got an INVOCATION");
-                }
+                RTS.logger.debug(RTS._rank + ": Got an INVOCATION");
                 RTS.findSkeleton(m.readInt()).handleMessage(m);
                 break;
 

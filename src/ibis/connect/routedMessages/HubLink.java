@@ -2,8 +2,6 @@
 
 package ibis.connect.routedMessages;
 
-import ibis.connect.util.MyDebug;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
@@ -12,10 +10,15 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 /**
  * HubLink manages the link with the control hub.
  */
 public class HubLink extends Thread {
+
+    static Logger logger = Logger.getLogger(HubLink.class.getName());
+
     private HubProtocol.HubWire wire;
 
     public final String localHostName;
@@ -138,12 +141,12 @@ public class HubLink extends Thread {
     }
 
     public HubLink(String host, int port) throws IOException {
-        MyDebug.out.println("# HubLink()");
+        logger.debug("# HubLink()");
         Socket s = new Socket(host, port);
         wire = new HubProtocol.HubWire(s);
         localHostName = wire.getLocalName();
         localPort = wire.getLocalPort();
-        MyDebug.out.println("# HubLink() done.");
+        logger.debug("# HubLink() done.");
     }
 
     protected synchronized void stopHub() {
@@ -170,7 +173,7 @@ public class HubLink extends Thread {
                 case HubProtocol.CONNECT: {
                     HubProtocol.HubPacketConnect p
                             = (HubProtocol.HubPacketConnect) packet;
-                    MyDebug.out.println("# HubLink.run()- Got CONNECT for "
+                    logger.debug("# HubLink.run()- Got CONNECT for "
                                     + "host="
                                     + localHostName
                                     + ":"
@@ -186,7 +189,7 @@ public class HubLink extends Thread {
                         s.enqueueConnect(p.getHost(), p.clientPort,
                                 p.getPort());
                     } else {
-                        MyDebug.out.println("# HubLink.run()- Got CONNECT "
+                        logger.debug("# HubLink.run()- Got CONNECT "
                                 + "for non-existingh port!");
                     }
                 }
@@ -194,7 +197,7 @@ public class HubLink extends Thread {
                 case HubProtocol.ACCEPT: {
                     HubProtocol.HubPacketAccept p
                             = (HubProtocol.HubPacketAccept) packet;
-                    MyDebug.out.println("# HubLink.run()- Got ACCEPT for "
+                    logger.debug("# HubLink.run()- Got ACCEPT for "
                                     + "clientPort="
                                     + p.clientPort
                                     + " from serverHost="
@@ -209,7 +212,7 @@ public class HubLink extends Thread {
                          * while the CONNECT/ACCEPT were on the wire).
                          * Trace it anyway for pathologic behavior diagnosis.
                          */
-                        MyDebug.out.println("# HubLink.run()- exception while "
+                        logger.debug("# HubLink.run()- exception while "
                                 + "resolving socket for ACCEPT!");
                     }
                 }
@@ -217,7 +220,7 @@ public class HubLink extends Thread {
                 case HubProtocol.REJECT: {
                     HubProtocol.HubPacketReject p
                             = (HubProtocol.HubPacketReject) packet;
-                    MyDebug.out.println("# HubLink.run()- Got REJECT for "
+                    logger.debug("# HubLink.run()- Got REJECT for "
                                     + "port "
                                     + p.clientPort
                                     + " from host "
@@ -232,7 +235,7 @@ public class HubLink extends Thread {
                 case HubProtocol.DATA: {
                     HubProtocol.HubPacketData p
                             = (HubProtocol.HubPacketData) packet;
-                    MyDebug.out.println("# HubLink.run()- Got DATA for "
+                    logger.debug("# HubLink.run()- Got DATA for "
                                     + "port = "
                                     + p.port);
                     try {
@@ -240,13 +243,13 @@ public class HubLink extends Thread {
                         if (s.remotePort == p.senderport) {
                             s.enqueueFragment(p.b);
                         } else {
-                            MyDebug.out.println("# HubLink.run()- Got "
+                            logger.debug("# HubLink.run()- Got "
                                     + "DATA on closed connection, port = "
                                     + p.port + ", sender = " + p.h + ":"
                                     + p.senderport);
                         }
                     } catch (Exception e) {
-                        MyDebug.out.println("# HubLink.run()- Got DATA on "
+                        logger.debug("# HubLink.run()- Got DATA on "
                                 + "closed connection, port = " + p.port
                                 + ", sender = " + p.h + ":" + p.senderport);
                     }
@@ -255,7 +258,7 @@ public class HubLink extends Thread {
                 case HubProtocol.CLOSE: {
                     HubProtocol.HubPacketClose p
                             = (HubProtocol.HubPacketClose) packet;
-                    MyDebug.out.println("# HubLink.run()- Got CLOSE for "
+                    logger.debug("# HubLink.run()- Got CLOSE for "
                                     + "port = " + p.closePort);
                     try {
                         RoutedMessagesSocket s = resolveSocket(p.closePort);
@@ -263,7 +266,7 @@ public class HubLink extends Thread {
                                 && s.remotePort == p.localPort) {
                             s.enqueueClose();
                         } else {
-                            MyDebug.out.println("# HubLink.run()- Got CLOSE of "
+                            logger.debug("# HubLink.run()- Got CLOSE of "
                                     + "old connection");
                         }
                     } catch (IOException e) { /* ignore */
@@ -274,7 +277,7 @@ public class HubLink extends Thread {
                     HubProtocol.HubPacketPutPort p
                             = (HubProtocol.HubPacketPutPort) packet;
                     synchronized (this) {
-                        MyDebug.out.println("# HubLink.run()- Got PUTPORT "
+                        logger.debug("# HubLink.run()- Got PUTPORT "
                                 + "= " + p.resultPort);
                         portnum = p.resultPort;
                         notifyAll();
@@ -285,14 +288,14 @@ public class HubLink extends Thread {
                     HubProtocol.HubPacketPortSet p
                             = (HubProtocol.HubPacketPortSet) packet;
                     synchronized (this) {
-                        MyDebug.out.println("# HubLink.run()- Got PORTSET");
+                        logger.debug("# HubLink.run()- Got PORTSET");
                         available_ports = p.portset;
                         notifyAll();
                     }
                 }
                     break;
                 default:
-                    MyDebug.out.println("# Got unknown action: " + action);
+                    logger.debug("# Got unknown action: " + action);
                     throw new Error("HubLink: bad data");
                 }
             } catch (EOFException e) {

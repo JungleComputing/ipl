@@ -2,7 +2,6 @@
 
 package ibis.connect.routedMessages;
 
-import ibis.connect.util.MyDebug;
 import ibis.util.IPUtils;
 
 import java.io.BufferedInputStream;
@@ -13,11 +12,15 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
+
 /* On-the-wire protocol management for links between 
  * computing nodes and control hub. Used by the HubLink
  * manager and the ControlHub itself.
  */
 public class HubProtocol {
+    static Logger logger = Logger.getLogger(HubProtocol.class.getName());
+
     /** Connection request. */
     public static final int CONNECT = 1;
 
@@ -55,6 +58,8 @@ public class HubProtocol {
     }
 
     public static class HubWire {
+        static Logger logger = Logger.getLogger(HubWire.class.getName());
+        
         private Socket socket;
 
         private DataInputStream in;
@@ -84,7 +89,7 @@ public class HubProtocol {
                     s.getInputStream(), 4096));
             peerName = (in.readUTF()).toLowerCase();
             peerPort = in.readInt();
-            if (MyDebug.VERBOSE()) {
+            if (logger.isInfoEnabled()) {
                 String canonicalPeerName
                     = s.getInetAddress().getCanonicalHostName().toLowerCase();
                 String msg = "# HubWire: new hub wire- local: " + localHostName
@@ -93,22 +98,18 @@ public class HubProtocol {
                     msg = msg + " (seen from hub: " + canonicalPeerName + ":"
                             + s.getPort() + ")";
                 }
-                System.err.println(msg);
+                logger.info(msg);
             }
             hubConnected = true;
         }
 
         public void close() throws IOException {
-            if (MyDebug.VERBOSE()) {
-                System.err.println("# HubWire: closing wire...");
-            }
+            logger.info("# HubWire: closing wire...");
             in.close();
             out.flush();
             out.close();
             socket.close();
-            if (MyDebug.VERBOSE()) {
-                System.err.println("# HubWire: closed.");
-            }
+            logger.info("# HubWire: closed.");
         }
 
         public String getPeerName() {
@@ -225,7 +226,7 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out.println("# HubPacketConnect.send()- sending CONNECT to "
+            logger.debug("# HubPacketConnect.send()- sending CONNECT to "
                             + "port " + serverPort + " on " + h + ":" + p);
             out.writeInt(serverPort);
             out.writeInt(clientPort);
@@ -235,7 +236,7 @@ public class HubProtocol {
                 throws IOException {
             int serverPort = in.readInt();
             int clientPort = in.readInt();
-            MyDebug.out.println("# HubPacketConnect.recv()- got CONNECT to "
+            logger.debug("# HubPacketConnect.recv()- got CONNECT to "
                             + "port " + serverPort + " from " + h + ":" + p);
             return new HubPacketConnect(serverPort, clientPort);
         }
@@ -259,7 +260,7 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out.println("# HubPacketAccept.send()- sending ACCEPT to "
+            logger.debug("# HubPacketAccept.send()- sending ACCEPT to "
                             + "port " + clientPort + " on " + h + ":" + p);
             out.writeInt(clientPort);
             out.writeUTF(serverHost);
@@ -271,7 +272,7 @@ public class HubProtocol {
             int clientPort = in.readInt();
             String serverHost = in.readUTF();
             int servantPort = in.readInt();
-            MyDebug.out.println("# HubPacketAccept.recv()- got ACCEPT to port "
+            logger.debug("# HubPacketAccept.recv()- got ACCEPT to port "
                     + servantPort + " from " + h + ":" + p);
             return new HubPacketAccept(clientPort, serverHost, servantPort);
         }
@@ -292,7 +293,7 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out.println("# HubPacketReject.send()- sending REJECT to "
+            logger.debug("# HubPacketReject.send()- sending REJECT to "
                             + "port " + clientPort + " on " + h + ":" + p);
             out.writeInt(clientPort);
             out.writeUTF(serverHost);
@@ -302,7 +303,7 @@ public class HubProtocol {
                 throws IOException {
             int clientPort = in.readInt();
             String serverHost = in.readUTF();
-            MyDebug.out.println("# HubPacketReject.recv()- got REJECT to port "
+            logger.debug("# HubPacketReject.recv()- got REJECT to port "
                     + clientPort + " from " + h + ":" + p);
             return new HubPacketReject(clientPort, serverHost);
         }
@@ -320,7 +321,7 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out.println("# HubPacketGetPort.send()- sending GETPORT to "
+            logger.debug("# HubPacketGetPort.send()- sending GETPORT to "
                     + h + ":" + p);
             out.writeInt(proposedPort);
         }
@@ -328,7 +329,7 @@ public class HubProtocol {
         static public HubPacket recv(DataInputStream in, String h, int p)
                 throws IOException {
             int port = in.readInt();
-            MyDebug.out.println("# HubPacketGetPort.recv()- got GETPORT of "
+            logger.debug("# HubPacketGetPort.recv()- got GETPORT of "
                     + "port " + port + " from " + h + ":" + p);
             return new HubPacketGetPort(port);
         }
@@ -346,7 +347,7 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out.println("# HubPacketPutPort.send()- sending PUTPORT of "
+            logger.debug("# HubPacketPutPort.send()- sending PUTPORT of "
                             + resultPort + " to " + h + ":" + p);
             out.writeInt(resultPort);
         }
@@ -354,7 +355,7 @@ public class HubProtocol {
         static public HubPacket recv(DataInputStream in, String h, int p)
                 throws IOException {
             int port = in.readInt();
-            MyDebug.out.println("# HubPacketPutPort.recv()- got PUTPORT of "
+            logger.debug("# HubPacketPutPort.recv()- got PUTPORT of "
                     + "port " + port + " from " + h + ":" + p);
             return new HubPacketPutPort(port);
         }
@@ -372,7 +373,7 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out.println("# HubPacketPortSet.send()- sending PORTSET");
+            logger.debug("# HubPacketPortSet.send()- sending PORTSET");
             out.writeInt(portset.size());
             for (int i = 0; i < portset.size(); i++) {
                 out.writeInt(((Integer) portset.get(i)).intValue());
@@ -382,7 +383,7 @@ public class HubProtocol {
         static public HubPacket recv(DataInputStream in) throws IOException {
             ArrayList portset = new ArrayList();
             int n = in.readInt();
-            MyDebug.out.println("# HubPacketPortSet.recv()- got PORTSET");
+            logger.debug("# HubPacketPortSet.recv()- got PORTSET");
             for (int i = 0; i < n; i++) {
                 portset.add(new Integer(in.readInt()));
             }
@@ -408,7 +409,7 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out.println("# HubPacketData.send()- sending- port=" + port
+            logger.debug("# HubPacketData.send()- sending- port=" + port
                     + "; size=" + b.length + " to " + h + ":" + p);
             out.writeInt(port);
             out.writeInt(senderport);
@@ -423,7 +424,7 @@ public class HubProtocol {
             int len = in.readInt();
             byte[] b = new byte[len];
             in.readFully(b);
-            MyDebug.out.println("# HubPacketData.recv()- got DATA - port="
+            logger.debug("# HubPacketData.recv()- got DATA - port="
                     + port + "; size=" + b.length + " from " + h + ":" + p);
             return new HubPacketData(port, b, sport);
         }
@@ -444,7 +445,7 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out.println("# HubPacketConnect.send()- sending CLOSE of "
+            logger.debug("# HubPacketConnect.send()- sending CLOSE of "
                     + "port " + closePort + " to " + h + ":" + p);
             out.writeInt(closePort);
             out.writeInt(localPort);
@@ -454,7 +455,7 @@ public class HubProtocol {
                 throws IOException {
             int port = in.readInt();
             int lport = in.readInt();
-            MyDebug.out.println("# HubPacketConnect.recv()- got CLOSE of port "
+            logger.debug("# HubPacketConnect.recv()- got CLOSE of port "
                     + port + " from " + h + ":" + p);
             return new HubPacketClose(port, lport);
         }

@@ -6,7 +6,6 @@ import ibis.connect.socketFactory.BrokeredSocketFactory;
 import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.connect.socketFactory.PlainTCPSocketType;
 import ibis.connect.socketFactory.SocketType;
-import ibis.connect.util.MyDebug;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -17,10 +16,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import org.apache.log4j.Logger;
+
 // SocketType descriptor for TCP Splicing
 // --------------------------------------
 public class TCPSpliceSocketType extends SocketType implements
         BrokeredSocketFactory {
+
+    static Logger logger
+            = Logger.getLogger(TCPSpliceSocketType.class.getName());
+
     public TCPSpliceSocketType() {
         super("TCPSplice");
     }
@@ -44,8 +49,7 @@ public class TCPSpliceSocketType extends SocketType implements
         if (splice_host.equals(spliceHost)) {
             // Same hostname. TcpSplice does not seem to work in that case,
             // but surely, plain TCP should work in this case.
-            MyDebug.trace(
-                    "TCPSplice requested on same node, plain Socket used");
+            logger.debug("TCPSplice requested on same node, plain Socket used");
             theSplice.close();
             PlainTCPSocketType tp = new PlainTCPSocketType();
             return tp.createBrokeredSocket(in, out, hint, p);

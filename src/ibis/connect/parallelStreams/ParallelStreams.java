@@ -5,7 +5,6 @@ package ibis.connect.parallelStreams;
 import ibis.connect.socketFactory.BrokeredSocketFactory;
 import ibis.connect.socketFactory.ConnectionPropertiesProvider;
 import ibis.connect.socketFactory.ExtSocketFactory;
-import ibis.connect.util.MyDebug;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -15,10 +14,14 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
+import org.apache.log4j.Logger;
+
 public class ParallelStreams {
     public static final int defaultNumWays = 4;
 
     public static final int defaultBlockSize = 1460;
+
+    static Logger logger = Logger.getLogger(ParallelStreams.class.getName());
 
     private int numWays = -1;
 
@@ -47,10 +50,8 @@ public class ParallelStreams {
     private boolean hint = false;
 
     public ParallelStreams(int n, int b, ConnectionPropertiesProvider props) {
-        if (MyDebug.VERBOSE()) {
-            System.err.println("# ParallelStreams: building link- numWays = "
-                    + n + "; blockSize = " + b);
-        }
+        logger.info("# ParallelStreams: building link- numWays = " + n
+                + "; blockSize = " + b);
         numWays = n;
         blockSize = b;
         sockets = new Socket[n];
@@ -72,7 +73,7 @@ public class ParallelStreams {
         int rNumWays = is.readInt();
         int rport = is.readInt();
 
-        MyDebug.out.println("PS: received properties from peer.");
+        logger.debug("PS: received properties from peer.");
         if (rNumWays != numWays) {
             throw new Error("ParallelStreams: cannot connect- localNumWays = "
                     + numWays + "; remoteNumWays = " + rNumWays);
@@ -82,7 +83,7 @@ public class ParallelStreams {
 
         hint = hnt;
 
-        MyDebug.trace("PS: connecting, numWays = " + numWays + " (hint=" + hint
+        logger.debug("PS: connecting, numWays = " + numWays + " (hint=" + hint
                 + ")");
 
         for (i = 0; i < numWays; i++) {
@@ -124,7 +125,7 @@ public class ParallelStreams {
         }
         try {
             int rc = ins[recvBlock].available();
-            MyDebug.out.println("PS: poll()- rc = " + rc);
+            logger.debug("PS: poll()- rc = " + rc);
             // AD: TODO- should be a little bit expanded to be more accurate :-)
             return rc;
         } finally {
@@ -147,7 +148,7 @@ public class ParallelStreams {
             }
         }
         try {
-            MyDebug.out.println("PS: recv()- len = " + len);
+            logger.debug("PS: recv()- len = " + len);
             int nextAvail = 0;
             int done = 0;
             do {
@@ -155,7 +156,7 @@ public class ParallelStreams {
                 int rc = ins[recvBlock].read(b, off, nextRead);
                 if (rc < 0) {
                     if (done == 0) {
-                        MyDebug.out.println("PS: recv()- done = " + -1);
+                        logger.debug("PS: recv()- done = " + -1);
                         return -1;
                     }
                     break;
@@ -173,7 +174,7 @@ public class ParallelStreams {
                 }
                 //	} while(nextAvail > 0 && len > 0);
             } while (len > 0);
-            MyDebug.out.println("PS: recv()- done = " + done);
+            logger.debug("PS: recv()- done = " + done);
             return done;
         } finally {
             synchronized (this) {
@@ -195,7 +196,7 @@ public class ParallelStreams {
             }
         }
         try {
-            MyDebug.out.println("PS: send()- len = " + len);
+            logger.debug("PS: send()- len = " + len);
             while (len > 0) {
                 int l = Math.min(len, blockSize - sendPos);
                 outs[sendBlock].write(b, off, l);
@@ -216,28 +217,28 @@ public class ParallelStreams {
     }
 
     public void shutdownInput() throws IOException {
-        MyDebug.trace("PS: shutdownInput");
+        logger.debug("PS: shutdownInput");
         for (int i = 0; i < numWays; i++) {
             sockets[i].shutdownInput();
         }
     }
 
     public void shutdownOutput() throws IOException {
-        MyDebug.trace("PS: shutdownOutput");
+        logger.debug("PS: shutdownOutput");
         for (int i = 0; i < numWays; i++) {
             sockets[i].shutdownOutput();
         }
     }
 
     public void setTcpNoDelay(boolean on) throws SocketException {
-        MyDebug.trace("PS: setTcpNoDelay");
+        logger.debug("PS: setTcpNoDelay");
         for (int i = 0; i < numWays; i++) {
             sockets[i].setTcpNoDelay(on);
         }
     }
 
     public void setSoTimeout(int t) throws SocketException {
-        MyDebug.trace("PS: setSoTimeout");
+        logger.debug("PS: setSoTimeout");
         for (int i = 0; i < numWays; i++) {
             sockets[i].setSoTimeout(t);
         }
@@ -248,14 +249,13 @@ public class ParallelStreams {
     }
 
     public void close() throws IOException {
-        MyDebug.out.println("PS: close()");
-        MyDebug.trace("PS: closing PS, numWays = " + numWays + ", hint = "
+        logger.debug("PS: closing PS, numWays = " + numWays + ", hint = "
                 + hint);
         for (int i = 0; i < numWays; i++) {
             ins[i].close();
             outs[i].close();
             sockets[i].close();
         }
-        MyDebug.out.println("PS: close()- ok.");
+        logger.debug("PS: close()- ok.");
     }
 }
