@@ -5,7 +5,6 @@ APPS =
 APPS += fib
 APPS += tsp 
 APPS += ida
-APPS += fib_threshold
 APPS += knapsack
 APPS += nqueens
 APPS += cover

@@ -1,11 +1,26 @@
 final class Fib extends ibis.satin.SatinObject implements FibInterface, java.io.Serializable  {
 
-	public long fib(long n) {
+	int threshold;
+
+	public Fib(int threshold) {
+	    this.threshold = threshold;
+	}
+
+	public long fib_seq(int n) {
+	    if (n < 2) return n;
+	    return fib_seq(n-1) + fib_seq(n-2);
+	}
+
+	public long fib(int n) {
 		long x, y;
 
 //		System.err.println("running fib " + n);
 
 		if(n < 2) return n;
+
+		if (n < threshold) {
+		    return fib_seq(n);
+		}
 
 		x = fib(n-1);
 		y = fib(n-2);
@@ -13,8 +28,9 @@ final class Fib extends ibis.satin.SatinObject implements FibInterface, java.io.
 		return x + y;
 	}
 
-	static long fib_iter(long n) {
-		long f0, f1, f2, i;
+	static long fib_iter(int n) {
+		long f0, f1, f2;
+		int i;
 		if (n < 2) {
 			return n;
 		}
@@ -33,15 +49,21 @@ final class Fib extends ibis.satin.SatinObject implements FibInterface, java.io.
 	public static void main(String[] args) {
 		long res, res2;
 
-		if(args.length != 1) {
-			System.err.println("application fib got wrong number of parameters, need one");
+		if (args.length == 0 || args.length > 2) {
+			System.err.println("Usage: fib <n> [ <threshold> ]");
 			System.exit(1);
 		}
-		long n = Long.parseLong(args[0]);
 
-		Fib f = new Fib();
+		int n = Integer.parseInt(args[0]);
+		int threshold = 0;
 
-		System.out.println("Running Fib " + n);
+		if (args.length == 2) {
+		    threshold = Integer.parseInt(args[1]);
+		}
+
+		Fib f = new Fib(threshold);
+
+		System.out.println("Running Fib " + n +", threshold = " + threshold);
 		res2 = fib_iter(n);
 
 		long start = System.currentTimeMillis();

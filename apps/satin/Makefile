@@ -73,7 +73,6 @@ clean:
 	cd adapint && $(MAKE) $(MFLAGS) clean
 	cd cover && $(MAKE) $(MFLAGS) clean
 	cd fib && $(MAKE) $(MFLAGS) clean
-	cd fib_threshold && $(MAKE) $(MFLAGS) clean
 	cd ida && $(MAKE) $(MFLAGS) clean
 	cd knapsack && $(MAKE) $(MFLAGS) clean
 	cd mmult && $(MAKE) $(MFLAGS) clean
@@ -98,7 +97,6 @@ distclean:
 	cd adapint && $(MAKE) $(MFLAGS) distclean
 	cd cover && $(MAKE) $(MFLAGS) distclean
 	cd fib && $(MAKE) $(MFLAGS) distclean
-	cd fib_threshold && $(MAKE) $(MFLAGS) distclean
 	cd ida && $(MAKE) $(MFLAGS) distclean
 	cd knapsack && $(MAKE) $(MFLAGS) distclean
 	cd mmult && $(MAKE) $(MFLAGS) distclean
