@@ -477,7 +477,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
 	if (queueFront == null) {
 	    if (DEBUG) {
-		System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + ident + " queue " + queueFront + " " + messageArrived);
+		System.err.println(Thread.currentThread() + ", port " + this + ". Hit wait in ReceivePort.receive()" + ident + " queue " + queueFront + " " + messageArrived);
 	    }
 	    Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.PREEMPTIVE : Poll.NON_POLLING);
 
