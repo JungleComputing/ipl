@@ -195,7 +195,9 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			ibisImpl.join(id);
 
 			socketFactory.close(in, out, s);
-			new Thread(this, "NameServerClient accept thread").start();
+			Thread t = new Thread(this, "NameServerClient accept thread");
+			t.setDaemon(true);
+			t.start();
 			break;
 		default:
 			socketFactory.close(in, out, s);
