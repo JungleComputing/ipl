@@ -321,7 +321,7 @@ class OpenCell1D implements OpenConfig {
         m.writeInt( generation );
         m.writeInt( sendCount );
 
-        // Send the columns we want to move to the border.
+        // Send the columns we want to move to our neighbour.
         while( sendCount>0 ){
             int ix = p.firstColumn;
             byte buf[] = p.board[ix];
