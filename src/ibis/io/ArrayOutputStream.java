@@ -169,6 +169,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on an IO error.
      */
     private void Flush() throws IOException {
+/*
 	if (array_index == 0 &&
 	    byte_index == 0 &&
 	    char_index == 0 &&
@@ -180,6 +181,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
 
 	    return;
 	}
+*/
 
 	flushBuffers();
 
