@@ -137,7 +137,16 @@ final class Main {
 					System.out.println("client ok");
 				}
 
-				if (array) { 				
+				if (array) { 	
+					data = new byte[arraysize];								
+					if (verbose) { 
+						System.out.println("starting byte[" + arraysize + "] test");
+					} 
+
+					time = runTest(s, count, retries, data, one_way);
+					System.out.println("byte[" + arraysize + "] = " + tp(arraysize*count, time) + " MBytes/sec.");
+
+			
 					int alen = arraysize/4;
 					data = new int[alen];								
 					if (verbose) { 
