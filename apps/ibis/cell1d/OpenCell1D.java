@@ -118,17 +118,40 @@ class RszHandler implements OpenConfig, ResizeHandler {
     }
 }
 
+class PingLeftReceiver implements Upcall {
+    public void upcall( ReadMessage m )
+    {
+         // TODO: make sure this is the right generation.
+         OpenCell1D.leftPingColumn = OpenCell1D.computeColumn;
+    }
+}
+
+class PingRightReceiver implements Upcall {
+    public void upcall( ReadMessage m )
+    {
+         // TODO: make sure this is the right generation.
+         OpenCell1D.rightPingColumn = OpenCell1D.computeColumn;
+    }
+}
+
 class OpenCell1D implements OpenConfig {
     static Ibis ibis;
     static Registry registry;
     static IbisIdentifier leftNeighbour;
     static IbisIdentifier rightNeighbour;
     static IbisIdentifier myName;
+    static int computeColumn;
+    static int leftPingColumn;
+    static int rightPingColumn;
     static int me = -1;
     static SendPort leftSendPort;
     static SendPort rightSendPort;
     static ReceivePort leftReceivePort;
     static ReceivePort rightReceivePort;
+    static SendPort leftPingSendPort;
+    static SendPort rightPingSendPort;
+    static ReceivePort leftPingReceivePort;
+    static ReceivePort rightPingReceivePort;
     static int generation = -1;
     static int boardsize = DEFAULTBOARDSIZE;
     static boolean idle = true;
@@ -181,6 +204,24 @@ class OpenCell1D implements OpenConfig {
         ReceivePort res = updatePort.createReceivePort( receiveportname );
         if( tracePortCreation ){
             System.out.println( "P" + me + ": created receive port " + res  );
+        }
+        res.enableConnections();
+        return res;
+    }
+
+    /**
+     * Creates a ping receive port.
+     * @param pt The type of the port to construct.
+     * @param prefix The prefix of the port names.
+     */
+    private static ReceivePort createPingReceivePort( PortType pt, String prefix, Upcall up )
+        throws java.io.IOException
+    {
+        String receiveportname = prefix + "PingReceive" + myName.name();
+
+        ReceivePort res = pt.createReceivePort( receiveportname, up );
+        if( tracePortCreation ){
+            System.out.println( "P" + me + ": created ping receive port " + res  );
         }
         res.enableConnections();
         return res;
@@ -617,10 +658,10 @@ class OpenCell1D implements OpenConfig {
                     System.out.println();
                 }
             }
-            for( int i=p.firstColumn; i<p.firstNoColumn; i++ ){
+            for( computeColumn=p.firstColumn; computeColumn<p.firstNoColumn; computeColumn++ ){
                 prev = curr;
                 curr = next;
-                next = p.board[i+1];
+                next = p.board[computeColumn+1];
                 if( next == null ){
                     // No column there. We blindly assume that
                     // that means we must use the right border.
@@ -641,8 +682,8 @@ class OpenCell1D implements OpenConfig {
                 }
                 
                 //
-                byte tmp[] = p.board[i];
-                p.board[i] = p.updatecol;
+                byte tmp[] = p.board[computeColumn];
+                p.board[computeColumn] = p.updatecol;
                 p.updatecol = p.nextupdatecol;
                 p.nextupdatecol = tmp;
             }
