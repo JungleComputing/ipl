@@ -185,21 +185,92 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     {
 	int slots[] = new int[nextcode];
 	int next[] = new int[length];
-	java.util.Arrays.fill( slots, -1 );
+        int filledSlots;
 
-	// Fill each next array element with the next element with the
-	// same character.
-	for( int i=0; i<length; i++ ){
-	    int ix = text[i];
+        {
+            // First, construct the chains for the single character case.
+            // We guarantee that the positions are in increasing order.
+            int prev[] = new int[nextcode];
+            java.util.Arrays.fill( slots, -1 );
+            java.util.Arrays.fill( prev, -1 );
 
-	    next[i] = slots[ix];
-	    slots[ix] = i;
-	}
+            // Fill each next array element with the next element with the
+            // same character.
+            for( int i=0; i<length; i++ ){
+                int ix = text[i];
+
+                if( prev[ix] == -1 ){
+                    slots[ix] = i;
+                }
+                else {
+                    next[prev[ix]] = i;
+                }
+                prev[ix] = i;
+            }
+            for( int ix=0; ix<slots.length; ix++ ){
+                if( prev[ix] != -1 ){
+                    next[prev[ix]] = -1;
+                }
+            }
+            filledSlots = slots.length;
+        }
+
+        if( false ){
+            int newslots[] = new int[slots.length*slots.length];
+            int newnext[] = new int[length];
+            int p = 0;
+            int step = 1;
+            for( int i=0; i<slots.length; i++ ){
+
+                if( slots[i] == -1 ){
+                    // This slot is empty. Next!
+                    continue;
+                }
+                for( int j=0; j<slots.length; j++ ){
+                    int ixi = slots[i];
+                    int ixj = slots[j];
+                    int previ = -1;
+                    int n = 0;
+
+    toploop:        while( ixj != -1 ){
+                        while( ixi+step<ixj ){
+                            ixi = next[ixi];
+                            if( ixi == -1 ){
+                                break toploop;
+                            }
+                        }
+                        if( ixi+step == ixj ){
+                            // We have a combination.
+                            if( previ == -1 ){
+                                newslots[p] = ixi;
+                            }
+                            else {
+                                newnext[previ] = ixi;
+                            }
+                            previ = ixi;
+                            newnext[ixi] = -1;
+                            n++;
+                        }
+                        ixj = next[ixj];
+                    }
+                    if( n>1 ){
+                        // This is an interesting repeat, we'll keep it.
+                        p++;
+                    }
+                }
+            }
+            if( false ){
+                System.out.println( "Found " + p + " interesting combinations of length " + (2*step) + "." );
+            }
+            filledSlots = p;
+            slots = newslots;
+            next = newnext;
+        }
 
 	// Now copy out the slots into the indices array.
 	int ix = 0;	// Next entry in the indices array.
 
-	for( int i=0; i<slots.length; i++ ){
+	for( int i=0; i<filledSlots; i++ ){
 	    int p = slots[i];
 	    int start = ix;
 
