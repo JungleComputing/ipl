@@ -11,6 +11,10 @@ import java.io.Serializable;
 import java.io.StreamCorruptedException;
 import java.io.UTFDataFormatException;
 
+import java.lang.reflect.Field;
+
+import sun.misc.Unsafe;
+
 /**
  * This is the <code>SerializationInputStream</code> version that is used
  * for Ibis serialization.
@@ -31,6 +35,8 @@ public class IbisSerializationInputStream
     // if STATS_NONREWRITTEN
     private static java.util.Hashtable nonRewritten = new java.util.Hashtable();
 
+    private static Unsafe unsafe;
+
     static {
 	if (STATS_NONREWRITTEN) {
 	    System.out.println("IbisSerializationInputStream.STATS_NONREWRITTEN enabled");
@@ -40,6 +46,14 @@ public class IbisSerializationInputStream
 		    System.out.println(nonRewritten);
 		}
 	    });
+	}
+	try {
+	    Class refl = Class.forName("java.io.ObjectStreamClass$FieldReflector");
+	    Field uf = refl.getDeclaredField("unsafe");
+	    uf.setAccessible(true);
+	    unsafe = (Unsafe) uf.get(null);
+	} catch(Exception e) {
+	    unsafe = null;
 	}
     }
 
@@ -972,12 +986,10 @@ public class IbisSerializationInputStream
      * This method reads a value from the stream and assigns it to a
      * final field.
      * IOGenerator uses this method when assigning final fields of an
-     * object that is rewritten, 
-     * but super is not, and super is serializable. The problem with
-     * this situation is that
-     * IOGenerator cannot create a proper constructor for this object,
-     * so cannot assign
-     * to native fields without falling back to native code.
+     * object that is rewritten, but super is not, and super is serializable.
+     * The problem with this situation is that IOGenerator cannot create
+     * a proper constructor for this object, so cannot assign
+     * to final fields without falling back to native code.
      *
      * @param ref		object with a final field
      * @param fieldname		name of the field
@@ -986,14 +998,38 @@ public class IbisSerializationInputStream
     public void readFieldDouble(Object ref, String fieldname)
 	    throws IOException
     {
-	setFieldDouble(ref, fieldname, readDouble());
+	double d = readDouble();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putDouble(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldDouble(ref, fieldname, d);
     }
 
     /**
      * See {@link #readFieldDouble(Object, String)} for a description.
      */
     public void readFieldLong(Object ref, String fieldname) throws IOException {
-	setFieldLong(ref, fieldname, readLong());
+	long d = readLong();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putLong(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldLong(ref, fieldname, d);
     }
 
     /**
@@ -1002,14 +1038,38 @@ public class IbisSerializationInputStream
     public void readFieldFloat(Object ref, String fieldname)
 	    throws IOException
     {
-	setFieldFloat(ref, fieldname, readFloat());
+	float d = readFloat();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putFloat(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldFloat(ref, fieldname, d);
     }
 
     /**
      * See {@link #readFieldDouble(Object, String)} for a description.
      */
     public void readFieldInt(Object ref, String fieldname) throws IOException {
-	setFieldInt(ref, fieldname, readInt());
+	int d = readInt();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putInt(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldInt(ref, fieldname, d);
     }
 
     /**
@@ -1018,21 +1078,57 @@ public class IbisSerializationInputStream
     public void readFieldShort(Object ref, String fieldname)
 	    throws IOException
     {
-	setFieldShort(ref, fieldname, readShort());
+	short d = readShort();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putShort(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldShort(ref, fieldname, d);
     }
 
     /**
      * See {@link #readFieldDouble(Object, String)} for a description.
      */
     public void readFieldChar(Object ref, String fieldname) throws IOException {
-	setFieldChar(ref, fieldname, readChar());
+	char d = readChar();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putChar(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldChar(ref, fieldname, d);
     }
 
     /**
      * See {@link #readFieldDouble(Object, String)} for a description.
      */
     public void readFieldByte(Object ref, String fieldname) throws IOException {
-	setFieldByte(ref, fieldname, readByte());
+	byte d = readByte();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putByte(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldByte(ref, fieldname, d);
     }
 
     /**
@@ -1041,7 +1137,19 @@ public class IbisSerializationInputStream
     public void readFieldBoolean(Object ref, String fieldname)
 	    throws IOException
     {
-	setFieldBoolean(ref, fieldname, readBoolean());
+	boolean d = readBoolean();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putBoolean(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldBoolean(ref, fieldname, d);
     }
 
     /**
@@ -1050,7 +1158,19 @@ public class IbisSerializationInputStream
     public void readFieldString(Object ref, String fieldname) 
 	    throws IOException
     {
-	setFieldObject(ref, fieldname, "Ljava/lang/String;", readString());
+	String d = readString();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putObject(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldObject(ref, fieldname, "Ljava/lang/String;", d);
     }
 
     /**
@@ -1060,7 +1180,19 @@ public class IbisSerializationInputStream
     public void readFieldClass(Object ref, String fieldname)
 	    throws IOException, ClassNotFoundException
     {
-	setFieldObject(ref, fieldname, "Ljava/lang/Class;", readClass());
+	Class d = readClass();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		int key = unsafe.fieldOffset(f);
+		unsafe.putObject(ref, key, d);
+		return;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldObject(ref, fieldname, "Ljava/lang/Class;", d);
     }
 
     /**
@@ -1071,7 +1203,24 @@ public class IbisSerializationInputStream
     public void readFieldObject(Object ref, String fieldname, String fieldsig)
 	    throws IOException, ClassNotFoundException
     {
-	setFieldObject(ref, fieldname, fieldsig, readObjectOverride());
+	Object d = readObjectOverride();
+	if (unsafe != null) {
+	    Class cl = ref.getClass();
+	    try {
+		Field f = cl.getDeclaredField(fieldname);
+		if (d != null && ! f.getType().isInstance(d)) {
+		    throw new ClassCastException("wrong field type");
+		}
+		int key = unsafe.fieldOffset(f);
+		unsafe.putObject(ref, key, d);
+		return;
+	    } catch(ClassCastException e) {
+		throw e;
+	    } catch(Exception e) {
+		// throw new InternalError("No such field " + fieldname + " in " cl.getName());
+	    }
+	}
+	setFieldObject(ref, fieldname, fieldsig, d);
     }
 
     /**
@@ -1355,6 +1504,26 @@ public class IbisSerializationInputStream
     public Object create_uninitialized_object(String classname)
 	throws ClassNotFoundException, IOException {
 	Class clazz = getClassFromName(classname);
+	return create_uninitialized_object(clazz);
+    }
+
+    private Object create_uninitialized_object(Class clazz) {
+	AlternativeTypeInfo t = AlternativeTypeInfo.
+				    getAlternativeTypeInfo(clazz);
+
+	if (STATS_NONREWRITTEN) {
+	    Integer n = (Integer)nonRewritten.get(clazz);
+	    if (n == null) {
+		n = new Integer(1);
+	    } else {
+		n = new Integer(n.intValue() + 1);
+	    }
+	    nonRewritten.put(clazz, n);
+	}
+
+	Object o = t.newInstance();
+
+	if (o != null) return o;
 
 	Class t2 = clazz;
 	while (Serializable.class.isAssignableFrom(t2)) {
@@ -1369,7 +1538,7 @@ public class IbisSerializationInputStream
 	    
 	} catch (Throwable thro) {
 	    thro.printStackTrace();
-	    System.err.println("class: " + classname + ",superclass: " + t2);
+	    System.err.println("class: " + clazz.getName() + ",superclass: " + t2.getName());
 	    throw new RuntimeException();
 	}
 	
@@ -1546,29 +1715,7 @@ public class IbisSerializationInputStream
 	} else {
 	    // obj = t.clazz.newInstance(); Not correct:
 	    // calls wrong constructor.
-	    Class t2 = t.clazz;
-	    if (STATS_NONREWRITTEN) {
-		Integer n = (Integer)nonRewritten.get(t2);
-		if (n == null) {
-		    n = new Integer(1);
-		} else {
-		    n = new Integer(n.intValue() + 1);
-		}
-		nonRewritten.put(t2, n);
-	    }
-	    while (Serializable.class.isAssignableFrom(t2)) {
-		// Find first non-serializable super-class.
-		t2 = t2.getSuperclass();
-	    }
-	    // Calls constructor for non-serializable superclass.
-	    try {
-		obj = createUninitializedObject(t.clazz, t2);
-	    } catch (Throwable thro) {
-		thro.printStackTrace();
-		System.err.println("class: " + t.clazz.getName() + ",superclass: " + t2);
-		throw new RuntimeException();
-	    }
-	    
+	    obj = create_uninitialized_object(t.clazz);
 	    addObjectToCycleCheck(obj);
 	    push_current_object(obj, 0);
 	    try {

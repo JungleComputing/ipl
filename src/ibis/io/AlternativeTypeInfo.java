@@ -3,6 +3,7 @@ package ibis.io;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.io.ObjectStreamField;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -33,10 +34,20 @@ final class AlternativeTypeInfo {
     private static HashMap alternativeTypes = new HashMap();
 
     /**
+     * newInstance method of ObjectStreamClass, when it exists.
+     */
+    private static Method newInstance = null;
+
+    /**
      * The <code>Class</code> structure of the class represented by this
      * <code>AlternativeTypeInfo</code> structure.
      */
     Class clazz;
+
+    /**
+     * The ObjectStreamClass of clazz.
+     */
+    private ObjectStreamClass objectStreamClass;
 
     /**
      * The sorted list of serializable fields.
@@ -188,6 +199,20 @@ final class AlternativeTypeInfo {
      */
     private Method temporary_method;
 
+    static {
+	try {
+	    newInstance = ObjectStreamClass.class.getDeclaredMethod("newInstance", new Class[] { });
+	} catch(Exception e) {
+	}
+	if (newInstance != null) {
+	    try {
+		newInstance.setAccessible(true);
+	    } catch(Exception e) {
+		newInstance = null;
+	    }
+	}
+    }
+
     /**
      * Return the name of the class.
      *
@@ -195,6 +220,23 @@ final class AlternativeTypeInfo {
      */
     public String toString() {
 	return clazz.getName();
+    }
+
+    /**
+     * Try to create an object through the newInstance method of ObjectStreamClass.
+     * Return null if it fails for some reason.
+     */
+    Object newInstance() {
+	if (newInstance != null) {
+	    try {
+		return newInstance.invoke(objectStreamClass, null);
+	    } catch(Exception e) {
+		// System.out.println("newInstance fails: got exception " + e);
+		return null;
+	    }
+	}
+	// System.out.println("newInstance fails: no newInstance method");
+	return null;
     }
 
     /**
@@ -348,7 +390,13 @@ final class AlternativeTypeInfo {
      * obtain the <code>AlternativeTypeInfo</code> for a type.
      */
     private AlternativeTypeInfo(Class clazz) { 
+
 	this.clazz = clazz;
+
+	if (newInstance != null) {
+	    objectStreamClass = ObjectStreamClass.lookup(clazz);
+	}
+
 	try {								
 	    /*
 	      Here we figure out what field the type contains, and which fields 
