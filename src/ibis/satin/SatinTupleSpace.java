@@ -61,6 +61,18 @@ public class SatinTupleSpace implements Config {
 	}
 
 	/**
+	 * Retrieves an element from the tuple space. If the element is not in the
+	 * space yet, this operation returns null.
+	 * 
+	 * @param key
+	 *            the key of the element retrieved.
+	 * @return the data associated with the key.
+	 */
+	public static Serializable peek(String key) {
+		return Satin.peekTuple(key);
+	}
+
+	/**
 	 * Removes an element from the tuple space.
 	 * 
 	 * @param key

@@ -108,6 +108,11 @@ public class BT_Analyzer {
 		boolean result = false;
 		JavaClass interf = Repository.lookupClass(inter);
 
+		if(interf == null) {
+		    System.err.println("interface " + inter + " not found.");
+		    System.exit(1);
+		}
+
 		if (inter.equals(specialInterface.getClassName())) {
 			result = true;
 		} else {

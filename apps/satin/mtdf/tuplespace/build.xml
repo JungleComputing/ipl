@@ -1,0 +1,15 @@
+<project
+    name="ibis.apps.satin.mtdf.par_flat_tt_repl_sockets"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../../.."/>
+    <property name="build"       location="build"/>
+
+    <property name="satin-main-class" value="Mtdf"/>
+
+    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+
+</project>
+
+

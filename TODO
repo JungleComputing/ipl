@@ -4,6 +4,7 @@ satin:
 	  - all params and return types must be serializable
 
 	- make return / throw an implicit sync again?
+	- add comments to abort / inlet machinism
 
 tcp ibis:
  - EEK TcpReceivePort: run: got illegal opcode: -1

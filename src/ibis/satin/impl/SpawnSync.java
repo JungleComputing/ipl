@@ -148,7 +148,8 @@ public abstract class SpawnSync extends Termination {
 				try {
 					r.runLocal();
 				} catch (Throwable t) {
-					// This can only happen if an inlet has thrown an exception.
+					// This can only happen if an inlet has thrown an exception, or
+				        // if there was no try-catch block around the spawn (i.e. no inlet).
 					// The semantics of this: all work is aborted,
 					// and the exception is passed on to the spawner.
 					// The parent is aborted, it must handle the exception.

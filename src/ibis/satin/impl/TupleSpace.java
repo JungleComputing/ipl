@@ -87,6 +87,28 @@ public abstract class TupleSpace extends Communication {
 	 *            the key of the element retrieved.
 	 * @return the data associated with the key.
 	 */
+	public static Serializable peekTuple(String key) {
+		Serializable data = null;
+
+		if(TUPLE_DEBUG) {
+			System.err.println("SATIN '" + this_satin.ident.name() + ": peek key " + key);
+		}
+
+		synchronized (space) {
+		    data = (Serializable) space.get(key);
+		}
+
+		return data;
+	}
+
+	/**
+	 * Retrieves an element from the tuple space. If the element is not in the
+	 * space yet, this operation blocks until the element is inserted.
+	 * 
+	 * @param key
+	 *            the key of the element retrieved.
+	 * @return the data associated with the key.
+	 */
 	public static Serializable getTuple(String key) {
 		Serializable data = null;
 
