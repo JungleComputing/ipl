@@ -287,7 +287,20 @@ class Conversion {
 //		if (len < BYTE2LONG_THRESHOLD) {
 			int count = index_src;
 			
-			for (int i=0;i<len;i++) { 			
+			for (int i=0;i<len;i++) { 	
+				int temp1 = ((int)(src[count++] & 0xff))    |
+					((int)(src[count++] & 0xff) << 8)   |
+					((int)(src[count++] & 0xff) << 16)  |
+					((int)(src[count++] & 0xff) << 24);
+
+				int temp2 = ((int)(src[count++] & 0xff))    |
+					((int)(src[count++] & 0xff) << 8)   |
+					((int)(src[count++] & 0xff) << 16)  |
+					((int)(src[count++] & 0xff) << 24);
+
+				dst[index_dst+i] = ((long)temp2) << 32 | ((long)temp1);
+
+				/*
 				dst[index_dst+i] = (long)
 					(((long)(src[count++] & 0xff))        |
 					 ((long)(src[count++] & 0xff) << 8)   |
@@ -297,6 +310,7 @@ class Conversion {
 					 ((long)(src[count++] & 0xff) << 40)  |
 					 ((long)(src[count++] & 0xff) << 48)  |
 					 ((long)(src[count++] & 0xff) << 56));
+				*/
 			}
 //		} else { 			
 //			n_byte2long(src, index_src, dst, index_dst, len);
@@ -329,6 +343,7 @@ class Conversion {
 			int count = index_src;
 			
 			for (int i=0;i<len;i++) { 			
+/*
 				temp = ((long)(src[count++] & 0xff)        |
 					((long)(src[count++] & 0xff) << 8)  |
 					((long)(src[count++] & 0xff) << 16) |
@@ -338,6 +353,18 @@ class Conversion {
 					((long)(src[count++] & 0xff) << 48) |
 					((long)(src[count++] & 0xff) << 56));
 				dst[index_dst+i] = Double.longBitsToDouble(temp);
+*/
+				int temp1 = ((int)(src[count++] & 0xff))    |
+					((int)(src[count++] & 0xff) << 8)   |
+					((int)(src[count++] & 0xff) << 16)  |
+					((int)(src[count++] & 0xff) << 24);
+
+				int temp2 = ((int)(src[count++] & 0xff))    |
+					((int)(src[count++] & 0xff) << 8)   |
+					((int)(src[count++] & 0xff) << 16)  |
+					((int)(src[count++] & 0xff) << 24);
+
+				dst[index_dst+i] = Double.longBitsToDouble(((long)temp2) << 32 | ((long)temp1));
 			}
 //		} else { 
 //			n_byte2double(src, index_src, dst, index_dst, len);
