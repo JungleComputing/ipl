@@ -4,6 +4,8 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
+import ibis.io.Conversion;
+
 import java.io.IOException;
 //import java.io.ObjectOutputStream;
 //import java.io.OutputStream;
@@ -20,6 +22,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 */
 	private boolean		finished;
 
+	private Conversion conversion;
+
 
 	/**
 	 * Constructor.
@@ -34,6 +38,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 		super(portType, driver, context);
 		// factory = new NetBufferFactory(new NetSendBufferFactoryDefaultImpl());
 		finished = false;
+		if (type.numbered()) {
+		     // The default conversion is *much* slower than the other
+		     // default. Select the other default, i.e. NIO.
+		    conversion = Conversion.loadConversion(false);
+		}
 	}
 
         /**
@@ -42,6 +51,12 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	public void initSend() throws IOException {
 // System.err.println(this + ": in initSend");
         }
+
+	protected void writeSeqno(long seqno) throws IOException {
+	    byte[] buf = new byte[Conversion.LONG_SIZE];
+	    conversion.long2byte(seqno, buf, 0);
+	    writeArray(buf, 0, buf.length);
+	}
 
 	public boolean writeBufferedSupported() {
 	    return false;

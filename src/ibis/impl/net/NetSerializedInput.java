@@ -118,13 +118,10 @@ public abstract class NetSerializedInput extends NetInput {
 		streamTable.put(activeNum, iss);
 	    }
 
-	    if (type.numbered()) {
-		messageSeqno = iss.readLong();
-	    }
-
 	    if (iss == null) {
 		throw new Error("invalid state: stream not found num " + num);
 	    }
+
 // System.err.println("OK, done the initReceive; iss " + this.iss);
 	    log.out();
 	}
@@ -292,6 +289,11 @@ public abstract class NetSerializedInput extends NetInput {
 
                 return i;
         }
+
+
+	protected long readSeqno() throws IOException {
+	    return readLong();
+	}
 
 
 	public long readLong() throws IOException {

@@ -129,6 +129,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                         if (rpcu != null) {
                                                                 rpcu.gotConnection(NetReceivePort.this, spi);
                                                         }
+
+							if (connectionTable.size() > maxLiveConnections) {
+							    maxLiveConnections = connectionTable.size();
+							}
                                                 }
 
 						input.setupConnection(cnx);
@@ -387,6 +391,11 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
          */
         static private int   receivePortCount          = 0;
 
+	/**
+	 * Seqno for numbered messages
+	 */
+	private	long		      messageSeqno = -1;
+
         /**
          * Internal receive port id, for debugging.
          */
@@ -405,6 +414,8 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
         private Vector                connectedPeers            = null;
         private Vector                disconnectedPeers         = null;
+
+	private int			maxLiveConnections	= 0;
 
 
 
@@ -774,12 +785,22 @@ pollerThread = null;
                 return true;
         }
 
+	public long sequenceNumber() {
+	    return messageSeqno;
+	}
+
         /**
          * Internally initializes a new reception.
          */
         private ReadMessage _receive() throws IOException {
                 log.in();
                 emptyMsg = true;
+		if (type.numbered()) {
+		    emptyMsg = false;
+		    messageSeqno = input.readSeqno();
+		    // System.err.println(NetIbis.hostName() + " " + this + ": receive msg with seqno " + messageSeqno);
+		}
+
                 if (trace.on()) {
                         final String messageId = readString();
                         trace.disp(receivePortTracePrefix, "message receive --> ", messageId);
@@ -1130,6 +1151,10 @@ pollerThread = null;
 			trace.disp(receivePortTracePrefix, "receive port shutdown: input lock released");
                 }
 
+		if (type.manyToOne() && maxLiveConnections == 1) {
+		    System.err.println(this + ": ManyToOne portType but only one connection");
+		}
+
 		ibis.unregister(this);
 
                 trace.disp(receivePortTracePrefix, "receive port shutdown<--");
@@ -1219,12 +1244,6 @@ pollerThread = null;
 		} catch(IOException e2) {
 		}
 	}
-
-        public long sequenceNumber() {
-                log.in();
-                log.out();
-                return input.sequenceNumber();
-        }
 
         public SendPortIdentifier origin() {
                 log.in();

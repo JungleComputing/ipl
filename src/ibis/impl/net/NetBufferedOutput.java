@@ -42,7 +42,6 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
         public void initSend() throws IOException {
                 log.in();
                 stat.begin();
-		super.initSend();	// Need this for GM, what would it break RFHH?
 		dataOffset = getHeadersLength();
 
                 //if (mtu != 0) {
@@ -53,6 +52,7 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
                         factory.setMaximumTransferUnit(mtu);
                 }
                         //}
+		super.initSend();	// Need this for GM, what would it break RFHH?
                 log.out();
         }
 

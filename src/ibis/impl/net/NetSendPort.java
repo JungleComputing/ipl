@@ -170,6 +170,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 	private boolean			closed			= false;
 
+	private int			maxLiveConnections	= 0;
+
 
 
 
@@ -624,6 +626,12 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		messageInUse = true;
 		emptyMsg = true;
                 output.initSend();
+		if (type.numbered()) {
+		    long seqno = NetIbis.globalIbis.getSeqno(type.name());
+		    // System.err.println(NetIbis.hostName() + " " + this + ": tag msg with seqno " + seqno);
+		    emptyMsg = false;
+		    output.writeSeqno(seqno);
+		}
                 if (trace.on()) {
                         final String messageId = (((NetIbis)type.getIbis()).closedPoolRank())+"-"+sendPortMessageId+"-"+(messageCount++);
                         trace.disp(sendPortTracePrefix, "message "+messageId+" send to "+receiversPrefixes+"-->");
@@ -679,9 +687,14 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 		    synchronized(connectionTable) {
 			    connectionTable.put(cnx.getNum(), cnx);
+
+			    if (connectionTable.size() > maxLiveConnections) {
+				maxLiveConnections = connectionTable.size();
+			    }
 		    }
 
 		    establishApplicationConnection(cnx);
+
 		} finally {
 		    outputLock.unlock();
 		}
@@ -809,6 +822,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                 __.fwdAbort__(e);
                         }
                 }
+
+		if (type.oneToMany() && maxLiveConnections == 1) {
+		    System.err.println(this + ": OneToMany portType but only one connection");
+		}
 
 		ibis.unregister(this);
 

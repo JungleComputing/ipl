@@ -446,6 +446,9 @@ public final class NetPortType extends PortType {
                 buildPropertyTree();
 
 		numbered = staticProperties.isProp("communication", "Numbered");
+if (numbered) {
+    System.err.println(this + ": switch on numbered communication");
+}
 	}
 
 	/**
@@ -469,6 +472,14 @@ public final class NetPortType extends PortType {
 	 */
 	public boolean numbered() {
 		return numbered;
+	}
+
+	public boolean oneToMany() {
+		return staticProperties.isProp("communication", "OneToMany");
+	}
+
+	public boolean manyToOne() {
+		return staticProperties.isProp("communication", "ManyToOne");
 	}
 
 	/**

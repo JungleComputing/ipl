@@ -5,6 +5,8 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 
+import ibis.io.Conversion;
+
 import java.io.IOException;
 
 /**
@@ -26,8 +28,6 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         private                              NetThreadStat           utStat                 = null;
         private 	boolean        	     freeCalled             = false;
         final 		private              Integer                 takenNum               = new Integer(-1);
-
-	protected	long		     messageSeqno = -1;
 
 	private         int                  pollWaiters;
 
@@ -60,6 +60,8 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 }
 
         }
+
+	private Conversion conversion;
 
 
         public final class NetThreadStat extends NetStat {
@@ -366,6 +368,12 @@ finishedUpcallThreads--;
                 utStat = new NetThreadStat(utStatOn, s);
                 this.upcallFunc = inputUpcall;
                 log.disp("this.upcallFunc = ", this.upcallFunc);
+
+		if (type.numbered()) {
+		     // The default conversion is *much* slower than the other
+		     // default. Select the other default, i.e. NIO.
+		    conversion = Conversion.loadConversion(false);
+		}
 	}
 
         /**
@@ -385,11 +393,13 @@ finishedUpcallThreads--;
                 log.out();
         }
 
-	public long sequenceNumber() {
-	    return messageSeqno;
-	}
-
         public abstract void initReceive(Integer num) throws IOException;
+
+	protected long readSeqno() throws IOException {
+	    byte[] buf = new byte[Conversion.LONG_SIZE];
+	    readArray(buf, 0, buf.length);
+	    return conversion.byte2long(buf, 0);
+	}
 
 	protected void handleEmptyMsg() throws IOException {
 	    readByte();
@@ -770,7 +780,13 @@ pollingThreads--;
 	    }
 	}
 
+
         protected abstract void doFinish() throws IOException;
+
+
+	public long sequenceNumber() {
+	    return -1;
+	}
 
 
         /**

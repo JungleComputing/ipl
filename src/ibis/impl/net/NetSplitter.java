@@ -160,7 +160,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
      */
     public void initSend() throws IOException {
 	log.in();
-	super.initSend();
 // System.err.println(this + ": in initSend(); notify singleton " + singleton);
 
 	if (singleton != null) {
@@ -172,6 +171,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 		no.initSend();
 	    } while (i.hasNext());
 	}
+	super.initSend();
 	log.out();
     }
 

@@ -91,7 +91,6 @@ public abstract class NetSerializedOutput extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public void initSend() throws IOException {
-                super.initSend();
                 subOutput.initSend();
 
                 if (oss == null) {
@@ -107,10 +106,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 		    oss.reset();
                 }
 
-		if (type.numbered()) {
-		    long seqno = NetIbis.globalIbis.getSeqno(type.name());
-		    oss.writeLong(seqno);
-		}
+                super.initSend();
 
 		needFlush = true;
 	}
@@ -208,6 +204,11 @@ public abstract class NetSerializedOutput extends NetOutput {
 	    needFlush = true;
 	    oss.writeInt(value);
         }
+
+
+	protected void writeSeqno(long value) throws IOException {
+	    writeLong(value);
+	}
 
 
         /**
