@@ -44,12 +44,12 @@
 	    </not>
 	</condition>
 
-	<condition property="ibis-name" value="&quot;-Dibis.name^=${ibis-name}&quot;">
+	<condition property="define-ibis-name" value="&quot;-Dibis.name^=${ibis-name}&quot;">
 	    <os family="windows"/>
 	</condition>
-	<condition property="ibis-name" value="&quot;-Dibis.name=${ibis-name}&quot;">
+	<condition property="define-ibis-name" value="&quot;-Dibis.name=${ibis-name}&quot;">
 	    <not>
-		<isset property="ibis-name"/>
+		<isset property="define-ibis-name"/>
 	    </not>
 	</condition>
     </target>
@@ -61,7 +61,7 @@
 	      vmlauncher="false"
 	      spawn="true">
 	    <arg line="-ns localhost -ns-port 4567 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
-	    <arg value="${ibis-name}"/>
+	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
 	<exec dir="${basedir}"
@@ -70,7 +70,7 @@
 	      failonerror="true"
 	      vmlauncher="false">
 	    <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
-	    <arg value="${ibis-name}"/>
+	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ${runjob}"/>
 	</exec>
     </target>
@@ -88,7 +88,7 @@
 	      executable="/usr/local/bin/prun"
 	      vmlauncher="false">
 	      <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs} ${ibis-run-args}"/>
-	    <arg value="${ibis-name}"/>
+	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ${runjob}"/>
 	</exec>
     </target>
@@ -101,7 +101,7 @@
 	      failonerror="true"
 	      vmlauncher="false">
 	    <arg line="-ns localhost -ns-port 4567 -hostno 0 -nhosts 1 ${ibis-run-args}"/>
-	    <arg value="${ibis-name}"/>
+	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ${runjob}"/>
 	</exec>
     </target>
