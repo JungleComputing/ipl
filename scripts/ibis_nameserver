@@ -1,2 +1,2 @@
-JAVACLASSPATH=build:.:$IBIS_ROOT/build:$IBIS_ROOT/build/lib
-$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH: ibis.impl.nameServer.tcp.NameServer $@
+JAVACLASSPATH=$CLASSPATH:$IBIS_ROOT/build:
+$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.impl.nameServer.tcp.NameServer "$@"

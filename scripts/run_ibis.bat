@@ -1,14 +1,3 @@
-set JAVA_ROOT=F:\java\sun\j2sdk1.4.2
-set JAVAC=F:\java\sun\j2sdk1.4.2\bin\javac
-set JIT_OPTS=""
-set IBIS_ROOT=F:\werk\ibis
-set MANTA_ROOT=\usr\local\VU\manta
-set PANDA_ROOT=F:\werk\panda\panda4.0
-set LFC_ROOT=F:\werk\lfc-gm
-set GM_ROOT=F:\werk\GM
-set DAS_LIB=F:\werk\daslib\lib\i386_Linux\libdas.a
-set PANDA_NETWORK=lfc
-set BCEL=F:\werk\ibis\3rdparty\bcel-5.1.jar
 
 rem  start of script template
 
