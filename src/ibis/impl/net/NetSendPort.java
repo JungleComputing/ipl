@@ -307,9 +307,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 					Object value = receivePortSockets.remove(key);
 					Socket s     = (Socket)value;
                                         
-                                        if (!s.isClosed()) {
-                                                s.close();
-                                        }
+                                        s.close();
 				}	
 			}
 		

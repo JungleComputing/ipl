@@ -655,11 +655,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 					Object value = sendPortSockets.remove(key);
 					Socket s     = (Socket)value;
 
-                                        synchronized (s) {
-                                                if (!s.isClosed()) {
-                                                        s.close();
-                                                }
-                                        }
+                                        s.close();
 				}	
 			}
 

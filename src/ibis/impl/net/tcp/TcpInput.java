@@ -176,35 +176,27 @@ public class TcpInput extends NetInput {
 	public void free() throws IbisIOException {
 		try {
 			if (tcpOs != null) {
-				tcpOs.close();
+                                tcpOs.close();
+                                tcpOs = null;
 			}
 		
 			if (tcpIs != null) {
 				tcpIs.close();
+                                tcpIs = null;
 			}
 
 			if (tcpSocket != null) {
-				synchronized(tcpSocket) {
-                                        if (!tcpSocket.isClosed()) {
-                                                tcpSocket.close();
-                                        }
-                                }
-                                
+                                tcpSocket.close();
+                                tcpSocket = null;
 			}
 
 			if (tcpServerSocket != null) {
-				synchronized(tcpServerSocket) {
-                                        if (!tcpServerSocket.isClosed()) {
-                                                tcpServerSocket.close();
-                                        }
-                                }
+                                tcpServerSocket.close();
+                                tcpServerSocket = null;
+
 			}
 
-			tcpSocket       = null;
-			tcpServerSocket = null;
-			rpn             = null;
-			tcpIs           = null;
-			tcpOs           = null;
+			rpn = null;
 		}
 		catch (Exception e) {
 			throw new IbisIOException(e);

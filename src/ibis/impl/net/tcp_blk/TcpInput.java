@@ -207,20 +207,11 @@ public class TcpInput extends NetInput {
 			}
 
 			if (tcpSocket != null) {
-				synchronized(tcpSocket) {
-                                        if (!tcpSocket.isClosed()) {
-                                                tcpSocket.close();
-                                        }
-                                }
-                                
+                                tcpSocket.close();
 			}
 
 			if (tcpServerSocket != null) {
-				synchronized(tcpServerSocket) {
-                                        if (!tcpServerSocket.isClosed()) {
-                                                tcpServerSocket.close();
-                                        }
-                                }
+                                tcpServerSocket.close();
 			}
 
 			tcpSocket       = null;

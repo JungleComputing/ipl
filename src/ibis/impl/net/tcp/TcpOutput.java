@@ -124,25 +124,20 @@ public class TcpOutput extends NetOutput {
 		try {
 			if (tcpOs != null) {
 				tcpOs.close();
+                                tcpOs = null;
 			}
 		
 			if (tcpIs != null) {
 				tcpIs.close();
+                                tcpIs = null;
 			}
 
 			if (tcpSocket != null) {
-                                synchronized(tcpSocket) {
-                                        if (!tcpSocket.isClosed()) {
-                                                tcpSocket.close();
-                                        }
-                                }
+                                tcpSocket.close();
+                                tcpSocket = null;
 			}
 
-			tcpSocket = null;
-			rpn       = null;
-			tcpIs     = null;
-			tcpOs     = null;
-
+			rpn = null;
 		}
 		catch (Exception e) {
 			throw new IbisIOException(e);
