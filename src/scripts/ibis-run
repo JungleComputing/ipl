@@ -25,7 +25,7 @@ HOSTNO=0
 HOSTS=
 NHOSTS=1
 run_name=$0
-action=eval
+action=
 hostnames=0
 nameserver_specified=0
 
@@ -174,7 +174,7 @@ do
         case "$1" in
 	-action)
 		shift
-		action="$action $1"
+		action="$1"
 		;;
 	-attach)
 		attach=1
@@ -192,7 +192,7 @@ do
 	-hosts)
 		shift
 		HOSTS="$1"
-		Dpool_host_names=-Dibis.pool.host_names="\"$HOSTS\""
+		Dpool_host_names="-Dibis.pool.host_names="
 		;;
 	-jdb)
 		JAVA_EXEC=jdb
@@ -332,20 +332,20 @@ CYGWIN*)
     ;;
 esac
 
-Dlibpath="-Djava.library.path=\"$libpath\""
-Dibislibdir="-Dibis.library.path=\"$ibislib\""
-
 Xbootclasspath=
+BOOTPATH=
 if [ $needsbootclasspath -eq 1 ]
 then
-    Xbootclasspath="-Xbootclasspath/p:\"$JAVACLASSPATH\""
+    Xbootclasspath="-Xbootclasspath/p:"
+    BOOTPATH="$JAVACLASSPATH"
 fi
 
-$action "\"$JAVA_ROOT/bin/$JAVA_EXEC\"" \
+$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
 	$JIT_OPTS \
-	"$Dlibpath" "$Dibislibdir" \
-	$Dpool_host_num $Dpool_total $Dpool_host_names \
+	-Djava.library.path="$libpath" \
+	-Dibis.library.path="$ibislib" \
+	$Dpool_host_num $Dpool_total $Dpool_host_names"$HOSTS" \
 	$Dns_key $Dns_port $Dns_server \
-	"$Xbootclasspath" \
-	-classpath "\"$JAVACLASSPATH\"" \
+	$Xbootclasspath"$BOOTPATH" \
+	-classpath "$JAVACLASSPATH" \
 	"$@"
