@@ -356,16 +356,16 @@ to the command line.
 	<echo
 		file="${ibis}/configuration.sh">#!/bin/bash
 # Shell variables to describe Ibis configuration
-JAVA_ROOT=${JAVA_HOME_ENV}
+JAVA_ROOT="${JAVA_HOME_ENV}"
 # JAVA_ROOT=/usr/local/ibm-java/IBMJava2-141
 # JAVA_ROOT=/usr/local/sun-java/jdk1.4
 # JAVA_ROOT=/usr/local/sun-java/j2sdk1.5.0
-JAVAC=${config.javac}
+JAVAC="${config.javac}"
 JIT_OPTS="${JIT_OPTS}"
-IBIS_ROOT=${ibis}
+IBIS_ROOT="${ibis}"
 MANTA_ROOT=/usr/local/VU/manta
-BCEL=${package.home.bcel}
-KARMI=${karmi}
+BCEL="${package.home.bcel}"
+KARMI="${karmi}"
 IBIS_CONFIG_SEEN=1
 </echo>
 

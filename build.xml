@@ -84,10 +84,6 @@
 	    tofile="${ibis}/bin/ibis-controlhub"/>
 
 	<copy
-	    file="${ibis}/src/scripts/jdis"
-	    tofile="${ibis}/bin/jdis"/>
-
-	<copy
 	    file="${ibis}/src/scripts/ant"
 	    tofile="${ibis}/bin/ant"/>
 
