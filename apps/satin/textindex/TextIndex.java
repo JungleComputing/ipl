@@ -118,50 +118,11 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
         sync();
         // Now merge them.
         if( ix1 == null ){
+            // Merging is easy when one of them is is null.
             return ix2;
         }
         ix1.add( ix2 );
         return ix1;
-        
-    }
-
-    public Index indexDirectory( String dirnm ) throws IOException
-    {
-        File dir = new File( dirnm );
-
-        String files[] = dir.list();
-        Index ix[] = new Index[files.length];
-
-        for( int i=0; i<files.length; i++ ){
-            String fnm = files[i];
-
-            if( fnm.charAt( 0 ) != '.' ){
-                // Skip '.', '..', and all hidden files per Unix convention.
-                File f = new File( dir, fnm );
-
-                if( f.isDirectory() ){
-                    if( traceTreeWalk ){
-                        System.err.println( "Visiting directory " + f );
-                    }
-                    ix[i] = indexDirectory( f.toString() );
-                }
-                else if( f.isFile() ){
-                    if( traceTreeWalk ){
-                        System.err.println( "Indexing plain file " + f );
-                    }
-                    ix[i] = indexFile( f.toString() );
-                }
-                else {
-                    System.err.println( "Skipping weird file " + f );
-                }
-            }
-        }
-        sync();
-        Index res = new Index();
-        for( int i=0; i<ix.length; i++ ){
-            res.add( ix[i] );
-        }
-        return res;
     }
 
     /**
