@@ -134,10 +134,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 							if (connectionTable.size() == 1) {
 							    singleConnection = cnx;
-System.err.println(this + ": Set singleConnection");
 							} else {
 							    singleConnection = null;
-System.err.println(this + ": clear singleConnection");
 							}
 							if (connectionTable.size() > maxLiveConnections) {
 							    maxLiveConnections = connectionTable.size();
@@ -623,10 +621,8 @@ if (cnx.closeSeqno != Long.MAX_VALUE) {
 			    if (connectionTable.size() == 1) {
 				Enumeration elts = connectionTable.elements();
 				singleConnection = (NetConnection)elts.nextElement();
-System.err.println(this + ": Set singleConnection");
 			    } else {
 				singleConnection = null;
-System.err.println(this + ": clear singleConnection");
 			    }
 
 			    disconnectedPeers.add(nspi);
@@ -755,7 +751,9 @@ System.err.println(this + ": clear singleConnection");
                 if (!useUpcall && upcallSpecified) {
                         useUpcall = true;
                 }
+if (! useYield) {
 System.err.println("useYield " + useYield);
+}
 
                 disp.disp("__ Configuration ____");
                 disp.disp("Upcall engine........", __.state__(useUpcall));
