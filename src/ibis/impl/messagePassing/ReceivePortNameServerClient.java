@@ -1,5 +1,7 @@
 package ibis.impl.messagePassing;
 
+import ibis.io.Conversion;
+
 import ibis.util.ConditionVariable;
 
 import java.io.IOException;
@@ -284,7 +286,7 @@ final class ReceivePortNameServerClient
 	lookup.ri = null;
 	if (rcvePortId != null) {
 	    try {
-		lookup.ri = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortId);
+		lookup.ri = (ReceivePortIdentifier)Conversion.byte2object(rcvePortId);
 		lookup.ns_done.cv_signal();
 	    } catch (ClassNotFoundException e) {
 		System.err.println("Cannot deserialize ReceivePortId");

@@ -1,5 +1,7 @@
 package ibis.impl.messagePassing;
 
+import ibis.io.Conversion;
+
 import java.io.IOException;
 
 public final class ReceivePortIdentifier
@@ -29,7 +31,7 @@ public final class ReceivePortIdentifier
 
     private void makeSerialForm() {
 	try {
-	    serialForm = SerializeBuffer.writeObject(this);
+	    serialForm = Conversion.object2byte(this);
 	} catch (IOException e) {
 	    throw new Error("Cannot serialize myself", e);
 	}

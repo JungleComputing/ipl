@@ -2,6 +2,8 @@ package ibis.impl.messagePassing;
 
 import ibis.ipl.PortMismatchException;
 
+import ibis.io.Conversion;
+
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 
@@ -28,8 +30,8 @@ class ShadowSendPort extends SendPort {
 	SendPortIdentifier sId;
 
 	try {
-	    rId = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortBuf);
-	    sId = (SendPortIdentifier)SerializeBuffer.readObject(sendPortBuf);
+	    rId = (ReceivePortIdentifier)Conversion.byte2object(rcvePortBuf);
+	    sId = (SendPortIdentifier)Conversion.byte2object(sendPortBuf);
 // System.err.println("Create shadow SendPort for sendPort that belongs to Ibis " + sId.ibis());
 	} catch (ClassNotFoundException e) {
 	    throw new IOException("Cannot read Ids from stream " + e);
@@ -169,8 +171,8 @@ class ShadowSendPort extends SendPort {
 	ReceivePortIdentifier rId = null;
 	SendPortIdentifier sId = null;
 	try {
-	    rId = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortId);
-	    sId = (SendPortIdentifier)SerializeBuffer.readObject(sendPortId);
+	    rId = (ReceivePortIdentifier)Conversion.byte2object(rcvePortId);
+	    sId = (SendPortIdentifier)Conversion.byte2object(sendPortId);
 	} catch (ClassNotFoundException e) {
 	    throw new IOException("Cannot read Ids from stream " + e);
 	}

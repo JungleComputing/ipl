@@ -1,5 +1,7 @@
 package ibis.impl.messagePassing;
 
+import ibis.io.Conversion;
+
 import java.io.IOException;
 import java.util.Hashtable;
 
@@ -20,7 +22,7 @@ final class ReceivePortNameServer implements
 	Ibis.myIbis.checkLockOwned();
 	ReceivePortIdentifier ri = null;
 	try {
-	    ri = (ReceivePortIdentifier)SerializeBuffer.readObject(serialForm);
+	    ri = (ReceivePortIdentifier)Conversion.byte2object(serialForm);
 	} catch (ClassNotFoundException e) {
 	    System.err.println("Cannot deserialize ReceivePortId to be bound");
 	    bind_reply(PORT_REFUSED, tag, client);

@@ -1,5 +1,7 @@
 package ibis.impl.messagePassing;
 
+import ibis.io.Conversion;
+
 import java.io.IOException;
 
 final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
@@ -27,7 +29,7 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
 
     private void makeSerialForm() {
 	try {
-	    serialForm = SerializeBuffer.writeObject(this);
+	    serialForm = Conversion.object2byte(this);
 	} catch (IOException e) {
 	    throw new Error("Cannot serialize myself", e);
 	}

@@ -1,5 +1,7 @@
 package ibis.impl.messagePassing;
 
+import ibis.io.Conversion;
+
 import ibis.util.IbisIdentifierTable;
 
 import java.io.IOException;
@@ -25,7 +27,7 @@ final class IbisIdentifier
 	    throws IOException {
 	IbisIdentifier id;
 	try {
-	    id = (IbisIdentifier) SerializeBuffer.readObject(serialForm);
+	    id = (IbisIdentifier) Conversion.byte2object(serialForm);
 	} catch (ClassNotFoundException e) {
 	    throw new StreamCorruptedException("serialForm corrupted " + e);
 	}
@@ -67,7 +69,7 @@ final class IbisIdentifier
 
 
     private void makeSerialForm() throws IOException {
-	serialForm = SerializeBuffer.writeObject(this);
+	serialForm = Conversion.object2byte(this);
     }
 
 
