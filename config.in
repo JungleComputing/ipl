@@ -77,9 +77,9 @@ ifeq (sun-java, $(findstring sun-java,$(JPATH)))
 JAVARUNFLAGS	+= -server
 endif
 endif
-JAVACLASSPATH	= .:$(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis/$(ANT_BUILD):$(IBIS_ROOT)/ibis/bcel-additions:$(BCEL)/bcel-5.1.jar
-JAVABOOTCLASSPATH = $(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis/$(ANT_BUILD)
-JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/ibis/lib:$(JPATH)/jre/bin:$(JPATH)/jre/lib/i386
+JAVACLASSPATH	= build:.:$(IBIS_ROOT)/classlibs:$(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis/build:$(IBIS_ROOT)/ibis:$(IBIS_ROOT)/ibis/bcel-additions:$(BCEL)/bcel-5.1.jar
+JAVABOOTCLASSPATH = $(IBIS_ROOT)/classlibs:$(IBIS_ROOT)/ibis/classlibs:$(IBIS_ROOT)/ibis/build:$(IBIS_ROOT)/ibis
+JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/ibis/build/lib:$(IBIS_ROOT)/ibis/lib:$(JPATH)/jre/bin:$(JPATH)/jre/lib/i386
 JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH):
 JAVAHFLAGS      += -classpath $(JAVACLASSPATH):
 JAVAPFLAGS	+= -c -classpath $(JAVACLASSPATH):
