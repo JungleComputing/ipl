@@ -1,5 +1,7 @@
 package ibis.satin;
 
+import ibis.satin.impl.Satin;
+
 /**
  * This is the magic class that should be extended by objects that
  * invoke spawnable methods.

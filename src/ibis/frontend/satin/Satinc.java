@@ -1,12 +1,13 @@
 package ibis.frontend.satin;
 
 import ibis.util.RunProcess;
+
 import java.io.BufferedOutputStream;
-import java.io.OutputStream;
-import java.io.FilterOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Vector;
 
@@ -232,9 +233,9 @@ public final class Satinc {
 	ins_f = new InstructionFactory(gen_c);
 
 	satinObjectClass = Repository.lookupClass("ibis.satin.SatinObject");
-	spawnCounterType = new ObjectType("ibis.satin.SpawnCounter");
-	irType = new ObjectType("ibis.satin.InvocationRecord");
-	satinType = new ObjectType("ibis.satin.Satin");
+	spawnCounterType = new ObjectType("ibis.satin.impl.SpawnCounter");
+	irType = new ObjectType("ibis.satin.impl.InvocationRecord");
+	satinType = new ObjectType("ibis.satin.impl.Satin");
     }
 
     boolean isSatin() {
@@ -285,7 +286,7 @@ public final class Satinc {
     }
 
     Instruction getSatin(InstructionFactory ins_f) {
-	return ins_f.createInvoke("ibis.satin.Satin",
+	return ins_f.createInvoke("ibis.satin.impl.Satin",
 				  "getSatin",
 				  satinType,
 				  Type.NO_ARGS,
@@ -304,16 +305,22 @@ public final class Satinc {
 					   c.getClassName(),
 					   il,
 					   c.getConstantPool());
-
-	il.append(ins_f.createNew(satinType));
+/*
+    il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
+		     "createSatin",
+		     Type.OBJECT,
+		     new Type[] {new ArrayType(Type.STRING, 1)},
+		     Constants.INVOKESTATIC));
+*/
+    il.append(ins_f.createNew(satinType));
 	il.append(new DUP());
 	InstructionHandle argv_handle = il.append(new ALOAD(0));
-	il.append(ins_f.createInvoke("ibis.satin.Satin",
+	il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
 				     "<init>",
 				     Type.VOID,
 				     new Type[] {new ArrayType(Type.STRING, 1)},
 				     Constants.INVOKESPECIAL));
-	il.append(ins_f.createInvoke("ibis.satin.Satin",
+	il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
 				     "isMaster",
 				     Type.BOOLEAN,
 				     Type.NO_ARGS,
@@ -323,7 +330,7 @@ public final class Satinc {
 	InstructionHandle origMain_handle = 
 	//
 	il.append(getSatin(ins_f));
-	il.append(ins_f.createInvoke("ibis.satin.Satin",
+	il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
 				     "getMainArgs",
 				      new ArrayType(Type.STRING, 1),
 				      Type.NO_ARGS,
@@ -377,7 +384,7 @@ public final class Satinc {
 
 	InstructionHandle ifeq_target = il.append(getSatin(ins_f));
 	ifcmp.setTarget(ifeq_target);
-	il.append(ins_f.createInvoke("ibis.satin.Satin",
+	il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
 				     "client",
 				     Type.VOID,
 				     Type.NO_ARGS,
@@ -385,7 +392,7 @@ public final class Satinc {
 	// fault tolerance
 	if (faultTolerance) {
 	    il.append(getSatin(ins_f));
-	    il.append(ins_f.createInvoke("ibis.satin.Satin",
+	    il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
 				        "isMaster",
 				        Type.BOOLEAN,
 				        Type.NO_ARGS,
@@ -398,7 +405,7 @@ public final class Satinc {
 	try_end.setTarget(gto_target);
 	gto2.setTarget(gto_target);
 
-	il.append(ins_f.createInvoke("ibis.satin.Satin",
+	il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
 				     "exit",
 				     Type.VOID,
 				     Type.NO_ARGS,
@@ -540,7 +547,7 @@ public final class Satinc {
 	Instruction r = i.getInstruction();
 
 	i.setInstruction(new ALOAD(maxLocals));
-	i = il.append(i, ins_f.createInvoke("ibis.satin.Satin",
+	i = il.append(i, ins_f.createInvoke("ibis.satin.impl.Satin",
 					    "deleteSpawnCounter",
 					    Type.VOID,
 					    new Type[] { spawnCounterType },
@@ -586,7 +593,7 @@ public final class Satinc {
 	// in a clone, we have to abort two lists: the outstanding spawns of the parent, and the outstanding
 	// spawns of the clone.
 	Instruction fa = getSatin(ins_f);
-	Instruction ab = ins_f.createInvoke("ibis.satin.Satin",
+	Instruction ab = ins_f.createInvoke("ibis.satin.impl.Satin",
 					    "abort",
 					    Type.VOID,
 					    new Type[] { irType,
@@ -640,7 +647,7 @@ public final class Satinc {
 	    System.exit(1);
 	}
 */
-	Instruction sync_invocation = ins_f.createInvoke("ibis.satin.Satin",
+	Instruction sync_invocation = ins_f.createInvoke("ibis.satin.impl.Satin",
 							 "sync",
 							 Type.VOID,
 							 new Type[] { spawnCounterType },
@@ -677,7 +684,7 @@ public final class Satinc {
 	il.insert(pos, new DUP());
 	il.insert(pos, new ASTORE(maxLocals+2));
 
-	il.insert(pos, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
+	il.insert(pos, ins_f.createFieldAccess("ibis.satin.impl.InvocationRecord",
 					       "cacheNext",
 					       irType,
 					       Constants.GETFIELD));
@@ -701,7 +708,7 @@ public final class Satinc {
 		    jumpTargets[k-1] = pos.getPrev();
 		}
 
-		il.insert(pos, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
+		il.insert(pos, ins_f.createFieldAccess("ibis.satin.impl.InvocationRecord",
 						       "storeId",
 						       Type.INT,
 						       Constants.GETFIELD));
@@ -804,7 +811,7 @@ public final class Satinc {
 	InstructionHandle abo = insertNullReturn(m, il, pos);
 
 	il.insert(abo, getSatin(ins_f));
-	il.insert(abo, ins_f.createInvoke("ibis.satin.Satin",
+	il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin",
 					  "getParent",
 					   irType,
 					   Type.NO_ARGS,
@@ -814,13 +821,13 @@ public final class Satinc {
 	il.insert(abo, new IFNULL(pos));
 
 	il.insert(abo, getSatin(ins_f));
-	il.insert(abo, ins_f.createInvoke("ibis.satin.Satin",
+	il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin",
 					  "getParent",
 					   irType,
 					   Type.NO_ARGS,
 					   Constants.INVOKEVIRTUAL));
 
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.InvocationRecord",
 					       "aborted",
 					       Type.BOOLEAN,
 					       Constants.GETFIELD));
@@ -830,23 +837,23 @@ public final class Satinc {
 ////@@@@@@@@@@2 this needs fixing :-(
 	// Test for parent.eek, if non-null, throw it (exception in inlet).
 	il.insert(abo, getSatin(ins_f));
-	il.insert(abo, ins_f.createInvoke("ibis.satin.Satin",
+	il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin",
 					  "getParent",
 					   irType,
 					   Type.NO_ARGS,
 					   Constants.INVOKEVIRTUAL));
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.InvocationRecord",
 					       "eek",
 					       new ObjectType("java.lang.Throwable"),
 					       Constants.GETFIELD));
 	il.insert(abo, new IFNULL(abo));
 	il.insert(abo, getSatin(ins_f));
-	il.insert(abo, ins_f.createInvoke("ibis.satin.Satin",
+	il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin",
 					  "getParent",
 					   irType,
 					   Type.NO_ARGS,
 					   Constants.INVOKEVIRTUAL));
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.InvocationRecord",
+	il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.InvocationRecord",
 					       "eek",
 					       new ObjectType("java.lang.Throwable"),
 					       Constants.GETFIELD));
@@ -1046,7 +1053,7 @@ public final class Satinc {
 	parameters[ix++] = irType;
 	parameters[ix++] = Type.INT;
 	parameters[ix++] = Type.INT;
-	parameters[ix++] = new ObjectType("ibis.satin.LocalRecord");
+	parameters[ix++] = new ObjectType("ibis.satin.impl.LocalRecord");
 	
 	ih = il.append(ih, ins_f.createInvoke(invocationRecordName(target, classname),
 					     methodName,
@@ -1066,7 +1073,7 @@ public final class Satinc {
 	ih = il.append(ih, new ALOAD(maxLocals+1));
 	
 	// and call Satin.spawn 
-	ih = il.append(ih, ins_f.createInvoke("ibis.satin.Satin",
+	ih = il.append(ih, ins_f.createInvoke("ibis.satin.impl.Satin",
 				     "spawn",
 				     Type.VOID,
 				     new Type[] { irType },
@@ -1297,7 +1304,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
 
 	// Allocate a spawn counter at the start of the method, local slot is maxLocals 
-	il.insert(insertAllocPos, ins_f.createInvoke("ibis.satin.Satin",
+	il.insert(insertAllocPos, ins_f.createInvoke("ibis.satin.impl.Satin",
 				     "newSpawnCounter",
 				     spawnCounterType,
 				     Type.NO_ARGS,
@@ -1319,7 +1326,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	m.addLocalVariable("spawn_counter", spawnCounterType, maxLocals, sp_h, null);
 	m.addLocalVariable("outstanding_spawns", irType, maxLocals+1, os_h, null);
 	m.addLocalVariable("current", irType, maxLocals+2, curr_h, null);
-	m.addLocalVariable("local_record", new ObjectType("ibis.satin.LocalRecord"), maxLocals+3, lr_h, null);
+	m.addLocalVariable("local_record", new ObjectType("ibis.satin.impl.LocalRecord"), maxLocals+3, lr_h, null);
 
 	for (InstructionHandle i = insertAllocPos; i != null; i = i.getNext()) {
 	    if (i.getInstruction() instanceof ReturnInstruction) {
@@ -1380,7 +1387,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	LocalVariableInstruction curr = (LocalVariableInstruction)(i.getInstruction());
 	Type type = mtab.getLocalType(m, curr, i.getPosition());
 	String name = mtab.getLocalName(m, curr, i.getPosition());
-	String fieldName = mtab.generatedLocalName(type, name);
+	String fieldName = MethodTable.generatedLocalName(type, name);
 
 	i.setInstruction(new ALOAD(maxLocals));
 	i = i.getNext();
@@ -1403,7 +1410,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	LocalVariableInstruction curr = (LocalVariableInstruction)(i.getInstruction());
 	Type type = mtab.getLocalType(m, curr, i.getPosition());
 	String name = mtab.getLocalName(m, curr, i.getPosition());
-	String fieldName = mtab.generatedLocalName(type, name);
+	String fieldName = MethodTable.generatedLocalName(type, name);
 
 	i.setInstruction(new ALOAD(maxLocals));
 	i = i.getNext();
@@ -1649,13 +1656,13 @@ System.out.println("findMethod: could not find method " + name + sig);
 		    il.insert(i, new DUP());
 
 		    il.insert(i, ins_f.createFieldAccess(localClassName,
-							 mtab.generatedLocalName(fieldType, fieldName),
+		            MethodTable.generatedLocalName(fieldType, fieldName),
 							 fieldType,
 							 Constants.GETFIELD));
 		    il.insert(i, new BIPUSH((byte)val));
 		    il.insert(i, new IADD());
 		    i = il.insert(i, ins_f.createFieldAccess(localClassName,
-							 mtab.generatedLocalName(fieldType, fieldName),
+		            MethodTable.generatedLocalName(fieldType, fieldName),
 							 fieldType,
 							 Constants.PUTFIELD));
 		} else {
@@ -1872,7 +1879,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 		ClassGen recgen = new ClassGen(localRec);
 
-		Method exceptionHandler = recgen.containsMethod("handleException", "(ILjava/lang/Throwable;Libis/satin/InvocationRecord;)V");
+		Method exceptionHandler = recgen.containsMethod("handleException", "(ILjava/lang/Throwable;Libis/satin/impl/InvocationRecord;)V");
 		MethodGen handler_g = new MethodGen(exceptionHandler, local_record_name, recgen.getConstantPool());
 
 		InstructionList il = handler_g.getInstructionList();
@@ -1886,9 +1893,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 		if (! clone.isStatic()) {
 		    // push this
-		    String thisName = mtab.getParamName(m, 0);
+		    String thisName = MethodTable.getParamName(m, 0);
 		    Type thisType = mtab.getParamType(m, 0);
-		    String thisFieldName = mtab.generatedLocalName(thisType, thisName);
+		    String thisFieldName = MethodTable.generatedLocalName(thisType, thisName);
 
 		    il.append(new ALOAD(0));
 		    il.append(ins_f.createFieldAccess(local_record_name,
@@ -1957,7 +1964,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	PrintStream out = new PrintStream(b2);
 
 	try {
-	    out.println("final class " + name + " extends ibis.satin.LocalRecord {");
+	    out.println("final class " + name + " extends ibis.satin.impl.LocalRecord {");
 	    out.println("    private static " + name + " cache;");
 	    out.println("    private " + name + " cacheNext;");
 
@@ -2052,8 +2059,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("    }\n");
 
 	    // generate a method that runs the clone in case of exceptions 
-	    out.println("    public void handleException(int spawnId, Throwable t, ibis.satin.InvocationRecord parent) throws Throwable {");
-	    out.println("        if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"handleE: spawnId = \" + spawnId + \", t = \" + t + \", parent = \" + parent + \", this = \" + this);");
+	    out.println("    public void handleException(int spawnId, Throwable t, ibis.satin.impl.InvocationRecord parent) throws Throwable {");
+	    out.println("        if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"handleE: spawnId = \" + spawnId + \", t = \" + t + \", parent = \" + parent + \", this = \" + this);");
 	    // This will later be replaced with call to exception handler
 	    out.println("    }");
 
@@ -2085,6 +2092,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	    Type returnType = m.getReturnType();
 
+	    out.println("import ibis.satin.impl.*;\n");
 	    out.println("import ibis.satin.*;\n");
 	    out.println("final class " + name + " extends InvocationRecord {");
 
@@ -2151,12 +2159,12 @@ System.out.println("findMethod: could not find method " + name + sig);
 		out.println("        res.cacheNext = next;");
 		out.println("        res.storeId = storeId;");
 
-		out.println("        if (ibis.satin.Config.ABORTS) {");
+		out.println("        if (ibis.satin.impl.Config.ABORTS) {");
 		out.println("                res.spawnId = spawnId;");
 		out.println("                res.parentLocals = parentLocals;");
 		out.println("        }");
 		
-		out.println("        if (ibis.satin.Config.FAULT_TOLERANCE) {");
+		out.println("        if (ibis.satin.impl.Config.FAULT_TOLERANCE) {");
 		out.println("                res.spawnId = spawnId;");
 		out.println("		     res.numSpawned = 0;");
 		out.println("        }");
@@ -2249,21 +2257,21 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println(");");
 	    if (supportAborts) {
 		out.println("        } catch (Throwable e) {");
-		out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"caught exception in runlocal: \" + e);");
+		out.println("            if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"caught exception in runlocal: \" + e);");
 		out.println("                eek = e;");
 		out.println("        }");
 
 		out.println("        if (eek != null && !inletExecuted) {");
-		out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this);");
+		out.println("            if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this);");
 		out.println("            if(parentLocals != null)");
 		out.println("                parentLocals.handleException(spawnId, eek, this);");
-		out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this + \" DONE\");");
+		out.println("            if (ibis.satin.impl.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this + \" DONE\");");
 		out.println("        }");
 	    }
 	    out.println("    }\n");
 
 	    // runRemote method 
-	    out.println("    public ibis.satin.ReturnRecord runRemote() {");
+	    out.println("    public ibis.satin.impl.ReturnRecord runRemote() {");
 
 	    // Code below commented out because it is wrong:
 	    // the "eek" field of the invocation record should be used. 
@@ -2325,7 +2333,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    
 
 	    //getParameterRecord method
-	    out.println("    public ibis.satin.ParameterRecord getParameterRecord() {");
+	    out.println("    public ibis.satin.impl.ParameterRecord getParameterRecord() {");
 	    out.print("        return new " + parameterRecordName(m, classname) + "(");
 	    for (int i=0; i<params.length; i++) {
 		out.print("param" + i);
@@ -2339,17 +2347,17 @@ System.out.println("findMethod: could not find method " + name + sig);
 	
 	    //getReturnRecord method
 	    if (returnType.equals(Type.VOID)) {
-		out.println("    public ibis.satin.ReturnRecord getReturnRecord() {");
+		out.println("    public ibis.satin.impl.ReturnRecord getReturnRecord() {");
 		out.println("        return new " + returnRecordName(m, classname) + "(null, stamp);");
 		out.println("    }\n");
 	    } else {
-		out.println("    public ibis.satin.ReturnRecord getReturnRecord() {");
+		out.println("    public ibis.satin.impl.ReturnRecord getReturnRecord() {");
 		out.println("        return new " + returnRecordName(m, classname) + "(result, null, stamp);");
 		out.println("    }\n");
 	    }
 	
 	    //equalsPR method
-	    out.println("    public boolean equalsPR(ibis.satin.ParameterRecord pr) {");
+	    out.println("    public boolean equalsPR(ibis.satin.impl.ParameterRecord pr) {");
 	    out.println("        " + parameterRecordName(m, classname) + " pr1 = (" + parameterRecordName(m, classname) + ") pr;");
 	    for (int i=0; i<params.length; i++) {
 		if (params[i] instanceof ObjectType) {
@@ -2425,6 +2433,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    Type returnType = m.getReturnType();
 
 	    out.println("import ibis.satin.*;\n");
+	    out.println("import ibis.satin.impl.*;\n");
 	    out.println("final class " + name + " extends ReturnRecord {");
 	    if (! returnType.equals(Type.VOID)) {
 		out.println("    " + returnType + " result;\n");
@@ -2481,7 +2490,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
 	
 	out.println("import ibis.satin.*;\n");
-	out.println("final class " + name + " extends ibis.satin.ParameterRecord {");	
+	out.println("import ibis.satin.impl.*;\n");
+	out.println("final class " + name + " extends ibis.satin.impl.ParameterRecord {");	
 	
 	//fields
 	for (int i=0; i<params.length; i++) {
@@ -2673,7 +2683,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 	Type returnType = getReturnType(m);
 
 	out.println("import ibis.satin.*;\n");
-	out.println("final class " + name + " extends ibis.satin.ResultRecord {");
+	out.println("import ibis.satin.impl.*;\n");
+	    
+	out.println("final class " + name + " extends ibis.satin.impl.ResultRecord {");
 	if (! returnType.equals(Type.VOID)) {
 	    out.println("    " + returnType + " result;\n");
 	}
