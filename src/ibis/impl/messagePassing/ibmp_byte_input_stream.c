@@ -203,12 +203,13 @@ jint Java_ibis_ipl_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
     IBP_VPRINTF(250, env, ("Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
 		rd / sizeof(jtype), (int)len, #JType, msg, buf, \
 		ibp_msg_consume_left(msg))); \
-if (0 && sizeof(jtype) == sizeof(short)) { \
+if (0 && sizeof(jtype) == sizeof(double)) { \
 int i; \
 int n = rd < len ? rd : len; \
-fprintf(stderr, "Data = ["); \
+fprintf(stderr, "Read Data = ["); \
 for (i = off; i < n; i++) { \
-fprintf(stderr, "%d ", (short)buf[i]); \
+int *p = (int *) &buf[i]; \
+fprintf(stderr, "0x%x 0x%x\n", *p, *(p+1)); \
 } \
 fprintf(stderr, "]\n"); \
 } \
