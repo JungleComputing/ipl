@@ -1538,15 +1538,17 @@ public class IOGenerator {
 	}
     }
 
-    private void addRewriteClass(Type t) {
+    private void addRewriteClass(Type t, JavaClass clazz) {
 	if (t instanceof ArrayType) {
-	    addRewriteClass(((ArrayType)t).getBasicType());
+	    addRewriteClass(((ArrayType)t).getBasicType(), clazz);
 	}
 	else if (t instanceof ObjectType) {
 	    String name = ((ObjectType)t).getClassName();
 	    JavaClass c = Repository.lookupClass(name);
 	    if (c != null) {
-		addClass(c);
+		if (! local || clazz.getPackageName().equals(c.getPackageName())) {
+		    addClass(c);
+		}
 	    }
 	}
     }
@@ -1571,7 +1573,9 @@ public class IOGenerator {
 		    if (isSerializable(super_classes[i])) {
 			serializable = true;
 			if (! isIbisSerializable(super_classes[i])) {
-			    addRewriteClass(super_classes[i]);
+			    if (! local || clazz.getPackageName().equals(super_classes[i].getPackageName())) {
+				addRewriteClass(super_classes[i]);
+			    }
 			} else {
 			    if (verbose) System.out.println(clazz.getClassName() + " already implements ibis.io.Serializable");
 			}
@@ -1619,7 +1623,7 @@ public class IOGenerator {
 		if (!(field_type instanceof BasicType) &&
 		    (field_type != Type.STRING) &&
 		    isFinal(field_type)) {
-		    addRewriteClass(field_type);
+		    addRewriteClass(field_type, clazz);
 		}
 	    }
 	}
