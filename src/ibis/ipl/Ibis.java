@@ -38,11 +38,12 @@ public abstract class Ibis {
     /** A user-supplied resize handler, with join/leave upcalls. */
     protected ResizeHandler resizeHandler;
 
-    /** User properties */
+    /** Properties, as given to
+     * {@link #createIbis(StaticProperties, ResizeHandler)} */
     private StaticProperties requiredprops;
 
     /** User properties, combined with required properties. */
-    private StaticProperties combinedprops;
+    protected StaticProperties combinedprops;
 
     /** A list of available ibis implementations. */
     private static ArrayList implList;
