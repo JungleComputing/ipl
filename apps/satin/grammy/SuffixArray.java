@@ -258,6 +258,8 @@ public class SuffixArray implements Configuration, Magic {
      */
     private void applyCompression( Step s ) throws VerificationException
     {
+        final int oldLength = length;   // Remember the old length for verif.
+
         // First, move the grammar text aside.
         int len = s.len;
         short t[] = new short[len];
@@ -298,6 +300,14 @@ public class SuffixArray implements Configuration, Magic {
             indices[i] = i;
         }
         sort();
+
+        if( doVerification ){
+            int gain = s.getGain();
+
+            if( length+gain != oldLength ){
+                System.out.println( "Error: predicted gain was " + gain + ", but realized gain is " + (oldLength-length) );
+            }
+        }
     }
 
     /**

@@ -30,7 +30,6 @@ class Step {
     {
 	int gain = occurences.length*(len-1);
 	int loss = len+1;
-	System.out.println( "gain=" + gain + ", loss=" + loss );
 	return gain-loss;
     }
 }
