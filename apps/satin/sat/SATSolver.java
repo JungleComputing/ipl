@@ -15,7 +15,7 @@
 import java.io.File;
 
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
-    private static final boolean traceSolver = false;
+    private static final boolean traceSolver = true;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static int label = 0;

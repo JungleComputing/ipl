@@ -18,7 +18,6 @@ final class CutoffUpdater implements ibis.satin.ActiveTuple {
 
     public void handleTuple( String key ){
         if( limit<Breeder.cutoff ){
-            System.err.println( "New cutoff is " + limit );
             Breeder.cutoff = limit;
         }
     }
@@ -81,7 +80,6 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
 	int newCutoff = 3*total/2;
 	if( cutoff>newCutoff ){
 	    // We may have a new cutoff value, broadcast it.
-	    System.err.println( "Broadcasting cutoff update: cutoff=" + cutoff + "->cutoff=" + newCutoff );
 	    SatinTupleSpace.add( "cutoff", new CutoffUpdater( newCutoff ) );
 	}
         return total;
@@ -230,7 +228,13 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
 
         Breeder b = new Breeder();
 
+	long startTime = System.currentTimeMillis();
+
         b.run( pl );
 
+	long endTime = System.currentTimeMillis();
+	double time = ((double) (endTime - startTime))/1000.0;
+
+	System.out.println( "ExecutionTime: " + time );
     }
 }
