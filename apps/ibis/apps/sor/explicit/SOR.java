@@ -38,9 +38,10 @@ class SOR {
 	private final ReceivePort reduceR;
 
 	private final boolean TIMINGS = false;
-	private Rdtsc t_compute     = new Rdtsc();
-	private Rdtsc t_communicate = new Rdtsc();
-	private Rdtsc t_reduce      = new Rdtsc();
+	private Rdtsc t_compute        = new Rdtsc();
+	private Rdtsc t_communicate    = new Rdtsc();
+	private Rdtsc t_reduce_send    = new Rdtsc();
+	private Rdtsc t_reduce_receive = new Rdtsc();
 	
 	SOR(int nrow, int ncol, int N, int rank, int size, int maxIters,
 	    SendPort leftS, SendPort rightS, 
@@ -183,6 +184,7 @@ class SOR {
 		//
 		//
 		if (rank == 0) { 
+			if (TIMINGS) t_reduce_receive.start();
 			for (int i=1;i<size;i++) { 				
 				ReadMessage rm = reduceR.receive();
 				double temp = rm.readDouble();
@@ -196,26 +198,30 @@ class SOR {
 				value = Math.max(value, temp);
 				rm.finish();
 			} 
+			if (TIMINGS) t_reduce_receive.stop();
 
-
+			if (TIMINGS) t_reduce_send.start();
 			WriteMessage wm = reduceS.newMessage();
 			wm.writeDouble(value);
 			wm.send();
 			wm.finish();
+			if (TIMINGS) t_reduce_send.stop();
 		} else { 
+			if (TIMINGS) t_reduce_send.start();
 			WriteMessage wm = reduceS.newMessage();
 			wm.writeDouble(value);
 			wm.send();
 			wm.finish();
+			if (TIMINGS) t_reduce_send.stop();
 
+			if (TIMINGS) t_reduce_receive.start();
 			ReadMessage rm = reduceR.receive();
 			value = rm.readDouble();
 			rm.finish();
+			if (TIMINGS) t_reduce_receive.stop();
 		} 
 		// System.err.println(rank + ": END REDUCE result " + value);
-		
 
-		
 		return value;
 	} 
 	
@@ -239,7 +245,8 @@ class SOR {
 		if (TIMINGS) {
 		    t_compute.reset();
 		    t_communicate.reset();
-		    t_reduce.reset();
+		    t_reduce_receive.reset();
+		    t_reduce_send.reset();
 		}
 		
 		/* now do the "real" computation */
@@ -282,9 +289,7 @@ class SOR {
 			if (TIMINGS) t_compute.stop();
 			
 			if (size > 1) {
-				if (TIMINGS) t_reduce.start();
 				maxdiff = reduce(maxdiff);
-				if (TIMINGS) t_reduce.stop();
 			} 
 			
 			if(rank==0) {
@@ -307,9 +312,10 @@ class SOR {
 			System.out.println("using " + iteration + " iterations, diff is " + maxdiff + " (allowed diff " + stopdiff + ")");
 		}
 		if (TIMINGS && ! runName.equals("warmup")) {
-		    System.err.println(rank + ": t_compute " + t_compute.nrTimes() + " av.time " + t_compute.averageTime());
-		    System.err.println(rank + ": t_communicate " + t_communicate.nrTimes() + " av.time " + t_communicate.averageTime());
-		    System.err.println(rank + ": t_reduce " + t_reduce.nrTimes() + " av.time " + t_reduce.averageTime());
+		    if (TIMINGS) System.err.println(rank + ": t_compute " + t_compute.nrTimes() + " av.time " + t_compute.averageTime());
+		    if (TIMINGS) System.err.println(rank + ": t_communicate " + t_communicate.nrTimes() + " av.time " + t_communicate.averageTime());
+		    if (TIMINGS) System.err.println(rank + ": t_reduce_send " + t_reduce_send.nrTimes() + " av.time " + t_reduce_send.averageTime());
+		    if (TIMINGS) System.err.println(rank + ": t_reduce_rcve " + t_reduce_receive.nrTimes() + " av.time " + t_reduce_receive.averageTime());
 		}
 	}
 

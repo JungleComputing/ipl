@@ -1,8 +1,8 @@
 #! /usr/bin/perl
 
-@serializations = ( "data", "ibis", "sun" );
-@ibises = ( "tcp", "net.bytes.gen.tcp_blk", "panda","net.gm" );
-@nodes = ( 1, 2, 4, 8, 16, 32 );
+# @serializations = ( "data", "ibis", "sun" );
+# @ibises = ( "tcp", "net.bytes.gen.tcp_blk", "panda","net.gm" );
+# @nodes = ( 1, 2, 4, 8, 16, 32 );
 
 while ( <> ) {
     chomp;
@@ -11,6 +11,39 @@ while ( <> ) {
 	$ser = $1;
 	$node = $2;
 	$ibis = $3;
+
+	$found = 0;
+	foreach ( @serializations ) {
+	    if ( $_ eq $ser ) {
+		$found = 1;
+		break;
+	    }
+	}
+	if ( ! $found ) {
+	    @serializations = sort( @serializations, $ser );
+	}
+
+	$found = 0;
+	foreach ( @nodes ) {
+	    if ( $_ eq $node ) {
+		$found = 1;
+		break;
+	    }
+	}
+	if ( ! $found ) {
+	    @nodes = sort { $a <=> $b } ( @nodes, $node );
+	}
+
+	$found = 0;
+	foreach ( @ibises ) {
+	    if ( $_ eq $ibis ) {
+		$found = 1;
+		break;
+	    }
+	}
+	if ( ! $found ) {
+	    @ibises = sort( @ibises, $ibis );
+	}
 	# printf "ibis $ibis; ser $ser; node $node\n";
     }
     if ($_ =~ /SOR ([0-9]+) x ([0-9]+) took ([0-9.]+) sec\./) {

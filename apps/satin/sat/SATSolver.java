@@ -412,6 +412,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
 	p.report( System.out );
 	System.out.println( "ExecutionTime: " + time );
+
+	System.out.println( "application time " + "SATSolver (" + args[0] + ") took " + time + " seconds");
 	if( res == null ){
 	    System.out.println( "There are no solutions" );
 	}

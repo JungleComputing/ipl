@@ -253,5 +253,11 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
 	double time = ((double) (endTime - startTime))/1000.0;
 
 	System.out.println( "ExecutionTime: " + time );
+
+	System.out.print( "application time " + "Breeder (");
+	for (int i = 0; i < args.length; i++) {
+	    System.out.print(args[i] + " ");
+	}
+	System.out.println(") took " + time + " seconds");
     }
 }

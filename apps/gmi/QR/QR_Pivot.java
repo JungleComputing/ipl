@@ -32,7 +32,7 @@ class QR_Pivot {
 	Reduce reduce;
 	Broadcast broadcast;	
 
-	QR_Pivot(int cpu, int ncpus, int N, i_Data data, Reduce reduce, Broadcast broadcast) {
+	QR_Pivot(int cpu, int ncpus, int N, int M, i_Data data, Reduce reduce, Broadcast broadcast) {
 
 		double scale;
 		double offset;
@@ -41,7 +41,8 @@ class QR_Pivot {
 		this.reduce    = reduce;
 		this.broadcast = broadcast;
 
-		m = n = N;
+		m = M;
+		n = N;
 
 		this.cpu   = cpu;
 		this.ncpus = ncpus;
@@ -359,5 +360,6 @@ class QR_Pivot {
 		if (cpu != 0) { 
 			System.exit(0);
 		}
+		System.err.println("Application: QR/GMI (" + m + "," + n + "); Ncpus: " + ncpus + "; time: " + time / 1000.0 + " seconds");
 	}
 }

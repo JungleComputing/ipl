@@ -10,16 +10,33 @@ class Main {
 			Data data = null;
 
 			int n = N;
+			int m = -1;
 			int ncpus = Group.size();
 			int cpu = Group.rank();
 			
 			// parse paremeters here.				
-			if (args.length > 0) { 
-				n = Integer.parseInt(args[0]);
-			} 
+			int options = 0;
+			for (int i = 0; i < args.length; i++) {
+			    if (false) {
+			    } else if (options == 0) {
+				n = Integer.parseInt(args[i]);
+				options++;
+			    } else if (options == 1) {
+				m = Integer.parseInt(args[i]);
+				options++;
+			    } else {
+				if (cpu == 0) {
+				    System.err.println("QR [N [M]]");
+				}
+				System.exit(33);
+			    }
+			}
+			if (m == -1) {
+			    m = n;
+			}
 
 			if (cpu == 0) {
-				System.out.println("Starting QR of A[" + n + "][" + n + "] on " + ncpus + " cpus.");			
+				System.out.println("Starting QR of A[" + n + "][" + m + "] on " + ncpus + " cpus.");			
 				Group.create("QR-Reduce", i_Reduce.class, ncpus);
 				Group.create("QR-Broadcast", i_Broadcast.class, ncpus);
 				Group.create("QR-Data", i_Data.class, 1);
@@ -58,7 +75,7 @@ class Main {
 
 			System.out.println("New QR_Worker on " + cpu);
 			
-			QR_Pivot work = new QR_Pivot(cpu, ncpus, n, id, r, b);
+			QR_Pivot work = new QR_Pivot(cpu, ncpus, n, m, id, r, b);
 			work.qrfac();
 			
 			if (cpu == 0) { 

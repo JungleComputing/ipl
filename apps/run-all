@@ -67,6 +67,10 @@ while [ $# -gt 0 ] ; do
     -no-std)
 	main=
 	;;
+    -jvm-opt)
+	shift
+	java_options="$java_options \"$1\""
+	;;
     *)
 	options="$options $1"
 	;;

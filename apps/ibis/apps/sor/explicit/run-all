@@ -1,40 +1,51 @@
 #!/bin/bash
 
-reservation="706444"
-reserve="-reserve $reservation"
-# nodes="2 4 8 16 32"
-nodes="32"
+IBIS=/home/rutger/ibis
+
+main="Main"
 options="1024 1190"
 # options="128 10"
-runs=10
+
+reservation="708590"
+t="10:0"
+
+reserve="-reserve $reservation"
+timeout="-t $t"
+
+prun_options="$reserve $timeout"
+
+nodes="2 4 8 16 32"
+# nodes="4 8 16"
+# nodes="32"
+runs=8
 # runs=1
 
 preserve -long-list | grep $reservation
 
-# sers="data ibis sun"
-sers="data"
-# ibises="tcp net.bytes.gen.tcp_blk panda net.gm"
-ibises="panda net.gm"
+sers="data ibis sun"
+# sers="data"
+ibises="tcp net.bytes.gen.tcp_blk panda net.gm"
+# ibises="panda net.gm"
 
 if false ; then
-	for ibis in $ibises ; do
-		node=1
-		    for ser in $sers ; do
-			echo "ser=$ser node=$node ibis=$ibis"
-			prun -v -1 -no-panda $reserve /usr/local/bin/kill_finished $node < /dev/null > /dev/null 2>&1
-			prun -t 4:0 -v -1 -no-panda $reserve ~/ibis/bin/run-das $node -Dibis.name=$ibis -Dibis.serialization=$ser Main $options < /dev/null | egrep "SOR [0-9]+ x [0-9]+ took"
-		    done
+    for ibis in $ibises ; do
+	node=1
+	for ser in $sers ; do
+	    echo "ser=$ser node=$node ibis=$ibis"
+	    prun $prun_options -pre-cleanup -v -1 -no-panda $IBIS/bin/run-das $node $java_options -Dibis.name=$ibis -Dibis.serialization=$ser -Dibis.worldmodel=closed $main $options
 	done
+    done
 fi
 
-for (( i = 0; i < $runs; i++ )) ; do
-    for ibis in $ibises ; do
+if true ; then
+    for (( i = 0; i < $runs; i++ )) ; do
 	for node in $nodes ; do
-	    for ser in $sers ; do
-		echo "ser=$ser node=$node ibis=$ibis"
-		prun -v -1 -no-panda $reserve /usr/local/bin/kill_finished $node < /dev/null > /dev/null 2>&1
-		prun -t 4:0 -v -1 -no-panda $reserve ~/ibis/bin/run-das $node -Dibis.name=$ibis -Dibis.serialization=$ser Main $options < /dev/null | grep took 2>&1
+	    for ibis in $ibises ; do
+		for ser in $sers ; do
+		    echo "ser=$ser node=$node ibis=$ibis"
+		    prun $prun_options -pre-cleanup -v -1 -no-panda $IBIS/bin/run-das $node $java_options -Dibis.name=$ibis -Dibis.serialization=$ser -Dibis.worldmodel=closed $main $options
+		done
 	    done
 	done
     done
-done
+fi

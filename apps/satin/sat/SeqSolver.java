@@ -252,6 +252,8 @@ public final class SeqSolver {
 
 	p.report( System.out );
 	System.out.println( "ExecutionTime: " + time );
+
+	System.out.println( "application time " + "SeqSolver (" + args[0] + ") took " + time + " seconds");
         System.out.println( "Decisions: " + s.decisions );
 	if( res == null ){
 	    System.out.println( "There are no solutions" );

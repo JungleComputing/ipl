@@ -10,6 +10,8 @@ while ( <> ) {
     ( $runs, $ibis, $ser, $node, $min, $av, $speedup, $eff ) = split;
     # printf ( "Runs $runs Ibis $ibis Serialization $ser Nodes $node\n");
 
+    $ibis =~ s/\//-/g;
+
     if ( $node =~ /^[0-9]+$/) {
 	$ix = $ibis . "/" . $ser . "@" . $node;
 
@@ -54,16 +56,20 @@ while ( <> ) {
     }
 }
 
-mkdir "plots" or die "Cannot mkdir plots";
+mkdir "plots" or printf "Warning: directory plots exists; will overwrite\n";
 
 foreach ( "tcp", "myrinet" ) {
     $network = $_;
     open PLOT, ">plots/plot-$network.plot" or die "Cannot open/w 'plot-$network.plot'";
-    printf PLOT ("set terminal postscript\n");
+    printf PLOT ("set terminal postscript color 18\n");
     printf PLOT ("set output \"plot-$network.ps\"\n");
-    printf PLOT ("set xrange \[0:32\]\n");
-    printf PLOT ("set yrange \[0:32\]\n");
-    printf PLOT ("plot \\\n");
+    printf PLOT ("set xrange \[0:35\]\n");
+    printf PLOT ("set yrange \[0:35\]\n");
+    printf PLOT ("set key reverse left Left\n");
+    printf PLOT ("set xlabel \"processors\"\n");
+    printf PLOT ("set ylabel \"speedup\"\n");
+    printf PLOT ("plot f(x) = x, f(x) title \"perfect\", \\\n");
+    # printf PLOT ("plot \\\n");
     $my_first = 1;
     foreach ( @serializations ) {
 	$ser = $_;
@@ -80,7 +86,7 @@ foreach ( "tcp", "myrinet" ) {
 		    } else {
 			printf PLOT "	, ";
 		    }
-		    printf PLOT "\'$name\' with lines \\\n";
+		    printf PLOT "\'$name\' with linespoints \\\n";
 		    open DATA, ">$name" or die "Cannot open '$name'";
 		    foreach ( @nodes ) {
 			$node = $_;

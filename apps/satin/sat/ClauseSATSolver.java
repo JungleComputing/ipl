@@ -424,6 +424,8 @@ public class ClauseSATSolver {
 	double time = ((double) (endTime - startTime))/1000.0;
 
 	System.out.println( "ExecutionTime: " + time );
+
+	System.out.println( "application time " + "ClauseSATSolver (" + args[0] + ") took " + time + " seconds");
 	if( res.length == 1 ){
 	    System.out.println( "There is 1 solution:" );
 	}
