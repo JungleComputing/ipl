@@ -48,7 +48,8 @@ class RMIStubGenerator extends RMIGenerator {
 		    output.print("RemoteException");
 		}
 
-		output.print(" {\n");
+		output.print(" {");
+		output.println();
 	}
 
 	private boolean caught(ExceptionTable t, String name) {
@@ -83,9 +84,11 @@ class RMIStubGenerator extends RMIGenerator {
 		output.println(writeMessageType("\t\t\t\t", "w", params[j], "p" + j));
 	    }
 	    
+	    output.println("\t\t\t\tRTS.startRMITimer(timer_" + number + ");");
 	    output.println("\t\t\t\tw.finish();");
 
 	    output.println("\t\t\t\tReadMessage r = reply.receive();");
+	    output.println("\t\t\t\tRTS.stopRMITimer(timer_" + number + ");");
 	    output.println("\t\t\t\tif (r.readByte() == RTS.EXCEPTION) {");
 	    output.println("\t\t\t\t\tremoteex = (Exception) r.readObject();");
 	    output.println("\t\t\t\t}");
@@ -163,10 +166,11 @@ class RMIStubGenerator extends RMIGenerator {
 	    if (!ret.equals(Type.VOID)) {       
 		output.println("\t\treturn result;"); 
 	    } 
-	    output.println("\t}\n");			
+	    output.println("\t}");			
+	    output.println();
 	} 
 
-	void header() { 
+	void header(Vector methods) { 
 
 		Vector interfaces = data.specialInterfaces;
 
@@ -190,13 +194,27 @@ class RMIStubGenerator extends RMIGenerator {
 			}  
 		}
 			
-		output.println(" {\n");
+		output.println(" {");
+		output.println();
+		for (int i=0;i<methods.size();i++) { 
+		    output.println("\tprivate ibis.util.Timer timer_" + i + ";");
+		}
+		output.println();
 	} 
 
-	void constructor() { 
+	void constructor(Vector methods) { 
 		output.println("\tpublic rmi_stub_" + data.classname + "() {");
 //		output.println("\t\tsuper();");
-		output.println("\t}\n");
+		// output.println("\t}");
+		// output.println();
+		// output.println("\tprotected void initStubDatastructures() {");
+//		output.println("\t\tsuper();");
+		for (int i=0;i<methods.size();i++) { 
+		    Method m = (Method)methods.get(i);
+		    output.println("\t\ttimer_" + i + " = RTS.createRMITimer(this.toString() + \"_" + m.getName() + "_\" + " + i + ");");
+		}
+		output.println("\t}");
+		output.println();
 	} 
 
 	void body(Vector methods) { 
@@ -210,12 +228,13 @@ class RMIStubGenerator extends RMIGenerator {
 	} 
 	       
 	void trailer() { 
-		output.println("}\n");
+		output.println("}");
+		output.println();
 	} 
 
 	void generate() { 		
-		header();		
-		constructor();		
+		header(data.specialMethods);		
+		constructor(data.specialMethods);		
 		body(data.specialMethods);
 		trailer();
 	} 

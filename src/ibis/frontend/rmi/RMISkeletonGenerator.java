@@ -28,7 +28,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 	this.output = output;
     }
 
-    void header() {
+    void header(Vector methods) {
 	if (data.packagename != null && ! data.packagename.equals("")) {
 	    output.println("package " + data.packagename + ";");
 	    output.println();
@@ -42,6 +42,10 @@ class RMISkeletonGenerator extends RMIGenerator {
 	output.println();
 
 	output.println("public final class rmi_skeleton_" + dest_name + " extends ibis.rmi.impl.Skeleton {");
+	output.println();
+	for (int i=0;i<methods.size();i++) {
+	    output.println("\tprivate ibis.util.Timer timer_" + i + ";");
+	}
 	output.println();
     }
 
@@ -93,6 +97,8 @@ class RMISkeletonGenerator extends RMIGenerator {
 	output.println("\tpublic final void upcall(ReadMessage r, int method, int stubID) throws ibis.rmi.RemoteException {");
 	output.println();
 
+	output.println();
+
 	//gosia
 	// Do not use IP addresses, a machine may have multiple, and
 	// Ibis does not know about IP anymore --Rob
@@ -113,6 +119,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 
 	    output.println("\t\tcase " + i + ":");
 	    output.println("\t\t{");
+	    output.println("\t\t\tRTS.startRMITimer(timer_" + i + ");");
 
 	    output.println("\t\t\t/* First - Extract the parameters */");
 
@@ -136,7 +143,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 		// - no synchronization
 		// (Ceriel)
 		if (! is_simple_method) {
-		    output.println("\t\t\tr.finish();");
+		    output.println("\t\t\t\tr.finish();");
 		}
 		if (has_object_params) {
 		    output.println("\t\t\t} catch(ClassNotFoundException e) {");
@@ -183,6 +190,8 @@ class RMISkeletonGenerator extends RMIGenerator {
 	    output.println("\t\t\t} catch (Exception e) {");
 	    output.println("\t\t\t\tex = e;");
 	    output.println("\t\t\t}");
+
+	    output.println("\t\t\tRTS.stopRMITimer(timer_" + i + ");");
 
 	    output.println("\t\t\ttry {");
 	    output.println("\t\t\t\tWriteMessage w = stubs[stubID].newMessage();");
@@ -238,12 +247,15 @@ class RMISkeletonGenerator extends RMIGenerator {
 
 	output.println("\t\t}");
 
+	output.println();
+
 	output.println("\t}");
 	output.println();
     }
 
     void trailer() {
-	output.println("}\n");
+	output.println("}");
+	output.println();
     }
 
     void constructor(Vector methods) {
@@ -257,15 +269,19 @@ class RMISkeletonGenerator extends RMIGenerator {
 	else {
 	    output.println("\t\tstubType = \"rmi_stub_" + data.classname + "\";");
 	}
+	for (int i = 0; i < methods.size(); i++) {
+	    Method m = (Method)methods.get(i);
+	    output.println("\t\ttimer_" + i + " = RTS.createRMITimer(this.toString() + \"_" + m.getName() + "_\" + " + i + ");");
+	}
+	output.println("\t}");
 	output.println();
-	output.println("\t}\n");
     }
 
     void generate() {
 
 	dest_name = data.classname;
 
-	header();
+	header(data.subjectSpecialMethods);
 	constructor(data.subjectSpecialMethods);
 	messageHandler(data.subjectSpecialMethods);
 	trailer();

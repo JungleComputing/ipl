@@ -12,6 +12,10 @@ import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
+
+import ibis.util.Timer;
+import ibis.util.TypedProperties;
+
 import ibis.rmi.AlreadyBoundException;
 import ibis.rmi.NotBoundException;
 import ibis.rmi.Remote;
@@ -90,6 +94,97 @@ public final class RTS {
     private static ThreadLocal clientHost;
 
     private static ReceivePort skeletonReceivePort = null;
+
+    /** A custom latency timer. */
+    private static Timer[] timers;
+    private static String[] timerId;
+
+    private final static boolean enableRMITimer = TypedProperties.booleanProperty("ibis.rmi.timer");
+
+    private static double r10(double d) {
+	long ld = (long)(d * 10.0);
+	return ld / 10.0;
+    }
+
+    public synchronized static Timer createRMITimer(String id) {
+	int n = timers == null ? 0 : timers.length;
+	Timer[] t = new Timer[n + 1];
+	String[] s = new String[n + 1];
+	for (int i = 0; i < n; i++) {
+	    t[i] = timers[i];
+	    s[i] = timerId[i];
+	}
+	t[n] = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	s[n] = (id == null) ? "" : id;
+
+	timers = t;
+	timerId = s;
+
+	return t[n];
+    }
+
+    public synchronized static Timer createRMITimer() {
+	return createRMITimer("");
+    }
+
+    public static void startRMITimer(Timer t) {
+	if (enableRMITimer) {
+	    t.start();
+	}
+    }
+
+    public static void stopRMITimer(Timer t) {
+	if (enableRMITimer) {
+	    t.stop();
+	}
+    }
+
+    public static void printRMITimer(Timer t) {
+	if (enableRMITimer && t.nrTimes() > 0) {
+	    System.out.println(ibis + ": RMI timer: " + t.nrTimes()
+		+ " total " + r10(t.totalTimeVal()) + " us; av "
+		+ r10(t.averageTimeVal()) + " us");
+	}
+    }
+
+    public static void resetRMITimer(Timer t) {
+	if (enableRMITimer) {
+	    t.reset();
+	}
+    }
+
+    public synchronized static void printAllRMITimers() {
+	if (enableRMITimer && timers != null) {
+	    if (false) {
+		double	total = 0.0;
+		int		n = 0;
+
+		for (int i = 0; i < timers.length; i++) {
+		    total += timers[i].totalTimeVal();
+		    n     += timers[i].nrTimes();
+		}
+		System.out.println(ibis + ": RMI upcall: " + n
+		    + " total " + r10(total) + " us; av "
+		    + r10(total / n) + " us");
+	    } else {
+		for (int i = 0; i < timers.length; i++) {
+		    if (timers[i].nrTimes() > 0) {
+			System.out.println(ibis + ": RMI " + timerId[i] + ": "
+				+ timers[i].nrTimes() + " total "
+				+ r10(timers[i].totalTimeVal()) + " us; av "
+				+ r10(timers[i].averageTimeVal()) + " us");
+		    }
+		}
+	    }
+	}
+    }
+
+    public static void printResetRMITimer(Timer t) {
+	if (enableRMITimer) {
+	    printRMITimer(t);
+	    resetRMITimer(t);
+	}
+    }
 
     private static class UpcallHandler implements Upcall {
 
@@ -187,6 +282,10 @@ public final class RTS {
 	    System.exit(1);
 	}
 
+	if (enableRMITimer) {
+	    System.err.println("Ibis: Enabled RMI timer");
+	}
+
 	/****
 	 * This is only supported in SDK 1.4 and upwards. Comment out
 	 * if you run an older SDK.
@@ -194,6 +293,9 @@ public final class RTS {
 	Runtime.getRuntime().addShutdownHook(new Thread() {
 	    public void run() {
 		try {
+		    if (enableRMITimer) {
+			printAllRMITimers();
+		    }
 		    ibis.end();
 		    // System.err.println("Ended Ibis");
 		} catch (IOException e) {
@@ -610,4 +712,5 @@ public final class RTS {
 	String s = (String) o;
 	return s;
     }
+
 }

@@ -22,8 +22,9 @@ public class UnicastServerRef extends UnicastRef implements ServerRef, java.io.S
 	    RemoteStub stub = RTS.exportObject(impl, new UnicastRef(GUID));
 	    return stub;
 	} catch (Exception e) {
-		if (RTS.DEBUG)
+		if (RTS.DEBUG) {
 			e.printStackTrace();	
+		}
 		throw new RemoteException(e.getMessage(), e);
 	}
     }
