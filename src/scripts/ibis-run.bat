@@ -71,7 +71,7 @@ if "%1"=="-nhosts" (
     shift
     goto nextarg
 )
-if "%1"=="-nhosts" (
+if "%1"=="-hostno" (
     set Dpool_host_num="-Dibis.pool.host_number=%2"
     set PRUN_CPU_RANK=%2
     shift
