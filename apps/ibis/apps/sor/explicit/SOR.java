@@ -598,6 +598,8 @@ public class SOR {
 		if (TIMINGS) t_reduce.start();
 		maxdiff = reducer.reduce(diff);
 		if (TIMINGS) t_reduce.stop();
+	    } else {
+		maxdiff = diff;
 	    }
 
 	    if (rank==0) {
