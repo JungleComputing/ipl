@@ -31,12 +31,12 @@
 
     <taskdef resource="cpptasks.tasks">
 	<classpath>
-	    <pathelement location="${ibis}/../ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
+	    <pathelement location="${package.home.ant-cpptasks}/cpptasks-1.0b1/cpptasks.jar"/>
 	</classpath>
     </taskdef>
     <typedef resource="cpptasks.types">
 	<classpath>
-	    <pathelement location="${ibis}/../ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
+	    <pathelement location="${package.home.ant-cpptasks}/cpptasks-1.0b1/cpptasks.jar"/>
 	</classpath>
     </typedef>
 
@@ -105,6 +105,7 @@
 	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
 	<echo message="Lib is ${build}/lib ${local.lib}"/>
 	<echo message="Include path is ${default.includes}"/>
+	<echo message="ant-cpptasks home ${package.home.ant-cpptasks}"/>
 	<cc	debug="true"
 		objdir="${build}/ibis/${native-path}"
 		outfile="${build}/lib/${local.lib}"

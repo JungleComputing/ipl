@@ -1,4 +1,4 @@
-package ibis.util;
+package ibis.frontend.io;
 
 import java.io.BufferedReader;
 import java.io.StreamTokenizer;

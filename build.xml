@@ -171,11 +171,14 @@
 
     <target name="build-native">
 	<echo message="Invoke ant in ${native.dir}"/>
-	<ant inheritAll="false" dir="${native.dir}">
+	<ant inheritAll="true" dir="${native.dir}">
+	    <!--
 	    <property name="native.dir" value="${native.dir}"/>
 	    <property name="build" value="${build}"/>
 	    <property name="ibis" value="${ibis}"/>
 	    <property name="optimization" value="${optimization}"/>
+	    <property name="package.home.ant-cpptasks" value="${package.home.ant-cpptasks}"/>
+	    -->
 	</ant>
     </target>
 
@@ -183,6 +186,7 @@
     <target name="natives">
 	    <!-- depends="compile,javah"-->
 	<echo message="Native directories = ${native.src.path}"/>
+	<echo message="package.home.ant-cpptasks = ${package.home.ant-cpptasks}"/>
 	<foreach
 		list="${native.src.path}"
 		delimiter="${path.separator}"

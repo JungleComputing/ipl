@@ -11,13 +11,15 @@
     build         the root of the build tree
     -->
 
+    <property name="package.home.ant-cpptasks" location="${ibis}/../ant-cpptasks"/>
+    <property name="package.home.bcel"         location="${ibis}/../bcel/bcel-5.1"/>
+    <property name="package.home.ant-contrib"  location="${ibis}/../ant-contrib"/>
+
     <taskdef resource="net/sf/antcontrib/antcontrib.properties">
 	<classpath>
-	    <pathelement location="${ibis}/../ant-contrib/lib/ant-contrib-0.3.jar"/>
+	    <pathelement location="${package.home.ant-contrib}/lib/ant-contrib-0.3.jar"/>
 	</classpath>
     </taskdef>
-
-    <property name="bcelRoot"    location="${ibis}/../bcel-5.1"/>
 
     <property name="ibisBuild"   location="${ibis}/build"/>
 
@@ -25,8 +27,8 @@
 	<pathelement path="${ibisBuild}/"/>
 	<pathelement path="${build}/"/>
 	<pathelement path="bcel-additions/"/>
-	<pathelement path="${bcelRoot}/bcel-5.1.jar/"/>
-	<pathelement path="${bcelRoot}/lib/"/>
+	<pathelement path="${package.home.bcel}/bcel-5.1.jar/"/>
+	<pathelement path="${package.home.bcel}/lib/"/>
     </path>
 
     <!--
