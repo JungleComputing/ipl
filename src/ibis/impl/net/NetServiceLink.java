@@ -613,9 +613,9 @@ public final class NetServiceLink {
                 private int       offset    = 0;
 
                 /**
-                 * Permanent Conversion.INT_LENGTH-byte buffer for 'buffer-length to bytes' conversion.
+                 * Permanent Conversion.INT_SIZE-byte buffer for 'buffer-length to bytes' conversion.
                  */
-                private byte []   intBuffer = new byte[Conversion.INT_LENGTH];
+                private byte []   intBuffer = new byte[Conversion.INT_SIZE];
 
 
                 /**
@@ -948,7 +948,7 @@ public final class NetServiceLink {
                 /**
                  * Provide a buffer dedicated to integer reception.
                  */
-                private byte[]  intBuffer = new byte[Conversion.INT_LENGTH];
+                private byte[]  intBuffer = new byte[Conversion.INT_SIZE];
 
                 /**
                  * Constructor.
