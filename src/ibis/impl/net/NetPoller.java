@@ -37,7 +37,6 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     private boolean		handlingSingleton;
     private int			waitingConnections;
     private static final boolean SINGLETON_FASTPATH = ibis.util.TypedProperties.booleanProperty("ibis.net.poller.singleton", true);
-    private final boolean	singletonOnly;
 
     /**
      * The driver used for the inputs.
@@ -73,23 +72,9 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      * on the multiplexer thread to perform the upcalls.
      * To switch on this behaviour, set decouplePoller = false.
      */
-    private final boolean	decouplePoller;
+    protected final boolean	decouplePoller;
 
     protected boolean		readBufferedSupported = true;
-
-    private boolean checkSingletonOnly() {
-	StaticProperties prop = type.properties();
-	boolean singletonOnly = upcallFunc == null
-			    && ! prop.isProp("communication", "ManyToOne")
-			    && ! prop.isProp("communication", "Poll")
-			    && ! prop.isProp("communication", "ReceiveTimeout");
-	if (true || singletonOnly) {
-	    System.err.println(this + ": set Poller.singletonOnly to " + singletonOnly);
-	    System.err.println(this + ": upcallFunc " + upcallFunc);
-	    System.err.println(this + ": property ManyToOne " + prop.isProp("communication", "ManyToOne"));
-	}
-	return singletonOnly;
-    }
 
     /**
      * Constructor.
@@ -128,7 +113,6 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 	inputMap = new HashMap();
 	this.decouplePoller = decouplePoller;
 	upcallMode = (upcallFunc != null);
-	singletonOnly = checkSingletonOnly();
     }
 
 
