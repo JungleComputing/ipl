@@ -3,7 +3,7 @@ package ibis.frontend.io;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Vector;
 
 import org.apache.bcel.Constants;
@@ -1743,10 +1743,12 @@ public class IOGenerator {
     boolean verify = false;
     String pack;
 
-    Hashtable primitiveSerialization;
+    HashMap primitiveSerialization;
     SerializationInfo referenceSerialization;
 
     Vector classes_to_rewrite, target_classes, classes_to_save;
+    HashMap arguments;
+
 
     public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean verify, String pack) {
 	ObjectType tp;
@@ -1766,7 +1768,8 @@ public class IOGenerator {
 	target_classes = new Vector();
 	classes_to_save = new Vector();
 
-	primitiveSerialization = new Hashtable();
+	primitiveSerialization = new HashMap();
+	arguments = new HashMap();
 
 	primitiveSerialization.put(Type.BOOLEAN, new SerializationInfo("writeBoolean", "readBoolean", "readFieldBoolean", Type.BOOLEAN, Type.BOOLEAN, true));
 
@@ -1807,8 +1810,11 @@ public class IOGenerator {
 
     private void addTargetClass(JavaClass clazz) {
 	if (!target_classes.contains(clazz) && ! isIbisSerializable(clazz)) {
-	    target_classes.add(clazz);
-	    if (verbose) System.out.println("Adding target class : " + clazz.getClassName());
+	    String nm = clazz.getClassName();
+	    if (arguments.containsKey(nm)) {
+		target_classes.add(clazz);
+		if (verbose) System.out.println("Adding target class : " + nm);
+	    }
 	}
     }
 
@@ -1980,8 +1986,13 @@ public class IOGenerator {
 	*/
 	int lngth = classnames.size();
 	Object[] names = classnames.toArray();
-	
+
 	java.util.Arrays.sort(names);
+
+	for (int i = lngth-1; i >= 0; i--) {
+	    String nm = (String) names[i];
+	    arguments.put(nm, null);
+	}
 
 	for (int i = lngth-1; i >= 0; i--) {
 	    if (verbose) System.out.println("  Loading class : " + (String)names[i]);
