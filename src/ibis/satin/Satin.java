@@ -227,8 +227,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				doUpcalls = false;
 			} else if(args[i].equals("-satin-upcalls")) {
 				doUpcalls = true;
-			} else if(SUPPORT_UPCALL_POLLING &&
-				  args[i].equals("-satin-upcall-polling")) {
+			} else if(args[i].equals("-satin-upcall-polling")) {
 				upcallPolling = true;
 			} else if(args[i].equals("-satin-queue-size")) {
 				i++;
