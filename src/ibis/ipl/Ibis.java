@@ -230,31 +230,37 @@ public abstract class Ibis {
 		hostname = "unknown";
 	    }
 
-	    // Is this name unique enough?
-	    String name = "ibis:" + hostname + "@" + (new java.rmi.server.UID()).toString();
+	    String name = null;
+	    while(true) {
+		    try {
+			    name = "ibis@" + hostname + "_" + System.currentTimeMillis();
+			    
+			    String ibisname = p.getProperty("ibis.name");
+			    
+			    if (ibisname == null) {
+				    // Create a default Ibis.
+				    ibisname = "tcp";
+			    }
 
-	    String ibisname = p.getProperty("ibis.name");
-
-	    if (ibisname == null) {
-		// Create a default Ibis.
-		ibisname = "tcp";
+			    if (ibisname.equals("panda")) {
+				    return createIbis(name, "ibis.impl.messagePassing.PandaIbis", r);
+			    } else if (ibisname.equals("mpi")) {
+				    return createIbis(name, "ibis.impl.messagePassing.MPIIbis", r);
+			    } else if (ibisname.startsWith("net")) {
+				    return createIbis(name, "ibis.impl.net.NetIbis", r);
+			    } else {
+				    // The default: tcp.
+				    if (! ibisname.equals("tcp")) {
+					    System.err.println("Warning: name '" + ibisname +
+							       "' not recognized, using TCP version");
+				    }
+				    return createIbis(name, "ibis.impl.tcp.TcpIbis", r);
+			    }
+			    // @@@ end of horrible code
+		    } catch (ConnectionRefusedException e) {
+			    // retry
+		    }
 	    }
-
-	    if (ibisname.equals("panda")) {
-		return createIbis(name, "ibis.impl.messagePassing.PandaIbis", r);
-	    } else if (ibisname.equals("mpi")) {
-		return createIbis(name, "ibis.impl.messagePassing.MPIIbis", r);
-	    } else if (ibisname.startsWith("net")) {
-		return createIbis(name, "ibis.impl.net.NetIbis", r);
-	    } else {
-		// The default: tcp.
-		if (! ibisname.equals("tcp")) {
-		    System.err.println("Warning: name '" + ibisname +
-				       "' not recognized, using TCP version");
-		}
-		return createIbis(name, "ibis.impl.tcp.TcpIbis", r);
-	    }
-	    // @@@ end of horrible code
 	}
 
 	/**
