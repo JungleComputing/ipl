@@ -3,12 +3,12 @@ package ibis.rmi.server;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
-import ibis.ipl.Upcall;
 import ibis.rmi.RTS;
+import ibis.rmi.RemoteException;
 
 import java.io.IOException;
 
-public abstract class Skeleton implements Upcall {
+public abstract class Skeleton {
 
     public int skeletonId;
     public Object destination;
@@ -79,5 +79,5 @@ public abstract class Skeleton implements Upcall {
 	}
     }
 
-    public abstract void upcall(ReadMessage m) throws IOException;
+    public abstract void upcall(ReadMessage m, int method, int stubID) throws RemoteException;
 } 

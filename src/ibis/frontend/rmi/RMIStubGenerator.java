@@ -7,6 +7,7 @@ import java.util.Vector;
 
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.classfile.ExceptionTable;
 import org.apache.bcel.generic.Type;
 
 class RMIStubGenerator extends RMIGenerator { 
@@ -35,9 +36,22 @@ class RMIStubGenerator extends RMIGenerator {
 				output.print(", ");
 			} 
 		}
-		
-		output.print(") throws RemoteException {\n");
+		ExceptionTable et = m.getExceptionTable();
+		output.print(") throws ");
+		if (et != null) {
+		    String[] names = et.getExceptionNames();
+		    for (int i = 0; i < names.length; i++) {
+			output.print(names[i]);
+			if (i < names.length-1) output.print(", ");
+		    }
+		}
+		else {
+		    output.print("RemoteException");
+		}
+
+		output.print(" {\n");
 	}
+		
 
 	void methodBody(Method m, int number) { 
 	    Type ret          = getReturnType(m);
@@ -52,32 +66,50 @@ class RMIStubGenerator extends RMIGenerator {
 	    }
 
 	    output.println("\t\ttry {");
-	    output.println("\t\t\tinitSend();");
-	    output.println("\t\t\tWriteMessage w = newMessage();");
-	    output.println("\t\t\tw.writeInt(" + number + ");");
-	    output.println("\t\t\tw.writeInt(stubID);");
+	    output.println("\t\t\tException remoteex = null;");
+	    output.println("\t\t\ttry {");
+	    output.println("\t\t\t\tinitSend();");
+	    output.println("\t\t\t\tWriteMessage w = newMessage();");
+	    output.println("\t\t\t\tw.writeInt(" + number + ");");
+	    output.println("\t\t\t\tw.writeInt(stubID);");
 
 	    for (int j=0;j<params.length;j++) { 
-		output.println(writeMessageType("\t\t\t", "w", params[j], "p" + j));
+		output.println(writeMessageType("\t\t\t\t", "w", params[j], "p" + j));
 	    }
 	    
-	    output.println("\t\t\tw.send();");
-	    output.println("\t\t\tw.finish();");
+	    output.println("\t\t\t\tw.send();");
+	    output.println("\t\t\t\tw.finish();");
 
-	    output.println("\t\t\tReadMessage r = reply.receive();");
-	    output.println("\t\t\tif (r.readByte() == ibis.rmi.Protocol.EXCEPTION) {");
-	    output.println("\t\t\t\tException e = (Exception) r.readObject();");
-	    output.println("\t\t\t\tr.finish();");
-	    output.println("\t\t\t\tthrow e;");
-	    output.println("\t\t\t}");
-	    output.println("\t\t\t//else: normal result");	    
+	    output.println("\t\t\t\tReadMessage r = reply.receive();");
+	    output.println("\t\t\t\tif (r.readByte() == ibis.rmi.Protocol.EXCEPTION) {");
+	    output.println("\t\t\t\t\tremoteex = (Exception) r.readObject();");
+	    output.println("\t\t\t\t}");
+	    output.println("\t\t\t\telse {");
 	    if (!ret.equals(Type.VOID)) { 		
-		output.println(readMessageType("\t\t\t", "result", "r", ret));
+		output.println(readMessageType("\t\t\t\t\t", "result", "r", ret));
 	    }
-	    output.println("\t\t\tr.finish();");
-
+	    output.println("\t\t\t\t}");
+	    output.println("\t\t\t\tr.finish();");
+	    output.println("\t\t\t} catch(java.io.IOException ioex) {");
+	    output.println("\t\t\t\tthrow new RemoteException(\"IO exception\",  ioex);");
+	    output.println("\t\t\t}");
+	    output.println("\t\t\tif (remoteex != null) throw remoteex;");
+	    ExceptionTable et = m.getExceptionTable();
+	    if (et != null) {
+		String[] names = et.getExceptionNames();
+		for (int i = 0; i < names.length; i++) {
+		    output.println("\t\t} catch (" + names[i] + " e" + i + ") {");
+		    output.println("\t\t\tthrow e" + i + ";");
+		}
+	    }
+	    else {
+		output.println("\t\t} catch (RemoteException e0) {");
+		output.println("\t\t\tthrow e0;");
+	    }
+	    output.println("\t\t} catch (RuntimeException re) {");
+	    output.println("\t\t\tthrow re;");
 	    output.println("\t\t} catch (Exception e) {");
-	    output.println("\t\t\tthrow new RemoteException(\"oops\", e);");
+	    output.println("\t\t\tthrow new RemoteException(\"undeclared checked exception\", e);");
 	    output.println("\t\t}");
 	} 
 

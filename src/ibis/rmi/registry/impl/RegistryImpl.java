@@ -80,14 +80,13 @@ if(RTS.DEBUG)  {
 	} catch (NotBoundException e1) {
 	    throw new NotBoundException(e1.getMessage(), e1);
 	} catch (Exception e2) {
-	    throw new RemoteException(e2.getMessage());
+	    throw new RemoteException(e2.getMessage(), e2);
 	}
     }
     
     public void bind(String name, Remote obj)
 	throws RemoteException, AlreadyBoundException
     {
-	checkreg();
 	String url = "rmi://" + host + ":" + port + "/" + name;
 	try {
 	    RTS.bind(url, obj);
@@ -96,7 +95,7 @@ if(RTS.DEBUG)  {
 	} catch (Exception e2) {
 if (RTS.DEBUG)
 	    e2.printStackTrace();		    
-	    throw new RemoteException(e2.getMessage());
+	    throw new RemoteException(e2.getMessage(), e2);
 	}
 
     }
@@ -104,27 +103,25 @@ if (RTS.DEBUG)
     public void rebind(String name, Remote obj)
 	throws RemoteException
     {
-	checkreg();
 	String url = "rmi://" + host + ":" + port + "/" + name;	
 	try {
 	    RTS.rebind(url, obj);
 	} catch (Exception e) {
 	    e.printStackTrace();
-	    throw new RemoteException(e.getMessage());
+	    throw new RemoteException(e.getMessage(), e);
 	}
     }
     
     public void unbind(String name)
 	throws RemoteException, NotBoundException
     {
-	checkreg();
 	String url = "rmi://" + host + ":" + port + "/" + name;	
 	try {
 	    RTS.unbind(url);
 	} catch (NotBoundException e1) {
-	    throw new NotBoundException(e1.getMessage());
+	    throw new NotBoundException(e1.getMessage(), e1);
 	} catch (Exception e2) {
-	    throw new RemoteException(e2.getMessage());
+	    throw new RemoteException(e2.getMessage(), e2);
 	}
     }
     
@@ -138,16 +135,7 @@ if (RTS.DEBUG)
 	    System.out.println(names.length + " names bound in the registry");
 	    return names;	    
 	} catch (Exception e) {
-	    throw new RemoteException(e.getMessage());
+	    throw new RemoteException(e.getMessage(), e);
 	}
     }
-    
-    private void checkreg() 
-    {
-	String localhost = localhostName();
-	if (!host.equals(localhost)) {
-	//    throw new RemoteException("Registry: " + host + "!=" + localhost);
-	}
-    }
-    
 }

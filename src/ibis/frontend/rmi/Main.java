@@ -238,6 +238,10 @@ class Main {
 		PrintWriter output;
 		JavaClass subject = (JavaClass) classes.get(i);
 
+		if (subject.isInterface()) {
+		    continue;
+		}
+
 		BT_Analyzer a = new BT_Analyzer(subject, rmiInterface, verbose);
 		a.start();
 

@@ -12,6 +12,7 @@ import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 import ibis.rmi.server.ExportException;
+import ibis.rmi.server.SkeletonNotFoundException;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.Skeleton;
 import ibis.rmi.server.Stub;
@@ -88,7 +89,18 @@ public final class RTS {
 		skel = (Skeleton) urlHash.get(url);
 	    }
 	    else skel = (Skeleton)(skeletonArray.get(id));
-	    skel.upcall(r);
+
+	    int method = r.readInt();
+	    int stubID = r.readInt();
+	    try {
+		skel.upcall(r, method, stubID);
+	    } catch (RemoteException e) {
+		WriteMessage w = skel.stubs[stubID].newMessage();
+		w.writeByte(Protocol.EXCEPTION);
+		w.writeObject(e);
+		w.send();
+		w.finish();
+	    }
 	}
     }
 
@@ -234,7 +246,7 @@ public final class RTS {
 	    class_name.substring(class_name.lastIndexOf('.') + 1);
     }
 
-    private synchronized static Skeleton createSkel(Remote obj) throws IOException {
+    private synchronized static Skeleton createSkel(Remote obj) throws SkeletonNotFoundException {
 	try {
 	    Skeleton skel;
 	    Class c = obj.getClass();
@@ -264,16 +276,15 @@ public final class RTS {
 
 	    return skel;
 	} catch (ClassNotFoundException ec) {
-	    throw new RemoteException("Cannot create skeleton", ec);
+	    throw new SkeletonNotFoundException("Cannot find skeleton class", ec);
 	} catch (InstantiationException en) {
-	    throw new RemoteException("Cannot create skeleton", en);
+	    throw new SkeletonNotFoundException("Cannot instantiate skeleton", en);
 	} catch (IllegalAccessException el) {
-	    throw new RemoteException("Cannot create skeleton", el);
+	    throw new SkeletonNotFoundException("Cannot access skeleton", el);
 	}
     }
 
-    public static RemoteStub exportObject(Remote obj)
-	throws Exception
+    public static RemoteStub exportObject(Remote obj) throws RemoteException
     {
 	Stub stub;
 	Class c = obj.getClass();
@@ -294,18 +305,29 @@ public final class RTS {
 	//create a stub
 	// Use the classloader of the original class!
 	// Fix is by Fabrice Huet.
-	ClassLoader loader = obj.getClass().getClassLoader();
+	try {
+	    ClassLoader loader = obj.getClass().getClassLoader();
 
-	Class stub_c = null;
-	if (loader != null) {
-	    stub_c = loader.loadClass(get_stub_name(c));
-	}
-	else {
-	    stub_c = Class.forName(get_stub_name(c));
-	}
-	stub = (Stub) stub_c.newInstance();
+	    Class stub_c = null;
+	    if (loader != null) {
+		stub_c = loader.loadClass(get_stub_name(c));
+	    }
+	    else {
+		stub_c = Class.forName(get_stub_name(c));
+	    }
+	    stub = (Stub) stub_c.newInstance();
 
-	stub.init(null, null, 0, skel.skeletonId, skeletonReceivePort.identifier(), false);
+	    stub.init(null, null, 0, skel.skeletonId, skeletonReceivePort.identifier(), false);
+
+	} catch(ClassNotFoundException e) {
+	    throw new StubNotFoundException("class " + get_stub_name(c) + " not found", e);
+	} catch(InstantiationException e2) {
+	    throw new StubNotFoundException("could not instantiate class " + get_stub_name(c), e2);
+	} catch(IllegalAccessException e3) {
+	    throw new StubNotFoundException("illegal access of class " + get_stub_name(c), e3);
+	} catch(IOException e4) {
+	    throw new StubNotFoundException("could not initialize stub " + get_stub_name(c), e4);
+	}
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Created stub of type rmi_stub_" + classname);
