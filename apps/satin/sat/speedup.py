@@ -181,10 +181,10 @@ def run( command, logfile, runParallel ):
     else:
         for P in ProcNos:
             runP( P, command, results )
-    report( " P time", allstreams )
+    report( "        P time", allstreams )
     for P in ProcNos:
         res = extractResult( results[P] )
-        report( "%2d %s" % (P, res), allstreams )
+        report( "RESULT %2d %s" % (P, res), allstreams )
     for P in ProcNos:
         reportRun( "P=%d" % P, results[P], logstreams )
     lf.close()
