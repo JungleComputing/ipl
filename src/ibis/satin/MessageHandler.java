@@ -16,7 +16,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			owner = (IbisIdentifier) m.readObject();
 //			m.finish();
 		} catch (IbisIOException e) {
-			System.out.println("SATIN '" + satin.ident.name() + 
+			System.err.println("SATIN '" + satin.ident.name() + 
 					   "': got exception while reading job result: " + e);
 			System.exit(1);
 		}
@@ -34,7 +34,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			rr = (ReturnRecord) m.readObject();
 //			m.finish();
 		} catch (IbisIOException e) {
-			System.out.println("SATIN '" + satin.ident.name() + 
+			System.err.println("SATIN '" + satin.ident.name() + 
 					   "': got exception while reading job result: " + e);
 			System.exit(1);
 		}
@@ -87,26 +87,25 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 				try {
 					WriteMessage m = s.newMessage();
-					if (STEAL_STATS) {
-					    int x = satin.msgStats.localPortHash.indexOf(s.identifier());
-					    m.writeInt(satin.msgStats.sent[x]++);
-					}
 					m.writeByte(STEAL_REPLY_FAILED);
 					m.send();
 					m.finish();
-					if (STEAL_STATS) {
-						int x = satin.msgStats.localPortHash.indexOf(s.identifier());
-						satin.msgStats.sendReply[x]++;
-					}
+
 //					long tend = System.currentTimeMillis();
-//					System.out.println("failed steal handler took " + (tend - tstart));
+//					System.err.println("failed steal handler took " + (tend - tstart));
 					if(STEAL_TIMING) {
 						satin.handleStealTimer.stop();
 					}
 
+					if(STEAL_DEBUG) {
+						satin.out.println("SATIN '" + satin.ident.name() + 
+								  "': sending FAILED back to " +
+								  ident.ibis().name() + " DONE");
+					}
+
 					return;
 				} catch (IbisIOException e) {
-					System.out.println("SATIN '" + satin.ident.name() + 
+					System.err.println("SATIN '" + satin.ident.name() + 
 							   "': trying to send FAILURE back, but got exception: " + e);
 				}
 			}
@@ -128,27 +127,20 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 			try {
 				WriteMessage m = s.newMessage();
-				if (STEAL_STATS) {
-				    int x = satin.msgStats.localPortHash.indexOf(s.identifier());
-				    m.writeInt(satin.msgStats.sent[x]++);
-				}
 				m.writeByte(STEAL_REPLY_SUCCESS);
 				m.writeObject(result);
 				m.send();
 				m.finish();
-				if (STEAL_STATS) {
-					int x = satin.msgStats.localPortHash.indexOf(s.identifier());
-					satin.msgStats.sendReply[x]++;
-				}
+
 //				long tend = System.currentTimeMillis();
-//				System.out.println("succ steal handler took " + (tend - tstart));
+//				System.err.println("succ steal handler took " + (tend - tstart));
 
 				if(STEAL_TIMING) {
 					satin.handleStealTimer.stop();
 				}
 				return;
 			} catch (IbisIOException e) {
-				System.out.println("SATIN '" + satin.ident.name() + 
+				System.err.println("SATIN '" + satin.ident.name() + 
 						   "': trying to send a job back, but got exception: " + e);
 			}
 		}
@@ -159,18 +151,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		SendPortIdentifier ident;
 
 		try {
-			if (STEAL_STATS) {
-			    ident = m.origin();
-			    satin.msgStats.addRemotePort(ident);
-			    int x = satin.msgStats.remotePortHash.indexOf(ident);
-			    satin.msgStats.upcall[x]++;
-			    int c = m.readInt();
-			    if (c != satin.msgStats.received[x]) {
-				System.err.println("******* Port " + ident + ": Expect msg " + satin.msgStats.received[x] + " get msg " + c + " = " + m);
-			    }
-			    satin.msgStats.received[x]++;
-			}
-
 			byte opcode = m.readByte();
 			
 			switch(opcode) {
@@ -183,30 +163,22 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				satin.exiting = true;
 //				m.finish();
 				break;
-			case STEAL_REQUEST:
-				ident = m.origin();
-				if (STEAL_STATS) {
-				    satin.msgStats.addRemotePort(ident);
-				    int x = satin.msgStats.remotePortHash.indexOf(ident);
-				    satin.msgStats.upcallRequest[x]++;
-				}
+			case EXIT_REPLY:
 				if(COMM_DEBUG) {
 					ident = m.origin();
 					satin.out.println("SATIN '" + satin.ident.name() + 
-							   "': got steal request from " + ident.ibis().name());
+							   "': got exit ACK message from " + ident.ibis().name());
 				}
+				satin.exitReplies++;
+				break;
+			case STEAL_REQUEST:
+				ident = m.origin();
 //				m.finish();
 				handleStealRequest(ident);
 				break;
 			case STEAL_REPLY_FAILED:
 			case STEAL_REPLY_SUCCESS:
 			case BARRIER_REPLY:
-				if (STEAL_STATS) {
-				    ident = m.origin();
-				    satin.msgStats.addRemotePort(ident);
-				    int x = satin.msgStats.remotePortHash.indexOf(ident);
-				    satin.msgStats.upcallReply[x]++;
-				}
 				if(STEAL_DEBUG) {
 					ident = m.origin();
 					if(opcode == STEAL_REPLY_SUCCESS) {
@@ -238,6 +210,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 							satin.stolenJob = (InvocationRecord) m.readObject();
 //							m.finish();
 						} catch (IbisIOException e) {
+							ident = m.origin();
 							System.err.println("SATIN '" + ident.name() + 
 									   "': Got Exception while reading steal reply: " + e);
 							System.exit(1);
@@ -250,13 +223,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				}
 				break;
 			case JOB_RESULT:
-				if (STEAL_STATS) {
-				    ident = m.origin();
-				    satin.msgStats.addRemotePort(ident);
-				    int x = satin.msgStats.remotePortHash.indexOf(ident);
-				    satin.msgStats.upcallResult[x]++;
-				}
 				if (STEAL_DEBUG) {
+					ident = m.origin();
 					satin.out.println("SATIN '" + satin.ident.name() + 
 							   "': got job result message from " + ident.ibis().name());
 				}
@@ -271,7 +239,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 					   "': Illegal opcode " + opcode + " in MessageHandler");
 				System.exit(1);
 			}
-			
 		} catch (IbisIOException e) {
 				// Ignore.
 		}

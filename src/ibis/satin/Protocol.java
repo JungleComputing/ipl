@@ -2,7 +2,8 @@ package ibis.satin;
 
 interface Protocol {
 	static final byte EXIT =                1;
-	static final byte BARRIER_REPLY =       2;
+	static final byte EXIT_REPLY =          2;
+	static final byte BARRIER_REPLY =       3;
 	static final byte STEAL_REQUEST =       4;
 	static final byte STEAL_REPLY_FAILED =  5;
 	static final byte STEAL_REPLY_SUCCESS = 6;
