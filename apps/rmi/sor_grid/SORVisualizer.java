@@ -23,16 +23,16 @@ class SORVisualizer {
 			System.exit(33);
 		}
 
-		// do work
-		while(true) {
-			try {
-				data = global.getRawData();
-			} catch (RemoteException e) {
-				System.err.println("SORVisualizer.run: got exception: " + e);
-				break;
-			}
+		try {
+			global.setRawDataSize(width, height);
 
-			c.update(data); // give data to the canvas
+			// do work
+			while(true) {
+				data = global.getRawData();
+				c.update(data); // give data to the canvas
+			}
+		} catch (RemoteException e) {
+			System.err.println("SORVisualizer.run: got exception: " + e);
 		}
 	}
 
