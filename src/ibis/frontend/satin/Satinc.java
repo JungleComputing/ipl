@@ -464,13 +464,15 @@ public final class Satinc {
 	StringBuffer s = new StringBuffer(sig);
 	name = do_mangle(new StringBuffer(name));
 
-	int open = s.indexOf("(");
+	int open = sig.indexOf("(");
 	if (open == -1) {
 	    return name;
 	}
 	s.delete(0, open+1);
 
-	int close = s.indexOf(")");
+	sig = s.toString();
+
+	int close = sig.indexOf(")");
 	if (close == -1) {
 	    return name;
 	}
