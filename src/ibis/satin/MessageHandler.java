@@ -322,7 +322,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			SatinTupleSpace.remoteDel(key);
 		} catch (Exception e) {
 			System.err.println("SATIN '" + satin.ident.name() + 
-					   "': Got Exception while reading tuple update: " + e);
+					   "': Got Exception while reading tuple remove: " + e);
 			System.exit(1);
 		}
 	}

@@ -337,7 +337,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				receivePort = portType.createReceivePort("satin port on " + 
 									 ident.name(), messageHandler);
 			} else {
-				System.err.println("using blocking receive");
+				if(master) {
+					System.err.println("SATIN: using blocking receive");
+				}
 				receivePort = portType.createReceivePort("satin port on " + 
 									 ident.name());
 			}
@@ -542,7 +544,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					    idleTimer.averageTime());
 			}
 
-			if(POLL_FREQ > 0 && POLL_TIMING) {
+			if(POLL_FREQ != 0 && POLL_TIMING) {
 				out.println("SATIN '" + ident.name() + 
 					    "': POLL_STATS: poll count = " +
 					    pollTimer.nrTimes() + " total time = " +
@@ -1179,7 +1181,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	boolean satinPoll() {
 		if(POLL_FREQ == 0) {
 			return false;
-		} else {
+		} else if (POLL_FREQ > 0) {
 			long curr = pollTimer.currentTimeNanos();
 			if(curr - prevPoll < POLL_FREQ) {
 				return false;
@@ -1191,7 +1193,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		ReadMessage m = null;
 		if(POLL_RECEIVEPORT) {
-
 			try {
 				m = receivePort.poll();
 			} catch (IOException e) {
@@ -1837,11 +1838,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			satinPoll();
 		}
 
-		if (POLL_FREQ > 0 && s.value == 0) { // sync is poll
-			if(POLL_FREQ > 0 && !upcalls) satinPoll();
-		}
-
 		if(s.value == 0) { // sync is poll
+			if (POLL_FREQ != 0 && !upcalls) { // sync is poll
+				satinPoll();
+			}
+
 			handleDelayedMessages();
 		}
 
@@ -1853,7 +1854,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					    "': Sync, counter = " + s.value);
 			}
 
-			if(POLL_FREQ > 0 && !upcalls) satinPoll();
+			if(POLL_FREQ != 0 && !upcalls) satinPoll();
 
 			handleDelayedMessages();
 
@@ -1995,15 +1996,20 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
         /* ------------------- tuple space stuff ---------------------- */
 
-	protected synchronized void broadcastTuple(String key, Serializable data) {
+	protected void broadcastTuple(String key, Serializable data) {
 		long count = 0;
+		int size = 0;
 
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + ident.name() + 
 					   "': bcasting tuple " + key);
 		}
 
-		if(victims.size() == 0) return; // don't multicast when there is no-one.
+		synchronized(this) {
+			size = victims.size();
+		}
+
+		if(size == 0) return; // don't multicast when there is no-one.
 
 		if(TUPLE_TIMING) {
 			tupleTimer.start();
@@ -2031,7 +2037,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				System.exit(1);
 			}
 		} else {
-			for(int i=0; i<victims.size(); i++) {
+			for(int i=0; i<size; i++) {
 				try {
 					SendPort s = victims.getPort(i);
 					WriteMessage writeMessage = s.newMessage();
@@ -2064,15 +2070,20 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 	}
 
-	protected synchronized void broadcastRemoveTuple(String key) {
+	protected void broadcastRemoveTuple(String key) {
 		long count = 0;
+		int size = 0;
 		
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + ident.name() + 
 					   "': bcasting remove tuple" + key);
 		}
 
-		if(victims.size() == 0) return; // don't multicast when there is no-one.
+		synchronized(this) {
+			size = victims.size();
+		}
+
+		if(size == 0) return; // don't multicast when there is no-one.
 
 		if(TUPLE_TIMING) {
 			tupleTimer.start();
@@ -2099,7 +2110,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				System.exit(1);
 			}
 		} else {
-			for(int i=0; i<victims.size(); i++) {
+			for(int i=0; i<size; i++) {
 				try {
 					SendPort s = victims.getPort(i);
 					WriteMessage writeMessage = s.newMessage();
