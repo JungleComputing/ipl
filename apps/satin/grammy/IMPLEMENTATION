@@ -27,3 +27,11 @@ Backreferences themselves also require room in the output: in this
 particular program they take 3 bytes for a short span that is
 near the current position, up to 5 bytes for a long span that is
 further ayway.
+
+
+
+The string `bladiebladiebla' is a good example why it is worth trying
+several alternatives. There are three longest repeats in that
+string: `bladie', `ladieb', and `adiebl'. Only the first alternative
+allows the subsequent extraction of a second repeat `bla' between the
+first repeat and the remaining `bla'.
