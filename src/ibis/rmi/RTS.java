@@ -11,7 +11,7 @@ import java.net.InetAddress;
 
 public final class RTS { 
 
-	public final static boolean DEBUG = true;
+	public final static boolean DEBUG = false;
 
 	//keys - impl objects, values - skeletons for those objects
 	protected static Hashtable skeletons;
@@ -96,6 +96,7 @@ public final class RTS {
                 }
         }
 	
+
 	public static synchronized RemoteStub exportObject(Remote obj) 
 	    throws Exception
 	{
@@ -295,7 +296,6 @@ public final class RTS {
 	}
 		
 	    
-
 	public static synchronized Remote lookup(String url)  throws NotBoundException, IbisException, IbisIOException { 
 
 		Stub result;
@@ -393,6 +393,12 @@ public final class RTS {
 	    throws IbisIOException
 	{
 	    return portType.createSendPort(new RMIReplacer());
+	}
+	
+	public static ReceivePort createReceivePort() 
+	    throws IbisIOException
+	{
+	    return  portType.createReceivePort("//" + hostname + "/rmi_stub" + (new java.rmi.server.UID()).toString());	
 	}
 	
 	public static void createRegistry(int port) throws RemoteException
