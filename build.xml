@@ -189,15 +189,6 @@
 
     <target name="build-windows-bin"
 	    if="config.os-is-windows">
-	<if>
-	    <available file="src/scripts/run_ibis.bat"/>
-	    <then>
-		<copy
-		    file="${ibis}/src/scripts/run_ibis.bat"
-		    tofile="${ibis}/bin/run_ibis.bat"/>
-	    </then>
-	</if>
-
 	<copy
 	    file="${ibis}/src/scripts/ibis-run.bat"
 	    tofile="${ibis}/bin/ibis-run.bat"/>
@@ -898,7 +889,6 @@
 	<delete file="${distr}/ibis/src/scripts/csim_run_ibis"/>
 	<delete file="${distr}/ibis/src/scripts/csim_run_ibis_tcp"/>
 	<delete file="${distr}/ibis/src/scripts/run_ibis"/>
-	<delete file="${distr}/ibis/src/scripts/run_ibis.bat"/>
 	<delete file="${distr}/ibis/src/scripts/run_ibis_wide_area"/>
 	<delete file="${distr}/ibis/src/scripts/run-das"/>
 	<delete file="${distr}/ibis/src/scripts/ibis-prun"/>
