@@ -83,6 +83,9 @@ In addition, if you want a specific port number for the control hub,
 you can use
 -Dibis.connect.hub_port=<portnum>
 
+If TCPSplice fails, you can try
+-Dibis.connect.data_links=RoutedMessages instead, but this is slow.
+
 * Reference
   ---------
 
