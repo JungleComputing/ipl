@@ -876,7 +876,43 @@ public final class Group implements GroupProtocol {
 		throw new RuntimeException("Unexpected answer on DEFINE_COMBINED");
 	    }
 	} catch (Exception e) { 
-	    throw new RuntimeException(Group._rank + " Group.lookup(" + nm + ") Failed : " + e); 
+	    throw new RuntimeException(Group._rank + " Group.defineCombinedInvocation(" + method + ") Failed : " + e); 
+	} 
+    }
+
+
+
+    /**
+     * Implements an identifier barrier with a specified size.
+     *
+     * @param id      the barrier identification.
+     * @param cpu     the invoker
+     * @param size    the number of invokers before the barrier is released.
+     */
+    protected static void barrier(String id, int cpu, int size) {
+	try { 		
+	    int ticket = ticketMaster.get();
+	    WriteMessage w = unicast[0].newMessage();
+	    w.writeByte(REGISTRY);
+	    w.writeByte(BARRIER);
+	    w.writeInt(ticket);
+	    w.writeString(id);
+	    w.writeInt(size);
+	    w.writeInt(cpu);
+	    w.finish();
+
+	    RegistryReply r = (RegistryReply) ticketMaster.collect(ticket);
+
+	    switch (r.result) { 
+	    case BARRIER_FAILED:
+		throw new RuntimeException(r.str);
+	    case BARRIER_OK:
+		return;
+	    default:
+		throw new RuntimeException("Unexpected answer on DEFINE_COMBINED");
+	    }
+	} catch (Exception e) { 
+	    throw new RuntimeException(Group._rank + " Group.barrier(" + id + ") Failed : " + e); 
 	} 
     }
 

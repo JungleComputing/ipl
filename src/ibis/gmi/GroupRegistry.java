@@ -14,20 +14,49 @@ import java.util.Hashtable;
  */
 final class GroupRegistry implements GroupProtocol {
 
-    /**
-     * Hash table for the groups.
-     */
+    /** Hash table for the groups. */
     private Hashtable groups;
 
-    /**
-     * Current number of groups, used to hand out group identifications.
-     */
+    /** Current number of groups, used to hand out group identifications. */
     private int groupNumber;
 
-    /**
-     * Hash table for the combined invocations.
-     */
+    /** Hash table for the combined invocations. */
     private Hashtable combinedInvocations;
+
+    /** Hash table for the combined invocations. */
+    private Hashtable barriers;
+
+    /**
+     * Class for barrier information.
+     */
+    static private final class BarrierInfo {
+
+	/** The barrier is full when present == size. */
+	int size;
+
+	/** The number of invocations up until now. */
+	int present;
+
+	BarrierInfo(int sz) {
+	    size = sz;
+	}
+
+	synchronized void addAndWaitUntilFull() {
+	    present++;
+	    if (present == size) {
+		notifyAll();
+	    }
+	    else {
+		while (present < size) {
+		    try {
+			wait();
+		    } catch (Exception e) {
+			// ignore
+		    }
+		}
+	    }
+	}
+    }
 
     /**
      * Container class for the group information that the registry maintains.
@@ -96,6 +125,7 @@ final class GroupRegistry implements GroupProtocol {
     public GroupRegistry() {
 	combinedInvocations = new Hashtable();
 	groups = new Hashtable();
+	barriers = new Hashtable();
 	groupNumber = 0;
     }
 
@@ -284,12 +314,14 @@ final class GroupRegistry implements GroupProtocol {
 	    if (inf.mode != mode || inf.numInvokers != size) {
 		w.writeObject(new RegistryReply(COMBINED_FAILED,
 						"Inconsistent combined invocation"));
+		w.finish();
 		return;
 	    }
 
 	    if (inf.present == size) {
 		w.writeObject(new RegistryReply(COMBINED_FAILED,
 						"Combined invocation full"));
+		w.finish();
 		return;
 	    }
 	}
@@ -297,6 +329,55 @@ final class GroupRegistry implements GroupProtocol {
 	inf.addAndWaitUntilFull(rank, cpu);
 
 	w.writeObject(new RegistryReply(COMBINED_OK, inf));
+	w.finish();
+    }
+
+    /**
+     * Deals with a barrier request. It waits until
+     * all invokers have made such a request, and then writes back
+     * to all.
+     *
+     * @param r the request message
+     * @exception java.io.IOException on an IO error.
+     */
+    private void doBarrier(ReadMessage r) throws IOException {
+        
+	int ticket = r.readInt();
+	String id = r.readString();
+	int size = r.readInt();
+	int cpu = r.readInt();
+	r.finish();
+
+	BarrierInfo inf;
+
+	WriteMessage w = Group.unicast[cpu].newMessage();
+	w.writeByte(REGISTRY_REPLY);
+	w.writeInt(ticket);
+
+	synchronized(this) {
+	    inf = (BarrierInfo) barriers.get(id);
+	    if (inf == null) {
+		inf = new BarrierInfo(size);
+		barriers.put(id, inf);
+	    }
+
+	    if (inf.size != size) {
+		w.writeObject(new RegistryReply(BARRIER_FAILED,
+						"Inconsistent barrier size"));
+		w.finish();
+		return;
+	    }
+	}
+
+	inf.addAndWaitUntilFull();
+
+	synchronized(this) {
+	    inf = (BarrierInfo) barriers.get(id);
+	    if (inf != null) {
+		barriers.remove(id);
+	    }
+	}
+	w.writeObject(new RegistryReply(BARRIER_OK));
 	w.finish();
     }
 
@@ -371,11 +452,16 @@ final class GroupRegistry implements GroupProtocol {
 	    case DEFINE_COMBINED:
 		defineCombinedInvocation(r);
 		break;
+
+	    case BARRIER:
+		doBarrier(r);
+		break;
 	    }	       
 		
 	} catch (Exception e) {
 	    /* TODO: is this a good way to deal with an exception? */
 	    System.out.println(Group._rank + ": Error in GroupRegistry " + e);
+	    e.printStackTrace();
 	    System.exit(1);
 	}
     }        

@@ -172,5 +172,11 @@ public class GroupMethod {
 
 	this.inv = invscheme;
 	this.rep = repscheme;		
+
+	if (invscheme.mode == InvocationScheme.I_COMBINED_FLAT ||
+		invscheme.mode == InvocationScheme.I_COMBINED_BINOMIAL) {
+	    CombinedInvocation ci = (CombinedInvocation)invscheme;
+	    Group.barrier(descriptor + parent_stub.groupID, ci.rank, ci.size);
+	}
     } 
 }
