@@ -584,7 +584,7 @@ public final class SATContext implements java.io.Serializable {
 
     private boolean isSmallClause( Clause c )
     {
-	return c.getTermCount()<18;
+	return c.getTermCount()<20;
     }
 
     /**
@@ -647,7 +647,8 @@ public final class SATContext implements java.io.Serializable {
 		    Helpers.dumpAssignments( "Assignments", assignment );
 		}
 	    }
-	    if( doLearning && learn && isSmallClause( cc ) ){
+	    //if( doLearning && learn && isSmallClause( cc ) ){
+	    if( doLearning && learn ){
 		if( learnAsTuple ){
 		    ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
 		}
