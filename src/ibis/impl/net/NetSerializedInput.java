@@ -59,8 +59,8 @@ public abstract class NetSerializedInput extends NetInput {
 	protected boolean	requiresStreamReinit = true;
 
 
-	public NetSerializedInput(NetPortType pt, NetDriver driver, String context) throws IOException {
-		super(pt, driver, context);
+	public NetSerializedInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) throws IOException {
+		super(pt, driver, context, inputUpcall);
                 streamTable = new Hashtable();
 	}
 
@@ -80,15 +80,11 @@ public abstract class NetSerializedInput extends NetInput {
 				subDriver = driver.getIbis().getDriver(subDriverName);
 			}
 
-			subInput = newSubInput(subDriver);
+			subInput = newSubInput(subDriver, upcallFunc == null ? null : this);
 			this.subInput = subInput;
 		}
 
-                if (upcallFunc != null) {
-                        subInput.setupConnection(cnx, this);
-                } else {
-                        subInput.setupConnection(cnx, null);
-                }
+		subInput.setupConnection(cnx);
                 log.out();
 	}
 

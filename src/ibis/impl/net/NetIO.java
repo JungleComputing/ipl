@@ -172,10 +172,12 @@ public abstract class NetIO {
          *
          * @param subDriver the new {@linkplain NetInput input}'s {@linkplain NetDriver driver}.
          * @param contextValue the subcontext discriminant.
+	 * @param inputUpcall the input upcall for upcall receives, or
+	 *        <code>null</code> for downcall receives
          * @return the new {@linkplain NetInput input}.
          */
-        public final NetInput newSubInput(NetDriver subDriver, String contextValue) throws IOException {
-                return subDriver.newInput(type, subContext(contextValue));
+        public final NetInput newSubInput(NetDriver subDriver, String contextValue, NetInputUpcall inputUpcall) throws IOException {
+                return subDriver.newInput(type, subContext(contextValue), inputUpcall);
         }
 
         /**
@@ -193,10 +195,12 @@ public abstract class NetIO {
          * Creates and returns a new {@linkplain NetInput input} object with no subcontext discriminant.
          *
          * @param subDriver the new {@linkplain NetInput input}'s {@linkplain NetDriver driver}.
+	 * @param inputUpcall the input upcall for upcall receives, or
+	 *        <code>null</code> for downcall receives
          * @return the new {@linkplain NetInput input}.
          */
-        public final NetInput newSubInput(NetDriver subDriver) throws IOException {
-                return newSubInput(subDriver, null);
+        public final NetInput newSubInput(NetDriver subDriver, NetInputUpcall inputUpcall) throws IOException {
+                return newSubInput(subDriver, null, inputUpcall);
         }
 
         /**

@@ -4,6 +4,7 @@ import ibis.impl.net.NetAllocator;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.ipl.ConnectionClosedException;
 
@@ -67,9 +68,9 @@ public final class TcpInput extends NetInput {
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
 	 */
-	TcpInput(NetPortType pt, NetDriver driver, String context)
+	TcpInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
 		throws IOException {
-		super(pt, driver, context);
+		super(pt, driver, context, inputUpcall);
 		headerLength = 0;
 	}
 

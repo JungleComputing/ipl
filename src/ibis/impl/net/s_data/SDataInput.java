@@ -1,6 +1,7 @@
 package ibis.impl.net.s_data;
 
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSerializedInput;
 import ibis.io.Dissipator;
@@ -16,9 +17,9 @@ import java.io.IOException;
   */
 public final class SDataInput extends NetSerializedInput {
 
-        public SDataInput(NetPortType pt, NetDriver driver, String context) 
+        public SDataInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) 
 						    throws IOException {
-                super(pt, driver, context);
+                super(pt, driver, context, inputUpcall);
         }
 
         public SerializationInputStream newSerializationInputStream() 

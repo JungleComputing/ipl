@@ -4,6 +4,7 @@ import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbisIdentifier;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPoller;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetServiceLink;
@@ -88,10 +89,12 @@ public final class MultiPoller extends NetPoller {
 	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
 	 * @param driver the driver of this poller.
 	 * @param context the context.
+	 * @param inputUpcall the input upcall for upcall receives, or
+	 *        <code>null</code> for downcall receives
          */
-        public MultiPoller(NetPortType pt, NetDriver driver, String context)
+        public MultiPoller(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
                 throws IOException {
-                super(pt, driver, context);
+                super(pt, driver, context, inputUpcall);
                 laneTable = new Hashtable();
 
                 String pluginName = getProperty("Plugin");
@@ -123,6 +126,26 @@ public final class MultiPoller extends NetPoller {
         }
 	*/
 
+
+	protected NetInput newPollerSubInput(Object key, ReceiveQueue q)
+	    	throws IOException {
+	    NetInput ni = q.getInput();
+
+	    if (ni != null) {
+		return ni;
+	    }
+
+	    String    subContext    = (String)key;
+	    String    subDriverName = getProperty(subContext, "Driver");
+	    NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
+
+	    if (upcallFunc == null) {
+		System.err.println("Create a MultiPoller downcall with ReceiveQueue poller thread " + q);
+	    }
+	    return newSubInput(subDriver, subContext, q);
+	}
+
+
         /**
          * {@inheritDoc}
          */
@@ -136,7 +159,6 @@ public final class MultiPoller extends NetPoller {
 
 		os.flush();
 
-
 		NetIbisIdentifier       localId         = (NetIbisIdentifier)driver.getIbis().identifier();
 		NetIbisIdentifier       remoteId;
 		try {
@@ -148,23 +170,11 @@ public final class MultiPoller extends NetPoller {
 		os.writeObject(localId);
 		os.flush();
 
-		NetInput        ni              = null;
 		String          subContext      = (plugin!=null)?plugin.getSubContext(false, localId, remoteId, os, is):null;
+
+		super.setupConnection(cnx, subContext);
+
 		ReceiveQueue q = (ReceiveQueue)inputMap.get(subContext);
-
-		if (q == null) {
-			String          subDriverName   = getProperty(subContext, "Driver");
-			NetDriver       subDriver       = driver.getIbis().getDriver(subDriverName);
-			ni = newSubInput(subDriver, subContext);
-		} else {
-			ni = q.input();
-		}
-
-		super.setupConnection(cnx, subContext, ni);
-
-		if (q == null) {
-			q = (ReceiveQueue)inputMap.get(subContext);
-		}
 
 		Lane    lane = new Lane();
 
@@ -215,8 +225,8 @@ public final class MultiPoller extends NetPoller {
                         Lane lane = (Lane)laneTable.get(num);
 
                         if (lane != null) {
-                                if (lane.queue.input() != null) {
-                                        lane.queue.input().close(num);
+                                if (lane.queue.getInput() != null) {
+                                        lane.queue.getInput().close(num);
                                 }
 
                                 if (lane.thread != null) {

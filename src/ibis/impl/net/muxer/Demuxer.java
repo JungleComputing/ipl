@@ -5,6 +5,7 @@ import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
@@ -39,9 +40,9 @@ public final class Demuxer extends NetBufferedInput {
      *
      * {@inheritDoc}
      */
-    Demuxer(NetPortType pt, NetDriver driver, String context)
-	    throws IOException {
-	super(pt, driver, context);
+    Demuxer(NetPortType pt, NetDriver driver, String context,
+	    NetInputUpcall inputUpcall) throws IOException {
+	super(pt, driver, context, inputUpcall);
 
 	synchronized (driver) {
 	    if (subDriver == null) {
@@ -50,7 +51,8 @@ public final class Demuxer extends NetBufferedInput {
 		String subDriverName = "muxer.udp";
 		subDriver = driver.getIbis().getDriver(subDriverName);
 		System.err.println("The subDriver is " + subDriver);
-		demux = (MuxerInput)newSubInput(subDriver, "muxer");
+		demux = (MuxerInput)newSubInput(subDriver, "muxer",
+					upcallFunc == null ? null : this);
 	    }
 	}
     }

@@ -3,6 +3,7 @@ package ibis.impl.net.rel;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetVector;
@@ -61,8 +62,11 @@ public final class Driver extends NetDriver implements RelConstants {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, String context) throws IOException {
-		RelInput input = new RelInput(pt, this, context);
+	public NetInput newInput(NetPortType pt,
+				 String context,
+				 NetInputUpcall inputUpcall)
+		       	throws IOException {
+		RelInput input = new RelInput(pt, this, context, inputUpcall);
 		return input;
 	}
 

@@ -4,6 +4,8 @@ import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetPoller;
+import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.InterruptedIOException;
 
@@ -45,14 +47,25 @@ public final class GmPoller extends NetPoller {
      * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
      * @param driver the driver of this poller.
      * @param context the context.
+     * @param inputUpcall the input upcall for upcall receives, or
+     *        <code>null</code> for downcall receives
      */
-    public GmPoller(NetPortType pt, NetDriver driver, String context)
+    public GmPoller(NetPortType pt,
+		    NetDriver driver,
+		    String context,
+		    NetInputUpcall inputUpcall)
 	    throws IOException {
-	    super(pt, driver, context, false);
-	    gmDriver = (Driver)driver;
-	    lockIds = new int[1];
-	    lockIds[0] = 0; // main lock
+	super(pt, driver, context, false, inputUpcall);
+	gmDriver = (Driver)driver;
+	lockIds = new int[1];
+	lockIds[0] = 0; // main lock
 // System.err.println("************ Create a new GmPoller " + this + " upcallFunc " + upcallFunc);
+    }
+
+
+    protected NetInput newPollerSubInput(Object key, ReceiveQueue q)
+	    throws IOException {
+	return new GmInput(type, driver, null, null);
     }
 
     /**
@@ -62,9 +75,10 @@ public final class GmPoller extends NetPoller {
 		throws IOException {
 	log.in();
 
-	GmInput ni = new GmInput(type, driver, null);
 	Integer num = cnx.getNum();
-	setupConnection(cnx, num, ni);
+	setupConnection(cnx, num);
+	ReceiveQueue q = (ReceiveQueue)inputMap.get(num);
+	GmInput ni = (GmInput)q.getInput();
 
 	synchronized (this) {
 

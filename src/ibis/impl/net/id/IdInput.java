@@ -3,6 +3,7 @@ package ibis.impl.net.id;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 
@@ -31,9 +32,9 @@ public final class IdInput extends NetInput {
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
 	 */
-	IdInput(NetPortType pt, NetDriver driver, String context)
+	IdInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
 		throws IOException {
-		super(pt, driver, context);
+		super(pt, driver, context, inputUpcall);
 	}
 
 	/*
@@ -51,15 +52,11 @@ public final class IdInput extends NetInput {
 				subDriver = driver.getIbis().getDriver(subDriverName);
 			}
 
-			subInput = newSubInput(subDriver);
+			subInput = newSubInput(subDriver, upcallFunc == null ? null : this);
 			this.subInput = subInput;
 		}
 
-                if (upcallFunc != null) {
-                        subInput.setupConnection(cnx, this);
-                } else {
-                        subInput.setupConnection(cnx, null);
-                }
+		subInput.setupConnection(cnx);
 	}
 
         public synchronized void inputUpcall(NetInput input, Integer spn) throws IOException {

@@ -3,6 +3,7 @@ package ibis.impl.net.id;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 
@@ -46,11 +47,13 @@ public final class Driver extends NetDriver {
 	 *
 	 * @param pt the input's {@link ibis.impl.net.NetPortType NetPortType}.
 	 * @param context the context.
+	 * @param inputUpcall the input upcall for upcall receives, or
+	 *        <code>null</code> for downcall receives
 	 * @return The new Id input.
 	 */
-	public NetInput newInput(NetPortType pt, String context)
+	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall)
 		throws IOException {
-		return new IdInput(pt, this, context);
+		return new IdInput(pt, this, context, inputUpcall);
 	}
 
 	/**

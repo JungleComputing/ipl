@@ -3,6 +3,7 @@ package ibis.impl.net.s_ibis;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSerializedInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.io.Dissipator;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.SerializationInputStream;
@@ -16,9 +17,9 @@ import java.io.IOException;
   */
 public final class SIbisInput extends NetSerializedInput {
 
-        public SIbisInput(NetPortType pt, NetDriver driver, String context) 
+        public SIbisInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) 
 						    throws IOException {
-                super(pt, driver, context);
+                super(pt, driver, context, inputUpcall);
 		requiresStreamReinit = false;
         }
 

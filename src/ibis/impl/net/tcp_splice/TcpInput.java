@@ -96,9 +96,9 @@ public final class TcpInput extends NetBufferedInput
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
 	 */
-	TcpInput(NetPortType pt, NetDriver driver, String context)
+	TcpInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
 		throws IOException {
-		super(pt, driver, context);
+		super(pt, driver, context, inputUpcall);
 		headerLength = 4;
 	}
 
@@ -175,7 +175,7 @@ public final class TcpInput extends NetBufferedInput
 	 */
 	public void interruptPoll() throws IOException {
 		// How can this be JMM correct?????
-System.err.println(Thread.currentThread() + ": " + this + ": interruptPoll()");
+// System.err.println(Thread.currentThread() + ": " + this + ": interruptPoll()");
 		interrupted = true;
 	}
 
@@ -192,7 +192,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": interruptPoll()");
 	 * {@inheritDoc}
 	 */
 	public void clearInterruptible(NetInputUpcall upcallFunc) throws IOException {
-System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible, upcallFunc " + upcallFunc);
+// System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible, upcallFunc " + upcallFunc);
 		installUpcallFunc(upcallFunc);
 		tcpSocket.setSoTimeout(0);
 	}

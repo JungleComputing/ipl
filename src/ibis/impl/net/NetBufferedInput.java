@@ -43,11 +43,14 @@ public abstract class NetBufferedInput extends NetInput
 	 * @param portType the {@link ibis.impl.net.NetPortType NetPortType}.
 	 * @param driver the driver of this poller.
 	 * @param context the context.
+	 * @param inputUpcall the input upcall for upcall receives, or
+	 *        <code>null</code> for downcall receives
 	 */
 	protected NetBufferedInput(NetPortType      portType,
                                    NetDriver 	    driver,
-                                   String           context) {
-		super(portType, driver, context);
+                                   String           context,
+				   NetInputUpcall inputUpcall) {
+		super(portType, driver, context, inputUpcall);
 	}
 
 	/**

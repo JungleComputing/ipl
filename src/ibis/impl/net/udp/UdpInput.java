@@ -4,6 +4,7 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetMessageStat;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
@@ -68,9 +69,9 @@ public final class UdpInput extends NetBufferedInput {
         private long            deliver_seqno;  /* For out-of-order debugging */
         private NetUDPStat            udpStat        = null;
 
-        UdpInput(NetPortType pt, NetDriver driver, String context)
+        UdpInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
                 throws IOException {
-                super(pt, driver, context);
+                super(pt, driver, context, inputUpcall);
                 udpStat = (NetUDPStat)stat;
 
                 if (Driver.DEBUG) {

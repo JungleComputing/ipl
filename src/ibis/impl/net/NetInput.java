@@ -350,16 +350,21 @@ finishedUpcallThreads--;
 	 * @param portType the port {@link NetPortType} type.
 	 * @param driver the driver.
 	 * @param context the context.
+	 * @param inputUpcall the input upcall for upcall receives, or
+	 *        <code>null</code> for downcall receives
 	 */
 	protected NetInput(NetPortType portType,
 			   NetDriver   driver,
-                           String      context) {
+                           String      context,
+			   NetInputUpcall inputUpcall) {
 		super(portType, driver, context);
 		// setBufferFactory(new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl()));
                 // Stat object
                 String s = "//"+type.name()+this.context+".input";
                 boolean utStatOn = type.getBooleanStringProperty(this.context, "UpcallThreadStat", false);
                 utStat = new NetThreadStat(utStatOn, s);
+                this.upcallFunc = inputUpcall;
+                log.disp("this.upcallFunc = ", this.upcallFunc);
 	}
 
         /**
@@ -500,26 +505,6 @@ pollFail++;
 	public final Integer getActiveSendPortNum() {
 		return activeNum;
 	}
-
-        /**
-	 * Actually establish a connection with a remote port and register an upcall function for incoming message notification.
-	 *
-	 * @param cnx the connection attributes.
-         * @param inputUpcall the upcall function for incoming message notification.
-	 * @exception IOException if the connection setup fails.
-	 */
-	public synchronized void setupConnection(NetConnection  cnx,
-                                                 NetInputUpcall inputUpcall) throws IOException {
-                log.in();
-                if (freeCalled) {
-                        throw new ConnectionClosedException("input closed");
-                }
-
-                this.upcallFunc = inputUpcall;
-                log.disp("this.upcallFunc = ", this.upcallFunc);
-                setupConnection(cnx);
-                log.out();
-        }
 
         protected final void startUpcallThread() throws IOException {
                 log.in();

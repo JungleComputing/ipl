@@ -129,11 +129,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                         }
                                                 }
 
-                                                if (useUpcall) {
-                                                        input.setupConnection(cnx, NetReceivePort.this);
-                                                } else {
-                                                        input.setupConnection(cnx, null);
-                                                }
+						input.setupConnection(cnx);
 
                                                 //inputLock.unlock();
                                                 connectionLock.unlock();
@@ -543,8 +539,8 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
                 initDebugStreams();
                 initPassiveObjects();
-                initMainInput();
                 initGlobalSettings(upcall != null);
+                initMainInput();
                 initServerSocket();
                 initIdentifier();
                 initActiveObjects();
@@ -595,7 +591,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                         throw new IbisConfigurationException("driver not found");
                 }
 
-                input = driver.newInput(type, null);
+                input = driver.newInput(type, null, useUpcall ? this : null);
                 log.out();
         }
 

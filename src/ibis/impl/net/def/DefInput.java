@@ -4,6 +4,7 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
@@ -19,9 +20,9 @@ public final class DefInput extends NetBufferedInput {
 	private InputStream      defIs        = null;
         private NetReceiveBuffer buf          = null;
 
-	DefInput(NetPortType pt, NetDriver driver, String context)
+	DefInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
 		throws IOException {
-		super(pt, driver, context);
+		super(pt, driver, context, inputUpcall);
 		headerLength = 4;
 	}
 

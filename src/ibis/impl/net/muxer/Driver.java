@@ -3,6 +3,7 @@ package ibis.impl.net.muxer;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 
@@ -56,9 +57,9 @@ public final class Driver extends NetDriver {
 	 * @param context the context.
 	 * @return The new UDP input.
 	 */
-	public NetInput newInput(NetPortType pt, String context)
+	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall)
 		throws IOException {
-		return new Demuxer(pt, this, context);
+		return new Demuxer(pt, this, context, inputUpcall);
 	}
 
 	/**

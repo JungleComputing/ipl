@@ -36,8 +36,8 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
 	private static final int   INTERRUPT_TIMEOUT  = 100; // ms
 	private boolean      interrupted = false;
 
-	TcpInput(NetPortType pt, NetDriver driver, String context) throws IOException {
-		super(pt, driver, context);
+	TcpInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) throws IOException {
+		super(pt, driver, context, inputUpcall);
 	}
 
         public void initReceive(Integer num) {

@@ -3,6 +3,7 @@ package ibis.impl.net.nio;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.ipl.ConnectionClosedException;
@@ -88,9 +89,9 @@ public final class NioInput extends NetInput {
      * {@link ibis.impl.net.NetSendPort NetSendPort}.
      * @param driver the Nio driver instance.
      */
-    NioInput(NetPortType pt, NetDriver driver, String context)
+    NioInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
 	throws IOException {
-	    super(pt, driver, context);
+	    super(pt, driver, context, inputUpcall);
 	    headerLength = 0;
 
 	    /* init buffers */

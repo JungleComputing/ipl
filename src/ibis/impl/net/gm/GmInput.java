@@ -5,6 +5,7 @@ import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetBufferFactory;
@@ -101,9 +102,9 @@ public final class GmInput extends NetBufferedInput {
 	 * {@link ibis.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the GM driver instance.
 	 */
-	GmInput(NetPortType pt, NetDriver driver, String context)
+	GmInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
 		throws IOException {
-                super(pt, driver, context);
+                super(pt, driver, context, inputUpcall);
 
                 gmDriver = (Driver)driver;
 

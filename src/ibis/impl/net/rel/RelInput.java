@@ -5,6 +5,7 @@ import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
@@ -142,8 +143,12 @@ public final class RelInput
      * {@link ibis.impl.net.NetSendPort NetSendPort}.
      * @param driver the REL driver instance.
      */
-    RelInput(NetPortType pt, NetDriver driver, String context) throws IOException {
-	super(pt, driver, context);
+    RelInput(NetPortType pt,
+	     NetDriver driver,
+	     String context,
+	     NetInputUpcall inputUpcall)
+       		throws IOException {
+	super(pt, driver, context, inputUpcall);
 
 	relDriver = (Driver)driver;
 
@@ -180,7 +185,8 @@ public final class RelInput
 		subDriver = driver.getIbis().getDriver(subDriverName);
 	    }
 
-	    dataInput = newSubInput(subDriver, "data");
+	    dataInput = newSubInput(subDriver, "data",
+				    upcallFunc == null ? null : this);
 	    this.dataInput = dataInput;
 	}
 

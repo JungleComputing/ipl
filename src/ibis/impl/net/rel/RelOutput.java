@@ -248,7 +248,7 @@ public final class RelOutput
 
 	/* Reverse connection */
 	if (controlInput == null) {
-		controlInput = newSubInput(subDriver, "control");
+		controlInput = newSubInput(subDriver, "control", null);
 		this.controlInput = controlInput;
 	}
 

@@ -1,6 +1,7 @@
 package ibis.impl.net;
 
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -35,7 +36,8 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     private ReceiveQueue	singleton;
     private boolean		handlingSingleton;
     private int			waitingConnections;
-    private static final boolean SINGLETON_FASTPATH = ! ibis.util.TypedProperties.booleanProperty("ibis.net.poller.nosingleton");
+    private static final boolean SINGLETON_FASTPATH = ibis.util.TypedProperties.booleanProperty("ibis.net.poller.singleton", true);
+    private final boolean	singletonOnly;
 
     /**
      * The driver used for the inputs.
@@ -61,7 +63,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      */
     private int			firstToPoll  = 0;
 
-    private boolean		upcallMode = false;
+    private boolean		upcallMode;
 
     /**
      * In the downcall case, this module usually starts an upcall thread
@@ -71,9 +73,23 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      * on the multiplexer thread to perform the upcalls.
      * To switch on this behaviour, set decouplePoller = false.
      */
-    private boolean		decouplePoller;
+    private final boolean	decouplePoller;
 
     protected boolean		readBufferedSupported = true;
+
+    private boolean checkSingletonOnly() {
+	StaticProperties prop = type.properties();
+	boolean singletonOnly = upcallFunc == null
+			    && ! prop.isProp("communication", "ManyToOne")
+			    && ! prop.isProp("communication", "Poll")
+			    && ! prop.isProp("communication", "ReceiveTimeout");
+	if (true || singletonOnly) {
+	    System.err.println(this + ": set Poller.singletonOnly to " + singletonOnly);
+	    System.err.println(this + ": upcallFunc " + upcallFunc);
+	    System.err.println(this + ": property ManyToOne " + prop.isProp("communication", "ManyToOne"));
+	}
+	return singletonOnly;
+    }
 
     /**
      * Constructor.
@@ -81,10 +97,15 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      * @param pt      the port type.
      * @param driver  the driver of this poller.
      * @param context the context string.
+     * @param inputUpcall the input upcall for upcall receives, or
+     *        <code>null</code> for downcall receives
      */
-    public NetPoller(NetPortType pt, NetDriver driver, String context)
+    public NetPoller(NetPortType pt,
+		     NetDriver driver,
+		     String context,
+		     NetInputUpcall inputUpcall)
 	    throws IOException {
-	this(pt, driver, context, true);
+	this(pt, driver, context, true, inputUpcall);
     }
 
     /**
@@ -94,48 +115,20 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      * @param driver  the driver of this poller.
      * @param context the context string.
      * @param decouplePoller en/disable decoupled message delivery in this class
+     * @param inputUpcall the input upcall for upcall receives, or
+     *        <code>null</code> for downcall receives
      */
     public NetPoller(NetPortType pt,
 		     NetDriver driver,
 		     String context,
-		     boolean decouplePoller)
+		     boolean decouplePoller,
+		     NetInputUpcall inputUpcall)
 	    throws IOException {
-	super(pt, driver, context);
+	super(pt, driver, context, inputUpcall);
 	inputMap = new HashMap();
 	this.decouplePoller = decouplePoller;
-    }
-
-    /**
-     * Actually establish a connection with a remote port.
-     *
-     * @param cnx the connection attributes.
-     * @exception IOException if the connection setup fails.
-     */
-    public synchronized void setupConnection(NetConnection cnx)
-	    throws IOException {
-	log.in();
-
-	if (subDriver == null) {
-	    String subDriverName = getMandatoryProperty("Driver");
-	    subDriver = driver.getIbis().getDriver(subDriverName);
-	}
-
-	NetInput ni = newSubInput(subDriver);
-
-	setupConnection(cnx, cnx.getNum(), ni);
-if (singleton != null)
-System.err.println(this + ": OK, we enabled singleton fastpath");
-
-	/*
-	 * If our subclass is a multiplexer, it starts all necessary
-	 * upcall threads. Then we do not want an upcall thread in
-	 * this class.
-	 */
-	if (! decouplePoller) {
-// System.err.println(this + ": start upcall thread");
-	    startUpcallThread();
-	}
-	log.out();
+	upcallMode = (upcallFunc != null);
+	singletonOnly = checkSingletonOnly();
     }
 
 
@@ -169,7 +162,7 @@ System.err.println(this + ": OK, we enabled singleton fastpath");
 	    }
 
 	} else if (singleton != null) {
-System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton fastpath.");
+// System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton fastpath.");
 	    while (handlingSingleton) {
 		singleton.interruptPoll();
 		waitingConnections++;
@@ -193,7 +186,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton f
 
 	while (i.hasNext()) {
 	    ReceiveQueue rq  = (ReceiveQueue)i.next();
-	    if (! rq.input().readBufferedSupported()) {
+	    if (! rq.getInput().readBufferedSupported()) {
 		readBufferedSupported = false;
 		break;
 	    }
@@ -210,17 +203,60 @@ System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton f
 
 
     /**
-     * Actually establish a connection with a remote port and
-     * register an upcall function for incoming message
-     * notification.
+     * Actually establish a connection with a remote port.
+     *
+     * @param cnx the connection attributes.
+     * @exception IOException if the connection setup fails.
+     */
+    public synchronized void setupConnection(NetConnection cnx)
+	    throws IOException {
+	log.in();
+
+	if (subDriver == null) {
+	    String subDriverName = getMandatoryProperty("Driver");
+	    subDriver = driver.getIbis().getDriver(subDriverName);
+	}
+
+	setupConnection(cnx, cnx.getNum());
+if (singleton != null)
+System.err.println(this + ": OK, we enabled singleton fastpath");
+
+	if (decouplePoller) {
+	    /*
+	     * If our subclass is a multiplexer, it starts all necessary
+	     * upcall threads. Then we do not want an upcall thread in
+	     * this class.
+	     */
+	} else {
+// System.err.println(this + ": start upcall thread");
+	    startUpcallThread();
+	}
+	log.out();
+    }
+
+    protected NetInput newPollerSubInput(Object key, ReceiveQueue q)
+	    throws IOException {
+	NetInput ni;
+
+	if (decouplePoller && singleton == null &&
+		(NetReceivePort.useBlockingPoll || upcallMode)) {
+	    ni = newSubInput(subDriver, q);
+	} else {
+	    ni = newSubInput(subDriver, null);
+	}
+
+	return ni;
+    }
+
+    /**
+     * Actually establish a connection with a remote port
      *
      * @param cnx the connection attributes.
      * @param key the connection key in the splitter {@link #inputMap map}.
      * @param ni the connection's input.
      */
     protected synchronized void setupConnection(NetConnection cnx,
-						Object key,
-						NetInput ni)
+						Object key)
 	    throws IOException {
 
 	if (false && singleton != null) {
@@ -228,7 +264,7 @@ System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton f
 	}
 
 	log.in();
-	boolean only = inputMap.values().size() == 0;
+
 	/*
 	 * Because a blocking poll can be pending while we want
 	 * to connect, the ReceivePort's inputLock cannot be taken
@@ -238,26 +274,24 @@ System.err.println(Thread.currentThread() + ": " + this + ": Disable singleton f
 	 */
 	ReceiveQueue q = (ReceiveQueue)inputMap.get(key);
 
-	upcallMode = (upcallFunc != null);
-
 	if (q == null) {
-	    q = new ReceiveQueue(cnx, ni);
+	    q = new ReceiveQueue(cnx);
 	    inputMap.put(key, q);
 // System.err.println(this + ": add subInput " + ni + "; key " + key + "; upcallFunc " + upcallFunc);
-	    setSingleton(only);
 	}
 
-	if (decouplePoller && singleton == null &&
-		(NetReceivePort.useBlockingPoll || upcallMode)) {
-	    ni.setupConnection(cnx, q);
-	} else {
-	    ni.setupConnection(cnx, null);
-	}
+	NetInput ni = newPollerSubInput(key, q);
+	q.setInput(ni);
+
+	boolean only = inputMap.values().size() == 1;
+	setSingleton(only);
 
 	if (singleton == q) {
 // System.err.println("Set the thing to interruptible");
 	    singleton.setInterruptible();
 	}
+
+	ni.setupConnection(cnx);
 
 	/* If this NetPoller is used in downcallMode, the
 	 * upcall threads of the subInputs deliver their
@@ -308,23 +342,26 @@ private int nCurrent;
     protected final class ReceiveQueue implements NetInputUpcall {
 
 	private NetInput		input     = null;
-	private Integer		activeNum = null;
-	private NetPollInterruptible intpt = null;
+	private Integer			activeNum = null;
+	private NetPollInterruptible	intpt = null;
 	private int			waitingPollers = 0;
 
-	ReceiveQueue(NetConnection cnx, NetInput input) {
-	    this.input = input;
-	    if (input instanceof NetPollInterruptible) {
-		intpt = (NetPollInterruptible)input;
-	    }
+	ReceiveQueue(NetConnection cnx) {
 	}
 
 	public Integer activeNum() {
 	    return activeNum;
 	}
 
-	public NetInput input() {
+	public NetInput getInput() {
 	    return input;
+	}
+
+	public void setInput(NetInput input) {
+	    this.input = input;
+	    if (input instanceof NetPollInterruptible) {
+		intpt = (NetPollInterruptible)input;
+	    }
 	}
 
 	public void inputUpcall(NetInput input, Integer spn)
@@ -559,7 +596,7 @@ nCurrent++;
      */
     protected void selectConnection(ReceiveQueue rq) {
 	log.in();
-	NetInput    input = rq.input();
+	NetInput    input = rq.getInput();
 	log.disp("1");
 	mtu = input.getMaximumTransfertUnit();
 	log.disp("2");
@@ -814,7 +851,7 @@ nCurrent++;
 
     public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws IOException {
 	//
-	NetInput input = rq.input();
+	NetInput input = rq.getInput();
 	if (input != null) {
 	    input.close(num);
 	}

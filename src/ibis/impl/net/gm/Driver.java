@@ -3,6 +3,7 @@ package ibis.impl.net.gm;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetLockArray;
 import ibis.impl.net.NetMutex;
 import ibis.impl.net.NetOutput;
@@ -188,10 +189,10 @@ public final class Driver extends NetDriver {
 	 * @param context the context.
 	 * @return The new GM input.
 	 */
-	public NetInput newInput(NetPortType pt, String context)
+	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall)
 		throws IOException {
                 //System.err.println("new gm input");
-		return new GmPoller(pt, this, context);
+		return new GmPoller(pt, this, context, inputUpcall);
 	}
 
 	/**

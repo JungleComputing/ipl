@@ -69,10 +69,12 @@ public abstract class NetDriver {
 	 *
 	 * @param pt the port type.
          * @param context the context string.
+	 * @param inputUpcall the input upcall for upcall receives, or
+	 *        <code>null</code> for downcall receives
 	 *
 	 * @exception IOException if the input creation fail.
 	 */
-	public abstract NetInput newInput(NetPortType pt, String context)
+	public abstract NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall)
 		throws IOException;
 
 	/**

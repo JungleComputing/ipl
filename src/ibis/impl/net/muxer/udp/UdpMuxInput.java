@@ -3,6 +3,7 @@ package ibis.impl.net.muxer.udp;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIO;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.muxer.MuxerInput;
@@ -45,12 +46,13 @@ public final class UdpMuxInput extends MuxerInput {
 
 
 
-    protected UdpMuxInput(NetPortType portType,
+    protected UdpMuxInput(NetPortType pt,
 			  NetDriver   driver,
-			  String      context)
+			  String      context,
+			  NetInputUpcall inputUpcall)
 	    throws IOException {
 
-	super(portType, driver, context);
+	super(pt, driver, context, inputUpcall);
 
 	socket = new DatagramSocket(0, InetAddress.getLocalHost());
 	lmtu = Math.min(socket.getReceiveBufferSize(), UDP_MAX_MTU);

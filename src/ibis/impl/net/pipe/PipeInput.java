@@ -5,6 +5,7 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
@@ -24,8 +25,8 @@ public final class PipeInput extends NetBufferedInput {
         private NetReceiveBuffer buf          = null;
         private boolean          upcallMode   = false;
 
-	PipeInput(NetPortType pt, NetDriver driver, String context) throws IOException {
-		super(pt, driver, context);
+	PipeInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) throws IOException {
+		super(pt, driver, context, inputUpcall);
 		headerLength = 4;
 		// Create the factory in the constructor. This allows
 		// subclasses to override the factory.

@@ -2,6 +2,7 @@ package ibis.impl.net.gen;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 
@@ -36,8 +37,8 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, String context) throws IOException {
-		return new GenPoller(pt, this, context);
+	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) throws IOException {
+		return new GenPoller(pt, this, context, inputUpcall);
 	}
 
 	/**

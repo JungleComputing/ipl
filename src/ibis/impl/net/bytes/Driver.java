@@ -2,6 +2,7 @@ package ibis.impl.net.bytes;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 
@@ -35,8 +36,9 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, String context) {
-		return new BytesInput(pt, this, context);
+	public NetInput newInput(NetPortType pt, String context,
+				 NetInputUpcall inputUpcall) {
+		return new BytesInput(pt, this, context, inputUpcall);
 	}
 
 	/**

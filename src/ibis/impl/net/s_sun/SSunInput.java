@@ -1,6 +1,7 @@
 package ibis.impl.net.s_sun;
 
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetBufferedInputSupport;
 import ibis.impl.net.NetSerializedInput;
@@ -19,8 +20,8 @@ public final class SSunInput extends NetSerializedInput {
 
 	private NetBufferedInputSupport bufferInput;
 
-        public SSunInput(NetPortType pt, NetDriver driver, String context) throws IOException {
-                super(pt, driver, context);
+        public SSunInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) throws IOException {
+                super(pt, driver, context, inputUpcall);
         }
         
         public SerializationInputStream newSerializationInputStream() throws IOException {

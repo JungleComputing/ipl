@@ -5,6 +5,7 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInput;
+import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
@@ -72,8 +73,8 @@ public final class BytesInput extends NetInput implements Settings {
 
 	private int waiters = 0;
 
-	BytesInput(NetPortType pt, NetDriver driver, String context) {
-		super(pt, driver, context);
+	BytesInput(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall) {
+		super(pt, driver, context, inputUpcall);
                 an = new NetAllocator(anThreshold);
 	}
 
@@ -89,15 +90,11 @@ public final class BytesInput extends NetInput implements Settings {
 				subDriver = driver.getIbis().getDriver(subDriverName);
 			}
 
-			subInput = newSubInput(subDriver);
+			subInput = newSubInput(subDriver, upcallFunc == null ? null : this);
 			this.subInput = subInput;
 		}
 
-                if (upcallFunc != null) {
-                        subInput.setupConnection(cnx, this);
-                } else {
-                        subInput.setupConnection(cnx, null);
-                }
+		subInput.setupConnection(cnx);
                 log.out();
 	}
 
