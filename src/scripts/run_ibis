@@ -18,6 +18,7 @@ dir=`cd "$dir" && pwd`
 
 . $dir/../configuration.sh
 
+echo "WARNING: run_ibis will be deprecated; use ibis-run (or, for prun users, ibis-prun) instead!"
 
 #start of script template
 
