@@ -27,6 +27,12 @@ final class CutoffUpdater implements ibis.satin.ActiveTuple {
 public final class Breeder extends ibis.satin.SatinObject implements BreederInterface {
     static final int GENERATIONS = 20;
     static final int GENERATION_SIZE = 12;
+    final SATProblem pl[];
+
+    Breeder( SATProblem pl[] )
+    {
+        this.pl = pl;
+    }
 
     /** Maximal number decisions allowed before we give up. Can
      * be updated by the CutoffUpdater class above.
@@ -229,7 +235,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
 	    pl[i] = p;
 	}
 
-        Breeder b = new Breeder();
+        Breeder b = new Breeder( pl );
 
 	long startTime = System.currentTimeMillis();
 
