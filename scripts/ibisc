@@ -1,4 +1,4 @@
-JAVACLASSPATH=$IBIS_ROOT/ibis/classlibs:$IBIS_ROOT:$IBIS_ROOT/ibis:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$IBIS_ROOT/ibis/bcel-additions:$BCEL_ROOT/bcel.jar:$BCEL_ROOT/lib
+JAVACLASSPATH=$IBIS_ROOT/ibis/classlibs:$IBIS_ROOT:$IBIS_ROOT/ibis:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$IBIS_ROOT/ibis/bcel-additions:$BCEL_ROOT/bcel-5.1.jar:$BCEL_ROOT/lib
 LASM_CACHE=$IBIS_ROOT/ibis/LASM_IBIS_CACHE
 MANTACFLAGS="-classpath $JAVACLASSPATH -g -no-shared-link -panda $PANDA_ROOT/panda4.0 -output_cc $LASM_CACHE -user_cc $LASM_CACHE"
 
