@@ -6,7 +6,7 @@ import java.util.Random;
 import java.io.IOException;
 
 interface Config {
-	static final boolean DEBUG = false;
+    static final boolean DEBUG = false;
 }
 
 class RszHandler implements ResizeHandler {
@@ -35,114 +35,50 @@ class RszHandler implements ResizeHandler {
     }
 }
 
-class Computer extends Thread {
-
-	boolean stop = false;
-	long cycles = 0;
-	long start  = 0;
-
-	final synchronized void printCycles( String temp )
-        {
-            long tmp = start;
-            start = System.currentTimeMillis();
-
-            double result = ((double) cycles) / ((start-tmp)/1000.0);
-            cycles = 0;
-
-            System.err.println( temp + " cycles/s " + result );
-	}
-
-	final synchronized void reset()
-        {
-            start = System.currentTimeMillis();
-            cycles = 0;
-	}
-
-	final synchronized void setStop()
-        {
-            stop = true;
-	}
-
-	final synchronized boolean getStop()
-        {
-            return stop;
-	}
-
-	final void flip( double [] src, double [] dst, double mult )
-        {
-            for ( int i=0;i<src.length;i++ ) {
-                dst[i] = mult*src[src.length-i-1];
-            }
-	}
-
-	public void run()
-        {
-            double [] a = new double[4096];
-            double [] b = new double[4096];
-
-            for ( int i=0; i<4096; i++ ) {
-                a[i] = i*0.8;
-            }
-
-            start = System.currentTimeMillis();
-
-            while( !getStop() ){
-                synchronized ( this ) {
-                    cycles++;
-                }
-                flip( a, b, 0.5 );
-                flip( a, b, 2.0 );
-            }
-	}
-}
-
 class Sender implements Config
 {
-	SendPort sport;
-	ReceivePort rport;
+    SendPort sport;
+    ReceivePort rport;
 
-	Sender( ReceivePort rport, SendPort sport ) {
-		this.rport = rport;
-		this.sport = sport;
-	}
+    Sender( ReceivePort rport, SendPort sport ) {
+        this.rport = rport;
+        this.sport = sport;
+    }
 
-	void send( int count, int repeat, Computer c ) throws Exception
-        {
-            for ( int r=0; r<repeat; r++ ) {
-                long time = System.currentTimeMillis();
+    void send( int count, int repeat ) throws Exception
+    {
+        for ( int r=0; r<repeat; r++ ) {
+            long time = System.currentTimeMillis();
 
-                for( int i = 0; i< count; i++ ) {
-                    WriteMessage writeMessage = sport.newMessage();
-                    if( DEBUG ) {
-                        System.out.println( "LAT: finish message" );
-                    }
-                    writeMessage.finish();
-                    if( DEBUG ) {
-                        System.out.println( "LAT: message done" );
-                    }
-                    ReadMessage readMessage = rport.receive();
-                    readMessage.finish();
+            for( int i = 0; i< count; i++ ) {
+                WriteMessage writeMessage = sport.newMessage();
+                if( DEBUG ) {
+                    System.out.println( "LAT: finish message" );
                 }
-
-                time = System.currentTimeMillis() - time;
-
-                double speed = (time * 1000.0) / (double) count;
-                System.err.println( "Latency: " + count + " calls took " + ( time/1000.0 ) + " seconds, time/call = " + speed + " micros" );
-                if( c != null ) c.printCycles( "Sender" );
+                writeMessage.finish();
+                if( DEBUG ) {
+                    System.out.println( "LAT: message done" );
+                }
+                ReadMessage readMessage = rport.receive();
+                readMessage.finish();
             }
-	}
+
+            time = System.currentTimeMillis() - time;
+
+            double speed = (time * 1000.0) / (double) count;
+            System.err.println( "Latency: " + count + " calls took " + ( time/1000.0 ) + " seconds, time/call = " + speed + " micros" );
+        }
+    }
 }
 
 class Receiver implements Config {
 
 	SendPort sport;
 	ReceivePort rport;
-	Computer c;
 
-	Receiver( ReceivePort rport, SendPort sport, Computer c ) {
+	Receiver( ReceivePort rport, SendPort sport ) {
             this.rport = rport;
             this.sport = sport;
-            this.c = c;
 	}
 
 	void receive( int count, int repeat ) throws IOException {
@@ -163,7 +99,6 @@ class Receiver implements Config {
                     WriteMessage writeMessage = sport.newMessage();
                     writeMessage.finish();
                 }
-                if( c != null ) c.printCycles( "Server" );
             }
 	}
 }
@@ -171,6 +106,7 @@ class Receiver implements Config {
 class Cell1D implements Config {
     static Ibis ibis;
     static Registry registry;
+    static ibis.util.PoolInfo info;
 
     public static void connect( SendPort s, ReceivePortIdentifier ident ) {
         boolean success = false;
@@ -222,9 +158,6 @@ class Cell1D implements Config {
         int repeat = 10;
         int rank = 0;
         int remoteRank = 1;
-        boolean compRec = false;
-        boolean compSnd = false;
-        Computer c = null;
         boolean noneSer = false;
         RszHandler rszHandler = new RszHandler();
 
@@ -233,12 +166,6 @@ class Cell1D implements Config {
             if( args[i].equals( "-repeat" ) ){
                 i++;
                 repeat = Integer.parseInt( args[i] );
-            }
-            else if( args[i].equals( "-comp-rec" ) ){
-                compRec = true;
-            }
-            else if( args[i].equals( "-comp-snd" ) ){
-                compSnd = true;
             }
             else {
                 if( count == -1 ){
@@ -255,6 +182,7 @@ class Cell1D implements Config {
         }
 
         try {
+            info = new ibis.util.PoolInfo();
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
             s.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );
@@ -274,6 +202,7 @@ class Cell1D implements Config {
             if( DEBUG ) {
                 System.out.println( "LAT: pre elect" );
             }
+            System.err.println( "Node " + info.rank() + "/" + info.size() + " present" );
             IbisIdentifier master = ( IbisIdentifier ) registry.elect( "latency", ibis.identifier() );
             if( DEBUG ) {
                 System.out.println( "LAT: post elect" );
@@ -295,12 +224,6 @@ class Cell1D implements Config {
             }
 
             if( rank == 0 ) {
-                if( compSnd ) {
-                    c = new Computer();
-                    c.setDaemon( true );
-                    c.start();
-                }
-
                 rport = t.createReceivePort( "test port 0" );
                 rport.enableConnections();
                 ReceivePortIdentifier ident = lookup( "test port 1" );
@@ -310,22 +233,16 @@ class Cell1D implements Config {
                 if( DEBUG ) {
                     System.out.println( "LAT: starting send test" );
                 }
-                sender.send( count, repeat, c );
+                sender.send( count, repeat );
             }
             else {
                 ReceivePortIdentifier ident = lookup( "test port 0" );
                 connect( sport, ident );
 
-                if( compRec ) {
-                    c = new Computer();
-                    c.setDaemon( true );
-                    c.start();
-                }
-
                 rport = t.createReceivePort( "test port 1" );
                 rport.enableConnections();
 
-                Receiver receiver = new Receiver( rport, sport, c );
+                Receiver receiver = new Receiver( rport, sport );
                 if( DEBUG ) {
                     System.out.println( "LAT: starting test receiver" );
                 }
