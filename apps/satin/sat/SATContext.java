@@ -7,7 +7,7 @@
 public class SATContext implements java.io.Serializable {
     /**
      * A symbolic name for the `unassigned' value in
-     * the `assignments' array.
+     * the `assignment' array.
      */
     private static final int UNASSIGNED = -1;
 
@@ -15,7 +15,10 @@ public class SATContext implements java.io.Serializable {
     private int terms[];
 
     /** The assignments to all variables. */
-    int assignments[];
+    int assignment[];
+
+    /** The antecedent of each variable, or -1 if it is a decision variable. */
+    private int antecedent[];
 
     /** The number of positive clauses of each variable. */
     private int posclauses[];
@@ -41,6 +44,7 @@ public class SATContext implements java.io.Serializable {
     private SATContext(
 	int tl[],
 	int al[],
+	int atc[],
 	int poscl[],
 	int negcl[],
 	float posinfo[],
@@ -49,7 +53,8 @@ public class SATContext implements java.io.Serializable {
 	int us
     ){
 	terms = tl;
-	assignments = al;
+	assignment = al;
+	antecedent = atc;
 	satisfied = sat;
 	unsatisfied = us;
 	posclauses = poscl;
@@ -69,9 +74,16 @@ public class SATContext implements java.io.Serializable {
     public static SATContext buildSATContext( SATProblem p )
     {
         int cno = p.getClauseCount();
+        int assignment[] = p.buildInitialAssignments();
+        int antecedent[] = new int[assignment.length];
+
+        for( int i=0; i<antecedent.length; i++ ){
+            antecedent[i] = -1;
+        }
         return new SATContext(
             p.buildTermCounts(),
-            p.buildInitialAssignments(),
+            assignment,
+            antecedent,
             p.buildPosClauses(),
             p.buildNegClauses(),
             p.buildPosInfo(),
@@ -89,7 +101,8 @@ public class SATContext implements java.io.Serializable {
     {
         return new SATContext(
 	    (int []) terms.clone(),
-	    (int []) assignments.clone(),
+	    (int []) assignment.clone(),
+	    (int []) antecedent.clone(),
 	    (int []) posclauses.clone(),
 	    (int []) negclauses.clone(),
 	    (float []) posinfo.clone(),
@@ -120,7 +133,7 @@ public class SATContext implements java.io.Serializable {
 	for( int j=0; j<arr.length; j++ ){
 	    int v = arr[j];
 
-	    if( assignments[v] == 1 ){
+	    if( assignment[v] == 1 ){
 		System.err.println( "Error: positive variable " + v + " of clause " + c + " has positive assignment, but clause is not satisfied"  );
 		IntVector pos = p.getPosClauses( v );
 		String verdict;
@@ -133,7 +146,7 @@ public class SATContext implements java.io.Serializable {
 		}
 		System.err.println( "       Does variable " + v + " list clause " + cno + " as positive occurence? " + verdict );
 	    }
-	    else if( assignments[v] == UNASSIGNED ){
+	    else if( assignment[v] == UNASSIGNED ){
 		// Count this unassigned variable.
 		termcount++;
 	    }
@@ -144,7 +157,7 @@ public class SATContext implements java.io.Serializable {
 	for( int j=0; j<arr.length; j++ ){
 	    int v = arr[j];
 
-	    if( assignments[v] == 0 ){
+	    if( assignment[v] == 0 ){
 		System.err.println( "Error: negative variable " + v + " of clause " + c + " has negative assignment, but clause is not satisfied"  );
 		IntVector neg = p.getNegClauses( v );
 		String verdict;
@@ -157,7 +170,7 @@ public class SATContext implements java.io.Serializable {
 		}
 		System.err.println( "       Does variable " + v + " list clause " + cno + " as negative occurence? " + verdict );
 	    }
-	    else if( assignments[v] == UNASSIGNED ){
+	    else if( assignment[v] == UNASSIGNED ){
 		termcount++;
 	    }
 	}
@@ -208,9 +221,10 @@ public class SATContext implements java.io.Serializable {
      * Propagates the specified unit clause.
      * @param p the SAT problem to solve
      * @param i the index of the unit clause
+     * @param antec the variable that caused this init clause
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    private int propagateUnitClause( SATProblem p, int i )
+    private int propagateUnitClause( SATProblem p, int i, int antec )
     {
 	if( satisfied[i] ){
 	    // Not interesting.
@@ -232,7 +246,7 @@ public class SATContext implements java.io.Serializable {
 	for( int j=0; j<arr.length; j++ ){
 	    int v = arr[j];
 
-	    if( assignments[v] == UNASSIGNED ){
+	    if( assignment[v] == UNASSIGNED ){
 		if( foundIt ){
 		    System.err.println( "Error: a unit clause with multiple unassigned variables" );
 		    return SATProblem.UNDETERMINED;
@@ -255,7 +269,7 @@ public class SATContext implements java.io.Serializable {
 	arr = c.neg;
 	for( int j=0; j<arr.length; j++ ){
 	    int v = arr[j];
-	    if( assignments[v] == UNASSIGNED ){
+	    if( assignment[v] == UNASSIGNED ){
 		if( foundIt ){
 		    System.err.println( "Error: a unit clause with multiple unassigned variables" );
 		    return SATProblem.UNDETERMINED;
@@ -303,7 +317,7 @@ public class SATContext implements java.io.Serializable {
 	        verifyClauseCount( p, var );
 	    }
 	    if( pc == 0 ){
-		if( assignments[var] == UNASSIGNED ){
+		if( assignment[var] == UNASSIGNED ){
 		    if( negclauses[var] == 0 ){
 			return SATProblem.CONFLICTING;
 		    }
@@ -326,7 +340,7 @@ public class SATContext implements java.io.Serializable {
 	        verifyClauseCount( p, var );
 	    }
 	    if( nc == 0 ){
-		if( assignments[var] == UNASSIGNED ){
+		if( assignment[var] == UNASSIGNED ){
 		    if( posclauses[var] == 0 ){
 			return SATProblem.CONFLICTING;
 		    }
@@ -345,7 +359,7 @@ public class SATContext implements java.io.Serializable {
 	    for( int i=0; i<pos.length; i++ ){
 		int var = pos[i];
 
-		if( assignments[var] == UNASSIGNED && posclauses[var] == 0 ){
+		if( assignment[var] == UNASSIGNED && posclauses[var] == 0 ){
 		    int res = propagateNegAssignment( p, var );
 		    if( res != 0 ){
 			return res;
@@ -355,7 +369,7 @@ public class SATContext implements java.io.Serializable {
 	    for( int i=0; i<neg.length; i++ ){
 		int var = neg[i];
 
-		if( assignments[var] == UNASSIGNED && negclauses[var] == 0 ){
+		if( assignment[var] == UNASSIGNED && negclauses[var] == 0 ){
 		    int res = propagatePosAssignment( p, var );
 		    if( res != 0 ){
 			return res;
@@ -369,8 +383,8 @@ public class SATContext implements java.io.Serializable {
     private void dumpAssignments()
     {
 	System.err.print( "Assignments:" );
-	for( int j=0; j<assignments.length; j++ ){
-	    int v = assignments[j];
+	for( int j=0; j<assignment.length; j++ ){
+	    int v = assignment[j];
 	    
 	    if( v != UNASSIGNED ){
 		System.err.print( " v[" + j + "]=" + v );
@@ -385,7 +399,7 @@ public class SATContext implements java.io.Serializable {
      */
     public int propagatePosAssignment( SATProblem p, int var )
     {
-        assignments[var] = 1;
+        assignment[var] = 1;
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
@@ -451,7 +465,7 @@ public class SATContext implements java.io.Serializable {
 		    verifyTermCount( p, cno );
 		}
 		if( terms[cno] == 1 ){
-		    int res = propagateUnitClause( p, cno );
+		    int res = propagateUnitClause( p, cno, var );
 		    if( res != 0 ){
 			return res;
 		    }
@@ -467,7 +481,7 @@ public class SATContext implements java.io.Serializable {
      */
     public int propagateNegAssignment( SATProblem p, int var )
     {
-        assignments[var] = 0;
+        assignment[var] = 0;
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
@@ -533,7 +547,7 @@ public class SATContext implements java.io.Serializable {
 		    verifyTermCount( p, cno );
 		}
 		if( terms[cno] == 1 ){
-		    int res = propagateUnitClause( p, cno );
+		    int res = propagateUnitClause( p, cno, var );
 		    if( res != 0 ){
 			return res;
 		    }
@@ -554,8 +568,8 @@ public class SATContext implements java.io.Serializable {
             int bestusecount = 0;
             int bestmaxcount = 0;
 
-            for( int i=0; i<assignments.length; i++ ){
-                if( assignments[i] != UNASSIGNED ){
+            for( int i=0; i<assignment.length; i++ ){
+                if( assignment[i] != UNASSIGNED ){
                     // Already assigned, so not interesting.
                     continue;
                 }
@@ -580,8 +594,8 @@ public class SATContext implements java.io.Serializable {
             float bestinfo = -1;
             int bestmaxcount = 0;
 
-            for( int i=0; i<assignments.length; i++ ){
-                if( assignments[i] != UNASSIGNED ){
+            for( int i=0; i<assignment.length; i++ ){
+                if( assignment[i] != UNASSIGNED ){
                     // Already assigned, so not interesting.
                     continue;
                 }
@@ -643,15 +657,15 @@ public class SATContext implements java.io.Serializable {
 	// Search for and propagate unit clauses.
 	for( int i=0; i<terms.length; i++ ){
 	    if( terms[i] == 1 ){
-		int res = propagateUnitClause( p, i );
+		int res = propagateUnitClause( p, i, -1 );
 		if( res != 0 ){
 		    return res;
 		}
 	    }
 	}
 	// Search for and propagate pure variables.
-	for( int i=0; i<assignments.length; i++ ){
-	    if( assignments[i] != UNASSIGNED || (posclauses[i] == 0 && negclauses[i] == 0) ){
+	for( int i=0; i<assignment.length; i++ ){
+	    if( assignment[i] != UNASSIGNED || (posclauses[i] == 0 && negclauses[i] == 0) ){
 		// Unused variable, not interesting.
 		continue;
 	    }

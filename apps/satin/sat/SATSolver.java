@@ -41,7 +41,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
 	}
-	ctx.assignments[var] = val?1:0;
+	ctx.assignment[var] = val?1:0;
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var );
@@ -58,12 +58,12 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	}
 	if( res == 1 ){
 	    // Propagation reveals problem is satisfied.
-	    SATSolution s = new SATSolution( ctx.assignments );
+	    SATSolution s = new SATSolution( ctx.assignment );
 
 	    if( traceSolver | printSatSolutions ){
 		System.err.println( "ls" + level + ": propagation found a solution: " + s );
 	    }
-	    if( !p.isSatisfied( ctx.assignments ) ){
+	    if( !p.isSatisfied( ctx.assignment ) ){
 		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
 	    }
 	    throw new SATResultException( s );
@@ -112,7 +112,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	// solvers have to retrieve it at the beginning of the method.
 	SATProblem p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
 
-	ctx.assignments[var] = val?1:0;
+	ctx.assignment[var] = val?1:0;
 	int res;
 	if( val ){
 	    res = ctx.propagatePosAssignment( p, var );
@@ -129,12 +129,12 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	}
 	if( res == 1 ){
 	    // Propagation reveals problem is satisfied.
-	    SATSolution s = new SATSolution( ctx.assignments );
+	    SATSolution s = new SATSolution( ctx.assignment );
 
 	    if( traceSolver | printSatSolutions ){
 		System.err.println( "s" + level + ": propagation found a solution: " + s );
 	    }
-	    if( !p.isSatisfied( ctx.assignments ) ){
+	    if( !p.isSatisfied( ctx.assignment ) ){
 		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
 	    }
 	    throw new SATResultException( s );
@@ -191,14 +191,14 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	try {
 	    SATContext ctx = SATContext.buildSATContext( p );
 
-	    ctx.assignments = p.buildInitialAssignments();
+	    ctx.assignment = p.buildInitialAssignments();
 
 	    int r = ctx.optimize( p );
 	    if( r == 1 ){
-		if( !p.isSatisfied( ctx.assignments ) ){
+		if( !p.isSatisfied( ctx.assignment ) ){
 		    System.err.println( "Error: solution does not satisfy problem." );
 		}
-		return new SATSolution( ctx.assignments );
+		return new SATSolution( ctx.assignment );
 	    }
 	    if( r == -1 ){
 		return null;
