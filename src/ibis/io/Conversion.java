@@ -326,4 +326,9 @@ public final class Conversion {
 //			n_byte2double(src, index_src, dst, index_dst, len);
 //		}			
 	} 
+
+    public static void main(String[] arg) {
+	System.loadLibrary("conversion");
+    }
+
 } 

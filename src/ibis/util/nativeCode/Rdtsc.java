@@ -4,9 +4,10 @@ import java.io.*;
 
 public final class Rdtsc extends ibis.ipl.Timer {
 	private long time;
-	private static float MHz;
+	private static final float MHz;
 
 	public static native long rdtsc();
+	private static native float getMHz();
 
 	static {
 		boolean loaded = false;
@@ -18,34 +19,9 @@ public final class Rdtsc extends ibis.ipl.Timer {
 		}
 
 		if(loaded) {
-			try {
-				String	     line;
-				RandomAccessFile file = new RandomAccessFile("/proc/cpuinfo", "r");
-				
-				while ((line = file.readLine()) != null)
-					if (line.startsWith("cpu MHz")) {
-						int colonPos = line.indexOf(':');
-						if(colonPos == -1) {
-							System.err.println("eek, could not find Mhz");
-							System.exit(1);
-						}
-						String s = line.substring(colonPos+1);
-
-						MHz = Float.parseFloat(s);
-						break;
-					}
-
-				if (MHz == 0) {
-					System.err.println("Cannot find \"cpu MHz\" line");
-					System.exit(1);
-				}
-//			System.out.println("CPU MHz = " + MHz);
-			}
-			catch (IOException ex) {
-				System.err.println("Rdtsc: Could not find out CPU speed");
-//			System.err.println(ex.getMessage());
-//			System.exit(1);
-			}
+			MHz = getMHz();
+		} else {
+			MHz = (float)0.0;
 		}
 	}
 

@@ -87,6 +87,7 @@
 	    <src path="${src}/ibis/ipl/impl/nameServer"/>
 	    <src path="${src}/ibis/ipl/impl/tcp"/>
 	    <src path="${src}/ibis/ipl/impl/messagePassing"/>
+	    <src path="${src}/ibis/ipl/impl/nameServer"/>
 	    <src path="${src}/ibis/ipl/impl/net"/>
 	    <src path="${src}/ibis/ipl/impl/net/udp"/>
 	    <src path="${src}/ibis/ipl/impl/net/rel"/>
@@ -123,6 +124,16 @@
 	<javac  destdir="${build}"
 		debug="true">
 	    <src path="util"/>
+	    <classpath refid="default.classpath"/>
+	    <include name="**/*.java"/>
+	</javac>
+    </target>
+
+
+    <target name="io">
+	<javac  destdir="${build}"
+		debug="true">
+	    <src path="io"/>
 	    <classpath refid="default.classpath"/>
 	    <include name="**/*.java"/>
 	</javac>
