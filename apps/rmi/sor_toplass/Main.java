@@ -1,4 +1,4 @@
-import ibis.util.PoolInfo;
+Now default and only option, but still recognized.
 
 import ibis.rmi.*;
 import ibis.rmi.server.UnicastRemoteObject;
@@ -50,9 +50,11 @@ public static void main (String[] args) {
 			    sync = SOR.ASYNC_SEND;
 			    
 			    if (args[4].equals("new")) {
+				    // Historical, now obsolete, never working, option.
 				    System.out.println("'async new' is not supported");
 				    System.exit(1);
 			    } else if (args[4].equals("wait")) {
+				    // Now default and only option, but still recognized.
 			    } else {
 				    usage(args);
 				    System.exit(1);

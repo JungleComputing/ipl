@@ -20,8 +20,6 @@ public static void main(String[] argv) {
 		boolean use_threads     = false;
 		boolean use_thread_pool = false;
 		boolean print_result    = false;
-		boolean linear          = false;
-		boolean no_opt          = false;
 		
 		int option = 0;
 		
