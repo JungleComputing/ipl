@@ -11,9 +11,7 @@ public class DataSerializationInputStream
 	extends SerializationInputStream
 	implements IbisStreamFlags
 {
-    /**
-     * The underlying <code>Dissipator</code>.
-     */
+    /** The underlying <code>Dissipator</code>. */
     private final Dissipator in;
 
     /**
@@ -23,109 +21,67 @@ public class DataSerializationInputStream
      */
     private short[]	indices_short;
 
-    /**
-     * Storage for bytes (or booleans) read.
-     */
+    /** Storage for bytes (or booleans) read. */
     private byte[]	byte_buffer;
 
-    /**
-     * Storage for chars read.
-     */
+    /** Storage for chars read. */
     private char[]	char_buffer;
 
-    /**
-     * Storage for shorts read.
-     */
+    /** Storage for shorts read. */
     private short[]	short_buffer;
 
-    /**
-     * Storage for ints read.
-     */
+    /** Storage for ints read. */
     private int[]	int_buffer;
 
-    /**
-     * Storage for longs read.
-     */
+    /** Storage for longs read. */
     private long[]	long_buffer;
 
-    /**
-     * Storage for floats read.
-     */
+    /** Storage for floats read. */
     private float[]	float_buffer;
 
-    /**
-     * Storage for doubles read.
-     */
+    /** Storage for doubles read. */
     private double[]	double_buffer;
 
-    /**
-     * Current index in <code>byte_buffer</code>.
-     */
+    /** Current index in <code>byte_buffer</code>. */
     private int		byte_index;
 
-    /**
-     * Current index in <code>char_buffer</code>.
-     */
+    /** Current index in <code>char_buffer</code>. */
     private int		char_index;
 
-    /**
-     * Current index in <code>short_buffer</code>.
-     */
+    /** Current index in <code>short_buffer</code>. */
     private int		short_index;
 
-    /**
-     * Current index in <code>int_buffer</code>.
-     */
+    /** Current index in <code>int_buffer</code>. */
     private int		int_index;
 
-    /**
-     * Current index in <code>long_buffer</code>.
-     */
+    /** Current index in <code>long_buffer</code>. */
     private int		long_index;
 
-    /**
-     * Current index in <code>float_buffer</code>.
-     */
+    /** Current index in <code>float_buffer</code>. */
     private int		float_index;
 
-    /**
-     * Current index in <code>double_buffer</code>.
-     */
+    /** Current index in <code>double_buffer</code>. */
     private int		double_index;
 
-    /**
-     * Number of bytes in <code>byte_buffer</code>.
-     */
+    /** Number of bytes in <code>byte_buffer</code>. */
     private int		max_byte_index;
 
-    /**
-     * Number of chars in <code>char_buffer</code>.
-     */
+    /** Number of chars in <code>char_buffer</code>. */
     private int		max_char_index;
 
-    /**
-     * Number of shorts in <code>short_buffer</code>.
-     */
+    /** Number of shorts in <code>short_buffer</code>. */
     private int		max_short_index;
 
-    /**
-     * Number of ints in <code>int_buffer</code>.
-     */
+    /** Number of ints in <code>int_buffer</code>. */
     private int		max_int_index;
 
-    /**
-     * Number of longs in <code>long_buffer</code>.
-     */
+    /** Number of longs in <code>long_buffer</code>. */
     private int		max_long_index;
 
-    /**
-     * Number of floats in <code>float_buffer</code>.
-     */
+    /** Number of floats in <code>float_buffer</code>. */
     private int		max_float_index;
 
-    /**
-     * Number of doubles in <code>double_buffer</code>.
-     */
+    /** Number of doubles in <code>double_buffer</code>. */
     private int		max_double_index;
 
 

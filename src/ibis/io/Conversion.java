@@ -29,79 +29,49 @@ public abstract class Conversion {
 	defaultConversion = simpleBig;
     }
 
-    /**
-     * The number of bits in a single 'byte'.
-     */
+    /** The number of bits in a single 'byte'. */
     public final static int	BITS_PER_BYTE = 8;
 
-    /**
-     * The number of bytes in a single 'boolean'.
-     */
+    /** The number of bytes in a single 'boolean'. */
     public final static int	BOOLEAN_SIZE = 1;
 
-    /**
-     * The number of bytes in a single 'byte'.
-     */
+    /** The number of bytes in a single 'byte'. */
     public final static int	BYTE_SIZE = 1;
 
-    /**
-     * The number of bytes in a single 'short'.
-     */
+    /** The number of bytes in a single 'short'. */
     public final static int	SHORT_SIZE = 2;
 
-    /**
-     * The number of bits in a single 'short'.
-     */
+    /** The number of bits in a single 'short'. */
     public final static int	BITS_PER_SHORT = BITS_PER_BYTE * SHORT_SIZE;
 
-    /**
-     * The number of bytes in a single 'char'.
-     */
+    /** The number of bytes in a single 'char'. */
     public final static int	CHAR_SIZE = 2;
 
-    /**
-     * The number of bits in a single 'char'.
-     */
+    /** The number of bits in a single 'char'. */
     public final static int	BITS_PER_CHAR = BITS_PER_BYTE * CHAR_SIZE;
 
-    /**
-     * The number of bytes in a single 'int'.
-     */
+    /** The number of bytes in a single 'int'. */
     public final static int	INT_SIZE = 4;
 
-    /**
-     * The number of bits in a single 'int'.
-     */
+    /** The number of bits in a single 'int'. */
     public final static int	BITS_PER_INT = BITS_PER_BYTE * INT_SIZE;
 
-    /**
-     * The number of bytes in a single 'long'.
-     */
+    /** The number of bytes in a single 'long'. */
     public final static int	LONG_SIZE = 8;
 
-    /**
-     * The number of bits in a single 'long'.
-     */
+    /** The number of bits in a single 'long'. */
     public final static int	BITS_PER_LONG = BITS_PER_BYTE * LONG_SIZE;
 
-    /**
-     * The number of bytes in a single 'float'.
-     */
+    /** The number of bytes in a single 'float'. */
     public final static int	FLOAT_SIZE = 4;
 
-    /**
-     * The number of bits in a single 'float'.
-     */
+    /** The number of bits in a single 'float'. */
     public final static int	BITS_PER_FLOAT = BITS_PER_BYTE * FLOAT_SIZE;
 
-    /**
-     * The number of bytes in a single 'double'.
-     */
+    /** The number of bytes in a single 'double'  */
     public final static int	DOUBLE_SIZE = 8;
 
-    /**
-     * The number of bits in a single 'double'.
-     */
+    /** The number of bits in a single 'double'  */
     public final static int	BITS_PER_DOUBLE = BITS_PER_BYTE * DOUBLE_SIZE;
 
 
@@ -271,8 +241,8 @@ public abstract class Conversion {
     }
 
     /**
-     * Upwards-round <CODE>a</CODE> to a multiple of <CODE>d</CODE>
-     * d <STANDOUT>MUST</STANDOUT> be a power of two
+     * Upwards-round <code>a</code> to a multiple of <code>d</code>.
+     * </code>d</code> <standout>MUST</standout> be a power of two
      */
     public static int align(int a, int d) {
 	if (false) {
@@ -283,5 +253,4 @@ public abstract class Conversion {
 
 	return (a + d - 1) & ~(d - 1);
     }
-
 } 

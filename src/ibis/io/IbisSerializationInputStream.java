@@ -63,24 +63,16 @@ public class IbisSerializationInputStream
 
     private static ClassLoader customClassLoader;
       
-    /**
-     * List of objects, for cycle checking.
-     */
+    /** List of objects, for cycle checking. */
     private IbisVector objects;
 
-    /**
-     * First free object index.
-     */
+    /** First free object index. */
     private int next_handle;
 
-    /**
-     * First free type index.
-     */
+    /** First free type index. */
     private int next_type = 1;
 
-    /**
-     * List of types seen sofar.
-     */
+    /** List of types seen sofar. */
     private IbisVector types;
 
     /**
@@ -113,51 +105,35 @@ public class IbisSerializationInputStream
     private int max_stack_size = 0;
     private int stack_size = 0;
 
-    /**
-     * <code>IbisTypeInfo</code> for <code>boolean</code> arrays.
-     */
+    /** <code>IbisTypeInfo</code> for <code>boolean</code> arrays. */
     private static IbisTypeInfo booleanArrayInfo =
 	IbisTypeInfo.getIbisTypeInfo(classBooleanArray);
 
-    /**
-     * <code>IbisTypeInfo</code> for <code>byte</code> arrays.
-     */
+    /** <code>IbisTypeInfo</code> for <code>byte</code> arrays. */
     private static IbisTypeInfo byteArrayInfo =
 	IbisTypeInfo.getIbisTypeInfo(classByteArray);
 
-    /**
-     * <code>IbisTypeInfo</code> for <code>char</code> arrays.
-     */
+    /** <code>IbisTypeInfo</code> for <code>char</code> arrays. */
     private static IbisTypeInfo charArrayInfo =
 	IbisTypeInfo.getIbisTypeInfo(classCharArray);
 
-    /**
-     * <code>IbisTypeInfo</code> for <code>short</code> arrays.
-     */
+    /** <code>IbisTypeInfo</code> for <code>short</code> arrays. */
     private static IbisTypeInfo shortArrayInfo =
 	IbisTypeInfo.getIbisTypeInfo(classShortArray);
 
-    /**
-     * <code>IbisTypeInfo</code> for <code>int</code> arrays.
-     */
+    /** <code>IbisTypeInfo</code> for <code>int</code> arrays. */
     private static IbisTypeInfo intArrayInfo =
 	IbisTypeInfo.getIbisTypeInfo(classIntArray);
 
-    /**
-     * <code>IbisTypeInfo</code> for <code>long</code> arrays.
-     */
+    /** <code>IbisTypeInfo</code> for <code>long</code> arrays. */
     private static IbisTypeInfo longArrayInfo =
 	IbisTypeInfo.getIbisTypeInfo(classLongArray);
 
-    /**
-     * <code>IbisTypeInfo</code> for <code>float</code> arrays.
-     */
+    /** <code>IbisTypeInfo</code> for <code>float</code> arrays. */
     private static IbisTypeInfo floatArrayInfo =
 	IbisTypeInfo.getIbisTypeInfo(classFloatArray);
 
-    /**
-     * <code>IbisTypeInfo</code> for <code>double</code> arrays.
-     */
+    /** <code>IbisTypeInfo</code> for <code>double</code> arrays. */
     private static IbisTypeInfo doubleArrayInfo =
 	IbisTypeInfo.getIbisTypeInfo(classDoubleArray);
 

@@ -9,9 +9,7 @@ import java.io.InputStream;
  */
 public final class DissipatorInputStream extends InputStream {
 
-    /**
-     * The underlying dissipator.
-     */
+    /** The underlying dissipator. */
     private Dissipator in;
 
     /**

@@ -1,50 +1,50 @@
 package ibis.io;
 
 public class SerializationError extends Error {
-	Throwable cause = null;
+    Throwable cause = null;
 
-	public SerializationError() {
-		super();
+    public SerializationError() {
+	super();
+    }
+
+    public SerializationError(String message) {
+	super(message);
+    }
+
+
+    public SerializationError(String message, Throwable cause) {
+	super(message);
+	this.cause = cause;
+    }
+
+    public SerializationError(Throwable cause) {
+	super();
+	this.cause = cause;
+    }
+
+
+    public Throwable initCause(Throwable t) {
+	return cause = t;
+    }
+
+    public Throwable getCause() {
+	return cause;
+    }
+
+    public String getMessage() {
+	String res = super.getMessage();
+	if(cause != null) {
+	    res += ": " + cause.getMessage();
 	}
 
-	public SerializationError(String message) {
-		super(message);
+	return res;
+    }
+
+    public void printStackTrace() {
+	if(cause != null) {
+	    cause.printStackTrace();
 	}
 
-	
-	public SerializationError(String message, Throwable cause) {
-		super(message);
-		this.cause = cause;
-	}
-
-	public SerializationError(Throwable cause) {
-		super();
-		this.cause = cause;
-	}
-
-
-	public Throwable initCause(Throwable t) {
-		return cause = t;
-	}
-
-	public Throwable getCause() {
-		return cause;
-	}
-
-	public String getMessage() {
-		String res = super.getMessage();
-		if(cause != null) {
-			res += ": " + cause.getMessage();
-		}
-
-		return res;
-	}
-
-	public void printStackTrace() {
-		if(cause != null) {
-			cause.printStackTrace();
-		}
-
-		super.printStackTrace();
-	}
+	super.printStackTrace();
+    }
 }

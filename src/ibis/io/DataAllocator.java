@@ -8,9 +8,7 @@ import ibis.util.TypedProperties;
  */
 public class DataAllocator implements IbisStreamFlags {
 
-    /**
-     * Number of buffers per type that is cached at maximum.
-     */
+    /** Number of buffers per type that is cached at maximum. */
     private final static int DEFAULT_CACHE_MAX = 512; // 64; // 256;
     private final static int CACHE_MAX;
 
@@ -18,14 +16,10 @@ public class DataAllocator implements IbisStreamFlags {
 	CACHE_MAX = TypedProperties.intProperty(IOProps.s_cache_max, DEFAULT_CACHE_MAX);
     }
 
-    /**
-     * The number of currently cached buffers per type.
-     */
+    /** The number of currently cached buffers per type. */
     private int[] cached = new int[PRIMITIVE_TYPES + 1];
 
-    /**
-     * The cache per type
-     */
+    /** The cache per type. */
     private short[][]	index_cache;
     private byte[][]	byte_cache;
     private char[][]	char_cache;

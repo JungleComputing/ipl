@@ -15,87 +15,55 @@ public class DataSerializationOutputStream
 	extends SerializationOutputStream
 	implements IbisStreamFlags
 {
-    /**
-     * The underlying <code>Accumulator</code>.
-     */
+    /** The underlying <code>Accumulator</code>. */
     private final Accumulator out;
 
-    /**
-     * Allocator for the typed buffer arrays.
-     */
+    /** Allocator for the typed buffer arrays. */
     private static final DataAllocator	allocator =
 	TypedProperties.booleanProperty(IOProps.s_cache, false)
 	     ? new DataAllocator()
 	     : (DataAllocator) new DummyAllocator();
 
-    /**
-     * Storage for bytes (or booleans) written.
-     */
+    /** Storage for bytes (or booleans) written. */
     private byte[]	byte_buffer;
 
-    /**
-     * Storage for chars written.
-     */
+    /** Storage for chars written. */
     private char[]	char_buffer;
 
-    /**
-     * Storage for shorts written.
-     */
+    /** Storage for shorts written. */
     private short[]	short_buffer;
 
-    /**
-     * Storage for ints written.
-     */
+    /** Storage for ints written. */
     private int[]	int_buffer;
 
-    /**
-     * Storage for longs written.
-     */
+    /** Storage for longs written. */
     private long[]	long_buffer;
 
-    /**
-     * Storage for floats written.
-     */
+    /** Storage for floats written. */
     private float[]	float_buffer;
 
-    /**
-     * Storage for doubles written.
-     */
+    /** Storage for doubles written. */
     private double[]	double_buffer;
 
-    /**
-     * Current index in <code>byte_buffer</code>.
-     */
+    /** Current index in <code>byte_buffer</code>. */
     private int		byte_index;
 
-    /**
-     * Current index in <code>char_buffer</code>.
-     */
+    /** Current index in <code>char_buffer</code>. */
     private int		char_index;
 
-    /**
-     * Current index in <code>short_buffer</code>.
-     */
+    /** Current index in <code>short_buffer</code>. */
     private int		short_index;
 
-    /**
-     * Current index in <code>int_buffer</code>.
-     */
+    /** Current index in <code>int_buffer</code>. */
     private int		int_index;
 
-    /**
-     * Current index in <code>long_buffer</code>.
-     */
+    /** Current index in <code>long_buffer</code>. */
     private int		long_index;
 
-    /**
-     * Current index in <code>float_buffer</code>.
-     */
+    /** Current index in <code>float_buffer</code>. */
     private int		float_index;
 
-    /**
-     * Current index in <code>double_buffer</code>.
-     */
+    /** Current index in <code>double_buffer</code>. */
     private int		double_index;
 
     /**
@@ -114,9 +82,7 @@ public class DataSerializationOutputStream
     }
      */
 
-    /**
-     * Structure summarizing an array write.
-     */
+    /** Structure summarizing an array write. */
     private static final class ArrayDescriptor {
 	int		type;
 	boolean[]	booleanArray;
@@ -131,24 +97,16 @@ public class DataSerializationOutputStream
 	int		len;
     }
 
-    /**
-     * Where the arrays to be written are collected.
-     */
+    /** Where the arrays to be written are collected. */
     private ArrayDescriptor[] 	array;
 
-    /**
-     * Index in the <code>array</code> array.
-     */
+    /** Index in the <code>array</code> array. */
     private int			array_index;
 
-    /**
-     * Collects all indices of the <code>_buffer</code> arrays.
-     */
+    /** Collects all indices of the <code>_buffer</code> arrays. */
     private short[]	indices_short;
 
-    /**
-     * For each 
-     */
+    /** For each. */
     private boolean[] touched = new boolean[PRIMITIVE_TYPES];
 
     /**

@@ -9,9 +9,7 @@ import java.io.OutputStream;
  */
 public final class AccumulatorOutputStream extends OutputStream {
 
-    /**
-     * The underlying <code>Accumulator</code>.
-     */
+    /** The underlying <code>Accumulator</code>. */
     private Accumulator out;
 
     /**

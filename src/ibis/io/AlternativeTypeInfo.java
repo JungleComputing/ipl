@@ -33,9 +33,7 @@ final class AlternativeTypeInfo {
      */
     private static HashMap alternativeTypes = new HashMap();
 
-    /**
-     * newInstance method of ObjectStreamClass, when it exists.
-     */
+    /** newInstance method of ObjectStreamClass, when it exists. */
     private static Method newInstance = null;
 
     /**
@@ -44,14 +42,10 @@ final class AlternativeTypeInfo {
      */
     Class clazz;
 
-    /**
-     * The ObjectStreamClass of clazz.
-     */
+    /** The ObjectStreamClass of clazz. */
     private ObjectStreamClass objectStreamClass;
 
-    /**
-     * The sorted list of serializable fields.
-     */
+    /** The sorted list of serializable fields. */
     Field [] serializable_fields;
 
     /**
@@ -62,59 +56,37 @@ final class AlternativeTypeInfo {
      */
     boolean[] fields_final;
 
-    /**
-     * Number of <code>double</code> fields.
-     */
+    /** Number of <code>double</code> fields. */
     int double_count;
 
-    /**
-     * Number of <code>long</code> fields.
-     */
+    /** Number of <code>long</code> fields. */
     int long_count;
 
-    /**
-     * Number of <code>float</code> fields.
-     */
+    /** Number of <code>float</code> fields. */
     int float_count;
 
-    /**
-     * Number of <code>int</code> fields.
-     */
+    /** Number of <code>int</code> fields. */
     int int_count;
 
-    /**
-     * Number of <code>short</code> fields.
-     */
+    /** Number of <code>short</code> fields. */
     int short_count;
 
-    /**
-     * Number of <code>char</code> fields.
-     */
+    /** Number of <code>char</code> fields. */
     int char_count;
 
-    /**
-     * Number of <code>byte</code> fields.
-     */
+    /** Number of <code>byte</code> fields. */
     int byte_count;
 
-    /**
-     * Number of <code>boolean</code> fields.
-     */
+    /** Number of <code>boolean</code> fields. */
     int boolean_count;
 
-    /**
-     * Number of <code>reference</code> fields.
-     */
+    /** Number of <code>reference</code> fields. */
     int reference_count;
 
-    /**
-     * Indicates whether the superclass is serializable.
-     */
+    /** Indicates whether the superclass is serializable. */
     boolean superSerializable;	
 
-    /**
-     * The <code>AlternativeTypeInfo</code> structure of the superclass.
-     */
+    /** The <code>AlternativeTypeInfo</code> structure of the superclass. */
 
     AlternativeTypeInfo alternativeSuperInfo;
 
@@ -128,24 +100,16 @@ final class AlternativeTypeInfo {
      */
     int level;
 
-    /**
-     * serialPersistentFields of the class, if the class declares them.
-     */
+    /** serialPersistentFields of the class, if the class declares them. */
     java.io.ObjectStreamField[] serial_persistent_fields = null;
 
-    /**
-     * Set if the class has a <code>readObject</code> method.
-     */
+    /** Set if the class has a <code>readObject</code> method. */
     boolean hasReadObject;
 
-    /**
-     * Set if the class has a <code>writeObject</code> method.
-     */
+    /** Set if the class has a <code>writeObject</code> method. */
     boolean hasWriteObject;
 
-    /**
-     * Set if the class has a <code>writeReplace</code> method.
-     */
+    /** Set if the class has a <code>writeReplace</code> method. */
     boolean hasReplace;
 
     /**
@@ -164,39 +128,25 @@ final class AlternativeTypeInfo {
 	}
     }
 
-    /**
-     * A <code>Comparator</code> for sorting the array of fields.
-     */
+    /** A <code>Comparator</code> for sorting the array of fields. */
     private static FieldComparator fieldComparator = new FieldComparator();
 
-    /**
-     * the <code>writeObject</code> method, if there is one.
-     */
+    /** The <code>writeObject</code> method, if there is one. */
     private Method writeObjectMethod;
 
-    /**
-     * the <code>readObject</code> method, if there is one.
-     */
+    /** The <code>readObject</code> method, if there is one. */
     private Method readObjectMethod;
 
-    /**
-     * the <code>writeReplace</code> method, if there is one.
-     */
+    /** The <code>writeReplace</code> method, if there is one. */
     private Method writeReplaceMethod;
 
-    /**
-     * the <code>readResolve</code> method, if there is one.
-     */
+    /** The <code>readResolve</code> method, if there is one. */
     private Method readResolveMethod;
 
-    /**
-     * This is needed for the private field access hack.
-     */
+    /** This is needed for the private field access hack. */
     Field temporary_field;
 
-    /**
-     * This is needed for the private method access hack.
-     */
+    /** This is needed for the private method access hack. */
     Method temporary_method;
 
     static {

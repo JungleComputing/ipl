@@ -11,34 +11,22 @@ import java.io.OutputStream;
 
 public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
-    /**
-     * Size of the buffer in which output data is collected.
-     */
+    /** Size of the buffer in which output data is collected. */
     private static final int BUF_SIZE = IbisStreamFlags.BUFFER_SIZE;
 
-    /**
-     * The underlying <code>OutputStream</code>.
-     */
+    /** The underlying <code>OutputStream</code>. */
     private OutputStream out;
 
-    /**
-     * The buffer in which output data is collected.
-     */
+    /** The buffer in which output data is collected. */
     private byte [] buffer = new byte[BUF_SIZE];
 
-    /**
-     * Size of the buffer in which output data is collected.
-     */
+    /** Size of the buffer in which output data is collected. */
     private int index = 0;
 
-    /**
-     * Number of bytes written so far to the underlying layer.
-     */
+    /** Number of bytes written so far to the underlying layer. */
     private long bytes = 0;
 
-    /**
-     * Object used for conversion of primitive types to bytes
-     */
+    /** Object used for conversion of primitive types to bytes. */
     private Conversion conversion;
 
     public long bytesWritten() { 

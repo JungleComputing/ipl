@@ -10,23 +10,17 @@ import java.io.InputStream;
 
 public final class BufferedArrayInputStream extends ArrayInputStream {
 
-    /**
-     * The underlying <code>InputStream</code>.
-     */
+    /** The underlying <code>InputStream</code>. */
     private InputStream in;
 
-    /**
-     * The buffer size.
-     */
+    /** The buffer size. */
     private static final int BUF_SIZE = IbisStreamFlags.BUFFER_SIZE;
 
-    /**
-     * The buffer.
-     */
+    /** The buffer. */
     private byte [] buffer;
     private int index, buffered_bytes;
 
-    // Object used to convert primitive types to bytes.
+    /** Object used to convert primitive types to bytes. */
     private Conversion conversion;
 
     public BufferedArrayInputStream(InputStream in) {
