@@ -696,6 +696,7 @@
     </target>
 
     <property name="distr"        location="${ibis}/ibis-src-distr"/>
+    <property name="version"      value="0.2"/>
 
     <target name="src-distr">
 	<delete dir="${distr}"/>
@@ -730,7 +731,10 @@
 	<delete file="${distr}/ibis/src/scripts/rewrite_config"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
 	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
-	<zip destfile="ibis-src-distr.zip"
+	<move todir="${distr}/ibis-${version}">
+	    <fileset dir="$distr}/ibis"/>
+	</move>
+	<zip destfile="ibis-${version}-src-distr.zip"
 	     basedir="${distr}"
 	     excludes="**/CVS/* **/CVS">
 	</zip>
