@@ -285,7 +285,7 @@ sent_upcall(void *arg)
 
 #ifdef IBP_VERBOSE
 #define DUMP_LIMIT	128
-#define DUMP_DATA(jtype, fmt) \
+#define DUMP_DATA(jtype, fmt, cast) \
 static void dump_ ## jtype(jtype *b, int len) \
 { \
     int		i; \
@@ -293,7 +293,7 @@ static void dump_ ## jtype(jtype *b, int len) \
     if (ibmp_verbose < 750) return; \
     \
     for (i = 0; i < len; i++) { \
-	fprintf(stderr, "%" fmt, b[i]); \
+	fprintf(stderr, "%" fmt, (cast)b[i]); \
 	if (i * sizeof(jtype) >= DUMP_LIMIT) { \
 	    fprintf(stderr, " ..."); \
 	    break; \
@@ -309,14 +309,14 @@ static void dump_ ## jtype(jtype *b, int len) \
 #endif
 
 
-DUMP_DATA(jboolean, "d ")
-DUMP_DATA(jbyte, "c")
-DUMP_DATA(jchar, "d ")
-DUMP_DATA(jshort, "d ")
-DUMP_DATA(jint, "ld ")
-DUMP_DATA(jlong, "lld ")
-DUMP_DATA(jfloat, "f ")
-DUMP_DATA(jdouble, "f ")
+DUMP_DATA(jboolean, "d ", int8_t)
+DUMP_DATA(jbyte, "c", int8_t)
+DUMP_DATA(jchar, "d ", int16_t)
+DUMP_DATA(jshort, "d ", int16_t)
+DUMP_DATA(jint, "d ", int32_t)
+DUMP_DATA(jlong, "lld ", int64_t)
+DUMP_DATA(jfloat, "f ", float)
+DUMP_DATA(jdouble, "f ", double)
 
 
 static ibmp_msg_p
