@@ -191,7 +191,7 @@ class UpcallReceiver implements Upcall {
 	} 
 
 	synchronized void finish() { 
-		while (count < max) { 
+		while (count < max * repeat) { 
 			try { 
 //				System.err.println("Jikes");
 				wait();
@@ -288,7 +288,7 @@ class UpcallSender implements Upcall, Config {
 	}
 
 	synchronized void finish() { 
-		while (count < 2*max) { 
+		while (repeat != 0) {
 			try { 
 //				System.err.println("EEK");
 				wait();
