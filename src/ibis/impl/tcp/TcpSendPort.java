@@ -83,11 +83,11 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         this.name = name;
         this.type = type;
         this.ibis = ibis;
-        this.connectionAdministration = connectionAdministration;
-        this.connectUpcall = cU;
         if (cU != null) {
             connectionAdministration = true;
         }
+        this.connectionAdministration = connectionAdministration;
+        this.connectUpcall = cU;
 
         ident = new TcpSendPortIdentifier(name, type.name(),
                 (TcpIbisIdentifier) type.ibis.identifier());
