@@ -36,7 +36,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             if( traceLearning ){
                 System.err.println( "Adding conflict clause " + cl );
             }
-            p.addConflictClause( cl );
+	    p.addConflictClause( cl );
         }
     }
 
@@ -135,12 +135,12 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	SATContext ctx,
 	int var,
 	boolean val
-    ) throws SATException
+	) throws SATException
     {
-
         if( p == null ){
             p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
         }
+
         ctx.update( p );
 	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
@@ -202,6 +202,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                     throw x;
                 }
             }
+	    catch (SATResultException y) {
+		throw y;
+	    }
 	}
 	else {
 	    // We're nearly there, use the leaf solver.
