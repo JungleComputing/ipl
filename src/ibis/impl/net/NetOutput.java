@@ -133,7 +133,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 */
 	public NetSendBuffer createSendBuffer(int length)
 		throws NetIbisException {
-	    return (NetSendBuffer)createBuffer(length);
+	    NetSendBuffer b = (NetSendBuffer)createBuffer(length);
+            return b;
 	}
 
 

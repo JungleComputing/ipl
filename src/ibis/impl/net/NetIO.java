@@ -16,6 +16,35 @@ import java.util.LinkedList;
  */
 public abstract class NetIO {
 
+        /**
+         * Optional (fine grained) logging object.
+         *
+         * This logging object should be used to display code-level information
+         * like function calls, args and variable values.
+         */
+        protected NetLog           log                    = null;
+
+        /**
+         * Optional (coarse grained) logging object.
+         *
+         * This logging object should be used to display concept-level information
+         * about high-level algorithmic steps (e.g. message send, new connection
+         * initialization.
+         */
+        protected NetLog           trace                  = null;
+
+        /**
+         * Optional (general purpose) logging object.
+         *
+         * This logging object should only be used temporarily for debugging purpose.
+         */
+        protected NetLog           disp                   = null;
+
+        /**
+         * Optional statistic object.
+         */
+        protected NetMessageStat   stat                   = null;
+
 	/**
 	 * the maximum data length that can be transmitted atomically.
 	 */
@@ -72,6 +101,28 @@ public abstract class NetIO {
                 } else {
                         this.context = "/"+getDriverName();
                 }
+
+                String s = "//"+type.name()+this.context;
+                
+                if (this instanceof NetOutput) {
+                        s += ".output";
+                } else if (this instanceof NetInput) {
+                        s += ".input";
+                }
+
+                // Logging objects
+                Boolean logOn = type.getBooleanStringProperty(this.context, "Log", new Boolean(false));
+                log = new NetLog(logOn.booleanValue(), s);
+
+                Boolean traceOn = type.getBooleanStringProperty(this.context, "Trace", new Boolean(false));
+                trace = new NetLog(traceOn.booleanValue(), s);
+
+                Boolean dispOn = type.getBooleanStringProperty(this.context, "Disp", new Boolean(true));
+                disp = new NetLog(dispOn.booleanValue(), s);
+
+                // Stat object
+                Boolean statOn = type.getBooleanStringProperty(this.context, "Stat", new Boolean(false));
+                stat = new NetMessageStat(statOn.booleanValue(), s);
 	}
 
         /**
@@ -347,7 +398,7 @@ public abstract class NetIO {
          * @exception NetIbisException if this operation fails.
 	 */
 	public void free() throws NetIbisException {
-                // nothing
+                //stat.report();
 	}
 
 	/**

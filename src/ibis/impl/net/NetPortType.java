@@ -64,7 +64,7 @@ public final class NetPortType implements PortType {
 
 			try {
                                 if (sp.find(key) == null) {
-                                        System.err.println("NetPortType: default setting ["+key+"] = ["+val+"]");
+                                        //System.err.println("NetPortType: default setting ["+key+"] = ["+val+"]");
                                         sp.add(key, val);
                                 }
 			} catch (Exception e) {
@@ -102,7 +102,7 @@ public final class NetPortType implements PortType {
                         
                         if (in != null) {
                                 try {
-                                        System.err.println("NetPortType: reading defaults port settings from "+filename);
+                                        //System.err.println("NetPortType: reading defaults port settings from "+filename);
                                         readProperties(in, sp);
                                 } catch (Exception e) {
 				// nothing
@@ -113,7 +113,7 @@ public final class NetPortType implements PortType {
                 /* Completes the static properties with default values */
                 {
                         if (sp.find("/:Driver") == null) {
-                                System.err.println("NetPortType: internal default setting /:Driver = gen");
+                                //System.err.println("NetPortType: internal default setting /:Driver = gen");
                                 try {
                                         sp.add("/:Driver", "gen");
                                 } catch (Exception e) {
@@ -122,7 +122,7 @@ public final class NetPortType implements PortType {
                                 }
 
                                 if (sp.find("/gen:Driver") == null) {
-                                        System.err.println("NetPortType: internal default setting /gen:Driver = def");
+                                        //System.err.println("NetPortType: internal default setting /gen:Driver = def");
                                         try {
                                                         
                                                 sp.add("/gen:Driver", "def");

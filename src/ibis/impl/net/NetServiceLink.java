@@ -609,9 +609,7 @@ public final class NetServiceLink {
                                         sis.addBuffer(b);
                                 } catch (SocketException e) {
                                         exit = true;
-                                        System.err.println("NetServiceLink: posting close event for connection "+num);
                                         portEventQueue.put(new NetPortEvent(NetServiceLink.this, NetPortEvent.CLOSE_EVENT, num));
-                                        System.err.println("NetServiceLink: close event posted for connection "+num);
                                         continue;
                                 } catch (EOFException e) {
                                         exit = true;

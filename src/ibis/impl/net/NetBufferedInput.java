@@ -7,6 +7,8 @@ import ibis.ipl.StaticProperties;
  */
 public abstract class NetBufferedInput extends NetInput {
 
+        protected int arrayThreshold = 0;
+
 	/**
 	 * The current buffer.
 	 */
@@ -52,16 +54,23 @@ public abstract class NetBufferedInput extends NetInput {
 	 */
 	public NetReceiveBuffer createReceiveBuffer(int length)
 		throws NetIbisException {
-	    if (factory == null) {
-		byte[] data;
-		if (bufferAllocator == null) {
-		    data = new byte[length];
-		} else {
-		    data = bufferAllocator.allocate();
-		}
-		return new NetReceiveBuffer(data, length, bufferAllocator);
-	    }
-	    return (NetReceiveBuffer)createBuffer(length);
+                NetReceiveBuffer b = null;
+                
+                log.in();
+                if (factory == null) {
+                        byte[] data = null;
+                        if (bufferAllocator == null) {
+                                data = new byte[length];
+                        } else {
+                                data = bufferAllocator.allocate();
+                        }
+                        b = new NetReceiveBuffer(data, length, bufferAllocator);
+                } else {
+                        b = (NetReceiveBuffer)createBuffer(length);
+                }
+                log.out();
+
+                return b;
 	}
 
         /**
@@ -69,6 +78,7 @@ public abstract class NetBufferedInput extends NetInput {
          * Note: at least one 'receiveByteBuffer' method must be implemented.
          */
         protected void receiveByteBuffer(NetReceiveBuffer buffer) throws NetIbisException {
+                log.in();
                 int offset = dataOffset;
                 int length = buffer.length - offset;
 
@@ -85,6 +95,7 @@ public abstract class NetBufferedInput extends NetInput {
                         b.free();
                 }
                 circularCheck = false;
+                log.out();
         }
 
         /**
@@ -92,6 +103,7 @@ public abstract class NetBufferedInput extends NetInput {
          * Note: at least one 'receiveByteBuffer' method must be implemented.
          */
         protected NetReceiveBuffer receiveByteBuffer(int expectedLength) throws NetIbisException {
+                log.in();
                 NetReceiveBuffer b = null;
 
                 if (circularCheck)
@@ -101,70 +113,89 @@ public abstract class NetBufferedInput extends NetInput {
                 if (mtu != 0) {
                         b = createReceiveBuffer(mtu, 0);
                 } else {
-                        b = createReceiveBuffer(dataOffset + expectedLength, 0);
+                        //b = createReceiveBuffer(dataOffset + expectedLength, 0);
+                        int l = dataOffset + expectedLength;
+                        b = createReceiveBuffer(l, l);
                 }
 
                 receiveByteBuffer(b);
                 circularCheck = false;
+                log.out();
+                
                 return b;
         }
 
 
 
         protected void initReceive() {
-                //System.err.println("initReceive -->");
+                log.in();
                 if (mtu != 0) {
 			if (bufferAllocator == null || bufferAllocator.getBlockSize() != mtu) {
 				bufferAllocator = new NetAllocator(mtu);
 			}
-			if (factory == null) {
-			    factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl(), bufferAllocator);
-			} else {
-			    factory.setMaximumTransferUnit(mtu);
-			}
 		}
 
+                if (factory == null) {
+                        factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl(), bufferAllocator);
+                } else {
+                        factory.setMaximumTransferUnit(mtu);
+                }
+
                 dataOffset = getHeadersLength();
-                //System.err.println("initReceive <--");
+                log.out();
         }
 
         private void pumpBuffer(NetReceiveBuffer buffer) throws NetIbisException {
+                log.in();
                 receiveByteBuffer(buffer);
                 buffer.free();
+                log.out();
         }
 
 	private void pumpBuffer(int length) throws NetIbisException {
+                log.in();
 		buffer       = receiveByteBuffer(dataOffset+length);
 		bufferOffset = dataOffset;
+                log.out();
 	}
 
 	protected void freeBuffer() throws NetIbisException {
+                log.in();
 		if (buffer != null) {
 			buffer.free();
 			buffer       = null;
                         bufferOffset =    0;
 		}
+                log.out();
 	}
 
 	public void finish() throws NetIbisException {
+                log.in();
                 super.finish();
  		freeBuffer();
+                log.out();
 	}
 
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
+                log.in();
                 freeBuffer();
-                return receiveByteBuffer(expectedLength);
+                NetReceiveBuffer b = receiveByteBuffer(expectedLength);
+                log.out();
+
+                return b;
         }
 
 
         public void readByteBuffer(NetReceiveBuffer b) throws NetIbisException {
+                log.in();
                 freeBuffer();
                 receiveByteBuffer(b);
+                log.out();
         }
 
 
 	public byte readByte() throws NetIbisException {
-                //System.err.println("readbyte -->");
+                log.in();
 		byte value = 0;
 
 		if (buffer == null) {
@@ -177,7 +208,8 @@ public abstract class NetBufferedInput extends NetInput {
 			freeBuffer();
 		}
 
-                //System.err.println("readbyte <--");
+                log.disp("OUT value = "+value);
+                log.out();
 
 		return value;
 	}
@@ -186,18 +218,18 @@ public abstract class NetBufferedInput extends NetInput {
 				       int     offset,
 				       int     length)
 		throws NetIbisException {
-		//System.err.println("read: "+offset+", "+length);
+                log.in();
 		if (length == 0)
 			return;
 
-                if (dataOffset == 0) {
+                if (dataOffset == 0 && length > arrayThreshold) {
                         if (buffer != null) {
                                 freeBuffer();
                         }
 
-			// Here, the NetReceiveBuffer provides a view into a
-			// pre-existing Buffer at a varying offset. For that,
-			// we cannot use the BufferFactory.
+                                // Here, the NetReceiveBuffer provides a view into a
+                                // pre-existing Buffer at a varying offset. For that,
+                                // we cannot use the BufferFactory.
                         if (mtu != 0) {
                                 do {
                                         int copyLength = Math.min(mtu, length);
@@ -208,12 +240,11 @@ public abstract class NetBufferedInput extends NetInput {
                         } else {
                                 pumpBuffer(new NetReceiveBuffer(userBuffer, offset, length));
                         }
-
                 } else {
                         while (length > 0) {
-				if (buffer == null) {
-					pumpBuffer(length);
-				}
+                                if (buffer == null) {
+                                        pumpBuffer(length);
+                                }
 
                                 int bufferLength = buffer.length - bufferOffset;
                                 int copyLength   = Math.min(bufferLength, length);
@@ -230,8 +261,8 @@ public abstract class NetBufferedInput extends NetInput {
                                 }
                         }
                 }
-
-		//System.err.println("read: "+offset+", "+length+": ok");
+                
+		log.out();
 	}
 
 }

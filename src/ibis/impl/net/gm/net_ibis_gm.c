@@ -1,4 +1,4 @@
-#define NDEBUG
+/* #define NDEBUG */
 
 #include <jni.h>
 #include <stdlib.h>
@@ -23,7 +23,7 @@
 #endif
 
 /* Debugging macros */
-#if 1
+#if 0
 #define __trace__(s, p...) fprintf(stderr, "[%Ld]:%s:%d: "s"\n", __RDTSC__, __FUNCTION__, __LINE__ , ## p)
 #else
 #define __trace__(s, p...)
@@ -77,12 +77,6 @@
  */
 
 /* The driver */
-struct s_drv {
-	int            ref_count;
-        int            nb_dev;
-        struct s_dev **pp_dev;
-};
-
 #if 0
 struct s_mutex {
         jobject   ref;
@@ -94,6 +88,20 @@ struct s_lock {
         jobject   ref;
         jmethodID unlock_id;  
         jint      id;
+};
+
+struct s_access_lock {
+        jobject   ref;
+        jmethodID lock_id;  
+        jmethodID unlock_id;  
+        jboolean  priority;
+};
+
+struct s_drv {
+	int                    ref_count;
+        struct s_access_lock  *p_alock;
+        int                    nb_dev;
+        struct s_dev         **pp_dev;
 };
 
 struct s_request {
@@ -435,7 +443,6 @@ static
 int 
 ni_gm_lock_unlock(struct s_lock *p_lock) {
         JNIEnv *env = _current_env;
-;
         
         __in__();
         if (!env) {
@@ -443,6 +450,84 @@ ni_gm_lock_unlock(struct s_lock *p_lock) {
         }
         
         (*env)->CallVoidMethod(env, p_lock->ref, p_lock->unlock_id, p_lock->id);
+        __out__();
+
+        return 0;
+}
+
+static
+int
+ni_gm_access_lock_init(JNIEnv                *env,
+                       struct s_access_lock **pp_alock) {
+        struct s_access_lock *p_alock = NULL;
+
+        __in__();
+        p_alock = malloc(sizeof(struct s_access_lock));
+        assert(p_alock);
+
+        {
+                jclass   driver_class = 0;
+                jclass   alock_class  = 0;
+                jfieldID fid          = 0;
+                jobject  alock_obj    = 0;
+
+                driver_class      = (*env)->FindClass(env, "ibis/ipl/impl/net/gm/Driver");
+                assert(driver_class);
+
+                fid               = (*env)->GetStaticFieldID(env, driver_class, "gmAccessLock", "Libis/ipl/impl/net/NetPriorityMutex;");
+                assert(fid);
+
+                alock_obj          = (*env)->GetStaticObjectField(env, driver_class, fid);
+                assert(alock_obj);
+                
+                p_alock->ref       = (*env)->NewGlobalRef(env, alock_obj);
+                assert(p_alock->ref);
+
+                alock_class        = (*env)->FindClass(env, "ibis/ipl/impl/net/NetPriorityMutex");
+                assert(alock_class);
+
+                p_alock->lock_id = (*env)->GetMethodID(env, alock_class, "lock", "(Z)V");
+                assert(p_alock->lock_id);
+
+                p_alock->unlock_id = (*env)->GetMethodID(env, alock_class, "unlock", "(Z)V");
+                assert(p_alock->unlock_id);
+        }
+        
+        p_alock->priority = (jboolean)0;
+        assert(!*pp_alock);
+        *pp_alock = p_alock;
+        __out__();
+
+        return 0;
+}
+
+static
+int 
+ni_gm_access_lock_lock(struct s_access_lock *p_alock) {
+        JNIEnv *env = _current_env;
+        
+        __in__();
+        if (!env) {
+                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        }
+        
+        (*env)->CallVoidMethod(env, p_alock->ref, p_alock->lock_id, p_alock->priority);
+        __out__();
+
+        return 0;
+}
+
+static
+int 
+ni_gm_access_lock_unlock(struct s_access_lock *p_alock) {
+        JNIEnv *env = _current_env;
+        
+        __in__();
+        if (!env) {
+                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        }
+        
+        (*env)->CallVoidMethod(env, p_alock->ref, p_alock->unlock_id, p_alock->priority);
         __out__();
 
         return 0;
@@ -1805,7 +1890,9 @@ ni_gm_close_port(struct s_port *p_port) {
 static
 int
 ni_gm_dev_exit(struct s_dev *p_dev) {
+        __in__();
         p_dev->ref_count--;
+        __disp__("dev ref_count = %d", p_dev->ref_count);
 
         if (!p_dev->ref_count) {
                 if (ni_gm_close_port(p_dev->p_port)) {
@@ -1856,6 +1943,7 @@ ni_gm_init(struct s_drv **pp_drv) {
 	p_drv->ref_count = 1;
         p_drv->nb_dev    = 0;
         p_drv->pp_dev    = NULL;
+        p_drv->p_alock   = NULL;
 
 	*pp_drv = p_drv;
 	initialized = 1;
@@ -2378,6 +2466,9 @@ Java_ibis_ipl_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint d
                 if (ni_gm_init(&p_drv))
                         goto error;
 
+                if (ni_gm_access_lock_init(env, &p_drv->p_alock))
+                        goto error;
+
                 successfully_initialized = 1;
                 _p_drv = p_drv;
         }
@@ -2409,6 +2500,11 @@ Java_ibis_ipl_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong
                 ni_gm_throw_exception(env, "GM device closing failed");
         }
         if (!_p_drv->ref_count) {
+                if (_p_drv->p_alock) {
+                        free(_p_drv->p_alock);
+                        _p_drv->p_alock = NULL;
+                }
+                
                 ni_gm_exit(_p_drv);
                 _p_drv = NULL;
                 initialized = 0;
@@ -2423,7 +2519,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
         static int next_dev = 0;
         _current_env = env;
 
-        //__in__();
+        __in__();
         for (;;) {
                 struct s_port   *p_port  = NULL;
                 gm_recv_event_t *p_event = NULL;
@@ -2485,7 +2581,92 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
                 }
         }
 
-        //__out__();
+        __out__();
+        _current_env = NULL;
+        return;
+
+ error:
+        __err__();
+        _current_env = NULL;
+}
+
+
+JNIEXPORT
+void
+JNICALL
+Java_ibis_ipl_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class) {
+        static int next_dev = 0;
+        _current_env = env;
+
+        __in__();
+        for (;;) {
+                struct s_port   *p_port  = NULL;
+                gm_recv_event_t *p_event = NULL;
+                struct s_drv    *p_drv   = NULL;
+                struct s_dev    *p_dev   = NULL;
+                int              dev     = 0;
+                
+                if (!_p_drv->nb_dev) {
+                        break;
+                }
+
+                /*__disp__("__poll__");*/
+                
+                p_drv = _p_drv;
+
+                if (next_dev >= p_drv->nb_dev) {
+                        next_dev = 0;
+                        break;
+                }      
+                
+                dev     = next_dev++;
+                p_dev   = p_drv->pp_dev[dev];
+                p_port  = p_dev->p_port;
+                //p_event = gm_receive(p_port->p_gm_port);
+                p_event = gm_blocking_receive(p_port->p_gm_port);
+                
+                switch (gm_ntohc(p_event->recv.type)) {
+                        
+                case GM_FAST_HIGH_PEER_RECV_EVENT:
+                case GM_FAST_HIGH_RECV_EVENT:
+                        {
+                                if (ni_gm_process_fast_high_recv_event(p_port, p_event))
+                                        goto error;
+                        }                        
+                        break;
+                        
+                case GM_HIGH_PEER_RECV_EVENT:
+                case GM_HIGH_RECV_EVENT:
+                        {
+                                if (ni_gm_process_high_recv_event(p_port, p_event))
+                                        goto error;
+                        }                        
+                        break;
+                        
+                case GM_PEER_RECV_EVENT: 
+                case GM_RECV_EVENT:
+                        {
+                                if (ni_gm_process_recv_event(p_port, p_event))
+                                        goto error;
+                        }
+                        break;
+                        
+                case GM_NO_RECV_EVENT:
+                        break;
+                        
+                case _GM_SLEEP_EVENT:
+                        ni_gm_access_lock_unlock(_p_drv->p_alock);
+                        gm_unknown (p_port->p_gm_port, p_event);
+                        ni_gm_access_lock_lock(_p_drv->p_alock);
+                        break;
+
+                default:
+                        gm_unknown(p_port->p_gm_port, p_event);
+                        break;
+                }
+        }
+
+        __out__();
         _current_env = NULL;
         return;
 

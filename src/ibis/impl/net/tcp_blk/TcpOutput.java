@@ -47,6 +47,8 @@ public final class TcpOutput extends NetBufferedOutput {
 	 * The local MTU.
 	 */
 	private int                      lmtu      = 32768;
+        //private int                      lmtu      = 5*1024;
+        //private int                      lmtu      = 256;
 
 	/**
 	 * The remote MTU.
@@ -109,7 +111,7 @@ public final class TcpOutput extends NetBufferedOutput {
 
 		try {
 			tcpSocket = new Socket(raddr, rport);
-
+                        
 			tcpSocket.setSendBufferSize(0x8000);
 			tcpSocket.setReceiveBufferSize(0x8000);
 			tcpSocket.setTcpNoDelay(true);
@@ -147,17 +149,19 @@ public final class TcpOutput extends NetBufferedOutput {
 	 * {@inheritDoc}
          */
 	public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
+                log.in();
  		try {
-                        //System.err.println("sending "+b.length+" bytes");    
  			NetConvert.writeInt(b.length, b.data, 0);
  			tcpOs.write(b.data, 0, b.length);
-                        //System.err.println("sending "+b.length+" bytes ok");    
+                        tcpOs.flush();
  		} catch (IOException e) {
  			throw new NetIbisException(e.getMessage());
  		} 
+                
 		if (! b.ownershipClaimed) {
 		    b.free();
 		}
+                log.out();
 	}
 
 	public synchronized void close(Integer num) throws NetIbisException {

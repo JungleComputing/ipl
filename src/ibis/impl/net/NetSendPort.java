@@ -61,6 +61,35 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          */
 	private int       	      nextReceivePortNum     = 0;
 
+        /**
+         * Optional (fine grained) logging object.
+         *
+         * This logging object should be used to display code-level information
+         * like function calls, args and variable values.
+         */
+        protected NetLog           log                    = null;
+
+        /**
+         * Optional (coarse grained) logging object.
+         *
+         * This logging object should be used to display concept-level information
+         * about high-level algorithmic steps (e.g. message send, new connection
+         * initialization.
+         */
+        protected NetLog           trace                  = null;
+
+        /**
+         * Optional (general purpose) logging object.
+         *
+         * This logging object should only be used temporarily for debugging purpose.
+         */
+        protected NetLog           disp                   = null;
+
+        /**
+         * Optional statistic object.
+         */
+        protected NetMessageStat   stat                   = null;
+        
 
 
 
@@ -149,8 +178,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * @param e the {@linkplain NetPortEvent event}.
          */
         public void event(NetEvent e) {
+                log.in();
                 NetPortEvent event = (NetPortEvent)e;
-
+                
                 switch (event.code()) {
                         case NetPortEvent.CLOSE_EVENT: 
                                 {
@@ -179,7 +209,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 default:
                         throw new Error("invalid event code");
                 }
-                
+                log.out();
         }
 
         /* ................................................................. */
@@ -199,6 +229,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * @return the contents of {@link #type}.
          */
         public NetPortType getPortType() {
+                log.in();
+                log.out();
                 return type;
         }
 
@@ -249,9 +281,19 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 this.replacer = replacer;
                 this.ibis     = type.getIbis();
 
-System.err.println("Now init passive state");
+                boolean log   = (type.getBooleanStringProperty(null, "Log",      new Boolean(false))).booleanValue();
+                this.log  = new NetLog(log,  "//"+type.name()+" sendPort/");
+
+                boolean trace   = (type.getBooleanStringProperty(null, "Trace",      new Boolean(false))).booleanValue();
+                this.trace  = new NetLog(log,  "//"+type.name()+" sendPort/");
+
+                boolean disp   = (type.getBooleanStringProperty(null, "Disp",      new Boolean(true))).booleanValue();
+                this.disp  = new NetLog(log,  "//"+type.name()+" sendPort/");
+
+                boolean stat  = (type.getBooleanStringProperty(null, "Stat",      new Boolean(false))).booleanValue();
+                this.stat = new NetMessageStat(stat, "//"+type.name()+" sendPort/");
+
                 initPassiveState();
-System.err.println("Now init active state");
                 initActiveState();
 	}
 
@@ -268,6 +310,7 @@ System.err.println("Now init active state");
          * <BR><B>Note 2:</B> the {@link #eventQueue} is closed there (that is, not in the {@link #free} method).
 	 */
 	protected void finalize() throws Throwable {
+                log.log("finalize-->");
 		free();
 
                 if (eventQueueListener != null) {
@@ -284,6 +327,7 @@ System.err.println("Now init active state");
                 }
 
 		super.finalize();
+                log.log("finalize<--");
 	}
 
 
@@ -305,7 +349,9 @@ System.err.println("Now init active state");
          * The <I>passive</I> port state initialization part.
          */
         private void initPassiveState() throws NetIbisException {
+                log.in();
                 initIdentifier();
+                log.out();
         }
         
         
@@ -318,9 +364,11 @@ System.err.println("Now init active state");
          * The {@link #eventQueue} construction and the {@link #eventQueueListener} thread activation.
          */
         private void initEventQueue() {
+                log.in();
                 eventQueue         = new NetEventQueue();
                 eventQueueListener = new NetEventQueueListener(this, "SendPort: " + ((name != null)?name:"anonymous"), eventQueue);
                 eventQueueListener.start();
+                log.out();
         }
         
         /**
@@ -330,6 +378,7 @@ System.err.println("Now init active state");
          * @exception NetIbisException in case of trouble.
          */
         private void loadMainDriver() throws NetIbisException {
+                log.in();
                 if (this.driver != null)
                         throw new NetIbisException("driver already loaded");
 
@@ -346,6 +395,7 @@ System.err.println("Now init active state");
                 }
 
                 this.driver = driver;
+                log.out();
         }
 
         /**
@@ -353,10 +403,12 @@ System.err.println("Now init active state");
          * @exception NetIbisException in case of trouble.
          */
         private void initCommunicationEngine() throws NetIbisException {
+                log.in();
 		this.connectionTable = new Hashtable();
                 loadMainDriver();
 		this.outputLock = new NetMutex(false);
 		this.output     = driver.newOutput(type, null);
+                log.out();
         }        
 
         /**
@@ -364,8 +416,10 @@ System.err.println("Now init active state");
          * @exception NetIbisException in case of trouble.
          */
         private void initActiveState() throws NetIbisException {
+                log.in();
                 initEventQueue();
                 initCommunicationEngine();
+                log.out();
         }
 
 
@@ -383,6 +437,7 @@ System.err.println("Now init active state");
          * @exception NetIbisException in case of trouble.
          */
         private NetConnection establishServiceConnection(NetReceivePortIdentifier nrpi) throws NetIbisException {
+                log.in();
                 Hashtable      info = nrpi.connectionInfo();
                 NetServiceLink link = new NetServiceLink(eventQueue, info);
 
@@ -404,7 +459,8 @@ System.err.println("Now init active state");
 		}
 
                 NetConnection cnx = new NetConnection(this, num, identifier, nrpi, link);
-
+                log.out();
+                
                 return cnx;
         }
         
@@ -417,7 +473,9 @@ System.err.println("Now init active state");
          * @exception NetIbisException in case of trouble.
          */
         private void establishApplicationConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
 		output.setupConnection(cnx);
+                log.out();
         }
         
         /**
@@ -429,9 +487,13 @@ System.err.println("Now init active state");
          * @exception NetIbisException in case of trouble.
          */
         private void close(NetConnection cnx) throws NetIbisException {                
-                if (cnx == null)
-                        return;
+                log.in();
+                if (cnx == null) {
+                        log.out("cnx = null");
 
+                        return;
+                }
+                
                 try {
                         output.close(cnx.getNum());
                 } catch (Exception e) {
@@ -439,6 +501,7 @@ System.err.println("Now init active state");
                 }
 
                 cnx.close();
+                log.out();
         }        
 
 
@@ -453,9 +516,13 @@ System.err.println("Now init active state");
 	 * @return The message instance.
 	 */	
 	public WriteMessage newMessage() throws NetIbisException {
+                log.in();
 		outputLock.lock();
+                stat.begin();
 		emptyMsg = true;
                 output.initSend();
+                log.out();
+                
 		return this;
 	}
 
@@ -465,6 +532,8 @@ System.err.println("Now init active state");
 	 * @return null.
 	 */	
 	public DynamicProperties properties() {
+                log.in();
+                log.out();
 		return null;
 	}
 
@@ -474,6 +543,8 @@ System.err.println("Now init active state");
 	 * @return The identifier instance.
 	 */
 	public SendPortIdentifier identifier() {
+                log.in();
+                log.out();
 		return identifier;
 	}
 
@@ -483,6 +554,7 @@ System.err.println("Now init active state");
 	 * @param rpi the identifier of the peer port.
 	 */
 	public synchronized void connect(ReceivePortIdentifier rpi) throws NetIbisException {
+                log.in();
 		outputLock.lock();
 		NetReceivePortIdentifier nrpi = (NetReceivePortIdentifier)rpi;
                 NetConnection cnx = establishServiceConnection(nrpi);
@@ -493,6 +565,7 @@ System.err.println("Now init active state");
                 
                 establishApplicationConnection(cnx);
 		outputLock.unlock();
+                log.out();
 	}
 
 	/**
@@ -505,7 +578,9 @@ System.err.println("Now init active state");
 	public void connect(ReceivePortIdentifier rpi,
 			    int                   timeout_millis)
 		throws NetIbisException {
+                log.in();
 		__.unimplemented__("connect");
+                log.out();
 	}
 
 	/**
@@ -515,7 +590,7 @@ System.err.println("Now init active state");
 	 */
 	public void free()
 		throws NetIbisException {
-
+                log.in();                
                 synchronized(this) {
                         try {
                                 if (outputLock != null) {
@@ -553,7 +628,7 @@ System.err.println("Now init active state");
                                 __.fwdAbort__(e);
                         }
                 }
-
+                log.out();
 	}
 	
 
@@ -564,7 +639,9 @@ System.err.println("Now init active state");
 	 * Sends what remains to be sent.
 	 */
 	public void send() throws NetIbisException{
+                log.in();
 		output.send();
+                log.out();
 	}
 
 	/**
@@ -574,18 +651,23 @@ System.err.println("Now init active state");
 	 * a single byte is forced to be sent over the network.
 	 */
 	private void _finish() throws  NetIbisException{
+                log.in();
 		if (emptyMsg) {
 			writeByte((byte)0);
 		}
+                log.out();
 	}
 	
 	/**
 	 * Completes the message transmission and releases the send port.
 	 */
 	public void finish() throws NetIbisException{
+                log.in();
 		_finish();
 		output.finish();
+                stat.end();
 		outputLock.unlock();
+                log.out();
 	}
 
 	/**
@@ -596,6 +678,7 @@ System.err.println("Now init active state");
 	 * @param doSend {@inheritDoc}
 	 */
 	public void reset(boolean doSend) throws NetIbisException {
+                log.in();
 		if (doSend) {
 			send();
 		} else {
@@ -605,175 +688,270 @@ System.err.println("Now init active state");
 		output.reset(doSend);
 		emptyMsg = true;
                 output.initSend();
+                log.out();
 	}
 
 
 	public int getCount() {
+                log.in();
+                log.out();
 		return 0;
 	}
 
 	public void resetCount() {
+                log.in();
 		//
+                log.out();
 	}
 
 	public void writeBoolean(boolean v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addBoolean();
 		output.writeBoolean(v);
+                log.out();
 	}
 
 	public void writeByte(byte v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addByte();
 		output.writeByte(v);
+                log.out();
 	}
 
 	public void writeChar(char v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addChar();
 		output.writeChar(v);
+                log.out();
 	}
 
 	public void writeShort(short v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addShort();
 		output.writeShort(v);
+                log.out();
 	}
 
 	public void writeInt(int v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addInt();
 		output.writeInt(v);
+                log.out();
 	}
 
 	public void writeLong(long v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addLong();
 		output.writeLong(v);
+                log.out();
 	}
 	
 	public void writeFloat(float v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addFloat();
 		output.writeFloat(v);
+                log.out();
 	}
 
 	public void writeDouble(double v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addDouble();
 		output.writeDouble(v);
+                log.out();
 	}
 
 	public void writeString(String v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addString();
 		output.writeString(v);
+                log.out();
 	}
 
 	public void writeObject(Object v) throws NetIbisException {
+                log.in();
 		emptyMsg = false;
+                stat.addObject();
 		output.writeObject(v);
+                log.out();
 	}
 
-	public void writeArrayBoolean(boolean [] userBuffer) throws NetIbisException {
-		if (userBuffer.length == 0)
-			return;
-
-		emptyMsg = false;
+	public void writeArrayBoolean(boolean [] b) throws NetIbisException {
+                log.in();
+		writeArraySliceBoolean(b, 0, b.length);
+                log.out();
 	}
 
 	public void writeArrayByte(byte [] b) throws NetIbisException {
+                log.in();
 		writeArraySliceByte(b, 0, b.length);
+                log.out();
 	}
 	
 	public void writeArrayChar(char [] b) throws NetIbisException {
+                log.in();
                 writeArraySliceChar(b, 0, b.length);
+                log.out();
 	}
 	
 	public void writeArrayShort(short [] b) throws NetIbisException {
+                log.in();
                 writeArraySliceShort(b, 0, b.length);
+                log.out();
 	}
 	
 	public void writeArrayInt(int [] b) throws NetIbisException {
+                log.in();
                 writeArraySliceInt(b, 0, b.length);
+                log.out();
 	}
 	
 	public void writeArrayLong(long [] b) throws NetIbisException {
+                log.in();
                 writeArraySliceLong(b, 0, b.length);
+                log.out();
 	}
 	
 	public void writeArrayFloat(float [] b) throws NetIbisException {
+                log.in();
                 writeArraySliceFloat(b, 0, b.length);
+                log.out();
 	}
 	
 	public void writeArrayDouble(double [] b) throws NetIbisException {
+                log.in();
                 writeArraySliceDouble(b, 0, b.length);
+                log.out();
 	}
 
 	public void writeArrayObject(Object [] b) throws NetIbisException {
+                log.in();
                 writeArraySliceObject(b, 0, b.length);
+                log.out();
 	}
 
 	public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
+                stat.addBooleanArray(l);
 		emptyMsg = false;
                 output.writeArraySliceBoolean(b, o, l);
+                log.out();
 	}
 	
 	public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
+                stat.addByteArray(l);
                 output.writeArraySliceByte(b, o, l);
+                log.out();
 	}
 	
 	public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
+                stat.addCharArray(l);
                 output.writeArraySliceChar(b, o, l);
+                log.out();
 	}
 	
 	public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
+                stat.addShortArray(l);
                 output.writeArraySliceShort(b, o, l);
+                log.out();
 	}
 	
 	public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
+                stat.addIntArray(l);
                 output.writeArraySliceInt(b, o, l);
+                log.out();
 	}
 	
 	public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
+                stat.addLongArray(l);
                 output.writeArraySliceLong(b, o, l);
+                log.out();
 	}
 	
 	public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
-                if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
                 
                 emptyMsg = false;
+                stat.addFloatArray(l);
                 output.writeArraySliceFloat(b, o, l);
+                log.out();
 	}
 	
 	public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
+                stat.addDoubleArray(l);
                 output.writeArraySliceDouble(b, o, l);
+                log.out();
 	}
 
 	public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
+                stat.addObjectArray(l);
                 output.writeArraySliceObject(b, o, l);
+                log.out();
 	}
 }

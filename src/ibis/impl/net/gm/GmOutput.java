@@ -17,7 +17,7 @@ public final class GmOutput extends NetBufferedOutput {
          * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
          * local number.
          */
-        private Integer    rpn           = null;
+        private Integer    rpn          = null;
                            
         private long       deviceHandle =  0;
         private long       outputHandle =  0;
@@ -52,12 +52,15 @@ public final class GmOutput extends NetBufferedOutput {
         GmOutput(NetPortType pt, NetDriver driver, String context)
                 throws NetIbisException {
                 super(pt, driver, context);
+
                 gmDriver = (Driver)driver;
 
                 Driver.gmAccessLock.lock(false);
                 deviceHandle = Driver.nInitDevice(0);
                 outputHandle = nInitOutput(deviceHandle);
                 Driver.gmAccessLock.unlock(false);
+
+                arrayThreshold = 256;
         }
 
         /*
@@ -128,8 +131,9 @@ public final class GmOutput extends NetBufferedOutput {
          * {@inheritDoc}
          */
         public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
-                //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length);
+                log.log("sending "+b.length+"bytes");
                 
+                //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length);
                 if (b.length > 4096) {
                         /* Post the 'request' */
                         Driver.gmAccessLock.lock(true);
@@ -137,10 +141,10 @@ public final class GmOutput extends NetBufferedOutput {
                         Driver.gmAccessLock.unlock(true);
 
                         /* Wait for 'request' send completion */
-                        gmDriver.pump(lockId, lockIds);
+                        gmDriver.blockingPump(lockId, lockIds);
 
                         /* Wait for 'ack' completion */
-                        gmDriver.pump(lockId, lockIds);
+                        gmDriver.blockingPump(lockId, lockIds);
 
                         /* Post the 'buffer' */
                         Driver.gmAccessLock.lock(true);
@@ -148,7 +152,7 @@ public final class GmOutput extends NetBufferedOutput {
                         Driver.gmAccessLock.unlock(true);
 
                         /* Wait for 'buffer' send */
-                        gmDriver.pump(lockId, lockIds);
+                        gmDriver.blockingPump(lockId, lockIds);
                 } else {
                         Driver.gmAccessLock.lock(true);
                         //System.err.println("Sending buffer, base = "+b.base+", length = "+b.length+" - 2");
@@ -157,7 +161,7 @@ public final class GmOutput extends NetBufferedOutput {
                         Driver.gmAccessLock.unlock(true);
 
                         /* Wait for 'request' send completion */
-                        gmDriver.pump(lockId, lockIds);
+                        gmDriver.blockingPump(lockId, lockIds);
                 }
 
 		if (! b.ownershipClaimed) {
@@ -170,6 +174,7 @@ public final class GmOutput extends NetBufferedOutput {
         }
 
         public synchronized void close(Integer num) throws NetIbisException {
+                log.log("free-->");
                 if (rpn == num) {
                         Driver.gmAccessLock.lock(true);
                         Driver.gmLockArray.deleteLock(lockId);
@@ -186,6 +191,7 @@ public final class GmOutput extends NetBufferedOutput {
                         Driver.gmAccessLock.unlock(true);
                         rpn = null;
                 }
+                log.log("free<--");
         }
         
 
@@ -193,6 +199,7 @@ public final class GmOutput extends NetBufferedOutput {
          * {@inheritDoc}
          */
         public void free() throws NetIbisException {
+                log.log("free-->");
                 rpn = null;
 
                 Driver.gmAccessLock.lock(true);
@@ -210,5 +217,6 @@ public final class GmOutput extends NetBufferedOutput {
                 Driver.gmAccessLock.unlock(true);
 
                 super.free();
+                log.log("free<--");
         }
 }

@@ -58,6 +58,8 @@ public final class TcpInput extends NetBufferedInput {
 	 * The local MTU.
 	 */
 	private int                   lmtu            = 32768;
+	//private int                   lmtu            = 5*1024;
+	//private int                   lmtu            = 256;
 
 	/**
 	 * The remote MTU.

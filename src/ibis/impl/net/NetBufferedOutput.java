@@ -7,6 +7,8 @@ import ibis.ipl.StaticProperties;
  */
 public abstract class NetBufferedOutput extends NetOutput {
 
+        protected int arrayThreshold = 0;
+
 	/**
 	 * The current buffer offset after the headers of the lower layers
 	 * into the payload area.
@@ -41,15 +43,18 @@ public abstract class NetBufferedOutput extends NetOutput {
         protected abstract void sendByteBuffer(NetSendBuffer buffer) throws NetIbisException;
 
         public void initSend() throws NetIbisException {
+                log.in();
+                stat.begin();
 		dataOffset = getHeadersLength();
 
-                if (mtu != 0) {
-		    if (factory == null) {
-			factory = new NetBufferFactory(mtu, new NetSendBufferFactoryDefaultImpl());
-		    } else {
-			factory.setMaximumTransferUnit(mtu);
-		    }
-		}
+                //if (mtu != 0) {
+                if (factory == null) {
+                        factory = new NetBufferFactory(mtu, new NetSendBufferFactoryDefaultImpl());
+                } else {
+                        factory.setMaximumTransferUnit(mtu);
+                }
+                        //}
+                log.out();
         }
         
 
@@ -57,14 +62,15 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * Sends the current buffer over the network.
 	 */
 	protected void flush() throws NetIbisException {
-                //System.err.println("NetBufferedOutput: flush -->");
+                log.in();
 		if (buffer != null) {
                         //System.err.println(this + ": flushing buffer, "+buffer.length+" bytes");
+                        stat.addBuffer(buffer.length);
 			sendByteBuffer(buffer);
 			buffer = null;
                         bufferOffset = 0;
 		}
-                //System.err.println("NetBufferedOutput: flush <--");
+                log.out();
 	}
 
 	/**
@@ -74,6 +80,7 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * actual buffer length may differ.
 	 */
 	private void allocateBuffer(int length) throws NetIbisException {
+                log.in();
 		if (buffer != null) {
 			buffer.free();
 		}
@@ -87,41 +94,48 @@ public abstract class NetBufferedOutput extends NetOutput {
 		buffer.length = dataOffset;
 		bufferOffset = dataOffset;
 		//System.err.println(this + ": allocate buffer payload=" + length + " mtu=" + mtu + " dataOffset=" + dataOffset + " buffer.length=" + buffer.length);
+                log.out();
 	}
 
-	// TODO: ensure that send is non-blocking
 	/**
 	 * Sends what remains to be sent.
 	 */
 	public void send() throws NetIbisException{
-// System.err.println(this + ": send...");
+                log.in();
                 super.send();
+                log.out();
 	}
 
 	/**
 	 * Completes the message transmission and releases the send port.
 	 */
 	public void finish() throws NetIbisException{
-                //System.err.println("NetBufferedOutput: finish-->");
+                log.in();
                 super.finish();
                 flush();
-                //System.err.println("NetBufferedOutput: finish<--");
+                stat.end();
+                log.out();
 	}
 
 	/**
-	 * Unconditionnaly completes the message transmission and
+	 * Unconditionaly completes the message transmission and
 	 * releases the send port.
 	 *
 	 * @param doSend {@inheritDoc}
 	 */
 	public void reset(boolean doSend) throws NetIbisException {
+                log.in();
                 flush();
                 super.reset(doSend);
+                log.out();
 	}
 
         public void writeByteBuffer(NetSendBuffer b) throws NetIbisException {
+                log.in();
                 flush();
+                stat.addBuffer(b.length);
                 sendByteBuffer(b);
+                log.out();
         }
 
 
@@ -133,7 +147,9 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * @param value the byte to append to the message.
 	 */
 	public void writeByte(byte value) throws NetIbisException {
-		//System.err.println("writebyte -->");
+		log.in();
+                log.disp("IN value = "+value);
+                
 		if (buffer == null) {
 			allocateBuffer(1);
 		}
@@ -145,21 +161,20 @@ public abstract class NetBufferedOutput extends NetOutput {
 		if (bufferOffset >= buffer.data.length) {
 			flush();
 		}
-		//System.err.println("writebyte <--");
+		log.out();
 	}
 
 	public void writeArraySliceByte(byte [] userBuffer, int offset, int length) throws NetIbisException {
-		//System.err.println(this + ": write: "+offset+", "+length);
-//System.err.println(this + ": offset " + offset + " length " + length + " mtu " + mtu + " buffer " + buffer + " dataOffset " + dataOffset);
+                log.in();
 		if (length == 0)
 			return;
-		
-                if (dataOffset == 0) {
+
+                if (dataOffset == 0 && length > arrayThreshold) {
                         flush();
 
-			// Here, the NetReceiveBuffer provides a view into a
-			// pre-existing Buffer at a varying offset. For that,
-			// we cannot use the BufferFactory.
+                                // Here, the NetReceiveBuffer provides a view into a
+                                // pre-existing Buffer at a varying offset. For that,
+                                // we cannot use the BufferFactory.
                         if (mtu != 0) {
                                 do {
                                         int copyLength = Math.min(mtu, length);
@@ -173,13 +188,12 @@ public abstract class NetBufferedOutput extends NetOutput {
                         } else {
                                 buffer = new NetSendBuffer(userBuffer, offset + length);
                                 flush();
-                        }
-
+                        }                
                 } else {
                         while (length > 0) {
-				if (buffer == null) {
-					allocateBuffer(length);
-				}
+                                if (buffer == null) {
+                                        allocateBuffer(length);
+                                }
 
                                 int availableLength = buffer.data.length - bufferOffset;
                                 int copyLength   = Math.min(availableLength, length);
@@ -197,7 +211,6 @@ public abstract class NetBufferedOutput extends NetOutput {
                                 }
                         }
                 }
-                
-		//System.err.println("write: "+offset+", "+length+": ok");
-	}
+                log.out();
+        }        
 }

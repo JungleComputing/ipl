@@ -49,6 +49,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 }
                 
                 public void run() {
+                        log.in("upcall thread starting");
                         while (!end) {
 
                                 try {
@@ -72,20 +73,26 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         if (threadStackPtr < threadStackSize) {
                                                 threadStack[threadStackPtr++] = this;
                                         } else {
+                                                log.out("upcall thread stack is full");
                                                 return;
                                         }
                                 }
                         }
+                        log.out("upcall thread terminating");
                 }
 
                 public void exec(ReadMessage rm) {
+                        log.in();
                         this.rm = rm;
                         sleep.unlock();
+                        log.out();
                 }
                 
 		protected void end() {
+                        log.in();
 			end = true;
                         this.interrupt();
+                        log.out();
 		}
         }
 
@@ -114,11 +121,11 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 		 * during the network input locking.
 		 */
 		public void run() {
+                        log.in("accept thread starting");
                         
 		accept_loop:
 			while (!end) {
                                 NetServiceLink link = null;
-                                // System.err.println("receivePort: accept-->");
 				try {
                                         link = new NetServiceLink(eventQueue, serverSocket);
 				} catch (NetIbisInterruptedException e) {
@@ -126,7 +133,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 } catch (NetIbisException e) {
 					__.fwdAbort__(e);
 				}
-                                // System.err.println("receivePort: accept - ok");
 
 				Integer               num = null;
 				NetSendPortIdentifier spi = null;
@@ -161,15 +167,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                         connectionTable.put(num, cnx);
                                                 }
 
-                                                // System.err.println("receivePort: accept - connection");
-System.err.println(NetReceivePort.this + ": accept - connection");
                                                 if (useUpcall || (upcall != null && !usePollingThread)) {
                                                         input.setupConnection(cnx, NetReceivePort.this);
                                                 } else {
                                                         input.setupConnection(cnx, null);
                                                 }
                                                 
-                                                // System.err.println("receivePort: accept - connection ok");
 						if (num.intValue() == 0) {
 							/*
 							 * We got our first connection,
@@ -194,15 +197,48 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 					break connect_loop;
 				}
 			}
+
+                        log.out("accept thread leaving");
 		}
 
 		/**
 		 * Requests for the thread completion.
 		 */
-		protected void end() {
+                /*
+		protected void prepareEnd() {
 			end = true;
+                        
+                        if (serverSocket != null) {
+                                try {
+                                        serverSocket.close();
+                                } catch (Exception e) {
+                                        throw new Error(e);
+                                }
+                        }
+		}
+
+		protected void end() {
+
                         this.interrupt();
 		}
+                */
+                
+                protected void end() {
+                        log.in();
+                        end = true;
+                        
+                        if (serverSocket != null) {
+                                try {
+                                        serverSocket.close();
+                                } catch (Exception e) {
+                                        throw new Error(e);
+                                }
+                        }
+
+                        this.interrupt();
+                        log.out();
+                }
+                
 	}
 
 	/**
@@ -222,6 +258,7 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 		 * during the network input locking.
 		 */
 		public void run() {
+                        log.in();
 		polling_loop:
 			while (!end) {
 				try {
@@ -250,6 +287,7 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                                                         if (!useUpcallThreadPool) {
                                                                 Runnable r = new Runnable() {
                                                                                 public void run() {
+                                                                                        log.in("anonymous upcall thread starting");
                                                                                         upcall.upcall(rm);
                                                                                         if (currentThread == this) {
                                                                                                 try {
@@ -258,6 +296,7 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                                                                                                         throw new Error(e.getMessage());
                                                                                                 }
                                                                                         }
+                                                                                        log.out("anonymous upcall thread leaving");
                                                                                 }
                                                                         };
                                                                 currentThread = r;
@@ -289,14 +328,17 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 					__.fwdAbort__(e);
 				}
 			}
+                        log.out();
 		}
 
 		/**
 		 * Requests for the thread completion.
 		 */
 		protected void end() {
+                        log.in();
 			end = true;
 			this.interrupt();
+                        log.out();
 		}
 	}
 	
@@ -308,11 +350,11 @@ System.err.println(NetReceivePort.this + ": accept - connection");
         /* ___ CONFIGURATION FLAGS _________________________________________ */
 
 
+        private boolean                  useUpcallThreadPool = true;
+
 	/**
 	 * Flag indicating whether the port use a polling thread.
 	 */
-        private boolean                  useUpcallThreadPool = true;
-
 	private boolean                  usePollingThread    = false;
 
 	private boolean                  useUpcallThread     = true;
@@ -388,6 +430,30 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 	 */
 	// private int			n_yield;
 
+        /**
+         * Optional (fine grained) logging object.
+         *
+         * This logging object should be used to display code-level information
+         * like function calls, args and variable values.
+         */
+        protected NetLog           log                    = null;
+
+        /**
+         * Optional (coarse grained) logging object.
+         *
+         * This logging object should be used to display concept-level information
+         * about high-level algorithmic steps (e.g. message send, new connection
+         * initialization.
+         */
+        protected NetLog           trace                  = null;
+
+        /**
+         * Optional (general purpose) logging object.
+         *
+         * This logging object should only be used temporarily for debugging purpose.
+         */
+        protected NetLog           disp                   = null;
+        
 
 
 
@@ -492,7 +558,7 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 
 	/* --- Upcall from main input object -- */
         public synchronized void inputUpcall(NetInput input, Integer spn) {
-                // System.err.println("NetReceivePort: inputUpcall-->");
+                log.in();
                 if (this.input == null) {
                         __.warning__("message lost");
                         return;
@@ -507,9 +573,8 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                 if (upcall != null && upcallsEnabled) {
                         final ReadMessage rm = _receive();
                         if (!useUpcallThread) {
-                                //System.err.println("NetReceivePort: upcall-->");
                                 upcall.upcall(rm);
-                                //System.err.println("NetReceivePort: upcall<--");
+
                                 if (emptyMsg) {
                                         try {
                                                 readByte();
@@ -525,9 +590,8 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                                 if (!useUpcallThreadPool) {
                                         Runnable r = new Runnable() {
                                                         public void run() {
-                                                                //System.err.println("NetReceivePort: threaded upcall-->");
+                                                                log.in("anonymous upcall thread starting");
                                                                 upcall.upcall(rm);
-                                                                //System.err.println("NetReceivePort: threaded upcall<--");
 
                                                                 if (currentThread == this) {
                                                                         try {
@@ -536,6 +600,7 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                                                                                 throw new Error(e.getMessage());
                                                                         }
                                                                 }
+                                                                log.out("anonymous upcall thread leaving");
                                                         }
                                                 };
 
@@ -565,15 +630,18 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                         polledLock.unlock();
                         finishMutex.lock();
                 }
-                // System.err.println("NetReceivePort: inputUpcall<--");
+                log.out();
         }
         
 
 
 	/* --- NetEventQueueConsumer part --- */
         public void event(NetEvent e) {
+                log.in();
                 NetPortEvent event = (NetPortEvent)e;
 
+                log.disp("IN: event.code() = "+event.code());
+                
                 switch (event.code()) {
                         case NetPortEvent.CLOSE_EVENT: 
                                 {
@@ -602,7 +670,7 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                 default:
                         throw new Error("invalid event code");
                 }
-                
+                log.out();
         }
         
 
@@ -636,7 +704,6 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 			      String      name,
 			      Upcall      upcall)
 		throws NetIbisException {
-                //System.err.println("NetReceivePort: <init>-->");
 		this.type      = type;
 		this.name      = name;
 		this.upcall    = upcall;
@@ -670,6 +737,17 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 		useUpcallThreadPool    = (type.getBooleanStringProperty(null, "UseUpcallThreadPool",  new Boolean(useUpcallThreadPool))).booleanValue();
 		useYield               = (type.getBooleanStringProperty(null, "UseYield",             new Boolean(useYield))).booleanValue();
 		useUpcall              = (type.getBooleanStringProperty(null, "UseUpcall",            new Boolean(useUpcall))).booleanValue();
+		useBlockingPoll        = (type.getBooleanStringProperty(null, "UseBlockingPoll",      new Boolean(useBlockingPoll))).booleanValue();
+
+                boolean log        = (type.getBooleanStringProperty(null, "Log",      new Boolean(false))).booleanValue();
+                this.log = new NetLog(log, "//"+type.name()+" receivePort/");
+
+                boolean trace        = (type.getBooleanStringProperty(null, "Trace",      new Boolean(false))).booleanValue();
+                this.trace = new NetLog(trace, "//"+type.name()+" receivePort/");
+
+                boolean disp        = (type.getBooleanStringProperty(null, "Disp",      new Boolean(true))).booleanValue();
+                this.disp = new NetLog(disp, "//"+type.name()+" receivePort/");
+
 
                 if (usePollingThread) {
                         useUpcall = false;
@@ -723,8 +801,6 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                 //System.err.println("useUpcall           = " + useUpcall          );
                 //System.err.println("useYield            = " + useYield           );
                 //System.err.println("_______________________");
-
-                //System.err.println("NetReceivePort: <init><--");
 	}
 
 	/**
@@ -735,18 +811,17 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 	 * if the {@linkplain #inputLock network input lock} is not available.
 	 */
 	private boolean _doPoll(boolean block) throws NetIbisException {
-// System.err.println("NetReceivePort._doPoll() attempts to grab inputLock");
-// System.err.print("[");
+                log.in();
 		inputLock.lock();
 		activeSendPortNum = input.poll(block);
-                //System.err.println("activeSendPortNum = "+activeSendPortNum);
 		inputLock.unlock();
-// System.err.print("]");
 
 		if (activeSendPortNum == null) {
+                        log.out("activeSendPortNum = null");
 			return false;
 		}
 
+                log.out("activeSendPortNum = "+activeSendPortNum);
 		return true;
 	}
 
@@ -754,7 +829,9 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 	 * Internally initializes a new reception.
 	 */
 	private ReadMessage _receive() {
-		emptyMsg   = true;
+                log.in();
+		emptyMsg = true;
+                log.out();
 		return this;
 	}
 
@@ -767,12 +844,10 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 	 * @return A {@link ReadMessage} instance.
 	 */
 	public ReadMessage receive() throws NetIbisException {
-		//System.err.println(this + ".receive()-->: usePollingThread " + usePollingThread + " useUpcall " + useUpcall + " upcall " + upcall);
+                log.in();
 		if (usePollingThread || useUpcall || upcall != null) {
-                        //System.err.println("NetReceivePort: receive - blocking wait");
 			polledLock.lock();
 		} else {
-                        //System.err.println("NetReceivePort: receive - active wait");
 			if (useYield) {
 				while (!_doPoll(useBlockingPoll)) {
 					Thread.currentThread().yield();
@@ -784,18 +859,19 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 			
 		}
 		
-                //System.err.println("NetReceivePort: receive<--");
+                log.out();
 		return _receive();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public ReadMessage receive(ReadMessage finishMe)
-		throws NetIbisException {
+	public ReadMessage receive(ReadMessage finishMe) throws NetIbisException {
+                log.in();
 		if (finishMe != null) {
                         ((NetReceivePort)finishMe).finish();
                 }
+                log.out();
                 
 		return receive();
 	}
@@ -810,35 +886,40 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 	 * was unsuccessful.
 	 */
 	public ReadMessage poll()  throws NetIbisException {
-                //System.err.println("NetReceivePort: poll-->");
+                log.in();
 		if (usePollingThread || useUpcall || upcall != null) {
 			if (!polledLock.trylock())
-                                //System.err.println("NetReceivePort: poll<-- failed 1");
+                                log.out("poll failure 1");
 				return null;
 		} else {
 			if (!_doPoll(false)) {
-                                //System.err.println("NetReceivePort: poll<-- failed 2");
+                                log.out("poll failure 2");
 				return null;
 			}
 		}
 		
-                //System.err.println("NetReceivePort: poll<--");
+                log.out("poll success");
+                
 		return _receive();
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
-	public ReadMessage poll(ReadMessage finishMe)
-		throws NetIbisException {
+	public ReadMessage poll(ReadMessage finishMe) throws NetIbisException {
+                log.in();
 		if (finishMe != null) {
                         ((NetReceivePort)finishMe).finish();
                 }
 
-		return poll();
+                ReadMessage rm = poll();
+                log.out();
+		return rm;
 	}
 	
 	public DynamicProperties properties() {
+                log.in();
+                log.out();
 		return null;
 	}	
 
@@ -846,6 +927,8 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 	 * {@inheritDoc}
 	 */
 	public ReceivePortIdentifier identifier() {
+                log.in();
+                log.out();
 		return identifier;
 	}
 
@@ -856,6 +939,7 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 	 * @return The identifier of the port.
 	 */
 	protected NetSendPortIdentifier getActiveSendPortIdentifier() {
+                log.in();
                 /*
 		if (activeSendPortNum == null)
 			return null;
@@ -868,62 +952,72 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                 if (cnx.getSendId() == null) {
                         throw new Error("invalid state");
                 }
-                
-		return cnx.getSendId();
+                NetSendPortIdentifier id = cnx.getSendId();
+
+                log.out();
+		return id;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public synchronized void enableConnections() {
+                log.in();
 		if (!connectionEnabled) {
 			connectionEnabled = true;
 			connectionLock.unlock();
 		}
-		
+		log.out();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public synchronized void disableConnections() {
+                log.in();
 		if (connectionEnabled) {
 			connectionEnabled = false;
 			connectionLock.lock();
 		}
+                log.out();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public synchronized void enableUpcalls() {
+                log.in();
 		upcallsEnabled = true;
+                log.out();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public synchronized void disableUpcalls() {
+                log.in();
 		upcallsEnabled = false;
+                log.out();
 	}
 
 
 
         private void close(NetConnection cnx) throws NetIbisException {
-                if (cnx == null)
+                log.in();
+                if (cnx == null) {
+                        log.out("cnx = null");
                         return;
+                }                
 
-                // System.err.println("NetReceivePort: close-->");
                 input.close(cnx.getNum());
+
                 try {
                         cnx.close();
                 } catch (Exception e) {
                         throw new Error(e.getMessage());
                 }
-                // System.err.println("NetReceivePort: close<--");
+                log.out();
         }
-        
-                
 
 	/**
 	 * Closes the port. 
@@ -932,12 +1026,24 @@ System.err.println(NetReceivePort.this + ": accept - connection");
 	 * throw NetIbisException while SendPort.free does.
 	 */
 	public void free() {
-                // System.err.println("NetReceivePort: free-->");
-                //System.err.println("NetReceivePort["+this+"]: free-->");
+                log.in();
                 synchronized(this) {
                         try {
                                 if (inputLock != null) {
                                         inputLock.lock();
+                                }
+
+                                if (acceptThread != null) {
+                                        acceptThread.end();
+
+                                        while (true) {
+                                                try {
+                                                        acceptThread.join();
+                                                        break;
+                                                } catch (InterruptedException e) {
+                                                        //
+                                                }
+                                        }
                                 }
 
                                 if (connectionTable != null) {
@@ -971,59 +1077,35 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                                 __.fwdAbort__(e);
                         }
                 }
-
-		// System.err.println(this + ": #yield = " + n_yield);
-                //System.err.println("NetReceivePort["+this+"]: free<--");
-                // System.err.println("NetReceivePort: free<--");
+                log.out();
 	}
 	
 	protected void finalize() throws Throwable {
-                // System.err.println("ReceivePort: finalize-->");
-                if (serverSocket != null) {
-                        serverSocket.close();
-                }
-
+                log.in();
                 free();
 
-                for (int i = 0; i < threadStackSize; i++) {
-                        UpcallThread ut = threadStack[i];
+                synchronized(threadStack) {
+                        for (int i = 0; i < threadStackSize; i++) {
+                                UpcallThread ut = threadStack[i];
                         
-                        if (ut != null) {
-                                ut.end();
-                                //System.err.println("waiting for ReceivePort upcall thread "+i+" to join");
-                                while (true) {
-                                        try {
-                                                ut.join();
-                                                break;
-                                        } catch (InterruptedException e) {
-                                                //
+                                if (ut != null) {
+                                        ut.end();
+
+                                        while (true) {
+                                                try {
+                                                        ut.join();
+                                                        break;
+                                                } catch (InterruptedException e) {
+                                                        //
+                                                }
                                         }
                                 }
-                                //System.err.println("ReceivePort upcall thread "+i+" joined");
                         }
                 }
-
-                // System.err.println("ReceivePort: finalize - 2");
-
-                if (acceptThread != null) {
-                        acceptThread.end();
-                        //System.err.println("waiting for ReceivePort accept thread to join");
-                        while (true) {
-                                try {
-                                        acceptThread.join();
-                                        break;
-                                } catch (InterruptedException e) {
-                                        //
-                                }
-                        }
-                        //System.err.println("ReceivePort accept thread joined");
-                }
-
-                // System.err.println("ReceivePort: finalize - 3");
 
                 if (pollingThread != null) {
                         pollingThread.end();
-                        //System.err.println("waiting for ReceivePort polling thread to join");
+
                         while (true) {
                                 try {
                                         pollingThread.join();
@@ -1032,14 +1114,11 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                                         //
                                 }
                         }
-                        //System.err.println("ReceivePort polling thread joined");
                 }
-
-                // System.err.println("ReceivePort: finalize - 4");
 
                 if (eventQueueListener != null) {
                         eventQueueListener.end();
-                        //System.err.println("waiting for ReceivePort eventQueue thread to join");
+
                         while (true) {
                                 try {
                                         eventQueueListener.join();
@@ -1048,17 +1127,15 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                                         //
                                 }
                         }
-                        //System.err.println("ReceivePort eventQueue thread joined");
                 }
                         
 		super.finalize();
-                //System.err.println("ReceivePort: finalize<--");
+                log.out();
 	}
 
 	/* --- ReadMessage Part --- */
 	public void finish() throws NetIbisException {
-                //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish-->");
-                //System.err.println("NetReceivePort: finish-->");
+                log.in();
 		if (emptyMsg) {
 			readByte();
                         emptyMsg = false;
@@ -1076,189 +1153,257 @@ System.err.println(NetReceivePort.this + ": accept - connection");
                         pollingNotify = false;
                         pollingLock.unlock();
                 }
-
-                //System.err.println("NetReceivePort: finish<--");
-                //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish<--");
+                log.out();
 	}
 
 	public long sequenceNumber() {
+                log.in();
+                log.out();
 		return 0;
 	}
 	
 	public SendPortIdentifier origin() {
-                return getActiveSendPortIdentifier();
+                log.in();
+                SendPortIdentifier spi = getActiveSendPortIdentifier();
+                log.out();
+                return spi;
 	}
 
 
 	public boolean readBoolean() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		boolean v = input.readBoolean();
+                log.out();
                 return v;
 	}
 	
 	public byte readByte() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		byte v = input.readByte();
+                log.out();
                 return v;
 	}
 	
 	public char readChar() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		char v = input.readChar();
+                log.out();
                 return v;
 	}
 	
 	public short readShort() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		short v = input.readShort();
+                log.out();
                 return v;
 	}
 	
 	public int readInt() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		int v = input.readInt();
+                log.out();
                 return v;
 	}
 	
 	public long readLong() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		long v = input.readLong();
+                log.out();
                 return v;
 	}
 	
 	public float readFloat() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		float v = input.readFloat();
+                log.out();
                 return v;
 	}
 	
 	public double readDouble() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		double v = input.readDouble();
+                log.out();
                 return v;
 	}
 	
 	public String readString() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		String v = input.readString();
+                log.out();
                 return v;
 	}
 	
-	public Object readObject()
-		throws NetIbisException {
+	public Object readObject() throws NetIbisException {
+                log.in();
 		emptyMsg = false;
 		Object v = input.readObject();
+                log.out();
                 return v;
 	}
 	
 
 	public void readArrayBoolean(boolean [] b) throws NetIbisException {
+                log.in();
 		readArraySliceBoolean(b, 0, b.length);
+                log.out();
 	}
 
 	public void readArrayByte(byte [] b) throws NetIbisException {
+                log.in();
                 readArraySliceByte(b, 0, b.length);
+                log.out();
 	}
 
 	public void readArrayChar(char [] b) throws NetIbisException {
+                log.in();
 		readArraySliceChar(b, 0, b.length);
+                log.out();
 	}
 
 	public void readArrayShort(short [] b) throws NetIbisException {
+                log.in();
 		readArraySliceShort(b, 0, b.length);
+                log.out();
 	}
 
 	public void readArrayInt(int [] b) throws NetIbisException {
+                log.in();
 		readArraySliceInt(b, 0, b.length);
+                log.out();
 	}
 
 	public void readArrayLong(long [] b) throws NetIbisException {
+                log.in();
                 readArraySliceLong(b, 0, b.length);
+                log.out();
 	}
 
 	public void readArrayFloat(float [] b) throws NetIbisException {
+                log.in();
                 readArraySliceFloat(b, 0, b.length);
+                log.out();
 	}
 
 	public void readArrayDouble(double [] b) throws NetIbisException {
+                log.in();
 		readArraySliceDouble(b, 0, b.length);
+                log.out();
 	}
 
 	public void readArrayObject(Object [] b) throws NetIbisException {
+                log.in();
 		readArraySliceObject(b, 0, b.length);
+                log.out();
 	}
 
 
 	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+                        log.out("l = 0");
 			return;
-
+                }
+                
 		emptyMsg = false;
 		input.readArraySliceBoolean(b, o, l);
 	}
 
 	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
                 input.readArraySliceByte(b, o, l);
 	}
 
 	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
 		input.readArraySliceChar(b, o, l);
 	}
 
 	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
 		input.readArraySliceShort(b, o, l);
 	}
 
 	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
 		input.readArraySliceInt(b, o, l);
 	}
 
 	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
 		input.readArraySliceLong(b, o, l);
 	}
 
 	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
 		input.readArraySliceFloat(b, o, l);
 	}
 
 	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
 		input.readArraySliceDouble(b, o, l);
 	}
 
 	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
-		if (l == 0)
+                log.in();
+		if (l == 0) {
+			log.out("l = 0");
 			return;
+		}
 
 		emptyMsg = false;
 		input.readArraySliceObject(b, o, l);
+                log.out();
 	}
 	
 } 

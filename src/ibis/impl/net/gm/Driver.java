@@ -25,6 +25,7 @@ public final class Driver extends NetDriver {
 	static native long nInitDevice(int deviceNum) throws NetIbisException;
 	static native void nCloseDevice(long deviceHandler) throws NetIbisException;
         static native void nGmThread();
+        static native void nGmBlockingThread();
 
 	static {
 		System.loadLibrary("net_ibis_gm");
@@ -79,6 +80,25 @@ public final class Driver extends NetDriver {
 	}
 
 
+        protected void blockingPump(int lockId, int []lockIds) throws NetIbisException {
+                int result = gmLockArray.lockFirst(lockIds);
+                if (result == 1) {
+                        /* got GM main lock, let's pump */
+                        do { 
+                                gmAccessLock.lock(false);
+                                nGmThread();
+                                gmAccessLock.unlock(false);
+                        } while (!gmLockArray.trylock(lockId));
+                        
+                        /* request completed, release GM main lock */
+                        gmLockArray.unlock(0);
+
+                } /* else: request already completed */
+                else if (result != 0) {
+                        throw new Error("invalid state");
+                }
+        }
+        
         protected void pump(int lockId, int []lockIds) throws NetIbisException {
                 int result = gmLockArray.lockFirst(lockIds);
                 if (result == 1) {
