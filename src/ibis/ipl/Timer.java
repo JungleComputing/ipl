@@ -10,6 +10,9 @@ public abstract class Timer {
 	public abstract double accuracy();
 
 
+	/** Reset the timer. **/
+	public abstract void reset();
+
 	/** Start the timer. **/
 	public abstract void start();
 
@@ -24,7 +27,7 @@ public abstract class Timer {
 	public abstract String totalTime();
 
 	/** Return the average measured time in microseconds. **/
-	public abstract double avgerageTimeVal();
+	public abstract double averageTimeVal();
 
 	/** Return the average measured time in microseconds, nicely formatted. **/
 	public abstract String averageTime();

@@ -57,6 +57,10 @@ public final class Rdtsc extends ibis.ipl.Timer {
 		return 1000000.0 * MHz;
 	}
 
+	public void reset() {
+		time = 0;
+	}
+
 	public void start() {
 		time -= rdtsc();
 	}
@@ -74,7 +78,7 @@ public final class Rdtsc extends ibis.ipl.Timer {
 		return format(time / MHz);
 	}
 
-	public double avgerageTimeVal() {
+	public double averageTimeVal() {
 		return (double) time / (count * MHz);
 	}
 
