@@ -8,6 +8,7 @@ import ibis.io.NoSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 import ibis.io.SunSerializationOutputStream;
 import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
@@ -128,7 +129,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		c.ident = ri;
 
 		if(receivers.contains(c)) {
-		    throw new Error("This sendport was already connected to " + receiver);
+		    throw new AlreadyConnectedException("This sendport was already connected to " + receiver);
 		}
 
 		OutputStream res = ibis.tcpPortHandler.connect(this, ri, timeoutMillis);

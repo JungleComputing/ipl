@@ -9,11 +9,12 @@ interface TcpProtocol {
 
 	static final byte RECEIVER_ACCEPTED = 5;
 	static final byte RECEIVER_DENIED   = 6;
+	static final byte RECEIVER_DISABLED = 7;
 
-	static final byte NEW_CONNECTION     = 7;
-	static final byte EXISTING_CONNECTION = 8;
+	static final byte NEW_CONNECTION     = 8;
+	static final byte EXISTING_CONNECTION = 9;
 
-	static final byte QUIT_IBIS = 9;
+	static final byte QUIT_IBIS = 10;
 
 	static final byte REPLY = 127;
 }

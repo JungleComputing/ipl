@@ -93,14 +93,15 @@ public interface SendPort
      *
      * @param receiver identifies the {@link ReceivePort} to connect to
      * @exception ConnectionRefusedException is thrown
-     * if the receiver denies the connection, or if the port was already
+     * if the receiver denies the connection.
+     * @exception AlreadyConnectedException is thrown if the port was already
      * connected to the receiver.
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
      * @exception IOException is thrown if a message is alive.
      */
-    public void connect (ReceivePortIdentifier receiver) throws IOException;
+    public void connect(ReceivePortIdentifier receiver) throws IOException;
 
     /**
      * Attempts to disconnect a connection with a receiver.
@@ -121,7 +122,8 @@ public interface SendPort
      * A value of 0 for <code>timeoutmillis</code> signifies no
      * timeout on the connection attempt.
      * @exception ConnectionRefusedException is thrown
-     * if the receiver denies the connection, or if the port was already
+     * if the receiver denies the connection.
+     * @exception AlreadyConnectedException is thrown if the port was already
      * connected to the receiver.
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport

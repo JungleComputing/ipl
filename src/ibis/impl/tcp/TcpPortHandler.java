@@ -4,6 +4,7 @@ package ibis.impl.tcp;
 
 import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisError;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
@@ -86,12 +87,16 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 	OutputStream connect(TcpSendPort sp, TcpReceivePortIdentifier receiver, long timeout) throws IOException { 
 		Socket s = null;
 
-		try { 
-			boolean reuse_connection = false;
+		long startTime = System.currentTimeMillis();
 
-			if (DEBUG) {
-				System.err.println("--> Creating socket for connection to " + receiver);
-			}
+		try { 
+		    boolean reuse_connection = false;
+
+		    if (DEBUG) {
+			    System.err.println("--> Creating socket for connection to " + receiver);
+		    }
+
+		    do {
 			s = socketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), timeout);
 
 			InputStream sin = s.getInputStream();
@@ -127,18 +132,21 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				sin.close();
 				sout.close();
 				s.close();	
-				return null;
+				if (result == RECEIVER_DENIED) {
+				    return null;
+				}
 			} 
+			else {
 
-			if(DEBUG) {
+			    if(DEBUG) {
 				System.err.println("--> Sender Accepted"); 
-			}
+			    }
 
-			/* the other side accepts the connection, finds the correct 
-			   stream */
-			result = data_in.readByte();
+			    /* the other side accepts the connection, finds the correct 
+			       stream */
+			    result = data_in.readByte();
 
-			if (result == NEW_CONNECTION) { 
+			    if (result == NEW_CONNECTION) { 
 				/* no unused stream found, so reuse current one */
 				reuse_connection = true;
 				obj_out.flush();
@@ -152,7 +160,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				}
 
 				return sout;
-			} else if (result == EXISTING_CONNECTION) {
+			    } else if (result == EXISTING_CONNECTION) {
 				data_in.close();
 				obj_out.flush();
 				obj_out.close();
@@ -166,9 +174,20 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				sout.close();
 				s.close();
 				return out;
-			} else {
+			    } else {
 				throw new IbisError("Illegal opcode in TcpPortHandler:connect");
+			    }
 			}
+			if (timeout > 0 &&
+			    System.currentTimeMillis() > startTime + timeout) {
+			    throw new ConnectionTimedOutException("could not connect");
+			}
+			try {
+			    Thread.sleep(100);
+			} catch(InterruptedException e) {
+			    // ignore
+			}
+		    } while (true);
 		} catch (IOException e) {
 			e.printStackTrace();
 			try {
@@ -251,9 +270,14 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			System.err.println("--> S  RP = " + (rp == null ? "not found" : rp.identifier().toString() )); 
 		}
 
-		if (rp == null || !rp.connectionAllowed(send)) {
-			/* If we cannot find it, return access denied */
-			data_out.writeByte(RECEIVER_DENIED);
+		int result;
+		if (rp == null) {
+		    result = RECEIVER_DENIED;
+		} else {
+		    result = rp.connectionAllowed(send);
+		}
+		if (result != RECEIVER_ACCEPTED) {
+			data_out.writeByte(result);
 			data_out.flush();
 			data_out.close();
 			obj_in.close();	

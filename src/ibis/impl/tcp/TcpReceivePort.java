@@ -266,12 +266,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		started = false;
 	}
 
-	synchronized boolean connectionAllowed(TcpSendPortIdentifier id) { 
+	synchronized int  connectionAllowed(TcpSendPortIdentifier id) { 
 		if (started) { 
 			if(connectionAdministration) {				
 				if (connUpcall != null) {
 					if (! connUpcall.gotConnection(this, id)) {
-						return false;
+						return RECEIVER_DENIED;
 					}
 				} else {
 					newConnections.add(id);
@@ -279,9 +279,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			}
 			connection_setup_present = true;
 			notifyAll();
-			return true;
+			return RECEIVER_ACCEPTED;
 		} else {
-			return false;
+			return RECEIVER_DISABLED;
 		}
 	} 
 
