@@ -97,6 +97,11 @@ public abstract class NetSerializedOutput extends NetOutput {
                         if (replacer != null) oss.setReplacer(replacer);
                 } else {
                         subOutput.writeByte((byte)0);
+                        try {
+                                oss.reset();
+                        } catch(java.io.IOException e) {
+                                throw new NetIbisException("got exception", e);
+                        }
                 }
 	}
 
@@ -117,8 +122,6 @@ public abstract class NetSerializedOutput extends NetOutput {
 	    try {
                 super.finish();
                 flushStream();
-                // oss.reset(); // does not work with S_Sun serialization
-                oss = null;
                 subOutput.finish();
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
