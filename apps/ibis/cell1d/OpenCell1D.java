@@ -253,6 +253,9 @@ class OpenCell1D implements OpenConfig {
             System.out.println( "P" + me + ": created receive port " + res  );
         }
         res.enableConnections();
+	if (up != null) {
+	    res.enableUpcalls();
+	}
         return res;
     }
 
