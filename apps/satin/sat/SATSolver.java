@@ -32,7 +32,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
      * apply simplification. This essentially creates 2^firstVariables
      * sub-problems that are solved in their own context.
      */
-    static final int firstVariables = 3;
+    static final int firstVariables = 0;
 
     /**
      * A simple solver that is used when the remaining problem is too
@@ -292,8 +292,41 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    if( var == -1 ){
 		return null;
 	    }
-	    s.agressiveSolve( 0, p, var, false );
-	    s.agressiveSolve( 0, p, var, true );
+	    if( firstVariables == 0 ){
+		// It's too expensive to do agressive solving, try something
+		// a bit more subtle.
+		SATContext ctx = new SATContext(
+		    p.getClauseCount(),
+		    p.buildTermCounts()
+		);
+
+		ctx.varlist = p.buildOrderedVarList();
+
+		if( ctx.varlist.length == 0 ){
+		    // There are no variables left to assign, clearly there
+		    // is no solution.
+		    if( traceSolver | traceNewCode ){
+			System.err.println( "top: nothing to branch on" );
+		    }
+		    return null;
+		}
+
+		ctx.assignments = p.buildInitialAssignments();
+
+		if( leafVariables>=ctx.varlist.length ){
+		    leafSolve( 0, p, ctx.varlist, ctx.assignments, 0, false );
+		    leafSolve( 0, p, ctx.varlist, ctx.assignments, 0, true );
+		}
+		else {
+		    SATContext negctx = (SATContext) ctx.clone();
+		    s.solve( 0, p, negctx, 0, false );
+		    s.solve( 0, p, ctx, 0, true );
+		}
+	    }
+	    else {
+		s.agressiveSolve( 0, p, var, false );
+		s.agressiveSolve( 0, p, var, true );
+	    }
 	    s.sync();
 	}
 	catch( SATResultException r ){

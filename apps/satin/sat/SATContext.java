@@ -130,7 +130,7 @@ public class SATContext implements java.io.Serializable {
 
 		    if( assignments[v] == -1 ){
 		        if( var != -1 ){
-			    System.err.println( "A unit clause with multiple unassigned variables???" );
+			    System.err.println( "Error: a unit clause with multiple unassigned variables" );
 			    return 0;
 			}
 		    }
@@ -155,7 +155,7 @@ public class SATContext implements java.io.Serializable {
 
 			if( assignments[v] == -1 ){
 			    if( var != -1 ){
-				System.err.println( "A unit clause with multiple unassigned variables???" );
+				System.err.println( "Error: a unit clause with multiple unassigned variables" );
 				return 0;
 			    }
 			}
