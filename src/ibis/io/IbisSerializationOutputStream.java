@@ -28,6 +28,9 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * Hash table for keeping references to objects already written.
      */
     private IbisHash references  = new IbisHash(2048);
+    // private IbisHash references  = new IbisHash(65536);
+    // private IbisHash references  = new IbisHash(131200);
+    // private IbisHash references  = new IbisHash(256);
 
     /**
      * Remember when a reset must be sent out.
@@ -150,6 +153,21 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     public int		double_index;
 
     /**
+     * Register how often we need to acquire a new set of primitive array
+     * buffers.
+    private int unfinished;
+
+    {
+	Runtime.getRuntime().addShutdownHook(new Thread() {
+	    public void run() {
+		System.err.println(IbisSerializationOutputStream.this + ": unfinished calls " + unfinished);
+		statistics();
+	    }
+	});
+    }
+     */
+
+    /**
      * Structure summarizing an array write.
      */
     private static final class ArrayDescriptor {
@@ -258,8 +276,12 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * @inheritDoc
      */
     public void statistics() {
-	System.err.println("IbisOutput:");
-	IbisHash.statistics();
+	if (false) {
+	    System.err.print("IbisOutput: references -> ");
+	    references.statistics();
+	    System.err.print("IbisOutput: types      -> ");
+	    types.statistics();
+	}
     }
 
     /* This is the data output / object output part */
@@ -335,10 +357,11 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    writeHandle(NUL_HANDLE);
 	    return;
 	}
-	int handle = references.find(ref);
+	int hashCode = references.getHashCode(ref);
+	int handle = references.find(ref, hashCode);
 	if (handle == 0) {
 	    handle = next_handle++;
-	    references.put(ref, handle);
+	    references.put(ref, handle, hashCode);
 	    writeType(java.lang.Class.class);
 	    writeUTF(ref.getName());
 	} else {
@@ -460,6 +483,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		if (touched[TYPE_DOUBLE]) {
 		    double_buffer = new double[DOUBLE_BUFFER_SIZE];
 		}
+// unfinished++;
 	    }
 	}
 
@@ -795,7 +819,8 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * @exception IOException	gets thrown when an IO error occurs.
      */
     private boolean writeTypeHandle(Object ref, Class clazz) throws IOException {
-	int handle = references.find(ref);
+	int hashCode = references.getHashCode(ref);
+	int handle = references.find(ref, hashCode);
 
 	if (handle != 0) {
 	    writeHandle(handle);
@@ -805,7 +830,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	writeType(clazz);
 
 	handle = next_handle++;
-	references.put(ref, handle);
+	references.put(ref, handle, hashCode);
 	if (DEBUG) {
 	    dbPrint("writeTypeHandle: references[" + handle + "] = " + (ref == null ? "null" : ref));
 	}
@@ -973,23 +998,43 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    return 0;
 	}
 
-	int handle = references.find(ref);
+	if (false) {
+	    int hashCode = references.getHashCode(ref);
+	    int handle = references.find(ref, hashCode);
 
-	if (handle == 0) {
-	    Class clazz = ref.getClass();
-	    handle = next_handle++;
-	    if(DEBUG) {
-		dbPrint("writeKnownObjectHeader -> writing NEW object, class = " + clazz.getName());
+	    if (handle == 0) {
+		Class clazz = ref.getClass();
+		handle = next_handle++;
+		if(DEBUG) {
+		    dbPrint("writeKnownObjectHeader -> writing NEW object, class = " + clazz.getName());
+		}
+		references.put(ref, handle, hashCode);
+		writeType(clazz);
+		return 1;
 	    }
-	    references.put(ref, handle);
-	    writeType(clazz);
-	    return 1;
-	}
 
-	if(DEBUG) {
-	    dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+	    if(DEBUG) {
+		dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+	    }
+	    writeHandle(handle);
+	} else {
+	    int handle = references.lazyPut(ref, next_handle + 1);
+	    if (handle == next_handle + 1) {
+// System.err.write("+");
+		Class clazz = ref.getClass();
+		next_handle++;
+		if(DEBUG) {
+		    dbPrint("writeKnownObjectHeader -> writing NEW object, class = " + clazz.getName());
+		}
+		writeType(clazz);
+		return 1;
+	    }
+
+	    if(DEBUG) {
+		dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+	    }
+	    writeHandle(handle);
 	}
-	writeHandle(handle);
 	return -1;
     }
 
@@ -1173,10 +1218,11 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    return;
 	}
 
-	int handle = references.find(ref);
+	int hashCode = references.getHashCode(ref);
+	int handle = references.find(ref, hashCode);
 	if (handle == 0) {
 	    handle = next_handle++;
-	    references.put(ref, handle);
+	    references.put(ref, handle, hashCode);
 	    writeType(java.lang.String.class);
 	    if (DEBUG) {
 		dbPrint("writeString: " + ref);
@@ -1225,7 +1271,8 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	if (replacer != null) {
 	    ref = replacer.replace(ref);
 	}
-	int handle = references.find(ref);
+	int hashCode = references.getHashCode(ref);
+	int handle = references.find(ref, hashCode);
 
 	if (handle == 0) {
 	    Class clazz = ref.getClass();
@@ -1237,7 +1284,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		writeArray(ref, clazz, false);
 	    } else {
 		handle = next_handle++;
-		references.put(ref, handle);
+		references.put(ref, handle, hashCode);
 		writeType(clazz);
 		if (clazz == java.lang.String.class) {
 		    /* EEK this is not nice !! */

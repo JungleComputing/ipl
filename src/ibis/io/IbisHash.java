@@ -1,28 +1,39 @@
 package ibis.io;
 
 
-final class Bucket {        	
-    Object	data;
-    int		handle;
-    int		hashCode;
-    Bucket	next;		// Maintain free list
-} 
-
 final class IbisHash { 
 
-    static final boolean STATS = false;
+    private static final boolean STATS = false; // true; // false;
+    private static final boolean TIMINGS = false; // true; // false;
 
-    static final int MIN_BUCKETS = 32;
-    // static final int SHIFT1  = 5;
-    // static final int SHIFT2  = 16;
-    static final int SHIFT1  = 4;
-    // static final int SHIFT2  = 16;
-    static final int SHIFT3  = 16;
+    private static final int MIN_BUCKETS = 32;
 
-    private Bucket cache;
+    private static final int USE_NEW_BOUND = Integer.MAX_VALUE;
 
-    private static int contains, finds, rebuilds, collisions, rebuild_collisions, new_buckets;
-    private Bucket [] bucket;
+    // private static final int SHIFT1  = 5;
+    // private static final int SHIFT2  = 16;
+    private static final int SHIFT1  = 4;
+    // private static final int SHIFT2  = 16;
+    private static final int SHIFT3  = 16;
+
+    private Object[]	dataBucket;
+    private int[]	handleBucket;
+    private int[]	hashCodeBucket;
+
+    // if (STATS)
+    private long contains;
+    private long finds;
+    private long rebuilds;
+    private long collisions;
+    private long rebuild_collisions;
+    private long new_buckets;
+
+    // if (TIMINGS)
+    private ibis.ipl.Timer t_insert;
+    private ibis.ipl.Timer t_find;
+    private ibis.ipl.Timer t_rebuild;
+    private ibis.ipl.Timer t_clear;
+
     private int offset = 0;
     private int size;
     private int initsize;
@@ -35,32 +46,38 @@ final class IbisHash {
     }
 
     IbisHash(int sz) {
-	alloc_size = sz;
+	int x = 1;
+	while (x < sz) {
+	    x <<= 1;
+	}
+	if (x != sz) {
+	    System.err.println("Warning: Hash table size (" + sz +
+		    ") must be a power of two. Increment to " + x);
+	    sz = x;
+	}
+
 	size = sz;
 	initsize = sz;
-	bucket = new Bucket[sz];
-	if (STATS) contains = finds = 0;
-    }
+	newBucketSet(initsize);
 
-    private final Bucket getBucket() {
-	Bucket b = cache;
-
-	if (b == null) {
-	    b = new Bucket();
-	    if (STATS) new_buckets++;
+	if (STATS) {
+	    contains = 0;
+	    finds = 0;
 	}
-	else {
-	    cache = b.next;
+	if (TIMINGS) {
+	    t_insert = new ibis.util.nativeCode.Rdtsc();
+	    t_find = new ibis.util.nativeCode.Rdtsc();
+	    t_rebuild = new ibis.util.nativeCode.Rdtsc();
+	    t_clear = new ibis.util.nativeCode.Rdtsc();
 	}
-
-	return b;
     }
 
 
-    private final void putBucket(Bucket b) {
-	b.next = cache;
-	b.data = null;
-	cache = b;
+    private void newBucketSet(int size) {
+	dataBucket = new Object[size];
+	handleBucket = new int[size];
+	hashCodeBucket = new int[size];
+	alloc_size = size;
     }
 
 
@@ -73,6 +90,9 @@ final class IbisHash {
 
     private static final int hash_second(int b) {
 	return (b & ~0x1) + 12345;		/* some odd number */
+	// Jason suggests +1 to improve cache locality
+	// return 1;
+	// return (b & 0xffe) + 1;	/* some SMALL odd number */
     }
 
     /**
@@ -83,33 +103,61 @@ final class IbisHash {
     }
 
 
+    // Don't call hashCode on the object. Some objects behave very strange :-)
+    // If you don't understand this, think "ProActive".
+    final int getHashCode(Object ref) {
+	return System.identityHashCode(ref);
+    }
+
+
     // synchronized
-    final int find(Object ref, int h) {
+    final int find(Object ref, int hashCode) {
 
-	if (STATS) finds++;
+	int result;
 
-	int h0 = hash_first(h, size);
+	if (TIMINGS) {
+	    t_find.start();
+	}
 
-	Bucket b = bucket[h0 + offset];
+	if (STATS) {
+	    finds++;
+	}
+
+	int h0 = hash_first(hashCode, size);
+
+	int ix = h0 + offset;
+if (ix >= dataBucket.length)
+System.err.println("find: ix " + ix + " data.length " + dataBucket.length);
+	Object b = dataBucket[ix];
 	
-	if (b == null) return 0;
-	if (b.data == ref) return b.handle;
+	if (b == null) {
+	    result = 0;
 
-	int h1 = hash_second(h);
+	} else if (b == ref) {
+	    result = handleBucket[ix];
 
-	do {
-	    h0 = mod(h0 + h1, size);
-	    b = bucket[h0 + offset];
-	} while (b != null && b.data != ref);
+	} else {
+	    int h1 = hash_second(hashCode);
 
-	return b == null ? 0 : b.handle;
+	    do {
+		h0 = mod(h0 + h1, size);
+		ix = h0 + offset;
+		b = dataBucket[ix];
+	    } while (b != null && b != ref);
+
+	    result = (b == null) ? 0 : handleBucket[ix];
+	}
+
+	if (TIMINGS) {
+	    t_find.stop();
+	}
+
+	return result;
     }
 
 
     final int find(Object ref) {
-	// Don't call hashCode on the object. Some objects behave very strange :-)
-	// If you don't understand this, think "ProActive".
-	return find(ref, System.identityHashCode(ref));
+	return find(ref, getHashCode(ref));
     }
 
 
@@ -118,72 +166,91 @@ final class IbisHash {
      */
     private final void rebuild() {
 
+	if (TIMINGS) {
+	    t_rebuild.start();
+	}
+
 	int n = size * 4;
 
 	int new_offset = 0;
-	Bucket[] new_bucket = bucket;
+
+	int[] old_hashCode = hashCodeBucket;
+	int[] old_handle = handleBucket;
+	Object[] old_data = dataBucket;
 
 	/* Only buy a new array when we really overflow.
 	 * If the array we allocated previously still has enough
 	 * free space, use first/last slice when we currently use
 	 * last/first slice. */
 	if (n + size > alloc_size) {
-	    alloc_size = 3 * n;
-	    new_bucket = new Bucket[alloc_size];
+	    newBucketSet(3 * n);
 	} else if (offset == 0) {
 	    new_offset = alloc_size - n;
 	}
 
 	for (int i = 0; i < size; i++) {
-	    Bucket b = bucket[i + offset];
+	    int ix = i + offset;
+	    Object b = old_data[ix];
 	    if (b != null) {
-		int h = b.hashCode;
+		int h = old_hashCode[ix];
 		int h0 = hash_first(h, n);
-		while (new_bucket[h0 + new_offset] != null) {
+		while (dataBucket[h0 + new_offset] != null) {
 		    int h1 = hash_second(h);
 		    do {
 			h0 = mod(h0 + h1, n);
-			if (STATS) rebuild_collisions++;
-		    } while (new_bucket[h0 + new_offset] != null);
+			if (STATS) {
+			    rebuild_collisions++;
+			}
+		    } while (dataBucket[h0 + new_offset] != null);
 		}
-		new_bucket[h0 + new_offset] = b;
-		bucket[i + offset] = null;
+		dataBucket[h0 + new_offset] = b;
+		hashCodeBucket[h0 + new_offset] = old_hashCode[ix];
+		handleBucket[h0 + new_offset] = old_handle[ix];
+		dataBucket[ix] = null;
 	    }
 	}
 
-	bucket = new_bucket;
 	size = n;
 	offset = new_offset;
 
-	if (STATS) rebuilds++;
+	if (TIMINGS) {
+	    t_rebuild.stop();
+	}
+
+	if (STATS) {
+	    rebuilds++;
+	}
     }
 
 
-    // synchronized
-    final void put(Object ref, int handle, int h) {
+    private int put(Object ref, int handle, int hashCode, boolean lazy) {
 
-	int h0 = hash_first(h, size);
+	if (TIMINGS) {
+	    t_insert.start();
+	}
 
-	Bucket b = bucket[h0 + offset];
+	int h0 = hash_first(hashCode, size);
 
-	if (b != null && b.data != ref) {
-	    int h1 = hash_second(h);
+	Object b = dataBucket[h0 + offset];
+
+	if (b != null && b != ref) {
+	    int h1 = hash_second(hashCode);
 	    do {
 		h0 = mod(h0 + h1, size);
-		if (STATS) collisions++;
-		b = bucket[h0 + offset];
-	    } while (b != null && b.data != ref);
+		if (STATS) {
+		    collisions++;
+		}
+		b = dataBucket[h0 + offset];
+	    } while (b != null && b != ref);
 	}
 
-	if (b == null) {
-	    b = getBucket();
+	if (lazy && b != null) {
+	    return handleBucket[h0 + offset];
 	}
 
-	b.data     = ref;
-	b.handle   = handle;
-	b.hashCode = h;
-
-	bucket[h0 + offset] = b;
+	dataBucket[h0 + offset] = ref;
+	handleBucket[h0 + offset] = handle;
+	hashCodeBucket[h0 + offset] = hashCode;
 
 	present++;
 
@@ -191,12 +258,39 @@ final class IbisHash {
 	    rebuild();
 	}
 
-	if (STATS) contains++;
+	if (TIMINGS) {
+	    t_insert.stop();
+	}
+
+	if (STATS) {
+	    contains++;
+	}
+
+	return handle;
     }
 
 
+    // synchronized
+    final void put(Object ref, int handle, int hashCode) {
+	put(ref, handle, hashCode, false);
+    }
+
+
+    // synchronized
     final void put(Object ref, int handle) {
-	put(ref, handle, System.identityHashCode(ref));
+	put(ref, handle, getHashCode(ref));
+    }
+
+
+    // synchronized
+    final int lazyPut(Object ref, int handle, int hashCode) {
+	return put(ref, handle, hashCode, true);
+    }
+
+
+    // synchronized
+    final int lazyPut(Object ref, int handle) {
+	return lazyPut(ref, handle, getHashCode(ref));
     }
 
 
@@ -207,27 +301,38 @@ final class IbisHash {
 	 * Cleaning is most efficient by doing a swipe over
 	 * the whole bucket array.
 	 */
-	for (int i = 0; i < size; i++) {
-	    Bucket b = bucket[i + offset];
-	    if (b != null) {
-		putBucket(b);
-		bucket[i + offset] = null;
+
+	if (TIMINGS) {
+	    t_clear.start();
+	}
+
+	if (size < USE_NEW_BOUND) {
+	    for (int i = 0; i < size; i++) {
+		dataBucket[i + offset] = null;
 	    }
+	} else {
+// System.err.println("New bucket set...");
+	    newBucketSet(initsize);
 	}
 
 	size = initsize;
 	offset = 0;
 	present = 0;
 
+	if (TIMINGS) {
+	    t_clear.stop();
+	}
+
 	if (STATS) {
-	    // contains = finds = 0;
+	    // contains = 0;
+	    // finds = 0;
 	}
     }
 
 
-    final static void statistics() {
+    final void statistics() {
 	if (STATS) {
-	    System.err.println("IbisHash:" +
+	    System.err.println(this + ": " +
 		    //  "buckets     = " + size +
 		    " contains " + contains +
 		    " finds " + finds +
@@ -236,6 +341,13 @@ final class IbisHash {
 		    " collisions " + collisions +
 		    " (rebuild " + rebuild_collisions +
 		    ")");
+	}
+	if (TIMINGS) {
+	    System.err.println(this + ": per insert: " +
+		    " insert(" + t_insert.nrTimes() + ") " + t_insert.format(t_insert.totalTimeVal() / t_insert.nrTimes()) +
+		    " find(" + t_find.nrTimes() + ") " + t_insert.format(t_find.totalTimeVal() / t_insert.nrTimes()) +
+		    " rebuild(" + t_rebuild.nrTimes() + ") " + t_insert.format(t_rebuild.totalTimeVal() / t_insert.nrTimes()) +
+		    " clear(" + t_clear.nrTimes() + ") " + t_insert.format(t_clear.totalTimeVal() / t_insert.nrTimes()));
 	}
     }
 }
