@@ -1461,6 +1461,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 					irType } );
 
 	m.setName("exceptionHandlingClone_" + mOrig.getName());
+	m.setAccessFlags((m.getAccessFlags() & ~ (Constants.ACC_PRIVATE|Constants.ACC_PROTECTED)) | Constants.ACC_PUBLIC);
 
 	InstructionList il = m.getInstructionList();
 	il.setPositions();
