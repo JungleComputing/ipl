@@ -7,78 +7,337 @@ import java.util.Vector;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
-
-import ibis.ipl.*;
 import ibis.util.Ticket;
 import ibis.util.PoolInfo;
-import ibis.util.SpecialStack;
-import java.lang.reflect.Method;
 
-public final class Group { 
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPort;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.WriteMessage;
+import ibis.ipl.Registry;
+import ibis.ipl.Upcall;
+import ibis.ipl.StaticProperties;
+import ibis.ipl.IbisIOException;
+
+/**
+ * The {@link Group} class takes care of the startup, and has methods
+ * to create, join, lookup, and exit a group.
+ */
+public final class Group implements GroupProtocol { 
     
-    public final static boolean DEBUG = true;
+    /**
+     * Enable/disable debugging prints.
+     */
+    public final static boolean DEBUG = false;
 
-    // result opcodes
-    public static final byte
-	RESULT_VOID      = 0,
-	RESULT_BOOLEAN   = 1,
-	RESULT_BYTE      = 2,
-	RESULT_SHORT     = 3,		
-	RESULT_CHAR      = 4,
-	RESULT_INT       = 5,
-	RESULT_LONG      = 6,
-	RESULT_FLOAT     = 7,
-	RESULT_DOUBLE    = 8,
-	RESULT_OBJECT    = 9,
- 	RESULT_EXCEPTION = 10;
-
+    /**
+     * Ibis rank number in this run.
+     */
     public static int _rank;
-    protected static int _size;
-    protected static String name;
 
-//    private static i_GroupRegistry _groupRegistry;
-       
+    /**
+     * To get tickets from.
+     */
+    private static Ticket ticketMaster = null;
+
+    /**
+     * Unicast send ports, one for each node.
+     */
+    public static SendPort [] unicast;
+
+    /**
+     * The total number of nodes involved in this run.
+     */
+    private static int _size;
+
+    /**
+     * The local hostname.
+     */
+    private static String name;
+
+    /**
+     * The group registry, only lives on the node elected as the master.
+     */
+    private static GroupRegistry registry;
+
+    /**
+     * Local cache of stub classes, so that not every group lookup has to
+     * go through the registry.
+     */
+    private static Hashtable stubclasses;
+
+    /**
+     * My local ibis.
+     */
     private static Ibis ibis;
+
+    /**
+     * My local Ibis identifier.
+     */
     private static IbisIdentifier localID;
+
+    /**
+     * Ibis registry, used for setting up stuff.
+     */
     private static Registry ibisRegistry;
     
+    /**
+     * Port type for ports used in GMI.
+     */
     private static PortType portType;
 
+    /**
+     * Port on which group messages are received.
+     */
     private static ReceivePort receivePort;
-    private static ReceivePort combinePort;
 
+    /**
+     * For receiving messages from the GMI master.
+     */
     private static ReceivePort systemIn;
+
+    /**
+     * For sending messages to the GMI master.
+     */
     private static SendPort    systemOut;
 
+    /**
+     * ReceivePort identifiers, one for each node.
+     */
     private static ReceivePortIdentifier [] pool;
-    private static ReceivePortIdentifier [] combine_pool;
 
-    // this must be public in order for generated classes to use it....
-    public static SendPort [] unicast;
-    public static SendPort [] combine_unicast;
-//    public static SendPort multicast;		
-
+    /**
+     * Currently allocated multicast send ports.
+     */
     private static Hashtable multicastSendports;
-       
+
+    /**
+     * Upcall handler.
+     */
     private static GroupCallHandler groupCallHandler;
-    private static GroupCombineHandler groupCombineHandler;
 
-    public static Ticket ticketMaster = null;
-    protected static GroupRegistry registry;
-    
-    protected static Vector groups;
-    protected static Vector skeletons;
+    /**
+     * Skeletons available through group identification.
+     */
+    private static GroupSkeleton[] groups;
 
-    protected static Hashtable stubclasses;
+    /**
+     * The current number of existing groups.
+     */
+    private static int groups_max;
 
-    /* This handles the stubIDs */
-    protected static SpecialStack stubIDStack;
-    private static Object stubLock;
+    /**
+     * Skeletons on this node.
+     */
+    private static Vector skeletons;
 
+    /**
+     * Stubs and stub identifications.
+     */
+    private static GroupStub stubIDStack[] = new GroupStub[16];
+
+    /**
+     * Container class for group information.
+     */
+    static private final class GroupStubData { 
+
+	/**
+	 * The group name.
+	 */
+	String groupName;	
+
+	/**
+	 * The name of the group interface for this group.
+	 */
+	String typeName;	
+
+	/**
+	 * The stub class for this group, so that stubs can easily be
+	 * created.
+	 */
+	Class stubClass;
+
+	/**
+	 * The group identification.
+	 */
+	int groupID;
+
+	/**
+	 * The node identifications for all group members.
+	 */
+	int [] memberRanks; 
+
+	/**
+	 * The skeleton identifications for all group members.
+	 */
+	int [] memberSkels; 
+
+	/**
+	 * The stub counter, used to allocate stubs.
+	 */
+	int stubCounter;
+
+	/**
+	 * Creates a new stub for the group at hand.
+	 *
+	 * @param stubID an identification for the new stub
+	 * @return the new stub.
+	 */
+	GroupStub newStub() { 
+	    try { 
+		GroupStub s = (GroupStub) stubClass.newInstance();
+		int stubID;
+		synchronized(stubIDStack) {
+		    stubID = stubCounter++;
+		    if (stubID >= stubIDStack.length) {
+			GroupStub[] temp = new GroupStub[2 * stubID];
+			for (int i = 0; i < stubIDStack.length; i++) {
+			    temp[i] = stubIDStack[i];
+			}
+			temp[stubID] = s;
+			stubIDStack = temp;
+		    }
+		    else {
+			stubIDStack[stubID] = s;
+		    }
+		}
+		s.init(groupID, memberRanks, memberSkels, stubID);
+		return s;
+	    } catch (Exception e) { 
+		e.printStackTrace();
+		throw new RuntimeException(Group._rank + " GroupStubData.newStub() Failed to create stub of type " + typeName + " for group " + groupName + " " + e);			
+	    } 
+	} 
+    } 
+
+    /**
+     * Handler class for all upcalls.
+     */
+    private static final class GroupCallHandler implements GroupProtocol, Upcall { 
+
+	/**
+	 * Invocation handler.
+	 *
+	 * @param r  the message to be read
+	 */
+	private void handleInvocation(ReadMessage r) throws Exception { 
+
+	    int dest = r.readInt();
+	    int inv = r.readByte();
+	    int res = r.readByte();
+
+	    switch (inv) { 
+	    case InvocationScheme.I_GROUP: 
+	    case InvocationScheme.I_COMBINED_FLAT_GROUP: 
+		{
+		    GroupSkeleton s = Group.getSkeletonByGroupID(dest);
+		    if (Group.DEBUG) {
+			System.out.println(Group._rank + ": It is a GROUP INVOCATION");
+			System.out.println(Group._rank + ": skeleton = " + s);
+		    }
+		    s.handleMessage(inv, res, r);			       
+		}
+		break;
+	    default:
+		{
+		    GroupSkeleton s = Group.getSkeleton(dest);
+		    s.handleMessage(inv, res, r);
+		}
+		break;
+	    } 
+	} 
+
+	/**
+	 * Upcall method. Handle the upcall, divide and conquer.
+	 *
+	 * @param m  the message to be read.
+	 */
+	public void upcall(ReadMessage m) { 
+
+	    int ticket;
+	    GroupSkeleton s;
+	    byte opcode;
+	    byte resultMode;
+
+	    try { 
+		opcode = m.readByte();
+		
+		switch (opcode) { 
+		case REGISTRY:
+		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a REGISTRY");
+		    Group.registry.handleMessage(m);
+		    break;
+		    
+		case INVOCATION:
+		    if (Group.DEBUG) System.out.println(Group._rank + ": Got an INVOCATION");
+		    handleInvocation(m);
+		    break;
+
+		case REGISTRY_REPLY:
+		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a REGISTRY_REPLY");
+		    ticket = m.readInt();
+		    if (Group.DEBUG) System.out.println(Group._rank + ": REGISTRY_REPLY forwarded to ticketMaster (" + ticket + ")");
+		    synchronized(m) {
+			Group.ticketMaster.put(ticket, m);
+			m.wait();
+		    }
+		    break;
+
+		case INVOCATION_FLATCOMBINE:
+		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a INVOCATION_FLATCOMBINE");
+		    stubIDStack[m.readInt()].handleFlatInvocationCombineMessage(m);
+		    break;
+
+		case INVOCATION_BINCOMBINE:
+		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a INVOCATION_BINCOMBINE");
+		    stubIDStack[m.readInt()].handleBinInvocationCombineMessage(m);
+		    break;
+
+		case INVOCATION_REPLY:
+		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a INVOCATION_REPLY");
+
+		    resultMode = m.readByte();
+		    ticket = m.readInt();
+		    int stub = ticket >> 16;
+		    ticket = ticket & 0xFFFF;		
+		    if (Group.DEBUG) System.out.println(Group._rank + ": INVOCATION_REPLY forwarded to stub (" + stub + ", " + ticket + ")");
+		    stubIDStack[stub].handleResultMessage(m, ticket, resultMode);
+		    break;
+
+		case COMBINE:
+		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a COMBINE");
+		    s = (GroupSkeleton) Group.getSkeleton(m.readInt());
+		    s.handleCombineMessage(m);
+		    break;
+
+		case COMBINE_RESULT:
+		    if (Group.DEBUG) System.out.println(Group._rank + ": Got a COMBINE_RESULT");
+		    s = Group.getSkeletonByGroupID(m.readInt());
+		    s.handleCombineMessage(m);
+		    break;
+		default: 
+		    System.out.println(Group._rank + ": Got an illegal opcode !");
+		} 
+	    } catch (Exception e) { 
+		System.out.println(Group._rank + ": Got an exception in GroupCallHandler !" + e);
+		e.printStackTrace();
+	    } 
+	}
+    } 
+
+    /**
+     * Initialization code. Starts up Ibis, elects a node to run the
+     * group registry, creates send and receive ports.
+     */
     static { 
 	try {
 	    ticketMaster = new Ticket();
-	    groups = new Vector();
+	    groups = new GroupSkeleton[10];
+	    groups_max = 10;
 	    skeletons = new Vector();
 	    stubclasses = new Hashtable();
 	    multicastSendports = new Hashtable();
@@ -89,24 +348,27 @@ public final class Group {
 		System.out.println(name + ": init Group RTS");
 	    }
 	
-	    ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.tcp.TcpIbis", null);
-//	    ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.messagePassing.panda.PandaIbis", null);
+	    ibis         = Ibis.createIbis(null);
 	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
-
+	    
+	    Properties p = System.getProperties();
 	    StaticProperties s = new StaticProperties();
-	    s.add("Serialization", "ibis");
+
+	    String ibis_serialization = p.getProperty("ibis.serialization");
+	    if (ibis_serialization != null) {
+		s.add("Serialization", ibis_serialization);
+	    }
+	    else {
+		s.add("Serialization", "ibis");
+	    }
 
 	    portType = ibis.createPortType("GMI", s);
 	               
 	    groupCallHandler = new GroupCallHandler();
-	    groupCombineHandler = new GroupCombineHandler();
 
 	    receivePort = portType.createReceivePort("GMI port on " + name, groupCallHandler);
 	    receivePort.enableConnections();
-
-	    combinePort = portType.createReceivePort("GMI combine port on " + name, groupCombineHandler);
-	    combinePort.enableConnections();
 
 	    IbisIdentifier i = (IbisIdentifier) ibisRegistry.elect("GMI Master", localID);
 
@@ -127,9 +389,6 @@ public final class Group {
 		pool = new ReceivePortIdentifier[_size];
 		pool[0] = receivePort.identifier();
 
-		combine_pool = new ReceivePortIdentifier[_size];
-		combine_pool[0] = combinePort.identifier();
-
 		if (_size > 1) {
 
 		    systemIn  = portType.createReceivePort("GMI Master");
@@ -141,18 +400,14 @@ public final class Group {
 			ReadMessage r = systemIn.receive();
 			ReceivePortIdentifier reply = (ReceivePortIdentifier) r.readObject();
 			ReceivePortIdentifier id = (ReceivePortIdentifier) r.readObject();
-			ReceivePortIdentifier combine_id = (ReceivePortIdentifier) r.readObject();
 			r.finish();
 
-//System.err.println("GOT MESSAGE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
 			systemOut.connect(reply);
 			pool[j] = id;
-			combine_pool[j] = combine_id;
 		    }
 
 		    WriteMessage w = systemOut.newMessage(); 
 		    w.writeObject(pool);
-		    w.writeObject(combine_pool);
 		    w.send();
 		    w.finish();
 		}
@@ -182,13 +437,11 @@ public final class Group {
 		WriteMessage w = systemOut.newMessage();
 		w.writeObject(systemIn.identifier());
 		w.writeObject(receivePort.identifier());
-		w.writeObject(combinePort.identifier());
 		w.send();
 		w.finish();
 
 		ReadMessage r = systemIn.receive();
 		pool = (ReceivePortIdentifier []) r.readObject();
-		combine_pool = (ReceivePortIdentifier []) r.readObject();
 		r.finish();
 
 		_size = pool.length;
@@ -202,18 +455,15 @@ public final class Group {
 	    } 
 
 	    unicast = new SendPort[_size];
-	    combine_unicast = new SendPort[_size];
 
 	    for (int j=0;j<_size;j++) { 				
 		unicast[j] = portType.createSendPort("Unicast on " + name + " to " + pool[j].name());
-		combine_unicast[j] = portType.createSendPort("Unicast on " + name + " to " + combine_pool[j].name());
 
 		if (DEBUG) { 
 		    System.out.println("Connecting unicast sendport " + unicast[j].identifier() + " to " + pool[j]);
 		}
 
 		unicast[j].connect(pool[j]);				
-		combine_unicast[j].connect(combine_pool[j]);				
 
 		if (DEBUG) { 
 		    System.out.println("Connecting unicast sendport " + unicast[j].identifier() + " done");
@@ -239,21 +489,26 @@ public final class Group {
 		} 
 	    }
 
-//	    multicast = portType.createSendPort("Multicast on " + name);
-
-//	    for (int j=0;j<_size;j++) { 
-//		multicast.connect(pool[j]);
-//	    }
-
 	    receivePort.enableUpcalls();
-	    combinePort.enableUpcalls();
-
-	    stubLock = new Object();
-	    stubIDStack = new SpecialStack(stubLock);
 
 	    if(DEBUG) {
 		System.out.println(name + ": Group init");
 	    }
+
+	    /****
+	     * This is only supported in SDK 1.4 and upwards. Comment out
+	     * if you run an older SDK.
+	     */
+	    Runtime.getRuntime().addShutdownHook(new Thread() {
+		public void run() {
+		    if (ibis != null) {
+			ibis.end();
+			ibis = null;
+		    }
+		    // System.err.println("Ended Ibis");
+		}
+	    });
+	    /* End of 1.4-specific code */
 
 	} catch (Exception e) {
 	    System.err.println(name + ": Could not init Group RTS " + e);
@@ -262,6 +517,14 @@ public final class Group {
 	}
     }
 
+    /**
+     * Gets a multicast send port using an identification to see if we
+     * already have such a send port. If not, a new one is created.
+     *
+     * @param ID    identification of the send port
+     * @param hosts the target hosts of the multicast
+     * @return the multicast send port.
+     */
     public static SendPort getMulticastSendport(String ID, int [] hosts) { 
 
 	// Note: for efficiency the ranks in hosts should be sorted (low->high) !!!
@@ -283,6 +546,7 @@ public final class Group {
 		
 		for (int i=0;i<hosts.length;i++) { 
 		    temp.connect(pool[hosts[i]]);
+		    System.out.println("Connected to " + hosts[i] + ", " + pool[hosts[i]]);
 		}
 	    } catch (IbisIOException e) { 
 		 System.err.println(name + ": Could not create multicast group " + ID + " " + e);
@@ -292,40 +556,81 @@ public final class Group {
 
 	    multicastSendports.put(ID, temp);
 	}
-
+	System.out.println("Found multicast send port " + temp);
 	return temp;
     } 
     
-
-    protected static long getNewGroupObjectID(GroupSkeleton skel) { 
+    /**
+     * Gets a new (local) skeleton identification.
+     *
+     * @param skel the group skeleton
+     * @return the new skeleton identification.
+     */
+    protected static int getNewSkeletonID(GroupSkeleton skel) { 
 	
 	synchronized (skeletons) {
 	    int next = skeletons.size();
 
-	    long id = _rank;
-	    id = id << 32;
-	    id = id | next;
-
 	    skeletons.add(next, skel);
 
-	    return id;
+	    return next;
 	}		
     } 
 
+    /**
+     * Makes a skeleton available through its group identification.
+     *
+     * @param groupID  the group identification
+     * @param skeleton the group skeleton to be made available
+     */
     protected static void registerGroupMember(int groupID, GroupSkeleton skeleton) { 
-	/* this is wrong -> fix later */
-//		if (Group.DEBUG) 
-	System.out.println("Group.registerGroupMember(" + groupID + " " + 
+	if (Group.DEBUG) {
+	    System.out.println("Group.registerGroupMember(" + groupID + " " + 
 		   skeleton.getClass().getName());
+	}
 	
-	groups.add(groupID, skeleton);
+	if (groupID >= groups_max) {
+	    int new_max = 2 * groupID + 1;
+	    GroupSkeleton[] g = new GroupSkeleton[new_max];
+	    for (int i = 0; i < groups_max; i++) {
+		g[i] = groups[i];
+	    }
+	    for (int i = groups_max; i < new_max; i++) {
+		g[i] = null;
+	    }
+	    groups_max = new_max;
+	    groups = g;
+	}
+	groups[groupID] = skeleton;
     }  
     
-    protected static GroupSkeleton getSkeleton(int skel) { 
-	/* this is wrong -> fix later */
+    /**
+     * Gets a skeleton through its local identification.
+     * @param skel the local skeleton identification
+     * @return the group skeleton.
+     */
+    private static GroupSkeleton getSkeleton(int skel) { 
 	return (GroupSkeleton) skeletons.get(skel);
     }  
+
+    /**
+     * Gets a skeleton through its group identification.
+     * @param groupID the group identification
+     * @return the group skeleton
+     */
+    private static GroupSkeleton getSkeletonByGroupID(int groupID) {
+	return groups[groupID];
+    }
     
+    /**
+     * Creates a group.
+     *
+     * @param name  the name of the group to be created
+     * @param type  the group interface that this group will provide
+     * @param size  the number of group members that this group will have
+     * @exception RuntimeException when the group already exists or in case
+     * of a communication error.
+     */
     public static void create(String name, Class type, int size) throws RuntimeException {
 
 	try { 
@@ -334,8 +639,8 @@ public final class Group {
 	    int ticket = ticketMaster.get();
 
 	    WriteMessage w = unicast[0].newMessage();
-	    w.writeByte(GroupProtocol.REGISTRY);
-	    w.writeByte(GroupProtocol.CREATE_GROUP);
+	    w.writeByte(REGISTRY);
+	    w.writeByte(CREATE_GROUP);
 	    w.writeInt(_rank);
 	    w.writeInt(ticket);
 	    w.writeObject(name);
@@ -353,8 +658,8 @@ public final class Group {
 	        r.notify();
 	    }
 
-	    if (result == GroupProtocol.CREATE_FAILED) { 
-		throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : Group allready exists!");  
+	    if (result == CREATE_FAILED) { 
+		throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : Group already exists!");  
 	    }
 
 	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") done");
@@ -362,16 +667,25 @@ public final class Group {
 	} catch (IbisIOException e) { 
 	    throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : communication error !" + e.getMessage());  
 	}
-
     }
 
+    /**
+     * Joins the group with this name, by communicating with
+     * the group registry, and blocks until the group is ready.
+     *
+     * @param name  the name of the group we are joining
+     * @param o     the member that is joining the group
+     * @exception RuntimeException when the group is not found,
+     *            the group is already full, or something else goes wrong.
+     */
     public static void join(String name, GroupMember o) throws RuntimeException {
 
 	try { 
 	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") starting");
 
 	    int groupnumber = 0;
-	    long [] memberIDs = null;
+	    int [] memberRanks = null;
+	    int [] memberSkels = null;
 	    boolean retry = true;
 	    int ticket;
 	    WriteMessage w;
@@ -383,13 +697,13 @@ public final class Group {
 		ticket = ticketMaster.get();
 		
 		w = unicast[0].newMessage();
-		w.writeByte(GroupProtocol.REGISTRY);
-		w.writeByte(GroupProtocol.JOIN_GROUP);
+		w.writeByte(REGISTRY);
+		w.writeByte(JOIN_GROUP);
 		w.writeInt(_rank);
 		w.writeInt(ticket);
 		w.writeObject(name);
 		w.writeObject(o.groupInterfaces);
-		w.writeLong(o.myID);
+		w.writeInt(o.mySkel);
 		w.send();
 		w.finish();
 
@@ -399,23 +713,24 @@ public final class Group {
 		result = r.readByte();			
 		
 		switch(result) { 
-		case GroupProtocol.JOIN_UNKNOWN: 
+		case JOIN_UNKNOWN: 
 		    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group not found, retry");
 		    break;
 
-		case GroupProtocol.JOIN_WRONG_TYPE:
-		    throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Group member has wrong type!");  
+		case JOIN_WRONG_TYPE:
+		    throw new RuntimeException(_rank + " Group.join(" + name + ") Failed : Group member has wrong type!");  
 
-		case GroupProtocol.JOIN_FULL:
-		    throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Group full!");  
+		case JOIN_FULL:
+		    throw new RuntimeException(_rank + " Group.join(" + name + ") Failed : Group full!");  
 		    
-		case GroupProtocol.JOIN_OK:
+		case JOIN_OK:
 		    retry = false;
 		    groupnumber = r.readInt();
-		    memberIDs = (long []) r.readObject();
+		    memberRanks = (int []) r.readObject();
+		    memberSkels = (int []) r.readObject();
 		    break;
 		default:
-		    System.out.println(_rank + " Group.joinGroup(" + name + ") Failed : got illegal opcode");  		
+		    System.out.println(_rank + " Group.join(" + name + ") Failed : got illegal opcode");  		
 		    System.exit(1);
 		} 
 		
@@ -426,47 +741,27 @@ public final class Group {
 	    }
 	    
 	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group(" + groupnumber + ") found !");
-			
-	    o.init(groupnumber, memberIDs);			       
 
-	    // do a barrier to make sure all groupmembers are initialized 
-	    ticket = ticketMaster.get();
-	    
-	    w = unicast[0].newMessage();
-	    w.writeByte(GroupProtocol.REGISTRY);
-	    w.writeByte(GroupProtocol.BARRIER_GROUP);
-	    w.writeInt(_rank);
-	    w.writeInt(ticket);
-	    w.writeObject(name);
-	    w.send();
-	    w.finish();
-		
-	    r = (ReadMessage) ticketMaster.collect(ticket);
-	    result = r.readByte();			
-	    r.finish();
-	    synchronized(r) {
-	        r.notify();
-	    }
-	    
-	    switch(result) { 
-	    case GroupProtocol.BARRIER_FAILED: 
-		throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Barrier failed!");
-	    case GroupProtocol.BARRIER_OK:
-		break;
-	    default:
-		System.out.println(_rank + " Group.joinGroup(" + name + ") Failed : got illegal opcode");
-		System.exit(1);
-	    } 
-	    
+	    o.init(groupnumber, memberRanks, memberSkels);			       
 	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") done");
 
 	} catch (Exception e) { 
-	    throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : communication error !" + e.getMessage());  
+	    System.err.println("Got exception" + e);
+	    e.printStackTrace();
+	    throw new RuntimeException(_rank + " Group.join(" + name + ") Failed : communication error !" + e.getMessage());  
 	}
     } 
     
+    /**
+     * Looks up the group with this name, if necessary by communicating with
+     * the group registry, and possibly waiting until the group is ready.
+     *
+     * @param name  the name of the group we are looking for
+     * @return the group interface we were looking for
+     * @exception RuntimeException when the group is not found, or something
+     *            else goes wrong.
+     */
     public static GroupInterface lookup(String name) throws RuntimeException { 
-    
 	GroupStubData data = (GroupStubData) stubclasses.get(name);
     
 	if (data == null) {
@@ -478,8 +773,8 @@ public final class Group {
 		    /* this group is unknown -> go and ask the registry */
 		    int ticket = ticketMaster.get();;
 		    WriteMessage w = unicast[0].newMessage();
-		    w.writeByte(GroupProtocol.REGISTRY);
-		    w.writeByte(GroupProtocol.FIND_GROUP);
+		    w.writeByte(REGISTRY);
+		    w.writeByte(FIND_GROUP);
 		    w.writeInt(_rank);
 		    w.writeInt(ticket);
 		    w.writeObject(name);
@@ -492,14 +787,14 @@ public final class Group {
 		    byte result = r.readByte();		
 		    
 		    switch (result) { 
-		    case GroupProtocol.GROUP_UNKOWN:
+		    case GROUP_UNKNOWN:
 			r.finish();
 			synchronized(r) {
 			    r.notify();
 			}
-			throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : unknown group!");  	
+			throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unknown group!");  	
 			
-		    case GroupProtocol.GROUP_NOT_READY: 
+		    case GROUP_NOT_READY: 
 			System.err.println("Group " + name + " not ready yet -> going to sleep");
 			r.finish();
 			synchronized(r) {
@@ -512,13 +807,14 @@ public final class Group {
 			}
 			break;
 			
-		    case GroupProtocol.GROUP_OK:
+		    case GROUP_OK:
 			done = true;
 
 			data.groupName = name;
 			data.typeName  = (String) r.readObject();
 			data.groupID   = r.readInt();
-			data.memberIDs = (long []) r.readObject();
+			data.memberRanks = (int []) r.readObject();
+			data.memberSkels = (int []) r.readObject();
 			r.finish();
 			synchronized(r) {
 			    r.notify();
@@ -542,34 +838,44 @@ public final class Group {
 			    classname += "group_stub_" + s.nextToken();
 			    data.stubClass = Class.forName(classname); 
 			} catch (Exception e) { 
-			    throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : unknown group!");  
+			    throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unknown group!");  
 			} 
 		    } 
 		} 
 
 	    } catch (Exception e) { 
-		throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : " + e); 
+		throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : " + e); 
 	    } 
 
 	    stubclasses.put(name, data);
 	}
 	    
-	int num = 0;
-	GroupInterface s = null;;
-
-	num = stubIDStack.getPosition();
-	s = data.newStub(num);
-	stubIDStack.putData(num, s);
-	return s;
+	return data.newStub();
     }
 
 
-    public static CombinedInvocationInfo defineCombinedInvocation(CombinedInvocation ci, int groupID, String method, String name, int mode, int rank, int size) throws RuntimeException { 
+    /**
+     * Creates a combined invocation info structure by communication with
+     * the registry. Note that this method blocks until all invokers involved
+     * in this combined invocation have registered (configured, in users terms).
+     *
+     * @param ci      the combined invocation scheme
+     * @param groupID the group identification
+     * @param method  the method descriptor
+     * @param name    the name used for registering this combined invocation
+     * @param mode    summary of the combined invocation scheme
+     * @param rank    node identification of caller
+     * @param size    total number of nodes that will be involved in this
+     * 		      combined invocation
+     * @return the combined invocation info structure.
+     * @exception RuntimeException when there is a failure.
+     */
+    protected static CombinedInvocationInfo defineCombinedInvocation(CombinedInvocation ci, int groupID, String method, String name, int mode, int rank, int size) throws RuntimeException { 
 	try { 		
 	    int ticket = ticketMaster.get();;
 	    WriteMessage w = unicast[0].newMessage();
-	    w.writeByte(GroupProtocol.REGISTRY);
-	    w.writeByte(GroupProtocol.DEFINE_COMBINED);
+	    w.writeByte(REGISTRY);
+	    w.writeByte(DEFINE_COMBINED);
 	    w.writeInt(groupID);
 	    w.writeInt(_rank);
 	    w.writeInt(ticket);
@@ -585,34 +891,57 @@ public final class Group {
 	    byte result = r.readByte();		
 		    
 	    switch (result) { 
-	    case GroupProtocol.COMBINED_FAILED: {
+	    case COMBINED_FAILED: {
 		String reason = (String) r.readObject();
 		r.finish();
+		synchronized(r) {
+		    r.notify();
+		}
 		throw new RuntimeException(reason);
 		}
-	    case GroupProtocol.COMBINED_OK: {
+	    case COMBINED_OK: {
 		CombinedInvocationInfo info = (CombinedInvocationInfo) r.readObject();
 		r.finish();
+		synchronized(r) {
+		    r.notify();
+		}
 		return info;
 		}
 	    default:
 		throw new RuntimeException("Unexpected answer on DEFINE_COMBINED");
 	    }
 	} catch (Exception e) { 
-	    throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : " + e); 
+	    throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : " + e); 
 	} 
     }
 
 
 
+    /**
+     * Returns the node identification of the invoker.
+     *
+     * @return node identification.
+     */
     public static int rank() { 
 	return _rank;
     }
     
+    /**
+     * Returns the total number of nodes in this run.
+     *
+     * @return total number of nodes.
+     */
     public static int size() { 
 	return _size;
     }       
 
+    /**
+     * Exits from a group and cleans up resources. This method
+     * must be called by all members of the group, making it a sort
+     * of combined invocation.
+     *
+     * TODO: Remove the information that is registered in the registry???
+     */
     public static void exit() { 
 	try { 
 
@@ -649,14 +978,14 @@ public final class Group {
 
 		ReadMessage r = systemIn.receive();
 		r.finish();
-		systemIn.free();				
+
 		systemOut.free();
+		systemIn.free();				
 
 	    }
 	    
 	    for (int i=0;i<_size;i++) { 
 		unicast[i].free();
-		combine_unicast[i].free();
 	    } 
 
 	    Enumeration hash_elts = multicastSendports.elements();
@@ -666,9 +995,9 @@ public final class Group {
 		p.free();
 	    }
 	    
-	    //multicast.free();			
 	    receivePort.free();			
 	    ibis.end();
+	    ibis = null;
 	    
 	    System.out.println("Group exit done");
 
@@ -677,21 +1006,19 @@ public final class Group {
 	}		
     } 
 
-    public static Method findMethod(Class c, String method, Class [] parameters) { 
-
-	Method temp = null;
-
-	try { 
-	    temp = c.getDeclaredMethod(method, parameters);			
-	} catch (Exception e) { 
-	    // ignore ... System.out.println("findMethod got " + e);
-	}
-
-	return temp;
-    } 
-    
+    /**
+     * Looks up the method described by descr in the group interface i.
+     * If found, its {@link GroupMethod} is returned.
+     *
+     * @param i    the group interface in which to look
+     * @param desc the method descriptor, as a string. Example format:
+     *             "int lookmeup(int[],int)"
+     * @return The {@link GroupMethod} object of the method.
+     * @exception NoSuchMethodException is thrown when the method is not found.
+     */
     public static GroupMethod findMethod(GroupInterface i, String desc) throws NoSuchMethodException { 
 	GroupStub stub = (GroupStub) i;
 	return stub.getMethod(desc);
     }
 }
+

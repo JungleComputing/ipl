@@ -1,8 +1,14 @@
 package ibis.group;
 
+/** The {@link GroupInvocation} class is to be used when configuring a group method
+ * to be invoked on all members of the group.
+ */
 public class GroupInvocation extends InvocationScheme { 
 
-    public GroupInvocation() throws ConfigurationException {
+    /**
+     * Constructor.
+     */
+    public GroupInvocation() {
 	super(InvocationScheme.I_GROUP);
     } 
 }

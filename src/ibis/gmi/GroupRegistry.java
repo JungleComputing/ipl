@@ -1,24 +1,122 @@
 package ibis.group;
 
-import ibis.ipl.*;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.WriteMessage;
+import ibis.ipl.IbisIOException;
 import java.util.Hashtable;
 import java.util.Vector;
 
+/**
+ * The group registry keeps track of which groups there are, and deals with
+ * joinGroup, findGroup, and createGroup requests. It also keeps track if
+ * combined invocation structures.
+ */
 final class GroupRegistry implements GroupProtocol {
 
-    Hashtable groups;
-    int groupNumber;
+    /**
+     * Hash table for the groups.
+     */
+    private Hashtable groups;
 
-    int combinedInvocationID = 0;
-    Hashtable combinedInvocations = new Hashtable();
-    Vector combinedInvocations2 = new Vector();
+    /**
+     * Current number of groups, used to hand out group identifications.
+     */
+    private int groupNumber;
+
+    /**
+     * Hash table for the combined invocations.
+     */
+    private Hashtable combinedInvocations;
+
+    /**
+     * Container class for the group information that the registry maintains.
+     */
+    static private final class GroupRegistryData { 
+	/**
+	 * Name of the group.
+	 */
+	String groupName;
+	
+	/**
+	 * The group interface through which this group is accessed.
+	 */
+	String type;
+
+	/**
+	 * The group identification.
+	 */
+	int groupNumber;
+
+	/**
+	 * The number of members in this group.
+	 */
+	int groupSize;
+
+	/**
+	 * Skeleton identifications of each group member.
+	 */
+	int [] memberSkels;
+
+	/**
+	 * Node identifications of each group member.
+	 */
+	int [] memberRanks;
+
+	/**
+	 * Tickets for the join-replies once the group is complete.
+	 */
+	int [] tickets;
+
+	/**
+	 * The number of group members that have joined this group so far.
+	 */
+	int joined;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param groupName   the name of this group
+	 * @param groupNumber the number this group
+	 * @param groupSize   the number of group members
+	 * @param type        the group interface for this group
+	 */
+	GroupRegistryData(String groupName, int groupNumber, int groupSize, String type) { 
+	    this.groupName   = groupName;
+	    this.groupNumber = groupNumber;
+	    this.groupSize   = groupSize;
+	    this.type        = type;
+
+	    memberSkels = new int[groupSize];
+	    memberRanks = new int[groupSize];
+	    tickets   = new int[groupSize];
+
+	    joined = 0;
+	} 
+    } 
     
+    /**
+     * Constructor.
+     *
+     * Allocates hash tables for groups and combined invocations.
+     */
     public GroupRegistry() {
+	combinedInvocations = new Hashtable();
 	groups = new Hashtable();
 	groupNumber = 0;
     }
-        
-    private synchronized void newGroup(String groupName, int groupSize, int rank, int ticket, String type) throws IbisException, IbisIOException {
+
+    /**
+     * A createGroup request was received from node "rank".
+     * This method creates it and writes back the result.
+     *
+     * @param groupName the name of the group to be created
+     * @param groupSize the number of members in the group
+     * @param rank the node identification of the requester
+     * @param ticket ticket number for the reply
+     * @param type the group interface for this new group
+     * @exception {@link ibis.ipl.IbisIOException} on an IO error.
+     */
+    private synchronized void newGroup(String groupName, int groupSize, int rank, int ticket, String type) throws IbisIOException {
            
 	WriteMessage w;
 
@@ -37,7 +135,18 @@ final class GroupRegistry implements GroupProtocol {
 	w.finish();		
     } 
 
-    private synchronized void joinGroup(String groupName, long memberID, int rank, int ticket, String [] interfaces) throws IbisException, IbisIOException { 	
+    /**
+     * A joinGroup request was received from node "rank".
+     * This method finds it and writes back the result.
+     *
+     * @param groupName the name of the group to be joined
+     * @param memberSkel identification of the skeleton of the join requester
+     * @param rank the node identification of the requester
+     * @param ticket ticket number for the reply
+     * @param interfaces the group interfaces that this requester implements
+     * @exception {@link ibis.ipl.IbisIOException} on an IO error.
+     */
+    private synchronized void joinGroup(String groupName, int memberSkel, int rank, int ticket, String [] interfaces) throws IbisIOException { 	
 
 	WriteMessage w;
 
@@ -80,94 +189,73 @@ final class GroupRegistry implements GroupProtocol {
 		w.finish();	
 	    }
 	    
-	    e.memberIDs[e.joined] = memberID;
-	    e.ranks[e.joined]     = rank;
+	    e.memberSkels[e.joined] = memberSkel;
+	    e.memberRanks[e.joined] = rank;
 	    e.tickets[e.joined]   = ticket;
 	    e.joined++;
 
 	    if (e.joined == e.groupSize) { 
 		for (int i=0;i<e.groupSize;i++) { 
 		    
-		    w = Group.unicast[e.ranks[i]].newMessage();
+		    w = Group.unicast[e.memberRanks[i]].newMessage();
 		    w.writeByte(REGISTRY_REPLY);
 		    w.writeInt(e.tickets[i]);
 		    w.writeByte(JOIN_OK);
 		    w.writeInt(e.groupNumber);
-		    w.writeObject(e.memberIDs);
+		    w.writeObject(e.memberRanks);
+		    w.writeObject(e.memberSkels);
 		    w.send();
 		    w.finish();		
 
-		    e.ranks[i]   = 0;
 		    e.tickets[i] = 0;
 		} 
-		e.ranks   = null;
 		e.tickets = null;
 	    }			
 	}
     }
 
-    private synchronized void barrierGroup(String groupName, int rank, int ticket) throws IbisException, IbisIOException { 	
+    /**
+     * A findGroup request was received from node "rank".
+     * This method finds it and writes back the result.
+     *
+     * @param groupName the name of the group to be found
+     * @param rank the node identification of the requester
+     * @param ticket ticket number for the reply
+     * @exception {@link ibis.ipl.IbisIOException} on an IO error.
+     */
+    private synchronized void findGroup(String groupName, int rank, int ticket) throws IbisIOException { 	
 
 	WriteMessage w;
 
 	GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
 
-	e.b_ranks[e.barrier]   = rank;
-	e.b_tickets[e.barrier] = ticket;
-	e.barrier++;
-
-	if (e.barrier == e.groupSize) { 
-	    for (int i=0;i<e.groupSize;i++) { 
-		
-		w = Group.unicast[e.b_ranks[i]].newMessage();
-		w.writeByte(REGISTRY_REPLY);
-		w.writeInt(e.b_tickets[i]);
-		w.writeByte(BARRIER_OK);
-		w.send();
-		w.finish();		
-		
-		e.b_ranks[i]   = 0;
-		e.b_tickets[i] = 0;
-	    } 						
-	    e.b_ranks   = null;
-	    e.b_tickets = null;		
-	    e.ready = true;
-	}
-    }
-
-    private synchronized void findGroup(String groupName, int rank, int ticket) throws IbisException, IbisIOException { 	
-
-	WriteMessage w;
-
-	GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
+	w = Group.unicast[rank].newMessage();
+	w.writeByte(REGISTRY_REPLY);
+	w.writeInt(ticket);
 
 	if (e == null) { 
-	    w = Group.unicast[rank].newMessage();
-	    w.writeByte(REGISTRY_REPLY);
-	    w.writeInt(ticket);
-	    w.writeByte(GROUP_UNKOWN);
-	    w.send();
-	    w.finish();		
-
-	} else {
-
-	    w = Group.unicast[rank].newMessage();
-	    w.writeByte(REGISTRY_REPLY);
-	    w.writeInt(ticket);
-
-	    if (!e.ready) { 
-		w.writeByte(GROUP_NOT_READY);
-	    } else { 
-		w.writeByte(GROUP_OK);
-		w.writeObject(e.type);
-		w.writeInt(e.groupNumber);
-		w.writeObject(e.memberIDs);
-	    }
-	    w.send();
-	    w.finish();		
+	    w.writeByte(GROUP_UNKNOWN);
+	} else if (e.joined != e.groupSize) { 
+	    w.writeByte(GROUP_NOT_READY);
+	} else { 
+	    w.writeByte(GROUP_OK);
+	    w.writeObject(e.type);
+	    w.writeInt(e.groupNumber);
+	    w.writeObject(e.memberRanks);
+	    w.writeObject(e.memberSkels);
 	}
+	w.send();
+	w.finish();		
     }
 
+    /**
+     * Deals with a request for a combined invocation info structure. It waits until
+     * all invokers have made such a request, and then writes back the
+     * requested information.
+     *
+     * @param r the request message
+     * @exception {@link ibis.ipl.IbisIOException} on an IO error.
+     */
     private void defineCombinedInvocation(ReadMessage r) throws IbisIOException {
 	String name;
 	String method;
@@ -188,7 +276,7 @@ final class GroupRegistry implements GroupProtocol {
 	mode = r.readInt();
 	r.finish();
 
-	String id = name + "?" + method + "?" + groupID;;
+	String id = name + "?" + method + "?" + groupID;
 	CombinedInvocationInfo inf;
 
 	WriteMessage w = Group.unicast[cpu].newMessage();
@@ -198,12 +286,11 @@ final class GroupRegistry implements GroupProtocol {
 	synchronized(this) {
 	    inf = (CombinedInvocationInfo) combinedInvocations.get(id);
 	    if (inf == null) {
-		inf = new CombinedInvocationInfo(combinedInvocationID++, groupID, method, name, mode, size);
+		inf = new CombinedInvocationInfo(groupID, method, name, mode, size);
 		combinedInvocations.put(id, inf);
-		combinedInvocations2.addElement(inf);
 	    }
 
-	    if (inf.mode != mode || inf.size != size) {
+	    if (inf.mode != mode || inf.numInvokers != size) {
 		w.writeByte(COMBINED_FAILED);
 		w.writeObject("Inconsistent combined invocation");
 		return;
@@ -223,9 +310,13 @@ final class GroupRegistry implements GroupProtocol {
 	w.send();
 	w.finish();
     }
-    
-    public void handleMessage(ReadMessage r) { 
 
+    /**
+     * Reads a request from the message and deals with it.
+     *
+     * @param r the message
+     */
+    public void handleMessage(ReadMessage r) { 
 	try { 
 
 	    byte opcode;
@@ -237,7 +328,7 @@ final class GroupRegistry implements GroupProtocol {
 	    int size;
 	    int ticket;
 	    int number;
-	    long memberID;
+	    int memberSkel;
 	    
 	    opcode = r.readByte();
 	    
@@ -266,29 +357,16 @@ final class GroupRegistry implements GroupProtocol {
 		ticket = r.readInt();
 		name = (String) r.readObject();
 		interfaces = (String []) r.readObject();
-		memberID = r.readLong();
+		memberSkel = r.readInt();
 		r.finish();
 		
 		if (Group.DEBUG) { 
 		    System.out.println(Group._rank + ": Got a JOIN_GROUP(" + name + ", " + interfaces + ") from " + rank);
 		}
 		
-		joinGroup(name, memberID, rank, ticket, interfaces);
+		joinGroup(name, memberSkel, rank, ticket, interfaces);
 		break;		
 		
-	    case BARRIER_GROUP:
-		rank = r.readInt();
-		ticket = r.readInt();
-		name = (String) r.readObject();
-		r.finish();
-		
-		if (Group.DEBUG) { 
-		    System.out.println(Group._rank + ": Got a BARRIER_GROUP(" + name + ")");
-		}
-		
-		barrierGroup(name, rank, ticket);
-		break;		
-
 	    case FIND_GROUP:
 		rank = r.readInt();
 		ticket = r.readInt();
@@ -308,6 +386,7 @@ final class GroupRegistry implements GroupProtocol {
 	    }	       
 		
 	} catch (Exception e) {
+	    /* TODO: is this a good way to deal with an exception? */
 	    System.out.println(Group._rank + ": Error in GroupRegistry " + e);
 	    System.exit(1);
 	}

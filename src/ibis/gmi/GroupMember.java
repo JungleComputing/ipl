@@ -4,25 +4,66 @@ import ibis.ipl.*;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+/**
+ * To be part of a group, an object must implement the {@link GroupInterface}
+ * and extent the {@link GroupMember} class.
+ */
 public class GroupMember { 
+    /**
+     * An identification of the group of which this is a member.
+     */
+    public int groupID;
 
-    // These are always filled correctly.
-    public int groupID;           // groupID
-    protected long myID;          // memberID of this object
+    /**
+     * Skeleton identifications of all group members.
+     */
+    public int [] memberSkels;
 
-    public long [] memberIDs;    // memberIDs of all members
-    public int  [] memberRanks;  // cpu ranks of all members
+    /**
+     * Node identifications of all group members.
+     */
+    public int [] memberRanks;
 
-    public int [] multicastHosts;
-    public String multicastHostsID;
+    /**
+     * Like memberRanks, but sorted, to create a unique string which is used
+     * as identification for a multicast send port.
+     */
+    protected int [] multicastHosts;
 
+    /**
+     * The string identifying the multicast send port.
+     */
+    protected String multicastHostsID;
+
+    /**
+     * My skeleton.
+     */
+    private GroupSkeleton skeleton;
+
+    /**
+     * Identification of my skeleton.
+     */
+    protected int mySkel;
+
+    /**
+     * All group interfaces implemented by this member.
+     */
     protected String [] groupInterfaces;
 
-    public  int rank;           // rank of this object 
-    public  int size;           // size of the group
+    /**
+     * rank within the group of this member.
+     */
+    public  int myGroupRank;
 
-    public GroupSkeleton skeleton;
+    /**
+     * Size of the group of this member.
+     */
+    public  int groupSize;
 
+    /**
+     * Constructor. Creates a skeleton, and figures out which group interfaces
+     * are implemented.
+     */
     public GroupMember() { 		
 
 	if (Group.DEBUG) System.out.println("GroupMember() starting");
@@ -37,6 +78,7 @@ public class GroupMember {
 	    
 	    int tokens = s.countTokens();
 	    
+	    /* Figure out my package name and class name. */
 	    for (int i=0;i<tokens-1;i++) { 
 		my_package += s.nextToken() + ".";
 	    } 		
@@ -47,11 +89,12 @@ public class GroupMember {
 		System.out.println("GroupMember() my type is " + my_package + my_name);
 	    }
 
+	    /* Now create a skeleton. */
 	    skeleton = (GroupSkeleton) Class.forName(my_package + "group_skeleton_" + my_name).newInstance();	
-	    myID = Group.getNewGroupObjectID(skeleton);
+	    mySkel = Group.getNewSkeletonID(skeleton);
 	    
 	    if (Group.DEBUG) {
-		System.out.println("GroupMember() ID is " + myID);
+		System.out.println("GroupMember() skelID is " + mySkel);
 	    }
 
 	    Vector group_interfaces = new Vector();
@@ -97,6 +140,12 @@ public class GroupMember {
 	if (Group.DEBUG) System.out.println("GroupMember() done");
     }
 
+    /**
+     * Figures out whether an interfaces is or implements the group interface.
+     *
+     * @param inter the class to be examined
+     * @return true if it is or implements the group interface.
+     */
     private boolean isGroupInterface(Class inter) { 
 
 	if (inter == ibis.group.GroupInterface.class) { 
@@ -114,40 +163,56 @@ public class GroupMember {
 	return false;
     } 
 
+    /**
+     * Returns the rank within the group of this member.
+     *
+     * @return the rank.
+     */
     public int getRank() { 
-	return rank;
+	return myGroupRank;
     } 
 
+    /**
+     * Returns the size of the group of this member.
+     *
+     * @return the size.
+     */
     public int getSize() { 
-	return size;
+	return groupSize;
     } 
 
-    protected void init(int groupNumber, long [] ids) { 			
-
+    /**
+     * Initializes the group member when the group is complete.
+     *
+     * @param groupNumber the group identification
+     * @param ranks the node identifications of all members in the group
+     * @param skels the skeleton identifications of all members in the group
+     */
+    protected void init(int groupNumber, int [] ranks, int [] skels) {
 	if (Group.DEBUG) {
 	    System.out.println("GroupMember.init() starting");
 	}
-	
-	groupID    = groupNumber;
-	memberIDs  = ids;
-	size       = ids.length;
 
-	memberRanks = new int[size];
-	multicastHosts = new int[size];
+	groupID     = groupNumber;
+	memberRanks = ranks;
+	groupSize   = ranks.length;
+	memberSkels = skels;
 
-	for (int i=0;i<size;i++) { 
-	    if (memberIDs[i] == myID) { 
-		rank = i;
+	multicastHosts = new int[groupSize];
+
+	for (int i=0;i<groupSize;i++) { 
+	    if (ranks[i] == Group._rank) { 
+		myGroupRank = i;
 		System.out.print("*");
 	    } 
-	    multicastHosts[i] = memberRanks[i] = (int)((memberIDs[i] >> 32) & 0xFFFFFFFFL);
+	    multicastHosts[i] = memberRanks[i];
 
 	    if (Group.DEBUG) {
 		System.out.println("GroupMember " + i + " is on machine " + memberRanks[i]);
 	    }
 	}	       
 
-	// sort multicastranks low...high (bubble sort)
+	/* sort multicastranks low...high (bubble sort) */
 	for (int i=0;i<multicastHosts.length-1;i++) { 
 	    for (int j=i+1;j<multicastHosts.length;j++) { 
 		if (multicastHosts[i] > multicastHosts[j]) { 
@@ -158,7 +223,7 @@ public class GroupMember {
 	    }		
 	}
 
-	// create a multicast ID
+	/* create a multicast ID */
 	StringBuffer buf = new StringBuffer("");
 
 	for (int i=0;i<multicastHosts.length;i++) { 
@@ -168,20 +233,24 @@ public class GroupMember {
 	
 	multicastHostsID = buf.toString();
 
-	// init the skeleton
+	/* init the skeleton */
 	skeleton.init(this);
 	Group.registerGroupMember(groupID, skeleton);	
 	
 	if (Group.DEBUG) { 
-	    System.out.println("GroupMember.init() rank = " + rank + " size = " + size);
+	    System.out.println("GroupMember.init() myGroupRank = " + myGroupRank + " groupSize = " + groupSize);
 	    System.out.println("GroupMember.init() done");
 	} 
 
 	groupInit();
     }
 
+    /**
+     * This method gets called when the group is complete. The user can redefine
+     * it to implement any initialization that depends on the rank of the
+     * object or the size of the group.
+     */
     public void groupInit() { 
-	/* overloaded by subtypes if required */
-	System.out.println("GroupMember.groupInit()");
+	if (Group.DEBUG) System.out.println("GroupMember.groupInit()");
     } 
 } 

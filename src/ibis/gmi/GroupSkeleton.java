@@ -6,1061 +6,1153 @@ import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.SendPort;
 
-// This is a base class for generated group stubs
+/**
+ * The {@link GroupSkeleton} class serves as a base class for generated skeletons.
+ * It also has methods for reply combining.
+ */
 
-public abstract class GroupSkeleton { 
-       	
-	protected GroupMember destination;
-	protected GroupMethod [] methods;
-	protected GroupMessageQueue messageQ;
-	protected SendPort reply_to_all;
+public abstract class GroupSkeleton implements GroupProtocol {
+    /**
+     * Indicates the group member for which this is the skeleton.
+     */
+    protected GroupMember destination;
 
-	protected int rank, size;
+    /**
+     * A multicast send port to all members in the group.
+     */
+    protected SendPort reply_to_all;
 
-	// combine opcodes
-	public static final byte
-	        COMBINE_VOID   = 0,
-	        COMBINE_BOOL   = 1,
-		COMBINE_BYTE   = 2,
-		COMBINE_SHORT  = 3,		
-		COMBINE_CHAR   = 4,
-		COMBINE_INT    = 5,
-		COMBINE_LONG   = 6,
-		COMBINE_FLOAT  = 7,
-		COMBINE_DOUBLE = 8,
-		COMBINE_OBJECT = 9;
-	      
-	public GroupSkeleton(int numMethods) { 
-		methods = new GroupMethod[numMethods];	      
+    /**
+     * Rank of this member in the group.
+     */
+    protected int myGroupRank;
+
+    /**
+     * The number of group members.
+     */
+    protected int groupSize;
+
+    /**
+     * Group message cache and collector of combine-reply messages.
+     */
+    private GroupMessageQueue messageQ;
+
+    /**
+     * Caching and queueing of group messages. 
+     */
+    static private final class GroupMessageQueue { 
+
+	/**
+	 * Queues of received group messages for each node.
+	 */
+	private GroupMessage [] qs; 
+
+	/**
+	 * Group message cache.
+	 */
+	private GroupMessage cache;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param groupSize the number of group members
+	 */
+	protected GroupMessageQueue(int groupSize) { 
+	    qs = new GroupMessage[groupSize];		
+	}
+
+	/**
+	 * Gets a group message from the cache, or allocates a new one.
+	 *
+	 * @return A group message.
+	 */
+	private GroupMessage getGroupMessage() { 
+
+	    GroupMessage temp = cache;
+
+	    if (temp == null) { 
+		temp = new GroupMessage();
+	    } else { 
+		cache = temp.next;
+	    }
+
+	    return temp;
 	} 
 
-	public void init(GroupMember dest) { 
-		destination = dest;
-		messageQ = new GroupMessageQueue(dest.size);
+	/**
+	 * Allocates and enqueues a group message in the queue for node "from".
+	 *
+	 * @param from the node from which a message was received
+	 *
+	 * @return the group message that was enqueued, and that can now be initialized
+	 * further.
+	 */
+	public GroupMessage enqueue(int from) { 
+	    if (Group.DEBUG) System.out.println("Got message from cpu " + from);
+	    GroupMessage temp = getGroupMessage();
+	    temp.next = qs[from];
+	    qs[from] = temp;
+	    return temp;
+	} 
 
-		rank = dest.rank;
-		size = dest.size;
-	}
+	/**
+	 * Dequeues and returns a group message that resulted from a message from node
+	 * "from".
+	 *
+	 * @param from the node from which the message was received
+	 *
+	 * @return the message, or null if not present.
+	 */
+	public GroupMessage dequeue(int from) { 
 
-	public synchronized final void handleCombineMessage(ReadMessage m) throws IbisException, IbisIOException { 
-		int rank = m.readInt();
-		byte result_type = m.readByte();
-		
-		GroupMessage message = messageQ.enqueue(rank);
+	    if (Group.DEBUG) System.out.println("Waiting for message from cpu " + from);
 
-		switch (result_type) { 
-		case Group.RESULT_VOID:
-			break;			
-	        case Group.RESULT_BOOLEAN:
-			message.booleanResult = m.readBoolean();
-			break;
-		case Group.RESULT_BYTE:
-			message.byteResult = m.readByte();
-			break;
-		case Group.RESULT_SHORT:
-			message.shortResult = m.readShort();
-			break;
-		case Group.RESULT_CHAR:
-			message.charResult = m.readChar();
-			break;
-		case Group.RESULT_INT:
-			message.intResult = m.readInt();
-			break;
-		case Group.RESULT_LONG:
-			message.longResult = m.readLong();
-			break;
-		case Group.RESULT_FLOAT:
-			message.floatResult = m.readFloat();
-			break;
-		case Group.RESULT_DOUBLE:
-			message.doubleResult = m.readDouble();
-			break;
-		case Group.RESULT_OBJECT:
-			message.objectResult = m.readObject();
-			break;
- 	        case Group.RESULT_EXCEPTION:
-			message.exceptionResult = (Exception) m.readObject();
-			break;
-		}
-		notifyAll();
-	}
-
-	private final GroupMessage getMessage(int peer) { 
-		GroupMessage temp = messageQ.dequeue(peer);					
-
-		while (temp == null) { 
-			try { 
-				wait();
-			} catch (Exception e) { 
-			} 
-			temp = messageQ.dequeue(peer);
-		} 
+	    if (qs[from] == null) { 
+		return null;
+	    } else { 
+		GroupMessage temp = qs[from];
+		qs[from] = temp.next;		
 		return temp;
+	    }
+	}
+
+	/**
+	 * Returns a group message to the message cache.
+	 *
+	 * @param m the group message to be placed in the cache.
+	 */
+	public void free(GroupMessage m) { 
+	    m.objectResult = m.exceptionResult = null;
+	    m.next = cache;
+	    cache = m;
 	} 
+    } 
 
-	private final void freeMessage(GroupMessage temp) { 
-		messageQ.free(temp);
+    /**
+     * Constructor.
+     */
+    public GroupSkeleton() { 
+    } 
+
+    /**
+     * Initializes the skeleton further once the group is complete.
+     *
+     * @param dest the group member to which this skeleton belongs
+     */
+    public void init(GroupMember dest) { 
+	destination = dest;
+	messageQ = new GroupMessageQueue(dest.groupSize);
+
+	myGroupRank = dest.myGroupRank;
+	groupSize = dest.groupSize;
+    }
+
+    /**
+     * Receives a {@link GroupProtocol#COMBINE} or a 
+     * {@link GroupProtocol#COMBINE_RESULT} message.
+     * It is placed in a group message and enqueued in the proper queue, and any waiters
+     * are notified.
+     *
+     * @param m the message received
+     */
+    public synchronized final void handleCombineMessage(ReadMessage m) throws IbisIOException { 
+	int rank = m.readInt();
+	byte result_type = m.readByte();
+
+	GroupMessage message = messageQ.enqueue(rank);
+
+	switch (result_type) { 
+	case RESULT_VOID:
+	    break;			
+	case RESULT_BOOLEAN:
+	    message.booleanResult = m.readBoolean();
+	    break;
+	case RESULT_BYTE:
+	    message.byteResult = m.readByte();
+	    break;
+	case RESULT_SHORT:
+	    message.shortResult = m.readShort();
+	    break;
+	case RESULT_CHAR:
+	    message.charResult = m.readChar();
+	    break;
+	case RESULT_INT:
+	    message.intResult = m.readInt();
+	    break;
+	case RESULT_LONG:
+	    message.longResult = m.readLong();
+	    break;
+	case RESULT_FLOAT:
+	    message.floatResult = m.readFloat();
+	    break;
+	case RESULT_DOUBLE:
+	    message.doubleResult = m.readDouble();
+	    break;
+	case RESULT_OBJECT:
+	    message.objectResult = m.readObject();
+	    break;
+	case RESULT_EXCEPTION:
+	    message.exceptionResult = (Exception) m.readObject();
+	    break;
+	}
+	m.finish();
+	notifyAll();
+    }
+
+    /**
+     * Waits for a message from group member "peer" and returns it.
+     * Note: caller must have locked!
+     *
+     * @param peer the group member from which a message is expected
+     * @return the group message.
+     */
+    private final GroupMessage getMessage(int peer) { 
+	GroupMessage temp = messageQ.dequeue(peer);					
+	while (temp == null) { 
+	    try { 
+		wait();
+	    } catch (Exception e) { 
+	    } 
+	    temp = messageQ.dequeue(peer);
 	} 
+	return temp;
+    } 
 
-	public final synchronized float combine_float(BinaryCombiner combiner, boolean to_all, int lroot, float local_result, Exception ex) throws Exception {
+    /**
+     * Releases a group message. Note: caller must have locked.
+     *
+     * @param temp the group message to be released
+     */
+    private final void freeMessage(GroupMessage temp) { 
+	messageQ.free(temp);
+    } 
 
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
+    /**
+     * Combines the result of a group method invocation. The combine method
+     * is binomial. Note that it also combines exceptions, and throws an exception
+     * when it should be propagated.
+     * This version is for group methods with a float result.
+     * TODO: Have a special exception class that can contain nested exceptions?
+     * Or, rethrow exception?
+     *
+     * @param combiner the binomial combiner object
+     * @param to_all indicates whether the result of the combine should be sent
+     * to all group members
+     * @param lroot root of the binomial combine tree
+     * @param local_result my own result
+     * @param ex my own exception
+     *
+     * @return the result of the combine.
+     * @exception when combiner throws an exception, or on IO error.
+     */
+    public final synchronized float combine_float(BinomialCombiner combiner, boolean to_all, int lroot, float local_result, Exception ex) throws Exception {
 
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							local_result = combiner.combine(rank, local_result, peer, message.floatResult, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_FLOAT);
-					w.writeFloat(local_result);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+
+		    try {
+			local_result = combiner.combine(myGroupRank, local_result, ex, peer, message.floatResult, message.exceptionResult, groupSize);
+			/* Any exception now ignored by combiner, otherwise it should
+			 * have thrown an exception.
+			 */
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
 		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
 
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_FLOAT);
-					w.writeFloat(local_result);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			} else { 
-				local_result = message.floatResult;
-			}				
-			freeMessage(message);
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_FLOAT);
+		    w.writeFloat(local_result);
 		}
-
-		if (exception) {
-			/* throw exception here */
-		}
-
-		return local_result;
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
 	}
 
-	public final synchronized double combine_double(BinaryCombiner combiner, boolean to_all, int lroot, double local_result, Exception ex) throws Exception {
-
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
-
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							local_result = combiner.combine(rank, local_result, peer, message.doubleResult, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_DOUBLE);
-					w.writeDouble(local_result);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
 		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
 
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_DOUBLE);
-					w.writeDouble(local_result);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			} else { 
-				local_result = message.doubleResult;
-			}				
-			freeMessage(message);
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_FLOAT);
+		    w.writeFloat(local_result);
 		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
 
-		if (exception) {
-			/* throw exception here */
-		}
-
-		return local_result;
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    } else { 
+		local_result = message.floatResult;
+	    }				
+	    freeMessage(message);
 	}
 
-	public final synchronized long combine_long(BinaryCombiner combiner, boolean to_all, int lroot, long local_result, Exception ex) throws Exception {
-
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
-
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							local_result = combiner.combine(rank, local_result, peer, message.longResult, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_LONG);
-					w.writeLong(local_result);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
-		}
-
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_LONG);
-					w.writeLong(local_result);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			} else { 
-				local_result = message.longResult;
-			}				
-			freeMessage(message);
-		}
-
-		if (exception) {
-			/* throw exception here */
-		}
-
-		return local_result;
+	if (ex != null) {
+	    throw new Exception(ex);
 	}
 
-	public final synchronized int combine_int(BinaryCombiner combiner, boolean to_all, int lroot, int local_result, Exception ex) throws Exception {
+	return local_result;
+    }
 
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
+    /**
+     * See {@link #combine_float}, but for a group method with a double result.
+     */
+    public final synchronized double combine_double(BinomialCombiner combiner, boolean to_all, int lroot, double local_result, Exception ex) throws Exception {
 
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							local_result = combiner.combine(rank, local_result, peer, message.intResult, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_INT);
-					w.writeInt(local_result);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+
+		    try {
+			local_result = combiner.combine(myGroupRank, local_result, ex, peer, message.doubleResult, message.exceptionResult, groupSize);
+			/* Any exception now ignored by combiner ... */
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
 		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
 
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_INT);
-					w.writeInt(local_result);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			} else { 
-				local_result = message.intResult;
-			}				
-			freeMessage(message);
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_FLOAT);
+		    w.writeDouble(local_result);
 		}
-
-		if (exception) {
-			/* throw exception here */
-		}
-
-		return local_result;
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
 	}
 
-	public final synchronized short combine_short(BinaryCombiner combiner, boolean to_all, int lroot, short local_result, Exception ex) throws Exception {
-
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
-
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							local_result = combiner.combine(rank, local_result, peer, message.shortResult, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_SHORT);
-					w.writeShort(local_result);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
 		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
 
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_SHORT);
-					w.writeShort(local_result);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			} else { 
-				local_result = message.shortResult;
-			}				
-			freeMessage(message);
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_FLOAT);
+		    w.writeDouble(local_result);
 		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
 
-		if (exception) {
-			/* throw exception here */
-		}
-
-		return local_result;
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    } else { 
+		local_result = message.doubleResult;
+	    }				
+	    freeMessage(message);
 	}
 
-	public final synchronized char combine_char(BinaryCombiner combiner, boolean to_all, int lroot, char local_result, Exception ex) throws Exception {
-
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
-
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							local_result = combiner.combine(rank, local_result, peer, message.charResult, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_CHAR);
-					w.writeChar(local_result);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
-		}
-
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_CHAR);
-					w.writeChar(local_result);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			} else { 
-				local_result = message.charResult;
-			}				
-			freeMessage(message);
-		}
-
-		if (exception) {
-			/* throw exception here */
-		}
-
-		return local_result;
+	if (ex != null) {
+	    throw new Exception(ex);
 	}
 
-	public final synchronized byte combine_byte(BinaryCombiner combiner, boolean to_all, int lroot, byte local_result, Exception ex) throws Exception {
+	return local_result;
+    }
 
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
 
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							local_result = combiner.combine(rank, local_result, peer, message.byteResult, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_BYTE);
-					w.writeByte(local_result);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
+    /**
+     * See {@link #combine_float}, but for a group method with a long result.
+     */
+    public final synchronized long combine_long(BinomialCombiner combiner, boolean to_all, int lroot, long local_result, Exception ex) throws Exception {
+
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+
+		    try {
+			local_result = combiner.combine(myGroupRank, local_result, ex, peer, message.longResult, message.exceptionResult, groupSize);
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
 		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
 
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_BYTE);
-					w.writeByte(local_result);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			} else { 
-				local_result = message.byteResult;
-			}				
-			freeMessage(message);
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_LONG);
+		    w.writeLong(local_result);
 		}
-
-		if (exception) {
-			/* throw exception here */
-		}
-
-		return local_result;
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
 	}
 
-	public final synchronized boolean combine_boolean(BinaryCombiner combiner, boolean to_all, int lroot, boolean local_result, Exception ex) throws Exception {
-
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
-
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							local_result = combiner.combine(rank, local_result, peer, message.booleanResult, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_BOOLEAN);
-					w.writeBoolean(local_result);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
 		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
 
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_BOOLEAN);
-					w.writeBoolean(local_result);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			} else { 
-				local_result = message.booleanResult;
-			}				
-			freeMessage(message);
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_LONG);
+		    w.writeLong(local_result);
 		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
 
-		if (exception) {
-			/* throw exception here */
-		}
-
-		return local_result;
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    } else { 
+		local_result = message.longResult;
+	    }				
+	    freeMessage(message);
 	}
 
-	public final synchronized Object combine_Object(BinaryCombiner combiner, boolean to_all, int lroot, Object local_result, Exception ex) throws Exception {
-
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
-
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							local_result = combiner.combine(rank, local_result, peer, message.objectResult, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_OBJECT);
-					w.writeObject(local_result);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
-		}
-
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_OBJECT);
-					w.writeObject(local_result);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			} else { 
-				local_result = message.objectResult;
-			}				
-			freeMessage(message);
-		}
-
-		if (exception) {
-			/* throw exception here */
-		}
-
-		return local_result;
+	if (ex != null) {
+	    throw new Exception(ex);
 	}
 
-	public final synchronized void combine_void(BinaryCombiner combiner, boolean to_all, int lroot, Exception ex) throws Exception {
+	return local_result;
+    }
 
-		int peer;
-		int mask = 1;
-		int size = this.size;
-		int rank = this.rank;
-		int relrank = (rank - lroot + size) % size;		
-		boolean exception = (ex != null);
-		GroupMessage message;
+    /**
+     * See {@link #combine_float}, but for a group method with an int result.
+     */
+    public final synchronized int combine_int(BinomialCombiner combiner, boolean to_all, int lroot, int local_result, Exception ex) throws Exception {
 
-		while (mask < size) {
-			if ((mask & relrank) == 0) {
-				peer = relrank | mask;
-				if (peer < size) {
-					peer = (peer + lroot) % size;
-					/* receive result */
-					message = getMessage(peer);
-					exception = exception || (message.exceptionResult != null);
-				
-					if (!exception) {
-						/* call the combiner */
-						try {
-							combiner.combine(rank, peer, size);
-						} catch (Exception e) {
-							ex = e;
-							exception = true;
-						}
-					}
-					freeMessage(message);
-				}
-			} else {
-				peer = ((relrank & (~mask)) + lroot) % size;
-				/* send result */
-				long memberID = destination.memberIDs[peer];
-				int peer_rank =  (int) ((memberID >> 32) & 0xFFFFFFFFL);
-				int peer_skeleton = (int) (memberID & 0xFFFFFFFFL);
-				if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
-				WriteMessage w = Group.combine_unicast[peer_rank].newMessage();
-				w.writeByte(GroupProtocol.COMBINE);
-				w.writeInt(peer_skeleton);
-				w.writeInt(rank);
-				
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_VOID);
-				}
-				w.send();
-				w.finish();
-				break;
-			}
-			mask <<= 1;
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+		    try {
+			local_result = combiner.combine(myGroupRank, local_result, ex, peer, message.intResult, message.exceptionResult, groupSize);
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
 		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
 
-		if (to_all) {
-			if (rank == lroot) {
-				if (reply_to_all == null) {
-					reply_to_all = null; //Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
-				}
-				/* forward result to all */
-				WriteMessage w = reply_to_all.newMessage();
-				w.writeByte(GroupProtocol.COMBINE_RESULT);
-				w.writeInt(destination.groupID);
-				w.writeInt(lroot);
-
-				if (exception) { 
-					w.writeByte(Group.RESULT_EXCEPTION);
-					w.writeObject(ex);
-				} else { 
-					w.writeByte(Group.RESULT_VOID);
-				}
-				w.send();
-				w.finish();
-			}
-			/* receive result from root */
-			message = getMessage(lroot);					
-			
-			if (message.exceptionResult != null) { 
-				exception = true;
-				ex = message.exceptionResult;
-			}
-			freeMessage(message);
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_INT);
+		    w.writeInt(local_result);
 		}
-
-		if (exception) {
-			/* throw exception here */
-		}
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
 	}
 
-	public abstract void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IbisIOException;	
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
+		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_INT);
+		    w.writeInt(local_result);
+		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
+
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    } else { 
+		local_result = message.intResult;
+	    }				
+	    freeMessage(message);
+	}
+
+	if (ex != null) {
+	    throw new Exception(ex);
+	}
+
+	return local_result;
+    }
+
+    /**
+     * See {@link #combine_float}, but for a group method with a short result.
+     */
+    public final synchronized short combine_short(BinomialCombiner combiner, boolean to_all, int lroot, short local_result, Exception ex) throws Exception {
+
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+
+		    try {
+			local_result = combiner.combine(myGroupRank, local_result, ex, peer, message.shortResult, message.exceptionResult, groupSize);
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
+		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_SHORT);
+		    w.writeShort(local_result);
+		}
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
+	}
+
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
+		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_SHORT);
+		    w.writeShort(local_result);
+		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
+
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    } else { 
+		local_result = message.shortResult;
+	    }				
+	    freeMessage(message);
+	}
+
+	if (ex != null) {
+	    throw new Exception(ex);
+	}
+
+	return local_result;
+    }
+
+    /**
+     * See {@link #combine_float}, but for a group method with a char result.
+     */
+    public final synchronized char combine_char(BinomialCombiner combiner, boolean to_all, int lroot, char local_result, Exception ex) throws Exception {
+
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+
+		    try {
+			local_result = combiner.combine(myGroupRank, local_result, ex, peer, message.charResult, message.exceptionResult, groupSize);
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
+		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_CHAR);
+		    w.writeChar(local_result);
+		}
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
+	}
+
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
+		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_CHAR);
+		    w.writeChar(local_result);
+		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
+
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    } else { 
+		local_result = message.charResult;
+	    }				
+	    freeMessage(message);
+	}
+
+	if (ex != null) {
+	    throw new Exception(ex);
+	}
+
+	return local_result;
+    }
+
+    /**
+     * See {@link #combine_float}, but for a group method with a byte result.
+     */
+    public final synchronized byte combine_byte(BinomialCombiner combiner, boolean to_all, int lroot, byte local_result, Exception ex) throws Exception {
+
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+
+		    /* call the combiner */
+		    try {
+			local_result = combiner.combine(myGroupRank, local_result, ex, peer, message.byteResult, message.exceptionResult, groupSize);
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
+		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_BYTE);
+		    w.writeByte(local_result);
+		}
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
+	}
+
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
+		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_BYTE);
+		    w.writeByte(local_result);
+		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
+
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    } else { 
+		local_result = message.byteResult;
+	    }				
+	    freeMessage(message);
+	}
+
+	if (ex != null) {
+	    throw new Exception(ex);
+	}
+
+	return local_result;
+    }
+
+    /**
+     * See {@link #combine_float}, but for a group method with a boolean result.
+     */
+    public final synchronized boolean combine_boolean(BinomialCombiner combiner, boolean to_all, int lroot, boolean local_result, Exception ex) throws Exception {
+
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+
+		    /* call the combiner */
+		    try {
+			local_result = combiner.combine(myGroupRank, local_result, ex, peer, message.booleanResult, message.exceptionResult, groupSize);
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
+		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_BOOLEAN);
+		    w.writeBoolean(local_result);
+		}
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
+	}
+
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
+		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_BOOLEAN);
+		    w.writeBoolean(local_result);
+		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
+
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    } else { 
+		local_result = message.booleanResult;
+	    }				
+	    freeMessage(message);
+	}
+
+	if (ex != null) {
+	    throw new Exception(ex);
+	}
+
+	return local_result;
+    }
+
+    /**
+     * See {@link #combine_float}, but for a group method with an Object result.
+     */
+    public final synchronized Object combine_Object(BinomialCombiner combiner, boolean to_all, int lroot, Object local_result, Exception ex) throws Exception {
+
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+
+		    /* call the combiner */
+		    try {
+			local_result = combiner.combine(myGroupRank, local_result, ex, peer, message.objectResult, message.exceptionResult, groupSize);
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
+		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_OBJECT);
+		    w.writeObject(local_result);
+		}
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
+	}
+
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
+		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_OBJECT);
+		    w.writeObject(local_result);
+		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
+
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    } else { 
+		local_result = message.objectResult;
+	    }				
+	    freeMessage(message);
+	}
+
+	if (ex != null) {
+	    throw new Exception(ex);
+	}
+
+	return local_result;
+    }
+
+    /**
+     * See {@link #combine_float}, but for a group method with a void result.
+     * These need to be combined as well, both for synchronization purposes, and for the
+     * exceptions.
+     */
+    public final synchronized void combine_void(BinomialCombiner combiner, boolean to_all, int lroot, Exception ex) throws Exception {
+
+	int peer;
+	int mask = 1;
+	int relrank = (myGroupRank - lroot + groupSize) % groupSize;		
+	GroupMessage message;
+
+	while (mask < groupSize) {
+	    if ((mask & relrank) == 0) {
+		peer = relrank | mask;
+		if (peer < groupSize) {
+		    peer = (peer + lroot) % groupSize;
+		    /* receive result */
+		    message = getMessage(peer);
+
+		    /* call the combiner */
+		    try {
+			combiner.combine(myGroupRank, ex, peer, message.exceptionResult, groupSize);
+			ex = null;
+		    } catch (Exception e) {
+			ex = e;
+		    }
+		    freeMessage(message);
+		}
+	    } else {
+		peer = ((relrank & (~mask)) + lroot) % groupSize;
+		/* send result */
+		int peer_rank =  destination.memberRanks[peer];
+		int peer_skeleton = destination.memberSkels[peer];
+		if (Group.DEBUG) System.out.println("Sending message to peer " + peer + " on cpu " + peer_rank);
+		WriteMessage w = Group.unicast[peer_rank].newMessage();
+		w.writeByte(COMBINE);
+		w.writeInt(peer_skeleton);
+		w.writeInt(myGroupRank);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_VOID);
+		}
+		w.send();
+		w.finish();
+		break;
+	    }
+	    mask <<= 1;
+	}
+
+	if (to_all) {
+	    if (myGroupRank == lroot) {
+		if (reply_to_all == null) {
+		    reply_to_all = Group.getMulticastSendport(destination.multicastHostsID, destination.multicastHosts);
+		}
+		/* forward result to all */
+		WriteMessage w = reply_to_all.newMessage();
+		w.writeByte(COMBINE_RESULT);
+		w.writeInt(destination.groupID);
+		w.writeInt(lroot);
+
+		if (ex != null) { 
+		    w.writeByte(RESULT_EXCEPTION);
+		    w.writeObject(ex);
+		} else { 
+		    w.writeByte(RESULT_VOID);
+		}
+		w.send();
+		w.finish();
+	    }
+	    /* receive result from root */
+	    message = getMessage(lroot);					
+
+	    if (message.exceptionResult != null) { 
+		ex = message.exceptionResult;
+	    }
+	    freeMessage(message);
+	}
+
+	if (ex != null) {
+	    throw new Exception(ex);
+	}
+    }
+
+    /**
+     * To be redefined by the skeletons. Deals with an {@link GroupProtocol#INVOCATION} message.
+     * TODO: Exception behavior
+     *
+     * @param invocationMode summary of the invocation scheme of this invocation
+     * @param resultMode     summary of the result scheme of this invocation
+     * @param r              the message
+     */
+    public abstract void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IbisIOException;	
 }
-
-
-
-
-
-

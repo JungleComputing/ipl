@@ -38,36 +38,6 @@ class GMIGenerator {
 	return result;
     }
 
-    public static String combineType(Class c) { 
-
-	if (!c.equals(Void.TYPE)) { 
-	    
-	    if (c.isPrimitive()) {
-		
-		if (c.equals(Byte.TYPE)) { 
-		    return "COMBINE_BYTE";
-		} else if (c.equals(Character.TYPE)) { 
-		    return "COMBINE_CHAR";
-		} else if (c.equals(Short.TYPE)) {
-		    return "COMBINE_SHORT";
-		} else if (c.equals(Integer.TYPE)) {
-		    return "COMBINE_INT";
-		} else if (c.equals(Long.TYPE)) {
-		    return "COMBINE_LONG";
-		} else if (c.equals(Float.TYPE)) {
-		    return "COMBINE_FLOAT";
-		} else if (c.equals(Double.TYPE)) {
-		    return "COMBINE_DOUBLE";
-		} else if (c.equals(Boolean.TYPE)) {
-		    return "COMBINE_BOOLEAN";
-		} 					       
-	    }
-	    return "COMBINE_OBJECT";
-	} else { 
-	    return "COMBINE_VOID";
-	}
-    } 
-
     public static String containerType(Class c) { 
 
 	if (!c.equals(Void.TYPE)) { 

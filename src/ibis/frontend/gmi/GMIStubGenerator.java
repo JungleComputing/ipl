@@ -83,31 +83,15 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println();			
 
 	output.println(spacing + "\tcase InvocationScheme.I_COMBINED_FLAT_SINGLE:");
-	// TODO!!!
-	output.println(spacing + "\t\tbreak;");			
-
 	output.println(spacing + "\tcase InvocationScheme.I_COMBINED_FLAT_GROUP:");
-	// TODO!!!
-	output.println(spacing + "\t\tbreak;");			
-
 	output.println(spacing + "\tcase InvocationScheme.I_COMBINED_FLAT_PERSONAL:");
-	// TODO!!!
-	output.println(spacing + "\t\tbreak;");			
+	invokeSpecial(spacing + "\t\t", m, ret, params, "COMBINED_FLAT");
 	output.println();			
 
-	output.println(spacing + "\tcase InvocationScheme.I_COMBINED_BINARY_SINGLE:");
-	// TODO!!!
-	output.println(spacing + "\t\tbreak;");			
-	output.println();			
-
-	output.println(spacing + "\tcase InvocationScheme.I_COMBINED_BINARY_GROUP:");
-	// TODO!!!
-	output.println(spacing + "\t\tbreak;");			
-	output.println();			
-
-	output.println(spacing + "\tcase InvocationScheme.I_COMBINED_BINARY_PERSONAL:");
-	// TODO!!!
-	output.println(spacing + "\t\tbreak;");			
+	output.println(spacing + "\tcase InvocationScheme.I_COMBINED_BINOMIAL_SINGLE:");
+	output.println(spacing + "\tcase InvocationScheme.I_COMBINED_BINOMIAL_GROUP:");
+	output.println(spacing + "\tcase InvocationScheme.I_COMBINED_BINOMIAL_PERSONAL:");
+	invokeSpecial(spacing + "\t\t", m, ret, params, "COMBINED_BIN");
 	output.println();			
 
 	output.println(spacing + "\tdefault:");
@@ -124,14 +108,22 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "}");			
     }
 
-    void writeAdditionalData(String spacing, int number, Class [] params) { 
+    void writeAdditionalData(String spacing, Class [] params) { 
 
 	output.println(spacing + "w.writeByte((byte)(method.result_mode));");	
-	output.println(spacing + "w.writeInt(" + number + ");");
+	output.println(spacing + "w.writeInt( method.index);");
 
-	output.println(spacing + "switch (method.result_mode) {");		
-	output.println(spacing + "case ReplyScheme.R_COMBINE_BINARY:");		
-	output.println(spacing + "\tw.writeObject(((CombineReply)(method.rep)).binaryCombiner);");
+	output.println(spacing + "int result_mode = method.result_mode;");
+	output.println(spacing + "ReplyScheme rep = method.rep;");
+	output.println(spacing + "if (result_mode >= ReplyScheme.R_PERSONALIZED) {");
+	output.println(spacing + "\tresult_mode -= ReplyScheme.R_PERSONALIZED;");
+	output.println(spacing + "\tw.writeObject(((PersonalizeReply)rep).rp);");
+	output.println(spacing + "\trep = ((PersonalizeReply)rep).rs;");
+	output.println(spacing + "}");
+
+	output.println(spacing + "switch (result_mode) {");		
+	output.println(spacing + "case ReplyScheme.R_COMBINE_BINOMIAL:");		
+	output.println(spacing + "\tw.writeObject(((CombineReply)rep).binomialCombiner);");
 	output.println(spacing + "\t// fall through");
 	output.println(spacing + "case ReplyScheme.R_COMBINE_FLAT:");		
 	output.println(spacing + "case ReplyScheme.R_FORWARD:");		
@@ -165,7 +157,54 @@ class GMIStubGenerator extends GMIGenerator {
 	output.print(") throws Exception {\n");
     } 
 
-    void singleMethod(String spacing, Method m, int number) { 
+    void combinedMethod(String spacing, Method m, boolean flat) {
+	Class ret = m.getReturnType();
+	Class [] params = m.getParameterTypes();
+	String caps_type = flat ? "FLAT" : "BIN";
+
+	writeSpecialHeader(spacing, m, "COMBINED_" + caps_type);
+
+	output.println(spacing + "\tif (Group.DEBUG) System.out.println(\"group_stub_" + data.classname + "." + m.getName() + " doing COMBINED_" + caps_type + " call\");");
+
+	if (!ret.equals(Void.TYPE)) { 	
+	    output.println(spacing + "\t" + getInitedLocal(ret, "result") + ";");
+	}
+
+	// First, we must combine parameters.
+	// The CPU with rank 0 will collect all parameters and perform the group invocation.
+	
+	output.println(spacing + "\tParameterVector params = new group_parameter_vector_" + data.classname + "_" + m.getName() + "();");
+
+	// Fill in our own parameters.
+	for (int i=0;i<params.length;i++) { 
+	    output.println(spacing + "\tparams.write(" + i + ", p" + i + ");");
+	} 	
+
+	output.println(spacing + "\tGroupMessage r = " + (flat ? "flat" : "bin") + "CombineInvoke(params, method);");
+	output.println(spacing + "\tif (r != null) {");
+	output.println(spacing + "\t\tif (r.exceptionResult != null) {");
+	output.println(spacing + "\t\t\tException e = r.exceptionResult;");
+	output.println(spacing + "\t\t\tfreeGroupMessage(r);");
+	output.println(spacing + "\t\t\tthrow e;");
+	output.println(spacing + "\t\t}");
+	if (! ret.equals(Void.TYPE)) {
+	    if (ret.isPrimitive()) {
+		output.println(spacing + "\t\tresult = r." + getType(ret) + "Result;");
+	    }
+	    else {
+		output.println(spacing + "\t\tresult = (" + getType(ret) + ") r.objectResult;");
+	    }
+	}
+	output.println(spacing + "\t\tfreeGroupMessage(r);");
+	output.println(spacing + "\t}");
+	if (!ret.equals(Void.TYPE)) { 	
+	    output.println(spacing + "\treturn result;");
+	}
+
+	output.println(spacing + "}");
+    }
+
+    void singleMethod(String spacing, Method m) { 
 
 	Class ret = m.getReturnType();
 	Class [] params = m.getParameterTypes();
@@ -182,16 +221,18 @@ class GMIStubGenerator extends GMIGenerator {
 	}
 
 	output.println(spacing + "\tWriteMessage w = method.sendport.newMessage();");
-	output.println(spacing + "\tw.writeByte(GroupProtocol.INVOCATION);");
+	output.println(spacing + "\tw.writeByte(INVOCATION);");
 	output.println(spacing + "\tw.writeInt(method.destinationSkeleton);");
 	output.println(spacing + "\tw.writeByte((byte)(InvocationScheme.I_SINGLE));");
 	
-	writeAdditionalData(spacing + "\t", number, params);		
+	writeAdditionalData(spacing + "\t", params);		
 
-	output.println(spacing + "\tif (method.result_mode == ReplyScheme.R_FORWARD) {");
-	output.println(spacing + "\t\t((ForwardReply) (method.rep)).f.startReceiving(this, size, replyStack, ticket);");
+	output.println(spacing + "\tif (result_mode == ReplyScheme.R_FORWARD) {");
+	output.println(spacing + "\t\tsynchronized(this) {");
+	output.println(spacing + "\t\t\t((ForwardReply) rep).f.startReceiving(this, targetGroupSize, ticket);");
+	output.println(spacing + "\t\t}");
 	output.println(spacing + "\t} else {");
-	output.println(spacing + "\t\tif (method.result_mode != ReplyScheme.R_DISCARD) {");
+	output.println(spacing + "\t\tif (result_mode != ReplyScheme.R_DISCARD) {");
 	output.println(spacing + "\t\t\tr = (GroupMessage) replyStack.getDataAndFreePosition(ticket);");
 	output.println(spacing + "\t\t\tif (r.exceptionResult != null) {");
 	output.println(spacing + "\t\t\t\tex = r.exceptionResult;");
@@ -205,7 +246,7 @@ class GMIStubGenerator extends GMIGenerator {
 	    } 
 	} 		
 	output.println(spacing + "\t\t\t}");
-	output.println(spacing + "\t\tfreeGroupMessage(r);");
+	output.println(spacing + "\t\t\tfreeGroupMessage(r);");
 	output.println(spacing + "\t\t}");
 	output.println(spacing + "\t}");
 	
@@ -222,9 +263,9 @@ class GMIStubGenerator extends GMIGenerator {
 
     void handleGroupResult(String spacing, Method m, Class ret) { 
 
-	output.println(spacing + "switch (method.result_mode) {");		
+	output.println(spacing + "switch (result_mode) {");		
 
-	output.println(spacing + "case ReplyScheme.R_COMBINE_BINARY:");		
+	output.println(spacing + "case ReplyScheme.R_COMBINE_BINOMIAL:");		
 	output.println(spacing + "case ReplyScheme.R_RETURN:");		
 	output.println(spacing + "\tr = (GroupMessage) replyStack.getDataAndFreePosition(ticket);");
 
@@ -266,15 +307,15 @@ class GMIStubGenerator extends GMIGenerator {
 			output.println("boolean");
 		} 				
 
-		output.println("[size];");
+		output.println("[targetGroupSize];");
 	    } else { 
-		output.println(spacing + "\tObject [] results = new Object[size];");
+		output.println(spacing + "\tObject [] results = new Object[targetGroupSize];");
 	    } 
 	} 
 
-	output.println(spacing + "\tException [] exceptions = new Exception[size];");
+	output.println(spacing + "\tException [] exceptions = new Exception[targetGroupSize];");
 
-	output.println(spacing + "\tfor (int i=0;i<size;i++) {"); 
+	output.println(spacing + "\tfor (int i=0;i<targetGroupSize;i++) {"); 
 
 	output.println(spacing + "\t\tr = (GroupMessage) replyStack.getData(ticket);");
 
@@ -296,17 +337,19 @@ class GMIStubGenerator extends GMIGenerator {
 
 	if (ret.isPrimitive()) { 
 	    if (ret.equals(Void.TYPE)) { 			
-		output.println(spacing + "\t((CombineReply) (method.rep)).flatCombiner.combine(exceptions);");				
+		output.println(spacing + "\t((CombineReply) rep).flatCombiner.combine(exceptions);");				
 	    } else {
-		output.println(spacing + "\tresult = ((CombineReply) (method.rep)).flatCombiner.combine(results, exceptions);");  			
+		output.println(spacing + "\tresult = ((CombineReply) rep).flatCombiner.combine(results, exceptions);");  			
 	    }
 	} else { 
-	    output.println(spacing + "\tresult = (" + getType(ret) + ") ((CombineReply) (method.rep)).flatCombiner.combine(results, exceptions);");
+	    output.println(spacing + "\tresult = (" + getType(ret) + ") ((CombineReply) rep).flatCombiner.combine(results, exceptions);");
 	}
 	output.println(spacing + "\tbreak;");
 
 	output.println(spacing + "case ReplyScheme.R_FORWARD:");
-	output.println(spacing + "\t((ForwardReply)(method.rep)).f.startReceiving(this, size, replyStack, ticket);");
+	output.println(spacing + "\tsynchronized(this) {");
+	output.println(spacing + "\t\t((ForwardReply)rep).f.startReceiving(this, targetGroupSize, ticket);");
+	output.println(spacing + "\t}");
 	output.println(spacing + "\tbreak;");
 
 	output.println(spacing + "case ReplyScheme.R_DISCARD:");
@@ -314,7 +357,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "}");		
     }
 
-    void groupMethod(String spacing, Method m, int number) { 
+    void groupMethod(String spacing, Method m) { 
 
 	Class ret = m.getReturnType();
 	Class [] params = m.getParameterTypes();
@@ -332,11 +375,11 @@ class GMIStubGenerator extends GMIGenerator {
 	}
 
 	output.println(spacing + "\tWriteMessage w = method.sendport.newMessage();");
-	output.println(spacing + "\tw.writeByte(GroupProtocol.INVOCATION);");
+	output.println(spacing + "\tw.writeByte(INVOCATION);");
 	output.println(spacing + "\tw.writeInt(groupID);");
 	output.println(spacing + "\tw.writeByte((byte)(InvocationScheme.I_GROUP));");
 
-	writeAdditionalData(spacing + "\t", number, params);		
+	writeAdditionalData(spacing + "\t", params);		
 	handleGroupResult(spacing + "\t", m, ret);
 
 	output.println(spacing + "\tif (ex != null) {");
@@ -350,7 +393,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "}");
     } 	
     
-    void personalizedMethod(String spacing, Method m, int number) { 
+    void personalizedMethod(String spacing, Method m) { 
 
 	Class ret = m.getReturnType();
 	Class [] params = m.getParameterTypes();
@@ -363,21 +406,20 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\tint ticket = 0;");
 	output.println(spacing + "\tboolean haveTicket = false;");
 	output.println(spacing + "\tException ex = null;");			
-	output.println(spacing + "\tlong memberID;");			
 	output.println(spacing + "\tWriteMessage w;");
 
 	if (!ret.equals(Void.TYPE)) { 	
 	    output.println(spacing + "\t" + getInitedLocal(ret, "result") + ";");
 	}
 
-	output.println(spacing + "\tgroup_parameter_vector_" + data.classname + "_" + m.getName() + "[] pv = new group_parameter_vector_" + data.classname + "_" + m.getName() + "[size];");
+	output.println(spacing + "\tgroup_parameter_vector_" + data.classname + "_" + m.getName() + "[] pv = new group_parameter_vector_" + data.classname + "_" + m.getName() + "[targetGroupSize];");
 	output.println(spacing + "\tgroup_parameter_vector_" + data.classname + "_" + m.getName() + " iv = new group_parameter_vector_" + data.classname + "_" + m.getName() + "();");
 
 	for (int i=0;i<params.length;i++) { 
 	    output.println(spacing + "\tiv.write(" + i + ", p" + i + ");");
 	} 	
 
-	output.println(spacing + "\tfor (int i=0;i<size;i++) {");
+	output.println(spacing + "\tfor (int i=0;i<targetGroupSize;i++) {");
 	output.println(spacing + "\t\tpv[i] = new group_parameter_vector_"  + data.classname + "_" + m.getName() + "();");
 	output.println(spacing + "\t}");
 	
@@ -387,26 +429,35 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\tthrow new RuntimeException(\"OOPS: \" + e);");
 	output.println(spacing + "\t}");
 
-	output.println(spacing + "\tfor (int i=0;i<size;i++) {");
+	output.println(spacing + "\tfor (int i=0;i<targetGroupSize;i++) {");
 	output.println(spacing + "\t\tif (!pv[i].done) {"); 
-	output.println("\t\t\tthrow new RuntimeException(\"Parameters for groupmember \" + i + \" not completed!!\");");
+	output.println(spacing + "\t\t\tthrow new RuntimeException(\"Parameters for groupmember \" + i + \" not completed!!\");");
 	output.println(spacing + "\t\t}"); 
 	output.println(spacing + "\t}"); 
 
-	output.println(spacing + "\tfor (int i=0;i<size;i++) {");
-	output.println(spacing + "\t\tmemberID = memberIDs[i];"); 
-	output.println(spacing + "\t\tw = Group.unicast[(int)((memberID >> 32) & 0xFFFFFFFFL)].newMessage();");
-	output.println(spacing + "\t\tw.writeByte(GroupProtocol.INVOCATION);");
-	output.println(spacing + "\t\tw.writeInt((int) (memberID & 0xFFFFFFFFL));");
+	output.println(spacing + "\tReplyPersonalizer personalizer = null;");
+	output.println(spacing + "\tint result_mode = method.result_mode;");
+	output.println(spacing + "\tReplyScheme rep = method.rep;");
+	output.println(spacing + "\tif (result_mode >= ReplyScheme.R_PERSONALIZED) {");
+	output.println(spacing + "\t\tresult_mode -= ReplyScheme.R_PERSONALIZED;");
+	output.println(spacing + "\t\tpersonalizer = ((PersonalizeReply)rep).rp;");
+	output.println(spacing + "\t\trep = ((PersonalizeReply)rep).rs;");
+	output.println(spacing + "\t}");
+
+	output.println(spacing + "\tfor (int i=0;i<targetGroupSize;i++) {");
+	output.println(spacing + "\t\tw = Group.unicast[memberRanks[i]].newMessage();");
+	output.println(spacing + "\t\tw.writeByte(INVOCATION);");
+	output.println(spacing + "\t\tw.writeInt(memberSkels[i]);");
 	output.println(spacing + "\t\tw.writeByte((byte)(InvocationScheme.I_PERSONAL));");
 	output.println(spacing + "\t\tw.writeByte((byte)(method.result_mode));");	
-	output.println(spacing + "\t\tw.writeInt(" + number + ");");
+	output.println(spacing + "\t\tif (personalizer != null) {");
+	output.println(spacing + "\t\t\tw.writeObject(personalizer);");
+	output.println(spacing + "\t\t}");
 
-	output.println();
-	output.println(spacing + "\t\tswitch (method.result_mode) {");		
-	output.println(spacing + "\t\tcase ReplyScheme.R_COMBINE_BINARY:");		
-	output.println(spacing + "\tw.writeObject(((CombineReply)(method.rep)).binaryCombiner);");
-	output.println(spacing + "\t// fall through");
+	output.println(spacing + "\t\tswitch (result_mode) {");		
+	output.println(spacing + "\t\tcase ReplyScheme.R_COMBINE_BINOMIAL:");		
+	output.println(spacing + "\t\t\tw.writeObject(((CombineReply)rep).binomialCombiner);");
+	output.println(spacing + "\t\t\t// fall through");
 	output.println(spacing + "\t\tcase ReplyScheme.R_COMBINE_FLAT:");		
 	output.println(spacing + "\t\tcase ReplyScheme.R_FORWARD:");		
 	output.println(spacing + "\t\tcase ReplyScheme.R_RETURN:");		
@@ -423,7 +474,7 @@ class GMIStubGenerator extends GMIGenerator {
 	for (int j=0;j<params.length;j++) { 
 	    if (params[j].isArray()) {
 		output.println(spacing + "\t\tif (pv[i].p"+j+"_subarray) {");	
-		output.println(spacing + "\t\t\tw.writeSubArray" + printType(params[j].getComponentType()) + "(pv[i].p"+ j + ", pv[i].p" + j + "_offset, pv[i].p" + j + "_size);");
+		output.println(spacing + "\t\t\tw.writeArray(pv[i].p"+ j + ", pv[i].p" + j + "_offset, pv[i].p" + j + "_size);");
 		output.println(spacing + "\t\t}else {");
 		output.println(writeMessageType(spacing + "\t\t\t", "w", params[j], "pv[i].p" + j));
 		output.println(spacing + "\t\t}");
@@ -500,7 +551,7 @@ class GMIStubGenerator extends GMIGenerator {
 	    Class ret = m.getReturnType();
 	    Class [] params = m.getParameterTypes();
 
-	    output.print("\t\tmethods[" + i + "] = new GroupMethod(this, \"");
+	    output.print("\t\tmethods[" + i + "] = new GroupMethod(this, " + i + ", new group_parameter_vector_" + data.classname + "_" + m.getName() + "(), \"");
 	    output.print(getType(ret) + " " + m.getName() + "(");
 	    for (int j=0;j<params.length;j++) { 
 		output.print(getType(params[j]));
@@ -549,9 +600,11 @@ class GMIStubGenerator extends GMIGenerator {
 	    methodBody("\t\t", m, i);
 	    methodTrailer(m);	
 
-	    singleMethod("\t", m, i);
-	    groupMethod("\t", m, i);
-	    personalizedMethod("\t", m, i);
+	    singleMethod("\t", m);
+	    groupMethod("\t", m);
+	    personalizedMethod("\t", m);
+	    combinedMethod("\t", m, true);
+	    combinedMethod("\t", m, false);
 	} 
     } 
            
