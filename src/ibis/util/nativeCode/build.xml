@@ -25,10 +25,28 @@
 
     <property name="ibis" location="../.."/>
 
+    <property name="omni" location="${ibis}/3rdparty/omni"/>
+
+    <path id="local.includes-ref">
+	<pathelement path="${omni}"/>
+    </path>
+    <property name="local.includes" refid="local.includes-ref"/>
+
     <import file="${ibis}/build-native.xml"/>
 
-    <target name="build"
-	    depends="native-compile">
+    <target name="build">
+	<if>
+	    <os family="mac"/>
+	    <then>
+		<path id="extra.libs-ref">
+		    <pathelement path="${omni}/OmniTimer/build/lib/libOTTimer.a"/>
+		</path>
+		<antcall inheritRefs="true" target="native-compile"/>
+	    </then>
+	    <else>
+		<antcall inheritRefs="true" target="native-compile"/>
+	    </else>
+	</if>
     </target>
 
 </project>

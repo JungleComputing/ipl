@@ -143,7 +143,9 @@
 		    <classpath refid="default.classpath"/>
 		</java>
 
+		<!--
 		<fixcrlf srcDir="${build}" includes="NativeMethodClasses"/>
+		-->
 		<!--
 		    Do regexp on ${build}/NativeMethodClasses:
 			%s/.class//
@@ -173,6 +175,11 @@
 			file="${build}/NativeMethodClasses"
 			flags="g"
 			match="\n"
+			replace=","/>
+		<replaceregexp
+			file="${build}/NativeMethodClasses"
+			flags="g"
+			match="\r"
 			replace=","/>
 		<replaceregexp
 			file="${build}/NativeMethodClasses"
@@ -350,6 +357,7 @@
 	    <pathelement path="${JAVA_HOME}/include"/>
 	    <pathelement path="${JAVA_HOME}/include/linux"/>
 	    <pathelement path="${JAVA_HOME}/include/win32"/>
+	    <pathelement path="${JAVA_HOME}/../1.3.1/Headers"/>
 	    <pathelement path="${build}/include"/>
 	    <pathelement path="${native.dir}"/>
 	</path>
@@ -357,6 +365,7 @@
 
 	<echo	message="native.dir = ${native.dir}"
 		level="verbose"/>
+	<echo message="default.includes = ${default.includes}"/>
 	<pathconvert pathsep=" " property="native-path">
 	    <path>
 		<pathelement path="${native.dir}"/>
@@ -398,6 +407,13 @@
 	    depends="native-init">
 
 	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
+	<if>
+	    <isreference refid="extra.libs-ref"/>
+	    <then>
+		<property name="extra.libs" refid="extra.libs-ref"/>
+		<echo message="Specify extra libs ${extra.libs}"/>
+	    </then>
+	</if>
 
 	<maplibrary property="library.path" name="${build}/lib/${local.lib}"/>
 
@@ -414,6 +430,7 @@
 			objdir="${build}/ibis/${native-path}"
 			outfile="${build}/lib/${local.lib}"
 			outtype="${cc.outtype}"
+			libtool="${use-libtool}"
 			name="${c.compiler}"
 			warnings="severe">
 		    <fileset dir="${native.dir}" includes="*.c" unless="native.src"/>
@@ -426,6 +443,10 @@
 			<pathelement path="${local.includes}"/>
 			<pathelement path="${default.includes}"/>
 		    </includepath>
+		    <!--
+		    <fileset refid="extra.libs-ref" if="extra.libs"/>
+		    -->
+		    <libset dir="${ibis}/3rdparty/omni/OmniTimer/build/lib" libs="OTTimer"/>
 		    <!-- <compilerarg location="mid" value="-E"/> -->
 		    <!-- <compilerarg location="mid" value="-v"/> -->
 		</cc>

@@ -286,7 +286,11 @@
 	</if>
     </target>
 
+    <!--
     <target name="natives" depends="natives.misc,natives.mp,natives.net">
+    </target>
+    -->
+    <target name="natives" depends="natives.misc">
     </target>
 
     <target name="compile"

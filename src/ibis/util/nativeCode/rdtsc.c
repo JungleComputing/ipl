@@ -1,8 +1,10 @@
 #include "ibis_util_nativeCode_Rdtsc.h"
 #include <jni.h>
 
-#if defined _M_IX86
+#if (defined _M_IX86)
 #include <windows.h>
+#elif (defined __POWERPC__)
+#include <OmniTimer/OTTimer.h>
 #endif
 
 JNIEXPORT jlong JNICALL Java_ibis_util_nativeCode_Rdtsc_rdtsc(JNIEnv *env, jclass cls)
@@ -36,6 +38,12 @@ JNIEXPORT jlong JNICALL Java_ibis_util_nativeCode_Rdtsc_rdtsc(JNIEnv *env, jclas
 #elif (defined _M_IX86)
     QueryPerformanceCounter((LARGE_INTEGER *)&time);
 
+#elif (defined __POWERPC__)
+    OTStamp t;
+
+    OTReadCounter(&t);
+    return (jlong)t.ull;
+
 #else
     fprintf(stderr, "No RDTSC asm support for this platform\n");
 #endif
@@ -44,6 +52,9 @@ JNIEXPORT jlong JNICALL Java_ibis_util_nativeCode_Rdtsc_rdtsc(JNIEnv *env, jclas
 }
 
 
+/*
+ * This call also serves as a static initializer
+ */
 JNIEXPORT jfloat JNICALL Java_ibis_util_nativeCode_Rdtsc_getMHz(JNIEnv *env, jclass clazz)
 {
 #if defined(__linux) && defined __GNUC__ && defined __i386__
@@ -125,6 +136,14 @@ JNIEXPORT jfloat JNICALL Java_ibis_util_nativeCode_Rdtsc_getMHz(JNIEnv *env, jcl
     QueryPerformanceFrequency((LARGE_INTEGER *)&frequency);
 
     return (jfloat)(frequency / 1000000.0);
+
+#elif (defined __POWERPC__)
+    double interval;
+
+    OTSetup();
+    interval = OTSecondsPerStampUnit();
+
+    return (jfloat)(0.000001 / interval);
 
 #else
     fprintf(stderr, "No RDTSC asm support for this platform\n");
