@@ -1,7 +1,7 @@
 package ibis.impl.net;
 
 import ibis.ipl.Ibis;
-import ibis.ipl.Timer;
+import ibis.util.Timer;
 
 
 /**
@@ -33,9 +33,9 @@ public final class NetLog {
         private static          Timer   timer           = null;
 
         {
-                timer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+                timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
                 if (timer == null) {
-                        timer = Ibis.newTimer("ibis.util.Timer");
+                        timer = new Timer();
                 }
         }
 

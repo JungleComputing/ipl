@@ -43,9 +43,10 @@ public interface SendPort
     public WriteMessage newMessage () throws IOException;
 
     /**
-     * Returns the {@link DynamicProperties} of this ibis implementation.
-     * What is the idea? Currently there are no Ibis implementations
-     * that implement this! ????
+     * Returns the {@link ibis.ipl.DynamicProperties DynamicProperties} of this port.
+     * The user can set some implementation-specific dynamic properties of the
+     * port, by means of the {@link ibis.ipl.DynamicProperties#set(String, Object)
+     * DynamicProperties.set} method.
      */
     public DynamicProperties properties ();
 

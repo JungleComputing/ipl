@@ -593,7 +593,7 @@ class ReceivePort
 
 
     public ibis.ipl.DynamicProperties properties() {
-	return null;
+	return ibis.ipl.DynamicProperties.NoDynamicProperties;
     }
 
 

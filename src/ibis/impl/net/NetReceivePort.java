@@ -806,7 +806,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         public DynamicProperties properties() {
                 log.in();
                 log.out();
-                return null;
+                return DynamicProperties.NoDynamicProperties;
         }
 
         /**

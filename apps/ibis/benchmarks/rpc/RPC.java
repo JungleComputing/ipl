@@ -953,7 +953,7 @@ System.err.println(this + ": call it quits...; I am " + (i_am_client ? "" : "not
 
 	    if (client == null) {
 		createIbis();
-		// ibis.ipl.Timer timer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+		// ibis.util.Timer timer = ibis.util.Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 		// timer.start();
 		registerIbis();
 		if (ncpus == 1) {

@@ -202,7 +202,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	}
 
 	public DynamicProperties properties() {
-		return null;
+		return DynamicProperties.NoDynamicProperties;
 	}
 
 	public String name() {

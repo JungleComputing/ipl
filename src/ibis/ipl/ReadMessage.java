@@ -45,6 +45,12 @@ public interface ReadMessage {
      */
     public ReceivePort localPort();
 
+    /**
+     * Returns the sequence number of this message.
+     * An Ibis implementation may choose to just return -1, in case it does not
+     * promise a specific ordering of the messages.
+     * @return a sequence number, or -1.
+     */
     public long sequenceNumber();
 
     /**

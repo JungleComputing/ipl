@@ -14,8 +14,9 @@ import ibis.ipl.ResizeHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.StaticProperties;
-import ibis.ipl.Timer;
 import ibis.ipl.WriteMessage;
+
+import ibis.util.Timer;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -149,12 +150,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	/* All victims, myself NOT included. The elements are Victims. */
 	VictimTable victims;
 
-	Timer stealTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
-	Timer handleStealTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
-	Timer abortTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
-	Timer idleTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
-	Timer pollTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
-	Timer tupleTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer stealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer handleStealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer abortTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer idleTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer pollTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer tupleTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	private long prevPoll = 0;
 	//	float MHz = Timer.getMHz();
 
@@ -172,13 +173,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.err.println("Native timers not found, using (less accurate) java timers.");
 		}
 
-		if(stealTimer == null) stealTimer = Ibis.newTimer("ibis.util.Timer");
-		if(handleStealTimer == null) handleStealTimer =
-						     Ibis.newTimer("ibis.util.Timer");
-		if(abortTimer == null) abortTimer = Ibis.newTimer("ibis.util.Timer");
-		if(idleTimer == null) idleTimer = Ibis.newTimer("ibis.util.Timer");
-		if(pollTimer == null) pollTimer = Ibis.newTimer("ibis.util.Timer");
-		if(tupleTimer == null) tupleTimer = Ibis.newTimer("ibis.util.Timer");
+		if(stealTimer == null) stealTimer = new Timer();
+		if(handleStealTimer == null) handleStealTimer = new Timer();
+		if(abortTimer == null) abortTimer = new Timer();
+		if(idleTimer == null) idleTimer = new Timer();
+		if(pollTimer == null) pollTimer = new Timer();
+		if(tupleTimer == null) tupleTimer = new Timer();
 
 		Properties p = System.getProperties();
 		String hostName = null;

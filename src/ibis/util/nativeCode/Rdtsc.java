@@ -1,6 +1,6 @@
 package ibis.util.nativeCode;
 
-public final class Rdtsc extends ibis.ipl.Timer {
+public final class Rdtsc extends ibis.util.Timer {
 	private long time;
 	// We often seem to meet overflow problems.
 	// For that, we don't just do time -= rdtsc() at start and

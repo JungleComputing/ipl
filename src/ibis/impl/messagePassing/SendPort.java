@@ -317,7 +317,7 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
     public DynamicProperties properties() {
-	return null;
+	return DynamicProperties.NoDynamicProperties;
     }
 
 	public String name() {

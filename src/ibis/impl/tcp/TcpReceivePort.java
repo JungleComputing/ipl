@@ -25,8 +25,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	String name; // needed to unbind
 	private TcpIbis ibis;
 	private TcpReceivePortIdentifier ident;
-	private int sequenceNumber = 0;
-	private int connectCount = 0;
 	private ConnectionHandler [] connections;
 	private int connectionsIndex;
 	private volatile boolean stop = false;
@@ -318,7 +316,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	public DynamicProperties properties() {
-		return null;
+		return DynamicProperties.NoDynamicProperties;
 	}
 
 	public String name() {

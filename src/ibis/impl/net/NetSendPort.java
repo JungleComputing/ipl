@@ -612,7 +612,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	public DynamicProperties properties() {
                 log.in();
                 log.out();
-		return null;
+		return DynamicProperties.NoDynamicProperties;
 	}
 
 	/**

@@ -1,64 +1,161 @@
 package ibis.util;
 
-public final class Timer extends ibis.ipl.Timer {
-	private long time = 0;
-	private long lastTime = 0;
+/**
+ * Utility for measuring time.
+ */
+public class Timer {
+    /**
+     * Counts the number of start/stop sequences.
+     */
+    protected int count;
 
-	public String implementationName() {
-		return "ibis.util.Timer";
-	}
+    private long time = 0;
+    private long lastTime = 0;
 
-	public double accuracy() {
-		return 1e-3;
-	}
+    /**
+     * Returns implementation name of this timer ("e.g., "javaTimer").
+     * @return the implementation name.
+     */
+    public String implementationName() {
+	return "ibis.util.Timer";
+    }
 
-	public long currentTimeNanos() {
-		return System.currentTimeMillis() * 1000000L;
-	}
+    /**
+     * Returns accuracy of this timer in seconds.
+     * @return the accuracy.
+     */
+    public double accuracy() {
+	return 1e-3;
+    }
 
-	public void reset() {
-		time = 0;
-	}
+    /**
+     * Returns the current time stamp in nano seconds.
+     * @return the current time stamp.
+     */
+    public long currentTimeNanos() {
+	return System.currentTimeMillis() * 1000000L;
+    }
 
-	public void start() {
-		lastTime = System.currentTimeMillis();
-		time -= lastTime;
-	}
+    /**
+     * Resets the timer.
+     */
+    public void reset() {
+	time = 0;
+    }
 
-	public void stop() {
-		long tmp = System.currentTimeMillis();
-		time += tmp;
-		lastTime = tmp - lastTime;
-		++ count;
-	}
+    /**
+     * Starts the timer.
+     * If the timer is already started, this is a no-op.
+     * The next {@link #stop()} call will stop the timer and add the result to the
+     * total.
+     */
+    public void start() {
+	lastTime = System.currentTimeMillis();
+	time -= lastTime;
+    }
 
-	public double totalTimeVal() {
-		return 1000.0*(double) time;
-	}
+    /**
+     * Stops the timer.
+     * If the timer is not started, this is a no-op.
+     * The timer is stopped, and the time between the last {@link #start()} and
+     * "now" is added to the total.
+     */
+    public void stop() {
+	long tmp = System.currentTimeMillis();
+	time += tmp;
+	lastTime = tmp - lastTime;
+	++ count;
+    }
 
-	public String totalTime() {
-		return format(1000*time);
-	}
+    /**
+     * Returns the total measured time in microseconds.
+     * @return total measured time.
+     */
+    public double totalTimeVal() {
+	return 1000.0*(double) time;
+    }
 
-	public double averageTimeVal() {
-		if(count > 0) {
-			return 1000.0*(double) time / (count);
-		}
-		return 0.0;
-	}
+    /**
+     * Returns the total measured time in microseconds, nicely formatted.
+     * @return total measured time.
+     */
+    public String totalTime() {
+	return format(totalTimeVal());
+    }
 
-	public String averageTime() {
-		if(count > 0) {
-			return format(1000*time / (count));
-		}
-		return "0.0";
+    /**
+     * Returns the average measured time in microseconds.
+     * @return the average measured time.
+     */
+    public double averageTimeVal() {
+	if (count > 0) {
+	    return 1000.0*(double) time / (count);
 	}
+	return 0.0;
+    }
 
-	public double lastTimeVal() {
-		return 1000.0*(double)lastTime;
-	}
+    /**
+     * Returns the average measured time in microseconds, nicely formatted.
+     * @return the average measured time.
+     */
+    public String averageTime() {
+	return format(averageTimeVal());
+    }
 
-	public String lastTime() {
-		return format(1000*lastTime);
+    /**
+     * Returns the last measured time in microseconds.
+     * @return the last measured time.
+     */
+    public double lastTimeVal() {
+	return 1000.0*(double)lastTime;
+    }
+
+    /**
+     * Returns the last measured time in microseconds, nicely formatted.
+     * @return the last measured time.
+     */
+    public String lastTime() {
+	return format(lastTimeVal());
+    }
+
+    /**
+     * Returns the number of measurements.
+     * @return the number of measurements.
+     */
+    public int nrTimes() {
+	return count;
+    }
+
+    /**
+     * Formats a time in microseconds
+     * @param micros the time to be formatted.
+     * @return the result of the format.
+     */
+    public String format(double micros) {
+	if (micros < 1.0) {
+	    return String.valueOf(micros * 1000) + " ns";
+	} else if (micros < 1000.0) {
+	    return String.valueOf(micros) + " us";
+	} else if (micros < 1000000.0) {
+	    return String.valueOf(micros / 1000) + " ms";
+	} else {
+	    return String.valueOf(micros / 1000000) + "  s";
 	}
+    }
+
+    /**
+     * Returns a Timer instance indicated by the implementation name
+     * provided.
+     * Returns null when the implementation could not be loaded.
+     * @param impl the name of the Timer implementation.
+     * @return the new Timer instance, or <code>null</code>.
+     */
+    public static Timer newTimer(String impl) {
+	try {
+	    Class c = Class.forName(impl);
+	    return (Timer) c.newInstance();
+	} catch (Throwable t) {
+	    return null;
+	}
+    }
 }

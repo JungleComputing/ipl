@@ -2,13 +2,8 @@ package ibis.rmi.server;
 
 import ibis.rmi.RTS;
 
-    // TODO: getClientHost
-
 public abstract class RemoteServer extends RemoteObject
 {
-//    private static String log_name = "RMI";
-//    private static LogStream log = null;
-
     protected RemoteServer() {
 	super();
     }
