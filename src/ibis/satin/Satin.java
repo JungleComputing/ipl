@@ -1942,7 +1942,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + ident.name() + 
-					   "': bcasting tuple" + key);
+					   "': bcasting tuple " + key);
 		}
 
 		if(victims.size() == 0) return; // don't multicast when there is no-one.
