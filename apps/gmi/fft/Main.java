@@ -23,6 +23,10 @@ class Main {
 		} else {
 			try {
 				M = Integer.parseInt(argv[0]);
+				if (M <= 0 || (M & 1) != 0) {
+				    System.out.println("M must be > 0 and even.");
+				    System.exit(1);
+				}
 			} catch (NumberFormatException e) {
 				System.out.println(e.getMessage());
 				System.exit(1);
