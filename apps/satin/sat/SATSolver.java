@@ -152,8 +152,8 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    leafSolve( level+1, ctx.p, ctx.varlist, assignments, varix+1, true );
 	}
 	else {
-	    solve( level+1, ctx, assignments, varix+1, false );
-	    solve( level+1, ctx, assignments, varix+1, true );
+	    solve( level+1, ctx, (int[])assignments.clone(), varix+1, false );
+	    solve( level+1, ctx, (int[])assignments.clone(), varix+1, true );
 	    sync();
 	}
 	assignments[var] = -1;
@@ -243,8 +243,8 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 		leafSolve( level+1, ctx.p, ctx.varlist, assignments, 0, true );
 	    }
 	    else {
-		solve( level+1, ctx, assignments, 0, false );
-		solve( level+1, ctx, assignments, 0, true );
+		solve( level+1, ctx, (int[])assignments.clone(), 0, false );
+		solve( level+1, ctx, (int[])assignments.clone(), 0, true );
 		sync();
 	    }
 	}
