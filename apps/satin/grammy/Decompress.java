@@ -26,7 +26,7 @@ class Decompress {
     public static void main( String args[] ) throws java.io.IOException
     {
 	if( args.length != 2 ){
-	    System.err.println( "Usage: <text> <compressedtext>" );
+	    System.err.println( "Usage: <compressed-text> <decompressed-text>" );
 	    System.exit( 1 );
 	}
 	File infile = new File( args[0] );

@@ -20,6 +20,12 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     private SuffixArray( short text[] ) throws VerificationException
     {
         this.text = text;
+        length = text.length;
+    }
+
+    public SuffixArray( ShortBuffer b ) throws VerificationException
+    {
+        this( b.getText() );
     }
 
     SuffixArray( byte t[] ) throws VerificationException
@@ -175,9 +181,8 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     }
 
     /** Sorts the administration arrays to implement ordering. */
-    private void sort( int indices[], int commonality[] )
+    private void buildAdministration( int indices[], int commonality[] )
     {
-
 	int slots[] = new int[nextcode];
 	int next[] = new int[length];
 	java.util.Arrays.fill( slots, -1 );
@@ -192,9 +197,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	}
 
 	// Now copy out the slots into the indices array.
-	// TODO: sort each slot separately.
-	// TODO: reject slots with only one entry, since they are
-	// utterly uninteresting.
 	int ix = 0;	// Next entry in the indices array.
 
 	for( int i=0; i<slots.length; i++ ){
@@ -213,6 +215,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 		sort( indices, commonality, start, ix );
 	    }
 	    else {
+                // A single entry is not interesting, skip it.
 		ix = start;
 	    }
 	}
@@ -397,7 +400,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	 */
 	int commonality[] = new int[length];
 
-        sort( indices, commonality );
+        buildAdministration( indices, commonality );
 
 
         StepList res = new StepList( top );
@@ -436,7 +439,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                         // HEURISTIC: anything shorter than this is probably
                         // not a reasonable candidate for best compression step.
                         // (But we could be wrong.)
-                        mincom = len-1;
+                        // mincom = Math.max( mincom, len-1 );
                         res.add( new Step( candidates, p, len ) );
                     }
                     len--;

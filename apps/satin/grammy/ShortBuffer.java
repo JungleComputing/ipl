@@ -26,13 +26,13 @@ class ShortBuffer implements java.io.Serializable, Magic {
 	this( text, text.length );
     }
 
-    /** Returns a byte array containing the current text in the buffer. */
-    public byte [] getText()
+    /** Returns a short array containing the current text in the buffer. */
+    public short [] getText()
     {
-        byte res[] = new byte[sz];
+        short res[] = new short[sz];
 
         for( int i=0; i<sz; i++ ){
-            res[i] = (byte) buf[i];
+            res[i] = buf[i];
         }
         return res;
     }

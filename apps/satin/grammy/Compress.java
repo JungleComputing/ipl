@@ -64,9 +64,13 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 	    }
 	    sync();
 	    res = l[0];
+            int len = res.getLength();
 	    for( int i=1; i<l.length; i++ ){
-		if( l[i].getLength()<res.getLength() ){
+                int leni = l[i].getLength();
+
+		if( leni<len ){
 		    res = l[i];
+                    len = leni;
 		}
 	    }
 	}
