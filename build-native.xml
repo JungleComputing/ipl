@@ -101,8 +101,10 @@
 
 
     <target name="find-natives"
-	    depends="javah-init"
-	    description="Locate classes with native methods in the build tree">
+	    depends="javah-init">
+	    <!-- commented out, not toplevel
+	    description="Locate classes with native methods in the build tree"
+	    -->
 	<path id="all-classes">
 	    <fileset dir="${build}">
 		<include name="**/*.class"/>
@@ -184,8 +186,10 @@
 
 
     <target name="javah"
-	    depends="javah-init,find-natives"
-	    description="Invoke javah over classes listed in ${build}/NativeMethodClasses">
+	    depends="javah-init,find-natives">
+	    <!-- commented out; not toplevel
+	    description="Invoke javah over classes listed in ${build}/NativeMethodClasses"
+	    -->
 	<loadfile
 		property="classes.native"
 		srcFile="${build}/NativeMethodClasses">
@@ -475,8 +479,10 @@
 	directory
     -->
     <target name="native"
-	    depends="native-init,native-compile"
-	    description="Compile native files in the current directory"/>
+	    depends="native-init,native-compile"/>
+	    <!-- commented out; not toplevel
+	    description="Compile native files in the current directory"
+	    -->
     <!--
     <target name="native"
 	    depends="native-init"
