@@ -1,0 +1,36 @@
+#!/bin/bash
+
+reserve="-reserve 724368"
+
+n=10
+
+sers="ibis sun"
+# sers="ibis sun"
+
+for (( i = 0; i < $n; i++ )) ; do
+
+    ibises="panda net.gm"
+    # ibises="panda"
+
+    if true ; then
+	for ibis in $ibises ; do
+	    for ser in $sers ; do
+		sh run-rpc $ibis $ser 1000000 0 "$reserve" "" 
+	    done
+	done
+    fi
+
+    # ibises="net.tcp_blk net.gen.tcp_blk tcp"
+    ibises="tcp net.bytes.gen.tcp_blk"
+
+    if true ; then
+	for ibis in $ibises ; do
+	    for (( j = 0; j < 5; j++ )); do
+		for ser in $sers ; do
+		    sh run-rpc $ibis $ser 10000 0 "$reserve" ""
+		done
+	    done
+	done
+    fi
+
+done

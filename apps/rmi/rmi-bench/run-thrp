@@ -1,0 +1,59 @@
+#!/bin/bash
+
+reserve="-reserve 724368"
+n=10
+
+sers="ibis sun"
+# sers="ibis sun"
+
+for (( i = 0; i < $n; i++ )) ; do
+
+    ibises="panda net.gm"
+    # ibises="net.gm"
+
+    if true ; then
+	for ibis in $ibises ; do
+	    for ser in $sers ; do
+		sh run-rpc $ibis $ser 10000 100000 "$reserve" "-one-way $data"
+	    done
+	done
+    fi
+
+    if true ; then
+	data=-byte
+	for ibis in $ibises ; do
+	    for ser in $sers ; do
+		for data in "-int -double" ; do
+		    sh run-rpc $ibis $ser 10000 100000 "$reserve" "-one-way $data"
+		done
+		sh run-rpc $ibis $ser 10000 1023 "$reserve" "-one-way -tree"
+	    done
+	done
+    fi
+
+    ibises="tcp net.bytes.gen.tcp_blk"
+    # ibises="tcp"
+
+    if true ; then
+	data=-byte
+	for ibis in $ibises ; do
+	    for ser in $sers ; do
+		sh run-rpc $ibis $ser 1000 100000 "$reserve" "-one-way $data"
+	    done
+	done
+    fi
+
+    if true ; then
+	for ibis in $ibises ; do
+	    for (( j = 0; j < 5; j++ )) ; do
+		for ser in $sers ; do
+		    for data in "-int -double" ; do
+			sh run-rpc $ibis $ser 1000 100000 "$reserve" "-one-way $data"
+		    done
+		    sh run-rpc $ibis $ser 1000 1023 "$reserve" "-one-way -tree"
+		done
+	    done
+	done
+    fi
+
+done

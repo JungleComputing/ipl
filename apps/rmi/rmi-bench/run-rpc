@@ -1,0 +1,23 @@
+#!/bin/sh
+# Usage:
+# $0 <ibis> <ser> <count> <size> "<prun flags>" "<app flags>"
+
+ibis=$1
+ser=$2
+count=$3
+size=$4
+
+prunflags="$5"
+appflags="$6"
+
+IBIS_ROOT=/home1/rutger/ibis
+
+echo ibis = $ibis ser = $ser count = $count size = $size app-flags = $appflags
+prun -v -1 -pre-cleanup -no-panda -subst \
+	$prunflags \
+	IBP_SEND_SYNC=100 LFC_INTR_FIRST=100 PAN_COMM_NO_IDLE_POLL=1 \
+	$IBIS_ROOT/bin/run-das 2 \
+	-Dibis.name=$ibis -Dibis.serialization=$ser \
+	-Dibis.mp.polls.optimistic=1000 \
+	-Dibis.worldmodel=closed \
+	RMI_Bench $count $size $appflags
