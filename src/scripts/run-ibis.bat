@@ -150,23 +150,23 @@ rem
 rem if no_pool is set, kill all pool info
 rem
 
-if "%no_pool"=="1" (
+if "%no_pool%"=="1" (
     set Dpool_total=
     set Dpool_host_num=
     set Dpool_host_names=
 )
 
-if "%noJIT"=="1" (
-    set JIT_OPTS="%JIT_OPTS% -Djava.compiler=NONE"
+if "%noJIT%"=="1" (
+    set JIT_OPTS=%JIT_OPTS% -Djava.compiler=NONE
 )
 if "%attach%"=="1" (
-    set JIT_OPTS="%JIT_OPTS% -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -Djava.compiler=NONE"
+    set JIT_OPTS=%JIT_OPTS% -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -Djava.compiler=NONE
 )
-if not "%prof"=="" (
-    set JIT_OPTS="%JIT_OPTS% -Xrunhprof:cpu=samples,depth=8,thread=y,file=%prof%.%PRUN_CPU_RANK% -Djava.compiler=NONE"
+if not "%prof%"=="" (
+    set JIT_OPTS=%JIT_OPTS% -Xrunhprof:cpu=samples,depth=8,thread=y,file=%prof%.%PRUN_CPU_RANK% -Djava.compiler=NONE
 )
-if not "%gprof"=="" (
-    set JIT_OPTS="%JIT_OPTS% -Xrunhprof:cpu=times,depth=8,thread=y,file=%gprof%.%PRUN_CPU_RANK%"
+if not "%gprof%"=="" (
+    set JIT_OPTS=%JIT_OPTS% -Xrunhprof:cpu=times,depth=8,thread=y,file=%gprof%.%PRUN_CPU_RANK%
 )
 
 rem need at least a class to run
@@ -190,7 +190,7 @@ rem and for NT handling to skip to.
 
 :doneStart
 
-%action% %JAVA_ROOT%\bin\%JAVA_EXEC% %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dpool_host_names% %Dns_pool% %Dns_port% %Dns_server% %Dns_retry% %Xbootclasspath% -classpath %JAVACLASSPATH% %IBIS_APP_ARGS%
+%action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dpool_host_names% %Dns_pool% %Dns_port% %Dns_server% %Dns_retry% %Xbootclasspath% -classpath %JAVACLASSPATH% %IBIS_APP_ARGS%
 
 goto end
 
