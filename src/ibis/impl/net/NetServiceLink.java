@@ -248,7 +248,7 @@ public final class NetServiceLink {
                 // System.err.println("NetServiceLink: close<--");
         }
 
-        public synchronized OutputStream getOutputSubStream(String name) throws NetIbisException {
+        protected synchronized OutputStream getOutputSubStream(String name) throws NetIbisException {
                 OutputClient oc = null;
                 
                 synchronized(outputMap) {
@@ -280,7 +280,7 @@ public final class NetServiceLink {
                 return oc.sos;
         }
 
-        public synchronized InputStream getInputSubStream(String name) throws NetIbisException {
+        protected synchronized InputStream getInputSubStream(String name) throws NetIbisException {
                 InputClient ic = null;
                 
                 synchronized(inputMap) {
@@ -302,6 +302,14 @@ public final class NetServiceLink {
                 }
                 
                 return ic.sis;
+        }
+
+        public OutputStream getOutputSubStream(NetIO io, String name) throws NetIbisException {
+                return getOutputSubStream(io.context()+name);
+        }
+
+        public InputStream  getInputSubStream (NetIO io, String name) throws NetIbisException {
+                return getInputSubStream(io.context()+name);
         }
 
 

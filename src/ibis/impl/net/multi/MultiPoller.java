@@ -192,9 +192,9 @@ public final class MultiPoller extends NetInput {
                 try {
                         NetServiceLink link = cnx.getServiceLink();
 
-                        ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream ("multi"));
+                        ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "multi"));
 
-                        ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("multi"));
+                        ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
                         os.flush();
 
                         // System.err.println("MultiPoller: setupConnection - 2");

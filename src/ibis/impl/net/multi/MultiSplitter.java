@@ -133,10 +133,10 @@ public final class MultiSplitter extends NetOutput {
                         NetServiceLink link = null;
                         link = cnx.getServiceLink();
 
-                        ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("multi"));
+                        ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
                         os.flush();
 
-                        ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream ("multi"));
+                        ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "multi"));
 
                         // System.err.println("MultiSplitter: setupConnection - 2");
 

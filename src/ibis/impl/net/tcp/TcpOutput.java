@@ -84,7 +84,7 @@ public final class TcpOutput extends NetOutput {
 		this.rpn = cnx.getNum();
 	
 		try {
-                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("tcp"));
+                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp"));
                         Hashtable remoteInfo = (Hashtable)is.readObject();
                         is.close();
                         

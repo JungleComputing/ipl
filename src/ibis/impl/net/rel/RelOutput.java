@@ -141,7 +141,7 @@ public final class RelOutput
 		subDriver = driver.getIbis().getDriver(subDriverName);
 	    }
 
-	    dataOutput = newSubOutput(subDriver);
+	    dataOutput = newSubOutput(subDriver, "data");
 	    this.dataOutput = dataOutput;
 	} else {
 	    System.err.println("No support yet for one-to-many connections in RelOutput.java");
@@ -172,8 +172,8 @@ System.err.println("RelOutput: headerStart " + headerStart);
 
 	try {
             NetServiceLink link = cnx.getServiceLink();
-	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream ("rel"));
-            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("rel"));
+	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "rel"));
+            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "rel"));
 
 	    partnerIbisId = (IbisIdentifier)is.readObject();
             is.close();
@@ -193,7 +193,7 @@ System.err.println("RelOutput: headerStart " + headerStart);
 
 	/* Reverse connection */
 	if (controlInput == null) {
-		controlInput = newSubInput(subDriver);
+		controlInput = newSubInput(subDriver, "control");
 		this.controlInput = controlInput;
 	}
 

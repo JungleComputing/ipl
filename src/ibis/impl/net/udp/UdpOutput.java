@@ -122,11 +122,11 @@ public final class UdpOutput extends NetBufferedOutput {
                 Hashtable rInfo = null;
 
                 try {
-                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("udp"));
+                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "udp"));
                         rInfo = (Hashtable)is.readObject();
                         is.close();
 
-                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("udp"));
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "udp"));
                         os.writeObject(lInfo);
                         os.close();
                 } catch (IOException e) {

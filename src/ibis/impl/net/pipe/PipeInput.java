@@ -83,9 +83,9 @@ public final class PipeInput extends NetBufferedInput {
 			info.put("pipe_upcall_mode", new Boolean(upcallMode));
 
                         
-			ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("pipe"));
+			ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "pipe"));
 			os.writeObject(info);
-                        InputStream is = cnx.getServiceLink().getInputSubStream("pipe");
+                        InputStream is = cnx.getServiceLink().getInputSubStream(this, "pipe");
 			int ack = is.read();
                         os.close();
                         is.close();

@@ -84,6 +84,10 @@ public abstract class NetIO {
 		return up;
 	}
 
+        public String context() {
+                return context;
+        }
+
 	/**
 	 * Returns the output's driver.
 	 *

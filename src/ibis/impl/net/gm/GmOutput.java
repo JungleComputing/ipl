@@ -94,8 +94,8 @@ public final class GmOutput extends NetBufferedOutput {
                 Hashtable rInfo = null;
 
 		try {
-                        ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream ("gm"));
-                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("gm"));
+                        ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream (this, "gm"));
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
                         os.flush();
 
                         rInfo = (Hashtable)is.readObject();

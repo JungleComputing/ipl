@@ -34,7 +34,7 @@ public final class PipeOutput extends NetBufferedOutput {
 		this.rpn = cnx.getNum();
 	
 		try {
-                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("pipe"));
+                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "pipe"));
 
 			Hashtable info = (Hashtable)is.readObject();
 			mtu  	       = ((Integer)info.get("pipe_mtu")).intValue();
@@ -46,7 +46,7 @@ public final class PipeOutput extends NetBufferedOutput {
 			PipedInputStream pipeIs = (PipedInputStream)bank.discardKey(key);
 
 			pipeOs = new PipedOutputStream(pipeIs);
-                        OutputStream os = cnx.getServiceLink().getOutputSubStream("pipe");
+                        OutputStream os = cnx.getServiceLink().getOutputSubStream(this, "pipe");
                                 
                         os.write(1); // Connection ack
                         os.flush();

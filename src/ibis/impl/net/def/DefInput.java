@@ -72,7 +72,7 @@ public final class DefInput extends NetBufferedInput {
                 }                
 
 		this.spn = cnx.getNum();
-                defIs    = cnx.getServiceLink().getInputSubStream("def");
+                defIs    = cnx.getServiceLink().getInputSubStream(this, "def");
 
                 mtu = 1024;
 		allocator = new NetAllocator(mtu);

@@ -102,7 +102,7 @@ public final class TcpInput extends NetInput {
 			Hashtable info    = new Hashtable();
 			info.put("tcp_address", tcpServerSocket.getInetAddress());
 			info.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
-                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("tcp"));
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp"));
 			os.writeObject(info);
                         os.close();
 

@@ -137,7 +137,7 @@ public final class RelInput
 		subDriver = driver.getIbis().getDriver(subDriverName);
 	    }
 
-	    dataInput = newSubInput(subDriver);
+	    dataInput = newSubInput(subDriver, "data");
 	    this.dataInput = dataInput;
 	}
 
@@ -162,8 +162,8 @@ System.err.println("RelInput: headerStart " + headerStart);
 
 	try {
              NetServiceLink link = cnx.getServiceLink();
-            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("rel"));
-	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream ("rel"));
+            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "rel"));
+	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "rel"));
             os.writeObject(relDriver.getIbis().identifier());
             os.close();
 
@@ -182,7 +182,7 @@ System.err.println("RelInput: headerStart " + headerStart);
 	/* Reverse connection */
 	NetOutput controlOutput = this.controlOutput;
 	if (controlOutput == null) {
-		controlOutput = newSubOutput(subDriver);
+		controlOutput = newSubOutput(subDriver, "control");
 		this.controlOutput = controlOutput;
 	}
 

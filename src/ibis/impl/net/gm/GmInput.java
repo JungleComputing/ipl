@@ -277,10 +277,10 @@ public final class GmInput extends NetBufferedInput {
                 
 
 		try {
-                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("gm"));
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "gm"));
                         os.flush();
 
-                        ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream ("gm"));
+                        ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream (this, "gm"));
                         os.writeObject(lInfo);
                         os.flush();
 

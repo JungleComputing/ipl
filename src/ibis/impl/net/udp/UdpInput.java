@@ -148,11 +148,11 @@ public final class UdpInput extends NetBufferedInput {
                 Hashtable rInfo = null;
                 
                 try {
-                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("udp"));
+                        ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "udp"));
                         os.writeObject(lInfo);
                         os.close();
 
-                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("udp"));
+                        ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "udp"));
                         rInfo = (Hashtable)is.readObject();
                         is.close();
                 } catch (IOException e) {

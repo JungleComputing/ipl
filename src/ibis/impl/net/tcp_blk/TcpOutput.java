@@ -88,13 +88,13 @@ public final class TcpOutput extends NetBufferedOutput {
 		Hashtable   rInfo = null;
                         try {
                                 //System.err.println("TcpOutput: reading info table -->");
-                                ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream("tcp_blk"));
+                                ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
                                 rInfo = (Hashtable)is.readObject();
                                 is.close();
                                 //System.err.println("TcpOutput: reading info table <--");
 
                                 //System.err.println("TcpOutput: writing info table -->");
-                                ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream("tcp_blk"));
+                                ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
                                 os.writeObject(lInfo);
                                 os.close();
                                 //System.err.println("TcpOutput: writing info table <--");

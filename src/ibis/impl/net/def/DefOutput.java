@@ -33,7 +33,7 @@ public final class DefOutput extends NetBufferedOutput {
 
 		this.rpn = cnx.getNum();
 	
-                defOs = cnx.getServiceLink().getOutputSubStream("def");
+                defOs = cnx.getServiceLink().getOutputSubStream(this, "def");
 		mtu = 1024;
 	}
 
