@@ -52,8 +52,12 @@ final class NullArrayOutputStream extends ArrayOutputStream {
 	public void close() throws IOException { 
 	}
 
-	public int bytesWritten() { 
-		return len;
+	public boolean finished() {
+	    return true;
+	}
+
+	public long bytesWritten() { 
+		return (long) len;
 	} 
 
 	public void resetBytesWritten() { 

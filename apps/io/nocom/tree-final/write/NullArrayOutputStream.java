@@ -61,7 +61,7 @@ final class NullArrayOutputStream extends ArrayOutputStream {
 	    len = 0;
 	}
 
-	public final int bytesWritten() {
-	    return len;
+	public final long bytesWritten() {
+	    return (long) len;
 	}
 } 

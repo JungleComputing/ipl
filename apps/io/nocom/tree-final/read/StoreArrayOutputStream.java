@@ -72,8 +72,8 @@ final class StoreArrayOutputStream extends ArrayOutputStream {
 	    flush();
 	}
 
-	public int bytesWritten() { 
-		return len;
+	public long bytesWritten() { 
+		return (long) len;
 	} 
 
 	public void resetBytesWritten() {

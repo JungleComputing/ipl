@@ -76,5 +76,8 @@ public class StoreArrayInputStream extends ibis.io.ArrayInputStream {
 	public int available() throws IOException { 
 		return 0;
 	}
+
+	public void close() throws IOException {
+	}
 }
 

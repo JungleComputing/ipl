@@ -17,43 +17,47 @@ final class StoreArrayOutputStream extends ArrayOutputStream {
 		return temp;
 	} 
 
-	public void doWriteArray(Object a, int off, int len, int type) throws IOException { 
-	    switch(type){
-	    case TYPE_BOOLEAN:
+	public void writeArray(boolean[] a, int off, int len) throws IOException { 
 		this.len += len;
 		buf.writeArray((boolean[]) a, off, len);
-		break;
-	    case TYPE_BYTE:
+	}
+
+	public void writeArray(byte[] a, int off, int len) throws IOException { 
 		this.len += len;
 		buf.writeArray((byte[]) a, off, len);
-		break;
-	    case TYPE_SHORT:
+	}
+
+	public void writeArray(short[] a, int off, int len) throws IOException { 
 		this.len += 2*len;
 		buf.writeArray((short[]) a, off, len);
-		break;
-	    case TYPE_CHAR:
+	}
+
+	public void writeArray(char[] a, int off, int len) throws IOException { 
 		this.len += 2*len;
 		buf.writeArray((char[]) a, off, len);
-		break;
-	    case TYPE_INT:
+	}
+
+	public void writeArray(int[] a, int off, int len) throws IOException { 
 		this.len += 4*len;
 		buf.writeArray((int[]) a, off, len);
-		break;
-	    case TYPE_LONG:
+	}
+
+	public void writeArray(long[] a, int off, int len) throws IOException { 
 		this.len += 8*len;
 		buf.writeArray((long[]) a, off, len);
-		break;
-	    case TYPE_FLOAT:
+	}
+
+	public void writeArray(float[] a, int off, int len) throws IOException { 
 		this.len += 4*len;
 		buf.writeArray((float[]) a, off, len);
-		break;
-	    case TYPE_DOUBLE:
+	}
+
+	public void writeArray(double[] a, int off, int len) throws IOException { 
 		this.len += 8*len;
 		buf.writeArray((double[]) a, off, len);
-	    }
 	}
 	
-	public void doFlush() throws IOException { 
+	public void flush() throws IOException { 
 	}
 
 	public boolean finished() {
@@ -68,8 +72,8 @@ final class StoreArrayOutputStream extends ArrayOutputStream {
 	    flush();
 	}
 
-	public int bytesWritten() { 
-		return len;
+	public long bytesWritten() { 
+		return (long) len;
 	} 
 
 	public void resetBytesWritten() {
