@@ -112,12 +112,12 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config {
     }
 
     /**
-     * Waits for someone to wake us up. waits:
+     * Waits for someone to wake us up. Waits:
      * - not at all if deadline == -1
      * - until System.getTimeMillis >= deadline if deadline > 0
      * - for(ever) if deadline == 0
      *
-     * @returns true we (might have been) notified, or false if the 
+     * @return true we (might have been) notified, or false if the 
      * deadline passed
      */
     private boolean waitForNotify(long deadline) {

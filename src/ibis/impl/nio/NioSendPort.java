@@ -344,7 +344,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
     /**
      * Called by the accumulator to tell us a connections was lost.
      *
-     * @throw IOException when the connectionadministration is disabled.
+     * @throws IOException when the connectionadministration is disabled.
      */
     protected synchronized void lostConnection(ReceivePortIdentifier peer
 				    , IOException reason) throws IOException {
