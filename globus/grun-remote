@@ -72,4 +72,4 @@ fi
 
 cd $IBIS_ROOT/$APP_DIR
 
-$JAVA_HOME/bin/java $JAVA_PARAMS -Dibis.property.file=$IBIS_ROOT/properties -Xbootclasspath:$CLASSPATH -classpath $CLASSPATH $*
+$JAVA_HOME/bin/java $JAVA_PARAMS -Dibis.property.file=$IBIS_ROOT/properties -Xbootclasspath/p:$IBIS_ROOT/classlibs:$IBIS_ROOT/build -classpath $CLASSPATH $*
