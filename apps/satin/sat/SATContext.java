@@ -630,86 +630,62 @@ public final class SATContext implements java.io.Serializable {
      */
     private Clause buildConflictClause( SATProblem p, int cno, int var, int level )
     {
-	if( true ){
-	    boolean changed = false;
-	    boolean anyChange = false;
-	    Clause res = p.clauses[cno];
+        boolean changed = false;
+        boolean anyChange = false;
+        Clause res = p.clauses[cno];
 
-	    int bestDom = calculateNearestDominator( p, cno, level );
-	    do {
-		changed = false;
-		int arr[] = res.pos;
-		for( int i=0; i<arr.length; i++ ){
-		    int v = arr[i];
+        int bestDom = calculateNearestDominator( p, cno, level );
+        do {
+            changed = false;
+            int arr[] = res.pos;
+            for( int i=0; i<arr.length; i++ ){
+                int v = arr[i];
 
-		    if( dl[v] == level ){
-			int a = antecedent[v];
+                if( dl[v] == level ){
+                    int a = antecedent[v];
 
-			if( a>=0 && a != bestDom ){
-			    Clause newres = Clause.resolve( res, p.clauses[a], v );
-			    if( traceLearning ){
-				System.err.println( "Resolving on v" + v + ":" );
-				System.err.println( "  " + res );
-				System.err.println( "  " + p.clauses[a] + " =>" );
-				System.err.println( "  " + newres );
-			    }
-			    changed = true;
-			    anyChange = true;
-			    res = newres;
-			    break;
-			}
-		    }
-		}
-		arr = res.neg;
-		for( int i=0; i<arr.length; i++ ){
-		    int v = arr[i];
-
-		    if( dl[v] == level ){
-			int a = antecedent[v];
-
-			if( a>=0 && a != bestDom ){
-			    Clause newres = Clause.resolve( res, p.clauses[a], v );
-			    if( traceLearning ){
-				System.err.println( "Resolving on v" + v + ":" );
-				System.err.println( "  " + res );
-				System.err.println( "  " + p.clauses[a] + " =>" );
-				System.err.println( "  " + newres );
-			    }
-			    changed = true;
-			    anyChange = true;
-			    res = newres;
-			    break;
-			}
-		    }
+                    if( a>=0 && a != bestDom ){
+                        Clause newres = Clause.resolve( res, p.clauses[a], v );
+                        if( traceLearning ){
+                            System.err.println( "Resolving on v" + v + ":" );
+                            System.err.println( "  " + res );
+                            System.err.println( "  " + p.clauses[a] + " =>" );
+                            System.err.println( "  " + newres );
+                        }
+                        changed = true;
+                        anyChange = true;
+                        res = newres;
+                        break;
+                    }
                 }
-            } while( changed );
-            if( !anyChange ){
-                return null;
             }
-            return res;
+            arr = res.neg;
+            for( int i=0; i<arr.length; i++ ){
+                int v = arr[i];
+
+                if( dl[v] == level ){
+                    int a = antecedent[v];
+
+                    if( a>=0 && a != bestDom ){
+                        Clause newres = Clause.resolve( res, p.clauses[a], v );
+                        if( traceLearning ){
+                            System.err.println( "Resolving on v" + v + ":" );
+                            System.err.println( "  " + res );
+                            System.err.println( "  " + p.clauses[a] + " =>" );
+                            System.err.println( "  " + newres );
+                        }
+                        changed = true;
+                        anyChange = true;
+                        res = newres;
+                        break;
+                    }
+                }
+            }
+        } while( changed );
+        if( !anyChange ){
+            return null;
         }
-        else {
-            Resolution chain = computeResolutionChain( p, cno, level );
-            if( chain == null ){
-                // No interesting clause to learn.
-                return null;
-            }
-            if( traceLearning ){
-                System.err.println( "Resolution chain:" );
-                Resolution r = chain;
-                while( r != null ){
-                    System.err.println( "-- Resolve v" + r.var + " on " + p.clauses[r.cno] );
-                    r = r.next;
-                }
-            }
-            Resolution r = chain;
-            Clause res = p.clauses[cno];
-            while( r != null ){
-                res = Clause.resolve( res, p.clauses[r.cno], r.var );
-                r = r.next;
-            }
-	    return res;
-	}
+        return res;
     }
 
     /**
