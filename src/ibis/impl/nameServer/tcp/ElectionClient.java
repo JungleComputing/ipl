@@ -30,20 +30,27 @@ class ElectionClient implements Protocol {
 		ObjectInputStream in;
 		Object result = null;
 
-		s = NameServerClient.socketFactory.createSocket(server, port, localAddress, 0 /* retry */);
-		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-		out = new ObjectOutputStream(new BufferedOutputStream(dos));
+		// Election: candidate==null means caller is not a candidate.
+		// Note: at least one caller must have a candidate.
+		while (result == null) {
+		    s = NameServerClient.socketFactory.createSocket(server, port, localAddress, 0 /* retry */);
+		    DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+		    out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
-		out.writeByte(ELECTION);
-		out.writeUTF(election);
-		out.writeObject(candidate);
-		out.flush();
+		    out.writeByte(ELECTION);
+		    out.writeUTF(election);
+		    out.writeObject(candidate);
+		    out.flush();
 
-		DummyInputStream di = new DummyInputStream(s.getInputStream());
-		in  = new ObjectInputStream(new BufferedInputStream(di));
+		    DummyInputStream di = new DummyInputStream(s.getInputStream());
+		    in  = new ObjectInputStream(new BufferedInputStream(di));
 
-		result = in.readObject();
-		NameServerClient.socketFactory.close(in, out, s);
+		    result = in.readObject();
+		    NameServerClient.socketFactory.close(in, out, s);
+		    if (result == null) {
+			try {Thread.sleep(1000);} catch (Exception ee) {}
+		    }
+		}
 
 		return result;
 	}

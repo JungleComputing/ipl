@@ -65,27 +65,33 @@ class ElectionClient implements ElectionProtocol {
 // System.err.println(Thread.currentThread() + "election \"" + election + "\" " + " candidate " + candidate);
 // Thread.dumpStack();
 
-	ibis.ipl.WriteMessage m = sport.newMessage();
-	m.writeInt(Ibis.myIbis.myCpu);
-	m.writeObject(election);
-	m.writeObject(candidate);
-	m.send();
-	m.finish();
-
-	if (ElectionServer.DEBUG) {
-	    System.err.println(Thread.currentThread() + "ElectionClient: elect(): send done, now start rcve");
-	}
-
-	ibis.ipl.ReadMessage r = rport.receive();
 	Object winner = null;
-	try {
-	    winner = r.readObject();
-	} catch (ClassNotFoundException e) {
-	    throw new IOException("election object class not found " + e);
-	}
-	r.finish();
-	if (ElectionServer.DEBUG) {
-	    System.err.println(Thread.currentThread() + "ElectionClient: elect() finished, winner " + winner + " my stake " + candidate);
+
+	while (winner == null) {
+	    ibis.ipl.WriteMessage m = sport.newMessage();
+	    m.writeInt(Ibis.myIbis.myCpu);
+	    m.writeObject(election);
+	    m.writeObject(candidate);
+	    m.send();
+	    m.finish();
+
+	    if (ElectionServer.DEBUG) {
+		System.err.println(Thread.currentThread() + "ElectionClient: elect(): send done, now start rcve");
+	    }
+
+	    ibis.ipl.ReadMessage r = rport.receive();
+	    try {
+		winner = r.readObject();
+	    } catch (ClassNotFoundException e) {
+		throw new IOException("election object class not found " + e);
+	    }
+	    r.finish();
+	    if (ElectionServer.DEBUG) {
+		System.err.println(Thread.currentThread() + "ElectionClient: elect() finished, winner " + winner + " my stake " + candidate);
+	    }
+	    if (winner == null) {
+		try { Thread.sleep(1000); } catch(Exception ee) {}
+	    }
 	}
 
 	return winner;

@@ -88,6 +88,9 @@ public interface Registry {
      * method with a specified election name.
      * Note that this has nothing to do with a real election: it is not like
      * "most votes count". It is more like: "the first one in gets it".
+     * If a <code>null</code> candidate is specified, caller is not regarded
+     * as a candidate, only as an interested party. Note that at least one
+     * participant in the election must be a candidate.
      *
      * @param election the name of this election.
      * @param candidate a candidate for this election.

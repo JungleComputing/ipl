@@ -41,7 +41,9 @@ class ElectionServer extends Thread implements Protocol {
 		Object temp = elections.get(election);
 
 		if (temp == null) { 
-			elections.put(election, candidate);
+			if (candidate != null) {
+			    elections.put(election, candidate);
+			}
 			out.writeObject(candidate);
 		} else { 			
 			out.writeObject(temp);

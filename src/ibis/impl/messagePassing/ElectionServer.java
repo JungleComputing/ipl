@@ -50,7 +50,9 @@ class ElectionServer
 		}
 		e = elections.get(name);
 		if (e == null) {
-		    elections.put(name, o);
+		    if (o != null) {
+			elections.put(name, o);
+		    }
 		    e = o;
 		}
 	    }
