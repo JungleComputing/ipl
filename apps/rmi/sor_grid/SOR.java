@@ -13,7 +13,7 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.*;
 
-import ibis.util.PoolInfoClient;
+import ibis.util.PoolInfo;
 
 class SOR extends UnicastRemoteObject implements i_SOR {
 
@@ -26,11 +26,11 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 
 	static final boolean   SYNC_SEND = true;
 
-	static PoolInfoClient info;
+	static PoolInfo info;
 
 	static {
 		try {
-			info = PoolInfoClient.create();
+			info = PoolInfo.createPoolInfo();
 			System.out.println("info.size(): " + info.size());	
 			System.out.println("info.rank(): " + info.rank());
 			System.out.println("info.hostName(): " + info.hostName());

@@ -13,11 +13,11 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.*;
  
-import ibis.util.PoolInfoClient;
+import ibis.util.PoolInfo;
 
 class Main {
 
-	static PoolInfoClient info = SOR.info;
+	static PoolInfo info = SOR.info;
 
 	private static void usage(String[] args) {
 

@@ -2,7 +2,7 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.*;
 
-import ibis.util.PoolInfoClient;
+import ibis.util.PoolInfo;
 
 class GlobalData extends UnicastRemoteObject implements i_GlobalData {
 
@@ -25,7 +25,7 @@ class GlobalData extends UnicastRemoteObject implements i_GlobalData {
 	private boolean synchronous = false;
 	private boolean doScaling = true;
 
-	GlobalData(PoolInfoClient info, boolean synchronous) throws RemoteException {
+	GlobalData(PoolInfo info, boolean synchronous) throws RemoteException {
 		total_num = info.size();
 		nodes     = new i_SOR[total_num];
 		num_nodes = 0;
