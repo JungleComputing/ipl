@@ -579,6 +579,11 @@ to the command line.
 	</concat>
 	<chmod file="${ibis}/bin/run_ibis.bat" perm="+x"/>
 
+	<concat destfile="${ibis}/bin/run-ibis.bat">
+	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/run-ibis.bat" />
+	</concat>
+	<chmod file="${ibis}/bin/run-ibis.bat" perm="+x"/>
+
 	<concat destfile="${ibis}/bin/ant.bat">
 	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/ant.bat" />
 	</concat>
