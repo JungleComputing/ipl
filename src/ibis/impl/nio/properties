@@ -1,0 +1,6 @@
+serialization = ibis, sun
+world = open, closed
+communication = OneToOne, OneToMany, ManyToOne, \
+		Reliable, NoPollForUpcalls, \
+		Upcalls, ExplicitReceipt, ConnectionAdministration, \
+		ConnectionUpcalls
