@@ -70,11 +70,12 @@
 	    <package name="ibis.rmi.*"/>
 	    <package name="ibis.util"/>
 	    <package name="ibis.satin"/>
+	    <package name="ibis.satin.*"/>
 	    <group title="Ibis GMI" packages="ibis.gmi"/>
 	    <group title="Ibis RMI" packages="ibis.rmi:ibis.rmi.registry:ibis.rmi.server"/>
 	    <group title="Ibis IPL" packages="ibis.ipl"/>
 	    <group title="Ibis IO" packages="ibis.io"/>
-	    <group title="Ibis Satin" packages="ibis.satin"/>
+	    <group title="Ibis Satin" packages="ibis.satin:ibis.satin.impl"/>
 	    <group title="Ibis Utilities" packages="ibis.util"/>
 	    <!--
 	    <arg value="-verbose"/>

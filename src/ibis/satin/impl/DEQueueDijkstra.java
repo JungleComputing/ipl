@@ -142,7 +142,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	 * Used for fault tolerance Aborts all the descendents of any job stolen
 	 * from the given (crashed) processor
 	 * 
-	 * @param ibis
+	 * @param owner
 	 *            identifier of the processor whose jobs (and their descendents)
 	 *            will be aborted
 	 */

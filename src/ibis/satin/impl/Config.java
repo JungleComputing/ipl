@@ -126,7 +126,7 @@ public interface Config {
     static final boolean POLL_TIMING =
 	TypedProperties.booleanProperty(s_timing_poll, false);
 
-    /** Enable or disable tuple space timing. * */
+    /** Enable or disable tuple space timing. */
     static final boolean TUPLE_TIMING =
 	TypedProperties.booleanProperty(s_timing_tuple, true);
 
@@ -148,11 +148,11 @@ public interface Config {
     static final long POLL_FREQ =
 	TypedProperties.longProperty(s_poll_freq, 0L);
 
-    /** When polling, poll the satin receiveport. * */
+    /** When polling, poll the satin receiveport. */
     static final boolean POLL_RECEIVEPORT =
 	TypedProperties.booleanProperty(s_poll_port, true);
 
-    /** Enable or disable asserts. * */
+    /** Enable or disable asserts. */
     static final boolean ASSERTS =
 	TypedProperties.booleanProperty(s_asserts, true);
 
