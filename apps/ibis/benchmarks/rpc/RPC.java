@@ -68,7 +68,6 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private int         count = 1000;
     private int         services = 0;
     private int         size = 0;
-    private boolean	cache_write_message = true;
     private WriteMessage writeMessage = null;
     private boolean	finish_upcall_msg = false;
     private boolean	gc_on_rcve = false;
@@ -120,9 +119,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 
     private void send_one(boolean is_server, int size, boolean finish)
 	    throws IOException {
-	if (! cache_write_message) {
-	    writeMessage = sport.newMessage();
-	}
+	writeMessage = sport.newMessage();
 
 	if (! EMPTY_REPLY || ! is_server) {
 	    if (single_object != null) {
@@ -158,20 +155,12 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 	    }
 	}
 
-	// writeMessage.send();
-	if (! finish && cache_write_message) {
-	    // t_send.start();
-	    // writeMessage.reset(false /* don't first send writeMessage */);
-	    writeMessage.reset(true /* first send writeMessage */);
-	    // t_send.stop();
-	} else {
-	    // t_send.start();
-	    writeMessage.send();
-	    // t_send.stop();
-	    // t_s_finish.start();
-	    writeMessage.finish();
-	    // t_s_finish.stop();
-	}
+	// t_send.start();
+	writeMessage.send();
+	// t_send.stop();
+	// t_s_finish.start();
+	writeMessage.finish();
+	// t_s_finish.stop();
 // System.err.println("^" + size + " data_type " + data_type + " data " + (byte_buffer == null ? "<nope>" : Integer.toString(byte_buffer.length)));
 // System.err.print("^");
     }
@@ -261,12 +250,6 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 	    return;
 	}
 
-	if (cache_write_message) {
-	    writeMessage = sport.newMessage();
-	    // System.err.println("S-port " + sport + " cached writeMessage = " + writeMessage);
-	    // manta.runtime.RuntimeSystem.DebugMe(sport, writeMessage);
-	}
-
 	if (one_way) {
 	    for (int i = 0; i < count; i++) {
 		for (int k = 0; k < client_spin; k++) {
@@ -293,12 +276,6 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 
 	if (count == 0) {
 	    return;
-	}
-
-	if (cache_write_message) {
-	    writeMessage = sport.newMessage();
-	    // System.err.println("S-port " + sport + " cached writeMessage = " + writeMessage);
-	    // manta.runtime.RuntimeSystem.DebugMe(sport, writeMessage);
 	}
 
 	if (one_way) {
@@ -366,12 +343,6 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 System.err.println("services " + services + " first_warmup " + first_warmup + " count " + count + " clients " + clients);
 		synchronized(this) {
 		    first_warmup = 0;
-		}
-		if (! one_way && cache_write_message) {
-		    writeMessage = sport.newMessage();
-		    // System.err.println("S-port " + sport + " cached writeMessage = " + writeMessage);
-		    // manta.runtime.RuntimeSystem.DebugMe(sport, writeMessage);
-System.err.println("Server: seen " + services + " upcall msgs for warmup");
 		}
 	    }
 
@@ -618,17 +589,9 @@ System.err.println("Poor-man's barrier send finished");
 	System.err.println("Go ahead now!");
 
 	if (upcall) {
-	    if (cache_write_message) {
-		writeMessage = sport.newMessage();
-		// System.err.println("S-port " + sport + " cached writeMessage = " + writeMessage);
-		// manta.runtime.RuntimeSystem.DebugMe(sport, writeMessage);
-	    }
 	    rport.enableUpcalls();
 	}
 	server();
-	if (false && upcall && cache_write_message) {
-	    writeMessage.finish();
-	}
 
 	report();
 
@@ -675,12 +638,6 @@ System.err.println("Poor-man's barrier send finished");
 
 	    } else if (args[i].equals("-gc")) {
 		gc_on_rcve = true;
-
-	    } else if (args[i].equals("-cache")) {
-		cache_write_message = true;
-	    } else if (args[i].equals("-no-cache") ||
-			args[i].equals("-send-finish")) {
-		cache_write_message = false;
 
 	    } else if (args[i].equals("-servers")) {
 		servers = Integer.parseInt(args[++i]);
