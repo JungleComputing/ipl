@@ -33,6 +33,9 @@ public interface Config {
 	/* Support the combination of upcalls and polling */
 	static final boolean SUPPORT_UPCALL_POLLING = false;
 
+	/* Use multicast to update the tuple space */
+	static final boolean SUPPORT_TUPLE_MULTICAST = true;
+
 	/* Enable or disable debug prints. */
 	static final boolean COMM_DEBUG  = false;
 	static final boolean STEAL_DEBUG = false;

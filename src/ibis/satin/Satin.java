@@ -74,6 +74,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private ReceivePort receivePort;
 	private ReceivePort barrierReceivePort; /* Only for the master. */
 	private SendPort barrierSendPort; /* Only for the clients. */
+	private SendPort tuplePort; /* used to bcast tuples */
 
 	volatile boolean exiting = false; // used in messageHandler
 	Random random = new Random(); // used in victimTable
@@ -151,6 +152,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			throw new IbisError("multiple satin instances are currently not supported");
 		}
 		me = this;
+
+		if(q instanceof DEQueueDijkstra && ABORTS) {
+			throw new IbisError("you cannot use Dijkstra Queues in combination with aborts");
+		}
 
 		if(stealTimer == null) {
 			System.err.println("Native timers not found, using (less accurate) java timers.");
@@ -319,6 +324,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					lookup("satin barrier receive port");
 				connect(barrierSendPort, barrierIdent);
 			}
+
+			// Create a multicast port to bcast tuples.
+			// Connections are established in the join upcall.
+			if(SUPPORT_TUPLE_MULTICAST) {
+				tuplePort = 
+					portType.createSendPort("satin tuple port on " +
+						ident.name());
+			}
 		} catch (Exception e) {
 			System.err.println("SATIN '" + hostName +
 					   "': Could not start ibis: " + e);
@@ -430,7 +443,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 		if(TUPLE_STATS && stats) {
 			out.println("SATIN '" + ident.name() + 
-				    "': TUPLE_STATS: tuple msgs: " + tupleMsgs +
+				    "': TUPLE_STATS: tuple bcast msgs: " + tupleMsgs +
 				    ", bytes = " + tupleBytes);
 		}
 		if(STEAL_STATS && stats) {
@@ -551,6 +564,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		algorithm.exit(); //give the algorithm time to clean up
 
 		barrier(); /* Wait until everybody agrees to exit. */
+
+		try {
+			if(SUPPORT_TUPLE_MULTICAST) {
+				tuplePort.free();
+			}
+		} catch (IOException e) {
+			System.err.println("tuplePort.free() throws " + e);
+		}
 
 		// If not closed, free ports. Otherwise, ports will be freed in leave calls.
 		while(true) {
@@ -909,6 +930,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 			r = lookup("satin port on " + joiner.name());
 			connect(s, r);
+
+			if(SUPPORT_TUPLE_MULTICAST) {
+				connect(tuplePort, r);
+			}
 
 			synchronized (this) {
 				victims.add(joiner, s);
@@ -1687,25 +1712,46 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					   "': bcasting tuple" + key);
 		}
 
-		for(int i=0; i<victims.size(); i++) {
+		if(SUPPORT_TUPLE_MULTICAST) {
 			try {
-				SendPort s = victims.getPort(i);
-				WriteMessage writeMessage = s.newMessage();
+				WriteMessage writeMessage = tuplePort.newMessage();
 				writeMessage.writeByte(TUPLE_ADD);
 				writeMessage.writeObject(key);
 				writeMessage.writeObject(data);
 				writeMessage.send();
+				writeMessage.finish();
 
 				if(TUPLE_STATS) {
 					tupleMsgs++;
 					tupleBytes += writeMessage.getCount();
 				}
-				writeMessage.finish();
 
 			} catch (IOException e) {
 				System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending tuple update: " + e);
 				System.exit(1);
+			}
+		} else {
+			for(int i=0; i<victims.size(); i++) {
+				try {
+					SendPort s = victims.getPort(i);
+					WriteMessage writeMessage = s.newMessage();
+					writeMessage.writeByte(TUPLE_ADD);
+					writeMessage.writeObject(key);
+					writeMessage.writeObject(data);
+					writeMessage.send();
+					writeMessage.finish();
+
+					if(TUPLE_STATS && i == 0) {
+						tupleMsgs++;
+						tupleBytes += writeMessage.getCount();
+					}
+
+				} catch (IOException e) {
+					System.err.println("SATIN '" + ident.name() + 
+							   "': Got Exception while sending tuple update: " + e);
+					System.exit(1);
+				}
 			}
 		}
 	}

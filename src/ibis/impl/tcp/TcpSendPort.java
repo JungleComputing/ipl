@@ -203,21 +203,27 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			throw new IOException("Trying to free a sendport port while a message is alive!");
 		}
 
+		if(ident == null) {
+			throw new IbisError("Port already freed");
+		}
+
 		if(DEBUG) {
 			System.err.println(type.ibis.name() + ": SendPort.free start");
 		}
 
 		try {
-			out.writeByte(CLOSE_CONNECTION);
-			out.reset();
-			out.flush();
-			out.close();
+			if(out != null) {
+				out.writeByte(CLOSE_CONNECTION);
+				out.reset();
+				out.flush();
+				out.close();
+			}
 		} catch (IOException e) {
 			// System.err.println("Error in TcpSendPort.free: " + e);
 			// e.printStackTrace();
 		}
 
-		for (int i=0;i<receivers.size();i++) { 
+		for (int i=0; i<receivers.size(); i++) { 
 			Conn c = (Conn) receivers.get(i);
 			ibis.tcpPortHandler.releaseOutput(c.ident, c.out);
 		}
