@@ -5,13 +5,21 @@ import java.util.*;
 
 final class VictimTable implements Config {
 	private Vector victims = new Vector();
-	private Vector remoteVictims = new Vector();
-	private Vector localVictims = new Vector();
 	private HashMap victimsHash = new HashMap();
+
+	// all victims grouped by cluster
+	/* clusters are never removed, even though they're empty
+	   (rob, is dat ok??? - maik) */
+	private Vector clusters = new Vector();
+	private Cluster thisCluster;
+	private HashMap clustersHash = new HashMap();
 	private Satin satin;
 
 	VictimTable(Satin s) {
 		this.satin = s;
+		thisCluster = new Cluster(s.ident.cluster());
+		clusters.add(thisCluster);
+		clustersHash.put(s.ident.cluster(), thisCluster);
 	}
 
 	void add(IbisIdentifier ident, SendPort port) {
@@ -24,10 +32,13 @@ final class VictimTable implements Config {
 		victims.add(v);
 		victimsHash.put(ident, port);
 
-		if(satin.inDifferentCluster(ident)) {
-			remoteVictims.add(v);
+		Cluster c = (Cluster) clustersHash.get(ident.cluster());
+		if (c == null) { // new cluster
+			c = new Cluster(v); //v is automagically added to this cluster
+			clusters.add(c);
+			clustersHash.put(ident.cluster(), c);
 		} else {
-			localVictims.add(v);
+			c.add(v);
 		}
 	}
 
@@ -38,18 +49,14 @@ final class VictimTable implements Config {
 		Victim v = new Victim();
 		v.ident = ident;
 
-		victimsHash.remove(ident);
 		int i = victims.indexOf(v);
+
+		/* this already happens below
 		if(i < 0) {
 			return null;
-		}
+			} */
 
-		try {
-			localVictims.remove(v);
-			remoteVictims.remove(v);
-		} catch (Exception e) {}
-
-		return (Victim) victims.remove(i);
+		return remove(i);
 	}
 
 	Victim remove(int i) {
@@ -57,6 +64,7 @@ final class VictimTable implements Config {
 			Satin.assertLocked(satin);
 		}
 
+		// ??? hier een assert van maken??, let op bij 'this already happ...'
 		if(i < 0 || i >= victims.size()) {
 			return null;
 		}
@@ -64,10 +72,8 @@ final class VictimTable implements Config {
 		Victim v = (Victim) victims.remove(i);
 		victimsHash.remove(v.ident);
 
-		try {
-			localVictims.remove(v);
-			remoteVictims.remove(v);
-		} catch (Exception e) {}
+		Cluster c = (Cluster) clustersHash.get(v.ident.cluster());
+		c.remove(v);
 
 		return v;
 	}
@@ -126,20 +132,27 @@ final class VictimTable implements Config {
 		return v;
 	}
 
-	Victim getLocalRandomVictim() {
+	/**
+	 * returns null if there are no other nodes in this cluster
+	 */
+	Victim getRandomLocalVictim() {
 		Victim v = null;
 		int index;
+		int clusterSize = thisCluster.size();
 
 		if(ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
-		try {
-			index = Math.abs(satin.random.nextInt()) % localVictims.size();
-			v = ((Victim)localVictims.get(index));
-		} catch (Exception e) {
-			System.err.println(e);
-		}
+		if (clusterSize == 0) return null;
+
+		//try {
+		index = Math.abs(satin.random.nextInt()) % clusterSize;
+		v = thisCluster.get(index);
+	
+		/*} catch (Exception e) {
+		  System.err.println(e);
+		  }*/
 
 		if(ASSERTS && v == null) {
 			System.err.println("EEK, v is null");
@@ -149,20 +162,42 @@ final class VictimTable implements Config {
 		return v;
 	}
 
-	Victim getRemoteRandomVictim() {
+	/**
+	 * Returns null if there are no remote victims i.e., there's only one
+	 * cluster
+	 */
+	Victim getRandomRemoteVictim() {
 		Victim v = null;
-		int index;
+		int vIndex, cIndex;
+		int remoteVictims;
+		Cluster c;
 
 		if(ASSERTS) {
 			Satin.assertLocked(satin);
 		}
 
-		try {
-			index = Math.abs(satin.random.nextInt()) % remoteVictims.size();
-			v = ((Victim)remoteVictims.get(index));
-		} catch (Exception e) {
-			System.err.println(e);
+		if (ASSERTS && clusters.get(0) != thisCluster) {
+			System.err.println("EEK I'm a bug in VictimTable," +
+							   "firstCluster != me, please fix me!");
+			System.exit(1);
 		}
+
+		remoteVictims = victims.size() - thisCluster.size();
+
+		if (remoteVictims == 0) return null;
+
+		vIndex = Math.abs(satin.random.nextInt()) % remoteVictims;
+
+		//find the cluster and index in the cluster for the victim
+		cIndex = 1;
+		c = (Cluster) clusters.get(cIndex);
+		while(vIndex >= c.size()) {
+			vIndex -= c.size();
+			cIndex += 1;
+			c = (Cluster) clusters.get(cIndex);
+		}
+
+		v = c.get(vIndex);
 
 		if(ASSERTS && v == null) {
 			System.err.println("EEK, v is null");

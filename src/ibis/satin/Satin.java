@@ -13,7 +13,8 @@ import java.util.Enumeration;
 //@@@ because a method has an outstandingSpawns list, the spawn counter is no longer needed!
 
 /* 
-   One important invariant: there is only one thread per machine that spawns work.
+   One important invariant: there is only one thread per machine that spawns
+   work.
    Another: there is only one lock: the global satin object.
    invariant: all jobs in the queue and outstandingJobsList have me as owner.
    invariant: all invocations records in use are in one of these lists:
@@ -22,8 +23,8 @@ import java.util.Enumeration;
      - q (spawned but not yet running)
 
    invariant: When running java code, the parentStamp, parentOwner and 
-   parent contain the spawner of the work. (parent may be null when running the root node,
-   or when the spawner is a remote machine).
+   parent contain the spawner of the work. (parent may be null when running
+   the root node, or when the spawner is a remote machine).
 
    Satin.spawn gets the satin wrapper.
    This can be serialized, and run may be called.
@@ -32,8 +33,8 @@ import java.util.Enumeration;
    When a job is stolen the RTS puts an entry in a table.
    The runRemote method creates a return wrapper containing the return value.
    The runtime system sends the return value back, together with the
-   original stamp. The victim can do a lookup to find the entry (containing the spawn counter and 
-   result pointer) that corresponds with the job.
+   original stamp. The victim can do a lookup to find the entry (containing
+   the spawn counter and result pointer) that corresponds with the job.
 */
 
 public final class Satin implements Config, Protocol, ResizeHandler {
@@ -56,8 +57,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private IbisIdentifier masterIdent;
 
 	/* My scheduling algorithm. */
-	private Algorithm a;
-	private String alg;
+	protected Algorithm algorithm;
 
 	volatile int exitReplies = 0;
 
@@ -75,7 +75,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	private static SpawnCounter spawnCounterCache = null;
 
-	/* Used to locate the invocation record corresponing to the result of a remote job. */
+	/* Used to locate the invocation record corresponding to the
+	   result of a remote job. */
 	private IRVector outstandingJobs = new IRVector(this);
 	private int stampCounter = 0;
 
@@ -88,12 +89,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	/* used to store reply messages */
 	boolean gotStealReply = false; // used in messageHandler
-	boolean gotBarrierReply = false; // used in messageHandler
-	volatile boolean asyncStealInProgress = false; // used in messageHandler
-	boolean gotAsyncStealReply = false; // used in messageHandler
+	volatile boolean gotBarrierReply = false; // used in messageHandler
 
 	InvocationRecord stolenJob = null;
-	InvocationRecord asyncStolenJob = null;
 
 	/* Variables that contain statistics. */
 	private long spawns = 0;
@@ -102,9 +100,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	public long abortedJobs = 0; // used in dequeue
 	long abortMessages = 0;
 	private long stealAttempts = 0;
-	private long asyncStealAttempts = 0;
 	private long stealSuccess = 0;
-	private long asyncStealSuccess = 0;
 
 	long stolenJobs = 0; // used in messageHandler
 	long stealRequests = 0; // used in messageHandler
@@ -123,7 +119,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private volatile boolean gotExceptions = false;
 	private volatile boolean gotAborts = false;
 
-	VictimTable victims; /* All victims, myself NOT included. The elements are Victims. */
+	/* All victims, myself NOT included. The elements are Victims. */
+	VictimTable victims;
 
 	Timer stealTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer handleStealTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
@@ -142,7 +139,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 
 		if(stealTimer == null) stealTimer = Ibis.newTimer("ibis.util.Timer");
-		if(handleStealTimer == null) handleStealTimer = Ibis.newTimer("ibis.util.Timer");
+		if(handleStealTimer == null) handleStealTimer =
+										 Ibis.newTimer("ibis.util.Timer");
 		if(abortTimer == null) abortTimer = Ibis.newTimer("ibis.util.Timer");
 		if(idleTimer == null) idleTimer = Ibis.newTimer("ibis.util.Timer");
 		if(pollTimer == null) pollTimer = Ibis.newTimer("ibis.util.Timer");
@@ -153,8 +151,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private void init(String[] args) {
 		Properties p = System.getProperties();
 		String hostName = null;
+		String alg = null;
 		int poolSize = 0; /* Only used with closed world. */
-		victims = new VictimTable(this);
 
 		try {
 			InetAddress address = InetAddress.getLocalHost();
@@ -201,7 +199,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(closed) {
 			String pool = p.getProperty("ibis.pool.total_hosts");
 			if(pool == null) {
-				out.println("property 'ibis.pool.total_hosts' not set, and running with closed world.");
+				out.println("property 'ibis.pool.total_hosts' not set," +
+							" and running with closed world.");
 				System.exit(1);
 			}
 
@@ -223,14 +222,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
                            "ibis.ipl.impl.messagePassing.MPIIbis", this);
 				} else if (net) {
 					ibis = Ibis.createIbis(name,
-                           "ibis.ipl.impl.net.NetIbis", this);
+										   "ibis.ipl.impl.net.NetIbis", this);
 				} else {
 					ibis = Ibis.createIbis(name,
-                           "ibis.ipl.impl.tcp.TcpIbis", this);
+										   "ibis.ipl.impl.tcp.TcpIbis", this);
 				}
 			} catch (IbisException e) {
 				System.err.println("SATIN '" + hostName + 
-                    "': Could not start ibis with name '" + name + "': " + e + ", retrying.");
+								   "': Could not start ibis with name '" +
+								   name + "': " + e + ", retrying.");
 //				e.printStackTrace();
 			}
 		}
@@ -239,12 +239,16 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.exit(1);
 		}
 
-		if(COMM_DEBUG) {
-			out.println("SATIN '" + hostName + "': init ibis DONE" );
-		}
-
 		ident = ibis.identifier();
+
 		parentOwner = ident;
+
+		victims = new VictimTable(this); //victimTable accesses ident..
+
+		if(COMM_DEBUG) {
+			out.println("SATIN '" + hostName + "': init ibis DONE, " +
+						"my cluster is '" + ident.cluster() + "'");
+		}
 
 		try {
 			Registry r = ibis.registry();
@@ -273,29 +277,36 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(masterIdent.equals(ident)) {
 				/* I an the master. */
 				if(COMM_DEBUG) {
-					out.println("SATIN '" + hostName + "': init ibis: I am the master");
+					out.println("SATIN '" + hostName +
+								"': init ibis: I am the master");
 				}
 				master = true;
 			} else {
 				if(COMM_DEBUG) {
-					out.println("SATIN '" + hostName + "': init ibis I am slave" );
+					out.println("SATIN '" + hostName +
+								"': init ibis I am slave" );
 				}
 			}
 
 			if(master) {
-				barrierReceivePort = portType.createReceivePort("satin barrier receive port");
+				barrierReceivePort =
+					portType.createReceivePort("satin barrier receive port");
 				barrierReceivePort.enableConnections();
 			} else {
-				barrierSendPort = portType.createSendPort("satin barrier send port on " + 
-										ident.name());
-				ReceivePortIdentifier barrierIdent = lookup("satin barrier receive port");
+				barrierSendPort =
+					portType.createSendPort("satin barrier send port on " + 
+											ident.name());
+				ReceivePortIdentifier barrierIdent =
+					lookup("satin barrier receive port");
 				connect(barrierSendPort, barrierIdent);
 			}
 		} catch (IbisIOException e) {
-			System.err.println("SATIN '" + hostName + "': Could not start ibis: " + e);
+			System.err.println("SATIN '" + hostName +
+							   "': Could not start ibis: " + e);
 			System.exit(1);
 		} catch (IbisException e) {
-			System.err.println("SATIN '" + hostName + "': Could not start ibis: " + e);
+			System.err.println("SATIN '" + hostName +
+							   "': Could not start ibis: " + e);
 			System.exit(1);
 		}
 
@@ -306,25 +317,30 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(master) {
 			if(closed) {
-				System.err.println("SATIN '" + hostName + "': running with closed world, " + poolSize + " host(s)");
+				System.err.println("SATIN '" + hostName +
+								   "': running with closed world, "
+								   + poolSize + " host(s)");
 			} else {
-				System.err.println("SATIN '" + hostName + "': running with open world");
+				System.err.println("SATIN '" + hostName +
+								   "': running with open world");
 			}
 		}
 
 		if(alg == null) {
 			if(master) {
-				System.err.println("SATIN '" + hostName + "': satin_algorithm property not specified, using RS");
+				System.err.println("SATIN '" + hostName +
+					   "': satin_algorithm property not specified, using RS");
 			}
 			alg = "RS";
 		}
 
 		if(alg.equals("RS")) {
-			a = new RandomWorkStealing(this);
+			algorithm = new RandomWorkStealing(this);
 		} else if(alg.equals("CRS")) {
-			a = new ClusterAwareRandomWorkStealing(this);
+			algorithm = new ClusterAwareRandomWorkStealing(this);
 		} else {
-			System.err.println("SATIN '" + hostName + "': satin_algorithm '" + alg + "' unknown");
+			System.err.println("SATIN '" + hostName + "': satin_algorithm '"
+							   + alg + "' unknown");
 			System.exit(1);
 		}
 
@@ -347,7 +363,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					}
 				}
 				if(COMM_DEBUG) {
-					out.println("SATIN '" + hostName + "': barrier, everybody has joined" );
+					out.println("SATIN '" + hostName +
+								"': barrier, everybody has joined" );
 				}
 
 				ibis.closeWorld();
@@ -362,21 +379,16 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 	public boolean inDifferentCluster(IbisIdentifier other) {
-		InetAddress o = other.address();
-		InetAddress me = ident.address();
+		if (ASSERTS) {
+			if (ident.cluster() == null || other.cluster() == null) {
+				System.err.println("WARNING: Found NULL cluster!");
 
-		byte[] oa = o.getAddress();
-		byte[] mea = me.getAddress();
-
-		if(oa.length != mea.length) return true;
-
-		for(int i=0; i<oa.length-1; i++) {
-			if(oa[i] != mea[i]) {
+				/* this isn't severe enough to exit, so return something */
 				return true;
 			}
 		}
 
-		return false;
+		return !ident.cluster().equals(other.cluster());
 	}
 
 	public void exit() {
@@ -389,52 +401,70 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(SPAWN_STATS && stats) {
 			out.println("SATIN '" + ident.name() + 
-					   "': SPAWN_STATS: spawns = " + spawns + " syncs = " + syncs);
+						"': SPAWN_STATS: spawns = " + spawns +
+						" syncs = " + syncs);
 			out.println("SATIN '" + ident.name() + 
-					   "': ABORT_STATS 1: aborts = " + aborts + " abort msgs = " + abortMessages +
+					   "': ABORT_STATS 1: aborts = " + aborts +
+						" abort msgs = " + abortMessages +
 					   " aborted jobs = " + abortedJobs);
 		}
 		if(STEAL_STATS && stats) {
 			out.println("SATIN '" + ident.name() + 
-				    "': INTRA_STATS: messages = " + intraClusterMessages + ", bytes = " + intraClusterBytes);
+						"': INTRA_STATS: messages = " + intraClusterMessages +
+						", bytes = " + intraClusterBytes);
 
 			out.println("SATIN '" + ident.name() + 
-				    "': INTER_STATS: messages = " + interClusterMessages + ", bytes = " + interClusterBytes);
+				    "': INTER_STATS: messages = " + interClusterMessages +
+						", bytes = " + interClusterBytes);
 
 			out.println("SATIN '" + ident.name() + 
-					   "': STEAL_STATS 1: attempts = " + stealAttempts + " success = " + stealSuccess + 
-					   " (" + (((double) stealSuccess / stealAttempts) * 100.0) + " %)");
+					   "': STEAL_STATS 1: attempts = " + stealAttempts +
+						" success = " + stealSuccess + " (" +
+						(((double) stealSuccess / stealAttempts) * 100.0) +
+						" %)");
 
 			out.println("SATIN '" + ident.name() + 
-					   "': STEAL_STATS 2: requests = " + stealRequests + " jobs stolen = " + stolenJobs);
-
-			out.println("SATIN '" + ident.name() + 
-					   "': STEAL_STATS 9: async attempts = " + asyncStealAttempts + " success = " + asyncStealSuccess + 
-					   " (" + (((double) asyncStealSuccess / asyncStealAttempts) * 100.0) + " %)");
+					   "': STEAL_STATS 2: requests = " + stealRequests +
+						" jobs stolen = " + stolenJobs);
 
 			if(STEAL_TIMING) {
 				out.println("SATIN '" + ident.name() + 
-						   "': STEAL_STATS 3: attempts = " + stealTimer.nrTimes() + 
-						   " total time = " + stealTimer.totalTime() + " avg time = " + stealTimer.averageTime());
-				out.println("SATIN '" + ident.name() + 
-						   "': STEAL_STATS 4: handleSteals = " + handleStealTimer.nrTimes() + 
-						   " total time = " + handleStealTimer.totalTime() + " avg time = " + handleStealTimer.averageTime());
+						   "': STEAL_STATS 3: attempts = " +
+							stealTimer.nrTimes() + " total time = " +
+							stealTimer.totalTime() + " avg time = " +
+							stealTimer.averageTime());
 
 				out.println("SATIN '" + ident.name() + 
-						   "': ABORT_STATS 2: aborts = " + abortTimer.nrTimes() + 
-						   " total time = " + abortTimer.totalTime() + " avg time = " + abortTimer.averageTime());
+						   "': STEAL_STATS 4: handleSteals = " +
+							handleStealTimer.nrTimes() + 
+						   " total time = " + handleStealTimer.totalTime() +
+							" avg time = " + handleStealTimer.averageTime());
 
 				out.println("SATIN '" + ident.name() + 
-						   "': IDLE_STATS: idle count = " + idleTimer.nrTimes() + 
-						   " total time = " + idleTimer.totalTime() + " avg time = " + idleTimer.averageTime());
+						   "': ABORT_STATS 2: aborts = " +
+							abortTimer.nrTimes() + 
+						   " total time = " + abortTimer.totalTime() +
+							" avg time = " + abortTimer.averageTime());
 
 				out.println("SATIN '" + ident.name() + 
-						   "': POLL_STATS: poll count = " + pollTimer.nrTimes() + 
-						   " total time = " + pollTimer.totalTime() + " avg time = " + pollTimer.averageTime());
+						   "': IDLE_STATS: idle count = " +
+							idleTimer.nrTimes() + " total time = " +
+							idleTimer.totalTime() + " avg time = " +
+							idleTimer.averageTime());
 
 				out.println("SATIN '" + ident.name() + 
-						   "': COMM_STATS: software comm time = " + Timer.format(stealTimer.totalTimeVal() + handleStealTimer.totalTimeVal() - idleTimer.totalTimeVal()));
+						   "': POLL_STATS: poll count = " +
+							pollTimer.nrTimes() + " total time = " +
+							pollTimer.totalTime() + " avg time = " +
+							pollTimer.averageTime());
+
+				out.println("SATIN '" + ident.name() + 
+						   "': COMM_STATS: software comm time = " +
+							Timer.format(stealTimer.totalTimeVal() +
+										 handleStealTimer.totalTimeVal() -
+										 idleTimer.totalTimeVal()));
 			}
+			algorithm.printStats(out);
 		}
 
 		synchronized(this) {
@@ -448,7 +478,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					synchronized(this) {
 						if(COMM_DEBUG) {
 							out.println("SATIN '" + ident.name() + 
-								    "': sending exit message to " + victims.getIdent(i));
+										"': sending exit message to " +
+										victims.getIdent(i));
 						}
 						
 						writeMessage = victims.getPort(i).newMessage();
@@ -478,7 +509,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				WriteMessage writeMessage;
 				if(COMM_DEBUG) {
 					out.println("SATIN '" + ident.name() + 
-						    "': sending exit ACK message to " + masterIdent);
+							"': sending exit ACK message to " + masterIdent);
 				}
 				
 				writeMessage = mp.newMessage();
@@ -491,6 +522,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				}
 			}
 		}
+
+		algorithm.exit(); //give the algorithm time to clean up
 
 		barrier(); /* Wait until everybody agrees to exit. */
 
@@ -505,9 +538,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					s = victims.getPort(0);
 					
 					if(COMM_DEBUG) {
-						out.print("SATIN '" + ident.name() + 
-								  "': freeing sendport to " +
-								  victims.getIdent(0));
+						out.println("SATIN '" + ident.name() + 
+									"': freeing sendport to " +
+									victims.getIdent(0));
 					}
 					victims.remove(0);
 				}
@@ -516,9 +549,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					s.free();
 				}
 			
-				if(COMM_DEBUG) {
+				/*if(COMM_DEBUG) {
 					out.println(" DONE");
-				}
+					}*/
 		    } catch (IbisIOException e) {
 				System.err.println("port.free() throws " + e);
 		    }
@@ -589,7 +622,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				writeMessage.finish();
 				
 				if (!upcalls) {
-					while(!gotBarrierReply && !exiting) {
+					while(!gotBarrierReply/* && !exiting */) {
 						satinPoll();
 					}
 					/* Imediately reset gotBarrierReply, we know that a reply has arrived. */
@@ -610,7 +643,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
-					   "': error in barrier");
+							   "': error in barrier");
 			System.exit(1);
 		}
 
@@ -688,52 +721,37 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 	}
 
-	private void pollAsyncResult() {
-		if (!asyncStealInProgress) return;
-
-//		System.err.print("P");
-
-		InvocationRecord myJob = null;
-
-		synchronized(this) {
-			if(gotAsyncStealReply) {
-//				System.err.println("poll: got async repy, " + (asyncStolenJob == null ? "FAILED" : "SUCCESS"));
-				asyncStealInProgress = false;
-				gotAsyncStealReply = false;
-				if(asyncStolenJob == null) {
-					return;
-				}
-
-				myJob = asyncStolenJob;
-				asyncStolenJob = null;
-
-				asyncStealSuccess++;
-			} else {
-				return;
-			} 
+	/* does a synchronous steal */
+	protected void stealJob(Victim v) {
+		if(STEAL_TIMING) {
+			stealTimer.start();
 		}
+//		long tstart = System.currentTimeMillis();
 
-		// we got a job back!
-		callSatinFunction(myJob);
-//		q.addToHead(myJob);
+		if(STEAL_STATS) stealAttempts++;
+
+		sendStealRequest(v, true);
+		waitForStealReply();
 	}
 
-	protected void sendAsynchronousStealRequest(Victim v) {
-		asyncStealInProgress = true;
+	protected void sendStealRequest(Victim v, boolean synchronous) {
 
-		if(STEAL_STATS) {
-			asyncStealAttempts++;
-		}
-		if(STEAL_DEBUG) {
+		if(STEAL_DEBUG && synchronous) {
 			System.err.println("SATIN '" + ident.name() + 
-					   "': sending ASYNC steal message to " +
-					   v.ident.name());
+							   "': sending steal message to " +
+							   v.ident.name());
+		}
+		if(STEAL_DEBUG && !synchronous) {
+			System.err.println("SATIN '" + ident.name() + 
+							   "': sending ASYNC steal message to " +
+							   v.ident.name());
 		}
 
 		try {
 			SendPort s = v.s;
 			WriteMessage writeMessage = s.newMessage();
-			writeMessage.writeByte(ASYNC_STEAL_REQUEST);
+			writeMessage.writeByte(synchronous ? STEAL_REQUEST :
+								   ASYNC_STEAL_REQUEST);
 			writeMessage.send();
 			writeMessage.finish();
 			if(STEAL_STATS) {
@@ -747,47 +765,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
-						   "': Got Exception while sending async steal request: " + e);
+							   "': Got Exception while sending " +
+							   (synchronous ? "" : "a") + "synchronous" +
+							   " steal request: " + e);
 			System.exit(1);
 		}
 	}
 
-	protected boolean stealJob(Victim v) {
-		if(STEAL_TIMING) {
-			stealTimer.start();
-		}
-
-//		long tstart = System.currentTimeMillis();
-
-		if(STEAL_STATS) {
-			stealAttempts++;
-		}
-		if(STEAL_DEBUG) {
-			System.err.println("SATIN '" + ident.name() + 
-					   "': sending steal message to " +
-					   v.ident.name());
-		}
-
-		try {
-			SendPort s = v.s;
-			WriteMessage writeMessage = s.newMessage();
-			writeMessage.writeByte(STEAL_REQUEST);
-			writeMessage.send();
-			writeMessage.finish();
-			if(STEAL_STATS) {
-				if(inDifferentCluster(v.ident)) {
-					interClusterMessages++;
-					interClusterBytes += writeMessage.getCount();
-				} else {
-					intraClusterMessages++;
-					intraClusterBytes += writeMessage.getCount();
-				}
-			} 
-		} catch (IbisIOException e) {
-			System.err.println("SATIN '" + ident.name() + 
-						   "': Got Exception while sending steal request: " + e);
-			System.exit(1);
-		}
+	protected boolean waitForStealReply() {
 
 		if(IDLE_TIMING) {
 			idleTimer.start();
@@ -812,7 +797,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				}
 			} else {
 				synchronized(this) {
-					while(!gotStealReply && !exiting) {
+					while(!gotStealReply) {
 						try {
 							wait();
 						} catch (InterruptedException e) {
@@ -825,7 +810,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				}
 			}
 		} else { // poll for reply
-			while(!gotStealReply && !exiting) {
+			while(!gotStealReply) {
 				satinPoll();
 			}
 			gotStealReply = false;
@@ -839,13 +824,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			stealTimer.stop();
 		}
 
-		if(exiting) return false;
-
-		if(STEAL_DEBUG) {
+		/*if(STEAL_DEBUG) {
 			out.println("SATIN '" + ident.name() + 
-					   "': got steal reply from " + v.ident.name() + ", " +
+					   "': got synchronous steal reply: " +
 						(stolenJob == null ? "FAILED" : "SUCCESS"));
-		}
+						}*/
 
 		/* If successfull, we now have a job in stolenJob. */
 		if (stolenJob == null) {
@@ -874,7 +857,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(COMM_DEBUG) {
 			out.println("SATIN '" + ident.name() + 
-						"': '" + joiner.name() + "' is trying to join");
+						"': '" + joiner.name() + "' from cluster '" +
+						joiner.cluster() + "' is trying to join");
 		}
 		try {
 			ReceivePortIdentifier r = null;
@@ -1112,7 +1096,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		spawnCounterCache = s;
 	}
 
-	private void callSatinFunction(InvocationRecord r) {
+	protected void callSatinFunction(InvocationRecord r) {
 		InvocationRecord oldParent;
 		int oldParentStamp;
 		IbisIdentifier oldParentOwner;
@@ -1131,11 +1115,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(ASSERTS) {
 			if(r == null) {
-				out.println("SATIN '" + ident.name() + ": EEK, r = null in callSatinFunc");
+				out.println("SATIN '" + ident.name() +
+							": EEK, r = null in callSatinFunc");
 				System.exit(1);
 			}
 			if(r.aborted) {
-				out.println("SATIN '" + ident.name() + ": spawning aborted job!");
+				out.println("SATIN '" + ident.name() +
+							": spawning aborted job!");
 				System.exit(1);
 			}
 		
@@ -1146,7 +1132,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					System.exit(1);
 				}
 
-				if(ABORTS && r.parent == null && parentOwner.equals(ident) && r.parentStamp != -1) { 
+				if(ABORTS && r.parent == null && parentOwner.equals(ident) &&
+				   r.parentStamp != -1) { 
 					out.println("SATIN '" + ident.name() +
 							   ": parent is null for non-root, should not happen here! job = " + r);
 					System.exit(1);
@@ -1180,12 +1167,19 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			parentOwner = r.owner;
 		}
 
+		if(SPAWN_DEBUG) {
+			out.println("SATIN '" + ident.name() +
+						"': callSatinFunc: stamp = " + r.stamp +
+						", owner = " +
+						(r.owner.equals(ident) ? "me" : r.owner.toString()) +
+						", parentStamp = " + r.parentStamp +
+						", parentOwner = " + r.parentOwner);
+		}
 		if(r.owner.equals(ident)) {
-			if(SPAWN_DEBUG) {
-				out.println("SATIN '" + ident.name() + ": callSatinFunc: stamp = " + r.stamp + 
-						   ", parentStamp = " + r.parentStamp + 
-						   ", parentOwner = " + r.parentOwner + 
-						   " spawn counter = " + r.spawnCounter.value);
+			if (SPAWN_DEBUG) {
+				out.println("SATIN '" + ident.name() +
+							"': callSatinFunc: spawn counter = " +
+							r.spawnCounter.value);
 			}
 			if(ABORTS) {
 				try {
@@ -1282,7 +1276,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(SPAWN_DEBUG) {
 			out.println("SATIN '" + ident.name() + 
 					   "': call satin func done!");
-			new Exception().printStackTrace();
 		}
 	}
 
@@ -1293,21 +1286,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		while(!exiting) {
 			// steal and run jobs
 
-			pollAsyncResult(); // for CRS
-
 			if(!upcalls) {
 				satinPoll();
 			}
-			// if (exiting) break;
 
-			r = q.getFromHead();
-			if(r != null) {
-				callSatinFunction(r);
-			} else {
-				/* We are idle. There is no work in the queue, and we are not running Java code.
-				   Call appropriate handler. */
-				a.syncHandler();
-			}
+			algorithm.clientIteration();
 		}
 	}
 
@@ -1330,8 +1313,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(SPAWN_DEBUG) {
 			out.println("SATIN '" + ident.name() + 
-			   "': Spawn, counter = " + r.spawnCounter.value + ", stamp = " + r.stamp +
-			   ", parentStamp = " + r.parentStamp + ", owner = " + r.owner + ", parentOwner = " + r.parentOwner);
+				"': Spawn, counter = " + r.spawnCounter.value +
+				", stamp = " + r.stamp + ", parentStamp = " + r.parentStamp +
+				", owner = " + r.owner + ", parentOwner = " + r.parentOwner);
 		}
 
 		if(ABORTS && gotAborts) handleAborts();
@@ -1442,7 +1426,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			syncs++;
 		}
 
-		pollAsyncResult(); // for CRS
+		//Waar is dit pollen voor nodig, gebeurt onderaan al ??? - Maik
+
+		//pollAsyncResult(); // for CRS
 
 		if(upcalls && upcallPolling) {
 			satinPoll();
@@ -1454,7 +1440,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(ABORTS && gotExceptions) handleExceptions();
 		}
 		while(s.value > 0) {
-			pollAsyncResult(); // for CRS
+			if (ASSERTS && exiting) {
+				System.err.println("Satin: EEK! got exit msg while syncing!");
+				new Throwable().printStackTrace();
+				System.exit(1);
+			}
+			//pollAsyncResult(); // for CRS
 
 			if(SPAWN_DEBUG) {
 				out.println("SATIN '" + ident.name() + 
@@ -1465,14 +1456,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(ABORTS && gotAborts) handleAborts();
 			if(ABORTS && gotExceptions) handleExceptions();
 
-			r = q.getFromHead();
-			if(r != null) {
-				callSatinFunction(r);
-			} else {
-				/* We are idle. There is no work in the queue, and we are not running Java code.
-				   Call appropriate handler. */
-				a.syncHandler();
-			}
+			algorithm.clientIteration();
 		}
 	}
 
