@@ -736,7 +736,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     ibmp_msg_p	msg = (ibmp_msg_p)nativeIOVec;
     ibmp_byte_stream_hdr_p hdr;
     int		len;
-    int		up_to_now;
+    long long int up_to_now;
     int		lastSplitter = (i == splitTotal - 1);
 
 #if JASON
@@ -777,8 +777,8 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     hdr->group = ibis_impl_messagePassing_SendPort_NO_BCAST_GROUP;
 
     len = ibmp_iovec_len(msg->iov, msg->iov_len);
-    up_to_now = (*env)->GetIntField(env, this, fld_msgCount);
-    (*env)->SetIntField(env, this, fld_msgCount, len + up_to_now);
+    up_to_now = (*env)->GetLongField(env, this, fld_msgCount);
+    (*env)->SetLongField(env, this, fld_msgCount, len + up_to_now);
 
 #ifdef IBP_VERBOSE
     sent_data += len;
@@ -832,7 +832,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     ibmp_msg_p	msg = (ibmp_msg_p)nativeIOVec;
     ibmp_byte_stream_hdr_p hdr;
     int		len;
-    int		up_to_now;
+    long long int up_to_now;
 
 #if JASON
     pan_time_get(&st);
@@ -867,8 +867,8 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     hdr->home_msg = msg;
 
     len = ibmp_iovec_len(msg->iov, msg->iov_len);
-    up_to_now = (*env)->GetIntField(env, this, fld_msgCount);
-    (*env)->SetIntField(env, this, fld_msgCount, len + up_to_now);
+    up_to_now = (*env)->GetLongField(env, this, fld_msgCount);
+    (*env)->SetLongField(env, this, fld_msgCount, len + up_to_now);
 
 #ifdef IBP_VERBOSE
     sent_data += len;
@@ -1184,7 +1184,7 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 
     fld_msgCount = (*env)->GetFieldID(env,
 					 cls_PandaByteOutputStream,
-					 "msgCount", "I");
+					 "msgCount", "J");
     if (fld_msgCount == NULL) {
 	ibmp_error(env, "Cannot find static field msgCount:I\n");
     }

@@ -48,7 +48,7 @@ final class ByteOutputStream
     /**
      * This field is read and <standout>written</standout> from native code
      */
-    private int msgCount;
+    private long msgCount;
 
 
     ByteOutputStream(ibis.ipl.SendPort p, boolean syncMode, boolean makeCopy) {
@@ -286,7 +286,7 @@ final class ByteOutputStream
 	}
     }
 
-    public int getCount() {
+    public long getCount() {
 	return msgCount;
     }
 

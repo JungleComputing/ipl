@@ -18,7 +18,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	}
 	this.sPort = sPort;
 	out = sPort.out;
-	before = (long) out.getCount();
+	before = out.getCount();
     }
 
 
@@ -54,7 +54,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 
     public void reset() throws IOException {
 	send(true, true);
-	long after = (long) out.getCount();
+	long after = out.getCount();
 	sPort.count += after - before;
 	before = after;
     }
@@ -62,7 +62,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 
     public long finish() throws IOException {
 	out.finish();
-	long after = (long) out.getCount();
+	long after = out.getCount();
 	long retval = after - before;
 	before = after;
 	sPort.count += retval;
