@@ -132,20 +132,20 @@ class RszHandler implements OpenConfig, ResizeHandler {
 }
 
 class LevelRecorder implements ibis.ipl.Upcall {
-    int level = -1;
+    int col = -1;
 
     public LevelRecorder(){}
 
-    public synchronized int get() { return level; }
+    public synchronized int get() { return col; }
 
-    public synchronized void reset() { level = -1; }
+    public synchronized void reset() { col = -1; }
 
     public void upcall( ReadMessage m ) throws java.io.IOException
     {
         int gen = m.readInt();
         int mygen = OpenCell1D.lockedGeneration.get();
         if( mygen == gen ){
-            level = OpenCell1D.boardsize-OpenCell1D.column.get();
+            col = OpenCell1D.column.get();
         }
         else if( gen>mygen ){
             System.err.println( "Steal request generation: " + gen + "; my generation: " + mygen );
@@ -811,9 +811,13 @@ class OpenCell1D implements OpenConfig {
         }
     }
 
-    private static void evaluateStealRequests( Problem p, int lsteal, int rsteal )
+    private static void evaluateStealRequests( Problem p, int lcol, int rcol )
     {
+        int lsteal = p.firstNoColumn - lcol;
+        int rsteal = p.firstNoColumn - rcol;
         if( aimFirstColumn != p.firstColumn && aimFirstNoColumn != p.firstNoColumn ){
+            // A new processor has joined the computation, don't try
+            // to balance things at the same time.
             max_lsteal = 1;
             max_rsteal = 1;
             return;
@@ -843,6 +847,7 @@ class OpenCell1D implements OpenConfig {
             max_lsteal = 1+Math.min( max_lsteal, stolen );
         }
         else {
+            // No valid steal request this time, reset the allowance.
             max_lsteal = 1;
         }
         if( rsteal>0 ){
@@ -854,6 +859,7 @@ class OpenCell1D implements OpenConfig {
             max_rsteal = 1+Math.min( max_rsteal, stolen );
         }
         else {
+            // No valid steal request this time, reset the allowance.
             max_rsteal = 1;
         }
     }
@@ -1017,13 +1023,13 @@ class OpenCell1D implements OpenConfig {
                 updateMembership( p );
                 if( doWorkStealing ){
                     lockedGeneration.set( generation );
-                    int lsteal = leftRecorder.get();
-                    int rsteal = rightRecorder.get();
+                    int lcol = leftRecorder.get();
+                    int rcol = rightRecorder.get();
                     if( requestedByLeft != null ){
-                        requestedByLeft[generation] = lsteal;
-                        requestedByRight[generation] = rsteal;
+                        requestedByLeft[generation] = p.firstNoColumn - lcol;
+                        requestedByRight[generation] = p.firstNoColumn - rcol;
                     }
-                    evaluateStealRequests( p, lsteal, rsteal );
+                    evaluateStealRequests( p, lcol, rcol );
                 }
                 if( (me % 2) == 0 ){
                     if( !rightNeighbourIdle ){
