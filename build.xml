@@ -653,7 +653,7 @@
 	<delete file="config.mk.orig"/>
 	<delete file="configuration.sh"/>
 	<delete file="configuration.bat"/>
-	<ant dir="${ibis)/apps" inheritAll="false" target="clean"/>
+	<ant dir="${ibis}/apps" inheritAll="false" target="clean"/>
 	<delete dir="bin"/>
 	<delete dir="ant-tasks/tasks"/>
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
