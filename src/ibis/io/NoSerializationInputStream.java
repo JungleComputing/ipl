@@ -12,26 +12,30 @@ import java.io.InputStream;
  */
 public final class NoSerializationInputStream extends SerializationInputStream {
 
+    private InputStream in;
+
     /**
-     * Constructor. Calls constructor of superclass and flushes.
+     * Constructor. Calls constructor of superclass.
      *
      * @param s the underlying <code>InputStream</code>
      * @exception IOException when an IO error occurs.
      */
     public NoSerializationInputStream(InputStream s) throws IOException {
-	super(s);
+	super();
+	in = s;
     }
 
     /**
-     * Constructor. Calls constructor of superclass with a newly created
+     * Constructor. Calls constructor of superclass and creates an
      * <code>InputStream</code> from the <code>Dissipator</code> parameter.
      *
-     * @param in the <code>Dissipator</code>
+     * @param d the <code>Dissipator</code>
      * @exception IOException when an IO error occurs.
      */
 
-    public NoSerializationInputStream(Dissipator in) throws IOException {
-	super(new DissipatorInputStream(in));
+    public NoSerializationInputStream(Dissipator d) throws IOException {
+	super();
+	in = new DissipatorInputStream(d);
     }
 
     /**
@@ -57,6 +61,10 @@ public final class NoSerializationInputStream extends SerializationInputStream {
      * No statistics are printed for the No serialization version.
      */
     public void statistics() {
+    }
+
+    public final byte readByte() throws IOException {
+	return (byte) in.read();
     }
 
     public final boolean readBoolean() throws IOException {
@@ -136,10 +144,11 @@ public final class NoSerializationInputStream extends SerializationInputStream {
 	if (off == 0 && ref.length == len) {
 	    int rd = 0;
 	    do {
-		rd += read(ref, rd, len - rd);
+		rd += in.read(ref, rd, len - rd);
 	    } while (rd < len);
 	    return;
 	}
+	throw new IOException("Illegal data type read");
     }
 
     /**
@@ -191,5 +200,9 @@ public final class NoSerializationInputStream extends SerializationInputStream {
 	    throws IOException, ClassNotFoundException
     {
 	throw new IOException("Illegal data type read");
+    }
+
+    public void close() throws IOException {
+	in.close();
     }
 }

@@ -7,8 +7,8 @@ import java.io.OutputStream;
  * The <code>NoSerializationOutputStream</code> class is can be used when 
  * no serialization is needed.
  * It provides implementations for the abstract methods in
- * <code>SerializationOutputStream</code>, build on methods in
- * <code>ObjectOutputStream</code>.
+ * <code>SerializationOutputStream</code>, built on methods in
+ * <code>OutputStream</code>.
  * However, the only data that can be sent are bytes and byte arrays.
  * All other methods throw an exception.
  */
@@ -16,15 +16,17 @@ public final class NoSerializationOutputStream
 	extends SerializationOutputStream
 {
 
+    private OutputStream out;
+
     /**
-     * Constructor. Calls constructor of superclass and flushes.
+     * Constructor. Calls constructor of superclass.
      *
      * @param s the underlying <code>OutputStream</code>
      * @exception <code>IOException</code> is thrown when an IO error occurs.
      */
     public NoSerializationOutputStream(OutputStream s) throws IOException {
-	super(s);
-	flush();
+	super();
+	out = s;
     }
 
     /**
@@ -32,13 +34,13 @@ public final class NoSerializationOutputStream
      * <code>OututStream</code> from the <code>Accumulator</code>
      * parameter and flushes.
      *
-     * @param out the <code>Accumulator</code>
+     * @param a the <code>Accumulator</code>
      * @exception <code>IOException</code> is thrown when an IO error occurs.
      */
-    public NoSerializationOutputStream(Accumulator out) 
+    public NoSerializationOutputStream(Accumulator a) 
 	    throws IOException {
-	super(new AccumulatorOutputStream(out));
-	flush();
+	super();
+	out = new AccumulatorOutputStream(a);
     }
 
     /**
@@ -69,6 +71,15 @@ public final class NoSerializationOutputStream
      */
     public void writeBoolean(boolean value) throws IOException {
 	    throw new IOException("Illegal data type written");
+    }
+
+    /**
+     * Writes a byte.
+     * @param value the byte to be written
+     * @exception <code>IOException</code> is thrown on an IO error.
+     */
+    public void writeByte(int value) throws IOException {
+	    out.write(value);
     }
 
     /**
@@ -180,7 +191,7 @@ public final class NoSerializationOutputStream
 	 * RFHH
 	 */
 	if (off == 0 && len == ref.length) {
-	    write(ref);
+	    out.write(ref);
 	} else {
 	    throw new IOException("Illegal data type written");
 	}
@@ -239,5 +250,17 @@ public final class NoSerializationOutputStream
      * No statistics are printed for the No serialization version.
      */
     public void statistics() {
+    }
+
+    public void reset() {
+    }
+
+    public void flush() throws IOException {
+	out.flush();
+    }
+
+    public void close() throws IOException {
+	out.flush();
+	out.close();
     }
 }
