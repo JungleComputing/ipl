@@ -388,7 +388,7 @@ class OpenCell1D implements OpenConfig {
             // The border has changed, but since until now we
             // maintained it as an ordinary column, we can easily intialize
             // it.
-            System.arraycopy( p.board[aimFirstNoColumn], 0, p.rightBorder, 0, boardsize+2 );
+            System.arraycopy( p.board[p.firstNoColumn-sendCount], 0, p.rightBorder, 0, boardsize+2 );
         }
         WriteMessage m = port.newMessage();
         m.writeInt( generation );
@@ -747,16 +747,16 @@ class OpenCell1D implements OpenConfig {
                     knownMembers = members;
                 }
                 if( (me % 2) == 0 ){
-                    sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
-                    receiveLeft( leftReceivePort, p );
                     receiveRight( rightReceivePort, p );
+                    sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                    receiveLeft( leftReceivePort, p );
                 }
                 else {
-                    receiveRight( rightReceivePort, p );
                     receiveLeft( leftReceivePort, p );
-                    sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                    receiveRight( rightReceivePort, p );
+                    sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                 }
                 if( showProgress && me == 0 ){
                     System.out.print( '.' );
