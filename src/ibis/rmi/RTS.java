@@ -104,7 +104,7 @@ final class RTS {
 		return 0;
 	} 
 
-	protected static synchronized Remote lookup(String name)  throws NotBoundException, IbisException { 
+	protected static synchronized Remote lookup(String name)  throws NotBoundException, IbisException, IbisIOException, ClassNotFoundException { 
 
 		Stub result;
 		SendPort s = null;

@@ -29,7 +29,7 @@ public class Naming {
 		// Returns a reference, a stub, for the remote object associated with the specified name.
 		try { 
 			return RTS.lookup(name);
-		} catch (IbisException e) { 
+		} catch (Exception e) { 
 			throw new RemoteException("lookup(" + name + ") failed " + e);
 		} 
 	}		
