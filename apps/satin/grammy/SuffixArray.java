@@ -89,7 +89,7 @@ public class SuffixArray implements Magic {
 		else {
 		    commonality[i] = Math.min( l, i0-i1 );
 		}
-		if( text[i0+l]<text[i1+l] ){
+		if( (i0+l>=length) || (i1+l<length && (text[i0+l]<text[i1+l])) ){
 		    // Things are sorted, or we're at the start of the array,
 		    // take a step forward.
 		    i++;
@@ -190,9 +190,9 @@ public class SuffixArray implements Magic {
         // Verify that the elements are in fact ordered, and that the
         // commonality entry is correct.
         for( int i=1; i<indices.length; i++ ){
-            if( !areCorrectlyOrdered( i-1, i ) ){
+            if( !areCorrectlyOrdered( indices[i-1], indices[i] ) ){
                 throw new VerificationException(
-                    "suffix array is not incorrect order between " + (i-1) + " and " + i
+                    "suffix array order is incorrect between " + (i-1) + " and " + i + " (`" + buildString( indices[i-1] ) + "' and `" + buildString( indices[i] ) + "'"
                 );
             }
         }
