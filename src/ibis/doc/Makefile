@@ -1,4 +1,4 @@
-TARGETS = progman.ps
+TARGETS = progman.ps progman.pdf
 
 all:		$(TARGETS)
 
@@ -6,6 +6,9 @@ distr:		$(TARGETS)
 
 %.ps:		%.dvi
 		dvips -o $@ $<
+
+%.pdf:		%.dvi
+		dvipdf $< $@
 
 progman.dvi:	progman.tex
 
