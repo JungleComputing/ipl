@@ -756,7 +756,9 @@ public final class SATContext implements java.io.Serializable {
                     cl.registerInfo( posinfo, neginfo, info );
                 }
                 cl.registerVariableCounts( posclauses, negclauses );
-                if( doVerification ){
+            }
+            if( doVerification ){
+                for( int i=oldCount; i<newCount; i++ ){
                     verifyTermCount( p, i );
                 }
             }
