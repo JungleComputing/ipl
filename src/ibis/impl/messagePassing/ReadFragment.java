@@ -13,7 +13,7 @@ class ReadFragment {
     }
 
     void clear() {
-	msg.in.resetMsg(msgHandle);
+	msg.resetMsg(msgHandle);
     }
 
 }

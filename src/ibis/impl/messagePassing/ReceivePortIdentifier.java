@@ -8,12 +8,12 @@ public final class ReceivePortIdentifier
 	implements ibis.ipl.ReceivePortIdentifier,
 		   java.io.Serializable {
 
-    String name;
-    String type;
+    private String name;
+    private String type;
     int cpu;
     int port;
-    ibis.ipl.IbisIdentifier ibisIdentifier;
-    transient byte[] serialForm;
+    private ibis.ipl.IbisIdentifier ibisIdentifier;
+    private transient byte[] serialForm;
 
 
     ReceivePortIdentifier(String name, String type) {

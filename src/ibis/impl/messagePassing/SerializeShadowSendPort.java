@@ -1,23 +1,27 @@
 package ibis.impl.messagePassing;
 
+import ibis.io.SunSerializationInputStream;
+
 import ibis.util.ConditionVariable;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-final class SerializeShadowSendPort extends ShadowSendPort {
+final class SerializeShadowSendPort
+	extends ShadowSendPort
+	implements PollClient {
 
     java.io.ObjectInput obj_in;
-    boolean initializing = false;
-    ConditionVariable objectStreamOpened = Ibis.myIbis.createCV();
+
+    private boolean initializing = false;
+    private ConditionVariable objectStreamOpened = Ibis.myIbis.createCV();
 
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
     SerializeShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId)
 	    throws IOException {
 	super(rId, sId);
-// System.err.println("In SerializeShadowSendPort.<init>");
     }
 
 
@@ -43,8 +47,76 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	return msg;
     }
 
+    // interface PollClient
+
+    private PollClient	next;
+    private PollClient	prev;
+    private Thread	me;
+
+    public PollClient next() {
+	return next;
+    }
+
+    public PollClient prev() {
+	return prev;
+    }
+
+    public void setNext(PollClient c) {
+	next = c;
+    }
+
+    public void setPrev(PollClient c) {
+	prev = c;
+    }
+
+    public boolean satisfied() {
+	return obj_in != null;
+    }
+
+    public void wakeup() {
+	objectStreamOpened.cv_bcast();
+    }
+
+    public void poll_wait(long timeout) {
+	try {
+	    objectStreamOpened.cv_wait();
+	} catch (InterruptedException e) {
+	    // ignore
+	}
+    }
+
+    public Thread thread() {
+	return me;
+    }
+
+    public void setThread(Thread thread) {
+	me = thread;
+    }
+
+
+    void disconnect() throws IOException {
+	while (! satisfied()) {
+	    /* Right. We hit a race here. We disconnect before the connection
+	     * has actually established, and before the ObjectIOStream header
+	     * has been consumed. Await that. */
+	    if (Ibis.DEBUG) {
+		System.err.println(this + ": OOOOPS obj_in not yet initialized. We should poll for connection establishment...");
+		Thread.dumpStack();
+	    }
+	    Ibis.myIbis.waitPolling(this, 0, Poll.PREEMPTIVE);
+	}
+
+	obj_in = null;
+    }
+
 
     boolean checkStarted(ReadMessage msg) throws IOException {
+
+	if (Ibis.DEBUG) {
+	    System.err.println(this + ": checkStarted(msg=" + msg
+				+ ") initializing " + initializing
+				+ " obj_in " + obj_in);
+	}
 
 	if (initializing) {
 	    if (Ibis.DEBUG) {
@@ -53,12 +125,8 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	    /* Right. We hit a race here. Some thread is reading the
 	     * initial message, and has to unlock for that.
 	     * We must wait until it's finished. */
-	    while (obj_in == null) {
-		try {
-		    objectStreamOpened.cv_wait();
-		} catch (InterruptedException e) {
-		    // ignore
-		}
+	    while (! satisfied()) {
+		Ibis.myIbis.waitPolling(this, 0, Poll.PREEMPTIVE);
 	    }
 	    if (((SerializeReadMessage)msg).obj_in != null) {
 		System.err.println("NNNNNNNNNNNNNNNOOOOOOOOOOOOOOOOOO this cannot be");
@@ -89,7 +157,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
 	Ibis.myIbis.unlock();
 	try {
-	    obj_in = new ObjectInputStream(new BufferedInputStream(in));
+	    obj_in = new SunSerializationInputStream(new BufferedInputStream(in));
 	} finally {
 	    Ibis.myIbis.lock();
 	}
@@ -100,7 +168,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	}
 	msg.clear();
 
-	objectStreamOpened.cv_bcast();
+	wakeup();
 
 	initializing = false;
 

@@ -6,9 +6,9 @@ final class ByteInputStream
 	extends java.io.InputStream
 	implements ibis.io.IbisStreamFlags {
 
-    int msgHandle;
-    int msgSize;
-    ReadMessage msg;
+    private int msgHandle;
+    private int msgSize;
+    private ReadMessage msg;
 
 
     void setMsgHandle(ReadMessage msg) {
@@ -87,6 +87,7 @@ final class ByteInputStream
 	try {
 	    if (Ibis.DEBUG) {
 		System.err.println("Now want to read " + len + " bytes, avaible in fragment " + Integer.toHexString(msgHandle) + ": " + msgSize);
+		Thread.dumpStack();
 	    }
 	    if (msgSize == 0) {
 		msg.nextFragment();

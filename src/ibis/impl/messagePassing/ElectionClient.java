@@ -1,14 +1,15 @@
 package ibis.impl.messagePassing;
 
 import ibis.ipl.IbisException;
+import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
 
 class ElectionClient implements ElectionProtocol {
 
-    ibis.ipl.ReceivePortIdentifier server;
-    ibis.ipl.SendPort sport;
-    ibis.ipl.ReceivePort rport;
+    private ibis.ipl.ReceivePortIdentifier server;
+    private ibis.ipl.SendPort sport;
+    private ibis.ipl.ReceivePort rport;
 
     ElectionClient() throws IbisException, IOException {
 	if (! ElectionProtocol.NEED_ELECTION) {
@@ -16,7 +17,9 @@ class ElectionClient implements ElectionProtocol {
 	}
 
 // System.err.println(Thread.currentThread() + "ElectionClient: enter...");
-	ibis.ipl.PortType type = Ibis.myIbis.createPortType("++++ElectionPort++++", new ibis.ipl.StaticProperties());
+	StaticProperties p = new StaticProperties();
+	p.add("Serialization", "sun");
+	ibis.ipl.PortType type = Ibis.myIbis.createPortType("++++ElectionPort++++", p);
 // System.err.println(Thread.currentThread() + "ElectionClient: portTypes lives");
 
 	rport = type.createReceivePort("++++ElectionClient-" +
@@ -55,6 +58,8 @@ class ElectionClient implements ElectionProtocol {
 	}
 
 // System.err.println(Thread.currentThread() + "ElectionClient: elect(): start send");
+// System.err.println(Thread.currentThread() + "election \"" + election + "\" " + " candidate " + candidate);
+// Thread.dumpStack();
 
 	ibis.ipl.WriteMessage m = sport.newMessage();
 	m.writeInt(Ibis.myIbis.myCpu);

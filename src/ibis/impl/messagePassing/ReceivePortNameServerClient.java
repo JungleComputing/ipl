@@ -18,10 +18,10 @@ final class ReceivePortNameServerClient
     }
 
 
-    class Bind implements PollClient {
+    private class Bind implements PollClient {
 
-	PollClient next;
-	PollClient prev;
+	private PollClient next;
+	private PollClient prev;
 
 	public PollClient next() {
 	    return next;
@@ -55,7 +55,7 @@ final class ReceivePortNameServerClient
 	    }
 	}
 
-	Thread me;
+	private Thread me;
 
 	public Thread thread() {
 	    return me;
@@ -65,12 +65,12 @@ final class ReceivePortNameServerClient
 	    me = thread;
 	}
 
-	boolean	ns_busy = false;
-	ConditionVariable	ns_free = Ibis.myIbis.createCV();
+	private boolean	ns_busy = false;
+	private ConditionVariable	ns_free = Ibis.myIbis.createCV();
 
-	boolean	ns_is_done;
-	ConditionVariable	ns_done = Ibis.myIbis.createCV();
-	boolean bound;
+	private boolean	ns_is_done;
+	private ConditionVariable	ns_done = Ibis.myIbis.createCV();
+	private boolean bound;
 
 	void bind(String name, ReceivePortIdentifier id)
 		throws IOException {
@@ -138,9 +138,9 @@ final class ReceivePortNameServerClient
 	bind.ns_done.cv_signal();
     }
 
-    native void ns_bind(String name, byte[] recvPortId);
+    private native void ns_bind(String name, byte[] recvPortId);
 
-    Bind bind = new Bind();
+    private Bind bind = new Bind();
 
     public void bind(String name, ReceivePortIdentifier id)
 	    throws IOException {
@@ -148,10 +148,10 @@ final class ReceivePortNameServerClient
     }
 
 
-    class Lookup implements PollClient {
+    private class Lookup implements PollClient {
 
-	PollClient next;
-	PollClient prev;
+	private PollClient next;
+	private PollClient prev;
 
 	public PollClient next() {
 	    return next;
@@ -186,7 +186,7 @@ final class ReceivePortNameServerClient
 	    }
 	}
 
-	Thread me;
+	private Thread me;
 
 	public Thread thread() {
 	    return me;
@@ -196,12 +196,12 @@ final class ReceivePortNameServerClient
 	    me = thread;
 	}
 
-	boolean	ns_busy = false;
-	ConditionVariable	ns_free = Ibis.myIbis.createCV();
+	private boolean	ns_busy = false;
+	private ConditionVariable	ns_free = Ibis.myIbis.createCV();
 
-	boolean	ns_is_done;
-	ConditionVariable	ns_done = Ibis.myIbis.createCV();
-	ReceivePortIdentifier ri;
+	private boolean	ns_is_done;
+	private ConditionVariable	ns_done = Ibis.myIbis.createCV();
+	private ReceivePortIdentifier ri;
 
 	private static final int BACKOFF_MILLIS = 1000;
 
@@ -277,7 +277,7 @@ final class ReceivePortNameServerClient
 	}
     }
 
-    native void ns_lookup(String name);
+    private native void ns_lookup(String name);
 
     /* Called from native */
     private void lookup_reply(byte[] rcvePortId) {
@@ -298,7 +298,7 @@ final class ReceivePortNameServerClient
 	}
     }
 
-    Lookup lookup = new Lookup();
+    private Lookup lookup = new Lookup();
 
     public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout)
 	    throws IOException {
@@ -314,7 +314,7 @@ final class ReceivePortNameServerClient
 	return null;
     }
 
-    native void ns_unbind(String public_name);
+    private native void ns_unbind(String public_name);
 
     void unbind(String name) {
 	Ibis.myIbis.lock();

@@ -6,10 +6,10 @@ import java.io.IOException;
 
 class Registry implements ibis.ipl.Registry {
 
-    ReceivePortNameServer nameServer;
-    ReceivePortNameServerClient nameServerClient;
-    ElectionClient electionClient;
-    ElectionServer electionServer;
+    private ReceivePortNameServer nameServer;
+    private ReceivePortNameServerClient nameServerClient;
+    private ElectionClient electionClient;
+    private ElectionServer electionServer;
 
     private final static boolean EXPORT_ELECT = true;
 

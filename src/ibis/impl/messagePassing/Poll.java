@@ -8,7 +8,7 @@ final public class Poll implements Runnable {
     final static int NON_PREEMPTIVE = NON_POLLING + 1;
     final static int PREEMPTIVE     = NON_PREEMPTIVE + 1;
 
-    final static String preempt(int preempt) {
+    private final static String preempt(int preempt) {
 	switch (preempt) {
 	    case NON_POLLING:		return "NON_POLLING";
 	    case NON_PREEMPTIVE:	return "NON_PREEMPTIVE";
@@ -23,27 +23,27 @@ final public class Poll implements Runnable {
     private static final boolean NONPREEMPTIVE_MAY_POLL = false;
     private static final boolean PREEMPTIVE_MAY_POLL = true;
 
-    final static int polls_before_yield = 500;	// 1; // 2000;
+    private final static int polls_before_yield = 500;	// 1; // 2000;
 
     // Sun doesn't set java.compiler, so getProperty returns null --Rob
     static final boolean MANTA_COMPILE = ( 
 	java.lang.System.getProperty("java.compiler") != null &&
 	java.lang.System.getProperty("java.compiler").equals("manta"));
 
-    Thread	poller;
-    PollClient	waiting_threads;
-    int		preemptive_waiters;
-    int		preemptive_pollers;
-    Thread	peeker;
-    boolean	last_is_preemptive;
-    boolean	comm_lives = true;
+    private Thread	poller;
+    private PollClient	waiting_threads;
+    private int		preemptive_waiters;
+    private int		preemptive_pollers;
+    private Thread	peeker;
+    private boolean	last_is_preemptive;
+    private boolean	comm_lives = true;
 
     static {
 	if (Ibis.myIbis.myCpu == 0) {
 	    if (DEBUG) {
 		System.err.println("Turn on Poll.DEBUG");
 	    }
-	    if (true || DEBUG) {
+	    if (DEBUG) {
 		if (NEED_POLLER_THREAD) {
 		    System.err.println("Poll: use a poll peeker thread. Sure we need it (?)");
 		} else {
@@ -100,9 +100,9 @@ final public class Poll implements Runnable {
     }
 
 
-    protected native boolean msg_poll() throws IOException;
+    private native boolean msg_poll() throws IOException;
 
-    native void abort();
+    private native void abort();
 
 
     final boolean poll() throws IOException {

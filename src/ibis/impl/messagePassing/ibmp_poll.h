@@ -4,6 +4,7 @@
 #include <jni.h>
 
 void ibmp_poll_register(int (*poll)(JNIEnv *env));
+jboolean ibmp_poll_locked(JNIEnv *env);
 
 void ibmp_poll_init(JNIEnv *env);
 void ibmp_poll_end(JNIEnv *env);

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 final public class IbisReadMessage extends ReadMessage {
 
-    ibis.io.IbisSerializationInputStream obj_in;
+    private ibis.io.IbisSerializationInputStream obj_in;
 
     IbisReadMessage(ibis.ipl.SendPort origin,
 		     ReceivePort port) {

@@ -4,8 +4,8 @@ import java.io.IOException;
 
 final public class IbisWriteMessage extends WriteMessage {
 
-    SendPort sPort;
-    ibis.io.IbisSerializationOutputStream obj_out;
+    private SendPort sPort;
+    private ibis.io.IbisSerializationOutputStream obj_out;
 
 
     IbisWriteMessage() {

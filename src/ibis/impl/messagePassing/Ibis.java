@@ -16,13 +16,16 @@ public class Ibis extends ibis.ipl.Ibis {
     static final boolean CHECK_LOCKS = DEBUG;
     static final boolean STATISTICS = true;
 
-    static Ibis globalIbis;
+    static Ibis	myIbis;
+
+    int nrCpus;
+    int myCpu;
 
     private IbisIdentifier ident;
 
-    IbisIdentifierTable identTable = new IbisIdentifierTable();
+    private IbisIdentifierTable identTable = new IbisIdentifierTable();
 
-    Registry registry;
+    private Registry registry;
 
     private int poolSize;
 
@@ -33,43 +36,34 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private final StaticProperties systemProperties = new StaticProperties();
 
-    static Ibis	myIbis;
-
     private Poll rcve_poll;
 
 
-    Monitor monitor = new Monitor();
+    private Monitor monitor = new Monitor();
 
     ConditionVariable createCV() {
 	// return new ConditionVariable(this);
 	return monitor.createCV();
     }
 
-    int nrCpus;
-    int myCpu;
+    private IbisWorld world;
 
-    IbisWorld world;
-
-    PortHash[] sendPorts;
-    PortHash rcvePorts;
+    private PortHash[] sendPorts;
+    private PortHash rcvePorts;
 
     int sendPort;
     int receivePort;
 
-    native String[] ibmp_init(String[] args);
-    native void ibmp_start();
-    native void ibmp_end();
+    protected native String[] ibmp_init(String[] args);
+    protected native void ibmp_start();
+    protected native void ibmp_end();
 
-    long tMsgPoll;
-    long tSend;
-    long tReceive;
-    long tMsgSend;
+    private long tMsgPoll;
+    private long tSend;
+    private long tReceive;
+    private long tMsgSend;
 
     Ibis() throws IbisException {
-
-	if (globalIbis == null) {
-	    globalIbis = this;
-	}
 
 	// Set my properties.
 	systemProperties.add("reliability", "true");
@@ -100,10 +94,10 @@ public class Ibis extends ibis.ipl.Ibis {
 					    StaticProperties p)
 	    throws IbisException {
 
-	myIbis.lock();
-	PortType tp = new PortType(this, name, p);
+	lock();
+	PortType tp = new PortType(name, p);
 	portTypeList.put(name, tp);
-	myIbis.unlock();
+	unlock();
 
 	return tp;
     }
@@ -138,11 +132,11 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    native void send_join(int to, byte[] serialForm);
-    native void send_leave(int to, byte[] serialForm);
+    private native void send_join(int to, byte[] serialForm);
+    private native void send_leave(int to, byte[] serialForm);
 
     /* Called from native */
-    void join_upcall(byte[] serialForm) throws IOException {
+    private void join_upcall(byte[] serialForm) throws IOException {
 	checkLockOwned();
 	//manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 
@@ -155,7 +149,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
     /* Called from native */
-    void leave_upcall(byte[] serialForm) {
+    private void leave_upcall(byte[] serialForm) {
 	checkLockOwned();
 	try {
 	    IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
@@ -182,7 +176,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    static void dumpStack() {
+    private static void dumpStack() {
 	new Throwable().printStackTrace();
     }
 
@@ -276,8 +270,8 @@ public class Ibis extends ibis.ipl.Ibis {
 	rcve_poll.waitPolling(client, timeout, preempt);
     }
 
-    native long currentTime();
-    native double t2d(long t);
+    private native long currentTime();
+    private native double t2d(long t);
 
     final void lock() {
 	monitor.lock();

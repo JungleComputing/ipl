@@ -5,12 +5,13 @@ import ibis.util.ConditionVariable;
 import java.io.IOException;
 
 public class Syncer implements PollClient {
-    boolean	signalled;
-    boolean	accepted;
-    ConditionVariable cv = Ibis.myIbis.createCV();
 
-    PollClient	next;
-    PollClient	prev;
+    private boolean	signalled;
+    private boolean	accepted;
+    private ConditionVariable cv = Ibis.myIbis.createCV();
+
+    private PollClient	next;
+    private PollClient	prev;
 
 
     public PollClient next() {
@@ -45,7 +46,7 @@ public class Syncer implements PollClient {
 	}
     }
 
-    Thread me;
+    private Thread me;
 
     public Thread thread() {
 	return me;
@@ -53,6 +54,10 @@ public class Syncer implements PollClient {
 
     public void setThread(Thread thread) {
 	me = thread;
+    }
+
+    boolean accepted() {
+	return accepted;
     }
 
     boolean s_wait(long timeout) throws IOException {

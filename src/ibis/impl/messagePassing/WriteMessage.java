@@ -4,8 +4,8 @@ import java.io.IOException;
 
 class WriteMessage implements ibis.ipl.WriteMessage {
 
-    SendPort sPort;
-    ByteOutputStream out;
+    protected SendPort sPort;
+    protected ByteOutputStream out;
 
 
     WriteMessage() {
@@ -20,13 +20,15 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
-	public ibis.ipl.SendPort localPort() {
-		return sPort;
-	}
+    public ibis.ipl.SendPort localPort() {
+	return sPort;
+    }
+
 
     public long getCount() {
 	return out.getCount();
     }
+
 
     public void resetCount() {
 	out.resetCount();

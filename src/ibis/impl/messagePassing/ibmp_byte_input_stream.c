@@ -212,6 +212,9 @@ Java_ibis_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
     \
     assert(msg != NULL); \
     \
+    IBP_VPRINTF(500, env, ("ByteIS %p Start consume %d %s from msg %p, currently holds %d\n", \
+		this, (int)len, #JType, msg, \
+		ibp_msg_consume_left(msg))); \
     if (sz <= COPY_THRESHOLD) { \
 	jtype buf[COPY_THRESHOLD/sizeof(jtype)]; \
 	rd = ibp_consume(env, msg, buf, sz); \
@@ -264,7 +267,7 @@ Java_ibis_impl_messagePassing_ByteInputStream_getInputStreamMsg(
 
     hdr = ibmp_byte_stream_hdr(proto);
 
-    IBP_VPRINTF(202, env, ("Dequeue msg %p port %d\n", msg, hdr->dest_port));
+    IBP_VPRINTF(202, env, ("Dequeue msg %p from %d port %d\n", msg, ibp_msg_sender(msg), hdr->dest_port));
 
     tags[0] = ibp_msg_sender(msg);
     tags[1] = hdr->src_port;

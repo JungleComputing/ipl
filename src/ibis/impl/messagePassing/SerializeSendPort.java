@@ -29,11 +29,19 @@ final public class SerializeSendPort extends SendPort {
 			long timeout)
 	    throws IOException {
 
+	if (aMessageIsAlive) {
+	    throw new IOException("First finish extant WriteMessage");
+	}
+
 	// Reset all our previous connections so the
 	// ObjectStream(BufferedStream()) may go through a stop/restart.
 	if (obj_out != null) {
 	    obj_out.reset();
+	    // obj_out.flush();
 	}
+	// if (message != null) {
+	    // message.reset(true);
+	// }
 
 	Ibis.myIbis.lock();
 	try {
@@ -44,11 +52,15 @@ final public class SerializeSendPort extends SendPort {
 	    byte[] sf = ident.getSerialForm();
 	    for (int i = 0; i < my_split; i++) {
 		ReceivePortIdentifier r = splitter[i];
+		if (Ibis.DEBUG) {
+		    System.err.println(Thread.currentThread() + "Now do native DISconnect call to " + r + "; me = " + ident);
+		}
 		outConn.ibmp_disconnect(r.cpu,
 					r.getSerialForm(),
 					sf,
 					messageCount);
 	    }
+
 	    messageCount = 0;
 
 	    for (int i = 0; i < splitter.length; i++) {
@@ -71,7 +83,7 @@ final public class SerializeSendPort extends SendPort {
 	    if (! syncer[my_split].s_wait(timeout)) {
 		throw new ConnectionTimedOutException("No connection to " + receiver);
 	    }
-	    if (! syncer[my_split].accepted) {
+	    if (! syncer[my_split].accepted()) {
 		throw new ConnectionRefusedException("No connection to " + receiver);
 	    }
 	} finally {

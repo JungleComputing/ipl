@@ -14,7 +14,7 @@ final class ReceivePortNameServer implements
 	ports = new Hashtable();
     }
 
-    native void bind_reply(int ret, int tag, int client);
+    private native void bind_reply(int ret, int tag, int client);
 
     /* Called from native */
     private void bind(String name, byte[] serialForm, int tag, int client)
@@ -40,19 +40,19 @@ final class ReceivePortNameServer implements
 
 	if (storedId != null) {
 	    if (ReceivePortNameServerProtocol.DEBUG) {
-		System.err.println(Thread.currentThread() + "Don't bind existing port name \"" + ri.name + "\", currently bound to \"" + storedId.name + "\"");
+		System.err.println(Thread.currentThread() + "Don't bind existing port name \"" + ri.name() + "\", currently bound to \"" + storedId.name() + "\"");
 	    }
 	    bind_reply(PORT_REFUSED, tag, client);
 	} else {
 	    if (ReceivePortNameServerProtocol.DEBUG) {
-		System.err.println(Thread.currentThread() + "Bound new port name \"" + ri.name + "\"" + " ibis " + ri.ibis().name());
+		System.err.println(Thread.currentThread() + "Bound new port name \"" + ri.name() + "\"" + " ibis " + ri.ibis().name());
 	    }
 	    bind_reply(PORT_ACCEPTED, tag, client);
 	    ports.put(name, ri);
 	}
     }
 
-    native void lookup_reply(int ret, int tag, int client, byte[] rcvePortId);
+    private native void lookup_reply(int ret, int tag, int client, byte[] rcvePortId);
 
     /* Called from native */
     private void lookup(String name, int tag, int client) {

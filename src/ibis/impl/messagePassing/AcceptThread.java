@@ -4,13 +4,13 @@ import ibis.util.ConditionVariable;
 
 final class AcceptThread extends Thread {
 
-    ReceivePort port;
-    ibis.ipl.ReceivePortConnectUpcall upcall;
-    ConditionVariable there_is_work = Ibis.myIbis.createCV();
-    boolean	stopped;
+    private ReceivePort port;
+    private ibis.ipl.ReceivePortConnectUpcall upcall;
+    private ConditionVariable there_is_work = Ibis.myIbis.createCV();
+    private boolean	stopped;
 
 
-    class AcceptQ {
+    private class AcceptQ {
 	AcceptQ		next;
 	boolean		finished;
 	boolean		accept;

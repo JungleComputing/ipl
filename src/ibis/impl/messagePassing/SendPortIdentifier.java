@@ -4,15 +4,16 @@ import ibis.io.Conversion;
 
 import java.io.IOException;
 
-final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
-    java.io.Serializable {
+final class SendPortIdentifier
+	implements ibis.ipl.SendPortIdentifier, java.io.Serializable {
 
-    String name;
-    String type;
     int cpu;
     int port;
-    IbisIdentifier ibisId;
-    transient byte[] serialForm;
+
+    private String name;
+    private String type;
+    private IbisIdentifier ibisId;
+    private transient byte[] serialForm;
 
 
     SendPortIdentifier(String name, String type) {

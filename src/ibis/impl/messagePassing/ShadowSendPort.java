@@ -9,17 +9,20 @@ import java.io.StreamCorruptedException;
 
 class ShadowSendPort extends SendPort {
 
-    boolean	connected;
-    boolean	connect_allowed;
     ReadMessage cachedMessage = null;
+
+    private boolean	connected;
+    private boolean	connect_allowed;
     private ReadFragment cachedFragment = null;
+
     ByteInputStream in;
 
-    int messageCount;
-    int quitCount;
+    private int messageCount;
+    private int quitCount;
+
     int msgSeqno = -1;	/* Count messages to do fragmentation */
 
-    ReceivePort receivePort;
+    protected ReceivePort receivePort;
 
     static ShadowSendPort createShadowSendPort(byte[] rcvePortBuf,
 					       byte[] sendPortBuf)
@@ -37,7 +40,7 @@ class ShadowSendPort extends SendPort {
 	    throw new IOException("Cannot read Ids from stream " + e);
 	}
 
-	PortType portType = Ibis.myIbis.getPortTypeLocked(sId.type);
+	PortType portType = Ibis.myIbis.getPortTypeLocked(sId.type());
 // System.err.println("Sender port type " + sId.type + " = " + portType);
 	int serializationType = portType.serializationType;
 	if (Ibis.DEBUG) {
@@ -73,9 +76,9 @@ class ShadowSendPort extends SendPort {
 	receivePort = Ibis.myIbis.lookupReceivePort(rId.port);
 	if (! rId.type().equals(ident.type())) {
 	    System.err.println("********************** ShadowSendPort type does not equal connected ReceivePort type");
-	    throw new PortMismatchException("************************** Want to connect send port and receive port of different types: " + type + " <-> " + receivePort.type.name());
+	    throw new PortMismatchException("************************** Want to connect send port and receive port of different types: " + type + " <-> " + receivePort.identifier().type());
 	}
-	this.type = receivePort.type;
+	this.type = receivePort.type();
 	connected = false;
 
 	connect_allowed = receivePort.connect(this);
@@ -84,7 +87,7 @@ class ShadowSendPort extends SendPort {
 	}
 	in = new ByteInputStream();
 	if (Ibis.DEBUG) {
-	    System.err.println(Thread.currentThread() + "Created shadow send port (" + sId.cpu + "," + sId.port + "), connect to local port " + rId.port);
+	    System.err.println(Thread.currentThread() + "Created shadow send port " + this + " (" + sId.cpu + "," + sId.port + "), connect to local port " + rId.port);
 	}
     }
 
@@ -111,12 +114,16 @@ class ShadowSendPort extends SendPort {
     }
 
 
-    /* Serialize streams need a complicated x-phase startup because they start reading
-     * in the constructor. Provide a handle to create the Serialize streams after we
-     * have deposited the first msg/fragment in the queue. */
-    boolean checkStarted(ReadMessage msg)
-	    throws IOException {
+    /* Serialize streams need a complicated x-phase startup because they start
+     * reading in the constructor. Provide a handle to create the Serialize
+     * streams after we have deposited the first msg/fragment in the queue. */
+    boolean checkStarted(ReadMessage msg) throws IOException {
 	return true;
+    }
+
+
+    void setMsgHandle(ReadMessage msg) {
+	in.setMsgHandle(msg);
     }
 
 
@@ -157,6 +164,10 @@ class ShadowSendPort extends SendPort {
     }
 
 
+    void disconnect() throws IOException {
+    }
+
+
     void tickReceive() {
 	messageCount++;
 	if (messageCount == quitCount) {
@@ -188,6 +199,7 @@ class ShadowSendPort extends SendPort {
 	    Thread.dumpStack();
 	}
 	if (sp.messageCount == count) {
+	    sp.disconnect();
 	    Ibis.myIbis.unbindSendPort(sp.ident.cpu, sp.ident.port);
 	    rp.disconnect(sp);
 	} else if (sp.messageCount > count) {

@@ -9,18 +9,43 @@ final class ByteOutputStream
 	extends java.io.OutputStream
 	implements PollClient {
 
-    SendPort sport;
+    private SendPort sport;
 
     private ConditionVariable sendComplete = Ibis.myIbis.createCV();
+
+    /**
+     * This field is read and <standout>written</standout> from native code
+     *
+     * Count the number of outstandig fragments that live within the current
+     * message.
+     */
     private int outstandingFrags;
-    boolean waitingInPoll = false;
-    boolean syncMode;
 
-    int msgHandle;
-    int msgSeqno = 0;
+    /**
+     * This field is read from native code
+     */
+    private boolean waitingInPoll = false;
 
-    boolean makeCopy;
+    private boolean syncMode;
 
+    /**
+     * This field is read and <standout>written</standout> from native code
+     *
+     * It is a pointer to a native data structure that builds up the data
+     * vector for the current message.
+     */
+    private int nativeIOVec;
+
+    private int msgSeqno = 0;
+
+    /**
+     * This field is read from native code
+     */
+    private boolean makeCopy;
+
+    /**
+     * This field is read and <standout>written</standout> from native code
+     */
     private int msgCount;
 
 
@@ -44,53 +69,34 @@ final class ByteOutputStream
 
 	boolean send_acked = true;
 
-	if (Ibis.DEBUG && this.msgHandle == 0) {
+	if (Ibis.DEBUG && this.nativeIOVec == 0) {
 	    System.err.println("%%%%%%:::::::%%%%%%% Yeck -- message handle is NULL in " + this);
 	}
-	int msgHandle = this.msgHandle;
-	this.msgHandle = 0;
 
 	outstandingFrags++;
 
-try {
 	for (int i = 0; i < n; i++) {
 	    ReceivePortIdentifier r = sport.splitter[i];
-	    if (msg_send(r.cpu,
-			 r.port,
-			 sport.ident.port,
-			 msgSeqno,
-			 msgHandle,
-			 i == n - 1,
-			 lastFrag)) {
-		send_acked = false;
-	    }
-	}
-} catch (IOException e) {
-    System.err.println("msg_send throws exception " + e);
-    Thread.dumpStack();
-}
-
-	if (false && ! lastFrag) {
-	    try {
-		Ibis.myIbis.pollLocked();
-	    } catch (IOException e) {
-		System.err.println("pollLocked throws " + e);
-	    }
+	    /* The call for the last connection knows whether the
+	     * send has been acked. Believe the last call. */
+	    send_acked = ! msg_send(r.cpu,
+				    r.port,
+				    sport.ident.port,
+				    msgSeqno,
+				    nativeIOVec,
+				    i,
+				    n,
+				    lastFrag);
 	}
 
 	if (send_acked) {
 	    outstandingFrags--;
-	    if (msgHandle != 0) {
-		if (Ibis.DEBUG) {
-		    System.err.println(">>>>>>>>>>>>>>>>>> After sync send set msgHandle to 0x" + Integer.toHexString(msgHandle));
-		}
-		this.msgHandle = msgHandle;
-		resetMsg();
-	    }
 	} else {
-	    /* Do it from the sent upcall */
+	    nativeIOVec = 0;
+	    /* Decrement outstandingFrags and reset the nativeIOVec from
+	     * the sent upcall */
 	    if (Ibis.DEBUG) {
-		System.err.println(":::::::::::::::::::: Yeck -- message 0x" + Integer.toHexString(msgHandle) + " is sent unacked");
+		System.err.println(":::::::::::::::::::: Yeck -- message 0x" + Integer.toHexString(nativeIOVec) + " is sent unacked");
 	    }
 	}
     }
@@ -220,7 +226,7 @@ try {
 
     private void flush(boolean lastFrag) throws IOException {
 	if (Ibis.DEBUG) {
-	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; msgHandle 0x" + Integer.toHexString(msgHandle));
+	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; nativeIOVec 0x" + Integer.toHexString(nativeIOVec));
 	}
 // manta.runtime.RuntimeSystem.DebugMe(this, null);
 	Ibis.myIbis.lock();
@@ -240,13 +246,10 @@ try {
 			    int port,
 			    int my_port,
 			    int msgSeqno,
-			    int msgHandle,
-			    boolean lastSplitter,
+			    int nativeIOVec,
+			    int splitCount,
+			    int splitTotal,
 			    boolean lastFrag) throws IOException;
-
-    /* Pass our current msgHandle field: we only want to reset
-     * a fragment that has been sent-acked */
-    native void resetMsg() throws IOException;
 
     public native void close();
 

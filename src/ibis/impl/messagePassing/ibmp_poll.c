@@ -31,8 +31,8 @@ ibmp_poll_register(int (*poll)(JNIEnv *env))
 }
 
 
-JNIEXPORT jboolean JNICALL
-Java_ibis_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
+jboolean
+ibmp_poll_locked(JNIEnv *env)
 {
     int	i;
     jboolean poll_succeeded = JNI_FALSE;
@@ -41,12 +41,21 @@ Java_ibis_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
     poll_calls++;
 #endif
     for (i = 0; i < n_poll_func; i++) {
+	// fprintf(stderr, "[%d", i);
 	if (poll_func[i](env)) {
 	    poll_succeeded = JNI_TRUE;
 	}
+	// fprintf(stderr, "] ");
     }
 
     return poll_succeeded;
+}
+
+
+JNIEXPORT jboolean JNICALL
+Java_ibis_impl_messagePassing_Poll_msg_1poll(JNIEnv *env, jobject this)
+{
+    return ibmp_poll_locked(env);
 }
 
 

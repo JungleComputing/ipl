@@ -8,11 +8,12 @@ public class ReadMessage
 	implements ibis.ipl.ReadMessage,
 		   PollClient {
 
-    long sequenceNr = -1;
-    ReceivePort port;
     ShadowSendPort shadowSendPort;
 
-    ByteInputStream in;
+    private long sequenceNr = -1;
+    private ReceivePort port;
+
+    private ByteInputStream in;
 
     int msgSeqno;
 
@@ -22,7 +23,8 @@ public class ReadMessage
     ReadMessage	next;
     ReadFragment fragmentFront;
     ReadFragment fragmentTail;
-    int		 sleepers = 0;
+
+    private int		 sleepers = 0;
 
     ReadMessage(ibis.ipl.SendPort s,
 		ReceivePort port) {
@@ -36,9 +38,9 @@ public class ReadMessage
     }
 
 
-	public ibis.ipl.ReceivePort localPort() {
-		return port;
-	}
+    public ibis.ipl.ReceivePort localPort() {
+	return port;
+    }
 
     void enqueue(ReadFragment f) {
 	if (fragmentFront == null) {
@@ -65,14 +67,24 @@ public class ReadMessage
     }
 
 
+    void setMsgHandle() {
+	in.setMsgHandle(this);
+    }
+
+
+    void resetMsg(int msgHandle) {
+	in.resetMsg(msgHandle);
+    }
+
+
     /* The PollClient interface */
 
-    boolean	signalled;
-    boolean	accepted;
-    ConditionVariable cv = Ibis.myIbis.createCV();
+    private boolean	signalled;
+    private boolean	accepted;
+    private ConditionVariable cv = Ibis.myIbis.createCV();
 
-    PollClient	poll_next;
-    PollClient	poll_prev;
+    private PollClient	poll_next;
+    private PollClient	poll_prev;
 
     public PollClient next() {
 	return poll_next;
@@ -113,7 +125,7 @@ public class ReadMessage
 // System.err.println("ReadMessage woke up");
     }
 
-    Thread me;
+    private Thread me;
 
     public Thread thread() {
 	return me;
@@ -129,9 +141,7 @@ public class ReadMessage
     public void nextFragment() throws IOException {
 	Ibis.myIbis.checkLockOwned();
 	while (fragmentFront.next == null) {
-	    Ibis.myIbis.waitPolling(this,
-								 0,
-								 Poll.PREEMPTIVE);
+	    Ibis.myIbis.waitPolling(this, 0, Poll.PREEMPTIVE);
 	}
 	ReadFragment prev = fragmentFront;
 	fragmentFront = fragmentFront.next;

@@ -1,6 +1,7 @@
 package ibis.impl.messagePassing;
 
 import ibis.ipl.IbisException;
+import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -62,13 +63,13 @@ class ElectionServer
 	    }
 	} catch (IOException e) {
 	    System.err.println(Thread.currentThread() + ": ElectionServer upcall exception " + e);
-	    Thread.dumpStack();
+	    e.printStackTrace();
 	}
     }
 
 
-    ibis.ipl.ReceivePort[] server_port;
-    ibis.ipl.SendPort[] client_port;
+    private ibis.ipl.ReceivePort[] server_port;
+    private ibis.ipl.SendPort[] client_port;
 
 
     ElectionServer() throws IbisException {
@@ -115,9 +116,11 @@ class ElectionServer
 // System.err.println(Thread.currentThread() + "ElectionServer runs");
 	    server_port = new ibis.ipl.ReceivePort[Ibis.myIbis.nrCpus];
 	    client_port = new ibis.ipl.SendPort[Ibis.myIbis.nrCpus];
+	    StaticProperties p = new StaticProperties();
+	    p.add("Serialization", "sun");
 
 	    ibis.ipl.PortType type = Ibis.myIbis.createPortType("++++ElectionPort++++",
-							  new ibis.ipl.StaticProperties());
+							  p);
 
 	    for (int i = 0; i < n; i++) {
 // System.err.println(Thread.currentThread() + "ElectionServer will create ReceivePort " + i);

@@ -8,9 +8,8 @@ import java.io.IOException;
 
 public class PortType implements ibis.ipl.PortType {
 
-    ibis.ipl.StaticProperties p;
-    String name;
-    Ibis myIbis;
+    private ibis.ipl.StaticProperties p;
+    private String name;
 
     public static final byte SERIALIZATION_NONE = 0;
     public static final byte SERIALIZATION_SUN = 1;
@@ -18,10 +17,8 @@ public class PortType implements ibis.ipl.PortType {
 
     public byte serializationType = SERIALIZATION_SUN;
 
-    PortType(Ibis myIbis,
-	     String name,
+    PortType(String name,
 	     ibis.ipl.StaticProperties p) throws IbisException {
-	this.myIbis = myIbis;
 	this.name = name;
 	this.p = p;
 
@@ -59,7 +56,7 @@ public class PortType implements ibis.ipl.PortType {
 
 	PortType temp = (PortType)other;
 
-	return name().equals(temp.name()) && myIbis.equals(temp.myIbis);
+	return name().equals(temp.name());
     }
 
     public int hashCode() {
@@ -214,13 +211,13 @@ public class PortType implements ibis.ipl.PortType {
 	ReceivePort p = new ReceivePort(this, name, u, cU, connectionAdministration);
 
 	if (Ibis.DEBUG) {
-	    System.out.println(myIbis.name() + ": Receiveport created of type '" +
+	    System.out.println(Ibis.myIbis.name() + ": Receiveport created of type '" +
 			       this.name + "', name = '" + name + "'" +
-			       " cpu " + p.ident.cpu + " port " + p.ident.port);
+			       " id " + p.identifier());
 	}
 
 	if (Ibis.DEBUG) {
-	    System.out.println(myIbis.name() +
+	    System.out.println(Ibis.myIbis.name() +
 			       ": Receiveport bound in registry, type = '" +
 			       this.name + "', name = '" + name + "'");
 	}
@@ -229,7 +226,7 @@ public class PortType implements ibis.ipl.PortType {
     }
 
     void freeReceivePort(String name) throws IOException {
-	((Registry)myIbis.registry()).unbind(name);
+	((Registry)Ibis.myIbis.registry()).unbind(name);
     }
 
     public String toString() {

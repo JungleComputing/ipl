@@ -6,10 +6,10 @@ import ibis.util.ConditionVariable;
 class IbisWorld implements Runnable {
 
     private boolean isOpen = false;
-    ConditionVariable opened;
+    private ConditionVariable opened;
 
-    IbisIdentifier[] joinId;
-    IbisIdentifier[] leaveId;
+    private IbisIdentifier[] joinId;
+    private IbisIdentifier[] leaveId;
 
 
     IbisWorld() {

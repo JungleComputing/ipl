@@ -20,6 +20,7 @@
 #include "ibmp_byte_input_stream.h"
 #include "ibmp_byte_output_stream.h"
 
+#define JASON	0
 
 static int	ibmp_send_sync = 0;
 
@@ -49,7 +50,7 @@ static int	send_frag_skip = 0;
 
 static jclass cls_PandaByteOutputStream;
 
-static jfieldID fld_msgHandle;
+static jfieldID fld_nativeIOVec;
 static jfieldID fld_waitingInPoll;
 static jfieldID fld_outstandingFrags;
 static jfieldID fld_makeCopy;
@@ -78,6 +79,16 @@ typedef struct RELEASE {
 } release_t, *release_p;
 
 
+typedef enum MSG_STATE {
+    MSG_STATE_UNTOUCHED,
+    MSG_STATE_ACCUMULATING,
+    MSG_STATE_SYNC_SEND,
+    MSG_STATE_ASYNC_SEND,
+    MSG_STATE_CLEARING,
+    MSG_STATE_N
+} msg_state_t, *msg_state_p;
+
+
 typedef struct IBMP_MSG ibmp_msg_t, *ibmp_msg_p;
 
 struct IBMP_MSG {
@@ -86,16 +97,17 @@ struct IBMP_MSG {
     release_p		release;
     int			iov_len;
     int			iov_alloc_len;
-    void	       *proto;
+    int			split_count;
+    void              **proto;
     int			outstanding_send;
     jboolean		outstanding_final;
     int			copy;
     int			firstFrag;
     ibmp_msg_p		next;
-    int			is_free;
     char		*buf;
     int			buf_alloc_len;
     int			buf_len;
+    msg_state_t		state;
 };
 
 #define IOV_CHUNK	16
@@ -108,29 +120,66 @@ static ibmp_msg_p	ibmp_sent_msg_q;
 
 #ifndef NDEBUG
 
-static void ibmp_msg_freelist_verify(void)
+static int		freelist_size = 0;
+
+static void
+ibmp_msg_freelist_verify(JNIEnv *env, int line)
 {
-    ibmp_msg_p scan;
+    ibmp_msg_p	scan;
+    int		size = 0;
 
     for (scan = ibmp_msg_freelist; scan != NULL; scan = scan->next) {
 	assert(scan->outstanding_send == 0);
-	assert(scan->is_free);
+	if (scan->state != MSG_STATE_UNTOUCHED) {
+	    IBP_VPRINTF(1, env, ("scan %p ->state = %d\n", scan, scan->state));
+	}
+	assert(scan->state == MSG_STATE_UNTOUCHED);
+	size++;
     }
+    if (size != freelist_size) {
+	fprintf(stderr, "Free list corrupt: current size %d should be %d call from %s.%d\n", size, freelist_size, __FILE__, line);
+    }
+    assert(size == freelist_size);
 }
 
 #else
-#define ibmp_msg_freelist_verify()
+#define ibmp_msg_freelist_verify(env, line)
 #endif
 
 
+static void
+splitter_increase(ibmp_msg_p msg, int splitTotal)
+{
+    int		i;
+    int		n = msg->split_count;
+
+    msg->proto = realloc(msg->proto, sizeof(msg->proto[0]) * splitTotal);
+    for (i = n; i < splitTotal; i++) {
+	msg->proto[i] = pan_proto_create(ibmp_byte_stream_proto_size);
+    }
+    msg->split_count = splitTotal;
+}
+
+
+
 static ibmp_msg_p
-ibmp_msg_get(void)
+ibmp_msg_get(JNIEnv *env, jobject byte_output_stream)
 {
     ibmp_msg_p msg = ibmp_msg_freelist;
 
     if (msg == NULL) {
+	IBP_VPRINTF(750, env, ("Do a poll in the hopes that we can recycle a msg struct\n"));
+	ibmp_poll_locked(env);
+	msg = ibmp_msg_freelist;
+    }
+
+    if (msg == NULL) {
+	static int live_msgs;
+
 	msg = pan_malloc(sizeof(*msg));
-	msg->proto = ibp_proto_create(ibmp_byte_stream_proto_size);
+	msg->split_count = 0;
+	msg->proto = NULL;
+	splitter_increase(msg, 1);
 	msg->iov_alloc_len = IOV_CHUNK;
 	msg->iov = pan_malloc(msg->iov_alloc_len * sizeof(pan_iovec_t));
 	msg->release = pan_malloc(msg->iov_alloc_len * sizeof(release_t));
@@ -139,18 +188,30 @@ ibmp_msg_get(void)
 	msg->buf_len = 0;
 	msg->buf_alloc_len = BUF_CHUNK;
 	msg->buf = pan_malloc(BUF_CHUNK);
+	msg->state = MSG_STATE_ACCUMULATING;
+
     } else {
-	assert(msg->is_free);
 	assert(msg->iov_len == 0);
 	assert(msg->buf_len == 0);
+	assert(msg->byte_output_stream == NULL);
+	assert(msg->state == MSG_STATE_UNTOUCHED);
 	ibmp_msg_freelist = msg->next;
+#ifndef NDEBUG
+	freelist_size--;
+	msg->state = MSG_STATE_ACCUMULATING;
+#else
+	if (msg->state != MSG_STATE_ACCUMULATING) {
+	    fprintf(stderr, "%s.%d: inconsistent msg state %d\n", msg->state);
+	}
+#endif
     }
+    msg->byte_output_stream = (*env)->NewGlobalRef(env, byte_output_stream);
     msg->firstFrag = 1;
 #ifndef NDEBUG
-    msg->is_free = 0;
+    msg->next = NULL;
 #endif
     assert(msg->outstanding_send == 0);
-    ibmp_msg_freelist_verify();
+    ibmp_msg_freelist_verify(env, __LINE__);
 
     return msg;
 }
@@ -159,16 +220,26 @@ ibmp_msg_get(void)
 static void
 ibmp_msg_put(JNIEnv *env, ibmp_msg_p msg)
 {
-    IBP_VPRINTF(300, env, ("Now freed msg %p iov %d\n", msg, msg->iov_len));
-    assert(msg->outstanding_send == 0);
+    IBP_VPRINTF(300, env, ("Now start free msg %p iov %d\n", msg, msg->iov_len));
 
-    ibmp_msg_freelist_verify();
+    ibmp_msg_freelist_verify(env, __LINE__);
+
+    assert(msg->byte_output_stream != NULL);
+    (*env)->DeleteGlobalRef(env, msg->byte_output_stream);
+
+#ifndef NDEBUG
+    msg->byte_output_stream = NULL;
+    assert(msg->outstanding_send == 0);
+    assert(msg->next == NULL);
+    assert(msg->state == MSG_STATE_ACCUMULATING);
+    msg->state = MSG_STATE_UNTOUCHED;
+    freelist_size++;
+#endif
+
     msg->next = ibmp_msg_freelist;
     ibmp_msg_freelist = msg;
-#ifndef NDEBUG
-    msg->is_free = 1;
-#endif
-    ibmp_msg_freelist_verify();
+    ibmp_msg_freelist_verify(env, __LINE__);
+    IBP_VPRINTF(300, env, ("Now finished free msg %p iov %d\n", msg, msg->iov_len));
 }
 
 
@@ -185,6 +256,16 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 {
     int		i;
 
+    if (msg->state == MSG_STATE_ACCUMULATING) {
+	/* Lazy call. Our work has already been done. */
+	return;
+    }
+
+    assert(msg->state == MSG_STATE_ASYNC_SEND ||
+	    msg->state == MSG_STATE_SYNC_SEND);
+#ifndef NDEBUG
+    msg->state = MSG_STATE_CLEARING;
+#endif
     if (msg->copy) {
 	ibmp_lock_check_owned(env);
 	for (i = 0; i < msg->iov_len; i++) {
@@ -231,11 +312,17 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 		}
 		IBP_VPRINTF(300, env, ("Now delete global ref %p\n", msg->release[i].array));
 		(*env)->DeleteGlobalRef(env, msg->release[i].array);
+#ifndef NDEBUG
+		msg->release[i].array = NULL;
+#endif
+		IBP_VPRINTF(755, env, ("Now deleted global ref %p\n", msg->release[i].array));
 	    }
 	}
     }
     msg->iov_len = 0;
     msg->buf_len = 0;
+
+    msg->state = MSG_STATE_ACCUMULATING;
 }
 
 
@@ -243,56 +330,81 @@ static void
 handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
 {
 #if JASON
-   union lt {
-	struct pan_time t;
-	jlong	l;
-   } tt1, tt2;
+   struct pan_time tt1;
+   struct pan_time tt2;
 #endif
     int handle;
     jobject byte_output_stream;
     jboolean waitingInPoll;
     jint outstandingFrags;
 
-    IBP_VPRINTF(300, env, ("Do a finished upcall obj %p\n",
-		msg->byte_output_stream));
+    IBP_VPRINTF(300, env, ("Do a finished upcall msg %p obj %p\n",
+		msg, msg->byte_output_stream));
 
 #if JASON
-    pan_time_get(&tt1.t);
+    pan_time_get(&tt1);
+#endif
+
+#ifndef NDEBUG
+    assert(msg->state == MSG_STATE_ASYNC_SEND);
 #endif
 
     byte_output_stream = msg->byte_output_stream;
 
+    // IBP_VPRINTF(300, env, ("Here...\n"));
+
     ibmp_msg_release_iov(env, msg);
 
-    /* We'd better be sure we own the PandaIbis lock, because this test
-     * and set otherwise is no way atomic */
-    handle = (*env)->GetIntField(env, byte_output_stream, fld_msgHandle);
-    if (handle == 0) {
-	IBP_VPRINTF(720, env, ("After Async send set msgHandle to %p\n", msg));
-	(*env)->SetIntField(env, byte_output_stream, fld_msgHandle, (jint)msg);
-    } else {
-	ibmp_msg_put(env, msg);
-    }
+    assert(msg->state == MSG_STATE_ACCUMULATING);
+
+    /* We'd better be sure we own the PandaIbis lock, because these
+     * (test and set)s (handle, outstandingFrags, msg->byte_output_stream)
+     * otherwise are no way atomic */
+    // IBP_VPRINTF(300, env, ("Here...\n"));
 
     waitingInPoll = (*env)->GetBooleanField(env, byte_output_stream, fld_waitingInPoll);
 
+    IBP_VPRINTF(300, env, ("Here...\n"));
+
     outstandingFrags = (*env)->GetIntField(env,
-				    byte_output_stream,
-				    fld_outstandingFrags);
-    if (waitingInPoll && outstandingFrags == 1) {
+					   byte_output_stream,
+					   fld_outstandingFrags);
+
+    IBP_VPRINTF(300, env, ("Here...\n"));
+    if (waitingInPoll && outstandingFrags == 0) {
 	(*env)->CallVoidMethod(env, byte_output_stream, md_finished_upcall);
     } else {
+	outstandingFrags--;
 	(*env)->SetIntField(env,
 			    byte_output_stream,
 			    fld_outstandingFrags,
-			    outstandingFrags - 1);
+			    outstandingFrags);
     }
 
-    (*env)->DeleteGlobalRef(env, byte_output_stream);
+    IBP_VPRINTF(300, env, ("Here...\n"));
+
+    handle = (*env)->GetIntField(env, byte_output_stream, fld_nativeIOVec);
+
+    // IBP_VPRINTF(300, env, ("Here... handle %x\n", handle));
+    if (handle == 0) {
+	/**
+	 * Ensure that there is a nativeIOVec (i.e. a data vector container)
+	 * ready for a push/send for the next message
+	 */
+	IBP_VPRINTF(720, env, ("After Async send restore nativeIOVec to %p\n", msg));
+	(*env)->SetIntField(env, byte_output_stream, fld_nativeIOVec, (jint)msg);
+    } else if ((ibmp_msg_p)handle != msg) {
+	assert(msg->next == NULL);
+	ibmp_msg_put(env, msg);
+	assert(msg->state == MSG_STATE_UNTOUCHED);
+    }
+
+    IBP_VPRINTF(300, env, ("Here...\n"));
 
 #if JASON
-    pan_time_get(&tt2.t);
-    printf("upcall + globalref = %lld \n", (tt2.l-tt1.l));
+    pan_time_get(&tt2);
+    pan_time_sub(&tt2, &tt1);
+    printf("upcall + globalref = %lf \n", pan_time_t2d(&tt2));
 #endif
 }
 
@@ -305,11 +417,23 @@ ibmp_msg_q_poll(JNIEnv *env)
     ibmp_msg_p next;
     int		done_anything = 0;
 
+    if (0 && msg != NULL) {
+	fprintf(stderr, "Queue { ");
+	for (next = msg; next != NULL; next = next->next) {
+	    fprintf(stderr, "%p[%d] ", msg, msg->outstanding_send);
+	}
+	fprintf(stderr, " } ");
+    }
+
     while (msg != NULL) {
 	next = msg->next;
 	if (msg->outstanding_send == 0 /* && msg->outstanding_final */) {
 	    IBP_VPRINTF(800, env, ("Handle sent upcall for msg %p\n", msg));
+#ifndef NDEBUG
+	    msg->next = NULL;
+#endif
 	    handle_finished_send(env, msg);
+	    IBP_VPRINTF(800, env, ("Handled sent upcall for msg %p\n", msg));
 	    done_anything = 1;
 
 	    if (prev == NULL) {
@@ -342,10 +466,14 @@ ibmp_msg_deq(ibmp_msg_p msg)
 	    } else {
 		prev->next = next;
 	    }
+#ifndef NDEBUG
+	    msg->next = NULL;
+#endif
 	    break;
 	}
 	scan = next;
     }
+    assert(scan != NULL);
 }
 
 
@@ -428,28 +556,29 @@ DUMP_DATA(jdouble, "f ", double)
 
 
 static ibmp_msg_p
-ibmp_msg_check(JNIEnv *env, jobject this, int msgHandle, int locked)
+ibmp_msg_check(JNIEnv *env, jobject this, int nativeIOVec, int locked)
 {
     ibmp_msg_p msg;
 
-    if (msgHandle != 0) {
-	return (ibmp_msg_p)msgHandle;
+    if (nativeIOVec != 0) {
+	return (ibmp_msg_p)nativeIOVec;
     }
 
     if (! locked) {
 	ibmp_lock(env);
     }
-    msg = ibmp_msg_get();
+    ibmp_msg_freelist_verify(env, __LINE__);
+    msg = ibmp_msg_get(env, this);
+    (*env)->SetIntField(env, this, fld_nativeIOVec, (jint)msg);
+    ibmp_msg_freelist_verify(env, __LINE__);
     if (! locked) {
 	ibmp_unlock(env);
     }
-    ibmp_msg_freelist_verify();
 
     msg->copy = (int)(*env)->GetBooleanField(env, this, fld_makeCopy);
     IBP_VPRINTF(820, env,
 		("Make %s intermediate copy in this BytOutputStream\n",
 		 msg->copy ? "an" : "NO"));
-    (*env)->SetIntField(env, this, fld_msgHandle, (jint)msg);
 
     return msg;
 }
@@ -463,27 +592,29 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
 	jint port,
 	jint my_port,
 	jint msgSeqno,
-	jint msgHandle,
-	jboolean lastSplitter,	/* Frag is sent to last of the splitters in our 1-to-many */
+	jint nativeIOVec,
+	jint i,			/* Split count */
+	jint splitTotal,
 	jboolean lastFrag	/* Frag is sent as last frag of a message */
 	)
 {
 #if JASON
-    union lt {
-	struct pan_time t;
-	jlong	l;
-    } st, tt1, tt2, et;
+    struct pan_time st;
+    struct pan_time tt1;
+    struct pan_time tt2;
+    struct pan_time et;
 #endif
-    ibmp_msg_p	msg = (ibmp_msg_p)msgHandle;
+    ibmp_msg_p	msg = (ibmp_msg_p)nativeIOVec;
     ibmp_byte_stream_hdr_p hdr;
     int		len;
     int		up_to_now;
+    int		lastSplitter = (i == splitTotal - 1);
 
 #if JASON
-    pan_time_get(&st.t);
+    pan_time_get(&st);
 #endif
 
-    IBP_VPRINTF(100, env, ("msg_send: %d port %d seqno %d, lastSplitter %s\n", cpu, port, msgSeqno, lastSplitter ? "yes" : "no"));
+    IBP_VPRINTF(100, env, ("msg_send: %d port %d seqno %d, splitter %d last %d\n", cpu, port, msgSeqno, i, splitTotal));
 
     if (! ibmp_byte_output_stream_alive) {
 	(*env)->ThrowNew(env, cls_java_io_IOException, "Ibis MessagePassing ByteOutputStream closed");
@@ -535,7 +666,9 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
 	}
     }
 
-    hdr = ibmp_byte_stream_hdr(msg->proto);
+    splitter_increase(msg, splitTotal);
+
+    hdr = ibmp_byte_stream_hdr(msg->proto[i]);
 
     hdr->dest_port = port;
     hdr->src_port  = my_port;
@@ -553,66 +686,95 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     sent_data += len;
 #endif
 
+    assert(msg == NULL || msg->byte_output_stream != NULL);
+
     if (ibmp_send_sync > 0 &&
 	    ! pan_thread_nonblocking() &&
 	    len < ibmp_send_sync) {
 	/* Wow, we're allowed to do a sync send! */
 	IBP_VPRINTF(250, env, ("ByteOS %p Do this send in sync fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", this, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
+
+	if (i == 0) {
+	    assert(msg->state == MSG_STATE_ACCUMULATING);
+	    msg->state = MSG_STATE_SYNC_SEND;
+	} else {
+	    assert(msg->state == MSG_STATE_SYNC_SEND);
+	}
+
 	ibp_mp_send_sync(env, (int)cpu, ibmp_byte_stream_port,
 			 msg->iov, msg->iov_len,
-			 msg->proto, ibmp_byte_stream_proto_size);
+			 msg->proto[i], ibmp_byte_stream_proto_size);
+
+	if (i == splitTotal - 1) {
+	    ibmp_msg_release_iov(env, msg);
+	}
+
 	return JNI_FALSE;
     }
 
     IBP_VPRINTF(250, env, ("ByteOS %p Do this send in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", this, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
-    msg->outstanding_send++;
-    msg->outstanding_final = lastFrag;
-    ibmp_msg_freelist_verify();
 
-#if JASON
-    pan_time_get(&tt1.t);
-#endif
-
-    msg->byte_output_stream = (*env)->NewGlobalRef(env, this);
-
-#if JASON
-    pan_time_get(&tt2.t);
-#endif
-
-    IBP_VPRINTF(300, env, ("ByteOS %p Enqueue a send-finish upcall obj %p, missing := %d\n",
-		msg->byte_output_stream, this, ++ibmp_sent_msg_out));
+    IBP_VPRINTF(300, env, ("ByteOS %p Enqueue a send-finish upcall msg %p obj %p, missing := %d proto %p\n",
+		msg->byte_output_stream, msg, this, ++ibmp_sent_msg_out,
+		msg->proto[i]));
 #ifdef IBP_VERBOSE
     if (ibmp_verbose >= 1 && ibmp_verbose < 300) {
 	++ibmp_sent_msg_out;
     }
 #endif
-    ibmp_msg_freelist_verify();
-    ibmp_msg_enq(msg);
-    ibmp_msg_freelist_verify();
+
+#if JASON
+    pan_time_get(&tt1);
+#endif
+    if (i == 0) {
+	assert(msg->state == MSG_STATE_ACCUMULATING);
+	assert(msg->byte_output_stream != NULL);
+	assert(msg->outstanding_send == 0);
+
+	msg->outstanding_send += splitTotal;
+	msg->outstanding_final = lastFrag;
+
+	ibmp_msg_freelist_verify(env, __LINE__);
+	assert(msg->next == NULL);
+
+	msg->state = MSG_STATE_ASYNC_SEND;
+	ibmp_msg_enq(msg);
+
+	ibmp_msg_freelist_verify(env, __LINE__);
+	IBP_VPRINTF(450, env, ("Enqueued msg %p\n", msg));
+    } else {
+	assert(msg->state == MSG_STATE_ASYNC_SEND);
+    }
+#if JASON
+    pan_time_get(&tt2);
+#endif
 
     ibp_mp_send_async(env, (int)cpu, ibmp_byte_stream_port,
 		      msg->iov, msg->iov_len,
-		      msg->proto, ibmp_byte_stream_proto_size,
+		      msg->proto[i], ibmp_byte_stream_proto_size,
 		      sent_upcall, msg);
 
 #if JASON
-    pan_time_get(&et.t);
+    pan_time_get(&et);
 
-    printf("start->end = %lld globalref = %lld \n", (et.l-st.l), (tt2.l-tt1.l));
+    pan_time_sub(&et, &st);
+    pan_time_sub(&tt2, &tt1);
+    printf("%2d: start->end = %lf globalref = %lf\n", ibp_me, pan_time_t2d(&et), pan_time_t2d(&tt2));
 #endif
 
     /* You never know whether the async msg has already been acked,
-     * so let's check */
-    if (msg->outstanding_send == 0) {
-	(*env)->DeleteGlobalRef(env, msg->byte_output_stream);
+     * so let's check.
+     * If we would poll here, the sent upcall might be cleared and enqueued
+     * and in the wrong state. DO NOT POLL HERE! */
+    if (msg->outstanding_send == 0 && msg->state == MSG_STATE_ASYNC_SEND) {
+	IBP_VPRINTF(450, env, ("Dequeue msg %p\n", msg));
 	ibmp_msg_deq(msg);
-	if (lastSplitter) {
-	    ibmp_msg_release_iov(env, msg);
-	}
+	ibmp_msg_release_iov(env, msg);
 	return JNI_FALSE;
     }
 
-    ibmp_msg_freelist_verify();
+    ibmp_msg_freelist_verify(env, __LINE__);
+    IBP_VPRINTF(450, env, ("Msg %p must be acked/released from upcall\n", msg));
 
     return JNI_TRUE;
 }
@@ -624,20 +786,6 @@ Java_ibis_impl_messagePassing_ByteOutputStream_init(
 	jobject this)
 {
     (void)ibmp_msg_check(env, this, 0, 0);
-}
-
-
-JNIEXPORT void JNICALL
-Java_ibis_impl_messagePassing_ByteOutputStream_resetMsg(
-	JNIEnv *env, 
-	jobject this)
-{
-    jint	m = (*env)->GetIntField(env, this, fld_msgHandle);
-    ibmp_msg_p	msg = (ibmp_msg_p)m;
-
-    IBP_VPRINTF(300, env, ("Now reset msg %p in PandaByteOutputStream\n", msg));
-    ibmp_msg_release_iov(env, msg);
-    IBP_VPRINTF(300, env, ("Past reset msg %p in PandaByteOutputStream\n", msg));
 }
 
 
@@ -715,7 +863,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_write(
 	jobject this,
 	jint b)
 {
-    jint	m = (*env)->GetIntField(env, this, fld_msgHandle);
+    jint	m = (*env)->GetIntField(env, this, fld_nativeIOVec);
     ibmp_msg_p	msg = ibmp_msg_check(env, this, m, 0);
 
     if (! msg->copy) {
@@ -751,7 +899,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_report(
 	JNIEnv *env, 
 	jobject this)
 {
-    jint	m = (*env)->GetIntField(env, this, fld_msgHandle);
+    jint	m = (*env)->GetIntField(env, this, fld_nativeIOVec);
     ibmp_msg_p	msg = ibmp_msg_check(env, this, m, 0);
     int		total;
     int		i;
@@ -775,7 +923,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
 	jint off, \
 	jint len) \
 { \
-    jint	m = (*env)->GetIntField(env, this, fld_msgHandle); \
+    jint	m = (*env)->GetIntField(env, this, fld_nativeIOVec); \
     ibmp_msg_p	msg = ibmp_msg_check(env, this, m, 0); \
     jtype      *buf; \
     int		sz = len * sizeof(jtype); \
@@ -855,11 +1003,11 @@ ibmp_byte_output_stream_init(JNIEnv *env)
     }
     cls_PandaByteOutputStream = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_PandaByteOutputStream);
 
-    fld_msgHandle        = (*env)->GetFieldID(env,
+    fld_nativeIOVec        = (*env)->GetFieldID(env,
 					 cls_PandaByteOutputStream,
-					 "msgHandle", "I");
-    if (fld_msgHandle == NULL) {
-	ibmp_error(env, "Cannot find static field msgHandle:I\n");
+					 "nativeIOVec", "I");
+    if (fld_nativeIOVec == NULL) {
+	ibmp_error(env, "Cannot find static field nativeIOVec:I\n");
     }
 
     fld_waitingInPoll    = (*env)->GetFieldID(env,

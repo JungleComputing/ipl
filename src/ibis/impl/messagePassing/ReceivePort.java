@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 class ReceivePort
-    implements ibis.ipl.ReceivePort, Protocol, Runnable, PollClient {
+    implements ibis.ipl.ReceivePort, Runnable, PollClient {
 
     /** A connection between a send port and a receive port within the
      * same Ibis should not lead to polling for the reply, but to quick
@@ -37,33 +37,33 @@ class ReceivePort
     private static int livingPorts = 0;
     private static Syncer portCounter = new Syncer();
 
-    PortType type;
-    ReceivePortIdentifier ident;
-    int connectCount = 0;
-    String name;	// needed to unbind
+    private PortType type;
+    private ReceivePortIdentifier ident;
+    private int connectCount = 0;
+    private String name;	// needed to unbind
 
-    ReadMessage queueFront;
-    ReadMessage queueTail;
-    ConditionVariable messageArrived = Ibis.myIbis.createCV();
-    int arrivedWaiters = 0;
+    private ReadMessage queueFront;
+    private ReadMessage queueTail;
+    private ConditionVariable messageArrived = Ibis.myIbis.createCV();
+    private int arrivedWaiters = 0;
 
-    boolean aMessageIsAlive = false;
-    boolean mePolling = false;
-    ConditionVariable messageHandled = Ibis.myIbis.createCV();
-    int liveWaiters = 0;
+    private boolean aMessageIsAlive = false;
+    private boolean mePolling = false;
+    private ConditionVariable messageHandled = Ibis.myIbis.createCV();
+    private int liveWaiters = 0;
     private ReadMessage currentMessage = null;
 
-    Thread thread;
+    private Thread thread;
     private ibis.ipl.Upcall upcall;
-    int upcallThreads;
+    private int upcallThreads;
 
-    volatile boolean stop = false;
+    private volatile boolean stop = false;
 
     private ibis.ipl.ReceivePortConnectUpcall connectUpcall;
     private boolean allowConnections = false;
     private AcceptThread acceptThread;
     private boolean allowUpcalls = false;
-    ConditionVariable enable = Ibis.myIbis.createCV();
+    private ConditionVariable enable = Ibis.myIbis.createCV();
 
     private int availableUpcallThread = 0;
     /*
@@ -73,8 +73,8 @@ class ReceivePort
      */
     private boolean homeConnection = true;
 
-    Vector connections = new Vector();
-    ConditionVariable disconnected = Ibis.myIbis.createCV();
+    private Vector connections = new Vector();
+    private ConditionVariable disconnected = Ibis.myIbis.createCV();
 
     private long upcall_poll;
 
@@ -355,8 +355,8 @@ class ReceivePort
     }
 
 
-    PollClient next;
-    PollClient prev;
+    private PollClient next;
+    private PollClient prev;
 
     public boolean satisfied() {
 	return queueFront != null || stop;
@@ -394,7 +394,7 @@ class ReceivePort
 	prev = c;
     }
 
-    Thread me;
+    private Thread me;
 
     public Thread thread() {
 	return me;
@@ -520,7 +520,7 @@ class ReceivePort
 	if (currentMessage == null) {
 	    return null;
 	}
-	currentMessage.in.setMsgHandle(currentMessage);
+	currentMessage.setMsgHandle();
 
 	// Ibis.myIbis.tReceive += Ibis.currentTime() - t;
 
@@ -579,9 +579,16 @@ class ReceivePort
 	return null;
     }
 
-	public String name() {
-		return name;
-	}
+
+    public String name() {
+	return name;
+    }
+
+
+    PortType type() {
+	return type;
+    }
+
 
     public ibis.ipl.ReceivePortIdentifier identifier() {
 	return ident;
@@ -609,7 +616,7 @@ class ReceivePort
     }
 
 
-    class Shutdown implements PollClient {
+    private class Shutdown implements PollClient {
 
 	PollClient next;
 	PollClient prev;
