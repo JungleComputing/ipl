@@ -2,21 +2,21 @@
 
 import java.io.File;
 
-class Compress extends ibis.satin.SatinObject
+class Compress extends ibis.satin.SatinObject implements Configuration
 {
     static boolean doVerification = false;
 
-    public ByteBuffer compress( byte text[] ) throws VerificationException
+    public ByteBuffer compress( byte text[], int top ) throws VerificationException
     {
 	SuffixArray a = new SuffixArray( text );
-	ByteBuffer out = a.compress();
+	ByteBuffer out = a.compress( top );
         a.printGrammar();
         return out;
     }
 
     static void usage()
     {
-        System.err.println( "Usage: [-verify] [-depth <n>] <text> <compressedtext>" );
+        System.err.println( "Usage: [-verify] [-top <n>] <text> <compressedtext>" );
     }
 
     /**
@@ -27,14 +27,15 @@ class Compress extends ibis.satin.SatinObject
     {
 	File infile = null;
 	File outfile = null;
+        int top = DEFAULT_TOP;
 
         for( int i=0; i<args.length; i++ ){
             if( args[i].equals( "-verify" ) ){
                 doVerification = true;
             }
-            else if( args[i].equals( "-depth" ) ){
+            else if( args[i].equals( "-top" ) ){
                 i++;
-                //lookahead_depth = Integer.parseInt( args[i] );
+                top = Integer.parseInt( args[i] );
             }
             else if( infile == null ){
                 infile = new File( args[i] );
@@ -57,7 +58,7 @@ class Compress extends ibis.satin.SatinObject
             long startTime = System.currentTimeMillis();
 
             Compress c = new Compress();
-            ByteBuffer buf = c.compress( text );
+            ByteBuffer buf = c.compress( text, top );
             Helpers.writeFile( outfile, buf );
 
             long endTime = System.currentTimeMillis();

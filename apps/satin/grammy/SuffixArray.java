@@ -390,7 +390,7 @@ public class SuffixArray implements Configuration, Magic {
      * Calculates the best folding step to take.
      * @return The best step, or null if there is nothing worthwile.
      */
-    private Step selectBestStep()
+    private StepList selectBestSteps( int top )
     {
         int maxlen = 0;
         int mincom = MINCOMMONALITY;
@@ -441,20 +441,25 @@ public class SuffixArray implements Configuration, Magic {
         if( maxlen == 0 ){
             return null;
         }
-        return new Step( candidates, p, maxlen );
+        // For now, construct a list with one element.
+        StepList res = new StepList( top );
+        res.add( new Step( candidates, p, maxlen ) );
+        return res;
     }
 
     /**
      * Applies one step in the folding process.
      * @return True iff there was a useful compression step.
      */
-    public boolean applyFolding() throws VerificationException
+    public boolean applyFolding( int top ) throws VerificationException
     {
         if( length == 0 ){
             return false;
         }
-        Step mv = selectBestStep();
+        StepList steps = selectBestSteps( top );
 
+        // For now, just pick the best move.
+        Step mv = steps.getBestStep();
         if( mv != null && mv.getGain()>0 ){
             // It is worthwile to do this compression.
             if( traceCompressionCosts ){
@@ -472,12 +477,12 @@ public class SuffixArray implements Configuration, Magic {
     /** Returns a compressed version of the string represented by
      * this suffix array.
      */
-    public ByteBuffer compress() throws VerificationException
+    public ByteBuffer compress( int top ) throws VerificationException
     {
         boolean success;
 
         do {
-            success = applyFolding();
+            success = applyFolding( top );
             if( traceIntermediateGrammars && success ){
                 printGrammar();
             }
