@@ -68,7 +68,7 @@ TYPE2BYTE(double,  jdouble,  Double)
 JNIEXPORT jobject JNICALL Java_ibis_io_MantaInputStream_createUninitializedObject
   (JNIEnv *, jobject, jclass);
 
-jobject Java_ibis_io_MantaTypedBufferInputStream_createUninitializedObject(
+jobject Java_ibis_io_MantaInputStream_createUninitializedObject(
 	JNIEnv *env, 
 	jobject this, 
 	jclass type) 
