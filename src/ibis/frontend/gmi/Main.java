@@ -1,6 +1,5 @@
 package ibis.frontend.group;
 
-import ibis.util.Analyzer;
 import ibis.util.BT_Analyzer;
 
 import java.util.Vector;
@@ -87,8 +86,7 @@ class Main {
 		    System.out.println("Handling " + subject.getClassName());
 		}
 
-		// BT_Analyzer a = new BT_Analyzer(subject, groupInterface, verbose);
-		BT_Analyzer a = new BT_Analyzer(subject, groupInterface, true);
+		BT_Analyzer a = new BT_Analyzer(subject, groupInterface, verbose);
 		a.start();
 
 		if (a.specialInterfaces.size() == 0) {
