@@ -56,8 +56,8 @@ final class ThreadNioReceivePort extends NioReceivePort implements Config {
             }
             connections = newConnections;
         }
-        connections[nrOfConnections] = new ThreadNioDissipator(
-                ibis.sendReceiveThread(), this, spi, ident,
+        connections[nrOfConnections] = new ThreadNioDissipator(ibis
+                .sendReceiveThread(), this, spi, ident,
                 (ReadableByteChannel) channel, type);
         nrOfConnections++;
 
@@ -69,7 +69,7 @@ final class ThreadNioReceivePort extends NioReceivePort implements Config {
                 try {
                     dissipator.reallyClose();
                 } catch (IOException e) {
-                    //IGNORE
+                    // IGNORE
                 }
                 connectionLost(dissipator, cause);
                 nrOfConnections--;
@@ -96,7 +96,7 @@ final class ThreadNioReceivePort extends NioReceivePort implements Config {
             }
         }
 
-        //FIXME: if a connection doesn't close gracefully, we won't notice
+        // FIXME: if a connection doesn't close gracefully, we won't notice
 
         while (true) {
 
@@ -161,7 +161,7 @@ final class ThreadNioReceivePort extends NioReceivePort implements Config {
             try {
                 connections[i].reallyClose();
             } catch (IOException e) {
-                //IGNORE
+                // IGNORE
             }
         }
     }

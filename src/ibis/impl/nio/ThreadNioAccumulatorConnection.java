@@ -6,8 +6,14 @@ import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 
+import org.apache.log4j.Logger;
+
 final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
         implements Config {
+
+    static Logger logger = Logger
+            .getLogger(ThreadNioAccumulatorConnection.class.getName());
+
     boolean sending = false;
 
     IOException error = null;
@@ -24,8 +30,8 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
     }
 
     /**
-     * Adds given buffer to list of buffer which will be send out.
-     * Make sure there is room!
+     * Adds given buffer to list of buffer which will be send out. Make sure
+     * there is room!
      */
     synchronized void addToThreadSendList(SendBuffer buffer) throws IOException {
         if (error != null) {
@@ -33,13 +39,13 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
         }
         while (full()) {
             try {
-                if (DEBUG) {
-                    Debug.message("buffers", this, "waiting for the sendlist"
+                if (logger.isDebugEnabled()) {
+                    logger.info("waiting for the sendlist"
                             + " to have a free spot");
                 }
                 wait();
             } catch (InterruptedException e) {
-                //IGNORE
+                // IGNORE
             }
         }
         addToSendList(buffer);
@@ -56,7 +62,7 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
         }
         try {
             if (send()) {
-                //done sending
+                // done sending
                 key.interestOps(0);
                 sending = false;
                 notifyAll();
@@ -69,7 +75,7 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
         }
     }
 
-    //    synchronized void waitUntilEmpty() throws IOException {
+    // synchronized void waitUntilEmpty() throws IOException {
     synchronized void close() throws IOException {
         while (!empty()) {
             if (error != null) {
@@ -82,7 +88,7 @@ final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection
             try {
                 wait();
             } catch (InterruptedException e) {
-                //IGNORE
+                // IGNORE
             }
         }
         channel.close();

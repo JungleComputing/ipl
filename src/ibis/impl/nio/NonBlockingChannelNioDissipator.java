@@ -10,12 +10,17 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 
+import org.apache.log4j.Logger;
+
 /**
- * Dissipator which reads from a single channel, with the channel normally
- * in non-blocking mode.
+ * Dissipator which reads from a single channel, with the channel normally in
+ * non-blocking mode.
  */
 final class NonBlockingChannelNioDissipator extends NioDissipator implements
         Config {
+
+    static Logger logger = Logger
+            .getLogger(NonBlockingChannelNioDissipator.class.getName());
 
     Selector selector;
 
@@ -37,28 +42,28 @@ final class NonBlockingChannelNioDissipator extends NioDissipator implements
 
     /**
      * fills the buffer upto at least "minimum" bytes.
-     *
+     * 
      */
     protected void fillBuffer(int minimum) throws IOException {
-        if (DEBUG) {
-            Debug.enter("buffers", this, "filling buffer");
+        if (logger.isDebugEnabled()) {
+            logger.info("filling buffer");
         }
 
-        //Always do one read, even if it isn't strictly needed
-        //and without looking if we're going to get any data.
+        // Always do one read, even if it isn't strictly needed
+        // and without looking if we're going to get any data.
         readFromChannel();
 
         while (unUsedLength() < minimum) {
-            if (DEBUG) {
-                Debug.message("buffers", this, "doing a select for data");
+            if (logger.isDebugEnabled()) {
+                logger.info("doing a select for data");
             }
             selector.select();
             selector.selectedKeys().clear();
             readFromChannel();
         }
 
-        if (DEBUG) {
-            Debug.exit("buffers", this, "filled buffer");
+        if (logger.isDebugEnabled()) {
+            logger.info("filled buffer");
         }
     }
 

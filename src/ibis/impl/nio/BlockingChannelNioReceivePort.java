@@ -17,7 +17,6 @@ import java.nio.channels.Selector;
 
 final class BlockingChannelNioReceivePort extends NioReceivePort implements
         Config {
-
     static final int INITIAL_DISSIPATOR_SIZE = 8;
 
     private BlockingChannelNioDissipator[] connections;
@@ -37,14 +36,16 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
     synchronized void newConnection(NioSendPortIdentifier spi, Channel channel)
             throws IOException {
 
-        if (!((channel instanceof ReadableByteChannel) && (channel instanceof SelectableChannel))) {
+        if (!((channel instanceof ReadableByteChannel) 
+                && (channel instanceof SelectableChannel))) {
             throw new IOException("wrong type of channel on"
                     + " creating connection");
         }
 
         if (nrOfConnections == connections.length) {
             BlockingChannelNioDissipator[] newConnections;
-            newConnections = new BlockingChannelNioDissipator[connections.length * 2];
+            newConnections = new BlockingChannelNioDissipator[
+                                                      connections.length * 2];
             for (int i = 0; i < connections.length; i++) {
                 newConnections[i] = connections[i];
             }
@@ -55,8 +56,8 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
         nrOfConnections++;
 
         if (nrOfConnections > 1) {
-            System.err.println("warning! " + nrOfConnections
-                    + " connections to a `" + type.name()
+            logger.warn("" + nrOfConnections + " connections to a `"
+                    + type.name()
                     + "` blocking receiveport, added connection from " + spi
                     + " to " + ident);
         }
@@ -73,7 +74,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
                 try {
                     dissipator.reallyClose();
                 } catch (IOException e) {
-                    //IGNORE
+                    // IGNORE
                 }
                 connectionLost(dissipator, cause);
                 nrOfConnections--;
@@ -112,9 +113,9 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
             }
         }
 
-        //since we have only one connection, and no more are allowed, and
-        //we can wait for ever for data we just do a blocking receive here
-        //on the one channel
+        // since we have only one connection, and no more are allowed, and
+        // we can wait for ever for data we just do a blocking
+        // receive here on the one channel
         try {
             while (dissipator != null && !dissipator.messageWaiting()) {
                 if (dissipator.available() == 0) {
@@ -132,7 +133,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
             dissipator = null;
         }
         if (dissipator != null) {
-            //message waiting now
+            // message waiting now
             return dissipator;
         }
 
@@ -149,7 +150,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
                             try {
                                 wait();
                             } catch (InterruptedException e) {
-                                //IGNORE
+                                // IGNORE
                             }
                             continue;
                         } else {
@@ -160,7 +161,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
                                 try {
                                     wait();
                                 } catch (InterruptedException e) {
-                                    //IGNORE
+                                    // IGNORE
                                 }
                                 continue;
                             }
@@ -192,8 +193,8 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
                     }
                 }
             } catch (IOException e) {
-                //FIXME: is this a good idea?
-                //IGNORE
+                // FIXME: is this a good idea?
+                // IGNORE
             }
 
             keys = (SelectionKey[]) selector.selectedKeys().toArray(keys);
@@ -209,8 +210,8 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
             }
 
             for (int i = 0; i < keys.length; i++) {
-                dissipator
-                    = (BlockingChannelNioDissipator) keys[i].attachment();
+                dissipator = (BlockingChannelNioDissipator) keys[i]
+                        .attachment();
                 SelectableChannel sh;
                 sh = (SelectableChannel) dissipator.channel;
                 sh.configureBlocking(true);
@@ -258,7 +259,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
             try {
                 connections[i].reallyClose();
             } catch (IOException e) {
-                //IGNORE
+                // IGNORE
             }
         }
     }

@@ -18,7 +18,7 @@ public final class NioIbisIdentifier extends IbisIdentifier implements
     }
 
     public NioIbisIdentifier(DataInputStream in) throws IOException {
-        //bogus name
+        // bogus name
         super("will override this");
 
         int nameLength;
@@ -85,4 +85,3 @@ public final class NioIbisIdentifier extends IbisIdentifier implements
         out.writeArray(clusterBytes, 0, clusterBytes.length);
     }
 }
-

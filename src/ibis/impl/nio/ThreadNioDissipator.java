@@ -10,8 +10,8 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 
 /**
- * Dissipator which reads from a single channel. Reads whenever
- * the SendReceiveThread askes it to.
+ * Dissipator which reads from a single channel. Reads whenever the
+ * SendReceiveThread askes it to.
  */
 final class ThreadNioDissipator extends NioDissipator implements Config {
 
@@ -56,7 +56,7 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
 
     synchronized boolean messageWaiting() throws IOException {
         if (key == null) {
-            //this dissipator is already closed
+            // this dissipator is already closed
             return false;
         }
         return super.messageWaiting();
@@ -79,7 +79,7 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
 
                 readFromChannel();
 
-                //no use reading anymore, it's already full
+                // no use reading anymore, it's already full
                 if (!buffer.hasRemaining()) {
                     key.interestOps(0);
                     reading = false;
@@ -95,12 +95,12 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
                 try {
                     channel.close();
                 } catch (IOException e2) {
-                    //IGNORE
+                    // IGNORE
                 }
                 return;
             }
         }
-        //signal the port data is available in this dissipator now
+        // signal the port data is available in this dissipator now
         if (bufferWasEmpty) {
             port.addToReadyList(this);
         }
@@ -108,11 +108,11 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
 
     /*
      * fills the buffer upto at least "minimum" bytes.
-     *
+     * 
      */
     synchronized protected void fillBuffer(int minimum) throws IOException {
-        //since the send/receive thread actually receives,
-        //we can only wait for it to put the data in the buffer
+        // since the send/receive thread actually receives,
+        // we can only wait for it to put the data in the buffer
 
         if (!reading) {
             sendReceiveThread.enableReading(key);
@@ -125,14 +125,14 @@ final class ThreadNioDissipator extends NioDissipator implements Config {
                 reading = true;
             }
             if (error != null) {
-                //an exception occured while receiving, throw exception now
+                // an exception occured while receiving, throw exception now
                 throw error;
             }
             try {
                 this.minimum = minimum;
                 wait();
             } catch (InterruptedException e) {
-                //IGNORE
+                // IGNORE
             }
             this.minimum = 0;
         }

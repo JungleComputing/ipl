@@ -39,7 +39,7 @@ public final class ChannelDissipator extends DataInputStream implements Config {
 
     public ChannelDissipator(ReadableByteChannel channel) {
         buffer = ByteBuffer.allocate(BUFFER_SIZE).order(ByteOrder.BIG_ENDIAN);
-        //make the buffer apear empty
+        // make the buffer apear empty
         buffer.limit(0);
         this.channel = channel;
     }
@@ -49,7 +49,7 @@ public final class ChannelDissipator extends DataInputStream implements Config {
     }
 
     public void close() throws IOException {
-        //NOTHING
+        // NOTHING
     }
 
     public void reallyClose() throws IOException {
@@ -94,7 +94,7 @@ public final class ChannelDissipator extends DataInputStream implements Config {
     public int read() throws IOException {
         try {
             return readByte() & 0377;
-        } catch(EOFException e) {
+        } catch (EOFException e) {
             return -1;
         }
     }

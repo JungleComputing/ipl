@@ -8,16 +8,16 @@ import java.nio.channels.Channel;
 
 /**
  * creates and recycles/destroys writeable and readable channels. Any
- * implementation should also handle incoming connections in the run() 
- * method and register them with the receiveport.
+ * implementation should also handle incoming connections in the run() method
+ * and register them with the receiveport.
  */
 public interface ChannelFactory extends Runnable, Config {
 
     /**
-     * Tries to connect to sendport to the given receiveport 
-     * for tileoutMillis milliseconds and returns the writechannel
-     * if it succeeded. A timeout of 0 means try forever.
-     *
+     * Tries to connect to sendport to the given receiveport for tileoutMillis
+     * milliseconds and returns the writechannel if it succeeded. A timeout of 0
+     * means try forever.
+     * 
      * @return a new Channel connected to "rpi".
      */
     public Channel connect(NioSendPortIdentifier spi,
@@ -27,7 +27,7 @@ public interface ChannelFactory extends Runnable, Config {
     /**
      * Register a receiveport with this factory, so it will listen for
      * connections to it from now on.
-     *
+     * 
      * @return the address of the socket we wil listen for connections on
      */
     public InetSocketAddress register(NioReceivePort rp) throws IOException;

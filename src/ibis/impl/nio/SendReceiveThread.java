@@ -12,12 +12,16 @@ import java.nio.channels.Selector;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.apache.log4j.Logger;
+
 /**
  * Class used as a single send/receive thread for an entire NioIbis instance
  */
 final class SendReceiveThread implements Runnable, Config {
 
     static final int INITIAL_ARRAY_SIZE = 8;
+
+    static Logger logger = Logger.getLogger(SendReceiveThread.class.getName());
 
     private ArrayList pendingChannels = new ArrayList();
 
@@ -45,9 +49,9 @@ final class SendReceiveThread implements Runnable, Config {
 
     /**
      * Registers the given channel with our selector.
-     *
-     * @return The SelectionKey representing the registration,
-     *	       with the given attachment attached to it.
+     * 
+     * @return The SelectionKey representing the registration, with the given
+     *         attachment attached to it.
      */
     synchronized SelectionKey register(SelectableChannel channel,
             Object attachment) throws IOException {
@@ -64,7 +68,7 @@ final class SendReceiveThread implements Runnable, Config {
             try {
                 wait();
             } catch (InterruptedException e) {
-                //IGNORE
+                // IGNORE
             }
             key = channel.keyFor(selector);
         }
@@ -79,9 +83,8 @@ final class SendReceiveThread implements Runnable, Config {
             return;
         }
 
-        if (DEBUG) {
-            Debug.message("channels", this, "registering "
-                    + pendingChannels.size() + " channels");
+        if (logger.isDebugEnabled()) {
+            logger.info("registering " + pendingChannels.size() + " channels");
         }
 
         for (int i = 0; i < pendingChannels.size(); i++) {
@@ -90,7 +93,7 @@ final class SendReceiveThread implements Runnable, Config {
                 key = channel.register(selector, 0);
                 key.attach(pendingAttachments.get(i));
             } catch (IOException e) {
-                //IGNORE
+                // IGNORE
             }
         }
 
@@ -104,8 +107,8 @@ final class SendReceiveThread implements Runnable, Config {
      * signals a connection is ready for writing data
      */
     synchronized void enableWriting(SelectionKey key) {
-        if (DEBUG) {
-            Debug.message("channels", this, "queueing write enable");
+        if (logger.isDebugEnabled()) {
+            logger.info("queueing write enable");
         }
 
         if (nrOfReadyWriteKeys == readyWriteKeys.length) {
@@ -126,8 +129,8 @@ final class SendReceiveThread implements Runnable, Config {
      * signals a connection is ready to read data
      */
     synchronized void enableReading(SelectionKey key) {
-        if (DEBUG) {
-            Debug.message("channels", this, "queueing read enable");
+        if (logger.isDebugEnabled()) {
+            logger.info("queueing read enable");
         }
 
         if (nrOfReadyReadKeys == readyReadKeys.length) {
@@ -145,11 +148,12 @@ final class SendReceiveThread implements Runnable, Config {
     }
 
     void handlePendingKeys() {
-        if (DEBUG) {
+        if (logger.isDebugEnabled()) {
             if (nrOfReadyWriteKeys != 0 || nrOfReadyReadKeys != 0) {
-                Debug.message("channels", this, "enabling "
-                        + nrOfReadyWriteKeys + " write keys and "
-                        + nrOfReadyReadKeys + " read keys");
+                logger
+                        .info("enabling " + nrOfReadyWriteKeys
+                                + " write keys and " + nrOfReadyReadKeys
+                                + " read keys");
             }
         }
 
@@ -157,7 +161,7 @@ final class SendReceiveThread implements Runnable, Config {
             try {
                 readyWriteKeys[i].interestOps(SelectionKey.OP_WRITE);
             } catch (CancelledKeyException e) {
-                //Channels was closed/lost, ignore
+                // Channels was closed/lost, ignore
             }
             readyWriteKeys[i] = null;
         }
@@ -167,7 +171,7 @@ final class SendReceiveThread implements Runnable, Config {
             try {
                 readyReadKeys[i].interestOps(SelectionKey.OP_READ);
             } catch (CancelledKeyException e) {
-                //Channels was closed/lost, ignore
+                // Channels was closed/lost, ignore
             }
             readyReadKeys[i] = null;
         }
@@ -203,24 +207,24 @@ final class SendReceiveThread implements Runnable, Config {
 
         Thread.currentThread().setName("send/receive thread");
 
-        //try to add some importance to this thread
+        // try to add some importance to this thread
         try {
             int max = Thread.currentThread().getThreadGroup().getMaxPriority();
             int current = Thread.currentThread().getPriority();
             Thread.currentThread().setPriority(Math.min(max, (current + 1)));
         } catch (Exception e) {
-            //IGNORE
+            // IGNORE
         }
 
         while (true) {
-            if (DEBUG) {
-                Debug.enter("channels", this, "looking for work");
+            if (logger.isDebugEnabled()) {
+                logger.info("looking for work");
             }
 
             synchronized (this) {
                 if (exit) {
-                    if (DEBUG) {
-                        Debug.exit("channels", this, "done looking for work");
+                    if (logger.isDebugEnabled()) {
+                        logger.info("done looking for work");
                     }
                     return;
                 }
@@ -228,27 +232,24 @@ final class SendReceiveThread implements Runnable, Config {
                 handlePendingKeys();
             }
 
-            if (DEBUG) {
-                Debug.message("channels", this, "doing a select on "
-                        + selector.keys().size() + " channels");
+            if (logger.isDebugEnabled()) {
+                logger.info("doing a select on " + selector.keys().size()
+                        + " channels");
             }
 
             try {
                 selector.select();
             } catch (IOException e) {
-                if (WARNINGS) {
-                    System.err.println("ibis.impl.nio.SendReceiveThread.run():"
-                            + " select failed with exception: " + e);
-                    e.printStackTrace(System.err);
-                }
-                //IGNORE
+                logger.warn("ibis.impl.nio.SendReceiveThread.run():"
+                        + " select failed with exception: " + e);
+                // IGNORE
             } catch (CancelledKeyException e) {
-                //INGORE
+                // INGORE
             }
 
-            if (DEBUG) {
-                Debug.message("channels", this, "selected "
-                        + selector.selectedKeys().size() + " channel(s)");
+            if (logger.isDebugEnabled()) {
+                logger.info("selected " + selector.selectedKeys().size()
+                        + " channel(s)");
             }
 
             keys = selector.selectedKeys().iterator();
@@ -268,14 +269,14 @@ final class SendReceiveThread implements Runnable, Config {
                         receive(key);
                     }
                 } catch (CancelledKeyException e) {
-                    //key was cancelled or channel was closed
-                    //skip this key
+                    // key was cancelled or channel was closed
+                    // skip this key
                 }
             }
             selector.selectedKeys().clear();
 
-            if (DEBUG) {
-                Debug.exit("channels", this, "done");
+            if (logger.isDebugEnabled()) {
+                logger.info("done");
             }
 
         }

@@ -2,6 +2,7 @@
 
 package ibis.impl.nio;
 
+import ibis.connect.routedMessages.HubLink;
 import ibis.io.DataOutputStream;
 
 import java.io.IOException;
@@ -10,10 +11,15 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.WritableByteChannel;
 
+import org.apache.log4j.Logger;
+
 /**
  * Writes data to a channel (using big endian byte order)
  */
 public final class ChannelAccumulator extends DataOutputStream {
+
+    static Logger logger = Logger.getLogger(HubLink.class.getName());
+
     public static final int SIZEOF_BYTE = 1;
 
     public static final int SIZEOF_CHAR = 2;
@@ -42,7 +48,7 @@ public final class ChannelAccumulator extends DataOutputStream {
     }
 
     private ChannelAccumulator() {
-        //DONT USE THIS
+        // DONT USE THIS
     }
 
     public void flush() throws IOException {

@@ -6,8 +6,14 @@ import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 
+import org.apache.log4j.Logger;
+
 final class ThreadNioAccumulator extends NioAccumulator implements Config {
+
     static final int LOST_CONNECTION_SIZE = 8;
+
+    static Logger logger = Logger.getLogger(ThreadNioAccumulator.class
+            .getName());
 
     NioSendPort port;
 
@@ -25,9 +31,8 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
 
         sChannel.configureBlocking(false);
 
-        if (DEBUG) {
-            Debug.message("connections", this, "creating new"
-                    + " ThreadNioAccumulatorConnection");
+        if (logger.isDebugEnabled()) {
+            logger.info("creating new" + " ThreadNioAccumulatorConnection");
         }
 
         return new ThreadNioAccumulatorConnection(thread, channel, peer);
@@ -36,18 +41,18 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
     boolean doSend(SendBuffer buffer) throws IOException {
         SendBuffer copy;
 
-        if (DEBUG) {
-            Debug.enter("buffers", this, "doing send");
+        if (logger.isDebugEnabled()) {
+            logger.info("doing send");
         }
 
         if (nrOfConnections == 0) {
-            if (DEBUG) {
-                Debug.exit("buffers", this, "!no connections to send to");
+            if (logger.isDebugEnabled()) {
+                logger.error("no connections to send to");
             }
             return true;
         } else if (nrOfConnections == 1) {
-            if (DEBUG) {
-                Debug.message("buffers", this, "sending to one(1) connection");
+            if (logger.isDebugEnabled()) {
+                logger.info("sending to one(1) connection");
             }
             ThreadNioAccumulatorConnection connection;
             connection = (ThreadNioAccumulatorConnection) connections[0];
@@ -58,15 +63,14 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
                 port.lostConnection(connection.peer, e);
                 connections[0] = null;
                 nrOfConnections = 0;
-                if (DEBUG) {
-                    Debug.exit("buffers", this, "!(only) connection lost");
+                if (logger.isDebugEnabled()) {
+                    logger.error("(only) connection lost");
                     return false; // don't do normal exit message
                 }
             }
         } else {
-            if (DEBUG) {
-                Debug.message("buffers", this, "sending to " + nrOfConnections
-                        + " connections");
+            if (logger.isDebugEnabled()) {
+                logger.info("sending to " + nrOfConnections + " connections");
             }
 
             SendBuffer[] copies = SendBuffer.replicate(buffer, nrOfConnections);
@@ -78,8 +82,8 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
                 try {
                     connection.addToThreadSendList(copies[i]);
                 } catch (IOException e) {
-                    if (DEBUG) {
-                        Debug.message("buffers", this, "connection lost");
+                    if (logger.isDebugEnabled()) {
+                        logger.info("connection lost");
                     }
                     connection.close();
                     port.lostConnection(connection.peer, e);
@@ -91,23 +95,19 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
                 }
             }
         }
-        if (DEBUG) {
-            Debug.exit("buffers", this, "done send");
+        if (logger.isDebugEnabled()) {
+            logger.info("done send");
         }
         return false;
     }
 
     void doFlush() throws IOException {
         /*
-         if (DEBUG) {
-         Debug.enter("buffers", this, "doing flush");
-         }
-         for (int i = 0; i < nrOfConnections; i++) {
-         ((ThreadNioAccumulatorConnection) connections[i]).waitUntilEmpty();
-         }
-         if (DEBUG) {
-         Debug.exit("buffers", this, "done flush");
-         }
+         * if (logger.isDebugEnabled()) { logger.info("buffers", this, "doing
+         * flush"); } for (int i = 0; i < nrOfConnections; i++) {
+         * ((ThreadNioAccumulatorConnection) connections[i]).waitUntilEmpty(); }
+         * if (logger.isDebugEnabled()) { logger.info("buffers", this, "done
+         * flush"); }
          */
     }
 }

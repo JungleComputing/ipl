@@ -16,13 +16,14 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.GatheringByteChannel;
 
+import org.apache.log4j.Logger;
+
 /**
  * Nio Accumulator. Writes data to java.nio.ByteBuffers.
- *
+ * 
  * A NioAccumulator may not send any stream header or trailer data.
  */
-public abstract class NioAccumulator extends DataOutputStream
-        implements Config {
+public abstract class NioAccumulator extends DataOutputStream implements Config {
     public static final int SIZEOF_BYTE = 1;
 
     public static final int SIZEOF_CHAR = 2;
@@ -38,6 +39,8 @@ public abstract class NioAccumulator extends DataOutputStream
     public static final int SIZEOF_DOUBLE = 8;
 
     static final int INITIAL_CONNECTIONS_SIZE = 8;
+
+    static Logger logger = Logger.getLogger(NioAccumulator.class.getName());
 
     private SendBuffer buffer;
 
@@ -148,10 +151,10 @@ public abstract class NioAccumulator extends DataOutputStream
         count += buffer.remaining();
 
         if (doSend(buffer)) {
-            //buffer was completely send, just clear it and use it again
+            // buffer was completely send, just clear it and use it again
             buffer.clear();
         } else {
-            //get a new buffer
+            // get a new buffer
             buffer = SendBuffer.get();
             bytes = buffer.bytes;
             chars = buffer.chars;
@@ -164,8 +167,7 @@ public abstract class NioAccumulator extends DataOutputStream
     }
 
     /*
-     * makes sure all data given to the accumulator is send 
-     * ,or at least copied.
+     * makes sure all data given to the accumulator is send ,or at least copied.
      */
     synchronized public void flush() throws IOException {
         send();
@@ -205,15 +207,15 @@ public abstract class NioAccumulator extends DataOutputStream
     }
 
     public void writeByte(byte value) throws IOException {
-        if (DEBUG) {
-            Debug.message("data", this, "writeByte(" + value + ")");
+        if (logger.isDebugEnabled()) {
+            logger.info("writeByte(" + value + ")");
         }
         try {
             bytes.put(value);
         } catch (BufferOverflowException e) {
-            //buffer was full, send
+            // buffer was full, send
             send();
-            //and try again
+            // and try again
             bytes.put(value);
         }
     }
@@ -288,20 +290,20 @@ public abstract class NioAccumulator extends DataOutputStream
     }
 
     public void writeArray(byte[] array, int off, int len) throws IOException {
-        if (DEBUG) {
+        if (logger.isDebugEnabled()) {
             String message = "NioAccumulator.writeArray(byte[], off = " + off
                     + " len = " + len + ") Contents: ";
 
             for (int i = off; i < (off + len); i++) {
                 message = message + array[i] + " ";
             }
-            Debug.message("data", this, message);
+            logger.info(message);
         }
 
         try {
             bytes.put(array, off, len);
         } catch (BufferOverflowException e) {
-            //do this the hard way
+            // do this the hard way
 
             while (len > 0) {
                 if (!bytes.hasRemaining()) {
@@ -328,7 +330,7 @@ public abstract class NioAccumulator extends DataOutputStream
         try {
             chars.put(array, off, len);
         } catch (BufferOverflowException e) {
-            //do this the hard way
+            // do this the hard way
 
             while (len > 0) {
                 if (!chars.hasRemaining()) {
@@ -347,7 +349,7 @@ public abstract class NioAccumulator extends DataOutputStream
         try {
             shorts.put(array, off, len);
         } catch (BufferOverflowException e) {
-            //do this the hard way
+            // do this the hard way
 
             while (len > 0) {
                 if (!shorts.hasRemaining()) {
@@ -366,7 +368,7 @@ public abstract class NioAccumulator extends DataOutputStream
         try {
             ints.put(array, off, len);
         } catch (BufferOverflowException e) {
-            //do this the hard way
+            // do this the hard way
 
             while (len > 0) {
                 if (!ints.hasRemaining()) {
@@ -385,7 +387,7 @@ public abstract class NioAccumulator extends DataOutputStream
         try {
             longs.put(array, off, len);
         } catch (BufferOverflowException e) {
-            //do this the hard way
+            // do this the hard way
 
             while (len > 0) {
                 if (!longs.hasRemaining()) {
@@ -404,7 +406,7 @@ public abstract class NioAccumulator extends DataOutputStream
         try {
             floats.put(array, off, len);
         } catch (BufferOverflowException e) {
-            //do this the hard way
+            // do this the hard way
 
             while (len > 0) {
                 if (!floats.hasRemaining()) {
@@ -423,7 +425,7 @@ public abstract class NioAccumulator extends DataOutputStream
         try {
             doubles.put(array, off, len);
         } catch (BufferOverflowException e) {
-            //do this the hard way
+            // do this the hard way
 
             while (len > 0) {
                 if (!doubles.hasRemaining()) {
@@ -443,8 +445,8 @@ public abstract class NioAccumulator extends DataOutputStream
             throws IOException;
 
     /**
-     * @return is the buffer already send or not. If it is not, the 
-     * implementation will recycle it when it's done with it.
+     * @return is the buffer already send or not. If it is not, the
+     *         implementation will recycle it when it's done with it.
      */
     abstract boolean doSend(SendBuffer buffer) throws IOException;
 

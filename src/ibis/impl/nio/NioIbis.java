@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import org.apache.log4j.Logger;
+
 public final class NioIbis extends Ibis implements Config {
 
     static final String prefix = "ibis.nio.";
@@ -26,14 +28,11 @@ public final class NioIbis extends Ibis implements Config {
 
     static final String s_rpi = prefix + "rpi";
 
-    static final String s_debug = prefix + "debug";
-
-    static final String s_log = prefix + "log";
-
-    static final String[] properties = { s_numbered, s_spi, s_rpi, s_debug,
-            s_log };
+    static final String[] properties = { s_numbered, s_spi, s_rpi };
 
     static final String[] unchecked = { s_spi + ".", s_rpi + "." };
+
+    static Logger logger = Logger.getLogger(NioIbis.class.getName());
 
     private NioIbisIdentifier ident;
 
@@ -64,10 +63,7 @@ public final class NioIbis extends Ibis implements Config {
         try {
             Runtime.getRuntime().addShutdownHook(new NioShutdown());
         } catch (Exception e) {
-            if (DEBUG) {
-                Debug.message("general", this,
-                        "!could not register nio shutdown hook");
-            }
+            logger.error("!could not register nio shutdown hook");
         }
     }
 
@@ -81,9 +77,8 @@ public final class NioIbis extends Ibis implements Config {
             /* add type to our table */
             portTypeList.put(name, resultPort);
 
-            if (DEBUG) {
-                Debug.message("connections", this, "created PortType `" + name
-                        + "'");
+            if (logger.isDebugEnabled()) {
+                logger.info("created PortType `" + name + "'");
             }
         }
         return resultPort;
@@ -106,45 +101,33 @@ public final class NioIbis extends Ibis implements Config {
     }
 
     protected void init() throws IbisException, IOException {
-        if (DEBUG) {
-            System.err.println("NioIbis: Debugging support enabled");
-            Debug.setName(name);
-        }
-
-        if (DEBUG) {
-            Debug.enter("general", this, "initializing NioIbis");
-        }
-
         poolSize = 1;
 
         ident = new NioIbisIdentifier(name);
 
-        if (DEBUG) {
-            Debug.message("general", this, "created IbisIdentifier" + ident);
-        }
+        logger.info("created IbisIdentifier" + ident);
 
         nameServer = NameServer.loadNameServer(this);
 
         factory = new TcpChannelFactory();
 
-        if (DEBUG) {
-            Debug.exit("general", this, "initialized NioIbis");
-        }
+        logger.info("initialized NioIbis");
     }
 
     /**
      * this method forwards the join to the application running on top of ibis.
      */
     public void joined(IbisIdentifier joinIdent) {
+        logger.info("received join from nameserver for " + joinIdent);
+
         synchronized (this) {
             if (!open && resizeHandler != null) {
                 joinedIbises.add(joinIdent);
                 return;
             }
 
-            if (DEBUG) {
-                Debug.message("general", this, "ibis '" + joinIdent.name()
-                        + "' joined");
+            if (logger.isDebugEnabled()) {
+                logger.info("ibis '" + joinIdent.name() + "' joined");
             }
 
             poolSize++;
@@ -162,19 +145,19 @@ public final class NioIbis extends Ibis implements Config {
     }
 
     /**
-     * this method forwards the leave to the application running on top of
-     * ibis.
+     * this method forwards the leave to the application running on top of ibis.
      */
     public void left(IbisIdentifier leaveIdent) {
+        logger.info("received leave from nameserver for " + leaveIdent);
+
         synchronized (this) {
             if (!open && resizeHandler != null) {
                 leftIbises.add(leaveIdent);
                 return;
             }
 
-            if (DEBUG) {
-                Debug.message("general", this, "ibis '" + leaveIdent.name()
-                        + "' left");
+            if (logger.isDebugEnabled()) {
+                logger.info("ibis '" + leaveIdent.name() + "' left");
             }
 
             poolSize--;
@@ -186,10 +169,11 @@ public final class NioIbis extends Ibis implements Config {
     }
 
     /**
-     * this method forwards the died to the application running on top of
-     * ibis.
+     * this method forwards the died to the application running on top of ibis.
      */
     public void died(IbisIdentifier[] corpses) {
+        logger.info("received notice of death from nameserver for "
+                + corpses.length + " ibisses");
         synchronized (this) {
             if (!open && resizeHandler != null) {
                 for (int i = 0; i < corpses.length; i++) {
@@ -198,10 +182,9 @@ public final class NioIbis extends Ibis implements Config {
                 return;
             }
 
-            if (DEBUG) {
+            if (logger.isDebugEnabled()) {
                 for (int i = 0; i < corpses.length; i++) {
-                    Debug.message("general", this, "ibis '" + corpses[i].name()
-                            + "' died");
+                    logger.info("ibis '" + corpses[i].name() + "' died");
                 }
             }
 
@@ -222,9 +205,7 @@ public final class NioIbis extends Ibis implements Config {
     public void enableResizeUpcalls() {
         NioIbisIdentifier ident = null;
 
-        if (DEBUG) {
-            Debug.enter("general", this, "opening world");
-        }
+        logger.info("opening world");
 
         if (resizeHandler != null) {
             while (true) {
@@ -235,7 +216,8 @@ public final class NioIbis extends Ibis implements Config {
                     poolSize++;
                     ident = (NioIbisIdentifier) joinedIbises.remove(0);
                 }
-                resizeHandler.joined(ident); // Don't hold the lock during user upcall
+                resizeHandler.joined(ident); // Don't hold the lock during
+                // user upcall
                 if (ident.equals(this.ident)) {
                     i_joined = true;
                 }
@@ -249,7 +231,8 @@ public final class NioIbis extends Ibis implements Config {
                     poolSize--;
                     ident = (NioIbisIdentifier) leftIbises.remove(0);
                 }
-                resizeHandler.left(ident); // Don't hold the lock during user upcall
+                resizeHandler.left(ident); // Don't hold the lock during user
+                // upcall
 
             }
             while (true) {
@@ -260,7 +243,8 @@ public final class NioIbis extends Ibis implements Config {
                     poolSize--;
                     ident = (NioIbisIdentifier) diedIbises.remove(0);
                 }
-                resizeHandler.died(ident); // Don't hold the lock during user upcall
+                resizeHandler.died(ident); // Don't hold the lock during user
+                // upcall
 
             }
         }
@@ -277,9 +261,7 @@ public final class NioIbis extends Ibis implements Config {
             }
         }
 
-        if (DEBUG) {
-            Debug.exit("general", this, "world opened");
-        }
+        logger.info("world opened");
     }
 
     public synchronized void disableResizeUpcalls() {
@@ -304,9 +286,6 @@ public final class NioIbis extends Ibis implements Config {
                 sendReceiveThread.quit();
             }
 
-            if (DEBUG) {
-                Debug.end();
-            }
         } catch (Exception e) {
             throw new IbisRuntimeException("NioIbis: end failed ", e);
         }

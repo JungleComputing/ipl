@@ -6,7 +6,12 @@ import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 
+import org.apache.log4j.Logger;
+
 final class BlockingChannelNioAccumulator extends NioAccumulator {
+
+    static Logger logger = Logger.getLogger(BlockingChannelNioAccumulator.class
+            .getName());
 
     private final NioSendPort port;
 
@@ -19,14 +24,11 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
             NioReceivePortIdentifier peer) throws IOException {
         NioAccumulatorConnection result;
 
-        if (DEBUG) {
-            Debug.enter("connections", this, "registering new connection");
-        }
+        logger.info("registering new connection");
 
         if ((nrOfConnections + 1) > 1) {
-            System.err.println("warning! " + (nrOfConnections + 1)
-                    + " connections from a `" + port.type.name()
-                    + "` blocking send port");
+            logger.warn("" + (nrOfConnections + 1) + " connections from a `"
+                    + port.type.name() + "` blocking send port");
         }
 
         SelectableChannel sChannel = (SelectableChannel) channel;
@@ -35,20 +37,17 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 
         result = new NioAccumulatorConnection(channel, peer);
 
-        if (DEBUG) {
-            Debug.exit("connections", this, "registered new connection");
-        }
+        logger.info("registered new connection");
 
         return result;
     }
 
     /**
-     * Sends out a buffer to multiple channels.
-     * Doesn't buffer anything
+     * Sends out a buffer to multiple channels. Doesn't buffer anything
      */
     boolean doSend(SendBuffer buffer) throws IOException {
-        if (DEBUG) {
-            Debug.enter("buffers", this, "sending a buffer");
+        if (logger.isDebugEnabled()) {
+            logger.info("sending a buffer");
         }
         buffer.mark();
 
@@ -59,26 +58,26 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
                     connections[i].channel.write(buffer.byteBuffers);
                 }
             } catch (IOException e) {
-                //someting went wrong, close connection 
+                // someting went wrong, close connection
                 connections[i].close();
 
-                //inform the SendPort
+                // inform the SendPort
                 port.lostConnection(connections[i].peer, e);
 
-                //remove connection
+                // remove connection
                 nrOfConnections--;
                 connections[i] = connections[nrOfConnections];
                 connections[nrOfConnections] = null;
                 i--;
             }
         }
-        if (DEBUG) {
-            Debug.exit("buffers", this, "done sending a buffer");
+        if (logger.isDebugEnabled()) {
+            logger.info("done sending a buffer");
         }
-        return true; //signal we are done with the buffer now
+        return true; // signal we are done with the buffer now
     }
 
     void doFlush() throws IOException {
-        //NOTHING
+        // NOTHING
     }
 }

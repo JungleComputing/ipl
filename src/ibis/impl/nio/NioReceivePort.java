@@ -13,32 +13,18 @@ import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.util.ThreadPool;
-import ibis.util.Timer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.Channel;
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
+
 abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         Protocol {
 
-    //static list of all (thread-local) timers
-    private static ArrayList timers = new ArrayList();
-
-    //threadlocal object which holds a timer object for the current thread
-    private static ThreadLocal timer = new ThreadLocal() {
-        protected synchronized Object initialValue() {
-            Timer t = Timer.createTimer();
-            timers.add(t);
-            return t;
-        }
-    };
-
-    //function to get thread-local timer
-    static Timer timer() {
-        return (Timer) timer.get();
-    }
+    static Logger logger = Logger.getLogger(NioReceivePort.class.getName());
 
     protected NioPortType type;
 
@@ -103,41 +89,40 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
     }
 
     /**
-     * Sees if the user is ok with a new connection from "spi"
-     * Called by the connection factory.
-     *
+     * Sees if the user is ok with a new connection from "spi" Called by the
+     * connection factory.
+     * 
      * @return the reply for the send port
      */
     byte connectionRequested(NioSendPortIdentifier spi, Channel channel) {
-        if (DEBUG) {
-            Debug.enter("connections", this, "handling connection request");
+        if (logger.isDebugEnabled()) {
+            logger.info("handling connection request");
         }
 
         synchronized (this) {
             if (!connectionsEnabled) {
-                if (DEBUG) {
-                    Debug.exit("connections", this, "!connections disabled");
+                if (logger.isDebugEnabled()) {
+                    logger.error("connections disabled");
                 }
                 return CONNECTIONS_DISABLED;
             }
         }
 
         if (!type.manyToOne && (connectedTo().length > 0)) {
-            //many2one not supported...
-            if (DEBUG) {
-                Debug.exit("connections", this, "!many2one not supported");
+            // many2one not supported...
+            if (logger.isDebugEnabled()) {
+                logger.error("many2one not supported");
             }
             return CONNECTION_DENIED;
         }
 
         if (connUpcall != null) {
-            if (DEBUG) {
-                Debug.message("connections", this,
-                        "passing connection request to user");
+            if (logger.isDebugEnabled()) {
+                logger.info("passing connection request to user");
             }
             if (!connUpcall.gotConnection(this, spi)) {
-                if (DEBUG) {
-                    Debug.exit("connections", this, "!user denied connection");
+                if (logger.isDebugEnabled()) {
+                    logger.error("user denied connection");
                 }
                 return CONNECTION_DENIED;
             }
@@ -149,8 +134,8 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             if (connUpcall != null) {
                 connUpcall.lostConnection(this, spi, e);
             }
-            if (DEBUG) {
-                Debug.exit("connections", this, "!newConnection() failed");
+            if (logger.isDebugEnabled()) {
+                logger.error("newConnection() failed");
             }
             return CONNECTION_DENIED;
         }
@@ -161,31 +146,30 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             }
         }
 
-        if (DEBUG) {
-            Debug.exit("connections", this, "connection allowed");
+        if (logger.isDebugEnabled()) {
+            logger.info("connection allowed");
         }
         return CONNECTION_ACCEPTED;
     }
 
     /**
-     * Waits for someone to wake us up. Waits:
-     * - not at all if deadline == -1
-     * - until System.getTimeMillis >= deadline if deadline > 0
-     * - for(ever) if deadline == 0
-     *
-     * @return true we (might have been) notified, or false if the 
-     * deadline passed
+     * Waits for someone to wake us up. Waits: - not at all if deadline == -1 -
+     * until System.getTimeMillis >= deadline if deadline > 0 - for(ever) if
+     * deadline == 0
+     * 
+     * @return true we (might have been) notified, or false if the deadline
+     *         passed
      */
     private boolean waitForNotify(long deadline) {
         if (deadline == 0) {
             try {
                 wait();
             } catch (InterruptedException e) {
-                //IGNORE
+                // IGNORE
             }
             return true;
         } else if (deadline == -1) {
-            return false; //deadline always passed
+            return false; // deadline always passed
         }
 
         long time = System.currentTimeMillis();
@@ -197,14 +181,14 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         try {
             wait(deadline - time);
         } catch (InterruptedException e) {
-            //IGNORE
+            // IGNORE
         }
-        return true; //don't know if we have been notified, but could be...
+        return true; // don't know if we have been notified, but could be...
     }
 
     /**
-     * Called by the subclass to let us know a connection failed,
-     * and we should report this to the user somehow
+     * Called by the subclass to let us know a connection failed, and we should
+     * report this to the user somehow
      */
     void connectionLost(NioDissipator dissipator, Exception cause) {
         synchronized (this) {
@@ -219,11 +203,11 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
     }
 
     /**
-     * gets a new message from the network. Will block until the deadline
-     * has passed, or not at all if deadline = -1, or indefinitely if
-     * deadline = 0. Only used when upcalls are disabled. Uses global message 
-     * "m" to ensure only one message is alive at any time
-     *
+     * gets a new message from the network. Will block until the deadline has
+     * passed, or not at all if deadline = -1, or indefinitely if deadline = 0.
+     * Only used when upcalls are disabled. Uses global message "m" to ensure
+     * only one message is alive at any time
+     * 
      */
     private NioReadMessage getMessage(long deadline) throws IOException {
         NioDissipator dissipator;
@@ -231,16 +215,16 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         NioReadMessage message;
         long sequencenr = -1;
 
-        if (DEBUG) {
-            Debug.enter("messages", this, "trying to fetch message");
+        if (logger.isDebugEnabled()) {
+            logger.info("trying to fetch message");
         }
 
         synchronized (this) {
             while (m != null) {
                 if (!waitForNotify(deadline)) {
-                    if (DEBUG) {
-                        Debug.exit("messages", this,
-                                "!timeout while waiting on previous message");
+                    if (logger.isDebugEnabled()) {
+                        logger
+                                .error("timeout while waiting on previous message");
                     }
                     throw new ReceiveTimedOutException("previous message"
                             + " not finished yet");
@@ -254,21 +238,15 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             dissipator = getReadyDissipator(deadline);
         } catch (ReceiveTimedOutException e) {
             synchronized (this) {
-                m = null; //give up the lock
+                m = null; // give up the lock
             }
-            if (DEBUG) {
-                Debug.exit("messages", this,
-                        "!timeout while waiting on dissipator with message");
-            }
+            logger.error("!timeout while waiting on dissipator with message");
             throw e;
         } catch (ConnectionClosedException e) {
             synchronized (this) {
-                m = null; //give up the lock
+                m = null; // give up the lock
             }
-            if (DEBUG) {
-                Debug.exit("messages", this,
-                        "!receiveport closed while waiting on message");
-            }
+            logger.error("receiveport closed while waiting on message");
             throw e;
         }
 
@@ -280,7 +258,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             message = new NioReadMessage(this, dissipator, sequencenr);
         } catch (IOException e) {
             errorOnRead(dissipator, e);
-            //do recursive call
+            // do recursive call
             return getMessage(deadline);
         }
 
@@ -288,22 +266,21 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             m = message;
         }
 
-        if (DEBUG) {
-            Debug.exit("messages", this, "new message received (#" + sequencenr
-                    + ")");
+        if (logger.isDebugEnabled()) {
+            logger.info("new message received (#" + sequencenr + ")");
         }
 
         return message;
     }
 
     /**
-     * called by the readMessage. Finishes message. Also wakes up everyone who 
+     * called by the readMessage. Finishes message. Also wakes up everyone who
      * was waiting for it
      */
     void finish(NioReadMessage m, long messageCount) throws IOException {
 
-        if (DEBUG) {
-            Debug.message("messages", this, "finishing read message");
+        if (logger.isDebugEnabled()) {
+            logger.info("finishing read message");
         }
 
         synchronized (this) {
@@ -313,23 +290,23 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
                             "finish called on non-current message");
                 }
 
-                //no (global)message alive
+                // no (global)message alive
                 this.m = null;
-                //wake up everybody who was waiting for this message to finish
+                // wake up everybody who was waiting for this message to finish
                 notifyAll();
             }
             count += messageCount;
         }
 
         if (upcall != null) {
-            //this finish was called from an upcall! Create a new thread to
-            //fetch the next message (this upcall might not exit for a while)
+            // this finish was called from an upcall! Create a new thread to
+            // fetch the next message (this upcall might not exit for a while)
             ThreadPool.createNew(this);
         }
 
-        if (DEBUG) {
-            Debug.exit("messages", this, "finished read message, received "
-                    + messageCount + " bytes");
+        if (logger.isDebugEnabled()) {
+            logger.info("finished read message, received " + messageCount
+                    + " bytes");
         }
     }
 
@@ -338,13 +315,12 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
      * lost. Close it.
      */
     synchronized void finish(NioReadMessage m, Exception e) {
-        if (DEBUG) {
-            Debug.message("messages", this,
-                    "!finishing read message with error");
+        if (logger.isDebugEnabled()) {
+            logger.error("finishing read message with error");
         }
         m.isFinished = true;
 
-        //inform the subclass an error occured 
+        // inform the subclass an error occured
         errorOnRead(m.dissipator, e);
 
         if (upcall == null) {
@@ -352,16 +328,16 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
                 this.m = null;
             }
 
-            //wake up everybody who was waiting for this message to finish
+            // wake up everybody who was waiting for this message to finish
             notifyAll();
         } else {
-            //this finish was called from an upcall! Create a new thread to
-            //fetch the next message (this upcall might not exit for a while)
+            // this finish was called from an upcall! Create a new thread to
+            // fetch the next message (this upcall might not exit for a while)
             ThreadPool.createNew(this);
         }
 
-        if (DEBUG) {
-            Debug.exit("messages", this, "!finished read message with error");
+        if (logger.isDebugEnabled()) {
+            logger.info("!finished read message with error");
         }
     }
 
@@ -393,7 +369,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         try {
             return getMessage(-1);
         } catch (ReceiveTimedOutException e) {
-            //IGNORE
+            // IGNORE
         }
         return null;
     }
@@ -454,22 +430,22 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
     }
 
     /**
-     * Free resourced held by receiport AFTER waiting for all the connections
-     * to close down
+     * Free resourced held by receiport AFTER waiting for all the connections to
+     * close down
      */
     public void close() throws IOException {
         doClose(0);
     }
 
     /**
-     * Free resourced held by receiport AFTER waiting for all the connections
-     * to close down, or the timeout to pass.
+     * Free resourced held by receiport AFTER waiting for all the connections to
+     * close down, or the timeout to pass.
      */
     public void close(long timeout) throws IOException {
         if (timeout > 0L) {
             doClose(System.currentTimeMillis() + timeout);
         } else {
-            //-1 or 0
+            // -1 or 0
             doClose(timeout);
         }
     }
@@ -485,7 +461,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
         ibis.nameServer.unbind(ident.name);
         ibis.factory.deRegister(this);
 
-        closing(); //signal the subclass we are closing down
+        closing(); // signal the subclass we are closing down
 
         if (upcall == null) {
             synchronized (this) {
@@ -498,9 +474,9 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
                 throw new IOException(
                         "message received while closing receiveport");
             } catch (ConnectionClosedException e) {
-                //this is _excactly_ wat we want
+                // this is _excactly_ wat we want
             } catch (ReceiveTimedOutException e2) {
-                //there are some connections left, kill them
+                // there are some connections left, kill them
                 closeAllConnections();
             }
         } else {
@@ -511,7 +487,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
                             try {
                                 wait();
                             } catch (Exception e) {
-                                //IGNORE
+                                // IGNORE
                             }
                         }
                     } else if (deadline > 0L) {
@@ -528,14 +504,6 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
                 }
             }
             closeAllConnections();
-        }
-        if (STATS) {
-            synchronized (this) {
-                System.err.println("stats for receiveport: " + ident);
-                for (int i = 0; i < timers.size(); i++) {
-                    System.err.println((Timer) timers.get(i));
-                }
-            }
         }
     }
 
@@ -568,19 +536,13 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
 
         while (true) {
             try {
-                if (STATS) {
-                    timer().start();
-                }
                 dissipator = getReadyDissipator(0);
-                if (STATS) {
-                    timer().stop();
-                }
             } catch (ReceiveTimedOutException e) {
                 throw new IbisError("ReceiveTimedOutException caught while"
                         + " doing a getMessage(0)! : " + e);
             } catch (ConnectionClosedException e2) {
                 synchronized (this) {
-                    //the receiveport was closed, exit
+                    // the receiveport was closed, exit
                     notifyAll();
                     return;
                 }
@@ -605,15 +567,18 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
             synchronized (this) {
                 while (!upcallsEnabled) {
                     try {
-                        System.err.println("waiting for upcall to be enabled");
+                        logger.info("waiting for upcall to be enabled");
                         wait();
                     } catch (InterruptedException e) {
-                        //IGNORE
+                        // IGNORE
                     }
                 }
             }
 
             try {
+                if (logger.isDebugEnabled()) {
+                    logger.info("doing upcall");
+                }
                 upcall.upcall(m);
             } catch (IOException e) {
                 errorOnRead(m.dissipator, e);
@@ -625,7 +590,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
                 return;
             }
 
-            //implicitly finish message
+            // implicitly finish message
 
             long messageCount = m.dissipator.bytesRead();
             m.dissipator.resetBytesRead();
@@ -643,17 +608,19 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
 
     /**
      * Searches for a dissipator with a message waiting
-     *
-     * Will block until the deadline has passed, or not at all if 
-     * deadline = -1, or indefinitely if deadline = 0
-     *
-     * @param deadline the deadline after which searching has failed
-     *
-     * @throws ReceiveTimedOutException If no connections are ready after
-     *         the deadline has passed
-     *
-     * @throws ConnectionClosedException if there a no more connections left
-     *	       and the receiveport is closing down.
+     * 
+     * Will block until the deadline has passed, or not at all if deadline = -1,
+     * or indefinitely if deadline = 0
+     * 
+     * @param deadline
+     *            the deadline after which searching has failed
+     * 
+     * @throws ReceiveTimedOutException
+     *             If no connections are ready after the deadline has passed
+     * 
+     * @throws ConnectionClosedException
+     *             if there a no more connections left and the receiveport is
+     *             closing down.
      */
     abstract NioDissipator getReadyDissipator(long deadline) throws IOException;
 

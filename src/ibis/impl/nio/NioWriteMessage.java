@@ -173,4 +173,3 @@ final class NioWriteMessage implements WriteMessage, Config {
         out.writeArray(value, offset, size);
     }
 }
-

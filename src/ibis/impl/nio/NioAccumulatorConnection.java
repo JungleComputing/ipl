@@ -6,14 +6,19 @@ import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectionKey;
 
+import org.apache.log4j.Logger;
+
 class NioAccumulatorConnection implements Config {
     static final int MAX_SEND_BUFFERS = 32;
+
+    static Logger logger = Logger.getLogger(NioAccumulatorConnection.class
+            .getName());
 
     GatheringByteChannel channel;
 
     NioReceivePortIdentifier peer;
 
-    //placeholder for the accumulator to put a selection key in
+    // placeholder for the accumulator to put a selection key in
     SelectionKey key;
 
     SendBuffer[] pendingBuffers;
@@ -40,9 +45,8 @@ class NioAccumulatorConnection implements Config {
 
     /**
      * Adds given buffer to list of buffer which will be send out.
-     *
-     * @return true if the add was succesfull, false if all the buffers are
-     *	       full
+     * 
+     * @return true if the add was succesfull, false if all the buffers are full
      */
     boolean addToSendList(SendBuffer buffer) {
         if (full()) {
@@ -51,9 +55,9 @@ class NioAccumulatorConnection implements Config {
 
         pendingBuffers[bufferLimit] = buffer;
 
-        if (DEBUG) {
-            Debug.message("channels", this, "adding new buffer to send list"
-                    + " at position " + bufferLimit);
+        if (logger.isDebugEnabled()) {
+            logger.info("adding new buffer to send list" + " at position "
+                    + bufferLimit);
         }
         bufferLimit = (bufferLimit + 1) % MAX_SEND_BUFFERS;
 
@@ -61,43 +65,42 @@ class NioAccumulatorConnection implements Config {
     }
 
     /**
-     * Send out data while it is possible to send without blocking.
-     * Assumes non-blocking channel, recycles empty buffers.
-     *
-     * @return true if are we done sending, or false if there is more 
-     * data in the buffer.
+     * Send out data while it is possible to send without blocking. Assumes
+     * non-blocking channel, recycles empty buffers.
+     * 
+     * @return true if are we done sending, or false if there is more data in
+     *         the buffer.
      */
     boolean send() throws IOException {
         long count;
 
-        if (DEBUG) {
-            Debug.enter("channels", this, "sending");
+        if (logger.isDebugEnabled()) {
+            logger.info("sending");
         }
         while (!empty()) {
             count = channel.write(pendingBuffers[bufferPosition].byteBuffers);
 
-            if (DEBUG) {
-                Debug.message("channels", this, "send " + count + " bytes");
+            if (logger.isDebugEnabled()) {
+                logger.info("send " + count + " bytes");
             }
 
             if (pendingBuffers[bufferPosition].hasRemaining()) {
-                if (DEBUG) {
-                    Debug.exit("channels", this, "buffer has some bytes"
-                            + " remaining");
+                if (logger.isDebugEnabled()) {
+                    logger.info("buffer has some bytes" + " remaining");
                 }
                 return false;
             } else {
                 SendBuffer.recycle(pendingBuffers[bufferPosition]);
 
                 bufferPosition = (bufferPosition + 1) % MAX_SEND_BUFFERS;
-                if (DEBUG) {
-                    Debug.message("channels", this, "completely send buffer,"
+                if (logger.isDebugEnabled()) {
+                    logger.info("completely send buffer,"
                             + " trying next one too");
                 }
             }
         }
-        if (DEBUG) {
-            Debug.exit("channels", this, "done sending");
+        if (logger.isDebugEnabled()) {
+            logger.info("done sending");
         }
         return true;
     }

@@ -20,6 +20,8 @@ import ibis.ipl.Upcall;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 class NioPortType extends PortType implements Config {
 
     StaticProperties p;
@@ -38,6 +40,8 @@ class NioPortType extends PortType implements Config {
 
     static final String[] IMPLEMENTATION_NAMES = { "Blocking", "Non Blocking",
             "Thread" };
+
+    static Logger logger = Logger.getLogger(NioPortType.class.getName());
 
     byte sendPortImplementation;
 
@@ -142,15 +146,13 @@ class NioPortType extends PortType implements Config {
             receivePortImplementation = IMPLEMENTATION_BLOCKING;
         }
 
-        if (p.find("verbose") != null) {
-            System.out.println("serialization = "
-                    + serializationType
-                    + "\nsend port implementation = "
-                    + IMPLEMENTATION_NAMES[sendPortImplementation]
-                    + "\nreceive port implementation = "
-                    + IMPLEMENTATION_NAMES[receivePortImplementation]
-                    + "\nnumbered = " + numbered + "\n");
-        }
+        logger.info("new port type: serialization = " + serializationType
+                + "\nsend port implementation = "
+                + IMPLEMENTATION_NAMES[sendPortImplementation]
+                + "\nreceive port implementation = "
+                + IMPLEMENTATION_NAMES[receivePortImplementation]
+                + "\nnumbered = " + numbered + "\n");
+
     }
 
     public String name() {
@@ -212,11 +214,10 @@ class NioPortType extends PortType implements Config {
         return SerializationBase.createSerializationOutput(serializationType,
                 out);
 
-
     }
 
     SerializationInput createSerializationInputStream(DataInputStream in) {
-        return SerializationBase.createSerializationInput(serializationType,
-                in);
+        return SerializationBase
+                .createSerializationInput(serializationType, in);
     }
 }

@@ -18,7 +18,11 @@ import java.nio.channels.Channel;
 import java.nio.channels.GatheringByteChannel;
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
+
 public final class NioSendPort implements SendPort, Config, Protocol {
+
+    static Logger logger = Logger.getLogger(NioSendPort.class.getName());
 
     final NioPortType type;
 
@@ -30,7 +34,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
     private NioWriteMessage message;
 
-    private long count = 0; //number of byte send since last resetCount();
+    private long count = 0; // number of byte send since last resetCount();
 
     private final NioAccumulator accumulator;
 
@@ -48,7 +52,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
     /**
      * Abstract class that implements a SendPort in the NioIbis Implementation
-     *
+     * 
      * NOTE: The subclass of this class should also look out for any lost
      * connections.
      */
@@ -71,8 +75,8 @@ public final class NioSendPort implements SendPort, Config, Protocol {
             accumulator = new NonBlockingChannelNioAccumulator(this);
             break;
         case NioPortType.IMPLEMENTATION_THREAD:
-            accumulator
-                    = new ThreadNioAccumulator(this, ibis.sendReceiveThread());
+            accumulator = new ThreadNioAccumulator(this, ibis
+                    .sendReceiveThread());
             break;
         default:
             throw new IbisError("unknown send port implementation type");
@@ -92,43 +96,41 @@ public final class NioSendPort implements SendPort, Config, Protocol {
     public final synchronized void connect(ReceivePortIdentifier receiver,
             long timeoutMillis) throws IOException {
 
-        //FIXME: Retry on "receiveport not ready"
+        // FIXME: Retry on "receiveport not ready"
 
-        if (DEBUG) {
-            Debug.enter("connections", this, "Sendport " + this + " '"
-                    + ident.name + "' connecting to " + receiver);
+        if (logger.isDebugEnabled()) {
+            logger.info("Sendport " + this + " '" + ident.name
+                    + "' connecting to " + receiver);
         }
 
         if (!type.name().equals(receiver.type())) {
-            if (DEBUG) {
-                Debug.exit("connections", this,
-                        "!Cannot connect ports of different PortTypes");
+            if (logger.isDebugEnabled()) {
+                logger.error("Cannot connect ports of different PortTypes");
             }
             throw new PortMismatchException("Cannot connect ports of "
                     + "different PortTypes");
         }
 
         if (aMessageIsAlive) {
-            if (DEBUG) {
-                Debug.exit("connections", this,
-                        "!Cannot connect while a message is alive");
+            if (logger.isDebugEnabled()) {
+                logger.error("Cannot connect while a message is alive");
             }
             throw new IOException("A message was alive while adding a new "
                     + "connection");
         }
 
         if (timeoutMillis < 0) {
-            if (DEBUG) {
-                Debug.exit("connections", this, "!Negative timeout");
+            if (logger.isDebugEnabled()) {
+                logger.error("negative timeout");
             }
             throw new IOException(
                     "NioSendport.connect(): timeout must be positive, or 0");
         }
 
         if (!type.oneToMany && (connectedTo().length > 0)) {
-            if (DEBUG) {
-                Debug.exit("connections", this,
-                        "!Cannot connect, port already connected to a receiver"
+            if (logger.isDebugEnabled()) {
+                logger
+                        .error("Cannot connect, port already connected to a receiver"
                                 + " and OneToMany not supported");
             }
             throw new IOException("This sendport is already connected to a"
@@ -142,19 +144,18 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
         if (ASSERT) {
             if (!(channel instanceof GatheringByteChannel)) {
-                if (DEBUG) {
-                    Debug.exit("connections", this,
-                            "!factory returned wrong type of channel");
+                if (logger.isDebugEnabled()) {
+                    logger.error("factory returned wrong type of channel");
                 }
                 throw new IbisError("factory returned wrong type of channel");
             }
         }
 
-        //close output stream (if it exist). The new receiver needs the
-        //stream headers and such.
+        // close output stream (if it exist). The new receiver needs the
+        // stream headers and such.
         if (out != null) {
-            if (DEBUG) {
-                Debug.message("connections", this, "letting all the other"
+            if (logger.isDebugEnabled()) {
+                logger.error("letting all the other"
                         + " receivers know there's a new connection");
             }
             out.writeByte(NEW_RECEIVER);
@@ -163,13 +164,13 @@ public final class NioSendPort implements SendPort, Config, Protocol {
             out = null;
         }
 
-        //register this new connection with the sendport somehow.
+        // register this new connection with the sendport somehow.
         accumulator.add(rpi, (GatheringByteChannel) channel);
 
         neverConnected = false;
 
-        if (DEBUG) {
-            Debug.exit("connections", this, "done connecting");
+        if (logger.isDebugEnabled()) {
+            logger.info("done connecting");
         }
     }
 
@@ -189,7 +190,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
         }
 
         if (out != null) {
-            //tell out peer someone is going to have to disconnect
+            // tell out peer someone is going to have to disconnect
             out.writeByte(CLOSE_ONE_CONNECTION);
 
             // write serialization stream footer
@@ -197,7 +198,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
             out.close();
             out = null;
 
-            //write identification of receiver which has to leave
+            // write identification of receiver which has to leave
             ((NioReceivePortIdentifier) receiver).writeTo(accumulator);
             accumulator.flush();
         }
@@ -232,7 +233,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
             sequencenr = ibis.getSeqno(type.name);
         }
 
-        if (DEBUG) {
+        if (logger.isDebugEnabled()) {
             String message = "new write message (# " + sequencenr + ") from "
                     + ident + " to:";
 
@@ -242,11 +243,11 @@ public final class NioSendPort implements SendPort, Config, Protocol {
                 message = message + " " + connections[i];
             }
 
-            Debug.enter("messages", this, message);
+            logger.info(message);
         }
 
         if (out == null) {
-            //set up a stream to send data through
+            // set up a stream to send data through
             out = type.createSerializationOutputStream(accumulator);
 
             if (replacer != null) {
@@ -273,17 +274,16 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
         notifyAll();
 
-        if (DEBUG) {
-            Debug.exit("messages", this, "end of write message, messageCount: "
-                    + messageCount);
+        if (logger.isDebugEnabled()) {
+            logger.info("end of write message, messageCount: " + messageCount);
         }
 
         return messageCount;
     }
 
     synchronized void finish(IOException e) {
-        //since we have no idea which connection caused the error,
-        //we close them all.
+        // since we have no idea which connection caused the error,
+        // we close them all.
 
         NioReceivePortIdentifier[] connections = accumulator.connections();
 
@@ -299,8 +299,8 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
         notifyAll();
 
-        if (DEBUG) {
-            Debug.exit("messages", this, "!end of write message with error");
+        if (logger.isDebugEnabled()) {
+            logger.error("end of write message with error");
         }
 
     }
@@ -329,7 +329,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
         try {
             if (out == null) {
-                //create a new stream, just to say close :(
+                // create a new stream, just to say close :(
                 out = type.createSerializationOutputStream(accumulator);
             }
 
@@ -338,7 +338,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
             out.flush();
             out.close();
         } catch (IOException e) {
-            //IGNORE
+            // IGNORE
         }
         accumulator.reallyClose();
 
@@ -357,8 +357,9 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
     /**
      * Called by the accumulator to tell us a connections was lost.
-     *
-     * @throws IOException when the connectionadministration is disabled.
+     * 
+     * @throws IOException
+     *             when the connectionadministration is disabled.
      */
     protected synchronized void lostConnection(ReceivePortIdentifier peer,
             IOException reason) throws IOException {
