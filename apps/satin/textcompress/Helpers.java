@@ -60,7 +60,12 @@ class Helpers {
      * Given a text and two positions, return the number of bytes
      * over which the two spans have the same text. Make sure
      * that the second, most forward span, is not touched by the
-     * first span.
+     * first span. Never return a match size that is longer than
+     * (2^16-1)+MINIMAL_SPAN, since we won't be able to use it anyway.
+     * @param arr The text array.
+     * @param p1 The first position in the text.
+     * @param p2 The second position in the text.
+     * @return The number of equal bytes at these two positions.
      */
     static int matchSpans( byte arr[], int p1, int p2 )
     {
