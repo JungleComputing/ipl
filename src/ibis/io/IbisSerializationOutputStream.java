@@ -476,6 +476,14 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	double_buffer[double_index++] = value;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public void close() throws IOException {
+	flush();
+	out.close();
+    }
+
     /*
      * If you are overriding IbisSerializationOutputStream,
      * you can stop now :-) 
@@ -1349,14 +1357,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	if(DEBUG) {
 	    dbPrint("finished writeUnshared of class " + clazz.getName() + " handle = " + next_handle);
 	}
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void close() throws IOException {
-	flush();
-	out.close();
     }
 
     /**
