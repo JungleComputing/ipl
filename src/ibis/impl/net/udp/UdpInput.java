@@ -37,18 +37,32 @@ import java.util.Hashtable;
 public class UdpInput extends NetInput {
 
 	/**
+	 * The default polling timeout in milliseconds.
+	 *
+	 * <BR><B>Note</B>: this will be replaced by a property setting in the future.
+	 */
+	private final int             defaultPollTimeout    = 1; // milliseconds
+
+	/**
+	 * The default reception timeout in milliseconds.
+	 *
+	 * <BR><B>Note</B>: this will be replaced by a property setting in the future.
+	 */
+	private final int             defaultReceiveTimeout = 1000; // milliseconds
+
+	/**
 	 * The polling timeout in milliseconds.
 	 *
 	 * <BR><B>Note</B>: this will be replaced by a property setting in the future.
 	 */
-	private final int             pollTimeout    = 1; // milliseconds
+	private int                   pollTimeout    = defaultPollTimeout; // milliseconds
 
 	/**
 	 * The reception timeout in milliseconds.
 	 *
 	 * <BR><B>Note</B>: this will be replaced by a property setting in the future.
 	 */
-	private final int             receiveTimeout = 1000; // milliseconds
+	private int                   receiveTimeout = defaultReceiveTimeout; // milliseconds
 
 	/**
 	 * The UDP socket.
@@ -177,6 +191,14 @@ public class UdpInput extends NetInput {
 		mtu       = Math.min(lmtu, rmtu);
 		allocator = new NetAllocator(mtu);
 		packet    = new DatagramPacket(new byte[mtu], mtu);
+
+		String s = null;
+		if ((s = getProperty("ReceiveTimeout")) != null) {
+			receiveTimeout = Integer.valueOf(s).intValue();
+		}
+		if ((s = getProperty("PollingTimeout")) != null) {
+			pollTimeout = Integer.valueOf(s).intValue();
+		}
 
 		setReceiveTimeout(receiveTimeout);
 	}
