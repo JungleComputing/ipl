@@ -111,4 +111,20 @@
 	<ant dir="${build.dir}" target="test" inheritAll="false"/>
     </target>
 
+    <target name="test-prun-par"
+	    depends="-list-build-files"
+	    description="Run parallel tests in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-prun-test-one"
+		param="build.file"/>
+    </target>
+
+    <target name="-prun-test-one">
+	<dirname file="${build.file}" property="build.dir"/>
+	<echo message="Running 'ant test-prun-par' in ${build.dir}"/>
+	<ant dir="${build.dir}" target="test-prun-par" inheritAll="false"/>
+    </target>
+
 </project>
