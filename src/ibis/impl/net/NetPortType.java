@@ -148,7 +148,7 @@ public final class NetPortType extends PortType {
 	    // Anders leest readChar() een char in en retourneert dit.
 	    public char readChar () {
 		if (eof()) {
-		    throw new Error("end-of-file error");
+		    throw new Error(this + ": end-of-file error");
 	        }
 	
 	        return (char) try_read();
@@ -378,6 +378,7 @@ public final class NetPortType extends PortType {
                 } else {
                         in = tryOpen(filename);
                 }
+		// System.err.println("Try to read from property file \"" + filename + "\" fd " + in);
 
                 if (in != null) {
                         try {

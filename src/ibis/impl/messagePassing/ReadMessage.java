@@ -31,8 +31,6 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 		ReceivePort port) {
 	Ibis.myIbis.checkLockOwned();
 
-// System.err.println("**************************************************Creating new ReadMessage");
-
 	this.port = port;
 	this.shadowSendPort = (ShadowSendPort)s;
 	in = this.shadowSendPort.in;

@@ -19,25 +19,19 @@ class ElectionClient implements ElectionProtocol {
 	    return;
 	}
 
-// System.err.println(Thread.currentThread() + "ElectionClient: enter...");
 	StaticProperties p = new StaticProperties();
 	p.add("Communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt"); 
 	p.add("Serialization", "sun");
 	ibis.ipl.PortType type = Ibis.myIbis.newPortType("++++ElectionPort++++", p);
-// System.err.println(Thread.currentThread() + "ElectionClient: portTypes lives");
 
 	rport = type.createReceivePort("++++ElectionClient-" +
 				       Ibis.myIbis.myCpu + "++++");
 	rport.enableConnections();
-// System.err.println(Thread.currentThread() + "ElectionClient: receivePort lives");
 
 	server = Ibis.myIbis.registry().lookupReceivePort("++++ElectionServer-" +
 						Ibis.myIbis.myCpu + "++++");
-// System.err.println(Thread.currentThread() + "ElectionClient: server located");
 	sport = type.createSendPort("election_client");
-// System.err.println(Thread.currentThread() + "ElectionClient: sendPort lives");
 	sport.connect(server);
-// System.err.println(Thread.currentThread() + "ElectionClient: sendPort connected!");
     }
 
     void end() throws IOException {
@@ -60,10 +54,6 @@ class ElectionClient implements ElectionProtocol {
 		System.err.println("elections are turned OFF!");
 		System.exit(1);
 	}
-
-// System.err.println(Thread.currentThread() + "ElectionClient: elect(): start send");
-// System.err.println(Thread.currentThread() + "election \"" + election + "\" " + " candidate " + candidate);
-// Thread.dumpStack();
 
 	Object winner = null;
 

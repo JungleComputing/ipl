@@ -16,7 +16,6 @@ final class ByteInputStream
 
 
     void setMsgHandle(ReadMessage msg) {
-// manta.runtime.RuntimeSystem.DebugMe(this, msg);
 	this.msg  = msg;
 
 	// Cache msgHandle and msgSize here to save on dereferences later
@@ -49,7 +48,6 @@ final class ByteInputStream
     }
 
     public int read(byte[] b, int off, int len) throws IOException {
-// manta.runtime.RuntimeSystem.DebugMe(msgHandle, this);
 	Ibis.myIbis.lock();
 	try {
 	    if (Ibis.DEBUG) {
@@ -154,7 +152,6 @@ final class ByteInputStream
 
 
     public void readArray(byte b[], int off, int len) throws IOException {
-// manta.runtime.RuntimeSystem.DebugMe(msgHandle, this);
 	while (len > 0) {
 	    int rd = read(b, off, len);
 	    len -= rd;

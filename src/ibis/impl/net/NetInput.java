@@ -144,18 +144,12 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         }
 
 
-private int waitingUpcallThreads;
-private int livingUpcallThreads;
-private int pollingThreads;
-private int finishedUpcallThreads;
+	private int finishedUpcallThreads;
 
         private final class PooledUpcallThread extends Thread {
 
                 private boolean  end   = false;
                 private NetMutex sleep = new NetMutex(true);
-private int polls;
-private int pollSuccess;
-private int sleeps;
 
                 public PooledUpcallThread(String name) {
                         super(NetInput.this + ".PooledUpcallThread["+(threadCount++)+"]: "+name);
@@ -164,36 +158,25 @@ private int sleeps;
                 public void run() {
                         log.in();
                         while (!end) {
-livingUpcallThreads++;
 	
                                 log.disp("sleeping...");
                                 try {
-waitingUpcallThreads++;
-sleeps++;
                                         sleep.ilock();
-// if (livingUpcallThreads - waitingUpcallThreads > 0)
-// System.err.println(Thread.currentThread() + ": UpcallThreads waiting " + waitingUpcallThreads + " living " + livingUpcallThreads);
-waitingUpcallThreads--;
-// if (activeThread != null && activeThread != this)
-// System.err.println(this + ": want to become activeThread; but activeThread is " + activeThread);
+					if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
+					    if (activeThread != null && activeThread != this)
+					    System.err.println(this + ": want to become activeThread; but activeThread is " + activeThread);
+					}
                                         activeThread = this;
 
                                         if (activeNum != null) {
 						System.err.println(NetInput.this + ": " + Thread.currentThread() + ": connection unavailable " + activeNum);
                                                 throw new Error(Thread.currentThread() + ": connection unavailable: "+activeNum);
                                         }
-if (finishedUpcallThreads > 1) {
-    // System.err.print(finishedUpcallThreads + " ");
-    // try {
-// System.err.print("1");
-	for (int i = 0; i < finishedUpcallThreads; i++) {
-	    // threadStackLock.lock();
-	    // threadStackLock.unlock();
-	    NetIbis.yield();
-	}
-    // } catch (InterruptedIOException e) {
-    // }
-}
+					if (finishedUpcallThreads > 1) {
+					    for (int i = 0; i < finishedUpcallThreads; i++) {
+						NetIbis.yield();
+					    }
+					}
 
                                 } catch (InterruptedIOException e) {
                                         if (VERBOSE_INPUT_EXCEPTION) {
@@ -211,22 +194,14 @@ if (finishedUpcallThreads > 1) {
 				utStat.addPoll();
                                 log.disp("just woke up, polling...");
                                 while (!end) {
-pollingThreads++;
-// if (pollingThreads > 1)
-// System.err.println("pollingThreads " + pollingThreads);
                                         try {
-polls++;
-// System.err.println(this + ": do a blocking poll from loop...");
                                                 Integer num = doPoll(true);
-// System.err.println(this + ": blocking poll returns " + num);
 
                                                 if (num == null) {
                                                         // the connection was probably closed
                                                         // let the 'while' test the end flag
-pollingThreads--;
                                                         continue;
                                                 }
-pollSuccess++;
 
                                                 activeNum = num;
                                                 initReceive(activeNum);
@@ -247,7 +222,7 @@ pollSuccess++;
                                                 }
                                         } catch (IOException e) {
 						System.err.println("PooledUpcallThread + doPoll throws IOException. Should I quit??? " + e);
-//                                                throw new Error(e);
+						// throw new Error(e);
 						return;
 
 					} catch (Throwable e) {
@@ -273,7 +248,7 @@ pollSuccess++;
                                         } catch (IOException e) {
 						System.err.println("PooledUpcallThread.inputUpcall() throws IOException. Should I quit??? " + e);
 						e.printStackTrace(System.err);
-//                                                throw new Error(e);
+						// throw new Error(e);
 						end = true;
 						return;
 
@@ -282,11 +257,12 @@ pollSuccess++;
 						e.printStackTrace(System.err);
 						break;
                                         }
-// System.err.println(this + ": upcallSpawnMode " + upcallSpawnMode + " activeThread " + activeThread + " this " + this);
+					if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
+					    System.err.println(this + ": upcallSpawnMode " + upcallSpawnMode + " activeThread " + activeThread + " this " + this);
+					}
 
 
                                         if (! upcallSpawnMode) {
-pollingThreads--;
 					    synchronized (nonSpawnSyncer) {
 						while (activeThread != null) {
 						    try {
@@ -300,21 +276,20 @@ pollingThreads--;
 					    }
 
 					} else if (activeThread == this) {
-pollingThreads--;
                                                 try {
                                                         implicitFinish();
                                                 } catch (Exception e) {
 							System.err.println("PooledUpcallThread,implicitFinish() throws IOException. Should I quit??? " + e);
-//                                                        throw new Error(e);
+							// throw new Error(e);
 							return;
                                                 }
                                                 log.disp("reusing thread");
                                                 utStat.addReuse();
                                                 continue;
                                         } else {
-synchronized (this) {
-finishedUpcallThreads--;
-}
+						synchronized (this) {
+						    finishedUpcallThreads--;
+						}
                                                 try {
                                                         threadStackLock.lock();
                                                 } catch (InterruptedIOException e) {
@@ -341,7 +316,6 @@ finishedUpcallThreads--;
                                         }
                                 }
                         }
-// livingUpcallThreads--;
                         log.out();
                 }
 
@@ -357,9 +331,6 @@ finishedUpcallThreads--;
 				end = true;
 			}
 			interrupt();
-// System.err.println(this + ": polls " + pollSuccess  + " (of " + polls + ") sleeps " + sleeps);
-// System.err.println(this + ": interrupt...");
-                        // this.interrupt();
                         log.out();
                 }
         }
@@ -442,8 +413,6 @@ finishedUpcallThreads--;
 	    throw new IOException("read buffered/incomplete byte array not supported");
 	}
 
-private int pollFail;
-private int pollSuccess;
 
 	/**
 	 * Test for incoming data.
@@ -482,11 +451,6 @@ private int pollSuccess;
 
                 synchronized(this) {
                         if (activeNum.equals(takenNum)) {
-                                if (num != null) {
-pollSuccess++;
-                                } else {
-pollFail++;
-                                }
 				activeNum = num;
                         } else {
                                 // Closing?
@@ -553,18 +517,17 @@ pollFail++;
 	 */
         protected final void startUpcallThread() throws IOException {
                 log.in();
-// System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
                 threadStackLock.lock();
 		receiveStarted = true;
                 if (upcallFunc != null && upcallThreadNotStarted) {
-// System.err.println(this + ": start UpcallThread; upcallFunc " + upcallFunc);
-// Thread.dumpStack();
+			if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
+			    System.err.println(this + ": start UpcallThread; upcallFunc " + upcallFunc);
+			}
 			verifyNonSingletonPoller();
                         upcallThreadNotStarted = false;
                         PooledUpcallThread up = new PooledUpcallThread("no "+upcallThreadNum++);
                         utStat.addAllocation();
-// Should the thread be a daemon, or should we join it?? Uhum... dunno
-up.setDaemon(true);
+			up.setDaemon(true);
                         up.start();
                         up.exec();
                 }
@@ -928,7 +891,6 @@ System.err.println(this + ": try to override upcall " + this.upcallFunc + " with
 
                 if (! upcallSpawnMode) {
 		    synchronized (nonSpawnSyncer) {
-// System.err.println("Reset activeThread from finish");
 			activeThread = null;
 			if (nonSpawnWaiters > 0) {
 			    nonSpawnSyncer.notify();
@@ -936,10 +898,9 @@ System.err.println(this + ": try to override upcall " + this.upcallFunc + " with
 			}
 		    }
 		} else if (activeThread != null) {
-synchronized (this) {
-finishedUpcallThreads++;
-}
-pollingThreads--;
+			synchronized (this) {
+			    finishedUpcallThreads++;
+			}
                         PooledUpcallThread ut = null;
 
                         threadStackLock.lock();
@@ -948,8 +909,9 @@ pollingThreads--;
                                 utStat.addReuse();
                         } else {
                                 ut = new PooledUpcallThread("no "+upcallThreadNum++);
-// System.err.println(this + ": msg.finish creates another PooledUpcallThread[" + livingUpcallThreads + "] " + threadStackPtr + "; sleepingThreads " + waitingUpcallThreads + " finishedUpcallThreads " + finishedUpcallThreads);
-// Thread.dumpStack();
+				if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
+				    System.err.println(this + ": msg.finish creates another PooledUpcallThread " + ut + " " + threadStackPtr + "; finishedUpcallThreads " + finishedUpcallThreads);
+				}
                                 ut.start();
                                 utStat.addAllocation();
                         }

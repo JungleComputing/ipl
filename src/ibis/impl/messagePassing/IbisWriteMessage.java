@@ -17,7 +17,12 @@ final public class IbisWriteMessage extends WriteMessage {
 
 
     public int send() throws IOException {
-// System.err.println("Send Ibis WriteMessage " + this + ": send its ByteOutput " + out + " flush its IbisSerializationOutputStream " + obj_out);
+	if (Ibis.DEBUG_RUTGER) {
+	    System.err.println("Send Ibis WriteMessage " + this
+		    + ": send its ByteOutput "
+		    + out + " flush its IbisSerializationOutputStream "
+		    + obj_out);
+	}
 	obj_out.flush();
 	needs_flush = false;
 	// out is flushed from obj_out.

@@ -125,8 +125,11 @@ final class ByteOutputStream
 
     void send(boolean lastFrag) throws IOException {
 	Ibis.myIbis.checkLockOwned();
-// if (lastFrag)
-// System.err.print("L");
+	if (Ibis.DEBUG_RUTGER) {
+	    if (lastFrag) {
+		System.err.print("L");
+	    }
+	}
 
 	int n = sport.splitter.length;
 
@@ -181,7 +184,11 @@ final class ByteOutputStream
 	if (fragWaiting) {
 	    fragCv.cv_signal();
 	}
-// System.err.println(Thread.currentThread() + "Signal finish msg for stream " + this + "; outstandingFrags " + outstandingFrags);
+	if (Ibis.DEBUG_RUTGER) {
+	    System.err.println(Thread.currentThread()
+		    + "Signal finish msg for stream " + this
+		    + "; outstandingFrags " + outstandingFrags);
+	}
     }
 
     private class SendComplete extends Syncer {
@@ -204,14 +211,20 @@ final class ByteOutputStream
 	    Ibis.myIbis.pollLocked();
 
 	    if (outstandingFrags > 0) {
-// System.err.println(Thread.currentThread() + "Start wait to finish msg for stream " + this);
+		if (Ibis.DEBUG_RUTGER) {
+		    System.err.println(Thread.currentThread()
+			    + "Start wait to finish msg for stream " + this);
+		}
 		waitingInPoll = true;
 		Ibis.myIbis.waitPolling(sendComplete, 0, Poll.PREEMPTIVE);
 		waitingInPoll = false;
 	    }
 	}
 
-// System.err.println(Thread.currentThread() + "Done  wait to finish msg for stream " + this);
+	if (Ibis.DEBUG_RUTGER) {
+	    System.err.println(Thread.currentThread()
+		    + "Done  wait to finish msg for stream " + this);
+	}
 
 	msgSeqno++;
 	sentFrags = 0;
@@ -289,7 +302,9 @@ final class ByteOutputStream
 	}
 
 	int returned = 0;
-// System.err.println("finished -> outstandingFrags " + outstandingFrags);
+	if (Ibis.DEBUG_RUTGER) {
+	    System.err.println("finished -> outstandingFrags " + outstandingFrags);
+	}
 	Ibis.myIbis.lock();
 	try {
 	    if (outstandingFrags > 0) {
@@ -312,7 +327,6 @@ final class ByteOutputStream
 
 
     private void flush(boolean lastFrag) throws IOException {
-// manta.runtime.RuntimeSystem.DebugMe(this, null);
 	Ibis.myIbis.lock();
 	send(lastFrag);
 	Ibis.myIbis.unlock();

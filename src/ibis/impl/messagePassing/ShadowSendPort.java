@@ -42,20 +42,21 @@ class ShadowSendPort extends SendPort {
 					       int syncer)
 	    throws IOException {
 
-// System.err.println("createShadowSendPort: rcvePortBuf[" + rcvePortBuf.length + "] sendPortBuf[" + sendPortBuf.length + "]");
 	ReceivePortIdentifier rId;
 	SendPortIdentifier sId;
 
 	try {
 	    rId = (ReceivePortIdentifier)Conversion.byte2object(rcvePortBuf);
 	    sId = (SendPortIdentifier)Conversion.byte2object(sendPortBuf);
-// System.err.println("Create shadow SendPort (group " + group + ") for sendPort that belongs to Ibis " + sId);
+	    if (Ibis.DEBUG_RUTGER) {
+		System.err.println("Create shadow SendPort (group "
+			+ group + ") for sendPort that belongs to Ibis " + sId);
+	    }
 	} catch (ClassNotFoundException e) {
 	    throw new IOException("Cannot read Ids from stream " + e);
 	}
 
 	PortType portType = Ibis.myIbis.getPortTypeLocked(sId.type());
-// System.err.println("Sender port type " + sId.type + " = " + portType);
 	int serializationType = portType.serializationType;
 	if (DEBUG) {
 	    System.err.println("********** Create a ShadowSendPort, my type is " + serializationType);

@@ -18,6 +18,7 @@ import java.util.Vector;
 public class Ibis extends ibis.ipl.Ibis {
 
     static final boolean DEBUG = TypedProperties.booleanProperty(MPProps.s_debug);
+    static final boolean DEBUG_RUTGER = false;
     static final boolean CHECK_LOCKS = DEBUG;
     static final boolean STATISTICS = true;
     static final boolean BCAST_VERBOSE = false;
@@ -128,7 +129,6 @@ public class Ibis extends ibis.ipl.Ibis {
     /* Called from native */
     private void join_upcall(byte[] serialForm) throws IOException {
 	checkLockOwned();
-	//manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 
 	IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
 	if (DEBUG) {
@@ -195,10 +195,6 @@ public class Ibis extends ibis.ipl.Ibis {
 	    throw new IbisException("Only one Ibis allowed");
 	}
 	myIbis = this;
-
-// System.err.println("Gonna load libibis_mp.so");
-	// System.loadLibrary("ibis_mp");
-// System.err.println("Loaded libibis_mp.so");
 
 	rcve_poll = new Poll();
 
@@ -509,7 +505,10 @@ public class Ibis extends ibis.ipl.Ibis {
 	    throws IOException {
 	checkLockOwned();
 
-// System.err.println(Thread.currentThread() + "receiveFragment, group " + group);
+	if (Ibis.DEBUG_RUTGER) {
+	    System.err.println(Thread.currentThread()
+		    + "receiveFragment, group " + group);
+	}
 
 	if (group != SendPort.NO_BCAST_GROUP) {
 	    ReceivePort[] port = lookupGroupReceivePort(group);
@@ -529,8 +528,11 @@ public class Ibis extends ibis.ipl.Ibis {
 		// System.err.println("copy the Group message in native code");
 	    }
 
-// System.err.println(Thread.currentThread() + "receiveFragment/group port " + port);
-// System.err.println(Thread.currentThread() + "receiveFragment/group origin " + origin);
+	    if (Ibis.DEBUG_RUTGER) {
+		System.err.println(Thread.currentThread()
+			+ ": receiveFragment/group port " + port
+			+ " group origin " + origin);
+	    }
 
 	    for (int i = 0; i < port.length - 1; i++) {
 		if (origin[i] == null) {
@@ -565,8 +567,11 @@ public class Ibis extends ibis.ipl.Ibis {
 	} else {
 	    ReceivePort port = lookupReceivePort(dest_port);
 	    ShadowSendPort origin = lookupSendPort(src_cpu, src_port);
-// System.err.println(Thread.currentThread() + "receiveFragment port " + port);
-// System.err.println(Thread.currentThread() + "receiveFragment origin " + origin);
+	    if (Ibis.DEBUG_RUTGER) {
+		System.err.println(Thread.currentThread()
+			+ ": receiveFragment port " + port
+			+ " origin " + origin);
+	    }
 
 	    if (origin == null) {
 		throw new IOException("Receive message from sendport we're not connected to");
@@ -605,7 +610,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	if (rcve_poll != null) {
 	    rcve_poll.report(System.out);
 	}
-//	IbisSerializationOutputStream.statistics();
+	// IbisSerializationOutputStream.statistics();
 	ibmp_report(1);
     }
 
@@ -685,12 +690,10 @@ public class Ibis extends ibis.ipl.Ibis {
 	    }
 	    registry.end();
 
-// System.err.println("Ibis.end(): grab Ibis lock");
 
 	    myIbis.lock();
 	    try {
 		while (sendPortList != null) {
-    // System.err.println("Ibis.end(): Invoke close() of " + sendPortList);
 		    sendPortList.closeLocked();
 		}
 
@@ -699,7 +702,6 @@ public class Ibis extends ibis.ipl.Ibis {
 		receivePortShutter.waitPolling(1000);
 
 		while (receivePortList != null) {
-    // System.err.println("Ibis.end(): Invoke forced close() of " + receivePortList);
 		    receivePortList.closeLocked(true);
 		}
 
@@ -708,7 +710,6 @@ public class Ibis extends ibis.ipl.Ibis {
 		    byte[] sf = ident.getSerialForm();
 		    for (int i = 0; i < nrCpus; i++) {
 			if (i != myCpu) {
-    // System.err.println("Send leave message to " + i);
 			    send_leave(i, sf);
 			}
 		    }

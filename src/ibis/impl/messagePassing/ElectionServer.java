@@ -120,7 +120,6 @@ class ElectionServer
 	int n = Ibis.myIbis.nrCpus;
 
 	try {
-// System.err.println(Thread.currentThread() + "ElectionServer runs");
 	    server_port = new ibis.ipl.ReceivePort[Ibis.myIbis.nrCpus];
 	    client_port = new ibis.ipl.SendPort[Ibis.myIbis.nrCpus];
 	    StaticProperties p = new StaticProperties();
@@ -131,20 +130,16 @@ class ElectionServer
 							  p);
 
 	    for (int i = 0; i < n; i++) {
-// System.err.println(Thread.currentThread() + "ElectionServer will create ReceivePort " + i);
 		server_port[i] = type.createReceivePort("++++ElectionServer-" +
 							    i + "++++", 
 							this);
 		server_port[i].enableConnections();
 		server_port[i].enableUpcalls();
-// System.err.println(Thread.currentThread() + "ElectionServer will create SendPort " + i);
 		client_port[i] = type.createSendPort("election_server");
 	    }
 
 	    for (int i = 0; i < n; i++) {
-// System.err.println(Thread.currentThread() + "Now I'm gonna lookup ElectionClient receive port " + i);
 		ibis.ipl.ReceivePortIdentifier rid = Ibis.myIbis.registry().lookupReceivePort("++++ElectionClient-" + i + "++++");
-// System.err.println(Thread.currentThread() + "Now I'm gonna connect to ElectionClient receive port " + i + " RportID " + rid);
 		client_port[i].connect(rid);
 	    }
 
@@ -153,7 +148,6 @@ class ElectionServer
 		elections.notifyAll();
 	    }
 
-// System.err.println(Thread.currentThread() + "ElectionServer up");
 	} catch (IOException e) {
 	    System.err.println("ElectionServer meets exception " + e);
 	} catch (IbisException e2) {

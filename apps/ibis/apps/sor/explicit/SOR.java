@@ -149,7 +149,7 @@ public class SOR {
 	    System.out.println("CPUs          : " + size);
 	    System.out.println("Matrix size   : " + nrow + "x" + ncol);
 	    System.out.println("Iterations    : " + (maxIters >= 0 ? ("" + maxIters) : "dynamic"));
-	    System.out.println("Reduce        : " + (reduceAlways ? "on" : "off"));
+	    System.out.println("Reduce        : " + (clusterReduce ? "cluster" : (reduceAlways ? "on" : "off")));
 	    System.out.println("");
 	}
     }
@@ -604,7 +604,9 @@ public class SOR {
 
 	    if (rank==0) {
 		// System.err.println(iteration + "");
-		System.err.print(".");
+		// System.err.print(".");
+		System.out.print(".");
+		System.out.flush();
 	    }
 
 	    iteration++;

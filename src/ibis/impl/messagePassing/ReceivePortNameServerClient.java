@@ -64,9 +64,6 @@ final class ReceivePortNameServerClient
 		}
 
 		ns_bind(name, id.getSerialForm());
-// System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
-
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
 		if (ReceivePortNameServerProtocol.DEBUG) {
 		    if (bound) {
 			System.err.println("******** Reply arrives early, bind=" + this);
@@ -124,18 +121,15 @@ final class ReceivePortNameServerClient
 	    if (ReceivePortNameServerProtocol.DEBUG) {
 		System.err.println(Thread.currentThread() + "Lookup receive port \"" + name + "\"");
 	    }
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: grab Ibis lock.....");
 
 	    Ibis.myIbis.lock();
 	    while (ns_busy) {
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait until the previous client is finished" + this);
 		try {
 		    ns_free.cv_wait();
 		} catch (InterruptedException e) {
 		    // ignore
 		}
 	    }
-// System.err.println(Thread.currentThread() + "ReceivePortNSClient: set lookup.ns_busy" + this);
 	    ns_busy = true;
 	    Ibis.myIbis.unlock();
 

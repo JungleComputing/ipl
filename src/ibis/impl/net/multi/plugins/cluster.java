@@ -164,6 +164,7 @@ public final class cluster implements MultiPlugin {
                                     NetIbisIdentifier  	remoteId,
                                     ObjectOutputStream	os,
                                     ObjectInputStream 	is) throws IOException {
+		// System.err.println(ibis.impl.net.NetIbis.hostName() + ": query subContext, localId " + localId + " remoteId " + remoteId);
 		if (isOutgoing) {
 			Iterator i = netVector.iterator();
 
@@ -178,13 +179,14 @@ public final class cluster implements MultiPlugin {
 					throw new Error("Cannot find class Boolean", e);
 				}
 				if (b.booleanValue()) {
-					//System.err.println("Outgoing: subcontext string = ["+s+"]");
+					// System.err.println("Outgoing: subcontext string = ["+s+"]");
 					return s;
 				}
 			}
 
 			os.writeObject("");
 			os.flush();
+			// System.err.println("Outgoing: return " + null);
 			return null;
 		} else {
 			while (true) {
@@ -195,13 +197,14 @@ public final class cluster implements MultiPlugin {
 					throw new Error("Cannot find class String", e);
 				}
 				if (s.equals("")) {
+					// System.err.println("Incoming: return " + null);
 					return null;
 				}
 
 				if (netTable.get(s) != null) {
 					os.writeObject(Boolean.valueOf(true));
 					os.flush();
-					//System.err.println("Incoming: subcontext string = ["+s+"]");
+					// System.err.println("Incoming: subcontext string = ["+s+"]");
 					return s;
 				}
 				os.writeObject(Boolean.valueOf(false));

@@ -288,7 +288,6 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 
 	boolean total = requiresTotallyOrderedBcast();
 	if (! total && ! requiresFastBcast()) {
-// System.err.println("splitter.length " + splitter.length + " Ibis.myIbis.nrCpus " + Ibis.myIbis.nrCpus + "; give up");
 	    group = NO_BCAST_GROUP;
 	    return;
 	}
@@ -300,7 +299,6 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 		hasHomeBcastConnection = true;
 		if (false && (! USE_BCAST_ALL || ! total)) {
 		    group = NO_BCAST_GROUP;
-// System.err.println("home bcast: give up");
 		    return;
 		}
 	    }
@@ -386,10 +384,15 @@ System.err.println(this + ": switch on fast bcast. Consider disabling ordering")
 
 	    if (ident.ibis().equals(receiver.ibis())) {
 		homeConnection = true;
-// System.err.println("This IS a home connection, my Ibis " + ident.ibis() + " their Ibis " + receiver.ibis());
+		if (Ibis.DEBUG_RUTGER) {
+		    System.err.println("This IS a home connection, my Ibis "
+			    + ident.ibis() + " their Ibis " + receiver.ibis());
+		}
 	    } else {
-// System.err.println("This is NOT a home connection, my Ibis " + ident.ibis() + " their Ibis " + receiver.ibis());
-// Thread.dumpStack();
+		if (Ibis.DEBUG_RUTGER) {
+		    System.err.println("This is NOT a home connection, my Ibis "
+			    + ident.ibis() + " their Ibis " + receiver.ibis());
+		}
 	    }
 	} finally {
 	    connecting = false;

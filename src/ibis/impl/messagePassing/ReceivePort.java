@@ -127,7 +127,6 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 /// @@@ implement connectionAdministration --Rob
 
 	ident = new ReceivePortIdentifier(name, type.name());
-// System.err.println(this + ": create ReceivePort; ibisIdent = " + ident);
 
 	Ibis.myIbis.lock();
 	try {
@@ -298,16 +297,23 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	    }
 	    if (connectUpcall != null) {
 		acceptThread = new AcceptThread(this, connectUpcall);
-// System.err.println("And start another AcceptThread(this=" + this + ")");
+		if (Ibis.DEBUG_RUTGER) {
+		    System.err.println("And start another AcceptThread(this="
+			    + this + ")");
+		}
 		acceptThread.setName("ReceivePort accept thread");
 		acceptThread.start();
 	    }
-// System.err.println("In enableConnections: want to bind locally RPort " + this);
+	    if (Ibis.DEBUG_RUTGER) {
+		System.err.println("In enableConnections: want to bind locally RPort " + this);
+	    }
 	    Ibis.myIbis.lock();
 	    Ibis.myIbis.bindReceivePort(this, ident.port);
 	    Ibis.myIbis.unlock();
 	    try {
-// System.err.println("In enableConnections: want to bind RPort " + this);
+		if (Ibis.DEBUG_RUTGER) {
+		    System.err.println("In enableConnections: want to bind RPort " + this);
+		}
 		((Registry)Ibis.myIbis.registry()).bind(name, ident);
 	    } catch (IOException e) {
 		System.err.println("registry bind of ReceivePortName fails: " + e);
@@ -388,8 +394,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	    }
 	}
 	else {
-// System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because the previous one didn't terminate");
-// Thread.dumpStack();
+	    if (Ibis.DEBUG_RUTGER) {
+		System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because the previous one didn't terminate");
+	    }
 	    Thread upcallthread = new Thread(this, "ReceivePort upcall thread " + upcallThreads);
 	    upcallThreads++;
 	    availableUpcallThread++;
@@ -438,8 +445,6 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	    System.err.println(Thread.currentThread() + "Enqueue message " + msg + " in port " + this + " msgHandle " + Integer.toHexString(msg.fragmentFront.msgHandle) + " current queueFront " + queueFront);
 	}
 
-// new Throwable().printStackTrace();
-
 	if (queueFront == null) {
 	    queueFront = msg;
 	} else {
@@ -453,21 +458,17 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	}
 
 	if (arrivedWaiters > 0 && ! mePolling) {
-// System.err.println("Receiveport signalled");
 	    messageArrived.signal();
 	}
 
 	if (upcall != null) {
-//	    This wakeup() call is not needed. It is already done above. (wakeup does a
-//	    messageArrived.signal()).
-//	    wakeup();
-
 	    if (Ibis.STATISTICS) {
 		upcall_msgs++;
 	    }
 	    if (availableUpcallThread == 0 && ! aMessageIsAlive) {
-// System.err.println("enqueue: Create another UpcallThread because the previous one didn't terminate");
-// Thread.dumpStack();
+		if (Ibis.DEBUG_RUTGER) {
+		    System.err.println("enqueue: Create another UpcallThread because the previous one didn't terminate");
+		}
 		createNewUpcallThread();
 	    }
 	}
@@ -527,7 +528,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 		messageArrived.signal();
 	    }
 	    else if (upcall != null && availableUpcallThread == 0) {
-// System.err.println("finishMessage: Create another UpcallThread because the previous one didn't terminate");
+		if (Ibis.DEBUG_RUTGER) {
+		    System.err.println("finishMessage: Create another UpcallThread because the previous one didn't terminate");
+		}
 		createNewUpcallThread();
 	    }
 	}
@@ -640,11 +643,6 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
 	// long t = Ibis.currentTime();
 
-// if (upcall != null) System.err.println("Hit receive() in an upcall()");
-// for (int i = 0; queueFront == null && i < polls_before_yield; i++) {
-// Ibis.myIbis.pollLocked();
-// }
-
 	while (queueFront == null) {
 	    if (! block) {
 		return null;
@@ -683,7 +681,6 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	    throws IOException {
 	Ibis.myIbis.lock();
 	try {
-// manta.runtime.RuntimeSystem.DebugMe(this, this);
 	    return doReceive(block);
 	} finally {
 	    Ibis.myIbis.unlock();
@@ -788,7 +785,6 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	}
 	if (! forced) {
 	    try {
-// System.out.println(connectionToString());
 		shutdown.waitPolling();
 	    } catch (IOException e) {
 		/* well, if it throws an exception, let's quit.. */
@@ -924,7 +920,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 		msg = doReceive(true /* block */);	// May throw an IOException
 
 		if (msg != null) {
-// System.err.println(Thread.currentThread() + ": perform upcall for msg " + msg);
+		    if (Ibis.DEBUG_RUTGER) {
+			System.err.println(Thread.currentThread() + ": perform upcall for msg " + msg);
+		    }
 		    availableUpcallThread--;
 		    msg.creator = me;
 		    msg.finished = false;
@@ -962,7 +960,11 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	    System.err.println(Thread.currentThread() + "Receive port " + name +
 			       " upcall thread polls " + upcall_poll);
 	}
-// System.err.println("ReceivePort " + this + " upcallThread " + Thread.currentThread().getName() + " snuffs it");
+	if (Ibis.DEBUG_RUTGER) {
+	    System.err.println("ReceivePort " + this
+		    + " upcallThread " + Thread.currentThread().getName()
+		    + " snuffs it");
+	}
     }
 
 
