@@ -239,10 +239,10 @@ class OpenCell1D implements OpenConfig {
             hasPattern( board, x-1, y-2, vertTwister );
     }
 
-    private static void send( SendPort p, int firstColumn, int firstNoColumn, byte data[] )
+    private static void send( SendPort p, int firstColumn, int firstNoColumn, byte board[][] )
         throws java.io.IOException
     {
-        if( data == null ){
+        if( board[firstColumn] == null ){
             System.err.println( "P" + me + ": cannot send a null array to " + p );
             return;
         }
@@ -253,7 +253,7 @@ class OpenCell1D implements OpenConfig {
         m.writeInt( OpenCell1D.generation );
         m.writeInt( firstColumn );
         m.writeInt( firstNoColumn );
-        m.writeArray( data );
+        m.writeArray( board[firstColumn] );
         m.send();
         m.finish();
     }
@@ -458,7 +458,7 @@ class OpenCell1D implements OpenConfig {
                                 System.out.println( "P" + me + ": I should send columns " + firstColumn + " to " + aimFirstColumn + " to my left neighbour" );
                             }
                         }
-                        send( leftSendPort, firstColumn, firstColumn+1, board[firstColumn] );
+                        send( leftSendPort, firstColumn, firstColumn+1, board );
                     }
                     if( rightSendPort != null ){
                         if( aimFirstNoColumn>=firstColumn && aimFirstNoColumn<firstNoColumn ){
@@ -466,7 +466,7 @@ class OpenCell1D implements OpenConfig {
                                 System.out.println( "P" + me + ": I should send columns " + aimFirstNoColumn + " to " + firstNoColumn + " to my right neighbour" );
                             }
                         }
-                        send( rightSendPort, firstNoColumn-1, firstNoColumn, board[firstNoColumn-1] );
+                        send( rightSendPort, firstNoColumn-1, firstNoColumn, board );
                     }
                     if( leftReceivePort != null ){
                         receive( leftReceivePort, board[firstColumn-1] );
@@ -488,7 +488,7 @@ class OpenCell1D implements OpenConfig {
                                 System.out.println( "P" + me + ": I should send columns " + aimFirstNoColumn + " to " + firstNoColumn + " to my right neighbour" );
                             }
                         }
-                        send( rightSendPort, firstNoColumn-1, firstNoColumn, board[firstNoColumn-1] );
+                        send( rightSendPort, firstNoColumn-1, firstNoColumn, board );
                     }
                     if( leftSendPort != null ){
                         if( aimFirstColumn>firstColumn ){
@@ -496,7 +496,7 @@ class OpenCell1D implements OpenConfig {
                                 System.out.println( "P" + me + ": I should send columns " + firstColumn + " to " + aimFirstColumn + " to my left neighbour" );
                             }
                         }
-                        send( leftSendPort, firstColumn, firstColumn+1, board[firstColumn] );
+                        send( leftSendPort, firstColumn, firstColumn+1, board );
                     }
                 }
                 if( showProgress ){
