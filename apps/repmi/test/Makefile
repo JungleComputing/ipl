@@ -1,6 +1,5 @@
 SRC  = Test.java 
 SRC += myRep.java 
-SRC += DasInfo.java 
 
 MAIN = Main.java
 OUT=main

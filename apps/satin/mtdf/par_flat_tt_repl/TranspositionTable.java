@@ -4,6 +4,8 @@ import java.rmi.server.*;
 import java.util.Random;
 import javatimer.*;
 
+import ibis.util.PoolInfo;
+
 final class TranspositionTable extends UnicastRemoteObject implements TranspositionTableIntr {
 
 	static final boolean SUPPORT_TT = true;
@@ -45,9 +47,9 @@ final class TranspositionTable extends UnicastRemoteObject implements Transposit
 		Random random = new Random();
 		Registry r = null;
 
-		DasInfo info = new DasInfo();
-		rank = info.hostNumber();
-		poolSize = info.totalHosts();
+		PoolInfo info = new PoolInfo();
+		rank = info.rank();
+		poolSize = info.size();
 
 		System.err.println("hosts = " + poolSize + ", rank = " + rank);
 
@@ -79,7 +81,7 @@ final class TranspositionTable extends UnicastRemoteObject implements Transposit
 				while(true) {
 					try {
 						others[index] = (TranspositionTableIntr) Naming.lookup(
-							"//" + info.getHost(i) + ":5555/TT");
+							"//" + info.hostName(i) + ":5555/TT");
 						index++;
 						break;
 					} catch (Exception e) {
