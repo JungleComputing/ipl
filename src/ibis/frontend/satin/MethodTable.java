@@ -342,9 +342,9 @@ final class MethodTable {
 
     boolean isSpawnable(Method m, JavaClass cl) {
 	BT_Analyzer analyzer = getAnalyzer(cl);
-	System.out.println("isSpawnable: method = " + m + ", class = " + cl.getClassName());
+//	System.out.println("isSpawnable: method = " + m + ", class = " + cl.getClassName());
 	boolean b =  analyzer.isSpecial(m);
-	System.out.println("isSpawnable returns " + b);
+//	System.out.println("isSpawnable returns " + b);
 	if (b) {
 	    Satinc.do_satinc(cl);
 	}

@@ -52,6 +52,7 @@ public final class Satinc {
     boolean spawnCounterOpt;
     MethodTable mtab;
     boolean failed_verification = false;
+    private static boolean toplevel = true;
 
     private class StoreClass {
 	Instruction store;
@@ -145,7 +146,7 @@ public final class Satinc {
 	return Repository.instanceOf(c, satinObjectClass);
     }
 
-    boolean isRewritten() {
+    boolean isRewritten(JavaClass c) {
 	return Repository.implementationOf(c, "ibis.satin.SatinRewritten");
     }
 
@@ -2112,7 +2113,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    }
 	}
 
-	if (isRewritten()) {
+	if (isRewritten(c)) {
 	    System.out.println(classname + " is already rewritten");
 	    return;
 	}
@@ -2231,10 +2232,15 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    System.out.println(c);
 	}
 
-	for (int i = 0; i < javalist.size(); i++) {
-	    JavaClass cl = (JavaClass) (javalist.get(i));
-	    new Satinc(verbose, local, keep, print, invocationRecordCache,
-			cl.getClassName(), mainClassname, compiler, supportAborts, inletOpt, spawnCounterOpt).start();
+	// Do this before verification, otherwise classes may be missing.
+	if (toplevel) {
+	    toplevel = false;
+
+	    for (int i = 0; i < javalist.size(); i++) {
+		JavaClass cl = (JavaClass) (javalist.get(i));
+		new Satinc(verbose, local, keep, print, invocationRecordCache,
+			    cl.getClassName(), mainClassname, compiler, supportAborts, inletOpt, spawnCounterOpt).start();
+	    }
 	}
 
 	if (! do_verify(c)) failed_verification = true;
