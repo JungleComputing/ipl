@@ -1,6 +1,6 @@
 #!/bin/sh
 # Usage:
-# $0 <ibis> <ser> <count> <size> "<prun flags>" "<app flags>"
+# $0 <ibis> <ser> <count> <size> "<prun flags>" "<java flags>" "<app flags>"
 
 ibis=$1
 ser=$2
@@ -8,10 +8,11 @@ count=$3
 size=$4
 
 prunflags="$5"
-appflags="$6"
+javaflags="$6"
+appflags="$7"
 
 IBIS_ROOT=/home1/rutger/ibis
 
-echo ibis = $ibis ser = $ser count = $count size = $size app-flags = $appflags
-# prun -v -1 -pre-cleanup -no-panda -subst IBP_SEND_SYNC=100 LFC_INTR_FIRST=100 PAN_COMM_NO_IDLE_POLL=1 $prunflags $IBIS_ROOT/bin/run-das 2 -Dibis.name=$ibis -Dibis.serialization=$ser -Dibis.mp.polls.optimistic=1000 RPC $count $size $appflags
-prun -v -1 -pre-cleanup -no-panda $prunflags $IBIS_ROOT/bin/run-das 2 -Dibis.name=$ibis -Dibis.serialization=$ser -Dibis.mp.polls.optimistic=1000 RPC $count $size $appflags
+echo ibis = $ibis ser = $ser count = $count size = $size app-flags = \"$appflags\" java-flags = \"$javaflags\"
+
+prun -v -1 -pre-cleanup -no-panda $prunflags $IBIS_ROOT/bin/run-das 2 $javaflags -Dibis.name=$ibis -Dibis.serialization=$ser -Dibis.mp.polls.optimistic=1000 RPC $count $size $appflags

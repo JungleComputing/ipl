@@ -1,7 +1,8 @@
 #!/bin/sh
 
-reserve="-reserve 715713"
+# reserve="-reserve 715713"
 timeout="-t 10:0"
+# javaflags="-ip-map /home/rutger/myrinet-ip-map"
 
 n=10
 
@@ -15,21 +16,21 @@ if true ; then
     for ibis in $ibises ; do
 	for (( i = 0; i < $n; i++ )) ; do
 	    for ser in $sers ; do
-		sh run-rpc $ibis $ser 1000000 0 "$reserve $timeout"
+		sh run-rpc $ibis $ser 1000000 0 "$reserve $timeout" "$javaflags"
 	    done
 	done
     done
 fi
 
-# ibises="net.tcp_blk net.gen.tcp_blk tcp"
-ibises="tcp net.bytes.gen.tcp_blk"
+ibises="net.tcp_blk net.gen.tcp_blk tcp"
+# ibises="net.bytes.gen.tcp_blk"
 
 if true ; then
-    for ibis in $ibises ; do
-	for (( i = 0; i < $n; i++ )) ; do
+    for (( i = 0; i < $n; i++ )) ; do
+	for ibis in $ibises ; do
 	    for (( j = 0; j < 5; j++ )) ; do
 		for ser in $sers ; do
-		    sh run-rpc $ibis $ser 10000 0 "$reserve $timeout"
+		    sh run-rpc $ibis $ser 10000 0 "$reserve $timeout" "$javaflags"
 		done
 	    done
 	done

@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# reserve="-reserve 715713"
+reserve="-reserve 748855"
 timeout="-t 10:0"
+javaflags="-ip-map /home/rutger/myrinet-ip-map"
+
+myri_N=10000
+# tcp_N=2000
+tcp_N=10000
 
 n=10
 
@@ -18,52 +23,52 @@ if false ; then
     data="-byte"
     for ibis in $ibises ; do
 	for (( i = 0; i < $n; i++ )) ; do
-	    sh run-rpc $ibis $ser 10000 100000 "$reserve $timeout" $data
+	    sh run-rpc $ibis $ser $myri_N 100000 "$reserve $timeout" "$javaflags" $data
 	done
     done
 fi
 
-if true ; then
+if false ; then
     for ibis in $ibises ; do
 	for (( i = 0; i < $n; i++ )) ; do
 	    for ser in $sers ; do
 if false; then
 		for data in "-byte" "-int" "-double" ; do
-		    sh run-rpc $ibis $ser 10000 100000 "$reserve $timeout" $data
+		    sh run-rpc $ibis $ser $myri_N 100000 "$reserve $timeout" "$javaflags" $data
 		done
 fi
-		sh run-rpc $ibis $ser 10000 1023 "$reserve $timeout" "-tree -one-way"
+		sh run-rpc $ibis $ser $myri_N 1023 "$reserve $timeout" "$javaflags" "-tree -one-way"
 	    done
 	done
     done
 fi
 
 # ibises="tcp net.bytes.gen.tcp_blk"
-ibises="net.bytes.gen.tcp_blk"
+ibises="tcp net.bytes.gen.tcp_blk"
 
 # Byte serialization can only handle bytes
 
-if false ; then
+if true ; then
     ser="byte"
     data="-byte"
-    for ibis in $ibises ; do
-	for (( i = 0; i < $n; i++ )) ; do
-	    for y in 0 1 2 3 4 ; do
-		sh run-rpc $ibis $ser 2000 100000 "$reserve $timeout" $data
+    for (( i = 0; i < $n; i++ )) ; do
+	for ibis in $ibises ; do
+	    for (( j = 0; j < 5; j++ )) ; do
+		sh run-rpc $ibis $ser $tcp_N 100000 "$reserve $timeout" "$javaflags" $data
 	    done
 	done
     done
 fi
 
 if true ; then
-    for ibis in $ibises ; do
-	for (( i = 0; i < $n; i++ )) ; do
+    for (( i = 0; i < $n; i++ )) ; do
+	for ibis in $ibises ; do
 	    for (( j = 0; j < 5; j++ )) ; do
 		for ser in $sers ; do
 		    for data in "-byte" "-int" "-double" ; do
-			sh run-rpc $ibis $ser 2000 100000 "$reserve $timeout" $data
+			sh run-rpc $ibis $ser $tcp_N 100000 "$reserve $timeout" "$javaflags" $data
 		    done
-		    sh run-rpc $ibis $ser 2000 1023 "$reserve $timeout" "-tree"
+		    sh run-rpc $ibis $ser $tcp_N 1023 "$reserve $timeout" "$javaflags" "-tree"
 		done
 	    done
 	done
