@@ -36,7 +36,7 @@ public class SuffixArray implements Configuration, Magic {
     private int commonLength( int i0, int i1 )
     {
 	int n = 0;
-	while( i0<length && i1<length && text[i0] == text[i1] ){
+	while( (i0<length) && (i1<length) && (text[i0] == text[i1]) ){
 	    i0++;
 	    i1++;
 	    n++;
@@ -56,7 +56,7 @@ public class SuffixArray implements Configuration, Magic {
 	    // The sortest string is last, this is not good.
 	    return false;
 	}
-	return( text[i0]<text[i1] );
+	return (text[i0+n]<text[i1+n]);
     }
 
     /** Sorts the administration arrays to implement ordering. */
@@ -91,14 +91,15 @@ public class SuffixArray implements Configuration, Magic {
 		    // Things are in the wrong order, swap them and step back.
 		    int tmp = indices[i];
 		    indices[i] = indices[i-1];
-		    indices[--i] = tmp;
+		    i--;
+		    indices[i] = tmp;
 		}
 	    }
 	}
     }
 
     /** Builds the suffix array and the commonality array. */
-    private void buildArray()
+    private void buildArray() throws VerificationException
     {
 	indices = new int[length];
 	commonality = new int[length];
@@ -111,21 +112,21 @@ public class SuffixArray implements Configuration, Magic {
         sort();
     }
 
-    private SuffixArray( short text[] )
+    private SuffixArray( short text[] ) throws VerificationException
     {
         this.text = text;
 
         buildArray();
     }
 
-    SuffixArray( byte t[] )
+    SuffixArray( byte t[] ) throws VerificationException
     {
         text = buildShortArray( t );
 
         buildArray();
     }
 
-    SuffixArray( String text )
+    SuffixArray( String text ) throws VerificationException
     {
         this( text.getBytes() );
     }
@@ -270,14 +271,14 @@ public class SuffixArray implements Configuration, Magic {
      * to take advantage of the commonality indicated by that entry.
      * It also covers any further entries with the same commonality.
      */
-    private void applyCompression( int pos )
+    private void applyCompression( int pos ) throws VerificationException
     {
         // First, move the grammar text aside.
         int len = commonality[pos];
         short t[] = new short[len];
         System.arraycopy( text, indices[pos], t, 0, len );
 
-        // Now assign a new variable 
+        // Now assign a new variable and replace all occurences.
         short variable = nextcode++;
         pos = 1+replace( pos-1, len, variable );
         while( pos<length && commonality[pos] == len ){
@@ -298,21 +299,57 @@ public class SuffixArray implements Configuration, Magic {
         sort();
     }
 
+    /**
+     * Verify that `indices' is a permutation of the character positions.
+     * This is done by (1) ensuring there are no repeats, and (2)
+     * all indices are valid positions.
+     */
+    private void verifyIndicesIsPermutation()
+    {
+        boolean seen[] = new boolean[length];
+
+        for( int i=0; i<length; i++ ){
+            int ix = indices[i];
+
+            if( ix<0 ){
+                System.out.println( "Error: Negative index: indices[" + i + "]=" + ix );
+            }
+            else if( ix>=indices.length ){
+                System.out.println( "Error: Index out of range: indices[" + i + "]=" + ix );
+            }
+            else if( seen[ix] ){
+                System.out.println( "Error: Duplicate index: indices[" + i + "]=" + ix );
+            }
+            else {
+                seen[ix] = true;
+            }
+        }
+    }
+
     public void test() throws VerificationException
     {
+        verifyIndicesIsPermutation();
+
         // Verify that the elements are in fact ordered, and that the
         // commonality entry is correct.
-        for( int i=1; i<indices.length; i++ ){
-            if( !areCorrectlyOrdered( indices[i-1], indices[i] ) ){
+        for( int i=1; i<length; i++ ){
+            int ix0 = i-1;
+            int ix1 = i;
+
+            if( !areCorrectlyOrdered( indices[ix0], indices[ix1] ) ){
+                int l = commonLength( indices[ix0], indices[ix1] );
+                short c0 = text[indices[ix0]+l];
+                short c1 = text[indices[ix1]+l];
+
                 throw new VerificationException(
-                    "suffix array order is incorrect between " + (i-1) + " and " + i + " (`" + buildString( indices[i-1] ) + "' and `" + buildString( indices[i] ) + "'"
+                    "suffix array order is incorrect between " + ix0 + " and " + ix1 + " (`" + buildString( indices[ix0] ) + "' and `" + buildString( indices[ix1] ) + "'); common length is " + l + "; c0=" + c0 + "; c1=" + c1 + "; ordered=" + (c0<c1)
                 );
             }
         }
     }
 
     /** Apply one step in the folding process. */
-    public boolean applyFolding()
+    public boolean applyFolding() throws VerificationException
     {
         if( length == 0 ){
             return false;
@@ -351,15 +388,15 @@ public class SuffixArray implements Configuration, Magic {
 	    }
 	}
 
-        // Calculate the nett gain of replacing the maximal communality:
-        // the gain of using references to the new rule, minus the cost of the
-        // new rule.
-        if( traceCompressionCosts ){
-            System.out.println( "String [" + buildString( indices[max], commonality[max] ) + "] has " + repeats + " repeats: gain=" + maxgain );
-        }
         if( maxgain>0 ){
+            if( traceCompressionCosts ){
+                System.out.println( "String [" + buildString( indices[max], commonality[max] ) + "] has " + repeats + " repeats: gain=" + maxgain );
+            }
             // It is worthwile to do this compression.
             applyCompression( max );
+            if( doVerification ){
+                test();
+            }
         }
         return maxgain>0;
     }
@@ -367,12 +404,15 @@ public class SuffixArray implements Configuration, Magic {
     /** Returns a compressed version of the string represented by
      * this suffix array.
      */
-    public ByteBuffer compress()
+    public ByteBuffer compress() throws VerificationException
     {
         boolean success;
 
         do {
             success = applyFolding();
+            if( traceIntermediateGrammars && success ){
+                printGrammar();
+            }
         } while( success );
 	return new ByteBuffer( text, length );
     }
@@ -382,7 +422,9 @@ public class SuffixArray implements Configuration, Magic {
         try {
             SuffixArray t = new SuffixArray( args[0] );
 
-            t.test();
+            if( doVerification ){
+                t.test();
+            }
             t.printMaxima( System.out );
         }
         catch( Exception x )

@@ -6,7 +6,7 @@ class Compress extends ibis.satin.SatinObject
 {
     static boolean doVerification = false;
 
-    public ByteBuffer compress( byte text[] )
+    public ByteBuffer compress( byte text[] ) throws VerificationException
     {
 	SuffixArray a = new SuffixArray( text );
 	ByteBuffer out = a.compress();
@@ -51,34 +51,39 @@ class Compress extends ibis.satin.SatinObject
             usage();
             System.exit( 1 );
         }
-        byte text[] = Helpers.readFile( infile );
-	long startTime = System.currentTimeMillis();
 
-        Compress c = new Compress();
+        try {
+            byte text[] = Helpers.readFile( infile );
+            long startTime = System.currentTimeMillis();
 
-        ByteBuffer buf = c.compress( text );
+            Compress c = new Compress();
+            ByteBuffer buf = c.compress( text );
+            Helpers.writeFile( outfile, buf );
 
-        Helpers.writeFile( outfile, buf );
+            long endTime = System.currentTimeMillis();
+            double time = ((double) (endTime - startTime))/1000.0;
 
-	long endTime = System.currentTimeMillis();
-	double time = ((double) (endTime - startTime))/1000.0;
+            System.out.println( "ExecutionTime: " + time );
+            System.out.println( "In: " + text.length + " bytes, out: " + buf.getLength() + " bytes." );
+            if( doVerification ){
+                ByteBuffer debuf = Decompress.decompress( buf );
+                byte nt[] = debuf.getText();
 
-	System.out.println( "ExecutionTime: " + time );
-        System.out.println( "In: " + text.length + " bytes, out: " + buf.getLength() + " bytes." );
-        if( doVerification ){
-            ByteBuffer debuf = Decompress.decompress( buf );
-            byte nt[] = debuf.getText();
-
-            if( nt.length != text.length ){
-                System.out.println( "Error: decompressed text has different length from original. Original is " + text.length + " bytes, decompression is " + nt.length + " bytes" );
-                System.exit( 1 );
-            }
-            for( int i=0; i<nt.length; i++ ){
-                if( nt[i] != text[i] ){
-                    System.out.println( "Error: decompressed text differs from original at position " + i );
+                if( nt.length != text.length ){
+                    System.out.println( "Error: decompressed text has different length from original. Original is " + text.length + " bytes, decompression is " + nt.length + " bytes" );
                     System.exit( 1 );
+                }
+                for( int i=0; i<nt.length; i++ ){
+                    if( nt[i] != text[i] ){
+                        System.out.println( "Error: decompressed text differs from original at position " + i );
+                        System.exit( 1 );
+                    }
                 }
             }
         }
+        catch( Exception x ){
+            x.printStackTrace();
+        }
+
     }
 }
