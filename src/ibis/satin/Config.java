@@ -79,7 +79,7 @@ public interface Config {
 	static final boolean SUPPORT_TUPLE_MULTICAST = true;
 
 	/** Enable or disable debug prints concerning communication. **/
-	static final boolean COMM_DEBUG  = false;
+	static final boolean COMM_DEBUG  = true;
 
 	/** Enable or disable debug prints concerning job stealing. **/
 	static final boolean STEAL_DEBUG = false;
