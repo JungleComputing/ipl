@@ -1,4 +1,2 @@
-- Copy a test of the entire program from the other compressor.
-
 - Refactor to facilitate state cloning and hence parallelization.
 
