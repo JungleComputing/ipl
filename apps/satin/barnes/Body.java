@@ -1,16 +1,17 @@
 import java.io.*;
-import javax.swing.*;
 
-strictfp public final class Body implements Serializable, Cloneable {
+strictfp public final class Body implements Serializable, Cloneable,
+											Comparable {
 
 	//  public static int InstanceCount = 0;
 
 	public int number;
 	public Vec3 pos;
 	public Vec3 vel;
-	public Vec3 acc;
 	public Vec3 oldAcc;
 	public double mass; 
+
+	public Vec3 acc;
 
 	/* this field counts the number of interactions with this body
 	   were done in the *previous) iteration, we don't need it with satin */
@@ -19,8 +20,7 @@ strictfp public final class Body implements Serializable, Cloneable {
 	void initialize() {
 		pos = new Vec3();
 		vel = new Vec3();
-		acc = new Vec3();
-		oldAcc = new Vec3();
+		//oldAcc = acc = null;
 		mass = 1.0;
 		number = 0;
 
@@ -45,9 +45,23 @@ strictfp public final class Body implements Serializable, Cloneable {
 		vel.z = vz;
 	}
 
+	//used for sorting a list of bodies
+	public int compareTo(Object o) {
+		Body other = (Body) o;
+
+		if (pos.compareTo(other.pos) != 0) {
+			return pos.compareTo(other.pos);
+		} else {
+			return vel.compareTo(other.vel);
+		}
+	}
+
+
 	//copied from the rmi implementation
-	public void computeNewPosition(boolean useOldAcc, double dt) {
+	public void computeNewPosition(boolean useOldAcc, double dt, Vec3 acc) {
 		Vec3 v;
+
+		//System.out.println("acc: " + acc.x + ", " + oldAcc.x);
 
 		if (useOldAcc) {
 			v = new Vec3(acc); //vel += (acc-oldacc) * DT_HALF
@@ -56,8 +70,10 @@ strictfp public final class Body implements Serializable, Cloneable {
 			vel.add(v);
 		}
 
+		//System.out.println("vel: " + vel.x);
+
 		v = new Vec3(acc); //pos += (acc * DT_HALF + vel) * DT
-		v.mul(dt /2.0);
+		v.mul(dt / 2.0);
 		v.add(vel);
 		v.mul(dt);
 		pos.add(v);
@@ -66,26 +82,11 @@ strictfp public final class Body implements Serializable, Cloneable {
 		v.mul(dt);
 		vel.add(v);
 
-		oldAcc = acc;
+		//System.out.println("pos, vel: " + pos.x + ", " + vel.x);
 
 		//prepare for next call of BodyTreeNode.barnes()
+		oldAcc = acc;
 		acc = new Vec3(0.0, 0.0, 0.0);
+
 	}			
-
-	static BodyCanvas visualizeArray(Body[] bodies) {
-		JFrame.setDefaultLookAndFeelDecorated(true);
-
-        //Create and set up the window.
-        JFrame frame = new JFrame("Bodies");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
- 		BodyCanvas bc = new BodyCanvas(500, 500, bodies);
-		frame.getContentPane().add(bc);
-
-        //Display the window.
-        frame.pack();
-        frame.setVisible(true);
-
-		return bc;
-	}
 }

@@ -1,6 +1,6 @@
 import java.io.*;
 
-strictfp public final class Vec3 implements Serializable {
+strictfp public final class Vec3 implements Serializable, Comparable {
 
 	//public static int InstanceCount = 0;
 
@@ -133,4 +133,20 @@ strictfp public final class Vec3 implements Serializable {
 		return "(" + xstr.substring(0, xlen) + ", " +
 			ystr.substring(0, ylen) + ", " + zstr.substring(0, zlen) + ")";
 	}
+
+	public boolean equals(Vec3 other) {
+		return ((x == other.x) && (y == other.y) && (z == other.z));
+	}
+
+	public int compareTo(Object o) {
+		Vec3 other = (Vec3) o;
+		if (x < other.x) return -1;
+		if (x > other.x) return 1;
+		if (y < other.y) return -1;
+		if (y > other.y) return 1;
+		if (z < other.z) return -1;
+		if (z > other.z) return 1;
+		/* else */
+		return 0;
+	}		
 }

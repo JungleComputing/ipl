@@ -174,14 +174,6 @@ strictfp class Plummer {
 
 			bodies[i].mass = mass;
 
-			bodies[i].acc.x = 0;
-			bodies[i].acc.y = 0;
-			bodies[i].acc.z = 0;
-
-			bodies[i].oldAcc.x = 0;
-			bodies[i].oldAcc.y = 0;
-			bodies[i].oldAcc.z = 0;
-
 			//	System.out.println("i = " + i + ", xpos = " + bodies[i].pos.x + ", ypos = " + bodies[i].pos.y + ", zpos = " + bodies[i].pos.z);
 			//	System.out.println("i = " + i + ", xvel = " + bodies[i].vel.x + ", yvel = " + bodies[i].vel.y + ", zvel = " + bodies[i].vel.z);
 		}
