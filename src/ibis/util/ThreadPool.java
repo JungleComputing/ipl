@@ -23,8 +23,8 @@ class PoolThread extends Thread {
 		while(true) {
 			Runnable target = null;
 			synchronized(q) {
+				ThreadPool.ready++;
 				if (q.size() == 0) {
-					ThreadPool.ready++;
 					if (2 * ThreadPool.ready > ThreadPool.numthreads) {
 						if (ThreadPool.DEBUG) {
 							System.out.println("Poolthread exits, numthreads = " + ThreadPool.numthreads);
@@ -33,11 +33,9 @@ class PoolThread extends Thread {
 						ThreadPool.ready--;
 						return;
 					}
-					target = (Runnable) q.dequeue();
-					ThreadPool.ready--;
-				} else {
-					target = (Runnable) q.dequeue();
 				}
+				target = (Runnable) q.dequeue();
+				ThreadPool.ready--;
 			}
 
 			// catch and print all user exceptions.
