@@ -151,7 +151,6 @@
 	    <include name="ibis/ipl/**/*.java"/>
 	    <include name="ibis/impl/**/*.java"/>
 	    <exclude name="ibis/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/impl/net/gm2/**/*.java"/>
 	    <exclude name="ibis/impl/net/muxer/tcp_blk/**/*.java"/>
 	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
 
@@ -329,7 +328,7 @@
 	put them into ${rewritten-classlibs}
     -->
 
-    <property name="rewritten-classlibs" location="${build}/classlibs"/>
+    <property name="rewritten-classlibs" location="${ibis}/classlibs"/>
 
     <target name="-rewrite-unjar-one">
 	<echo level="warning" message="Now unjar ${jar.file}"/>
@@ -399,6 +398,7 @@
 
 
     <target name="clean">
+	<delete dir="${rewritten-classlibs}"/>
 	<delete dir="build"/>
 	<delete dir="${docs}"/>
     </target>

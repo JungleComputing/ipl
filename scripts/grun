@@ -23,7 +23,7 @@
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GLOBUS_LOCATION/lib
 
 
-GRUN_PATH=$IBIS_ROOT/ibis/globus
+GRUN_PATH=$IBIS_ROOT/globus
 SITES_PATH=$GRUN_PATH/sites
 
 USAGE="usage: $0 [-d] [-icp <extra ibisclasspath> ] <nameserver-port> [ <site> <count> ]+ - <class name>

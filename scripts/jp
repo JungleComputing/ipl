@@ -1,5 +1,5 @@
 # javap with classpath
 
-export JAVACLASSPATH=$IBIS_ROOT/build/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/build/lib:build:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar:$BCEL
+export JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/build/lib:build:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar:$BCEL
 
 $JAVA_ROOT/bin/javap -classpath $JAVACLASSPATH -bootclasspath $JAVACLASSPATH "$@"

@@ -2575,7 +2575,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 	 */
 	public void visitRETURN(RETURN o){
 		if (mg.getName().equals(Constants.CONSTRUCTOR_NAME)){// If we leave an <init> method
-			if ((frame._this != null) && (!(mg.getClassName().equals(Type.OBJECT.getClassName()))) ) {
+			if ((Frame._this != null) && (!(mg.getClassName().equals(Type.OBJECT.getClassName()))) ) {
 				constraintViolated(o, "Leaving a constructor that itself did not call a constructor.");
 			}
 		}

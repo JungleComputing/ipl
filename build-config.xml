@@ -17,10 +17,10 @@
 		location="3rdparty/bcel-5.1.jar"/>
 	<property
 		name="default.home.ant-contrib"
-		location="/usr/local/ant/ant-contrib/lib/ant-contrib-0.4.jar"/>
+		location="3rdparty/ant-contrib-0.4.jar"/>
 	<property
 		name="default.home.ant-cpptasks"
-		location="/usr/local/ant/ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
+		location="3rdparty/cpptasks-1.0b1.jar"/>
 
 	<property
 		name="default.home.panda"
@@ -44,14 +44,13 @@
 	    unless="config.is-das">
 	<property
 		name="default.home.bcel"
-		location="../bcel/bcel-5.1/bcel-5.1.jar"/>
+		location="3rdparty/bcel-5.1.jar"/>
 	<property
 		name="default.home.ant-contrib"
-		location="../ant-contrib/lib/ant-contrib-0.4.jar"/>
+		location="3rdparty/ant-contrib-0.4.jar"/>
 	<property
 		name="default.home.ant-cpptasks"
-		location="../ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
-
+		location="3rdparty/cpptasks-1.0b1.jar"/>
 	<property
 		name="default.home.panda"
 		location="../panda/panda4.0"/>

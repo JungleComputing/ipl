@@ -56,7 +56,6 @@ package org.apache.bcel.util;
 
 import java.io.*;
 
-import java.util.Map;
 import java.util.HashMap;
 
 import org.apache.bcel.classfile.*;
