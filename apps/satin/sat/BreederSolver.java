@@ -67,34 +67,44 @@ public final class BreederSolver {
 	    }
 	    throw new SATResultException( s );
 	}
-	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
-	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
+	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
 	}
-	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level, false, true );
-	}
-	else {
-	    res = ctx.propagateNegAssignment( p, var, level, false, true );
-	}
-	if( res == SATProblem.CONFLICTING ){
-	    if( traceSolver ){
-		System.err.println( "ls" + level + ": propagation found a conflict" );
-	    }
-	    return;
-	}
-	if( res == SATProblem.SATISFIED ){
-	    // Propagation reveals problem is satisfied.
-	    SATSolution s = new SATSolution( ctx.assignment );
+        if( ctx.assignment[var] != -1 ){
+            int a = val?1:0;
 
-	    if( traceSolver | printSatSolutions ){
-		System.err.println( "ls" + level + ": propagation found a solution: " + s );
-	    }
-	    if( !p.isSatisfied( ctx.assignment ) ){
-		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
-	    }
-	    throw new SATResultException( s );
-	}
+            if( ctx.assignment[var] != a ){
+                // Learned clauses imply an assignment that conflicts
+                // with our assignment. Give up.
+                return;
+            }
+        }
+        else {
+            if( val ){
+                res = ctx.propagatePosAssignment( p, var, level, false, true );
+            }
+            else {
+                res = ctx.propagateNegAssignment( p, var, level, false, true );
+            }
+            if( res == SATProblem.CONFLICTING ){
+                if( traceSolver ){
+                    System.err.println( "ls" + level + ": propagation found a conflict" );
+                }
+                return;
+            }
+            if( res == SATProblem.SATISFIED ){
+                // Propagation reveals problem is satisfied.
+                SATSolution s = new SATSolution( ctx.assignment );
+
+                if( traceSolver | printSatSolutions ){
+                    System.err.println( "ls" + level + ": propagation found a solution: " + s );
+                }
+                if( !p.isSatisfied( ctx.assignment ) ){
+                    System.err.println( "Error: " + level + ": solution does not satisfy problem." );
+                }
+                throw new SATResultException( s );
+            }
+        }
 	int nextvar = ctx.getDecisionVariable();
 	if( nextvar<0 ){
 	    // There are no variables left to assign, clearly there
@@ -204,7 +214,7 @@ public final class BreederSolver {
 	}
         catch( SATRestartException x ){
 	    if( traceRestarts ){
-		System.err.println( "RestartException reaches top level: no solutions" );
+		System.err.println( "RestartException reaches top level, no solutions" );
 	    }
 	    // No solution found.
             res = null;

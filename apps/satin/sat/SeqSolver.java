@@ -30,7 +30,7 @@ public final class SeqSolver {
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
      * @param level The branching level.
-     * @param p the SAT problem to solve
+     * @param p The SAT problem to solve.
      * @param ctx The changable context of the solver.
      * @param var The next variable to assign.
      * @param val The value to assign.
@@ -137,7 +137,7 @@ public final class SeqSolver {
      * Given a SAT problem, returns a solution, or <code>null</code> if
      * there is no solution.
      * @param p The problem to solve.
-     * @return a solution of the problem, or <code>null</code> if there is no solution
+     * @return A solution of the problem, or <code>null</code> if there is no solution.
      */
     SATSolution solveSystem( final SATProblem p, boolean learnTuple )
     {
