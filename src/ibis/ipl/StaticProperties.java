@@ -39,6 +39,11 @@ public class StaticProperties {
     private static final StaticProperties user_properties;
 
     /**
+     * User defined properties that are to be merged.
+     */
+    private static final StaticProperties user_merge_properties;
+
+    /**
      * Ibis properties.
      */
     private static final StaticProperties ibis_properties;
@@ -74,6 +79,13 @@ public class StaticProperties {
 		    h.add(s);
 		}
 	    }
+	}
+
+	/**
+	 * Creates an empty <code>Property</code>.
+	 */
+	public Property() {
+	    h = new HashSet();
 	}
 
 	/**
@@ -153,6 +165,7 @@ public class StaticProperties {
 	// properties.
 
 	user_properties = new StaticProperties();
+	user_merge_properties = new StaticProperties();
 	Properties sysprops = System.getProperties();
 	Enumeration e = sysprops.propertyNames();
 
@@ -169,11 +182,31 @@ public class StaticProperties {
 			n.equals("verbose")) {
 		    user_properties.add(n, prop);
 		}
+		else {
+		    // Allow for properties like ibis.communication.sequenced
+		    Iterator i = category_names.iterator();
+		    while (i.hasNext()) {
+			String catName = (String) i.next();
+			if (n.startsWith(catName + ".")) {
+			    Set catValues = ibis_properties.findSet(catName);
+			    Iterator j = catValues.iterator();
+			    while (j.hasNext()) {
+				String catValue = (String) j.next();
+				if (n.equals(catName + "." + catValue)) {
+				    Property p = (Property) user_merge_properties.mappings.get(catName);
+				    if (p == null) {
+					p = new Property();
+					user_merge_properties.mappings.put(catName, p);
+				    }
+				    HashSet h = p.getSet();
+				    h.add(catValue);
+				}
+			    }
+			}
+		    }
+		}
 	    }
 	}
-
-//	System.out.println("Ibis properties: ");
-//	System.out.println(ibis_properties.toString());
     }
 
     /**
@@ -240,7 +273,7 @@ public class StaticProperties {
      * @return the combined static properties.
      */
     public StaticProperties combineWithUserProps() {
-	return combine(userProperties());
+	return combine(userProperties()).merge(user_merge_properties);
     }
 
     /**
@@ -275,6 +308,35 @@ public class StaticProperties {
 	    combined.add(name, prop);
 	}
 	return combined;
+    }
+
+    /**
+     * Merges the properties with the specified properties. Merging means
+     * that the result is a union, in contrast to what
+     * {@link #combine(StaticProperties)} does.
+     * 
+     * @param p the properties to merge with.
+     * @return the merged static properties.
+     */
+    public StaticProperties merge(StaticProperties p) {
+	StaticProperties merged = copy();
+
+	Set e = p.mappings.keySet();
+	Iterator i = e.iterator();
+	while (i.hasNext()) {
+	    String cat = (String) i.next();
+	    if (category_names.contains(cat)) {
+		Property p1 = (Property) p.mappings.get(cat);
+		Property p2 = (Property) merged.mappings.get(cat);
+		if (p2 == null) {
+		    p2 = new Property();
+		    merged.mappings.put(cat, p2);
+		}
+		p2.getSet().addAll(p1.getSet());
+	    }
+	}
+
+	return merged;
     }
 
     /**
