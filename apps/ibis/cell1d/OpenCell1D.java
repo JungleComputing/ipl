@@ -724,6 +724,11 @@ class OpenCell1D implements OpenConfig {
             putTwister( p, 100, 3 );
             putPattern( p, 4, 4, glider );
 
+            if( idle ){
+                // Start waiting for work.
+                receiveRight( rightReceivePort, p );
+            }
+
             while( generation<count ){
                 if( rightNeighbour != null && rightReceivePort == null ){
                     // We now have a right neightbour. Set up communication
@@ -736,7 +741,6 @@ class OpenCell1D implements OpenConfig {
                 }
                 // TODO: as an idle node, start waiting for work;
                 // as a busy node with an idle right neighbour, send it work.
-                computeNextGeneration( p );
                 int members = rszHandler.getMemberCount();
                 if( knownMembers<members ){
                     // Some processors have joined the computation.
@@ -745,12 +749,29 @@ class OpenCell1D implements OpenConfig {
                     // For an equal division of the load, I should get...
                     aimFirstColumn = (me*boardsize)/members;
                     aimFirstNoColumn = ((me+1)*boardsize)/members;
+
+                    // Take into account that each node should have at least
+                    // two columns.
+                    if( aimFirstColumn<2*me ){
+                        aimFirstColumn = 2*me;
+                    }
+                    if( aimFirstNoColumn<aimFirstColumn+2 ){
+                        aimFirstNoColumn = aimFirstColumn+2;
+                    }
                     if( traceLoadBalancing ){
                         System.out.println( "P" + me + ": there are now " + members + " nodes in the computation (was " + knownMembers + ")" );
                         System.out.println( "P" + me + ": I have columns " + p.firstColumn + "-" + p.firstNoColumn + ", I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
                     }
                     knownMembers = members;
                 }
+                if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
+                    // We have some work for our lazy right neighbour.
+                    // give him the good news.
+                    sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                    rightNeighbourIdle = false;
+                }
+                computeNextGeneration( p );
+                // TODO: update the column aims.
                 if( (me % 2) == 0 ){
                     sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     receiveRight( rightReceivePort, p );
