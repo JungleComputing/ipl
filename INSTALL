@@ -1,3 +1,7 @@
+Before you try to configure Ibis, you must set the environment
+variable JAVA_HOME; see also the system-specific notes at the end
+of this text.
+
 The Ibis software requires `ant', a software building tool similar to
 `make', but written in Java, and well-suited for building Java software.
 Many OS distributions contain `ant' as a standard or optional package,
@@ -18,3 +22,8 @@ After Ibis has been configured, you can build it with
 ant
 
 
+
+MacOS X
+=-=-=-=
+
+Set the environment variable `JAVA_HOME' to `/Library/Java/Home'.
