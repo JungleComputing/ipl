@@ -630,10 +630,17 @@ public final class Satinc {
 								 satinType,
 								 Constants.GETSTATIC);
 
-// Hmm, this seems to be a bug, no idea why this code was here -Rob
-//	if (mtab.containsInlet(m)) {
-//	    deleteIns(il, i.getPrev().getPrev(), i.getPrev());
-//	}
+	// Now find the push-sequence of the sync parameter (the object).
+	InstructionHandle par = i;
+	int stackincr = 0;
+	do {
+	    par = par.getPrev();
+	    stackincr += par.getInstruction().produceStack(cpg) - par.getInstruction().consumeStack(cpg);
+	} while (stackincr != 1);
+
+	if (par != i.getPrev()) {
+	    deleteIns(il, par, i.getPrev());
+	}
 
 	i.getPrev().setInstruction(satin_field_access);
 	i.setInstruction(new ALOAD(maxLocals));
