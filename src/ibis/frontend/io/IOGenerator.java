@@ -2046,6 +2046,9 @@ public class IOGenerator {
 	    JavaClass clazz = null;
 	    if(!file) {
 		clazz = Repository.lookupClass(className);
+		if (clazz == null) {
+		    System.err.println("Warning: could not load class " + className + ". Please check your classpath.");
+		}
 	    } else {
 
 		System.err.println("class name = " + className);
