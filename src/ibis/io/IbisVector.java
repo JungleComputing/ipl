@@ -19,10 +19,10 @@ public final class IbisVector {
 	} 
 
 	private void double_array() { 
-		Object [] temp = new Object[current_size*2];
-		System.arraycopy(array, 0, temp, 0, current_size);
+		Object [] temp = new Object[current_size*4];
+		System.arraycopy(array, 0, temp, 0, maxfill);
 		array = temp;
-		current_size *= 2;
+		current_size *= 4;
 	} 
 
 	public void add(int index, Object data) { 

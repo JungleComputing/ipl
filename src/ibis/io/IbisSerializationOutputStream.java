@@ -135,7 +135,8 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    resetPending = true; /* remember we need to send out a reset */
 	    next_handle = CONTROL_HANDLES;
 	}
-	types_clear();
+	// types_clear();
+	// There is no need to clear the type table. It can be reused after a reset.
     }
 
     /**

@@ -30,7 +30,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /**
      * The underlying <code>IbisDissipator</code>.
      */
-    private IbisDissipator in;
+    private final IbisDissipator in;
 
     /**
      * First free type index.
@@ -116,27 +116,32 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      */
     public IbisSerializationInputStream(IbisDissipator in) throws IOException {
 	super();
-	init();
+	init(true);
 	this.in = in;
     }
 
     /**
      * Initializes the <code>objects</code> and <code>types</code> fields, including
      * their indices.
+     *
+     * @param do_types	set when the type table must be initialized as well (this
+     * is not needed after a reset).
      */
-    private void init() {
-	types = new IbisVector();
-	types.add(0, null);	// Vector requires this
-	types.add(TYPE_BOOLEAN,	booleanArrayInfo);
-	types.add(TYPE_BYTE,	byteArrayInfo);
-	types.add(TYPE_CHAR,	charArrayInfo);
-	types.add(TYPE_SHORT,	shortArrayInfo);
-	types.add(TYPE_INT,	intArrayInfo);
-	types.add(TYPE_LONG,	longArrayInfo);
-	types.add(TYPE_FLOAT,	floatArrayInfo);
-	types.add(TYPE_DOUBLE,	doubleArrayInfo);
+    private void init(boolean do_types) {
+	if (do_types) {
+	    types = new IbisVector();
+	    types.add(0, null);	// Vector requires this
+	    types.add(TYPE_BOOLEAN,	booleanArrayInfo);
+	    types.add(TYPE_BYTE,	byteArrayInfo);
+	    types.add(TYPE_CHAR,	charArrayInfo);
+	    types.add(TYPE_SHORT,	shortArrayInfo);
+	    types.add(TYPE_INT,		intArrayInfo);
+	    types.add(TYPE_LONG,	longArrayInfo);
+	    types.add(TYPE_FLOAT,	floatArrayInfo);
+	    types.add(TYPE_DOUBLE,	doubleArrayInfo);
 
-	next_type = PRIMITIVE_TYPES;
+	    next_type = PRIMITIVE_TYPES;
+	}
 
 	objects.clear();
 	next_object = CONTROL_HANDLES;
@@ -157,7 +162,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    System.err.println("IN(" + this + ") do_reset: next handle = " +
 							next_object + ".");
 	}
-	init();
+	init(false);
     }
 
     /**
@@ -649,17 +654,16 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     public int readKnownTypeHeader() throws IOException {
 	int handle_or_type = readHandle();
 
-	if (handle_or_type == NUL_HANDLE) {
-	    if (DEBUG) {
-		System.err.println("readKnownTypeHeader -> read NUL_HANDLE");
-	    }
-	    return 0;
-	}
-
 	if ((handle_or_type & TYPE_BIT) == 0) {
+	    // Includes NUL_HANDLE.
 	    if (DEBUG) {
-		System.err.println("readKnownTypeHeader -> read OLD HANDLE " +
+		if (handle_or_type == NUL_HANDLE) {
+		    System.err.println("readKnownTypeHeader -> read NUL_HANDLE");
+		}
+		else {
+		    System.err.println("readKnownTypeHeader -> read OLD HANDLE " +
 			(handle_or_type - CONTROL_HANDLES));
+		}
 	    }
 	    return handle_or_type;
 	}

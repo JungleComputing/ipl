@@ -145,7 +145,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      */
     private void writeArray(Object ref, int offset, int len, int type)
 	    throws IOException {
-	if (array_index + 1 == ARRAY_BUFFER_SIZE) {
+	if (array_index == ARRAY_BUFFER_SIZE) {
 	    doFlush();
 	}
 	if (DEBUG) {
@@ -164,6 +164,18 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on an IO error.
      */
     private void doFlush() throws IOException {
+	if (array_index == 0 &&
+	    byte_index == 0 &&
+	    char_index == 0 &&
+	    short_index == 0 &&
+	    int_index == 0 &&
+	    long_index == 0 &&
+	    float_index == 0 &&
+	    double_index == 0) {
+
+	    return;
+	}
+
 	flushBuffers();
 
 	/* Retain the order in which the arrays were pushed. This 
@@ -268,7 +280,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on IO error.
      */
     public void writeBoolean(boolean value) throws IOException {
-	if (byte_index + 1 == BYTE_BUFFER_SIZE) {
+	if (byte_index == BYTE_BUFFER_SIZE) {
 	    doFlush();
 	}
 	if (DEBUG) {
@@ -284,7 +296,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on IO error.
      */
     public void writeByte(byte value) throws IOException {
-	if (byte_index + 1 == BYTE_BUFFER_SIZE) {
+	if (byte_index == BYTE_BUFFER_SIZE) {
 	    doFlush();
 	}
 	if (DEBUG) {
@@ -299,7 +311,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on IO error.
      */
     public void writeChar(char value) throws IOException {
-	if (char_index + 1 == CHAR_BUFFER_SIZE) {
+	if (char_index == CHAR_BUFFER_SIZE) {
 	    doFlush();
 	}
 	if (DEBUG) {
@@ -314,7 +326,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on IO error.
      */
     public void writeShort(short value) throws IOException {
-	if (short_index + 1 == SHORT_BUFFER_SIZE) {
+	if (short_index == SHORT_BUFFER_SIZE) {
 	    doFlush();
 	}
 	if (DEBUG) {
@@ -329,7 +341,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on IO error.
      */
     public void writeInt(int value) throws IOException {
-	if (int_index + 1 == INT_BUFFER_SIZE) {
+	if (int_index == INT_BUFFER_SIZE) {
 	    doFlush();
 	}
 	if (DEBUG) {
@@ -345,7 +357,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on IO error.
      */
     public void writeLong(long value) throws IOException {
-	if (long_index + 1 == LONG_BUFFER_SIZE) {
+	if (long_index == LONG_BUFFER_SIZE) {
 	    doFlush();
 	}
 	if (DEBUG) {
@@ -360,7 +372,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on IO error.
      */
     public void writeFloat(float value) throws IOException {
-	if (float_index + 1 == FLOAT_BUFFER_SIZE) {
+	if (float_index == FLOAT_BUFFER_SIZE) {
 	    doFlush();
 	}
 	if (DEBUG) {
@@ -375,7 +387,7 @@ public abstract class ArrayOutputStream implements IbisAccumulator, IbisStreamFl
      * @exception IOException on IO error.
      */
     public void writeDouble(double value) throws IOException {
-	if (double_index + 1 == DOUBLE_BUFFER_SIZE) {
+	if (double_index == DOUBLE_BUFFER_SIZE) {
 	    doFlush();
 	}
 	if (DEBUG) {

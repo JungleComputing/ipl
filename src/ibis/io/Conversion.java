@@ -79,8 +79,9 @@ public final class Conversion {
 			
 			for (int i=0;i<len;i++) { 			
 				temp = src[off+i];
-				dst[count++] = (byte) (temp & 0xff);
-				dst[count++] = (byte) ((temp >>> 8)  & 0xff);
+				dst[count+0] = (byte) (temp & 0xff);
+				dst[count+1] = (byte) ((temp >>> 8)  & 0xff);
+				count += 2;
 			} 
 		} else { 
 			n_char2byte(src, off, len, dst, off2);
@@ -113,8 +114,9 @@ public final class Conversion {
 			
 			for (int i=0;i<len;i++) { 			
 				v = src[off+i];	
-				dst[count++] = (byte)(0xff & (v >> 8));
-				dst[count++] = (byte)(0xff & v);
+				dst[count+0] = (byte)(0xff & (v >> 8));
+				dst[count+1] = (byte)(0xff & v);
+				count += 2;
 			} 
 		} else { 
 			n_short2byte(src, off, len, dst, off2);
@@ -144,10 +146,11 @@ public final class Conversion {
 			for (int i=0;i<len;i++) { 			
 				v = src[off+i];
 
-				dst[count++] = (byte)(0xff & (v >> 24));
-				dst[count++] =(byte)(0xff  & (v >> 16));
-				dst[count++] =(byte)(0xff  & (v >> 8));
-				dst[count++] =(byte)(0xff  & v);
+				dst[count+0] = (byte)(0xff & (v >> 24));
+				dst[count+1] =(byte)(0xff  & (v >> 16));
+				dst[count+2] =(byte)(0xff  & (v >> 8));
+				dst[count+3] =(byte)(0xff  & v);
+				count += 4;
 			} 
 
 		} else { 
@@ -160,11 +163,11 @@ public final class Conversion {
 		if (! USE_NATIVE_CONVERSION) {
 			int count = index_src;
 			for (int i=0;i<len;i++) { 			
-				 dst[index_dst+i] = (((src[count] & 0xff) << 24)   | 
+				 dst[index_dst+i] = (((src[count+0] & 0xff) << 24)   | 
 						     ((src[count+1] & 0xff) << 16) |
 						     ((src[count+2] & 0xff) << 8)  | 
 						      (src[count+3] & 0xff));
-				 count+=4;
+				 count += 4;
 			}
 		} else { 			
 			n_byte2int(src, index_src, dst, index_dst, len);
@@ -176,18 +179,23 @@ public final class Conversion {
 		if (! USE_NATIVE_CONVERSION) {
 			long v;
 			int count = off2;
+			int end = off+len;
 			
-			for (int i=0;i<len;i++) { 		
-				v = src[off+i];
+			for (int i=off;i<end;i++) { 		
+				v = src[i];
+				int v1 = (int)(v >> 32);
+				int v2 = (int)(v);
 
-				dst[count++] = (byte)(0xff & (v >> 56));
-				dst[count++] = (byte)(0xff & (v >> 48));
-				dst[count++] = (byte)(0xff & (v >> 40));
-				dst[count++] = (byte)(0xff & (v >> 32));
-				dst[count++] = (byte)(0xff & (v >> 24));
-				dst[count++] = (byte)(0xff & (v >> 16));
-				dst[count++] = (byte)(0xff & (v >>  8));
-				dst[count++] = (byte)(0xff & v);
+				dst[count+0] = (byte)(0xff & (v1 >> 24));
+				dst[count+1] = (byte)(0xff & (v1 >> 16));
+				dst[count+2] = (byte)(0xff & (v1 >>  8));
+				dst[count+3] = (byte)(0xff & (v1 >>  0));
+				dst[count+4] = (byte)(0xff & (v2 >> 24));
+				dst[count+5] = (byte)(0xff & (v2 >> 16));
+				dst[count+6] = (byte)(0xff & (v2 >>  8));
+				dst[count+7] = (byte)(0xff & (v2 >>  0));
+
+				count += 8;
 			}
 
 		} else { 
@@ -200,18 +208,19 @@ public final class Conversion {
 		if (! USE_NATIVE_CONVERSION) {
 
 			int count = index_src;
+			int end = index_dst + len;
 			
-			for (int i=0;i<len;i++) { 	
- 				dst[index_dst+i] = (((long)(src[count] & 0xff) << 56) |
-						    ((long)(src[count+1] & 0xff) << 48) |
-						    ((long)(src[count+2] & 0xff) << 40) |
-						    ((long)(src[count+3] & 0xff) << 32) |
-						    ((long)(src[count+4] & 0xff) << 24) |
-						    ((long)(src[count+5] & 0xff) << 16) |
-						    ((long)(src[count+6] & 0xff) <<  8) |
-						    ((long)(src[count+7] & 0xff)));
+			for (int i=index_dst;i<end;i++) { 	
+				int t1 = (((int)(src[count+0] & 0xff) << 24) |
+					  ((int)(src[count+1] & 0xff) << 16) |
+					  ((int)(src[count+2] & 0xff) <<  8) |
+					  ((int)(src[count+3] & 0xff) <<  0));
+				int t2 = (((int)(src[count+4] & 0xff) << 24) |
+					  ((int)(src[count+5] & 0xff) << 16) |
+					  ((int)(src[count+6] & 0xff) <<  8) |
+					  ((int)(src[count+7] & 0xff) <<  0));
+				dst[i] = ((((long) t1) << 32) | (((long) t2) & 0xffffffffL));
 				count += 8;
-
 			}
 		} else { 			
 			n_byte2long(src, index_src, dst, index_dst, len);
@@ -227,10 +236,11 @@ public final class Conversion {
 			
 			for (int i=0;i<len;i++) { 			
 				v = Float.floatToIntBits(src[off+i]);
-				dst[count++] = (byte)(0xff & (v >> 24));
-				dst[count++] = (byte)(0xff & (v >> 16));
-				dst[count++] = (byte)(0xff & (v >> 8));
-				dst[count++] = (byte)(0xff & v);
+				dst[count+0] = (byte)(0xff & (v >> 24));
+				dst[count+1] = (byte)(0xff & (v >> 16));
+				dst[count+2] = (byte)(0xff & (v >> 8));
+				dst[count+3] = (byte)(0xff & v);
+				count += 4;
 			} 
 		} else { 
 			n_float2byte(src, off, len, dst, off2);
@@ -245,10 +255,10 @@ public final class Conversion {
 			
 			for (int i=0;i<len;i++) { 			
 
-				temp = (((src[count] & 0xff) << 24) | 
+				temp = (((src[count+0] & 0xff) << 24) | 
 					((src[count+1] & 0xff) << 16) |
-					((src[count+2] & 0xff) << 8)  | 
-					(src[count+3] & 0xff));
+					((src[count+2] & 0xff) <<  8) | 
+					((src[count+3] & 0xff) <<  0));
 				dst[index_dst+i] = Float.intBitsToFloat(temp);
 				count += 4;
 			}
@@ -265,15 +275,18 @@ public final class Conversion {
 			
 			for (int i=0;i<len;i++) { 			
 				long v = Double.doubleToLongBits(src[off++]);
+				int v1 = (int) (v >> 32);
+				int v2 = (int) (v);
 
-				dst[count++] = (byte)(0xff & (v >> 56));
-				dst[count++] = (byte)(0xff & (v >> 48));
-				dst[count++] = (byte)(0xff & (v >> 40));
-				dst[count++] = (byte)(0xff & (v >> 32));
-				dst[count++] = (byte)(0xff & (v >> 24));
-				dst[count++] = (byte)(0xff & (v >> 16));
-				dst[count++] = (byte)(0xff & (v >>  8));
-				dst[count++] = (byte)(0xff & v);
+				dst[count+0] = (byte)(0xff & (v1 >> 24));
+				dst[count+1] = (byte)(0xff & (v1 >> 16));
+				dst[count+2] = (byte)(0xff & (v1 >>  8));
+				dst[count+3] = (byte)(0xff & (v1 >>  0));
+				dst[count+4] = (byte)(0xff & (v2 >> 24));
+				dst[count+5] = (byte)(0xff & (v2 >> 16));
+				dst[count+6] = (byte)(0xff & (v2 >>  8));
+				dst[count+7] = (byte)(0xff & (v2 >>  0));
+				count += 8;
 			}
 
 		} else { 
@@ -286,18 +299,19 @@ public final class Conversion {
 		if (! USE_NATIVE_CONVERSION) {
 			
 			int count = index_src;
+			int end = index_dst + len;
 			
-			for (int i=0;i<len;i++) { 			
-				long x = (((long)(src[count] & 0xff) << 56) |
-					  ((long)(src[count+1] & 0xff) << 48) |
-					  ((long)(src[count+2] & 0xff) << 40) |
-					  ((long)(src[count+3] & 0xff) << 32) |
-					  ((long)(src[count+4] & 0xff) << 24) |
-					  ((long)(src[count+5] & 0xff) << 16) |
-					  ((long)(src[count+6] & 0xff) <<  8) |
-					  ((long)(src[count+7] & 0xff)));
+			for (int i=index_dst;i<end;i++) { 			
+				int t1 = (((int)(src[count+0] & 0xff) << 24) |
+					  ((int)(src[count+1] & 0xff) << 16) |
+					  ((int)(src[count+2] & 0xff) <<  8) |
+					  ((int)(src[count+3] & 0xff) <<  0));
+				int t2 = (((int)(src[count+4] & 0xff) << 24) |
+					  ((int)(src[count+5] & 0xff) << 16) |
+					  ((int)(src[count+6] & 0xff) <<  8) |
+					  ((int)(src[count+7] & 0xff) <<  0));
 
- 				dst[index_dst+i] = Double.longBitsToDouble(x);
+ 				dst[i] = Double.longBitsToDouble((((long) t1) << 32) | (((long) t2) & 0xffffffffL));
 				count += 8;
 			}
 		} else { 
