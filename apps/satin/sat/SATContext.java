@@ -98,8 +98,9 @@ public final class SATContext implements java.io.Serializable {
     private static final boolean tracePropagation = false;
     private static final boolean traceLearning = false;
     private static final boolean traceResolutionChain = false;
+
     private static final boolean doVerification = false;
-    private static final boolean doLearning = false;
+    private static final boolean doLearning = true;
     private static final boolean propagatePureVariables = true;
 
     /**
@@ -493,6 +494,16 @@ public final class SATContext implements java.io.Serializable {
         return bestDom;
     }
 
+    int calculateNearestDominator( SATProblem p, int cno, int level )
+    {
+        // The distance of each clause to the conflicting clause. The 
+        // conflicting clause itself gets distance 1, so that we can use
+        // the default value 0  as indication that we haven't considered
+	// this clause yet.
+        int dist[] = new int[satisfied.length];
+        return calculateNearestDominator( p, cno, level, dist, 1 );
+    }
+
     private Resolution calculateDominatorPath( SATProblem p, int arr[], int cno, int level, int dom )
     {
         Resolution bestPath = null;
@@ -587,12 +598,7 @@ public final class SATContext implements java.io.Serializable {
      */
     Resolution computeResolutionChain( SATProblem p, int cno, int level )
     {
-        // The distance of each clause to the conflicting clause. The 
-        // conflicting clause itself gets distance 1, so that we can use
-        // the default value 0
-        // as indication that we haven't considered this clause yet.
-        int dist[] = new int[satisfied.length];
-        int bestDom = calculateNearestDominator( p, cno, level, dist, 1 );
+	int bestDom = calculateNearestDominator( p, cno, level );
 	if( bestDom == -1 ){
 	    if( traceResolutionChain ){
                 System.err.println( "There is no dominator for clause " + p.clauses[cno] );
@@ -600,7 +606,7 @@ public final class SATContext implements java.io.Serializable {
 	    return null;
 	}
         if( traceResolutionChain ){
-	    System.err.println( "Nearest dominator is " + p.clauses[bestDom] + " at distance " + dist[bestDom] );
+	    System.err.println( "Nearest dominator is " + p.clauses[bestDom] );
 	}
         Resolution bestPath = calculateDominatorPath( p, cno, level, bestDom );
         if( bestPath == null ){
@@ -624,11 +630,12 @@ public final class SATContext implements java.io.Serializable {
      */
     private Clause buildConflictClause( SATProblem p, int cno, int var, int level )
     {
-	if( false ){
+	if( true ){
 	    boolean changed = false;
 	    boolean anyChange = false;
 	    Clause res = p.clauses[cno];
 
+	    int bestDom = calculateNearestDominator( p, cno, level );
 	    do {
 		changed = false;
 		int arr[] = res.pos;
@@ -638,7 +645,7 @@ public final class SATContext implements java.io.Serializable {
 		    if( dl[v] == level ){
 			int a = antecedent[v];
 
-			if( a>=0 ){
+			if( a>=0 && a != bestDom ){
 			    Clause newres = Clause.resolve( res, p.clauses[a], v );
 			    if( traceLearning ){
 				System.err.println( "Resolving on v" + v + ":" );
@@ -660,7 +667,7 @@ public final class SATContext implements java.io.Serializable {
 		    if( dl[v] == level ){
 			int a = antecedent[v];
 
-			if( a>=0 ){
+			if( a>=0 && a != bestDom ){
 			    Clause newres = Clause.resolve( res, p.clauses[a], v );
 			    if( traceLearning ){
 				System.err.println( "Resolving on v" + v + ":" );
@@ -682,8 +689,6 @@ public final class SATContext implements java.io.Serializable {
             return res;
         }
         else {
-            int a = antecedent[var];
-
             Resolution chain = computeResolutionChain( p, cno, level );
             if( chain == null ){
                 // No interesting clause to learn.
@@ -705,6 +710,33 @@ public final class SATContext implements java.io.Serializable {
             }
 	    return res;
 	}
+    }
+
+    /**
+     * Calculate the restart level.
+     */
+    private int calculateRestartLevel( Clause c, int mylevel )
+    {
+	int level = -1;
+
+	int arr[] = c.pos;
+        
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+
+	    if( dl[v] != mylevel && dl[v]>level  ){
+		level = dl[v];
+	    }
+        }
+        arr = c.neg;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+
+	    if( dl[v] != mylevel && dl[v]>level ){
+		level = dl[v];
+	    }
+        }
+	return level;
     }
 
     /**
@@ -736,9 +768,15 @@ public final class SATContext implements java.io.Serializable {
 		    System.err.println( "Added conflict clause " + cc );
 		}
 		p.addConflictClause( cc );
+		int rl = calculateRestartLevel( cc, level );
+		if( traceLearning ){
+		    System.err.println( "Restarting at level " + rl + " (now at " + level + ")" );
+		}
+		if( rl<(level-1) ){
+		    throw new SATRestartException( rl );
+		}
 	    }
 	}
-        throw new SATRestartException();
     }
 
     /**
