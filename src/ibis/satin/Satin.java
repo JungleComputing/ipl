@@ -1869,7 +1869,9 @@ public final class Satin implements Config, ResizeHandler {
 		int oldParentStamp;
 		IbisIdentifier oldParentOwner;
 
-		handleDelayedMessages();
+		// @@@ For some reason, this breaks SAT.
+		// At this moment, I don't have any idea why --Rob
+//		handleDelayedMessages();
 
 		if(ABORTS) {
 			oldParent = parent;
@@ -2720,9 +2722,9 @@ public final class Satin implements Config, ResizeHandler {
 	    in which case this method returns false.
 	 **/
 	static boolean localJob() {
-		if(this_satin == null) return true;
+	    if(this_satin == null) return true; // sequential run
 
-		if(this_satin.parentOwner == null) return true;
+	    if(this_satin.parentOwner == null) return true; // root job
 
 		return this_satin.parentOwner.equals(this_satin.ident);
 	}
