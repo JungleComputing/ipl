@@ -1,4 +1,4 @@
-package ibis.io;
+package ibis.io.nio;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -8,6 +8,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+
+import ibis.io.SimpleBigConversion;
 
 //import java.nio.BufferUnderflowException;
 

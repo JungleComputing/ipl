@@ -117,9 +117,9 @@ public abstract class Conversion {
 	if (conversion == null || conversion.equalsIgnoreCase("nio")) {
 	    try {
 		if(bigEndian) {
-		    return loadConversion("ibis.io.NioBigConversion");
+		    return loadConversion("ibis.io.nio.NioBigConversion");
 		} else {
-		    return loadConversion("ibis.io.NioLittleConversion");
+		    return loadConversion("ibis.io.nio.NioLittleConversion");
 		}
 	    } catch (Exception e) {
 		//nio conversion loading failed
