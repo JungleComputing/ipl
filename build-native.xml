@@ -246,20 +246,20 @@
     </target>
 
 
-    <path id="default.includes-ref">
-	<pathelement path="${JAVA_HOME}/include"/>
-	<pathelement path="${JAVA_HOME}/include/linux"/>
-	<pathelement path="${JAVA_HOME}/include/win32"/>
-	<pathelement path="${build}/include"/>
-	<pathelement path="${native.dir}"/>
-    </path>
-    <property name="default.includes" refid="default.includes-ref"/>
-
     <target name="native-init"
 	    depends="property-native-build,property-native-local.lib,property-native-outtype,cpptasks-init">
 	<mkdir dir="${build}"/>
 	<mkdir dir="${build}/include"/>
 	<mkdir dir="${build}/lib"/>
+
+	<path id="default.includes-ref">
+	    <pathelement path="${JAVA_HOME}/include"/>
+	    <pathelement path="${JAVA_HOME}/include/linux"/>
+	    <pathelement path="${JAVA_HOME}/include/win32"/>
+	    <pathelement path="${build}/include"/>
+	    <pathelement path="${native.dir}"/>
+	</path>
+	<property name="default.includes" refid="default.includes-ref"/>
 
 	<echo message="native.dir = ${native.dir}"/>
 	<pathconvert pathsep=" " property="native-path">
