@@ -2,7 +2,7 @@
 
 import java.io.File;
 
-class Compress extends ibis.satin.SatinObject
+class Compress extends ibis.satin.SatinObject implements CompressorInterface
 {
     static final boolean traceMatches = false;
     static final boolean traceLookahead = false;
