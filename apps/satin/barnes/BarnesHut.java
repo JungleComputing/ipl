@@ -198,13 +198,7 @@ class BarnesHut {
 		btRoot.sync();
 		break;
 	    case IMPL_TUPLE:
-		BodyTreeNode dummyNode = new BodyTreeNode();
-
-		String rootId = "root" + iteration;
-		ibis.satin.SatinTupleSpace.add(rootId, btRoot);
-
-		result = dummyNode.barnes(null, rootId, spawn_threshold);
-		dummyNode.sync();
+		result = tupleIter(btRoot, iteration);
 		break;
 	    }
 
@@ -292,6 +286,18 @@ class BarnesHut {
 
 	end = System.currentTimeMillis();
 	return end - start;
+    }
+
+    private LinkedList tupleIter(BodyTreeNode btRoot, int iteration) {
+	LinkedList result;
+	BodyTreeNode dummyNode = new BodyTreeNode();
+
+	String rootId = "root" + iteration;
+	ibis.satin.SatinTupleSpace.add(rootId, btRoot);
+
+	result = dummyNode.barnes(null, rootId, spawn_threshold);
+	dummyNode.sync();
+	return result;
     }
 
     /*private BodyCanvas visualize() {
