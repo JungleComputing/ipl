@@ -6,8 +6,8 @@ import java.util.Random;
 import java.io.IOException;
 
 interface Config {
-    static final boolean DEBUG = false;
     static final boolean tracePortCreation = true;
+    static final boolean traceCommunication = true;
 }
 
 class RszHandler implements ResizeHandler {
@@ -124,6 +124,29 @@ class Cell1D implements Config {
         return res;
     }
 
+    private static void send( int me, SendPort p, int data[] )
+        throws java.io.IOException
+    {
+        if( traceCommunication ){
+            System.err.println( "P" + me + ": sending from port " + p );
+        }
+        WriteMessage m = p.newMessage();
+        m.writeArray( data );
+        m.send();
+        m.finish();
+    }
+
+    private static void receive( int me, ReceivePort p, int data[] )
+        throws java.io.IOException
+    {
+        if( traceCommunication ){
+            System.err.println( "P" + me + ": receiving on port " + p );
+        }
+        ReadMessage m = p.receive();
+        m.readArray( data );
+        m.finish();
+    }
+
     public static void main( String [] args )
     {
         int count = -1;
@@ -154,8 +177,6 @@ class Cell1D implements Config {
         }
 
         try {
-            String portprops = "OneToOne, Reliable, ExplicitReceipt";
-
             info = new ibis.util.PoolInfo();
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
@@ -193,8 +214,37 @@ class Cell1D implements Config {
                 rightSendPort = createUpdateSendPort( t, me, me+1 );
             }
 
-            if( DEBUG ) {
-                System.out.println( "LAT: pre elect" );
+            int data[] = new int[] { 0, 1, 2 };
+
+            for( int iter=0; iter<3; iter++ ){
+                if( (me % 2) == 0 ){
+                    if( leftSendPort != null ){
+                        send( me, leftSendPort, data );
+                    }
+                    if( rightSendPort != null ){
+                        send( me, rightSendPort, data );
+                    }
+                    if( leftReceivePort != null ){
+                        receive( me, leftReceivePort, data );
+                    }
+                    if( rightReceivePort != null ){
+                        receive( me, rightReceivePort, data );
+                    }
+                }
+                else {
+                    if( leftReceivePort != null ){
+                        receive( me, leftReceivePort, data );
+                    }
+                    if( rightReceivePort != null ){
+                        receive( me, rightReceivePort, data );
+                    }
+                    if( leftSendPort != null ){
+                        send( me, leftSendPort, data );
+                    }
+                    if( rightSendPort != null ){
+                        send( me, rightSendPort, data );
+                    }
+                }
             }
             ibis.end();
         }
