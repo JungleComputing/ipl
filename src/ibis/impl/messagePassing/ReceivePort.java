@@ -109,9 +109,6 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 	}
     }
 
-    ReceivePort() {
-    }
-
     ReceivePort(PortType type, String name) throws IOException {
 	this(type, name, null, null, false);
     }
@@ -426,6 +423,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 		    (scan.shadowSendPort != ssp ||
 		     scan.msgSeqno != msgSeqno);
 		scan = scan.next) {
+	    // try the next list element
 	}
 
 	return scan;

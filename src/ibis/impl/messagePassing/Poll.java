@@ -274,6 +274,7 @@ if (false)
 	    try {
 		Thread.sleep(0,1);
 	    } catch (InterruptedException e) {
+		// Give up
 	    }
 	} else {
 	    Thread.yield();

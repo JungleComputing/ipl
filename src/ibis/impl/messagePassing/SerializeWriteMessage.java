@@ -11,9 +11,6 @@ final class SerializeWriteMessage extends WriteMessage {
 
     ibis.io.SunSerializationOutputStream obj_out;
 
-    SerializeWriteMessage() {
-    }
-
     SerializeWriteMessage(SendPort sPort) throws IOException {
 	super(sPort);
 	obj_out = ((SerializeSendPort)sPort).obj_out;

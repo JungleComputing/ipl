@@ -2,7 +2,6 @@ package ibis.impl.messagePassing;
 
 import ibis.io.DataAllocator;
 import ibis.util.ConditionVariable;
-import ibis.util.TypedProperties;
 
 import java.io.IOException;
 
@@ -104,7 +103,8 @@ final class ByteOutputStream
 	    fragWaiting = true;
 	    try {
 		fragCv.cv_wait();
-	    } catch(InterruptedException e) {
+	    } catch (InterruptedException e) {
+		// Ignore
 	    }
 	}
 	fragWaiting = false;

@@ -76,6 +76,10 @@ public class SendPort implements ibis.ipl.SendPort {
 
     SendPort	next;
 
+    SendPort() {
+	// No-args constructor required by Java
+    }
+
     protected native void ibmp_connect(int dest,
 	    			       byte[] rcvePortId,
 				       byte[] sendPortId,
@@ -90,9 +94,6 @@ public class SendPort implements ibis.ipl.SendPort {
 					  byte[] sendPortId,
 					  ConnectAcker syncer,
 					  int count);
-
-    public SendPort() {
-    }
 
     public SendPort(PortType type,
 		    String name,
@@ -114,6 +115,7 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
     public void setReplacer(Replacer r) throws IOException {
+	// Is replacer unnecessary in MessagePassing? Ceriel?
     }
 
     public SendPort(PortType type, String name)

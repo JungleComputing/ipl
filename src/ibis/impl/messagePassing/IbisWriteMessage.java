@@ -10,9 +10,6 @@ final public class IbisWriteMessage extends WriteMessage {
     private ibis.io.IbisSerializationOutputStream obj_out;
     private boolean needs_flush = true;
 
-    IbisWriteMessage() {
-    }
-
     IbisWriteMessage(SendPort p) {
 	super(p);
 	obj_out = ((IbisSendPort)p).obj_out;

@@ -90,7 +90,11 @@ class ElectionClient implements ElectionProtocol {
 		System.err.println(Thread.currentThread() + "ElectionClient: elect() finished, winner " + winner + " my stake " + candidate);
 	    }
 	    if (winner == null) {
-		try { Thread.sleep(1000); } catch(Exception ee) {}
+		try {
+		    Thread.sleep(100);
+		} catch (Exception ee) {
+		    // Give up
+		}
 	    }
 	}
 

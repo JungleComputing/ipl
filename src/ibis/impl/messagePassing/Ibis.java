@@ -97,9 +97,11 @@ public class Ibis extends ibis.ipl.Ibis {
     }
     
     public void sendDelete(ibis.ipl.IbisIdentifier ident) throws IOException {
+	// I guess this is Gosia stuff. No idea what it should implement.
     }
     
     public void sendReconfigure() throws IOException {
+	// I guess this is Gosia stuff. No idea what it should implement.
     }
 
 
@@ -294,12 +296,14 @@ public class Ibis extends ibis.ipl.Ibis {
 	myIbis.lock();
 	world.open();
 	myIbis.unlock();
+
 	if (resizeHandler != null) {
 	    synchronized(this) {
 		while (! i_joined) {
 		    try {
 			wait();
 		    } catch(Exception e) {
+			// Ignore
 		    }
 		}
 	    }

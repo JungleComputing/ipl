@@ -12,9 +12,6 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     long      before;
 
 
-    WriteMessage() {
-    }
-
     WriteMessage(SendPort sPort) {
 	if (Ibis.DEBUG) {
 	    System.err.println("**************************************************Creating new SendPort port = " + sPort);
@@ -34,6 +31,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
     public void reset() throws IOException {
+	// No-op, reserve for subclasses
     }
 
 
@@ -61,6 +59,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	try {
 	    finish();
 	} catch(IOException e2) {
+	    // Give up
 	}
     }
 

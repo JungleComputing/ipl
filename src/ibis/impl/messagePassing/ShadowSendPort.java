@@ -206,6 +206,7 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 
 
     void disconnect() throws IOException {
+	throw new Error("User disconnect has no meaning for ShadowSendPort");
     }
 
 

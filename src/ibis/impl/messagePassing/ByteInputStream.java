@@ -301,7 +301,8 @@ final class ByteInputStream
     }
 
 
-    public synchronized void mark(int readlimit) {
+    public synchronized void mark(int readlimit) throws IOException {
+	throw new IOException("mark/reset not supported");
     }
 
 
