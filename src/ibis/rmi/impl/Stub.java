@@ -21,18 +21,19 @@ public class Stub extends RemoteStub {
     transient private boolean initializing = false;
 
     public Stub() {
+        // nothing here for now.
     }
 
-    public void init(SendPort s, ReceivePort r, int id, int skelId, ReceivePortIdentifier rpi, boolean initialized, RemoteRef ref) throws IOException {
+    public void init(SendPort s, ReceivePort r, int id, int skelId, ReceivePortIdentifier rpi, boolean inited, RemoteRef reference) {
 
 	stubID = id;
 	skeletonPortId = rpi;
-	this.initialized = initialized;
+	this.initialized = inited;
 	send = s;
 	reply = r;
 	skeletonId = skelId;
 
-	if (ref != null) this.ref = ref;
+	if (reference != null) this.ref = reference;
 	// System.out.println("Stub " + this + " gets ref " + ref);
     }
 
@@ -44,6 +45,7 @@ public class Stub extends RemoteStub {
 			try {
 			    wait();
 			} catch(Exception e) {
+			    // ignored
 			}
 		    }
 		    return;
@@ -65,8 +67,9 @@ public class Stub extends RemoteStub {
 	    stubID = rm.readInt();
 	    rm.readInt();
 	    try {
-		Object stubType = rm.readObject();
+		rm.readObject();
 	    } catch(Exception e) {
+	        // don't care.
 	    }
 	    rm.finish();		
 	    synchronized(this) {
@@ -90,6 +93,7 @@ public class Stub extends RemoteStub {
 		RTS.putStubReceivePort(reply, skeletonPortId.ibis());
 	    }
 	} catch(Exception e) {
+	    // don't care.
 	}
     }
 }

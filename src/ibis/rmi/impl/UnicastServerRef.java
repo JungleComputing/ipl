@@ -3,7 +3,6 @@ package ibis.rmi.impl;
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
 import ibis.rmi.server.RemoteStub;
-import ibis.rmi.server.ServerNotActiveException;
 import ibis.rmi.server.ServerRef;
 
 // TODO: implement getClientHost
@@ -30,7 +29,7 @@ public class UnicastServerRef extends UnicastRef implements ServerRef, java.io.S
     }
 
 
-    public String getClientHost() throws ServerNotActiveException
+    public String getClientHost()
     {
 	// TODO:
 	return null;

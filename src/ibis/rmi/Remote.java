@@ -6,4 +6,6 @@ package ibis.rmi;
  * this interface. Only methods specified in an interface that
  * extends <code>ibis.rmi.Remote</code> are available remotely.
  */
-public interface Remote {}
+public interface Remote {
+    //magic interface
+}

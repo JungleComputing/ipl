@@ -77,12 +77,12 @@ public final class RTS {
      * longer uniquely defines the skeleton. In fact, a skeleton is now identified
      * by a number. Unfortunately, the Ibis registry can only handle ReceivePortIdentifiers.
      */
-    private static Hashtable urlHash;	// No HashMap, this one should be synchronized.
+    static Hashtable urlHash;	// No HashMap, this one should be synchronized.
 
     /**
      * This array maps skeleton ids to the corresponding skeleton.
      */
-    private static ArrayList skeletonArray;
+    static ArrayList skeletonArray;
 
     /**
      * Cache receiveports from stubs, hashed with an IbisIdentifier of an Ibis
@@ -95,8 +95,7 @@ public final class RTS {
     private static PortType requestPortType;
     private static PortType replyPortType;
 
-    private static Ibis ibis;
-    private static IbisIdentifier localID;
+    static Ibis ibis;
     private static ibis.ipl.Registry ibisRegistry;
 
     private static ThreadLocal clientHost;
@@ -107,7 +106,7 @@ public final class RTS {
     private static Timer[] timers;
     private static String[] timerId;
 
-    private final static boolean enableRMITimer = TypedProperties.booleanProperty("ibis.rmi.timer");
+    final static boolean enableRMITimer = TypedProperties.booleanProperty("ibis.rmi.timer");
 
     private static double r10(double d) {
 	long ld = (long)(d * 10.0);
@@ -270,7 +269,6 @@ public final class RTS {
 		System.out.println(hostname + ": ibis created");
 	    }
 
-	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
 
 	    StaticProperties requestProps = new StaticProperties();
@@ -352,8 +350,6 @@ public final class RTS {
 	try {
 	    Skeleton skel;
 	    Class c = obj.getClass();
-	    ReceivePort rec;
-
 	    String skel_name = get_skel_name(c);
 	    // System.out.println("skel_name = " + skel_name);
 
@@ -394,7 +390,6 @@ public final class RTS {
 	Skeleton skel;
 	String classname = c.getName();
 
-	String class_name = classname.substring(classname.lastIndexOf('.') + 1);
 	synchronized(RTS.class) {
 	    skel = (Skeleton) skeletons.get(new Integer(System.identityHashCode(obj)));
 	}
@@ -428,8 +423,6 @@ public final class RTS {
 	    throw new StubNotFoundException("could not instantiate class " + get_stub_name(c), e2);
 	} catch(IllegalAccessException e3) {
 	    throw new StubNotFoundException("illegal access of class " + get_stub_name(c), e3);
-	} catch(IOException e4) {
-	    throw new StubNotFoundException("could not initialize stub " + get_stub_name(c), e4);
 	}
 
 	if (DEBUG) {
@@ -438,7 +431,7 @@ public final class RTS {
 
 	stubs.put(new Integer(System.identityHashCode(obj)), stub);
 
-	return (RemoteStub) stub;
+	return stub;
     }
 
     public static synchronized Object getStub(Object o) {
@@ -448,15 +441,13 @@ public final class RTS {
 
 
     public static synchronized void bind(String url, Remote o)
-	throws AlreadyBoundException, IbisException, IOException, InstantiationException, IllegalAccessException
+	throws AlreadyBoundException, IbisException, IOException
     {
 	//	String url = "//" + RTS.hostname + "/" + name;
 
 	if (DEBUG) {
 	    System.out.println(hostname + ": Trying to bind object to " + url);
 	}
-
-	ReceivePortIdentifier dest = null;
 
 	Skeleton skel = (Skeleton) skeletons.get(new Integer(System.identityHashCode(o)));
 	if (skel == null) {
@@ -482,7 +473,7 @@ public final class RTS {
     }
 
     public static synchronized void rebind(String url, Remote o)
-	throws IbisException, IOException, InstantiationException, IllegalAccessException
+	throws IOException
     {
 	if (DEBUG) {
 	    System.out.println(hostname + ": Trying to rebind object to " + url);
@@ -502,13 +493,11 @@ public final class RTS {
     }
 
     public static void unbind(String url)
-	throws NotBoundException, ClassNotFoundException, IOException
+	throws NotBoundException, IOException
     {
 	if (DEBUG) {
 	    System.out.println(hostname + ": Trying to unbind object from " + url);
 	}
-
-	ReceivePortIdentifier dest = null;
 
 	try {
 	    ibisRegistry.unbind(url);
@@ -596,7 +585,7 @@ public final class RTS {
 	if (DEBUG) {
 	    System.out.println(hostname + ": Found object " + url);
 	}
-	return (Remote) result;
+	return result;
     }
 
     public static String[] list(String url) throws IOException
@@ -657,14 +646,14 @@ public final class RTS {
 	return s;
     }
 
-    public static synchronized ReceivePort getStubReceivePort(IbisIdentifier ibis)
+    public static synchronized ReceivePort getStubReceivePort(IbisIdentifier id)
 	    throws IOException
     {
-	ArrayList a = (ArrayList) receiveports.get(ibis);
+	ArrayList a = (ArrayList) receiveports.get(id);
 	ReceivePort r;
 
 	if (DEBUG) {
-	    System.out.println("receiveport wanted for ibis " + ibis);
+	    System.out.println("receiveport wanted for ibis " + id);
 	}
 
 	if (a == null || a.size() == 0) {
@@ -684,14 +673,14 @@ public final class RTS {
 	return r;
     }
 
-    public static synchronized void putStubReceivePort(ReceivePort r, IbisIdentifier ibis) {
+    public static synchronized void putStubReceivePort(ReceivePort r, IbisIdentifier id) {
 	if (DEBUG) {
-	    System.out.println("receiveport " + r + " returned for ibis " + ibis);
+	    System.out.println("receiveport " + r + " returned for ibis " + id);
 	}
-	ArrayList a = (ArrayList) receiveports.get(ibis);
+	ArrayList a = (ArrayList) receiveports.get(id);
 	if (a == null) {
 	    a = new ArrayList();
-	    receiveports.put(ibis, a);
+	    receiveports.put(id, a);
 	}
 	a.add(r);
     }

@@ -13,8 +13,8 @@ public class UnicastRef implements RemoteRef, java.io.Serializable
     public String GUID = null;
 
 
-    public UnicastRef() 
-    {
+    public UnicastRef() {
+        // nothing here
     }
     
     public UnicastRef(String GUID) {
@@ -54,8 +54,7 @@ public class UnicastRef implements RemoteRef, java.io.Serializable
     public boolean remoteEquals(RemoteRef sub) {
 	if (sub instanceof UnicastRef) {
 	    return GUID.equals(((UnicastRef)sub).GUID);
-	} else {
-	    return false;
 	}
+	return false;
     }
 }

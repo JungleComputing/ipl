@@ -10,5 +10,6 @@ public class RMISecurityManager extends SecurityManager {
      * Constructs a new <code>RMISecurityManager</code>.
      */
     public RMISecurityManager() {
+        // there is nothing here.
     }
 }

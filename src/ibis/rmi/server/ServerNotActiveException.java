@@ -13,6 +13,7 @@ public class ServerNotActiveException extends Exception
      * detail message.
      */
     public ServerNotActiveException() {
+        super();
     }
 
     /**

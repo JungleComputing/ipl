@@ -21,7 +21,7 @@ public class UnicastRemoteObject extends RemoteServer
      */
     protected UnicastRemoteObject() throws RemoteException
     {
-	exportObject((Remote)this);
+	exportObject(this);
     }
 
     /**
@@ -72,7 +72,7 @@ public class UnicastRemoteObject extends RemoteServer
 	if (ref != null) {
 	    ((UnicastServerRef)ref).exportObject(this, null);
 	} else {
-	    exportObject((Remote)this);
+	    exportObject(this);
 	}
     }
 }

@@ -60,7 +60,9 @@ public final class Naming
     /**
      * Private constructor to prevent instantiating of this class.
      */
-    private Naming() {}
+    private Naming() {
+        // prevent instantiating
+    }
 
     /**
      * Returns a reference for the remote object associated with the
