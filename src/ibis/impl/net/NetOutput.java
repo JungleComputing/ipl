@@ -1,6 +1,7 @@
 package ibis.impl.net;
 
 import ibis.ipl.WriteMessage;
+import ibis.ipl.IbisConfigurationException;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -86,11 +87,6 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 		if (! finished) {
 		    _finish();
 		}
-                if (_outputConvertStream != null) {
-			_outputConvertStream.close();
-
-                        _outputConvertStream = null;
-                }
 		finished = false;
         }
 
@@ -170,329 +166,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 		throw new ibis.ipl.IbisError("AAAAA");
 	}
 
-        /* fallback serialization implementation */
-
-        /**
-         * Object stream for the internal fallback serialization.
-         *
-         * Note: the fallback serialization implementation internally uses
-         * a JVM {@link ObjectOutputStream}/{@link ObjectInputStream} pair.
-         * The stream pair is closed upon each message completion to ensure data
-         * consistency.
-         */
-        private ObjectOutputStream _outputConvertStream = null;
-
-        /**
-         * Check whether the convert stream should be initialized, and
-         * initialize it when needed.
-	 */
-        private final void checkConvertStream() throws IOException {
-                if (_outputConvertStream == null) {
-                        DummyOutputStream dos = new DummyOutputStream();
-                        _outputConvertStream = new ObjectOutputStream(dos);
-                        _outputConvertStream.flush();
-                }
-        }        
-
-        /**
-         * Default implementation of {@link #writeBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param value the value to write.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteBoolean(boolean value) throws IOException {
-		checkConvertStream();
-		_outputConvertStream.writeBoolean(value);
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeChar}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param value the value to write.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteChar(char value) throws IOException {
-		checkConvertStream();
-		_outputConvertStream.writeChar(value);
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeShort}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param value the value to write.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteShort(short value) throws IOException {
-		checkConvertStream();
-		_outputConvertStream.writeShort(value);
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeInt}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param value the value to write.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteInt(int value) throws IOException {
-		checkConvertStream();
-		_outputConvertStream.writeInt(value);
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeLong}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param value the value to write.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteLong(long value) throws IOException {
-		checkConvertStream();
-		_outputConvertStream.writeLong(value);
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeFloat}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param value the value to write.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteFloat(float value) throws IOException {
-		checkConvertStream();
-		_outputConvertStream.writeFloat(value);
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeDouble}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param value the value to write.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteDouble(double value) throws IOException {
-		checkConvertStream();
-		_outputConvertStream.writeDouble(value);
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeString}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param value the value to write.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteString(String value) throws IOException {
-		checkConvertStream();
-		_outputConvertStream.writeUTF(value);
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeObject}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param value the value to write.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteObject(Object value) throws IOException {
-		checkConvertStream();
-		_outputConvertStream.writeObject(value);
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteArray(boolean [] b, int o, int l) throws IOException {
-		checkConvertStream();
-		while (l-- > 0) {
-			_outputConvertStream.writeBoolean(b[o++]);
-		}
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteArray(byte [] b, int o, int l) throws IOException {
-		checkConvertStream();
-		while (l-- > 0) {
-			_outputConvertStream.writeByte(b[o++]);
-			_outputConvertStream.flush();
-		}
-        }
-        
-        /**
-         * Default implementation of {@link #writeArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteArray(char [] b, int o, int l) throws IOException {
-		checkConvertStream();
-		while (l-- > 0) {
-			_outputConvertStream.writeChar(b[o++]);
-		}
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteArray(short [] b, int o, int l) throws IOException {
-		checkConvertStream();
-		while (l-- > 0) {
-			_outputConvertStream.writeShort(b[o++]);
-		}
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteArray(int [] b, int o, int l) throws IOException {
-		checkConvertStream();
-		while (l-- > 0) {
-			_outputConvertStream.writeInt(b[o++]);
-		}
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteArray(long [] b, int o, int l) throws IOException {
-		checkConvertStream();
-		while (l-- > 0) {
-			_outputConvertStream.writeLong(b[o++]);
-		}
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteArray(float [] b, int o, int l) throws IOException {
-		checkConvertStream();
-		while (l-- > 0) {
-			_outputConvertStream.writeFloat(b[o++]);
-		}
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteArray(double [] b, int o, int l) throws IOException {
-		checkConvertStream();
-		while (l-- > 0) {
-			_outputConvertStream.writeDouble(b[o++]);
-		}
-		_outputConvertStream.flush();
-        }
-
-        /**
-         * Default implementation of {@link #writeArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultWriteArray(Object [] b, int o, int l) throws IOException {
-		checkConvertStream();
-		while (l-- > 0) {
-			_outputConvertStream.writeObject(b[o++]);
-		}
-		_outputConvertStream.flush();
-        }
-
         /**
          * Atomic packet write function.
          * @param b the buffer to write.
          * @exception IOException in case of trouble.
          */
         public void writeByteBuffer(NetSendBuffer b) throws IOException {
-                defaultWriteInt(b.length);
-                defaultWriteArray(b.data, 0, b.length);
-		if (! b.ownershipClaimed) {
-		    b.free();
-		}
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeByteBuffer");
         }
 
         /**
@@ -501,7 +182,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
 	 */
         public void writeBoolean(boolean value) throws IOException {
-                defaultWriteBoolean(value);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeBoolean");
         }
 
         /**
@@ -517,7 +199,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
 	 */
         public void writeChar(char value) throws IOException {
-                defaultWriteChar(value);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeChar");
         }
 
         /**
@@ -526,7 +209,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
 	 */
         public void writeShort(short value) throws IOException {
-                defaultWriteShort(value);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeShort");
         }
 
         /**
@@ -535,7 +219,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
 	 */
         public void writeInt(int value) throws IOException {
-                defaultWriteInt(value);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeInt");
         }
 
 
@@ -545,7 +230,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
 	 */
         public void writeLong(long value) throws IOException {
-                defaultWriteLong(value);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeLong");
         }
 
         /**
@@ -554,7 +240,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
 	 */
         public void writeFloat(float value) throws IOException {
-                defaultWriteFloat(value);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeFloat");
         }
 
         /**
@@ -563,7 +250,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
 	 */
         public void writeDouble(double value) throws IOException {
-                defaultWriteDouble(value);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeDouble");
         }
 
         /**
@@ -572,7 +260,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
 	 */
         public void writeString(String value) throws IOException {
-                defaultWriteString(value);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeString");
         }
 
         /**
@@ -581,7 +270,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble.
 	 */
         public void writeObject(Object value) throws IOException {
-                defaultWriteObject(value);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeObject");
         }
 
         /**
@@ -594,11 +284,13 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble. 
          */
         public void writeArray(boolean [] b, int o, int l) throws IOException {
-                defaultWriteArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeArray(boolean[])");
         }
 
         /**
-         * Append some elements to the current message.
+         * Append some elements to the current message. WARNING: If a driver
+	 * ovverrides the writeObject function, it must als override this one.
          *
          * @param b the array.
          * @param o the offset.
@@ -607,7 +299,9 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble. 
          */
         public void writeArray(byte [] b, int o, int l) throws IOException {
-                defaultWriteArray(b, o, l);
+	    for(int i = o; i < (o + l);i++) {
+		writeByte(b[i]);
+	    }
         }
 
         /**
@@ -620,7 +314,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble. 
          */
         public void writeArray(char [] b, int o, int l) throws IOException {
-                defaultWriteArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeArray(char[])");
         }
 
         /**
@@ -633,7 +328,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble. 
          */
         public void writeArray(short [] b, int o, int l) throws IOException {
-                defaultWriteArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeArray(short[])");
         }
 
         /**
@@ -646,7 +342,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble. 
          */
         public void writeArray(int [] b, int o, int l) throws IOException {
-                defaultWriteArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeArray(int[])");
         }
 
         /**
@@ -659,7 +356,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble. 
          */
         public void writeArray(long [] b, int o, int l) throws IOException {
-                defaultWriteArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeArray(long[])");
         }
 
         /**
@@ -672,7 +370,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble. 
          */
         public void writeArray(float [] b, int o, int l) throws IOException {
-                defaultWriteArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeArray(float[])");
         }
 
         /**
@@ -685,7 +384,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble. 
          */
         public void writeArray(double [] b, int o, int l) throws IOException {
-                defaultWriteArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeArray(double[])");
         }
 
         /**
@@ -698,7 +398,8 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          * @exception IOException in case of trouble. 
          */
         public void writeArray(Object [] b, int o, int l) throws IOException {
-                defaultWriteArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context +
+		"\" does not support writeArray(Object[])");
         }
 
         /**
@@ -798,24 +499,5 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
          */
         public final void writeArray(Object [] b) throws IOException {
                 writeArray(b, 0, b.length);
-        }
-
-        /**
-         * Internal dummy {@link OutputStream} to be used as a byte stream sink for
-         * the {@link ObjectOutputStream} based fallback serialization.
-         */
-        private final class DummyOutputStream extends OutputStream {
-
-                /**
-                 * {@inheritDoc}
-                 *
-                 * Note: the other write methods must _not_ be overloaded
-                 *       because the ObjectInput/OutputStream do not guaranty
-                 *       symmetrical transactions.
-                 *
-                 */
-                public void write(int b) throws IOException {
-			writeByte((byte)b);
-                }
         }
 }

@@ -610,7 +610,7 @@ public final class NetServiceLink {
                  */
                 private void writeBlock(byte[] b, int o, int l) throws IOException {
                         synchronized(os) {
-                                Conversion.int2byte(l, intBuffer, 0);
+                                Conversion.defaultConversion.int2byte(l, intBuffer, 0);
                                 os.write(id);
                                 os.write(intBuffer);
                                 os.write(b, o, l);
@@ -1001,7 +1001,7 @@ public final class NetServiceLink {
                                         }
 
                                         is.read(intBuffer);
-                                        byte [] b = new byte[Conversion.byte2int(intBuffer, 0)];
+                                        byte [] b = new byte[Conversion.defaultConversion.byte2int(intBuffer, 0)];
                                         is.read(b);
 
                                         sis.addBuffer(b);

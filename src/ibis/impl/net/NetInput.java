@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 
+import ibis.ipl.IbisConfigurationException;
+
 /**
  * Provide an abstraction of a network input.
  */
@@ -677,22 +679,6 @@ System.err.println(this + ": in startUpcallThread; upcallFunc " + upcallFunc);
 
         private final void implicitFinish() throws IOException {
                 log.in();
-                if (_inputConvertStream != null) {
-                        try {
-                                _inputConvertStream.close();
-                        } catch (EOFException e) {
-                                throw new ConnectionClosedException(e);
-                        } catch (IOException e) {
-                                String msg = e.getMessage();
-                                if (msg.equalsIgnoreCase("connection closed")) {
-                                        throw new ConnectionClosedException(e);
-                                }
-
-                                throw e;
-                        }
-
-                        _inputConvertStream = null;
-                }
 
                 doFinish();
 
@@ -785,542 +771,6 @@ pollingThreads--;
         }
 
 
-
-
-        /* fallback serialization implementation */
-
-        /**
-         * Object stream for the internal fallback serialization.
-         *
-         * Note: the fallback serialization implementation internally uses
-         * a JVM {@link ObjectOutputStream}/{@link ObjectInputStream} pair.
-         * The stream pair is closed upon each message completion to ensure data
-         * consistency.
-	 */
-        private ObjectInputStream        _inputConvertStream = null;
-
-
-
-        /**
-         * Check whether the convert stream should be initialized, and
-         * initialize it when needed.
-	 */
-        private final void checkConvertStream() throws IOException {
-                if (_inputConvertStream == null) {
-                        DummyInputStream dis = new DummyInputStream();
-                        _inputConvertStream = new ObjectInputStream(dis);
-                }
-        }
-
-        /**
-         * Default implementation of {@link #readBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @return the <code>boolean</code> value just read.
-         * @exception IOException in case of trouble.
-         */
-        private final boolean defaultReadBoolean() throws IOException {
-                boolean result = false;
-
-                try {
-                        checkConvertStream();
-                        result = _inputConvertStream.readBoolean();
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-
-                return result;
-        }
-
-        /**
-         * Default implementation of {@link #readChar}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @return the <code>char</code> value just read.
-         * @exception IOException in case of trouble.
-         */
-        private final char defaultReadChar() throws IOException {
-                char result = 0;
-
-                try {
-                        checkConvertStream();
-                        result = _inputConvertStream.readChar();
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-
-                return result;
-        }
-
-        /**
-         * Default implementation of {@link #readShort}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @return the <code>short</code> value just read.
-         * @exception IOException in case of trouble.
-         */
-        private final short defaultReadShort() throws IOException {
-                short result = 0;
-
-                try {
-                        checkConvertStream();
-                        result = _inputConvertStream.readShort();
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-
-                return result;
-        }
-
-        /**
-         * Default implementation of {@link #readInt}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @return the <code>int</code> value just read.
-         * @exception IOException in case of trouble.
-         */
-        private final int defaultReadInt() throws IOException {
-                int result = 0;
-
-                try {
-                        checkConvertStream();
-                        result = _inputConvertStream.readInt();
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-
-                return result;
-        }
-
-        /**
-         * Default implementation of {@link #readLong}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @return the <code>long</code> value just read.
-         * @exception IOException in case of trouble.
-         */
-        private final long defaultReadLong() throws IOException {
-                long result = 0;
-
-                try {
-                        checkConvertStream();
-                        result = _inputConvertStream.readLong();
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-
-                return result;
-        }
-
-        /**
-         * Default implementation of {@link #readFloat}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @return the <code>float</code> value just read.
-         * @exception IOException in case of trouble.
-         */
-        private final float defaultReadFloat() throws IOException {
-                float result = 0;
-
-                try {
-                        checkConvertStream();
-                        result = _inputConvertStream.readFloat();
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-
-                return result;
-        }
-
-        /**
-         * Default implementation of {@link #readDouble}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @return the <code>double</code> value just read.
-         * @exception IOException in case of trouble.
-         */
-        private final double defaultReadDouble() throws IOException {
-                double result = 0;
-
-                try {
-                        checkConvertStream();
-                        result = _inputConvertStream.readDouble();
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-
-                return result;
-        }
-
-        /**
-         * Default implementation of {@link #readString}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @return the {@link String string} value just read.
-         * @exception IOException in case of trouble.
-         */
-        private final String defaultReadString() throws IOException {
-                String result = null;
-
-                try {
-                        checkConvertStream();
-                        result = _inputConvertStream.readUTF();
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-		/*
-                } catch (Exception e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-		*/
-                }
-
-                return result;
-        }
-
-        /**
-         * Default implementation of {@link #readObject}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @return the {@link Object object} value just read.
-         * @exception IOException in case of trouble.
-         */
-        private final Object defaultReadObject() throws IOException, ClassNotFoundException {
-                Object result = null;
-
-                try {
-                        checkConvertStream();
-                        result = _inputConvertStream.readObject();
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-                        throw e;
-                // } catch (Exception e) {
-                        // throw new IOException(e);
-                }
-
-                return result;
-        }
-
-        /**
-         * Default implementation of {@link #readArray}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to read.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultReadArray(boolean [] b, int o, int l) throws IOException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                b[o++] = _inputConvertStream.readBoolean();
-                        }
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-        }
-
-        /**
-         * Default implementation of {@link #readBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to read.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultReadArray(byte [] b, int o, int l) throws IOException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                b[o++] = _inputConvertStream.readByte();
-                        }
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-        }
-
-        /**
-         * Default implementation of {@link #readBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to read.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultReadArray(char [] b, int o, int l) throws IOException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                b[o++] = _inputConvertStream.readChar();
-                        }
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-        }
-
-        /**
-         * Default implementation of {@link #readBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to read.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultReadArray(short [] b, int o, int l) throws IOException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                b[o++] = _inputConvertStream.readShort();
-                        }
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-        }
-
-        /**
-         * Default implementation of {@link #readBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to read.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultReadArray(int [] b, int o, int l) throws IOException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                b[o++] = _inputConvertStream.readInt();
-                        }
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-        }
-
-        /**
-         * Default implementation of {@link #readBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to read.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultReadArray(long [] b, int o, int l) throws IOException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                b[o++] = _inputConvertStream.readLong();
-                        }
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-        }
-
-        /**
-         * Default implementation of {@link #readBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to read.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultReadArray(float [] b, int o, int l) throws IOException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                b[o++] = _inputConvertStream.readFloat();
-                        }
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-        }
-
-        /**
-         * Default implementation of {@link #readBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to read.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultReadArray(double [] b, int o, int l) throws IOException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                b[o++] = _inputConvertStream.readDouble();
-                        }
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                }
-        }
-
-        /**
-         * Default implementation of {@link #readBoolean}.
-         *
-         * Note: this method must not be changed.
-         *
-         * @param b the array.
-         * @param o the offset.
-         * @param l the number of elements to read.
-         * @exception IOException in case of trouble.
-         */
-        private final void defaultReadArray(Object [] b, int o, int l) throws IOException, ClassNotFoundException {
-                try {
-                        checkConvertStream();
-                        while (l-- > 0) {
-                                b[o++] = _inputConvertStream.readObject();
-                        }
-                } catch (EOFException e) {
-                        throw new ConnectionClosedException(e);
-                } catch (IOException e) {
-                        String msg = e.getMessage();
-                        if (msg != null && msg.equalsIgnoreCase("connection closed")) {
-                                throw new ConnectionClosedException(e);
-                        }
-
-                        throw e;
-                // } catch (Exception e) {
-                        // throw new IOException(e);
-                }
-        }
-
 	public ibis.ipl.ReceivePort localPort() {
 		// what the @#@ should we do here --Rob
 		throw new ibis.ipl.IbisError("AAAAA");
@@ -1333,10 +783,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws IOException {
-                int len = defaultReadInt();
-		NetReceiveBuffer buffer = createReceiveBuffer(len);
-                defaultReadArray(buffer.data, 0, len);
-                return buffer;
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readByteBuffer");
         }
 
         /**
@@ -1346,9 +794,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
         public void readByteBuffer(NetReceiveBuffer buffer) throws IOException {
-                int len = defaultReadInt();
-                defaultReadArray(buffer.data, 0, len);
-                buffer.length = len;
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readByteBuffer");
         }
 
         /**
@@ -1357,7 +804,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public boolean readBoolean() throws IOException {
-                return defaultReadBoolean();
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readBoolean");
         }
 
         /**
@@ -1373,7 +821,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public char readChar() throws IOException {
-                return defaultReadChar();
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readChar");
         }
 
         /**
@@ -1382,7 +831,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public short readShort() throws IOException {
-                return defaultReadShort();
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readShort");
         }
 
         /**
@@ -1391,7 +841,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public int readInt() throws IOException {
-                return defaultReadInt();
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readInt");
         }
 
         /**
@@ -1400,7 +851,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public long readLong() throws IOException {
-                return defaultReadLong();
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readLong");
         }
 
         /**
@@ -1409,7 +861,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public float readFloat() throws IOException {
-                return defaultReadFloat();
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readFloat");
         }
 
         /**
@@ -1418,7 +871,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public double readDouble() throws IOException {
-                return defaultReadDouble();
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readDouble");
         }
 
         /**
@@ -1427,7 +881,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public String readString() throws IOException {
-                return (String)defaultReadString();
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readString");
         }
 
         /**
@@ -1436,7 +891,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public Object readObject() throws IOException, ClassNotFoundException {
-                return defaultReadObject();
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readObject");
         }
 
 
@@ -1450,7 +906,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public void readArray(boolean [] b, int o, int l) throws IOException {
-                defaultReadArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readArray(boolean[])");
         }
 
         /**
@@ -1463,7 +920,9 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public void readArray(byte [] b, int o, int l) throws IOException {
-                defaultReadArray(b, o, l);
+	    for(int i = o; i < (o + l);i++) {
+		b[i] = readByte();
+	    }
         }
 
         /**
@@ -1476,7 +935,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public void readArray(char [] b, int o, int l) throws IOException {
-                defaultReadArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readArray(char[])");
         }
 
         /**
@@ -1489,7 +949,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public void readArray(short [] b, int o, int l) throws IOException {
-                defaultReadArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readArray(short[])");
         }
 
         /**
@@ -1502,7 +963,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public void readArray(int [] b, int o, int l) throws IOException {
-                defaultReadArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readArray(int[])");
         }
 
         /**
@@ -1515,7 +977,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public void readArray(long [] b, int o, int l) throws IOException {
-                defaultReadArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readArray(long[])");
         }
 
         /**
@@ -1528,7 +991,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public void readArray(float [] b, int o, int l) throws IOException {
-                defaultReadArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readArray(float[])");
         }
 
         /**
@@ -1541,7 +1005,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public void readArray(double [] b, int o, int l) throws IOException {
-                defaultReadArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readArray(double[])");
         }
 
         /**
@@ -1554,7 +1019,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public void readArray(Object [] b, int o, int l) throws IOException, ClassNotFoundException {
-                defaultReadArray(b, o, l);
+	    throw new IbisConfigurationException("NetIbis driver \"" + context
+		+ "\" does not support readArray(Object[])");
         }
 
 
@@ -1566,7 +1032,7 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public final void readArray(boolean [] b) throws IOException {
-                readArray(b, 0, b.length);
+	    readArray(b, 0, b.length);
         }
 
         /**
@@ -1577,7 +1043,7 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public final void readArray(byte [] b) throws IOException {
-                readArray(b, 0, b.length);
+	    readArray(b, 0, b.length);
         }
 
         /**
@@ -1588,7 +1054,7 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public final void readArray(char [] b) throws IOException {
-                readArray(b, 0, b.length);
+	    readArray(b, 0, b.length);
         }
 
         /**
@@ -1599,7 +1065,7 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public final void readArray(short [] b) throws IOException {
-                readArray(b, 0, b.length);
+	    readArray(b, 0, b.length);
         }
 
         /**
@@ -1610,7 +1076,7 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public final void readArray(int [] b) throws IOException {
-                readArray(b, 0, b.length);
+	    readArray(b, 0, b.length);
         }
 
         /**
@@ -1621,7 +1087,7 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public final void readArray(long [] b) throws IOException {
-                readArray(b, 0, b.length);
+	    readArray(b, 0, b.length);
         }
 
         /**
@@ -1632,7 +1098,7 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public final void readArray(float [] b) throws IOException {
-                readArray(b, 0, b.length);
+	    readArray(b, 0, b.length);
         }
 
         /**
@@ -1643,7 +1109,7 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public final void readArray(double [] b) throws IOException {
-                readArray(b, 0, b.length);
+	    readArray(b, 0, b.length);
         }
 
         /**
@@ -1654,30 +1120,8 @@ pollingThreads--;
          * @exception IOException in case of trouble.
          */
 	public final void readArray(Object [] b) throws IOException, ClassNotFoundException {
-                readArray(b, 0, b.length);
+	    readArray(b, 0, b.length);
         }
 
 
-        /**
-         * Internal dummy {@link InputStream} to be used as a byte stream source for
-         * the {@link ObjectInputStream} based fallback serialization.
-         */
-        private final class DummyInputStream extends InputStream {
-
-                /**
-                 * {@inheritDoc}
-                 *
-                 * Note: the other read methods must _not_ be overloaded
-                 *       because the ObjectInput/OutputStream do not guaranty
-                 *       symmetrical transactions.
-                 *
-                 */
-                public int read() throws IOException {
-                        int result = 0;
-
-			result = readByte();
-
-                        return (result & 255);
-                }
-        }
 }
