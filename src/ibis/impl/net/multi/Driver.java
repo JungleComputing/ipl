@@ -31,6 +31,9 @@ public final class Driver extends NetDriver {
 	 */
 	public Driver(NetIbis ibis) {
 		super(ibis);
+		System.err.println("This has probably been broken by all");
+		System.err.println("optimizations, e.g. singleton poller,");
+		System.err.println("upcallFunc in constructor etc.");
 	}
 
 	/**
