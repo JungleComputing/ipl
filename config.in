@@ -128,7 +128,11 @@ O_FILES		:= $(O_FILES) $(SERIALIZABLE_JAD_O)
 SERIALIZABLE_CLASS	:= $(SERIALIZABLE:%.java=%.class)
 endif
 
+ifeq (ibis., $(findstring ibis.,$(PACKAGE)))
 PKG_SUF		:= .$(PACKAGE_MANGLE)
+else
+PKG_SUF		:= .o
+endif
 PKG_O_FILES	:= $(O_FILES:%.o=%$(PKG_SUF))
 
 MANTA_LIB	= $(IBIS_ROOT)/ibis/ipl/libibis.a
@@ -199,7 +203,7 @@ manta:
 ifneq (, $(SERIALIZABLE))
 	$(MAKE) $(MFLAGS) USE_DECOMPILE=1 serializers
 endif
-	$(MAKE) $(MFLAGS) $(O_FILES)
+	$(MAKE) $(MFLAGS) $(PKG_O_FILES)
 ifneq (, $(OUT))
 	$(MAKE) $(MFLAGS) $(OUT)
 endif
