@@ -1,15 +1,12 @@
 IBIS:
 
-- code formatting of entire tree
 - Satin barnes_inline performance: why do we not get the same performance
   that Maik got in March 2004? (Ibis serialization, MP Ibis, NTC version of
   Barnes).
 - investigate CvR's problem with an Ibis run involving 2 imacs/ibooks, a windows
   machine and a linux machine. It seems to hang (or compute forever) if the
   windows machine is added to the pool???
-- nameserver: provide "died" upcalls when pinger detects death.
-- nameserver: guard against hanging join/leave upcalls.
-- test on windows XP: ibis-run.bat does not work?
+- add text in Ibis programmers manual about deadlocks.
 
 After distribution:
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
