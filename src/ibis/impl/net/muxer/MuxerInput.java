@@ -3,11 +3,6 @@ package ibis.ipl.impl.net.muxer;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import ibis.ipl.IbisIOException;
-
-import ibis.ipl.impl.generic.Monitor;
-import ibis.ipl.impl.generic.ConditionVariable;
-
 import ibis.ipl.impl.net.NetConvert;
 import ibis.ipl.impl.net.NetPortType;
 import ibis.ipl.impl.net.NetDriver;
@@ -16,7 +11,7 @@ import ibis.ipl.impl.net.NetAllocator;
 import ibis.ipl.impl.net.NetBufferedInput;
 import ibis.ipl.impl.net.NetBufferFactory;
 import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetServiceListener;
+import ibis.ipl.impl.net.NetIbisException;
 
 public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
@@ -68,13 +63,13 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
      *
      * @param timeout poll timeout in msec. 0 signifies indefinite timeout.
      */
-    abstract protected Integer poll(int timeout) throws IbisIOException;
+    abstract protected Integer poll(int timeout) throws NetIbisException;
 
 
     /**
      * @{inheritDoc}
      */
-    public Integer poll() throws IbisIOException {
+    public Integer poll() throws NetIbisException {
 	return poll(pollTimeout);
     }
 
@@ -94,11 +89,11 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
 
     public void startQueue(MuxerQueue queue, NetBufferFactory factory)
-	    throws IbisIOException {
+	    throws NetIbisException {
 	if (max_ever_mtu == -1) {
 	    max_ever_mtu = max_mtu;
 	} else if (max_mtu > max_ever_mtu) {
-	    throw new IbisIOException("Cannot increase mtu beyond " + max_ever_mtu);
+	    throw new NetIbisException("Cannot increase mtu beyond " + max_ever_mtu);
 	}
 	factory.setMaximumTransferUnit(max_ever_mtu);
 	queue.setBufferFactory(factory);
@@ -111,7 +106,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
     }
 
 
-    public void disconnect(MuxerQueue q) throws IbisIOException {
+    public void disconnect(MuxerQueue q) throws NetIbisException {
 	if (Driver.DEBUG) {
 	    Thread.dumpStack();
 	    System.err.println("Now disconnect localQueue " + q.localKey() + " liveConnections was " + liveConnections());
@@ -135,7 +130,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
     }
 
     synchronized
-    protected void releaseQueue(MuxerQueue key) throws IbisIOException {
+    protected void releaseQueue(MuxerQueue key) throws NetIbisException {
 	keyHash.releaseKey(key);
 	liveConnections--;
 	if (liveConnections == 0) {

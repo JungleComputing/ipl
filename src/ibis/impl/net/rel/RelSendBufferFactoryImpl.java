@@ -12,4 +12,8 @@ class RelSendBufferFactoryImpl
 	return new RelSendBuffer(data, length, allocator);
     }
 
+    public boolean isSuitableClass(NetBuffer buffer) {
+	return buffer instanceof RelSendBuffer;
+    }
+
 }

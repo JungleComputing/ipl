@@ -81,9 +81,6 @@ public final class TcpInput extends NetBufferedInput {
 		throws NetIbisException {
 		super(pt, driver, up, context);
 		headerLength = 4;
-		// Create the factory in the constructor. This allows
-		// subclasses to override the factory.
-		factory = new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl());
 	}
 
         private final class UpcallThread extends Thread {
@@ -185,10 +182,14 @@ public final class TcpInput extends NetBufferedInput {
 		}
 
 		mtu       = Math.min(lmtu, rmtu);
-		// Don't create a new factory here, just specify the mtu.
+		// Don't always create a new factory here, just specify the mtu.
 		// Possibly a subclass overrode the factory, and we must leave
 		// that factory in place.
-		factory.setMaximumTransferUnit(mtu);
+		if (factory == null) {
+		    factory = new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl());
+		} else {
+		    factory.setMaximumTransferUnit(mtu);
+		}
 
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread(addr+"["+port+"]")).start();

@@ -8,9 +8,10 @@ import ibis.ipl.impl.net.NetConvert;
 public interface RelConstants {
 
     final static boolean	DEBUG = false; // true;
-    final static boolean	DEBUG_REXMIT = DEBUG;
+    final static boolean	DEBUG_REXMIT = true; // DEBUG;
     final static boolean	DEBUG_ACK = DEBUG;
     final static boolean	DEBUG_PIGGY = DEBUG;
+    final static boolean	DEBUG_LOCK = DEBUG;
 
     final static int		FIRST_PACKET_COUNT = 0;
     final static int		LAST_FRAG_BIT	= (0x1 << 31);
@@ -33,7 +34,7 @@ public interface RelConstants {
      *  					nextContiguous
      */
 
-    final static int	ACK_SET_SIZE = 64;
+    final static int	ACK_SET_SIZE = 32;
 
     final static int	ACK_SET_IN_INTS = (ACK_SET_SIZE + NetConvert.BITS_PER_INT - 1) / NetConvert.BITS_PER_INT;
 
@@ -47,7 +48,7 @@ public interface RelConstants {
     /**
      * Sweeper interval in ms.
      */
-    static final long	sweepInterval = 1000;
+    static final long	sweepInterval = 20000; // 100;
 
     final static long	SHUTDOWN_DELAY = 0 * sweepInterval;	// Wait for partner's last ack
 

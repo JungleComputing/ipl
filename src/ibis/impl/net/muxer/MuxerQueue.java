@@ -1,6 +1,6 @@
 package ibis.ipl.impl.net.muxer;
 
-import ibis.ipl.IbisIOException;
+import ibis.ipl.impl.net.NetIbisException;
 
 import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetAllocator;
@@ -68,7 +68,7 @@ public class MuxerQueue extends MuxerKey {
      */
     synchronized
     public void enqueue(NetReceiveBuffer buffer)
-	    throws IbisIOException {
+	    throws NetIbisException {
 
 	if (! factory.isSuitableClass(buffer)) {
 	    if (true || Driver.DEBUG) {
@@ -169,9 +169,9 @@ public class MuxerQueue extends MuxerKey {
 
 
     private NetReceiveBuffer dequeue(NetReceiveBuffer buffer)
-	    throws IbisIOException {
+	    throws NetIbisException {
 	if (userBuffer != null) {
-	    throw new IbisIOException("Racey downcall receive");
+	    throw new NetIbisException("Racey downcall receive");
 	}
 	userBuffer = buffer;
 
@@ -206,7 +206,7 @@ public class MuxerQueue extends MuxerKey {
      */
     synchronized
     public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-	    throws IbisIOException {
+	    throws NetIbisException {
 
 	if (Driver.DEBUG) {
 	    System.err.println("Downcall receive q " + this + ": start dequeue");
@@ -228,7 +228,7 @@ public class MuxerQueue extends MuxerKey {
      */
     synchronized
     public void receiveByteBuffer(NetReceiveBuffer userBuffer)
-	    throws IbisIOException {
+	    throws NetIbisException {
 
 	if (Driver.DEBUG) {
 	    System.err.println("Post downcall receive q " + this + " userBuffer " + userBuffer + ": start dequeue");

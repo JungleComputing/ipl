@@ -1,19 +1,5 @@
 package ibis.ipl.impl.net.muxer.udp;
 
-import ibis.ipl.impl.net.NetPortType;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetServiceListener;
-import ibis.ipl.impl.net.NetSendBuffer;
-import ibis.ipl.impl.net.NetConvert;
-import ibis.ipl.impl.net.NetBufferFactory;
-
-import ibis.ipl.impl.net.muxer.MuxerOutput;
-import ibis.ipl.impl.net.muxer.MuxerKey;
-
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -24,6 +10,18 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 import java.util.Hashtable;
+
+import ibis.ipl.impl.net.NetPortType;
+import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetIO;
+import ibis.ipl.impl.net.NetConnection;
+import ibis.ipl.impl.net.NetSendBuffer;
+import ibis.ipl.impl.net.NetConvert;
+import ibis.ipl.impl.net.NetBufferFactory;
+import ibis.ipl.impl.net.NetIbisException;
+
+import ibis.ipl.impl.net.muxer.MuxerOutput;
+import ibis.ipl.impl.net.muxer.MuxerKey;
 
 /**
  * The UDP output implementation.
@@ -58,6 +56,9 @@ public final class UdpMuxOutput
     private int			lmtu   =    0;
 
 
+    private Integer		rpn    = null;
+
+
     private int			liveConnections;
 
 
@@ -73,7 +74,7 @@ public final class UdpMuxOutput
     public UdpMuxOutput(NetPortType portType,
 		        NetDriver   driver,
 		        NetIO       up,
-		        String      context) throws IbisIOException {
+		        String      context) throws NetIbisException {
 
 	super(portType, driver, up, context);
 
@@ -83,9 +84,9 @@ public final class UdpMuxOutput
 	    laddr  = socket.getLocalAddress();
 	    lport  = socket.getLocalPort();
 	} catch (SocketException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	} catch (IOException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	}
 
 	packet = new DatagramPacket(new byte[0], 0, null, 0);
@@ -104,39 +105,41 @@ public final class UdpMuxOutput
      * @param is {@inheritDoc}
      * @param os {@inheritDoc}
      */
-    public void setupConnection(Integer            rpn,
-				ObjectInputStream  is,
-				ObjectOutputStream os,
-				NetServiceListener nls)
-	    throws IbisIOException {
+    public void setupConnection(NetConnection cnx)
+	    throws NetIbisException {
 
 	liveConnections++;
 	try {
+	    rpn = cnx.getNum();
+
+	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + rpn));
 	    InetAddress raddr = (InetAddress)is.readObject();
 	    int rport         = is.readInt();
 	    int rmtu          = is.readInt();
 	    int rKey          = is.readInt();
+	    is.close();
 
 	    MuxerKey key = new UdpMuxerKey(rpn, raddr, rport, rKey);
 	    registerKey(key);
 
+	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + rpn));
 	    os.writeObject(laddr);
 	    os.writeInt(lport);
 	    os.writeInt(lmtu);
 	    os.writeInt(rpn.intValue());
-	    os.flush();
+	    os.close();
 
 	    mtu    = Math.min(lmtu, rmtu);
 
 	} catch (ClassNotFoundException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	} catch (IOException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	}
     }
 
 
-    public void disconnect(MuxerKey key) throws IbisIOException {
+    public void disconnect(MuxerKey key) throws NetIbisException {
 	releaseKey(key);
 	if (--liveConnections == 0) {
 	    free();
@@ -149,7 +152,7 @@ public final class UdpMuxOutput
      */
     synchronized
     public void sendByteBuffer(NetSendBuffer b)
-	    throws IbisIOException {
+	    throws NetIbisException {
 
 	int lKey = b.connectionId.intValue();
 	UdpMuxerKey uk = (UdpMuxerKey)locateKey(lKey);
@@ -167,7 +170,7 @@ public final class UdpMuxOutput
 	try {
 	    socket.send(packet);
 	} catch (IOException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	}
 	if (! b.ownershipClaimed) {
 	    b.free();
@@ -175,9 +178,21 @@ public final class UdpMuxOutput
     }
 
 
-    public void free() throws IbisIOException {
-	socket.close();
-	socket = null;
+    synchronized public void close(Integer num) throws NetIbisException {
+	if (rpn == num) {
+	    if (socket != null) {
+		socket.close();
+		socket = null;
+	    }
+	}
+    }
+
+
+    public void free() throws NetIbisException {
+	if (rpn == null) {
+	    return;
+	}
+	super.free();
     }
 
 

@@ -38,7 +38,10 @@ class RelSendBuffer extends NetSendBuffer {
      */
     RelSendBuffer(byte[] data, int length) {
 	super(data, length);
-	reset();
+	if (RelConstants.DEBUG) {
+	    fragCount = -1;
+	}
+	reset(false);
     }
 
     /**
@@ -46,7 +49,10 @@ class RelSendBuffer extends NetSendBuffer {
      */
     RelSendBuffer(byte[] data, int length, NetAllocator allocator) {
 	super(data, length, allocator);
-	reset();
+	if (RelConstants.DEBUG) {
+	    fragCount = -1;
+	}
+	reset(false);
     }
 
 
@@ -54,12 +60,16 @@ class RelSendBuffer extends NetSendBuffer {
      * @{inheritDoc}
      */
     public void reset() {
+	reset(true);
+    }
+
+    private void reset(boolean appReset) {
 	sent = false;
 	acked = false;
 	lastSent = -1;
 	ownershipClaimed = false;
-	if (RelConstants.DEBUG) {
-	    System.err.println("............................. Free packet " + fragCount);
+	if (RelConstants.DEBUG && appReset) {
+	    System.err.println("............................. Clear packet " + fragCount);
 	}
     }
 

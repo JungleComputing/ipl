@@ -37,7 +37,6 @@ public abstract class NetBufferedOutput extends NetOutput {
 			   NetIO  	    up,
                            String           context) {
 		super(portType, driver, up, context);
-		factory = new NetBufferFactory(new NetSendBufferFactoryDefaultImpl());
 	}
 
         protected abstract void sendByteBuffer(NetSendBuffer buffer) throws NetIbisException;
@@ -46,7 +45,11 @@ public abstract class NetBufferedOutput extends NetOutput {
 		dataOffset = getHeadersLength();
 
                 if (mtu != 0) {
+		    if (factory == null) {
+			factory = new NetBufferFactory(mtu, new NetSendBufferFactoryDefaultImpl());
+		    } else {
 			factory.setMaximumTransferUnit(mtu);
+		    }
 		}
         }
         

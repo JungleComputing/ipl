@@ -19,4 +19,6 @@ public interface NetBufferFactoryImpl {
 				  int length,
 				  NetAllocator allocator);
 
+    public boolean isSuitableClass(NetBuffer buffer);
+
 }

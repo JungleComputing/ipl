@@ -457,8 +457,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	
 
 
-
-
         /* ----- PUBLIC WriteMessage API ___________________________________ */
 
 	/**

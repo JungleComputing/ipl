@@ -122,7 +122,14 @@ public final class TcpOutput extends NetBufferedOutput {
 		}
 
 		mtu = Math.min(lmtu, rmtu);
-                // System.err.println("tcp_blk.TcpOutput: setupConnection <--");
+		// Don't always create a new factory here, just specify the mtu.
+		// Possibly a subclass overrode the factory, and we must leave
+		// that factory in place.
+		if (factory == null) {
+		    factory = new NetBufferFactory(new NetSendBufferFactoryDefaultImpl());
+		} else {
+		    factory.setMaximumTransferUnit(mtu);
+		}
 	}
 
         public void finish() throws NetIbisException {

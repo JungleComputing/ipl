@@ -36,7 +36,15 @@ public final class Driver extends NetDriver implements RelConstants {
 		} else {
 		    sweeper.start();
 		}
-	}	
+
+		if (false) {
+		    System.err.println("Start a time slice snooper");
+		    Snooper snooper = new Snooper();
+		    snooper.setDaemon(true);
+		    snooper.setName("net.rel.Driver time slice snooper");
+		    snooper.start();
+		}
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -129,7 +137,9 @@ public final class Driver extends NetDriver implements RelConstants {
 	synchronized
 	int registerOutput(RelOutput output) {
 	    int index = this.output.add(new OutputElement(output));
-System.err.println("Register Output " + output + " at index " + index);
+	    if (DEBUG) {
+		System.err.println("Register Output " + output + " at index " + index);
+	    }
 	    return index;
 	}
 
@@ -143,7 +153,9 @@ System.err.println("Register Output " + output + " at index " + index);
 	 */
 	synchronized
 	void registerInputConnection(RelInput input, IbisIdentifier id) {
-System.err.println("Register InputConnection id " + id + " for RelInput " + input);
+	    if (DEBUG) {
+		System.err.println("Register InputConnection id " + id + " for RelInput " + input);
+	    }
 	    this.input.add(new InputElement(input, id));
 	}
 
@@ -158,7 +170,9 @@ System.err.println("Register InputConnection id " + id + " for RelInput " + inpu
 	 */
 	synchronized
 	void registerOutputConnection(int index, IbisIdentifier id) {
-System.err.println("Register OutputConnection id " + id + " for index " + index);
+	    if (DEBUG) {
+		System.err.println("Register OutputConnection id " + id + " for index " + index);
+	    }
 	    OutputElement e = (OutputElement)output.get(index);
 	    e.remote_in_id = id;
 	}
@@ -255,6 +269,23 @@ System.err.println("Register OutputConnection id " + id + " for index " + index)
 	}
 
     }
-    
+
+
+    class Snooper extends Thread {
+
+	public void run() {
+	    while (true) {
+		synchronized (this) {
+		    try {
+			wait(30);
+		    } catch (InterruptedException e) {
+			// Ignore
+		    }
+		}
+		System.err.print("-");
+	    }
+	}
+
+    }
 
 }

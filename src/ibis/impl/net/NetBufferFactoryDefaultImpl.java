@@ -9,4 +9,8 @@ public class NetBufferFactoryDefaultImpl
 	return new NetBuffer(data, length, allocator);
     }
 
+    public boolean isSuitableClass(NetBuffer buffer) {
+	return true;
+    }
+
 }

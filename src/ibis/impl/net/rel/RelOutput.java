@@ -11,9 +11,9 @@ import java.io.ObjectOutputStream;
 * The REL output implementation.
 */
 public final class RelOutput
-    extends NetBufferedOutput
-    // extends NetOutput
-    implements RelConstants, RelSweep {
+	extends NetBufferedOutput
+	// extends NetOutput
+	implements RelConstants, RelSweep {
 
     private final static boolean STATISTICS = Driver.STATISTICS;
 
@@ -25,7 +25,7 @@ public final class RelOutput
     /**
      * The communication output.
      */
-    private NetOutput dataOutput = null;
+    private NetOutput	dataOutput = null;
 
     private int[]	ackReceiveSet = new int[ACK_SET_IN_INTS];
 
@@ -45,6 +45,8 @@ public final class RelOutput
 
     static int SEQNO_OFFSET = 0;
 
+    private boolean connected = false;	// No rexmit before connection complete
+
 
     /**
      * The acknowledgement input.
@@ -54,13 +56,15 @@ public final class RelOutput
 
     private NetReceiveBuffer ackPacket;
 
+    private NetBufferFactory controlFactory;
+
 
 
     /**
      * The sliding window descriptor.
      * The window size is in rel.Driver.
      */
-    private static final int DEFAULT_WINDOW_SIZE = 32;
+    private static final int DEFAULT_WINDOW_SIZE = 4;
     private int		windowSize = DEFAULT_WINDOW_SIZE;
     private int		nextAllocate = FIRST_PACKET_COUNT; // Allocated to send up to here
     private int		windowStart = FIRST_PACKET_COUNT;  // Acked up to here
@@ -91,9 +95,40 @@ public final class RelOutput
     java.util.Random discardRandom;
 
 
+    private int sendWaiters;	/* count threads that block for credits */
+
+
     static {
 	if (! USE_PIGGYBACK_ACKS) {
 	    System.err.println("Ibis.net.rel: Do not use piggybacked acks");
+	}
+    }
+
+
+    private void checkLocked() throws NetIbisException {
+	if (DEBUG_LOCK) {
+	    try {
+		notify();
+		return;
+	    } catch (IllegalMonitorStateException e) {
+		System.err.println("I should own the lock but I DON'T");
+		Thread.dumpStack();
+		throw new NetIbisException("I should own the lock but I DON'T");
+	    }
+	}
+    }
+
+
+    private void checkUnlocked() throws NetIbisException {
+	if (DEBUG_LOCK) {
+	    try {
+		notify();
+		System.err.println("I shouldn't own the lock but I DO");
+		Thread.dumpStack();
+		throw new NetIbisException("I shouldn't own the lock but I DO");
+	    } catch (IllegalMonitorStateException e) {
+		return;
+	    }
 	}
     }
 
@@ -155,7 +190,6 @@ public final class RelOutput
 	}
 
 	headerStart = dataOutput.getHeadersLength();
-System.err.println("RelOutput: headerStart " + headerStart);
 	ackStart    = headerStart + NetConvert.INT_SIZE;
 	dataOffset  = ackStart + RelConstants.headerLength;
 	if (DEBUG) {
@@ -173,32 +207,59 @@ System.err.println("RelOutput: headerStart " + headerStart);
 	try {
             NetServiceLink link = cnx.getServiceLink();
 	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "rel"));
-            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "rel"));
 
 	    partnerIbisId = (IbisIdentifier)is.readObject();
-            is.close();
+
+            ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "rel"));
 	    os.writeObject(relDriver.getIbis().identifier());
 	    os.writeInt(myIndex);
 	    os.writeInt(windowSize);
             os.close();
+
+	    relDriver.registerOutputConnection(myIndex, partnerIbisId);
+
+	    NetInput controlInput = this.controlInput;
+
+	    /* Reverse connection */
+	    if (controlInput == null) {
+		    controlInput = newSubInput(subDriver, "control");
+		    this.controlInput = controlInput;
+	    }
+
+	    controlInput.setupConnection(new NetConnection(cnx, new Integer(-cnx.getNum().intValue() - 1)));
+	    controlHeaderStart = controlInput.getHeadersLength();
+	    System.err.println("Control header: start " + controlHeaderStart + " length " + RelConstants.headerLength);
+
+	    if (controlFactory == null) {
+		controlFactory = new NetBufferFactory(mtu, new RelReceiveBufferFactoryImpl());
+		if (DEBUG) {
+		    System.err.println(this + ": ########################## set controlInput " + controlInput + " buffer factory " + controlFactory);
+		}
+		controlInput.setBufferFactory(controlFactory);
+		if (DEBUG) {
+		    controlInput.dumpBufferFactoryInfo();
+		    System.err.println(this + ": ########################## controlInput.factory = " + controlInput.factory);
+		}
+	    } else {
+		controlFactory.setMaximumTransferUnit(mtu);
+	    }
+
+	    /* Synchronize with the other side, so we are sure the connection
+	     * is set up right and proper before anybody starts talking */
+	    int ok = is.readInt();
+	    if (ok != 1) {
+		throw new NetIbisException(this + ": connection handshake fails");
+	    }
+            is.close();
 	} catch (java.io.IOException e) {
+	    System.err.println("Catch exception " + e);
+	    e.printStackTrace();
 	    throw new NetIbisException(e);
 	} catch (java.lang.ClassNotFoundException e) {
 	    throw new NetIbisException(e);
 	}
 
-	relDriver.registerOutputConnection(myIndex, partnerIbisId);
-
-	NetInput controlInput = this.controlInput;
-
-	/* Reverse connection */
-	if (controlInput == null) {
-		controlInput = newSubInput(subDriver, "control");
-		this.controlInput = controlInput;
-	}
-
-	controlInput.setupConnection(new NetConnection(cnx, new Integer(-1)));
-	controlHeaderStart = controlInput.getHeadersLength();
+	connected = true;
     }
 
 
@@ -207,7 +268,10 @@ System.err.println("RelOutput: headerStart " + headerStart);
     }
 
 
-    private void pushPiggy(RelSendBuffer frag) {
+    private void pushPiggy(RelSendBuffer frag) throws NetIbisException {
+
+	checkLocked();
+
 	if (! USE_PIGGYBACK_ACKS) {
 	    NetConvert.writeInt(-1, frag.data, ackStart);
 	    return;
@@ -245,6 +309,9 @@ System.err.println("RelOutput: headerStart " + headerStart);
     // Call this synchronized
     private void doSendBuffer(RelSendBuffer frag, long now)
 	    throws NetIbisException {
+
+	checkLocked();
+
 	frag.sent = true;
 	frag.lastSent = now;
 	/* We don't release our lock here. The locking scheme must
@@ -259,7 +326,7 @@ System.err.println("RelOutput: headerStart " + headerStart);
 				     headerStart / NetConvert.INT_SIZE +
 					 4);
 	    if (frag.fragCount != first_int) {
-		throw new NetIbisException("Packet corrupted");
+		// throw new NetIbisException("Packet corrupted");
 	    }
 	}
 	if (DEBUG) {
@@ -283,7 +350,7 @@ System.err.println("RelOutput: headerStart " + headerStart);
 				     headerStart / NetConvert.INT_SIZE +
 					 4);
 	    if (frag.fragCount != first_int) {
-		throw new NetIbisException("Packet corrupted");
+		// throw new NetIbisException("Packet corrupted");
 	    }
 	}
     }
@@ -314,16 +381,24 @@ System.err.println("RelOutput: headerStart " + headerStart);
 
     // Call this synchronized
     private boolean pollControlChannel() throws NetIbisException {
+
+	checkLocked();
+
 	if (ackPacket == null) {
+	    controlInput.dumpBufferFactoryInfo();
+	    System.err.println("Get an ack packet, length " + (controlHeaderStart + RelConstants.headerLength));
 	    ackPacket = controlInput.createReceiveBuffer(controlHeaderStart + RelConstants.headerLength);
 	}
 	boolean messageArrived = false;
-	if (DEBUG) {
+	if (DEBUG_ACK) {
 	    System.err.println("Out of credits? Poll control channel");
 	}
 	while (true) {
 	    Integer r = controlInput.poll();
 	    if (r == null) {
+		if (DEBUG_ACK) {
+		    System.err.println("Poll control channel fails, messageArrived " + messageArrived);
+		}
 		return messageArrived;
 	    }
 	    messageArrived = true;
@@ -344,6 +419,9 @@ System.err.println("RelOutput: headerStart " + headerStart);
     // Call this synchronized
 // synchronized
     private void handleSendContinuation() throws NetIbisException {
+
+	checkLocked();
+
 	if (DEBUG) {
 	    System.err.println("handleSendContinuation, front packet " +
 		    (front == null ? -1 : front.fragCount) +
@@ -385,6 +463,9 @@ System.err.println("RelOutput: headerStart " + headerStart);
 
     // Call this synchronized
     private void enqueueSendBuffer(RelSendBuffer frag) throws NetIbisException {
+
+	checkLocked();
+
 	if (front == null) {
 	    front = frag;
 	} else {
@@ -396,41 +477,18 @@ System.err.println("RelOutput: headerStart " + headerStart);
 	if (nextToSend == null) {
 	    nextToSend = frag;
 	}
-
-	handleSendContinuation();
     }
 
 
-    synchronized
-    void handleAck(byte[] data, int offset) throws NetIbisException {
-	RelSendBuffer scan;
-	RelSendBuffer prev;
+    private void handleAckSet(int offset,
+			      int[] ackReceiveSet,
+			      int toAck,
+			      RelSendBuffer scan)
+	    throws NetIbisException {
 
-	int	ackOffset = NetConvert.readInt(data, offset);
-	offset += NetConvert.INT_SIZE;
-	NetConvert.readArraySliceInt(data, offset,
-				     ackReceiveSet, 0, ACK_SET_IN_INTS);
-	offset += NetConvert.INT_SIZE * ACK_SET_IN_INTS;
-	if (DEBUG_ACK) {
-	    System.err.println("@@@@@@@@@@@@@@@@@@@ Receive ack seqno " +
-		    ackOffset);
-	    // Thread.dumpStack();
-	}
+	checkLocked();
 
-	/* First all fragments up to ackOffset. */
-	for (scan = front;
-	     scan != null && scan.fragCount < ackOffset;
-	     scan = front) {
-	    front = scan.next;
-	    windowStart++;
-	    if (DEBUG_ACK) {
-		System.err.println(".................. Now free packet " +
-			scan.fragCount + " windowStart := " + windowStart);
-	    }
-	    scan.free();
-	}
-
-	/* Then all fragments indicated by ackReceiveSet.
+	/* Ack/Nack all fragments indicated by ackReceiveSet.
 	 * Retransmit all fragments missing from ackReceiveSet (except very
 	 * recently sent ones):
 	 * out-of-order arrival is much less probable than packet loss. */
@@ -463,88 +521,129 @@ System.err.println("RelOutput: headerStart " + headerStart);
 	    if (DEBUG_ACK) {
 		System.err.println("No missing packets in ack bitset");
 	    }
-	} else {
-
-	    long now = System.currentTimeMillis();
-	    int	toAck = ackOffset;
-
-	ack_set_loop:
-	    for (int i = 0; i < maxNonemptyIndex; i++) {
-		int mask = 1;
-		for (int bit = 0; bit < NetConvert.BITS_PER_INT; bit++) {
-		    if (scan != null && scan.fragCount > toAck) {
-			if (DEBUG_ACK) {
-			    System.err.println("It seems data channel and " +
-				    "control channel overtake each other; " +
-				    "get " + scan.fragCount +
-				    " would expect " + toAck);
-			}
-		    } else {
-			if (scan == null ||
-				i * NetConvert.BITS_PER_INT + bit >= maxAcked ||
-				scan.fragCount - windowStart >= windowSize) {
-			    if (DEBUG_ACK) {
-				System.err.println("Ack bit set done: scan " +
-					(scan == null ? -1 : scan.fragCount) +
-					" ack offset " +
-					(i * NetConvert.BITS_PER_INT + bit));
-			    }
-			    break ack_set_loop;
-			}
-
-			if (! scan.sent) {
-			    System.err.println("HAVOC HAVOC HAVOC ack " +
-				    "mechanism is wrong -- missing reported " +
-				    "that's not even been sent");
-			    throw new NetIbisException("missing reported that " +
-				    "has not yet been sent");
-			}
-
-			if (scan.acked) {
-			    if (DEBUG_ACK) {
-				System.err.println("Ack packet " +
-					scan.fragCount + " from bitset --- " +
-					"already acked before");
-			    }
-			} else if ((mask & ackReceiveSet[i]) != 0) {
-			    scan.acked = true;
-			    if (DEBUG_ACK) {
-				System.err.println("Ack packet " +
-					scan.fragCount + " from bitset");
-			    }
-			// } else if (now - scan.lastSent < safetyInterval) {
-			} else {
-			    if (DEBUG_ACK || DEBUG_REXMIT) {
-				System.err.println("Packet " + scan.fragCount +
-					" misses from bitset, rexmit(NACK)");
-			    }
-			    nRexmit_nack++;
-			    doSendBuffer(scan, now);
-			}
-
-			scan = scan.next;
-		    }
-		    mask <<= 1;
-		    toAck++;
-		}
-		offset += NetConvert.BITS_PER_INT;
-	    }
-
-	    while (front != null && front.acked) {
-		scan = front;
-		front = front.next;
-		windowStart++;
-		scan.free();
-	    }
+	    return;
 	}
 
+	long now = System.currentTimeMillis();
+
+    ack_set_loop:
+	for (int i = 0; i < maxNonemptyIndex; i++) {
+	    int mask = 1;
+	    for (int bit = 0; bit < NetConvert.BITS_PER_INT; bit++) {
+		if (scan != null && scan.fragCount > toAck) {
+		    if (DEBUG_ACK) {
+			System.err.println("It seems data channel and " +
+				"control channel overtake each other; " +
+				"get " + scan.fragCount +
+				" would expect " + toAck);
+		    }
+		} else {
+		    if (scan == null ||
+			    i * NetConvert.BITS_PER_INT + bit >= maxAcked ||
+			    scan.fragCount - windowStart >= windowSize) {
+			if (DEBUG_ACK) {
+			    System.err.println("Ack bit set done: scan " +
+				    (scan == null ? -1 : scan.fragCount) +
+				    " ack offset " +
+				    (i * NetConvert.BITS_PER_INT + bit));
+			}
+			break ack_set_loop;
+		    }
+
+		    if (! scan.sent) {
+			System.err.println("HAVOC HAVOC HAVOC ack " +
+				"mechanism is wrong -- missing reported " +
+				"that's not even been sent");
+			throw new NetIbisException("missing reported that " +
+				"has not yet been sent");
+		    }
+
+		    if (scan.acked) {
+			if (DEBUG_ACK) {
+			    System.err.println("Ack packet " +
+				    scan.fragCount + " from bitset --- " +
+				    "already acked before");
+			}
+		    } else if ((mask & ackReceiveSet[i]) != 0) {
+			scan.acked = true;
+			if (DEBUG_ACK) {
+			    System.err.println("Ack packet " +
+				    scan.fragCount + " from bitset");
+			}
+		    // } else if (now - scan.lastSent < safetyInterval) {
+		    } else {
+			if (DEBUG_ACK || DEBUG_REXMIT) {
+			    System.err.println("Packet " + scan.fragCount +
+				    " misses from bitset, rexmit(NACK)");
+			}
+			nRexmit_nack++;
+			doSendBuffer(scan, now);
+		    }
+
+		    scan = scan.next;
+		}
+		mask <<= 1;
+		toAck++;
+	    }
+	    offset += NetConvert.BITS_PER_INT;
+	}
+
+	while (front != null && front.acked) {
+	    scan = front;
+	    front = front.next;
+	    windowStart++;
+	    scan.free();
+	}
+    }
+
+
+    synchronized
+    void handleAck(byte[] data, int offset) throws NetIbisException {
+	RelSendBuffer scan;
+	RelSendBuffer prev;
+
+	int	ackOffset = NetConvert.readInt(data, offset);
+	offset += NetConvert.INT_SIZE;
+	NetConvert.readArraySliceInt(data, offset,
+				     ackReceiveSet, 0, ACK_SET_IN_INTS);
+	offset += NetConvert.INT_SIZE * ACK_SET_IN_INTS;
+	if (DEBUG_ACK) {
+	    System.err.println("@@@@@@@@@@@@@@@@@@@ Receive ack seqno " +
+		    ackOffset);
+	    // Thread.dumpStack();
+	}
+
+	/* First all fragments up to ackOffset. */
+	for (scan = front;
+	     scan != null && scan.fragCount < ackOffset;
+	     scan = front) {
+	    front = scan.next;
+	    windowStart++;
+	    if (DEBUG_ACK) {
+		System.err.println(".................. Now free packet " +
+			scan.fragCount + " windowStart := " + windowStart);
+	    }
+	    scan.free();
+	}
+
+	handleAckSet(offset,
+		     ackReceiveSet,
+		     ackOffset,
+		     scan);
+
 	handleSendContinuation();
+
+	if (sendWaiters > 0) {
+	    notifyAll();
+	}
     }
 
 
     // call this synchronized
-// synchronized
     private void handleRexmit() throws NetIbisException {
+
+	checkLocked();
+
 	long now = System.currentTimeMillis();
 
 	if (DEBUG_REXMIT) {
@@ -571,13 +670,23 @@ System.err.println("RelOutput: headerStart " + headerStart);
 
 
     public void invoke() {
-	if (controlInput == null) {
+
+	if (! connected) {
 	    // Not yet started
 	    return;
 	}
 
 	try {
 	    synchronized (this) {
+		if (nextToSend == null) {
+		    if (DEBUG_REXMIT) {
+			System.err.print("V");
+		    }
+		    return;
+		}
+		if (DEBUG_REXMIT) {
+		    System.err.print("_");
+		}
 		pollControlChannel();
 		handleRexmit();
 	    }
@@ -590,7 +699,6 @@ System.err.println("RelOutput: headerStart " + headerStart);
     /**
      * {@inheritDoc}
      */
-    synchronized
     public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
 	if (DEBUG) {
 	    System.err.println("Try to send a buffer size " + b.length);
@@ -615,15 +723,38 @@ System.err.println("RelOutput: headerStart " + headerStart);
 	    }
 	}
 
-	rb.fragCount = nextAllocate;
-	nextAllocate++;
-	if (DEBUG) {
-	    System.err.println("Write fragCount " +
-		    (rb.fragCount & ~LAST_FRAG_BIT) + "(" + rb.fragCount +
-		    ") at offset " + headerStart);
+	synchronized (this) {
+	    rb.fragCount = nextAllocate;
+	    nextAllocate++;
+	    if (DEBUG) {
+		System.err.println("Write fragCount " +
+			(rb.fragCount & ~LAST_FRAG_BIT) + "(" + rb.fragCount +
+			") at offset " + headerStart);
+	    }
+	    NetConvert.writeInt(rb.fragCount, rb.data, headerStart);
+	    enqueueSendBuffer(rb);
+	    handleSendContinuation();
 	}
-	NetConvert.writeInt(rb.fragCount, rb.data, headerStart);
-	enqueueSendBuffer(rb);
+
+	/* Block in this routine until our message has been sent out.
+	 * If we don't, the send continuation can get preempted forever. */
+	while (nextToSend != null) {
+	    synchronized (this) {
+		if (false) {
+		    sendWaiters++;
+		    try {
+			wait();
+		    } catch (InterruptedException e) {
+			// Ignore
+		    }
+		    sendWaiters--;
+		}
+		handleSendContinuation();
+	    }
+	    if (false && nextToSend != null) {
+		Thread.yield();
+	    }
+	}
     }
 
 

@@ -6,12 +6,10 @@ import ibis.ipl.impl.net.NetBufferedInput;
 import ibis.ipl.impl.net.NetPortType;
 import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetServiceListener;
+import ibis.ipl.impl.net.NetConnection;
 import ibis.ipl.impl.net.NetConvert;
 import ibis.ipl.impl.net.NetReceiveBufferFactoryDefaultImpl;
-
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
+import ibis.ipl.impl.net.NetIbisException;
 
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
@@ -53,12 +51,12 @@ public final class Demuxer extends NetBufferedInput {
      * @{inheritDoc}
      */
     Demuxer(NetPortType pt, NetDriver driver, NetIO up, String context)
-	    throws IbisIOException {
+	    throws NetIbisException {
 	super(pt, driver, up, context);
 
 	if (subDriver == null) {
-	    System.err.println("It should depend on Driver properties which muxer subinput is created");
 	    // String subDriverName = getMandatoryProperty("Driver");
+	    System.err.println("It should depend on Driver properties which muxer subinput is created");
 	    String subDriverName = "muxer.udp";
 	    subDriver = driver.getIbis().getDriver(subDriverName);
 	    System.err.println("The subDriver is " + subDriver);
@@ -94,7 +92,7 @@ dumpBufferFactoryInfo();
 	    public void run() {
 		while (true) {
 		    try {
-			NetReceiveBuffer buffer = createReceiveBuffer();
+			NetReceiveBuffer buffer = createReceiveBuffer(demux.getMaximumTransfertUnit());
 			myQueue.receiveByteBuffer(buffer);
 			activeNum = spn;
 			Demuxer.super.initReceive();
@@ -112,11 +110,8 @@ dumpBufferFactoryInfo();
     /**
      * Sets up a connection over the underlying DemuxerInput.
      */
-    public void setupConnection(Integer	       spn,
-				ObjectInputStream  is,
-				ObjectOutputStream os,
-				NetServiceListener nls)
-	    throws IbisIOException {
+    public void setupConnection(NetConnection cnx)
+	    throws NetIbisException {
 	if (Driver.DEBUG) {
 	    System.err.println("Now enter Demuxer.setupConnection");
 	}
@@ -125,12 +120,12 @@ dumpBufferFactoryInfo();
 	    throw new Error("connection already established");
 	}
 
-	this.spn = spn;
+	this.spn = cnx.getNum();
 
 	/* Create our MuxerQueue */
 	myQueue = demux.createQueue(spn);
 	/* Set up the connection */
-	demux.setupConnection(spn, is, os, nls);
+	demux.setupConnection(cnx);
 
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": Input connect spn " + spn + " creates queue " + myQueue);
@@ -156,10 +151,11 @@ dumpBufferFactoryInfo();
 	try {
 	    /* The demuxer has reset its buffers to a sufficient size. Let the
 	     * other side start sending if it feels like it. */
+	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer"));
 	    os.writeInt(1);
-	    os.flush();
+	    os.close();
 	} catch (IOException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	}
 
 	if (Driver.DEBUG) {
@@ -207,7 +203,7 @@ dumpBufferFactoryInfo();
      *
      * @return {@inheritDoc}
      */
-    public Integer poll() throws IbisIOException {
+    public Integer poll() throws NetIbisException {
 	if (myQueue == null) {
 	    // Still connecting, presumably
 	    return null;
@@ -227,7 +223,7 @@ dumpBufferFactoryInfo();
      * @return {@inheritDoc}
      */
     public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-	    throws IbisIOException {
+	    throws NetIbisException {
 
 	NetReceiveBuffer b = myQueue.receiveByteBuffer(expectedLength);
 	super.initReceive();
@@ -236,7 +232,7 @@ dumpBufferFactoryInfo();
 
 
     public void receiveByteBuffer(NetReceiveBuffer userBuffer)
-	    throws IbisIOException {
+	    throws NetIbisException {
 
 // System.err.println(this + ": receiveByteBuffer, my headerLength " + headerLength);
 // Thread.dumpStack();
@@ -248,7 +244,7 @@ dumpBufferFactoryInfo();
     /**
      * {@inheritDoc}
      */
-    public void finish() throws IbisIOException {
+    public void finish() throws NetIbisException {
 	super.finish();
     }
 
@@ -256,17 +252,28 @@ dumpBufferFactoryInfo();
     /**
      * {@inheritDoc}
      */
-    public void free() throws IbisIOException {
+    public synchronized void close(Integer num) throws NetIbisException {
+	if (spn == num) {
+	    spn = null;
+	    demux.disconnect(myQueue);
+	    if (upcallFunc != null) {
+		// Yes, what? How do we stop this thread?
+	    }
+	}
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void free() throws NetIbisException {
 	if (spn == null) {
 	    return;
 	}
 
-	spn = null;
+	close(spn);
+
 	super.free();
-	demux.disconnect(myQueue);
-	if (upcallFunc != null) {
-	    // Yes, what? How do we stop this thread?
-	}
     }
 
 }

@@ -48,6 +48,24 @@ public abstract class NetBufferedInput extends NetInput {
 		super(portType, driver, up, context);
 	}
 
+	/**
+	 * @inheritDoc
+	 * {@link NetBufferFactory}.
+	 */
+	public NetReceiveBuffer createReceiveBuffer(int length)
+		throws NetIbisException {
+	    if (factory == null) {
+		byte[] data;
+		if (bufferAllocator == null) {
+		    data = new byte[length];
+		} else {
+		    data = bufferAllocator.allocate();
+		}
+		return new NetReceiveBuffer(data, length, bufferAllocator);
+	    }
+	    return (NetReceiveBuffer)createBuffer(length);
+	}
+
         /**
          * Optional method for zero-copy reception.
          * Note: at least one 'receiveByteBuffer' method must be implemented.
@@ -100,6 +118,11 @@ public abstract class NetBufferedInput extends NetInput {
                 if (mtu != 0) {
 			if (bufferAllocator == null || bufferAllocator.getBlockSize() != mtu) {
 				bufferAllocator = new NetAllocator(mtu);
+			}
+			if (factory == null) {
+			    factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl(), bufferAllocator);
+			} else {
+			    factory.setMaximumTransferUnit(mtu);
 			}
 		}
 

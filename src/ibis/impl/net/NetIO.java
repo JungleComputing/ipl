@@ -51,7 +51,8 @@ public abstract class NetIO {
 	/**
 	 * Current NetBufferFactory
 	 */
-	protected NetBufferFactory factory;
+	// protected NetBufferFactory factory;
+	public NetBufferFactory factory;
 
 
 	/**
@@ -163,7 +164,21 @@ public abstract class NetIO {
 	 * @param factory the {@link NetBuffer} factory
 	 */
 	public void setBufferFactory(NetBufferFactory factory) {
+	    if (NetBufferFactory.DEBUG) {
+		System.err.println(this + ": +++++++++++ set a new BufferFactory " + factory);
+		Thread.dumpStack();
+	    }
 	    this.factory = factory;
+	    if (NetBufferFactory.DEBUG) {
+		dumpBufferFactoryInfo();
+	    }
+	}
+
+	public void dumpBufferFactoryInfo() {
+	    if (NetBufferFactory.DEBUG) {
+		System.err.println(this + ": +++++++++++ current BufferFactory " + factory);
+		Thread.dumpStack();
+	    }
 	}
 
 	/**

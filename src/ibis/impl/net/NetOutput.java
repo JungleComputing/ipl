@@ -34,7 +34,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 			   NetIO  	    up,
                            String           context) {
 		super(portType, driver, up, context);
-		setBufferFactory(new NetBufferFactory(new NetSendBufferFactoryDefaultImpl()));
+		// factory = new NetBufferFactory(new NetSendBufferFactoryDefaultImpl());
 	}
 
         /**

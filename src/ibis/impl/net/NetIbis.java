@@ -126,7 +126,7 @@ public final class NetIbis extends Ibis {
 					, "id"
 					, "pipe"
 					, "udp"
-					, "udp_mux"
+					, "muxer"
 					, "tcp"
 					, "tcp_blk"
 					, "rel"

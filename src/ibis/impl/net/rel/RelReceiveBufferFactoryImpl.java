@@ -12,4 +12,8 @@ class RelReceiveBufferFactoryImpl
 	return new RelReceiveBuffer(data, length, allocator);
     }
 
+    public boolean isSuitableClass(NetBuffer buffer) {
+	return buffer instanceof RelReceiveBuffer;
+    }
+
 }

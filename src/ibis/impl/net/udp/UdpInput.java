@@ -73,10 +73,6 @@ public final class UdpInput extends NetBufferedInput {
 		throws NetIbisException {
 		super(pt, driver, up, context);
 
-		if (factory == null) {
-		    factory = new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl());
-		}
-
 		if (Driver.DEBUG) {
 		    headerLength = 8;
 		}
@@ -124,11 +120,11 @@ public final class UdpInput extends NetBufferedInput {
 
 	public synchronized void setupConnection(NetConnection cnx)
 		throws NetIbisException {
-                if (this.spn != null) {
+                if (spn != null) {
                         throw new Error("connection already established");
                 }
                 
-		this.spn = spn;
+		spn = cnx.getNum();
 		 
 		try {
 			socket = new DatagramSocket(0, InetAddress.getLocalHost());
@@ -166,7 +162,11 @@ public final class UdpInput extends NetBufferedInput {
 		rmtu  = ((Integer)    rInfo.get("udp_mtu")   ).intValue();
 
 		mtu       = Math.min(lmtu, rmtu);
-		factory.setMaximumTransferUnit(mtu);
+		if (factory == null) {
+		    factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl());
+		} else {
+		    factory.setMaximumTransferUnit(mtu);
+		}
 
 		packet    = new DatagramPacket(new byte[mtu], mtu);
 
@@ -220,6 +220,11 @@ public final class UdpInput extends NetBufferedInput {
 	 * @return {@inheritDoc}
 	 */
 	public Integer poll() throws NetIbisException {
+	    return poll(pollTimeout);
+	}
+
+
+	private Integer poll(int timeout) throws NetIbisException {
 		if (spn == null) {
 			return null;
 		}
@@ -235,13 +240,17 @@ public final class UdpInput extends NetBufferedInput {
 			buffer = createReceiveBuffer(0);
 // System.err.println("UdpInput.poll creates buffer " + buffer);
 // Thread.dumpStack();
+			long start = 0;
 			packet.setData(buffer.data, 0, buffer.data.length);
-			setReceiveTimeout(pollTimeout);
-			long start = System.currentTimeMillis();
+			setReceiveTimeout(timeout);
+			if (timeout != 0) {
+			    start = System.currentTimeMillis();
+			}
+
 			try {
 				socket.receive(packet);
 				buffer.length = packet.getLength();
-// System.err.println("UdpInput.poll: Receive UDP packet len " + packet.getLength());
+// System.err.println(this + ": poll Receive UDP packet len " + packet.getLength() + " buffer " + buffer);
 				activeNum = spn;
 				super.initReceive();
 				checkReceiveSeqno(buffer);
@@ -253,12 +262,14 @@ public final class UdpInput extends NetBufferedInput {
 				buffer = null;
 				// Nothing
 			} catch (IOException e) {
+// System.err.print("!");
 				buffer.free();
 				buffer = null;
 				throw new NetIbisException(e);
 			}
 		}
 
+// System.err.println(this + ": poll returns " + activeNum);
 		return activeNum;
 	}
 	
@@ -273,30 +284,19 @@ public final class UdpInput extends NetBufferedInput {
 	 */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
 		throws NetIbisException {
-		if (buffer == null) {
-// System.err.print("Z");
-			buffer = createReceiveBuffer(0);
-// System.err.println("UdpInput.downcall receive(expectedlength) creates buffer " + buffer);
-			packet.setData(buffer.data, 0, buffer.data.length);
 
-			try {
-				/* This is a blocking receive call. Don't
-				 * set a timeout. */
-				setReceiveTimeout(0);
-				socket.receive(packet);
-				buffer.length = packet.getLength();
-				super.initReceive();
-				checkReceiveSeqno(buffer);
-// System.err.println("Receive UDP packet len " + packet.getLength());
-			} catch (IOException e) {
-				buffer.free();
-				buffer = null;
-				throw new NetIbisException(e);
-			}
-		} else {
+		while (buffer == null) {
+// System.err.print("Z");
+		    poll(0);
+		}
+
+// System.err.println(this + ": hi -- activeNum " + activeNum + " buffer " + buffer);
+// Thread.dumpStack();
+		if (this.buffer == null) {
+			throw new NetIbisException(this + ": receive corrupt: poll is nonnull but no buffer");
 // System.err.print("_");
 		}
-		
+
 		NetReceiveBuffer temp_buffer = buffer;
 		buffer = null;
 
@@ -318,13 +318,13 @@ public final class UdpInput extends NetBufferedInput {
 				socket.receive(packet);
 				super.initReceive();
 				checkReceiveSeqno(buffer);
-// System.err.println("Receive downcall UDP packet len " + packet.getLength());
+// System.err.println(this + ": Receive downcall UDP packet len " + packet.getLength());
 			} catch (IOException e) {
 				throw new NetIbisException(e);
 			}
 		} else {
 // System.err.print("-");
-// System.err.println("Fill pre-received UDP packet len " + buffer.length);
+// System.err.println(this + ": Fill pre-received UDP packet len " + buffer.length);
                         System.arraycopy(buffer.data, 0, userBuffer.data, userBuffer.base, userBuffer.length - userBuffer.base);
                         buffer.free();
                         buffer = null;
@@ -337,6 +337,7 @@ public final class UdpInput extends NetBufferedInput {
 	 * {@inheritDoc}
 	 */
 	public void finish() throws NetIbisException {
+// System.err.println(this + ": finish - reset buffer");
 		buffer = null;
 		super.finish();
 	}

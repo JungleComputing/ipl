@@ -42,7 +42,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 			   NetIO  	    up,
                            String           context) {
 		super(portType, driver, up, context);
-		setBufferFactory(new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl()));
+		// setBufferFactory(new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl()));
 	}
 
         public synchronized void inputUpcall(NetInput input, Integer spn) throws NetIbisException {

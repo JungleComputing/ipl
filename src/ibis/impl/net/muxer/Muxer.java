@@ -3,15 +3,13 @@ package ibis.ipl.impl.net.muxer;
 import ibis.ipl.impl.net.NetBufferedOutput;
 import ibis.ipl.impl.net.NetPortType;
 import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetServiceListener;
 import ibis.ipl.impl.net.NetSendBuffer;
 import ibis.ipl.impl.net.NetIO;
 import ibis.ipl.impl.net.NetBufferFactory;
 import ibis.ipl.impl.net.NetSendBufferFactoryDefaultImpl;
 import ibis.ipl.impl.net.NetConvert;
-
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
+import ibis.ipl.impl.net.NetIbisException;
+import ibis.ipl.impl.net.NetConnection;
 
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
@@ -57,12 +55,12 @@ public final class Muxer extends NetBufferedOutput {
      * @param output the controlling output.
      */
     Muxer(NetPortType pt, NetDriver driver, NetIO up, String context)
-	    throws IbisIOException {
+	    throws NetIbisException {
 	super(pt, driver, up, context);
 
 	if (subDriver == null) {
-	    System.err.println("It should depend on Driver properties which muxer suboutput is created");
 	    // String subDriverName = getMandatoryProperty("Driver");
+	    System.err.println("It should depend on Driver properties which muxer suboutput is created");
 	    String subDriverName = "muxer.udp";
 	    subDriver = driver.getIbis().getDriver(subDriverName);
 	    System.err.println("The subDriver is " + subDriver);
@@ -96,20 +94,17 @@ public final class Muxer extends NetBufferedOutput {
      * @param is {@inheritDoc}
      * @param os {@inheritDoc}
      */
-    public void setupConnection(Integer            rpn,
-				ObjectInputStream  is,
-				ObjectOutputStream os,
-				NetServiceListener nls)
-	    throws IbisIOException {
+    public void setupConnection(NetConnection cnx)
+		throws NetIbisException {
 	if (this.rpn != null) {
 	    throw new Error("connection already established");
 	}                
 
-	this.rpn = rpn;
+	rpn = cnx.getNum();
 
 	myKeyVal = rpn.intValue();
 
-	muxer.setupConnection(rpn, is, os, nls);
+	muxer.setupConnection(cnx);
 
 	headerOffset = muxer.getHeaderLength();
 	headerLength = headerOffset;
@@ -127,12 +122,14 @@ public final class Muxer extends NetBufferedOutput {
 
 	int ok = 0;
 	try {
+	    ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer"));
 	    ok = is.readInt();
+	    is.close();
 	} catch (IOException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	}
 	if (ok != 1) {
-	    throw new IbisIOException("Connection handshake failed");
+	    throw new NetIbisException("Connection handshake failed");
 	}
 
 	if (Driver.DEBUG) {
@@ -144,7 +141,7 @@ public final class Muxer extends NetBufferedOutput {
     /**
      * {@inheritDoc}
      */
-    public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
+    public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
 
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": try to send buffer size " + b.length);
@@ -166,18 +163,29 @@ public final class Muxer extends NetBufferedOutput {
     public void reset() {
     }
 
+
     /**
      * {@inheritDoc}
      */
-    public void free() throws IbisIOException {
+    synchronized public void close(Integer num) throws NetIbisException {
+	if (rpn == num) {
+	    mtu   =    0;
+	    rpn   = null;
+
+	    muxer.disconnect(myKey);
+	}
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void free() throws NetIbisException {
 	if (rpn == null) {
 	    return;
 	}
 
-	mtu   =    0;
-	rpn   = null;
-
-	muxer.disconnect(myKey);
+	close(rpn);
 
 	super.free();
     }

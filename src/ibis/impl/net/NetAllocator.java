@@ -36,6 +36,13 @@ public final class NetAllocator {
 	 * The stack pointer.
 	 */
 	private 	     int      stackPtr        = 0;
+
+
+	private static final boolean	STATISTICS = true;
+	private int			new_alloc = 0;
+	private int			cached_alloc = 0;
+	private int			real_free = 0;
+	private int			cached_free = 0;
 	
 	/**
 	 * Constructor allowing to select the block size and the cache
@@ -47,6 +54,14 @@ public final class NetAllocator {
 	public NetAllocator(int blockSize, int maxBlock) {
 		this.blockSize = blockSize;
 		stack = new byte[maxBlock][];
+
+		if (STATISTICS) {
+		    Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+			    report();
+			}
+		    });
+		}
 	}
 
 	/**
@@ -78,9 +93,15 @@ public final class NetAllocator {
 	 */
 	public synchronized byte[] allocate() {
 		if (stackPtr == 0) {
+			if (STATISTICS) {
+				new_alloc++;
+			}
 			return new byte[blockSize];
 		}
 
+		if (STATISTICS) {
+			cached_alloc++;
+		}
 		stackPtr--;
 		return stack[stackPtr];
 	}
@@ -101,10 +122,25 @@ public final class NetAllocator {
 			__.abort__("invalid buffer");
 		}
 
-		if (stackPtr >= defaultMaxBlock) 
+		if (stackPtr >= defaultMaxBlock)  {
+			if (STATISTICS) {
+				real_free++;
+			}
 			return;
+		}
 
+		if (STATISTICS) {
+			cached_free++;
+		}
 		stack[stackPtr] = block;
 		stackPtr++;
 	}
+
+
+	public void report() {
+	    if (STATISTICS && new_alloc + cached_alloc + real_free + cached_free > 0) {
+		System.err.println(this + ": alloc new " + new_alloc + " cached " + cached_alloc + "; free real " + real_free + " cached " + cached_free);
+	    }
+	}
+
 }

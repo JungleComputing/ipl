@@ -1,9 +1,12 @@
 package ibis.ipl.impl.net.muxer;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
-import ibis.ipl.impl.net.*;
+import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetIbis;
+import ibis.ipl.impl.net.NetPortType;
+import ibis.ipl.impl.net.NetIO;
+import ibis.ipl.impl.net.NetInput;
+import ibis.ipl.impl.net.NetOutput;
+import ibis.ipl.impl.net.NetIbisException;
 
 import java.io.ObjectInputStream;
 import java.io.IOException;
@@ -51,7 +54,7 @@ public final class Driver extends NetDriver {
 	 * @return The new UDP input.
 	 */
 	public NetInput newInput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		return new Demuxer(pt, this, up, context);
 	}
 
@@ -64,7 +67,7 @@ public final class Driver extends NetDriver {
 	 * @return The new UDP output.
 	 */
 	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
-		throws IbisIOException {
+		throws NetIbisException {
 		return new Muxer(pt, this, up, context);
 	}
 }

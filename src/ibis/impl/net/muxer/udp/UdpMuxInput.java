@@ -1,21 +1,5 @@
 package ibis.ipl.impl.net.muxer.udp;
 
-import ibis.ipl.impl.net.NetPortType;
-import ibis.ipl.impl.net.NetDriver;
-import ibis.ipl.impl.net.NetIO;
-import ibis.ipl.impl.net.NetServiceListener;
-import ibis.ipl.impl.net.NetReceiveBuffer;
-import ibis.ipl.impl.net.NetConvert;
-import ibis.ipl.impl.net.NetBufferFactory;
-
-import ibis.ipl.impl.net.muxer.MuxerInput;
-
-import ibis.ipl.IbisException;
-import ibis.ipl.IbisIOException;
-
-import ibis.ipl.impl.generic.Monitor;
-import ibis.ipl.impl.generic.ConditionVariable;
-
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -28,6 +12,17 @@ import java.io.InterruptedIOException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import ibis.ipl.impl.net.NetPortType;
+import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetIO;
+import ibis.ipl.impl.net.NetConnection;
+import ibis.ipl.impl.net.NetReceiveBuffer;
+import ibis.ipl.impl.net.NetConvert;
+import ibis.ipl.impl.net.NetBufferFactory;
+import ibis.ipl.impl.net.NetIbisException;
+
+import ibis.ipl.impl.net.muxer.MuxerInput;
 
 
 public final class UdpMuxInput extends MuxerInput {
@@ -59,7 +54,7 @@ public final class UdpMuxInput extends MuxerInput {
 			  NetDriver   driver,
 			  NetIO       up,
 			  String      context)
-	    throws IbisIOException {
+	    throws NetIbisException {
 
 	super(portType, driver, up, context);
 
@@ -69,9 +64,9 @@ public final class UdpMuxInput extends MuxerInput {
 	    laddr = socket.getLocalAddress();
 	    lport = socket.getLocalPort();
 	} catch (SocketException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	} catch (IOException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	}
 
 	min_mtu = lmtu;
@@ -85,27 +80,30 @@ public final class UdpMuxInput extends MuxerInput {
 
 
     // synchronized
-    public void setupConnection(Integer            spn,
-				ObjectInputStream  is,
-				ObjectOutputStream os,
-				NetServiceListener nls)
-	    throws IbisIOException {
+    public void setupConnection(NetConnection cnx)
+	    throws NetIbisException {
 
 	if (Driver.DEBUG) {
 	    System.err.println("Now enter UdpMuxInput.setupConnection");
 	}
 
 	try {
+	    spn = cnx.getNum();
+
+	    ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "muxer.udp-" + spn));
+
 	    os.writeObject(laddr);
 	    os.writeInt(lport);
 	    os.writeInt(lmtu);
 	    os.writeInt(spn.intValue());
-	    os.flush();
+	    os.close();
 
+	    ObjectInputStream  is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "muxer.udp-" + spn));
 	    InetAddress raddr = (InetAddress)is.readObject();
 	    int         rport = is.readInt();
 	    int         rmtu  = is.readInt();
 	    int         rKey  = is.readInt();
+	    is.close();
 
 	    int mtu = Math.min(lmtu, rmtu);
 	    if (Driver.DEBUG) {
@@ -122,9 +120,9 @@ public final class UdpMuxInput extends MuxerInput {
 	    }
 
 	} catch (ClassNotFoundException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	} catch (IOException e) {
-	    throw new IbisIOException(e);
+	    throw new NetIbisException(e);
 	}
     }
 
@@ -140,7 +138,7 @@ public final class UdpMuxInput extends MuxerInput {
     }
 
 
-    protected Integer poll(int timeout) throws IbisIOException {
+    protected Integer poll(int timeout) throws NetIbisException {
 	if (spn == null) {
 	    return null;
 	}
@@ -152,7 +150,7 @@ public final class UdpMuxInput extends MuxerInput {
 	    activeNum = spn;
 	} else {
 	    activeNum = null;
-	    buffer = createReceiveBuffer();
+	    buffer = createReceiveBuffer(mtu);
 	    /* Make a copy of the packet pointer. Maybe the mtu and the
 	     * associated instance packet changes under our hands. */
 	    DatagramPacket packet = this.packet;
@@ -176,7 +174,7 @@ System.err.println(this + ": ***************** catch InterruptedIOException " + 
 		buffer.free();
 		buffer = null;
 		if (timeout == 0) {
-		    throw new IbisIOException(e);
+		    throw new NetIbisException(e);
 		} else {
 		    receiveFromPoll++;
 		    t_receiveFromPoll += System.currentTimeMillis() - start;
@@ -185,7 +183,7 @@ System.err.println(this + ": ***************** catch InterruptedIOException " + 
 System.err.println(this + ": ***************** catch Exception " + e);
 		buffer.free();
 		buffer = null;
-		throw new IbisIOException(e);
+		throw new NetIbisException(e);
 	    }
 
 	    if (Driver.STATISTICS) {
@@ -202,7 +200,7 @@ System.err.println(this + ": ***************** catch Exception " + e);
 
 
     protected NetReceiveBuffer receiveByteBuffer(int expectedLength)
-	    throws IbisIOException {
+	    throws NetIbisException {
 
 	while (buffer == null) {
 	    poll(0);
@@ -223,14 +221,27 @@ System.err.println(this + ": ***************** catch Exception " + e);
     }
 
 
-    public void free() throws IbisIOException {
-	if (socket != null) {
-	    socket.close();
+    synchronized public void close(Integer num) throws NetIbisException {
+	if (num == spn) {
+	    if (socket != null) {
+		socket.close();
+	    }
+
+	    socket = null;
+
+	    System.err.println("UdpMuxInput: receiveFromPoll(timeout) " + receiveFromPoll + " (estimated loss " + (t_receiveFromPoll / 1000.0) + " s)");
+	}
+    }
+
+
+    public void free() throws NetIbisException {
+	if (spn == null) {
+	    return;
 	}
 
-	socket = null;
+	close(spn);
 
-	System.err.println("UdpMuxInput: receiveFromPoll(timeout) " + receiveFromPoll + " (estimated loss " + (t_receiveFromPoll / 1000.0) + " s)");
+	super.free();
     }
 
 }

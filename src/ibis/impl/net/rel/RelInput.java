@@ -11,9 +11,9 @@ import java.io.ObjectOutputStream;
  * The REL input implementation.
  */
 public final class RelInput
-    extends NetBufferedInput
-    // extends NetInput
-    implements RelConstants, RelSweep {
+	extends NetBufferedInput
+	// extends NetInput
+	implements RelConstants, RelSweep {
 
     private final static boolean STATISTICS = Driver.STATISTICS;
     private final static boolean POLL_DOES_ONE_SHOT = true;
@@ -21,35 +21,36 @@ public final class RelInput
     /**
      * My poller flag
      */
-    private Integer	spn;
+    private Integer		spn;
 
     /**
      * The driver used for the 'real' input.
      */
-    private NetDriver subDriver = null;
+    private NetDriver		subDriver = null;
 
-    private NetBufferFactory subFactory = null;
+    private NetBufferFactory	subFactory = null;
 
     /**
      * The communication input.
      */
-    private NetInput  dataInput  = null;
+    private NetInput		dataInput  = null;
 
-    private Driver	relDriver;
+    private Driver		relDriver;
 
     /**
      * The index number of our piggyback partner
      */
-    private int		partnerIndex;
+    private int			partnerIndex;
 
-    private int		headerStart;
-    private int		ackStart;
+    private int			headerStart;
+    private int			ackStart;
 
     /**
      * The acknowledgement output.
      */
-    private NetOutput	controlOutput = null;
-    private int		controlHeaderStart;
+    private NetOutput		controlOutput = null;
+    private int			controlHeaderStart;
+    private NetBufferFactory	controlFactory;
 
 
     /**
@@ -102,6 +103,35 @@ public final class RelInput
 	}
     }
 
+
+    private void checkLocked() throws NetIbisException {
+	if (DEBUG_LOCK) {
+	    try {
+		notify();
+		return;
+	    } catch (IllegalMonitorStateException e) {
+		System.err.println("I should own the lock but I DON'T");
+		Thread.dumpStack();
+		throw new NetIbisException("I should own the lock but I DON'T");
+	    }
+	}
+    }
+
+
+    private void checkUnlocked() throws NetIbisException {
+	if (DEBUG_LOCK) {
+	    try {
+		notify();
+		System.err.println("I shouldn't own the lock but I DO");
+		Thread.dumpStack();
+		throw new NetIbisException("I shouldn't own the lock but I DO");
+	    } catch (IllegalMonitorStateException e) {
+		return;
+	    }
+	}
+    }
+
+
     /**
      * Constructor.
      *
@@ -144,50 +174,65 @@ public final class RelInput
 	dataInput.setupConnection(cnx);
 
 	headerStart = dataInput.getHeadersLength();
-System.err.println("RelInput: headerStart " + headerStart);
 	ackStart     = headerStart + NetConvert.INT_SIZE;
 	dataOffset   = ackStart + RelConstants.headerLength;
 	mtu          = dataInput.getMaximumTransfertUnit();
 
 	if (subFactory == null) {
-	    if (DEBUG) {
-		System.err.println("Select BufferFactory for dataInput " +
-				   dataInput);
-	    }
 	    subFactory = new NetBufferFactory(mtu, new RelReceiveBufferFactoryImpl());
 	    dataInput.setBufferFactory(subFactory);
+	    if (true || DEBUG) {
+		System.err.println(this + ": ====================== Select BufferFactory " + subFactory + " for my dataInput " +
+				   dataInput);
+	    }
 	} else {
 	    subFactory.setMaximumTransferUnit(mtu);
 	}
 
 	try {
-             NetServiceLink link = cnx.getServiceLink();
+            NetServiceLink link = cnx.getServiceLink();
             ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "rel"));
-	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "rel"));
             os.writeObject(relDriver.getIbis().identifier());
-            os.close();
+	    os.flush();
 
+	    ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "rel"));
 	    IbisIdentifier partnerId = (IbisIdentifier)is.readObject();
 	    partnerIndex = is.readInt();
 	    windowSize = is.readInt();
             is.close();
             
 	    relDriver.registerInputConnection(this, partnerId);
+
+	    /* Reverse connection */
+	    NetOutput controlOutput = this.controlOutput;
+
+	    if (controlOutput == null) {
+		    controlOutput = newSubOutput(subDriver, "control");
+		    this.controlOutput = controlOutput;
+		    if (DEBUG) {
+			System.err.println("My control output is " + controlOutput);
+		    }
+	    }
+
+	    controlOutput.setupConnection(new NetConnection(cnx, new Integer(-spn.intValue() - 1)));
+	    controlHeaderStart = controlOutput.getHeadersLength();
+
+	    if (controlFactory == null) {
+		controlFactory = new NetBufferFactory(mtu, new RelSendBufferFactoryImpl());
+		controlOutput.setBufferFactory(controlFactory);
+	    } else {
+		controlFactory.setMaximumTransferUnit(mtu);
+	    }
+
+	    os.writeInt(1);
+            os.close();
 	} catch (java.io.IOException e) {
+	    System.err.println("Catch exception " + e);
+	    e.printStackTrace();
 	    throw new NetIbisException(e);
 	} catch (java.lang.ClassNotFoundException e) {
 	    throw new NetIbisException(e);
 	}
-
-	/* Reverse connection */
-	NetOutput controlOutput = this.controlOutput;
-	if (controlOutput == null) {
-		controlOutput = newSubOutput(subDriver, "control");
-		this.controlOutput = controlOutput;
-	}
-
-	controlOutput.setupConnection(new NetConnection(cnx, new Integer(-1)));
-	controlHeaderStart = controlOutput.getHeadersLength();
     }
 
 
@@ -199,6 +244,9 @@ System.err.println("RelInput: headerStart " + headerStart);
     // Call this non-synchronized
     private void handlePiggy(byte[] data, int offset)
 	    throws NetIbisException {
+
+	checkUnlocked();
+
 	int		partnerNo = NetConvert.readInt(data, offset);
 	offset += NetConvert.INT_SIZE;
 
@@ -217,7 +265,11 @@ System.err.println("RelInput: headerStart " + headerStart);
      * Return whether it is time to send an explicit ack.
      */
     // Call this synchronized
-    private boolean fillAck(byte[] data, int offset, boolean always) {
+    private boolean fillAck(byte[] data, int offset, boolean always)
+	    throws NetIbisException {
+
+	checkLocked();
+
 	RelReceiveBuffer scan = front;
 	int lastContiguous = nextContiguous;
 
@@ -335,6 +387,9 @@ System.err.println("RelInput: headerStart " + headerStart);
      */
     // Call this synchronized
     private void sendExplicitAck(boolean always) throws NetIbisException {
+
+	checkLocked();
+
 	if (! USE_EXPLICIT_ACKS) {
 	    // System.err.println("Do it with piggy-backed acks only");
 	    return;
@@ -364,6 +419,9 @@ System.err.println("RelInput: headerStart " + headerStart);
 
     private void handleDuplicate(RelReceiveBuffer packet)
 	    throws NetIbisException {
+
+	checkLocked();
+
 	if (DEBUG_REXMIT) {
 	    System.err.println(this + ": !!!!!!!!!!!!!!!!! Receive duplicate packet " + packet.fragCount + "; what should I do?");
 	}
@@ -378,6 +436,9 @@ System.err.println("RelInput: headerStart " + headerStart);
     // Call this synchronized
     private void enqueueReceiveBuffer(RelReceiveBuffer packet)
 	    throws NetIbisException {
+
+	checkLocked();
+
 	int fragCount = NetConvert.readInt(packet.data, headerStart);
 	packet.isLastFrag = ((fragCount & LAST_FRAG_BIT) != 0);
 	if (packet.isLastFrag) {
@@ -441,9 +502,13 @@ System.err.println("RelInput: headerStart " + headerStart);
     }
 
 
-    /* Call this if you know there is a packet, and are willing to wait until
-     * it is really there */
-    private void pollBlocking() throws NetIbisException {
+    /* Call this if you know there is a packet because dataInput.poll() has
+     * succeeded. */
+    // Call this non-synchronized
+    private void receiveDataPacket() throws NetIbisException {
+
+	checkUnlocked();
+
 	RelReceiveBuffer packet = (RelReceiveBuffer)dataInput.readByteBuffer(mtu);
 	if (DEBUG || (DEBUG_REXMIT && DEBUG_ACK)) {
 	    int first_int = RelOutput.reportPacket(System.err,
@@ -465,70 +530,78 @@ System.err.println("RelInput: headerStart " + headerStart);
     }
 
 
+    // No need to call this synchronized or non-synchronized
+    private boolean pollDataInput(boolean block) throws NetIbisException {
+	boolean dataPending;
+	while (true) {
+	    dataPending = dataInput.poll() != null;
+	    if (dataPending || ! block) {
+		return dataPending;
+	    }
+	    Thread.yield();
+	}
+    }
+
+
+    // No need to call this synchronized or non-synchronized
+    private void pollQueue() {
+	if (front != null && front.fragCount == nextDeliver) {
+	    initReceive();
+	    activeNum = spn;
+	    if (DEBUG) {
+		System.err.println("Initialize " + this + " from poll");
+		System.err.println("Poll: return my activeNum " + activeNum);
+		// Thread.dumpStack();
+	    }
+	}
+    }
+
+
     /**
      * {@inheritDoc}
      */
     // Call this non-synchronized
     public Integer poll() throws NetIbisException {
+
+	checkUnlocked();
+
 	if (dataInput == null) {
 	    return null;
 	}
 
-	boolean one_shot = true;
-	while (true) {
-	    Integer r = null;
-	    if (one_shot) {
-		r = dataInput.poll();
-		if (POLL_DOES_ONE_SHOT) {
-		    one_shot = false;
-		}
-	    }
-	    if (r == null) {
-// System.err.println("Poll: return null");
-// System.err.println("Poll: front.fragCount " + (front == null ? -1 : front.fragCount) + " nextDeliver " + nextDeliver);
-		if (front != null && front.fragCount == nextDeliver) {
-		    activeNum = spn;
-		    if (DEBUG) {
-			System.err.println("Poll: return my activeNum " + activeNum);
-			// Thread.dumpStack();
-		    }
-		    return activeNum;
-		} else {
-		    if (false && DEBUG) {
-			System.err.print("_");
-		    }
-		    return null;
-		}
-	    } else {
-		// mtu          = dataInput.getMaximumTransfertUnit();
-		// headerStart  = dataInput.getHeadersLength();
-		if (DEBUG) {
-		    System.err.println("Initialize " + this + " from poll");
-		}
-		initReceive();
-	    }
+	activeNum = null;
 
-	    pollBlocking();
+	pollQueue();
+	if (activeNum != null) {
+	    /* Seems there were still some queue packets pending */
+	    return activeNum;
 	}
+
+	if (pollDataInput(false)) {
+	    /* There is something to receive from the dataInput. Take a look */
+	    receiveDataPacket();
+	    pollQueue();
+	}
+
+	if (false && DEBUG) {
+	    System.err.println(this + ": poll() returns " + activeNum);
+	}
+
+	return activeNum;
     }
 
 
-    /* Wait here until the next packet has arrived. */
+    /* Block until we have got the buffer we want */
     // Call this synchronized
     private RelReceiveBuffer dequeueReceiveBuffer() throws NetIbisException {
+
+	checkLocked();
+
 	while (front == null || front.fragCount != nextDeliver) {
-	    pollBlocking();
-	    // poll();
-	    if (false && (front == null || front.fragCount != nextDeliver)) {
-		try {
-		    waitingForCount = nextDeliver;
-		    wait();
-		    waitingForCount = FIRST_PACKET_COUNT - 1;
-		} catch (InterruptedException e) {
-		    // Ignore
-		}
-	    }
+	    pollDataInput(true);
+	    receiveDataPacket();
 	}
+
 	nextDeliver++;
 	if (nextDeliver > nextContiguous) {
 	    nextContiguous = nextDeliver;
@@ -544,7 +617,10 @@ System.err.println("RelInput: headerStart " + headerStart);
 
 
     // Call this synchronized
-    private void handleReceiveContinuations() {
+    private void handleReceiveContinuations() throws NetIbisException {
+
+	checkLocked();
+
 	if (waitingForCount == nextDeliver) {
 	    notifyAll();
 	}
@@ -574,7 +650,7 @@ System.err.println("RelInput: headerStart " + headerStart);
 
 
     synchronized
-    void pushAck(byte[] data, int offset) {
+    void pushAck(byte[] data, int offset) throws NetIbisException {
 	if (DEBUG_ACK) {
 	    System.err.println("Push ack index " + partnerIndex + " offset " + offset);
 	}

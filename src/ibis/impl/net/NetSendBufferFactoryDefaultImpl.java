@@ -9,4 +9,8 @@ public class NetSendBufferFactoryDefaultImpl
 	return new NetSendBuffer(data, length, allocator);
     }
 
+    public boolean isSuitableClass(NetBuffer buffer) {
+	return buffer instanceof NetSendBuffer;
+    }
+
 }

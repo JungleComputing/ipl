@@ -9,4 +9,8 @@ public class NetReceiveBufferFactoryDefaultImpl
 	return new NetReceiveBuffer(data, length, allocator);
     }
 
+    public boolean isSuitableClass(NetBuffer buffer) {
+	return buffer instanceof NetReceiveBuffer;
+    }
+
 }

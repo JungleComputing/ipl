@@ -98,11 +98,11 @@ public final class UdpOutput extends NetBufferedOutput {
 	 */
 	public synchronized void setupConnection(NetConnection cnx)
 		throws NetIbisException {
-                if (this.rpn != null) {
+                if (rpn != null) {
                         throw new Error("connection already established");
                 }                
 
-		this.rpn = rpn;
+		rpn = cnx.getNum();
 	
 		try {
 			socket = new DatagramSocket(0, InetAddress.getLocalHost());
@@ -140,6 +140,11 @@ public final class UdpOutput extends NetBufferedOutput {
 		rmtu  = ((Integer)    rInfo.get("udp_mtu")    ).intValue();
 
 		mtu    = Math.min(lmtu, rmtu);
+		if (factory == null) {
+		    factory = new NetBufferFactory(mtu, new NetSendBufferFactoryDefaultImpl());
+		} else {
+		    factory.setMaximumTransferUnit(mtu);
+		}
 		packet = new DatagramPacket(new byte[0], 0, raddr, rport);
 	}
 
