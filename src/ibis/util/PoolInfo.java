@@ -25,7 +25,7 @@ import java.util.NoSuchElementException;
  * <br>
  * <pre>ibis.pool.host_number</pre>
  * optional, gives the index of the current host in the list of host names.
- * Should be between 0 and <pre>ibis.pool.total_hosts</pre> (inclusive).
+ * Should be between 0 and <code>ibis.pool.total_hosts</code> (inclusive).
  * If not supplied, it is determined by looking up the current host in
  * the list of host names.
  */
