@@ -533,13 +533,13 @@ public final class SATContext implements java.io.Serializable {
     }
 
     /**
-     * Given a clause and our current recursion level, calculate the level
+     * Given a clause and our current recursion level, calculates the level
      * to start the recursion at.
      * @param c The clause to calculate the restart level for.
      * @param mylevel The current level of recursion.
      * @return The recursion level to restart at.
      */
-    private int calculateRestartLevel( int arr[], int mylevel )
+    private int calculateConflictingLevel( int arr[], int mylevel )
     {
         int level = -1;
 
@@ -555,16 +555,16 @@ public final class SATContext implements java.io.Serializable {
     }
 
     /**
-     * Given a clause and our current recursion level, calculate the level
+     * Given a clause and our current recursion level, calculates the level
      * to start the recursion at.
      * @param c The clause to calculate the restart level for.
      * @param mylevel The current level of recursion.
      * @return The recursion level to restart at.
      */
-    private int calculateRestartLevel( Clause c, int mylevel )
+    private int calculateConflictingLevel( Clause c, int mylevel )
     {
-        int level = calculateRestartLevel( c.pos, mylevel );
-        int neglevel = calculateRestartLevel( c.neg, mylevel );
+        int level = calculateConflictingLevel( c.pos, mylevel );
+        int neglevel = calculateConflictingLevel( c.neg, mylevel );
         if( neglevel>level ){
             level = neglevel;
         }
@@ -602,13 +602,13 @@ public final class SATContext implements java.io.Serializable {
                 else {
                     p.addConflictClause( cc );
                 }
-		int rl = calculateRestartLevel( cc, level );
-                if( rl>=0 ){
+		int cl = calculateConflictingLevel( cc, level );
+                if( cl>=0 ){
                     if( traceLearning | traceRestarts ){
-                        System.err.println( "Restarting at level " + rl + " (now at " + level + ")" );
+                        System.err.println( "Restarting at level " + (cl-1) + " (now at " + level + ")" );
                     }
-                    if( rl<(level-1) ){
-                        throw new SATRestartException( rl );
+                    if( cl<level ){
+                        throw new SATRestartException( cl-1 );
                     }
                 }
                 else {
