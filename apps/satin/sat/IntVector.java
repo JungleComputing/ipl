@@ -154,6 +154,17 @@ public final class IntVector implements java.io.Serializable, Cloneable {
 	elementData[elementCount++] = val;
         return true;
     }
+    
+    /** Returns true iff the specified element occurs in this vector. */
+    public boolean contains( int v )
+    {
+        for( int i=0; i<elementCount; i++ ){
+	    if( elementData[i] == v ){
+	        return true;
+	    }
+	}
+	return false;
+    }
 
     /**
      * Returns the internal array containing the elements of this vector.

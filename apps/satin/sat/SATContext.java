@@ -9,16 +9,16 @@ public class SATContext implements java.io.Serializable {
     int varlist[];
 
     /** The number of open terms of each clause. */
-    int terms[];	/* The number of open terms of each clause. */
+    private int terms[];	/* The number of open terms of each clause. */
 
     /** The assignments to all variables. */
     int assignments[];
 
-    /** Satisified flags for all clausses in the problem. */
-    boolean satisfied[];
+    /** Satisified flags for all clauses in the problem. */
+    private boolean satisfied[];
 
-    /** The number of still unsatisfied clauses. */
-    int unsatisfied;
+    /** The number of unsatisfied clauses. */
+    private int unsatisfied;
 
     /** Constructs a Context with the specified elements. */
     private SATContext( int vl[], int tl[], int al[], boolean sat[], int us ){
@@ -29,12 +29,13 @@ public class SATContext implements java.io.Serializable {
 	unsatisfied = us;
     }
 
-    private static final boolean tracePropagation = true;
+    private static final boolean tracePropagation = false;
 
     /** Constructs an empty Context. */
-    SATContext( int clauseCount ){
+    public SATContext( int clauseCount, int terms[] ){
 	satisfied = new boolean[clauseCount];
 	unsatisfied = clauseCount;
+	this.terms = terms;
     }
         
     /** Returns a clone of Context. */
@@ -47,6 +48,68 @@ public class SATContext implements java.io.Serializable {
 	    (boolean []) satisfied.clone(),
 	    unsatisfied
 	);
+    }
+
+    /** Verifies that the term count of the specified clause is correct. */
+    private void verifyTermCount( SATProblem p, int cno )
+    {
+	int termcount = 0;
+
+        if( satisfied[cno] ){
+	    // We don't care.
+	}
+	Clause c = p.clauses[cno];
+
+	int arr[] = c.pos;
+
+	// Now count the unsatisfied variables.
+	for( int j=0; j<arr.length; j++ ){
+	    int v = arr[j];
+
+	    if( assignments[v] == 1 ){
+		System.err.println( "Error: positive variable " + v + " of clause " + c + " has positive assignment, but clause is not satisfied"  );
+		IntVector pos = p.getPosClauses( v );
+		String verdict;
+
+		if( pos.contains( cno ) ){
+		    verdict = "yes";
+		}
+		else {
+		    verdict = "no";
+		}
+		System.err.println( "       Does variable " + v + " list clause " + cno + " as positive occurence? " + verdict );
+	    }
+	    else if( assignments[v] == -1 ){
+		// Count this unassigned variable.
+		termcount++;
+	    }
+	}
+
+	// Keep searching for the unassigned variable 
+	arr = c.neg;
+	for( int j=0; j<arr.length; j++ ){
+	    int v = arr[j];
+
+	    if( assignments[v] == 0 ){
+		System.err.println( "Error: negative variable " + v + " of clause " + c + " has negative assignment, but clause is not satisfied"  );
+		IntVector neg = p.getNegClauses( v );
+		String verdict;
+
+		if( neg.contains( cno ) ){
+		    verdict = "yes";
+		}
+		else {
+		    verdict = "no";
+		}
+		System.err.println( "       Does variable " + v + " list clause " + cno + " as negative occurence? " + verdict );
+	    }
+	    else if( assignments[v] == -1 ){
+		termcount++;
+	    }
+	}
+	if( termcount != terms[cno] ){
+	    System.err.println( "Error: I count " + termcount + " unassigned variables in clause " + c + " but the administration says " + terms[cno] );
+	}
     }
 
     /** Propagates any unit clauses in the problem.  */
@@ -119,14 +182,32 @@ public class SATContext implements java.io.Serializable {
     }
 
     /**
+     * Registers the fact that the specified clause is satisfied.
+     * Returns wether the problem now contains unipolar variables.
+     */
+    private void markClauseSatisfied( SATProblem p, int cno )
+    {
+        if( !satisfied[cno] ){
+	    unsatisfied--;
+	    if( tracePropagation ){
+	        System.err.println( "Clause " + p.clauses[cno] + " is now satisfied, " + unsatisfied + " to go" );
+	    }
+	}
+	satisfied[cno] = true;
+    }
+
+    /**
      * Propagates the fact that variable 'var' is true.
-     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, 2 if there are now unit clauses, or 0 otherwise
+     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
      */
     public int propagatePosAssignment( SATProblem p, int var )
     {
         assignments[var] = 1;
 	boolean haveUnitClauses = false;
 
+	if( tracePropagation ){
+	    System.err.println( "Propagating assignment var[" + var + "]=true" );
+	}
 	// Deduct this clause from all clauses that contain this as a
 	// negative term.
 	IntVector neg = p.getNegClauses( var );
@@ -137,6 +218,9 @@ public class SATContext implements java.io.Serializable {
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
 		// We now have a term that cannot be satisfied. Conflict.
+		if( tracePropagation ){
+		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=true" );
+		}
 	        return -1;
 	    }
 	    if( terms[cno] == 1 ){
@@ -151,10 +235,7 @@ public class SATContext implements java.io.Serializable {
 	for( int i=0; i<sz; i++ ){
 	    int cno = pos.get( i );
 
-	    if( !satisfied[cno] ){
-	        unsatisfied--;
-	    }
-	    satisfied[cno] = true;
+	    markClauseSatisfied( p, cno );
 	}
 	if( unsatisfied == 0 ){
 	    // All clauses are now satisfied, we have a winner!
@@ -172,16 +253,22 @@ public class SATContext implements java.io.Serializable {
         assignments[var] = 0;
 	boolean haveUnitClauses = false;
 
+	if( tracePropagation ){
+	    System.err.println( "Propagating assignment var[" + var + "]=false" );
+	}
 	// Deduct this clause from all clauses that contain this as a
 	// Positive term.
-	IntVector neg = p.getPosClauses( var );
-	int sz = neg.size();
+	IntVector pos = p.getPosClauses( var );
+	int sz = pos.size();
 	for( int i=0; i<sz; i++ ){
-	    int cno = neg.get( i );
+	    int cno = pos.get( i );
 
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
 		// We now have a term that cannot be satisfied. Conflict.
+		if( tracePropagation ){
+		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=false" );
+		}
 	        return -1;
 	    }
 	    if( terms[cno] == 1 ){
@@ -191,15 +278,12 @@ public class SATContext implements java.io.Serializable {
 
 	// Mark all clauses that contain this variable as a negative
 	// term as satisfied.
-	IntVector pos = p.getNegClauses( var );
-	sz = pos.size();
+	IntVector neg = p.getNegClauses( var );
+	sz = neg.size();
 	for( int i=0; i<sz; i++ ){
-	    int cno = pos.get( i );
+	    int cno = neg.get( i );
 
-	    if( !satisfied[cno] ){
-	        unsatisfied--;
-	    }
-	    satisfied[cno] = true;
+	    markClauseSatisfied( p, cno );
 	}
 	if( unsatisfied == 0 ){
 	    // All clauses are now satisfied, we have a winner!

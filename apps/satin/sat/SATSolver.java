@@ -32,7 +32,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
      * apply simplification. This essentially creates 2^firstVariables
      * sub-problems that are solved in their own context.
      */
-    static final int firstVariables = 2;
+    static final int firstVariables = 3;
 
     /**
      * A simple solver that is used when the remaining problem is too
@@ -45,7 +45,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
      * @param varlist the list of variables to branch on, ordered for efficiency
      * @param varix the next variable in <code>varlist</code> to branch on
      */
-    private void leafSolve(
+    private static void leafSolve(
 	int level,
 	SATProblem p,
 	int varlist[],
@@ -235,10 +235,12 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	else {
 	    // It's too expensive to do agressive solving, try something
 	    // a bit more subtle.
-	    SATContext ctx = new SATContext( p.getClauseCount() );
+	    SATContext ctx = new SATContext(
+	        p.getClauseCount(),
+		p.buildTermCounts()
+	    );
 
 	    ctx.varlist = p.buildOrderedVarList();
-	    ctx.terms = p.buildTermCounts();
 
 	    if( ctx.varlist.length == 0 ){
 		// There are no variables left to assign, clearly there
