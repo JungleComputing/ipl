@@ -5,11 +5,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class SuffixArray implements Configuration, Magic {
-    /** The buffer containing the compressed text. */
-    private short text[];
-
     /** The lowest interesting commonality. */
     private static final int MINCOMMONALITY = 3;
+
+    /** The buffer containing the compressed text. */
+    private short text[];
 
     /** The number of elements in `text' that are relevant. */
     private int length;
@@ -22,7 +22,8 @@ public class SuffixArray implements Configuration, Magic {
 
     /** For each position in `indices', the number of elements it
      * has in common with the previous entry, or -1 for element 0.
-     * The commonality should not cause an overlap.
+     * The commonality may be overlapping, and that should be taken
+     * into account by compression algorithms.
      */
     int commonality[];
 
@@ -55,6 +56,7 @@ public class SuffixArray implements Configuration, Magic {
     private int disjunctMatch( int ix0, int ix1 )
     {
 	int n = 0;
+
         if( ix0 == ix1 ){
             // TODO: complain, this should never happen.
             return 0;
@@ -300,7 +302,8 @@ public class SuffixArray implements Configuration, Magic {
         text[length] = STOP;
 
         // Re-initialize the indices array, and sort it again.
-        // TODO: do this in a more subtle manner.
+        // TODO: do this in a more subtle manner. It is probably possible
+        // to re-use some of the previous values.
         for( int i=0; i<length; i++ ){
             indices[i] = i;
         }
@@ -320,7 +323,7 @@ public class SuffixArray implements Configuration, Magic {
      * This is done by (1) ensuring there are no repeats, and (2)
      * all indices are valid positions.
      */
-    private void verifyIndicesIsPermutation()
+    private void verifyIndicesArePermutation()
     {
         boolean seen[] = new boolean[length];
 
@@ -344,7 +347,7 @@ public class SuffixArray implements Configuration, Magic {
 
     public void test() throws VerificationException
     {
-        verifyIndicesIsPermutation();
+        verifyIndicesArePermutation();
 
         // Verify that the elements are in fact ordered, and that the
         // commonality entry is correct.
