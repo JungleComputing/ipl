@@ -496,7 +496,6 @@ public final class Satinc {
 	if (id < 0) {
 	    idTable.add(s);
 	    id = idTable.size() - 1;
-	    System.out.println("allocateId: id = " + id);
 	}
 
 	return id;
