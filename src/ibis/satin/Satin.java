@@ -8,7 +8,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
 import java.util.Enumeration;
-import javatimer.*;
 
 /* 
    One important invariant: there is only one thread per machine that spawns work.
@@ -106,13 +105,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	VictimTable victims; /* All victims, myself NOT included. The elements are Victims. */
 
-	Timer stealTimer = new Timer();
-	Timer handleStealTimer = new Timer();
-	Timer abortTimer = new Timer();
-	Timer idleTimer = new Timer();
-	Timer pollTimer = new Timer();
+	Timer stealTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer handleStealTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer abortTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer idleTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer pollTimer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
 	long prevPoll = 0;
-	float MHz = Timer.getMHz();
+//	float MHz = Timer.getMHz();
 
 
 	public Satin(String[] args) {
@@ -430,7 +429,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 						   " total time = " + pollTimer.totalTime() + " avg time = " + pollTimer.averageTime());
 
 				System.out.println("SATIN '" + ident.name() + 
-						   "': COMM_STATS: sotware comm time = " + Timer.format(stealTimer.totalTimeVal() + handleStealTimer.totalTimeVal() - idleTimer.totalTimeVal()));
+						   "': COMM_STATS: software comm time = " + Timer.format(stealTimer.totalTimeVal() + handleStealTimer.totalTimeVal() - idleTimer.totalTimeVal()));
 			}
 		}
 
@@ -602,13 +601,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			idleTimer.start();
 		}
 
+		// @@@ replace this wait call, do something useful instead:
+		// handleExceptions and aborts.
 		if(upcalls) {
 			synchronized(this) {
 				while(!gotStealReply) {
 					try {
 						wait();
 					} catch (InterruptedException e) {
-				// Ignore.
+						// Ignore.
 					}
 				}
 				/* Imediately reset gotStealReply, we know that a reply has arrived. */
@@ -835,15 +836,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 	void satinPoll() {
-		long curr = Timer.rdtsc();
+/*		long curr = Timer.rdtsc();
 
 		if(((curr - prevPoll) / MHz) < 100) { // if we polled less than 500 us ago, return
 			return; 
 		}
-
+*/
 		if(POLL_TIMING) pollTimer.start();
 
-		prevPoll = curr;
+//		prevPoll = curr;
 
 		ReadMessage m = null;
 //		System.err.println("POLL START");
