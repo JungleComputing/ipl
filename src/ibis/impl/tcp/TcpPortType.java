@@ -65,6 +65,10 @@ class TcpPortType extends PortType implements Config {
 				throw new IbisException("Unknown Serialization type " + ser);
 			}
 		}
+		if (serializationType == SERIALIZATION_NONE &&
+		    p.isProp("communication", "Sequenced")) {
+		    throw new IbisException("Sequenced communication is not supported on byte serialization streams");
+		}
 	} 
 
 	public String name() { 

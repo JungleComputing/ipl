@@ -153,6 +153,10 @@ private boolean shouldLeave;
 
 
 	boolean setMessage(TcpReadMessage m) throws IOException {
+		if (type.p.isProp("communication", "Sequenced")) {
+		    long seqno = m.readLong();
+		    m.setSequenceNumber(seqno);
+		}
 		m.isFinished = false;
 		if (STATS) {
 			m.before = m.getHandler().dummy.getCount();

@@ -62,6 +62,10 @@ public final class TcpIbis extends Ibis implements Config {
 		return resultPort;
 	}
 
+	long getSeqno(String name) throws IOException {
+		return nameServer.getSeqno(name);
+	}
+
 	public Registry registry() {
 		return nameServer;
 	} 

@@ -247,6 +247,18 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		}
 
 		out.writeByte(NEW_MESSAGE);
+		if (type.p.isProp("communication", "Sequenced")) {
+		    long seqno = ibis.getSeqno(type.name);
+		    switch(type.serializationType) {
+		    case TcpPortType.SERIALIZATION_SUN:
+		    case TcpPortType.SERIALIZATION_DATA:
+		    case TcpPortType.SERIALIZATION_IBIS:
+			out.writeLong(seqno);
+			break;
+		    default:
+			throw new IOException("Something wrong here!");
+		    }
+		}
 		return res;
 	}
 
@@ -355,10 +367,5 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
 	public synchronized ReceivePortIdentifier[] lostConnections() {
 		return (ReceivePortIdentifier[]) lostConnections.toArray();
-	}
-
-	// called from writeMessage
-	void reset() throws IOException {
-		out.writeByte(NEW_MESSAGE);
 	}
 }

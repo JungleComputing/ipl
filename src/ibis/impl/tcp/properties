@@ -3,4 +3,4 @@ worldmodel = open, closed
 communication = OneToOne, OneToMany, ManyToOne, \
 		FifoOrdered, Reliable, PollUpcalls, \
 		AutoUpcalls, ExplicitReceipt, ConnectionDowncalls, \
-		ConnectionUpcalls
+		ConnectionUpcalls, Sequenced
