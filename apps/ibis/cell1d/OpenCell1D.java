@@ -729,6 +729,7 @@ class OpenCell1D implements OpenConfig {
 
     private static void evaluateStealRequests( Problem p, int lcol, int rcol )
     {
+	boolean rob = true;
         int lsteal = p.firstNoColumn - lcol;
         int rsteal = p.firstNoColumn - rcol;
         if( lcol<0 ){
@@ -759,14 +760,22 @@ class OpenCell1D implements OpenConfig {
             if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstColumn = aimFirstNoColumn-minLoad;
             }
-//            max_lsteal = Math.max( 1, (stolen+max_lsteal)/2 );
-	    max_lsteal *= 2;
+
+	    if(rob) {
+		max_lsteal *= 2;
+		if(max_lsteal > stolen) max_lsteal = stolen;
+	    } else {
+		max_lsteal = Math.max( 1, (stolen+max_lsteal)/2 );
+	    }
         }
         else {
             // No valid steal request this time, reset the allowance.
-//            max_lsteal = 1;
-            max_lsteal /= 2;
-	    if(max_lsteal < 1) max_lsteal = 1;
+	    if(rob) {
+		max_lsteal /= 2;
+		if(max_lsteal < 1) max_lsteal = 1;
+	    } else {
+		max_lsteal = 1;
+	    }
         }
         if( rsteal>0 ){
             int stolen = (int) Math.ceil(dampen*rsteal);
@@ -774,14 +783,22 @@ class OpenCell1D implements OpenConfig {
             if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstNoColumn = aimFirstColumn+minLoad;
             }
-//            max_rsteal = Math.max( 1, (stolen+max_rsteal)/2 );
-	    max_rsteal *= 2;
+
+	    if(rob) {
+		max_rsteal *= 2;
+		if(max_rsteal > stolen) max_rsteal = stolen;
+	    } else {
+		max_rsteal = Math.max( 1, (stolen+max_rsteal)/2 );
+	    }
         }
         else {
             // No valid steal request this time, reset the allowance.
-//            max_rsteal = 1;
-            max_rsteal /= 2;
-	    if(max_rsteal < 1) max_rsteal = 1;
+	    if(rob) {
+		max_rsteal /= 2;
+		if(max_rsteal < 1) max_rsteal = 1;
+	    } else {
+		max_rsteal = 1;
+	    }
         }
         if( traceStealRequests ){
             System.out.println(
@@ -1006,6 +1023,24 @@ class OpenCell1D implements OpenConfig {
                 if( showProgress && me == 0 ){
                     System.out.print( '.' );
                 }
+
+		if(false) {
+                    System.out.println(
+                        "STATS " + me
+                        + " " + (generation-1)
+                        + " " + members[generation-1]
+                        + " " + population[generation-1]
+                        + " " + sentToLeft[generation-1]
+                        + " " + sentToRight[generation-1]
+                        + " " + computationTime[generation-1]
+                        + " " + communicationTime[generation-1]
+                        + " " + administrationTime[generation-1]
+                        + " " + requestedByLeft[generation-1]
+                        + " " + requestedByRight[generation-1]
+                    );
+		    System.out.flush();
+		}
+
             }
             if( showProgress && me == 0 ){
                 System.out.println();
@@ -1039,6 +1074,7 @@ class OpenCell1D implements OpenConfig {
                 System.out.println( "ExecutionTime: " + time );
                 System.out.println( "Did " + updates + " updates" );
             }
+/*
             if( population != null ){
                 // We blindly assume all statistics arrays exist.
                 for( int gen=0; gen<count; gen++ ){
@@ -1057,7 +1093,7 @@ class OpenCell1D implements OpenConfig {
                     );
                 }
             }
-
+*/
             ibis.end();
         }
         catch( Exception e ) {
