@@ -1,6 +1,6 @@
 #!/bin/sh
 
-reserve="-reserve 647084"
+reserve="-reserve 702731"
 
 sers="byte ibis sun"
 # sers="ibis sun"

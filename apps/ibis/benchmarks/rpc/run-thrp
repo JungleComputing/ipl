@@ -1,6 +1,6 @@
 #!/bin/sh
 
-reserve="-reserve 647091"
+reserve="-reserve 702731"
 
 ibises="panda net.gm"
 

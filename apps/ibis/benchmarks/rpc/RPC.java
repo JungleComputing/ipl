@@ -104,6 +104,7 @@ class RPC
     private int		client_spin = 0;
     private java.util.Random rand = new java.util.Random();
     private boolean	requireOneToMany = false;
+    private boolean	sequenced = false;
 
 
     private final boolean USE_RESIZEHANDLER = false;
@@ -557,8 +558,8 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 	    rport = portType.createReceivePort("client port " + rank, (ReceivePortConnectUpcall)this);
 	} else {
 	    rport = portType.createReceivePort("client port " + rank);
-// System.err.println(rank + ": created \"client port " + rank + "\"");
 	}
+	// System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + "  created \"client port " + rank + "\"");
 
 	if (BUFSIZ != 0) {
 	    DynamicProperties dp = rport.properties();
@@ -573,31 +574,20 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 	rport.enableConnections();
 
 	for (int i = 0; i < servers; i++) {
-	    ReceivePortIdentifier rp;
-	    while (true) {
-// System.err.println(rank + ": lookup \"server port " + i + "\"");
-		rp = registry.lookup("server port " + i);
-		if (rp != null) {
-		    break;
-		}
-		try {
-		    Thread.sleep(100);
-		} catch (InterruptedException e) {
-		    // Try again
-		}
-	    }
+	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " lookup \"server port " + i + "\"");
+	    ReceivePortIdentifier rp = registry.lookup("server port " + i);
 	    sport.connect(rp);
-// System.err.println(rank + ": connected to \"server port " + i + "\"");
+	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " connected to \"server port " + i + "\"");
 	}
 
 	System.err.println(rank + ": client: connected");
 
 	// Do a poor-man's barrier to allow the connections to proceed.
 	for (int i = 0; i < servers; i++) {
-System.err.println(rank + ": Poor-man's barrier " + i + " receive start...");
+	    System.err.println(rank + ": Poor-man's barrier " + i + " receive start...");
 	    ReadMessage r = rport.receive();
 	    r.finish();
-System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
+	    System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 	}
 
 	System.err.println("Go ahead now!");
@@ -671,21 +661,10 @@ System.err.println(rank + ": Poor-man's barrier " + i + " receive finished");
 	rport.enableConnections();
 
 	for (int i = 0; i < clients; i++) {
-	    ReceivePortIdentifier rp;
-	    while (true) {
-// System.err.println(rank + ": lookup \"client port " + i + "\"");
-		rp = registry.lookup("client port " + i);
-		if (rp != null) {
-		    break;
-		}
-		try {
-		    Thread.sleep(100);
-		} catch (InterruptedException e) {
-		    // Try again
-		}
-	    }
+	    ReceivePortIdentifier rp = registry.lookup("client port " + i);
+	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " connect to \"client port " + i + "\"");
 	    sport.connect(rp);
-	    System.err.println(rank + ": Server: connected to \"client port " + i + "\"");
+	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " Server: connected to \"client port " + i + "\"");
 	}
 
 	// Do a poor-man's barrier to allow the connections to proceed.
@@ -779,6 +758,8 @@ System.err.println(rank + ": Poor-man's barrier send finished");
 
 	    } else if (args[i].equals("-busy")) {
 		busy = true;
+	    } else if (args[i].equals("-sequenced")) {
+		sequenced = true;
 
 	    } else if (args[i].equals("-n2n")) {
 		requireOneToMany = true;
@@ -981,17 +962,18 @@ System.err.println("Allocated double buffer size " + size);
 	} catch (java.net.UnknownHostException e) {
 	    // let it be the default
 	}
-	StaticProperties s = new StaticProperties();
+	String props = "OneToOne Reliable AutoUpcalls ExplicitReceipt";
 	if (requireOneToMany) {
-	    // s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt" + " Numbered ManyToOne");
-	    s.add("communication", "OneToOne OneToMany ManyToOne Reliable AutoUpcalls ExplicitReceipt");
+	    props += " OneToMany ManyToOne";
 	    if (rank == 0) {
 		System.err.println("Require a multicast/multireceive PortType");
 	    }
-	} else {
-	    // s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt" + " Numbered ManyToOne");
-	    s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
 	}
+	if (sequenced) {
+	    props += " Numbered";
+	}
+	StaticProperties s = new StaticProperties();
+	s.add("communication", props);
 	s.add("serialization", "object");
 	myIbis = Ibis.createIbis(s, rszHandler);
 
@@ -1010,13 +992,7 @@ System.err.println("Allocated double buffer size " + size);
 	});
 
 	s = new StaticProperties();
-	if (requireOneToMany) {
-	    // s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt" + " Numbered ManyToOne");
-	    s.add("communication", "OneToOne OneToMany ManyToOne Reliable AutoUpcalls ExplicitReceipt");
-	} else {
-	    // s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt" + " Numbered ManyToOne");
-	    s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
-	}
+	s.add("communication", props);
 	portType = myIbis.createPortType("test type", s);
 
 	if (rank == -1 && rszHandler != null) {
