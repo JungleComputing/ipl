@@ -459,7 +459,7 @@ public final class SATContext implements java.io.Serializable {
     {
         // The distance of each clause to the conflicting clause. The 
         // conflicting clause itself gets distance 1, so that we can use
-        // the default value 0  as indication that we haven't considered
+        // the default value 0 as indication that we haven't considered
 	// this clause yet.
         int dist[] = new int[satisfied.length];
         return calculateNearestDominator( p, cno, level, dist, 1 );
@@ -479,6 +479,7 @@ public final class SATContext implements java.io.Serializable {
         boolean changed = false;
         boolean anyChange = false;
         Clause res = p.clauses[cno];
+        boolean resolvedDominator = false;
 
         int bestDom = calculateNearestDominator( p, cno, level );
         do {
@@ -490,13 +491,16 @@ public final class SATContext implements java.io.Serializable {
                 if( dl[v] == level ){
                     int a = antecedent[v];
 
-                    if( a>=0 && a != bestDom ){
+                    if( a>=0 ){
                         Clause newres = Clause.resolve( res, p.clauses[a], v );
                         if( traceLearning ){
                             System.err.println( "Resolving on v" + v + ":" );
                             System.err.println( "  " + res );
                             System.err.println( "  " + p.clauses[a] + " =>" );
                             System.err.println( "  " + newres );
+                        }
+                        if( a == bestDom ){
+                            resolvedDominator = true;
                         }
                         changed = true;
                         anyChange = true;
@@ -505,29 +509,34 @@ public final class SATContext implements java.io.Serializable {
                     }
                 }
             }
-            arr = res.neg;
-            for( int i=0; i<arr.length; i++ ){
-                int v = arr[i];
+            if( !resolvedDominator ){
+                arr = res.neg;
+                for( int i=0; i<arr.length; i++ ){
+                    int v = arr[i];
 
-                if( dl[v] == level ){
-                    int a = antecedent[v];
+                    if( dl[v] == level ){
+                        int a = antecedent[v];
 
-                    if( a>=0 && a != bestDom ){
-                        Clause newres = Clause.resolve( res, p.clauses[a], v );
-                        if( traceLearning ){
-                            System.err.println( "Resolving on v" + v + ":" );
-                            System.err.println( "  " + res );
-                            System.err.println( "  " + p.clauses[a] + " =>" );
-                            System.err.println( "  " + newres );
+                        if( a>=0 ){
+                            Clause newres = Clause.resolve( res, p.clauses[a], v );
+                            if( traceLearning ){
+                                System.err.println( "Resolving on v" + v + ":" );
+                                System.err.println( "  " + res );
+                                System.err.println( "  " + p.clauses[a] + " =>" );
+                                System.err.println( "  " + newres );
+                            }
+                            if( a == bestDom ){
+                                resolvedDominator = true;
+                            }
+                            changed = true;
+                            anyChange = true;
+                            res = newres;
+                            break;
                         }
-                        changed = true;
-                        anyChange = true;
-                        res = newres;
-                        break;
                     }
                 }
             }
-        } while( changed );
+        } while( changed && !resolvedDominator );
         if( false ){
             // Now greedily resolve clauses as long as they are smaller.
             do {
