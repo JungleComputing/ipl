@@ -162,8 +162,29 @@ public class ControlHub extends Thread
     private static Map portNodeMap = new Hashtable();
     private static int nodesNum = 0;
     public static final int defaultPort = 9828;
+    ServerSocket server = null;
 
     public ControlHub() {
+	int port = defaultPort;
+	try {
+	    Properties p = System.getProperties();
+	    String portString = p.getProperty(ConnProps.hub_port);
+	    if(portString != null){
+		port = Integer.parseInt(portString);
+	    } else {
+		portString = p.getProperty("ibis.name_server.port");
+		if (portString != null) {
+		    port = Integer.parseInt(portString) + 2;
+		}
+	    }
+
+	    server = new ServerSocket(port);
+	    System.err.println("\n# ControlHub: listening on " +
+			       InetAddress.getLocalHost().getHostName()+ ":" +
+			       server.getLocalPort());
+	} catch(Exception e) {
+	    throw new Error(e);
+	}
     }
 
     private static void showCount() {
@@ -321,23 +342,7 @@ public class ControlHub extends Thread
     }
 
     public void run() {
-	int port = defaultPort;
 	try {
-	    Properties p = System.getProperties();
-	    String portString = p.getProperty(ConnProps.hub_port);
-	    if(portString != null){
-		port = Integer.parseInt(portString);
-	    } else {
-		portString = p.getProperty("ibis.name_server.port");
-		if (portString != null) {
-		    port = Integer.parseInt(portString) + 2;
-		}
-	    }
-
-	    ServerSocket server = new ServerSocket(port);
-	    System.err.println("\n# ControlHub: listening on " +
-			       InetAddress.getLocalHost().getHostName()+ ":" +
-			       server.getLocalPort());
 	    while(true)	{
 		Socket s = server.accept();
 		try {

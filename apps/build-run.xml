@@ -38,45 +38,33 @@
 
     <target name="run2">
 	<exec dir="${basedir}"
-	      executable="${ibis}/bin/ibis_nameserver"
-	      vmlauncher="false"
-	      spawn="true">
-	      <arg line="-single -port 4567"/>
-	</exec>
-	<exec dir="${basedir}"
 	      executable="${ibis}/bin/run-ibis"
 	      vmlauncher="false"
 	      spawn="true">
-	      <arg line="-ns localhost -ns-port 4567 -ns-retry -nhosts 2 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -nhosts 2 ${run-ibis-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
-	      <arg line="${java-args} ibis.util.Postpone 4 ${runjob}"/>
+	      <arg line="${java-args} ibis.util.Postpone 3 ${runjob}"/>
 	</exec>
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/run-ibis"
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost -ns-port 4567 -ns-retry -nhosts 2 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -nhosts 2 ${run-ibis-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
-	      <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
+	      <arg line="${java-args} ${runjob}"/>
 	</exec>
     </target>
 
     <target name="run1">
 	<exec dir="${basedir}"
-	      executable="${ibis}/bin/ibis_nameserver"
-	      vmlauncher="false"
-	      spawn="true">
-	      <arg line="-single -port 4567"/>
-	</exec>
-	<exec dir="${basedir}"
 	      executable="${ibis}/bin/run-ibis"
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-ns localhost -ns-port 4567 -ns-retry -nhosts 1 ${run-ibis-args}"/>
+	      <arg line="-ns localhost -ns-port 4567 -nhosts 1 ${run-ibis-args}"/>
 	      <arg value="&quot;-Dibis.name=tcp&quot;"/>
-	      <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
+	      <arg line="${java-args} ${runjob}"/>
 	</exec>
     </target>
 

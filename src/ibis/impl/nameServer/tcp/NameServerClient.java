@@ -1,7 +1,6 @@
 package ibis.impl.nameServer.tcp;
 
 import ibis.impl.nameServer.NSProps;
-import ibis.impl.nameServer.NameServer;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
@@ -28,7 +27,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Properties;
 
-public class NameServerClient extends NameServer implements Runnable, Protocol {
+
+public class NameServerClient extends ibis.impl.nameServer.NameServer implements Runnable, Protocol {
 	static final boolean DEBUG = false;
 
 	private PortTypeNameServerClient portTypeNameServerClient;
@@ -75,9 +75,8 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 		}
 
 		String nameServerPortString = p.getProperty(NSProps.s_port);
-		if (nameServerPortString == null) {
-			port = ibis.impl.nameServer.tcp.NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
-		} else {
+		port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+		if (nameServerPortString != null) {
 			try {
 				port = Integer.parseInt(nameServerPortString);
 				if(DEBUG) {
@@ -89,30 +88,44 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 		}
 
 		serverAddress = InetAddress.getByName(server);
+
+		if (myAddress.equals(serverAddress)) {
+			// Try and start a nameserver ...
+			NameServer n = NameServer.createNameServer(true, false, true, false);
+			if (n != null) {
+			    n.setDaemon(true);
+			    n.start();
+			}
+		}
+
 		if(DEBUG) {
 			System.err.println("Found nameServerInet " + serverAddress);
 		}
 
 		serverSocket = socketFactory.createServerSocket(0, myAddress, true);
 
-		boolean retry = TypedProperties.booleanProperty(NSProps.s_retry);
-
 		Socket s = null;
-		boolean failed_once = false;
+		int cnt = 0;
 		while(s == null) {
 		    try {
+			cnt++;
 			s = socketFactory.createSocket(serverAddress, 
 				port, myAddress, -1);
 		    } catch (ConnectionTimedOutException e) {
-		        if(!retry) {
-			    throw new ConnectionTimedOutException("Could not connect to name server "+server+":"+port);
-			}
-			if(!failed_once) {
+			if(cnt == 10) {
+			    // Rather arbitrary, 10 seconds, print warning
 			    System.err.println("Nameserver client failed"
 			       + " to connect to nameserver\n at " 
 			       + serverAddress + ":" + port 
 			       + ", will keep trying");
-			    failed_once = true;
+			}
+			else if(cnt == 60) {
+			    // Rather arbitrary, 1 minute
+			    System.err.println("Nameserver client failed"
+			       + " to connect to nameserver\n at " 
+			       + serverAddress + ":" + port);
+			    System.err.println("Gave up after 60 seconds");
+			    throw e;
 			}
 			try {
 			    Thread.sleep(1000);

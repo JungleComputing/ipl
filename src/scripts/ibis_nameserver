@@ -1,5 +1,9 @@
 JAVACLASSPATH=$CLASSPATH:$IBIS_ROOT/build:
 
+has_enable=0
+has_hubport=0
+Ddefines=
+
 # Ibis Hub controller
 if [ "x$IBIS_HUB" != "x" ]; then
   # decode Ibis control hub reference
@@ -7,31 +11,68 @@ if [ "x$IBIS_HUB" != "x" ]; then
   HUB_PORT=`echo $IBIS_HUB|cut -f 2 -d :`
   echo "Name service will connect to Ibis hub:"
   echo "  ${HUB_HOST}:${HUB_PORT}"
-  Dhub="-Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.connect.hub_host=$HUB_HOST -Dibis.connect.hub_port=$HUB_PORT"
-else
-  Dhub=
+  Ddefines="-Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.connect.hub_host=$HUB_HOST -Dibis.connect.hub_port=$HUB_PORT -Dibis.name_server.host=`hostname -f`"
+  has_enable=1
+  has_hubport=1
 fi
 
-for i in $*
+args=
+
+while [ $# -gt 0 ]
 do
-    case $i in
+    case "$1" in
     -debug)
-	Dhub="$Dhub -Dibis.connect.debug=true -Dibis.connect.verbose=true"
+	Ddefines="$Ddefines -Dibis.connect.debug=true -Dibis.connect.verbose=true"
 	;;
     -controlhub)
 	# Note: ibis.connect.data_links must be set or ibis.connect does not
 	# work. However, the nameserver only uses control_links, so the
 	# contents for data_links does not really matter, as long as the
 	# socket type exists.
-	case x$IBIS_HUB in
-	x)	;;
-	*)	echo "You cannot use both -controlhub and the IBIS_HUB environment variable" 1>&2
-		;;
-	esac
-
-	Dhub="$Dhub -Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
+	if [ "x$IBIS_HUB" != "x" ]; then
+		echo "You cannot use both -controlhub and the IBIS_HUB environment variable" 1>&2
+		exit 1
+	fi
+	if [ $has_enable -eq 0 ]; then
+	    Ddefines="$Ddefines -Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
+	    has_enable=1
+	fi
+	args="$args -controlhub"
+	;;
+    -port)
+	shift
+	Ddefines="$Ddefines -Dibis.name_server.port=$1"
+	;;
+    -poolport)
+	shift
+	Ddefines="$Ddefines -Dibis.pool.server.port=$1"
+	;;
+    -hubport)
+	shift
+	if [ "x$IBIS_HUB" != "x" ]; then
+		echo "You cannot use both -hubport and the IBIS_HUB environment variable" 1>&2
+		exit 1
+	fi
+	if [ $has_hubport -eq 0 ]; then
+	    has_hubport=1
+	    Ddefines="$Ddefines -Dibis.connect.hub_port=$1"
+	fi
+	if [ $has_enable -eq 0 ]; then
+	    has_enable=1
+	    Ddefines="$Ddefines -Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
+	fi
+	;;
+    -v)
+	Ddefines="$Ddefines -Dibis.name_server.verbose=true"
+	;;
+    -d)
+	Ddefines="$Ddefines -Dibis.name_server.debug=true"
+	;;
+    *)
+	args="$args $i"
 	;;
     esac
+    shift
 done
 
-$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH $Dhub ibis.impl.nameServer.tcp.NameServer "$@"
+$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH $Ddefines ibis.impl.nameServer.tcp.NameServer $args

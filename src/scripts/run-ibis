@@ -82,10 +82,6 @@ EOF
     specifies the hostname on which the nameserver runs
 -ns-port
     specifies the port number on which the nameserver is listening
--ns-retry
-    specifies that the application should retry to connect to the nameserver
-    until it succeeds. The default behavior is to exit when connecting to the
-    nameserver fails
 EOF
 	if [ $prun -eq 1 ]
 	then
@@ -178,7 +174,6 @@ action=eval
 
 Dns_server="-Dibis.name_server.host=$IBIS_NAMESERVER_HOST"
 Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
-Dns_retry="-Dibis.name_server.retry=$IBIS_NAMESERVER_RETRY"
 Dns_pool="-Dibis.name_server.key=no_key_supplied"
 
 dir=$PWD
@@ -284,12 +279,6 @@ do
 		    ;;
 		esac
 		dedicated_nameserver=1
-		;;
-	-ns-retry)
-		Dns_retry="-Dibis.name_server.retry=yes"
-		;;
-	-no-ns-retry)
-		Dns_retry="-Dibis.name_server.retry=no"
 		;;
 	-karmi)
 		Xbootclasspath=""
@@ -435,7 +424,7 @@ else
 		$JIT_OPTS \
 		$Dlibpath $Dibislibs \
 		$Dpool_host_num $Dpool_total $Dpool_host_names \
-		$Dns_pool $Dns_port $Dns_server $Dns_retry \
+		$Dns_pool $Dns_port $Dns_server \
 		$Xbootclasspath \
 		-classpath $JAVACLASSPATH \
 		"$@"

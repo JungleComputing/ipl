@@ -53,7 +53,6 @@ call "%IBIS_ROOT%\bin\ns-env"
 
 set Dns_server="-Dibis.name_server.host=%IBIS_NAMESERVER_HOST%"
 set Dns_port="-Dibis.name_server.port=%IBIS_NAMESERVER_PORT%"
-set Dns_retry="-Dibis.name_server.retry=%IBIS_NAMESERVER_RETRY%"
 set Dns_pool="-Dibis.name_server.key=no_key_supplied"
 
 rem
@@ -106,14 +105,6 @@ if "%1"=="-ns" (
 if "%1"=="-ns-port" (
     set Dns_port="-Dibis.name_server.port=%2"
     shift
-    goto nextarg
-)
-if "%1"=="-ns-retry" (
-    set Dns_retry="-Dibis.name_server.retry=yes"
-    goto nextarg
-)
-if "%1"=="no--ns-retry" (
-    set Dns_retry="-Dibis.name_server.retry=no"
     goto nextarg
 )
 if "%1"=="-pg" (
@@ -191,7 +182,7 @@ rem and for NT handling to skip to.
 
 :doneStart
 
-%action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dpool_host_names% %Dns_pool% %Dns_port% %Dns_server% %Dns_retry% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
+%action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dpool_host_names% %Dns_pool% %Dns_port% %Dns_server% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
 
 goto end
 
@@ -219,10 +210,6 @@ goto end
     echo     specifies the hostname on which the nameserver runs
     echo -ns-port
     echo     specifies the port number on which the nameserver is listening
-    echo -ns-retry
-    echo     specifies that the application should retry to connect to the nameserver
-    echo     until it succeeds. The default behavior is to exit when connecting to the
-    echo     nameserver fails
     echo -pg ^<prefix^>
     echo     pass profiling flags on to java, use ^<prefix^> for the result file
     echo -p ^<prefix^>

@@ -113,8 +113,24 @@ public class PoolInfoClient extends PoolInfo {
 	} catch (UnknownHostException e) {
 	    throw new RuntimeException("cannot get ip of pool server");
 	}
+	Socket socket = null;
+	int cnt = 0;
+	while (socket == null) {
+	    try {
+		cnt++;
+		socket = new Socket(serverAddress, serverPort);
+	    } catch(Exception e) {
+		if (cnt == 60) {
+		    System.err.println("Could not connect to PoolInfoServer after 60 seconds; giving up ...");
+		    throw new RuntimeException("Got exception: " + e);
+		}
+		try {
+		    Thread.sleep(1000);
+		} catch(Exception ex) {
+		}
+	    }
+	}
 	try {
-	    Socket socket = new Socket(serverAddress, serverPort);
 	    DataOutputStream out
 		= new DataOutputStream(socket.getOutputStream());
 	    out.writeUTF(key);

@@ -25,14 +25,16 @@ import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 
-public class NameServer implements Protocol {
+public class NameServer extends Thread implements Protocol {
 
-	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9826;
-	// public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 5678;
+	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 
+		    TypedProperties.intProperty(NSProps.s_port, 9826);
         private static final int BUF_SIZE = 1024;
 	
-	static boolean DEBUG = TypedProperties.booleanProperty(NSProps.s_debug);
-	static boolean VERBOSE = TypedProperties.booleanProperty(NSProps.s_verbose);
+	static final boolean DEBUG =
+		    TypedProperties.booleanProperty(NSProps.s_debug);
+	static final boolean VERBOSE =
+		    TypedProperties.booleanProperty(NSProps.s_verbose);
 
 	static int PINGER_TIMEOUT = TypedProperties.intProperty(NSProps.s_timeout, 300) * 1000;	// Property is in seconds, convert to milliseconds.
 
@@ -101,6 +103,8 @@ public class NameServer implements Protocol {
 	    }
 	}
 
+	private static boolean nameServerCreated = false;
+
 	private Hashtable pools;
 	private ServerSocket serverSocket;
 
@@ -110,9 +114,50 @@ public class NameServer implements Protocol {
 	private boolean singleRun;
 	private boolean joined;
 
-	private NameServer(boolean singleRun, int port) throws IOException {
+	private static boolean controlHubStarted = false;
+	private static boolean poolServerStarted = false;
+	private static ControlHub h = null;
+
+	private NameServer(boolean singleRun,
+			   boolean poolserver,
+			   boolean controlhub) throws IOException {
+
 		this.singleRun = singleRun;
 		this.joined = false;
+
+		String hubPort = System.getProperty("ibis.connect.hub_port");
+		String poolPort = System.getProperty("ibis.pool.server.port");
+		int port = TCP_IBIS_NAME_SERVER_PORT_NR;
+
+		if (controlhub && ! controlHubStarted) {
+		    if (hubPort == null) {
+			hubPort = Integer.toString(port+2);
+			System.setProperty("ibis.connect.hub_port", hubPort);
+		    }
+		    try {
+			h = new ControlHub();
+			h.setDaemon(true);
+			h.start();
+		    } catch(Throwable e) {
+			throw new IOException("Could not start control hub" + e);
+		    }
+		    controlHubStarted = true;
+		}
+
+		if (poolserver && ! poolServerStarted) {
+		    if (poolPort == null) {
+			poolPort = Integer.toString(port+1);
+			System.setProperty("ibis.pool.server.port", poolPort);
+		    }
+		    try {
+			PoolInfoServer p = new PoolInfoServer(singleRun);
+			p.setDaemon(true);
+			p.start();
+		    } catch(Throwable e) {
+			throw new IOException("Could not start poolInfoServer" + e);
+		    }
+		    poolServerStarted = true;
+		}
 
 		if (DEBUG) { 
 			System.err.println("NameServer: singleRun = " + singleRun);
@@ -126,6 +171,7 @@ public class NameServer implements Protocol {
 		if (VERBOSE) { 
 			System.err.println("NameServer: created server on port " + serverSocket.getLocalPort());
 		}
+
 	}
 
 	private void forwardJoin(IbisInfo dest, IbisIdentifier id) {
@@ -619,9 +665,43 @@ public class NameServer implements Protocol {
 			throw new IbisRuntimeException("NameServer got an error" , e);
 		}
 
+		if (h != null) {
+		    h.waitForCount(1);
+		}
+
 		if (VERBOSE) {
 			System.err.println("NameServer: exit");			
 		}
+	}
+
+
+	static synchronized NameServer createNameServer(
+					boolean singleRun,
+					boolean retry,
+					boolean poolserver,
+					boolean controlhub)
+	{
+		if (nameServerCreated) {
+			return null;
+		}
+		NameServer ns = null;
+		while (true) {
+			try { 
+				ns = new NameServer(singleRun, poolserver, controlhub);
+				break;
+			} catch (Throwable e) { 
+				if (retry) {
+				    System.err.println("Nameserver: could not create server socket, retry in 1 second");
+				    try {Thread.sleep(1000);} catch (Exception ee) {}
+				}
+				else {
+				    // System.err.println("Nameserver: could not create server socket");
+				    return null;
+				}
+			}
+		}
+		nameServerCreated = true;
+		return ns;
 	}
 
 	public static void main(String [] args) { 
@@ -629,46 +709,11 @@ public class NameServer implements Protocol {
 		boolean control_hub = false;
 		boolean pool_server = true;
 		NameServer ns = null;
-		int port = TCP_IBIS_NAME_SERVER_PORT_NR;
-		String poolport = null;
-		String hubport = null;
-		ControlHub h = null;
 
 		for (int i = 0; i < args.length; i++) {
 			if (false) {
 			} else if (args[i].equals("-single")) {
-				single = true;
-			} else if (args[i].equals("-d")) {
-				DEBUG = true;
-			} else if (args[i].equals("-v")) {
-				VERBOSE = true;
-			} else if (args[i].equals("-port")) {
-				i++;
-				try {
-					port = Integer.parseInt(args[i]);
-				} catch (Exception e) {
-					System.err.println("invalid port");
-					System.exit(1);
-				}
-			} else if (args[i].equals("-hubport")) {
-				i++;
-				try {
-					int n  = Integer.parseInt(args[i]);
-					hubport = args[i];
-					control_hub = true;
-				} catch (Exception e) {
-					System.err.println("invalid port");
-					System.exit(1);
-				}
-			} else if (args[i].equals("-poolport")) {
-				i++;
-				try {
-					int n  = Integer.parseInt(args[i]);
-					poolport = args[i];
-				} catch (Exception e) {
-					System.err.println("invalid port");
-					System.exit(1);
-				}
+				single=true;
 			} else if (args[i].equals("-controlhub")) {
 				control_hub = true;
 			} else if (args[i].equals("-no-controlhub")) {
@@ -677,32 +722,10 @@ public class NameServer implements Protocol {
 				pool_server = true;
 			} else if (args[i].equals("-no-poolserver")) {
 				pool_server = false;
-			} else if (args[i].equals("-debug")) {
-				// Accepted and ignored.
 			} else {
 				System.err.println("No such option: " + args[i]);
 				System.exit(1);
 			}
-		}
-
-		if (control_hub) {
-		    if (hubport == null) {
-			hubport = Integer.toString(port+2);
-		    }
-		    System.setProperty("ibis.connect.hub_port", hubport);
-		    h = new ControlHub();
-		    h.setDaemon(true);
-		    h.start();
-		}
-
-		if (pool_server) {
-		    if (poolport == null) {
-			poolport = Integer.toString(port+1);
-		    }
-		    System.setProperty("ibis.pool.server.port", poolport);
-		    PoolInfoServer p = new PoolInfoServer(single);
-		    p.setDaemon(true);
-		    p.start();
 		}
 
 		if(!single) {
@@ -712,20 +735,10 @@ public class NameServer implements Protocol {
 			single = (singleS != null && singleS.equals("true")); 
 		}
 
-		while (true) {
-			try { 
-				ns = new NameServer(single, port);
-				break;
-			} catch (Throwable e) { 
-				System.err.println("Nameserver: could not create server socket on port " + port + ", retry in 1 second");
-				try {Thread.sleep(1000);} catch (Exception ee) {}
-			}
-		}
+		ns = createNameServer(single, true, pool_server, control_hub);
+
 		try {
 		    ns.run();
-		    if (h != null) {
-			h.waitForCount(1);
-		    }
 		    System.exit(0);
 		} catch (Throwable t) {
 		    System.err.println("Nameserver got an exception: " + t);
