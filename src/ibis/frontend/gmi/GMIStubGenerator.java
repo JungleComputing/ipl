@@ -185,10 +185,12 @@ class GMIStubGenerator extends GMIGenerator {
 
         writeSpecialHeader(spacing, m, "COMBINED_" + caps_type);
 
+        output.println(spacing + "\tif (logger.isDebugEnabled()) {");
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + \": group_stub_"
+                + "\t    logger.debug(Group.rank() + \": group_stub_"
                 + data.classname + "." + m.getName() + " doing COMBINED_"
                 + caps_type + " call\");");
+        output.println(spacing + "\t}");
 
         if (!ret.equals(Type.VOID)) {
             output.println(spacing + "\t" + getInitedLocal(ret, "result")
@@ -240,10 +242,12 @@ class GMIStubGenerator extends GMIGenerator {
 
         writeSpecialHeader(spacing, m, "SINGLE");
 
+        output.println(spacing + "\tif (logger.isDebugEnabled()) {");
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + \": group_stub_"
+                + "\t    logger.debug(Group.rank() + \": group_stub_"
                 + data.classname + "." + m.getName()
                 + " doing SINGLE call\");");
+        output.println(spacing + "\t}");
         output.println(spacing + "\tGroupMessage r;");
         output.println(spacing + "\tint ticket = 0;");
         output.println(spacing + "\tException ex = null;");
@@ -425,9 +429,11 @@ class GMIStubGenerator extends GMIGenerator {
 
         writeSpecialHeader(spacing, m, "GROUP");
 
+        output.println(spacing + "\tif (logger.isDebugEnabled()) {");
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + \": group_stub_"
+                + "\t    logger.debug(Group.rank() + \": group_stub_"
                 + data.classname + "." + m.getName() + " doing GROUP call\");");
+        output.println(spacing + "\t}");
 
         output.println(spacing + "\tGroupMessage r;");
         output.println(spacing + "\tint ticket = 0;");
@@ -466,10 +472,12 @@ class GMIStubGenerator extends GMIGenerator {
 
         writeSpecialHeader(spacing, m, "PERSONAL");
 
+        output.println(spacing + "\tif (logger.isDebugEnabled()) {");
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + \": group_stub_"
+                + "\t    logger.debug(Group.rank() + \": group_stub_"
                 + data.classname + "." + m.getName()
                 + " doing PERSONAL call\");");
+        output.println(spacing + "\t}");
 
         output.println(spacing + "\tGroupMessage r;");
         output.println(spacing + "\tint ticket = 0;");
@@ -525,7 +533,7 @@ class GMIStubGenerator extends GMIGenerator {
                 + "\tif (result_mode >= ReplyScheme.R_PERSONALIZED) {");
         
         output.println(spacing
-                + "\t\tif (Group.DEBUG) logger.debug(Group.rank() + \": " + 
+                + "\t\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + \": " + 
                 "group_stub_" + data.classname + "." + m.getName()
                 + " reply is PERSONALIZED\");");
         
@@ -539,7 +547,7 @@ class GMIStubGenerator extends GMIGenerator {
         output.println(spacing + "\tfor (int i=0;i<targetGroupSize;i++) {");
         
         output.println(spacing
-                + "\t\tif (Group.DEBUG) logger.debug(Group.rank() + \": " + 
+                + "\t\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + \": " + 
                 "group_stub_" + data.classname + "." + m.getName()
                 + " sending PERSONALIZED call to member \" + i);");
                 
@@ -557,7 +565,7 @@ class GMIStubGenerator extends GMIGenerator {
         output.println(spacing + "\t\tif (personalizer != null) {");
                 
         output.println(spacing
-                + "\t\tif (Group.DEBUG) logger.debug(Group.rank() + \": " + 
+                + "\t\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + \": " + 
                 "group_stub_" + data.classname + "." + m.getName()
                 + " also sending personalizer to member \" + i);");
                 
@@ -568,7 +576,7 @@ class GMIStubGenerator extends GMIGenerator {
         output.println(spacing + "\t\tcase ReplyScheme.R_COMBINE_BINOMIAL:");
         
         output.println(spacing
-                + "\t\t\tif (Group.DEBUG) logger.debug(Group.rank() + \": " + 
+                + "\t\t\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + \": " + 
                 "group_stub_" + data.classname + "." + m.getName()
                 + " also sending combiner to member \" + i);");
                 
@@ -580,7 +588,7 @@ class GMIStubGenerator extends GMIGenerator {
         output.println(spacing + "\t\tcase ReplyScheme.R_RETURN:");
         
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + \": " + 
+                + "\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + \": " + 
                 "group_stub_" + data.classname + "." + m.getName()
                 + " also sending reply rank and ticket to member \" + i);");
                 
@@ -597,7 +605,7 @@ class GMIStubGenerator extends GMIGenerator {
         for (int j = 0; j < params.length; j++) {
             
             output.println(spacing
-                    + "\t\tif (Group.DEBUG) logger.debug(Group.rank() + \": " + 
+                    + "\t\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + \": " + 
                     "group_stub_" + data.classname + "." + m.getName()
                     + " sending " + params[j] + " parameter (\" + pv[i].p" + j +
                     "+ \") to member \" + i);");

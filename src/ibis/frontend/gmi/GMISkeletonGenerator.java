@@ -185,7 +185,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         String methodName = GMIGenerator.getUniqueMethodName(m);
         
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                + "\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + " + 
                 "\": group_skeleton_" + dest_name + "." + methodName + 
                 "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
                 " - Extracting parameters\");");
@@ -214,7 +214,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println();
 
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                + "\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + " + 
                 "\": group_skeleton_" + dest_name + "." + methodName + 
                 "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
                 " - Invoking method\");");
@@ -256,7 +256,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println();
 
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                + "\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + " + 
                 "\": group_skeleton_" + dest_name + "." + methodName + 
                 "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
                 " - Starting\");");
@@ -283,7 +283,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println();
 
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                + "\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + " + 
                 "\": group_skeleton_" + dest_name + "." + methodName + 
                 "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
                 " - Reading additional data.\");");
@@ -340,7 +340,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println();
 
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                + "\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + " + 
                 "\": group_skeleton_" + dest_name + "." + methodName + 
                 "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
                 " - Handling result \");");
@@ -377,7 +377,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println();
         
         output.println(spacing
-                + "\tif (Group.DEBUG) logger.debug(Group.rank() + " + 
+                + "\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + " + 
                 "\": group_skeleton_" + dest_name + "." + methodName + 
                 "(\" + invocationMode + " + "\", \" + resultMode + \", ...)" + 
                 " - Done\");");

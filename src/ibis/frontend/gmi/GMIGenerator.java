@@ -157,26 +157,60 @@ class GMIGenerator {
         return temp;
     }
 
+    static String do_mangle(StringBuffer s) {
+        // OK, now sanitize parameters
+        int i = 0;
+        while (i < s.length()) {
+            switch (s.charAt(i)) {
+            case '$':
+            case '.':
+            case '/':
+                s.setCharAt(i, '_');
+                break;
+
+            case '_':
+                s.replace(i, i + 1, "_1");
+                break;
+
+            case ';':
+                s.replace(i, i + 1, "_2");
+                break;
+
+            case '[':
+                s.replace(i, i + 1, "_3");
+                break;
+
+            default:
+                break;
+            }
+            i++;
+        }
+        return s.toString();
+    }
+
+    static String do_mangle(String name, String sig) {
+        StringBuffer s = new StringBuffer(sig);
+        name = do_mangle(new StringBuffer(name));
+
+        int open = sig.indexOf("(");
+        if (open == -1) {
+            return name;
+        }
+        s.delete(0, open + 1);
+
+        sig = s.toString();
+
+        int close = sig.indexOf(")");
+        if (close == -1) {
+            return name;
+        }
+        s.delete(close, s.length());
+
+        return name + "__" + do_mangle(s);
+    }
+
     public static String getUniqueName(Method m) {                 
-        StringBuffer name = new StringBuffer(m.getName());        
-        StringBuffer temp = new StringBuffer(m.getSignature());
-        
-        for (int i=0;i<temp.length();i++) { 
-            char c = temp.charAt(i);
-            
-            switch (c) { 
-            case '(':
-            case ')':
-            case '/':                
-                c = '_';
-                break;
-            case '[': 
-                c = 'a';
-                break;
-            }            
-            temp.setCharAt(i, c);            
-        }        
-        return name.append(temp).toString(); 
+        return do_mangle(m.getName(), m.getSignature());
     }
     
     public static String getUniqueMethodName(Method m) {
