@@ -6,24 +6,28 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 {
     static boolean doVerification = false;
     private int top;
+    private int lookahead;
 
-    public Compress( int top )
+    public Compress( int top, int lookahead )
     {
         this.top = top;
+	this.lookahead = lookahead;
     }
 
     /**
      * Applies the given step in the compression process, and any
      * subsequent steps that are also helpful.
      */
-    public SuffixArray applyFoldingStep( SuffixArray a, Step s )
+    public SuffixArray applyFoldingStep( SuffixArray a, Step s, int levels )
         throws VerificationException
     {
         a.applyCompression( s );
         if( traceIntermediateGrammars ){
             a.printGrammar();
         }
-        a = applyFolding( a );
+	if( levels>0 ){
+	    a = applyFolding( a, levels );
+	}
         if( doVerification ){
             a.test();
         }
@@ -35,7 +39,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
      * try to find the optimal compression.
      * @return The compressed text.
      */
-    private SuffixArray applyFolding( SuffixArray a ) throws VerificationException
+    private SuffixArray applyFolding( SuffixArray a, int levels ) throws VerificationException
     {
         SuffixArray res;
 
@@ -53,7 +57,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
         Step mv[] = steps.toArray();
 	SuffixArray l[] = new SuffixArray[mv.length];
 	for( int i=0; i<mv.length; i++ ){
-            l[i] = applyFoldingStep( (SuffixArray) a.clone(), mv[i] );
+            l[i] = applyFoldingStep( (SuffixArray) a.clone(), mv[i], levels-1 );
         }
 	sync();
 	res = l[0];
@@ -70,9 +74,15 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
      */
     public ByteBuffer compress( SuffixArray a ) throws VerificationException
     {
-        SuffixArray res = applyFolding( a );
-        res.printGrammar();
-        return res.getByteBuffer();
+	int startLength;
+	do {
+	    // Keep trying to do `lookahead' steps of compression
+	    // until there no longer is progress.
+	    startLength = a.getLength();
+	    a = applyFolding( a, lookahead );
+	    a.printGrammar();
+	} while( a.getLength()<startLength );
+        return a.getByteBuffer();
     }
 
     public ByteBuffer compress( byte text[] ) throws VerificationException
@@ -83,8 +93,8 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 
     static void usage()
     {
-        System.err.println( "Usage: [-quiet] [-verify] [-top <n>] <text-file> <compressed-file>" );
-	System.err.println( "   or: [-quiet] [-verify] [-top <n>] -string <text-string> <compressed-file>" );
+        System.err.println( "Usage: [-quiet] [-verify] [-lookahead <n>] [-top <n>] <text-file> <compressed-file>" );
+	System.err.println( "   or: [-quiet] [-verify] [-lookahead <n>] [-top <n>] -string <text-string> <compressed-file>" );
     }
 
     /**
@@ -96,6 +106,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 	File infile = null;
 	File outfile = null;
         int top = DEFAULT_TOP;
+        int lookahead = DEFAULT_LOOKAHEAD;
         String intext = null;
         boolean quiet = false;
 
@@ -105,6 +116,10 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
             }
             else if( args[i].equals( "-quiet" ) ){
                 quiet = true;
+            }
+            else if( args[i].equals( "-lookahead" ) ){
+                i++;
+                lookahead = Integer.parseInt( args[i] );
             }
             else if( args[i].equals( "-top" ) ){
                 i++;
@@ -152,7 +167,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 	    }
             long startTime = System.currentTimeMillis();
 
-            Compress c = new Compress( top );
+            Compress c = new Compress( top, lookahead );
             ByteBuffer buf = c.compress( text );
             if( outfile != null ){
                 Helpers.writeFile( outfile, buf );
