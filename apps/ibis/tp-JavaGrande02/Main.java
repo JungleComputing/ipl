@@ -214,7 +214,7 @@ final class Main {
 
 		try { 
 			boolean array = false, tree = false, list = false, dlist = false, oarray = false, one_way = true;
-			PoolInfo info = new PoolInfo();		
+			PoolInfo info = PoolInfo.createPoolInfo();		
 			int i           = 0;
 			int len         = 1023;
 			int arraysize   = 16*1024;
@@ -227,8 +227,6 @@ final class Main {
 			int rank = info.rank(); 
 			int tests = 0;
 
-			String ibisName = "ibis.impl.tcp.TcpIbis";
-			
 			while (i < args.length) { 
 				if (false) {
 				} else if (args[i].equals("-ibis")) { 
@@ -284,24 +282,11 @@ final class Main {
 				}
 			} 
 
-			if (verbose) { 
-				System.out.println("Creating ibis \"" + ibisName + "\"");
-			}
-
-<<<<<<< Main.java
-			if (stream && (upcalls || !one_way)) { 
-				System.out.println("Streaming with upcalls or two way communication not supported yet!");
-				System.exit(1);
-			} 
-
-			ibis = Ibis.createIbis(null, null);
-=======
 			StaticProperties s = new StaticProperties();
 			s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
 			s.add("serialization", "object");
 			s.add("worldmodel", "closed");
 			ibis = Ibis.createIbis(s, null);
->>>>>>> 1.10
 
 			if (verbose) { 
 				System.out.println("Ibis created; getting registry ...");
@@ -313,17 +298,7 @@ final class Main {
 				System.out.println("Got registry");
 			}
 
-<<<<<<< Main.java
-			StaticProperties s = new StaticProperties();
-
-			if (ibisSer) { 
-				s.add("Serialization", "ibis");
-			}
-
-			PortType t = ibis.createPortType("test type", s);			
-=======
 			PortType t = ibis.createPortType("test type", null);			
->>>>>>> 1.10
 			SendPort sport = t.createSendPort();					      
 			ReceivePort rport;
 

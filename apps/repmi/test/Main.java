@@ -6,7 +6,7 @@ class Main {
 	public static void main(String [] args) { 	
 
 		try {
-			PoolInfo info = new PoolInfo();		
+			PoolInfo info = PoolInfo.createPoolInfo();		
 
 			if (info.rank() == 0) { 	
 				myRep r = (myRep) RTS.createReplica("Test");

@@ -25,7 +25,7 @@ class fft {
     fft(String[] argv) {
 	PoolInfo d = null;
 	try {
-	    d = new PoolInfo();
+	    d = PoolInfo.createPoolInfo();
 	} catch(Exception e) {
 	    System.err.println("Oops: " + e);
 	    e.printStackTrace();

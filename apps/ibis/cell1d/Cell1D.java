@@ -4,6 +4,7 @@ import ibis.ipl.*;
 
 import java.util.Properties;
 import java.util.Random;
+import ibis.util.PoolInfo;
 
 import java.io.IOException;
 
@@ -20,7 +21,7 @@ interface Config {
 class Cell1D implements Config {
     static Ibis ibis;
     static Registry registry;
-    static ibis.util.PoolInfo info;
+    static PoolInfo info;
     static int boardsize = 3000;
 
     private static void usage()
@@ -218,7 +219,7 @@ class Cell1D implements Config {
         }
 
         try {
-            info = new ibis.util.PoolInfo();
+            info = PoolInfo.createPoolInfo();
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
             s.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );

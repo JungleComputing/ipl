@@ -47,7 +47,7 @@ final class TranspositionTable extends UnicastRemoteObject implements Transposit
 		Random random = new Random();
 		Registry r = null;
 
-		PoolInfo info = new PoolInfo();
+		PoolInfo info = PoolInfo.createPoolInfo();
 		rank = info.rank();
 		poolSize = info.size();
 

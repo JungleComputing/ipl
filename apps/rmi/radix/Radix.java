@@ -24,7 +24,7 @@ public class Radix{
     String output_file = null;
  
     Radix() throws IbisException {
-	d = new PoolInfo();
+	d = PoolInfo.createPoolInfo();
         nhosts = d.size();
         host  = d.rank();
         hostname = d.hostName(host);

@@ -39,16 +39,21 @@ class Latency {
 		}
 
 		try {
-			PoolInfo info = new PoolInfo();
+			PoolInfo info = PoolInfo.createPoolInfo();
 
 			int rank = info.rank();
 			int size = info.size();
 			int remoteRank = (rank == 0 ? 1 : 0);
 
-			ibis     = Ibis.createIbis("ibis:" + rank, "ibis.impl.tcp.TcpIbis", null);
+			StaticProperties sp = new StaticProperties();
+			sp.add("serialization", "object");
+			sp.add("communication", "OneToOne, ManyToOne, Reliable, ExplicitReceipt, AutoUpcalls");
+			sp.add("worldmodel", "closed");
+
+			ibis     = Ibis.createIbis(sp, null);
 			registry = ibis.registry();
 
-			PortType t = ibis.createPortType("test type", null);
+			PortType t = ibis.createPortType("test type", sp);
 
 			ReceivePort rport = t.createReceivePort("receive port " + rank);
 			SendPort sport = t.createSendPort("send port " + rank);

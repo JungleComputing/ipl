@@ -3,8 +3,6 @@ discretized Laplace equations on a grid.
 This implementation is an RMI version. It distributes the grid row-wise among
 the CPUs. Each CPU exchanges one row of the matrix with its neighbours at the
 beginning of each iteration. 
-It uses the ibis.util.PoolInfoClient/ibis.util.PoolInfoServer pair to make
-execution on multiple clusters possible in a transparent way
 
 The program options are: <NROW> <NCOL> <NITERATIONS> <COMMUNICATION>
 where

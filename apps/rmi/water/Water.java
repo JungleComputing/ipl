@@ -54,7 +54,7 @@ public class Water{
 	PoolInfo info = null;
 	
 	try {
-	    info = new PoolInfo();
+	    info = PoolInfo.createPoolInfo();
 	} catch(Exception e) {
 	    System.err.println("Oops: " + e);
             e.printStackTrace();

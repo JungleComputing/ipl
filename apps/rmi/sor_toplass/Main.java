@@ -44,7 +44,7 @@ public static void main (String[] args) {
 
     try {
 
-	    PoolInfo info = new PoolInfo();
+	    PoolInfo info = PoolInfo.createPoolInfo();
 
 	    sync = nit = nrow = ncol = 0;
 	    boolean hetero_speed = false;

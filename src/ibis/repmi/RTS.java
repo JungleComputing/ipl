@@ -82,7 +82,7 @@ public final class RTS {
 //                                registry = new GroupRegistry();
 
                                 /* I am the master */                           
-				PoolInfo info = new PoolInfo();
+				PoolInfo info = PoolInfo.createPoolInfo();
 
                                 _size = info.size();
                                 _rank = 0;

@@ -8,7 +8,7 @@ class Main {
 	public static void main(String [] args) { 	
 
 		try {
-			PoolInfo info = new PoolInfo();		
+			PoolInfo info = PoolInfo.createPoolInfo();		
 			
 			System.out.println("Starting process " + info.rank() + " on " + info.hostName());
 

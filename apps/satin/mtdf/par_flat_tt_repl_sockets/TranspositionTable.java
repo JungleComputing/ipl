@@ -50,7 +50,7 @@ final class TranspositionTable {
 		Random random = new Random();
 
 		try {
-		    info  = new PoolInfo();
+		    info  = PoolInfo.createPoolInfo();
 		} catch (Exception e) {
 		    System.err.println("Error creating pool info: " + e);
 		    System.exit(1);

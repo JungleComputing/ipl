@@ -40,7 +40,7 @@ final class TranspositionTable {
 	Rdtsc bcastTimer = new Rdtsc();
 	Rdtsc bcastHandlerTimer = new Rdtsc();
 
-	PoolInfo info = new PoolInfo();
+	PoolInfo info = PoolInfo.createPoolInfo();
 	int rank = info.rank();
 	int poolSize = info.size();
 

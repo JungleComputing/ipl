@@ -8,7 +8,7 @@ class Main {
 
 public static void main(String[] argv) {
 	try {
-		PoolInfo info = new PoolInfo();
+		PoolInfo info = PoolInfo.createPoolInfo();
 	
 		int n = 4000;
 		

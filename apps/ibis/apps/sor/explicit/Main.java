@@ -98,7 +98,7 @@ class Main {
 			int nrow = 0;
 			int ncol = 0;
 			
-			info = new PoolInfo();
+			info = PoolInfo.createPoolInfo();
 
 			if (args.length == 1) {
 				N = Integer.parseInt(args[0]);

@@ -20,7 +20,7 @@ class RMI_Bench {
     public static void main(String[] argv) {
 	PoolInfo dasInfo = null;
 	try {
-	    dasInfo = new PoolInfo();
+	    dasInfo = PoolInfo.createPoolInfo();
 	} catch(Exception e) {
 	    System.err.println("Oops: " + e);
 	    e.printStackTrace();

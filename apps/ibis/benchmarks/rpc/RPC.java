@@ -921,7 +921,6 @@ System.err.println("Allocated double buffer size " + size);
 	// s.add("communication", "OneToOne OneToMany Reliable AutoUpcalls ExplicitReceipt");
 	s.add("communication", "OneToOne Reliable AutoUpcalls ExplicitReceipt");
 	s.add("serialization", "object");
-	s.add("worldmodel", "open");
 	myIbis = Ibis.createIbis(s, rszHandler);
 
 // manta.runtime.RuntimeSystem.DebugMe(0, 0);

@@ -10,7 +10,7 @@ class Main {
 	public static void main(String [] args) {
 
 		try { 
-			PoolInfo info = new PoolInfo();
+			PoolInfo info = PoolInfo.createPoolInfo();
 			
 			int n = N;
 			int ncpus = info.size();

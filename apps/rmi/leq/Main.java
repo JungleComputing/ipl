@@ -62,7 +62,7 @@ class Main {
 			
 			offset = n;
 			
-			PoolInfo info = new PoolInfo();
+			PoolInfo info = PoolInfo.createPoolInfo();
 			int cpus = info.size();
 			int cpu = info.rank();
 			

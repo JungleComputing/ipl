@@ -13,6 +13,8 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.*;
 
+import ibis.util.PoolInfo;
+
 class SOR extends UnicastRemoteObject implements SORInterface {
     static final double TOLERANCE = 0.001;         /* termination criterion */
     static final double MAGIC = 1.00;               /* magic factor */
@@ -23,11 +25,11 @@ class SOR extends UnicastRemoteObject implements SORInterface {
 
     static final boolean   SYNC_SEND = true;
 
-    static PoolInfoClient info;
+    static PoolInfo info;
 
     static {
         try {
-            info = PoolInfoClient.create();
+            info = PoolInfo.createPoolInfo();
             System.out.println( "info.size(): " + info.size() );
             System.out.println( "info.rank(): " + info.rank() );
             System.out.println( "info.hostName(): " + info.hostName() );

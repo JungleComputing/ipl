@@ -127,7 +127,7 @@ class Server {
 	public static void main(String argv[]) {
 
 	    try {
-		PoolInfo info = new PoolInfo();
+		PoolInfo info = PoolInfo.createPoolInfo();
 		int cpu = info.rank();
 
 		System.out.println("I am " + info.hostName(cpu));

@@ -23,7 +23,7 @@ final class MasterWorker {
 	StaticProperties s;
 
 	try {
-	    PoolInfo info = new PoolInfo();
+	    PoolInfo info = PoolInfo.createPoolInfo();
 	    int rank = info.rank();
 
 	    s = new StaticProperties();
