@@ -107,7 +107,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private final int DATATYPES    = DATA_HASH    + 1;
 
     private final long	data_size[] =
-			    { 1, 2, 4, 8, 4, 8, 4 * 4, 4 * 4, 3 * 4, 0 };
+			    { 1, 2, 4, 8, 4, 8, 4 * 4, 4 * 4, 3 * 4, 0, 8 };
 
     private int		data_type = DATA_BYTES;
 
@@ -731,7 +731,7 @@ System.err.println("Poor-man's barrier send finished");
 	    }
 	} else if (size > 0) {
 
-	    if (data_type != DATA_OBJ_1 && data_type != DATA_OBJ_2 && data_type != DATA_INNER) {
+	    if (data_type != DATA_OBJ_1 && data_type != DATA_OBJ_2 && data_type != DATA_INNER && data_type != DATA_HASH) {
 		size /= data_size[data_type];
 	    }
 
