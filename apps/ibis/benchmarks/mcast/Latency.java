@@ -47,7 +47,7 @@ class Latency {
 
 			StaticProperties sp = new StaticProperties();
 			sp.add("serialization", "object");
-			sp.add("communication", "OneToOne, ManyToOne, Reliable, ExplicitReceipt, AutoUpcalls");
+			sp.add("communication", "OneToOne, ManyToOne, OneToMany, Reliable, ExplicitReceipt, AutoUpcalls");
 			sp.add("worldmodel", "closed");
 
 			ibis     = Ibis.createIbis(sp, null);

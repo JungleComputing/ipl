@@ -184,10 +184,19 @@ class Latency {
 		}
 
 		try {
-			ibis     = Ibis.createIbis("ibis:" + rank, "ibis.impl.tcp.TcpIbis", null);
-			registry = ibis.registry();
 
-			PortType t = ibis.createPortType("test type", null);
+			StaticProperties p = new StaticProperties();
+			p.add("Serialization", "object");
+			if (upcall) {
+			    p.add("Communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt");
+			}
+			else {
+			    p.add("Communication", "OneToOne, Reliable, ExplicitReceipt");
+			}
+			p.add("worldmodel", "open");
+			ibis     = Ibis.createIbis(p, null);
+			registry = ibis.registry();
+			PortType t = ibis.createPortType("test type", p);
 
 			SendPort sport = t.createSendPort();
 			ReceivePort rport;
@@ -205,6 +214,7 @@ class Latency {
 			if (rank == 0) {
 
 				rport = t.createReceivePort("test port 0");
+				rport.enableConnections();
 
 				sport.connect(lookup("test port 1"));
 
@@ -218,9 +228,12 @@ class Latency {
 				if (upcall) {
 					UpcallReceiver receiver = new UpcallReceiver(sport, 2*count);
 					rport = t.createReceivePort("test port 1", receiver);
+					rport.enableConnections();
+					rport.enableUpcalls();
 					receiver.finish();
 				} else {
 					rport = t.createReceivePort("test port 1");
+					rport.enableConnections();
 					ExplicitReceiver receiver = new ExplicitReceiver(rport, sport);
 					receiver.receive(2*count);
 				}
