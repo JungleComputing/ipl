@@ -167,6 +167,7 @@ public class SuffixArray implements Configuration, Magic {
 	}
     }
 
+
     private void printMaxima( PrintStream s )
     {
 	int max = 0;
@@ -181,6 +182,28 @@ public class SuffixArray implements Configuration, Magic {
 		s.println( "maximum: " + indices[i] + " " + commonality[i] + " " + buildString( indices[i], commonality[i] ) );
 	    }
 	}
+    }
+
+    public void printGrammar()
+    {
+        int start = 0;
+        boolean busy;
+
+        do {
+            busy = true;
+
+            for( int i=start; i<length; i++ ){
+                // TODO: only first occurence is a grammar def'n.
+                if( text[i] >= FIRSTCODE ){
+                    // We have a grammar rule, print it, and move on.
+                    System.out.println( "<" + text[i] + "> -> [" + buildString( start, i-start ) + "]" );
+                    start = i+1;
+                    break;
+                }
+                busy = false;
+            }
+        } while( busy );
+        System.out.println( "<start> -> [" + buildString( start ) + "]" );
     }
 
     /**

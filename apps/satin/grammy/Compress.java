@@ -10,6 +10,7 @@ class Compress extends ibis.satin.SatinObject
     {
 	SuffixArray a = new SuffixArray( text );
 	ByteBuffer out = a.compress();
+        a.printGrammar();
         return out;
     }
 
