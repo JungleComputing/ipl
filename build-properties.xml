@@ -35,7 +35,7 @@
 		<property name="os.family" value="unix"/>
 	    </then>
 	<elseif>
-	    <os family="windos"/>
+	    <os family="windows"/>
 	    <then>
 		<property name="os.family" value="windos"/>
 	    </then>

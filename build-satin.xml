@@ -36,13 +36,14 @@
 	</if>
 
 	<property name="satin-class-path" refid="default.classpath"/>
+	<property name="javac" location="${JAVA_HOME}/bin/javac"/>
 
 	<java	classname="ibis.frontend.satin.Satinc"
 		taskname="Satinc"
 		dir="${build}"
 		failonerror="true"
 		fork="true">
-		<arg line="-compiler '${JAVA_HOME}/bin/javac -g -classpath ${satin-class-path}${path.separator}' ${satinc-flags.value} ${satin-main-class}"/>
+		<arg line="-compiler '${javac} -g -classpath ${satin-class-path}${path.separator}' ${satinc-flags.value} ${satin-main-class}"/>
 		<classpath refid="default.classpath"/>
 	</java>
 

@@ -263,7 +263,7 @@
 		</if>
 	    </then>
 	<elseif>
-	    <os family="windos"/>
+	    <os family="windows"/>
 	    <then>
 		<property name="c.compiler" value="${c.compiler.windows}"/>
 		<if>
