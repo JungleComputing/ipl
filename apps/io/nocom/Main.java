@@ -179,15 +179,21 @@ public class Main {
 	    ObjectOutputStream mout = null;
 	    ObjectInputStream min = null;
 
+	    StoreOutputStream store_out = null;
+	    StoreInputStream store_in = null;
+
 	    if (conversion) {
-		if (ser == SUN) {
-		    mout = new ObjectOutputStream(new StoreOutputStream(buf));
-		    min = new ObjectInputStream(new StoreInputStream(buf));
+
+		    store_out = new StoreOutputStream(buf);
+		    store_in  = new StoreInputStream(buf);
+
+		if (ser == SUN) {		
+		    mout = new ObjectOutputStream(store_out);
+		    min = new ObjectInputStream(store_in);
 		    System.err.println("Running SUN serialization read test of " + obj.id());
-		}
-		else {
-		    out = new BufferedArrayOutputStream(new StoreOutputStream(buf));
-		    in = new BufferedArrayInputStream(new StoreInputStream(buf));
+		} else {
+		    out = new BufferedArrayOutputStream(store_out);
+		    in = new BufferedArrayInputStream(store_in);
 		    mout = new IbisSerializationOutputStream(out);
 		    min = new IbisSerializationInputStream(in);
 		    System.err.println("Running Ibis serialization read test of " + obj.id() + " with conversion");
@@ -202,18 +208,21 @@ public class Main {
 		System.err.println("Running Ibis serialization read test of " + obj.id() + " without conversion");
 	    }
 
-
 	    if (array != null) {
 		mout.writeObject(array);
-	    }
-	    else {
+	    } else {
 		mout.writeObject(obj);
 	    }
 	    mout.flush();
 	    mout.reset();
 
 	    min.readObject();
+
+	    if (store_in != null) store_in.reset();
+	    if (store_out != null) store_out.getAndReset();
+
 	    if (sin != null) sin.reset();
+
 	    buf.clear();
 
 	    if (array != null) {
@@ -228,9 +237,12 @@ public class Main {
 	    bytes = buf.bytesWritten();
 	    buf.resetBytesWritten();
 
-	    System.err.println("Wrote " + bytes + " bytes");
+	    if (store_in != null) store_in.reset();
+	    if (store_out != null) store_out.getAndReset();
 
-	    System.err.println("Starting test");
+	    System.out.println("Wrote " + bytes + " bytes");
+
+	    System.out.println("Starting test");
 
 	    for (int j=0;j<tests;j++) { 
 
@@ -239,6 +251,7 @@ public class Main {
 		for (int i=0;i<count;i++) {
 		    min.readObject();
 		    if (sin != null) sin.reset();
+		    if (store_in != null) store_in.reset();
 		}
 
 		end = System.currentTimeMillis();

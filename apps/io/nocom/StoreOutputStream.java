@@ -38,3 +38,4 @@ final class StoreOutputStream extends OutputStream {
 		buf.write(b);
 	} 
 } 
+
