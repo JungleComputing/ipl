@@ -1,0 +1,604 @@
+#############################################################################
+#
+# This file contains all of the system properties that are currently
+# recognized by (parts of) Ibis.
+#
+#############################################################################
+
+#####
+# IPL
+#####
+
+# Nickname of the Ibis implementation to be chosen.
+# ibis.name
+
+# Communication properties.
+# ibis.communication
+
+# World model, either "open" or "closed".
+# ibis.worldmodel
+
+# Serialization type: "byte", "data", "sun", "ibis", "object".
+# ibis.serialization
+
+# When set, indicates an absolute path to a file containing a list of Ibis
+# nicknames, their implementation names, and for each implementation the name of
+# a property file.
+# ibis.property.file
+
+# When set, indicates a path from where to load native libraries.
+# ibis.library.path
+
+# Should be replaced by a log4j logger. Gives verbosity during the Ibis
+# startup.
+# ibis.verbose:			false
+
+############
+# Nameserver
+############
+
+# Name of the nameserver client to be used.
+# ibis.name_server.impl		ibis.impl.nameServer.tcp.NameServerClient
+
+# Host on which the nameserver is supposed to run. This property must
+# be specified.
+# ibis.name_server.host
+
+# Port number on which the nameserver is supposed accept connections.
+# ibis.name_server.port		9826
+
+#  A key which is supposed to be unique for this run. This property must
+# be specified.
+# ibis.name_server.key
+
+# Only serve a single run.
+# ibis.name_server.single	false
+
+# The nameserver pings each run it has under its control every
+# "ibis.name_server.timeout" seconds. If the run turns out to be dead, the
+# information associated with it in the nameserver is discarded.
+# ibis.name_server.timeout	300
+
+#############################################################################
+#
+# Ibis implementations
+#
+#############################################################################
+
+##########
+# TCP Ibis
+##########
+
+# Enables debugging messages. Will eventually be replaced by a log4j logger.
+# ibis.tcp.debug:			false
+
+# Enables finish() to return the number of bytes read/written.
+# It is debatable whether the user should be able to disable this.
+# ibis.tcp.stats:			true
+
+# Enables caching and reusing of connections. TCP connections are two-way,
+# Ibis connections are one-way. The "other half" may be used for a connection
+# that goes in the opposite direction. Also, when an Ibis connection is closed,
+# the connection can be reused.
+# ibis.tcp.cache:			true
+
+#####################
+# MessagePassing Ibis
+#####################
+
+# After serving a message, the receive thread may optimistically
+# poll for a while. A new request might arrive in a short while,
+# and that saves an interrupt. Set this to 0 if you don't want
+# optimistic polling.
+# ibis.mp.polls.optimistic:		500
+
+# When blocked reading a message, the receive thread may poll for a while
+# before yielding to another thread. Set this to 0 if you don't want this.
+# ibis.mp.polls.yield:			500
+
+# Disables interrupts during the processing of multi-fragment messages.
+# ibis.mp.intr.disable.multifragment:	false
+
+# Enables the presence of an election server within MP Ibis.
+# It is debatable whether the user should be able to disable this.
+# ibis.mp.election:			true
+
+# Enables debugging messages from the election server of MP Ibis and its
+# clients. Will eventually be replaced by a log4j logger.
+# ibis.mp.elect.debug:			false
+
+# Enables debugging messages from MP Ibis.
+# Will eventually be replaced by a log4j logger.
+# ibis.mp.debug:			false
+
+# Some thread implementation don't have (did'nt have?) a properly functioning
+# Thread.yield(). In this case, setting this property to true makes MP Ibis
+# use Thread.sleep instead.
+# ibis.mp.yield:			false
+
+# There are two ways to enable broadcasting: setting ibis.mp.broadcast.native
+# to true, or setting ibis.mp.broadcast to native
+# ibis.mp.broadcast:			none
+# ibis.mp.broadcast.native:		true
+
+# Currently ignored. Used to explicitly enable broadcasting in the presence of a
+# home connection. This is now always enabled when broadcasting is enabled.
+# ibis.mp.broadcast.all:		false
+
+# Use broadcast when running on two nodes and the sendport has only one outgoing
+# connection.
+# ibis.mp.broadcast.2:			false
+
+# When a node is sending multiple messages at the same time, serialize these
+# sends.
+# ibis.mp.serialize-sends:		false
+
+# Enables debugging messages from the nameserver of MP Ibis and its clients.
+# Will eventually be replaced by a log4j logger.
+# ibis.mp.ns.debug:			false
+
+##########
+# NIO Ibis
+##########
+
+# The mere presence of the ibis.nio.numbered property is synonymous with
+# the "Numbered" communication property. Remove?
+# ibis.nio.numbered:
+
+# Allows the user to choose between different sendport implementations.
+# possible values are "Blocking", "NonBlocking", and "Thread".
+# The default depends on the presence of the "OneToMany" communication
+# property, so the property is not set here.
+# Also, properties with name ibis.nio.spi.<name> are recognized, and
+# only affect the sendports created with a port type with name <name>.
+# ibis.nio.spi:
+
+# Allows the user to choose between different receiveport implementations.
+# possible values are "Blocking", "NonBlocking", and "Thread".
+# The default depends on the presence of the "OneToMany" communication
+# property, so the property is not set here.
+# Also, properties with name ibis.nio.rpi.<name> are recognized, and
+# only affect the receiveports created with a port type with name <name>.
+# ibis.nio.rpi:
+
+##########
+# Net Ibis
+##########
+
+# Enables some allocator statistics
+# ibis.net.allocator.stats;		false
+
+# If blocks are larger than this threshold, less of them are cached.
+# ibis.net.allocator.bigThr:		131072
+
+# Enables code to store owner and stacktrace in mutex.
+# ibis.net.mutex.debug:			false
+
+# Enables some debugging prints in exception handlers. Will eventually be
+# replaced by a log4j logger.
+# ibis.net.input.exc.verbose:		false
+
+# Enables some debugging prints at manipulation of dynamic singleton state.
+# Will eventually be replaced by a log4j logger.
+# ibis.net.poller.singleton.verbose:	false
+
+# Enables fast path for connections that dynamically turn out to be singleton,
+# although the port type may allow for non-singleton connections.
+# ibis.net.poller.singleton.dynamic:	true
+
+# Filename for NetIbis configuration
+# ibis.net.config.filename:		net_port_type_defaults.txt
+
+# Alternate property name for filename for NetIbis configuration
+# ibis.net.config.file:			net_port_type_defaults.txt
+
+# Alternate property name for filename for NetIbis configuration. This
+# one does not fit in the naming hierarchy of ibis property names. Remove???
+# netibis.config.filename:		net_port_type_defaults.txt
+
+# Enable fast paths for singleton connections.
+# ibis.net.porttype.singleton:		true
+
+# Can someone clarify??? 
+# ibis.net.multi.gen:			false
+
+# When true, unsuccessful active polling will be followed by a yield (only
+# for asynchronous multithreaded polling).
+# ibis.net.port.yield:			true
+
+# Upper bound on the length of byte buffers generated by the 'bytes' driver.
+# The default is set to Integer.MAX_VALUE.
+# ibis.net.bytes.mtu
+
+# Upper bound on the length of byte buffers generated by the 'gm' driver.
+# ibis.net.gm.mtu:			131072
+
+# To be replaced by log4j logger.
+# ibis.net.gm.intr.verbose:		false
+
+# Enables the use of a priority mutex.
+# ibis.net.gm.prioritymutex:		true
+
+# Number of polls when waiting for input, before yielding.
+# ibis.net.gm.polls:			300
+
+# Presence of this property makes NetIbis load a library called "gm".
+# Who knows why???
+# ibis.net.gm.dynamic
+
+# To be replaced by log4j logger. Even more verbose than ibis.net.gm.verbose
+# ibis.net.gm.debug:			false
+
+# A buffer of half this size is appended after each buffered message.
+# (Can someone clarify???)
+# ibis.net.gm.rendez-vous:		16384
+
+# Window size for sliding window protocol
+# ibis.net.rel.window:			5
+
+# Enables read-ahead on the TCP input stream.
+# ibis.net.tcp_blk.read_ahead:		true
+
+# Timeout in milliseconds of interruptable poll.
+# ibis.net.tcp_blk.timeout:		1000
+
+# To be replaced by log4j logger
+# ibis.net.tcp_blk.cache.verbose:	false
+
+# Enables caching and reusing of connections. TCP connections are two-way,
+# Ibis connections are one-way. The "other half" may be used for a connection
+# that goes in the opposite direction. Also, when an Ibis connection is closed,
+# the connection can be reused.
+# ibis.net.tcp_blk.cache:		true
+
+# Upper bound on the length of byte buffers generated by the 'tcp_blk' driver.
+# ibis.net.tcp_blk.mtu:			32768
+
+
+#############################################################################
+#
+# Ibis utilities
+#
+#############################################################################
+
+###############
+# SocketFactory
+###############
+
+# Sets the socket factory to be used.
+# ibis.util.socketfactory.class		ibis.impl.util.IbisConnectSocketFactory
+
+# When set, should specify a range of ports to be used, f.i. 3000-4000.
+# This can be used to make Ibis choose port numbers that are for instance not
+# protected by a firewall.
+# ibis.util.socketfactory.port.range
+
+# When set to non-zero, indicates the size to which the socket input
+# buffer size should be set.
+# ibis.util.socketfactory.InputBufferSize
+
+# When set to non-zero, indicates the size to which the socket output
+# buffer size should be set.
+# ibis.util.socketfactory.OutputBufferSize
+
+#########
+# IpUtils
+#########
+
+# When set, this is the IP address given when a host requests its own
+# IP address. This is sometimes needed when a host has several external IP
+# addresses, or has special networks available through different IP addresses.
+# ibis.util.ip.address
+
+# When set, this is the IP address given when a host requests its own IP
+# address for communicating with a nameserver or poolinfoserver.
+# ibis.util.ip.alt-address
+
+#########
+# Monitor
+#########
+
+# Enable assertions in ibis.util.Monitor.
+# ibis.util.monitor.assert		false
+
+# Enable statistics in ibis.util.Monitor.
+# ibis.util.monitor.stats		false
+
+##########
+# PoolInfo
+##########
+
+# Must be present when using a PoolInfo, and in this case must contain 
+# the total number of hosts involved in the run.
+# ibis.pool.total_hosts
+
+# Must contain a space-separated list of hostnames. The number of hostnames in
+# the list must at least be equal to the number of hosts involved in the run as
+# given by the ibis.pool.total_hosts property. Any additional host names are
+# ignored.
+# ibis.pool.host_names
+
+# Optional property, gives the index of the current host in the list of host
+# names. Should be between 0 and ibis.pool.total_hosts (inclusive).
+# If not supplied, it is determined by looking up the current host in
+# the list of host names.
+# ibis.pool.host_number
+
+# Cluster name of the current node.
+# ibis.pool.cluster			unknown
+
+# Contains the key identifying the current run. If not present, the
+# key from the nameserver is tried (ibis.name_server.key). If that is
+# not present either, "unknown" is used.
+# ibis.pool.key				unknown
+
+# Must contain the port number on which the <code>PoolInfoServer</code>
+# is accepting connections. If not present, ibis.name_server.port
+# is tried. If present, 1 is added and that is used as port number. If not,
+# the default is used.
+# ibis.pool.server.port			9827
+ 
+# ibis.pool.server.host
+# Must contain the hostname of the host on which the PoolInfoServer runs.
+# If not present, ibis.name_server.host is tried. One of the two system
+# properties must be defined.
+
+# If set to true, have the PoolInfoServer only accept a single registration
+# for each node (multiple Ibis instances on the same node won't work).
+# Remove???
+# ibis.pool.single			false
+
+#############################################################################
+#
+# Ibis I/O
+#
+#############################################################################
+
+# Enables statistics about the use of classes that have not been rewritten
+# in Ibis serialization.
+# ibis.io.stats.nonrewritten		false
+
+# Enables statistics about the objects sent in Ibis serialization.
+# ibis.io.stats.written			false
+
+# Allows the user to specify an additional class loader for Ibis serialization.
+# ibis.io.serialization.classloader
+
+# Enables timers for data and Ibis serialization.
+# ibis.io.serialization.timer
+
+# When set to true, data serialization and ibis serialization no longer
+# save all writes of a basic type to an array. These calls are passed on
+# to the layer below instead.
+# ibis.io.noarraybuffers		false
+
+# Possible values for ibis.io.conversion are: hybrid, chunk, wrap, simple.
+# Its value determines the way arrays of basic types are converted to bytes.
+# With "simple", each element is converted using shifts and bit-wise ands.
+# With "chunk", NIO is used to convert chunks of the array at a time.
+# With "wrap", the NIO "wrap" method is used when the size is larger than
+# the internal buffer size. With "hybrid", "simple" is used for small arrays,
+# "chunk" is used for larger arrays.
+# ibis.io.conversion			hybrid
+
+# When set to true, data serialization and ibis serialization use buffers
+# from a cache instead of allocating new ones when the flushed ones cannot
+# be re-used yet. This only makes some sense (although it does not improve
+# performance) with MessagePassing Ibis, because with all other Ibis
+# implementations, the buffers can be re-used after a flush.
+# Maybe just remove???
+# ibis.io.allocator			false
+
+# Maximum number of buffers to cache when ibis.io.allocator is set to true.
+# ibis.io.allocator.size
+
+# Statistics for the buffer-caching allocator.
+# ibis.io.allocator.statistics		false
+
+# To be replaced by a log4j logger.
+# ibis.io.debug				false
+
+# Enable some assertions in the serialization code.
+# ibis.io.assert			false
+
+# When writing arrays of a basic type that are smaller than this size
+# (in bytes), the elements are written one by one, when using data or ibis
+# serialization. It is not a good idea to fiddle with this, as this changes
+# the wire format.
+# ibis.io.smallarraybound		256
+
+# Enable assertions in the Ibis hash table (which is used in Ibis
+# serialization).
+# ibis.io.hash.assert			false
+
+# Enable statistics in the Ibis hash table (which is used in Ibis
+# serialization).
+# ibis.io.hash.stats			false
+
+# Enable timers in the Ibis hash table (which is used in Ibis serialization).
+# ibis.io.hash.timings			false
+
+#############################################################################
+#
+# Connection stuff
+#
+#############################################################################
+
+# When set, enables the connection methods given by the data_links and
+# control_links properties.
+# ibis.connect.enable			false
+
+# The connection method for setting up data links.
+# Possible values are: PlainTCP, TCPSplice, RoutedMessages, ParallelStreams,
+# PortRange, AnyTCP
+# ibis.connect.data_links		PlainTCP
+
+# The connection method for setting up control links.
+# Possible values are: PlainTCP, RoutedMessages, PortRange
+# ibis.connect.control_links		PlainTCP
+
+################
+# RoutedMessages
+################
+
+# Port number on which the controlhub is accepting connections
+# ibis.connect.hub_port			9828
+
+# Host name of the host on which the controlhub is running.
+# ibis.connect.hub_host
+
+# Enables statistics in the controlhub.
+# ibis.connect.controlhub.stats		false
+
+#################
+# ParallelStreams
+#################
+
+# The default number of parallel streams to be used.
+# ibis.connect.NumWays			4
+
+# The default block size to be used. 
+# ibis.connect.BlockSize		1460
+
+#####################
+# PortRangeSocketType
+#####################
+
+# Rob? Why is this still here? Either this one or
+# ibis.util.SocketFactory.port.range is superfluous???
+# ibis.connect.port_range
+
+###########
+# TCPSplice
+###########
+
+# Port number of a local server that gives out port numbers.
+# If two JVM's running on the same node are both creating spliced sockets,
+# there is a race if such a server is not used.
+# ibis.connect.splice_port	20246
+
+# If not set, set the input and output buffer size of a socket obtained
+# through TCP splicing to 64k.
+# ibis.connect.default.sizes	false
+
+
+#############################################################################
+#
+# Satin
+#
+#############################################################################
+
+# Must be enabled or there are no statistics at all
+# satin.stats:			true
+
+# Enable spawn statistics.
+# satin.stats.spawn:		true
+
+# Enable steal statistics.
+# satin.stats.steal:		true
+
+# Enable abort statistics.
+# satin.stats.abort:		true
+
+# Enable tuple space statistics.
+# satin.stats.tuple:		true
+
+# Enable fault tolerance statistics.
+# satin.stats.ft:		true
+
+# Enable global result table statistics.
+# satin.stats.ft.grt:		true
+
+# Must be enabled or there are no timings at all.
+# satin.timing:			true
+
+# Enable steal timings.
+# satin.timing.steal:		true
+
+# Enable abort timings.
+# satin.timing.abort:		true
+
+# Enable idle timings.
+# satin.timing.idle:		false
+
+# Enable poll timings.
+# satin.timing.poll:		false
+
+# Enable tuple space timings.
+# satin.timing.tuple:		true
+
+# Enable global result table timings.
+# satin.timing.ft.grt:		true
+
+# Enable crash handling timings.
+# satin.timing.ft.crash:	true
+
+# Enable result table check timings.
+# satin.timing.ft.check:	true
+
+# Enable timings for getting a replica of the global result table.
+# satin.timing.ft.replica:	true
+
+# Sets the polling frequency. Not needed when running with automatic upcalls.
+# satin.pollfreq		0
+
+# Enables explicit polling of the Satin receiveport. The alternative to this
+# is to just poll Ibis (which will trigger upcalls).
+# satin.pollport		true
+
+# Enables aborts (and inlets).
+# satin.aborts			true
+
+# Enables Gosia's fault tolerant Satin.
+# satin.ft			false
+
+# If true, the global result table (GRT) is replicated, if false, it is
+# distributed.
+# satin.ft.grt.replicated	false
+
+# Enables message combining with the GRT.
+# satin.ft.grt.combine		true
+
+# If true, orphan jobs are not aborted. Pointers are stored immediately
+# after crashes and results later. Jobs stolen by crashed processors
+# are not put back into the work queue. The are marked as dead and
+# redone when their parent is on the top of the stack.
+# Do not use with replicated table.
+# satin.ft.grt.noAborts		false
+
+# Fault tolerance with restarting crashed jobs, but without the GRT.
+# satin.ft.grt.noTable		false
+
+# Enables the following optimization: when waiting for a steal reply, some types
+# of messages are handled, for instance aborts and exceptions. This is only
+# possible when using non-automatic upcalls (upcalls that must be polled for).
+# satin.messagesInLatency	false
+
+# Enables multicast for tuple space updates. If not enabled, point-to-point
+# messages are used for tuple updates.
+# satin.tuplespace.multicast	true
+
+# Three synonyms that, when set to true, indicate that a global ordering must
+# be used for the tuple space. This means that all updates to the tuple space
+# are tagged with a globally valid sequence number, so that the updates can be
+# applied in the same order on all nodes.
+# satin.tuplespace.ordered	false
+# satin.tuplespace.ordened	false
+# satin.tuplespace.numbered	false
+
+#############################################################################
+#
+# GMI
+#
+#############################################################################
+
+# GMI currently does not use system properties.
+
+#############################################################################
+#
+# RMI
+#
+#############################################################################
+
+# Enables the RMI timer.
+# rmi.timer:			true
