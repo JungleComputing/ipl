@@ -154,18 +154,18 @@
     <property name="ant.home" location="3rdparty/apache-ant-1.6.1"/>
 
     <target name="-config-build-properties">
-	<echo>
+	<if>
+	    <isset property="called-from-configure"/>
+	    <then>
+	    </then>
+	    <else>
+		<echo>
 ----------------------------------------------------------------
 Now, your Ibis build is being configured under ${ibis}.
 
 If you don't have any fast local networks for which a special
 Ibis module is required, you may skip the following message
 by just hitting the 'enter' key.
-
-If you just typed
-  ant configure
-please ignore the rest of this message and continue: just hit
-the 'enter' key and go on answering questions.
 
 If you wish to configure Ibis modules for fast local networks,
 you have to do some extra configuration. To do so, type:
@@ -179,9 +179,11 @@ After you did this optional configuration, you must again type:
 to the command line.
 ----------------------------------------------------------------
 </echo>
-	<input
-		message="Hit the 'enter' key to continue"
-		addproperty="answer.config.continue"/>
+		<input
+			message="Hit the 'enter' key to continue"
+			addproperty="answer.config.continue"/>
+	    </else>
+	</if>
 
 	<property name="config.home.ibis" location="${ibis}"/>
 
@@ -413,6 +415,7 @@ to the command line.
 	<concat destfile="${ibis}/bin/run_ibis">
 	    <filelist dir="${ibis}" files="configuration.sh,scripts/run_ibis" />
 	</concat>
+	<replace file="${ibis}/bin/run_ibis" token="bin/java" value="Commands/java"/>
 	<chmod file="${ibis}/bin/run_ibis" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/extract_jars">
@@ -455,6 +458,7 @@ to the command line.
 	</concat>
 	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_PORT@" value="7654"/>
 	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_HOST@" value="mercury.cs.vu.nl"/>
+	<replace file="${ibis}/bin/run-das" token="bin/java" value="Commands/java"/>
 	<chmod file="${ibis}/bin/run-das" perm="+x"/>
 
 	<copy
@@ -561,7 +565,7 @@ to the command line.
 		message="Please enter the install directory of mpi: [${default.home.mpi}] "
 		addproperty="install.home.mpi"/>
 
-
+	<property name="called-from-configure" value="true"/>
 	<antcall inheritRefs="true" target="-config-build-properties"/>
     </target>
 
