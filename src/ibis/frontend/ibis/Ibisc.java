@@ -228,7 +228,7 @@ class Ibisc {
 	    System.out.println("running io generator on all files");
 	}
 
-	new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false, false, null, null).scanClass(files);
+	new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false, false, null).scanClass(files);
 	
 	if (verbose) {
 	    System.out.println(" Done");
