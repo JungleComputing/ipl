@@ -252,7 +252,8 @@ public class RMSocket extends Socket
 			    return r;
 			}
 			if (socket.currentArray.length > socket.currentIndex) {
-			    r = socket.currentArray[socket.currentIndex];
+			    r = socket.currentArray[socket.currentIndex] & 0xff;
+			    
 			    pumpFragment(1);
 			    MyDebug.out.println("# RMInputStream: reading- port="+socket.localPort+" size=1");
 			}
