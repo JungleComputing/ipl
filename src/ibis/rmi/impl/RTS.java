@@ -33,7 +33,7 @@ import java.util.Hashtable;
 
 public final class RTS {
 
-    static final String prefix = "ibis.rmi.";
+    static final String prefix = "rmi.";
 
     static final String s_timer = prefix + "timer";
 
@@ -111,7 +111,7 @@ public final class RTS {
     private static String[] timerId;
 
     final static boolean enableRMITimer
-            = TypedProperties.booleanProperty("ibis.rmi.timer");
+            = TypedProperties.booleanProperty(s_timer);
 
     private static double r10(double d) {
         long ld = (long) (d * 10.0);
