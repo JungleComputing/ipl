@@ -949,15 +949,57 @@ public final class Satinc {
 	String cls  = ins.getClassName(cpg);
 
 	JavaClass cl = Repository.lookupClass(cls);
-	if (cl == null) return null;
-
-	Method[] methods = cl.getMethods();
-	for (int i = 0; i < methods.length; i++) {
-	    if (methods[i].getName().equals(name) &&
-		methods[i].getSignature().equals(sig)) {
-		return methods[i];
-	    }
+	
+	if (cl == null) {
+System.out.println("findMethod: could not find class " + cls);
+	    return null;
 	}
+
+	while (cl != null) {
+	    Method[] methods = cl.getMethods();
+	    for (int i = 0; i < methods.length; i++) {
+		if (methods[i].getName().equals(name) &&
+		    methods[i].getSignature().equals(sig)) {
+		    return methods[i];
+		}
+	    }
+	    cls = cl.getSuperclassName();
+	    if (cls != null) {
+		cl = Repository.lookupClass(cls);
+	    }
+	    else cl = null;
+	}
+System.out.println("findMethod: could not find method " + name + sig);
+	return null;
+    }
+
+    public JavaClass findMethodClass(InvokeInstruction ins) {
+	String name = ins.getMethodName(cpg);
+	String sig  = ins.getSignature(cpg);
+	String cls  = ins.getClassName(cpg);
+
+	JavaClass cl = Repository.lookupClass(cls);
+	
+	if (cl == null) {
+System.out.println("findMethod: could not find class " + cls);
+	    return null;
+	}
+
+	while (cl != null) {
+	    Method[] methods = cl.getMethods();
+	    for (int i = 0; i < methods.length; i++) {
+		if (methods[i].getName().equals(name) &&
+		    methods[i].getSignature().equals(sig)) {
+		    return cl;
+		}
+	    }
+	    cls = cl.getSuperclassName();
+	    if (cls != null) {
+		cl = Repository.lookupClass(cls);
+	    }
+	    else cl = null;
+	}
+System.out.println("findMethod: could not find method " + name + sig);
 	return null;
     }
 
@@ -1043,13 +1085,18 @@ public final class Satinc {
 	    else if (i.getInstruction() instanceof INVOKEVIRTUAL) {
 		INVOKEVIRTUAL ins = (INVOKEVIRTUAL)(i.getInstruction());
 		Method target = findMethod(ins);
+		boolean rewritten = false;
 
 		// Rewrite the sync statement. 
 		if (target.getName().equals("sync") &&
-		    ins.getClassName(cpg).equals("ibis.satin.SatinObject") &&
 		    target.getSignature().equals("()V")) {
-		    rewriteSync(mOrig, il, i, maxLocals);
-		} else if (mtab.isSpawnable(target)) {
+		    JavaClass cl = findMethodClass(ins);
+		    if (cl != null && cl.equals(satinObjectClass)) {
+		        rewriteSync(mOrig, il, i, maxLocals);
+			rewritten = true;
+		    }
+		} 
+		if (! rewritten && mtab.isSpawnable(target)) {
 		    rewriteSpawn(m, il, target, i, maxLocals, spawnId);
 		    spawnId++;
 		}
@@ -1433,14 +1480,16 @@ public final class Satinc {
 		Instruction ins = i.getInstruction();
 		if (ins instanceof INVOKEVIRTUAL) {
 		    String targetname = ((InvokeInstruction)ins).getMethodName(cpg);
-		    String classname = ((InvokeInstruction)ins).getClassName(cpg);
 		    String sig = ((InvokeInstruction)ins).getSignature(cpg);
 
-		    if (targetname.equals("abort") && sig.equals("()V") &&
-			classname.equals(satinObjectClass.getClassName())) {
+		    if (targetname.equals("abort") && sig.equals("()V")) {
+		        JavaClass cl = findMethodClass((INVOKEVIRTUAL) ins);
+		    
+			if (cl != null && cl.equals(satinObjectClass)) {
 		        // Rewrite the abort statement. 
-			rewriteAbort(mg, il, i, maxLocals);
-			rewritten = true;
+			    rewriteAbort(mg, il, i, maxLocals);
+			    rewritten = true;
+			}
   		    }
   		}
   	    }
@@ -2097,6 +2146,14 @@ public final class Satinc {
 
 	Repository.addClass(c);
 
+	// now overwrite the classfile 
+	try {
+	    c.dump(dst);
+	} catch (IOException e) {
+	    System.out.println("Error writing " + dst);
+	    System.exit(1);
+	}
+
 	regenerateLocalRecord(base);
 
 	Method[] methods = c.getMethods();
@@ -2107,14 +2164,6 @@ public final class Satinc {
 		    removeFile(localRecordName(methods[i]) + ".java");
 		}
 	    }
-	}
-
-	// now overwrite the classfile 
-	try {
-	    c.dump(dst);
-	} catch (IOException e) {
-	    System.out.println("Error writing " + dst);
-	    System.exit(1);
 	}
 
 	if (! do_verify(c)) failed_verification = true;
@@ -2137,6 +2186,8 @@ public final class Satinc {
     private static boolean do_verify(JavaClass c) {
 	Verifier verf = VerifierFactory.getVerifier(c.getClassName());
 	boolean verification_failed = false;
+
+// System.out.println("Verifying " + c.getClassName());
 
 	VerificationResult res = verf.doPass1();
 	if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
