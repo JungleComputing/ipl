@@ -49,22 +49,7 @@ public abstract class Communication extends SpawnSync {
 
 	//used by GlobalResultTable
 	ReceivePortIdentifier lookup(String name) throws IOException {
-		ReceivePortIdentifier temp = null;
-		do {
-			temp = ibis.registry().lookup(name);
-
-			if (temp == null) {
-				try {
-					//					System.err.print("."); System.err.flush();
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					// ignore
-				}
-			}
-
-		} while (temp == null);
-
-		return temp;
+		return ibis.registry().lookup(name);
 	}
 
 	SendPort getReplyPortWait(IbisIdentifier ident) {
