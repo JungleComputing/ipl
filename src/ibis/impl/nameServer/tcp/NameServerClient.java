@@ -93,6 +93,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 			// Try and start a nameserver ...
 			NameServer n = NameServer.createNameServer(true, false, true, false);
 			if (n != null) {
+			    n.setDaemon(true);
 			    n.start();
 			}
 		}
@@ -230,7 +231,14 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		if(DEBUG) {
 			System.err.println("NS client: leave");
 		}
-		Socket s = socketFactory.createSocket(serverAddress, port, myAddress, 0 /* retry */);
+		Socket s;
+
+		try {
+		    s = socketFactory.createSocket(serverAddress, port, myAddress, 5000);
+		} catch(ConnectionTimedOutException e) {
+		    // Apparently, the nameserver left.
+		    return;
+		}
 		
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
