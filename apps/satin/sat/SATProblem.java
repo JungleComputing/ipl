@@ -194,31 +194,6 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	int aneg[] = Helpers.cloneIntArray( neg, negsz );
 	Clause cl = new Clause( apos, aneg, label++ );
 
-        // First see if this clause is subsumed by an existing
-	// one, or subsumes an existing one.
-        for( int i=0; i<clauseCount; i++ ){
-	    Clause ci = clauses[i];
-	    
-	    if( ci.isSubsumed( cl ) ){
-		// The new clause is subsumed by an existing one,
-		// don't bother to register it.
-		if( traceSimplification ){
-		    System.err.println( "New clause " + cl + " is subsumed by existing clause " + ci ); 
-		}
-		deletedClauseCount++;
-		label--;	// Don't waste an unused label.
-	        return -1;
-	    }
-	    if( cl.isSubsumed( ci ) ){
-	        // The new clause subsumes an existing one. Remove
-		// it, move the last clause to this slot, and
-		// update clauseCount.
-		if( traceSimplification ){
-		    System.err.println( "New clause " + cl + " subsumes existing clause " + ci ); 
-		}
-		deleteClause( i );
-	    }
-	}
 	if( clauseCount>=clauses.length ){
 	    // Resize the clauses array. Even works for array of length 0.
 	    Clause nw[] = new Clause[1+clauses.length*2];
@@ -537,39 +512,6 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 			}
 			unitClauses++;
 			continue;
-		    }
-		}
-		for( int j=i+1; j<clauseCount; j++ ){
-		    Clause cj = clauses[j];
-
-		    if( cj == null ){
-			continue;
-		    }
-		    if( cl.isSubsumed( cj ) ){
-			if( traceSimplification ){
-			    System.err.println( "Clause " + cl + " subsumes clause " + cj ); 
-			}
-			clauses[j] = null;
-			changed = true;
-			subsumptions++;
-		    }
-		    else if( cj.isSubsumed( cl ) ){
-			if( traceSimplification ){
-			    System.err.println( "Clause " + cj + " subsumes clause " + cl ); 
-			}
-			clauses[i] = null;
-			changed = true;
-			subsumptions++;
-			break;
-		    }
-		    if( false ){
-			if( cl.join( cj, vars ) ){
-			    if( traceSimplification | traceNewCode ){
-				System.err.println( "Generalized clause: " + cl ); 
-			    }
-			    clauses[j] = null;
-			    changed = true;
-			}
 		    }
 		}
 	    }

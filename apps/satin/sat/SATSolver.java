@@ -233,14 +233,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    }
 
 	    SATContext negctx = (SATContext) ctx.clone();
-	    if( ctx.posDominant( nextvar ) ){
-		s.solve( 0, p, ctx, nextvar, true );
-		s.solve( 0, p, negctx, nextvar, false );
-	    }
-	    else {
-		s.solve( 0, p, negctx, nextvar, false );
-		s.solve( 0, p, ctx, nextvar, true );
-	    }
+	    boolean firstvar = ctx.posDominant( nextvar );
+	    s.solve( 0, p, negctx, nextvar, firstvar );
+	    s.solve( 0, p, ctx, nextvar, !firstvar );
 	    s.sync();
 	}
 	catch( SATResultException r ){
@@ -256,6 +251,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
     /**
      * Allows execution of the class.
+     * @param args The command-line arguments.
      */
     public static void main( String args[] ) throws java.io.IOException
     {
@@ -269,7 +265,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	p.buildAdministration();
+	p.report( System.out );
+	p.optimize();
 	p.report( System.out );
 	long startTime = System.currentTimeMillis();
 	SATSolution res = solveSystem( p );
