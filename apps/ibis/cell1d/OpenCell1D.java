@@ -428,7 +428,6 @@ class OpenCell1D implements OpenConfig {
                 System.out.println( "P" + me + ":" + generation + ": there is no border column to send to P" + (me-1) );
             }
         }
-        m.send();
         m.finish();
     }
 
@@ -534,7 +533,6 @@ class OpenCell1D implements OpenConfig {
             }
             m.writeInt( boardsize );
         }
-        m.send();
         m.finish();
     }
 
@@ -707,7 +705,6 @@ class OpenCell1D implements OpenConfig {
         }
         WriteMessage m = port.newMessage();
         m.writeInt( generation );
-        m.send();
         m.finish();
     }
     
@@ -851,7 +848,7 @@ class OpenCell1D implements OpenConfig {
             if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstColumn = aimFirstNoColumn-minLoad;
             }
-            max_lsteal = 1+Math.min( max_lsteal, stolen );
+            max_lsteal = Math.max( 1, (stolen+max_lsteal)/2 );
         }
         else {
             // No valid steal request this time, reset the allowance.
@@ -863,7 +860,7 @@ class OpenCell1D implements OpenConfig {
             if( aimFirstColumn+minLoad>aimFirstNoColumn ){
                 aimFirstNoColumn = aimFirstColumn+minLoad;
             }
-            max_rsteal = 1+Math.min( max_rsteal, stolen );
+            max_rsteal = Math.max( 1, (stolen+max_rsteal)/2 );
         }
         else {
             // No valid steal request this time, reset the allowance.
