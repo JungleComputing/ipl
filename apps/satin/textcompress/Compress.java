@@ -58,64 +58,63 @@ class Compress extends ibis.satin.SatinObject
 
     public Backref shallowEvaluateBackref( final byte text[], final int backrefs[], int backpos, int pos )
     {
-        Backref r = new Backref();
+        Backref r;
 
-        r.backpos = backpos;
-        r.len = Helpers.matchSpans( text, backpos, pos );
-        if( r.len >= Configuration.MINIMAL_SPAN ){
-            r.gain = r.len-Helpers.refEncodingSize( pos-backpos, r.len );
+        int len = Helpers.matchSpans( text, backpos, pos );
+        if( len >= Configuration.MINIMAL_SPAN ){
+            r = new Backref( backpos, pos, len );
 
             if( traceMatches ){
-                System.out.println( "A match " + r + " at " + pos );
+                System.out.println( "A match " + r );
             }
         }
         else {
-            r.gain = -1;
+            r = null;
         }
         return r;
     }
 
     public Backref selectBestMove( byte text[], int backrefs[], int pos, int depth )
     {
-        Backref mv;
+        Backref mv = Backref.buildCopyBackref();
 
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
-            return new Backref();
+            return mv;
         }
         int sites[] = collectBackrefs( text, backrefs, pos );
         Backref results[] = new Backref[sites.length];
         // We always have the choice to just copy the character.
         if( depth<Configuration.LOOKAHEAD_DEPTH ){
             // Evaluate the gain of just copying the character.
-            mv = selectBestMove( text, backrefs, pos+1, depth+1 );
+            Backref mv1 = selectBestMove( text, backrefs, pos+1, depth+1 );
+            mv.addGain( mv1 );
         }
         else {
             // At the full depth of recursion, record the character copy
             // as a zero-gain move.
-            mv = new Backref();
         }
         for( int i=0; i<sites.length; i++ ){
             Backref r = shallowEvaluateBackref( text, backrefs, sites[i], pos );
 
-            if( r.gain>0 && depth<Configuration.LOOKAHEAD_DEPTH ){
+            if( r != null && depth<Configuration.LOOKAHEAD_DEPTH ){
                 Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
                 sync();
-                r.gain += m.gain;
+                r.addGain( m );
             }
             results[i] = r;
         }
         sync();
 
-        // Transform the move from the recursion to our `copy character'
-        // move, but keep the gain.
-        mv.backpos = -1;
-
-        // .. and try to improve on it by picking a backref move.
+        int bestGain = 0;
         for( int i=0; i<results.length; i++ ){
             Backref r = results[i];
+            if( r != null ){
+                int g = r.getGain();
 
-            if( r.gain>mv.gain ){
-                mv = r;
+                if( g>bestGain ){
+                    mv = r;
+                    bestGain = g;
+                }
             }
         }
         return mv;
