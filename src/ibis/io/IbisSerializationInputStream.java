@@ -437,7 +437,7 @@ public class IbisSerializationInputStream
      */
     protected void readByteArray(byte ref[], int off, int len)
 	    throws IOException {
-	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
 	    in.readArray(ref, off, len);
 	} else {
 // System.err.println("Special byte array read len " + len);
@@ -453,7 +453,7 @@ public class IbisSerializationInputStream
      */
     protected void readCharArray(char ref[], int off, int len)
 	    throws IOException {
-	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
 	    in.readArray(ref, off, len);
 	} else {
 // System.err.println("Special char array read len " + len);
@@ -469,7 +469,7 @@ public class IbisSerializationInputStream
      */
     protected void readShortArray(short ref[], int off, int len)
 	    throws IOException {
-	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
 	    in.readArray(ref, off, len);
 	} else {
 // System.err.println("Special short array read len " + len);
@@ -485,7 +485,7 @@ public class IbisSerializationInputStream
      */
     protected void readIntArray(int ref[], int off, int len)
 	    throws IOException {
-	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_INT) {
 	    in.readArray(ref, off, len);
 	} else {
 // System.err.println("Special int array read len " + len);
@@ -501,7 +501,7 @@ public class IbisSerializationInputStream
      */
     protected void readLongArray(long ref[], int off, int len)
 	    throws IOException {
-	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_LONG) {
 	    in.readArray(ref, off, len);
 	} else {
 // System.err.println("Special long array read len " + len);
@@ -517,7 +517,7 @@ public class IbisSerializationInputStream
      */
     protected void readFloatArray(float ref[], int off, int len)
 	    throws IOException {
-	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
 	    in.readArray(ref, off, len);
 	} else {
 // System.err.println("Special float array read len " + len);
@@ -533,7 +533,7 @@ public class IbisSerializationInputStream
      */
     protected void readDoubleArray(double ref[], int off, int len)
 	    throws IOException {
-	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
 	    in.readArray(ref, off, len);
 	} else {
 // System.err.println("Special double array read len " + len);
