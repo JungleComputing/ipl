@@ -157,32 +157,6 @@ public class TcpInput extends NetInput {
 		return new NetReceiveBuffer(b, expectedLength);
 	}
 
-	/*
-	 * TODO: We need a way to set timeout through properties 
-	 */
-	// timeout should be expressed in milliseconds
-	void setReceiveTimeout(int timeout) throws IbisIOException {
-		try {
-			tcpSocket.setSoTimeout(timeout);
-		} catch (SocketException e) {
-			throw new IbisIOException(e);
-		}
-	}
-
-	// returns the current reception timeout in milliseconds
-	// 0 means an infinite timeout
-	int getReceiveTimeout() throws IbisIOException {
-		int t = 0;
-
-		try {
-			t = tcpSocket.getSoTimeout();
-		} catch (SocketException e) {
-			throw new IbisIOException(e);
-		}
-
-		return t;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
