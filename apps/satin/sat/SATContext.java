@@ -887,7 +887,7 @@ public final class SATContext implements java.io.Serializable {
                 boolean issat = cl.isSatisfied( assignment );
                 if( !issat ){
                     unsatisfied++;
-                    cl.registerInfo( assignment, posinfo, neginfo, nterm );
+                    cl.registerInfo( posinfo, neginfo, nterm );
                 }
                 cl.registerVariableCounts( posclauses, negclauses );
                 if( doVerification ){

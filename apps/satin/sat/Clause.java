@@ -503,11 +503,10 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
     /**
      * Given positive and negative info, updates the
      * counts with the info of this clause.
-     * @param assignment The assignment of each variable.
      * @param posinfo The information of a positive assignment of each variable.
      * @param neginfo The information of a negative assignment of each variable.
      */
-    public void registerInfo( int assignment[], float posinfo[], float neginfo[], int n )
+    public void registerInfo( float posinfo[], float neginfo[], int n )
     {
         float info = Helpers.information( n );
         registerInfo( pos, posinfo, info );

@@ -1,8 +1,9 @@
 // File: $Id$
 
 /**
- * A sequential SAT solver specifically used in evolution. Given a symbolic boolean equation in CNF, find a set
- * of assignments that make this equation true.
+ * A sequential SAT solver specifically used in evolution. Given a symbolic
+ * boolean equation in CNF, find a set of assignments that make this
+ * equation true.
  * 
  * This implementation tries to do all the things a professional SAT
  * solver would do, although we are limited by implementation time and
