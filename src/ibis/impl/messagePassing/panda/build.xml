@@ -74,7 +74,7 @@
 	<property name="local.includes" refid="local.includes-ref"/>
     </target>
 
-    <target name="panda-init-opt" depends="property-init,native-init,arch-init" unless="native.debug">
+    <target name="panda-init-opt" depends="property-init,native-init,arch-init" if="native.optimize">
 	<property
 		name="lfc.lib.dir"
 		location="${package.home.lfc}/lib/optimized"/>
@@ -82,7 +82,7 @@
 		name="panda.lib.dir"
 		location="${package.home.panda}/lib/${panda.arch}/lfc-gm/no_threads/optimized"/>
     </target>
-    <target name="panda-init-debug" depends="property-init,native-init,arch-init" if="native.debug">
+    <target name="panda-init-debug" depends="property-init,native-init,arch-init" unless="native.optimize">
 	<property
 		name="lfc.lib.dir"
 		location="${package.home.lfc}/lib/debug"/>
@@ -140,7 +140,7 @@
 
     <target name="build"
 	    depends="native-init,arch-init">
-	<antcall target="panda-lib"/>
+	<antcall inheritRefs="true" target="panda-lib"/>
     </target>
 
 </project>

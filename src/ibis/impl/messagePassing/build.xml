@@ -68,7 +68,7 @@
 
 
     <target name="build" depends="arch-init">
-	<antcall target="native-compile"/>
+	<antcall inheritRefs="true" target="native-compile"/>
     </target>
 
 </project>

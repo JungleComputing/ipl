@@ -8,6 +8,8 @@ import ibis.ipl.impl.generic.ConditionVariable;
 
 public class SendPort implements ibis.ipl.SendPort, Protocol {
 
+    private final static boolean DEBUG = true; // Ibis.DEBUG;
+
     PortType type;
     SendPortIdentifier ident;
     Replacer replacer;
@@ -77,7 +79,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 
 	Ibis.myIbis.checkLockNotOwned();
 
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.out.println(name + " connecting to " + rid);
 	}
 
@@ -122,7 +124,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	    // Add the new receiver to our tables.
 	    int my_split = addConnection(rid);
 
-	    if (Ibis.DEBUG) {
+	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Now do native connect call to " + rid + "; me = " + ident);
 	    }
 	    IbisIdentifier ibisId = (IbisIdentifier)Ibis.myIbis.identifier();
@@ -130,7 +132,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 				 rid.getSerialForm(),
 				 ident.getSerialForm(),
 				 syncer[my_split]);
-	    if (Ibis.DEBUG) {
+	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Done native connect call to " + rid + "; me = " + ident);
 	    }
 
@@ -181,7 +183,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	Ibis.myIbis.unlock();
 
 	ibis.ipl.WriteMessage m = cachedMessage();
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("Create a new writeMessage SendPort " + this + " serializationType " + type.serializationType + " message " + m);
 	}
 
@@ -231,7 +233,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 
 
     public void free() throws IbisIOException {
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.out.println(type.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " start");
 	}
 
@@ -246,7 +248,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	    Ibis.myIbis.unlock();
 	}
 
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.out.println(type.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " DONE");
 	}
     }

@@ -83,7 +83,7 @@
 
     <target name="build"
 	    depends="native-init">
-	<antcall target="mpi-lib"/>
+	<antcall inheritRefs="true" target="mpi-lib"/>
     </target>
 
 </project>

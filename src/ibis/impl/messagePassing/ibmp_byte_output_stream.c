@@ -478,7 +478,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
     if (lastFrag && lastSplitter) send_last_frag++;
 
     if (msg == NULL || (! (lastFrag && msg->firstFrag) && msg->iov_len == 0)) {
-	IBP_VPRINTF(250, env, ("Skip send of an empty non-single fragment msg %p seqno %d\n", msg, msgSeqno));
+	IBP_VPRINTF(250, env, ("Skip send of an empty non-single fragment to %d msg %p seqno %d, lastSplitter %s\n", cpu, msg, msgSeqno, lastSplitter ? "yes" : "no"));
 
 	if (msg != NULL && lastFrag && lastSplitter && ! msg->firstFrag) {
 #if DISABLE_SENDER_INTERRUPTS
@@ -513,7 +513,9 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
 	    intr_disable++;
 	}
 #endif
-	msg->firstFrag = 0;
+	if (lastSplitter) {
+	    msg->firstFrag = 0;
+	}
     }
 
     hdr = ibmp_byte_stream_hdr(msg->proto);
