@@ -38,11 +38,19 @@ public class MapLibraryName extends Task {
 	    throw new BuildException("MapLibraryName requires a \"name\" field");
 	}
 
-	String libName;
+	String dirname = null;
+	String basename = name;
+	int slash = name.lastIndexOf(java.io.File.separatorChar);
+	if (slash != -1) {
+	    dirname = name.substring(0, slash);
+	    basename = name.substring(slash + 1);
+	}
+	String libName = basename;
 	if (outtype.getValue().equals("shared")) {
-	    libName = System.mapLibraryName(name);
-	} else {
-	    libName = name;
+	    libName = System.mapLibraryName(basename);
+	}
+	if (dirname != null) {
+	    libName = dirname + java.io.File.separator + libName;
 	}
 	addProperty(property, libName);
     }
