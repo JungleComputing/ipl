@@ -66,6 +66,16 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 		upcall.upcall(m);
 
+		/* The code below was so terribly wrong.
+		 * You cannot touch m here anymore if it indeed
+		 * was finished, because it might represent another message now!
+		 * And, if that is not yet finished, things go terribly wrong ....
+		 * On the other hand, if m is not finished yet, it is valid here.
+		 * Problem here is, we don't know what is the case.
+		 *
+		 * The problem is fixed now, by allocating a new SerializationStreamReadMessage
+		 * in the finish() call.
+		 */
 		synchronized(this) {
 			if(!m.isFinished) { // It wasn't finished. Cool, this means that we don't have to start a new thread!
 				this.m = null;
@@ -89,15 +99,18 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		notifyAll();
 
 		if(upcall != null) {
-			startNewHandlerThread(old);
+			/* We need to create a new SerializationStreamReadMessage here.
+			 * Otherwise, there is no way to find out later if a message
+			 * was finished or not. The code at the end of doUpcall() (after
+			 * the upcall itself) would be very wrong indeed (it was!)
+			 * if we would not allocate a new message. The point is, after
+			 * a finish(), the SerializationStreamReadMessage is used for new
+			 * messages!
+			 */
+			SerializationStreamConnectionHandler h = old.getHandler();
+			h.m = new SerializationStreamReadMessage(old);
+			ThreadPool.createNew(h);
 		}
-	}
-
-	private void startNewHandlerThread(SerializationStreamReadMessage old) {
-		SerializationStreamConnectionHandler h = old.getHandler();
-//		h.createNewMessage();
-//		new Thread(h, "TCP Connection Handler").start();
-		ThreadPool.createNew(h);
 	}
 
 
