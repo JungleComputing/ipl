@@ -129,8 +129,29 @@
 	</condition>
     </target>
 
+    <target name="java-version-test">
+	<if>
+	    <and>
+		<not>
+		    <contains string="${java.version}" substring="1.4"/>
+		</not>
+		<not>
+		    <contains string="${java.version}" substring="1.5"/>
+		</not>
+	    </and>
+	    <then>
+		<fail message="Java version ${java.version} is not supported. A 1.4 or 1.5 version is required for Ibis.">
+		</fail>
+	    </then>
+	</if>
+    </target>
+
+    <target name="java-home-test" unless="env.JAVA_HOME">
+	<fail>Environment variable JAVA_HOME is not set!</fail>
+    </target>
+
     <target name="config-init"
-	    depends="config.das,config.workstation,config.mac,config.previous">
+	    depends="java-home-test,java-version-test,config.das,config.workstation,config.mac,config.previous">
 	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
     </target>
 
@@ -452,13 +473,8 @@ IBIS_CONFIG_SEEN=1
     </target>
 
 
-    <target name="java-home-test" depends="config-init" unless="env.JAVA_HOME">
-	<fail>Environment variable JAVA_HOME is not set!</fail>
-    </target>
-
-
     <target name="configure"
-	    depends="config-init, java-home-test"
+	    depends="config-init"
 	    description="Ibis build configuration for high-speed LAN modules">
 
 	<input
