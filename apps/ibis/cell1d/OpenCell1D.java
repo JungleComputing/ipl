@@ -15,7 +15,6 @@ interface OpenConfig {
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = false;
     static final boolean traceLoadBalancing = false;
-    static final boolean traceWorkStealing = false;
     static final boolean doWorkStealing = true;
     static final int DISTURBANCE = 0;
     static final int DISTURBANCE_START = 0;
