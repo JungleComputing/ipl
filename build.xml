@@ -310,32 +310,49 @@
 	<echo level="verbose" message="package = ${ibis.sub-package}"/>
 	<echo level="verbose" message="basename = ${package-basename}"/>
 	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
-		basedir="${ibis.sub-package}"
-		includes="**/*.class"/>
+		basedir="${ibis}/build"
+		includes="ibis/${package-basename}/**/*.class"/>
+    </target>
+
+    <target name="jar.impl">
+	<basename property="package-basename" file="${ibis.sub-package}"/>
+	<echo level="verbose" message="package = ${ibis.sub-package}"/>
+	<echo level="verbose" message="basename = ${package-basename}"/>
+	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
+		basedir="${ibis}/build"
+		includes="ibis/impl/${package-basename}/**/*.class"/>
     </target>
 
     <target name="jars"
 	    depends="contrib-init"
 	    description="Generate jar files for ibis">
 	<!--
+	-->
 	<jar	destfile="${ibis}/build/ibis.jar"
-		basedir="${ibis}/build/ibis"
+		basedir="${ibis}/build"
 		includes="**/*.class"/>
+	<!--
 	-->
 	<foreach target="jar.package"
 		param="ibis.sub-package">
 	    <path>
-		<dirset dir="${ibis}/build/ibis">
-		    <include name="*"/>
-		    <exclude name="impl"/>
+		<dirset dir="${ibis}/build">
+		    <include name="ibis/*"/>
+		    <exclude name="ibis/impl"/>
 		</dirset>
-	    <path>
 	    </path>
+	</foreach>
+	<foreach target="jar.impl"
+		param="ibis.sub-package">
+	    <path>
 		<dirset dir="${ibis}/build/ibis/impl">
 		    <include name="*"/>
 		</dirset>
 	    </path>
 	</foreach>
+	<jar	destfile="${ibis}/build/bcel-extensions.jar"
+		basedir="${ibis}/build"
+		includes="org/**/*.class"/>
     </target>
 
     <!--
