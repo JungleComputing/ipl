@@ -584,7 +584,12 @@ public final class SATContext implements java.io.Serializable {
 		}
 	    }
 	    else {
-                ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
+                if( false ){
+                    ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
+                }
+                else {
+                    p.addConflictClause( cc );
+                }
 		int rl = calculateRestartLevel( cc, level );
                 if( rl>=0 ){
                     if( traceLearning | traceRestarts ){
