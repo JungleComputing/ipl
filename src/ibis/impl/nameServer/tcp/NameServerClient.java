@@ -102,8 +102,6 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 			System.err.println("Found nameServerInet " + serverAddress);
 		}
 
-		serverSocket = socketFactory.createServerSocket(0, myAddress, true);
-
 		Socket s = null;
 		int cnt = 0;
 		while(s == null) {
@@ -111,6 +109,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 			cnt++;
 			s = socketFactory.createSocket(serverAddress, 
 				port, myAddress, -1);
+			myAddress = s.getLocalAddress();
 		    } catch (ConnectionTimedOutException e) {
 			if(cnt == 10) {
 			    // Rather arbitrary, 10 seconds, print warning
@@ -135,6 +134,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		    }
 		}
 
+		serverSocket = socketFactory.createServerSocket(0, myAddress, true);
 
 		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
 		ObjectOutputStream out =
