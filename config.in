@@ -52,7 +52,6 @@ DAS		= @DAS_LIB@
 JPATH           = @JAVA_ROOT@
 export JPATH
 JAVAC           = @JAVAC@
-BCEL		= @BCEL@
 ifndef IBIS_ROOT
 IBIS_ROOT	= @IBIS_ROOT@
 endif
@@ -77,6 +76,7 @@ ifeq (sun-java, $(findstring sun-java,$(JPATH)))
 JAVARUNFLAGS	+= -server
 endif
 endif
+BCEL		= $(IBIS_ROOT)/3rdparty/bcel-5.1.jar
 JAVACLASSPATH	= build:.:$(IBIS_ROOT)/build:$(BCEL):$(IBIS_ROOT)/classlibs
 JAVABOOTCLASSPATH = build:$(IBIS_ROOT)/classlibs:$(IBIS_ROOT)/build
 JAVABOOTLIBPATH = -Dsun.boot.library.path=$(IBIS_ROOT)/build/lib:$(JPATH)/jre/bin:$(JPATH)/jre/lib/i386
