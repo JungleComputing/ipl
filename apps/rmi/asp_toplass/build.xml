@@ -7,7 +7,7 @@
 ]>
 
 <project
-    name="ibis.apps.rmi.sor_toplass"
+    name="ibis.apps.rmi.asp_toplass"
     default="build"
     basedir=".">
 
