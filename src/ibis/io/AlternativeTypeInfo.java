@@ -25,6 +25,7 @@ final class AlternativeTypeInfo {
 
     boolean superSerializable;	
     AlternativeTypeInfo alternativeSuperInfo;
+    int level;
 
     boolean hasReadObject;
     boolean hasWriteObject;
@@ -270,8 +271,10 @@ final class AlternativeTypeInfo {
 		if (javaSerializableClass.isAssignableFrom(superClass)) { 
 		    superSerializable = true;
 		    alternativeSuperInfo = getAlternativeTypeInfo(superClass);
+		    level = alternativeSuperInfo.level + 1;
 		} else { 
 		    superSerializable = false;
+		    level = 0;
 		}								
 	    } 
 

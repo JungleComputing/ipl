@@ -636,6 +636,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	} 
 
 	if (t.hasReadObject) {
+	    current_depth = t.level;
 	    t.invokeReadObject(ref, this);
 	    return;
 	}
@@ -721,7 +722,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		// obj = t.clazz.newInstance(); // this is not correct --> need native call ??? !!!
 		obj = createUninitializedObject(t.clazz);
 		addObjectToCycleCheck(obj);
-		/* TODO: set level right! */
 		Object sav_current_object = set_current_object(obj, 0);
 		alternativeReadObject(t.altInfo, obj);
 		current_object = sav_current_object;
@@ -851,9 +851,15 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    ((ibis.io.Serializable)ref).generated_DefaultReadObject(this, current_depth);
 	} else if (ref instanceof java.io.Serializable) {
 	    Class type = ref.getClass();
-	    /* TODO: do something with depth! */
 	    try {
 		AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+
+		/*  Find the type info corresponding to the current invocation.
+		    See the invokeReadObject invocation in alternativeReadObject.
+		*/
+		while (t.level > current_depth) {
+		    t = t.alternativeSuperInfo;
+		}
 		alternativeDefaultReadObject(t, ref);
 	    } catch (IllegalAccessException e) {
 		throw new RuntimeException("Serializable failed for : " + type.toString());

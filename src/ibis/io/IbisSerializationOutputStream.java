@@ -34,7 +34,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
        Needed for defaultWriteObject, and maybe others.
     */
     private Object current_object;
-    private int current_level;
+    private int current_depth;
 
     public IbisSerializationOutputStream(ArrayOutputStream out) throws IOException {
 	super();
@@ -475,6 +475,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	} 
 
 	if (t.hasWriteObject) {
+	    current_depth = t.level;
 	    t.invokeWriteObject(ref, this);
 	    return;
 	}
@@ -489,7 +490,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     public Object set_current_object(Object ref, int level) {
         Object sav_current_object = current_object;
 	current_object = ref;
-	current_level = level;
+	current_depth = level;
 	return sav_current_object;
     }
 
@@ -541,7 +542,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		} else if (ref instanceof java.io.Serializable) {
 		    try { 
 			AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
-			/* TODO: set level! */
 			Object sav_current_object = set_current_object(ref, 0);
 			alternativeWriteObject(t, ref);
 			current_object = sav_current_object;
@@ -651,14 +651,21 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
 
 	if (ref instanceof ibis.io.Serializable) { 
-	    /* TODO: is this correct? I don't think so, because of inheritance. This will pick the
-	       generated_DefaultWriteObject of the dynamic type of ref.
+	    /* Note that this will take the generated_DefaultWriteObject of the
+	       dynamic type of ref. The current_depth variable actually indicates
+	       which instance of generated_DefaultWriteObject should do some work.
 	    */
-	    ((ibis.io.Serializable)ref).generated_DefaultWriteObject(this, current_level);
+	    ((ibis.io.Serializable)ref).generated_DefaultWriteObject(this, current_depth);
 	} else if (ref instanceof java.io.Serializable) {
-	    /* TODO: do something with current_level! */
 	    Class type = ref.getClass();
 	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+
+	    /*	Find the type info corresponding to the current invocation.
+		See the invokeWriteObject invocation in alternativeWriteObject.
+	    */
+	    while (t.level > current_depth) {
+		t = t.alternativeSuperInfo;
+	    }
 	    alternativeDefaultWriteObject(t, ref);
 	} else { 
 	    Class type = ref.getClass();
