@@ -1,20 +1,17 @@
 IBIS:
 
 - code formatting of entire tree
-- IPUtils: currently selects the Gigabit cards on fs2. There are two
-  external IP addresses. Maybe in such a case see what you get
-  through the "old" mechanism?
 - Satin barnes_inline performance: why do we not get the same performance
   that Maik got in March 2004? (Ibis serialization, MP Ibis, NTC version of
   Barnes).
 - investigate CvR's problem with an Ibis run involving 2 imacs/ibooks, a windows
   machine and a linux machine. It seems to hang (or compute forever) if the
   windows machine is added to the pool???
-- GMI race needs fixing: configuring a combined invocation should block until everybody
-  is done configuring.
-- Satin statistics are overly pessimistic: they measure steal handling as well as
-  steal attempts, but a node could very well be handling a steal attempt while it
-  is itself doing steal attempts.
+- nameserver: provide "died" upcalls when pinger detects death.
+- nameserver: guard against hanging join/leave upcalls.
+- test on windows XP: ibis-run.bat does not work?
+
+After distribution:
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
     After distribution.
 
