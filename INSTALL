@@ -58,6 +58,13 @@ Build by typing
 
 ant
 
+Afterwards, you can run a simple test by going to the ibis-example
+directory and running "ant test".
+
+A more thorough test, which runs several applications and builds all
+of them can be run by going to the "apps" directory and running
+"ant test" there.
+
 -----------------------------------------------------------------------
 
 III. API
@@ -66,7 +73,7 @@ The Ibis API documentation can be built by typing
 
 ant docs
 
-This will build a "docs" directory with an "api" sub-directory.
+This will build an "api" directory within the "docs" directory.
 Point your favorite HTML viewer to docs/api/index.html to view
 the API documentation.
 Note that the javadoc of the 1.4.1 version of Java may hang. In that
