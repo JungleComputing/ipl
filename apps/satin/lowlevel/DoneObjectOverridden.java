@@ -1,4 +1,4 @@
-final class DoneObjectOverridden extends Exception {
+final class DoneObjectOverridden extends Throwable {
 	Object o;
 
 	DoneObjectOverridden(Object o) {
@@ -6,6 +6,6 @@ final class DoneObjectOverridden extends Exception {
 	}
 
 	public Throwable fillInStackTrace() {
-		return this;
+		return null;
 	}
 }

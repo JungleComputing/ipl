@@ -1,23 +1,13 @@
-APP_OPTIONS = 30
-
-SRC  = KnapsackInterface.java
-SRC += OrcaRandom.java
-SRC += Return.java
+APP_OPTIONS = 32
 
 MAIN = Knapsack.java
 OUT= knapsack
 
-SERIALIZABLE	=
-SERIALIZABLE	+= Knapsack.java
-SERIALIZABLE	+= Return.java
-
 include ../../../config.mk
 include ../config.mk
 
-java: $(CLASS_FILES) $(MAIN_CLASS)
-
-satin: java
-	$(SATINC_COMMAND) -no-aborts $(MAIN_CLASS_NAME)
+satin:
+	$(IBISC_COMMAND) -no-aborts $(MAIN)
 
 clean:
 	rm -f $(TRASH_FILES)

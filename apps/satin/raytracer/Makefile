@@ -1,15 +1,14 @@
-APP_OPTIONS = pics/balls2.nff
+APP_OPTIONS = pics/balls2_hires.nff
 
 OUT= raytracer
+
+MAIN=Raytracer.java
 
 include ../../../config.mk
 include ../config.mk
 
-java:
-	$(JAVAC_COMMAND) Raytracer.java
-
 satin: 
-	$(IBISC_COMMAND) Raytracer.java
+	$(IBISC_COMMAND) -no-aborts $(MAIN)
 
 clean:
 	rm -f $(TRASH_FILES)

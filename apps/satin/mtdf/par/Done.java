@@ -1,4 +1,4 @@
-final class Done extends Exception {
+final class Done extends Throwable {
 	short score;
 	short currChild;
 
@@ -8,6 +8,6 @@ final class Done extends Exception {
 	}
 
 	public Throwable fillInStackTrace() {
-		return this;
+		return null;
 	}
 }

@@ -26,3 +26,6 @@ manta: $(OBJ)
 
 clean:
 	rm -rf *.[oasdhc] *~ *core *.jac *.gprof *out $(EXEC) *.class *.link LASM_CACHE
+
+distclean: clean
+	rm -rf output-*

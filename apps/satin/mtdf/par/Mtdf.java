@@ -48,7 +48,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 
 		node.score = -INF;
 
-		// do first child myself, if it generates a cutt-off, stop.
+		// do first child myself, if it generates a cut-off, stop.
 		boolean cutOff = false;
 		short currChild = order[0];
 

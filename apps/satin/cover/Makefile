@@ -1,23 +1,13 @@
-APP_OPTIONS = 32
-
-SRC  = CoverInterface.java
-SRC += OrcaRandom.java
-SRC += Return.java
+APP_OPTIONS = 33
 
 MAIN = Cover.java
 OUT= cover
 
-SERIALIZABLE	=
-SERIALIZABLE	+= Cover.java
-SERIALIZABLE	+= Return.java
-
 include ../../../config.mk
 include ../config.mk
 
-java: $(CLASS_FILES) $(MAIN_CLASS)
-
-satin: java
-	$(SATINC_COMMAND) -no-aborts $(MAIN_CLASS_NAME)
+satin:
+	$(IBISC_COMMAND) -no-aborts $(MAIN)
 
 clean:
 	rm -f $(TRASH_FILES)

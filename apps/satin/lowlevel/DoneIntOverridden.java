@@ -1,4 +1,4 @@
-final class DoneIntOverridden extends Exception {
+final class DoneIntOverridden extends Throwable {
 	int i;
 
 	DoneIntOverridden(int i) {
@@ -6,6 +6,6 @@ final class DoneIntOverridden extends Exception {
 	}
 
 	public Throwable fillInStackTrace() {
-		return this;
+		return null;
 	}
 }

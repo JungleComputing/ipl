@@ -16,7 +16,7 @@ final class IbisIdentifier extends ibis.ipl.IbisIdentifier implements java.io.Se
 		    System.err.println("EEk: could not get my own IP address: " + e);
 		    System.exit(1);
 	    }
-	    this.name = name + "@" + cpu;
+	    this.name = name;// + "@" + cpu;
 	    this.cpu  = cpu;
     }
 

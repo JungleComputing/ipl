@@ -31,4 +31,17 @@ final class Job implements java.io.Serializable {
 	void setVal(int x, int y, int val) {
 		board[((x-1) * Ida.NSQRT) + y-1] = (byte)val;
 	}
+
+	void print() {
+		System.out.println("distance: " +distance + ", bound: " + bound + ", board:");
+		for(int i=1; i<=Ida.NSQRT; i++) {
+			for(int j=1; j<=Ida.NSQRT; j++) {
+				if(getVal(i, j) < 10) System.out.print(" ");
+				System.out.print(getVal(i, j) + " ");
+			}
+			System.out.println();
+		}
+
+//		System.out.println("blankX = " + blankX + ", blankY = " + blankY + ", prevDx = " + prevDx + ", prevDy = " + prevDy);
+	}
 }

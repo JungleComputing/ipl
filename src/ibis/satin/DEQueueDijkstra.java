@@ -1,8 +1,11 @@
 package ibis.satin;
 
+// warning! this does not work correctly in combination with aborts!
+// This is because we have to remove elements from random places in the queue
+
 public final class DEQueueDijkstra implements Config {
 
-	private static final int START_SIZE=500;
+	private static final int START_SIZE=5000;
 
 	private InvocationRecord[] l = new InvocationRecord[START_SIZE];
 	private volatile int size = START_SIZE;
@@ -72,6 +75,10 @@ public final class DEQueueDijkstra implements Config {
 	}
 
 	void removeJob(int index) {
+		if(ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+
 		for (int i=index+1; i<head; i++) {
 			l[i-1] = l[i];
 		}
@@ -93,7 +100,9 @@ public final class DEQueueDijkstra implements Config {
 				}
 
 				curr.aborted = true;
-				satin.abortedJobs++;
+				if(ABORT_STATS) {
+					satin.abortedJobs++;
+				}
 				curr.spawnCounter.value--;
 				if(ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncounter < 0");

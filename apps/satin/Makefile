@@ -32,6 +32,10 @@ parrun:
 		$(MAKE) $(MFLAGS) parrun) \
 	done)
 
+all_results:
+	-mkdir /home/rob/results/$(DATE) 2> /dev/null
+	find . -name output-\* -exec cp {} ~/results/$(DATE) \;
+
 clean:
 	rm -f $(TRASH_FILES)
 	cd adapint; $(MAKE) $(MFLAGS) clean

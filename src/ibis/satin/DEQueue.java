@@ -104,7 +104,10 @@ public final class DEQueue implements Config {
 		}
 	}
 
-	public void removeElement(InvocationRecord curr) { // curr MUST be in q, MUSt hold satin
+	public void removeElement(InvocationRecord curr) { // curr MUST be in q, Must hold satin lock
+		if(ASSERTS) {
+			Satin.assertLocked(satin);
+		}
 		if (curr.qprev != null) {
 			curr.qprev.qnext = curr.qnext;
 		} else {
@@ -160,7 +163,9 @@ public final class DEQueue implements Config {
 					new Exception().printStackTrace();
 					System.exit(1);
 				}
-				satin.abortedJobs++;
+				if(ABORT_STATS) {
+					satin.abortedJobs++;
+				}
 				removeElement(curr);
 			}
 

@@ -53,8 +53,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	private Algorithm a;
 	private String alg;
 
-	DEQueueDijkstra q = new DEQueueDijkstra(this);
-//	DEQueue q = new DEQueue(this);
+//	DEQueueDijkstra q = new DEQueueDijkstra(this);
+	DEQueue q = new DEQueue(this);
 	private PortType portType;
 	private ReceivePort receivePort;
 	private ReceivePort barrierReceivePort; /* Only for the master. */
@@ -165,6 +165,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		for(int i=0; (i<10 && ibis == null); i++) {
 			try {
 				name = "ibis@" + hostName + "_" + Math.abs(random.nextInt());
+//				name = "foo";
 				if(panda) {
 					ibis = Ibis.createIbis(name, "ibis.ipl.impl.messagePassing.panda.PandaIbis", this);
 				} else {
@@ -179,6 +180,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(ibis == null) {
 			System.err.println("SATIN: giving up");
 			System.exit(1);
+		}
+
+		if(COMM_DEBUG) {
+			System.out.println("SATIN '" + hostName + "': init ibis DONE" );
 		}
 
 		ident = ibis.identifier();
@@ -198,6 +203,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			receivePort = portType.createReceivePort("satin port on " + 
 								 ident.name(), messageHandler);
 
+			System.err.println("SATIN '" + hostName + "': created \"satin port on " + 
+								 ident.name() + "\"");
+
 			masterIdent = (IbisIdentifier) r.elect("satin master", ident);
 
 			if(masterIdent.equals(ident)) {
@@ -206,6 +214,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					System.out.println("SATIN '" + hostName + "': init ibis: I am the master");
 				}
 				master = true;
+			} else {
+				if(COMM_DEBUG) {
+					System.out.println("SATIN '" + hostName + "': init ibis I an slave" );
+				}
 			}
 
 			if(master) {
@@ -227,16 +239,16 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(COMM_DEBUG) {
 			System.out.println("SATIN '" + ident.name() + 
-					   "': init ibis DONE");
+					   "': init ibis DONE2");
 		}
 
-		if(master) {
+//		if(master) {
 			if(closed) {
 				System.out.println("SATIN '" + hostName + "': running with closed world, " + poolSize + " host(s)");
 			} else {
 				System.out.println("SATIN '" + hostName + "': running with open world");
 			}
-		}
+//		}
 
 		if(alg == null) {
 			if(master) {
@@ -256,6 +268,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		receivePort.enableConnections();
 		ibis.openWorld();
 
+		if(COMM_DEBUG) {
+			System.out.println("SATIN '" + hostName + "': pre barrier" );
+		}
+
 		if(closed) {
 			synchronized(this) {
 				while(victims.size() != poolSize - 1) {
@@ -269,6 +285,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 
 			barrier();
+		}
+
+		if(COMM_DEBUG) {
+			System.out.println("SATIN '" + hostName + "': post barrier" );
 		}
 	}
 
@@ -301,7 +321,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					writeMessage.finish();
 					
 				} catch (IbisIOException e) {
-					System.err.println("SATIN: Could not send exit message to " + victims.getIdent(i));
+					synchronized(this) {
+						System.err.println("SATIN: Could not send exit message to " + victims.getIdent(i));
+					}
 				}
 			}
 		}
@@ -359,7 +381,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			System.out.println("SATIN '" + ident.name() + 
 					   "': SPAWN_STATS: spawns = " + spawns + " syncs = " + syncs);
 			System.out.println("SATIN '" + ident.name() + 
-					   "': SPAWN_STATS: aborts = " + aborts + " abort msgs = " + abortMessages +
+					   "': ABORT_STATS: aborts = " + aborts + " abort msgs = " + abortMessages +
 					   " aborted jobs = " + abortedJobs);
 		}
 		if(STEAL_STATS && stats) {
@@ -644,7 +666,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 			if (temp == null) {
 				try {
-					System.err.print("."); System.err.flush();
+//					System.err.print("."); System.err.flush();
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					// ignore
@@ -720,7 +742,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending abort message: " + e);
-			System.exit(1);
+			// This should not be a real problem, it is just inefficient.
+			// Let's continue...
+			// System.exit(1);
 		}
 	}
 
@@ -828,7 +852,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 						System.exit(1);
 					}
 					
-					System.out.println("SATIN '" + ident.name() + ": Got exception from an inlet!: " + t);
+					System.out.println("SATIN '" + ident.name() + ": Got exception from an inlet!: " + t + ": " + t.getMessage());
 					t.printStackTrace();
 
 					if(SPAWN_STATS) {
@@ -934,9 +958,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			spawns++;
 		}
 
-		if(ABORTS && gotAborts) handleAborts();
-		if(ABORTS && gotExceptions) handleExceptions();
-
 		r.spawnCounter.value++;
 		r.stamp = stampCounter++;
 		r.owner = ident;
@@ -954,6 +975,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			   "': Spawn, counter = " + r.spawnCounter.value + ", stamp = " + r.stamp +
 			   ", parentStamp = " + r.parentStamp + ", owner = " + r.owner + ", parentOwner = " + r.parentOwner);
 		}
+
+		if(ABORTS && gotAborts) handleAborts();
+		if(ABORTS && gotExceptions) handleExceptions();
 	}
 
 	synchronized void handleAborts() {
@@ -1153,8 +1177,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					new Exception().printStackTrace();
 					System.exit(1);
 				}
-				if(STEAL_STATS) {
+				if(ABORT_STATS) {
 					abortedJobs++;
+				}
+				if(STEAL_STATS) {
 					abortMessages++;
 				}
 				outstandingJobs.removeIndex(i);

@@ -1,26 +1,13 @@
-APP_OPTIONS = 90
-
-SRC  = Game.java
-SRC += Job.java
-SRC += Position.java
+APP_OPTIONS = -f inputs/1 -max 72
 
 MAIN = Ida.java
 OUT= ida
 
-SERIALIZABLE	=
-SERIALIZABLE	+= Ida.java
-SERIALIZABLE	+= Game.java
-SERIALIZABLE	+= Job.java
-SERIALIZABLE	+= Position.java
-
 include ../../../config.mk
 include ../config.mk
 
-java: $(CLASS_FILES) $(MAIN_CLASS)
-
-satin: java
-	$(SATINC_COMMAND) -no-aborts $(MAIN_CLASS_NAME)
-	$(IOC_COMMAND) Satin_*.class
+satin:
+	$(IBISC_COMMAND) -no-aborts $(MAIN)
 
 clean:
 	rm -f $(TRASH_FILES)

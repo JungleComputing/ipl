@@ -7,15 +7,24 @@ final class Game implements java.io.Serializable {
 		for(int i=0; i<=Ida.NPUZZLE; i++) {
 			goal[i] = new Position();
 		}
+
+		int v = 0;
+		for(int j=1; j<=Ida.NSQRT; j++) {
+			for(int i=1; i<=Ida.NSQRT; i++) {
+				goal[v].x = i;
+				goal[v].y = j;
+				v++;
+			}
+		}
 	}
 
 
-	int Value(int x, int y) {
+	int value(int x, int y) {
 		return start[x][y];
 	}
 
 
-	int Distance(int v, int x, int y) {
+	int distance(int v, int x, int y) {
 		if(v == 0) return 0;
 
 		// abs(goal[v].x - x) + abs(goal[v].y - y)
@@ -27,7 +36,7 @@ final class Game implements java.io.Serializable {
 	}
 
 
-	int[][] Step(int[][] board, int x, int y, int n, int m) {
+	int[][] step(int[][] board, int x, int y, int n, int m) {
 		int v;
 
 		v = board[x][y];
@@ -37,15 +46,13 @@ final class Game implements java.io.Serializable {
 	}
 
 
-	void Init(int length) {
+	void init(int length) {
 		int[][][] path = new int[length+1][Ida.NSQRT+1][Ida.NSQRT+1];
 		int v, x, y, nx, ny, N;
 
 		v = 0;
 		for(int j=1; j<=Ida.NSQRT; j++) {
 			for(int i=1; i<=Ida.NSQRT; i++) {
-				goal[v].x = i;
-				goal[v].y = j;
 				path[0][i][j] = v;
 				v++;
 			}
@@ -95,7 +102,7 @@ final class Game implements java.io.Serializable {
 				}
 			}
 
-			path[i] = Step(path[i-1], x, y, nx, ny);
+			path[i] = step(path[i-1], x, y, nx, ny);
 			x = nx;
 			y = ny;
 		}
@@ -105,6 +112,16 @@ final class Game implements java.io.Serializable {
 				v = path[length][i][j];
 				start[i][j] = v;
 			}
+		}
+	}
+
+	void init(String fileName) {
+		Input in = new Input(fileName);
+		for(int j=1; j<=Ida.NSQRT; j++) {
+			for(int i=1; i<=Ida.NSQRT; i++) {
+				start[i][j] = in.readInt();
+			}
+			in.readln();
 		}
 	}
 }

@@ -1,20 +1,16 @@
-APP_OPTIONS = 9678904321
-
-SRC  = PrimFacInterface.java
+APP_OPTIONS = 19678904321
 
 MAIN = PrimFac.java
 OUT= primfac
 
-SERIALIZABLE	=
-SERIALIZABLE	+= PrimFac.java
-
 include ../../../config.mk
 include ../config.mk
 
-java: $(CLASS_FILES) $(MAIN_CLASS)
+java:
+	$(JAVAC_COMMAND) $(MAIN)
 
-satin: java
-	$(SATINC_COMMAND) -no-aborts $(MAIN_CLASS_NAME)
+satin:
+	$(IBISC_COMMAND) -no-aborts $(MAIN)
 
 clean:
 	rm -f $(TRASH_FILES)

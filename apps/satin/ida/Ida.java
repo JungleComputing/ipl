@@ -3,7 +3,7 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 	static final int
 		NSQRT		= 4,
 		NPUZZLE		= NSQRT * NSQRT - 1,
-	        BRANCH_FACTOR	= 3;
+	        BRANCH_FACTOR	= 4; // first move may be in four directions!
 
 	static void Move(Job j, int dx, int dy, Game puzzle) {
 		int x, y, v;
@@ -13,7 +13,7 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		v = j.getVal(x, y);
 
 		j.bound--;
-		j.distance += -puzzle.Distance(v, x, y) + puzzle.Distance(v, j.blankX, j.blankY);
+		j.distance += -puzzle.distance(v, x, y) + puzzle.distance(v, j.blankX, j.blankY);
 
 		j.setVal(j.blankX, j.blankY, v);
 		j.prevDx = dx;
@@ -27,25 +27,26 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		/* Optimization: do not generate (cyclic) moves that undo the last move. */
 		int n = 0;
 
-		if(jobs[0].blankX > 1 && jobs[0].prevDx != 1) {
+		Job j = jobs[0];
+		if(j.blankX > 1 && j.prevDx != 1) {
 			n++;
 			jobs[n] = new Job(jobs[0]);
 			Move(jobs[n], -1, 0, puzzle);
 		}
 
-		if(jobs[0].blankX < NSQRT && jobs[0].prevDx != -1) {
+		if(j.blankX < NSQRT && j.prevDx != -1) {
 			n++;
 			jobs[n] = new Job(jobs[0]);
 			Move(jobs[n], 1, 0, puzzle);
 		}
 
-		if(jobs[0].blankY > 1 && jobs[0].prevDy != 1) {
+		if(j.blankY > 1 && j.prevDy != 1) {
 			n++;
 			jobs[n] = new Job(jobs[0]);
 			Move(jobs[n], 0, -1, puzzle);
 		}
 
-		if(jobs[0].blankY < NSQRT && jobs[0].prevDy != -1) {
+		if(j.blankY < NSQRT && j.prevDy != -1) {
 			n++;
 			jobs[n] = new Job(jobs[0]);
 			Move(jobs[n], 0, 1, puzzle);
@@ -85,7 +86,7 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 	}
 
 
-	public static void main(String argv[]) {
+	public static void main(String args[]) {
 		/* Use a suitable default value. */
 		int length = 58;
 		long start, stop;
@@ -96,15 +97,35 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		Job j = new Job();
 		Game puzzle = new Game();
 		Ida ida = new Ida();
+		int option = 0;
+		String fileName = null;
+		int maxDepth = -1;
 
-		if(argv.length == 1) {
-			length = Integer.parseInt(argv[0]);
-		} else if(argv.length != 0) {
-			System.out.println( "Usage: java Ida [length]");
+		for (int i = 0; i < args.length; i++) {
+			if (false) {
+			} else if (args[i].equals("-f")) {
+				fileName = args[++i];
+			} else if (args[i].equals("-max")) {
+				maxDepth = Integer.parseInt(args[++i]);
+			} else if (option == 0) {
+				length = Integer.parseInt(args[i]);
+				option++;
+			} else {
+				System.err.println("No such option: " + args[i]);
+				System.exit(1);
+			}
+		}
+
+		if(option > 1) {
+			System.err.println("To many options, usage Ida [-f <file>] [length]");
 			System.exit(1);
 		}
 
-		puzzle.Init(length);
+		if(fileName == null) {
+			puzzle.init(length);
+		} else {
+			puzzle.init(fileName);
+		}
 
 		/* Initialize starting position. */
 		j.prevDx = 0;
@@ -112,25 +133,25 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 		j.distance = 0;
 		for(int y=1; y <= NSQRT; y++) {
 			for(int x=1; x <= NSQRT; x++) {
-				v = puzzle.Value(x, y);
+				v = puzzle.value(x, y);
 				j.setVal(x, y, v);
-				j.distance += puzzle.Distance(v, x, y);
+				j.distance += puzzle.distance(v, x, y);
 				if(v == 0) {
 					j.blankX = x;
 					j.blankY = y;
 				}
-
-				// if(v < 10) System.out.print("0");
-				// System.out.print(v + " ");
 			}
-
-			// System.out.println();
 		}
-
-		System.out.println("Running ida " + length);
+		
+		if(fileName == null) {
+			System.out.println("Running ida " + length);
+		} else {
+			System.out.println("Running ida on " + fileName);
+		}
 
 		start = System.currentTimeMillis();
 		bound = j.distance;
+		j.print();
 		System.out.print("Try bound ");
 		System.out.flush();
 		do {
@@ -141,13 +162,14 @@ final class Ida extends ibis.satin.SatinObject implements IdaInterface, java.io.
 			ida.sync();
 
 			bound += 2; /* Property of 15-puzzle and Manhattan distance */
+			if(bound > maxDepth) break;
 		} while(solutions == 0);
 		stop = System.currentTimeMillis();
 
 		time = (double) stop - start;
 		time /= 1000.0;
-
-		System.out.println("\napplication ida (" + length + ") took " + time + 
-			" seconds, result = " + solutions + " solutions of " + j.bound + " steps");
+		
+		System.out.println("\napplication ida (" + fileName + "," + maxDepth + ") took " + time + 
+				   " seconds, result = " + solutions + " solutions of " + j.bound + " steps");
 	}
 }

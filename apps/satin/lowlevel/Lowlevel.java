@@ -97,7 +97,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.exception_call_void();
-			} catch (Exception e) {}
+			} catch (Throwable e) {}
 		}
 		end = System.currentTimeMillis();
 		time = (double)(end - start);
@@ -114,7 +114,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.exception_call_int(0);
-			} catch (Exception e) {}
+			} catch (Throwable e) {}
 		}
 		end = System.currentTimeMillis();
 		time = (double)(end - start);
@@ -132,7 +132,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.exception_call_Object(o);
-			} catch (Exception e) {}
+			} catch (Throwable e) {}
 		}
 		end = System.currentTimeMillis();
 		time = (double)(end - start);
@@ -149,7 +149,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.inlet_spawn_void();
-			} catch (Exception e) {return;}
+			} catch (Throwable e) {return;}
 			l.sync();
 		}
 		end = System.currentTimeMillis();
@@ -167,7 +167,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.inlet_spawn_int(0);
-			} catch (Exception e) {return;}
+			} catch (Throwable e) {return;}
 			l.sync();
 		}
 		end = System.currentTimeMillis();
@@ -186,7 +186,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.inlet_spawn_Object(o);
-			} catch (Exception e) {return;}
+			} catch (Throwable e) {return;}
 			l.sync();
 		}
 		end = System.currentTimeMillis();
@@ -204,7 +204,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.inlet_spawn_void_overridden();
-			} catch (Exception e) {return;}
+			} catch (Throwable e) {return;}
 			l.sync();
 		}
 		end = System.currentTimeMillis();
@@ -222,7 +222,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.inlet_spawn_int_overridden(0);
-			} catch (Exception e) {return;}
+			} catch (Throwable e) {return;}
 			l.sync();
 		}
 		end = System.currentTimeMillis();
@@ -241,7 +241,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.inlet_spawn_Object_overridden(o);
-			} catch (Exception e) {return;}
+			} catch (Throwable e) {return;}
 			l.sync();
 		}
 		end = System.currentTimeMillis();
@@ -259,7 +259,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.exception_call_void_no_new();
-			} catch (Exception e) {}
+			} catch (Throwable e) {}
 		}
 		end = System.currentTimeMillis();
 		time = (double)(end - start);
@@ -276,7 +276,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.exception_call_int_no_new(0);
-			} catch (Exception e) {}
+			} catch (Throwable e) {}
 		}
 		end = System.currentTimeMillis();
 		time = (double)(end - start);
@@ -294,7 +294,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.exception_call_Object_no_new(o);
-			} catch (Exception e) {}
+			} catch (Throwable e) {}
 		}
 		end = System.currentTimeMillis();
 		time = (double)(end - start);
@@ -311,7 +311,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.inlet_spawn_void_no_new();
-			} catch (Exception e) {return;}
+			} catch (Throwable e) {return;}
 			l.sync();
 		}
 		end = System.currentTimeMillis();
@@ -329,7 +329,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.inlet_spawn_int_no_new(0);
-			} catch (Exception e) {return;}
+			} catch (Throwable e) {return;}
 			l.sync();
 		}
 		end = System.currentTimeMillis();
@@ -348,7 +348,7 @@ final class Lowlevel extends ibis.satin.SatinObject implements LowlevelInterface
 		for(int i=0; i<n; i++) {
 			try {
 				l.inlet_spawn_Object_no_new(o);
-			} catch (Exception e) {return;}
+			} catch (Throwable e) {return;}
 			l.sync();
 		}
 		end = System.currentTimeMillis();

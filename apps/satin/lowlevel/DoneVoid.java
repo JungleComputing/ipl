@@ -1,2 +1,2 @@
-final class DoneVoid extends Exception {
+final class DoneVoid extends Throwable {
 }

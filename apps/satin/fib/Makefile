@@ -1,4 +1,4 @@
-APP_OPTIONS = 44
+APP_OPTIONS = 47
 
 OUT= fib
 
@@ -6,9 +6,6 @@ include ../../../config.mk
 include ../config.mk
 
 MAIN=Fib.java
-
-java:
-	$(JAVAC_COMMAND) $(MAIN)
 
 satin:
 	$(IBISC_COMMAND) -no-aborts $(MAIN)

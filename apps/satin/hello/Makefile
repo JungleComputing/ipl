@@ -1,17 +1,13 @@
-SRC  = HelloInterface.java
-
 MAIN = Hello.java
 OUT= hello
 
-SERIALIZABLE	=
-SERIALIZABLE	+= Hello.java
-
 include ../../../config.mk
+include ../config.mk
 
-java: $(CLASS_FILES) $(MAIN_CLASS)
-
-satin: java
-	$(SATINC_COMMAND) $(MAIN_CLASS_NAME)
+satin:
+	$(IBISC_COMMAND) -no-aborts $(MAIN)
 
 clean:
 	rm -f $(TRASH_FILES)
+
+include ../run.mk

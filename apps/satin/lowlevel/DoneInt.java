@@ -1,4 +1,4 @@
-final class DoneInt extends Exception {
+final class DoneInt extends Throwable {
 	int i;
 
 	DoneInt(int i) {

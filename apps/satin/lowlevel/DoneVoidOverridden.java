@@ -1,5 +1,5 @@
-final class DoneVoidOverridden extends Exception {
+final class DoneVoidOverridden extends Throwable {
 	public Throwable fillInStackTrace() {
-		return this;
+		return null;
 	}
 }

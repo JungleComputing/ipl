@@ -96,8 +96,9 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 		output.println("\t}\n");
 	}
 
-	void writeObjectMethod(Class [] param, int [] numbers, int count) { 
 
+	void writeObjectMethod(Class [] param, int [] numbers, int count) { 
+/*
 		output.println("\tpublic void write(int num, Object value) {");
 
 		output.println("\t\tif (set[num]) throw new RuntimeException(\"Parameter \" + num + \" already set!\");");	
@@ -130,6 +131,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 		output.println("\t\tif (++set_count == TOTAL_PARAMS) done = true;");		
 
 		output.println("\t}\n");
+*/
 	}
 
 

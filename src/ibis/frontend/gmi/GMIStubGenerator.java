@@ -400,10 +400,10 @@ class GMIStubGenerator extends GMIGenerator {
 		output.println();
 
 		for (int j=0;j<params.length;j++) { 
-			if (params[j].isArray() || 
-			    params[j].getName().equals("java.lang.Object") || 		    
-			    params[j].getName().equals("java.lang.Cloneable") ||
-			    params[j].getName().equals("java.lang.Serializable")) { 
+			if (params[j].isArray()) { // || 
+//			    params[j].getName().equals("java.lang.Object") || 		    
+//			    params[j].getName().equals("java.lang.Cloneable") ||
+//			    params[j].getName().equals("java.lang.Serializable")) { 
 			
 				output.println(spacing + "\t\tif (pv[i].p"+j+"_subarray) {");	
 				output.println(spacing + "\t\t\tw.writeSubArray" + printType(params[j].getComponentType()) + "(pv[i].p"+ j + ", pv[i].p" + j + "_offset, pv[i].p" + j + "_size);");
