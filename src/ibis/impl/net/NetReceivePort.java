@@ -76,6 +76,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         link = new NetServiceLink(eventQueue, serverSocket);
                                 } catch (ConnectionTimedOutException e) {
                                         continue accept_loop;
+                                } catch (InterruptedIOException e) {
+                                        continue accept_loop;
                                 } catch (IOException e) {
                                         __.fwdAbort__(e);
                                 }
@@ -708,6 +710,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         if (useYield) {
                                 while (!_doPoll(useBlockingPoll)) {
                                         Thread.currentThread().yield();
+// System.err.print("x");
                                         // n_yield++;
                                 }
                         } else {

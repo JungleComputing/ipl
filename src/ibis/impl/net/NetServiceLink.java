@@ -191,6 +191,8 @@ public final class NetServiceLink {
 			if (DEBUG) {
 			    System.err.println(this + ": " + socket.getLocalAddress() + "/" + socket.getLocalPort() + " accept succeeds from " + socket.getInetAddress() + "/" + socket.getPort());
 			}
+                } catch (SocketException e) {
+                        throw Ibis.createInterruptedIOException(e);
                 } catch (SocketTimeoutException e) {
                         throw new ConnectionTimedOutException(e);
                 }
