@@ -169,11 +169,15 @@ REMOTE_STUBS		:= $(REMOTE:%.java=rmi_stub_%.java)
 REMOTE_SKELETONS	:= $(REMOTE:%.java=rmi_skeleton_%.java)
 .PRECIOUS:	$(REMOTE_STUBS) $(REMOTE_SKELETONS)
 
+.PRECIOUS:	$(REMOTE_STUBS) $(REMOTE_SKELETONS)
+
 SRC		+= $(REMOTE)
 SRC		+= $(REMOTE_STUBS)
 SRC		+= $(REMOTE_SKELETONS)
 
 CLASS_FILES	= $(SRC:%.java=%.class) $(INNER_CLASS)
+
+.PRECIOUS:	$(CLASS_FILES)
 
 ifneq (, $(strip $(SERIALIZABLE)))
 SERIALIZABLE_O	:= $(SERIALIZABLE:%.java=%.o)
@@ -203,6 +207,8 @@ MANTA_LIB	= $(IBIS_ROOT)/ibis/lib/libibis.a
 MANTA_SO	= $(MANTA_LIB:%.a=%.so)
 MANTA_LDLIBS	=
 MANTA_LDLIBS	+= $(MANTA_LIB)
+MANTA_LDLIBS	+= -$(PANDA_THREADS)
+MANTA_LDLIBS	+= -lfc $(LFC_ROOT)/lib
 
 ifeq (gm, $(MPI_MODE))
     MPI		= /usr/local/mpich/mpich-gm
