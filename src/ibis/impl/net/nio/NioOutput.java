@@ -467,4 +467,12 @@ public final class NioOutput extends NetOutput {
 
         super.free();
     }
+    
+    public long getCount() {
+        throw new Error("Not implemented");
+    }
+
+    public void resetCount() {
+        throw new Error("Not implemented");     
+    }
 }
