@@ -1,13 +1,14 @@
 // File: $Id$
-//
-// An extremely simple and highly parallel SAT solver. Given a symbolic
-// boolean equation in CNF, find a set of assignments that make this
-// equation true.
-//
-// In this implementation the solver simply takes the first unassigned
-// variable, and tries both possible assignments. These tries can
-// of course be done in parallel, making this ideally suited for Satin.
-// More subtle approaches are definitely possible, though.
+
+/** An extremely simple but highly parallel SAT solver. Given a symbolic
+ * boolean equation in CNF, find a set of assignments that make this
+ * equation true.
+ *
+ * In this implementation the solver simply takes the first unassigned
+ * variable, and tries both possible assignments. These tries can
+ * of course be done in parallel, making this ideally suited for Satin.
+ * More subtle approaches are definitely possible, though.
+ */
 
 import java.io.File;
 
@@ -16,6 +17,14 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     static final boolean printSatSolutions = true;
     static int label = 0;
 
+    /** The method that implements a Satin task.
+     * The method throws a SATResultException if it finds a solution,
+     * or terminates normally if it cannot find a solution.
+     * @param p the SAT problem to solve
+     * @param assignments the current assignments
+     * @param varlist the list of variables to branch on, ordered for efficiency
+     * @param varix the next variable in <code>varlist</code> to branch on
+     */
     public void solve(
 	SATProblem p,
 	int assignments[],
@@ -61,7 +70,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	sync();
     }
 
-    // Given a list of symbolic clauses, produce a list of solutions.
+    /** Given a list of symbolic clauses, produce a list of solutions. */
     static SATSolution solveSystem( final SATProblem p )
     {
 	int assignments[] = p.getInitialAssignments();
@@ -90,6 +99,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	return res;
     }
 
+    /** Allows execution of the class. */
     public static void main( String args[] ) throws java.io.IOException
     {
 	if( args.length != 1 ){

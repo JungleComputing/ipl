@@ -1,20 +1,22 @@
 // File: $Id$
 
-// Representation of a single solution of the SAT problem.
+/** A single solution of the SAT problem. */
 class SATSolution implements java.io.Serializable {
     int pos[];
     int neg[];
 
-    // Given an assignment vector, construct a solution instance.
-    // Because Java does not allow arrays to be grown, we first
-    // count the number of elements in the pos and neg arrays,
-    // and then create and fill them.
+    /** Given an assignment vector, constructs a solution. */
     public SATSolution( int assignments[] ){
 	int pos[];
 	int neg[];
 	int posix = 0;
 	int negix = 0;
 
+	/* Because Java does not allow arrays to be grown, we first
+	 * count the number of elements in the pos and neg arrays,
+	 * and then create and fill them.
+	 */
+	
 	// First count them.
         for( int ix=0; ix<assignments.length; ix++ ){
 	    int a = assignments[ix];
@@ -48,6 +50,7 @@ class SATSolution implements java.io.Serializable {
 	this.neg = neg;
     }
 
+    /** Returns a string representation of this solution. */
     public String toString()
     {
         String res = "";

@@ -5,6 +5,10 @@
 
 import java.io.File;
 
+/**
+ * A SAT solver that selects the variables to branch on from the
+ * clauses of the problem. Variables in small clauses are tried first.
+ */
 
 public class SATSolver {
     static class Context {
@@ -23,8 +27,9 @@ public class SATSolver {
     static final boolean printSatSolutions = true;
     static int label = 0;
 
-    // Given a set of clauses and a variable `var' that we know is true,
-    // propagate this variable to the clauses. 
+    /** Given a set of clauses and a variable `var' that we know is true,
+     * propagate this variable to the clauses. 
+     */
     static void propagateTrueValue( Context ctx, final int var )
     {
 	final IntVector poscls = ctx.problem.getPosClauses( var );
@@ -50,8 +55,9 @@ public class SATSolver {
 	}
     }
 
-    // Given a set of clauses and a variable `var' that we know is false,
-    // propagate this variable to the clauses. 
+    /** Given a set of clauses and a variable `var' that we know is false,
+     * propagate this variable to the clauses. 
+     */
     static void propagateFalseValue( Context ctx, final int var )
     {
 	final IntVector neg = ctx.problem.getNegClauses( var );
@@ -77,9 +83,10 @@ public class SATSolver {
 	}
     }
 
-    // Given the current list of clause sizes, the length of that list,
-    // the current clauses, and an the variables
-    static int []buildNewTerms(
+    /** Given the current list of clause sizes, the length of that list,
+     * the current clauses, and an the variables
+     */
+    static int [] buildNewTerms(
 	final int old_terms[],
 	final Clause clauses[],
 	final int clauseCount,
@@ -113,8 +120,9 @@ public class SATSolver {
 	return new_terms;
     }
 
-    // Given the current solver context, verify that it does in fact
-    // represent a solution of the system.
+    /** Given the current solver context, verify that it does in fact
+     * represent a solution of the system.
+     */
     static void verifySolution( Context ctx )
     {
 	int unsat = ctx.problem.getUnsatisfied( ctx.assignments );
@@ -124,8 +132,9 @@ public class SATSolver {
 	}
     }
 
-    // Given an existing solution context, try to register a generalized
-    // version of the solution.
+    /** Given an existing solution context, try to register a generalized
+     * version of the solution.
+     */
     static void addGeneralizedSolutionList( Context ctx )
     {
 	int gal[] = ctx.assignments;
@@ -396,6 +405,7 @@ public class SATSolver {
 	return res;
     }
 
+    /** Allows execution of the class. */
     public static void main( String args[] ) throws java.io.IOException
     {
 	if( args.length != 1 ){

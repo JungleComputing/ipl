@@ -1,10 +1,11 @@
 // $Id$
 
-// Provide a resizable array of ints.
-// Note that we can't extend/implement the abstract container classes, since
-// they assume Object elements, while the whole point of this class is
-// to provide precise typing and an efficient array representation.
-// We try to adhere to the naming scheme of these classes, though.
+/** A resizable array of ints.
+ * Note that we can't extend/implement the abstract container classes, since
+ * they assume Object elements, while the whole point of this class is
+ * to provide precise typing and an efficient array representation.
+ * We try to adhere to the naming scheme of these classes, though.
+ */
 class IntVector implements java.io.Serializable {
     protected int capacityIncrement;
     protected int elementCount;

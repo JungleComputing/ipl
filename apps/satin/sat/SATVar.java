@@ -2,6 +2,8 @@
 //
 // Description of a single variable in the SAT solver.
 
+/** A single variable of a SAT problem. */
+
 class SATVar implements java.io.Serializable, Comparable {
     private int label;
     private int ix;		// The index in the the original var array.
