@@ -13,9 +13,9 @@ package ibis.util;
  */
 public final class Monitor {
 
-    final static boolean DEBUG;
+    final static boolean DEBUG = TypedProperties.booleanProperty("ibis.monitor.debug");
 
-    final static boolean STATISTICS;
+    final static boolean STATISTICS = false; // TypedProperties.booleanProperty("ibis.monitor.stats");
 
     final boolean	PRIORITY;
 
@@ -35,11 +35,9 @@ public final class Monitor {
     private static int	unlock_bcast;
 
     static {
-	DEBUG = TypedProperties.booleanProperty("ibis.monitor.debug");
 	if (DEBUG) {
 	    System.err.println("Turn on Monitor.DEBUG");
 	}
-	STATISTICS = false; // TypedProperties.booleanProperty("ibis.monitor.stats");
 	if (STATISTICS) {
 	    Runtime.getRuntime().addShutdownHook(new Thread("Ibis Monitor ShutdownHook") {
 		public void run() {
@@ -124,6 +122,17 @@ public final class Monitor {
 	if (DEBUG) {
 	    owner = Thread.currentThread();
 	}
+    }
+
+
+    public synchronized boolean tryLock() {
+	if (locked || (PRIORITY && prio_waiters > 0)) {
+	    return false;
+	}
+
+	lock();
+
+	return true;
     }
 
 
@@ -229,6 +238,11 @@ public final class Monitor {
 	if (Monitor.STATISTICS) {
 	    out.println("Monitor: lock occupied " + lock_occupied + " unlock for waiter " + unlock_waiting + " prio-bcast " + unlock_bcast + " <waiters> " + ((double)unlock_waiters) / unlock_waiting);
 	}
+    }
+
+
+    public Thread getOwner() {
+	return owner;
     }
 
 }

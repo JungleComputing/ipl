@@ -18,7 +18,7 @@ public abstract class IbisSocketFactory {
     private static String DEFAULT_SOCKET_FACTORY = "ibis.impl.util.IbisConnectSocketFactory";
     private static String socketFactoryName;
 
-    protected static final boolean DEBUG = false;
+    protected static final boolean DEBUG = TypedProperties.booleanProperty("ibis.util.socketFactory.debug", false);
 
     static boolean firewall = false;
     static int portNr = 0;

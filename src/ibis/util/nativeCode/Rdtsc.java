@@ -8,8 +8,8 @@ public final class Rdtsc extends ibis.util.Timer {
 
         private static boolean loaded = false;
 
-	private static final float MHz;
-	private static final float GHz;
+	private static final double MHz;
+	private static final double GHz;
 
 	public static native long rdtsc();
 	private static native float getMHz();
@@ -27,7 +27,7 @@ public final class Rdtsc extends ibis.util.Timer {
 		} else {
 			MHz = (float)0.0;
 		}
-		GHz = MHz * 1000.0F;
+		GHz = MHz / 1000.0F;
 	}
 
     public Rdtsc() {
