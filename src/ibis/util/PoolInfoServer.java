@@ -32,7 +32,7 @@ public class PoolInfoServer extends Thread {
      */
     public static final int POOL_INFO_PORT = 9828;
 
-    static boolean DEBUG = false;
+    static final boolean DEBUG = false;
 
     static class RunInfo {
 	int total_hosts;

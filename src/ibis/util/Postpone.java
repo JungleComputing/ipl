@@ -10,6 +10,19 @@ import java.security.PrivilegedAction;
  * This may be useful under Windows, which does not have a sleep command.
  */
 public class Postpone {
+
+    /**
+     * Main program.
+     * It finds the <code>main</code> method in the class specified by
+     * the second argument, and invokes it with the rest of the arguments
+     * after sleeping for the number of seconds specified by the first
+     * argument.
+     * @param args the array of arguments. The first argument specifies
+     * the number of seconds to sleep, the second argument specifies the
+     * name of the class whose <code>main</code> method must be invoked,
+     * the rest of the arguments are passed on to the <code>main</code>
+     * invocation.
+     */
     public static void main(String[] args) {
 	if (args.length < 2) {
 	    System.err.println("Usage: java ibis.util.Postpone <seconds> <main class> ...");
