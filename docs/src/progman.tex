@@ -20,6 +20,8 @@ Programmer's Manual}
 
 \section{Introduction}
 
+Ibis is an efficient and flexible Java-based programming environment for Grid
+computing, in particular for distributed supercomputing applications.
 This manual describes how to write and run Ibis applications.
 \html{
 It is also available in
@@ -89,14 +91,9 @@ implementation.  A connection is always \emph{unidirectional}; reverse
 connections are conceptually totally independent.
 
 All send and receive ports have a \emph{type} which is represented by an
-instance of \texttt{ibis.ipl.PortType}. A port type is associated
-with communication properties such as serialization method used, message
-ordering, restriction to a single send or receive port, et cetera. The
-types are also useful for verification purposes in the application.
-Only ports of the same type can be connected.
-
+instance of \texttt{ibis.ipl.PortType}.
 To create a connection, an Ibis application requests new send and receive
-ports from a port type, and requests that a connection is set up 
+ports from such a port type, and requests that a connection is set up 
 between these ports.
 
 To send a message, the Ibis application requests a new write message from
@@ -160,9 +157,9 @@ which only allows sending/receiving bytes and arrays of bytes.
 An Ibis application consists of several parts:
 \begin{itemize}
 \item
-Creating an Ibis in each instance of the application.
+Creating an Ibis instance in each instance of the application.
 An Ibis application can run on multiple hosts.
-On each of these hosts, an Ibis must be created.
+On each of these hosts, an Ibis instance must be created.
 \item
 Setting up communication. Communication setup in Ibis
 consists of creating one or more \emph{send ports}, through which messages
@@ -225,7 +222,7 @@ They are summarized in an object of the
 
 The second parameter of \texttt{createIbis()} specifies an upcall handler
 with \texttt{joined()} and \texttt{left()} upcalls that get called when an Ibis
-joins or leaves the run.  In our RPC example, we will not use this, so we
+instance joins or leaves the run.  In our RPC example, we will not use this, so we
 specify \texttt{null} instead.  However, when such a \texttt{ResizeHandler}
 is used, its \texttt{joined()} upcall is called for every Ibis that joins the
 run, including the Ibis being created itself.
@@ -242,7 +239,7 @@ the work. See also section \ref{Which Instance Does What?}.
 Now back to our example. In Secion \ref{StaticProperties} we will
 discuss the creation of a variable \texttt{props} describing the
 static properties required. For the moment we will just assume its
-existence, and create an Ibis as follows:
+existence, and create an Ibis instance as follows:
 \begin{quote}
 \begin{verbatim}
 Ibis ibis = null;
@@ -281,18 +278,18 @@ In addition, the selected Ibis must support some form of object
 serialization (a string must be sent),
 and must support the ``closed'' worldmodel, which means
 that all participating Ibises join at the start of the run, and a
-synchronization takes place before \texttt{createIbis()} returns.
+synchronization takes place before \texttt{createIbis()} returns
 (in the example we have a client and a server).
 
 A complete list of property values is given below.
-The possible property values of the ``communication'' property are
+The possible property values of the \texttt{communication} property are
 (capitals are not significant):
 \begin{description}
 \item[OneToOne]
-One-to-one (unicast) communication is supported (if an Ibis does not support
-this, you may wonder what it \emph{does} support).
+One-to-one (unicast) communication is supported (if an Ibis implementation
+does not support this, you may wonder what it \emph{does} support).
 \item[OneToMany]
-one-to-many (multicast) communication is supported.
+one-to-many (multicast) communication is supported
 (in Ibis terms: a sendport
 may connect to multiple receiveports).
 \item[ManyToOne]
@@ -307,7 +304,7 @@ a sequence number. This allows the application to do its own sequencing.
 \item[Reliable]
 reliable communication is supported, that is,
 a reliable communication protocol is used.
-When not specified, an Ibis may be chosen that does not explicitly
+When not specified, an Ibis implementation may be chosen that does not explicitly
 support reliable communication.
 \item[AutoUpcalls]
 upcalls are supported and polling for them is not required.
@@ -321,7 +318,7 @@ AutoUpcalls, but polling does no harm. When an application asks for
 this (and not AutoUpcalls), it must poll.
 \item[ExplicitReceipt]
 explicit receive is supported.
-This is the alternative way to upcalls for receiving messages.
+This is the alternative to upcalls for receiving messages.
 \item[ConnectionDowncalls]
 connection downcalls are supported. This means that the user can
 invoke methods to see which connections were lost or created.
@@ -331,7 +328,7 @@ handler can be installed that is invoked whenever a new connection arrives
 or a connection is lost.
 \end{description}
 
-The possible ``serialization'' properties are:
+The possible \texttt{serialization} properties are:
 \begin{description}
 \item[Byte]
 Only the methods \texttt{readByte()}, \texttt{writeByte()}, \texttt{readArray(byte[])} and \texttt{writeArray(byte[])} are supported.
@@ -347,16 +344,16 @@ Ibis serialization is supported.
 This is the fastest object serialization supported in Ibis. Its drawback
 is that it requires identical Java implementations on sender and
 receiver side; it also requires user-defined
-\texttt{writeObject()}/\texttt{readObject()} methods to be symmetrical, t.i., 
+\texttt{writeObject()}/\texttt{readObject()} methods to be symmetrical, that is,
 each write in \texttt{writeObject()} must have a corresponding read
 in \texttt{readObject()} (and vice versa).
 \item[Sun]
-Sun serialization (through java.io.ObjectOutputStream/InputStream) is
+Sun serialization (through \texttt{java.io.ObjectOutputStream/InputStream}) is
 supported.
 \end{description}
 
 \noindent
-The possible ``worldmodel'' properties are:
+The possible \texttt{worldmodel} properties are:
 \begin{description}
 \item[Open]
 Ibises can join the run at any time during the run.
@@ -367,7 +364,7 @@ available from \texttt{ibis.util.PoolInfo} (see Section \ref{PoolInfo}).
 
 \noindent
 If a specific implementation of Ibis is required, that can be dealt with too.
-There is a property called ``name'', which can be used to supply a nickname
+There is a property called \texttt{name}, which can be used to supply a nickname
 for the Ibis implementation that is required.
 The currently known nicknames are:
 \begin{description}
@@ -383,6 +380,7 @@ the TCP version runs.
 \item[net]
 This is the most flexible Ibis implementation, and is becoming quite
 stable now.
+\remark{TODO: describe in just a little more detail}
 \item[nio]
 This is a (still experimental) Ibis implementation on top of Java NIO.
 \item[mpi]
@@ -393,13 +391,14 @@ of Panda. This too is an experimental version.
 \noindent
 A user running an Ibis application can override a property, or make
 it more specific. This is done by means of Java system properties,
-which in many Java implementations can be set by means of a command
-line option.  For instance, JVMs support options of the form
+which can be set by means of a command line option or with the
+\texttt{System.setProperty} method.
+For instance, Sun and IBM JVMs support options of the form
 -D\emph{property}=\emph{value}.  The system property name is that
 of the Ibis static property, prefixed with ``\texttt{ibis.}''.  So,
 adding \texttt{-Dibis.serialization=ibis} to the command line will cause
-\texttt{createIbis()} to look for an Ibis that supports Ibis serialization
-instead of any object serialization.
+\texttt{createIbis()} to look for an Ibis implementation
+that supports Ibis serialization instead of any object serialization.
 
 \subsection{Setting up Communication}
 
@@ -465,7 +464,7 @@ of type \texttt{ibis.ipl.PortType}.
 Within an Ibis instance,
 multiple port types, with different properties, can be created.
 The properties of a port type are, like the required properties
-of an Ibis, specified by a \texttt{StaticProperties} object.
+of an Ibis implementation, specified by a \texttt{StaticProperties} object.
 A port type is identified by its name, together with these properties.
 The \texttt{Ibis} class contains a method to create a port type,
 specified as follows:
@@ -499,8 +498,9 @@ try {
 \noindent
 In general, the port properties should be a subset of the properties
 specified when creating the Ibis instance. If a property is specified
-that was not specified when creating the Ibis instance, this could
-result in an \texttt{IbisException}.
+that was not specified when creating the Ibis instance, this may
+result in an \texttt{IbisException}, depending on the strictness of the
+Ibis implementation.
 An \texttt{IbisException} will also result when the same name is
 already used for a port type with different properties.
 Port types are registered with a name server
@@ -514,7 +514,7 @@ The \texttt{PortType} class contains several variants of a method
 \texttt{createSendPort()} that creates a send port (of type
 \texttt{ibis.ipl.SendPort}) and
 also several variants of a method \texttt{createReceivePort()} that
-creates a receive port (of type \texttt{ibis.ipl.ReceivePort}),
+creates a receive port (of type \texttt{ibis.ipl.ReceivePort}).
 See the API for an exhaustive list of variants.
 
 In Ibis, receive ports usually have specific names, so that
@@ -539,7 +539,7 @@ void upcall(ReadMessage m) throws java.io.IOException;
 We will go into the details of a \texttt{ReadMessage} in Section
 \ref{Communicating}. For now, we will assume that there is a
 class \texttt{RpcUpcall} that implements this interface, and
-a field \texttt{rpcUpcall} of this type.
+that the application has a field \texttt{rpcUpcall} of this type.
 
 \begin{quote}
 \begin{verbatim}
@@ -575,10 +575,13 @@ try {
 \noindent
 When a receive port is created, it will not immediately accept connections.
 This must be explicitly enabled by
-invoking the \texttt{enableConnections()} method. So, the creator of
+invoking the \texttt{enableConnections()} method.
+Incoming connection attempts are kept pending until connections are enabled.
+So, the creator of
 the receive port can determine when he is ready to accept connections.
 If the receive port is configured for upcalls, these must
 explicitly be enabled by invoking the \texttt{enableUpcalls()} method.
+Again, incoming messages are kept pending until upcalls are enabled.
 
 \subsubsection{Setting Up a Connection}
 
@@ -654,6 +657,7 @@ are connected to a receive port, and vice versa, or which connections
 are being closed.
 Ibis implementations may support two different mechanisms for obtaining
 this type of information: connection upcalls and connection downcalls.
+See Section \ref{StaticProperties} for the corresponding properties.
 
 When a port type is configured for using connection upcalls,
 a receive port may be instantiated with a \texttt{ReceivePortConnectUpcall}
@@ -672,7 +676,7 @@ void lostConnection(ReceivePort me,
 The \texttt{gotConnection()} method gets called when a send port attempts
 to connect to the receive port at hand.
 An implementation of this method can decide whether
-to allow this connection or not.
+to allow this connection or not by returning \texttt{true} or \texttt{false}.
 The \texttt{lostConnection()} method gets called when an existing connection
 to the receive port at hand gets lost for some reason.
 
@@ -720,16 +724,11 @@ ReceivePortIdentifier[] connectedTo();
 \end{verbatim}
 \end{quote}
 \noindent
-\texttt{newConnections()} returns the receive port identifiers of the connections
-that are new since the last call or the start of the program.
-\texttt{lostConnections()} returns the receive port identifiers of the connections
-that were lost since the last call or the start of the program.
-\texttt{connectedTo()} returns the receive port identifiers of all connections
-from this send port.
+which do exactly the same as their receive port counterparts.
 
 \mysubsection{Communicating}
 
-As the reader may have noticed by now, communication in Ibis
+Communication in Ibis
 consists of messages, sent from a send port, and received at a
 receive port. When a sender wants to send a message, it will first
 have to obtain one from the send port. Such a message is of
@@ -785,8 +784,8 @@ int obtainLength(String s) throws IOException {
 At the receiving side, a message can be received in two ways,
 depending on how the receive port was created: either by means of an
 upcall, or by means of an explicit receive. For each write method
-in a write message, there is a corresponding read method in
-a read message. For a given receive port, only one message can
+in the \texttt{WriteMessage} type, there is a corresponding read method in
+the \texttt{ReadMessage} type. For a given receive port, only one message can
 be alive at any time. A read message is alive until it is
 finished (by a \texttt{finish()} call), or the upcall returns.
 
@@ -877,7 +876,7 @@ useful for Ibis applications. We will discuss some of them here.
 
 The \texttt{ibis.util.PoolInfo} utility
 provides methods for finding out information about the nodes
-involved in the closed-world run, such as:
+involved in a closed-world run, such as:
 \begin{itemize}
 \item
 the total number of hosts involved in the run.
@@ -900,7 +899,8 @@ It indicates the total number of hosts involved in the run.
 \item[ibis.pool.host\_names]
 If present, this system property contains the list of host names
 involved in the run.
-If not present, \texttt{createPoolInfo()} will a \texttt{PoolInfoClient}
+If not present, \texttt{createPoolInfo()} instantiates
+a \texttt{PoolInfoClient}
 that will collect this information during startup.
 A \texttt{PoolInfoClient} uses a \texttt{PoolInfoServer} to collect the
 required information.
@@ -973,14 +973,14 @@ The nameserver then notifies the other Ibis instances of this run that
 a new instance has joined the run, including some identification of
 this instance.
 
-The Ibis nameserver is started with the \texttt{ibis\_nameserver} script which
+The Ibis nameserver is started with the \texttt{ibis-nameserver} script which
 lives in the Ibis \texttt{bin} directory. Before starting an Ibis application,
 you need to have a nameserver running on a machine that is accessible
 from all nodes participating in the Ibis run.
 The nameserver expects the Ibis instances to connect to a
 socket that it creates when it starts up.
 The port number of this socket can be specified using a command line
-option to the \texttt{ibis\_nameserver} script. This script recognizes
+option to the \texttt{ibis-nameserver} script. This script recognizes
 the following options:
 \begin{description}
 \item{-single}
@@ -988,6 +988,8 @@ specifies that the nameserver should only serve a single Ibis run
 and then exit.
 \item{-port \emph{portno}}
 specifies the port number of the nameserver socket.
+A port number must be between 0 and 65535, inclusive. Usually,
+port numbers below 1024 are reserved for other purposes.
 \item{-poolport \emph{poolportno}}
 specifies the port number of the \texttt{PoolInfoServer} mentioned
 in Section \ref{PoolInfo}.
@@ -999,29 +1001,29 @@ An Ibis instance is started with the \texttt{ibis-run} script which
 lives in the Ibis \texttt{bin} directory.  This \texttt{ibis-run}
 script is called as follows:
 \begin{center}
-\texttt{ibis-run} \emph{ibis-run-flags java-flags class ...}
+\texttt{ibis-run} \emph{ibis-run-flags java-flags class params}
 \end{center}
 The most important \emph{ibis-run-flags} are explained below:
 \begin{description}
-\item{--nhosts \emph{nhosts}}
+\item{\texttt{--nhosts} \emph{nhosts}}
 specifies the total number of Ibis instances involved in this run.
-\item{--hostno \emph{hostno}}
+\item{\texttt{--hostno} \emph{hostno}}
 specifies the rank number of this Ibis instance within this run,
 so its range is $0 ... \emph{nhosts}-1$.
-\item{--key \emph{id}}
+\item{\texttt{--key} \emph{id}}
 specifies the identifier used to identify the run to the nameserver.
-\item{--ns \emph{nameserverhost}}
+\item{\texttt{--ns} \emph{nameserverhost}}
 specifies the hostname of the machine where the Ibis nameserver runs.
-\item{--ns-port \emph{port}}
+\item{\texttt{--ns-port} \emph{port}}
 specifies the port number on which the nameserver is listening.
-\item{--?}
+\item{\texttt{--?}}
 gives a description of all options.
 \item{\emph{javaflags}}
-any flags that need to be passed on to java.
+are any flags that need to be passed on to java.
 \item{\emph{class}}
 specifies the application class name.
-\item{...}
-specifies the application parameters.
+\item{\emph{params}}
+specifies the optional application parameters.
 \end{description}
 
 The \texttt{ibis-run} script uses these parameters to set the following
@@ -1052,14 +1054,17 @@ specifies the port number on which the
 \texttt{PoolInfoServer} is listening.
 \end{description}
 
-\remark{TODO: describe grun for wide-area runs}
+The Ibis distribution also provides \emph{grun}, which is a tool for
+running Ibis applications on a Globus-based grid. See the
+\texttt{grun/doc} subdirectory for more information.
 
 \mysection{The Satin Divide-and-Conquer System}
 
 Satin is a parallel programming environment for divide-and-conquer
-parallelization, and (as a special case) worker-farmer parallelization.
-Satin extends Java with two simple Cilk-like primitives for
-divide-and-conquer programming.  The Satin byte-code rewriter and
+parallelization, and (as a special case) master-worker parallelization.
+Satin extends Java with two simple primitives for
+divide-and-conquer programming: \texttt{spawn} and \texttt{sync}.
+The Satin byte-code rewriter and
 runtime system cooperate to implement these primitives efficiently on
 Ibis, using work stealing to distribute the jobs.
 
@@ -1246,16 +1251,16 @@ jobs must be terminated. For example:
 
 Satin offers a choice of three different job scheduling strategies:
 \begin{description}
-\item[Random work-stealing]
-when using random work-stealing, when looking for work, each Satin
+\item{Random work-stealing}.
+When looking for work, each Satin instance
 first examines its own job queue. When this job queue is empty,
-it randomly selects another Satin and takes the first job on its job queue.
-If that job queue is empty, it randomly selects another Satin, et cetera,
+it randomly selects another Satin instance and takes the first job on its job queue.
+If that job queue is empty, it randomly selects another Satin instance, et cetera,
 et cetera.  This strategy is the default, and has in the past been proven
 to be optimal, although that might seem counter-intuitive.
 
-\item[Cluster-aware random work-stealing]
-the word ``cluster'' refers to a group of computers that are connected
+\item{Cluster-aware random work-stealing}.
+The word ``cluster'' refers to a group of computers that are connected
 to each other by means of a fast local network.
 In turn, clusters can be connected to each other, but usually the
 network between clusters is much slower, and/or has a much higher latency.
@@ -1268,11 +1273,11 @@ same cluster has work.
 To determine to which cluster a participant belongs, the cluster name
 is used.
 As described in Section \ref{Running an Ibis Application},
-the \emph{ibis.pool.cluster} system property can be used to
+the \texttt{ibis.pool.cluster} system property can be used to
 specify a cluster name to the Ibis instance.
 
-\item[Master-worker]
-this strategy is suitable for applications where all Satin jobs are
+\item{Master-worker}
+This strategy is suitable for applications where all Satin jobs are
 generated on a single participant, the ``master''. All other participants
 are ``workers'', they obtain jobs from the master and execute them.
 \end{description}
@@ -1286,11 +1291,11 @@ which indicates whether it would be useful to generate more jobs.
 
 \mysubsection{Other SatinObject methods}
 
-The \texttt{pause()} method pauses Satin operation. When the application
+The \texttt{pause()} method pauses Satin's operation. When the application
 contains a large sequential part, this method can be called to temporarily
 pause Satin's internal load distribution strategies to avoid communication
 overhead during the execution of sequential code.
-To resume Satin operation, the \texttt{resume()} method must be used.
+To resume Satin's operation, the \texttt{resume()} method must be used.
 
 \mysubsection{Satin program arguments}
 
@@ -1298,47 +1303,47 @@ The Satin system accepts the following arguments. They are
 filtered out from the program arguments, leaving the application's
 arguments:
 \begin{description}
-\item[-satin-closed]
+\item{\texttt{--satin-closed}}
 Only use the initial set of hosts for the computation; do not allow
 further hosts to join the computation later on.
-\item[-satin-stats]
+\item{\texttt{--satin-stats}}
 Display some statistics at the end of the Satin run. This is the default.
-\item[-satin-detailed-stats]
+\item{\texttt{--satin-detailed-stats}}
 Display detailed statistics for every member at the end of the Satin run.
-\item[-satin-no-stats]
+\item{\texttt{--satin-no-stats}}
 Don't display statistics at the end of the Satin run.
-\item[-satin-panda]
+\item{\texttt{--satin-panda}}
 Use the Panda version of Ibis.
-\item[-satin-mpi]
+\item{\texttt{--satin-mpi}}
 Use the MPI version of Ibis.
-\item[-satin-net]
+\item{\texttt{--satin-net}}
 Use NetIbis.
-\item[-satin-nio]
+\item{\texttt{--satin-nio}}
 Use NIO Ibis.
-\item[-satin-tcp]
+\item{\texttt{--satin-tcp}}
 Use the TCP version of Ibis.
-\item[-satin-ibis]
+\item{\texttt{--satin-ibis}}
 Use Ibis serialization. When no serialization is specified,
-the object serialization used is determined by Ibis.
-\item[-satin-sun]
+the object serialization used is determined by Ibis itself.
+\item{\texttt{--satin-sun}}
 Use Sun serialization.
-\item[-satin-upcalls]
+\item{\texttt{--satin-upcalls}}
 Use upcalls for receiving messages. This is the default.
-\item[-satin-no-upcalls]
+\item{\texttt{--satin-no-upcalls}}
 Use explicit receipt for receiving messages.
-\item[-satin-upcall-polling]
+\item{\texttt{--satin-upcall-polling}}
 Use upcalls for receiving messages, but Satin must explicitly poll to get
 upcalls.
-\item[-satin-alg \emph{algorithm}]
+\item{\texttt{--satin-alg} \emph{algorithm}}
 Specify the load-balancing algorithm to use. The possible values for
 \emph{algorithm} are: RS for random work-stealing, CRS for cluster-aware
 random-work stealing, and MW for master-worker
 \end{description}
 
 The following flags are for tuning by the developers of Satin,
-and should not be used unless you really know what you are doing.
+and should not be used unless you really know what you are doing:
 \begin{description}
-\item[-satin-queue-size \emph{integer}]
+\item{\texttt{-satin-queue-size} \emph{integer}}
 The maximum desirable job queue size. If the current work queue 
 has more than this number of jobs, Satin indicates that 
 it does not need more jobs (as can be asked though the
