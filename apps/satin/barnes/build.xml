@@ -1,12 +1,12 @@
 <project
-    name="ibis.apps.satin.fib_threshold"
+    name="ibis.apps.satin.barnes"
     default="build"
     basedir=".">
 
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
-    <property name="satin-main-class" value="FibThreshold"/>
+    <property name="satin-main-class" value="BarnesHut"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 

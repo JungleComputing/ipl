@@ -6,6 +6,8 @@
     <property name="ibis"        location="../../../.."/>
     <property name="build"       location="build"/>
 
+    <property name="satin-main-class" value="Checkers"/>
+
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
 </project>

@@ -22,7 +22,7 @@
 		debug="${java.debug.value}"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
-	    <include name="*.java"/>
+	    <include name="**/*.java"/>
 	</javac>
     </target>
 

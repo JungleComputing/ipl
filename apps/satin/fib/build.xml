@@ -8,6 +8,8 @@
 
     <property name="satinc-flags" value="-no-aborts"/>
 
+    <property name="satin-main-class" value="Fib"/>
+
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
 </project>

@@ -22,32 +22,9 @@
     <target name="satin-init"
 	    depends="property-satin-build,property-init"/>
 
-    <target name="-satin-one">
-	<property name="satin-class-path" refid="default.classpath"/>
-	<echo	level="debug"
-		message="Run Satinc on class ${satin-class}"/>
-	<java   classname="ibis.frontend.satin.Satinc"
-		taskname="Satinc"
-		dir="${build}"
-		fork="true">
-	    <arg line="-v -keep -compiler '${JAVA_HOME}/bin/javac -classpath ${satin-class-path}${path.separator}' ${satinc-flags.value} ${satin-class}"/>
-	    <classpath refid="default.classpath"/>
-	</java>
-    </target>
-
     <target name="satin"
 	    depends="satin-init"
 	    description="satin all classes that implement java.io.Serializable">
-
-	<path id="all-classes">
-	    <fileset dir="${build}">
-		<include name="**/*.class"/>
-	    </fileset>
-	</path>
-	<pathconvert pathsep="," property="classes.all" refid="all-classes">
-	    <map from="${build}${file.separator}" to=""/>
-	</pathconvert>
-
 	<if>
 	    <isset property="satinc-flags"/>
 	    <then>
@@ -58,42 +35,15 @@
 	    </else>
 	</if>
 
-	<!--
-	    Do regexp on ${classes.all} -> satin-classes
-		%s/.class//g
-		%s/\${file.separator}/./g
-	-->
-	<echo message="${classes.all}" file="${build}/SatinClasses"/>
-	<replaceregexp
-		byline="true"
-		file="${build}/SatinClasses"
-		flags="g"
-		match=".class"
-		replace=""/>
-	<replaceregexp
-		byline="true"
-		file="${build}/SatinClasses"
-		flags="g"
-		match="\${file.separator}"
-		replace="."/>
-	<loadfile
-		property="satin-classes"
-		srcFile="${build}/SatinClasses">
-	</loadfile>
+	<property name="satin-class-path" refid="default.classpath"/>
 
-	<echo	level="debug"
-		message="Run Satinc over all classes under ${build}${file.separator}"/>
-	<echo	level="debug"
-		message="List of all class files: ${satin-classes}"/>
-	<!--
-	-->
-
-	<foreach
-		list="${satin-classes}"
-		target="-satin-one"
-		param="satin-class"
-		inheritall="true"
-		inheritrefs="true"/>
+	<java	classname="ibis.frontend.satin.Satinc"
+		taskname="Satinc"
+		dir="${build}"
+		fork="true">
+		<arg line="-compiler '${JAVA_HOME}/bin/javac -g -classpath ${satin-class-path}${path.separator}' ${satinc-flags.value} ${satin-main-class}"/>
+		<classpath refid="default.classpath"/>
+	</java>
 
     </target>
 

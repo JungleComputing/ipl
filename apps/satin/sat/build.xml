@@ -6,10 +6,12 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 
+    <!--
     <property name="satinc-flags" value="-no-aborts"/>
+    -->
+
+    <property name="satin-main-class" value="SimpleSATSolver"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
 </project>
-
-
