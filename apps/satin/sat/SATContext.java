@@ -548,10 +548,9 @@ public final class SATContext implements java.io.Serializable {
      * Given a clause and our current recursion level, calculates the level
      * to start the recursion at.
      * @param c The clause to calculate the restart level for.
-     * @param mylevel The current level of recursion.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictLevel( SATProblem p, int arr[], int cno, int mylevel )
+    private int calculateConflictLevel( SATProblem p, int arr[], int cno )
     {
         int level = -1;
 
@@ -562,7 +561,7 @@ public final class SATContext implements java.io.Serializable {
 
             if( a>=0 ){
                 if( a != cno ){
-                    int l1 = calculateConflictLevel( p, p.clauses[a], a, mylevel );
+                    int l1 = calculateConflictLevel( p, p.clauses[a], a );
                     if( l1>level ){
                         level = l1;
                     }
@@ -581,13 +580,12 @@ public final class SATContext implements java.io.Serializable {
      * Given a clause and our current recursion level, calculates the level
      * to start the recursion at.
      * @param c The clause to calculate the restart level for.
-     * @param mylevel The current level of recursion.
      * @return The recursion level to restart at.
      */
-    private int calculateConflictLevel( SATProblem p, Clause c, int cno, int mylevel )
+    private int calculateConflictLevel( SATProblem p, Clause c, int cno )
     {
-        int level = calculateConflictLevel( p, c.pos, cno, mylevel );
-        int neglevel = calculateConflictLevel( p, c.neg, cno, mylevel );
+        int level = calculateConflictLevel( p, c.pos, cno );
+        int neglevel = calculateConflictLevel( p, c.neg, cno );
         if( neglevel>level ){
             level = neglevel;
         }
@@ -633,7 +631,7 @@ public final class SATContext implements java.io.Serializable {
                 }
 
                 if( doRestarts ){
-                    int cl = calculateConflictLevel( p, cc, -1, level );
+                    int cl = calculateConflictLevel( p, cc, -1 );
 
                     if( cl>=0 && cl<level ){
                         if( traceLearning | traceRestarts ){
