@@ -47,6 +47,7 @@ public class Splice
 		    public void run() {
 			try {
 			    server.close();
+			    server = null;
 			} catch(Exception e) {
 			}
 		    }
@@ -61,8 +62,8 @@ public class Splice
 	}
 
 	public void run() {
-	    if (server == null) return;
 	    while (true) {
+		if (server == null) return;
 		try {
 		    Socket s = server.accept();
 		    DataOutputStream out = new DataOutputStream(
@@ -73,8 +74,7 @@ public class Splice
 		    out.close();
 		    s.close();
 		} catch(Exception e) {
-		    System.out.println("Could not accept");
-		    e.printStackTrace();
+		    MyDebug.trace("# Splice: numserver got " + e);
 		}
 	    }
 	}
