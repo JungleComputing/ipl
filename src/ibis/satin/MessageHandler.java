@@ -178,7 +178,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				m.writeByte(ASYNC_STEAL_REPLY_SUCCESS);
 			}
 
+			if(STEAL_TIMING) {
+			    satin.localRecordWriteTimer.start();
+			}
 			m.writeObject(result);
+			if(STEAL_TIMING) {
+			    satin.localRecordWriteTimer.stop();
+			}
 			m.send();
 			long cnt = m.finish();
 			if(STEAL_STATS) {
@@ -246,7 +252,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		case STEAL_REPLY_SUCCESS:
 		case ASYNC_STEAL_REPLY_SUCCESS:
 			try {
+				if(STEAL_TIMING) {
+				    satin.localRecordReadTimer.start();
+				}
 				tmp = (InvocationRecord) m.readObject();
+				if(STEAL_TIMING) {
+				    satin.localRecordReadTimer.stop();
+				}
 
 				if(ASSERTS && tmp.aborted) {
 					System.out.println("SATIN '" + satin.ident.name() + 
