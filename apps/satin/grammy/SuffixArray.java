@@ -349,6 +349,20 @@ public class SuffixArray implements Configuration, Magic {
         }
     }
 
+    /** Returns true if the strings with the given positions and length
+     * overlap.
+     * @return True iff the strings overlap.
+     */
+    private static boolean areOverlapping( int ix0, int ix1, int len )
+    {
+        if( ix0<ix1 ){
+            return ix0+len>ix1;
+        }
+        else {
+            return ix1+len>ix0;
+        }
+    }
+
     /**
      * Calculates the best folding step to take.
      * @return The best step, or null if there is nothing worthwile.
@@ -364,17 +378,30 @@ public class SuffixArray implements Configuration, Magic {
             if( commonality[i]>=mincom ){
                 int pos0 = indices[i-1];
 
-                for( int j=i; j<length; j++ ){
-                    if( commonality[j]<mincom ){
-                        break;
-                    }
-                    int pos1 = indices[j];
+                if( areOverlapping( pos0, indices[i], commonality[i] ) ){
+                    for( int j=i; j<length; j++ ){
+                        if( commonality[j]<mincom ){
+                            break;
+                        }
+                        int pos1 = indices[j];
 
-                    int len = disjunctMatch( pos0, pos1 );
+                        int len = disjunctMatch( pos0, pos1 );
+                        if( len>maxlen ){
+                            maxlen = len;
+                            candidates[0] = pos0;
+                            candidates[1] = pos1;
+                            p = 2;
+                            mincom = len;
+                        }
+                    }
+                }
+                else {
+                    int len = commonality[i];
+
                     if( len>maxlen ){
                         maxlen = len;
                         candidates[0] = pos0;
-                        candidates[1] = pos1;
+                        candidates[1] = indices[i];
                         p = 2;
                         mincom = len;
                     }
