@@ -819,9 +819,9 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      * @exception IOException	gets thrown when an IO error occurs.
      */
     private boolean writeTypeHandle(Object ref, Class clazz) throws IOException {
-	int handle = references.lazyPut(ref, next_handle + 1);
+	int handle = references.lazyPut(ref, next_handle);
 
-	if (handle != next_handle + 1) {
+	if (handle != next_handle) {
 	    writeHandle(handle);
 	    return true;
 	}
@@ -996,43 +996,23 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    return 0;
 	}
 
-	if (false) {
-	    int hashCode = references.getHashCode(ref);
-	    int handle = references.find(ref, hashCode);
-
-	    if (handle == 0) {
-		Class clazz = ref.getClass();
-		handle = next_handle++;
-		if(DEBUG) {
-		    dbPrint("writeKnownObjectHeader -> writing NEW object, class = " + clazz.getName());
-		}
-		references.put(ref, handle, hashCode);
-		writeType(clazz);
-		return 1;
-	    }
-
-	    if(DEBUG) {
-		dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
-	    }
-	    writeHandle(handle);
-	} else {
-	    int handle = references.lazyPut(ref, next_handle + 1);
-	    if (handle == next_handle + 1) {
+	int handle = references.lazyPut(ref, next_handle);
+	if (handle == next_handle) {
 // System.err.write("+");
-		Class clazz = ref.getClass();
-		next_handle++;
-		if(DEBUG) {
-		    dbPrint("writeKnownObjectHeader -> writing NEW object, class = " + clazz.getName());
-		}
-		writeType(clazz);
-		return 1;
-	    }
-
+	    Class clazz = ref.getClass();
+	    next_handle++;
 	    if(DEBUG) {
-		dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+		dbPrint("writeKnownObjectHeader -> writing NEW object, class = " + clazz.getName());
 	    }
-	    writeHandle(handle);
+	    writeType(clazz);
+	    return 1;
 	}
+
+	if(DEBUG) {
+	    dbPrint("writeKnownObjectHeader -> writing OLD HANDLE " + handle);
+	}
+	writeHandle(handle);
+
 	return -1;
     }
 
@@ -1216,11 +1196,9 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    return;
 	}
 
-	int hashCode = references.getHashCode(ref);
-	int handle = references.find(ref, hashCode);
-	if (handle == 0) {
-	    handle = next_handle++;
-	    references.put(ref, handle, hashCode);
+	int handle = references.lazyPut(ref, next_handle);
+	if (handle == next_handle) {
+	    next_handle++;
 	    writeType(java.lang.String.class);
 	    if (DEBUG) {
 		dbPrint("writeString: " + ref);

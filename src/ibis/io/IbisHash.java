@@ -3,6 +3,7 @@ package ibis.io;
 
 final class IbisHash { 
 
+    private static final boolean ASSERTS = false; // true; // false;
     private static final boolean STATS = false; // true; // false;
     private static final boolean TIMINGS = false; // true; // false;
 
@@ -153,6 +154,16 @@ final class IbisHash {
 	    t_find.stop();
 	}
 
+	if (ASSERTS) {
+	    if (result == 0) {
+		for (int i = offset; i < offset + size; i++) {
+		    if (dataBucket[i] == ref) {
+			System.err.println("CORRUPTED HASH: find returns 'no' but it's there in bucket[" + i + "]");
+		    }
+		}
+	    }
+	}
+
 	return result;
     }
 
@@ -205,12 +216,35 @@ final class IbisHash {
 		}
 		dataBucket[h0 + new_offset] = b;
 		handleBucket[h0 + new_offset] = old_handle[ix];
-		old_data[ix] = null;
+		if (! ASSERTS) {
+		    old_data[ix] = null;
+		}
 	    }
 	}
 
+	int old_offset = offset;
+	int old_size = size;
+
 	size = n;
 	offset = new_offset;
+
+	if (ASSERTS) {
+	    for (int i = old_offset; i < old_offset + old_size; i++) {
+		if (old_data[i] != null && find(old_data[i]) == 0) {
+		    System.err.println("CORRUPTED HASH after rebuild: cannot find item[" + i + "] = " + Integer.toHexString(System.identityHashCode(old_data[i])));
+		}
+		old_data[i] = null;
+	    }
+	    int cont = 0;
+	    for (int i = offset; i < offset + size; i++) {
+		if (dataBucket[i] != null) {
+		    cont++;
+		}
+	    }
+	    if (cont != present) {
+		System.err.println("CORRUPTED HASH after rebuild: present " + present + " but contains " + cont);
+	    }
+	}
 
 	if (TIMINGS) {
 	    t_rebuild.stop();
@@ -245,6 +279,16 @@ final class IbisHash {
 
 	if (lazy && b != null) {
 	    return handleBucket[h0 + offset];
+	}
+
+	if (ASSERTS) {
+	    if (lazy) {
+		for (int i = offset; i < offset + size; i++) {
+		    if (dataBucket[i] == ref) {
+			System.err.println("CORRUPTED HASH: lazyPut finds 'no' but it's there in bucket[" + i + "]");
+		    }
+		}
+	    }
 	}
 
 	dataBucket[h0 + offset] = ref;
