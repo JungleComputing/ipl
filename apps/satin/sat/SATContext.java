@@ -610,8 +610,6 @@ public final class SATContext implements java.io.Serializable {
     private void analyzeConflict( SATProblem p, int cno, int var, int level, boolean learnTuple, boolean learn )
         throws SATRestartException
     {
-        // TODO: remove this once the administration is straigthened out
-        // again: this method should never be invoked on a satisfied clause.
         if( satisfied[cno] ){
             return;
         }
@@ -718,9 +716,7 @@ public final class SATContext implements java.io.Serializable {
 		}
                 antecedent[v] = i;
 		int res = propagatePosAssignment( p, v, level, learnTuple, learn );
-		if( res != 0 ){
-		    // The problem is now conflicting/satisfied, we're
-		    // done.
+		if( (res != 0) || !doVerification ){
 		    return res;
 		}
 		foundIt = true;
@@ -742,7 +738,7 @@ public final class SATContext implements java.io.Serializable {
 		}
                 antecedent[v] = i;
 		int res = propagateNegAssignment( p, v, level, learnTuple, learn );
-		if( res != 0 ){
+		if( (res != 0) || !doVerification ){
 		    // The problem is now conflicting/satisfied, we're
 		    // done.
 		    return res;
@@ -750,7 +746,8 @@ public final class SATContext implements java.io.Serializable {
 		foundIt = true;
 	    }
 	}
-	if( !satisfied[i] && !foundIt ){
+	//if( !satisfied[i] && !foundIt ){
+	if( !foundIt ){
 	    System.err.println( "Error: unit clause " + c + " does not contain unassigned variables" );
 	}
 	return SATProblem.UNDETERMINED;
