@@ -4,6 +4,7 @@ import ibis.frontend.generic.BT_Analyzer;
 
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.JavaClass;
@@ -236,8 +237,9 @@ final class MethodTable {
     private static HashMap analyzers = new HashMap();
 
     private boolean available_slot(Type[] types, int ind, Type t) {
-	if (types[ind] != null) {
-	    if (t.equals(types[ind])) {
+	Type tp = types[ind];
+	if (tp != null) {
+	    if (t.equals(tp)) {
 		return true;
 	    }
 	    return false;
@@ -269,7 +271,7 @@ final class MethodTable {
 	LocalVariableGen[] locals = m.getLocalVariables();
 	int maxpos = m.getMaxLocals();
 
-	Type[] types = new Type[2 * locals.length];
+	Type[] types = new Type[2 * locals.length + maxpos];
 
 	int stackpos = parameterpos;
 	for (int i = 0; i < locals.length; i++) {
