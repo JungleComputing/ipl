@@ -8,7 +8,6 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
     static final boolean traceLookahead = false;
     static final boolean traceSiteCount = false;
     static final boolean parallelizeShallowEvaluation = false;
-    static int max_shortening = Configuration.MAX_SHORTENING;
     static int lookahead_depth = Configuration.LOOKAHEAD_DEPTH;
     static boolean doVerification = false;
 
@@ -157,11 +156,12 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
      * @param backrefs The index of the first previous occurence of this hash.
      * @param pos The position to select the move for.
      * @param bestpos First uncompressed byte by the best move known to parent.
+     * @param max_shortening The maximum shortening we consider for a backreference.
      * @param depth The recursion depth of this selection.
      * @param max_depth The maximal recursion depth.
      * @return The best move, or null if we can't better bestpos.
      */
-    public Backref selectBestMove( byte text[], int backrefs[], int pos, int bestpos, int depth, int max_depth )
+    public Backref selectBestMove( byte text[], int backrefs[], int pos, int bestpos, int max_shortening, int depth, int max_depth )
     {
         Backref mv = null;
         boolean haveAlternatives = false;
@@ -247,7 +247,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                 // using recursion, so that higher levels can accurately
                 // compare it to other alternatives.
                 // Evaluate the gain of just copying the character.
-                Backref mv1 = selectBestMove( text, backrefs, pos+1, pos+1, depth+1, max_depth );
+                Backref mv1 = selectBestMove( text, backrefs, pos+1, pos+1, max_shortening, depth+1, max_depth );
                 mv.addGain( mv1 );
             }
             if( traceLookahead ){
@@ -299,10 +299,10 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             // Spawn recurrent processes to evaluate a character copy
             // and backreferences of a range of lengths.
             for( int i=minLen; i<=maxLen; i++ ){
-                a[i] = selectBestMoveJob( text, backrefs, pos+i, pos+maxLen, depth+1, max_depth );
+                a[i] = selectBestMoveJob( text, backrefs, pos+i, pos+maxLen, max_shortening, depth+1, max_depth );
             }
             if( mv != null ){
-                mv1 = selectBestMoveJob( text, backrefs, pos+1, pos+1, depth+1, max_depth );
+                mv1 = selectBestMoveJob( text, backrefs, pos+1, pos+1, max_shortening, depth+1, max_depth );
             }
             sync();
             int bestGain = -1;
@@ -356,12 +356,12 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return mv;
     }
 
-    public Backref selectBestMoveJob( byte text[], int backrefs[], int pos, int bestpos, int depth, int max_depth )
+    public Backref selectBestMoveJob( byte text[], int backrefs[], int pos, int bestpos, int max_shortening, int depth, int max_depth )
     {
-        return selectBestMove( text, backrefs, pos, bestpos, depth, max_depth );
+        return selectBestMove( text, backrefs, pos, bestpos, max_shortening, depth, max_depth );
     }
 
-    public ByteBuffer compress( byte text[], int max_depth )
+    public ByteBuffer compress( byte text[], int max_shortening, int max_depth )
     {
         int backrefs[] = buildBackrefs( text );
         int pos = 0;
@@ -371,7 +371,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             out.append( text[pos++] );
         }
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
-            Backref mv = selectBestMove( text, backrefs, pos, pos, 0, max_depth );
+            Backref mv = selectBestMove( text, backrefs, pos, pos, max_shortening, 0, max_depth );
             if( mv.backpos<0 ){
                 // There is no backreference that gives any gain, so
                 // just copy the character.
@@ -407,6 +407,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
     {
 	File infile = null;
 	File outfile = null;
+	int max_shortening = Configuration.MAX_SHORTENING;
 
         for( int i=0; i<args.length; i++ ){
             if( args[i].equals( "-verify" ) ){
@@ -442,7 +443,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
         Compress c = new Compress();
 
-        ByteBuffer buf = c.compress( text, lookahead_depth );
+        ByteBuffer buf = c.compress( text, max_shortening, lookahead_depth );
 
         Helpers.writeFile( outfile, buf );
 
@@ -452,8 +453,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 	System.out.println( "ExecutionTime: " + time );
         System.out.println( "In: " + text.length + " bytes, out: " + buf.sz + " bytes." );
         if( doVerification ){
-            byte ct[] = buf.getText();
-            ByteBuffer debuf = Decompress.decompress( ct );
+            ByteBuffer debuf = Decompress.decompress( buf );
             byte nt[] = debuf.getText();
 
             if( nt.length != text.length ){

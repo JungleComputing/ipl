@@ -38,6 +38,11 @@ class Decompress
         return out;
     }
 
+    public static ByteBuffer decompress( ByteBuffer buf )
+    {
+	return decompress( buf.getText() );
+    }
+
     /**
      * Allows execution of the class.
      * @param args The command-line arguments.
