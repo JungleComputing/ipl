@@ -25,7 +25,8 @@ class Road implements Configuration {
     {
         Vehicle v;
 
-        // TODO: make sure we're not too close to the previous one.
+        // TODO: make sure we're not too close to the previous one
+        // when we lauch a vehicle.
         if( r.nextInt( CARS_PER_TRUCK ) == 0 ){
             v = new Truck();
         }
@@ -172,21 +173,16 @@ class Road implements Configuration {
                 }
                 // We want to switch to a faster lane.
                 if( lane>0 ){
-                    boolean safeSwitch = true;
-
                     Vehicle pv = prev[lane-1];
                     if( v.isUncomfortablyClose( prev[lane-1] ) ){
                         // There is a vehicle in the previous lane that blocks
                         // a lane switch.
-                        safeSwitch = false;
                     }
-                    if( v.isUncomfortablyClose( front[lane-1] )){
+                    else if( v.isUncomfortablyClose( front[lane-1] )){
                         // There is a vehicle in the previous lane that blocks
                         // a lane switch.
-                        safeSwitch = false;
                     }
-
-                    if( safeSwitch ){
+                    else {
                         // Ok, switch lanes.
                         if( traceLaneSwitching ){
                             System.out.println( "T" + tick + ": switch lane " + lane + "->" + (lane-1) + ": " + v  );
