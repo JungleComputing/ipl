@@ -11,6 +11,8 @@ public class Timer implements java.io.Serializable {
 
     private long time = 0;
     private long lastTime = 0;
+    private long t_start = 0;
+    private boolean started = false;
 
     /**
      * Constructs a <code>Timer</code>.
@@ -57,8 +59,9 @@ public class Timer implements java.io.Serializable {
      * total.
      */
     public void start() {
-	lastTime = System.currentTimeMillis();
-	time -= lastTime;
+	if(started) return;
+	started = true;
+	t_start = System.currentTimeMillis();
     }
 
     /**
@@ -68,10 +71,12 @@ public class Timer implements java.io.Serializable {
      * "now" is added to the total.
      */
     public void stop() {
-	long tmp = System.currentTimeMillis();
-	time += tmp;
-	lastTime = tmp - lastTime;
+	if(!started) return;
+
+	lastTime = System.currentTimeMillis() - t_start;
+	time += lastTime;
 	++ count;
+	started = false;
     }
 
     /**
@@ -147,7 +152,7 @@ public class Timer implements java.io.Serializable {
 	nf.setGroupingUsed(false);
 
         // special case for 0
-	if(micros == 0) {
+	if(micros == 0 || micros == Double.NaN || micros < 0.0) {
 	    return "  0.000  s";
 	}
 

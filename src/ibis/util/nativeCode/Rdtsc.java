@@ -15,14 +15,14 @@ public final class Rdtsc extends ibis.util.Timer {
 
 	public static native long rdtsc();
 	private static native float getMHz();
+        private static boolean loaded = false;
 
 	static {
-		boolean loaded = false;
 		try {
 			ibis.ipl.Ibis.loadLibrary("Rdtsc");
 			loaded = true;
 		} catch (RuntimeException e) {
-			System.err.println("Could not load Rdtsc library");
+//			System.err.println("Could not load Rdtsc library");
 		}
 
 		if(loaded) {
@@ -32,6 +32,12 @@ public final class Rdtsc extends ibis.util.Timer {
 		}
 		GHz = MHz * 1000.0F;
 	}
+
+    public Rdtsc() {
+	if(!loaded) {
+	    throw new Error("Could not load Rdtsc library");
+	}
+    }
 
 	public String implementationName() {
 		return "ibis.util.nativeCode.Rdtsc";

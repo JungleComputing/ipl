@@ -50,15 +50,19 @@ public class NameServer implements Protocol {
 		public int hashCode() {
 		    return identifier.hashCode();
 		}
+
+	    public String toString() {
+		return "ibisInfo(" + identifier + "at " + ibisNameServerAddress + ":" + ibisNameServerport + ")";
+	    }
 	} 
 
 	static class RunInfo { 
-		Vector pool;
-		Vector toBeDeleted;
-		
-		PortTypeNameServer    portTypeNameServer;   
-		ReceivePortNameServer receivePortNameServer;   
-		ElectionServer electionServer;   
+	    Vector pool; // a list of IbisInfos
+	    Vector toBeDeleted; // a list of ibis identifiers
+
+		PortTypeNameServer    portTypeNameServer;
+		ReceivePortNameServer receivePortNameServer;
+		ElectionServer electionServer;
 
 		RunInfo() throws IOException { 
 			pool = new Vector();
@@ -67,6 +71,23 @@ public class NameServer implements Protocol {
 			receivePortNameServer = new ReceivePortNameServer();
 			electionServer = new ElectionServer();
 		}
+
+	    public String toString() {
+		String res = "runinfo:\n" +
+		    "  pool = \n";
+
+		for(int i=0; i<pool.size(); i++) {
+		    res += "    " + pool.get(i) + "\n";
+		}
+
+		res +=    "  toBeDeleted = \n";
+
+		for(int i=0; i<toBeDeleted.size(); i++) {
+		    res += "    " + toBeDeleted.get(i) + "\n";
+		}
+
+		return res;
+	    }
 	}
 
 	private Hashtable pools;
@@ -130,11 +151,11 @@ public class NameServer implements Protocol {
 		InetAddress address = (InetAddress) in.readObject();
 		int port = in.readInt();
 
-//		if (DEBUG) {
+		if (DEBUG) {
 			System.err.print("NameServer: join to pool " + key);
 			System.err.print(" requested by " + id.toString());
 			System.err.println(", port " + port);
-//		}
+		}
 
 		IbisInfo info = new IbisInfo(id, address, port);
 		RunInfo p = (RunInfo) pools.get(key);
@@ -452,9 +473,9 @@ public class NameServer implements Protocol {
 			    }	
 			    s = NameServerClient.socketFactory.accept(serverSocket);
 
-				if (DEBUG) { 
-					System.err.println("NameServer: incoming connection from " + s.toString());
-				}
+			    if (DEBUG) { 
+				System.err.println("NameServer: incoming connection from " + s.toString());
+			    }
 
 			} catch (Exception e) {
 				System.err.println("NameServer got an error " + e.getMessage());
@@ -501,6 +522,8 @@ public class NameServer implements Protocol {
 					NameServerClient.socketFactory.close(null, null, s);
 				}
 			}
+
+//			System.err.println("Pools are now: " + pools);
 		}
 
 		try { 
@@ -603,11 +626,15 @@ public class NameServer implements Protocol {
 //				e.printStackTrace();
 			}
 		}
-
-		ns.run();
-		if (h != null) {
-		    h.waitForCount(1);
+		try {
+		    ns.run();
+		    if (h != null) {
+			h.waitForCount(1);
+		    }
+		    System.exit(0);
+		} catch (Throwable t) {
+		    System.err.println("Nameserver got an exception: " + t);
+		    t.printStackTrace();
 		}
-		System.exit(0);
 	} 
 }
