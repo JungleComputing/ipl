@@ -87,9 +87,10 @@ worldmodel:	Open, Closed
 #    Data
 #	read/write and readArray/writeArray of primitive types are supported.
 #    Object
-#	Some sort of object serialization is supported.
-#	This allows a user to just ask for object serialization, and not
-#	care if it is Ibis or Sun serialization.
+#	Some sort of object serialization is supported. An Ibis implementation
+#	will, of course, specify what kind of object serialization it supports.
+#	The "Object" property allows a user to just ask for object
+#	serialization, and not care if it is Ibis or Sun serialization.
 #    Ibis
 #	Ibis serialization is supported.
 #    Sun

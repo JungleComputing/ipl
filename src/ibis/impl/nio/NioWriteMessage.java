@@ -63,6 +63,14 @@ final class NioWriteMessage implements WriteMessage, Config {
 	return port.finish();
     }
 
+    public void finish(IOException e) {
+	// What to do here? Niels?
+	try {
+	    finish();
+	} catch(IOException e2) {
+	}
+    }
+
     public SendPort localPort() {
 	return port;
     }

@@ -70,6 +70,14 @@ final class TcpWriteMessage implements WriteMessage {
 		}
 	}
 
+	public void finish(IOException e) {
+		// What to do here? Niels?
+		try {
+			finish();
+		} catch(IOException e2) {
+		}
+	}
+
 	public void reset() throws IOException {
 		try {
 			out.reset();

@@ -73,6 +73,15 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
+    public void finish(IOException e) {
+	// What to do here? Rutger?
+	try {
+	    finish();
+	} catch(IOException e2) {
+	}
+    }
+
+
     public void sync(int ticketno) throws IOException {
 	send(false, true);
     }

@@ -246,6 +246,10 @@ public class StaticProperties {
     /**
      * Combines the properties with the specified properties,
      * giving preference to the latter.
+     * This means: choose the specified property if it is "more specific" or
+     * conflicts with "this" properties.
+     * 
+     * @param p the properties to combine with.
      * @return the combined static properties.
      */
     public StaticProperties combine(StaticProperties p) {
@@ -257,6 +261,16 @@ public class StaticProperties {
 	while (i.hasNext()) {
 	    String name = ((String) i.next());
 	    String prop = p.find(name);
+	    if (name.equals("serialization") &&
+		    p.isProp("serialization", "object")) {
+		// in fact, object may not make things more specific.
+		if (isProp("serialization", "sun") ^
+			isProp("serialization", "ibis")) {
+		    // there already was either sun or ibis serialization
+		    // specified.
+		    continue;
+		}
+	    }
 
 	    combined.add(name, prop);
 	}
@@ -464,6 +478,23 @@ public class StaticProperties {
     }
 
     /**
+     * Returns a copy of the properties.
+     * @return the copy.
+     */
+    public StaticProperties copy() {
+	Set keys = propertyNames();
+	Iterator i = keys.iterator();
+	StaticProperties p = new StaticProperties();
+
+	while (i.hasNext()) {
+	    String s = (String) i.next();
+	    String prop = getProperty(s);
+	    p.add(s, prop);
+	}
+	return p;
+    }
+    
+    /**
      * Returns true if <code>other</code> represents the same property
      * set.
      * @param other the object to compare with.
@@ -493,7 +524,7 @@ public class StaticProperties {
 	}
         return true;
     }
-    
+
     /**
      * Returns the hashcode of this property set.
      * @return the hashcode.

@@ -642,6 +642,14 @@ public abstract class Ibis {
 	}
 	else {
 	    // The properties given as parameter have preference.
+	    // It is not clear to me if the user properties should have
+	    // preference here. The user could say that he wants Ibis
+	    // serialization, but the parameter could say: sun serialization.
+	    // On the other hand, the parameter could just say: object
+	    // serialization, in which case the user specification is
+	    // more specific.
+	    // The {@link StaticProperties#combine} method should deal
+	    // with that.
 	    p = new StaticProperties(combinedprops.combine(p));
 	    p.add("worldmodel", "");	// not significant for port type,
 					// and may conflict with the ibis prop.

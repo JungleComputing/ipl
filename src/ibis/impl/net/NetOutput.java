@@ -93,6 +93,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 		return 0;
         }
 
+	public void finish(IOException e) {
+		// What to do here? Rutger?
+		try {
+			finish();
+		} catch(IOException e2) {
+		}
+	}
+
 	/**
 	 * Reset the output state.
 	 *

@@ -756,6 +756,14 @@ pollingThreads--;
 		return 0;
         }
 
+	public void finish(IOException e) {
+	    // What to do here? Rutger?
+	    try {
+		finish();
+	    } catch(IOException e2) {
+	    }
+	}
+
         protected abstract void doFinish() throws IOException;
 
         /**

@@ -35,6 +35,14 @@ final class NioReadMessage implements ReadMessage, Config {
 	return port.finish(this);
     }
 
+    public void finish(IOException e) {
+	// What to do here? Niels?
+	try {
+	    finish();
+	} catch(IOException e2) {
+	}
+    }
+
     public SendPortIdentifier origin() {
 	return origin;
     }

@@ -65,6 +65,14 @@ public interface WriteMessage {
     public long finish() throws IOException;
 
     /**
+     * This method can be used to inform Ibis that one of the
+     * <code>WriteMessage</code> methods has thrown an IOException.
+     * It implies a {@link #finish}.
+     * @param e the exception that was thrown.
+     */
+    public void finish(IOException e);
+
+    /**
      * Returns the {@link SendPort} of this <code>WriteMessage</code>.
      *
      * @return the {@link SendPort} of this <code>WriteMessage</code>.

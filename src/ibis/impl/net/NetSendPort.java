@@ -818,6 +818,14 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		return 0;
 	}
 
+	public void finish(IOException e) {
+		// What to do here? Rutger?
+		try {
+			finish();
+		} catch(IOException e2) {
+		}
+	}
+
 	/**
 	 * Unconditionnaly completes the message transmission and
 	 * releases the send port. The writeMessage is kept by

@@ -40,6 +40,16 @@ public interface ReadMessage {
     public long finish() throws IOException;
 
     /**
+     * This method can be used to inform Ibis that one of the
+     * <code>ReadMessage</code> methods has thrown an IOException.
+     * It implies a {@link #finish}.
+     * In a message upcall, the alternative way to do this is to have
+     * the upcall throw the exception.
+     * @param e the exception that was thrown. 
+     */
+    public void finish(IOException e);
+
+    /**
      * Returns the {@link ibis.ipl.ReceivePort receiveport} of this
      * <code>ReadMessage</code>.
      *

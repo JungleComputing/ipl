@@ -66,6 +66,14 @@ final class TcpReadMessage implements ReadMessage {
 		return 0;
 	}
 
+	public void finish(IOException e) {
+		// What to do here? Niels?
+		try {
+			finish();
+		} catch(IOException e2) {
+		}
+	}
+
 	public SendPortIdentifier origin() {
 		return origin;
 	}

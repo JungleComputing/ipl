@@ -1060,6 +1060,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 		return 0;
         }
 
+	public void finish(IOException e) {
+		// What to do here? Rutger?
+		try {
+			finish();
+		} catch(IOException e2) {
+		}
+	}
+
         public long sequenceNumber() {
                 log.in();
                 log.out();

@@ -171,6 +171,12 @@ public class ReadMessage
     }
 
 
+    public void finish(IOException e) {
+	// What to do here? Rutger?
+	finish();
+    }
+
+
     public ibis.ipl.SendPortIdentifier origin() {
 	return shadowSendPort.identifier();
     }
