@@ -9,7 +9,6 @@ import java.io.IOException;
  */
 public interface Registry {	
 
-	
     /**
      * Locates the {@link ibis.ipl.ReceivePortIdentifier ReceivePortIdentifier}
      * that has been bound to the specified <code>name</code>.
