@@ -1,7 +1,7 @@
 package ibis.io;
 
 interface IbisStreamFlags extends TypeSize { 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
     public static final boolean ASSERTS = true;
 
     public static final int BUFFER_SIZE = 2*1024;
