@@ -159,7 +159,8 @@ public final class IntVector implements java.io.Serializable, Cloneable {
      * Note that the length of the array may be more than the value returned
      * by size().
      */
-    public int[] toArray() { return elementData; }
+    
+    public int[] toArray() { return Helpers.cloneIntArray( elementData, elementCount ) ; }
 
     /**
      * Returns a string representation of this vector.

@@ -558,7 +558,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
      * all definite assignments in the list.
      * @param assignments the assignments
      */
-    public void specialize( int assignments[] )
+    private void specialize( int assignments[] )
     {
 	boolean changed = true;
 
