@@ -38,5 +38,4 @@ shift
 Dns_server="-Dibis.name_server.host=$1"
 shift
 
-$JAVA_ROOT/bin/java $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool
-$Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xmx1024M -Xbootclasspath:$JAVACLASSPATH -classpath $JAVACLASSPATH "$@"
+$JAVA_ROOT/bin/java $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xmx1024M -Xbootclasspath:$JAVACLASSPATH -classpath $JAVACLASSPATH "$@"
