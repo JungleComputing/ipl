@@ -109,8 +109,8 @@ public abstract class FaultTolerance extends Inlets {
     }
     
     void handleMasterCrash() {
-	masterHasCrashed = false;
-	Registry r = ibis.registry();	    
+        masterHasCrashed = false;
+        Registry r = ibis.registry();	    
         //master has crashed, let's elect a new one
         System.err.println("SATIN '" + ident.name() + "': MASTER ("
                 + masterIdent + ") HAS CRASHED!!!");
@@ -154,8 +154,8 @@ public abstract class FaultTolerance extends Inlets {
     }
     
     void handleClusterCoordinatorCrash() {
-	clusterCoordinatorHasCrashed = false;
-	Registry r = ibis.registry();
+        clusterCoordinatorHasCrashed = false;
+        Registry r = ibis.registry();
         try {
             clusterCoordinatorIdent = r.elect("satin "
                     + ident.cluster() + " cluster coordinator");
