@@ -105,12 +105,12 @@
 	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
 	<echo message="Lib is ${build}/lib ${local.lib}"/>
 	<echo message="Include path is ${default.includes}"/>
-	<echo message="ant-cpptasks home ${package.home.ant-cpptasks}"/>
+	<echo message="ant-cpptaskS home ${package.home.ant-cpptasks}"/>
 	<cc	debug="true"
 		objdir="${build}/ibis/${native-path}"
 		outfile="${build}/lib/${local.lib}"
 		outtype="shared"
-		name="msvc"
+		name="${c.compiler}"
 		warnings="severe">
 	    <fileset dir="${native.dir}" includes="*.c"/>
 	    <defineset>
@@ -123,6 +123,5 @@
 	    </includepath>
 	    <!-- <compilerarg location="mid" value="-E"/> -->
 	    <!-- <compilerarg location="mid" value="-v"/> -->
-	    <!-- <compilerarg location="mid" value="/I${ibis}/build/include"/> -->
 	</cc>
     </target>

@@ -122,7 +122,7 @@ ibmp_currentThread(JNIEnv *env)
     if (b == NULL) {
 	ibmp_error(env, "Cannot get string bytes\n");
     }
-    if (strlen(b) + 1 > n_c) {
+    if ((int)strlen(b) + 1 > n_c) {
 	n_c = 2 * strlen(b) + 1;
 	c = pan_realloc(c, n_c);
     }

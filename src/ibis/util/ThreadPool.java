@@ -8,6 +8,7 @@ class PoolThread extends Thread {
 	
 	PoolThread(Object lock) {
 		this.lock = lock;
+		setName("Pool thread");
 	}
 	
 	public void run() {
@@ -56,7 +57,7 @@ public final class ThreadPool {
 					if(DEBUG) {
 						System.err.println("pool: no ready thread, cache full, started new one");
 					}
-					Thread p = new Thread(r);
+					Thread p = new Thread(r, "Pool thread " + count);
 					p.setDaemon(true);
 					p.start();
 				} else {

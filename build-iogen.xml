@@ -31,9 +31,10 @@
 	<echo message="All files to be rewritten: ${classes.all}"/>
 	<echo message="Run IOGenerator over all classes under ${build}${file.separator}"/>
 	<java   classname="ibis.frontend.io.IOGenerator"
+		taskname="IOGenerator"
 		dir="${build}"
 		fork="true">
-	    <arg line="-dir -v ${classes.all}"/>
+	    <arg line="-dir ${classes.all}"/>
 	    <classpath refid="default.classpath"/>
 	</java>
     </target>

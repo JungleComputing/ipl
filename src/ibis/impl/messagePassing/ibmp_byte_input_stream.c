@@ -35,7 +35,7 @@ Java_ibis_ipl_impl_messagePassing_ByteInputStream_lockedRead(
     IBP_VPRINTF(250, env, ("Consume 1 int from msg %p, currently holds %d\n",
 		msg, ibp_msg_consume_left(msg)));
     rd = 0;
-    while (rd < sizeof(int)) {
+    while (rd < (int)sizeof(int)) {
 	rd += ibp_consume(env, msg, (char *)&r + rd, sizeof(int) - rd);
     }
 
@@ -254,6 +254,8 @@ jboolean Java_ibis_ipl_impl_messagePassing_ByteInputStream_getInputStreamMsg(
     }
 
     hdr = ibmp_byte_stream_hdr(proto);
+
+    IBP_VPRINTF(202, env, ("Dequeue msg %p port %d\n", msg, hdr->dest_port));
 
     tags[0] = ibp_msg_sender(msg);
     tags[1] = hdr->src_port;

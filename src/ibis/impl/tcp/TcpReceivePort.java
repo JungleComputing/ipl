@@ -109,7 +109,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	void startNewHandlerThread(SerializationStreamReadMessage old) {
 		SerializationStreamConnectionHandler h = old.getHandler();
 		h.createNewMessage();
-//		new Thread(h).start();
+//		new Thread(h, "TCP Connection Handler").start();
 		ThreadPool.createNew(h);
 	}
 
@@ -371,7 +371,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			connections[connectionsIndex++] = con;
 
 //			if (upcall != null) {
-				new Thread(con).start();
+				new Thread(con, "TCP Port Handler").start();
 //			}
 
 			connection_setup_present = false;

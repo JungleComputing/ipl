@@ -19,7 +19,7 @@
 #define USE_STDARG
 #include <mpi.h>
 
-#include "../ibis_ipl_impl_messagePassing_Ibis.h"
+#include "ibis_ipl_impl_messagePassing_Ibis.h"
 
 #include "../ibmp.h"
 
@@ -278,9 +278,9 @@ ibmpi_p4_args(int *argc, char *argv[])
     }
     p4_argv[i] = NULL;
 
-    for (i = 0; i < P4_OPTIONS; i++) {
+    for (i = 0; i < (int)P4_OPTIONS; i++) {
 	sprintf(p4_env[i], "P4_%s", p4_options[i]);
-	for (j = 0; j < strlen(p4_env[i]); j++) {
+	for (j = 0; j < (int)strlen(p4_env[i]); j++) {
 	    p4_env[i][j] = toupper(p4_env[i][j]);
 	}
     }
@@ -303,7 +303,7 @@ ibmpi_p4_args(int *argc, char *argv[])
 	    p4_argv[n] = strdup(eq + 1);
 
 	} else {
-	    for (i = 0; i < P4_OPTIONS; i++) {
+	    for (i = 0; i < (int)P4_OPTIONS; i++) {
 		if (strncmp(e, p4_env[i], eq - e) == 0) {
 		    fprintf(stderr, "Found p4 option %s\n", p4_options[i]);
 		    n = p4_argc;

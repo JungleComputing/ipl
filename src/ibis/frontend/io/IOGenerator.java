@@ -1209,6 +1209,12 @@ do_verify(gen);
 
 
 	if (verbose) System.out.println("Loading classes");
+	if (verbose) {
+	    for (int i = 0; i < num; i++) {
+		System.out.print(classnames[i] + " ");
+	    }
+	    System.out.println();
+	}
 
 	for (int i=0;i<num;i++) {
 	    if (verbose) System.out.println("  Loading class : " + classnames[i]);

@@ -1,0 +1,102 @@
+#!/bin/bash
+
+IBIS=@IBIS_INSTALL_PATH@
+JAVA=@JAVA@
+
+mycpu=$PRUN_CPU_RANK
+host_array=($HOSTS)
+ncpus=${#host_array[@]}
+
+nclusters=0
+cpu=1
+
+ACT=eval
+
+for i
+do
+	# We do an eval. Carefullly quote arguments in case they contain
+	# spaces.
+	qarg="'"$i"'"
+
+	case $i in
+
+	-cluster=*)
+		nclusters=`expr $i : '-cluster=\(.*\)'`
+		;;
+	-cl=*)
+		nclusters=`expr $i : '-cl=\(.*\)'`
+		;;
+
+	-spin=*)
+		export PAN_CLUSTER_SPIN=`expr $i : '-spin=\(.*\)'`
+		;;
+
+	-thrp=*)
+		export PAN_CLUSTER_THRP=`expr $i : '-thrp=\(.*\)'`
+		;;
+
+	-cpu)
+		cpu=`expr $i : '-cpu=\(.*\)'`
+		;;
+
+	-n)
+		ACT=echo
+		;;
+
+	*)
+		ARGS="$ARGS $qarg"
+		;;
+	esac
+done
+
+export CLASSPATH=$IBIS:$IBIS/ibis:
+export LD_LIBRARY_PATH=$IBIS/ibis/lib:
+
+# export PAN_COMM_NO_INTR=1
+export PAN_COMM_NO_IDLE_POLL=1
+
+if [ $nclusters -gt 0 ]
+then
+	export PAN_CLD=$nclusters
+fi
+
+export MANTA_NO_PANDA=1
+
+export IBP_SEND_SYNC=100
+# export IBP_NO_INTR=1
+
+export LFC_RECV_PKTS=1024
+
+# echo mycpu $mycpu ncpus $ncpus nclusters $nclusters
+
+if (( $mycpu < $ncpus - $nclusters ))
+then
+	i=`expr $ncpus - $nclusters`
+	while [ $i -lt $ncpus ]
+	do
+		echo Now unset host_array $i
+		unset host_array[$i]
+		i=`expr $i + 1`
+	done
+	# echo host_array = ${host_array[@]}
+	hosts="'"${host_array[@]}"'"
+	$ACT $IBIS/ibis/bin/java_wrapper \
+		$JAVA/bin/java \
+		-Xmx400M -Xcomp \
+		-Djava.library.path=$IBIS/ibis/lib \
+		-Dpool_host_names="$hosts" \
+		-Dpool_total_hosts="${#host_array[@]}" \
+		-Dhosts="$hosts" \
+		-Dpool_host_number=$PRUN_CPU_RANK \
+		-Dname_server=$NS_HOSTNAME \
+		-Dname_server_pool=rutger$PRUN_ENV \
+		-Dname_server_port=7654 \
+		$ARGS
+else
+	# echo "I am cluster coordinator, it seems; PRUN_CPU_RANK $PRUN_CPU_RANK"
+	$IBIS/ibis/bin/java_wrapper \
+		$JAVA/bin/java \
+		-Xmx400M -Xcomp \
+		-Djava.library.path=$IBIS/ibis/lib \
+		ibis.ipl.impl.messagePassing.PandaIbis
+fi

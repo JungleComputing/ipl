@@ -260,7 +260,7 @@ if (false)
 		Ibis.myIbis.lock();
 // System.err.println(Ibis.myIbis.myCpu + " do a peeker poll...");
 		try {
-		    poll();
+		    while (poll());
 		    if (STATISTICS) {
 			poll_from_thread++;
 		    }

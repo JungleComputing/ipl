@@ -52,9 +52,9 @@
     -->
     <path id="native.src.dirs">
 	<pathelement path="${src}/ibis/io"/>
-	<!-- <pathelement path="${src}/ibis/ipl/impl/messagePassing"/> -->
-	<!-- <pathelement path="${src}/ibis/ipl/impl/messagePassing/panda"/> -->
-	<!-- <pathelement path="${src}/ibis/ipl/impl/messagePassing/mpi"/> -->
+	<pathelement path="${src}/ibis/ipl/impl/messagePassing"/>
+	<pathelement path="${src}/ibis/ipl/impl/messagePassing/panda"/>
+	<pathelement path="${src}/ibis/ipl/impl/messagePassing/mpi"/>
 	<!-- <pathelement path="${src}/ibis/ipl/impl/net/gm"/> -->
 	<!-- <pathelement path="${src}/ibis/util"/> -->
 	<pathelement path="${src}/ibis/util/nativeCode"/>
@@ -171,14 +171,14 @@
 
     <target name="build-native">
 	<echo message="Invoke ant in ${native.dir}"/>
-	<ant inheritAll="true" dir="${native.dir}">
-	    <!--
+	<ant inheritAll="false" dir="${native.dir}">
 	    <property name="native.dir" value="${native.dir}"/>
 	    <property name="build" value="${build}"/>
 	    <property name="ibis" value="${ibis}"/>
+	    <!--
+	    -->
 	    <property name="optimization" value="${optimization}"/>
 	    <property name="package.home.ant-cpptasks" value="${package.home.ant-cpptasks}"/>
-	    -->
 	</ant>
     </target>
 

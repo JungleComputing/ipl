@@ -1,5 +1,6 @@
 <!DOCTYPE project [
-    <!ENTITY nativeTargets SYSTEM "../../../build-native.xml">
+    <!ENTITY sharedProperties SYSTEM "../../../build-properties.xml">
+    <!ENTITY nativeTargets    SYSTEM "../../../build-native.xml">
 ]>
 
 <project
@@ -27,6 +28,7 @@
 
     <property name="local.lib" value="ibis_mp"/>
 
+    &sharedProperties;
     &nativeTargets;
 
     <property name="panda"        location="/usr/local/VU/panda"/>

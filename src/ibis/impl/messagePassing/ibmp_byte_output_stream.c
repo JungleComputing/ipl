@@ -494,6 +494,11 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
 
     IBP_VPRINTF(300, env, ("ByteOS %p Enqueue a send-finish upcall obj %p, missing := %d\n",
 		msg->byte_output_stream, this, ++ibmp_sent_msg_out));
+#ifdef IBP_VERBOSE
+    if (ibmp_verbose >= 1 && ibmp_verbose < 300) {
+	++ibmp_sent_msg_out;
+    }
+#endif
     ibmp_msg_freelist_verify();
     ibmp_msg_enq(msg);
     ibmp_msg_freelist_verify();

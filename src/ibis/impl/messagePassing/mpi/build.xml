@@ -1,5 +1,6 @@
 <!DOCTYPE project [
-    <!ENTITY nativeTargets SYSTEM "../../../../build-native.xml">
+    <!ENTITY sharedProperties SYSTEM "../../../../build-properties.xml">
+    <!ENTITY nativeTargets    SYSTEM "../../../../build-native.xml">
 ]>
 
 <project
@@ -25,6 +26,7 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
+    &sharedProperties;
     &nativeTargets;
 
     <property name="gm"           location="/usr/local/gm/current"/>

@@ -1676,7 +1676,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 			dst = src.substring(0, src.indexOf(".")) + ".class";
 		    } else {
 			String classname = newclass.getClassName();
-			dst = classname.replace('.', '/') + ".class";
+			dst = classname.replace('.', File.separatorChar) + ".class";
 		    }
 		    newclass.dump(dst);
 		} catch (IOException e) {
@@ -2141,8 +2141,22 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	String src = c.getSourceFileName();
 	int index = src.indexOf(".");
-	String base = src.substring(0, index);
-	String dst = base + ".class";
+	String dst;
+	String base;
+	if (index != -1) {
+	    base = src.substring(0, index);
+	    dst = base + ".class";
+	} else {
+	    String className = c.getClassName();
+	    base = className;
+	    index = base.indexOf(".");
+	    if (index != -1) {
+		base = base.substring(0, index);
+	    }
+	    dst = className;
+	    dst = dst.replace('.', File.separatorChar);
+	    dst = dst + ".class";
+	}
 
 	mtab = new MethodTable(c, gen_c, this, verbose);
 
@@ -2170,7 +2184,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	// now overwrite the classfile 
 	try {
 	    if (! local) {
-		dst = c.getPackageName().replace('.', '/') + "/" + dst;
+		dst = c.getPackageName().replace('.', File.separatorChar) + File.separator + dst;
 	    }
 	    c.dump(dst);
 	} catch (IOException e) {
@@ -2211,7 +2225,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	Verifier verf = VerifierFactory.getVerifier(c.getClassName());
 	boolean verification_failed = false;
 
-// System.out.println("Verifying " + c.getClassName());
+System.out.println("Verifying " + c.getClassName());
 
 	VerificationResult res = verf.doPass1();
 	if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {

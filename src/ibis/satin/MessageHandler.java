@@ -277,6 +277,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 		try {
 			byte opcode = m.readByte();
+System.err.println("Receive Satin upcall, opcode " + opcode);
 			
 			switch(opcode) {
 			case EXIT:
@@ -331,6 +332,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				System.exit(1);
 			}
 		} catch (IbisIOException e) {
+			System.err.println("satin msgHandler upcall: " + e);
 				// Ignore.
 		}
 	}

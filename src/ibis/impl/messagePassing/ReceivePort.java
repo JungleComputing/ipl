@@ -122,7 +122,7 @@ class ReceivePort
 	if (firstCall) {
 	    firstCall = false;
 	    if (upcall != null) {
-		thread = new Thread(this, "ReceivePort upcall thread " + upcallThreads);
+		thread = new Thread(this, "ReceivePort " + this + " upcall thread " + upcallThreads);
 		upcallThreads++;
 		availableUpcallThread++;
 		thread.setDaemon(true);
@@ -284,7 +284,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	    }
 	    if (availableUpcallThread == 0 && ! aMessageIsAlive) {
 // System.err.println("enqueue: Create another UpcallThread because the previous one didn't terminate");
-// (new Throwable()).printStackTrace();
+// Thread.dumpStack();
 		createNewUpcallThread();
 	    }
 	}
@@ -434,6 +434,10 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
 	/* Hook up the fragment in the message envelope */
 	msg.enqueue(f);
+	if (DEBUG) {
+	    System.err.println(Thread.currentThread() + " Port " + this +
+			       " rcve frag; firstFrag=" + firstFrag);
+	}
 
 	    /* Must set in.msgHandle and in.msgSize from here: cannot wait
 	     * until we do a read:
@@ -441,6 +445,10 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	     *  - a Serialized stream starts reading in the constructor */
 	if (firstFrag && origin.checkStarted(msg)) {
 	    enqueue(msg);
+	}
+	else if (DEBUG) {
+	    System.err.println(Thread.currentThread() + " Port " + this +
+			       " rcve frag; NOT checkStarted!!!");
 	}
     }
 
@@ -748,6 +756,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
 		msg = doReceive(true /* block */);	// May throw an IbisIOException
 
+// System.err.println(Thread.currentThread() + ": perform upcall for msg " + msg);
 		if (msg != null) {
 		    availableUpcallThread--;
 		    msg.creator = me;

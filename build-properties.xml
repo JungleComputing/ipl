@@ -1,19 +1,53 @@
     <!--
+	Properties to be shared by all files, apps in Ibis
 
-    Properties to be shared by all files, apps in Ibis
+	Requires prior definition of the following properties:
 
-    Requires prior definition of the following properties:
+	    ibis          the root of the Ibis tree
 
-    ibis          the root of the Ibis tree
+	Optional prior property definition:
 
-    Optional prior property definition:
+	    build         the root of the build tree
 
-    build         the root of the build tree
+
+	Specify in this file:
+
+	    package.home.ant-cpptasks	root of ant-cpptasks
+	    package.home.ant-contrib	root of ant-contrib
+	    package.home.bcel		root of bcel
+
+	    property optimization is one of
+		optimize
+		debug
+
+	    property c.compiler is one of the list in cpp-tasks cc.
+	    Suggestions:
+		gcc			if unix
+		msvc			if windows
     -->
 
     <property name="package.home.ant-cpptasks" location="${ibis}/../ant-cpptasks"/>
-    <property name="package.home.bcel"         location="${ibis}/../bcel/bcel-5.1"/>
+    <property name="package.home.bcel"         location="/home/ceriel/bcel-5.1"/>
     <property name="package.home.ant-contrib"  location="${ibis}/../ant-contrib"/>
+
+    <!--
+	Choose a value from
+	    debug
+	    optimize
+    -->
+    <property name="optimization" value="optimize"/>
+
+    <!--
+	Choose the C compiler of your liking
+    -->
+    <!-- <property name="c.compiler" name="msvc"/> -->
+    <property name="c.compiler" value="gcc"/>
+
+
+
+    <!--
+	Defines shared by the whole build
+    -->
 
     <taskdef resource="net/sf/antcontrib/antcontrib.properties">
 	<classpath>
@@ -32,13 +66,6 @@
     </path>
 
     <!--
-	Choose a value from
-	    debug
-	    optimize
-    -->
-    <property name="optimization" value="debug"/>
-
-    <!--
     <condition property="native.debug">
 	<equals arg1="${optimization}" arg2="debug"/>
     </condition>
@@ -46,3 +73,4 @@
 	<equals arg1="${optimization}" arg2="optimize"/>
     </condition>
     -->
+

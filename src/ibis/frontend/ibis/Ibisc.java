@@ -68,9 +68,35 @@ class Ibisc {
 	
 	    Runtime r = Runtime.getRuntime();
 	    Process p = r.exec(command);
+	    java.io.BufferedInputStream stdout = new java.io.BufferedInputStream(p.getInputStream());
+	    java.io.BufferedInputStream stderr = new java.io.BufferedInputStream(p.getErrorStream());
 	    int res = p.waitFor();
 	    if (res != 0) {
 		System.err.println("Error compiling code (" + target + ").");
+		System.err.println("Standard output:");
+		while (true) {
+		    try {
+			int c = stdout.read();
+			if (c == -1) {
+			    break;
+			}
+			System.err.print((char)c);
+		    } catch (java.io.IOException e) {
+			break;
+		    }
+		}
+		System.err.println("Error output:");
+		while (true) {
+		    try {
+			int c = stderr.read();
+			if (c == -1) {
+			    break;
+			}
+			System.err.print((char)c);
+		    } catch (java.io.IOException e) {
+			break;
+		    }
+		}
 		System.exit(1);
 	    }
 	    if (verbose) {

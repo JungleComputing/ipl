@@ -19,6 +19,7 @@
 	<property name="satin-class-path" refid="default.classpath"/>
 	<echo message="Run Satinc on class ${satin-class}"/>
 	<java   classname="ibis.frontend.satin.Satinc"
+		taskname="Satinc"
 		dir="${build}"
 		fork="true">
 	    <arg line="-v -keep -compiler '${JAVA_HOME}/bin/javac -classpath ${satin-class-path}${path.separator}' ${satin-class}"/>

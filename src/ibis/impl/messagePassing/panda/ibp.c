@@ -15,7 +15,7 @@
 #include <pan_time.h>
 #include <pan_util.h>
 
-#include "../ibis_ipl_impl_messagePassing_Ibis.h"
+#include "ibis_ipl_impl_messagePassing_Ibis.h"
 
 #include "../ibmp.h"
 

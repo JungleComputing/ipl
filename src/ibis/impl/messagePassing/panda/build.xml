@@ -1,5 +1,6 @@
 <!DOCTYPE project [
-    <!ENTITY nativeTargets SYSTEM "../../../../build-native.xml">
+    <!ENTITY sharedProperties SYSTEM "../../../../build-properties.xml">
+    <!ENTITY nativeTargets    SYSTEM "../../../../build-native.xml">
 ]>
 
 <project
@@ -27,6 +28,7 @@
 
     <property name="panda.debug"  value=""/>
 
+    &sharedProperties;
     &nativeTargets;
 
     <property name="gm"           location="/usr/local/gm/current"/>
@@ -74,6 +76,7 @@
     </target>
 
     <target name="panda-lib" depends="panda-init">
+	<echo message="ibis top is ${ibis}"/>
 	<mkdir dir="${build}/lib/so"/>
 	<foreach
 		delimiter=":"

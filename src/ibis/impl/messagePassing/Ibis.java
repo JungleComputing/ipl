@@ -91,7 +91,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	/*
 	 * This is an 1.3 feature; cannot we use it please?
 	 */
-	Runtime.getRuntime().addShutdownHook(new Thread() {
+	Runtime.getRuntime().addShutdownHook(new Thread("Ibis ShutdownHook") {
 			public void run() {
 				report();
 			}

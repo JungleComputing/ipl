@@ -1,4 +1,5 @@
 <!DOCTYPE project [
+    <!ENTITY sharedProperties SYSTEM "../build-properties.xml">
     <!ENTITY nativeTargets SYSTEM "../build-native.xml">
 ]>
 
@@ -27,6 +28,7 @@
 
     <property name="local.lib" value="conversion"/>
 
+    &sharedProperties;
     &nativeTargets;
 
     <target name="build"

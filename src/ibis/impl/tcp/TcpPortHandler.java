@@ -42,7 +42,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 		others = new Hashtable();
 		receivePorts = new Vector();
 		
-		thread = new Thread(this);
+		thread = new Thread(this, "TCP Port Handler");
 		thread.start();
 	}
 

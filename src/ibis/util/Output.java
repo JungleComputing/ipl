@@ -1,3 +1,5 @@
+package ibis.util;
+
 import java.io.*;
 
 public class Output {

@@ -56,7 +56,7 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1bind(
 
     hdr->name_length = ibp_string_push(env, name, &iov[0]);
     hdr->id_length = ibp_byte_array_push(env, portId, &iov[1]);
-    assert(hdr->id_length == iov[1].len);
+    assert(hdr->id_length == (int)iov[1].len);
 
     hdr->client = (jint)client;
 
