@@ -105,14 +105,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     /** Returns true iff i0 refers to a smaller character than i1. */
     private boolean isSmallerCharacter( int i0, int i1 )
     {
-	if( text[i0] == STOP ){
-	    // The shortest string is first, this is as it should be.
-	    return true;
-	}
-	if( text[i1] == STOP ){
-	    // The shortest string is last, this is not good.
-	    return false;
-	}
 	return (text[i0]<text[i1]);
     }
 
@@ -410,33 +402,36 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                 done = true;
 
 		if( jump == 1 ){
-		    for( int j = 0; j<(length-1); j++ ){
+                    // We treat the case for jump == 1 separately, because
+                    // we want to fill in commonality at the same time.
+		    for( int j = start; j<(end-1); j++ ){
 			int i = j + 1;
-			int ixi = indices[start+i];
-			int ixj = indices[start+j];
+			int ixi = indices[i];
+			int ixj = indices[j];
 
-			// We know the first character is equal...
+			// We know the first kC characters are equal...
 			int n = kC+commonLength( ixi+kC, ixj+kC );
-			commonality[start+i] = n;
-			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
+			commonality[i] = n;
+			if( text[ixj+n]>text[ixi+n] ){
 			    // Things are in the wrong order, swap them and step back.
-			    indices[start+i] = ixj;
-			    indices[start+j] = ixi;
+			    indices[i] = ixj;
+			    indices[j] = ixi;
 			    done = false;
 			}
 		    }
 		}
 		else {
-		    for( int j = 0; j<(length-jump); j++ ){
+		    for( int j = start; j<(end-jump); j++ ){
 			int i = j + jump;
-			int ixi = indices[start+i];
-			int ixj = indices[start+j];
+			int ixi = indices[i];
+			int ixj = indices[j];
 
+			// We know the first kC characters are equal...
 			int n = kC+commonLength( ixi+kC, ixj+kC );
-			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
+			if( text[ixj+n]>text[ixi+n] ){
 			    // Things are in the wrong order, swap them and step back.
-			    indices[start+i] = ixj;
-			    indices[start+j] = ixi;
+			    indices[i] = ixj;
+			    indices[j] = ixi;
 			    done = false;
 			}
 		    }
@@ -468,8 +463,10 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
                 i--;
                 int ix = text[i];
 
-                next[i] = slots[ix];
-                slots[ix] = i;
+                if( ix != STOP ){
+                    next[i] = slots[ix];
+                    slots[ix] = i;
+                }
             }
             filledSlots = slots.length;
         }
@@ -481,10 +478,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	    int p = slots[i];
 	    int start = ix;
 
-	    if( i == STOP ){
-		// The hash slot for the STOP symbol is not interesting.
-		continue;
-	    }
 	    while( p != -1 ){
 		indices[ix++] = p;
 		p = next[p];
