@@ -5,9 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#ifndef _M_IX86
-#include <sched.h>
-#endif
 #include <gm.h>
 
 #include "ibis_ipl_impl_net_gm_Driver.h"
