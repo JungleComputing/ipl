@@ -16,17 +16,9 @@ import java.io.File;
 
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
     private static final boolean traceSolver = false;
-    private static final boolean traceLearning = true;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
     private static int label = 0;
-
-    private static void analyzeConflict( SATContext ctx, SATProblem p )
-    {
-        if( traceLearning ){
-            Helpers.dumpAssignments( "Conflicting assignments", ctx.assignment );
-        }
-    }
 
     /**
      * Solve the leaf part of a SAT problem.

@@ -198,7 +198,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    }
 	}
 	if( posclauses[var] != poscount || negclauses[var] != negcount ){
-	    System.err.println( "Error: clause count of var[" + var + "] says (" + posclauses[var] + "," + negclauses[var] + "), not (" + poscount + "," + negcount + ")" );
+	    System.err.println( "Error: clause count of v" + var + " says (" + posclauses[var] + "," + negclauses[var] + "), not (" + poscount + "," + negcount + ")" );
 	    posclauses[var] = poscount;
 	    negclauses[var] = negcount;
 	}
@@ -214,7 +214,7 @@ public final class DPLLContext implements java.io.Serializable {
     private void analyzeConflict( SATProblem p, int cno, int var )
     {
         if( tracePropagation ){
-            System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=" + assignment[var] );
+            System.err.println( "Clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
             dumpAssignments();
         }
     }
@@ -381,7 +381,7 @@ public final class DPLLContext implements java.io.Serializable {
 
     private void dumpAssignments()
     {
-        Helpers.dumpAssignments( "Assignments", assignment );
+        Helpers.dumpAssignments( "Assignments", assignment, null );
     }
 
     /**
@@ -394,7 +394,7 @@ public final class DPLLContext implements java.io.Serializable {
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
-	    System.err.println( "Propagating assignment var[" + var + "]=true" );
+	    System.err.println( "Propagating assignment v" + var + "=true" );
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// negative term.
@@ -472,7 +472,7 @@ public final class DPLLContext implements java.io.Serializable {
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
-	    System.err.println( "Propagating assignment var[" + var + "]=false" );
+	    System.err.println( "Propagating assignment v" + var + "=false" );
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// Positive term.

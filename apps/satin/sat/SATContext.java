@@ -64,6 +64,7 @@ public class SATContext implements java.io.Serializable {
     }
 
     private static final boolean tracePropagation = false;
+    private static final boolean traceLearning = true;
     private static final boolean doVerification = false;
 
     /**
@@ -211,7 +212,7 @@ public class SATContext implements java.io.Serializable {
 	    }
 	}
 	if( posclauses[var] != poscount || negclauses[var] != negcount ){
-	    System.err.println( "Error: clause count of var[" + var + "] says (" + posclauses[var] + "," + negclauses[var] + "), not (" + poscount + "," + negcount + ")" );
+	    System.err.println( "Error: clause count of v" + var + " says (" + posclauses[var] + "," + negclauses[var] + "), not (" + poscount + "," + negcount + ")" );
 	    posclauses[var] = poscount;
 	    negclauses[var] = negcount;
 	}
@@ -226,9 +227,37 @@ public class SATContext implements java.io.Serializable {
      */
     private void analyzeConflict( SATProblem p, int cno, int var )
     {
-        if( tracePropagation ){
-            System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=" + assignment[var] );
+        if( tracePropagation | traceLearning ){
+            System.err.println( "Clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
             dumpAssignments();
+        }
+        if( traceLearning ){
+            Clause c = p.clauses[cno];
+            int arr[] = c.pos;
+
+            for( int i=0; i<arr.length; i++ ){
+                int v = arr[i];
+
+                String chain = "v" + v + "=" + assignment[v];
+                while( antecedent[v] != -1 ){
+                    int a = antecedent[v];
+                    chain = "v" + a + "=" + assignment[a] + " -> " + chain;
+                    v = a;
+                }
+                System.err.println( "@ " + chain );
+            }
+            arr = c.neg;
+            for( int i=0; i<arr.length; i++ ){
+                int v = arr[i];
+
+                String chain = "v" + v + "=" + assignment[v];
+                while( antecedent[v] != -1 ){
+                    int a = antecedent[v];
+                    chain = "v" + a + "=" + assignment[a] + " -> " + chain;
+                    v = a;
+                }
+                System.err.println( "@ " + chain );
+            }
         }
     }
 
@@ -269,6 +298,7 @@ public class SATContext implements java.io.Serializable {
 		if( tracePropagation ){
 		    System.err.println( "Propagating positive unit variable " + v + " from clause " + c );
 		}
+                antecedent[v] = antec;
 		int res = propagatePosAssignment( p, v );
 		if( res != 0 ){
 		    // The problem is now conflicting/satisfied, we're
@@ -292,6 +322,7 @@ public class SATContext implements java.io.Serializable {
 		if( tracePropagation ){
 		    System.err.println( "Propagating negative unit variable " + v + " from clause " + c );
 		}
+                antecedent[v] = antec;
 		int res = propagateNegAssignment( p, v );
 		if( res != 0 ){
 		    // The problem is now conflicting/satisfied, we're
@@ -311,7 +342,7 @@ public class SATContext implements java.io.Serializable {
      * Registers the fact that the specified clause is satisfied.
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
-    private int markClauseSatisfied( SATProblem p, int cno )
+    private int markClauseSatisfied( SATProblem p, int cno, int antec )
     {
 	boolean hasPure = false;
 
@@ -372,6 +403,7 @@ public class SATContext implements java.io.Serializable {
 		int var = pos[i];
 
 		if( assignment[var] == UNASSIGNED && posclauses[var] == 0 && negclauses[var] != 0 ){
+                    antecedent[var] = antec;
 		    int res = propagateNegAssignment( p, var );
 		    if( res != 0 ){
 			return res;
@@ -382,6 +414,7 @@ public class SATContext implements java.io.Serializable {
 		int var = neg[i];
 
 		if( assignment[var] == UNASSIGNED && negclauses[var] == 0 && posclauses[var] != 0 ){
+                    antecedent[var] = antec;
 		    int res = propagatePosAssignment( p, var );
 		    if( res != 0 ){
 			return res;
@@ -394,7 +427,7 @@ public class SATContext implements java.io.Serializable {
 
     private void dumpAssignments()
     {
-        Helpers.dumpAssignments( "Assignments", assignment );
+        Helpers.dumpAssignments( "Assignments", assignment, antecedent );
     }
 
     /**
@@ -407,7 +440,7 @@ public class SATContext implements java.io.Serializable {
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
-	    System.err.println( "Propagating assignment var[" + var + "]=true" );
+	    System.err.println( "Propagating assignment v" + var + "=true" );
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// negative term.
@@ -443,7 +476,7 @@ public class SATContext implements java.io.Serializable {
 
 	    if( !satisfied[cno] ){
                 posinfo[var] -= Helpers.information( terms[cno] );
-		int res = markClauseSatisfied( p, cno );
+		int res = markClauseSatisfied( p, cno, var );
 
 		if( res != 0 ){
 		    return res;
@@ -485,7 +518,7 @@ public class SATContext implements java.io.Serializable {
 	boolean hasUnitClauses = false;
 
 	if( tracePropagation ){
-	    System.err.println( "Propagating assignment var[" + var + "]=false" );
+	    System.err.println( "Propagating assignment v" + var + "=false" );
 	}
 	// Deduct this clause from all clauses that contain this as a
 	// Positive term.
@@ -521,7 +554,7 @@ public class SATContext implements java.io.Serializable {
 
 	    if( !satisfied[cno] ){
                 neginfo[var] -= Helpers.information( terms[cno] );
-		int res = markClauseSatisfied( p, cno );
+		int res = markClauseSatisfied( p, cno, var );
 
 		if( res != 0 ){
 		    return res;
