@@ -204,6 +204,8 @@ public final class SATContext implements java.io.Serializable {
 	}
 	if( termcount != terms[cno] ){
 	    System.err.println( "Error: I count " + termcount + " unassigned variables in clause " + c + " but the administration says " + terms[cno] );
+            dumpAssignments();
+            terms[cno] = termcount;
 	}
     }
 
@@ -784,6 +786,9 @@ public final class SATContext implements java.io.Serializable {
             for( int i=oldCount; i<newCount; i++ ){
                 Clause cl = p.clauses[i];
 
+                if( cl.isConflicting( assignment ) ){
+                    return SATProblem.CONFLICTING;
+                }
                 boolean issat = cl.isSatisfied( assignment );
                 satisfied[i] = issat;
                 if( !issat ){
@@ -927,6 +932,18 @@ public final class SATContext implements java.io.Serializable {
     public int propagatePosAssignment( SATProblem p, int var, int level, boolean learnTuple, boolean learn )
         throws SATRestartException
     {
+        if( doVerification ){
+            if( assignment[var] == 1 ){
+                System.err.println( "Error: S" + level + ": new assignment v" + var + "=1 is already in place (dl" + dl[var] + ")"  );
+                dumpAssignments();
+                return SATProblem.UNDETERMINED;
+            }
+            if( assignment[var] == 0 ){
+                System.err.println( "Error: S" + level + ": new assignment v" + var + "=1 conflicts with current assignment (dl" + dl[var] + ")" );
+                dumpAssignments();
+                return SATProblem.UNDETERMINED;
+            }
+        }
         assignment[var] = 1;
         dl[var] = level;
 	boolean hasUnitClauses = false;
@@ -1000,6 +1017,18 @@ public final class SATContext implements java.io.Serializable {
     public int propagateNegAssignment( SATProblem p, int var, int level, boolean learnTuple, boolean learn )
         throws SATRestartException
     {
+        if( doVerification ){
+            if( assignment[var] == 0 ){
+                System.err.println( "Error: S" + level + ": new assignment v" + var + "=0 is already in place (dl" + dl[var] + ")"  );
+                dumpAssignments();
+                return SATProblem.UNDETERMINED;
+            }
+            if( assignment[var] == 1 ){
+                System.err.println( "Error: S" + level + ": new assignment v" + var + "=0 conflicts with current assignment (dl" + dl[var] + ")" );
+                dumpAssignments();
+                return SATProblem.UNDETERMINED;
+            }
+        }
         assignment[var] = 0;
         dl[var] = level;
 	boolean hasUnitClauses = false;

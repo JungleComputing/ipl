@@ -92,34 +92,44 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    }
 	    throw new SATResultException( s );
 	}
-	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
-	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
+	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
 	}
-	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level, learnTuple, true );
-	}
-	else {
-	    res = ctx.propagateNegAssignment( p, var, level, learnTuple, true );
-	}
-	if( res == SATProblem.CONFLICTING ){
-	    if( traceSolver ){
-		System.err.println( "ls" + level + ": propagation found a conflict" );
-	    }
-	    return;
-	}
-	if( res == SATProblem.SATISFIED ){
-	    // Propagation reveals problem is satisfied.
-	    SATSolution s = new SATSolution( ctx.assignment );
+        if( ctx.assignment[var] != -1 ){
+            int a = val?1:0;
 
-	    if( traceSolver | printSatSolutions ){
-		System.err.println( "ls" + level + ": propagation found a solution: " + s );
-	    }
-	    if( !p.isSatisfied( ctx.assignment ) ){
-		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
-	    }
-	    throw new SATResultException( s );
-	}
+            if( ctx.assignment[var] != a ){
+                // Learned clauses imply an assignment that conflicts
+                // with our assignment. Give up.
+                return;
+            }
+        }
+        else {
+            if( val ){
+                res = ctx.propagatePosAssignment( p, var, level, learnTuple, true );
+            }
+            else {
+                res = ctx.propagateNegAssignment( p, var, level, learnTuple, true );
+            }
+            if( res == SATProblem.CONFLICTING ){
+                if( traceSolver ){
+                    System.err.println( "ls" + level + ": propagation found a conflict" );
+                }
+                return;
+            }
+            if( res == SATProblem.SATISFIED ){
+                // Propagation reveals problem is satisfied.
+                SATSolution s = new SATSolution( ctx.assignment );
+
+                if( traceSolver | printSatSolutions ){
+                    System.err.println( "ls" + level + ": propagation found a solution: " + s );
+                }
+                if( !p.isSatisfied( ctx.assignment ) ){
+                    System.err.println( "Error: " + level + ": solution does not satisfy problem." );
+                }
+                throw new SATResultException( s );
+            }
+        }
 	int nextvar = ctx.getDecisionVariable();
 	if( nextvar<0 ){
 	    // There are no variables left to assign, clearly there
@@ -185,35 +195,45 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    }
 	    throw new SATResultException( s );
 	}
-	ctx.assignment[var] = val?(byte) 1:(byte) 0;
 	if( traceSolver ){
-	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + ctx.assignment[var] );
+	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
-	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level, learnTuple, true );
-	}
-	else {
-	    res = ctx.propagateNegAssignment( p, var, level, learnTuple, true );
-	}
-	if( res == SATProblem.CONFLICTING ){
-	    // Propagation reveals a conflict.
-	    if( traceSolver ){
-		System.err.println( "s" + level + ": propagation found a conflict" );
-	    }
-	    return;
-	}
-	if( res == SATProblem.SATISFIED ){
-	    // Propagation reveals problem is satisfied.
-	    SATSolution s = new SATSolution( ctx.assignment );
+        if( ctx.assignment[var] != -1 ){
+            // There already is an assignment.
+            int a = val?1:0;
+            if( ctx.assignment[var] != a ){
+                // The assignment implied by the learned clauses conflicts
+                // with what we have. We may as well stop.
+                return;
+            }
+        }
+        else {
+            if( val ){
+                res = ctx.propagatePosAssignment( p, var, level, learnTuple, true );
+            }
+            else {
+                res = ctx.propagateNegAssignment( p, var, level, learnTuple, true );
+            }
+            if( res == SATProblem.CONFLICTING ){
+                // Propagation reveals a conflict.
+                if( traceSolver ){
+                    System.err.println( "s" + level + ": propagation found a conflict" );
+                }
+                return;
+            }
+            if( res == SATProblem.SATISFIED ){
+                // Propagation reveals problem is satisfied.
+                SATSolution s = new SATSolution( ctx.assignment );
 
-	    if( traceSolver | printSatSolutions ){
-		System.err.println( "s" + level + ": propagation found a solution: " + s );
-	    }
-	    if( !p.isSatisfied( ctx.assignment ) ){
-		System.err.println( "Error: " + level + ": solution does not satisfy problem." );
-	    }
-	    throw new SATResultException( s );
-	}
+                if( traceSolver | printSatSolutions ){
+                    System.err.println( "s" + level + ": propagation found a solution: " + s );
+                }
+                if( !p.isSatisfied( ctx.assignment ) ){
+                    System.err.println( "Error: " + level + ": solution does not satisfy problem." );
+                }
+                throw new SATResultException( s );
+            }
+        }
 	int nextvar = ctx.getDecisionVariable();
 	if( nextvar<0 ){
 	    // There are no variables left to assign, clearly there
