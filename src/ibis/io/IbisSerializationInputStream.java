@@ -35,7 +35,8 @@ public class IbisSerializationInputStream
     // if STATS_NONREWRITTEN
     private static java.util.Hashtable nonRewritten = new java.util.Hashtable();
 
-    private static Unsafe unsafe;
+    // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
+    private static Unsafe unsafe = Unsafe.getUnsafe();
 
     static {
 	if (STATS_NONREWRITTEN) {
@@ -46,14 +47,6 @@ public class IbisSerializationInputStream
 		    System.out.println(nonRewritten);
 		}
 	    });
-	}
-	try {
-	    Class refl = Class.forName("java.io.ObjectStreamClass$FieldReflector");
-	    Field uf = refl.getDeclaredField("unsafe");
-	    uf.setAccessible(true);
-	    unsafe = (Unsafe) uf.get(null);
-	} catch(Exception e) {
-	    unsafe = null;
 	}
     }
 
