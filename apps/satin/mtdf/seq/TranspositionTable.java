@@ -1,9 +1,9 @@
 final class TranspositionTable {
 	static final boolean SUPPORT_TT = true;
 
-	static final int SIZE = 1 << 22;
-	static int lookups = 0, stores = 0, overwrites = 0;
-	static int hits = 0, visited = 0, sorts = 0, aborts = 0, scoreImprovements = 0, cutOffs = 0;
+	static final int SIZE = 1 << 24;
+	static long lookups = 0, stores = 0, overwrites = 0;
+	static long hits = 0, visited = 0, sorts = 0, aborts = 0, scoreImprovements = 0, cutOffs = 0;
 
 	TranspositionTableEntry[] entries = new TranspositionTableEntry[SIZE];
 

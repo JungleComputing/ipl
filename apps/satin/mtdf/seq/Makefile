@@ -1,31 +1,24 @@
-MANTAC  	= mantac
+APP_OPTIONS = 21
 
-MANTA_FLAGS     = 
+TEST_IBIS=
 
-OBJ             = AwariBoard.o
-OBJ            += Input.o
-OBJ            += Mtdf.o
-OBJ            += NodeType.o
-OBJ            += TranspositionTable.o
-OBJ            += TranspositionTableEntry.o
+OUT= awari
 
-MAIN		=  Main.java
+include ../../../../config.mk
+include ../../config.mk
 
-EXEC		= awari
+MAIN=Main.java
 
-.java.o:
-	$(MANTAC) $(MANTA_FLAGS) -c $<
+java: 
+	$(JAVAC_COMMAND) $(MAIN)
 
-.SUFFIXES: .java
-
-java:
-	javac *.java
+satin:
+	$(IBISC_COMMAND) -no-aborts $(MAIN)
 
 manta: $(OBJ)
 	$(MANTAC)    $(MANTA_FLAGS) $(MAIN) -o $(EXEC) *.o
 
 clean:
-	rm -rf *.[oasdhc] *~ *core *.jac *.gprof *out $(EXEC) *.class *.link LASM_CACHE
+	rm -f $(TRASH_FILES) test_out test_err test_res test_par_out test_par_err test_par_res
 
-distclean: clean
-	rm -rf output-*
+include ../../run.mk

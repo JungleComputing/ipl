@@ -9,7 +9,7 @@ class Main {
 		this.file = file;
 	}
 
-	public static void main(String[] args) {
+	public static void do_main(String[] args) {
 		boolean verbose = false;
 		int option = 0;
 		int depth = 11;
@@ -55,7 +55,7 @@ class Main {
 		long start = System.currentTimeMillis();
 		for(int d = 1; d<=depth; d += 2) {
 			System.out.println("depth is now: " + d);
-			bestChild = (AwariBoard) Mtdf.mtdf(root, d);
+			bestChild = (AwariBoard) Mtdf.doMtdf(root, d);
 		}
 		long end = System.currentTimeMillis();
 
@@ -64,10 +64,10 @@ class Main {
 			System.exit(1);
 		}
 
-		System.out.println("Best move: " + bestChild.childNr + ", captures = " + bestChild.captures);
+		System.out.println("Best move: ");
 		bestChild.mirror().print();
+		System.out.println("application Awari (" + depth + "," + (file == null ? "start" : file) + ") took " + ((double)(end - start) / 1000.0) + " seconds");
 
 		Mtdf.tt.stats();
-		System.out.println("application Awari (" + depth + "," + (file == null ? "start" : file) + ") took " + ((double)(end - start) / 1000.0) + " seconds");
 	}
 }

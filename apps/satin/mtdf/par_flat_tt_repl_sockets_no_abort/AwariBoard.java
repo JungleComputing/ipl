@@ -15,7 +15,6 @@ final class AwariBoard extends NodeType implements Cloneable {
 
 	byte[] pits = new byte[PITS];
 	byte captures = 0;
-	int childNr = -1;
 
 	static long[][] rand = new long[12][49];
 
@@ -60,12 +59,10 @@ final class AwariBoard extends NodeType implements Cloneable {
 		int nrChildren = 0;
 
 		for (int i=0; i<6; i++) {
-//			System.out.println("pit " + i + " contains " + pits[i] + " seeds");
 			if (pits[i] > 0) {
 				AwariBoard child = doMove(mirror, i, pits[i]);
 				if (child.canDoMove()) {
 					children[nrChildren++] = child;
-					child.childNr = i;
 				}
 			}
 		}
@@ -73,14 +70,14 @@ final class AwariBoard extends NodeType implements Cloneable {
 		if (nrChildren == 0) {
 			for (int i=0; i<6; i++) {
 				if (pits[i] > 0) {
-					children[nrChildren] = doMove(mirror, i, pits[i]);
-					children[nrChildren].childNr = i;
-					nrChildren++;
+					children[nrChildren++] = doMove(mirror, i, pits[i]);
 				}
 			}
 		}
 
-		if(nrChildren == 0) return null;
+		if(nrChildren == 0) {
+			return null;
+		}
 
 		AwariBoard[] result = new AwariBoard[nrChildren];
 		System.arraycopy(children, 0, result, 0, nrChildren);

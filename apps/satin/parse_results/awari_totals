@@ -1,0 +1,151 @@
+#!/usr/bin/perl
+#------------------------------------------parse command line args-----------------------------------------
+
+$bcast_buf_size = 3000; # elts
+$bcast_elt_size = 18;   #bytes
+
+$arg = pop(@ARGV);
+
+print("seq file = $arg\n");
+
+open(F, $arg) or die "Can't open file: $!\n";
+
+while ($line = <F>) {
+    @words = split(" ", $line);
+
+    $seq_lookups = $words[2];
+    $seq_hits = $words[4];
+    $seq_sorts = $words[6];
+    $seq_stores = $words[8];
+    $seq_overwrites = $words[10];
+    $seq_incs = $words[13];
+    $seq_bcasts = $0;
+    $seq_bcast_time = 0;
+    $seq_bcast_avg = 0;
+    $seq_bcash_handler_time = 0;
+    $seq_bcast_handler_avg = 0;
+    $seq_cutoffs = $words[35];
+    $seq_visited = $words[37];
+}
+print("SEQ lookups = $seq_lookups hits = $seq_hits sorts = $seq_sorts stores = $seq_stores overwrites = $seq_overwrites" .
+      " incs = $seq_incs\nSEQ bcasts = $seq_bcasts bcast_time = $seq_bcast_time bcast_avg = $seq_bcast_avg bcash_handler_time = $seq_bcash_handler_time" .
+      " bcast_handler_avg = $seq_bcast_handler_avg\nSEQ cutoffs = $seq_cutoffs visited = $seq_visited\n");
+
+
+$arg = pop(@ARGV);
+
+print("par file = $arg\n");
+
+open(G, $arg) or die "Can't open file: $!\n";
+
+while ($line = <G>) {
+    @words = split(" ", $line);
+
+    $lookups += $words[2];
+    $hits += $words[4];
+    $sorts += $words[6];
+    $stores += $words[8];
+    $overwrites += $words[10];
+    $incs += $words[13];
+    $bcasts += $words[15];
+    $bcast_time += $words[18];
+    $bcast_avg += $words[22];
+    $bcash_handler_time += $words[27];
+    $bcast_handler_avg += $words[32];
+    $cutoffs += $words[35];
+    $visited += $words[37];
+}
+print("PAR lookups = $lookups hits = $hits sorts = $sorts stores = $stores overwrites = $overwrites" .
+      " incs = $incs\nPAR bcasts = $bcasts bcast_time = $bcast_time bcast_avg = $bcast_avg bcash_handler_time = $bcash_handler_time" .
+      " bcast_handler_avg = $bcast_handler_avg\nPAR cutoffs = $cutoffs visited = $visited\n");
+
+$ratio_lookups = $lookups / $seq_lookups;
+$ratio_hits = $hits / $seq_hits;
+$ratio_sorts = $sorts / $seq_sorts;
+$ratio_stores = $stores / $seq_stores;
+$ratio_overwrites = $overwrites / $seq_overwrites;
+$ratio_incs = $incs / $seq_incs;
+$ratio_cutoffs = $cutoffs / $seq_cutoffs;
+$ratio_visited = $visited / $seq_visited;
+
+
+
+print("\n\nRATIO lookups = $ratio_lookups hits = $ratio_hits sorts = $ratio_sorts stores = $ratio_stores overwrites = $ratio_overwrites" .
+      " incs = $ratio_incs\nRATIO cutoffs = $ratio_cutoffs visited = $ratio_visited\n\n");
+
+
+
+$arg = pop(@ARGV);
+
+print("idle file = $arg\n");
+
+open(G, $arg) or die "Can't open file: $!\n";
+
+while ($line = <G>) {
+    @words = split(" ", $line);
+
+    if($words[11] eq "ms") {
+	$idle_time += $words[10]/1000;
+    } else {
+	$idle_time += $words[10];
+    }
+}
+
+$arg = pop(@ARGV);
+
+print("comm file = $arg\n");
+
+open(G, $arg) or die "Can't open file: $!\n";
+
+while ($line = <G>) {
+    @words = split(" ", $line);
+    if($words[8] eq "ms") {
+	$comm_time += $words[7]/1000;
+    } else {
+	$comm_time += $words[7];
+    }
+}
+
+
+$arg = pop(@ARGV);
+
+print("runtime file = $arg\n");
+
+open(G, $arg) or die "Can't open file: $!\n";
+
+while ($line = <G>) {
+    @words = split(" ", $line);
+    $runtime = $words[4];
+}
+
+$arg = pop(@ARGV);
+
+print("ppolsize file = $arg\n");
+
+open(G, $arg) or die "Can't open file: $!\n";
+
+while ($line = <G>) {
+    @words = split(" ", $line);
+    $poolsize = $words[6];
+}
+
+
+$perc_visited = ($ratio_visited-1) * 100 + 0.05; # the plus 0.05 avoids rounding errors
+$repl_time = $bcast_time + $bcash_handler_time;
+$bcast_mb = ($bcasts * $bcast_buf_size * $bcast_elt_size) / (1024 * 1024);
+
+printf("summary:\n" .
+       "    runtime = %5.1f s\n" .
+       "    poolsize = %5d\n" .
+       "    data bcasted = %5d MBytes (%5.1f MByte/s)\n" .
+       "    tt hits %10d / %10d   (%10.5f %)\n" .
+       "    visited more nodes                (%5.1f %)\n" .
+       "    avg replication overhead: %5.1f s (%5.1f %)\n" .
+       "    avg idle time = %5.1f s           (%5.1f %)\n" .
+       "    avg software comm time = %5.1f s  (%5.1f %)\n", 
+       $runtime, $poolsize, $bcast_mb, $bcast_mb / $runtime,
+       $hits, $lookups, ($hits/$lookups) * 100,
+       $perc_visited, 
+       $repl_time/$poolsize, ($repl_time/$poolsize) / $runtime * 100,
+       $idle_time/$poolsize, ($idle_time/$poolsize) / $runtime * 100,
+       $comm_time/$poolsize, ($comm_time/$poolsize) / $runtime * 100);

@@ -1601,8 +1601,6 @@ public final class Satinc {
 
 		deleteIns(il, old_end, old_end.getNext());	// remove return
 
-		// TODO: verify code somehow.
-
 		handler_g.setMaxLocals();
 		handler_g.setMaxStack();
 		
