@@ -1,6 +1,6 @@
 // File: $Id$
 
-/** A simple but highly parallel SAT solver. Given a symbolic
+/** A parallel SAT solver. Given a symbolic
  * boolean equation in CNF, find a set of assignments that make this
  * equation true.
  *
@@ -21,7 +21,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
     /** If there are less than this number of variables left, we consider
      * this a problem that is trivial enough to hand to the leaf solver.
      */
-    static final int leafVariables = 50;
+    static final int leafVariables = 30;
 
     /** For all combinations of the first `firstVariables' variables we
      * apply simplification. This essentially creates 2^firstVariables
