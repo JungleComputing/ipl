@@ -11,21 +11,64 @@ t="15:0"
 # reserve="-reserve $reservation"
 timeout="-t $t"
 
-prun_options="IBP_SEND_SYNC=0 $reserve $timeout"
-
 nodes="2 4 8 16 32"
 # nodes="32"
 runs=10
 # runs=1
 
+sers="ibis sun"
+
+ibises="tcp net.bytes.gen.tcp_blk panda net.gm"
+
+sequential=1
+parallel=1
+
+while [ $# -gt 0 ] ; do
+    qarg="'"$1"'"
+# echo Now inspect argument $1 -- left $#
+    case "$1" in
+    -p)
+	shift
+	nodes="$1"
+	;;
+    -ibis)
+	shift
+	ibises="$1"
+	;;
+    -t)
+	shift
+	timeout="-t $1"
+	;;
+    -reserve)
+	shift
+	reservation="-reserve $1"
+	;;
+    -x)
+	shift
+	runs="$1"
+	;;
+    -ser)
+	shift
+	sers="$1"
+	;;
+    -no-seq)
+	sequential=0
+	;;
+    -no-par)
+	parallel=0
+	;;
+    *)
+	options="$options $1"
+	;;
+    esac
+    shift
+done
+
+prun_options="IBP_SEND_SYNC=0 $reserve $timeout"
+
 preserve -long-list | grep $reservation
 
-sers="ibis sun"
-# sers="sun"
-# ibises="tcp net.bytes.gen.tcp_blk panda net.gm"
-ibises="net.gm panda"
-
-if true ; then
+if [ $sequential -eq 1 ] ; then
     for ibis in $ibises ; do
 	node=1
 	for ser in $sers ; do
@@ -35,7 +78,7 @@ if true ; then
     done
 fi
 
-if true ; then
+if [ $parallel -eq 1 ] ; then
     for (( i = 0; i < $runs; i++ )) ; do
 	for node in $nodes ; do
 	    for ibis in $ibises ; do
