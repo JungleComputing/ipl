@@ -27,15 +27,10 @@ SERIALIZABLE	= Int32.java
 SERIALIZABLE	+= DITree.java
 SERIALIZABLE	+= Cyclic.java
 SERIALIZABLE	+= B.java
-
-OUT		= RMI_Bench
-
-SERIALIZABLE	+= DITree.java
-SERIALIZABLE	+= Int32.java
-SERIALIZABLE	+= Cyclic.java
-SERIALIZABLE	+= B.java
 SERIALIZABLE	+= WithInner.java
 SERIALIZABLE	+= WithInner$$Inner.java
+
+OUT		= RMI_Bench
 
 # SRC		+= Escape.java
 
