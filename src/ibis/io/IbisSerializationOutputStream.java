@@ -15,9 +15,8 @@ import java.io.ObjectStreamClass;
 public final class IbisSerializationOutputStream extends SerializationOutputStream implements IbisStreamFlags {
     /**
      * The underlying <code>IbisAccumulator</code>.
-     * Must be public so that IOGenerator-generated code can access it.
      */
-    public final IbisAccumulator out;
+    private final IbisAccumulator out;
 
     /**
      * The first free object handle.
@@ -85,72 +84,72 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     /**
      * Storage for bytes (or booleans) written.
      */
-    public byte[]	byte_buffer    = new byte[BYTE_BUFFER_SIZE];
+    private byte[]	byte_buffer    = new byte[BYTE_BUFFER_SIZE];
 
     /**
      * Storage for chars written.
      */
-    public char[]	char_buffer    = new char[CHAR_BUFFER_SIZE];
+    private char[]	char_buffer    = new char[CHAR_BUFFER_SIZE];
 
     /**
      * Storage for shorts written.
      */
-    public short[]	short_buffer   = new short[SHORT_BUFFER_SIZE];
+    private short[]	short_buffer   = new short[SHORT_BUFFER_SIZE];
 
     /**
      * Storage for ints written.
      */
-    public int[]	int_buffer     = new int[INT_BUFFER_SIZE];
+    private int[]	int_buffer     = new int[INT_BUFFER_SIZE];
 
     /**
      * Storage for longs written.
      */
-    public long[]	long_buffer    = new long[LONG_BUFFER_SIZE];
+    private long[]	long_buffer    = new long[LONG_BUFFER_SIZE];
 
     /**
      * Storage for floats written.
      */
-    public float[]	float_buffer   = new float[FLOAT_BUFFER_SIZE];
+    private float[]	float_buffer   = new float[FLOAT_BUFFER_SIZE];
 
     /**
      * Storage for doubles written.
      */
-    public double[]	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
+    private double[]	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
 
     /**
      * Current index in <code>byte_buffer</code>.
      */
-    public int		byte_index;
+    private int		byte_index;
 
     /**
      * Current index in <code>char_buffer</code>.
      */
-    public int		char_index;
+    private int		char_index;
 
     /**
      * Current index in <code>short_buffer</code>.
      */
-    public int		short_index;
+    private int		short_index;
 
     /**
      * Current index in <code>int_buffer</code>.
      */
-    public int		int_index;
+    private int		int_index;
 
     /**
      * Current index in <code>long_buffer</code>.
      */
-    public int		long_index;
+    private int		long_index;
 
     /**
      * Current index in <code>float_buffer</code>.
      */
-    public int		float_index;
+    private int		float_index;
 
     /**
      * Current index in <code>double_buffer</code>.
      */
-    public int		double_index;
+    private int		double_index;
 
     /**
      * Register how often we need to acquire a new set of primitive array
@@ -191,7 +190,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     /**
      * Collects all indices of the <code>_buffer</code> arrays.
      */
-    protected short[]	indices_short  = new short[PRIMITIVE_TYPES];
+    private short[]	indices_short  = new short[PRIMITIVE_TYPES];
 
     /**
      * For each 
@@ -220,56 +219,10 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
     }
 
     /**
-     * Debugging print.
-     * @param s	the string to be printed.
-     */
-    private void dbPrint(String s) {
-	IbisSerializationInputStream.debuggerPrint(this + ": " + s);
-    }
-
-    /**
-     * Initializes the type hash by adding arrays of primitive types.
-     */
-    private void types_clear() {
-	types.clear();
-	types.put(classBooleanArray, TYPE_BOOLEAN | TYPE_BIT);
-	types.put(classByteArray,    TYPE_BYTE | TYPE_BIT);
-	types.put(classCharArray,    TYPE_CHAR | TYPE_BIT);
-	types.put(classShortArray,   TYPE_SHORT | TYPE_BIT);
-	types.put(classIntArray,     TYPE_INT | TYPE_BIT);
-	types.put(classLongArray,    TYPE_LONG | TYPE_BIT);
-	types.put(classFloatArray,   TYPE_FLOAT | TYPE_BIT);
-	types.put(classDoubleArray,  TYPE_DOUBLE | TYPE_BIT);
-	next_type = PRIMITIVE_TYPES;
-    }
-
-    /**
      * {@inheritDoc}
      */
     public String serializationImplName() {
 	return "ibis";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void reset() throws IOException {
-	if (next_handle > CONTROL_HANDLES) {
-	    if(DEBUG) {
-		dbPrint("reset: next handle = " + next_handle + ".");
-	    }
-	    references.clear();
-	    /* We cannot send out the reset immediately, because the
-	     * reader side only accepts a reset when it is expecting a
-	     * handle. So, instead, we remember that we need to send
-	     * out a reset, and send before sending the next handle.
-	     */
-	    resetPending = true;
-	    next_handle = CONTROL_HANDLES;
-	}
-	// types_clear();
-	// There is no need to clear the type table.
-	// It can be reused after a reset.
     }
 
     /**
@@ -284,107 +237,16 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
     }
 
-    /* This is the data output / object output part */
-
-    /**
-     * {@inheritDoc}
+    /*
+     * If you at some point want to override IbisSerializationOutputStream,
+     * you probably need to override the methods from here on up until
+     * comment tells you otherwise.
      */
-    public void write(int v) throws IOException {
-	writeByte((byte)(0xff & v));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void write(byte[] b) throws IOException {
-	write(b, 0, b.length);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void write(byte[] b, int off, int len) throws IOException {
-	writeArray(b, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void writeUTF(String str) throws IOException {
-	// dbPrint("writeUTF: " + str);
-	if(str == null) {
-	    writeInt(-1);
-	    return;
-	}
-
-	if(DEBUG) {
-	    dbPrint("write UTF " + str);
-	}
-	int len = str.length();
-
-	//	writeInt(len);
-	//	writeArray(str.toCharArray(), 0, len);
-
-	byte[] b = new byte[3 * len];
-	int bn = 0;
-
-	for (int i = 0; i < len; i++) {
-	    char c = str.charAt(i);
-	    if (c > 0x0000 && c <= 0x007f) {
-		b[bn++] = (byte)c;
-	    } else if (c <= 0x07ff) {
-		b[bn++] = (byte)(0xc0 | (0x1f & (c >> 6)));
-		b[bn++] = (byte)(0x80 | (0x3f & c));
-	    } else {
-		b[bn++] = (byte)(0xe0 | (0x0f & (c >> 12)));
-		b[bn++] = (byte)(0x80 | (0x3f & (c >>  6)));
-		b[bn++] = (byte)(0x80 | (0x3f & c));
-	    }
-	}
-
-	writeInt(bn);
-	writeArray(b, 0, bn);
-    }
-
-    /**
-     * Called by IOGenerator-generated code to write a Class object to this stream.
-     * For a Class object, only its name is written.
-     * @param ref		the <code>Class</code> to be written
-     * @exception IOException	gets thrown when an IO error occurs.
-     */
-    public void writeClass(Class ref) throws IOException {
-	if (ref == null) {
-	    writeHandle(NUL_HANDLE);
-	    return;
-	}
-	int hashCode = references.getHashCode(ref);
-	int handle = references.find(ref, hashCode);
-	if (handle == 0) {
-	    handle = next_handle++;
-	    references.put(ref, handle, hashCode);
-	    writeType(java.lang.Class.class);
-	    writeUTF(ref.getName());
-	} else {
-	    writeHandle(handle);
-	}
-    }
-
-    /**
-     * Initialize all buffer indices to zero.
-     */
-    final protected void reset_indices() {
-	byte_index = 0;
-	char_index = 0;
-	short_index = 0;
-	int_index = 0;
-	long_index = 0;
-	float_index = 0;
-	double_index = 0;
-    }
 
     /**
      * Method to put a array in the "array cache". If the cache is full
-     * it is written to the arrayOutputStream
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
      * @param ref	the array to be written
      * @param offset	the offset at which to start
      * @param len	number of elements to write
@@ -392,7 +254,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
      *
      * @exception IOException on IO error.
      */
-    private void writeArray(Object ref, int offset, int len, int type)
+    public void writeArray(Object ref, int offset, int len, int type)
 	    throws IOException {
 	if (array_index == ARRAY_BUFFER_SIZE) {
 	    flush();
@@ -490,65 +352,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	for (int i = 0; i < PRIMITIVE_TYPES; i++) {
 	    touched[i] = false;
 	}
-    }
-
-    /**
-     * Flush the primitive arrays.
-     *
-     * @exception IOException is thrown when any <code>writeArray</code>
-     * throws it.
-     */
-    public final void flushBuffers() throws IOException {
-	indices_short[TYPE_BYTE]    = (short) byte_index;
-	indices_short[TYPE_CHAR]    = (short) char_index;
-	indices_short[TYPE_SHORT]   = (short) short_index;
-	indices_short[TYPE_INT]     = (short) int_index;
-	indices_short[TYPE_LONG]    = (short) long_index;
-	indices_short[TYPE_FLOAT]   = (short) float_index;
-	indices_short[TYPE_DOUBLE]  = (short) double_index;
-
-	if (DEBUG) {
-	    dbPrint("writing bytes " + byte_index);
-	    dbPrint("writing chars " + char_index);
-	    dbPrint("writing shorts " + short_index);
-	    dbPrint("writing ints " + int_index);
-	    dbPrint("writing longs " + long_index);
-	    dbPrint("writing floats " + float_index);
-	    dbPrint("writing doubles " + double_index);
-	}
-
-	out.writeArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES-BEGIN_TYPES);
-
-	if (byte_index > 0) {
-	    out.writeArray(byte_buffer, 0, byte_index);
-	    touched[TYPE_BYTE] = true;
-	}
-	if (char_index > 0) {
-	    out.writeArray(char_buffer, 0, char_index);
-	    touched[TYPE_CHAR] = true;
-	}
-	if (short_index > 0) {
-	    out.writeArray(short_buffer, 0, short_index);
-	    touched[TYPE_SHORT] = true;
-	}
-	if (int_index > 0) {
-	    out.writeArray(int_buffer, 0, int_index);
-	    touched[TYPE_INT] = true;
-	}
-	if (long_index > 0) {
-	    out.writeArray(long_buffer, 0, long_index);
-	    touched[TYPE_LONG] = true;
-	}
-	if (float_index > 0) {
-	    out.writeArray(float_buffer, 0, float_index);
-	    touched[TYPE_FLOAT] = true;
-	}
-	if (double_index > 0) {
-	    out.writeArray(double_buffer, 0, double_index);
-	    touched[TYPE_DOUBLE] = true;
-	}
-
-	reset_indices();
     }
 
     /**
@@ -671,6 +474,216 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    dbPrint("wrote double " + value);
 	}
 	double_buffer[double_index++] = value;
+    }
+
+    /*
+     * If you are overriding IbisSerializationOutputStream,
+     * you can stop now :-) 
+     * The rest is built on top of these.
+     */
+
+    /**
+     * Debugging print.
+     * @param s	the string to be printed.
+     */
+    private void dbPrint(String s) {
+	IbisSerializationInputStream.debuggerPrint(this + ": " + s);
+    }
+
+    /**
+     * Initializes the type hash by adding arrays of primitive types.
+     */
+    private void types_clear() {
+	types.clear();
+	types.put(classBooleanArray, TYPE_BOOLEAN | TYPE_BIT);
+	types.put(classByteArray,    TYPE_BYTE | TYPE_BIT);
+	types.put(classCharArray,    TYPE_CHAR | TYPE_BIT);
+	types.put(classShortArray,   TYPE_SHORT | TYPE_BIT);
+	types.put(classIntArray,     TYPE_INT | TYPE_BIT);
+	types.put(classLongArray,    TYPE_LONG | TYPE_BIT);
+	types.put(classFloatArray,   TYPE_FLOAT | TYPE_BIT);
+	types.put(classDoubleArray,  TYPE_DOUBLE | TYPE_BIT);
+	next_type = PRIMITIVE_TYPES;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void reset() throws IOException {
+	if (next_handle > CONTROL_HANDLES) {
+	    if(DEBUG) {
+		dbPrint("reset: next handle = " + next_handle + ".");
+	    }
+	    references.clear();
+	    /* We cannot send out the reset immediately, because the
+	     * reader side only accepts a reset when it is expecting a
+	     * handle. So, instead, we remember that we need to send
+	     * out a reset, and send before sending the next handle.
+	     */
+	    resetPending = true;
+	    next_handle = CONTROL_HANDLES;
+	}
+	// types_clear();
+	// There is no need to clear the type table.
+	// It can be reused after a reset.
+    }
+
+    /* This is the data output / object output part */
+
+    /**
+     * {@inheritDoc}
+     */
+    public void write(int v) throws IOException {
+	writeByte((byte)(0xff & v));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void write(byte[] b) throws IOException {
+	write(b, 0, b.length);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void write(byte[] b, int off, int len) throws IOException {
+	writeArray(b, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeUTF(String str) throws IOException {
+	// dbPrint("writeUTF: " + str);
+	if(str == null) {
+	    writeInt(-1);
+	    return;
+	}
+
+	if(DEBUG) {
+	    dbPrint("write UTF " + str);
+	}
+	int len = str.length();
+
+	//	writeInt(len);
+	//	writeArray(str.toCharArray(), 0, len);
+
+	byte[] b = new byte[3 * len];
+	int bn = 0;
+
+	for (int i = 0; i < len; i++) {
+	    char c = str.charAt(i);
+	    if (c > 0x0000 && c <= 0x007f) {
+		b[bn++] = (byte)c;
+	    } else if (c <= 0x07ff) {
+		b[bn++] = (byte)(0xc0 | (0x1f & (c >> 6)));
+		b[bn++] = (byte)(0x80 | (0x3f & c));
+	    } else {
+		b[bn++] = (byte)(0xe0 | (0x0f & (c >> 12)));
+		b[bn++] = (byte)(0x80 | (0x3f & (c >>  6)));
+		b[bn++] = (byte)(0x80 | (0x3f & c));
+	    }
+	}
+
+	writeInt(bn);
+	writeArray(b, 0, bn);
+    }
+
+    /**
+     * Called by IOGenerator-generated code to write a Class object to this stream.
+     * For a Class object, only its name is written.
+     * @param ref		the <code>Class</code> to be written
+     * @exception IOException	gets thrown when an IO error occurs.
+     */
+    public void writeClass(Class ref) throws IOException {
+	if (ref == null) {
+	    writeHandle(NUL_HANDLE);
+	    return;
+	}
+	int hashCode = references.getHashCode(ref);
+	int handle = references.find(ref, hashCode);
+	if (handle == 0) {
+	    handle = next_handle++;
+	    references.put(ref, handle, hashCode);
+	    writeType(java.lang.Class.class);
+	    writeUTF(ref.getName());
+	} else {
+	    writeHandle(handle);
+	}
+    }
+
+    /**
+     * Initialize all buffer indices to zero.
+     */
+    private void reset_indices() {
+	byte_index = 0;
+	char_index = 0;
+	short_index = 0;
+	int_index = 0;
+	long_index = 0;
+	float_index = 0;
+	double_index = 0;
+    }
+
+
+    /**
+     * Flush the primitive arrays.
+     *
+     * @exception IOException is thrown when any <code>writeArray</code>
+     * throws it.
+     */
+    private void flushBuffers() throws IOException {
+	indices_short[TYPE_BYTE]    = (short) byte_index;
+	indices_short[TYPE_CHAR]    = (short) char_index;
+	indices_short[TYPE_SHORT]   = (short) short_index;
+	indices_short[TYPE_INT]     = (short) int_index;
+	indices_short[TYPE_LONG]    = (short) long_index;
+	indices_short[TYPE_FLOAT]   = (short) float_index;
+	indices_short[TYPE_DOUBLE]  = (short) double_index;
+
+	if (DEBUG) {
+	    dbPrint("writing bytes " + byte_index);
+	    dbPrint("writing chars " + char_index);
+	    dbPrint("writing shorts " + short_index);
+	    dbPrint("writing ints " + int_index);
+	    dbPrint("writing longs " + long_index);
+	    dbPrint("writing floats " + float_index);
+	    dbPrint("writing doubles " + double_index);
+	}
+
+	out.writeArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES-BEGIN_TYPES);
+
+	if (byte_index > 0) {
+	    out.writeArray(byte_buffer, 0, byte_index);
+	    touched[TYPE_BYTE] = true;
+	}
+	if (char_index > 0) {
+	    out.writeArray(char_buffer, 0, char_index);
+	    touched[TYPE_CHAR] = true;
+	}
+	if (short_index > 0) {
+	    out.writeArray(short_buffer, 0, short_index);
+	    touched[TYPE_SHORT] = true;
+	}
+	if (int_index > 0) {
+	    out.writeArray(int_buffer, 0, int_index);
+	    touched[TYPE_INT] = true;
+	}
+	if (long_index > 0) {
+	    out.writeArray(long_buffer, 0, long_index);
+	    touched[TYPE_LONG] = true;
+	}
+	if (float_index > 0) {
+	    out.writeArray(float_buffer, 0, float_index);
+	    touched[TYPE_FLOAT] = true;
+	}
+	if (double_index > 0) {
+	    out.writeArray(double_buffer, 0, double_index);
+	    touched[TYPE_DOUBLE] = true;
+	}
+
+	reset_indices();
     }
 
     /**
@@ -803,7 +816,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	Class clazz = ref.getClass();
 	if (writeArrayHeader(ref, clazz, len, false)) {
 	    for (int i = off; i < off + len; i++) {
-		writeObject(ref[i]);
+		writeObjectOverride(ref[i]);
 	    }
 	}
     }
@@ -935,7 +948,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    int len = a.length;
 	    if(writeArrayHeader(a, arrayClass, len, ! unshared)) {
 		for (int i = 0; i < len; i++) {
-		    writeObject(a[i]);
+		    writeObjectOverride(a[i]);
 		}
 	    }
 	}
@@ -1041,7 +1054,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	for (i=0;i<t.char_count;i++)      writeChar(t.serializable_fields[temp++].getChar(ref));
 	for (i=0;i<t.byte_count;i++)      writeByte(t.serializable_fields[temp++].getByte(ref));
 	for (i=0;i<t.boolean_count;i++)   writeBoolean(t.serializable_fields[temp++].getBoolean(ref));
-	for (i=0;i<t.reference_count;i++) writeObject(t.serializable_fields[temp++].get(ref));
+	for (i=0;i<t.reference_count;i++) writeObjectOverride(t.serializable_fields[temp++].get(ref));
     }
 
 
@@ -1490,7 +1503,7 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    for (int i = 0; i < t.char_count; i++) writeChar(chars[i]);
 	    for (int i = 0; i < t.byte_count; i++) writeByte(bytes[i]);
 	    for (int i = 0; i < t.boolean_count; i++) writeBoolean(booleans[i]);
-	    for (int i = 0; i < t.reference_count; i++) writeObject(references[i]);
+	    for (int i = 0; i < t.reference_count; i++) writeObjectOverride(references[i]);
 	}
     }
 

@@ -23,18 +23,17 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /**
      * List of objects, for cycle checking.
      */
-    IbisVector objects;
+    private IbisVector objects;
 
     /**
      * First free object index.
      */
-    int next_handle;
+    private int next_handle;
 
     /**
      * The underlying <code>IbisDissipator</code>.
-     * Must be public so that IOGenerator-generated code can access it.
      */
-    public final IbisDissipator in;
+    private final IbisDissipator in;
 
     /**
      * First free type index.
@@ -129,112 +128,112 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * each type, how many of those must be read. This header array is
      * read into <code>indices_short</code>.
      */
-    protected short[]	indices_short  = new short[PRIMITIVE_TYPES];
+    private short[]	indices_short  = new short[PRIMITIVE_TYPES];
 
     /**
      * Storage for bytes (or booleans) read.
      */
-    public byte[]	byte_buffer    = new byte[BYTE_BUFFER_SIZE];
+    private byte[]	byte_buffer    = new byte[BYTE_BUFFER_SIZE];
 
     /**
      * Storage for chars read.
      */
-    public char[]	char_buffer    = new char[CHAR_BUFFER_SIZE];
+    private char[]	char_buffer    = new char[CHAR_BUFFER_SIZE];
 
     /**
      * Storage for shorts read.
      */
-    public short[]	short_buffer   = new short[SHORT_BUFFER_SIZE];
+    private short[]	short_buffer   = new short[SHORT_BUFFER_SIZE];
 
     /**
      * Storage for ints read.
      */
-    public int[]	int_buffer     = new int[INT_BUFFER_SIZE];
+    private int[]	int_buffer     = new int[INT_BUFFER_SIZE];
 
     /**
      * Storage for longs read.
      */
-    public long[]	long_buffer    = new long[LONG_BUFFER_SIZE];
+    private long[]	long_buffer    = new long[LONG_BUFFER_SIZE];
 
     /**
      * Storage for floats read.
      */
-    public float[]	float_buffer   = new float[FLOAT_BUFFER_SIZE];
+    private float[]	float_buffer   = new float[FLOAT_BUFFER_SIZE];
 
     /**
      * Storage for doubles read.
      */
-    public double[]	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
+    private double[]	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
 
     /**
      * Current index in <code>byte_buffer</code>.
      */
-    public int		byte_index;
+    private int		byte_index;
 
     /**
      * Current index in <code>char_buffer</code>.
      */
-    public int		char_index;
+    private int		char_index;
 
     /**
      * Current index in <code>short_buffer</code>.
      */
-    public int		short_index;
+    private int		short_index;
 
     /**
      * Current index in <code>int_buffer</code>.
      */
-    public int		int_index;
+    private int		int_index;
 
     /**
      * Current index in <code>long_buffer</code>.
      */
-    public int		long_index;
+    private int		long_index;
 
     /**
      * Current index in <code>float_buffer</code>.
      */
-    public int		float_index;
+    private int		float_index;
 
     /**
      * Current index in <code>double_buffer</code>.
      */
-    public int		double_index;
+    private int		double_index;
 
     /**
      * Number of bytes in <code>byte_buffer</code>.
      */
-    public int		max_byte_index;
+    private int		max_byte_index;
 
     /**
      * Number of chars in <code>char_buffer</code>.
      */
-    public int		max_char_index;
+    private int		max_char_index;
 
     /**
      * Number of shorts in <code>short_buffer</code>.
      */
-    public int		max_short_index;
+    private int		max_short_index;
 
     /**
      * Number of ints in <code>int_buffer</code>.
      */
-    public int		max_int_index;
+    private int		max_int_index;
 
     /**
      * Number of longs in <code>long_buffer</code>.
      */
-    public int		max_long_index;
+    private int		max_long_index;
 
     /**
      * Number of floats in <code>float_buffer</code>.
      */
-    public int		max_float_index;
+    private int		max_float_index;
 
     /**
      * Number of doubles in <code>double_buffer</code>.
      */
-    public int		max_double_index;
+    private int		max_double_index;
 
 
     /**
@@ -249,236 +248,17 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	this.in = in;
     }
 
-    /**
-     * Debugging print.
-     * @param s	the string to be printed.
+    /*
+     * If you at some point want to override IbisSerializationOutputStream,
+     * you probably need to override the methods from here on up until
+     * comment tells you otherwise.
      */
-    private void dbPrint(String s) {
-	debuggerPrint(this + ": " + s);
-    }
-
-    public synchronized static void debuggerPrint(String s) {
-	System.err.println(s);
-    }
-
-    /**
-     * Initializes the <code>objects</code> and <code>types</code> fields, including
-     * their indices.
-     *
-     * @param do_types	set when the type table must be initialized as well (this
-     * is not needed after a reset).
-     */
-    private void init(boolean do_types) {
-	if (do_types) {
-	    types = new IbisVector();
-	    types.add(0, null);	// Vector requires this
-	    types.add(TYPE_BOOLEAN,	booleanArrayInfo);
-	    types.add(TYPE_BYTE,	byteArrayInfo);
-	    types.add(TYPE_CHAR,	charArrayInfo);
-	    types.add(TYPE_SHORT,	shortArrayInfo);
-	    types.add(TYPE_INT,		intArrayInfo);
-	    types.add(TYPE_LONG,	longArrayInfo);
-	    types.add(TYPE_FLOAT,	floatArrayInfo);
-	    types.add(TYPE_DOUBLE,	doubleArrayInfo);
-
-	    next_type = PRIMITIVE_TYPES;
-	}
-
-	objects.clear();
-	next_handle = CONTROL_HANDLES;
-    }
 
     /**
      * {@inheritDoc}
      */
     public String serializationImplName() {
 	return "ibis";
-    }
-
-    /**
-     * resets the stream, by clearing the object and type table.
-     */
-    private void do_reset() {
-	if (DEBUG) {
-	    dbPrint("received reset: next handle = " + next_handle + ".");
-	}
-	init(false);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void clear() {
-	if (DEBUG) {
-	    dbPrint("explicit clear: next handle = " + next_handle + ".");
-	}
-	init(false);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void statistics() {
-	System.err.println("IbisSerializationInputStream: statistics() not yet implemented");
-    }
-
-    /**
-     * The number of bytes read from the network 
-     * since the last reset of this counter
-     * @return The number of bytes read.
-     */
-    public long bytesRead() {
-	return in.bytesRead();
-    }
-
-    /**
-     * Resets the "number of bytes read" counter.
-     */
-    public void resetBytesRead() {
-	in.resetBytesRead();
-    }
-
-    /* This is the data output / object output part */
-
-    /**
-     * {@inheritDoc}
-     */
-    public int read() throws IOException {
-	return readByte();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int read(byte[] b) throws IOException {
-	return read(b, 0, b.length);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int read(byte[] b, int off, int len) throws IOException {
-	readArray(b, off, len);
-	return len;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public long skip(long n) throws IOException {
-	throw new IOException("skip not meaningful in a typed input stream");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int skipBytes(int n) throws IOException {
-	throw new IOException("skipBytes not meaningful in a typed input stream");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int available() throws IOException {
-	/* @@@ NOTE: this is not right. There are also some buffered arrays..*/
-        return in.available();
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readFully(byte[] b) throws IOException {
-	readFully(b, 0, b.length);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readFully(byte[] b, int off, int len) throws IOException {
-	read(b, off, len);
-    }
-
-    /**
-     * Receive a new bunch of data.
-     *
-     * @exception IOException gets thrown when any of the reads throws it.
-     */
-    public final void receive() throws IOException {
-	if (DEBUG) {
-	    dbPrint("doing a receive()");
-	}
-	if(ASSERTS) {
-	    int sum = (max_byte_index - byte_index) + 
-		    (max_char_index - char_index) + 
-		    (max_short_index - short_index) + 
-		    (max_int_index - int_index) + 
-		    (max_long_index - long_index) + 
-		    (max_float_index - float_index) + 
-		    (max_double_index - double_index);
-	    if (sum != 0) { 
-		dbPrint("EEEEK : receiving while there is data in buffer !!!");
-		dbPrint("byte_index "   + (max_byte_index - byte_index));
-		dbPrint("char_index "   + (max_char_index - char_index));
-		dbPrint("short_index "  + (max_short_index -short_index));
-		dbPrint("int_index "    + (max_int_index - int_index));
-		dbPrint("long_index "   + (max_long_index -long_index));
-		dbPrint("double_index " + (max_double_index -double_index));
-		dbPrint("float_index "  + (max_float_index - float_index));
-
-		throw new SerializationError("Internal error!");
-	    }
-	}
-
-	in.readArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES-BEGIN_TYPES);
-
-	byte_index    = 0;
-	char_index    = 0;
-	short_index   = 0;
-	int_index     = 0;
-	long_index    = 0;
-	float_index   = 0;
-	double_index  = 0;
-
-	max_byte_index    = indices_short[TYPE_BYTE];
-	max_char_index    = indices_short[TYPE_CHAR];
-	max_short_index   = indices_short[TYPE_SHORT];
-	max_int_index     = indices_short[TYPE_INT];
-	max_long_index    = indices_short[TYPE_LONG];
-	max_float_index   = indices_short[TYPE_FLOAT];
-	max_double_index  = indices_short[TYPE_DOUBLE];
-
-	if(DEBUG) {
-	    dbPrint("reading bytes " + max_byte_index);
-	    dbPrint("reading char " + max_char_index);
-	    dbPrint("reading short " + max_short_index);
-	    dbPrint("reading int " + max_int_index);
-	    dbPrint("reading long " + max_long_index);
-	    dbPrint("reading float " + max_float_index);
-	    dbPrint("reading double " + max_double_index);
-	}
-
-	if (max_byte_index > 0) {
-	    in.readArray(byte_buffer, 0, max_byte_index);
-	}
-	if (max_char_index > 0) {
-	    in.readArray(char_buffer, 0, max_char_index);
-	}
-	if (max_short_index > 0) {
-	    in.readArray(short_buffer, 0, max_short_index);
-	}
-	if (max_int_index > 0) {
-	    in.readArray(int_buffer, 0, max_int_index);
-	}
-	if (max_long_index > 0) {
-	    in.readArray(long_buffer, 0, max_long_index);
-	}
-	if (max_float_index > 0) {
-	    in.readArray(float_buffer, 0, max_float_index);
-	}
-	if (max_double_index > 0) {
-	    in.readArray(double_buffer, 0, max_double_index);
-	}
     }
 
     /**
@@ -583,6 +363,472 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    dbPrint("read double: " + double_buffer[double_index]);
 	}
 	return double_buffer[double_index++];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(boolean[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classBooleanArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require boolean[]", e);
+	}
+	in.readArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(byte[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classByteArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require byte[]", e);
+	}
+	in.readArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(char[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classCharArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require char[]", e);
+	}
+	in.readArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(short[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classShortArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require short[]", e);
+	}
+	in.readArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(int[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classIntArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require int[]", e);
+	}
+	in.readArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(long[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classLongArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require long[]", e);
+	}
+	in.readArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(float[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classFloatArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require float[]", e);
+	}
+	in.readArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(double[] ref, int off, int len) throws IOException {
+	try {
+	    readArrayHeader(classDoubleArray, len);
+	} catch (ClassNotFoundException e) {
+	    if (DEBUG) {
+		dbPrint("Caught exception: " + e);
+		e.printStackTrace();
+		dbPrint("now rethrow as SerializationError ...");
+	    }
+	    throw new SerializationError("require double[]", e);
+	}
+	in.readArray(ref, off, len);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readArray(Object[] ref, int off, int len)
+	throws IOException, ClassNotFoundException {
+	readArrayHeader(ref.getClass(), len);
+	for (int i = off; i < off + len; i++) {
+	    ref[i] = readObjectOverride();
+	}
+    }
+
+    /**
+     * Allocates and reads an array of bytes from the input stream.
+     * This method is used by IOGenerator-generated code.
+     * @return the array read.
+     * @exception IOException in case of error.
+     */
+    public byte[] readArrayByte() throws IOException {
+	int len = readInt();
+	byte[] b = new byte[len];
+	addObjectToCycleCheck(b);
+	in.readArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of boolans.
+     */
+    public boolean[] readArrayBoolean() throws IOException {
+	int len = readInt();
+	boolean[] b = new boolean[len];
+	addObjectToCycleCheck(b);
+	in.readArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of chars.
+     */
+    public char[] readArrayChar() throws IOException {
+	int len = readInt();
+	char[] b = new char[len];
+	addObjectToCycleCheck(b);
+	in.readArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of shorts.
+     */
+    public short[] readArrayShort() throws IOException {
+	int len = readInt();
+	short[] b = new short[len];
+	addObjectToCycleCheck(b);
+	in.readArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of ints.
+     */
+    public int[] readArrayInt() throws IOException {
+	int len = readInt();
+	int[] b = new int[len];
+	addObjectToCycleCheck(b);
+	in.readArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of longs.
+     */
+    public long[] readArrayLong() throws IOException {
+	int len = readInt();
+	long[] b = new long[len];
+	addObjectToCycleCheck(b);
+	in.readArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of floats.
+     */
+    public float[] readArrayFloat() throws IOException {
+	int len = readInt();
+	float[] b = new float[len];
+	addObjectToCycleCheck(b);
+	in.readArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * See {@link #readArrayByte()}, this one is for an array of doubles.
+     */
+    public double[] readArrayDouble() throws IOException {
+	int len = readInt();
+	double[] b = new double[len];
+	addObjectToCycleCheck(b);
+	in.readArray(b, 0, len);
+	return b;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int available() throws IOException {
+	/* @@@ NOTE: this is not right. There are also some buffered arrays..*/
+        return in.available();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void close() throws IOException {
+	types = null;
+	objects.clear();
+	in.close();
+    }
+
+    /*
+     * If you are overriding IbisSerializationInputStream,
+     * you can stop now :-) 
+     * The rest is built on top of these.
+     */
+
+    /**
+     * Debugging print.
+     * @param s	the string to be printed.
+     */
+    private void dbPrint(String s) {
+	debuggerPrint(this + ": " + s);
+    }
+
+    /**
+     * Debugging print, also for IbisSerializationOutputStream.
+     * @param s the string to be printed.
+     */
+    protected synchronized static void debuggerPrint(String s) {
+	System.err.println(s);
+    }
+
+    /**
+     * Initializes the <code>objects</code> and <code>types</code> fields, including
+     * their indices.
+     *
+     * @param do_types	set when the type table must be initialized as well (this
+     * is not needed after a reset).
+     */
+    private void init(boolean do_types) {
+	if (do_types) {
+	    types = new IbisVector();
+	    types.add(0, null);	// Vector requires this
+	    types.add(TYPE_BOOLEAN,	booleanArrayInfo);
+	    types.add(TYPE_BYTE,	byteArrayInfo);
+	    types.add(TYPE_CHAR,	charArrayInfo);
+	    types.add(TYPE_SHORT,	shortArrayInfo);
+	    types.add(TYPE_INT,		intArrayInfo);
+	    types.add(TYPE_LONG,	longArrayInfo);
+	    types.add(TYPE_FLOAT,	floatArrayInfo);
+	    types.add(TYPE_DOUBLE,	doubleArrayInfo);
+
+	    next_type = PRIMITIVE_TYPES;
+	}
+
+	objects.clear();
+	next_handle = CONTROL_HANDLES;
+    }
+
+    /**
+     * resets the stream, by clearing the object and type table.
+     */
+    private void do_reset() {
+	if (DEBUG) {
+	    dbPrint("received reset: next handle = " + next_handle + ".");
+	}
+	init(false);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void clear() {
+	if (DEBUG) {
+	    dbPrint("explicit clear: next handle = " + next_handle + ".");
+	}
+	init(false);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void statistics() {
+	System.err.println("IbisSerializationInputStream: statistics() not yet implemented");
+    }
+
+    /* This is the data output / object output part */
+
+    /**
+     * {@inheritDoc}
+     */
+    public int read() throws IOException {
+	return readByte();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int read(byte[] b) throws IOException {
+	return read(b, 0, b.length);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int read(byte[] b, int off, int len) throws IOException {
+	readArray(b, off, len);
+	return len;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public long skip(long n) throws IOException {
+	throw new IOException("skip not meaningful in a typed input stream");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int skipBytes(int n) throws IOException {
+	throw new IOException("skipBytes not meaningful in a typed input stream");
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readFully(byte[] b) throws IOException {
+	readFully(b, 0, b.length);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void readFully(byte[] b, int off, int len) throws IOException {
+	read(b, off, len);
+    }
+
+    /**
+     * Receive a new bunch of data.
+     *
+     * @exception IOException gets thrown when any of the reads throws it.
+     */
+    private void receive() throws IOException {
+	if (DEBUG) {
+	    dbPrint("doing a receive()");
+	}
+	if(ASSERTS) {
+	    int sum = (max_byte_index - byte_index) + 
+		    (max_char_index - char_index) + 
+		    (max_short_index - short_index) + 
+		    (max_int_index - int_index) + 
+		    (max_long_index - long_index) + 
+		    (max_float_index - float_index) + 
+		    (max_double_index - double_index);
+	    if (sum != 0) { 
+		dbPrint("EEEEK : receiving while there is data in buffer !!!");
+		dbPrint("byte_index "   + (max_byte_index - byte_index));
+		dbPrint("char_index "   + (max_char_index - char_index));
+		dbPrint("short_index "  + (max_short_index -short_index));
+		dbPrint("int_index "    + (max_int_index - int_index));
+		dbPrint("long_index "   + (max_long_index -long_index));
+		dbPrint("double_index " + (max_double_index -double_index));
+		dbPrint("float_index "  + (max_float_index - float_index));
+
+		throw new SerializationError("Internal error!");
+	    }
+	}
+
+	in.readArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES-BEGIN_TYPES);
+
+	byte_index    = 0;
+	char_index    = 0;
+	short_index   = 0;
+	int_index     = 0;
+	long_index    = 0;
+	float_index   = 0;
+	double_index  = 0;
+
+	max_byte_index    = indices_short[TYPE_BYTE];
+	max_char_index    = indices_short[TYPE_CHAR];
+	max_short_index   = indices_short[TYPE_SHORT];
+	max_int_index     = indices_short[TYPE_INT];
+	max_long_index    = indices_short[TYPE_LONG];
+	max_float_index   = indices_short[TYPE_FLOAT];
+	max_double_index  = indices_short[TYPE_DOUBLE];
+
+	if(DEBUG) {
+	    dbPrint("reading bytes " + max_byte_index);
+	    dbPrint("reading char " + max_char_index);
+	    dbPrint("reading short " + max_short_index);
+	    dbPrint("reading int " + max_int_index);
+	    dbPrint("reading long " + max_long_index);
+	    dbPrint("reading float " + max_float_index);
+	    dbPrint("reading double " + max_double_index);
+	}
+
+	if (max_byte_index > 0) {
+	    in.readArray(byte_buffer, 0, max_byte_index);
+	}
+	if (max_char_index > 0) {
+	    in.readArray(char_buffer, 0, max_char_index);
+	}
+	if (max_short_index > 0) {
+	    in.readArray(short_buffer, 0, max_short_index);
+	}
+	if (max_int_index > 0) {
+	    in.readArray(int_buffer, 0, max_int_index);
+	}
+	if (max_long_index > 0) {
+	    in.readArray(long_buffer, 0, max_long_index);
+	}
+	if (max_float_index > 0) {
+	    in.readArray(float_buffer, 0, max_float_index);
+	}
+	if (max_double_index > 0) {
+	    in.readArray(double_buffer, 0, max_double_index);
+	}
     }
 
     /**
@@ -750,153 +996,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * {@inheritDoc}
-     */
-    public void readArray(boolean[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classBooleanArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require boolean[]", e);
-	}
-	in.readArray(ref, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readArray(byte[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classByteArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require byte[]", e);
-	}
-	in.readArray(ref, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readArray(char[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classCharArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require char[]", e);
-	}
-	in.readArray(ref, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readArray(short[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classShortArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require short[]", e);
-	}
-	in.readArray(ref, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readArray(int[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classIntArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require int[]", e);
-	}
-	in.readArray(ref, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readArray(long[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classLongArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require long[]", e);
-	}
-	in.readArray(ref, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readArray(float[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classFloatArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require float[]", e);
-	}
-	in.readArray(ref, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readArray(double[] ref, int off, int len) throws IOException {
-	try {
-	    readArrayHeader(classDoubleArray, len);
-	} catch (ClassNotFoundException e) {
-	    if (DEBUG) {
-		dbPrint("Caught exception: " + e);
-		e.printStackTrace();
-		dbPrint("now rethrow as SerializationError ...");
-	    }
-	    throw new SerializationError("require double[]", e);
-	}
-	in.readArray(ref, off, len);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void readArray(Object[] ref, int off, int len)
-	throws IOException, ClassNotFoundException {
-	readArrayHeader(ref.getClass(), len);
-	for (int i = off; i < off + len; i++) {
-	    ref[i] = readObject();
-	}
-    }
-
-    /**
      * Adds an object <code>o</code> to the object table, for cycle checking.
      * This method is public because it gets called from IOGenerator-generated code.
      * @param o		the object to be added
@@ -979,59 +1078,37 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      */
     private Object readArray(Class clazz, int type)
 	throws IOException, ClassNotFoundException {
-	int len = readInt();
 
 	if (DEBUG) {
-	    dbPrint("readArray " + clazz.getName() + " length " + len + " type " + type);
+	    if (clazz != null) {
+		dbPrint("readArray " + clazz.getName() + " type " + type);
+	    }
 	}
 
 	switch (type) {
 	case TYPE_BOOLEAN:
-	    boolean [] temp1 = new boolean[len];
-	    in.readArray(temp1, 0, len);
-	    addObjectToCycleCheck(temp1);
-	    return temp1;
+	    return readArrayBoolean();
 	case TYPE_BYTE:
-	    byte [] temp2 = new byte[len];
-	    in.readArray(temp2, 0, len);
-	    addObjectToCycleCheck(temp2);
-	    return temp2;
+	    return readArrayByte();
 	case TYPE_SHORT:
-	    short [] temp3 = new short[len];
-	    in.readArray(temp3, 0, len);
-	    addObjectToCycleCheck(temp3);
-	    return temp3;
+	    return readArrayShort();
 	case TYPE_CHAR:
-	    char [] temp4 = new char[len];
-	    in.readArray(temp4, 0, len);
-	    addObjectToCycleCheck(temp4);
-	    return temp4;
+	    return readArrayChar();
 	case TYPE_INT:
-	    int [] temp5 = new int[len];
-	    in.readArray(temp5, 0, len);
-	    addObjectToCycleCheck(temp5);
-	    return temp5;
+	    return readArrayInt();
 	case TYPE_LONG:
-	    long [] temp6 = new long[len];
-	    in.readArray(temp6, 0, len);
-	    addObjectToCycleCheck(temp6);
-	    return temp6;
+	    return readArrayLong();
 	case TYPE_FLOAT:
-	    float [] temp7 = new float[len];
-	    in.readArray(temp7, 0, len);
-	    addObjectToCycleCheck(temp7);
-	    return temp7;
+	    return readArrayFloat();
 	case TYPE_DOUBLE:
-	    double [] temp8 = new double[len];
-	    in.readArray(temp8, 0, len);
-	    addObjectToCycleCheck(temp8);
-	    return temp8;
+	    return readArrayDouble();
 	default:
+	    int len = readInt();
 	    Object ref = java.lang.reflect.Array.newInstance(clazz.getComponentType(), len);
 	    addObjectToCycleCheck(ref);
 
 	    for (int i = 0; i < len; i++) {
-		Object o = readObject();
+		Object o = readObjectOverride();
 		((Object[])ref)[i] = o;
 	    }
 
@@ -1272,7 +1349,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @exception ClassNotFoundException when readObject throws it.
      */
     public void readFieldObject(Object ref, String fieldname, String fieldsig) throws IOException, ClassNotFoundException {
-	setFieldObject(ref, fieldname, fieldsig, readObject());
+	setFieldObject(ref, fieldname, fieldsig, readObjectOverride());
     }
 
     /**
@@ -1376,10 +1453,10 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 				// dbPrint("fieldname = " + fieldname);
 				// dbPrint("signature = " + fieldtype);
 
-		setFieldObject(ref, fieldname, fieldtype, readObject());
+		setFieldObject(ref, fieldname, fieldtype, readObjectOverride());
 	    }
 	    else {
-		Object o = readObject();
+		Object o = readObjectOverride();
 		if (DEBUG) {
 		    if (o == null) {
 			dbPrint("Assigning null to field " +
@@ -1726,15 +1803,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     }
 
     /**
-     * {@inheritDoc}
-     */
-    public void close() throws IOException {
-	types = null;
-	objects.clear();
-	in.close();
-    }
-
-    /**
      * Ignored for Ibis serialization.
      */
     protected void readStreamHeader() {
@@ -1836,7 +1904,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    for (int i = 0; i < t.char_count; i++) chars[i] = readChar();
 	    for (int i = 0; i < t.byte_count; i++) bytes[i] = readByte();
 	    for (int i = 0; i < t.boolean_count; i++) booleans[i] = readBoolean();
-	    for (int i = 0; i < t.reference_count; i++) references[i] = readObject();
+	    for (int i = 0; i < t.reference_count; i++) references[i] = readObjectOverride();
 	}
     }
 
@@ -1849,7 +1917,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
      * @param clazz	the class to be tested
      * @return whether the class is ibis-serializable.
      */
-    public static boolean isIbisSerializable(Class clazz) {
+    protected static boolean isIbisSerializable(Class clazz) {
 	Class[] intfs = clazz.getInterfaces();
 
 	for (int i = 0; i < intfs.length; i++) {
