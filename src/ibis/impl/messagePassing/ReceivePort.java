@@ -81,7 +81,9 @@ class ReceivePort
     private boolean firstCall = true;
 
     public synchronized void enableConnections() {
-System.err.println("Enable connections on " + this + " firstCall=" + firstCall);
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("Enable connections on " + this + " firstCall=" + firstCall);
+	}
 	if (firstCall) {
 	    firstCall = false;
 	    if (upcall != null) {
@@ -308,7 +310,7 @@ System.err.println("Create another UpcallThread because the previous one didn't 
 			 int msgSize,
 			 int msgSeqno)
 	    throws IbisIOException {
-	// checkLockOwned();
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
 	/* Let's see whether we already have an envelope for this fragment. */
 	ibis.ipl.impl.messagePassing.ReadMessage msg = locate(origin, msgSeqno);
@@ -598,7 +600,9 @@ ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 	if (upcall == null) {
 	    System.err.println(Thread.currentThread() + "ReceivePort runs but upcall == null");
 	}
-System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
+	}
 
 	try {
 	    while (true) {

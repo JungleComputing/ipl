@@ -21,9 +21,6 @@ MANTACFLAGS	+= -v
 include ../../../config.mk
 include ../config.mk
 
-java: 
-	$(JAVAC_COMMAND) $(MAIN)
-
 satin:
 	$(IBISC_COMMAND) -no-aborts $(MAIN)
 

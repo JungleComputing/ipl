@@ -79,8 +79,10 @@ class ReceivePortNameServerClient
 // System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
 
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
-		if (bound) {
-		    System.err.println("******** Reply arrives early, bind=" + this);
+		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		    if (bound) {
+			System.err.println("******** Reply arrives early, bind=" + this);
+		    }
 		}
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
 // System.err.println(Thread.currentThread() + "Bind reply arrived, client woken up" + this);

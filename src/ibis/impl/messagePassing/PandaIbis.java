@@ -10,9 +10,7 @@ public class PandaIbis extends ibis.ipl.impl.messagePassing.Ibis {
     }
 
     protected void init() throws IbisException, IbisIOException {
-System.err.println("Gonna load libibis_mp_panda.so");
 	System.loadLibrary("ibis_mp_panda");
-System.err.println("Loaded libibis_mp_panda.so");
 	super.init();
     }
 

@@ -101,8 +101,8 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
     assert(hdr->seqno == ibp_rcve_seqno[pan_msg_sender(msg)]++);
 
     IBP_VPRINTF(200, ibp_JNIEnv,
-		     ("Receive ibp MP upcall %d msg %p sender %d size %d\n",
-		       mp_upcalls[pan_msg_sender(msg)]++, msg, pan_msg_sender(msg),
+		     ("Receive ibp MP upcall %d msg %p port %d sender %d size %d\n",
+		       mp_upcalls[pan_msg_sender(msg)]++, msg, hdr->port, pan_msg_sender(msg),
 		       pan_msg_consume_left(msg)));
 
     ibp_upcall_done = 1;	/* Keep polling */

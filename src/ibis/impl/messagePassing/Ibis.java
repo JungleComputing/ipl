@@ -67,8 +67,6 @@ public class Ibis extends ibis.ipl.Ibis {
 	}
 
 	ibis.io.Conversion.classInit();
-
-System.err.println("inputStreamMsgTags = " + inputStreamMsgTags);
     }
 
     public ibis.ipl.PortType createPortType(String name,
@@ -114,7 +112,7 @@ System.err.println("inputStreamMsgTags = " + inputStreamMsgTags);
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.err.println("Receive join message " + ident_name + "; now world = " + world);
 	}
-	// myIbis.checkLockOwned();
+	// checkLockOwned();
 //manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 	IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
 	ibisNameService.add(id);
@@ -123,7 +121,7 @@ System.err.println("inputStreamMsgTags = " + inputStreamMsgTags);
 
     /* Called from native */
     void leave_upcall(String ident_name, int cpu) {
-	// myIbis.checkLockOwned();
+	// checkLockOwned();
 	IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
 	ibisNameService.remove(id);
 	world.leave(cpu, id);

@@ -67,6 +67,7 @@ ibmp_stderr_printf(char *fmt, ...)
     va_start(ap, fmt);
     ret = vfprintf(stderr, fmt, ap);
     va_end(ap);
+    fflush(stderr);
 
     return ret;
 }

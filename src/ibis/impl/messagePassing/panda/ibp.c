@@ -158,7 +158,7 @@ ibp_string_consume(JNIEnv *env, ibp_msg_p msg, int len)
 
     ibp_consume(env, msg, buf, len);
     buf[len] = '\0';
-    IBP_VPRINTF(400, env, ("Msg consume string[%d] = \"%s\"\n", len, (char *)buf));
+    IBP_VPRINTF(400, env, ("Msg %p consume string[%d] = \"%s\"\n", msg, len, (char *)buf));
     return (*env)->NewStringUTF(env, buf);
 }
 

@@ -13,7 +13,7 @@ public class Poll implements Runnable {
     boolean	last_is_preemptive;
     boolean	comm_lives = true;
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     protected Poll() {
 	// Sun doesn't set java.compiler, so getProperty returns null --Rob
@@ -89,6 +89,8 @@ public class Poll implements Runnable {
 
     final void waitPolling(PollClient client, long timeout, boolean preempt)
 	    throws IbisIOException {
+
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
 	long t_start = 0;
 	if (timeout > 0) {
@@ -208,6 +210,7 @@ public class Poll implements Runnable {
 		// }
 		} catch (IbisIOException e) {
 		    System.err.println("Poll throws " + e);
+		    e.printStackTrace(System.err);
 		}
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 	    }
