@@ -15,17 +15,26 @@
 		with a single instance, using TCP ibis.
 		Set parameter:
 		runjob		main class name and arguments
+		java-args	flags for java
+		run-ibis-args	flags for run-ibis
 
 	run2	run the application as a parallel program,
 		with two instances, using TCP ibis.
 		Set parameter:
 		runjob		main class name and arguments
+		java-args	flags for java
+		run-ibis-args	flags for run-ibis
 
 	runseq	run the application as a sequential program.
 		Set parameter:
 		runjob		main class name and arguments
+		java-args	flags for java
+		run-ibis-args	flags for run-ibis
 
     </description>
+
+    <property name="run-ibis-args" value=""/>
+    <property name="java-args" value=""/>
 
     <target name="run2">
 	<exec dir="${basedir}"
@@ -38,14 +47,14 @@
 	      executable="${ibis}/bin/run-ibis"
 	      vmlauncher="false"
 	      spawn="true">
-	      <arg line="-sleep 3 -ns localhost:4567 -nhosts 2 -Dibis.name=tcp ${runjob}"/>
+	      <arg line="-ns localhost:4567 -nhosts 2 ${run-ibis-args} -Dibis.name=tcp ${java-args} ibis.util.Postpone 3 ${runjob}"/>
 	</exec>
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/run-ibis"
-	      timeout="100000"
+	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-sleep 2 -ns localhost:4567 -nhosts 2 -Dibis.name=tcp ${runjob}"/>
+	      <arg line="-ns localhost:4567 -nhosts 2 ${run-ibis-args} -Dibis.name=tcp ${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
     </target>
 
@@ -58,20 +67,20 @@
 	</exec>
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/run-ibis"
-	      timeout="100000"
+	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="-sleep 2 -ns localhost:4567 -nhosts 1 -Dibis.name=tcp ${runjob}"/>
+	      <arg line="-ns localhost:4567 -nhosts 1 ${run-ibis-args} -Dibis.name=tcp ${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
     </target>
 
     <target name="runseq">
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/run-ibis"
-	      timeout="100000"
+	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="${runjob}"/>
+	      <arg line="${run-ibis-args} -- ${java-args} ${runjob}"/>
 	</exec>
     </target>
 
