@@ -336,7 +336,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 				(GRT_MESSAGE_COMBINING ? "on" : "off"));
 			}
 		} else {
-			System.out.println("FT off");
+			// System.out.println("FT off");
 		}
 		
 		totalTimer.start();
