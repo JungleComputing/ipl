@@ -18,9 +18,13 @@ public class SatinTupleSpace implements Config {
 
 	static {
 		satin = Satin.this_satin;
-//		if(satin == null) {
-//			throw new IbisError("Internal error: Satin not initialized");
-//		}
+		if(satin == null) {
+			throw new IbisError("Internal error: Satin not initialized");
+		}
+
+		if(!satin.closed) {
+			throw new IbisError("The tuple space currently only works with a closed world. Try running with -satin-closed");
+		}
 
 		space = new HashMap();
 //		newKeys = new ArrayList();
@@ -42,10 +46,6 @@ public class SatinTupleSpace implements Config {
            **/
 	public static void add(String key, Serializable data) {
 		synchronized(space) {
-                        if(satin != null && !satin.closed) {
-                                throw new IbisError("The tuple space currently only works with a closed world. Try running with -satin-closed");
-                        }
-
 			space.put(key, data);
 //			newKeys.add(key);
 //			newData.add(data);
