@@ -2979,7 +2979,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	boolean keep = false;
 	boolean local = true;
 	boolean print = false;
-	boolean invocationRecordCache = true;
+	boolean invocationRecordCache = false;
 	String compiler = "javac";
 	boolean inletOpt = true;
 	boolean spawnCounterOpt = true;
