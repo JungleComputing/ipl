@@ -105,7 +105,7 @@ public class SuffixTree {
 
             Node l = t.getLongestRepeat();
 
-            System.out.println( "Longest repeat: " );
+            System.out.println( "Longest repeat has " + (l.dist + l.length) + " characters:" );
             t.print( System.out, l );
         }
         catch( Exception x )
