@@ -18,20 +18,16 @@ import java.io.InputStream;
 public final class RunProcess {
     private static final Runtime r = Runtime.getRuntime();
 
-    /** Where standard output is collected. */
-    private byte[] stdout = new byte[4096];
+    static class buf {
+	public InputStream s;
+	public byte[] buffer = new byte[4096];
+	public int sz = 0;
+	public boolean done = false;
 
-    /** Where standard error output is collected. */
-    private byte[] stderr = new byte[4096];
-
-    /** How much standard output is read. */
-    private int ocount;
-
-    /** How much standard error output is read. */
-    private int ecount;
-
-    /** Indicates that the reader thread is finished. */
-    private boolean done;
+	buf(InputStream s) {
+	    this.s = s;
+	}
+    }
 
     /** Indicates the exit status of the process. */
     private int exitstatus;
@@ -39,57 +35,51 @@ public final class RunProcess {
     /** The <code>Process</code> object for the command. */
     private Process p;
 
+    /** Collects stdout of process. */
+    private buf proc_out;
+
+    /** Collects stderr of process. */
+    private buf proc_err;
+
     /**
      * Separate thread that reads the output and error output of the
      * command.
      */
     private class Proc extends Thread {
+	buf b;
+
+	Proc(buf b) {
+	    this.b = b;
+	}
+
 	public void run() {
 	    boolean must_read;
-	    InputStream o = p.getInputStream();
-	    InputStream e = p.getErrorStream();
-
 	    do {
 		must_read = false;
-
-		if (ocount == stdout.length) {
-		    byte[] b = new byte[2 * stdout.length];
-		    System.arraycopy(stdout, 0, b, 0, stdout.length);
-		    stdout = b;
+		if (b.sz == b.buffer.length) {
+		    byte[] newbuf = new byte[2 * b.buffer.length];
+		    System.arraycopy(b.buffer, 0, newbuf, 0, b.buffer.length);
+		    b.buffer = newbuf;
 		}
 		int ro = 0;
 		try {
-		    ro = o.read(stdout, ocount, stdout.length - ocount);
+		    ro = b.s.read(b.buffer, b.sz, b.buffer.length - b.sz);
 		} catch(IOException ex) {
 		    ro = -1;
 		}
 		if (ro != -1) {
-		    ocount += ro;
+		    b.sz += ro;
 		}
 
-		if (ecount == stderr.length) {
-		    byte[] b = new byte[2 * stderr.length];
-		    System.arraycopy(stderr, 0, b, 0, stderr.length);
-		    stderr = b;
-		}
-		int re = 0;
-		try {
-		    re = e.read(stderr, ecount, stderr.length - ecount);
-		} catch(IOException ex) {
-		    re = -1;
-		}
-		if (re != -1) {
-		    ecount += re;
-		}
-
-		if (re >= 0 || ro >= 0) {
+		if (ro >= 0) {
 		    must_read = true;
 		}
 
 	    } while (must_read);
-	    synchronized(p) {
-		done = true;
-		p.notifyAll();
+
+	    synchronized(b) {
+		b.done = true;
+		b.notifyAll();
 	    }
 	}
     }
@@ -101,8 +91,6 @@ public final class RunProcess {
      */
     public RunProcess(String command) {
 
-	ocount = 0;
-	ecount = 0;
 	exitstatus = -1;
 
 	try {
@@ -111,10 +99,13 @@ public final class RunProcess {
 	    return;
 	}
 
-	done = false;
+	proc_out = new buf(p.getInputStream());
+	proc_err = new buf(p.getErrorStream());
 
-	Proc reader = new Proc();
-	reader.start();
+	Proc stdoutreader = new Proc(proc_out);
+	Proc errorreader = new Proc(proc_err);
+	stdoutreader.start();
+	errorreader.start();
 
 	boolean interrupted = false;
 
@@ -127,10 +118,19 @@ public final class RunProcess {
 	    }
 	} while (interrupted);
 
-	synchronized(p) {
-	    while (! done) {
+	synchronized(proc_out) {
+	    while (! proc_out.done) {
 		try {
-		    p.wait();
+		    proc_out.wait();
+		} catch(InterruptedException e) {
+			// ignore
+		}
+	    }
+	}
+	synchronized(proc_err) {
+	    while (! proc_err.done) {
+		try {
+		    proc_err.wait();
 		} catch(InterruptedException e) {
 			// ignore
 		}
@@ -143,8 +143,8 @@ public final class RunProcess {
      * @return the output buffer.
      */
     public byte[] getStdout() {
-	byte b[] = new byte[ocount];
-	System.arraycopy(stdout, 0, b, 0, ocount);
+	byte b[] = new byte[proc_out.sz];
+	System.arraycopy(proc_out.buffer, 0, b, 0, proc_out.sz);
 	return b;
     }
 
@@ -153,8 +153,8 @@ public final class RunProcess {
      * @return the error output buffer.
      */
     public byte[] getStderr() {
-	byte b[] = new byte[ecount];
-	System.arraycopy(stderr, 0, b, 0, ecount);
+	byte b[] = new byte[proc_err.sz];
+	System.arraycopy(proc_err.buffer, 0, b, 0, proc_err.sz);
 	return b;
     }
 
