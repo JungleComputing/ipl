@@ -33,6 +33,7 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 	    } else if (args[i].equals("-cyc")) {
 	    } else if (args[i].equals("-b")) {
 	    } else if (args[i].equals("-inner")) {
+	    } else if (args[i].equals("-switch")) {
 	    } else if (args[i].equals("-warmup")) {
 		i++;
 	    } else if (args[i].equals("-registry")) {
@@ -67,6 +68,11 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 
 
     public void empty() throws RemoteException {
+    }
+
+
+    public void emptyThreadSwitch() throws RemoteException {
+	empty();
     }
 
 

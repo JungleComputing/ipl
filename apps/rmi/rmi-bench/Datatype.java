@@ -10,5 +10,6 @@ interface Datatype {
     static final int INT_32	= TWO_INT + 1;
     static final int B		= INT_32 + 1;
     static final int INNER	= B + 1;
+    static final int SWITCHER	= INNER + 1;
 
 }

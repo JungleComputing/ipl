@@ -47,6 +47,8 @@ public class Client {
 		send_type = Datatype.B;
 	    } else if (args[i].equals("-inner")) {
 		send_type = Datatype.INNER;
+	    } else if (args[i].equals("-switch")) {
+		send_type = Datatype.SWITCHER;
 	    } else if (args[i].equals("-warmup")) {
 		warm_up = Integer.parseInt(args[++i]);
 	    } else if (args[i].equals("-registry")) {
@@ -82,6 +84,10 @@ public class Client {
 	    if (send_type == Datatype.TWO_INT) {
 		for (int i = 0; i < n; i++) {
 		    s.empty(i, n);
+		}
+	    } else if (send_type == Datatype.SWITCHER) {
+		for (int i = 0; i < n; i++) {
+		    s.emptyThreadSwitch();
 		}
 	    } else {
 		for (int i = 0; i < n; i++) {
@@ -170,6 +176,8 @@ public class Client {
 		    }
 		    request = w;
 		    break;
+		case Datatype.SWITCHER:
+		    break;
 		}
 	    }
 
@@ -245,6 +253,9 @@ public class Client {
 		    break;
 		case Datatype.INNER:
 		    System.out.print("With Inner");
+		    break;
+		case Datatype.SWITCHER:
+		    System.out.print("empty with thread switch");
 		    break;
 		}
 
