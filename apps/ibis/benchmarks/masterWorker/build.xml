@@ -1,0 +1,17 @@
+<project
+    name="ibis.apps.ibis.benchmarks.masterWorker"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis application build.
+    </description>
+
+    <property name="ibis"        location="../../../.."/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/apps/ibis/build-ibis-app.xml"/>
+
+</project>
+
+
