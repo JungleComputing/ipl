@@ -18,7 +18,7 @@ public class RegistryImpl implements Registry {
     private String localhostName() {
         String hostname = null;
         InetAddress addr = IPUtils.getLocalHostAddress();
-        hostname = addr.getHostName();
+        hostname = addr.getCanonicalHostName();
         if (RTS.DEBUG) {
             System.out.println("localhostName() returns " + hostname);
         }
