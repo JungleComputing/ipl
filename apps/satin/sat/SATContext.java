@@ -608,11 +608,27 @@ public final class SATContext implements java.io.Serializable {
     private void analyzeConflict( SATProblem p, int cno, int var, int level, boolean learnTuple )
         throws SATRestartException
     {
+        if( satisfied[cno] ){
+            return;
+        }
         if( tracePropagation | traceLearning | traceResolutionChain ){
             System.err.println( "S" + level + ": clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
             dumpAssignments();
             if( traceResolutionChain ){
                 dumpImplications( "", p, cno );
+            }
+        }
+        if( doVerification ){
+            verifyTermCount( p, cno );
+            Clause c = p.clauses[cno];
+            if( !c.isConflicting( assignment ) ){
+                if( c.isSatisfied( assignment ) ){
+                    System.err.println( "Error: conflicting clause " + c + " is satisfied" );
+                }
+                else {
+                    System.err.println( "Error: conflicting clause " + c + " is not in conflict" );
+                }
+                Helpers.dumpAssignments( "Assignments", assignment );
             }
         }
 	if( doLearning ){
@@ -624,7 +640,13 @@ public final class SATContext implements java.io.Serializable {
 	    }
 	    else {
                 if( !cc.isConflicting( assignment ) ){
-                    System.err.println( "Error: learned clause " + cc + " is not in conflict" );
+                    if( cc.isSatisfied( assignment ) ){
+                        System.err.println( "Error: learned clause " + cc + " is satisfied" );
+                    }
+                    else {
+                        System.err.println( "Error: learned clause " + cc + " is not in conflict" );
+                    }
+                    Helpers.dumpAssignments( "Assignments", assignment );
                 }
                 if( learnTuple ){
                     ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
