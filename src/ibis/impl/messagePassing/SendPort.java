@@ -28,7 +28,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
      * to await a time slice.
      */
     private boolean homeConnection;
-    final private static int homeConnectionPolls = 8;
+    final private static int homeConnectionPolls = 4;
 
     ibis.ipl.impl.messagePassing.WriteMessage message = null;
 
@@ -191,7 +191,7 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	messageCount++;
 	if (homeConnection) {
 	    for (int i = 0; i < homeConnectionPolls; i++) {
-		Ibis.myIbis.pollLocked();
+		while (Ibis.myIbis.pollLocked());
 	    }
 	}
     }
