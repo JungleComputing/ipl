@@ -297,7 +297,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
 	    return new SerializeSendPort(type, name, new OutputConnection(), r);
 
-	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA:
+	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_IBIS:
 	    return new IbisSendPort(type, name, new OutputConnection(), r);
 
 	default:

@@ -12,7 +12,7 @@ public class PortType implements ibis.ipl.PortType {
 
     public static final byte SERIALIZATION_NONE = 0;
     public static final byte SERIALIZATION_SUN = 1;
-    public static final byte SERIALIZATION_MANTA = 2;
+    public static final byte SERIALIZATION_IBIS = 2;
 
     public byte serializationType = SERIALIZATION_SUN;
 
@@ -30,8 +30,11 @@ public class PortType implements ibis.ipl.PortType {
 	    serializationType = SERIALIZATION_NONE;
 	} else if (ser.equals("sun")) {
 	    serializationType = SERIALIZATION_SUN;
-	} else if (ser.equals("manta")) {
-	    serializationType = SERIALIZATION_MANTA;
+	} else if (ser.equals("ibis")) {
+	    // For backwards compatibility ...
+	    serializationType = SERIALIZATION_IBIS;
+	} else if (ser.equals("ibis")) {
+	    serializationType = SERIALIZATION_IBIS;
 	} else {
 	    throw new IbisException("Unknown Serialization type " + ser);
 	}
