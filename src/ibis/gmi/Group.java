@@ -32,7 +32,7 @@ public final class Group implements GroupProtocol {
     /**
      * Enable/disable debugging prints.
      */
-    public final static boolean DEBUG = false;
+    public final static boolean DEBUG = true;
 
     /**
      * Ibis rank number in this run.
@@ -141,6 +141,11 @@ public final class Group implements GroupProtocol {
     private static GroupStub stubIDStack[] = new GroupStub[16];
 
     /**
+     * The stub counter, used to allocate stubs.
+     */
+    private static int stubCounter;
+
+    /**
      * Container class for group information.
      */
     static private final class GroupStubData { 
@@ -175,11 +180,6 @@ public final class Group implements GroupProtocol {
 	 * The skeleton identifications for all group members.
 	 */
 	int [] memberSkels; 
-
-	/**
-	 * The stub counter, used to allocate stubs.
-	 */
-	int stubCounter;
 
 	/**
 	 * Creates a new stub for the group at hand.
