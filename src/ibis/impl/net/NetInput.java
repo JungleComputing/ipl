@@ -30,7 +30,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         private   	final    	int                     threadStackSize        =  256;
         private  			int                     threadStackPtr         =    0;
         private  			PooledUpcallThread[] 	threadStack            = new PooledUpcallThread[threadStackSize];
-        private				int                  	upcallThreadNum        =    0;
+        private	volatile			int                  	upcallThreadNum        =    0;
         private                         volatile boolean        upcallThreadNotStarted = true;
         private                         NetThreadStat           utStat                 = null;
 
@@ -126,8 +126,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 private boolean  end   = false;
                 private NetMutex sleep = new NetMutex(true);
                 public PooledUpcallThread(String name) {
-                        super("NetInput.PooledUpcallThread: "+name);
-                        threadCount++;
+                        super("NetInput.PooledUpcallThread["+(threadCount++)+"]: "+name);
                 }
 
                 public void run() {
@@ -233,7 +232,6 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 // Stat object
                 String s = "//"+type.name()+this.context+".input";
                 boolean utStatOn = type.getBooleanStringProperty(this.context, "UpcallThreadStat", false);
-                //System.err.println("utStatOn = "+utStatOn);
                 utStat = new NetThreadStat(utStatOn, s);
 	}
 
@@ -396,6 +394,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 synchronized (threadStack) {
                         if (activeThread != null) {
                                 ((PooledUpcallThread)activeThread).end();
+                                activeThread = null;
                         }
 
                         while (threadStackPtr > 0) {
@@ -425,6 +424,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                 while (true) {
                                         try {
                                                 ((PooledUpcallThread)activeThread).join();
+                                                activeThread = null;
                                                 break;
                                         } catch (InterruptedException e) {
                                                 //
@@ -438,6 +438,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                         while (true) {
                                                 try {
                                                         threadStack[i].join();
+                                                        threadStack[i] = null;
                                                         break;
                                                 } catch (InterruptedException e) {
                                                         //
@@ -647,7 +648,6 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         checkConvertStream();
                         result = _inputConvertStream.readInt();
                 } catch (IOException e) {
-System.err.println("Catch exception " + e);
                         throw new NetIbisException(e.getMessage());
                 }
 

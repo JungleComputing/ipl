@@ -125,6 +125,9 @@ public abstract class NetIO {
                 stat = newMessageStat(statOn, s);
 	}
 
+        /**
+         * Create a new object to compute message statistics.
+         */
         protected NetMessageStat newMessageStat(boolean on, String moduleName) {
                 return new NetMessageStat(on, moduleName);
         }
@@ -306,7 +309,7 @@ public abstract class NetIO {
 	 *
 	 * This is only valid for a {@link NetBufferFactory Factory} with MTU.
 	 *
-	 * @throws an {@link NetIbisException} if the factory has no default MTU.
+	 * @throws NetIbisException if the factory has no default MTU.
          * @return the new {@link NetBuffer buffer}.
 	 */
 	public NetBuffer createBuffer() throws NetIbisException {
@@ -321,7 +324,7 @@ public abstract class NetIO {
 	 *
 	 * @param length the length of the data to be stored in the buffer.
 	 *        The buffer is a new byte array.
-	 * @throws an {@link NetIbisException} if the factory has no default MTU.
+	 * @throws NetIbisException if the factory has no default MTU.
          * @return the new {@link NetBuffer buffer}.
 	 */
 	public NetBuffer createBuffer(int length) throws NetIbisException {

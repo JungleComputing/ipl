@@ -118,8 +118,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                 //inputLock.unlock();
                                                 connectionLock.unlock();
                                         } catch (InterruptedException e) {
-                                                System.err.println("Accept thread interrupted");
-
                                                 continue connect_loop;
                                         } catch (Exception e) {
                                                 System.err.println(e.getMessage());
@@ -909,7 +907,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 }
                         }
                 }
-
                 super.finalize();
                 log.out();
         }

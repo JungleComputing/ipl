@@ -58,7 +58,7 @@ public final class GmOutput extends NetBufferedOutput {
                 Driver.gmAccessLock.lock(false);
                 deviceHandle = Driver.nInitDevice(0);
                 outputHandle = nInitOutput(deviceHandle);
-                Driver.gmAccessLock.unlock(false);
+                Driver.gmAccessLock.unlock();
 
                 arrayThreshold = 256;
         }
@@ -86,7 +86,7 @@ public final class GmOutput extends NetBufferedOutput {
                 lockIds[0] = lockId; // output lock
                 lockIds[1] = 0;      // main   lock
                 Driver.gmLockArray.initLock(lockId, true);
-                Driver.gmAccessLock.unlock(false);
+                Driver.gmAccessLock.unlock();
 
                 Hashtable lInfo = new Hashtable();
                 lInfo.put("gm_node_id", new Integer(lnodeId));
@@ -108,7 +108,7 @@ public final class GmOutput extends NetBufferedOutput {
 
                         Driver.gmAccessLock.lock(false);
                         nConnectOutput(outputHandle, rnodeId, rportId, rmuxId);
-                        Driver.gmAccessLock.unlock(false);
+                        Driver.gmAccessLock.unlock();
 
                         is.read();
                         os.write(1);
@@ -139,7 +139,7 @@ public final class GmOutput extends NetBufferedOutput {
                         /* Post the 'request' */
                         Driver.gmAccessLock.lock(true);
                         nSendRequest(outputHandle);
-                        Driver.gmAccessLock.unlock(true);
+                        Driver.gmAccessLock.unlock();
 
                         /* Wait for 'request' send completion */
                         gmDriver.blockingPump(lockId, lockIds);
@@ -150,14 +150,14 @@ public final class GmOutput extends NetBufferedOutput {
                         /* Post the 'buffer' */
                         Driver.gmAccessLock.lock(true);
                         nSendBuffer(outputHandle, b.data, b.base, b.length);
-                        Driver.gmAccessLock.unlock(true);
+                        Driver.gmAccessLock.unlock();
 
                         /* Wait for 'buffer' send */
                         gmDriver.blockingPump(lockId, lockIds);
                 } else {
                         Driver.gmAccessLock.lock(true);
                         nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length);
-                        Driver.gmAccessLock.unlock(true);
+                        Driver.gmAccessLock.unlock();
 
                         /* Wait for 'request' send completion */
                         gmDriver.blockingPump(lockId, lockIds);
@@ -170,6 +170,9 @@ public final class GmOutput extends NetBufferedOutput {
                 log.out();
         }
 
+        /**
+         * {@inheritDoc}
+         */
         public synchronized void close(Integer num) throws NetIbisException {
                 log.in();
                 if (rpn == num) {
@@ -185,7 +188,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 Driver.nCloseDevice(deviceHandle);
                                 deviceHandle = 0;
                         }
-                        Driver.gmAccessLock.unlock(true);
+                        Driver.gmAccessLock.unlock();
                         rpn = null;
                 }
                 log.out();
@@ -211,7 +214,7 @@ public final class GmOutput extends NetBufferedOutput {
                         Driver.nCloseDevice(deviceHandle);
                         deviceHandle = 0;
                 }
-                Driver.gmAccessLock.unlock(true);
+                Driver.gmAccessLock.unlock();
 
                 super.free();
                 log.out();

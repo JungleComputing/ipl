@@ -61,9 +61,13 @@ public abstract class NetPoller extends NetInput {
 	}
 
 	/**
-	 * {@inheritDoc}
+         * Actually establish a connection with a remote port and
+         * register an upcall function for incoming message
+         * notification.
 	 *
-	 * Call this from setupConnection(cnx) in the subclass.
+         * @param cnx the connection attributes.
+         * @param key the connection key in the splitter {@link #inputTable table}.
+         * @param ni the connection's input.
 	 */
 	protected void setupConnection(NetConnection cnx,
 				       Object key,

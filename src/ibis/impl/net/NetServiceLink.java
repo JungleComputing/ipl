@@ -438,7 +438,7 @@ public final class NetServiceLink {
 		if (oc.sos.closed) {
 		    System.err.println(this + ": OutputSubStream already closed!!!!!");
 		}
-                
+
                 return oc.sos;
         }
 
@@ -484,7 +484,7 @@ public final class NetServiceLink {
 		    // throw new NetIbisException("InputSubStream already closed!!!!!");
 		    System.err.println(this + ": InputSubStream already closed!!!!!");
 		}
-                
+
                 return ic.sis;
         }
 
@@ -1077,7 +1077,7 @@ public final class NetServiceLink {
 
         /**
          * Provide a thread processing commands received over the {@linkplain #main_ois main input sub-stream}.
-         */ 
+         */
         private final class ServiceThread extends Thread {
 
                 /**

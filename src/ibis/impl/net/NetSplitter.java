@@ -27,7 +27,7 @@ public abstract class NetSplitter extends NetOutput {
 	 *
 	 * @param staticProperties the port's properties.
 	 * @param driver the driver of this poller.
-	 * @param output  the controlling output.
+	 * @param output the controlling output.
 	 */
 	public NetSplitter(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
 		super(pt, driver, context);
@@ -36,7 +36,13 @@ public abstract class NetSplitter extends NetOutput {
 
 
 	/**
-	 * {@inheritDoc}
+         * Actually establish a connection with a remote port and
+         * register an upcall function for incoming message
+         * notification.
+	 *
+         * @param cnx the connection attributes.
+         * @param key the connection key in the splitter {@link #outputTable table}.
+         * @param no the connection's output.
 	 */
 	public synchronized void setupConnection(NetConnection cnx, Object key, NetOutput no) throws NetIbisException {
                 log.in();
@@ -54,7 +60,7 @@ public abstract class NetSplitter extends NetOutput {
 	public void initSend() throws NetIbisException {
                 log.in();
                 super.initSend();
-                
+
 		Iterator i = outputTable.values().iterator();
 		do {
 			NetOutput no = (NetOutput)i.next();
@@ -107,10 +113,10 @@ public abstract class NetSplitter extends NetOutput {
                                 i.remove();
 			}
 		}
-		
+
 		super.free();
                 log.out();
-	}		
+	}
 
         public synchronized void close(Integer num) throws NetIbisException {
                 log.in();
@@ -121,7 +127,7 @@ public abstract class NetSplitter extends NetOutput {
                 }
                 log.out();
         }
-        
+
 
 
         public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
@@ -161,7 +167,7 @@ public abstract class NetSplitter extends NetOutput {
 		} while (i.hasNext());
                 log.out();
         }
-        
+
         /**
 	 * Writes a char v to the message.
 	 * @param     v             The char v to write.
@@ -352,7 +358,7 @@ public abstract class NetSplitter extends NetOutput {
 			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
-        }	
+        }
 
         public void writeArray(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
@@ -362,5 +368,5 @@ public abstract class NetSplitter extends NetOutput {
 			no.writeArray(b, o, l);
 		} while (i.hasNext());
                 log.out();
-        }	
+        }
 }

@@ -67,7 +67,7 @@ public final class GmInput extends NetBufferedInput {
                 Driver.gmAccessLock.lock(false);
                 deviceHandle = Driver.nInitDevice(0);
                 inputHandle = nInitInput(deviceHandle);
-                Driver.gmAccessLock.unlock(false);
+                Driver.gmAccessLock.unlock();
 
                 arrayThreshold = 256;
 	}
@@ -97,7 +97,7 @@ public final class GmInput extends NetBufferedInput {
                 lockIds[0] = lockId; // input lock
                 lockIds[1] = 0;      // main  lock
                 Driver.gmLockArray.initLock(lockId, true);
-                Driver.gmAccessLock.unlock(false);
+                Driver.gmAccessLock.unlock();
 
                 Hashtable lInfo = new Hashtable();
                 lInfo.put("gm_node_id", new Integer(lnodeId));
@@ -122,7 +122,7 @@ public final class GmInput extends NetBufferedInput {
 
                         Driver.gmAccessLock.lock(false);
                         nConnectInput(inputHandle, rnodeId, rportId, rmuxId);
-                        Driver.gmAccessLock.unlock(false);
+                        Driver.gmAccessLock.unlock();
 
                         os.write(1);
                         os.flush();
@@ -189,7 +189,7 @@ public final class GmInput extends NetBufferedInput {
 
                 Driver.gmAccessLock.lock(true);
                 int result = nPostBuffer(inputHandle, b.data, 0, b.data.length);
-                Driver.gmAccessLock.unlock(true);
+                Driver.gmAccessLock.unlock();
 
                 if (result == 0) {
                         /* Ack completion */
@@ -243,7 +243,7 @@ public final class GmInput extends NetBufferedInput {
                                 deviceHandle = 0;
                         }
 
-                        Driver.gmAccessLock.unlock(true);
+                        Driver.gmAccessLock.unlock();
                         spn = null;
                 }
                 log.out();
@@ -270,7 +270,7 @@ public final class GmInput extends NetBufferedInput {
                         deviceHandle = 0;
                 }
 
-                Driver.gmAccessLock.unlock(true);
+                Driver.gmAccessLock.unlock();
                 log.out();
 	}
 }

@@ -15,6 +15,10 @@ public final class NetAllocator {
          * Activate allocator stats.
          */
         private static  final   boolean                 STATISTICS      = false;
+
+        /**
+         * Activate alloc-without-free checking.
+         */
         private static  final   boolean                 DEBUG           = false;
 
         /**
@@ -32,12 +36,35 @@ public final class NetAllocator {
          */
         private static  final   int                     bigBlockThreshold  = 64*1024;
 
+        /**
+         * Store the block caches.
+         *
+         * This map is indexed by <code>Integer(<block size>)</code>.
+         */
         private static  final   HashMap                 stackMap           = new HashMap();
 
+        /**
+         * Store the last backtrace associated with a block allocation.
+         *
+         * This map is indexed by the byte block reference.
+         */
         private                 HashMap                 debugMap           = null;
 
+        /**
+         * Provide a byte block caching stack.
+         */
         protected class BlockStack {
+
+                /**
+                 * Store the previously allocated blocks.
+                 *
+                 * The use of a stack as the data structure means that the last freed block will be reallocated first.
+                 */
                 public byte[][] stack    = null;
+
+                /**
+                 * Store the number of blocks in the cache stack.
+                 */
                 public int      stackPtr =    0;
         }
 
@@ -66,6 +93,9 @@ public final class NetAllocator {
                  */
                 private int uncached_free  = 0;
 
+                /**
+                 * Store the stack trace at the allocator creation time for debugging purpose.
+                 */
                 String[] callerArray = null;
 
 
@@ -176,7 +206,7 @@ public final class NetAllocator {
         private int                     blockSize       = 0;
 
         /**
-         * The caching data structure.
+         * The local reference to the caching data structure.
          *
          * The structure selected for that purpose is a stack implemented
          * in a fixed size array for several reasons:
@@ -190,19 +220,11 @@ public final class NetAllocator {
          */
         private BlockStack              stack           = null;
 
-        // private byte[][]                stack           = null;
-
-        /*
-         * The stack pointer.
-         */
-        //private int                     stackPtr        = 0;
-
         /**
          * Constructor allowing to select the block size and the cache
          * size of the allocator.
          *
          * @param blockSize The size of the memory blocks provided by this allocator.
-         * @param maxBlock  The maximum number of blocks to be cached.
          */
         public NetAllocator(int blockSize) {
                 int maxBlock = (blockSize >bigBlockThreshold )?defaultMaxBigBlock:defaultMaxBlock;
@@ -243,6 +265,9 @@ public final class NetAllocator {
 
         }
 
+        /**
+         * Print some information at shutdown about the blocks that were not freed, for debugging purpose.
+         */
         protected void shutdownHook() {
                 if (DEBUG) {
                         Iterator i = debugMap.values().iterator();
@@ -250,7 +275,7 @@ public final class NetAllocator {
                         while (i.hasNext()) {
                                 String[] a = (String[])i.next();
 
-                                System.err.println("unfreed buffer: "+blockSize+" byte"+((blockSize > 1)?"s":""));
+                                System.err.println("unfreed blocks: "+blockSize+" byte"+((blockSize > 1)?"s":""));
                                 System.err.println("---------------");
                                 for (int j = 0; j < a.length; j++) {
                                         System.err.println("frame "+j+": "+a[j]);

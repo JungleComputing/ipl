@@ -3,21 +3,40 @@ package ibis.ipl.impl.net;
 import java.util.HashMap;
 import java.util.Vector;
 
+/**
+ * Provide a special purpose repository for NetIbis-formatted {@link
+ * NetPortType} properties.
+ */
 public final class NetPropertyTree {
 
+        /**
+         * Store the root property values.
+         */
         private HashMap valueMap = null;
+
+        /**
+         * References the top-level sub-trees.
+         */
         private HashMap levelMap = null;
 
-
+        /**
+         * Construct an empty property tree.
+         */
         protected NetPropertyTree() {
                 valueMap = new HashMap();
                 levelMap = new HashMap();
         }
 
+        /**
+         * Provide something to throw in case of a successful property lookup.
+         */
         private final class Found extends Throwable {
                 //
         }
 
+        /**
+         * Provide a replacement implementation of {@link String#split} for JDKs < 1.4.
+         */
         private String[] split(String s, String chars, int n) {
 
                 Vector    v        = new Vector();
@@ -26,10 +45,10 @@ public final class NetPropertyTree {
 
                 int a = 0;
                 final int l = s.length();
-                
+
                 while ((n<1) || (count++ < n)) {
                         String sub = null;
-                        
+
                         while (a < l) {
                                 int b = a;
 
@@ -40,7 +59,7 @@ public final class NetPropertyTree {
 
                                                 while (i < nb_chars) {
                                                         final char c2 = chars.charAt(i);
-                                                
+
                                                         if (c == c2) {
                                                                 throw new Found();
                                                         }
@@ -68,7 +87,7 @@ public final class NetPropertyTree {
                 }
 
                 int size = v.size();
-                
+
                 if (n < 0) {
                         while (size > 0) {
                                 String str = (String)v.elementAt(size-1);
@@ -88,16 +107,21 @@ public final class NetPropertyTree {
 
                 return result;
         }
-        
 
+        /**
+         * Add a property value to the tree.
+         *
+         * @param name the property name.
+         * @param value the property value.
+         */
         protected void put (String name, Object value) {
                 //System.err.println("put: "+name+" = "+value);
                 String levels  = null;
                 String property = null;
-                
+
                 {
                         String [] a = name.split(":");
-                        
+
                         if (a.length == 1) {
                                 property = a[0];
                         } else if (a.length == 2) {
@@ -115,7 +139,7 @@ public final class NetPropertyTree {
 
                         {
                                 String [] a = levels.split("/", 2);
-                                
+
                                 if (a.length == 1) {
                                         level = a[0];
                                 } else if (a.length == 2) {
@@ -140,7 +164,7 @@ public final class NetPropertyTree {
                                         throw new Error("invalid property name");
                                 }
                         }
-                        
+
                         //System.err.println("put: context = "+context+", level = "+level+", subLevels = "+subLevels);
                         HashMap contextMap = (HashMap)levelMap.get(level);
                         if (contextMap == null) {
@@ -153,7 +177,7 @@ public final class NetPropertyTree {
                                 propertyTree = new NetPropertyTree();
                                 contextMap.put(context, propertyTree);
                         }
-                        
+
                         if (subLevels != null) {
                                 propertyTree.put(subLevels+":"+property, value);
                         } else {
@@ -161,9 +185,16 @@ public final class NetPropertyTree {
                         }
                 } else {
                         valueMap.put(property, value);
-                }                
+                }
         }
-        
+
+        /**
+         * Lookup a property in the tree.
+         *
+         * @param name the property name.
+         * @return the direct or inherited property value, or
+         * <code>null</code> if the property was not found.
+         */
         public Object get(String name) {
                 //System.err.println("get: "+name);
                 String levels  = null;
@@ -171,7 +202,7 @@ public final class NetPropertyTree {
 
                 {
                         String [] a = name.split(":");
-                        
+
                         if (a.length == 1) {
                                 property = a[0];
                         } else if (a.length == 2) {
@@ -181,7 +212,7 @@ public final class NetPropertyTree {
                                 throw new Error("invalid property name");
                         }
                 }
-                
+
                 if (levels != null) {
                         //
                         String level     = null;
@@ -189,7 +220,7 @@ public final class NetPropertyTree {
 
                         {
                                 String [] a = levels.split("/", 2);
-                                
+
                                 if (a.length == 1) {
                                         level = a[0];
                                 } else if (a.length == 2) {
@@ -201,7 +232,7 @@ public final class NetPropertyTree {
                         }
 
                         Object result = null;
-                        
+
                         do {
                                 String context = null;
                                 {
@@ -215,7 +246,7 @@ public final class NetPropertyTree {
                                                 throw new Error("invalid property name");
                                         }
                                 }
-                        
+
                                 //System.err.println("get: context = "+context+", level = "+level+", subLevels = "+subLevels);
                                 HashMap contextMap = (HashMap)levelMap.get(level);
                                 if (contextMap == null) {
@@ -248,13 +279,13 @@ public final class NetPropertyTree {
 
                                 if (propertyTree == null) {
                                         break;
-                                } 
+                                }
 
                                 if (subLevels != null) {
                                         result = propertyTree.get(subLevels+":"+property);
                                 } else {
                                         result = propertyTree.get(property);
-                                }   
+                                }
                         } while (false);
 
                         if (result == null) {
@@ -272,6 +303,6 @@ public final class NetPropertyTree {
                         return result;
                 }
         }
-        
+
 }
 

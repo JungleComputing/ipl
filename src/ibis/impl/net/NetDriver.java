@@ -1,16 +1,16 @@
 package ibis.ipl.impl.net;
 
 /**
- * Provides a generic interface for the low level network drivers.
+ * Provide a generic interface for the low level network drivers.
  *
  * Each non-abstract subclass of this class should be named <CODE>Driver</CODE>
  * and placed in a sub-package/sub-directory of {@link ibis.ipl.impl.net} to allow
  * for the dynamic driver loading mechanism to find the driver properly.
  */
 public abstract class NetDriver {
-	
+
 	/**
-	 * The reference to the owning {@link NetIbis} instance.
+	 * Reference the owning {@link NetIbis} instance.
 	 */
 	protected NetIbis ibis = null;
 
@@ -43,7 +43,7 @@ public abstract class NetDriver {
 
 
 	/**
-	 * Returns the owning {@link NetIbis} instance.
+	 * Return the owning {@link NetIbis} instance.
 	 *
 	 * @return the {@link NetIbis} instance which loaded this driver.
 	 */
@@ -52,7 +52,7 @@ public abstract class NetDriver {
 	}
 
 	/**
-	 * Returns the name of the driver.
+	 * Return the name of the driver.
 	 *
 	 * Note: the name of the driver should preferably be equals to the suffix
 	 * of the driver's package name.
@@ -60,9 +60,9 @@ public abstract class NetDriver {
 	 * @param return the driver's name.
 	 */
 	public abstract String getName();
-	
+
 	/**
-	 * Creates a new {@link NetInput} according to the
+	 * Create a new {@link NetInput} according to the
 	 * {@linkplain NetPortType port type} settings and the context {@linkplain String string}.
 	 *
 	 * @param pt the port type.
@@ -74,7 +74,7 @@ public abstract class NetDriver {
 		throws NetIbisException;
 
 	/**
-	 * Creates a new {@link NetOutput} according to the
+	 * Create a new {@link NetOutput} according to the
 	 * {@linkplain NetPortType port type} settings and the context {@linkplain String string}.
 	 *
 	 * @param pt the port type.

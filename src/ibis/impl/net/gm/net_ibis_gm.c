@@ -491,7 +491,7 @@ ni_gm_access_lock_init(JNIEnv                *env,
                 p_alock->lock_id = (*env)->GetMethodID(env, alock_class, "lock", "(Z)V");
                 assert(p_alock->lock_id);
 
-                p_alock->unlock_id = (*env)->GetMethodID(env, alock_class, "unlock", "(Z)V");
+                p_alock->unlock_id = (*env)->GetMethodID(env, alock_class, "unlock", "()V");
                 assert(p_alock->unlock_id);
         }
 
@@ -529,7 +529,7 @@ ni_gm_access_lock_unlock(struct s_access_lock *p_alock) {
                 (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
         }
 
-        (*env)->CallVoidMethod(env, p_alock->ref, p_alock->unlock_id, p_alock->priority);
+        (*env)->CallVoidMethod(env, p_alock->ref, p_alock->unlock_id);
         __out__();
 
         return 0;

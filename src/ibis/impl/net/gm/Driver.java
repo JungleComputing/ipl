@@ -87,7 +87,7 @@ public final class Driver extends NetDriver {
                         do {
                                 gmAccessLock.lock(false);
                                 nGmThread();
-                                gmAccessLock.unlock(false);
+                                gmAccessLock.unlock();
                         } while (!gmLockArray.trylock(lockId));
 
                         /* request completed, release GM main lock */
@@ -105,7 +105,7 @@ public final class Driver extends NetDriver {
                         /* got GM main lock, let's pump */
                         gmAccessLock.lock(false);
                         nGmThread();
-                        gmAccessLock.unlock(false);
+                        gmAccessLock.unlock();
                         if (!gmLockArray.trylock(lockId)) {
                                 int i = speculativePolls;
 
@@ -118,7 +118,7 @@ public final class Driver extends NetDriver {
 
                                         gmAccessLock.lock(false);
                                         nGmThread();
-                                        gmAccessLock.unlock(false);
+                                        gmAccessLock.unlock();
                                 } while (!gmLockArray.trylock(lockId));
                         }
 
@@ -148,7 +148,7 @@ public final class Driver extends NetDriver {
                                         value = gmLockArray.trylock(lockId);
                                 } while (!value && --i > 0);
 
-                                gmAccessLock.unlock(false);
+                                gmAccessLock.unlock();
                         } else {
                                 value = gmLockArray.trylock(lockId);
                         }
