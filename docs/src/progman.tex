@@ -919,6 +919,16 @@ A timer utility is provided in \texttt{ibis.util.Timer}.
 See the Ibis API for other utilities. Most of these are used in
 Ibis implementations, but may have other uses.
 
+\mysubsection{Avoiding deadlocks}
+
+As with most communication layers, it is quite easy to write code that
+deadlocks with Ibis. For example, if you have two Ibis instances that
+are writing large amounts of data to each other, and there are no
+readers for this data active, this will almost certainly result in a deadlock,
+because network buffers will fill up, causing the senders to block.
+Such a deadlock can be avoided by having a separate reader thread,
+or by installing an upcall handler for the incoming message.
+
 \mysection{Compiling and Running an Ibis Application}
 
 Before running an Ibis application it must be compiled.  Using
