@@ -445,7 +445,7 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
     }
 
 
-    private ReadMessage doReceive() throws IbisIOException {
+    private ReadMessage doReceive(boolean block) throws IbisIOException {
 	// Ibis.myIbis.checkLockOwned();
 
 	if (DEBUG) {
@@ -477,6 +477,10 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 // }
 
 	if (queueFront == null) {
+	    if (! block) {
+		return null;
+	    }
+
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + ", port " + this + ". Hit wait in ReceivePort.receive()" + ident + " queue " + queueFront + " " + messageArrived);
 	    }
@@ -499,16 +503,15 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
     }
 
 
-    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMeIpl)
+    private ibis.ipl.ReadMessage receive(ReadMessage finishMe, boolean block)
 	    throws IbisIOException {
 	Ibis.myIbis.lock();
 	try {
 // manta.runtime.RuntimeSystem.DebugMe(this, this);
-	    if (finishMeIpl != null) {
-		ReadMessage finishMe = (ReadMessage)finishMeIpl;
+	    if (finishMe != null) {
 		finishMe.finishLocked();
 	    }
-	    return doReceive();
+	    return doReceive(block);
 	} finally {
 	    Ibis.myIbis.unlock();
 	}
@@ -516,13 +519,24 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
 
     public ibis.ipl.ReadMessage receive() throws IbisIOException {
-	Ibis.myIbis.lock();
-	try {
-// manta.runtime.RuntimeSystem.DebugMe(this, this);
-	    return doReceive();
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
+	return receive(null, true);
+    }
+
+
+    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMe)
+	    throws IbisIOException {
+	return receive((ReadMessage)finishMe, true);
+    }
+
+
+    public ibis.ipl.ReadMessage poll() throws IbisIOException {
+	return receive(null, false);
+    }
+
+
+    public ibis.ipl.ReadMessage poll(ibis.ipl.ReadMessage finishMe)
+	    throws IbisIOException {
+	return receive((ReadMessage)finishMe, false);
     }
 
 
@@ -579,20 +593,6 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 	}
 
     }
-
-	/** Asynchronous receive. Return immediately when no message is available.
-	 Also works for upcalls, then it is a normal poll. **/
-	public ibis.ipl.ReadMessage poll() throws IbisIOException {
-		System.err.println("poll not implemented");
-		return null;
-	}
-
-	/** Asynchronous receive, as above, but free an old message.
-	    Also works for upcalls, then it is a normal poll. **/
-	public ibis.ipl.ReadMessage poll(ibis.ipl.ReadMessage finishMe) throws IbisIOException {
-		System.err.println("poll not implemented");
-		return null;
-	}
 
 
     public void free() {
@@ -747,7 +747,7 @@ else System.err.println(Thread.currentThread() + " ReceivePort " + name + ", dae
 		    enable.cv_wait();
 		}
 
-		msg = doReceive();	// May throw an IbisIOException
+		msg = doReceive(true /* block */);	// May throw an IbisIOException
 
 		if (msg != null) {
 		    availableUpcallThread--;

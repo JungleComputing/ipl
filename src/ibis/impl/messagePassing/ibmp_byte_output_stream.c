@@ -420,6 +420,14 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
 	return JNI_FALSE;
     }
 
+    if (cpu == ibmp_me) {
+	static int first_pass = 1;
+	if (first_pass) {
+	    first_pass = 0;
+	    fprintf(stderr, "Send message to my own Ibis; implement shortcut?\n");
+	}
+    }
+
     if (lastFrag && lastSplitter) {
 	if (! msg->firstFrag) {
 #if DISABLE_SENDER_INTERRUPTS
