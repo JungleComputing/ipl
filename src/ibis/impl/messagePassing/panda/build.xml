@@ -29,12 +29,16 @@
     <property name="local.lib" value="ibis_local_mp_panda"/>
     <property name="closure.lib" value="ibis_mp_panda"/>
 
-    <!--
     <property name="panda"        location="/usr/local/VU/panda"/>
     <property name="daslib"       location="/usr/local/VU/daslib"/>
-    -->
+    <property name="gm"           location="/usr/local/gm/current"/>
+    <property name="lfc"          location="/usr/local/VU/lfc/lfc-gm"/>
+    <!--
     <property name="panda"        location="c:\werk\ibis\panda"/>
     <property name="daslib"       location="c:\werk\ibis\daslib"/>
+    <property name="gm"           location="C:/werk/ibis/gm"/>
+    <property name="lfc"          location="C:/werk/ibis/lfc-gm"/>
+    -->
 
     &sharedProperties;
     &nativeTargets;
@@ -70,13 +74,6 @@
 	<echo message="local.includes = ${local.includes}"/>
     </target>
 
-    <!--
-    <property name="gm"           location="/usr/local/gm/current"/>
-    <property name="lfc"          location="/usr/local/VU/lfc/lfc-gm"/>
-    -->
-    <property name="gm"           location="C:/werk/ibis/gm"/>
-    <property name="lfc"          location="C:/werk/ibis/lfc-gm"/>
-
     <target name="panda-init-opt" depends="property-init,native-init,arch-init" unless="native.debug">
 	<property name="lfc.lib.dir" location="${lfc}/lib/optimized"/>
 	<property name="panda.lib.dir" location="${panda}/panda4.0/lib/${panda.arch}/lfc-gm/no_threads/optimized"/>
@@ -87,14 +84,12 @@
     </target>
 
     <target name="panda-init" depends="panda-init-opt,panda-init-debug">
-	<!--
 	<property name="das.lib.dir" location="${daslib}/lib/i386_Linux"/>
-	-->
-	<property name="das.lib.dir" location="${daslib}/lib/i386_win32"/>
-	<!--
 	<property name="gm.lib.dir" location="${gm}/lib"/>
-	-->
+	<!--
+	<property name="das.lib.dir" location="${daslib}/lib/i386_win32"/>
 	<property name="gm.lib.dir" location="${gm}"/>
+	-->
     </target>
 
 
@@ -126,7 +121,6 @@
 		    <libset dir="${panda.lib.dir}" libs="panda"/>
 		    <libset dir="${lfc.lib.dir}"   libs="lfc"/>
 		    <libset dir="${gm.lib.dir}"    libs="gm"/>
-		    <libset dir="c:\winnt\system32"   libs="wsock32"/>
 		    <includepath>
 			<pathelement path="${local.includes}"/>
 			<pathelement path="${default.includes}"/>

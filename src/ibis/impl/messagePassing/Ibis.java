@@ -12,6 +12,7 @@ import ibis.ipl.impl.generic.ConditionVariable;
 import ibis.ipl.impl.generic.Monitor;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
+import ibis.ipl.SendPortConnectUpcall;
 import ibis.io.Replacer;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.impl.generic.IbisIdentifierTable;
@@ -281,6 +282,8 @@ public class Ibis extends ibis.ipl.Ibis {
 		rcve_poll.waitPolling(client, timeout, preempt);
     }
 
+    /* Methinks best put the overloading into PortType. Here we only
+     * need one method with all parameters.
     SendPort createSendPort(PortType type)
 	    throws IbisIOException {
 		return createSendPort(type, "noname", null);
@@ -300,9 +303,15 @@ public class Ibis extends ibis.ipl.Ibis {
 	    throws IbisIOException {
 	return createSendPort(type, r, name);
     }
+    */
 
-    SendPort createSendPort(PortType type, Replacer r, String name)
+    SendPort createSendPort(PortType type, Replacer r, String name, SendPortConnectUpcall cU)
 	    throws IbisIOException {
+
+	if (cU != null) {
+	    System.err.println(this + ": createSendPort with ConnectUpcall. UNIMPLEMENTED");
+	}
+
 	switch (type.serializationType) {
         case PortType.SERIALIZATION_NONE:
 // System.err.println("MSG: NO SER, name = " + name);

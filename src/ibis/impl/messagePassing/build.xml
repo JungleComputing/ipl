@@ -26,18 +26,18 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
-    <property name="local.lib" value="ibis_mp"/>
+    <property name="local.lib" value="libibis_mp"/>
     <property name="cc.outtype" value="static"/>
 
     &sharedProperties;
     &nativeTargets;
 
-    <!--
     <property name="panda"        location="/usr/local/VU/panda"/>
     <property name="daslib"       location="/usr/local/VU/daslib"/>
-    -->
+    <!--
     <property name="panda"        location="c:\werk\ibis\panda"/>
     <property name="daslib"       location="c:\werk\ibis\daslib"/>
+    -->
 
     <target name="arch-init" depends="property-init">
 

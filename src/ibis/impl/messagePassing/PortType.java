@@ -2,6 +2,8 @@ package ibis.ipl.impl.messagePassing;
 
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
+import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.io.Replacer;
 
 public class PortType implements ibis.ipl.PortType {
@@ -58,48 +60,34 @@ public class PortType implements ibis.ipl.PortType {
 	return p;
     }
 
+
     public ibis.ipl.SendPort createSendPort() throws IbisIOException {
-	SendPort s;
-
-	s = Ibis.myIbis.createSendPort(this);
-
-	if (Ibis.DEBUG) {
-	    System.out.println(myIbis.name() + ": Sendport created of of type '" +
-			       name + "'" + " cpu " + s.ident.cpu + " port " + s.ident.port);
-	}
-
-	return s;
-    }
-
-    public ibis.ipl.SendPort createSendPort(Replacer r) throws IbisIOException {
-	SendPort s;
-
-	s = Ibis.myIbis.createSendPort(this, r);
-
-	if (Ibis.DEBUG) {
-	    System.out.println(myIbis.name() + ": Sendport created of of type '" +
-			       name + "'" + " cpu " + s.ident.cpu + " port " + s.ident.port);
-	}
-
-	return s;
+	return createSendPort("noname", null, null);
     }
 
     public ibis.ipl.SendPort createSendPort(String portname) throws IbisIOException {
-	SendPort s;
+	return createSendPort(portname, null, null);
+    }
 
-	s = Ibis.myIbis.createSendPort(this, portname);
+    public ibis.ipl.SendPort createSendPort(String portname, SendPortConnectUpcall cU) throws IbisIOException {
+	return createSendPort(portname, null, cU);
+    }
 
-	if (Ibis.DEBUG) {
-	    System.out.println(myIbis.name() + ": Sendport " + name +
-			       " created of of type '" + this.name + "'");
-	}
+    public ibis.ipl.SendPort createSendPort(Replacer r) throws IbisIOException {
+	return createSendPort("noname", r, null);
+    }
 
-	return s;
+    public ibis.ipl.SendPort createSendPort(Replacer r, SendPortConnectUpcall cU) throws IbisIOException {
+	return createSendPort("noname", r, cU);
     }
 
     public ibis.ipl.SendPort createSendPort(String portname, Replacer r) throws IbisIOException {
+	return createSendPort(portname, r, null);
+    }
+
+    public ibis.ipl.SendPort createSendPort(String portname, Replacer r, SendPortConnectUpcall cU) throws IbisIOException {
 	    SendPort s;
-	    s = Ibis.myIbis.createSendPort(this, portname, r);
+	    s = Ibis.myIbis.createSendPort(this, r, portname, cU);
 
 	    if (Ibis.DEBUG) {
 		    System.out.println(myIbis.name() + ": Sendport " + name + " created of of type '" +
@@ -108,6 +96,7 @@ public class PortType implements ibis.ipl.PortType {
 	    
 	    return s;
     }
+
 
     public ibis.ipl.ReceivePort createReceivePort(String name)
 	    throws IbisIOException {
@@ -123,7 +112,7 @@ public class PortType implements ibis.ipl.PortType {
 
     public ibis.ipl.ReceivePort createReceivePort(
 					String name,
-					ibis.ipl.ConnectUpcall cU)
+					ibis.ipl.ReceivePortConnectUpcall cU)
 					    throws IbisIOException {
 	return createReceivePort(name, null, cU);
     }
@@ -131,7 +120,7 @@ public class PortType implements ibis.ipl.PortType {
     public ibis.ipl.ReceivePort createReceivePort(
 					String name,
 					ibis.ipl.Upcall u,
-					ibis.ipl.ConnectUpcall cU)
+					ibis.ipl.ReceivePortConnectUpcall cU)
 					    throws IbisIOException {
 
 	ReceivePort p = new ReceivePort(this, name, u, cU);

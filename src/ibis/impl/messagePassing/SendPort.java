@@ -216,6 +216,20 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
     }
 
 
+    public ibis.ipl.ReceivePortIdentifier[] connectedTo() {
+	ibis.ipl.ReceivePortIdentifier[] r = new ibis.ipl.ReceivePortIdentifier[splitter.length];
+	for (int i = 0; i < splitter.length; i++) {
+	    r[i] = splitter[i];
+	}
+	return r;
+    }
+
+
+    public ibis.ipl.ReceivePortIdentifier[] lostConnections() {
+	return null;	/* Or should this be an empty array or? */
+    }
+
+
     public void free() throws IbisIOException {
 	if (Ibis.DEBUG) {
 	    System.out.println(type.myIbis.name() + ": ibis.ipl.SendPort.free " + this + " start");

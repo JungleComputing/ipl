@@ -5,7 +5,7 @@ import ibis.ipl.impl.generic.ConditionVariable;
 final class AcceptThread extends Thread {
 
     ReceivePort port;
-    ibis.ipl.ConnectUpcall upcall;
+    ibis.ipl.ReceivePortConnectUpcall upcall;
     ConditionVariable there_is_work = Ibis.myIbis.createCV();
     boolean	stopped;
 
@@ -23,7 +23,7 @@ final class AcceptThread extends Thread {
     AcceptQ	acceptQ_freelist;
 
 
-    AcceptThread(ReceivePort port, ibis.ipl.ConnectUpcall upcall) {
+    AcceptThread(ReceivePort port, ibis.ipl.ReceivePortConnectUpcall upcall) {
 	this.port = port;
 	this.upcall = upcall;
     }
@@ -109,7 +109,7 @@ final class AcceptThread extends Thread {
 		break;
 	    }
 
-	    q.accept = upcall.upcall(q.port);
+	    q.accept = upcall.gotConnection(q.port);
 	    q.finished = true;
 	    q.decided.cv_signal();
 	}

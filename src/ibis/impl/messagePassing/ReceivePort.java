@@ -59,7 +59,7 @@ class ReceivePort
 
     volatile boolean stop = false;
 
-    private ibis.ipl.ConnectUpcall connectUpcall;
+    private ibis.ipl.ReceivePortConnectUpcall connectUpcall;
     private boolean allowConnections = false;
     private AcceptThread acceptThread;
     private boolean allowUpcalls = false;
@@ -98,7 +98,7 @@ class ReceivePort
     ReceivePort(PortType type,
 	        String name,
 		ibis.ipl.Upcall upcall,
-		ibis.ipl.ConnectUpcall connectUpcall)
+		ibis.ipl.ReceivePortConnectUpcall connectUpcall)
 			throws IbisIOException {
 	this.type = type;
 	this.name = name;
@@ -530,6 +530,16 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
     }
 
 
+    public ibis.ipl.ReadMessage receive(long timeout) throws IbisIOException {
+	return receive();
+    }
+
+
+    public ibis.ipl.ReadMessage receive(ibis.ipl.ReadMessage finishMe, long timeout) throws IbisIOException {
+	return receive(finishMe);
+    }
+
+
     public ibis.ipl.ReadMessage receive() throws IbisIOException {
 	return receive(null, true);
     }
@@ -558,6 +568,27 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 
     public ibis.ipl.ReceivePortIdentifier identifier() {
 	return ident;
+    }
+
+
+    public ibis.ipl.SendPortIdentifier[] connectedTo() {
+	int n = connections.size();
+	ibis.ipl.SendPortIdentifier[] s = new ibis.ipl.SendPortIdentifier[n];
+	for (int i = 0; i < n; i++) {
+	    s[i] = (SendPortIdentifier)connections.elementAt(i);
+	}
+	return s;
+    }
+
+
+    public ibis.ipl.SendPortIdentifier[] lostConnections() {
+	return null;
+    }
+
+
+    public ibis.ipl.SendPortIdentifier[] newConnections() {
+	System.err.println("Do not know how to implement this.");
+	return null;
     }
 
 
@@ -691,6 +722,16 @@ System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because th
 		portCounter.s_signal(true);
 	    }
 	Ibis.myIbis.unlock();
+    }
+
+
+    public void forcedClose() {
+	free();
+    }
+
+
+    public void forcedClose(long timeout) {
+	forcedClose();
     }
 
 
