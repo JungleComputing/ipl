@@ -392,7 +392,6 @@ public class SuffixArray implements Configuration, Magic {
      */
     private StepList selectBestSteps( int top )
     {
-        int maxlen = 0;
         int mincom = MINCOMMONALITY;
         int candidates[] = new int[length];
         int p = 0;
@@ -406,15 +405,13 @@ public class SuffixArray implements Configuration, Magic {
 		// candidate array for each new possibility, since we
 		// may have to throw it away.
                 int pos0 = indices[i-1];
-		int pos1 = indices[i];
-		int len = Math.min( Math.abs( pos1-pos0 ), commonality[i] );
+                // This is a better candidate.
+                candidates[0] = pos0;
+                p = 1;
 
-		if( len>maxlen ){
-		    // This is a better candidate.
-		    candidates[0] = pos0;
-		    candidates[1] = pos1;
-		    p = 2;
+                int len = commonality[i];
 
+                while( len>mincom ){
 		    // Now search for non-overlapping substrings that 
 		    // are equal for `len' characters. All possibilities
 		    // are the subsequent entries in the suffix array, up to
@@ -425,7 +422,7 @@ public class SuffixArray implements Configuration, Magic {
                     // TODO: this fairly arbitrary way of gathering candidates
                     // is not optimal, since a different subset of strings may
                     // be larger.
-		    int j = i+1;
+		    int j = i;
 		    while( j<length && commonality[j]>=len ){
 			int posj = indices[j];
 
@@ -434,13 +431,15 @@ public class SuffixArray implements Configuration, Magic {
 			}
 			j++;
 		    }
-		    maxlen = len;
 
-                    // HEURISTIC: anything shorter than this is probably
-                    // not a reasonable candidate for best compression step.
-                    // (But we could be wrong.)
-		    mincom = len-1;
-                    res.add( new Step( candidates, p, maxlen ) );
+                    if( p>1 ){
+                        // HEURISTIC: anything shorter than this is probably
+                        // not a reasonable candidate for best compression step.
+                        // (But we could be wrong.)
+                        mincom = len-1;
+                        res.add( new Step( candidates, p, len ) );
+                    }
+                    len--;
 		}
             }
         }
