@@ -125,9 +125,9 @@ ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
     rd = 0;
     while (1) {
 #ifndef NON_BLOCKING_CONSUME
-	rd += pan_msg_consume((pan_msg_p)msg, (char *)buf + rd, (int)len);
+	rd += pan_msg_consume((pan_msg_p)msg, (char *)buf + rd, len - rd);
 #else
-	rd += pan_msg_consume_non_blocking((pan_msg_p)msg, (char *)buf + rd, (int)len);
+	rd += pan_msg_consume_non_blocking((pan_msg_p)msg, (char *)buf + rd, len - rd);
 #endif
 	if (rd == len) {
 	    break;
@@ -284,6 +284,8 @@ ibp_intr_poll(void)
     int		i;
 
     intpts++;
+
+    IBP_VPRINTF(2000, env, ("interrupt...\n"));
 
     // fprintf(stderr, "Do a poll from interrupt handler\n");
     ibmp_lock_check_owned(env);
