@@ -124,7 +124,7 @@ public final class GmOutput extends NetBufferedOutput {
                                 do {
 
                                         // WARNING: yield
-                                        //(Thread.currentThread()).yield();
+                                        (Thread.currentThread()).yield();
 
                                         Driver.gmAccessLock.lock(false);
                                         Driver.nGmThread();

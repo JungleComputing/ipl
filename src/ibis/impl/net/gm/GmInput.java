@@ -74,6 +74,7 @@ public final class GmInput extends NetBufferedInput {
 
                 public UpcallThread(String name) {
                         super("GmInput.UpcallThread: "+name);
+                        this.setDaemon(true);
                 }                
 
                 public void run() {
@@ -90,7 +91,6 @@ public final class GmInput extends NetBufferedInput {
                 public void finish() {
                         end = true;
                         this.interrupt();
-                        this.setDaemon(true);
                 }
         }
 
@@ -160,7 +160,7 @@ public final class GmInput extends NetBufferedInput {
                         if (!Driver.gmLockArray.trylock(lockId)) {
                                 do { 
                                         // WARNING: yield 
-                                        //(Thread.currentThread()).yield();
+                                        (Thread.currentThread()).yield();
                                 
                                         Driver.gmAccessLock.lock(false);
                                         Driver.nGmThread();
