@@ -493,8 +493,9 @@ Here we select the \texttt{tcp\_blk} networking driver for the
 `\texttt{b}' branch.
 \begin{Miniverb}
 
-  /s_ibis/bytes/multi#a/gen:Driver=tcp_blk
-  /s_ibis/bytes/multi#b/gen:Driver=gm
+  /s_ibis/bytes/multi:Plugin=abc
+  /s_ibis/bytes/multi#net_a/gen:Driver=tcp_blk
+  /s_ibis/bytes/multi#net_b/gen:Driver=gm
 
 \end{Miniverb}
 
@@ -504,9 +505,10 @@ We just need to replace the two previous lines with the following
 ones.
 \begin{Miniverb}
 
+  /s_ibis/bytes/multi:Plugin=abc
   /s_ibis/bytes/multi/gen:Driver=id
-  /s_ibis/bytes/multi#a/gen/id:Driver=tcp_blk
-  /s_ibis/bytes/multi#b/gen/id:Driver=gm
+  /s_ibis/bytes/multi#net_a/gen/id:Driver=tcp_blk
+  /s_ibis/bytes/multi#net_b/gen/id:Driver=gm
 
 \end{Miniverb}
 There is no sub-context string on the first of the three lines, which
@@ -534,8 +536,9 @@ follows.
   bytes:Drivers=multi
   multi:Driver=gen
   gen:Driver=id
-  multi#a/gen/id:Driver=tcp_blk
-  multi#b/gen/id:Driver=gm
+  multi:Plugin=abc
+  multi#net_a/gen/id:Driver=tcp_blk
+  multi#net_b/gen/id:Driver=gm
 
 \end{Miniverb}
 
