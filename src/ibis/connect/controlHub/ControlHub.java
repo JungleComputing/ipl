@@ -23,6 +23,8 @@ class NodeManager extends Thread
     private HubProtocol.HubWire wire;
     private int hostport;
     private ControlHub hub;
+    private int[] nmessages;
+    private static final boolean STATS = false;
 
     NodeManager(Socket s, ControlHub hub) 
 	throws IOException, ClassNotFoundException {
@@ -30,6 +32,10 @@ class NodeManager extends Thread
 	hostname = wire.getPeerName();
 	hostport = wire.getPeerPort();
 	this.hub = hub;
+	nmessages = new int[HubProtocol.names.length];
+	for (int i = 0; i < HubProtocol.names.length; i++) {
+	    nmessages[i] = 0;
+	}
     }
 
     protected void sendPacket(String host, int port, HubProtocol.HubPacket p) 
@@ -49,6 +55,8 @@ class NodeManager extends Thread
 		int    destPort	= packet.getPort();
 		boolean send = true;
 
+		nmessages[action]++;
+
 		switch(action) {
 		case HubProtocol.GETPORT: {
 		    /* packet for the hub itself: obtain port number. */
@@ -59,10 +67,12 @@ class NodeManager extends Thread
 		    }
 		    break;
 
-		case HubProtocol.PUTPORT: {
+		case HubProtocol.RELEASEPORT: {
 		    /* packet for the hub itself: release port number. */
-		    HubProtocol.HubPacketPutPort p = (HubProtocol.HubPacketPutPort) packet;
-		    ControlHub.removePort(hostname, hostport, p.resultPort);
+		    HubProtocol.HubPacketReleasePort p = (HubProtocol.HubPacketReleasePort) packet;
+		    for (int i = 0; i < p.released.size(); i++) {
+			ControlHub.removePort(hostname, hostport, ((Integer) p.released.get(i)).intValue());
+		    }
 		    send = false;
 		    }
 		    break;
@@ -104,6 +114,12 @@ class NodeManager extends Thread
 	try {
 	    wire.close();
 	} catch(IOException e) {
+	}
+	if (STATS) {
+	    System.err.println("Wire statistics for host " + hostname +":" + hostport + ":");
+	    for (int i = 1; i < HubProtocol.names.length; i++) {
+		System.err.println(HubProtocol.names[i] + ": " + nmessages[i]);
+	    }
 	}
 	hub.unregisterNode(hostname, hostport);
     }

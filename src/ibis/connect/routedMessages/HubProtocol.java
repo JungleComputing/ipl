@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.util.Vector;
 
 /* On-the-wire protocol management for links between 
  * computing nodes and control hub. Used by the HubLink
@@ -24,6 +25,9 @@ public class HubProtocol
     public static final int CLOSE   = 5; // notification for socket close
     public static final int GETPORT = 6; // get port number from controlhub
     public static final int PUTPORT = 7; // received port number from controlhub
+    public static final int RELEASEPORT = 8; // release port numbers for controlhub
+
+    public static final String[] names = new String[] { "", "Connect", "Accept", "Reject", "Data", "Close", "Getport", "Putport", "Releaseport"};
 
     public static class HubWire
     {
@@ -90,6 +94,8 @@ public class HubProtocol
 		case CLOSE:   p = HubPacketClose.recv(in, host, port);
 		    break;
 		case PUTPORT: p = HubPacketPutPort.recv(in, host, port);
+		    break;
+		case RELEASEPORT: p = HubPacketReleasePort.recv(in, host, port);
 		    break;
 		case GETPORT: p = HubPacketGetPort.recv(in, host, port);
 		    break;
@@ -235,6 +241,31 @@ public class HubProtocol
 	    int    port = in.readInt();
 	    MyDebug.out.println("# HubPacketPutPort.recv()- got PUTPORT of port " + port + " from " + h + ":" + p);
 	    return new HubPacketPutPort(port);
+	}
+    }
+
+    public static class HubPacketReleasePort extends HubPacket {
+	public Vector    released;
+	public int getType() { return RELEASEPORT; }
+	public HubPacketReleasePort(Vector ports) {
+	    released = ports;
+	}
+	public void send(DataOutputStream out) throws IOException {
+	    MyDebug.out.println("# HubPacketReleasePort.send()- sending RELEASEPORT");
+	    out.writeInt(released.size());
+	    for (int i = 0; i < released.size(); i++) {
+		out.writeInt(((Integer) released.get(i)).intValue());
+	    }
+	}
+	static public HubPacket recv(DataInputStream in, String h, int p)
+	    throws IOException, ClassNotFoundException {
+	    Vector released = new Vector();
+	    int    n = in.readInt();
+	    MyDebug.out.println("# HubPacketReleasePort.recv()- got REPEASEPORT");
+	    for (int i = 0; i < n; i++) {
+		released.add(new Integer(in.readInt()));
+	    }
+	    return new HubPacketReleasePort(released);
 	}
     }
 

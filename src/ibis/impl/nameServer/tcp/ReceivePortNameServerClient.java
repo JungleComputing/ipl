@@ -38,55 +38,48 @@ class ReceivePortNameServerClient implements Protocol {
 		int result;
 		long startTime = System.currentTimeMillis();
 
-		do {
-			if (timeout > 0 &&
-				System.currentTimeMillis() > startTime + timeout) {
-				throw new ConnectionTimedOutException("could not connect");
-			}
-
-			s = NameServerClient.socketFactory.createSocket(server, port, localAddress, timeout);
+		s = NameServerClient.socketFactory.createSocket(server, port, localAddress, timeout);
 			
-			DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-			out = new ObjectOutputStream(new BufferedOutputStream(dos));
+		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+		out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
-			// request a new Port.
-			out.writeByte(PORT_LOOKUP);
-			out.writeUTF(name);
-			out.flush();
+		// request a new Port.
+		out.writeByte(PORT_LOOKUP);
+		out.writeUTF(name);
+		out.writeLong(timeout);
+		out.flush();
 
-			DummyInputStream di = new DummyInputStream(s.getInputStream());
-			in  = new ObjectInputStream(new BufferedInputStream(di));
-			result = in.readByte();
+		DummyInputStream di = new DummyInputStream(s.getInputStream());
+		in  = new ObjectInputStream(new BufferedInputStream(di));
+		result = in.readByte();
+		if (VERBOSE) {
+		    System.err.println(this + ": lookup port \"" + name + "\"");
+		}
 			
-			switch (result) {
-				case PORT_UNKNOWN:
-					if (VERBOSE) {
-						System.err.println("Port " + name + ": PORT_UNKNOWN");
-					}
-					break;
-				case PORT_KNOWN:
-					try {
-						id = (ReceivePortIdentifier) in.readObject();
-					} catch (ClassNotFoundException e) {
-						throw new IOException("Unmarshall fails " + e);
-					}
-					break;
-				default:
-					throw new StreamCorruptedException("Registry: lookup got illegal opcode " + result);
-			}
-
-			NameServerClient.socketFactory.close(in, out, s);
-
-			if (id == null) {
-				int timeLeft = (int)(startTime + timeout - System.currentTimeMillis());
-				try {
-					if (timeLeft <= 100) timeLeft = 100;
-					Thread.sleep(Math.min(timeLeft, 500));
-				} catch (InterruptedException e) {
-					// ignore               
+		switch (result) {
+			case PORT_UNKNOWN:
+				if (VERBOSE) {
+					System.err.println("Port " + name + ": PORT_UNKNOWN");
 				}
-			}
-		} while (id == null);
+				NameServerClient.socketFactory.close(in, out, s);
+				throw new ConnectionTimedOutException("could not connect");
+			case PORT_KNOWN:
+				if (VERBOSE) {
+					System.err.println("Port " + name + ": PORT_KNOWN");
+				}
+				try {
+					id = (ReceivePortIdentifier) in.readObject();
+				} catch (ClassNotFoundException e) {
+					NameServerClient.socketFactory.close(in, out, s);
+					throw new IOException("Unmarshall fails " + e);
+				}
+				break;
+			default:
+				NameServerClient.socketFactory.close(in, out, s);
+				throw new StreamCorruptedException("Registry: lookup got illegal opcode " + result);
+		}
+
+		NameServerClient.socketFactory.close(in, out, s);
 
 		return id;
 	}

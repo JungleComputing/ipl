@@ -19,13 +19,36 @@ import java.util.Hashtable;
 class ReceivePortNameServer extends Thread implements Protocol {
 
 	private Hashtable ports;
+	private Hashtable requestedPorts;
 	private ServerSocket serverSocket;
 
 	private	ObjectInputStream in;
 	private	ObjectOutputStream out;
 
+	private static class PortLookupRequest {
+	    Socket s;
+	    ObjectInputStream in;
+	    ObjectOutputStream out;
+	    String name;
+	    long timeout;
+
+	    PortLookupRequest(
+		    Socket s,
+		    ObjectInputStream in,
+		    ObjectOutputStream out,
+		    String name,
+		    long timeout) {
+		this.s = s;
+		this.in = in;
+		this.out = out;
+		this.name = name;
+		this.timeout = timeout;
+	    }
+	}
+
 	ReceivePortNameServer() throws IOException { 
 		ports = new Hashtable();
+		requestedPorts = new Hashtable();
 		serverSocket = NameServerClient.socketFactory.createServerSocket(0, null, true);
 		setName("ReceivePort Name Server");
 		start();
@@ -49,7 +72,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 			out.writeByte(PORT_REFUSED);
 		} else { 
 			out.writeByte(PORT_ACCEPTED);			
-			ports.put(name, id);
+			addPort(name, id);
 		} 
 	}
 	
@@ -63,9 +86,24 @@ class ReceivePortNameServer extends Thread implements Protocol {
 		
 		/* Don't check whether the name is in use. */
 		out.writeByte(PORT_ACCEPTED);
-		ports.put(name, id);
+		addPort(name, id);
 	}
-	
+
+	private void addPort(String name, ReceivePortIdentifier id) throws IOException {
+	    ports.put(name, id);
+	    synchronized(requestedPorts) {
+		ArrayList v = (ArrayList) requestedPorts.get(name);
+		if (v != null) {
+		    requestedPorts.remove(name);
+		    for (int i = 0; i < v.size(); i++) {
+			PortLookupRequest p = (PortLookupRequest) v.get(i);
+			p.out.writeByte(PORT_KNOWN);
+			p.out.writeObject(id);
+			NameServerClient.socketFactory.close(p.in, p.out, p.s);
+		    }
+		}
+	    }
+	}
 	
 	private void handlePortList() throws IOException, ClassNotFoundException {
 		
@@ -88,20 +126,77 @@ class ReceivePortNameServer extends Thread implements Protocol {
 	}	    
 	//end gosia	
 	
+
+	private class RequestSweeper extends Thread {
+	    public void run() {
+		long timeout = 1000000L;
+		while(true) {
+		    long current = System.currentTimeMillis();
+		    synchronized(requestedPorts) {
+			Enumeration names = requestedPorts.keys();
+			while (names.hasMoreElements()) {
+			    String name = (String) names.nextElement();
+			    ArrayList v = (ArrayList) requestedPorts.get(name);
+			    if (v != null) {
+				for (int i = v.size()-1; i >= 0; i--) {
+				    PortLookupRequest p = (PortLookupRequest) v.get(i);
+				    if (p.timeout != 0) {
+					if (p.timeout <= current) {
+					    try {
+						p.out.writeByte(PORT_UNKNOWN);
+					    } catch(IOException e) {
+						System.out.println("RequestSweeper got IOException" + e);
+						e.printStackTrace();
+					    }
+					    NameServerClient.socketFactory.close(p.in, p.out, p.s);
+					    v.remove(i);
+					}
+					else if (p.timeout - current < timeout) {
+					    timeout = p.timeout - current;
+					}
+				    }
+				}
+				if (v.size() == 0) {
+				    requestedPorts.remove(name);
+				}
+			    }
+			}
+			try {
+			    requestedPorts.wait(timeout);
+			} catch(InterruptedException e) {
+			}
+		    }
+		}
+	    }
+	}
 	
-	private void handlePortLookup() throws IOException, ClassNotFoundException {
+	private void handlePortLookup(Socket s) throws IOException, ClassNotFoundException {
 
 		ReceivePortIdentifier storedId;
 
 		String name = in.readUTF();
+		long timeout = in.readLong();
 
 		storedId = (ReceivePortIdentifier) ports.get(name);
 
 		if (storedId != null) { 
 			out.writeByte(PORT_KNOWN);
 			out.writeObject(storedId);
+			NameServerClient.socketFactory.close(in, out, s);
 		} else { 
-			out.writeByte(PORT_UNKNOWN);
+			if (timeout != 0) {
+			    timeout += System.currentTimeMillis();
+			}
+			PortLookupRequest p = new PortLookupRequest(s, in, out, name, timeout);
+			synchronized(requestedPorts) {
+			    ArrayList v = (ArrayList) requestedPorts.get(name);
+			    if (v == null) {
+				v = new ArrayList();
+				requestedPorts.put(name, v);
+			    }
+			    v.add(p);
+			    if (timeout != 0) requestedPorts.notify();
+			}
 		} 
 	}
 	
@@ -118,6 +213,10 @@ class ReceivePortNameServer extends Thread implements Protocol {
 		Socket s;
 		boolean stop = false;
 		int opcode;
+
+		RequestSweeper p = new RequestSweeper();
+		p.setDaemon(true);
+		p.start();
 
 		while (!stop) {
 
@@ -155,7 +254,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 					break;
 
 				case (PORT_LOOKUP): 
-					handlePortLookup();
+					handlePortLookup(s);
 					break;
 				case (PORT_EXIT):
 					NameServerClient.socketFactory.close(in, out, s);
@@ -164,7 +263,9 @@ class ReceivePortNameServer extends Thread implements Protocol {
 					System.err.println("ReceivePortNameServer: got an illegal opcode " + opcode);					
 				}
 
-				NameServerClient.socketFactory.close(in, out, s);
+				if (opcode != PORT_LOOKUP) {
+				    NameServerClient.socketFactory.close(in, out, s);
+				}
 			} catch (Exception e1) {
 				System.err.println("Got an exception in ReceivePortNameServer.run " + e1);
 				e1.printStackTrace();

@@ -157,6 +157,7 @@ public class NameServer implements Protocol {
 			if (DEBUG) { 
 				System.err.println("NameServer: join to pool " + key + " of ibis " + id.toString() + " refused");
 			}
+			out.flush();
 		} else { 
 			out.writeByte(IBIS_ACCEPTED);
 			out.writeInt(p.portTypeNameServer.getPort());
@@ -181,6 +182,7 @@ public class NameServer implements Protocol {
 			for (int i=0;i<p.toBeDeleted.size();i++) {
 			    out.writeObject(p.toBeDeleted.get(i));
 			}
+			out.flush();
 
 			for (int i=0;i<p.pool.size();i++) { 
 				IbisInfo temp = (IbisInfo) p.pool.get(i);
@@ -190,8 +192,6 @@ public class NameServer implements Protocol {
 			p.pool.add(info);
 			System.out.println(id.name() + " JOINS  pool " + key + " (" + p.pool.size() + " nodes)");
 		}
-
-		out.flush();
 	}	
 
     private void forwardLeave(IbisInfo dest, IbisIdentifier id) {
@@ -463,7 +463,7 @@ public class NameServer implements Protocol {
 
 			try {
 				DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-				out = new ObjectOutputStream(new BufferedOutputStream(dos));
+				out = new ObjectOutputStream(new BufferedOutputStream(dos, 4096));
 
 				DummyInputStream di = new DummyInputStream(s.getInputStream());
 				in  = new ObjectInputStream(new BufferedInputStream(di));

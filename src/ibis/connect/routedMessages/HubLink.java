@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Vector;
 
 // HubLink manages the link with the control hub
 public class HubLink extends Thread
@@ -20,6 +21,7 @@ public class HubLink extends Thread
 
     private Map serverSockets    = new Hashtable();
     private Map connectedSockets = new Hashtable();
+    Vector released = new Vector();
     private boolean newPortBusy = false;
     private int portnum = -2;
 
@@ -71,8 +73,13 @@ public class HubLink extends Thread
 	connectedSockets.put(new Integer(port), s);
     }
     protected synchronized void removeSocket(int port) throws IOException {
-	connectedSockets.remove(new Integer(port));
-	sendPacket("", 0, new HubProtocol.HubPacketPutPort(port));
+	Integer m = new Integer(port);
+	connectedSockets.remove(m);
+	released.add(m);
+	if (released.size() > 128) {
+	    sendPacket("", 0, new HubProtocol.HubPacketReleasePort(released));
+	    released.clear();
+	}
     }
     private synchronized RMSocket resolveSocket(int port)
 	throws IOException {
