@@ -17,6 +17,7 @@ public class RMI_init {
 
     private final static boolean VERBOSE = TypedProperties.booleanProperty("RMI_init.verbose", false);
     private final static boolean USE_IP_MAP_FACTORY = TypedProperties.booleanProperty("RMI_init.factory", true);
+    private final static String FACTORY = TypedProperties.stringProperty("RMI_init.factory.name", "IPMapSocketFactory");
 
     static Registry reg = null;
     static boolean isInitialized = false;
@@ -28,9 +29,13 @@ public class RMI_init {
 	    try {
 		RMISocketFactory f = RMISocketFactory.getSocketFactory();
 		if (f == null) {
-		    f = new IPMapSocketFactory();
+		    Class c = Class.forName(FACTORY);
+		    f = (RMISocketFactory)c.newInstance();
 		    try {
 			RMISocketFactory.setSocketFactory(f);
+			if (VERBOSE) {
+			    System.out.println("Installed RMISocketFactory " + f);
+			}
 			socketFactory = f;
 		    } catch (IOException e) {
 			System.err.println("Cannot set RMISocketFactory " + f
@@ -39,6 +44,12 @@ public class RMI_init {
 		} else {
 		    System.err.println("Cannot set RMISocketFactory: already in use");
 		}
+	    } catch (ClassNotFoundException e) {
+		System.err.println("Cannot instantiate class \"" + FACTORY + "\"");
+	    } catch (InstantiationException e) {
+		System.err.println("Cannot instantiate class \"" + FACTORY + "\"");
+	    } catch (IllegalAccessException e) {
+		System.err.println("Cannot instantiate class \"" + FACTORY + "\"");
 	    } catch (IllegalArgumentException e) {
 		// This must be Ibis RMI. Silently ignore.
 		if (VERBOSE) {
@@ -133,34 +144,36 @@ public class RMI_init {
      * A wrapper for the RMI nameserver lookup
      */
     public static Remote lookup(String id) throws IOException { 
-	boolean connected = false;
-	Remote temp = null;
 	int wait = 100;
 
-	while (!connected) { 			
+	while (true) { 			
 	    if (wait < 6000) { 
 		wait *= 2;
 	    }
 	    try { 
-		temp = Naming.lookup(id);
-		connected = true;
+		return Naming.lookup(id);
 
 	    } catch (java.rmi.NotBoundException eR) { 
+		if (VERBOSE) {
+		    System.out.println("Look up object " + id + ": sleep a while.. " + eR);
+		}
 		try { 
 		    Thread.sleep(wait);
-		} catch (Exception e2) { 
+		} catch (InterruptedException e2) { 
 		    // ignore
 		} 
 
 	    } catch (java.rmi.ConnectException eR) { 
+		if (VERBOSE) {
+		    System.out.println("Look up object " + id + ": sleep a while.. " + eR);
+		}
 		try { 
 		    Thread.sleep(wait);
-		} catch (Exception e2) { 
+		} catch (InterruptedException e2) { 
 		    // ignore
 		} 
 	    } 
 	}
-	return temp;
     }
 
 
