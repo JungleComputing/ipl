@@ -70,7 +70,13 @@ final class SerializeWriteMessage extends WriteMessage {
 	    System.err.println("%%%%%%%%%%%%%%%% Finish SerializeWriteMessage");
 	}
 	obj_out.reset();
-	out.finish(); // : Now
+	Ibis.myIbis.lock();
+	try {
+	    out.reset(true); // : Now
+	    sPort.finishMessage();
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
 	long after = out.getCount();
 	long retval = after - before;
 	before = after;

@@ -1,5 +1,7 @@
 package ibis.impl.messagePassing;
 
+import ibis.util.TypedProperties;
+
 import java.io.IOException;
 
 final public class Poll implements Runnable {
@@ -24,9 +26,9 @@ final public class Poll implements Runnable {
     private static final boolean PREEMPTIVE_MAY_POLL = true;
 
     private static final int DEFAULT_YIELD_POLLS = 500;	// 1; // 2000;
-    private final static int polls_before_yield;
+    private static final int POLLS_BEFORE_YIELD;
 
-    static final boolean MANTA_COMPILE;
+    static final boolean USE_SLEEP_FOR_YIELD;
 
     private Thread	poller;
     private PollClient	waiting_threads;
@@ -43,11 +45,10 @@ final public class Poll implements Runnable {
 	if (envPoll != null) {
 	    polls = Integer.parseInt(envPoll);
 	}
-	polls_before_yield = polls;
+	POLLS_BEFORE_YIELD = polls;
 
-	// Sun doesn't set java.compiler, so getProperty returns null --Rob
-	MANTA_COMPILE = System.getProperty("java.compiler") != null &&
-			System.getProperty("java.compiler").equals("manta");
+	USE_SLEEP_FOR_YIELD = ! TypedProperties.booleanProperty("ibis.mp.yield")
+		&& ! TypedProperties.stringProperty("java.compiler", "manta");
 
 	if (Ibis.myIbis.myCpu == 0) {
 	    if (DEBUG) {
@@ -63,8 +64,8 @@ final public class Poll implements Runnable {
 	    if (STATISTICS) {
 		System.err.println("Turn on Poll.STATISTICS");
 	    }
-	    if (MANTA_COMPILE) {
-		System.err.println("Ibis/Panda knows this is Ibis");
+	    if (TypedProperties.stringProperty("java.compiler", "manta")) {
+		System.err.println("Ibis/Panda knows this is Manta");
 	    }
 	}
     }
@@ -148,7 +149,7 @@ final public class Poll implements Runnable {
 	}
 	if (preempt == PREEMPTIVE) {
 if (false)
-	    for (int i = 0; i < polls_before_yield; i++) {
+	    for (int i = 0; i < POLLS_BEFORE_YIELD; i++) {
 		poll();
 		// poll_poll++;
 		if (client.satisfied()) {
@@ -166,7 +167,7 @@ if (false)
 	    }
 	}
 
-	int polls = polls_before_yield;
+	int polls = POLLS_BEFORE_YIELD;
 	Thread me = Thread.currentThread();
 
 	boolean go_to_sleep = false;
@@ -195,7 +196,7 @@ if (false)
 		}
 
 		if (--polls == 0 || poll_succeeded) {
-		    polls = polls_before_yield;
+		    polls = POLLS_BEFORE_YIELD;
 		    // polls = 1;
 
 		    if (NONPREEMPTIVE_MAY_POLL && preempt != PREEMPTIVE) {
@@ -221,17 +222,8 @@ if (false)
 
 		    Ibis.myIbis.unlock();
 
-		    if (! MANTA_COMPILE &&
-			    NONPREEMPTIVE_MAY_POLL &&
-			    preempt != PREEMPTIVE && prev_last) {
-			try {
-			    Thread.sleep(0,1);
-			} catch (InterruptedException e) {
-			}
-		    } else {
-// System.err.println("poll_succeeded = " + poll_succeeded);
-			Thread.yield();
-		    }
+		    doYield(NONPREEMPTIVE_MAY_POLL && preempt != PREEMPTIVE
+				&& prev_last);
 
 		    Ibis.myIbis.lock();
 		}
@@ -274,6 +266,17 @@ if (false)
 // System.err.print("<");
     }
 
+    private void doYield(boolean sleep) {
+	if (USE_SLEEP_FOR_YIELD && sleep) {
+	    try {
+		Thread.sleep(0,1);
+	    } catch (InterruptedException e) {
+	    }
+	} else {
+	    Thread.yield();
+	}
+    }
+
 
     public void run() {
 	// System.err.println("Poll peeker lives");
@@ -293,14 +296,7 @@ if (false)
 		}
 		Ibis.myIbis.unlock();
 	    }
-	    if (! MANTA_COMPILE) {
-		try {
-		    Thread.sleep(0,1);
-		} catch (InterruptedException e) {
-		}
-	    } else {
-		Thread.yield();
-	    }
+	    doYield(true);
 	}
     }
 

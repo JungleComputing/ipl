@@ -58,25 +58,18 @@ public class Main {
 			int count = COUNT;
 		
 			boolean manta = false;
-			boolean panda = false;
 			int rank = 0, remoteRank = 1;
 
 			for(int i=0; i<args.length; i++) {
 				if(args[i].equals("-manta")) {
 					manta = true;
-				} else if(args[i].equals("-panda")) {
-					panda = true;
 				} else {
 					System.err.println("unknown option: " + args[i]);
 				}
 			}
 			Random rand = new Random();
 
-			if(!panda) {
-				ibis = Ibis.createIbis("ibis:" + rand.nextInt(), "ibis.impl.tcp.TcpIbis", null);
-			} else {
-				ibis = Ibis.createIbis("ibis:" + rand.nextInt(), "ibis.impl.messagePassing.PandaIbis", null);
-			}
+			ibis = Ibis.createIbis(null, null);
 
 			registry = ibis.registry();
 

@@ -15,12 +15,31 @@ public class SendPort implements ibis.ipl.SendPort {
 
     private final static boolean BCAST_VERBOSE = /* true || */ Ibis.DEBUG;
 
+    private final static boolean DEFAULT_USE_BCAST = false;
     private final static boolean USE_BCAST;
     static {
-	USE_BCAST = System.getProperty("ibis.mp.broadcast") != null && System.getProperty("ibis.mp.broadcast").equals("native");
+	boolean use_bcast = DEFAULT_USE_BCAST;
+	String prop = System.getProperty("ibis.mp.broadcast");
+	if (prop != null) {
+	    use_bcast = prop.equals("native");
+	}
+	USE_BCAST = use_bcast;
 	if (USE_BCAST) {
 	    System.err.println("Use native MessagePassing broadcast");
 	}
+    }
+
+    private final static boolean DEFAULT_SERIALIZE_SENDS = false;
+    private final static boolean SERIALIZE_SENDS_PER_CPU;
+    static {
+	boolean serialize_sends = DEFAULT_SERIALIZE_SENDS;
+	String prop = System.getProperty("ibis.mp.serialize-sends");
+	if (prop != null) {
+	    serialize_sends = prop.equals("1")
+				|| prop.equals("true")
+				|| prop.equals("on");
+	}
+	SERIALIZE_SENDS_PER_CPU = serialize_sends;
     }
 
     protected PortType type;
@@ -28,6 +47,8 @@ public class SendPort implements ibis.ipl.SendPort {
     protected Replacer replacer;
 
     protected ReceivePortIdentifier[] splitter;
+
+    private int[] connectedCpu;
 
     protected static final int NO_BCAST_GROUP = -1;
     protected int group = NO_BCAST_GROUP;
@@ -128,6 +149,27 @@ public class SendPort implements ibis.ipl.SendPort {
 	}
 	s[n] = new Syncer();
 	syncer = s;
+
+	if (connectedCpu == null) {
+	    connectedCpu = new int[1];
+	    connectedCpu[0] = rid.cpu;
+	} else {
+	    boolean isDouble = false;
+	    for (int i = 0; i < connectedCpu.length; i++) {
+		if (connectedCpu[i] == rid.cpu) {
+		    isDouble = true;
+		    break;
+		}
+	    }
+	    if (! isDouble) {
+		int[] c = new int[connectedCpu.length + 1];
+		for (int i = 0; i < connectedCpu.length; i++) {
+		    c[i] = connectedCpu[i];
+		}
+		c[connectedCpu.length] = rid.cpu;
+		connectedCpu = c;
+	    }
+	}
 
 	return my_split;
     }
@@ -287,6 +329,11 @@ public class SendPort implements ibis.ipl.SendPort {
 	}
 
 	aMessageIsAlive = true;
+
+	if (SERIALIZE_SENDS_PER_CPU) {
+	    Ibis.myIbis.sendSerializer.lockAll(connectedCpu);
+	}
+
 	Ibis.myIbis.unlock();
 
 	ibis.ipl.WriteMessage m = cachedMessage();
@@ -295,6 +342,14 @@ public class SendPort implements ibis.ipl.SendPort {
 	}
 
 	return m;
+    }
+
+
+    void finishMessage() {
+	Ibis.myIbis.checkLockOwned();
+	if (SERIALIZE_SENDS_PER_CPU) {
+	    Ibis.myIbis.sendSerializer.unlockAll(connectedCpu);
+	}
     }
 
 

@@ -204,8 +204,6 @@ final class Main {
 			int count       = 10000;
 			int retries     = 10;
 			boolean upcalls = false;
-			boolean panda   = false;
-			boolean manta   = true;
 			int rank = info.rank(); 
 			int tests = 0;
 
@@ -213,15 +211,6 @@ final class Main {
 				if (false) {
 				} else if (args[i].equals("-upcalls")) { 
 					upcalls = true;
-					i++; 
-				} else if (args[i].equals("-panda")) { 
-					panda = true;
-					i++; 
-				} else if (args[i].equals("-sun")) { 
-					manta = false;
-					i++; 
-				} else if (args[i].equals("-ibis")) { 
-					manta = true;
 					i++; 
 				} else if (args[i].equals("-array")) { 
 					array = true;
@@ -271,11 +260,7 @@ final class Main {
 				System.out.println("Creating ibis ...");
 			}
 
-			if(!panda) {
-				ibis = Ibis.createIbis("ibis:" + rank, "ibis.impl.tcp.TcpIbis", null);
-			} else {
-				ibis = Ibis.createIbis("ibis:" + rank, "ibis.impl.messagePassing.PandaIbis", null);
-			}
+			ibis = Ibis.createIbis(null, null);
 
 			if (verbose) { 
 				System.out.println("Ibis created; getting registry ...");
@@ -288,9 +273,6 @@ final class Main {
 			}
 
 			StaticProperties s = new StaticProperties();
-			if (manta) { 
-				s.add("Serialization", "ibis");
-			}
 
 			PortType t = ibis.createPortType("test type", s);			
 			SendPort sport = t.createSendPort();					      

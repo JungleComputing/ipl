@@ -353,14 +353,13 @@ class Latency implements Config {
 	} 
 
 	static void usage() {
-		System.out.println("Usage: Latency [-u] [-uu] [-ibis] [-panda] [count]");
+		System.out.println("Usage: Latency [-u] [-uu] [-ibis] [count]");
 		System.exit(0);
 	}
 
 	public static void main(String [] args) { 
 		boolean upcalls = false;
 		boolean upcallsend = false;
-		boolean panda = false;
 		boolean ibisSer = false;
 		int count = -1;
 		int repeat = 10;
@@ -380,8 +379,6 @@ class Latency implements Config {
 			} else if(args[i].equals("-uu")) { 
 				upcalls = true;
 				upcallsend = true;
-			} else if(args[i].equals("-panda")) {
-				panda = true;
 			} else if(args[i].equals("-repeat")) {
 				i++;
 				repeat = Integer.parseInt(args[i]);
@@ -411,11 +408,7 @@ class Latency implements Config {
 		}
 
 		try {
-			if(!panda) {
-				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.impl.tcp.TcpIbis", null);
-			} else {
-				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.impl.messagePassing.PandaIbis", null);
-			}
+			ibis = Ibis.createIbis(null, null);
 
 			registry = ibis.registry();
 

@@ -51,6 +51,8 @@ public class Ibis extends ibis.ipl.Ibis {
     private PortHash groupSendPorts;
     private PortHash groupRcvePorts;
 
+    SendSerializer sendSerializer;
+
     int sendPort;
     int receivePort;
 
@@ -225,6 +227,8 @@ public class Ibis extends ibis.ipl.Ibis {
 
 	ibmp_start();
 	rcve_poll.wakeup();
+
+	sendSerializer = new SendSerializer();
 
 	registry.init();
 	if (DEBUG) {

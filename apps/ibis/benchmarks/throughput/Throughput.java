@@ -12,11 +12,7 @@ class Throughput extends Thread {
 	int rank;
 	int remoteRank;
 
-	boolean ibisSer = false;
-
 	int windowSize = Integer.MAX_VALUE;
-
-	String ibis_impl = "ibis.impl.tcp.TcpIbis";
 
 	ReceivePort rport;
 	SendPort sport;
@@ -72,10 +68,6 @@ class Throughput extends Thread {
 		int options = 0;
 		for (int i = 0; i < args.length; i++) {
 		    if (false) {
-		    } else if (args[i].equals("-panda")) {
-			ibis_impl = "ibis.impl.panda.PandaIbis";
-		    } else if (args[i].equals("-ibis")) {
-			ibisSer = true;
 		    } else if (args[i].equals("-window")) {
 			windowSize = Integer.parseInt(args[++i]);
 			if (windowSize <= 0) {
@@ -104,7 +96,7 @@ class Throughput extends Thread {
 		try {
 			ReceivePortIdentifier ident;
 
-			Ibis ibis = Ibis.createIbis("throughput_ibis" + rand.nextInt(), ibis_impl, null);
+			Ibis ibis = Ibis.createIbis(null, null);
 			Registry r = ibis.registry();
 
 			IbisIdentifier master = (IbisIdentifier)r.elect("throughput", ibis.identifier());
@@ -120,11 +112,6 @@ System.err.println(">>>>>>>> Righto, I'm the slave");
 			}
 
 			StaticProperties s = new StaticProperties();
-			if (ibisSer) {
-				s.add("Serialization", "ibis");
-			} else {
-				s.add("Serialization", "sun");
-			}
 			PortType t = ibis.createPortType("test type", s);
 			rport = t.createReceivePort("test port " + rank);
 			rport.enableConnections();

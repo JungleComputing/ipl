@@ -798,7 +798,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     pan_time_get(&st);
 #endif
 
-    IBP_VPRINTF(100, env, ("msg_send: %d port %d seqno %d, splitter %d last %d\n", cpu, port, msgSeqno, i, splitTotal));
+    IBP_VPRINTF(100, env, ("msg_send: %d to-port %d my-port %d seqno %d, splitter %d last %d\n", cpu, port, my_port, msgSeqno, i, splitTotal));
 
     if (! ibmp_byte_output_stream_alive) {
 	(*env)->ThrowNew(env, cls_java_io_IOException, "Ibis MessagePassing ByteOutputStream closed");
@@ -839,16 +839,16 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     sent_data += len;
 #endif
 
-    assert(msg == NULL || msg->byte_output_stream != NULL);
+    assert(ibmp_equals(env, msg->byte_output_stream, this));
 
     if (pan_thread_nonblocking() || len >= ibmp_send_sync) {
-	IBP_VPRINTF(250, env, ("ByteOS %p Do this send in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", this, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
+	IBP_VPRINTF(250, env, ("ByteOS %p Do this send in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", msg->byte_output_stream, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
 
 	return send_async(env, this, cpu, byte_os, msg, i, splitTotal);
     }
 
     /* Wow, we're allowed to do a sync send! */
-    IBP_VPRINTF(250, env, ("ByteOS %p Do this send in sync fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", this, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
+    IBP_VPRINTF(250, env, ("ByteOS %p Do this send in sync fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", msg->byte_output_stream, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
 
     if (i == 0) {
 	assert(msg->state == MSG_STATE_ACCUMULATING);
@@ -935,7 +935,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     sent_data += len;
 #endif
 
-    IBP_VPRINTF(250, env, ("ByteOS %p Do this bcast in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", this, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
+    IBP_VPRINTF(250, env, ("ByteOS %p Do this bcast in Async fashion msg %p seqno %d; lastFrag=%s data size %d iov_size %d\n", msg->byte_output_stream, msg, msgSeqno, lastFrag ? "yes" : "no", ibmp_iovec_len(msg->iov, msg->iov_len), msg->iov_len));
 
     IBP_VPRINTF(300, env, ("ByteOS %p Enqueue a bcast-finish upcall msg %p obj %p, missing := %d proto %p\n",
 		msg->byte_output_stream, msg, this, ++ibmp_sent_msg_out,
@@ -974,7 +974,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
 
 #ifdef IBP_VERBOSE
     if (! pan_thread_nonblocking() && len < ibmp_send_sync) {
-	IBP_VPRINTF(25, ("would like to do a sync bcast size %d, but alas\n",
+	IBP_VPRINTF(25, env, ("would like to do a sync bcast size %d, but alas\n",
 		    ibmp_me, len));
     }
 #endif
@@ -1116,7 +1116,8 @@ Java_ibis_impl_messagePassing_ByteOutputStream_write(
 	msg->iov[msg->iov_len].len = sizeof(jbyte);
     }
     IBP_VPRINTF(300, env, ("Now push byte ByteOS %p msg %p data %p size %d iov %d, value %d\n",
-		this, msg, msg->iov[msg->iov_len].data, msg->iov[msg->iov_len].len,
+		msg->byte_output_stream, msg,
+		msg->iov[msg->iov_len].data, msg->iov[msg->iov_len].len,
 		msg->iov_len, b));
     msg->iov_len++;
 }
@@ -1192,7 +1193,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
 	} \
     } \
     IBP_VPRINTF(300, env, ("Now push ByteOS %p msg %p %s source %p data %p size %d iov %d total %d [%d,%d,%d,%d,...]\n", \
-		this, msg, #JType, b, msg->iov[msg->iov_len].data, \
+		msg->byte_output_stream, msg, #JType, b, msg->iov[msg->iov_len].data, \
 		msg->iov[msg->iov_len].len, msg->iov_len, ibmp_iovec_len(msg->iov, msg->iov_len + 1), msg->iov[0].len, msg->iov[1].len, msg->iov[2].len, msg->iov[3].len)); \
     dump_ ## jtype((jtype *)(msg->iov[msg->iov_len].data), len); \
     msg->iov_len++; \

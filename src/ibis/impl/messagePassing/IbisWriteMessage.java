@@ -45,6 +45,9 @@ final public class IbisWriteMessage extends WriteMessage {
 		sPort.registerSend();
 	    }
 	    out.reset(finish);
+	    if (finish) {
+		sPort.finishMessage();
+	    }
 	} finally {
 	    Ibis.myIbis.unlock();
 	}

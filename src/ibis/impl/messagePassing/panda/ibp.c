@@ -316,10 +316,12 @@ intpt_env_create(void)
 	fprintf(stderr, "AttachCurrentThread fails\n");
 	abort();
     }
+#if ATTACH_THREAD_OVER_CALLS
     if (ibp_me == 0) {
 	fprintf(stderr, "%2d: Hand out intpt thread JNIEnv * %p\n",
 		ibp_me, env);
     }
+#endif
 
     return env;
 }
@@ -342,12 +344,12 @@ intpt_env_check(JNIEnv *env)
 }
 
 
+static JNIEnv *intpt_JNIEnv = NULL;
+
 
 static JNIEnv *
 intpt_env_get(void)
 {
-    static JNIEnv *intpt_JNIEnv = NULL;
-
     if (intpt_running++ != 0) {
 	fprintf(stderr,
 		"At env_get: some other interrupt handler active -- abort\n");
@@ -371,6 +373,17 @@ intpt_env_release(JNIEnv *env)
 		"At env_release: some other interrupt handler active -- abort\n");
 	abort();
     }
+
+#if ! ATTACH_THREAD_OVER_CALLS
+    intpt_JNIEnv = NULL;
+    {
+	JavaVM *vm = current_VM();
+	if ((*vm)->DetachCurrentThread(vm) != 0) {
+	    fprintf(stderr, "DetachCurrentThread fails\n");
+	    abort();
+	}
+    }
+#endif
 }
 
 #define POLLS_PER_INTERRUPT	1	/* 4 */

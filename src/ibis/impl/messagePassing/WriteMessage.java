@@ -61,7 +61,13 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 
 
     public long finish() throws IOException {
-	out.finish();
+	Ibis.myIbis.lock();
+	try {
+	    out.reset(true);
+	    sPort.finishMessage();
+	} finally {
+	    Ibis.myIbis.unlock();
+	}
 	long after = out.getCount();
 	long retval = after - before;
 	before = after;

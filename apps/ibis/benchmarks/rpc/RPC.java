@@ -45,7 +45,6 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private Ibis        myIbis;
     private Registry    registry;
     private StaticProperties ibisProperties;
-    private String	ibis_path;
 
     private RszHandler	rszHandler;
 
@@ -826,33 +825,6 @@ System.err.println("Poor-man's barrier send finished");
 	if (my_cpu != null) {
 	    rank = Integer.parseInt(my_cpu);
 	}
-
-	String ibis_name = p.getProperty("ibis.name");
-
-	ibis_path = "tcp.TcpIbis";
-	String driver = null;
-
-	if (false) {
-
-	} else if (ibis_name != null && ibis_name.equals("mp")) {
-	    ibis_path = "messagePassing";
-
-	} else if (ibis_name != null && ibis_name.equals("panda")) {
-	    ibis_path = "messagePassing.PandaIbis";
-
-	} else if (ibis_name != null && ibis_name.equals("mpi")) {
-	    ibis_path = "messagePassing.MPIIbis";
-
-	} else if (ibis_name != null && ibis_name.startsWith("net.")) {
-	    ibis_path = "net.NetIbis";
-	    ibisProperties.add("IbisName", ibis_name);
-
-	} else {
-	    ibis_path = "tcp.TcpIbis";
-	}
-
-	ibis_path = "ibis.impl." + ibis_path;
-	System.err.println("Ibis: " + ibis_path);
     }
 
 
@@ -873,7 +845,7 @@ System.err.println("Poor-man's barrier send finished");
 	} catch (java.net.UnknownHostException e) {
 	    // let it be the default
 	}
-	myIbis = Ibis.createIbis("RPC_" + hostName + "_" + Math.abs(random.nextInt()), ibis_path, rszHandler);
+	myIbis = Ibis.createIbis(null, rszHandler);
 
 // manta.runtime.RuntimeSystem.DebugMe(0, 0);
 	// myIbis.init();

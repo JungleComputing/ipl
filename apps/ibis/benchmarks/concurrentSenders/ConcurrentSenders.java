@@ -13,17 +13,15 @@ interface Config {
 
 class Sender extends Thread implements Config { 
 	int count, repeat;
-	boolean ibisSer;
 	Ibis ibis;
 	PortType t;
 	boolean sendTree;
 
-	Sender(Ibis ibis, PortType t, int count, int repeat, boolean ibisSer, boolean sendTree) {
+	Sender(Ibis ibis, PortType t, int count, int repeat, boolean sendTree) {
 		this.ibis = ibis;
 		this.t = t;
 		this.count = count;
 		this.repeat = repeat;
-		this.ibisSer = ibisSer;
 		this.sendTree = sendTree;
 	} 
 	
@@ -40,6 +38,7 @@ class Sender extends Thread implements Config {
 			ReceivePortIdentifier ident = ibis.registry().lookup("receive port");
 			sport.connect(ident);
 		
+System.err.println(this + ": Connection established -- I'm a Sender");
 			long totalTime = System.currentTimeMillis();
 				
 			for (int r=0;r<repeat;r++) { 
@@ -94,7 +93,6 @@ class Sender extends Thread implements Config {
 class Receiver implements Upcall { 
 	int count;
 	int repeat;
-	boolean ibisSer;
 	boolean done = false;
 	boolean doFinish;
 	Ibis ibis;
@@ -102,14 +100,13 @@ class Receiver implements Upcall {
 	int msgs = 0;
 	int senders;
 
-	Receiver(Ibis ibis, PortType t, int count, int repeat, int senders, boolean ibisSer, boolean doFinish) {
+	Receiver(Ibis ibis, PortType t, int count, int repeat, int senders, boolean doFinish) {
 		this.ibis = ibis;
 		this.t = t;
 		this.count = count;
 		this.repeat = repeat;
 		this.senders = senders;
-		this.ibisSer = ibisSer;
-		this.doFinish = doFinish;
+System.err.println(this + ": I'm a Receiver");
 
 		try {
 			ReceivePort rport = t.createReceivePort("receive port", this);
@@ -175,13 +172,11 @@ class ConcurrentSenders implements Config {
 	static Registry registry;
 
 	static void usage() {
-		System.out.println("Usage: ConcurrentReceives [-ibis] [-panda]");
+		System.out.println("Usage: ConcurrentReceives [-ibis]");
 		System.exit(0);
 	}
 
 	public static void main(String [] args) { 
-		boolean panda = false;
-		boolean ibisSer = false;
 		boolean doFinish = false;
 		boolean sendTree = false;
 		int count = 100;
@@ -192,17 +187,20 @@ class ConcurrentSenders implements Config {
 
 		/* Parse commandline parameters. */
 		for(int i=0; i<args.length; i++) {
-			if(args[i].equals("-panda")) {
-				panda = true;
-			} else if(args[i].equals("-ibis")) {
-				ibisSer = true;
+			if (false) {
 			} else if(args[i].equals("-tree")) {
 				sendTree = true;
 			} else if(args[i].equals("-count")) {
 				try {
 					count = Integer.parseInt(args[++i]);
 				} catch (Exception e) {
-					System.err.println("count must be integer");
+					System.err.println(args[i] + " must be integer");
+				}
+			} else if(args[i].equals("-repeat")) {
+				try {
+					repeat = Integer.parseInt(args[++i]);
+				} catch (Exception e) {
+					System.err.println(args[i] + " must be integer");
 				}
 			} else if(args[i].equals("-senders")) {
 				try {
@@ -218,11 +216,7 @@ class ConcurrentSenders implements Config {
 		}	
 
 		try {
-			if(!panda) {
-				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.impl.tcp.TcpIbis", null);
-			} else {
-				ibis = Ibis.createIbis("ibis:" + r.nextInt(), "ibis.impl.messagePassing.PandaIbis", null);
-			}
+			ibis = Ibis.createIbis(null, null);
 
 			registry = ibis.registry();
 
@@ -247,17 +241,14 @@ class ConcurrentSenders implements Config {
 			}
 
 			StaticProperties s = new StaticProperties();
-			if (ibisSer) {
-				s.add("Serialization", "ibis");
-			}
 			PortType t = ibis.createPortType("test type", s);
 
 			if (rank == 0) {
-				new Receiver(ibis, t, count, repeat, senders, ibisSer, doFinish);
+				new Receiver(ibis, t, count, repeat, senders, doFinish);
 			} else {
 				// start N senders
 				for (int i=0; i<senders; i++) {
-					new Sender(ibis, t, count, repeat, ibisSer, sendTree).start();
+					new Sender(ibis, t, count, repeat, sendTree).start();
 				}
 			}
 
