@@ -62,7 +62,9 @@ public class BT_Analyzer {
 		Method[] methods = specialInterface.getMethods();
 
 		for (int i=0;i<methods.length;i++) { 
+		    if (! methods[i].getName().equals("<clinit>")) {
 			addSpecialMethod(specialMethods, methods[i]);
+		    }
 		}		
 	}
 
