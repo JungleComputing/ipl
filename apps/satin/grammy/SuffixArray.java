@@ -138,6 +138,12 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         int offset
     )
     {
+        if( end-start == 2 ){
+            if( text[indices[start]+offset] != text[indices[start+1]+offset] ){
+                return 0;
+            }
+            return 2;
+        }
         int slot[] = new int[nextcode];
 
         java.util.Arrays.fill( slot, -1 );
