@@ -572,7 +572,7 @@ public final class SATContext implements java.io.Serializable {
                 return null;
             }
         }
-        if( false ){
+        if( true ){
             // Now greedily resolve clauses as long as they are smaller.
             do {
                 changed = false;
@@ -1192,8 +1192,7 @@ public final class SATContext implements java.io.Serializable {
                     System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
                 }
             }
-            //float info = Math.max( posinfo[i], neginfo[i] );
-            float info = posinfo[i] + neginfo[i];
+            float info = Math.max( posinfo[i], neginfo[i] );
             if( info>=bestinfo ){
                 int maxcount = Math.max( posclauses[i], negclauses[i] );
 
