@@ -444,7 +444,7 @@ to the command line.
 	<if>
 	    <os family="mac"/>
 	    <then>
-		<replace file="${ibis}/bin/run_ibis" token="bin/java" value="Commands/java"/>
+		<replace file="${ibis}/bin/run_ibis" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
 	    </then>
 	</if>
 	<chmod file="${ibis}/bin/run_ibis" perm="+x"/>
@@ -478,10 +478,23 @@ to the command line.
 	<if>
 	    <os family="mac"/>
 	    <then>
-		<replace file="${ibis}/bin/run-das" token="bin/java" value="Commands/java"/>
+		<replace file="${ibis}/bin/run-das" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
 	    </then>
 	</if>
 	<chmod file="${ibis}/bin/run-das" perm="+x"/>
+
+	<concat destfile="${ibis}/bin/run-ibis">
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run-ibis" />
+	</concat>
+	<replace file="${ibis}/bin/run-ibis" token="@IBIS_NS_PORT@" value="9826"/>
+	<replace file="${ibis}/bin/run-ibis" token="@IBIS_NS_HOST@" value="${hostname}"/>
+	<if>
+	    <os family="mac"/>
+	    <then>
+		<replace file="${ibis}/bin/run-ibis" token="JAVA_ROOT/bin" value="JAVA_ROOT/Commands"/>
+	    </then>
+	</if>
+	<chmod file="${ibis}/bin/run-ibis" perm="+x"/>
 
 	<copy
 		overwrite="true"
