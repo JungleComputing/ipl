@@ -3,6 +3,11 @@ package ibis.rmi.server;
 import ibis.rmi.Remote;
 
 import java.io.Serializable;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.rmi.MarshalException;
+import java.rmi.UnmarshalException;
+import java.io.IOException;
 
 
 public abstract class RemoteObject implements Remote, Serializable
@@ -40,12 +45,13 @@ public abstract class RemoteObject implements Remote, Serializable
     public String toString()
     {
 	String classname = this.getClass().getName();
-	return (ref == null) ? classname :
-	    classname + "[" +ref.remoteToString() + "]";
+	String hc = "@" + Integer.toHexString(System.identityHashCode(this));
+	return (ref == null) ? classname + hc :
+	    classname + hc + "[" +ref.remoteToString() + "]";
     }
 
 
-/*    private void writeObject(ObjectOutputStream out) throws IOException, ClassNotFoundException
+    private void writeObject(ObjectOutputStream out) throws IOException, ClassNotFoundException
     {
 	if (ref == null) {
 	    throw new MarshalException("no ref to serialize");
@@ -68,5 +74,6 @@ public abstract class RemoteObject implements Remote, Serializable
 	} catch (IllegalAccessException e) {
 	    throw new UnmarshalException("failed to create ref");
 	}
-    }*/
+    }
+
 }

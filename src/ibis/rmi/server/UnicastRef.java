@@ -13,7 +13,8 @@ public class UnicastRef implements RemoteRef, java.io.Serializable
 
 
     public UnicastRef() 
-    {}
+    {
+    }
     
     public UnicastRef(String GUID) {
 	this.GUID = GUID;
@@ -44,15 +45,17 @@ public class UnicastRef implements RemoteRef, java.io.Serializable
 
     public void writeExternal(ObjectOutput out) throws IOException 
     {
+	out.writeObject(GUID);
     }
 
     public void readExternal(ObjectInput in)
 	throws IOException, ClassNotFoundException
     {
+	GUID = (String)in.readObject();
     }
     
     public String remoteToString() {
-	return "RemoteReference";
+	return "RemoteReference" + "@" + Integer.toHexString(System.identityHashCode(this));
     }
 
     Object invoke(RemoteStub stub , Method m, Object []param , long c) {
