@@ -57,11 +57,14 @@ public class SuffixTree {
 	    parent = null;
         }
 
-        protected abstract void add( short text[], int start, int length, int pos );
+        protected abstract void add( short text[], int start, int length, int pos )
+            throws VerificationException;
 
         protected abstract void print( PrintStream stream, int indent );
 
         protected abstract short [] getLongestRepeat( short text[] );
+
+        public abstract void test() throws VerificationException;
     }
 
     class InternalNode extends Node {
@@ -80,6 +83,7 @@ public class SuffixTree {
         }
 
         protected void add( short text[], int start, int length, int pos )
+            throws VerificationException
         {
             if( traceAdding ){
                 System.out.println( "Adding [" + buildString( text, start, length ) + "] @" + pos );
@@ -174,9 +178,7 @@ public class SuffixTree {
             Node p = child;
             short res[];
 
-            // Now do a second scan to find the longest sub-string.
             short max[] = null;
-            p = child;
             while( p != null ){
                 if( p instanceof InternalNode ){
                     short r[] = p.getLongestRepeat( text );
@@ -199,6 +201,22 @@ public class SuffixTree {
             }
             return res;
         }
+
+        public void test() throws VerificationException
+        {
+            Node p = child;
+
+            if( p == null ){
+                throw new VerificationException( "Internal node " + this + " has no children" );
+            }
+            if( p.sister == null ){
+                throw new VerificationException( "Internal node " + this + " has only one child" );
+            }
+            while( p != null ){
+                p.test();
+                p = p.sister;
+            }
+        }
     }
 
     public class LeafNode extends Node {
@@ -211,8 +229,9 @@ public class SuffixTree {
         }
 
         protected void add( short text[], int start, int length, int pos )
+            throws VerificationException
         {
-            System.err.println( "Internal error, cannot add() on a leaf node." );
+            throw new VerificationException( "Internal error, cannot add() on a leaf node." );
         }
 
         protected void print( PrintStream stream, int indent )
@@ -227,6 +246,10 @@ public class SuffixTree {
         {
             System.err.println( "Internal error, cannot getLongestRepeat() on a leaf node." );
             return null;
+        }
+
+        public void test() throws VerificationException
+        {
         }
     }
 
@@ -247,6 +270,7 @@ public class SuffixTree {
     }
 
     private void buildTree( short text[] )
+        throws VerificationException
     {
         for( int i=0; i<text.length-1; i++ ){
             int l = (text.length-1)-i;
@@ -256,6 +280,7 @@ public class SuffixTree {
     }
 
     private SuffixTree( short text[] )
+        throws VerificationException
     {
         this.text = text;
 
@@ -263,6 +288,7 @@ public class SuffixTree {
     }
 
     SuffixTree( byte t[] )
+        throws VerificationException
     {
         this.text = buildShortArray( t );
 
@@ -270,6 +296,7 @@ public class SuffixTree {
     }
 
     SuffixTree( String text )
+        throws VerificationException
     {
         this( text.getBytes() );
     }
@@ -279,14 +306,28 @@ public class SuffixTree {
         root.print( s, 0 );
     }
 
+    public void test() throws VerificationException
+    {
+        root.test();
+    }
+
     public static void main( String args[] )
     {
-        SuffixTree t = new SuffixTree( args[0] );
+        try {
+            SuffixTree t = new SuffixTree( args[0] );
 
-        t.print( System.out );
+            t.test();
+            t.print( System.out );
 
-        short buf[] = t.getLongestRepeat();
+            short buf[] = t.getLongestRepeat();
 
-        System.out.println( "Longest repeat: " + buildString( buf ) );
+            System.out.println( "Longest repeat: " + buildString( buf ) );
+        }
+        catch( Exception x )
+        {
+            System.err.println( "Caught " + x );
+            x.printStackTrace();
+            System.exit( 1 );
+        }
     }
 }
