@@ -44,7 +44,7 @@ public interface Config {
 	static final boolean ADD_REPLICA_TIMING = false;
 
 	/** Enable or disable tuple space timing. * */
-	static final boolean TUPLE_TIMING = false;
+	static final boolean TUPLE_TIMING = true;
 
 	/**
 	 * The poll frequency in nanoseconds. A frequency of 0 means do not poll. A
@@ -62,7 +62,7 @@ public interface Config {
         static final boolean ASSERTS = true;
 
 	/** Enable or disable aborts and inlets. */
-	static final boolean ABORTS = false;
+	static final boolean ABORTS = true;
 
 	/** Enable fault tolerance. */
 	static final boolean FAULT_TOLERANCE = false;
