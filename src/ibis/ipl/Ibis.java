@@ -118,13 +118,14 @@ public abstract class Ibis {
     {
 	Properties p = System.getProperties();
 	String libPath = p.getProperty(ldpath);
+	String sep = p.getProperty("file.separator");
 
 	if(libPath != null) {
 	    String s = System.mapLibraryName(name);
 
-//	    System.err.println("LOADING IBIS LIB: " + libPath + "/" + s);
+//	    System.err.println("LOADING IBIS LIB: " + libPath + sep + s);
 
-	    System.load(libPath + "/" + s);
+	    System.load(libPath + sep + s);
 	    return;
 	} 
 
