@@ -96,7 +96,7 @@ public abstract class Communication extends SpawnSync {
 			if (HANDLE_MESSAGES_IN_LATENCY) {
 				System.err
 						.println("Polling is disabled while messages are handled in the latency.\n"
-								+ "This is a configureation error.");
+								+ "This is a configuration error.");
 				System.exit(1);
 			}
 			return false;
@@ -107,7 +107,7 @@ public abstract class Communication extends SpawnSync {
 			if (HANDLE_MESSAGES_IN_LATENCY) {
 				System.err
 						.println("Polling is disabled while messages are handled in the latency.\n"
-								+ "This is a configureation error.");
+								+ "This is a configuration error.");
 				System.exit(1);
 			}
 			return false;
