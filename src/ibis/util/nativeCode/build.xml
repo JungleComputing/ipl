@@ -29,22 +29,20 @@
 
     <property name="local.lib" value="Rdtsc"/>
 
+    <property name="omni" location="${ibis}/3rdparty/omni"/>
+
     <path id="local.includes-ref">
 	<pathelement path="${omni}"/>
     </path>
     <property name="local.includes" refid="local.includes-ref"/>
 
-    <import file="${ibis}/build-native.xml"/>
-
-    <property name="omni" location="${ibis}/3rdparty/omni"/>
     <libset id="local.libset-ref"
-	    dir="${omni}/OmniTimer/build/lib"
+	    dir="${ibis}/build/lib"
 	    libs="OTTimer"
 	    if="os-is-mac"/>
 
-    <!--
-    <target name="build" depends="native-compile"/>
-    -->
+    <import file="${ibis}/build-native.xml"/>
+
     <target name="build">
 	<antcall inheritRefs="true" target="native-compile"/>
     </target>

@@ -87,6 +87,11 @@
     -->
     <path id="native.src.misc">
 	<pathelement path="${ibis}/src/ibis/io"/>
+	<pathelement path="${ibis}/3rdparty/omni/OmniTimer"/>
+	<pathelement path="${ibis}/src/ibis/util/nativeCode"/>
+    </path>
+
+    <path id="native.src.util">
 	<pathelement path="${ibis}/src/ibis/util/nativeCode"/>
     </path>
 
@@ -104,6 +109,7 @@
 
     <property name="native.src.mp" refid="native.src.mp"/>
     <property name="native.src.misc" refid="native.src.misc"/>
+    <property name="native.src.util" refid="native.src.util"/>
     <property name="native.src.net" refid="native.src.net"/>
 
     <import file="${ibis}/build-iogen.xml"/>
@@ -263,6 +269,16 @@
 	Compile the native code in all directories indicated by native,src.*
     -->
 
+    <target name="natives.util" depends="property-init">
+	<echo	level="debug"
+		message="Native directories = ${native.src.util}"/>
+	<foreach
+		list="${native.src.util}"
+		delimiter="${path.separator}"
+		param="native.dir"
+		target="-build-native"/>
+    </target>
+
     <target name="natives.misc" depends="property-init">
 	<echo	level="debug"
 		message="Native directories = ${native.src.misc}"/>
@@ -305,12 +321,7 @@
 	</if>
     </target>
 
-    <target name="natives" depends="natives.misc,natives.mp,natives.net">
-    </target>
-    <!--
-    <target name="natives" depends="natives.misc">
-    </target>
-    -->
+    <target name="natives" depends="natives.misc,natives.mp,natives.net"/>
 
     <target name="compile"
 	    depends="init,bcel"

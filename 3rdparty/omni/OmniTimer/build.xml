@@ -1,0 +1,31 @@
+<project
+    name="OmniTimer"
+    default="build"
+    basedir=".">
+
+    <description>
+	A native high-resolution timer for the Mac
+	Source: Omni
+	See the licence in OmniSourceLicence.html in the current directory
+    </description>
+
+    <property name="ibis" location="../../../"/>
+
+    <!-- Set the parameters expected by the native compile command -->
+    <property name="cc.outtype" value="static"/>
+    <property name="native.dir" location="."/>
+    <property name="local.lib" value="OTTimer"/>
+
+    <import file="${ibis}/build-native.xml"/>
+
+    <target name="compile" depends="property-init" if="os-is-mac">
+	<path id="omni-includes-ref">
+	    <pathelement path=".."/>
+	</path>
+	<property name="local.includes" refid="omni-includes-ref"/>
+	<antcall inheritRefs="true" target="native-compile"/>
+    </target>
+
+    <target name="build" depends="property-init,compile"/>
+
+</project>

@@ -41,11 +41,16 @@
 	<echo	message="Now set default.classpath to ${default.classpath}"
 		level="verbose"/>
 
+	<!--
+	    First test whether this is a Mac. Some Macs are also Unix,
+	    so they say 'yes' to os family="unix". But for Ibis, we
+	    want to distinguish between macs and non-mac unixes.
+	-->
 	<if>
-	    <os family="unix"/>
+	    <os family="mac"/>
 	    <then>
-		<property name="os.family" value="unix"/>
-		<property name="os-is-unix" value="true"/>
+		<property name="os.family" value="mac"/>
+		<property name="os-is-mac" value="true"/>
 	    </then>
 	<elseif>
 	    <os family="windows"/>
@@ -55,10 +60,10 @@
 	    </then>
 	</elseif>
 	<elseif>
-	    <os family="mac"/>
+	    <os family="unix"/>
 	    <then>
-		<property name="os.family" value="mac"/>
-		<property name="os-is-mac" value="true"/>
+		<property name="os.family" value="unix"/>
+		<property name="os-is-unix" value="true"/>
 	    </then>
 	</elseif>
 	</if>
