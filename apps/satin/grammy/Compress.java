@@ -50,16 +50,27 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
 	}
 
         // For now, just pick the best move.
-        Step mv[] = steps.toArray();
-	SuffixArray l[] = new SuffixArray[mv.length];
-	for( int i=0; i<mv.length; i++ ){
-            l[i] = applyFoldingStep( (SuffixArray) a.clone(), mv[i], levels-1 );
-        }
-	sync();
-	res = l[0];
-	for( int i=1; i<l.length; i++ ){
-	    if( l[i].getLength()<res.getLength() ){
-		res = l[i];
+	if( levels<2 ){
+	    Step s = steps.getBestStep();
+	    res = (SuffixArray) a.clone();
+
+	    if( s != null ){
+		res.applyCompression( s );
+	    }
+	}
+	else {
+	    Step mv[] = steps.toArray();
+	    SuffixArray l[] = new SuffixArray[mv.length];
+
+	    for( int i=0; i<mv.length; i++ ){
+		l[i] = applyFoldingStep( (SuffixArray) a.clone(), mv[i], levels-1 );
+	    }
+	    sync();
+	    res = l[0];
+	    for( int i=1; i<l.length; i++ ){
+		if( l[i].getLength()<res.getLength() ){
+		    res = l[i];
+		}
 	    }
 	}
         return res;

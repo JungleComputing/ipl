@@ -54,6 +54,17 @@ public class StepList {
     }
 
     /**
+     * Returns the top step, or null if there isn't one.
+     */
+    public Step getBestStep()
+    {
+	if( ix == 0 ){
+	    return null;
+	}
+	return steps[0];
+    }
+
+    /**
      * Returns an array containing all the steps.
      */
     public Step[] toArray()

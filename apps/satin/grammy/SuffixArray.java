@@ -140,7 +140,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     }
 
     /** Sorts the administration arrays to implement ordering. */
-    private void sort()
+    private void sort( int indices[], int commonality[] )
     {
         // This implements Shell sort.
         // Unfortunately we cannot use the sorting functions from the library
@@ -210,7 +210,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	    indices[i] = i;
 	}
 
-        sort();
+        sort( indices, commonality );
     }
 
     String buildString( int start, int len )
@@ -255,23 +255,6 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     {
 	for( int i=0; i<indices.length; i++ ){
 	    s.println( "" + indices[i] + " " + commonality[i] + " " + buildString( indices[i] ) );
-	}
-    }
-
-
-    private void printMaxima( PrintStream s )
-    {
-	int max = 0;
-
-	for( int i=1; i<indices.length; i++ ){
-	    if( commonality[i]>commonality[max] ){
-		max = i;
-	    }
-	}
-	for( int i=1; i<indices.length; i++ ){
-	    if( commonality[i] >= commonality[max] ){
-		s.println( "maximum: " + indices[i] + " " + commonality[i] + " " + buildString( indices[i], commonality[i] ) );
-	    }
 	}
     }
 
@@ -360,7 +343,7 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         for( int i=0; i<length; i++ ){
             indices[i] = i;
         }
-        sort();
+        sort( indices, commonality );
 
         if( doVerification ){
             int gain = s.getGain();
@@ -506,22 +489,4 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     public int getLength() { return length; }
     
     public ByteBuffer getByteBuffer() { return new ByteBuffer( text, length ); }
-
-    public static void main( String args[] )
-    {
-        try {
-            SuffixArray t = new SuffixArray( args[0] );
-
-            if( doVerification ){
-                t.test();
-            }
-            t.printMaxima( System.out );
-        }
-        catch( Exception x )
-        {
-            System.err.println( "Caught " + x );
-            x.printStackTrace();
-            System.exit( 1 );
-        }
-    }
 }
