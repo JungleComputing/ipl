@@ -4,7 +4,7 @@
 
 class Helpers {
     /**
-     * Given an array <code>a</code> and a size <code>sz</code>, create a new array of size <code>sz</code>
+     * Given an int array <code>a</code> and a size <code>sz</code>, create a new array of size <code>sz</code>
      * that contains the first <code>sz</code> elements of <code>a</code>.
      * @param a the array to clone
      * @param sz the number of elements to clone
@@ -16,6 +16,22 @@ class Helpers {
 
 	System.arraycopy( a, 0, res, 0, sz );
 	return res;
+    }
+
+    /**
+     * Given two int arrays, return true iff they have equal elements.
+     */
+    static boolean areEqualArrays( int a[], int b[] )
+    {
+        if( a.length != b.length ){
+            return false;
+        }
+        for( int i=0; i<a.length; i++ ){
+            if( a[i] != b[i] ){
+                return false;
+            }
+        }
+        return true;
     }
 
     static int[] append( int a[], int v )

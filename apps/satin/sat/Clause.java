@@ -31,6 +31,17 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	return new Clause( (int []) pos.clone(), (int []) neg.clone(), label );
     }
 
+    public boolean equals( Object other )
+    {
+        Clause o = (Clause) other;
+
+        //return o != null && label == o.label && pos.equals( o.pos ) && neg.equals( o.neg );
+        return o != null &&
+            label == o.label &&
+            Helpers.areEqualArrays( pos, o.pos ) && 
+            Helpers.areEqualArrays( neg, o.neg );
+    }
+
     /**
      * Note: this comparator imposes orderings that are inconsistent
      * with equals.
