@@ -813,6 +813,10 @@ public final class Satinc {
     }
 
     void insertAbortedCheck(MethodGen m, InstructionList il, InstructionHandle pos) {
+	// Generates:
+	//   if (satin.getParent() != null && satin.getParent().aborted) {
+	//       return null;
+	//   }
 	InstructionHandle abo = insertNullReturn(m, il, pos);
 
 	il.insert(abo, getSatin(ins_f));
@@ -2908,8 +2912,8 @@ System.out.println("findMethod: could not find method " + name + sig);
     }
 
     public static void usage() {
-	System.err.println("Usage : java Satinc [-v] [-keep] [-dir|-local] [-print] [-irc-off] [-no-sc-opt]" +
-		   "[-compiler \"your compile command\" ] [-no-aborts] [-no-inlet-opt] [-fault-tolerance] <classname>*");
+	System.err.println("Usage : java Satinc [[-no]-verbose] [[-no]-keep] [-dir|-local] [[-no]-print] [[-no]-irc] [[-no]-sc-opt]" +
+		   "[-compiler \"your compile command\" ] [[-no]-aborts] [[-no]-inlet-opt] [[-no]-fault-tolerance] <classname>*");
 	System.exit(1);
     }
 
@@ -2970,36 +2974,56 @@ System.out.println("findMethod: could not find method " + name + sig);
 	Vector list = new Vector();
 
 	for (int i=0; i<args.length; i++) {
-	    if (args[i].equals("-v")) {
+	    if (!args[i].startsWith("-")) {
+		list.add(args[i]);
+	    } else if (args[i].equals("-v")) {
 		verbose = true;
+	    } else if (args[i].equals("-verbose")) {
+		verbose = true;
+	    } else if (args[i].equals("-no-verbose")) {
+		verbose = false;
 	    } else if (args[i].equals("-verify")) {
 		verify = true;
-	    } else if (!args[i].startsWith("-")) {
-		list.add(args[i]);
+	    } else if (args[i].equals("-no-verify")) {
+		verify = false;
 	    } else if (args[i].equals("-compiler")) {
 		compiler = args[i+1];
 		i++;
 	    } else if (args[i].equals("-keep")) {
 		keep = true;
-	    } else if (args[i].equals("-local")) {
-		local = false;
+	    } else if (args[i].equals("-no-keep")) {
+		keep = false;
 	    } else if (args[i].equals("-dir")) {
 		local = false;
 	    } else if (args[i].equals("-local")) {
 		local = true;
 	    } else if (args[i].equals("-print")) {
 		print = true;
+	    } else if (args[i].equals("-no-print")) {
+		print = false;
 	    } else if (args[i].equals("-irc-off")) {
 		invocationRecordCache = false;
+	    } else if (args[i].equals("-no-irc")) {
+		invocationRecordCache = false;
+	    } else if (args[i].equals("-irc")) {
+		invocationRecordCache = true;
 	    } else if (args[i].equals("-no-aborts")) {
 		supportAborts = false;
+	    } else if (args[i].equals("-aborts")) {
+		supportAborts = true;
 	    } else if (args[i].equals("-no-inlet-opt")) {
 		inletOpt = false;
+	    } else if (args[i].equals("-inlet-opt")) {
+		inletOpt = true;
 	    } else if (args[i].equals("-no-sc-opt")) {
 		spawnCounterOpt = false;
+	    } else if (args[i].equals("-sc-opt")) {
+		spawnCounterOpt = true;
 	    } else if (args[i].equals("-fault-tolerance")) {
 		faultTolerance = true;
 		System.out.println("fault tolerance turned on");
+	    } else if (args[i].equals("-no-fault-tolerance")) {
+		faultTolerance = false;
 	    } else {
 		usage();
 	    }
