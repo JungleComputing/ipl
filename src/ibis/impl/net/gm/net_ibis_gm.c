@@ -1301,7 +1301,8 @@ ni_gm_register_block(struct s_port   *p_port,
 static
 int
 ni_gm_deregister_block(struct s_port  *p_port,
-                       struct s_cache *p_cache) {
+                       struct s_cache *p_cache)
+{
 	struct gm_port *p_gm_port = p_port->p_gm_port;
 
         if (!--p_cache->ref_count) {
@@ -1655,7 +1656,7 @@ ni_gm_eager_callback(struct gm_port *port,
     ni_gm_packet_put(p_out->p_port, packet);
     __disp__("ni_gm_eager_callback: unlock(%d)\n", p_out->p_lock->id);
     ni_gm_lock_unlock(p_out->p_lock);
-    VPRINTF(120, ("Received a ni_gm_eager_callback; p_out %p state := %s\n", p_out, ni_gm_sender_state(p_out->state)));
+    VPRINTF(120, ("Received a ni_gm_eager_callback; p_out %p state := %s tokens := %d\n", p_out, ni_gm_sender_state(p_out->state), p_out->p_port->ni_gm_send_tokens));
 
     __out__();
 }
@@ -1676,12 +1677,12 @@ ni_gm_callback(struct gm_port *port,
         p_port       = p_rq->p_port;
 
         assert(p_rq->p_out || p_rq->p_in);
+	assert(p_port->ni_gm_send_tokens++ >= 0);
 
         if (p_rq->p_out) {
                 struct s_output *p_out = p_rq->p_out;
 
-		VPRINTF(100, ("Receive a ni_gm_callback; p_out %p current state %s\n", p_out, ni_gm_sender_state(p_out->state)));
-		assert(p_port->ni_gm_send_tokens++ >= 0);
+		VPRINTF(100, ("Receive a ni_gm_callback; p_out %p current state %s tokens := %d\n", p_out, ni_gm_sender_state(p_out->state), p_port->ni_gm_send_tokens));
 
                 assert(!p_rq->p_in);
 
@@ -1715,6 +1716,7 @@ ni_gm_callback(struct gm_port *port,
 
                 assert(!p_rq->p_out);
                 p_in = p_rq->p_in;
+		VPRINTF(100, ("Receive a ni_gm_callback; p_in %p tokens := %d\n", p_in, p_port->ni_gm_send_tokens));
                 __disp__("ni_gm_callback: unlock(%d)\n", p_in->p_lock->id);
                 ni_gm_lock_unlock(p_in->p_lock);
         } else {
@@ -1973,7 +1975,7 @@ ni_gm_output_send_request(struct s_output *p_out) {
         if (ni_gm_check_send_tokens(p_port)) {
                 goto error;
         }
-	VPRINTF(100, ("Send HIGH rendez-vous request p_out %p for size %d\n", p_out, p_out->length));
+	VPRINTF(100, ("Send HIGH rendez-vous request p_out %p for size %d tokens %d\n", p_out, p_out->length, p_port->ni_gm_send_tokens));
 	assert(--p_port->ni_gm_send_tokens >= 0);
         gm_send_with_callback(p_port->p_gm_port,
 			      packet_data,
@@ -2042,7 +2044,7 @@ ni_gm_output_flush(struct s_output *p_out)
     pend(GM_CHECK_TOKEN);
 
     pstart(GM_SEND);
-    VPRINTF(100, ("Send to %d HIGH data message p_out %p seqno %llu packet %p size %d mux_id %d\n", p_out->dst_node_id, p_out, hdr->seqno, packet, p_out->offset, hdr->mux_id));
+    VPRINTF(100, ("Send to %d HIGH data message p_out %p seqno %llu packet %p size %d mux_id %d send tokens %d\n", p_out->dst_node_id, p_out, hdr->seqno, packet, p_out->offset, hdr->mux_id, p_port->ni_gm_send_tokens));
     assert(--p_port->ni_gm_send_tokens >= 0);
     gm_send_with_callback(p_port->p_gm_port,
 			  packet_data,
@@ -2089,7 +2091,6 @@ ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
 	hdr = (ni_gm_hdr_p)p_out->packet->data;
 	hdr->type = NI_GM_MSG_TYPE_RENDEZ_VOUS_DATA;
 	//???????? hdr->length = len;
-	hdr_set_seqno(hdr, p_out);
 
         p_port = p_out->p_port;
         ni_gm_register_block(p_port, b, len, &p_out->p_cache);
@@ -2101,7 +2102,7 @@ ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
                 goto error;
         }
 
-	VPRINTF(100, ("Send LOW rendez-vous data p_out %p size %d\n", p_out, len));
+	VPRINTF(100, ("Send LOW rendez-vous data p_out %p size %d tokens %d\n", p_out, len, p_port->ni_gm_send_tokens));
 	assert(--p_port->ni_gm_send_tokens >= 0);
         gm_send_with_callback(p_port->p_gm_port,
 			      b,
@@ -2658,7 +2659,8 @@ ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
 static
 int
 ni_gm_process_high_recv_event(struct s_port   *p_port,
-                              gm_recv_event_t *p_event) {
+                              gm_recv_event_t *p_event)
+{
         unsigned char *packet         = NULL;
 	int            packet_length;
 	ni_gm_hdr_p	hdr;
@@ -2694,13 +2696,18 @@ ni_gm_process_high_recv_event(struct s_port   *p_port,
         return -1;
 }
 
+
+/*
+ * Receive a RENDEZ_VOUS data packet
+ */
 static
 int
 ni_gm_process_recv_event(struct s_port   *p_port,
-                         gm_recv_event_t *p_event,
-			 int              length) {
-        struct s_input *p_in = NULL;
-        int            remote_node_id =    0;
+                         gm_recv_event_t *p_event)
+{
+        struct s_input *p_in;
+        int            remote_node_id;
+	int            length = gm_ntohl(p_event->recv.length);
 
         __in__();
         p_in = p_port->active_input;
@@ -2710,7 +2717,7 @@ ni_gm_process_recv_event(struct s_port   *p_port,
 
         ni_gm_deregister_block(p_port, p_in->p_cache);
         ni_gm_release_input_array(p_in, length);
-        ni_gm_input_unlock(p_in, (int)gm_ntohl(p_event->recv.length));
+        ni_gm_input_unlock(p_in, length);
         __out__();
 
         return 0;
@@ -2719,7 +2726,8 @@ ni_gm_process_recv_event(struct s_port   *p_port,
 
 static
 int
-ni_gm_output_exit(struct s_output *p_out) {
+ni_gm_output_exit(struct s_output *p_out)
+{
         __in__();
         p_out->p_port->ref_count--;
         memset(p_out->p_lock, 0, sizeof(struct s_lock));
@@ -2733,7 +2741,8 @@ ni_gm_output_exit(struct s_output *p_out) {
 
 static
 int
-ni_gm_input_exit(struct s_input *p_in) {
+ni_gm_input_exit(struct s_input *p_in)
+{
         __in__();
         if (p_in->packet_head) {
 	    fprintf(stderr, "Warning: GM has an unprocessed packet at exit\n");
@@ -3907,7 +3916,7 @@ Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
                 case GM_RECV_EVENT:
                         {
 				VPRINTF(150, ("Receive data packet size %d\n", gm_ntohl(p_event->recv.length)));
-                                if (ni_gm_process_recv_event(p_port, p_event, gm_ntohl(p_event->recv.length)))
+                                if (ni_gm_process_recv_event(p_port, p_event))
                                         goto error;
                         }
                         result = JNI_TRUE;
@@ -3933,6 +3942,8 @@ Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
         _current_env = NULL;
 }
 
+
+#if DEPRECATED
 
 JNIEXPORT
 void
@@ -4001,7 +4012,7 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
                 case GM_RECV_EVENT:
                         {
                                 success_flag = 1;
-                                if (ni_gm_process_recv_event(p_port, p_event, gm_ntohl(p_event->recv.length)))
+                                if (ni_gm_process_recv_event(p_port, p_event))
                                         goto error;
                         }
                         break;
@@ -4030,6 +4041,8 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
         __err__();
         _current_env = NULL;
 }
+
+#endif
 
 
 JNIEXPORT jint JNICALL
