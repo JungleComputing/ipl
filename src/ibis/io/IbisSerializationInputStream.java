@@ -677,7 +677,18 @@ public final class IbisSerializationInputStream
 			}
 			for (int i=0;i<t.reference_count;i++) {
 				if (t.fields_final[temp]) {
-					setFieldObject(ref, t.serializable_fields[temp].getName(), t.serializable_fields[temp].getClass().getName(), readObject());
+					String fieldname = t.serializable_fields[temp].getName();
+					String fieldtype = t.serializable_fields[temp].getType().getName();
+
+					if (fieldtype.startsWith("[")) {
+					} else {
+					    fieldtype = "L" + fieldtype.replace('/', '.') + ";";
+					}
+
+// System.out.println("fieldname = " + fieldname);
+// System.out.println("signature = " + fieldtype);
+
+					setFieldObject(ref, fieldname, fieldtype, readObject());
 				}
 				else {
 					t.serializable_fields[temp].set(ref, readObject());
