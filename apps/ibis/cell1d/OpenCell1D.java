@@ -387,7 +387,7 @@ class OpenCell1D implements OpenConfig {
         }
         if( sendCount>0 ){
             if( traceLoadBalancing ){
-                System.out.println( "P" + me + ":" + generation + ": sending " + sendCount + " columns to P" + (me+1) );
+                System.out.println( "P" + me + ":" + generation + ": sending " + sendCount + " columns to P" + (me-1) );
             }
             // The border has changed, but since until now we maintained it,
             // we can record its current state from our own columns.
