@@ -1,5 +1,7 @@
 package ibis.frontend.io;
 
+import ibis.util.RunProcess;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +23,6 @@ public class Scan {
 
     private static Vector classes = new Vector();
     private static Vector failed = new Vector();
-    private static Runtime r = Runtime.getRuntime();
 
     private static String [] cpath = getClassPath();
 
@@ -52,6 +53,7 @@ public class Scan {
     public static void handleClasses(String [] class_names) { 
 	int result = 0;
 	InputStream i1 = null, i2 = null;
+	RunProcess p = null;
 
 	try { 	
 	    String command = "java ibis.frontend.io.IOGenerator ";
@@ -64,10 +66,8 @@ public class Scan {
 
 //	    System.out.println("Command = " + command);
 
-	    Process p = r.exec(command);
-	    i1 = p.getInputStream();
-	    i2 = p.getErrorStream();
-	    result = p.waitFor();
+	    p = new RunProcess(command);
+	    result = p.getExitStatus();
 	} catch (Exception e) { 
 	    result = -1;
 	} 
@@ -81,41 +81,29 @@ public class Scan {
 
 	    f.error.append("stdout:\n");
 	    f.error.append("      : ");
-		
-	    int data = 0;
 
-	    try { 
-		do { 
-		    data = i1.read();
-		    if (data != -1) { 
-			f.error.append(((char) data));
-			if (data == '\n') { 
-			    f.error.append("      : ");
-			} 
-		    }
-		} while (data != -1);
-
-	    } catch (IOException e) { 
-		// ignore.
-	    } 
+	    if (p != null) {
+		byte[] o = p.getStdout();
+		for (int i = 0; i < o.length; i++) {
+		    f.error.append(((char) o[i]));
+		    if (o[i] == '\n') { 
+			f.error.append("      : ");
+		    } 
+		}
+	    }
 
 	    f.error.append("\nstderr: \n");
 	    f.error.append("      : ");
 
-	    try { 
-		do { 
-		    data = i2.read();
-		    if (data != -1) { 
-			f.error.append(((char) data));
-			if (data == '\n') { 
-			    f.error.append("      : ");
-			} 
-		    }
-		} while (data != -1);
-
-	    } catch (IOException e) { 
-		// ignore.
-	    } 
+	    if (p != null) {
+		byte[] e = p.getStderr();
+		for (int i = 0; i < e.length; i++) {
+		    f.error.append(((char) e[i]));
+		    if (e[i] == '\n') { 
+			f.error.append("      : ");
+		    } 
+		}
+	    }
 
 	    failed.add(f);
 	} 

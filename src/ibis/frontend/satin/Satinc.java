@@ -1,5 +1,7 @@
 package ibis.frontend.satin;
 
+import ibis.util.RunProcess;
+
 import java.io.BufferedOutputStream;
 import java.io.OutputStream;
 import java.io.FilterOutputStream;
@@ -1742,54 +1744,12 @@ System.out.println("findMethod: could not find method " + name + sig);
 		System.out.println("Running: " + command);
 	    }
 	
-	    Runtime r = Runtime.getRuntime();
-	    Process p = r.exec(command);
-
-	    java.io.InputStream o = p.getInputStream();
-	    java.io.InputStream e = p.getErrorStream();
-	    byte[] ob = new byte[4096];
-	    byte[] eb = new byte[4096];
-	    byte[] dummy = new byte[4096];
-
-	    int oc = 0;
-	    int ec = 0;
-
-	    boolean must_read;
-
-	    do {
-		must_read = false;
-
-		int ro = 0;
-		if (oc < ob.length) {
-		    ro = o.read(ob, oc, ob.length - oc);
-		    if (ro != -1) {
-			oc += ro;
-		    }
-		}
-		else {
-		    ro = o.read(dummy);
-		}
-		int re = 0;
-		if (ec < eb.length) {
-		    re = e.read(eb, ec, eb.length - ec);
-		    if (re != -1) {
-			ec += re;
-		    }
-		}
-		else {
-		    re = e.read(dummy);
-		}
-
-		if (re >= 0 || ro >= 0) {
-		    must_read = true;
-		}
-
-	    } while (must_read);
-
-	    int res = p.waitFor();
+	    RunProcess p = new RunProcess(command);
+	    int res = p.getExitStatus();
 	    if (res != 0) {
 		System.err.println("Error compiling generated code (" + className + ").");
-		System.err.write(eb, 0, ec);
+		byte[] err = p.getStderr();
+		System.err.write(err, 0, err.length);
 		System.err.println("");
 		System.exit(1);
 	    }

@@ -1,5 +1,7 @@
 package ibis.frontend.ibis;
 
+import ibis.util.RunProcess;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
@@ -61,8 +63,6 @@ class Ibisc {
     }
 
     void compile(String target) {
-	java.io.BufferedInputStream stdout = null;
-	java.io.BufferedInputStream stderr = null;
 	boolean error_exit = false;
 
 	String command = compiler + " " + target;
@@ -71,49 +71,24 @@ class Ibisc {
 	}
 
 	try {
-	    Runtime r = Runtime.getRuntime();
-	    Process p = r.exec(command);
-	    stdout = new java.io.BufferedInputStream(p.getInputStream());
-	    try {
-		stderr = new java.io.BufferedInputStream(p.getErrorStream());
-		try {
-		    int res = p.waitFor();
-		    if (res != 0) {
-			System.err.println("Error compiling code (" + target + ").");
-			System.err.println("Standard output:");
-			while (true) {
-			    try {
-				int c = stdout.read();
-				if (c == -1) {
-				    break;
-				}
-				System.err.print((char)c);
-			    } catch (IOException e) {
-				break;
-			    }
-			}
-			System.err.println("Error output:");
-			while (true) {
-			    try {
-				int c = stderr.read();
-				if (c == -1) {
-				    break;
-				}
-				System.err.print((char)c);
-			    } catch (IOException e) {
-				break;
-			    }
-			}
-			error_exit = true;
-		    }
-		    if (verbose) {
-			System.out.println(" Done");
-		    }
-		} finally {
-		    stderr.close();
+	    RunProcess p = new RunProcess(command);
+	    int res = p.getExitStatus();
+	    if (res != 0) {
+		System.err.println("Error compiling code (" + target + ").");
+		System.err.println("Standard output:");
+		byte[] o = p.getStdout();
+		for (int i = 0; i < o.length; i++) {
+		    System.err.print((char)o[i]);
 		}
-	    } finally {
-		stdout.close();
+		System.err.println("Error output:");
+		byte[] e = p.getStderr();
+		for (int i = 0; i < e.length; i++) {
+		    System.err.print((char)e[i]);
+		}
+		error_exit = true;
+	    }
+	    if (verbose) {
+		System.out.println(" Done");
 	    }
 	} catch (Exception e) {
 	    System.err.println("IO error: " + e);
@@ -140,9 +115,8 @@ class Ibisc {
 		System.out.println("Running: " + command);
 	    }
 	
-	    Runtime r = Runtime.getRuntime();
-	    Process p = r.exec(command);
-	    int res = p.waitFor();
+	    RunProcess p = new RunProcess(command);
+	    int res = p.getExitStatus();
 	    if (res != 0) {
 		System.err.println("Error compiling code (" + target + ").");
 		System.exit(1);
