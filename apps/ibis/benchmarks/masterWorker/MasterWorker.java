@@ -23,28 +23,29 @@ final class MasterWorker {
 	StaticProperties s;
 
 	try {
-	    PoolInfo info = PoolInfo.createPoolInfo();
-	    int rank = info.rank();
 
 	    s = new StaticProperties();
 	    s.add("communication", 
 		    "OneToOne ManyToOne Reliable ExplicitReceipt");
 	    s.add("serialization", "ibis");
-	    s.add("worldmodel", "closed");
+	    s.add("worldmodel", "open");
 	    ibis = Ibis.createIbis(s, null);
 
 	    registry = ibis.registry();
+
+	    boolean master = registry.elect("master", ibis.identifier())
+		    .equals(ibis.identifier());
 
 	    manyToOneType = ibis.createPortType("many2one type", s);
 
 	    s = new StaticProperties();
 	    s.add("communication", "OneToOne Reliable ExplicitReceipt");
 	    s.add("serialization", "ibis");
-	    s.add("worldmodel", "closed");
+	    s.add("worldmodel", "open");
 
 	    oneToOneType = ibis.createPortType("one2one type", s);
 
-	    if (rank == 0) {
+	    if (master) {
 		master();
 	    } else {
 		worker();
@@ -192,3 +193,4 @@ final class MasterWorker {
 	new MasterWorker();
     }
 }
+
