@@ -1,0 +1,87 @@
+<project
+    name="Ibis Programmers manual build"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis Programmers manual build.
+    </description>
+
+    <property name="ibis"        location="../.."/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/build-properties.xml"/>
+
+    <target name="init"
+	    depends="property-init">
+	    <tstamp/>
+	    <mkdir dir="${build}"/>
+    </target>
+
+    <target name="tex"
+	    depends="init">
+	    <copy
+		file="progman.tex"
+		tofile="${build}/progman.tex">
+	    </copy>
+    </target>
+
+    <target name="dvi"
+	    depends="tex">
+	    <exec   dir="${build}"
+		    executable="latex"
+		    vmlauncher="false">
+		    <arg line="progman.tex"/>
+	    </exec>
+	    <exec   dir="${build}"
+		    executable="latex"
+		    vmlauncher="false">
+		    <arg line="progman.tex"/>
+	    </exec>
+    </target>
+
+    <target name="pdf"
+	    depends="dvi">
+	    <exec   dir="${build}"
+		    executable="dvipdf"
+		    vmlauncher="false">
+		    <arg line="progman.dvi progman.pdf"/>
+	    </exec>
+    </target>
+
+    <target name="ps"
+	    depends="dvi">
+	    <exec   dir="${build}"
+		    executable="dvips"
+		    vmlauncher="false">
+		    <arg line="-o progman.ps progman.dvi"/>
+	    </exec>
+    </target>
+
+    <target name="html"
+	    depends="tex">
+	    <exec   dir="${build}"
+		    executable="latex2html"
+		    vmlauncher="false">
+		    <arg line="-info '' -split 4 -show_section_numbers progman.tex"/>
+	    </exec>
+    </target>
+
+    <target name="clean"
+	    depends="init">
+	    <delete dir="${build}"/>
+    </target>
+
+    <target name="build"
+	    depends="pdf, html">
+	    <copy
+		file="${build}/progman.pdf"
+		tofile="../progman.pdf">
+	    </copy>
+	    <copy
+		todir="../progman">
+		<fileset dir="${build}/progman"/>
+	    </copy>
+    </target>
+
+</project>

@@ -104,7 +104,7 @@
  
  STEP 3 -----------------------------------------------------------------
  run the application (see Running-Satin-Applications.txt) and try to kill
- some nodes, for example with prkill. You can also use tell nodes to
+ some nodes, for example with prkill. You can also tell nodes to
  commit a suicide by specifying
  
 	-satin-kill <time>

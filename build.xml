@@ -87,7 +87,6 @@
     <property name="src"         location="${ibis}/src"/>
     <property name="build"       location="${ibis}/build"/>
     <property name="docs"        location="${ibis}/docs"/>
-    <property name="devel-docs"  location="${ibis}/developer-docs"/>
 
 
     <!--
@@ -616,8 +615,6 @@
     <target name="clean"
 	    description="Clean up the build">
 	<delete dir="${build}"/>
-	<delete dir="${docs}"/>
-	<delete dir="${devel-docs}"/>
     </target>
 
     <target name="native-clean"
@@ -663,83 +660,19 @@
 	</delete>
 	<delete dir="bin"/>
 	<delete dir="ant-tasks/tasks"/>
+	<ant dir="${docs}" target="distclean"/>
     </target>
 
-    <target name="docs" depends="init">
-	<!-- Create the javadoc directory -->
-	<delete dir="${docs}"/>
-	<mkdir dir="${docs}"/>
-	<mkdir dir="${docs}/api"/>
-	<javadoc
-		sourcepath="${src}"
-		destdir="${docs}/api"
-		author="true"
-		version="true"
-		use="true"
-		public="true"
-		windowtitle="Ibis Documentation"
-		overview="${ibis}/src/ibis/doc/overview.html"
-		doctitle="Ibis Documentation"
-		bottom="The Ibis project">
-	    <classpath refid="default.classpath"/>
-	    <package name="ibis.ipl"/>
-	    <!--
-	    <package name="ibis.impl.*"/>
-	    <package name="ibis.impl.net.gm"/>
-	    <package name="ibis.io"/>
-	    -->
-	    <package name="ibis.gmi"/>
-	    <package name="ibis.rmi"/>
-	    <package name="ibis.rmi.server"/>
-	    <package name="ibis.rmi.registry"/>
-	    <package name="ibis.satin"/>
-	    <package name="ibis.util"/>
-	    <group title="Ibis GMI" packages="ibis.gmi"/>
-	    <group title="Ibis RMI" packages="ibis.rmi"/>
-	    <group title="Ibis IPL" packages="ibis.ipl"/>
-	    <group title="Ibis Satin" packages="ibis.satin"/>
-	    <group title="Ibis Utilities" packages="ibis.util"/>
-	</javadoc>
+    <target name="docs">
+	<ant dir="${docs}" target="api"/>
     </target>
 
-    <target name="developer-docs" depends="init">
-	<!-- Create the javadoc directory -->
-	<delete dir="${devel-docs}"/>
-	<mkdir dir="${devel-docs}"/>
-	<mkdir dir="${devel-docs}/api"/>
-	<javadoc
-		sourcepath="${src}"
-		destdir="${devel-docs}/api"
-		author="true"
-		version="true"
-		use="true"
-		private="true"
-		windowtitle="Ibis Documentation"
-		overview="${ibis}/src/ibis/doc/overview.html"
-		doctitle="Ibis Documentation"
-		bottom="The Ibis project">
-	    <classpath refid="default.classpath"/>
-	    <package name="ibis.ipl"/>
-	    <package name="ibis.impl.*"/>
-	    <package name="ibis.io"/>
-	    <package name="ibis.gmi"/>
-	    <package name="ibis.rmi"/>
-	    <package name="ibis.rmi.*"/>
-	    <package name="ibis.util"/>
-	    <package name="ibis.satin"/>
-	    <group title="Ibis GMI" packages="ibis.gmi"/>
-	    <group title="Ibis RMI" packages="ibis.rmi"/>
-	    <group title="Ibis IPL" packages="ibis.ipl"/>
-	    <group title="Ibis IO" packages="ibis.io"/>
-	    <group title="Ibis Satin" packages="ibis.satin"/>
-	    <group title="Ibis Utilities" packages="ibis.util"/>
-	    <!--
-	    <arg value="-verbose"/>
-	    <arg line="-source 1.4"/>
-	    <arg value="-notree"/>
-	    <arg value="-noindex"/>
-	    -->
-	</javadoc>
+    <target name="developer-docs">
+	<ant dir="${docs}" target="developers-api"/>
+    </target>
+
+    <target name="progman">
+	<ant dir="${docs}" target="progman"/>
     </target>
 
 </project>
