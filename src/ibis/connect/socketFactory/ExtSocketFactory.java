@@ -161,7 +161,9 @@ public class ExtSocketFactory
 	    }
 	    types.add(t);
 	} catch(Exception e) {
-	    System.out.println("# ExtSocketFactory: *not* adding: "+t.getSocketTypeName());
+	    System.out.println("# ExtSocketFactory: Socket type constructor " + className + " got exception:");
+	    e.printStackTrace();
+	    System.out.println("# ExtSocketFactory: loadSocketType returns null");
 	}
 	return t;
     }
