@@ -14,6 +14,7 @@ final class TcpReadMessage implements ReadMessage {
 	private TcpSendPortIdentifier origin;
 	private ConnectionHandler handler;
 	boolean isFinished = false;
+	long before;
 
 	TcpReadMessage(TcpReceivePort port, SerializationInputStream in, 
 				       TcpSendPortIdentifier origin, ConnectionHandler handler) {
@@ -21,6 +22,7 @@ final class TcpReadMessage implements ReadMessage {
 		this.in = in;
 		this.origin = origin;
 		this.handler = handler;
+		before = handler.dummy.getCount();
 	}
 
 	TcpReadMessage(TcpReadMessage o) {
@@ -30,6 +32,7 @@ final class TcpReadMessage implements ReadMessage {
 		this.handler = o.handler;
 		this.isFinished = false;
 		this.sequenceNr = o.sequenceNr;
+		before = handler.dummy.getCount();
 	}
 
 	ConnectionHandler getHandler() {
@@ -45,9 +48,21 @@ final class TcpReadMessage implements ReadMessage {
 	}
 
       	public long finish() throws IOException {
+		long retval;
+
+		if (Config.STATS) {
+			long after = handler.dummy.getCount();
+			retval = after - before;
+			before = after;
+			port.count += retval;
+		}
+
 		port.finishMessage();
 		in.clear();
-		// TODO: return byte count of message
+
+		if (Config.STATS) {
+			return retval;
+		}
 		return 0;
 	}
 

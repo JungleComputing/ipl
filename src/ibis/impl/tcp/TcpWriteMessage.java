@@ -18,7 +18,9 @@ final class TcpWriteMessage implements WriteMessage {
 		this.connectionAdministration = connectionAdministration;
 		sport = p;
 		this.out = out;
-		before = sport.dummy.getCount();
+		if (Config.STATS) {
+			before = sport.dummy.getCount();
+		}
 	}
 
 	// if we keep connectionAdministration, forward exception to upcalls / downcalls.
@@ -56,11 +58,16 @@ final class TcpWriteMessage implements WriteMessage {
 			forwardLosses(e);
 		}
 		sport.finishMessage();
-		long after = sport.dummy.getCount();
-		long retval = after - before;
-		sport.count += retval;
-		before = after;
-		return retval;
+		if (Config.STATS) {
+			long after = sport.dummy.getCount();
+			long retval = after - before;
+			sport.count += retval;
+			before = after;
+			return retval;
+		}
+		else {
+			return 0;
+		}
 	}
 
 	public void reset() throws IOException {
@@ -74,9 +81,11 @@ final class TcpWriteMessage implements WriteMessage {
 		} catch (SplitterException e) {
 			forwardLosses(e);
 		}
-		long after = sport.dummy.getCount();
-		sport.count += after - before;
-		before = after;
+		if (Config.STATS) {
+			long after = sport.dummy.getCount();
+			sport.count += after - before;
+			before = after;
+		}
 	}
 
 	public void sync(int ticket) throws IOException {

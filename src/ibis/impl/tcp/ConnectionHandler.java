@@ -23,7 +23,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 
 	private TcpReceivePort port;
 	private InputStream input;
-	private final DummyInputStream dummy_sun;
+	final DummyInputStream dummy;
 	private final BufferedArrayInputStream dummy_ibis;
 	TcpSendPortIdentifier origin;
 	private SerializationInputStream in;
@@ -44,19 +44,19 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 		case TcpPortType.SERIALIZATION_SUN:
 				// always make a new BufferedInputStream: the one in JVM1.4 
 				// has side-effect in close()
-				dummy_sun = new DummyInputStream(new BufferedInputStream(input, 60*1024));
+				dummy = new DummyInputStream(new BufferedInputStream(input, 60*1024));
 				dummy_ibis = null;
 			break;
 		case TcpPortType.SERIALIZATION_NONE:
 				// always make a new BufferedInputStream: the one in JVM1.4 
 				// has side-effect in close()
-				dummy_sun = new DummyInputStream(new BufferedInputStream(input, 60*1024));
+				dummy = new DummyInputStream(new BufferedInputStream(input, 60*1024));
 				dummy_ibis = null;
 			break;
 		case TcpPortType.SERIALIZATION_IBIS:
 				// maybe the dummy should be on the outside ??? Jason
-				dummy_ibis = new BufferedArrayInputStream(new DummyInputStream(input));
-				dummy_sun = null;
+				dummy = new DummyInputStream(input);
+				dummy_ibis = new BufferedArrayInputStream(dummy);
 			break;
 		default:
 			throw new IbisError("EEK: serialization type unknown");
@@ -68,10 +68,10 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
 	private void createNewStream() throws IOException {
 		switch(port.type.serializationType) {
 		case TcpPortType.SERIALIZATION_SUN:
-			in = new SunSerializationInputStream(dummy_sun);
+			in = new SunSerializationInputStream(dummy);
 			break;
 		case TcpPortType.SERIALIZATION_NONE:
-			in = new NoSerializationInputStream(dummy_sun);
+			in = new NoSerializationInputStream(dummy);
 			break;
 		case TcpPortType.SERIALIZATION_IBIS:
 			in = new IbisSerializationInputStream(dummy_ibis);

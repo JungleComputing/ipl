@@ -41,6 +41,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private ArrayList newConnections = new ArrayList();
 	private boolean connectionAdministration = false;
 
+	long count = 0;
+
 	TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall, 
 		       boolean connectionAdministration, ReceivePortConnectUpcall connUpcall) throws IOException {
 
@@ -94,6 +96,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		synchronized(this) {
 			if(!m.isFinished) { // It wasn't finished. Cool, this means that we don't have to start a new thread!
 				this.m = null;
+				if (STATS) {
+					long after = m.getHandler().dummy.getCount();
+					count += after - m.before;
+					m.before = after;
+				}
 				notifyAll();
 
 				return false;
@@ -131,6 +138,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	boolean setMessage(TcpReadMessage m) throws IOException {
 		m.isFinished = false;
+		if (STATS) {
+			m.before = m.getHandler().dummy.getCount();
+		}
 		if(upcall != null) {
 			return doUpcall(m);
 		} else {
@@ -170,15 +180,14 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	 * {@inheritDoc}
 	 **/
 	public long getCount() {
-		// TODO
-		return 0;
+		return count;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 **/
 	public void resetCount() {
-		// TODO
+		count = 0;
 	}
 
 	private synchronized TcpReadMessage getMessage(long timeout) {
