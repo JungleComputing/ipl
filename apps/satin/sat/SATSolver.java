@@ -1,14 +1,14 @@
 // File: $Id$
 
-/** A parallel SAT solver. Given a symbolic
- * boolean equation in CNF, find a set of assignments that make this
- * equation true.
- *
+/**
+ * A parallel SAT solver. Given a symbolic boolean equation in CNF, find a set
+ * of assignments that make this equation true.
+ * 
  * In this implementation the solver simply takes the first unassigned
- * variable, and tries both possible assignments. These tries can
- * of course be done in parallel, making this ideally suited for Satin.
- * More subtle approaches are definitely possible, though.
- *
+ * variable, and tries both possible assignments. These tries can of course be
+ * done in parallel, making this ideally suited for Satin. More subtle
+ * approaches are definitely possible, though.
+ * 
  * @author Kees van Reeuwijk
  * @version $Revision$
  */
@@ -21,12 +21,14 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
     static final boolean traceNewCode = true;
     static int label = 0;
 
-    /** If there are less than this number of variables left, we consider
+    /** 
+     * If there are less than this number of variables left, we consider
      * this a problem that is trivial enough to hand to the leaf solver.
      */
     static final int leafVariables = 30;
 
-    /** For all combinations of the first `firstVariables' variables we
+    /** 
+     * For all combinations of the first `firstVariables' variables we
      * apply simplification. This essentially creates 2^firstVariables
      * sub-problems that are solved in their own context.
      */
@@ -105,15 +107,16 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
      * @param level branching level
-     * @param ctx the SAT context to solve
+     * @param p the SAT problem to solve
+     * @param ctx the changable context of the solver
      * @param assignments the current assignments
      * @param varix the next variable in <code>varlist</code> to assign
      * @param val the value to assign
      */
     public void solve(
 	int level,
-	Context ctx,
-	int assignments[],
+	SATProblem p,
+	SATContext ctx,
 	int varix,
 	boolean val
     ) throws SATResultException
@@ -121,23 +124,31 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	int var = ctx.varlist[varix];
 
 	if( traceSolver ){
-	    System.err.println( "s" + level + ": Trying assignment var[" + var + "]=" + val + " varix=" + varix );
+	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val + " varix=" + varix );
 	}
-	assignments[var] = val?1:0;
-	if( ctx.p.isSatisfied( assignments ) ){
-	    SATSolution s = new SATSolution( assignments );
+	ctx.assignments[var] = val?1:0;
+	int res;
+	if( val ){
+	    res = ctx.propagatePosAssignment( p, var );
+	}
+	else {
+	    res = ctx.propagateNegAssignment( p, var );
+	}
+	if( res == -1 ){
+	    // Propagation reveals a conflict.
+	    if( traceSolver ){
+		System.err.println( "s" + level + ": propagation found a conflict" );
+	    }
+	    return;
+	}
+	if( res == 1 ){
+	    // Propagation reveals problem is satisfied.
+	    SATSolution s = new SATSolution( ctx.assignments );
 
 	    if( traceSolver | printSatSolutions ){
-		System.err.println( "s" + level + ": found a solution: " + s );
+		System.err.println( "s" + level + ": propagation found a solution: " + s );
 	    }
 	    throw new SATResultException( s );
-	}
-	if( ctx.p.isConflicting( assignments ) ){
-	    if( traceSolver ){
-		System.err.println( "s" + level + ": found a conflict" );
-	    }
-	    assignments[var] = -1;
-	    return;
 	}
 	if( varix>=ctx.varlist.length ){
 	    // There are no variables left to assign, clearly there
@@ -145,21 +156,21 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    if( traceSolver ){
 		System.err.println( "s" + level + ": there are only " + ctx.varlist.length + " variables; nothing to branch on" );
 	    }
-	    assignments[var] = -1;
 	    return;
 	}
 
 	// We have variable 'var' to branch on.
 	if( varix+leafVariables>=ctx.varlist.length ){
-	    leafSolve( level+1, ctx.p, ctx.varlist, assignments, varix+1, false );
-	    leafSolve( level+1, ctx.p, ctx.varlist, assignments, varix+1, true );
+	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, varix+1, false );
+	    leafSolve( level+1, p, ctx.varlist, ctx.assignments, varix+1, true );
 	}
 	else {
-	    solve( level+1, ctx, (int[]) assignments.clone(), varix+1, false );
-	    solve( level+1, ctx, (int[]) assignments.clone(), varix+1, true );
+	    SATContext negctx = (SATContext) ctx.clone();
+	    SATContext posctx = (SATContext) ctx.clone();
+	    solve( level+1, p, negctx, varix+1, false );
+	    solve( level+1, p, posctx, varix+1, true );
 	    sync();
 	}
-	assignments[var] = -1;
     }
 
     /**
@@ -224,9 +235,8 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	else {
 	    // It's too expensive to do agressive solving, try something
 	    // a bit more subtle.
-	    Context ctx = new Context();
+	    SATContext ctx = new SATContext( p.getClauseCount() );
 
-	    ctx.p = p;
 	    ctx.varlist = p.buildOrderedVarList();
 	    ctx.terms = p.buildTermCounts();
 
@@ -239,22 +249,25 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 		return;
 	    }
 
-	    int assignments[] = p.buildInitialAssignments();
+	    ctx.assignments = p.buildInitialAssignments();
 
-	    // We have variable 'var' to branch on.
 	    if( leafVariables>=ctx.varlist.length ){
-		leafSolve( level+1, ctx.p, ctx.varlist, assignments, 0, false );
-		leafSolve( level+1, ctx.p, ctx.varlist, assignments, 0, true );
+		leafSolve( level+1, p, ctx.varlist, ctx.assignments, 0, false );
+		leafSolve( level+1, p, ctx.varlist, ctx.assignments, 0, true );
 	    }
 	    else {
-		solve( level+1, ctx, (int[])assignments.clone(), 0, false );
-		solve( level+1, ctx, (int[])assignments.clone(), 0, true );
+		SATContext negctx = (SATContext) ctx.clone();
+		solve( level+1, p, negctx, 0, false );
+		solve( level+1, p, ctx, 0, true );
 		sync();
 	    }
 	}
     }
 
-    /** Given a list of symbolic clauses, produce a list of solutions. */
+    /**
+     * Given a SAT problem, returns a solution, or <code>null</code> if
+     * there is no solution.
+     */
     static SATSolution solveSystem( final SATProblem p )
     {
 	SATSolution res = null;

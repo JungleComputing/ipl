@@ -256,6 +256,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	    if( neg[ix] == var ){
 		int nneg[] = Helpers.cloneIntArray( neg, neg.length-1 );
 		if( ix<nneg.length ){
+		    // Fill the hole with the last element.
 		    nneg[ix] = neg[neg.length-1];
 		}
 		neg = nneg;
@@ -282,6 +283,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	    if( pos[ix] == var ){
 		int npos[] = Helpers.cloneIntArray( pos, pos.length-1 );
 		if( ix<npos.length ){
+		    // Fill the hole with the last element.
 		    npos[ix] = pos[pos.length-1];
 		}
 		pos = npos;

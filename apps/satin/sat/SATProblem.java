@@ -74,14 +74,25 @@ public class SATProblem implements Cloneable, java.io.Serializable {
      */
     public Object clone()
     {
-	Clause cl[] = new Clause[clauseCount];
-	SATVar vl[] = new SATVar[vars];
+	Clause cl[] = null;
+	SATVar vl[] = null;
 
-	for( int i=0; i<clauseCount; i++ ){
-	    cl[i] = (Clause) clauses[i].clone();
+	if( clauses != null ){
+	    cl = new Clause[clauseCount];
+	    for( int i=0; i<clauseCount; i++ ){
+		if( clauses[i] == null ){
+		    cl[i] = null;
+		}
+		else {
+		    cl[i] = (Clause) clauses[i].clone();
+		}
+	    }
 	}
-	for( int i=0; i<vars; i++ ){
-	    vl[i] = (SATVar) variables[i].clone();
+	if( variables != null ){
+	    vl = new SATVar[vars];
+	    for( int i=0; i<vars; i++ ){
+		vl[i] = (SATVar) variables[i].clone();
+	    }
 	}
         return new SATProblem( 
 	    vars,
@@ -240,6 +251,9 @@ public class SATProblem implements Cloneable, java.io.Serializable {
      */
     private void registerClauseVariables( Clause cl, int clauseno )
     {
+	if( cl == null ){
+	    return;
+	}
         int arr[] = cl.pos;
 
 	for( int ix=0; ix<arr.length; ix++ ){
@@ -355,6 +369,37 @@ public class SATProblem implements Cloneable, java.io.Serializable {
     public boolean isSatisfied() { return clauseCount == 0; }
 
     /**
+     * Propagates the fact that the specified variable is true to the
+     * specified vector of clauses.
+     * @param cl the vector of clauses that contain the variable
+     * @param var the variable to propagate
+     */
+    private boolean propagatePosAssignment( IntVector cl, int var )
+    {
+	int l[] = cl.toArray();
+	boolean changed = false;
+
+        for( int ix=0; ix<l.length; ix++ ){
+	    int cno = l[ix];
+	    Clause c = clauses[cno];
+
+	    if( c == null ){
+	        continue;
+	    }
+	    boolean sat = c.propagatePosAssignment( var );
+	    if( sat ){
+	        // This clause is satisfied by the assignment. Remove it.
+		clauses[ix] = null;
+		changed = true;
+		if( trace_simplification ){
+		    System.err.println( "Clause " + c + " is satisfied by var[" + var + "]=true" ); 
+		}
+	    }
+	}
+	return false;
+    }
+
+    /**
      * Given a variable that is know to be true, propagates this
      * assignment.
      * @param var The variable that is known to be true.
@@ -376,13 +421,30 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	knownVars++;
 	SATVar v = variables[var];
 	v.setAssignment( 1 );
-        for( int ix=0; ix<clauses.length; ix++ ){
-	    Clause c = clauses[ix];
+	changed |= propagatePosAssignment( v.getPosClauses(), var );
+	changed |= propagatePosAssignment( v.getNegClauses(), var );
+	return changed;
+    }
+
+    /**
+     * Propagates the fact that the specified variable is true to the
+     * specified vector of clauses.
+     * @param cl the vector of clauses that contain the variable
+     * @param var the variable to propagate
+     */
+    private boolean propagateNegAssignment( IntVector cl, int var )
+    {
+	int sz = cl.size();
+	boolean changed = false;
+
+        for( int ix=0; ix<sz; ix++ ){
+	    int cno = cl.get( ix );
+	    Clause c = clauses[cno];
 
 	    if( c == null ){
 	        continue;
 	    }
-	    boolean sat = c.propagatePosAssignment( var );
+	    boolean sat = c.propagateNegAssignment( var );
 	    if( sat ){
 	        // This clause is satisfied by the assignment. Remove it.
 		clauses[ix] = null;
@@ -420,22 +482,8 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	knownVars++;
 	SATVar v = variables[var];
 	v.setAssignment( 0 );
-        for( int ix=0; ix<clauses.length; ix++ ){
-	    Clause c = clauses[ix];
-
-	    if( c == null ){
-	        continue;
-	    }
-	    boolean sat = c.propagateNegAssignment( var );
-	    if( sat ){
-	        // This clause is satisfied by the assignment. Remove it.
-		clauses[ix] = null;
-		changed = true;
-		if( trace_simplification | trace_propagation ){
-		    System.err.println( "Clause " + c + " is satisfied by var[" + var + "]=false" ); 
-		}
-	    }
-	}
+	changed |= propagateNegAssignment( v.getPosClauses(), var );
+	changed |= propagateNegAssignment( v.getNegClauses(), var );
 	return changed;
     }
 
@@ -453,6 +501,19 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	}
     }
 
+    /** Builds the variable use administration. */
+    private void buildAdministration()
+    {
+	for( int ix=0; ix<variables.length; ix++ ){
+	    SATVar v = variables[ix];
+
+	    v.clearClauseRegister();
+	}
+	for( int i=0; i<clauseCount; i++ ){
+	    registerClauseVariables( clauses[i], i );
+	}
+    }
+
     /** Optimizes the problem for solving. */
     public void optimize()
     {
@@ -461,17 +522,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	do {
 	    changed = false;
 
-	    // For the moment, sort the clauses into shortest-first order.
-	    compactClauses();
-	    java.util.Arrays.sort( clauses, 0, clauseCount );
-	    for( int ix=0; ix<variables.length; ix++ ){
-		SATVar v = variables[ix];
-
-		v.clearClauseRegister();
-	    }
-	    for( int i=0; i<clauseCount; i++ ){
-		registerClauseVariables( clauses[i], i );
-	    }
+	    buildAdministration();
 	    for( int ix=0; ix<variables.length; ix++ ){
 		SATVar v = variables[ix];
 
@@ -496,7 +547,6 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 		    }
 		    changed |= propagateNegAssignment( ix );
 		}
-		// TODO: a variable may occur never at all.
 	    }
 	    for( int i=0; i<clauseCount; i++ ){
 	        Clause cl = clauses[i];
@@ -510,7 +560,9 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 		    if( trace_simplification ){
 			System.err.println( "Propagating pos. unit clause " + cl ); 
 		    }
-		    changed |= propagatePosAssignment( var );
+		    propagatePosAssignment( var );
+		    clauses[i] = null;
+		    changed = true;
 		    continue;
 		}
 		var = cl.getNegUnitVar();
@@ -519,7 +571,9 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 		    if( trace_simplification ){
 			System.err.println( "Propagating neg. unit clause " + cl ); 
 		    }
-		    changed |= propagateNegAssignment( var );
+		    propagateNegAssignment( var );
+		    clauses[i] = null;
+		    changed = true;
 		    continue;
 		}
 		for( int j=i+1; j<clauseCount; j++ ){
@@ -553,6 +607,14 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 		}
 	    }
 	} while( changed );
+
+	compactClauses();
+
+	// For the moment, sort the clauses into shortest-first order.
+	java.util.Arrays.sort( clauses, 0, clauseCount );
+
+	buildAdministration();
+
     }
 
     /**

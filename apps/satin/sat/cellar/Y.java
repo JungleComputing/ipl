@@ -2,6 +2,8 @@
 //
 // Minimal Satin program.
 
+package cellar;
+
 
 // Result exception.
 class YX extends Exception {
