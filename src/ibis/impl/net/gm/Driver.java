@@ -63,7 +63,7 @@ public final class Driver extends NetDriver {
 	 */
 	public NetInput newInput(NetPortType pt, String context)
 		throws NetIbisException {
-
+                //System.err.println("new gm input");
 		return new GmInput(pt, this, context);
 	}
 
@@ -76,6 +76,7 @@ public final class Driver extends NetDriver {
 	 */
 	public NetOutput newOutput(NetPortType pt, String context)
 		throws NetIbisException {
+                //System.err.println("new gm output");
 		return new GmOutput(pt, this, context);
 	}
 
