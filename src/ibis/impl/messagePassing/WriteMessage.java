@@ -53,10 +53,6 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
     public void reset() throws IOException {
-	send(true, true);
-	long after = out.getCount();
-	sPort.count += after - before;
-	before = after;
     }
 
 

@@ -66,10 +66,7 @@ final public class IbisWriteMessage extends WriteMessage {
     }
 
     public void reset() throws IOException {
-	reset(true, false);
-	long after = out.getCount();
-	sPort.count += after - before;
-	before = after;
+	obj_out.reset();
     }
 
     public void sync(int ticket) throws IOException {

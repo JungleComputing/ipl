@@ -47,22 +47,7 @@ final class SerializeWriteMessage extends WriteMessage {
     }
 
     public void reset() throws IOException {
-	if (DEBUG) {
-	    System.err.println("%%%%%%%%%%%%%%%% Reset SerializeWriteMessage");
-	}
-	obj_out.flush();
 	obj_out.reset();
-	Ibis.myIbis.lock();
-	try {
-	    out.send(true);
-	    out.reset(false);
-	    sPort.registerSend();
-	} finally {
-	    Ibis.myIbis.unlock();
-	}
-	long after = out.getCount();
-	sPort.count += after - before;
-	before = after;
     }
 
     public long finish() throws IOException {

@@ -48,13 +48,8 @@ public interface WriteMessage {
     public void sync(int ticket) throws IOException;
 
     /**
-     * If needed sends, and then blocks until the entire message has been
-     * sent and then clears data within the message.
-     * After {@link #finish} or {@link #reset}, all data that was written
-     * may be touched again.
-     * <code>reset</code> can be seen as a shorthand for
-     * (possibly <code>send();</code>)
-     * <code>finish(); sendPort.newMessage();</code>.
+     * Resets the state of any objects already written to the stream.
+     * It is reset to be the same as for a new WriteMessage.
      *
      * @exception java.io.IOException	an error occurred 
      */

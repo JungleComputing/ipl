@@ -76,16 +76,6 @@ final class TcpWriteMessage implements WriteMessage {
 		} catch (SplitterException e) {
 			forwardLosses(e);
 		}
-		try {
-			out.flush();
-		} catch (SplitterException e) {
-			forwardLosses(e);
-		}
-		if (Config.STATS) {
-			long after = sport.dummy.getCount();
-			sport.count += after - before;
-			before = after;
-		}
 	}
 
 	public void sync(int ticket) throws IOException {

@@ -42,7 +42,11 @@ final class NioWriteMessage implements WriteMessage, Config {
     }
 
     public void reset() throws IOException {
-	throw new IOException("reset() not implemented in NioIbis");
+	try {
+	    out.reset();
+	} catch (NioSplitterException e) {
+	    port.lostConnections(e);
+	}
     }
 
     public long finish() throws IOException {
