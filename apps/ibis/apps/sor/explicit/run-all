@@ -1,0 +1,34 @@
+#!/bin/bash
+
+reservation="705778"
+reserve="-reserve $reservation"
+nodes="2 4 8 16 32"
+options="1024 1190"
+
+preserve -long-list | grep $reservation
+
+sers="data ibis sun"
+ibises="tcp net.bytes.gen.tcp_blk panda net.gm"
+
+if false ; then
+	for ibis in $ibises ; do
+		node=1
+		    for ser in $sers ; do
+			echo "ser=$ser node=$node ibis=$ibis"
+			prun -v -1 -no-panda $reserve /usr/local/bin/kill_finished $node < /dev/null > /dev/null 2>&1
+			prun -t 4:0 -v -1 -no-panda $reserve ~/ibis/bin/run-das $node -Dibis.name=$ibis -Dibis.serialization=$ser Main $options < /dev/null | grep took 2>&1
+		    done
+	done
+fi
+
+for (( i = 0; i < 10; i++ )) ; do
+    for ibis in $ibises ; do
+	for node in $nodes ; do
+	    for ser in $sers ; do
+		echo "ser=$ser node=$node ibis=$ibis"
+		prun -v -1 -no-panda $reserve /usr/local/bin/kill_finished $node < /dev/null > /dev/null 2>&1
+		prun -t 4:0 -v -1 -no-panda $reserve ~/ibis/bin/run-das $node -Dibis.name=$ibis -Dibis.serialization=$ser Main $options < /dev/null | grep took 2>&1
+	    done
+	done
+    done
+done
