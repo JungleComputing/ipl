@@ -5,45 +5,33 @@ import java.io.StreamTokenizer;
 import java.io.FileReader;
 import java.io.IOException;
 
-import ibis.classfile.*;
+import org.apache.bcel.*;
+import org.apache.bcel.classfile.*;
+import org.apache.bcel.generic.*;
 
 public class CheckNativeMethods {
 
-    private static String stripJunk(String clazz) {
-	String c = new String(clazz);
-
-	// Convert '/' to '.'
-	// Strip trailing '.class'
-
-	return c;
-    }
-
-
-    private static void checkNativeMethods(String clazz)
-	    throws IOException {
+    private static void checkNativeMethods(JavaClass clazz) {
 
 	// System.err.println("Inspect Class " + clazz);
 
-	clazz = stripJunk(clazz);
-	ClassFile c = ClassFile.read(clazz, false, false, false);
+	Method[] methods = clazz.getMethods();
 
-	int ACC_NATIVE = ibis.classfile.ClassFileConstants.ACC_NATIVE;
-	for (int i = 0; i < c.methods.length; i++) {
-	    int flags = c.methods[i].accessFlags();
-	    if ((flags & ACC_NATIVE) != 0) {
-		System.out.println(clazz);
+	for (int i = 0; i < methods.length; i++) {
+	    if (methods[i].isNative()) {
+		System.out.println(clazz.getClassName());
 		return;
 	    }
 	}
     }
 
 
-    private static String[] increase_one(String[] old) {
-	String[] s;
+    private static JavaClass[] increase_one(JavaClass[] old) {
+	JavaClass[] s;
 	if (old == null) {
-	    s = new String[1];
+	    s = new JavaClass[1];
 	} else {
-	    s = new String[old.length + 1];
+	    s = new JavaClass[old.length + 1];
 	    for (int i = 0; i < old.length; i++) {
 		s[i] = old[i];
 	    }
@@ -51,22 +39,10 @@ public class CheckNativeMethods {
 	return s;
     }
 
-
-    private static void checkNativeMethodsFromFile(String f)
-	    throws IOException {
-	BufferedReader in = new BufferedReader(new FileReader(f));
-	StreamTokenizer tok = new StreamTokenizer(in);
-
-	// for all classes in file {
-	    // checkNativeMethods(clazz);
-	// }
-    }
-
-
     public static void main(String[] args) {
 
 	String file = null;
-	String[] clazz = null;
+	JavaClass[] clazz = null;
 	boolean verbose = false;
 
 	if (false) {
@@ -82,25 +58,34 @@ public class CheckNativeMethods {
 	    } else if (args[i].equals("-v")) {
 		verbose = true;
 	    } else if (args[i].equals("-f")) {
+		String filename = args[++i];
+		String filename2 = new String(filename);
+
 		try {
-		    checkNativeMethodsFromFile(args[++i]);
-		} catch (IOException e) {
+		    ClassParser p = new ClassParser(filename2.replace('.', java.io.File.separatorChar));
+		    clazz = increase_one(clazz);
+		    clazz[clazz.length - 1] = p.parse();
+		} catch (Exception e) {
 		    System.err.println("Error for arg " + args[i] + ": " + e);
 		}
 	    } else {
 		clazz = increase_one(clazz);
-		clazz[clazz.length - 1] = args[i];
+		int index = args[i].lastIndexOf('.');
+		if (args[i].substring(index+1).equals("class")) {
+		    clazz[clazz.length - 1] = Repository.lookupClass(args[i].substring(0, index));
+		}
+		else {
+		    clazz[clazz.length - 1] = Repository.lookupClass(args[i]);
+		}
 	    }
 	}
 
 	for (int i = 0; i < clazz.length; i++) {
-	    try {
+	    if (clazz[i] != null) {
 		if (verbose) {
-		    System.err.println("Check class " + clazz[i]);
+		    System.err.println("Check class " + clazz[i].getClassName());
 		}
 		checkNativeMethods(clazz[i]);
-	    } catch (IOException e) {
-		System.err.println("Error for class " + clazz[i] + ": " + e);
 	    }
 	}
     }
