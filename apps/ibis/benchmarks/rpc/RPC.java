@@ -2,9 +2,27 @@ import java.util.Properties;
 import java.util.Hashtable;
 import java.io.IOException;
 
-import ibis.ipl.*;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.Registry;
+import ibis.ipl.PortType;
+import ibis.ipl.SendPort;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.WriteMessage;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.Upcall;
+import ibis.ipl.StaticProperties;
+import ibis.ipl.DynamicProperties;
+import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.ResizeHandler;
+import ibis.ipl.IbisException;
+
 import ibis.util.TypedProperties;
 import ibis.util.Timer;
+import ibis.util.PoolInfo;
 
 
 class RszHandler implements ResizeHandler {
@@ -894,57 +912,40 @@ System.err.println("Allocated double buffer size " + size);
     private void parseIbisName() throws IOException, IbisException {
 	/* Parse commandline. */
 
-	Properties p = System.getProperties();
+	PoolInfo info = PoolInfo.createPoolInfo();
+	ncpus = info.size();
+	rank  = info.rank();
 
-	String total = p.getProperty("ibis.pool.total_hosts");
-	if (total != null) {
-	    ncpus = Integer.parseInt(total);
-	    if (ncpus == 0) {
-		System.err.println("Property " + total + " should be > 0");
-		System.exit(41);
-	    } else if (bcast) {
-		if (clients != -1 || servers != -1) {
-		    System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
-		    System.exit(33);
-		}
+	if (ncpus == 0) {
+	    System.err.println("PoolInfo.size() should be > 0");
+	    System.exit(41);
+	} else if (bcast) {
+	    if (clients != -1 || servers != -1) {
+		System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
+		System.exit(33);
+	    }
+	    clients = 1;
+	    servers = ncpus - 1;
+	} else if (bcast_all) {
+	    if (clients != -1 || servers != -1) {
+		System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
+		System.exit(33);
+	    }
+	    clients = 1;
+	    servers = ncpus;
+	}
+	if (clients == -1) {
+	    if (ncpus == 1) {
 		clients = 1;
-		servers = ncpus - 1;
-	    } else if (bcast_all) {
-		if (clients != -1 || servers != -1) {
-		    System.err.println("Cannot both specify -bcast[-all] and -cliets/-servers");
-		    System.exit(33);
-		}
-		clients = 1;
-		servers = ncpus;
+	    } else {
+		clients = ncpus - 1;
 	    }
-	    if (clients == -1) {
-		if (ncpus == 1) {
-		    clients = 1;
-		} else {
-		    clients = ncpus - 1;
-		}
-	    }
-	    if (servers == -1) {
-		servers = 1;
-	    }
-
-	} else {
-	    /* Try to think of a sensible default */
-	    if (clients == -1) {
-		clients = 1;
-	    }
-	    if (servers == -1) {
-		servers = 1;
-	    }
-	    ncpus = 2;
+	}
+	if (servers == -1) {
+	    servers = 1;
 	}
 
 	requireOneToMany = requireOneToMany || bcast || bcast_all || clients > 1 || servers > 1;
-	String my_cpu = p.getProperty("ibis.pool.host_number");
-	if (my_cpu != null) {
-	    rank = Integer.parseInt(my_cpu);
-	    System.err.println(rank + ": found my rank, " + rank);
-	}
     }
 
 
