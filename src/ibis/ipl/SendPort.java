@@ -47,8 +47,10 @@ public interface SendPort
      * This can be used, for instance, by an RMI implementation to
      * replace remote objects by stubs.
      * @param r the object replacer.
+     * @exception IOException may be thrown when the underlying stream
+     *   does not allow for replacers.
      */
-    public void setReplacer(Replacer r);
+    public void setReplacer(Replacer r) throws IOException;
 
     /**
      * Returns the {@link ibis.ipl.DynamicProperties DynamicProperties} of

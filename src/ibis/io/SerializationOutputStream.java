@@ -143,11 +143,17 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * 
      * @param replacer the replacer object to be associated with this
      *  output stream
+     *
+     * @exception <code>IOException</code> is thrown when enableReplaceObject
+     *  throws an exception.
      */
-    public void setReplacer(Replacer replacer) {
+    public void setReplacer(Replacer replacer) throws IOException {
 	try {
 	    enableReplaceObject(true);
 	} catch (Exception e) {
+	    // May throw a SecurityException.
+	    // Don't know how to deal with that.
+	    throw new IOException("enableReplaceObject threw exception: " + e);
 	}
 	this.replacer = replacer;
     }

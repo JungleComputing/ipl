@@ -183,7 +183,7 @@ final public class SerializeSendPort extends SendPort {
 	}
     }
 
-    public void setReplacer(Replacer r) {
+    public void setReplacer(Replacer r) throws IOException {
 	replacer = r;
 	if (obj_out != null) obj_out.setReplacer(replacer);
     }

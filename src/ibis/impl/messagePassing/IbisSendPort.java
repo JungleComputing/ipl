@@ -30,7 +30,7 @@ final public class IbisSendPort extends SendPort {
 	}
     }
 
-    public void setReplacer(Replacer r) {
+    public void setReplacer(Replacer r) throws IOException {
 	obj_out.setReplacer(r);
     }
 

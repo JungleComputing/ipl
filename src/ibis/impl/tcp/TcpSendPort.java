@@ -184,7 +184,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		}
 	}
 
-	public synchronized void setReplacer(Replacer r) {
+	public synchronized void setReplacer(Replacer r) throws IOException {
 		replacer = r;
 		if (out != null) out.setReplacer(r);
 	}

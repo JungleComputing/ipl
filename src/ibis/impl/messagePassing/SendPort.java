@@ -113,7 +113,7 @@ public class SendPort implements ibis.ipl.SendPort {
 	count = 0;
     }
 
-    public void setReplacer(Replacer r) {
+    public void setReplacer(Replacer r) throws IOException {
     }
 
     public SendPort(PortType type, String name)

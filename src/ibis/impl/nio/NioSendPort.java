@@ -198,7 +198,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 	accumulator.remove((NioReceivePortIdentifier) receiver);
     }
 
-    public synchronized void setReplacer(Replacer r) {
+    public synchronized void setReplacer(Replacer r) throws IOException {
 	replacer = r;
 	if (out != null) out.setReplacer(r);
     }
