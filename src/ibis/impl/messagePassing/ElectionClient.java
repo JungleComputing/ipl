@@ -5,6 +5,9 @@ import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
 
+/**
+ * messagePassing Ibis implementation of Ibis election: the client side
+ */
 class ElectionClient implements ElectionProtocol {
 
     private ibis.ipl.ReceivePortIdentifier server;

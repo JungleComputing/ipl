@@ -3,6 +3,9 @@ package ibis.impl.messagePassing;
 import ibis.util.ConditionVariable;
 
 
+/**
+ * Manage joining/leaving Ibises
+ */
 class IbisWorld implements Runnable {
 
     private boolean isOpen = false;

@@ -1,5 +1,8 @@
 package ibis.impl.messagePassing;
 
+/**
+ * messagePassing messages are fragmented into {@link ReadFragment}s.
+ */
 class ReadFragment {
 
     int		msgHandle;

@@ -1,5 +1,8 @@
 package ibis.impl.messagePassing;
 
+/**
+ * Interface to allow classes to poll during a wait.
+ */
 interface PollClient {
 
     PollClient next();

@@ -4,6 +4,9 @@ import ibis.io.IbisSerializationInputStream;
 
 import java.io.IOException;
 
+/**
+ * Receiver-side stub for an {@link IbisSendPort}
+ */
 final class IbisShadowSendPort extends ShadowSendPort {
 
     IbisSerializationInputStream obj_in;

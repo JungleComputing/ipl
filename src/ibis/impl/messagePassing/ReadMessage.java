@@ -2,6 +2,9 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
+/**
+ * messagePassing ReadMessage. Supports only Byte serialization
+ */
 public class ReadMessage implements ibis.ipl.ReadMessage {
 
     ShadowSendPort	shadowSendPort;

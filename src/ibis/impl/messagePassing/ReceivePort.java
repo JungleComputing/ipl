@@ -7,14 +7,19 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.util.Vector;
 
+/**
+ * messagePassing ReceivePort
+ */
 class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
-    /** A connection between a send port and a receive port within the
+    /**
+     * A connection between a send port and a receive port within the
      * same Ibis should not lead to polling for the reply, but to quick
      * reversion to some other thread */
     private static final boolean HOME_CONNECTION_PREEMPTS = false;
 
-    /** After serving a message, the receive thread may optimistically
+    /**
+     * After serving a message, the receive thread may optimistically
      * poll for a while. A new request might arrive in a short while,
      * and that saves an interrupt. Set this to 0 if you don't want
      * optimistic polling. */

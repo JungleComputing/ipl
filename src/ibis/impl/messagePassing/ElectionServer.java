@@ -7,6 +7,9 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.util.Hashtable;
 
+/**
+ * messagePassing Ibis implementation of Ibis election: the server side
+ */
 class ElectionServer
 	implements Runnable, ibis.ipl.Upcall {
 

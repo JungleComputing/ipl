@@ -6,6 +6,9 @@ import ibis.ipl.PortMismatchException;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 
+/**
+ * Receiver-side SendPort stub that performs Byte serialization
+ */
 class ShadowSendPort extends SendPort {
 
     ReadMessage cachedMessage = null;

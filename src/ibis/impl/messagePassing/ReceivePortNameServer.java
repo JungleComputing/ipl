@@ -5,6 +5,9 @@ import ibis.io.Conversion;
 import java.io.IOException;
 import java.util.Hashtable;
 
+/**
+ * messagePassing implementation of NameServer: the ReceivePort naming server
+ */
 final class ReceivePortNameServer implements
     ReceivePortNameServerProtocol {
 

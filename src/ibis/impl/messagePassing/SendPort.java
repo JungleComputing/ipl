@@ -11,6 +11,9 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 
+/**
+ * messagePassing implementation of SendPort. Does only Byte serialization.
+ */
 public class SendPort implements ibis.ipl.SendPort {
 
     protected final static boolean DEBUG = Ibis.DEBUG;

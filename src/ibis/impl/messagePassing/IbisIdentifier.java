@@ -6,6 +6,10 @@ import ibis.io.Conversion;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 
+/**
+ * messagePassing IbisIdentifier.
+ * Assumes closed world, so CPUs can be simply ranked.
+ */
 // Make this final, make inlining possible
 final class IbisIdentifier
 	extends ibis.ipl.IbisIdentifier

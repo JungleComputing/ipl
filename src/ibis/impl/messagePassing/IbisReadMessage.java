@@ -2,6 +2,9 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
+/**
+ * messagePassing implementation of ReadMessage that uses Ibis serialization
+ */
 final public class IbisReadMessage extends ReadMessage {
 
     private ibis.io.IbisSerializationInputStream obj_in;

@@ -5,6 +5,9 @@ import ibis.util.ConditionVariable;
 
 import java.io.IOException;
 
+/**
+ * messagePassing implementation of NameServer: the ReceivePort naming client
+ */
 final class ReceivePortNameServerClient
     implements ReceivePortNameServerProtocol {
 

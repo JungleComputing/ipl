@@ -6,6 +6,9 @@ import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
 
+/**
+ * messagePassing PortType
+ */
 public class PortType extends ibis.ipl.PortType {
 
     private StaticProperties p;

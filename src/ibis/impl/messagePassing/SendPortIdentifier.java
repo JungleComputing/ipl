@@ -4,6 +4,10 @@ import ibis.io.Conversion;
 
 import java.io.IOException;
 
+/**
+ * messagePassing SendPortIdentifier. Uses closed world properties, so Ibises
+ * and ports are just ranked.
+ */
 final class SendPortIdentifier
 	implements ibis.ipl.SendPortIdentifier, java.io.Serializable {
 

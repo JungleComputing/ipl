@@ -4,6 +4,9 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 
+/**
+ * Poll the native network. All kinds of polling heuristics are implemented.
+ */
 final public class Poll implements Runnable {
 
     final static int NON_POLLING = 1;

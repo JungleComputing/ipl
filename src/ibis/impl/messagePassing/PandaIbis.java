@@ -4,6 +4,9 @@ import ibis.ipl.IbisException;
 
 import java.io.IOException;
 
+/**
+ * Ibis implementation on top of native Panda layer
+ */
 public class PandaIbis extends Ibis {
 
     public PandaIbis() throws IbisException {

@@ -2,6 +2,9 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
+/**
+ * messagePassing ReadMessage that performs Sun serialization
+ */
 final class SerializeReadMessage extends ReadMessage {
 
     java.io.ObjectInput obj_in;

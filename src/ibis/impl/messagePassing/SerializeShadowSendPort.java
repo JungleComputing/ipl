@@ -5,6 +5,9 @@ import ibis.io.SunSerializationInputStream;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 
+/**
+ * Receiver-side stub for a SendPort that performs Sun serialization
+ */
 final class SerializeShadowSendPort extends ShadowSendPort {
 
     java.io.ObjectInput obj_in;
@@ -72,6 +75,38 @@ final class SerializeShadowSendPort extends ShadowSendPort {
     void disconnect() throws IOException {
 	connectState = UNCONNECTED;
 	obj_in = null;
+    }
+
+
+    /**
+     * Sun serialization expects a standard {@link java.io.InputStream}
+     * for its input, which {@link ByteInputStream} is not.
+     * We provide a converter class.
+     */
+    private static class InputStream extends java.io.InputStream {
+
+	ByteInputStream in;
+
+	InputStream(ByteInputStream in) {
+	    this.in = in;
+	}
+
+	public int read() throws IOException {
+	    return in.read();
+	}
+
+	public int read(byte[] b) throws IOException {
+	    return in.read(b);
+	}
+
+	public int read(byte[] b, int off, int len) throws IOException {
+	    return in.read(b, off, len);
+	}
+
+	public int available() throws IOException {
+	    return in.available();
+	}
+
     }
 
 

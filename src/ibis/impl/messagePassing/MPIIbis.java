@@ -4,6 +4,9 @@ import ibis.ipl.IbisException;
 
 import java.io.IOException;
 
+/**
+ * Ibis on top of native MPI layer
+ */
 public class MPIIbis extends Ibis {
 
     public MPIIbis() throws IbisException {

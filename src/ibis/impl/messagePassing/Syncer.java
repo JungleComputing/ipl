@@ -4,6 +4,10 @@ import ibis.util.ConditionVariable;
 
 import java.io.IOException;
 
+/**
+ * Abstract class to perform synchronization, where waiting threads may
+ * poll the network.
+ */
 public abstract class Syncer implements PollClient {
 
     private ConditionVariable cv = Ibis.myIbis.createCV();

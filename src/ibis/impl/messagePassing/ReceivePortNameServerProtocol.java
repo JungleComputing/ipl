@@ -2,6 +2,9 @@ package ibis.impl.messagePassing;
 
 import ibis.util.TypedProperties;
 
+/**
+ * messagePassing implementation of NameServer: the ReceivePort constants
+ */
 interface ReceivePortNameServerProtocol {
 
     static final byte

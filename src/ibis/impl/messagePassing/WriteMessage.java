@@ -2,6 +2,9 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
+/**
+ * messagePassing WriteMessage that performs Byte serialization
+ */
 class WriteMessage implements ibis.ipl.WriteMessage {
 
     protected SendPort sPort;

@@ -2,6 +2,9 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
+/**
+ * messagePassing WriteMessage that performs Sun serialization
+ */
 final class SerializeWriteMessage extends WriteMessage {
 
     private static final boolean DEBUG = Ibis.DEBUG;

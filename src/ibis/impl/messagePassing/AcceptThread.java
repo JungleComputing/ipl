@@ -2,6 +2,9 @@ package ibis.impl.messagePassing;
 
 import ibis.util.ConditionVariable;
 
+/**
+ * A thread to process accepts
+ */
 final class AcceptThread extends Thread {
 
     private ReceivePort port;

@@ -4,6 +4,9 @@ import ibis.ipl.IbisException;
 
 import java.io.IOException;
 
+/**
+ * messagePassing implementation of Registry
+ */
 class Registry implements ibis.ipl.Registry {
 
     private ReceivePortNameServer nameServer;

@@ -1,5 +1,8 @@
 package ibis.impl.messagePassing;
 
+/**
+ * Specialized hash where keys are ints (like {@link ibis.io.IbisHash}?).
+ */
 final class PortHash {
 
     private final static int	PORT_DATABASE_CHUNK = 32;

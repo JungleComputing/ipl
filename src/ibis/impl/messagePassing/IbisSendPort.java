@@ -5,6 +5,9 @@ import ibis.ipl.Replacer;
 
 import java.io.IOException;
 
+/**
+ * messagePassing implementation of SendPort that uses Ibis serialization
+ */
 final public class IbisSendPort extends SendPort {
 
 

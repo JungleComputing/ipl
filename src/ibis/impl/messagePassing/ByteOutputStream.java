@@ -7,6 +7,9 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 
 
+/**
+ * Stream to manage native code for ArrayOutputStreams
+ */
 final class ByteOutputStream
 	extends ibis.io.ArrayOutputStream {
 
@@ -20,7 +23,7 @@ final class ByteOutputStream
     private ConditionVariable fragCv = Ibis.myIbis.createCV();
 
     /**
-     * This field is read and <standout>written</standout> from native code
+     * This field is read and <strong>written</strong> from native code
      *
      * Count the number of outstandig fragments that live within the current
      * message.
@@ -52,13 +55,13 @@ final class ByteOutputStream
     private boolean makeCopy;
 
     /**
-     * This field is read and <standout>written</standout> from native code
+     * This field is read and <strong>written</strong> from native code
      */
     private long msgCount;
 
 
     /**
-     * This field is read and <standout>written</standout> from native code
+     * This field is read and <strong>written</strong> from native code
      *
      * It is a pointer to a native data structure that mirrors the java
      * stream; it builds up the data vector for the current message and

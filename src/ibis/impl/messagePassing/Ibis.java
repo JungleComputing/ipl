@@ -11,6 +11,11 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
 
+/**
+ * messagePassing Ibis.
+ * This Ibis interfaces between the Ibis ipl and native code that performs
+ * message passing. Two implementation examples are panda and MPI.
+ */
 public class Ibis extends ibis.ipl.Ibis {
 
     static final boolean DEBUG = TypedProperties.booleanProperty(MPProps.s_debug);

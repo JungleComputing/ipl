@@ -4,6 +4,10 @@ import ibis.io.Conversion;
 
 import java.io.IOException;
 
+/**
+ * MessagePassing ReceivePortIdentifier that exploits closed-world
+ * properties, so Ibises and ports are just ranked.
+ */
 public final class ReceivePortIdentifier
 	implements ibis.ipl.ReceivePortIdentifier,
 		   java.io.Serializable {

@@ -6,6 +6,9 @@ import ibis.util.ConditionVariable;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 
+/**
+ * messagePassing SendPort that performs Sun serialization
+ */
 final public class SerializeSendPort extends SendPort {
 
     private static final boolean DEBUG = SendPort.DEBUG;
@@ -30,6 +33,38 @@ final public class SerializeSendPort extends SendPort {
 	if (DEBUG) {
 	    System.err.println("/////////// Created a new SerializeSendPort " + this);
 	}
+    }
+
+
+    /**
+     * Sun serialization requies a standard {@link java.io.OutputStream}
+     * which {@link ByteOutputStream} is not.
+     * Provide a wrapper class.
+     */
+    private static class OutputStream extends java.io.OutputStream {
+
+	private ByteOutputStream out;
+
+	OutputStream(ByteOutputStream out) {
+	    this.out = out;
+	}
+
+	public void write(int b) throws IOException {
+	    out.write(b);
+	}
+
+	public void write(byte[] b) throws IOException {
+	    out.write(b);
+	}
+
+	public void write(byte[] b, int off, int len) throws IOException {
+	    out.write(b, off, len);
+	}
+
+	public void flush() throws IOException {
+	    out.flush();
+	}
+
     }
 
 

@@ -2,6 +2,9 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
+/**
+ * Stream to manage native code for ArrayInputStreams
+ */
 final class ByteInputStream
 	extends ibis.io.ArrayInputStream
 	implements ibis.io.IbisStreamFlags {

@@ -2,6 +2,9 @@ package ibis.impl.messagePassing;
 
 import java.io.IOException;
 
+/**
+ * messagePassing {@link ibis.ipl.WriteMessage} that performs Ibis serialization
+ */
 final public class IbisWriteMessage extends WriteMessage {
 
     private ibis.io.IbisSerializationOutputStream obj_out;
