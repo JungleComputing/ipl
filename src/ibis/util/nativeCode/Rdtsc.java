@@ -52,18 +52,30 @@ public final class Rdtsc extends ibis.ipl.Timer {
 		return (long) (curr / (MHz/1000.0));
 	}
 
+	/**
+	 * Timer reading in us
+	 */
 	public double totalTimeVal() {
 		return (double) time / MHz;
 	}
 
+	/**
+	 * Timer reading in us
+	 */
 	public String totalTime() {
 		return format(time / MHz);
 	}
 
+	/**
+	 * Timer reading in us
+	 */
 	public double averageTimeVal() {
 		return (double) time / (count * MHz);
 	}
 
+	/**
+	 * Timer reading in us
+	 */
 	public String averageTime() {
 		return format(time / (count * MHz));
 	}
