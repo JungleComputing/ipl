@@ -39,8 +39,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private ArrayList lostConnections = new ArrayList();
 	private ArrayList newConnections = new ArrayList();
 	private boolean connectionAdministration = false;
+private boolean shouldLeave;
+
 
 	long count = 0;
+
 
 	TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall, 
 		       boolean connectionAdministration, ReceivePortConnectUpcall connUpcall) throws IOException {
@@ -189,6 +192,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
+
+
 	/**
 	 * {@inheritDoc}
 	 **/
@@ -203,8 +208,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		count = 0;
 	}
 
-	private synchronized TcpReadMessage getMessage(long timeout) throws IOException {
-		while((m == null || delivered)/* && ! shouldLeave*/) {
+	private synchronized TcpReadMessage getMessage(long timeout) throws ReceiveTimedOutException {
+		while((m == null || delivered)  && !shouldLeave) {
 			try {
 				if(timeout > 0) {
 					wait(timeout);
@@ -221,6 +226,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			throw new IOException("No connections!");
 		}
 */
+//		if (shouldLeave) {
+//		System.out.println("shouldLeave true!!");
+//		}
 		return m;
 	}
 
@@ -353,11 +361,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			if(!found) {
 				throw new IbisError("TcpReceivePort: Connection handler not found in leave");
 			}
-
 			// Notify threads that might be blocked in a free
 			notifyAll();
-		}
 	}
+		}
 
 	private synchronized ConnectionHandler removeConnection(int index) {
 		ConnectionHandler res = connections[index];
@@ -377,7 +384,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			throw new IbisError("Doing free while a msg is alive, port = " + name + " fin = " + m.isFinished);
 		}
 
-		// shouldLeave = true;
+		 shouldLeave = true;
 		notifyAll();
 
 		while (connectionsIndex > 0) {
@@ -465,7 +472,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 				}
 			}
 		}
-		// shouldLeave = true;
+		 shouldLeave = true;
 		notifyAll();
 	}
 
