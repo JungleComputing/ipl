@@ -17,10 +17,19 @@ class ReceivePort
      * poll for a while. A new request might arrive in a short while,
      * and that saves an interrupt. Set this to 0 if you don't want
      * optimistic polling. */
-    // private static final int polls_before_yield = Poll.polls_before_yield / 2;
-    private static final int polls_before_yield = 500;
+    private static final int polls_before_yield;
+    // private static final int DEFAULT_OPTIMISTIC_POLLS = Poll.DEFAULT_YIELD_POLLS / 2;
+    private static final int DEFAULT_OPTIMISTIC_POLLS = 500;
 
     static {
+	int  polls = DEFAULT_OPTIMISTIC_POLLS;
+
+	String envPoll = System.getProperty("ibis.mp.polls.optimistic");
+	if (envPoll != null) {
+	    polls = Integer.parseInt(envPoll);
+	}
+	polls_before_yield = polls;
+
 	if (Ibis.myIbis.myCpu == 0) {
 	    System.err.println("ReceivePort: Do " + polls_before_yield + " optimistic polls after serving an asynchronous upcall");
 	}

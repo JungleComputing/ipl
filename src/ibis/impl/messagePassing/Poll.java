@@ -23,12 +23,10 @@ final public class Poll implements Runnable {
     private static final boolean NONPREEMPTIVE_MAY_POLL = false;
     private static final boolean PREEMPTIVE_MAY_POLL = true;
 
-    private final static int polls_before_yield = 500;	// 1; // 2000;
+    private static final int DEFAULT_YIELD_POLLS = 500;	// 1; // 2000;
+    private final static int polls_before_yield;
 
-    // Sun doesn't set java.compiler, so getProperty returns null --Rob
-    static final boolean MANTA_COMPILE = ( 
-	java.lang.System.getProperty("java.compiler") != null &&
-	java.lang.System.getProperty("java.compiler").equals("manta"));
+    static final boolean MANTA_COMPILE;
 
     private Thread	poller;
     private PollClient	waiting_threads;
@@ -39,6 +37,18 @@ final public class Poll implements Runnable {
     private boolean	comm_lives = true;
 
     static {
+	int  polls = DEFAULT_YIELD_POLLS;
+
+	String envPoll = System.getProperty("ibis.mp.polls.yield");
+	if (envPoll != null) {
+	    polls = Integer.parseInt(envPoll);
+	}
+	polls_before_yield = polls;
+
+	// Sun doesn't set java.compiler, so getProperty returns null --Rob
+	MANTA_COMPILE = System.getProperty("java.compiler") != null &&
+			System.getProperty("java.compiler").equals("manta");
+
 	if (Ibis.myIbis.myCpu == 0) {
 	    if (DEBUG) {
 		System.err.println("Turn on Poll.DEBUG");

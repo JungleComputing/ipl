@@ -28,14 +28,6 @@ final class ByteOutputStream
 
     private boolean syncMode;
 
-    /**
-     * This field is read and <standout>written</standout> from native code
-     *
-     * It is a pointer to a native data structure that builds up the data
-     * vector for the current message.
-     */
-    private int nativeIOVec;
-
     private int msgSeqno = 0;
 
     private boolean firstFrag = true;	// Enforce firstFrag setting in native
@@ -51,6 +43,16 @@ final class ByteOutputStream
     private long msgCount;
 
 
+    /**
+     * This field is read and <standout>written</standout> from native code
+     *
+     * It is a pointer to a native data structure that mirrors the java
+     * stream; it builds up the data vector for the current message and
+     * keeps a GlobalRef to this.
+     */
+    private int		nativeByteOS;
+
+
     ByteOutputStream(ibis.ipl.SendPort p, boolean syncMode, boolean makeCopy) {
 	this.syncMode = syncMode;
 	this.makeCopy = makeCopy;
@@ -58,7 +60,7 @@ final class ByteOutputStream
 	    System.err.println("@@@@@@@@@@@@@@@@@@@@@ a ByteOutputStream makeCopy = " + makeCopy);
 	}
 	sport = (SendPort)p;
-	init();
+	nativeByteOS = init();
     }
 
 
@@ -71,50 +73,38 @@ final class ByteOutputStream
 
 	boolean send_acked;
 
-	if (Ibis.DEBUG && this.nativeIOVec == 0) {
-	    System.err.println("%%%%%%:::::::%%%%%%% Yeck -- message handle is NULL in " + this);
-	}
-
 	outstandingFrags++;
 
 	if (sport.group != SendPort.NO_BCAST_GROUP) {
-	    send_acked = ! msg_bcast(sport.group,
-				     msgSeqno,
-				     nativeIOVec,
-				     firstFrag,
-				     lastFrag);
+	    send_acked = msg_bcast(sport.group,
+				   msgSeqno,
+				   firstFrag,
+				   lastFrag);
 	} else {
 	    send_acked = true;
 	    for (int i = 0; i < n; i++) {
 		ReceivePortIdentifier r = sport.splitter[i];
 		/* The call for the last connection knows whether the
 		 * send has been acked. Believe the last call. */
-		send_acked = ! msg_send(r.cpu,
-					r.port,
-					sport.ident.port,
-					msgSeqno,
-					nativeIOVec,
-					i,
-					n,
-					firstFrag,
-					lastFrag);
+		send_acked = msg_send(r.cpu,
+				      r.port,
+				      sport.ident.port,
+				      msgSeqno,
+				      i,
+				      n,
+				      firstFrag,
+				      lastFrag);
 	    }
 	}
 
-	if (lastFrag) {
-	    firstFrag = true;	// Set state for next time round
-	} else {
-	    firstFrag = false;
-	}
+	firstFrag = lastFrag;	// Set state for next time round
 
 	if (send_acked) {
 	    outstandingFrags--;
 	} else {
-	    nativeIOVec = 0;
-	    /* Decrement outstandingFrags and reset the nativeIOVec from
-	     * the sent upcall */
+	    /* Decrement outstandingFrags from the sent upcall */
 	    if (Ibis.DEBUG) {
-		System.err.println(":::::::::::::::::::: Yeck -- message 0x" + Integer.toHexString(nativeIOVec) + " is sent unacked");
+		System.err.println(":::::::::::::::::::: Yeck -- message " + this + " is sent unacked");
 	    }
 	}
     }
@@ -243,9 +233,6 @@ final class ByteOutputStream
 
 
     private void flush(boolean lastFrag) throws IOException {
-	if (Ibis.DEBUG) {
-	    System.err.println("+++++++++++ Now flush/Lazy this ByteOutputStream " + this + "; nativeIOVec 0x" + Integer.toHexString(nativeIOVec));
-	}
 // manta.runtime.RuntimeSystem.DebugMe(this, null);
 	Ibis.myIbis.lock();
 	send(lastFrag);
@@ -258,20 +245,18 @@ final class ByteOutputStream
     }
 
 
-    private native void init();
+    private native int init();
 
     private native boolean msg_send(int cpu,
 				    int port,
 				    int my_port,
 				    int msgSeqno,
-				    int nativeIOVec,
 				    int splitCount,
 				    int splitTotal,
 				    boolean forceFirstFrag,
 				    boolean lastFrag) throws IOException;
     private native boolean msg_bcast(int group,
 				     int msgSeqno,
-				     int nativeIOVec,
 				     boolean forceFirstFrag,
 				     boolean lastFrag) throws IOException;
 
