@@ -12,6 +12,7 @@ public class Client {
     private boolean one_way = false;
     private int send_type = Datatype.BYTE;
     private int warm_up = 1000;
+    private boolean client_worker = false;
 
     // native void fs_stats_reset();
     // native void javaSocketResetStats();
@@ -48,6 +49,9 @@ public class Client {
 		warm_up = Integer.parseInt(args[++i]);
 	    } else if (args[i].equals("-registry")) {
 		this.server_name = args[++i];
+	    } else if (args[i].equals("-client-worker")) {
+		client_worker = true;
+	    } else if (args[i].equals("-server-worker")) {
 	    } else if (option == 0) {
 		N = Integer.parseInt(args[i]);
 		option++;
@@ -95,7 +99,7 @@ public class Client {
 	i_Server s = null;
 	Remote r = null;
 
-	System.out.println("Try to locate remote object server, server_name = " + server_name);
+	// System.out.println("Try to locate remote object server, server_name = " + server_name);
 
 	for (int i = 0; i < 1000; i++) {
 	    try {
@@ -156,6 +160,13 @@ public class Client {
 		}
 	    }
 
+	    Worker worker = null;
+
+	    if (client_worker) {
+		worker = new Worker("Client worker");
+		worker.start();
+	    }
+
 	    if (warm_up > 0) {
 		do_rmis(s, request, warm_up);
 
@@ -165,6 +176,9 @@ public class Client {
 		// javaSocketResetStats();
 		// fs_stats_reset();
 		ibis.ipl.impl.messagePassing.Ibis.resetStats();
+		if (client_worker) {
+		    worker.reset();
+		}
 	    }
 
 	    t_start = System.currentTimeMillis();
@@ -231,6 +245,10 @@ public class Client {
 	    }
 
 	    s.quit();
+
+	    if (client_worker) {
+		worker.quit();
+	    }
 
 	    System.exit(0);
 

@@ -8,6 +8,8 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 
     private Registry local = null;
     private boolean finished = false;
+    private boolean server_worker = false;
+    private Worker worker = null;
 
 
     public Server(String[] args, Registry local) throws ibis.rmi.RemoteException {
@@ -32,6 +34,9 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 		i++;
 	    } else if (args[i].equals("-registry")) {
 		i++;
+	    } else if (args[i].equals("-client-worker")) {
+	    } else if (args[i].equals("-server-worker")) {
+		server_worker = true;
 	    } else if (option == 0) {
 		option++;
 	    } else if (option == 1) {
@@ -84,6 +89,9 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 	System.gc();
 	// javaSocketResetStats();
 	ibis.ipl.impl.messagePassing.Ibis.resetStats();
+	if (server_worker) {
+	    worker.reset();
+	}
     }
 
 
@@ -109,19 +117,23 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 
     public void run() {
 
-if (false)
-	try {
-	    local = LocateRegistry.getRegistry();
-	} catch (RemoteException e) {
-	    fatal("Failed to create registry : " + e);
-	}
-
 	try {
 	    System.out.println("RMIenv done");
 	    local.rebind("server", this);
-	    System.out.println("Server ready.");
+
+	    // System.out.println("Server ready.");
+
+	    if (server_worker) {
+		worker = new Worker("Server worker");
+		worker.start();
+	    }
 
 	    waitForQuit();
+
+	    if (server_worker) {
+		worker.quit();
+	    }
+
 	    Thread.sleep(500);
 	    System.out.println("Server is gonna quit");
 

@@ -13,7 +13,7 @@ SRC		+= Datatype.java
 SRC		+= Int32.java
 SRC		+= DITree.java
 SRC		+= Cyclic.java
-SRC		+= DasInfo.java
+SRC		+= Worker.java
 
 MAIN		= RMI_Bench.java
 

@@ -1,3 +1,5 @@
+import ibis.util.PoolInfo;
+
 import ibis.rmi.*;
 
 final class Main { 
@@ -69,14 +71,14 @@ final class Main {
 
 		try { 
 			boolean array = false, tree = false, list = false, dlist = false, oarray = false, one_way = true;
-			DasInfo info = new DasInfo();		
+			PoolInfo info = new PoolInfo();		
 			int i = 0;
 			int len = 1023;
 			int arraysize = 16*1024;
 			int count = 10000;
 			int retries = 10;
 			
-			String server = info.getHost(1);
+			String server = info.hostName(1);
 			
 			while (i < args.length) { 
 				if (false) { 
@@ -119,7 +121,7 @@ final class Main {
 				} 
 			} 
 
-			if (info.hostNumber() == 0) {
+			if (info.rank() == 0) {
 				myServer s = null;
 				Object data;
 				long time;

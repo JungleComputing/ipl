@@ -1,3 +1,5 @@
+import ibis.util.PoolInfo;
+
 import ibis.rmi.registry.*;
 import ibis.rmi.*;
 import java.net.*;
@@ -13,15 +15,15 @@ class RMI_Bench {
 
 
     public static void main(String[] argv) {
-	DasInfo dasInfo = new DasInfo();
-	int	my_cpu = dasInfo.hostNumber();
-	int	ncpus  = dasInfo.totalHosts();
-	String	masterName = dasInfo.getHost(REGISTRY_HOST);
+	PoolInfo dasInfo = new PoolInfo();
+	int	my_cpu = dasInfo.rank();
+	int	ncpus  = dasInfo.size();
+	String	masterName = dasInfo.hostName(REGISTRY_HOST);
 	Registry local = null;
 
 	// System.runFinalizersOnExit(true); 
 
-	System.out.println(my_cpu + ": hi, I'm alive");
+	// System.out.println(my_cpu + ": hi, I'm alive");
 
 	try {
 	    local = new RMI_init().getRegistry(masterName);
@@ -30,7 +32,7 @@ class RMI_Bench {
 	    System.exit(33);
 	}
 
-	System.out.println(my_cpu + ": connected to registry");
+	// System.out.println(my_cpu + ": connected to registry");
 
 	if (ncpus == 1 || my_cpu == SERVER_HOST) {
 	    try {
