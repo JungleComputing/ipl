@@ -438,7 +438,12 @@ to the command line.
 	<concat destfile="${ibis}/bin/run_ibis">
 	    <filelist dir="${ibis}" files="configuration.sh,scripts/run_ibis" />
 	</concat>
-	<replace file="${ibis}/bin/run_ibis" token="bin/java" value="Commands/java"/>
+	<if>
+	    <os family="mac"/>
+	    <then>
+		<replace file="${ibis}/bin/run_ibis" token="bin/java" value="Commands/java"/>
+	    </then>
+	</if>
 	<chmod file="${ibis}/bin/run_ibis" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/extract_jars">
@@ -481,7 +486,12 @@ to the command line.
 	</concat>
 	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_PORT@" value="7654"/>
 	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_HOST@" value="mercury.cs.vu.nl"/>
-	<replace file="${ibis}/bin/run-das" token="bin/java" value="Commands/java"/>
+	<if>
+	    <os family="mac"/>
+	    <then>
+		<replace file="${ibis}/bin/run-das" token="bin/java" value="Commands/java"/>
+	    </then>
+	</if>
 	<chmod file="${ibis}/bin/run-das" perm="+x"/>
 
 	<copy
