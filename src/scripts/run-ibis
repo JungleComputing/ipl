@@ -102,6 +102,8 @@ EOF
     pass different profiling flags on to java, use <prefix> for the result file
 -key <key>
     use the specified key to identify this run with the nameserver
+-sleep <n>
+    sleep <n> seconds before starting the run
 -?
     print this message
 --
@@ -116,7 +118,7 @@ then
 	usage
 fi
 
-JAVACLASSPATH=$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:
+JAVACLASSPATH=$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/3rdparty/junit.jar
 
 #needed for ibm 1.3 JITs and SMPs
 export LD_ASSUME_KERNEL=2.2.5
@@ -318,6 +320,10 @@ do
 	-key)
 		shift
 		Dns_pool="-Dibis.name_server.key=$1"
+		;;
+	-sleep)
+		shift
+		sleep "$1"
 		;;
 	-?)
 		usage
