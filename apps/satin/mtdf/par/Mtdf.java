@@ -49,10 +49,11 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 		node.score = -INF;
 
 		// do first child myself, if it generates a cutt-off, stop.
-		depthFirstSearch(children[order[0]], 1-pivot, depth - 1);
-
 		boolean cutOff = false;
 		short currChild = order[0];
+
+		depthFirstSearch(children[currChild], 1-pivot, depth - 1);
+
 		if (-children[currChild].score > node.score) {
 			tt.scoreImprovements++;
 			bestChild = currChild;

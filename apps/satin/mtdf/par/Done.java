@@ -6,4 +6,8 @@ final class Done extends Exception {
 		this.score = score;
 		this.currChild = currChild;
 	}
+
+	public Throwable fillInStackTrace() {
+		return this;
+	}
 }

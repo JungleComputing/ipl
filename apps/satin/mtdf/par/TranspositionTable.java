@@ -16,7 +16,6 @@ final class TranspositionTable {
 		
 		if(old == null || e.depth >= old.depth) {
 			entries[(int)e.tag & (SIZE-1)] = e;
-
 			if(old != null) overwrites++;
 		}
  	}

@@ -1,8 +1,9 @@
 final class TranspositionTable {
 	static final int SIZE = 1 << 22;
-	TranspositionTableEntry[] entries = new TranspositionTableEntry[SIZE];
 	static int lookups = 0, stores = 0, overwrites = 0;
 	static int hits = 0, visited = 0, sorts = 0, aborts = 0, scoreImprovements = 0;
+
+	TranspositionTableEntry[] entries = new TranspositionTableEntry[SIZE];
 
 	TranspositionTableEntry lookup(long signature) {
 		lookups++;

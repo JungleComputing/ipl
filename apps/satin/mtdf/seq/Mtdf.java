@@ -18,7 +18,6 @@ public final class Mtdf {
 		e = tt.lookup(node.signature);
 		if(e != null && node.signature == e.tag) {
 			tt.sorts++;
-
 			if(e.depth >= depth) {
 				if((e.lowerBound ? e.value >= pivot : e.value < pivot)) {
 					tt.hits++;

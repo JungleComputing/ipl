@@ -19,7 +19,7 @@ final class AwariBoard extends NodeType implements Cloneable {
 	static long[][] rand = new long[12][49];
 
 	static {
-		Random r = new Random();
+		Random r = new Random(42);
 
 		for(int i=0; i<12; i++) {
 			for(int j=0; j<49; j++) {
