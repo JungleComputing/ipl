@@ -113,6 +113,8 @@ endif
 MANTAC_COMMAND = $(MANTA)/mantac $(MANTACFLAGS)
 
 SRC		+= $(REMOTE)
+SRC		+= $(REMOTE:%.java=rmi_skeleton_%.java)
+SRC		+= $(REMOTE:%.java=rmi_stub_%.java)
 
 O_FILES		:= $(SRC:%.java=%.o)
 

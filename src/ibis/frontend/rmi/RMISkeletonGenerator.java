@@ -137,7 +137,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println("\t\t\t\tbreak;");
 		
 		output.println("\t\t\t}");
-		output.println("\t\t} catch (IbisException ie) {");
+		output.println("\t\t} catch (IbisIOException ie) {");
 		output.println("\t\t\tSystem.err.println(\"EEK: got exception in upcall \" + ie);");
 		output.println("\t\t\tie.printStackTrace();");
 		output.println("\t\t}");
