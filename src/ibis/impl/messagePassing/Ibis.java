@@ -165,7 +165,9 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 	}
 
 	synchronized (myIbis) {
-	    System.err.println("myCpu " + myCpu + " nrCpus " + nrCpus + " world " + world);
+	    if (DEBUG) {
+		System.err.println("myCpu " + myCpu + " nrCpus " + nrCpus + " world " + world);
+	    }
 	    for (int i = 0; i < nrCpus; i++) {
 		if (i != myCpu) {
 		    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {

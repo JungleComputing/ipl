@@ -8,6 +8,9 @@ MAIN = Main.java
 
 OUT=latency
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Data.java
+
 include ../../../../../config.mk
 
 ifeq ($(PROFILE), 1)

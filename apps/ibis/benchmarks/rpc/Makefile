@@ -4,6 +4,10 @@ SRC	+= Data2.java
 MAIN = DowncallLatency.java
 OUT=latency
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Data1.java
+SERIALIZABLE	+= Data2.java
+
 include ../../../../config.mk
 
 ifeq ($(PROFILE), 1)

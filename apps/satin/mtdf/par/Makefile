@@ -13,6 +13,10 @@ MAIN		=  Main.java
 
 OUT= awari
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Mtdf.java
+SERIALIZABLE	+= NodeType.java
+
 include ../../../../config.mk
 include ../../config.mk
 

@@ -5,6 +5,9 @@ SRC  = NQueensInterface.java
 MAIN = NQueens.java
 OUT= nqueens
 
+SERIALIZABLE	=
+SERIALIZABLE	+= NQueens.java
+
 include ../../../config.mk
 include ../config.mk
 

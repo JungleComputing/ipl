@@ -5,6 +5,9 @@ SRC  = ParaffinsInterface.java
 MAIN = Paraffins.java
 OUT= paraffins
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Paraffins.java
+
 include ../../../config.mk
 include ../config.mk
 

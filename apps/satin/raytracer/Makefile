@@ -21,6 +21,18 @@ SRC += WhiteSurface.java
 MAIN = Raytracer.java
 OUT= raytracer
 
+SERIALIZABLE	=
+SERIALIZABLE	+= GfxColor.java
+SERIALIZABLE	+= Light3D.java
+SERIALIZABLE	+= Object3D.java
+SERIALIZABLE	+= Ray3D.java
+SERIALIZABLE	+= Raytracer.java
+SERIALIZABLE	+= Sphere3D.java
+SERIALIZABLE	+= Surface.java
+SERIALIZABLE	+= Vector3D.java
+SERIALIZABLE	+= VirtualScreen.java
+SERIALIZABLE	+= World.java
+
 include ../../../config.mk
 include ../config.mk
 

@@ -11,6 +11,9 @@ SRC += DoneObjectOverridden.java
 MAIN = Lowlevel.java
 OUT= lowlevel
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Lowlevel.java
+
 include ../../../config.mk
 
 include ../config.mk

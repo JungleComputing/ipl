@@ -7,6 +7,11 @@ SRC += Position.java
 MAIN = Ida.java
 OUT= ida
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Game.java
+SERIALIZABLE	+= Job.java
+SERIALIZABLE	+= Position.java
+
 include ../../../config.mk
 include ../config.mk
 

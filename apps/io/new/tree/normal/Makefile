@@ -8,6 +8,9 @@ MAIN = Main.java
 
 OUT=latency
 
+SERIALIZABLE	=
+SERIALIZABLE	+= DITree.java
+
 include ../../../../../config.mk
 
 ifeq ($(PROFILE), 1)

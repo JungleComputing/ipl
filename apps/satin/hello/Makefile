@@ -3,6 +3,9 @@ SRC  = HelloInterface.java
 MAIN = Hello.java
 OUT= hello
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Hello.java
+
 include ../../../config.mk
 
 java: $(CLASS_FILES) $(MAIN_CLASS)

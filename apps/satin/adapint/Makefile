@@ -5,6 +5,9 @@ SRC  = AdapIntInterface.java
 MAIN = AdapInt.java
 OUT= adapint
 
+SERIALIZABLE	=
+SERIALIZABLE	+= AdapInt.java
+
 include ../../../config.mk
 
 include ../config.mk

@@ -6,6 +6,9 @@ SRC += Done.java
 MAIN = TwoOutThree.java
 OUT= two_out_three
 
+SERIALIZABLE	=
+SERIALIZABLE	+= TwoOutThree.java
+
 include ../../../config.mk
 
 include ../config.mk

@@ -73,9 +73,8 @@ class SerializeShadowSendPort extends ShadowSendPort {
 	} catch (java.io.IOException e) {
 	    throw new IbisIOException(e);
 	}
-	System.err.println("ShadowSendPort " + this + " has created ObjectInputStream " + obj_in);
-
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("ShadowSendPort " + this + " has created ObjectInputStream " + obj_in);
 	    System.err.println("Clear the message that contains the ObjectStream init stuff");
 	}
 	msg.clear();

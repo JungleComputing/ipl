@@ -14,17 +14,21 @@ class IbisWorld extends Thread {
 
 
     IbisWorld() {
-	if (myIbis == null) {
-	    System.err.println("Gotcha!");
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (myIbis == null) {
+		System.err.println("Gotcha!");
+	    }
+	    if (ibis.ipl.impl.messagePassing.Ibis.myIbis == null) {
+		System.err.println("Gotcha 2!");
+	    }
+	    System.err.println("ibis = " + myIbis);
 	}
-	if (ibis.ipl.impl.messagePassing.Ibis.myIbis == null) {
-	    System.err.println("Gotcha 2!");
-	}
-	System.err.println("ibis = " + myIbis);
 	myIbis = ibis.ipl.impl.messagePassing.Ibis.myIbis;
 	joinId = new IbisIdentifier[myIbis.nrCpus];
 	leaveId = new IbisIdentifier[myIbis.nrCpus];
-	System.err.println("static ibis = " + myIbis);
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("static ibis = " + myIbis);
+	}
 	opened = new ConditionVariable(myIbis);
 	setDaemon(true);
 	start();

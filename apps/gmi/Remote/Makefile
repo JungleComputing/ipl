@@ -5,6 +5,9 @@ SRC += Data.java
 MAIN = Main.java
 OUT=main
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Data.java
+
 include ../../../config.mk
 
 java: $(CLASS_FILES) $(MAIN_CLASS)

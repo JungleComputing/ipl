@@ -110,6 +110,7 @@ final class AlternativeTypeInfo {
 					// This part is a bit scary. We basically switch of the Java field access checks
 					// so we are allowed to read private fields ....
 
+					/*
 					if (!field.isAccessible()) { 					
 						temporary_field = field;
 						AccessController.doPrivileged(new PrivilegedAction() {
@@ -119,6 +120,7 @@ final class AlternativeTypeInfo {
 								} 
 							});
 					}
+					*/
 					
 					if (field_type.isPrimitive()) {
 						

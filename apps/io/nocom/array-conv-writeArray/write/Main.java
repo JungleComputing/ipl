@@ -39,6 +39,10 @@ public class Main {
 
 			int [] temp1 = new int[(LEN/4)];
 
+			for (int x=0;x<(LEN/4);x++) { 
+				temp1[x] = x;
+			} 
+
 			for (int j=0;j<TESTS;j++) { 
 
 				start = System.currentTimeMillis();

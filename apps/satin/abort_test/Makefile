@@ -5,6 +5,9 @@ SRC  = AbortTestInterface.java
 MAIN = AbortTest.java
 OUT= abort_test
 
+SERIALIZABLE	=
+SERIALIZABLE	+= AbortTest.java
+
 include ../../../config.mk
 
 include ../config.mk

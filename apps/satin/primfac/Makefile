@@ -5,6 +5,9 @@ SRC  = PrimFacInterface.java
 MAIN = PrimFac.java
 OUT= primfac
 
+SERIALIZABLE	=
+SERIALIZABLE	+= PrimFac.java
+
 include ../../../config.mk
 include ../config.mk
 

@@ -3,6 +3,10 @@ SRC  = NQueensInterface.java
 MAIN = NQueens.java
 OUT= nqueens
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Abort.java
+SERIALIZABLE	+= NQueens.java
+
 include ../../../../config.mk
 
 java: $(CLASS_FILES) $(MAIN_CLASS)

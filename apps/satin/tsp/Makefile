@@ -7,6 +7,10 @@ SRC += TspInterface.java
 MAIN = Tsp.java
 OUT= tsp
 
+SERIALIZABLE	=
+SERIALIZABLE	+= DistanceTable.java
+SERIALIZABLE	+= Tsp.java
+
 include ../../../config.mk
 include ../config.mk
 

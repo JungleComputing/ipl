@@ -7,6 +7,9 @@ SRC += Result.java
 MAIN = Checkers.java
 OUT= checkers
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Checkers.java
+
 include ../../../../config.mk
 include ../../config.mk
 

@@ -5,6 +5,9 @@ SRC  = FibInterface.java
 MAIN = Fib.java
 OUT= fib
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Fib.java
+
 include ../../../config.mk
 
 include ../config.mk

@@ -5,6 +5,9 @@ SRC  = NoverKInterface.java
 MAIN = NoverK.java
 OUT= noverk
 
+SERIALIZABLE	=
+SERIALIZABLE	+= NoverK.java
+
 include ../../../config.mk
 include ../config.mk
 

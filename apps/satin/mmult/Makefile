@@ -14,6 +14,11 @@ SRC += Matrix.java
 MAIN = Mmult.java
 OUT= mmult
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Leaf.java
+SERIALIZABLE	+= Matrix.java
+SERIALIZABLE	+= Mmult.java
+
 include ../../../config.mk
 include ../config.mk
 

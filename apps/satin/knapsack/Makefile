@@ -7,6 +7,10 @@ SRC += Return.java
 MAIN = Knapsack.java
 OUT= knapsack
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Knapsack.java
+SERIALIZABLE	+= Return.java
+
 include ../../../config.mk
 include ../config.mk
 

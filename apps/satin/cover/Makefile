@@ -7,6 +7,10 @@ SRC += Return.java
 MAIN = Cover.java
 OUT= cover
 
+SERIALIZABLE	=
+SERIALIZABLE	+= Cover.java
+SERIALIZABLE	+= Return.java
+
 include ../../../config.mk
 include ../config.mk
 

@@ -5,6 +5,9 @@ SRC  = FibThresholdInterface.java
 MAIN = FibThreshold.java
 OUT= fib_threshold
 
+SERIALIZABLE	=
+SERIALIZABLE	+= FibThreshold.java
+
 include ../../../config.mk
 include ../config.mk
 
