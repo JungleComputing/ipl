@@ -128,7 +128,7 @@ class OpenCell1D implements OpenConfig {
     static SendPort rightSendPort;
     static ReceivePort leftReceivePort;
     static ReceivePort rightReceivePort;
-    static int generation = 0;
+    static int generation = -1;
     static int boardsize = DEFAULTBOARDSIZE;
     static boolean idle = true;
     static boolean rightNeighbourIdle = true;
@@ -400,7 +400,7 @@ class OpenCell1D implements OpenConfig {
             rightNeighbourIdle = false;
 
             if( traceLoadBalancing ){
-                System.out.println( "P" + me + ":" + generation + ": sending " + sendCount + " columns to P" + (me+1) );
+                System.out.println( "P" + me + ":" + generation + ": sending " + sendCount + " columns to P" + (me+1) + " (" + (p.firstNoColumn-sendCount) + "-" + p.firstNoColumn + ")" );
             }
             // The border has changed, but since until now we
             // maintained it as an ordinary column, we can easily intialize
@@ -474,8 +474,8 @@ class OpenCell1D implements OpenConfig {
         }
         ReadMessage m = port.receive();
         int gen = m.readInt();
-        if( gen>=0 && OpenCell1D.generation<0 ){
-            OpenCell1D.generation = gen;
+        if( gen>=0 && generation<0 ){
+            generation = gen;
         }
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
@@ -549,13 +549,13 @@ class OpenCell1D implements OpenConfig {
         }
         ReadMessage m = port.receive();
         int gen = m.readInt();
-        if( gen>=0 && OpenCell1D.generation<0 ){
-            OpenCell1D.generation = gen;
+        if( gen>=0 && generation<0 ){
+            generation = gen;
         }
         int receiveCount = m.readInt();
         if( receiveCount>0 ){
             if( traceLoadBalancing ){
-                System.out.println( "P" + me + ": receiving " + receiveCount + " columns from P" + (me+1) );
+                System.out.println( "P" + me + ":" + generation + ": receiving " + receiveCount + " columns from P" + (me+1) );
             }
         }
         p.firstNoColumn += receiveCount;
@@ -772,7 +772,10 @@ class OpenCell1D implements OpenConfig {
             putPattern( p, 4, 4, glider );
 
             if( idle ){
-                // Start waiting for work.
+                // Waiting for work.
+                if( traceLoadBalancing ){
+                    System.out.println( "P" + me + ": ready and waiting for work" );
+                }
                 receiveRight( rightReceivePort, p );
             }
 
@@ -790,27 +793,34 @@ class OpenCell1D implements OpenConfig {
                 if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
                     // We have some work for our lazy right neighbour.
                     // give him the good news.
+                    if( traceLoadBalancing ){
+                        System.out.println( "P" + me + ":" + generation + ": sending work to idle neighbour P" + (me+1) );
+                    }
                     sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     rightNeighbourIdle = false;
                 }
                 computeNextGeneration( p );
+                generation++;
                 updateAims( p );
                 if( (me % 2) == 0 ){
-                    sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
-                    receiveRight( rightReceivePort, p );
+                    if( !rightNeighbourIdle ){
+                        sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                        receiveRight( rightReceivePort, p );
+                    }
                     sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     receiveLeft( leftReceivePort, p );
                 }
                 else {
                     receiveLeft( leftReceivePort, p );
                     sendLeft( leftSendPort, p, aimFirstColumn, aimFirstNoColumn );
-                    receiveRight( rightReceivePort, p );
-                    sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                    if( !rightNeighbourIdle ){
+                        receiveRight( rightReceivePort, p );
+                        sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
+                    }
                 }
                 if( showProgress && me == 0 ){
                     System.out.print( '.' );
                 }
-                generation++;
             }
             if( showProgress && me == 0 ){
                 System.out.println();
