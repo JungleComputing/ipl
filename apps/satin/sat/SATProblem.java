@@ -62,6 +62,11 @@ class SATProblem {
         return vars;
     }
 
+    public int getClauseCount()
+    {
+	return clauseCount;
+    }
+
     public void addClause( int pos[], int possz, int neg[], int negsz )
     {
 	int apos[] = cloneIntArray( pos, possz );
@@ -75,12 +80,20 @@ class SATProblem {
 	    System.arraycopy( clauses, 0, nw, 0, clauses.length );
 	    clauses = nw;
 	}
-	clauses[clauseCount++] = cl;
+	int clauseno = clauseCount++;
+	clauses[clauseno] = cl;
+	System.out.println( "Adding a new clause " + cl );
+	registerClauseVariables( cl, clauseno );
+    }
+
+    public void addClause( int pos[], int neg[] )
+    {
+	addClause( pos, pos.length, neg, neg.length );
     }
 
     // Given a list of variables and a clause, register all uses
     // of the variables in the clause.
-    void registerClauseVariables( Clause cl, int clauseno )
+    private void registerClauseVariables( Clause cl, int clauseno )
     {
         int arr[] = cl.pos;
 
@@ -94,17 +107,6 @@ class SATProblem {
 	    int var = arr[ix];
 
 	    variables[var].registerNegClause( clauseno );
-	}
-    }
-
-    // Given a list of variables and a list of clauses, register all uses
-    // of the variables in these clauses.
-    void registerClauseVariables( Clause clauses[] )
-    {
-        for( int ix=0; ix<clauses.length; ix++ ){
-	    Clause cl = clauses[ix];
-
-	    registerClauseVariables( cl, ix );
 	}
     }
 
