@@ -19,7 +19,7 @@ import java.util.TreeSet;
 
 public final class TextIndex extends ibis.satin.SatinObject implements IndexerInterface, java.io.Serializable {
     private static final boolean traceTreeWalk = true;
-    private static final Pattern nonWord = Pattern.compile( "\\s+" );
+    private static final Pattern nonWord = Pattern.compile( "\\W+" );
 
     /**
      * @param f The file to index.
