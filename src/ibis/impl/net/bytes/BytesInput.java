@@ -137,6 +137,11 @@ public final class BytesInput
 	    subInput.setInterruptible(interruptible);
 	}
 
+	public void interruptPoll() throws IOException {
+System.err.println(this + ": interruptPoll... HERE YA GO!!!!!");
+	    subInput.interruptPoll();
+	}
+
         public void initReceive(Integer num) throws IOException {
 	    log.in();
 	    synchronized(this) {

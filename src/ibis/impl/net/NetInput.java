@@ -496,11 +496,6 @@ pollFail++;
 
 		if (num != null) {
 			initReceive(num);
-		} else if (upcallInstallWaiters > 0) {
-			System.err.println("Release the install handler");
-			synchronized (upcallInstaller) {
-				upcallInstaller.notifyAll();
-			}
 		}
                 log.out();
 
@@ -580,12 +575,17 @@ up.setDaemon(true);
 	protected void verifyNonSingletonPoller() {
 	}
 
+	public NetInputUpcall getUpcallFunc() {
+	    return upcallFunc;
+	}
+
 	protected void installUpcallFunc(NetInputUpcall upcallFunc)
 		throws IOException {
 	    if (upcallFunc != null && this.upcallFunc != null) {
 		throw new IllegalArgumentException("Cannot restart upcall");
 	    }
 	    this.upcallFunc = upcallFunc;
+
 	    /*
 	     * Fight race with poll: if an upcallFunc is installed for
 	     * a NetInput that used to do downcall receives, we must ensure
@@ -605,6 +605,7 @@ up.setDaemon(true);
 		    System.err.println("Unwait for release the install handler");
 		}
 	    }
+
 	    if (receiveStarted) {
 		startUpcallThread();
 	    }

@@ -136,7 +136,7 @@ public class MultiPoller extends NetPoller {
 		 * to our plugin), use that.
 		 * Else, go on and create a new subInput.
 		 */
-		// System.err.println(this + ": recycle existing subInput " + ni);
+// System.err.println(this + ": recycle existing subInput " + ni);
 		return ni;
 	    }
 
@@ -145,6 +145,8 @@ public class MultiPoller extends NetPoller {
 	    String    subContext    = lane.subContext;
 	    String    subDriverName = getProperty(subContext, "Driver");
 	    NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
+
+// System.err.println(this + ": Create a MultiPoller downcall with ReceiveQueue " + q + " upcallFunc " + upcallFunc + " subDriver " + subDriver + " subContext " + subContext);
 
 	    if (false && upcallFunc == null) {
 		System.err.println(ibis.impl.net.NetIbis.hostName() + "-" + this + ": Create a MultiPoller downcall with ReceiveQueue " + q + " upcallFunc " + upcallFunc + " subDriver " + subDriver + " subContext " + subContext);

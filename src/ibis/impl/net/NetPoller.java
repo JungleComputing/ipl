@@ -41,7 +41,7 @@ public class NetPoller
      *    new regime
      */
     private ReceiveQueue	singleton;
-    private boolean		handlingSingleton;
+    private boolean		doingPoll;
     protected int		waitingConnections;
     private static final boolean SINGLETON_FASTPATH = TypedProperties.booleanProperty(NetIbis.poll_single_dyn, true);
 
@@ -145,7 +145,9 @@ public class NetPoller
 	    return;
 	}
 
-// System.err.println(this + ": SINGLETON_FASTPATH=" + SINGLETON_FASTPATH + " on=" + on + " upcallFunc=" + upcallFunc);
+	if (VERBOSE_SINGLETON) {
+	    System.err.println(this + ": SINGLETON_FASTPATH=" + SINGLETON_FASTPATH + " on=" + on + " upcallFunc=" + upcallFunc);
+	}
 	boolean switch_to_upcall = true;
 	NetInput ni = q.getInput();
 
@@ -185,14 +187,14 @@ public class NetPoller
 
 	} else if (singleton != null) {
 	    if (VERBOSE_SINGLETON) {
-		System.err.println(this + ": Disable singleton " + singleton.input + " fastpath.");
+		System.err.println(this + ": Disable singleton " + singleton.input + " fastpath; add " + ni);
 	    }
 
 	    if (q == singleton) {
 		throw new Error(this + ": cannot be multipoller and also be the singleton " + singleton);
 	    }
 
-	    while (handlingSingleton) {
+	    while (doingPoll) {
 		singleton.interruptPoll();
 		waitingConnections++;
 		try {
@@ -327,10 +329,11 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	ReceiveQueue q = (ReceiveQueue)inputMap.get(key);
 
 	if (q == null) {
-	    q = new ReceiveQueue(cnx);
+	    q = new ReceiveQueue();
 	    inputMap.put(key, q);
 	}
-else System.err.println(this + ": recycle existing " + q + " for key " + key);
+// else
+// System.err.println(this + ": recycle existing " + q + " for key " + key);
 
 	NetInput ni = newPollerSubInput(key, q);
 	q.setInput(ni);
@@ -365,16 +368,28 @@ else System.err.println(this + ": recycle existing " + q + " for key " + key);
 
 
     public void interruptPoll() throws IOException {
-	if (singleton != null && singleton.pollIsInterruptible()) {
-	    singleton.interruptPoll();
+	if (singleton != null) {
+	    if (singleton.pollIsInterruptible()) {
+		singleton.interruptPoll();
+	    } else {
+		throw new Error("interruptPoll on singleton that is nonInterruptible");
+	    }
 	} else {
-	    System.err.println(this + ": OH HO.... interruptPoll on a nonsingleton!");
-	    if (true) {
+	    // System.err.println(this + ": OH HO.... interruptPoll on a nonsingleton!");
+	    // Thread.dumpStack();
+	    if (false) {
 		throw new Error("interruptPoll was designed for singletons, but now used on nonsingleton");
 	    } else {
 		synchronized (this) {
 		    interrupted = true;
-		    wakeupBlockedReceiver();
+		    wakeupBlockedReceiver(true);
+		    while (waitingThreads > 0) {
+			try {
+			    wait();
+			} catch (InterruptedException e) {
+			    // Ignore
+			}
+		    }
 		}
 	    }
 	}
@@ -413,19 +428,39 @@ else System.err.println(this + ": recycle existing " + q + " for key " + key);
     public void switchToUpcallMode(NetInputUpcall inputUpcall)
 	    throws IOException {
 // System.err.println(this + ": switchToUpcallMode singleton " + (singleton == null ? null : singleton.getInput()) + " interruptible " + (singleton == null ? "N/A" : (singleton.pollIsInterruptible() ? "true" : "false")));
-	if (activeUpcallThread != null) {
-	    System.err.println(this + ": want to switch to UpcallMode but some Downy already present -- what can we do????????????????");
-	}
 
-	if (singleton != null && singleton.pollIsInterruptible()) {
-	    upcallFunc = inputUpcall;
-	    singleton.switchToUpcallMode();
-	} else {
-	    System.err.println(this + ": OH HO.... switchToUpcall on a nonsingleton!");
-	    if (false) {
-		throw new Error("switchToUpcallMode was designed for singletons, but now used on nonsingleton");
+	/*
+	 * This must be done before any calls to ReceiveQueue.switchToUpcallMode
+	 */
+	upcallFunc = inputUpcall;
+
+	if (singleton != null) {
+	    if (singleton.pollIsInterruptible()) {
+		singleton.switchToUpcallMode();
 	    } else {
-		installUpcallFunc(inputUpcall);
+		throw new Error("switchToUpcallMode invoked on nonInterruptible singleton");
+	    }
+	} else {
+	    // System.err.println(this + ": OH HO.... switchToUpcall on a nonsingleton!");
+
+	    Collection c = inputMap.values();
+	    Iterator i = c.iterator();
+	    while (i.hasNext()) {
+		ReceiveQueue rq  = (ReceiveQueue)i.next();
+		NetInput ni = rq.getInput();
+		if (ni.getUpcallFunc() == null) {
+		    throw new Error(this + ": switch nonSingleton subInput " + rq.getInput() + " to upcallMode");
+		}
+		rq.interruptDeliveringThread();
+	    }
+
+	    /*
+	     * If there is a downcall receive blocked in our queue, interrupt
+	     * it. If there is no downcall thread, all is well as it is.
+	     */
+	    interruptPoll();
+	    if (activeUpcallThread != null) {
+		// System.err.println(this + ": Oh ho, oh ho -- some subInput has a pending message; how can we handle that?");
 	    }
 	}
 // System.err.println(this + ": switchToUpcall done, upcallFunc " + upcallFunc);
@@ -472,9 +507,6 @@ private int nCurrent;
 	private Integer			activeNum = null;
 	private int			waitingPollers = 0;
 
-	ReceiveQueue(NetConnection cnx) {
-	}
-
 	public Integer activeNum() {
 	    return activeNum;
 	}
@@ -498,60 +530,67 @@ private int nCurrent;
 	    boolean upcallMode;
 
 	    /*
-	     * Must lock NetPoller.this <strong>before</strong> we attempt
-	     * to read upcallFunc. Its value may be changed by
-	     * switchTo*callMode with the lock on NetPoller.this held.
+	     * Loop here to recognize the case that we are interrupted by
+	     * an incoming switchToUpcallMode.
 	     */
-	    synchronized (NetPoller.this) {
-		upcallMode = (upcallFunc != null);
-// System.err.println(this + ": inputUpcall; upcallFunc " + upcallFunc + " poller " + NetPoller.this);
-		if (upcallMode) {
-
-		    grabUpcallLock(this);
-		    activeNum = spn;
-		    activeUpcallThread = me;
-		    log.disp("NetPoller queue thread poll returns ",activeNum);
-nCurrent++;
-		} else {
-		    wakeupBlockedReceiver();
-		    activeNum = spn;
-		    // Do we require currentThread in the
-		    // downcall case?????
-		    activeUpcallThread = me;
-		    log.disp("NetPoller queue thread poll returns ",activeNum);
-nCurrent++;
-		}
-	    }
-
-	    if (upcallMode) {
-		/* Must release the lock because some other
-		 * thread may finish the message */
-		log.disp("upcallFunc.inputUpcall-->");
-		upcallFunc.inputUpcall(NetPoller.this, spn);
-		log.disp("upcallFunc.inputUpcall<--");
-
+	    while (true) {
+// System.err.println(this + "--" + NetPoller.this + ": inputUpcall: try to lock(NetPoller.this)");
+		/*
+		 * Must lock NetPoller.this <strong>before</strong> we attempt
+		 * to read upcallFunc. Its value may be changed by
+		 * switchTo*callMode with the lock on NetPoller.this held.
+		 */
 		synchronized (NetPoller.this) {
-		    if (activeUpcallThread == me) {
-			// implicit finish()
-			finishLocked(true);
+		    upcallMode = (upcallFunc != null);
+// System.err.println(this + "--" + NetPoller.this + ": inputUpcall; upcallFunc " + upcallFunc);
+		    if (upcallMode) {
+
+			grabUpcallLock(this);
+nCurrent++;
+		    } else {
+			wakeupBlockedReceiver();
+nCurrent++;
 		    }
+		    activeNum = spn;
+		    activeUpcallThread = me;
+		    log.disp("NetPoller queue thread poll returns ",activeNum);
 		}
 
-	    } else {
+		if (upcallMode) {
+		    /* Must release the lock because some other
+		     * thread may finish the message */
+		    log.disp("upcallFunc.inputUpcall-->");
+		    upcallFunc.inputUpcall(NetPoller.this, spn);
+		    log.disp("upcallFunc.inputUpcall<--");
 
-		synchronized (this) {
-		    while (activeNum == spn) {
-			waitingPollers++;
-			try {
-			    wait();
-			} catch (InterruptedException e) {
-			    // ignore
+		    synchronized (NetPoller.this) {
+			if (activeUpcallThread == me) {
+			    // implicit finish()
+			    finishLocked(true);
 			}
-			waitingPollers--;
+		    }
+		    break;
+
+		} else {
+
+		    synchronized (this) {
+			if (activeNum == spn) {
+			    waitingPollers++;
+			    try {
+				wait();
+// System.err.println(this + "--" + NetPoller.this + ": wakeup from deliver, now upcallFunc " + upcallFunc);
+			    } catch (InterruptedException e) {
+				// ignore
+			    }
+			    waitingPollers--;
+			}
+			if (activeNum == null) {
+			    break;
+			}
 		    }
 		}
 	    }
-// System.err.println(this + ": inputUpcall finished; upcallFunc " + upcallFunc + " poller " + NetPoller.this);
+// System.err.println(this + "--" + NetPoller.this + ": inputUpcall finished; upcallFunc " + upcallFunc);
 
 	    log.out();
 	}
@@ -613,6 +652,7 @@ nCurrent++;
 	 * queue, where we pick them up to handle them.
 	 */
 	void switchToUpcallMode() throws IOException {
+// System.err.println(this + "--" + NetPoller.this + ": switch to upcall mode, upcallFunc " + upcallFunc + " waitingPollers " + waitingPollers);
 	    if (NetReceivePort.useBlockingPoll || upcallFunc != null) {
 		input.switchToUpcallMode(this);
 	    } else {
@@ -654,6 +694,14 @@ nCurrent++;
 	}
 
 
+	synchronized
+	void interruptDeliveringThread() {
+	    if (waitingPollers > 0) {
+		notifyAll();
+	    }
+	}
+
+
 	void free() throws IOException {
 	    log.in();
 	    input.free();
@@ -672,6 +720,7 @@ nCurrent++;
 	    try {
 		wait();
 	    } catch (InterruptedException e) {
+System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 		throw new InterruptedIOException(e);
 	    } finally {
 		upcallWaiters--;
@@ -693,8 +742,11 @@ nCurrent++;
 // System.err.println(this + ": releaseUpcallLock() clear activeQueue");
 	activeQueue = null;
 	if (upcallWaiters > 0) {
-	    notify();
-	    // notifyAll();
+	    if (waitingConnections > 0 || waitingThreads > 0) {
+		notifyAll();
+	    } else {
+		notify();
+	    }
 	}
 
 	log.out();trace.out();
@@ -732,9 +784,12 @@ nCurrent++;
 	    wait();
 	    if (interrupted) {
 		interrupted = false;
+// System.err.println(this + ": blocked receiver is interrupted. Throw interruptedIOException");
+		notifyAll();
 		throw new InterruptedIOException("Wait interrupted");
 	    }
 	} catch (InterruptedException e) {
+System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 	    throw new InterruptedIOException(e);
 	} finally {
 	    waitingThreads--;
@@ -787,46 +842,10 @@ nCurrent++;
 
 	Integer      spn = null;
 
-	synchronized (this) {
-	    if (activeQueue != null) {
-		throw new IOException("Call message.finish before calling Net.poll");
-	    }
-	    while (handlingSingleton && singleton != null) {
-		blockReceiver();
-	    }
-	    if (singleton == null) {
-		return spn;
-	    }
-	    handlingSingleton = true;
-	}
-
-	/* Release the lock on <code>this</code>. We may block
-	 * indefinitely in singleton.poll, but we should allow
-	 * other connections to intervene. Field
-	 * <code>handlingSingleton</code> is set to protect access
-	 * to the singleton device. */
-	boolean all = false;
-	try {
-	    if ((spn = singleton.poll(block)) != null) {
-		activeQueue = singleton;
+	if ((spn = singleton.poll(block)) != null) {
+	    activeQueue = singleton;
 // System.err.println(this + ": pollSingleton sets activeQueue " + activeQueue);
-		selectConnection(singleton);
-	    }
-	} catch (InterruptedIOException e) {
-	    System.err.println(Thread.currentThread() + ": " + this + ": Ha, it throws us an InterruptedIOException. Sync with the interrupter and continue");
-	    all = true;
-	}
-
-	synchronized (this) {
-	    handlingSingleton = false;
-	    while (waitingConnections > 0) {
-		notifyAll();
-		try {
-		    wait();
-		} catch (InterruptedException e) {
-		    //
-		}
-	    }
+	    selectConnection(singleton);
 	}
 
 	return spn;
@@ -903,23 +922,55 @@ nCurrent++;
 
 	Integer      spn = null;
 
-	if (activeQueue != null) {
-	    System.err.println(Thread.currentThread() + " " + this + ": want to doPoll but some Downy (activeQueue " + activeQueue + " already present -- what can we do????????????????");
-	    selectConnection(activeQueue);
-	    return activeQueue.activeNum();
-	}
-
 	do {
 
-// System.err.print(this + ": doPoll [");
+	    synchronized (this) {
+		if (activeQueue != null) {
+		    throw new IOException("Call message.finish before calling Net.poll");
+		}
 
-	    // Here, should have synchronized access on singleton
-	    if (singleton == null) {
+		if (doingPoll) {
+		    throw new java.util.ConcurrentModificationException("Only one poll at a time allowed");
+		}
+
+	    if (false)	// No concurrent polls
+		while (doingPoll) {
+		    blockReceiver();
+		}
+
+		doingPoll = true;
+	    }
+
+// System.err.print(this + ": doPoll [");
+	    try {
+		// Here, should have synchronized access on singleton
+		if (singleton == null) {
 // System.err.print("BLA ");
-		spn = pollNonSingleton(block);
-	    } else {
+		    spn = pollNonSingleton(block);
+		} else {
 // System.err.print("BLUB ");
-		spn = pollSingleton(block);
+		    spn = pollSingleton(block);
+		}
+	    } catch (InterruptedIOException e) {
+		System.err.println(this + ": Ha, it throws us an InterruptedIOException. Sync with the interrupter and continue " + e);
+		e.printStackTrace(System.err);
+		if (waitingConnections == 0) {
+		    System.err.println(this + ": It is not for us. Throw it on for our superInput");
+		    throw e;
+		}
+
+	    } finally {
+		synchronized (this) {
+		    doingPoll = false;
+		    while (waitingConnections > 0) {
+			notifyAll();
+			try {
+			    wait();
+			} catch (InterruptedException e) {
+			    //
+			}
+		    }
+		}
 	    }
 
 // System.err.print("] doPoll spn=" + spn + " activeQueue=" + activeQueue + " " + activeQueue.getInput());
@@ -934,6 +985,7 @@ nCurrent++;
 	log.out();
 // if (spn == null)
 // System.err.println(Thread.currentThread() + ": " + this + ".doPoll returns " + spn);
+// System.err.println(this + ": doPoll returns " + spn);
 
 	return spn;
     }
