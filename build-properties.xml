@@ -1,0 +1,46 @@
+    <!--
+
+    Properties to be shared by all files, apps in Ibis
+
+    Requires prior definition of the following properties:
+
+    ibis          the root of the Ibis tree
+
+    Optional prior property definition:
+
+    build         the root of the build tree
+    -->
+
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	<classpath>
+	    <pathelement location="${ibis}/ant-contrib/lib/ant-contrib-0.3.jar"/>
+	</classpath>
+    </taskdef>
+
+    <property name="bcelRoot"    location="/home/ceriel/bcel-5.1"/>
+
+    <property name="ibisBuild"   location="${ibis}/build"/>
+
+    <path id="default.classpath">
+	<pathelement path="${ibisBuild}/"/>
+	<pathelement path="${build}/"/>
+	<pathelement path="bcel-additions/"/>
+	<pathelement path="${bcelRoot}/bcel-5.1.jar/"/>
+	<pathelement path="${bcelRoot}/lib"/>
+    </path>
+
+    <!--
+	Choose a value from
+	    debug
+	    optimize
+    -->
+    <property name="optimization" value="debug"/>
+
+    <!--
+    <condition property="native.debug">
+	<equals arg1="${optimization}" arg2="debug"/>
+    </condition>
+    <condition property="native.optimize">
+	<equals arg1="${optimization}" arg2="optimize"/>
+    </condition>
+    -->

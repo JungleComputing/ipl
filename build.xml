@@ -1,0 +1,215 @@
+<!DOCTYPE project [
+    <!ENTITY sharedProperties SYSTEM "build-properties.xml">
+    <!ENTITY iogenTargets     SYSTEM "build-iogen.xml">
+    <!ENTITY nativeTargets    SYSTEM "build-native.xml">
+    <!ENTITY javahTargets     SYSTEM "build-javah.xml">
+]>
+
+<project
+    name="ibis"
+    default="build"
+    basedir=".">
+
+    <description>
+	Top-level Ibis build.
+    </description>
+
+    <property name="ibis"        location="."/>
+
+    <property name="src"         location="${ibis}/.."/>
+    <property name="build"       location="${ibis}/build"/>
+
+    <property name="optimization" value="debug"/>
+
+
+    &sharedProperties;
+
+    <target name="init">
+	<tstamp/>
+	<mkdir dir="${build}"/>
+    </target>
+
+
+    <!--
+	We depend on bcel. I am not sure it should be inside Ibis,
+	but there it is, so I include it in build.xml.
+    -->
+    <target name="bcel" depends="init">
+	<javac  destdir="${build}"
+		sourcepath="${src}">
+	    <src path="${src}/ibis/bcel-additions/org/apache/bcel"/>
+	    <src path="${src}/ibis/bcel-additions/org/apache/bcel/verifier"/>
+	    <src path="${src}/ibis/bcel-additions/org/apache/bcel/verifier/statics"/>
+	    <src path="${src}/ibis/bcel-additions/org/apache/bcel/verifier/structurals"/>
+	    <classpath refid="default.classpath"/>
+	    <include name="**.java"/>
+	</javac>
+    </target>
+
+
+    <!--
+	The list of directories that contain native sources.
+    -->
+    <path id="native.src.dirs">
+	<pathelement path="${src}/ibis/io"/>
+	<pathelement path="${src}/ibis/ipl/impl/messagePassing"/>
+	<pathelement path="${src}/ibis/ipl/impl/messagePassing/panda"/>
+	<pathelement path="${src}/ibis/ipl/impl/messagePassing/mpi"/>
+	<!-- <pathelement path="${src}/ibis/ipl/impl/net/gm"/> -->
+	<!-- <pathelement path="${src}/ibis/util"/> -->
+	<pathelement path="${src}/ibis/util/nativeCode"/>
+    </path>
+
+    <property name="native.src.path" refid="native.src.dirs"/>
+
+
+    &iogenTargets;
+    &javahTargets;
+
+
+    <target name="compile"
+	    depends="init,bcel"
+	    description="Compile Ibis to .class">
+	<javac  destdir="${build}"
+		deprecation="true"
+		debug="true">
+	    <src path="${src}/ibis/frontend"/>
+	    <src path="${src}/ibis/frontend/group"/>
+	    <src path="${src}/ibis/frontend/ibis"/>
+	    <src path="${src}/ibis/frontend/io"/>
+	    <src path="${src}/ibis/frontend/repmi"/>
+	    <src path="${src}/ibis/frontend/rmi"/>
+	    <src path="${src}/ibis/frontend/satin"/>
+	    <src path="${src}/ibis/group"/>
+	    <src path="${src}/ibis/io"/>
+	    <src path="${src}/ibis/ipl"/>
+	    <src path="${src}/ibis/ipl/impl"/>
+	    <src path="${src}/ibis/ipl/impl/generic"/>
+	    <src path="${src}/ibis/ipl/impl/nameServer"/>
+	    <src path="${src}/ibis/ipl/impl/tcp"/>
+	    <src path="${src}/ibis/ipl/impl/messagePassing"/>
+	    <src path="${src}/ibis/ipl/impl/net"/>
+	    <src path="${src}/ibis/ipl/impl/net/udp"/>
+	    <src path="${src}/ibis/ipl/impl/net/rel"/>
+	    <src path="${src}/ibis/ipl/impl/net/tcp_blk"/>
+	    <src path="${src}/ibis/ipl/impl/net/gen"/>
+	    <src path="${src}/ibis/ipl/impl/net/multi"/>
+	    <src path="${src}/ibis/ipl/impl/net/muxer"/>
+	    <src path="${src}/ibis/ipl/impl/net/muxer/udp"/>
+	    <src path="${src}/ibis/satin"/>
+	    <src path="${src}/ibis/classfile"/>
+	    <src path="${src}/ibis/rmi"/>
+	    <src path="${src}/ibis/rmi/registry"/>
+	    <src path="${src}/ibis/rmi/registry/impl"/>
+	    <src path="${src}/ibis/rmi/server"/>
+	    <src path="${src}/ibis/util"/>
+	    <src path="${src}/ibis/util/nativeCode"/>
+	    <classpath refid="default.classpath"/>
+	    <include name="**.java"/>
+	</javac>
+    </target>
+
+
+    <target name="classfile">
+	<javac  destdir="${build}"
+		debug="true">
+	    <src path="classfile"/>
+	    <classpath refid="default.classpath"/>
+	    <include name="**.java"/>
+	</javac>
+    </target>
+
+
+    <target name="util">
+	<javac  destdir="${build}"
+		debug="true">
+	    <src path="util"/>
+	    <classpath refid="default.classpath"/>
+	    <include name="**/*.java"/>
+	</javac>
+    </target>
+
+
+    <target name="frontend">
+	<javac  destdir="${build}"
+		debug="true">
+	    <src path="frontend"/>
+	    <classpath refid="default.classpath"/>
+	    <include name="**/*.java"/>
+	</javac>
+    </target>
+
+
+    <target name="satin">
+	<javac  destdir="${build}"
+		debug="true">
+	    <src path="satin"/>
+	    <classpath refid="default.classpath"/>
+	    <include name="**/*.java"/>
+	</javac>
+    </target>
+
+
+    <target name="ns">
+	<javac  destdir="${build}"
+		debug="true">
+	    <src path="ipl/impl/nameServer"/>
+	    <classpath refid="default.classpath"/>
+	    <include name="**/*.java"/>
+	</javac>
+    </target>
+
+
+    <target name="mp">
+	<javac  destdir="${build}"
+		debug="true">
+	    <src path="ipl/impl/messagePassing"/>
+	    <classpath refid="default.classpath"/>
+	    <include name="*.java"/>
+	</javac>
+    </target>
+
+
+    <target name="build-native">
+	<echo message="Invoke ant in ${native.dir}"/>
+	<ant inheritAll="false" dir="${native.dir}">
+	    <property name="native.dir" value="${native.dir}"/>
+	    <property name="build" value="${build}"/>
+	    <property name="ibis" value="${ibis}"/>
+	    <property name="optimization" value="${optimization}"/>
+	</ant>
+    </target>
+
+
+    <target name="natives">
+	    <!-- depends="compile,javah"-->
+	<foreach
+		list="${native.src.path}"
+		delimiter=":"
+		param="native.dir"
+		target="build-native"/>
+    </target>
+
+
+    <target name="build"
+	    description="Build Ibis">
+	<antcall inheritRefs="true" target="compile"/>
+	<antcall inheritRefs="true" target="iogen"/>
+	<antcall inheritRefs="true" target="javah"/>
+	<antcall inheritRefs="true" target="natives"/>
+    </target>
+
+
+    <target name="apps"
+	    depends="build,bcel"
+	    description="Build Ibis apps">
+	<ant dir="apps"/>
+    </target>
+
+
+    <target name="clean">
+	<delete dir="build"/>
+    </target>
+
+
+</project>

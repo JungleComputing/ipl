@@ -1,0 +1,57 @@
+<!DOCTYPE project [
+    <!ENTITY sharedProperties SYSTEM "../../../build-properties.xml">
+    <!ENTITY iogenTargets     SYSTEM "../../../build-iogen.xml">
+    <!ENTITY nativeTargets    SYSTEM "../../../build-native.xml">
+    <!ENTITY javahTargets     SYSTEM "../../../build-javah.xml">
+    <!ENTITY satinTargets     SYSTEM "../../../build-satin.xml">
+]>
+
+<project
+    name="ibis.apps.satin.fib"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis application build.
+    </description>
+
+    <property name="ibis"        location="../../.."/>
+
+    <property name="build"       location="build"/>
+
+    &sharedProperties;
+
+    &iogenTargets;
+    &nativeTargets;
+    &javahTargets;
+    &satinTargets;
+
+    <target name="init">
+	<tstamp/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile"
+	    depends="init">
+	<javac  destdir="${build}"
+		debug="true"
+		srcdir=".">
+	    <classpath refid="default.classpath"/>
+	    <include name="*.java"/>
+	</javac>
+    </target>
+
+    <target name="build"
+	    depends="init">
+	<antcall target="compile"/>
+	<antcall target="satin"/>
+	<antcall target="iogen"/>
+    </target>
+
+    <target name="clean">
+	<delete dir="${build}"/>
+    </target>
+
+</project>
+
+

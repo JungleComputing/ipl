@@ -1,0 +1,90 @@
+    <!--
+    Ibis iogen target.
+
+    Require prior definition of properties:
+    default.classpath refid of classpath
+    build             the root of the build tree, which contains all class files
+    -->
+
+    <target name="property-iogen-build" unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="iogen-init"
+	    depends="property-iogen-build"/>
+
+    <target name="iogen-smart"
+	    depends="iogen-init"
+	    description="iogen all classes that implement java.io.Serializable">
+
+	<path id="all-classes">
+	    <fileset dir="${build}">
+		<include name="**/*.class"/>
+	    </fileset>
+	</path>
+	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
+	    <map from="${build}/" to=""/>
+	</pathconvert>
+	<!--
+	<echo message="List of all class files: ${classes.all}"/>
+	-->
+
+	<java   classname="ibis.util.CheckInterfaces"
+		dir="${build}"
+		output="${build}/SerializableClasses"
+		fork="true">
+	    <arg line="-match java.io.Serializable ${classes.all}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+
+	<replaceregexp
+		byline="true"
+		file="${build}/SerializableClasses"
+		match=".class"
+		replace=""/>
+	<replaceregexp
+		byline="true"
+		file="${build}/SerializableClasses"
+		flags="g"
+		match="/"
+		replace="."/>
+	<loadfile
+		property="serializable-classes"
+		srcFile="${build}/SerializableClasses">
+	    <filterchain>
+		<prefixlines prefix=" "/>
+		<striplinebreaks/>
+	    </filterchain>
+	</loadfile>
+	<!--
+	<echo message="List of serializable classes: ${serializable-classes}"/>
+	-->
+
+	<java   classname="ibis.frontend.io.IOGenerator"
+		dir="${build}"
+		fork="true">
+	    <arg line="-dir ${serializable-classes}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+    </target>
+
+    <target name="iogen"
+	    depends="iogen-init">
+	<path id="all-classes">
+	    <fileset dir="${build}">
+		<include name="**/*.class"/>
+	    </fileset>
+	</path>
+	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
+	    <map from="${build}/" to=""/>
+	</pathconvert>
+	<echo message="Run IOGenerator over all classes under ${build}/"/>
+	<java   classname="ibis.frontend.io.IOGenerator"
+		dir="${build}"
+		fork="true">
+	    <arg line="-dir ${classes.all}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+    </target>

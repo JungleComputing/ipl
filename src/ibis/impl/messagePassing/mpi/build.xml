@@ -1,0 +1,87 @@
+<!DOCTYPE project [
+    <!ENTITY nativeTargets SYSTEM "../../../../build-native.xml">
+]>
+
+<project
+    name="ibis.ipl.impl.messagePassing.mpi.native"
+    default="build"
+    basedir=".">
+
+    <description>
+	Compile natives in this directory
+
+	Expect to inherit the following properties:
+	    native.dir		the directory of this build
+	    ibis		the root of the ibis source tree
+	    native-path		${native.dir} relative to ${ibis}
+	    build		the root of the ibis build tree
+	    default.classpath	a ref property with default classpath
+
+	The shared target definitions require you to define:
+	    local.includes	a property that contains include paths specific
+				to this module
+
+	Optional:
+	    local.lib		the truncated name of the lib you want to create
+    </description>
+
+    &nativeTargets;
+
+    <property name="gm"           location="/usr/local/gm/current"/>
+    <property name="mpi"          location="/usr/local/mpich/mpich-gm"/>
+    <property name="daslib"       location="/usr/local/VU/daslib"/>
+
+    <path id="local.includes-ref">
+	<pathelement path="${native.dir}/../include"/>
+	<pathelement path="${daslib}/include"/>
+	<pathelement path="${mpi}/include"/>
+    </path>
+    <property name="local.includes" refid="local.includes-ref"/>
+
+    <path id="local.libs-ref">
+	<pathelement path="${daslib}/lib/i386_Linux/libdas.a"/>
+	<pathelement path="${gm}/lib/libgm.a"/>
+	<pathelement path="${mpi}/lib/libmpich.a"/>
+    </path>
+    <property name="local.libs" refid="local.libs-ref"/>
+
+    <property name="local.lib" value="ibis_mp_mpi"/>
+
+    <target name="-lib.current">
+	<exec
+		dir="${build}/lib/so"
+		executable="ar">
+	    <arg line="xf ${lib.current}"/>
+	</exec>
+    </target>
+
+    <target name="mpi-lib">
+	<mkdir dir="${build}/lib/so"/>
+	<foreach
+		delimiter=":"
+		list="${local.libs}"
+		param="lib.current"
+		target="-lib.current"/>
+	<copy
+		todir="${build}/lib/so">
+	    <fileset dir="${build}/ibis/${native-path}/.." includes="*.o"/>
+	</copy>
+	<copy
+		todir="${build}/lib/so">
+	    <fileset dir="${build}/ibis/${native-path}" includes="*.o"/>
+	</copy>
+	<cc
+		outfile="${build}/lib/mpi"
+		outtype="shared"
+		warnings="severe"
+		debug="true">
+	    <fileset dir="${build}/lib/so" includes="*.o"/>
+	</cc>
+	<delete dir="${build}/lib/so"/>
+    </target>
+
+    <target name="build"
+	    depends="native-init,native-compile,mpi-lib">
+    </target>
+
+</project>

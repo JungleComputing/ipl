@@ -1,0 +1,36 @@
+<!DOCTYPE project [
+    <!ENTITY nativeTargets SYSTEM "../build-native.xml">
+]>
+
+<project
+    name="ibis.io.native"
+    default="build"
+    basedir=".">
+
+    <description>
+	Compile natives in this directory
+
+	Expect to inherit the following properties:
+	    native.dir		the directory of this build
+	    ibis		the root of the ibis source tree
+	    native-path		${native.dir} relative to ${ibis}
+	    build		the root of the ibis build tree
+	    default.classpath	a ref property with default classpath
+
+	The shared target definitions require you to define:
+	    local.includes	a property that contains include paths specific
+				to this module
+
+	Optional:
+	    local.lib		the truncated name of the lib you want to create
+    </description>
+
+    <property name="local.lib" value="conversion"/>
+
+    &nativeTargets;
+
+    <target name="build"
+	    depends="native-compile">
+    </target>
+
+</project>

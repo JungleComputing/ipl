@@ -1,0 +1,69 @@
+    <!--
+    Ibis satin target.
+
+    Require prior definition of properties:
+    default.classpath refid of classpath
+    build             the root of the build tree, which contains all class files
+    -->
+
+    <target name="property-satin-build" unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="satin-init"
+	    depends="property-satin-build"/>
+
+    <target name="-satin-one">
+	<property name="satin-class-path" refid="default.classpath"/>
+	<echo message="Run Satinc on class ${satin-class}"/>
+	<java   classname="ibis.frontend.satin.Satinc"
+		dir="${build}"
+		fork="true">
+	    <arg line="-v -keep -compiler '${JAVA_HOME}/bin/javac -classpath ${satin-class-path}:' ${satin-class}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+    </target>
+
+    <target name="satin"
+	    depends="satin-init"
+	    description="satin all classes that implement java.io.Serializable">
+
+	<path id="all-classes">
+	    <fileset dir="${build}">
+		<include name="**/*.class"/>
+	    </fileset>
+	</path>
+	<pathconvert pathsep="," property="classes.all" refid="all-classes">
+	    <map from="${build}/" to=""/>
+	</pathconvert>
+	<echo message="${classes.all}" file="${build}/SatinClasses"/>
+	<replaceregexp
+		byline="true"
+		file="${build}/SatinClasses"
+		flags="g"
+		match=".class"
+		replace=""/>
+	<replaceregexp
+		byline="true"
+		file="${build}/SatinClasses"
+		flags="g"
+		match="/"
+		replace="."/>
+	<loadfile
+		property="satin-classes"
+		srcFile="${build}/SatinClasses">
+	</loadfile>
+	<echo message="Run Satinc over all classes under ${build}/"/>
+	<echo message="List of all class files: ${satin-classes}"/>
+	<!--
+	-->
+
+	<foreach
+		list="${satin-classes}"
+		target="-satin-one"
+		param="satin-class">
+	</foreach>
+
+    </target>

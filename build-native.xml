@@ -1,0 +1,125 @@
+    <!--
+	Compile natives in this directory
+
+	Requires prior definition of following properties:
+	    native.dir		the directory of this build
+	    ibis		the root of the ibis source tree
+	    native-path		${native.dir} relative to ${ibis}
+	    build		the root of the ibis build tree
+	    default.classpath	a ref property with default classpath
+
+	The shared target definitions require you to define:
+	    local.includes	a property that contains include paths specific
+				to this module
+
+	Optional:
+	    local.lib		the truncated name of the lib you want to create
+
+    -->
+
+    <target name="property-native-build" unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="property-native-local.lib" unless="local.lib">
+	<echo message="local.lib is undefined. Set it to the default value"/>
+	<property name="local.lib" value="ibis"/>
+    </target>
+
+
+    <taskdef resource="cpptasks.tasks">
+	<classpath>
+	    <pathelement location="${ibis}/ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
+	</classpath>
+    </taskdef>
+    <typedef resource="cpptasks.types">
+	<classpath>
+	    <pathelement location="${ibis}/ant-cpptasks/cpptasks-1.0b1/cpptasks.jar"/>
+	</classpath>
+    </typedef>
+
+
+    <property environment="env"/>
+    <property name="JAVA_HOME"    value="${env.JAVA_HOME}"/>
+
+
+    <path id="default.includes-ref">
+	<pathelement path="${JAVA_HOME}/include"/>
+	<pathelement path="${JAVA_HOME}/include/linux"/>
+	<pathelement path="${build}/include"/>
+	<pathelement path="${native.dir}"/>
+    </path>
+    <property name="default.includes" refid="default.includes-ref"/>
+
+    <target name="native-init"
+	    depends="property-native-build,property-native-local.lib">
+	<mkdir dir="${build}"/>
+	<mkdir dir="${build}/include"/>
+	<mkdir dir="${build}/lib"/>
+
+	<pathconvert pathsep=" " property="native-path">
+	    <path>
+		<pathelement path="${native.dir}"/>
+	    </path>
+	    <map from="${ibis}/" to=""/>
+	</pathconvert>
+
+	<mkdir dir="${build}/ibis/${native-path}"/>
+
+	<echo message="${native-path}" file="${build}/ibis/${native-path}/package"/>
+	<replaceregexp
+		byline="true"
+		file="${build}/ibis/${native-path}/package"
+		flags="g"
+		match="/"
+		replace="_"/>
+	<replaceregexp
+		byline="true"
+		file="${build}/ibis/${native-path}/package"
+		match=""
+		replace="ibis_"/>
+
+	<loadfile
+		property="package"
+		srcFile="${build}/ibis/${native-path}/package"/>
+	<property name="local.lib" value="${package}"/>
+
+	<condition property="native.debug">
+	    <equals arg1="${optimization}" arg2="debug"/>
+	</condition>
+	<condition property="native.optimize">
+	    <equals arg1="${optimization}" arg2="optimize"/>
+	</condition>
+	<echo message="optimization = ${optimization}"/>
+	<echo message="native.debug = ${native.debug}"/>
+	<echo message="native.optimize = ${native.optimize}"/>
+    </target>
+
+
+    <compiler name="gcc"/>
+
+    <target name="native-compile"
+	    depends="native-init">
+
+	<echo message="Invoke cc in ${native.dir}/"/>
+	<echo message="Lib is ${build}/lib ${local.lib}"/>
+	<cc	debug="true"
+		objdir="${build}/ibis/${native-path}"
+		outfile="${build}/lib/${local.lib}"
+		outtype="shared"
+		warnings="severe">
+	    <fileset dir="${native.dir}" includes="*.c"/>
+	    <defineset>
+		<define name="NDEBUG" if="native.optimize"/>
+	    </defineset>
+	    <compilerarg value="-O3" if="native.optimize"/>
+	    <includepath>
+		<pathelement path="${local.includes}"/>
+		<pathelement path="${default.includes}"/>
+	    </includepath>
+	    <!-- <compilerarg location="mid" value="-E"/> -->
+	    <!-- <compilerarg location="mid" value="-v"/> -->
+	</cc>
+    </target>
