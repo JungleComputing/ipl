@@ -5,10 +5,9 @@
  * interface the class can be handled by the Satin divide-and-conquer parallel
  * execution framework.
  */
-import java.io.File;
-import java.io.IOException;
 
 interface CompressorInterface extends ibis.satin.Spawnable
 {
-    public int evaluateMove( byte text[], int pos, CompressContext ctx, int move, int depth );
+    public Backref evaluateBackref( final byte text[], final int backrefs[], int backpos, int pos, int depth );
+    public Backref selectBestMove( byte text[], int backrefs[], int pos, int depth );
 }

@@ -2,7 +2,7 @@
 
 import java.io.File;
 
-class Compress extends ibis.satin.SatinObject
+class Compress extends ibis.satin.SatinObject implements CompressorInterface
 {
     static final boolean traceMatches = false;
 
@@ -33,10 +33,12 @@ class Compress extends ibis.satin.SatinObject
         int backpos = backrefs[pos];
         while( backpos>=0 ){
             if( backpos<pos-Configuration.MINIMAL_SPAN ){
-                // This is a sensible backref.
-                // TODO: We could verify that at least the minimal span
-                // is equal.
-                n++;
+                if( text[backpos+1] == text[pos+1] && text[backpos+2] == text[pos+2] ){
+                    // This is a sensible backref.
+                    // TODO: We could verify that at least the minimal span
+                    // is equal.
+                    n++;
+                }
             }
             backpos = backrefs[backpos];
         }
@@ -45,14 +47,16 @@ class Compress extends ibis.satin.SatinObject
         n = 0;
         while( backpos>=0 ){
             if( backpos<pos-Configuration.MINIMAL_SPAN ){
-                res[n++] = backpos;
+                if( text[backpos+1] == text[pos+1] && text[backpos+2] == text[pos+2] ){
+                    res[n++] = backpos;
+                }
             }
             backpos = backrefs[backpos];
         }
         return res;
     }
 
-    public Backref evaluateBackref( byte text[], int backrefs[], int backpos, int pos, int depth )
+    public Backref evaluateBackref( final byte text[], final int backrefs[], int backpos, int pos, int depth )
     {
         Backref r = new Backref();
 
@@ -64,6 +68,11 @@ class Compress extends ibis.satin.SatinObject
             if( traceMatches ){
                 System.out.println( "A match " + r + " at " + pos );
             }
+            if( r.gain>0 && depth<Configuration.LOOKAHEAD_DEPTH ){
+                Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
+                sync();
+                r.gain += m.gain;
+            }
         }
         return r;
     }
@@ -71,27 +80,34 @@ class Compress extends ibis.satin.SatinObject
     public Backref selectBestMove( byte text[], int backrefs[], int pos, int depth )
     {
         // We always have the choice to just copy the character.
-        Backref mv = new Backref();
+        Backref mv;
 
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
-            return mv;
+            return new Backref();
         }
         int sites[] = collectBackrefs( text, backrefs, pos );
-        if( sites.length>0 ){
-            // If we have more choices, evaluate them ...
-            Backref results[] = new Backref[sites.length];
-            for( int i=0; i<sites.length; i++ ){
-                results[i] = evaluateBackref( text, backrefs, sites[i], pos, depth );
-            }
-            sync();
+        Backref results[] = new Backref[sites.length];
+        if( depth<Configuration.LOOKAHEAD_DEPTH ){
+            mv = selectBestMove( text, backrefs, pos+1, depth+1 );
+        }
+        else {
+            mv = new Backref();
+        }
+        for( int i=0; i<sites.length; i++ ){
+            results[i] = evaluateBackref( text, backrefs, sites[i], pos, depth );
+        }
+        sync();
 
-            // .. and pick the best one.
-            for( int i=0; i<results.length; i++ ){
-                Backref r = results[i];
+        // Transform the move from the recursion to our `copy character'
+        // move, but keep the gain.
+        mv.backpos = -1;
 
-                if( r.gain>mv.gain ){
-                    mv = r;
-                }
+        // .. and try to improve on it by picking a backref move.
+        for( int i=0; i<results.length; i++ ){
+            Backref r = results[i];
+
+            if( r.gain>mv.gain ){
+                mv = r;
             }
         }
         return mv;
@@ -104,7 +120,7 @@ class Compress extends ibis.satin.SatinObject
         ByteBuffer out = new ByteBuffer();
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
             Backref mv = selectBestMove( text, backrefs, pos, 0 );
-            // TODO: calculate the gain of just copying the character.
+            sync();
             if( mv.backpos<0 ){
                 // There is no backreference that gives any gain, so
                 // just copy the character.

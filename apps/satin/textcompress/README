@@ -1,0 +1,15 @@
+This directory contains a simple text compressor that uses backreferences
+to previous text as compression method. It looks ahead for a number of
+compression steps to select the best sequence of backreferences.
+
+usage:
+
+Compress <input-file> <output-file>
+
+There is also a de-compressor:
+
+Decompress <input-file> <output-file>
+
+Configuration.LOOKAHEAD_DEPTH determines the number of look-ahead moves.
+Beware that some types of text (e.g. source code) may cause a much larger
+number of possibilities.
