@@ -193,7 +193,7 @@ public final class Satinc {
 
 	il.append(ins_f.createNew(satinType));
 	il.append(new DUP());
-	il.append(new ALOAD(0));
+	InstructionHandle argv_handle = il.append(new ALOAD(0));
 	il.append(ins_f.createInvoke("ibis.satin.Satin",
 				     "<init>",
 				     Type.VOID,
@@ -295,7 +295,7 @@ public final class Satinc {
 	new_main.setMaxStack();
 	new_main.setMaxLocals();
 
-	new_main.addLocalVariable("argv", new ArrayType(Type.STRING, 1), 0, null, null);
+	new_main.addLocalVariable("argv", new ArrayType(Type.STRING, 1), 0, argv_handle, null);
 
 	Method main = new_main.getMethod();
 	gen_c.addMethod(main);
@@ -1073,23 +1073,19 @@ System.out.println("findMethod: could not find method " + name + sig);
 				     spawnCounterType,
 				     Type.NO_ARGS,
 				     Constants.INVOKESTATIC));
-	il.insert(insertAllocPos, new ASTORE(maxLocals));
-	m.addLocalVariable("spawn_counter", spawnCounterType, maxLocals, null, null);
+	m.addLocalVariable("spawn_counter", spawnCounterType, maxLocals, il.insert(insertAllocPos, new ASTORE(maxLocals)), null);
 
 	// Allocate and init outstandingSpawns at slot maxLocals+1 
 	il.insert(insertAllocPos, new ACONST_NULL());
-	il.insert(insertAllocPos, new ASTORE(maxLocals+1));
-	m.addLocalVariable("outstanding_spawns", irType, maxLocals+1, null, null);
+	m.addLocalVariable("outstanding_spawns", irType, maxLocals+1, il.insert(insertAllocPos, new ASTORE(maxLocals+1)), null);
 
 	// Allocate and init curr at slot maxLocals+2 
 	il.insert(insertAllocPos, new ACONST_NULL());
-	il.insert(insertAllocPos, new ASTORE(maxLocals+2));
-	m.addLocalVariable("current", irType, maxLocals+2, null, null);
+	m.addLocalVariable("current", irType, maxLocals+2, il.insert(insertAllocPos, new ASTORE(maxLocals+2)), null);
 
 	// Allocate and init curr at slot maxLocals+3 
 	il.insert(insertAllocPos, new ACONST_NULL());
-	il.insert(insertAllocPos, new ASTORE(maxLocals+3));
-	m.addLocalVariable("local_record", new ObjectType("ibis.satin.LocalRecord"), maxLocals+3, null, null);
+	m.addLocalVariable("local_record", new ObjectType("ibis.satin.LocalRecord"), maxLocals+3, il.insert(insertAllocPos, new ASTORE(maxLocals+3)), null);
 
 	for (InstructionHandle i = insertAllocPos; i != null; i = i.getNext()) {
 	    if (i.getInstruction() instanceof ReturnInstruction) {
@@ -1284,10 +1280,10 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    lv[i].setIndex(lv[i].getIndex() + localsShift);
 	}
 
-	m.addLocalVariable("spawn_id", Type.INT, spawnIdPos, null, null);
-	m.addLocalVariable("local_record", new ObjectType(localRecordName(mOrig)), localRecordPos, null, null);
-	m.addLocalVariable("excpt", new ObjectType("java.lang.Throwable"), exceptionPos, null, null);
-	m.addLocalVariable("parent", irType, parentPos, null, null);
+	m.addLocalVariable("spawn_id", Type.INT, spawnIdPos, startLocalPos, null);
+	m.addLocalVariable("local_record", new ObjectType(localRecordName(mOrig)), localRecordPos, startLocalPos, null);
+	m.addLocalVariable("excpt", new ObjectType("java.lang.Throwable"), exceptionPos, startLocalPos, null);
+	m.addLocalVariable("parent", irType, parentPos, startLocalPos, null);
 
 	// At pos 'startPos', the new of the local record starts.
 	// Delete it, and replace with assignment from param
@@ -1376,9 +1372,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 				     paramtypes,
 				     Constants.INVOKESTATIC));
 
-	il.insert(pos, new ASTORE(maxLocals));
-
-	m.addLocalVariable("local_record", local_record_type, maxLocals, null, null);
+	m.addLocalVariable("local_record", local_record_type, maxLocals, il.insert(pos, new ASTORE(maxLocals)), null);
 
 	for (InstructionHandle i=pos; i != null; i = i.getNext()) {
 
