@@ -197,8 +197,9 @@
     <target name="jar"
 	    depends="build"
 	    description="Build a Jar file for an application">
-	    <jar destfile="${builddir}/appl.jar"
-		 basedir="${builddir}"
+	    <basename file="." property="application-name"/>
+	    <jar destfile="${build}/${application-name}.jar"
+		 basedir="${build}"
 		 includes="**/*.class"/>
     </target>
 

@@ -8,11 +8,9 @@
     <import file="${ibis}/build-native.xml"/>
     <import file="${ibis}/apps/build-run.xml"/>
 
-    <property name="builddir" location="${build}"/>
-
     <target name="init" depends="property-init">
 	<tstamp/>
-	<mkdir dir="${builddir}"/>
+	<mkdir dir="${build}"/>
 	<!--
 	<echo message="os.name = ${os.name} os.arch = ${os.arch}"/>
 	<echo message="user.name = ${user.name} user.dir = ${user.dir}"/>
@@ -23,7 +21,7 @@
     <target name="compile"
 	    depends="init"
 	    description="Compile without Ibis-serialization rewriting">
-	<javac  destdir="${builddir}"
+	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
@@ -38,17 +36,9 @@
 	<antcall target="iogen"/>
     </target>
 
-    <target name="jar"
-	    depends="build"
-	    description="Build a Jar file for an application">
-	    <jar destfile="${builddir}/appl.jar"
-		 basedir="${builddir}"
-		 includes="**/*.class"/>
-    </target>
-
     <target name="clean"
 	    description="Clean up the build">
-	<delete dir="${builddir}"/>
+	<delete dir="${build}"/>
     </target>
 
 </project>

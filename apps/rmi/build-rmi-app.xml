@@ -17,8 +17,6 @@
 	<property name="build" value="build"/>
     </target>
 
-    <property name="builddir" location="${build}"/>
-
     <target name="rmic-init"
 	    depends="property-rmic-build,property-init"/>
 
@@ -39,13 +37,13 @@
 	    </else>
 	</if>
 	<path id="all-classes">
-	    <fileset dir="${builddir}">
+	    <fileset dir="${build}">
 		<include name="**/*.class"/>
 		<include name="ibis/ipl/*.class"/>
 	    </fileset>
 	</path>
 	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${builddir}${file.separator}" to=""/>
+	    <map from="${build}${file.separator}" to=""/>
 	</pathconvert>
 
 	<!--
@@ -74,17 +72,17 @@
 	<echo	level="debug"
 		message="All classes to be rewritten: ${rmic-classes}"/>
 	<echo	level="debug"
-		message="Run ibis rmic over all classes under ${builddir}${file.separator}"/>
+		message="Run ibis rmic over all classes under ${build}${file.separator}"/>
 	<java   classname="ibis.frontend.rmi.Main"
 		taskname="ibis rmic"
-		dir="${builddir}"
+		dir="${build}"
 		failonerror="true"
 		fork="true">
 		<arg line="${rmic-flags.value} -dir -java2ibis ${rmic-classes}"/>
 	    <classpath refid="default.classpath"/>
 	</java>
-	<javac	destdir="${builddir}"
-		srcdir="${builddir}">
+	<javac	destdir="${build}"
+		srcdir="${build}">
 	    <include name="**/rmi_stub_*.java"/>
 	    <include name="**/rmi_skeleton_*.java"/>
 	    <classpath refid="default.classpath"/>
@@ -98,12 +96,12 @@
 	    -->
 
 	<path id="all-classes">
-	    <fileset dir="${builddir}">
+	    <fileset dir="${build}">
 		<include name="**/*.class"/>
 	    </fileset>
 	</path>
 	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${builddir}${file.separator}" to=""/>
+	    <map from="${build}${file.separator}" to=""/>
 	</pathconvert>
 
 	<!--
@@ -132,10 +130,10 @@
 	<echo   level="debug"
 		message="All classes to be inspected: ${rmic-classes}"/>
 	<echo   level="debug"
-		message="Run frontend.rmi.Main -n -java over all classes under ${builddir}${file.separator}"/>
+		message="Run frontend.rmi.Main -n -java over all classes under ${build}${file.separator}"/>
 	<java   classname="ibis.frontend.rmi.Main"
 		taskname="rmic locator"
-		dir="${builddir}"
+		dir="${build}"
 		failonerror="true"
 		fork="true"
 		output="${build}/-REMOTE-Classes">
@@ -164,7 +162,7 @@
 
 	<echo   level="debug"
 		message="Now run sun.rmic over '${remote.classes}'"/>
-	<rmic   base="${builddir}"
+	<rmic   base="${build}"
 		includes="${remote.classes}">
 	    <classpath refid="default.classpath"/>
 	</rmic>
@@ -180,12 +178,12 @@
 	    -->
 
 	<path id="all-classes">
-	    <fileset dir="${builddir}">
+	    <fileset dir="${build}">
 		<include name="**/*.class"/>
 	    </fileset>
 	</path>
 	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${builddir}${file.separator}" to=""/>
+	    <map from="${build}${file.separator}" to=""/>
 	</pathconvert>
 
 	<!--
@@ -214,10 +212,10 @@
 	<echo   level="warning"
 		message="All classes to be inspected: ${rmic-classes}"/>
 	<echo   level="warning"
-		message="Run frontend.rmi.Main -n -karmi over all classes under ${builddir}${file.separator}"/>
+		message="Run frontend.rmi.Main -n -karmi over all classes under ${build}${file.separator}"/>
 	<java   classname="ibis.frontend.rmi.Main"
 		taskname="rmic locator"
-		dir="${builddir}"
+		dir="${build}"
 		failonerror="true"
 		fork="true"
 		output="${build}/-REMOTE-Classes">
@@ -233,10 +231,10 @@
 		message="Now run karmic over '${remote.classes}'"/>
 	<property name="expanded-classpath" refid="default.classpath"/>
 	<exec	executable="${karmi}/bin/karmic">
-	      <arg line="-classpath ${expanded-classpath} -d ${builddir} ${remote.classes}"/>
+	      <arg line="-classpath ${expanded-classpath} -d ${build} ${remote.classes}"/>
 	</exec>
 	<!--
-	<rmic   base="${builddir}"
+	<rmic   base="${build}"
 		includes="${remote.classes}"
 		compiler="${ibis}/karmi/karmi-transport-1.07g/bin/karmic">
 	    <classpath refid="default.classpath"/>
@@ -246,7 +244,7 @@
 
     <target name="init" depends="property-init">
 	<tstamp/>
-	<mkdir dir="${builddir}"/>
+	<mkdir dir="${build}"/>
 	<!--
 	<echo message="os.name = ${os.name} os.arch = ${os.arch}"/>
 	<echo message="user.name = ${user.name} user.dir = ${user.dir}"/>
@@ -259,7 +257,7 @@
 	<property name="class-path" refid="default.classpath"/>
 	<echo   message="class path ${class-path}"/>
 
-	<javac  destdir="${builddir}"
+	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir=".:../shared">
 	    <classpath refid="default.classpath"/>
@@ -317,17 +315,9 @@
 		value="java.rmi"/>
     </target>
 
-    <target name="jar"
-	    depends="build"
-	    description="Build a Jar file for an application">
-	    <jar destfile="${builddir}/appl.jar"
-		 basedir="${builddir}"
-		 includes="**/*.class"/>
-    </target>
-
     <target name="clean"
 	    description="Clean up the build">
-	<delete dir="${builddir}"/>
+	<delete dir="${build}"/>
     </target>
 
 </project>
