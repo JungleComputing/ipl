@@ -80,7 +80,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		}
 
 		// Create a server socket.
-		serverSocket = IbisSocketFactory.createServerSocket(port, false);
+		serverSocket = IbisSocketFactory.createServerSocket(port, true);
        		       
 		pools = new Hashtable();
 
@@ -256,11 +256,14 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 					    System.err.println("NameServer: leave from pool " + key + " of ibis " + id.toString() + " accepted");
 				    }
 
-				    p.pool.remove(index);
-
-				    for (int i=0;i<p.pool.size();i++) { 
+				    // Also forward the leave to the requester.
+				    // It is used as an acknowledgement, and
+				    // the leaver is only allowed to exit when it
+				    // has received its own leave message.
+				    for (int i=0; i<p.pool.size(); i++) { 
 					    forwardLeave((IbisInfo) p.pool.get(i), id);
 				    } 
+				    p.pool.remove(index);
 
 				    System.out.println("LEAVE: pool " + key + " now contains " + p.pool.size() + " nodes");
 
@@ -274,7 +277,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 				    } 				
 			    } else { 
 				    System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " tried to leave");
-			    } 
+			    }
 
 			    out.writeByte(0);
 			    out.flush();
