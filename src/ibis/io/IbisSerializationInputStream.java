@@ -36,9 +36,14 @@ public class IbisSerializationInputStream
     private static java.util.Hashtable nonRewritten = new java.util.Hashtable();
 
     // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
-    private static Unsafe unsafe = Unsafe.getUnsafe();
+    private static Unsafe unsafe = null;
 
     static {
+	try {
+	    unsafe = Unsafe.getUnsafe();
+	} catch(Exception e) {
+	    unsafe = null;
+	}
 	if (STATS_NONREWRITTEN) {
 	    System.out.println("IbisSerializationInputStream.STATS_NONREWRITTEN enabled");
 	    Runtime.getRuntime().addShutdownHook(new Thread("IbisSerializationInputStream ShutdownHook") {
