@@ -67,11 +67,26 @@ def registerLog( arg ):
             Tcomm[P][g] = int( tc )
             Tadmin[P][g] = int( ta )
 
+def isRepeat( A, gen ):
+    for P in range( knownMembers ):
+        if A[P][gen-1] != A[P][gen]:
+            return 0
+    return 1
+
 def dumpArray( A ):
+    repeats = 0
     for gen in range( knownGenerations ):
-        for P in range( knownMembers ):
-            print "%4d " % A[P][gen],
-        print  ""
+        if gen>0 and isRepeat( A, gen ):
+            repeats = repeats+1
+        else:
+            if repeats>0:
+                print "(repeated %d times)" % repeats
+            repeats = 0
+            for P in range( knownMembers ):
+                print "%4d " % A[P][gen],
+            print  ""
+    if repeats>0:
+        print "(repeated %d times)" % repeats
 
 def main():
     for arg in sys.argv[1:]:
@@ -89,11 +104,11 @@ def main():
     print "sentRight"
     dumpArray( sentRight )
     print 
-    print "Tcomm"
-    dumpArray( Tcomm )
-    print 
     print "Tcomp"
     dumpArray( Tcomp )
+    print 
+    print "Tcomm"
+    dumpArray( Tcomm )
     print 
     print "Tadmin"
     dumpArray( Tadmin )

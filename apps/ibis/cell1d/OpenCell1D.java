@@ -14,7 +14,7 @@ interface OpenConfig {
     static final boolean showProgress = false;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = false;
-    static final boolean traceLoadBalancing = true;
+    static final boolean traceLoadBalancing = false;
     static final int DEFAULTBOARDSIZE = 4000;
     static final int GENERATIONS = 30;
     static final int SHOWNBOARDWIDTH = 60;
