@@ -268,7 +268,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	synchronized boolean connectionAllowed(TcpSendPortIdentifier id) { 
 		if (started) { 
-			if(connectionAdministration) {
+			if(connectionAdministration) {				
 				if (connUpcall != null) {
 					if (! connUpcall.gotConnection(this, id)) {
 						return false;

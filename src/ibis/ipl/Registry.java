@@ -9,6 +9,7 @@ import java.io.IOException;
  */
 public interface Registry {	
 
+	
     /**
      * Locates the {@link ibis.ipl.ReceivePortIdentifier ReceivePortIdentifier}
      * that has been bound to the specified <code>name</code>.
@@ -99,6 +100,9 @@ public interface Registry {
     public Object elect(String election, Object candidate)
 	throws IOException, ClassNotFoundException;
 
+    public Object reelect(String election, Object candidate, Object formerRuler) 
+	throws IOException, ClassNotFoundException;		
+	
     /**
      * Binds the specified name to the specified identifier.
      * If the name already is bound, an exception is thrown.

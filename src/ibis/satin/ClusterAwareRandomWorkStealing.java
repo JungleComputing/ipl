@@ -1,10 +1,15 @@
 package ibis.satin;
 
+import ibis.ipl.IbisIdentifier;
+
 class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol, Config {
     Satin satin;
 
     boolean gotAsyncStealReply = false;
     InvocationRecord asyncStolenJob = null;
+    
+    IbisIdentifier asyncCurrentVictim = null;
+    boolean asyncCurrentVictimCrashed = false;
 
     private long asyncStealAttempts = 0;
     private long asyncStealSuccess = 0;
@@ -24,6 +29,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol, Conf
 	InvocationRecord todo;
 	Victim lv;
 	Victim rv = null;
+	boolean canDoAsync = true;
 
 	//check asyncStealInProgress, taking a lock is quite expensive..
 	if (asyncStealInProgress) {
@@ -33,12 +39,14 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol, Conf
 		}
 	    }
 	}
+	    
 		
 	//		todo = satin.q.getFromHead(); //try the local queue
 	//		if (todo != null) {
 	//			satin.callSatinFunction(todo);
 	//			return;
 	//		} else 
+	
 	if (asyncQ != null) { //try a saved async job
 
 	    /**
@@ -61,15 +69,29 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol, Conf
 
 	synchronized(satin) {
 	    lv = satin.victims.getRandomLocalVictim();
+	    if (lv != null) {
+		satin.currentVictim = lv.ident;
+	    }
 	    if(!asyncStealInProgress) {
 		rv = satin.victims.getRandomRemoteVictim();
-	    }
+		if (rv != null) {
+		    asyncCurrentVictim = rv.ident;
+		}
+	    } 		
+	    if (FAULT_TOLERANCE) {
+		//until we download the table, only the cluster coordinator can issue wide-area steal requests
+		if (satin.getTable && !satin.clusterCoordinator) {
+		    canDoAsync = false;
+		}
+	    } 
 	}
 		
 	if(rv != null) {
-	    asyncStealInProgress = true;
-	    if(STEAL_STATS) asyncStealAttempts++;
-	    satin.sendStealRequest(rv, false, false);
+	    if (!FAULT_TOLERANCE || canDoAsync) {		
+		asyncStealInProgress = true;
+		if(STEAL_STATS) asyncStealAttempts++;	    
+		satin.sendStealRequest(rv, false, false);
+	    }
 	}
 
 	if (lv != null) {
@@ -102,6 +124,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol, Conf
     final private void processAsyncStolenJob() {
 	gotAsyncStealReply = false;
 	asyncStealInProgress = false;
+	asyncCurrentVictim = null;
 		
 	if (STEAL_STATS && asyncStolenJob != null) {
 	    asyncStealSuccess++;
@@ -113,14 +136,19 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol, Conf
 	switch(opcode) {
 	case STEAL_REPLY_SUCCESS:
 	case STEAL_REPLY_FAILED:
+	case STEAL_REPLY_SUCCESS_TABLE:
+	case STEAL_REPLY_FAILED_TABLE:
 	    synchronized(satin) {
 		satin.gotStealReply = true;
 		satin.stolenJob = ir;
+		satin.currentVictim = null;
 		satin.notifyAll();
 	    }
 	    break;
 	case ASYNC_STEAL_REPLY_SUCCESS:
 	case ASYNC_STEAL_REPLY_FAILED:
+	case ASYNC_STEAL_REPLY_SUCCESS_TABLE:
+	case ASYNC_STEAL_REPLY_FAILED_TABLE:
 	    synchronized(this) {
 		gotAsyncStealReply = true;
 		asyncStolenJob = ir;
@@ -158,4 +186,32 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol, Conf
 		    + " %)");
 
     }		
+    
+    /**
+     * Used in fault tolerance; if the owner of the asynchronously stolen job crashed,
+     * abort the job
+     */
+    public void killOwnedBy(IbisIdentifier owner) {
+	if (asyncQ != null) {
+	    if (asyncQ.owner.equals(owner)) {
+		asyncQ = null;
+	    }
+	}
+    }
+    
+    /**
+     * Used in fault tolerance; check if the asynchronous steal victim crashed;
+     * if so, cancel the steal request; if the job already arrived, remove it
+     * (it should be aborted anyway, since it was stolen from a crashed machine)
+     */
+    public void checkAsyncVictimCrash(IbisIdentifier crashedIbis) {
+	if (ASSERTS) {
+	    Satin.assertLocked(satin);
+	}
+	if (crashedIbis.equals(asyncCurrentVictim)) {
+	    /* current async victim crashed, reset the flag, remove the stolen job */
+	    asyncStealInProgress = false;
+	    asyncQ = null;
+	}
+    }
 }

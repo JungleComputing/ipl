@@ -67,7 +67,7 @@ final class DEQueueNormal extends DEQueue implements Config {
   		}
 	}
 
-	void addtoTail(InvocationRecord o) {
+	void addToTail(InvocationRecord o) {
 		if(ASSERTS && length > 10000) {
 			System.err.println("LARGE Q");
 		}
@@ -155,6 +155,9 @@ final class DEQueueNormal extends DEQueue implements Config {
 				if(ABORT_STATS) {
 					satin.abortedJobs++;
 				}
+				if(FT_ABORT_STATS) {
+					satin.killedOrphans++;
+				}
 				curr.aborted = true;
 
 				// Curr is removed, but not put back in cache.
@@ -165,6 +168,40 @@ final class DEQueueNormal extends DEQueue implements Config {
 			}
 
 			curr = curr.qprev; // This is correct, even if curr was just removed.
+		}
+	}
+	
+	/**
+	 * Used for fault-tolerance
+	 * Aborts all the descendents of any job stolen for the given (crashed) processor
+	 * @param owner IbisIdentifier of the processor whose jobs (and their descendents) will be aborted
+	 */
+	 
+	void killSubtreeOf(ibis.ipl.IbisIdentifier owner) {
+		if (ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+		
+		InvocationRecord curr = tail;
+		while (curr != null) {
+			if ((curr.parent != null && curr.parent.aborted) ||
+			Satin.isDescendentOf1(curr, owner) ||
+			curr.owner.equals(owner)) //shouldn't happen
+			{
+			    curr.spawnCounter.value--;
+			    if (ASSERTS && curr.spawnCounter.value < 0) {
+				System.out.println("Just made spawncouter < )");
+				new Exception().printStackTrace();
+				System.exit(1);
+			    }
+			    curr.aborted = true;
+			    if (FT_ABORT_STATS) {
+				satin.killedOrphans ++;
+			    }
+			    removeElement(curr);
+			}
+			
+			curr = curr.qprev;
 		}
 	}
 }

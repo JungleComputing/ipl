@@ -1,7 +1,6 @@
 package ibis.frontend.satin;
 
 import ibis.util.RunProcess;
-
 import java.io.BufferedOutputStream;
 import java.io.OutputStream;
 import java.io.FilterOutputStream;
@@ -44,6 +43,7 @@ import org.apache.bcel.generic.GOTO;
 import org.apache.bcel.generic.IADD;
 import org.apache.bcel.generic.ICONST;
 import org.apache.bcel.generic.IFEQ;
+import org.apache.bcel.generic.IFNE;
 import org.apache.bcel.generic.IFNONNULL;
 import org.apache.bcel.generic.IFNULL;
 import org.apache.bcel.generic.IF_ICMPNE;
@@ -120,6 +120,7 @@ public final class Satinc {
     boolean supportAborts;
     boolean inletOpt;
     boolean spawnCounterOpt;
+    boolean faultTolerance;
     MethodTable mtab;
     boolean failed_verification = false;
     private static boolean toplevel = true;
@@ -203,7 +204,9 @@ public final class Satinc {
     private static Vector javalist = new Vector();
 
     public Satinc(boolean verbose, boolean local, boolean verify, boolean keep, boolean print, boolean invocationRecordCache,
-           String classname, String compiler, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt) {
+           String classname, String compiler, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt,
+	   boolean faultTolerance) {
+
 	this.verbose = verbose;
 	this.verify = verify;
 	this.keep = keep;
@@ -215,6 +218,7 @@ public final class Satinc {
 	this.supportAborts = supportAborts;
 	this.inletOpt = inletOpt;
 	this.spawnCounterOpt = spawnCounterOpt;
+	this.faultTolerance = faultTolerance;
 
 	c = Repository.lookupClass(classname);
 
@@ -315,6 +319,9 @@ public final class Satinc {
 				     Type.NO_ARGS,
 				     Constants.INVOKEVIRTUAL));
 	BranchHandle ifcmp = il.append(new IFEQ(null));
+	//fault tolerance
+	InstructionHandle origMain_handle = 
+	//
 	il.append(getSatin(ins_f));
 	il.append(ins_f.createInvoke("ibis.satin.Satin",
 				     "getMainArgs",
@@ -375,6 +382,17 @@ public final class Satinc {
 				     Type.VOID,
 				     Type.NO_ARGS,
 				     Constants.INVOKEVIRTUAL));
+	// fault tolerance
+	if (faultTolerance) {
+	    il.append(getSatin(ins_f));
+	    il.append(ins_f.createInvoke("ibis.satin.Satin",
+				        "isMaster",
+				        Type.BOOLEAN,
+				        Type.NO_ARGS,
+				        Constants.INVOKEVIRTUAL));
+	    il.append(new IFNE(origMain_handle));
+	}
+	//
 
 	InstructionHandle gto_target = il.append(getSatin(ins_f));
 	try_end.setTarget(gto_target);
@@ -477,6 +495,15 @@ public final class Satinc {
     String returnRecordName(Method m, String classname) {
 	return ("Satin_" + classname + "_" + do_mangle(m) + "_ReturnRecord").replace('.', '_');
     }
+    
+    String parameterRecordName(Method m, String classname) {
+	return ("Satin_" + c.getClassName() + "_" + do_mangle(m) + "_ParameterRecord").replace('.','_');
+    }
+
+/*    String resultRecordName(Method m, String classname) {
+	return ("Satin_" + c.getClassName() + "_" + do_mangle(m) + "_ResultRecord").replace('.','_');
+    }*/
+
 
     void insertAllDeleteLocalRecords(MethodGen m) {
 	int maxLocals = m.getMaxLocals();
@@ -765,7 +792,7 @@ public final class Satinc {
 	il.insert(pos, new IFNONNULL(firstJumpPos.getNext()));
 
 	// only for aborts: add an if when this job may be aborted
-	if (supportAborts) {
+	if (supportAborts || faultTolerance) {
 	    if (verbose) {
 		System.out.println("outputting post-sync aborted check for " + m);
 	    }
@@ -1353,7 +1380,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	LocalVariableInstruction curr = (LocalVariableInstruction)(i.getInstruction());
 	Type type = mtab.getLocalType(m, curr, i.getPosition());
 	String name = mtab.getLocalName(m, curr, i.getPosition());
-	String fieldName = MethodTable.generatedLocalName(type, name);
+	String fieldName = mtab.generatedLocalName(type, name);
 
 	i.setInstruction(new ALOAD(maxLocals));
 	i = i.getNext();
@@ -1376,7 +1403,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	LocalVariableInstruction curr = (LocalVariableInstruction)(i.getInstruction());
 	Type type = mtab.getLocalType(m, curr, i.getPosition());
 	String name = mtab.getLocalName(m, curr, i.getPosition());
-	String fieldName = MethodTable.generatedLocalName(type, name);
+	String fieldName = mtab.generatedLocalName(type, name);
 
 	i.setInstruction(new ALOAD(maxLocals));
 	i = i.getNext();
@@ -1622,13 +1649,13 @@ System.out.println("findMethod: could not find method " + name + sig);
 		    il.insert(i, new DUP());
 
 		    il.insert(i, ins_f.createFieldAccess(localClassName,
-							 MethodTable.generatedLocalName(fieldType, fieldName),
+							 mtab.generatedLocalName(fieldType, fieldName),
 							 fieldType,
 							 Constants.GETFIELD));
 		    il.insert(i, new BIPUSH((byte)val));
 		    il.insert(i, new IADD());
 		    i = il.insert(i, ins_f.createFieldAccess(localClassName,
-							 MethodTable.generatedLocalName(fieldType, fieldName),
+							 mtab.generatedLocalName(fieldType, fieldName),
 							 fieldType,
 							 Constants.PUTFIELD));
 		} else {
@@ -1792,6 +1819,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    if (mtab.isSpawnable(methods[i], c)) {
 		writeInvocationRecord(methods[i], base, classname);
 		writeReturnRecord(methods[i], base, classname);
+		writeParameterRecord(methods[i], base, classname);
+//		writeResultRecord(methods[i], base, classname);
 		
 		compileGenerated(invocationRecordName(methods[i], classname));
 		if (!keep) { // remove generated files 
@@ -1802,6 +1831,17 @@ System.out.println("findMethod: could not find method " + name + sig);
 		if (!keep) { // remove generated files 
 		    removeFile(returnRecordName(methods[i], classname) + ".java");
 		}
+
+		compileGenerated(parameterRecordName(methods[i], classname));
+		if (!keep) { // remove generated files 
+		    removeFile(parameterRecordName(methods[i], classname) + ".java");
+		}
+
+/*		compileGenerated(resultRecordName(methods[i], classname));
+		if (!keep) { // remove generated files 
+		    removeFile(resultRecordName(methods[i], classname) + ".java");
+		}*/
+
 	    }
 	}
     }
@@ -1846,9 +1886,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 		if (! clone.isStatic()) {
 		    // push this
-		    String thisName = MethodTable.getParamName(m, 0);
+		    String thisName = mtab.getParamName(m, 0);
 		    Type thisType = mtab.getParamType(m, 0);
-		    String thisFieldName = MethodTable.generatedLocalName(thisType, thisName);
+		    String thisFieldName = mtab.generatedLocalName(thisType, thisName);
 
 		    il.append(new ALOAD(0));
 		    il.append(ins_f.createFieldAccess(local_record_name,
@@ -2115,7 +2155,12 @@ System.out.println("findMethod: could not find method " + name + sig);
 		out.println("                res.spawnId = spawnId;");
 		out.println("                res.parentLocals = parentLocals;");
 		out.println("        }");
-
+		
+		out.println("        if (ibis.satin.Config.FAULT_TOLERANCE) {");
+		out.println("                res.spawnId = spawnId;");
+		out.println("		     res.numSpawned = 0;");
+		out.println("        }");
+		
 		out.println("        return res;");
 	    }
 	    out.println("    }\n");
@@ -2225,7 +2270,8 @@ System.out.println("findMethod: could not find method " + name + sig);
     //	if (supportAborts) {
     //	    out.println("        Throwable eek = null;");
     //	}
-	    if (supportAborts) {
+
+/*	    if (supportAborts) {
 		if (! returnType.equals(Type.VOID)) {
 		    out.print("        " + returnType + " result = ");
 		    out.print(getInitVal(returnType));
@@ -2235,7 +2281,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 		if (! returnType.equals(Type.VOID)) {
 		    out.println("        " + returnType + " result;");
 		}
-	    }
+	    }*/
 
 	    if (supportAborts) {
 		out.println("        try {");
@@ -2264,10 +2310,11 @@ System.out.println("findMethod: could not find method " + name + sig);
 		out.println("(eek, stamp);");
 	    }
 	    out.println("    }");
-
+	    
+	    //assignTo method
 	    out.print("    public void assignTo(Throwable eek");
 	    if (! returnType.equals(Type.VOID)) {
-		out.print(", " + returnType + " result");
+		out.println(", " + returnType + " result");
 	    }
 	    out.println(") {");
 	    out.println("	this.eek = eek;");
@@ -2275,9 +2322,89 @@ System.out.println("findMethod: could not find method " + name + sig);
 		out.println("	this.result = result;");
 	    }
 	    out.println("    }");
+	    
+
+	    //getParameterRecord method
+	    out.println("    public ibis.satin.ParameterRecord getParameterRecord() {");
+	    out.print("        return new " + parameterRecordName(m, classname) + "(");
+	    for (int i=0; i<params.length; i++) {
+		out.print("param" + i);
+		if (i != params.length-1) {
+		    out.print(", ");
+		}
+	    }
+	    out.println(");");
+	    out.println("    }\n");
+	
+	
+	    //getReturnRecord method
+	    if (returnType.equals(Type.VOID)) {
+		out.println("    public ibis.satin.ReturnRecord getReturnRecord() {");
+		out.println("        return new " + returnRecordName(m, classname) + "(null, stamp);");
+		out.println("    }\n");
+	    } else {
+		out.println("    public ibis.satin.ReturnRecord getReturnRecord() {");
+		out.println("        return new " + returnRecordName(m, classname) + "(result, null, stamp);");
+		out.println("    }\n");
+	    }
+	
+	    //equalsPR method
+	    out.println("    public boolean equalsPR(ibis.satin.ParameterRecord pr) {");
+	    out.println("        " + parameterRecordName(m, classname) + " pr1 = (" + parameterRecordName(m, classname) + ") pr;");
+	    for (int i=0; i<params.length; i++) {
+		if (params[i] instanceof ObjectType) {
+		    out.println("        if (!this.param" + i + ".equals(pr1.param" + i + ")) return false;");
+		} else if (params[i] instanceof ArrayType) {
+		    int dimensions = ((ArrayType) params[i]).getDimensions();
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("        if (this.param" + i);
+			for (int d=0; d<dim; d++) {
+			    out.print("[i" + d + "]");
+			}
+			out.print( ".length != pr1.param" + i);
+			for (int d=0; d<dim; d++) {
+			    out.print("[i" + d + "]");
+			}	
+			out.println(".length) return false;");
+			out.print("        for (int i" + dim + "=0; i" + dim + "<param" + i);
+			for (int d=0; d<dim; d++) {
+			    out.print("[i" + d + "]");
+			}
+			out.println(".length; i" + dim + "++) {");
+		    }
+		    if (((ArrayType) params[i]).getBasicType() instanceof ObjectType) {		
+			out.print("            if (param" + i);
+			for (int dim=0; dim<dimensions; dim++) {
+			    out.print("[i" + dim + "]");
+			}
+			out.print(".equals(pr1.param" + i);
+			for (int dim=0; dim<dimensions; dim++) {
+			    out.print("[i" + dim + "]");
+			}
+			out.println(")) return false;");
+		    } else {
+			out.print("            if (param" + i);
+			for (int dim=0; dim<dimensions; dim++) {
+			    out.print("[i" + dim + "]");
+			}
+			out.print(" != pr1.param" + i);
+			for (int dim=0; dim<dimensions; dim++) {
+			    out.print("[i" + dim + "]");
+			}
+			out.println(") return false;");
+		    }
+		    for (int dim=0; dim < dimensions; dim++) {
+			out.println("        }");
+		    }		    
+		} else {
+		    out.println("        if (this.param" + i + " != pr1.param" + i + ") return false;");
+		}
+	    }
+	    out.println("        return true;");
+	    out.println("    }\n");
+	
 
 	    out.println("}");
-
 	} finally {
 	    out.close();
 	}
@@ -2334,6 +2461,262 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
     }
 
+    
+    void writeParameterRecord(Method m, String basename, String classname) throws IOException {
+	String name = parameterRecordName(m, classname);
+	if (verbose) {
+	    System.out.println("writing parameterrecord code to " + name + ".java");
+	}
+	
+	FileOutputStream f = new FileOutputStream(name + ".java");	
+	BufferedOutputStream b = new BufferedOutputStream(f);
+	DollarFilter b2 = new DollarFilter(b);
+	PrintStream out = new PrintStream(b2);
+		
+	Type[] params = mtab.typesOfParamsNoThis(m);
+	String[] params_types_as_names = new String[params.length];
+	
+	for (int i = 0; i < params.length; i++) {
+	    params_types_as_names[i] = params[i].toString();
+	}
+	
+	out.println("import ibis.satin.*;\n");
+	out.println("final class " + name + " extends ibis.satin.ParameterRecord {");	
+	
+	//fields
+	for (int i=0; i<params.length; i++) {
+	    out.println("    " + params_types_as_names[i] + " param" + i + ";");
+	}
+	
+	out.println();
+	
+	//constructor
+	out.print("    " + name + "(");
+	for (int i=0; i<params.length-1; i++) {
+	    out.print(params_types_as_names[i] + " param" + i + ",");
+	}
+	out.println(params_types_as_names[params.length-1] + " param" + (params.length-1) + ") {");	
+	for (int i=0; i<params.length; i++) {
+	    out.println("        this.param" + i + " = param" + i + ";");
+	}
+	out.println("    }\n");
+	
+	//equals method @@todo: take care about null parameters
+	out.println("    public boolean equals(Object obj) {");
+	out.println("        " + name + " other = (" + name + ") obj;");
+	for (int i=0; i<params.length; i++) {
+	    if (params[i] instanceof ObjectType) {
+		//check for nulls
+		out.println("	     if (this.param" + i + "==null && other.param" + i + "==null) return true;");
+		out.println("	     if (this.param" + i + "==null || other.param" + i + "==null) return true;");
+		//
+		out.println("        if (!this.param" + i + ".equals(other.param" + i + ")) return false;");
+	    } else if (params[i] instanceof ArrayType) {
+		//check for nulls
+		out.println("	     if (this.param" + i + "==null && other.param" + i + "==null) return true;");
+		out.println("	     if (this.param" + i + "==null || other.param" + i + "==null) return true;");	    
+		//
+		int dimensions = ((ArrayType) params[i]).getDimensions();
+		for (int dim=0; dim<dimensions; dim++) {
+		    out.print("        if (this.param" + i);
+		    for (int d=0; d<dim; d++) {
+			out.print("[i" + d + "]");
+		    }
+		    out.print( ".length != other.param" + i);
+		    for (int d=0; d<dim; d++) {
+			out.print("[i" + d + "]");
+		    }	
+		    out.println(".length) return false;");
+		    out.print("        for (int i" + dim + "=0; i" + dim + "<param" + i);
+		    for (int d=0; d<dim; d++) {
+			out.print("[i" + d + "]");
+		    }
+		    out.println(".length; i" + dim + "++) {");
+		}
+		if (((ArrayType) params[i]).getBasicType() instanceof ObjectType) {		
+		    //check for nulls
+		    out.print("            if (param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.print("==null && other.param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.println("==null) return true;");
+
+		    out.print("            if (param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.print("==null || other.param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.println("==null) return false;");
+		    //
+		    out.print("            if (param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.print(".equals(other.param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.println(")) return false;");
+		} else {
+		    out.print("            if (param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.print(" != other.param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.println(") return false;");
+		}
+		for (int dim=0; dim < dimensions; dim++) {
+		    out.println("        }");
+		}		    
+	    } else {
+		out.println("        if (this.param" + i + " != other.param" + i + ") return false;");
+	    }
+	}
+	out.println("        return true;");
+	out.println("    }\n");
+	
+	//hashcode method
+	out.println("    public int hashCode() {");
+	out.println("        int hash = 0;");
+	for (int i=0; i<params.length; i++) {
+	    if (params[i] instanceof ObjectType) {
+		out.println("        if (param" + i + "!=null) {");
+		out.println("            hash += param" + i + ".hashCode();");
+		out.println("        }");
+	    } else if (params[i] instanceof ArrayType) {
+		int dimensions = ((ArrayType) params[i]).getDimensions();
+		for (int dim=0; dim<dimensions; dim++) {
+		    out.print("        for (int i" + dim + "=0; i" + dim + "<param" + i);
+		    for (int d=0; d<dim; d++) {
+			out.print("[i" + d + "]");
+		    }
+		    out.println(".length; i" + dim + "++) {");
+		}
+		if (((ArrayType) params[i]).getBasicType() instanceof ObjectType) {		
+		    out.print("            if (param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.println("!=null) {");
+		    out.print("                hash += param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.println(".hashCode();");
+		    out.println("            }");
+		} else if (((ArrayType) params[i]).getBasicType().equals(Type.BOOLEAN)) {
+		    out.print("            hash += param" + i + " ? 1 : 0;)");
+		} else {
+		    out.print("            hash += (int) param" + i);
+		    for (int dim=0; dim<dimensions; dim++) {
+			out.print("[i" + dim + "]");
+		    }
+		    out.println(";");
+		}
+		for (int dim=0; dim < dimensions; dim++) {
+		    out.println("        }");
+		}		    
+		
+	    } else if (params[i].equals(Type.BOOLEAN)) {
+		out.println("        hash += param" + i + " ? 1 : 0;");	    
+	    } else {
+		out.println("        hash += (int) param" + i + ";");
+	    }
+	}
+	out.println("        return hash;");
+	out.println("    }\n");
+	
+	//toString method
+	out.println("    public String toString() {");
+	out.println("        String str = \"(\";");
+	for (int i=0; i<params.length-1; i++) {
+	    out.println("        str += param" + i + " + \",\";");
+	}
+	out.println("        str += param" + (params.length-1) + ";");
+	out.println("        str += \")\";");
+	out.println("        return str;");
+	out.println("    }");
+		
+	out.println("}");
+	out.close();
+    }
+    
+/*    void writeResultRecord(Method m, String basename, String classname) throws IOException {
+	String name = resultRecordName(m, classname);
+	if (verbose) {
+	    System.out.println("writing resultrecord code to " + name + ".java");
+	}
+
+	FileOutputStream f = new FileOutputStream(name + ".java");
+	BufferedOutputStream b = new BufferedOutputStream(f);
+	PrintStream out = new PrintStream(b);
+
+	Type returnType = getReturnType(m);
+
+	out.println("import ibis.satin.*;\n");
+	out.println("final class " + name + " extends ibis.satin.ResultRecord {");
+	if (! returnType.equals(Type.VOID)) {
+	    out.println("    " + returnType + " result;\n");
+	}
+
+	// ctor 
+	out.print("    " + name + "(");
+	if (! returnType.equals(Type.VOID)) {
+	    out.println(returnType + " result) {");
+	} else {
+	    out.println(") {");
+	}
+
+	out.println("        super();");
+	if (! returnType.equals(Type.VOID)) {
+	    out.println("        this.result = result;");
+	}
+	out.println("    }\n");
+
+	//assignTo method
+	out.println("    public void assignTo(InvocationRecord rin) {");
+	out.println("        " + invocationRecordName(m, classname) + " r = (" +
+	        invocationRecordName(m, classname) + ") rin;");
+	if (! returnType.equals(Type.VOID)) {
+	    out.println("        r.result = result;");
+	}
+	out.println("    }");
+	
+	//toString method
+	out.println("    public String toString() {");
+	if (returnType.equals(Type.VOID)) {
+	    out.println("        String str = \"()\";");
+	} else {
+	    out.println("        String str = \"(\" + result + \")\";");
+	}
+	out.println("        return str;");
+	out.println("    }");
+	
+
+	out.println("    public boolean isZero() {");
+	if(returnType.equals(Type.INT)) {
+	    out.println("        if (result==0) return true; else return false;");
+	} else {
+	    out.println("        return false;");
+	}
+	out.println("    }");
+	
+	out.println("}");
+
+	out.close();
+    }*/
+    
+	
     public void start() {
 	if (isSatin()) {
 	    if (verbose) {
@@ -2376,6 +2759,11 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	    gen_c.addMethod(main);
 
+//	    FieldGen f = new FieldGen(Constants.ACC_STATIC, satinType, satinFieldName, gen_c.getConstantPool());
+
+//	    satinField = f.getField();
+//	    gen_c.addField(satinField);
+	    
 	    generateMain(gen_c, main);
 	}
 
@@ -2454,7 +2842,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    for (int i = 0; i < javalist.size(); i++) {
 		JavaClass cl = (JavaClass) (javalist.get(i));
 		new Satinc(verbose, local, verify, keep, print, invocationRecordCache,
-			    cl.getClassName(), compiler, supportAborts, inletOpt, spawnCounterOpt).start();
+			    cl.getClassName(), compiler, supportAborts, inletOpt, spawnCounterOpt, faultTolerance).start();
 	    }
 	}
 
@@ -2468,7 +2856,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
     public static void usage() {
 	System.err.println("Usage : java Satinc [-v] [-keep] [-dir|-local] [-print] [-irc-off] [-no-sc-opt]" +
-		   "[-compiler \"your compile command\" ] [-no-aborts] [-no-inlet-opt] <classname>*");
+		   "[-compiler \"your compile command\" ] [-no-aborts] [-no-inlet-opt] [-fault-tolerance] <classname>*");
 	System.exit(1);
     }
 
@@ -2525,6 +2913,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	String compiler = "javac";
 	boolean inletOpt = true;
 	boolean spawnCounterOpt = true;
+	boolean faultTolerance = false;
 	Vector list = new Vector();
 
 	for (int i=0; i<args.length; i++) {
@@ -2555,6 +2944,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 		inletOpt = false;
 	    } else if (args[i].equals("-no-sc-opt")) {
 		spawnCounterOpt = false;
+	    } else if (args[i].equals("-fault-tolerance")) {
+		faultTolerance = true;
+		System.out.println("fault tolerance turned on");
 	    } else {
 		usage();
 	    }
@@ -2565,7 +2957,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
 
 	for (int i = 0; i < list.size(); i++) {
-	    new Satinc(verbose, local, verify, keep, print, invocationRecordCache, (String) list.get(i), compiler, supportAborts, inletOpt, spawnCounterOpt).start();
+	    new Satinc(verbose, local, verify, keep, print, invocationRecordCache, (String) list.get(i), compiler, supportAborts, inletOpt, spawnCounterOpt, faultTolerance).start();
 	}
     }
 

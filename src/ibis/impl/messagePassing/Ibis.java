@@ -1,8 +1,19 @@
 package ibis.impl.messagePassing;
 
-import ibis.ipl.IbisException;
-import ibis.ipl.StaticProperties;
+import java.util.Vector;
+import java.util.Hashtable;
+
+import java.io.IOException;
+
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
+
+import ibis.util.IbisIdentifierTable;
 import ibis.util.ConditionVariable;
+import ibis.util.Monitor;
+import ibis.ipl.IbisException;
+import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.StaticProperties;
 import ibis.util.IbisIdentifierTable;
 import ibis.util.Monitor;
 import ibis.util.PoolInfo;
@@ -110,6 +121,12 @@ public class Ibis extends ibis.ipl.Ibis {
     public ibis.ipl.Registry registry() {
 	return registry;
     }
+    
+    public void sendDelete(ibis.ipl.IbisIdentifier ident) throws IOException {
+    }
+    
+    public void sendReconfigure() throws IOException {
+    }
 
 
     ReceivePortNameServer createReceivePortNameServer() throws IOException{
@@ -182,6 +199,18 @@ public class Ibis extends ibis.ipl.Ibis {
 	    resizeHandler.leave(id);
 	}
     }
+    
+    public void delete(ibis.ipl.IbisIdentifier id) {
+	if (resizeHandler != null) {
+	    resizeHandler.delete(id);
+	}
+    }
+    
+    public void reconfigure() {
+	if (resizeHandler != null) {
+	    resizeHandler.reconfigure();
+	}
+    }	
 
 
     private static void dumpStack() {

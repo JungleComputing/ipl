@@ -1,6 +1,7 @@
 package ibis.impl.nameServer;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.StaticProperties;
 
@@ -15,6 +16,10 @@ public abstract class NameServer implements ibis.ipl.Registry {
 
 	/** call on exit of an ibis **/
 	public abstract void leave() throws IOException;
+	
+	public abstract void delete(IbisIdentifier ident) throws IOException;
+	
+	public abstract void reconfigure() throws IOException;
 
 	/** register a new port type **/
 	public abstract boolean newPortType(String name, StaticProperties p) throws IOException;

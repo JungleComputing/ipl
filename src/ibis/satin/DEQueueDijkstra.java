@@ -19,7 +19,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 	DEQueueDijkstra(Satin satin) {
 		this.satin = satin;
 	}
-
+	
 	int size() {
 		synchronized(satin) {
 			return head - tail;
@@ -40,6 +40,9 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 		
 		l[head] = r;
 		head++;
+	}
+	
+	void addToTail(InvocationRecord r) {
 	}
 
 	InvocationRecord getFromHead() {
@@ -126,5 +129,38 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 			}
 		}
 	}
+
+	/**
+	 * Used for fault tolerance
+	 * Aborts all the descendents of any job stolen from the given (crashed) processor
+	 * @param ibis identifier of the processor whose jobs (and their descendents) will be aborted
+	 */
+	 
+	 //never used -- dijkstra queue doesnt work with fault tolerance
+	 
+	void killSubtreeOf(ibis.ipl.IbisIdentifier owner) {
+		if(ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+
+		for(int i=tail; i<head; i++) {
+			InvocationRecord curr = l[i];
+			if(Satin.isDescendentOf1(curr, owner) ||
+			curr.owner.equals(owner)) //shouldn happen 
+			{
+
+				curr.aborted = true;
+				curr.spawnCounter.value--;
+				if(ASSERTS && curr.spawnCounter.value < 0) {
+					System.out.println("Just made spawncounter < 0");
+					new Exception().printStackTrace();
+					System.exit(1);
+				}
+				removeJob(i);
+				i--;
+			}
+		}
+	}
+	    
 }
 

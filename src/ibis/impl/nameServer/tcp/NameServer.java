@@ -1,15 +1,18 @@
 package ibis.impl.nameServer.tcp;
 
-import ibis.ipl.IbisIdentifier;
-import ibis.util.DummyInputStream;
-import ibis.util.DummyOutputStream;
-import ibis.util.IbisSocketFactory;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.InetAddress;
+
+import java.io.IOException;
+import java.io.EOFException;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+
 import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -17,6 +20,10 @@ import java.net.Socket;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.Hashtable;
+
+import ibis.ipl.*;
+import ibis.util.*;
 
 public class NameServer implements Protocol {
 
@@ -51,6 +58,7 @@ public class NameServer implements Protocol {
 
 	static class RunInfo { 
 		Vector pool;
+		Vector toBeDeleted;
 		
 		PortTypeNameServer    portTypeNameServer;   
 		ReceivePortNameServer receivePortNameServer;   
@@ -58,6 +66,7 @@ public class NameServer implements Protocol {
 
 		RunInfo() throws IOException { 
 			pool = new Vector();
+			toBeDeleted = new Vector();
 			portTypeNameServer    = new PortTypeNameServer();
 			receivePortNameServer = new ReceivePortNameServer();
 			electionServer = new ElectionServer();
@@ -123,10 +132,10 @@ public class NameServer implements Protocol {
 		InetAddress address = (InetAddress) in.readObject();
 		int port = in.readInt();
 
-		if (DEBUG) {
+//		if (DEBUG) {
 			System.err.println("NameServer: join to pool " + key);
 			System.err.println(" requested by " + id.toString());
-		}
+//		}
 
 		IbisInfo info = new IbisInfo(id, address, port);
 		RunInfo p = (RunInfo) pools.get(key);
@@ -134,6 +143,10 @@ public class NameServer implements Protocol {
 		if (p == null) { 
 			// new run
 			p = new RunInfo();
+			
+			//quick hack against out of memory error..
+			pools = new Hashtable();
+			
 			pools.put(key, p);
 			
 			if (VERBOSE) { 
@@ -163,6 +176,13 @@ public class NameServer implements Protocol {
 			for (int i=0;i<p.pool.size();i++) {
 				IbisInfo temp = (IbisInfo) p.pool.get(i);
 				out.writeObject(temp.identifier);
+			}
+			
+			//send all nodes about to leave to the new one
+			out.writeInt(p.toBeDeleted.size());
+			
+			for (int i=0;i<p.toBeDeleted.size();i++) {
+			    out.writeObject(p.toBeDeleted.get(i));
 			}
 
 			for (int i=0;i<p.pool.size();i++) { 
@@ -266,6 +286,7 @@ public class NameServer implements Protocol {
 					forwardLeave((IbisInfo) p.pool.get(i), id);
 				} 
 				p.pool.remove(index);
+				p.toBeDeleted.remove(id);
 
 				System.out.println(id.name() + " LEAVES pool " + key + " (" + p.pool.size() + " nodes)");
 				id.free();
@@ -287,6 +308,138 @@ public class NameServer implements Protocol {
 			out.flush();
 		}
 	} 
+
+	private void forwardDelete(IbisInfo dest, IbisIdentifier id) throws IOException { 
+
+		if (DEBUG) { 
+			System.err.println("NameServer: forwarding delete of " + id.toString() + " to " + dest.identifier.toString());
+		}
+
+		try {
+			Socket s = IbisSocketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /*do not retry*/);
+
+			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+			out.writeByte(IBIS_DELETE);
+			out.writeObject(id);
+			IbisSocketFactory.close(null, out, s);
+		} catch (Exception e) {
+		    if (DEBUG) {
+			System.err.println("Could not forward delete of "  + 
+					   id.toString() + " to " + dest.identifier.toString() + 
+					   "error = " + e);					   
+		    }
+		}
+		
+
+		if (DEBUG) { 
+			System.err.println("NameServer: forwarding delete of " + id.toString() + " to " + dest.identifier.toString() + " DONE");
+		}
+	}
+
+	private void handleIbisDelete() throws IOException, ClassNotFoundException { 
+		String key = (String) in.readUTF();
+		IbisIdentifier id = (IbisIdentifier) in.readObject();
+
+		if (DEBUG) {
+			System.err.println("NameServer: delete of host " 
+			+ id.toString() + " from pool " + key);
+		}
+
+		RunInfo p = (RunInfo) pools.get(key);
+
+		if (p == null) { 
+			// new run
+			System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " was requested to be deleted");
+			return;
+		}
+		
+		int index = -1;
+
+		for (int i=0;i<p.pool.size();i++) { 				
+			IbisInfo info = (IbisInfo) p.pool.get(i);
+			if (info.identifier.equals(id)) { 
+				index = i;
+				break;
+			}
+		}
+
+		if (index != -1) { 
+			//found it
+		
+			p.toBeDeleted.add(id);
+			
+			System.out.println("DELETE: pool " + key);
+
+			for (int i=0;i<p.pool.size();i++) { 
+				IbisInfo temp = (IbisInfo) p.pool.get(i);
+				forwardDelete(temp, id);
+			}
+			
+			System.err.println("all deletes forwarded");
+
+		} else {
+		    System.err.println("NameServer: unknown ibis " + id.toString() + "/" + key + " was requested to be deleted");
+		}
+		
+		out.writeByte(0);	
+		out.flush();
+		
+	}	
+
+
+	private void forwardReconfigure(IbisInfo dest) throws IOException { 
+
+		if (DEBUG) { 
+			System.err.println("NameServer: forwarding reconfigure to " + dest.identifier.toString());
+		}
+
+		try {
+			Socket s = IbisSocketFactory.createSocket(dest.ibisNameServerAddress, dest.ibisNameServerport, null, -1 /*do not retry*/);
+
+			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+			out.writeByte(IBIS_RECONFIGURE);
+			IbisSocketFactory.close(null, out, s);
+		} catch (Exception e) {
+		    if (DEBUG) {
+			System.err.println("Could not forward reconfigure to " + dest.identifier.toString() + 
+					   "error = " + e);					   
+		    }
+		}
+
+
+		if (DEBUG) { 
+			System.err.println("NameServer: forwarding reconfigure to " + dest.identifier.toString() + " DONE");
+		}
+	}
+
+	private void handleIbisReconfigure() throws IOException, ClassNotFoundException { 
+		String key = (String) in.readUTF();
+
+		if (DEBUG) {
+			System.err.println("NameServer: reconfigure of hosts in pool " + key);
+		}
+
+		RunInfo p = (RunInfo) pools.get(key);
+
+		if (p == null) { 
+			// new run
+			System.err.println("NameServer: unknown pool " + key + " was requested to be reconfigured");
+			return;
+		}
+		
+
+		for (int i=0;i<p.pool.size();i++) { 
+			IbisInfo temp = (IbisInfo) p.pool.get(i);
+			forwardReconfigure(temp);
+		}
+
+		
+		out.writeByte(0);	
+		out.flush();
+		System.out.println("RECONFIGURE: pool " + key);
+	}
 
 	public void run() {
 		int opcode;
@@ -328,6 +481,12 @@ public class NameServer implements Protocol {
 					if (singleRun && pools.size() == 0) { 
 						stop = true;
 					}
+					break;
+				case (IBIS_DELETE):
+					handleIbisDelete();
+					break;
+				case (IBIS_RECONFIGURE):
+					handleIbisReconfigure();
 					break;
 				default: 
 					System.err.println("NameServer got an illegal opcode: " + opcode);

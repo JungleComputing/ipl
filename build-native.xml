@@ -398,7 +398,7 @@
 			outfile="${build}/lib/${local.lib}"
 			outtype="${cc.outtype}"
 			libtool="${use-libtool}"
-			name="${c.compiler}"
+			name="${c.compiler}"			
 			warnings="severe">
 		    <fileset dir="${native.dir}" includes="*.c" unless="native.src"/>
 		    <fileset dir="${native.dir}" includes="${native.src}" if="native.src"/>

@@ -48,6 +48,26 @@ class ElectionServer extends Thread implements Protocol {
 		}
 	} 
 
+	private void handleReelection() throws IOException, ClassNotFoundException { 
+
+		String election = in.readUTF();
+		Object candidate = in.readObject();
+		Object formerRuler = in.readObject();
+
+		Object temp = elections.get(election);
+
+		if (temp == null) { 
+			elections.put(election, candidate);
+			out.writeObject(candidate);
+		} else if (temp.equals(formerRuler)) {
+			elections.put(election, candidate);
+			out.writeObject(candidate);		
+		} else { 			
+			out.writeObject(temp);
+		}
+	} 
+
+
 	public void run() {
 		Socket s;
 		int opcode;
@@ -72,6 +92,9 @@ class ElectionServer extends Thread implements Protocol {
 				switch (opcode) { 
 				case (ELECTION): 
 					handleElection();
+					break;
+				case (REELECTION) :
+					handleReelection();
 					break;
 				case (ELECTION_EXIT):
 					IbisSocketFactory.close(in, out, s);

@@ -125,7 +125,7 @@ final class BarnesHut {
 
 	//BodyCanvas bc = visualize();
 
-	ibis.satin.Satin.pause(); //turn off satin during sequential parts
+	ibis.satin.SatinObject.pause(); //turn off satin during sequential parts
 
 	for (iteration = 0; iteration < ITERATIONS; iteration++) {
 
@@ -157,7 +157,7 @@ final class BarnesHut {
 		ibis.satin.SatinTupleSpace.add(rootId, root);
 	    }
 
-	    ibis.satin.Satin.resume(); //turn ON divide-and-conquer stuff
+	    ibis.satin.SatinObject.resume(); //turn ON divide-and-conquer stuff
 
 	    switch(impl) {
 	    case IMPL_NTC:
@@ -173,7 +173,7 @@ final class BarnesHut {
 		break;
 	    }
 
-	    ibis.satin.Satin.pause(); //killall divide-and-conquer stuff
+	    ibis.satin.SatinObject.pause(); //killall divide-and-conquer stuff
 
 	    if (impl == IMPL_TUPLE) {
 		ibis.satin.SatinTupleSpace.remove(rootId);
@@ -255,10 +255,10 @@ final class BarnesHut {
 		phaseStart = System.currentTimeMillis();
 	    }
 
-	    ibis.satin.Satin.resume();
+	    ibis.satin.SatinObject.resume();
 	    result = dummyNode.barnesTuple2(null, spawn_threshold);
 	    dummyNode.sync();
-	    ibis.satin.Satin.pause();
+	    ibis.satin.SatinObject.pause();
 
 	    processLinkedListResult(result, accs);
 
@@ -471,7 +471,7 @@ final class BarnesHut {
 	}
 
 	realEnd = System.currentTimeMillis();
-	ibis.satin.Satin.resume(); //allow satin to exit cleanly
+	ibis.satin.SatinObject.resume(); //allow satin to exit cleanly
 
 	System.out.println("Real run time = " +
 			   (realEnd - realStart) / 1000.0 + " s");

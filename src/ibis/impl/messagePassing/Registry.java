@@ -1,8 +1,8 @@
 package ibis.impl.messagePassing;
 
-import ibis.ipl.IbisException;
-
 import java.io.IOException;
+
+import ibis.ipl.IbisException;
 
 class Registry implements ibis.ipl.Registry {
 
@@ -106,5 +106,13 @@ class Registry implements ibis.ipl.Registry {
 	}
 	throw new IOException("Registry.elect not implemented");
     }
+
+    public Object reelect(String election, Object candidate, Object formerRuler) throws IOException {
+	if (EXPORT_ELECT) {
+	    return electionClient.reelect(election, candidate, formerRuler);
+	}
+	throw new IOException("Registry.elect not implemented");
+    }
+
     
 }

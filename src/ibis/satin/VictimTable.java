@@ -78,7 +78,7 @@ final class VictimTable implements Config {
 
 		Cluster c = (Cluster) clustersHash.get(v.ident.cluster());
 		c.remove(v);
-
+				
 		return v;
 	}
 	

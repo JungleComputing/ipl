@@ -21,6 +21,8 @@
 
 if [ -f /etc/gridlab.conf ]; then
 	. /etc/gridlab.conf
+else
+	echo grun-remote: /etc/gridlab.conf not found, continuing anyway...
 fi
 
 if [ ! -f .grun ]; then
@@ -38,7 +40,7 @@ fi
 
 #.grun must be included *after* /etc/gridlab.conf because JAVA_HOME is
 #sometimes nicely defined there and .grun uses it for its JAR_PATH
-. .grun
+. `pwd`/.grun
 
 #handy variables
 IBIS_ROOT=`pwd`/tmp$JOBID
@@ -70,6 +72,6 @@ elif [ "$MODE" = "slave" ]; then
 	while [ ! -f grun${JOBID}_master_is_ready ]; do sleep 1; done
 fi
 
-cd $IBIS_ROOT/$APP_DIR
+cd $IBIS_ROOT/$APP_DIR/build
 
 $JAVA_HOME/bin/java $JAVA_PARAMS -Dibis.property.file=$IBIS_ROOT/properties -Xbootclasspath/p:$IBIS_ROOT/classlibs:$IBIS_ROOT/build -classpath $CLASSPATH $*

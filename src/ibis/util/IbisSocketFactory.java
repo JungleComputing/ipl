@@ -137,6 +137,7 @@ public class IbisSocketFactory {
 				}
                                 connected = true;
                                 s.setTcpNoDelay(true);
+//				s.setSoTimeout(1000);
 //				System.err.println("created socket linger = " + s.getSoLinger());
                         } catch (IOException e1) { 
 				if (DEBUG) { 
@@ -234,6 +235,7 @@ public class IbisSocketFactory {
 		Socket s;
 		s = a.accept();
 		s.setTcpNoDelay(true);
+//		s.setSoTimeout(1000);
 //		System.err.println("accepted socket linger = " + s.getSoLinger());
 
 		if(DEBUG) {

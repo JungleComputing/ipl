@@ -15,9 +15,15 @@ public interface Config {
 
 	/** Enable or disable statistics for aborts. **/
 	static final boolean ABORT_STATS = true;
+	
+	/** Enable or disable statistics for aborts done for fault-tolerance. **/
+	static final boolean FT_ABORT_STATS = true;
 
 	/** Enable or disable statistics for the tuple space. **/
 	static final boolean TUPLE_STATS = true;
+	
+	/** Enable or disable statistics for the global result table. **/
+	static final boolean GRT_STATS = true;
 
 	/** Enable or disable steal timings. **/
 	static final boolean STEAL_TIMING = true;
@@ -30,6 +36,11 @@ public interface Config {
 
 	/** Enable or disable poll timing. **/
 	static final boolean POLL_TIMING = false;
+	//used for fault tolerance with global result table
+	static final boolean GRT_TIMING = true;
+	static final boolean CRASH_TIMING = true;
+	static final boolean TABLE_CHECK_TIMING = false;
+	static final boolean ADD_REPLICA_TIMING = true;
 
 	/** Enable or disable tuple space timing. **/
 	static final boolean TUPLE_TIMING = true;
@@ -48,14 +59,24 @@ public interface Config {
 	/** Enable or disable asserts. **/
 	static final boolean ASSERTS = true;
 
-	/** Enable or disable aborts and inlets. **/
+	/* Enable or disable aborts and inlets. */
 	static final boolean ABORTS = true;
+	
+	/* Enable fault tolerance.  */	
+	static final boolean FAULT_TOLERANCE = false;
+	/* If true, the global result table is replicated
+	   if false, the table is distributed */
+	static final boolean GLOBAL_RESULT_TABLE_REPLICATED = false;
+	/* If true, and if the maximal branching factor of the execution tree is specified and > 0,
+	   globally unique stamps will be generated for jobs and used as keys in the
+	   global result table (instead of the parameters)*/
+	static final boolean GLOBALLY_UNIQUE_STAMPS = true;
 
 	/** Enable or disable an optimization for handling delayed messages. */
 	static final boolean HANDLE_MESSAGES_IN_LATENCY = false;
 
 	/** Use multicast to update the tuple space */
-	static final boolean SUPPORT_TUPLE_MULTICAST = true;
+	static final boolean SUPPORT_TUPLE_MULTICAST = false;
 
 	/** Enable or disable debug prints concerning communication. **/
 	static final boolean COMM_DEBUG  = false;
@@ -73,6 +94,9 @@ public interface Config {
 
 	/** Enable or disable debug prints concerning aborts. **/
 	static final boolean ABORT_DEBUG = false;
+
+	/** Enable or disable debug prints concerning the global result table. **/
+	static final boolean GRT_DEBUG  = false;
 
 	/** Enable or disable debug prints concerning the tuple space. **/
 	static final boolean TUPLE_DEBUG = false;

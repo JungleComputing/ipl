@@ -7,6 +7,8 @@ interface Protocol {
 		IBIS_REFUSED  = 1, 
 		IBIS_ACCEPTED = 2, 
 		IBIS_LEAVE    = 4,
+		IBIS_DELETE   = 5,
+		IBIS_RECONFIGURE = 6,
 
 		PORT_NEW      = 20, 
 		PORT_ACCEPTED = 21, 
@@ -26,9 +28,8 @@ interface Protocol {
 		PORTTYPE_ACCEPTED = 41, 
 		PORTTYPE_REFUSED  = 42,
                 PORTTYPE_EXIT     = 43,
-
 		SEQNO		  = 50,
-
+		REELECTION    = 98,
 	        ELECTION      = 99,
-		ELECTION_EXIT      = 100;
+		ELECTION_EXIT      = 100;	
 } 

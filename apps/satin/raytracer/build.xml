@@ -5,6 +5,7 @@
 
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
+    <property name="satinc-flags" value="-no-aborts -fault-tolerance"/> 
 
     <property name="satin-main-class" value="Raytracer"/>
 

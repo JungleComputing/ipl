@@ -1,25 +1,29 @@
 package ibis.impl.net;
 
-import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.StaticProperties;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.IbisConfigurationException;
+
 import ibis.util.IbisIdentifierTable;
+
+import ibis.impl.nameServer.NameServer;
 
 import ibis.connect.socketFactory.ExtSocketFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
+
+import java.lang.reflect.Constructor;
 
 /**
  * Provides a generic {@link Ibis} implementation for pluggable network driver
@@ -87,6 +91,12 @@ public final class NetIbis extends Ibis {
 	 * The {@link NetIbis} instances that attempted to leave our nameServer pool while our world was {@linkplain #open closed}.
 	 */
 	private   Vector 	    leftIbises       = new Vector();
+
+	/**
+	 * The {@link NetIbis} instances that attempted to be deleted from our {@linkplain #nameServerPool pool} while our world was {@linkplain #open closed}.
+	 */
+	private   Vector 	    toBeDeletedIbises       = new Vector();
+
 
 	/**
 	 * The {@link NetIbis} {@linkplain NetBank bank}.
@@ -157,7 +167,7 @@ public final class NetIbis extends Ibis {
 					};
 		    for (int i = 0; i < drivers.length; i++) {
 			try {
-			    Class clazz = Class.forName("ibis.impl.net." + drivers[i] + ".Driver");
+			    Class clazz = Class.forName("ibis.ipl.impl.net." + drivers[i] + ".Driver");
 			    NetDriver d = (NetDriver)clazz.newInstance();
 			    d.setIbis(this);
 			} catch (java.lang.Exception e) {
@@ -316,6 +326,14 @@ public final class NetIbis extends Ibis {
 	public Registry registry() {
 		return nameServer;
 	}
+	
+	public void sendDelete(IbisIdentifier ident) throws IOException {
+		nameServer.delete(ident);
+	}
+	
+	public void sendReconfigure() throws IOException {
+		nameServer.reconfigure();
+	}
 
 	/**
 	 * Returns the {@linkplain Ibis} instance {@link #identifier}.
@@ -390,6 +408,25 @@ public final class NetIbis extends Ibis {
 			resizeHandler.leave(leaveIdent);
 		}
 	}
+	
+	public void delete(IbisIdentifier deleteIdent) {
+		synchronized (this) {
+		    if (!open && resizeHandler != null) {
+			toBeDeletedIbises.add(deleteIdent);
+			return;
+		    }
+		    
+		    if (resizeHandler != null) {
+			resizeHandler.delete(deleteIdent);
+		    }
+		}
+	}
+	
+	public void reconfigure() {
+		if (resizeHandler != null) {
+		    resizeHandler.reconfigure();
+		}
+	}
 
 	public void openWorld() {
 		if(resizeHandler != null) {
@@ -401,6 +438,10 @@ public final class NetIbis extends Ibis {
 			while(leftIbises.size() > 0) {
 				resizeHandler.leave((NetIbisIdentifier)leftIbises.remove(0));
 				poolSize--;
+			}
+			
+			while(toBeDeletedIbises.size() > 0) {
+				resizeHandler.delete((NetIbisIdentifier)toBeDeletedIbises.remove(0));
 			}
 		}
 

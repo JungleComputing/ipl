@@ -89,11 +89,156 @@ final class IRStack implements Config {
 		}
 	}
 
+	/** Used for fault tolerance
+	 * Aborts all descendents of the given job, stores their finished children
+	 * in the global result table
+	 */
+	 	 
+	void killAndStoreChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+		InvocationRecord curr;
+
+		for(int i=0; i<count; i++) {
+			curr = l[i];
+
+			if((curr.parent != null && curr.parent.aborted) || 
+			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+
+				if (curr.aborted) continue;
+				
+				curr.aborted = true;
+				if (FT_ABORT_STATS) {
+				    s.killedOrphans ++;
+				}
+				//update the global result table
+				InvocationRecord child = curr.child;
+				while (child != null) {
+				    if (GRT_TIMING) {
+					s.updateTimer.start();
+				    }
+				    s.globalResultTable.updateInvocationRecord(child);
+				    child = child.sibling;
+				    if (GRT_TIMING) {
+					s.updateTimer.stop();
+				    }
+				}
+
+
+			}
+		}
+	}
+
+	/**
+	 * Used for fault tolerance.
+	 * Abort every job that was spawned on targetOwner
+	 * or is a child of a job spawned on targetOwner	
+	 */
+	 
+	void killSubtreeOf(IbisIdentifier targetOwner) {
+		InvocationRecord curr;
+
+		for(int i=0; i<count; i++) {
+			curr = l[i];
+
+			if((curr.parent != null && curr.parent.aborted) || 
+			   Satin.isDescendentOf1(curr, targetOwner) ||
+			   curr.owner.equals(targetOwner)) {
+//				if(curr.parent != null && curr.parent.aborted) System.err.print("#");
+
+				curr.aborted = true;
+
+			}
+		}
+	}
+
+	/** Used for fault tolerance
+	 * Aborts every job that was spawned on targetOwner or is a child
+	 * of a job spawned on targetOwner
+	 * store all finished children of the aborted jobs in the global result table
+	 */
+
+	void killAndStoreSubtreeOf(IbisIdentifier targetOwner) {
+		InvocationRecord curr;
+
+		for(int i=0; i<count; i++) {
+			curr = l[i];
+
+			if((curr.parent != null && curr.parent.aborted) || 
+			   Satin.isDescendentOf1(curr, targetOwner) ||
+			   curr.owner.equals(targetOwner)) {
+				
+				if (curr.aborted) continue;
+
+				curr.aborted = true;
+				if (FT_ABORT_STATS) {
+				    s.killedOrphans ++;
+				}
+				//update the global result table
+				InvocationRecord child = curr.child;
+				while (child != null) {
+				    if (GRT_TIMING) {
+					s.updateTimer.start();
+				    }
+				    s.globalResultTable.updateInvocationRecord(child);
+				    child = child.sibling;
+				    if (GRT_TIMING) {
+					s.updateTimer.stop();
+				    }
+				}
+
+			}
+		}
+	}
+	
+	/** 
+	 * Used for malleability. 
+	 * After receiving a delete() signal, store all the finished work in 
+	 * the global result table
+	 */
+	
+	void storeAll() {
+	    InvocationRecord curr, child;
+	    
+	    for (int i=0; i<count; i++) {
+		curr = l[i];
+		child = curr.child;
+		while (child != null) {
+		    if (GRT_TIMING) {
+			s.updateTimer.start();
+		    }
+		    s.globalResultTable.updateInvocationRecord(child);
+		    child = child.sibling;
+		    if (GRT_TIMING) {
+			s.updateTimer.stop();
+		    }
+		}
+	    }
+	}
+		
+
+	
+	void killAll() {
+	    for (int i=0; i<count; i++) {
+		l[i].aborted = true;
+	    }
+	}
+	
+
 	void print(java.io.PrintStream out) {
 		out.println("==============IRStack:=============");
 		for(int i=0; i<count; i++) {
-			out.println("elt [" + i + "] = " + l[i]);
+			ParameterRecord pr = l[i].getParameterRecord();
+			out.println("stack [" + i + "] = " + pr);
 		}
 		out.println("=========end of IRStack:===========");
+	}
+	
+	int numStolenJobs() {
+		int numStolen = 0;
+		for(int i=0; i<count; i++) {		    
+		    if (!l[i].owner.equals(s.ident)) {
+			numStolen ++;
+		    }
+		}
+		return numStolen;
 	}
 }

@@ -99,6 +99,7 @@ public final class NQueens extends ibis.satin.SatinObject implements NQueensInte
 		for (int i = 0; i < args.length; i++) {
 			if (false) {
 			} else if (option == 0) {
+				System.err.println(args[i] + " jjj");
 				size = Integer.parseInt(args[i]);
 				option++;
 			} else {

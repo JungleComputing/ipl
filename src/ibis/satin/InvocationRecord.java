@@ -1,6 +1,6 @@
 package ibis.satin;
 import ibis.ipl.IbisIdentifier;
-//import java.util.ArrayList;
+import java.io.IOException;
 
 /**
  * An invocation record describes a spawned invocation, including the
@@ -19,8 +19,19 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
 	protected transient InvocationRecord parent;
 
+	/** 
+	 * List of finished children, used for fault tolerance
+	 */	 
+	public transient InvocationRecord child;
+	public transient InvocationRecord sibling;
+	/**
+	 * Number of _all_ spawned children (not spawned and not finished like with spawnCounter)
+	 * Used for generating globally unique stamps
+	 */
+	public transient int numSpawned = 0;
+
 	protected transient SpawnCounter spawnCounter;
-	public transient Throwable eek; // must be public, it is used from the generated code (in an other package) --Rob
+	public transient Throwable eek; // must be public, it is used from the generated code (in another package) --Rob
 	public transient InvocationRecord cacheNext; /* Used to link the records in the cache. */
 	public transient boolean aborted; // must be public, is accessed from generated code. --Rob
 
@@ -32,6 +43,13 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 	protected transient int spawnId; /* An id for the spawn in the code. Needed to run the correct inlet. */
 	protected transient LocalRecord parentLocals;
 	protected transient IbisIdentifier stealer;
+	
+	/**
+	 * Used for fault tolerance
+	 * True means, that the job is being redone after a crash
+	 */
+	public boolean reDone = false;
+	
 
 	transient boolean alreadySentExceptionResult;
 	protected transient boolean inletExecuted;
@@ -47,6 +65,8 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		if(ABORTS) {
 			this.spawnId = spawnId;
 			this.parentLocals = parentLocals;
+		} else if (FAULT_TOLERANCE) {	
+			this.spawnId = spawnId;
 		}
 
 //		parentStamps = new ArrayList();
@@ -69,7 +89,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		storeId = -2;
 		stealer = null;
 
-		if(ABORTS) {
+		if(ABORTS || FAULT_TOLERANCE) {
 			eek = null;
 			parentOwner = null;
 			parentStamp = -2;
@@ -84,6 +104,14 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 			alreadySentExceptionResult = false;
 			inletExecuted = false;
 		}
+		
+		if (FAULT_TOLERANCE) {
+		    reDone = false;
+		}
+		if (FAULT_TOLERANCE) {
+		    child = null;
+		}
+		
 	}
 
 	/**
@@ -132,6 +160,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		String result = "(Invocation record: stamp = " + stamp;
 			result += ", owner = " + (owner == null ? "NULL" : "" + owner);
 			result += ", spawnCounter = " + (spawnCounter == null ? "NULL" : "" + spawnCounter.value);
+			result += ", stealer = " + stealer;
 			result += ", parentStamp = " + parentStamp;
 			result += ", parentOwner = " + (parentOwner == null ? "NULL" : "" + parentOwner);
 			result += ", aborted = " + aborted;
@@ -140,7 +169,19 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
 			return result;
 	}
+	
 
+	
+	// used for fault tolerance
+	public abstract ParameterRecord getParameterRecord();
+	public abstract ReturnRecord getReturnRecord();
+	
+	/** 
+	 * checks whether the parameters in this invocation record are
+	 * the same as parameters in the given parameter record
+	 */
+	public abstract boolean equalsPR(ParameterRecord pr);
 	protected abstract void runLocal() throws Throwable;
 	protected abstract ReturnRecord runRemote();
+	
 }

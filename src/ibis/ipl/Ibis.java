@@ -538,6 +538,7 @@ public abstract class Ibis {
 	    return in;
 	}
 
+
 	String sep = p.getProperty("file.separator");
 	if(sep == null) {
 	    throw new IOException("Could not get file separator property");
@@ -565,6 +566,7 @@ public abstract class Ibis {
 
 	throw new IOException("Could not find property file");
     }
+
 
     /**
      * Returns a list of available Ibis implementation names for this system.
@@ -723,6 +725,19 @@ public abstract class Ibis {
      * @return the Ibis registry.
      */
     public abstract Registry registry();
+    
+    /** 
+     * Notifies the application that ibis 'ident' has to leave the computation
+     */
+    public abstract void sendDelete(IbisIdentifier ident) throws IOException;
+	
+    /**
+     * Notifies the application that it has to reconfigure
+     */
+    public abstract void sendReconfigure() throws IOException;
+    
+    
+    
 
     /**
      * Returns the properties of this Ibis implementation.
@@ -792,4 +807,24 @@ public abstract class Ibis {
      *  identifier} of the Ibis instance leaving the run.
      */
     public abstract void leave(IbisIdentifier leaveIdent);
+    
+    /**
+     * Notifies this Ibis instance that this or another Ibis instance has
+     * to leave the run.
+     * <strong>
+     * Note: used by the nameserver, do not call from outside Ibis.
+     * </strong>
+     * @param leaveIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     *  identifier} of the Ibis instance that has to leave the run.
+     */
+     public abstract void delete(IbisIdentifier deleteIdent);
+     
+    /**
+     * Notifies this Ibis instance that the application has to reconfigure.
+     * <strong>
+     * Note: used by the nameserver, do not call from outside Ibis.
+     * </strong>
+     */     
+    public abstract void reconfigure();
+    
 } 

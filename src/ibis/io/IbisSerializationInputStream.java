@@ -1795,11 +1795,19 @@ public class IbisSerializationInputStream
 	    t2 = t2.getSuperclass();
 	}
 	// Calls constructor for non-serializable superclass.
-	Object obj = createUninitializedObject(clazz, t2);
+	try {
+	    Object obj = createUninitializedObject(clazz, t2);
+	    addObjectToCycleCheck(obj);
+	    return obj;
+	    
+	} catch (Throwable thro) {
+	    thro.printStackTrace();
+	    System.err.println("class: " + classname + ",superclass: " + t2);
+	    throw new RuntimeException();
+	}
+	
 
-	addObjectToCycleCheck(obj);
 
-	return obj;
     }
 
     /**
@@ -1970,7 +1978,14 @@ public class IbisSerializationInputStream
 		t2 = t2.getSuperclass();
 	    }
 	    // Calls constructor for non-serializable superclass.
-	    obj = createUninitializedObject(t.clazz, t2);
+	    try {
+		obj = createUninitializedObject(t.clazz, t2);
+	    } catch (Throwable thro) {
+		thro.printStackTrace();
+		System.err.println("class: " + t.clazz.getName() + ",superclass: " + t2);
+		throw new RuntimeException();
+	    }
+	    
 	    addObjectToCycleCheck(obj);
 	    push_current_object(obj, 0);
 	    try {

@@ -1,22 +1,41 @@
 package ibis.impl.tcp;
 
-import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
+import ibis.ipl.PortType;
+import ibis.ipl.SendPort;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.Upcall;
+import ibis.ipl.StaticProperties;
 import ibis.ipl.IbisException;
+import ibis.ipl.Registry;
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.IbisIdentifier;
+import ibis.util.IbisIdentifierTable;
+import ibis.ipl.ReadMessage;
+
+import ibis.impl.nameServer.NameServer;
 import ibis.ipl.PortType;
-//import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 
-import java.io.IOException;
+import java.net.Socket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import java.util.StringTokenizer;
+import java.util.Properties;
+import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Properties;
+
+import java.io.IOException;
+import java.io.EOFException;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 
 public final class TcpIbis extends Ibis implements Config {
 
@@ -29,8 +48,10 @@ public final class TcpIbis extends Ibis implements Config {
 	private Hashtable portTypeList = new Hashtable();
 
 	private boolean open = false;
+
 	private ArrayList joinedIbises = new ArrayList();
 	private ArrayList leftIbises = new ArrayList();
+	private ArrayList toBeDeletedIbises = new ArrayList();
 
 	TcpPortHandler tcpPortHandler;
 	private boolean ended = false;
@@ -69,6 +90,15 @@ public final class TcpIbis extends Ibis implements Config {
 	public Registry registry() {
 		return nameServer;
 	} 
+	
+	
+	public void sendDelete(IbisIdentifier identifier) throws IOException {
+	    nameServer.delete(identifier);
+	}
+	
+	public void sendReconfigure() throws IOException {
+	    nameServer.reconfigure();
+	}
 
 	public StaticProperties properties() { 
 		return staticProperties(implName);
@@ -148,6 +178,37 @@ public final class TcpIbis extends Ibis implements Config {
 		}
 	}
 
+	public void delete(IbisIdentifier deleteIdent) { 
+		synchronized (this) {
+			if(!open && resizeHandler != null) {
+				toBeDeletedIbises.add(deleteIdent);
+				return;
+			}
+
+			// this method forwards the delete to the application running on top of ibis.
+			if(DEBUG) {
+				System.out.println(name + ": Ibis '" + deleteIdent.name() + "' will be deleted"); 
+			}
+		}
+
+		if(resizeHandler != null) {
+			resizeHandler.delete(deleteIdent);
+		}
+	}
+	
+	public void reconfigure() { 
+			// this method forwards the leave to the application running on top of ibis.
+			if(DEBUG) {
+				System.out.println(name + ": reconfiguration"); 
+			}
+
+		if(resizeHandler != null) {
+			resizeHandler.reconfigure();
+		}
+	}
+	
+
+
 	public PortType getPortType(String name) { 
 		return (PortType) portTypeList.get(name);
 	} 
@@ -174,6 +235,16 @@ public final class TcpIbis extends Ibis implements Config {
 				resizeHandler.leave(ident); // Don't hold the lock during user upcall
 
 			}
+			
+			while(true) {
+				synchronized(this) {
+					if(toBeDeletedIbises.size() == 0) break;
+					ident = (TcpIbisIdentifier)toBeDeletedIbises.remove(0);
+				}
+				resizeHandler.delete(ident);    				
+			}
+			
+			
 		}
 		
 		synchronized (this) {
@@ -217,7 +288,7 @@ public final class TcpIbis extends Ibis implements Config {
 	void unbindReceivePort(String name) throws IOException {
 		nameServer.unbind(name);
 	}
-
+	
 	class TcpShutdown extends Thread {
 		public void run() {
 			end();

@@ -4,24 +4,36 @@ import ibis.impl.nameServer.NameServer;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.IbisException;
+import ibis.util.*;
+import ibis.impl.nameServer.NameServer;
 import ibis.ipl.StaticProperties;
 import ibis.util.DummyInputStream;
 import ibis.util.DummyOutputStream;
 import ibis.util.IbisSocketFactory;
 import ibis.util.TypedProperties;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.StreamCorruptedException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.InetAddress;
+
+import java.io.IOException;
+import java.io.EOFException;
+import java.io.StreamCorruptedException;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+
+import java.util.Vector;
+import java.util.Hashtable;
 import java.util.Properties;
 
 public class NameServerClient extends NameServer implements Runnable, Protocol {
@@ -231,6 +243,47 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 	} 
 
+	public void delete(IbisIdentifier ident) throws IOException {
+			System.err.println("NS client: delete");	
+			Socket s = IbisSocketFactory.createSocket(serverAddress, port, myAddress, 0 /*retry*/);
+		
+			DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
+
+			out.writeByte(IBIS_DELETE);
+			out.writeUTF(poolName);
+			out.writeObject(ident);
+			out.flush();
+			System.err.println("NS client: delete sent");			
+
+			DummyInputStream di = new DummyInputStream(s.getInputStream());
+			ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
+			
+			int temp = in.readByte();
+			System.err.println("NS client: delete ack received");			
+
+			IbisSocketFactory.close(in, out, s);
+			System.err.println("NS client: delete DONE");			
+	}
+	
+	public void reconfigure() throws IOException {
+			Socket s = IbisSocketFactory.createSocket(serverAddress, port, myAddress, 0 /*retry*/);
+		
+			DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
+
+			out.writeByte(IBIS_RECONFIGURE);
+			out.writeUTF(poolName);
+			out.flush();
+
+			DummyInputStream di = new DummyInputStream(s.getInputStream());
+			ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
+			
+			int temp = in.readByte();
+
+			IbisSocketFactory.close(in, out, s);
+	}
+
 	public void run() {
 		if (DEBUG) { 
 			System.out.println("NameServerClient: stread started");
@@ -295,6 +348,15 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 						ibisImpl.leave(id);
 					}
 					break;
+				case (IBIS_DELETE):
+					id = (IbisIdentifier) in.readObject();
+					IbisSocketFactory.close(in, null, s);
+					ibisImpl.delete(id);
+					break;
+				case (IBIS_RECONFIGURE):
+					IbisSocketFactory.close(in, null, s);
+					ibisImpl.reconfigure();
+					break;
 				default: 
 					System.out.println("NameServerClient: got an illegal opcode " + opcode);
 				}
@@ -338,6 +400,11 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 	}
 
 	//gosia	
+
+	public Object reelect(String election, Object candidate, Object formerRuler) throws IOException, ClassNotFoundException {
+		return electionClient.reelect(election, candidate, formerRuler);
+	}
+	
 	public void bind(String name, ReceivePortIdentifier rpi) throws IOException {
 		receivePortNameServerClient.bind(name, rpi);
 	}

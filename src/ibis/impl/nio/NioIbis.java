@@ -28,6 +28,7 @@ public final class NioIbis extends Ibis implements Config {
     private boolean open = false;
     private ArrayList joinedIbises = new ArrayList();
     private ArrayList leftIbises = new ArrayList();
+    private ArrayList toBeDeletedIbises = new ArrayList();
 
     private final StaticProperties systemProperties = new StaticProperties();	
     NioChannelFactory factory;
@@ -66,6 +67,14 @@ public final class NioIbis extends Ibis implements Config {
 
     public Registry registry() {
 	return nameServer;
+    }
+    
+    public void sendReconfigure() throws IOException {
+	nameServer.reconfigure();
+    }
+    
+    public void sendDelete(IbisIdentifier ident) throws IOException {
+	nameServer.delete(ident);
     } 
 
     public StaticProperties properties() { 
@@ -146,7 +155,33 @@ public final class NioIbis extends Ibis implements Config {
 	    resizeHandler.leave(leaveIdent);
 	}
     }
-
+    
+    public void delete(IbisIdentifier deleteIdent) {
+	synchronized (this) {
+	    if (!open && resizeHandler != null) {
+		toBeDeletedIbises.add(deleteIdent);
+		return;
+	    }
+	    if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
+		System.out.println(name + ": Ibis '" + deleteIdent.name() + "' will be deleted"); 
+	    }
+	}
+	
+	if (resizeHandler != null) {
+	    resizeHandler.delete(deleteIdent);
+	}
+    }
+    
+    public void reconfigure() {
+	    if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
+		System.out.println(name + ":reconfiguration");
+	    }
+	    if (resizeHandler != null) {
+		resizeHandler.reconfigure();
+	    }
+    }
+	
+	    
     public PortType getPortType(String name) { 
 	return (PortType) portTypeList.get(name);
     } 

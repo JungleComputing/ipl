@@ -28,4 +28,15 @@ public interface ResizeHandler {
      * @param ident the ibis identifier of the Ibis leaving the current run.
      */
     public void leave(IbisIdentifier ident);
+
+    /**
+     * Upcall generated when an Ibis has to leave the current run.
+     * @param ident the ibis identifier of the Ibis that has to leave the current run.
+     */    
+    public void delete(IbisIdentifier ident);
+    
+    /**
+     * Upcall generated when the application has to reconfigure.
+     */    
+    public void reconfigure();
 }

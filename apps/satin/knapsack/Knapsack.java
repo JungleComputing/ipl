@@ -22,9 +22,11 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 			s[i] = 1;
 			if ( i < N ) {
 				maxv2 = maxv;
+				if (opts == null) System.err.println("opts is NULL");
 				optdup = (byte[]) opts.clone();
 
 				if(i < THRESHOLD) {
+					if (s == null) System.err.println("s is NULL");
 					byte[] sdup = (byte[]) s.clone(); // only for spawn...
 					ret1 = spawn_try_it(i+1, tw+weights[i], av, limw, maxv2, values, weights, sdup, optdup);
 				} else {
@@ -35,6 +37,8 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 				spawn1 = 1;
 			} else if ( av > maxv ) {
 				maxv = av;
+				if (s == null) System.err.println("s is NULL");
+				if (opts == null) System.err.println("opts is NULL");
 				System.arraycopy(s, 0, opts, 0, N+1);
 			}
 			s[i] = 0;
@@ -42,6 +46,7 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 		if ( av1 > maxv ) {
 			if ( i < N ) {
 				if(i < THRESHOLD) {
+					if (s == null) System.err.println("s is NULL");
 					byte[] sdup = (byte[]) s.clone(); // only for spawn...
 					ret2 = spawn_try_it(i+1, tw, av1, limw, maxv, values, weights, sdup, opts);
 				} else {
@@ -52,6 +57,8 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 				spawn2 = 1;
 			} else {
 				maxv = av1;
+				if (s == null) System.err.println("s is NULL");
+				if (opts == null) System.err.println("opts is NULL");
 				System.arraycopy(s, 0, opts, 0, N+1);
 			}
 		}
@@ -61,11 +68,13 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 		}
 
 		if(spawn1 == 1) {
+			if (ret1 == null) System.err.println("ret1 is NULL");
 			maxv2 = ret1.maxv;
 			optdup = ret1.opts;
 			result = ret1;
 		}
 		if(spawn2 == 1) {
+			if (ret2 == null) System.err.println("ret2 is NULL");
 			maxv = ret2.maxv;
 			opts = ret2.opts;
 			result = ret2;
@@ -83,6 +92,7 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 			if(spawn2 == 1) {
 				result.opts = opts;
 			} else {
+				if (opts == null) System.err.println("opts is NULL");
 				result.opts = (byte[]) opts.clone(); // make a copy of param!
 			}
 		}
@@ -215,7 +225,9 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 		limw = N * MAXWEIGHT/2;
 
 		System.out.println("knapsack started, N = " + N);
+		
 		start = System.currentTimeMillis();
+		System.out.println("starttime: " + start/1000.0);
 		ret = k.spawn_try_it(1, 0, totv, limw, 0, values, weights, s, opts);
 		k.sync();
 		end = System.currentTimeMillis();
@@ -225,7 +237,7 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 		System.out.println("application time knapsack (" + N + ") took " + time + " s");
 		System.out.println("application result knapsack (" + N + ") = max weight " +
 				   limw + " has the value " + ret.maxv);
-
+		System.out.println("endtime: " + end/1000.0);
 		for (i=1; i<=N; i++) {
 			if (ret.opts[i]==1) {
 				System.out.println("( " + weights[i] + " " + values[i] + " )");

@@ -16,4 +16,14 @@ interface Protocol {
 	static final byte TUPLE_ADD =                13;
 	static final byte TUPLE_DEL =                14;
 	static final byte BLOCKING_STEAL_REQUEST =   15;
+	static final byte CRASH = 		     16;
+	static final byte ABORT_AND_STORE = 	     17;
+	static final byte RESULT_REQUEST = 	     18;	
+	static final byte STEAL_AND_TABLE_REQUEST =  19;
+	static final byte ASYNC_STEAL_AND_TABLE_REQUEST = 20;
+	static final byte STEAL_REPLY_FAILED_TABLE = 21;
+	static final byte STEAL_REPLY_SUCCESS_TABLE= 22;
+	static final byte ASYNC_STEAL_REPLY_FAILED_TABLE = 23;
+	static final byte ASYNC_STEAL_REPLY_SUCCESS_TABLE= 24;
+	
 }
