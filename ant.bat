@@ -3,7 +3,9 @@
 if NOT DEFINED JAVA_HOME goto javahome
 if "%JAVA_HOME%" == "" goto javahome
 
-3rdparty\apache-ant-1.6.1\bin\ant %1 %2 %3 %4 %5
+set DIR=%~dp0
+
+%DIR%3rdparty\apache-ant-1.6.1\bin\ant %1 %2 %3 %4 %5
 goto end
 
 :javahome
