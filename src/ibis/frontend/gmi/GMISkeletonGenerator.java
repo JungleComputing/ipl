@@ -365,7 +365,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println("}\n");
     }
 
-    void constructor(String spacing, Vector methods) {
+    void constructor(String spacing) {
 
 	output.println(spacing + "public group_skeleton_" + data.classname + "() {}");
     }
@@ -379,7 +379,7 @@ class GMISkeletonGenerator extends GMIGenerator {
     void generate() {
 	dest_name = data.classname;
 	header();
-	constructor("\t", data.specialMethods);
+	constructor("\t");
 	messageHandler("\t", data.specialMethods);
 	body("\t", data.specialMethods);
 	trailer();

@@ -6,15 +6,14 @@ import ibis.connect.socketFactory.DummySocket;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.net.SocketException;
 
 
 public class PSSocket extends DummySocket
 {
-    private ParallelStreams ps = null;
-    private PSInputStream   in = null;
-    private PSOutputStream out = null;
+    ParallelStreams ps = null;
+    PSInputStream   in = null;
+    PSOutputStream out = null;
 
     /* End-users are not supposed to call this constructor.
      * They should use the socket factory instead.
@@ -31,13 +30,11 @@ public class PSSocket extends DummySocket
     }
 
     public OutputStream getOutputStream()
-	throws IOException
     {
 	return out;
     }
 
     public InputStream getInputStream()
-	throws IOException
     {
 	return in;
     }
@@ -115,7 +112,6 @@ public class PSSocket extends DummySocket
 	    return ps.poll();
 	}
 	public void close()
-	    throws IOException
 	{
 	    in = null;
 	}
@@ -145,11 +141,10 @@ public class PSSocket extends DummySocket
 	    ps.send(b, off, len);
 	}
 	public void flush()
-	    throws IOException
 	{
+	    // no flush needed
 	}
 	public void close()
-	    throws IOException
 	{
 	    out = null;
 	}

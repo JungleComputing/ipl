@@ -1,7 +1,7 @@
 package ibis.util;
 
-import java.net.InetAddress;
 import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
@@ -38,13 +38,13 @@ public class IPUtils {
     /**
      * Returns true if the specified address is an external address.
      * External means not a site local, link local, or loopback address.
-     * @param addr the specified address.
+     * @param address the specified address.
      * @return <code>true</code> if <code>addr</code> is an external address.
      */
-    public static boolean isExternalAddress(InetAddress addr) {
-	if(addr.isLoopbackAddress()) return false;
-	if(addr.isLinkLocalAddress()) return false;
-	if(addr.isSiteLocalAddress()) return false;
+    public static boolean isExternalAddress(InetAddress address) {
+	if(address.isLoopbackAddress()) return false;
+	if(address.isLinkLocalAddress()) return false;
+	if(address.isSiteLocalAddress()) return false;
 
 	return true;
     }
@@ -90,8 +90,6 @@ public class IPUtils {
     private static InetAddress doWorkGetLocalHostAddress(boolean alt) {
 	InetAddress external = null;
 	InetAddress internal = null;
-	InetAddress[] all = null;
-
 	Properties p = System.getProperties();
 
 	if (alt) {
@@ -164,38 +162,38 @@ System.err.println("Specified alt ip addr " + external);
 		NetworkInterface nw = (NetworkInterface) e.nextElement();
 
 		for (Enumeration e2 = nw.getInetAddresses(); e2.hasMoreElements();) {
-		    InetAddress addr = (InetAddress) e2.nextElement();
+		    InetAddress address = (InetAddress) e2.nextElement();
 		    if(DEBUG) {
-			System.err.println("trying address: " + addr +
-				(isExternalAddress(addr) ? " EXTERNAL" : " LOCAL"));
+			System.err.println("trying address: " + address +
+				(isExternalAddress(address) ? " EXTERNAL" : " LOCAL"));
 		    }
-		    if(isExternalAddress(addr)) {
+		    if(isExternalAddress(address)) {
 			if(external == null) {
-			    external = addr;
+			    external = address;
 			} else if (! (external instanceof Inet4Address) &&
-				   addr instanceof Inet4Address) {
+				   address instanceof Inet4Address) {
 			    // Preference for IPv4
-			    external = addr;
+			    external = address;
 			} else {
 			    if (first) {
 				first = false;
 				System.err.println("WARNING, this machine has more than one external " +
 				    "IP address, using " +
 				    external);
-				System.err.println("  but found " + addr + " as well");
+				System.err.println("  but found " + address + " as well");
 			    } else {
-				System.err.println("  ... and found " + addr + " as well");
+				System.err.println("  ... and found " + address + " as well");
 			    }
 			}
 		    } else if (internal == null) {
-			internal = addr;
-		    } else if (addr.isSiteLocalAddress()) {
+			internal = address;
+		    } else if (address.isSiteLocalAddress()) {
 			if (! internal.isSiteLocalAddress() || ! (internal instanceof Inet4Address)) {
-			    internal = addr;
+			    internal = address;
 			}
 		    } else {
 			if (! internal.isSiteLocalAddress() && ! (internal instanceof Inet4Address)) {
-			    internal = addr;
+			    internal = address;
 			}
 		    }
 		}

@@ -47,7 +47,7 @@ public class HubProtocol
 	private int		   localPort;
 	private boolean            hubConnected = false;
 	
-	public HubWire(Socket s) throws IOException, ClassNotFoundException {
+	public HubWire(Socket s) throws IOException {
 	    socket = s;
 	    localHostName = IPUtils.getLocalHostAddress().getHostName();
 	    localPort = s.getLocalPort();
@@ -83,7 +83,7 @@ public class HubProtocol
 	public String getLocalName() { return localHostName; }
 	public int    getLocalPort() { return localPort; }
 	public HubPacket recvPacket()
-	    throws IOException, ClassNotFoundException {
+	    throws IOException {
 	    HubPacket p = null;
 	    synchronized(in) {
 		int      action = in.readInt();
@@ -102,7 +102,7 @@ public class HubProtocol
 		    break;
 		case PUTPORT: p = HubPacketPutPort.recv(in, host, port);
 		    break;
-		case PORTSET: p = HubPacketPortSet.recv(in, host, port);
+		case PORTSET: p = HubPacketPortSet.recv(in);
 		    break;
 		case GETPORT: p = HubPacketGetPort.recv(in, host, port);
 		    break;
@@ -159,7 +159,7 @@ public class HubProtocol
 	    out.writeInt(clientPort);
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p) 
-	    throws IOException, ClassNotFoundException {
+	    throws IOException {
 	    int    serverPort = in.readInt();
 	    int    clientPort = in.readInt();
 	    MyDebug.out.println("# HubPacketConnect.recv()- got CONNECT to port " + serverPort + " from " + h + ":" + p);
@@ -184,7 +184,7 @@ public class HubProtocol
 	    out.writeInt(servantPort);
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p)
-	    throws IOException, ClassNotFoundException {
+	    throws IOException {
 	    int    clientPort  = in.readInt();
 	    String serverHost  = in.readUTF();
 	    int    servantPort = in.readInt();
@@ -207,7 +207,7 @@ public class HubProtocol
 	    out.writeUTF(serverHost);
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p)
-	    throws IOException, ClassNotFoundException {
+	    throws IOException {
 	    int    clientPort = in.readInt();
 	    String serverHost = in.readUTF();
 	    MyDebug.out.println("# HubPacketReject.recv()- got REJECT to port " + clientPort + " from " + h + ":" + p);
@@ -226,7 +226,7 @@ public class HubProtocol
 	    out.writeInt(proposedPort);
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p)
-	    throws IOException, ClassNotFoundException {
+	    throws IOException {
 	    int    port = in.readInt();
 	    MyDebug.out.println("# HubPacketGetPort.recv()- got GETPORT of port " + port + " from " + h + ":" + p);
 	    return new HubPacketGetPort(port);
@@ -244,7 +244,7 @@ public class HubProtocol
 	    out.writeInt(resultPort);
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p)
-	    throws IOException, ClassNotFoundException {
+	    throws IOException {
 	    int    port = in.readInt();
 	    MyDebug.out.println("# HubPacketPutPort.recv()- got PUTPORT of port " + port + " from " + h + ":" + p);
 	    return new HubPacketPutPort(port);
@@ -264,8 +264,8 @@ public class HubProtocol
 		out.writeInt(((Integer) portset.get(i)).intValue());
 	    }
 	}
-	static public HubPacket recv(DataInputStream in, String h, int p)
-	    throws IOException, ClassNotFoundException {
+	static public HubPacket recv(DataInputStream in)
+	    throws IOException {
 	    ArrayList portset = new ArrayList();
 	    int    n = in.readInt();
 	    MyDebug.out.println("# HubPacketPortSet.recv()- got PORTSET");
@@ -294,7 +294,7 @@ public class HubProtocol
 	    out.write(b);
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p)
-	    throws IOException, ClassNotFoundException {
+	    throws IOException {
 	    int port = in.readInt();
 	    int sport = in.readInt();
 	    int len = in.readInt();
@@ -319,7 +319,7 @@ public class HubProtocol
 	    out.writeInt(localPort);
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p)
-	    throws IOException, ClassNotFoundException {
+	    throws IOException {
 	    int port = in.readInt();
 	    int lport = in.readInt();
 	    MyDebug.out.println("# HubPacketConnect.recv()- got CLOSE of port " + port + " from " + h + ":" + p);

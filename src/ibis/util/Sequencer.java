@@ -36,7 +36,7 @@ public final class Sequencer {
     private IbisIdentifier ident;
     private boolean master;
     private ReceivePort rcv;
-    private PortType tp;
+    PortType tp;
     private SendPort snd;	// Only for client
     private int idno;
     private HashMap counters;
@@ -81,7 +81,7 @@ public final class Sequencer {
 	    }
 	    else {
 		rid = (ReceivePortIdentifier) clients.get(index);
-		name = (String) m.readString();
+		name = m.readString();
 		m.finish();
 		s = (SendPort) sendports.get(index);
 		w = s.newMessage();
@@ -127,8 +127,7 @@ public final class Sequencer {
 	ident = ibis.identifier();
 	idno = -1;
 	try {
-	    IbisIdentifier boss = (IbisIdentifier)
-			    ibis.registry().elect("sequencer");
+	    IbisIdentifier boss = ibis.registry().elect("sequencer");
 	    master = boss.equals(ident);
 	} catch(ClassNotFoundException e) {
 	    throw new IOException("Got ClassNotFoundException " + e);
@@ -197,7 +196,7 @@ public final class Sequencer {
 	return seq;
     }
 
-    private synchronized int getNo(String name) {
+    synchronized int getNo(String name) {
 	IntObject i = (IntObject) counters.get(name);
 	if (i == null) {
 	    i = new IntObject(START_SEQNO);

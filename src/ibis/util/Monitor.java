@@ -5,7 +5,7 @@ package ibis.util;
  *
  * The Monitor can be entered ({@link #lock()}) and exited
  * ({@link #unlock()}). {@link ConditionVariable}s that are part of this
- * monitor can be obtained by {@link #createCV}.
+ * monitor can be obtained by {@link #createCV()}.
  *
  * The Monitor has optional support for priority locking. If the Monitor is
  * unlocked and some thread has locked it with <code>priority = true</code>,

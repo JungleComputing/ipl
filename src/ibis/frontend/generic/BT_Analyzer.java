@@ -48,42 +48,42 @@ public class BT_Analyzer {
                 return false;
 	}
 	
-	private void addSpecialMethod(Vector specialMethods, Method m) { 
-		for (int i=0;i<specialMethods.size();i++) { 
-			if (compareMethods(m, (Method) specialMethods.get(i))) { 
+	private void addSpecialMethod(Vector sm, Method m) { 
+		for (int i=0;i<sm.size();i++) { 
+			if (compareMethods(m, (Method) sm.get(i))) { 
 				// it is already in the vector
 				return;
 			}
 		}
 
-		specialMethods.addElement(m);
+		sm.addElement(m);
 	} 
 
-	private void findSpecialMethods(JavaClass specialInterface, Vector specialMethods) { 
-		Method[] methods = specialInterface.getMethods();
+	private void findSpecialMethods(JavaClass si, Vector sm) { 
+		Method[] methods = si.getMethods();
 
 		for (int i=0;i<methods.length;i++) { 
 		    if (! methods[i].getName().equals("<clinit>")) {
-			addSpecialMethod(specialMethods, methods[i]);
+			addSpecialMethod(sm, methods[i]);
 		    }
 		}		
 	}
 
-	Vector findSpecialMethods(Vector specialInterfaces) { 
-		Vector specialMethods = new Vector();
+	Vector findSpecialMethods(Vector si) { 
+		Vector mi = new Vector();
 
-		for (int i=0;i<specialInterfaces.size();i++) { 
-			findSpecialMethods((JavaClass) specialInterfaces.get(i), specialMethods);
+		for (int i=0;i<si.size();i++) { 
+			findSpecialMethods((JavaClass) si.get(i), mi);
 		} 
 		
-		return specialMethods;
+		return mi;
 	} 
 
-	private void findSubjectSpecialMethod(Method[] subject, Method special, Vector dest) {
+	private void findSubjectSpecialMethod(Method[] sub, Method special, Vector dest) {
 
-		for (int i=0;i<subject.length;i++) { 
+		for (int i=0;i<sub.length;i++) { 
 
-			Method temp = subject[i];
+			Method temp = sub[i];
 
 			if (compareMethods(special, temp)) { 
 //				System.out.println(temp.fullName() + " equals " + special.fullName());
@@ -104,7 +104,7 @@ public class BT_Analyzer {
 	} 
 
 
-	boolean findSpecialInterfaces(String inter, Vector specialInterfaces) {
+	boolean findSpecialInterfaces(String inter, Vector si) {
 		boolean result = false;
 		JavaClass interf = Repository.lookupClass(inter);
 
@@ -119,13 +119,13 @@ public class BT_Analyzer {
 			String[] interfaces = interf.getInterfaceNames();
 			
 			for (int i=0;i<interfaces.length;i++) { 
-				result |= findSpecialInterfaces(interfaces[i], specialInterfaces);
+				result |= findSpecialInterfaces(interfaces[i], si);
 			}
 		} 
 
 		if (result) { 
-			if (!specialInterfaces.contains(inter)) { 
-				specialInterfaces.addElement(interf);
+			if (!si.contains(inter)) { 
+				si.addElement(interf);
 			}
 		} 
 
@@ -133,10 +133,10 @@ public class BT_Analyzer {
 	}
 
 	Vector findSpecialInterfaces() { 
-		Vector specialInterfaces = new Vector();
+		Vector si = new Vector();
 
 		if (! subject.isClass()) {
-		    findSpecialInterfaces(subject.getClassName(), specialInterfaces);
+		    findSpecialInterfaces(subject.getClassName(), si);
 		}
 		else {
 		    String[] interfaces = subject.getInterfaceNames();
@@ -145,11 +145,11 @@ public class BT_Analyzer {
 			    if (verbose) {
 				System.out.println(subject.getClassName() + " implements " + interfaces[i]);
 			    }
-			    findSpecialInterfaces(interfaces[i], specialInterfaces);
+			    findSpecialInterfaces(interfaces[i], si);
 		    }
 		}
 
-		return specialInterfaces;
+		return si;
 	}
 
 	public void start() {

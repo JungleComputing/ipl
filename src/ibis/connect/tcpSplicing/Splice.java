@@ -16,8 +16,8 @@ import java.net.Socket;
 
 public class Splice
 {
-    private static int serverPort = TypedProperties.intProperty(ConnProps.splice_port, 20246);
-    private static int hintPort = serverPort + 1;
+    static int serverPort = TypedProperties.intProperty(ConnProps.splice_port, 20246);
+    static int hintPort = serverPort + 1;
     private static final int defaultSendBufferSize = 64*1024;
     private static final int defaultRecvBufferSize = 64*1024;
     private static NumServer server;
@@ -37,18 +37,19 @@ public class Splice
      * The NumServer solves that.
      */
     private static class NumServer extends Thread {
-	ServerSocket server;
+	ServerSocket srvr;
 
 	NumServer() {
 	    try {
-		server = new ServerSocket(serverPort);
+		srvr = new ServerSocket(serverPort);
 		MyDebug.trace("# Splice: numserver created");
 		Runtime.getRuntime().addShutdownHook(new Thread("NumServer killer") {
 		    public void run() {
 			try {
-			    server.close();
-			    server = null;
+			    srvr.close();
+			    srvr = null;
 			} catch(Exception e) {
+			    // ignored
 			}
 		    }
 		});
@@ -56,16 +57,16 @@ public class Splice
 		// Assumption here is that another JVM has created this server.
 		// System.out.println("Could not create server socket");
 		// e.printStackTrace();
-		server = null;
+		srvr = null;
 		MyDebug.trace("# Splice: numserver refused");
 	    }
 	}
 
 	public void run() {
 	    while (true) {
-		if (server == null) return;
+		if (srvr == null) return;
 		try {
-		    Socket s = server.accept();
+		    Socket s = srvr.accept();
 		    DataOutputStream out = new DataOutputStream(
 					     new BufferedOutputStream(
 						s.getOutputStream()));
@@ -147,11 +148,11 @@ public class Splice
 	try {
 	    socket.close();
 	} catch(IOException dummy) {
+	    // ignored
 	}
     }
 
     public Socket connectSplice(String rHost, int rPort)
-	throws IOException
     {
 	int i = 0;
 	boolean connected = false;

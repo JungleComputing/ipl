@@ -8,6 +8,7 @@ public abstract class SocketType
 	    implements ConnectProperties {
 	ConnectProperties prevail = null;
 	public DefaultConnectProperties() {
+	    // empty constructor
 	}
 	
 	public DefaultConnectProperties(ConnectProperties prevail) {

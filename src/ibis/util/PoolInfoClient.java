@@ -13,7 +13,7 @@ import java.net.UnknownHostException;
  * {@link ibis.util.PoolInfoServer PoolInfoServer}.
  * The best way to access pool information is to obtain a
  * {@link ibis.util.PoolInfo PoolInfo} by means of the
- * {@link ibis.util.PoolInfo#createPoolInfo PoolInfo.createPoolInfo} static
+ * {@link ibis.util.PoolInfo#createPoolInfo() PoolInfo.createPoolInfo} static
  * method. This is the most flexible, only creating a
  * <code>PoolInfoClient</code> when a more knowledgeable <code>PoolInfo</code>
  * cannot be created.

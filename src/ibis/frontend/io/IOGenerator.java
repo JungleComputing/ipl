@@ -67,17 +67,17 @@ public class IOGenerator {
     private static final String sun_input_stream_name  = "java.io.ObjectInputStream";
     private static final String sun_output_stream_name = "java.io.ObjectOutputStream";
 
-    private static final ObjectType ibis_input_stream  = new ObjectType(ibis_input_stream_name);
-    private static final ObjectType ibis_output_stream = new ObjectType(ibis_output_stream_name);
-    private static final ObjectType sun_input_stream   = new ObjectType(sun_input_stream_name);
-    private static final ObjectType sun_output_stream  = new ObjectType(sun_output_stream_name);
+    static final ObjectType ibis_input_stream  = new ObjectType(ibis_input_stream_name);
+    static final ObjectType ibis_output_stream = new ObjectType(ibis_output_stream_name);
+    static final ObjectType sun_input_stream   = new ObjectType(sun_input_stream_name);
+    static final ObjectType sun_output_stream  = new ObjectType(sun_output_stream_name);
 
-    private static final Type[] ibis_input_stream_arrtp = new Type[] { ibis_input_stream };
-    private static final Type[] ibis_output_stream_arrtp = new Type[] { ibis_output_stream };
+    static final Type[] ibis_input_stream_arrtp = new Type[] { ibis_input_stream };
+    static final Type[] ibis_output_stream_arrtp = new Type[] { ibis_output_stream };
 
-    private static final Type	java_lang_class_type = Type.getType("Ljava/lang/Class;");
+    static final Type	java_lang_class_type = Type.getType("Ljava/lang/Class;");
 
-    private static HashMap serialversionids = new HashMap();
+    static HashMap serialversionids = new HashMap();
 
     private static class FieldComparator implements Comparator {
 	public int compare(Object o1, Object o2) {
@@ -88,7 +88,7 @@ public class IOGenerator {
 	}
     }
 
-    private static FieldComparator fieldComparator = new FieldComparator();
+    static FieldComparator fieldComparator = new FieldComparator();
 
     private static class SerializationInfo {
 
@@ -177,9 +177,9 @@ public class IOGenerator {
 							  Constants.ACC_ABSTRACT);
 
 		// Only set ABSTRACT for an interface when it has methods.
-		Method[] methods = clazz.getMethods();
+		Method[] cMethods = clazz.getMethods();
 		if ((classModifiers & Constants.ACC_INTERFACE) != 0) {
-		    if (methods.length > 0) {
+		    if (cMethods.length > 0) {
 			classModifiers |= Constants.ACC_ABSTRACT;
 		    }
 		    else {
@@ -197,33 +197,33 @@ public class IOGenerator {
 		
 		// 4. For each field of the class sorted by field name (except private
 		//    static and private transient fields):
-		Field[] fields = clazz.getFields();
-		Arrays.sort(fields, new Comparator() {
+		Field[] cFields = clazz.getFields();
+		Arrays.sort(cFields, new Comparator() {
 		    public int compare(Object o1, Object o2) {
 			String name1 = ((Field) o1).getName();
 			String name2 = ((Field) o2).getName();
 			return name1.compareTo(name2);
 		    }
 		});
-		for (int i = 0; i < fields.length; i++) {
-		    int mods = fields[i].getModifiers();
+		for (int i = 0; i < cFields.length; i++) {
+		    int mods = cFields[i].getModifiers();
 		    if (((mods & Constants.ACC_PRIVATE) == 0) ||
 			((mods & (Constants.ACC_STATIC | Constants.ACC_TRANSIENT)) == 0))
 		    {
 			// 4.1. The name of the field in UTF encoding.
-			dout.writeUTF(fields[i].getName());
+			dout.writeUTF(cFields[i].getName());
 			// 4.2. The modifiers of the field written as a 32-bit integer.
 			dout.writeInt(mods);
 			// 4.3. The descriptor of the field in UTF encoding
-			dout.writeUTF(fields[i].getSignature());
+			dout.writeUTF(cFields[i].getSignature());
 		    }
 		}
 		
 		// This is where the trouble starts for serialver.
 
 		// 5. If a class initializer exists, write out the following:
-		for (int i = 0; i < methods.length; i++) {
-		    if (methods[i].getName().equals("<clinit>")) {
+		for (int i = 0; i < cMethods.length; i++) {
+		    if (cMethods[i].getName().equals("<clinit>")) {
 			// 5.1. The name of the method, <clinit>, in UTF encoding.
 			dout.writeUTF("<clinit>");
 			// 5.2. The modifier of the method, java.lang.reflect.Modifier.STATIC, written as a 32-bit integer.
@@ -234,7 +234,7 @@ public class IOGenerator {
 		    }
 		}
 
-		Arrays.sort(methods, new Comparator() {
+		Arrays.sort(cMethods, new Comparator() {
 		    public int compare(Object o1, Object o2) {
 			String name1 = ((Method) o1).getName();
 			String name2 = ((Method) o2).getName();
@@ -248,32 +248,32 @@ public class IOGenerator {
 		});
 
 		// 6. For each non-private constructor sorted by method name and signature:
-		for (int i = 0; i < methods.length; i++) {
-		    if (methods[i].getName().equals("<init>")) {
-			int mods = methods[i].getModifiers();
+		for (int i = 0; i < cMethods.length; i++) {
+		    if (cMethods[i].getName().equals("<init>")) {
+			int mods = cMethods[i].getModifiers();
 			if ((mods & Constants.ACC_PRIVATE) == 0) {
 			    // 6.1. The name of the method, <init>, in UTF encoding.
 			    dout.writeUTF("<init>");
 			    // 6.2. The modifiers of the method written as a 32-bit integer.
 			    dout.writeInt(mods);
 			    // 6.3. The descriptor of the method in UTF encoding.
-			    dout.writeUTF(methods[i].getSignature().replace('/', '.'));
+			    dout.writeUTF(cMethods[i].getSignature().replace('/', '.'));
 			}
 		    }
 		}
 		
 		// 7. For each non-private method sorted by method name and signature:
-		for (int i = 0; i < methods.length; i++) {
-		    if (! methods[i].getName().equals("<init>") &&
-			! methods[i].getName().equals("<clinit>")) {
-			int mods = methods[i].getModifiers();
+		for (int i = 0; i < cMethods.length; i++) {
+		    if (! cMethods[i].getName().equals("<init>") &&
+			! cMethods[i].getName().equals("<clinit>")) {
+			int mods = cMethods[i].getModifiers();
 			if ((mods & Constants.ACC_PRIVATE) == 0) {
 			    // 7.1. The name of the method in UTF encoding.
-			    dout.writeUTF(methods[i].getName());
+			    dout.writeUTF(cMethods[i].getName());
 			    // 7.2. The modifiers of the method written as a 32-bit integer.
 			    dout.writeInt(mods);
 			    // 7.3. The descriptor of the method in UTF encoding.
-			    dout.writeUTF(methods[i].getSignature().replace('/', '.'));
+			    dout.writeUTF(cMethods[i].getSignature().replace('/', '.'));
 			}
 		    }
 		}
@@ -377,11 +377,11 @@ public class IOGenerator {
 
 
 	private boolean hasIbisConstructor(JavaClass cl) {
-	    Method[] methods = cl.getMethods();
+	    Method[] clMethods = cl.getMethods();
 
-	    for (int i = 0; i < methods.length; i++) {
-		if (methods[i].getName().equals("<init>") &&
-		    methods[i].getSignature().equals("(Libis/io/IbisSerializationInputStream;)V")) return true;
+	    for (int i = 0; i < clMethods.length; i++) {
+		if (clMethods[i].getName().equals("<init>") &&
+		    clMethods[i].getSignature().equals("(Libis/io/IbisSerializationInputStream;)V")) return true;
 	    }
 	    return false;
 	}
@@ -396,8 +396,8 @@ public class IOGenerator {
 	}
 
 
-	private Instruction createGeneratedDefaultReadObjectInvocation(String name, InstructionFactory factory, short invmode) {
-	    return factory.createInvoke(name,
+	private Instruction createGeneratedDefaultReadObjectInvocation(String name, InstructionFactory fac, short invmode) {
+	    return fac.createInvoke(name,
 					"generated_DefaultReadObject",
 					Type.VOID,
 					new Type[] {ibis_input_stream, Type.INT},
@@ -432,11 +432,11 @@ public class IOGenerator {
 	}
 
 
-	private int getClassDepth(JavaClass clazz) {
-	    if (! isSerializable(clazz)) {
+	private int getClassDepth(JavaClass cl) {
+	    if (! isSerializable(cl)) {
 		return 0;
 	    }
-	    return 1 + getClassDepth(Repository.lookupClass(clazz.getSuperclassName()));
+	    return 1 + getClassDepth(Repository.lookupClass(cl.getSuperclassName()));
 	}
 
 
@@ -636,7 +636,7 @@ public class IOGenerator {
 	    return "writeArray" + name.substring(0, 1).toUpperCase() + name.substring(1);
 	}
 
-	private InstructionList writeReferenceField(Field field, MethodGen m) {
+	private InstructionList writeReferenceField(Field field) {
 	    Type field_type = Type.getType(field.getSignature());
 	    InstructionList write_il = new InstructionList();
 
@@ -929,7 +929,7 @@ public class IOGenerator {
 	    return write_il;
 	}
 
-	private InstructionList generateDefaultWrites(int dpth, MethodGen write_gen) {
+	private InstructionList generateDefaultWrites(MethodGen write_gen) {
 	    InstructionList write_il = new InstructionList();
 
 	    if (has_serial_persistent_fields) {
@@ -968,7 +968,7 @@ public class IOGenerator {
 			if (verbose) System.out.println("    writing field " + field.getName() + " of type " + field.getSignature());
 			if (! field_type.equals(Type.STRING) &&
 			    ! field_type.equals(java_lang_class_type)) {
-			    write_il.append(writeReferenceField(field, write_gen));
+			    write_il.append(writeReferenceField(field));
 			}
 			else {
 			    write_il.append(writeInstructions(field));
@@ -1333,7 +1333,7 @@ public class IOGenerator {
 	    return read_il;
 	}
 
-	private InstructionList generateDefaultReads(boolean from_constructor, int dpth, MethodGen read_gen) {
+	private InstructionList generateDefaultReads(boolean from_constructor, MethodGen read_gen) {
 	    InstructionList read_il = new InstructionList();
 
 	    if (has_serial_persistent_fields) {
@@ -1407,21 +1407,21 @@ public class IOGenerator {
 		    verification_failed = true;
 		}
 		else {
-		    Method[] methods = c.getMethods();
-		    for (int i = 0; i < methods.length; i++) {
+		    Method[] cMethods = c.getMethods();
+		    for (int i = 0; i < cMethods.length; i++) {
 			if (verbose) {
-			    System.out.println("verifying method " + methods[i].getName());
+			    System.out.println("verifying method " + cMethods[i].getName());
 			}
 			res = verf.doPass3a(i);
 			if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
-			    System.out.println("Verification pass 3a failed for method " + methods[i].getName());
+			    System.out.println("Verification pass 3a failed for method " + cMethods[i].getName());
 			    System.out.println(res.getMessage());
 			    verification_failed = true;
 			}
 			else {
 			    res = verf.doPass3b(i);
 			    if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
-				System.out.println("Verification pass 3b failed for method " + methods[i].getName());
+				System.out.println("Verification pass 3b failed for method " + cMethods[i].getName());
 				System.out.println(res.getMessage());
 				verification_failed = true;
 			    }
@@ -1458,8 +1458,8 @@ public class IOGenerator {
 	    ObjectType class_type = new ObjectType(classname);
 
 	    String classfilename = name.substring(name.lastIndexOf('.')+1) + ".class";
-	    ClassGen gen = new ClassGen(name, "ibis.io.Generator", classfilename, Constants.ACC_FINAL|Constants.ACC_PUBLIC|Constants.ACC_SUPER, null);
-	    InstructionFactory factory = new InstructionFactory(gen);
+	    ClassGen iogenGen = new ClassGen(name, "ibis.io.Generator", classfilename, Constants.ACC_FINAL|Constants.ACC_PUBLIC|Constants.ACC_SUPER, null);
+	    InstructionFactory iogenFactory = new InstructionFactory(iogenGen);
 
 	    InstructionList il = new InstructionList();
 
@@ -1478,22 +1478,22 @@ public class IOGenerator {
 		   constructor of the first non-serializable superclass.
 		*/
 		il.append(new ALOAD(1));
-		int ind = gen.getConstantPool().addString(classname);
+		int ind = iogenGen.getConstantPool().addString(classname);
 		il.append(new LDC(ind));
-		il.append(factory.createInvoke(ibis_input_stream_name,
+		il.append(iogenFactory.createInvoke(ibis_input_stream_name,
 					       "create_uninitialized_object",
 					       Type.OBJECT,
 					       new Type[] { Type.STRING},
 					       Constants.INVOKEVIRTUAL));
-		il.append(factory.createCheckCast(class_type));
+		il.append(iogenFactory.createCheckCast(class_type));
 		il.append(new ASTORE(2));
 
 		/* Now read the superclass. */
 		il.append(new ALOAD(1));
 		il.append(new ALOAD(2));
-		ind = gen.getConstantPool().addString(super_classname);
+		ind = iogenGen.getConstantPool().addString(super_classname);
 		il.append(new LDC(ind));
-		il.append(factory.createInvoke(ibis_input_stream_name,
+		il.append(iogenFactory.createInvoke(ibis_input_stream_name,
 					       "readSerializableObject",
 					       Type.VOID,
 					       new Type[] {Type.OBJECT, Type.STRING},
@@ -1505,7 +1505,7 @@ public class IOGenerator {
 		if (hasReadObject()) {
 		    il.append(new ALOAD(2));
 		    il.append(new ALOAD(1));
-		    il.append(factory.createInvoke(classname,
+		    il.append(iogenFactory.createInvoke(classname,
 						   "$readObjectWrapper$",
 						   Type.VOID,
 						   ibis_input_stream_arrtp,
@@ -1517,15 +1517,15 @@ public class IOGenerator {
 		    il.append(new ALOAD(2));
 		    il.append(new ALOAD(1));
 		    il.append(new SIPUSH((short)dpth));
-		    il.append(createGeneratedDefaultReadObjectInvocation(classname, factory, Constants.INVOKEVIRTUAL));
+		    il.append(createGeneratedDefaultReadObjectInvocation(classname, iogenFactory, Constants.INVOKEVIRTUAL));
 		}
 		il.append(new ALOAD(2));
 	    }
 	    else {
-		il.append(factory.createNew(class_type));
+		il.append(iogenFactory.createNew(class_type));
 		il.append(new DUP());
 		il.append(new ALOAD(1));
-		il.append(createInitInvocation(classname, factory));
+		il.append(createInitInvocation(classname, iogenFactory));
 	    }
 	    il.append(new ARETURN());
 
@@ -1544,17 +1544,17 @@ public class IOGenerator {
 					     "generated_newInstance",
 					     name,
 					     il,
-					     gen.getConstantPool());
+					     iogenGen.getConstantPool());
 
 	    method.setMaxStack(3);
 	    method.setMaxLocals();
 	    method.addException("java.io.IOException");
 	    method.addException("java.lang.ClassNotFoundException");
-	    gen.addMethod(method.getMethod());
+	    iogenGen.addMethod(method.getMethod());
 
 	    il = new InstructionList();
 	    il.append(new ALOAD(0));
-	    il.append(factory.createInvoke("ibis.io.Generator",
+	    il.append(iogenFactory.createInvoke("ibis.io.Generator",
 					   "<init>",
 					   Type.VOID,
 					   Type.NO_ARGS,
@@ -1568,13 +1568,13 @@ public class IOGenerator {
 				   "<init>",
 				   name,
 				   il,
-				   gen.getConstantPool());
+				   iogenGen.getConstantPool());
 
 	    method.setMaxStack(1);
 	    method.setMaxLocals();
-	    gen.addMethod(method.getMethod());
+	    iogenGen.addMethod(method.getMethod());
 
-	    return gen.getJavaClass();
+	    return iogenGen.getJavaClass();
 	}
 
 	void generateCode() {
@@ -1616,7 +1616,7 @@ public class IOGenerator {
 	    write_il.append(new SIPUSH((short)dpth));
 	    IF_ICMPNE ifcmpne = new IF_ICMPNE(null);
 	    write_il.append(ifcmpne);
-	    write_il.append(generateDefaultWrites(dpth, write_gen));
+	    write_il.append(generateDefaultWrites(write_gen));
 	    write_il.append(new GOTO(end));
 	    if (super_is_ibis_serializable || super_is_serializable) {
 		InstructionHandle i = write_il.append(new ILOAD(2));
@@ -1662,7 +1662,7 @@ public class IOGenerator {
 	    read_il.append(new SIPUSH((short)dpth));
 	    ifcmpne = new IF_ICMPNE(null);
 	    read_il.append(ifcmpne);
-	    read_il.append(generateDefaultReads(false, dpth, read_gen));
+	    read_il.append(generateDefaultReads(false, read_gen));
 	    read_il.append(new GOTO(end));
 
 	    if (super_is_ibis_serializable || super_is_serializable) {
@@ -1808,7 +1808,7 @@ public class IOGenerator {
 						     Constants.INVOKEVIRTUAL));
 	    }
 	    else {
-		write_il.append(generateDefaultWrites(dpth, write_gen));
+		write_il.append(generateDefaultWrites(write_gen));
 	    }
 
 	    /* Now, do the same for the reading side. */
@@ -1866,7 +1866,7 @@ public class IOGenerator {
 							 Constants.INVOKEVIRTUAL));
 		}
 		else {
-		    read_il.append(generateDefaultReads(true, dpth, mgen));
+		    read_il.append(generateDefaultReads(true, mgen));
 		}
 
 		read_il.append(mgen.getInstructionList());
@@ -1898,18 +1898,18 @@ public class IOGenerator {
 		}
 	    }
 
-	    JavaClass gen = generateInstanceGenerator();
+	    JavaClass instgen = generateInstanceGenerator();
 
-	    Repository.addClass(gen);
+	    Repository.addClass(instgen);
 
 	    if (verify) {
-		if (! doVerify(gen)) {
-		    System.err.println("Verification failed for " + gen.getClassName());
+		if (! doVerify(instgen)) {
+		    System.err.println("Verification failed for " + instgen.getClassName());
 		}
 	    }
 
 	    classes_to_save.add(clazz);
-	    classes_to_save.add(gen);
+	    classes_to_save.add(instgen);
 	}
     }
 
@@ -1929,8 +1929,6 @@ public class IOGenerator {
 
 
     public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean verify, boolean silent) {
-	ObjectType tp;
-
 	this.verbose = verbose;
 	this.local = local;
 	this.file = file;
@@ -1975,15 +1973,15 @@ public class IOGenerator {
 	return (temp == null ? referenceSerialization : temp);
     }
 
-    private boolean isSerializable(JavaClass clazz) {
+    boolean isSerializable(JavaClass clazz) {
 	return Repository.implementationOf(clazz, "java.io.Serializable");
     }
 
-    private boolean isExternalizable(JavaClass clazz) {
+    boolean isExternalizable(JavaClass clazz) {
 	return Repository.implementationOf(clazz, "java.io.Externalizable");
     }
 
-    private boolean isIbisSerializable(JavaClass clazz) {
+    boolean isIbisSerializable(JavaClass clazz) {
 	return directImplementationOf(clazz, "ibis.io.Serializable");
     }
 
@@ -2275,7 +2273,7 @@ public class IOGenerator {
     }
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
 	boolean verbose = false;
 	boolean local = true;
 	boolean file = false;

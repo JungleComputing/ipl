@@ -14,7 +14,7 @@ import java.util.StringTokenizer;
  * <code>ibis.pool.host_names</code> property.
  * If these names are not known in advance, a {@link ibis.util.PoolInfoClient
  * PoolInfoClient} can be used instead. The
- * {@link ibis.util.PoolInfo#createPoolInfo createPoolInfo} static method
+ * {@link ibis.util.PoolInfo#createPoolInfo() createPoolInfo} static method
  * can be used to take care of this automatically.
  * <br>
  * The <code>PoolInfo</code> class depends on the following system properties:
@@ -101,8 +101,6 @@ public class PoolInfo {
 	}
 
 	private void sequentialPool() {
-		String temp;
-		
 		total_hosts = 1;
 		host_number = 0;
 		

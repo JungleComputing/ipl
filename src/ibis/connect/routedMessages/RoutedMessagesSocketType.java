@@ -43,7 +43,7 @@ public class RoutedMessagesSocketType
     public ServerSocket createServerSocket(InetSocketAddress addr, int backlog)
 	throws IOException
     {
-	ServerSocket s = new RMServerSocket(addr.getPort(), backlog, addr.getAddress());
+	ServerSocket s = new RMServerSocket(addr.getPort(), addr.getAddress());
 	return s;
     }
 

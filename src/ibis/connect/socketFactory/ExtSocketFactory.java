@@ -277,7 +277,6 @@ public class ExtSocketFactory
     {
 	SocketType t = null;
 	String st = null;
-	Socket s;
 	if(props != null) {
 	    st = props.getProperty("SocketType");
 	}

@@ -33,6 +33,7 @@ public class HubLink extends Thread
 	    try {
 		wait();
 	    } catch(Exception e) {
+	        // ignored
 	    }
 	}
 	newPortBusy = true;
@@ -43,6 +44,7 @@ public class HubLink extends Thread
 	    try {
 		wait();
 	    } catch(Exception e) {
+	        // ignored
 	    }
 	}
 	newPortBusy = false;
@@ -56,6 +58,7 @@ public class HubLink extends Thread
 	    try {
 		wait();
 	    } catch(Exception e) {
+	        // ignored
 	    }
 	}
 	newPortBusy = true;
@@ -66,6 +69,7 @@ public class HubLink extends Thread
 	    try {
 		wait();
 	    } catch(Exception e) {
+	        // ignored
 	    }
 	}
 
@@ -98,8 +102,7 @@ public class HubLink extends Thread
     protected synchronized void addSocket(RMSocket s, int port) {
 	connectedSockets.put(new Integer(port), s);
     }
-    protected synchronized void removeSocket(int port)
-	    throws IOException {
+    protected synchronized void removeSocket(int port) {
 	Integer m = new Integer(port);
 	connectedSockets.remove(m);
 	available_ports.add(m);
@@ -115,7 +118,7 @@ public class HubLink extends Thread
     }
     
     public HubLink(String host, int port)
-	throws IOException, ClassNotFoundException {
+	throws IOException {
 	MyDebug.out.println("# HubLink()");
 	Socket s = new Socket(host, port);
 	wire = new HubProtocol.HubWire(s);

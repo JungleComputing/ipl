@@ -24,9 +24,9 @@ class GMIParameterVectorGenerator extends GMIGenerator {
     void header(Method m) { 
 
 	Type [] params = m.getArgumentTypes();
-	String name = this.name + m.getName();
+	String classname = this.name + m.getName();
 
-	output.println("final class " + name + " extends ibis.gmi.ParameterVector {\n");	
+	output.println("final class " + classname + " extends ibis.gmi.ParameterVector {\n");	
 	output.println("\tprivate final static int TOTAL_PARAMS = " + params.length + ";\n");	
 
 	/* Parameter fields */
@@ -53,14 +53,14 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	}
 
 	/* Constructor */
-	output.println("\t" + name + "() {");
+	output.println("\t" + classname + "() {");
 	output.println("\t\tset = new boolean[" + params.length + "];");
 	output.println("\t\treset();");
 	output.println("\t}\n");
 
 	/* Method that creates a parameter vector of the same type. */
 	output.println("\tpublic final ParameterVector getVector() {");
-	output.println("\t\treturn new " + name + "();");
+	output.println("\t\treturn new " + classname + "();");
 	output.println("\t}\n");
 
 	/* Reset method. */
@@ -173,9 +173,9 @@ class GMIParameterVectorGenerator extends GMIGenerator {
     }
 
     void readParametersMethod(Type[] params, Method m) {
-	String name = this.name + m.getName();
+	String classname = this.name + m.getName();
 	output.println("\tpublic ParameterVector readParameters(ReadMessage r) throws IOException {");
-	output.println("\t\t" + name + " p = new " + name + "();");
+	output.println("\t\t" + classname + " p = new " + classname + "();");
 	for (int i = 0; i < params.length; i++) {
 	    if (params[i] instanceof BasicType) {
 		output.println(readMessageType("\t\t", "p.p" + i, "r", params[i], true));
@@ -264,7 +264,6 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
     void body(Method m) { 
 
-	Type ret       = m.getReturnType();
 	Type [] params = m.getArgumentTypes();
 
 	writeParametersMethod(params);
@@ -366,7 +365,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	}
     } 
            
-    void trailer(Method m) {
+    void trailer() {
         output.println("}\n");
     } 
 
@@ -381,7 +380,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 	
 	    header(m);
 	    body(m);
-	    trailer(m);
+	    trailer();
 	} 
     } 
 } 

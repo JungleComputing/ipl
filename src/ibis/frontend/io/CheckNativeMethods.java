@@ -37,7 +37,6 @@ public class CheckNativeMethods {
 
     public static void main(String[] args) {
 
-	String file = null;
 	JavaClass[] clazz = null;
 	boolean verbose = false;
 

@@ -52,6 +52,7 @@ public class Timer implements java.io.Serializable {
      * Constructs a <code>Timer</code>.
      */
     protected Timer() {
+        // protected, users should use createTimer.
     }
 
     /**
@@ -118,9 +119,9 @@ public class Timer implements java.io.Serializable {
      */
     public double totalTimeVal() {
 	if (nanoMode) {
-	    return (double) time / 1000.0;
+	    return time / 1000.0;
 	}
-	return 1000.0 * (double) time;
+	return 1000.0 * time;
     }
 
     /**
@@ -142,7 +143,7 @@ public class Timer implements java.io.Serializable {
 	    if (nanoMode) {
 		return ((double) time) / (1000 * count);
 	    }
-	    return 1000.0 * (double) time / (count);
+	    return 1000.0 * time / (count);
 	}
 	return 0.0;
     }
@@ -163,9 +164,9 @@ public class Timer implements java.io.Serializable {
      */
     public double lastTimeVal() {
 	if (nanoMode) {
-	    return (double) lastTime / 1000.0;
+	    return lastTime / 1000.0;
 	}
-	return 1000.0 * (double) lastTime;
+	return 1000.0 * lastTime;
     }
 
     /**

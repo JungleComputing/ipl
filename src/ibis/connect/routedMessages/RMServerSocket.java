@@ -31,7 +31,7 @@ public class RMServerSocket extends ServerSocket
 	}
     }
 
-    public RMServerSocket(int port, int backlog, InetAddress addr)
+    public RMServerSocket(int port, InetAddress addr)
 	throws IOException
     {
 	hub = HubLinkFactory.getHubLink();
@@ -44,12 +44,12 @@ public class RMServerSocket extends ServerSocket
 
     public InetAddress getInetAddress()
     {
-	InetAddress addr = this.addr;
-	if (addr == null) {
-	    try { addr = IPUtils.getLocalHostAddress(); } catch(Exception e) { throw new Error(e); }
+	InetAddress address = addr;
+	if (address == null) {
+	    try { address = IPUtils.getLocalHostAddress(); } catch(Exception e) { throw new Error(e); }
 	}
-	MyDebug.out.println("# RMServerSocket.getInetAddress() addr="+addr);
-	return addr;
+	MyDebug.out.println("# RMServerSocket.getInetAddress() addr="+address);
+	return address;
     }
     public int getLocalPort()
     {
@@ -87,7 +87,6 @@ public class RMServerSocket extends ServerSocket
     }
 
     public synchronized void close()
-	throws IOException
     {
 	MyDebug.out.println("# RMServerSocket.close() of port " + serverPort);
 	socketOpened = false;

@@ -77,12 +77,11 @@ public class Queue {
 
 				if (time >= deadline) {
 					return null;
-				} else {
-					try {
-						wait(deadline - time);
-					} catch (Exception e) {
-						//IGNORE
-					}
+				}
+				try {
+					wait(deadline - time);
+				} catch (Exception e) {
+					//IGNORE
 				}
 			}
 		}

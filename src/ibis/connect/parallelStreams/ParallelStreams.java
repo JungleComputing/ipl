@@ -46,7 +46,7 @@ public class ParallelStreams
 	this.props = props;
     }
 
-    public void connect(InputStream in, OutputStream out, boolean hint)
+    public void connect(InputStream in, OutputStream out, boolean hnt)
 	throws IOException
     {
 	int i;
@@ -65,7 +65,7 @@ public class ParallelStreams
 
 	BrokeredSocketFactory f = ExtSocketFactory.getBrokeredType();
 
-	this.hint = hint;
+	hint = hnt;
 
 	MyDebug.trace("PS: connecting, numWays = "+numWays+" (hint="+hint+")");
 
@@ -102,6 +102,7 @@ public class ParallelStreams
 		try {
 		    wait();
 		} catch(Exception e) {
+		    // ignored
 		}
 		readerBusy = true;
 	    }
@@ -127,6 +128,7 @@ public class ParallelStreams
 		try {
 		    wait();
 		} catch(Exception e) {
+		    // ignored
 		}
 		readerBusy = true;
 	    }
@@ -175,6 +177,7 @@ public class ParallelStreams
 		try {
 		    wait();
 		} catch(Exception e) {
+		    // ignored
 		}
 		writerBusy = true;
 	    }

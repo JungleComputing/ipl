@@ -59,46 +59,43 @@ class GMIGenerator {
 		    return "Double";
 		} else if (c.equals(Type.BOOLEAN)) {
 		    return "Boolean";
-		} 					       
+		}
 	    }
 	    return "Object";
-	} else { 
-	    return "Object";
 	}
+	return "Object";
     } 
 
     public static String getType(Type c) { 
 
 	if (c instanceof ArrayType) {
 	    return getType(((ArrayType)c).getElementType()) + "[]";
-	} else { 
-	    if (!c.equals(Type.VOID)) { 
-		
-		if (c instanceof BasicType) {
-		    
-		    if (c.equals(Type.BYTE)) { 
-			return "byte";
-		    } else if (c.equals(Type.CHAR)) { 
-			return "char";
-		    } else if (c.equals(Type.SHORT)) {
-			return "short";
-		    } else if (c.equals(Type.INT)) {
-			return "int";
-		    } else if (c.equals(Type.LONG)) {
-			return "long";
-		    } else if (c.equals(Type.FLOAT)) {
-			return "float";
-		    } else if (c.equals(Type.DOUBLE)) {
-			return "double";
-		    } else if (c.equals(Type.BOOLEAN)) {
-			return "boolean";
-		    } 					       
-		}
-		return c.toString();
-	    } else { 
-		return "void";
-	    }
 	}
+	if (!c.equals(Type.VOID)) { 
+	    
+	    if (c instanceof BasicType) {
+		
+		if (c.equals(Type.BYTE)) { 
+		    return "byte";
+		} else if (c.equals(Type.CHAR)) { 
+		    return "char";
+		} else if (c.equals(Type.SHORT)) {
+		    return "short";
+		} else if (c.equals(Type.INT)) {
+		    return "int";
+		} else if (c.equals(Type.LONG)) {
+		    return "long";
+		} else if (c.equals(Type.FLOAT)) {
+		    return "float";
+		} else if (c.equals(Type.DOUBLE)) {
+		    return "double";
+		} else if (c.equals(Type.BOOLEAN)) {
+		    return "boolean";
+		} 					       
+	    }
+	    return c.toString();
+	} 
+	return "void";
     } 
 
     public static String getArrayType(ArrayType c, String s) {

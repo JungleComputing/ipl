@@ -282,15 +282,15 @@ public final class Satinc {
 	return null;
     }
 
-    Instruction getSatin(InstructionFactory ins_f) {
-	return ins_f.createInvoke("ibis.satin.impl.Satin",
+    Instruction getSatin(InstructionFactory insf) {
+	return insf.createInvoke("ibis.satin.impl.Satin",
 				  "getSatin",
 				  satinType,
 				  Type.NO_ARGS,
 				  Constants.INVOKESTATIC);
     }
 
-    void generateMain(ClassGen c, Method origMain) {
+    void generateMain(ClassGen clg, Method origMain) {
 
 	InstructionList il = new InstructionList();
 
@@ -299,9 +299,9 @@ public final class Satinc {
 					   new Type[] {new ArrayType(Type.STRING, 1)},
 					   new String[] { "argv" },
 					   "main",
-					   c.getClassName(),
+					   clg.getClassName(),
 					   il,
-					   c.getConstantPool());
+					   clg.getConstantPool());
 /*
     il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
 		     "createSatin",
@@ -333,7 +333,7 @@ public final class Satinc {
 				      Type.NO_ARGS,
 				      Constants.INVOKEVIRTUAL));
 	InstructionHandle try_start =
-	    il.append(ins_f.createInvoke(c.getClassName(),
+	    il.append(ins_f.createInvoke(clg.getClassName(),
 				     origMain.getName(),
 				     Type.VOID,
 				     new Type[] {new ArrayType(Type.STRING, 1)},
@@ -492,8 +492,8 @@ public final class Satinc {
 	return do_mangle(m.getName(), m.getSignature());
     }
 
-    String invocationRecordName(Method m, String classname) {
-	return ("Satin_" + classname + "_" + do_mangle(m) + "_InvocationRecord").replace('.', '_');
+    String invocationRecordName(Method m, String clnam) {
+	return ("Satin_" + clnam + "_" + do_mangle(m) + "_InvocationRecord").replace('.', '_');
     }
 
     String localRecordName(Method m) {
@@ -504,11 +504,11 @@ public final class Satinc {
 	return ("Satin_" + c.getClassName() + "_" + do_mangle(m) + "_LocalRecord").replace('.', '_');
     }
 
-    String returnRecordName(Method m, String classname) {
-	return ("Satin_" + classname + "_" + do_mangle(m) + "_ReturnRecord").replace('.', '_');
+    String returnRecordName(Method m, String clnam) {
+	return ("Satin_" + clnam + "_" + do_mangle(m) + "_ReturnRecord").replace('.', '_');
     }
     
-    String parameterRecordName(Method m, String classname) {
+    String parameterRecordName(Method m) {
 	return ("Satin_" + c.getClassName() + "_" + do_mangle(m) + "_ParameterRecord").replace('.','_');
     }
 
@@ -636,11 +636,8 @@ public final class Satinc {
     }
 
     void rewriteSync(MethodGen m, InstructionList il, InstructionHandle i, int maxLocals) {
-	int ifnullPos = -1;
 	BranchHandle firstJumpPos = null;
 	InstructionHandle pos = null;
-	Type returnType = m.getReturnType();
-
 	if (verbose) {
 	    System.out.println("rewriting sync, class = " + c);
 	}
@@ -893,7 +890,7 @@ public final class Satinc {
 	} else if (returnType.equals(Type.VOID)) {
 	    retval = il.insert(pos, new RETURN());
 	} else if (returnType.equals(Type.FLOAT)) {
-	    retval = il.insert(pos, new FCONST((float)0));
+	    retval = il.insert(pos, new FCONST(0));
 	    il.insert(pos, new FRETURN());
 	} else if (returnType.equals(Type.DOUBLE)) {
 	    retval = il.insert(pos, new DCONST(0.0));
@@ -909,7 +906,7 @@ public final class Satinc {
     }
 
 
-    InstructionHandle getFirstParamPushPos(InstructionList il, InstructionHandle i) {
+    InstructionHandle getFirstParamPushPos(InstructionHandle i) {
 	int paramsOnStack = i.getInstruction().consumeStack(cpg) - i.getInstruction().produceStack(cpg);
 
 	if (verbose) {
@@ -962,7 +959,7 @@ public final class Satinc {
     }
 
     InstructionList getAndRemoveLoadIns(InstructionList il, InstructionHandle i) {
-	InstructionHandle loadEnd = getFirstParamPushPos(il, i).getPrev();
+	InstructionHandle loadEnd = getFirstParamPushPos(i).getPrev();
 	InstructionHandle loadStart = loadEnd;
 
 	int netto_stack_inc = 0;
@@ -999,7 +996,7 @@ public final class Satinc {
 
 
     void rewriteSpawn(MethodGen m, InstructionList il, Method target, InstructionHandle i, int maxLocals, int spawnId, JavaClass cl) {
-	String classname = cl.getClassName();
+	String clname = cl.getClassName();
 
 	if (verbose) {
 	    System.out.println("rewriting spawn, target = " + target.getName() + ", sig = " + target.getSignature());
@@ -1079,9 +1076,9 @@ public final class Satinc {
 	parameters[ix++] = Type.INT;
 	parameters[ix++] = new ObjectType("ibis.satin.impl.LocalRecord");
 	
-	ih = il.append(ih, ins_f.createInvoke(invocationRecordName(target, classname),
+	ih = il.append(ih, ins_f.createInvoke(invocationRecordName(target, clname),
 					     methodName,
-					     new ObjectType(invocationRecordName(target, classname)),
+					     new ObjectType(invocationRecordName(target, clname)),
 					     parameters,
 					     Constants.INVOKESTATIC));
 
@@ -1466,7 +1463,6 @@ System.out.println("findMethod: could not find method " + name + sig);
     InstructionHandle insertTypecheckCode(MethodGen m, InstructionList il, InstructionHandle pos, int spawnId, int exceptionPos) {
 	Vector catches = mtab.getCatchTypes(m, spawnId);
 
-	InstructionHandle startPos = pos;
 	InstructionHandle[] jumpTargets = new InstructionHandle[catches.size()+1];
 
 	BranchHandle[] jumps = new BranchHandle[catches.size()];
@@ -1576,7 +1572,6 @@ System.out.println("findMethod: could not find method " + name + sig);
 	InstructionHandle[] spawnIdTable = new InstructionHandle[nrSpawns+1];
 	BranchHandle[] jumps = new BranchHandle[nrSpawns+1];
 	int nrInlets = 0;
-	InstructionHandle startPos = pos;
 	for (int i=0; i<nrSpawns; i++) { // loop over all spawnIds in method (i)
 	    if (mtab.hasInlet(mOrig, i)) {
 		spawnIdTable[nrInlets] = il.insert(pos, new ILOAD(spawnIdPos));
@@ -1856,7 +1851,7 @@ System.out.println("findMethod: could not find method " + name + sig);
     // the rewritten bytecode, and vice versa. The solution is to first generate a dummy
     // method in the localRecord, and in the second pass write the real method, and
     // compile the whole class again.
-    void generateInvocationRecords(String base) throws IOException {
+    void generateInvocationRecords() throws IOException {
 	Method[] methods = gen_c.getMethods();
 
 	for (int i=0; i<methods.length; i++) {
@@ -1865,7 +1860,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 		    System.out.println(methods[i] + ": code contains an inlet");
 		}
 		
-		writeLocalRecord(methods[i], base, false);
+		writeLocalRecord(methods[i]);
 		compileGenerated(localRecordName(methods[i]));
 		
 		if (!keep) { // remove generated files 
@@ -1874,9 +1869,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    }
 	    
 	    if (mtab.isSpawnable(methods[i], c)) {
-		writeInvocationRecord(methods[i], base, classname);
-		writeReturnRecord(methods[i], base, classname);
-		writeParameterRecord(methods[i], base, classname);
+		writeInvocationRecord(methods[i], classname);
+		writeReturnRecord(methods[i], classname);
+		writeParameterRecord(methods[i]);
 //		writeResultRecord(methods[i], base, classname);
 		
 		compileGenerated(invocationRecordName(methods[i], classname));
@@ -1889,9 +1884,9 @@ System.out.println("findMethod: could not find method " + name + sig);
 		    removeFile(returnRecordName(methods[i], classname) + ".java");
 		}
 
-		compileGenerated(parameterRecordName(methods[i], classname));
+		compileGenerated(parameterRecordName(methods[i]));
 		if (!keep) { // remove generated files 
-		    removeFile(parameterRecordName(methods[i], classname) + ".java");
+		    removeFile(parameterRecordName(methods[i]) + ".java");
 		}
 
 /*		compileGenerated(resultRecordName(methods[i], classname));
@@ -1915,7 +1910,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
     }
 
-    void regenerateLocalRecord(String base) {
+    void regenerateLocalRecord() {
 	Method[] methods = gen_c.getMethods();
 
 	for (int i = 0; i < methods.length; i++) {
@@ -1933,7 +1928,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 		MethodGen handler_g = new MethodGen(exceptionHandler, local_record_name, recgen.getConstantPool());
 
 		InstructionList il = handler_g.getInstructionList();
-		InstructionFactory ins_f = new InstructionFactory(recgen);
+		InstructionFactory insf = new InstructionFactory(recgen);
 
 		if (verbose) {
 		    System.out.println(m + ":code contained an inlet, REwriting localrecord, clone = " + clone);
@@ -1948,7 +1943,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 		    String thisFieldName = MethodTable.generatedLocalName(thisType, thisName);
 
 		    il.append(new ALOAD(0));
-		    il.append(ins_f.createFieldAccess(local_record_name,
+		    il.append(insf.createFieldAccess(local_record_name,
 						   thisFieldName,
 						   thisType,
 						   Constants.GETFIELD));
@@ -1960,7 +1955,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 		il.append(new ALOAD(2));
 		il.append(new ALOAD(3));
 
-		il.append(ins_f.createInvoke(classname,
+		il.append(insf.createInvoke(classname,
 					  clone.getName(),
 					  clone.getReturnType(),
 					  clone.getArgumentTypes(),
@@ -1988,8 +1983,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 			String src = newclass.getSourceFileName();
 			dst = src.substring(0, src.indexOf(".")) + ".class";
 		    } else {
-			String classname = newclass.getClassName();
-			dst = classname.replace('.', File.separatorChar) + ".class";
+			String clnam = newclass.getClassName();
+			dst = clnam.replace('.', File.separatorChar) + ".class";
 		    }
 		    newclass.dump(dst);
 		} catch (IOException e) {
@@ -2002,7 +1997,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
     }
 
-    void writeLocalRecord(Method m, String basename, boolean finalPass) throws IOException {
+    void writeLocalRecord(Method m) throws IOException {
 	String name = localRecordName(m);
 	if (verbose) {
 	    System.out.println("writing localrecord code to " + name + ".java");
@@ -2121,8 +2116,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
     }
 
-    void writeInvocationRecord(Method m, String basename, String classname) throws IOException {
-	String name = invocationRecordName(m, classname);
+    void writeInvocationRecord(Method m, String clname) throws IOException {
+	String name = invocationRecordName(m, clname);
 	if (verbose) {
 	    System.out.println("writing invocationrecord code to " + name + ".java");
 	}
@@ -2140,8 +2135,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 		if (params[i] instanceof ObjectType) {
 		    String clnam = ((ObjectType)params[i]).getClassName();
 		    if (! Repository.implementationOf(clnam, "java.io.Serializable")) {
-			System.err.println(classname + ": parameter of spawnable method " + m.getName() + " with non-serializable type " + clnam);
-			System.err.println(classname + ": all parameters of a spawnable method must be serializable.");
+			System.err.println(clname + ": parameter of spawnable method " + m.getName() + " with non-serializable type " + clnam);
+			System.err.println(clname + ": all parameters of a spawnable method must be serializable.");
 			errors = true;
 		    }
 		}
@@ -2152,8 +2147,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    if (returnType instanceof ObjectType) {
 		String onam = ((ObjectType) returnType).getClassName();
 		if (! Repository.implementationOf(onam, "java.io.Serializable")) {
-		    System.err.println(classname + ": spawnable method " + m.getName() + " has non-serializable return type: " + onam + ".");
-		    System.err.println(classname + ": the return type of a spawnable method must be serializable.");
+		    System.err.println(clname + ": spawnable method " + m.getName() + " has non-serializable return type: " + onam + ".");
+		    System.err.println(clname + ": the return type of a spawnable method must be serializable.");
 		    errors = true;
 		}
 	    }
@@ -2163,7 +2158,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("final class " + name + " extends InvocationRecord {");
 
 	    // fields 
-	    out.println("    " + classname + " self;");
+	    out.println("    " + clname + " self;");
 	    for (int i=0; i<params_types_as_names.length; i++) {
 		out.println("    " + params_types_as_names[i] + " param" + i + ";");
 	    }
@@ -2182,7 +2177,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    
 	    // ctor 
 	    out.print("    " + name + "(");
-	    out.print(classname + " self, ");
+	    out.print(clname + " self, ");
 	    for (int i=0; i<params_types_as_names.length; i++) {
 		out.print(params_types_as_names[i] + " param" + i + ", ");
 	    }
@@ -2198,7 +2193,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	    // getNew method 
 	    out.print("    static " + name + " getNew(");
-	    out.print(classname + " self, ");
+	    out.print(clname + " self, ");
 	    for (int i=0; i<params_types_as_names.length; i++) {
 		out.print(params_types_as_names[i] + " param" + i + ", ");
 	    }
@@ -2243,7 +2238,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    if (! returnType.equals(Type.VOID)) {
 		out.print("    static " + name + " getNewArray(");
 		out.print(returnType + "[] array, int index, ");
-		out.print(classname + " self, ");
+		out.print(clname + " self, ");
 		for (int i=0; i<params_types_as_names.length; i++) {
 		    out.print(params_types_as_names[i] + " param" + i + ", ");
 		}
@@ -2377,7 +2372,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("                throw new RuntimeException(e);");
 	    out.println("            }");
 	    out.println("        }");
-	    out.print(  "        return new " + returnRecordName(m, classname));
+	    out.print(  "        return new " + returnRecordName(m, clname));
 	    if (! returnType.equals(Type.VOID)) {
 		out.println("(result, eek, stamp);");
 	    } else {
@@ -2400,7 +2395,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	    //getParameterRecord method
 	    out.println("    public ibis.satin.impl.ParameterRecord getParameterRecord() {");
-	    out.print("        return new " + parameterRecordName(m, classname) + "(");
+	    out.print("        return new " + parameterRecordName(m) + "(");
 	    for (int i=0; i<params.length; i++) {
 		out.print("param" + i);
 		if (i != params.length-1) {
@@ -2414,17 +2409,17 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    //getReturnRecord method
 	    if (returnType.equals(Type.VOID)) {
 		out.println("    public ibis.satin.impl.ReturnRecord getReturnRecord() {");
-		out.println("        return new " + returnRecordName(m, classname) + "(null, stamp);");
+		out.println("        return new " + returnRecordName(m, clname) + "(null, stamp);");
 		out.println("    }\n");
 	    } else {
 		out.println("    public ibis.satin.impl.ReturnRecord getReturnRecord() {");
-		out.println("        return new " + returnRecordName(m, classname) + "(result, null, stamp);");
+		out.println("        return new " + returnRecordName(m, clname) + "(result, null, stamp);");
 		out.println("    }\n");
 	    }
 	
 	    //equalsPR method
 	    out.println("    public boolean equalsPR(ibis.satin.impl.ParameterRecord pr) {");
-	    out.println("        " + parameterRecordName(m, classname) + " pr1 = (" + parameterRecordName(m, classname) + ") pr;");
+	    out.println("        " + parameterRecordName(m) + " pr1 = (" + parameterRecordName(m) + ") pr;");
 	    for (int i=0; i<params.length; i++) {
 		if (params[i] instanceof ObjectType) {
 		    out.println("        if (!this.param" + i + ".equals(pr1.param" + i + ")) return false;");
@@ -2484,8 +2479,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
     }
 
-    void writeReturnRecord(Method m, String basename, String classname) throws IOException {
-	String name = returnRecordName(m, classname);
+    void writeReturnRecord(Method m, String clname) throws IOException {
+	String name = returnRecordName(m, clname);
 	if (verbose) {
 	    System.out.println("writing returnrecord code to " + name + ".java");
 	}
@@ -2521,8 +2516,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("    }\n");
 
 	    out.println("    public void assignTo(InvocationRecord rin) {");
-	    out.println("        " + invocationRecordName(m, classname) + " r = (" +
-		    invocationRecordName(m, classname) + ") rin;");
+	    out.println("        " + invocationRecordName(m, clname) + " r = (" +
+		    invocationRecordName(m, clname) + ") rin;");
 	    out.print("	r.assignTo(eek");
 	    if (! returnType.equals(Type.VOID)) {
 		out.print(", result");
@@ -2537,8 +2532,8 @@ System.out.println("findMethod: could not find method " + name + sig);
     }
 
     
-    void writeParameterRecord(Method m, String basename, String classname) throws IOException {
-	String name = parameterRecordName(m, classname);
+    void writeParameterRecord(Method m) throws IOException {
+	String name = parameterRecordName(m);
 	if (verbose) {
 	    System.out.println("writing parameterrecord code to " + name + ".java");
 	}
@@ -2879,7 +2874,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	}
 
 	try {
-	    generateInvocationRecords(base);
+	    generateInvocationRecords();
 	} catch (IOException e) {
 	    System.out.println("IO error: " + e);
 	    System.exit(1);
@@ -2906,7 +2901,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    System.exit(1);
 	}
 
-	regenerateLocalRecord(base);
+	regenerateLocalRecord();
 
 	Method[] methods = c.getMethods();
 	// cleanup

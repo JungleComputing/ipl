@@ -21,7 +21,7 @@ class RMIStubGenerator extends RMIGenerator {
 		this.output = output;
 	} 
 
-	void methodHeader(Method m, int number) { 
+	void methodHeader(Method m) { 
 		
 		Type ret          = getReturnType(m);
 		Type[] params = getParameterTypes(m);
@@ -221,7 +221,7 @@ class RMIStubGenerator extends RMIGenerator {
 
 		for (int i=0;i<methods.size();i++) { 
 			Method m = (Method) methods.get(i);
-			methodHeader(m, i);
+			methodHeader(m);
 			methodBody(m, i);
 			methodTrailer(m);		
 		} 

@@ -274,7 +274,6 @@ final class MethodTable {
 
 	Type[] types = new Type[2 * locals.length + maxpos];
 
-	int stackpos = parameterpos;
 	for (int i = 0; i < locals.length; i++) {
 	    int ind = locals[i].getIndex();
 	    if (ind < parameterpos) {
@@ -397,15 +396,14 @@ final class MethodTable {
                         .getInstruction()));
                 if (isSpawnable(target, cl)) {
                     // we have a spawn!
-                    analyzeSpawn(me, il, ins[k], spawnId);
+                    analyzeSpawn(me, ins[k], spawnId);
                     spawnId++;
                 }
             }
         }
     }
 
-    private void analyzeSpawn(MethodTableEntry me, InstructionList il,
-            InstructionHandle spawnIns, int spawnId) {
+    private void analyzeSpawn(MethodTableEntry me, InstructionHandle spawnIns, int spawnId) {
         SpawnTableEntry se = me.spawnTable[spawnId] = new SpawnTableEntry();
         se.isLocalUsed = new boolean[me.mg.getMaxLocals()];
 

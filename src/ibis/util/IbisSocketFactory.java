@@ -122,9 +122,8 @@ public abstract class IbisSocketFactory {
 		System.err.println("WARNING, used more ports than available within specified range. Wrapping around");
 	    }
 	    return res;
-	} else {
-	    return 0; /* any free port */
 	}
+	return 0; /* any free port */
     }
 
     /**

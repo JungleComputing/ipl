@@ -4,7 +4,6 @@ import ibis.util.RunProcess;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -23,8 +22,6 @@ public class Scan {
 
     private static Vector classes = new Vector();
     private static Vector failed = new Vector();
-
-    private static String [] cpath = getClassPath();
 
     public static String [] getClassPath() {
 	int i=0;
@@ -52,7 +49,6 @@ public class Scan {
 
     public static void handleClasses(String [] class_names) { 
 	int result = 0;
-	InputStream i1 = null, i2 = null;
 	RunProcess p = null;
 
 	try { 	

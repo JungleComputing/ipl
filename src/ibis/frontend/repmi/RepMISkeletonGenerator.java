@@ -101,7 +101,7 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 		output.println("}\n");
 	} 
        
-	void constructor(Vector methods) { 
+	void constructor() { 
 
 		output.println("\tpublic repmi_skeleton_" + data.classname + "() {");
 
@@ -115,7 +115,7 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 		dest_name = data.classname;
 
 		header();		
-		constructor(data.specialMethods);
+		constructor();
 		messageHandler(data.specialMethods);		
 		trailer();
 	} 

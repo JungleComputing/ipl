@@ -263,7 +263,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "}");
     }
 
-    void handleGroupResult(String spacing, Method m, Type ret) { 
+    void handleGroupResult(String spacing, Type ret) { 
 
 	output.println(spacing + "switch (result_mode) {");		
 
@@ -382,7 +382,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\tw.writeByte((byte)(InvocationScheme.I_GROUP));");
 
 	writeAdditionalData(spacing + "\t", params);		
-	handleGroupResult(spacing + "\t", m, ret);
+	handleGroupResult(spacing + "\t", ret);
 
 	output.println(spacing + "\tif (ex != null) {");
 	output.println(spacing + "\t\tthrow ex;");
@@ -487,7 +487,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\tw.finish();");
 	output.println(spacing + "\t}");
 
-	handleGroupResult(spacing + "\t", m, ret);
+	handleGroupResult(spacing + "\t", ret);
 
 	output.println(spacing + "\tif (ex != null) {");
 	output.println(spacing + "\t\tthrow ex;");

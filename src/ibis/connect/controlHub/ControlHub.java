@@ -32,7 +32,7 @@ class NodeManager extends Thread
     private static final int np = HubProtocol.getNPacketTypes();
 
     NodeManager(Socket s, ControlHub hub) 
-	throws IOException, ClassNotFoundException {
+	throws IOException {
 	wire = new HubProtocol.HubWire(s);
 	hostname = wire.getPeerName();
 	hostport = wire.getPeerPort();
@@ -123,6 +123,7 @@ class NodeManager extends Thread
 	try {
 	    wire.close();
 	} catch(IOException e) {
+	    // ignored
 	}
 	if (STATS) {
 	    System.err.println("Wire statistics for host " + hostname +":" + hostport + ":");
@@ -203,6 +204,7 @@ public class ControlHub extends Thread
 	    try {
 		wait();
 	    } catch(InterruptedException e) {
+	        // ignored
 	    }
 	}
     }
@@ -313,17 +315,6 @@ public class ControlHub extends Thread
 	    }
 	    MyDebug.trace("# ControlHub: removing hostport " + hostport + " of " +
 				    hostname);
-	}
-    }
-
-    public static boolean hasPort(String hostname, int hostport, int portno) {
-	hostname = hostname.toLowerCase();
-	synchronized(portNodeMap) {
-	    Object o = portNodeMap.get(hostname);
-	    Hashtable h;
-	    if (o == null) return false;
-	    h = (Hashtable) o;
-	    return h.containsKey(new Integer(portno));
 	}
     }
 

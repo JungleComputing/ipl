@@ -28,7 +28,7 @@ public class AnyTCPSocketType extends SocketType
     implements BrokeredSocketFactory
 {
     private static class ServerInfo implements Runnable {
-	private ServerSocket server;
+	ServerSocket server;
 	private Socket accpt = null;
 	boolean present = false;
 
@@ -56,11 +56,12 @@ public class AnyTCPSocketType extends SocketType
 	    }
 	}
 
-	private synchronized Socket waitForAccpt() {
+	synchronized Socket waitForAccpt() {
 	    while (accpt == null) {
 		try {
 		    wait();
 		} catch(Exception e) {
+		    // ignored
 		}
 	    }
 	    return accpt;

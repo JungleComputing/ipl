@@ -1,28 +1,27 @@
 package ibis.connect.routedMessages;
 
-import ibis.connect.util.MyDebug;
 import ibis.connect.socketFactory.DummySocket;
+import ibis.connect.util.MyDebug;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.util.LinkedList;
 
 public class RMSocket extends DummySocket
 {
-    private HubLink hub = null;
+    HubLink hub = null;
     String  remoteHostname = null;
     int     remotePort = -1;
-    private int	    remoteHostPort = -1;
-    private int     localPort  = -1;
-    private RMInputStream  in  = null;
-    private RMOutputStream out = null;
-    private LinkedList incomingFragments = new LinkedList(); // list of byte[]
-    private byte[]  currentArray = null;
-    private int     currentIndex = 0;
+    int	    remoteHostPort = -1;
+    int     localPort  = -1;
+    RMInputStream  in  = null;
+    RMOutputStream out = null;
+    LinkedList incomingFragments = new LinkedList(); // list of byte[]
+    byte[]  currentArray = null;
+    int     currentIndex = 0;
 
     static final int state_NONE       = 1;
     static final int state_CONNECTING = 2;
@@ -30,7 +29,7 @@ public class RMSocket extends DummySocket
     static final int state_REJECTED   = 4;
     static final int state_CONNECTED  = 5;
     static final int state_CLOSED     = 6;
-    private int state;
+    int state;
 
     /* misc methods for the HubLink to feed us
      */
@@ -51,7 +50,7 @@ public class RMSocket extends DummySocket
 	state = state_REJECTED;
 	this.notifyAll();
     }
-    protected synchronized void enqueueClose() throws IOException {
+    protected synchronized void enqueueClose() {
 	MyDebug.out.println("# RMSocket.enqueueClose()- port = "+localPort + ", remotePort = " + remotePort);
 	state = state_CLOSED;
 	if (localPort != -1) {
@@ -118,34 +117,36 @@ public class RMSocket extends DummySocket
     }
 
     public OutputStream getOutputStream()
-	throws IOException
     {
 	return out;
     }
 
     public void setTcpNoDelay(boolean on) {
+        // ignored
     }
 
     public void shutdownInput() {
+        // ignored
     }
 
     public void shutdownOutput() {
+        // ignored
     }
 
     public void setSendBufferSize(int sz) {
+        // ignored
     }
 
     public void setReceiveBufferSize(int sz) {
+        // ignored
     }
 
     public InputStream getInputStream()
-	throws IOException
     {
 	return in;
     }
 
     public synchronized void close()
-	throws IOException
     {
 	MyDebug.out.println("# RMSocket.close(), localPort = " + localPort + ", remotePort = " + remotePort);
 	state = state_CLOSED;
@@ -280,7 +281,6 @@ public class RMSocket extends DummySocket
 	}
 
 	public void close()
-	    throws IOException
 	{
 	    MyDebug.out.println("# RMInputStream: close()");
 	    synchronized(socket) {
@@ -338,13 +338,11 @@ public class RMSocket extends DummySocket
 	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, a, localPort));
 	}
 	public void flush()
-	    throws IOException
 	{
 	    //	    checkOpen();
 	    MyDebug.out.println("# RMOutputStream: flush()");
 	}
 	public void close()
-	    throws IOException
 	{
 	    MyDebug.out.println("# RMOutputStream: close()");
 	    synchronized(socket) {

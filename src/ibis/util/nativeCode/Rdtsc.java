@@ -52,21 +52,19 @@ public final class Rdtsc extends ibis.util.Timer {
 	public void start() {
 		if(started) {
 			throw new Error("timer started twice");
-		} else {
-			t_start = rdtsc();
-			started = true;
 		}
+		t_start = rdtsc();
+		started = true;
 	}
 
 	public void stop() {
 		if (!started) {
 			throw new Error("timer stopped, but was not started");
-		} else {
-			lastTime = rdtsc() - t_start;
-			time += lastTime;
-			++ count;
-			started = false;
 		}
+		lastTime = rdtsc() - t_start;
+		time += lastTime;
+		++ count;
+		started = false;
 	}
 
 	public long currentTimeNanos() {
@@ -79,7 +77,7 @@ public final class Rdtsc extends ibis.util.Timer {
 	 * Timer reading in us
 	 */
 	public double totalTimeVal() {
-		return (double) time / MHz;
+		return time / MHz;
 	}
 
 	/**
@@ -93,7 +91,7 @@ public final class Rdtsc extends ibis.util.Timer {
 	 * Timer reading in us
 	 */
 	public double averageTimeVal() {
-		return (double) time / (count * MHz);
+		return time / (count * MHz);
 	}
 
 	/**
@@ -107,7 +105,7 @@ public final class Rdtsc extends ibis.util.Timer {
 	 * Timer reading in us
 	 */
 	public double lastTimeVal() {
-		return (double) lastTime / MHz;
+		return lastTime / MHz;
 	}
 
 	/**
