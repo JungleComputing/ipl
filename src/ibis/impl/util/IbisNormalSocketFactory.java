@@ -128,10 +128,6 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 		/*Ibis*/ServerSocket s = null;
 		int localPort;
 
-		if(localAddress == null) {
-			localAddress = InetAddress.getLocalHost();
-		}
-
 		while (!connected) { 
                         try {
 				if(port == 0) {
@@ -176,7 +172,7 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 					   ConnectProperties p) throws IOException {
 	    Socket s = null;
 	    if(isServer) {
-		ServerSocket server = this.createServerSocket(0, 1, IPUtils.getLocalHostAddress());
+		ServerSocket server = createServerSocket(0, 1, null);
 		ObjectOutputStream os = new ObjectOutputStream(out);
 		os.writeObject(server.getInetAddress());
 		os.writeInt(server.getLocalPort());
