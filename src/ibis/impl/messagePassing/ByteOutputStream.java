@@ -92,6 +92,10 @@ final class ByteOutputStream
 	return sentFrags;
     }
 
+    int getMsgSeqno() {
+	return msgSeqno;
+    }
+
     void waitForFragno(int ticket) {
 	Ibis.myIbis.checkLockOwned();
 	while (sentFrags - outstandingFrags < ticket) {

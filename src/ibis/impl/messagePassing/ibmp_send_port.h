@@ -7,10 +7,14 @@
 jboolean ibmp_send_port_new(JNIEnv *env,
 			    jbyteArray rcvePort,
 			    jbyteArray sendPort,
-			    jint group);
+			    jint startSeqno,
+			    jint group,
+			    jint groupStartSeqno,
+			    jint delayed_syncer);
 void ibmp_send_port_disconnect(JNIEnv *env,
 			       jbyteArray rcvePort,
 			       jbyteArray sendPort,
+			       jint syncer,
 			       jint messageCount);
 
 void ibmp_send_port_init(JNIEnv *env);

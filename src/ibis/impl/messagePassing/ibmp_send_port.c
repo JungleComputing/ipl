@@ -67,7 +67,7 @@ ibmp_group_id_request_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     reply_hdr->port    = hdr->port;
     /* We own the lock. No fear for concurrent increments. */
     reply_hdr->group_id = global_group_count++;
-fprintf(stderr, "%2d: hand out group id %d to sender %d\n", ibmp_me, reply_hdr->group_id, sender);
+    IBP_VPRINTF(10, env, ("%2d: hand out group id %d to sender %d\n", ibmp_me, reply_hdr->group_id, sender));
 
     ibp_mp_send_async(env, sender,
 		      ibmp_group_id_reply_port,
@@ -84,7 +84,7 @@ ibmp_group_id_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     ibmp_group_id_hdr_p hdr = ibmp_group_id_hdr(proto);
 
-fprintf(stderr, "%2d: receive group id %d for sendport %p\n", ibmp_me, hdr->group_id, hdr->port);
+    IBP_VPRINTF(10, env, ("%2d: receive group id %d for sendport %p\n", ibmp_me, hdr->group_id, hdr->port));
     (*env)->SetIntField(env, hdr->port, fld_group, hdr->group_id);
     (*env)->CallVoidMethod(env, hdr->syncer, md_s_signal, JNI_TRUE);
     (*env)->DeleteGlobalRef(env, hdr->port);
@@ -199,7 +199,10 @@ jboolean
 ibmp_send_port_new(JNIEnv *env,
 		   jbyteArray rcvePort,
 		   jbyteArray sendPort,
-		   jint group)
+		   jint startSeqno,
+		   jint group,
+		   jint groupStartSeqno,
+		   jint delayed_syncer)
 {
     jobject s;
     jthrowable exc;
@@ -210,7 +213,10 @@ ibmp_send_port_new(JNIEnv *env,
 				       md_createSSP,
 				       rcvePort,
 				       sendPort,
-				       group);
+				       startSeqno,
+				       group,
+				       groupStartSeqno,
+				       delayed_syncer);
     /* The call to md_createSSP may have mucked up ibp_JNIEnv. Restore it. */
     ibp_set_JNIEnv(env);
 
@@ -226,6 +232,7 @@ void
 ibmp_send_port_disconnect(JNIEnv *env,
 			  jbyteArray rcvePort,
 			  jbyteArray sendPort,
+			  jint syncer,
 			  jint messageCount)
 {
     (*env)->CallStaticVoidMethod(env,
@@ -233,6 +240,7 @@ ibmp_send_port_disconnect(JNIEnv *env,
 				 md_disconnect,
 				 rcvePort,
 				 sendPort,
+				 syncer,
 				 messageCount);
 
     /* The call to md_createSSP may have mucked up ibp_JNIEnv. Restore it. */
@@ -255,18 +263,18 @@ ibmp_send_port_init(JNIEnv *env)
 			env,
 			cls_ShadowSendPort,
 			"createShadowSendPort",
-			"([B[BI)Libis/impl/messagePassing/ShadowSendPort;");
+			"([B[BIIII)Libis/impl/messagePassing/ShadowSendPort;");
 
     if (md_createSSP == NULL) {
 	if ((*env)->ExceptionOccurred(env)) {
 	    (*env)->ExceptionDescribe(env);
 	}
-	fprintf(stderr, "%s.%d Cannot find method createShadowSendPort([B[B)Libis.impl.messagePassing.ShadowSendPort;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find method createShadowSendPort([B[BIIII)Libis.impl.messagePassing.ShadowSendPort;\n", __FILE__, __LINE__);
 	abort();
     }
 
     md_disconnect = (*env)->GetStaticMethodID(env, cls_ShadowSendPort,
-					      "disconnect", "([B[BI)V");
+					      "disconnect", "([B[BII)V");
     if (md_disconnect == NULL) {
 	fprintf(stderr, "%s.%d Cannot find static method disconnect([B[BI)V\n", __FILE__, __LINE__);
 	abort();

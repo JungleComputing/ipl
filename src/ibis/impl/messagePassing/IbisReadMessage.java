@@ -12,7 +12,7 @@ final public class IbisReadMessage extends ReadMessage {
 	obj_in = ((IbisShadowSendPort)origin).obj_in;
     }
 
-    public long finish() {
+    public long finish() throws IOException {
 	long cnt = super.finish();
 	obj_in.clear();
 	return cnt;

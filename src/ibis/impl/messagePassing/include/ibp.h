@@ -24,8 +24,11 @@ jbyteArray ibp_byte_array_consume(JNIEnv *env, ibp_msg_p msg, int len);
 int ibp_byte_array_push(JNIEnv *env, jbyteArray a, pan_iovec_p iov);
 
 void ibp_msg_clear(JNIEnv *env, ibp_msg_p msg);
+ibp_msg_p ibp_msg_clone(JNIEnv *env, ibp_msg_p msg, void **proto);
+
 int ibp_msg_consume_left(ibp_msg_p msg);
 int ibp_msg_sender(ibp_msg_p msg);
+
 void *ibp_proto_create(unsigned int size);
 void ibp_proto_clear(void *proto);
 

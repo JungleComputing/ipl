@@ -4,6 +4,7 @@ import ibis.ipl.IbisException;
 import ibis.ipl.StaticProperties;
 import ibis.util.ConditionVariable;
 import ibis.util.Monitor;
+import ibis.util.TypedProperties;
 
 import ibis.impl.util.IbisIdentifierTable;
 
@@ -13,9 +14,10 @@ import java.util.Vector;
 
 public class Ibis extends ibis.ipl.Ibis {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = TypedProperties.booleanProperty("ibis.mp.debug"); // false;
     static final boolean CHECK_LOCKS = DEBUG;
     static final boolean STATISTICS = true;
+    static final boolean BCAST_VERBOSE = false;
 
     private boolean i_joined = false;
 
@@ -62,6 +64,8 @@ public class Ibis extends ibis.ipl.Ibis {
     protected native String[] ibmp_init(String[] args);
     protected native void ibmp_start();
     protected native void ibmp_end();
+
+    private boolean requireSequenced;
 
     Ibis() throws IbisException {
 
@@ -224,6 +228,8 @@ public class Ibis extends ibis.ipl.Ibis {
 
 	registry = new Registry();
 
+	requireSequenced = combinedprops.isProp("Communication", "Sequenced");
+
 	    /* Fills in:
 		nrCpus;
 		myCpu;
@@ -336,9 +342,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
 
     IbisIdentifier lookupIbis(String name, int cpu) throws IOException {
-// System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
-// manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
-// System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
 	if (myIbis.ident.name().equals(name)) {
 	    return myIbis.ident;
 	}
@@ -346,7 +349,6 @@ public class Ibis extends ibis.ipl.Ibis {
 	for (int i = 0; i < ibisNameService.size(); i++) {
 	    IbisIdentifier id = (IbisIdentifier)ibisNameService.get(i);
 	    if (id.name().equals(name)) {
-// System.err.println("Found IbisId " + name);
 		return id;
 	    }
 	}
@@ -356,9 +358,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
 
     IbisIdentifier lookupIbis(byte[] serialForm) throws IOException {
-// System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
-// manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
-// System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
 
 	IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
 	String name = id.name();
@@ -411,19 +410,82 @@ public class Ibis extends ibis.ipl.Ibis {
 
 
     void bindGroup(int group, ReceivePort rp, ShadowSendPort sp) {
+	if (BCAST_VERBOSE) {
+	    System.err.println("Bind group " + group + " to (" + rp + "," + sp + ")");
+	}
 	checkLockOwned();
-	groupRcvePorts.bind(group, rp);
-	groupSendPorts.bind(group, sp);
+	ReceivePort[] rps = (ReceivePort[])groupRcvePorts.lookup(group);
+	if (rps == null) {
+	    rps = new ReceivePort[1];
+	} else {
+	    ReceivePort[] a = new ReceivePort[rps.length + 1];
+	    for (int i = 0; i < rps.length; i++) {
+		a[i] = rps[i];
+	    }
+	}
+	rps[rps.length - 1] = rp;
+	groupRcvePorts.bind(group, rps);
+
+	ShadowSendPort[] sps = (ShadowSendPort[])groupSendPorts.lookup(group);
+	if (sps == null) {
+	    sps = new ShadowSendPort[1];
+	} else {
+	    ShadowSendPort[] a = new ShadowSendPort[sps.length + 1];
+	    for (int i = 0; i < sps.length; i++) {
+		a[i] = sps[i];
+	    }
+	}
+	sps[sps.length - 1] = sp;
+	groupSendPorts.bind(group, sps);
     }
 
-    ReceivePort lookupGroupReceivePort(int group) {
-	checkLockOwned();
-	return (ReceivePort)groupRcvePorts.lookup(group);
+
+    void unbindGroup(int group, ReceivePort rp, ShadowSendPort sp) {
+	if (BCAST_VERBOSE) {
+	    System.err.println("Unbind group " + group + " to (" + rp + "," + sp + ")");
+	}
+	boolean found;
+	ReceivePort[] rps = lookupGroupReceivePort(group);
+	found = false;
+	for (int i = 0; i < rps.length; i++) {
+	    if (rps[i].equals(rp)) {
+		rps[i] = null;
+		found = true;
+		break;
+	    }
+	}
+	if (! found) {
+	    throw new Error("Try to unbind nonbound receive port; group " + group);
+	}
+
+	found = false;
+	ShadowSendPort[] sps = lookupGroupSendPort(group);
+	for (int i = 0; i < sps.length; i++) {
+	    if (sps[i].equals(sp)) {
+		sps[i] = null;
+		found = true;
+		break;
+	    }
+	}
+	if (! found) {
+	    throw new Error("Try to unbind nonbound shadow send port; group " + group);
+	}
     }
 
-    ShadowSendPort lookupGroupSendPort(int group) {
+
+    boolean requireSequenced() {
+	return requireSequenced;
+    }
+
+
+    private ReceivePort[] lookupGroupReceivePort(int group) {
 	checkLockOwned();
-	return (ShadowSendPort)groupSendPorts.lookup(group);
+	return (ReceivePort[])groupRcvePorts.lookup(group);
+    }
+
+    private ShadowSendPort[] lookupGroupSendPort(int group) {
+	checkLockOwned();
+	return (ShadowSendPort[])groupSendPorts.lookup(group);
     }
 
 
@@ -455,39 +517,71 @@ public class Ibis extends ibis.ipl.Ibis {
 	    throws IOException {
 	checkLockOwned();
 
-	ReceivePort port;
-	ShadowSendPort origin;
-
 // System.err.println(Thread.currentThread() + "receiveFragment, group " + group);
 
 	if (group != SendPort.NO_BCAST_GROUP) {
-	    port = lookupGroupReceivePort(group);
+	    ReceivePort[] port = lookupGroupReceivePort(group);
 	    if (port == null) {
-		// System.err.println("Finish&clear this bcast fragment. It is not for us.");
+		if (DEBUG) {
+		    System.err.println("Finish&clear this bcast fragment. It is not for us.");
+		}
 		ByteInputStream.resetMsg(msgHandle);
 		return;
 	    }
-	    origin = lookupGroupSendPort(group);
+
+	    ShadowSendPort[] origin = lookupGroupSendPort(group);
 	    if (src_cpu == myCpu) {
 		// Panda gives you pointers into the buffers that you handed
 		// it for sending off. Make a copy here.
 		// msgHandle = copyNativeMessage(msgHandle);
-		System.err.println("Should copy the MP message here");
+		// System.err.println("copy the Group message in native code");
 	    }
+
 // System.err.println(Thread.currentThread() + "receiveFragment/group port " + port);
 // System.err.println(Thread.currentThread() + "receiveFragment/group origin " + origin);
+
+	    for (int i = 0; i < port.length - 1; i++) {
+		if (origin[i] == null) {
+		    throw new IOException("Receive message from sendport we're not connected to");
+		}
+		if (! origin[i].acceptableSeqno(msgSeqno)) {
+		    if (DEBUG) {
+			System.err.println("Ignore bcast message that arrives early");
+		    }
+		} else {
+		    port[i].receiveFragment(origin[i],
+					    ByteInputStream.cloneMsg(msgHandle),
+					    msgSize,
+					    msgSeqno);
+		}
+	    }
+	    int x = port.length - 1;
+	    if (origin[x] == null) {
+		throw new IOException("Receive message from sendport we're not connected to");
+	    }
+	    if (! origin[x].acceptableSeqno(msgSeqno)) {
+		if (DEBUG) {
+		    System.err.println("Ignore bcast message that arrives early");
+		}
+	    } else {
+		port[x].receiveFragment(origin[x],
+					msgHandle,
+					msgSize,
+					msgSeqno);
+	    }
+
 	} else {
-	    port = lookupReceivePort(dest_port);
-	    origin = lookupSendPort(src_cpu, src_port);
+	    ReceivePort port = lookupReceivePort(dest_port);
+	    ShadowSendPort origin = lookupSendPort(src_cpu, src_port);
 // System.err.println(Thread.currentThread() + "receiveFragment port " + port);
 // System.err.println(Thread.currentThread() + "receiveFragment origin " + origin);
-	}
 
-	if (origin == null) {
-	    throw new IOException("Receive message from sendport we're not connected to");
-	}
+	    if (origin == null) {
+		throw new IOException("Receive message from sendport we're not connected to");
+	    }
 
-	port.receiveFragment(origin, msgHandle, msgSize, msgSeqno);
+	    port.receiveFragment(origin, msgHandle, msgSize, msgSeqno);
+	}
     }
 
 

@@ -351,7 +351,7 @@ class ReceivePort
     }
 
 
-    void finishMessage() {
+    void finishMessage() throws IOException {
 
 	Ibis.myIbis.checkLockOwned();
 
@@ -458,9 +458,14 @@ class ReceivePort
 			       locate(origin, msgSeqno & ~ByteOutputStream.SEQNO_FRAG_BITS) + "; currentMessage = " + currentMessage +
 			       (currentMessage == null ? "" :
 				(" .seqno " + currentMessage.msgSeqno)));
+	    System.err.println(Thread.currentThread() + "Enqueue message "
+		    + (msgSeqno & ~ByteOutputStream.SEQNO_FRAG_BITS)
+		    + " SSP " + origin + " in port " + this
+		    + " id " + identifier()
+		    + " msgHandle " + Integer.toHexString(msgHandle)
+		    + " current queueFront " + queueFront);
 	}
 
-// System.err.println(Thread.currentThread() + "Enqueue message in port " + this + " id " + identifier() + " msgHandle " + Integer.toHexString(msgHandle) + " current queueFront " + queueFront);
 	boolean lastFrag  = (msgSeqno & ByteOutputStream.LAST_FRAG_BIT) != 0;
 	boolean firstFrag = (msgSeqno & ByteOutputStream.FIRST_FRAG_BIT) != 0;
 	msgSeqno &= ~ByteOutputStream.SEQNO_FRAG_BITS;

@@ -11,9 +11,11 @@ final class IbisShadowSendPort extends ShadowSendPort {
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
     IbisShadowSendPort(ReceivePortIdentifier rId,
 		       SendPortIdentifier sId,
-		       int group)
+		       int startSeqno,
+		       int group,
+		       int groupStartSeqno)
 	    throws IOException {
-	super(rId, sId, group);
+	super(rId, sId, startSeqno, group, groupStartSeqno);
 // System.err.println("In IbisShadowSendPort.<init>");
 	// obj_in = new IbisSerializationInputStream(new ArrayInputStream(in));
 	obj_in = new IbisSerializationInputStream(in);

@@ -15,16 +15,28 @@ class ShadowSendPort extends SendPort {
 
     ByteInputStream in;
 
-    private int messageCount;
+    protected int messageCount = Integer.MAX_VALUE;
     private int quitCount;
+    private int quitSyncer;
 
     int msgSeqno = -1;	/* Count messages to do fragmentation */
+    protected int groupStartSeqno = Integer.MAX_VALUE;
 
     protected ReceivePort receivePort;
 
+
+    protected static native void sendConnectAck(int dest, int syncer, boolean accept);
+
+    protected static native void sendDisconnectAck(int dest, int syncer, boolean accept);
+
+
+    /* Called from native code */
     static ShadowSendPort createShadowSendPort(byte[] rcvePortBuf,
 					       byte[] sendPortBuf,
-					       int group)
+					       int startSeqno,
+					       int group,
+					       int groupStartSeqno,
+					       int syncer)
 	    throws IOException {
 
 // System.err.println("createShadowSendPort: rcvePortBuf[" + rcvePortBuf.length + "] sendPortBuf[" + sendPortBuf.length + "]");
@@ -47,14 +59,17 @@ class ShadowSendPort extends SendPort {
 	}
 	switch (serializationType) {
 	case PortType.SERIALIZATION_NONE:
-	    return new ShadowSendPort(rId, sId, group);
+	    return new ShadowSendPort(rId, sId, startSeqno,
+		    		      group, groupStartSeqno);
 
 	case PortType.SERIALIZATION_SUN:
-	    return new SerializeShadowSendPort(rId, sId, group);
+	    return new SerializeShadowSendPort(rId, sId, startSeqno,
+		    			       group, groupStartSeqno, syncer);
 
 	case PortType.SERIALIZATION_IBIS:
 	case PortType.SERIALIZATION_DATA:
-	    return new IbisShadowSendPort(rId, sId, group);
+	    return new IbisShadowSendPort(rId, sId, startSeqno,
+		    			  group, groupStartSeqno);
 
 	default:
 	    throw new Error("No such serialization type " + serializationType);
@@ -63,7 +78,11 @@ class ShadowSendPort extends SendPort {
 
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
-    ShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId, int group)
+    ShadowSendPort(ReceivePortIdentifier rId,
+	    	   SendPortIdentifier sId,
+		   int startSeqno,
+		   int group,
+		   int groupStartSeqno)
 	    throws IOException {
 
 	if (Ibis.DEBUG) {
@@ -79,6 +98,8 @@ class ShadowSendPort extends SendPort {
 	    throw new PortMismatchException("Cannot connect send port and receive port of different types: " + type + " <-> " + receivePort.identifier().type());
 	}
 	this.type = receivePort.type();
+	this.messageCount = startSeqno;
+	this.groupStartSeqno = groupStartSeqno;
 
 	connect_allowed = receivePort.connect(this);
 	if (! connect_allowed) {
@@ -86,9 +107,10 @@ class ShadowSendPort extends SendPort {
 System.err.println(this + ": cannot connect to local ReceivePort " + receivePort);
 	} else if (group != NO_BCAST_GROUP) {
 	    if (Ibis.DEBUG) {
-		System.err.println("Bind group " + group + " to port " + rId.port + "; sender " + sId.cpu + " port " + sId.port);
+		System.err.println("Bind group " + group + " to port " + rId.port + "; sender " + sId.cpu + " port " + sId.port + " startSeqno " + startSeqno);
 	    }
 	    Ibis.myIbis.bindGroup(group, receivePort, this);
+	    this.group = group;
 	}
 
 	in = new ByteInputStream();
@@ -117,6 +139,11 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 	    System.err.println("Bind/later group " + group + " to port " + ((ReceivePortIdentifier)ssp.receivePort.identifier()).port + "; sender " + sId.cpu + " port " + sId.port);
 	}
 	Ibis.myIbis.bindGroup(group, ssp.receivePort, ssp);
+    }
+
+
+    boolean acceptableSeqno(int msgSeqno) {
+	return (msgSeqno & ~ByteOutputStream.SEQNO_FRAG_BITS) >= groupStartSeqno;
     }
 
 
@@ -175,39 +202,37 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
     }
 
 
-    protected void ibmp_connect(int remoteCPU,
-				byte[] rcvePortId,
-				byte[] sendPortId,
-				Syncer syncer,
-				int group)
-	    throws IOException {
-	throw new IOException("ShadowSendPort cannot (dis)connect");
-    }
-
-
-    protected void ibmp_disconnect(int remoteCPU,
-				   byte[] rcvePortId,
-				   byte[] sendPortId,
-				   int messageCount)
-	    throws IOException {
-	throw new IOException("ShadowSendPort cannot (dis)connect");
-    }
-
-
     void disconnect() throws IOException {
     }
 
 
-    void tickReceive() {
+    private void doDisconnect(int syncer) throws IOException {
+	disconnect();
+	Ibis.myIbis.unbindSendPort(ident.cpu, ident.port);
+	if (group != NO_BCAST_GROUP) {
+	    Ibis.myIbis.unbindGroup(group, receivePort, this);
+	    group = NO_BCAST_GROUP;
+	}
+	groupStartSeqno = Integer.MAX_VALUE;
+	receivePort.disconnect(this);
+	messageCount = Integer.MAX_VALUE;
+
+	sendDisconnectAck(ident.cpu, syncer, true);
+    }
+
+
+    void tickReceive() throws IOException {
 	messageCount++;
 	if (messageCount == quitCount) {
-	    Ibis.myIbis.unbindSendPort(ident.cpu, ident.port);
-	    receivePort.disconnect(this);
+	    doDisconnect(quitSyncer);
 	}
     }
 
 
-    static void disconnect(byte[] rcvePortId, byte[] sendPortId, int count)
+    static void disconnect(byte[] rcvePortId,
+	    		   byte[] sendPortId,
+			   int syncer,
+			   int count)
 	    throws IOException {
 	ReceivePortIdentifier rId = null;
 	SendPortIdentifier sId = null;
@@ -229,13 +254,12 @@ System.err.println(this + ": cannot connect to local ReceivePort " + receivePort
 	    Thread.dumpStack();
 	}
 	if (sp.messageCount == count) {
-	    sp.disconnect();
-	    Ibis.myIbis.unbindSendPort(sp.ident.cpu, sp.ident.port);
-	    rp.disconnect(sp);
+	    sp.doDisconnect(syncer);
 	} else if (sp.messageCount > count) {
 	    throw new StreamCorruptedException("This cannot happen...");
 	} else {
 	    sp.quitCount = count;
+	    sp.quitSyncer = syncer;
 	}
     }
 

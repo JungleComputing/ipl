@@ -5,7 +5,7 @@
 #include <pan_sys.h>
 #include <pan_align.h>
 
-#include "ibis_impl_messagePassing_OutputConnection.h"
+#include "ibis_impl_messagePassing_SendPort.h"
 
 #include "ibp.h"
 #include "ibp_mp.h"
@@ -25,6 +25,7 @@ typedef struct IBP_DISCONNECT_HDR ibmp_disconnect_hdr_t, *ibmp_disconnect_hdr_p;
 struct IBP_DISCONNECT_HDR {
     jint	rcve_length;
     jint	send_length;
+    jobject     syncer;
     jint	messageCount;
 };
 
@@ -36,23 +37,28 @@ ibmp_disconnect_hdr(void *proto)
 
 
 JNIEXPORT void JNICALL
-Java_ibis_impl_messagePassing_OutputConnection_ibmp_1disconnect(
+Java_ibis_impl_messagePassing_SendPort_ibmp_1disconnect(
 	JNIEnv *env,
 	jobject this,
 	jint cpu,
 	jbyteArray rcvePortId,
 	jbyteArray sendPortId,
+	jobject syncer,
 	jint messageCount)
 {
     void       *proto = ibp_proto_create(ibmp_disconnect_proto_size);
     ibmp_disconnect_hdr_p hdr = ibmp_disconnect_hdr(proto);
     pan_iovec_t	iov[2];
 
+    if (syncer != NULL) {
+	syncer = (*env)->NewGlobalRef(env, syncer);
+    }
     hdr->rcve_length  = ibp_byte_array_push(env, rcvePortId, &iov[0]);
     hdr->send_length  = ibp_byte_array_push(env, sendPortId, &iov[1]);
+    hdr->syncer       = syncer;
     hdr->messageCount = messageCount;
 
-    IBP_VPRINTF(10, env, ("Disconnect local port\n"));
+    IBP_VPRINTF(10, env, ("Disconnect remote port at %d, syncer %p\n", (int)cpu, syncer));
     ibp_mp_send_sync(env, (int)cpu, ibmp_disconnect_port,
 		     iov, sizeof(iov) / sizeof(iov[0]),
 		     proto, ibmp_disconnect_proto_size);
@@ -73,9 +79,9 @@ ibmp_disconnect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 
     assert(env == ibp_JNIEnv);
 
-    IBP_VPRINTF(10, env, ("Rcve disconnect upcall local port\n"));
+    IBP_VPRINTF(10, env, ("Rcve disconnect from %d msg %p upcall local port syncer %p\n", ibp_msg_sender(msg), msg, hdr->syncer));
     (void)ibmp_send_port_disconnect(env, rcvePortId, sendPortId,
-				    hdr->messageCount);
+				    (jint)hdr->syncer, hdr->messageCount);
 
     return 0;
 }

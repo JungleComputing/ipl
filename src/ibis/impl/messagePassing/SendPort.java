@@ -3,6 +3,7 @@ package ibis.impl.messagePassing;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.DynamicProperties;
+import ibis.ipl.StaticProperties;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.Replacer;
 import ibis.util.ConditionVariable;
@@ -12,13 +13,11 @@ import java.io.IOException;
 
 public class SendPort implements ibis.ipl.SendPort {
 
-    private final static boolean DEBUG = /* true || */ Ibis.DEBUG;
+    protected final static boolean DEBUG = Ibis.DEBUG;
 
-    private final static boolean BCAST_VERBOSE = /* true || */ Ibis.DEBUG;
-
-    private final static boolean DEFAULT_USE_BCAST = false;
     private final static boolean USE_BCAST =
-		TypedProperties.stringProperty("ibis.mp.broadcast", "native");
+	TypedProperties.stringProperty("ibis.mp.broadcast", "native") ||
+	TypedProperties.booleanProperty("ibis.mp.broadcast.native", false);
     private final static boolean USE_BCAST_ALL =
 		TypedProperties.booleanProperty("ibis.mp.broadcast.all");
     private final static boolean USE_BCAST_AT_TWO =
@@ -61,24 +60,35 @@ public class SendPort implements ibis.ipl.SendPort {
      * after our send to see to it that the receive side doesn't have
      * to await a time slice.
      */
-    private boolean homeConnection;
+    protected boolean homeConnection;
     final private static int homeConnectionPolls = 4;
 
     protected WriteMessage message = null;
-
-    protected OutputConnection outConn;
 
     protected long count;
 
     ByteOutputStream out;
 
+    protected native void ibmp_connect(int dest,
+	    			       byte[] rcvePortId,
+				       byte[] sendPortId,
+				       Syncer syncer,
+				       Syncer delayed_syncer,
+				       int messageCount,
+				       int group,
+				       int startSeqno);
+
+    protected native void ibmp_disconnect(int remoteCPU,
+					  byte[] receiverPortId,
+					  byte[] sendPortId,
+					  Syncer syncer,
+					  int count);
 
     SendPort() {
     }
 
     public SendPort(PortType type,
 		    String name,
-		    OutputConnection conn,
 		    boolean syncMode,
 		    boolean makeCopy)
 	    throws IOException {
@@ -86,7 +96,6 @@ public class SendPort implements ibis.ipl.SendPort {
 	this.type = type;
 	ident = new SendPortIdentifier(name, type.name());
 	portIsFree = Ibis.myIbis.createCV();
-	outConn = conn;
 	out = new ByteOutputStream(this, syncMode, makeCopy);
 	count = 0;
     }
@@ -94,9 +103,9 @@ public class SendPort implements ibis.ipl.SendPort {
     public void setReplacer(Replacer r) {
     }
 
-    public SendPort(PortType type, String name, OutputConnection conn)
+    public SendPort(PortType type, String name)
 	    throws IOException {
-	this(type, name, conn, true, false);
+	this(type, name, true, false);
     }
 
 
@@ -190,54 +199,134 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
 
+    private boolean requiresTotallyOrderedBcast() {
+	StaticProperties p = type.properties();
+
+	if (! Ibis.myIbis.requireSequenced()) {
+	    // We only support totally ordered broadcast when our Ibis has
+	    // been required to support it.
+	    return false;
+	}
+	if (! p.isProp("Communication", "OneToMany")) {
+	    return false;
+	}
+	if (! p.isProp("Communication", "ManyToOne")) {
+	    return false;
+	}
+	if (! p.isProp("Communication", "Sequenced")) {
+	    return false;
+	}
+	if (splitter.length <= 1) {
+	    return false;
+	}
+if (group == NO_BCAST_GROUP)
+System.err.println(this + ": switch on totally ordered bcast");
+
+	return true;
+    }
+
+
+    private boolean requiresFastBcast() {
+	StaticProperties p = type.properties();
+
+	if (! p.isProp("Communication", "OneToMany")) {
+	    return false;
+	}
+	if (USE_BCAST_ALL ? splitter.length != Ibis.myIbis.nrCpus :
+			    splitter.length >= Ibis.myIbis.nrCpus - 1) {
+	    return false;
+	}
+	if (! USE_BCAST_AT_TWO && splitter.length == 1) {
+	    return false;
+	}
+if (group == NO_BCAST_GROUP)
+System.err.println(this + ": switch on fast bcast. Consider disableng ordering");
+
+	return true;
+    }
+
+
+    /* This array is queried from native code. LEAVE IT ALONE! */
+    private static boolean[] hasHomeBcast = new boolean[1];
+
+    synchronized static void setHomeBcast(int group, boolean hasHomeBcastConnection) {
+	if (hasHomeBcast.length < group + 1) {
+	    boolean[] h = new boolean[group + 1];
+	    for (int i = 0; i < hasHomeBcast.length; i++) {
+		h[i] = hasHomeBcast[i];
+	    }
+	    hasHomeBcast = h;
+	}
+	hasHomeBcast[group] = hasHomeBcastConnection;
+    }
+
+
     protected void checkBcastGroup() throws IOException {
-	if (! USE_BCAST
-		|| (USE_BCAST_ALL ?
-			splitter.length != Ibis.myIbis.nrCpus :
-			splitter.length != Ibis.myIbis.nrCpus - 1)
-		|| (! USE_BCAST_AT_TWO && splitter.length == 1)) {
+	/*
+	 * Distinguish two cases where native broadcast is required:
+	 * 1. Totally ordered broadcast.
+	 *    This requires:
+	 *      OneToMany
+	 *      ManyToOne
+	 *      Sequenced
+	 *      <STANDOUT>more than one</STANDOUT> connection
+	 * or
+	 * 2. Fast native broadcast
+	 *    This requires:
+	 *       OneToMany
+	 *       Connected to a good many of platforms
+	 */
+	if (! USE_BCAST) {
+	    return;
+	}
+
+	boolean total = requiresTotallyOrderedBcast();
+	if (! total && ! requiresFastBcast()) {
+// System.err.println("splitter.length " + splitter.length + " Ibis.myIbis.nrCpus " + Ibis.myIbis.nrCpus + "; give up");
 	    group = NO_BCAST_GROUP;
 	    return;
 	}
 
+	/*
+	 * This is a bcast group, new or existing.
+	 */
+
+	boolean hasHomeBcastConnection = false;
 	for (int i = 0, n = splitter.length; i < n; i++) {
 	    ReceivePortIdentifier ri = (ReceivePortIdentifier)splitter[i];
-	    for (int j = 0; j < i; j++) {
-		ReceivePortIdentifier rj = (ReceivePortIdentifier)splitter[j];
-		if (ri.cpu == rj.cpu) {
-		    group = NO_BCAST_GROUP;
-		    return;
-		}
-	    }
 	    if (ri.cpu == Ibis.myIbis.myCpu) {
-		if (Ibis.myIbis.myCpu == 0) {
-		    System.err.println("Do something special for a group with a home connection -- currently disabled");
-		}
-		if (! USE_BCAST_ALL) {
+		hasHomeBcastConnection = true;
+		if (! USE_BCAST_ALL && ! total) {
 		    group = NO_BCAST_GROUP;
+// System.err.println("home bcast: give up");
 		    return;
 		}
 	    }
 	}
 
-	// Apply for a bcast group id with the group id server
-	Syncer s = new Syncer();
-	requestGroupID(s);
-	if (! s.s_wait(0)) {
-	    throw new ConnectionRefusedException("No connection to group ID server");
-	}
-	if (! s.accepted()) {
-	    throw new ConnectionRefusedException("No connection to group ID server");
-	}
 	if (group == NO_BCAST_GROUP) {
-	    throw new IOException("Retrieval of group ID failed");
-	}
-	if (BCAST_VERBOSE) {
-	    System.err.println(ident + ": have broadcast group " + group + " receiver(s) ");
-	    for (int i = 0, n = splitter.length; i < n; i++) {
-		System.err.println("    " + (ReceivePortIdentifier)splitter[i]);
+
+	    // Apply for a bcast group id with the group id server
+	    Syncer s = new Syncer();
+	    requestGroupID(s);
+	    if (! s.s_wait(0)) {
+		throw new ConnectionRefusedException("No connection to group ID server");
+	    }
+	    if (! s.accepted()) {
+		throw new ConnectionRefusedException("No connection to group ID server");
+	    }
+	    if (group == NO_BCAST_GROUP) {
+		throw new IOException("Retrieval of group ID failed");
+	    }
+	    if (Ibis.BCAST_VERBOSE) {
+		System.err.println(ident + ": have broadcast group " + group + " receiver(s) ");
+		for (int i = 0, n = splitter.length; i < n; i++) {
+		    System.err.println("    " + (ReceivePortIdentifier)splitter[i]);
+		}
 	    }
 	}
+
+	setHomeBcast(group, hasHomeBcastConnection);
     }
 
 
@@ -275,11 +364,9 @@ public class SendPort implements ibis.ipl.SendPort {
 		System.err.println(Thread.currentThread() + "Now do native connect call to " + rid + "; me = " + ident);
 	    }
 	    IbisIdentifier ibisId = (IbisIdentifier)Ibis.myIbis.identifier();
-	    outConn.ibmp_connect(rid.cpu,
-				 rid.getSerialForm(),
-				 ident.getSerialForm(),
-				 syncer[my_split],
-				 group);
+	    ibmp_connect(rid.cpu, rid.getSerialForm(), ident.getSerialForm(),
+			 syncer[my_split], null, messageCount,
+			 group, out.getMsgSeqno());
 	    if (DEBUG) {
 		System.err.println(Thread.currentThread() + "Done native connect call to " + rid + "; me = " + ident);
 	    }
@@ -332,7 +419,7 @@ public class SendPort implements ibis.ipl.SendPort {
 	    newMessageWaiters--;
 	}
 
-	if (type.sequenced && group == NO_BCAST_GROUP) {
+	if (false && type.sequenced && group == NO_BCAST_GROUP) {
 	    throw new IOException("Sequenced port type but no group?");
 	}
 
@@ -353,7 +440,7 @@ public class SendPort implements ibis.ipl.SendPort {
     }
 
 
-    void finishMessage() {
+    void finishMessage() throws IOException {
 	Ibis.myIbis.checkLockOwned();
 	if (SERIALIZE_SENDS_PER_CPU) {
 	    Ibis.myIbis.sendSerializer.unlockAll(connectedCpu);
@@ -423,7 +510,8 @@ public class SendPort implements ibis.ipl.SendPort {
 		ReceivePortIdentifier rid = splitter[i];
 		if (rid.equals(r)) {
 		    byte[] sf = ident.getSerialForm();
-		    outConn.ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf, messageCount);
+		    ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf,
+			    	    null, messageCount);
 		    ReceivePortIdentifier[] v = new ReceivePortIdentifier[n - 1];
 		    for (int j = 0; j < n - 1; j++) {
 			v[j] = splitter[j];
@@ -460,7 +548,8 @@ public class SendPort implements ibis.ipl.SendPort {
 	    byte[] sf = ident.getSerialForm();
 	    for (int i = 0; i < splitter.length; i++) {
 		ReceivePortIdentifier rid = splitter[i];
-		outConn.ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf, messageCount);
+		ibmp_disconnect(rid.cpu, rid.getSerialForm(), sf, null,
+				messageCount);
 	    }
 	} finally {
 	    Ibis.myIbis.unlock();

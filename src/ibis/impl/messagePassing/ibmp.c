@@ -130,6 +130,28 @@ ibmp_error_printf(JNIEnv *env, const char *fmt, ...)
 }
 
 
+void
+ibmp_throw_new(JNIEnv *env, const char *exception, const char *fmt, ...)
+{
+    va_list	ap;
+    char	msg[1024];
+    jclass	clazz;
+    char       *c;
+
+    clazz = (*env)->FindClass(env, exception);
+    if (clazz == NULL) {
+	fprintf(stderr, "Cannot locate class %s\n", exception);
+    }
+    va_start(ap, fmt);
+    sprintf(msg, "%2d: Fatal Ibis/MessagePassing error: ", ibmp_me);
+    c = strchr(msg, '\0');
+    vsnprintf(c, sizeof(msg) - (c - msg), fmt, ap);
+    va_end(ap);
+
+    (*env)->ThrowNew(env, clazz, msg);
+}
+
+
 int
 ibmp_pid_me(void)
 {
@@ -393,7 +415,17 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
     if (pan_arg_int(NULL, NULL, "-ibp-v", &ibmp_verbose) == -1) {
 	ibmp_error(env, "-ibp-v requires an integer argument\n");
     }
-    fprintf(stderr, "ibmp_verbose = %d\n", ibmp_verbose);
+    {
+	char   *rank_env = getenv("PRUN_CPU_RANK");
+	int	rank;
+
+	if (rank_env == NULL || sscanf(rank_env, "%d", &rank) != 1) {
+	    rank = 0;
+	}
+	if (rank == 0) {
+	    fprintf(stderr, "ibmp_verbose = %d\n", ibmp_verbose);
+	}
+    }
 #endif
 
     if (pan_arg_bool(NULL, NULL, "-ibp-core") == 1) {
@@ -487,11 +519,19 @@ Java_ibis_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jarray 
 	ibp_init(env, &argc, argv);
 	java_args = c2java_args(env, argc, argv);
     } else {
-	int argc = 1;
-	char *argv[2];
+	char *argv[3];
+	int	argc = 0;
+	jfieldID fld_rS =
+	    (*env)->GetFieldID(env, ibmp_cls_Ibis, "requireSequenced", "Z");
+	jboolean requireSequenced =
+	    (*env)->GetBooleanField(env, ibmp_obj_Ibis_ibis, fld_rS);
 
-	argv[0] = "ibis-executable";
-	argv[1] = NULL;
+	argv[argc++] = "ibis-executable";
+	if (! requireSequenced) {
+	    argv[argc++] = "-pan-mcast-no-order";
+	}
+	argv[argc++] = NULL;
+	argc--;
 	ibp_init(env, &argc, argv);
     }
 

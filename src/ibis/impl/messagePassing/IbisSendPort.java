@@ -15,10 +15,10 @@ final public class IbisSendPort extends SendPort {
     }
 
     public IbisSendPort(PortType type,
-			String name,
-			OutputConnection conn)
+			String name)
 	    throws IOException {
-	super(type, name, conn,
+	super(type,
+	      name,
 	      false,	/* syncMode */
 	      false	/* makeCopy */);
 	// obj_out = new IbisSerializationOutputStream(new ArrayOutputStream(out));

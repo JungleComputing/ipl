@@ -4,25 +4,54 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Replacer;
 
+import ibis.util.ConditionVariable;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 
 final public class SerializeSendPort extends SendPort {
 
+    private final static boolean DEBUG = Ibis.DEBUG;
+
     ibis.io.SunSerializationOutputStream obj_out;
+
     private Replacer replacer;
+
+    private ConnectAcker connectAcker = new ConnectAcker();
+
+    private int		connectWaiters = 0;
+    private boolean	connecting = false;
+    private ConditionVariable	connectFinished = Ibis.myIbis.createCV();
+
 
     SerializeSendPort() {
     }
 
-    public SerializeSendPort(PortType type, String name, OutputConnection conn)
+    public SerializeSendPort(PortType type, String name)
 	    throws IOException {
-	super(type, name, conn,
+	super(type,
+	      name,
 	      true,	/* syncMode */
 	      true	/* makeCopy */);
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("/////////// Created a new SerializeSendPort " + this);
 	}
+    }
+
+
+    private class ConnectAcker extends Syncer {
+
+	private int acks;
+
+	public boolean satisfied() {
+	    return (acks == 0);
+	}
+
+	void s_signal(boolean accepted) {
+	    acks--;
+	    super.s_signal(accepted && acks == 0);
+	}
+
     }
 
 
@@ -34,61 +63,89 @@ final public class SerializeSendPort extends SendPort {
 	    throw new IOException("First finish extant WriteMessage");
 	}
 
-	// Reset all our previous connections so the
-	// ObjectStream(BufferedStream()) may go through a stop/restart.
-	if (obj_out != null) {
-	    obj_out.reset();
-	    // obj_out.flush();
-	}
-	// if (message != null) {
-	    // message.reset(true);
-	// }
-
 	Ibis.myIbis.lock();
+	while (connecting) {
+	    connectWaiters++;
+	    try {
+		connectFinished.cv_wait();
+	    } catch (InterruptedException e) {
+		// Ignore
+	    }
+	    connectWaiters--;
+	}
+	connecting = true;
+
 	try {
+
+	    if (splitter != null && splitter.length > 0) {
+
+		Ibis.myIbis.unlock();
+		// Reset all our previous connections so the
+		// ObjectStream(BufferedStream()) may go through a stop/restart.
+		if (obj_out != null) {
+		    obj_out.reset();
+		    // obj_out.flush();
+		}
+		// if (message != null) {
+		    // message.reset(true);
+		// }
+		Ibis.myIbis.lock();
+
+		connectAcker.acks = splitter.length;
+
+		byte[] sf = ident.getSerialForm();
+		for (int i = 0; i < splitter.length; i++) {
+		    ReceivePortIdentifier r = splitter[i];
+		    if (DEBUG) {
+			System.err.println(Thread.currentThread() + "Now do native DISconnect call to " + r + "; me = " + ident);
+		    }
+		    ibmp_disconnect(r.cpu, r.getSerialForm(), sf,
+				    connectAcker, messageCount);
+		}
+
+		Ibis.myIbis.waitPolling(connectAcker, 0, Poll.PREEMPTIVE);
+	    }
 
 	    // Add the new receiver to our tables.
 	    int my_split = addConnection((ReceivePortIdentifier)receiver);
 
-	    byte[] sf = ident.getSerialForm();
-	    for (int i = 0; i < my_split; i++) {
-		ReceivePortIdentifier r = splitter[i];
-		if (Ibis.DEBUG) {
-		    System.err.println(Thread.currentThread() + "Now do native DISconnect call to " + r + "; me = " + ident);
-		}
-		outConn.ibmp_disconnect(r.cpu,
-					r.getSerialForm(),
-					sf,
-					messageCount);
-	    }
-
 	    checkBcastGroup();
 
-	    messageCount = 0;
+	    if (DEBUG) {
+		System.err.println(this + ": have bcast group " + group);
+	    }
+
+	    connectAcker.acks = splitter.length;
 
 	    for (int i = 0; i < splitter.length; i++) {
 		ReceivePortIdentifier r = splitter[i];
-		if (Ibis.DEBUG) {
-		    System.err.println(Thread.currentThread() + "Now do native connect call to " + r + "; me = " + ident);
-		    System.err.println("Ibis.myIbis " + Ibis.myIbis);
-		    System.err.println("Ibis.myIbis.identifier() " + Ibis.myIbis.identifier());
-		    System.err.println("Ibis.myIbis.identifier().name() " + Ibis.myIbis.identifier().name());
+		if (DEBUG) {
+		    System.err.println(Thread.currentThread() + "Now do native connect call to " + r + "; me = " + ident + " group " + group + " seqno " + out.getMsgSeqno());
+		    // System.err.println("Ibis.myIbis " + Ibis.myIbis);
+		    // System.err.println("Ibis.myIbis.identifier() " + Ibis.myIbis.identifier());
+		    // System.err.println("Ibis.myIbis.identifier().name() " + Ibis.myIbis.identifier().name());
 		}
-		outConn.ibmp_connect(r.cpu,
-				     r.getSerialForm(),
-				     ident.getSerialForm(),
-				     i == my_split ? syncer[i] : null,
-				     group);
-		if (Ibis.DEBUG) {
+		ibmp_connect(r.cpu, r.getSerialForm(), ident.getSerialForm(),
+			     null, // syncer[i],
+			     connectAcker,
+			     messageCount,
+			     group, out.getMsgSeqno());
+		if (DEBUG) {
 		    System.err.println(Thread.currentThread() + "Done native connect call to " + r + "; me = " + ident);
 		}
 	    }
 
-	    if (! syncer[my_split].s_wait(timeout)) {
-		throw new ConnectionTimedOutException("No connection to " + receiver);
+	    if (false) {
+		if (! syncer[my_split].s_wait(timeout)) {
+		    throw new ConnectionTimedOutException("No connection to " + receiver);
+		}
+		if (! syncer[my_split].accepted()) {
+		    throw new ConnectionRefusedException("No connection to " + receiver);
+		}
 	    }
-	    if (! syncer[my_split].accepted()) {
-		throw new ConnectionRefusedException("No connection to " + receiver);
+
+	    if (ident.ibis().equals(receiver.ibis())) {
+		homeConnection = true;
 	    }
 	} finally {
 	    Ibis.myIbis.unlock();
@@ -106,10 +163,16 @@ final public class SerializeSendPort extends SendPort {
 	try {
 	    out.send(true);
 	    out.reset(true);
+	    registerSend();
+	    Ibis.myIbis.waitPolling(connectAcker, 0, Poll.PREEMPTIVE);
 	} finally {
+	    if (connectWaiters > 0) {
+		connectFinished.cv_signal();
+	    }
+	    connecting = false;
 	    Ibis.myIbis.unlock();
 	}
-	if (Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + ">>>>>>>>>>>> Created ObjectOutputStream " + obj_out + " on top of " + out);
 	}
     }

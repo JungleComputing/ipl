@@ -91,18 +91,18 @@ public class PortType extends ibis.ipl.PortType {
 	switch (serializationType) {
         case PortType.SERIALIZATION_NONE:
 // System.err.println("MSG: NO SER, name = " + portname);
-	    s = new SendPort(this, portname, new OutputConnection());
+	    s = new SendPort(this, portname);
 	    break;
 
 	case PortType.SERIALIZATION_SUN:
 // System.err.println("MSG: SUN SER, name = " + portname);
-	    s = new SerializeSendPort(this, portname, new OutputConnection());
+	    s = new SerializeSendPort(this, portname);
 	    break;
 
 	case PortType.SERIALIZATION_DATA:
 	case PortType.SERIALIZATION_IBIS:
 // System.err.println("MSG: IBIS SER, name = " + portname);
-	    s = new IbisSendPort(this, portname, new OutputConnection());
+	    s = new IbisSendPort(this, portname);
 	    break;
 
 	default:

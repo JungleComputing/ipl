@@ -27,7 +27,20 @@
 #include "ibp_mp.h"
 
 
-#define ATTACH_THREAD_OVER_CALLS	0
+#define ATTACH_THREAD_OVER_CALLS	1
+
+
+/*
+ * Since JNI 1.4 native threads can be attached as daemons.
+ * That would make things faster & still allow termination.
+ */
+#if ATTACH_THREAD_OVER_CALLS
+#define ATTACH_THREAD(vm, penv, arg) \
+	AttachCurrentThreadAsDaemon(vm, penv, arg)
+#else
+#define ATTACH_THREAD(vm, penv, arg) \
+	AttachCurrentThread(vm, penv, arg)
+#endif
 
 
 static int	ibp_intr_enabled = 1;
@@ -59,6 +72,13 @@ ibp_msg_clear(JNIEnv *env, ibp_msg_p msg)
     ibp_set_JNIEnv(env);
     pan_msg_clear((pan_msg_p)msg);
     assert(env == ibp_JNIEnv);
+}
+
+
+ibp_msg_p
+ibp_msg_clone(JNIEnv *env, ibp_msg_p msg, void **proto)
+{
+    return (ibp_msg_p)pan_msg_clone((pan_msg_p)msg, proto);
 }
 
 
@@ -317,7 +337,7 @@ intpt_env_create(void)
     JNIEnv *env;
     JavaVM     *vm = current_VM();
 
-    if ((*vm)->AttachCurrentThread(vm, (void *)&env, NULL) != 0) {
+    if ((*vm)->ATTACH_THREAD(vm, (void *)&env, NULL) != 0) {
 	fprintf(stderr, "AttachCurrentThread fails\n");
 	abort();
     }
@@ -399,6 +419,7 @@ ibp_intr_poll(void)
     JNIEnv *env = intpt_env_get();
     int		i;
 
+    IBP_VPRINTF(410, env, ("start intpt %d\n", ibp_me, ibp_intpts));
     ibp_intpts++;
 
     IBP_VPRINTF(2000, env, ("interrupt...\n"));
@@ -408,6 +429,7 @@ ibp_intr_poll(void)
 	IBP_VPRINTF(2100, env, ("Do a poll[%d] from interrupt handler\n", i));
 	while (ibmp_poll(env));
     }
+    IBP_VPRINTF(410, env, ("finish intpt %d\n", ibp_me, ibp_intpts - 1));
 
     intpt_env_release(env);
 }

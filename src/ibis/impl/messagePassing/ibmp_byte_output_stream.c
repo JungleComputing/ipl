@@ -28,6 +28,8 @@ static struct pan_time now;
 static struct pan_time start;
 #endif
 
+jint		ibmp_byte_stream_NO_BCAST_GROUP;
+
 static int	ibmp_send_sync = 0;
 
 
@@ -54,9 +56,9 @@ static int	bcast_last_frag = 0;
 static int	bcast_msg = 0;
 static int	bcast_sync = 0;
 
-static unsigned	FIRST_FRAG_BIT;
-static unsigned	LAST_FRAG_BIT;
-static unsigned	SEQNO_FRAG_BITS;
+unsigned	IBMP_FIRST_FRAG_BIT;
+unsigned	IBMP_LAST_FRAG_BIT;
+unsigned	IBMP_SEQNO_FRAG_BITS;
 
 
 #define COUNT_GLOBAL_REFS 0
@@ -533,8 +535,8 @@ handle_finished_send(JNIEnv *env, ibmp_msg_p msg)
     jint outstandingFrags;
     ibmp_byte_os_p byte_os = msg->byte_os;
 
-    IBP_VPRINTF(300, env, ("Do a finished upcall msg %p obj %p byte_os->msgSeqno %d %s\n",
-		msg, msg->byte_os->byte_output_stream,
+    IBP_VPRINTF(300, env, ("Do a finished upcall msg %p obj %p byte_os->msgSeqno %d\n",
+		msg, byte_os->byte_output_stream,
 		byte_os->msgSeqno));
 
 #if JASON
@@ -986,13 +988,13 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     hdr->dest_port = port;
     hdr->src_port  = my_port;
     if (lastFrag) {
-	msgSeqno |= LAST_FRAG_BIT;
+	msgSeqno |= IBMP_LAST_FRAG_BIT;
     }
     if (firstFrag) {
-	msgSeqno |= FIRST_FRAG_BIT;
+	msgSeqno |= IBMP_FIRST_FRAG_BIT;
     }
     hdr->msgSeqno = msgSeqno;
-    hdr->group = ibis_impl_messagePassing_SendPort_NO_BCAST_GROUP;
+    hdr->group = ibmp_byte_stream_NO_BCAST_GROUP;
 
     len = ibmp_iovec_len(msg->iov, msg->iov_len);
     up_to_now = (*env)->GetLongField(env, this, fld_msgCount);
@@ -1090,10 +1092,10 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     hdr = ibmp_byte_stream_hdr(msg->proto[0]);
 
     if (lastFrag) {
-	msgSeqno |= LAST_FRAG_BIT;
+	msgSeqno |= IBMP_LAST_FRAG_BIT;
     }
     if (firstFrag) {
-	msgSeqno |= FIRST_FRAG_BIT;
+	msgSeqno |= IBMP_FIRST_FRAG_BIT;
     }
     hdr->msgSeqno = msgSeqno;
     hdr->group = group;
@@ -1406,6 +1408,7 @@ void
 ibmp_byte_output_stream_init(JNIEnv *env)
 {
     jfieldID	fld;
+    jclass	cls_SendPort;
 
     cls_ByteOutputStream = (*env)->FindClass(env,
 			 "ibis/impl/messagePassing/ByteOutputStream");
@@ -1484,7 +1487,7 @@ ibmp_byte_output_stream_init(JNIEnv *env)
     if (fld == NULL) {
 	ibmp_error(env, "Cannot find static field FIRST_FRAG_BIT");
     }
-    FIRST_FRAG_BIT = (*env)->GetStaticIntField(env, cls_ByteOutputStream, fld);
+    IBMP_FIRST_FRAG_BIT = (*env)->GetStaticIntField(env, cls_ByteOutputStream, fld);
 
     fld = (*env)->GetStaticFieldID(env, cls_ByteOutputStream,
 	    				"LAST_FRAG_BIT",
@@ -1499,7 +1502,20 @@ ibmp_byte_output_stream_init(JNIEnv *env)
     if (fld == NULL) {
 	ibmp_error(env, "Cannot find static field SEQNO_FRAG_BITS");
     }
-    SEQNO_FRAG_BITS = (*env)->GetStaticIntField(env, cls_ByteOutputStream, fld);
+    IBMP_SEQNO_FRAG_BITS = (*env)->GetStaticIntField(env, cls_ByteOutputStream, fld);
+
+    cls_SendPort = (*env)->FindClass(env, "ibis/impl/messagePassing/SendPort");
+    if (cls_SendPort == NULL) {
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/SendPort");
+    }
+    fld = (*env)->GetStaticFieldID(env, cls_SendPort,
+	    				"NO_BCAST_GROUP",
+					"I");
+    if (fld == NULL) {
+	ibmp_error(env, "Cannot find static field NO_BCAST_GROUP");
+    }
+    ibmp_byte_stream_NO_BCAST_GROUP =
+	(*env)->GetStaticIntField(env, cls_SendPort, fld);
 
     ibmp_byte_stream_port = ibp_mp_port_register(ibmp_byte_stream_handle);
     ibmp_byte_stream_proto_start = align_to(ibp_mp_proto_offset(), ibmp_byte_stream_hdr_t);

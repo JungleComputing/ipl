@@ -165,7 +165,7 @@ public class ReadMessage
     }
 
 
-    long finishLocked() {
+    long finishLocked() throws IOException {
 	long after = in.getCount();
 	clear();
 	port.count += after - before;
@@ -174,7 +174,7 @@ public class ReadMessage
     }
 
 
-    public long finish() {
+    public long finish() throws IOException {
 	Ibis.myIbis.lock();
 	long retval = finishLocked();
 	Ibis.myIbis.unlock();
@@ -185,7 +185,11 @@ public class ReadMessage
 
     public void finish(IOException e) {
 	// What to do here? Rutger?
-	finish();
+	try {
+	    finish();
+	} catch (IOException eio) {
+	    throw new Error(eio);
+	}
     }
 
 

@@ -21,6 +21,10 @@
 static jclass	cls_PandaByteInputStream;
 static jfieldID	fld_msgHandle;
 
+static jclass	cls_SendPort;
+static jfieldID	fld_hasHomeBcast;
+
+
 JNIEXPORT void JNICALL
 Java_ibis_impl_messagePassing_ByteInputStream_enableAllInterrupts(
 	JNIEnv *env,
@@ -239,6 +243,7 @@ Java_ibis_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
     int		sz = (int) len * sizeof(jtype); \
     \
     assert(msg != NULL); \
+    assert(off >= 0); \
     \
     ibmp_lock_check_owned(env); \
     \
@@ -248,7 +253,13 @@ Java_ibis_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
     if (sz <= COPY_THRESHOLD) { \
 	jtype buf[COPY_THRESHOLD/sizeof(jtype)]; \
 	rd = ibp_consume(env, msg, buf, sz); \
-	IBP_VPRINTF(250, env, ("ByteIS %p Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
+	if (rd == -1) { \
+	    ibmp_throw_new(env, \
+			   "java/io/StreamCorruptedException", \
+			   "Read/copy from empty fragment"); \
+	    return -1; \
+	} \
+	IBP_VPRINTF(250, env, ("ByteIS %p Consumed/copy %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
 		    this, rd / sizeof(jtype), (int)len, #JType, msg, buf, \
 		    ibp_msg_consume_left(msg))); \
 	dump_ ## jtype(buf, rd < len ? rd : len); \
@@ -257,7 +268,13 @@ Java_ibis_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
     else { \
 	jtype      *buf = (*env)->Get ## JType ## ArrayElements(env, a, NULL); \
 	rd = ibp_consume(env, msg, buf + off, sz); \
-	IBP_VPRINTF(250, env, ("ByteIS %p Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
+	if (rd == -1) { \
+	    ibmp_throw_new(env, \
+			   "java/io/StreamCorruptedException", \
+			   "Read/in place from empty fragment"); \
+	    return -1; \
+	} \
+	IBP_VPRINTF(250, env, ("ByteIS %p Consumed/in place %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
 		    this, rd / sizeof(jtype), (int)len, #JType, msg, buf, \
 		    ibp_msg_consume_left(msg))); \
 	dump_ ## jtype(buf + off, rd < len ? rd : len); \
@@ -278,10 +295,26 @@ ARRAY_READ(Float, jfloat)
 ARRAY_READ(Double, jdouble)
 
 
+JNIEXPORT jint JNICALL
+Java_bisi_impl_messagePassing_ByteInputStream_cloneMsg(
+		JNIEnv *env,
+		jclass clazz,
+		jint handle)
+{
+    void       *proto;
+    ibp_msg_p	msg = (ibp_msg_p)handle;
+    ibp_msg_p	clone = ibp_msg_clone(env, msg, &proto);
+
+    assert(ibp_msg_consume_left(msg) == ibp_msg_consume_left(clone));
+
+    return (jint)clone;
+}
+
+
 JNIEXPORT jboolean JNICALL
 Java_ibis_impl_messagePassing_ByteInputStream_getInputStreamMsg(
 		JNIEnv *env,
-		jclass this,
+		jclass clazz,
 		jarray jtags)
 {
     jint       tags[7];
@@ -299,10 +332,37 @@ Java_ibis_impl_messagePassing_ByteInputStream_getInputStreamMsg(
     }
 
     hdr = ibmp_byte_stream_hdr(proto);
-
-    IBP_VPRINTF(202, env, ("Dequeue msg %p from %d port %d group %d\n", msg, ibp_msg_sender(msg), hdr->dest_port, hdr->group));
-
     sender  = ibp_msg_sender(msg);
+    IBP_VPRINTF(1500, env, ("Got msg %p from %d home_msg %p port %p group %d\n", msg, ibp_msg_sender(msg), hdr->home_msg, hdr->dest_port, hdr->group));
+
+    if (hdr->group != ibmp_byte_stream_NO_BCAST_GROUP && sender == ibp_me) {
+	jobject h;
+	jbooleanArray hasHomeBcast;
+	jboolean b[1];
+	void    *copy_proto;
+	ibp_msg_p copy;
+
+	h = (*env)->GetStaticObjectField(env, cls_SendPort, fld_hasHomeBcast);
+	hasHomeBcast = (jbooleanArray)h;
+	(*env)->GetBooleanArrayRegion(env, hasHomeBcast, hdr->group, 1, b);
+	if (! b[0]) {
+	    ibmp_bcast_home_ack(hdr);
+	    ibp_msg_clear(env, msg);
+	    return JNI_FALSE;
+	}
+
+	/* Panda gives you pointers into the buffers that you handed it for
+	 * sending off. Make a copy here. */
+	copy = ibp_msg_clone(env, msg, &copy_proto);
+	ibmp_bcast_home_ack(hdr);
+	ibp_msg_clear(env, msg);
+	msg = copy;
+	proto = copy_proto;
+	hdr = ibmp_byte_stream_hdr(proto);
+    }
+
+    IBP_VPRINTF(202, env, ("Dequeue msg %p from %d port %d seqno %d group %d\n", msg, ibp_msg_sender(msg), hdr->dest_port, (hdr->msgSeqno & ~IBMP_SEQNO_FRAG_BITS), hdr->group));
+
     tags[0] = sender;
     tags[1] = hdr->src_port;
     tags[2] = hdr->dest_port;
@@ -310,11 +370,6 @@ Java_ibis_impl_messagePassing_ByteInputStream_getInputStreamMsg(
     tags[4] = (jint)ibp_msg_consume_left(msg);
     tags[5] = hdr->msgSeqno;
     tags[6] = hdr->group;
-
-    if (hdr->group != ibis_impl_messagePassing_SendPort_NO_BCAST_GROUP &&
-	    sender == ibp_me) {
-	ibmp_bcast_home_ack(hdr);
-    }
 
     (*env)->SetIntArrayRegion(env,
 			      jtags,
@@ -350,6 +405,16 @@ ibmp_byte_input_stream_init(JNIEnv *env)
     fld_msgHandle = (*env)->GetFieldID(env, cls_PandaByteInputStream, "msgHandle", "I");
     if (fld_msgHandle == NULL) {
 	ibmp_error(env, "Cannot find field PandaByteInputStream.msgHandle:I");
+    }
+
+    cls_SendPort = (*env)->FindClass(env,
+	    "ibis/impl/messagePassing/SendPort");
+    if (cls_SendPort == NULL) {
+	ibmp_error(env, "Cannot find class ibis/impl/messagePassing/SendPort");
+    }
+    fld_hasHomeBcast = (*env)->GetStaticFieldID(env, cls_SendPort, "hasHomeBcast", "[Z");
+    if (fld_hasHomeBcast == NULL) {
+	ibmp_error(env, "Cannot find field FindClass.hasHomeBcast");
     }
 
 }

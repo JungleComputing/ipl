@@ -68,7 +68,7 @@ public class Syncer implements PollClient {
 	if (timeout > 0) {
 	    t_start = System.currentTimeMillis();
 	}
-	while (! signalled) {
+	while (! satisfied()) {
 	    Ibis.myIbis.waitPolling(this, timeout, Poll.PREEMPTIVE);
 	    if (timeout > 0) {
 		if (System.currentTimeMillis() >= t_start + timeout) {
@@ -86,6 +86,18 @@ public class Syncer implements PollClient {
 	Ibis.myIbis.checkLockOwned();
 	this.accepted = accepted;
 	signalled = true;
-	wakeup();
+	if (satisfied()) {
+	    wakeup();
+	}
     }
+
+    void s_bcast(boolean accepted) {
+	Ibis.myIbis.checkLockOwned();
+	this.accepted = accepted;
+	signalled = true;
+	if (satisfied()) {
+	    cv.cv_bcast();
+	}
+    }
+
 }
