@@ -41,7 +41,7 @@ JAVAHFLAGS      += -classpath $(JAVACLASSPATH)
 CLASSPATH	= $(JAVACLASSPATH)
 export CLASSPATH
 
-LD_LIBRARY_PATH	= $(IBIS_ROOT)/ibis/ipl/impl/messagePassing
+LD_LIBRARY_PATH	= $(IBIS_ROOT)/ibis/lib
 export LD_LIBRARY_PATH
 
 LD_ASSUME_KERNEL	= 2.2.5

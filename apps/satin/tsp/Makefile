@@ -3,6 +3,12 @@ APP_OPTIONS = 20 -bound 350
 MAIN = Tsp.java
 OUT= tsp
 
+# SERIALIZABLE	=
+# SERIALIZABLE	+= DistanceTable.java
+# SERIALIZABLE	+= Tsp.java
+# SERIALIZABLE	+= Satin_Tsp_spawn_tsp_InvocationRecord.java
+# SERIALIZABLE	+= Satin_Tsp_spawn_tsp_ReturnRecord.java
+
 include ../../../config.mk
 include ../config.mk
 
