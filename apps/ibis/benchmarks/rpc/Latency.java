@@ -10,9 +10,11 @@ class Sender implements Upcall {
 	Ticket t;
 
 	SendPort sport;
+	Ibis ibis;
 
-	Sender(SendPort sport) {
+	Sender(SendPort sport, Ibis ibis) {
 		this.sport = sport;
+		this.ibis = ibis;
 		t = new Ticket();
 	} 
 	
@@ -31,11 +33,20 @@ class Sender implements Upcall {
 			writeMessage.writeInt(0);
 			writeMessage.send();
 			writeMessage.finish();
+			/*
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			*/
 			
 			ReadMessage readMessage = (ReadMessage) t.collect(ticket);
-			readMessage.readByte();
-			readMessage.readByte();
-			readMessage.finish();
 		}
 
 		// test
@@ -54,11 +65,20 @@ class Sender implements Upcall {
 			writeMessage.writeInt(0);
 			writeMessage.send();
 			writeMessage.finish();
+			/*
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			ibis.poll();
+			*/
 			
 			ReadMessage readMessage = (ReadMessage) t.collect(ticket);
-			readMessage.readByte();
-			readMessage.readByte();
-			readMessage.finish();
 		}
 
 		time = System.currentTimeMillis() - time;
@@ -71,6 +91,9 @@ class Sender implements Upcall {
 
 		try { 
 			int ticket = readMessage.readInt();
+			readMessage.readByte();
+			readMessage.readByte();
+			readMessage.finish();
 			t.put(ticket, readMessage);			
 		} catch (Exception e) { 			
 			System.out.println("EEEEEK " + e);
@@ -85,10 +108,12 @@ class UpcallReceiver implements Upcall {
 
 	int count = 0;
 	int max;
+	Ibis ibis;
 
-	UpcallReceiver(SendPort sport, int max) {
+	UpcallReceiver(SendPort sport, int max, Ibis ibis) {
 		this.sport = sport;
 		this.max = max;
+		this.ibis = ibis;
 	} 
 	
 	public void upcall(ReadMessage readMessage) { 
@@ -175,10 +200,11 @@ class Latency {
 		int rank = 0, remoteRank = 1;
 		
 		try {
-			ibis     = Ibis.createIbis("ibis:" + rank, "ibis.ipl.impl.panda.PandaIbis", null);
+			ibis     = Ibis.createIbis(null);
 			registry = ibis.registry();
 
 			StaticProperties s = new StaticProperties();
+			s.add("Serialization", "ibis");
 			PortType t = ibis.createPortType("test type", s);
 
 			SendPort sport = t.createSendPort();					      
@@ -196,18 +222,25 @@ class Latency {
 			}
 
 			if (rank == 0) { 
-
-				Sender sender = new Sender(sport);
+				System.out.println("Creating sender");
+				Sender sender = new Sender(sport, ibis);
 				rport = t.createReceivePort("test port 0", sender);
+				rport.enableConnections();
+				rport.enableUpcalls();
 				sport.connect(lookup("test port 1"));		
+				System.out.println("Created sender");
 				sender.send(count);
 				
 			} else { 
+				System.out.println("Creating receiver");
 
 				sport.connect(lookup("test port 0"));
 
-				UpcallReceiver receiver = new UpcallReceiver(sport, 2*count);
+				UpcallReceiver receiver = new UpcallReceiver(sport, 2*count, ibis);
 				rport = t.createReceivePort("test port 1", receiver);
+				rport.enableConnections();
+				rport.enableUpcalls();
+				System.out.println("Created receiver");
 				receiver.finish();
 			} 
 
