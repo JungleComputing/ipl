@@ -75,6 +75,31 @@ test_par:
 	grep "application result" test_par_out > test_par_res
 	diff test_par_res test_goal
 
+csim:
+	if [ -z "$(CLUSTERS)" ]; then echo CLUSTERS not set; exit 1; fi
+	if [ -z "$(NODES)" ]; then echo NODES not set; exit 1; fi
+	if [ -z "$(SPIN)" ]; then echo SPIN not set; exit 1; fi
+	if [ -z "$(THRP)" ]; then echo THRP not set; exit 1; fi
+	../csim.sh $(CLUSTERS) $(NODES) $(SPIN) $(THRP) $(MAIN_CLASS_NAME) $(APP_OPTIONS)
+
+csimtest:
+	if [ -z "$(CLUSTERS)" ]; then echo CLUSTERS not set; exit 1; fi
+	if [ -z "$(NODES)" ]; then echo NODES not set; exit 1; fi
+	../csim.sh $(CLUSTERS) $(NODES) 0.000001 1048576 $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS)
+
+csimtcp:
+	if [ -z "$(CLUSTERS)" ]; then echo CLUSTERS not set; exit 1; fi
+	if [ -z "$(NODES)" ]; then echo NODES not set; exit 1; fi
+	../csim-tcp.sh $(CLUSTERS) $(NODES) $(NAMESERVER_PORT) $(NAME_SERVER) $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS)
+
+pprun:
+	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
+	../../../globus/pprun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(APP_OPTIONS) -satin-stats -satin-closed
+
+pprun_test:
+	if [ -z "$(SITES)" ]; then echo SITES not set; exit 1; fi
+	../../../globus/pprun $(NAMESERVER_PORT) $(SITES) - $(MAIN_CLASS_NAME) $(TEST_APP_OPTIONS) -satin-stats -satin-closed
+
 logclean:
 	rm -rf *.ps *~ out.plot *.dvi out.ps *.aux plots.log *.tmp out.log out.tex
 
