@@ -118,19 +118,19 @@ class RszHandler implements OpenConfig, ResizeHandler {
     }
 }
 
-class PingLeftReceiver implements Upcall {
+class StealLeftReceiver implements Upcall {
     public void upcall( ReadMessage m )
     {
          // TODO: make sure this is the right generation.
-         OpenCell1D.leftPingColumn = OpenCell1D.computeColumn;
+         OpenCell1D.leftStealColumn = OpenCell1D.computeColumn;
     }
 }
 
-class PingRightReceiver implements Upcall {
+class StealRightReceiver implements Upcall {
     public void upcall( ReadMessage m )
     {
          // TODO: make sure this is the right generation.
-         OpenCell1D.rightPingColumn = OpenCell1D.computeColumn;
+         OpenCell1D.rightStealColumn = OpenCell1D.computeColumn;
     }
 }
 
@@ -141,17 +141,17 @@ class OpenCell1D implements OpenConfig {
     static IbisIdentifier rightNeighbour;
     static IbisIdentifier myName;
     static int computeColumn;
-    static int leftPingColumn;
-    static int rightPingColumn;
+    static int leftStealColumn;
+    static int rightStealColumn;
     static int me = -1;
     static SendPort leftSendPort;
     static SendPort rightSendPort;
     static ReceivePort leftReceivePort;
     static ReceivePort rightReceivePort;
-    static SendPort leftPingSendPort;
-    static SendPort rightPingSendPort;
-    static ReceivePort leftPingReceivePort;
-    static ReceivePort rightPingReceivePort;
+    static SendPort leftStealSendPort;
+    static SendPort rightStealSendPort;
+    static ReceivePort leftStealReceivePort;
+    static ReceivePort rightStealReceivePort;
     static int generation = -1;
     static int boardsize = DEFAULTBOARDSIZE;
     static boolean idle = true;
@@ -160,6 +160,8 @@ class OpenCell1D implements OpenConfig {
     static int aimFirstNoColumn;
     static int knownMembers = 0;
     static RszHandler rszHandler = new RszHandler();
+    static StealRightReceiver rightReceiver = new StealRightReceiver();
+    static StealLeftReceiver leftReceiver = new StealLeftReceiver();
 
     private static void usage()
     {
@@ -196,32 +198,20 @@ class OpenCell1D implements OpenConfig {
      * @param updatePort The type of the port to construct.
      * @param prefix The prefix of the port names.
      */
-    private static ReceivePort createNeighbourReceivePort( PortType updatePort, String prefix )
+    private static ReceivePort createNeighbourReceivePort( PortType updatePort, String prefix, Upcall up )
         throws java.io.IOException
     {
         String receiveportname = prefix + "Receive" + myName.name();
 
-        ReceivePort res = updatePort.createReceivePort( receiveportname );
+        ReceivePort res;
+        if( up == null ){
+            res = updatePort.createReceivePort( receiveportname );
+        }
+        else {
+            res = updatePort.createReceivePort( receiveportname, up );
+        }
         if( tracePortCreation ){
             System.out.println( "P" + me + ": created receive port " + res  );
-        }
-        res.enableConnections();
-        return res;
-    }
-
-    /**
-     * Creates a ping receive port.
-     * @param pt The type of the port to construct.
-     * @param prefix The prefix of the port names.
-     */
-    private static ReceivePort createPingReceivePort( PortType pt, String prefix, Upcall up )
-        throws java.io.IOException
-    {
-        String receiveportname = prefix + "PingReceive" + myName.name();
-
-        ReceivePort res = pt.createReceivePort( receiveportname, up );
-        if( tracePortCreation ){
-            System.out.println( "P" + me + ": created ping receive port " + res  );
         }
         res.enableConnections();
         return res;
@@ -752,7 +742,7 @@ class OpenCell1D implements OpenConfig {
 
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
-            s.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );
+            s.add( "communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt" );
             s.add( "worldmodel", "open" );
             ibis = Ibis.createIbis( s, rszHandler );
             myName = ibis.identifier();
@@ -775,7 +765,7 @@ class OpenCell1D implements OpenConfig {
                 System.out.println( "P" + me + ": there is no left neighbour???" );
             }
             if( leftNeighbour != null ){
-                leftReceivePort = createNeighbourReceivePort( updatePort, "upstream" );
+                leftReceivePort = createNeighbourReceivePort( updatePort, "upstream", null );
                 leftSendPort = createNeighbourSendPort( updatePort, leftNeighbour, "downstream" );
             }
 
@@ -827,8 +817,10 @@ class OpenCell1D implements OpenConfig {
                     if( tracePortCreation ){
                         System.out.println( "P" + me + ": a right neighbour has appeared; creating ports" );
                     }
-                    rightReceivePort = createNeighbourReceivePort( updatePort, "downstream" );
+                    rightReceivePort = createNeighbourReceivePort( updatePort, "downstream", null );
+                    rightStealReceivePort = createNeighbourReceivePort( updatePort, "downstreamSteal", rightReceiver );
                     rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
+                    rightStealSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstreamSteal" );
                 }
                 updateAims( p );
                 if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
