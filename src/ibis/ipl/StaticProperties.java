@@ -1,8 +1,11 @@
 package ibis.ipl;
 
+import java.util.Set;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.StringTokenizer;
 import java.util.ArrayList;
 
@@ -13,21 +16,24 @@ import java.io.IOException;
  * Container for the properties of an {@link ibis.ipl.Ibis Ibis} or a
  * {@link ibis.ipl.PortType PortType}.
  *
- * A property consists of two strings: its name (key), and its value,
- * for instance: name: ibis.serialization, value: sun.
+ * A property consists of a name (key), and its value, a set of strings.
+ * for instance: name: serialization, value: {sun}.
+ * The properties are static, that is, once a property is set, its value
+ * cannot be changed.
+ * The value of a property is usually given as a string, which is then
+ * split into words (a word separator is one of
+ * " ,\t\n\r\f"). These words can be queried as well, by means of the
+ * {@link #isProp(String, String)} method. For instance,
+ * <code>isProp("communication", "OneToMany")</code> could be a query to
+ * find out if multicast is supported (or required, when a porttype is
+ * created).
  */
-public class StaticProperties extends Properties {
+public class StaticProperties {
 
     /**
-     * HashMap mapping category names to hashmaps that map property
-     * names to values.
+     * Set containing the category names.
      */
-    private static HashMap categories = new HashMap();
-
-    /**
-     * Array containing the category names.
-     */
-    private static ArrayList category_names = new ArrayList();
+    private static Set category_names;
 
     /**
      * User defined properties.
@@ -35,9 +41,79 @@ public class StaticProperties extends Properties {
     private static final StaticProperties user_properties;
 
     /**
+     * Ibis properties.
+     */
+    private static final StaticProperties ibis_properties;
+
+    /**
+     * Maps property names to property values.
+     */
+    private final HashMap mappings = new HashMap();
+
+    /**
      * Default properties.
      */
     private final StaticProperties defaults;
+
+    /**
+     * Container class for properties that are associated with a key.
+     */
+    private static class Property {
+	private HashSet h;
+
+	/**
+	 * Creates a <code>Property</code> from the specified string.
+	 * The string is tokenized, and each token is added to the 
+	 * property set.
+	 * @param v the property set as a string.
+	 */
+	public Property(String v) {
+	    if (v != null) {
+		StringTokenizer st = new StringTokenizer(v, " ,\t\n\r\f");
+		h = new HashSet();
+		while (st.hasMoreTokens()) {
+		    String s = st.nextToken().toLowerCase();
+		    h.add(s);
+		}
+	    }
+	}
+
+	/**
+	 * Returns <code>true</code> if the property set contains the
+	 * specified string.
+	 * @return <code>true</code> if the property set contains the
+	 * specified string, <code>false</code> otherwise.
+	 */
+	public boolean hasProp(String s) {
+	    if (s == null) return false;
+	    return h.contains(s);
+	}
+
+	/**
+	 * Returns the value of this property, as a comma-separated string.
+	 * @return the value of this property, as a string.
+	 */
+	public String getValue() {
+	    String s = null;
+	    Iterator i = h.iterator();
+	    while (i.hasNext()) {
+		String str = (String) i.next();
+		if (s == null) {
+		    s = "" + str;
+		}
+		else s += ", " + str;
+	    }
+	    return s;
+	}
+
+	/**
+	 * Allows access to the propertyset as a set.
+	 * @return the property set.
+	 */
+	public HashSet getSet() {
+	    return h;
+	}
+    }
 
     /**
      * Initialize from the global ibis-properties file, which defines
@@ -51,9 +127,9 @@ public class StaticProperties extends Properties {
 	    System.err.println("could not open ibis-properties");
 	    System.exit(1);
 	}
-	StaticProperties p = new StaticProperties();
+	ibis_properties = new StaticProperties();
 	try {
-	    p.load(in);
+	    ibis_properties.load(in);
 	    in.close();
 	} catch(IOException e) {
 	    System.err.println("IO exception during ibis-properties read");
@@ -62,64 +138,14 @@ public class StaticProperties extends Properties {
 	}
 
 	// Then, find the property categories.
-	String property_categories = p.getProperty("PropertyCategories");
-	if (property_categories == null) {
+	category_names = 
+		ibis_properties.findSet("PropertyCategories");
+	if (category_names == null) {
 	    System.err.println("no PropertyCategories in ibis-properties!");
 	    System.exit(1);
 	}
-	StringTokenizer st = new StringTokenizer(property_categories,
-						 " ,\t\n\r\f");
-	while (st.hasMoreTokens()) {
-	    // While there are categories, find properties.
-	    long propval = 1;
 
-	    String category = st.nextToken().toLowerCase();
-	    String values = p.getProperty(category);
-	    if (values == null) {
-		System.err.println("no property category " + category +
-				    " in ibis-properties");
-		System.exit(1);
-	    }
-
-	    category_names.add(category);
-
-//	    System.out.println("category name = " + category);
-
-	    HashMap v = new HashMap();
-	    StringTokenizer st2 = new StringTokenizer(values, " ,\t\n\r\f");
-	    while (st2.hasMoreTokens()) {
-		// Associate each property with a bit.
-		String prop = st2.nextToken().toLowerCase();
-		v.put(prop, new Long(propval));
-		propval <<= 1;
-	    }
-
-	    // now search for implied dependencies
-	    st2 = new StringTokenizer(values, " ,\t\n\r\f");
-	    while (st2.hasMoreTokens()) {
-		String prop = st2.nextToken().toLowerCase();
-		String implied = p.getProperty(prop);
-//		System.out.print("property = " + prop);
-		long val = ((Long) v.get(prop)).longValue();
-		if (implied != null) {
-		    StringTokenizer st3 = new StringTokenizer(implied,
-							      " ,\t\n\r\f");
-		    while (st3.hasMoreTokens()) {
-			String prop2 = st3.nextToken().toLowerCase();
-			Long val2 = (Long) v.get(prop2);
-			if (val2 == null) {
-			    System.err.println("Property " + prop2 + " not found in implied dependency");
-			    System.exit(1);
-			}
-			val |= val2.longValue();
-		    }
-		    v.put(prop, new Long(val));
-		}
-//		System.out.println(", value = " + val);
-	    }
-
-	    categories.put(category, v);
-	}
+	ibis_properties.addImpliedProperties();
 
 	// Now compute user-defined properties.
 	// These are derived from system properties with names starting with
@@ -139,11 +165,14 @@ public class StaticProperties extends Properties {
 	    if (name.substring(0,5).equals("ibis.")) {
 		String n = name.substring(5);
 
-		if (categories.containsKey(n) || n.equals("name")) {
+		if (category_names.contains(n) || n.equals("name")) {
 		    user_properties.add(n, prop);
 		}
 	    }
 	}
+
+//	System.out.println("Ibis properties: ");
+//	System.out.println(ibis_properties.toString());
     }
 
     /**
@@ -157,8 +186,42 @@ public class StaticProperties extends Properties {
      * Creates an empty property set with defaults.
      */
     public StaticProperties(StaticProperties sp) {
-	super(sp);
 	defaults = sp;
+    }
+
+    /**
+     * Returns the set of property names.
+     * @return the set of property names.
+     */
+    public Set propertyNames() {
+	if (defaults == null) {
+	    return mappings.keySet();
+	}
+	HashSet h = new HashSet(mappings.keySet());
+	defaults.addNames(h);
+	return h;
+    }
+
+    /**
+     * Returns the number of property names in this property set.
+     * @return the number of property names.
+     */
+    public int size() {
+	if (defaults == null) {
+	    return mappings.size();
+	}
+	return propertyNames().size();
+    }
+
+    /**
+     * Adds property names to the specified set.
+     * @param h the set.
+     */
+    private void addNames(HashSet h) {
+	h.addAll(mappings.keySet());
+	if (defaults != null) {
+	    defaults.addNames(h);
+	}
     }
 
     /**
@@ -172,19 +235,19 @@ public class StaticProperties extends Properties {
 
     /**
      * Combines the specified properties with system properties as
-     * specified by the user.
-     * @param sp the static properties
+     * specified by the user, giving preference to the latter.
      * @return the combined static properties.
      */
-    static StaticProperties combineWithUserProps(StaticProperties sp) {
-	StaticProperties combined = new StaticProperties(sp);
+    public StaticProperties combineWithUserProps() {
+	StaticProperties combined = new StaticProperties(this);
 	StaticProperties u = userProperties();
 
-	Enumeration e = u.keys();
+	Set e = u.propertyNames();
+	Iterator i = e.iterator();
 
-	while (e.hasMoreElements()) {
-	    String name = ((String) e.nextElement());
-	    String prop = u.getProperty(name);
+	while (i.hasNext()) {
+	    String name = ((String) i.next());
+	    String prop = u.find(name);
 
 	    combined.add(name, prop);
 	}
@@ -192,50 +255,28 @@ public class StaticProperties extends Properties {
     }
 
     /**
-     * Returns a summary of the specified properties.
-     * @param sp the static properties.
-     * @return the properties, as an int.
-     */
-    private static long[] getSummary(StaticProperties sp) {
-	int len = category_names.size();
-	long [] retval = new long[len];
-	for (int i = 0; i < len; i++) {
-	    retval[i] = 0;
-	    String values = sp.find((String) category_names.get(i));
-	    HashMap m = (HashMap)categories.get((String) category_names.get(i));
-	    if (values != null) {
-		StringTokenizer t = new StringTokenizer(values, ", \t\n\r\f");
-		while (t.hasMoreTokens()) {
-		    String s = t.nextToken();
-		    Object o = m.get(s.toLowerCase());
-		    if (o != null) {
-			retval[i] |= ((Long) o).longValue();
-		    }
-		}
-		// Unrecognized properties silently ignored?
-	    }
-	}
-	return retval;
-    }
-
-    /**
      * Matches the current required properties with the static properties
-     * supplied.
+     * supplied. We have a match if the current properties are a subset
+     * of the specified properties.
      * @param sp the static properties to be matched with.
      * @return true if we have a match, false otherwise.
      */
     public boolean matchProperties(StaticProperties sp) {
-	// Maybe build a cache of computed summaries?
-	long[] props = getSummary(sp);
-	long[] mysummary = getSummary(this);
+	Iterator i = category_names.iterator();
 
-	for (int i = 0; i < props.length; i++) {
-	    if ((mysummary[i] & props[i]) != mysummary[i]) {
-		return false;
+	while (i.hasNext()) {
+	    String cat = (String) i.next();
+	    Set v1 = findSet(cat);
+	    Set v2 = sp.findSet(cat);
+	    if (v1 != null) {
+		if (v2 == null || ! v2.containsAll(v1)) {
+		    return false;
+		}
 	    }
 	}
 	return true;
     }
+
     /**
      * Adds a key/value pair to the properties.
      * If the key is already bound, an
@@ -251,20 +292,35 @@ public class StaticProperties extends Properties {
      */
     public void add(String key, String value) { 
 	key = key.toLowerCase();
-	if (containsKey(key)) {
+	if (mappings.containsKey(key)) {
 	    throw new IbisRuntimeException("Property " + key +
 					   " already exists");
 	}
-	super.setProperty(key, value);
+	mappings.put(key, new Property(value));
     }
 
     /**
-     * See {@link #add(String, String)}.
-     * @return <code>null</code>.
+     * Returns the property associated with the specified key.
+     * @param key the property category.
+     * @return the Property structure, or null if not present.
      */
-    public Object setProperty(String key, String value) {
-	add(key, value);
-	return null;
+    private Property getProp(String key) {
+	Property p = (Property) mappings.get(key);
+	if (p == null && defaults != null) {
+	    return defaults.getProp(key);
+	}
+	return p;
+
+    }
+
+    /**
+     * Returns the value associated with the specified key,
+     * or <code>null</code>.
+     * This is a synonym for {@link #find(String)} 
+     * @return the value associated with the specified key.
+     */
+    public String getProperty(String key) {
+	return find(key);
     }
 
     /**
@@ -273,17 +329,39 @@ public class StaticProperties extends Properties {
      * @return the value associated with the specified key.
      */
     public String find(String key) {
-	return getProperty(key);
+	Property p = getProp(key.toLowerCase());
+	if (p != null) {
+	    return p.getValue();
+	}
+	return null;
     }
 
     /**
-     * Returns the value associated with the specified key,
+     * Returns the value associated with the specified key, as a set,
      * or <code>null</code>.
      * @return the value associated with the specified key.
      */
-    public String getProperty(String key) {
-	key = key.toLowerCase();
-	return super.getProperty(key);
+    public Set findSet(String key) {
+	Property p = getProp(key.toLowerCase());
+	if (p != null) {
+	    return new HashSet(p.getSet());
+	}
+	return null;
+    }
+
+    /**
+     * Returns true if the specified property category has the
+     * specified property set.
+     * @param cat the property category.
+     * @param prop the property.
+     * @return true if the property is set, false otherwise.
+     */
+    public boolean isProp(String cat, String prop) {
+	Property p = getProp(cat.toLowerCase());
+	if (p == null) {
+	    return false;
+	}
+	return p.hasProp(prop.toLowerCase());
     }
 
     /**
@@ -292,29 +370,15 @@ public class StaticProperties extends Properties {
      */
     public Object clone() {
 	StaticProperties sp = new StaticProperties(defaults);
-	Enumeration e = keys();
-	while (e.hasMoreElements()) {
-	    String key = (String) e.nextElement();
-	    String value = getProperty(key);
+
+	Set e = mappings.keySet();
+	Iterator i = e.iterator();
+	while (i.hasNext()) {
+	    String key = (String) i.next();
+	    String value = find(key);
 	    sp.add(key, value);
 	}
 	return sp;
-    }
-
-    /**
-     * Reads the properties from an inputstream.
-     * @param in the input stream.
-     * @exception java.io.IOException on IO error.
-     */
-    public void load(InputStream in) throws IOException {
-	Properties p = new Properties();
-	p.load(in);
-	Enumeration e = p.keys();
-	while (e.hasMoreElements()) {
-	    String key = (String) e.nextElement();
-	    String value = p.getProperty(key);
-	    add(key.toLowerCase(), value);
-	}
     }
 
     /**
@@ -328,11 +392,11 @@ public class StaticProperties extends Properties {
 
 	StringBuffer result = new StringBuffer("");
 
-	Enumeration e = keys();
-
-	while (e.hasMoreElements()) { 
-	    String key = (String) e.nextElement();		       			
-	    String value = getProperty(key);
+	Set e = propertyNames();
+	Iterator i = e.iterator();
+	while (i.hasNext()) {
+	    String key = (String) i.next();
+	    String value = find(key);
 
 	    result.append(key);
 	    result.append(" = ");
@@ -342,4 +406,51 @@ public class StaticProperties extends Properties {
 
 	return result.toString();
     } 
+
+    /**
+     * Reads the properties from the specified <code>InputStream</code>.
+     * @param in the <code>InputStream</code>.
+     * @exception IOException is thrown when an IO error occurs.
+     */
+    public void load(InputStream in) throws IOException {
+     	Properties p = new Properties();
+     	p.load(in);
+     	Enumeration e = p.keys();
+     	while (e.hasMoreElements()) {
+	    String key = (String) e.nextElement();
+	    String value = p.getProperty(key);
+	    add(key.toLowerCase(), value);
+	}
+    }
+
+    /**
+     * Adds implied properties to the properties set. This method
+     * DOES change the properties, but it is package protected.
+     */
+    void addImpliedProperties() {
+	Set e = mappings.keySet();
+	Iterator i = e.iterator();
+	while (i.hasNext()) {
+	    String cat = (String) i.next();
+	    if (category_names.contains(cat)) {
+		Property p = (Property) mappings.get(cat);
+		HashSet h = p.getSet();
+		boolean changed;
+		do {
+		    changed = false;
+		    Iterator i2 = new HashSet(h).iterator();
+		    while (i2.hasNext()) {
+			String n = (String) i2.next();
+			Set implied = ibis_properties.findSet(n);
+			if (implied != null) {
+			    if (! h.containsAll(implied)) {
+				changed = true;
+				h.addAll(implied);
+			    }
+			}
+		    }
+		} while (changed);
+	    }
+	}
+    }
 }

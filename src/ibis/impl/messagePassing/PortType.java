@@ -28,14 +28,16 @@ public class PortType implements ibis.ipl.PortType {
 	    this.p = new StaticProperties(p);
 	    this.p.add("Serialization", "sun");
 	    serializationType = SERIALIZATION_SUN;
-	} else if (ser.equals("none")) {
+	} else if (ser.equals("object")) {
+	    serializationType = SERIALIZATION_SUN;
+	} else if (ser.equals("byte")) {
 	    serializationType = SERIALIZATION_NONE;
 	} else if (ser.equals("sun")) {
 	    serializationType = SERIALIZATION_SUN;
 	} else if (ser.equals("manta")) {
 	    // For backwards compatibility ...
 	    serializationType = SERIALIZATION_IBIS;
-	} else if (ser.equals("ibis")) {
+	} else if (ser.equals("ibis") || ser.equals("data")) {
 	    serializationType = SERIALIZATION_IBIS;
 	} else {
 	    throw new IbisException("Unknown Serialization type " + ser);

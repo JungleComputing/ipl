@@ -37,14 +37,17 @@ class TcpPortType implements PortType, Config {
 			this.p.add("Serialization", "sun");
 			serializationType = SERIALIZATION_SUN;
 		} else {
-			if (ser.equals("sun")) {
+			if (ser.equals("object")) {
+				// Default object serialization
+				serializationType = SERIALIZATION_SUN;
+			} else if (ser.equals("sun")) {
 				serializationType = SERIALIZATION_SUN;
 //				System.err.println("serializationType = SERIALIZATION_SUN");
-			} else if (ser.equals("none")) {
+			} else if (ser.equals("byte")) {
 
 //				System.err.println("serializationType = SERIALIZATION_NONE");
 				serializationType = SERIALIZATION_NONE;
-			} else if (ser.equals("ibis")) {
+			} else if (ser.equals("ibis") || ser.equals("data")) {
 
 //				System.err.println("serializationType = SERIALIZATION_IBIS");
 				serializationType = SERIALIZATION_IBIS;

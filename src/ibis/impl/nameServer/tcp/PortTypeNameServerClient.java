@@ -12,7 +12,8 @@ import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Enumeration;
+import java.util.Set;
+import java.util.Iterator;
 
 class PortTypeNameServerClient implements Protocol {
 
@@ -40,12 +41,14 @@ class PortTypeNameServerClient implements Protocol {
 		out.writeByte(PORTTYPE_NEW);
 		out.writeUTF(name);
 		
+		Set e = p.propertyNames();
+		Iterator i = e.iterator();
+
 		out.writeInt(p.size());
 		
 		// Send all properties.
-		Enumeration e = p.keys();
-		while (e.hasMoreElements()) { 
-			String key = (String) e.nextElement();
+		while (i.hasNext()) { 
+			String key = (String) i.next();
 			out.writeUTF(key);
 			
 			String value = p.find(key);

@@ -11,7 +11,8 @@ import ibis.ipl.Upcall;
 import ibis.util.Input;
 
 import java.io.IOException;
-import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -202,10 +203,11 @@ public final class NetPortType implements PortType {
          * Build the property tree.
          */
         private void buildPropertyTree() {
-                Enumeration e = staticProperties.keys();
+                Set e = staticProperties.propertyNames();
+		Iterator i = e.iterator();
 
-                while (e.hasMoreElements()) {
-                        String key   = (String) e.nextElement();
+                while (i.hasNext()) {
+                        String key   = (String) i.next();
                         String value = staticProperties.find(key);
 
                         propertyTree.put(key, value);

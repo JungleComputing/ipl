@@ -67,6 +67,7 @@ communication:	OneToOne, OneToMany, ManyToOne, \
 OneToMany:	OneToOne
 ManyToOne:	OneToOne
 TotallyOrdered:	FifoOrdered
+Reliable:	Unreliable
 
 #
 # The possible "worldmodel" properties are:
@@ -85,6 +86,10 @@ worldmodel:	Open, Closed
 #	readByte/writeByte and readArray/writeArray(byte[]) are supported.
 #    Data
 #	read/write and readArray/writeArray of primitive types are supported.
+#    Object
+#	Some sort of object serialization is supported.
+#	This allows a user to just ask for object serialization, and not
+#	care if it is Ibis or Sun serialization.
 #    Ibis
 #	Ibis serialization is supported.
 #    Sun
@@ -96,12 +101,13 @@ worldmodel:	Open, Closed
 # read everything that writeObject writes).
 #
 
-serialization:	Byte, Data, Ibis, Sun
+serialization:	Byte, Data, Object, Ibis, Sun
 
 #
 # Implied properties:
 #
 
 Data:		Byte
-Ibis:		Data
-Sun:		Data
+Object:		Data
+Ibis:		Object
+Sun:		Object

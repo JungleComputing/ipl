@@ -285,14 +285,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if (doUpcalls) {
 		    if (upcallPolling) {
-			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, PollUpcalls, ExplicitReceive");
+			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, PollUpcalls, ExplicitReceipt");
 		    }
 		    else {
-			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceive");
+			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceipt");
 		    }
 		}
 		else {
-		    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, ExplicitReceive");
+		    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, ExplicitReceipt");
 		}
 
 		upcalls = doUpcalls; // upcalls is final for performance reasons :-)

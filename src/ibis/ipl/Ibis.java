@@ -234,8 +234,7 @@ public abstract class Ibis {
 
 	String implementationname = null;
 
-	StaticProperties combinedprops =
-		StaticProperties.combineWithUserProps(reqprop);
+	StaticProperties combinedprops = reqprop.combineWithUserProps();
 
 	String ibisname = combinedprops.find("name");
 
@@ -248,14 +247,16 @@ public abstract class Ibis {
 	    String[] impls = list();
 	    for (int i = 0; i < impls.length; i++) {
 		StaticProperties ibissp = staticProperties(impls[i]);
-//		    System.out.println("try " + impls[i]);
+//		System.out.println("try " + impls[i]);
 		if (combinedprops.matchProperties(ibissp)) {
-//			System.out.println("match!");
+//		    System.out.println("match!");
 		    implementationname = impls[i];
 		    break;
 		}
 	    }
 	    if (implementationname == null) {
+//		System.err.println("Properties:");
+//		System.err.println(combinedprops.toString());
 		throw new NoMatchingIbisException(
 			    "Could not find a matching Ibis");
 	    }
@@ -311,10 +312,14 @@ public abstract class Ibis {
 		in.close();
 	    }
 
+	    sp.addImpliedProperties();
+
 	    synchronized(Ibis.class) {
 		implList.add(name);
 		implProperties.add(sp);
 	    }
+//	    System.out.println("Ibis: " + name);
+//	    System.out.println(sp.toString());
 	}
     }
 

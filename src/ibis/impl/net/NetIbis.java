@@ -218,7 +218,12 @@ public final class NetIbis extends Ibis {
 	    StaticProperties s = (StaticProperties) sp.clone();
 	    String serialization = s.find("Serialization");
 	    String path = "/";
-	    if (serialization != null && ! serialization.equals("none")) {
+	    if (serialization != null && ! serialization.equals("byte")) {
+		if (serialization.equals("object")) {
+		    serialization = "sun";
+		} else if (serialization.equals("data")) {
+		    serialization = "ibis";
+		}
 		String top = "s_" + serialization;
 		try {
 		    s.add(path + ":Driver", top);

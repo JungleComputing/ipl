@@ -38,7 +38,7 @@ class NioPortType implements PortType, Config {
 	    this.p.add("Serialization", "sun");
 	    serializationType = SERIALIZATION_SUN;
 	} else {
-	    if (ser.equals("none")) {
+	    if (ser.equals("byte")) {
 		if(DEBUG_LEVEL >= VERY_LOW_DEBUG_LEVEL) {
 		    System.err.println("No serialization used");
 		}
@@ -48,11 +48,17 @@ class NioPortType implements PortType, Config {
 		    System.err.println("Sun serialization used");
 		}
 		serializationType = SERIALIZATION_SUN;
-	    } else if (ser.equals("ibis")) {
+	    } else if (ser.equals("ibis") || ser.equals("data")) {
 		if(DEBUG_LEVEL >= VERY_LOW_DEBUG_LEVEL) {
 		    System.err.println("Ibis serialization used");
 		}
 		serializationType = SERIALIZATION_IBIS;
+	    } else if (ser.equals("object")) {
+		// default object serialization.
+		if(DEBUG_LEVEL >= VERY_LOW_DEBUG_LEVEL) {
+		    System.err.println("Sun serialization used");
+		}
+		serializationType = SERIALIZATION_SUN;
 	    } else {
 		throw new IbisException("Unknown Serialization type " + ser);
 	    }

@@ -131,7 +131,7 @@ public final class RTS {
 	    StaticProperties reqprops = new StaticProperties();
 	    reqprops.add("serialization", "sun, ibis");
 	    reqprops.add("worldmodel", "open");
-	    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceive");
+	    reqprops.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceipt");
 
 	    try {
 		ibis = Ibis.createIbis(reqprops, null);
