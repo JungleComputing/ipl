@@ -57,6 +57,9 @@ The ibis-prun parameters are:
     specifies that the javawrapper must not be used
 -jdb
     execute jdb instead of java
+-key <key>
+    use <key> for identification with the nameserver, instead of the
+    prun-supplied one
 -no-jit
     disable just-in-time compiling
 -no-pool
@@ -132,6 +135,10 @@ do
 		;;
 	-jdb)
 		args="$args $1"
+		;;
+	-key)
+		shift
+		key="$1"
 		;;
 	-no-jit)
 		args="$args $1"
