@@ -7,7 +7,8 @@
     <property name="build"       value="build"/>
 
     <property name="satinc-flags" value=""/>
-    <property name="satin-main-class" value="Mmult"/>
+    <property name="main-class" value="Mmult"/>
+    <property name="satin-main-class" value="${main-class}"/>
 
     <property name="test-par-run" value="Mmult -satin-closed 4 0 32"/>
     <property name="test-seq-run" value="Mmult -satin-closed 4 0 32"/>

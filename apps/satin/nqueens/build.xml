@@ -7,7 +7,8 @@
     <property name="build"       value="build"/>
 
     <property name="satinc-flags" value="-keep"/>
-    <property name="satin-main-class" value="NQueens"/>
+    <property name="main-class" value="NQueens"/>
+    <property name="satin-main-class" value="${main-class}"/>
 
     <property name="test-par-run" value="NQueens -satin-closed 14"/>
     <property name="test-seq-run" value="NQueens -satin-closed 14"/>

@@ -7,7 +7,8 @@
     <property name="build"       value="build"/>
 
     <property name="satinc-flags" value="-keep"/>
-    <property name="satin-main-class" value="BarnesHut"/>
+    <property name="main-class" value="BarnesHut"/>
+    <property name="satin-main-class" value="${main-class}"/>
 
     <property name="test-par-run"
 	      value="BarnesHut -tuple2 -v 100 5 -satin-closed"/>

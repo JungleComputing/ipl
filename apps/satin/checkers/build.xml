@@ -6,7 +6,8 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       value="build"/>
 
-    <property name="satin-main-class" value="Checkers"/>
+    <property name="main-class" value="Checkers"/>
+    <property name="satin-main-class" value="${main-class}"/>
 
     <fileset dir="." id="src.excludes-ref">
 	<include name="no_exceptions/**/*.java"/>

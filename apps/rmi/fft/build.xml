@@ -7,6 +7,8 @@
 	Ibis RMI application build.
     </description>
 
+    <property name="main-class"  value="fft"/>
+
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 

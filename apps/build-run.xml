@@ -198,7 +198,11 @@
 	    <basename file="." property="application-name"/>
 	    <jar destfile="${build}/${application-name}.jar"
 		 basedir="${build}"
-		 includes="**/*.class"/>
+		 includes="**/*.class">
+		 <manifest>
+		     <attribute name="Main-Class" value="${main-class}"/>
+		 </manifest>
+	    </jar>
     </target>
 
 </project>

@@ -6,9 +6,10 @@
     <property name="ibis"        location="../../../.."/>
     <property name="build"       value="build"/>
 
-    <property name="satin-main-class" value="Mtdf"/>
+    <property name="main-class" value="Mtdf"/>
+    <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="satinc-flags" value="-keep -no-irc"/>
+    <property name="satinc-flags" value="-keep"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 

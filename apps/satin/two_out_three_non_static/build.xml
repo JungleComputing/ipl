@@ -6,7 +6,8 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       value="build"/>
 
-    <property name="satin-main-class" value="TwoOutThree"/>
+    <property name="main-class" value="TwoOutThree"/>
+    <property name="satin-main-class" value="${main-class}"/>
 
     <property name="test-par-run" value="TwoOutThree -satin-closed"/>
     <property name="test-seq-run" value="TwoOutThree -satin-closed"/>

@@ -7,6 +7,8 @@
 	Ibis RMI application build.
     </description>
 
+    <property name="main-class"  value="Water"/>
+
     <property name="ibis"        location="../../.."/>
     <property name="build"       location="build"/>
 

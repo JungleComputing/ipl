@@ -7,7 +7,8 @@
     <property name="build"       value="build"/>
 
     <property name="satinc-flags" value=""/>
-    <property name="satin-main-class" value="FFT"/>
+    <property name="main-class" value="FFT"/>
+    <property name="satin-main-class" value="${main-class}"/>
 
     <!-- Commented out, causes out-of-memory on some machines
     <property name="test-par-run" value="FFT 524288"/>

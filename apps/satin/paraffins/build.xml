@@ -6,7 +6,8 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       value="build"/>
 
-    <property name="satin-main-class" value="Paraffins"/>
+    <property name="main-class" value="Paraffins"/>
+    <property name="satin-main-class" value="${main-class}"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 

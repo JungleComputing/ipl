@@ -12,7 +12,8 @@
 
     <property name="satinc-flags" value="-keep"/>
 
-    <property name="satin-main-class" value="Compress"/>
+    <property name="main-class" value="Compress"/>
+    <property name="satin-main-class" value="${main-class}"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
 
