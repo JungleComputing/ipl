@@ -50,7 +50,10 @@ public class Stub extends RemoteStub {
 		    ReadMessage rm = reply.receive();
 		    stubID = rm.readInt();
 		    rm.readInt();
-		    String stubType = rm.readString();
+		    try {
+			Object stubType = rm.readObject();
+		    } catch(Exception e) {
+		    }
 		    rm.finish();		
 
 		    initialized = true;

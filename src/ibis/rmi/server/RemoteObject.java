@@ -53,6 +53,7 @@ public abstract class RemoteObject implements Remote, Serializable
 
     private void writeObject(ObjectOutputStream out) throws IOException, ClassNotFoundException
     {
+//	System.out.println("writeObject: " + this);
 	if (ref == null) {
 	    throw new MarshalException("no ref to serialize");
 	} else {
@@ -74,6 +75,7 @@ public abstract class RemoteObject implements Remote, Serializable
 	} catch (IllegalAccessException e) {
 	    throw new UnmarshalException("failed to create ref");
 	}
+//	System.out.println("readObject: " + this);
     }
 
 }

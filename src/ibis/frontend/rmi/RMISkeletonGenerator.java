@@ -226,7 +226,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 	output.println("\t\t\t\tWriteMessage w = stubs[id].newMessage();");
 	output.println("\t\t\t\tw.writeInt(id);");
 	output.println("\t\t\t\tw.writeInt(skeletonId);");
-	output.println("\t\t\t\tw.writeString(stubType);");
+	output.println("\t\t\t\tw.writeObject(destination);");
 	output.println("\t\t\t\tw.send();");
 	output.println("\t\t\t\tw.finish();");
 	output.println("\t\t\t} catch(IOException e) {");

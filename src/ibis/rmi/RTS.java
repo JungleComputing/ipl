@@ -492,33 +492,13 @@ public final class RTS {
 
 	int stubID = rm.readInt();
 	int skelID = rm.readInt();
-	String stubType = rm.readString();
-	rm.finish();
-
-	if (DEBUG) {
-	    System.out.println(hostname + ": read typename " + stubType);
-	}
 
 	try {
-	    result = (Stub) Class.forName(stubType).newInstance();
-	} catch (Exception e) {
-	    // The loading of the class has failed.
-	    // maybe Ibis was loaded using the primordial classloader
-	    // and the needed class was not.
-	    // Fix is by Fabrice Huet.
-	    try {
-		result = (Stub) Thread.currentThread().getContextClassLoader()
-				.loadClass(stubType).newInstance();
-	    } catch(Exception e2) {
-		// s.free();
-		// r.forcedClose();
-		throw new RemoteException("stub class " + stubType + " not found", e2);
-	    }
+	    result = (Stub) rm.readObject();
+	} catch(ClassNotFoundException e) {
+	    throw new RemoteException("ClassNotFoundException ", e);
 	}
-
-	if (DEBUG) {
-	    System.out.println(hostname + ": Loaded class " + stubType);
-	}
+	rm.finish();
 
 	result.init(s, r, stubID, skelID, dest, true);
 
