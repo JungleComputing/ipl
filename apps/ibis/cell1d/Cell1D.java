@@ -89,93 +89,6 @@ class Cell1D implements Config {
         return res;
     }
 
-    private static byte horTwister[][] = {
-        { 0, 0, 0, 0, 0 },
-        { 0, 1, 1, 1, 0 },
-        { 0, 0, 0, 0, 0 },
-    };
-
-    private static byte vertTwister[][] = {
-        { 0, 0, 0 },
-        { 0, 1, 0 },
-        { 0, 1, 0 },
-        { 0, 1, 0 },
-        { 0, 0, 0 },
-    };
-
-    private static byte horTril[][] = {
-        { 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 1, 1, 0, 0 },
-        { 0, 1, 0, 0, 1, 0 },
-        { 0, 0, 1, 1, 0, 0 },
-        { 0, 0, 0, 0, 0, 0 },
-    };
-
-    private static byte vertTril[][] = {
-        { 0, 0, 0, 0, 0 },
-        { 0, 0, 1, 0, 0 },
-        { 0, 1, 0, 1, 0 },
-        { 0, 1, 0, 1, 0 },
-        { 0, 0, 1, 0, 0 },
-        { 0, 0, 0, 0, 0 },
-    };
-
-    private static byte glider[][] = {
-        { 0, 0, 0, 0, 0 },
-        { 0, 1, 1, 1, 0 },
-        { 0, 1, 0, 0, 0 },
-        { 0, 0, 1, 0, 0 },
-        { 0, 0, 0, 0, 0 },
-    };
-
-    /**
-     * Puts the given pattern at the given coordinates.
-     * Since we want the pattern to be readable, we take the first
-     * row of the pattern to be the at the top.
-     */
-    static protected void putPattern( byte board[][], int px, int py, byte pat[][] )
-    {
-        for( int y=pat.length-1; y>=0; y-- ){
-            byte paty[] = pat[y];
-
-            for( int x=0; x<paty.length; x++ ){
-                board[px+x][py+y] = paty[x];
-            }
-        }
-    }
-
-    /**
-     * Returns true iff the given pattern occurs at the given
-     * coordinates.
-     */
-    static protected boolean hasPattern( byte board[][], int px, int py, byte pat[][ ] )
-    {
-        for( int y=pat.length-1; y>=0; y-- ){
-            byte paty[] = pat[y];
-
-            for( int x=0; x<paty.length; x++ ){
-                if( board[px+x][py+y] != paty[x] ){
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    // Put a twister (a bar of 3 cells) at the given center cell.
-    static protected void putTwister( byte board[][], int x, int y )
-    {
-        putPattern( board, x-2, y-1, horTwister );
-    }
-
-    // Given a position, return true iff there is a twister in hor or
-    // vertical position at that point.
-    static protected boolean hasTwister( byte board[][], int x, int y )
-    {
-        return hasPattern( board, x-2, y-1, horTwister ) ||
-            hasPattern( board, x-1, y-2, vertTwister );
-    }
-
     private static void send( int me, SendPort p, byte data[] )
         throws java.io.IOException
     {
@@ -270,8 +183,8 @@ class Cell1D implements Config {
                 System.out.println( "Started" );
             }
 
-            putTwister( board, 3, 100 );
-            putPattern( board, 4, 4, glider );
+            Life.putTwister( board, 3, 100 );
+            Life.putGlider( board, 4, 4 );
 
             long startTime = System.currentTimeMillis();
 
@@ -373,7 +286,7 @@ class Cell1D implements Config {
             if( rightReceivePort != null ){
                 rightReceivePort.close();
             }
-            if( !hasTwister( board, 3, 100 ) ){
+            if( !Life.hasTwister( board, 3, 100 ) ){
                 System.out.println( "Twister has gone missing" );
             }
 

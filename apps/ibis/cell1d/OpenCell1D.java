@@ -258,95 +258,6 @@ class OpenCell1D implements OpenConfig {
         return res;
     }
 
-    private static byte horTwister[][] = {
-        { 0, 0, 0, 0, 0 },
-        { 0, 1, 1, 1, 0 },
-        { 0, 0, 0, 0, 0 },
-    };
-
-    private static byte vertTwister[][] = {
-        { 0, 0, 0 },
-        { 0, 1, 0 },
-        { 0, 1, 0 },
-        { 0, 1, 0 },
-        { 0, 0, 0 },
-    };
-
-    private static byte horTril[][] = {
-        { 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 1, 1, 0, 0 },
-        { 0, 1, 0, 0, 1, 0 },
-        { 0, 0, 1, 1, 0, 0 },
-        { 0, 0, 0, 0, 0, 0 },
-    };
-
-    private static byte vertTril[][] = {
-        { 0, 0, 0, 0, 0 },
-        { 0, 0, 1, 0, 0 },
-        { 0, 1, 0, 1, 0 },
-        { 0, 1, 0, 1, 0 },
-        { 0, 0, 1, 0, 0 },
-        { 0, 0, 0, 0, 0 },
-    };
-
-    private static byte glider[][] = {
-        { 0, 0, 0, 0, 0 },
-        { 0, 1, 1, 1, 0 },
-        { 0, 1, 0, 0, 0 },
-        { 0, 0, 1, 0, 0 },
-        { 0, 0, 0, 0, 0 },
-    };
-
-    /**
-     * Puts the given pattern at the given coordinates.
-     * Since we want the pattern to be readable, we take the first
-     * row of the pattern to be the at the top.
-     */
-    static protected void putPattern( Problem p, int px, int py, byte pat[][] )
-    {
-        for( int y=pat.length-1; y>=0; y-- ){
-            byte paty[] = pat[y];
-
-            for( int x=0; x<paty.length; x++ ){
-                if( p.board[px+x] != null ){
-                    p.board[px+x][py+y] = paty[x];
-                }
-            }
-        }
-    }
-
-    /**
-     * Returns true iff the given pattern occurs at the given
-     * coordinates.
-     */
-    static protected boolean hasPattern( Problem p, int px, int py, byte pat[][ ] )
-    {
-        for( int y=pat.length-1; y>=0; y-- ){
-            byte paty[] = pat[y];
-
-            for( int x=0; x<paty.length; x++ ){
-                if( p.board[px+x] != null && p.board[px+x][py+y] != paty[x] ){
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    // Put a twister (a bar of 3 cells) at the given center cell.
-    static protected void putTwister( Problem p, int x, int y )
-    {
-        putPattern( p, x-2, y-1, horTwister );
-    }
-
-    // Given a position, return true iff there is a twister in hor or
-    // vertical position at that point.
-    static protected boolean hasTwister( Problem p, int x, int y )
-    {
-        return hasPattern( p, x-2, y-1, horTwister ) ||
-            hasPattern( p, x-1, y-2, vertTwister );
-    }
-
     /**
      * Sends a new border to the lefthand neighbour. For load balancing
      * purposes, perhaps also send some of the columns I own to that
@@ -1032,8 +943,8 @@ class OpenCell1D implements OpenConfig {
             Problem p = new Problem( boardsize, firstColumn, firstNoColumn );
 
             // Put a few fixed objects on the board to do a sanity check.
-            putTwister( p, 3, 100 );
-            putPattern( p, 4, 4, glider );
+            Life.putTwister( p.board, 3, 100 );
+            Life.putGlider( p.board, 4, 4 );
 
             if( idle ){
                 // Waiting for work.
@@ -1148,7 +1059,7 @@ class OpenCell1D implements OpenConfig {
             }
 
             // Do a sanity check.
-            if( !hasTwister( p, 3, 100 ) ){
+            if( !Life.hasTwister( p.board, 3, 100 ) ){
                 System.out.println( "Twister has gone missing" );
             }
 
