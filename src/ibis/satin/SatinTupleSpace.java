@@ -48,12 +48,13 @@ public class SatinTupleSpace implements Config {
 //			newData.add(data);
 		}
 
-		if(satin == null) return;
-
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": added key " + key);
 		}
-		satin.broadcastTuple(key, data);
+
+		if (satin != null) { // can happen with sequential versions of Satin programs
+			satin.broadcastTuple(key, data);
+		}
 
 		if(data instanceof ActiveTuple) {
 			((ActiveTuple)data).handleTuple(key);
