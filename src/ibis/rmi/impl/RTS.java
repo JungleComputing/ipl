@@ -254,7 +254,9 @@ public final class RTS {
             // adres = InetAddress.getByName(adres.getHostAddress());
             // hostname = adres.getHostName();
 
-            logger.debug(hostname + ": init RMI RTS --> creating ibis");
+            if (logger.isDebugEnabled()) {
+                logger.debug(hostname + ": init RMI RTS --> creating ibis");
+            }
 
             StaticProperties reqprops = new StaticProperties();
             reqprops.add("serialization", "object");
@@ -271,7 +273,9 @@ public final class RTS {
                 System.exit(1);
             }
 
-            logger.debug(hostname + ": ibis created");
+            if (logger.isDebugEnabled()) {
+                logger.debug(hostname + ": ibis created");
+            }
 
             ibisRegistry = ibis.registry();
 
@@ -298,7 +302,9 @@ public final class RTS {
 
             clientHost = new ThreadLocal();
 
-            logger.debug(hostname + ": init RMI RTS done");
+            if (logger.isDebugEnabled()) {
+                logger.debug(hostname + ": init RMI RTS done");
+            }
 
         } catch (Exception e) {
             System.err.println(hostname + ": Could not init RMI RTS " + e);
@@ -437,7 +443,9 @@ public final class RTS {
                     + get_stub_name(c), e3);
         }
 
-        logger.debug(hostname + ": Created stub of type rmi_stub_" + classname);
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Created stub of type rmi_stub_" + classname);
+        }
 
         stubs.put(new Integer(System.identityHashCode(obj)), stub);
 
@@ -452,7 +460,9 @@ public final class RTS {
             throws AlreadyBoundException, IbisException, IOException {
         //	String url = "//" + RTS.hostname + "/" + name;
 
-        logger.debug(hostname + ": Trying to bind object to " + url);
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Trying to bind object to " + url);
+        }
 
         Skeleton skel = (Skeleton) skeletons.get(
                 new Integer(System.identityHashCode(o)));
@@ -472,13 +482,17 @@ public final class RTS {
 
         urlHash.put(url, skel);
 
-        logger.debug(hostname + ": Bound to object " + url);
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Bound to object " + url);
+        }
 
     }
 
     public static synchronized void rebind(String url, Remote o)
             throws IOException {
-        logger.debug(hostname + ": Trying to rebind object to " + url);
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Trying to rebind object to " + url);
+        }
 
         Skeleton skel = (Skeleton) skeletons.get(
                 new Integer(System.identityHashCode(o)));
@@ -496,7 +510,9 @@ public final class RTS {
 
     public static void unbind(String url)
             throws NotBoundException, IOException {
-        logger.debug(hostname + ": Trying to unbind object from " + url);
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Trying to unbind object from " + url);
+        }
 
         try {
             ibisRegistry.unbind(url);
@@ -511,7 +527,9 @@ public final class RTS {
         Stub result;
         SendPort s = null;
 
-        logger.debug(hostname + ": Trying to lookup object " + url);
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Trying to lookup object " + url);
+        }
 
         ReceivePortIdentifier dest = null;
 
@@ -530,20 +548,28 @@ public final class RTS {
             throw new NotBoundException(url + " not bound");
         }
 
-        logger.debug(hostname + ": Found skeleton " + url + " connecting");
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Found skeleton " + url + " connecting");
+        }
 
         s = getStubSendPort(dest);
 
-        logger.debug(hostname + ": Got sendport");
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Got sendport");
+        }
 
         ReceivePort r = getStubReceivePort(dest.ibis());
 
-        logger.debug(hostname + ": Created receiveport for stub  -> id = "
-                + r.identifier());
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Created receiveport for stub  -> id = "
+                    + r.identifier());
+        }
 
         WriteMessage wm = s.newMessage();
 
-        logger.debug(hostname + ": Created new WriteMessage");
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Created new WriteMessage");
+        }
 
         wm.writeInt(-1);
         wm.writeString(url);
@@ -552,11 +578,15 @@ public final class RTS {
         wm.writeObject(r.identifier());
         wm.finish();
 
-        logger.debug(hostname + ": Sent new WriteMessage");
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Sent new WriteMessage");
+        }
 
         ReadMessage rm = r.receive();
 
-        logger.debug(hostname + ": Received readMessage");
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Received readMessage");
+        }
 
         int stubID = rm.readInt();
         int skelID = rm.readInt();
@@ -570,7 +600,9 @@ public final class RTS {
 
         result.init(s, r, stubID, skelID, dest, true, null);
 
-        logger.debug(hostname + ": Found object " + url);
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Found object " + url);
+        }
         return result;
     }
 
@@ -596,11 +628,15 @@ public final class RTS {
             s = createSendPort(replyPortType);
             s.connect(rpi);
             sendports.put(rpi, s);
-            logger.debug(hostname + ": New skeleton sendport for receiport: "
-                    + rpi);
+            if (logger.isDebugEnabled()) {
+                logger.debug(hostname
+                        + ": New skeleton sendport for receiport: " + rpi);
+            }
         } else {
-            logger.debug(hostname
-                    + ": Reuse skeleton sendport for receiport: " + rpi);
+            if (logger.isDebugEnabled()) {
+                logger.debug(hostname
+                        + ": Reuse skeleton sendport for receiport: " + rpi);
+            }
         }
         return s;
     }
@@ -612,11 +648,15 @@ public final class RTS {
             s = createSendPort(requestPortType);
             s.connect(rpi);
             sendports.put(rpi, s);
-            logger.debug(hostname + ": New stub sendport for receiport: "
-                    + rpi);
+            if (logger.isDebugEnabled()) {
+                logger.debug(hostname + ": New stub sendport for receiport: "
+                        + rpi);
+            }
         } else {
-            logger.debug(hostname + ": Reuse stub sendport for receiport: "
-                    + rpi);
+            if (logger.isDebugEnabled()) {
+                logger.debug(hostname + ": Reuse stub sendport for receiport: "
+                        + rpi);
+            }
         }
         return s;
     }
@@ -626,24 +666,32 @@ public final class RTS {
         ArrayList a = (ArrayList) receiveports.get(id);
         ReceivePort r;
 
-        logger.debug("receiveport wanted for ibis " + id);
+        if (logger.isDebugEnabled()) {
+            logger.debug("receiveport wanted for ibis " + id);
+        }
 
         if (a == null || a.size() == 0) {
 
             r = replyPortType.createReceivePort("//" + hostname + "/rmi_stub"
                     + (new java.rmi.server.UID()).toString());
-            logger.debug(hostname + ": New receiveport: " + r.identifier());
+            if (logger.isDebugEnabled()) {
+                logger.debug(hostname + ": New receiveport: " + r.identifier());
+            }
             r.enableConnections();
         } else {
             r = (ReceivePort) a.remove(a.size() - 1);
-            logger.debug(hostname + ": Reuse receiveport: " + r.identifier());
+            if (logger.isDebugEnabled()) {
+                logger.debug(hostname + ": Reuse receiveport: " + r.identifier());
+            }
         }
         return r;
     }
 
     public static synchronized void putStubReceivePort(ReceivePort r,
             IbisIdentifier id) {
-        logger.debug("receiveport " + r + " returned for ibis " + id);
+        if (logger.isDebugEnabled()) {
+            logger.debug("receiveport " + r + " returned for ibis " + id);
+        }
         ArrayList a = (ArrayList) receiveports.get(id);
         if (a == null) {
             a = new ArrayList();

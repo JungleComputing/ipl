@@ -25,7 +25,9 @@ public class RegistryImpl implements Registry {
         String hostname = null;
         InetAddress addr = IPUtils.getLocalHostAddress();
         hostname = addr.getCanonicalHostName();
-        logger.debug("localhostName() returns " + hostname);
+        if (logger.isDebugEnabled()) {
+            logger.debug("localhostName() returns " + hostname);
+        }
 
         return hostname;
     }
@@ -42,7 +44,9 @@ public class RegistryImpl implements Registry {
                     host = adres.getCanonicalHostName();
                 }
             } catch (java.net.UnknownHostException e) {
-                logger.debug("Hostname " + host + " is unknown?");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Hostname " + host + " is unknown?");
+                }
             }
             RegistryImpl.host = host;
         } else {
@@ -53,8 +57,10 @@ public class RegistryImpl implements Registry {
         } else {
             RegistryImpl.port = port;
         }
-        logger.debug("RegistryImpl<init>: host = " + RegistryImpl.host
-                + " port = " + RegistryImpl.port);
+        if (logger.isDebugEnabled()) {
+            logger.debug("RegistryImpl<init>: host = " + RegistryImpl.host
+                    + " port = " + RegistryImpl.port);
+        }
 
     }
 
@@ -113,7 +119,9 @@ public class RegistryImpl implements Registry {
         try {
             String url = "rmi://" + host + ":" + port + "/";
             String[] names = RTS.list(url);
-            logger.debug(names.length + " names bound in the registry");
+            if (logger.isDebugEnabled()) {
+                logger.debug(names.length + " names bound in the registry");
+            }
             return names;
         } catch (Exception e) {
             throw new RemoteException(e.getMessage(), e);
