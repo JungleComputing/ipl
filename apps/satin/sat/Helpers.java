@@ -19,13 +19,16 @@ class Helpers {
     }
 
     /**
-     * Given a number of choices, returns the information content of
-     * this choice.
+     * Given a number of choices in a clause, returns the information
+     * content of this choice.
      * @param n the number of choices
      * @return the information contents of this choice.
      */
-    static public float information( int n )
+    static public int information( int n )
     {
-        return 1/(float) (n*n*n);
+	if( n == 0 ){
+	    n = 1;
+	}
+        return (1<<16)/(n*n*n);
     }
 }

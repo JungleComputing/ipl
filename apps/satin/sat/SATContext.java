@@ -24,10 +24,10 @@ public final class SATContext implements java.io.Serializable {
     private int negclauses[];
 
     /** The information of a positive assignment of each variable. */
-    private float posinfo[];
+    private int posinfo[];
 
     /** The information of a negative assignment of each variable. */
-    private float neginfo[];
+    private int neginfo[];
 
     /** Satisified flags for each clause in the problem. */
     private boolean satisfied[];
@@ -43,8 +43,8 @@ public final class SATContext implements java.io.Serializable {
 	int al[],
 	int poscl[],
 	int negcl[],
-	float posinfo[],
-	float neginfo[],
+	int posinfo[],
+	int neginfo[],
 	boolean sat[],
 	int us
     ){
@@ -92,8 +92,8 @@ public final class SATContext implements java.io.Serializable {
 	    (int []) assignments.clone(),
 	    (int []) posclauses.clone(),
 	    (int []) negclauses.clone(),
-	    (float []) posinfo.clone(),
-	    (float []) neginfo.clone(),
+	    (int []) posinfo.clone(),
+	    (int []) neginfo.clone(),
 	    (boolean []) satisfied.clone(),
 	    unsatisfied
 	);
@@ -577,7 +577,7 @@ public final class SATContext implements java.io.Serializable {
         }
         else {
             int bestvar = -1;
-            float bestinfo = -1;
+            int bestinfo = -1;
             int bestmaxcount = 0;
 
             for( int i=0; i<assignments.length; i++ ){
@@ -586,11 +586,11 @@ public final class SATContext implements java.io.Serializable {
                     continue;
                 }
                 if( doVerification ){
-                    if( posinfo[i]<-0.01 || neginfo[i]<-0.01 ){
+                    if( posinfo[i]<0 || neginfo[i]<0 ){
                         System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
                     }
                 }
-                float info = Math.max( posinfo[i], neginfo[i] );
+                int info = Math.max( posinfo[i], neginfo[i] );
                 if( info>=bestinfo ){
                     int maxcount = Math.max( posclauses[i], negclauses[i] );
 

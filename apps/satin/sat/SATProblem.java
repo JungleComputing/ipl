@@ -646,9 +646,9 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns a new array that contains the information of the
      * positive assignment of each variable.
      */
-    float [] buildPosInfo()
+    int [] buildPosInfo()
     {
-        float res[] = new float[vars];
+        int res[] = new int[vars];
 
 	for( int ix=0; ix<vars; ix++ ){
 	    res[ix] = variables[ix].getPosInfo( clauses );
@@ -660,9 +660,9 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * Returns a new array that contains the information of the
      * negative assignment of each variable.
      */
-    float [] buildNegInfo()
+    int [] buildNegInfo()
     {
-        float res[] = new float[vars];
+        int res[] = new int[vars];
 
 	for( int ix=0; ix<vars; ix++ ){
 	    res[ix] = variables[ix].getNegInfo( clauses );
