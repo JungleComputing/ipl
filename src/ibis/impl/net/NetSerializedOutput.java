@@ -1,6 +1,5 @@
 package ibis.ipl.impl.net;
 
-import ibis.io.ArrayOutputStream;
 import ibis.io.SerializationOutputStream;
 
 import ibis.ipl.Replacer;
@@ -101,6 +100,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 	}
 
         private void flushStream() throws IOException {
+// System.err.println(this + ": flushStream(), needFlush " + needFlush);
                 if (needFlush) {
                         oss.flush();
                         needFlush = false;

@@ -207,6 +207,8 @@ public abstract class NetBufferedInput extends NetInput {
 	public byte readByte() throws IOException {
                 log.in();
 		byte value = 0;
+// System.err.println(this + ": Wanna read one byte...");
+// Thread.dumpStack();
 
 		if (buffer == null) {
 			pumpBuffer(1);
@@ -218,7 +220,7 @@ public abstract class NetBufferedInput extends NetInput {
 			freeBuffer();
 		}
 
-// System.err.println("Read one byte=" + value + " = '" + (char)value + "'");
+// System.err.println(this + ": Read one byte=" + value + " = '" + (char)value + "'");
                 // log.disp("OUT value = "+value);
                 log.disp("OUT");
                 log.out();

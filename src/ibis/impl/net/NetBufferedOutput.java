@@ -225,4 +225,8 @@ public abstract class NetBufferedOutput extends NetOutput {
                 }
                 log.out();
         }
+
+	protected int available() {
+	    return bufferOffset;
+	}
 }

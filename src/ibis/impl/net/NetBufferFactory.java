@@ -167,6 +167,12 @@ public class NetBufferFactory {
                                 NetAllocator allocator) {
                 this.mtu = mtu;
 
+                if (impl == null) {
+                        impl = new NetBufferFactoryDefaultImpl();
+                } else {
+                        impl = impl;
+                }
+
                 String className = impl.getClass().getName();
 
                 synchronized(sharedFreeMap) {
@@ -202,11 +208,7 @@ public class NetBufferFactory {
                         }
                 }
 
-                if (impl == null) {
-                        this.impl = new NetBufferFactoryDefaultImpl();
-                } else {
-                        this.impl = impl;
-                }
+		this.impl = impl;
 
                 /* Use an allocator to get data blocks. This provides an easy test
                  * at free() time whether the data block can be reused. */
