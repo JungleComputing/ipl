@@ -29,6 +29,11 @@ SERIALIZABLE	+= B.java
 
 OUT		= RMI_Bench
 
+SERIALIZABLE	+= DITree.java
+SERIALIZABLE	+= Int32.java
+SERIALIZABLE	+= Cyclic.java
+SERIALIZABLE	+= B.java
+
 # SRC		+= Escape.java
 
 # Rules are shared by all Makefiles
