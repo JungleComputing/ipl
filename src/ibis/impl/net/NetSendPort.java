@@ -130,7 +130,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	public NetSendPort(NetPortType type, Replacer replacer, String name)
 		throws IbisIOException {
-                System.err.println("NetSendPort: <init>-->");
+                //System.err.println("NetSendPort: <init>-->");
 		this.name	  	 = name;
 		this.type	  	 = type;
 		NetIbis           ibis   = type.getIbis();
@@ -144,7 +144,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		receivePortIs          	 = new Hashtable();
 		receivePortOs          	 = new Hashtable();
                 this.replacer = replacer;
-                System.err.println("NetSendPort: <init><--");
+                //System.err.println("NetSendPort: <init><--");
 	}
 
 	/**
@@ -153,11 +153,11 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @return The message instance.
 	 */	
 	public WriteMessage newMessage() throws IbisIOException {
-                //System.err.println("NetSendPort: newMessage-->");
-		emptyMsg     = true;
+                //System.err.println("NetSendPort["+identifier+"]: newMessage-->");
 		outputLock.lock();
+		emptyMsg     = true;
                 output.initSend();
-                //System.err.println("NetSendPort: newMessage<--");
+                //System.err.println("NetSendPort["+identifier+"]: newMessage<--");
 		return this;
 	}
 
@@ -181,7 +181,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	public void connect(ReceivePortIdentifier rpi)
 		throws IbisIOException {
-                System.err.println("NetSendPort: connect-->");
+                //System.err.println("NetSendPort: connect-->");
 		outputLock.lock();
 		NetReceivePortIdentifier nrpi	       = (NetReceivePortIdentifier)rpi;
 		Hashtable                info	       = nrpi.connectionInfo();
@@ -209,7 +209,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		receivePortOs.put(rpn, os);
 		output.setupConnection(rpn, is, os);				
 		outputLock.unlock();
-                System.err.println("NetSendPort: connect<--");
+                //System.err.println("NetSendPort: connect<--");
 	}
 
 	/**
@@ -232,7 +232,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	public synchronized void free()
 		throws IbisIOException {
-                System.err.println("NetSendPort: free-->");
+                //System.err.println("NetSendPort: free-->");
 		try {
 			if (outputLock != null) {
 				outputLock.lock();
@@ -296,7 +296,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		} catch (Exception e) {
                         __.fwdAbort__(e);
 		}
-                System.err.println("NetSendPort: free<--");
+                //System.err.println("NetSendPort: free<--");
 	}
 	
 	/**
@@ -327,20 +327,23 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * a single byte is forced to be sent over the network.
 	 */
 	private void _finish() throws  IbisIOException{
+                //System.err.println("NetSendPort["+identifier+"]: finish-->");
 		if (emptyMsg) {
+                        //System.err.println("NetSendPort["+identifier+"]: finish- empty message -");
 			writeByte((byte)0);
 		}
+                //System.err.println("NetSendPort["+identifier+"]: finish<--");
 	}
 	
 	/**
 	 * Completes the message transmission and releases the send port.
 	 */
 	public void finish() throws IbisIOException{
-                //System.err.println("NetSendPort: finish-->");
+                //System.err.println("NetSendPort["+identifier+"]: finish-->");
 		_finish();
 		output.finish();
 		outputLock.unlock();
-                //System.err.println("NetSendPort: finish<--");
+                //System.err.println("NetSendPort["+identifier+"]: finish<--");
 	}
 
 	/**
@@ -350,7 +353,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @param doSend {@inheritDoc}
 	 */
 	public void reset(boolean doSend) throws IbisIOException {
-                System.err.println("NetSendPort: reset-->");
+                //System.err.println("NetSendPort: reset-->");
 		if (doSend) {
 			send();
 		} else {
@@ -358,7 +361,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
                 }
 		_finish();
 		output.reset(doSend);
-                System.err.println("NetSendPort: reset<--");
+                //System.err.println("NetSendPort: reset<--");
 	}
 
 	public int getCount() {

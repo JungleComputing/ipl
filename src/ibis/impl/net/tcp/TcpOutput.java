@@ -52,6 +52,12 @@ public class TcpOutput extends NetOutput {
 	 */
 	private DataOutputStream 	         tcpOs	   = null;
 
+        /*
+         * Object stream for the internal fallback serialization.
+         */
+        private ObjectOutputStream _outputConvertStream = null;
+
+
         private InetAddress raddr = null;
         private int         rport =    0;
 
@@ -100,10 +106,42 @@ public class TcpOutput extends NetOutput {
 		mtu = 0;
 	}
 
-        /**
-	 * Writes a boolean value to the message.
-	 * @param     value             The boolean value to write.
-	 */
+        public void finish() throws IbisIOException{
+                //System.err.println("TcpOutput: finish -->");
+                super.finish();
+                if (_outputConvertStream != null) {
+                        try {
+                                _outputConvertStream.close();
+                        } catch (IOException e) {
+                                throw new IbisIOException(e.getMessage());
+                        }
+
+                        _outputConvertStream = null;
+                }
+                //System.err.println("TcpOutput: finish <--");
+        }
+
+        public void reset(boolean doSend) throws IbisIOException {
+                //System.err.println("TcpOutput: reset("+doSend+") -->");
+                if (doSend) {
+                        send();
+                } else {
+                        throw new Error("full reset unimplemented");
+                }
+                
+                if (_outputConvertStream != null) {
+                        try {
+                                _outputConvertStream.close();
+                        } catch (IOException e) {
+                                throw new IbisIOException(e.getMessage());
+                        }
+
+                        _outputConvertStream = null;
+                }
+                //System.err.println("TcpOutput: reset <--");
+        }
+
+        
         public void writeBoolean(boolean b) throws IbisIOException {
                 try {
 			tcpOs.writeBoolean(b);
@@ -111,97 +149,101 @@ public class TcpOutput extends NetOutput {
 			throw new IbisIOException(e);
 		}
         }
-
-        /**
-	 * Writes a byte value to the message.
-	 * @param     value             The byte value to write.
-	 */
+        
         public void writeByte(byte b) throws IbisIOException {
                 try {
-                        //System.err.println("sending byte: ["+b+"] to "+raddr+"("+rport+")");
+                        //System.err.println("sending byte: ["+(int)b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeByte((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
         }
-
-        /**
-	 * Writes a char value to the message.
-	 * @param     value             The char value to write.
-	 */
+        
         public void writeChar(char b) throws IbisIOException {
                 try {
+			//System.err.println("sending char: ["+(int)b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeChar((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
         }
 
-        /**
-	 * Writes a short value to the message.
-	 * @param     value             The short value to write.
-	 */
         public void writeShort(short b) throws IbisIOException {
                 try {
+			//System.err.println("sending short: ["+(int)b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeShort((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
         }
 
-        /**
-	 * Writes a int value to the message.
-	 * @param     value             The int value to write.
-	 */
         public void writeInt(int b) throws IbisIOException {
                 try {
-			tcpOs.writeInt((int)b);
+			//System.err.println("sending int: ["+b+"] to "+raddr+"("+rport+")");
+                        tcpOs.writeInt((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
         }
 
-        /**
-	 * Writes a long value to the message.
-	 * @param     value             The long value to write.
-	 */
         public void writeLong(long b) throws IbisIOException {
                 try {
+			//System.err.println("sending long: ["+b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeLong(b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
         }
 
-        /**
-	 * Writes a float value to the message.
-	 * @param     value             The float value to write.
-	 */
         public void writeFloat(float b) throws IbisIOException {
                 try {
+			//System.err.println("sending float: ["+b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeFloat(b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
         }
 
-        /**
-	 * Writes a double value to the message.
-	 * @param     value             The double value to write.
-	 */
         public void writeDouble(double b) throws IbisIOException {
                 try {
+			//System.err.println("sending double: ["+b+"] to "+raddr+"("+rport+")");
 			tcpOs.writeDouble(b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
         }
 
+        public void writeString(String b) throws IbisIOException {
+                try {
+			//System.err.println("sending string: ["+b+"] to "+raddr+"("+rport+")");
+			tcpOs.writeUTF(b);
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+
+        public void writeObject(Object o) throws IbisIOException {
+                try {
+			//System.err.println("sending object-->  to "+raddr+"("+rport+")");
+                        if (_outputConvertStream == null) {
+                                DummyOutputStream dos = new DummyOutputStream();
+                                _outputConvertStream = new ObjectOutputStream(dos);
+                                _outputConvertStream.flush();
+                        }
+                        _outputConvertStream.writeObject(o);
+                        _outputConvertStream.flush();
+			//System.err.println("sending object<--  to "+raddr+"("+rport+")");
+                } catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+        }
+        
+
 
         public void writeSubArrayBoolean(boolean [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        tcpOs.writeBoolean(b[o+i]);
+			        writeBoolean(b[o+i]);
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -211,7 +253,7 @@ public class TcpOutput extends NetOutput {
         public void writeSubArrayByte(byte [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        tcpOs.writeByte(b[o+i]);
+			        writeByte(b[o+i]);
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -220,7 +262,7 @@ public class TcpOutput extends NetOutput {
         public void writeSubArrayChar(char [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        tcpOs.writeChar(b[o+i]);
+			        writeChar(b[o+i]);
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -230,7 +272,7 @@ public class TcpOutput extends NetOutput {
         public void writeSubArrayShort(short [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        tcpOs.writeShort(b[o+i]);
+			        writeShort(b[o+i]);
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -240,7 +282,7 @@ public class TcpOutput extends NetOutput {
         public void writeSubArrayInt(int [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        tcpOs.writeInt(b[o+i]);
+			        writeInt(b[o+i]);
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -250,7 +292,7 @@ public class TcpOutput extends NetOutput {
         public void writeSubArrayLong(long [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        tcpOs.writeLong(b[o+i]);
+			        writeLong(b[o+i]);
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -260,7 +302,7 @@ public class TcpOutput extends NetOutput {
         public void writeSubArrayFloat(float [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        tcpOs.writeFloat(b[o+i]);
+			        writeFloat(b[o+i]);
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -270,7 +312,7 @@ public class TcpOutput extends NetOutput {
         public void writeSubArrayDouble(double [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        tcpOs.writeDouble(b[o+i]);
+			        writeDouble(b[o+i]);
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -309,7 +351,7 @@ public class TcpOutput extends NetOutput {
         public void writeArrayDouble(double [] b) throws IbisIOException {
                 writeSubArrayDouble(b, 0, b.length);
         }
-
+        
 
 	/**
 	 * {@inheritDoc}
@@ -339,4 +381,24 @@ public class TcpOutput extends NetOutput {
 
 		super.free();
 	}
+
+
+        private class DummyOutputStream extends OutputStream {
+                private long seq = 0;
+                public void write(int b) throws IOException {
+                        try {
+                                writeByte((byte)b);
+                                //System.err.println("Sent a byte: ["+ seq++ +"] unsigned = "+(b & 255)+", signed =" + (byte)b);
+                        } catch (IbisIOException e) {
+                                throw new IOException(e.getMessage());
+                        }
+                }
+
+                /*
+                 * Note: the other write methods must _not_ be overloaded
+                 *       because the ObjectInput/OutputStream do not guaranty
+                 *       symmetrical transactions.
+                 */
+        }
+
 }

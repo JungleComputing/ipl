@@ -65,6 +65,14 @@ public class TcpInput extends NetInput {
 	 */
 	private DataOutputStream 	      tcpOs	      = null;
 
+        private InetAddress raddr = null;
+        private int         rport =    0;
+
+        /**
+         * Object stream for the internal fallback serialization.
+	 */
+        private ObjectInputStream        _inputConvertStream = null;
+
 	/**
 	 * Constructor.
 	 *
@@ -102,6 +110,9 @@ public class TcpInput extends NetInput {
 			sendInfoTable(os, info);
 
 			tcpSocket  = tcpServerSocket.accept();
+                        raddr = tcpSocket.getInetAddress();
+                        rport = tcpSocket.getPort();
+                        
 			tcpIs 	   = new DataInputStream(tcpSocket.getInputStream());
 			tcpOs 	   = new DataOutputStream(tcpSocket.getOutputStream());
 		} catch (IOException e) {
@@ -138,23 +149,44 @@ public class TcpInput extends NetInput {
 		return activeNum;
 	}
 
+       	public void finish() throws IbisIOException {
+                //System.err.println("NetInput: finish -->");
+                super.finish();
+                if (_inputConvertStream != null) {
+                        try {
+                                _inputConvertStream.close();
+                        } catch (IOException e) {
+                                throw new IbisIOException(e.getMessage());
+                        }
+                        
+                        _inputConvertStream = null;
+                }
+
+                activeNum = null;
+                //System.err.println("NetInput: finish <--");
+        }
+        
 	public boolean readBoolean() throws IbisIOException {
                 boolean result = false;
                 
 		try {
                         result = tcpIs.readBoolean();
-		} catch (IOException e) {
-			throw new IbisIOException(e);
+                        //System.err.println("receiving boolean: ["+result+"] from "+raddr+"("+rport+")");
+                } catch (IOException e) {
+                        throw new IbisIOException(e);
 		}
    
                 return result;
         }
+        
+
         
 	public byte readByte() throws IbisIOException {
                 byte result = 0;
                 
 		try {
                         result = tcpIs.readByte();
+                        //System.err.println("receiving byte: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -162,11 +194,13 @@ public class TcpInput extends NetInput {
                 return result;
         }
         
+        
 	public char readChar() throws IbisIOException {
                 char result = 0;
                 
 		try {
                         result = tcpIs.readChar();
+                        //System.err.println("receiving char: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -191,7 +225,8 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readInt();
-		} catch (IOException e) {
+                        //System.err.println("receiving int: ["+result+"] from "+raddr+"("+rport+")");
+                } catch (IOException e) {
 			throw new IbisIOException(e);
 		}
    
@@ -203,6 +238,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readLong();
+                        //System.err.println("receiving Long: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -215,6 +251,7 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readFloat();
+                        //System.err.println("receiving Float: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
@@ -227,17 +264,50 @@ public class TcpInput extends NetInput {
                 
 		try {
                         result = tcpIs.readDouble();
+                        //System.err.println("receiving Double: ["+result+"] from "+raddr+"("+rport+")");
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
    
                 return result;
         }
+
+	public String readString() throws IbisIOException {
+                String result = "";
+                
+		try {
+                        result = tcpIs.readUTF();
+                        //System.err.println("receiving string: ["+result+"] from "+raddr+"("+rport+")");
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		}
+   
+                return result;
+        }
+
+        public Object readObject() throws IbisIOException {
+                Object o = null;
+                try {
+                        //System.err.println("receiving object--> from "+raddr+"("+rport+")");
+                        if (_inputConvertStream == null) {
+                                DummyInputStream dis = new DummyInputStream();
+                                _inputConvertStream = new ObjectInputStream(dis);
+                        }
+                
+                        o = _inputConvertStream.readObject();
+                        //System.err.println("receiving object<-- from "+raddr+"("+rport+")");
+                } catch (Exception e) {
+                        throw new IbisIOException(e.getMessage());
+                }
+                
+                return o;
+        }
+        
         
 	public void readSubArrayBoolean(boolean [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = tcpIs.readBoolean();
+			        b[o+i] = readBoolean();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -248,7 +318,7 @@ public class TcpInput extends NetInput {
 	public void readSubArrayByte(byte [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = tcpIs.readByte();
+			        b[o+i] = readByte();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -259,7 +329,7 @@ public class TcpInput extends NetInput {
 	public void readSubArrayChar(char [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = tcpIs.readChar();
+			        b[o+i] = readChar();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -270,7 +340,7 @@ public class TcpInput extends NetInput {
 	public void readSubArrayShort(short [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = tcpIs.readShort();
+			        b[o+i] = readShort();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -281,7 +351,7 @@ public class TcpInput extends NetInput {
 	public void readSubArrayInt(int [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = tcpIs.readInt();
+			        b[o+i] = readInt();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -292,7 +362,7 @@ public class TcpInput extends NetInput {
 	public void readSubArrayLong(long [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = tcpIs.readLong();
+			        b[o+i] = readLong();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -303,7 +373,7 @@ public class TcpInput extends NetInput {
 	public void readSubArrayFloat(float [] b, int o, int l) throws IbisIOException {
                 try {
                         for (int i = 0; i < l; i++) {
-			        b[o+i] = tcpIs.readFloat();
+			        b[o+i] = readFloat();
                         }
 		} catch (IOException e) {
 			throw new IbisIOException(e);
@@ -359,6 +429,9 @@ public class TcpInput extends NetInput {
 	public void readArrayDouble(double [] b) throws IbisIOException {
                 readSubArrayDouble(b, 0, b.length);
         }
+        
+
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -393,4 +466,28 @@ public class TcpInput extends NetInput {
 
 		super.free();
 	}
+
+        private class DummyInputStream extends InputStream {
+                private long seq = 0;
+
+
+                public int read() throws IOException {
+                        int result = 0;
+                        
+                        try {
+                                result = readByte();
+                                //System.err.println("Received a byte: ["+ seq++ +"] unsigned = "+(result & 255)+", signed =" + result);
+                        } catch (IbisIOException e) {
+                                throw new IOException(e.getMessage());
+                        }
+
+                        return (result & 255);
+                }
+
+                /*
+                 * Note: the other write methods must _not_ be overloaded
+                 *       because the ObjectInput/OutputStream do not guaranty
+                 *       symmetrical transactions.
+                 */
+        }
 }

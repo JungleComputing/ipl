@@ -102,7 +102,6 @@ public abstract class NetInput extends NetIO implements ReadMessage {
 	    when a message is alive, and a new messages is requested with a receive, the requester is blocked until the
 	    live message is finished. **/
        	public void finish() throws IbisIOException {
-                //(new Throwable()).printStackTrace();
                 //System.err.println("NetInput: finish -->");
                 if (_inputConvertStream != null) {
                         try {
