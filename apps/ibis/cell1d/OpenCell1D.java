@@ -130,6 +130,8 @@ class OpenCell1D implements OpenConfig {
     static ReceivePort rightReceivePort;
     static int generation = 0;
     static int boardsize = DEFAULTBOARDSIZE;
+    static boolean idle = true;
+    static boolean rightNeighbourIdle = true;
 
     private static void usage()
     {
@@ -382,6 +384,8 @@ class OpenCell1D implements OpenConfig {
             sendCount = 0;
         }
         if( sendCount>0 ){
+            rightNeighbourIdle = false;
+
             if( traceLoadBalancing ){
                 System.out.println( "P" + me + ":" + generation + ": sending " + sendCount + " columns to P" + (me+1) );
             }
@@ -394,7 +398,7 @@ class OpenCell1D implements OpenConfig {
         m.writeInt( generation );
         m.writeInt( sendCount );
 
-        // Send the columns we want to move from right to left.
+        // Send the columns we want to move to our right neighbour.
         while( sendCount>0 ){
             int ix = p.firstNoColumn-1;
             byte buf[] = p.board[ix];
@@ -696,6 +700,7 @@ class OpenCell1D implements OpenConfig {
                 firstNoColumn = boardsize;
                 generation = 0; // I decide the generation count.
                 knownMembers = 1;
+                idle = false;
             }
             else {
                 firstColumn = boardsize;
@@ -720,18 +725,18 @@ class OpenCell1D implements OpenConfig {
             putPattern( p, 4, 4, glider );
 
             while( generation<count ){
-                computeNextGeneration( p );
-                if( rightNeighbour != null ){
-                    if( rightReceivePort == null ){
-                        // We now have a right neightbour. Set up communication
-                        // with it.
-                        if( tracePortCreation ){
-                            System.out.println( "P" + me + ": a right neighbour has appeared; creating ports" );
-                        }
-                        rightReceivePort = createNeighbourReceivePort( updatePort, "downstream" );
-                        rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
+                if( rightNeighbour != null && rightReceivePort == null ){
+                    // We now have a right neightbour. Set up communication
+                    // with it.
+                    if( tracePortCreation ){
+                        System.out.println( "P" + me + ": a right neighbour has appeared; creating ports" );
                     }
+                    rightReceivePort = createNeighbourReceivePort( updatePort, "downstream" );
+                    rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
                 }
+                // TODO: as an idle node, start waiting for work;
+                // as a busy node with an idle right neighbour, send it work.
+                computeNextGeneration( p );
                 int members = rszHandler.getMemberCount();
                 if( knownMembers<members ){
                     // Some processors have joined the computation.
