@@ -114,6 +114,8 @@ class NioPortType extends PortType implements Config {
 		throw new IbisException("unknown value \"" + sendImpl
 			+ "\" for sendport implementation");
 	    }
+	} else if (oneToMany) {
+	    sendPortImplementation = IMPLEMENTATION_NON_BLOCKING;
 	} else {
 	    sendPortImplementation = IMPLEMENTATION_BLOCKING;
 	}
@@ -131,6 +133,8 @@ class NioPortType extends PortType implements Config {
 		    throw new IbisException("unknown value \"" + receiveImpl
 			    + "\" for receiveport implementation");
 		}
+	} else if (manyToOne) {
+	    receivePortImplementation = IMPLEMENTATION_NON_BLOCKING;
 	} else {
 	    receivePortImplementation = IMPLEMENTATION_BLOCKING;
 	}
