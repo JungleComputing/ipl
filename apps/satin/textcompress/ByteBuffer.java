@@ -19,4 +19,10 @@ class ByteBuffer implements java.io.Serializable {
         }
         buf[sz++] = b;
     }
+
+    void append( short v )
+    {
+        append( (byte) (v>>8) );
+        append( (byte) (v & 255) );
+    }
 }

@@ -38,7 +38,7 @@ class CompressContext implements java.io.Serializable {
         return new CompressContext( arr );
     }
 
-    public int applyMove( byte text[], int pos, int mv, ByteBuffer out )
+    public int outputMove( byte text[], int pos, int mv, ByteBuffer out )
     {
         int backpos = backref[(int) text[pos]][mv];
         int len = Helpers.matchSpans( text, backpos, pos )-Configuration.MINIMAL_SPAN;
@@ -49,14 +49,27 @@ class CompressContext implements java.io.Serializable {
         }
         if( d<256 ){
             if( len<256 ){
-                out.append( Magic.BACK1B1B );
+                out.append( Magic.BACKL1D1 );
                 out.append( (byte) len );
                 out.append( (byte) d );
             }
             else {
+                out.append( Magic.BACKL1D1 );
+                out.append( (short) len );
+                out.append( (byte) d );
             }
         }
         else {
+            if( len<256 ){
+                out.append( Magic.BACKL1D2 );
+                out.append( (byte) len );
+                out.append( (short) d );
+            }
+            else {
+                out.append( Magic.BACKL1D2 );
+                out.append( (short) len );
+                out.append( (short) d );
+            }
         }
         return pos;
     }

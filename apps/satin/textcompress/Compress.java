@@ -6,6 +6,11 @@ import java.io.FileOutputStream;
 
 class Compress extends ibis.satin.SatinObject implements CompressorInterface
 {
+    class Move {
+        int move;         // The number of a backreference, or -1 for a copy.
+        int gain;       // The gain of this move.
+    }
+
     public static byte[] readFile( File f )
         throws java.io.IOException
     {
@@ -50,6 +55,36 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return localGain + forwardGain;
     }
 
+    public void selectBestMove( Move mv, byte text[], int pos, CompressContext ctx )
+    {
+        int scores[] = new int[Configuration.BACKREFERENCES];
+        int bestGain = 0;
+        int bestMove = 0;
+        CompressContext cs = (CompressContext) ctx.clone();
+        Move plainMove = new Move();
+        selectBestMove( plainMove, text, pos+1, cs );
+
+        for( int m = 0; m<Configuration.BACKREFERENCES; m++ ){
+            CompressContext c1 = (CompressContext) ctx.clone();
+            scores[m] = lookahead( text, pos, c1, m, 0 );
+        }
+        sync();
+        for( int m = 0; m<Configuration.BACKREFERENCES; m++ ){
+            if( scores[m] > bestGain ){
+                bestGain = scores[m];
+                bestMove = m;
+            }
+        }
+        if( bestGain>0 ){
+            mv.move = bestMove;
+            mv.gain = bestGain;
+        }
+        else {
+            mv.move = -1;
+            mv.gain = plainMove.gain;
+        }
+    }
+
     public ByteBuffer compress( byte text[] )
     {
         CompressContext ctx = new CompressContext( 
@@ -59,30 +94,18 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         int pos = 0;
         ByteBuffer out = new ByteBuffer();
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
-            int scores[] = new int[Configuration.BACKREFERENCES];
-            int bestGain = 0;
-            int bestMove = 0;
+            Move mv = new Move();
 
-            for( int mv = 0; mv<Configuration.BACKREFERENCES; mv++ ){
-                CompressContext c1 = (CompressContext) ctx.clone();
-                scores[mv] = lookahead( text, pos, c1, mv, 0 );
-            }
-            sync();
-            for( int mv = 0; mv<Configuration.BACKREFERENCES; mv++ ){
-                if( scores[mv] > bestGain ){
-                    bestGain = scores[mv];
-                    bestMove = mv;
-                }
-            }
+            selectBestMove( mv, text, pos, ctx );
             // TODO: calculate the gain of just copying the character.
-            if( bestGain<=0 ){
+            if( mv.move<0 ){
                 // There is no backreference that gives any gain, so
                 // just copy the character.
                 out.append( text[pos++] );
             }
             else {
-                pos = ctx.applyMove( text, pos, out );
                 // There is a backreference that helps.
+                pos = ctx.outputMove( text, pos, mv.move, out );
             }
         }
         return out;
