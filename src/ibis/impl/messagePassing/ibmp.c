@@ -1,5 +1,5 @@
 /*
- * Code shared by natives for package manta.ibis.impl.panda
+ * Code shared by natives for package ibis.ipl.impl.messagePassing
  */
 
 #include <stdlib.h>
@@ -218,15 +218,15 @@ ibmp_init(JNIEnv *env, jobject this)
 	fprintf(stderr, "%s.%d Cannot find static method dumpStack()V\n", __FILE__, __LINE__);
     }
 
-    ibmp_cls_Ibis = (*env)->FindClass(env, "manta/ibis/impl/messagePassing/Ibis");
+    ibmp_cls_Ibis = (*env)->FindClass(env, "ibis/ipl/impl/messagePassing/Ibis");
     if (ibmp_cls_Ibis == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class manta/ibis/impl/messagePassing/Ibis\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/Ibis\n", __FILE__, __LINE__);
     }
     ibmp_cls_Ibis = (jclass)(*env)->NewGlobalRef(env, (jobject)ibmp_cls_Ibis);
 
-    fld_Ibis_ibis = (*env)->GetStaticFieldID(env, ibmp_cls_Ibis, "ibis", "Lmanta/ibis/impl/messagePassing/Ibis;");
+    fld_Ibis_ibis = (*env)->GetStaticFieldID(env, ibmp_cls_Ibis, "myIbis", "Libis/ipl/impl/messagePassing/Ibis;");
     if (fld_Ibis_ibis == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static field ibis:Lmanta/ibis/impl/messagePassing/Ibis;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find static field myIbis:Libis/ipl/impl/messagePassing/Ibis;\n", __FILE__, __LINE__);
     }
 
     ibmp_obj_Ibis_ibis = (*env)->GetStaticObjectField(env, ibmp_cls_Ibis, fld_Ibis_ibis);

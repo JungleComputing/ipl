@@ -1,5 +1,5 @@
 /*
- * Code shared by natives for package manta.ibis.impl.mpi
+ * Code shared by natives for package ibis.ipl.impl.messagePassing.mpi
  */
 
 #include <string.h>
@@ -13,7 +13,7 @@
 
 #include <mpi.h>
 
-#include "manta_ibis_impl_mpi_MPIbis.h"
+#include "ibis_ipl_impl_mpi_MPIbis.h"
 
 #include "ibmpi.h"
 #include "ibmpi_mp.h"
@@ -99,7 +99,7 @@ ibmpi_currentThread(JNIEnv *env)
 
 
 jlong
-Java_manta_ibis_impl_mpi_MPIbis_currentTime(JNIEnv *env, jclass c)
+Java_ibis_ipl_impl_mpi_MPIbis_currentTime(JNIEnv *env, jclass c)
 {
     union lt {
 	double	t;
@@ -113,7 +113,7 @@ Java_manta_ibis_impl_mpi_MPIbis_currentTime(JNIEnv *env, jclass c)
 
 
 jdouble
-Java_manta_ibis_impl_mpi_MPIbis_t2d(JNIEnv *env, jclass c, jlong l)
+Java_ibis_ipl_impl_mpi_MPIbis_t2d(JNIEnv *env, jclass c, jlong l)
 {
     union lt {
 	struct pan_time t;
@@ -167,7 +167,7 @@ ibmpi_thread_yield(JNIEnv *env)
 
 
 void
-Java_manta_ibis_impl_mpi_MPIbis_lock(JNIEnv *env, jobject lock)
+Java_ibis_ipl_impl_mpi_MPIbis_lock(JNIEnv *env, jobject lock)
 {
     if ((*env)->MonitorEnter(env, lock) < 0) {
 	fprintf(stderr, "Illegal MonitorEnter\n");
@@ -177,7 +177,7 @@ Java_manta_ibis_impl_mpi_MPIbis_lock(JNIEnv *env, jobject lock)
 
 
 void
-Java_manta_ibis_impl_mpi_MPIbis_unlock(JNIEnv *env, jobject lock)
+Java_ibis_ipl_impl_mpi_MPIbis_unlock(JNIEnv *env, jobject lock)
 {
     if ((*env)->MonitorExit(env, lock) < 0) {
 	fprintf(stderr, "Illegal MonitorExit\n");
@@ -190,7 +190,7 @@ void
 ibmpi_lock(JNIEnv *env)
 {
     ibmpi_lock_check_not_owned(env);
-    Java_manta_ibis_impl_mpi_MPIbis_lock(env, ibmpi_obj_MPIbis_ibis);
+    Java_ibis_ipl_impl_mpi_MPIbis_lock(env, ibmpi_obj_MPIbis_ibis);
 }
 
 
@@ -198,7 +198,7 @@ void
 ibmpi_unlock(JNIEnv *env)
 {
     ibmpi_lock_check_owned(env);
-    return Java_manta_ibis_impl_mpi_MPIbis_unlock(env, ibmpi_obj_MPIbis_ibis);
+    return Java_ibis_ipl_impl_mpi_MPIbis_unlock(env, ibmpi_obj_MPIbis_ibis);
 }
 
 #undef ibmpi_lock_check_owned
@@ -339,7 +339,7 @@ ibmpi_mpi_init(void)
 
 
 void
-Java_manta_ibis_impl_mpi_MPIbis_mpi_1init(JNIEnv *env, jobject this)
+Java_ibis_ipl_impl_mpi_MPIbis_mpi_1init(JNIEnv *env, jobject this)
 {
     jfieldID	fld_MPIbis_ibis;
     jfieldID	fld_MPIbis_nrCpus;
@@ -370,15 +370,15 @@ Java_manta_ibis_impl_mpi_MPIbis_mpi_1init(JNIEnv *env, jobject this)
 	fprintf(stderr, "%s.%d Cannot find static method dumpStack()V\n", __FILE__, __LINE__);
     }
 
-    ibmpi_cls_MPIbis = (*env)->FindClass(env, "manta/ibis/impl/mpi/MPIbis");
+    ibmpi_cls_MPIbis = (*env)->FindClass(env, "ibis/ipl/impl/mpi/MPIbis");
     if (ibmpi_cls_MPIbis == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class manta/ibis/impl/mpi/MPIbis\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/mpi/MPIbis\n", __FILE__, __LINE__);
     }
     ibmpi_cls_MPIbis = (jclass)(*env)->NewGlobalRef(env, (jobject)ibmpi_cls_MPIbis);
 
-    fld_MPIbis_ibis = (*env)->GetStaticFieldID(env, ibmpi_cls_MPIbis, "ibis", "Lmanta/ibis/impl/mpi/MPIbis;");
+    fld_MPIbis_ibis = (*env)->GetStaticFieldID(env, ibmpi_cls_MPIbis, "myIbis", "Libis/ipl/impl/mpi/MPIbis;");
     if (fld_MPIbis_ibis == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static field ibis:Lmanta/ibis/impl/mpi/MPIbis;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find static field myIbis:Libis/ipl/impl/mpi/MPIbis;\n", __FILE__, __LINE__);
     }
 
     ibmpi_obj_MPIbis_ibis = (*env)->GetStaticObjectField(env, ibmpi_cls_MPIbis, fld_MPIbis_ibis);
@@ -450,7 +450,7 @@ Java_manta_ibis_impl_mpi_MPIbis_mpi_1init(JNIEnv *env, jobject this)
 
 
 void
-Java_manta_ibis_impl_mpi_MPIbis_ibmpi_1end(JNIEnv *env, jobject this)
+Java_ibis_ipl_impl_mpi_MPIbis_ibmpi_1end(JNIEnv *env, jobject this)
 {
     IBMPI_VPRINTF(10, env, ("%s.%d ibmpi_end()\n", __FILE__, __LINE__));
 

@@ -40,9 +40,9 @@ void
 ibmp_send_port_init(JNIEnv *env)
 {
     cls_ShadowSendPort = (*env)->FindClass(env,
-				   "manta/ibis/impl/messagePassing/ShadowSendPort");
+				   "ibis/ipl/impl/messagePassing/ShadowSendPort");
     if (cls_ShadowSendPort == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class manta/ibis/impl/messagePassing/ShadowSendPort\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/ShadowSendPort\n", __FILE__, __LINE__);
     }
     cls_ShadowSendPort = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_ShadowSendPort);
 

@@ -1,5 +1,5 @@
 /*
- * Code shared by natives for package manta.ibis.impl.panda
+ * Code shared by natives for package ibis.ipl.impl.messagePassing.panda
  */
 
 #include <string.h>

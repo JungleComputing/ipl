@@ -65,10 +65,10 @@ ibmp_receive_port_ns_init(JNIEnv *env)
 
     fld_ibis = (*env)->GetStaticFieldID(env,
 				        ibmp_cls_Ibis,
-				        "ibis",
-				        "Lmanta/ibis/impl/messagePassing/Ibis;");
+				        "myIbis",
+				        "Libis/ipl/impl/messagePassing/Ibis;");
     if (fld_ibis == NULL) {
-	fprintf(stderr, "%s.%d Cannot find static field ibis:Lmanta/ibis/impl/messagePassing/Ibis;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find static field myIbis:Libis/ipl/impl/messagePassing/Ibis;\n", __FILE__, __LINE__);
     }
 
     obj_ibis = (*env)->GetStaticObjectField(env, ibmp_cls_Ibis, fld_ibis);
@@ -77,26 +77,26 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     fld_registry = (*env)->GetFieldID(env,
 				ibmp_cls_Ibis,
 				"pandaRegistry",
-				"Lmanta/ibis/impl/messagePassing/Registry;");
+				"Libis/ipl/impl/messagePassing/Registry;");
     if (fld_registry == NULL) {
-	fprintf(stderr, "%s.%d Cannot find field pandaRegistry:Lmanta/ibis/impl/messagePassing/Registry;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find field pandaRegistry:Libis/ipl/impl/messagePassing/Registry;\n", __FILE__, __LINE__);
     }
 
     obj_registry = (*env)->GetObjectField(env, obj_ibis, fld_registry);
 // fprintf(stderr, "%s.%d obj_registry = %p\n", __FILE__, __LINE__, obj_registry);
 
-    cls_Registry = (*env)->FindClass(env, "manta/ibis/impl/messagePassing/Registry");
+    cls_Registry = (*env)->FindClass(env, "ibis/ipl/impl/messagePassing/Registry");
     if (cls_Registry == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class manta/ibis/impl/messagePassing/Registry\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/Registry\n", __FILE__, __LINE__);
     }
     cls_Registry = (*env)->NewGlobalRef(env, cls_Registry);
 
     fld_ns = (*env)->GetFieldID(env,
 				cls_Registry,
 				"nameServer",
-				"Lmanta/ibis/impl/messagePassing/ReceivePortNameServer;");
+				"Libis/ipl/impl/messagePassing/ReceivePortNameServer;");
     if (fld_ns == NULL) {
-	fprintf(stderr, "%s.%d Cannot find field nameServer:Lmanta/ibis/impl/messagePassing/ReceivePortNameServer;\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find field nameServer:Libis/ipl/impl/messagePassing/ReceivePortNameServer;\n", __FILE__, __LINE__);
     }
 
     obj_Ibis_nameServer = (*env)->GetObjectField(env,
@@ -105,18 +105,18 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     obj_Ibis_nameServer = (*env)->NewGlobalRef(env, obj_Ibis_nameServer);
 
     cls_ns = (*env)->FindClass(env,
-			    "manta/ibis/impl/messagePassing/ReceivePortNameServer");
+			    "ibis/ipl/impl/messagePassing/ReceivePortNameServer");
     if (cls_ns == NULL) {
-	fprintf(stderr, "%s.%d Cannot find class manta/ibis/impl/messagePassing/ReceivePortNameServer\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/ReceivePortNameServer\n", __FILE__, __LINE__);
     }
     cls_ns = (*env)->NewGlobalRef(env, cls_ns);
 
     md_NameServer_bind = (*env)->GetMethodID(env,
 					     cls_ns,
 					     "bind",
-					     "(Lmanta/ibis/impl/messagePassing/ReceivePortIdentifier;II)V");
+					     "(Libis/ipl/impl/messagePassing/ReceivePortIdentifier;II)V");
     if (md_NameServer_bind == NULL) {
-	fprintf(stderr, "%s.%d Cannot find method bind(Ljava/lang/String;Lmanta/ibis/impl/messagePassing/ReceivePortIdentifier;II)V\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find method bind(Ljava/lang/String;Libis/ipl/impl/messagePassing/ReceivePortIdentifier;II)V\n", __FILE__, __LINE__);
     }
     md_NameServer_lookup = (*env)->GetMethodID(env,
 					       cls_ns,

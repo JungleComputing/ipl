@@ -11,7 +11,7 @@ import ibis.ipl.StaticProperties;
 
 public abstract class Ibis extends ibis.ipl.Ibis {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     private IbisIdentifier ident;
 
