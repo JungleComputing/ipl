@@ -108,11 +108,11 @@ public class SimpleLittleConversion extends Conversion {
 
     public void char2byte(char[] src, int off, int len, 
 	    byte [] dst, int off2) {
-	char temp;
 	int count = off2;
+	int end = off + len;
 
-	for (int i=0;i<len;i++) { 			
-	    temp = src[off+i];
+	for (int i=off;i<end;i++) { 			
+	    char temp = src[i];
 	    dst[count+0] = (byte) (temp & 0xff);
 	    dst[count+1] = (byte) ((temp >>> 8)  & 0xff);
 	    count += 2;
@@ -122,25 +122,25 @@ public class SimpleLittleConversion extends Conversion {
 
     public void byte2char(byte[] src, int index_src, 
 	    char[] dst, int index_dst, int len) {
-	int temp;
 	int count = index_src;
+	int end = index_dst + len;
 
-	for (int i=0;i<len;i++) { 			
-	    temp = (src[count+1] & 0xff);
+	for (int i=index_dst;i<end;i++) { 			
+	    int temp = (src[count+1] & 0xff);
 	    temp = temp << 8;
 	    temp |= (src[count] & 0xff);
-	    dst[index_dst+i] = (char) temp;
+	    dst[i] = (char) temp;
 	    count += 2;
 	}
     }
 
     public void short2byte(short[] src, int off, int len, 
 	    byte [] dst, int off2) {
-	short v = 0;
 	int count = off2;
+	int end = off + len;
 
-	for (int i=0;i<len;i++) { 			
-	    v = src[off+i];	
+	for (int i=off;i<end;i++) { 			
+	    short v = src[i];	
 	    dst[count+0] = (byte)(0xff & v);
 	    dst[count+1] = (byte)(0xff & (v >> 8));
 	    count += 2;
@@ -150,9 +150,10 @@ public class SimpleLittleConversion extends Conversion {
     public void byte2short(byte[] src, int index_src, 
 	    short[] dst, int index_dst, int len) {
 	int count = index_src;
+	int end = index_dst + len;
 
-	for (int i=0;i<len;i++) { 			
-	    dst[index_dst+i] = (short)((src[count + 1] << 8) 
+	for (int i=index_dst;i<end;i++) { 			
+	    dst[i] = (short)((src[count + 1] << 8) 
 		    | (src[count] & 0xff));
 	    count+=2;
 	}
@@ -160,12 +161,11 @@ public class SimpleLittleConversion extends Conversion {
 
     public void int2byte(int[] src, int off, int len, 
 	    byte [] dst, int off2) {
-
-	int v = 0;
 	int count = off2;
+	int end = off + len;
 
-	for (int i=0;i<len;i++) { 			
-	    v = src[off+i];
+	for (int i=off;i<end;i++) { 			
+	    int v = src[i];
 
 	    dst[count+0] =(byte)(0xff  & v);
 	    dst[count+1] =(byte)(0xff  & (v >> 8));
@@ -178,24 +178,24 @@ public class SimpleLittleConversion extends Conversion {
     public void byte2int(byte[] src, int index_src, int[] dst, 
 	    int index_dst, int len) {
 	int count = index_src;
+	int end = index_dst + len;
 
-	for (int i=0;i<len;i++) { 			
-	    dst[index_dst+i] = (((src[count+0] & 0xff) <<  0) | 
-		    ((src[count+1] & 0xff) <<  8) |
-		    ((src[count+2] & 0xff) << 16) | 
-		    ((src[count+3] & 0xff) << 24));
+	for (int i=index_dst;i<end;i++) { 			
+	    dst[i] = (((src[count+0] & 0xff) <<  0) | 
+		      ((src[count+1] & 0xff) <<  8) |
+		      ((src[count+2] & 0xff) << 16) | 
+		      ((src[count+3] & 0xff) << 24));
 	    count += 4;
 	}
     }
 
     public void long2byte(long[] src, int off, int len, 
 	    byte [] dst, int off2) {
-	long v;
 	int count = off2;
 	int end = off+len;
 
 	for (int i=off;i<end;i++) { 		
-	    v = src[i];
+	    long v = src[i];
 	    int v1 = (int)(v >> 32);
 	    int v2 = (int)(v);
 
@@ -234,11 +234,11 @@ public class SimpleLittleConversion extends Conversion {
 
     public void float2byte(float[] src, int off, int len, 
 	    byte [] dst, int off2) {
-	int v = 0;
 	int count = off2;
+	int end = off + len;
 
-	for (int i=0;i<len;i++) { 			
-	    v = Float.floatToIntBits(src[off+i]);
+	for (int i=off;i<end;i++) { 			
+	    int v = Float.floatToIntBits(src[i]);
 	    dst[count+3] = (byte)(0xff & (v >> 24));
 	    dst[count+2] = (byte)(0xff & (v >> 16));
 	    dst[count+1] = (byte)(0xff & (v >> 8));
@@ -250,15 +250,14 @@ public class SimpleLittleConversion extends Conversion {
     public void byte2float(byte[] src, int index_src, 
 	    float[] dst, int index_dst, int len) { 
 	int count = index_src;
-	int temp;
+	int end = index_dst + len;
 
-	for (int i=0;i<len;i++) { 			
-
-	    temp = (((src[count+3] & 0xff) << 24) | 
-		    ((src[count+2] & 0xff) << 16) |
-		    ((src[count+1] & 0xff) <<  8) | 
-		    ((src[count+0] & 0xff) <<  0));
-	    dst[index_dst+i] = Float.intBitsToFloat(temp);
+	for (int i=index_dst;i<end;i++) { 			
+	    int temp = (((src[count+3] & 0xff) << 24) | 
+			((src[count+2] & 0xff) << 16) |
+			((src[count+1] & 0xff) <<  8) | 
+			((src[count+0] & 0xff) <<  0));
+	    dst[i] = Float.intBitsToFloat(temp);
 	    count += 4;
 	}
     } 
@@ -266,9 +265,10 @@ public class SimpleLittleConversion extends Conversion {
     public void double2byte(double[] src, int off, int len, 
 	    byte [] dst, int off2) {
 	int count = off2;
+	int end = off + len;
 
-	for (int i=0;i<len;i++) { 			
-	    long v = Double.doubleToLongBits(src[off++]);
+	for (int i=off;i<end;i++) { 			
+	    long v = Double.doubleToLongBits(src[i]);
 	    int v1 = (int) (v >> 32);
 	    int v2 = (int) (v);
 
