@@ -27,7 +27,7 @@ final class SerializeReadMessage extends ReadMessage {
 
     public byte readByte() throws IbisIOException {
 	try {
-	    return (byte) obj_in.read();
+	    return obj_in.readByte();
 	} catch (java.io.IOException e) {
 	    throw new IbisIOException(e);
 	}
