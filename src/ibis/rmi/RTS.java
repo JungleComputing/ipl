@@ -41,9 +41,15 @@ final class RTS {
                         if (DEBUG) {
                                 System.out.println(hostname + ": init RMI RTS");
                         }
+
+			Properties p = System.getProperties();
+			String ibis_name = p.getProperty("ibis.name");
                        
-                        ibis         = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.tcp.TcpIbis", null);
-//                        ibis         = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.messagepassing.panda.PandaIbis", null);
+			if (ibis_name != null && ibis_name.equals("panda")) {
+			    ibis = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.messagePassing.panda.PandaIbis", null);
+			} else {
+			    ibis = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.tcp.TcpIbis", null);
+			}
                         localID      = ibis.identifier();
                         ibisRegistry = ibis.registry();
 			
