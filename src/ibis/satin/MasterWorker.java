@@ -11,18 +11,16 @@ final class MasterWorker implements Algorithm {
 		InvocationRecord r;
 		Victim v;
 
-//		r = satin.q.getFromHead(); // Try the local queue
-		
-//		if(r != null) {
-//			satin.callSatinFunction(r);
-//		} else {
-			/* We are idle. There is no work in the queue, and we are
-			   not running Java code. Try to steal a job. */
-			synchronized(satin) {
-				v = satin.victims.getMasterVictim();
-			}
-			satin.stealJob(v);
-//		}
+		if(satin.master) {
+			Thread.yield();
+			return;
+		}
+
+		synchronized(satin) {
+			v = satin.victims.getVictim(satin.masterIdent);
+		}
+
+		satin.stealJob(v);
 	}
 
 	public void stealReplyHandler(InvocationRecord ir, int opcode) {

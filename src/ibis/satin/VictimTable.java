@@ -109,7 +109,7 @@ final class VictimTable implements Config {
 		return (SendPort) victimsHash.get(ident);
 	}
 
-
+/*
 	Victim getMasterVictim() {
 		Victim v = null;
 
@@ -124,11 +124,39 @@ final class VictimTable implements Config {
 		}
 
 		if(ASSERTS && v == null) {
-			System.err.println("EEK, v is null");
+			System.err.println("EEK, v is null in getMasterVictim");
 			System.exit(1);
 		}
 
 		return v;
+	}
+*/
+
+	Victim getVictim(IbisIdentifier ident) {
+		Victim v = null;
+
+		if(ASSERTS) {
+			Satin.assertLocked(satin);
+		}
+
+		for(int i=0; i<victims.size(); i++) {
+			try {
+				v = ((Victim)victims.get(i));
+			} catch (Exception e) {
+				System.err.println(e);
+			}
+
+			if(ASSERTS && v == null) {
+				System.err.println("EEK, v is null in getVictim");
+				System.exit(1);
+			}
+
+			if(v.ident.equals(ident)) {
+				return v;
+			}
+		}
+
+		throw new IbisError("EEK, victim not found in getVictim");
 	}
 
 	Victim getRandomVictim() {

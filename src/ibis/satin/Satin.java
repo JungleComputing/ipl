@@ -56,7 +56,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	public boolean master = false; // used in generated code
 	public String[] mainArgs; // used in generated code
 	private String name;
-	private IbisIdentifier masterIdent;
+	protected IbisIdentifier masterIdent;
 
 	/* My scheduling algorithm. */
 	protected final Algorithm algorithm;
@@ -1372,9 +1372,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	public void spawn(InvocationRecord r) {
 		if(ASSERTS) {
 			if(algorithm instanceof MasterWorker) {
-				if(!ident.equals(victims.getMasterVictim())) {
-					System.err.println("with the master/worker algorithm, work can only be spawned on the master!");
-					System.exit(1);
+				synchronized(this) {
+					if(!ident.equals(masterIdent)) {
+						System.err.println("with the master/worker algorithm, work can only be spawned on the master!");
+						System.exit(1);
+					}
 				}
 			}
 		}
