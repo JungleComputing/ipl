@@ -15,7 +15,7 @@ import ibis.io.SimpleLittleConversion;
 
 public final class NioWrapLittleConversion extends SimpleLittleConversion { 
 
-    public final int BUFFER_SIZE = 8 * 1024;
+    public static final int BUFFER_SIZE = 8 * 1024;
 
     private ByteOrder order;
 

@@ -14,7 +14,7 @@ import ibis.io.SimpleLittleConversion;
 
 public final class NioChunkBigConversion extends SimpleBigConversion { 
 
-    public final int BUFFER_SIZE = 8 * 1024;
+    public static final int BUFFER_SIZE = 8 * 1024;
 
     private ByteOrder order;
 

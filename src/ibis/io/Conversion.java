@@ -19,9 +19,14 @@ public abstract class Conversion {
 
     public static final Conversion defaultConversion;
 
+    private static final Conversion simpleBig;
+    private static final Conversion simpleLittle;
+
     // load a SimpleConversion to and from networkorder as default
     static {
-	defaultConversion = new SimpleBigConversion();
+	simpleBig = new SimpleBigConversion();
+	simpleLittle = new SimpleLittleConversion();
+	defaultConversion = simpleBig;
     }
 
     /**
@@ -121,24 +126,18 @@ public abstract class Conversion {
 	if(conversion != null && conversion.equalsIgnoreCase("nio/wrap")) {
 	    try {
 		if(bigEndian) {
-		    return loadConversion(
-			    "ibis.io.nio.NioWrapBigConversion");
-		} else {
-		    return loadConversion(
-			    "ibis.io.nio.NioWrapLittleConversion");
+		    return new ibis.io.nio.NioWrapBigConversion();
 		}
+		return new ibis.io.nio.NioWrapLittleConversion();
 	    } catch (Exception e) {
 		//nio conversion loading failed
 	    }
 	} else if(conversion != null && conversion.equalsIgnoreCase("nio")) {
 	    try {
 		if(bigEndian) {
-		    return loadConversion(
-			    "ibis.io.nio.NioChunkBigConversion");
-		} else {
-		    return loadConversion(
-			    "ibis.io.nio.NioChunkLittleConversion");
+		    return new ibis.io.nio.NioChunkBigConversion();
 		}
+		return new ibis.io.nio.NioChunkLittleConversion();
 	    } catch (Exception e) {
 		//nio conversion loading failed
 	    }
@@ -148,12 +147,9 @@ public abstract class Conversion {
 
 	    try {
 		if(bigEndian) {
-		    return loadConversion(
-				"ibis.io.nio.HybridChunkBigConversion");
-		} else {
-		    return loadConversion(
-			    "ibis.io.nio.HybridChunkLittleConversion");
+		    return new ibis.io.nio.HybridChunkBigConversion();
 		}
+		return new ibis.io.nio.HybridChunkLittleConversion();
 	    } catch (Exception e) {
 		//hybrid conversion loading failed
 	    }
@@ -162,10 +158,9 @@ public abstract class Conversion {
 	//loading of nio type conversions failed, return simple conversion
 
 	if(bigEndian) {
-	    return new SimpleBigConversion();
-	} else {
-	    return new SimpleLittleConversion();
+	    return simpleBig;
 	}
+	return simpleLittle;
     }
 
     /**

@@ -14,11 +14,11 @@ import ibis.io.SimpleLittleConversion;
 
 public final class HybridChunkLittleConversion extends SimpleLittleConversion { 
 
-    public final int BUFFER_SIZE = 8 * 1024; //bytes
+    public static final int BUFFER_SIZE = 8 * 1024; //bytes
 
-    public final int THRESHOLD = 512; // bytes
+    public static final int THRESHOLD = 512; // bytes
 
-    public final int FP_THRESHOLD = 64 ; // bytes
+    public static final int FP_THRESHOLD = 64 ; // bytes
 
     private ByteOrder order;
 
