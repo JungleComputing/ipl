@@ -74,16 +74,16 @@ class ReceivePortNameServerClient
 		ns_busy = true;
 
 		bound = false;
-System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
+// System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
 		ns_bind(id.name, id.type, id.cpu, id.port);
-System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
+// System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
 
-System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
+// System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
 		if (bound) {
 		    System.err.println("******** Reply arrives early, bind=" + this);
 		}
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
-System.err.println(Thread.currentThread() + "Bind reply arrived, client woken up" + this);
+// System.err.println(Thread.currentThread() + "Bind reply arrived, client woken up" + this);
 
 		ns_busy = false;
 		ns_free.cv_signal();
@@ -98,7 +98,7 @@ System.err.println(Thread.currentThread() + "Bind reply arrived, client woken up
     /* Called from native */
     private void bind_reply() {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
-System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this + " bind = " + bind);
+// System.err.println(Thread.currentThread() + "Bind reply arrives, signal client" + this + " bind = " + bind);
 	bind.bound = true;
 	bind.ns_done.cv_signal();
     }

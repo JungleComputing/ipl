@@ -603,12 +603,14 @@ System.err.println(Thread.currentThread() + " ReceivePort " + name + " runs");
 		     * poll for an expected reply very expensive.
 		     * Nowadays, pass 'false' for the preempt flag. */
 		    handlingReceive++;
-System.err.println("*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
+		    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+			System.err.println("*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
+		    }
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, false);
 		    if (DEBUG) {
 			upcall_poll++;
+			System.err.println("*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);
 		    }
-System.err.println("*********** This ReceivePort daemon past wait, daemon " + this + " queueFront = " + queueFront);
 
 		    while (! allowUpcalls) {
 			enable.cv_wait();
@@ -626,7 +628,7 @@ System.err.println("*********** This ReceivePort daemon past wait, daemon " + th
 		    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 			System.err.println("Now process this msg " + msg + " msg.fragmentFront.msgHandle " + Integer.toHexString(((ibis.ipl.impl.messagePassing.ReadMessage)msg).fragmentFront.msgHandle));
 		    }
-// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+		    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 		    upcall.upcall(msg);
 		}
 	    }

@@ -10,7 +10,7 @@ class PortHash {
     void bind(int x, Object p) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
-	System.err.println("PortHash: now bind port " + x + " to Object " + p);
+	// System.err.println("PortHash: now bind port " + x + " to Object " + p);
 
 	if (x >= allocPortDataBase) {
 	    Object[] a;
