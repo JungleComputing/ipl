@@ -544,6 +544,9 @@ public final class SATContext implements java.io.Serializable {
                 }
             }
         } while( changed && !resolvedDominator );
+        if( !resolvedDominator ){
+            return null;
+        }
         if( false ){
             // Now greedily resolve clauses as long as they are smaller.
             do {
