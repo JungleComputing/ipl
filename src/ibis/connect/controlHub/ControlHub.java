@@ -20,8 +20,7 @@ import java.util.Properties;
 /** Incarnates a thread dedicated to HubWire management 
  * towards a given node.
  */
-class NodeManager extends Thread
-{
+class NodeManager extends Thread {
     private String hostname;
     private HubProtocol.HubWire wire;
     private int hostport;

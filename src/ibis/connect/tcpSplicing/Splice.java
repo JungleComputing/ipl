@@ -68,8 +68,8 @@ public class Splice
 		try {
 		    Socket s = srvr.accept();
 		    DataOutputStream out = new DataOutputStream(
-					     new BufferedOutputStream(
-						s.getOutputStream()));
+			    new BufferedOutputStream(
+				s.getOutputStream()));
 		    out.writeInt(hintPort++);
 		    out.flush();
 		    out.close();
@@ -111,8 +111,8 @@ public class Splice
 	try {
 	    Socket s = new Socket(IPUtils.getLocalHostAddress(), serverPort);
 	    DataInputStream in = new DataInputStream(
-				    new BufferedInputStream(
-					s.getInputStream()));
+		    new BufferedInputStream(
+			s.getInputStream()));
 	    int port = in.readInt();
 	    in.close();
 	    s.close();
@@ -158,36 +158,35 @@ public class Splice
 	boolean connected = false;
 
 	MyDebug.trace("# Splice: connecting to: "+rHost+":"+rPort);
-	while(!connected)
-	    {
-		try {
-		    InetSocketAddress remoteAddr = new InetSocketAddress(rHost, rPort);
-		    socket.connect(remoteAddr);
-		    connected = true;
-		    MyDebug.trace("# Splice: success! i="+i);
-		    MyDebug.trace("# Splice:   tcpSendBuffer="+socket.getSendBufferSize()+
-				  "; tcpReceiveBuffer="+socket.getReceiveBufferSize());
-		}
-		catch (IOException e) {
-		    try { socket.close(); } catch(IOException dummy) { /*ignore */ }
-		    // There is a race here, if two JVM's running on the
-		    // same node are both creating spliced sockets.
-		    // After this close, another JVM might take this
-		    // localAddr, and then the bind fails. (Ceriel)
-		    // There is no race when using the NumServer. (Ceriel)
-		    i++;
-		    // re-init the socket
-		    try {
-			socket = new Socket();
-			socket.setReuseAddress(true);
-			if (setBufferSizes) {
-			    socket.setSendBufferSize(defaultSendBufferSize);
-			    socket.setReceiveBufferSize(defaultRecvBufferSize);
-			}
-			socket.bind(localAddr);
-		    } catch(IOException f) { throw new Error(f); }
-		}
+	while(!connected) {
+	    try {
+		InetSocketAddress remoteAddr = new InetSocketAddress(rHost, rPort);
+		socket.connect(remoteAddr);
+		connected = true;
+		MyDebug.trace("# Splice: success! i="+i);
+		MyDebug.trace("# Splice:   tcpSendBuffer="+socket.getSendBufferSize()+
+			"; tcpReceiveBuffer="+socket.getReceiveBufferSize());
 	    }
+	    catch (IOException e) {
+		try { socket.close(); } catch(IOException dummy) { /*ignore */ }
+		// There is a race here, if two JVM's running on the
+		// same node are both creating spliced sockets.
+		// After this close, another JVM might take this
+		// localAddr, and then the bind fails. (Ceriel)
+		// There is no race when using the NumServer. (Ceriel)
+		i++;
+		// re-init the socket
+		try {
+		    socket = new Socket();
+		    socket.setReuseAddress(true);
+		    if (setBufferSizes) {
+			socket.setSendBufferSize(defaultSendBufferSize);
+			socket.setReceiveBufferSize(defaultRecvBufferSize);
+		    }
+		    socket.bind(localAddr);
+		} catch(IOException f) { throw new Error(f); }
+	    }
+	}
 	return socket;
     }
 }

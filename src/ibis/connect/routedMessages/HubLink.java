@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
 
-// HubLink manages the link with the control hub
+/**
+ * HubLink manages the link with the control hub.
+ */
 public class HubLink extends Thread
 {
     private HubProtocol.HubWire wire;

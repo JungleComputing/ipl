@@ -8,7 +8,7 @@ import java.net.Socket;
 
 public interface ClientServerSocketFactory
 {
-    public Socket       createClientSocket(InetAddress addr, int port)
+    public Socket createClientSocket(InetAddress addr, int port)
 	throws IOException;
     public ServerSocket createServerSocket(InetSocketAddress addr, int backlog)
 	throws IOException;
