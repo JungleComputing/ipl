@@ -101,7 +101,6 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * Sends what remains to be sent.
 	 */
 	public void send() throws IbisIOException{
-		flush();
                 super.send();
 	}
 
@@ -109,8 +108,8 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * Completes the message transmission and releases the send port.
 	 */
 	public void finish() throws IbisIOException{
-                flush();
                 super.finish();
+                flush();
 	}
 
 	/**

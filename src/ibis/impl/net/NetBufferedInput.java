@@ -127,7 +127,8 @@ public abstract class NetBufferedInput extends NetInput {
 	}
 
 	public void finish() throws IbisIOException {
-		freeBuffer();
+                super.finish();
+ 		freeBuffer();
 	}
 
 	public byte readByte() throws IbisIOException {

@@ -102,6 +102,7 @@ public abstract class NetInput extends NetIO implements ReadMessage {
 	    when a message is alive, and a new messages is requested with a receive, the requester is blocked until the
 	    live message is finished. **/
        	public void finish() throws IbisIOException {
+                //(new Throwable()).printStackTrace();
                 //System.err.println("NetInput: finish -->");
                 if (_inputConvertStream != null) {
                         try {
@@ -491,7 +492,7 @@ public abstract class NetInput extends NetIO implements ReadMessage {
                         
                         try {
                                 result = readByte();
-                                // System.err.println("Received a byte: ["+ seq++ +"] unsigned = "+(result & 255)+", signed =" + result);
+                                //System.err.println("Received a byte: ["+ seq++ +"] unsigned = "+(result & 255)+", signed =" + result);
                         } catch (IbisIOException e) {
                                 throw new IOException(e.getMessage());
                         }
