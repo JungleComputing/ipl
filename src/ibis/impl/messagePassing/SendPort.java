@@ -332,6 +332,10 @@ public class SendPort implements ibis.ipl.SendPort {
 	    newMessageWaiters--;
 	}
 
+	if (type.sequenced && group == NO_BCAST_GROUP) {
+	    throw new IOException("Sequenced port type but no group?");
+	}
+
 	aMessageIsAlive = true;
 
 	if (SERIALIZE_SENDS_PER_CPU) {

@@ -10,6 +10,7 @@ public class PortType extends ibis.ipl.PortType {
 
     private StaticProperties p;
     private String name;
+    boolean sequenced;
 
     public static final byte SERIALIZATION_NONE = 0;
     public static final byte SERIALIZATION_SUN = 1;
@@ -44,6 +45,7 @@ public class PortType extends ibis.ipl.PortType {
 	} else {
 	    throw new IbisException("Unknown Serialization type " + ser);
 	}
+	sequenced = p.isProp("communication", "Sequenced");
     }
 
     public String name() {

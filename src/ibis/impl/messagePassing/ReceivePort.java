@@ -66,6 +66,7 @@ class ReceivePort
     private AcceptThread acceptThread;
     private boolean allowUpcalls = false;
     private ConditionVariable enable = Ibis.myIbis.createCV();
+    private long seqno = ibis.ipl.ReadMessage.INITIAL_SEQNO;
 
     private int availableUpcallThread = 0;
     /*
@@ -227,6 +228,11 @@ class ReceivePort
 	if (connections.size() == 0) {
 	    disconnected.cv_signal();
 	}
+	if (connectUpcall != null) {
+	    Ibis.myIbis.unlock();
+	    connectUpcall.lostConnection(this, sp.identifier(), null);
+	    Ibis.myIbis.lock();
+	}
 	/* TODO:
 	 * maybe reset homeConnection
 	 */
@@ -283,6 +289,9 @@ class ReceivePort
 
     void enqueue(ReadMessage msg) {
 	Ibis.myIbis.checkLockOwned();
+	if (type.sequenced) {
+	    msg.setSequenceNumber(seqno++);
+	}
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "Enqueue message " + msg + " in port " + this + " msgHandle " + Integer.toHexString(msg.fragmentFront.msgHandle) + " current queueFront " + queueFront);
 	}
