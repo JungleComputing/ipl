@@ -220,53 +220,47 @@ public class IOGenerator {
 
 		if (verbose) System.out.println("  Generating empty methods for class : " + clazz.fullName());
 
-		if (clazz.getParents().findClass("ibis.io.Serializable") == null) { 
-			// must generate code
-
-			if (verbose) System.out.println("    " + clazz.className() + " implements java.io.Serializable -> adding ibis.io.Serializable");		
-			/* add the ibis.io.Serializable interface to the class */
-			clazz.attachParent(interface_MantaSerializable);
+		if (verbose) System.out.println("    " + clazz.className() + " implements java.io.Serializable -> adding ibis.io.Serializable");		
+		/* add the ibis.io.Serializable interface to the class */
+		clazz.attachParent(interface_MantaSerializable);
+		
+		short flags = BT_Method.PUBLIC;
+		
+		if (clazz.isFinal()) { 
+			flags = (short) (flags + BT_Method.FINAL);
+		}
 			
-			short flags = BT_Method.PUBLIC;
+		/* Construct a write method */
+		BT_Ins write_ins[] = { 
+			BT_Ins.make(BT_Opcodes.opc_return) 
+		};
+		
+		BT_Method write_method = new BT_Method(clazz, flags, "void", "generated_WriteObject", "(ibis.io.MantaOutputStream)", new BT_CodeAttribute(write_ins));
+		BT_ClassVector class_vector = new BT_ClassVector();
+		class_vector.addUnique(BT_Class.forName("java.io.IOException"));
+		write_method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
+		
+		/* Construct a read method */
+		BT_Ins read_ins[] = { 
+			BT_Ins.make(BT_Opcodes.opc_return) 
+		};
+		
+		BT_Method read_method = new BT_Method(clazz, flags, "void", "generated_ReadObject", "(ibis.io.MantaInputStream)", new BT_CodeAttribute(read_ins));
+		class_vector = new BT_ClassVector();
+		class_vector.addUnique(BT_Class.forName("java.io.IOException"));
+		class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
+		read_method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
 			
-			if (clazz.isFinal()) { 
-				flags = (short) (flags + BT_Method.FINAL);
-			}
-			
-			/* Construct a write method */
-			BT_Ins write_ins[] = { 
-				BT_Ins.make(BT_Opcodes.opc_return) 
-			};
-			
-			BT_Method write_method = new BT_Method(clazz, flags, "void", "generated_WriteObject", "(ibis.io.MantaOutputStream)", new BT_CodeAttribute(write_ins));
-			BT_ClassVector class_vector = new BT_ClassVector();
-			class_vector.addUnique(BT_Class.forName("java.io.IOException"));
-			write_method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
-			
-			/* Construct a read method */
-			BT_Ins read_ins[] = { 
-				BT_Ins.make(BT_Opcodes.opc_return) 
-			};
-			
-			BT_Method read_method = new BT_Method(clazz, flags, "void", "generated_ReadObject", "(ibis.io.MantaInputStream)", new BT_CodeAttribute(read_ins));
-			class_vector = new BT_ClassVector();
-			class_vector.addUnique(BT_Class.forName("java.io.IOException"));
-			class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
-			read_method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
-			
-			/* Construct a read-of-the-stream constructor */
-			BT_Ins read_cons_ins[] = { 
-				BT_Ins.make(BT_Opcodes.opc_return) 
-			};
-			
-			BT_Method read_cons = new BT_Method(clazz, BT_Method.PUBLIC, "void", "<init>", "(ibis.io.MantaInputStream)", new BT_CodeAttribute(read_cons_ins));
-			class_vector = new BT_ClassVector();
-			class_vector.addUnique(BT_Class.forName("java.io.IOException"));
-			class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
-			read_cons.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
-		} else { 
-			if (verbose) System.out.println("    " + clazz.className() + " already implements ibis.io.Serializable");
-		} 
+		/* Construct a read-of-the-stream constructor */
+		BT_Ins read_cons_ins[] = { 
+			BT_Ins.make(BT_Opcodes.opc_return) 
+		};
+		
+		BT_Method read_cons = new BT_Method(clazz, BT_Method.PUBLIC, "void", "<init>", "(ibis.io.MantaInputStream)", new BT_CodeAttribute(read_cons_ins));
+		class_vector = new BT_ClassVector();
+		class_vector.addUnique(BT_Class.forName("java.io.IOException"));
+		class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
+		read_cons.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
 	}
 
 	BT_Class generate_InstanceGenerator(BT_Class clazz, BT_Method read_constructor) { 
@@ -291,7 +285,7 @@ public class IOGenerator {
 		if (verbose) System.out.println("  Generating InstanceGenerator class for " + clazz.className());
 
 		String name = clazz.useName() + "_ibis_io_Generator";
-
+		
 		BT_Class gen = new BT_Class(name, (short) (BT_Class.PUBLIC + BT_Class.FINAL));
 		
 		/*
@@ -301,7 +295,7 @@ public class IOGenerator {
 		  5       invokespecial DITree(ibis.io.MantaInputStream)
 		  8       areturn
 		*/
-
+		
 		BT_Ins method_ins[] = { 
 			BT_Ins.make(BT_Opcodes.opc_new, clazz), 
 			BT_Ins.make(BT_Opcodes.opc_dup), 			
@@ -315,19 +309,19 @@ public class IOGenerator {
 		class_vector.addUnique(BT_Class.forName("java.io.IOException"));
 		class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
 		method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
-
+		
 		gen.resetSuperClass(abstract_MantaGenerator);		
-
+		
 		BT_Method super_cons = abstract_MantaGenerator.findMethod("void", "<init>", "()");
-
+		
 		BT_Ins cons_ins[] = { 
 			BT_Ins.make(BT_Opcodes.opc_aload_0), 
 			BT_Ins.make(BT_Opcodes.opc_invokespecial, super_cons),
 			BT_Ins.make(BT_Opcodes.opc_return)
 		};
-
+		
 		BT_Method cons = new BT_Method(gen, (short)BT_Method.PUBLIC, "void", "<init>", "()", new BT_CodeAttribute(cons_ins));
-
+		
 		return gen;
 	} 
 
@@ -563,7 +557,12 @@ public class IOGenerator {
 		for (int i=0;i<num;i++) {
 			if (verbose) System.out.println("  Loading class : " + classnames[i]);
 			BT_Class clazz = (BT_Class)BT_Class.forName(classnames[i]);
-			addClass(clazz);
+
+			if (clazz.getParents().findClass("ibis.io.Serializable") == null) { 
+				addClass(clazz);
+			} else { 
+				if (verbose) System.out.println(clazz.className() + " already implements ibis.io.Serializable");
+			}
 		}
 
 		if (verbose) System.out.println("Preparing classes");
