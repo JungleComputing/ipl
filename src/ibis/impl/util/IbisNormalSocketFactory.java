@@ -172,7 +172,7 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 					   ConnectProperties p) throws IOException {
 	    Socket s = null;
 	    if(isServer) {
-		ServerSocket server = createServerSocket(0, 1, null);
+		ServerSocket server = createServerSocket(0, 1, IPUtils.getLocalHostAddress());
 		ObjectOutputStream os = new ObjectOutputStream(out);
 		os.writeObject(server.getInetAddress());
 		os.writeInt(server.getLocalPort());
