@@ -1,5 +1,7 @@
 package ibis.io;
 
+import ibis.util.TypedProperties;
+
 /**
  * Allocator for arrays of primitives that is tailored towards the
  * IbisSerializationOutputStream.
@@ -7,9 +9,25 @@ package ibis.io;
 public class DataAllocator implements IbisStreamFlags {
 
     /**
+     * asserts
+     */
+    private final static boolean ASSERTS = false;
+
+    /**
      * Number of buffers per type that is cached at maximum.
      */
-    private final static int CACHE_MAX = 64;
+    private final static int DEFAULT_CACHE_MAX = 512; // 64; // 256;
+    private final static int CACHE_MAX;
+
+    static {
+	int n = DEFAULT_CACHE_MAX;
+	try {
+	    n = TypedProperties.intPropertyValue("ibis.io.allocator.size");
+	} catch (NumberFormatException e) {
+	    // leave it the default
+	}
+	CACHE_MAX = n;
+    }
 
     /**
      * The number of currently cached buffers per type.
@@ -19,17 +37,27 @@ public class DataAllocator implements IbisStreamFlags {
     /**
      * The cache per type
      */
-    private short[][]	index_cache = new short[CACHE_MAX][];
-    private byte[][]	byte_cache = new byte[CACHE_MAX][];
-    private char[][]	char_cache = new char[CACHE_MAX][];
-    private short[][]	short_cache = new short[CACHE_MAX][];
-    private int[][]	int_cache = new int[CACHE_MAX][];
-    private long[][]	long_cache = new long[CACHE_MAX][];
-    private float[][]	float_cache = new float[CACHE_MAX][];
+    private short[][]	index_cache  = new short[CACHE_MAX][];
+    private byte[][]	byte_cache   = new byte[CACHE_MAX][];
+    private char[][]	char_cache   = new char[CACHE_MAX][];
+    private short[][]	short_cache  = new short[CACHE_MAX][];
+    private int[][]	int_cache    = new int[CACHE_MAX][];
+    private long[][]	long_cache   = new long[CACHE_MAX][];
+    private float[][]	float_cache  = new float[CACHE_MAX][];
     private double[][]	double_cache = new double[CACHE_MAX][];
+
+    private IbisHash	indexHash    = new IbisHash(2 * CACHE_MAX, true);
+    private IbisHash	byteHash     = new IbisHash(2 * CACHE_MAX, true);
+    private IbisHash	charHash     = new IbisHash(2 * CACHE_MAX, true);
+    private IbisHash	shortHash    = new IbisHash(2 * CACHE_MAX, true);
+    private IbisHash	intHash      = new IbisHash(2 * CACHE_MAX, true);
+    private IbisHash	longHash     = new IbisHash(2 * CACHE_MAX, true);
+    private IbisHash	floatHash    = new IbisHash(2 * CACHE_MAX, true);
+    private IbisHash	doubleHash   = new IbisHash(2 * CACHE_MAX, true);
 
     private final static boolean STATISTICS = false;
 
+    // if (STATISTICS)
     private int alloc_index;
     private int alloc_byte;
     private int alloc_short;
@@ -88,7 +116,9 @@ public class DataAllocator implements IbisStreamFlags {
     public synchronized short[] getIndexArray() {
 	if (cached[PRIMITIVE_TYPES] == 0) {
 	    if (STATISTICS) alloc_index++;
-	    return new short[PRIMITIVE_TYPES];
+	    short[] buffer = new short[PRIMITIVE_TYPES];
+	    indexHash.put(buffer, 1);
+	    return buffer;
 	} else {
 	    return index_cache[--cached[PRIMITIVE_TYPES]];
 	}
@@ -104,7 +134,9 @@ public class DataAllocator implements IbisStreamFlags {
     public synchronized byte[] getByteArray() {
 	if (cached[TYPE_BYTE] == 0) {
 	    if (STATISTICS) alloc_byte++;
-	    return new byte[BYTE_BUFFER_SIZE];
+	    byte[] buffer = new byte[BYTE_BUFFER_SIZE];
+	    byteHash.put(buffer, 1);
+	    return buffer;
 	} else {
 	    return byte_cache[--cached[TYPE_BYTE]];
 	}
@@ -120,7 +152,9 @@ public class DataAllocator implements IbisStreamFlags {
     public synchronized char[] getCharArray() {
 	if (cached[TYPE_CHAR] == 0) {
 	    if (STATISTICS) alloc_char++;
-	    return new char[CHAR_BUFFER_SIZE];
+	    char[] buffer = new char[CHAR_BUFFER_SIZE];
+	    charHash.put(buffer, 1);
+	    return buffer;
 	} else {
 	    return char_cache[--cached[TYPE_CHAR]];
 	}
@@ -136,7 +170,9 @@ public class DataAllocator implements IbisStreamFlags {
     public synchronized short[] getShortArray() {
 	if (cached[TYPE_SHORT] == 0) {
 	    if (STATISTICS) alloc_short++;
-	    return new short[SHORT_BUFFER_SIZE];
+	    short[] buffer = new short[SHORT_BUFFER_SIZE];
+	    shortHash.put(buffer, 1);
+	    return buffer;
 	} else {
 	    return short_cache[--cached[TYPE_SHORT]];
 	}
@@ -152,8 +188,16 @@ public class DataAllocator implements IbisStreamFlags {
     public synchronized int[] getIntArray() {
 	if (cached[TYPE_INT] == 0) {
 	    if (STATISTICS) alloc_int++;
-	    return new int[INT_BUFFER_SIZE];
+	    int[] buffer = new int[INT_BUFFER_SIZE];
+	    intHash.put(buffer, 1);
+	    return buffer;
 	} else {
+	    if (ASSERTS) {
+		if (int_cache[cached[TYPE_INT] - 1].length != INT_BUFFER_SIZE) {
+		    throw new RuntimeException("Cache contains int[] length "
+			    + int_cache[cached[TYPE_INT] - 1].length);
+		}
+	    }
 	    return int_cache[--cached[TYPE_INT]];
 	}
     }
@@ -168,7 +212,9 @@ public class DataAllocator implements IbisStreamFlags {
     public synchronized long[] getLongArray() {
 	if (cached[TYPE_LONG] == 0) {
 	    if (STATISTICS) alloc_long++;
-	    return new long[LONG_BUFFER_SIZE];
+	    long[] buffer = new long[LONG_BUFFER_SIZE];
+	    longHash.put(buffer, 1);
+	    return buffer;
 	} else {
 	    return long_cache[--cached[TYPE_LONG]];
 	}
@@ -184,7 +230,9 @@ public class DataAllocator implements IbisStreamFlags {
     public synchronized float[] getFloatArray() {
 	if (cached[TYPE_FLOAT] == 0) {
 	    if (STATISTICS) alloc_float++;
-	    return new float[FLOAT_BUFFER_SIZE];
+	    float[] buffer = new float[FLOAT_BUFFER_SIZE];
+	    floatHash.put(buffer, 1);
+	    return buffer;
 	} else {
 	    return float_cache[--cached[TYPE_FLOAT]];
 	}
@@ -200,7 +248,9 @@ public class DataAllocator implements IbisStreamFlags {
     public synchronized double[] getDoubleArray() {
 	if (cached[TYPE_DOUBLE] == 0) {
 	    if (STATISTICS) alloc_double++;
-	    return new double[DOUBLE_BUFFER_SIZE];
+	    double[] buffer = new double[DOUBLE_BUFFER_SIZE];
+	    doubleHash.put(buffer, 1);
+	    return buffer;
 	} else {
 	    return double_cache[--cached[TYPE_DOUBLE]];
 	}
@@ -213,9 +263,21 @@ public class DataAllocator implements IbisStreamFlags {
      * @param buffer the index buffer
      */
     public synchronized void putIndexArray(short[] buffer) {
+	int hc = indexHash.getHashCode(buffer);
+	if (indexHash.find(buffer, hc) == 0) {
+	    // It is not ours. Stay away from it.
+	    return;
+	}
+	if (ASSERTS) {
+	    if (buffer.length != PRIMITIVE_TYPES) {
+		throw new RuntimeException("Get index array to cache of size "
+			+ buffer.length);
+	    }
+	}
 	if (cached[PRIMITIVE_TYPES] == CACHE_MAX) {
 	    // Let the GC cope with it
 	    if (STATISTICS) gc_index++;
+	    indexHash.delete(buffer, hc);
 	    return;
 	}
 	index_cache[cached[PRIMITIVE_TYPES]++] = buffer;
@@ -229,9 +291,21 @@ public class DataAllocator implements IbisStreamFlags {
      * @param buffer the byte buffer
      */
     public synchronized void putByteArray(byte[] buffer) {
+	int hc = byteHash.getHashCode(buffer);
+	if (byteHash.find(buffer, hc) == 0) {
+	    // It is not ours. Stay away from it.
+	    return;
+	}
+	if (ASSERTS) {
+	    if (buffer.length != BYTE_BUFFER_SIZE) {
+		throw new RuntimeException("Get byte array to cache of size "
+			+ buffer.length);
+	    }
+	}
 	if (cached[TYPE_BYTE] == CACHE_MAX) {
 	    // Let the GC cope with it
 	    if (STATISTICS) gc_byte++;
+	    byteHash.delete(buffer, hc);
 	    return;
 	}
 	byte_cache[cached[TYPE_BYTE]++] = buffer;
@@ -245,9 +319,21 @@ public class DataAllocator implements IbisStreamFlags {
      * @param buffer the char buffer
      */
     public synchronized void putCharArray(char[] buffer) {
+	int hc = charHash.getHashCode(buffer);
+	if (charHash.find(buffer, hc) == 0) {
+	    // It is not ours. Stay away from it.
+	    return;
+	}
+	if (ASSERTS) {
+	    if (buffer.length != CHAR_BUFFER_SIZE) {
+		throw new RuntimeException("Get char array to cache of size "
+			+ buffer.length);
+	    }
+	}
 	if (cached[TYPE_CHAR] == CACHE_MAX) {
 	    // Let the GC cope with it
 	    if (STATISTICS) gc_char++;
+	    charHash.delete(buffer, hc);
 	    return;
 	}
 	char_cache[cached[TYPE_CHAR]++] = buffer;
@@ -265,9 +351,21 @@ public class DataAllocator implements IbisStreamFlags {
 	    putIndexArray(buffer);
 	    return;
 	}
+	int hc = shortHash.getHashCode(buffer);
+	if (shortHash.find(buffer, hc) == 0) {
+	    // It is not ours. Stay away from it.
+	    return;
+	}
+	if (ASSERTS) {
+	    if (buffer.length != SHORT_BUFFER_SIZE) {
+		throw new RuntimeException("Get short array to cache of size "
+			+ buffer.length);
+	    }
+	}
 	if (cached[TYPE_SHORT] == CACHE_MAX) {
 	    // Let the GC cope with it
 	    if (STATISTICS) gc_short++;
+	    shortHash.delete(buffer, hc);
 	    return;
 	}
 	short_cache[cached[TYPE_SHORT]++] = buffer;
@@ -281,9 +379,22 @@ public class DataAllocator implements IbisStreamFlags {
      * @param buffer the int buffer
      */
     public synchronized void putIntArray(int[] buffer) {
+	int hc = intHash.getHashCode(buffer);
+	if (intHash.find(buffer, hc) == 0) {
+	    // It is not ours. Stay away from it.
+	    return;
+	}
+	if (ASSERTS) {
+	    if (buffer.length != INT_BUFFER_SIZE) {
+		throw new RuntimeException("Get int array to cache of size "
+			+ buffer.length + " find()->"
+			+ intHash.find(buffer, hc));
+	    }
+	}
 	if (cached[TYPE_INT] == CACHE_MAX) {
 	    // Let the GC cope with it
 	    if (STATISTICS) gc_int++;
+	    intHash.delete(buffer, hc);
 	    return;
 	}
 	int_cache[cached[TYPE_INT]++] = buffer;
@@ -297,9 +408,21 @@ public class DataAllocator implements IbisStreamFlags {
      * @param buffer the long buffer
      */
     public synchronized void putLongArray(long[] buffer) {
+	int hc = longHash.getHashCode(buffer);
+	if (longHash.find(buffer, hc) == 0) {
+	    // It is not ours. Stay away from it.
+	    return;
+	}
+	if (ASSERTS) {
+	    if (buffer.length != LONG_BUFFER_SIZE) {
+		throw new RuntimeException("Get long array to cache of size "
+			+ buffer.length);
+	    }
+	}
 	if (cached[TYPE_LONG] == CACHE_MAX) {
 	    // Let the GC cope with it
 	    if (STATISTICS) gc_long++;
+	    longHash.delete(buffer, hc);
 	    return;
 	}
 	long_cache[cached[TYPE_LONG]++] = buffer;
@@ -313,9 +436,21 @@ public class DataAllocator implements IbisStreamFlags {
      * @param buffer the float buffer
      */
     public synchronized void putFloatArray(float[] buffer) {
+	int hc = floatHash.getHashCode(buffer);
+	if (floatHash.find(buffer, hc) == 0) {
+	    // It is not ours. Stay away from it.
+	    return;
+	}
+	if (ASSERTS) {
+	    if (buffer.length != FLOAT_BUFFER_SIZE) {
+		throw new RuntimeException("Get float array to cache of size "
+			+ buffer.length);
+	    }
+	}
 	if (cached[TYPE_FLOAT] == CACHE_MAX) {
 	    // Let the GC cope with it
 	    if (STATISTICS) gc_float++;
+	    floatHash.delete(buffer, hc);
 	    return;
 	}
 	float_cache[cached[TYPE_FLOAT]++] = buffer;
@@ -329,9 +464,21 @@ public class DataAllocator implements IbisStreamFlags {
      * @param buffer the double buffer
      */
     public synchronized void putDoubleArray(double[] buffer) {
+	int hc = doubleHash.getHashCode(buffer);
+	if (doubleHash.find(buffer, hc) == 0) {
+	    // It is not ours. Stay away from it.
+	    return;
+	}
+	if (ASSERTS) {
+	    if (buffer.length != DOUBLE_BUFFER_SIZE) {
+		throw new RuntimeException("Get double array to cache of size "
+			+ buffer.length);
+	    }
+	}
 	if (cached[TYPE_DOUBLE] == CACHE_MAX) {
 	    // Let the GC cope with it
 	    if (STATISTICS) gc_double++;
+	    doubleHash.delete(buffer, hc);
 	    return;
 	}
 	double_cache[cached[TYPE_DOUBLE]++] = buffer;
