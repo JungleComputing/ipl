@@ -62,19 +62,14 @@ import org.apache.bcel.classfile.ConstantDouble;
 import org.apache.bcel.classfile.ConstantInteger;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantFloat;
-import org.apache.bcel.classfile.ConstantInterfaceMethodref;
 import org.apache.bcel.classfile.ConstantLong;
-import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantString;
-import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.generic.*;
 import org.apache.bcel.verifier.*;
 import org.apache.bcel.verifier.exc.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
+
 
 /**
  * A Visitor class testing for valid preconditions of JVM instructions.
@@ -330,7 +325,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 	 	// visitLoadClass(o) has been called before: Every FieldOrMethod
 	 	// implements LoadClass.
 	 	// visitCPInstruction(o) has been called before.
-//TODO
+        //TODO
 	 }
 	 
 	/**
@@ -432,7 +427,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 					constraintViolated(o, "Reference type expected on top of stack, but is: '"+stack().peek()+"'.");
 				}
 				referenceTypeIsInitialized(o, (ReferenceType) (stack().peek()));
-				ReferenceType objectref = (ReferenceType) (stack().peek());
+				//ReferenceType objectref = (ReferenceType) (stack().peek());
 				// TODO: This can only be checked if using Staerk-et-al's "set of object types" instead of a
 				// "wider cast object type" created during verification.
 				//if (! (objectref.isAssignmentCompatibleWith(mg.getType())) ){
@@ -608,7 +603,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 		Type value    = stack().peek(0);
 
 		indexOfInt(o, index);
-		valueOfInt(o, index);
+		valueOfInt(o, value);
 		if (arrayrefOfArrayType(o, arrayref)){
 			if (! ( (((ArrayType) arrayref).getElementType().equals(Type.BOOLEAN)) ||
 			        (((ArrayType) arrayref).getElementType().equals(Type.BYTE)) ) )
@@ -650,7 +645,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 		Type value = stack().peek(0);
 		
 		indexOfInt(o, index);
-		valueOfInt(o, index);
+		valueOfInt(o, value);
 		if (arrayrefOfArrayType(o, arrayref)){
 			if (! ((ArrayType) arrayref).getElementType().equals(Type.CHAR) ){
 				constraintViolated(o, "The 'arrayref' does not refer to an array with elements of type char but to an array of type "+((ArrayType) arrayref).getElementType()+".");
@@ -1663,7 +1658,8 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 			constraintViolated(o, "The 'count' argument must not be 0.");
 		}
 		// It is a ConstantInterfaceMethodref, Pass 3a made it sure.
-		ConstantInterfaceMethodref cimr = (ConstantInterfaceMethodref) (cpg.getConstant(o.getIndex()));
+		// TODO: Do we want to do anything with it?
+        //ConstantInterfaceMethodref cimr = (ConstantInterfaceMethodref) (cpg.getConstant(o.getIndex()));
 		
 		// the o.getClassType(cpg) type has passed pass 2; see visitLoadClass(o).
 
@@ -1692,8 +1688,8 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 			}
 			if (! fromStack.equals(fromDesc)){
 				if (fromStack instanceof ReferenceType && fromDesc instanceof ReferenceType){
-					ReferenceType rFromStack = (ReferenceType) fromStack;
-					ReferenceType rFromDesc = (ReferenceType) fromDesc;
+					//ReferenceType rFromStack = (ReferenceType) fromStack;
+					//ReferenceType rFromDesc = (ReferenceType) fromDesc;
 					// TODO: This can only be checked when using Staerk-et-al's "set of object types"
 					// instead of a "wider cast object type" created during verification.
 					//if ( ! rFromStack.isAssignmentCompatibleWith(rFromDesc) ){
@@ -1723,10 +1719,8 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 			}
 		}
 		
-		String objref_classname = ((ObjectType) objref).getClassName();
-
-		String theInterface = o.getClassName(cpg);
-	
+		// String objref_classname = ((ObjectType) objref).getClassName();
+	    // String theInterface = o.getClassName(cpg);
 		// TODO: This can only be checked if we're using Staerk-et-al's "set of object types"
 		//       instead of "wider cast object types" generated during verification.
 		//if ( ! Repository.implementationOf(objref_classname, theInterface) ){
@@ -1782,9 +1776,9 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 					ReferenceType rFromDesc = (ReferenceType) fromDesc;
 					// TODO: This can only be checked using Staerk-et-al's "set of object types", not
 					// using a "wider cast object type".
-					//if ( ! rFromStack.isAssignmentCompatibleWith(rFromDesc) ){
-					//	constraintViolated(o, "Expecting a '"+fromDesc+"' but found a '"+fromStack+"' on the stack (which is not assignment compatible).");
-					//}
+					if ( ! rFromStack.isAssignmentCompatibleWith(rFromDesc) ){
+						constraintViolated(o, "Expecting a '"+fromDesc+"' but found a '"+fromStack+"' on the stack (which is not assignment compatible).");
+					}
 				}
 				else{
 					constraintViolated(o, "Expecting a '"+fromDesc+"' but found a '"+fromStack+"' on the stack.");
@@ -1860,11 +1854,11 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 				if (fromStack instanceof ReferenceType && fromDesc instanceof ReferenceType){
 					ReferenceType rFromStack = (ReferenceType) fromStack;
 					ReferenceType rFromDesc = (ReferenceType) fromDesc;
-					// TODO: This check can only be done using Staerk-et-al's "set of object types"
+					// TODO: This check can possibly only be done using Staerk-et-al's "set of object types"
 					// instead of a "wider cast object type" created during verification.
-					//if ( ! rFromStack.isAssignmentCompatibleWith(rFromDesc) ){
-					//	constraintViolated(o, "Expecting a '"+fromDesc+"' but found a '"+fromStack+"' on the stack (which is not assignment compatible).");
-					//}
+					if ( ! rFromStack.isAssignmentCompatibleWith(rFromDesc) ){
+						constraintViolated(o, "Expecting a '"+fromDesc+"' but found a '"+fromStack+"' on the stack (which is not assignment compatible).");
+					}
 				}
 				else{
 					constraintViolated(o, "Expecting a '"+fromDesc+"' but found a '"+fromStack+"' on the stack.");
@@ -1906,11 +1900,11 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 				if (fromStack instanceof ReferenceType && fromDesc instanceof ReferenceType){
 					ReferenceType rFromStack = (ReferenceType) fromStack;
 					ReferenceType rFromDesc = (ReferenceType) fromDesc;
-					// TODO: This can only be checked when using Staerk-et-al's "set of object types" instead
+					// TODO: This can possibly only be checked when using Staerk-et-al's "set of object types" instead
 					// of a single "wider cast object type" created during verification.
-					//if ( ! rFromStack.isAssignmentCompatibleWith(rFromDesc) ){
-					//	constraintViolated(o, "Expecting a '"+fromDesc+"' but found a '"+fromStack+"' on the stack (which is not assignment compatible).");
-					//}
+					if ( ! rFromStack.isAssignmentCompatibleWith(rFromDesc) ){
+						constraintViolated(o, "Expecting a '"+fromDesc+"' but found a '"+fromStack+"' on the stack (which is not assignment compatible).");
+					}
 				}
 				else{
 					constraintViolated(o, "Expecting a '"+fromDesc+"' but found a '"+fromStack+"' on the stack.");
@@ -2483,11 +2477,12 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 			else{
 				constraintViolated(o, "The stack top type '"+value+"' is not of a reference type as expected.");
 			}
-			// TODO: This can only be checked using Staerk-et-al's "set-of-object types", not
+			// TODO: This can possibly only be checked using Staerk-et-al's "set-of-object types", not
 			// using "wider cast object types" created during verification.
-			//if (!(rvalue.isAssignmentCompatibleWith(shouldbe))){
-			//	constraintViolated(o, "The stack top type '"+value+"' is not assignment compatible with '"+shouldbe+"'.");
-			//}
+			// Comment it out if you encounter problems. See also the analogon at visitPUTSTATIC.
+			if (!(rvalue.isAssignmentCompatibleWith(shouldbe))){
+				constraintViolated(o, "The stack top type '"+value+"' is not assignment compatible with '"+shouldbe+"'.");
+			}
 		}
 		else{
 			if (shouldbe != value){
@@ -2545,6 +2540,9 @@ public class InstConstraintVisitor extends EmptyVisitor implements org.apache.bc
 			else{
 				constraintViolated(o, "The stack top type '"+value+"' is not of a reference type as expected.");
 			}
+			// TODO: This can possibly only be checked using Staerk-et-al's "set-of-object types", not
+			// using "wider cast object types" created during verification.
+			// Comment it out if you encounter problems. See also the analogon at visitPUTFIELD.
 			if (!(rvalue.isAssignmentCompatibleWith(shouldbe))){
 				constraintViolated(o, "The stack top type '"+value+"' is not assignment compatible with '"+shouldbe+"'.");
 			}

@@ -12,7 +12,6 @@ import ibis.util.BT_Analyzer;
 import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
-import org.apache.bcel.util.*;
 
 class Main { 
 	

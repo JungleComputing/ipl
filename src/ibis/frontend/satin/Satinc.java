@@ -3,7 +3,6 @@ package ibis.frontend.satin;
 import org.apache.bcel.*;
 import org.apache.bcel.classfile.*;
 import org.apache.bcel.generic.*;
-import org.apache.bcel.util.*;
 import org.apache.bcel.verifier.*;
 
 import java.util.Vector;

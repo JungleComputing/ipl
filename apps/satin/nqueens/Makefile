@@ -10,20 +10,20 @@ include ../config.mk
 
 java: 
 	$(JAVAC_COMMAND) $(MAIN)
-#	cd abort; make java
-#	cd simple_abort; make java
-#	cd exceptions; make java
+#	cd abort && make java
+#	cd simple_abort && make java
+#	cd exceptions && make java
 
 satin: 
 	$(IBISC_COMMAND) -no-aborts $(MAIN)
-#	cd abort; make satin
-#	cd simple_abort; make satin
-#	cd exceptions; make satin
+#	cd abort && make satin
+#	cd simple_abort && make satin
+#	cd exceptions && make satin
 
 clean:
 	rm -f $(TRASH_FILES) test_out test_err test_res test_par_out test_par_err test_par_res
-	cd abort; make clean
-	cd simple_abort; make clean
-	cd exceptions; make clean
+	cd abort && make clean
+	cd simple_abort && make clean
+	cd exceptions && make clean
 
 include ../run.mk

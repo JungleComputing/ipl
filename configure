@@ -41,7 +41,7 @@ then
 fi
 if [ x$BCEL_ROOT = x ]
 then
-	BCEL_ROOT=/home2/ceriel/bcel-5.0
+	BCEL_ROOT=/home2/ceriel/bcel-5.1
 fi
 if [ x$PANDA_ROOT = x ]
 then

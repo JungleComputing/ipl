@@ -2,7 +2,7 @@ import ibis.ipl.*;
 
 import java.util.Properties;
 
-class Sender { 
+class Sender {
 
 	SendPort sport;
 	ReceivePort rport;
@@ -10,8 +10,8 @@ class Sender {
 	Sender(ReceivePort rport, SendPort sport) {
 		this.rport = rport;
 		this.sport = sport;
-	} 
-	
+	}
+
 	void send(int count) throws IbisIOException {
 		// warmup
 		for(int i = 0; i< count; i++) {
@@ -25,7 +25,7 @@ class Sender {
 			writeMessage.writeInt(6);
 			writeMessage.send();
 			writeMessage.finish();
-			
+
 			ReadMessage readMessage = rport.receive();
 			byte b = readMessage.readByte();
 			b = readMessage.readByte();
@@ -46,7 +46,7 @@ class Sender {
 			writeMessage.writeInt(6);
 			writeMessage.send();
 			writeMessage.finish();
-			
+
 			ReadMessage readMessage = rport.receive();
 			byte b = readMessage.readByte();
 			b = readMessage.readByte();
@@ -58,9 +58,9 @@ class Sender {
 		double speed = (time * 1000.0) / (double)count;
 		System.err.println("Latency: " + count + " calls took " + (time/1000.0) + " seconds, time/call = " + speed + " micros");
 	}
-} 
+}
 
-class ExplicitReceiver { 
+class ExplicitReceiver {
 
 	SendPort sport;
 	ReceivePort rport;
@@ -68,9 +68,9 @@ class ExplicitReceiver {
 	ExplicitReceiver(ReceivePort rport, SendPort sport) {
 		this.rport = rport;
 		this.sport = sport;
-	} 
+	}
 
-	void receive(int count) throws IbisIOException { 		
+	void receive(int count) throws IbisIOException {
 		for(int i = 0; i< count; i++) {
 			ReadMessage readMessage = rport.receive();
 			byte b = readMessage.readByte();
@@ -81,17 +81,17 @@ class ExplicitReceiver {
 			p = readMessage.readInt();
 			p = readMessage.readInt();
 			readMessage.finish();
-			
+
 			WriteMessage writeMessage = sport.newMessage();
 			writeMessage.writeByte((byte)0);
 			writeMessage.writeByte((byte)1);
 			writeMessage.send();
 			writeMessage.finish();
 		}
-	} 
-} 
+	}
+}
 
-class UpcallReceiver implements Upcall { 
+class UpcallReceiver implements Upcall {
 
 	SendPort sport;
 
@@ -101,11 +101,11 @@ class UpcallReceiver implements Upcall {
 	UpcallReceiver(SendPort sport, int max) {
 		this.sport = sport;
 		this.max = max;
-	} 
-	
-	public void upcall(ReadMessage readMessage) { 
+	}
 
-		try { 
+	public void upcall(ReadMessage readMessage) {
+
+		try {
 			byte b = readMessage.readByte();
 			b = readMessage.readByte();
 			int p = readMessage.readInt();
@@ -114,7 +114,7 @@ class UpcallReceiver implements Upcall {
 			p = readMessage.readInt();
 			p = readMessage.readInt();
 			readMessage.finish();
-			
+
 			WriteMessage writeMessage = sport.newMessage();
 			writeMessage.writeByte((byte)0);
 			writeMessage.writeByte((byte)1);
@@ -123,39 +123,39 @@ class UpcallReceiver implements Upcall {
 
 			count++;
 
-			if (count == max) { 
-				synchronized (this) { 
+			if (count == max) {
+				synchronized (this) {
 					notifyAll();
 				}
 			}
 
-			
-		} catch (Exception e) { 			
+
+		} catch (Exception e) {
 			System.out.println("EEEEEK " + e);
 			e.printStackTrace();
-		} 
-	} 
+		}
+	}
 
-	synchronized void finish() { 
-		while (count < max) { 
-			try { 
+	synchronized void finish() {
+		while (count < max) {
+			try {
 				wait();
-			} catch (Exception e) { 
-			} 
-		}		
+			} catch (Exception e) {
+			}
+		}
 
 		System.err.println("Finished");
 
-	} 
-} 
+	}
+}
 
-class Latency { 
+class Latency {
 
 	static Ibis ibis;
 	static Registry registry;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
-		
+	public static ReceivePortIdentifier lookup(String name) throws IbisIOException {
+
 		ReceivePortIdentifier temp = null;
 
 		do {
@@ -168,21 +168,21 @@ class Latency {
 					// ignore
 				}
 			}
-			
-		} while (temp == null);
-				
-		return temp;
-	} 
 
-	public static void main(String [] args) { 
+		} while (temp == null);
+
+		return temp;
+	}
+
+	public static void main(String [] args) {
 		/* Parse commandline. */
 
 		boolean upcall = false;
 
 		int count = Integer.parseInt(args[0]);
 		int rank = 0, remoteRank = 1;
-		
-		if (args.length > 1) { 
+
+		if (args.length > 1) {
 			upcall = args[1].equals("-u");
 		}
 
@@ -193,8 +193,8 @@ class Latency {
 			StaticProperties s = new StaticProperties();
 			PortType t = ibis.createPortType("test type", s);
 
-			SendPort sport = t.createSendPort();					      
-			ReceivePort rport;			
+			SendPort sport = t.createSendPort();
+			ReceivePort rport;
 			Latency lat = null;
 
 			IbisIdentifier master = (IbisIdentifier) registry.elect("latency", ibis.identifier());
@@ -206,29 +206,29 @@ class Latency {
 				remoteRank = 0;
 			}
 
-			if (rank == 0) { 
+			if (rank == 0) {
 
 				rport = t.createReceivePort("test port 0");
-								
-				sport.connect(lookup("test port 1"));		
+
+				sport.connect(lookup("test port 1"));
 
 				Sender sender = new Sender(rport, sport);
 				sender.send(count);
-				
-			} else { 
+
+			} else {
 
 				sport.connect(lookup("test port 0"));
 
-				if (upcall) { 				       
+				if (upcall) {
 					UpcallReceiver receiver = new UpcallReceiver(sport, 2*count);
 					rport = t.createReceivePort("test port 1", receiver);
 					receiver.finish();
-				} else { 
+				} else {
 					rport = t.createReceivePort("test port 1");
 					ExplicitReceiver receiver = new ExplicitReceiver(rport, sport);
 					receiver.receive(2*count);
-				} 
-			} 
+				}
+			}
 
 			/* free the send ports first */
                         sport.free();
@@ -237,10 +237,14 @@ class Latency {
 
                         System.exit(0);
 
-		} catch (IbisIOException e) { 
+		} catch (IbisIOException e) {
+			System.out.println("Got exception " + e);
+			System.out.println("StackTrace:");
+			e.printStackTrace();
+		} catch (IbisException e) {
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();
 		}
-	} 
-} 
+	}
+}

@@ -1,14 +1,15 @@
 import ibis.ipl.*;
+import ibis.util.PoolInfo;
 
 import java.util.Properties;
 
-class Latency { 
+class Latency {
 
 	static Ibis ibis;
 	static Registry registry;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
-		
+	public static ReceivePortIdentifier lookup(String name) throws IbisIOException {
+
 		ReceivePortIdentifier temp = null;
 
 		do {
@@ -21,29 +22,27 @@ class Latency {
 					// ignore
 				}
 			}
-			
-		} while (temp == null);
-				
-		return temp;
-	} 
 
-	public static void main(String [] args) { 
+		} while (temp == null);
+
+		return temp;
+	}
+
+	public static void main(String [] args) {
 		/* Parse commandline. */
 
 		boolean upcall = false;
 
 		int count = Integer.parseInt(args[0]);
-		
-		if (args.length > 1) { 
+
+		if (args.length > 1) {
 			upcall = args[1].equals("-u");
 		}
 
-		Properties p = System.getProperties();
-		String temp = p.getProperty("pool_host_number");
-		int rank = Integer.parseInt(temp);
-		temp = p.getProperty("pool_total_hosts");
+		PoolInfo info = new PoolInfo();
 
-		int size = Integer.parseInt(temp);
+		int rank = info.rank();
+		int size = info.size();
 		int remoteRank = (rank == 0 ? 1 : 0);
 
 		try {
@@ -53,21 +52,21 @@ class Latency {
 			StaticProperties s = new StaticProperties();
 			PortType t = ibis.createPortType("test type", s);
 
-			ReceivePort rport = t.createReceivePort("receive port " + rank);			
-			SendPort sport = t.createSendPort("send port " + rank);		       		      
+			ReceivePort rport = t.createReceivePort("receive port " + rank);
+			SendPort sport = t.createSendPort("send port " + rank);
 
 			Latency lat = null;
-		      
-			if (rank == 0) { 
+
+			if (rank == 0) {
 
 				sport.connect(rport.identifier());
 
 				System.err.println(rank + "*******  connect to myself");
 
-				for (int i=1;i<size;i++) { 				
+				for (int i=1;i<size;i++) {
 
 					System.err.println(rank + "******* receive");
-				
+
 					ReadMessage r = rport.receive();
 					ReceivePortIdentifier id = (ReceivePortIdentifier) r.readObject();
 					r.finish();
@@ -79,7 +78,7 @@ class Latency {
 
 				System.err.println(rank + "*******  connect done ");
 
-				WriteMessage w = sport.newMessage(); 
+				WriteMessage w = sport.newMessage();
 				w.writeInt(42);
 				w.send();
 				w.finish();
@@ -88,35 +87,39 @@ class Latency {
 
 			} else {
 				ReceivePortIdentifier id = lookup("receive port 0");
-				
+
 
 				System.err.println(rank + "*******  connect to 0");
 				sport.connect(id);
-				
+
 
 				System.err.println(rank + "*******  connect done ");
 
-				WriteMessage w = sport.newMessage(); 
+				WriteMessage w = sport.newMessage();
 				w.writeObject(rport.identifier());
 				w.send();
 				w.finish();
 
 				sport.free();
-			} 
-			       
+			}
+
 			ReadMessage r = rport.receive();
 			int result = r.readInt();
 			r.finish();
-			
+
 			System.out.println(rank + " got " + result);
 
-			rport.free();			      
+			rport.free();
 			ibis.end();
 
-		} catch (IbisIOException e) { 
+		} catch (IbisIOException e) {
+			System.out.println("Got exception " + e);
+			System.out.println("StackTrace:");
+			e.printStackTrace();
+		} catch (IbisException e) {
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();
 		}
-	} 
-} 
+	}
+}

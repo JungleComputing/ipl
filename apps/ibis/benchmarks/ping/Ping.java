@@ -54,7 +54,7 @@ public final class Ping {
 	 * The average of {@link #param_nb_tests} individual results is sent over STDOUT.
 	 *
 	 * <BR><B>Note</B>: an additional dummy testing cycle is performed as a warm-up before the
-	 * {@link param_nb_tests} testing cycles. 
+	 * {@link param_nb_tests} testing cycles.
 	 */
 	final static int     	    param_nb_tests          = 		  5;
 
@@ -103,9 +103,9 @@ public final class Ping {
          */
 	final static boolean 	    param_log               = 	      false;
 
-	/* 
+	/*
          * ____________________________________________________________________
-         * Internal variables 
+         * Internal variables
          *
          */
 	final static Timer	    timer                   = (param_rdtsc_timer)?(Timer)new Rdtsc():(Timer)new ibis.util.Timer();
@@ -116,14 +116,14 @@ public final class Ping {
 	static       ReceivePort    rport                   =          null;
 	static 	     Ibis     	    ibis       	      	    =	       null;
 	static 	     Registry 	    registry   	      	    =	       null;
-	
+
 
 	static void mark_buffer(int len) {
 		byte n = 0;
 		int  i = 0;
-		
+
 		for (i = 0; i < len; i++) {
-			n += 7;			
+			n += 7;
 			buffer[i] = n;
 		}
 	}
@@ -140,7 +140,7 @@ public final class Ping {
 		boolean ok = true;
 		byte    n  = 0;
 		int     i  = 0;
-		
+
 		for (i = 0; i < len; i++) {
 			n += 7;
 
@@ -172,7 +172,7 @@ public final class Ping {
 
                 for (int i = 0; i < fieldSize; i++) {
                         fb.append(' ');
-                }                
+                }
 
                 NumberFormat f = NumberFormat.getNumberInstance();
 
@@ -185,13 +185,13 @@ public final class Ping {
 
                 return fb.substring(l - fieldSize, l);
         }
-        
+
         static String alignRight(int num, int fieldSize) {
                 StringBuffer fb = new StringBuffer();
 
                 for (int i = 0; i < fieldSize; i++) {
                         fb.append(' ');
-                }                
+                }
 
                 NumberFormat f = NumberFormat.getNumberInstance();
 
@@ -220,12 +220,12 @@ public final class Ping {
                 fb.append(alignRight(latency, 7));
                 System.err.println(""+fb);
 	}
-	
+
 	static void dispAverageResult(int _size, double result) {
 		double millionbyte = (_size * (double)param_nb_tests * (double)param_nb_samples) / (result / (2 - (param_one_way?1:0)));
 		double megabyte    = millionbyte / 1.048576;
 		double latency     = result / param_nb_tests / param_nb_samples / (2 - (param_one_way?1:0));
-		
+
                 StringBuffer fb = new StringBuffer("= "+rank+" "+remoteRank+"  ");
                 fb.append(alignRight(_size, 7));
                 fb.append("  ");
@@ -255,17 +255,17 @@ public final class Ping {
                                 if (param_log) {
                                         System.err.println("Ping: sending: --> "+nb_samples);
                                 }
-                                
+
 				WriteMessage out = sport.newMessage();
 				out.writeArray(buffer);
 				out.send();
-				
+
                                 out.finish();
                                 if (param_log) {
                                         System.err.println("Ping: sending: <-- "+nb_samples);
                                 }
                         }
-                        
+
 
 			if (param_control_receive) {
 				clear_buffer();
@@ -274,7 +274,7 @@ public final class Ping {
                         if (param_log) {
                                 System.err.println("Ping: receiving: -->");
                         }
-                        
+
 			ReadMessage in = rport.receive();
                         in.readArray(buffer);
                         in.finish();
@@ -286,7 +286,7 @@ public final class Ping {
                         if (param_log) {
                                 System.err.println("Ping: receiving: <--");
                         }
-                        
+
 			time = 1000 * (System.currentTimeMillis() - time);
 			timer.stop();
 			double _time =  timer.totalTimeVal();
@@ -294,12 +294,12 @@ public final class Ping {
 			dispTestResult(param_nb_tests - nb_tests, _size, time);
 			dispTestResult(param_nb_tests - nb_tests, _size, _time);
 			System.err.println();
-			
+
 			if ((param_nb_tests - nb_tests) > 0) {
 				sum += time;
 			}
 		}
-		
+
 		return sum;
 	}
 
@@ -321,7 +321,7 @@ public final class Ping {
                                 if (param_log) {
                                         System.err.println("Ping: sending: --> "+nb_samples);
                                 }
-                                
+
 				WriteMessage out = sport.newMessage();
 				out.writeArray(buffer);
 				out.send();
@@ -329,7 +329,7 @@ public final class Ping {
                                 if (param_log) {
                                         System.err.println("Ping: sending: <-- "+nb_samples);
                                 }
-                                
+
 				if (param_control_receive) {
 					clear_buffer();
 				}
@@ -337,14 +337,14 @@ public final class Ping {
                                 if (param_log) {
                                         System.err.println("Ping: receiving: --> "+nb_samples);
                                 }
-                                
+
 				ReadMessage in = rport.receive();
 				in.readArray(buffer);
 				in.finish();
                                 if (param_log) {
                                         System.err.println("Ping: receiving: <-- "+nb_samples);
                                 }
-                                
+
 				if (param_control_receive) {
 					control_buffer(_size);
 				}
@@ -362,8 +362,8 @@ public final class Ping {
 		}
 
 		return sum;
-	}	
-	
+	}
+
 	static void oneWayPong(final int _size) throws Exception {
 		int nb_tests = param_nb_tests + 1;
 
@@ -374,16 +374,16 @@ public final class Ping {
                                 if (param_log) {
                                         System.err.println("Pong: receiving: --> "+nb_samples);
                                 }
-                                
+
 				ReadMessage in = rport.receive();
 				in.readArray(buffer);
 				in.finish();
                                 if (param_log) {
                                         System.err.println("Pong: receiving: <-- "+nb_samples);
                                 }
-                                
+
 			}
-			
+
                         if (param_log) {
                                 System.err.println("Pong: sending: -->");
                         }
@@ -397,8 +397,8 @@ public final class Ping {
                                 System.err.println("Pong: sending: <--");
                         }
 		}
-	}	
-	
+	}
+
 	static void twoWayPong(final int _size) throws Exception {
 		int nb_tests = param_nb_tests + 1;
 
@@ -409,19 +409,19 @@ public final class Ping {
                                 if (param_log) {
                                         System.err.println("Pong: receiving: --> "+nb_samples);
                                 }
-                                
+
 				ReadMessage in = rport.receive();
 				in.readArray(buffer);
 				in.finish();
                                 if (param_log) {
                                         System.err.println("Pong: receiving: <-- "+nb_samples);
                                 }
-                                
+
 
                                 if (param_log) {
                                         System.err.println("Pong: sending: --> "+nb_samples);
                                 }
-                                
+
 				WriteMessage out = sport.newMessage();
 				out.writeArray(buffer);
 				out.send();
@@ -449,7 +449,7 @@ public final class Ping {
 
 			if (param_one_way) {
 				result = oneWayPing(_size);
-			} else {		      
+			} else {
 				result = twoWayPing(_size);
 			}
 
@@ -470,7 +470,7 @@ public final class Ping {
 
 			if (param_one_way) {
 				oneWayPong(_size);
-			} else {	   
+			} else {
 				twoWayPong(_size);
 			}
 
@@ -491,11 +491,11 @@ public final class Ping {
 					// ignore
 				}
 			}
-			
+
 		} while (temp == null);
-				
+
 		return temp;
-	} 
+	}
 
 	static void connect(SendPort s, ReceivePortIdentifier ident) {
 		boolean success = false;
@@ -506,7 +506,7 @@ public final class Ping {
 			} catch (Exception e) {
 				System.err.println(e.getMessage());
 				e.printStackTrace();
-				
+
 				try {
 					Thread.sleep(500);
 				} catch (Exception e2) {
@@ -522,9 +522,9 @@ public final class Ping {
 			pong();
 		} else {
 			ping();
-		}		
+		}
 	}
-	
+
 	static void slave() throws Exception  {
 		if (param_one_way) {
 			pong();
@@ -533,11 +533,11 @@ public final class Ping {
 			pong();
 		}
 	}
-	
-	public static void main(String [] args) { 
+
+	public static void main(String [] args) {
 		try {
 			// Local initialization
-			
+
 			String id   = "ibis:" + (new Random()).nextInt();
 			//String name = "ibis.ipl.impl.tcp.TcpIbis";
 			//String name = "ibis.ipl.impl.messagePassing.PandaIbis";
@@ -568,14 +568,14 @@ public final class Ping {
 
 
 			// Connection setup and test
-			if (rank == 0) { 
+			if (rank == 0) {
 				rport = t.createReceivePort("ping 0");
 				rport.enableConnections();
 				ReceivePortIdentifier ident = lookup("ping 1");
 				connect(sport, ident);
 
 				master();
-			} else { 
+			} else {
 				ReceivePortIdentifier ident = lookup("ping 0");
 				connect(sport, ident);
 				rport = t.createReceivePort("ping 1");
@@ -587,7 +587,7 @@ public final class Ping {
                         rport.free();
 			ibis.end();
 
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();

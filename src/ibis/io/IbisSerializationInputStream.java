@@ -313,11 +313,11 @@ public final class IbisSerializationInputStream
 		return s;
     }
 
-    private void readArraySliceHeader(Class clazz, int len)
+    private void readArrayHeader(Class clazz, int len)
 		throws IOException {
 
 		if(DEBUG) {
-			System.err.println("readArraySliceHeader: class = " + clazz + " len = " + len);
+			System.err.println("readArrayHeader: class = " + clazz + " len = " + len);
 		}
 		int type;
 		while (true) {
@@ -367,55 +367,55 @@ public final class IbisSerializationInputStream
 
     public void readArray(boolean[] ref, int off, int len)
 	    throws IOException {
-		readArraySliceHeader(classBooleanArray, len);
+		readArrayHeader(classBooleanArray, len);
 		in.readArray(ref, off, len);
     }
 
     public void readArray(byte[] ref, int off, int len)
 	    throws IOException {
-		readArraySliceHeader(classByteArray, len);
+		readArrayHeader(classByteArray, len);
 		in.readArray(ref, off, len);
     }
 
     public void readArray(char[] ref, int off, int len)
 	    throws IOException {
-		readArraySliceHeader(classCharArray, len);
+		readArrayHeader(classCharArray, len);
 		in.readArray(ref, off, len);
     }
 
     public void readArray(short[] ref, int off, int len)
 	    throws IOException {
-		readArraySliceHeader(classShortArray, len);
+		readArrayHeader(classShortArray, len);
 		in.readArray(ref, off, len);
     }
 
     public void readArray(int[] ref, int off, int len)
 	    throws IOException {
-		readArraySliceHeader(classIntArray, len);
+		readArrayHeader(classIntArray, len);
 		in.readArray(ref, off, len);
     }
 
     public void readArray(long[] ref, int off, int len)
 	    throws IOException {
-		readArraySliceHeader(classLongArray, len);
+		readArrayHeader(classLongArray, len);
 		in.readArray(ref, off, len);
     }
 
     public void readArray(float[] ref, int off, int len)
 	    throws IOException {
-		readArraySliceHeader(classFloatArray, len);
+		readArrayHeader(classFloatArray, len);
 		in.readArray(ref, off, len);
     }
 
     public void readArray(double[] ref, int off, int len)
 	    throws IOException {
-		readArraySliceHeader(classDoubleArray, len);
+		readArrayHeader(classDoubleArray, len);
 		in.readArray(ref, off, len);
     }
 
     public void readArray(Object[] ref, int off, int len)
 	    throws IOException, ClassNotFoundException {
-		readArraySliceHeader(ref.getClass(), len);
+		readArrayHeader(ref.getClass(), len);
 		for (int i = off; i < off + len; i++) {
 			ref[i] = readObject();
 		}

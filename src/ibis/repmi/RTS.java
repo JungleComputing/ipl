@@ -5,6 +5,7 @@ import java.util.Properties;
 import java.util.Vector;
 
 import ibis.ipl.*;
+import ibis.util.PoolInfo;
 
 public final class RTS { 
 
@@ -77,9 +78,9 @@ public final class RTS {
 //                                registry = new GroupRegistry();
 
                                 /* I am the master */                           
-                                Properties p = System.getProperties();          
+				PoolInfo info = new PoolInfo();
 
-                                _size = getIntProperty(p, "pool_total_hosts");
+                                _size = info.size();
                                 _rank = 0;
                                 
                                 pool = new ReceivePortIdentifier[_size];
@@ -261,23 +262,4 @@ public final class RTS {
 
 		return null;			
         } 
-
-
-
-	private static int getIntProperty(Properties p, String name) throws RuntimeException {
-		
-		String temp = p.getProperty(name);
-		
-		if (temp == null) { 
-			throw new RuntimeException("Property " + name + " not found !");
-		}
-		
-		return Integer.parseInt(temp);
-	}
-
-
-
-
 }
-
-

@@ -8,6 +8,7 @@ package org.apache.bcel;
  * void registerObserver(RepositoryObserver n); method.
  *
  * Another fix: the ClassQueue object in BCEL is buggy. Don't use it.
+ * (Don't know about BCEL 5.1. It was so in BCEL 5.0).
  */
 
 /* ====================================================================
@@ -64,37 +65,32 @@ package org.apache.bcel;
  * <http://www.apache.org/>.
  */
 
-import org.apache.bcel.classfile.*;
+import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.util.*;
-import java.util.HashMap;
 import java.io.*;
 import java.util.Vector;
 
-/** 
- * Repository maintains informations about class interdependencies, e.g.
- * whether a class is a sub-class of another. JavaClass objects are put
- * into a cache which can be purged with clearCache().
+/**
+ * The repository maintains informations about class interdependencies, e.g.,
+ * whether a class is a sub-class of another. Delegates actual class loading
+ * to SyntheticRepository with current class path by default.
  *
- * All JavaClass objects used as arguments must have been obtained via
- * the repository or been added with addClass() manually. This is
- * because we have to check for object identity (==).
+ * @see org.apache.bcel.util.Repository
+ * @see org.apache.bcel.util.SyntheticRepository
  *
  * @version $Id$
- * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A
+ * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class Repository {
-  private static ClassPath class_path = new ClassPath();
-  private static HashMap classes;
-  private static JavaClass OBJECT; // should be final ...
+  private static org.apache.bcel.util.Repository _repository =
+    SyntheticRepository.getInstance();
   private static Vector observers = new Vector();
-
-  static { clearCache(); }
 
   /** Register a RepositoryObserver.
    */
   public static void registerObserver(RepositoryObserver n) {
     for (int i = 0; i < observers.size(); i++) {
-	if ((RepositoryObserver) (observers.elementAt(i)) == n) return;
+      if ((RepositoryObserver) (observers.elementAt(i)) == n) return;
     }
     observers.addElement(n);
   }
@@ -107,53 +103,69 @@ public abstract class Repository {
 
   private static void notifyObserver(String n) {
     for (int i = 0; i < observers.size(); i++) {
-	RepositoryObserver w = (RepositoryObserver) (observers.elementAt(i));
-	w.notify(n);
+      RepositoryObserver w = (RepositoryObserver) (observers.elementAt(i));
+      w.notify(n);
     }
   }
 
-  /** @return class object for given fully qualified class name.
+  /** @return currently used repository instance
+   */
+  public static org.apache.bcel.util.Repository getRepository() {
+    return _repository;
+  }
+
+  /** Set repository instance to be used for class loading
+   */
+  public static void setRepository(org.apache.bcel.util.Repository rep) {
+    _repository = rep;
+  }
+
+  /** Lookup class somewhere found on your CLASSPATH, or whereever the
+   * repository instance looks for it.
+   *
+   * @return class object for given fully qualified class name, or null
+   * if the class could not be found or parsed correctly
    */
   public static JavaClass lookupClass(String class_name) {
-    if(class_name == null || class_name.equals(""))
-      throw new RuntimeException("Invalid class name");
+    try {
+      JavaClass clazz = _repository.findClass(class_name);
 
-    class_name = class_name.replace('/', '.');
-
-    JavaClass clazz = (JavaClass)classes.get(class_name);
-
-    if(clazz == null) {
-      try {
-	InputStream is = class_path.getInputStream(class_name);
-	clazz = new ClassParser(is, class_name).parse();
-	class_name = clazz.getClassName();
-      } catch(IOException e) { return null; }
-
-      classes.put(class_name, clazz);
-      notifyObserver(class_name);
+      if(clazz == null) {
+	clazz = _repository.loadClass(class_name);
+	notifyObserver(class_name);
+      }
+      return clazz;
+    } catch(ClassNotFoundException ex) {
+	System.out.println("Class " + class_name + ": not found");
+	return null;
     }
+  }
 
-    return clazz;
+  /**
+   * Try to find class source via getResourceAsStream().
+   * @see Class
+   * @return JavaClass object for given runtime class
+   */
+  public static JavaClass lookupClass(Class clazz) {
+    try {
+      JavaClass cl = _repository.loadClass(clazz);
+      notifyObserver(cl.getClassName());
+      return cl;
+    } catch(ClassNotFoundException ex) { return null; }
   }
 
   /** @return class file object for given Java class.
    */
   public static ClassPath.ClassFile lookupClassFile(String class_name) {
     try {
-      return class_path.getClassFile(class_name);
+      return ClassPath.SYSTEM_CLASS_PATH.getClassFile(class_name);
     } catch(IOException e) { return null; }
   }
 
   /** Clear the repository.
    */
   public static void clearCache() {
-    classes = new HashMap();
-    OBJECT  = lookupClass("java.lang.Object");
-
-    if(OBJECT == null)
-      System.err.println("Warning: java.lang.Object not found on CLASSPATH!");
-    else
-      classes.put("java.lang.Object", OBJECT);
+    _repository.clear();
   }
 
   /**
@@ -162,37 +174,23 @@ public abstract class Repository {
    * @return old entry in repository
    */
   public static JavaClass addClass(JavaClass clazz) {
-    String    name = clazz.getClassName();
-    JavaClass cl   = (JavaClass)classes.get(name);
-
-    if(cl == null) {
-      classes.put(name, cl = clazz);
-      notifyObserver(name);
-    }
-
-    return cl;
+    JavaClass old = _repository.findClass(clazz.getClassName());
+    _repository.storeClass(clazz);
+    return old;
   }
 
   /**
-   * Remove class with given (fully qualifid) name from repository.
+   * Remove class with given (fully qualified) name from repository.
    */
   public static void removeClass(String clazz) {
-    classes.remove(clazz);
+    _repository.removeClass(_repository.findClass(clazz));
   }
 
   /**
    * Remove given class from repository.
    */
   public static void removeClass(JavaClass clazz) {
-    removeClass(clazz.getClassName());
-  }
-
-
-  private static final JavaClass getSuperClass(JavaClass clazz) {
-    if(clazz == OBJECT)
-      return null;
-
-    return lookupClass(clazz.getSuperclassName());
+    _repository.removeClass(clazz);
   }
 
   /**
@@ -200,17 +198,13 @@ public abstract class Repository {
    * Object is always the last element
    */
   public static JavaClass[] getSuperClasses(JavaClass clazz) {
-    ClassVector vec = new ClassVector();
-
-    for(clazz = getSuperClass(clazz); clazz != null; clazz = getSuperClass(clazz))
-      vec.addElement(clazz);
-
-    return vec.toArray();
+    return clazz.getSuperClasses();
   }
 
   /**
    * @return list of super classes of clazz in ascending order, i.e.,
-   * Object is always the last element. "null", if clazz cannot be found.
+   * Object is always the last element. return "null", if class
+   * cannot be found.
    */
   public static JavaClass[] getSuperClasses(String class_name) {
     JavaClass jc = lookupClass(class_name);
@@ -219,41 +213,11 @@ public abstract class Repository {
 
   /**
    * @return all interfaces implemented by class and its super
-   * classes and the interfaces that those interfaces extend, and so on
+   * classes and the interfaces that those interfaces extend, and so on.
+   * (Some people call this a transitive hull).
    */
   public static JavaClass[] getInterfaces(JavaClass clazz) {
-    ClassVector vec   = new ClassVector();
-    Vector  queue = new Vector();
-
-    queue.addElement(clazz);
-
-    while(!queue.isEmpty()) {
-      clazz = (JavaClass) (queue.firstElement());
-      queue.remove(clazz);
-
-      String   s          = clazz.getSuperclassName();
-      String[] interfaces = clazz.getInterfaceNames();
-
-      if(clazz.isInterface())
-	vec.addElement(clazz);
-      else if(!s.equals("java.lang.Object")) {
-        JavaClass cl = lookupClass(s);
-	if (cl == null) {
-	    System.err.println("warning: could not find class " + s);
-	}
-	else queue.addElement(cl);
-      }
-      
-      for(int i=0; i < interfaces.length; i++) {
-	JavaClass cl = lookupClass(interfaces[i]);
-	if (cl == null) {
-	    System.err.println("warning: could not find interface " + interfaces[i]);
-	}
-	else queue.addElement(cl);
-      }
-    }
-
-    return vec.toArray();
+    return clazz.getAllInterfaces();
   }
 
   /**
@@ -265,22 +229,11 @@ public abstract class Repository {
   }
 
   /**
+   * Equivalent to runtime "instanceof" operator.
    * @return true, if clazz is an instance of super_class
    */
   public static boolean instanceOf(JavaClass clazz, JavaClass super_class) {
-    if(clazz == super_class)
-      return true;
-
-    JavaClass[] super_classes = getSuperClasses(clazz);
-
-    for(int i=0; i < super_classes.length; i++)
-      if(super_classes[i] == super_class)
-	return true;
-
-    if(super_class.isInterface())
-      return implementationOf(clazz, super_class);
-
-    return false;
+    return clazz.instanceOf(super_class);
   }
 
   /**
@@ -289,7 +242,7 @@ public abstract class Repository {
   public static boolean instanceOf(String clazz, String super_class) {
     return instanceOf(lookupClass(clazz), lookupClass(super_class));
   }
-    
+
   /**
    * @return true, if clazz is an instance of super_class
    */
@@ -308,17 +261,8 @@ public abstract class Repository {
    * @return true, if clazz is an implementation of interface inter
    */
   public static boolean implementationOf(JavaClass clazz, JavaClass inter) {
-    if(clazz == inter)
-      return true;
-
-    JavaClass[] super_interfaces = getInterfaces(clazz);
-
-    for(int i=0; i < super_interfaces.length; i++) {
-      if(super_interfaces[i] == inter)
-	return true;
-    }
-
-    return false;
+    if (clazz == null || inter == null) return false;
+    return clazz.implementationOf(inter);
   }
 
   /**
@@ -342,3 +286,4 @@ public abstract class Repository {
     return implementationOf(lookupClass(clazz), inter);
   }
 }
+
