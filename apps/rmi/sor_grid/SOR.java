@@ -154,7 +154,7 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 		    break;
 		}
 	    }
-System.err.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg);
+System.out.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg);
 	
 	    if (homogeneous) {
 		for (int i=0;i<nodes;i++) {
@@ -319,7 +319,7 @@ System.err.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 		}	
 	}
 
-	public void start (boolean doIO) throws RemoteException {
+	public void start (boolean doIO, String runName) throws RemoteException {
 		int phase;
 		int iteration;               /* counters */
 
@@ -460,10 +460,12 @@ System.err.println("in get_bounds(); nodes " + nodes + " speed_avg " + speed_avg
 		}
 
 		if (doIO && (rank == 0 || nodes == 1)){
-			System.out.println("SOR " + nrow + " x " + ncol + " took " + ((t_end - t_start)/1000.0) + " sec.");
+			System.out.println(runName + " " + nrow + " x " + ncol + " took " + ((t_end - t_start)/1000.0) + " sec.");
 			System.out.println("using " + iteration + " iterations, diff is " + maxdiff + " (allowed diff " + stopdiff + ")");
-			System.out.println("Application: " + "SOR " + nrow + " x " + ncol + "; Ncpus: " + info.size() +
-					   "; time: " + (t_end-t_start)/1000.0 + " seconds\n");
+			if (! runName.equals("warmup")) {
+			    System.out.println("Application: " + "SOR " + nrow + " x " + ncol + "; Ncpus: " + info.size() +
+					       "; time: " + (t_end-t_start)/1000.0 + " seconds\n");
+			}
 		}
 	}
 }

@@ -54,6 +54,7 @@ class Main {
 	    boolean hetero_speed = false;
 	    boolean asyncVisualization = false;
 	    int optionCount = 0;
+	    boolean warmup = false;
 
 	    for(int i=0; i<args.length; i++) {
 		if (false) {
@@ -70,6 +71,8 @@ class Main {
 		} else if (args[i].equals("-asyncViz")) {
 		    visualization = true;
 		    asyncVisualization = true;
+		} else if (args[i].equals("-warmup")) {
+		    warmup = true;
 		} else {
 		    if(optionCount == 0) {
 			try {
@@ -166,7 +169,7 @@ class Main {
 		local = new SOR(1024, 1024, nit, sync, seqGlobal, false, seqInfo);
 		table = seqGlobal.table((i_SOR) local, seqInfo.rank());
 		local.setTable(table);
-		local.start(false);
+		local.start(false, "Calibrate");
 		speed = 1.0 / local.getElapsedTime();
 	    }
 	    
@@ -183,7 +186,11 @@ class Main {
 	    table = global.table((i_SOR) local, info.rank());
 	    local.setTable(table);
 
-	    local.start(true);
+	    if (warmup) {
+		local.start(true, "warmup");
+	    }
+
+	    local.start(true, "SOR");
 
 	    if (info.rank() == 0) {
 		Thread.sleep(2000); 
