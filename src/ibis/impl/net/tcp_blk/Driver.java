@@ -1,5 +1,9 @@
 package ibis.impl.net.tcp_blk;
 
+import java.net.Socket;
+
+import ibis.ipl.IbisIdentifier;
+
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
@@ -19,10 +23,14 @@ public final class Driver extends NetDriver {
 
 	static final String tcpblk_rdah = prefix + "read_ahead";
 	static final String tcpblk_timeout = prefix + "timeout";
+	static final String tcpblk_cache_v = prefix + "cache.verbose";
+	static final String tcpblk_cache_enable = prefix + "cache";
 
 	private static final String[] properties = {
 		tcpblk_rdah,
-		tcpblk_timeout
+		tcpblk_timeout,
+		tcpblk_cache_v,
+		tcpblk_cache_enable
 	};
 
 	static {
@@ -33,6 +41,24 @@ public final class Driver extends NetDriver {
 	 * The driver name.
 	 */
 	private final String name = "tcp_blk";
+
+	private TcpConnectionCache connectionCache = new TcpConnectionCache();
+
+	boolean cacheInput(IbisIdentifier ibis, Socket socket) {
+	    return connectionCache.cacheInput(ibis, socket);
+	}
+
+	boolean cacheOutput(IbisIdentifier ibis, Socket socket) {
+	    return connectionCache.cacheOutput(ibis, socket);
+	}
+
+	Socket getCachedInput(IbisIdentifier ibis, int port) {
+	    return connectionCache.getCachedInput(ibis, port);
+	}
+
+	Socket getCachedOutput(IbisIdentifier ibis) {
+	    return connectionCache.getCachedOutput(ibis);
+	}
 
 
 	/**

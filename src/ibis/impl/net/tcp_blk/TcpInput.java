@@ -15,9 +15,14 @@ import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
 import ibis.impl.net.NetReceivePort;
 import ibis.impl.net.NetSendPort;
+import ibis.impl.net.NetSendPortIdentifier;
+
 import ibis.io.Conversion;
+
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.DynamicProperties;
+import ibis.ipl.IbisIdentifier;
+
 import ibis.util.TypedProperties;
 
 import java.io.DataInputStream;
@@ -57,13 +62,7 @@ public final class TcpInput extends NetBufferedInput {
 	 */
 	private InputStream  	      tcpIs	      = null;
 
-	/**
-	 * The communication output stream.
-	 *
-	 * <BR><B>Note</B>: this stream is not really needed but may be used
-	 * for debugging purpose.
-	 */
-	private OutputStream 	      tcpOs	      = null;
+	private IbisIdentifier		partner;
 
 	/**
 	 * The local MTU.
@@ -114,6 +113,47 @@ public final class TcpInput extends NetBufferedInput {
 		headerLength = 4;
 	}
 
+
+	private Socket makeBrokeredConnection(NetConnection cnx) throws IOException {
+	    InputStream brokered_in =
+		cnx.getServiceLink().getInputSubStream(this, "tcp_blk_brokering");
+	    OutputStream brokered_out =
+		cnx.getServiceLink().getOutputSubStream(this, "tcp_blk_brokering");
+
+	    NetPort port = cnx.getPort();
+
+	    final DynamicProperties p;
+	    if (port != null) {
+		p = port.properties();
+	    } else {
+		p = null;
+	    }
+
+	    final NetIO nn = this;
+	    ConnectProperties props = 
+		new ConnectProperties() {
+			public String getProperty(String name) {
+			    if (p != null) {
+				String result = (String) p.find(name);
+				if (result != null) return result;
+			    }
+			    return nn.getProperty(name);
+			}
+		    };
+
+	    Socket tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
+		    brokered_in,
+		    brokered_out,
+		    true,
+		    props);
+
+	    brokered_in.close();
+	    brokered_out.close();
+
+	    return tcpSocket;
+	}
+
+
 	/**
 	 * Sets up an incoming TCP connection.
 	 */
@@ -123,6 +163,9 @@ public final class TcpInput extends NetBufferedInput {
 			throw new Error("connection already established");
 		}
 
+		NetSendPortIdentifier sendId = cnx.getSendId();
+		partner = sendId.ibis();
+
 		DataOutputStream os = new DataOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
 		os.writeInt(lmtu);
 		os.flush();
@@ -130,51 +173,27 @@ public final class TcpInput extends NetBufferedInput {
 
 		DataInputStream is = new DataInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
 		rmtu = is.readInt();
+		int port = is.readInt();
 		is.close();
-		
-		InputStream brokered_in =
-		    cnx.getServiceLink().getInputSubStream(this, "tcp_blk_brokering");
-		OutputStream brokered_out =
-		    cnx.getServiceLink().getOutputSubStream(this, "tcp_blk_brokering");
 
-		NetPort port = cnx.getPort();
-
-		final DynamicProperties p;
-		if (port != null) {
-		    if (port instanceof NetReceivePort) {
-			p = ((NetReceivePort) port).properties();
+		if (port == -1) {
+		    tcpSocket = makeBrokeredConnection(cnx);
+		    if (TcpConnectionCache.VERBOSE) {
+			System.err.println(this + ": create new TcpInput "
+				+ tcpSocket
+				+ "; cache output stream; remote ibis="
+				+ partner);
 		    }
-		    else if (port instanceof NetSendPort) {
-			p = ((NetSendPort) port).properties();
-		    }
-		    else {
-			p = null;
-		    }
+		    ((Driver)driver).cacheOutput(partner, tcpSocket);
 		} else {
-		    p = null;
+		    tcpSocket = ((Driver)driver).getCachedInput(partner, port);
+		    if (TcpConnectionCache.VERBOSE) {
+			System.err.println(this + ": recycle TcpInput "
+				+ tcpSocket);
+		    }
+		    // recycleConnection(tcpSocket);
 		}
-
-		final NetIO nn = this;
-		ConnectProperties props = 
-		    new ConnectProperties() {
-			    public String getProperty(String name) {
-				if (p != null) {
-				    String result = (String) p.find(name);
-				    if (result != null) return result;
-				}
-				return nn.getProperty(name);
-			    }
-			};
-
-		tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
-			brokered_in,
-			brokered_out,
-			true,
-			props);
-
-		brokered_in.close();
-		brokered_out.close();
-
+		
 		tcpSocket.setSendBufferSize(0x8000);
 		tcpSocket.setTcpNoDelay(true);
 		if (interruptible) {
@@ -182,7 +201,6 @@ public final class TcpInput extends NetBufferedInput {
 		}
 
 		tcpIs = tcpSocket.getInputStream();
-		tcpOs = tcpSocket.getOutputStream();
 
 		mtu = Math.min(lmtu, rmtu);
 		// Don't always create a new factory here, just specify the mtu.
@@ -513,18 +531,22 @@ public final class TcpInput extends NetBufferedInput {
 
 	public void doClose(Integer num) throws IOException {
 		log.in();
-		if (spn == num) {
-			if (tcpOs != null) {
-				tcpOs.close();
-			}
-
+		if (spn != null && spn == num) {
+		    if (! ((Driver)driver).cacheInput(partner, tcpSocket)) {
 			if (tcpIs != null) {
 				tcpIs.close();
 			}
 
 			if (tcpSocket != null) {
+				if (interruptible) {
+				    System.err.println(this + ": at close, still interruptible");
+				} else {
+				    // System.err.println(this + ": at close, OK");
+				}
 				tcpSocket.close();
 			}
+		    }
+		    spn = null;
 		}
 		log.out();
 	}
@@ -532,23 +554,7 @@ public final class TcpInput extends NetBufferedInput {
 
 	public void doFree() throws IOException {
                 log.in();
-		if (tcpOs != null) {
-			tcpOs.close();
-		}
-
-		if (tcpIs != null) {
-			tcpIs.close();
-		}
-
-		if (tcpSocket != null) {
-			if (interruptible) {
-			    System.err.println(this + ": at close, still interruptible");
-			} else {
-			    // System.err.println(this + ": at close, OK");
-			}
-			tcpSocket.close();
-		}
-
+		close(spn);
 		log.out();
 	}
 
