@@ -213,6 +213,9 @@ final class SendBuffer implements Config {
 	chars.clear();
 	bytes.clear();
 
+	parent = null;
+	copies = 0;
+
 	sequenceNr = nextSequenceNr;
 	nextSequenceNr++;
     }

@@ -15,12 +15,23 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 
     NioAccumulatorConnection newConnection(GatheringByteChannel channel,  
 	    NioReceivePortIdentifier peer) throws IOException {
+	NioAccumulatorConnection result;
+
+	if (DEBUG) {
+	    Debug.enter("connections", this, "registering new connection");
+	}
 
 	SelectableChannel sChannel = (SelectableChannel) channel;
 
 	sChannel.configureBlocking(true);
 
-	return new NioAccumulatorConnection(channel, peer);
+	result = new NioAccumulatorConnection(channel, peer);
+
+	if (DEBUG) {
+	    Debug.exit("connections", this, "registered new connection");
+	}
+
+	return result;
     }
 
     /**
@@ -28,6 +39,9 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
      * Doesn't buffer anything
      */
     void doSend(SendBuffer buffer) throws IOException {
+	if (DEBUG) {
+	    Debug.enter("buffers", this, "sending a buffer");
+	}
 	for(int i = 0; i < nrOfConnections; i++) {
 	    try {
 		connections[i].sendDirectly(buffer);
@@ -44,6 +58,9 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 		connections[nrOfConnections] = null;
 		i--;
 	    }
+	}
+	if (DEBUG) {
+	    Debug.exit("buffers", this, "done sending a buffer");
 	}
     }
 

@@ -41,8 +41,15 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 						throws IOException {
 	NonBlockingChannelNioDissipator dissipator;
 
+	if (DEBUG) {
+	    Debug.enter("connections", this, "registering new connection");
+	}
+
 	if (!((channel instanceof ReadableByteChannel)
 	      && (channel instanceof SelectableChannel))) {
+	    if (DEBUG) {
+		Debug.exit("connections", this, "!wrong channel type");
+	    }
 	    throw new IOException("wrong type of channel on"
 		    + " creating connection");
 	}
@@ -76,19 +83,35 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 	pendingConnections[nrOfPendingConnections] = dissipator;
 	nrOfPendingConnections++;
 
+	if(DEBUG) {
+	    Debug.message("connections", this, "waking up selector");
+	}
+
 	// wake up selector if needed
 	selector.wakeup();
 
 	notifyAll();
+
+	if (DEBUG) {
+	    Debug.exit("connections", this, "registerred new connection");
+	}
     }
 
     synchronized void errorOnRead(NioDissipator dissipator, Exception cause) {
+	if(DEBUG) {
+	    Debug.enter("connections", this, "!lost connection: " + cause);
+	}
+
 	for (int i = 0; i < nrOfPendingConnections; i++) {
 	    if(dissipator == pendingConnections[i]) {
 		nrOfPendingConnections--;
 		pendingConnections[i] = pendingConnections[
 							nrOfPendingConnections];
 		pendingConnections[nrOfPendingConnections] = null;
+		if(DEBUG) {
+		    Debug.message("connections", this,
+				  "lost connection removed from pending list");
+		}
 	    }
 	}
 	for (int i = 0; i < nrOfConnections; i++) {
@@ -104,16 +127,31 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 		connections[nrOfConnections] = null;
 
 		if(nrOfConnections == 0) {
+		    if (DEBUG) {
+			Debug.message("connections", this,
+				  "no more connections, waking up selector");
+		    }
 		    selector.wakeup();
 		    notifyAll();
 		}
+		if(DEBUG) {
+		    Debug.exit("connections", this, "removed connection");
+		}
 		return;
 	    }
+	}
+	if(DEBUG) {
+	    Debug.exit("connections", this, "!lost connection not found");
 	}
     }
 
     synchronized void registerPendingConnections() throws IOException {
 	SelectableChannel sh;
+
+	if (DEBUG && nrOfPendingConnections > 0) {
+	    Debug.message("connections", this, "registerring " 
+			  + nrOfPendingConnections + " connections");
+	}
 
 	for (int i = 0; i < nrOfPendingConnections; i++) {
 	    sh = (SelectableChannel) pendingConnections[i].channel;
@@ -132,12 +170,21 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 	SelectionKey key;
 	NonBlockingChannelNioDissipator dissipator = null;
 
+	if (DEBUG) {
+	    Debug.enter("connections", this, "trying to find a dissipator"
+		    + " with a message waiting");
+	}
+
 	while(!deadlinePassed) {
 	    synchronized(this) {
 		registerPendingConnections();
 
 		if(nrOfConnections == 0) {
 		    if (exitOnNotConnected) {
+			if (DEBUG) {
+			    Debug.exit("connections", this, "!exiting "
+			     + "because we have no connections (as requested)");
+			}
 			return null;
 		    } else {
 			if (deadline == -1) {
@@ -145,9 +192,9 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 			    continue;
 			} else if (deadline == 0) {
 			    try {
-				if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-				    System.err.println("wait()ing for a"
-					    + " connection");
+				if (DEBUG) {
+				    Debug.message("connections", this,
+					    " wait()ing for a connection");
 				}
 				wait();
 			    } catch (InterruptedException e) {
@@ -160,9 +207,9 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 				deadlinePassed = true;
 			    } else {
 				try {
-				    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
-					System.err.println("wait()ing for a"
-						+ " connection");
+				    if (DEBUG) {
+					Debug.message("connections", this,
+						"wait()ing for a connection");
 				    }
 				    wait();
 				} catch (InterruptedException e) {
@@ -189,6 +236,10 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 		for (int i = 0; i < nrOfConnections; i++) {
 		    try {
 			if(connections[i].messageWaiting()) {
+			    if (DEBUG) {
+				Debug.exit("connections", this,
+					"returning connection " + i);
+			    }
 			    return connections[i];
 			}
 		    } catch (IOException e) {
@@ -200,15 +251,25 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 	    }
 
 	    if (deadline == -1) {
+		if (DEBUG) {
+		    Debug.message("connections", this, "doing a selectNow");
+		}
 		selector.selectNow();
 		deadlinePassed = true;
 	    } else if (deadline == 0) {
+		if (DEBUG) {
+		    Debug.message("connections", this, "doing a select()");
+		}
 		selector.select();
 	    } else {
 		time = System.currentTimeMillis();
 		if (time >= deadline) {
 		    deadlinePassed = true;
 		} else {
+		if (DEBUG) {
+		    Debug.message("connections", this, 
+				    "doing a select(timeout)");
+		}
 		    selector.select(deadline - time);
 		}
 	    }
@@ -226,6 +287,9 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
 		}
 	    }
 	    selector.selectedKeys().clear();
+	}
+	if (DEBUG) {
+	    Debug.exit("connections", this, "!deadline passed");
 	}
 	throw new ReceiveTimedOutException("timeout while waiting"
 					   + " for dissipator");

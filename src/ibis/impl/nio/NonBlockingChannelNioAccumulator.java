@@ -121,6 +121,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
 	//continually do a select and send data, until all data has been send
 	while(nrOfSendingConnections > 0) {
+	    selector.select();
 	    keys = selector.selectedKeys().iterator();
 	    while(keys.hasNext()) {
 		key = (SelectionKey) keys.next();
@@ -135,6 +136,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 			}
 		    }
 		} catch (IOException e) {
+		    nrOfSendingConnections--;
 		    for (int i = 0; i < nrOfConnections; i++) {
 			if (connection == connections[i]) {
 			    connections[i].close();

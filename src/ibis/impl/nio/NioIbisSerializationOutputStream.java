@@ -103,6 +103,10 @@ final class NioIbisSerializationOutputStream
 	accumulator.writeBoolean(value);
     }
 
+    public void writeByte(byte value) throws IOException {
+	accumulator.writeByte(value);
+    }
+
     public void writeByte(int value) throws IOException {
 	accumulator.writeByte((byte) (value & 0xFF));
     }
@@ -113,6 +117,10 @@ final class NioIbisSerializationOutputStream
 
     public void writeShort(short value) throws IOException {
 	accumulator.writeShort(value);
+    }
+
+    public void writeShort(int value) throws IOException {
+	accumulator.writeShort((short) value);
     }
 
     public void writeInt(int value) throws IOException {

@@ -87,6 +87,11 @@ public final class NioIbis extends Ibis implements Config {
 
     protected void init() throws IbisException, IOException { 
 	if (DEBUG) {
+	    System.err.println("NioIbis: Debugging support enabled");
+	    Debug.setName(name);
+	}
+
+	if (DEBUG) {
 	    Debug.enter("general", this, "initializing NioIbis");
 	}
 
@@ -243,6 +248,10 @@ public final class NioIbis extends Ibis implements Config {
 	    }
 	    if(sendReceiveThread != null) {
 		sendReceiveThread.quit();
+	    }
+
+	    if (DEBUG) {
+		Debug.end();
 	    }
 	} catch (Exception e) { 
 	    throw new IbisRuntimeException("NioIbis: end failed ", e);

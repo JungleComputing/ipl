@@ -65,9 +65,16 @@ class NioPortType extends PortType implements Config {
 	this.name = name;
 	this.p = p;
 
-	sequenced = p.isProp("Communication", "Sequenced");
+	Properties systemProperties = System.getProperties();
+
 	oneToMany = p.isProp("Communication", "OneToMany");
 	manyToOne = p.isProp("Communication", "ManyToOne");
+
+	if (systemProperties.getProperty("ibis.nio.sequenced") != null) {
+	    sequenced = true;
+	} else {
+	    sequenced = p.isProp("Communication", "Sequenced");
+	}
 
 	String ser = this.p.find("Serialization");
 	if (ser == null) {
@@ -94,7 +101,7 @@ class NioPortType extends PortType implements Config {
 	    throw new IbisException("Unknown Serialization type");
 	}
 
-	Properties systemProperties = System.getProperties();
+
 
 	String sendImpl = systemProperties.getProperty("ibis.nio.sportimpl");
 

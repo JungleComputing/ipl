@@ -39,14 +39,25 @@ final class NonBlockingChannelNioDissipator extends NioDissipator
      *
      */
     protected void fillBuffer(int minimum) throws IOException {
+	if (DEBUG) {
+	    Debug.enter("buffers", this, "filling buffer");
+	}
+
 	//Always do one read, even if it isn't strictly needed
 	//and without looking if we're going to get any data.
 	readFromChannel();
 
 	while (unUsedLength() < minimum) {
+	    if (DEBUG) {
+		Debug.message("buffers", this, "doing a select for data");
+	    }
 	    selector.select();
 	    selector.selectedKeys().clear();
 	    readFromChannel();
+	}
+
+	if (DEBUG) {
+	    Debug.exit("buffers", this, "filled buffer");
 	}
     }
 

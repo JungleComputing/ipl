@@ -81,29 +81,48 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
     public final synchronized void connect(ReceivePortIdentifier receiver, 
 	    long timeoutMillis) throws IOException {
+	if(DEBUG) {
+	    Debug.enter("connections", this, "Sendport " + this + " '" + 
+		    ident.name + "' connecting to " + receiver); 
+	}
+
 	if(!type.name().equals(receiver.type())) {
+	    if (DEBUG) {
+		Debug.exit("connections", this,
+			"!Cannot connect ports of different PortTypes");
+	    }
 	    throw new PortMismatchException("Cannot connect ports of "
 		    + "different PortTypes");
 	}
 
 	if(aMessageIsAlive) {
+	    if (DEBUG) {
+		Debug.exit("connections", this,
+			"!Cannot connect while a message is alive");
+	    }
 	    throw new IOException("A message was alive while adding a new "
 							    + "connection");
 	}
 
 	if(timeoutMillis < 0) {
+	    if (DEBUG) {
+		Debug.exit("connections", this,
+			"!Negative timeout");
+	    }
 	    throw new IOException("NioSendport.connect(): timeout must be positive, or 0");
 	}
 
 	if(!type.oneToMany && (connectedTo().length > 0)) {
+	    if (DEBUG) {
+		Debug.exit("connections", this,
+			"!Cannot connect, port already connected to a receiver"
+			+ " and OneToMany not supported");
+	    }
+	    (new IOException()).printStackTrace(System.err);
 	    throw new IOException("This sendport is already connected to a"
 		    + " receiveport, and doesn't support multicast");
 	}
 
-	if(DEBUG) {
-	    Debug.enter("connections", this, "Sendport " + this + " '" + 
-		    ident.name + "' connecting to " + receiver); 
-	}
 
 	NioReceivePortIdentifier rpi = (NioReceivePortIdentifier) receiver;
 
@@ -113,6 +132,10 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
 	if(ASSERT) {
 	    if(!(channel instanceof GatheringByteChannel)) {
+		if (DEBUG) {
+		    Debug.exit("connections", this,
+			       "!factory returned wrong type of channel");
+	    }
 		throw new IbisError("factory returned wrong type of channel");
 	    }
 	}

@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.StringTokenizer;
 
+import java.io.IOException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+
 final class Debug {
 
     static final int TYPE_NAME_LENGTH = 20;
@@ -22,6 +26,9 @@ final class Debug {
      */
     static boolean all = false;;
 
+    static PrintStream log = null;
+    static FileOutputStream file = null;
+
     static {
 	lengths = new HashMap();
 
@@ -35,6 +42,23 @@ final class Debug {
 		String s = st.nextToken().toLowerCase();
 		debugTypes.add(s);
 	    }
+	}
+    }
+
+    static void setName(String name) throws IOException {
+	if (System.getProperty("ibis.nio.log") != null) {
+	    file = new FileOutputStream(name + ".log");
+	    log = new PrintStream(file);
+	}
+    }
+
+    static void end() throws IOException {
+	if(log != null) {
+	    log.close();
+	}
+
+	if(file != null) {
+	    file.close();
 	}
     }
 
@@ -112,15 +136,40 @@ final class Debug {
 	String sourceString;
 
 	if(source == null) {
-	    sourceString = pad("<static>", SOURCE_NAME_LENGTH);
+	    sourceString = "<static>";
 	} else {
-	    sourceString = pad(source.getClass().getName(), SOURCE_NAME_LENGTH);
+	    sourceString = source.getClass().getName();
 	}
 
 	System.err.println(threadString + " " + typeString + " "
 			   + sourceString + " " + spaces(level * 2) 
 			   + seperator + message);
     }
+
+    private static void printLog(Object source,
+				 String type,
+				 String message,
+				 String seperator) {
+	String sourceString;
+	int spaces = 100 - message.length() - seperator.length();
+
+	if (spaces > 0 ) {
+	    message = message + spaces(spaces);
+	}
+
+	if(source == null) {
+	    sourceString = pad("<static>", SOURCE_NAME_LENGTH);
+	} else {
+	    sourceString = pad(source.getClass().getName(), SOURCE_NAME_LENGTH);
+	}
+
+	if(log != null) {
+	    log.println(seperator + message + " *** " + type + " * " 
+			+ Thread.currentThread().getName() + " * " 
+			+ sourceString + " ***");
+	}
+    }
+			       
 
     static synchronized void enter(String type,
 				   Object source, 
@@ -130,6 +179,7 @@ final class Debug {
 
 	    printMessage(source, type, message, "> ", level);
 	}
+	printLog(source, type, message, "> ");
     }
 
     static synchronized void message(String type,
@@ -140,6 +190,7 @@ final class Debug {
 
 	    printMessage(source, type, message, "  ", level);
 	}
+	printLog(source, type, message, "");
     }
 
     static synchronized void exit(String type,
@@ -150,5 +201,6 @@ final class Debug {
 
 	    printMessage(source, type, message, "< ", level - 1);
 	}
+	printLog(source, type, message, "< ");
     }
 }

@@ -221,13 +221,14 @@ public abstract class NioDissipator extends Dissipator
 	    if(DEBUG) {
 		Debug.exit("buffers", this, 
 			"!receiving with data still left in the buffer"
-			+ ", content: b[" + bytes.remaining()
-			+ "] c[" + chars.remaining()
-			+ "] s[" + shorts.remaining()
-			+ "] i[" + ints.remaining()
-			+ "] l[" + longs.remaining()
-			+ "] f[" + floats.remaining()
+			+ ", content: "
+			+ "l[" + longs.remaining()
 			+ "] d[" + doubles.remaining()
+			+ "] i[" + ints.remaining()
+			+ "] f[" + floats.remaining()
+			+ "] s[" + shorts.remaining()
+			+ "] c[" + chars.remaining()
+			+ "] b[" + bytes.remaining()
 			+ "]");
 	    }
 	    throw new IbisError("tried receive() while there was data"
@@ -317,8 +318,8 @@ public abstract class NioDissipator extends Dissipator
 	if(DEBUG) {
 	    Debug.exit("buffers", this, "received: l[" + longs.remaining()
 		    + "] d[" + doubles.remaining()
-		    + "] f[" + floats.remaining()
 		    + "] i[" + ints.remaining()
+		    + "] f[" + floats.remaining()
 		    + "] s[" + shorts.remaining()
 		    + "] c[" + chars.remaining()
 		    + "] b[" + bytes.remaining()
