@@ -40,6 +40,7 @@ final class NioWriteMessage implements WriteMessage, Config {
 
     public long finish() throws IOException {
         out.flush();
+        out.reset();
         return port.finish();
     }
 
@@ -172,3 +173,4 @@ final class NioWriteMessage implements WriteMessage, Config {
         out.writeArray(value, offset, size);
     }
 }
+

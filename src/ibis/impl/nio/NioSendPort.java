@@ -254,8 +254,6 @@ public final class NioSendPort implements SendPort, Config, Protocol {
             }
 
             message = new NioWriteMessage(this, out);
-        } else {
-            out.reset();
         }
 
         out.writeByte(NEW_MESSAGE);

@@ -64,7 +64,7 @@ public abstract class NioDissipator extends Dissipator implements Config,
 
     /**
      * Circular buffer used for holding data. It contains "currently in use"
-     * (by the user) data, "not yet used" data (received nut not given to user
+     * (by the user) data, "not yet used" data (received but not given to user
      * yet) and "empty space"
      */
     protected ByteBuffer buffer;

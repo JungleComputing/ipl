@@ -4,4 +4,4 @@ communication = OneToOne, OneToMany, ManyToOne, \
 		Poll, ReceiveTimeout, \
 		FifoOrdered, Reliable, PollUpcalls, \
 		AutoUpcalls, ExplicitReceipt, ConnectionDowncalls, \
-		ConnectionUpcalls
+		ConnectionUpcalls, Numbered
