@@ -168,7 +168,7 @@ public class UdpInput extends NetInput {
 		 
 		try {
 			socket = new DatagramSocket(0, InetAddress.getLocalHost());
-			lmtu = Math.min(socket.getReceiveBufferSize(), 32768);
+			lmtu = Math.min(socket.getReceiveBufferSize(), 16384);
 			laddr = socket.getLocalAddress();
 			lport = socket.getLocalPort();
 		} catch (SocketException e) {

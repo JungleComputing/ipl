@@ -178,6 +178,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 */
 	private boolean               	 emptyMsg     	     = 	true;
 
+        private int                      mtu                 =  0;
+
 	/* --- incoming connection manager thread -- */
 
 	/**
@@ -435,6 +437,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	private ReadMessage _receive() throws IbisIOException {
 		dataOffset = input.getHeadersLength();
 		emptyMsg   = true;
+                mtu        = input.getMaximumTransfertUnit();
 		return this;
 	}
 
@@ -847,7 +850,13 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
                                 freeBuffer();
                         }
 
-                        receiveBuffer(new NetReceiveBuffer(userBuffer, offset, length));
+                        do {
+                                int copyLength = Math.min(mtu, length);
+                                receiveBuffer(new NetReceiveBuffer(userBuffer, offset, copyLength));
+                                offset += copyLength;
+                                length -= copyLength;
+                        } while (length != 0);
+                        
                 } else {
                         if (buffer != null) {
                                 int bufferLength = buffer.length - bufferOffset;
