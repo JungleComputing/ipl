@@ -29,7 +29,7 @@ final class BarnesHut {
 	private static int impl = IMPL_NTC;
 
 	//recursion depth at which the ntc/tuple impl work sequentially
-	private static int spawn_threshold = 6; //use -t <threshold> to modify
+	private static int spawn_threshold = 10; //use -t <threshold> to modify
 
 	//true: Collect statistics about the various phases in each iteration
 	public static boolean phase_timing = true; //use -(no)timing to modify
@@ -242,7 +242,7 @@ final class BarnesHut {
 				bc.repaint();
 			}
 
-			System.err.println("Iteration " + iteration + " done, comm = "
+			System.err.println("Iteration " + iteration + " done, tree build = "
 					+ btcomTimeTmp + ", update = " + updateTimeTmp
 					+ ", force = " + forceCalcTimeTmp);
 		}
