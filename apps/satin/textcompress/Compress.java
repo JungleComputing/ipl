@@ -52,7 +52,7 @@ class Compress extends ibis.satin.SatinObject
         return res;
     }
 
-    public Backref evaluateSite( byte text[], int backpos, int pos )
+    public Backref evaluateBackref( byte text[], int backrefs[], int backpos, int pos, int depth )
     {
         Backref r = new Backref();
 
@@ -68,23 +68,24 @@ class Compress extends ibis.satin.SatinObject
         return r;
     }
 
-    public ByteBuffer compress( byte text[] )
+    public Backref selectBestMove( byte text[], int backrefs[], int pos, int depth )
     {
-        int backrefs[] = buildBackrefs( text );
-        int pos = 0;
-        ByteBuffer out = new ByteBuffer();
-        while( pos+Configuration.MINIMAL_SPAN<text.length ){
-            Backref mv = new Backref();
-            int m = 0;
-            final int hashcode = (int) text[pos];
+        // We always have the choice to just copy the character.
+        Backref mv = new Backref();
 
-            mv.backpos = -1;
-
-            int sites[] = collectBackrefs( text, backrefs, pos );
+        if( pos+Configuration.MINIMAL_SPAN>=text.length ){
+            return mv;
+        }
+        int sites[] = collectBackrefs( text, backrefs, pos );
+        if( sites.length>0 ){
+            // If we have more choices, evaluate them ...
             Backref results[] = new Backref[sites.length];
             for( int i=0; i<sites.length; i++ ){
-                results[i] = evaluateSite( text, sites[i], pos );
+                results[i] = evaluateBackref( text, backrefs, sites[i], pos, depth );
             }
+            sync();
+
+            // .. and pick the best one.
             for( int i=0; i<results.length; i++ ){
                 Backref r = results[i];
 
@@ -92,6 +93,17 @@ class Compress extends ibis.satin.SatinObject
                     mv = r;
                 }
             }
+        }
+        return mv;
+    }
+
+    public ByteBuffer compress( byte text[] )
+    {
+        int backrefs[] = buildBackrefs( text );
+        int pos = 0;
+        ByteBuffer out = new ByteBuffer();
+        while( pos+Configuration.MINIMAL_SPAN<text.length ){
+            Backref mv = selectBestMove( text, backrefs, pos, 0 );
             // TODO: calculate the gain of just copying the character.
             if( mv.backpos<0 ){
                 // There is no backreference that gives any gain, so
