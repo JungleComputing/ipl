@@ -280,6 +280,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		for (int i=0;i<connectionsIndex; i++) { 
 			if (connections[i] == leaving) { 
 				connections[i] = connections[connectionsIndex-1];
+				connections[connectionsIndex-1] = null;
 				connectionsIndex--;
 				found = true;
 				break;
