@@ -52,6 +52,6 @@ public class RoutedMessagesSocketType
 				       ConnectProperties p)
 	throws IOException
     {
-	return ExtSocketFactory.createBrokeredSocketFromClientServer(this, in, out, hintIsServer);
+	return ExtSocketFactory.createBrokeredSocketFromClientServer(this, in, out, hintIsServer, p);
     }
 }
