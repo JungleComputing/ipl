@@ -375,7 +375,17 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      */
     public boolean isSatisfied( SATSolution sol )
     {
-	return true;
+	byte a[] = (byte []) assignments.clone();
+
+	int pos[] = sol.pos;
+	for( int i=0; i<pos.length; i++ ){
+	    a[pos[i]] = 1;
+	}
+	int neg[] = sol.neg;
+	for( int i=0; i<neg.length; i++ ){
+	    a[neg[i]] = 0;
+	}
+	return isSatisfied( a );
     }
 
     /**
