@@ -1,0 +1,70 @@
+If you already have a compiled ibis source tree, you can skip step 1.
+
+STEP-1-------------------------------------------------
+installing ibis
+
+cd $HOME
+mkdir my_test_ibis
+cd my_test_ibis
+cp -R /usr/local/VU/ibis .
+cd ibis
+./ant distclean
+./ant
+
+< press enter >
+
+<get coffee>
+
+Now, Ibis should be compiled.
+
+
+STEP-2-------------------------------------------------
+Now, set up the application.
+
+cd $HOME
+mkdir my_test_app
+cp ../my_test_ibis/ibis/apps/satin/fib/build.xml .
+
+edit this file:
+
+give the name of your application (any name is ok)
+
+name="my_test_app_name"
+
+change the ibis location property:
+
+<property name="ibis"        location="../my_test_ibis/ibis"/>
+
+Set the name of your main class:
+
+<property name="satin-main-class" value="MyTestApp"/>
+
+
+STEP-3-------------------------------------------------
+sequential compile with:
+
+~/my_test_ibis/ibis/ant compile
+
+run it with
+
+../my_test_ibis/ibis/bin/run_ibis 0 1 name_of_this_run 9988 localhost MyTestApp
+
+
+STEP-4-------------------------------------------------
+parallel compile with:
+
+~/my_test_ibis/ibis/ant
+
+now, we need to start an ibis nameserver.
+It is easiest to do this in a seperate window.
+You can start it with:
+
+my_test_ibis/ibis/bin/ibis_nameserver -port 9988
+
+Now, run the parallel application with (same as before):
+
+../my_test_ibis/ibis/bin/run_ibis 0 1 name_of_this_run 9988 localhost MyTestApp
+
+That's it!
+
+Good luck
