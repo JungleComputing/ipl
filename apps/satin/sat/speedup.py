@@ -12,17 +12,18 @@ run_ibis = ibisdir + "/bin/run_ibis"
 logdir = "logs"
 
 #problem = "examples/qg/qg6-12.cnf.gz"
+#problem = "examples/qg/qg3-08.cnf.gz"
 problem = "examples/ais/ais10.cnf.gz"
 
 solver = "DPLLSolver"
 
-ProcNos = [ 1, 2, 4, 8, 16, 32 ]
+#ProcNos = [ 1, 2, 4, 8, 16, 32 ]
+ProcNos = [ 2, 4, 8 ]
 
 nameserverport = 2001
 
 def get_time_stamp():
     return time.strftime( "%Y-%m-%d-%H:%M:%S", time.localtime())
-
 
 def makeNonBlocking( fd ):
     fl = fcntl.fcntl(fd, FCNTL.F_GETFL)
@@ -59,7 +60,6 @@ def getCommandOutput( command ):
     err = child.wait()
     return (err, outdata, errdata)
 
-
 def build_run_command( pno, solver, problem, port ):
     return "prun -1 %s %d %d fs0.das2.cs.vu.nl %s %s -satin-closed" % (run_ibis, pno, port, solver, problem )
 
@@ -85,21 +85,26 @@ def reportRun( label, data, lf = None ):
     reportTrace( out, label + " output stream", lf )
     reportTrace( err, label + " error stream", lf )
 
-def reportedRun( P, lf = None ):
-    cmd = build_run_command( P, solver, problem, nameserverport )
-    report( "Command: " + cmd, lf )
-    data = getCommandOutput( cmd )
-    label = "P=%d" % P
-    reportRun( label, data, lf )
+results = {}
 
-def run():
+def reportedRun( P ):
+    cmd = build_run_command( P, solver, problem, nameserverport )
+    print "Starting run for P=%d" % P
+    data = getCommandOutput( cmd )
+    results[P] = data
+    print "Finished run for P=%d" % P
+
+def run( solver, problem ):
     logfile = logdir + "/log-" + get_time_stamp()
     lf = open( logfile, "w" )
     report( "Solver: " + solver, lf )
     report( "Problem: " + problem, lf )
 
     for P in ProcNos:
-        reportedRun( P, lf )
+        reportedRun( P )
+    for P in ProcNos:
+        reportRun( "P=%d" % P, results[P], lf )
 
 #reportedRun( "test", "ls" )
-run()
+if __name__=="__main__":
+    run( solver, problem )
