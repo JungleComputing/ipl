@@ -175,6 +175,15 @@ public class Ibis extends ibis.ipl.Ibis {
     }
     
 
+    public void died(ibis.ipl.IbisIdentifier[] ids) {
+	if (resizeHandler != null) {
+	    for (int i = 0; i < ids.length; i++) {
+		resizeHandler.died(ids[i]);
+	    }
+	}
+    }
+    
+
     private static void dumpStack() {
 	new Throwable().printStackTrace();
     }

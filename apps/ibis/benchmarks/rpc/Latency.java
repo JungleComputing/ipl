@@ -208,7 +208,7 @@ class Latency {
 			ReceivePort rport;			
 			Latency lat = null;
 
-			IbisIdentifier master = (IbisIdentifier) registry.elect("latency", ibis.identifier());
+			IbisIdentifier master = registry.elect("latency");
 
 			if(master.equals(ibis.identifier())) {
 				rank = 0;

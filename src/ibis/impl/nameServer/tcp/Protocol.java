@@ -8,6 +8,8 @@ interface Protocol {
 		IBIS_ACCEPTED = 2, 
 		IBIS_LEAVE    = 4,
 		IBIS_PING     = 5,
+		IBIS_ISALIVE  = 6,
+		IBIS_DEAD     = 7,
 
 		PORT_NEW      = 20, 
 		PORT_ACCEPTED = 21, 
@@ -29,7 +31,7 @@ interface Protocol {
                 PORTTYPE_EXIT     = 43,
 		SEQNO		  = 50,
 
-		REELECTION    = 98,
+		ELECTION_KILL = 98,
 	        ELECTION      = 99,
-		ELECTION_EXIT      = 100;	
+		ELECTION_EXIT = 100;	
 } 

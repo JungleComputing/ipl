@@ -422,7 +422,7 @@ class Latency implements Config {
 			if(DEBUG) {
 				System.out.println("LAT: pre elect");
 			}
-			IbisIdentifier master = (IbisIdentifier) registry.elect("latency", ibis.identifier());
+			IbisIdentifier master = registry.elect("latency");
 			if(DEBUG) {
 				System.out.println("LAT: post elect");
 			}

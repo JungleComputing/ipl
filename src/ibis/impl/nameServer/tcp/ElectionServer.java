@@ -11,18 +11,19 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Iterator;
 
 class ElectionServer extends Thread implements Protocol {
 
-	private Hashtable elections;
+	private HashMap elections;
 	private ServerSocket serverSocket;
 
 	private	ObjectInputStream in;
 	private	ObjectOutputStream out;
 
 	ElectionServer() throws IOException { 
-		elections = new Hashtable();
+		elections = new HashMap();
 
 		serverSocket = NameServerClient.socketFactory.createServerSocket(0, null, true /* retry */);
 		setName("NameServer ElectionServer");
@@ -50,29 +51,23 @@ class ElectionServer extends Thread implements Protocol {
 		}
 	} 
 
-	private void handleReelection() throws IOException, ClassNotFoundException { 
+	private void handleKill() throws IOException, ClassNotFoundException { 
 
-		String election = in.readUTF();
-		Object candidate = in.readObject();
-		Object formerRuler = in.readObject();
-
-		Object temp = elections.get(election);
-
-		if (temp == null) { 
-			elections.put(election, candidate);
-			out.writeObject(candidate);
-		} else if (temp.equals(formerRuler)) {
-			if (candidate.equals(formerRuler)) {
-			    out.writeObject(null);
+		Object ids[] = (Object[]) in.readObject();
+		for (Iterator key = elections.keySet().iterator();
+		     key.hasNext();) {
+		    String election = (String) key.next();
+		    Object o = elections.get(election);
+		    for (int i = 0; i < ids.length; i++) {
+			if (o.equals(ids[i])) {
+			    // result of election is dead. Make new election
+			    // possible.
+			    key.remove();
+			    break;
 			}
-			else {
-			    elections.put(election, candidate);
-			    out.writeObject(candidate);		
-			}
-		} else { 			
-			out.writeObject(temp);
+		    }
 		}
-	} 
+	}
 
 
 	public void run() {
@@ -100,8 +95,8 @@ class ElectionServer extends Thread implements Protocol {
 				case (ELECTION): 
 					handleElection();
 					break;
-				case (REELECTION) :
-					handleReelection();
+				case (ELECTION_KILL) :
+					handleKill();
 					break;
 				case (ELECTION_EXIT):
 					NameServerClient.socketFactory.close(in, out, s);

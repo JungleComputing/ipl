@@ -90,6 +90,14 @@ class Registry implements ibis.ipl.Registry {
 	return null;
     }
 
+    public boolean isDead(ibis.ipl.IbisIdentifier id) throws IOException {
+	/* not implemented yet */
+	return false;
+    }
+
+    public void dead(ibis.ipl.IbisIdentifier id) throws IOException {
+	/* not implemented yet */
+    }
 
     public String[] listNames(String pattern) throws IOException {
 	/* not implemented yet */
@@ -103,19 +111,17 @@ class Registry implements ibis.ipl.Registry {
     }
 
 
-    public Object elect(String election, Object candidate) throws IOException {
+    public ibis.ipl.IbisIdentifier  elect(String election) throws IOException {
 	if (EXPORT_ELECT) {
-	    return electionClient.elect(election, candidate);
+	    return (ibis.ipl.IbisIdentifier) electionClient.elect(election, Ibis.myIbis.identifier());
 	}
 	throw new IOException("Registry.elect not implemented");
     }
 
-    public Object reelect(String election, Object candidate, Object formerRuler) throws IOException {
+    public ibis.ipl.IbisIdentifier  getElectionResult(String election) throws IOException {
 	if (EXPORT_ELECT) {
-	    return electionClient.reelect(election, candidate, formerRuler);
+	    return (ibis.ipl.IbisIdentifier) electionClient.elect(election, null);
 	}
 	throw new IOException("Registry.elect not implemented");
     }
-
-    
 }

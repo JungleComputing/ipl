@@ -205,7 +205,7 @@ public class Example {
 	rgstry = ibis.registry();
 	IbisIdentifier server;
 	try {
-	    server = (IbisIdentifier) rgstry.elect("Server", me);
+	    server = (IbisIdentifier) rgstry.elect("Server");
 	} catch(Exception e) {
 	    System.err.println("Could not elect: " + e);
 	    failure = true;

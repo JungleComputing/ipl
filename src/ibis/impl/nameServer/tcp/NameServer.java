@@ -200,6 +200,78 @@ public class NameServer extends Thread implements Protocol {
 
 	}
 
+	private void handleIbisIsalive(boolean kill) throws IOException, ClassNotFoundException {
+		String key = in.readUTF();
+		IbisIdentifier id = (IbisIdentifier) in.readObject();
+
+		RunInfo p = (RunInfo) pools.get(key);
+		if (p != null) {
+		    for (int i=0;i<p.pool.size();i++) { 
+			IbisInfo temp = (IbisInfo) p.pool.get(i);
+			if (temp.identifier.equals(id)) {
+			    if (! kill && doPing(temp, key)) {
+				// Its alive ...
+				out.writeByte(IBIS_ISALIVE);
+				out.flush();
+				return;
+			    }
+			}
+			// We found it, but it appears to be dead.
+			// Make a list of Ibis instances in this pool that seem to be dead.
+			Vector deadIbises = new Vector();
+			deadIbises.add(temp);
+			for (int j=0; j < p.pool.size(); j++) {
+			    IbisInfo temp2 = (IbisInfo) p.pool.get(j);
+			    if (! temp2.identifier.equals(id) &&
+				! doPing(temp2, key)) {
+				deadIbises.add(temp2);
+			    }
+			}
+
+			// Remove the dead ones from the pool.
+			p.pool.removeAll(deadIbises);
+
+			// Put the dead ones in an array.
+			IbisIdentifier[] ids = new IbisIdentifier[deadIbises.size()];
+			for (int j = 0; j < ids.length; j++) {
+			    IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
+			    ids[j] = temp2.identifier;
+			}
+
+			// Pass the dead ones on to the election server ...
+			electionKill(p, ids);
+
+			// ... and to all other ibis instances in this pool.
+			for (int j=0; j<p.pool.size(); j++) { 
+			    forwardDead((IbisInfo) p.pool.get(i), ids);
+			}
+
+			break;
+		    }
+		}
+		if (! kill) {
+		    out.writeByte(IBIS_DEAD);
+		    out.flush();
+		}
+	}
+
+	private void forwardDead(IbisInfo dest, IbisIdentifier[] ids) {
+		try {
+		    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
+							      dest.ibisNameServerport, null, -1 /* do not retry */);
+
+		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+		    ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+		    out.writeByte(IBIS_DEAD);
+		    out.writeObject(ids);
+		    NameServerClient.socketFactory.close(null, out, s);
+		} catch (Exception e) {
+			System.err.println("Could not forward dead ibises to " +  dest.identifier.toString() + 
+					   "error = " + e);					   
+//			e.printStackTrace();
+		}
+	}
+    
 	private void handleIbisJoin() throws IOException, ClassNotFoundException { 
 		String key = in.readUTF();
 		IbisIdentifier id = (IbisIdentifier) in.readObject();
@@ -369,7 +441,7 @@ public class NameServer extends Thread implements Protocol {
 	}
     
 	private void killThreads(RunInfo p) throws IOException {
-		Socket s = NameServerClient.socketFactory.createSocket(InetAddress.getLocalHost(), 
+		Socket s = NameServerClient.socketFactory.createSocket(serverSocket.getInetAddress(), 
 							  p.portTypeNameServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 
@@ -377,7 +449,7 @@ public class NameServer extends Thread implements Protocol {
 		out.writeByte(PORTTYPE_EXIT);
 		NameServerClient.socketFactory.close(null, out, s);
 
-		Socket s2 = NameServerClient.socketFactory.createSocket(InetAddress.getLocalHost(), 
+		Socket s2 = NameServerClient.socketFactory.createSocket(serverSocket.getInetAddress(), 
 							  p.receivePortNameServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
 
@@ -385,7 +457,7 @@ public class NameServer extends Thread implements Protocol {
 		out2.writeByte(PORT_EXIT);
 		NameServerClient.socketFactory.close(null, out2, s2);
 
-		Socket s3 = NameServerClient.socketFactory.createSocket(InetAddress.getLocalHost(), 
+		Socket s3 = NameServerClient.socketFactory.createSocket(serverSocket.getInetAddress(), 
 							  p.electionServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
 		ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3, BUF_SIZE));
@@ -393,6 +465,22 @@ public class NameServer extends Thread implements Protocol {
 		NameServerClient.socketFactory.close(null, out3, s3);
 	}
 
+	/**
+	 * Notifies the election server of the specified pool that the
+	 * specified ibis instances are dead.
+	 * @param p   the specified pool
+	 * @param ids the dead ibis instances
+	 * @exception IOException is thrown in case of trouble.
+	 */
+	private void electionKill(RunInfo p, IbisIdentifier[] ids) throws IOException {
+		Socket s = NameServerClient.socketFactory.createSocket(serverSocket.getInetAddress(), 
+						  p.electionServer.getPort(), null, -1 /* do not retry */);
+		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
+		out.writeByte(ELECTION_KILL);
+		out.writeObject(ids);
+		NameServerClient.socketFactory.close(null, out, s);
+	}
 
 	private void handleIbisLeave() throws IOException, ClassNotFoundException {
 		String key = in.readUTF();
@@ -424,6 +512,9 @@ public class NameServer extends Thread implements Protocol {
 				if (DEBUG) { 
 					System.err.println("NameServer: leave from pool " + key + " of ibis " + id.toString() + " accepted");
 				}
+
+				// Let the election server know about it.
+				electionKill(p, new IbisIdentifier[] { id });
 
 				// Also forward the leave to the requester.
 				// It is used as an acknowledgement, and
@@ -458,7 +549,6 @@ public class NameServer extends Thread implements Protocol {
 		}
 	} 
 
-
 	public void run() {
 		int opcode;
 		Socket s;
@@ -491,6 +581,10 @@ public class NameServer extends Thread implements Protocol {
 				opcode = in.readByte();
 
 				switch (opcode) { 
+				case (IBIS_ISALIVE):
+				case (IBIS_DEAD):
+					handleIbisIsalive(opcode == IBIS_DEAD);
+					break;
 				case (IBIS_JOIN): 
 					handleIbisJoin();
 					break;

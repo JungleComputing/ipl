@@ -100,9 +100,4 @@ class ElectionClient implements ElectionProtocol {
 
 	return winner;
     }
-    
-    Object reelect(String election, Object candidate, Object formerRuler) throws IOException {    
-	System.err.println("REELECTION NOT IMPLEMENTED IN MESSAGE PASSING!!!");
-	return null;
-    }
 }

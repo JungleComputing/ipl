@@ -713,7 +713,7 @@ public class Main {
 			SendPort sport = t.createSendPort();		      
 			ReceivePort rport;
 
-			IbisIdentifier master = (IbisIdentifier) registry.elect("throughput", ibis.identifier());
+			IbisIdentifier master = registry.elect("throughput");
 
 			if(master.equals(ibis.identifier())) {
 				rank = 0;

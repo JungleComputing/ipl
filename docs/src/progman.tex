@@ -441,8 +441,7 @@ follows:
 \begin{verbatim}
 IbisIdentifier me = ibis.identifier();
 Registry rgstry = ibis.registry();
-IbisIdentifier server = (IbisIdentifier)
-                          rgstry.elect("Server", me);
+IbisIdentifier server = rgstry.elect("Server");
 boolean i_am_server = server.equals(me);
 \end{verbatim}
 \end{quote}

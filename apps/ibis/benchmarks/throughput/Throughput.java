@@ -97,7 +97,7 @@ class Throughput extends Thread {
 			Ibis ibis = Ibis.createIbis(null, null);
 			Registry r = ibis.registry();
 
-			IbisIdentifier master = (IbisIdentifier)r.elect("throughput", ibis.identifier());
+			IbisIdentifier master = r.elect("throughput");
 
 			if (master.equals(ibis.identifier())) {
 				rank = 0;

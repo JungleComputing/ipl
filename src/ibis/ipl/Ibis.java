@@ -865,4 +865,14 @@ public abstract class Ibis {
      *  identifier} of the Ibis instance leaving the run.
      */
     public abstract void left(IbisIdentifier leaveIdent);
+
+    /**
+     * Notifies this Ibis instance that other Ibis instance died.
+     * <strong>
+     * Note: used by the nameserver, do not call from outside Ibis.
+     * </strong>
+     * @param corpses the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     *  identifiers} of the Ibis instances that died.
+     */
+    public abstract void died(IbisIdentifier[] corpses);
 } 

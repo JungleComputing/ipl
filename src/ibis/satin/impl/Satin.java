@@ -119,10 +119,10 @@ public final class Satin extends APIMethods implements ResizeHandler,
 			Registry r = ibis.registry();
 
 			if (closed && pool.rank() != 0) {
-			    masterIdent = (IbisIdentifier) r.elect("satin master", null);
+			    masterIdent = r.getElectionResult("satin master");
 			}
 			else {
-			    masterIdent = (IbisIdentifier) r.elect("satin master", ident);
+			    masterIdent = r.elect("satin master");
 			}
 
 
@@ -143,8 +143,8 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
 			if (FAULT_TOLERANCE) {
 				if (algorithm instanceof ClusterAwareRandomWorkStealing) {
-					clusterCoordinatorIdent = (IbisIdentifier) r.elect("satin "
-						+ ident.cluster() + " cluster coordinator", ident);
+					clusterCoordinatorIdent = r.elect("satin "
+						+ ident.cluster() + " cluster coordinator");
 					if (clusterCoordinatorIdent.equals(ident)) {
 						/* I am the cluster coordinator */
 						clusterCoordinator = true;

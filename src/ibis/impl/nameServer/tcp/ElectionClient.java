@@ -54,36 +54,4 @@ class ElectionClient implements Protocol {
 
 		return result;
 	}
-	
-	Object reelect(String election, Object candidate, Object formerRuler) throws IOException, ClassNotFoundException { 
-
-		Socket s = null;
-		ObjectOutputStream out;
-		ObjectInputStream in;
-		Object result = null;
-
-		while (result == null) {
-		    s = NameServerClient.socketFactory.createSocket(server, port, localAddress, 0 /* retry */);
-		    
-		    DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-		    out = new ObjectOutputStream(new BufferedOutputStream(dos));
-
-		    out.writeByte(REELECTION);
-		    out.writeUTF(election);
-		    out.writeObject(candidate);
-		    out.writeObject(formerRuler);
-		    out.flush();
-
-		    DummyInputStream di = new DummyInputStream(s.getInputStream());
-		    in  = new ObjectInputStream(new BufferedInputStream(di));
-
-		    result = in.readObject();
-		    NameServerClient.socketFactory.close(in, out, s);
-		    if (result == null) {
-			try {Thread.sleep(1000);} catch (Exception ee) { /* ignore */ }
-		    }
-		}
-
-		return result;
-	}
 }

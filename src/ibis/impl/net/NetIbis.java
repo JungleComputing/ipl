@@ -137,6 +137,11 @@ public final class NetIbis extends Ibis {
 	private   Vector 	    leftIbises       = new Vector();
 
 	/**
+	 * The {@link ibis.impl.net.NetIbis} instances that died while our world was {@linkplain #open closed}.
+	 */
+	private   Vector 	    diedIbises       = new Vector();
+
+	/**
 	 * Make end() reentrant
 	 */
 	private boolean		ended = false;
@@ -489,6 +494,25 @@ public final class NetIbis extends Ibis {
 		}
 	}
 	
+	public void died(IbisIdentifier[] corpses) {
+		synchronized (this) {
+			if(!open && resizeHandler == null) {
+			    for (int i = 0; i < corpses.length; i++) {
+				diedIbises.add(corpses[i]);
+			    }
+			    return;
+			}
+
+			poolSize -= corpses.length;
+		}
+
+		if(resizeHandler != null) {
+		    for (int i = 0; i < corpses.length; i++) {
+			resizeHandler.died(corpses[i]);
+		    }
+		}
+	}
+	
 	public void enableResizeUpcalls() {
 		if(resizeHandler != null) {
 			while(joinedIbises.size() > 0) {
@@ -502,6 +526,11 @@ public final class NetIbis extends Ibis {
 
 			while(leftIbises.size() > 0) {
 				resizeHandler.left((NetIbisIdentifier)leftIbises.remove(0));
+				poolSize--;
+			}
+			
+			while(diedIbises.size() > 0) {
+				resizeHandler.died((NetIbisIdentifier)diedIbises.remove(0));
 				poolSize--;
 			}
 		}

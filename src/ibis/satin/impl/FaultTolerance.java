@@ -16,6 +16,9 @@ public abstract class FaultTolerance extends Inlets {
 
 	// The core of the fault tolerance mechanism, the crash recovery procedure
 	synchronized void handleCrashes() {
+
+		Registry r = ibis.registry();
+
 		if (CRASH_TIMING) {
 			crashTimer.start();
 		}
@@ -27,6 +30,16 @@ public abstract class FaultTolerance extends Inlets {
 		IbisIdentifier id = null;
 		while (crashedIbises.size() > 0) {
 			id = (IbisIdentifier) crashedIbises.remove(0);
+
+			// Let the Ibis registry know ...
+			try {
+				r.dead(id);
+			} catch(IOException e) {
+				System.err.println("SATIN '" + ident.name()
+						+ "' :exception while notifying registry about crash of "
+						+ id.name() + ": " + e.getMessage());
+			}
+
 			if (COMM_DEBUG) {
 				out.println("SATIN '" + ident.name() + ": handling crash of "
 						+ id.name());
@@ -49,9 +62,7 @@ public abstract class FaultTolerance extends Inlets {
 				//master has crashed, let's elect a new one
 				System.err.println("SATIN '" + ident.name() + "': MASTER (" + masterIdent + ") HAS CRASHED!!!");
 				try {
-					Registry r = ibis.registry();
-					masterIdent = (IbisIdentifier) r.reelect("satin master",
-							ident, id); //implement it!
+					masterIdent = r.elect("satin master");
 					if (masterIdent.equals(ident)) {
 						master = true;
 					}
@@ -90,9 +101,7 @@ public abstract class FaultTolerance extends Inlets {
 			
 			if (id.equals(clusterCoordinatorIdent) && /*quick hack*/!(killTime > 0)) {
 				try {
-					Registry r = ibis.registry();
-					clusterCoordinatorIdent = (IbisIdentifier) r.reelect("satin " + ident.cluster() + " cluster coordinator",
-							ident, id); //implement it!
+					clusterCoordinatorIdent = r.elect("satin " + ident.cluster() + " cluster coordinator");
 					if (clusterCoordinatorIdent.equals(ident)) {
 						clusterCoordinator = true;
 					}
@@ -301,9 +310,10 @@ public abstract class FaultTolerance extends Inlets {
 			System.err.println("SATIN '" + ident.name()
 					+ "': got lostConnection upcall: " + johnDoe.ibis());
 		}
-		if (connectionUpcallsDisabled)
-			return;
 		if (FAULT_TOLERANCE) {
+			if (connectionUpcallsDisabled) {
+				return;
+			}
 			handleLostConnection(johnDoe.ibis());
 		}
 	}
@@ -315,9 +325,10 @@ public abstract class FaultTolerance extends Inlets {
 					+ "': got SENDPORT lostConnection upcall: "
 					+ johnDoe.ibis());
 		}
-		if (connectionUpcallsDisabled)
-			return;
 		if (FAULT_TOLERANCE) {
+			if (connectionUpcallsDisabled) {
+				return;
+			}
 			handleLostConnection(johnDoe.ibis());
 		}
 	}

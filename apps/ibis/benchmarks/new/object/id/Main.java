@@ -72,7 +72,7 @@ public class Main {
 			SendPort sport = t.createSendPort();		      
 			ReceivePort rport;
 
-			IbisIdentifier master = (IbisIdentifier) registry.elect("latency", ibis.identifier());
+			IbisIdentifier master = registry.elect("latency");
 
 			if(master.equals(ibis.identifier())) {
 				rank = 0;

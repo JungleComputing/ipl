@@ -88,38 +88,32 @@ public interface Registry {
      * method with a specified election name.
      * Note that this has nothing to do with a real election: it is not like
      * "most votes count". It is more like: "the first one in gets it".
-     * If a <code>null</code> candidate is specified, caller is not regarded
-     * as a candidate, only as an interested party. Note that at least one
-     * participant in the election must be a candidate.
+     *
+     * When it is detected the winner of the election has left or has died
+     * a new winner will automatically be elected and returned on the next 
+     * call of this function.
      *
      * @param election the name of this election.
-     * @param candidate a candidate for this election.
-     * @return the object elected.
-     * @exception ClassNotFoundException is thrown if an object
+     * @return the Ibis identifier of the elected Ibis instance.
+     * @exception ClassNotFoundException is thrown if an Ibis identifier
      * 	is returned whose class is locally unknown.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public Object elect(String election, Object candidate)
+    public IbisIdentifier elect(String election)
 	throws IOException, ClassNotFoundException;
 
     /**
-     * (Re-)elects a single candidate from a number of candidates calling this
-     * method with a specified election name.
-     * Note that this has nothing to do with a real election: it is not like
-     * "most votes count". It is more like: "the first one in gets it".
+     * Gets the result of an election, without being a candidate.
      *
      * @param election the name of this election.
-     * @param candidate a candidate for this election.
-     * @param formerRuler could be the result of an earlier election, in which
-     *  case it is overridden by a new candidate.
-     * @return the object elected.
-     * @exception ClassNotFoundException is thrown if an object
+     * @return the Ibis identifier of the elected Ibis instance.
+     * @exception ClassNotFoundException is thrown if an Ibis identifier
      * 	is returned whose class is locally unknown.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public Object reelect(String election, Object candidate, Object formerRuler) 
-	throws IOException, ClassNotFoundException;		
-	
+    public IbisIdentifier getElectionResult(String election)
+	throws IOException, ClassNotFoundException;
+
     /**
      * Binds the specified name to the specified identifier.
      * If the name already is bound, an exception is thrown.
@@ -163,4 +157,24 @@ public interface Registry {
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public String[] listNames(String regex) throws IOException;
+
+    /**
+     * Notifies that an Ibis instance is suspected to be dead.
+     * Returns <code>true</code> if this suspicion is found to be true.
+     *
+     * @param ibis the Ibis identifier of the Ibis instance suspected
+     *   to be dead.
+     * @return <code>true</code> if this Ibis instance indeed seems to be dead.
+     * @exception java.io.IOException is thrown in case of trouble.
+     */
+    public boolean isDead(IbisIdentifier ibis) throws IOException;
+
+    /**
+     * Notifies that an Ibis instance must be assumed to be dead.
+     *
+     * @param ibis the Ibis identifier of the Ibis instance that must
+     *   be assumed to be dead.
+     * @exception java.io.IOException is thrown in case of trouble.
+     */
+    public void dead(IbisIdentifier ibis) throws IOException;
 }

@@ -47,6 +47,7 @@ public final class NioIbis extends Ibis implements Config {
     private boolean open = false;
     private ArrayList joinedIbises = new ArrayList();
     private ArrayList leftIbises = new ArrayList();
+    private ArrayList diedIbises = new ArrayList();
 
     ChannelFactory factory;
     private boolean ended = false;
@@ -183,6 +184,37 @@ public final class NioIbis extends Ibis implements Config {
 	}
     }
     
+    /**
+     * this method forwards the died to the application running on top of
+     * ibis.
+     */
+    public void died(IbisIdentifier[] corpses) { 
+	synchronized (this) {
+	    if(!open && resizeHandler != null) {
+		for (int i = 0; i < corpses.length; i++) {
+		    diedIbises.add(corpses[i]);
+		}
+		return;
+	    }
+
+
+	    if (DEBUG) {
+		for (int i = 0; i < corpses.length; i++) {
+		    Debug.message("general", this,
+				"ibis '" + corpses[i].name() + "' died"); 
+		}
+	    }
+
+	    poolSize -= corpses.length;
+	}
+
+	if(resizeHandler != null) {
+	    for (int i = 0; i < corpses.length; i++) {
+		resizeHandler.died(corpses[i]);
+	    }
+	}
+    }
+    
     public PortType getPortType(String name) { 
 	return (PortType) portTypeList.get(name);
     } 
@@ -214,6 +246,15 @@ public final class NioIbis extends Ibis implements Config {
 		    ident = (NioIbisIdentifier)leftIbises.remove(0);
 		}
 		resizeHandler.left(ident); // Don't hold the lock during user upcall
+
+	    }
+	    while(true) {
+		synchronized(this) {
+		    if(diedIbises.size() == 0) break;
+		    poolSize--;
+		    ident = (NioIbisIdentifier)diedIbises.remove(0);
+		}
+		resizeHandler.died(ident); // Don't hold the lock during user upcall
 
 	    }
 	}

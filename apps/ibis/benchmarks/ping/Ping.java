@@ -528,7 +528,7 @@ public final class Ping {
 
 			// Configuration information
 			registry = ibis.registry();
-			IbisIdentifier master = (IbisIdentifier) registry.elect("ping", ibis.identifier());
+			IbisIdentifier master = registry.elect("ping");
 
 			if(master.equals(ibis.identifier())) {
 				rank       = 0;

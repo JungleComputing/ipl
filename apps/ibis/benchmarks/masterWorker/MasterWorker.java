@@ -33,7 +33,7 @@ final class MasterWorker {
 
 	    registry = ibis.registry();
 
-	    boolean master = registry.elect("master", ibis.identifier())
+	    boolean master = registry.elect("master")
 		    .equals(ibis.identifier());
 
 	    manyToOneType = ibis.createPortType("many2one type", s);

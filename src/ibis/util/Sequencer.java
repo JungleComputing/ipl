@@ -128,7 +128,7 @@ public final class Sequencer {
 	idno = -1;
 	try {
 	    IbisIdentifier boss = (IbisIdentifier)
-			    ibis.registry().elect("sequencer", ident);
+			    ibis.registry().elect("sequencer");
 	    master = boss.equals(ident);
 	} catch(ClassNotFoundException e) {
 	    throw new IOException("Got ClassNotFoundException " + e);

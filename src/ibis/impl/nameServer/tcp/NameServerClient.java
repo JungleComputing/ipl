@@ -219,6 +219,59 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		}
 	} 
 
+	public boolean isDead(IbisIdentifier id) throws IOException {
+		Socket s;
+		try {
+		    s = socketFactory.createSocket(serverAddress, port, myAddress, -1);
+		} catch(ConnectionTimedOutException e) {
+		    // Apparently, the nameserver left. Assume dead.
+		    return true;
+		}
+		
+		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
+
+		out.writeByte(IBIS_ISALIVE);
+		out.writeUTF(poolName);
+		out.writeObject(id);
+		out.flush();
+		if(DEBUG) {
+			System.err.println("NS client: isAlive sent");
+		}
+
+		DummyInputStream di = new DummyInputStream(s.getInputStream());
+		ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
+		
+		int temp = in.readByte();
+		socketFactory.close(in, out, s);
+		    
+		if(DEBUG) {
+			System.err.println("NS client: isAlive answer received: " + (temp == IBIS_ISALIVE));
+		}
+		return temp != IBIS_ISALIVE;
+	}
+
+	public void dead(IbisIdentifier id) throws IOException {
+		Socket s;
+		try {
+		    s = socketFactory.createSocket(serverAddress, port, myAddress, -1);
+		} catch(ConnectionTimedOutException e) {
+		    return;
+		}
+		
+		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
+
+		out.writeByte(IBIS_DEAD);
+		out.writeUTF(poolName);
+		out.writeObject(id);
+		if(DEBUG) {
+			System.err.println("NS client: kill sent");
+		}
+
+		socketFactory.close(null, out, s);
+	}
+
 	public boolean newPortType(String name, StaticProperties p) throws IOException {
 		return portTypeNameServerClient.newPortType(name, p);
 	}
@@ -240,29 +293,31 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		    return;
 		}
 		
-		DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-		ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
+		try {
+		    DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+		    ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
-		out.writeByte(IBIS_LEAVE);
-		out.writeUTF(poolName);
-		out.writeObject(id);
-		out.flush();
-		if(DEBUG) {
-			System.err.println("NS client: leave sent");
-		}
+		    out.writeByte(IBIS_LEAVE);
+		    out.writeUTF(poolName);
+		    out.writeObject(id);
+		    out.flush();
+		    if(DEBUG) {
+			    System.err.println("NS client: leave sent");
+		    }
 
-		DummyInputStream di = new DummyInputStream(s.getInputStream());
-		ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
+		    DummyInputStream di = new DummyInputStream(s.getInputStream());
+		    ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
 		
-		int temp = in.readByte();
-		if(DEBUG) {
-			System.err.println("NS client: leave ack received");
+		    int temp = in.readByte();
+		    if(DEBUG) {
+			    System.err.println("NS client: leave ack received");
+		    }
+		    socketFactory.close(in, out, s);
+		} catch(IOException e) {
+		    // ignored
 		}
 
-		socketFactory.close(in, out, s);
 
-//		stop = true;
-//		this.interrupt();
 		if(DEBUG) {
 			System.err.println("NS client: leave DONE");
 		}
@@ -343,6 +398,12 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 						ibisImpl.left(id);
 					}
 					break;
+				case (IBIS_DEAD):
+					IbisIdentifier[] ids = (IbisIdentifier[]) in.readObject();
+					socketFactory.close(in, null, s);
+					ibisImpl.died(ids);
+					
+					break;
 				default: 
 					System.out.println("NameServerClient: got an illegal opcode " + opcode);
 				}
@@ -381,16 +442,16 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		return new ReceivePortIdentifier[0];
 	}
 
-	public Object elect(String election, Object candidate) throws IOException, ClassNotFoundException {
-		return electionClient.elect(election, candidate);
+	public IbisIdentifier elect(String election) throws IOException, ClassNotFoundException {
+		return (IbisIdentifier) electionClient.elect(election, id);
+	}
+
+	public IbisIdentifier getElectionResult(String election) throws IOException, ClassNotFoundException {
+		return (IbisIdentifier) electionClient.elect(election, null);
 	}
 
 	//gosia	
 
-	public Object reelect(String election, Object candidate, Object formerRuler) throws IOException, ClassNotFoundException {
-		return electionClient.reelect(election, candidate, formerRuler);
-	}
-	
 	public void bind(String name, ReceivePortIdentifier rpi) throws IOException {
 		receivePortNameServerClient.bind(name, rpi);
 	}
