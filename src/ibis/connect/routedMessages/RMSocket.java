@@ -125,6 +125,10 @@ public class RMSocket extends DummySocket
         // ignored
     }
 
+    public void setSoTimeout(int t) {
+	// ignored
+    }
+
     public void shutdownInput() {
         // ignored
     }
@@ -144,6 +148,18 @@ public class RMSocket extends DummySocket
     public InputStream getInputStream()
     {
 	return in;
+    }
+
+    public int getPort() {
+	return remoteHostPort;
+    }
+
+    public int getLocalPort() {
+	return localPort;
+    }
+
+    public String toString() {
+	return "RoutedMessages Socket";
     }
 
     public synchronized void close()

@@ -14,6 +14,10 @@ public class PSSocket extends DummySocket
     ParallelStreams ps = null;
     PSInputStream   in = null;
     PSOutputStream out = null;
+    int		portno = -1;
+    int    localportno = -1;
+
+    static int portcounter = 1;
 
     /* End-users are not supposed to call this constructor.
      * They should use the socket factory instead.
@@ -24,7 +28,10 @@ public class PSSocket extends DummySocket
 	throws IOException
     {
 	ps = new ParallelStreams(numWays, blockSize, p);
-	ps.connect(ctrlIs, ctrlOs, hint);
+	synchronized(PSSocket.class) {
+	    localportno = portcounter++;
+	}
+	portno = ps.connect(ctrlIs, ctrlOs, hint, localportno);
 	in = new PSInputStream();
 	out = new PSOutputStream();
     }
@@ -37,6 +44,14 @@ public class PSSocket extends DummySocket
     public InputStream getInputStream()
     {
 	return in;
+    }
+
+    public int getPort() {
+	return portno;
+    }
+
+    public int getLocalPort() {
+	return localportno;
     }
 
     public void setSendBufferSize(int n) throws SocketException {
@@ -56,11 +71,18 @@ public class PSSocket extends DummySocket
 	}
 	in = null;
 	out = null;
+	portno = -1;
     }
 
     public void setTcpNoDelay(boolean on) throws SocketException {
 	if (ps != null) {
 	    ps.setTcpNoDelay(on);
+	}
+    }
+
+    public void setSoTimeout(int t) throws SocketException {
+	if (ps != null) {
+	    ps.setSoTimeout(t);
 	}
     }
 
@@ -74,6 +96,14 @@ public class PSSocket extends DummySocket
 	if (ps != null) {
 	    ps.shutdownOutput();
 	}
+    }
+
+    public String toString() {
+	String result = "ParallelStreams Socket ";
+	if (ps != null) {
+	    return result + ps.toString();
+	}
+	return result + "(closed)";
     }
 
     private class PSInputStream extends InputStream
@@ -149,5 +179,4 @@ public class PSSocket extends DummySocket
 	    out = null;
 	}
     }
-    
 }

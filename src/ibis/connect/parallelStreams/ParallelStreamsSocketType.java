@@ -10,8 +10,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 public class ParallelStreamsSocketType 
-    extends    SocketType
-    implements BrokeredSocketFactory
+	extends    SocketType
+	implements BrokeredSocketFactory
 {
     public ParallelStreamsSocketType() {
 	super("ParallelStreams");
@@ -20,7 +20,7 @@ public class ParallelStreamsSocketType
     public Socket createBrokeredSocket(InputStream in, OutputStream out,
 				       boolean hint,
 				       ConnectProperties p)
-	throws IOException
+	    throws IOException
     {
 	Socket s = null;
 	if(p == null)

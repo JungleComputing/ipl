@@ -33,8 +33,7 @@ public class ParallelStreams
     private boolean writerBusy = false;
     private boolean hint = false;
 
-    public ParallelStreams(int n, int b, ConnectProperties props)
-    {
+    public ParallelStreams(int n, int b, ConnectProperties props) {
 	if(MyDebug.VERBOSE()) {
 	    System.err.println("# ParallelStreams: building link- numWays = "+n+"; blockSize = "+b);
 	}
@@ -46,17 +45,18 @@ public class ParallelStreams
 	this.props = props;
     }
 
-    public void connect(InputStream in, OutputStream out, boolean hnt)
-	throws IOException
-    {
+    public int connect(InputStream in, OutputStream out, boolean hnt, int portno)
+	    throws IOException {
 	int i;
 
 	DataOutputStream os = new DataOutputStream(out);
 	os.writeInt(numWays);
+	os.writeInt(portno);
 	os.flush();
 
 	DataInputStream is = new DataInputStream(in);
 	int rNumWays = is.readInt();
+	int rport = is.readInt();
 	
 	MyDebug.out.println("PS: received properties from peer.");
 	if(rNumWays != numWays) {
@@ -76,6 +76,7 @@ public class ParallelStreams
 	    ins[i] = s.getInputStream();
 	    outs[i] = s.getOutputStream();
 	}
+	return rport;
     }
 
     void setReceiveBufferSize(int n) throws SocketException {
@@ -94,9 +95,7 @@ public class ParallelStreams
 	}
     }
 
-    public int poll()
-	throws IOException
-    {
+    public int poll() throws IOException {
 	synchronized(this) {
 	    while (readerBusy) {
 		try {
@@ -120,9 +119,7 @@ public class ParallelStreams
 	}
     }
 
-    public int recv(byte[] b, int off, int len)
-	throws IOException
-    {
+    public int recv(byte[] b, int off, int len) throws IOException {
 	synchronized(this) {
 	    while (readerBusy) {
 		try {
@@ -169,9 +166,7 @@ public class ParallelStreams
 	}
     }
 
-    public void send(byte[] b, int off, int len)
-	throws IOException
-    {
+    public void send(byte[] b, int off, int len) throws IOException {
 	synchronized(this) {
 	    while (writerBusy) {
 		try {
@@ -224,17 +219,25 @@ public class ParallelStreams
 	}
     }
 
-    public void close()
-	throws IOException
-    {
+    public void setSoTimeout(int t) throws SocketException {
+	MyDebug.trace("PS: setSoTimeout");
+	for(int i=0; i< numWays; i++) {
+	    sockets[i].setSoTimeout(t);
+	}
+    }
+
+    public String toString() {
+	return "(numWays = " + numWays + ")";
+    }
+
+    public void close() throws IOException {
 	MyDebug.out.println("PS: close()");
 	MyDebug.trace("PS: closing PS, numWays = " + numWays + ", hint = " + hint);
-	for(int i=0; i< numWays; i++)
-	    {
-		ins[i].close();
-		outs[i].close();
-		sockets[i].close();
-	    }
+	for(int i=0; i< numWays; i++) {
+	    ins[i].close();
+	    outs[i].close();
+	    sockets[i].close();
+	}
 	MyDebug.out.println("PS: close()- ok.");
     }
 }
