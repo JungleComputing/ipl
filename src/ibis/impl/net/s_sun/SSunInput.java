@@ -28,9 +28,6 @@ public final class SSunInput extends NetSerializedInput {
 		return new SunSerializationInputStream(is);
         }
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void setupConnection(NetConnection cnx) throws IOException {
 	    super.setupConnection(cnx);
 	    if (subInput instanceof NetBufferedInputSupport) {

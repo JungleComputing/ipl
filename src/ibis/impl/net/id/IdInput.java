@@ -37,13 +37,6 @@ public final class IdInput extends NetInput {
 		super(pt, driver, context, inputUpcall);
 	}
 
-	/*
-	 * Sets up an incoming ID connection.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
 		NetInput subInput = this.subInput;
 		if (subInput == null) {
@@ -76,8 +69,6 @@ public final class IdInput extends NetInput {
 	 * <BR><B>Note</B>: This ID polling implementation uses the
 	 * {@link java.io.InputStream#available()} function to test whether at least one
 	 * data byte may be extracted without blocking.
-	 *
-	 * @return {@inheritDoc}
 	 */
 	public Integer doPoll(boolean block) throws IOException {
                 if (subInput == null) {
@@ -89,16 +80,10 @@ public final class IdInput extends NetInput {
 		return result;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void doFinish() throws IOException {
 		subInput.finish();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void doFree() throws IOException {
 		if (subInput != null) {
 			subInput.free();

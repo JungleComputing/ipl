@@ -62,12 +62,8 @@ public final class TcpOutput extends NetOutput {
 		headerLength = 0;
 	}
 
-	/*
+	/**
 	 * Sets up an outgoing TCP connection.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx)
 		throws IOException {
@@ -137,10 +133,6 @@ public final class TcpOutput extends NetOutput {
 	}
                 
 
-
-	/*
-	 * {@inheritDoc}
-         */
 	public void writeByte(byte b) throws IOException {
                 //System.err.println("TcpOutput: writing byte "+b);
 		tcpOs.write(b);
@@ -165,9 +157,6 @@ public final class TcpOutput extends NetOutput {
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void free() throws IOException {
 		if (tcpOs != null) {
 			tcpOs.close();

@@ -87,9 +87,6 @@ public abstract class NetSerializedOutput extends NetOutput {
         public abstract SerializationOutputStream newSerializationOutputStream() throws IOException;
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void initSend() throws IOException {
                 subOutput.initSend();
 
@@ -120,9 +117,6 @@ public abstract class NetSerializedOutput extends NetOutput {
         }
 
 
-	/**
-	 * {@inheritDoc}
-	 */
         public long finish() throws IOException {
 	    super.finish();
 	    flushStream();
@@ -144,9 +138,6 @@ public abstract class NetSerializedOutput extends NetOutput {
         }
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void free() throws IOException {
 		if (subOutput != null) {
 			subOutput.free();

@@ -44,9 +44,6 @@ public class SingletonPoller extends GenPoller {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public boolean readBufferedSupported() {
 	return subInput.readBufferedSupported();
     }
@@ -104,9 +101,6 @@ public class SingletonPoller extends GenPoller {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void doFinish() throws IOException {
 	log.in();
 // rcveTimer.stop();
@@ -115,9 +109,6 @@ public class SingletonPoller extends GenPoller {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void doFree() throws IOException {
 	log.in();
 	if (subInput != null) {

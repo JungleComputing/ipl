@@ -178,9 +178,6 @@ public final class RelOutput
 	}
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public synchronized void setupConnection(NetConnection cnx)
 	    throws IOException {
 
@@ -774,9 +771,6 @@ checkRexmit();
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void sendByteBuffer(NetSendBuffer b) throws IOException {
 	if (DEBUG_HUGE) {
 	    System.err.println(this + ": Try to send a buffer size " + b.length);
@@ -836,9 +830,6 @@ checkRexmit();
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void initSend() throws IOException {
 	    super.initSend();
 	    dataOutput.initSend();
@@ -852,9 +843,6 @@ checkRexmit();
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public long finish() throws IOException {
 	    super.finish();
 	    dataOutput.finish();
@@ -901,9 +889,6 @@ checkRexmit();
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void free() throws IOException {
 	if (rpn != null) {
 	    close(rpn);

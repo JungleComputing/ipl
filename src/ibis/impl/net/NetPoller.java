@@ -179,9 +179,6 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public boolean readBufferedSupported() {
 	return readBufferedSupported;
     }
@@ -778,9 +775,6 @@ nCurrent++;
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void doFinish() throws IOException {
 	log.in();
 // rcveTimer.stop();
@@ -791,9 +785,6 @@ nCurrent++;
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void doFree() throws IOException {
 	log.in();trace.in();
 	trace.disp("0, ", this);
@@ -883,9 +874,6 @@ nCurrent++;
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public int readBuffered(byte[] data, int offset, int length)
 	    throws IOException {
 	log.in();

@@ -37,16 +37,10 @@ public final class Driver extends NetDriver {
 		super(ibis);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public String getName() {
 		return name;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) throws IOException {
 	    if (inputUpcall == null && pt.inputSingletonOnly()) {
 		return new SingletonPoller(pt, this, context, inputUpcall);
@@ -55,9 +49,6 @@ public final class Driver extends NetDriver {
 	    }
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
 	    return new MultiSplitter(pt, this, context);
 	}

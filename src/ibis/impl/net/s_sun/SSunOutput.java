@@ -27,9 +27,6 @@ public final class SSunOutput extends NetSerializedOutput {
 		return new SunSerializationOutputStream(os);
         }
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void setupConnection(NetConnection cnx) throws IOException {
 	    super.setupConnection(cnx);
 	    if (subOutput instanceof NetBufferedOutputSupport) {

@@ -127,8 +127,6 @@ public final class GmInput extends NetBufferedInput {
 
 	/**
 	 * Sets up an incoming GM connection.
-	 *
-	 * @param cnx {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
@@ -246,8 +244,6 @@ int rcvd;
 int plld;
 
         /**
-         * {@inheritDoc}
-	 *
 	 * This method is in fact deprecated. All polls should come through
 	 * a GmPoller.
          */
@@ -301,9 +297,6 @@ plld++;
 	    }
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void receiveByteBuffer(NetReceiveBuffer b) throws IOException {
 	    log.in();
 
@@ -365,9 +358,6 @@ rcvd++;
         }
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void doFree() throws IOException {
 	    log.in();
 	    spn = null;
@@ -428,16 +418,6 @@ rcvd++;
 	    }
         }
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * We provide our own implementation of read/writeArray(byte[])
-	 * because super's uses its own buffering, which is incompatible
-	 * with the buffering used in NetGM.
-	 */
-	/* I hope we can use the buffering of the upper layer after all.
-	 * Otherwise, havoc and panic.
-	 */
 	public void readArray(byte [] b, int o, int l) throws IOException {
 	    log.in();
 

@@ -53,9 +53,6 @@ public abstract class NetBufferedInput extends NetInput
 		super(portType, driver, context, inputUpcall);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetReceiveBuffer createReceiveBuffer(int length) {
                 NetReceiveBuffer b = null;
 

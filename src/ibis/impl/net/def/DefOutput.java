@@ -31,9 +31,6 @@ public final class DefOutput extends NetBufferedOutput {
 		headerLength = 4;
 	}
 
-	/*
-	 * {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 if (this.rpn != null) {
                         throw new Error("connection already established");
@@ -45,9 +42,6 @@ public final class DefOutput extends NetBufferedOutput {
 		mtu = 1024;
 	}
 
-	/*
-	 * {@inheritDoc}
-	 */
         public long finish() throws IOException{
                 super.finish();
 		defOs.flush();
@@ -55,9 +49,6 @@ public final class DefOutput extends NetBufferedOutput {
 		return 0;
         }
 
-	/*
-	 * {@inheritDoc}
-	 */
 	public void sendByteBuffer(NetSendBuffer b) throws IOException {
 		Conversion.defaultConversion.int2byte(b.length, b.data, 0);
 		//System.err.println("writing "+b.length+" bytes");
@@ -73,9 +64,6 @@ public final class DefOutput extends NetBufferedOutput {
         }
         
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void free() throws IOException {
                 if (defOs != null) {
 			defOs.close();

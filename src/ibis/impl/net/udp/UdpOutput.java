@@ -93,10 +93,6 @@ public final class UdpOutput extends NetBufferedOutput {
          *
          * <BR><B>Note</B>: this function also negociate the mtu.
          * <BR><B>Note</B>: the current UDP mtu is arbitrarily fixed at 32kB.
-         *
-         * @param rpn {@inheritDoc}
-         * @param is {@inheritDoc}
-         * @param os {@inheritDoc}
          */
         public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
@@ -155,9 +151,6 @@ public final class UdpOutput extends NetBufferedOutput {
                 log.out();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
                 if (Driver.DEBUG) {
@@ -186,9 +179,6 @@ public final class UdpOutput extends NetBufferedOutput {
         }
         
 
-        /**
-         * {@inheritDoc}
-         */
         public void free() throws IOException {
                 log.in();
                 if (socket != null) {

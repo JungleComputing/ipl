@@ -171,10 +171,6 @@ public final class RelInput
     }
 
 
-
-    /*
-     * {@inheritDoc}
-     */
     public synchronized void setupConnection(NetConnection cnx)
 	    throws IOException {
 
@@ -616,9 +612,6 @@ public final class RelInput
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     // Call this non-synchronized
     public Integer doPoll(boolean block) throws IOException {
         boolean result = false;
@@ -685,9 +678,6 @@ public final class RelInput
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public NetReceiveBuffer receiveByteBuffer(int length)
 	    throws IOException {
 	if (DEBUG_HUGE) {
@@ -730,9 +720,6 @@ public final class RelInput
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void doFinish() throws IOException {
 	if (DEBUG_HUGE) {
 	    System.err.println(this + ": finish()");
@@ -786,9 +773,6 @@ public final class RelInput
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void doFree() throws IOException {
 	if (spn != null) {
 	    close(spn);

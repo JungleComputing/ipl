@@ -73,12 +73,8 @@ public final class TcpOutput extends NetOutput {
 		super(pt, driver, context);
 	}
 
-	/*
+	/**
 	 * Sets up an outgoing TCP connection.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();

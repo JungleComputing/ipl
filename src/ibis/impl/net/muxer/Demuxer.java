@@ -40,8 +40,6 @@ public final class Demuxer extends NetBufferedInput {
 
     /**
      * Constructor.
-     *
-     * {@inheritDoc}
      */
     Demuxer(NetPortType pt, NetDriver driver, String context,
 	    NetInputUpcall inputUpcall) throws IOException {
@@ -167,8 +165,6 @@ dumpBufferFactoryInfo();
      * <BR><B>Note</B>: This UDP polling implementation uses a timeout.
      * As the minimum timeout value is one
      * millisecond, an unsuccessful polling operation is rather expensive.
-     *
-     * @return {@inheritDoc}
      */
     public Integer doPoll(boolean block) throws IOException {
 	if (myQueue == null) {
@@ -187,8 +183,6 @@ dumpBufferFactoryInfo();
      * <BR><B>Note</B>: this function may block if the expected data is not there.
      * <BR><B>Note</B>: The expectedLength argument is simply ignored because the
      * packet actually received might not be the one that is expected.
-     *
-     * @return {@inheritDoc}
      */
     public NetReceiveBuffer receiveByteBuffer(int expectedLength)
 	    throws IOException {
@@ -211,17 +205,11 @@ dumpBufferFactoryInfo();
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void doFinish() throws IOException {
 	myQueue.doFinish();
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public synchronized void doClose(Integer num) throws IOException {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": doClose.");
@@ -239,9 +227,6 @@ dumpBufferFactoryInfo();
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void doFree() throws IOException {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": doFree.");

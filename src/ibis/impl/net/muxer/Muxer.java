@@ -66,9 +66,6 @@ public final class Muxer extends NetBufferedOutput {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void setBufferFactory(NetBufferFactory factory) {
 	if (Driver.DEBUG) {
 	    System.err.println(this + ": +++++++++++ set a new BufferFactory " + factory);
@@ -86,10 +83,6 @@ public final class Muxer extends NetBufferedOutput {
      *
      * <BR><B>Note</B>: this function also negociate the mtu.
      * <BR><B>Note</B>: the current UDP mtu is arbitrarily fixed at 32kB.
-     *
-     * @param rpn {@inheritDoc}
-     * @param is {@inheritDoc}
-     * @param os {@inheritDoc}
      */
     public void setupConnection(NetConnection cnx)
 		throws IOException {
@@ -133,9 +126,6 @@ public final class Muxer extends NetBufferedOutput {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void sendByteBuffer(NetSendBuffer b) throws IOException {
 
 	if (Driver.DEBUG) {
@@ -152,9 +142,6 @@ public final class Muxer extends NetBufferedOutput {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     synchronized public void close(Integer num) throws IOException {
 	if (rpn == num) {
 	    mtu   =    0;
@@ -166,9 +153,6 @@ public final class Muxer extends NetBufferedOutput {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void free() throws IOException {
 	if (rpn == null) {
 	    return;

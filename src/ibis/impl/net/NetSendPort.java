@@ -653,9 +653,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		return this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public DynamicProperties properties() {
                 log.in();
                 log.out();
@@ -903,9 +900,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		log.out();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void sync(int ticket) throws IOException {
                 log.in();
 		output.sync(ticket);

@@ -35,9 +35,6 @@ public final class IdOutput extends NetOutput {
 		super(pt, driver, context);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
 		NetOutput subOutput = this.subOutput;
 		
@@ -68,26 +65,17 @@ public final class IdOutput extends NetOutput {
  		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void initSend() throws IOException {
                 super.initSend();
 		subOutput.initSend();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public long finish() throws IOException {
 		long retval = subOutput.finish();
 		super.finish();
 		return retval;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void free() throws IOException {
 		if (subOutput != null) {
 			subOutput.free();

@@ -165,9 +165,6 @@ public abstract class NetSerializedInput extends NetInput {
                 log.out();
         }
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public Integer doPoll(boolean block) throws IOException {
                 log.in();
                 if (subInput == null) {
@@ -181,9 +178,6 @@ public abstract class NetSerializedInput extends NetInput {
 		return result;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void doFinish() throws IOException {
                 log.in();
                 //iss.close();
@@ -211,9 +205,6 @@ public abstract class NetSerializedInput extends NetInput {
         }
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void doFree() throws IOException {
                 log.in();
 		if (subInput != null) {

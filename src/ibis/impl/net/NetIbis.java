@@ -442,14 +442,6 @@ public final class NetIbis extends Ibis {
 		nameServer = NameServer.loadNameServer(this);
 	}
 
-        /*
-	 * Handles synchronous/asynchronous Ibises pool joins.
-	 *
-	 * @param joinIdent the identifier of the joining Ibis instance.
-	 */
-	/**
-         * {@inheritDoc}
-         */
 	public void join(IbisIdentifier joinIdent) {
 		synchronized (this) {
 			joinedIbises.add(joinIdent);
@@ -471,14 +463,6 @@ public final class NetIbis extends Ibis {
 		}
 	}
 
-	/*
-	 * Handles synchronous/asynchronous Ibises pool leaves.
-	 *
-	 * @param leaveIdent the identifier of the leaving Ibis instance.
-	 */
-	/**
-         * {@inheritDoc}
-         */
 	public void leave(IbisIdentifier leaveIdent) {
 		synchronized (this) {
 			if(!open && resizeHandler == null) {

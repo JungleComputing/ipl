@@ -104,13 +104,6 @@ public final class TcpInput extends NetBufferedInput
 		headerLength = 4;
 	}
 
-	/*
-	 * Sets up an incoming TCP connection.
-	 *
-	 * @param spn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
 		log.in();
 		if (this.spn != null) {
@@ -179,9 +172,6 @@ public final class TcpInput extends NetBufferedInput
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void interruptPoll() throws IOException {
 		// How can this be JMM correct?????
 // System.err.println(Thread.currentThread() + ": " + this + ": interruptPoll()");
@@ -189,17 +179,11 @@ public final class TcpInput extends NetBufferedInput
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void setInterruptible() throws IOException {
 		tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void clearInterruptible(NetInputUpcall upcallFunc) throws IOException {
 // System.err.println(Thread.currentThread() + ": " + this + ": clearInterruptible, upcallFunc " + upcallFunc);
 		installUpcallFunc(upcallFunc);
@@ -374,15 +358,9 @@ public final class TcpInput extends NetBufferedInput
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * <BR><B>Note</B>: This TCP polling implementation uses the
 	 * {@link java.io.InputStream#available()} function to test whether at least one
 	 * data byte may be extracted without blocking.
-	 *
-	 * @param block if true this method blocks until there is some data to read
-	 *
-	 * @return {@inheritDoc}
 	 */
 	public Integer doPoll(boolean block) throws IOException {
 		log.in();
@@ -424,11 +402,7 @@ public final class TcpInput extends NetBufferedInput
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * <BR><B>Note</B>: this function may block if the expected data is not there.
-	 *
-	 * @return {@inheritDoc}
 	 */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IOException {
 		log.in();
@@ -476,9 +450,6 @@ public final class TcpInput extends NetBufferedInput
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void doFree() throws IOException {
                 log.in();
 		if (tcpOs != null) {

@@ -686,9 +686,6 @@ up.setDaemon(true);
 
 	protected abstract void doFree() throws IOException;
 
-	/**
-         * {@inheritDoc}
-	 */
 	protected void finalize() throws Throwable {
                 log.in();
 		free();

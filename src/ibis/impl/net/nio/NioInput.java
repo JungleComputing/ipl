@@ -152,12 +152,8 @@ public final class NioInput extends NetInput {
 		    "not found. Only " + current + " interfaces found");
 	}
 
-    /*
+    /**
      * Sets up an incoming TCP connection.
-     *
-     * @param spn {@inheritDoc}
-     * @param is {@inheritDoc}
-     * @param os {@inheritDoc}
      */
     public void setupConnection(NetConnection cnx) throws IOException {
 
@@ -209,8 +205,6 @@ public final class NioInput extends NetInput {
      * Poll by setting the channel to non blocking mode, try to receive one
      * byte, and set it back to blocking mode again. This makes poll a bit
      * expensive. If block is true keep the channel in blocking mode.
-     *
-     * @return {@inheritDoc}
      */
     public Integer doPoll(boolean block) throws IOException {
 	if(DEBUG) {
@@ -330,8 +324,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public boolean readBoolean() throws IOException {
 	boolean result;
@@ -355,8 +347,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public byte readByte() throws IOException {
 	byte result;
@@ -381,8 +371,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public char readChar() throws IOException {
 	char result;
@@ -406,8 +394,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public short readShort() throws IOException {
 	short result;
@@ -431,8 +417,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public int readInt() throws IOException {
 	int result;
@@ -456,8 +440,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public long readLong() throws IOException {
 	long result;
@@ -482,8 +464,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public float readFloat() throws IOException {
 	float result;
@@ -508,8 +488,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public double readDouble() throws IOException {
 	double result;
@@ -533,8 +511,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public String readString() throws IOException {
 	throw new IOException("reading Strings not implemented by net/nio");
@@ -546,8 +522,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public Object readObject() throws IOException, ClassNotFoundException {
 	throw new IOException("reading Objects not implemented by net/nio");
@@ -560,8 +534,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public void readArray(boolean [] array, 
 	    int offset, 
@@ -595,8 +567,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public void readArray(byte [] array, 
 	    int offset, 
@@ -626,8 +596,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public void readArray(char [] array, 
 	    int offset, 
@@ -659,8 +627,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public void readArray(short [] array, 
 	    int offset, 
@@ -690,8 +656,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public void readArray(int [] array, 
 	    int offset, 
@@ -722,8 +686,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public void readArray(long [] array, 
 	    int offset, 
@@ -755,8 +717,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public void readArray(float [] array, 
 	    int offset, 
@@ -786,8 +746,6 @@ public final class NioInput extends NetInput {
      *
      * <BR><B>Note</B>: this function may block if the expected 
      * data is not there.
-     *
-     * @return {@inheritDoc}
      */
     public void readArray(double [] array, 
 	    int offset, 
@@ -814,10 +772,6 @@ public final class NioInput extends NetInput {
     }
 
 
-
-    /**
-     * {@inheritDoc}
-     */
     public void doFree() throws IOException {
 	if(DEBUG) {
 	    System.out.println("doFree() called");

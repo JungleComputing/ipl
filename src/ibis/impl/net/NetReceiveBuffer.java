@@ -5,35 +5,23 @@ package ibis.impl.net;
  */
 public class NetReceiveBuffer extends NetBuffer {
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetReceiveBuffer(byte[] data,
 				int    length) {
 		super(data, length);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetReceiveBuffer(byte[] 	     data,
 				int          base,
 				int    	     length) {
 		super(data, base, length);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetReceiveBuffer(byte[] 	     data,
 				int    	     length,
 				NetAllocator allocator) {
 		super(data, length, allocator);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetReceiveBuffer(byte[] 	     data,
 				int          base,
 				int    	     length,

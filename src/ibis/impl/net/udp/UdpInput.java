@@ -233,8 +233,6 @@ public final class UdpInput extends NetBufferedInput {
          * <BR><B>Note</B>: This UDP polling implementation uses a timed out
          * {@link DatagramSocket#receive(DatagramPacket)}. As the minimum timeout value is one
          * millisecond, an unsuccessful polling operation is rather expensive.
-         *
-         * @return {@inheritDoc}
          */
         public Integer doPoll(boolean block) throws IOException {
                 log.in();
@@ -313,8 +311,6 @@ public final class UdpInput extends NetBufferedInput {
          * <BR><B>Note</B>: this function may block if the expected data is not there.
          * <BR><B>Note</B>: The expectedLength argument is simply ignored because the
          * packet actually received might not be the one that is expected.
-         *
-         * @return {@inheritDoc}
          */
         public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IOException {
                 log.in();
@@ -374,9 +370,6 @@ public final class UdpInput extends NetBufferedInput {
                 log.out();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public void doFinish() throws IOException {
                 log.out();
                 buffer = null;
@@ -422,9 +415,6 @@ public final class UdpInput extends NetBufferedInput {
         }
 
 
-        /**
-         * {@inheritDoc}
-         */
         public void doFree() throws IOException {
                 log.in();
                 if (spn != null) {

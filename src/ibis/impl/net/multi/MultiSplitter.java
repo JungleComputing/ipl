@@ -78,9 +78,6 @@ public final class MultiSplitter extends NetSplitter {
         }
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		Integer num  = cnx.getNum();
@@ -197,7 +194,6 @@ public final class MultiSplitter extends NetSplitter {
         */
 
 	/*
-	 * {@inheritDoc}
 	public void free() throws IOException {
                 log.in();
                 if (laneTable != null) {

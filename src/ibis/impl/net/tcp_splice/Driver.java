@@ -29,16 +29,10 @@ public final class Driver extends NetDriver {
 		super(ibis);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public String getName() {
 		return name;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetInput newInput(NetPortType pt,
 				 String context,
 				 NetInputUpcall inputUpcall)
@@ -47,9 +41,6 @@ public final class Driver extends NetDriver {
 		return new TcpInput(pt, this, context, inputUpcall);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
                 //System.err.println("new tcp output");
 		return new TcpOutput(pt, this, context);

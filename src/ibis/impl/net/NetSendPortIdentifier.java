@@ -72,9 +72,6 @@ public final class NetSendPortIdentifier
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public int hashCode() {
 		return name().hashCode() + ibis.hashCode() + type().hashCode();
 	}

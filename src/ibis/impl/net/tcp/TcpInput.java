@@ -109,10 +109,6 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
 	 * <BR><B>Note</B>: This TCP polling implementation uses the
 	 * {@link java.io.InputStream#available()} function to test whether at least one
 	 * data byte may be extracted without blocking.
-	 *
-	 * @param block if true this method blocks until there is some data to read
-	 *
-	 * @return {@inheritDoc}
 	 */
 	protected Integer doPoll(boolean block) throws IOException {
                 log.in();
@@ -151,27 +147,18 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void interruptPoll() throws IOException {
 		// How can this be JMM correct?????
 		interrupted = true;
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void setInterruptible() throws IOException {
 		tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
 System.err.println(this + ": interruptiblePoll support is INCOMPLETE. Please implement!");
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void clearInterruptible(NetInputUpcall upcallFunc) throws IOException {
 		tcpSocket.setSoTimeout(0);
 		this.upcallFunc = upcallFunc;

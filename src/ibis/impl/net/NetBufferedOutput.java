@@ -128,9 +128,6 @@ public abstract class NetBufferedOutput extends NetOutput implements NetBuffered
 		return 0;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void sync(int ticket) throws IOException {
                 log.in();
                 flushBuffer();

@@ -663,17 +663,11 @@ public final class NetServiceLink {
                         }
                 }
 
-                /**
-                 * {@inheritDoc}
-                 */
                 public void close() throws IOException {
                         closed = true;
                         doFlush();
                 }
 
-                /**
-                 * {@inheritDoc}
-                 */
                 public void flush() throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
@@ -681,9 +675,6 @@ public final class NetServiceLink {
                         doFlush();
                 }
 
-                /**
-                 * {@inheritDoc}
-                 */
                 public void write(byte[] buf) throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
@@ -692,9 +683,6 @@ public final class NetServiceLink {
                         write(buf, 0, buf.length);
                 }
 
-                /**
-                 * {@inheritDoc}
-                 */
                 public void write(byte[] buf, int off, int len) throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
@@ -713,9 +701,6 @@ public final class NetServiceLink {
                         }
                 }
 
-                /**
-                 * {@inheritDoc}
-                 */
                 public void write(int val) throws IOException {
                         if (closed) {
                                 throw new IOException("stream closed");
@@ -867,9 +852,6 @@ public final class NetServiceLink {
                         }
                 }
 
-                /**
-                 * {@inheritDoc}
-                 */
                 public synchronized int read() throws IOException {
                         if (closed && avail == 0) {
                                 return -1;
@@ -900,16 +882,10 @@ public final class NetServiceLink {
                         return result;
                 }
 
-                /**
-                 * {@inheritDoc}
-                 */
                 public int read(byte[] b) throws IOException {
                         return read(b, 0, b.length);
                 }
 
-                /**
-                 * {@inheritDoc}
-                 */
                 public synchronized int read(byte[] buf, int off, int len) throws IOException {
                         if (closed && avail == 0) {
                                 return -1;

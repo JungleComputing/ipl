@@ -29,9 +29,6 @@ public final class PipeOutput extends NetBufferedOutput {
 		headerLength = 4;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
                 if (this.rpn != null) {
@@ -94,9 +91,6 @@ public final class PipeOutput extends NetBufferedOutput {
                 log.out();
         }
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void free() throws IOException {
                 log.in();
 		if (pipeOs != null) {

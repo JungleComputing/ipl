@@ -29,9 +29,6 @@ public final class DefInput extends NetBufferedInput {
 		headerLength = 4;
 	}
 
-	/*
-	 * {@inheritDoc}
-	 */
 	synchronized public void setupConnection(NetConnection cnx)
 		throws IOException {
                 if (this.spn != null) {
@@ -91,9 +88,6 @@ public final class DefInput extends NetBufferedInput {
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public Integer doPoll(boolean block) throws IOException {
 		if (spn == null) {
 			return null;
@@ -115,13 +109,6 @@ public final class DefInput extends NetBufferedInput {
         }
 
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: this function may block if the expected data is not there.
-	 *
-	 * @return {@inheritDoc}
-	 */
 	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws IOException {
                 if (buf != null) {
                         NetReceiveBuffer temp = buf;
@@ -146,9 +133,6 @@ public final class DefInput extends NetBufferedInput {
         }
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void doFree() throws IOException {
                 if (defIs != null) {
 			defIs.close();

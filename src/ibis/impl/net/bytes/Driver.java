@@ -37,24 +37,15 @@ public final class Driver extends NetDriver {
 		super(ibis);
 	}	
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public String getName() {
 		return name;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetInput newInput(NetPortType pt, String context,
 				 NetInputUpcall inputUpcall) {
 		return new BytesInput(pt, this, context, inputUpcall);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetOutput newOutput(NetPortType pt, String context) {
 		return new BytesOutput(pt, this, context);
 	}

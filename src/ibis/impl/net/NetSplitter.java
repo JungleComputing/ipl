@@ -96,9 +96,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public boolean writeBufferedSupported() {
 	return writeBufferedSupported;
     }
@@ -155,9 +152,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void initSend() throws IOException {
 	log.in();
 // System.err.println(this + ": in initSend(); notify singleton " + singleton);
@@ -175,9 +169,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	log.out();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public int send() throws IOException {
 	log.in();
 	super.send();
@@ -195,9 +186,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long finish() throws IOException {
 	log.in();
 	super.finish();
@@ -217,9 +205,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
     }
 
 
-    /*
-     * {@inheritDoc}
-     */
     public void free() throws IOException {
 	log.in();
 
@@ -260,9 +245,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void flushBuffer() throws IOException {
 	log.in();
 	if (! writeBufferedSupported) {
@@ -284,9 +266,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeBuffered(byte[] data, int offset, int length)
 	    throws IOException {
 	log.in();
@@ -311,9 +290,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeByteBuffer(NetSendBuffer buffer) throws IOException {
 	log.in();
 	if (singleton != null) {

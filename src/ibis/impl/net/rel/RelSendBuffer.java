@@ -31,9 +31,6 @@ class RelSendBuffer extends NetSendBuffer {
     boolean	acked;
 
 
-    /**
-     * {@inheritDoc}
-     */
     RelSendBuffer(byte[] data, int length) {
 	super(data, length);
 	if (RelConstants.DEBUG) {
@@ -42,9 +39,6 @@ class RelSendBuffer extends NetSendBuffer {
 	reset(false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     RelSendBuffer(byte[] data, int length, NetAllocator allocator) {
 	super(data, length, allocator);
 	if (RelConstants.DEBUG) {
@@ -54,9 +48,6 @@ class RelSendBuffer extends NetSendBuffer {
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void reset() {
 	reset(true);
     }

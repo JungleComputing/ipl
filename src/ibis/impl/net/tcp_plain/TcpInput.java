@@ -73,12 +73,8 @@ public final class TcpInput extends NetInput {
 		headerLength = 0;
 	}
 
-	/*
+	/**
 	 * Sets up an incoming TCP connection.
-	 *
-	 * @param spn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx)
 		throws IOException {
@@ -147,10 +143,6 @@ public final class TcpInput extends NetInput {
 	 * <BR><B>Note</B>: This TCP polling implementation uses the
 	 * {@link java.io.InputStream#available()} function to test whether at least one
 	 * data byte may be extracted without blocking.
-	 *
-	 * @param block if true this method blocks until there is some data to read
-	 *
-	 * @return {@inheritDoc}
 	 */
 	public Integer doPoll(boolean block) throws IOException {
 		if (spn == null) {
@@ -182,8 +174,6 @@ public final class TcpInput extends NetInput {
 	 * {@inheritDoc}
 	 *
 	 * <BR><B>Note</B>: this function may block if the expected data is not there.
-	 *
-	 * @return {@inheritDoc}
 	 */
 	public byte readByte() throws IOException {
                 byte b = 0;
@@ -224,9 +214,6 @@ public final class TcpInput extends NetInput {
                 }
         }
 
-        /**
-	 * {@inheritDoc}
-	 */
 	public void doFree() throws IOException {
 		if (tcpOs != null) {
 			tcpOs.close();

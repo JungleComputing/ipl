@@ -85,9 +85,6 @@ public final class BytesOutput
                 an = new NetAllocator(anThreshold);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		NetOutput subOutput = this.subOutput;
@@ -222,9 +219,6 @@ public final class BytesOutput
                 return ok;
         }
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void initSend() throws IOException {
                 log.in();
                 dataOffset = getHeadersLength();
@@ -272,9 +266,6 @@ public final class BytesOutput
                 log.out();
         }
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void free() throws IOException {
                 log.in();
 		if (subOutput != null) {

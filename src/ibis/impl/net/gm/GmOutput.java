@@ -118,13 +118,6 @@ public final class GmOutput extends NetBufferedOutput {
 	arrayThreshold = mtu;
     }
 
-    /*
-     * Sets up an outgoing GM connection.
-     *
-     * @param rpn {@inheritDoc}
-     * @param is {@inheritDoc}
-     * @param os {@inheritDoc}
-     */
     public synchronized void setupConnection(NetConnection cnx)
 	    throws IOException {
 	log.in();
@@ -255,9 +248,6 @@ public final class GmOutput extends NetBufferedOutput {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void flushBuffer() throws IOException {
 // Thread.dumpStack();
 	flushing++;
@@ -395,9 +385,6 @@ public final class GmOutput extends NetBufferedOutput {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public synchronized void close(Integer num) throws IOException {
 	log.in();
 	if (rpn == num) {
@@ -434,9 +421,6 @@ if (false)
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     public void free() throws IOException {
 	log.in();
 	if (rpn != null) {

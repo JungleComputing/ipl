@@ -25,9 +25,6 @@ public final class GmSplitter extends NetSplitter {
 		super(pt, driver, context);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 

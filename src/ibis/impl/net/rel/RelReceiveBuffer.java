@@ -5,16 +5,10 @@ import ibis.impl.net.NetReceiveBuffer;
 
 class RelReceiveBuffer extends NetReceiveBuffer {
 
-    /**
-     * {@inheritDoc}
-     */
     RelReceiveBuffer(byte[] data, int length) {
 	super(data, length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     RelReceiveBuffer(byte[] data, int length, NetAllocator allocator) {
 	super(data, length, allocator);
     }

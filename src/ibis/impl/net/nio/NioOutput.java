@@ -89,12 +89,8 @@ public final class NioOutput extends NetOutput {
 	doubleBuffer = byteBuffer.asDoubleBuffer();
     }
 
-    /*
+    /**
      * Sets up an outgoing TCP connection (using nio).
-     *
-     * @param rpn {@inheritDoc}
-     * @param is {@inheritDoc}
-     * @param os {@inheritDoc}
      */
     public void setupConnection(NetConnection cnx)
 	throws IOException {
@@ -136,9 +132,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public long finish() throws IOException {
 	super.finish();
 	long retval = bytesSend;
@@ -146,9 +139,6 @@ public final class NioOutput extends NetOutput {
 	return retval;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void reset() throws IOException {
 	super.reset();
 	bytesSend = 0;
@@ -170,9 +160,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void writeBoolean(boolean value) throws IOException {
 	/* least efficient way possible of doing this, 
 	 * i think (ideas welcome) --N
@@ -187,9 +174,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public void writeByte(byte value) throws IOException {
 	byteBuffer.clear();
 	byteBuffer.put(value);
@@ -201,11 +185,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-
-
-    /*
-     * {@inheritDoc}
-     */
     public void writeChar(char value) throws IOException {
 	byteBuffer.clear();
 	byteBuffer.putChar(value);
@@ -217,9 +196,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public void writeShort(short value) throws IOException {
 	byteBuffer.clear();
 	byteBuffer.putShort(value);
@@ -231,9 +207,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public void writeInt(int value) throws IOException {
 	byteBuffer.clear();
 	byteBuffer.putInt(value);
@@ -245,9 +218,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public void writeLong(long value) throws IOException {
 	byteBuffer.clear();
 	byteBuffer.putLong(value);
@@ -259,9 +229,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public void writeFloat(float value) throws IOException {
 	byteBuffer.clear();
 	byteBuffer.putFloat(value);
@@ -273,9 +240,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public void writeDouble(double value) throws IOException {
 	byteBuffer.clear();
 	byteBuffer.putDouble(value);
@@ -287,23 +251,14 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public void writeString(String value) throws IOException {
 	throw new IOException("writing Strings not implemented by net/nio");
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public void writeObject(Object value) throws IOException {
 	throw new IOException("writing Objects not implemented bt net/nio");
     }
 
-    /*
-     * {@inheritDoc}
-     */
     public void writeArray(boolean [] array, int offset, 
 	    int size) throws IOException { 
 	int length;
@@ -484,9 +439,6 @@ public final class NioOutput extends NetOutput {
     }
 
 
-    /*
-     * {@inheritDoc}
-     */
     public synchronized void close(Integer num) throws IOException {
 	if(DEBUG) {
 	    System.out.println("close called");
@@ -502,9 +454,6 @@ public final class NioOutput extends NetOutput {
 	}
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void free() throws IOException {
 	if(DEBUG) {
 	    System.out.println("free called");

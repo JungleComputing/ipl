@@ -64,16 +64,10 @@ public final class Driver extends NetDriver implements RelConstants {
 
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public String getName() {
 		return name;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetInput newInput(NetPortType pt,
 				 String context,
 				 NetInputUpcall inputUpcall)
@@ -82,9 +76,6 @@ public final class Driver extends NetDriver implements RelConstants {
 		return input;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
 		return new RelOutput(pt, this, context);
 	}

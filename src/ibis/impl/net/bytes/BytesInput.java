@@ -99,9 +99,6 @@ public final class BytesInput
                 an = new NetAllocator(anThreshold);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		NetInput subInput = this.subInput;
@@ -154,8 +151,6 @@ public final class BytesInput
         }
 
 	/*
-	 * {@inheritDoc}
-	 *
 	 * Do not make this synchronized. The calling <code>poll</code> will
 	 * ensure concurrency issues. If this is called synchronized and
 	 * block=true, deadlock may ensue with concurrent accept calls.
@@ -329,9 +324,6 @@ public final class BytesInput
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void doFinish() throws IOException {
                 log.in();
 		subInput.finish();
@@ -369,9 +361,6 @@ public final class BytesInput
                 log.out();
         }
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void doFree() throws IOException {
                 log.in();
 		if (subInput != null) {

@@ -460,16 +460,10 @@ if (numbered) {
 		return ibis;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public String name() {
 		return name;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public boolean numbered() {
 		return numbered;
 	}
@@ -482,9 +476,6 @@ if (numbered) {
 		return staticProperties.isProp("communication", "ManyToOne");
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public StaticProperties properties() {
 		return staticProperties;
 	}
@@ -523,17 +514,11 @@ if (numbered) {
 	}
 
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public SendPort createSendPort(String name, SendPortConnectUpcall spcu, boolean connectionAdministration) 
 		throws IOException {
 		return new NetSendPort(this, name, spcu, connectionAdministration);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall rpcu,
 					     boolean connectionAdministration) throws IOException {
 		NetReceivePort nrp = new NetReceivePort(this, name, u, rpcu, connectionAdministration);
@@ -543,9 +528,6 @@ if (numbered) {
 		return nrp;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public boolean equals(Object other) {
 		if (other == null || !(other instanceof NetPortType)) {
 			return false;
@@ -558,9 +540,6 @@ if (numbered) {
 		return name.equals(temp.name) && ibis.equals(temp.ibis);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public int hashCode() {
 		return name.hashCode() + ibis.hashCode();
 	}

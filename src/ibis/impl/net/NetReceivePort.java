@@ -893,18 +893,12 @@ pollerThread = null;
                 return _receive();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public DynamicProperties properties() {
                 log.in();
                 log.out();
                 return props;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public ReceivePortIdentifier identifier() {
                 log.in();
                 log.out();
@@ -983,9 +977,6 @@ pollerThread = null;
 		return this;
 	}
 
-        /**
-         * {@inheritDoc}
-         */
         public synchronized void enableConnections() {
                 log.in();
                 if (!connectionEnabled) {
@@ -995,9 +986,6 @@ pollerThread = null;
                 log.out();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public synchronized void disableConnections() {
                 log.in();
                 if (connectionEnabled) {
@@ -1014,9 +1002,6 @@ pollerThread = null;
                 log.out();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public synchronized void enableUpcalls() {
                 log.in();
 		synchronized (dummyUpcallSync) {
@@ -1028,9 +1013,6 @@ pollerThread = null;
                 log.out();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public synchronized void disableUpcalls() {
                 log.in();
                 upcallsEnabled = false;
@@ -1206,17 +1188,11 @@ pollerThread = null;
                 log.out();
         }
 
-	/**
-	 * {@inheritDoc}
-	 **/
 	public long getCount() {
 		// TODO
 		return 0;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 **/
 	public void resetCount() {
 		// TODO
 	}

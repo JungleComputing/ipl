@@ -28,24 +28,15 @@ public final class Driver extends NetDriver {
 		super(ibis);
 	}	
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public String getName() {
 		return name;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) 
 						throws IOException {
 		return new NioInput(pt, this, context, inputUpcall);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public NetOutput newOutput(NetPortType pt, String context) 
 						throws IOException {
 		return new NioOutput(pt, this, context);

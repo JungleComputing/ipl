@@ -113,9 +113,6 @@ public class MultiPoller extends NetPoller {
 	/*
 	 * Deprecate?
 
-        ***
-         * {@inheritDoc}
-         **
         protected void selectInput(Integer spn) throws ConnectionClosedException {
                 log.in();
                 Lane lane = (Lane)laneTable.get(spn);
@@ -152,9 +149,6 @@ public class MultiPoller extends NetPoller {
 	}
 
 
-        /**
-         * {@inheritDoc}
-         */
         public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		Integer num  = cnx.getNum();
@@ -209,9 +203,6 @@ public class MultiPoller extends NetPoller {
         }
 
 
-        /**
-         * {@inheritDoc}
-         */
         protected void selectConnection(ReceiveQueue rq) {
                 log.in();
                 Lane lane = (Lane)laneTable.get(rq.activeNum());
@@ -222,9 +213,6 @@ public class MultiPoller extends NetPoller {
                 log.out();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws IOException {
                 log.in();
                 if (laneTable != null) {
@@ -246,7 +234,6 @@ public class MultiPoller extends NetPoller {
         }
 
         /*
-         * {@inheritDoc}
         public void free() throws IOException {
                 log.in();trace.in();
                 if (laneTable != null) {

@@ -81,13 +81,6 @@ public final class TcpOutput extends NetBufferedOutput {
 		headerLength = 4;
 	}
 
-	/*
-	 * Sets up an outgoing TCP connection.
-	 *
-	 * @param rpn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
-	 */
 	public synchronized void setupConnection(NetConnection cnx)
 		throws IOException {
                 log.in();
@@ -164,9 +157,6 @@ public final class TcpOutput extends NetBufferedOutput {
 	}
 
 
-	/*
-	 * {@inheritDoc}
-         */
 	public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
 // System.err.print(this + ": write[" + b.length + "] = '"); for (int i = 0; i < Math.min(32, b.length); i++) System.err.print(b.data[i] + ","); System.err.println("'");
@@ -207,9 +197,6 @@ public final class TcpOutput extends NetBufferedOutput {
                 log.out();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void free() throws IOException {
                 log.in();
 		if (tcpOs != null) {

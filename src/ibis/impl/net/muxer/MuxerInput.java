@@ -92,9 +92,6 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
     abstract protected Integer doPoll(int timeout) throws IOException;
 
 
-    /**
-     * {@inheritDoc}
-     */
     public Integer doPoll(boolean block) throws IOException {
 
 	if (! USE_POLLER_THREAD) {

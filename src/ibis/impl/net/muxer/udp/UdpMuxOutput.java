@@ -81,10 +81,6 @@ public final class UdpMuxOutput
      * Sets up an outgoing multiplexed connection.
      *
      * <BR><B>Note</B>: this function also negociate the mtu.
-     *
-     * @param rpn {@inheritDoc}
-     * @param is {@inheritDoc}
-     * @param os {@inheritDoc}
      */
     public void setupConnection(NetConnection cnx, NetIO io)
 	    throws IOException {
@@ -139,9 +135,6 @@ Thread.dumpStack();
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
     synchronized
     public void sendByteBuffer(NetSendBuffer b)
 	    throws IOException {

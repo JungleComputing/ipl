@@ -68,9 +68,6 @@ public final class GmPoller extends NetPoller {
 	return new GmInput(type, driver, null, null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void setupConnection(NetConnection cnx)
 		throws IOException {
 	log.in();
