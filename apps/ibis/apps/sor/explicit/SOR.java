@@ -290,9 +290,9 @@ class SOR {
 			System.out.println("using " + iteration + " iterations, diff is " + maxdiff + " (allowed diff " + stopdiff + ")");
 		}
 		if (TIMINGS && ! runName.equals("warmup")) {
-		    System.err.println(rank + ": t_compute " + t_compute.nrTimes() + " time " + t_compute.averageTime());
-		    System.err.println(rank + ": t_communicate " + t_communicate.nrTimes() + " time " + t_communicate.averageTime());
-		    System.err.println(rank + ": t_reduce " + t_reduce.nrTimes() + " time " + t_reduce.averageTime());
+		    System.err.println(rank + ": t_compute " + t_compute.nrTimes() + " av.time " + t_compute.averageTime());
+		    System.err.println(rank + ": t_communicate " + t_communicate.nrTimes() + " av.time " + t_communicate.averageTime());
+		    System.err.println(rank + ": t_reduce " + t_reduce.nrTimes() + " av.time " + t_reduce.averageTime());
 		}
 	}
 
