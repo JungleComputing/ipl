@@ -15,61 +15,87 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="src"         location="${ibis}/.."/>
-    <property name="build"       location="${ibis}/build"/>
-
     <target name="configure">
 	<input	message="Please enter the install directory of BCEL: "
-		addproperty="config.bcel-home"/>
+		addproperty="config.home.bcel-home"/>
 	<input	message="Please enter the install directory of BCEL-additions: "
-		addproperty="config.bcel-additions"/>
+		addproperty="config.home.bcel-additions"/>
 	<input	message="Please enter the install directory of ant-contrib: "
-		addproperty="config.ant-contrib"/>
+		addproperty="config.home.ant-contrib"/>
 	<input	message="Please enter the install directory of ant-cpptasks: "
-		addproperty="config.ant-cpptasks"/>
+		addproperty="config.home.ant-cpptasks"/>
 
+	<property name="package.home.ibis"
+		location="${ibis}"/>
+	<property name="package.home.bcel-home"
+		location="${config.home.bcel-home}"/>
+	<property name="package.home.bcel-additions"
+		location="${config.home.bcel-additions}"/>
+	<property name="package.home.ant-contrib"
+		location="${config.home.ant-contrib}"/>
+	<property name="package.home.ant-cpptasks"
+		location="${config.home.ant-cpptasks}"/>
+
+	<!--
 	<echo	file="config.status"
-		append="false">${config.bcel-home}
+		append="false">${package.home.bcel-home}
 	</echo>
 	<echo	file="config.status"
-		append="true">${config.bcel-additions}
+		append="true">${package.home.bcel-additions}
 	</echo>
 	<echo	file="config.status"
-		append="true">${config.ant-contrib}
+		append="true">${package.home.ant-contrib}
 	</echo>
 	<echo	file="config.status"
-		append="true">${config.ant-cpptasks}
+		append="true">${package.home.ant-cpptasks}
 	</echo>
+	-->
 
 	<copy
 		overwrite="true"
-		file="${ibis}/build-properties.xml.in"
-		tofile="${ibis}/build-properties.xml">
+		file="${ibis}/build-properties.in"
+		tofile="${ibis}/build-properties">
 	    <filterchain>
 		<filterreader
 			classname="org.apache.tools.ant.filters.ReplaceTokens">
 		    <param  type="token"
+			    name="IBIS"
+			    value="${package.home.ibis}"/>
+		    <param  type="token"
 			    name="BCEL_HOME"
-			    value="${config.bcel-home}"/>
+			    value="${package.home.bcel}"/>
 		    <param  type="token"
 			    name="BCEL_ADDITIONS"
-			    value="${config.bcel-additions}"/>
-		    <param  type="token"
-			    name="ANT_CPPTASKS"
-			    value="${config.ant-cpptasks}"/>
+			    value="${package.home.bcel-additions}"/>
 		    <param  type="token"
 			    name="ANT_CONTRIB"
-			    value="${config.ant-contrib}"/>
+			    value="${package.home.ant-contrib}"/>
+		    <param  type="token"
+			    name="ANT_CPPTASKS"
+			    value="${package.home.ant-cpptasks}"/>
 		</filterreader>
 	    </filterchain>
 	</copy>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		flags="g"
+		match="\${file.separator}"
+		replace="/"/>
     </target>
 
 
     &sharedProperties;
 
+    <property name="src"         location="${ibis}/.."/>
+    <property name="build"       location="${ibis}/build"/>
+
     <target name="init" depends="property-init">
 	<tstamp/>
+	<echo message="packages:"/>
+	<echo message="package.home.bcel-home      = ${package.home.bcel-home}"/>
+	<echo message="package.home.bcel-additions = ${package.home.bcel-additions}"/>
+	<echo message="package.home.ant-contrib    = ${package.home.ant-contrib}"/>
+	<echo message="package.home.ant-cpptasks   = ${package.home.ant-cpptasks}"/>
 	<mkdir dir="${build}"/>
 	<copy
 		file="${ibis}/ipl/InstallConfiguration.java.in"

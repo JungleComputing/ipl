@@ -26,19 +26,7 @@
 		msvc			if windows
     -->
 
-    <property
-	    name="package.home.ant-cpptasks"
-	    location="${ibis}/../ant-cpptasks"/>
-    <property
-	    name="package.home.bcel-additions"
-	    location="${ibis}/bcel-additions"/>
-    <property
-	    name="package.home.bcel"
-	    location="/home2/ceriel/bcel-5.1"/>
-    <property
-	    name="package.home.ant-contrib"
-	    location="${ibis}/../ant-contrib"/>
-
+    <property file="build-properties"/>
 
     <property environment="env"/>
     <property name="JAVA_HOME"    value="${env.JAVA_HOME}"/>
@@ -74,7 +62,7 @@
 	<taskdef
 		name="maplibrary"
 		classname="MapLibraryName"
-		classpath="${ibis}/ant-tasks/build"/>
+		classpath="${ibis}/ant-tasks/tasks"/>
     </target>
 
     <target name="property-init" depends="proprietry-tasks">
@@ -139,10 +127,10 @@
     <property name="ibisBuild"   location="${ibis}/build"/>
 
     <path id="default.classpath">
-	<pathelement path="${ibisBuild}/"/>
-	<pathelement path="${build}/"/>
-	<pathelement path="${package.home.bcel-additions}/"/>
-	<pathelement path="${package.home.bcel}/bcel-5.1.jar/"/>
-	<pathelement path="${package.home.bcel}/lib/"/>
+	<pathelement path="${ibisBuild}"/>
+	<pathelement path="${build}"/>
+	<pathelement path="${package.home.bcel-additions}"/>
+	<pathelement path="${package.home.bcel}/bcel-5.1.jar"/>
+	<pathelement path="${package.home.bcel}/lib"/>
     </path>
 

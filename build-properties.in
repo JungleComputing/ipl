@@ -1,0 +1,5 @@
+package.home.ibis           = @IBIS@
+package.home.bcel           = @BCEL_HOME@
+package.home.bcel-additions = @BCEL_ADDITIONS@
+package.home.ant-contrib    = @ANT_CONTRIB@
+package.home.ant-cpptasks   = @ANT_CPPTASKS@
