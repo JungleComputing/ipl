@@ -66,9 +66,14 @@ struct IBMP_MSG {
     int			firstFrag;
     ibmp_msg_p		next;
     int			is_free;
+    char		*buf;
+    int			buf_alloc_len;
+    int			buf_len;
 };
 
 #define IOV_CHUNK	16
+#define BUF_CHUNK	4096
+#define COPY_THRESHOLD	64
 
 static ibmp_msg_p	ibmp_msg_freelist;
 static ibmp_msg_p	ibmp_sent_msg_q;
@@ -100,13 +105,17 @@ ibmp_msg_get(void)
 	msg = pan_malloc(sizeof(*msg));
 	msg->proto = ibp_proto_create(ibmp_byte_stream_proto_size);
 	msg->iov_alloc_len = IOV_CHUNK;
-	msg->iov = pan_malloc(msg->iov_alloc_len * sizeof(ibmp_msg_t));
+	msg->iov = pan_malloc(msg->iov_alloc_len * sizeof(pan_iovec_t));
 	msg->release = pan_malloc(msg->iov_alloc_len * sizeof(release_t));
 	msg->outstanding_send = 0;
 	msg->iov_len = 0;
+	msg->buf_len = 0;
+	msg->buf_alloc_len = BUF_CHUNK;
+	msg->buf = pan_malloc(BUF_CHUNK);
     } else {
 	assert(msg->is_free);
 	assert(msg->iov_len == 0);
+	assert(msg->buf_len == 0);
 	ibmp_msg_freelist = msg->next;
     }
     msg->firstFrag = 1;
@@ -158,14 +167,17 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
 	}
     } else {
 	for (i = 0; i < msg->iov_len; i++) {
-	    msg->release[i].func(env,
-				 msg->release[i].array,
-				 msg->release[i].buf,
-				 JNI_ABORT);
-	    (*env)->DeleteGlobalRef(env, msg->release[i].array);
+	    if (msg->release[i].func != NULL) {
+		msg->release[i].func(env,
+				     msg->release[i].array,
+				     msg->release[i].buf,
+				     JNI_ABORT);
+		(*env)->DeleteGlobalRef(env, msg->release[i].array);
+	    }
 	}
     }
     msg->iov_len = 0;
+    msg->buf_len = 0;
 }
 
 
@@ -404,6 +416,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
     }
 
     len = ibmp_iovec_len(msg->iov, msg->iov_len);
+// fprintf(stderr, "send, len = %d, target = %d\n", len, cpu);
 #ifdef IBP_VERBOSE
     sent_data += len;
 #endif
@@ -507,13 +520,37 @@ iovec_grow(JNIEnv *env, ibmp_msg_p msg, int locked)
 	}
 // fprintf(stderr, "Grow iov from %d to %d\n", msg->iov_len, msg->iov_alloc_len);
 	msg->iov = pan_realloc(msg->iov,
-			       msg->iov_alloc_len * sizeof(ibmp_msg_t));
+			       msg->iov_alloc_len * sizeof(pan_iovec_t));
 	msg->release = pan_realloc(msg->release,
 				   msg->iov_alloc_len * sizeof(release_t));
 	if (! locked) {
 	    ibmp_unlock(env);
 	}
     }
+}
+
+
+static int
+buf_grow(JNIEnv *env, ibmp_msg_p msg, int incr, int locked)
+{
+    incr = (incr + 7) & ~7;
+    if (msg->buf_len + incr > msg->buf_alloc_len) {
+	if (! locked) {
+	    ibmp_lock(env);
+	}
+	while (msg->buf_len + incr > msg->buf_alloc_len) {
+	    if (msg->buf_alloc_len == 0) {
+		msg->buf_alloc_len = BUF_CHUNK;
+	    } else {
+		msg->buf_alloc_len *= 2;
+	    }
+	}
+	msg->buf = pan_realloc(msg->buf, msg->buf_alloc_len);
+	if (! locked) {
+	    ibmp_unlock(env);
+	}
+    }
+    return incr;
 }
 
 
@@ -528,17 +565,24 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write(
     int       *buf;
 
     if (! msg->copy) {
-	ibmp_error(env, "Must implement non-copy transmit of integer\n");
+	int incr = buf_grow(env, msg, sizeof(jint), 0);
+	iovec_grow(env, msg, 0);
+	*((jint *) (&msg->buf[msg->buf_len])) = b;
+	msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]);
+	msg->iov[msg->iov_len].len = sizeof(jint);
+	msg->release[msg->iov_len].func = NULL;
+	msg->buf_len += incr;
     }
+    else {
+	ibmp_lock(env);
+	iovec_grow(env, msg, 1);
 
-    ibmp_lock(env);
-    iovec_grow(env, msg, 1);
-
-    buf = pan_malloc(sizeof(jint));
-    ibmp_unlock(env);
-    *buf = (int)b;
-    msg->iov[msg->iov_len].data = buf;
-    msg->iov[msg->iov_len].len = sizeof(jint);
+	buf = pan_malloc(sizeof(jint));
+	ibmp_unlock(env);
+	*buf = (int)b;
+	msg->iov[msg->iov_len].data = buf;
+	msg->iov[msg->iov_len].len = sizeof(jint);
+    }
     IBP_VPRINTF(300, env, ("Now push msg %p data %p size %d iov %d, value %d\n",
 		msg, msg->iov[msg->iov_len].data, msg->iov[msg->iov_len].len,
 		msg->iov_len, b));
@@ -576,44 +620,46 @@ void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array(
 { \
     jint	m = (*env)->GetIntField(env, this, fld_msgHandle); \
     ibmp_msg_p	msg = ibmp_msg_check(env, this, m, 0); \
-    jtype      *a; \
     jtype      *buf; \
+    int		sz = len * sizeof(jtype); \
     \
-    if (! msg->copy) { \
+    if (! msg->copy && sz >= COPY_THRESHOLD) { \
 	b = (*env)->NewGlobalRef(env, b); \
     } \
-    a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
-if (0 && sizeof(jtype) == sizeof(double)) { \
-int i; \
-int *p = (int *) a; \
-fprintf(stderr, "Write Data = ["); \
-for (i = 0; i < len; i++) { \
-fprintf(stderr, "0x%x ", *p++); \
-fprintf(stderr, "0x%x\n", *p++); \
-} \
-fprintf(stderr, "]\n");\
-} \
     if (msg->copy) { \
 	ibmp_lock(env); \
 	iovec_grow(env, msg, 1); \
-	buf = pan_malloc(len * sizeof(jtype)); \
+	buf = pan_malloc(sz); \
 	ibmp_unlock(env); \
 	msg->iov[msg->iov_len].data = buf; \
 	msg->iov[msg->iov_len].len = len * sizeof(jtype); \
-	memcpy(buf, a + off, len * sizeof(jtype)); \
-	(*env)->Release ## JType ## ArrayElements(env, b, a, JNI_ABORT); \
+	(*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) buf); \
     } else { \
 	iovec_grow(env, msg, 0); \
-	msg->iov[msg->iov_len].data = a + off; \
-	msg->iov[msg->iov_len].len  = len * sizeof(jtype); \
-	msg->release[msg->iov_len].array = b; \
-	msg->release[msg->iov_len].buf   = a; \
-	msg->release[msg->iov_len].func  = (release_func_t)(*env)->Release ## JType ## ArrayElements; \
+	if (sz < COPY_THRESHOLD) { \
+	    int incr = buf_grow(env, msg, sz, 0); \
+if (0) { \
+fprintf(stderr, "iov_len = %d, buf_len = %d\n", msg->iov_len, msg->buf_len); \
+} \
+	    (*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) &(msg->buf[msg->buf_len])); \
+	    msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]); \
+	    msg->buf_len += incr; \
+	    msg->iov[msg->iov_len].len  = sz; \
+	    msg->release[msg->iov_len].func  = NULL; \
+	} \
+	else { \
+	    jtype *a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
+	    msg->iov[msg->iov_len].data = a + off; \
+	    msg->iov[msg->iov_len].len  = sz; \
+	    msg->release[msg->iov_len].array = b; \
+	    msg->release[msg->iov_len].buf   = a; \
+	    msg->release[msg->iov_len].func  = (release_func_t)(*env)->Release ## JType ## ArrayElements; \
+	} \
     } \
     IBP_VPRINTF(300, env, ("Now push msg %p %s source %p data %p size %d iov %d total %d [%d,%d,%d,%d,...]\n", \
-		msg, #JType, a, msg->iov[msg->iov_len].data, \
+		msg, #JType, b, msg->iov[msg->iov_len].data, \
 		msg->iov[msg->iov_len].len, msg->iov_len, ibmp_iovec_len(msg->iov, msg->iov_len + 1), msg->iov[0].len, msg->iov[1].len, msg->iov[2].len, msg->iov[3].len)); \
-    dump_ ## jtype(a + off, len); \
+    dump_ ## jtype((jtype *)(msg->iov[msg->iov_len].data), len); \
     msg->iov_len++; \
 }
 
