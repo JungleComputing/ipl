@@ -348,12 +348,7 @@ public abstract class NioDissipator extends Dissipator implements Config,
 
         while (true) {
             if ((sis == null && available() == 0)
-                    || (sis != null && sis.available() == 0
-                        && available() == 0)) {
-                // Added the available() call when sis != null.
-                // at least for Sun serialization, you cannot trust the
-                // result of the "sis.available" call, don't know exactly
-                // why. (Ceriel)
+                    || (sis != null && sis.available() == 0)) {
                 //no data available at all
                 return false;
             }
