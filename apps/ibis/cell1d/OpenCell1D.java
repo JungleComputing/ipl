@@ -11,6 +11,7 @@ interface OpenConfig {
     static final boolean tracePortCreation = false;
     static final boolean traceGenerations = false;
     static final boolean traceCommunication = false;
+    static final boolean traceStealRequests = false;
     static final boolean showProgress = false;
     static final boolean showBoard = false;
     static final boolean traceClusterResizing = false;
@@ -815,6 +816,12 @@ class OpenCell1D implements OpenConfig {
     {
         int lsteal = p.firstNoColumn - lcol;
         int rsteal = p.firstNoColumn - rcol;
+        if( lcol<0 ){
+            lsteal = 0;
+        }
+        if( rcol<0 ){
+            rsteal = 0;
+        }
         if( aimFirstColumn != p.firstColumn && aimFirstNoColumn != p.firstNoColumn ){
             // A new processor has joined the computation, don't try
             // to balance things at the same time.
@@ -861,6 +868,9 @@ class OpenCell1D implements OpenConfig {
         else {
             // No valid steal request this time, reset the allowance.
             max_rsteal = 1;
+        }
+        if( traceStealRequests ){
+            System.out.println( "P" + me + ":" + OpenCell1D.generation + ": lcol=" + lcol + " rcol=" + rcol + " max_lsteal=" + max_lsteal + " max_rsteal=" + max_rsteal );
         }
     }
 
@@ -1023,8 +1033,8 @@ class OpenCell1D implements OpenConfig {
                     int lcol = leftRecorder.get();
                     int rcol = rightRecorder.get();
                     if( requestedByLeft != null ){
-                        requestedByLeft[generation] = p.firstNoColumn - lcol;
-                        requestedByRight[generation] = p.firstNoColumn - rcol;
+                        requestedByLeft[generation] = lcol;
+                        requestedByRight[generation] = rcol;
                     }
                     evaluateStealRequests( p, lcol, rcol );
                 }
@@ -1096,7 +1106,19 @@ class OpenCell1D implements OpenConfig {
             if( population != null ){
                 // We blindly assume all statistics arrays exist.
                 for( int gen=0; gen<count; gen++ ){
-                    System.out.println( "STATS " + me + " " + gen + " " + members[gen] + " " + population[gen] + " " + sentToLeft[gen] + " " + sentToRight[gen] + " " + computationTime[gen] + " " + communicationTime[gen] + " " + administrationTime[gen] + " " + requestedByLeft[gen] + " " + requestedByRight[gen] );
+                    System.out.println(
+                        "STATS " + me
+                        + " " + gen
+                        + " " + members[gen]
+                        + " " + population[gen]
+                        + " " + sentToLeft[gen]
+                        + " " + sentToRight[gen]
+                        + " " + computationTime[gen]
+                        + " " + communicationTime[gen]
+                        + " " + administrationTime[gen]
+                        + " " + requestedByLeft[gen]
+                        + " " + requestedByRight[gen]
+                    );
                 }
             }
 
