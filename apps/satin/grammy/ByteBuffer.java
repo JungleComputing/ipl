@@ -1,6 +1,6 @@
 // File: $Id$
 
-class ByteBuffer implements java.io.Serializable {
+class ByteBuffer implements java.io.Serializable, Magic {
     byte buf[];
     int sz;
 
@@ -13,6 +13,45 @@ class ByteBuffer implements java.io.Serializable {
     public ByteBuffer()
     {
         this( 1000 );
+    }
+
+    public ByteBuffer( short text[] )
+    {
+	this( text.length );
+	append( text );
+    }
+
+    /** Encode the given array of shorts as a byte array. For compactness
+     * an encoding with variable length is used, where the bytes have the
+     * following meaning:
+     * byte value   followup bytes    meaning
+     * 0..127        0                The byte itself is the value
+     * ESCAPE1       1                The followup is the value
+     * ESCAPE2       2                The followup is the value (MSB first)
+     * 128..ESCAPE2  1                Byte itself -128 is MSB, next is LSB.
+     */
+    public void append( short text[] )
+    {
+        short arr[] = new short[text.length+1];
+
+        for( int i=0; i<text.length; i++ ){
+	    int v = (text[i] & 0xFFFF);
+	    if( v<128 ){
+		append( (byte) v );
+	    }
+	    else if( v<ESCAPE2 ){
+		append( (byte) ESCAPE1 );
+		append( (byte) v );
+	    }
+	    else if( v<(128<<8) ){
+		append( (byte) (128+(v>>8)) );
+		append( (byte) (v & 255) );
+	    }
+	    else {
+		append( (byte) ESCAPE2 );
+		append( (short) v );
+	    }
+        }
     }
 
     /** Returns a byte array containing the current text in the buffer. */
@@ -45,6 +84,8 @@ class ByteBuffer implements java.io.Serializable {
         append( (byte) (v>>8) );
         append( (byte) (v & 255) );
     }
+
+    public int getSize() { return sz; }
 
     public void replicate( int d, int len )
     {

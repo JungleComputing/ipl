@@ -8,39 +8,6 @@ public class SuffixArray {
     int commonality[];
     static final short END = 0;
 
-    static String buildString( short text[], int start, int length )
-    {
-        String s = "";
-	int i = start;
-
-        while( length>0  ){
-            short c = text[i];
-            if( c>0 && c<255 ){
-                s += (char) c;
-            }
-            else if( c == END ){
-		break;
-            }
-            else {
-                s += "<" + c + ">";
-            }
-	    i++;
-	    length--;
-        }
-        return s;
-    }
-
-    static String buildString( short text[], int start )
-    {
-	return buildString( text, start, text.length );
-    }
-
-    static String buildString( short text[] )
-    {
-        return buildString( text, 0 );
-    }
-
-
     private short[] buildShortArray( byte text[] )
     {
         short arr[] = new short[text.length+1];
@@ -146,6 +113,38 @@ public class SuffixArray {
         this( text.getBytes() );
     }
 
+    static String buildString( short text[], int start, int length )
+    {
+        String s = "";
+	int i = start;
+
+        while( length>0  ){
+            short c = text[i];
+            if( c>0 && c<255 ){
+                s += (char) c;
+            }
+            else if( c == END ){
+		break;
+            }
+            else {
+                s += "<" + c + ">";
+            }
+	    i++;
+	    length--;
+        }
+        return s;
+    }
+
+    static String buildString( short text[], int start )
+    {
+	return buildString( text, start, text.length );
+    }
+
+    static String buildString( short text[] )
+    {
+        return buildString( text, 0 );
+    }
+
     private void print( PrintStream s )
     {
 	for( int i=0; i<indices.length; i++ ){
@@ -167,19 +166,25 @@ public class SuffixArray {
 		s.println( "maximum: " + indices[i] + " " + commonality[i] + " " + buildString( text, indices[i], commonality[i] ) );
 	    }
 	}
-
     }
 
     public void test()
     {
     }
 
-    /** Return a compressed version of the string represented by
+    /** Apply one step in the folding process. */
+    public void applyFolding()
+    {
+	// For the moment: nothing.
+    }
+
+    /** Returns a compressed version of the string represented by
      * this suffix array.
      */
     public ByteBuffer compress( int lookahead_depth )
     {
-	return new ByteBuffer();
+	applyFolding();
+	return new ByteBuffer( text );
     }
 
     public static void main( String args[] )
