@@ -68,7 +68,7 @@ public class Main {
 
 			StaticProperties s = new StaticProperties();
 			if (manta) { 
-			    s.add("Serialization", "manta");
+			    s.add("Serialization", "ibis");
 			}
 		
 			PortType t = ibis.createPortType("test type", s);

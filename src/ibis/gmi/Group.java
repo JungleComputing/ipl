@@ -109,7 +109,7 @@ public final class Group {
 //			ibis.start);
 
                         StaticProperties s = new StaticProperties();
-			s.add("Serialization", "manta");
+			s.add("Serialization", "ibis");
 
                         portType = ibis.createPortType("GMI", s);
                        
