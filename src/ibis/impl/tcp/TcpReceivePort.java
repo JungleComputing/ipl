@@ -265,6 +265,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	synchronized void leave(SerializationStreamConnectionHandler leaving, TcpSendPortIdentifier si, int id) {
 		boolean found = false;
+		if (DEBUG) { 
+			System.err.println("TcpReceivePort.leave: " + name);
+		}
 		for (int i=0;i<connectionsIndex; i++) { 
 			if (connections[i] == leaving) { 
 				connections[i] = connections[connectionsIndex-1];
@@ -348,8 +351,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	synchronized void connect(TcpSendPortIdentifier origin, InputStream in, int id) {	
 		try {
-//			out.println(name + " ADDING CONNECTION");			
-				
+// System.out.println(name + ": ADDING CONNECTION");			
+
 			SerializationStreamConnectionHandler con = new SerializationStreamConnectionHandler(origin, this, in, id);
 
 			if (connectionsSize == connectionsIndex) { 
