@@ -2,6 +2,7 @@ import java.awt.*;
 import java.awt.image.*;
 
 class SORCanvas extends Canvas {
+
 	private int width, height;
 	private float[][] data;
 	BufferedImage img = null;
@@ -24,9 +25,13 @@ class SORCanvas extends Canvas {
 	    frame.add(this);
 	    frame.validate();
 
+	    data = new float[width][height];
+
 	    //Display the window.
 	    frame.pack();
 	    frame.setVisible(true);
+
+	    repaint();
 	}
 
 /*
@@ -95,8 +100,8 @@ System.err.println("min " + min + " max " + max + " scale " + scale);
 	public synchronized void update(float[][] data) {
 	    for (int i = 0; i < data.length; i++) {
 		if (data[i] != null && data[i].length > 0) {
-		    System.arraycopy(this.data[i], 0,
-				     data[i], 0,
+		    System.arraycopy(data[i], 0,
+				     this.data[i], 0,
 				     data[i].length);
 		}
 	    }

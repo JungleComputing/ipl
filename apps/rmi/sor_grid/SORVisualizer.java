@@ -38,7 +38,9 @@ class SORVisualizer {
 	    this.masterName = masterName;
 
 	    try {
+		System.err.println("Try to locate //" + masterName + "/VisualBuffer");
 		visual = (i_VisualBuffer)RMI_init.lookup("//" + masterName + "/VisualBuffer");
+		System.err.println("located //" + masterName + "/VisualBuffer");
 	    } catch (java.io.IOException e) {
 		System.err.println("lookup fails " + e);
 		System.exit(33);
@@ -54,7 +56,7 @@ class SORVisualizer {
 		synchronized (SORVisualizer.this) {
 		    while (! started) {
 			try {
-			    wait();
+			    SORVisualizer.this.wait();
 			} catch (InterruptedException e) {
 			    // have to live with this
 			}
