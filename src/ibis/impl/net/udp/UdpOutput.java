@@ -2,6 +2,7 @@ package ibis.ipl.impl.net.udp;
 
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetBufferedOutput;
 import ibis.ipl.impl.net.NetOutput;
 import ibis.ipl.impl.net.NetReceivePortIdentifier;
 import ibis.ipl.impl.net.NetSendBuffer;
@@ -26,7 +27,7 @@ import java.util.Hashtable;
  *
  * <BR><B>Note</B>: this first implementation does not use UDP broadcast capabilities.
  */
-public class UdpOutput extends NetOutput {
+public class UdpOutput extends NetBufferedOutput {
 
 	/**
 	 * The UDP socket.
@@ -133,7 +134,7 @@ public class UdpOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
+	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
 		packet.setData(b.data, 0, b.length);
 		try {
 			socket.send(packet);
@@ -146,14 +147,12 @@ public class UdpOutput extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public void release() {
-		// nothing
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public void reset() {
-		// nothing
 	}
 
 	/**

@@ -3,6 +3,7 @@ package ibis.ipl.impl.net.pipe;
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetAllocator;
 import ibis.ipl.impl.net.NetBank;
+import ibis.ipl.impl.net.NetBufferedInput;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetReceiveBuffer;
@@ -21,7 +22,7 @@ import java.util.Hashtable;
 /**
  * The PIPE input implementation.
  */
-public class PipeInput extends NetInput {
+public class PipeInput extends NetBufferedInput {
 
 	/**
 	 * Default MTU of the pipe.
@@ -114,22 +115,24 @@ public class PipeInput extends NetInput {
 		try {
 			if (pipeIs.available() > 0) {
 				activeNum = rpn;
+                                initReceive();
 			}
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		} 
 
 		return activeNum;
-	}
-	
-	/**
+	}	
+
+
+	/*
 	 * {@inheritDoc}
 	 *
 	 * <BR><B>Note</B>: this function may block if the expected data is not there.
 	 *
 	 * @return {@inheritDoc}
-	 */
-	public NetReceiveBuffer receiveBuffer(int expectedLength)
+        */
+	public NetReceiveBuffer readByteBuffer(int expectedLength)
 		throws IbisIOException {
 		byte [] b = allocator.allocate();
 		int     l = 0;
@@ -178,5 +181,4 @@ public class PipeInput extends NetInput {
 
 		super.free();
 	}
-	
 }

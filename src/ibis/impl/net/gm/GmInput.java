@@ -2,6 +2,7 @@ package ibis.ipl.impl.net.gm;
 
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetAllocator;
+import ibis.ipl.impl.net.NetBufferedInput;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetMutex;
@@ -33,7 +34,7 @@ import java.util.Hashtable;
 /**
  * The GM input implementation (block version).
  */
-public class GmInput extends NetInput {
+public class GmInput extends NetBufferedInput {
 
 	/**
 	 * The connection socket.
@@ -160,6 +161,7 @@ public class GmInput extends NetInput {
 
                 //System.err.println("polling");
                 if (mutex.trylock()) {
+                        initReceive();
                         activeNum = rpn;
                         nReceiveBuffer(inputHandle, buffer, 0, buffer.length);
                         buffer = null;
@@ -177,7 +179,7 @@ public class GmInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer receiveBuffer(int expectedLength)
+	public NetReceiveBuffer readByteBuffer(int expectedLength)
 		throws IbisIOException {
                 byte [] b = null;
                 int     l =    0;
@@ -200,7 +202,7 @@ public class GmInput extends NetInput {
 		return new NetReceiveBuffer(b, l, allocator);
 	}
 
-	public void receiveBuffer(NetReceiveBuffer buffer) throws IbisIOException {
+	public void readByteBuffer(NetReceiveBuffer buffer) throws IbisIOException {
                 Driver.gmLock.lock();
                 nPrepostBuffer(inputHandle, buffer.data, buffer.base, buffer.length);
 

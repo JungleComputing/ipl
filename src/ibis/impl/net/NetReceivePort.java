@@ -156,29 +156,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	private boolean                  connectionEnabled   =  false;
 
 	/**
-	 * Current reception buffer.
-	 */
-	private NetReceiveBuffer      	 buffer       	     = 	null;
-
-	/**
-	 * The current buffer offset of the payload area.
-	 */
-	private int                   	 dataOffset   	     = 	   0;
-
-	/**
-	 * The current buffer offset for extracting user data.
-	 */
-	private int                   	 bufferOffset 	     = 	   0;
-
-	/**
 	 * The empty message detection flag.
 	 *
 	 * The flag is set on each new {@link #_receive} call and should
 	 * be cleared as soon as at least a byte as been added to the living message.
 	 */
 	private boolean               	 emptyMsg     	     = 	true;
-
-        private int                      mtu                 =  0;
 
 	/* --- incoming connection manager thread -- */
 
@@ -435,9 +418,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	 * Internally initializes a new reception.
 	 */
 	private ReadMessage _receive() throws IbisIOException {
-		dataOffset = input.getHeadersLength();
 		emptyMsg   = true;
-                mtu        = input.getMaximumTransfertUnit();
 		return this;
 	}
 
@@ -691,32 +672,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	}
 
 	/* --- ReadMessage Part --- */
-        void receiveBuffer(NetReceiveBuffer buffer) throws IbisIOException {
-                input.receiveBuffer(buffer);
-                buffer.free();
-        }
-
-	void receiveBuffer(int length) throws IbisIOException {
-		buffer       = input.receiveBuffer(length);
-		bufferOffset = dataOffset;
-	}
-
-	void freeBuffer() {
-		if (buffer != null) {
-			buffer.free();
-			buffer = null;
-		}
-		
-		bufferOffset =    0;
-	}
-
 	public void finish() throws IbisIOException {
 		if (emptyMsg) {
 			readByte();
 		}
-		freeBuffer();
 		activeSendPortNum = null;
-		input.release();
+		input.finish();
 		pollingLock.unlock();
 	}
 
@@ -732,210 +693,185 @@ public final class NetReceivePort implements ReceivePort, ReadMessage {
 	}
 
 	public boolean readBoolean() throws IbisIOException {
-		return false;
+		emptyMsg = false;
+		return input.readBoolean();
 	}
 	
 	public byte readByte() throws IbisIOException {
 		emptyMsg = false;
-		byte value = 0;
-
-		if (buffer == null) {
-			receiveBuffer(1);
-		}
-
-		value = buffer.data[bufferOffset++];
-
-		if ((buffer.length - bufferOffset) == 0) {
-			freeBuffer();
-		}
-		
-		return value;
+                return input.readByte();
 	}
 	
 	public char readChar() throws IbisIOException {
-		return 0;
+		emptyMsg = false;
+		return input.readChar();
 	}
 	
 	public short readShort() throws IbisIOException {
-		return 0;
+		emptyMsg = false;
+		return input.readShort();
 	}
 	
 	public int readInt() throws IbisIOException {
-		return 0;
+		emptyMsg = false;
+		return input.readInt();
 	}
 	
 	public long readLong() throws IbisIOException {
-		return 0;
+		emptyMsg = false;
+		return input.readLong();
 	}
 	
 	public float readFloat() throws IbisIOException {
-		return 0;
+		emptyMsg = false;
+		return input.readFloat();
 	}
 	
 	public double readDouble() throws IbisIOException {
-		return 0;
+		emptyMsg = false;
+		return input.readDouble();
 	}
 	
 	public String readString() throws IbisIOException {
-		return "";
+		emptyMsg = false;
+		return input.readString();
 	}
 	
 	public Object readObject()
 		throws IbisIOException {
-		return null;
+		emptyMsg = false;
+		return input.readObject();
 	}
 	
 
-	public void readArrayBoolean(boolean [] destination)
-		throws IbisIOException {
-		//
+	public void readArrayBoolean(boolean [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+		input.readArrayBoolean(userBuffer);
 	}
 
-	public void readArrayByte(byte [] userBuffer)
-		throws IbisIOException {
-		readSubArrayByte(userBuffer, 0, userBuffer.length);
+	public void readArrayByte(byte [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+                emptyMsg = false;
+                input.readArrayByte(userBuffer);
 	}
 
-	public void readArrayChar(char [] destination) throws IbisIOException {
-		//
+	public void readArrayChar(char [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+		input.readArrayChar(userBuffer);
 	}
 
-	public void readArrayShort(short [] destination)
-		throws IbisIOException {
-		//
+	public void readArrayShort(short [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+		input.readArrayShort(userBuffer);
 	}
 
-	public void readArrayInt(int [] destination) throws IbisIOException {
-		//
+	public void readArrayInt(int [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+		input.readArrayInt(userBuffer);
 	}
 
-	public void readArrayLong(long [] destination) throws IbisIOException {
-		//
+	public void readArrayLong(long [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+                input.readArrayLong(userBuffer);
 	}
 
-	public void readArrayFloat(float [] destination)
-		throws IbisIOException {
-		//
+	public void readArrayFloat(float [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+                input.readArrayFloat(userBuffer);
 	}
 
-	public void readArrayDouble(double [] destination)
-		throws IbisIOException {
-		//
+	public void readArrayDouble(double [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+		input.readArrayDouble(userBuffer);
 	}
 
 
-	public void readSubArrayBoolean(boolean [] destination,
-					int        offset,
-					int        size)
-		throws IbisIOException {
-		//
-	}
-
-	public void readSubArrayByte(byte [] userBuffer,
-				     int     offset,
-				     int     length)
-		throws IbisIOException {
-		// System.err.println("read: "+offset+", "+length);
+	public void readSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
 		if (length == 0)
 			return;
 
 		emptyMsg = false;
-
-                if (dataOffset == 0) {
-                        if (buffer != null) {
-                                freeBuffer();
-                        }
-
-                        if (mtu != 0) {
-                                do {
-                                        int copyLength = Math.min(mtu, length);
-                                        receiveBuffer(new NetReceiveBuffer(userBuffer, offset, copyLength));
-                                        offset += copyLength;
-                                        length -= copyLength;
-                                } while (length != 0);
-                        } else {
-                                receiveBuffer(new NetReceiveBuffer(userBuffer, offset, length));
-                        }
-                        
-                } else {
-                        if (buffer != null) {
-                                int bufferLength = buffer.length - bufferOffset;
-                                int copyLength   = Math.min(bufferLength, length);
-
-                                System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
-
-                                bufferOffset += copyLength;
-                                bufferLength -= copyLength;
-                                offset       += copyLength;
-                                length       -= copyLength;
-
-                                if (bufferLength == 0) {
-                                        freeBuffer();
-                                }
-                        }
-
-                        while (length > 0) {
-                                receiveBuffer(length);
-
-                                int bufferLength = buffer.length - bufferOffset;
-                                int copyLength   = Math.min(bufferLength, length);
-
-                                System.arraycopy(buffer.data, bufferOffset, userBuffer, offset, copyLength);
-
-                                bufferOffset += copyLength;
-                                bufferLength -= copyLength;
-                                offset       += copyLength;
-                                length       -= copyLength;
-
-                                if (bufferLength == 0) {
-                                        freeBuffer();
-                                }
-                        }
-                }
-                
-		// System.err.println("read: "+offset+", "+length+": ok");
+		input.readSubArrayBoolean(userBuffer, offset, length);
 	}
 
-	public void readSubArrayChar(char [] destination,
-				     int     offset,
-				     int     size)
-		throws IbisIOException {
-		//
+	public void readSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+                input.readSubArrayByte(userBuffer, offset, length);
 	}
 
-	public void readSubArrayShort(short [] destination,
-				      int      offset,
-				      int      size)
-		throws IbisIOException {
-		//
+	public void readSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+		readSubArrayChar(userBuffer, offset, length);
 	}
 
-	public void readSubArrayInt(int [] destination,
-				    int    offset,
-				    int    size)
-		throws IbisIOException {
-		//
+	public void readSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+		readSubArrayShort(userBuffer, offset, length);
 	}
 
-	public void readSubArrayLong(long [] destination,
-				     int     offset,
-				     int     size)
-		throws IbisIOException {
-		//
+	public void readSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+		readSubArrayInt(userBuffer, offset, length);
 	}
 
-	public void readSubArrayFloat(float [] destination,
-				      int      offset,
-				      int      size)
-		throws IbisIOException {
-		//
+	public void readSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+		readSubArrayLong(userBuffer, offset, length);
 	}
 
-	public void readSubArrayDouble(double [] destination,
-				       int 	 offset,
-				       int 	 size)
+	public void readSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+		readSubArrayFloat(userBuffer, offset, length);
+	}
+
+	public void readSubArrayDouble(double [] userBuffer, int offset, int length)
 		throws IbisIOException {
-		//
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+		readSubArrayDouble(userBuffer, offset, length);
 	}
 
 } 

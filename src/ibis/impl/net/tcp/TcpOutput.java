@@ -92,16 +92,19 @@ public class TcpOutput extends NetOutput {
 		mtu = 0;
 	}
 
-	/**
-	 * {@inheritDoc}
+        /**
+	 * Writes a byte value to the message.
+	 * @param     value             The byte value to write.
 	 */
-	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
-		try {
-			tcpOs.write(b.data, 0, b.length);
+        public void writeByte(byte b) throws IbisIOException {
+                try {
+			tcpOs.write((int)b);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
-		} 
-	}
+		}
+        }
+        
+
 
 	/**
 	 * {@inheritDoc}
@@ -145,5 +148,20 @@ public class TcpOutput extends NetOutput {
 
 		super.free();
 	}
-	
+
+
+        /* Obsolete code */	
+	/*
+	 * {@inheritDoc}
+	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
+                // System.err.println("TCP: sendBuffer -->");
+		try {
+			tcpOs.write(b.data, 0, b.length);
+		} catch (IOException e) {
+			throw new IbisIOException(e);
+		} 
+                // System.err.println("TCP: sendBuffer <--");
+	}
+	 */
+
 }

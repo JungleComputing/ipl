@@ -2,6 +2,7 @@ package ibis.ipl.impl.net.rel;
 
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetBufferedInput;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetSendPortIdentifier;
@@ -31,7 +32,7 @@ import java.util.Hashtable;
 /**
  * The REL input implementation.
  */
-public class RelInput extends NetInput {
+public class RelInput extends NetBufferedInput {
 
 	/**
 	 * The driver used for the 'real' input.
@@ -109,7 +110,15 @@ public class RelInput extends NetInput {
 	 * @return {@inheritDoc}
 	 */
 	public Integer poll() throws IbisIOException {
-		return (subInput != null) ? subInput.poll() : null;
+                if (subInput == null)
+                        return null;
+                
+                Integer result = subInput.poll();
+                if (result != null) {
+                        initReceive();
+                }
+
+		return result;
 	}
 	
 	/**
@@ -119,26 +128,17 @@ public class RelInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer receiveBuffer(int expectedLength)
+	public void readByteBuffer(NetReceiveBuffer b)
 		throws IbisIOException {
-
-		return subInput.receiveBuffer(expectedLength);
+                subInput.readSubArrayByte(b.data, 0, b.length);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void release() {
-		super.release();
-		subInput.release();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void reset() {
-		super.reset();
-		subInput.reset();
+	public void finish() throws IbisIOException {
+		subInput.finish();
+		super.finish();
 	}
 
 	/**

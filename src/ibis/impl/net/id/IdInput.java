@@ -111,43 +111,10 @@ public class IdInput extends NetInput {
 	
 	/**
 	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: this function may block if the expected data is not there.
-	 *
-	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer receiveBuffer(int expectedLength)
-		throws IbisIOException {
-
-		return subInput.receiveBuffer(expectedLength);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: this function may block if the expected data is not there.
-	 *
-	 * @return {@inheritDoc}
-	 */
-	public void receiveBuffer(NetReceiveBuffer buffer)
-		throws IbisIOException {
-		subInput.receiveBuffer(buffer);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void release() {
-		super.release();
-		subInput.release();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void reset() {
-		super.reset();
-		subInput.reset();
+	public void finish() throws IbisIOException {
+		subInput.finish();
+		super.finish();
 	}
 
 	/**
@@ -164,4 +131,134 @@ public class IdInput extends NetInput {
 		super.free();
 	}
 	
+
+	public boolean readBoolean() throws IbisIOException {
+                return subInput.readBoolean();
+        }
+        
+
+	public byte readByte() throws IbisIOException {
+                return subInput.readByte();
+        }
+        
+
+	public char readChar() throws IbisIOException {
+                return subInput.readChar();
+        }
+
+
+	public short readShort() throws IbisIOException {
+                return subInput.readShort();
+        }
+
+
+	public int readInt() throws IbisIOException {
+                return subInput.readInt();
+        }
+
+
+	public long readLong() throws IbisIOException {
+                return subInput.readLong();
+        }
+
+	
+	public float readFloat() throws IbisIOException {
+                return subInput.readFloat();
+        }
+
+
+	public double readDouble() throws IbisIOException {
+                return subInput.readDouble();
+        }
+
+
+	public String readString() throws IbisIOException {
+                return (String)subInput.readString();
+        }
+
+
+	public Object readObject() throws IbisIOException {
+                return subInput.readObject();
+        }
+
+	public void readArrayBoolean(boolean [] userBuffer) throws IbisIOException {
+                subInput.readArrayBoolean(userBuffer);
+        }
+
+
+	public void readArrayByte(byte [] userBuffer) throws IbisIOException {
+                subInput.readArrayByte(userBuffer);
+        }
+
+
+	public void readArrayChar(char [] userBuffer) throws IbisIOException {
+                subInput.readArrayChar(userBuffer);
+        }
+
+
+	public void readArrayShort(short [] userBuffer) throws IbisIOException {
+                subInput.readArrayShort(userBuffer);
+        }
+
+
+	public void readArrayInt(int [] userBuffer) throws IbisIOException {
+                subInput.readArrayInt(userBuffer);
+        }
+
+
+	public void readArrayLong(long [] userBuffer) throws IbisIOException {
+                subInput.readArrayLong(userBuffer);
+        }
+
+
+	public void readArrayFloat(float [] userBuffer) throws IbisIOException {
+                subInput.readArrayFloat(userBuffer);
+        }
+
+
+	public void readArrayDouble(double [] userBuffer) throws IbisIOException {
+                subInput.readArrayDouble(userBuffer);
+        }
+
+
+
+	public void readSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
+                subInput.readSubArrayBoolean(userBuffer, offset, length);
+        }
+
+
+	public void readSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
+                subInput.readSubArrayByte(userBuffer, offset, length);
+        }
+
+
+	public void readSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
+                subInput.readSubArrayChar(userBuffer, offset, length);
+        }
+
+
+	public void readSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
+                subInput.readSubArrayShort(userBuffer, offset, length);
+        }
+
+
+	public void readSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
+                subInput.readSubArrayInt(userBuffer, offset, length);
+        }
+
+
+	public void readSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
+                subInput.readSubArrayLong(userBuffer, offset, length);
+        }
+
+
+	public void readSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
+                subInput.readSubArrayFloat(userBuffer, offset, length);
+        }
+
+
+	public void readSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
+                subInput.readSubArrayDouble(userBuffer, offset, length);
+        }
+
 }

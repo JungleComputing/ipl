@@ -2,6 +2,7 @@ package ibis.ipl.impl.net.tcp_blk;
 
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetAllocator;
+import ibis.ipl.impl.net.NetBufferedInput;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetReceiveBuffer;
@@ -32,7 +33,7 @@ import java.util.Hashtable;
 /**
  * The TCP input implementation (block version).
  */
-public class TcpInput extends NetInput {
+public class TcpInput extends NetBufferedInput {
 
 	/**
 	 * The connection socket.
@@ -151,13 +152,16 @@ public class TcpInput extends NetInput {
 			return null;
 		}
 
+                //System.err.println("tcp_blk: poll -->");
 		try {
 			if (tcpIs.available() > 0) {
 				activeNum = rpn;
+                                initReceive();
 			}
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		} 
+                //System.err.println("tcp_blk: poll <-- : " + activeNum);
 
 		return activeNum;
 	}
@@ -169,11 +173,12 @@ public class TcpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer receiveBuffer(int expectedLength)
+	public NetReceiveBuffer readByteBuffer(int expectedLength)
 		throws IbisIOException {
 		byte [] b = allocator.allocate();
 		int     l = 0;
 		
+                // System.err.println("tcp_blk: writeByteBuffer --> : " + expectedLength);
 		try {
 			int offset = 0;
 			do {
@@ -189,6 +194,7 @@ public class TcpInput extends NetInput {
 			throw new IbisIOException(e);
 		} 
 		
+                // System.err.println("tcp_blk: writeByteBuffer <-- : " + l);
 		
 		return new NetReceiveBuffer(b, l, allocator);
 	}

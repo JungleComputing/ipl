@@ -2,6 +2,7 @@ package ibis.ipl.impl.net.tcp_blk;
 
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetBufferedOutput;
 import ibis.ipl.impl.net.NetOutput;
 import ibis.ipl.impl.net.NetSendBuffer;
 
@@ -23,7 +24,7 @@ import java.util.Hashtable;
 /**
  * The TCP output implementation (block version).
  */
-public class TcpOutput extends NetOutput {
+public class TcpOutput extends NetBufferedOutput {
 
 	/**
 	 * The communication socket.
@@ -58,7 +59,7 @@ public class TcpOutput extends NetOutput {
 	 * The remote MTU.
 	 */
 	private int                      rmtu      =   0;
-
+        
 	/**
 	 * Constructor.
 	 *
@@ -113,13 +114,16 @@ public class TcpOutput extends NetOutput {
 		mtu = Math.min(lmtu, rmtu);
 	}
 
-	/**
+
+	/*
 	 * {@inheritDoc}
-	 */
-	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
+         */
+	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
 		try {
+                        // System.err.println("tcp_blk: writeByteBuffer --> : " + b.length);
 			writeInt(b.data, 0, b.length);
 			tcpOs.write(b.data, 0, b.length);
+                        // System.err.println("tcp_blk: writeByteBuffer <-- : " + b.length);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		} 

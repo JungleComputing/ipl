@@ -2,6 +2,7 @@ package ibis.ipl.impl.net.pipe;
 
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetBank;
+import ibis.ipl.impl.net.NetBufferedOutput;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetOutput;
 import ibis.ipl.impl.net.NetSendBuffer;
@@ -20,7 +21,7 @@ import java.util.Hashtable;
 /**
  * The PIPE output implementation.
  */
-public class PipeOutput extends NetOutput {
+public class PipeOutput extends NetBufferedOutput {
 
 	/**
 	 * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
@@ -80,10 +81,7 @@ public class PipeOutput extends NetOutput {
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
+	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
 		try {
 			writeInt(b.data, 0, b.length);
 			pipeOs.write(b.data, 0, b.length);
@@ -91,20 +89,6 @@ public class PipeOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		} 
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void release() {
-		// nothing
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void reset() {
-		// nothing
 	}
 
 	/**
@@ -125,5 +109,5 @@ public class PipeOutput extends NetOutput {
 
 		super.free();
 	}
-	
+
 }

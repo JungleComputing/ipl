@@ -408,15 +408,6 @@ public abstract class NetIO {
 					     ObjectOutputStream os)
 		throws IbisIOException;
 
-	/**
-	 * Completes a message send or receive operation and set the I/O to its initial state.
-	 */
-	public abstract void release();
-
-	/**
-	 * Aborts a message send or receive operation and set the I/O to its initial state.
-	 */
-	public abstract void reset();
 
 	/**
 	 * Closes the I/O.
@@ -444,5 +435,4 @@ public abstract class NetIO {
 		free();
 		super.finalize();
 	}
-	
 }

@@ -86,30 +86,6 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	private Hashtable             receivePortOs          = null;
 
-	/**
-	 * The current memory block allocator.
-	 */
-	private NetAllocator          allocator              = null;
-
-	/**
-	 * The current maximum transfert unit.
-	 */
-	private int           	      mtu        	     =    0;
-
-	/**
-	 * The current buffer offset of the payload area.
-	 */
-	private int           	      dataOffset 	     =    0;
-
-	/**
-	 * The current buffer offset for appending user data.
-	 */
-	private int           	      bufferOffset 	     =    0;
-
-	/**
-	 * The current buffer.
-	 */
-	private NetSendBuffer 	      buffer       	     = null;
 
 	/**
 	 * The empty message detection flag.
@@ -160,29 +136,10 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */	
 	public WriteMessage newMessage() throws IbisIOException {
 		emptyMsg     = true;
-		bufferOffset = 0;
 		outputLock.lock();
                 output.initSend();
 		return this;
 	}
-
-	/**
-	 * Returns an instance to the current memory block allocator.
-	 *
-	 * @return The allocator instance.
-	 */
-	protected NetAllocator getAllocator() {
-		int mtu = output.getMaximumTransfertUnit();
-
-		if (mtu == 0)
-			return null;
-
-		if (allocator == null || allocator.getBlockSize() != mtu) {
-			allocator = new NetAllocator(mtu);
-		}
-
-		return allocator;
-	}	
 
 	public DynamicProperties properties() {
 		return null;
@@ -228,21 +185,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		receivePortSockets.put(rpn, s);
 		receivePortIs.put(rpn, is);
 		receivePortOs.put(rpn, os);
-		output.setupConnection(rpn, is, os);
-				
-		mtu = output.getMaximumTransfertUnit();
-
-		if (mtu != 0) {
-			if (allocator == null || allocator.getBlockSize() != mtu) {
-				allocator = new NetAllocator(mtu);
-			}
-		}
-
-		/*
-		 * TODO: update receivePorts when dataOffset changes
-		 */
-		dataOffset = output.getHeadersLength();
-
+		output.setupConnection(rpn, is, os);				
 		outputLock.unlock();
 	}
 
@@ -343,57 +286,12 @@ public final class NetSendPort implements SendPort, WriteMessage {
 
 	/* --- WriteMessage part --- */
 
-	/**
-	 * Sends the current buffer over the network.
-	 */
-	private void flush() throws IbisIOException{
-		if (buffer != null) {
-			output.sendBuffer(buffer);
-			/*
-			try {
-				Thread.sleep(500); // temporisation test for UDP
-			} catch (Exception e) {
-				// ignore
-			}
-			*/
-			buffer.free();
-			buffer = null;
-		}
-
-		bufferOffset = 0;
-	}
-
-	/**
-	 * Allocate a new buffer.
-	 *
-	 * @param the preferred length. This is just a hint. The
-	 * actual buffer length may differ.
-	 */
-	private void allocateBuffer(int length) {
-		if (buffer != null) {
-			buffer.free();
-		}
-		
-		if (allocator != null) {
-			buffer = new NetSendBuffer(allocator.allocate(), dataOffset, allocator);
-		} else {
-			if (mtu != 0) {
-				length = mtu;
-			} else {
-				length += dataOffset;
-			}		
-			buffer = new NetSendBuffer(new byte[length], dataOffset);
-		}
-		
-		bufferOffset = dataOffset;
-	}
-
 	// TODO: ensure that send is non-blocking
 	/**
 	 * Sends what remains to be sent.
 	 */
 	public void send() throws IbisIOException{
-		flush();
+		output.send();
 	}
 
 	// TODO: ensure that data has actually been sent
@@ -407,8 +305,6 @@ public final class NetSendPort implements SendPort, WriteMessage {
 		if (emptyMsg) {
 			writeByte((byte)0);
 		}
-		
-		flush();
 	}
 	
 	/**
@@ -416,7 +312,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	public void finish() throws IbisIOException{
 		_finish();
-		output.release();
+		output.finish();
 		outputLock.unlock();
 	}
 
@@ -431,7 +327,7 @@ public final class NetSendPort implements SendPort, WriteMessage {
 			send();
 		}
 		_finish();
-		output.reset();
+		output.reset(doSend);
 	}
 
 	public int getCount() {
@@ -443,7 +339,8 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	}
 
 	public void writeBoolean(boolean value) throws IbisIOException {
-		//
+		emptyMsg = false;
+		output.writeBoolean(value);
 	}
 
 	/**
@@ -455,54 +352,55 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 */
 	public void writeByte(byte value) throws IbisIOException {
 		emptyMsg = false;
-		
-		if (buffer == null) {
-			allocateBuffer(1);
-		}
-
-		buffer.data[bufferOffset] = value;
-		buffer.length++;
-		bufferOffset++;
-
-		if (bufferOffset >= buffer.data.length) {
-			flush();
-		}
+		output.writeByte(value);
 	}
 
 	public void writeChar(char value) throws IbisIOException {
-		//
+		emptyMsg = false;
+		output.writeChar(value);
 	}
 
 	public void writeShort(short value) throws IbisIOException {
-		//
+		emptyMsg = false;
+		output.writeShort(value);
 	}
 
 	public void writeInt(int value) throws IbisIOException {
-		//
+		emptyMsg = false;
+		output.writeInt(value);
 	}
 
 	public void writeLong(long value) throws IbisIOException {
-		//
+		emptyMsg = false;
+		output.writeLong(value);
 	}
 	
 	public void writeFloat(float value) throws IbisIOException {
-		//
+		emptyMsg = false;
+		output.writeFloat(value);
 	}
 
 	public void writeDouble(double value) throws IbisIOException {
-		//
+		emptyMsg = false;
+		output.writeDouble(value);
 	}
 
 	public void writeString(String value) throws IbisIOException {
-		//
+		emptyMsg = false;
+		output.writeString(value);
 	}
 
 	public void writeObject(Object value) throws IbisIOException {
-		//
+		emptyMsg = false;
+		output.writeObject(value);
 	}
 
-	public void writeArrayBoolean(boolean [] destination) throws IbisIOException {
-		//
+	public void writeArrayBoolean(boolean [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+		output.writeArrayBoolean(userBuffer);
 	}
 	
 	/**
@@ -513,129 +411,124 @@ public final class NetSendPort implements SendPort, WriteMessage {
 	 * @param userBuffer the byte array to append to the message.
 	 */
 	public void writeArrayByte(byte [] userBuffer) throws IbisIOException {
-		writeSubArrayByte(userBuffer, 0, userBuffer.length);
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+		output.writeArrayByte(userBuffer);
 	}
 	
-	public void writeArrayChar(char [] destination) throws IbisIOException {
-		//
+	public void writeArrayChar(char [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+                output.writeArrayChar(userBuffer);
 	}
 	
-	public void writeArrayShort(short [] destination) throws IbisIOException {
-		//
+	public void writeArrayShort(short [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+                output.writeArrayShort(userBuffer);
 	}
 	
-	public void writeArrayInt(int [] destination) throws IbisIOException {
-		//
+	public void writeArrayInt(int [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+                output.writeArrayInt(userBuffer);
 	}
 	
-	public void writeArrayLong(long [] destination) throws IbisIOException {
-		//
+	public void writeArrayLong(long [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+                output.writeArrayLong(userBuffer);
 	}
 	
-	public void writeArrayFloat(float [] destination) throws IbisIOException {
-		//
+	public void writeArrayFloat(float [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+                output.writeArrayFloat(userBuffer);
 	}
 	
-	public void writeArrayDouble(double [] destination) throws IbisIOException {
-		//
+	public void writeArrayDouble(double [] userBuffer) throws IbisIOException {
+		if (userBuffer.length == 0)
+			return;
+
+		emptyMsg = false;
+                output.writeArrayDouble(userBuffer);
 	}
 	
 
-	public void writeSubArrayBoolean(boolean [] destination, int offset, int size) throws IbisIOException {
-		//
+	public void writeSubArrayBoolean(boolean [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+                output.writeSubArrayBoolean(userBuffer, offset, length);
 	}
 	
 	public void writeSubArrayByte(byte [] userBuffer, int offset, int length) throws IbisIOException {
-		// System.err.println("write: "+offset+", "+length);
 		if (length == 0)
 			return;
-		
+
 		emptyMsg = false;
+                output.writeSubArrayByte(userBuffer, offset, length);
+	}
+	
+	public void writeSubArrayChar(char [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
 
-                if (dataOffset == 0) {
-                        if (buffer != null) {
-                                flush();
-                        }
+		emptyMsg = false;
+                output.writeSubArrayChar(userBuffer, offset, length);
+	}
+	
+	public void writeSubArrayShort(short [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
 
-                        if (mtu != 0) {
-                                int base = offset;
+		emptyMsg = false;
+                output.writeSubArrayShort(userBuffer, offset, length);
+	}
+	
+	public void writeSubArrayInt(int [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
 
-                                do {
-                                        int copyLength = Math.min(mtu, length);
-                                        buffer = new NetSendBuffer(userBuffer, base, copyLength);
-                                        flush();
+		emptyMsg = false;
+                output.writeSubArrayInt(userBuffer, offset, length);
+	}
+	
+	public void writeSubArrayLong(long [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
 
-                                        base   += copyLength;
-                                        length -= copyLength;
-                                } while (length != 0);
-                                        
-                        } else {
-                                buffer = new NetSendBuffer(userBuffer, offset, length);
-                                flush();
-                        }
-                } else {
-                        if (buffer != null) {
-                                int availableLength = buffer.data.length - bufferOffset;
-                                int copyLength      = Math.min(availableLength, length);
-
-                                System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
-
-                                bufferOffset  	 += copyLength;
-                                buffer.length 	 += copyLength;
-                                availableLength  -= copyLength;
-                                offset        	 += copyLength;
-                                length        	 -= copyLength;
-
-                                if (availableLength == 0) {
-                                        flush();
-                                }
-                        }
-		
-                        while (length > 0) {
-                                allocateBuffer(length);
-
-                                int availableLength = buffer.data.length - bufferOffset;
-                                int copyLength   = Math.min(availableLength, length);
-
-                                System.arraycopy(userBuffer, offset, buffer.data, bufferOffset, copyLength);
-
-                                bufferOffset  	+= copyLength;
-                                buffer.length 	+= copyLength;
-                                availableLength -= copyLength;
-                                offset        	+= copyLength;
-                                length        	-= copyLength;
-
-                                if (availableLength == 0) {
-                                        flush();
-                                }
-                        }
-                }
+		emptyMsg = false;
+                output.writeSubArrayLong(userBuffer, offset, length);
+	}
+	
+	public void writeSubArrayFloat(float [] userBuffer, int offset, int length) throws IbisIOException {
+                if (length == 0)
+			return;
                 
-		// System.err.println("write: "+offset+", "+length+": ok");
+                emptyMsg = false;
+                output.writeSubArrayFloat(userBuffer, offset, length);
 	}
 	
-	public void writeSubArrayChar(char [] destination, int offset, int size) throws IbisIOException {
-		//
-	}
-	
-	public void writeSubArrayShort(short [] destination, int offset, int size) throws IbisIOException {
-		//
-	}
-	
-	public void writeSubArrayInt(int [] destination, int offset, int size) throws IbisIOException {
-		//
-	}
-	
-	public void writeSubArrayLong(long [] destination, int offset, int size) throws IbisIOException {
-		//
-	}
-	
-	public void writeSubArrayFloat(float [] destination, int offset, int size) throws IbisIOException {
-		//
-	}
-	
-	public void writeSubArrayDouble(double [] destination, int offset, int size) throws IbisIOException {
-		//
+	public void writeSubArrayDouble(double [] userBuffer, int offset, int length) throws IbisIOException {
+		if (length == 0)
+			return;
+
+		emptyMsg = false;
+                output.writeSubArrayDouble(userBuffer, offset, length);
 	}
 	
 

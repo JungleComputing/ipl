@@ -1,6 +1,7 @@
 package ibis.ipl.impl.net.gm;
 
 import ibis.ipl.impl.net.__;
+import ibis.ipl.impl.net.NetBufferedOutput;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetMutex;
 import ibis.ipl.impl.net.NetOutput;
@@ -24,7 +25,7 @@ import java.util.Hashtable;
 /**
  * The GM output implementation (block version).
  */
-public class GmOutput extends NetOutput {
+public class GmOutput extends NetBufferedOutput {
 
         /**
          * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
@@ -107,6 +108,7 @@ public class GmOutput extends NetOutput {
         }
 
         public void initSend() throws IbisIOException {
+                super.initSend();
                 Driver.gmLock.lock();
                 nPostSend(outputHandle, dummyBuffer, 0, dummyBuffer.length);
                 do {                                
@@ -119,7 +121,7 @@ public class GmOutput extends NetOutput {
         /**
          * {@inheritDoc}
          */
-        public void sendBuffer(NetSendBuffer b) throws IbisIOException {
+        public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
                 // System.err.println("sending buffer: "+b.length+" bytes");
                 Driver.gmLock.lock();
                 nPostSend(outputHandle, b.data, b.base, b.length);
@@ -129,20 +131,6 @@ public class GmOutput extends NetOutput {
                 nCompleteSend(outputHandle, b.data, b.base, b.length);
                 Driver.gmLock.unlock();
                 // System.err.println("buffer sent: "+b.length+" bytes");
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        public void release() {
-                // nothing
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        public void reset() {
-                // nothing
         }
 
         /**

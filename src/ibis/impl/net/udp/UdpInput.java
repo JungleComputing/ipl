@@ -3,6 +3,7 @@ package ibis.ipl.impl.net.udp;
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetAllocator;
 import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetBufferedInput;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetReceiveBuffer;
 import ibis.ipl.impl.net.NetSendPortIdentifier;
@@ -34,7 +35,7 @@ import java.util.Hashtable;
  * input. It could be interesting to experiment with an implementation
  * using one socket per poller instead.
  */
-public class UdpInput extends NetInput {
+public class UdpInput extends NetBufferedInput {
 
 	/**
 	 * The default polling timeout in milliseconds.
@@ -229,6 +230,7 @@ public class UdpInput extends NetInput {
 			buffer    = new NetReceiveBuffer(data, packet.getLength(), allocator);
 			data      = null;
 			activeNum = rpn;
+                        super.initReceive();
 		} catch (InterruptedIOException e) {
 			// Nothing
 		} catch (IOException e) {
@@ -247,7 +249,7 @@ public class UdpInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer receiveBuffer(int expectedLength)
+	public NetReceiveBuffer readByteBuffer(int expectedLength)
 		throws IbisIOException {
 		if (buffer == null) {
 			byte[] b = allocator.allocate();
@@ -272,11 +274,11 @@ public class UdpInput extends NetInput {
 		return temp_buffer;
 	}
 
-	public void receiveBuffer(NetReceiveBuffer userBuffer)
+	public void readByteBuffer(NetReceiveBuffer userBuffer)
 		throws IbisIOException {
 		if (buffer == null) {
                         //
-			packet.setData(userBuffer.data, userBuffer.base, userBuffer.length);
+			packet.setData(userBuffer.data, userBuffer.base, userBuffer.length - userBuffer.base);
 
 			try {
 				setReceiveTimeout(receiveTimeout);
@@ -287,15 +289,18 @@ public class UdpInput extends NetInput {
 				throw new IbisIOException(e);
 			}
 		} else {
-                        System.arraycopy(buffer.data, 0, userBuffer.data, userBuffer.base, userBuffer.length);
+                        System.arraycopy(buffer.data, 0, userBuffer.data, userBuffer.base, userBuffer.length - userBuffer.base);
                         buffer.free();
                         buffer = null;
                 }
 	}
 
-	public void release() {
-		super.release();
+	/**
+	 * {@inheritDoc}
+	 */
+	public void finish() throws IbisIOException {
 		buffer = null;
+		super.finish();
 	}
 
 	/*

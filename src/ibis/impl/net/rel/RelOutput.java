@@ -2,6 +2,7 @@ package ibis.ipl.impl.net.rel;
 
 import ibis.ipl.impl.net.__;
 import ibis.ipl.impl.net.NetDriver;
+import ibis.ipl.impl.net.NetBufferedOutput;
 import ibis.ipl.impl.net.NetOutput;
 import ibis.ipl.impl.net.NetSendBuffer;
 
@@ -23,7 +24,7 @@ import java.util.Hashtable;
 /**
  * The REL output implementation.
  */
-public class RelOutput extends NetOutput {
+public class RelOutput extends NetBufferedOutput {
 
 	/**
 	 * The driver used for the 'real' output.
@@ -96,22 +97,24 @@ public class RelOutput extends NetOutput {
 	/**
 	 * {@inheritDoc}
 	 */
-	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
-		subOutput.sendBuffer(b);
+	public void initSend() throws IbisIOException {
+                super.initSend();
+		subOutput.initSend();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void release() {
-		subOutput.release();
+	public void writeByteBuffer(NetSendBuffer b) throws IbisIOException {
+                subOutput.writeSubArrayByte(b.data, 0, b.length);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public void reset() {
-		subOutput.reset();
+	public void finish() throws IbisIOException {
+		subOutput.finish();
+		super.finish();
 	}
 
 	/**
