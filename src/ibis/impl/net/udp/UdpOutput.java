@@ -103,7 +103,6 @@ public class UdpOutput extends NetOutput {
 				    ObjectOutputStream os)
 		throws IbisIOException {
 		this.rpn = rpn;
-		this.rpi = rpi;
 	
 		try {
 			socket = new DatagramSocket(0, InetAddress.getLocalHost());
@@ -135,7 +134,6 @@ public class UdpOutput extends NetOutput {
 	 * {@inheritDoc}
 	 */
 	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
-		//System.err.println("UDP send: "+b.length+" bytes");
 		packet.setData(b.data, 0, b.length);
 		try {
 			socket.send(packet);
@@ -175,7 +173,6 @@ public class UdpOutput extends NetOutput {
 		rport  =    0;
 		rmtu   =    0;
 		rpn    = null;
-		rpi    = null;
 
 		super.free();
 	}

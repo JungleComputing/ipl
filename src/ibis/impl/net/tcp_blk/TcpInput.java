@@ -1,6 +1,7 @@
-package ibis.ipl.impl.net.tcp;
+package ibis.ipl.impl.net.tcp_blk;
 
 import ibis.ipl.impl.net.__;
+import ibis.ipl.impl.net.NetAllocator;
 import ibis.ipl.impl.net.NetDriver;
 import ibis.ipl.impl.net.NetInput;
 import ibis.ipl.impl.net.NetReceiveBuffer;
@@ -29,7 +30,7 @@ import java.util.Hashtable;
 
 
 /**
- * The TCP input implementation.
+ * The TCP input implementation (block version).
  */
 public class TcpInput extends NetInput {
 
@@ -63,6 +64,21 @@ public class TcpInput extends NetInput {
 	private OutputStream 	      tcpOs	      = null;
 
 	/**
+	 * The buffer block allocator.
+	 */
+	private NetAllocator          allocator      = null;
+
+	/**
+	 * The local MTU.
+	 */
+	private int                   lmtu            = 32768;
+
+	/**
+	 * The remote MTU.
+	 */
+	private int                   rmtu            =   0;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param sp the properties of the input's 
@@ -75,6 +91,7 @@ public class TcpInput extends NetInput {
 		 NetInput         input)
 		throws IbisIOException {
 		super(sp, driver, input);
+		headerLength = 4;
 	}
 
 
@@ -93,10 +110,14 @@ public class TcpInput extends NetInput {
 		 
 		try {
 			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
-			Hashtable info    = new Hashtable();
-			info.put("tcp_address", tcpServerSocket.getInetAddress());
-			info.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
-			sendInfoTable(os, info);
+			Hashtable lInfo    = new Hashtable();
+			lInfo.put("tcp_address", tcpServerSocket.getInetAddress());
+			lInfo.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
+			lInfo.put("tcp_mtu",     new Integer(lmtu));
+			sendInfoTable(os, lInfo);
+
+			Hashtable rInfo = receiveInfoTable(is);
+			rmtu  		= ((Integer) rInfo.get("tcp_mtu")).intValue();
 
 			tcpSocket  = tcpServerSocket.accept();
 			tcpIs 	   = tcpSocket.getInputStream();
@@ -104,6 +125,9 @@ public class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
+
+		mtu       = Math.min(lmtu, rmtu);
+		allocator = new NetAllocator(mtu);
 	}
 
 	/**
@@ -142,19 +166,29 @@ public class TcpInput extends NetInput {
 	 */
 	public NetReceiveBuffer receiveBuffer(int expectedLength)
 		throws IbisIOException {
-
-		byte [] b = new byte[expectedLength];
-		int offset = 0;
+		byte [] b = allocator.allocate();
+		int     l = 0;
+		
 		try {
+			int offset = 0;
 			do {
-				offset += tcpIs.read(b, offset,
-						     expectedLength - offset);
-			} while (offset < expectedLength);
+				offset += tcpIs.read(b, offset, 4);
+			} while (offset < 4);
+
+			l |= ((int)b[0])&0xFF;
+			l |= (((int)b[1])&0xFF) << 8;
+			l |= (((int)b[2])&0xFF) << 16;
+			l |= (((int)b[3])&0xFF) << 24;
+
+			do {
+				offset += tcpIs.read(b, offset, l - offset);
+			} while (offset < l);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		} 
 		
-		return new NetReceiveBuffer(b, expectedLength);
+		
+		return new NetReceiveBuffer(b, l, allocator);
 	}
 
 	/*

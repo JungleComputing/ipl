@@ -207,7 +207,6 @@ public class NetIbis extends Ibis {
 	 * @exception IbisIOException if the local host name cannot be found or if the Name Server cannot be reached.
 	 */
 	protected void init() throws IbisException, IbisIOException { 
-		
 		try {
 			InetAddress addr = InetAddress.getLocalHost();
 			identifier = new NetIbisIdentifier(name, addr);

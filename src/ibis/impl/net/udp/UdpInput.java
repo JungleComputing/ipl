@@ -212,7 +212,7 @@ public class UdpInput extends NetInput {
 		} catch (IOException e) {
 			throw new IbisIOException(e);
 		}
-		
+
 		return activeNum;
 	}
 	
@@ -227,7 +227,6 @@ public class UdpInput extends NetInput {
 	 */
 	public NetReceiveBuffer receiveBuffer(int expectedLength)
 		throws IbisIOException {
-
 		if (buffer == null) {
 			byte[] b = allocator.allocate();
 			packet.setData(b, 0, b.length);
