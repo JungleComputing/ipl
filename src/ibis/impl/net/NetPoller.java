@@ -510,8 +510,8 @@ nCurrent++;
                                 }
 
 				blockReceiver();
-			    }
-                        }
+			}
+		    }
                 }
 // System.err.print("]");
 

@@ -180,7 +180,10 @@ public final class TcpInput extends NetBufferedInput {
 				offset += result;
 			} while (offset < l);
 		} catch (SocketException e) {
-			if (e.getMessage().equalsIgnoreCase("socket closed")) {
+			String msg = e.getMessage();
+			if (tcpSocket.isClosed() ||
+			    msg.equalsIgnoreCase("socket closed") ||
+			    msg.equalsIgnoreCase("null fd object")) {
 				throw new ConnectionClosedException(e);
 			} else {
 				throw e;

@@ -1,5 +1,7 @@
 package ibis.ipl.impl.net.tcp_plain;
 
+import ibis.ipl.ConnectionClosedException;
+
 import ibis.ipl.impl.net.*;
 
 import java.net.ServerSocket;
@@ -136,7 +138,7 @@ public final class TcpInput extends NetInput {
 			int i = tcpIs.read();
 
 			if (i < 0)
-				throw new EOFException("Broken pipe");
+				throw new ConnectionClosedException("Broken pipe");
 
 			first = true;
 			firstbyte = (byte)(i & 0xFF);
@@ -168,11 +170,10 @@ public final class TcpInput extends NetInput {
                         b = firstbyte;
                 } else {
 			int i = tcpIs.read();
-			if (i >= 0) {
-				b = (byte)(i & 0xFF);
-			} else {
-				throw new EOFException("unexpected EOF");
+			if (i < 0) {
+				throw new ConnectionClosedException("unexpected EOF");
 			}
+			b = (byte)(i & 0xFF);
                 }
 
                 return b;
