@@ -5,7 +5,6 @@ import ibis.ipl.StaticProperties;
 import ibis.util.ConditionVariable;
 import ibis.util.IbisIdentifierTable;
 import ibis.util.Monitor;
-import ibis.util.PoolInfo;
 
 import java.io.IOException;
 import java.util.Hashtable;
@@ -20,14 +19,6 @@ public class Ibis extends ibis.ipl.Ibis {
     private boolean i_joined = false;
 
     static Ibis	myIbis;
-
-    static PoolInfo poolInfo = null;
-    static { 
-	try {
-	    poolInfo = new PoolInfo();
-	} catch (IbisException e) {
-	}
-    }
 
     int nrCpus;
     int myCpu;
