@@ -28,7 +28,9 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 					byte[] sdup = (byte[]) s.clone(); // only for spawn...
 					ret1 = spawn_try_it(i+1, tw+weights[i], av, limw, maxv2, values, weights, sdup, optdup);
 				} else {
-					ret1 = try_it(i+1, tw+weights[i], av, limw, maxv2, values, weights, s, optdup);
+					ret1 = new Return();
+					ret1.maxv = seq_do_try(i+1, N, tw+weights[i], av, limw, maxv2, values, weights, s, optdup);
+					ret1.opts = optdup;
 				}
 				spawn1 = 1;
 			} else if ( av > maxv ) {
@@ -43,7 +45,9 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 					byte[] sdup = (byte[]) s.clone(); // only for spawn...
 					ret2 = spawn_try_it(i+1, tw, av1, limw, maxv, values, weights, sdup, opts);
 				} else {
-					ret2 = try_it(i+1, tw, av1, limw, maxv, values, weights, s, opts);
+					ret2 = new Return();
+					ret2.maxv = seq_do_try(i+1, N, tw, av1, limw, maxv, values, weights, s, opts);
+					ret2.opts = opts;
 				}
 				spawn2 = 1;
 			} else {
@@ -85,6 +89,45 @@ public final class Knapsack extends ibis.satin.SatinObject implements KnapsackIn
 
 		return result;
 	}
+
+	int seq_do_try(int i, int N, int tw, int av, int limw, int maxv,
+		       int[] values, int[] weights, byte[] s, byte[] opts) {
+		int k,av1,maxv2;
+		byte[] optdup = null;
+		av1 = av - values[i];
+		maxv2 = -1;
+
+		if ( tw + weights[i] <= limw ) {
+			s[i] = 1;
+			if ( i < N ){
+				maxv2 = maxv;
+				optdup = (byte[]) opts.clone();
+				maxv2 = seq_do_try(i+1, N, tw+weights[i], av, limw, maxv2, values, weights, s, optdup);
+			} else if ( av > maxv ) {
+				maxv = av;
+				System.arraycopy(s, 0, opts, 0, N+1);
+			}
+			s[i] = 0;
+		}
+  
+		if ( av1 > maxv ) {
+			if ( i < N )
+				maxv = seq_do_try(i+1, N, tw, av1, limw, maxv, values, weights, s, opts);
+			else {
+				maxv = av1;
+				System.arraycopy(s, 0, opts, 0, N+1);
+			}
+		}
+
+
+		if ( maxv2 > maxv ) {
+			maxv = maxv2;
+			System.arraycopy(optdup, 0, opts, 0, N+1);
+		}
+
+		return maxv;
+	}
+
 
 	private static void putmin(double[] prio, int[] a, int[] b, int pos) {
 		int minpos = pos;

@@ -18,7 +18,7 @@ APPS += mmult
 #APPS += two_out_three_non_static
 #APPS += checkers
 
-SIZES = 64
+SIZES = 32
 #SIZES = 1 2 4 16 24 32 48 64
 
 PAR_SCHEDULING  =
@@ -37,8 +37,8 @@ PAR_RUN_OPTIONS += -satin-closed
 #PAR_RUN_OPTIONS += -satin-upcall-polling
 #PAR_RUN_OPTIONS += -satin-alg CRS
 
-SEQ_TIME = -asocial -t 28:0:0
-PAR_TIME = -asocial -t 28:0:0
+SEQ_TIME = -asocial -t 3:0:0
+PAR_TIME = -asocial -t 1:0:0
 
 EXCLUDES =
 

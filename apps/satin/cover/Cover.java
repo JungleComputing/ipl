@@ -1,6 +1,59 @@
 public final class Cover extends ibis.satin.SatinObject implements CoverInterface, java.io.Serializable  {
 	static final int THRESHOLD = 15;
 
+	int seq_do_try(int i, int N, int no_skills, byte[][] skills,
+			      int cover, byte[] covered, byte[] act,
+			      byte[] opt, int opt_elems) {
+		int k,act_elems = 0;
+		int opt_elems2;
+		byte[] opt2;
+        
+		if ( no_skills == cover ) {
+			for (k=0; k<N;k++) {
+				if (act[k] == 1) act_elems++;
+			}
+			if (act_elems < opt_elems){
+				System.arraycopy(act, 0, opt, 0, N);
+				opt_elems = act_elems;
+			}
+			return opt_elems;
+		}
+
+		if ( i == N ) return opt_elems;
+
+		opt_elems2 = opt_elems;
+		opt2 = (byte[]) opt.clone();
+
+		// recursive call without the current element 
+		opt_elems2 = seq_do_try(i+1,N,no_skills,skills,cover,covered,act,opt2,opt_elems2);
+
+		// recursive call with the current element 
+		act[i] = 1;
+		for (k=0; k<no_skills; k++) {
+			if ( skills[i][k] == 1 ){
+				if (covered[k]++ == 0)
+					cover++;
+			}
+		}
+		opt_elems = seq_do_try(i+1,N,no_skills,skills,cover,covered,act,opt,opt_elems);
+
+		// undo the setting of the current element
+		act[i] = 0;
+		for (k=0; k<no_skills; k++)
+			if ( skills[i][k] == 1 ){
+				if (covered[k]-- == 0) {
+					cover--;
+				}
+			}
+
+		// take best result
+		if ( opt_elems2 < opt_elems ) {
+			opt_elems = opt_elems2;
+			System.arraycopy(opt2, 0, opt, 0, N);
+		}
+
+		return opt_elems;
+	}
 
 	public Return spawn_try_it(int i, int N, int no_skills, byte[][] skills,
 				   int cover, byte[] covered, byte[] act, byte[] opt, int opt_elems) {
@@ -38,7 +91,11 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 		Return ret2;
 
 		if(i >= THRESHOLD) {
-			ret2 = try_it(i+1, N, no_skills, skills, cover, covered, act, opt2, opt_elems2);
+			ret2 = new Return();
+			ret2.opt_elems = seq_do_try(i+1, N, no_skills, skills, cover, covered, act, opt2, opt_elems2);
+			ret2.opt = opt2;
+			
+//			ret2 = try_it(i+1, N, no_skills, skills, cover, covered, act, opt2, opt_elems2);
 
 			/* recursive call with the current element */
 			/* must copy all OBJECTS we modify! */
@@ -54,7 +111,7 @@ public final class Cover extends ibis.satin.SatinObject implements CoverInterfac
 				}
 			}
 			
-			ret = try_it(i+1, N, no_skills, skills, cover, covered_copy, act_copy, ret.opt, ret.opt_elems);
+			ret.opt_elems = seq_do_try(i+1, N, no_skills, skills, cover, covered_copy, act_copy, ret.opt, ret.opt_elems);
 
 			if (ret2.opt_elems < ret.opt_elems) {
 				return ret2;
