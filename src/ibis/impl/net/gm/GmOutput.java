@@ -455,7 +455,7 @@ if (false)
 		if (l > Driver.packetMTU) {
 		    _l = Math.min(l, mtu);
 
-		    sendRequest(o, l);
+		    sendRequest(o, _l);
 
 		    /* Post the 'buffer' */
 		    if (Driver.TIMINGS) Driver.t_native_send.start();
@@ -508,7 +508,7 @@ if (false)
 		    _l = Math.min(l, mtu);
 // System.err.println(this + ": send Rndz-vous msg size " + l + " packet size " + _l);
 
-		    sendRequest(o, l);
+		    sendRequest(o, _l);
 
 		    // Post the 'buffer'
 		    if (Driver.TIMINGS) Driver.t_native_send.start();
@@ -554,7 +554,7 @@ if (false)
 		if (l > Driver.packetMTU) {
 		    _l = Math.min(l, mtu);
 
-		    sendRequest(o, l);
+		    sendRequest(o, _l);
 
 		    /* Post the 'buffer' */
 		    if (Driver.TIMINGS) Driver.t_native_send.start();
@@ -602,7 +602,7 @@ if (false)
 		if (l > Driver.packetMTU) {
 		    _l = Math.min(l, mtu);
 
-		    sendRequest(o, l);
+		    sendRequest(o, _l);
 
 		    /* Post the 'buffer' */
 		    if (Driver.TIMINGS) Driver.t_native_send.start();
@@ -650,7 +650,7 @@ if (false)
 		if (l > Driver.packetMTU) {
 		    _l = Math.min(l, mtu);
 
-		    sendRequest(o, l);
+		    sendRequest(o, _l);
 
 		    /* Post the 'buffer' */
 		    if (Driver.TIMINGS) Driver.t_native_send.start();
@@ -698,7 +698,7 @@ if (false)
 		if (l > Driver.packetMTU) {
 		    _l = Math.min(l, mtu);
 
-		    sendRequest(o, l);
+		    sendRequest(o, _l);
 
 		    /* Post the 'buffer' */
 		    if (Driver.TIMINGS) Driver.t_native_send.start();
@@ -744,7 +744,7 @@ if (false)
 		if (l > Driver.packetMTU) {
 		    _l = Math.min(l, mtu);
 
-		    sendRequest(o, l);
+		    sendRequest(o, _l);
 
 		    /* Post the 'buffer' */
 		    if (Driver.TIMINGS) Driver.t_native_send.start();
@@ -790,7 +790,7 @@ if (false)
 		if (l > Driver.packetMTU) {
 		    _l = Math.min(l, mtu);
 
-		    sendRequest(o, l);
+		    sendRequest(o, _l);
 
 		    /* Post the 'buffer' */
 		    if (Driver.TIMINGS) Driver.t_native_send.start();

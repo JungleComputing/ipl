@@ -1264,11 +1264,11 @@ ni_gm_release_input_array(JNIEnv *env, struct s_input *p_in, int length) {
 	void            *ptr  = p_in->array;
 
         __in__();
-	if ((*env)->ExceptionOccurred(env)) { \
-	    fprintf(stderr, "%s.%d: exception!!!\n", __FILE__, __LINE__); \
-	    (*env)->ExceptionDescribe(env); \
-	    exit(33); \
-	} \
+	if ((*env)->ExceptionOccurred(env)) {
+	    fprintf(stderr, "%s.%d: exception!!!\n", __FILE__, __LINE__);
+	    (*env)->ExceptionDescribe(env);
+	    exit(33);
+	}
 
 #define RELEASE_ARRAY(E_TYPE, jarray, Jtype, jtype) \
 		case E_TYPE: \
@@ -2364,7 +2364,7 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
     ni_gm_hdr_p	      hdr; \
     \
     __in__(); \
-    VPRINTF(100, ("Post rendez-vous %s buffer size %d\n", #Jtype, len)); \
+    VPRINTF(100, ("Post rendez-vous %s buffer size %d offset %d bytes\n", #Jtype, len, offset)); \
     if (get_region) { \
 	buffer = cache_msg_get(p_port->p_gm_port, data_size, offset); \
 	offset = 0; \
@@ -2372,7 +2372,7 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
 	buffer = (*env)->Get ## Jtype ## ArrayElements(env, b, NULL); \
     } \
     \
-    ni_gm_register_block(p_port, buffer, len, &p_in->p_cache); \
+    ni_gm_register_block(p_port, (unsigned char *)buffer + offset, len, &p_in->p_cache); \
     p_in->length       = len; \
     p_in->java.jarray  = (jtype ## Array)(*env)->NewGlobalRef(env, b); \
     p_in->array        = buffer; \
@@ -2382,7 +2382,7 @@ ni_gm_input_post_ ## Jtype ## _rndz_vous_data(JNIEnv *env, \
     } \
     \
     gm_provide_receive_buffer_with_tag(p_port->p_gm_port, \
-				       buffer, \
+				       (unsigned char *)buffer + offset, \
 				       NI_GM_BLOCK_SIZE, \
 				       GM_LOW_PRIORITY, \
 				       0); \
