@@ -415,6 +415,7 @@ final class BarnesHut {
 
     public static void main(String argv[]) {
 	int nBodies = 0, mlb = 0;
+	boolean nBodiesSeen = false, mlbSeen = false;
 	int i;
 
 	long realStart, realEnd;
@@ -448,11 +449,25 @@ final class BarnesHut {
 		phase_timing = true;
 	    } else if (argv[i].equals("-no_timing")) {
 		phase_timing = false;
-
-	    } else { //final arguments
-		nBodies = Integer.parseInt(argv[i]); //nr of bodies to simulate
-		mlb = Integer.parseInt(argv[i+1]); //max bodies per leaf node
-		break;
+	    } else if (! nBodiesSeen) {
+		try {
+		    nBodies = Integer.parseInt(argv[i]); //nr of bodies to simulate
+		    nBodiesSeen = true;
+		} catch(NumberFormatException e) {
+		    System.err.println("Illegal argument: " + argv[i]);
+		    System.exit(1);
+		}
+	    } else if (! mlbSeen) {
+		try {
+		    mlb = Integer.parseInt(argv[i]); //max bodies per leaf node
+		    mlbSeen = true;
+		} catch(NumberFormatException e) {
+		    System.err.println("Illegal argument: " + argv[i]);
+		    System.exit(1);
+		}
+	    } else {
+		System.err.println("Illegal argument: " + argv[i]);
+		System.exit(1);
 	    }
 	}
 	if (nBodies < 1) {
@@ -462,7 +477,7 @@ final class BarnesHut {
 
 	System.out.println("BarnesHut: simulating " + nBodies +
 			   " bodies, " + mlb + " bodies/leaf node, " +
-			   "theta = " + THETA);
+			   "theta = " + THETA + ", spawn-threshold = " + spawn_threshold);
 	try {  
 	    new BarnesHut(nBodies, mlb).run();
 	} catch (StackOverflowError e) {
