@@ -210,6 +210,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 		connection.in = connection.nis;
 		break;
 	    case NioPortType.SERIALIZATION_IBIS:
+	    case NioPortType.SERIALIZATION_DATA:
 		connection.nis = null;
 		connection.in = new NioIbisSerializationInputStream(
 				(ScatteringByteChannel) connection.channel);

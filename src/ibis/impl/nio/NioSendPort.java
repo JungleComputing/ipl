@@ -152,6 +152,7 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 		out = nos;
 		break;
 	    case NioPortType.SERIALIZATION_IBIS:
+	    case NioPortType.SERIALIZATION_DATA:
 		out = new NioIbisSerializationOutputStream(splitter);
 		break;
 	    default:

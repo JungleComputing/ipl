@@ -54,6 +54,7 @@ class ShadowSendPort extends SendPort {
 	    return new SerializeShadowSendPort(rId, sId, group);
 
 	case PortType.SERIALIZATION_IBIS:
+	case PortType.SERIALIZATION_DATA:
 	    return new IbisShadowSendPort(rId, sId, group);
 
 	default:

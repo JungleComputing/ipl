@@ -24,6 +24,7 @@ class NioPortType extends PortType implements Config {
     static final byte SERIALIZATION_SUN = 0;
     static final byte SERIALIZATION_IBIS = 1;
     static final byte SERIALIZATION_NONE = 2;
+    static final byte SERIALIZATION_DATA = 3;
 
     byte serializationType;
 
@@ -57,11 +58,16 @@ class NioPortType extends PortType implements Config {
 		    System.err.println("Sun serialization used");
 		}
 		serializationType = SERIALIZATION_SUN;
-	    } else if (ser.equals("ibis") || ser.equals("data")) {
+	    } else if (ser.equals("ibis")) {
 		if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
 		    System.err.println("Ibis serialization used");
 		}
 		serializationType = SERIALIZATION_IBIS;
+	    } else if (ser.equals("data")) {
+		if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
+		    System.err.println("Data serialization used");
+		}
+		serializationType = SERIALIZATION_DATA;
 	    } else {
 		throw new IbisException("Unknown Serialization type " + ser);
 	    }

@@ -221,8 +221,6 @@ public final class NetIbis extends Ibis {
 	    if (serialization != null && ! serialization.equals("byte")) {
 		if (serialization.equals("object")) {
 		    serialization = "sun";
-		} else if (serialization.equals("data")) {
-		    serialization = "ibis";
 		}
 		String top = "s_" + serialization;
 		try {
