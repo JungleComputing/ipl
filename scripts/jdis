@@ -1,2 +1,2 @@
-JAVACLASSPATH=$IBIS_ROOT:$IBIS_ROOT/ibis:.:$JAVA_ROOT/jre/lib/rt.jar:$IBIS_ROOT/ibis/bcel-additions:$BCEL_ROOT/bcel.jar:$BCEL_ROOT/lib
+JAVACLASSPATH=$IBIS_ROOT:$IBIS_ROOT/ibis:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$IBIS_ROOT/ibis/bcel-additions:$BCEL_ROOT/bcel.jar:$BCEL_ROOT/lib
 $JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.classfile.Disassembler $@
