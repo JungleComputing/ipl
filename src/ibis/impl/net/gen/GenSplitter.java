@@ -10,13 +10,10 @@ import java.util.HashMap;
  */
 public final class GenSplitter extends NetSplitter {
 
-	// These fields are 'protected' instead of 'private' to allow the
-	// class to be used as a base class for other splitters.
-
 	/**
 	 * The driver used for the outputs.
 	 */
-	protected NetDriver subDriver = null;
+	private NetDriver subDriver = null;
 
 
 	/**
@@ -36,8 +33,8 @@ public final class GenSplitter extends NetSplitter {
 	 *
 	 * @param output the output.
 	 */
-	private void addOutput(Integer   rpn,
-			       NetOutput output) {
+	private void addOutput(Integer rpn, NetOutput output) {
+                log.in();
 		int _mtu = output.getMaximumTransfertUnit();
 
 		if (mtu == 0  ||  mtu > _mtu) {
@@ -51,12 +48,14 @@ public final class GenSplitter extends NetSplitter {
 		}
 
 		outputTable.put(rpn, output);
+                log.out();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
 		if (subDriver == null) {
 			String subDriverName = getProperty("Driver");
                         subDriver = driver.getIbis().getDriver(subDriverName);
@@ -76,6 +75,6 @@ public final class GenSplitter extends NetSplitter {
 		if (headerOffset < _headersLength) {
 			headerOffset = _headersLength;
 		}
+                log.out();
 	}
-
 }

@@ -64,7 +64,6 @@ public abstract class NetBufferedOutput extends NetOutput {
 	protected void flush() throws NetIbisException {
                 log.in();
 		if (buffer != null) {
-                        //System.err.println(this + ": flushing buffer, "+buffer.length+" bytes");
                         stat.addBuffer(buffer.length);
 			sendByteBuffer(buffer);
 			buffer = null;
@@ -93,7 +92,6 @@ public abstract class NetBufferedOutput extends NetOutput {
 
 		buffer.length = dataOffset;
 		bufferOffset = dataOffset;
-		//System.err.println(this + ": allocate buffer payload=" + length + " mtu=" + mtu + " dataOffset=" + dataOffset + " buffer.length=" + buffer.length);
                 log.out();
 	}
 

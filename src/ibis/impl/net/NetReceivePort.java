@@ -117,8 +117,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 		/**
 		 * The incoming connection management function.
-		 * Note: the thread is <strong>uninterruptible</strong>
-		 * during the network input locking.
+                 */
+                /*
+		 * // Note: the thread is <strong>uninterruptible</strong>
+		 * // during the network input locking.
 		 */
 		public void run() {
                         log.in("accept thread starting");
@@ -159,7 +161,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 				while (!end) {
 					try {
 						connectionLock.ilock();
-						inputLock.lock();
+						//inputLock.lock();
                                                 
                                                 NetConnection cnx  = new NetConnection(NetReceivePort.this, num, spi, identifier, link);
 
@@ -183,7 +185,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 							}
 						}
 
-						inputLock.unlock();
+						//inputLock.unlock();
 						connectionLock.unlock();
 					} catch (InterruptedException e) {
                                                 System.err.println("Accept thread interrupted");

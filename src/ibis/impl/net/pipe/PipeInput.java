@@ -36,11 +36,14 @@ public final class PipeInput extends NetBufferedInput {
                 }
 
                 public void end() {
+                        log.in();
                         end = true;
                         this.interrupt();
+                        log.out();
                 }
                 
                 public void run() {
+                        log.in();
                         while (!end) {
                                 try {
                                         buf = receiveByteBuffer(0);
@@ -55,11 +58,12 @@ public final class PipeInput extends NetBufferedInput {
                                         throw new Error(e);
                                 }
                         }
+                        log.out();
                 }
         }
 
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
-                //System.err.println("PipeInput: setupConnection -->");
+                log.in();
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
@@ -81,7 +85,6 @@ public final class PipeInput extends NetBufferedInput {
 			info.put("pipe_mtu",         new Integer(mtu));
 			info.put("pipe_istream_key", key);
 			info.put("pipe_upcall_mode", new Boolean(upcallMode));
-
                         
 			ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "pipe"));
 			os.writeObject(info);
@@ -101,11 +104,11 @@ public final class PipeInput extends NetBufferedInput {
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread("this = "+this)).start();
                 }
-                //System.err.println("PipeInput: setupConnection <--");
+                log.out();
 	}
 
 	public Integer poll(boolean block) throws NetIbisException {
-
+                log.in();
 		if (block) {
 		    System.err.println(this + ": no support yet for blocking poll. Implement!");
 		    throw new NetIbisException(this + ": no support yet for blocking poll. Implement!");
@@ -114,6 +117,7 @@ public final class PipeInput extends NetBufferedInput {
 		activeNum = null;
 
 		if (spn == null) {
+                        log.out("not connected");
 			return null;
 		}
 
@@ -125,12 +129,13 @@ public final class PipeInput extends NetBufferedInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		} 
+                log.out();
 
 		return activeNum;
 	}	
 
-	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-		throws NetIbisException {
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws NetIbisException {
+                log.in();
                 if (buf != null) {
                         NetReceiveBuffer temp = buf;
                         buf = null;
@@ -156,7 +161,8 @@ public final class PipeInput extends NetBufferedInput {
                                         if (offset != 0) {
                                                 throw new Error("broken pipe");
                                         }
-                                        
+
+                                        log.out("connection lost");
                                         return null;
                                 }
                                 
@@ -171,7 +177,6 @@ public final class PipeInput extends NetBufferedInput {
                                                 Thread.currentThread().yield();
                                         }
                                 }
-                                
 				
 				int result = pipeIs.read(b, offset, l - offset);
                                 if (result == -1) {
@@ -184,10 +189,13 @@ public final class PipeInput extends NetBufferedInput {
 		}
 		
 		buf.length = l;
+                log.out();
+
 		return buf;
 	}
 
         public synchronized void close(Integer num) throws NetIbisException {
+                log.in();
                 if (spn == num) {
                         try {
                                 if (pipeIs != null) {
@@ -204,9 +212,11 @@ public final class PipeInput extends NetBufferedInput {
 
                         spn = null;                        
                 }
+                log.out();
         }
         
 	public synchronized void free() throws NetIbisException {
+                log.in();
 		try {
 			if (pipeIs != null) {
 				pipeIs.close();
@@ -221,5 +231,6 @@ public final class PipeInput extends NetBufferedInput {
 
 		super.free();
                 spn = null;
+                log.out();
 	}
 }

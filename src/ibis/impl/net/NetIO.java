@@ -122,9 +122,13 @@ public abstract class NetIO {
 
                 // Stat object
                 Boolean statOn = type.getBooleanStringProperty(this.context, "Stat", new Boolean(false));
-                stat = new NetMessageStat(statOn.booleanValue(), s);
+                stat = newMessageStat(statOn.booleanValue(), s);
 	}
 
+        protected NetMessageStat newMessageStat(boolean on, String moduleName) {
+                return new NetMessageStat(on, moduleName);
+        }
+        
         /**
          * Returns the {@link #context} {@linkplain String string}.
          *

@@ -92,7 +92,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                         }
 		}
 
-                System.err.println("mtu is ["+mtu+"]");
+                log.disp("mtu is ["+mtu+"]");
 
  		int _headersLength = subOutput.getHeadersLength();
  

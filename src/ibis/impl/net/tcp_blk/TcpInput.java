@@ -94,11 +94,14 @@ public final class TcpInput extends NetBufferedInput {
                 }
 
                 public void end() {
+                        log.in();
                         end = true;
                         this.interrupt();
+                        log.out();
                 }
 
                 public void run() {
+                        log.in();
                         while (!end) {
                                 try {
                                         Integer num = spn;
@@ -110,9 +113,9 @@ public final class TcpInput extends NetBufferedInput {
                                                 activeNum = num;
                                         }
                                         initReceive();
-                                        // System.err.println("TcpInput.UpcallThread: upcall-->");
+                                        log.disp("upcall-->");
                                         upcallFunc.inputUpcall(TcpInput.this, activeNum);
-                                        // System.err.println("TcpInput.UpcallThread: upcall<--");
+                                        log.disp("upcall<--");
                                         synchronized(TcpInput.this) {
                                                 if (activeNum == num) {
                                                         finish();
@@ -122,6 +125,7 @@ public final class TcpInput extends NetBufferedInput {
                                         throw new Error(e);
                                 }
                         }
+                        log.out();
                 }
         }
 
@@ -134,7 +138,7 @@ public final class TcpInput extends NetBufferedInput {
 	 */
 	public synchronized void setupConnection(NetConnection cnx)
 		throws NetIbisException {
-                // System.err.println("tcp_blk.TcpInput: setupConnection -->");
+                log.in();
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
@@ -142,8 +146,7 @@ public final class TcpInput extends NetBufferedInput {
 		this.spn = cnx.getNum();
 		 
 		try {
-			//tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
-			tcpServerSocket   = new ServerSocket();
+                        tcpServerSocket   = new ServerSocket();
 			tcpServerSocket.setReceiveBufferSize(0x8000);
                         tcpServerSocket.bind(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
 			Hashtable lInfo = new Hashtable();                        
@@ -153,17 +156,13 @@ public final class TcpInput extends NetBufferedInput {
                         Hashtable rInfo = null;
 
                         try {
-                                //System.err.println("TcpInput: writing info table -->");
                                 ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
                                 os.writeObject(lInfo);
                                 os.close();
-                                //System.err.println("TcpInput: writing info table <--");
-
-                                //System.err.println("TcpInput: reading info table -->");
+                                
                                 ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
                                 rInfo = (Hashtable)is.readObject();
                                 is.close();
-                                //System.err.println("TcpInput: reading info table <--");
                         } catch (IOException e) {
                                 throw new NetIbisException(e);
                         } catch (ClassNotFoundException e) {
@@ -176,7 +175,7 @@ public final class TcpInput extends NetBufferedInput {
 
 			tcpSocket.setSendBufferSize(0x8000);
                         tcpSocket.setTcpNoDelay(true);
-			//tcpSocket.setTcpNoDelay(false);
+			
                         addr = tcpSocket.getInetAddress();
                         port = tcpSocket.getPort();
 
@@ -186,26 +185,26 @@ public final class TcpInput extends NetBufferedInput {
 			throw new NetIbisException(e);
 		}
 
-		mtu       = Math.min(lmtu, rmtu);
+		mtu = Math.min(lmtu, rmtu);
 		// Don't always create a new factory here, just specify the mtu.
 		// Possibly a subclass overrode the factory, and we must leave
 		// that factory in place.
 		if (factory == null) {
-		    factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl());
+                        factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl());
 		} else {
-		    factory.setMaximumTransferUnit(mtu);
+                        factory.setMaximumTransferUnit(mtu);
 		}
 
                 if (upcallFunc != null) {
                         (upcallThread = new UpcallThread(addr+"["+port+"]")).start();
                 }
-                // System.err.println("tcp_blk.TcpInput: setupConnection <--");
+                log.out();
 	}
 
 
 	/* Create a NetReceiveBuffer and do a blocking receive. */
 	private NetReceiveBuffer receive() throws NetIbisException {
-
+                log.in();
 		NetReceiveBuffer buf = createReceiveBuffer(0);
 		byte [] b = buf.data;
 		int     l = 0;
@@ -220,7 +219,8 @@ public final class TcpInput extends NetBufferedInput {
                                                 throw new Error("broken pipe");
                                         }
                                         
-                                        // System.err.println("tcp_blk: receiveByteBuffer <-- null");
+                                        log.out("connection lost");
+                                        
                                         return null;
                                 }
                                 
@@ -228,7 +228,6 @@ public final class TcpInput extends NetBufferedInput {
                         } while (offset < 4);
 
                         l = NetConvert.readInt(b);
-                        //System.err.println("received "+l+" bytes");    
                         
 			do {
 				int result = tcpIs.read(b, offset, l - offset);
@@ -238,12 +237,15 @@ public final class TcpInput extends NetBufferedInput {
                                 offset += result;
 			} while (offset < l);
                 } catch (SocketException e) {
+                        log.out("SocketException");
                         return null;
 		} catch (IOException e) {
 			throw new NetIbisException(e.getMessage());
 		} 
 
 		buf.length = l;
+                log.out();
+                
 		return buf;
 	}
 
@@ -259,18 +261,20 @@ public final class TcpInput extends NetBufferedInput {
 	 * @return {@inheritDoc}
 	 */
 	public synchronized Integer poll(boolean block) throws NetIbisException {
+                log.in();
                 if (activeNum != null) {
                         throw new Error("invalid call");
                 }
                 
 		if (spn == null) {
+                        log.out("not connected");
 			return null;
 		}
 
-                // System.err.println("tcp_blk: poll -->");
 		try {
 			if (block) {
 				if (buf != null) {
+                                        log.out("early return");
 					return activeNum;
 				}
 				buf = receive();
@@ -285,8 +289,9 @@ public final class TcpInput extends NetBufferedInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		} 
-                // System.err.println("tcp_blk: poll <-- : " + activeNum);
 
+                log.out();
+                
 		return activeNum;
 	}
 	
@@ -297,33 +302,35 @@ public final class TcpInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-		throws NetIbisException {
-                // System.err.println("tcp_blk: receiveByteBuffer -->");
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength) throws NetIbisException {
+                log.in();
                 if (buf != null) {
                         NetReceiveBuffer temp = buf;
                         buf = null;
-                        // System.err.println("tcp_blk: receiveByteBuffer <-- quick");
+                        log.out("early receive");
+                        
                         return temp;
                 }
 
 		NetReceiveBuffer buf = receive();
-                // System.err.println("tcp_blk: receiveByteBuffer <--");
+                log.out();
+                
 		return buf;
 	}
 
         public void finish() throws NetIbisException {
-                // System.err.println("TcpInput: finish-->");
+                log.in();
                 super.finish();
                 synchronized(this) {
                         activeNum = null;
                         buf = null;
                 }
-                // System.err.println("TcpInput: finish<--");
+                log.out();
         }        
 
 
         public synchronized void close(Integer num) throws NetIbisException {
+                log.in();
                 if (spn == num) {
                         try {
                                 if (tcpOs != null) {
@@ -348,7 +355,8 @@ public final class TcpInput extends NetBufferedInput {
                         } catch (Exception e) {
                                 throw new NetIbisException(e);
                         }
-                }	
+                }
+                log.out();
         }
 
 
@@ -356,6 +364,7 @@ public final class TcpInput extends NetBufferedInput {
 	 * {@inheritDoc}
 	 */
 	public void free() throws NetIbisException {
+                log.in();
 		try {
 			if (tcpOs != null) {
 				tcpOs.close();
@@ -381,6 +390,7 @@ public final class TcpInput extends NetBufferedInput {
 		}
 
 		super.free();
+                log.out();
 	}
 	
 }

@@ -77,6 +77,7 @@ public final class TcpOutput extends NetOutput {
 	 * @param os {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
@@ -90,6 +91,8 @@ public final class TcpOutput extends NetOutput {
                         
                         raddr =  (InetAddress)remoteInfo.get("tcp_address");
                         rport = ((Integer)    remoteInfo.get("tcp_port")   ).intValue();
+                        log.disp("raddr = "+raddr);
+                        log.disp("rport = "+rport);
 
 			tcpSocket = new Socket(raddr, rport);
 			tcpOs 	  = new DataOutputStream(tcpSocket.getOutputStream());
@@ -101,9 +104,11 @@ public final class TcpOutput extends NetOutput {
 		}
 
 		mtu = 0;
+                log.out();
 	}
 
         public void finish() throws NetIbisException{
+                log.in();
                 super.finish();
                 if (_outputConvertStream != null) {
                         try {
@@ -121,9 +126,11 @@ public final class TcpOutput extends NetOutput {
                         throw new NetIbisException(e.getMessage());
                 }
                 first = true;
+                log.out();
         }
 
         public void reset(boolean doSend) throws NetIbisException {
+                log.in();
                 if (doSend) {
                         send();
                 } else {
@@ -140,9 +147,11 @@ public final class TcpOutput extends NetOutput {
                         _outputConvertStream = null;
                 }
                 first = true;
+                log.out();
         }
 
         public void writeByteBuffer(NetSendBuffer b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -158,10 +167,11 @@ public final class TcpOutput extends NetOutput {
 		if (! b.ownershipClaimed) {
 		    b.free();
 		}
+                log.out();
         }
         
-        
         public void writeBoolean(boolean b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -171,9 +181,11 @@ public final class TcpOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
         
         public void writeByte(byte b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -184,9 +196,11 @@ public final class TcpOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
         
         public void writeChar(char b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -197,9 +211,11 @@ public final class TcpOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
 
         public void writeShort(short b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -210,9 +226,11 @@ public final class TcpOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
 
         public void writeInt(int b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -223,9 +241,11 @@ public final class TcpOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
 
         public void writeLong(long b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -236,9 +256,11 @@ public final class TcpOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
 
         public void writeFloat(float b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -249,9 +271,11 @@ public final class TcpOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
 
         public void writeDouble(double b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -262,9 +286,11 @@ public final class TcpOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
 
         public void writeString(String b) throws NetIbisException {
+                log.in();
                 try {
                         if (first) {
                                 tcpOs.write(1);
@@ -275,9 +301,11 @@ public final class TcpOutput extends NetOutput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
 
         public void writeObject(Object o) throws NetIbisException {
+                log.in();
                 try {
                         if (_outputConvertStream == null) {
                                 DummyOutputStream dos = new DummyOutputStream();
@@ -289,61 +317,81 @@ public final class TcpOutput extends NetOutput {
                 } catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
         
 
 
         public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         writeBoolean(b[o+i]);
                 }
+                log.out();
         }
 
         public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         writeByte(b[o+i]);
                 }
+                log.out();
         }
+
         public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         writeChar(b[o+i]);
                 }
+                log.out();
         }
 
         public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         writeShort(b[o+i]);
                 }
+                log.out();
         }
 
         public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         writeInt(b[o+i]);
                 }
+                log.out();
         }
 
         public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         writeLong(b[o+i]);
                 }
+                log.out();
         }
 
         public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         writeFloat(b[o+i]);
                 }
+                log.out();
         }
 
         public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         writeDouble(b[o+i]);
                 }
+                log.out();
         }
 
         public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         writeObject(b[o+i]);
                 }
+                log.out();
         }
 
 
@@ -351,6 +399,7 @@ public final class TcpOutput extends NetOutput {
 	 * Reset the TCP connection if it exists.
 	 */
 	public void doFree() throws NetIbisException {
+                log.in();
 		try {
 			if (tcpIs != null) {
 				tcpIs.close();
@@ -368,22 +417,28 @@ public final class TcpOutput extends NetOutput {
 		} catch (Exception e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
 	}
 
 	public void free() throws NetIbisException {
+                log.in();
                 doFree();
 		super.free();
+                log.out();
 	}
 
 
         private final class DummyOutputStream extends OutputStream {
                 private long seq = 0;
+
                 public void write(int b) throws IOException {
+                        log.in();
                         try {
                                 writeByte((byte)b);
                         } catch (NetIbisException e) {
                                 throw new IOException(e.getMessage());
                         }
+                        log.out();
                 }
 
                 /*
@@ -395,8 +450,10 @@ public final class TcpOutput extends NetOutput {
 
 
         public synchronized void close(Integer num) throws NetIbisException {
+                log.in();
                 if (rpn == num) {
                         doFree();
                 }
+                log.out(); 
         }
 }

@@ -26,8 +26,8 @@ public final class MultiPoller extends NetPoller {
         }
 
         private final class ServiceThread extends Thread {
-                private Lane               lane        =  null;
-                private boolean            exit        = false;
+                private Lane    lane    =  null;
+                private boolean exit    = false;
 
                 public ServiceThread(String name, Lane lane) throws NetIbisException {
                         super("ServiceThread: "+name);
@@ -35,6 +35,7 @@ public final class MultiPoller extends NetPoller {
                 }
 
                 public void run() {
+                        log.in();
                         while (!exit) {
                                 try {
                                         int newMtu          = lane.is.readInt();
@@ -60,50 +61,54 @@ public final class MultiPoller extends NetPoller {
                                         throw new Error(e);
                                 }
                         }
+                        log.out();
                 }
 
                 public void end() {
+                        log.in();
                         exit = true;
                         this.interrupt();
+                        log.out();
                 }
         }
 
 
-	/**
-	 * Our extension to the set of inputs.
-	 */
-        protected Hashtable laneTable         = null;
+        /**
+         * Our extension to the set of inputs.
+         */
+        private Hashtable laneTable = null;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param staticProperties the port's properties.
-	 * @param driver the driver of this poller.
-	 */
-	public MultiPoller(NetPortType pt, NetDriver driver, String context)
-		throws NetIbisException {
-	    super(pt, driver, context);
-	    laneTable         = new Hashtable();
-	}
+        /**
+         * Constructor.
+         *
+         * @param staticProperties the port's properties.
+         * @param driver the driver of this poller.
+         */
+        public MultiPoller(NetPortType pt, NetDriver driver, String context)
+                throws NetIbisException {
+                super(pt, driver, context);
+                laneTable = new Hashtable();
+        }
 
+        /**
+         * {@inheritDoc}
+         */
+        protected void selectInput(Integer spn) throws NetIbisClosedException {
+                log.in();
+                Lane lane = (Lane)laneTable.get(spn);
+                if (lane == null) {
+                        throw new NetIbisClosedException("connection "+spn+" closed");
+                }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	protected void selectInput(Integer spn) throws NetIbisClosedException {
-	    Lane lane = (Lane)laneTable.get(spn);
-	    if (lane == null) {
-		throw new NetIbisClosedException("connection "+spn+" closed");
-	    }
-
-	    activeQueue = lane.queue;
-	    if (activeQueue == null) {
-		throw new NetIbisClosedException("connection "+spn+" closed");
-	    }
-	}
-
+                activeQueue = lane.queue;
+                if (activeQueue == null) {
+                        throw new NetIbisClosedException("connection "+spn+" closed");
+                }
+                log.out();
+        }
 
         private String getSubContext(NetIbisIdentifier localId, InetAddress localHostAddr, NetIbisIdentifier remoteId, InetAddress remoteHostAddr) {
+                log.in();
                 String subContext = null;
 
                 if (localId.equals(remoteId)) {
@@ -148,62 +153,53 @@ public final class MultiPoller extends NetPoller {
                                 }
                         }
                 }
-
+                log.out();
+                
                 return subContext;
         }
 
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
-                // System.err.println("MultiPoller: setupConnection-->");
+        /**
+         * {@inheritDoc}
+         */
+        public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
                 try {
-                        NetServiceLink link = cnx.getServiceLink();
+                        NetServiceLink          link = cnx.getServiceLink();
 
-                        ObjectInputStream  is = new ObjectInputStream (link.getInputSubStream (this, "multi"));
+                        ObjectInputStream       is      = new ObjectInputStream (link.getInputSubStream (this, "multi"));
+                        ObjectOutputStream      os      = new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
 
-                        ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
                         os.flush();
 
-                        //System.err.println("MultiPoller: setupConnection - 2");
-                        NetIbisIdentifier localId  = (NetIbisIdentifier)driver.getIbis().identifier();
-                        NetIbisIdentifier remoteId = (NetIbisIdentifier)is.readObject();
+                        NetIbisIdentifier       localId         = (NetIbisIdentifier)driver.getIbis().identifier();
+                        NetIbisIdentifier       remoteId        = (NetIbisIdentifier)is.readObject();
 
                         os.writeObject(localId);
                         os.flush();
 
-                        //System.err.println("MultiPoller: setupConnection - 3");
-
-                        InetAddress localHostAddr  = InetAddress.getLocalHost();
-                        InetAddress remoteHostAddr = (InetAddress)is.readObject();
+                        InetAddress     localHostAddr   = InetAddress.getLocalHost();
+                        InetAddress     remoteHostAddr  = (InetAddress)is.readObject();
 
                         os.writeObject(localHostAddr);
                         os.flush();
 
-                        //System.err.println("MultiPoller: setupConnection - 4");
-
-			NetInput ni = null;
-                        String   subContext = getSubContext(localId, localHostAddr, remoteId, remoteHostAddr);
+                        NetInput        ni              = null;
+                        String          subContext      = getSubContext(localId, localHostAddr, remoteId, remoteHostAddr);
                         ReceiveQueue q = (ReceiveQueue)inputTable.get(subContext);
 
                         if (q == null) {
-                                String    subDriverName = getProperty(subContext, "Driver");
-                                NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
-                                ni                      = newSubInput(subDriver, subContext);
+                                String          subDriverName   = getProperty(subContext, "Driver");
+                                NetDriver       subDriver       = driver.getIbis().getDriver(subDriverName);
+                                ni = newSubInput(subDriver, subContext);
                         } else {
-				ni = q.input;
-			}
+                                ni = q.input;
+                        }
 
-                        //System.err.println("MultiPoller: setupConnection - 5");
+                        super.setupConnection(cnx, subContext, ni);
 
-			super.setupConnection(cnx, subContext, ni);
-
-                        //System.err.println("MultiPoller: setupConnection - 6");
-
-			if (q == null) {
-			    q = (ReceiveQueue)inputTable.get(subContext);
-			}
+                        if (q == null) {
+                                q = (ReceiveQueue)inputTable.get(subContext);
+                        }
 
                         Integer num  = cnx.getNum();
                         Lane    lane = new Lane();
@@ -216,8 +212,6 @@ public final class MultiPoller extends NetPoller {
                         lane.headerLength = is.readInt();
                         lane.thread       = new ServiceThread("subcontext = "+subContext+", spn = "+num, lane);
 
-                        //System.err.println("MultiPoller: setupConnection - 7");
-
                         laneTable.put(num, lane);
 
                         lane.thread.start();
@@ -225,38 +219,27 @@ public final class MultiPoller extends NetPoller {
                         e.printStackTrace();
                         throw new NetIbisException(e);
                 }
-                // System.err.println("MultiPoller: setupConnection<--");
-	}
+                log.out();
+        }
 
+        /**
+         * {@inheritDoc}
+         */
+        protected void selectConnection(ReceiveQueue ni) {
+                log.in();
+                Lane lane = (Lane)laneTable.get(activeNum);
+                synchronized (lane) {
+                        mtu          = lane.mtu;
+                        headerOffset = lane.headerLength;
+                }
+                log.out();
+        }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	protected void selectConnection(ReceiveQueue ni) {
-	    Lane lane = (Lane)laneTable.get(activeNum);
-	    synchronized (lane) {
-		mtu          = lane.mtu;
-		headerOffset = lane.headerLength;
-	    }
-	}
-
-
-	/**
-	 * {@inheritDoc}
-	 *
-	public void finish() throws NetIbisException {
-                // System.err.println("MultiPoller: finish-->");
-		activeQueue.input.finish();
-		super.finish();
-                // System.err.println("MultiPoller: finish<--");
-	}
-	*/
-
-
-	/**
-	 * {@inheritDoc}
-	 */
+        /**
+         * {@inheritDoc}
+         */
         public synchronized void close(Integer num) throws NetIbisException {
+                log.in();
                 if (laneTable != null) {
                         Lane lane = (Lane)laneTable.get(num);
 
@@ -272,33 +255,33 @@ public final class MultiPoller extends NetPoller {
                                 laneTable.remove(num);
 
                                 if (activeQueue == lane.queue) {
-                                        activeQueue = null;
-                                        activeNum   = null;
+                                        activeQueue        = null;
+                                        activeNum          = null;
                                         activeUpcallThread = null;
                                         notifyAll();
                                 }
                         }
                 }
-
+                log.out();
         }
 
+        /**
+         * {@inheritDoc}
+         */
+        public void free() throws NetIbisException {
+                log.in();
+                if (laneTable != null) {
+                        Iterator i = laneTable.values().iterator();
+                        while (i.hasNext()) {
+                                Lane lane = (Lane)i.next();
+                                if (lane != null && lane.thread != null) {
+                                        lane.thread.end();
+                                }
+                                i.remove();
+                        }
+                }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public void free() throws NetIbisException {
-	    if (laneTable != null) {
-		    Iterator i = laneTable.values().iterator();
-		    while (i.hasNext()) {
-			    Lane lane = (Lane)i.next();
-			    if (lane != null && lane.thread != null) {
-				    lane.thread.end();
-			    }
-			    i.remove();
-		    }
-	    }
-
-	    super.free();
-	}
-
+                super.free();
+                log.out();
+        }
 }

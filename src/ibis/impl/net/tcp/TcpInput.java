@@ -50,11 +50,14 @@ public final class TcpInput extends NetInput {
                 }                
 
                 public void end() {
+                        log.in();
                         end = true;
                         this.interrupt();
+                        log.out();
                 }
                 
                 public void run() {
+                        log.in();
                         while (!end) {
                                 try {
                                         Integer num = spn;
@@ -87,10 +90,12 @@ public final class TcpInput extends NetInput {
                         }
 
                         upcallEnd.unlock();
+                        log.out();
                 }
         }        
 
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
                 if (this.spn != null) {
                         throw new Error("connection already established");
                 }
@@ -118,6 +123,7 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
 	}
 
 	/**
@@ -132,11 +138,13 @@ public final class TcpInput extends NetInput {
 	 * @return {@inheritDoc}
 	 */
 	public synchronized Integer poll(boolean block) throws NetIbisException {
+                log.in();
                 if (activeNum != null) {
                         throw new Error("invalid call");
                 }                
 
 		if (spn == null) {
+                        log.out("not connected");
 			return null;
 		}
 
@@ -149,10 +157,12 @@ public final class TcpInput extends NetInput {
 			throw new NetIbisException(e);
 		} 
 
+                log.out();
 		return activeNum;
 	}
 
         public void finish() throws NetIbisException {
+                log.in();
                 super.finish();
                 if (_inputConvertStream != null) {
                         try {
@@ -167,10 +177,11 @@ public final class TcpInput extends NetInput {
                 synchronized(this) {
                         activeNum = null;
                 }
-                
+                log.out();
         }        
 
         public NetReceiveBuffer readByteBuffer(int expectedLength) throws NetIbisException {
+                log.in();
                 NetReceiveBuffer b = createReceiveBuffer(expectedLength);
 
                 try {
@@ -181,12 +192,13 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
-
+                log.out();
                 return b;
         }
         
 
         public void readByteBuffer(NetReceiveBuffer b) throws NetIbisException {
+                log.in();
                 try {
                         for (int i = 0; i < b.data.length; i++) {
 			        b.data[i] = readByte();
@@ -195,11 +207,13 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
         }
         
 
 
 	public boolean readBoolean() throws NetIbisException {
+                log.in();
                 boolean result = false;
                 
 		try {
@@ -207,6 +221,7 @@ public final class TcpInput extends NetInput {
                 } catch (IOException e) {
                         throw new NetIbisException(e);
 		}
+                log.out();
    
                 return result;
         }
@@ -214,6 +229,7 @@ public final class TcpInput extends NetInput {
 
         
 	public byte readByte() throws NetIbisException {
+                log.in();
                 byte result = 0;
                 
 		try {
@@ -221,12 +237,14 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
    
                 return result;
         }
         
         
 	public char readChar() throws NetIbisException {
+                log.in();
                 char result = 0;
                 
 		try {
@@ -234,11 +252,13 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
    
                 return result;
         }
         
 	public short readShort() throws NetIbisException {
+                log.in();
                 short result = 0;
                 
 		try {
@@ -246,11 +266,13 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
    
                 return result;
         }
         
 	public int readInt() throws NetIbisException {
+                log.in();
                 int result = 0;
                 
 		try {
@@ -258,11 +280,13 @@ public final class TcpInput extends NetInput {
                 } catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
    
                 return result;
         }
         
 	public long readLong() throws NetIbisException {
+                log.in();
                 long result = 0;
                 
 		try {
@@ -270,11 +294,13 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
    
                 return result;
         }
         
 	public float readFloat() throws NetIbisException {
+                log.in();
                 float result = 0;
                 
 		try {
@@ -282,11 +308,13 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
    
                 return result;
         }
         
 	public double readDouble() throws NetIbisException {
+                log.in();
                 double result = 0;
                 
 		try {
@@ -294,11 +322,13 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
    
                 return result;
         }
 
 	public String readString() throws NetIbisException {
+                log.in();
                 String result = "";
                 
 		try {
@@ -306,11 +336,13 @@ public final class TcpInput extends NetInput {
 		} catch (IOException e) {
 			throw new NetIbisException(e);
 		}
+                log.out();
    
                 return result;
         }
 
         public Object readObject() throws NetIbisException {
+                log.in();
                 Object o = null;
                 try {
                         if (_inputConvertStream == null) {
@@ -322,70 +354,89 @@ public final class TcpInput extends NetInput {
                 } catch (Exception e) {
                         throw new NetIbisException(e.getMessage());
                 }
+                log.out();
                 
                 return o;
         }
         
         
 	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readBoolean();
                 }
+                log.out();
         }
 
 
 	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readByte();
                 }
+                log.out();
         }
 
 
 	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readChar();
                 }
+                log.out();
         }
 
 
 	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readShort();
                 }
+                log.out();
         }
 
 
 	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readInt();
                 }
+                log.out();
         }
 
 
 	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
-                for (int i = 0; i < l; i++) {
+                 log.in();
+               for (int i = 0; i < l; i++) {
                         b[o+i] = readLong();
                 }
+                log.out();
         }
 
 
 	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readFloat();
                 }
+                log.out();
         }
 
 
 	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readDouble();
                 }
+                log.out();
         }
 
 	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+                log.in();
                 for (int i = 0; i < l; i++) {
                         b[o+i] = readObject();
                 }
+                log.out();
         }
 
 
@@ -393,6 +444,7 @@ public final class TcpInput extends NetInput {
 	 * Reset the TCP connection if it exists.
 	 */
 	public void doFree() throws NetIbisException {
+                log.in();
 		try {
 			if (tcpOs != null) {
                                 tcpOs.close();
@@ -419,11 +471,14 @@ public final class TcpInput extends NetInput {
 		}
 
                 spn = null;
+                log.out();
 	}
 
 	public void free() throws NetIbisException {
+                log.in();
                 doFree();
 		super.free();
+                log.out();
         }
         
         private final class DummyInputStream extends InputStream {
@@ -431,6 +486,7 @@ public final class TcpInput extends NetInput {
 
 
                 public int read() throws IOException {
+                        log.in();
                         int result = 0;
                         
                         try {
@@ -439,6 +495,7 @@ public final class TcpInput extends NetInput {
                                 throw new IOException(e.getMessage());
                         }
 
+                        log.out();
                         return (result & 255);
                 }
 
@@ -450,9 +507,11 @@ public final class TcpInput extends NetInput {
         }
 
         public synchronized void close(Integer num) throws NetIbisException {
+                log.in();
                 if (spn == num) {
                         doFree();
                 }
+                log.out();
         }
         
 }

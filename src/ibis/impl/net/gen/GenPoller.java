@@ -13,14 +13,9 @@ import java.util.Hashtable;
 public final class GenPoller extends NetPoller {
 
 	/**
-	 * The set of inputs.
-	 */
-
-	/**
 	 * The driver used for the inputs.
 	 */
-	protected NetDriver subDriver   = null;
-
+	private NetDriver subDriver = null;
 
 	/**
 	 * Constructor.
@@ -33,11 +28,11 @@ public final class GenPoller extends NetPoller {
 		super(pt, driver, context);
 	}
 
-
 	/**
 	 * {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
+                log.in();
 		if (subDriver == null) {
 			String subDriverName = getMandatoryProperty("Driver");
                         subDriver = driver.getIbis().getDriver(subDriverName);
@@ -46,47 +41,32 @@ public final class GenPoller extends NetPoller {
 		NetInput ni = newSubInput(subDriver);
 
 		super.setupConnection(cnx, cnx.getNum(), ni);
+                log.out();
 	}
-
 
 	/**
 	 * {@inheritDoc}
 	 */
 	protected void selectInput(Integer spn) throws NetIbisClosedException {
-	    System.err.println(this + ": selectInput - setting activeQueue, spn = "+spn);
-Thread.dumpStack();
-	    activeQueue = (ReceiveQueue)inputTable.get(spn);
-	    if (activeQueue == null) {
-		    //System.err.println("GenPoller: inputUpcall - setting activeQueue - input closed, spn = "+spn);
-		    throw new NetIbisClosedException("connection "+spn+" closed");
-	    }
-	    System.err.println(this + ": selectInput - setting activeQueue - ok, spn = "+spn);
+                log.in();
+                activeQueue = (ReceiveQueue)inputTable.get(spn);
+                if (activeQueue == null) {
+                        log.disp("setting activeQueue - input closed, spn = "+spn);
+                        throw new NetIbisClosedException("connection "+spn+" closed");
+                }
+                log.disp("setting activeQueue - ok, spn = "+spn);
+                log.out();
 	}
-
 
 	/**
 	 * {@inheritDoc}
 	 */
 	protected void selectConnection(ReceiveQueue ni) {
-	    NetInput    input = ni.input;
+                log.in();
+                NetInput    input = ni.input;
 
-	    mtu = input.getMaximumTransfertUnit();
-	    headerOffset = input.getHeadersLength();
+                mtu = input.getMaximumTransfertUnit();
+                headerOffset = input.getHeadersLength();
+                log.out();
 	}
-
-
-	/**
-	 * {@inheritDoc}
-	 *
-	public void finish() throws NetIbisException {
-                // System.err.println("GenPoller: finish-->");
-System.err.println(this + ": finish msg");
-                synchronized(this) {
-			activeQueue.finish();
-                }
-		super.finish();
-                //System.err.println("GenPoller: finish<--");
-	}
-	*/
-
 }

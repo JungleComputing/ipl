@@ -3,7 +3,7 @@ package ibis.ipl.impl.net;
 import java.util.Iterator;
 import java.util.TreeMap;
 
-public final class NetMessageStat extends NetStat {
+public class NetMessageStat extends NetStat {
         private int nb_msg     = 0;
         private int nb_boolean = 0;
         private int nb_byte    = 0;

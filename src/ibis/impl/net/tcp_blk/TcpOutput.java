@@ -77,7 +77,8 @@ public final class TcpOutput extends NetBufferedOutput {
 	 */
 	public synchronized void setupConnection(NetConnection cnx)
 		throws NetIbisException {
-                // System.err.println("tcp_blk.TcpOutput: setupConnection -->");
+                log.in();
+
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
@@ -88,17 +89,13 @@ public final class TcpOutput extends NetBufferedOutput {
 		lInfo.put("tcp_mtu",     new Integer(lmtu));
 		Hashtable   rInfo = null;
                         try {
-                                //System.err.println("TcpOutput: reading info table -->");
                                 ObjectInputStream is = new ObjectInputStream(cnx.getServiceLink().getInputSubStream(this, "tcp_blk"));
                                 rInfo = (Hashtable)is.readObject();
                                 is.close();
-                                //System.err.println("TcpOutput: reading info table <--");
 
-                                //System.err.println("TcpOutput: writing info table -->");
                                 ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "tcp_blk"));
                                 os.writeObject(lInfo);
                                 os.close();
-                                //System.err.println("TcpOutput: writing info table <--");
                         } catch (IOException e) {
                                 throw new NetIbisException(e);
                         } catch (ClassNotFoundException e) {
@@ -131,17 +128,18 @@ public final class TcpOutput extends NetBufferedOutput {
 		} else {
 		    factory.setMaximumTransferUnit(mtu);
 		}
+                log.out();
 	}
 
         public void finish() throws NetIbisException {
+                log.in();
                 super.finish();
  		try {
-                        //System.err.println("flushing: -->");
  			tcpOs.flush();
-                        //System.err.println("flushing: <--");
  		} catch (IOException e) {
  			throw new NetIbisException(e.getMessage());
  		} 
+                log.out();
 	}
                 
 
@@ -165,6 +163,7 @@ public final class TcpOutput extends NetBufferedOutput {
 	}
 
 	public synchronized void close(Integer num) throws NetIbisException {
+                log.in();
                 if (rpn == num) {
                         try {
                                 if (tcpOs != null) {
@@ -185,12 +184,14 @@ public final class TcpOutput extends NetBufferedOutput {
                                 throw new NetIbisException(e);
                         }
                 }
+                log.out();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public void free() throws NetIbisException {
+                log.in();
 		try {
 			if (tcpOs != null) {
 				tcpOs.close();
@@ -211,6 +212,7 @@ public final class TcpOutput extends NetBufferedOutput {
 		}
 
 		super.free();
+                log.out();
 	}
 	
 }

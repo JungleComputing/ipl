@@ -25,8 +25,7 @@ public final class PipeOutput extends NetBufferedOutput {
 	 * {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
-                //System.err.println("PipeOutput: setupConnection -->");
-
+                log.in();
                 if (this.rpn != null) {
                         throw new Error("connection already established");
                 }
@@ -57,10 +56,11 @@ public final class PipeOutput extends NetBufferedOutput {
 		} catch (ClassNotFoundException e) {
 			throw new Error(e);
 		}
-                //System.err.println("PipeOutput: setupConnection <--");
+                log.out();
 	}
 
 	public void sendByteBuffer(NetSendBuffer b) throws NetIbisException {
+                log.in();
 		try {
 			NetConvert.writeInt(b.length, b.data, 0);
 			pipeOs.write(b.data, 0, b.length);
@@ -74,9 +74,11 @@ public final class PipeOutput extends NetBufferedOutput {
 		if (! b.ownershipClaimed) {
 			b.free();
 		}
+                log.out();
 	}
 
         public synchronized void close(Integer num) throws NetIbisException {
+                log.in();
                 if (rpn == num) {
                         try {
                                 if (pipeOs != null) {
@@ -87,14 +89,15 @@ public final class PipeOutput extends NetBufferedOutput {
                         } catch (Exception e) {
                                 throw new NetIbisException(e);
                         }
-                }        
+                }
+                log.out();
         }
-        
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public void free() throws NetIbisException {
+                log.in();
 		try {
 			if (pipeOs != null) {
 				pipeOs.close();
@@ -107,6 +110,7 @@ public final class PipeOutput extends NetBufferedOutput {
 		}
 
 		super.free();
+                log.out();
 	}
 
 }
