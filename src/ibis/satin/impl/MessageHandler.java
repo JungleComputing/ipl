@@ -27,7 +27,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
         try {
             stamp = m.readInt();
             owner = (IbisIdentifier) m.readObject();
-            //			m.finish();
+            // m.finish();
         } catch (IOException e) {
             System.err.println("blablaSATIN '" + satin.ident.name()
                     + "': got exception while reading job result: " + e);
@@ -53,7 +53,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
         try {
             stamp = m.readInt();
             owner = (IbisIdentifier) m.readObject();
-            //			m.finish();
+            // m.finish();
         } catch (IOException e) {
             System.err.println("SATIN '" + satin.ident.name()
                     + "': got exception while reading abort_and_store: " + e);
@@ -78,7 +78,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
         // This upcall may run in parallel with other upcalls.
         // Therefore, we cannot directly use the timer in Satin.
-        // Use our own local timer, and add the result to the global timer later.
+        // Use our own local timer, and add the result to the global timer
+        // later.
 
         if (STEAL_TIMING) {
             returnRecordReadTimer = satin.createTimer();
@@ -94,7 +95,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 eek = (Throwable) m.readObject();
                 stamp = m.readInt();
             }
-            //			m.finish();
+            // m.finish();
         } catch (IOException e) {
             System.err.println("blablaSATIN '" + satin.ident.name()
                     + "': got exception while reading job result: " + e
@@ -143,18 +144,21 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
         // This upcall may run in parallel with other upcalls.
         // Therefore, we cannot directly use the handleSteal timer in Satin.
-        // Use our own local timer, and add the result to the global timer later.
+        // Use our own local timer, and add the result to the global timer
+        // later.
 
         if (STEAL_TIMING) {
             handleStealTimer = satin.createTimer();
             invocationRecordWriteTimer = satin.createTimer();
 
-            /*		     handleStealTimer = Timer.createTimer();
-             invocationRecordWriteTimer = Timer.createTimer();
-             if(handleStealTimer == null) {
-             handleStealTimer = new Timer();
-             invocationRecordWriteTimer = new Timer();
-             }*/
+            /*
+             * handleStealTimer = Timer.createTimer();
+             * invocationRecordWriteTimer = Timer.createTimer();
+             * if (handleStealTimer == null) {
+             *     handleStealTimer = new Timer();
+             *     invocationRecordWriteTimer = new Timer();
+             * }
+             */
 
             handleStealTimer.start();
         }
@@ -229,7 +233,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 if (!satin.getTable) {
                     table = satin.globalResultTable.getContents();
                     //temporary
-                    //					tupleSpace = satin.getContents();
+                    // tupleSpace = satin.getContents();
                 }
             }
         }
@@ -257,12 +261,14 @@ final class MessageHandler implements Upcall, Protocol, Config {
                         m.writeByte(STEAL_REPLY_FAILED_TABLE);
                         m.writeObject(table);
                         //temporary
-                        /*						if (tupleSpace == null) {
-                         satin.out.println("SATIN '" + satin.ident.name() 
-                         + "': EEK i have the table but not the tuplespace!!");
-                         System.exit(1);
-                         }
-                         m.writeObject(tupleSpace);*/
+                        /* if (tupleSpace == null) {
+                         *     satin.out.println("SATIN '" + satin.ident.name() 
+                         *             + "': EEK i have the table but not the "
+                         *             + "tuplespace!!");
+                         *     System.exit(1);
+                         * }
+                         * m.writeObject(tupleSpace);
+                         */
                     } else {
                         m.writeByte(STEAL_REPLY_FAILED);
                     }
@@ -271,12 +277,14 @@ final class MessageHandler implements Upcall, Protocol, Config {
                         m.writeByte(ASYNC_STEAL_REPLY_FAILED_TABLE);
                         m.writeObject(table);
                         //temporary
-                        /*						if (tupleSpace == null) {
-                         satin.out.println("SATIN '" + satin.ident.name() 
-                         + "': EEK i have the table but not the tuplespace!!");
-                         System.exit(1);
-                         }
-                         m.writeObject(tupleSpace);*/
+                        /* if (tupleSpace == null) {
+                         *     satin.out.println("SATIN '" + satin.ident.name() 
+                         *             + "': EEK i have the table but not the "
+                         *             + "tuplespace!!");
+                         *     System.exit(1);
+                         * }
+                         * m.writeObject(tupleSpace);
+                         */
                     } else {
                         m.writeByte(ASYNC_STEAL_REPLY_FAILED);
                     }
@@ -361,12 +369,14 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     m.writeByte(STEAL_REPLY_SUCCESS_TABLE);
                     m.writeObject(table);
                     //temporary
-                    /*					if (tupleSpace == null) {
-                     satin.out.println("SATIN '" + satin.ident.name() 
-                     + "': EEK i have the table but not the tuplespace!!");
-                     System.exit(1);
-                     }
-                     m.writeObject(tupleSpace);*/
+                    /* if (tupleSpace == null) {
+                     *     satin.out.println("SATIN '" + satin.ident.name() 
+                     *             + "': EEK i have the table but not the "
+                     *             + "tuplespace!!");
+                     *     System.exit(1);
+                     * }
+                     * m.writeObject(tupleSpace);
+                     */
                 } else {
                     System.err.println("SATIN '" + satin.ident.name()
                             + "': EEK!! sending a job but not a table !?");
@@ -376,12 +386,14 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     m.writeByte(ASYNC_STEAL_REPLY_SUCCESS_TABLE);
                     m.writeObject(table);
                     //temporary
-                    /*					if (tupleSpace == null) {
-                     satin.out.println("SATIN '" + satin.ident.name() 
-                     + "': EEK i have the table but not the tuplespace!!");
-                     System.exit(1);
-                     }
-                     m.writeObject(tupleSpace);*/
+                    /* if (tupleSpace == null) {
+                     *     satin.out.println("SATIN '" + satin.ident.name() 
+                     *             + "': EEK i have the table but not the "
+                     *             + "tuplespace!!");
+                     *     System.exit(1);
+                     * }
+                     * m.writeObject(tupleSpace);
+                     */
                 } else {
                     System.err.println("SATIN '" + satin.ident.name()
                             + "': EEK!! sending a job but not a table !?");
@@ -423,7 +435,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
         }
     }
 
-    // Here, the timing code is OK, the upcall cannot run in paralllel (readmessage is not finished).
+    // Here, the timing code is OK, the upcall cannot run in parallel
+    // (readmessage is not finished).
     void handleReply(ReadMessage m, int opcode) {
         SendPortIdentifier ident;
         InvocationRecord tmp = null;
@@ -480,8 +493,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
             synchronized (satin) {
                 if (ASSERTS && satin.gotBarrierReply) {
-                    System.err
-                            .println("Got barrier reply while I already got one.");
+                    System.err.println("Got barrier reply while I already got "
+                            + "one.");
                     System.exit(1);
                 }
                 satin.gotBarrierReply = true;
@@ -559,8 +572,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     // was detected
                     //is it anyhow possible?
 
-                    System.err
-                            .println("\n\n\n@@@@@@@@@@@@@@@@@2 AAAAIIEEEE @@@@@@@@@@@@@@@@@");
+                    System.err.println("\n\n\n@@@@@@@2 AAAAIIEEEE @@@@@@@@@@");
                 }
             }
 
@@ -783,7 +795,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
             m.finish();
 
-            //			System.err.println("SATIN '" + satin.ident.name() + "': got result request " + key + " from " + ident);
+            // System.err.println("SATIN '" + satin.ident.name()
+            //         + "': got result request " + key + " from " + ident);
 
             synchronized (satin) {
                 value = satin.globalResultTable.lookup(key, false);
@@ -832,8 +845,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
             value.result.stamp = stamp;
             WriteMessage w = s.newMessage();
             w.writeByte(Protocol.JOB_RESULT_NORMAL);
-            w.writeObject(owner); //leave it out if you make globally unique
-            // stamps
+            w.writeObject(owner);
+            //leave it out if you make globally unique stamps
             w.writeObject(value.result);
             w.finish();
         } catch (IOException e) {
@@ -923,10 +936,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
             case EXIT:
                 if (COMM_DEBUG) {
                     ident = m.origin();
-                    satin.out
-                            .println("SATIN '" + satin.ident.name()
-                                    + "': got exit message from "
-                                    + ident.ibis().name());
+                    satin.out.println("SATIN '" + satin.ident.name()
+                            + "': got exit message from "
+                            + ident.ibis().name());
                 }
                 m.finish();
                 satin.exiting = true;

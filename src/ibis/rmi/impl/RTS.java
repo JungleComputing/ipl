@@ -73,9 +73,10 @@ public final class RTS {
     private static HashMap sendports;
 
     /**
-     * Maps an URL to a skeleton. We need this because a ReceivePortIdentifier no
-     * longer uniquely defines the skeleton. In fact, a skeleton is now identified
-     * by a number. Unfortunately, the Ibis registry can only handle ReceivePortIdentifiers.
+     * Maps an URL to a skeleton. We need this because a ReceivePortIdentifier
+     * no longer uniquely defines the skeleton. In fact, a skeleton is now
+     * identified by a number. Unfortunately, the Ibis registry can only handle
+     * ReceivePortIdentifiers.
      */
     static Hashtable urlHash; // No HashMap, this one should be synchronized.
 
@@ -259,15 +260,15 @@ public final class RTS {
             StaticProperties reqprops = new StaticProperties();
             reqprops.add("serialization", "object");
             reqprops.add("worldmodel", "open");
-            reqprops
-                    .add("communication",
-                            "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceipt");
+            reqprops.add("communication",
+                    "OneToOne, ManyToOne, Reliable, AutoUpcalls, "
+                    + "ExplicitReceipt");
 
             try {
                 ibis = Ibis.createIbis(reqprops, null);
             } catch (NoMatchingIbisException e) {
-                System.err
-                        .println("Could not find an Ibis that can run this RMI implementation");
+                System.err.println("Could not find an Ibis that can run this"
+                        + " RMI implementation");
                 System.exit(1);
             }
 
@@ -497,8 +498,8 @@ public final class RTS {
         Skeleton skel = (Skeleton) skeletons.get(new Integer(System
                 .identityHashCode(o)));
         if (skel == null) {
-            //		    throw new RemoteException("object not exported");
-            //or just export it???
+            // throw new RemoteException("object not exported");
+            // or just export it???
             skel = createSkel(o);
         }
 
@@ -508,7 +509,8 @@ public final class RTS {
         urlHash.put(url, skel);
     }
 
-    public static void unbind(String url) throws NotBoundException, IOException {
+    public static void unbind(String url)
+            throws NotBoundException, IOException {
         if (DEBUG) {
             System.out.println(hostname + ": Trying to unbind object from "
                     + url);
@@ -536,9 +538,11 @@ public final class RTS {
         synchronized (RTS.class) {
             try {
                 dest = ibisRegistry.lookupReceivePort(url, 1);
-                // System.err.println("ibisRegistry.lookup(" + url + ". 1) is " + dest);
+                // System.err.println("ibisRegistry.lookup(" + url + ". 1) is "
+                //         + dest);
             } catch (IOException e) {
-                // System.err.println("ibisRegistry.lookup(" + url + ". 1) throws " + e);
+                // System.err.println("ibisRegistry.lookup(" + url + ". 1) "
+                //         + "throws " + e);
             }
         }
 

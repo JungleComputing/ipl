@@ -5,7 +5,8 @@ import ibis.ipl.ReadMessage;
 import java.io.IOException;
 
 /**
- * The {@link Forwarder} class serves as a base class for user-defined forwarders.
+ * The {@link Forwarder} class serves as a base class for user-defined
+ * forwarders.
  * A forwarder is to be defined for the {@link ForwardReply} reply scheme.
  * When this reply scheme is used, all replies of a group method invocation
  * are passed to this forwarder object, through calls to a "forward" method.
@@ -27,13 +28,16 @@ public class Forwarder implements GroupProtocol {
     /** Ticket for the reply stack. */
     private int ticket;
 
-    /** The stub that did the invocation from which this forwarder gets results. */
+    /**
+     * The stub that did the invocation from which this forwarder gets results. 
+     */ 
     private GroupStub stub;
 
     /**
      * Invoked when a "void" result is received.
      *
-     * @param rank the rank number of the group member from which this reply was received
+     * @param rank the rank number of the group member from which this reply
+     *   was received
      * @param size the total number of replies to be expected
      */
     public void forward(int rank, int size) {
@@ -44,7 +48,8 @@ public class Forwarder implements GroupProtocol {
     /**
      * Invoked when a "boolean" result is received.
      *
-     * @param rank the rank number of the group member from which this reply was received
+     * @param rank the rank number of the group member from which this reply
+     *   was received
      * @param size the total number of replies to be expected
      * @param result the replied value
      */
@@ -120,7 +125,8 @@ public class Forwarder implements GroupProtocol {
     /**
      * Invoked when the group method invoked caused an exception.
      *
-     * @param rank the rank number of the group member from which this reply was received
+     * @param rank the rank number of the group member from which this reply
+     *   was received
      * @param size the total number of replies to be expected
      * @param result the exception
      */

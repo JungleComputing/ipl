@@ -87,7 +87,8 @@ final class DEQueueNormal extends DEQueue implements Config {
         }
     }
 
-    private void removeElement(InvocationRecord curr) { // curr MUST be in q.
+    private void removeElement(InvocationRecord curr) {
+        // curr MUST be in q.
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
         }
@@ -125,8 +126,11 @@ final class DEQueueNormal extends DEQueue implements Config {
         InvocationRecord curr = tail;
         while (curr != null) {
             /*
-             * if(curr.aborted) { curr = curr.qprev; // This is correct, even if
-             * curr was just removed. continue; // already handled. }
+             * if(curr.aborted) {
+             *     curr = curr.qprev;
+             *     // This is correct, even if curr was just removed.
+             *     continue; // already handled.
+             * }
              */
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
@@ -160,8 +164,8 @@ final class DEQueueNormal extends DEQueue implements Config {
                 removeElement(curr);
             }
 
-            curr = curr.qprev; // This is correct, even if curr was just
-            // removed.
+            curr = curr.qprev;
+            // This is correct, even if curr was just removed.
         }
     }
 
@@ -208,9 +212,10 @@ final class DEQueueNormal extends DEQueue implements Config {
     }
 
     void print(java.io.PrintStream out) {
-        /*		if (ASSERTS) {
-         Satin.assertLocked(satin);
-         }*/
+        /* if (ASSERTS) {
+         *     Satin.assertLocked(satin);
+         * }
+         */
 
         out.println("=Q " + satin.ident.name() + ":=======================");
         InvocationRecord curr = head;

@@ -16,7 +16,8 @@ public class PersonalizedInvocation extends InvocationScheme {
      *
      * @exception ConfigurationException is thrown when the parameter is null.
      */
-    public PersonalizedInvocation(Personalizer p) throws ConfigurationException {
+    public PersonalizedInvocation(Personalizer p)
+            throws ConfigurationException {
         super(InvocationScheme.I_PERSONAL);
 
         this.p = p;

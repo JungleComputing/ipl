@@ -16,21 +16,29 @@ import java.util.ArrayList;
  * manager and the ControlHub itself.
  */
 public class HubProtocol {
-    public static final int CONNECT = 1; // connection request
+    /** Connection request. */
+    public static final int CONNECT = 1;
 
-    public static final int ACCEPT = 2; // notification for an accepted connection
+    /** Notification for an accepted connection. */
+    public static final int ACCEPT = 2;
 
-    public static final int REJECT = 3; // notification for a refused connection
+    /** Notification for a refused connection. */
+    public static final int REJECT = 3;
 
-    public static final int DATA = 4; // data packet
+    /** Data packet. */
+    public static final int DATA = 4;
 
-    public static final int CLOSE = 5; // notification for socket close
+    /** Notification for socket close. */
+    public static final int CLOSE = 5;
 
-    public static final int GETPORT = 6; // get port number from controlhub
+    /** Get port number from controlhub. */
+    public static final int GETPORT = 6;
 
-    public static final int PUTPORT = 7; // received port number from controlhub
+    /** Received port number from controlhub. */
+    public static final int PUTPORT = 7;
 
-    public static final int PORTSET = 8; // a port set
+    /** A port set. */
+    public static final int PORTSET = 8;
 
     private static final String[] names = new String[] { "", "Connect",
             "Accept", "Reject", "Data", "Close", "Getport", "Putport",
@@ -153,7 +161,7 @@ public class HubProtocol {
                 p.h = host;
                 p.p = port;
                 if (action != p.getType())
-                    throw new Error("Internal error. Consistency check failed.");
+                    throw new Error("Internal error, consistency check failed");
             }
             return p;
         }
@@ -194,7 +202,6 @@ public class HubProtocol {
         abstract public int getType();
 
         abstract public void send(DataOutputStream out) throws IOException;
-        // static HubPacket recv(DataInputStream in, String h, int p) throws IOException, ClassNotFoundException;
     }
 
     public static class HubPacketConnect extends HubPacket {
@@ -212,9 +219,8 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out
-                    .println("# HubPacketConnect.send()- sending CONNECT to port "
-                            + serverPort + " on " + h + ":" + p);
+            MyDebug.out.println("# HubPacketConnect.send()- sending CONNECT to "
+                            + "port " + serverPort + " on " + h + ":" + p);
             out.writeInt(serverPort);
             out.writeInt(clientPort);
         }
@@ -223,9 +229,8 @@ public class HubProtocol {
                 throws IOException {
             int serverPort = in.readInt();
             int clientPort = in.readInt();
-            MyDebug.out
-                    .println("# HubPacketConnect.recv()- got CONNECT to port "
-                            + serverPort + " from " + h + ":" + p);
+            MyDebug.out.println("# HubPacketConnect.recv()- got CONNECT to "
+                            + "port " + serverPort + " from " + h + ":" + p);
             return new HubPacketConnect(serverPort, clientPort);
         }
     }
@@ -248,9 +253,8 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out
-                    .println("# HubPacketAccept.send()- sending ACCEPT to port "
-                            + clientPort + " on " + h + ":" + p);
+            MyDebug.out.println("# HubPacketAccept.send()- sending ACCEPT to "
+                            + "port " + clientPort + " on " + h + ":" + p);
             out.writeInt(clientPort);
             out.writeUTF(serverHost);
             out.writeInt(servantPort);
@@ -282,9 +286,8 @@ public class HubProtocol {
         }
 
         public void send(DataOutputStream out) throws IOException {
-            MyDebug.out
-                    .println("# HubPacketReject.send()- sending REJECT to port "
-                            + clientPort + " on " + h + ":" + p);
+            MyDebug.out.println("# HubPacketReject.send()- sending REJECT to "
+                            + "port " + clientPort + " on " + h + ":" + p);
             out.writeInt(clientPort);
             out.writeUTF(serverHost);
         }

@@ -119,8 +119,7 @@ public class RMSocket extends DummySocket {
                 rPort, localPort));
         synchronized (this) {
             while (state == state_CONNECTING) {
-                MyDebug.out
-                        .println("# RMSocket()- waiting for ACCEPTED- port = "
+                MyDebug.out.println("# RMSocket()- waiting for ACCEPTED port = "
                                 + localPort);
                 try {
                     this.wait();
@@ -185,7 +184,6 @@ public class RMSocket extends DummySocket {
                 + ", remotePort = " + remotePort);
         state = state_CLOSED;
         if (remotePort != -1) {
-            // hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketClose(remotePort, localPort));
             hub.removeSocket(localPort);
         }
         localPort = -1;
@@ -261,10 +259,11 @@ public class RMSocket extends DummySocket {
                             + socket.localPort + " size=EOF");
                     return -1;
                 }
-                if (len <= socket.currentArray.length - socket.currentIndex)
+                if (len <= socket.currentArray.length - socket.currentIndex) {
                     j = len;
-                else
+                } else {
                     j = socket.currentArray.length - socket.currentIndex;
+                }
 
                 System.arraycopy(socket.currentArray, socket.currentIndex, b,
                         off, j);

@@ -90,8 +90,9 @@ public class StaticProperties {
          * specified string, <code>false</code> otherwise.
          */
         public boolean hasProp(String s) {
-            if (s == null)
+            if (s == null) {
                 return false;
+            }
             return h.contains(s);
         }
 
@@ -106,11 +107,13 @@ public class StaticProperties {
                 String str = (String) i.next();
                 if (s == null) {
                     s = "" + str;
-                } else
+                } else {
                     s += ", " + str;
+                }
             }
-            if (s == null)
+            if (s == null) {
                 return "";
+            }
             return s;
         }
 
@@ -187,7 +190,8 @@ public class StaticProperties {
                             while (j.hasNext()) {
                                 String catValue = (String) j.next();
                                 if (n.equals(catName + "." + catValue)) {
-                                    Property p = (Property) user_merge_properties.mappings
+                                    Property p = (Property) 
+                                            user_merge_properties.mappings
                                             .get(catName);
                                     if (p == null) {
                                         p = new Property();

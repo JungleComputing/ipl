@@ -3,8 +3,8 @@ package ibis.satin.impl;
 /** The Dijkstra implementation of a double-ended queue. */
 
 // warning! this does not work correctly in combination with aborts!
-// This is because we have to remove elements from random places in the queue
-// is this true???
+// This is because we have to remove elements from random places in the queue.
+// Is this true???
 final class DEQueueDijkstra extends DEQueue implements Config {
 
     private static final int START_SIZE = 5000;
@@ -31,7 +31,7 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 
     void addToHead(InvocationRecord r) {
         if (head == size) {
-            //			System.err.println("doubling DEq, new size = " + (size*2));
+            // System.err.println("doubling DEq, new size = " + (size*2));
 
             synchronized (satin) {
                 size *= 2;
@@ -133,10 +133,11 @@ final class DEQueueDijkstra extends DEQueue implements Config {
                     System.exit(1);
                 }
                 removeJob(i);
+
+                // head--;
+                // l[i] = l[head];
+
                 i--;
-                //				head--;
-                //				l[i] = l[head];
-                //				i--;
             }
         }
     }
@@ -158,10 +159,9 @@ final class DEQueueDijkstra extends DEQueue implements Config {
 
         for (int i = tail; i < head; i++) {
             InvocationRecord curr = l[i];
-            if (Aborts.isDescendentOf1(curr, owner) || curr.owner.equals(owner)) //shouldn
-            // happen
-            {
-
+            if (Aborts.isDescendentOf1(curr, owner)
+                    || curr.owner.equals(owner)) {
+                // Should'nt happen.
                 curr.aborted = true;
                 if (SPAWN_DEBUG) {
                     curr.spawnCounter.decr(curr);

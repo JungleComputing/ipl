@@ -68,9 +68,10 @@ public class GlobalResultTable implements Upcall, Config {
 
         int type;
 
-        transient IbisIdentifier sendTo; // @@@ this field is never written --Rob
-
+        transient IbisIdentifier sendTo;
+        // @@@ this field is never written --Rob
         // @@@ yes it is, in MessageHandler.handleResultRequest() --Gosia
+
         ReturnRecord result;
 
         IbisIdentifier owner;
@@ -147,9 +148,8 @@ public class GlobalResultTable implements Upcall, Config {
             receive = satin.globalResultTablePortType.createReceivePort(
                     "satin global result table receive port on "
                             + satin.ident.name(), this);
-            //send = portType.createSendPort("satin global result table send
-            // port on " +
-            //    satin.ident.name());
+            // send = portType.createSendPort("satin global result table send "
+            //                "port on " + satin.ident.name());
             receive.enableUpcalls();
             receive.enableConnections();
 
@@ -187,7 +187,7 @@ public class GlobalResultTable implements Upcall, Config {
         if (GRT_STATS && stats) {
             if (value != null) {
                 if (value.type == Value.TYPE_POINTER) {
-                    //					if (satin.allIbises.contains(value.owner)) {
+                    // if (satin.allIbises.contains(value.owner)) {
                     if (!satin.deadIbises.contains(value.owner)) {
                         numLookupsSucceded++;
                         numRemoteLookups++;
@@ -247,10 +247,10 @@ public class GlobalResultTable implements Upcall, Config {
                 }
                 satin.updatesToSend = true;
             } else {
-                //				if (GRT_DEBUG) {
+                // if (GRT_DEBUG) {
                 System.err.println("SATIN '" + satin.ident.name()
                         + "': sending update: " + key + "," + value);
-                //				}
+                // }
 
                 //send an update message
                 Iterator sendIter = sends.entrySet().iterator();
@@ -293,9 +293,12 @@ public class GlobalResultTable implements Upcall, Config {
                     try {
                         size = m.finish();
 
-                        /*System.err.println("SATIN '" + satin.ident.name() + "': " + size 
-                         + " sent in " + satin.tableSerializationTimer.lastTimeVal()
-                         + " to " + entry.getKey());*/
+                        /*
+                         * System.err.println("SATIN '" + satin.ident.name()
+                         *         + "': " + size + " sent in "
+                         *         + satin.tableSerializationTimer.lastTimeVal()
+                         *         + " to " + entry.getKey());
+                         */
 
                     } catch (IOException e) {
                         //always happens after a crash
@@ -307,14 +310,19 @@ public class GlobalResultTable implements Upcall, Config {
 
                 //send an update message
                 /*
-                 * try { WriteMessage m = send.newMessage(); m.writeObject(key);
-                 * m.writeObject(value); m.finish(); } catch (IOException
-                 * e) { //always happens after the crash }
+                 * try {
+                 *     WriteMessage m = send.newMessage();
+                 *     m.writeObject(key);
+                 *     m.writeObject(value);
+                 *     m.finish();
+                 * } catch (IOException e) {
+                 *     //always happens after the crash
+                 * }
                  */
-                //				if (GRT_DEBUG) {
+                // if (GRT_DEBUG) {
                 System.err.println("SATIN '" + satin.ident.name()
                         + "': update sent: " + key + "," + value);
-                //				}
+                // }
             }
 
         }
@@ -372,9 +380,11 @@ public class GlobalResultTable implements Upcall, Config {
                     + "': EEK send updates with GRT_MESSAGE_COMBINING off!");
             return;
         }
-        /*		if (ASSERTS) {
-         satin.assertLocked(satin);
-         }*/
+        /*
+         * if (ASSERTS) {
+         *     satin.assertLocked(satin);
+         * }
+         */
 
         satin.updatesToSend = false;
 
@@ -420,9 +430,12 @@ public class GlobalResultTable implements Upcall, Config {
             try {
                 long size = m.finish();
 
-                /*				System.err.println("SATIN '" + satin.ident.name() + "': " + size 
-                 + " sent in " + satin.tableSerializationTimer.lastTimeVal()
-                 + " to " + entry.getKey());*/
+                /*
+                 * System.err.println("SATIN '" + satin.ident.name() + "': "
+                 *         + size " sent in "
+                 *         + satin.tableSerializationTimer.lastTimeVal()
+                 *         + " to " + entry.getKey());
+                 */
 
             } catch (IOException e) {
                 //always happens after a crash
@@ -477,7 +490,7 @@ public class GlobalResultTable implements Upcall, Config {
             Satin.assertLocked(satin);
         }
 
-        //		System.err.println("adding contents");
+        // System.err.println("adding contents");
 
         entries.putAll(contents);
 
@@ -536,7 +549,7 @@ public class GlobalResultTable implements Upcall, Config {
                         send.close();
                     }
                 }
-                //		send.close();
+                // send.close();
             }
             receive.close();
         } catch (IOException e) {
@@ -627,7 +640,8 @@ public class GlobalResultTable implements Upcall, Config {
             handleUpdateTimer.stop();
             satin.handleUpdateTimer.add(handleUpdateTimer);
         }
-        //		System.err.println("handle update time: " + satin.handleUpdateTimer.lastTimeVal());
+        // System.err.println("handle update time: "
+        //         + satin.handleUpdateTimer.lastTimeVal());
     }
 
     public void print(java.io.PrintStream out) {

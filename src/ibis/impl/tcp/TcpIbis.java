@@ -113,8 +113,8 @@ public final class TcpIbis extends Ibis implements Config {
 
         myAddress = IPUtils.getLocalHostAddress();
         if (myAddress == null) {
-            System.err
-                    .println("ERROR: could not get my own IP address, exiting.");
+            System.err.println("ERROR: could not get my own IP address, "
+                    + "exiting.");
             System.exit(1);
         }
         ident = new TcpIbisIdentifier(name, myAddress);
@@ -228,7 +228,8 @@ public final class TcpIbis extends Ibis implements Config {
                     poolSize++;
                     id = (TcpIbisIdentifier) joinedIbises.remove(0);
                 }
-                resizeHandler.joined(id); // Don't hold the lock during user upcall
+                // Don't hold the lock during user upcall
+                resizeHandler.joined(id);
                 if (id.equals(this.ident)) {
                     i_joined = true;
                 }
@@ -241,7 +242,8 @@ public final class TcpIbis extends Ibis implements Config {
                     poolSize--;
                     id = (TcpIbisIdentifier) leftIbises.remove(0);
                 }
-                resizeHandler.left(id); // Don't hold the lock during user upcall
+                // Don't hold the lock during user upcall
+                resizeHandler.left(id);
 
             }
             while (true) {
@@ -251,7 +253,8 @@ public final class TcpIbis extends Ibis implements Config {
                     poolSize--;
                     id = (TcpIbisIdentifier) diedIbises.remove(0);
                 }
-                resizeHandler.died(id); // Don't hold the lock during user upcall
+                // Don't hold the lock during user upcall
+                resizeHandler.died(id);
 
             }
         }
@@ -301,7 +304,8 @@ public final class TcpIbis extends Ibis implements Config {
         // Empty implementation, as TCP Ibis has interrupts.
     }
 
-    void bindReceivePort(String nm, ReceivePortIdentifier p) throws IOException {
+    void bindReceivePort(String nm, ReceivePortIdentifier p)
+            throws IOException {
         nameServer.bind(nm, p);
     }
 

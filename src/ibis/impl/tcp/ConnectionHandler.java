@@ -107,7 +107,9 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
         }
         in = null;
         ibis.tcpPortHandler.releaseInput(origin, input);
-        if (!iMustDie) { // if we came in through a forced close, the port already knows that we are gone.
+        if (!iMustDie) {
+            // if we came in through a forced close, the port already knows
+            // that we are gone.
             port.leave(this, e);
         }
     }
@@ -145,7 +147,8 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
                         + port.name + " woke up");
             }
             opcode = in.readByte();
-            if (iMustDie) { /* in this case, a forced close was done, and my port is gone... */
+            if (iMustDie) {
+                // in this case, a forced close was done, and my port is gone..
                 close(null);
                 return;
             }
@@ -159,8 +162,8 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
             case NEW_RECEIVER:
                 if (DEBUG) {
                     try {
-                        TcpReceivePortIdentifier x = (TcpReceivePortIdentifier) in
-                                .readObject();
+                        TcpReceivePortIdentifier x
+                                = (TcpReceivePortIdentifier) in.readObject();
                         System.out.println(port.name + ": Got a NEW_RECEIVER "
                                 + x + " from " + origin);
                     } catch (ClassNotFoundException e) {
@@ -195,7 +198,8 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
                 return;
             case CLOSE_ONE_CONNECTION:
                 TcpReceivePortIdentifier identifier;
-                //the identifier of the receiveport which whould disconnect is coming next
+                // the identifier of the receiveport which whould disconnect
+                // is coming next
                 switch (port.type.serializationType) {
                 case TcpPortType.SERIALIZATION_SUN:
                 case TcpPortType.SERIALIZATION_IBIS:

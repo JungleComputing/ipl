@@ -27,7 +27,8 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
     /**
      * Simple client Socket factory.
      */
-    public Socket createSocket(InetAddress rAddr, int rPort) throws IOException {
+    public Socket createSocket(InetAddress rAddr, int rPort)
+            throws IOException {
         Socket s = null;
         s = new Socket(rAddr, rPort);
         tuneSocket(s);
@@ -36,12 +37,15 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 
     /** 
      *  A host can have multiple local IPs (sierra)
-     *  if localIP is null, try to bind to the first of this machine's IP addresses.
+     *  if localIP is null, try to bind to the first of this machine's IP
+     *  addresses.
      *
      *  timeoutMillis < 0  means do not retry, throw exception on failure.
      *  timeoutMillis == 0 means retry until success.
-     *  timeoutMillis > 0  means block at most for timeoutMillis milliseconds, then return. 
-     *  An IOException is thrown when the socket was not properly created within this time.
+     *  timeoutMillis > 0  means block at most for timeoutMillis milliseconds,
+     *      then return. 
+     *  An IOException is thrown when the socket was not properly created
+     *  within this time.
      */
     // timneout is not implemented correctly @@@@
     // this can only be done with 1.4 functions... --Rob
@@ -125,8 +129,9 @@ public class IbisNormalSocketFactory extends IbisSocketFactory {
 
     /**
      * A host can have multiple local IPs (sierra).
-     * If localIP is null, try to bind to the first of this machine's IP addresses.
-     * port of 0 means choose a free port.
+     * If localIP is null, try to bind to the first of this machine's IP
+     * addresses.
+     * Port 0 means choose a free port.
      */
     public ServerSocket createServerSocket(int port, InetAddress localAddress,
             boolean retry) throws IOException {

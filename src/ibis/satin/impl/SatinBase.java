@@ -44,15 +44,17 @@ public abstract class SatinBase implements Config {
 
     protected String deleteCluster = null;
 
-    int branchingFactor = 0; //if > 0, it is used for generating globally unique stamps
+    int branchingFactor = 0;
+    //if > 0, it is used for generating globally unique stamps
 
-    protected boolean dump = false; //true if the node should dump its datastructures during shutdown
+    protected boolean dump = false;
+    //true if the node should dump its datastructures during shutdown
 
     //done by registering DumpThread as a shutdown hook
 
-    boolean getTable = true; //true if the node needs to download the contents of the global result table
-
-    // of the global result table; protected by lock
+    boolean getTable = true;
+    //true if the node needs to download the contents of the global result
+    //table of the global result table; protected by lock
 
     /* Am I the root (the one running main)? */
     boolean master = false;
@@ -101,11 +103,11 @@ public abstract class SatinBase implements Config {
     SendPort tuplePort; /* used to bcast tuples */
 
     //ft
-    protected long connectTimeout = 1500000; /*
-     * Timeout for connecting to other
-     * nodes (in joined()) who might be
-     * crashed
+    /**
+     * Timeout for connecting to other nodes (in joined()) who might be
+     * crashed.
      */
+    protected long connectTimeout = 1500000;
 
     volatile boolean exiting = false; // used in messageHandler
 
@@ -121,7 +123,7 @@ public abstract class SatinBase implements Config {
 
     protected int stampCounter = 0;
 
-    /*
+    /**
      * Used to locate the invocation record corresponding to the result of a
      * remote job.
      */
@@ -133,13 +135,13 @@ public abstract class SatinBase implements Config {
 
     protected IRVector exceptionList;
 
-    /* abort messages are queued until the sync. */
+    /** Abort messages are queued until the sync. */
     protected StampVector abortList = new StampVector();
 
-    /* used for fault tolerance */
+    /** Used for fault tolerance. */
     protected StampVector abortAndStoreList;
 
-    /* used to store reply messages */
+    /** Used to store reply messages. */
     volatile boolean gotStealReply = false; // used in messageHandler
 
     volatile boolean gotBarrierReply = false; // used in messageHandler
@@ -215,17 +217,17 @@ public abstract class SatinBase implements Config {
 
     protected volatile boolean updatesToSend = false;
 
-    /*
-     * used for fault tolerance we must know who the current victim is, in case
-     * it crashes
+    /**
+     * Used for fault tolerance, we must know who the current victim is,
+     * in case it crashes.
      */
     IbisIdentifier currentVictim = null;
 
     boolean currentVictimCrashed = false;
 
-    //	IbisIdentifier asyncCurrentVictim = null;
+    // IbisIdentifier asyncCurrentVictim = null;
 
-    //	boolean asyncCurrentVictimCrashed = false;
+    // boolean asyncCurrentVictimCrashed = false;
 
     /* historical name.. it's the global job table used in fault tolerance */
     GlobalResultTable globalResultTable = null;
@@ -239,7 +241,8 @@ public abstract class SatinBase implements Config {
     // be set to 0 after root crash
     int rootNumSpawned = 0;
 
-    //list of finished children of the root node (which doesn't have and invocation record)
+    //list of finished children of the root node (which don't have an
+    //invocation record)
     InvocationRecord rootFinishedChild = null;
 
     //list of children of the root node which need to be restarted
@@ -303,7 +306,7 @@ public abstract class SatinBase implements Config {
 
     long prevPoll = 0;
 
-    //	float MHz = Timer.getMHz();
+    // float MHz = Timer.getMHz();
 
     java.io.PrintStream out = System.out;
 

@@ -238,8 +238,8 @@ public class IbisSerializationOutputStream extends
          *
          * @param  ref the object that is inserted
          * @param  handle the (int valued) key
-         * @param  hashcode the hashcode of ref that may be kept over calls to the
-         * 		hash table
+         * @param  hashcode the hashcode of ref that may be kept over calls to
+         *   the hash table
          * @return the handle.
          */
         public int put(Object ref, int handle, int hashcode) {
@@ -281,8 +281,8 @@ public class IbisSerializationOutputStream extends
          *
          * @param  ref the object that is inserted
          * @param  handle the (int valued) key
-         * @param  hashcode the hashcode of ref that may be kept over calls to the
-         * 		hash table
+         * @param  hashcode the hashcode of ref that may be kept over calls to
+         *   the hash table
          * @return the handle found.
          */
         public final int lazyPut(Object ref, int handle, int hashcode) {
@@ -410,23 +410,25 @@ public class IbisSerializationOutputStream extends
                             System.out.println(statSendObjects);
                             System.out.println("Non-array handles sent "
                                     + statObjectHandle);
-                            for (int i = BEGIN_TYPES; i < PRIMITIVE_TYPES; i++) {
-                                if (statArrayCount[i] + statArrayHandle[i] > 0) {
-                                    System.out
-                                            .println("       "
-                                                    + primitiveName(i)
-                                                    + " arrays "
-                                                    + statArrayCount[i]
-                                                    + " total bytes "
-                                                    + (statArrayLength[i] * primitiveBytes(i))
-                                                    + " handles "
-                                                    + statArrayHandle[i]);
+                            for (int i = BEGIN_TYPES; i < PRIMITIVE_TYPES;
+                                    i++) {
+                                if (statArrayCount[i]
+                                        + statArrayHandle[i] > 0) {
+                                    System.out.println("       "
+                                            + primitiveName(i)
+                                            + " arrays "
+                                            + statArrayCount[i]
+                                            + " total bytes "
+                                            + (statArrayLength[i]
+                                                    * primitiveBytes(i))
+                                            + " handles "
+                                            + statArrayHandle[i]);
                                 }
                             }
                         }
                     });
-            System.out
-                    .println("IbisSerializationOutputStream.STATS_OBJECTS enabled");
+            System.out.println("IbisSerializationOutputStream.STATS_OBJECTS "
+                    + "enabled");
             statSendObjects = new java.util.Hashtable();
             statArrayCount = new int[PRIMITIVE_TYPES];
             statArrayHandle = new int[PRIMITIVE_TYPES];
@@ -603,8 +605,8 @@ public class IbisSerializationOutputStream extends
         }
         int len = str.length();
 
-        //	writeInt(len);
-        //	writeArray(str.toCharArray(), 0, len);
+        // writeInt(len);
+        // writeArray(str.toCharArray(), 0, len);
 
         byte[] b = new byte[3 * len];
         int bn = 0;
@@ -1105,8 +1107,8 @@ public class IbisSerializationOutputStream extends
      * @exception IOException		 when an IO error occurs
      * @exception IllegalAccessException when access to a field is denied.
      */
-    private void alternativeDefaultWriteObject(AlternativeTypeInfo t, Object ref)
-            throws IOException, IllegalAccessException {
+    private void alternativeDefaultWriteObject(AlternativeTypeInfo t,
+            Object ref) throws IOException, IllegalAccessException {
         int temp = 0;
         int i;
 
@@ -1445,9 +1447,8 @@ public class IbisSerializationOutputStream extends
                     /* EEK this is not nice !! */
                     writeUTF(((Class) ref).getName());
                 } else if (ref instanceof ibis.io.Serializable) {
-                    //		} else if (IbisSerializationInputStream.
-                    //				    isIbisSerializable(clazz))
-                    //		{
+                    // } else if (IbisSerializationInputStream
+                    //         .isIbisSerializable(clazz)) {
                     ((ibis.io.Serializable) ref).generated_WriteObject(this);
                 } else if (ref instanceof java.io.Externalizable) {
                     push_current_object(ref, 0);
@@ -1512,7 +1513,8 @@ public class IbisSerializationOutputStream extends
                 ((java.io.Externalizable) ref).writeExternal(this);
                 pop_current_object();
             } else if (ref instanceof ibis.io.Serializable) {
-                //	    } else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
+                // } else if (IbisSerializationInputStream
+                //         .isIbisSerializable(clazz)) {
                 ((ibis.io.Serializable) ref).generated_WriteObject(this);
             } else if (ref instanceof java.io.Serializable) {
                 writeSerializableObject(ref, clazz);
@@ -1620,7 +1622,8 @@ public class IbisSerializationOutputStream extends
             shorts[t.getOffset(name, Short.TYPE)] = value;
         }
 
-        public void put(String name, int value) throws IllegalArgumentException {
+        public void put(String name, int value)
+                throws IllegalArgumentException {
             ints[t.getOffset(name, Integer.TYPE)] = value;
         }
 
@@ -1754,7 +1757,7 @@ public class IbisSerializationOutputStream extends
              dynamic type of ref. The current_level variable actually
              indicates which instance of generated_DefaultWriteObject 
              should do some work.
-             */
+            */
             if (DEBUG) {
                 dbPrint("generated_DefaultWriteObject, class = "
                         + clazz.getName() + ", level = " + current_level);

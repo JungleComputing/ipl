@@ -366,7 +366,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     public synchronized ReceivePortIdentifier[] connectedTo() {
         Conn[] connections = (Conn[]) receivers.toArray(new Conn[0]);
-        ReceivePortIdentifier[] res = new ReceivePortIdentifier[connections.length];
+        ReceivePortIdentifier[] res
+                = new ReceivePortIdentifier[connections.length];
         for (int i = 0; i < res.length; i++) {
             res[i] = connections[i].ident;
         }
@@ -395,8 +396,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
             }
 
             if (rec == null) {
-                // strange, we can't seem to find the connection in the connection list.
-                // maybe we already reported the error?
+                // Strange, we can't seem to find the connection in the
+                // connection list.
+                // Maybe we already reported the error?
                 throw new IbisError(
                         "could not find connection in lostConnection");
             }

@@ -78,7 +78,8 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void short2byte(short[] src, int off, int len, byte[] dst, int off2) {
+    public void short2byte(short[] src, int off, int len, byte[] dst,
+            int off2) {
 
         if (len > (BUFFER_SIZE / 2)) {
             ShortBuffer buffer = ByteBuffer.wrap(dst, off2, len * 2).order(
@@ -172,7 +173,8 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void float2byte(float[] src, int off, int len, byte[] dst, int off2) {
+    public void float2byte(float[] src, int off, int len, byte[] dst,
+            int off2) {
 
         if (len > (BUFFER_SIZE / 4)) {
             FloatBuffer buffer = ByteBuffer.wrap(dst, off2, len * 4).order(
@@ -203,7 +205,8 @@ public final class NioWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void double2byte(double[] src, int off, int len, byte[] dst, int off2) {
+    public void double2byte(double[] src, int off, int len, byte[] dst,
+            int off2) {
 
         if (len > (BUFFER_SIZE / 8)) {
             DoubleBuffer buffer = ByteBuffer.wrap(dst, off2, len * 8).order(

@@ -21,8 +21,8 @@ public class RoutedMessagesSocketType extends SocketType implements
     public RoutedMessagesSocketType() throws IOException {
         super("RoutedMessages");
         if (!HubLinkFactory.isConnected()) {
-            System.out
-                    .println("RoutedMessages: cannot initialize- hub is not connected.");
+            System.out.println(
+                    "RoutedMessages: cannot initialize- hub is not connected.");
             throw new IOException("Hub not connected.");
         }
     }

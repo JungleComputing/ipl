@@ -158,8 +158,8 @@ public class Scan {
 
         total = failed.size();
         if (total > 0) {
-            System.out
-                    .println("The following batch failed to rewrite properly:");
+            System.out.println("The following batch failed to rewrite "
+                    + "properly:");
 
             for (int i = 0; i < total; i++) {
                 Failed f = (Failed) failed.get(i);

@@ -19,8 +19,8 @@ final class Registry {
     public void handleMessage(ReadMessage r) {
 
         try {
-            //int rank = r.readInt();	
-            //			int ticket = r.readInt();
+            // int rank = r.readInt();	
+            // int ticket = r.readInt();
             r.finish();
 
         } catch (IOException e) {

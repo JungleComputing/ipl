@@ -14,6 +14,6 @@ import java.io.IOException;
  * and returning its result.
  */
 public abstract class Generator {
-    public abstract Object generated_newInstance(IbisSerializationInputStream in)
-            throws IOException;
+    public abstract Object generated_newInstance(
+            IbisSerializationInputStream in) throws IOException;
 }

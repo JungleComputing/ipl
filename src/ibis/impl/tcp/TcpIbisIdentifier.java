@@ -54,8 +54,9 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
 
     // no need to serialize super class fields, this is done automatically
     // We handle the address field special.
-    // Do not do a writeObject on it (or a defaultWriteObject of the current object),
-    // because InetAddress might not be rewritten as it is in the classlibs --Rob
+    // Do not do a writeObject on it (or a defaultWriteObject of the current
+    // object), because InetAddress might not be rewritten as it is in the
+    // classlibs --Rob
     // Is this still a problem? I don't think so --Ceriel
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         int handle = cache.getHandle(out, this);

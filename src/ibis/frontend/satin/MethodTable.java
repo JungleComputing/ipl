@@ -54,8 +54,8 @@ final class MethodTable {
 
             if (end == null) {
                 if (verbose) {
-                    System.out
-                            .println("finally clause; assuming all locals are used");
+                    System.out.println("finally clause; assuming all locals "
+                            + "are used");
                 }
                 for (int j = 0; j < maxLocals; j++) {
                     used[j] = true;
@@ -67,8 +67,8 @@ final class MethodTable {
             if (!(endIns instanceof ReturnInstruction)
                     && !(endIns instanceof ATHROW)) {
                 if (verbose) {
-                    System.out
-                            .println("no return at end of inlet, assuming all locals are used");
+                    System.out.println("no return at end of inlet, assuming "
+                            + "all locals are used");
                 }
 
                 // They are all used.
@@ -78,26 +78,24 @@ final class MethodTable {
                 return used;
             }
 
-            for (InstructionHandle i = catchBlock.getHandlerPC(); i != null; i = i
-                    .getNext()) {
+            for (InstructionHandle i = catchBlock.getHandlerPC(); i != null;
+                    i = i.getNext()) {
                 Instruction curr = i.getInstruction();
                 if (verbose) {
                     System.out.println("ins: " + curr);
                 }
                 if (curr instanceof BranchInstruction) {
-                    InstructionHandle dest = ((BranchInstruction) curr)
-                            .getTarget();
+                    InstructionHandle dest
+                            = ((BranchInstruction) curr).getTarget();
 
-                    if (dest.getPosition() < catchBlock.getHandlerPC()
-                            .getPosition()
+                    if (dest.getPosition()
+                            < catchBlock.getHandlerPC().getPosition()
                             || // backjump out of handler
-                            dest.getPosition() > end.getPosition()) { // forward
-                        // jump
-                        // beyond
-                        // catch
+                            dest.getPosition() > end.getPosition()) {
+                        // forward jump beyond catch
                         if (verbose) {
-                            System.out
-                                    .println("inlet contains a jump to exit, assuming all locals are used");
+                            System.out.println("inlet contains a jump to exit, "
+                                    + "assuming all locals are used");
                         }
 
                         // They are all used.
@@ -117,10 +115,11 @@ final class MethodTable {
                             }
                         }
                     }
-                    //		    System.out.println("inlet local opt triggered");
+                    // System.out.println("inlet local opt triggered");
                     return used;
                 } else if (curr instanceof LocalVariableInstruction) {
-                    LocalVariableInstruction l = (LocalVariableInstruction) curr;
+                    LocalVariableInstruction l
+                            = (LocalVariableInstruction) curr;
                     used[l.getIndex()] = true;
                     if (verbose) {
                         System.out.println("just used local " + l.getIndex());
@@ -144,8 +143,8 @@ final class MethodTable {
                 catchBlocks = new Vector();
 
                 for (int i = 0; i < orig.catchBlocks.size(); i++) {
-                    CodeExceptionGen origCatch = (CodeExceptionGen) orig.catchBlocks
-                            .elementAt(i);
+                    CodeExceptionGen origCatch
+                            = (CodeExceptionGen) orig.catchBlocks.elementAt(i);
                     for (int j = 0; j < origE.length; j++) {
                         if (origCatch == origE[j]) {
                             catchBlocks.addElement(newE[j]);
@@ -501,10 +500,10 @@ final class MethodTable {
 
     boolean isSpawnable(Method m, JavaClass cl) {
         BT_Analyzer analyzer = getAnalyzer(cl);
-        //	System.out.println("isSpawnable: method = " + m + ", class = " +
+        // System.out.println("isSpawnable: method = " + m + ", class = " +
         // cl.getClassName());
         boolean b = analyzer.isSpecial(m);
-        //	System.out.println("isSpawnable returns " + b);
+        // System.out.println("isSpawnable returns " + b);
         if (b) {
             Satinc.do_satinc(cl);
         }
@@ -643,17 +642,17 @@ final class MethodTable {
             InstructionHandle end = lt[i].getEnd();
 
             // dangerous, javac is one instruction further...
-            if ((start == handler || start == handler.getNext() || start == handler
-                    .getNext().getNext())
+            if ((start == handler || start == handler.getNext()
+                            || start == handler.getNext().getNext())
                     && lt[i].getType().equals(catchBlock.getCatchType())) {
-                // System.out.println("found range of catch block: " + handler + " -
-                // " + end);
+                // System.out.println("found range of catch block: "
+                //         + handler + " - " + end);
                 return end.getPrev();
             }
         }
 
-        System.err
-                .println("Could not find end of catch block, did you compile with the '-g' option?");
+        System.err.println("Could not find end of catch block, did you compile "
+                + "with the '-g' option?");
         System.exit(1);
         return null;
     }
@@ -662,8 +661,8 @@ final class MethodTable {
         LocalVariableTable lt = m.getLocalVariableTable();
 
         if (lt == null) {
-            System.err
-                    .println("Could not get local variable table, did you compile with the '-g' option?");
+            System.err.println("Could not get local variable table, did you "
+                    + "compile with the '-g' option?");
             System.exit(1);
         }
 
@@ -674,8 +673,8 @@ final class MethodTable {
         LocalVariableGen[] lt = m.getLocalVariables();
 
         if (lt == null) {
-            System.err
-                    .println("Could not get local variable table, did you compile with the '-g' option?");
+            System.err.println("Could not get local variable table, did you "
+                    + "compile with the '-g' option?");
             System.exit(1);
         }
 
@@ -736,10 +735,13 @@ final class MethodTable {
                 return lt[i];
             }
 
-            //	    if (localNr == lt[i].getIndex()) {
-            //		    System.err.println("Looking for local " + localNr + " on position " + pos);
-            //		    System.err.println("found one with range " + lt[i].getStart().getPrev().getPosition() + ", " + lt[i].getEnd().getPosition());
-            //	    }
+            // if (localNr == lt[i].getIndex()) {
+            //     System.err.println("Looking for local " + localNr
+            //             + " on position " + pos);
+            //     System.err.println("found one with range "
+            //             + lt[i].getStart().getPrev().getPosition() + ", "
+            //             + lt[i].getEnd().getPosition());
+            // }
         }
 
         new Exception().printStackTrace();
@@ -785,7 +787,7 @@ final class MethodTable {
         String[] result = new String[v.size()];
         for (int i = 0; i < v.size(); i++) {
             result[i] = (String) v.elementAt(i);
-            //			System.out.println("localdecls for " + m + ": " + result[i]);
+            // System.out.println("localdecls for " + m + ": " + result[i]);
         }
 
         return result;

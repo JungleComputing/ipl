@@ -65,8 +65,8 @@ public class PoolInfoServer extends Thread {
         boolean add(int nhosts, int remove_doubles, String cluster,
                 Socket socket, DataInputStream in) throws IOException {
             if (nhosts != total_hosts) {
-                System.err
-                        .println("PoolInfoServer: EEK, different total_hosts in PoolInfoServer, ignoring this connection...");
+                System.err.println("PoolInfoServer: EEK, different total_hosts"
+                        + " in PoolInfoServer, ignoring this connection...");
                 in.close();
                 socket.close();
                 return false;

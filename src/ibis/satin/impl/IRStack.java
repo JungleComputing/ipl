@@ -90,8 +90,9 @@ final class IRStack implements Config {
 
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
-                //				if(curr.parent != null && curr.parent.aborted)
-                // System.err.print("#");
+                // if(curr.parent != null && curr.parent.aborted) {
+                //     System.err.print("#");
+                // }
 
                 curr.aborted = true;
                 s.abortedJobs++;
@@ -150,8 +151,9 @@ final class IRStack implements Config {
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf1(curr, targetOwner)
                     || curr.owner.equals(targetOwner)) {
-                //				if(curr.parent != null && curr.parent.aborted)
-                // System.err.print("#");
+                // if (curr.parent != null && curr.parent.aborted) {
+                //     System.err.print("#");
+                // }
 
                 curr.aborted = true;
 
@@ -193,10 +195,11 @@ final class IRStack implements Config {
         }
     }
 
-    /* Used for fault tolerance.
+    /**
+     * Used for fault tolerance.
      * Stores pointers to the invocation records of orphan jobs in the
      * global result table
-     **/
+     */
     void storeOrphansOf(IbisIdentifier crashedIbis) {
         if (ASSERTS) {
             SatinBase.assertLocked(s);

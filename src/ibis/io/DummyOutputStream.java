@@ -44,8 +44,9 @@ public class DummyOutputStream extends OutputStream {
     }
 
     public void close() {
-        /* don't propagate the close, otherwise we close the underlying socket,
-         and that is not what we want here. */
+        /* Don't propagate the close, otherwise we close the underlying
+         * socket, and that is not what we want here.
+         */
     }
 
     public void realClose() throws IOException {

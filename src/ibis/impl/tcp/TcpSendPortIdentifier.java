@@ -24,8 +24,8 @@ public final class TcpSendPortIdentifier implements SendPortIdentifier,
         if (other == null) {
             return false;
         }
-        return (type().equals(other.type()) && ibis.equals(other.ibis) && name()
-                .equals(other.name()));
+        return (type().equals(other.type()) && ibis.equals(other.ibis)
+                && name().equals(other.name()));
     }
 
     public int hashCode() {

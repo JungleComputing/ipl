@@ -18,7 +18,8 @@ public class DynamicProperties {
      * or {@link ibis.ipl.SendPort#properties() SendPort.properties()}
      * when these ports don't implement specific dynamic properties.
      */
-    public static final DynamicProperties NoDynamicProperties = new DynamicProperties();
+    public static final DynamicProperties NoDynamicProperties
+            = new DynamicProperties();
 
     /**
      * Sets the property associated with the specified key to the

@@ -165,10 +165,9 @@ public abstract class WorkStealing extends Stats {
                             opcode = Protocol.ASYNC_STEAL_AND_TABLE_REQUEST;
                         } else {
                             if (getTable) {
-                                System.err
-                                        .println("SATIN '"
-                                                + ident.name()
-                                                + ": EEEK sending async steal message while waiting for table!!");
+                                System.err.println("SATIN '" + ident.name()
+                                        + ": EEEK sending async steal message "
+                                        + "while waiting for table!!");
                             }
                             opcode = Protocol.ASYNC_STEAL_REQUEST;
                         }
@@ -199,7 +198,9 @@ public abstract class WorkStealing extends Stats {
     }
 
     protected InvocationRecord waitForStealReply() {
-        //		if(exiting) return false;
+        // if (exiting) {
+        //     return false;
+        // }
 
         if (IDLE_TIMING) {
             idleTimer.start();
@@ -245,7 +246,7 @@ public abstract class WorkStealing extends Stats {
                             }
                         }
                     }
-                    //					Thread.yield();
+                    // Thread.yield();
                 }
             } else {
                 synchronized (this) {
@@ -254,8 +255,8 @@ public abstract class WorkStealing extends Stats {
                         if (FAULT_TOLERANCE) {
                             if (currentVictimCrashed) {
                                 currentVictimCrashed = false;
-                                //							System.err.println("SATIN '" + ident.name() +
-                                // "': current victim crashed");
+                                // System.err.println("SATIN '" + ident.name()
+                                //         + "': current victim crashed");
                                 if (gotStealReply == false) {
                                     if (STEAL_TIMING) {
                                         stealTimer.stop();
@@ -315,9 +316,11 @@ public abstract class WorkStealing extends Stats {
         }
 
         /*
-         * if(STEAL_DEBUG) { out.println("SATIN '" + ident.name() + "': got
-         * synchronous steal reply: " + (stolenJob == null ? "FAILED" :
-         * "SUCCESS")); }
+         * if (STEAL_DEBUG) {
+         *     out.println("SATIN '" + ident.name()
+         *             + "': got synchronous steal reply: "
+         *             + (stolenJob == null ? "FAILED" : "SUCCESS"));
+         * }
          */
 
         /* If successfull, we now have a job in stolenJob. */
@@ -334,7 +337,7 @@ public abstract class WorkStealing extends Stats {
         InvocationRecord myJob = stolenJob;
         stolenJob = null;
 
-        //		stolenFrom = myJob.owner;
+        // stolenFrom = myJob.owner;
 
         // if we have ordered communication, we have to wait until
         // our sequence number equals the one in the job
@@ -402,7 +405,8 @@ public abstract class WorkStealing extends Stats {
             } else {
                 r.eek = eek;
             }
-            if (r.eek != null) { // we have an exception, add it to the list.
+            if (r.eek != null) {
+                // we have an exception, add it to the list.
                 // the list will be read during the sync
                 if (ABORTS) {
                     addToExceptionList(r);

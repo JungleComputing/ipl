@@ -31,15 +31,17 @@ public abstract class TupleSpace extends Communication {
 
     public static void initTupleSpace() {
         synchronized (TupleSpace.class) {
-            if (initialized)
+            if (initialized) {
                 return;
+            }
             initialized = true;
             if (this_satin != null && !this_satin.closed) {
-                System.err
-                        .println("The tuple space currently only works with a closed world. Try running with -satin-closed");
+                System.err.println("The tuple space currently only works with "
+                        + "a closed world. Try running with -satin-closed");
                 System.exit(1);
-                //			throw new IbisError("The tuple space currently only works with a
-                // closed world. Try running with -satin-closed");
+                // throw new IbisError("The tuple space currently only works "
+                //         + "with a closed world. Try running with "
+                //         + "-satin-closed");
             }
         }
 
@@ -64,15 +66,16 @@ public abstract class TupleSpace extends Communication {
      *            The data associated with the key.
      */
     public static void addTuple(String key, Serializable data) {
-        if (!initialized)
+        if (!initialized) {
             initTupleSpace();
+        }
         if (TUPLE_DEBUG) {
             System.err.println("SATIN '" + this_satin.ident.name()
                     + ": added key " + key);
         }
 
-        //		System.err.println("use seq = " + use_seq + ", this_satin = " +
-        // this_satin);
+        // System.err.println("use seq = " + use_seq + ", this_satin = "
+        //         + this_satin);
 
         if (this_satin != null) { // can happen with sequential versions of
             // Satin
@@ -107,8 +110,9 @@ public abstract class TupleSpace extends Communication {
     public static Serializable peekTuple(String key) {
         Serializable data = null;
 
-        if (!initialized)
+        if (!initialized) {
             initTupleSpace();
+        }
 
         if (TUPLE_DEBUG) {
             System.err.println("SATIN '" + this_satin.ident.name()
@@ -133,8 +137,9 @@ public abstract class TupleSpace extends Communication {
     public static Serializable getTuple(String key) {
         Serializable data = null;
 
-        if (!initialized)
+        if (!initialized) {
             initTupleSpace();
+        }
 
         if (TUPLE_DEBUG) {
             System.err.println("SATIN '" + this_satin.ident.name()
@@ -183,8 +188,9 @@ public abstract class TupleSpace extends Communication {
      */
     public static void removeTuple(String key) {
 
-        if (!initialized)
+        if (!initialized) {
             initTupleSpace();
+        }
 
         if (TUPLE_DEBUG) {
             System.err.println("SATIN '" + this_satin.ident.name()
@@ -207,10 +213,10 @@ public abstract class TupleSpace extends Communication {
                 space.remove(key);
 
                 // also remove it from the new lists (if there)
-                //			int index = newKeys.indexOf(key);
-                //			if(index != -1) {
-                //				newData.remove(index);
-                //			}
+                // int index = newKeys.indexOf(key);
+                // if (index != -1) {
+                //     newData.remove(index);
+                // }
             }
         }
     }
@@ -228,8 +234,8 @@ public abstract class TupleSpace extends Communication {
 
         synchronized (space) {
             space.put(key, data);
-            //			newKeys.add(key);
-            //			newData.add(data);
+            // newKeys.add(key);
+            // newData.add(data);
             space.notifyAll();
         }
         if (TUPLE_DEBUG) {
@@ -249,10 +255,10 @@ public abstract class TupleSpace extends Communication {
             space.remove(key);
 
             // also remove it from the new lists (if there)
-            //			int index = newKeys.indexOf(key);
-            //			if(index != -1) {
-            //				newData.remove(index);
-            //			}
+            // int index = newKeys.indexOf(key);
+            // if (index != -1) {
+            //     newData.remove(index);
+            // }
         }
     }
 
@@ -382,8 +388,8 @@ public abstract class TupleSpace extends Communication {
 
         if (TUPLE_TIMING) {
             tupleTimer.stop();
-            //			System.err.println("SATIN '" + ident.name() + ": bcast of " +
-            // count + " bytes took: " + tupleTimer.lastTime());
+            // System.err.println("SATIN '" + ident.name() + ": bcast of "
+            //         + count + " bytes took: " + tupleTimer.lastTime());
         }
 
         if (TUPLE_DEBUG) {
@@ -402,11 +408,9 @@ public abstract class TupleSpace extends Communication {
                     connect(tuplePort, r);
                 } catch (IOException e) {
                     if (!FAULT_TOLERANCE) {
-                        System.err
-                                .println("SATIN '"
-                                        + ident.name()
-                                        + "': Got Exception while connecting tuple port: "
-                                        + e);
+                        System.err.println("SATIN '" + ident.name()
+                                + "': Got Exception while connecting tuple "
+                                + "port: " + e);
                         System.exit(1);
                     }
                 }
@@ -427,8 +431,9 @@ public abstract class TupleSpace extends Communication {
             size = victims.size();
         }
 
-        if (size == 0 && (!use_seq || this_satin == null))
+        if (size == 0 && (!use_seq || this_satin == null)) {
             return; // don't multicast when there is no-one.
+        }
 
         if (TUPLE_TIMING) {
             tupleTimer.start();
@@ -503,8 +508,8 @@ public abstract class TupleSpace extends Communication {
 
         if (TUPLE_TIMING) {
             tupleTimer.stop();
-            //			System.err.println("SATIN '" + ident.name() + ": bcast of " +
-            // count + " bytes took: " + tupleTimer.lastTime());
+            // System.err.println("SATIN '" + ident.name() + ": bcast of "
+            //         + count + " bytes took: " + tupleTimer.lastTime());
         }
     }
 

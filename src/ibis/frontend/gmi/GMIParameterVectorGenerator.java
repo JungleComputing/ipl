@@ -96,8 +96,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
                     + printType(param) + " value) {");
         }
 
-        output
-                .println("\t\tif (set[num]) throw new RuntimeException(\"Parameter \" + num + \" already set!\");");
+        output.println("\t\tif (set[num]) throw new RuntimeException"
+               +  "(\"Parameter \" + num + \" already set!\");");
 
         if (count >= 2) {
             output.println("\t\tswitch (num) {");
@@ -112,8 +112,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
                 output.println("\t\t\tbreak;");
             }
             output.println("\t\tdefault:");
-            output
-                    .println("\t\t\tthrow new RuntimeException(\"Illegal parameter number or type\");");
+            output.println("\t\t\tthrow new RuntimeException(\"Illegal "
+                    + "parameter number or type\");");
             output.println("\t\t}");
         } else {
             output.println("\t\tif (num == " + numbers[0] + ") {");
@@ -124,8 +124,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
                         + ") value;");
             }
             output.println("\t\t} else {");
-            output
-                    .println("\t\t\tthrow new RuntimeException(\"Illegal parameter number or type\");");
+            output.println("\t\t\tthrow new RuntimeException(\"Illegal "
+                    + "parameter number or type\");");
             output.println("\t\t}");
         }
         output.println("\t\tset[num] = true;");
@@ -143,8 +143,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
                     + "(int num) {");
         }
 
-        output
-                .println("\t\tif (! set[num]) throw new RuntimeException(\"Parameter \" + num + \" not yet set!\");");
+        output.println("\t\tif (! set[num]) throw new RuntimeException"
+                + "(\"Parameter \" + num + \" not yet set!\");");
 
         if (count >= 2) {
             output.println("\t\tswitch (num) {");
@@ -153,23 +153,23 @@ class GMIParameterVectorGenerator extends GMIGenerator {
                 output.println("\t\t\treturn p" + numbers[i] + ";");
             }
             output.println("\t\tdefault:");
-            output
-                    .println("\t\t\tthrow new RuntimeException(\"Illegal parameter number or type\");");
+            output.println("\t\t\tthrow new RuntimeException(\"Illegal "
+                    + "parameter number or type\");");
             output.println("\t\t}");
         } else {
             output.println("\t\tif (num == " + numbers[0] + ") {");
             output.println("\t\t\treturn p" + numbers[0] + ";");
             output.println("\t\t} else {");
-            output
-                    .println("\t\t\tthrow new RuntimeException(\"Illegal parameter number or type\");");
+            output.println("\t\t\tthrow new RuntimeException(\"Illegal "
+                    + "parameter number or type\");");
             output.println("\t\t}");
         }
         output.println("\t}\n");
     }
 
     void writeParametersMethod(Type[] params) {
-        output
-                .println("\tpublic void writeParameters(WriteMessage w) throws IOException {");
+        output.println("\tpublic void writeParameters(WriteMessage w) throws "
+                + "IOException {");
         for (int i = 0; i < params.length; i++) {
             if (params[i] instanceof ArrayType) {
                 output.println("\t\tif (p" + i + "_subarray) {");
@@ -180,9 +180,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
                         + i));
                 output.println("\t\t}");
             } else {
-                output
-                        .println(writeMessageType("\t\t", "w", params[i], "p"
-                                + i));
+                output.println(writeMessageType("\t\t", "w", params[i], "p"
+                        + i));
             }
         }
         output.println("\t}\n");
@@ -190,8 +189,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
     void readParametersMethod(Type[] params, Method m) {
         String classname = this.name + m.getName();
-        output
-                .println("\tpublic ParameterVector readParameters(ReadMessage r) throws IOException {");
+        output.println("\tpublic ParameterVector readParameters(ReadMessage r)"
+                + " throws IOException {");
         output.println("\t\t" + classname + " p = new " + classname + "();");
         for (int i = 0; i < params.length; i++) {
             if (params[i] instanceof BasicType) {
@@ -202,8 +201,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
                 output.println(readMessageType("\t\t\t", "p.p" + i, "r",
                         params[i], true));
                 output.println("\t\t} catch(ClassNotFoundException e) {");
-                output
-                        .println("\t\t\tthrow new RuntimeException(\"class not found exception: \" + e);");
+                output.println("\t\t\tthrow new RuntimeException(\"class not "
+                        + "found exception: \" + e);");
                 output.println("\t\t}");
             }
             output.println("\t\tp.set[" + i + "] = true;");
@@ -215,12 +214,11 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
     void writeSubArrayMethod(Type param, int[] numbers, int count) {
 
-        output
-                .println("\tpublic void writeSubArray(int num, int offset, int size, "
-                        + getType(param) + " value) {");
+        output.println("\tpublic void writeSubArray(int num, int offset, int "
+                + "size, " + getType(param) + " value) {");
 
-        output
-                .println("\t\tif (set[num]) throw new RuntimeException(\"Parameter \" + num + \" already set!\");");
+        output.println("\t\tif (set[num]) throw new RuntimeException"
+                + "(\"Parameter \" + num + \" already set!\");");
 
         if (count >= 2) {
             output.println("\t\tswitch (num) {");
@@ -233,8 +231,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
                 output.println("\t\t\tbreak;");
             }
             output.println("\t\tdefault:");
-            output
-                    .println("\t\t\tthrow new RuntimeException(\"Illegal parameter number or type\");");
+            output.println("\t\t\tthrow new RuntimeException(\"Illegal "
+                    + "parameter number or type\");");
             output.println("\t\t}");
         } else {
             output.println("\t\tif (num == " + numbers[0] + ") {");
@@ -243,8 +241,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
             output.println("\t\t\tp" + numbers[0] + "_offset = offset;");
             output.println("\t\t\tp" + numbers[0] + "_size = size;");
             output.println("\t\t} else {");
-            output
-                    .println("\t\t\tthrow new RuntimeException(\"Illegal parameter number or type\");");
+            output.println("\t\t\tthrow new RuntimeException(\"Illegal "
+                    + "parameter number or type\");");
             output.println("\t\t}");
         }
         output.println("\t\tset[num] = true;");
@@ -254,11 +252,11 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
     void writeSubObjectArrayMethod(Type[] param, int[] numbers, int count) {
 
-        output
-                .println("\tpublic void writeSubArray(int num, int offset, int size, Object [] value) {");
+        output.println("\tpublic void writeSubArray(int num, int offset, "
+                + "int size, Object [] value) {");
 
-        output
-                .println("\t\tif (set[num]) throw new RuntimeException(\"Parameter \" + num + \" already set!\");");
+        output.println("\t\tif (set[num]) throw new RuntimeException"
+                + "(\"Parameter \" + num + \" already set!\");");
 
         if (count >= 2) {
             output.println("\t\tswitch (num) {");
@@ -272,8 +270,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
                 output.println("\t\t\tbreak;");
             }
             output.println("\t\tdefault:");
-            output
-                    .println("\t\t\tthrow new RuntimeException(\"Illegal parameter number or type\");");
+            output.println("\t\t\tthrow new RuntimeException(\"Illegal "
+                    + "parameter number or type\");");
             output.println("\t\t}");
         } else {
             output.println("\t\tif (num == " + numbers[0] + ") {");
@@ -283,8 +281,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
             output.println("\t\t\tp" + numbers[0] + "_offset = offset;");
             output.println("\t\t\tp" + numbers[0] + "_size = size;");
             output.println("\t\t} else {");
-            output
-                    .println("\t\t\tthrow new RuntimeException(\"Illegal parameter number or type\");");
+            output.println("\t\t\tthrow new RuntimeException(\"Illegal "
+                    + "parameter number or type\");");
             output.println("\t\t}");
         }
         output.println("\t\tset[num] = true;");
@@ -322,8 +320,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
             for (int j = 0; j < temp_params.length; j++) {
                 if (j == 0) {
-                    output
-                            .println("\t/* Methods to write/read the parameters */");
+                    output.println("\t/* Write/read the parameters */");
                 }
 
                 if (temp_params[j] != null) {
@@ -354,7 +351,8 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
                 if (temp_params[j] != null) {
                     if (temp_params[j] instanceof ArrayType
-                            && (((ArrayType) temp_params[j]).getElementType() instanceof BasicType)) {
+                            && (((ArrayType) temp_params[j]).getElementType()
+                                    instanceof BasicType)) {
                         count = 0;
                         params_to_write = temp_params[j];
                         param_numbers[count++] = j;
@@ -380,12 +378,12 @@ class GMIParameterVectorGenerator extends GMIGenerator {
 
             for (int j = 0; j < temp_params.length; j++) {
                 if (j == 0) {
-                    output
-                            .println("\t/* Methods to write sub object arrays */");
+                    output.println("\t/* Write sub object arrays */");
                 }
 
                 if (temp_params[j] instanceof ArrayType
-                        && !(((ArrayType) temp_params[j]).getElementType() instanceof BasicType)) {
+                        && !(((ArrayType) temp_params[j]).getElementType()
+                                instanceof BasicType)) {
                     param_numbers[count] = j;
                     object_params[count] = temp_params[j];
                     count++;

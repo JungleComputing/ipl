@@ -313,7 +313,8 @@ public class DataSerializationInputStream extends SerializationInputStream
      * Reads (part of) an array of ints.
      * This method is here to make extending this class easier.
      */
-    protected void readIntArray(int ref[], int off, int len) throws IOException {
+    protected void readIntArray(int ref[], int off, int len)
+            throws IOException {
         if (len >= SMALL_ARRAY_BOUND / SIZEOF_INT) {
             in.readArray(ref, off, len);
         } else {
@@ -666,7 +667,8 @@ public class DataSerializationInputStream extends SerializationInputStream
      */
     public String readUTF() throws IOException {
         throw new IOException(
-                "Somebody claimed UTF is valid for data streams. But in Ibis: Illegal data type read");
+                "Somebody claimed UTF is valid for data streams. But in Ibis: "
+                + "Illegal data type read");
     }
 
     /**

@@ -62,16 +62,15 @@ public abstract class Inlets extends Aborts {
             if (INLET_DEBUG) {
                 System.err.println("Got an exception from exception handler! "
                         + t);
-                //						t.printStackTrace();
+                // t.printStackTrace();
                 System.err.println("r = " + r);
                 System.err.println("r.parent = " + r.parent);
             }
             if (r.parent == null) {
                 if (INLET_DEBUG) {
-                    System.err
-                            .println("An inlet threw an exception, but there is no parent that handles it: "
-                                    + t);
-                    //					t.printStackTrace();
+                    System.err.println("An inlet threw an exception, but there "
+                            + "is no parent that handles it: " + t);
+                    // t.printStackTrace();
                 }
                 if (t instanceof Error) {
                     Error te = (Error) t;
@@ -82,7 +81,7 @@ public abstract class Inlets extends Aborts {
                     throw tr;
                 }
                 throw new IbisError(t);
-                //				System.exit(1);
+                // System.exit(1);
             }
 
             if (ABORT_STATS) {
@@ -128,11 +127,15 @@ public abstract class Inlets extends Aborts {
         // that the PARENT does not have a try catch block around the spawn.
         // there is thus no inlet to call in the parent.
 
-        if (r.eek == null)
+        if (r.eek == null) {
             return;
-        if (r.parent == null)
+        }
+        if (r.parent == null) {
             return;
-        //		if(r.parenLocals != null) return;
+        }
+        // if (r.parenLocals != null) {
+        //     return;
+        // }
 
         if (ASSERTS && r.parentLocals != null) {
             System.err.println("parenlocals is not null in empty inlet");
@@ -188,8 +191,8 @@ public abstract class Inlets extends Aborts {
     // remote machine
     void handleExceptions() {
         if (ASSERTS && !ABORTS) {
-            System.err
-                    .println("cannot handle inlets, set ABORTS to true in Config.java");
+            System.err.println("cannot handle inlets, set the system property "
+                    + "satin.aborts to true.");
             System.exit(1);
         }
 

@@ -132,8 +132,8 @@ public class NameServer extends Thread implements Protocol {
 
     private static ControlHub h = null;
 
-    private NameServer(boolean singleRun, boolean poolserver, boolean controlhub)
-            throws IOException {
+    private NameServer(boolean singleRun, boolean poolserver,
+            boolean controlhub) throws IOException {
 
         this.singleRun = singleRun;
         this.joined = false;
@@ -604,8 +604,8 @@ public class NameServer extends Thread implements Protocol {
 
             try {
                 if (DEBUG) {
-                    System.err
-                            .println("NameServer: accepting incoming connections... ");
+                    System.err.println("NameServer: accepting incoming "
+                            + "connections... ");
                 }
                 s = NameServerClient.socketFactory.accept(serverSocket);
 
@@ -691,14 +691,15 @@ public class NameServer extends Thread implements Protocol {
                 break;
             } catch (Throwable e) {
                 if (retry) {
-                    System.err
-                            .println("Nameserver: could not create server socket, retry in 1 second");
+                    System.err.println("Nameserver: could not create server "
+                            + "socket, retry in 1 second");
                     try {
                         Thread.sleep(1000);
                     } catch (Exception ee) { /* do nothing */
                     }
                 } else {
-                    // System.err.println("Nameserver: could not create server socket");
+                    // System.err.println("Nameserver: could not create server "
+                    //         + "socket");
                     return null;
                 }
             }

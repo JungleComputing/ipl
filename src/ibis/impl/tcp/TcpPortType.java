@@ -51,20 +51,18 @@ class TcpPortType extends PortType implements Config {
                 serializationType = SERIALIZATION_SUN;
                 // System.err.println("serializationType = SERIALIZATION_SUN");
             } else if (ser.equals("byte")) {
-
                 // System.err.println("serializationType = SERIALIZATION_NONE");
                 serializationType = SERIALIZATION_NONE;
             } else if (ser.equals("data")) {
                 // System.err.println("serializationType = SERIALIZATION_DATA");
                 serializationType = SERIALIZATION_DATA;
             } else if (ser.equals("ibis")) {
-
                 // System.err.println("serializationType = SERIALIZATION_IBIS");
                 serializationType = SERIALIZATION_IBIS;
             } else if (ser.equals("manta")) {
                 // backwards compatibility ...
-                System.err
-                        .println("manta serialization is depricated -> use ibis");
+                System.err.println("manta serialization is depricated "
+                        + "-> use ibis");
                 new Exception().printStackTrace();
 
                 // System.err.println("serializationType = SERIALIZATION_IBIS");
@@ -76,7 +74,8 @@ class TcpPortType extends PortType implements Config {
         if (serializationType == SERIALIZATION_NONE
                 && p.isProp("communication", "Numbered")) {
             throw new IbisException(
-                    "Numbered communication is not supported on byte serialization streams");
+                    "Numbered communication is not supported on byte "
+                    + "serialization streams");
         }
     }
 

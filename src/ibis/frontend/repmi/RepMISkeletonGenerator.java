@@ -40,8 +40,8 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 
     void messageHandler(Vector methods) {
 
-        output
-                .println("\tpublic final void handleMessage(ReadMessage r) throws IOException {");
+        output.println("\tpublic final void handleMessage(ReadMessage r) "
+                + "throws IOException {");
         output.println();
 
         output.println("\t\tint method = r.readInt();");
@@ -92,8 +92,8 @@ class RepMISkeletonGenerator extends RepMIGenerator {
         }
 
         output.println("\t\tdefault:");
-        output
-                .println("\t\t\tSystem.err.println(\"OOPS: group_skeleton got illegal method number!\");");
+        output.println("\t\t\tSystem.err.println(\"OOPS: group_skeleton got "
+                + "illegal method number!\");");
         output.println("\t\t\tSystem.exit(1);");
         output.println("\t\t\tbreak;");
 

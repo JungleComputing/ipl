@@ -88,8 +88,8 @@ class ElectionServer extends Thread implements Protocol {
             try {
                 DummyInputStream di = new DummyInputStream(s.getInputStream());
                 in = new ObjectInputStream(new BufferedInputStream(di));
-                DummyOutputStream dos = new DummyOutputStream(s
-                        .getOutputStream());
+                DummyOutputStream dos
+                        = new DummyOutputStream(s.getOutputStream());
                 out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
                 opcode = in.readByte();

@@ -132,7 +132,7 @@ public final class RunProcess {
             for (int i = 0; i < command.length; i++) {
                 cmd = cmd + command[i] + " ";
             }
-            proc_err = new buf(("Could not execute command: " + cmd).getBytes());
+            proc_err = new buf(("Could not execute cmd: " + cmd).getBytes());
             return;
         }
 

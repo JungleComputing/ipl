@@ -14,8 +14,8 @@ final class VictimTable implements Config {
 
     // all victims grouped by cluster
     /*
-     * clusters are never removed, even though they're empty (rob, is dat ok??? -
-     * maik)
+     * clusters are never removed, even though they're empty.
+     * (Rob, is that ok??? -maik)
      */
     private Vector clusters = new Vector();
 
@@ -119,17 +119,26 @@ final class VictimTable implements Config {
     }
 
     /*
-     * Victim getMasterVictim() { Victim v = null;
+     * Victim getMasterVictim() {
+     *     Victim v = null;
      * 
-     * if(ASSERTS) { Satin.assertLocked(satin); }
+     *     if (ASSERTS) {
+     *         Satin.assertLocked(satin);
+     *     }
      * 
-     * try { v = ((Victim)victims.get(0)); } catch (Exception e) {
-     * System.err.println(e); }
+     *     try {
+     *         v = ((Victim)victims.get(0));
+     *     } catch (Exception e) {
+     *         System.err.println(e);
+     *     }
      * 
-     * if(ASSERTS && v == null) { System.err.println("EEK, v is null in
-     * getMasterVictim"); System.exit(1); }
+     *     if(ASSERTS && v == null) {
+     *         System.err.println("EEK, v is null in getMasterVictim");
+     *         System.exit(1);
+     *     }
      * 
-     * return v; }
+     *     return v;
+     * }
      */
 
     Victim getVictim(IbisIdentifier ident) {
@@ -167,8 +176,8 @@ final class VictimTable implements Config {
             SatinBase.assertLocked(satin);
         }
 
-        if (victims.size() == 0) { // can happen with open world, no others have
-            // joined yet.
+        if (victims.size() == 0) {
+            // can happen with open world, no others have joined yet.
             return null;
         }
 
@@ -204,13 +213,10 @@ final class VictimTable implements Config {
         if (clusterSize == 0)
             return null;
 
-        //try {
+        // try {
         index = Math.abs(satin.random.nextInt()) % clusterSize;
         v = thisCluster.get(index);
-
-        /*
-         * } catch (Exception e) { System.err.println(e); }
-         */
+        // } catch (Exception e) { System.err.println(e); }
 
         if (ASSERTS && v == null) {
             System.err.println("EEK, v is null");

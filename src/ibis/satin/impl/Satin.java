@@ -79,7 +79,8 @@ public final class Satin extends APIMethods implements ResizeHandler,
         // set.
         mainArgs = parseArguments(args, requestedProperties, this, hostName);
 
-        StaticProperties ibisProperties = createIbisProperties(requestedProperties);
+        StaticProperties ibisProperties
+                = createIbisProperties(requestedProperties);
 
         PoolInfo pool = null;
         int poolSize = 0; /* Only used with closed world. */
@@ -93,7 +94,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
         } catch (IbisException e) {
             System.err.println("SATIN '" + hostName
                     + "': Could not start ibis: " + e.getMessage());
-            //			e.printStackTrace();
+            // e.printStackTrace();
             System.exit(1);
         }
 
@@ -155,7 +156,8 @@ public final class Satin extends APIMethods implements ResizeHandler,
             portType = createSatinPortType(requestedProperties);
             tuplePortType = createTuplePortType(requestedProperties);
             barrierPortType = createBarrierPortType(requestedProperties);
-            globalResultTablePortType = createGlobalResultTablePortType(requestedProperties);
+            globalResultTablePortType
+                    = createGlobalResultTablePortType(requestedProperties);
             // do the same for tuple space @@@@
             // but this needs a seperate receive port... --Rob
 
@@ -193,16 +195,14 @@ public final class Satin extends APIMethods implements ResizeHandler,
                 tupleReceivePort = receivePort;
 
             if (master) {
-                barrierReceivePort = barrierPortType
-                        .createReceivePort("satin barrier receive port on "
-                                + ident.name());
+                barrierReceivePort = barrierPortType.createReceivePort(
+                        "satin barrier receive port on " + ident.name());
                 barrierReceivePort.enableConnections();
             } else {
-                barrierSendPort = barrierPortType
-                        .createSendPort("satin barrier send port on "
-                                + ident.name());
-                ReceivePortIdentifier barrierIdent = lookup("satin barrier receive port on "
-                        + masterIdent.name());
+                barrierSendPort = barrierPortType.createSendPort(
+                        "satin barrier send port on " + ident.name());
+                ReceivePortIdentifier barrierIdent = lookup(
+                        "satin barrier receive port on " + masterIdent.name());
                 connect(barrierSendPort, barrierIdent);
             }
 
@@ -280,7 +280,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
                             + "': barrier, everybody has joined");
                 }
 
-                //				ibis.closeWorld();
+                // ibis.closeWorld();
             }
 
             barrier();

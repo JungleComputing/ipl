@@ -94,12 +94,9 @@ class RepMIStubGenerator extends RepMIGenerator {
                     + (write ? "write" : "read") + " method");
 
         if (!write) {
-            output
-                    .println("\t\t\tif (RTS.DEBUG) System.out.println(\"repmi_stub_"
-                            + data.classname
-                            + "."
-                            + m.getName()
-                            + " doing LOCAL call\");");
+            output.println("\t\t\tif (RTS.DEBUG) System.out.println("
+                    + "\"repmi_stub_" + data.classname + "." + m.getName()
+                    + " doing LOCAL call\");");
             output.print("\t\t\t");
 
             if (!ret.equals(Type.VOID)) {
@@ -119,17 +116,14 @@ class RepMIStubGenerator extends RepMIGenerator {
             output.println(");");
             output.println();
         } else {
-            output
-                    .println("\t\t\tif (RTS.DEBUG) System.out.println(\"repmi_stub_"
-                            + data.classname
-                            + "."
-                            + m.getName()
-                            + " doing GROUP call\");");
+            output.println("\t\t\tif (RTS.DEBUG) System.out.println("
+                    + "\"repmi_stub_" + data.classname + "." + m.getName()
+                    + " doing GROUP call\");");
 
-            output
-                    .println("\t\t\tWriteMessage w = RTS.multicast.newMessage();");
-            output
-                    .println("\t\t\tw.writeByte(ibis.repmi.Protocol.INVOCATION);");
+            output.println("\t\t\tWriteMessage w = "
+                    + "RTS.multicast.newMessage();");
+            output.println("\t\t\tw.writeByte(ibis.repmi.Protocol"
+                    + ".INVOCATION);");
             output.println("\t\t\tw.writeInt(objectID);");
 
             output.println("\t\t\tw.writeInt(" + number + ");");

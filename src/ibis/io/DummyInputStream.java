@@ -16,7 +16,7 @@ public class DummyInputStream extends InputStream {
     }
 
     public int read() throws IOException {
-        //		System.err.println("dummy.read");
+        // System.err.println("dummy.read");
         if (SUPPORT_STATS) {
             count++;
         }
@@ -25,7 +25,8 @@ public class DummyInputStream extends InputStream {
 
     public int read(byte[] b) throws IOException {
         int res = in.read(b);
-        //		System.err.println("dummy.read array of len " + b.length + " result was " + res + " bytes");
+        // System.err.println("dummy.read array of len " + b.length
+        //         + " result was " + res + " bytes");
         if (SUPPORT_STATS) {
             if (res >= 0)
                 count += res;
@@ -35,7 +36,8 @@ public class DummyInputStream extends InputStream {
 
     public int read(byte[] b, int off, int len) throws IOException {
         int res = in.read(b, off, len);
-        //		System.err.println("dummy.read array of len " + len + " result was " + res + " bytes");
+        // System.err.println("dummy.read array of len " + len 
+        //         + " result was " + res + " bytes");
         if (SUPPORT_STATS) {
             if (res >= 0)
                 count += res;

@@ -150,7 +150,6 @@ public class PoolInfo {
         } catch (java.net.UnknownHostException e) {
             my_hostname = null;
         }
-        // System.err.println(my_hostname + ": I see host_names \"" + ibisHostNames+ "\"");
         int match = 0;
         int my_host = -1;
         for (int i = 0; i < total_hosts; i++) {
@@ -173,10 +172,10 @@ public class PoolInfo {
                 adres = InetAddress.getByName(adres.getHostAddress());
                 host_names[i] = adres.getHostName();
                 if (!host_names[i].equals(t)
-                        && host_names[i].toUpperCase().equals(t.toUpperCase())) {
-                    System.err
-                            .println("This is probably M$ Windows. Restored lower case in host name "
-                                    + t);
+                        && host_names[i].toUpperCase()
+                                .equals(t.toUpperCase())) {
+                    System.err.println("This is probably M$ Windows. "
+                            + "Restored lower case in host name " + t);
                     host_names[i] = t;
                 }
                 hosts[i] = adres;
@@ -331,7 +330,8 @@ public class PoolInfo {
         String temp = p.getProperty(name);
 
         if (temp == null) {
-            throw new NumberFormatException("Property " + name + " not found !");
+            throw new NumberFormatException("Property " + name
+                    + " not found !");
         }
 
         return Integer.parseInt(temp);

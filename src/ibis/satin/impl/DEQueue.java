@@ -10,9 +10,9 @@ abstract class DEQueue implements Config {
 
     abstract void addToHead(InvocationRecord o);
 
-    abstract void addToTail(InvocationRecord o); //note: does not work for
+    // Does not work for Dijkstra queue.
+    abstract void addToTail(InvocationRecord o);
 
-    // Dijkstra
     abstract void killChildrenOf(int targetStamp,
             ibis.ipl.IbisIdentifier targetOwner);
 

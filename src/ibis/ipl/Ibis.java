@@ -109,7 +109,7 @@ public abstract class Ibis {
         if (libPath != null) {
             String s = System.mapLibraryName(name);
 
-            //	    System.err.println("LOADING IBIS LIB: " + libPath + sep + s);
+            // System.err.println("LOADING IBIS LIB: " + libPath + sep + s);
 
             System.load(libPath + sep + s);
             return;
@@ -117,7 +117,7 @@ public abstract class Ibis {
 
         // Fall back to regular loading.
         // This might not work, or it might not :-)
-        //	System.err.println("LOADING NON IBIS LIB: " + name);
+        // System.err.println("LOADING NON IBIS LIB: " + name);
 
         System.loadLibrary(name);
     }
@@ -135,10 +135,10 @@ public abstract class Ibis {
      * @return the new Ibis instance.
      *
      * @exception ibis.ipl.IbisException two Ibis instances with the same
-     * 	implName are created, or any IbisException the implementation
-     * 	throws at its initialization
+     *  implName are created, or any IbisException the implementation
+     *  throws at its initialization
      * @exception IllegalArgumentException name or implName are null, or
-     * 	do not correspond to an existing Ibis implementation
+     *  do not correspond to an existing Ibis implementation
      * @exception ConnectionRefusedException is thrown when the name turns
      *  out to be not unique.
      */
@@ -180,7 +180,8 @@ public abstract class Ibis {
         } catch (InstantiationException e) {
             throw new IllegalArgumentException("Could not initialize Ibis" + e);
         } catch (IllegalAccessException e2) {
-            throw new IllegalArgumentException("Could not initialize Ibis" + e2);
+            throw new IllegalArgumentException("Could not initialize Ibis"
+                                               + e2);
         }
         impl.name = name;
         impl.implName = implName;
@@ -197,8 +198,8 @@ public abstract class Ibis {
              * specs back.
              */
             impl.requiredprops = new StaticProperties(reqprop);
-            impl.requiredprops.add("serialization", impl.properties().find(
-                    "serialization"));
+            impl.requiredprops.add("serialization",
+                    impl.properties().find("serialization"));
         }
         if (impl.combinedprops == null) {
             impl.combinedprops = impl.requiredprops.combineWithUserProps();
@@ -256,7 +257,7 @@ public abstract class Ibis {
      * <br>
      * mpi	Ibis built on top of MPI.
      * <br>
-     * net.*	The future version, for tcp, udp, GM, ... This is work in progress.
+     * net.*	The future version, for tcp, udp, GM.
      * <br>
      * @param reqprop static properties required by the application,
      *  or <code>null</code>.
@@ -305,15 +306,15 @@ public abstract class Ibis {
         if (ibisname == null) {
             for (int i = 0; i < impls.length; i++) {
                 StaticProperties ibissp = staticProperties(impls[i]);
-                //		System.out.println("try " + impls[i]);
+                // System.out.println("try " + impls[i]);
                 if (combinedprops.matchProperties(ibissp)) {
-                    //		    System.out.println("match!");
+                    // System.out.println("match!");
                     implementation_names.add(impls[i]);
                 }
             }
             if (implementation_names.size() == 0) {
-                //		System.err.println("Properties:");
-                //		System.err.println(combinedprops.toString());
+                // System.err.println("Properties:");
+                // System.err.println(combinedprops.toString());
                 throw new NoMatchingIbisException(
                         "Could not find a matching Ibis");
             }
@@ -335,18 +336,17 @@ public abstract class Ibis {
                 implementation_names.add(defaultIbisName);
                 ibisname = defaultIbisName;
             }
-            StaticProperties sp = staticProperties((String) implementation_names
-                    .get(0));
+            StaticProperties sp = staticProperties(
+                    (String) implementation_names.get(0));
             if (!combinedprops.matchProperties(sp)) {
                 StaticProperties clashes = combinedprops
                         .unmatchedProperties(sp);
-                System.err
-                        .println("WARNING: the "
-                                + ibisname
-                                + " version of Ibis does not match the required properties.\n"
-                                + "The unsupported properties are:\n"
-                                + clashes.toString()
-                                + "This Ibis version was explicitly requested, so the run continues ...");
+                System.err.println("WARNING: the " + ibisname
+                       + " version of Ibis does not match the required "
+                       + "properties.\nThe unsupported properties are:\n"
+                       + clashes.toString()
+                       + "This Ibis version was explicitly requested, "
+                       + "so the run continues ...");
             }
             if (ibisname.startsWith("net")) {
                 sp.add("IbisName", ibisname);
@@ -464,8 +464,8 @@ public abstract class Ibis {
                 implList.add(name);
                 implProperties.add(sp);
             }
-            //	    System.out.println("Ibis: " + name);
-            //	    System.out.println(sp.toString());
+            // System.out.println("Ibis: " + name);
+            // System.out.println(sp.toString());
         }
     }
 
@@ -501,8 +501,8 @@ public abstract class Ibis {
             }
             if (defaultIbisName == null) {
                 throw new IOException(
-                        "Error in properties file: could not find the default Ibis ("
-                                + defaultIbisNickname + ")");
+                        "Error in properties file: could not find the "
+                        + "default Ibis (" + defaultIbisNickname + ")");
             }
         } else {
             throw new IOException(
@@ -612,7 +612,8 @@ public abstract class Ibis {
      * @return the static properties for a given implementation,
      *  or <code>null</code> if not present.
      */
-    public static synchronized StaticProperties staticProperties(String implName) {
+    public static synchronized StaticProperties staticProperties(
+            String implName) {
         int index = implList.indexOf(implName);
         if (index < 0)
             return null;
@@ -714,7 +715,7 @@ public abstract class Ibis {
     /**
      * This method is used to check if the properties for a PortType
      * match the properties of this Ibis.
-     * @param p	the properties for the PortType.
+     * @param p the properties for the PortType.
      * @exception IbisException is thrown when this Ibis cannot provide
      * the properties requested for the PortType.
      */
@@ -723,7 +724,7 @@ public abstract class Ibis {
             System.err.println("Ibis required properties: " + requiredprops);
             System.err.println("Port required properties: " + p);
             throw new IbisException(
-                    "Port properties don't match the required properties of Ibis");
+                    "Port properties don't match the Ibis required properties");
         }
     }
 

@@ -175,7 +175,8 @@ final class AlternativeTypeInfo {
     }
 
     /**
-     * Try to create an object through the newInstance method of ObjectStreamClass.
+     * Try to create an object through the newInstance method of
+     * ObjectStreamClass.
      * Return null if it fails for some reason.
      */
     Object newInstance() {
@@ -424,7 +425,8 @@ final class AlternativeTypeInfo {
 
                     int modifiers = field.getModifiers();
 
-                    if ((modifiers & (Modifier.TRANSIENT | Modifier.STATIC)) == 0) {
+                    if ((modifiers & (Modifier.TRANSIENT | Modifier.STATIC))
+                            == 0) {
                         Class field_type = field.getType();
 
                         /* This part is a bit scary. We basically switch of the
@@ -623,7 +625,8 @@ final class AlternativeTypeInfo {
             if (serial_persistent_fields != null) {
                 for (int i = 0; i < serial_persistent_fields.length; i++) {
                     if (serial_persistent_fields[i].getType() == tp) {
-                        if (name.equals(serial_persistent_fields[i].getName())) {
+                        if (name.equals(
+                                    serial_persistent_fields[i].getName())) {
                             return offset;
                         }
                         offset++;

@@ -79,8 +79,8 @@ public abstract class RMISocketFactory {
     }
 
     /**
-     * Gets the failure handler that is called by the RMI runtime if server socket
-     * creation fails. Not supported in Ibis RMI.
+     * Gets the failure handler that is called by the RMI runtime if server
+     * socket creation fails. Not supported in Ibis RMI.
      * @return the failure handler.
      */
     public static RMIFailureHandler getFailureHandler() {

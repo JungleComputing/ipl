@@ -237,8 +237,8 @@ public class Timer implements java.io.Serializable {
         java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
         nf.setMaximumFractionDigits(3);
         nf.setMinimumFractionDigits(3);
-        //	nf.setMaximumIntegerDigits(3);
-        //	nf.setMinimumIntegerDigits(3);
+        // nf.setMaximumIntegerDigits(3);
+        // nf.setMinimumIntegerDigits(3);
         nf.setGroupingUsed(false);
 
         // special case for 0

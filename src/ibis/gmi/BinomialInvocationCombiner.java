@@ -11,7 +11,8 @@ public abstract class BinomialInvocationCombiner {
      *
      * @param in1 the first input {@link ParameterVector}
      * @param in2 the second input {@link ParameterVector}
-     * @param out the result {@link ParameterVector} of combining the "in" parameters
+     * @param out the result {@link ParameterVector} of combining the
+     *   "in" parameters
      */
     public abstract void combine(ParameterVector in1, ParameterVector in2,
             ParameterVector out);

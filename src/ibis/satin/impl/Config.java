@@ -116,7 +116,10 @@ public interface Config {
     static final boolean ABORT_STATS = STATS
             && TypedProperties.booleanProperty(s_stats_abort, true);
 
-    /** Enable or disable statistics for aborts/restarts done for fault-tolerance. */
+    /**
+     * Enable or disable statistics for aborts/restarts done for
+     * fault-tolerance.
+     */
     static final boolean FT_STATS = STATS
             && TypedProperties.booleanProperty(s_stats_ft, true);
 
@@ -220,8 +223,11 @@ public interface Config {
     static final boolean HANDLE_MESSAGES_IN_LATENCY = TypedProperties
             .booleanProperty(s_in_latency, false);
 
-    /** Use multicast to update the tuple space */
-    /** Don't use with fault tolerance. Multicast ports don't work with crashes yet*/
+    /**
+     * Enable or disable multicast to update the tuple space.
+     * Don't use with fault tolerance. Multicast ports don't work with crashes
+     * yet.
+     */
     static final boolean SUPPORT_TUPLE_MULTICAST = TypedProperties
             .booleanProperty(s_tuple_multi, true);
 

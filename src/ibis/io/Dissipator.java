@@ -88,8 +88,8 @@ public abstract class Dissipator {
      * @param	offset		The first element to write
      * @param	length		The number of elements to write
      */
-    public abstract void readArray(boolean[] destination, int offset, int length)
-            throws IOException;
+    public abstract void readArray(boolean[] destination, int offset,
+            int length) throws IOException;
 
     /**
      * Reads a (slice of) an array of Booleans out of the dissipator

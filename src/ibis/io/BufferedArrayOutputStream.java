@@ -63,11 +63,11 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
         if (index + incr >= BUF_SIZE) {
             bytes += index;
 
-            //	    System.err.print("fflushing [");
-            //	    for (int i=0;i<index;i++) { 
-            //		System.err.print(buffer[i] + ",");
-            //	    }
-            //	    System.err.println("] " + bytes);
+            // System.err.print("fflushing [");
+            // for (int i=0;i<index;i++) { 
+            //     System.err.print(buffer[i] + ",");
+            // }
+            // System.err.println("] " + bytes);
 
             out.write(buffer, 0, index);
             index = 0;
@@ -100,7 +100,6 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
         if (DEBUG) {
             System.err.println("writeArray(byte[" + off + " ... " + (off + len)
                     + "])");
-
         }
 
         if (len > (BUF_SIZE - index)) {
@@ -154,7 +153,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
             int size = Math.min((BUF_SIZE - index) / SIZEOF_SHORT, len);
 
-            //	    System.err.println("Room to write " + size + " shorts");
+            // System.err.println("Room to write " + size + " shorts");
 
             conversion.short2byte(ref, off, size, buffer, index);
 
@@ -162,7 +161,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
             len -= size;
             index += size * SIZEOF_SHORT;
 
-            //	    System.err.println("Len = " + len + " index = " + index);
+            // System.err.println("Len = " + len + " index = " + index);
 
         } while (len != 0);
     }
@@ -179,7 +178,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
 
             int size = Math.min((BUF_SIZE - index) / SIZEOF_INT, len);
 
-            //	    System.err.println("Room to write " + size + " ints");
+            // System.err.println("Room to write " + size + " ints");
 
             conversion.int2byte(ref, off, size, buffer, index);
 
@@ -187,7 +186,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
             len -= size;
             index += size * SIZEOF_INT;
 
-            //	    System.err.println("Len = " + len + " index = " + index);
+            // System.err.println("Len = " + len + " index = " + index);
 
         } while (len != 0);
     }

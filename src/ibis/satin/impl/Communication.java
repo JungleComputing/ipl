@@ -94,20 +94,20 @@ public abstract class Communication extends SpawnSync {
     boolean satinPoll() {
         if (POLL_FREQ == 0) { // polling is disabled
             if (HANDLE_MESSAGES_IN_LATENCY) {
-                System.err
-                        .println("Polling is disabled while messages are handled in the latency.\n"
-                                + "This is a configuration error.");
+                System.err.println("Polling is disabled while messages are "
+                        + "handled in the latency.\n"
+                        + "This is a configuration error.");
                 System.exit(1);
             }
             return false;
         }
 
-        if (upcalls && !upcallPolling) { // we are using upcalls, but don't want
-            // to poll
+        if (upcalls && !upcallPolling) {
+            // we are using upcalls, but don't want to poll
             if (HANDLE_MESSAGES_IN_LATENCY) {
-                System.err
-                        .println("Polling is disabled while messages are handled in the latency.\n"
-                                + "This is a configuration error.");
+                System.err .println("Polling is disabled while messages are "
+                        + "handled in the latency.\n"
+                        + "This is a configuration error.");
                 System.exit(1);
             }
             return false;
@@ -136,8 +136,8 @@ public abstract class Communication extends SpawnSync {
             if (m != null) {
                 messageHandler.upcall(m);
                 try {
-                    m.finish(); // Finish the message, the upcall does not need
-                    // to do this.
+                    // Finish the message, the upcall does not need to do this.
+                    m.finish();
                 } catch (Exception e) {
                     System.err.println("error in finish: " + e);
                 }

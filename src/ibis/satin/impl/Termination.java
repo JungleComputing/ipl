@@ -31,7 +31,7 @@ public abstract class Termination extends Initialization {
 
         if (master) {
             exiting = true;
-            //			algorithm.exit(); // give the algorithm time to clean up
+            // algorithm.exit(); // give the algorithm time to clean up
 
             for (int i = 0; i < size; i++) {
                 try {
@@ -52,9 +52,8 @@ public abstract class Termination extends Initialization {
                     writeMessage.finish();
                 } catch (IOException e) {
                     synchronized (this) {
-                        System.err
-                                .println("SATIN: Could not send exit message to "
-                                        + victims.getIdent(i));
+                        System.err.println("SATIN: Could not send exit "
+                                + "message to " + victims.getIdent(i));
                     }
                 }
             }
@@ -78,7 +77,7 @@ public abstract class Termination extends Initialization {
         } else { // send exit ack to master
             SendPort mp = null;
 
-            //			algorithm.exit(); //give the algorithm time to clean up
+            // algorithm.exit(); //give the algorithm time to clean up
 
             synchronized (this) {
                 mp = getReplyPortWait(masterIdent);
@@ -107,10 +106,11 @@ public abstract class Termination extends Initialization {
 
         algorithm.exit(); // give the algorithm time to clean up
 
-        if (master && stats)
+        if (master && stats) {
             printStats();
+        }
 
-        //		System.exit(1);
+        // System.exit(1);
 
         try {
             if (SUPPORT_TUPLE_MULTICAST) {
@@ -145,9 +145,9 @@ public abstract class Termination extends Initialization {
                     s.close();
                 }
 
-                //				if(COMM_DEBUG) {
-                //				  out.println(" DONE");
-                //				  }
+                // if (COMM_DEBUG) {
+                //     out.println(" DONE");
+                // }
             } catch (Throwable e) {
                 System.err.println("port.close() throws " + e);
             }
@@ -187,7 +187,7 @@ public abstract class Termination extends Initialization {
         // The app should register a shutdownhook. --Rob
         System.gc();
         System.runFinalization();
-        //		System.runFinalizersOnExit(true); // depricated
+        // System.runFinalizersOnExit(true); // depricated
 
         System.exit(0); // Needed for IBM jit.
     }

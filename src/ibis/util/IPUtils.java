@@ -105,8 +105,8 @@ public class IPUtils {
                     System.err.println("Specified alt ip addr " + external);
                     return external;
                 } catch (java.net.UnknownHostException e) {
-                    System.err
-                            .println("IP addres property specified, but could not resolve it");
+                    System.err.println("IP addres property specified, "
+                            + "but could not resolve it");
                 }
             }
         } else {
@@ -120,8 +120,8 @@ public class IPUtils {
                     }
                     return external;
                 } catch (java.net.UnknownHostException e) {
-                    System.err
-                            .println("IP addres property specified, but could not resolve it");
+                    System.err.println("IP addres property specified, "
+                            + "but could not resolve it");
                 }
             }
 
@@ -132,8 +132,8 @@ public class IPUtils {
                     external = InetAddress.getByName(myIp);
                     return external;
                 } catch (java.net.UnknownHostException e) {
-                    System.err
-                            .println("IP addres property specified, but could not resolve it");
+                    System.err.println("IP addres property specified, "
+                            + "but could not resolve it");
                 }
             }
 
@@ -144,8 +144,8 @@ public class IPUtils {
                     external = InetAddress.getByName(myIp);
                     return external;
                 } catch (java.net.UnknownHostException e) {
-                    System.err
-                            .println("IP addres property specified, but could not resolve it");
+                    System.err.println("IP addres property specified, "
+                            + "but could not resolve it");
                 }
             }
         }
@@ -167,8 +167,8 @@ public class IPUtils {
             }
         } catch (java.net.UnknownHostException e) {
             if (DEBUG) {
-                System.err
-                        .println("InetAddress.getLocalHost().getHostName() failed");
+                System.err.println("InetAddress.getLocalHost().getHostName() "
+                        + "failed");
             }
         }
 
@@ -181,8 +181,8 @@ public class IPUtils {
             e = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException ex) {
             if (DEBUG) {
-                System.err
-                        .println("Could not get network interfaces. Trying local.");
+                System.err.println("Could not get network interfaces. "
+                        + "Trying local.");
             }
         }
         boolean first = true;
@@ -199,8 +199,8 @@ public class IPUtils {
             for (; e.hasMoreElements();) {
                 NetworkInterface nw = (NetworkInterface) e.nextElement();
 
-                for (Enumeration e2 = nw.getInetAddresses(); e2
-                        .hasMoreElements();) {
+                for (Enumeration e2 = nw.getInetAddresses();
+                        e2.hasMoreElements();) {
                     InetAddress address = (InetAddress) e2.nextElement();
                     if (DEBUG) {
                         System.err.println("trying address: "
@@ -220,10 +220,10 @@ public class IPUtils {
                         } else if (DEBUG || (address instanceof Inet4Address)) {
                             if (first) {
                                 first = false;
-                                System.err
-                                        .println("WARNING, this machine has more than one external "
-                                                + "IP address, using "
-                                                + external);
+                                System.err.println("WARNING, this machine has "
+                                        + "more than one external "
+                                        + "IP address, using "
+                                        + external);
                                 System.err.println("  but found " + address
                                         + " as well");
                             } else {
@@ -254,16 +254,18 @@ public class IPUtils {
                 try {
                     InetAddress a = InetAddress.getLocalHost();
                     if (a == null) {
-                        System.err
-                                .println("Could not find local IP address, you should specify the -Dibis.util.ip.address=A.B.C.D option");
+                        System.err.println("Could not find local IP address, "
+                                + "you should specify the "
+                                + "-Dibis.util.ip.address=A.B.C.D option");
                         return null;
                     }
                     String name = a.getHostName();
                     external = InetAddress.getByName(InetAddress
                             .getByName(name).getHostAddress());
                 } catch (java.net.UnknownHostException ex) {
-                    System.err
-                            .println("Could not find local IP address, you should specify the -Dibis.util.ip.address=A.B.C.D option");
+                    System.err.println("Could not find local IP address, you "
+                            + "should specify the "
+                            + "-Dibis.util.ip.address=A.B.C.D option");
                     return null;
                 }
             }

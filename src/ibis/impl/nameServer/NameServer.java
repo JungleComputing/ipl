@@ -9,7 +9,8 @@ import java.util.Properties;
 
 /** 
  * This class defines the API between an Ibis implementation and the nameserver.
- * This way, an Ibis implementation can dynamically load any nameserver implementaton.
+ * This way, an Ibis implementation can dynamically load any nameserver
+ * implementaton.
  */
 public abstract class NameServer implements ibis.ipl.Registry {
 
@@ -36,10 +37,11 @@ public abstract class NameServer implements ibis.ipl.Registry {
         Properties p = System.getProperties();
         String nameServerName = p.getProperty(NSProps.s_impl);
         if (nameServerName == null) {
-            //			String rank = p.getProperty("ibis.pool.host_number");
-            //			if (rank == null || Integer.parseInt(rank) == 0) {
-            //			    System.err.println("property ibis.name_server.impl not set, using TCP nameserver");
-            //			}
+            // String rank = p.getProperty("ibis.pool.host_number");
+            // if (rank == null || Integer.parseInt(rank) == 0) {
+            //     System.err.println("property ibis.name_server.impl not set, "
+            //             + "using TCP nameserver");
+            // }
             nameServerName = "ibis.impl.nameServer.tcp.NameServerClient";
         }
 

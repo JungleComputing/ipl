@@ -155,9 +155,8 @@ class ReceivePortNameServer extends Thread implements Protocol {
                                         try {
                                             p.out.writeByte(PORT_UNKNOWN);
                                         } catch (IOException e) {
-                                            System.out
-                                                    .println("RequestSweeper got IOException"
-                                                            + e);
+                                            System.out.println("RequestSweeper "
+                                                    + "got IOException" + e);
                                             e.printStackTrace();
                                         }
                                         NameServerClient.socketFactory.close(
@@ -291,19 +290,17 @@ class ReceivePortNameServer extends Thread implements Protocol {
                     serverSocket.close();
                     return;
                 default:
-                    System.err
-                            .println("ReceivePortNameServer: got an illegal opcode "
-                                    + opcode);
+                    System.err.println("ReceivePortNameServer: got an illegal "
+                            + "opcode " + opcode);
                 }
 
                 if (opcode != PORT_LOOKUP) {
                     NameServerClient.socketFactory.close(in, out, s);
                 }
             } catch (Exception e1) {
-                System.err
-                        .println("Got an exception in ReceivePortNameServer.run "
-                                + e1 + ", continuing");
-                //				e1.printStackTrace();
+                System.err.println("Got an exception in "
+                        + "ReceivePortNameServer.run " + e1 + ", continuing");
+                // e1.printStackTrace();
                 NameServerClient.socketFactory.close(in, out, s);
             }
         }

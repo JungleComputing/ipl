@@ -31,12 +31,13 @@ public abstract class IbisSocketFactory {
     private static final String[] sysprops = { sf, debug, inbufsize,
             outbufsize, rng };
 
-    private static String DEFAULT_SOCKET_FACTORY = "ibis.impl.util.IbisConnectSocketFactory";
+    private static String DEFAULT_SOCKET_FACTORY
+            = "ibis.impl.util.IbisConnectSocketFactory";
 
     private static String socketFactoryName;
 
-    protected static final boolean DEBUG = TypedProperties.booleanProperty(
-            debug, false);
+    protected static final boolean DEBUG 
+            = TypedProperties.booleanProperty(debug, false);
 
     static boolean firewall = false;
 
@@ -62,8 +63,7 @@ public abstract class IbisSocketFactory {
         if (range != null) {
             int pos = range.indexOf('-');
             if (pos < 0) {
-                System.err
-                        .println("Specify a port range in this format: 3000-4000.");
+                System.err.println("Port range format: 3000-4000.");
                 System.exit(1);
             } else {
                 String from = range.substring(0, pos);
@@ -75,8 +75,7 @@ public abstract class IbisSocketFactory {
                     firewall = true;
                     portNr = startRange;
                 } catch (Exception e) {
-                    System.err
-                            .println("Specify a port range in this format: 3000-4000.");
+                    System.err.println("Port range format: 3000-4000.");
                     System.exit(1);
                 }
             }
@@ -91,13 +90,15 @@ public abstract class IbisSocketFactory {
 
     /** 
      * Simple ServerSocket creator method.
-     * Creates a server socket that will accept connections on the specified port,
+     * Creates a server socket that will accept connections on the
+     * specified port,
      * with the specified listen backlog, on the specified local address.
      * @param port the local TCP port
      * @param backlog the listen backlog
      * @param addr the local Inetaddress the server will bind to
      * @return the server socket created.
-     * @exception IOException when the socket could not be created for some reason.
+     * @exception IOException when the socket could not be created for some
+     * reason.
      */
     public abstract ServerSocket createServerSocket(int port, int backlog,
             InetAddress addr) throws IOException;
@@ -108,7 +109,8 @@ public abstract class IbisSocketFactory {
      * and port.
      * @param rAddr the IP address
      * @param rPort the port
-     * @exception IOException when the socket could not be created for some reason.
+     * @exception IOException when the socket could not be created for some
+     * reason.
      */
     public abstract Socket createSocket(InetAddress rAddr, int rPort)
             throws IOException;
@@ -116,9 +118,9 @@ public abstract class IbisSocketFactory {
     /**
      * Returns a port number.
      * The system property <code>ibis.port.range</code> can be used to specify a
-     * port range, for instance 3000-4000. This can be used to choose port numbers
-     * that are for instance not protected by a firewall. If such a range is not
-     * given, 0 is returned.
+     * port range, for instance 3000-4000. This can be used to choose port
+     * numbers that are for instance not protected by a firewall.
+     * If such a range is not given, 0 is returned.
      * @return a port number, or 0, which means that any free port will do.
      */
     public synchronized int allocLocalPort() {
@@ -126,8 +128,8 @@ public abstract class IbisSocketFactory {
             int res = portNr++;
             if (portNr >= endRange) {
                 portNr = startRange;
-                System.err
-                        .println("WARNING, used more ports than available within specified range. Wrapping around");
+                System.err.println("WARNING, used more ports than available "
+                        + "within specified range. Wrapping around");
             }
             return res;
         }
@@ -144,7 +146,8 @@ public abstract class IbisSocketFactory {
      * @param dest the IP address
      * @param port the port
      * @param localIP the local IP address, or <code>null</code>
-     * @param timeoutMillis if < 0, throw exception on failure. If 0, retry until success.
+     * @param timeoutMillis if < 0, throw exception on failure.
+     * If 0, retry until success.
      * if > 0, block at most <code>timeoutMillis</code> milliseconds.
      * @exception IOException is thrown when the socket was not properly created
      * within this time.
@@ -155,15 +158,19 @@ public abstract class IbisSocketFactory {
 
     /** 
      * Simple ServerSocket creator method.
-     * Creates a server socket that will accept connections on the specified port,
-     * on the specified local address. If the specified address is <code>null</code>,
+     * Creates a server socket that will accept connections on the specified
+     * port, on the specified local address.
+     * If the specified address is <code>null</code>,
      * the first of this machine's IP addresses is chosen.
-     * @param port the local TCP port, or 0, in which case a free port is chosen.
-     * @param localAddress the local Inetaddress the server will bind to, or <code>null</code>.
-     * @param retry when <code>true</code>, the method blocks until the socket is
-     * successfuly created.
+     * @param port the local TCP port, or 0, in which case a free port is
+     * chosen.
+     * @param localAddress the local Inetaddress the server will bind to, or
+     * <code>null</code>.
+     * @param retry when <code>true</code>, the method blocks until the socket
+     * is successfuly created.
      * @return the server socket created.
-     * @exception IOException when the socket could not be created for some reason.
+     * @exception IOException when the socket could not be created for some
+     * reason.
      */
     public abstract ServerSocket createServerSocket(int port,
             InetAddress localAddress, boolean retry) throws IOException;

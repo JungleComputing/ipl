@@ -41,8 +41,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
     private final IbisSocketFactory socketFactory;
 
-    TcpPortHandler(TcpIbisIdentifier me, boolean brokered, IbisSocketFactory fac)
-            throws IOException {
+    TcpPortHandler(TcpIbisIdentifier me, boolean brokered,
+            IbisSocketFactory fac) throws IOException {
         this.me = me;
 
         use_brokered_links = brokered;
@@ -219,8 +219,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             /* Connect to the serversocket, so that the port handler
              * thread wakes up.
              */
-            socketFactory
-                    .createSocket(me.address(), port, me.address(), 0 /* retry */);
+            socketFactory.createSocket(me.address(), port, me.address(), 0);
         } catch (Exception e) {
             // Ignore
         }
@@ -257,19 +256,19 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     + s.getPort() + " on local port " + s.getLocalPort());
         }
 
-        ObjectInputStream obj_in = new ObjectInputStream(new DummyInputStream(
-                in));
-        DataOutputStream data_out = new DataOutputStream(new DummyOutputStream(
-                out));
+        ObjectInputStream obj_in
+                = new ObjectInputStream(new DummyInputStream(in));
+        DataOutputStream data_out
+                = new DataOutputStream(new DummyOutputStream(out));
 
         if (DEBUG) {
             System.err.println("--> S Reading Data");
         }
 
-        TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier) obj_in
-                .readObject();
-        TcpSendPortIdentifier send = (TcpSendPortIdentifier) obj_in
-                .readObject();
+        TcpReceivePortIdentifier receive
+                = (TcpReceivePortIdentifier) obj_in.readObject();
+        TcpSendPortIdentifier send
+                = (TcpSendPortIdentifier) obj_in.readObject();
         TcpIbisIdentifier ibis = send.ibis;
 
         if (DEBUG) {
@@ -356,7 +355,9 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
     }
 
     public void run() {
-        /* this thread handles incoming connection request from the connect(TcpSendPort) call */
+        /* This thread handles incoming connection request from the
+         * connect(TcpSendPort) call.
+         */
 
         if (DEBUG) {
             System.err.println("--> TcpPortHandler running");
@@ -377,16 +378,16 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                  Close this receiveport.
                  */
                 try {
-                    System.err
-                            .println("EEK: TcpPortHandler:run: got exception in accept ReceivePort closing!: "
-                                    + e);
+                    System.err.println("EEK: TcpPortHandler:run: got exception "
+                            + "in accept ReceivePort closing!: " + e);
                     e.printStackTrace();
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
 
                 cleanup();
-                throw new IbisError("Fatal: PortHandler could not do an accept");
+                throw new IbisError(
+                        "Fatal: PortHandler could not do an accept");
             }
 
             if (DEBUG) {
@@ -411,10 +412,10 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
                 if (use_brokered_links) {
                     InputStream in = s.getInputStream();
-                    ObjectInputStream obj_in = new ObjectInputStream(
-                            new DummyInputStream(in));
-                    TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier) obj_in
-                            .readObject();
+                    ObjectInputStream obj_in
+                            = new ObjectInputStream(new DummyInputStream(in));
+                    TcpReceivePortIdentifier receive
+                            = (TcpReceivePortIdentifier) obj_in.readObject();
                     obj_in.close();
                     TcpReceivePort rp = findReceivePort(receive);
                     final DynamicProperties p = rp == null ? null : rp
@@ -439,9 +440,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
             } catch (Exception e) {
                 try {
-                    System.err
-                            .println("EEK: TcpPortHandler:run: got exception (closing this socket only: "
-                                    + e);
+                    System.err.println("EEK: TcpPortHandler:run: got exception "
+                            + "(closing this socket only: " + e);
                     e.printStackTrace();
                     if (s != null)
                         s.close();

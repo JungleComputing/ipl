@@ -108,7 +108,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         try {
             upcall.upcall(msg);
         } catch (IOException e) {
-            //an error occured on receiving (or finishing!) the message during the upcall.
+            // An error occured on receiving (or finishing!) the message during
+            // the upcall.
             finishMessage(e);
             return false; // no need to start a new handler thread...
         }
@@ -124,7 +125,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
          * in the finish() call.
          */
         synchronized (this) {
-            if (!msg.isFinished) { // It wasn't finished. Cool, this means that we don't have to start a new thread!
+            if (!msg.isFinished) {
+                // It wasn't finished. Cool, this means that we don't have to
+                // start a new thread!
                 this.m = null;
                 if (STATS) {
                     long after = msg.getHandler().dummy.getCount();
@@ -218,7 +221,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             // Wait until the receiver thread finishes this message.
             // We must wait here, because the thread that calls this method 
             // wants to read an opcode from the stream.
-            // It can only read this opcode after the whole message is gone first.
+            // It can only read this opcode after the whole message is gone
+            // first.
             while (this.m != null) {
                 try {
                     wait();
@@ -402,8 +406,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             }
 
             if (!found) {
-                throw new IbisError(
-                        "TcpReceivePort: Connection handler not found in leave");
+                throw new IbisError("TcpReceivePort: Connection handler "
+                        + "not found in leave");
             }
             // Notify threads that might be blocked in a free
             notifyAll();
@@ -436,7 +440,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         }
 
         if (m != null) {
-            // throw new IbisError("Doing free while a msg is alive, port = " + name + " fin = " + m.isFinished);
+            // throw new IbisError("Doing free while a msg is alive, port = "
+            //         + name + " fin = " + m.isFinished);
             // No, this can happen when an application closes after
             // processing an upcall. Just let it go.
         }
@@ -492,7 +497,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
                     in);
 
             if (connections.length == connectionsIndex) {
-                ConnectionHandler[] temp = new ConnectionHandler[2 * connections.length];
+                ConnectionHandler[] temp
+                        = new ConnectionHandler[2 * connections.length];
                 for (int i = 0; i < connectionsIndex; i++) {
                     temp[i] = connections[i];
                 }
@@ -571,15 +577,15 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
     }
 
     public synchronized SendPortIdentifier[] lostConnections() {
-        SendPortIdentifier[] res = (SendPortIdentifier[]) lostConnections
-                .toArray();
+        SendPortIdentifier[] res
+                = (SendPortIdentifier[]) lostConnections.toArray();
         lostConnections.clear();
         return res;
     }
 
     public synchronized SendPortIdentifier[] newConnections() {
-        SendPortIdentifier[] res = (SendPortIdentifier[]) newConnections
-                .toArray();
+        SendPortIdentifier[] res
+                = (SendPortIdentifier[]) newConnections.toArray();
         newConnections.clear();
         return res;
     }

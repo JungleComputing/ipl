@@ -53,8 +53,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println(spacing + "\tw.writeByte(" + resultOpcode + ");");
 
         if (!ret.equals(Type.VOID)) {
-            output
-                    .println(writeMessageType(spacing + "\t", "w", ret,
+            output.println(writeMessageType(spacing + "\t", "w", ret,
                             "result"));
         }
 
@@ -72,9 +71,9 @@ class GMISkeletonGenerator extends GMIGenerator {
 
         output.println(spacing + "case ReplyScheme.R_RETURN:");
         output.println(spacing + "case ReplyScheme.R_COMBINE_BINOMIAL:");
-        output
-                .println(spacing
-                        + "\tif (invocationMode != InvocationScheme.I_SINGLE && root_object != myGroupRank) {");
+        output.println(spacing
+                        + "\tif (invocationMode != InvocationScheme.I_SINGLE "
+                        + "&& root_object != myGroupRank) {");
         output.println(spacing + "\t\tbreak;");
         output.println(spacing + "\t}");
 
@@ -144,9 +143,9 @@ class GMISkeletonGenerator extends GMIGenerator {
 
         output.println(spacing
                 + "\t\tfor (int i = 0; i < info.numInvokers; i++) {");
-        output
-                .println(spacing
-                        + "\t\t\tw = Group.unicast(info.participating_cpus[i]).newMessage();");
+        output.println(spacing
+                + "\t\t\tw = Group.unicast(info.participating_cpus[i])"
+                + ".newMessage();");
         output.println(spacing + "\t\t\tw.writeByte(INVOCATION_REPLY);");
         output.println(spacing + "\t\t\tw.writeByte((byte) resultMode);");
         output.println(spacing + "\t\t\tw.writeInt(info.stubids_tickets[i]);");
@@ -167,9 +166,9 @@ class GMISkeletonGenerator extends GMIGenerator {
 
         /* the default case */
         output.println(spacing + "default:");
-        output
-                .println(spacing
-                        + "\tSystem.err.println(\"OOPS: group_skeleton got illegal resultMode number!\");");
+        output.println(spacing
+                + "\tSystem.err.println(\"OOPS: group_skeleton got illegal "
+                + "resultMode number!\");");
         output.println(spacing + "\tSystem.exit(1);");
         output.println(spacing + "\tbreak;");
         output.println();
@@ -194,9 +193,9 @@ class GMISkeletonGenerator extends GMIGenerator {
                         temp, true));
                 output.println(spacing
                         + "\t} catch(ClassNotFoundException e) {");
-                output
-                        .println(spacing
-                                + "\t\tthrow new RuntimeException(\"class not found exception \" + e);");
+                output.println(spacing
+                        + "\t\tthrow new RuntimeException(\"class not found "
+                        + "exception \" + e);");
                 output.println(spacing + "\t}");
             }
         }
@@ -234,11 +233,9 @@ class GMISkeletonGenerator extends GMIGenerator {
         Type ret = m.getReturnType();
         Type[] params = m.getArgumentTypes();
 
-        output
-                .print(spacing
-                        + "private final void GMI_"
-                        + m.getName()
-                        + "(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IOException {");
+        output.print(spacing + "private final void GMI_" + m.getName()
+                + "(int invocationMode, int resultMode, ReadMessage r) "
+                + "throws IbisException, IOException {");
         output.println();
 
         output.println(spacing + "\tint cpu_rank = 0;");
@@ -256,9 +253,8 @@ class GMISkeletonGenerator extends GMIGenerator {
         }
 
         if (!ret.equals(Type.VOID)) {
-            output
-                    .println(spacing + "\t" + getInitedLocal(ret, "result")
-                            + ";");
+            output .println(spacing + "\t" + getInitedLocal(ret, "result")
+                    + ";");
         }
 
         output.println();
@@ -270,9 +266,9 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println(spacing
                 + "\t\t\tinfo = (CombinedInvocationInfo) r.readObject();");
         output.println(spacing + "\t\t} catch(ClassNotFoundException e) {");
-        output
-                .println(spacing
-                        + "\t\t\tthrow new Error(\"Expected CombinedInvocationInfo\", e);");
+        output.println(spacing
+                + "\t\t\tthrow new Error(\"Expected CombinedInvocationInfo\", "
+                + "e);");
         output.println(spacing + "\t\t}");
         output.println(spacing + "\t}");
 
@@ -331,11 +327,9 @@ class GMISkeletonGenerator extends GMIGenerator {
                         + getType(ret)
                         + "(combiner, false, cpu_rank, result, ex);");
             } else {
-                output
-                        .println(spacing
-                                + "\t\t\tresult = ("
-                                + getType(ret)
-                                + ") combine_Object(combiner, false, cpu_rank, result, ex);");
+                output.println(spacing + "\t\t\tresult = (" + getType(ret)
+                        + ") combine_Object(combiner, false, cpu_rank, result, "
+                        + "ex);");
             }
         }
 
@@ -385,9 +379,10 @@ class GMISkeletonGenerator extends GMIGenerator {
 
     void messageHandler(String spacing, Vector methods) {
 
-        output
-                .println(spacing
-                        + "public final void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IOException {");
+        output.println(spacing
+                + "public final void handleMessage(int invocationMode, "
+                + "int resultMode, ReadMessage r) "
+                + "throws IbisException, IOException {");
         output.println();
         output.println(spacing + "\tint method = r.readInt();");
 
@@ -402,9 +397,9 @@ class GMISkeletonGenerator extends GMIGenerator {
         }
 
         output.println(spacing + "\tdefault:");
-        output
-                .println(spacing
-                        + "\t\tSystem.err.println(\"OOPS: group_skeleton got illegal method number!\");");
+        output.println(spacing
+                + "\t\tSystem.err.println(\"OOPS: group_skeleton got illegal "
+                + "method number!\");");
         output.println(spacing + "\t\tSystem.exit(1);");
         output.println(spacing + "\t\tbreak;");
 

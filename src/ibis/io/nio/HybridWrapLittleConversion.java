@@ -85,7 +85,8 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void short2byte(short[] src, int off, int len, byte[] dst, int off2) {
+    public void short2byte(short[] src, int off, int len, byte[] dst,
+            int off2) {
 
         if (len < THRESHOLD / SHORT_SIZE) {
             super.short2byte(src, off, len, dst, off2);
@@ -191,7 +192,8 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void float2byte(float[] src, int off, int len, byte[] dst, int off2) {
+    public void float2byte(float[] src, int off, int len, byte[] dst,
+            int off2) {
 
         if (len < FP_THRESHOLD / FLOAT_SIZE) {
             super.float2byte(src, off, len, dst, off2);
@@ -226,7 +228,8 @@ public final class HybridWrapLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void double2byte(double[] src, int off, int len, byte[] dst, int off2) {
+    public void double2byte(double[] src, int off, int len, byte[] dst,
+            int off2) {
 
         if (len < FP_THRESHOLD / DOUBLE_SIZE) {
             super.double2byte(src, off, len, dst, off2);

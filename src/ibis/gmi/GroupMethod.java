@@ -10,8 +10,8 @@ import ibis.ipl.SendPort;
  */
 public class GroupMethod {
     /** 
-     * After configuration, the {@link InvocationScheme} inv holds the invocation
-     * scheme.
+     * After configuration, the {@link InvocationScheme} inv holds the
+     * invocation scheme.
      */
     public InvocationScheme inv;
 
@@ -95,7 +95,8 @@ public class GroupMethod {
             if (si.destination >= parent_stub.targetGroupSize
                     || si.destination < 0) {
                 throw new ConfigurationException(
-                        "Invalid configuration: destination groupmember ouf of range!");
+                        "Invalid configuration: destination groupmember ouf of "
+                        + "range!");
             }
 
             destinationSkeleton = parent_stub.memberSkels[si.destination];
@@ -111,7 +112,8 @@ public class GroupMethod {
             if (repscheme.mode == ReplyScheme.R_COMBINE_FLAT
                     || repscheme.mode == ReplyScheme.R_COMBINE_BINOMIAL) {
                 throw new ConfigurationException(
-                        "Invalid configuration: combined reply not possible with single invocation");
+                        "Invalid configuration: combined reply not possible "
+                        + "with single invocation");
             }
 
             invocation_mode = invscheme.mode;

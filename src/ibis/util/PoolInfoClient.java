@@ -107,7 +107,6 @@ public class PoolInfoClient extends PoolInfo {
         if (key == null) {
             key = TypedProperties.stringProperty("ibis.name_server.key");
             if (key == null) {
-                // System.err.println("Warning: " + s_key + " property not set, using 'unknown'");
                 key = "unknown";
             }
         }
@@ -124,8 +123,8 @@ public class PoolInfoClient extends PoolInfo {
                 socket = new Socket(serverAddress, serverPort);
             } catch (Exception e) {
                 if (cnt == 60) {
-                    System.err
-                            .println("Could not connect to PoolInfoServer after 60 seconds; giving up ...");
+                    System.err.println("Could not connect to PoolInfoServer "
+                            + "after 60 seconds; giving up ...");
                     throw new RuntimeException("Got exception: " + e);
                 }
                 try {
@@ -136,16 +135,16 @@ public class PoolInfoClient extends PoolInfo {
             }
         }
         try {
-            DataOutputStream out = new DataOutputStream(socket
-                    .getOutputStream());
+            DataOutputStream out = new DataOutputStream(
+                    socket.getOutputStream());
             out.writeUTF(key);
             out.writeInt(total_hosts);
             out.writeInt(remove_doubles);
             out.writeUTF(clusterName);
             out.flush();
 
-            ObjectInputStream in = new ObjectInputStream(socket
-                    .getInputStream());
+            ObjectInputStream in = new ObjectInputStream(
+                    socket.getInputStream());
             host_number = in.readInt();
             if (host_number == -1) {
                 in.close();

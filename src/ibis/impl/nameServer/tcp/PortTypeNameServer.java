@@ -113,8 +113,9 @@ class PortTypeNameServer extends Thread implements Protocol {
                 out.writeByte(PORTTYPE_ACCEPTED);
             } else {
                 out.writeByte(PORTTYPE_REFUSED);
-                // System.err.println("PortTypeNameServer: PortType " + name + " refused because of incompatible properties\n" + 
-                //		   temp + "----\n" + p);				
+                // System.err.println("PortTypeNameServer: PortType " + name
+                //         + " refused because of incompatible properties\n"
+                //         + temp + "----\n" + p);
             }
         }
     }
@@ -163,14 +164,12 @@ class PortTypeNameServer extends Thread implements Protocol {
                     handleSeqno();
                     break;
                 default:
-                    System.err
-                            .println("PortTypeNameServer: got an illegal opcode "
-                                    + opcode);
+                    System.err.println("PortTypeNameServer: got an illegal "
+                            + "opcode " + opcode);
                 }
                 NameServerClient.socketFactory.close(in, out, s);
             } catch (Exception e1) {
-                System.err
-                        .println("Got an exception in PortTypeNameServer.run "
+                System.err.println("Got an exception in PortTypeNameServer.run "
                                 + e1);
                 e1.printStackTrace();
                 if (s != null) {

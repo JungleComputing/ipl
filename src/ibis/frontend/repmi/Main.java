@@ -42,8 +42,8 @@ class Main {
         JavaClass repmiInterface = null;
 
         if (args.length == 0) {
-            System.err
-                    .println("Usage : java Main [-v] [-dir | -local] classname");
+            System.err.println("Usage : java Main [-v] [-dir | -local] "
+                    + "classname");
             System.exit(1);
         }
 

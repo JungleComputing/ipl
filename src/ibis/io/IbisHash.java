@@ -15,15 +15,15 @@ import ibis.util.TypedProperties;
  */
 final class IbisHash {
 
-    private static final boolean ASSERTS = TypedProperties
-            .booleanProperty(IOProps.s_hash_asserts);
+    private static final boolean ASSERTS
+            = TypedProperties.booleanProperty(IOProps.s_hash_asserts);
 
     // private final boolean ASSERTS;
-    private static final boolean STATS = TypedProperties
-            .booleanProperty(IOProps.s_hash_stats);
+    private static final boolean STATS
+            = TypedProperties.booleanProperty(IOProps.s_hash_stats);
 
-    private static final boolean TIMINGS = TypedProperties
-            .booleanProperty(IOProps.s_hash_timings);
+    private static final boolean TIMINGS
+            = TypedProperties.booleanProperty(IOProps.s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
 
@@ -142,8 +142,8 @@ final class IbisHash {
     private static final int hash_first(int b, int size) {
         // return ((b >>> SHIFT1) ^ (b & ((1 << SHIFT2) - 1))) & (size-1);
         return ((b >>> SHIFT2) ^ (b & ((1 << SHIFT2) - 1))) & (size - 1);
-        // // This is used in java.util.IdentityHashMap:
-        // // return ((b << 1) - (b << 8)) & (size - 1);
+        // This is used in java.util.IdentityHashMap:
+        // return ((b << 1) - (b << 8)) & (size - 1);
         // return (b - (b << 7)) & (size - 1);
     }
 
@@ -216,10 +216,10 @@ final class IbisHash {
         if (ASSERTS) {
             if (result == 0) {
                 for (int i = offset; i < offset + size; i++) {
-                    if (dataBucket[i] == ref && (!supportDelete || !deleted[i])) {
-                        System.err
-                                .println("CORRUPTED HASH: find returns 'no' but it's there in bucket["
-                                        + i + "]");
+                    if (dataBucket[i] == ref
+                            && (!supportDelete || !deleted[i])) {
+                        System.err.println("CORRUPTED HASH: find returns "
+                                + "'no' but it's there in bucket[" + i + "]");
                     }
                 }
             }
@@ -383,10 +383,10 @@ final class IbisHash {
         if (ASSERTS) {
             if (lazy) {
                 for (int i = offset; i < offset + size; i++) {
-                    if (dataBucket[i] == ref && (!supportDelete || !deleted[i])) {
-                        System.err
-                                .println("CORRUPTED HASH: lazyPut finds 'no' but it's there in bucket["
-                                        + i + "]");
+                    if (dataBucket[i] == ref
+                            && (!supportDelete || !deleted[i])) {
+                        System.err.println("CORRUPTED HASH: lazyPut finds "
+                                + "'no' but it's there in bucket[" + i + "]");
                     }
                 }
             }

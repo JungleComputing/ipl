@@ -64,7 +64,6 @@ public final class RTS {
 
             ibis = Ibis.createIbis("ibis:" + name, "ibis.impl.tcp.TcpIbis",
                     null);
-            //                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.impl.panda.PandaIbis", null);
             localID = ibis.identifier();
             ibisRegistry = ibis.registry();
             //                      ibis.start);
@@ -85,8 +84,6 @@ public final class RTS {
                 if (DEBUG) {
                     System.out.println(name + " I am master");
                 }
-
-                //                                registry = new GroupRegistry();
 
                 /* I am the master */
                 PoolInfo info = PoolInfo.createPoolInfo();
@@ -250,7 +247,8 @@ public final class RTS {
 
         synchronized (skeletons) {
             skeletons.add(num, skel);
-            skeletons.notifyAll(); /* needed to wake up waiting thread on sender */
+            skeletons.notifyAll();
+            /* needed to wake up waiting thread on sender */
         }
     }
 

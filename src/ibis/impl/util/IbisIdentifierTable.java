@@ -74,11 +74,13 @@ final public class IbisIdentifierTable {
             n.ident = ident;
             n.handle = handleCounter++;
             sendTable.put(n, n);
-            // System.out.println("added " + ident + " with handle " + n.handle + " to sendtable");
+            // System.out.println("added " + ident + " with handle "
+            //         + n.handle + " to sendtable");
             return -n.handle;
         }
 
-        // System.out.println("found " + ident + " with handle " + n.handle + " in sendtable");
+        // System.out.println("found " + ident + " with handle "
+        //         + n.handle + " in sendtable");
         return n.handle;
     }
 
@@ -90,7 +92,8 @@ final public class IbisIdentifierTable {
         n.ident = ident;
         receiveTable.put(n, n);
 
-        // System.out.println("added ibis " + ident + " with handle " + n.handle + " to rectable");
+        // System.out.println("added ibis " + ident + " with handle "
+        //         + n.handle + " to rectable");
     }
 
     public synchronized void removeIbis(IbisIdentifier i) {
@@ -139,18 +142,20 @@ final public class IbisIdentifierTable {
         tmpReceiveNode.inStream = stream;
 
         ReceiveNode res = (ReceiveNode) receiveTable.get(tmpReceiveNode);
-        //		if(res == null) {
-        //			System.out.println("EEK");
-        //			System.exit(1);
-        //		}
+        // if(res == null) {
+        //     System.out.println("EEK");
+        //     System.exit(1);
+        // }
 
-        // System.out.println("found cached ibis " + res.ident + " handle was " + handle + " in rectable");
+        // System.out.println("found cached ibis " + res.ident
+        //         + " handle was " + handle + " in rectable");
         cachehits++;
         return res.ident;
     }
+
     /*
-     protected void finalize() throws Throwable {
-     System.out.println("hits: " + cachehits);
-     }
-     */
+    protected void finalize() throws Throwable {
+        System.out.println("hits: " + cachehits);
+    }
+    */
 }

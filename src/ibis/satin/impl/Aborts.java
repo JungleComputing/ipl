@@ -80,10 +80,11 @@ public abstract class Aborts extends WorkStealing {
             assertLocked(this);
         }
         /*
-         * int iter = 0; while(true) { long abortCount = abortedJobs;
+         * while(true) {
+         *     long abortCount = abortedJobs;
          * 
-         * System.err.println("killChildrenOf: iter = " + iter + " abort cnt = " +
-         * abortedJobs);
+         *     System.err.println("killChildrenOf: iter = " + iter 
+         *             + " abort cnt = " + abortedJobs);
          */
         // try work queue, outstanding jobs and jobs on the stack
         // but try stack first, many jobs in q are children of stack jobs.
@@ -91,9 +92,13 @@ public abstract class Aborts extends WorkStealing {
         q.killChildrenOf(targetStamp, targetOwner);
         outstandingJobs.killChildrenOf(targetStamp, targetOwner);
         /*
-         * if(abortedJobs == abortCount) { // no more jobs were removed. break; }
+         *     if(abortedJobs == abortCount) {
+         *         // no more jobs were removed.
+         *         break;
+         *     }
          * 
-         * iter++; }
+         *     iter++;
+         * }
          */
         if (ABORT_TIMING) {
             abortTimer.stop();
@@ -134,13 +139,19 @@ public abstract class Aborts extends WorkStealing {
 
     /*
      * static boolean isDescendentOf(InvocationRecord child, int targetStamp,
-     * IbisIdentifier targetOwner) { for(int i = 0; i <
-     * child.parentStamps.size(); i++) { int currStamp = ((Integer)
-     * child.parentStamps.get(i)).intValue(); IbisIdentifier currOwner =
-     * (IbisIdentifier) child.parentOwners.get(i);
+     *         IbisIdentifier targetOwner) {
+     *     for(int i = 0; i < child.parentStamps.size(); i++) {
+     *         int currStamp = ((Integer) child.parentStamps.get(i)).intValue();
+     *         IbisIdentifier currOwner = (IbisIdentifier)
+     *                 child.parentOwners.get(i);
      * 
-     * if(currStamp == targetStamp && currOwner.equals(targetOwner)) {
-     * System.err.print("t"); return true; } } return false; }
+     *         if (currStamp == targetStamp && currOwner.equals(targetOwner)) {
+     *             System.err.print("t");
+     *             return true;
+     *         }
+     *     }
+     *     return false;
+     * }
      */
     /*
      * message combining for abort messages does not work (I tried). It is very

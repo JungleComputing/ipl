@@ -49,7 +49,8 @@ public abstract class Malleability extends FaultTolerance {
 
     public void joined(IbisIdentifier joiner) {
 
-        //		System.err.println("SATIN '" + ident.name() + "': '" + joiner.name()  +" is joining");
+        // System.err.println("SATIN '" + ident.name() + "': '" + joiner.name()
+        //         + " is joining");
 
         if (joiner.name().equals("ControlCentreIbis"))
             return;
@@ -64,12 +65,15 @@ public abstract class Malleability extends FaultTolerance {
                     + "' from cluster '" + joiner.cluster()
                     + "' is trying to join");
         }
-        //		if (!victims.contains(joiner)) {
+        // if (!victims.contains(joiner)) {
         handleJoin(joiner);
 
-        /*		synchronized (this) {
-         System.err.println("SATIN '" + ident.name() + "': '" + victims.size() + " hosts joined");
-         }*/
+        /*
+         * synchronized (this) {
+         *     System.err.println("SATIN '" + ident.name() + "': '"
+         *             + victims.size() + " hosts joined");
+         * }
+         */
     }
 
     public void died(IbisIdentifier corpse) {
@@ -88,9 +92,11 @@ public abstract class Malleability extends FaultTolerance {
         Victim v;
 
         synchronized (this) {
-            /*			if (FAULT_TOLERANCE && !FT_NAIVE) {
-             globalResultTable.removeReplica(leaver);
-             }*/
+            /*
+             * if (FAULT_TOLERANCE && !FT_NAIVE) {
+             *     globalResultTable.removeReplica(leaver);
+             * }
+             */
             v = victims.remove(leaver);
             notifyAll();
 

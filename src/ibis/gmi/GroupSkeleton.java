@@ -85,8 +85,8 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         /**
-         * Dequeues and returns a group message that resulted from a message from node
-         * "from".
+         * Dequeues and returns a group message that resulted from a message
+         * from node "from".
          *
          * @param from the node from which the message was received
          *
@@ -223,8 +223,8 @@ public abstract class GroupSkeleton implements GroupProtocol {
 
     /**
      * Combines the result of a group method invocation. The combine method
-     * is binomial. Note that it also combines exceptions, and throws an exception
-     * when it should be propagated.
+     * is binomial. Note that it also combines exceptions, and throws an
+     * exception when it should be propagated.
      * This version is for group methods with a float result.
      *
      * @param combiner the binomial combiner object
@@ -240,7 +240,8 @@ public abstract class GroupSkeleton implements GroupProtocol {
     protected final synchronized float combine_float(BinomialCombiner combiner,
             boolean to_all, int lroot, float local_result, Exception ex)
             throws Exception {
-        // TODO: Have a special exception class that can contain nested exceptions?
+        // TODO: Have a special exception class that can contain nested
+        // exceptions?
         // Or, rethrow exception?
 
         int peer;
@@ -260,8 +261,8 @@ public abstract class GroupSkeleton implements GroupProtocol {
                         local_result = combiner.combine(myGroupRank,
                                 local_result, ex, peer, message.floatResult,
                                 message.exceptionResult, groupSize);
-                        /* Any exception now ignored by combiner, otherwise it should
-                         * have thrown an exception.
+                        /* Any exception now ignored by combiner, otherwise it
+                         * should have thrown an exception.
                          */
                         ex = null;
                     } catch (Exception e) {
@@ -1108,8 +1109,8 @@ public abstract class GroupSkeleton implements GroupProtocol {
 
     /**
      * See {@link #combine_float}, but for a group method with a void result.
-     * These need to be combined as well, both for synchronization purposes, and for the
-     * exceptions.
+     * These need to be combined as well, both for synchronization purposes,
+     * and for the exceptions.
      */
     protected final synchronized void combine_void(BinomialCombiner combiner,
             boolean to_all, int lroot, Exception ex) throws Exception {

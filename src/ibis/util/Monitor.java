@@ -192,7 +192,8 @@ public final class Monitor {
 
     /**
      * Creates a {@link ConditionVariable} associated with this Monitor.
-     * @param interruptible when <code>true</code>, {@link Thread#interrupt()}ing
+     * @param interruptible when <code>true</code>,
+     * {@link Thread#interrupt()}ing
      * the {@link Thread} that is waiting on this Condition Variable causes
      * the waiting thread to return with an {@link InterruptedException}.
      * Non-interruptible Condition Variables ignore {@link Thread#interrupt()}.
@@ -241,8 +242,8 @@ public final class Monitor {
         if (Monitor.STATISTICS) {
             out.println("Monitor: lock occupied " + lock_occupied
                     + " unlock for waiter " + unlock_waiting + " prio-bcast "
-                    + unlock_bcast + " <waiters> " + ((double) unlock_waiters)
-                    / unlock_waiting);
+                    + unlock_bcast + " <waiters> " 
+                    + ((double) unlock_waiters) / unlock_waiting);
         }
     }
 

@@ -95,7 +95,8 @@ public class BT_Analyzer {
             Method temp = sub[i];
 
             if (compareMethods(special, temp)) {
-                //				System.out.println(temp.fullName() + " equals " + special.fullName());
+                // System.out.println(temp.fullName() + " equals "
+                //         + special.fullName());
                 dest.add(temp);
             }
         }

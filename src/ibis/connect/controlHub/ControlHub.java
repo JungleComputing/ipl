@@ -69,7 +69,8 @@ class NodeManager extends Thread {
                 switch (action) {
                 case HubProtocol.GETPORT: {
                     /* packet for the hub itself: obtain port number. */
-                    HubProtocol.HubPacketGetPort p = (HubProtocol.HubPacketGetPort) packet;
+                    HubProtocol.HubPacketGetPort p 
+                            = (HubProtocol.HubPacketGetPort) packet;
                     if (p.proposedPort != 0) {
                         int prt = ControlHub.checkPort(hostname, hostport,
                                 p.proposedPort);
@@ -86,7 +87,8 @@ class NodeManager extends Thread {
 
                 case HubProtocol.PORTSET: {
                     /* packet for the hub itself: release port numbers. */
-                    HubProtocol.HubPacketPortSet p = (HubProtocol.HubPacketPortSet) packet;
+                    HubProtocol.HubPacketPortSet p
+                            = (HubProtocol.HubPacketPortSet) packet;
                     ControlHub.removePort(hostname, hostport, p.portset);
                     send = false;
                 }
@@ -94,7 +96,8 @@ class NodeManager extends Thread {
 
                 case HubProtocol.CONNECT: {
                     /* need to figure out a destPort. */
-                    HubProtocol.HubPacketConnect p = (HubProtocol.HubPacketConnect) packet;
+                    HubProtocol.HubPacketConnect p
+                            = (HubProtocol.HubPacketConnect) packet;
                     destPort = ControlHub.resolvePort(destHost, p.serverPort);
                     if (destPort == -1) {
                         sendPacket(destHost, destPort,
@@ -173,7 +176,8 @@ class Node {
 }
 
 public class ControlHub extends Thread {
-    private static Map nodes = new Hashtable(); // Hashtable of Ibisnodes; hash key is canonical hostname of node
+    // Hashtable of Ibisnodes; hash key is canonical hostname of node
+    private static Map nodes = new Hashtable();
 
     private static Map portNodeMap = new Hashtable();
 
@@ -304,7 +308,8 @@ public class ControlHub extends Thread {
         }
     }
 
-    public static void removePort(String hostname, int hostport, ArrayList ports) {
+    public static void removePort(String hostname, int hostport,
+            ArrayList ports) {
         hostname = hostname.toLowerCase();
         synchronized (portNodeMap) {
             Object o = portNodeMap.get(hostname);

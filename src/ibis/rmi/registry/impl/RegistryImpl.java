@@ -62,7 +62,8 @@ public class RegistryImpl implements Registry {
         RTS.createRegistry(port);
     }
 
-    public Remote lookup(String name) throws RemoteException, NotBoundException {
+    public Remote lookup(String name)
+            throws RemoteException, NotBoundException {
         String url = "rmi://" + host + ":" + port + "/" + name;
         try {
             return RTS.lookup(url);
@@ -73,8 +74,8 @@ public class RegistryImpl implements Registry {
         }
     }
 
-    public void bind(String name, Remote obj) throws RemoteException,
-            AlreadyBoundException {
+    public void bind(String name, Remote obj)
+            throws RemoteException, AlreadyBoundException {
         String url = "rmi://" + host + ":" + port + "/" + name;
         try {
             RTS.bind(url, obj);

@@ -67,8 +67,6 @@ class RMIStubGenerator extends RMIGenerator {
         Type ret = getReturnType(m);
         Type[] params = getParameterTypes(m);
 
-        //	    output.println("\t\t\tif (RTS.DEBUG) System.out.println(\"rmi_stub_" + data.classname + "." + m.getName() + " doing RMI call\");");	
-
         if (!ret.equals(Type.VOID)) {
             output.println("\t\t" + getInitedLocal(ret, "result") + ";");
         }
@@ -82,9 +80,8 @@ class RMIStubGenerator extends RMIGenerator {
         output.println("\t\t\t\tw.writeInt(stubID);");
 
         for (int j = 0; j < params.length; j++) {
-            output
-                    .println(writeMessageType("\t\t\t\t", "w", params[j], "p"
-                            + j));
+            output.println(
+                    writeMessageType("\t\t\t\t", "w", params[j], "p" + j));
         }
 
         output.println("\t\t\t\tRTS.startRMITimer(timer_" + number + ");");
@@ -102,8 +99,8 @@ class RMIStubGenerator extends RMIGenerator {
         output.println("\t\t\t\t}");
         output.println("\t\t\t\tr.finish();");
         output.println("\t\t\t} catch(java.io.IOException ioex) {");
-        output
-                .println("\t\t\t\tthrow new RemoteException(\"IO exception\",  ioex);");
+        output.println("\t\t\t\tthrow new RemoteException(\"IO exception\","
+                + " ioex);");
         output.println("\t\t\t}");
         output.println("\t\t\tif (remoteex != null) throw remoteex;");
         ExceptionTable et = m.getExceptionTable();
@@ -157,8 +154,8 @@ class RMIStubGenerator extends RMIGenerator {
         }
         if (et == null || !(caught(et, "java.lang.Exception"))) {
             output.println("\t\t} catch (Exception e) {");
-            output
-                    .println("\t\t\tthrow new RemoteException(\"undeclared checked exception\", e);");
+            output.println("\t\t\tthrow new RemoteException("
+                    + "\"undeclared checked exception\", e);");
         }
         output.println("\t\t}");
     }
@@ -209,11 +206,11 @@ class RMIStubGenerator extends RMIGenerator {
 
     void constructor(Vector methods) {
         output.println("\tpublic rmi_stub_" + data.classname + "() {");
-        //		output.println("\t\tsuper();");
+        // output.println("\t\tsuper();");
         // output.println("\t}");
         // output.println();
         // output.println("\tprotected void initStubDatastructures() {");
-        //		output.println("\t\tsuper();");
+        // output.println("\t\tsuper();");
         for (int i = 0; i < methods.size(); i++) {
             Method m = (Method) methods.get(i);
             output.println("\t\ttimer_" + i

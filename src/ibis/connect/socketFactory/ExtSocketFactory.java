@@ -46,12 +46,14 @@ public class ExtSocketFactory {
     private static final String[] strategyFirewall = { "TCPSplice",
             "RoutedMessages", "PlainTCP" };
 
-    // -3- supports firewall for control only, no splicing. Usefull for tests only.
+    // -3- supports firewall for control only, no splicing.
+    // Usefull for tests only.
     private static final String[] strategyControl = { "RoutedMessages",
             "PlainTCP" };
 
     // -4- TCP splicing only- for tests.
-    private static final String[] strategySplicing = { "TCPSplice", "PlainTCP" };
+    private static final String[] strategySplicing = { "TCPSplice",
+            "PlainTCP" };
 
     // Pick one of the above choices for defaults
     private static String[] defaultTypes = strategyTCP;
@@ -63,9 +65,7 @@ public class ExtSocketFactory {
     static {
         ConnProps.checkProps();
         if (MyDebug.VERBOSE())
-            System.err
-                    .println("# ### ExtSocketFactory: starting configuration.");
-
+            System.err.println("# ExtSocketFactory: starting configuration."); 
         // init types table
         declareNickname("PlainTCP",
                 "ibis.connect.socketFactory.PlainTCPSocketType");
@@ -78,7 +78,8 @@ public class ExtSocketFactory {
         declareNickname("PortRange",
                 "ibis.connect.socketFactory.PortRangeSocketType");
         declareNickname("SSL", "ibis.connect.socketFactory.SSLSocketType");
-        declareNickname("AnyTCP", "ibis.connect.socketFactory.AnyTCPSocketType");
+        declareNickname("AnyTCP",
+                "ibis.connect.socketFactory.AnyTCPSocketType");
         // Declare new nicknames here.
 
         String bl = TypedProperties.stringProperty(ConnProps.datalinks);
@@ -151,8 +152,6 @@ public class ExtSocketFactory {
         try {
             c = Class.forName(className);
         } catch (Exception e) {
-            System.err
-                    .println("# ExtSocketFactory: error while loading socket type.");
             System.err.println("# ExtSocketFactory: socket type " + socketType
                     + " not found.");
             System.err.println("#   known types are:");
@@ -179,8 +178,8 @@ public class ExtSocketFactory {
             System.err.println("# ExtSocketFactory: Socket type constructor "
                     + className + " got exception:");
             e.printStackTrace();
-            System.err
-                    .println("# ExtSocketFactory: loadSocketType returns null");
+            System.err.println("# ExtSocketFactory: loadSocketType "
+                    + "returns null");
         }
         return t;
     }
@@ -196,10 +195,10 @@ public class ExtSocketFactory {
         try {
             f = (ClientServerSocketFactory) t;
         } catch (Exception e) {
-            System.err
-                    .println("SocketFactory: SocketType "
-                            + t.getSocketTypeName()
-                            + " does not support client/sever connection establishment.");
+            System.err.println("SocketFactory: SocketType "
+                               + t.getSocketTypeName()
+                               + " does not support client/sever connection "
+                               + "establishment.");
             throw new Error(e);
         }
         s = f.createClientSocket(addr, port);
@@ -223,10 +222,10 @@ public class ExtSocketFactory {
         try {
             f = (ClientServerSocketFactory) t;
         } catch (Exception e) {
-            System.err
-                    .println("SocketFactory: SocketType "
-                            + t.getSocketTypeName()
-                            + " does not support client/sever connection establishment.");
+            System.err.println("SocketFactory: SocketType "
+                               + t.getSocketTypeName()
+                               + " does not support client/sever connection "
+                               + "establishment.");
             throw new Error(e);
         }
         s = f.createServerSocket(addr, backlog);
@@ -352,8 +351,8 @@ public class ExtSocketFactory {
                 return t;
             }
         }
-        System.err
-                .println("# ExtSocketFactory: warning- no SocketType found for client/server link!");
+        System.err.println("# ExtSocketFactory: warning- no SocketType found "
+                + "for client/server link!");
         return null;
     }
 
@@ -371,8 +370,8 @@ public class ExtSocketFactory {
                 return t;
             }
         }
-        System.err
-                .println("# ExtSocketFactory: warning- no SocketType found for brokered links!");
+        System.err.println("# ExtSocketFactory: warning- no SocketType found "
+                + "for brokered links!");
         return null;
     }
 

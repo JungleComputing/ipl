@@ -26,8 +26,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Properties;
 
-public class NameServerClient extends ibis.impl.nameServer.NameServer implements
-        Runnable, Protocol {
+public class NameServerClient extends ibis.impl.nameServer.NameServer
+        implements Runnable, Protocol {
     static final boolean DEBUG = false;
 
     private PortTypeNameServerClient portTypeNameServerClient;
@@ -178,7 +178,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
             throw new ConnectionRefusedException("NameServerClient: "
                     + id.name() + " is not unique!");
         case IBIS_ACCEPTED:
-            // read the ports for the other name servers and start the receiver thread...
+            // read the ports for the other name servers and start the
+            // receiver thread...
             int temp = in.readInt(); /* Port for the PortTypeNameServer */
             portTypeNameServerClient = new PortTypeNameServerClient(myAddress,
                     serverAddress, temp);
@@ -192,9 +193,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 
             int poolSize = in.readInt();
             if (DEBUG) {
-                System.out
-                        .println("NameServerClient: accepted by nameserver, poolsize "
-                                + poolSize);
+                System.out.println("NameServerClient: accepted by nameserver, "
+                        + "poolsize " + poolSize);
             }
             for (int i = 0; i < poolSize; i++) {
                 IbisIdentifier newid;
@@ -303,8 +303,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
         Socket s;
 
         try {
-            s = socketFactory
-                    .createSocket(serverAddress, port, myAddress, 5000);
+            s = socketFactory.createSocket(serverAddress, port, myAddress,
+                    5000);
         } catch (ConnectionTimedOutException e) {
             // Apparently, the nameserver left.
             return;
@@ -356,9 +356,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
                 s = socketFactory.accept(serverSocket);
 
                 if (DEBUG) {
-                    System.out
-                            .println("NameServerClient: incoming connection from "
-                                    + s.toString());
+                    System.out.println("NameServerClient: incoming connection "
+                            + "from " + s.toString());
                 }
 
             } catch (Exception e) {
@@ -402,9 +401,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
                 case (IBIS_JOIN):
                     ibisId = (IbisIdentifier) in.readObject();
                     if (DEBUG) {
-                        System.out
-                                .println("NameServerClient: receive join request "
-                                        + ibisId);
+                        System.out.println("NameServerClient: receive join "
+                                + "request " + ibisId);
                     }
                     socketFactory.close(in, null, s);
                     ibisImpl.joined(ibisId);
@@ -415,8 +413,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
                     if (ibisId.equals(this.id)) {
                         // received an ack from the nameserver that I left.
                         if (DEBUG) {
-                            System.out
-                                    .println("NameServerClient: thread dying");
+                            System.out.println("NameServerClient: "
+                                    + "thread dying");
                         }
                         return;
                     }
@@ -429,14 +427,12 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 
                     break;
                 default:
-                    System.out
-                            .println("NameServerClient: got an illegal opcode "
-                                    + opcode);
+                    System.out.println("NameServerClient: got an illegal "
+                            + "opcode " + opcode);
                 }
             } catch (Exception e1) {
-                System.out
-                        .println("Got an exception in NameServerClient.run (opcode = "
-                                + opcode + ") " + e1.toString());
+                System.out.println("Got an exception in NameServerClient.run "
+                        + "(opcode = " + opcode + ") " + e1.toString());
                 if (stop)
                     return;
                 e1.printStackTrace();
@@ -485,7 +481,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 
     //gosia	
 
-    public void bind(String name, ReceivePortIdentifier rpi) throws IOException {
+    public void bind(String name, ReceivePortIdentifier rpi)
+            throws IOException {
         receivePortNameServerClient.bind(name, rpi);
     }
 

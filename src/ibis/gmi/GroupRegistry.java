@@ -60,39 +60,25 @@ final class GroupRegistry implements GroupProtocol {
      * Container class for the group information that the registry maintains.
      */
     static private final class GroupRegistryData {
-        /**
-         * The group interface through which this group is accessed.
-         */
+        /** The group interface through which this group is accessed. */
         String type;
 
-        /**
-         * The group identification.
-         */
+        /** The group identification. */
         int groupNumber;
 
-        /**
-         * The number of members in this group.
-         */
+        /** The number of members in this group. */
         int groupSize;
 
-        /**
-         * Skeleton identifications of each group member.
-         */
+        /** Skeleton identifications of each group member. */
         int[] memberSkels;
 
-        /**
-         * Node identifications of each group member.
-         */
+        /** Node identifications of each group member. */
         int[] memberRanks;
 
-        /**
-         * Tickets for the join-replies once the group is complete.
-         */
+        /** Tickets for the join-replies once the group is complete. */
         int[] tickets;
 
-        /**
-         * The number of group members that have joined this group so far.
-         */
+        /** The number of group members that have joined this group so far. */
         int joined;
 
         /**

@@ -62,7 +62,8 @@ public class Ticket {
         }
 
         /**
-         * Makes this bucket valid: its associated ticket number has been given out.
+         * Makes this bucket valid: its associated ticket number has been
+         * given out.
          */
         synchronized void setValid() {
             valid = true;
@@ -198,8 +199,8 @@ public class Ticket {
     private int[] tickets;
 
     /**
-     * Top of the free ticket number stack. Ticket numbers are popped from this stack,
-     * and pushed again when they become available for reuse.
+     * Top of the free ticket number stack. Ticket numbers are popped from
+     * this stack, and pushed again when they become available for reuse.
      */
     private int top;
 
@@ -235,24 +236,27 @@ public class Ticket {
     }
 
     /**
-     * Returns a new ticket. If not available, the data structure is doubled in size,
+     * Returns a new ticket. If not available, the data structure is doubled
+     * in size.
      * @return a new ticket number.
      */
     public synchronized int get() {
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.get() starting");
+        }
 
         if (top == 0) {
 
-            if (DEBUG)
+            if (DEBUG) {
                 System.out.println("Ticket.get() resizing from " + size
                         + " to " + (size * 2));
+            }
 
             // resize the lot.
             int new_size = size * 2;
 
-            // "tickets" is empty, so we can realloc it directly			
+            // "tickets" is empty, so we can realloc it directly.
             tickets = new int[new_size];
 
             // buckets contains data, so copy it.
@@ -276,16 +280,18 @@ public class Ticket {
 
         buckets[ticket].setValid();
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.get() returning tickets[" + top + "] = "
                     + ticket);
+        }
 
         return ticket;
     }
 
     /**
      * Associates <code>object</code> with <code>ticket</code> and notifies
-     * anyone waiting on the corresponding lock. If an object is already associated
+     * anyone waiting on the corresponding lock.
+     * If an object is already associated
      * with this ticket, the method blocks until the ticket is made available
      * (by means of a <code>get(ticket)</code> call.
      *
@@ -295,20 +301,23 @@ public class Ticket {
     public void put(int ticket, Object object) {
         Bucket bucket;
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.put(" + ticket + ") starting");
+        }
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.put() got a bucket");
+        }
 
         bucket.put(object);
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.put() done");
+        }
     }
 
     /**
@@ -322,27 +331,31 @@ public class Ticket {
         Bucket bucket;
         Object result;
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.collect(" + ticket + ") starting");
+        }
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.collect() got a bucket");
+        }
 
         result = bucket.collect();
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.collect() got a result");
+        }
 
         synchronized (this) {
             tickets[top++] = ticket;
         }
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.collect() done");
+        }
 
         return result;
     }
@@ -358,20 +371,23 @@ public class Ticket {
         Object result;
         Bucket bucket;
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.peek(" + ticket + ") starting");
+        }
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.peek() got a bucket");
+        }
 
         result = bucket.peek();
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.peek() done");
+        }
 
         return result;
     }
@@ -389,20 +405,23 @@ public class Ticket {
         Object result;
         Bucket bucket;
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.get(" + ticket + ") starting");
+        }
 
         synchronized (this) {
             bucket = buckets[ticket];
         }
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.get() got a bucket");
+        }
 
         result = bucket.get();
 
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Ticket.get() done");
+        }
 
         return result;
     }

@@ -11,15 +11,16 @@ import ibis.ipl.IbisIdentifier;
 public abstract class InvocationRecord implements java.io.Serializable, Config {
     /*
      * Of all fields, only the owner and the stamp must be sent over the
-     * network. Parents too .
+     * network. Parents too.
      */
 
     protected IbisIdentifier owner;
 
-    protected int stamp; /*
+    /**
      * Used to locate this invocation record, when a remote
      * job result comes in.
      */
+    protected int stamp;
 
     protected IbisIdentifier parentOwner;
 
@@ -105,8 +106,8 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
     protected transient boolean inletExecuted;
 
-    //	ArrayList parentStamps;
-    //	ArrayList parentOwners;
+    // ArrayList parentStamps;
+    // ArrayList parentOwners;
 
     protected InvocationRecord(SpawnCounter spawnCounter,
             InvocationRecord cacheNext, int storeId, int spawnId,
@@ -122,14 +123,14 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
             this.spawnId = spawnId;
         }
 
-        //		parentStamps = new ArrayList();
-        //		parentOwners = new ArrayList();
+        // parentStamps = new ArrayList();
+        // parentOwners = new ArrayList();
 
         alreadySentExceptionResult = false;
         inletExecuted = false;
     }
 
-    //	public abstract void delete();
+    //.public abstract void delete();
 
     final protected void clear() {
         owner = null;
@@ -151,8 +152,8 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
             spawnId = -2;
             parentLocals = null;
 
-            //			parentStamps.clear();
-            //			parentOwners.clear();
+            // parentStamps.clear();
+            // parentOwners.clear();
 
             alreadySentExceptionResult = false;
             inletExecuted = false;
@@ -230,8 +231,8 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
         result += ", parentOwner = "
                 + (parentOwner == null ? "NULL" : "" + parentOwner);
         result += ", aborted = " + aborted;
-        result += ", parent = " + (parent == null ? "NULL" : "" + parent); // recursive
-        // :-)
+        result += ", parent = " + (parent == null ? "NULL" : "" + parent);
+        // recursive :-)
         result += ", parentLocals = "
                 + (parentLocals == null ? "NULL" : "" + parentLocals) + ")";
 

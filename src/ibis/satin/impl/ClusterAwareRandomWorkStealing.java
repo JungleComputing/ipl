@@ -53,7 +53,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
             }
         }
 
-        // else .. we are idle, try to steal a job.
+        // Else .. we are idle, try to steal a job.
         synchronized (satin) {
             localVictim = satin.victims.getRandomLocalVictim();
             if (localVictim != null) {
@@ -66,7 +66,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
                 }
             }
             if (FAULT_TOLERANCE) {
-                //until we download the table, only the cluster coordinator can
+                // Until we download the table, only the cluster coordinator can
                 // issue wide-area steal requests
                 if (satin.getTable && !satin.clusterCoordinator) {
                     canDoAsync = false;

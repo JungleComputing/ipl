@@ -83,7 +83,8 @@ final public class ConditionVariable {
      * @exception InterruptedException is thrown when the condition variable
      * was created with interrupts enabled, and {@link Thread#interrupt()}
      * was invoked on the current thread.
-     * @return <code>true</code> when this method returns because the timeout expired.
+     * @return <code>true</code> when this method returns because the
+     * timeout expired.
      */
     final public boolean cv_wait(long timeout) throws InterruptedException {
         lock.checkImOwner();

@@ -99,10 +99,9 @@ class RMISkeletonGenerator extends RMIGenerator {
 
     void messageHandler(Vector methods) {
 
-        output
-                .println("\tpublic final void upcall(ReadMessage r, int method, int stubID) throws ibis.rmi.RemoteException {");
+        output.println("\tpublic final void upcall(ReadMessage r, int method, "
+                + "int stubID) throws ibis.rmi.RemoteException {");
         output.println();
-
         output.println();
 
         //gosia
@@ -143,7 +142,8 @@ class RMISkeletonGenerator extends RMIGenerator {
                     output.println(readMessageType("\t\t\t\t", "p" + k, "r",
                             temp));
                 }
-                // we should try to optimize this finish away, to avoid thread cration!!! --Rob
+                // we should try to optimize this finish away, to avoid 
+                // thread cration!!! --Rob
                 // We can do this if
                 // - the method does not have loops
                 // - the method does not do any other method invocations.
@@ -154,12 +154,14 @@ class RMISkeletonGenerator extends RMIGenerator {
                 }
                 if (has_object_params) {
                     output.println("\t\t\t} catch(ClassNotFoundException e) {");
-                    output
-                            .println("\t\t\t\tthrow new ibis.rmi.UnmarshalException(\"error unmarshalling arguments\", e);");
+                    output.println("\t\t\t\tthrow new "
+                            + "ibis.rmi.UnmarshalException("
+                            + "\"error unmarshalling arguments\", e);");
                 }
                 output.println("\t\t\t} catch(IOException e) {");
-                output
-                        .println("\t\t\t\tthrow new ibis.rmi.UnmarshalException(\"error unmarshalling arguments\", e);");
+                output.println("\t\t\t\tthrow new "
+                        + "ibis.rmi.UnmarshalException("
+                        + "\"error unmarshalling arguments\", e);");
                 output.println("\t\t\t}");
             }
 
@@ -191,15 +193,15 @@ class RMISkeletonGenerator extends RMIGenerator {
             output.println(");");
             if (throwsRemote(m)) {
                 output.println("\t\t\t} catch (ibis.rmi.RemoteException e) {");
-                output
-                        .println("\t\t\t\tex = new ibis.rmi.ServerException(\"server exception\", e);");
+                output.println("\t\t\t\tex = new ibis.rmi.ServerException("
+                        + "\"server exception\", e);");
             }
             output.println("\t\t\t} catch (RuntimeException e) {");
-            output
-                    .println("\t\t\t\tex = new ibis.rmi.ServerRuntimeException(\"server runtime exception\", e);");
+            output.println("\t\t\t\tex = new ibis.rmi.ServerRuntimeException("
+                    + "\"server runtime exception\", e);");
             output.println("\t\t\t} catch (Error e) {");
-            output
-                    .println("\t\t\t\tex = new ibis.rmi.ServerError(\"server error\", e);");
+            output.println("\t\t\t\tex = new ibis.rmi.ServerError("
+                    + "\"server error\", e);");
             output.println("\t\t\t} catch (Exception e) {");
             output.println("\t\t\t\tex = e;");
             output.println("\t\t\t}");
@@ -207,8 +209,8 @@ class RMISkeletonGenerator extends RMIGenerator {
             output.println("\t\t\tRTS.stopRMITimer(timer_" + i + ");");
 
             output.println("\t\t\ttry {");
-            output
-                    .println("\t\t\t\tWriteMessage w = stubs[stubID].newMessage();");
+            output.println("\t\t\t\tWriteMessage w = "
+                    + "stubs[stubID].newMessage();");
 
             output.println("\t\t\t\tif (ex != null) {");
             output.println("\t\t\t\t\tw.writeByte(RTS.EXCEPTION);");
@@ -224,8 +226,8 @@ class RMISkeletonGenerator extends RMIGenerator {
             output.println("\t\t\t\t}");
             output.println("\t\t\t\tw.finish();");
             output.println("\t\t\t} catch(IOException e) {");
-            output
-                    .println("\t\t\t\tthrow new ibis.rmi.MarshalException(\"error marshalling return\", e);");
+            output.println("\t\t\t\tthrow new ibis.rmi.MarshalException("
+                    + "\"error marshalling return\", e);");
             output.println("\t\t\t}");
 
             output.println("\t\t\tbreak;");
@@ -235,18 +237,17 @@ class RMISkeletonGenerator extends RMIGenerator {
 
         output.println("\t\tcase -1:");
         output.println("\t\t{");
-        output
-                .println("\t\t\t/* Special case for new stubs that are connecting */");
+        output.println("\t\t\t/* Special case: new stub connecting */");
         output.println("\t\t\tReceivePortIdentifier rpi;");
         output.println("\t\t\ttry {");
         output.println("\t\t\t\trpi = (ReceivePortIdentifier) r.readObject();");
         output.println("\t\t\t\tr.finish();");
         output.println("\t\t\t} catch(ClassNotFoundException e) {");
-        output
-                .println("\t\t\t\tthrow new ibis.rmi.UnmarshalException(\"while reading ReceivePortIdentifier\", e);");
+        output.println("\t\t\t\tthrow new ibis.rmi.UnmarshalException("
+                + "\"while reading ReceivePortIdentifier\", e);");
         output.println("\t\t\t} catch(IOException e) {");
-        output
-                .println("\t\t\t\tthrow new ibis.rmi.UnmarshalException(\"while reading ReceivePortIdentifier\", e);");
+        output.println("\t\t\t\tthrow new ibis.rmi.UnmarshalException("
+                + "\"while reading ReceivePortIdentifier\", e);");
         output.println("\t\t\t}");
         output.println("\t\t\tint id = addStub(rpi);");
         output.println("\t\t\ttry {");
@@ -256,16 +257,16 @@ class RMISkeletonGenerator extends RMIGenerator {
         output.println("\t\t\t\tw.writeObject(destination);");
         output.println("\t\t\t\tw.finish();");
         output.println("\t\t\t} catch(IOException e) {");
-        output
-                .println("\t\t\t\tthrow new ibis.rmi.MarshalException(\"error sending skeletonId\", e);");
+        output.println("\t\t\t\tthrow new ibis.rmi.MarshalException("
+                + "\"error sending skeletonId\", e);");
         output.println("\t\t\t}");
         output.println("\t\t\tbreak;");
         output.println("\t\t}");
         output.println();
 
         output.println("\t\tdefault:");
-        output
-                .println("\t\t\tthrow new ibis.rmi.UnmarshalException(\"invalid method number\");");
+        output.println("\t\t\tthrow new ibis.rmi.UnmarshalException("
+                + "\"invalid method number\");");
 
         output.println("\t\t}");
 

@@ -28,8 +28,8 @@ final class IRVector implements Config {
 
         l[count] = r;
         count++;
-        //		System.err.println("SATIN: " + satin.ident.address() + "add count is:
-        // " + count);
+        // System.err.println("SATIN: " + satin.ident.address()
+        //         + "add count is: " + count);
     }
 
     int size() {
@@ -58,8 +58,8 @@ final class IRVector implements Config {
             SatinBase.assertLocked(satin);
         }
 
-        //		System.err.println("SATIN: " + satin.ident.address() + " removing job
-        // " + stamp);
+        // System.err.println("SATIN: " + satin.ident.address()
+        //         + " removing job " + stamp);
 
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
@@ -74,15 +74,15 @@ final class IRVector implements Config {
                 res = l[i];
                 count--;
                 l[i] = l[count];
-                //				System.err.println("SATIN: " + satin.ident.address() +
-                // "remove1 count is: " + count);
+                // System.err.println("SATIN: " + satin.ident.address()
+                //         + "remove1 count is: " + count);
                 l[count] = null;
                 return res;
             }
         }
 
-        //		System.err.println("SATIN: " + satin.ident.address() + "remove1 count
-        // is: " + count);
+        // System.err.println("SATIN: " + satin.ident.address()
+        //         + " remove1 count is: " + count);
 
         return null;
     }
@@ -98,8 +98,8 @@ final class IRVector implements Config {
                 count--;
                 l[i] = l[count];
                 l[count] = null;
-                //				System.err.println("SATIN: " + satin.ident.address() +
-                // "remove2 count is: " + count);
+                // System.err.println("SATIN: " + satin.ident.address()
+                //         + " remove2 count is: " + count);
                 return res;
             }
         }
@@ -116,7 +116,9 @@ final class IRVector implements Config {
         InvocationRecord curr;
         for (int i = 0; i < count; i++) {
             curr = l[i];
-            //			if(curr.aborted) continue; // already handled.
+            // if (curr.aborted) {
+            //     continue;  // already handled.
+            // }
 
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
@@ -127,8 +129,9 @@ final class IRVector implements Config {
                 }
                 if (SPAWN_DEBUG) {
                     curr.spawnCounter.decr(curr);
-                } else
+                } else {
                     curr.spawnCounter.value--;
+                }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
@@ -211,9 +214,8 @@ final class IRVector implements Config {
             curr = l[i];
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf1(curr, targetOwner)
-                    || curr.owner.equals(targetOwner)) //this shouldnt happen,
-            // actually
-            {
+                    || curr.owner.equals(targetOwner)) {
+                //this shouldnt happen, actually
                 curr.aborted = true;
                 if (ABORT_DEBUG) {
                     System.out.println("found stolen child: " + curr.stamp
@@ -228,9 +230,9 @@ final class IRVector implements Config {
                     new Exception().printStackTrace();
                     System.exit(1);
                 }
-                //				if(ABORT_STATS) {
-                //					satin.abortedJobs++;
-                //				}
+                // if(ABORT_STATS) {
+                //     satin.abortedJobs++;
+                // }
                 if (STEAL_STATS) {
                     satin.abortMessages++;
                 }
@@ -239,8 +241,8 @@ final class IRVector implements Config {
                 satin.sendAbortMessage(curr);
             }
         }
-        //		System.err.println("SATIN: " + satin.ident.address() + "count is: " +
-        // count);
+        // System.err.println("SATIN: " + satin.ident.address() + "count is: "
+        //         + count);
     }
 
     /**
@@ -259,14 +261,14 @@ final class IRVector implements Config {
             curr = l[i];
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf1(curr, targetOwner)
-                    || curr.owner.equals(targetOwner)) //this shouldnt happen,
-            // actually
-            {
+                    || curr.owner.equals(targetOwner)) {
+                //this shouldnt happen, actually
                 curr.aborted = true;
                 if (SPAWN_DEBUG) {
                     curr.spawnCounter.decr(curr);
-                } else
+                } else {
                     curr.spawnCounter.value--;
+                }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
@@ -292,8 +294,9 @@ final class IRVector implements Config {
             curr.aborted = true;
             if (SPAWN_DEBUG) {
                 curr.spawnCounter.decr(curr);
-            } else
+            } else {
                 curr.spawnCounter.value--;
+            }
             removeIndex(i);
             i--;
         }
@@ -364,9 +367,11 @@ final class IRVector implements Config {
     }
 
     void print(java.io.PrintStream out) {
-        /*		if (ASSERTS) {
-         Satin.assertLocked(satin);
-         }*/
+        /*
+         * if (ASSERTS) {
+         *     Satin.assertLocked(satin);
+         * }
+         */
 
         out.println("=IRVector " + satin.ident.name() + ":=============");
         for (int i = 0; i < count; i++) {

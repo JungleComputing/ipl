@@ -37,7 +37,8 @@ public class PortRangeSocketType extends SocketType implements
                         + endRange);
             } catch (Exception e) {
                 throw new Error(
-                        "# PortRange : specify a port range property: ibis.connect.port_range=3000-4000.");
+                        "# PortRange : specify a port range property: "
+                        + "ibis.connect.port_range=3000-4000.");
             }
         }
     }
@@ -72,8 +73,8 @@ public class PortRangeSocketType extends SocketType implements
         int res = portNumber++;
         if (portNumber >= endRange) {
             portNumber = startRange;
-            System.err
-                    .println("WARNING, used more ports than available within firewall range. Wrapping around");
+            System.err.println("WARNING, used more ports than available within "
+                    + "firewall range. Wrapping around");
         }
         return res;
     }

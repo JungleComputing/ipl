@@ -1,14 +1,15 @@
 package ibis.gmi;
 
 /**
- * The {@link CombinedInvocation} class must be used whenever a group method must be
- * configured using a combined invocation scheme. Currently, there are two such schemes:
- * a "flat" invocation scheme, which uses a {@link FlatInvocationCombiner} to combine
- * the parameters, and a "binomial" invocation scheme, which uses a
- * {@link BinomialInvocationCombiner} to combine the parameters. In the flat invocation
- * scheme, all invocations are sent to a single node, which combines the parameters and
- * then invokes the method using the underlying invocation scheme (which could be single,
- * group, or personalized). In the binomial invocation scheme, the parameters are combined
+ * The {@link CombinedInvocation} class must be used whenever a group method
+ * must be configured using a combined invocation scheme. Currently, there are
+ * two such schemes: a "flat" invocation scheme, which uses a
+ * {@link FlatInvocationCombiner} to combine the parameters, and a "binomial"
+ * invocation scheme, which uses a {@link BinomialInvocationCombiner} to combine
+ * the parameters. In the flat invocation scheme, all invocations are sent to
+ * a single node, which combines the parameters and then invokes the method
+ * using the underlying invocation scheme (which could be single, group, or
+ * personalized). In the binomial invocation scheme, the parameters are combined
  * using a binomial tree.
  */
 public class CombinedInvocation extends InvocationScheme {
@@ -29,9 +30,9 @@ public class CombinedInvocation extends InvocationScheme {
     InvocationScheme inv;
 
     /**
-     * The rank number within this combined invocation scheme. This has nothing to
-     * do with rank numbers within a group! Method invokers don't have to be a member
-     * of the group.
+     * The rank number within this combined invocation scheme.
+     * This has nothing to do with rank numbers within a group!
+     * Method invokers don't have to be a member of the group.
      */
     int rank;
 
@@ -42,14 +43,14 @@ public class CombinedInvocation extends InvocationScheme {
      * Constructor. This one is for a flat invocation combining scheme.
      *
      * @param identifier identifies this combined invocation object
-     * @param rank indicates the rank of the creator of this {@link CombinedInvocation}
-     * object
+     * @param rank indicates the rank of the creator of this
+     *   {@link CombinedInvocation} object
      * @param size indicates the total number of invokers
      * @param combiner indicates the parameter combiner itself
      * @param inv indicates the underlying invocation scheme
      *
-     * @exception ConfigurationException is thrown on an illegal combination of
-     * arguments.
+     * @exception ConfigurationException is thrown on an illegal combination
+     *   of arguments.
      */
     public CombinedInvocation(String identifier, int rank, int size,
             FlatInvocationCombiner combiner, InvocationScheme inv)
@@ -76,7 +77,8 @@ public class CombinedInvocation extends InvocationScheme {
         }
 
         if (inv == null || (inv.mode > InvocationScheme.I_PERSONAL)) {
-            throw new ConfigurationException("Invalid nested invocation " + inv);
+            throw new ConfigurationException("Invalid nested invocation "
+                    + inv);
         }
 
         System.out.println("CombinedInvocation(" + identifier + ", " + size
@@ -87,8 +89,8 @@ public class CombinedInvocation extends InvocationScheme {
      * Constructor. This one is for a binomial invocation combining scheme.
      *
      * @param identifier identifies this combined invocation object
-     * @param rank indicates the rank of the creator of this {@link CombinedInvocation}
-     * object
+     * @param rank indicates the rank of the creator of this
+     *   {@link CombinedInvocation} object
      * @param size indicates the total number of invokers
      * @param combiner indicates the parameter combiner itself
      * @param inv indicates the underlying invocation scheme
@@ -120,7 +122,8 @@ public class CombinedInvocation extends InvocationScheme {
             throw new ConfigurationException("Invalid method combiner");
         }
         if (inv == null || (inv.mode > InvocationScheme.I_PERSONAL)) {
-            throw new ConfigurationException("Invalid nested invocation " + inv);
+            throw new ConfigurationException("Invalid nested invocation "
+                    + inv);
         }
     }
 }

@@ -160,9 +160,10 @@ public class HubLink extends Thread {
                 int action = packet.getType();
                 switch (action) {
                 case HubProtocol.CONNECT: {
-                    HubProtocol.HubPacketConnect p = (HubProtocol.HubPacketConnect) packet;
-                    MyDebug.out
-                            .println("# HubLink.run()- Received CONNECT for host="
+                    HubProtocol.HubPacketConnect p
+                            = (HubProtocol.HubPacketConnect) packet;
+                    MyDebug.out.println("# HubLink.run()- Got CONNECT for "
+                                    + "host="
                                     + localHostName
                                     + ":"
                                     + localPort
@@ -171,21 +172,22 @@ public class HubLink extends Thread {
                                     + "; from host="
                                     + p.getHost() + "; port=" + p.clientPort);
                     RMServerSocket s = resolveServer(p.serverPort);
-                    if (s != null) { // AD: TODO- investigate concurrency in CONNECT/ACCEPT
+                    if (s != null) {
+                        // AD: TODO- investigate concurrency in CONNECT/ACCEPT
                         // Ceriel: Done.
-                        s
-                                .enqueueConnect(p.getHost(), p.clientPort, p
-                                        .getPort());
+                        s.enqueueConnect(p.getHost(), p.clientPort,
+                                p.getPort());
                     } else {
-                        MyDebug.out
-                                .println("# HubLink.run()- Received CONNECT for non-existingh port!");
+                        MyDebug.out.println("# HubLink.run()- Got CONNECT "
+                                + "for non-existingh port!");
                     }
                 }
                     break;
                 case HubProtocol.ACCEPT: {
-                    HubProtocol.HubPacketAccept p = (HubProtocol.HubPacketAccept) packet;
-                    MyDebug.out
-                            .println("# HubLink.run()- Received ACCEPT for clientPort="
+                    HubProtocol.HubPacketAccept p
+                            = (HubProtocol.HubPacketAccept) packet;
+                    MyDebug.out.println("# HubLink.run()- Got ACCEPT for "
+                                    + "clientPort="
                                     + p.clientPort
                                     + " from serverHost="
                                     + p.serverHost
@@ -195,19 +197,20 @@ public class HubLink extends Thread {
                         RMSocket s = resolveSocket(p.clientPort);
                         s.enqueueAccept(p.servantPort, p.getPort());
                     } catch (Exception e) {
-                        /* Exception may be discarded (socket has been closed while the 
-                         * CONNECT/ACCEPT were on the wire). Trace it anyway for pathologic
-                         * behavior diagnosis.
+                        /* Exception may be discarded (socket has been closed
+                         * while the CONNECT/ACCEPT were on the wire).
+                         * Trace it anyway for pathologic behavior diagnosis.
                          */
-                        MyDebug.out
-                                .println("# HubLink.run()- exception while resolving socket for ACCEPT!");
+                        MyDebug.out.println("# HubLink.run()- exception while "
+                                + "resolving socket for ACCEPT!");
                     }
                 }
                     break;
                 case HubProtocol.REJECT: {
-                    HubProtocol.HubPacketReject p = (HubProtocol.HubPacketReject) packet;
-                    MyDebug.out
-                            .println("# HubLink.run()- Received REJECT for port "
+                    HubProtocol.HubPacketReject p
+                            = (HubProtocol.HubPacketReject) packet;
+                    MyDebug.out.println("# HubLink.run()- Got REJECT for "
+                                    + "port "
                                     + p.clientPort
                                     + " from host "
                                     + p.serverHost);
@@ -219,74 +222,69 @@ public class HubLink extends Thread {
                 }
                     break;
                 case HubProtocol.DATA: {
-                    HubProtocol.HubPacketData p = (HubProtocol.HubPacketData) packet;
-                    MyDebug.out
-                            .println("# HubLink.run()- Received DATA for port = "
+                    HubProtocol.HubPacketData p
+                            = (HubProtocol.HubPacketData) packet;
+                    MyDebug.out.println("# HubLink.run()- Got DATA for "
+                                    + "port = "
                                     + p.port);
                     try {
                         RMSocket s = resolveSocket(p.port);
                         if (s.remotePort == p.senderport) {
                             s.enqueueFragment(p.b);
                         } else {
-                            MyDebug.out
-                                    .println("# HubLink.run()- received DATA on closed connection, port = "
-                                            + p.port
-                                            + ", sender = "
-                                            + p.h
-                                            + ":" + p.senderport);
+                            MyDebug.out.println("# HubLink.run()- Got "
+                                    + "DATA on closed connection, port = "
+                                    + p.port + ", sender = " + p.h + ":"
+                                    + p.senderport);
                         }
                     } catch (Exception e) {
-                        MyDebug.out
-                                .println("# HubLink.run()- received DATA on closed connection, port = "
-                                        + p.port
-                                        + ", sender = "
-                                        + p.h
-                                        + ":"
-                                        + p.senderport);
+                        MyDebug.out.println("# HubLink.run()- Got DATA on "
+                                + "closed connection, port = " + p.port
+                                + ", sender = " + p.h + ":" + p.senderport);
                     }
                 }
                     break;
                 case HubProtocol.CLOSE: {
-                    HubProtocol.HubPacketClose p = (HubProtocol.HubPacketClose) packet;
-                    MyDebug.out
-                            .println("# HubLink.run()- Received CLOSE for port = "
-                                    + p.closePort);
+                    HubProtocol.HubPacketClose p
+                            = (HubProtocol.HubPacketClose) packet;
+                    MyDebug.out.println("# HubLink.run()- Got CLOSE for "
+                                    + "port = " + p.closePort);
                     try {
                         RMSocket s = resolveSocket(p.closePort);
                         if (p.h.equals(s.remoteHostname)
                                 && s.remotePort == p.localPort) {
                             s.enqueueClose();
                         } else {
-                            MyDebug.out
-                                    .println("# HubLink.run()- got CLOSE of old connection");
+                            MyDebug.out.println("# HubLink.run()- Got CLOSE of "
+                                    + "old connection");
                         }
                     } catch (IOException e) { /* ignore */
                     }
                 }
                     break;
                 case HubProtocol.PUTPORT: {
-                    HubProtocol.HubPacketPutPort p = (HubProtocol.HubPacketPutPort) packet;
+                    HubProtocol.HubPacketPutPort p
+                            = (HubProtocol.HubPacketPutPort) packet;
                     synchronized (this) {
-                        MyDebug.out
-                                .println("# HubLink.run()- Received PUTPORT = "
-                                        + p.resultPort);
+                        MyDebug.out.println("# HubLink.run()- Got PUTPORT "
+                                + "= " + p.resultPort);
                         portnum = p.resultPort;
                         notifyAll();
                     }
                 }
                     break;
                 case HubProtocol.PORTSET: {
-                    HubProtocol.HubPacketPortSet p = (HubProtocol.HubPacketPortSet) packet;
+                    HubProtocol.HubPacketPortSet p
+                            = (HubProtocol.HubPacketPortSet) packet;
                     synchronized (this) {
-                        MyDebug.out
-                                .println("# HubLink.run()- Received PORTSET");
+                        MyDebug.out.println("# HubLink.run()- Got PORTSET");
                         available_ports = p.portset;
                         notifyAll();
                     }
                 }
                     break;
                 default:
-                    MyDebug.out.println("# Received unknown action: " + action);
+                    MyDebug.out.println("# Got unknown action: " + action);
                     throw new Error("HubLink: bad data");
                 }
             } catch (EOFException e) {

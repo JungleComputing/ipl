@@ -57,8 +57,8 @@ public class ParallelStreams {
         this.props = props;
     }
 
-    public int connect(InputStream in, OutputStream out, boolean hnt, int portno)
-            throws IOException {
+    public int connect(InputStream in, OutputStream out, boolean hnt,
+            int portno) throws IOException {
         int i;
 
         DataOutputStream os = new DataOutputStream(out);

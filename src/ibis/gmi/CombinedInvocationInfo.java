@@ -84,7 +84,8 @@ public class CombinedInvocationInfo implements java.io.Serializable {
      * {@link GroupMethod#configure} call only returns when all invokers
      * are done. The group registry is used for this, using this method.
      *
-     * @param rank the rank number within the nodes involved in the combined invocation
+     * @param rank the rank number within the nodes involved in the combined
+     *   invocation
      * @param cpu the node number within the global group
      */
     synchronized void addAndWaitUntilFull(int rank, int cpu) {

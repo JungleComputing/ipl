@@ -156,10 +156,11 @@ class Main {
             c = cg.getJavaClass();
 
             /*
-             * At this point, BCEL delivers an inconsistent JavaClass: there exist
-             * constant_pool references in each Field, Method, Attribute, and these
-             * sometimes don't refer to the new constantpool of the class. However,
-             * everything seems to be good enough to dump and reload.
+             * At this point, BCEL delivers an inconsistent JavaClass: there
+             * exist constant_pool references in each Field, Method, Attribute,
+             * and these sometimes don't refer to the new constantpool of the
+             * class. However, everything seems to be good enough to dump and
+             * reload.
              */
             try {
                 c.dump(classfile);
@@ -186,8 +187,8 @@ class Main {
         boolean useKarmi = false;
 
         if (args.length == 0) {
-            System.err
-                    .println("Usage : java Main [-n] [-v] [-java2ibis] [-dir | -local] classname");
+            System.err.println("Usage : java Main [-n] [-v] [-java2ibis] "
+                    + "[-dir | -local] classname");
             System.exit(1);
         }
 
@@ -303,7 +304,7 @@ class Main {
                 e.printStackTrace();
                 System.exit(1);
             }
-
         }
+
     }
 }

@@ -89,9 +89,8 @@ public class RMServerSocket extends ServerSocket {
                 + r.requestHost);
         s = new RMSocket(r.requestHost, r.requestPort, localPort,
                 r.requestHubPort);
-        MyDebug.out
-                .println("# RMServerSocket.accept()- new RMSocket created on port="
-                        + localPort + "- Sending ACK.");
+        MyDebug.out.println("# RMServerSocket.accept()- new RMSocket created "
+                + "on port=" + localPort + "- Sending ACK.");
         hub.sendPacket(r.requestHost, r.requestHubPort,
                 new HubProtocol.HubPacketAccept(r.requestPort,
                         hub.localHostName, localPort));

@@ -51,23 +51,22 @@ public abstract class SerializationOutputStream extends ObjectOutputStream
      * Enable this to measure the time spent in serialization.
      * Each serialization entry/exit point must start/stop the timer.
      */
-    protected final static boolean TIME_SERIALIZATION = TypedProperties
-            .booleanProperty(IOProps.s_timer, false)
-            || TypedProperties.booleanProperty(IOProps.s_timer_out, false);
+    protected final static boolean TIME_SERIALIZATION
+            = TypedProperties .booleanProperty(IOProps.s_timer, false)
+              || TypedProperties.booleanProperty(IOProps.s_timer_out, false);
 
     /**
      * The serialization timer
      */
-    protected final SerializationTimer timer = TIME_SERIALIZATION ? new SerializationTimer(
-            toString())
-            : null;
+    protected final SerializationTimer timer
+        = TIME_SERIALIZATION ? new SerializationTimer(toString()) : null;
 
     private static java.util.Vector timerList = new java.util.Vector();
 
     static {
         if (TIME_SERIALIZATION) {
-            System.out
-                    .println("SerializationOutputStream.TIME_SERIALIZATION enabled");
+            System.out.println("SerializationOutputStream.TIME_SERIALIZATION "
+                    + "enabled");
             Runtime.getRuntime().addShutdownHook(
                     new Thread("SerializationOutputStream ShutdownHook") {
                         public void run() {

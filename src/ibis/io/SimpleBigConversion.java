@@ -48,7 +48,8 @@ public class SimpleBigConversion extends Conversion {
 
     public final int byte2int(byte[] src, int off) {
         return (((src[off + 3] & 0xff) << 0) | ((src[off + 2] & 0xff) << 8)
-                | ((src[off + 1] & 0xff) << 16) | ((src[off + 0] & 0xff) << 24));
+                | ((src[off + 1] & 0xff) << 16)
+                | ((src[off + 0] & 0xff) << 24));
     }
 
     public final void long2byte(long src, byte[] dst, int off) {
@@ -129,7 +130,8 @@ public class SimpleBigConversion extends Conversion {
         }
     }
 
-    public void short2byte(short[] src, int off, int len, byte[] dst, int off2) {
+    public void short2byte(short[] src, int off, int len, byte[] dst,
+            int off2) {
         short v = 0;
         int count = off2;
 
@@ -174,7 +176,8 @@ public class SimpleBigConversion extends Conversion {
         for (int i = 0; i < len; i++) {
             dst[index_dst + i] = (((src[count + 3] & 0xff) << 0)
                     | ((src[count + 2] & 0xff) << 8)
-                    | ((src[count + 1] & 0xff) << 16) | ((src[count + 0] & 0xff) << 24));
+                    | ((src[count + 1] & 0xff) << 16)
+                    | ((src[count + 0] & 0xff) << 24));
             count += 4;
         }
     }
@@ -210,16 +213,19 @@ public class SimpleBigConversion extends Conversion {
         for (int i = index_dst; i < end; i++) {
             int t1 = (((src[count + 0] & 0xff) << 24)
                     | ((src[count + 1] & 0xff) << 16)
-                    | ((src[count + 2] & 0xff) << 8) | ((src[count + 3] & 0xff) << 0));
+                    | ((src[count + 2] & 0xff) << 8)
+                    | ((src[count + 3] & 0xff) << 0));
             int t2 = (((src[count + 4] & 0xff) << 24)
                     | ((src[count + 5] & 0xff) << 16)
-                    | ((src[count + 6] & 0xff) << 8) | ((src[count + 7] & 0xff) << 0));
+                    | ((src[count + 6] & 0xff) << 8)
+                    | ((src[count + 7] & 0xff) << 0));
             dst[i] = ((((long) t1) << 32) | (t2 & 0xffffffffL));
             count += 8;
         }
     }
 
-    public void float2byte(float[] src, int off, int len, byte[] dst, int off2) {
+    public void float2byte(float[] src, int off, int len, byte[] dst,
+            int off2) {
         int v = 0;
         int count = off2;
 
@@ -242,13 +248,15 @@ public class SimpleBigConversion extends Conversion {
 
             temp = (((src[count + 0] & 0xff) << 24)
                     | ((src[count + 1] & 0xff) << 16)
-                    | ((src[count + 2] & 0xff) << 8) | ((src[count + 3] & 0xff) << 0));
+                    | ((src[count + 2] & 0xff) << 8)
+                    | ((src[count + 3] & 0xff) << 0));
             dst[index_dst + i] = Float.intBitsToFloat(temp);
             count += 4;
         }
     }
 
-    public void double2byte(double[] src, int off, int len, byte[] dst, int off2) {
+    public void double2byte(double[] src, int off, int len, byte[] dst,
+            int off2) {
         int count = off2;
 
         for (int i = 0; i < len; i++) {
@@ -276,10 +284,12 @@ public class SimpleBigConversion extends Conversion {
         for (int i = index_dst; i < end; i++) {
             int t1 = (((src[count + 0] & 0xff) << 24)
                     | ((src[count + 1] & 0xff) << 16)
-                    | ((src[count + 2] & 0xff) << 8) | ((src[count + 3] & 0xff) << 0));
+                    | ((src[count + 2] & 0xff) << 8)
+                    | ((src[count + 3] & 0xff) << 0));
             int t2 = (((src[count + 4] & 0xff) << 24)
                     | ((src[count + 5] & 0xff) << 16)
-                    | ((src[count + 6] & 0xff) << 8) | ((src[count + 7] & 0xff) << 0));
+                    | ((src[count + 6] & 0xff) << 8)
+                    | ((src[count + 7] & 0xff) << 0));
 
             dst[i] = Double.longBitsToDouble((((long) t1) << 32)
                     | (t2 & 0xffffffffL));

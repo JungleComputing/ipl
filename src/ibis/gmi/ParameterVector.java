@@ -17,7 +17,10 @@ public abstract class ParameterVector {
     /** Keeps track of the number of initialized vector elements. */
     protected int set_count = 0;
 
-    /** Array of booleans, keeping track of which elements have been initialized. */
+    /**
+     * Array of booleans, keeping track of which elements have been
+     * initialized. 
+     */
     protected boolean[] set;
 
     /**

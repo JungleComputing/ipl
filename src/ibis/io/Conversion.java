@@ -75,8 +75,8 @@ public abstract class Conversion {
     /** The number of bits in a single 'double'  */
     public final static int BITS_PER_DOUBLE = BITS_PER_BYTE * DOUBLE_SIZE;
 
-    /*
-     * Return a conversion, given the class name of it.
+    /**
+     * Returns a conversion, given the class name of it.
      */
     public static final Conversion loadConversion(String className)
             throws Exception {
@@ -113,7 +113,8 @@ public abstract class Conversion {
             } catch (Exception e) {
                 //nio conversion loading failed
             }
-        } else if (conversion == null || conversion.equalsIgnoreCase("hybrid")) {
+        } else if (conversion == null
+                || conversion.equalsIgnoreCase("hybrid")) {
             //default conversion
             if (conversion != null) {
                 System.err.println("hybrid conversion selected");

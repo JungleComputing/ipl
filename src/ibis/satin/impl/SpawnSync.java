@@ -82,11 +82,9 @@ public abstract class SpawnSync extends Termination {
 
             if (r.owner.equals(ident)) {
                 if (r.spawnCounter == null) {
-                    out
-                            .println("SATIN '"
-                                    + ident.name()
-                                    + ": EEK, r.spawnCounter = null in callSatinFunc, r = "
-                                    + r);
+                    out.println("SATIN '" + ident.name()
+                            + ": EEK, r.spawnCounter = null in callSatinFunc, "
+                            + "r = " + r);
                     new Throwable().printStackTrace();
                     System.exit(1);
                 }
@@ -99,17 +97,16 @@ public abstract class SpawnSync extends Termination {
 
                 if (ABORTS && r.parent == null && parentOwner.equals(ident)
                         && r.parentStamp != -1) {
-                    out
-                            .println("SATIN '"
-                                    + ident.name()
-                                    + ": parent is null for non-root, should not happen here! job = "
-                                    + r);
+                    out.println("SATIN '" + ident.name()
+                            + ": parent is null for non-root, should not "
+                            + "happen here! job = " + r);
                     System.exit(1);
                 }
             }
         }
 
-        if ((ABORTS || FAULT_TOLERANCE) && r.parent != null && r.parent.aborted) {
+        if ((ABORTS || FAULT_TOLERANCE) && r.parent != null
+                && r.parent.aborted) {
             if (ABORT_DEBUG) {
                 out.print("SATIN '" + ident.name());
                 out.print(": spawning job, parent was aborted! job = " + r);
@@ -158,8 +155,9 @@ public abstract class SpawnSync extends Termination {
                 try {
                     r.runLocal();
                 } catch (Throwable t) {
-                    // This can only happen if an inlet has thrown an exception, or
-                    // if there was no try-catch block around the spawn (i.e. no inlet).
+                    // This can only happen if an inlet has thrown an
+                    // exception, or if there was no try-catch block around
+                    // the spawn (i.e. no inlet).
                     // The semantics of this: all work is aborted,
                     // and the exception is passed on to the spawner.
                     // The parent is aborted, it must handle the exception.
@@ -291,8 +289,8 @@ public abstract class SpawnSync extends Termination {
             if (algorithm instanceof MasterWorker) {
                 synchronized (this) {
                     if (!ident.equals(masterIdent)) {
-                        System.err
-                                .println("with the master/worker algorithm, work can only be spawned on the master!");
+                        System.err.println("with the master/worker algorithm, "
+                                + "work can only be spawned on the master!");
                         System.exit(1);
                     }
                 }
@@ -320,8 +318,9 @@ public abstract class SpawnSync extends Termination {
 
         if (SPAWN_DEBUG) {
             r.spawnCounter.incr(r);
-        } else
+        } else {
             r.spawnCounter.value++;
+        }
 
         if (ABORTS || FAULT_TOLERANCE) {
             r.parentStamp = parentStamp;
@@ -329,9 +328,12 @@ public abstract class SpawnSync extends Termination {
             r.parent = parent;
 
             /*
-             * if(parent != null) { for(int i=0; i <parent.parentStamps.size();
-             * i++) { r.parentStamps.add(parent.parentStamps.get(i));
-             * r.parentOwners.add(parent.parentOwners.get(i)); } }
+             * if(parent != null) {
+             *     for (int i=0; i <parent.parentStamps.size(); i++) {
+             *         r.parentStamps.add(parent.parentStamps.get(i));
+             *         r.parentOwners.add(parent.parentOwners.get(i));
+             *     }
+             * }
              * 
              * r.parentStamps.add(new Integer(parentStamp));
              * r.parentOwners.add(parentOwner);
@@ -339,10 +341,10 @@ public abstract class SpawnSync extends Termination {
         }
 
         if (FAULT_TOLERANCE && !FT_NAIVE) {
-            if (parent != null && parent.reDone || parent == null && restarted) {
+            if (parent != null && parent.reDone
+                    || parent == null && restarted) {
                 r.reDone = true;
             }
-
         }
 
         if (FAULT_TOLERANCE && !FT_NAIVE) {
@@ -385,12 +387,12 @@ public abstract class SpawnSync extends Termination {
             handleDelayedMessages();
             return;
         }
-        //		int numStealAttempts = 0;
+        // int numStealAttempts = 0;
         while (s.value > 0) {
-            //		    if(exiting) {
-            //			System.err.println("EXIT FROM SYNC");
-            //			exit();
-            //		    }
+            // if(exiting) {
+            //     System.err.println("EXIT FROM SYNC");
+            //     exit();
+            // }
 
             if (SPAWN_DEBUG) {
                 out.println("SATIN '" + ident.name() + "': Sync, counter = "
@@ -406,7 +408,7 @@ public abstract class SpawnSync extends Termination {
             } else {
                 if (FAULT_TOLERANCE && FT_WITHOUT_ABORTS) {
                     //before you steal, check if kids need
-                    //to be restarted					
+                    //to be restarted
                     InvocationRecord curr = null;
                     if (parent != null) {
                         curr = parent.toBeRestartedChild;

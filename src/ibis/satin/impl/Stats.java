@@ -86,8 +86,8 @@ public abstract class Stats extends TupleSpace {
         totalStats.add(me);
 
         java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
-        //		pf.setMaximumIntegerDigits(3);
-        //		pf.setMinimumIntegerDigits(3);
+        // pf.setMaximumIntegerDigits(3);
+        // pf.setMinimumIntegerDigits(3);
 
         // for percentages
         java.text.NumberFormat pf = java.text.NumberFormat.getInstance();
@@ -95,8 +95,8 @@ public abstract class Stats extends TupleSpace {
         pf.setMinimumFractionDigits(3);
         pf.setGroupingUsed(false);
 
-        out
-                .println("-------------------------------SATIN STATISTICS--------------------------------");
+        out.println("-------------------------------SATIN STATISTICS------"
+                + "--------------------------");
         if (SPAWN_STATS) {
             out.println("SATIN: SPAWN:       " + nf.format(totalStats.spawns)
                     + " spawns, " + nf.format(totalStats.jobsExecuted)
@@ -132,8 +132,8 @@ public abstract class Stats extends TupleSpace {
                             + " attempts, "
                             + nf.format(totalStats.stealSuccess)
                             + " successes ("
-                            + pf
-                                    .format(((double) totalStats.stealSuccess / totalStats.stealAttempts) * 100.0)
+                            + pf.format(((double) totalStats.stealSuccess
+                                    / totalStats.stealAttempts) * 100.0)
                             + " %)");
 
             out.println("SATIN: MESSAGES:    intra "
@@ -163,8 +163,8 @@ public abstract class Stats extends TupleSpace {
                     + nf.format(totalStats.restartedJobs));
         }
 
-        out
-                .println("-------------------------------SATIN TOTAL TIMES-------------------------------");
+        out.println("-------------------------------SATIN TOTAL TIMES"
+                + "-------------------------------");
         if (STEAL_TIMING) {
             out.println("SATIN: STEAL_TIME:               total "
                     + Timer.format(totalStats.stealTime)
@@ -206,11 +206,9 @@ public abstract class Stats extends TupleSpace {
         }
 
         if (TUPLE_TIMING) {
-            out
-                    .println("SATIN: TUPLE_SPACE_BCAST_TIME:   total "
-                            + Timer.format(totalStats.tupleTime)
-                            + " time/bcast  "
-                            + Timer.format(totalStats.tupleTime
+            out.println("SATIN: TUPLE_SPACE_BCAST_TIME:   total "
+                    + Timer.format(totalStats.tupleTime) + " time/bcast  "
+                    + Timer.format(totalStats.tupleTime
                                     / totalStats.tupleMsgs));
             out.println("SATIN: TUPLE_SPACE_WAIT_TIME:    total "
                     + Timer.format(totalStats.tupleWaitTime)
@@ -232,13 +230,12 @@ public abstract class Stats extends TupleSpace {
         }
 
         if (FAULT_TOLERANCE && GRT_TIMING) {
-            out
-                    .println("SATIN: GRT_UPDATE_TIME:          total "
-                            + Timer.format(totalStats.tableUpdateTime)
-                            + " time/update "
-                            + Timer
-                                    .format(totalStats.tableUpdateTime
-                                            / (totalStats.tableResultUpdates + totalStats.tableLockUpdates)));
+            out.println("SATIN: GRT_UPDATE_TIME:          total "
+                    + Timer.format(totalStats.tableUpdateTime)
+                    + " time/update "
+                    + Timer.format(totalStats.tableUpdateTime
+                            / (totalStats.tableResultUpdates
+                                    + totalStats.tableLockUpdates)));
             out.println("SATIN: GRT_LOOKUP_TIME:          total "
                     + Timer.format(totalStats.tableLookupTime)
                     + " time/lookup "
@@ -276,21 +273,22 @@ public abstract class Stats extends TupleSpace {
                     + Timer.format(totalStats.addReplicaTime));
         }
 
-        out
-                .println("-------------------------------SATIN RUN TIME BREAKDOWN------------------------");
+        out.println("-------------------------------SATIN RUN TIME "
+                + "BREAKDOWN------------------------");
         out.println("SATIN: TOTAL_RUN_TIME:                           "
                 + Timer.format(totalTimer.totalTimeVal()));
 
         double lbTime = (totalStats.stealTime + totalStats.handleStealTime
-                - totalStats.invocationRecordReadTime - totalStats.invocationRecordWriteTime)
-                / size;
-        if (lbTime < 0.0)
+                - totalStats.invocationRecordReadTime
+                - totalStats.invocationRecordWriteTime) / size;
+        if (lbTime < 0.0) {
             lbTime = 0.0;
+        }
         double lbPerc = lbTime / totalTimer.totalTimeVal() * 100.0;
         double serTime = (totalStats.invocationRecordWriteTime
                 + totalStats.invocationRecordReadTime
-                + totalStats.returnRecordWriteTime + totalStats.returnRecordReadTime)
-                / size;
+                + totalStats.returnRecordWriteTime
+                + totalStats.returnRecordReadTime) / size;
         double serPerc = serTime / totalTimer.totalTimeVal() * 100.0;
         double abortTime = totalStats.abortTime / size;
         double abortPerc = abortTime / totalTimer.totalTimeVal() * 100.0;
@@ -329,21 +327,17 @@ public abstract class Stats extends TupleSpace {
         double addReplicaPerc = addReplicaTime / totalTimer.totalTimeVal()
                 * 100.0;
 
-        double totalOverhead = (totalStats.stealTime
-                + totalStats.handleStealTime + totalStats.returnRecordReadTime + totalStats.returnRecordWriteTime)
-                / size
-                + abortTime
-                + tupleTime
-                + tupleWaitTime
-                + pollTime
-                + tableUpdateTime
-                + tableLookupTime
-                + tableHandleUpdateTime
-                + tableHandleLookupTime;
+        double totalOverhead = abortTime + tupleTime + tupleWaitTime
+                + pollTime + tableUpdateTime + tableLookupTime
+                + tableHandleUpdateTime + tableHandleLookupTime
+                + (totalStats.stealTime + totalStats.handleStealTime
+                        + totalStats.returnRecordReadTime
+                        + totalStats.returnRecordWriteTime) / size;
         double totalPerc = totalOverhead / totalTimer.totalTimeVal() * 100.0;
         double appTime = totalTimer.totalTimeVal() - totalOverhead;
-        if (appTime < 0.0)
+        if (appTime < 0.0) {
             appTime = 0.0;
+        }
         double appPerc = appTime / totalTimer.totalTimeVal() * 100.0;
 
         if (STEAL_TIMING) {

@@ -82,7 +82,8 @@ public final class NioChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void short2byte(short[] src, int off, int len, byte[] dst, int off2) {
+    public void short2byte(short[] src, int off, int len, byte[] dst,
+            int off2) {
 
         while (len > 0) {
             int chunkSize = Math.min(BUFFER_SIZE / SHORT_SIZE, len);
@@ -187,7 +188,8 @@ public final class NioChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void float2byte(float[] src, int off, int len, byte[] dst, int off2) {
+    public void float2byte(float[] src, int off, int len, byte[] dst,
+            int off2) {
         while (len > 0) {
             int chunkSize = Math.min(BUFFER_SIZE / FLOAT_SIZE, len);
 
@@ -222,7 +224,8 @@ public final class NioChunkLittleConversion extends SimpleLittleConversion {
         }
     }
 
-    public void double2byte(double[] src, int off, int len, byte[] dst, int off2) {
+    public void double2byte(double[] src, int off, int len, byte[] dst,
+            int off2) {
         while (len > 0) {
             int chunkSize = Math.min(BUFFER_SIZE / DOUBLE_SIZE, len);
 

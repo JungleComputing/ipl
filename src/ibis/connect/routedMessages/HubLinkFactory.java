@@ -45,10 +45,10 @@ public class HubLinkFactory {
                 hub.start();
                 enabled = true;
             } else if (MyDebug.VERBOSE()) {
-                System.err
-                        .println("# HubLinkFactory: 'hub' properties not set");
-                System.err
-                        .println("# (ibis.connect.hub_host or ibis.name_server.host).");
+                System.err.println(
+                        "# HubLinkFactory: 'hub' properties not set");
+                System.err.println(
+                        "# (ibis.connect.hub_host or ibis.name_server.host).");
                 System.err.println("# Not creating wire to hub.");
             }
         } catch (Exception e) {

@@ -35,11 +35,9 @@ public abstract class FaultTolerance extends Inlets {
             try {
                 r.dead(id);
             } catch (IOException e) {
-                System.err
-                        .println("SATIN '"
-                                + ident.name()
-                                + "' :exception while notifying registry about crash of "
-                                + id.name() + ": " + e.getMessage());
+                System.err.println("SATIN '" + ident.name()
+                        + "' :exception while notifying registry about crash "
+                        + "of " + id.name() + ": " + e.getMessage());
             }
 
             if (COMM_DEBUG) {
@@ -56,9 +54,12 @@ public abstract class FaultTolerance extends Inlets {
                 globalResultTable.removeReplica(id);
             }
 
-            /*if (killTime > 0) {
-             System.err.println("SATIN '" + ident.name() + "': " + id +  " HAS CRASHED!!!");
-             }*/
+            /*
+             * if (killTime > 0) {
+             *     System.err.println("SATIN '" + ident.name() + "': " + id
+             *             +  " HAS CRASHED!!!");
+             * }
+             */
 
             if (id.equals(masterIdent) && /*quick hack*/!(killTime > 0)) {
                 //master has crashed, let's elect a new one
@@ -71,16 +72,16 @@ public abstract class FaultTolerance extends Inlets {
                     }
                     //barrier ports
                     if (master) {
-                        barrierReceivePort = barrierPortType
-                                .createReceivePort("satin barrier receive port on "
-                                        + ident.name());
+                        barrierReceivePort = barrierPortType.createReceivePort(
+                                "satin barrier receive port on "
+                                + ident.name());
                         barrierReceivePort.enableConnections();
                     } else {
                         barrierSendPort.close();
-                        barrierSendPort = barrierPortType
-                                .createSendPort("satin barrier send port on "
-                                        + ident.name());
-                        ReceivePortIdentifier barrierIdent = lookup("satin barrier receive port on "
+                        barrierSendPort = barrierPortType.createSendPort(
+                                "satin barrier send port on " + ident.name());
+                        ReceivePortIdentifier barrierIdent = lookup(
+                                "satin barrier receive port on "
                                 + masterIdent.name());
                         connect(barrierSendPort, barrierIdent);
                     }
@@ -111,17 +112,13 @@ public abstract class FaultTolerance extends Inlets {
                         clusterCoordinator = true;
                     }
                 } catch (IOException e) {
-                    System.err
-                            .println("SATIN '"
-                                    + ident.name()
-                                    + "' :exception while electing a new cluster coordinator "
-                                    + e.getMessage());
+                    System.err.println("SATIN '" + ident.name()
+                            + "' :exception while electing a new cluster "
+                            + "coordinator " + e.getMessage());
                 } catch (ClassNotFoundException e) {
-                    System.err
-                            .println("SATIN '"
-                                    + ident.name()
-                                    + "' :exception while electing a new cluster coordinator "
-                                    + e.getMessage());
+                    System.err.println("SATIN '" + ident.name()
+                            + "' :exception while electing a new cluster "
+                            + "coordinator " + e.getMessage());
                 }
             }
 
@@ -131,18 +128,17 @@ public abstract class FaultTolerance extends Inlets {
 
             if (!FT_NAIVE) {
                 if (FT_WITHOUT_ABORTS) {
-                    //store orphans in the table
+                    // store orphans in the table
                     onStack.storeOrphansOf(id);
                 } else {
-                    //abort all jobs stolen from id or descendants of jobs stolen from
-                    // id
+                    // abort all jobs stolen from id or descendants of jobs
+                    // stolen from id
                     killAndStoreSubtreeOf(id);
                 }
             }
 
-            //if using CRS, remove the asynchronously stolen job if it is owned
-            // by a
-            //crashed machine
+            // if using CRS, remove the asynchronously stolen job if it is owned
+            // by a crashed machine
             if (algorithm instanceof ClusterAwareRandomWorkStealing) {
                 ((ClusterAwareRandomWorkStealing) algorithm).killOwnedBy(id);
             }
@@ -223,8 +219,8 @@ public abstract class FaultTolerance extends Inlets {
             assertLocked(this);
         }
 
-        //try work queue, outstanding jobs and jobs on the stack
-        //but try stack first, many jobs in q are children of stack jobs
+        // try work queue, outstanding jobs and jobs on the stack
+        // but try stack first, many jobs in q are children of stack jobs
         onStack.killAndStoreChildrenOf(targetStamp, targetOwner);
         q.killChildrenOf(targetStamp, targetOwner);
         outstandingJobs.killAndStoreChildrenOf(targetStamp, targetOwner);
@@ -237,7 +233,7 @@ public abstract class FaultTolerance extends Inlets {
     }
 
     /**
-     * Attach a child to its parent's finished children list
+     * Attach a child to its parent's finished children list.
      */
     void attachToParentFinished(InvocationRecord r) {
         if (r.parent != null) {
@@ -257,7 +253,8 @@ public abstract class FaultTolerance extends Inlets {
     }
 
     /**
-     * Attach a child to its parent's list of children which need to be restarted
+     * Attach a child to its parent's list of children which need to be
+     * restarted.
      */
     void attachToParentToBeRestarted(InvocationRecord r) {
         if (r.parent != null) {
@@ -278,8 +275,8 @@ public abstract class FaultTolerance extends Inlets {
 
     //connect upcall functions
     public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant) {
-        //	    System.err.println("SATIN '" + ident.name() + "': got gotConnection
-        // upcall");
+        // System.err.println("SATIN '" + ident.name()
+        //         + "': got gotConnection upcall");
         return true;
     }
 
@@ -344,7 +341,7 @@ public abstract class FaultTolerance extends Inlets {
      */
     protected boolean globalResultTableCheck(InvocationRecord r) {
         if (TABLE_CHECK_TIMING) {
-            //			redoTimer.start();
+            // redoTimer.start();
         }
 
         GlobalResultTable.Key key = new GlobalResultTable.Key(r);
@@ -355,7 +352,7 @@ public abstract class FaultTolerance extends Inlets {
 
         if (value == null) {
             if (TABLE_CHECK_TIMING) {
-                //					redoTimer.stop();
+                // redoTimer.stop();
             }
             return false;
         }
@@ -376,7 +373,7 @@ public abstract class FaultTolerance extends Inlets {
             } else
                 r.spawnCounter.value--;
             if (TABLE_CHECK_TIMING) {
-                //					redoTimer.stop();
+                // redoTimer.stop();
             }
             return true;
 
@@ -390,22 +387,24 @@ public abstract class FaultTolerance extends Inlets {
                     if (deadIbises.contains(value.owner)) {
                         //the one who's got the result has crashed
                         if (TABLE_CHECK_TIMING) {
-                            //								redoTimer.stop();
+                            // redoTimer.stop();
                         }
                         return false;
                     }
 
-                    //						System.err.println("SATIN '" + ident.name() + "': sending a result request of " + key + " to " + value.owner.name());
+                    // System.err.println("SATIN '" + ident.name()
+                    //         + "': sending a result request of " + key
+                    //         + " to " + value.owner.name());
                     s = getReplyPortNoWait(value.owner);
                 }
 
                 if (s == null) {
                     if (TABLE_CHECK_TIMING) {
-                        //							redoTimer.stop();
+                        // redoTimer.stop();
                     }
                     return false;
                 }
-                //put the job in the stolen jobs list					
+                //put the job in the stolen jobs list.
                 synchronized (this) {
                     r.stealer = value.owner;
                     addToOutstandingJobList(r);
@@ -422,18 +421,16 @@ public abstract class FaultTolerance extends Inlets {
                     // complicated..
                     m.finish();
                 } catch (IOException e) {
-                    System.err
-                            .println("SATIN '"
-                                    + ident.name()
-                                    + "': trying to send RESULT_REQUEST but got exception: "
-                                    + e.getMessage());
+                    System.err.println("SATIN '" + ident.name()
+                            + "': trying to send RESULT_REQUEST but got "
+                            + "exception: " + e.getMessage());
                     synchronized (this) {
                         outstandingJobs.remove(r);
                     }
                     return false;
                 }
                 if (TABLE_CHECK_TIMING) {
-                    //						redoTimer.stop();
+                    // redoTimer.stop();
                 }
                 return true;
             }
@@ -457,7 +454,7 @@ public abstract class FaultTolerance extends Inlets {
                 } else
                     r.spawnCounter.value--;
                 if (TABLE_CHECK_TIMING) {
-                    //						redoTimer.stop();
+                    // redoTimer.stop();
                 }
                 return true;
             }

@@ -54,13 +54,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             unsafe = null;
         }
         if (STATS_NONREWRITTEN) {
-            System.out
-                    .println("IbisSerializationInputStream.STATS_NONREWRITTEN enabled");
+            System.out.println("IbisSerializationInputStream.STATS_NONREWRITTEN"
+                    + " enabled");
             Runtime.getRuntime().addShutdownHook(
                     new Thread("IbisSerializationInputStream ShutdownHook") {
                         public void run() {
-                            System.out
-                                    .print("Serializable objects created nonrewritten: ");
+                            System.out.print("Serializable objects created "
+                                    + "nonrewritten: ");
                             System.out.println(nonRewritten);
                         }
                     });
@@ -154,9 +154,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 Class classDefinition = Class.forName(clName);
                 customClassLoader = (ClassLoader) classDefinition.newInstance();
             } catch (Exception e) {
-                System.err
-                        .println("Warning: could not find or load custom classloader "
-                                + clName);
+                System.err.println("Warning: could not find or load custom "
+                        + "classloader " + clName);
                 if (DEBUG) {
                     e.printStackTrace();
                 }
@@ -1001,7 +1000,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
 
     private native void setFieldByte(Object ref, String fieldname, byte b);
 
-    private native void setFieldBoolean(Object ref, String fieldname, boolean b);
+    private native void setFieldBoolean(Object ref, String fieldname,
+            boolean b);
 
     private native void setFieldObject(Object ref, String fieldname,
             String osig, Object o);
@@ -1030,7 +1030,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putDouble(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldDouble(ref, fieldname, d);
@@ -1049,7 +1050,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putLong(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldLong(ref, fieldname, d);
@@ -1058,7 +1060,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
     /**
      * See {@link #readFieldDouble(Object, String)} for a description.
      */
-    public void readFieldFloat(Object ref, String fieldname) throws IOException {
+    public void readFieldFloat(Object ref, String fieldname)
+            throws IOException {
         float d = readFloat();
         if (unsafe != null) {
             Class cl = ref.getClass();
@@ -1068,7 +1071,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putFloat(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldFloat(ref, fieldname, d);
@@ -1087,7 +1091,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putInt(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldInt(ref, fieldname, d);
@@ -1096,7 +1101,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
     /**
      * See {@link #readFieldDouble(Object, String)} for a description.
      */
-    public void readFieldShort(Object ref, String fieldname) throws IOException {
+    public void readFieldShort(Object ref, String fieldname)
+            throws IOException {
         short d = readShort();
         if (unsafe != null) {
             Class cl = ref.getClass();
@@ -1106,7 +1112,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putShort(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldShort(ref, fieldname, d);
@@ -1125,7 +1132,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putChar(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldChar(ref, fieldname, d);
@@ -1144,7 +1152,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putByte(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldByte(ref, fieldname, d);
@@ -1164,7 +1173,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putBoolean(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldBoolean(ref, fieldname, d);
@@ -1184,7 +1194,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putObject(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldObject(ref, fieldname, "Ljava/lang/String;", d);
@@ -1205,7 +1216,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 unsafe.putObject(ref, key, d);
                 return;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldObject(ref, fieldname, "Ljava/lang/Class;", d);
@@ -1232,7 +1244,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             } catch (ClassCastException e) {
                 throw e;
             } catch (Exception e) {
-                // throw new InternalError("No such field " + fieldname + " in " cl.getName());
+                // throw new InternalError("No such field " + fieldname
+                //         + " in " cl.getName());
             }
         }
         setFieldObject(ref, fieldname, fieldsig, d);
@@ -1366,13 +1379,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      * De-serializes an object <code>ref</code> using the type information
      * <code>t</code>.
      *
-     * @param t		the type info for object <code>ref</code>
-     * @param ref	the object of which the fields are to be read
+     * @param t the type info for object <code>ref</code>
+     * @param ref the object of which the fields are to be read
      *
-     * @exception IOException		 when an IO error occurs
+     * @exception IOException when an IO error occurs
      * @exception IllegalAccessException when access to a field or
-     * 					 <code>readObject</code> method is
-     * 					 denied.
+     *   <code>readObject</code> method is
+     *    denied.
      * @exception ClassNotFoundException when readObject throws it.
      */
     private void alternativeReadObject(AlternativeTypeInfo t, Object ref)
@@ -1951,8 +1964,4 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                     + type.toString());
         }
     }
-
-    /*  Need conversion for allocation of uninitialized objects.
-     This lib is now loaded from Ibis.java, to avoid dependancies. --Rob
-     */
 }

@@ -25,8 +25,8 @@ public class Postpone {
      */
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.err
-                    .println("Usage: java ibis.util.Postpone <seconds> <main class> ...");
+            System.err.println("Usage: java ibis.util.Postpone <seconds> "
+                    + "<main class> ...");
             System.exit(1);
         }
         int count = Integer.parseInt(args[0]);

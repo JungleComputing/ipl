@@ -102,7 +102,8 @@ public abstract class Initialization extends SatinBase {
         String alg = null;
         Vector tempArgs = new Vector();
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-satin-closed")) {/* Closed world assumption. */
+            if (args[i].equals("-satin-closed")) {
+                /* Closed world assumption. */
                 closed = true;
             } else if (args[i].equals("-satin-panda")) {
                 reqprops.add("name", "panda");
@@ -144,8 +145,8 @@ public abstract class Initialization extends SatinBase {
                 try {
                     suggestedQueueSize = Integer.parseInt(args[i]);
                 } catch (Exception e) {
-                    System.err
-                            .println("Option -satin-queue-size needs integer parameter.");
+                    System.err.println("Option -satin-queue-size needs integer "
+                            + "parameter.");
                     System.exit(1);
                 }
             } else if (args[i].equals("-satin-alg")) {
@@ -199,10 +200,9 @@ public abstract class Initialization extends SatinBase {
 
         if (alg == null) {
             if (master) {
-                System.err
-                        .println("SATIN '"
-                                + hostName
-                                + "': satin_algorithm property not specified, using RS");
+                System.err.println("SATIN '" + hostName
+                        + "': satin_algorithm property not specified, "
+                        + "using RS");
             }
             alg = "RS";
         }
@@ -236,9 +236,8 @@ public abstract class Initialization extends SatinBase {
         String str = userprops.getProperty("worldmodel");
         if (str != null) {
             if (closed && !str.equals("closed")) {
-                System.err
-                        .println("Inconsistent options: -satin-closed and -Dibis.worldmodel="
-                                + str);
+                System.err.println("Inconsistent options: -satin-closed and "
+                        + "-Dibis.worldmodel=" + str);
                 System.exit(1);
             }
             if (str.equals("closed")) {
@@ -257,15 +256,13 @@ public abstract class Initialization extends SatinBase {
         str = userprops.getProperty("serialization");
         if (str != null) {
             if (ibisSerialization && !str.equals("ibis")) {
-                System.err
-                        .println("Inconsistent options: -satin-ibis and -Dibis.serialization="
-                                + str);
+                System.err.println("Inconsistent options: -satin-ibis and "
+                        + "-Dibis.serialization=" + str);
                 System.exit(1);
             }
             if (sunSerialization && !str.equals("sun")) {
-                System.err
-                        .println("Inconsistent options: -satin-sun and -Dibis.serialization="
-                                + str);
+                System.err.println("Inconsistent options: -satin-sun and "
+                        + "-Dibis.serialization=" + str);
                 System.exit(1);
             }
             if (str.equals("ibis")) {
@@ -277,7 +274,8 @@ public abstract class Initialization extends SatinBase {
         }
     }
 
-    StaticProperties createIbisProperties(StaticProperties requestedProperties) {
+    StaticProperties createIbisProperties(
+            StaticProperties requestedProperties) {
         StaticProperties ibisProperties = new StaticProperties(
                 requestedProperties);
 
@@ -295,7 +293,8 @@ public abstract class Initialization extends SatinBase {
             ibisProperties.add("worldmodel", "open");
         }
 
-        String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+        String commprops
+            = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
         if (TupleSpace.use_seq) {
             commprops += ", Numbered";
         }
@@ -314,8 +313,8 @@ public abstract class Initialization extends SatinBase {
         return ibisProperties;
     }
 
-    PortType createSatinPortType(StaticProperties reqprops) throws IOException,
-            IbisException {
+    PortType createSatinPortType(StaticProperties reqprops)
+            throws IOException, IbisException {
         StaticProperties satinPortProperties = new StaticProperties(reqprops);
 
         if (closed) {
@@ -339,9 +338,9 @@ public abstract class Initialization extends SatinBase {
 
         if (ibisSerialization) {
             satinPortProperties.add("Serialization", "ibis");
-            //			if (master) {
-            //				System.err.println("SATIN: using Ibis serialization");
-            //			}
+            // if (master) {
+            //     System.err.println("SATIN: using Ibis serialization");
+            // }
         } else if (sunSerialization) {
             satinPortProperties.add("serialization", "sun");
         } else {
@@ -361,7 +360,8 @@ public abstract class Initialization extends SatinBase {
             satinPortProperties.add("worldmodel", "open");
         }
 
-        String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
+        String commprops
+                = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
         if (TupleSpace.use_seq) {
             commprops += ", Numbered";
         }
@@ -380,9 +380,9 @@ public abstract class Initialization extends SatinBase {
 
         if (ibisSerialization) {
             satinPortProperties.add("Serialization", "ibis");
-            //			if (master) {
-            //				System.err.println("SATIN: using Ibis serialization");
-            //			}
+            // if (master) {
+            //     System.err.println("SATIN: using Ibis serialization");
+            // }
         } else if (sunSerialization) {
             satinPortProperties.add("serialization", "sun");
         } else {
@@ -405,7 +405,7 @@ public abstract class Initialization extends SatinBase {
             s.add("worldmodel", "open");
         }
 
-        s.add("communication", "OneToOne, " + "ManyToOne, " + "Reliable, "
+        s.add("communication", "OneToOne, ManyToOne, Reliable, "
                 + "ExplicitReceipt");
 
         return ibis.createPortType("satin barrier porttype", s);
@@ -436,9 +436,9 @@ public abstract class Initialization extends SatinBase {
 
         if (ibisSerialization) {
             satinPortProperties.add("Serialization", "ibis");
-            //			if (master) {
-            //				System.err.println("SATIN: using Ibis serialization");
-            //			}
+            // if (master) {
+            //     System.err.println("SATIN: using Ibis serialization");
+            // }
         } else if (sunSerialization) {
             satinPortProperties.add("Serialization", "sun");
         } else {

@@ -29,8 +29,8 @@ final class TcpWriteMessage implements WriteMessage {
         }
     }
 
-    // if we keep connectionAdministration, forward exception to upcalls / downcalls.
-    // otherwise, rethrow the exception to the user.
+    // If we keep connectionAdministration, forward exception to
+    // upcalls/downcalls. Otherwise, rethrow the exception to the user.
     private void forwardLosses(SplitterException e) throws IOException {
         // System.err.println("connection lost!");
 
@@ -40,7 +40,8 @@ final class TcpWriteMessage implements WriteMessage {
                     connectionAdministration);
         }
 
-        if (!connectionAdministration) { // otherwise an upcall /downcall was/will be done
+        if (!connectionAdministration) {
+            // otherwise an upcall /downcall was/will be done
             throw e;
         }
     }

@@ -42,8 +42,8 @@ public class TCPSpliceSocketType extends SocketType implements
         if (splice_host.equals(spliceHost)) {
             // Same hostname. TcpSplice does not seem to work in that case,
             // but surely, plain TCP should work in this case.
-            MyDebug
-                    .trace("TCPSplice requested on same node, plain Socket used");
+            MyDebug.trace(
+                    "TCPSplice requested on same node, plain Socket used");
             theSplice.close();
             PlainTCPSocketType tp = new PlainTCPSocketType();
             return tp.createBrokeredSocket(in, out, hint, p);

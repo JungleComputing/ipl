@@ -46,7 +46,8 @@ public abstract class APIMethods extends Malleability {
             // spawn work on
             // one machine.
 
-            if (this_satin.q.size() / (size + 1) > this_satin.suggestedQueueSize)
+            if (this_satin.q.size() / (size + 1)
+                    > this_satin.suggestedQueueSize)
                 return false;
         }
 

@@ -17,8 +17,9 @@ class KillerThread extends Thread {
         } catch (InterruptedException e) {
             //ignore
         }
-        //		Satin satin = Satin.this_satin;
-        //		if (satin.allIbises.indexOf(satin.ident) >= (satin.allIbises.size() / 2)) {
+        // Satin satin = Satin.this_satin;
+        // if (satin.allIbises.indexOf(satin.ident)
+        //         >= (satin.allIbises.size() / 2)) {
         System.exit(1);
     }
 

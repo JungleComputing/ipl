@@ -297,8 +297,9 @@ public class GroupStub implements GroupInterface, GroupProtocol {
         if (personalizer != null) {
             w.writeObject(personalizer);
             if (m.result_mode == ReplyScheme.R_PERSONALIZED_COMBINE_BINOMIAL) {
-                w
-                        .writeObject(((CombineReply) (((PersonalizeReply) (m.rep)).rs)).binomialCombiner);
+                w.writeObject(
+                        ((CombineReply) (((PersonalizeReply) (m.rep)).rs))
+                                .binomialCombiner);
             }
         } else if (m.result_mode == ReplyScheme.R_COMBINE_BINOMIAL) {
             w.writeObject(((CombineReply) (m.rep)).binomialCombiner);
@@ -308,7 +309,8 @@ public class GroupStub implements GroupInterface, GroupProtocol {
     }
 
     /**
-     * When all parameters have been combined, actually invokes the group method.
+     * When all parameters have been combined, actually invokes the group
+     * method.
      */
     private final void do_invoke(GroupMethod m, CombinedInvocation inv,
             ReplyPersonalizer personalizer) throws IOException {
@@ -466,7 +468,8 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      *
      * @param params the parameters for this invocation (yet to be combined)
      * @param m the group method to be invoked
-     * @return The {@link GroupMessage} that holds the result of the combined invocation.
+     * @return The {@link GroupMessage} that holds the result of the combined
+     * invocation.
      */
     protected final GroupMessage binCombineInvoke(ParameterVector params,
             GroupMethod m) throws IOException {
@@ -539,8 +542,9 @@ public class GroupStub implements GroupInterface, GroupProtocol {
                     peer = ((relrank & (~mask)) + lroot) % size;
 
                     // System.out.println("Sending parameters to " + peer);
-                    WriteMessage w = Group.unicast[info.participating_cpus[peer]]
-                            .newMessage();
+                    WriteMessage w
+                            = Group.unicast[info.participating_cpus[peer]]
+                                    .newMessage();
 
                     w.writeByte(INVOCATION_BINCOMBINE);
                     w.writeInt(realStubID);
