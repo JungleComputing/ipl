@@ -135,15 +135,17 @@ public final class NoSerializationInputStream extends SerializationInputStream {
 	 * See {@link #readArray(boolean[], int, int)} for a description.
 	 */
 	public void readArray(byte[] ref, int off, int len) throws IOException {
-		try {
-			byte[] temp = (byte[]) readObject();
-			if(temp.length != len) {
-				throw new ArrayIndexOutOfBoundsException("Received sub array has wrong len");
-			}
-			System.arraycopy(temp, 0, ref, off, len);
-		} catch (ClassNotFoundException f) {
-			throw new SerializationError("class 'byte[]' not found", f);
-		}
+	    /*
+	     * Call write() and read() here. It is supported.
+	     * RFHH
+	     */
+	    if (off == 0 && ref.length == len) {
+		int rd = 0;
+		do {
+		    rd += read(ref, rd, len - rd);
+		} while (rd < len);
+		return;
+	    }
 	}
 
         /**

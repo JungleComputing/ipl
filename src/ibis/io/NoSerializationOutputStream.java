@@ -172,15 +172,16 @@ public final class NoSerializationOutputStream extends SerializationOutputStream
      * See {@link #writeArray(boolean[], int, int)} for a description.
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
-/*
+
+	/*
+	 * Call write() and read() here. It is supported.
+	 * RFHH
+	 */
 	if (off == 0 && len == ref.length) {
-	    writeUnshared(ref);
+	    write(ref);
+	} else {
+	    throw new IOException("Illegal data type written");
 	}
-	else {
-*/	    byte[] temp = new byte[len];
-	    System.arraycopy(ref, off, temp, 0, len);
-	    writeObject(temp);
-//	}
     }
 
     /**
