@@ -34,6 +34,13 @@ else
     Dns_pool="-Dibis.name_server.key=$PRUN_ENV"
 fi
 
+if [ -z "$USE_JAVA_WRAPPER" ]
+then
+    wrapper_name=""
+else
+    wrapper_name="$IBIS_ROOT/bin/java_wrapper"
+fi
+
 Dns_port="-Dibis.name_server.port=$1"
 shift
 
@@ -42,5 +49,5 @@ shift
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-$IBIS_ROOT/bin/java_wrapper $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
+$wrapper_name $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dibis.pool.host_names="$HOSTS" -Xbootclasspath:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH "$@"
 
