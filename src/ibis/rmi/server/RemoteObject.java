@@ -65,7 +65,7 @@ public abstract class RemoteObject implements Remote, Serializable
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
     {
-	String name = RemoteRef.packagePrefix + "." + in.readUTF();
+	String name = "ibis.rmi.server." + in.readUTF();
 	try {
 	    Class cls = Class.forName(name);
 	    ref = (RemoteRef)cls.newInstance();

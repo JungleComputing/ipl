@@ -27,25 +27,14 @@ public class UnicastRemoteObject extends RemoteServer
     public static RemoteStub exportObject(Remote obj) throws RemoteException
     {
 	// Use exportObject from the "current" UnicastServerRef".
-	    /*Class cl = Class.forName(RemoteRef.packagePrefix + ".UnicastServerRef");
-	    Object uref = cl.newInstance();
-	    if (uref instanceof ServerRef) {
-		ServerRef ref = (ServerRef)uref;
-		if (obj instanceof UnicastRemoteObject) {
-		    ((UnicastRemoteObject)obj).ref = ref;
-		}
-		return ref.exportObject(obj, null);
+	ServerRef ref = new UnicastServerRef();
+	if (obj instanceof RemoteObject) {
+	    if (((RemoteObject)obj).ref != null) {
+		throw new ExportException("object already exported");
 	    }
-
-	    throw new ExportException(RemoteRef.packagePrefix + ".UnicastServerRef is not a ServerRef");*/
-	    ServerRef ref = new UnicastServerRef();
-	    if (obj instanceof RemoteObject) {
-		if (((RemoteObject)obj).ref != null) {
-		    throw new ExportException("object already exported");
-		}
-		((RemoteObject)obj).ref = ref;
-	    }
-	    return ref.exportObject(obj, null);
+	    ((RemoteObject)obj).ref = ref;
+	}
+	return ref.exportObject(obj, null);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException

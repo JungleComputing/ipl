@@ -21,23 +21,6 @@ public class UnicastRef implements RemoteRef, java.io.Serializable
     }
     
 
-    public RemoteCall newCall(RemoteObject obj, Operation[] ops, int opnum,
-			      long hash)
-	throws RemoteException
-    {
-	// Never called
-	return null;
-    }
-
-    public void invoke(RemoteCall call) throws Exception
-    {
-	// Never called
-    }
-
-    public void done(RemoteCall call) throws RemoteException {
-	// do nothing.
-    }
-
     public String getRefClass(ObjectOutput out)
     {
 	return "UnicastRef";
