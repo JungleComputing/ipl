@@ -390,13 +390,12 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         // (e.g. java.util.Arrays.sort), since the ones that work on int
         // arrays do not accept a comparison function, but only allow
         // sorting into natural order.
-	int length = end - start;
-        int jump = length;
-        boolean done;
+        int jump = end-start;
 	final int kC = 1;	// known commonality.
 
         while( jump>1 ){
             jump /= 2;
+            boolean done;
 
             do {
                 done = true;
@@ -404,7 +403,9 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 		if( jump == 1 ){
                     // We treat the case for jump == 1 separately, because
                     // we want to fill in commonality at the same time.
-		    for( int j = start; j<(end-1); j++ ){
+                    final int s = end-1;
+
+		    for( int j = start; j<s; j++ ){
 			int i = j + 1;
 			int ixi = indices[i];
 			int ixj = indices[j];
