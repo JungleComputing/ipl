@@ -160,11 +160,11 @@ final public class ArrayOutputStream
     }
 
     public final int bytesWritten() { 
-	return -1; // please implement --Rob
+	return out.getCount();
     }
 
 
     public final void resetBytesWritten() {
-	// please implement --Rob
+	out.resetCount();
     }
 }

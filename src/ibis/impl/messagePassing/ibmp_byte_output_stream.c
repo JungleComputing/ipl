@@ -50,6 +50,7 @@ static jfieldID fld_msgHandle;
 static jfieldID fld_waitingInPoll;
 static jfieldID fld_outstandingFrags;
 static jfieldID fld_makeCopy;
+static jfieldID fld_msgCount;
 
 static jmethodID md_finished_upcall;
 
@@ -398,6 +399,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
     ibmp_msg_p	msg = (ibmp_msg_p)msgHandle;
     ibmp_byte_stream_hdr_p hdr;
     int		len;
+    int		up_to_now;
 
 //    pan_time_get(&st.t);
 
@@ -458,6 +460,9 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
     }
 
     len = ibmp_iovec_len(msg->iov, msg->iov_len);
+    up_to_now = (*env)->GetIntField(env, this, fld_msgCount);
+    (*env)->SetIntField(env, this, fld_msgCount, len + up_to_now);
+
 // fprintf(stderr, "send, len = %d, target = %d\n", len, cpu);
 #ifdef IBP_VERBOSE
     sent_data += len;
@@ -774,6 +779,13 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 					 "makeCopy", "Z");
     if (fld_makeCopy == NULL) {
 	ibmp_error(env, "Cannot find static field makeCopy:Z\n");
+    }
+
+    fld_msgCount = (*env)->GetFieldID(env,
+					 cls_PandaByteOutputStream,
+					 "msgCount", "I");
+    if (fld_msgCount == NULL) {
+	ibmp_error(env, "Cannot find static field msgCount:I\n");
     }
 
     md_finished_upcall    = (*env)->GetMethodID(env,

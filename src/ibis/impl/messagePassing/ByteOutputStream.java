@@ -20,6 +20,9 @@ final class ByteOutputStream
 
     boolean makeCopy;
 
+    private int msgCount;
+
+
     ByteOutputStream(ibis.ipl.SendPort p, boolean syncMode, boolean makeCopy) {
 	this.syncMode = syncMode;
 	this.makeCopy = makeCopy;
@@ -244,6 +247,14 @@ final class ByteOutputStream
 	if (syncMode) {
 	    flush();
 	}
+    }
+
+    public int getCount() {
+	return msgCount;
+    }
+
+    public void resetCount() {
+	msgCount = 0;
     }
 
     native void writeBooleanArray(boolean[] array, int off, int len);
