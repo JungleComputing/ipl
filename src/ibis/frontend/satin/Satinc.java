@@ -2012,7 +2012,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("    }\n");
 
 	    // generate a method that runs the clone in case of exceptions 
-	    out.println("    public void handleException(int spawnId, Throwable t, ibis.satin.InvocationRecord parent) {");
+	    out.println("    public void handleException(int spawnId, Throwable t, ibis.satin.InvocationRecord parent) throws Throwable {");
 	    out.println("        if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"handleE: spawnId = \" + spawnId + \", t = \" + t + \", parent = \" + parent + \", this = \" + this);");
 	    // This will later be replaced with call to exception handler
 	    out.println("    }");
@@ -2186,7 +2186,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 
 	    // runLocal method 
-	    out.println("    public void runLocal() {");
+	    out.println("    public void runLocal() throws Throwable {");
 	    if (supportAborts) {
 		out.println("        try {");
 	    }

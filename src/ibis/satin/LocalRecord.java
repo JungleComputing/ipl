@@ -16,5 +16,5 @@ abstract public class LocalRecord {
 	 * @param t the exception or error thrown by this invocation.
 	 * @param parent the invocation record describing this invocation.
 	 */
-	abstract public void handleException(int spawnId, Throwable t, InvocationRecord parent);
+	abstract public void handleException(int spawnId, Throwable t, InvocationRecord parent) throws Throwable;
 }

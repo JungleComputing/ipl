@@ -766,7 +766,7 @@ public final class Satin implements Config, ResizeHandler {
 					    pf.format(pollPerc) + " %)");
 			}
 
-			out.println("\nSATIN: TOTAL_SATIN_OVERHEAD:   avg. per machine " +
+			out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD:    avg. per machine " +
 				    Timer.format(totalOverhead) + " (" +
 				    pf.format(totalPerc) + " %)");
 
@@ -1958,7 +1958,11 @@ public final class Satin implements Config, ResizeHandler {
 				if(SPAWN_STATS) {
 					jobsExecuted++;
 				}
-				r.runLocal();
+				try {
+				    r.runLocal();
+				} catch (Throwable t) {
+				    throw new IbisError("Unexpected exception in runLocal", t);
+				}
 			}
 
 			r.spawnCounter.value--;

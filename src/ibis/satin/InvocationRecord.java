@@ -141,6 +141,6 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 			return result;
 	}
 
-	protected abstract void runLocal();
+	protected abstract void runLocal() throws Throwable;
 	protected abstract ReturnRecord runRemote();
 }
