@@ -7,7 +7,6 @@ import ibis.util.PoolInfo;
 public class WaterWorker extends UnicastRemoteObject implements WaterWorkerInterface, ConstInterface {
 	
     MoleculeEnsemble var; 
-    Barrier bar, bar1; 
     double[] tlc, pcc;
     int id, nmol, startMol, nrmols, ncpus, rest;
     double tstep, fpot, fkin, tkin, avgt, ten;

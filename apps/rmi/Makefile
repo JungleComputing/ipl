@@ -20,3 +20,4 @@ clean:
 	cd tsp && $(MAKE) $(MFLAGS) clean
 	cd fft && $(MAKE) $(MFLAGS) clean
 	cd radix && $(MAKE) $(MFLAGS) clean
+	cd leq && $(MAKE) $(MFLAGS) clean
