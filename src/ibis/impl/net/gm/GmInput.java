@@ -254,10 +254,11 @@ int plld;
          */
 	public Integer doPoll(boolean block) throws IOException {
 	    log.in();
+	    System.err.println(this + ": WARNING: nowadays, you should use GmPoller i.s.o. GmInput");
+
 	    if (spn == null) {
 		return null;
 	    }
-System.err.println(this + ": WARNING: nowadays, you should use GmPoller i.s.o. GmInput");
 
 	    Driver.gmAccessLock.lock(false);
 	    try {

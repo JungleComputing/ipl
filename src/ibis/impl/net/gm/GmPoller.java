@@ -133,6 +133,12 @@ public final class GmPoller extends NetPoller {
 
 	    readBufferedSupported = true;
 
+	    int _mtu = ni.getMaximumTransfertUnit();
+
+	    if (mtu == 0  ||  mtu > _mtu) {
+		mtu = _mtu;
+	    }
+
 // System.err.println(this + ": " + cnx.getServiceLink() + ": established connection");
 	}
     }

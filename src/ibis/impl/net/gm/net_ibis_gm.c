@@ -249,7 +249,7 @@ static unsigned		net_gm_events[256];
 #define CACHE_GRANULARITY 0x1000
 
 /* The name of the NetIbis exception. */
-#define NI_IBIS_EXCEPTION  "java.io.IOException"
+#define NI_IBIS_EXCEPTION  "java/io/IOException"
 
 /* The minimal valid GM port ID.*/
 #define NI_GM_MIN_PORT_NUM 2
@@ -2253,7 +2253,7 @@ ni_gm_output_send_buffer(JNIEnv *env, struct s_output *p_out, void *b, int len) 
         return -1;
 }
 
-static void ni_gm_throw_exception(JNIEnv *env, char *msg);
+static void ni_gm_throw_exception(JNIEnv *env, char *exc, char *msg);
 
 
 static int
@@ -3111,6 +3111,7 @@ ni_gm_exit(struct s_drv *p_drv) {
 static
 void
 ni_gm_throw_exception(JNIEnv *env,
+		      char   *exc,
                       char   *msg) {
         jclass cls = 0;
 
@@ -3118,13 +3119,13 @@ ni_gm_throw_exception(JNIEnv *env,
 	    fprintf(stderr, "would throw an exception \"%s\"-- ignore\n", msg);
 	    return;
 	}
-fprintf(stderr, "NI GM: throw an exception \"%s\"\n", msg);
+fprintf(stderr, "NI GM: throw a %s \"%s\"\n", exc, msg);
 
         __in__();
         __trace__("ni_gm_throw_exception-->");
         assert(env);
         __trace__("ni_gm_throw_exception - 1");
-        cls = ni_findClass(env, NI_IBIS_EXCEPTION);
+        cls = ni_findClass(env, exc);
         __trace__("ni_gm_throw_exception - 2");
         (*env)->ThrowNew(env, cls, msg);
         __trace__("ni_gm_throw_exception<--");
@@ -3411,7 +3412,9 @@ Java_ibis_impl_net_gm_GmOutput_nSendRequest(JNIEnv     *env,
 	p_out->length = length;
 	VPRINTF(90, ("Send a rndvz req; p_out->offset %d\n", p_out->offset));
         if (ni_gm_output_send_request(env, p_out)) {
-                ni_gm_throw_exception(env, "could not send a request");
+                ni_gm_throw_exception(env,
+			NI_IBIS_EXCEPTION,
+			"could not send a request");
                 goto error;
         }
 
@@ -3557,7 +3560,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
     assert(length); \
     \
     if (!buffer) { \
-	    ni_gm_throw_exception(env, "could not get array elements"); \
+	    ni_gm_throw_exception(env, NI_IBIS_EXCEPTION, "could not get array elements"); \
 	    goto error; \
     } \
     \
@@ -3566,7 +3569,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
     p_out->type         = E_TYPE; \
     \
     if (ni_gm_output_send_buffer(env, p_out, (unsigned char *)buffer + offset, (int)length)) { \
-	    ni_gm_throw_exception(env, "could not send a buffer"); \
+	    ni_gm_throw_exception(env, NI_IBIS_EXCEPTION, "could not send a buffer"); \
 	    goto error; \
     } \
     \
@@ -3694,13 +3697,13 @@ Java_ibis_impl_net_gm_GmInput_nPost ## Jtype ## Buffer(JNIEnv     *env, \
     pstart(POST_BUFFER); \
     p_in = ni_gm_handle2ptr(input_handle); \
     if (!p_in) { \
-	ni_gm_throw_exception(env, "could not get s_input from handle"); \
+	ni_gm_throw_exception(env, NI_IBIS_EXCEPTION, "could not get s_input from handle"); \
 	goto error; \
     } \
     \
     p_in->type = E_TYPE; \
     if (ni_gm_input_post_ ## Jtype ## _buffer(env, p_in, b, len, offset, &result)) { \
-	ni_gm_throw_exception(env, "could not post a buffer"); \
+	ni_gm_throw_exception(env, NI_IBIS_EXCEPTION, "could not post a buffer"); \
 	goto error; \
     } \
     pend(POST_BUFFER); \
@@ -3747,13 +3750,13 @@ Java_ibis_impl_net_gm_GmInput_nPostBuffer(JNIEnv    *env,
     pstart(POST_BUFFER);
     p_in = ni_gm_handle2ptr(input_handle);
     if (!p_in) {
-	ni_gm_throw_exception(env, "could not get s_input from handle");
+	ni_gm_throw_exception(env, NI_IBIS_EXCEPTION, "could not get s_input from handle");
 	goto error;
     }
 
     p_in->type = E_BYTE;
     if (ni_gm_input_post_byte_buffer(env, p_in, b, len, offset, &result)) {
-	ni_gm_throw_exception(env, "could not post a buffer");
+	ni_gm_throw_exception(env, NI_IBIS_EXCEPTION, "could not post a buffer");
 	goto error;
     }
     pend(POST_BUFFER);
@@ -3780,7 +3783,7 @@ Java_ibis_impl_net_gm_GmOutput_nCloseOutput(JNIEnv  *env,
 	STATINC(native);
         p_out = ni_gm_handle2ptr(output_handle);
         if (ni_gm_output_exit(p_out)) {
-                ni_gm_throw_exception(env, "could not close output");
+                ni_gm_throw_exception(env, NI_IBIS_EXCEPTION, "could not close output");
                 goto error;
         }
 
@@ -3801,7 +3804,7 @@ Java_ibis_impl_net_gm_GmInput_nCloseInput(JNIEnv *env, jobject input, jlong inpu
 	STATINC(native);
         p_in = ni_gm_handle2ptr(input_handle);
         if (ni_gm_input_exit(p_in)) {
-		ni_gm_throw_exception(env, "could not close input");
+		ni_gm_throw_exception(env, NI_IBIS_EXCEPTION, "could not close input");
                 goto error;
         }
 
@@ -4142,7 +4145,9 @@ Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint devic
 
 
         if (ni_gm_dev_init(env, ni_gm_p_drv, (int)device_num, &p_dev)) {
-                ni_gm_throw_exception(env, "GM device initialization failed");
+                ni_gm_throw_exception(env,
+			"ibis/ipl/IbisConfigurationException",
+			"GM device initialization failed");
                 goto error;
         }
 
@@ -4165,7 +4170,9 @@ Java_ibis_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong dev
 	STATINC(native);
         p_dev = ni_gm_handle2ptr(device_handle);
         if (ni_gm_dev_exit(p_dev)) {
-                ni_gm_throw_exception(env, "GM device closing failed");
+                ni_gm_throw_exception(env,
+			NI_IBIS_EXCEPTION,
+			"GM device closing failed");
         }
         if (!ni_gm_p_drv->ref_count) {
                 if (ni_gm_access_lock) {
