@@ -23,7 +23,7 @@ public final class BufferedArrayInputStream extends ArrayInputStream {
     /**
      * The buffer size.
      */
-    private static final int BUF_SIZE = 8*1024;
+    private static final int BUF_SIZE = IbisStreamFlags.BUFFER_SIZE;
 
     /**
      * The buffer.

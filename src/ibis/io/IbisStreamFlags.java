@@ -44,12 +44,15 @@ public interface IbisStreamFlags {
     static final int	BEGIN_TYPES	= 1;
     static final int	PRIMITIVE_TYPES	= 9;
 
-    public static final int BOOLEAN_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_BOOLEAN;
-    public static final int BYTE_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_BYTE;
-    public static final int CHAR_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_CHAR;
-    public static final int SHORT_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_SHORT;
-    public static final int INT_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_INT;
-    public static final int LONG_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_LONG;
-    public static final int FLOAT_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_FLOAT;
-    public static final int DOUBLE_BUFFER_SIZE	= BUFFER_SIZE / SIZEOF_DOUBLE;
+    static final int	BSIZ = BUFFER_SIZE - 
+				(PRIMITIVE_TYPES - BEGIN_TYPES) * SIZEOF_SHORT;
+
+    public static final int BOOLEAN_BUFFER_SIZE	= BSIZ / SIZEOF_BOOLEAN;
+    public static final int BYTE_BUFFER_SIZE	= BSIZ / SIZEOF_BYTE;
+    public static final int CHAR_BUFFER_SIZE	= BSIZ / SIZEOF_CHAR;
+    public static final int SHORT_BUFFER_SIZE	= BSIZ / SIZEOF_SHORT;
+    public static final int INT_BUFFER_SIZE	= BSIZ / SIZEOF_INT;
+    public static final int LONG_BUFFER_SIZE	= BSIZ / SIZEOF_LONG;
+    public static final int FLOAT_BUFFER_SIZE	= BSIZ / SIZEOF_FLOAT;
+    public static final int DOUBLE_BUFFER_SIZE	= BSIZ / SIZEOF_DOUBLE;
 } 

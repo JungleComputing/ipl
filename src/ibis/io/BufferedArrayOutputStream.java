@@ -20,7 +20,7 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
     /**
      * Size of the buffer in which output data is collected.
      */
-    private static final int BUF_SIZE = 8*1024;
+    private static final int BUF_SIZE = IbisStreamFlags.BUFFER_SIZE;
 
     /**
      * The underlying <code>OutputStream</code>.
