@@ -156,8 +156,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	Timer idleTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer pollTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	Timer tupleTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	Timer localRecordWriteTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-	Timer localRecordReadTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer invocationRecordWriteTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	Timer invocationRecordReadTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	private long prevPoll = 0;
 	//	float MHz = Timer.getMHz();
 
@@ -181,8 +181,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(idleTimer == null) idleTimer = new Timer();
 		if(pollTimer == null) pollTimer = new Timer();
 		if(tupleTimer == null) tupleTimer = new Timer();
-		if(localRecordWriteTimer == null) localRecordWriteTimer = new Timer();
-		if(localRecordReadTimer == null) localRecordReadTimer = new Timer();
+		if(invocationRecordWriteTimer == null) invocationRecordWriteTimer = new Timer();
+		if(invocationRecordReadTimer == null) invocationRecordReadTimer = new Timer();
 
 		Properties p = System.getProperties();
 		String hostName = null;
@@ -514,15 +514,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					    " total time = " + handleStealTimer.totalTime() +
 					    " avg time = " + handleStealTimer.averageTime());
 				out.println("SATIN '" + ident.name() + 
-					    "': STEAL_STATS 5: localRecordWrites = " +
-					    localRecordWriteTimer.nrTimes() + 
-					    " total time = " + localRecordWriteTimer.totalTime() +
-					    " avg time = " + localRecordWriteTimer.averageTime());
+					    "': STEAL_STATS 5: invocationRecordWrites = " +
+					    invocationRecordWriteTimer.nrTimes() + 
+					    " total time = " + invocationRecordWriteTimer.totalTime() +
+					    " avg time = " + invocationRecordWriteTimer.averageTime());
 				out.println("SATIN '" + ident.name() + 
-					    "': STEAL_STATS 6: localRecordReads = " +
-					    localRecordReadTimer.nrTimes() + 
-					    " total time = " + localRecordReadTimer.totalTime() +
-					    " avg time = " + localRecordReadTimer.averageTime());
+					    "': STEAL_STATS 6: invocationRecordReads = " +
+					    invocationRecordReadTimer.nrTimes() + 
+					    " total time = " + invocationRecordReadTimer.totalTime() +
+					    " avg time = " + invocationRecordReadTimer.averageTime());
 			}
 
 			if(ABORTS && ABORT_TIMING) {
