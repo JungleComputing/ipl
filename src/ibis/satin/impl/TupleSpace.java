@@ -18,6 +18,7 @@ public abstract class TupleSpace extends Communication {
 	private static HashMap space;
 	private static boolean initialized = false;
 	private static boolean tuple_connected = false;
+	private static boolean tuple_connecting = false;
 
 	static {
 	    space = new HashMap();
@@ -243,6 +244,35 @@ public abstract class TupleSpace extends Communication {
 
 	/* ------------------- tuple space stuff ---------------------- */
 
+	private void tupleConnect() {
+	    boolean must_connect = false;
+
+	    synchronized(this) {
+		if (! tuple_connected && ! tuple_connecting) {
+		    tuple_connecting = true;
+		    must_connect = true;
+		}
+	    }
+	    if (must_connect) {
+		// You cannot hold the satin lock while connecting ...
+		connectTuplePort();
+		synchronized(this) {
+		    tuple_connected = true;
+		    this.notifyAll();
+		}
+	    } else {
+		synchronized(this) {
+		    while (! tuple_connected) {
+			try {
+			    this.wait();
+			} catch(Exception e) {
+			    // ignored
+			}
+		    }
+		}
+	    }
+	}
+
 	protected void broadcastTuple(String key, Serializable data) {
 		long count = 0;
 		int size = 0;
@@ -265,11 +295,8 @@ public abstract class TupleSpace extends Communication {
 		}
 
 		if (SUPPORT_TUPLE_MULTICAST) {
+			tupleConnect();
 			synchronized(this) {
-			    if (! tuple_connected) {
-				connectTuplePort();
-				tuple_connected = true;
-			    }
 			    tuple_message_sent = true;
 			}
 
@@ -393,10 +420,7 @@ public abstract class TupleSpace extends Communication {
 
 		if (SUPPORT_TUPLE_MULTICAST) {
 			synchronized(this) {
-			    if (! tuple_connected) {
-				connectTuplePort();
-				tuple_connected = true;
-			    }
+			    tupleConnect();
 			    tuple_message_sent = true;
 			}
 
