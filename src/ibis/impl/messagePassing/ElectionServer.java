@@ -120,7 +120,7 @@ class ElectionServer
 	    p.add("Communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt"); 
 	    p.add("Serialization", "sun");
 
-	    ibis.ipl.PortType type = Ibis.myIbis.createPortType("++++ElectionPort++++",
+	    ibis.ipl.PortType type = Ibis.myIbis.newPortType("++++ElectionPort++++",
 							  p);
 
 	    for (int i = 0; i < n; i++) {
