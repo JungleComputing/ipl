@@ -144,13 +144,10 @@
 		</java>
 
 		<!--
-		<fixcrlf srcDir="${build}" includes="NativeMethodClasses"/>
-		-->
-		<!--
 		    Do regexp on ${build}/NativeMethodClasses:
 			%s/.class//
 			%s/\${file.separator}/./g
-			%s/\r\n/,/g
+			%s/\${line.separator}/,/g
 			%s/\n/,/g
 			%s/  */ /g
 			%s/,$//g
@@ -169,17 +166,7 @@
 		<replaceregexp
 			file="${build}/NativeMethodClasses"
 			flags="g"
-			match="\r\n"
-			replace=","/>
-		<replaceregexp
-			file="${build}/NativeMethodClasses"
-			flags="g"
-			match="\n"
-			replace=","/>
-		<replaceregexp
-			file="${build}/NativeMethodClasses"
-			flags="g"
-			match="\r"
+			match="\${line.separator}"
 			replace=","/>
 		<replaceregexp
 			file="${build}/NativeMethodClasses"
