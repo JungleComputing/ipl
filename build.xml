@@ -17,7 +17,11 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="ibis-version" value="ibis-1.0"/>
+    <property name="ibis-major" value="1"/>
+    <property name="ibis-minor" value="0"/>
+
+    <property name="ibis-version" value="ibis-${ibis-major}.${ibis-minor}"/>
+    <property name="ibis-tag" value="ibis-${ibis-major}-${ibis-minor}"/>
 
     <!--
 	This must come first.
@@ -877,7 +881,7 @@
 	<cvs command="checkout -P"
 	     cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
 	     cvsRsh="ssh"
-	     tag="${ibis-version}"
+	     tag="${ibis-tag}"
 	     package="ibis"
 	     dest="${distr}"
 	     failonerror="true">
