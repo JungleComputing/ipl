@@ -25,6 +25,33 @@ class Compress extends ibis.satin.SatinObject
         return backrefs;
     }
 
+    private static int[] collectBackrefs( byte text[], int backrefs[], int pos )
+    {
+        // First count the number of backreferences.
+        int n = 0;
+
+        int backpos = backrefs[pos];
+        while( backpos>=0 ){
+            if( backpos<pos-Configuration.MINIMAL_SPAN ){
+                // This is a sensible backref.
+                // TODO: We could verify that at least the minimal span
+                // is equal.
+                n++;
+            }
+            backpos = backrefs[backpos];
+        }
+        int res[] = new int[n];
+        backpos = backrefs[pos];
+        n = 0;
+        while( backpos>=0 ){
+            if( backpos<pos-Configuration.MINIMAL_SPAN ){
+                res[n++] = backpos;
+            }
+            backpos = backrefs[backpos];
+        }
+        return res;
+    }
+
     public ByteBuffer compress( byte text[] )
     {
         int backrefs[] = buildBackrefs( text );
@@ -36,25 +63,23 @@ class Compress extends ibis.satin.SatinObject
             final int hashcode = (int) text[pos];
 
             mv.backpos = -1;
-            int backpos = backrefs[pos];
 
-            while( backpos>=0 ){
-                if( backpos<pos-Configuration.MINIMAL_SPAN ){
-                    int matchSize = Helpers.matchSpans( text, backpos, pos );
+            int sites[] = collectBackrefs( text, backrefs, pos );
+            for( int i=0; i<sites.length; i++ ){
+                int backpos = sites[i];
+                int matchSize = Helpers.matchSpans( text, backpos, pos );
 
-                    if( matchSize>=Configuration.MINIMAL_SPAN ){
-                        if( traceMatches ){
-                            System.out.println( "A match of " + matchSize + " bytes at positions " + backpos + " and " + pos );
-                        }
-                        int gain = matchSize-Helpers.refEncodingSize( pos-backpos, matchSize );
-                        if( gain>0 ){
-                            mv.backpos = backpos;
-                            mv.len = matchSize;
-                            mv.gain = gain;
-                        }
+                if( matchSize>=Configuration.MINIMAL_SPAN ){
+                    if( traceMatches ){
+                        System.out.println( "A match of " + matchSize + " bytes at positions " + backpos + " and " + pos );
+                    }
+                    int gain = matchSize-Helpers.refEncodingSize( pos-backpos, matchSize );
+                    if( gain>0 ){
+                        mv.backpos = backpos;
+                        mv.len = matchSize;
+                        mv.gain = gain;
                     }
                 }
-                backpos = backrefs[backpos];
             }
             // TODO: calculate the gain of just copying the character.
             if( mv.backpos<0 ){

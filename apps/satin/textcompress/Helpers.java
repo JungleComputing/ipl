@@ -100,7 +100,7 @@ class Helpers {
     public static byte[] readFile( File f )
         throws java.io.IOException
     {
-        int sz = (int) f.length();
+        final int sz = (int) f.length();
 
         byte buf[] = new byte[sz];
 
