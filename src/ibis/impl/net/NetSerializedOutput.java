@@ -31,7 +31,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 	/**
 	 * Constructor.
 	 *
-	 * @param sp the properties of the output's 
+	 * @param sp the properties of the output's
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
 	 * @param output the controlling output.
@@ -46,7 +46,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 	public synchronized void setupConnection(NetConnection cnx) throws NetIbisException {
 		NetOutput subOutput = this.subOutput;
                 try {
-		
+
 		if (subOutput == null) {
 			if (subDriver == null) {
                                 String subDriverName = getProperty("Driver");
@@ -65,9 +65,9 @@ public abstract class NetSerializedOutput extends NetOutput {
 		if (mtu == 0  ||  mtu > _mtu) {
 			mtu = _mtu;
 		}
- 
+
  		int _headersLength = subOutput.getHeadersLength();
- 
+
  		if (headerOffset < _headersLength) {
  			headerOffset = _headersLength;
  		}
@@ -83,7 +83,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 	}
 
         public abstract SerializationOutputStream newSerializationOutputStream() throws NetIbisException;
-        
+
 
 	/**
 	 * {@inheritDoc}
@@ -97,7 +97,7 @@ public abstract class NetSerializedOutput extends NetOutput {
                         if (replacer != null) oss.setReplacer(replacer);
                 } else {
                         subOutput.writeByte((byte)0);
-                }                
+                }
 	}
 
         private void flushStream() throws java.io.IOException {
@@ -106,18 +106,19 @@ public abstract class NetSerializedOutput extends NetOutput {
                         needFlush = false;
                 }
         }
-        
+
 
         /**
 	   Block until the entire message has been sent and clean up the message. Only after finish() or reset(), the data that was written
-	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems. 
+	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems.
 	   When a message is alive and a new messages is requested, the requester is blocked until the
 	   live message is finished. **/
         public void finish() throws NetIbisException {
 	    try {
-                flushStream();
-                oss.reset();
                 super.finish();
+                flushStream();
+                // oss.reset(); // does not work with S_Sun serialization
+                oss = null;
                 subOutput.finish();
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
@@ -129,7 +130,7 @@ public abstract class NetSerializedOutput extends NetOutput {
                         subOutput.close(num);
                 }
         }
-        
+
 
 	/**
 	 * {@inheritDoc}
@@ -140,7 +141,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 		}
 
 		super.free();
-	}        
+	}
 
         public void writeByteBuffer(NetSendBuffer buffer) throws NetIbisException {
 	    try {
@@ -176,7 +177,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 		throw new NetIbisException("got exception", e);
 	    }
         }
-        
+
         /**
 	 * Writes a char value to the message.
 	 * @param     value             The char value to write.
@@ -353,7 +354,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
-        }	
+        }
 
         public void writeArray(Object [] b, int o, int l) throws NetIbisException {
 	    try {
@@ -362,6 +363,6 @@ public abstract class NetSerializedOutput extends NetOutput {
 	    } catch(java.io.IOException e) {
 		throw new NetIbisException("got exception", e);
 	    }
-        }	
+        }
 
 }
