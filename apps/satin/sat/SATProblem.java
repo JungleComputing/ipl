@@ -14,7 +14,7 @@ class SATProblem implements java.io.Serializable {
     private SATVar variables[];	// The variables of the problem.
     private int clauseCount;	// The number of valid entries in `clauses'.
     private int deletedClauseCount;	// The number of deleted clauses.
-    static final boolean trace_simplification = true;
+    static final boolean trace_simplification = false;
     private int label = 0;
 
     private SATProblem()
@@ -177,6 +177,13 @@ class SATProblem implements java.io.Serializable {
 	    }
 	}
 	return false;
+    }
+
+    // Optimize the problem for solving.
+    void optimize()
+    {
+        // For the moment, sort the clauses into shortest-first order.
+	java.util.Arrays.sort( clauses );
     }
 
     // A CNF problem parser. Given a problem in DIMACS format,

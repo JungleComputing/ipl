@@ -4,7 +4,7 @@
 
 import java.io.PrintStream;
 
-class Clause implements java.io.Serializable {
+class Clause implements java.io.Serializable, Comparable {
     int label;
     int pos[];		// The positive terms
     int neg[];		// The negative terms
@@ -14,6 +14,12 @@ class Clause implements java.io.Serializable {
         pos = p;
 	neg = n;
 	label = l;
+    }
+
+    // Note: this comparator imposes orderings that are inconsistent with equals.
+    public int compareTo( Object other )
+    {
+        return 0;
     }
 
     // Return true iff 'l' contains 'n'.

@@ -80,7 +80,6 @@ public class SATSolver {
     // the current clauses, and an the variables
     static int []buildNewTerms(
 	final int old_terms[],
-	final int old_satsize,
 	final Clause clauses[],
 	final int clauseCount,
 	final int assignments[]
@@ -199,10 +198,6 @@ public class SATSolver {
     {
 	boolean found_solution = false;
 
-	// Remember the size of the 'satisified' vector at the start. We will
-	// need it later, and the number of clauses may increase.
-	int old_satsize = ctx.problem.getClauseCount();
-
 	int min_terms = ctx.problem.getVariableCount();
 	int ix = ctx.problem.getClauseCount();
 	int terms[] = ctx.terms;
@@ -276,7 +271,7 @@ public class SATSolver {
 
 		    // Create a new `terms' array for this recursion.
 		    int old_terms[] = ctx.terms;
-		    ctx.terms = buildNewTerms( old_terms, old_satisfied.length, ctx.problem.clauses, ctx.problem.getClauseCount(), ctx.assignments );
+		    ctx.terms = buildNewTerms( old_terms, ctx.problem.clauses, ctx.problem.getClauseCount(), ctx.assignments );
 
 		    // Our clause is satisfied...
 		    ctx.satisfied[ix] = true;
@@ -321,7 +316,7 @@ public class SATSolver {
 
 		    // Create a new `terms' array for this recursion.
 		    int old_terms[] = ctx.terms;
-		    ctx.terms = buildNewTerms( old_terms, old_satsize, ctx.problem.clauses, ctx.problem.getClauseCount(), ctx.assignments );
+		    ctx.terms = buildNewTerms( old_terms, ctx.problem.clauses, ctx.problem.getClauseCount(), ctx.assignments );
 
 		    // Our clause is satisfied...
 		    ctx.satisfied[ix] = true;
