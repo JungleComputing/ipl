@@ -10,6 +10,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
     int neg[];		// The negative terms
 
     /**
+     * Constructs a new clause with the given fields.
      * @param p the positive terms of the clause
      * @param n the negative terms of the clause
      * @param l the labels of the clause
@@ -21,6 +22,10 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	label = l;
     }
 
+    /**
+     * Returns a clone of this clause.
+     * @return The clone of this clause.
+     */
     public Object clone()
     {
 	return new Clause( (int []) pos.clone(), (int []) neg.clone(), label );
@@ -104,6 +109,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
      * extra element, or -1 if there are more differences.
      * @param large the large array
      * @param small the small array
+     * @param varCount The number of variables in this problem.
      */
     private int joinHalf( int large[], int small[], int varCount )
     {
@@ -154,6 +160,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
      * clause to form a more general clause. This clause is updated to
      * the more general version.
      * @param cy the clause we try to join with
+     * @param varCount The number of variables in this problem.
      */
     boolean join( Clause cy, int varCount )
     {

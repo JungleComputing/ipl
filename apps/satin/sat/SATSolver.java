@@ -93,6 +93,8 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
     /**
      * Given a SAT problem, returns a solution, or <code>null</code> if
      * there is no solution.
+     * @param p The problem to solve.
+     * @return a solution of the problem, or <code>null</code> if there is no solution
      */
     static SATSolution solveSystem( final SATProblem p )
     {
@@ -157,7 +159,9 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	return res;
     }
 
-    /** Allows execution of the class. */
+    /**
+     * Allows execution of the class.
+     */
     public static void main( String args[] ) throws java.io.IOException
     {
 	if( args.length != 1 ){

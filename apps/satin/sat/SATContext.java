@@ -6,12 +6,15 @@
  */
 public class SATContext implements java.io.Serializable {
     /** The number of open terms of each clause. */
-    private int terms[];	/* The number of open terms of each clause. */
+    private int terms[];
 
     /** The assignments to all variables. */
     int assignments[];
 
+    /** The number of positive clauses of each variable. */
     private int posclauses[];
+
+    /** The number of negative clauses of each variable. */
     private int negclauses[];
 
     /** Satisified flags for all clauses in the problem. */
@@ -20,7 +23,9 @@ public class SATContext implements java.io.Serializable {
     /** The number of unsatisfied clauses. */
     private int unsatisfied;
 
-    /** Constructs a Context with the specified elements. */
+    /**
+     * Constructs a Context with the specified elements.
+     */
     private SATContext(
 	int tl[],
 	int al[],
@@ -40,7 +45,9 @@ public class SATContext implements java.io.Serializable {
     private static final boolean tracePropagation = false;
     private static final boolean doVerification = false;
 
-    /** Constructs an empty Context. */
+    /**
+     * Constructs an empty Context. 
+     */
     public SATContext( int clauseCount, int terms[], int poscl[], int negcl[] ){
 	satisfied = new boolean[clauseCount];
 	unsatisfied = clauseCount;
@@ -49,7 +56,10 @@ public class SATContext implements java.io.Serializable {
 	negclauses = negcl;
     }
         
-    /** Returns a clone of Context. */
+    /**
+     * Returns a clone of this Context.
+     * @return The clone.
+     */
     public Object clone()
     {
         return new SATContext(
@@ -62,7 +72,11 @@ public class SATContext implements java.io.Serializable {
 	);
     }
 
-    /** Verifies that the term count of the specified clause is correct. */
+    /**
+     * Verifies that the term count of the specified clause is correct.
+     * @param p The SAT problem.
+     * @param cno The clause to verify.
+     */
     private void verifyTermCount( SATProblem p, int cno )
     {
 	int termcount = 0;
@@ -125,7 +139,11 @@ public class SATContext implements java.io.Serializable {
 	}
     }
 
-    /** Verifies that the clause counts of the specified variable are correct. */
+    /**
+     * Verifies that the clause counts of the specified variable are correct.
+     * @param p The SAT problem.
+     * @param var The variable to verify.
+     */
     private void verifyClauseCount( SATProblem p, int var )
     {
 	int poscount = 0;
@@ -234,7 +252,7 @@ public class SATContext implements java.io.Serializable {
 
     /**
      * Registers the fact that the specified clause is satisfied.
-     * Returns wether the problem now contains unipolar variables.
+     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
      */
     private int markClauseSatisfied( SATProblem p, int cno )
     {
@@ -393,7 +411,10 @@ public class SATContext implements java.io.Serializable {
 	return 0;
     }
 
-    /** Propagates the fact that variable 'var' is false. */
+    /**
+     * Propagates the fact that variable 'var' is false.
+     * @return -1 if the problem is now in conflict, 1 if the problem is now satisified, or 0 otherwise
+     */
     public int propagateNegAssignment( SATProblem p, int var )
     {
         assignments[var] = 0;
@@ -462,7 +483,9 @@ public class SATContext implements java.io.Serializable {
 	return 0;
     }
 
-    /** Returns the best decision variable to branch on, or -1 if there is none. */
+    /**
+     * Returns the best decision variable to branch on, or -1 if there is none.
+     */
     public int getDecisionVariable()
     {
         // For the moment we return the variable that is used the most.
