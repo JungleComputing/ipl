@@ -25,9 +25,9 @@ final class CutoffUpdater implements ibis.satin.ActiveTuple {
 }
 
 
-public final class Breeder implements BreederInterface {
-    static final int GENERATIONS = 10;
-    static final int GENERATION_SIZE = 5;
+public final class Breeder extends ibis.satin.SatinObject implements BreederInterface {
+    static final int GENERATIONS = 20;
+    static final int GENERATION_SIZE = 12;
 
     /** Maximal number decisions allowed before we give up. Can
      * be updated by the CutoffUpdater class above.
@@ -70,9 +70,7 @@ public final class Breeder implements BreederInterface {
         }
 
         try {
-            System.err.println( "pl.length=" + pl.length );
             for( int i=0; i<pl.length; i++ ){
-                System.err.println( "total=" + total + ", cutoff=" + cutoff );
                 int d = BreederSolver.run( pl[i], genes, cutoff-total );
 		total += d;
             }
@@ -147,6 +145,7 @@ public final class Breeder implements BreederInterface {
         Genes g[] = new Genes[GENERATION_SIZE];
         int slot = 0;
 
+        cutoff = (3*bestD)/2;
         if( prevBestGenes != null ){
             // If we have changed best genes, fill one trial slot
             // with an extrapolation of the change in genes.
@@ -158,9 +157,10 @@ public final class Breeder implements BreederInterface {
         for( int i=slot; i<GENERATION_SIZE; i++ ){
             // Fill all remaining slots with mutations
             g[i] = mutateGenes( rng, genes, step, maxGenes, minGenes );
-            System.err.println( "Genes = " + g[i] );
+            //System.err.println( "Genes = " + g[i] );
             res[i] = solve( pl, g[i] );
         }
+        sync();
 
         // Now evaluate the results.
         for( int i=0; i<GENERATION_SIZE; i++ ){
