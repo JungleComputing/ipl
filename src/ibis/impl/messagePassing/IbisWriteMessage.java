@@ -147,38 +147,38 @@ final public class IbisWriteMessage extends ibis.ipl.impl.messagePassing.WriteMe
 
 
     public void writeArrayBoolean(boolean[] value) throws IbisIOException {
-	writeArrayBoolean(value);
+	obj_out.writeArrayBoolean(value);
     }
 
     public void writeArrayByte(byte[] value) throws IbisIOException {
-	writeArrayByte(value);
+	obj_out.writeArrayByte(value);
     }
 
     public void writeArrayChar(char[] value) throws IbisIOException {
-	writeArrayChar(value);
+	obj_out.writeArrayChar(value);
     }
 
     public void writeArrayShort(short[] value) throws IbisIOException {
-	writeArrayShort(value);
+	obj_out.writeArrayShort(value);
     }
 
     public void writeArrayInt(int[] value) throws IbisIOException {
-	writeArrayInt(value);
+	obj_out.writeArrayInt(value);
     }
 
     public void writeArrayLong(long[] value) throws IbisIOException {
-	writeArrayLong(value);
+	obj_out.writeArrayLong(value);
     }
 
     public void writeArrayFloat(float[] value) throws IbisIOException {
-	writeArrayFloat(value);
+	obj_out.writeArrayFloat(value);
     }
 
     public void writeArrayDouble(double[] value) throws IbisIOException {
-	writeArrayDouble(value);
+	obj_out.writeArrayDouble(value);
     }
 
     public void writeArrayObject(Object[] value) throws IbisIOException {
-	writeArrayObject(value);
+	obj_out.writeArrayObject(value);
     }
 }
