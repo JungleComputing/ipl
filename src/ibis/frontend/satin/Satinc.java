@@ -139,6 +139,10 @@ public final class Satinc {
 	return Repository.instanceOf(c, satinObjectClass);
     }
 
+    boolean isRewritten() {
+	return Repository.implementationOf(c, "ibis.satin.SatinRewritten");
+    }
+
     static boolean isRetIns(Instruction i) {
 	return i instanceof ReturnInstruction;
     }
@@ -2082,6 +2086,11 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    }
 	}
 
+	if (isRewritten()) {
+	    System.out.println(c.getClassName() + " is already rewritten");
+	    return;
+	}
+
 	// If we have the main method, rename it to origMain. 
 	Method main = gen_c.containsMethod("main","([Ljava/lang/String;)V");
 
@@ -2148,6 +2157,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 	rewriteMethods();
 
 	Repository.removeClass(c);
+
+	gen_c.addInterface("ibis.satin.SatinRewritten");
 
 	c = gen_c.getJavaClass();
 
