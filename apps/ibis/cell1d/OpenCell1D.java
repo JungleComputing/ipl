@@ -150,7 +150,6 @@ class LevelRecorder implements ibis.ipl.Upcall {
         else if( gen>mygen ){
             System.err.println( "Steal request generation: " + gen + "; my generation: " + mygen );
         }
-        m.finish();
     }
 }
 
