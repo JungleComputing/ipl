@@ -370,7 +370,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 				ns = new NameServer(single, port);
 				break;
 			} catch (Exception e) { 
-				System.err.println("Main got " + e + ", rety in 1 second");
+				System.err.println("Main got " + e + ", retry in 1 second");
 				try {Thread.sleep(1000);} catch (Exception ee) {}
 //				e.printStackTrace();
 			}
