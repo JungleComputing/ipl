@@ -213,7 +213,7 @@ public interface ReceivePort {
     /**
      * Returns the new connections accepted by this receiveport.
      * Returns the changes since the last newConnections call,
-     * or, if this is the first call, all connectcions that were created since
+     * or, if this is the first call, all connections that were created since
      * the port was created.
      * This call only works if this port is configured to maintain 
      * connection administration.
