@@ -10,9 +10,9 @@ final public class DistanceTable implements java.io.Serializable {
 		INF = Integer.MAX_VALUE;
 
 	static final private boolean PRINT_DIST = false;
-	int[] lowerBound;
-    byte[][] toCity;
-    int[][] dist;
+	final int[] lowerBound;
+	final byte[][] toCity;
+	final int[][] dist;
 
 
 	public DistanceTable(int size) {
