@@ -60,6 +60,7 @@ public class IOGenerator {
 
 	boolean verbose = false;
 	boolean local = true;
+	String pack;
 
 	Hashtable primitiveSerialization;
 	SerializationInfo referenceSerialization;
@@ -74,13 +75,14 @@ public class IOGenerator {
 
 	Vector classes_to_rewrite, target_classes, classes_to_save;
 
-	public IOGenerator(boolean verbose, boolean local, String[] args, int num) { 
+	public IOGenerator(boolean verbose, boolean local, String[] args, int num, String pack) { 
 		BT_Class clazz;
 		BT_Method writeMethod;
 		BT_Method readMethod;
 		SerializationInfo info;
 		this.verbose = verbose;
 		this.local = local;
+		this.pack = pack;
 
 		if(args != null) { // from Ibisc, we have our own factory
 			BT_Factory.factory = new MyFactory(args, num);
@@ -157,12 +159,15 @@ public class IOGenerator {
 	} 
 
 	boolean isSerializable(BT_Class clazz) { 
+		if(clazz == null) return false;
+		if(clazz.getParents() == null) return false;
 		return (clazz.getParents().findClass("java.io.Serializable") != null); 
 	} 
 
 	boolean recursiveIsSerializable(BT_Class clazz) { 
 
 		if (!isSerializable(clazz)) { 
+			if(clazz == null) return false;
 			BT_Class super_clazz = clazz.getSuperClass();
 			return ((super_clazz == null) ? false : recursiveIsSerializable(super_clazz));
 		} else {
@@ -340,6 +345,8 @@ public class IOGenerator {
 	void generateCode(BT_Class clazz) { 
 
 		if (verbose) System.out.println("  Generating method code class for class : " + clazz.className());
+
+		if(clazz.isInterface()) return;
 
 		BT_Class super_clazz = clazz.getSuperClass();
 
@@ -575,7 +582,9 @@ public class IOGenerator {
 
 		for (int i=0;i<num;i++) {
 			if (verbose) System.out.println("  Loading class : " + classnames[i]);
-			BT_Class clazz = (BT_Class)BT_Class.forName(classnames[i]);
+
+			BT_Class clazz = null;
+			clazz = (BT_Class)BT_Class.forName(classnames[i]);
 
 			if (clazz.getParents().findClass("ibis.io.Serializable") == null) { 
 				addClass(clazz, true);
@@ -616,42 +625,60 @@ public class IOGenerator {
 		}
 	}
 
-	public static void main(String[] args) throws IOException {
+	private static void usage() {
+		System.out.println("Usage : java IOGenerator [-dir] [-package <package>] [-v] " +
+				   "<fully qualified classname list | classfiles>");
+		System.exit(1);
+	}
 
-		int num = 0;
-		int size = args.length;
+	public static void main(String[] args) throws IOException {
 		boolean verbose = false;
 		boolean local = true;
+		Vector files = new Vector();
+		String pack = null;
 
 		if (args.length == 0) { 
-			System.out.println("Usage : java IOGenerator [-package] [-v] <fully qualified classname list | classfiles>");
-			System.exit(1);
+			usage();
 		}
 
-		for (int i=0;i<size;i++) { 
-			if (args[i].equals("-v")) {
+		for(int i=0; i<args.length; i++) {
+			if(args[i].equals("-v")) {
 				verbose = true;
-				args[i] = args[size-1];
-				args[size-1] = null;
-				size--;
-			} 
-
-			if (args[i].equals("-package")) {
+			} else if(!args[i].startsWith("-")) {
+				files.add(args[i]);
+			} else if (args[i].equals("-dir")) {
 				local = false;
-				args[i] = args[size-1];
-				args[size-1] = null;
-				size--;
-			} 
-
-			int index = args[i].lastIndexOf(".class");
-			
-			if (index != -1) { 
-				args[i] = args[i].substring(0, index);
+			} else if (args[i].equals("-package")) {
+				pack = args[i+1];
+				i++; // skip arg
+			} else {
+				usage();
 			}
-			
-			num++;
 		}
 
-		new IOGenerator(verbose, local, args, num).scanClass(args, num);
-	} 
+		String[] newArgs = new String[files.size()];
+		for(int i=0; i<files.size(); i++) {
+			int index = ((String)files.elementAt(i)).lastIndexOf(".class");
+
+			if (index != -1) {
+				if(pack == null) {
+					newArgs[i] = ((String)files.elementAt(i)).substring(0, index);
+				} else {
+					newArgs[i] = pack + "." + ((String)files.elementAt(i)).substring(0, index);
+				}
+			} else {
+				if(pack == null) {
+					newArgs[i] = (String)files.elementAt(i);
+				} else {
+					newArgs[i] = pack + "." + ((String)files.elementAt(i));
+				}
+			}
+
+			System.out.println("arg " + i + " = " + newArgs[i]);
+		}
+
+		System.out.println("pack = " + pack + ", size = " + newArgs.length);
+
+		new IOGenerator(verbose, local, newArgs, newArgs.length, pack).scanClass(newArgs, newArgs.length);
+	}
 }
