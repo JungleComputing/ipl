@@ -338,7 +338,7 @@ class SATProblem implements java.io.Serializable {
 		sorted_vars[varix++] = v;
 	    }
 	}
-	//java.util.Arrays.sort( sorted_vars, 0, varix );
+	java.util.Arrays.sort( sorted_vars, 0, varix );
 
 	int res[] = new int[varix];
 	for( int i=0; i<varix; i++ ){
