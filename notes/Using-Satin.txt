@@ -146,3 +146,34 @@ Satin flags:
 -satin-stats
 
     Show some statistics on the ibis run.
+
+
+-satin-panda
+
+    Use the Panda communication library (default is TCP/IP).
+
+
+-satin-ibis
+
+    Use the Ibis serialization library (default is the Sun library).
+
+
+-satin-alg [algorithm]
+
+    Specify the load-balancing algorithm to use.
+    Possible values are:
+    RS          Random work-stealing (default)
+    CRS         Cluster-aware random work-stealing
+    MW          Master-worker algorithm
+
+
+The following flags are for tuning by the developers of Satin,
+and should not be used unless you really know what you are doing.
+
+-satin-queue-size [integer]
+
+    The maximum desirable job queue size. If the current work queue 
+    is has more than this number of jobs, Satin indicates that 
+    it does not need more jobs (as can be asked though the
+    needMoreJobs() method).
+
