@@ -86,9 +86,8 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
      * The method that implements a Satin task.
      * The method throws a SATResultException if it finds a solution,
      * or terminates normally if it cannot find a solution.
-     * @param p the SAT problem to solve
+     * @param ctx the SAT problem context
      * @param assignments the current assignments
-     * @param varlist the list of variables to branch on, ordered for efficiency
      * @param varix the next variable in <code>varlist</code> to branch on
      */
     public void solve(

@@ -143,7 +143,6 @@ public final class BreederSolver {
      * Given a SAT problem, returns a solution, or <code>null</code> if
      * there is no solution.
      * @param p The problem to solve.
-     * @param cutoff The maximum number of decisions to try.
      * @return A solution of the problem, or <code>null</code> if there is no solution.
      */
     protected SATSolution solveSystem( final SATProblem p )
