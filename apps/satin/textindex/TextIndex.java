@@ -20,7 +20,7 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 public final class TextIndex extends ibis.satin.SatinObject implements IndexerInterface, java.io.Serializable {
-    private static final boolean traceTreeWalk = true;
+    private static final boolean traceTreeWalk = false;
     private static final Pattern nonWord = Pattern.compile( "\\W+" );
 
     /**
@@ -110,7 +110,9 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
                     System.err.println( "Visiting directory " + f );
                 }
                 String fl1[] = buildFileList( f );
-                return indexFileList( fl1 );
+                Index res = indexFileList( fl1 );
+                sync();
+                return res;
             }
             if( f.isFile() ){
                 if( traceTreeWalk ){
@@ -133,10 +135,10 @@ public final class TextIndex extends ibis.satin.SatinObject implements IndexerIn
         sync();
         // Now merge them.
         if( ix1 == null ){
-            // Merging is easy when one of them is is null.
+            // Merging is easy when one of the indices is null.
             return ix2;
         }
-        ix1.add( ix2 );
+        ix1.merge( ix2 );
         return ix1;
     }
 

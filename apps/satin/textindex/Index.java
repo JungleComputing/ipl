@@ -116,7 +116,7 @@ public class Index implements java.io.Serializable {
      * merging the occurence lists of the two entries.
      * @param ix The index to merge with.
      */
-    public void add( Index ix )
+    public void merge( Index ix )
     {
         if( ix == null ){
             return;
@@ -158,9 +158,17 @@ public class Index implements java.io.Serializable {
             String key = (String) it.next();
             w.write( key );
             w.write( ':' );
+            int prev = -1;
             int l[] = (int[]) wordOccurences.get( key );
             for( int i=0; i<l.length; i++ ){
-                w.write( " " + l[i] );
+                int v = l[i];
+
+                if( v<0 && prev+1 == -v ){
+                    // A span of two elements is booooring
+                    v = -v;
+                }
+                w.write( " " + v );
+                prev = v;
             }
             w.write( '\n' );
         }
