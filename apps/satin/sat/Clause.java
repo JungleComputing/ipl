@@ -234,12 +234,12 @@ class Clause implements java.io.Serializable, Comparable {
     }
 
     /**
-     * Given a variable var, register the fact that this variable is
-     * known to be true. Return true iff the clause is now satisfied.
+     * Registers that the specified variable is known to be true.
+     * Returns true iff the clause is now satisfied.
      * @param var the variable that is known to be true
      * @return wether the clause is now satisfied
      */
-    boolean propagatePosAssignment( int var )
+    public boolean propagatePosAssignment( int var )
     {
         if( memberIntList( pos, var ) ){
 	    // Clause is now satisfied.
@@ -260,12 +260,12 @@ class Clause implements java.io.Serializable, Comparable {
     }
 
     /**
-     * Given a variable var, register the fact that this variable is
-     * known to be true. Return true iff the clause is now satisfied.
+     * Registers that the specified variable is known to be false.
+     * Returns true iff the clause is now satisfied.
      * @param var the variable that is known to be false
      * @return wether the clause is now satisfied
      */
-    boolean propagateNegAssignment( int var )
+    public boolean propagateNegAssignment( int var )
     {
         if( memberIntList( neg, var ) ){
 	    // Clause is now satisfied.

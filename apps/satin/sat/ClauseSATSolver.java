@@ -418,7 +418,7 @@ public class ClauseSATSolver {
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	System.out.println( "Problem has " + p.getVariableCount() + " variables and " + p.getClauseCount() + " clauses" );
+	p.report( System.out );
 
 	long startTime = System.currentTimeMillis();
 	SATSolution res[] = solveSystem( p, true );

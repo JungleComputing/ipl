@@ -14,6 +14,7 @@ import java.io.File;
 
 public class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
     static final boolean traceSolver = false;
+    static final boolean traceSpecialization = true;
     static final boolean printSatSolutions = true;
     static int label = 0;
 
@@ -163,19 +164,32 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 
 	    // Start with the null vector for the first variables.
 	    for( int i=0; i<n; i++ ){
-	        assignments[i] = 0;
+		int ix = varlist[i];
+
+	        assignments[ix] = 0;
 	    }
 
 	    // Now keep spawning solvers until we have tried all permutations
 	    // of the first `firstVariables' variables.
 	    do {
-		if( traceSolver ){
-		    System.err.println( "Starting recursive solver" );
+		if( traceSolver | traceSpecialization ){
+		    System.err.print( "Starting specialized solver with" );
+		    for( int i=0; i<n; i++ ){
+			int ix = varlist[i];
+
+			assignments[ix] = 0;
+			System.err.print( " var[" + ix + "]=" + assignments[ix] );
+		    }
+		    System.err.println();
 		}
 		Context ctx = new Context();
 
-		ctx.p = p;
-		ctx.varlist = varlist;
+		SATProblem p1 = (SATProblem) p.clone();
+		p1.specialize( assignments );
+		p1.report( System.out );
+
+		ctx.p = p1;
+		ctx.varlist = p1.buildOrderedVarList();
 		s.solve( ctx, assignments, 0 );
 		//System.err.println( "Solve finished??" );
 		// res = null;
@@ -183,12 +197,14 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 		// Calculate the next permutation to try.
 		boolean carry = false;
 		for( int i=0; i<n; i++ ){
-		    if( assignments[i] == 0 ){
-		        assignments[i] = 1;
+		    int ix = varlist[i];
+
+		    if( assignments[ix] == 0 ){
+		        assignments[ix] = 1;
 			carry = false;
 			break;
 		    }
-		    assignments[i] = 0;
+		    assignments[ix] = 0;
 		    carry = true;
 		}
 		if( carry ){
@@ -220,7 +236,7 @@ public class SATSolver extends ibis.satin.SatinObject implements SATInterface, j
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	System.out.println( "Problem has " + p.getVariableCount() + " variables (" + p.getKnownVariableCount() + " known) and " + p.getClauseCount() + " clauses" );
+	p.report( System.out );
 	long startTime = System.currentTimeMillis();
 	SATSolution res = solveSystem( p );
 

@@ -220,7 +220,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	    System.exit( 1 );
 	}
 	SATProblem p = SATProblem.parseDIMACSStream( f );
-	System.out.println( "Problem has " + p.getVariableCount() + " variables (" + p.getKnownVariableCount() + " known) and " + p.getClauseCount() + " clauses" );
+	p.report( System.out );
 	long startTime = System.currentTimeMillis();
 	SATSolution res = solveSystem( p );
 
