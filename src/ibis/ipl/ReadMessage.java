@@ -2,8 +2,6 @@ package ibis.ipl;
 
 import java.io.IOException;
 
-import ibis.ipl.ConnectionClosedException;
-
 public interface ReadMessage { 
 	/** Only one message is alive at one time for a given
 	    receiveport.  This is done to prevent flow control problems. 
