@@ -160,13 +160,10 @@ TRASH_FILES	+= $(DEPENDENCIES)
 #conversion rules
 
 .SUFFIXES:
-.SUFFIXES:      .o .S .java .satin .class .c $(PKG_SUF) .jad _ibis_io_Generator.java
+.SUFFIXES:      .o S .java .satin .class .c $(PKG_SUF) .jad _ibis_io_Generator.java
 
 .java.o:
 	$(MANTAC_COMMAND) -c $*.java
-
-.java.S:
-	$(MANTAC_COMMAND) -S $*.java
 
 .java_ibis_io_Generator.java:
 	$(JAVAC_COMMAND) $*.java

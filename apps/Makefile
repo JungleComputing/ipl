@@ -13,5 +13,6 @@ manta:
 clean:
 	rm -f $(TRASH_FILES)
 	cd ibis; $(MAKE) $(MFLAGS) clean
+	cd rmi; $(MAKE) $(MFLAGS) clean
 	cd satin; $(MAKE) $(MFLAGS) clean
 	cd group; $(MAKE) $(MFLAGS) clean

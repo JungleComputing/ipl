@@ -24,3 +24,4 @@ manta:
 
 clean:
 	rm -f $(TRASH_FILES)
+	cd manta; $(MAKE) $(MFLAGS) clean
