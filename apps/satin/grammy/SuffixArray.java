@@ -128,10 +128,34 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
         int jump = length;
         boolean done;
 
-        // Initialize the indices array.
-        for( int i=0; i<length; i++ ){
-            indices[i] = i;
-        }
+	int slots[] = new int[nextcode];
+	int next[] = new int[length];
+	java.util.Arrays.fill( slots, -1 );
+
+	// Fill each next array element with the next element with the
+	// same character.
+	for( int i=0; i<length; i++ ){
+	    int ix = text[i];
+
+	    next[i] = slots[ix];
+	    slots[ix] = i;
+	}
+
+	// Now copy out the slots into the indices array.
+	// TODO: sort each slot separately.
+	// TODO: reject slots with only one entry, since they are
+	// utterly uninteresting.
+	int ix = 0;	// Next entry in the indices array.
+
+	for( int i=0; i<slots.length; i++ ){
+	    int p = slots[i];
+
+	    while( p != -1 ){
+		indices[ix++] = p;
+		p = next[p];
+	    }
+	}
+	next = null;	// Make this array GC fodder.
         while( jump>1 ){
             jump /= 2;
 
