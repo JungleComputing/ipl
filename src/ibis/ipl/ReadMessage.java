@@ -12,14 +12,14 @@ public interface ReadMessage {
 	   the message.  The thread reading the message (can be an upcall) is NOT
 	   allowed to block when a message is alive but not finished.  Only after
 	   the finish is called can the thread that holds the message block.  The
-	   finish operation mush always be called when blocking receive is used.
+	   finish operation must always be called when blocking receive is used.
 	   When upcalls are used, the finish can be avoided when the user is sure
 	   that the upcall never blocks / waits for a message to arrive. In that
 	   case, the message is automatically finished when the upcall
 	   terminates.  This is much more efficient, because this way, the
 	   runtime system can reuse the upcall thread!
 	 **/
-       	public void finish() throws IbisIOException;
+	public void finish() throws IbisIOException;
 
 	public long sequenceNumber();
 	public SendPortIdentifier origin();
