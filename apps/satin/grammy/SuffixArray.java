@@ -117,16 +117,64 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 	return isSmallerCharacter( i0+n, i1+n );
     }
 
-    /** Sorts the administration arrays to implement ordering. */
-    private void sort( int indices[], int commonality[] )
+    /** Sorts the given range. */
+    private void sort( int indices[], int commonality[], int start, int end )
     {
         // This implements Shell sort.
         // Unfortunately we cannot use the sorting functions from the library
         // (e.g. java.util.Arrays.sort), since the ones that work on int
         // arrays do not accept a comparison function, but only allow
         // sorting into natural order.
+	int length = end - start;
         int jump = length;
         boolean done;
+
+        while( jump>1 ){
+            jump /= 2;
+
+            do {
+                done = true;
+
+		if( jump == 1 ){
+		    for( int j = 0; j<(length-1); j++ ){
+			int i = j + 1;
+			int ixi = indices[start+i];
+			int ixj = indices[start+j];
+
+			int n = commonLength( ixi, ixj );
+			commonality[start+i] = n;
+			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
+			    // Things are in the wrong order, swap them and step back.
+			    indices[start+i] = ixj;
+			    indices[start+j] = ixi;
+			    done = false;
+			}
+		    }
+		}
+		else {
+		    for( int j = 0; j<(length-jump); j++ ){
+			int i = j + jump;
+			int ixi = indices[start+i];
+			int ixj = indices[start+j];
+
+			int n = commonLength( ixi, ixj );
+			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
+			    // Things are in the wrong order, swap them and step back.
+			    indices[start+i] = ixj;
+			    indices[start+j] = ixi;
+			    done = false;
+			}
+		    }
+		}
+            } while( !done );
+        }
+
+	commonality[start] = 0;
+    }
+
+    /** Sorts the administration arrays to implement ordering. */
+    private void sort( int indices[], int commonality[] )
+    {
 
 	int slots[] = new int[nextcode];
 	int next[] = new int[length];
@@ -149,54 +197,16 @@ public class SuffixArray implements Configuration, Magic, java.io.Serializable {
 
 	for( int i=0; i<slots.length; i++ ){
 	    int p = slots[i];
+	    int start = ix;
 
 	    while( p != -1 ){
 		indices[ix++] = p;
 		p = next[p];
 	    }
+	    if( ix>start ){
+		sort( indices, commonality, start, ix );
+	    }
 	}
-	next = null;	// Make this array GC fodder.
-        while( jump>1 ){
-            jump /= 2;
-
-            do {
-                done = true;
-
-		if( jump == 1 ){
-		    for( int j = 0; j<(length-1); j++ ){
-			int i = j + 1;
-			int ixi = indices[i];
-			int ixj = indices[j];
-
-			int n = commonLength( ixi, ixj );
-			commonality[i] = n;
-			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
-			    // Things are in the wrong order, swap them and step back.
-			    indices[i] = ixj;
-			    indices[j] = ixi;
-			    done = false;
-			}
-		    }
-		}
-		else {
-		    for( int j = 0; j<(length-jump); j++ ){
-			int i = j + jump;
-			int ixi = indices[i];
-			int ixj = indices[j];
-
-			int n = commonLength( ixi, ixj );
-			if( !isSmallerCharacter( ixj+n, ixi+n ) ){
-			    // Things are in the wrong order, swap them and step back.
-			    indices[i] = ixj;
-			    indices[j] = ixi;
-			    done = false;
-			}
-		    }
-		}
-            } while( !done );
-        }
-
-	commonality[0] = -1;
     }
 
     String buildString( int start, int len )
