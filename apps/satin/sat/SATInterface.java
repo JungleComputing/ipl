@@ -7,5 +7,5 @@
  */
 interface SATInterface extends ibis.satin.Spawnable
 {
-    public void solve( int level, SATProblem p, SATContext ctx, int varix, boolean val ) throws SATResultException;
+    public void solve( int level, SATContext ctx, int varix, boolean val ) throws SATResultException;
 }

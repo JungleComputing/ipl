@@ -4,7 +4,7 @@
  * The context of the solve method. The fields in this class are cloned
  * for every recursion of the solve() method.
  */
-public class SATContext implements java.io.Serializable {
+public final class SATContext implements java.io.Serializable {
     /**
      * A symbolic name for the `unassigned' value in
      * the `assignments' array.

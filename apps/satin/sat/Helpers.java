@@ -58,9 +58,9 @@ class Helpers {
     {
         if( false ){
             if( n>=0 && n<INFOCACHESZ ){
-                return infocache[n];
+                return (float) infocache[n];
             }
-            return calcInformation( n );
+            return (float) calcInformation( n );
         }
         else {
             return 1/(float) (n*n*n);

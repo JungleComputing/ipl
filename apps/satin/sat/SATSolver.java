@@ -100,7 +100,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      */
     public void solve(
 	int level,
-	SATProblem p,
 	SATContext ctx,
 	int var,
 	boolean val
@@ -109,6 +108,12 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	if( traceSolver ){
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
+
+	// Get the problem from the Satin tuple space.
+	// The leafsolver can just reuse p, the paralllel
+	// solvers have to retrieve it at the beginning of the method.
+	SATProblem p = (SATProblem) ibis.satin.SatinTupleSpace.get("problem");
+
 	ctx.assignments[var] = val?1:0;
 	int res;
 	if( val ){
@@ -159,9 +164,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	else {
 	    // We have variable 'nextvar' to branch on.
 	    SATContext firstctx = (SATContext) ctx.clone();
-	    solve( level+1, p, firstctx, nextvar, firstvar );
+	    solve( level+1, firstctx, nextvar, firstvar );
 	    SATContext secondctx = (SATContext) ctx.clone();
-	    solve( level+1, p, secondctx, nextvar, !firstvar );
+	    solve( level+1, secondctx, nextvar, !firstvar );
 	    sync();
 	}
     }
@@ -214,10 +219,13 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 		System.err.println( "Top level: branching on variable " + nextvar );
 	    }
 
+	    // Put the problem in the Satin tuple space.
+	    ibis.satin.SatinTupleSpace.add("problem", p);
+
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
-            s.solve( 0, p, negctx, nextvar, firstvar );
-            s.solve( 0, p, ctx, nextvar, !firstvar );
+            s.solve( 0, negctx, nextvar, firstvar );
+            s.solve( 0, ctx, nextvar, !firstvar );
             s.sync();
 	}
 	catch( SATResultException r ){
@@ -246,10 +254,19 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    System.err.println( "File does not exist: " + f );
 	    System.exit( 1 );
 	}
+
+        // Turn Satin temporarily off to prevent slowdowns of
+	// sequential code.
+	ibis.satin.SatinObject.pause(); 
+
 	SATProblem p = SATProblem.parseDIMACSStream( f );
 	p.report( System.out );
 	p.optimize();
 	p.report( System.out );
+
+        // Turn Satin on again
+	ibis.satin.SatinObject.resume();
+
 	long startTime = System.currentTimeMillis();
 	SATSolution res = solveSystem( p );
 
