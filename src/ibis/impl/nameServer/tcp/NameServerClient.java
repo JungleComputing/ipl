@@ -226,11 +226,13 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 				throw new RuntimeException("NameServerClient: got an error " + e.getMessage());
 			}
 	
+			int opcode = 666;
+
 			try {
 				DummyInputStream di = new DummyInputStream(s.getInputStream());			
 				ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
 
-				int opcode = in.readByte();
+				opcode = in.readByte();
 	  
 				switch (opcode) {
 				case (IBIS_JOIN):
@@ -255,7 +257,8 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 					System.out.println("NameServerClient: got an illegal opcode " + opcode);
 				}
 			} catch (Exception e1) {
-				System.out.println("Got an exception in NameServerClient.run " + e1.toString());
+				System.out.println("Got an exception in NameServerClient.run (opcode = " + opcode + ") " + e1.toString());
+				if(stop) return;
 				e1.printStackTrace();
 	  
 				if (s != null) { 

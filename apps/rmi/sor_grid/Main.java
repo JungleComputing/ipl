@@ -96,71 +96,72 @@ class Main {
 		}
 	    
 		try {
-		// Start the registry.    
-		reg = RMI_init.getRegistry(info.hostName(0));
+			// Start the registry.    
+			reg = RMI_init.getRegistry(info.hostName(0));
 	   	    
-		if (info.rank() == 0) {
-			System.out.println("Starting SOR");
-			System.out.println("");
-			System.out.println("CPUs          : " + info.size());
-			System.out.println("Matrix size   : " + nrow + "x" + ncol);
-			System.out.println("Iterations    : " + ((nit == 0) ? "dynamic" : ("" + nit)));
-			System.out.println("Calculation   : " + ((sync == SOR.SYNC_SEND) ? "one-phase"   : "split-phase"));
-			System.out.print("Visualization : ");
-			if(visualization) {
-				if(asyncVisualization) {
-					System.out.println("enabled, asynchronous");
+			if (info.rank() == 0) {
+				System.out.println("Starting SOR");
+				System.out.println("");
+				System.out.println("CPUs          : " + info.size());
+				System.out.println("Matrix size   : " + nrow + "x" + ncol);
+				System.out.println("Iterations    : " + ((nit == 0) ? "dynamic" : ("" + nit)));
+				System.out.println("Calculation   : " + ((sync == SOR.SYNC_SEND) ? "one-phase"   : "split-phase"));
+				System.out.print("Visualization : ");
+				if(visualization) {
+					if(asyncVisualization) {
+						System.out.println("enabled, asynchronous");
+					} else {
+						System.out.println("enabled, synchronous");
+					}
 				} else {
-					System.out.println("enabled, synchronous");
+					System.out.println("disabled");
 				}
+
+				System.out.println();
+
+				global = new GlobalData(info, true);
+				Naming.bind("GlobalData", global);
+				System.err.println("I am the master: " + info.hostName(0));
 			} else {
-				System.out.println("disabled");
-			}
 
-			System.out.println();
+				int i = 0;
+				boolean done = false;
 
-			global = new GlobalData(info, true);
-			Naming.bind("GlobalData", global);
-			System.err.println("I am the master: " + info.hostName(0));
-		} else {
-
-			int i = 0;
-			boolean done = false;
-
-			while (!done && i < 10) {
+				while (!done && i < 10) {
 			    
-				i++;
-				done = true;
+					i++;
+					done = true;
 
-				try { 
-					global = (i_GlobalData) Naming.lookup("//" + info.hostName(0) + "/GlobalData");
-				} catch (Exception e) {
-					done = false;
-					Thread.sleep(2000);					 				    
-				} 
-			}
+					try { 
+						global = (i_GlobalData) Naming.lookup("//" + info.hostName(0) + "/GlobalData");
+					} catch (Exception e) {
+						done = false;
+						Thread.sleep(2000);					 				    
+					} 
+				}
 		    
-			if (!done) {
-				System.out.println(info.rank() + " could not connect to " + "//" + info.hostName(0) + "/GlobalData");
-				System.exit(1);
+				if (!done) {
+					System.out.println(info.rank() + " could not connect to " + "//" + info.hostName(0) + "/GlobalData");
+					System.exit(1);
+				}
+
 			}
-
-		}
 	    
-		local = new SOR(nrow, ncol, nit, sync, global);	    
+			local = new SOR(nrow, ncol, nit, sync, global);	    
 
-		table = global.table((i_SOR) local, info.rank());
-		local.setTable(table);
+			table = global.table((i_SOR) local, info.rank());
+			local.setTable(table);
 
-		local.start();
+			local.start();
 
-		if (info.rank() == 0) {
-			Thread.sleep(2000); 
-			// Give the other nodes a chance to exit.
-			// before cleaning up the GlobalData object.
-		}
+			if (info.rank() == 0) {
+				Thread.sleep(2000); 
+				// Give the other nodes a chance to exit.
+				// before cleaning up the GlobalData object.
+			}
 		} catch (Exception e) {
 			System.err.println("OOPS: " + e);
+			e.printStackTrace();
 		}
 	}
 }

@@ -160,12 +160,11 @@ public class NameServer implements Protocol {
 			}
 
 			p.pool.add(info);
+			System.out.println("JOIN  of node " + id.name() + " to pool " + key + " (" + p.pool.size() + " nodes)");
 		}
 			
 		out.flush();
-		System.out.println("JOIN: pool " + key + " now contains " + p.pool.size() + " nodes");
 	}	
-
 
 	private void forwardLeave(IbisInfo dest, IbisIdentifier id) throws IOException { 
 		if (DEBUG) { 
@@ -247,9 +246,9 @@ public class NameServer implements Protocol {
 				} 
 				p.pool.remove(index);
 
+				System.out.println("LEAVE of node " + id.name() + " to pool " + key + " (" + p.pool.size() + " nodes)");
 				id.free();
 
-				System.out.println("LEAVE: pool " + key + " now contains " + p.pool.size() + " nodes");
 
 				if (p.pool.size() == 0) { 
 					if (VERBOSE) { 

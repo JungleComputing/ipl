@@ -66,7 +66,6 @@ class SOR extends UnicastRemoteObject implements i_SOR {
 	WaitingSendThread prevSender, nextSender;
 
 	SOR(int nrow, int ncol, int nit, boolean sync, i_GlobalData global) throws RemoteException {
-
 		this.nrow = nrow; // Add two rows to borders.
 		this.ncol = ncol; // Add two columns to borders.
 		this.nit  = nit;

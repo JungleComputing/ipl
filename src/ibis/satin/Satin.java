@@ -607,7 +607,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(SUPPORT_TUPLE_MULTICAST) {
 				tuplePort.free();
 			}
-		} catch (IOException e) {
+		} catch (Throwable e) {
 			System.err.println("tuplePort.free() throws " + e);
 		}
 
@@ -636,7 +636,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				/*if(COMM_DEBUG) {
 				  out.println(" DONE");
 				  }*/
-			} catch (IOException e) {
+			} catch (Throwable e) {
 				System.err.println("port.free() throws " + e);
 			}
 		}
@@ -651,7 +651,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 
 			ibis.end();
-		} catch (IOException e) {
+		} catch (Throwable e) {
 			System.err.println("port.free() throws " + e);
 		}
 
@@ -777,7 +777,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 	protected synchronized void sendResult(InvocationRecord r, ReturnRecord rr) {
-		if(r.alreadySentExceptionResult) return;
+		if(exiting || r.alreadySentExceptionResult) return;
 
 		if(ASSERTS && r.owner == null) {
 			System.err.println("SATIN '" + ident.name() + 
@@ -850,6 +850,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 	protected void sendStealRequest(Victim v, boolean synchronous) {
+		if(exiting) return;
 
 		if(STEAL_DEBUG && synchronous) {
 			System.err.println("SATIN '" + ident.name() + 
@@ -888,6 +889,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 	protected boolean waitForStealReply() {
+		if(exiting) return false;
 
 		if(IDLE_TIMING) {
 			idleTimer.start();
@@ -1608,6 +1610,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	public void client() {
 		InvocationRecord r;
 		SendPort s;
+
+		if(SPAWN_DEBUG) {
+			out.println("SATIN '" + ident.name() + 
+				    "': starting client!");
+		}
 
 		while(!exiting) {
 			// steal and run jobs

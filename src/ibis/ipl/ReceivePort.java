@@ -170,14 +170,14 @@ public interface ReceivePort {
      * Enables the accepting of new connections.
      * When a receiveport is created it will not accept connections, 
      * until this method is invoked. This is done to avoid upcalls during initialization.
-     * When this method returns, connection upcalls may be triggered.
+     * After this method returns, connection upcalls may be triggered.
      **/
     public void enableConnections();
 
     /**
      * Disables the accepting of new connections.
      * It is allowed to invoke {@link #enableConnections()} again after invoking this method.
-     * When this method returns, no more connection upcalls will be given.
+     * After this method returns, no more connection upcalls will be given.
      */
     public void disableConnections();
 
@@ -188,7 +188,7 @@ public interface ReceivePort {
      * Upon startup, upcalls are disabled. They must be explicitly enabled
      * to receive upcalls.
      * <p>
-     * This method also disables the connection upcalls.
+     * This method also enables the connection upcalls.
      */
     public void enableUpcalls();
 
@@ -202,7 +202,7 @@ public interface ReceivePort {
      * mechanism is not necessary to enforce serialization of Upcalls for
      * this port.
      * <p>
-     * This method also enables the connection upcalls.
+     * This method also disables the connection upcalls.
      */
     public void disableUpcalls();
 

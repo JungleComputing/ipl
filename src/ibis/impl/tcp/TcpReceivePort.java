@@ -388,16 +388,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			throw new IbisError("Doing free while a msg is alive, port = " + name + " fin = " + m.isFinished);
 		}
 
-		/* unregister with nameserver */
-		try {
-			type.freeReceivePort(name);
-		} catch (Exception e) {
-			// Ignore.
-		}
-
-		/* unregister with porthandler */
-		ibis.tcpPortHandler.deRegister(this);
-
 		while (connectionsIndex > 0) {
 			if (DEBUG) {
 				System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
@@ -412,6 +402,16 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		if (DEBUG) { 
 			System.err.println(name + " all connections closed");
 		}
+
+		/* unregister with nameserver */
+		try {
+			type.freeReceivePort(name);
+		} catch (Exception e) {
+			// Ignore.
+		}
+
+		/* unregister with porthandler */
+		ibis.tcpPortHandler.deRegister(this);
 
 		if (DEBUG) { 
 			System.err.println(name + ":done receiveport.free");
@@ -445,6 +445,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	public synchronized void forcedClose() {
+		// this may be ok with a forced close.
 		if(m != null) {
 			throw new IbisError("Doing forcedClose while a msg is alive, port = " + name + " fin = " + m.isFinished);
 		}
@@ -455,6 +456,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		} catch (Exception e) {
 			// Ignore.
 		}
+
+		/* unregister with porthandler */
+		ibis.tcpPortHandler.deRegister(this);
 
 		while(connectionsIndex > 0) {
 			ConnectionHandler conn = removeConnection(0);
