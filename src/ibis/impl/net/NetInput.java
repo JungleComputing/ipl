@@ -259,6 +259,7 @@ pollSuccess++;
 
 					} catch (Throwable e) {
 						System.err.println("Upcall in upcall thread catches " + e);
+						e.printStackTrace(System.err);
 						break;
                                         }
 // System.err.println(this + ": upcallSpawnMode " + upcallSpawnMode + " activeThread " + activeThread + " this " + this);
@@ -711,8 +712,6 @@ up.setDaemon(true);
          */
        	public long finish() throws IOException {
                 log.in();
-// System.err.println(this + " " + Thread.currentThread() + ": finish()");
-// Thread.dumpStack();
 
                 implicitFinish();
 

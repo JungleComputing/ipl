@@ -2083,7 +2083,7 @@ ni_gm_output_send_request(JNIEnv *env, struct s_output *p_out) {
         if (ni_gm_check_send_tokens(p_port)) {
                 goto error;
         }
-	VPRINTF(100, ("Send HIGH rendez-vous request p_out %p for size %d tokens %d\n", p_out, p_out->length, p_port->ni_gm_send_tokens));
+	VPRINTF(100, ("Send to %s HIGH rendez-vous request p_out %p for size %d tokens %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), p_out, p_out->length, p_port->ni_gm_send_tokens));
 	assert(--p_port->ni_gm_send_tokens >= 0);
 	/* Protect ni_gm_callback */
 	ni_gm_current_env = env;
@@ -2159,7 +2159,7 @@ ni_gm_output_flush(JNIEnv *env, struct s_output *p_out)
     pend(GM_CHECK_TOKEN);
 
     pstart(GM_SEND);
-    VPRINTF(100, ("Send to %d HIGH data message p_out %p seqno %llu packet %p size %d mux_id %d send tokens %d\n", p_out->dst_node_id, p_out, hdr->seqno, packet, p_out->offset, hdr->mux_id, p_port->ni_gm_send_tokens));
+    VPRINTF(100, ("Send to %s HIGH data message p_out %p seqno %llu packet %p size %d mux_id %d send tokens %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), p_out, hdr->seqno, packet, p_out->offset, hdr->mux_id, p_port->ni_gm_send_tokens));
     assert(--p_port->ni_gm_send_tokens >= 0);
     /* Protect ni_gm_eager_callback */
     ni_gm_current_env = env;
@@ -2225,7 +2225,7 @@ ni_gm_output_send_buffer(JNIEnv *env, struct s_output *p_out, void *b, int len) 
                 goto error;
         }
 
-	VPRINTF(100, ("Send LOW rendez-vous data p_out %p size %d tokens %d\n", p_out, len, p_port->ni_gm_send_tokens));
+	VPRINTF(100, ("Send to %s LOW rendez-vous data p_out %p size %d tokens %d\n", gm_node_id_to_host_name(p_port->p_gm_port, p_out->dst_node_id), p_out, len, p_port->ni_gm_send_tokens));
 	assert(--p_port->ni_gm_send_tokens >= 0);
 	/* Protect ni_gm_callback */
 	ni_gm_current_env = env;
@@ -2809,14 +2809,12 @@ ni_gm_process_recv_event(JNIEnv *env,
                          gm_recv_event_t *p_event)
 {
         struct s_input *p_in;
-        int            remote_node_id;
 	int            length = gm_ntohl(p_event->recv.length);
 
         __in__();
         p_in = p_port->active_input;
 
-        remote_node_id = gm_ntohs(p_event->recv.sender_node_id);
-        assert(remote_node_id == (int)p_in->src_node_id);
+        assert(gm_ntohs(p_event->recv.sender_node_id) == (int)p_in->src_node_id);
 
         ni_gm_deregister_block(p_port, p_in->p_cache);
         ni_gm_release_input_array(env, p_in, length);
@@ -4319,14 +4317,14 @@ dump_monitors(env);
 
 	    case GM_HIGH_PEER_RECV_EVENT:
 	    case GM_HIGH_RECV_EVENT:
-		VPRINTF(150, ("Receive from %d HIGH packet size %d\n", gm_ntohs(p_event->recv.sender_node_id), gm_ntohl(p_event->recv.length)));
+		VPRINTF(100, ("Receive from %s HIGH packet size %d\n", gm_node_id_to_host_name(p_port->p_gm_port, gm_ntohs(p_event->recv.sender_node_id)), gm_ntohl(p_event->recv.length)));
 		if (ni_gm_process_high_recv_event(env, p_port, p_event))
 			goto error;
 		break;
 
 	    case GM_PEER_RECV_EVENT:
 	    case GM_RECV_EVENT:
-		VPRINTF(150, ("Receive data packet size %d\n", gm_ntohl(p_event->recv.length)));
+		VPRINTF(100, ("Receive from %s data packet size %d\n", gm_node_id_to_host_name(p_port->p_gm_port, gm_ntohs(p_event->recv.sender_node_id)), gm_ntohl(p_event->recv.length)));
 		if (ni_gm_process_recv_event(env, p_port, p_event))
 			goto error;
 		break;

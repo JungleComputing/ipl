@@ -283,6 +283,8 @@ public final class NetLockArray {
 	}
 
 	lock[id].v--;
+	wakeupFront(id);
+
 	if (DEBUG) {
 	    System.err.println("locked(" + id +")");
 	}
@@ -323,6 +325,8 @@ public final class NetLockArray {
 	    }
 	}
 	lock[id].v--;
+	wakeupFront(id);
+
 	if (DEBUG) {
 	    System.err.println("ilocked(" + id +")");
 	}
@@ -353,6 +357,9 @@ public final class NetLockArray {
 	    System.err.println("trylocked(" + id +")");
 	}
 	lock[id].v--;
+// if (lock[id].v > 0) {
+// System.err.println("Lock " + id + " freed multiple times, v := " + lock[id].v + ". We should notify!");
+// }
 
 	return true;
     }
@@ -419,6 +426,7 @@ outer:
 	    System.err.println("lockFirst(" + ids[result] + ")");
 	}
 	lock[ids[result]].v--;
+	wakeupFront(ids);
 
 	return result;
     }
@@ -486,6 +494,7 @@ outer:
 	    System.err.println("ilockFirst(" + ids[result] + ")");
 	}
 	lock[ids[result]].v--;
+	wakeupFront(ids);
 
 	return result;
     }
@@ -530,6 +539,33 @@ outer:
     }
 
 
+    private void wakeupFront(int id) {
+	if (lock[id].v == 0) {
+	    // Is not free
+	    return;
+	}
+
+	if (lock[id].front == null) {
+	    // Nobody waiting for us
+	    return;
+	}
+
+	int	signal_id = lock[id].front.id;
+
+	if (!lock[signal_id].m) {
+	    throw new IllegalLockStateException("uninitialized lock");
+	}
+	lock[signal_id].cv.cv_signal();
+    }
+
+
+    private void wakeupFront(int[] ids) {
+	for (int i = 0; i < ids.length; i++) {
+	    wakeupFront(ids[i]);
+	}
+    }
+
+
     /**
      * Unlock the lock in our array indexed by <code>id</code>
      *
@@ -558,8 +594,10 @@ outer:
 	}
 	*/
 
-	if (lock[id].front != null) {
-	    if (false && true) {
+	lock[id].v++;
+
+	if (false && true) {
+	    if (lock[id].front != null) {
 		WaitingOn w = lock[id].front;
 		while (w != null) {
 		    if (DEBUG) {
@@ -569,20 +607,14 @@ outer:
 		    lock[w.id].cv.cv_signal();
 		    w = w.next;
 		}
-	    } else {
-		int	signal_id = lock[id].front.id;
-
-		if (!lock[signal_id].m) {
-		    throw new IllegalLockStateException("uninitialized lock");
-		}
-		lock[signal_id].cv.cv_signal();
 	    }
+	} else {
+	    wakeupFront(id);
 	}
 
 	if (DEBUG) {
 	    System.err.println("Unlocked(" + id +")");
 	}
-	lock[id].v++;
     }
 
 
