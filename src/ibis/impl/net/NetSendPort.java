@@ -924,9 +924,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 	public long getCount() {
                 log.in();
-		return byteCount;
                 log.out();
-		return 0;
+		return byteCount;
 	}
 
 	public void resetCount() {
