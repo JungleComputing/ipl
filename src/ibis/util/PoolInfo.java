@@ -16,15 +16,15 @@ public class PoolInfo {
 	InetAddress [] hosts;
 
 	public PoolInfo() throws IbisException {
-	    this(false);
+		this(false);
 	}
 
 	public PoolInfo(boolean forceSequential) throws IbisException {
-	    if (forceSequential) {
+		if (forceSequential) {
 			sequentialPool();
-	    } else {
+		} else {
 			propertiesPool();
-	    }
+		}
 	}
 
 
@@ -94,8 +94,8 @@ public class PoolInfo {
 				host_names[i]     = adres.getHostName();
 				if (! host_names[i].equals(t) &&
 				    host_names[i].toUpperCase().equals(t.toUpperCase())) {
-				    System.err.println("This is probably M$ Windows. Restored lower case in host name " + t);
-				    host_names[i] = t;
+					System.err.println("This is probably M$ Windows. Restored lower case in host name " + t);
+					host_names[i] = t;
 				}
 				hosts[i]          = adres;
 				
@@ -148,10 +148,8 @@ public class PoolInfo {
 		return Integer.parseInt(temp);
 	}	
 
-
-    public void printTime(String id, long time) {
-	System.out.println("Application: " + id + "; Ncpus: " + total_hosts +
-			   "; time: " + time/1000.0 + " seconds\n");
-    }
-
+	public void printTime(String id, long time) {
+		System.out.println("Application: " + id + "; Ncpus: " + total_hosts +
+				   "; time: " + time/1000.0 + " seconds\n");
+	}
 }

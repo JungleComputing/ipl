@@ -23,7 +23,6 @@ import ibis.ipl.impl.generic.*;
 
 final class TcpPortHandler implements Runnable, TcpProtocol, Config { 
 	private ServerSocket systemServer;
-//	private HashMap others;
 	private ConnectionCache connectionCache = new ConnectionCache();
 	private ArrayList receivePorts;
 	private TcpIbisIdentifier me;
@@ -39,9 +38,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			System.out.println("PORTHANDLER: port = " + port);
 		}
 
-//		others = new HashMap();
 		receivePorts = new ArrayList();
-	
 		ThreadPool.createNew(this);
 	}
 
@@ -103,10 +100,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
 			/* the other side accepts the connection, finds the correct 
 			   stream */
-
 			result = data_in.readByte();
 
-//			Peer p = getPeer(receiver.ibis);
 			Connection c = null;
 
 			if (result == NEW_CONNECTION) { 
@@ -142,8 +137,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 				
 				c = connectionCache.findFreeOutput(receiver.ibis, local_id, remote_id);
 				connectionCache.addUsed(receiver.ibis, c);
-//				c = p.findFreeOutput(local_id, remote_id);
-//				p.addUsed(c);					
 				if(DEBUG) {
 					System.err.println("Reused connection to " + receiver);
 				}
@@ -273,7 +266,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			System.err.println("S getting peer");
 		}
 
-//		Peer p = getPeer(ibis);
 		Connection c = connectionCache.findFreeInput(ibis);
 
 		if (DEBUG) {

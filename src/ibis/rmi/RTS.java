@@ -536,14 +536,14 @@ System.out.println("removeSkeleton called!");
 	return hostname;
     }
 
-    public static void setClientHost(java.net.InetAddress host) {
-	clientHost.set(host);
+    public static void setClientHost(String s) {
+	clientHost.set(s);
     }
 
     public static String getClientHost() {
 	Object o = clientHost.get();
-	if (o == null) return "0.0.0.0";
-	java.net.InetAddress a = (java.net.InetAddress) o;
-	return a.getHostAddress();
+	if (o == null) return "UNKNOWN_HOST";
+	String s = (String) o;
+	return s;
     }
 }

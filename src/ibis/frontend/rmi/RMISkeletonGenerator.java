@@ -72,7 +72,9 @@ class RMISkeletonGenerator extends RMIGenerator {
 		output.println();
 
 		//gosia
-		output.println("\t\tRTS.setClientHost(r.origin().ibis().address());");
+		// Do not use IP addresses, a machine may have multiple, and
+		// Ibis does not know about IP anymore --Rob
+		output.println("\t\tRTS.setClientHost(r.origin().ibis().name());");
 		//end gosia
 
 		output.println("\t\tException ex = null;");
