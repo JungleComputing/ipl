@@ -24,8 +24,8 @@ public class NameServer implements Protocol {
 	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9826;
 	// public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 5678;
 	
-	public static final boolean DEBUG = false;
-	public static final boolean VERBOSE = true;
+	public static boolean DEBUG = false;
+	public static boolean VERBOSE = false;
 
 	static class IbisInfo { 		
 		IbisIdentifier identifier;
@@ -75,9 +75,11 @@ public class NameServer implements Protocol {
 	private	ObjectOutputStream out;
 
 	private boolean singleRun;
+	private boolean joined;
 
 	private NameServer(boolean singleRun, int port) throws IOException {
 		this.singleRun = singleRun;
+		this.joined = false;
 
 		if (DEBUG) { 
 			System.err.println("NameServer: singleRun = " + singleRun);
@@ -141,6 +143,7 @@ public class NameServer implements Protocol {
 			p = new RunInfo();
 			
 			pools.put(key, p);
+			joined = true;
 			
 			if (VERBOSE) { 
 				System.err.println("NameServer: new pool " + key + " created");
@@ -473,7 +476,10 @@ public class NameServer implements Protocol {
 				case (IBIS_LEAVE):
 					handleIbisLeave();
 					if (singleRun && pools.size() == 0) { 
+					    if (joined) {
 						stop = true;
+					    }
+					    // ignore invalid leave req.
 					}
 					break;
 				case (IBIS_DELETE):
@@ -519,6 +525,10 @@ public class NameServer implements Protocol {
 			if (false) {
 			} else if (args[i].equals("-single")) {
 				single = true;
+			} else if (args[i].equals("-d")) {
+				DEBUG = true;
+			} else if (args[i].equals("-v")) {
+				VERBOSE = true;
 			} else if (args[i].equals("-port")) {
 				i++;
 				try {
