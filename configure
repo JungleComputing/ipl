@@ -25,7 +25,7 @@ s+@GM_ROOT@+$GM_ROOT+
 s+@DAS_LIB@+$DAS_LIB+
 s+@PANDA_NETWORK@+$PANDA_NETWORK+
 s+@BCEL@+$BCEL+
-" < config.in > config.mk
+" < src/scripts/config.in > config.mk
 
 cp config.mk config.mk.orig
 if [ -f .config.mk.diff ]
