@@ -32,7 +32,7 @@ class Cell1D implements Config {
 
     private static void usage()
     {
-        System.out.println( "Usage: Cell1D [count]" );
+        System.out.println( "Usage: Cell1D [-size <n>] [count]" );
         System.exit( 0 );
     }
 
