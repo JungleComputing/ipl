@@ -137,6 +137,7 @@
 
 
     <target name="run">
+	<property name="IBIS" value="panda"/>
 	<java
 		fork="true"
 		classname="${MAIN}"
@@ -148,7 +149,7 @@
 	    <sysproperty key="ibis.pool.host_number"  value="0"/>
 	    <sysproperty key="ibis.pool.total_hosts"  value="2"/>
 	    <sysproperty key="ibis.pool.hosts"        value="athlon-win2000 p3"/>
-	    <sysproperty key="ibis.name"              value="panda"/>
+	    <sysproperty key="ibis.name"              value="${IBIS}"/>
 	    <arg line="${ARGS}"/>
 	</java>
     </target>
