@@ -294,7 +294,7 @@ public abstract class WorkStealing extends Stats {
 		InvocationRecord myJob = stolenJob;
 		stolenJob = null;
 
-		stolenFrom = myJob.owner;
+//		stolenFrom = myJob.owner;
 
 		// if we have ordered communication, we have to wait until
 		// our sequence number equals the one in the job
@@ -314,6 +314,8 @@ public abstract class WorkStealing extends Stats {
 			}
 		}
 
+		// Don't call the method, just add it to the queue
+//		q.addToHead(myJob);
 		callSatinFunction(myJob);
 
 		return true;

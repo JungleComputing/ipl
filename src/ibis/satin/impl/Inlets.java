@@ -127,7 +127,7 @@ public abstract class Inlets extends Aborts {
 		//		if(INLET_DEBUG) {
 		out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: "
 				+ r.eek + ": " + r.eek.getMessage());
-		//				r.eek.printStackTrace();
+						r.eek.printStackTrace();
 		//		}
 
 		InvocationRecord curr = r;

@@ -74,6 +74,13 @@ public abstract class SpawnSync extends Termination {
 			}
 
 			if (r.owner.equals(ident)) {
+				if (r.spawnCounter == null) {
+					out.println("SATIN '" + ident.name()
+							+ ": EEK, r.spawnCounter = null in callSatinFunc, r = " + r);
+					new Throwable().printStackTrace();
+					System.exit(1);
+				}
+
 				if (r.spawnCounter.value < 0) {
 					out.println("SATIN '" + ident.name()
 							+ ": spawncounter < 0 in callSatinFunc");
@@ -364,7 +371,7 @@ public abstract class SpawnSync extends Termination {
 			handleDelayedMessages();
 			return;
 		}
-		int numStealAttempts = 0;
+//		int numStealAttempts = 0;
 		while (s.value > 0) {
 			//		    if(exiting) {
 			//			System.err.println("EXIT FROM SYNC");
