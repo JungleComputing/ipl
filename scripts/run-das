@@ -47,6 +47,7 @@ PROFILING=
 cpumask="1"
 attach=0
 noJIT=0
+dedicated_nameserver=0
 
 JAVA_EXEC=java
 
@@ -96,6 +97,9 @@ do
 		shift
 		Dns_port="-Dibis.name_server.port=$1"
 		;;
+	-ns-d)
+		dedicated_nameserver=1
+		;;
         *)      java_args="$java_args $qarg"
                 ;;
         esac
@@ -127,7 +131,8 @@ then
 fi
 if [ ! -z "$gprof" ]
 then
-	JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$PRUN_CPU_RANK -Djava.compiler=NONE"
+	# JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$PRUN_CPU_RANK -Djava.compiler=NONE"
+	JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$PRUN_CPU_RANK"
 fi
 
 Dns_pool="-Dibis.name_server.key=$PANDA_HOST_PORT_KEY"
@@ -136,6 +141,75 @@ DEFAULT_USE_JAVA_WRAPPER=1
 
 wrapper_name="$IBIS_ROOT/bin/java_wrapper"
 
+if [ $dedicated_nameserver -eq 1 ]
+then
+	# A dedicated nameserver is run on HOSTS[#HOSTS - 1]
+	# The last entry in HOSTS and PRUN_HOSTNAMES is stripped.
+	# bash cannot shift for you, so we use an intermediate array
+	# for the manipulations.
+
+	NHOSTS=`expr $NHOSTS - 1`
+	Dpool_total="-Dibis.pool.total_hosts=$NHOSTS"
+	# echo Dpool_total $Dpool_total
+
+	i=0
+	declare -a HOST_ARRAY
+	for h in $HOSTS
+	do
+		HOST_ARRAY[$i]=$h
+		i=`expr $i + 1`
+	done
+	HOSTS="${HOST_ARRAY[0]}"
+	for (( i = 1; i < $NHOSTS; i++ ))
+	do
+		HOSTS="$HOSTS ${HOST_ARRAY[$i]}"
+	done
+	export HOSTS
+	Dpool_host_names="-Dibis.pool.host_names=\"$HOSTS\""
+
+	# echo Dpool_host_names $Dpool_host_names
+	ns=${HOST_ARRAY[$NHOSTS]}
+	# echo ns $ns
+	Dns_server="-Dibis.name_server.host=$ns"
+
+	i=0
+	for h in $PRUN_HOSTNAMES
+	do
+		HOST_ARRAY[$i]="$h"
+		i=`expr $i + 1`
+	done
+	# echo "Try to add ${HOST_ARRAY[0]}"
+	PRUN_HOSTNAMES="${HOST_ARRAY[0]}"
+	for (( i = 1; i < $NHOSTS; i++ ))
+	do
+		# echo "Try to add ${HOST_ARRAY[$i]}"
+		PRUN_HOSTNAMES="$PRUN_HOSTNAMES ${HOST_ARRAY[$i]}"
+	done
+	export PRUN_HOSTNAMES
+fi
+
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-$action $wrapper_name -cpu $cpumask $JAVA_ROOT/bin/$JAVA_EXEC $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dpool_total $Dpool_host_names $Dns_pool $Dns_port $Dns_server -Dibis.name_server.retry=yes -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH $java_args
+if [ $PRUN_CPU_RANK -eq $NHOSTS ]
+then
+	$action $wrapper_name \
+		-cpu $cpumask \
+		$JAVA_ROOT/bin/$JAVA_EXEC \
+		-classpath $JAVACLASSPATH \
+		ibis.impl.nameServer.tcp.NameServer -single
+else
+	# echo HOSTS '"'$HOSTS'"'
+	# echo PRUN_HOSTNAMES '"'$PRUN_HOSTNAMES'"'
+	$action $wrapper_name \
+		-cpu $cpumask \
+		$JAVA_ROOT/bin/$JAVA_EXEC \
+		$JIT_OPTS -Xmx1024M \
+		$Dlibpath $Dibislibs \
+		$Dpool_host_num $Dpool_total $Dpool_host_names \
+		$Dns_pool $Dns_port $Dns_server \
+		-Dibis.name_server.retry=yes \
+		-Xbootclasspath/p:$JAVACLASSPATH \
+		$PROFILING \
+		-classpath $JAVACLASSPATH \
+		$java_args
+fi
