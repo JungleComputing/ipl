@@ -14,13 +14,30 @@
 
 import java.io.File;
 
+
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
+    private static final boolean traceLearning = false;
     private static final boolean traceRestarts = false;
     private static int label = 0;
-    private final SATProblem p;
+    static SATProblem p;
+
+    final static class ProblemUpdater implements ibis.satin.ActiveTuple {
+        Clause cl;
+
+        ProblemUpdater( Clause c ){
+            cl = c;
+        }
+
+        public void handleTuple( String key ){
+            if( traceLearning ){
+                System.err.println( "Adding conflict clause " + cl );
+            }
+            //p.addConflictClause( cl );
+        }
+    }
 
     SATSolver( SATProblem p ){
         this.p = p;

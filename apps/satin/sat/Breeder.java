@@ -9,20 +9,6 @@ import java.io.File;
 import java.util.Random;
 import ibis.satin.SatinTupleSpace;
 
-final class CutoffUpdater implements ibis.satin.ActiveTuple {
-    int limit;
-
-    CutoffUpdater( int v ){
-        limit = v;
-    }
-
-    public void handleTuple( String key ){
-        if( limit<Breeder.cutoff ){
-            Breeder.cutoff = limit;
-        }
-    }
-}
-
 
 public final class Breeder extends ibis.satin.SatinObject implements BreederInterface {
     static final int GENERATIONS = 20;
@@ -30,6 +16,20 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
     static final boolean globalsInTuple = false;
 
     SATProblem pl[];
+
+    static final class CutoffUpdater implements ibis.satin.ActiveTuple {
+        int limit;
+
+        CutoffUpdater( int v ){
+            limit = v;
+        }
+
+        public void handleTuple( String key ){
+            if( limit<Breeder.cutoff ){
+                Breeder.cutoff = limit;
+            }
+        }
+    }
 
     Breeder( SATProblem pl[] )
     {

@@ -79,7 +79,7 @@ public final class SATContext implements java.io.Serializable {
     private static final boolean traceResolutionChain = false;
     private static final boolean traceRestarts = false;
 
-    private static final boolean doVerification = true;
+    private static final boolean doVerification = false;
     private static final boolean doLearning = true;
     private static final boolean propagatePureVariables = true;
 
@@ -584,10 +584,7 @@ public final class SATContext implements java.io.Serializable {
 		}
 	    }
 	    else {
-		if( traceLearning ){
-		    System.err.println( "Added conflict clause " + cc );
-		}
-		p.addConflictClause( cc );
+                ibis.satin.SatinTupleSpace.add( "learned", new SATSolver.ProblemUpdater( cc ) );
 		int rl = calculateRestartLevel( cc, level );
                 if( rl>=0 ){
                     if( traceLearning | traceRestarts ){
@@ -713,6 +710,7 @@ public final class SATContext implements java.io.Serializable {
 		float info = p.reviewer.info( nterm );
                 terms[i] = nterm;
                 boolean issat = cl.isSatisfied( assignment );
+                satisfied[i] = issat;
                 if( !issat ){
                     unsatisfied++;
                     cl.registerInfo( posinfo, neginfo, info );
