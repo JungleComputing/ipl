@@ -46,14 +46,7 @@
 	    <!--
 	    depends="property-init,property-iogen-build"
 	    -->
-	<path id="prep-iogen-all-classes">
-	    <fileset dir="${iogen-build}">
-		<include name="**/*.class"/>
-	    </fileset>
-	</path>
-	<pathconvert pathsep=" " property="iogen-files" refid="prep-iogen-all-classes">
-	    <map from="${iogen-build}${file.separator}" to=""/>
-	</pathconvert>
+	<property name="iogen-files" value="."/>
     </target>
 
     <target name="iogen-init"
@@ -93,16 +86,6 @@
 	    description="Preprocess serializable class files in the build tree"
 	    -->
 	<echo level="warning" message="IOGen all class files under ${iogen-build}"/>
-	<path id="iogen-all-classes">
-	    <fileset dir="${iogen-build}">
-		<include name="**/*.class"/>
-		<exclude name="classlibs/**/*.class"/>
-		<exclude name="ant-tasks/**/*.class"/>
-	    </fileset>
-	</path>
-	<pathconvert pathsep=" " property="iogen-files" refid="iogen-all-classes">
-	    <map from="${iogen-build}${file.separator}" to=""/>
-	</pathconvert>
 	<antcall target="iogen-files">
 	    <param name="iogen-build" value="${build}"/>
 	</antcall>
