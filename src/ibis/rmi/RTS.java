@@ -3,7 +3,6 @@ package ibis.rmi;
 import ibis.ipl.*;
 import ibis.rmi.server.*;
 
-import java.util.Hashtable;
 import java.util.Properties;
 import java.util.ArrayList;
 
@@ -14,8 +13,8 @@ public final class RTS {
 	public final static boolean DEBUG = false; // true;
 
 	//keys - impl objects, values - skeletons for those objects
-	protected static Hashtable skeletons;
-	protected static Hashtable stubs;
+	private static Hashtable skeletons;
+	private static Hashtable stubs;
 
 	protected static String hostname;
 	protected static PortType portType;
@@ -137,39 +136,68 @@ public final class RTS {
 			class_name.substring(class_name.lastIndexOf('.') + 1);
 	}
 
+	private static Skeleton createSkel(Remote obj) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IbisIOException {
+	    Skeleton skel;
+	    Class c = obj.getClass();
+	    ReceivePort rec;
+	    
+	    String skel_name = get_skel_name(c);
+// System.out.println("skel_name = " + skel_name);
+
+	    // Use the classloader of the original class!
+	    // Fix is by Fabrice Huet.
+	    ClassLoader loader = c.getClassLoader();
+
+	    Class skel_c = null;
+	    if (loader != null) {
+		skel_c = loader.loadClass(skel_name);
+	    }
+	    else {
+		skel_c = Class.forName(skel_name);
+	    }
+	    skel = (Skeleton) skel_c.newInstance();
+
+	    String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
+	    rec = portType.createReceivePort(skel_rec_port_name, skel);
+
+	    skel.init(rec, obj);
+
+	    rec.enableConnections();
+	    rec.enableUpcalls();
+
+	    skeletons.put(obj, skel);
+
+	    return skel;
+	}
+
 	public static synchronized RemoteStub exportObject(Remote obj)
 	    throws Exception
 	{
-	    Skeleton skel;
 	    Stub stub;
 	    Class c = obj.getClass();
 	    ReceivePort rec;
+	    String classname = c.getName();
 
-	    String class_name = c.getName().substring(c.getName().lastIndexOf('.') + 1);
-	    if ((skel = (Skeleton)skeletons.get(obj)) == null ) {
-
+	    String class_name = classname.substring(classname.lastIndexOf('.') + 1);
+	    if (skeletons.get(obj) == null) {
 		//create a skeleton
-
-		String skel_name = get_skel_name(c);
-// System.out.println("skel_name = " + skel_name);
-	        Class skel_c = Class.forName(skel_name);
-		skel = (Skeleton) skel_c.newInstance();
-
-		String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
-		rec = portType.createReceivePort(skel_rec_port_name, skel);
-
-		skel.init(rec, obj);
-
-		rec.enableConnections();
-		rec.enableUpcalls();
-
-		skeletons.put(obj, skel);
+		rec = createSkel(obj).receivePort();
 	    } else {
 		throw new ExportException("object already exported");
 	    }
 
 	    //create a stub
-	    Class stub_c = Class.forName(get_stub_name(c));
+	    // Use the classloader of the original class!
+	    // Fix is by Fabrice Huet.
+	    ClassLoader loader = obj.getClass().getClassLoader();
+
+	    Class stub_c = null;
+	    if (loader != null) {
+		stub_c = loader.loadClass(get_stub_name(c));
+	    }
+	    else {
+		stub_c = Class.forName(get_stub_name(c));
+	    }
 	    stub = (Stub) stub_c.newInstance();
 
 	    SendPort s = portType.createSendPort(new RMIReplacer());
@@ -205,7 +233,7 @@ public final class RTS {
 	    stub.init(s, r, stubID, rec.identifier());
 
 	    if (DEBUG) {
-		System.out.println(hostname + ": Created stub of type rmi_stub_" + c.getName());
+		System.out.println(hostname + ": Created stub of type rmi_stub_" + classname);
 	    }
 
 	    stubs.put(obj, stub);
@@ -248,22 +276,7 @@ public final class RTS {
 //		    throw new RemoteException("object not exported");
 		    //or just export it???
 
-		    Class c = o.getClass();
-		    String skel_name = get_skel_name(c);
-// System.out.println("skel_name = " + skel_name);
-	    	    Class skel_c = Class.forName(skel_name);
-		    skel = (Skeleton) skel_c.newInstance();
-
-		    String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
-		    ReceivePort rec = portType.createReceivePort(skel_rec_port_name, skel);
-
-		    skel.init(rec, o);
-
-		    rec.enableConnections();
-		    rec.enableUpcalls();
-
-		    skeletons.put(o, skel);
-
+		    skel = createSkel(o);
 		}
 
 		//new method
@@ -286,23 +299,7 @@ public final class RTS {
 		if (skel == null) {
 //		    throw new RemoteException("object not exported");
 		    //or just export it???
-
-		    Class c = o.getClass();
-		    String skel_name = get_skel_name(c);
-// System.out.println("skel_name = " + skel_name);
-	    	    Class skel_c = Class.forName(skel_name);
-		    skel = (Skeleton) skel_c.newInstance();
-
-		    String skel_rec_port_name = "//" + hostname + "/rmi_skeleton" + (new java.rmi.server.UID()).toString();
-		    ReceivePort rec = portType.createReceivePort(skel_rec_port_name, skel);
-
-		    skel.init(rec, o);
-
-		    rec.enableConnections();
-		    rec.enableUpcalls();
-
-		    skeletons.put(o, skel);
-
+		    skel = createSkel(o);
 		}
 
 		//new method

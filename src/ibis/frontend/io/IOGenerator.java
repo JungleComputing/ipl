@@ -172,15 +172,6 @@ public class IOGenerator {
 	}
 
 
-	private Instruction createReadObjectInvocation() {
-	    return factory.createInvoke(classname,
-					"readObject",
-					Type.VOID,
-					new Type[] {sun_input_stream},
-					Constants.INVOKESPECIAL);
-	}
-
-
 	private Instruction createGeneratedWriteObjectInvocation(String name, short invmode) {
 	    return factory.createInvoke(name,
 					"generated_WriteObject",
@@ -190,12 +181,12 @@ public class IOGenerator {
 	}
 
 
-	private Instruction createGeneratedDefaultReadObjectInvocation(String name, InstructionFactory factory) {
+	private Instruction createGeneratedDefaultReadObjectInvocation(String name, InstructionFactory factory, short invmode) {
 	    return factory.createInvoke(name,
 					"generated_DefaultReadObject",
 					Type.VOID,
 					new Type[] {ibis_input_stream, Type.INT},
-					Constants.INVOKESPECIAL);
+					invmode);
 	}
 
 
@@ -1097,7 +1088,7 @@ public class IOGenerator {
 		    il.append(new ALOAD(2));
 		    il.append(new ALOAD(1));
 		    il.append(new SIPUSH((short)dpth));
-		    il.append(createGeneratedDefaultReadObjectInvocation(classname, factory));
+		    il.append(createGeneratedDefaultReadObjectInvocation(classname, factory, Constants.INVOKEVIRTUAL));
 		}
 		il.append(new ALOAD(2));
 	    }
@@ -1253,7 +1244,7 @@ public class IOGenerator {
 		    read_il.append(new ALOAD(0));
 		    read_il.append(new ALOAD(1));
 		    read_il.append(new ILOAD(2));
-		    read_il.append(createGeneratedDefaultReadObjectInvocation(super_classname, factory));
+		    read_il.append(createGeneratedDefaultReadObjectInvocation(super_classname, factory, Constants.INVOKESPECIAL));
 		}
 		else {
 		    /*  Superclass is not rewritten.
@@ -1412,7 +1403,11 @@ public class IOGenerator {
 		    /* Then, call readObject. */
 		    read_il.append(new ALOAD(0));
 		    read_il.append(new ALOAD(1));
-		    read_il.append(createReadObjectInvocation());
+		    read_il.append(factory.createInvoke(classname,
+					"readObject",
+					Type.VOID,
+					new Type[] {sun_input_stream},
+					Constants.INVOKESPECIAL));
 
 		    /* And then, restore IbisSerializationOutputStream's idea of the current object. */
 		    read_il.append(new ALOAD(1));

@@ -597,18 +597,16 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 		} else if (type == classClass) {
 		    /* EEK this is not nice !! */
 		    writeUTF(((Class)ref).getName());
-		} else {
-		    if (ref instanceof ibis.io.Serializable) { 
-			((ibis.io.Serializable)ref).generated_WriteObject(this);
-		    } else if (ref instanceof java.io.Externalizable) {
-			push_current_object(ref, 0);
-			((java.io.Externalizable) ref).writeExternal(this);
-			pop_current_object();
-		    } else if (ref instanceof java.io.Serializable) {
-			writeSerializableObject(ref, type);
-		    } else { 
-			throw new RuntimeException("Not Serializable : " + type.toString());
-		    }
+		} else if (ref instanceof java.io.Externalizable) {
+		    push_current_object(ref, 0);
+		    ((java.io.Externalizable) ref).writeExternal(this);
+		    pop_current_object();
+		} else if (IbisSerializationInputStream.isIbisSerializable(type)) {
+		    ((ibis.io.Serializable)ref).generated_WriteObject(this);
+		} else if (ref instanceof java.io.Serializable) {
+		    writeSerializableObject(ref, type);
+		} else { 
+		    throw new RuntimeException("Not Serializable : " + type.toString());
 		}
 	    }
 	} else {
@@ -821,19 +819,19 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	}
 
 	Object ref = current_object;
+	Class type = ref.getClass();
 
 	if(DEBUG) {
 	    System.err.println("Default write object " + ref);
 	}
 
-	if (ref instanceof ibis.io.Serializable) { 
+	if (IbisSerializationInputStream.isIbisSerializable(type)) {
 	    /* Note that this will take the generated_DefaultWriteObject of the
 	       dynamic type of ref. The current_level variable actually indicates
 	       which instance of generated_DefaultWriteObject should do some work.
 	       */
 	    ((ibis.io.Serializable)ref).generated_DefaultWriteObject(this, current_level);
 	} else if (ref instanceof java.io.Serializable) {
-	    Class type = ref.getClass();
 	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
 
 	    /*	Find the type info corresponding to the current invocation.
@@ -844,7 +842,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	    }
 	    alternativeDefaultWriteObject(t, ref);
 	} else { 
-	    Class type = ref.getClass();
 	    throw new RuntimeException("Not Serializable : " + type.toString());
 	}
     }

@@ -44,4 +44,24 @@ public class Stub extends RemoteStub {
 		rm.finish();		
 	    }
 	}
+
+	protected void finalize() {
+	    // Give up resources.
+	    try {
+		if (send != null) send.free();
+		if (reply != null) reply.free();
+	    } catch(Exception e) {
+	    }
+	}
+
+	private void readObject(java.io.ObjectInputStream i) throws java.io.IOException, ClassNotFoundException {
+	    i.defaultReadObject();
+	    try {
+		if (skeletonPortId != null &&
+		    ! skeletonPortId.ibis().address().equals(java.net.InetAddress.getLocalHost())) {
+		    initSend();
+		}
+	    } catch (Exception e) {
+	    }
+	}
 }

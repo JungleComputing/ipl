@@ -10,29 +10,6 @@ import ibis.ipl.IbisIOException;
 
 public final class IbisSerializationInputStream extends SerializationInputStream implements IbisStreamFlags {
 
-    class TypeInfo { 
-	Class clazz;		
-	boolean isArray;
-	boolean isString;
-
-	// for ibis.io.Serializable    
-	Generator gen;
-
-	// for java.io.Serializable
-	AlternativeTypeInfo altInfo;
-
-	TypeInfo(Class clzz, boolean isArray, boolean isString, Generator gen){
-	    this.clazz = clzz;
-	    this.isArray = isArray;
-	    this.isString = isString;
-	    this.gen = gen;
-
-	    if (gen == null) { 
-		altInfo = new AlternativeTypeInfo(clzz);
-	    }	   
-	} 
-    } 
-
     IbisVector objects = new IbisVector();
     int next_object;
 
@@ -41,24 +18,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
     /* Type id management */
     private int next_type = 1;
     private IbisVector types;
-
-    private static Class stringClass;
-    private static Class classClass;
-
-    static {
-	try { 
-	    stringClass = Class.forName("java.lang.String");
-	} catch (Exception e) { 
-	    System.err.println("Failed to find java.lang.String " + e);
-	    System.exit(1);
-	}
-	try { 
-	    classClass = Class.forName("java.lang.Class");
-	} catch (Exception e) { 
-	    System.err.println("Failed to find java.lang.Class " + e);
-	    System.exit(1);
-	}
-    }
 
     /* Notion of a current object, needed for defaultWriteObject. */
     private Object current_object;
@@ -81,21 +40,21 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	types = new IbisVector();
 	types.add(0, null);	// Vector requires this
 	types.add(TYPE_BOOLEAN,
-		new TypeInfo(classBooleanArray, true, false, null));
+		new IbisTypeInfo(classBooleanArray));
 	types.add(TYPE_BYTE,
-		new TypeInfo(classByteArray, true, false, null));
+		new IbisTypeInfo(classByteArray));
 	types.add(TYPE_CHAR,
-		new TypeInfo(classCharArray, true, false, null));
+		new IbisTypeInfo(classCharArray));
 	types.add(TYPE_SHORT,
-		new TypeInfo(classShortArray, true, false, null));
+		new IbisTypeInfo(classShortArray));
 	types.add(TYPE_INT,
-		new TypeInfo(classIntArray, true, false, null));
+		new IbisTypeInfo(classIntArray));
 	types.add(TYPE_LONG,
-		new TypeInfo(classLongArray, true, false, null));
+		new IbisTypeInfo(classLongArray));
 	types.add(TYPE_FLOAT,
-		new TypeInfo(classFloatArray, true, false, null));
+		new IbisTypeInfo(classFloatArray));
 	types.add(TYPE_DOUBLE,
-		new TypeInfo(classDoubleArray, true, false, null));
+		new IbisTypeInfo(classDoubleArray));
 	next_type = PRIMITIVE_TYPES;
 
 	this.in = in;
@@ -478,49 +437,49 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	case TYPE_BOOLEAN:
 	    boolean [] temp1 = new boolean[len];	
 	    in.readArray(temp1, 0, len);
-	    objects.add(next_object++, temp1);
+	    addObjectToCycleCheck(temp1);
 	    return temp1;
 	case TYPE_BYTE:
 	    byte [] temp2 = new byte[len];
 	    in.readArray(temp2, 0, len);
-	    objects.add(next_object++, temp2);
+	    addObjectToCycleCheck(temp2);
 	    return temp2;
 	case TYPE_SHORT:
 	    short [] temp3 = new short[len];
 	    in.readArray(temp3, 0, len);
-	    objects.add(next_object++, temp3);
+	    addObjectToCycleCheck(temp3);
 	    return temp3;
 	case TYPE_CHAR:
 	    char [] temp4 = new char[len];
 	    in.readArray(temp4, 0, len);
-	    objects.add(next_object++, temp4);
+	    addObjectToCycleCheck(temp4);
 	    return temp4;
 	case TYPE_INT:
 	    int [] temp5 = new int[len];
 	    in.readArray(temp5, 0, len);
-	    objects.add(next_object++, temp5);
+	    addObjectToCycleCheck(temp5);
 	    return temp5;
 	case TYPE_LONG:
 	    long [] temp6 = new long[len];
 	    in.readArray(temp6, 0, len);
-	    objects.add(next_object++, temp6);
+	    addObjectToCycleCheck(temp6);
 	    return temp6;
 	case TYPE_FLOAT:
 	    float [] temp7 = new float[len];
 	    in.readArray(temp7, 0, len);
-	    objects.add(next_object++, temp7);
+	    addObjectToCycleCheck(temp7);
 	    return temp7;
 	case TYPE_DOUBLE:
 	    double [] temp8 = new double[len];
 	    in.readArray(temp8, 0, len);
-	    objects.add(next_object++, temp8);
+	    addObjectToCycleCheck(temp8);
 	    return temp8;
 	default:
 	    if (DEBUG) {
 		System.err.println("Read an array " + arrayClass + " of len " + len);
 	    }
 	    Object ref = java.lang.reflect.Array.newInstance(arrayClass.getComponentType(), len);
-	    objects.add(next_object++, ref);
+	    addObjectToCycleCheck(ref);
 
 	    for (int i = 0; i < len; i++) {
 		Object o = readObject();
@@ -534,12 +493,12 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
     }
 
-    public TypeInfo readType(int type) throws IOException {
+    public IbisTypeInfo readType(int type) throws IOException {
 	if (DEBUG) {
 	    System.err.println("Read type_number " + Integer.toHexString(type) + ", next = " + Integer.toHexString(next_type));
 	}
 	if (type < next_type) {
-	    return (TypeInfo) types.get(type);
+	    return (IbisTypeInfo) types.get(type);
 	} else {        
 	    if (next_type != type) {
 		System.err.println("EEK: readType: next_type != type");
@@ -560,26 +519,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		throw new IOException("class " + typeName + " not found");
 	    }
 
-	    Generator g = null;           
-	    TypeInfo t = null;
-
-	    if (clazz.isArray()) { 
-		t  = new TypeInfo(clazz, true, false, g);
-	    } else if (clazz == stringClass) { 
-		t = new TypeInfo(clazz, false, true, g);
-	    } else if (clazz == classClass) { 
-		t = new TypeInfo(clazz, false, false, g);
-	    } else { 
-		try { 
-		    Class gen_class = Class.forName(typeName + "_ibis_io_Generator");
-		    g = (Generator) gen_class.newInstance();
-		} catch (Exception e) { 
-		    System.err.println("WARNING: Failed to find generator for " + clazz.getName());
-		    // + " error: " + e);
-		    // failed to get generator class -> use null
-		}
-		t = new TypeInfo(clazz, false, false, g);
-	    } 
+	    IbisTypeInfo t = new IbisTypeInfo(clazz);
 
 	    types.add(next_type, t);
 	    next_type++;
@@ -873,7 +813,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
 
 	int type = handle_or_type & TYPE_MASK;
-	TypeInfo t = readType(type);
+	IbisTypeInfo t = readType(type);
 
 	if (DEBUG) {
 	    System.err.println("read type " + t.clazz + " isarray " + t.isArray);
@@ -890,7 +830,7 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	} else if (t.isString) {
 	    obj = readUTF();
 	    addObjectToCycleCheck(obj);
-	} else if (t.clazz == classClass) {
+	} else if (t.isClass) {
 	    String name = readUTF();
 	    obj = Class.forName(name);
 	    addObjectToCycleCheck(obj);
@@ -1034,16 +974,25 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	}
     }
 
+    public static boolean isIbisSerializable(Class clazz) {
+	Class[] intfs = clazz.getInterfaces();
+
+	for (int i = 0; i < intfs.length; i++) {
+	    if (intfs[i].equals(classIbisSerializable)) return true;
+	}
+	return false;
+    }
+
     public void defaultReadObject() throws IOException, NotActiveException {
 	if (current_object == null) {
 	    throw new NotActiveException("defaultReadObject without a current object");
 	}
 	Object ref = current_object;
+	Class type = ref.getClass();
 
-	if (ref instanceof ibis.io.Serializable) {
+	if (isIbisSerializable(type)) {
 	    ((ibis.io.Serializable)ref).generated_DefaultReadObject(this, current_level);
 	} else if (ref instanceof java.io.Serializable) {
-	    Class type = ref.getClass();
 	    AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
 
 	    /*  Find the type info corresponding to the current invocation.
@@ -1054,7 +1003,6 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    }
 	    alternativeDefaultReadObject(t, ref);
 	} else {
-	    Class type = ref.getClass();
 	    throw new RuntimeException("Not Serializable : " + type.toString());
 	}
     }

@@ -15,14 +15,16 @@ interface IbisStreamFlags extends TypeSize {
     public static final int RESET_HANDLE = 1;
     public static final int CONTROL_HANDLES = 2;
 
-    static final Class classBooleanArray = IbisStreamTypes.arrayClass("[Z");
-    static final Class classByteArray    = IbisStreamTypes.arrayClass("[B");
-    static final Class classShortArray   = IbisStreamTypes.arrayClass("[S");
-    static final Class classCharArray    = IbisStreamTypes.arrayClass("[C");
-    static final Class classIntArray     = IbisStreamTypes.arrayClass("[I");
-    static final Class classLongArray    = IbisStreamTypes.arrayClass("[J");
-    static final Class classFloatArray   = IbisStreamTypes.arrayClass("[F");
-    static final Class classDoubleArray  = IbisStreamTypes.arrayClass("[D");
+    static final Class classBooleanArray = IbisStreamTypes.getClass("[Z");
+    static final Class classByteArray    = IbisStreamTypes.getClass("[B");
+    static final Class classShortArray   = IbisStreamTypes.getClass("[S");
+    static final Class classCharArray    = IbisStreamTypes.getClass("[C");
+    static final Class classIntArray     = IbisStreamTypes.getClass("[I");
+    static final Class classLongArray    = IbisStreamTypes.getClass("[J");
+    static final Class classFloatArray   = IbisStreamTypes.getClass("[F");
+    static final Class classDoubleArray  = IbisStreamTypes.getClass("[D");
+
+    static final Class classIbisSerializable = IbisStreamTypes.getClass("ibis.io.Serializable");
 
     /* This array can be indexed using a TYPE_XXX variable */
     static final Class[] arrayClasses = {null, classBooleanArray, classByteArray, 
