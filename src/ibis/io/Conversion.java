@@ -14,6 +14,8 @@ public final class Conversion {
          *
          */
 
+	static final boolean USE_NATIVE_CONVERSION = true;
+
 	public static void classInit() {
 //		System.err.println("pre load");
 		try {
@@ -27,8 +29,6 @@ public final class Conversion {
 	static {
 		classInit();
 	}
-
-	static final boolean USE_NATIVE_CONVERSION = true;
 
 	static final int BOOLEAN2BYTE_THRESHOLD = 100;
 	static final int CHAR2BYTE_THRESHOLD    = 50;
