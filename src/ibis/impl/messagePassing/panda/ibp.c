@@ -248,6 +248,8 @@ intpt_env_get(void)
 {
     static JNIEnv *intpt_JNIEnv = NULL;
 
+    // fprintf(stderr, "pan_thread_self() = %p intpt_JNIEnv = %p\n", pan_thread_self(), intpt_JNIEnv);
+
     if (intpt_running++ != 0) {
 	fprintf(stderr,
 		"At env_get: some other interrupt handler active -- abort\n");
@@ -298,10 +300,19 @@ ibp_intr_poll(void)
 }
 
 
+#ifdef MANTA_JNI
+#include "../manta_rts_lock.h"
+#endif
+
+
 static void
 ibp_intr_lock(void)
 {
     JNIEnv *env = intpt_env_get();
+
+#ifdef MANTA_JNI
+    MANTA_RTS_POST_BLOCK_SYS_CALL(thread_list_current_thread());
+#endif
 
     ibmp_lock(env);
 
@@ -315,6 +326,10 @@ ibp_intr_unlock(void)
     JNIEnv *env = intpt_env_get();
 
     ibmp_unlock(env);
+
+#ifdef MANTA_JNI
+    MANTA_RTS_PRE_BLOCK_SYS_CALL(thread_list_current_thread());
+#endif
 
     intpt_env_release(env);
 }
@@ -539,7 +554,7 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
     ibp_env_key = pan_key_create();
 #endif
 
-    {
+    if (ibp_intr_enabled) {
     void pan_comm_intr_register(void (*)(void), void (*)(void), void (*)(void));
     
     pan_comm_intr_register(ibp_intr_poll, ibp_intr_lock, ibp_intr_unlock);

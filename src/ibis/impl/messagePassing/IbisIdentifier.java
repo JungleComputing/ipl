@@ -50,6 +50,7 @@ final class IbisIdentifier
 
     // Compare ranks here, much faster. This is method critical for Satin. --Rob
     public boolean equals(ibis.ipl.impl.messagePassing.IbisIdentifier other) {
+manta.runtime.RuntimeSystem.DebugMe(this, other);
 	return cpu == other.cpu;
     }
 

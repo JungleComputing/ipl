@@ -121,8 +121,7 @@ class ReceivePort
 	if (firstCall) {
 	    firstCall = false;
 	    if (upcall != null) {
-		thread = new Thread(this);
-		thread.setName("ReceivePort upcall thread " + upcallThreads);
+		thread = new Thread(this, "ReceivePort upcall thread " + upcallThreads);
 		upcallThreads++;
 		availableUpcallThread++;
 		thread.start();
@@ -130,6 +129,7 @@ class ReceivePort
 	    if (connectUpcall != null) {
 		acceptThread = new AcceptThread(this, connectUpcall);
 System.err.println("And start another AcceptThread(this=" + this + ")");
+		acceptThread.setName("ReceivePort accept thread");
 		acceptThread.start();
 	    }
 // System.err.println("In enableConnections: want to bind locally RPort " + this);
@@ -210,8 +210,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	else {
 System.err.println(Ibis.myIbis.myCpu + ": Create another UpcallThread because the previous one didn't terminate");
 // Thread.dumpStack();
-	    Thread thread = new Thread(this);
-	    thread.setName("ReceivePort upcall thread " + upcallThreads);
+	    Thread thread = new Thread(this, "ReceivePort upcall thread " + upcallThreads);
 	    upcallThreads++;
 	    availableUpcallThread++;
 	    thread.start();

@@ -8,8 +8,7 @@ import ibis.ipl.IbisIOException;
 import ibis.ipl.IbisException;
 
 class ElectionServer
-	extends Thread
-	implements ibis.ipl.Upcall {
+	implements Runnable, ibis.ipl.Upcall {
 
     static private Hashtable elections;
     private boolean started = false;
@@ -77,9 +76,8 @@ class ElectionServer
 	}
 	elections = new Hashtable();
 
-	setName("ElectionServer");
-
-	start();
+	Thread thr = new Thread(this, "Election Server");
+	thr.start();
     }
 
 

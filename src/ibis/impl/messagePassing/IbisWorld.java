@@ -3,7 +3,7 @@ package ibis.ipl.impl.messagePassing;
 import ibis.ipl.impl.generic.ConditionVariable;
 
 
-class IbisWorld extends Thread {
+class IbisWorld implements Runnable {
 
     private boolean isOpen = false;
     ConditionVariable opened;
@@ -30,9 +30,10 @@ class IbisWorld extends Thread {
 	    System.err.println("static ibis = " + myIbis);
 	}
 	opened = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
-	setDaemon(true);
-	setName("Ibis world");
-	start();
+
+	Thread thr = new Thread(this, "Ibis world");
+	thr.setDaemon(true);
+	thr.start();
     }
 
 
