@@ -74,10 +74,10 @@ An Ibis instance is identified by a so-called
 \emph{Ibis identifier}.
 An application can find out which Ibis instances are present in the run
 by supplying a so-called \emph{ResizeHandler}.
-This ResizeHandler is an object with, among others, a \emph{join} method
-which gets called by the Ibis system when a new Ibis instance joins the
-run.
-The Ibis identifier of this new Ibis is a parameter to the join method.
+This ResizeHandler is an object with, among others, a \texttt{join()}
+method which gets called by the Ibis system when a new Ibis instance
+joins the run.  The Ibis identifier of this new Ibis is a parameter
+to the \texttt{join()} method.
 
 \mysubsection{Send Ports and Receive Ports}
 
@@ -204,7 +204,7 @@ this tends to result in a list of 10 or more \texttt{import}s.
 
 All instances of a program that want to participate in an Ibis run
 must create an Ibis instance.
-To create an Ibis instance, the \texttt{createIbis} method of the
+To create an Ibis instance, the \texttt{createIbis()} method of the
 \texttt{ibis.ipl.Ibis} class must be used.
 The specification of this method is:
 \begin{quote}
@@ -230,11 +230,11 @@ specify \texttt{null} instead.  However, when such a \texttt{ResizeHandler}
 is used, its \texttt{join} upcall is called for every Ibis that joins the
 run, including the Ibis being created itself.
 Upcalls to the \texttt{ResizeHandler} must be explicitly enabled by
-invoking the \texttt{openWorld} method of the Ibis
+invoking the \texttt{openWorld()} method of the Ibis
 just created. This ensures that the \texttt{ResizeHandler} has been
 able to do the necessary initializations.
 
-The \texttt{openWorld} method blocks until the
+The \texttt{openWorld()} method blocks until the
 \texttt{join} upcall for this Ibis has been invoked.  Knowing which Ibises
 have joined the run, and how many there are, is often useful in dividing
 the work. See also section \ref{Which Instance Does What?}.
@@ -315,8 +315,8 @@ handler installed, when a message arrives at that receive port,
 this upcall handler is invoked automatically.
 \item[PollUpcalls]
 upcalls are supported but polling for them may be needed. When an
-Ibis implementation claims that it has this, it may also do
-AutoUpcalls but polling does no harm. When an application asks for
+Ibis implementation claims that it supports this, it may also do
+AutoUpcalls, but polling does no harm. When an application asks for
 this (and not AutoUpcalls), it must poll.
 \item[ExplicitReceipt]
 explicit receive is supported.
@@ -333,9 +333,9 @@ or a connection is lost.
 The possible ``serialization'' properties are:
 \begin{description}
 \item[Byte]
-Only the methods \texttt{readByte()}, \texttt{writeByte()}, \texttt{readArray(byte[]} and \texttt{writeArray(byte[])} are supported.
+Only the methods \texttt{readByte()}, \texttt{writeByte()}, \texttt{readArray(byte[])} and \texttt{writeArray(byte[])} are supported.
 \item[Data]
-Only read()/write() and readArray()/writeArray() of primitive types are supported.
+Only \texttt{read()}/\texttt{write()} and \texttt{readArray()}/\texttt{writeArray()} of primitive types are supported.
 \item[Object]
 Some sort of object serialization is supported. An Ibis implementation
 will, of course, specify what kind of object serialization it supports.
@@ -346,13 +346,14 @@ Ibis serialization is supported.
 This is the fastest object serialization supported in Ibis. Its drawback
 is that it requires identical Java implementations on sender and
 receiver side, and does not support
-non-symmetrical writeObject/readObject methods (where readObject does not
+non-symmetrical \texttt{writeObject()}/\texttt{readObject()} methods (where readObject does not
 read everything that writeObject writes).
 \item[Sun]
 Sun serialization (through java.io.ObjectOutputStream/InputStream) is
 supported.
 \end{description}
 
+\noindent
 The possible ``worldmodel'' properties are:
 \begin{description}
 \item[Open]
@@ -361,6 +362,7 @@ Ibises can join the run at any time during the run.
 Ibises can only join the run at the start.
 \end{description}
 
+\noindent
 If a specific implementation of Ibis is required, that can be dealt with too.
 There is a property called ``name'', which can be used to supply a nickname
 for the Ibis implementation that is required.
@@ -385,6 +387,7 @@ This is the message passing Ibis implementation but on top of MPI instead
 of Panda. This too is an experimental version.
 \end{description}
 
+\noindent
 A user running an Ibis application can override a property, or make
 it more specific. This is done by means of Java system properties,
 which in many Java implementations can be set by means of a command
@@ -407,28 +410,30 @@ create a send and a receive port;
 set up connections between them.
 \end{itemize}
 
+\noindent
 The next few subsections discuss each of these steps in turn, but
-first, we will discuss how to decide which Ibis instance does what.
+first we will discuss how to decide which Ibis instance does what.
 
 \mysubsubsection{Which Instance Does What?}
 
 Up until now, we have discussed only matters that all instances of
-the Ibis application should do, but now, things become different.
+the Ibis application should do, but now things become different.
 One instance of the application may want to send messages, while
 another instance may want to receive them.
 It may not even be clear which instance is going to do what.
 This can of course be solved with program parameters, but Ibis
 also provides a so-called registry (of type
 \texttt{ibis.ipl.Registry}), which is obtained through the
-\texttt{ibis.registry} method.
+\texttt{ibis.registry()} method.
 Ibis also provides the \texttt{ibis.ipl.IbisIdentifier} class.
-the \texttt{ibis.ipl.Ibis.identifier} method returns such an
+The \texttt{ibis.ipl.Ibis.identifier()} method returns such an
 Ibis identifier, which identifies this specific Ibis instance.
-Now it is possible to decide, in the RPC example, who is going
-to be the server by means of an ``election'': the Ibis registry
-provides a method \texttt{elect} which (globally) selects one of
-a number of invokers.
-For our RPC example this would go as follows:
+
+Using these methods it is possible to decide, in the RPC example,
+who is going to be the server by means of an ``election'': the Ibis
+registry provides a method \texttt{elect()} which (globally) selects
+one of a number of invokers.  For our RPC example this could be done as
+follows:
 
 \begin{quote}
 \begin{verbatim}
@@ -440,7 +445,9 @@ boolean i_am_server = server.equals(me);
 \end{verbatim}
 \end{quote}
 
-It could also be that the client and the server are separate programs.
+In our example one instance of the program is the server, and all
+others are clients.  Of course, the client and the server can also
+be different programs.
 
 The \texttt{ResizeHandler}, as discussed in Section
 \ref{Creating an Ibis Instance}, can be used to keep track of the number
@@ -467,6 +474,7 @@ PortType createPortType(String name,
 \end{verbatim}
 \end{quote}
 
+\noindent
 For our RPC example program, we would create a port type with properties
 as discussed in Section \ref{Creating an Ibis Instance}:
 
@@ -500,9 +508,9 @@ If communication with this name server fails, a
 \subsubsection{Creating Send and Receive Ports}
 
 The \texttt{PortType} class contains several variants of a method
-\texttt{createSendPort} that creates a send port (of type
+\texttt{createSendPort()} that creates a send port (of type
 \texttt{ibis.ipl.SendPort}) and
-also several variants of a method \texttt{createReceivePort} that
+also several variants of a method \texttt{createReceivePort()} that
 creates a receive port (of type \texttt{ibis.ipl.ReceivePort}),
 See the API for an exhaustive list of variants.
 
@@ -542,6 +550,7 @@ try {
 \end{verbatim}
 \end{quote}
 
+\noindent
 The client will have to create a send port
 to send a request and a receive port to receive an answer.
 The client is allowed to block waiting for an answer, so it will
@@ -560,18 +569,19 @@ try {
 \end{verbatim}
 \end{quote}
 
+\noindent
 When a receive port is created, it will not immediately accept connections.
 This must be explicitly enabled by
-invoking the \texttt{enableConnections} method. So, the creator of
+invoking the \texttt{enableConnections()} method. So, the creator of
 the receive port can determine when he is ready to accept connections.
 If the receive port is configured for upcalls, these must
-explicitly be enabled by invoking the \texttt{enableUpcalls} method.
+explicitly be enabled by invoking the \texttt{enableUpcalls()} method.
 
 \subsubsection{Setting Up a Connection}
 
 Now that we have send ports and receive ports, it is time to set up
 connections between them.
-A connection is initiated by the \texttt{connect} method of
+A connection is initiated by the \texttt{connect()} method of
 \texttt{ibis.ipl.SendPort}.
 Here is its specification:
 
@@ -581,6 +591,7 @@ void connect (ReceivePortIdentifier r) throws IOException;
 \end{verbatim}
 \end{quote}
 
+\noindent
 This version blocks until an accept or deny is received, and throws
 an \texttt{IOException} when the connection could not be established.
 There also is a \texttt{connect} version with a time-out.
@@ -588,7 +599,7 @@ There also is a \texttt{connect} version with a time-out.
 So, we need a \texttt{ibis.ipl.ReceivePortIdentifier} to set up the
 connection.
 This identifier can be obtained through the Ibis registry, by
-means of the \texttt{lookup} method, which has the following specification:
+means of the \texttt{lookup()} method, which has the following specification:
 
 \begin{quote}
 \begin{verbatim}
@@ -611,6 +622,7 @@ try {
 \end{verbatim}
 \end{quote}
 
+\noindent
 Our RPC client would set up the following connection:
 
 \begin{quote}
@@ -654,11 +666,11 @@ void lostConnection(ReceivePort me,
 \end{verbatim}
 \end{quote}
 \noindent 
-The \texttt{gotConnection} method gets called when a send port attempts
+The \texttt{gotConnection()} method gets called when a send port attempts
 to connect to the receive port at hand.
 An implementation of this method can decide whether
 to allow this connection or not.
-The \texttt{lostConnection} method gets called when an existing connection
+The \texttt{lostConnection()} method gets called when an existing connection
 to the receive port at hand gets lost for some reason.
 
 A send port can be instantiated with a
@@ -676,7 +688,7 @@ This method is called when an existing connection from the send port at
 hand gets lost for some reason. Note that there is no \texttt{gotConnection}
 counterpart, because it is always the send port that initiates a connection.
 
-When port type is configured for using connection downcalls, receive ports
+When a port type is configured for using connection downcalls, receive ports
 and send ports of this type maintain connection information.
 A receive port has the following methods:
 
@@ -718,7 +730,7 @@ consists of messages, sent from a send port, and received at a
 receive port. When a sender wants to send a message, it will first
 have to obtain one from the send port. Such a message is of
 type \texttt{ibis.ipl.WriteMessage} and is obtained by means of
-the \texttt{newMessage} method of \texttt{SendPort}, which is specified
+the \texttt{newMessage()} method of \texttt{SendPort}, which is specified
 as follows:
 
 \begin{quote}
@@ -727,6 +739,7 @@ WriteMessage newMessage() throws IOException;
 \end{verbatim}
 \end{quote}
 
+\noindent
 For a given send port, only one message can be alive at any time.
 When a new message is requested while a message is alive, the request
 is blocked until the live message is finished.
@@ -734,16 +747,16 @@ is blocked until the live message is finished.
 Once a write message is obtained, data can be written to it.
 A write message has various methods for the different types of
 data that can be written to it. For instance, the
-\texttt{writeInt} method can be used to write an integer value,
-and the \texttt{writeObject} method can be used to write an object.
+\texttt{writeInt()} method can be used to write an integer value,
+and the \texttt{writeObject()} method can be used to write an object.
 The kind of data that can be written to the message depends on the
 serialization property specified when the port type was created.
 The most general form is object serialization, which supports 
 all write methods in a write message.
 The \texttt{data} serialization property does not allow use of the
-\texttt{writeObject} method, but does allow the use of all other write
+\texttt{writeObject()} method, but does allow the use of all other write
 methods. The \texttt{byte} serialization property only allows use
-of the \texttt{writeByte} method and the \texttt{writeArray(byte[])}
+of the \texttt{writeByte()} method and the \texttt{writeArray(byte[])}
 method.
 
 Once there is a considerable amount of data in the message, Ibis
@@ -764,6 +777,7 @@ int obtainLength(String s) throws IOException {
 \end{verbatim}
 \end{quote}
 
+\noindent
 At the receiving side, a message can be received in two ways,
 depending on how the receive port was created: either by means of an
 upcall, or by means of an explicit receive. For each write method
@@ -788,6 +802,7 @@ void upcall(ReadMessage m) throws IOException {
 \end{verbatim}
 \end{quote}
 
+\noindent
 Note that the read message is finished before replying to the
 request. To prevent deadlocks, upcalls are not allowed to block
 (call \texttt{Thread.wait}) or access the network (write a message or
@@ -808,8 +823,8 @@ Now, we can also finish the \texttt{obtainLength} method of the client:
 \subsection{Finishing up}
 
 Closing of a connection is initiated by closing a send port
-(by means of the \texttt{close}) method. The \texttt{ReceivePort}
-class also has a \texttt{close} method, but this method blocks
+by means of the \texttt{close()} method. The \texttt{ReceivePort}
+class also has a \texttt{close()} method, but this method blocks
 until all send ports that have a connection to it are closed.
 So, send ports have to be closed first.
 
@@ -824,7 +839,7 @@ clientReceiver.close();
 and the code of the server should be clear by now.
 
 Ibis itself must also be ended. Both our client and our server
-should invoke the \texttt{Ibis.end} method:
+should invoke the \texttt{Ibis.end()} method:
 \begin{quote}
 \begin{verbatim}
 ibis.end();
@@ -870,6 +885,7 @@ the host names of the hosts involved in the run.
 the \texttt{InetAddress} of the hosts involved in the run.
 \end{itemize}
 
+\noindent
 A \texttt{PoolInfo} instance is created with its 
 static method \texttt{createPoolInfo()}.
 It depends on the following system properties:
@@ -902,9 +918,9 @@ Ibis implementations, but may have other uses.
 
 \mysection{Compiling and Running an Ibis Application}
 
-Before running an Ibis application it must be compiled.
-Using \emph{ant}, this is quite easy. Here is a build.xml file for
-our example program:
+Before running an Ibis application it must be compiled.  Using
+\emph{ant}, this is quite easy. Here is a \texttt{build.xml} file
+for our example program:
 
 \begin{quote}
 \begin{verbatim}
@@ -953,14 +969,14 @@ The nameserver then notifies the other Ibis instances of this run that
 a new instance has joined the run, including some identification of
 this instance.
 
-The Ibis nameserver is started with the ibis\_nameserver script which
-lives in the Ibis bin directory. Before starting an Ibis application,
+The Ibis nameserver is started with the \texttt{ibis\_nameserver} script which
+lives in the Ibis \texttt{bin} directory. Before starting an Ibis application,
 you need to have a nameserver running on a machine that is accessible
 from all nodes participating in the Ibis run.
 The nameserver expects the Ibis instances to connect to a
 socket that it creates when it starts up.
 The port number of this socket can be specified using a command line
-option to the ibis\_nameserver script. This script recognizes
+option to the \texttt{ibis\_nameserver} script. This script recognizes
 the following options:
 \begin{description}
 \item{-single}
@@ -975,17 +991,17 @@ in Section \ref{PoolInfo}.
 
 \mysubsection{Running an Ibis Application}
 
-An Ibis instance is started with the run\_ibis script which lives in
-the Ibis bin directory.
-This run\_ibis script is called as follows:
+An Ibis instance is started with the \texttt{run\_ibis} script which
+lives in the Ibis \texttt{bin} directory.  This \texttt{run\_ibis}
+script is called as follows:
 \begin{center}
-run\_ibis \emph{procno nprocs id port ns javaflags class ...}
+\texttt{run\_ibis} \emph{procno nprocs id port ns javaflags class ...}
 \end{center}
 The parameters are explained below:
 \begin{description}
 \item{\emph{procno}}
 specifies the rank number of this Ibis instance within this run,
-so its range is 0 ... \emph{nprocs}-1.
+so its range is $0 ... \emph{nprocs}-1$.
 \item{\emph{nprocs}}
 specifies the total number of Ibis instances involved in this run.
 \item{\emph{id}}
@@ -1002,7 +1018,7 @@ specifies the application class name.
 specifies the application parameters.
 \end{description}
 
-The run\_ibis script uses these parameters to set the following
+The \texttt{run\_ibis} script uses these parameters to set the following
 system properties (see also Section \ref{PoolInfo}):
 \begin{description}
 \item{ibis.pool.host\_number}
@@ -1070,14 +1086,14 @@ Later on, the job will be executed either locally, or it will be
 
 The result of a Satin job can only be used after the invocation
 of the \texttt{sync()} method, which lives in \texttt{ibis.satin.SatinObject}.
-(a class that implements a job method must extend
+(A class that implements a job method must extend
 \texttt{ibis.satin.SatinObject}.)
 The \texttt{sync()}
 method is guaranteed to only terminate after the earlier job
 invocations have terminated.
 
 Satin imposes one restriction on the type of parameters and return type
-of a Satin job: they must be of a basic type or serializable.
+of a Satin job: they must be of a basic type or must be serializable.
 A \texttt{SatinObject} is itself serializable, so all its subclasses
 are serializable as well.
 These two restrictions ensure that a Satin job can be stored and
@@ -1191,8 +1207,10 @@ class Search3Impl extends ibis.satin.SatinObject
 \end{verbatim}
 \end{quote}
 
+\noindent
 Note that in this version the search method doesn't return a value,
-since it will only terminate if no result is found.
+since it will only terminate without throwing an exception if no
+result is found.
 
 At top level this exception must be caught, and the other search
 jobs must be terminated. For example:
@@ -1338,13 +1356,13 @@ static void remove(String key);
 \end{verbatim}
 \end{quote}
 
-The \texttt{add} method adds a tuple to the tuple space, associating the
+The \texttt{add()} method adds a tuple to the tuple space, associating the
 specified key with the specified data.
-The \texttt{get} method obtains the data associated with the specified key.
+The \texttt{get()} method obtains the data associated with the specified key.
 It blocks until there is actually data associated with the key.
-The \texttt{peek} method, in contrast, does not block, but returns
+The \texttt{peek()} method, in contrast, does not block, but returns
 \texttt{null} instead.
-The \texttt{remove} method removes the tuple that has the specified key.
+The \texttt{remove()} method removes the tuple that has the specified key.
 
 All members can add tuples, and no global ordering is imposed on the
 additions, unless the system property
@@ -1362,7 +1380,7 @@ void handleTuple(String key);
 \end{quote}
 
 When an active tuple is added (as data) to the tuple space,
-its \texttt{handleTuple} method will be invoked on all members.
+its \texttt{handleTuple()} method will be invoked on all members.
 This can be used, for instance, for modifications of data that
 is replicated on all members.
 
