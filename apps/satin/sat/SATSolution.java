@@ -72,7 +72,7 @@ final class SATSolution implements java.io.Serializable {
 	    else {
 	        first = false;
 	    }
-	    res += "!" + neg[ix];
+	    res += "-" + neg[ix];
 	}
 	return res;
     }

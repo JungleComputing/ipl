@@ -381,7 +381,7 @@ public final class DPLLContext implements java.io.Serializable {
 
     private void dumpAssignments()
     {
-        Helpers.dumpAssignments( "Assignments", assignment, null );
+        Helpers.dumpAssignments( "Assignments", assignment );
     }
 
     /**

@@ -33,18 +33,16 @@ class Helpers {
     }
 
     /**
-     * Prints the specified array of assignments to the error stream 
-     * suppressing deduced assignments when possible.
+     * Prints the specified array of assignments to the error stream.
      * @param assignment The array of assignments.
-     * @param antecedent The array of antecedents, or null.
      */
-    public static void dumpAssignments( String label, int assignment[], int antecedent[] )
+    public static void dumpAssignments( String label, int assignment[] )
     {
 	System.err.print( label + ": " );
 	for( int j=0; j<assignment.length; j++ ){
 	    int v = assignment[j];
 	    
-	    if( v != -1 && (antecedent==null || antecedent[j] == -1) ){
+	    if( v != -1 ){
 		System.err.print( " v" + j + "=" + v );
 	    }
 	}

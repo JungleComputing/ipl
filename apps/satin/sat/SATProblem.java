@@ -591,7 +591,6 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
 	if( traceStats ){
 	    System.err.println( "Propagated " + unitClauses + " unit clauses" );
 	    System.err.println( "Propagated " + purevars + " pure variables" );
-	    System.err.println( "Did " + subsumptions + " subsumptions" );
 	    System.err.println( "Did " + iters + " optimization iterations" );
 	}
     }
