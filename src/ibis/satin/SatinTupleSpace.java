@@ -18,11 +18,8 @@ public class SatinTupleSpace implements Config {
 
 	static {
 		satin = Satin.this_satin;
-		if(satin == null) {
-			throw new IbisError("Internal error: Satin not initialized");
-		}
 
-		if(!satin.closed) {
+		if(satin != null && !satin.closed) {
 			throw new IbisError("The tuple space currently only works with a closed world. Try running with -satin-closed");
 		}
 
@@ -127,9 +124,11 @@ public class SatinTupleSpace implements Config {
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + satin.ident.name() + ": removed key " + key);
 		}
-		satin.broadcastRemoveTuple(key);
-		if(TUPLE_DEBUG) {
-			System.err.println("SATIN '" + satin.ident.name() + ": bcast remove key " + key + " done");
+		if(satin != null) {
+			satin.broadcastRemoveTuple(key);
+			if(TUPLE_DEBUG) {
+				System.err.println("SATIN '" + satin.ident.name() + ": bcast remove key " + key + " done");
+			}
 		}
 	}
 
