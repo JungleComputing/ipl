@@ -116,12 +116,6 @@ class OpenCell1D implements OpenConfig {
     static int generation = 0;
     static int boardsize = DEFAULTBOARDSIZE;
 
-    /** The first column that is my responsibility. */
-    static int firstColumn = -1;
-
-    /** The first column that is no longer my responsibility. */
-    static int firstNoColumn = -1;
-
     private static void usage()
     {
         System.out.println( "Usage: OpenCell1D [-size <int>] [count]" );
@@ -325,7 +319,7 @@ class OpenCell1D implements OpenConfig {
         throws java.io.IOException
     {
         if( port != null ){
-            if( aimFirstNoColumn>=firstColumn && aimFirstNoColumn<firstNoColumn ){
+            if( aimFirstNoColumn>=p.firstColumn && aimFirstNoColumn<p.firstNoColumn ){
                 if( traceLoadBalancing ){
                     System.out.println( "P" + me + ": I should send columns " + aimFirstNoColumn + "-" + p.firstNoColumn + " to my right neighbour" );
                 }
@@ -342,11 +336,11 @@ class OpenCell1D implements OpenConfig {
         }
 
         // Now see if our responsibilities have increased.
-        while( firstColumn>1 && p.board[firstColumn-2] != null ){
-            firstColumn--;
+        while( p.firstColumn>1 && p.board[p.firstColumn-2] != null ){
+            p.firstColumn--;
         }
-        while( firstNoColumn<boardsize+1 && p.board[firstNoColumn+1] != null ){
-            firstNoColumn++;
+        while( p.firstNoColumn<boardsize+1 && p.board[p.firstNoColumn+1] != null ){
+            p.firstNoColumn++;
         }
     }
 
@@ -358,11 +352,11 @@ class OpenCell1D implements OpenConfig {
         }
 
         // Now see if our responsibilities have increased.
-        while( firstColumn>1 && p.board[firstColumn-2] != null ){
-            firstColumn--;
+        while( p.firstColumn>1 && p.board[p.firstColumn-2] != null ){
+            p.firstColumn--;
         }
-        while( firstNoColumn<boardsize+1 && p.board[firstNoColumn+1] != null ){
-            firstNoColumn++;
+        while( p.firstNoColumn<boardsize+1 && p.board[p.firstNoColumn+1] != null ){
+            p.firstNoColumn++;
         }
     }
 
@@ -374,6 +368,12 @@ class OpenCell1D implements OpenConfig {
         boolean noneSer = false;
         RszHandler rszHandler = new RszHandler();
         int knownMembers = 0;
+
+        /** The first column that is my responsibility. */
+        int firstColumn = -1;
+
+        /** The first column that is no longer my responsibility. */
+        int firstNoColumn = -1;
 
         /* Parse commandline parameters. */
         for( int i=0; i<args.length; i++ ){
