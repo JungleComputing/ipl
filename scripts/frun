@@ -67,13 +67,19 @@ if [ -z "$NS_PORT" ]; then
 	exit 1
 fi
 
-#check if something already runs on the specified port
+# check if something already runs on the specified port
 if [ -n "$(netstat -nlt | grep $NS_PORT | grep LISTEN)" ]; then
 	echo $0: Port $NS_PORT is already in use!
 	exit 1
 fi
 NS_PARAMS="-Dibis.name_server.host=`hostname -f` -Dibis.name_server.port=$NS_PORT"
 NS_PARAMS="$NS_PARAMS -Dibis.name_server.key=frun$$"
+
+# check if your Grid proxy is still valid
+if [ -n "$(grid-proxy-info | grep 'timeleft : 0:00:00')" ]; then
+	echo $0: Your grid proxy is not valid anymore, please create a new one
+	exit 1
+fi
 
 #parse IBISCLASSPATH
 CLASSPATH=
@@ -144,8 +150,8 @@ echo - SessionID: $$
 	FILES="$FILES $(find ibis/satin -name *.class -or -name *properties -or -name *.jar)"
 	FILES="$FILES $(find ibis/util -name *.class -or -name *properties -or -name *.jar)"
 	#also include $APP_DIR and its subdirs
-	FILES="$FILES $(find $APP_DIR -name *.class -or -name *.jar -or -name *.txt)"
-	FILES="$FILES $(find $APP_DIR -path "$APP_DIR/*/*")"
+	FILES="$FILES $(find $APP_DIR -name *.class -or -name *.jar -or -name *.txt -or -name *.chain -or -name *.tree)"
+	#FILES="$FILES $(find $APP_DIR -path "$APP_DIR/*/*")"
 	#and the libraries
 	FILES="$FILES $(find ibis/lib -path "ibis/lib/*" -and -name *.so)"
 
