@@ -259,6 +259,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			aMessageIsAlive = true;
 
 			res = message;
+			res.isFinished = false;
 		}
 
 		out.writeByte(NEW_MESSAGE);

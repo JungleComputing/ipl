@@ -43,7 +43,12 @@ class SORCanvas extends Canvas {
 				int rgb = (int) (data[i][j] * 255); // one byte for red, one for green and one for blue
 				if(rgb > 255 || rgb < 0) {
 					System.err.println("rgb = " + rgb + ", val was " + data[i][j]);
-					System.exit(1);
+					if(rgb > 255) {
+					    rgb = 255;
+					} else {
+					    rgb = 0;
+					}
+//					System.exit(1);
 				}
 
 //				System.err.print(rgb + " ");

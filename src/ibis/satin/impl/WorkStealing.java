@@ -304,7 +304,7 @@ public abstract class WorkStealing extends Stats {
 				tupleOrderingWaitTimer.start();
 			}
 			if (TUPLE_DEBUG) {
-				System.err.println("steal reply seq nr = " + stealReplySeqNr
+				System.err.println("SATIN '" + ident.name() + "': steal reply seq nr = " + stealReplySeqNr
 						+ ", my seq nr = " + expected_seqno);
 			}
 			while (stealReplySeqNr > expected_seqno) {

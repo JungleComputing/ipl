@@ -8,3 +8,8 @@ satin:
 tcp ibis:
  - EEK TcpReceivePort: run: got illegal opcode: -1
    sluit de connectie gewoon. (met connectionLost upcall)
+
+general:
+	- ibis.util: splitsen in 2 delen. Sommige utils zijn voor ibis implementaties, andere zijn juist bedoelt voor applicaties bovenop ibis. De laatse zouden ook gejavadoct moeten zijn...
+
+	- IBISC maken / fixen

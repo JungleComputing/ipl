@@ -373,22 +373,24 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 		}
 
-		if (COMM_DEBUG) {
-			ident = m.origin();
-			if (opcode == BARRIER_REPLY) {
-				satin.out.println("SATIN '" + satin.ident.name()
-						+ "': got barrier reply message from "
-						+ ident.ibis().name());
-			}
-		}
-
 		switch (opcode) {
 		case BARRIER_REPLY:
-			synchronized (satin) {
-				satin.gotBarrierReply = true;
-				satin.notifyAll();
+		    if (COMM_DEBUG) {
+			ident = m.origin();
+			satin.out.println("SATIN '" + satin.ident.name()
+					  + "': got barrier reply message from "
+					  + ident.ibis().name());
+		    }
+
+		    synchronized (satin) {
+			if(ASSERTS && satin.gotBarrierReply) {
+			    System.err.println("Got barrier reply while I already got one.");
+			    System.exit(1);
 			}
-			break;
+			satin.gotBarrierReply = true;
+			satin.notifyAll();
+		    }
+		    break;
 
 		case STEAL_REPLY_SUCCESS_TABLE:
 		case ASYNC_STEAL_REPLY_SUCCESS_TABLE:
@@ -562,9 +564,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			satin.expected_seqno++;
 
 			if (t.sender.equals(satin.tuplePort.identifier())) {
-			    synchronized(satin.tuplePort) {
+			    synchronized(satin) {
 				satin.tuple_message_sent = false;
-				satin.tuplePort.notifyAll();
+				satin.notifyAll();
 			    }
 			}
 
@@ -582,9 +584,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 			String key = m.readString();
 			Serializable data = (Serializable) m.readObject();
+			SendPortIdentifier s = m.origin();
 
 			if (Satin.use_seq && seqno > satin.expected_seqno) {
-				add_to_queue(seqno, key, data, m.origin(), TUPLE_ADD);
+				add_to_queue(seqno, key, data, s, TUPLE_ADD);
 			} else {
 				if (data instanceof ActiveTuple) {
 					synchronized (satin) {
@@ -597,18 +600,18 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				if (Satin.use_seq) {
 					satin.expected_seqno++;
 					scan_queue();
-				}
-				done = true;
-				SendPortIdentifier s = m.origin();
-				if (s.equals(satin.tuplePort.identifier())) {
-				    synchronized(satin.tuplePort) {
-					satin.tuple_message_sent = false;
-					satin.tuplePort.notifyAll();
-				    }
+			
+					synchronized(satin) {
+					    if (s.equals(satin.tuplePort.identifier())) {
+						satin.tuple_message_sent = false;
+					    }
+					    
+					    satin.notifyAll();
+					}
 				}
 			}
-			m.finish();
 
+			m.finish(); // @@@ is this one needed ? --Rob
 
 		} catch (Exception e) {
 			System.err.println("SATIN '" + satin.ident.name()
@@ -619,15 +622,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 			//happens after crash
 		}
-
-		if (Satin.use_seq) {
-			if (done) {
-				synchronized (satin.tuplePort) {
-					satin.tuplePort.notifyAll();
-				}
-			}
-		}
-
 	}
 
 	private void handleTupleDel(ReadMessage m) {
@@ -642,20 +636,20 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				add_to_queue(seqno, key, null, m.origin(), TUPLE_DEL);
 			} else {
 				Satin.remoteDel(key);
-				satin.expected_seqno++;
 				if (Satin.use_seq) {
+				        satin.expected_seqno++;
 					scan_queue();
 				}
 				done = true;
 				SendPortIdentifier s = m.origin();
 				if (s.equals(satin.tuplePort.identifier())) {
-				    synchronized(satin.tuplePort) {
+				    synchronized(satin) {
 					satin.tuple_message_sent = false;
-					satin.tuplePort.notifyAll();
+					satin.notifyAll();
 				    }
 				}
 			}
-			m.finish();
+			m.finish();  // @@@ is this one needed ? --Rob
 		} catch (Exception e) {
 			System.err.println("SATIN '" + satin.ident.name()
 					+ "': Got Exception while reading tuple remove: " + e);
@@ -663,8 +657,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		}
 		if (Satin.use_seq) {
 			if (done) {
-				synchronized (satin.tuplePort) {
-					satin.tuplePort.notifyAll();
+				synchronized (satin) {
+					satin.notifyAll();
 				}
 			}
 		}
@@ -679,12 +673,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 			Object key = m.readObject();
 			int stamp = m.readInt();
-			IbisIdentifier owner = (IbisIdentifier) m.readObject(); //leave it
-			// out if
-			// you make
-			// globally
-			// unique
-			// stamps
+			IbisIdentifier owner = (IbisIdentifier) m.readObject(); 
+                        //leave it out if you make globally unique stamps
 			IbisIdentifier ident = m.origin().ibis();
 
 			synchronized (satin) {
@@ -749,7 +739,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			}
 		}
 
-		satin.exitReplies++;
+		synchronized(satin) {
+		    satin.exitReplies++;
+		    satin.notifyAll();
+		}
 	}
 
 	public void upcall(ReadMessage m) {

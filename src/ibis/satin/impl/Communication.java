@@ -187,7 +187,6 @@ public abstract class Communication extends SpawnSync {
 			if (gotDelete)
 				handleDelete();
 		}
-
 	}
 
 	/* Only allowed when not stealing. */
@@ -196,6 +195,7 @@ public abstract class Communication extends SpawnSync {
 			out.println("SATIN '" + ident.name() + "': barrier start");
 		}
 
+		// Close the world, no more join and leave upcalls will be received.
 		if (!closed) {
 			ibis.closeWorld();
 		}
@@ -243,6 +243,7 @@ public abstract class Communication extends SpawnSync {
 								// Ignore.
 							}
 						}
+
 						/*
 						 * Imediately reset gotBarrierReply, we know that a
 						 * reply has arrived.

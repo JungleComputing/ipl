@@ -17,7 +17,7 @@ public abstract class TupleSpace extends Communication {
 
 	public static boolean use_seq = false;
 
-	public void initTupleSpace() {
+	public static void initTupleSpace() {
 		if (this_satin != null && !this_satin.closed) {
 			System.err
 					.println("The tuple space currently only works with a closed world. Try running with -satin-closed");
@@ -63,6 +63,7 @@ public abstract class TupleSpace extends Communication {
 			// programs
 			this_satin.broadcastTuple(key, data);
 		}
+
 		if (!use_seq || this_satin == null) {
 			if (data instanceof ActiveTuple) {
 				((ActiveTuple) data).handleTuple(key);
@@ -75,7 +76,7 @@ public abstract class TupleSpace extends Communication {
 
 		if (TUPLE_DEBUG) {
 			System.err.println("SATIN '" + this_satin.ident.name()
-					+ ": bcast key " + key + " done");
+					+ ": adding of key " + key + " done");
 		}
 	}
 
@@ -211,7 +212,7 @@ public abstract class TupleSpace extends Communication {
 			size = victims.size();
 		}
 
-		if (!SUPPORT_TUPLE_MULTICAST && size == 0)
+		if (! SUPPORT_TUPLE_MULTICAST && size == 0)
 			return; // don't multicast when there is no-one.
 
 		if (TUPLE_TIMING) {
@@ -219,7 +220,8 @@ public abstract class TupleSpace extends Communication {
 		}
 
 		if (SUPPORT_TUPLE_MULTICAST) {
-			tuple_message_sent = true;
+		        tuple_message_sent = true;
+
 			try {
 				WriteMessage writeMessage = tuplePort.newMessage();
 				writeMessage.writeByte(Protocol.TUPLE_ADD);
@@ -243,12 +245,15 @@ public abstract class TupleSpace extends Communication {
 				}
 				//always happens after crash
 			}
+
+			// Wait until the message is delivered locally.
 			if (use_seq) {
-				synchronized (tuplePort) {
+				synchronized (this) {
 					while (tuple_message_sent) {
 						try {
-							tuplePort.wait();
+							wait();
 						} catch (Exception e) {
+						    // Ignore
 						}
 					}
 				}
@@ -288,6 +293,11 @@ public abstract class TupleSpace extends Communication {
 			//			System.err.println("SATIN '" + ident.name() + ": bcast of " +
 			// count + " bytes took: " + tupleTimer.lastTime());
 		}
+
+		if (TUPLE_DEBUG) {
+			System.err.println("SATIN '" + ident.name() + "': bcasting tuple "
+					+ key + " DONE");
+		}
 	}
 
 	protected void broadcastRemoveTuple(String key) {
@@ -311,7 +321,8 @@ public abstract class TupleSpace extends Communication {
 		}
 
 		if (SUPPORT_TUPLE_MULTICAST) {
-			tuple_message_sent = true;
+		        tuple_message_sent = true;
+
 			try {
 				WriteMessage writeMessage = tuplePort.newMessage();
 				writeMessage.writeByte(Protocol.TUPLE_DEL);
@@ -334,10 +345,10 @@ public abstract class TupleSpace extends Communication {
 				//always happen after crashes
 			}
 			if (use_seq) {
-				    synchronized(tuplePort) {
+				    synchronized(this) {
 					    while (tuple_message_sent) {
 						    try {
-							    tuplePort.wait();
+							    wait();
 						     } catch(Exception e) {
 						}
 					}

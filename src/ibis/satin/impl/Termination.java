@@ -31,7 +31,7 @@ public abstract class Termination extends Initialization {
 
 		if (master) {
 			exiting = true;
-			algorithm.exit(); // give the algorithm time to clean up
+//			algorithm.exit(); // give the algorithm time to clean up
 
 			for (int i = 0; i < size; i++) {
 				try {
@@ -59,12 +59,26 @@ public abstract class Termination extends Initialization {
 				}
 			}
 
-			while (exitReplies != size) {
-				satinPoll();
-			}
+			if(upcalls) {
+			    synchronized(this) {
+				while (exitReplies != size) {
+				    try {
+					wait();
+				    } catch (Exception e) {
+					// Ignore.
+				    }
+				}
 
+			    }
+			} else {
+			    while (exitReplies != size) {
+				satinPoll();
+			    }
+			}
 		} else { // send exit ack to master
 			SendPort mp = null;
+
+//			algorithm.exit(); //give the algorithm time to clean up
 
 			synchronized (this) {
 				mp = getReplyPortWait(masterIdent);
@@ -84,16 +98,14 @@ public abstract class Termination extends Initialization {
 				}
 				writeMessage.finish();
 			} catch (IOException e) {
-				synchronized (this) {
 					System.err.println("SATIN: Could not send exit message to "
 							+ masterIdent);
-				}
 			}
-
-			algorithm.exit(); //give the algorithm time to clean up
 		}
 
 		barrier(); // Wait until everybody agrees to exit.
+
+		algorithm.exit(); // give the algorithm time to clean up
 
 		if (master && stats)
 			printStats();
@@ -106,6 +118,7 @@ public abstract class Termination extends Initialization {
 			}
 		} catch (Throwable e) {
 			System.err.println("tuplePort.close() throws " + e);
+			e.printStackTrace();
 		}
 
 		// If not closed, free ports. Otherwise, ports will be freed in leave

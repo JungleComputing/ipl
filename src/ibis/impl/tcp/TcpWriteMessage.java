@@ -3,6 +3,7 @@ package ibis.impl.tcp;
 import ibis.io.SerializationOutputStream;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.IbisError;
 import ibis.util.SplitterException;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ final class TcpWriteMessage implements WriteMessage {
 	private SerializationOutputStream out;
 	private boolean connectionAdministration;
 	private long before;
+        boolean isFinished = false;
 
 	TcpWriteMessage(TcpSendPort p, SerializationOutputStream out,
 					boolean connectionAdministration) throws IOException {
@@ -39,14 +41,24 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public SendPort localPort() {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		return sport;
 	}
 
 	public int send() throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		return 0;
 	}
 
 	public long finish() throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
+                isFinished = true;
 		try {
 			out.reset();
 		} catch (SplitterException e) {
@@ -71,6 +83,10 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void finish(IOException e) {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
+                isFinished = true;
 		try {
 			out.reset();
 		} catch (SplitterException e2) {
@@ -96,6 +112,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void reset() throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.reset();
 		} catch (SplitterException e) {
@@ -104,6 +123,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void sync(int ticket) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.flush();
 		} catch (SplitterException e) {
@@ -112,6 +134,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeBoolean(boolean value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeBoolean(value);
 		} catch (SplitterException e) {
@@ -120,6 +145,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeByte(byte value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeByte(value);
 		} catch (SplitterException e) {
@@ -128,6 +156,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeChar(char value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeChar(value);
 		} catch (SplitterException e) {
@@ -136,6 +167,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeShort(short value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeShort(value);
 		} catch (SplitterException e) {
@@ -144,6 +178,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeInt(int value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeInt(value);
 		} catch (SplitterException e) {
@@ -152,6 +189,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeLong(long value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeLong(value);
 		} catch (SplitterException e) {
@@ -160,6 +200,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeFloat(float value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeFloat(value);
 		} catch (SplitterException e) {
@@ -168,6 +211,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeDouble(double value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeDouble(value);
 		} catch (SplitterException e) {
@@ -176,6 +222,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeString(String value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeUTF(value);
 		} catch (SplitterException e) {
@@ -184,6 +233,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeObject(Object value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeObject(value);
 		} catch (SplitterException e) {
@@ -192,6 +244,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(boolean [] value) throws IOException {
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value);
 		} catch (SplitterException e) {
@@ -200,6 +255,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 	
 	public void writeArray(byte [] value) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value);
 		} catch (SplitterException e) {
@@ -208,6 +266,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(char [] value) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value);
 		} catch (SplitterException e) {
@@ -216,6 +277,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(short [] value) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value);
 		} catch (SplitterException e) {
@@ -224,6 +288,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(int [] value) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value);
 		} catch (SplitterException e) {
@@ -232,6 +299,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(long [] value) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value);
 		} catch (SplitterException e) {
@@ -240,6 +310,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(float [] value) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value);
 		} catch (SplitterException e) {
@@ -248,6 +321,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(double [] value) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value);
 		} catch (SplitterException e) {
@@ -256,6 +332,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(Object [] value) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value);
 		} catch (SplitterException e) {
@@ -264,6 +343,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(boolean [] value, int offset, int size) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value, offset, size);
 		} catch (SplitterException e) {
@@ -272,6 +354,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(byte [] value, int offset, int size) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value, offset, size);
 		} catch (SplitterException e) {
@@ -280,6 +365,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(char [] value, int offset, int size) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value, offset, size);
 		} catch (SplitterException e) {
@@ -288,6 +376,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(short [] value, int offset, int size) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value, offset, size);
 		} catch (SplitterException e) {
@@ -296,6 +387,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(int [] value, int offset, int size) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value, offset, size);
 		} catch (SplitterException e) {
@@ -304,6 +398,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(long [] value, int offset, int size) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value, offset, size);
 		} catch (SplitterException e) {
@@ -312,6 +409,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(float [] value, int offset, int size) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value, offset, size);
 		} catch (SplitterException e) {
@@ -320,6 +420,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(double [] value, int offset, int size) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value, offset, size);
 		} catch (SplitterException e) {
@@ -328,6 +431,9 @@ final class TcpWriteMessage implements WriteMessage {
 	}
 
 	public void writeArray(Object [] value, int offset, int size) throws IOException { 
+	        if(isFinished) {
+		        throw new IbisError("Writing data to a message that was already finished");
+	        }
 		try {
 			out.writeArray(value, offset, size);
 		} catch (SplitterException e) {

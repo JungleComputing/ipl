@@ -16,11 +16,10 @@ public class SatinTupleSpace implements Config {
 
 	// The satin reference can be null if the run is completely sequential.
 	// space must be synchronized, adds and dels arrive asynchronously
-	private static Satin satin;
+//	private static Satin satin;
 
 	static {
-		satin = Satin.getSatin();
-		satin.initTupleSpace();
+		Satin.initTupleSpace();
 	}
 
 	/*
