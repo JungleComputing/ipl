@@ -449,7 +449,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			try {
 				table = (Map) m.readObject();
 				//temporary
-				tupleSpace = (Map) m.readObject();
+				//tupleSpace = (Map) m.readObject();
 			} catch (IOException e) {
 				ident = m.origin();
 				System.err.println("SATIN '" + satin.ident.name()
@@ -469,7 +469,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				satin.getTable = false;
 				satin.globalResultTable.addContents(table);				
 			}
-			satin.addContents(tupleSpace);
+			//satin.addContents(tupleSpace);
 			if (ADD_REPLICA_TIMING) {
 				satin.addReplicaTimer.stop();
 			}
