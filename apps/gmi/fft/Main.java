@@ -60,7 +60,7 @@ class Main {
 		m.configure(new CombinedInvocation("barrier", s.getRank(), cpus, new BarrierCombiner(), new SingleInvocation(0)), new ReturnReply(0));             		
 		s.setGroup(group, s.getRank());
 		s.run();
-		System.exit(0);
+		Group.exit();
 	}
 
 	void initdis() {

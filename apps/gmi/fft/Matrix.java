@@ -18,14 +18,13 @@ class Matrix {
     }
 
     void setValues(double[] values) {
-//	    System.out.println(cpu + "Setvalues " + values);	   
 	matrix = values;
     }
 
     void copyValues(double[] values) {
-	    if (matrix == null) { 
-		    matrix = new double[size * size * 2];
-	    }
+	if (matrix == null) { 
+		matrix = new double[size * size * 2];
+	}
 
 	for (int i = size*size*2-1; i >= 0; i--)
 		matrix[i] = values[i];

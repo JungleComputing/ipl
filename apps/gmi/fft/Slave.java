@@ -120,7 +120,12 @@ class Slave extends GroupMember implements i_Slave {
 					if (slaveNr == myCpu) {
 						setCopyValues(matrixNr, matrix);
 					} else { 
-						setMethod.configure(new SingleInvocation(slaveNr), new DiscardReply()); //new ReturnReply(slaveNr));
+						setMethod.configure(new SingleInvocation(slaveNr), new ReturnReply(slaveNr));
+						// This had DiscardReply, but
+						// that is not good enough,
+						// because in that case the
+						// barrier can come earlier than
+						// the actual copying of the data.
 						slaveGroup.setValues(matrixNr, matrix);
 					}					
 				}
@@ -361,7 +366,7 @@ class Slave extends GroupMember implements i_Slave {
 
 		long end = System.currentTimeMillis();
 		
-		if (Math.abs(checksum1 - checksum2) > 0.1) {
+		if (Math.abs(checksum1 - checksum2) > Math.abs(0.00000001 * checksum1)) {
 			System.out.println("CPU" + myCpu + " checksum ERROR !!! (" + checksum1 + "," + checksum2 +  ")   " + checksum3);
 			failed = true;
 		} else {
