@@ -11,18 +11,20 @@ import java.io.StreamTokenizer;
 class SATProblem {
     int vars;		 	// Number of variables in the problem.
     Clause clauses[];		// The clauses of the problem.
-    SATVar variables[];		// The variables of the problem.
+    private SATVar variables[];		// The variables of the problem.
     int clauseCount;		// The number of valid entries in `clauses'.
     int label = 0;
 
     private SATProblem()
     {
         vars = 0;
+        createVarArray( 0 );
 	clauses = new Clause[0];
     }
 
     public SATProblem( int v, Clause cl[] ){
 	vars = v;
+        createVarArray( v );
 	clauses = cl;
 	clauseCount = cl.length;
     }
@@ -30,7 +32,18 @@ class SATProblem {
     public SATProblem( int v, int n ){
 	vars = v;
 	clauses = new Clause[n];
+        createVarArray( v );
 	clauseCount = 0;
+    }
+
+
+    private void createVarArray( int n )
+    {
+	variables = new SATVar[n];
+
+	for( int i=0; i<n; i++ ){
+	    variables[i] = new SATVar( i );
+	}
     }
 
     // Given an array 'a' and a size 'sz', create a new array of size 'sz'
@@ -41,6 +54,12 @@ class SATProblem {
 
 	System.arraycopy( a, 0, res, 0, sz );
 	return res;
+    }
+
+    // Return the number of variables used in the problem.
+    public int getVariableCount()
+    {
+        return vars;
     }
 
     public void addClause( int pos[], int possz, int neg[], int negsz )
@@ -57,6 +76,36 @@ class SATProblem {
 	    clauses = nw;
 	}
 	clauses[clauseCount++] = cl;
+    }
+
+    // Given a list of variables and a clause, register all uses
+    // of the variables in the clause.
+    void registerClauseVariables( Clause cl, int clauseno )
+    {
+        int arr[] = cl.pos;
+
+	for( int ix=0; ix<arr.length; ix++ ){
+	    int var = arr[ix];
+
+	    variables[var].registerPosClause( clauseno );
+	}
+	arr = cl.neg;
+	for( int ix=0; ix<arr.length; ix++ ){
+	    int var = arr[ix];
+
+	    variables[var].registerNegClause( clauseno );
+	}
+    }
+
+    // Given a list of variables and a list of clauses, register all uses
+    // of the variables in these clauses.
+    void registerClauseVariables( Clause clauses[] )
+    {
+        for( int ix=0; ix<clauses.length; ix++ ){
+	    Clause cl = clauses[ix];
+
+	    registerClauseVariables( cl, ix );
+	}
     }
 
     public IntVector getPosClauses( int var )

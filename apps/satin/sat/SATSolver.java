@@ -265,7 +265,7 @@ public class SATSolver {
 	    arr[clsz] = cl;
 	    ctx.problem.clauses = arr;
 
-	    registerClauseVariables( ctx.problem.variables, cl, clsz );
+	    ctx.problem.registerClauseVariables( cl, clsz );
 	}
     }
 
@@ -281,7 +281,7 @@ public class SATSolver {
 	// need it later, and the number of clauses may increase.
 	int old_satsize = ctx.problem.clauses.length;
 
-	int min_terms = ctx.problem.variables.length+1;
+	int min_terms = ctx.problem.getVariableCount();
 	int ix = ctx.problem.clauses.length;
 	int terms[] = ctx.terms;
 
@@ -424,43 +424,13 @@ public class SATSolver {
 	return found_solution;
     }
 
-    // Given a list of variables and a clause, register all uses
-    // of the variables in the clause.
-    private static void registerClauseVariables( SATVar variables[], Clause cl, int clauseno )
-    {
-        int arr[] = cl.pos;
-
-	for( int ix=0; ix<arr.length; ix++ ){
-	    int var = arr[ix];
-
-	    variables[var].registerPosClause( clauseno );
-	}
-	arr = cl.neg;
-	for( int ix=0; ix<arr.length; ix++ ){
-	    int var = arr[ix];
-
-	    variables[var].registerNegClause( clauseno );
-	}
-    }
-
-    // Given a list of variables and a list of clauses, register all uses
-    // of the variables in these clauses.
-    private static void registerClauseVariables( SATVar variables[], Clause clauses[] )
-    {
-        for( int ix=0; ix<clauses.length; ix++ ){
-	    Clause cl = clauses[ix];
-
-	    registerClauseVariables( variables, cl, ix );
-	}
-    }
 
     // Given a list of symbolic clauses, produce a list of solutions.
     static SATSolution [] solveSystem( final SATProblem p )
     {
 	Context ctx = new Context();
 	ctx.problem = p;
-	ctx.problem.variables = new SATVar[p.vars];
-	ctx.assignments = new int[p.vars];
+	ctx.assignments = new int[p.getVariableCount()];
 	// The list will be grown if necessary.
 	ctx.solutions = new SATSolution[20];
 	ctx.solutioncount = 0;
@@ -472,12 +442,11 @@ public class SATSolver {
 	ctx.problem.clauses = (Clause[]) p.clauses.clone();
 
 	// Now start with a vector of unassigned variables.
-	for( int ix=0; ix<ctx.problem.variables.length; ix++ ){
+	for( int ix=0; ix<ctx.problem.getVariableCount(); ix++ ){
 	    ctx.assignments[ix] = -1;
-	    ctx.problem.variables[ix] = new SATVar( ix );
 	}
 	// Construct a table occurences of all variables.
-	registerClauseVariables( ctx.problem.variables, ctx.problem.clauses );
+	ctx.problem.registerClauseVariables( ctx.problem.clauses );
 	ctx.satisfied = new boolean[ctx.problem.clauses.length];
 	int terms[] = new int[ctx.problem.clauses.length];
 	for( int ix=0; ix<ctx.problem.clauses.length; ix++ ){
