@@ -20,6 +20,7 @@ class ElectionClient implements ElectionProtocol {
 
 // System.err.println(Thread.currentThread() + "ElectionClient: enter...");
 	StaticProperties p = new StaticProperties();
+	p.add("Communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt"); 
 	p.add("Serialization", "sun");
 	ibis.ipl.PortType type = Ibis.myIbis.createPortType("++++ElectionPort++++", p);
 // System.err.println(Thread.currentThread() + "ElectionClient: portTypes lives");

@@ -117,6 +117,7 @@ class ElectionServer
 	    server_port = new ibis.ipl.ReceivePort[Ibis.myIbis.nrCpus];
 	    client_port = new ibis.ipl.SendPort[Ibis.myIbis.nrCpus];
 	    StaticProperties p = new StaticProperties();
+	    p.add("Communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt"); 
 	    p.add("Serialization", "sun");
 
 	    ibis.ipl.PortType type = Ibis.myIbis.createPortType("++++ElectionPort++++",
