@@ -215,6 +215,7 @@ public class NameServer implements Protocol {
 			System.err.println("Could not forward leave of "  + 
 					   id.toString() + " to " + dest.identifier.toString() + 
 					   "error = " + e);					   
+			e.printStackTrace();
 		    }
 		}
     }
@@ -565,6 +566,7 @@ public class NameServer implements Protocol {
 				ns = new NameServer(single, port);
 				break;
 			} catch (Throwable e) { 
+				e.printStackTrace();
 				System.err.println("Main got " + e + ", retry in 1 second");
 				try {Thread.sleep(1000);} catch (Exception ee) {}
 //				e.printStackTrace();

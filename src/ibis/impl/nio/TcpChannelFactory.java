@@ -48,7 +48,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
     private ArrayList receivePorts;
 
     private static IbisSocketFactory socketFactory = 
-	IbisSocketFactory.createFactory("");
+	IbisSocketFactory.createFactory();
 
     TcpChannelFactory() throws IOException {
 	int port = socketFactory.allocLocalPort();

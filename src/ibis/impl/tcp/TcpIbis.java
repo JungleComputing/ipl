@@ -61,11 +61,8 @@ public final class TcpIbis extends Ibis implements Config {
 		if (p.getProperty("ibis.connect.control_links") == null) {
 		    System.setProperty("ibis.connect.control_links", "RoutedMessages");
 		}
-		socketFactory = IbisSocketFactory.createFactory("ibis-connect");
 	    }
-	    else {
-		socketFactory = IbisSocketFactory.createFactory("");
-	    }
+	    socketFactory = IbisSocketFactory.createFactory();
 	}
 
 	public TcpIbis() throws IbisException {

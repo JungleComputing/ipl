@@ -35,9 +35,7 @@ public final class NetIbis extends Ibis {
          */
 	private static final String COMPILER = java.lang.System.getProperty("java.lang.compiler");
 
-	private static final String connect_enable = System.getProperty("ibis.connect.enable");
-	static IbisSocketFactory socketFactory =
-	    IbisSocketFactory.createFactory(connect_enable != null ? "ibis-connect" : "");
+	static IbisSocketFactory socketFactory = IbisSocketFactory.createFactory();
 
 	/**
 	 * The driver loading mode.

@@ -53,7 +53,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 	private InetAddress myAddress;
 
 	static IbisSocketFactory socketFactory =
-	    IbisSocketFactory.createFactory("");
+	    IbisSocketFactory.createFactory();
 
 	public NameServerClient() {
 	}

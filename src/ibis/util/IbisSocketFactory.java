@@ -8,19 +8,20 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public abstract class IbisSocketFactory {
-	
-	private static String DEFAULT_SOCKET_FACTORY = "ibis.util.IbisNormalSocketFactory";
-	private static String socketFactoryName = "null";
+
+    private static String DEFAULT_SOCKET_FACTORY = "ibis.util.IbisConnectSocketFactory";
+    private static String socketFactoryName;
+
     static final boolean DEBUG = false;
 
     static {
-      String sfClass = System.getProperty("ibis.socketfactory");
-      if (sfClass != null) {
-          socketFactoryName = sfClass;
-      } else {
-      	 socketFactoryName = DEFAULT_SOCKET_FACTORY;
-      }
-  }
+	String sfClass = System.getProperty("ibis.socketfactory");
+        if (sfClass != null) {
+	    socketFactoryName = sfClass;
+        } else {
+	    socketFactoryName = DEFAULT_SOCKET_FACTORY;
+        }
+    }
     
     
     /** Simple ServerSocket factory
@@ -108,24 +109,17 @@ public abstract class IbisSocketFactory {
     public void shutdown() {
     }
 
-    public static IbisSocketFactory createFactory(String name) {
-	if (name.equals("ibis-connect")) {
-	    return new IbisConnectSocketFactory();
-	} else {
-		//we are not running in a specific mode, we create a factory based on the value of ibis.socketfactory
-		return initFactory();
-	}
-	//return new IbisNormalSocketFactory();
+    public static IbisSocketFactory createFactory() {
+	return initFactory();
     }
     
-  private synchronized static IbisSocketFactory initFactory() {
-  try {
-      Class classDefinition = Class.forName(socketFactoryName);
-      return (IbisSocketFactory) classDefinition.newInstance();
-  } catch (Exception e) {
-      e.printStackTrace();
-  }
-  return null;
-}
-    
+    private synchronized static IbisSocketFactory initFactory() {
+	try {
+	    Class classDefinition = Class.forName(socketFactoryName);
+	    return (IbisSocketFactory) classDefinition.newInstance();
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+	return null;
+    }
 }
