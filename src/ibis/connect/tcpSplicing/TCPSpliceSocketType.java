@@ -25,7 +25,9 @@ public class TCPSpliceSocketType extends SocketType
 {
     public TCPSpliceSocketType() { super("TCPSplice"); }
 
-    public Socket createBrokeredSocket(InputStream in, OutputStream out, boolean hint)
+    public Socket createBrokeredSocket(InputStream in, OutputStream out,
+				       boolean hint,
+				       ConnectProperties p)
 	throws IOException
     {
 	Splice  theSplice = new Splice();

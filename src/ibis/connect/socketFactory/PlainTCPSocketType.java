@@ -38,7 +38,9 @@ public class PlainTCPSocketType extends SocketType
 	return s;
     }
 
-    public Socket createBrokeredSocket(InputStream in, OutputStream out, boolean hintIsServer)
+    public Socket createBrokeredSocket(InputStream in, OutputStream out,
+				       boolean hintIsServer,
+				       ConnectProperties p)
 	throws IOException
     {
 	Socket s = null;

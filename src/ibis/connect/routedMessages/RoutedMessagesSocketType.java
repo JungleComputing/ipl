@@ -16,7 +16,8 @@ import java.io.OutputStream;
 
 // SocketType descriptor for Routed Messages
 // ------------------------------------------
-public class RoutedMessagesSocketType extends SocketType 
+public class RoutedMessagesSocketType
+    extends SocketType 
     implements ClientServerSocketFactory, BrokeredSocketFactory
 {
     public RoutedMessagesSocketType() throws IOException {
@@ -46,7 +47,9 @@ public class RoutedMessagesSocketType extends SocketType
 	return s;
     }
 
-    public Socket createBrokeredSocket(InputStream in, OutputStream out, boolean hintIsServer)
+    public Socket createBrokeredSocket(InputStream in, OutputStream out,
+				       boolean hintIsServer,
+				       ConnectProperties p)
 	throws IOException
     {
 	return ExtSocketFactory.createBrokeredSocketFromClientServer(this, in, out, hintIsServer);
