@@ -88,6 +88,11 @@ public class IbisSerializationOutputStream
     private int stack_size = 0;
 
     /**
+     * Allocator for the typed buffer arrays
+     */
+    private DataAllocator	allocator;
+
+    /**
      * Storage for bytes (or booleans) written.
      */
     private byte[]	byte_buffer;
@@ -347,27 +352,27 @@ public class IbisSerializationOutputStream
 	    ArrayOutputStream o = (ArrayOutputStream) out;
 
 	    if (! o.finished()) {
-		indices_short = new short[PRIMITIVE_TYPES];
+		indices_short = allocator.getIndexArray();
 		if (touched[TYPE_BYTE]) {
-		    byte_buffer   = new byte[BYTE_BUFFER_SIZE];
+		    byte_buffer   = allocator.getByteArray();
 		}
 		if (touched[TYPE_CHAR]) {
-		    char_buffer   = new char[CHAR_BUFFER_SIZE];
+		    char_buffer   = allocator.getCharArray();
 		}
 		if (touched[TYPE_SHORT]) {
-		    short_buffer  = new short[SHORT_BUFFER_SIZE];
+		    short_buffer  = allocator.getShortArray();
 		}
 		if (touched[TYPE_INT]) {
-		    int_buffer    = new int[INT_BUFFER_SIZE];
+		    int_buffer    = allocator.getIntArray();
 		}
 		if (touched[TYPE_LONG]) {
-		    long_buffer   = new long[LONG_BUFFER_SIZE];
+		    long_buffer   = allocator.getLongArray();
 		}
 		if (touched[TYPE_FLOAT]) {
-		    float_buffer  = new float[FLOAT_BUFFER_SIZE];
+		    float_buffer  = allocator.getFloatArray();
 		}
 		if (touched[TYPE_DOUBLE]) {
-		    double_buffer = new double[DOUBLE_BUFFER_SIZE];
+		    double_buffer = allocator.getDoubleArray();
 		}
 // unfinished++;
 	    }
@@ -518,18 +523,27 @@ public class IbisSerializationOutputStream
      * Allocates buffers.
      */
     private void initArrays() {
-	indices_short  = new short[PRIMITIVE_TYPES];
 	array = new ArrayDescriptor[ARRAY_BUFFER_SIZE];
 	for (int i = 0; i < ARRAY_BUFFER_SIZE; i++) {
 	    array[i] = new ArrayDescriptor();
 	}
-	byte_buffer    = new byte[BYTE_BUFFER_SIZE];
-	char_buffer    = new char[CHAR_BUFFER_SIZE];
-	short_buffer   = new short[SHORT_BUFFER_SIZE];
-	int_buffer     = new int[INT_BUFFER_SIZE];
-	long_buffer    = new long[LONG_BUFFER_SIZE];
-	float_buffer   = new float[FLOAT_BUFFER_SIZE];
-	double_buffer  = new double[DOUBLE_BUFFER_SIZE];
+	allocator = new DataAllocator();
+	indices_short = allocator.getIndexArray();
+	byte_buffer   = allocator.getByteArray();
+	char_buffer   = allocator.getCharArray();
+	short_buffer  = allocator.getShortArray();
+	int_buffer    = allocator.getIntArray();
+	long_buffer   = allocator.getLongArray();
+	float_buffer  = allocator.getFloatArray();
+	double_buffer = allocator.getDoubleArray();
+    }
+
+    /**
+     * The array buffer allocator. Use this to return data arrays
+     * when they are finished. The allocator may cache/reuse them.
+     */
+    public DataAllocator getAllocator() {
+	return allocator;
     }
 
     /**

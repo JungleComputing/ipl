@@ -208,7 +208,8 @@ public abstract class Conversion {
      * Writes an object to a byte[].
      */
 
-    public static final byte[] object2byte(Object o) throws IOException {
+    public static final byte[] object2byte(Object o)
+	    throws IOException {
 	ByteArrayOutputStream bos = new ByteArrayOutputStream();
 	ObjectOutputStream    oos = new ObjectOutputStream(bos);
 	oos.writeObject(o);
@@ -222,12 +223,12 @@ public abstract class Conversion {
      */
 
     public static final Object byte2object(byte [] b)
-	throws IOException, ClassNotFoundException {
-	    ByteArrayInputStream bis = new ByteArrayInputStream(b);
-	    ObjectInputStream    ois = new ObjectInputStream(bis);
-	    Object               o   = ois.readObject();
-	    ois.close();
-	    return o;
-	}
+	    throws IOException, ClassNotFoundException {
+	ByteArrayInputStream bis = new ByteArrayInputStream(b);
+	ObjectInputStream    ois = new ObjectInputStream(bis);
+	Object               o   = ois.readObject();
+	ois.close();
+	return o;
+    }
 
 } 

@@ -28,7 +28,7 @@ public abstract class ArrayOutputStream
      * Checks whether all data has been written after a flush.
      * @return true if all data has been written after a flush.
      */
-    public abstract boolean finished();
+    public abstract boolean finished() throws IOException;
 
     /**
      * Blocks until the data is written.
