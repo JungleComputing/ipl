@@ -1,0 +1,25 @@
+The compression in this program is based on a single trick: replacing
+spans of text with references to earlier spans of text.  This is
+nothing special: all mainstream text compressors have this trick as
+part of their arsenal.
+
+What *is* special, however, is the aggressiveness with which these
+backreferences are pursued. Texts, especially larger ones, and
+repetitive texts such as source code, can contain many backreferences,
+
+Moreover, it is sometimes more efficient to skip a potential backreference
+and just copy a character to the output, because at the next position
+there is a much larger backreference. For example, in the text
+
+bcdefghiabxabcdefghi
+
+there are no interesting backreferences up to and including the `x'
+character. After that, the compressor can backreference to the
+string `abc' right before the `x'. However, by skipping that
+backreference, it can use a much larger backreference at the next
+position.
+
+Backreferences themselves also require room in the output: in this
+particular program they take 3 bytes for a short span that is
+near the current position, up to 5 bytes for a long span that is
+further ayway.

@@ -53,6 +53,10 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
     /**
      * Returns a list of positions in the text that contain a possible
      * text match for our current text.
+     * @param text The text to compress.
+     * @param backrefs For each position, a link to the first previous similar text.
+     * @param pos The position for which we want possible 
+     * @return A list of indices of similar text fragments.
      */
     private static int[] collectBackrefs( byte text[], int backrefs[], int pos )
     {
@@ -70,7 +74,9 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
             backpos = backrefs[backpos];
         }
 
-        // And now build an array with them.
+        // And now build an array with them. The conditions
+        // of this loop are identical to the first loop, but now we fill
+        // an array.
         int res[] = new int[n];
         backpos = backrefs[pos];
         n = 0;
@@ -136,6 +142,9 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return r;
     }
 
+    /** The same as shallowEvaluateBackref(), but declared to be a Satin
+     * job.
+     */
     public Backref shallowEvaluateBackrefJob( final byte text[], int backpos, int pos )
     {
         return shallowEvaluateBackref( text, backpos, pos );
