@@ -46,7 +46,7 @@ public final class NioIbis extends Ibis implements Config {
 	}
     }
 
-    public PortType createPortType(String name, StaticProperties p)
+    protected PortType newPortType(String name, StaticProperties p)
 	throws IOException, IbisException {
 
 	    NioPortType resultPort = new NioPortType(this, name, p);

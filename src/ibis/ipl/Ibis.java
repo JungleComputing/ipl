@@ -38,6 +38,9 @@ public abstract class Ibis {
     /** A user-supplied resize handler, with join/leave upcalls. */
     protected ResizeHandler resizeHandler;
 
+    /** User properties, combined with required properties. */
+    private StaticProperties combinedprops;
+
     /** A list of available ibis implementations. */
     private static ArrayList implList;
 
@@ -117,10 +120,19 @@ public abstract class Ibis {
 				  ResizeHandler resizeHandler)
 	    throws IbisException, ConnectionRefusedException
     {
+	return createIbis(name, implName, null, resizeHandler);
+    }
+
+    private static Ibis createIbis(String name,
+				   String implName,
+				   StaticProperties prop,
+				   ResizeHandler resizeHandler)
+	    throws IbisException, ConnectionRefusedException
+    {
 	Ibis impl;
 
 	try {
-	    loadLibrary("conversion");
+	    loadLibrary("uninitialized_object");
 	} catch (Throwable t) {
 	}
 
@@ -150,6 +162,7 @@ public abstract class Ibis {
 	impl.name = name;
 	impl.implName = implName;
 	impl.resizeHandler = resizeHandler;
+	impl.combinedprops = prop;
 
 	try {
 	    impl.init();
@@ -290,7 +303,7 @@ public abstract class Ibis {
 	    try {
 		String name = "ibis@" + hostname + "_" +
 				System.currentTimeMillis();
-		return createIbis(name, implementationname, r);
+		return createIbis(name, implementationname, combinedprops, r);
 	    } catch (ConnectionRefusedException e) {
 		// retry
 	    }
@@ -510,8 +523,33 @@ public abstract class Ibis {
      * @exception IOException may be thrown for instance when communication
      *  with a nameserver fails.
      */
-    public abstract PortType createPortType(String name, StaticProperties p)
+    public PortType createPortType(String name, StaticProperties p)
+	throws IOException, IbisException
+    {
+	checkPortProperties(p);
+	return newPortType(name, p);
+    }
+
+    /**
+     * See {@link ibis.ipl.Ibis#createPortType(String, StaticProperties)}.
+     */
+    protected abstract PortType newPortType(String name, StaticProperties p)
 	throws IOException, IbisException;
+
+    /**
+     * This method is used to check if the properties for a PortType
+     * match the properties of this Ibis.
+     * @param p	the properties for the PortType.
+     * @exception IbisException is thrown when this Ibis cannot provide
+     * the properties requested for the PortType.
+     */
+    private void checkPortProperties(StaticProperties p)
+	    throws IbisException
+    {
+	if (! p.matchProperties(properties())) {
+	    throw new IbisException("Port properties don't match this Ibis");
+	}
+    }
 
     /**
      * Returns the {@link ibis.ipl.PortType PortType} corresponding to

@@ -43,7 +43,7 @@ public final class TcpIbis extends Ibis implements Config {
 		}
 	}
      
-	public PortType createPortType(String name, StaticProperties p)
+	protected PortType newPortType(String name, StaticProperties p)
 		    throws IOException, IbisException {
 
 		TcpPortType resultPort = new TcpPortType(this, name, p);

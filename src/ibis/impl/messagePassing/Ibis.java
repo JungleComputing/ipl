@@ -96,10 +96,8 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    public ibis.ipl.PortType createPortType(String name,
-					    StaticProperties p)
+    protected ibis.ipl.PortType newPortType(String name, StaticProperties p)
 	    throws IbisException {
-
 	lock();
 	PortType tp = new PortType(name, p);
 	portTypeList.put(name, tp);

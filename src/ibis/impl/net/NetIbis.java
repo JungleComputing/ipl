@@ -275,7 +275,7 @@ public final class NetIbis extends Ibis {
 	 * @exception  IbisException if the name server refused to register the new type.
 	 */
 	synchronized
-	public PortType createPortType(String name, StaticProperties sp)
+	protected PortType newPortType(String name, StaticProperties sp)
 		throws IOException, IbisException {
 		sp = extractDriverStack(sp);
 		NetPortType newPortType = new NetPortType(this, name, sp);

@@ -30,6 +30,18 @@ public abstract class PortType {
     public abstract StaticProperties properties();
 
     /**
+     * Creates a anonymous {@link SendPort} of this <code>PortType</code>.
+     * ConnectionAdministration is disabled.
+     * 
+     * @return the new sendport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     */
+    public SendPort createSendPort() throws IOException {
+	return createSendPort(null, null, null, false);
+    }
+
+    /**
      * Creates a named {@link SendPort} of this <code>PortType</code>.
      * The name does not have to be unique.
      * ConnectionAdministration is disabled.
@@ -41,6 +53,35 @@ public abstract class PortType {
      */
     public SendPort createSendPort(String name) throws IOException {
 	return createSendPort(name, null, null, false);
+    }
+
+    /**
+     * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
+     * with a {@link Replacer}. 
+     * ConnectionAdministration is disabled.
+     *
+     * @param r an object replacer, used in object serialization.
+     * @return the new sendport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     */
+    public SendPort createSendPort(Replacer r) throws IOException {
+	return createSendPort(null, r, null, false);
+    }
+
+    /**
+     * Creates a anonymous {@link SendPort} of this <code>PortType</code>.
+     * 
+     * @param connectionAdministration set when this port must keep
+     * connection administration to support the lostConnections
+     * downcall.
+     * @return the new sendport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     */
+    public SendPort createSendPort(boolean connectionAdministration)
+	    throws IOException {
+	return createSendPort(null, null, null, connectionAdministration);
     }
 
     /**
@@ -80,33 +121,6 @@ public abstract class PortType {
     }
 
     /**
-     * Creates a anonymous {@link SendPort} of this <code>PortType</code>.
-     * ConnectionAdministration is disabled.
-     * 
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     */
-    public SendPort createSendPort() throws IOException {
-	return createSendPort(null, null, null, false);
-    }
-
-    /**
-     * Creates a anonymous {@link SendPort} of this <code>PortType</code>.
-     * 
-     * @param connectionAdministration set when this port must keep
-     * connection administration to support the lostConnections
-     * downcall.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     */
-    public SendPort createSendPort(boolean connectionAdministration)
-	    throws IOException {
-	return createSendPort(null, null, null, connectionAdministration);
-    }
-
-    /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
      * with a {@link Replacer}. 
      *
@@ -121,20 +135,6 @@ public abstract class PortType {
     public SendPort createSendPort(Replacer r, boolean connectionAdministration)
 	    throws IOException {
 	return createSendPort(null, r, null, connectionAdministration);
-    }
-
-    /**
-     * Creates a anonymous {@link SendPort} of this <code>PortType</code>,
-     * with a {@link Replacer}. 
-     * ConnectionAdministration is disabled.
-     *
-     * @param r an object replacer, used in object serialization.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     */
-    public SendPort createSendPort(Replacer r) throws IOException {
-	return createSendPort(null, r, null, false);
     }
 
     /**
