@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
  * implementations. 
  * The default implementation does nothing.
  */
-public class DynamicProperties { 
+public class DynamicProperties {
     /**
      * Empty dynamic properties set. May be used by
      * {@link ibis.ipl.ReceivePort#properties() ReceivePort.properties()}
@@ -37,7 +37,8 @@ public class DynamicProperties {
     /**
      * Returns the object associated with the specified key.
      * The default implementation just returns null.
-     * @return the object associated withe the specified key, or
+     * @param key the property key.
+     * @return the object associated with the specified key, or
      * <code>null</code> if not present.
      */
     public Object find(String key) {
