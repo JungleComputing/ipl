@@ -65,6 +65,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private long[]	long_buffer;
     private float[]	float_buffer;
     private double[]	double_buffer;
+    private VBFField[]	VBFField_buffer;
     private Object[]	object_buffer;
     private Object	single_object = null;
 
@@ -87,6 +88,7 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private boolean	bcast = false;
     private boolean	bcast_all = false;
     private boolean	i_am_client = false;
+    private boolean	busy = false;
 
     private int		warmup = -1;
     private int		first_warmup = 0;
@@ -109,10 +111,11 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
     private final int DATA_OBJ_2   = DATA_OBJ_1   + 1;
     private final int DATA_INNER   = DATA_OBJ_2   + 1;
     private final int DATA_HASH    = DATA_INNER   + 1;
-    private final int DATATYPES    = DATA_HASH    + 1;
+    private final int DATA_VBFField = DATA_HASH   + 1;
+    private final int DATATYPES    = DATA_VBFField + 1;
 
     private final long	data_size[] =
-			    { 1, 2, 4, 8, 4, 8, 4 * 4, 4 * 4, 3 * 4, 0, 8 };
+			    { 1, 2, 4, 8, 4, 8, 4 * 4, 4 * 4, 3 * 4, 0, 4 + 3 * 8, 8 };
 
     private int		data_type = DATA_BYTES;
 
@@ -153,6 +156,9 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		    break;
 		case DATA_DOUBLES:
 		    writeMessage.writeArray(double_buffer);
+		    break;
+		case DATA_VBFField:
+		    writeMessage.writeArray(VBFField_buffer);
 		    break;
 		case DATA_OBJ_1:
 		case DATA_OBJ_2:
@@ -204,6 +210,9 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 		    break;
 		case DATA_DOUBLES:
 		    m.readArray(double_buffer);
+		    break;
+		case DATA_VBFField:
+		    m.readArray(VBFField_buffer);
 		    break;
 		case DATA_OBJ_1:
 		case DATA_OBJ_2:
@@ -407,8 +416,46 @@ System.err.println("services " + services + " first_warmup " + first_warmup + " 
     }
 
 
+    private class BusyThread extends Thread {
+
+	boolean started;
+
+	public void run() {
+	    synchronized (this) {
+		started = true;
+		notifyAll();
+	    }
+	    while (true) {
+		// spin ahead
+	    }
+	}
+
+    }
+
+
+    private void startBusyThread() {
+	if (busy) {
+	    BusyThread bt = new BusyThread();
+	    bt.setDaemon(true);
+	    bt.start();
+	    synchronized (bt) {
+		while (! bt.started) {
+		    try {
+			bt.wait();
+		    } catch (InterruptedException e) {
+			// Ignore
+		    }
+		}
+	    }
+	}
+    }
+
+
     private void server() throws IOException, ClassNotFoundException {
 	System.err.println("Start service, warmup " + warmup + " msgs " + count);
+
+	startBusyThread();
+
 	if (upcall) {
 
 	    synchronized(this) {
@@ -663,6 +710,9 @@ System.err.println(rank + ": Poor-man's barrier send finished");
 			args[i].equals("-no-upcall-finish")) {
 		finish_upcall_msg = false;
 
+	    } else if (args[i].equals("-busy")) {
+		busy = true;
+
 	    } else if (args[i].equals("-byte")) {
 		data_type = DATA_BYTES;
 	    } else if (args[i].equals("-short")) {
@@ -685,6 +735,9 @@ System.err.println(rank + ": Poor-man's barrier send finished");
 		data_type = DATA_OBJ_2;
 	    } else if (args[i].equals("-hash")) {
 		data_type = DATA_HASH;
+
+	    } else if (args[i].equals("-VBFField")) {
+		data_type = DATA_VBFField;
 
 	    } else if (options == 0) {
 		count = Integer.parseInt(args[i]);
@@ -747,6 +800,12 @@ System.err.println(rank + ": Poor-man's barrier send finished");
 		break;
 	    case DATA_DOUBLES:
 		double_buffer = new double[size];
+		break;
+	    case DATA_VBFField:
+		VBFField_buffer = new VBFField[size];
+		for (int i = 0; i < size; i++) {
+		    VBFField_buffer[i] = new VBFField();
+		}
 		break;
 	    case DATA_OBJ_1:
 		object_buffer = new Data1[size];
