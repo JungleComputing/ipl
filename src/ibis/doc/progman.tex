@@ -245,8 +245,9 @@ static properties required. For the moment we will just assume its
 existence, and create an Ibis as follows:
 \begin{quote}
 \begin{verbatim}
+Ibis ibis = null;
 try {
-    Ibis ibis = createIbis(props, null);
+    ibis = Ibis.createIbis(props, null);
 } catch(NoMatchingIbisException e) {
     System.err.println("Could not find a matching Ibis");
     ...
@@ -794,9 +795,9 @@ from the server:
 
 \begin{quote}
 \begin{verbatim}
-void upcall(ReadMessage m) throws IOException {
+public void upcall(ReadMessage m) throws IOException {
     String s = (String) m.readObject();
-    int len = s.length;
+    int len = s.length();
     m.finish();
     WriteMessage w = serverSender.newMessage();
     w.writeInt(len);
@@ -998,7 +999,7 @@ An Ibis instance is started with the \texttt{run\_ibis} script which
 lives in the Ibis \texttt{bin} directory.  This \texttt{run\_ibis}
 script is called as follows:
 \begin{center}
-\texttt{run\_ibis} \emph{procno nprocs id port ns javaflags class ...}
+\texttt{run\_ibis} \emph{procno nprocs id ns:port javaflags class ...}
 \end{center}
 The parameters are explained below:
 \begin{description}
@@ -1009,10 +1010,9 @@ so its range is $0 ... \emph{nprocs}-1$.
 specifies the total number of Ibis instances involved in this run.
 \item{\emph{id}}
 specifies the identifier used to identify the run to the nameserver.
-\item{\emph{port}}
-specifies the port of the Ibis nameserver, as described above.
-\item{\emph{ns}}
-specifies the hostname of the machine where the Ibis nameserver runs.
+\item{\emph{ns:port}}
+specifies the hostname of the machine where the Ibis nameserver runs,
+and the port on which it is listening.
 \item{\emph{javaflags}}
 any flags that need to be passed on to java.
 \item{\emph{class}}
