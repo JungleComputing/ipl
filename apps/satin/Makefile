@@ -89,6 +89,7 @@ clean:
 	cd hello && $(MAKE) $(MFLAGS) clean
 	cd abort_test && $(MAKE) $(MFLAGS) clean
 	cd mtdf && $(MAKE) $(MFLAGS) clean
+	cd mtdf/par && $(MAKE) $(MFLAGS) clean
 	cd lowlevel && $(MAKE) $(MFLAGS) clean
 	cd barnes && $(MAKE) $(MFLAGS) clean
 
