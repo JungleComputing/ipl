@@ -24,8 +24,7 @@ final public class SerializeSendPort extends SendPort {
     private ConditionVariable connectFinished = Ibis.myIbis.createCV();
 
     public SerializeSendPort(PortType type, String name) throws IOException {
-        super(type, name, true, /* syncMode */
-        true /* makeCopy */);
+        super(type, name, true /* syncMode */, true /* makeCopy */);
         if (DEBUG) {
             System.err.println("/////////// Created a new SerializeSendPort "
                     + this);
@@ -192,8 +191,9 @@ final public class SerializeSendPort extends SendPort {
 
     public void setReplacer(Replacer r) throws IOException {
         replacer = r;
-        if (obj_out != null)
+        if (obj_out != null) {
             obj_out.setReplacer(replacer);
+	}
     }
 
     ibis.ipl.WriteMessage cachedMessage() throws IOException {

@@ -23,8 +23,8 @@ final class IbisShadowSendPort extends ShadowSendPort {
 
         if (Ibis.DEBUG) {
             System.err.println("Get a Ibis ReadMessage ");
-            System.err
-                    .println(" >>>>>> >>>>>>> >>>>>>> Don't forget to set the stream in the ReadMessage");
+            System.err.println(" >>>>>> >>>>>>> >>>>>>> "
+		    + " Don't forget to set the stream in the ReadMessage");
         }
 
         if (msg != null) {
@@ -33,8 +33,7 @@ final class IbisShadowSendPort extends ShadowSendPort {
         } else {
             msg = new IbisReadMessage(this, receivePort);
             if (Ibis.DEBUG) {
-                System.err
-                        .println("Create an -ibis-serialization- ReadMessage "
+                System.err.println("Create an -ibis-serialization- ReadMessage "
                                 + msg);
             }
         }

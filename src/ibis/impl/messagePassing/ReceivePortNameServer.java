@@ -38,7 +38,7 @@ final class ReceivePortNameServer implements ReceivePortNameServerProtocol {
 
         ReceivePortIdentifier storedId;
 
-        /* Check wheter the name is in use.*/
+        /* Check whether the name is in use.*/
         storedId = (ReceivePortIdentifier) ports.get(name);
 
         if (storedId != null) {

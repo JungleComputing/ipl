@@ -95,11 +95,12 @@ class ShadowSendPort extends SendPort {
 
         receivePort = Ibis.myIbis.lookupReceivePort(rId.port);
         if (!rId.type().equals(ident.type())) {
-            System.err
-                    .println("********************** ShadowSendPort type does not equal connected ReceivePort type");
-            throw new PortMismatchException(
-                    "Cannot connect send port and receive port of different types: "
-                            + type + " <-> " + receivePort.identifier().type());
+            System.err.println("********************** "
+		    + " ShadowSendPort type does not equal connected "
+		    + " ReceivePort type");
+            throw new PortMismatchException("Cannot connect send port and "
+		    + " receive port of different types: " + type + " <-> "
+		    + receivePort.identifier().type());
         }
         this.type = receivePort.type();
         this.msgcount = startSeqno;
@@ -144,13 +145,10 @@ class ShadowSendPort extends SendPort {
             throw new IOException("Cannot locate ShadowSendPort " + sId);
         }
         if (DEBUG) {
-            System.err
-                    .println("Bind/later group "
-                            + group
-                            + " to port "
-                            + ((ReceivePortIdentifier) ssp.receivePort
-                                    .identifier()).port + "; sender " + sId.cpu
-                            + " port " + sId.port);
+	    ibis.ipl.ReceivePortIdentifier id = ssp.receivePort.identifier();
+	    ReceivePortIdentifier rid = (ReceivePortIdentifier)id;
+            System.err.println("Bind/later group " + group + " to port "
+		    + rid + "; sender " + sId.cpu + " port " + sId.port);
         }
         Ibis.myIbis.bindGroup(group, ssp.receivePort, ssp);
     }
@@ -255,8 +253,8 @@ class ShadowSendPort extends SendPort {
                     + " sp.messageCount " + sp.msgcount);
         }
         if (rp != sp.receivePort) {
-            System.err
-                    .println("Try to disconnect from a receive port we're not connected to...");
+            System.err.println("Try to disconnect from a receive port "
+		    + " we're not connected to...");
             Thread.dumpStack();
         }
         if (sp.msgcount == count) {

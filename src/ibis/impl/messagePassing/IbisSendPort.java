@@ -20,9 +20,9 @@ final public class IbisSendPort extends SendPort {
         out.setAllocator(obj_out.getAllocator());
 
         if (Ibis.DEBUG) {
-            System.err
-                    .println(">>>>>>>>>>>>>>>> Create a IbisSerializationOutputStream "
-                            + obj_out + " for IbisWriteMessage " + this);
+            System.err.println(
+		    ">>>>>>>>>>>>>>>> Create a IbisSerializationOutputStream "
+		    + obj_out + " for IbisWriteMessage " + this);
         }
     }
 

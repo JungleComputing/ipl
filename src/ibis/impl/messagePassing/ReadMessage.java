@@ -75,8 +75,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         ReadFragment nxt;
         for (ReadFragment f = fragmentFront; f != null; f = nxt) {
             if (Ibis.DEBUG) {
-                System.err
-                        .println("Now clear fragment " + f + " handle "
+                System.err.println("Now clear fragment " + f + " handle "
                                 + Integer.toHexString(f.msgHandle) + "; next "
                                 + f.next);
             }

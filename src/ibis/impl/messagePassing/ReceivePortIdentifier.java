@@ -51,10 +51,12 @@ public final class ReceivePortIdentifier implements
     }
 
     public boolean equals(Object other) {
-        if (other == null)
+        if (other == null) {
             return false;
-        if (other == this)
+	}
+        if (other == this) {
             return true;
+	}
 
         if (!(other instanceof ReceivePortIdentifier)) {
             return false;
@@ -86,17 +88,13 @@ public final class ReceivePortIdentifier implements
     }
 
     public String toString() {
-        return ("(RecPortIdent: name \""
-                + (name == null ? "null" : name)
-                + "\" type \""
-                + (type == null ? "null" : type)
-                + "\" cpu "
-                + cpu
-                + " port "
-                + port
+        return ("(RecPortIdent: name \"" + (name == null ? "null" : name)
+                + "\" type \"" + (type == null ? "null" : type)
+                + "\" cpu " + cpu
+                + " port " + port
                 + " ibis \""
-                + ((ibisIdentifier == null || ibisIdentifier.name() == null) ? "null"
-                        : ibisIdentifier.name()) + "\")");
+                + ((ibisIdentifier == null || ibisIdentifier.name() == null)
+		    ? "null" : ibisIdentifier.name()) + "\")");
     }
 
 }

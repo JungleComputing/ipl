@@ -109,8 +109,8 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
     private Shutdown shutdown = new Shutdown();
 
-    private static final boolean DISABLE_INTR_MULTIFRAGMENT = TypedProperties
-            .booleanProperty(MPProps.s_intr_dis_multi, false);
+    private static final boolean DISABLE_INTR_MULTIFRAGMENT =
+	TypedProperties.booleanProperty(MPProps.s_intr_dis_multi, false);
 
     private boolean interruptsDisabled;
 
@@ -193,7 +193,8 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
         AcceptQ acceptQ_freelist;
 
-        AcceptThread(ReceivePort port, ibis.ipl.ReceivePortConnectUpcall upcall) {
+        AcceptThread(ReceivePort port,
+		ibis.ipl.ReceivePortConnectUpcall upcall) {
             this.port = port;
             this.upcall = upcall;
         }
@@ -331,18 +332,16 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
                 acceptThread.start();
             }
             if (Ibis.DEBUG_RUTGER) {
-                System.err
-                        .println("In enableConnections: want to bind locally RPort "
-                                + this);
+                System.err.println("In enableConnections: "
+			+ " want to bind locally RPort " + this);
             }
             Ibis.myIbis.lock();
             Ibis.myIbis.bindReceivePort(this, ident.port);
             Ibis.myIbis.unlock();
             try {
                 if (Ibis.DEBUG_RUTGER) {
-                    System.err
-                            .println("In enableConnections: want to bind RPort "
-                                    + this);
+                    System.err.println("In enableConnections: "
+			    + " want to bind RPort " + this);
                 }
                 ((Registry) Ibis.myIbis.registry()).bind(name, ident);
             } catch (IOException e) {
@@ -424,9 +423,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
             }
         } else {
             if (Ibis.DEBUG_RUTGER) {
-                System.err
-                        .println(Ibis.myIbis.myCpu
-                                + ": Create another UpcallThread because the previous one didn't terminate");
+                System.err.println(Ibis.myIbis.myCpu
+			+ ": Create another UpcallThread "
+			+ " because the previous one didn't terminate");
             }
             Thread upcallthread = new Thread(this, "ReceivePort upcall thread "
                     + upcallThreads);
@@ -443,9 +442,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     private ReadMessage locate(ShadowSendPort ssp, int msgSeqno) {
         if (ssp.msgSeqno > msgSeqno && ssp.msgSeqno != -1) {
             if (DEBUG) {
-                System.err
-                        .println(Thread.currentThread()
-                                + "This is a SERIOUS BUG: the msgSeqno goes BACK!!!!!!!!!");
+                System.err.println(Thread.currentThread()
+			+ "This is a SERIOUS BUG: "
+			+ " the msgSeqno goes BACK!!!!!!!!!");
             }
             ssp.msgSeqno = msgSeqno;
             return null;
@@ -457,8 +456,11 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
         }
 
         ReadMessage scan;
-        for (scan = queueFront; scan != null
-                && (scan.shadowSendPort != ssp || scan.msgSeqno != msgSeqno); scan = scan.next) {
+        for (scan = queueFront;
+		scan != null
+		    && (scan.shadowSendPort != ssp
+			|| scan.msgSeqno != msgSeqno);
+		scan = scan.next) {
             // try the next list element
         }
 
@@ -499,8 +501,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
             }
             if (availableUpcallThread == 0 && !aMessageIsAlive) {
                 if (Ibis.DEBUG_RUTGER) {
-                    System.err
-                            .println("enqueue: Create another UpcallThread because the previous one didn't terminate");
+                    System.err.println("enqueue: "
+			    + " Create another UpcallThread "
+			    + " because the previous one didn't terminate");
                 }
                 createNewUpcallThread();
             }
@@ -564,8 +567,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
                 messageArrived.signal();
             } else if (upcall != null && availableUpcallThread == 0) {
                 if (Ibis.DEBUG_RUTGER) {
-                    System.err
-                            .println("finishMessage: Create another UpcallThread because the previous one didn't terminate");
+                    System.err.println("finishMessage: "
+			    + " Create another UpcallThread "
+			    + " because the previous one didn't terminate");
                 }
                 createNewUpcallThread();
             }
@@ -587,18 +591,12 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
         Ibis.myIbis.checkLockOwned();
 
         if (DEBUG) {
-            System.err.println(Thread.currentThread()
-                    + " Port "
-                    + this
-                    + " receive a fragment seqno "
-                    + msgSeqno
-                    + " size "
-                    + msgSize
-                    + " that belongs to msg "
-                    + locate(origin, msgSeqno
-                            & ~ByteOutputStream.SEQNO_FRAG_BITS)
-                    + "; currentMessage = "
-                    + currentMessage
+            System.err.println(Thread.currentThread() + " Port " + this
+                    + " receive a fragment seqno " + msgSeqno
+                    + " size " + msgSize + " that belongs to msg "
+                    + locate(origin,
+			msgSeqno & ~ByteOutputStream.SEQNO_FRAG_BITS)
+                    + "; currentMessage = " + currentMessage
                     + (currentMessage == null ? ""
                             : (" .seqno " + currentMessage.msgSeqno)));
             System.err.println(Thread.currentThread() + "Enqueue message "
@@ -695,12 +693,9 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
                         + " queue " + queueFront + " " + messageArrived);
             }
             arrivedWaiters++;
-            Ibis.myIbis
-                    .waitPolling(
-                            messageArrived,
-                            0,
-                            (HOME_CONNECTION_PREEMPTS || !homeConnection) ? Poll.PREEMPTIVE
-                                    : Poll.NON_POLLING);
+            Ibis.myIbis.waitPolling(messageArrived, 0,
+		    (HOME_CONNECTION_PREEMPTS || !homeConnection)
+			? Poll.PREEMPTIVE : Poll.NON_POLLING);
             arrivedWaiters--;
 
             if (DEBUG) {
@@ -925,14 +920,16 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
                 /* Nowadays, use NON_POLLING for the preempt flag. */
                 if (DEBUG) {
-                    System.err
-                            .println(Thread.currentThread()
-                                    + "*********** This ReceivePort daemon hits wait, daemon "
-                                    + this + " queueFront = " + queueFront);
+                    System.err.println(Thread.currentThread()
+			    + "*********** This ReceivePort daemon hits wait, "
+			    + " daemon " + this
+			    + " queueFront = " + queueFront);
                 }
 
                 mePolling = true;
-                for (int i = 0; queueFront == null && i < polls_before_yield; i++) {
+                for (int i = 0;
+			queueFront == null && i < polls_before_yield;
+			i++) {
                     if (Ibis.myIbis.pollLocked()) {
                         // break;
                     }
@@ -943,16 +940,16 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
                     // // // Ibis.myIbis.waitPolling(this, 0, Poll.NON_PREEMPTIVE);
                     // Ibis.myIbis.waitPolling(this, 0, (HOME_CONNECTION_PREEMPTS || ! homeConnection) ? Poll.NON_PREEMPTIVE : Poll.NON_POLLING);
                     arrivedWaiters++;
-                    Ibis.myIbis
-                            .waitPolling(messageArrived, 0, Poll.NON_POLLING);
+                    Ibis.myIbis.waitPolling(messageArrived, 0,
+			    Poll.NON_POLLING);
                     arrivedWaiters--;
                 }
                 if (DEBUG) {
                     upcall_poll++;
-                    System.err
-                            .println(Thread.currentThread()
-                                    + "*********** This ReceivePort daemon past wait, daemon "
-                                    + this + " queueFront = " + queueFront);
+                    System.err.println(Thread.currentThread()
+			    + "*********** This ReceivePort daemon past wait, "
+			    + " daemon " + this
+			    + " queueFront = " + queueFront);
                 }
 
                 while (!allowUpcalls) {

@@ -17,8 +17,8 @@ import java.util.Vector;
  */
 public class Ibis extends ibis.ipl.Ibis {
 
-    static final boolean DEBUG = TypedProperties
-            .booleanProperty(MPProps.s_debug);
+    static final boolean DEBUG = TypedProperties.booleanProperty(
+	    MPProps.s_debug);
 
     static final boolean DEBUG_RUTGER = false;
 
@@ -224,8 +224,8 @@ public class Ibis extends ibis.ipl.Ibis {
                         try {
                             end();
                         } catch (IOException e) {
-                            System.err
-                                    .println("Ibis ShutdownHook catches " + e);
+                            System.err.println(
+				    "Ibis ShutdownHook catches " + e);
                         }
                     }
                 });
@@ -502,8 +502,8 @@ public class Ibis extends ibis.ipl.Ibis {
             ReceivePort[] port = lookupGroupReceivePort(group);
             if (port == null) {
                 if (DEBUG) {
-                    System.err
-                            .println("Finish&clear this bcast fragment. It is not for us.");
+                    System.err.println(
+			    "Finish&clear this bcast fragment. It is not for us.");
                 }
                 ByteInputStream.resetMsg(msgHandle);
                 return;
@@ -530,12 +530,13 @@ public class Ibis extends ibis.ipl.Ibis {
                 }
                 if (!origin[i].acceptableSeqno(msgSeqno)) {
                     if (DEBUG) {
-                        System.err
-                                .println("Ignore bcast message that arrives early");
+                        System.err.println(
+				"Ignore bcast message that arrives early");
                     }
                 } else {
-                    port[i].receiveFragment(origin[i], ByteInputStream
-                            .cloneMsg(msgHandle), msgSize, msgSeqno);
+                    port[i].receiveFragment(origin[i],
+			    ByteInputStream.cloneMsg(msgHandle), msgSize,
+			    msgSeqno);
                 }
             }
             int x = port.length - 1;
@@ -545,12 +546,11 @@ public class Ibis extends ibis.ipl.Ibis {
             }
             if (!origin[x].acceptableSeqno(msgSeqno)) {
                 if (DEBUG) {
-                    System.err
-                            .println("Ignore bcast message that arrives early");
+                    System.err.println(
+			    "Ignore bcast message that arrives early");
                 }
             } else {
-                port[x]
-                        .receiveFragment(origin[x], msgHandle, msgSize,
+                port[x].receiveFragment(origin[x], msgHandle, msgSize,
                                 msgSeqno);
             }
 

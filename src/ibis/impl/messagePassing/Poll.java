@@ -77,11 +77,13 @@ final public class Poll implements Runnable {
             }
             if (DEBUG) {
                 if (NEED_POLLER_THREAD) {
-                    System.err
-                            .println("Poll: use a poll peeker thread. Sure we need it (?)");
+                    System.err.println(
+			    "Poll: use a poll peeker thread. "
+			    + " Sure we need it (?)");
                 } else {
-                    System.err
-                            .println("Poll: don't start the poll peeker thread. Sure we don't need it?");
+                    System.err.println(
+			    "Poll: don't start the poll peeker thread. "
+			    + "Sure we don't need it?");
                 }
             }
             if (STATISTICS) {
@@ -171,7 +173,7 @@ final public class Poll implements Runnable {
             }
         }
         if (preempt == PREEMPTIVE) {
-            if (false)
+            if (false) {
                 for (int i = 0; i < POLLS_BEFORE_YIELD; i++) {
                     poll();
                     // poll_poll++;
@@ -179,10 +181,11 @@ final public class Poll implements Runnable {
                         return;
                     }
                 }
+	    }
             if (DEBUG) {
                 if (preemptive_pollers > 0) {
-                    System.err
-                            .println("Gee, some other preemptive poller active");
+                    System.err.println(
+			    "Gee, some other preemptive poller active");
                     // Thread.dumpStack();
                 }
             }
@@ -205,7 +208,8 @@ final public class Poll implements Runnable {
 
             if (!go_to_sleep
                     && poller == null
-                    && ((PREEMPTIVE_MAY_POLL && preempt == PREEMPTIVE) || (NONPREEMPTIVE_MAY_POLL && preempt != NON_POLLING))) {
+                    && ((PREEMPTIVE_MAY_POLL && preempt == PREEMPTIVE) ||
+			(NONPREEMPTIVE_MAY_POLL && preempt != NON_POLLING))) {
                 // OK, let me become poller
                 poller = me;
             }
@@ -235,8 +239,9 @@ final public class Poll implements Runnable {
                             poll_yield_preempt++;
                         } else {
                             if (DEBUG && preemptive_pollers > 0) {
-                                System.err
-                                        .println("Am non-preemptive but I seem to preempt a preemptive poller");
+                                System.err.println("Am non-preemptive "
+					+ " but I seem to preempt a "
+					+ " preemptive poller");
                             }
                             poll_yield_non_preempt++;
                         }

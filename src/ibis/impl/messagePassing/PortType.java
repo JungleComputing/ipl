@@ -63,8 +63,9 @@ public class PortType extends ibis.ipl.PortType {
         if (other == null) {
             return false;
         }
-        if (!(other instanceof PortType))
+        if (!(other instanceof PortType)) {
             return false;
+	}
 
         PortType temp = (PortType) other;
 
@@ -90,9 +91,9 @@ public class PortType extends ibis.ipl.PortType {
         }
 
         if (connectionAdministration) {
-            System.err
-                    .println(this
-                            + ": createSendPort with ConnectionAdministration UNIMPLEMENTED");
+            System.err.println(this
+		    + ": createSendPort with ConnectionAdministration. "
+		    + " UNIMPLEMENTED");
         }
 
         SendPort s;

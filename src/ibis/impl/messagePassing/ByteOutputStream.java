@@ -80,9 +80,9 @@ final class ByteOutputStream extends ibis.io.ArrayOutputStream {
         this.syncMode = syncMode;
         this.makeCopy = makeCopy;
         if (Ibis.DEBUG) {
-            System.err
-                    .println("@@@@@@@@@@@@@@@@@@@@@ a ByteOutputStream makeCopy = "
-                            + makeCopy);
+            System.err.println(
+		    "@@@@@@@@@@@@@@@@@@@@@ a ByteOutputStream makeCopy = "
+		    + makeCopy);
         }
         sport = (SendPort) p;
         nativeByteOS = init();
@@ -219,9 +219,9 @@ final class ByteOutputStream extends ibis.io.ArrayOutputStream {
         msgSeqno++;
         sentFrags = 0;
         if (Ibis.DEBUG) {
-            System.err
-                    .println("}}}}}}}}}}}}}}} ByteOutputStream: reset(finish="
-                            + finish + ") increment msgSeqno to " + msgSeqno);
+            System.err.println(
+		    "}}}}}}}}}}}}}}} ByteOutputStream: reset(finish=" + finish
+		    + ") increment msgSeqno to " + msgSeqno);
         }
 
         if (finish) {
