@@ -41,8 +41,9 @@ public final class RTS {
                         }
 
 			// @@@ start of horrible code
-			System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
-			new Exception().printStackTrace();
+//			System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
+//			new Exception().printStackTrace();
+// But HOW??? --Ceriel
 			
 			ibis = Ibis.createIbis(null);
 
@@ -60,8 +61,9 @@ public final class RTS {
 			}
 
 			if (ibis_name != null && ibis_name.startsWith("net.")) {
-				System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
-				new Exception().printStackTrace();
+//				System.err.println("AARG! This code completely violates the whole Ibis philosophy!!!! please fix me! --Rob & Jason");
+//				new Exception().printStackTrace();
+// But HOW??? --Ceriel
 			    String driver = ibis_name.substring("net.".length());
 			    String path = "/";
 			    if (ibis_serialization != null && ! ibis_serialization.equals("none")) {
