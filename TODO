@@ -22,5 +22,5 @@ satin:
 general:
 - IBISC maken / fixen
   after distribution.
-- include grun in distribution
++ include grun in distribution
 - run central nameserver on fs0

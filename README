@@ -6,7 +6,7 @@ Ibis is free software.  See the file Copyright for copying permission.
 The file INSTALL contains installation information, including prequisite
 software.
 
-The programmer's manual in this directory (progman.ps or progman.pdf)
+The programmer's manual in the docs directory (progman.pdf)
 contains a detailed description of the Ibis Application Programmer's
 interface (API), illustrated with example code fragments.
 
@@ -17,3 +17,7 @@ examples.
 The file BUGS contains information for filing bug reports.
 
 The home page of Ibis is at: <http://www.cs.vu.nl/ibis/>.
+
+This Ibis release includes grun, a tool to start jobs on a
+Globus-based Grid. See grun/docs/README for more details.
+The grun program itself lives in grun/bin.
