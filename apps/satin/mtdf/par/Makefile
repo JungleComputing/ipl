@@ -1,36 +1,17 @@
 APP_OPTIONS = 15
 
-SRC             = AwariBoard.java
-SRC            += Input.java
-SRC            += Done.java
-SRC            += Mtdf.java
-SRC            += MtdfInterface.java
-SRC            += NodeType.java
-SRC            += TranspositionTable.java
-SRC            += TranspositionTableEntry.java
-
-MAIN		=  Main.java
-
 OUT= awari
-
-SERIALIZABLE	=
-SERIALIZABLE	+= Mtdf.java
-SERIALIZABLE	+= NodeType.java
 
 include ../../../../config.mk
 include ../../config.mk
 
-java: $(CLASS_FILES) $(MAIN_CLASS)
+java:
+	$(JAVAC_COMMAND) Mtdf.java
 
-satin: java
-	$(SATINC_COMMAND) Mtdf
-
-satinser: java
-	$(IOC_COMMAND) *.class
-	make satin
-	$(IOC_COMMAND) Satin_*.class
+satin: 
+	$(IBISC_COMMAND) Mtdf.java
 
 clean:
-	rm -f $(TRASH_FILES) Satin_*
+	rm -f $(TRASH_FILES)
 
 include ../../run.mk

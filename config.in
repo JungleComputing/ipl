@@ -6,8 +6,8 @@
 .PHONY:		manta
 .PHONY:		java
 
-default:	manta
-# default:	java
+# default:	manta
+default:	java
 
 PROFILE		= 0
 OPTIMIZE	= 1
@@ -34,7 +34,7 @@ LFC_ROOT	= @LFC_ROOT@
 JAVAC_COMMAND   = $(JAVAC) $(JAVACFLAGS) $(JAVAOPTFLAGS)
 JAVAH_COMMAND   = $(JPATH)/bin/javah $(JAVAHFLAGS)
 JAVACLASSPATH	= $(IBIS_ROOT):$(IBIS_ROOT)/ibis:.:$(JPATH)/jre/lib/rt.jar:$(JIKES_BT)/jikesBT
-JAVACFLAGS	+= -classpath $(JAVACLASSPATH)
+JAVACFLAGS	+= -g -classpath $(JAVACLASSPATH)
 JAVAHFLAGS      += -classpath $(JAVACLASSPATH)
 CLASSPATH	= $(JAVACLASSPATH)
 export CLASSPATH
@@ -65,11 +65,11 @@ MAIN_CLASS_NAME = $(MAIN:%.java=%)
 
 LDSO	= gcc -shared
 
-SATINC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.satin.Satinc -keep -compiler "$(JAVAC) -classpath $(JAVACLASSPATH)"
+SATINC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.satin.Satinc -keep -compiler "$(JAVAC) -g -classpath $(JAVACLASSPATH)"
 
 IOC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.io.IOGenerator
 
-IBISC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.ibis.Ibisc -compiler  "$(JAVAC) -classpath $(JAVACLASSPATH)"
+IBISC_COMMAND = $(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.ibis.Ibisc -compiler  "$(JAVAC) -g -classpath $(JAVACLASSPATH)" -mantac "$(MANTAC_COMMAND)"
 
 
 # When using Manta, set these values correctly and use "make manta"

@@ -1,9 +1,7 @@
 APP_OPTIONS = 44
 
-SRC  = AbortTestInterface.java
-
 MAIN = AbortTest.java
-OUT= abort_test
+OUT = abort_test
 
 SERIALIZABLE	=
 SERIALIZABLE	+= AbortTest.java

@@ -152,3 +152,21 @@ DAS_LIB=$DAS_LIB
 PANDA_NETWORK=$PANDA_NETWORK
 JIKES_BT_ROOT=$JIKES_BT_ROOT
 " > configuration
+
+cat scripts/preamble configuration scripts/ibisc > bin/ibisc
+chmod +x bin/ibisc
+
+cat scripts/preamble configuration scripts/io_gen > bin/io_gen
+chmod +x bin/io_gen
+
+cat scripts/preamble configuration scripts/ibis_nameserver > bin/ibis_nameserver
+chmod +x bin/ibis_nameserver
+
+cp scripts/filter_Serializable bin/filter_Serializable
+chmod +x bin/filter_Serializable
+
+cat scripts/preamble configuration scripts/jdis > bin/jdis
+chmod +x bin/jdis
+
+cat scripts/preamble configuration scripts/satinc > bin/satinc
+chmod +x bin/satinc
