@@ -27,6 +27,7 @@ public class IOGenerator {
     private static final Type[] ibis_input_stream_arrtp = new Type[] { ibis_input_stream };
     private static final Type[] ibis_output_stream_arrtp = new Type[] { ibis_output_stream };
 
+    private static final Type	java_lang_class_type = Type.getType("Ljava/lang/Class;");
 
     private class SerializationInfo {
 
@@ -57,6 +58,7 @@ public class IOGenerator {
 	boolean		super_is_serializable;
 	boolean		super_is_ibis_serializable;
 	boolean		super_has_ibis_constructor;
+	boolean		has_serial_persistent_fields;
 	Field[]		fields;
 	Method[]	methods;
 	InstructionFactory factory;
@@ -77,6 +79,22 @@ public class IOGenerator {
 	    super_is_serializable = isSerializable(super_class);
 	    super_is_ibis_serializable = isIbisSerializable(super_class);
 	    super_has_ibis_constructor = hasIbisConstructor(super_class);
+	    has_serial_persistent_fields = hasSerialPersistentFields();
+	}
+
+
+	private boolean hasSerialPersistentFields() {
+	    for (int i = 0; i < fields.length; i++) {
+		Field f = fields[i];
+		if (f.getName().equals("serialPersistentFields") &&
+		    f.isFinal() &&
+		    f.isStatic() &&
+		    f.isPrivate() &&
+		    f.getSignature().equals("[Ljava/io/ObjectStreamField;")) {
+		    return true;
+		}
+	    }
+	    return false;
 	}
 
 
@@ -418,8 +436,20 @@ public class IOGenerator {
 	    return write_il;
 	}
 
-	private InstructionList generateDefaultWrites() {
+	private InstructionList generateDefaultWrites(int dpth) {
 	    InstructionList write_il = new InstructionList();
+
+	    if (has_serial_persistent_fields) {
+		write_il.append(new ALOAD(1));
+		write_il.append(new ALOAD(0));
+		write_il.append(new SIPUSH((short)dpth));
+		write_il.append(factory.createInvoke(ibis_output_stream_name,
+						     "defaultWriteSerializableObject",
+						     Type.VOID,
+						     new Type[] {Type.OBJECT, Type.INT},
+						     Constants.INVOKEVIRTUAL));
+		return write_il;
+	    }
 
 	    for (int i=0;i<fields.length;i++) {
 		Field field = fields[i];
@@ -430,13 +460,14 @@ public class IOGenerator {
 		    Type field_type = Type.getType(field.getSignature());
 
 		    if ((field_type instanceof ReferenceType) &&
-			! field_type.equals(Type.STRING)) {
+			! field_type.equals(Type.STRING) &&
+			! field_type.equals(java_lang_class_type)) {
 			write_il.append(writeReferenceField(field));
 		    }
 		}
 	    }
 
-	    /* then handle Strings */
+	    /* then handle java.lang.String and java.lang.Class */
 
 	    for (int i=0;i<fields.length;i++) {
 		Field field = fields[i];
@@ -444,10 +475,11 @@ public class IOGenerator {
 		/* Don't send fields that are STATIC or TRANSIENT  */
 		if (! (field.isStatic() ||
 		       field.isTransient())) {
-		    Type field_type = Type.getType(field.getSignature());
+		    String sig = field.getSignature();
+		    Type field_type = Type.getType(sig);
 
-		    if (field_type.equals(Type.STRING)) {
-			if (verbose) System.out.println("    writing string field " + field.getName() + " of type " + field_type.getSignature());
+		    if (field_type.equals(Type.STRING) || field_type.equals(java_lang_class_type)) {
+			if (verbose) System.out.println("    writing field " + field.getName() + " of type " + sig);
 
 			write_il.append(writeInstructions(field));
 		    }
@@ -462,7 +494,8 @@ public class IOGenerator {
 		/* Don't send fields that are STATIC, or TRANSIENT */
 		if (! (field.isStatic() ||
 		       field.isTransient())) {
-		    Type field_type = Type.getType(field.getSignature());
+		    String sig = field.getSignature();
+		    Type field_type = Type.getType(sig);
 
 		    if (field_type instanceof BasicType) {
 			if (verbose) System.out.println("    writing basic field " + field.getName() + " of type " + field_type.getSignature());
@@ -553,8 +586,21 @@ public class IOGenerator {
 	    return read_il;
 	}
 
-	private InstructionList generateDefaultReads(boolean from_constructor) {
+	private InstructionList generateDefaultReads(boolean from_constructor, int dpth) {
 	    InstructionList read_il = new InstructionList();
+
+	    if (has_serial_persistent_fields) {
+		read_il.append(new ALOAD(1));
+		read_il.append(new ALOAD(0));
+		read_il.append(new SIPUSH((short)dpth));
+		read_il.append(factory.createInvoke(ibis_input_stream_name,
+						    "defaultReadSerializableObject",
+						    Type.VOID,
+						    new Type[] {Type.OBJECT, Type.INT},
+						    Constants.INVOKEVIRTUAL));
+		return read_il;
+	    }
+
 	    for (int i=0;i<fields.length;i++) {
 		Field field = fields[i];
 
@@ -564,7 +610,8 @@ public class IOGenerator {
 		    Type field_type = Type.getType(field.getSignature());
 
 		    if ((field_type instanceof ReferenceType) &&
-			! field_type.equals(Type.STRING)) {
+			! field_type.equals(Type.STRING) &&
+			! field_type.equals(java_lang_class_type)) {
 			read_il.append(readReferenceField(field, from_constructor));
 		    }
 		}
@@ -580,8 +627,8 @@ public class IOGenerator {
 		       field.isTransient())) {
 		    Type field_type = Type.getType(field.getSignature());
 
-		    if (field_type.equals(Type.STRING)) {
-			if (verbose) System.out.println("    writing string field " + field.getName() + " of type " + field_type.getSignature());
+		    if (field_type.equals(Type.STRING) || field_type.equals(java_lang_class_type)) {
+			if (verbose) System.out.println("    writing field " + field.getName() + " of type " + field_type.getSignature());
 
 			read_il.append(readInstructions(field, from_constructor));
 		    }
@@ -835,7 +882,7 @@ public class IOGenerator {
 	    write_il.append(new SIPUSH((short)dpth));
 	    IF_ICMPNE ifcmpne = new IF_ICMPNE(null);
 	    write_il.append(ifcmpne);
-	    write_il.append(generateDefaultWrites());
+	    write_il.append(generateDefaultWrites(dpth));
 	    write_il.append(new GOTO(end));
 	    if (super_is_ibis_serializable || super_is_serializable) {
 		InstructionHandle i = write_il.append(new ILOAD(2));
@@ -881,7 +928,7 @@ public class IOGenerator {
 	    read_il.append(new SIPUSH((short)dpth));
 	    ifcmpne = new IF_ICMPNE(null);
 	    read_il.append(ifcmpne);
-	    read_il.append(generateDefaultReads(false));
+	    read_il.append(generateDefaultReads(false, dpth));
 	    read_il.append(new GOTO(end));
 
 	    if (super_is_ibis_serializable || super_is_serializable) {
@@ -1002,7 +1049,7 @@ public class IOGenerator {
 						     Constants.INVOKEVIRTUAL));
 	    }
 	    else {
-		write_il.append(generateDefaultWrites());
+		write_il.append(generateDefaultWrites(dpth));
 	    }
 
 	    /* Now, do the same for the reading side. */
@@ -1032,7 +1079,7 @@ public class IOGenerator {
 							 Constants.INVOKEVIRTUAL));
 		}
 		else {
-		    read_il.append(generateDefaultReads(true));
+		    read_il.append(generateDefaultReads(true, dpth));
 		}
 
 		MethodGen read_cons_gen = new MethodGen(methods[read_cons_index], classname, constantpool);
@@ -1097,7 +1144,7 @@ public class IOGenerator {
 
     Vector classes_to_rewrite, target_classes, classes_to_save;
 
-    public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean verify, String[] args, String pack) {
+    public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean verify, String pack) {
 	ObjectType tp;
 
 	this.verbose = verbose;
@@ -1108,7 +1155,7 @@ public class IOGenerator {
 	this.verify = verify;
 	if (force_generated_calls && verify) {
 	    System.err.println("Warning: cannot have both -force and -verify");
-	    verify = false;
+	    this.verify = false;
 	}
 
 	classes_to_rewrite = new Vector();
@@ -1132,6 +1179,7 @@ public class IOGenerator {
 
 	primitiveSerialization.put(Type.DOUBLE, new SerializationInfo("writeDouble", "readDouble", "readFieldDouble", Type.DOUBLE, Type.DOUBLE, true));
 	primitiveSerialization.put(Type.STRING, new SerializationInfo("writeUTF", "readUTF", "readFieldUTF", Type.STRING, Type.STRING, true));
+	primitiveSerialization.put(java_lang_class_type, new SerializationInfo("writeClass", "readClass", "readFieldClass", java_lang_class_type, java_lang_class_type, true));
 
 	referenceSerialization = new SerializationInfo("writeObject", "readObject", "readFieldObject", Type.OBJECT, Type.OBJECT, false);
     }
@@ -1197,23 +1245,6 @@ public class IOGenerator {
 	serializable |= isSerializable(clazz);
 
 	if (serializable) {
-	    Field[] fields = clazz.getFields();
-
-	    for (int i = 0; i < fields.length; i++) {
-		Field f = fields[i];
-		if (f.getName().equals("serialPersistentFields") &&
-		    f.isFinal() &&
-		    f.isStatic() &&
-		    f.isPrivate() &&
-		    f.getSignature().equals("[Ljava/io/ObjectStreamField;")) {
-		    /*  Don't touch these. alternativeWriteObject and friends should deal with this.
-			In general, it is probably not possible to handle this in the IOGenerator.
-		    */
-		    System.err.println("class " + clazz.getClassName() + " has serialPersistentFields, so is not rewritten");
-		    return;
-		}
-	    }
-
 	    addRewriteClass(clazz);
 	    addTargetClass(clazz);
 	}
@@ -1349,7 +1380,7 @@ public class IOGenerator {
 
 		System.err.println("class name = " + className);
 		try {
-		    ClassParser p = new ClassParser(classnames[i] + ".class");
+		    ClassParser p = new ClassParser(classnames[i].replace('.', java.io.File.separatorChar) + ".class");
 		    clazz = p.parse();
 		    if (clazz != null) {
 			Repository.removeClass(className);
@@ -1487,6 +1518,6 @@ public class IOGenerator {
 	    newArgs[i] = newArgs[i].replace(java.io.File.separatorChar, '.');
 	}
 
-	new IOGenerator(verbose, local, file, force_generated_calls, verify, newArgs, pack).scanClass(newArgs);
+	new IOGenerator(verbose, local, file, force_generated_calls, verify, pack).scanClass(newArgs);
     }
 }
