@@ -33,15 +33,28 @@ public class SuffixTree {
     }
 
     abstract class Node {
+	/** The first character of the span this node represents. */
         int start;
+
+	/** The length of the span this node represents. */
         int length;
+
+	/** The distance in characters to the root of this node. */
+	int dist;
+
+	/** The next node with the same parent, or null if there isn't one. */
         Node sister;
 
-        Node( int start, int len )
+	/** The parent of this node, or null if it is the root. */
+	Node parent;
+
+        Node( int start, int len, int dist )
         {
             this.start = start;
             this.length = len;
+	    this.dist = dist;
             sister = null;
+	    parent = null;
         }
 
         protected abstract void add( short text[], int start, int length, int pos );
@@ -54,16 +67,16 @@ public class SuffixTree {
     class InternalNode extends Node {
         Node child;
 
-        InternalNode( int start, int len )
+        InternalNode( int start, int len, int dist )
         {
-            super( start, len );
+            super( start, len, dist );
             child = null;
         }
 
         /** Creates the root node. */
         InternalNode()
         {
-            super( 0, 0 );
+            super( 0, 0, 0 );
         }
 
         protected void add( short text[], int start, int length, int pos )
@@ -93,12 +106,15 @@ public class SuffixTree {
                     }
                     if( n<p.length ){
                         // We must split up this node.
-                        InternalNode nw = new InternalNode( p.start, n );
+                        InternalNode nw = new InternalNode( p.start, n, p.dist );
                         nw.child = p;
                         nw.sister = p.sister;
+			nw.parent = p.parent;
                         p.sister = null;
                         p.start += n;
                         p.length -= n;
+			p.dist += n;
+			p.parent = nw;
                         if( i == null ){
                             child = nw;
                         }
@@ -124,8 +140,9 @@ public class SuffixTree {
             if( !match ){
                 // We must insert our text in the list of children at
                 // insertion point 'i', or in front if i is null.
-                Node newChild = new LeafNode( start, length, pos );
+                Node newChild = new LeafNode( start, length, this.dist+this.length, pos );
                 newChild.sister = p;
+		newChild.parent = this;
 
                 if( i == null ){
                     child = newChild;
@@ -187,9 +204,9 @@ public class SuffixTree {
     public class LeafNode extends Node {
         int pos;
 
-        LeafNode( int start, int len, int pos )
+        LeafNode( int start, int len, int dist, int pos )
         {
-            super( start, len );
+            super( start, len, dist );
             this.pos = pos;
         }
 
