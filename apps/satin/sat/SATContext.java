@@ -258,16 +258,12 @@ public class SATContext implements java.io.Serializable {
     {
 	boolean hasUniPolar = false;
 
-	if( satisfied[cno] ){
-	    // Already marked as satisfied, nothing to do.
-	    return 0;
-	}
 	satisfied[cno] = true;
 	unsatisfied--;
-	if( tracePropagation ){
-	    System.err.println( "Clause " + p.clauses[cno] + " is now satisfied, " + unsatisfied + " to go" );
-	}
 	Clause c = p.clauses[cno];
+	if( tracePropagation ){
+	    System.err.println( "Clause " + c + " is now satisfied, " + unsatisfied + " to go" );
+	}
 
 	int pos[] = c.pos;
 	for( int i=0; i<pos.length; i++ ){
@@ -285,10 +281,13 @@ public class SATContext implements java.io.Serializable {
 		    if( tracePropagation ){
 			System.err.println( "Variable " + var + " only occurs negatively (0," + negclauses[var] + ")"  );
 		    }
-		    // Only register the fact that there is an unipolar variable.
-		    // Don't propagate it yet, since the adminstration is
-		    // inconsistent.
+		    // Only register the fact that there is an unipolar
+		    // variable. Don't propagate it yet, since the
+		    // adminstration is inconsistent at the moment.
 		    hasUniPolar = true;
+		}
+		else if( assignments[var] == 0 && posclauses[var] != 0 ){
+		    return -1;
 		}
 	    }
 	}
@@ -308,10 +307,13 @@ public class SATContext implements java.io.Serializable {
 		    if( tracePropagation ){
 			System.err.println( "Variable " + var + " only occurs positively (" + posclauses[var] + ",0)"  );
 		    }
-		    // Only register the fact that there is an unipolar variable.
-		    // Don't propagate it yet, since the adminstration is
-		    // inconsistent.
+		    // Only register the fact that there is an unipolar
+		    // variable. Don't propagate it yet, since the
+		    // adminstration is inconsistent at the moment.
 		    hasUniPolar = true;
+		}
+		else if( assignments[var] == 1 && posclauses[var] != 0 ){
+		    return -1;
 		}
 	    }
 	}
@@ -396,9 +398,12 @@ public class SATContext implements java.io.Serializable {
 	for( int i=0; i<sz; i++ ){
 	    int cno = pos.get( i );
 
-	    int res = markClauseSatisfied( p, cno );
-	    if( res != 0 ){
-	        return res;
+	    if( !satisfied[cno] ){
+		int res = markClauseSatisfied( p, cno );
+
+		if( res != 0 ){
+		    return res;
+		}
 	    }
 	}
 	if( unsatisfied == 0 ){
@@ -468,9 +473,12 @@ public class SATContext implements java.io.Serializable {
 	for( int i=0; i<sz; i++ ){
 	    int cno = neg.get( i );
 
-	    int res = markClauseSatisfied( p, cno );
-	    if( res != 0 ){
-	        return res;
+	    if( !satisfied[cno] ){
+		int res = markClauseSatisfied( p, cno );
+
+		if( res != 0 ){
+		    return res;
+		}
 	    }
 	}
 	if( unsatisfied == 0 ){
