@@ -14,6 +14,11 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
     static final int GENERATIONS = 20;
     static final int GENERATION_SIZE = 20;
     static final boolean globalsInTuple = true;
+    static final float mutationStep = 0.15f;
+
+    private final Random rng = new Random( 2 );
+    Genes maxGenes = BreederSolver.getMaxGenes();
+    Genes minGenes = BreederSolver.getMinGenes();
 
     static final class CutoffUpdater implements ibis.satin.ActiveTuple {
         int limit;
@@ -142,7 +147,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
     /**
      * Breed the next generation.
      */
-    private Result breedNextGeneration( Random rng, SATProblem pl[], Genes genes, int bestD, Genes maxGenes, Genes minGenes )
+    private Result breedNextGeneration( Random rng, SATProblem pl[], Genes genes, int bestD )
     {
         float step = 0.15f;
         int res[] = new int[GENERATION_SIZE];
@@ -188,15 +193,12 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
     }
 
     public void run( SATProblem pl[] ){
-	Genes maxGenes = BreederSolver.getMaxGenes();
-	Genes minGenes = BreederSolver.getMinGenes();
-	Random rng = new Random( 2 );
 
 	Genes bestGenes = BreederSolver.getInitialGenes();
         int bestD = Integer.MAX_VALUE;
 
         for( int gen = 0; gen<GENERATIONS; gen++ ){
-            Result res = breedNextGeneration( rng, pl, bestGenes, bestD, maxGenes, minGenes );
+            Result res = breedNextGeneration( rng, pl, bestGenes, bestD );
             bestGenes = res.genes;
             bestD = res.decisions;
             System.err.println( "g" + gen + "->" + res );
