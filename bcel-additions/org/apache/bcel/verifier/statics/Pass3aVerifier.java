@@ -473,6 +473,44 @@ public final class Pass3aVerifier extends PassVerifier{
 			}
 		}
 
+
+		private Field findFieldinClass(String fieldname, Type fieldtype, JavaClass jc) {
+		    Field f = null;
+		    Field[] fields = jc.getFields();
+		    for (int i=0; i<fields.length; i++){
+			if (fields[i].getName().equals(fieldname) && fields[i].getSignature().equals(fieldtype.getSignature())) {
+				f = fields[i];
+				break;
+			}
+		    }
+		    return f;
+		}
+
+		private Field findField(String fieldname, Type fieldtype, JavaClass jc) {
+		    Field f = findFieldinClass(fieldname, fieldtype, jc);
+		    if (f != null) return f;
+
+		    String[] interface_names = jc.getInterfaceNames();
+		    for (int i = 0; i < interface_names.length; i++) {
+			f = findField(fieldname, fieldtype, Repository.lookupClass(interface_names[i]));
+			if (f != null) return f;
+		    }
+		    String superclass = jc.getSuperclassName();
+		    if (superclass != null && ! superclass.equals(jc.getClassName())) {
+			f = findField(fieldname, fieldtype, Repository.lookupClass(superclass));
+		    }
+		    return f;
+		}
+
+		private Field findField(FieldInstruction o) {
+		    JavaClass jc = Repository.lookupClass(o.getClassType(cpg).getClassName());
+		    Field f = findField(o.getFieldName(cpg), o.getFieldType(cpg), jc);
+		    if (f == null){
+			    constraintViolated(o, "Referenced field '"+o.getFieldName(cpg)+"' does not exist in class '"+jc.getClassName()+"'.");
+		    }
+		    return f;
+		}
+
 		/** Checks if the constraints of operands of the said instruction(s) are satisfied. */
  		//getfield, putfield, getstatic, putstatic
  		public void visitFieldInstruction(FieldInstruction o){
@@ -482,20 +520,9 @@ public final class Pass3aVerifier extends PassVerifier{
 				constraintViolated(o, "Indexing a constant that's not a CONSTANT_Fieldref but a '"+c+"'.");
 			}
 			
-			String field_name = o.getFieldName(cpg);
- 
-			JavaClass jc = Repository.lookupClass(o.getClassType(cpg).getClassName());
-			Field[] fields = jc.getFields();
-			Field f = null;
-			for (int i=0; i<fields.length; i++){
-				if (fields[i].getName().equals(field_name)){
-					f = fields[i];
-					break;
-				}
-			}
+			Field f = findField(o);
+
 			if (f == null){
-				/* TODO: also look up if the field is inherited! */
-				constraintViolated(o, "Referenced field '"+field_name+"' does not exist in class '"+jc.getClassName()+"'.");
 			}
 			else{
 				/* TODO: Check if assignment compatibility is sufficient.
@@ -507,7 +534,7 @@ public final class Pass3aVerifier extends PassVerifier{
 				has a void method's signature, i.e. "()I" instead of "I"? */
 				
 				if (! f_type.equals(o_type)){
-					constraintViolated(o, "Referenced field '"+field_name+"' has type '"+f_type+"' instead of '"+o_type+"' as expected.");
+					constraintViolated(o, "Referenced field '"+o.getFieldName(cpg)+"' has type '"+f_type+"' instead of '"+o_type+"' as expected.");
 				}
 				/* TODO: Check for access modifiers here. */
 			}
