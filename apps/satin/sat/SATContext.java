@@ -301,9 +301,9 @@ public class SATContext implements java.io.Serializable {
                         Clause newres = Clause.resolve( res, p.clauses[a], v );
                         if( traceLearning ){
                             System.err.println( "Resolving on v" + v + ":" );
-                            System.err.println( "    " + res );
-                            System.err.println( "    " + p.clauses[a] + " =>" );
-                            System.err.println( "    " + newres );
+                            System.err.println( "  " + res );
+                            System.err.println( "  " + p.clauses[a] + " =>" );
+                            System.err.println( "  " + newres );
                         }
                         changed = true;
                         anyChange = true;
@@ -323,9 +323,9 @@ public class SATContext implements java.io.Serializable {
                         Clause newres = Clause.resolve( res, p.clauses[a], v );
                         if( traceLearning ){
                             System.err.println( "Resolving on v" + v + ":" );
-                            System.err.println( "    " + res );
-                            System.err.println( "    " + p.clauses[a] + " =>" );
-                            System.err.println( "    " + newres );
+                            System.err.println( "  " + res );
+                            System.err.println( "  " + p.clauses[a] + " =>" );
+                            System.err.println( "  " + newres );
                         }
                         changed = true;
                         anyChange = true;
@@ -349,6 +349,7 @@ public class SATContext implements java.io.Serializable {
      * @param cno The clause that is in conflict.
      */
     private void analyzeConflict( SATProblem p, int cno, int var, int level )
+        throws SATRestartException
     {
         if( tracePropagation | traceLearning ){
             System.err.println( "Clause " + p.clauses[cno] + " conflicts with v" + var + "=" + assignment[var] );
@@ -367,6 +368,7 @@ public class SATContext implements java.io.Serializable {
         if( cc != null ){
             p.addConflictClause( cc );
         }
+        throw new SATRestartException();
     }
 
     /**
@@ -376,6 +378,7 @@ public class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     private int propagateUnitClause( SATProblem p, int i, int level )
+        throws SATRestartException
     {
 	if( satisfied[i] ){
 	    // Not interesting.
@@ -493,6 +496,7 @@ public class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     private int markClauseSatisfied( SATProblem p, int cno, int level )
+        throws SATRestartException
     {
 	boolean hasPure = false;
 
@@ -585,6 +589,7 @@ public class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     public int propagatePosAssignment( SATProblem p, int var, int level )
+        throws SATRestartException
     {
         assignment[var] = 1;
         dl[var] = level;
@@ -664,6 +669,7 @@ public class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     public int propagateNegAssignment( SATProblem p, int var, int level )
+        throws SATRestartException
     {
         assignment[var] = 0;
         dl[var] = level;
@@ -804,6 +810,7 @@ public class SATContext implements java.io.Serializable {
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     public int optimize( SATProblem p )
+        throws SATRestartException
     {
 	// Search for and propagate unit clauses.
 	for( int i=0; i<terms.length; i++ ){

@@ -37,7 +37,7 @@ public final class SeqSolver {
 	SATContext ctx,
 	int var,
 	boolean val
-    ) throws SATResultException
+    ) throws SATResultException, SATRestartException
     {
 	if( traceSolver ){
 	    System.err.println( "ls" + level + ": trying assignment var[" + var + "]=" + val );
@@ -82,7 +82,13 @@ public final class SeqSolver {
 
 	boolean firstvar = ctx.posDominant( nextvar );
 	SATContext subctx = (SATContext) ctx.clone();
-	leafSolve( level+1, p, subctx, nextvar, firstvar );
+        try {
+            leafSolve( level+1, p, subctx, nextvar, firstvar );
+        }
+        catch( SATRestartException x ){
+            // Restart the search here, since we have an untried
+            // value.
+        }
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
 	// Also note that this call is a perfect candidate for tail
@@ -143,7 +149,13 @@ public final class SeqSolver {
 
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
-            leafSolve( 0, p, negctx, nextvar, firstvar );
+            try {
+                leafSolve( 0, p, negctx, nextvar, firstvar );
+            }
+            catch( SATRestartException x ){
+                // Restart the search here, since we have an untried
+                // value.
+            }
             ctx.update( p );
             leafSolve( 0, p, ctx, nextvar, !firstvar );
 	}
@@ -153,6 +165,9 @@ public final class SeqSolver {
 	    }
 	    res = r.s;
 	}
+        catch( SATRestartException r ){
+            res = null;
+        }
 
 	return res;
     }
