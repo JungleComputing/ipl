@@ -44,77 +44,77 @@ final class NioReadMessage implements ReadMessage, Config {
     }
 
     public boolean readBoolean() throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading boolean");
 	}
 	return in.readBoolean();
     } 
 
     public byte readByte() throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading byte");
 	}
 	return in.readByte();
     } 
 
     public char readChar() throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading char");
 	}
 	return in.readChar();
     }
 
     public short readShort() throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading short");
 	}
 	return in.readShort();
     } 
 
     public int readInt() throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading int");
 	}
 	return in.readInt();
     }
 
     public long readLong() throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading long");
 	}
 	return in.readLong();
     } 
 
     public float readFloat() throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading float");
 	}
 	return in.readFloat();
     } 
 
     public double readDouble() throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading double");
 	}
 	return in.readDouble();
     }
 
     public String readString() throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading string");
 	}
 	return (String) in.readUTF();
     } 
 
     public Object readObject() throws IOException, ClassNotFoundException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading object");
 	}
 	return in.readObject();
     } 
 
     public void readArray(boolean [] destination) throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading boolean[" 
 			       + destination.length + "]");
 	}
@@ -122,7 +122,7 @@ final class NioReadMessage implements ReadMessage, Config {
     }
 
     public void readArray(byte [] destination) throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading byte[" 
 			       + destination.length + "]");
 	}
@@ -130,7 +130,7 @@ final class NioReadMessage implements ReadMessage, Config {
     }
 
     public void readArray(char [] destination) throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading char[" 
 			       + destination.length + "]");
 	}
@@ -138,7 +138,7 @@ final class NioReadMessage implements ReadMessage, Config {
     }
 
     public void readArray(short [] destination) throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading short[" 
 			       + destination.length + "]");
 	}
@@ -146,7 +146,7 @@ final class NioReadMessage implements ReadMessage, Config {
     }
 
     public void readArray(int [] destination) throws IOException {  
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading int[" 
 			       + destination.length + "]");
 	}
@@ -154,7 +154,7 @@ final class NioReadMessage implements ReadMessage, Config {
     }
 
     public void readArray(long [] destination) throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading long[" 
 			       + destination.length + "]");
 	}
@@ -162,7 +162,7 @@ final class NioReadMessage implements ReadMessage, Config {
     }
 
     public void readArray(float [] destination) throws IOException { 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading float[" 
 			       + destination.length + "]");
 	}
@@ -170,7 +170,7 @@ final class NioReadMessage implements ReadMessage, Config {
     }
 
     public void readArray(double [] destination) throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading double[" 
 			       + destination.length + "]");
 	}
@@ -179,7 +179,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(Object [] destination) throws IOException, 
 						    ClassNotFoundException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading object[" 
 			       + destination.length + "]");
 	}
@@ -188,7 +188,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(boolean [] destination, int offset, int size) 
 							throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading boolean[" + offset + "+"
 			       + size + "]");
 	}
@@ -197,7 +197,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(byte [] destination, int offset, int size) 
 							throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading byte[" + offset + "+"
 			       + size + "]");
 	}
@@ -206,7 +206,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(char [] destination, int offset, int size) 
 							throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading char[" + offset + "+"
 			       + size + "]");
 	}
@@ -216,7 +216,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(short [] destination, int offset, int size) 
 							throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading short[" + offset + "+"
 			       + size + "]");
 	}
@@ -225,7 +225,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(int [] destination, int offset, int size) 
 							throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading int[" + offset + "+"
 			       + size + "]");
 	}
@@ -234,7 +234,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(long [] destination, int offset, int size) 
 							throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading long[" + offset + "+"
 			       + size + "]");
 	}
@@ -243,7 +243,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(float [] destination, int offset, int size) 
 							throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading float[" + offset + "+"
 			       + size + "]");
 	}
@@ -252,7 +252,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(double [] destination, int offset, int size) 
 							throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading double[" + offset + "+"
 			       + size + "]");
 	}
@@ -261,7 +261,7 @@ final class NioReadMessage implements ReadMessage, Config {
 
     public void readArray(Object [] destination, int offset, int size) 
 				throws IOException, ClassNotFoundException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("ReadMessage: reading object[" + offset + "+"
 			       + size + "]");
 	}

@@ -108,7 +108,7 @@ public final class NioOutputStream extends SerializationOutputStream
      * will close it when we don't want to
      */
     public void close() throws IOException {
-	if (DEBUG_LEVEL >=  VERY_HIGH_DEBUG_LEVEL) {
+	if (DEBUG_LEVEL >=  HIGH_DEBUG_LEVEL) {
 	    System.err.println("NioOutputStream.close() called");
 	}
 	if(buffer.position() != 0) {

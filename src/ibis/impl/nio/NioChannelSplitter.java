@@ -6,6 +6,9 @@ import java.io.IOException;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.GatheringByteChannel;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.Selector;
+import java.nio.channels.SelectionKey;
 
 import ibis.ipl.IbisError;
 
@@ -14,13 +17,37 @@ import ibis.ipl.IbisError;
  */
 public final class NioChannelSplitter implements GatheringByteChannel{
 
-    private GatheringByteChannel[] channels;
-    private int used = 0; // channels in use
+    private static final class Connection {
+	GatheringByteChannel channel;
+	Selector selector = null;
+
+	Connection(GatheringByteChannel channel) {
+	    this.channel = channel;
+	}
+
+	/**
+	 * returns the selector for this channel. Creates a new selector if
+	 * it doesn't exist.
+	 */
+	private Selector selector() throws IOException {
+	    if(selector == null) {
+		selector = Selector.open();
+
+		((SelectableChannel) channel).register(selector, 
+							SelectionKey.OP_WRITE);
+	    }
+	    return selector;
+	}
+    }
+
+
+    private Connection[] connections; 
+    private int used = 0; // connections in use
 
     private long count = 0; // bytes given to splitter
 
     NioChannelSplitter() {
-	channels = new GatheringByteChannel[8];
+	connections = new Connection[8];
     }
 
     /**
@@ -56,14 +83,14 @@ public final class NioChannelSplitter implements GatheringByteChannel{
      * with write(...) to this channel from now on
      */
     public void add(GatheringByteChannel channel) {
-	if (channels.length == used) {
-	    GatheringByteChannel[] newChannels = new GatheringByteChannel[used * 2];
+	if (connections.length == used) {
+	    Connection[] newConnections = new Connection[used * 2];
 	    for (int i = 0; i < used; i++) {
-		newChannels[i] = channels[i];
+		newConnections[i] = connections[i];
 	    }
-	    channels = newChannels;
+	    connections = newConnections;
 	}
-	channels[used] = channel;
+	connections[used] = new Connection(channel);
 	used += 1;
     }
 
@@ -74,9 +101,9 @@ public final class NioChannelSplitter implements GatheringByteChannel{
     public void remove(GatheringByteChannel channel) throws IOException {
 
 	for (int i = 0; i < used; i++) {
-	    if ( channels[i] == channel) {
-		channels[i] = channels[used];
-		channels[used] = null;
+	    if ( connections[i].channel == channel) {
+		connections[i] = connections[used];
+		connections[used] = null;
 		used -= 1;
 		return;
 	    }
@@ -96,28 +123,36 @@ public final class NioChannelSplitter implements GatheringByteChannel{
      * WARNING: Changes the "mark" of the buffer
      */
     public int write(ByteBuffer src) throws NioSplitterException {
-	int count = src.remaining(); // the number of bytes we'll write to each channel
+	// the number of bytes we'll write to each channel
+	int count = src.remaining(); 
 	NioSplitterException se = null;
 
 	src.mark(); // remember the current position;
 
 
 	for(int i = 0; i < used; i++) {
+
 	    src.reset(); // go back to the marked position
 	    try {
-		do {
-		    channels[i].write(src);
-		} while(src.hasRemaining());
+		connections[i].channel.write(src);
+		while(src.hasRemaining()) {
+		    //do a select so we are sure we can write at least one
+		    //byte more into the channel
+		    connections[i].selector().select();
+
+		    connections[i].channel.write(src);
+		}
+		    
 	    } catch (IOException e) {
 		// add exceptions to the list, and throw when we're done
 		if(se == null) {
 		    se = new NioSplitterException();
 		}
-		se.add(channels[i], e);
+		se.add(connections[i].channel, e);
 
 		// remove channel from out output set
 		try {
-		    remove(channels[i]);
+		    remove(connections[i].channel);
 		} catch (IOException e2) {
 		    throw new IbisError("Splitter: removing of known-to-exist channel failed");
 		}
@@ -168,20 +203,27 @@ public final class NioChannelSplitter implements GatheringByteChannel{
 		srcs[j].reset(); // go back to the marked position
 	    }
 	    try {
-		do {
-		    tmpCount += channels[i].write(srcs, off, len);
-		} while(lastBuffer.hasRemaining());
-		count = tmpCount; // sending succeedded, remember how much we send
+		tmpCount += connections[i].channel.write(srcs, off, len);
+
+		while(lastBuffer.hasRemaining()) {
+		    //do a select so we can write at least one byte more
+		    connections[i].selector().select();
+		    tmpCount += connections[i].channel.write(srcs, off, len);
+		}
+
+		// sending succeedded, remember how much we send
+		count = tmpCount;
+
 	    } catch (IOException e) {
 		// add exceptions to the list, and throw when we're done
 		if(se == null) {
 		    se = new NioSplitterException();
 		}
-		se.add(channels[i], e);
+		se.add(connections[i].channel, e);
 
 		// remove channel from out output set
 		try {
-		    remove(channels[i]);
+		    remove(connections[i].channel);
 		} catch (IOException e2) {
 		    throw new IbisError("Splitter: removing of known-to-exist channel failed");
 		}

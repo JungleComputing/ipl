@@ -19,35 +19,25 @@ interface Config {
     static final int ERROR_DEBUG_LEVEL = 1;
 
     /**
-     * Debug level which prints almost nothing (new ibis, end ibis, etc).
-     */
-    static final int VERY_LOW_DEBUG_LEVEL = 2;
-
-    /**
      * Debug level which prints a few numbers here and there (ip address, etc).
      */
-    static final int LOW_DEBUG_LEVEL = 3;
+    static final int LOW_DEBUG_LEVEL = 2;
 
     /**
      * "Normal" Debug level
      */
-    static final int MEDIUM_DEBUG_LEVEL = 4;
+    static final int MEDIUM_DEBUG_LEVEL = 3;
 
     /**
      * Debug level wich prints a message for every new message and such.
      */
-    static final int HIGH_DEBUG_LEVEL = 5;
+    static final int HIGH_DEBUG_LEVEL = 4;
 
-    /**
-     * Debug level which prints a message on every call to the ipl.
-     */
-    static final int VERY_HIGH_DEBUG_LEVEL = 6;
-	
     /**
      * Debug level which prints a message on every call to every stream.
      *
      */
-    static final int RIDICULOUSLY_HIGH_DEBUG_LEVEL = 7;
+    static final int RIDICULOUSLY_HIGH_DEBUG_LEVEL = 5;
 
 
     //*** START OF CONFIGURABLE OPTIONS ***\\
@@ -55,7 +45,7 @@ interface Config {
     /*
      * Current Debug level.
      */
-    static final int DEBUG_LEVEL = ERROR_DEBUG_LEVEL;
+    static final int DEBUG_LEVEL = LOW_DEBUG_LEVEL;
 
     /*
      * Do we we asserts (make make it a bit slower)

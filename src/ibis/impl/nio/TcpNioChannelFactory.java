@@ -17,11 +17,15 @@ import java.net.NetworkInterface;
 
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.Selector;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.AsynchronousCloseException;
 
 import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.ReceiveTimedOutException;
 import ibis.util.ThreadPool;
 import ibis.ipl.IbisError;
 
@@ -179,7 +183,8 @@ class TcpNioChannelFactory implements NioChannelFactory, NioProtocol {
 	int reply;
 
 	SocketChannel channel = SocketChannel.open();
-	long deadline = 0, time;
+	long deadline = 0;
+	long time;
 
 	if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
 	    System.err.println("ChannelFactory connecting " + spi
@@ -190,22 +195,24 @@ class TcpNioChannelFactory implements NioChannelFactory, NioProtocol {
 	    deadline = System.currentTimeMillis() + timeoutMillis;
 
 	    channel.configureBlocking(false);
+	    channel.connect(rpi.address);
 
-	    channel = SocketChannel.open(rpi.address);
+	    Selector selector = Selector.open();
+	    channel.register(selector, SelectionKey.OP_CONNECT);
 
-	    do {
-		time = System.currentTimeMillis();
+	    if(selector.select(timeoutMillis) == 0) {
+		//nothing selected, so we had a timeout
+		throw new ConnectionTimedOutException("timed out while"
+			+ " connecting socket to receiver");
+	    }
 
-		if(time >= deadline) {
-		    if(DEBUG_LEVEL >= ERROR_DEBUG_LEVEL) {
-		       System.err.println("ChannelFactory: timeout on connect");
-		    }
-		    throw new ConnectionRefusedException("connect timed out");
-		}
-	    } while(!channel.finishConnect());
-
+	    if(!channel.finishConnect()) {
+		throw new IbisError("finish connect failed while we made sure"
+			+ " it would work");
+	    }
 	} else {
-	    channel = SocketChannel.open(rpi.address);
+	    //do a blocking connect
+	    channel.connect(rpi.address);
 	    channel.configureBlocking(false);
 	}
 
@@ -218,6 +225,8 @@ class TcpNioChannelFactory implements NioChannelFactory, NioProtocol {
     
 
 	// notify receiver we want to make a new connection
+	// writing these in non-blocking mode, but it should fit in the
+	// socket's buffer, so not a big problem.
 	objOut.writeByte(NEW_CONNECTION);
 	objOut.writeObject(spi);
 	objOut.writeObject(rpi);
@@ -230,24 +239,18 @@ class TcpNioChannelFactory implements NioChannelFactory, NioProtocol {
 	    System.err.println("ChannelFactory waiting for reply on connect");
 	}
 
-	if(timeoutMillis > 0) {
-	    while(in.poll() == 0) {
-		if(System.currentTimeMillis() >= deadline) {
-		    try {
-			channel.close();
-		    } catch (IOException e) {
-			//IGNORE
-		    }
-
-		    throw new ConnectionRefusedException("timed out while"
-			    + " waiting for reply from receiver");
-		}
-	    }
-	}
-
-
 	//see what he thinks about it
-	reply = in.readByte();
+	try {
+	    reply = in.readByte(deadline);
+	} catch (ReceiveTimedOutException e) {
+	    try {
+		channel.close();
+	    } catch (IOException e2) {
+		//IGNORE
+	    }
+	    throw new ConnectionTimedOutException("timeout while waiting for"
+		    + " a reply from the receiveport");
+	}
 
 	if(reply == RECEIVER_DENIED) {
 	    if(DEBUG_LEVEL >= MEDIUM_DEBUG_LEVEL) {

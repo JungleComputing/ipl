@@ -357,7 +357,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 
 		//try to obtain lock
 		if(!gotLock) {
-		    if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+		    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 			System.err.println("getting lock");
 		    }
 
@@ -389,7 +389,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 		    locked = true;  // set the (global) lock 
 		    gotLock = true; // and remember we've got it
 
-		    if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+		    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 			System.err.println("got lock");
 		    }
 		}
@@ -428,7 +428,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 		newInputStream(connection);
 	    }
 
-	    if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 		System.err.println("fetching command from the input stream");
 	    }
 	 
@@ -436,7 +436,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 
 	    switch(command) {
 		case NEW_RECEIVER:
-		    if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+		    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 			System.err.println("received NEW_RECEIVER, closing"
 				+ " down input stream");
 		    }
@@ -444,7 +444,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 		    connection.in = null;
 		    break;
 		case NEW_MESSAGE:
-		    if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+		    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 			System.err.println("received NEW_MESSAGE");
 		    }
 		    //don't give up the lock, we will keep it until the
@@ -452,7 +452,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 		    return new NioReadMessage(this, connection.in,
 				connection.nis, connection.spi);
 		case CLOSE_CONNECTION:
-		    if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+		    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 			System.err.println("received CLOSE_CONNECTION,"
 				+ " closing down input stream and channel");
 		    }
@@ -476,7 +476,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 	long messageCount;
 	SelectionKey key;
 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("finishing message");
 	}
 
@@ -516,7 +516,7 @@ final class NioReceivePort implements ReceivePort, NioProtocol,
 	if(m.in.available() <= 0 && (m.nis == null || m.nis.available() <= 0)) {
 	    //no more bytes waiting for this connection, remove it
 	    //from the selected connections
-	    if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	    if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 		System.err.println("removing connection from selected"
 			+ " key set");
 	    }

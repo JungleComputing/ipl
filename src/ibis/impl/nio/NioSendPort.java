@@ -255,7 +255,7 @@ final class NioSendPort implements SendPort, Config, NioProtocol {
 	out = null;
 	ident = null;
 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println(type.ibis.name() + ": freeing sendport DONE");
 	}
     }

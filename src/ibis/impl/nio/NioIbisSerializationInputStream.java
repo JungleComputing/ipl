@@ -14,7 +14,9 @@ import java.nio.DoubleBuffer;
 import java.nio.ByteOrder;
 import java.nio.BufferUnderflowException;
 import java.nio.channels.ScatteringByteChannel;
-
+import java.nio.channels.Selector;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.SelectableChannel;
 
 import java.io.IOException;
 
@@ -67,7 +69,12 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
      * The channel we use for output. Not private because NioReceivePort
      * uses it.
      */
-    ScatteringByteChannel channel;
+    final ScatteringByteChannel channel;
+
+    /**
+     * Selector used to see if a read on the channel will give us someting
+     */
+    private Selector selector = null;
 
     /*
      * Byte order of the sending NioIbisSerializationOutputStream
@@ -84,7 +91,16 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
 
 	    ByteBuffer temp = ByteBuffer.allocate(1);
 
+	    channel.read(temp);
 	    while(temp.hasRemaining()) {
+		//do a select to make sure we can receive at least one more byte
+		if(selector == null) {
+		    selector = Selector.open();
+		    ((SelectableChannel) channel)
+			.register(selector, SelectionKey.OP_READ);
+		}
+		selector.select();
+		
 		channel.read(temp);
 	    }
 
@@ -137,8 +153,17 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
 
 	}
 
+    /**
+     * returns number of bytes read from the channel - the number of bytes
+     * in the buffer. Equals the number of bytes given to the user
+     */
     long getCount() {
-	return count;
+	return count - (chars.remaining() * SIZEOF_CHAR)
+	    - (shorts.remaining() * SIZEOF_SHORT)
+	    - (ints.remaining() * SIZEOF_INT)
+	    - (longs.remaining() * SIZEOF_LONG)
+	    - (floats.remaining() * SIZEOF_FLOAT)
+	    - (doubles.remaining() * SIZEOF_DOUBLE);
     }
 
     void resetCount() {
@@ -178,6 +203,8 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
     private void receive() throws IOException {
 	ByteBuffer lastBuffer;
 
+	int selects = 0;
+
 	if(ASSERT) {
 	    if(bytes.hasRemaining() ||
 		    chars.hasRemaining() ||
@@ -205,9 +232,26 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
 	//receive header
 
 	buffers[HEADER].clear();
+	
+	if(DEBUG_LEVEL >= RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
+	    System.err.println("reading header from channel");
+	}
 
+	count += channel.read(buffers[HEADER]);
 	while(buffers[HEADER].hasRemaining()) {
-	    channel.read(buffers[HEADER]);
+	    //do a select to make sure we can receive at least one more byte
+	    if(selector == null) {
+		selector = Selector.open();
+		((SelectableChannel) channel)
+		    .register(selector, SelectionKey.OP_READ);
+	    }
+	    selector.select();
+
+	    if (DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
+		selects++;
+	    }
+
+	    count += channel.read(buffers[HEADER]);
 	}
 
 	header.position(0).limit(buffers[HEADER].position() / SIZEOF_SHORT);
@@ -241,8 +285,21 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
 	}
 
 	//read the data from the channel
+	count += channel.read(buffers, 1, NR_OF_BUFFERS - 1);
 	while(lastBuffer.hasRemaining()) {
-	    channel.read(buffers, 1, NR_OF_BUFFERS - 1);
+	    //do a select to make sure we can receive at least one more byte
+	    if(selector == null) {
+		selector = Selector.open();
+		((SelectableChannel) channel)
+		    .register(selector, SelectionKey.OP_READ);
+	    }
+	    selector.select();
+
+	    if (DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
+		selects++;
+	    }
+
+	    count += channel.read(buffers, 1, NR_OF_BUFFERS - 1);
 	}
 
 	//set the buffers up so they can be drained
@@ -254,7 +311,7 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
 	floats.position(0).limit(buffers[FLOAT].position() / SIZEOF_FLOAT);
 	doubles.position(0).limit(buffers[DOUBLE].position() / SIZEOF_DOUBLE);
 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("received: b[" + bytes.remaining()
 		    + "] c[" + chars.remaining()
 		    + "] s[" + shorts.remaining()
@@ -262,7 +319,7 @@ final class NioIbisSerializationInputStream extends IbisSerializationInputStream
 		    + "] l[" + longs.remaining()
 		    + "] f[" + floats.remaining()
 		    + "] d[" + doubles.remaining()
-		    + "]");
+		    + "], did " + selects + " selects");
 	}
 
     }

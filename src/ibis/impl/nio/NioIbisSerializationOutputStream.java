@@ -154,7 +154,7 @@ final class NioIbisSerializationOutputStream
 	    return;
 	}
 
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("sending: b[" + bytes.position()
 				    + "] c[" + chars.position()
 				    + "] s[" + shorts.position()

@@ -3,12 +3,16 @@ package ibis.impl.nio;
 import java.nio.ByteBuffer;
 import java.nio.BufferUnderflowException;
 import java.nio.channels.ScatteringByteChannel;
+import java.nio.channels.Selector;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
 
 import java.io.IOException;
 
 import ibis.io.SerializationInputStream;
 
 import ibis.ipl.IbisError;
+import ibis.ipl.ReceiveTimedOutException;
 
 /**
  * a "Cheating" SerializationInputStream which is acually only able to
@@ -21,10 +25,12 @@ public final class NioInputStream extends SerializationInputStream
     public static final int DEFAULT_BUFFER_SIZE = 60 * 1024;
 
 
-    ScatteringByteChannel channel; // channel we read from
+    final ScatteringByteChannel channel; // channel we read from
     private ByteBuffer buffer;
     private boolean readAhead; //do we try to read as much as possible or not
     private long count;
+
+    private Selector selector;
 
     /**
      * Create a "optimal" inputstream (when used for lot's of data)
@@ -94,38 +100,11 @@ public final class NioInputStream extends SerializationInputStream
     }
 
     /**
-     * returns the number of bytes available for reading, AFTER it tries to
-     * read from the channel
-     */
-    long poll() throws IOException {
-
-	if(!readAhead) {
-	    return buffer.remaining();
-	}
-
-	//remember the current position (from which we were reading)
-	buffer.mark();
-
-	buffer.position(buffer.limit());
-	buffer.limit(buffer.capacity());
-
-	channel.read(buffer);
-
-	buffer.limit(buffer.position());
-	buffer.reset(); // position = mark
-
-	return buffer.remaining();
-    }
-
-
-    /**
      * resets the number of bytes read to zero
      */
     void resetCount() {
 	count = 0;
     }
-
-
 
     /**
      * read at least "minimum" bytes from the underlying channel.
@@ -140,7 +119,17 @@ public final class NioInputStream extends SerializationInputStream
 	    buffer.limit(minimum);
 	}
 
+	channel.read(buffer);
+
 	while(buffer.position() < minimum) {
+	    if(selector == null) {
+		selector = Selector.open();
+		((SelectableChannel) channel)
+				    .register(selector, SelectionKey.OP_READ);
+	    }
+
+	    selector.select();
+
 	    channel.read(buffer);
 	}
 	buffer.flip();
@@ -184,6 +173,45 @@ public final class NioInputStream extends SerializationInputStream
     }
 
     /**
+     * return a byte from the stream. Thows an ReceiveTimedOutException if
+     * no byte is received before "deadline" has passed.
+     */
+    public byte readByte(long deadline) throws IOException {
+	byte result;
+	long time;
+
+	if(deadline == 0) {
+	    return readByte();
+	}
+
+	if(buffer.hasRemaining()) {
+	    return buffer.get();
+	}
+
+	if(selector == null) {
+	    selector = Selector.open();
+	    ((SelectableChannel) channel)
+		.register(selector, SelectionKey.OP_READ);
+	}
+
+	time = System.currentTimeMillis();
+
+	if(time >= deadline) {
+	    throw new ReceiveTimedOutException("deadline passed");
+	}
+
+	if(selector.select(deadline - time) == 0) {
+	    //nothing selected, must be a timeout
+	    throw new ReceiveTimedOutException("deadline passed");
+	}
+
+	readAtLeast(1); // this shouln't block now
+
+	return buffer.get();
+    }
+
+
+    /**
      * return a byte from the stream
      */
     public int read() throws IOException {
@@ -195,7 +223,6 @@ public final class NioInputStream extends SerializationInputStream
      * return a byte from the stream
      */
     public byte readByte() throws IOException {
-	count += 1;
 	byte result;
 	try {
 	    result =  buffer.get();
@@ -210,6 +237,7 @@ public final class NioInputStream extends SerializationInputStream
 		    + buffer.remaining() + " bytes in buffer" );
 	}
 
+	count += 1;
 	return result;
     }
 
@@ -231,7 +259,6 @@ public final class NioInputStream extends SerializationInputStream
 
 
 	try {
-	    count += len;
 	    buffer.get(b, off, len);
 	} catch (BufferUnderflowException e) {
 	    int left = len;
@@ -255,10 +282,13 @@ public final class NioInputStream extends SerializationInputStream
 		}
 	    }
 	}
+
+	count += len;
 	if(DEBUG_LEVEL >= RIDICULOUSLY_HIGH_DEBUG_LEVEL) {
 	    System.err.println("read a total of " + count + " bytes, "
 		    + buffer.remaining() + " bytes in buffer" );
 	}
+
 	return len;
     }
 

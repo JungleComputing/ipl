@@ -96,7 +96,7 @@ final class NioWriteMessage implements WriteMessage, Config {
     }
 
     public void writeInt(int value) throws IOException {
-	if(DEBUG_LEVEL >= VERY_HIGH_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= HIGH_DEBUG_LEVEL) {
 	    System.err.println("NioWriteMessage: writing int");
 	}
 	try {

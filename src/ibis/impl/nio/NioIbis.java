@@ -81,7 +81,7 @@ public final class NioIbis extends Ibis implements Config {
     }
 
     protected void init() throws IbisException, IOException { 
-	if(DEBUG_LEVEL >= VERY_LOW_DEBUG_LEVEL) {
+	if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
 	    System.err.println("Initializing NioIbis");
 	}
 	poolSize = 1;

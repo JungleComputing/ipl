@@ -32,33 +32,36 @@ class NioPortType implements PortType, Config {
 	this.name = name;
 	this.p = p;
 
-	String ser = p.find("Serialization");
+	//copy staticproperties
+	if(p == null) {
+	    p = new StaticProperties();
+	}
+
+	this.p = p.combineWithUserProps();
+
+	String ser = this.p.find("serialization");
 	if(ser == null) {
-	    this.p = new StaticProperties(p);
-	    this.p.add("Serialization", "sun");
+	    this.p.add("serialization", "sun");
+	    if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
+		System.err.println("Sun serialization used");
+	    }
 	    serializationType = SERIALIZATION_SUN;
 	} else {
 	    if (ser.equals("byte")) {
-		if(DEBUG_LEVEL >= VERY_LOW_DEBUG_LEVEL) {
+		if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
 		    System.err.println("No serialization used");
 		}
 		serializationType = SERIALIZATION_NONE;
-	    } else if (ser.equals("sun")) {
-		if(DEBUG_LEVEL >= VERY_LOW_DEBUG_LEVEL) {
+	    } else if (ser.equals("sun") || ser.equals("object")) {
+		if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
 		    System.err.println("Sun serialization used");
 		}
 		serializationType = SERIALIZATION_SUN;
 	    } else if (ser.equals("ibis") || ser.equals("data")) {
-		if(DEBUG_LEVEL >= VERY_LOW_DEBUG_LEVEL) {
+		if(DEBUG_LEVEL >= LOW_DEBUG_LEVEL) {
 		    System.err.println("Ibis serialization used");
 		}
 		serializationType = SERIALIZATION_IBIS;
-	    } else if (ser.equals("object")) {
-		// default object serialization.
-		if(DEBUG_LEVEL >= VERY_LOW_DEBUG_LEVEL) {
-		    System.err.println("Sun serialization used");
-		}
-		serializationType = SERIALIZATION_SUN;
 	    } else {
 		throw new IbisException("Unknown Serialization type " + ser);
 	    }
