@@ -113,21 +113,18 @@ public class IPUtils {
 		}
 
 		if(external == null) {
-			InetAddress a = null;
-
 			try {
-				a = InetAddress.getLocalHost();
+				InetAddress a = InetAddress.getLocalHost();
+				if(a == null) {
+					System.err.println("Could not find local IP address, you should specify the -Dibis.ip.address=A.B.C.D option");
+					return null;
+				}
+				String name = a.getHostName();
+				external = InetAddress.getByName(InetAddress.getByName(name).getHostAddress());
 			} catch (java.net.UnknownHostException e) {
 				System.err.println("Could not find local IP address, you should specify the -Dibis.ip.address=A.B.C.D option");
 				return null;
 			}
-
-			if(a == null) {
-				System.err.println("Could not find local IP address, you should specify the -Dibis.ip.address=A.B.C.D option");
-				return null;
-			}
-
-			external = a;
 		}
 
 		return external;

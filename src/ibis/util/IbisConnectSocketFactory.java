@@ -54,9 +54,8 @@ public class IbisConnectSocketFactory extends IbisNormalSocketFactory {
 		}
 
 		while (!connected) {
-			int localPort = allocLocalPort();
 			if (DEBUG) {
-				System.err.println("Trying to connect Socket (local:" + (localIP==null?"any" : localIP.toString()) + ":" + localPort + ") to " + dest + ":" + port);
+				System.err.println("ibis-connect: Trying to connect Socket (local:" + (localIP==null?"any" : localIP.toString()) + ") to " + dest + ":" + port);
 			}
 
                         try {
