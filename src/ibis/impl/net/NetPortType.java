@@ -304,6 +304,25 @@ public final class NetPortType implements PortType {
 		return result;
 	}
 
+	public boolean getBooleanStringProperty(String context, String name, boolean defaultValue) {
+		boolean result = defaultValue;
+		String  value  = (String)getProperty(context, name);
+
+		if (value != null) {
+                        value.toLowerCase();
+			if (value.equals(String.valueOf(true))) {
+				result = true;
+			} else if (value.equals(String.valueOf(false))) {
+				result = false;
+			} else {
+				__.abort__("invalid property value '"+value+"', should be "+String.valueOf(true)+" or "+String.valueOf(false));
+			}
+		}
+
+		return result;
+        }
+        
+
         public String getStringProperty(String context, String name, String defaultValue) {
                 String result = defaultValue;
                 String value  = (String)getProperty(context, name);

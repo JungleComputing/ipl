@@ -1,5 +1,9 @@
 package ibis.ipl.impl.net;
 
+import ibis.ipl.Ibis;
+import ibis.ipl.Timer;
+
+
 /**
  * General purpose debugging message formatter.
  *
@@ -7,17 +11,33 @@ package ibis.ipl.impl.net;
  */
 public final class NetLog {
 
+        private static  final   boolean human           = true;
+
+
+        private                 String  logName         = null;
+
+
         /**
          * Owner's name.
          */
-        private String  moduleName = null;
+        private                 String  moduleName      = null;
 
         /**
          * Active state flag.
          *
          * If set to <code>true</code>, debugging messages are printed; otherwise, messages are silently discarded.
          */
-        private boolean on         = false;
+        private                 boolean on              = false;
+
+        private static          Timer   timer           = null;
+
+        {
+                timer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+                if (timer == null) {
+                        timer = Ibis.newTimer("ibis.util.Timer");
+                }
+        }
+        
 
         /**
          * Constructor.
@@ -25,27 +45,18 @@ public final class NetLog {
          * @param on active state flag value.
          * @param moduleName logging object owner's name.
          */        
-        public NetLog(boolean on, String moduleName) {
+        public NetLog(boolean on, String moduleName, String logName) {
                 this.moduleName = moduleName;
                 this.on         = on;
+                this.logName    = logName;
         }
         
-        /**
-         * Constructor.
-         *
-         * @param on active state flag value.
-         */        
-        public NetLog(boolean on) {
-                this(on, "unknownModule");
+        private String _pre() {
+                return human?"":logName+"{";
         }
 
-        /**
-         * General purpose message display.
-         */
-        public void log(String s) {
-                if (on) {
-                        System.err.println(moduleName+": "+s);
-                }
+        private String suf_() {
+                return human?": ":"}"+logName+" ";
         }
         
 
@@ -102,6 +113,25 @@ public final class NetLog {
                 return getCaller(frame + 1).toString();
         }
 
+        /**
+         * JDK >= 1.4 only
+         */
+        private final static java.util.regex.Pattern p = java.util.regex.Pattern.compile("^.*[.]([^.]+[.][^.]+)[(][^)]+[)]$");
+        private final static java.util.regex.Pattern p2 = java.util.regex.Pattern.compile("^.*[.]([^.]+[.][^.]+)[(][^)]+[(]Compiled Code[)][)]$");
+        
+        private String cleanFunctionName(String name) {
+                java.util.regex.Matcher m = p.matcher(name);
+                if (m.matches()) {
+                        return m.group(1);
+                }
+                m = p2.matcher(name);
+                if (m.matches()) {
+                        return m.group(1);
+                }
+                return name;
+        }
+        
+
         /*
          * To use with JDK < 1.4
 
@@ -112,14 +142,40 @@ public final class NetLog {
         private String getLogId(int frame) {
                 return moduleName+".<unknownMethod>";
         }
+
+        private String cleanFunctionName(String name) {
+                return name;
+        }
+
         */
+
+        private String id(int f) {
+                String s = "";
+
+                String caller = getCaller(f + 1).toString();
+
+                if (!human) {
+                        s += timer.currentTimeNanos();
+                        s += "|";
+                        s += Thread.currentThread().toString();
+                        s += "|";
+                        s += moduleName;
+                        s += "|";
+                        s += caller;
+                } else {
+                        s = cleanFunctionName(caller);
+                }                
+                
+                return _pre() + s + suf_();
+        }
+        
 
         /**
          * Method entry point display.
          */
         public void in() {
                 if (on) {
-                        System.err.println(getLogId(1)+": -->");
+                        System.err.println(id(1)+"-->");
                 }
         }
         
@@ -128,7 +184,7 @@ public final class NetLog {
          */
         public void out() {
                 if (on) {
-                        System.err.println(getLogId(1)+": <--");
+                        System.err.println(id(1)+"<--");
                 }
         }
         
@@ -139,7 +195,7 @@ public final class NetLog {
          */
         public void in(String s) {
                 if (on) {
-                        System.err.println(getLogId(1)+": -- "+s+" -->");
+                        System.err.println(id(1)+"-- "+s+" -->");
                 }
         }
         
@@ -150,7 +206,7 @@ public final class NetLog {
          */
         public void out(String s) {
                 if (on) {
-                        System.err.println(getLogId(1)+": <-- "+s+" --");
+                        System.err.println(id(1)+"<-- "+s+" --");
                 }
         }
         
@@ -159,7 +215,7 @@ public final class NetLog {
          */
         public void disp(String s) {
                 if (on) {
-                        System.err.println(getLogId(1)+": - "+s);
+                        System.err.println(id(1)+"- "+s);
                 }
         }
 }

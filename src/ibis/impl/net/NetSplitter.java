@@ -98,7 +98,6 @@ public abstract class NetSplitter extends NetOutput {
 	 */
 	public void free() throws NetIbisException {
                 log.in();
-                Thread.dumpStack();
 		if (outputTable != null) {
 			Iterator i = outputTable.values().iterator();
 

@@ -91,4 +91,9 @@ public final class __ {
 			__.disp__(s);
 		}
 	}
+
+        public static String state__(boolean b) {
+                return b?"enabled":"disabled";
+        }
+        
 }

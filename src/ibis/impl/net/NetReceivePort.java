@@ -88,64 +88,64 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         log.out();
                 }
                 
-		protected void end() {
+                protected void end() {
                         log.in();
-			end = true;
+                        end = true;
                         this.interrupt();
                         log.out();
-		}
+                }
         }
 
 
         
-	/* --- incoming connection manager thread -- */
+        /* --- incoming connection manager thread -- */
 
-	/**
-	 * The incoming connection management thread class.
-	 */
-	private final class AcceptThread extends Thread {
+        /**
+         * The incoming connection management thread class.
+         */
+        private final class AcceptThread extends Thread {
 
-		/**
-		 * Flag indicating whether thread termination was requested.
-		 */
-		private volatile boolean end = false;
+                /**
+                 * Flag indicating whether thread termination was requested.
+                 */
+                private volatile boolean end = false;
 
                 public AcceptThread(String name) {
                         super("NetReceivePort.AcceptThread: "+name);
                         setDaemon(true);
                 }
 
-		/**
-		 * The incoming connection management function.
+                /**
+                 * The incoming connection management function.
                  */
                 /*
-		 * // Note: the thread is <strong>uninterruptible</strong>
-		 * // during the network input locking.
-		 */
-		public void run() {
+                 * // Note: the thread is <strong>uninterruptible</strong>
+                 * // during the network input locking.
+                 */
+                public void run() {
                         log.in("accept thread starting");
                         
-		accept_loop:
-			while (!end) {
+                accept_loop:
+                        while (!end) {
                                 NetServiceLink link = null;
-				try {
+                                try {
                                         link = new NetServiceLink(eventQueue, serverSocket);
-				} catch (NetIbisInterruptedException e) {
-					continue accept_loop;
+                                } catch (NetIbisInterruptedException e) {
+                                        continue accept_loop;
                                 } catch (NetIbisException e) {
-					__.fwdAbort__(e);
-				}
+                                        __.fwdAbort__(e);
+                                }
 
-				Integer               num = null;
-				NetSendPortIdentifier spi = null;
+                                Integer               num = null;
+                                NetSendPortIdentifier spi = null;
 
                                 num = new Integer(nextSendPortNum++);
                                 
                                 try {
                                         link.init(num);
                                 } catch (NetIbisException e) {
-					__.fwdAbort__(e);
-				}
+                                        __.fwdAbort__(e);
+                                }
 
                                 try {
                                         ObjectInputStream is = new ObjectInputStream(link.getInputSubStream("__port__"));
@@ -153,15 +153,15 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         is.close();
                                 } catch (IOException e) {
                                         __.fwdAbort__(e);
-				} catch (ClassNotFoundException e) {
+                                } catch (ClassNotFoundException e) {
                                         __.fwdAbort__(e);
-				}
+                                }
 
-			connect_loop:
-				while (!end) {
-					try {
-						connectionLock.ilock();
-						//inputLock.lock();
+                        connect_loop:
+                                while (!end) {
+                                        try {
+                                                connectionLock.ilock();
+                                                //inputLock.lock();
                                                 
                                                 NetConnection cnx  = new NetConnection(NetReceivePort.this, num, spi, identifier, link);
 
@@ -175,40 +175,40 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                         input.setupConnection(cnx, null);
                                                 }
                                                 
-						if (num.intValue() == 0) {
-							/*
-							 * We got our first connection,
-							 * let's start polling it
-							 */
-							if (pollingThread != null) {
-								pollingThread.start();
-							}
-						}
+                                                if (num.intValue() == 0) {
+                                                        /*
+                                                         * We got our first connection,
+                                                         * let's start polling it
+                                                         */
+                                                        if (pollingThread != null) {
+                                                                pollingThread.start();
+                                                        }
+                                                }
 
-						//inputLock.unlock();
-						connectionLock.unlock();
-					} catch (InterruptedException e) {
+                                                //inputLock.unlock();
+                                                connectionLock.unlock();
+                                        } catch (InterruptedException e) {
                                                 System.err.println("Accept thread interrupted");
                                                 
-						continue connect_loop;
-					} catch (Exception e) {
-						System.err.println(e.getMessage());
-						e.printStackTrace();
-					} 
+                                                continue connect_loop;
+                                        } catch (Exception e) {
+                                                System.err.println(e.getMessage());
+                                                e.printStackTrace();
+                                        } 
 
-					break connect_loop;
-				}
-			}
+                                        break connect_loop;
+                                }
+                        }
 
                         log.out("accept thread leaving");
-		}
+                }
 
-		/**
-		 * Requests for the thread completion.
-		 */
+                /**
+                 * Requests for the thread completion.
+                 */
                 /*
-		protected void prepareEnd() {
-			end = true;
+                protected void prepareEnd() {
+                        end = true;
                         
                         if (serverSocket != null) {
                                 try {
@@ -217,12 +217,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         throw new Error(e);
                                 }
                         }
-		}
+                }
 
-		protected void end() {
+                protected void end() {
 
                         this.interrupt();
-		}
+                }
                 */
                 
                 protected void end() {
@@ -241,46 +241,46 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         log.out();
                 }
                 
-	}
+        }
 
-	/**
-	 * The optional asynchronous polling thread class.
-	 */
-	private final class PollingThread extends Thread {
-		private volatile boolean end = false;
+        /**
+         * The optional asynchronous polling thread class.
+         */
+        private final class PollingThread extends Thread {
+                private volatile boolean end = false;
 
                 public PollingThread(String name) {
                         super("NetReceivePort.PollingThread: "+name);
                         setDaemon(true);
                 }
 
-		/**
-		 * The asynchronous polling function.
-		 * Note: the thread is <strong>uninterruptible</strong>
-		 * during the network input locking.
-		 */
-		public void run() {
+                /**
+                 * The asynchronous polling function.
+                 * Note: the thread is <strong>uninterruptible</strong>
+                 * during the network input locking.
+                 */
+                public void run() {
                         log.in();
-		polling_loop:
-			while (!end) {
-				try {
-					pollingLock.ilock();
+                polling_loop:
+                        while (!end) {
+                                try {
+                                        pollingLock.ilock();
                                         pollingNotify = true;
                                         
-					inputLock.lock();
-					activeSendPortNum = input.poll(false);
-					inputLock.unlock();
+                                        inputLock.lock();
+                                        activeSendPortNum = input.poll(false);
+                                        inputLock.unlock();
 
-					if (activeSendPortNum == null) {
-						pollingLock.unlock();
-						if (useYield) {
-							yield();
+                                        if (activeSendPortNum == null) {
+                                                pollingLock.unlock();
+                                                if (useYield) {
+                                                        yield();
                                                 }
                                                 
-						continue polling_loop;
-					}
+                                                continue polling_loop;
+                                        }
 
-					if (upcallsEnabled && upcall != null) {
+                                        if (upcallsEnabled && upcall != null) {
                                                 final ReadMessage rm = _receive();
 
                                                 if (!useUpcallThread) {
@@ -318,32 +318,32 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                                                 ut.exec(rm);
                                                         }
                                                 }                                                
-					} else {
-						polledLock.unlock();
-					}
-				} catch (InterruptedException e) {
-					pollingLock.unlock();
-					continue polling_loop;
-				} catch (NetIbisException e) {
-					// TODO: pass the exception back
-					//       to the application
-					__.fwdAbort__(e);
-				}
-			}
+                                        } else {
+                                                polledLock.unlock();
+                                        }
+                                } catch (InterruptedException e) {
+                                        pollingLock.unlock();
+                                        continue polling_loop;
+                                } catch (NetIbisException e) {
+                                        // TODO: pass the exception back
+                                        //       to the application
+                                        __.fwdAbort__(e);
+                                }
+                        }
                         log.out();
-		}
+                }
 
-		/**
-		 * Requests for the thread completion.
-		 */
-		protected void end() {
+                /**
+                 * Requests for the thread completion.
+                 */
+                protected void end() {
                         log.in();
-			end = true;
-			this.interrupt();
+                        end = true;
+                        this.interrupt();
                         log.out();
-		}
-	}
-	
+                }
+        }
+        
 
 
 
@@ -354,32 +354,32 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         private boolean                  useUpcallThreadPool = true;
 
-	/**
-	 * Flag indicating whether the port use a polling thread.
-	 */
-	private boolean                  usePollingThread    = false;
+        /**
+         * Flag indicating whether the port use a polling thread.
+         */
+        private boolean                  usePollingThread    = false;
 
-	private boolean                  useUpcallThread     = true;
+        private boolean                  useUpcallThread     = true;
 
-	private boolean                  useUpcall           = false;
+        private boolean                  useUpcall           = false;
 
-	/**
-	 * Flag indicating whether unsuccessful active polling should be followed by
-	 * a yield.
-	 *
-	 * Note: this flag only affects asynchronous multithreaded
-	 * polling or synchronous {@link #receive} operations. In
-	 * particular, the synchronous {@link #poll} operation is not
-	 * affected.
-	 */
-	private boolean                  useYield            =  true;
+        /**
+         * Flag indicating whether unsuccessful active polling should be followed by
+         * a yield.
+         *
+         * Note: this flag only affects asynchronous multithreaded
+         * polling or synchronous {@link #receive} operations. In
+         * particular, the synchronous {@link #poll} operation is not
+         * affected.
+         */
+        private boolean                  useYield            =  true;
 
-	/**
-	 * Flag indicating whether receive should block in the poll()
-	 * that necessarily precedes it, or whether we want to poll in a
-	 * busy-wait style from this.
-	 */
-	public final static  boolean     useBlockingPoll     = true;
+        /**
+         * Flag indicating whether receive should block in the poll()
+         * that necessarily precedes it, or whether we want to poll in a
+         * busy-wait style from this.
+         */
+        public static final boolean            useBlockingPoll     = true;
 
 
 
@@ -387,7 +387,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         /* ___ EVENT QUEUE _________________________________________________ */
 
-	private NetEventQueue         eventQueue             = null;
+        private NetEventQueue         eventQueue             = null;
         private NetEventQueueListener eventQueueListener     = null;
 
 
@@ -397,40 +397,40 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         /* ___ LESS-IMPORTANT OBJECTS ______________________________________ */
 
-	/**
-	 * The name of the port.
-	 */
-	private String                   name          	     =  null;
+        /**
+         * The name of the port.
+         */
+        private String                   name                =  null;
 
-	/**
-	 * The type of the port.
-	 */
-	private NetPortType              type          	     =  null;
+        /**
+         * The type of the port.
+         */
+        private NetPortType              type                =  null;
 
-	/**
-	 * The upcall callback function.
-	 */
-	private Upcall                   upcall        	     =  null;
+        /**
+         * The upcall callback function.
+         */
+        private Upcall                   upcall              =  null;
 
-	/**
-	 * The port identifier.
-	 */
-	private NetReceivePortIdentifier identifier    	     =  null;
+        /**
+         * The port identifier.
+         */
+        private NetReceivePortIdentifier identifier          =  null;
 
-	/**
-	 * The TCP server socket.
-	 */
-	private ServerSocket 	         serverSocket        =  null;
+        /**
+         * The TCP server socket.
+         */
+        private ServerSocket             serverSocket        =  null;
 
-	/**
-	 * The next send port integer number.
-	 */
-	private int          	         nextSendPortNum     =  0;
+        /**
+         * The next send port integer number.
+         */
+        private int                      nextSendPortNum     =  0;
 
-	/**
-	 * Performance statistic
-	 */
-	// private int			n_yield;
+        /**
+         * Performance statistic
+         */
+        // private int                  n_yield;
 
         /**
          * Optional (fine grained) logging object.
@@ -461,17 +461,17 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         /* ___ IMPORTANT OBJECTS ___________________________________________ */
 
-        private Hashtable    	         connectionTable     =  null;
+        private Hashtable                connectionTable     =  null;
 
-	/**
-	 * The port's topmost driver.
-	 */
-	private NetDriver                driver        	     =  null;
+        /**
+         * The port's topmost driver.
+         */
+        private NetDriver                driver              =  null;
 
-	/**
-	 * The port's topmost input.
-	 */
-	private NetInput                 input        	     =  null;
+        /**
+         * The port's topmost input.
+         */
+        private NetInput                 input               =  null;
 
 
 
@@ -479,15 +479,15 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         /* ___ THREADS _____________________________________________________ */
 
-	/**
-	 * The incoming connection management thread.
-	 */
-	private AcceptThread             acceptThread  	     =  null;
+        /**
+         * The incoming connection management thread.
+         */
+        private AcceptThread             acceptThread        =  null;
 
-	/**
-	 * The optionnal asynchronous polling thread.
-	 */
-	private PollingThread            pollingThread       =  null;
+        /**
+         * The optionnal asynchronous polling thread.
+         */
+        private PollingThread            pollingThread       =  null;
 
         private final int                threadStackSize     = 256;
 
@@ -499,29 +499,29 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         /* ___ STATE _______________________________________________________ */
 
-	/**
-	 * The current active peer port.
-	 */
-	private volatile Integer         activeSendPortNum   =  null;
+        /**
+         * The current active peer port.
+         */
+        private volatile Integer         activeSendPortNum   =  null;
 
-	/**
-	 * Flag indicating whether incoming connections are currently enabled.
-	 */
-	private boolean                  connectionEnabled   =  false;
+        /**
+         * Flag indicating whether incoming connections are currently enabled.
+         */
+        private boolean                  connectionEnabled   =  false;
 
-	/**
-	 * Flag indicating whether successful polling operation should
-	 * generate an upcall or not.
-	 */
-	private boolean                  upcallsEnabled      = false;
+        /**
+         * Flag indicating whether successful polling operation should
+         * generate an upcall or not.
+         */
+        private boolean                  upcallsEnabled      = false;
 
-	/**
-	 * The empty message detection flag.
-	 *
-	 * The flag is set on each new {@link #_receive} call and should
-	 * be cleared as soon as at least a byte as been added to the living message.
-	 */
-	private boolean               	 emptyMsg     	     = 	true;
+        /**
+         * The empty message detection flag.
+         *
+         * The flag is set on each new {@link #_receive} call and should
+         * be cleared as soon as at least a byte as been added to the living message.
+         */
+        private boolean                  emptyMsg            =  true;
 
         private volatile boolean         finishNotify        =  false;
         private volatile boolean         pollingNotify       =  false;
@@ -536,29 +536,29 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         /* ___ LOCKS _______________________________________________________ */
 
-	/**
-	 * The polling autorisation lock.
-	 */
-	private NetMutex                 pollingLock         =  null;
+        /**
+         * The polling autorisation lock.
+         */
+        private NetMutex                 pollingLock         =  null;
 
-	/**
-	 * The message extraction autorisation lock.
-	 */
-	private NetMutex                 polledLock          =  null;
+        /**
+         * The message extraction autorisation lock.
+         */
+        private NetMutex                 polledLock          =  null;
 
-	/**
-	 * The incoming connection acceptation lock.
-	 */
-	private NetMutex                 connectionLock      =  null;
+        /**
+         * The incoming connection acceptation lock.
+         */
+        private NetMutex                 connectionLock      =  null;
 
-	/**
-	 * The network input synchronization lock.
-	 */
-	private NetMutex                 inputLock           =  null;
+        /**
+         * The network input synchronization lock.
+         */
+        private NetMutex                 inputLock           =  null;
 
         private NetMutex                 finishMutex         =  null;
 
-	/* --- Upcall from main input object -- */
+        /* --- Upcall from main input object -- */
         public synchronized void inputUpcall(NetInput input, Integer spn) {
                 log.in();
                 if (this.input == null) {
@@ -637,7 +637,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         
 
 
-	/* --- NetEventQueueConsumer part --- */
+        /* --- NetEventQueueConsumer part --- */
         public void event(NetEvent e) {
                 log.in();
                 NetPortEvent event = (NetPortEvent)e;
@@ -676,278 +676,309 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         }
         
 
-	/* --- NetPort part --- */
+        /* --- NetPort part --- */
         public NetPortType getPortType() {
+                log.in();
+                log.out();
                 return type;
         }
         
 
-	/* --- NetReceivePort part --- */
-	/*
-	 * Constructor.
-	 *
-	 * @param type the {@linkplain NetPortType port type}.
-	 * @param name the name of the port.
-	 */
-	public NetReceivePort(NetPortType type,
-			      String      name)
-		throws NetIbisException {
-		this(type, name, null);
-	}
+        /* --- NetReceivePort part --- */
+        /*
+         * Constructor.
+         *
+         * @param type the {@linkplain NetPortType port type}.
+         * @param name the name of the port.
+         */
+        public NetReceivePort(NetPortType type,
+                              String      name)
+                throws NetIbisException {
+                this(type, name, null);
+        }
 
-	/*
-	 * Constructor.
-	 *
-	 * @param type the {@linkplain NetPortType port type}.
-	 * @param name the name of the port.
-	 * @param upcall the reception upcall callback.
-	 */
-	public NetReceivePort(NetPortType type,
-			      String      name,
-			      Upcall      upcall)
-		throws NetIbisException {
-		this.type      = type;
-		this.name      = name;
-		this.upcall    = upcall;
-		upcallsEnabled = false;
-		connectionTable  = new Hashtable();
-		polledLock     = new NetMutex(true);
-		pollingLock    = new NetMutex(false);
-		connectionLock = new NetMutex(true);
-		inputLock      = new NetMutex(false);
-		finishMutex    = new NetMutex(true);
+        /*
+         * Constructor.
+         *
+         * @param type the {@linkplain NetPortType port type}.
+         * @param name the name of the port.
+         * @param upcall the reception upcall callback.
+         */
+        public NetReceivePort(NetPortType type,
+                              String      name,
+                              Upcall      upcall)
+                throws NetIbisException {
+                this.type              = type;
+                this.name              = name;
+                this.upcall            = upcall;
 
-		NetIbis ibis   = type.getIbis();
+                initDebugStreams();
+                initPassiveObjects();
+                initMainInput();
+                initGlobalSettings(upcall != null);
+                initServerSocket();
+                initIdentifier();
+                initActiveObjects();
+                start();
+        }
 
-                {
-                        String mainDriverName = type.getStringProperty("/", "Driver");
+        private void initDebugStreams() {
+                String  s      = "//"+type.name()+" receivePort("+name+")/";
+                              
+                boolean log    = type.getBooleanStringProperty(null, "Log",   false);
+                boolean trace  = type.getBooleanStringProperty(null, "Trace", false);
+                boolean disp   = type.getBooleanStringProperty(null, "Disp",  true);
+                              
+                this.log       = new NetLog(log,   s, "LOG");
+                this.trace     = new NetLog(trace, s, "TRACE");
+                this.disp      = new NetLog(disp,  s, "DISP");
+        }
+        
+        private void initPassiveObjects() {
+                log.in();
+                connectionTable  = new Hashtable();
+                                
+                polledLock       = new NetMutex(true);
+                pollingLock      = new NetMutex(false);
+                connectionLock   = new NetMutex(true);
+                inputLock        = new NetMutex(false);
+                finishMutex      = new NetMutex(true);
+                log.out();
+        }
+        
+        private void initMainInput() throws NetIbisException {
+                log.in();
+                NetIbis ibis           = type.getIbis();
+                String  mainDriverName = type.getStringProperty("/", "Driver");
 
-                        if (mainDriverName == null) {
-                                throw new NetIbisException("root driver not specified");
-                        }
+                if (mainDriverName == null) {
+                        throw new NetIbisException("root driver not specified");
+                }
                         
-                        driver   		 = ibis.getDriver(mainDriverName);
-                        if (driver == null) {
-                                throw new NetIbisException("driver not found");
-                        }
+                driver = ibis.getDriver(mainDriverName);
+                if (driver == null) {
+                        throw new NetIbisException("driver not found");
                 }
                 
-		input                  = driver.newInput(type, null);
+                input = driver.newInput(type, null);
+                log.out();
+        }
 
-		usePollingThread       = (type.getBooleanStringProperty(null, "UsePollingThread",     new Boolean(usePollingThread))).booleanValue();
-		useUpcallThread        = (type.getBooleanStringProperty(null, "UseUpcallThread",      new Boolean(useUpcallThread))).booleanValue();
-		useUpcallThreadPool    = (type.getBooleanStringProperty(null, "UseUpcallThreadPool",  new Boolean(useUpcallThreadPool))).booleanValue();
-		useYield               = (type.getBooleanStringProperty(null, "UseYield",             new Boolean(useYield))).booleanValue();
-		useUpcall              = (type.getBooleanStringProperty(null, "UseUpcall",            new Boolean(useUpcall))).booleanValue();
-		//useBlockingPoll        = (type.getBooleanStringProperty(null, "UseBlockingPoll",      new Boolean(useBlockingPoll))).booleanValue();
-
-                boolean log        = (type.getBooleanStringProperty(null, "Log",      new Boolean(false))).booleanValue();
-                this.log = new NetLog(log, "//"+type.name()+" receivePort/");
-
-                boolean trace        = (type.getBooleanStringProperty(null, "Trace",      new Boolean(false))).booleanValue();
-                this.trace = new NetLog(trace, "//"+type.name()+" receivePort/");
-
-                boolean disp        = (type.getBooleanStringProperty(null, "Disp",      new Boolean(true))).booleanValue();
-                this.disp = new NetLog(disp, "//"+type.name()+" receivePort/");
-
+        private void initGlobalSettings(boolean upcallSpecified) {
+                log.in();
+                usePollingThread       = type.getBooleanStringProperty(null, "UsePollingThread",    usePollingThread   );
+                useUpcallThread        = type.getBooleanStringProperty(null, "UseUpcallThread",     useUpcallThread    );
+                useUpcallThreadPool    = type.getBooleanStringProperty(null, "UseUpcallThreadPool", useUpcallThreadPool);
+                useYield               = type.getBooleanStringProperty(null, "UseYield",            useYield           );
+                useUpcall              = type.getBooleanStringProperty(null, "UseUpcall",           useUpcall          );
+                //                useBlockingPoll        = type.getBooleanStringProperty(null, "UseBlockingPoll",     useBlockingPoll    );
 
                 if (usePollingThread) {
                         useUpcall = false;
-                }
-                else if (!useUpcall && upcall != null) {
+                } else if (!useUpcall && upcallSpecified) {
                         useUpcall = true;
                 }
 
-                if (! usePollingThread) {
-		    System.err.println("Run NetReceivePort " + this + " without PollingThread");
-		}
-                if (! useUpcall) {
-		    System.err.println("Run NetReceivePort " + this + " without Upcall");
-		}
-                if (useBlockingPoll) {
-		    System.err.println("Run NetReceivePort " + this + " with useBlockingPoll");
-		}
-
-		try {
-			serverSocket = new ServerSocket(0, 1, InetAddress.getLocalHost());
-		} catch (IOException e) {
-			throw new NetIbisException(e);
-		}
-			
-		Hashtable info = new Hashtable();
+                disp.disp("__ Configuration ____");
+                disp.disp("Polling thread......." + __.state__(usePollingThread));
+                disp.disp("Upcall thread........" + __.state__(useUpcallThread));
+                disp.disp("Upcall thread pool..." + __.state__(useUpcallThreadPool));
+                disp.disp("Upcall engine........" + __.state__(useUpcall));
+                disp.disp("Yield................" + __.state__(useUpcall));
+                disp.disp("Blocking poll........" + __.state__(useBlockingPoll));
+                disp.disp("_____________________");
+                log.out();
+        }
+        
+        private void initServerSocket() throws NetIbisException {
+                log.in();
+                try {
+                        serverSocket = new ServerSocket(0, 1, InetAddress.getLocalHost());
+                } catch (IOException e) {
+                        throw new NetIbisException(e);
+                }
+                log.out();
+        }
+        
+        private void initIdentifier() {
+                log.in();
+                Hashtable info = new Hashtable();
 
                 InetAddress addr = serverSocket.getInetAddress();
                 int         port = serverSocket.getLocalPort();
-		
-		info.put("accept_address", addr);
-		info.put("accept_port",    new Integer(port));
-
-		NetIbisIdentifier ibisId = (NetIbisIdentifier)ibis.identifier();
-		identifier    = new NetReceivePortIdentifier(name, type.name(), ibisId, info);
-		
-		acceptThread  = new AcceptThread(addr+"["+port+"]");
-		if (usePollingThread) {
-			pollingThread = new PollingThread(addr+"["+port+"]");
-		}
-		
-                eventQueue         = new NetEventQueue();
-                eventQueueListener = new NetEventQueueListener(this, "ReceivePort: "+addr+"["+port+"]", eventQueue);
-                eventQueueListener.start();
-
-		acceptThread.start();
-
-                //System.err.println("NetReceivePort settings");
-                //System.err.println("useUpcallThreadPool = " + useUpcallThreadPool);
-                //System.err.println("usePollingThread    = " + usePollingThread   );
-                //System.err.println("useUpcallThread     = " + useUpcallThread    );
-                //System.err.println("useUpcall           = " + useUpcall          );
-                //System.err.println("useYield            = " + useYield           );
-                //System.err.println("_______________________");
-	}
-
-	/**
-	 * The internal synchronous polling function.
-	 *
-	 * The calling thread is <strong>uninterruptible</strong> during
-	 * the network input locking operation. The function may block
-	 * if the {@linkplain #inputLock network input lock} is not available.
-	 */
-	private boolean _doPoll(boolean block) throws NetIbisException {
+                
+                info.put("accept_address", addr);
+                info.put("accept_port",    new Integer(port));
+                NetIbis           ibis   = type.getIbis();
+                NetIbisIdentifier ibisId = (NetIbisIdentifier)ibis.identifier();
+                identifier = new NetReceivePortIdentifier(name, type.name(), ibisId, info);
+                log.out();
+        }
+        
+        private void initActiveObjects() {
                 log.in();
-		inputLock.lock();
-		activeSendPortNum = input.poll(block);
-		inputLock.unlock();
+                acceptThread = new AcceptThread(name);
 
-		if (activeSendPortNum == null) {
+                if (usePollingThread) {
+                        pollingThread = new PollingThread(name);
+                }
+                
+                eventQueue         = new NetEventQueue();
+                eventQueueListener = new NetEventQueueListener(this, "ReceivePort: "+name, eventQueue);
+                log.out();
+        }
+        
+        private void start() {
+                log.in();
+                eventQueueListener.start();
+                acceptThread.start();
+                log.out();
+        }
+        
+        /**
+         * The internal synchronous polling function.
+         *
+         * The calling thread is <strong>uninterruptible</strong> during
+         * the network input locking operation. The function may block
+         * if the {@linkplain #inputLock network input lock} is not available.
+         */
+        private boolean _doPoll(boolean block) throws NetIbisException {
+                log.in();
+                inputLock.lock();
+                activeSendPortNum = input.poll(block);
+                inputLock.unlock();
+
+                if (activeSendPortNum == null) {
                         log.out("activeSendPortNum = null");
-			return false;
-		}
+                        return false;
+                }
 
                 log.out("activeSendPortNum = "+activeSendPortNum);
-		return true;
-	}
+                return true;
+        }
 
-	/**
-	 * Internally initializes a new reception.
-	 */
-	private ReadMessage _receive() {
+        /**
+         * Internally initializes a new reception.
+         */
+        private ReadMessage _receive() {
                 log.in();
-		emptyMsg = true;
+                emptyMsg = true;
+                trace.disp("message receive -->");
                 log.out();
-		return this;
-	}
+                return this;
+        }
 
-	/**
-	 * Blockingly attempts to receive a message.
-	 *
-	 * Note: if upcalls are currently enabled, this function is bypassed
-	 * by the upcall callback unless no callback has been specified.
-	 *
-	 * @return A {@link ReadMessage} instance.
-	 */
-	public ReadMessage receive() throws NetIbisException {
+        /**
+         * Blockingly attempts to receive a message.
+         *
+         * Note: if upcalls are currently enabled, this function is bypassed
+         * by the upcall callback unless no callback has been specified.
+         *
+         * @return A {@link ReadMessage} instance.
+         */
+        public ReadMessage receive() throws NetIbisException {
                 log.in();
-		if (usePollingThread || useUpcall || upcall != null) {
-			polledLock.lock();
-		} else {
-			if (useYield) {
-				while (!_doPoll(useBlockingPoll)) {
-					Thread.currentThread().yield();
-					// n_yield++;
-				}
-			} else {
-				while (!_doPoll(useBlockingPoll));
-			}
-			
-		}
-		
+                if (usePollingThread || useUpcall || upcall != null) {
+                        polledLock.lock();
+                } else {
+                        if (useYield) {
+                                while (!_doPoll(useBlockingPoll)) {
+                                        Thread.currentThread().yield();
+                                        // n_yield++;
+                                }
+                        } else {
+                                while (!_doPoll(useBlockingPoll));
+                        }
+                        
+                }
+                
                 log.out();
-		return _receive();
-	}
+                return _receive();
+        }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public ReadMessage receive(ReadMessage finishMe) throws NetIbisException {
+        /**
+         * {@inheritDoc}
+         */
+        public ReadMessage receive(ReadMessage finishMe) throws NetIbisException {
                 log.in();
-		if (finishMe != null) {
+                if (finishMe != null) {
                         ((NetReceivePort)finishMe).finish();
                 }
                 log.out();
                 
-		return receive();
-	}
-	
-	/**
-	 * Unblockingly attempts to receive a message.
-	 *
-	 * Note: if upcalls are currently enabled, this function is bypassed
-	 * by the upcall callback unless no callback has been specified.
-	 *
-	 * @return A {@link ReadMessage} instance or <code>null</code> if polling
-	 * was unsuccessful.
-	 */
-	public ReadMessage poll()  throws NetIbisException {
+                return receive();
+        }
+        
+        /**
+         * Unblockingly attempts to receive a message.
+         *
+         * Note: if upcalls are currently enabled, this function is bypassed
+         * by the upcall callback unless no callback has been specified.
+         *
+         * @return A {@link ReadMessage} instance or <code>null</code> if polling
+         * was unsuccessful.
+         */
+        public ReadMessage poll()  throws NetIbisException {
                 log.in();
-		if (usePollingThread || useUpcall || upcall != null) {
-			if (!polledLock.trylock())
+                if (usePollingThread || useUpcall || upcall != null) {
+                        if (!polledLock.trylock())
                                 log.out("poll failure 1");
-				return null;
-		} else {
-			if (!_doPoll(false)) {
+                                return null;
+                } else {
+                        if (!_doPoll(false)) {
                                 log.out("poll failure 2");
-				return null;
-			}
-		}
-		
+                                return null;
+                        }
+                }
+                
                 log.out("poll success");
                 
-		return _receive();
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	public ReadMessage poll(ReadMessage finishMe) throws NetIbisException {
+                return _receive();
+        }
+        
+        /**
+         * {@inheritDoc}
+         */
+        public ReadMessage poll(ReadMessage finishMe) throws NetIbisException {
                 log.in();
-		if (finishMe != null) {
+                if (finishMe != null) {
                         ((NetReceivePort)finishMe).finish();
                 }
 
                 ReadMessage rm = poll();
                 log.out();
-		return rm;
-	}
-	
-	public DynamicProperties properties() {
+                return rm;
+        }
+        
+        public DynamicProperties properties() {
                 log.in();
                 log.out();
-		return null;
-	}	
+                return null;
+        }       
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public ReceivePortIdentifier identifier() {
+        /**
+         * {@inheritDoc}
+         */
+        public ReceivePortIdentifier identifier() {
                 log.in();
                 log.out();
-		return identifier;
-	}
+                return identifier;
+        }
 
-	/**
-	 * Returns the identifier of the current active port peer or <code>null</code>
-	 * if no peer port is active.
-	 *
-	 * @return The identifier of the port.
-	 */
-	protected NetSendPortIdentifier getActiveSendPortIdentifier() {
+        /**
+         * Returns the identifier of the current active port peer or <code>null</code>
+         * if no peer port is active.
+         *
+         * @return The identifier of the port.
+         */
+        protected NetSendPortIdentifier getActiveSendPortIdentifier() {
                 log.in();
                 /*
-		if (activeSendPortNum == null)
-			return null;
+                if (activeSendPortNum == null)
+                        return null;
                 */
 
-		if (activeSendPortNum == null)
+                if (activeSendPortNum == null)
                         throw new Error("no active sendPort");
                 
                 NetConnection cnx = (NetConnection)connectionTable.get(activeSendPortNum);
@@ -957,50 +988,50 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 NetSendPortIdentifier id = cnx.getSendId();
 
                 log.out();
-		return id;
-	}
+                return id;
+        }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public synchronized void enableConnections() {
+        /**
+         * {@inheritDoc}
+         */
+        public synchronized void enableConnections() {
                 log.in();
-		if (!connectionEnabled) {
-			connectionEnabled = true;
-			connectionLock.unlock();
-		}
-		log.out();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public synchronized void disableConnections() {
-                log.in();
-		if (connectionEnabled) {
-			connectionEnabled = false;
-			connectionLock.lock();
-		}
+                if (!connectionEnabled) {
+                        connectionEnabled = true;
+                        connectionLock.unlock();
+                }
                 log.out();
-	}
+        }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public synchronized void enableUpcalls() {
+        /**
+         * {@inheritDoc}
+         */
+        public synchronized void disableConnections() {
                 log.in();
-		upcallsEnabled = true;
+                if (connectionEnabled) {
+                        connectionEnabled = false;
+                        connectionLock.lock();
+                }
                 log.out();
-	}
+        }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public synchronized void disableUpcalls() {
+        /**
+         * {@inheritDoc}
+         */
+        public synchronized void enableUpcalls() {
                 log.in();
-		upcallsEnabled = false;
+                upcallsEnabled = true;
                 log.out();
-	}
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public synchronized void disableUpcalls() {
+                log.in();
+                upcallsEnabled = false;
+                log.out();
+        }
 
 
 
@@ -1021,13 +1052,13 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
         }
 
-	/**
-	 * Closes the port. 
-	 *
-	 * Note: surprinsingly, ReceivePort.free is not declared to
-	 * throw NetIbisException while SendPort.free does.
-	 */
-	public void free() {
+        /**
+         * Closes the port. 
+         *
+         * Note: surprinsingly, ReceivePort.free is not declared to
+         * throw NetIbisException while SendPort.free does.
+         */
+        public void free() {
                 log.in();
                 synchronized(this) {
                         try {
@@ -1080,9 +1111,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         }
                 }
                 log.out();
-	}
-	
-	protected void finalize() throws Throwable {
+        }
+        
+        protected void finalize() throws Throwable {
                 log.in();
                 free();
 
@@ -1131,19 +1162,20 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         }
                 }
                         
-		super.finalize();
+                super.finalize();
                 log.out();
-	}
+        }
 
-	/* --- ReadMessage Part --- */
-	public void finish() throws NetIbisException {
+        /* --- ReadMessage Part --- */
+        public void finish() throws NetIbisException {
                 log.in();
-		if (emptyMsg) {
-			readByte();
+                if (emptyMsg) {
+                        readByte();
                         emptyMsg = false;
-		}
-		activeSendPortNum = null;
-		input.finish();
+                }
+                trace.disp("message receive <--");
+                activeSendPortNum = null;
+                input.finish();
                 currentThread = null;
                 
                 if (finishNotify) {
@@ -1156,256 +1188,256 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         pollingLock.unlock();
                 }
                 log.out();
-	}
+        }
 
-	public long sequenceNumber() {
+        public long sequenceNumber() {
                 log.in();
                 log.out();
-		return 0;
-	}
-	
-	public SendPortIdentifier origin() {
+                return 0;
+        }
+        
+        public SendPortIdentifier origin() {
                 log.in();
                 SendPortIdentifier spi = getActiveSendPortIdentifier();
                 log.out();
                 return spi;
-	}
+        }
 
 
-	public boolean readBoolean() throws NetIbisException {
+        public boolean readBoolean() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		boolean v = input.readBoolean();
+                emptyMsg = false;
+                boolean v = input.readBoolean();
                 log.out();
                 return v;
-	}
-	
-	public byte readByte() throws NetIbisException {
+        }
+        
+        public byte readByte() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		byte v = input.readByte();
+                emptyMsg = false;
+                byte v = input.readByte();
                 log.out();
                 return v;
-	}
-	
-	public char readChar() throws NetIbisException {
+        }
+        
+        public char readChar() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		char v = input.readChar();
+                emptyMsg = false;
+                char v = input.readChar();
                 log.out();
                 return v;
-	}
-	
-	public short readShort() throws NetIbisException {
+        }
+        
+        public short readShort() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		short v = input.readShort();
+                emptyMsg = false;
+                short v = input.readShort();
                 log.out();
                 return v;
-	}
-	
-	public int readInt() throws NetIbisException {
+        }
+        
+        public int readInt() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		int v = input.readInt();
+                emptyMsg = false;
+                int v = input.readInt();
                 log.out();
                 return v;
-	}
-	
-	public long readLong() throws NetIbisException {
+        }
+        
+        public long readLong() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		long v = input.readLong();
+                emptyMsg = false;
+                long v = input.readLong();
                 log.out();
                 return v;
-	}
-	
-	public float readFloat() throws NetIbisException {
+        }
+        
+        public float readFloat() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		float v = input.readFloat();
+                emptyMsg = false;
+                float v = input.readFloat();
                 log.out();
                 return v;
-	}
-	
-	public double readDouble() throws NetIbisException {
+        }
+        
+        public double readDouble() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		double v = input.readDouble();
+                emptyMsg = false;
+                double v = input.readDouble();
                 log.out();
                 return v;
-	}
-	
-	public String readString() throws NetIbisException {
+        }
+        
+        public String readString() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		String v = input.readString();
+                emptyMsg = false;
+                String v = input.readString();
                 log.out();
                 return v;
-	}
-	
-	public Object readObject() throws NetIbisException {
+        }
+        
+        public Object readObject() throws NetIbisException {
                 log.in();
-		emptyMsg = false;
-		Object v = input.readObject();
+                emptyMsg = false;
+                Object v = input.readObject();
                 log.out();
                 return v;
-	}
-	
+        }
+        
 
-	public void readArrayBoolean(boolean [] b) throws NetIbisException {
+        public void readArrayBoolean(boolean [] b) throws NetIbisException {
                 log.in();
-		readArraySliceBoolean(b, 0, b.length);
+                readArraySliceBoolean(b, 0, b.length);
                 log.out();
-	}
+        }
 
-	public void readArrayByte(byte [] b) throws NetIbisException {
+        public void readArrayByte(byte [] b) throws NetIbisException {
                 log.in();
                 readArraySliceByte(b, 0, b.length);
                 log.out();
-	}
+        }
 
-	public void readArrayChar(char [] b) throws NetIbisException {
+        public void readArrayChar(char [] b) throws NetIbisException {
                 log.in();
-		readArraySliceChar(b, 0, b.length);
+                readArraySliceChar(b, 0, b.length);
                 log.out();
-	}
+        }
 
-	public void readArrayShort(short [] b) throws NetIbisException {
+        public void readArrayShort(short [] b) throws NetIbisException {
                 log.in();
-		readArraySliceShort(b, 0, b.length);
+                readArraySliceShort(b, 0, b.length);
                 log.out();
-	}
+        }
 
-	public void readArrayInt(int [] b) throws NetIbisException {
+        public void readArrayInt(int [] b) throws NetIbisException {
                 log.in();
-		readArraySliceInt(b, 0, b.length);
+                readArraySliceInt(b, 0, b.length);
                 log.out();
-	}
+        }
 
-	public void readArrayLong(long [] b) throws NetIbisException {
+        public void readArrayLong(long [] b) throws NetIbisException {
                 log.in();
                 readArraySliceLong(b, 0, b.length);
                 log.out();
-	}
+        }
 
-	public void readArrayFloat(float [] b) throws NetIbisException {
+        public void readArrayFloat(float [] b) throws NetIbisException {
                 log.in();
                 readArraySliceFloat(b, 0, b.length);
                 log.out();
-	}
+        }
 
-	public void readArrayDouble(double [] b) throws NetIbisException {
+        public void readArrayDouble(double [] b) throws NetIbisException {
                 log.in();
-		readArraySliceDouble(b, 0, b.length);
+                readArraySliceDouble(b, 0, b.length);
                 log.out();
-	}
+        }
 
-	public void readArrayObject(Object [] b) throws NetIbisException {
+        public void readArrayObject(Object [] b) throws NetIbisException {
                 log.in();
-		readArraySliceObject(b, 0, b.length);
+                readArraySliceObject(b, 0, b.length);
                 log.out();
-	}
+        }
 
 
-	public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
+        public void readArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
                 log.in();
-		if (l == 0) {
+                if (l == 0) {
                         log.out("l = 0");
-			return;
+                        return;
                 }
                 
-		emptyMsg = false;
-		input.readArraySliceBoolean(b, o, l);
-	}
+                emptyMsg = false;
+                input.readArraySliceBoolean(b, o, l);
+        }
 
-	public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
+        public void readArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
                 log.in();
-		if (l == 0) {
-			log.out("l = 0");
-			return;
-		}
+                if (l == 0) {
+                        log.out("l = 0");
+                        return;
+                }
 
-		emptyMsg = false;
+                emptyMsg = false;
                 input.readArraySliceByte(b, o, l);
-	}
+        }
 
-	public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
+        public void readArraySliceChar(char [] b, int o, int l) throws NetIbisException {
                 log.in();
-		if (l == 0) {
-			log.out("l = 0");
-			return;
-		}
+                if (l == 0) {
+                        log.out("l = 0");
+                        return;
+                }
 
-		emptyMsg = false;
-		input.readArraySliceChar(b, o, l);
-	}
+                emptyMsg = false;
+                input.readArraySliceChar(b, o, l);
+        }
 
-	public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
+        public void readArraySliceShort(short [] b, int o, int l) throws NetIbisException {
                 log.in();
-		if (l == 0) {
-			log.out("l = 0");
-			return;
-		}
+                if (l == 0) {
+                        log.out("l = 0");
+                        return;
+                }
 
-		emptyMsg = false;
-		input.readArraySliceShort(b, o, l);
-	}
+                emptyMsg = false;
+                input.readArraySliceShort(b, o, l);
+        }
 
-	public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
+        public void readArraySliceInt(int [] b, int o, int l) throws NetIbisException {
                 log.in();
-		if (l == 0) {
-			log.out("l = 0");
-			return;
-		}
+                if (l == 0) {
+                        log.out("l = 0");
+                        return;
+                }
 
-		emptyMsg = false;
-		input.readArraySliceInt(b, o, l);
-	}
+                emptyMsg = false;
+                input.readArraySliceInt(b, o, l);
+        }
 
-	public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
+        public void readArraySliceLong(long [] b, int o, int l) throws NetIbisException {
                 log.in();
-		if (l == 0) {
-			log.out("l = 0");
-			return;
-		}
+                if (l == 0) {
+                        log.out("l = 0");
+                        return;
+                }
 
-		emptyMsg = false;
-		input.readArraySliceLong(b, o, l);
-	}
+                emptyMsg = false;
+                input.readArraySliceLong(b, o, l);
+        }
 
-	public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
+        public void readArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
                 log.in();
-		if (l == 0) {
-			log.out("l = 0");
-			return;
-		}
+                if (l == 0) {
+                        log.out("l = 0");
+                        return;
+                }
 
-		emptyMsg = false;
-		input.readArraySliceFloat(b, o, l);
-	}
+                emptyMsg = false;
+                input.readArraySliceFloat(b, o, l);
+        }
 
-	public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
+        public void readArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
                 log.in();
-		if (l == 0) {
-			log.out("l = 0");
-			return;
-		}
+                if (l == 0) {
+                        log.out("l = 0");
+                        return;
+                }
 
-		emptyMsg = false;
-		input.readArraySliceDouble(b, o, l);
-	}
+                emptyMsg = false;
+                input.readArraySliceDouble(b, o, l);
+        }
 
-	public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
+        public void readArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
                 log.in();
-		if (l == 0) {
-			log.out("l = 0");
-			return;
-		}
+                if (l == 0) {
+                        log.out("l = 0");
+                        return;
+                }
 
-		emptyMsg = false;
-		input.readArraySliceObject(b, o, l);
+                emptyMsg = false;
+                input.readArraySliceObject(b, o, l);
                 log.out();
-	}
-	
+        }
+        
 } 

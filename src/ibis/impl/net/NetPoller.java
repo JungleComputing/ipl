@@ -144,10 +144,13 @@ public abstract class NetPoller extends NetInput {
                 log.in("spn = "+spn);
                 Thread me = Thread.currentThread();
 
+                //log.disp("waiting for sync");
                 synchronized(this) {
                         while (activeQueue != null) {
                                 try {
+                                        //log.disp("activeQueue is not null, waiting");
                                         wait();
+                                        //log.disp("woke up");
                                 } catch (InterruptedException e) {
                                         throw new NetIbisInterruptedException(e);
                                 }

@@ -281,17 +281,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 this.replacer = replacer;
                 this.ibis     = type.getIbis();
 
-                boolean log   = (type.getBooleanStringProperty(null, "Log",      new Boolean(false))).booleanValue();
-                this.log  = new NetLog(log,  "//"+type.name()+" sendPort/");
-
-                boolean trace   = (type.getBooleanStringProperty(null, "Trace",      new Boolean(false))).booleanValue();
-                this.trace  = new NetLog(log,  "//"+type.name()+" sendPort/");
-
-                boolean disp   = (type.getBooleanStringProperty(null, "Disp",      new Boolean(true))).booleanValue();
-                this.disp  = new NetLog(log,  "//"+type.name()+" sendPort/");
-
-                boolean stat  = (type.getBooleanStringProperty(null, "Stat",      new Boolean(false))).booleanValue();
-                this.stat = new NetMessageStat(stat, "//"+type.name()+" sendPort/");
+                initDebugStreams();
 
                 initPassiveState();
                 initActiveState();
@@ -310,7 +300,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * <BR><B>Note 2:</B> the {@link #eventQueue} is closed there (that is, not in the {@link #free} method).
 	 */
 	protected void finalize() throws Throwable {
-                log.log("finalize-->");
+                log.in();
 		free();
 
                 if (eventQueueListener != null) {
@@ -327,22 +317,39 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 }
 
 		super.finalize();
-                log.log("finalize<--");
+                log.out();
 	}
 
 
         /* ----- PASSIVE STATE INITIALIZATION ______________________________ */
 
+        private void initDebugStreams() {
+                String s = "//"+type.name()+" sendPort("+name+")/";
+
+                boolean log   = type.getBooleanStringProperty(null, "Log",   false);
+                boolean trace = type.getBooleanStringProperty(null, "Trace", false);
+                boolean disp  = type.getBooleanStringProperty(null, "Disp",  true );
+                boolean stat  = type.getBooleanStringProperty(null, "Stat",  false);
+
+                this.log   = new NetLog(log,   s, "LOG");
+                this.trace = new NetLog(trace, s, "TRACE");
+                this.disp  = new NetLog(disp,  s, "DISP");
+                this.stat  = new NetMessageStat(stat, s);
+        }
+        
+
         /**
          * The port connection {@link #identifier} generation.
          */
         private void initIdentifier() throws NetIbisException {
+                log.in();
                 if (this.identifier != null)
                         throw new NetIbisException("identifier already initialized");
 
 		NetIbisIdentifier ibisId = (NetIbisIdentifier)ibis.identifier();
 
 		this.identifier = new NetSendPortIdentifier(name, type.name(), ibisId);
+                log.out();
         }
 
         /**
@@ -518,6 +525,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	public WriteMessage newMessage() throws NetIbisException {
                 log.in();
 		outputLock.lock();
+                trace.disp("message send -->");
                 stat.begin();
 		emptyMsg = true;
                 output.initSend();
@@ -666,6 +674,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		_finish();
 		output.finish();
                 stat.end();
+                trace.disp("message send <--");
 		outputLock.unlock();
                 log.out();
 	}

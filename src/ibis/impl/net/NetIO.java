@@ -111,18 +111,18 @@ public abstract class NetIO {
                 }
 
                 // Logging objects
-                Boolean logOn = type.getBooleanStringProperty(this.context, "Log", new Boolean(false));
-                log = new NetLog(logOn.booleanValue(), s);
+                boolean logOn = type.getBooleanStringProperty(this.context, "Log", false);
+                log = new NetLog(logOn, s, "LOG");
 
-                Boolean traceOn = type.getBooleanStringProperty(this.context, "Trace", new Boolean(false));
-                trace = new NetLog(traceOn.booleanValue(), s);
+                boolean traceOn = type.getBooleanStringProperty(this.context, "Trace", false);
+                trace = new NetLog(traceOn, s, "TRACE");
 
-                Boolean dispOn = type.getBooleanStringProperty(this.context, "Disp", new Boolean(true));
-                disp = new NetLog(dispOn.booleanValue(), s);
+                boolean dispOn = type.getBooleanStringProperty(this.context, "Disp", true);
+                disp = new NetLog(dispOn, s, "DISP");
 
                 // Stat object
-                Boolean statOn = type.getBooleanStringProperty(this.context, "Stat", new Boolean(false));
-                stat = newMessageStat(statOn.booleanValue(), s);
+                boolean statOn = type.getBooleanStringProperty(this.context, "Stat", false);
+                stat = newMessageStat(statOn, s);
 	}
 
         protected NetMessageStat newMessageStat(boolean on, String moduleName) {
