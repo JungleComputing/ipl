@@ -33,7 +33,6 @@ strictfp public class GlobalData implements Cloneable, Serializable {
 
   public boolean gdSerialize   = false;
   public boolean gdTrimArrays  = false;
-  public boolean gdJavaBarrier = false;
   public boolean gdThreads = false;
   public int gdGCInterval = 0;
 

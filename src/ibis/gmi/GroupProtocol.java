@@ -16,10 +16,11 @@ public interface GroupProtocol {
  
 	// registy calls
 	public static final byte
-		CREATE_GROUP  = 0,
-	        JOIN_GROUP    = 1, 		      
- 	        BARRIER_GROUP = 2,
- 	        FIND_GROUP    = 3;
+		CREATE_GROUP    = 0,
+	        JOIN_GROUP      = 1, 		      
+ 	        BARRIER_GROUP   = 2,
+ 	        FIND_GROUP      = 3,
+		DEFINE_COMBINED = 4;
 
         // registry replies
 	public static final byte
@@ -36,7 +37,10 @@ public interface GroupProtocol {
 
 		GROUP_UNKOWN    = 30, 
 		GROUP_OK        = 31, 
-		GROUP_NOT_READY = 32; 
+		GROUP_NOT_READY = 32,
+
+		COMBINED_FAILED = 40,
+		COMBINED_OK     = 41;
 						
 	// Invocation mode
 	//	public static final byte

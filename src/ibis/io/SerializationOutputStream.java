@@ -13,20 +13,20 @@ import java.io.IOException;
        without parameters must be used, and all methods of ObjectOutputStream
        must be redefined. This is the path taken when Ibis serialization
        is used.
-**/
+*/
 public abstract class SerializationOutputStream extends ObjectOutputStream {
     private Replacer replacer;
 
-    /** Constructor which must be called for Ibis serialization,
-	because the corresponding ObjectOutputStream constructor must be called,
+    /** Constructor which must be called for Ibis serialization.
+	The corresponding ObjectOutputStream constructor must be called,
 	so that all of the ObjectOutputStream methods can be redefined.
-    **/
+    */
     SerializationOutputStream() throws IOException {
 	super();
     }
 
     /** Constructor which must be called for Sun serialization.
-    **/
+    */
     SerializationOutputStream(OutputStream s) throws IOException {
 	super(s);
     }
@@ -37,7 +37,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
 	The replacement mechanism provided here is independent of the
 	serialization implementation (Ibis serialization, Sun
 	serialization).
-    **/
+    */
     public void setReplacer(Replacer replacer) {
 	try {
 	    enableReplaceObject(true);
@@ -46,7 +46,8 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
 	this.replacer = replacer;
     }
 
-    /** Object replacement for Sun serialization. **/
+    /** Object replacement for Sun serialization.
+    */
     protected Object replaceObject(Object obj) {
 	if (obj != null && replacer != null) {
 	    obj = replacer.replace(obj);
@@ -54,30 +55,79 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
 	return obj;
     }
 
-    /** Returns the actual implementation used by the stream **/
+    /** Returns the actual implementation used by the stream 
+    */
     public abstract String serializationImplName();
 
-    /** These methods can be used to write slices of arrays.
+    /** Write a slice of an array of booleans.
 	Warning: duplicates are NOT detected when these calls are used!
-	It is legal to use a writeArraySliceXXX, with a corresponding
-	readArrayXXX.
-    **/
+	It is legal to use a writeArraySliceBoolean, with a corresponding
+	readArrayBoolean.
+    */
     abstract public void writeArraySliceBoolean(boolean[] ref, int off, int len)
 	throws IOException;
+
+    /** Write a slice of an array of bytes.
+	Warning: duplicates are NOT detected when these calls are used!
+	It is legal to use a writeArraySliceByte, with a corresponding
+	readArrayByte.
+    */
     abstract public void writeArraySliceByte(byte[] ref, int off, int len)
 	throws IOException;
+
+    /** Write a slice of an array of shorts.
+	Warning: duplicates are NOT detected when these calls are used!
+	It is legal to use a writeArraySliceShort, with a corresponding
+	readArrayShort.
+    */
     abstract public void writeArraySliceShort(short[] ref, int off, int len)
 	throws IOException;
+
+    /** Write a slice of an array of chars.
+	Warning: duplicates are NOT detected when these calls are used!
+	It is legal to use a writeArraySliceChar, with a corresponding
+	readArrayChar.
+    */
     abstract public void writeArraySliceChar(char[] ref, int off, int len)
 	throws IOException;
+
+    /** Write a slice of an array of ints.
+	Warning: duplicates are NOT detected when these calls are used!
+	It is legal to use a writeArraySliceInt, with a corresponding
+	readArrayInt.
+    */
     abstract public void writeArraySliceInt(int[] ref, int off, int len)
 	throws IOException;
+
+    /** Write a slice of an array of longs.
+	Warning: duplicates are NOT detected when these calls are used!
+	It is legal to use a writeArraySliceLong, with a corresponding
+	readArrayLong.
+    */
     abstract public void writeArraySliceLong(long[] ref, int off, int len)
 	throws IOException;
+
+    /** Write a slice of an array of floats.
+	Warning: duplicates are NOT detected when these calls are used!
+	It is legal to use a writeArraySliceFloat, with a corresponding
+	readArrayFloat.
+    */
     abstract public void writeArraySliceFloat(float[] ref, int off, int len)
 	throws IOException;
+
+    /** Write a slice of an array of doubles.
+	Warning: duplicates are NOT detected when these calls are used!
+	It is legal to use a writeArraySliceDouble, with a corresponding
+	readArrayDouble.
+    */
     abstract public void writeArraySliceDouble(double[] ref, int off, int len)
 	throws IOException;
+
+    /** Write a slice of an array of objects.
+	Warning: duplicates are NOT detected when these calls are used!
+	It is legal to use a writeArraySliceObject, with a corresponding
+	readArrayObject.
+    */
     abstract public void writeArraySliceObject(Object[] ref, int off, int len)
 	throws IOException;
 
@@ -122,17 +172,16 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
 	writeArraySliceObject(ref, 0, ref.length);
     }
 
-    /* We cannot redefine writeObject, because it is final in
-       ObjectOutputStream. The trick for Ibis serialization is to have the
-       ObjectOutputStream be initialized with its parameter-less constructor.
-       This will cause its writeObject to call writeObjectOverride instead
-       of doing its own thing.
-    */
 
     /** Write objects and arrays.
 	Duplicates are deteced when this call is used.
 	The replacement mechanism is implemented here as well.
-    **/
+        We cannot redefine writeObject, because it is final in
+        ObjectOutputStream. The trick for Ibis serialization is to have the
+        ObjectOutputStream be initialized with its parameter-less constructor.
+        This will cause its writeObject to call writeObjectOverride instead
+        of doing its own thing.
+    */
     protected final void writeObjectOverride(Object ref)
 	throws IOException {
 	if (ref != null && replacer != null) {
@@ -142,18 +191,16 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
 	doWriteObject(ref);
     }
 
+    /** Write objects and arrays.
+        To be specified by IbisSerializationOutputStream. The SunSerializationOutputStream
+	version should never be called, because doWriteObject is only called from
+	writeObjectOverride, which only gets called when we are doing Ibis serialization.
+    */
     protected abstract void doWriteObject(Object ref)
 	throws IOException;
 
 
-    /** Print some statistics. **/
+    /** Print some statistics. 
+    */
     abstract public void statistics();
-
-    /** Returns the total number of bytes that is written in the stream 
-	since the last resetBytesWritten().
-    **/
-    abstract public int bytesWritten();    
-
-    /** Reset the statistics. **/
-    abstract public void resetBytesWritten();
 }

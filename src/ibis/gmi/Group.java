@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Hashtable;
+import java.util.Enumeration;
 import java.util.StringTokenizer;
 
 import ibis.ipl.*;
@@ -13,897 +14,692 @@ import ibis.util.SpecialStack;
 import java.lang.reflect.Method;
 
 public final class Group { 
-	
-	public final static boolean DEBUG = false;
+    
+    public final static boolean DEBUG = true;
 
-	// result opcodes
-	public static final byte
-	        RESULT_VOID      = 0,
-	        RESULT_BOOLEAN   = 1,
-		RESULT_BYTE      = 2,
-		RESULT_SHORT     = 3,		
-		RESULT_CHAR      = 4,
-		RESULT_INT       = 5,
-		RESULT_LONG      = 6,
-		RESULT_FLOAT     = 7,
-		RESULT_DOUBLE    = 8,
-		RESULT_OBJECT    = 9,
- 	        RESULT_EXCEPTION = 10;
+    // result opcodes
+    public static final byte
+	RESULT_VOID      = 0,
+	RESULT_BOOLEAN   = 1,
+	RESULT_BYTE      = 2,
+	RESULT_SHORT     = 3,		
+	RESULT_CHAR      = 4,
+	RESULT_INT       = 5,
+	RESULT_LONG      = 6,
+	RESULT_FLOAT     = 7,
+	RESULT_DOUBLE    = 8,
+	RESULT_OBJECT    = 9,
+ 	RESULT_EXCEPTION = 10;
 
-	public final static byte
-	        /* invocation modes */
-		LOCAL       = 0,
-		REMOTE      = 1,
-		GROUP       = 2, 
-		PERSONALIZE = 3;
+    public static int _rank;
+    protected static int _size;
+    protected static String name;
 
-	public final static byte
-                /* result modes */
-		DISCARD        = 0,
-		RETURN         = 1,
-		FORWARD        = 2,
-		BINARYCOMBINE  = 3, 
-		FLATCOMBINE    = 4;
-	
-	public static int _rank;
-	protected static int _size;
-	protected static String name;
-
-	//	private static i_GroupRegistry _groupRegistry;
+//    private static i_GroupRegistry _groupRegistry;
        
-	private static Ibis ibis;
-	private static IbisIdentifier localID;
-	private static Registry ibisRegistry;
-	
-	private static PortType portType;
+    private static Ibis ibis;
+    private static IbisIdentifier localID;
+    private static Registry ibisRegistry;
+    
+    private static PortType portType;
 
-	private static ReceivePort receivePort;
-	private static ReceivePort combinePort;
+    private static ReceivePort receivePort;
+    private static ReceivePort combinePort;
 
-	private static ReceivePort systemIn;
-	private static SendPort    systemOut;
+    private static ReceivePort systemIn;
+    private static SendPort    systemOut;
 
-	private static ReceivePortIdentifier [] pool;
-	private static ReceivePortIdentifier [] combine_pool;
+    private static ReceivePortIdentifier [] pool;
+    private static ReceivePortIdentifier [] combine_pool;
 
-	// this must be public in order for generated classes to use it....
-	public static SendPort [] unicast;
-	public static SendPort [] combine_unicast;
-//	public static SendPort multicast;		
+    // this must be public in order for generated classes to use it....
+    public static SendPort [] unicast;
+    public static SendPort [] combine_unicast;
+//    public static SendPort multicast;		
 
-	private static Hashtable multicastSendports;
+    private static Hashtable multicastSendports;
        
-	private static GroupCallHandler groupCallHandler;
-	private static GroupCombineHandler groupCombineHandler;
+    private static GroupCallHandler groupCallHandler;
+    private static GroupCombineHandler groupCombineHandler;
 
-	public static Ticket ticketMaster = null;
-	protected static GroupRegistry registry;
+    public static Ticket ticketMaster = null;
+    protected static GroupRegistry registry;
+    
+    protected static Vector groups;
+    protected static Vector skeletons;
+
+    protected static Hashtable stubclasses;
+
+    /* This handles the stubIDs */
+    protected static SpecialStack stubIDStack;
+    private static Object stubLock;
+
+    static { 
+	try {
+	    ticketMaster = new Ticket();
+	    groups = new Vector();
+	    skeletons = new Vector();
+	    stubclasses = new Hashtable();
+	    multicastSendports = new Hashtable();
+	    
+	    name = InetAddress.getLocalHost().getHostName();
+
+	    if (DEBUG) {
+		System.out.println(name + ": init Group RTS");
+	    }
 	
-	protected static Vector groups;
-	protected static Vector skeletons;
+	    ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.tcp.TcpIbis", null);
+//	    ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.messagePassing.panda.PandaIbis", null);
+	    localID      = ibis.identifier();
+	    ibisRegistry = ibis.registry();
 
-	protected static Hashtable stubclasses;
+	    StaticProperties s = new StaticProperties();
+	    s.add("Serialization", "ibis");
 
-        /* This handles the stubIDs */
-	protected static SpecialStack stubIDStack;
-	private static Object stubLock;
+	    portType = ibis.createPortType("GMI", s);
+	               
+	    groupCallHandler = new GroupCallHandler();
+	    groupCombineHandler = new GroupCombineHandler();
 
-	static { 
-		try {
-			ticketMaster = new Ticket();
-			groups = new Vector();
-			skeletons = new Vector();
-			stubclasses = new Hashtable();
-			multicastSendports = new Hashtable();
-			
-			name = InetAddress.getLocalHost().getHostName();
+	    receivePort = portType.createReceivePort("GMI port on " + name, groupCallHandler);
+	    receivePort.enableConnections();
 
-			if (DEBUG) {
-				System.out.println(name + ": init Group RTS");
-			}
-		
-                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.tcp.TcpIbis", null);
-//                        ibis         = Ibis.createIbis("ibis:" + name, "ibis.ipl.impl.messagePassing.panda.PandaIbis", null);
-			localID      = ibis.identifier();
-			ibisRegistry = ibis.registry();
-//			ibis.start);
+	    combinePort = portType.createReceivePort("GMI combine port on " + name, groupCombineHandler);
+	    combinePort.enableConnections();
 
-                        StaticProperties s = new StaticProperties();
-			s.add("Serialization", "ibis");
+	    IbisIdentifier i = (IbisIdentifier) ibisRegistry.elect("GMI Master", localID);
 
-                        portType = ibis.createPortType("GMI", s);
-                       
-			groupCallHandler = new GroupCallHandler();
-			groupCombineHandler = new GroupCombineHandler();
+	    if (localID.equals(i)) {
 
-                        receivePort = portType.createReceivePort("GMI port on " + name, groupCallHandler);		       
-			receivePort.enableConnections();
-
-                        combinePort = portType.createReceivePort("GMI combine port on " + name, groupCombineHandler);		       
-			combinePort.enableConnections();
-
-			IbisIdentifier i = (IbisIdentifier) ibisRegistry.elect("GMI Master", localID);
-
-			if (localID.equals(i)) { 
-
-				if (DEBUG) { 
-					System.out.println(name + " I am master");
-				}
-
-				registry = new GroupRegistry();
-
-				/* I am the master */				
-				Properties p = System.getProperties();		
-
-				_size = getIntProperty(p, "pool_total_hosts");
-				_rank = 0;
-				
-				pool = new ReceivePortIdentifier[_size];
-				pool[0] = receivePort.identifier();
-
-				combine_pool = new ReceivePortIdentifier[_size];
-				combine_pool[0] = combinePort.identifier();
-
-				if (_size > 1) {
-
-					systemIn  = portType.createReceivePort("GMI Master");
-					systemIn.enableConnections();
-
-					systemOut = portType.createSendPort("GMI Master");
-					
-					for (int j=1;j<_size;j++) { 
-						
-						ReadMessage r = systemIn.receive();
-						ReceivePortIdentifier reply = (ReceivePortIdentifier) r.readObject();
-						ReceivePortIdentifier id = (ReceivePortIdentifier) r.readObject();
-						ReceivePortIdentifier combine_id = (ReceivePortIdentifier) r.readObject();
-						r.finish();
-
-//						System.err.println("GOT MESSAGE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
-						systemOut.connect(reply);
-						pool[j] = id;
-						combine_pool[j] = combine_id;
-					}
-					
-					WriteMessage w = systemOut.newMessage(); 
-					w.writeObject(pool);
-					w.writeObject(combine_pool);
-					w.send();
-					w.finish();					
-				}
-
-			} else { 
-
-				if (DEBUG) { 
-					System.out.println(name + " I am client");
-				}
-
-				systemIn  = portType.createReceivePort("GMI Client " + name);
-				systemIn.enableConnections();
-
-				systemOut = portType.createSendPort("GMI Client " + name);
-
-				ReceivePortIdentifier master = ibisRegistry.lookup("GMI Master");
-
-				while (master == null) { 
-					try { 
-						Thread.sleep(1000);
-					} catch (InterruptedException e) { 
-						// ignore
-					} 
-					master = ibisRegistry.lookup("GMI Master");
-				}
-					
-				systemOut.connect(master);
-
-				WriteMessage w = systemOut.newMessage();
-				w.writeObject(systemIn.identifier());
-				w.writeObject(receivePort.identifier());
-				w.writeObject(combinePort.identifier());
-				w.send();
-				w.finish();
-
-				ReadMessage r = systemIn.receive();
-				pool = (ReceivePortIdentifier []) r.readObject();
-				combine_pool = (ReceivePortIdentifier []) r.readObject();
-				r.finish();
-				
-				_size = pool.length;
-				
-				for (int j=1;j<_size;j++) { 
-					if (pool[j].equals(receivePort.identifier())) { 
-						_rank = j;
-						break;
-					}
-				}
-			} 
-
-			unicast = new SendPort[_size];
-			combine_unicast = new SendPort[_size];
-			
-			for (int j=0;j<_size;j++) { 				
-				unicast[j] = portType.createSendPort("Unicast on " + name + " to " + pool[j].name());
-				combine_unicast[j] = portType.createSendPort("Unicast on " + name + " to " + combine_pool[j].name());
-
-				if (DEBUG) { 
-					System.out.println("Connecting unicast sendport " + unicast[j].identifier() + " to " + pool[j]);
-				}
-
-				unicast[j].connect(pool[j]);				
-				combine_unicast[j].connect(combine_pool[j]);				
-
-				if (DEBUG) { 
-					System.out.println("Connecting unicast sendport " + unicast[j].identifier() + " done");
-				}
-
-			} 
-
-			if (_size > 1) { 
-
-				if (localID.equals(i)) { 
-					for (int j=1;j<_size;j++) { 
-						ReadMessage r = systemIn.receive();
-						r.finish();
-					}
-					
-					WriteMessage w = systemOut.newMessage(); 
-					w.send();
-					w.finish();						
-				} else { 
-					WriteMessage w = systemOut.newMessage(); 
-					w.send();
-					w.finish();	
-					ReadMessage r = systemIn.receive();
-					r.finish();
-				} 
-			}
-
-//			multicast = portType.createSendPort("Multicast on " + name);
-			
-//			for (int j=0;j<_size;j++) { 
-//				multicast.connect(pool[j]);
-//			}
-
-			receivePort.enableUpcalls();
-			combinePort.enableUpcalls();
-
-			stubLock = new Object();
-			stubIDStack = new SpecialStack(stubLock);
-
-			if(DEBUG) {
-				System.out.println(name + ": Group init");
-			}
-
-                } catch (Exception e) {
-                        System.err.println(name + ": Could not init Group RTS " + e);
-			e.printStackTrace();
-                        System.exit(1);
-                }
-	}
-
-	public static SendPort getMulticastSendport(String ID, int [] hosts) { 
-
-		// Note: for efficiency the ranks in hosts should be sorted (low->high) !!!
-		
-		if (hosts.length == 1) { 
-			return unicast[hosts[0]];
-		} else { 
-			System.out.println("Looking for multicast sendport " + ID);
-
-			SendPort temp = (SendPort) multicastSendports.get(ID);
-
-			if (temp == null) { 
-				// there is no multicast sendport to this combination of hosts yet.
-				// so create it and add it to the table.
-				System.out.println("Creating multicast sendport " + ID);
-
-				try { 
-					temp = portType.createSendPort("Multicast on " + name + " to " + ID);
-					
-					for (int i=0;i<hosts.length;i++) { 
-						temp.connect(pool[hosts[i]]);
-					}
-				} catch (IbisIOException e) { 
-					 System.err.println(name + ": Could not create multicast group " + ID + " " + e);
-					 e.printStackTrace();
-					 System.exit(1);
-				} 
-
-				multicastSendports.put(ID, temp);
-			}
-
-			return temp;
-		} 					
-	} 
-	
-	private static int getIntProperty(Properties p, String name) throws RuntimeException {
-
-		String temp = p.getProperty(name);
-		
-		if (temp == null) { 
-			throw new RuntimeException("Property " + name + " not found !");
+		if (DEBUG) { 
+		    System.out.println(name + " I am master");
 		}
+
+		registry = new GroupRegistry();
+
+		/* I am the master */				
+		Properties p = System.getProperties();		
+
+		_size = getIntProperty(p, "pool_total_hosts");
+		_rank = 0;
+
+		pool = new ReceivePortIdentifier[_size];
+		pool[0] = receivePort.identifier();
+
+		combine_pool = new ReceivePortIdentifier[_size];
+		combine_pool[0] = combinePort.identifier();
+
+		if (_size > 1) {
+
+		    systemIn  = portType.createReceivePort("GMI Master");
+		    systemIn.enableConnections();
+
+		    systemOut = portType.createSendPort("GMI Master");
+		    
+		    for (int j=1;j<_size;j++) { 
+			ReadMessage r = systemIn.receive();
+			ReceivePortIdentifier reply = (ReceivePortIdentifier) r.readObject();
+			ReceivePortIdentifier id = (ReceivePortIdentifier) r.readObject();
+			ReceivePortIdentifier combine_id = (ReceivePortIdentifier) r.readObject();
+			r.finish();
+
+//System.err.println("GOT MESSAGE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
+			systemOut.connect(reply);
+			pool[j] = id;
+			combine_pool[j] = combine_id;
+		    }
+
+		    WriteMessage w = systemOut.newMessage(); 
+		    w.writeObject(pool);
+		    w.writeObject(combine_pool);
+		    w.send();
+		    w.finish();
+		}
+	    } else { 
+		if (DEBUG) { 
+		    System.out.println(name + " I am client");
+		}
+
+		systemIn  = portType.createReceivePort("GMI Client " + name);
+		systemIn.enableConnections();
+
+		systemOut = portType.createSendPort("GMI Client " + name);
+
+		ReceivePortIdentifier master = ibisRegistry.lookup("GMI Master");
+
+		while (master == null) { 
+		    try { 
+			Thread.sleep(1000);
+		    } catch (InterruptedException e) { 
+			// ignore
+		    } 
+		    master = ibisRegistry.lookup("GMI Master");
+		}
+
+		systemOut.connect(master);
+
+		WriteMessage w = systemOut.newMessage();
+		w.writeObject(systemIn.identifier());
+		w.writeObject(receivePort.identifier());
+		w.writeObject(combinePort.identifier());
+		w.send();
+		w.finish();
+
+		ReadMessage r = systemIn.receive();
+		pool = (ReceivePortIdentifier []) r.readObject();
+		combine_pool = (ReceivePortIdentifier []) r.readObject();
+		r.finish();
+
+		_size = pool.length;
+
+		for (int j=1;j<_size;j++) { 
+		    if (pool[j].equals(receivePort.identifier())) { 
+			_rank = j;
+			break;
+		    }
+		}
+	    } 
+
+	    unicast = new SendPort[_size];
+	    combine_unicast = new SendPort[_size];
+
+	    for (int j=0;j<_size;j++) { 				
+		unicast[j] = portType.createSendPort("Unicast on " + name + " to " + pool[j].name());
+		combine_unicast[j] = portType.createSendPort("Unicast on " + name + " to " + combine_pool[j].name());
+
+		if (DEBUG) { 
+		    System.out.println("Connecting unicast sendport " + unicast[j].identifier() + " to " + pool[j]);
+		}
+
+		unicast[j].connect(pool[j]);				
+		combine_unicast[j].connect(combine_pool[j]);				
+
+		if (DEBUG) { 
+		    System.out.println("Connecting unicast sendport " + unicast[j].identifier() + " done");
+		}
+	    } 
+
+	    if (_size > 1) { 
+		if (localID.equals(i)) { 
+		    for (int j=1;j<_size;j++) { 
+			ReadMessage r = systemIn.receive();
+			r.finish();
+		    }
+		    
+		    WriteMessage w = systemOut.newMessage(); 
+		    w.send();
+		    w.finish();
+		} else { 
+		    WriteMessage w = systemOut.newMessage(); 
+		    w.send();
+		    w.finish();	
+		    ReadMessage r = systemIn.receive();
+		    r.finish();
+		} 
+	    }
+
+//	    multicast = portType.createSendPort("Multicast on " + name);
+
+//	    for (int j=0;j<_size;j++) { 
+//		multicast.connect(pool[j]);
+//	    }
+
+	    receivePort.enableUpcalls();
+	    combinePort.enableUpcalls();
+
+	    stubLock = new Object();
+	    stubIDStack = new SpecialStack(stubLock);
+
+	    if(DEBUG) {
+		System.out.println(name + ": Group init");
+	    }
+
+	} catch (Exception e) {
+	    System.err.println(name + ": Could not init Group RTS " + e);
+	    e.printStackTrace();
+	    System.exit(1);
+	}
+    }
+
+    public static SendPort getMulticastSendport(String ID, int [] hosts) { 
+
+	// Note: for efficiency the ranks in hosts should be sorted (low->high) !!!
+	
+	if (hosts.length == 1) { 
+	    return unicast[hosts[0]];
+	}
+	System.out.println("Looking for multicast sendport " + ID);
+
+	SendPort temp = (SendPort) multicastSendports.get(ID);
+
+	if (temp == null) { 
+	    // there is no multicast sendport to this combination of hosts yet.
+	    // so create it and add it to the table.
+	    System.out.println("Creating multicast sendport " + ID);
+
+	    try { 
+		temp = portType.createSendPort("Multicast on " + name + " to " + ID);
 		
-		return Integer.parseInt(temp);
+		for (int i=0;i<hosts.length;i++) { 
+		    temp.connect(pool[hosts[i]]);
+		}
+	    } catch (IbisIOException e) { 
+		 System.err.println(name + ": Could not create multicast group " + ID + " " + e);
+		 e.printStackTrace();
+		 System.exit(1);
+	    } 
+
+	    multicastSendports.put(ID, temp);
 	}
 
-	protected static long getNewGroupObjectID(GroupSkeleton skel) { 
-		
-		synchronized (skeletons) {
-			int next = skeletons.size();
+	return temp;
+    } 
+    
+    private static int getIntProperty(Properties p, String name) throws RuntimeException {
 
-			long id = _rank;
-			id = id << 32;
-			id = id | next;
+	String temp = p.getProperty(name);
+	
+	if (temp == null) { 
+	    throw new RuntimeException("Property " + name + " not found !");
+	}
+	
+	return Integer.parseInt(temp);
+    }
 
-			skeletons.add(next, skel);
+    protected static long getNewGroupObjectID(GroupSkeleton skel) { 
+	
+	synchronized (skeletons) {
+	    int next = skeletons.size();
 
-			return id;
-		}		
-	} 
+	    long id = _rank;
+	    id = id << 32;
+	    id = id | next;
 
-	protected static void registerGroupMember(int groupID, GroupSkeleton skeleton) { 
-		/* this is wrong -> fix later */
+	    skeletons.add(next, skel);
+
+	    return id;
+	}		
+    } 
+
+    protected static void registerGroupMember(int groupID, GroupSkeleton skeleton) { 
+	/* this is wrong -> fix later */
 //		if (Group.DEBUG) 
-		System.out.println("Group.registerGroupMember(" + groupID + " " + 
-				   skeleton.getClass().getName());
-		
-		groups.add(groupID, skeleton);
-	}  
+	System.out.println("Group.registerGroupMember(" + groupID + " " + 
+		   skeleton.getClass().getName());
 	
-	protected static GroupSkeleton getSkeleton(int skel) { 
-		/* this is wrong -> fix later */
-		return (GroupSkeleton) skeletons.get(skel);
-	}  
-	
-	public static void create(String name, Class type, int size) throws RuntimeException {
+	groups.add(groupID, skeleton);
+    }  
+    
+    protected static GroupSkeleton getSkeleton(int skel) { 
+	/* this is wrong -> fix later */
+	return (GroupSkeleton) skeletons.get(skel);
+    }  
+    
+    public static void create(String name, Class type, int size) throws RuntimeException {
 
-		try { 
-			if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + type + ", " + size + ") starting");
+	try { 
+	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + type + ", " + size + ") starting");
 
-			int ticket = ticketMaster.get();
+	    int ticket = ticketMaster.get();
 
-			WriteMessage w = unicast[0].newMessage();
-			w.writeByte(GroupProtocol.REGISTRY);
-			w.writeByte(GroupProtocol.CREATE_GROUP);
-			w.writeInt(_rank);
-			w.writeInt(ticket);
-			w.writeObject(name);
-			w.writeObject(type.getName());
-			w.writeInt(size);
-			w.send();
-			w.finish();
+	    WriteMessage w = unicast[0].newMessage();
+	    w.writeByte(GroupProtocol.REGISTRY);
+	    w.writeByte(GroupProtocol.CREATE_GROUP);
+	    w.writeInt(_rank);
+	    w.writeInt(ticket);
+	    w.writeObject(name);
+	    w.writeObject(type.getName());
+	    w.writeInt(size);
+	    w.send();
+	    w.finish();
 
-			if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") waiting for reply on ticket(" + ticket +")");
+	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") waiting for reply on ticket(" + ticket +")");
 
-			ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
-			int result = r.readByte();			
-			r.finish();
+	    ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
+	    int result = r.readByte();			
+	    r.finish();
+	    synchronized(r) {
+	        r.notify();
+	    }
 
-			if (result == GroupProtocol.CREATE_FAILED) { 
-				throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : Group allready exists!");  
-			}
+	    if (result == GroupProtocol.CREATE_FAILED) { 
+		throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : Group allready exists!");  
+	    }
 
-			if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") done");
+	    if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") done");
 
-		} catch (IbisIOException e) { 
-			throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : communication error !" + e.getMessage());  
-		}
-
+	} catch (IbisIOException e) { 
+	    throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : communication error !" + e.getMessage());  
 	}
 
-	public static void join(String name, ibis.group.GroupMember o) throws RuntimeException {
+    }
 
-		try { 
-			if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") starting");
+    public static void join(String name, GroupMember o) throws RuntimeException {
 
-			int groupnumber = 0;
-			long [] memberIDs = null;
-			boolean retry = true;
-			int ticket;
-			WriteMessage w;
-			ReadMessage r;
-			int result;
-			
-			while (retry) { 
+	try { 
+	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") starting");
 
-				ticket = ticketMaster.get();
-				
-				w = unicast[0].newMessage();
-				w.writeByte(GroupProtocol.REGISTRY);
-				w.writeByte(GroupProtocol.JOIN_GROUP);
-				w.writeInt(_rank);
-				w.writeInt(ticket);
-				w.writeObject(name);
-				w.writeObject(o.groupInterfaces);
-				w.writeLong(o.myID);
-				w.send();
-				w.finish();
+	    int groupnumber = 0;
+	    long [] memberIDs = null;
+	    boolean retry = true;
+	    int ticket;
+	    WriteMessage w;
+	    ReadMessage r;
+	    int result;
+	    
+	    while (retry) { 
 
-				if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") waiting for reply on ticket(" + ticket +")");
-				
-				r = (ReadMessage) ticketMaster.collect(ticket);
-				result = r.readByte();			
-				
-				switch(result) { 
-				case GroupProtocol.JOIN_UNKNOWN: 
-					if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group not found, retry");
-					break;
+		ticket = ticketMaster.get();
+		
+		w = unicast[0].newMessage();
+		w.writeByte(GroupProtocol.REGISTRY);
+		w.writeByte(GroupProtocol.JOIN_GROUP);
+		w.writeInt(_rank);
+		w.writeInt(ticket);
+		w.writeObject(name);
+		w.writeObject(o.groupInterfaces);
+		w.writeLong(o.myID);
+		w.send();
+		w.finish();
 
-				case GroupProtocol.JOIN_WRONG_TYPE:
-					throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Group member has wrong type!");  
+		if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") waiting for reply on ticket(" + ticket +")");
+		
+		r = (ReadMessage) ticketMaster.collect(ticket);
+		result = r.readByte();			
+		
+		switch(result) { 
+		case GroupProtocol.JOIN_UNKNOWN: 
+		    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group not found, retry");
+		    break;
 
-				case GroupProtocol.JOIN_FULL:
-					throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Group full!");  
-					
-				case GroupProtocol.JOIN_OK:
-					retry = false;
-					groupnumber = r.readInt();
-					memberIDs = (long []) r.readObject();
-					break;					
-				default:
-					System.out.println(_rank + " Group.joinGroup(" + name + ") Failed : got illegal opcode");  		
-					System.exit(1);
-				} 
-				
-				r.finish();
-			}
-			
-			if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group(" + groupnumber + ") found !");
-						
-			o.init(groupnumber, memberIDs);			       
+		case GroupProtocol.JOIN_WRONG_TYPE:
+		    throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Group member has wrong type!");  
 
-			// do a barrier to make sure all groupmembers are initialized 
-			ticket = ticketMaster.get();
-			
-			w = unicast[0].newMessage();
-			w.writeByte(GroupProtocol.REGISTRY);
-			w.writeByte(GroupProtocol.BARRIER_GROUP);
-			w.writeInt(_rank);
-			w.writeInt(ticket);
-			w.writeObject(name);
-			w.send();
-			w.finish();
-				
-			r = (ReadMessage) ticketMaster.collect(ticket);
-			result = r.readByte();			
-			r.finish();
-			
-			switch(result) { 
-			case GroupProtocol.BARRIER_FAILED: 
-				throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Barrier failed!");  					
-			case GroupProtocol.BARRIER_OK:
-				break;					
-			default:
-				System.out.println(_rank + " Group.joinGroup(" + name + ") Failed : got illegal opcode");  					
-				System.exit(1);
-			} 
-			
-			if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") done");
-
-		} catch (Exception e) { 
-			throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : communication error !" + e.getMessage());  
+		case GroupProtocol.JOIN_FULL:
+		    throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Group full!");  
+		    
+		case GroupProtocol.JOIN_OK:
+		    retry = false;
+		    groupnumber = r.readInt();
+		    memberIDs = (long []) r.readObject();
+		    break;
+		default:
+		    System.out.println(_rank + " Group.joinGroup(" + name + ") Failed : got illegal opcode");  		
+		    System.exit(1);
+		} 
+		
+		r.finish();
+		synchronized(r) {
+		    r.notify();
 		}
-	} 
-	
-	public static GroupInterface createGroupInterface(String name) { 
-	
-		GroupStubData data = (GroupStubData) stubclasses.get(name);
-	
-		if (data == null) { 
+	    }
+	    
+	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ") group(" + groupnumber + ") found !");
+			
+	    o.init(groupnumber, memberIDs);			       
 
-			try { 		
-				boolean done = false;
+	    // do a barrier to make sure all groupmembers are initialized 
+	    ticket = ticketMaster.get();
+	    
+	    w = unicast[0].newMessage();
+	    w.writeByte(GroupProtocol.REGISTRY);
+	    w.writeByte(GroupProtocol.BARRIER_GROUP);
+	    w.writeInt(_rank);
+	    w.writeInt(ticket);
+	    w.writeObject(name);
+	    w.send();
+	    w.finish();
+		
+	    r = (ReadMessage) ticketMaster.collect(ticket);
+	    result = r.readByte();			
+	    r.finish();
+	    synchronized(r) {
+	        r.notify();
+	    }
+	    
+	    switch(result) { 
+	    case GroupProtocol.BARRIER_FAILED: 
+		throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : Barrier failed!");
+	    case GroupProtocol.BARRIER_OK:
+		break;
+	    default:
+		System.out.println(_rank + " Group.joinGroup(" + name + ") Failed : got illegal opcode");
+		System.exit(1);
+	    } 
+	    
+	    if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") done");
 
-				while (!done) { 
-					/* this group is unknown -> go and ask the registry */
-					int ticket = ticketMaster.get();;
-					WriteMessage w = unicast[0].newMessage();
-					w.writeByte(GroupProtocol.REGISTRY);
-					w.writeByte(GroupProtocol.FIND_GROUP);
-					w.writeInt(_rank);
-					w.writeInt(ticket);
-					w.writeObject(name);
-					w.send();
-					w.finish();
-					
-					data = new GroupStubData();
-				
-					ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
-					byte result = r.readByte();		
-					
-					switch (result) { 
-					case GroupProtocol.GROUP_UNKOWN:
-						r.finish();
-						throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : unknown group!");  	
-						
-					case GroupProtocol.GROUP_NOT_READY: 
-						System.err.println("Group " + name + " not ready yet -> going to sleep");						
-						r.finish();
-						try { 
-							Thread.sleep(100);
-						} catch (Exception e) { 
-							// ignore
-						}						
-						break;
-						
-					case GroupProtocol.GROUP_OK:
-						done = true;
+	} catch (Exception e) { 
+	    throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : communication error !" + e.getMessage());  
+	}
+    } 
+    
+    public static GroupInterface lookup(String name) throws RuntimeException { 
+    
+	GroupStubData data = (GroupStubData) stubclasses.get(name);
+    
+	if (data == null) {
 
-						data.groupName = name;
-						data.typeName  = (String) r.readObject();
-						data.groupID   = r.readInt();
-						data.memberIDs = (long []) r.readObject();
-						r.finish();
-						
-						try { 	
-							String classname = "";
-							String temp = data.typeName;
-							StringTokenizer s = new StringTokenizer(temp, ".");						
-							int tokens = s.countTokens();
-							
-							if (tokens > 1) { 
-								classname = s.nextToken();
-								
-								for (int i=1;i<tokens-1;i++) { 
-									classname += "." + s.nextToken();
-								}
-							} 		
-							
-							classname += "group_stub_" + s.nextToken();
-							data.stubClass = Class.forName(classname); 
-						} catch (Exception e) { 
-							throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : unknown group!");  
-						} 
-					} 
-				} 
+	    try { 		
+		boolean done = false;
 
+		while (!done) { 
+		    /* this group is unknown -> go and ask the registry */
+		    int ticket = ticketMaster.get();;
+		    WriteMessage w = unicast[0].newMessage();
+		    w.writeByte(GroupProtocol.REGISTRY);
+		    w.writeByte(GroupProtocol.FIND_GROUP);
+		    w.writeInt(_rank);
+		    w.writeInt(ticket);
+		    w.writeObject(name);
+		    w.send();
+		    w.finish();
+		    
+		    data = new GroupStubData();
+		
+		    ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
+		    byte result = r.readByte();		
+		    
+		    switch (result) { 
+		    case GroupProtocol.GROUP_UNKOWN:
+			r.finish();
+			synchronized(r) {
+			    r.notify();
+			}
+			throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : unknown group!");  	
+			
+		    case GroupProtocol.GROUP_NOT_READY: 
+			System.err.println("Group " + name + " not ready yet -> going to sleep");
+			r.finish();
+			synchronized(r) {
+			    r.notify();
+			}
+			try { 
+			    Thread.sleep(100);
 			} catch (Exception e) { 
-				throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : " + e); 
-			} 
-
-			stubclasses.put(name, data);
-		}
+			    // ignore
+			}
+			break;
 			
-		int num = 0;
-		GroupInterface s = null;;
+		    case GroupProtocol.GROUP_OK:
+			done = true;
 
-		num = stubIDStack.getPosition();
-		s = data.newStub(num);
-		stubIDStack.putData(num, s);
-		return s;
-	}
-
-	public static int getPoolRank() { 
-		return _rank;
-	}
-	
-	public static int getPoolSize() { 
-		return _size;
-	}       
-
-	public static void exit() { 
-
-		try { 
-
-			if (_rank == 0) { 
-				
-				if (DEBUG) { 
-					System.out.println(name + " master doing exit");
-				}
-				
-				if (_size > 1) {
-					
-					for (int j=1;j<_size;j++) { 						
-						ReadMessage r = systemIn.receive();
-						r.finish();
-					}
-					
-					WriteMessage w = systemOut.newMessage(); 
-					w.send();
-					w.finish();
-					
-					systemOut.free();
-					systemIn.free();
-				}
-				
-			} else { 
-				
-				if (DEBUG) { 
-					System.out.println(name + " client doing exit");
-				}
-				
-				WriteMessage w = systemOut.newMessage();
-				w.send();
-				w.finish();				
-
-				ReadMessage r = systemIn.receive();
-				r.finish();
-				systemIn.free();				
-				systemOut.free();
-
+			data.groupName = name;
+			data.typeName  = (String) r.readObject();
+			data.groupID   = r.readInt();
+			data.memberIDs = (long []) r.readObject();
+			r.finish();
+			synchronized(r) {
+			    r.notify();
 			}
 			
-			for (int i=0;i<_size;i++) { 
-				unicast[i].free();
+			try { 	
+			    String classname = "";
+			    String temp = data.typeName;
+			    StringTokenizer s = new StringTokenizer(temp, ".");
+			    int tokens = s.countTokens();
+			    
+			    if (tokens > 1) { 
+				classname = s.nextToken();
+				
+				for (int i=1;i<tokens-1;i++) { 
+				    classname += "." + s.nextToken();
+				}
+			    } 		
+			    
+			    classname += "group_stub_" + s.nextToken();
+			    data.stubClass = Class.forName(classname); 
+			} catch (Exception e) { 
+			    throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : unknown group!");  
 			} 
-			
-			//multicast.free();			
-			receivePort.free();			
-			ibis.end();
-			
-			System.out.println("Group exit done");
+		    } 
+		} 
 
-		} catch (Exception e) { 
-			System.err.println("EEEEEK" + e);
-		}		
-	} 
+	    } catch (Exception e) { 
+		throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : " + e); 
+	    } 
 
-	public static Method findMethod(Class c, String method, Class [] parameters) { 
-	       
-		Method temp = null;
+	    stubclasses.put(name, data);
+	}
+	    
+	int num = 0;
+	GroupInterface s = null;;
 
-		try { 
-			temp = c.getDeclaredMethod(method, parameters);			
-		} catch (Exception e) { 
-			// ignore ... System.out.println("findMethod got " + e);
+	num = stubIDStack.getPosition();
+	s = data.newStub(num);
+	stubIDStack.putData(num, s);
+	return s;
+    }
+
+
+    public static CombinedInvocationInfo defineCombinedInvocation(CombinedInvocation ci, int groupID, String method, String name, int mode, int rank, int size) throws RuntimeException { 
+	try { 		
+	    int ticket = ticketMaster.get();;
+	    WriteMessage w = unicast[0].newMessage();
+	    w.writeByte(GroupProtocol.REGISTRY);
+	    w.writeByte(GroupProtocol.DEFINE_COMBINED);
+	    w.writeInt(groupID);
+	    w.writeInt(_rank);
+	    w.writeInt(ticket);
+	    w.writeObject(name);
+	    w.writeObject(method);
+	    w.writeInt(rank);
+	    w.writeInt(size);
+	    w.writeInt(mode);
+	    w.send();
+	    w.finish();
+		    
+	    ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
+	    byte result = r.readByte();		
+		    
+	    switch (result) { 
+	    case GroupProtocol.COMBINED_FAILED: {
+		String reason = (String) r.readObject();
+		r.finish();
+		throw new RuntimeException(reason);
 		}
-
-		return temp;
+	    case GroupProtocol.COMBINED_OK: {
+		CombinedInvocationInfo info = (CombinedInvocationInfo) r.readObject();
+		r.finish();
+		return info;
+		}
+	    default:
+		throw new RuntimeException("Unexpected answer on DEFINE_COMBINED");
+	    }
+	} catch (Exception e) { 
+	    throw new RuntimeException(Group._rank + " Group.createGroupInterface(" + name + ") Failed : " + e); 
 	} 
-	
-	private static GroupMethod findMethod(GroupStub s, String method) { 
+    }
 
-		for (int i=0;i<s.methods.length;i++) {
-			if (s.methods[i].description.equals(method)) { 
-				return s.methods[i];
-			}
+
+
+    public static int rank() { 
+	return _rank;
+    }
+    
+    public static int size() { 
+	return _size;
+    }       
+
+    public static void exit() { 
+	try { 
+
+	    if (_rank == 0) { 
+		
+		if (DEBUG) { 
+		    System.out.println(name + " master doing exit");
 		}
 		
-		return null;
-	} 
-
-	public static GroupMethod findMethod(GroupInterface i, String method) throws NoSuchMethodException { 
-		
-		GroupMethod m = findMethod((GroupStub)i, method);
-
-		if (m == null) { 
-			throw new NoSuchMethodException("Group method \"" + method + "\" not found");
+		if (_size > 1) {
+		    
+		    for (int j=1;j<_size;j++) {
+			ReadMessage r = systemIn.receive();
+			r.finish();
+		    }
+		    
+		    WriteMessage w = systemOut.newMessage(); 
+		    w.send();
+		    w.finish();
+		    
+		    systemOut.free();
+		    systemIn.free();
 		}
+		
+	    } else { 
+		
+		if (DEBUG) { 
+		    System.out.println(name + " client doing exit");
+		}
+		
+		WriteMessage w = systemOut.newMessage();
+		w.send();
+		w.finish();				
 
-		return m;
+		ReadMessage r = systemIn.receive();
+		r.finish();
+		systemIn.free();				
+		systemOut.free();
+
+	    }
+	    
+	    for (int i=0;i<_size;i++) { 
+		unicast[i].free();
+		combine_unicast[i].free();
+	    } 
+
+	    Enumeration hash_elts = multicastSendports.elements();
+
+	    while (hash_elts.hasMoreElements()) {
+		SendPort p = (SendPort) (hash_elts.nextElement());
+		p.free();
+	    }
+	    
+	    //multicast.free();			
+	    receivePort.free();			
+	    ibis.end();
+	    
+	    System.out.println("Group exit done");
+
+	} catch (Exception e) { 
+	    System.err.println("EEEEEK" + e);
+	}		
+    } 
+
+    public static Method findMethod(Class c, String method, Class [] parameters) { 
+
+	Method temp = null;
+
+	try { 
+	    temp = c.getDeclaredMethod(method, parameters);			
+	} catch (Exception e) { 
+	    // ignore ... System.out.println("findMethod got " + e);
 	}
 
-	static ForwarderReceiveThread waitingThreads = null;
-
-	static synchronized ForwarderReceiveThread getForwarderReceiveThread() { 
-		
-		ForwarderReceiveThread temp = null;
-
-		if (waitingThreads == null) { 
-			temp = new ForwarderReceiveThread();
-		} else { 
-			temp = waitingThreads;
-			waitingThreads = temp.next;			
-		}
-		return temp;
-	} 
-
-	static synchronized void returnForwarderReceiveThread(ForwarderReceiveThread t) { 
-		t.next = waitingThreads;
-		waitingThreads = t;
-	} 
-
-        /* ============================= setInvoke methods ========================================== */
-
-//  	private static void setInvoke(GroupStub s, String method, int mode, int destination, Class personal_class, String personalize) {
-
-//  		GroupMethod temp = findMethod(s, method);
-
-//  		if (temp == null) { 
-//  			System.out.println("Method " + method + " not found!");
-//  			System.exit(1);
-//  		}
-
-//  		switch (mode) { 
-//  		case Group.LOCAL:
-//  	 		if (DEBUG) System.out.println("Setting mode of " + method + " to LOCAL");
-//  		 	temp.invocationMode = Group.LOCAL;
-//  			break;
-
-//   		case Group.REMOTE:
-//  	 		if (DEBUG) System.out.println("Setting mode of " + method + " to REMOTE");
-
-//  	 		if (destination >= 0 && destination < s.size) {
-//  		 		temp.invocationMode = Group.REMOTE;
-//  			 	temp.destinationMember = destination;
-				
-//  				long memberID = s.memberIDs[destination];
-//  				temp.destinationRank = (int) ((memberID >> 32) & 0xFFFFFFFFL);
-//  				temp.destinationSkeleton = (int) (memberID & 0xFFFFFFFFL);
-//   			} else { 
-//  				System.out.println("Method " + method + " destination " + destination + " out of range");
-//  				System.exit(1);
-//  		 	}				
-//  			break;
-
-//   		case Group.GROUP:
-//  	 		if (DEBUG) System.out.println("Setting mode of " + method + " to GROUP");
-//  		 	temp.invocationMode = Group.GROUP;
-//  			break;
-
-//   		case Group.PERSONALIZE:
-//  	 		if (DEBUG) System.out.println("Setting mode of " + method + " to PERSONAL");
-
-//  			int p_func = 0;  //getPersonalizeMethod(personal_class, personalize, descriptor);  // should also check return type here !!
-		 	
-//  			if (p_func != 0) { 
-//  			 	temp.invocationMode = Group.PERSONALIZE;
-//  				// 				temp.personalization_method = p_func;
-//   			} else { 
-//  				System.out.println("Method " + method + " personal not implemented yet");
-//  				System.exit(1);
-//  	 		} 
-//   			break;
-//   		}
-//  	}
-
-//  	public static void setInvoke(GroupMethods m, String method, int mode) {
-
-//  		try { 
-//   			GroupStub s = (GroupStub) m;
-
-//  			if (mode == Group.LOCAL || mode == Group.GROUP) { 
-//  				setInvoke(s, method, mode, -1, null, null);
-//  			} else { 
-//  				// exception
-//  			}
-
-//  	 	} catch (ClassCastException e) { 
-//  		 	// exception
-//  			System.err.println("Group got exception " + e);
-//  			System.exit(1);
-//  		}  
-//  	}
-
-//  	public static void setInvoke(GroupMethods m, String method, int mode, int destination) {
-
-//  		try { 
-//  			GroupStub s = (GroupStub) m;
-
-//  			// remote 
-//  			if (mode == Group.REMOTE) {  
-//  				setInvoke(s, method, mode, destination, null, null);
-//  			} else {  
-//  				// exception 
-//  			} 			
-//  		} catch (ClassCastException e) { 
-//  			// exception
-//  			System.err.println("Group got exception " + e);
-//  			System.exit(1);
-//  		}  
-//  	}
-
-//  	public static void setInvoke(GroupMethods m, 
-//  				     String method, String desc, int mode, String classname, String personalize) {
-//  		/*
-//  		GroupStub s;
-//  		Class p_class;
-
-//  		try { 
-//  			s = (GroupStub) m;
-
-//  			p_class = Class.forName(classname);
-
-//  		} catch (Exception e) { 
-//  			// exception
-//  		} 
-
-//  		if (p_class == null) { 
-//  			// exception 
-//  		}
-
-//  		// personalization
-//  		if (mode == PERSONAL && personalize != null) { 
-//  			s.setInvoke(method, desc, mode, -1, p_class, personalize);
-//  		} else { 
-//  			// exception
-//  		}
-//  		*/
-//  	}
-
-        /* ============================= setResult methods ========================================== */
-
-//  	private static void setResult(GroupStub s, String method, int mode, Class combine_class, String combine) {
-
-//  		GroupMethod temp = findMethod(s, method);
-
-//  		if (temp == null) { 
-//  			System.out.println("Method " + method + " not found!");
-//  			System.exit(1);
-//  		}
-
-//   		switch (mode) { 
-//  		case Group.DISCARD:
-//  			temp.resultMode = Group.DISCARD;
-//  			break;	
-//  		case Group.RETURN:
-//  			temp.resultMode = Group.RETURN;
-//  			break;	
-//  		case Group.COMBINE:
-			
-//  			System.out.print("Searching for combine method \"" + temp.returnType.getName() + " " + combine + "(");
-//  			for (int i=0;i<temp.combineParameters.length;i++) { 
-//  				System.out.print(temp.combineParameters[i].getName());
-//  				if (i<temp.combineParameters.length-1) { 
-//  					System.out.print(", ");
-//  				}
-//  			} 
-//  			System.out.println(")\" in Class " + combine_class);
-
-
-//  			temp.combineMethod = findMethod(combine_class, combine, temp.combineParameters);
-
-//   			if (temp.combineMethod != null) { 
-//  	 			temp.resultMode = Group.COMBINE;
-//  				temp.combineMethodName = combine;
-//  				temp.combineClass = combine_class;
-//   			} else { 
-//  				System.out.print("Combine method \"" + temp.returnType.getName() + " " + combine + "(");
-
-//  				for (int i=0;i<temp.combineParameters.length;i++) { 
-//  					System.out.print(temp.combineParameters[i].getName());
-//  					if (i<temp.combineParameters.length-1) { 
-//  						System.out.print(", ");
-//  					}
-//  				} 
-//  				System.out.println(")\" not found!");
-//  				System.exit(1);
-//   			} 
-//  	 		break;
-//   		}
-//  	}
-
-
-//  	public static void setResult(GroupMethods m, String method, int mode) {
-
-//   		try { 
-//  			GroupStub s = (GroupStub) m;
-
-//  			// discard or return
-//  			if (mode == Group.DISCARD || mode == Group.RETURN) { 
-//  				setResult(s, method, mode, null, null);
-//  			} else { 
-//  				// exception
-//  			}
-//   		} catch (ClassCastException e) { 
-//   			// exception
-//  			System.err.println("Group got exception " + e);
-//  			System.exit(1);
-//   		} 
-//  	}
-
-//  	public static void setResult(GroupMethods m, String method, int mode, String classname, String combine) {
-
-//  		try { 
-//  			GroupStub s = (GroupStub) m;
-//  			Class p_class = Class.forName(classname);
-
-//  			// personalization
-//  			if (mode == Group.COMBINE && combine != null) { 
-//  				setResult(s, method, mode, p_class, combine);
-//  			} else { 
-//  				// exception
-//  			}
-
-//  		} catch (Exception e) { 
-//  			// exception
-//  			System.err.println("Group got exception " + e);
-//  			System.exit(1);
-//  		} 		
-//  	}
+	return temp;
+    } 
+    
+    public static GroupMethod findMethod(GroupInterface i, String desc) throws NoSuchMethodException { 
+	GroupStub stub = (GroupStub) i;
+	return stub.getMethod(desc);
+    }
 }
-
-
-
-

@@ -36,14 +36,6 @@ public abstract class SerializationInputStream extends ObjectInputStream {
     /** Print some statistics. **/
     public abstract void statistics();
 
-    /** Returns the total number of bytes that is written in the stream
-	since the last resetBytesRead().
-    **/
-    public abstract int bytesRead();
-
-    /** Reset the statistics. **/
-    public abstract void resetBytesRead();
-
     /** Methods to receive arrays in place. No duplicate checks are done.
 	These methods are a shortcut for:
 	readArraySliceXXX(dest, 0, dest.length);

@@ -97,14 +97,6 @@ public final class IbisSerializationOutputStream extends SerializationOutputStre
 	System.err.println("IbisTypedOutputStream.print() not implemented");
     }
 
-    public int bytesWritten() {    
-	return out.bytesWritten();
-    }
-
-    public void resetBytesWritten() {
-	out.resetBytesWritten();
-    }
-
     /* This is the data output / object output part */
 
     public void write(int v) throws IOException {

@@ -2,7 +2,6 @@ import java.lang.*;
 import java.util.*;
 
 import ibis.rmi.*;
-//import DasUtils.*;
 
 strictfp public class BarnesHutt {
 
@@ -87,11 +86,6 @@ strictfp public class BarnesHutt {
             bhGd.gdThreads = true;
           }
 
-          if (args[i].equals("-java-barrier")) {
-            foundArg = true;
-            bhGd.gdJavaBarrier = true;
-          }
- 
           if (args[i].equals("-gc-interval")) {
             foundArg = true;
             bhGd.gdGCInterval = Integer.valueOf( args[i+1] ).intValue();

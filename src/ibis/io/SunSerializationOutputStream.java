@@ -81,12 +81,4 @@ public final class SunSerializationOutputStream extends SerializationOutputStrea
 
     public void statistics() {
     }
-
-    public int bytesWritten() {    
-	return 0;
-    }
-
-    public void resetBytesWritten() {
-    }
-
 }

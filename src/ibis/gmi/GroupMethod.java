@@ -1,144 +1,110 @@
 package ibis.group;
 
-import ibis.ipl.*;
-import java.lang.reflect.Method;
+import  ibis.ipl.SendPort;
 
-public final class GroupMethod { 
+public class GroupMethod { 	
 
-        public String name;
-	public String description;
+    public int invocation_mode;
+    public int result_mode;
+    public InvocationScheme inv;
+    public ReplyScheme rep;
 
-        public Class returnType;
-        public Class [] parameters;
-	public Class [] personalizeParameters;
+    public SendPort sendport;
 
-	/* vvvvvvvvvvvvvvvvvvvvv Only used in stub vvvvvvvvvvvvvvvvvvvv */
+    /* For InvocationScheme.I_SINGLE: */
+    public int destinationSkeleton;
 
-        public byte invocationMode;
-        public byte resultMode;        
+    String descriptor;
+    GroupStub parent_stub;
+    GroupSkeleton parent_skeleton;
+    CombinedInvocationInfo info;
 
-	public SendPort sendport;
+    public GroupMethod(GroupStub parent, String descriptor) { 
+	this.descriptor = descriptor;
+	this.parent_stub = parent;
+    } 
 
-	/* For Group.REMOTE */
-        public int destinationMember;
-        public int destinationRank;
-        public int destinationSkeleton;
+    public GroupMethod(GroupSkeleton parent, String descriptor) { 
+	this.descriptor = descriptor;
+	this.parent_skeleton = parent;
+    } 
 
-	/* For Group.PERSONALIZE */
-	public Personalizer personalizer;
-	public Method personalizeMethod;
-
-	/* For SELECT result */
-        public int sourceMember;
-        public int sourceRank;
-        public int sourceSkeleton;
-
-	/* For FORWARD result */
-	public Forwarder resultForwarder;
-
-	/* For COMBINE result */
-        public BinaryCombiner binaryResultCombiner;
-        public FlatCombiner flatResultCombiner;
-
-	private GroupStub parent_stub;
-	private GroupSkeleton parent_skeleton;
+    public void configure(InvocationScheme inv, ReplyScheme rep) throws ConfigurationException { 
 	
-	public GroupMethod(GroupStub parent) {
-		parent_stub = parent;
-	}
+	// all configurations are valid now ???
 
-	public GroupMethod(GroupSkeleton parent) {
-		parent_skeleton = parent;
-	}
+	switch (inv.mode) { 
+	case InvocationScheme.I_SINGLE: 
+	    SingleInvocation si = (SingleInvocation)inv;
 
-//	public void localInvoke() { 
-//		if (Group.DEBUG) System.out.println("Setting invocation of " + name + " to LOCAL");
-//		invocationMode = Group.LOCAL;
-//	}
+	    if (parent_stub.size < si.destination || si.destination < 0) { 
+		throw new ConfigurationException("Invalid configuration: destination groupmember ouf of range!");
+	    } 
 
-	public void groupInvoke() { 
-		if (Group.DEBUG) System.out.println("Setting invocation of " + name + " to GROUP");
-		invocationMode = Group.GROUP;	
-		sendport = Group.getMulticastSendport(parent_stub.multicastHostsID, parent_stub.multicastHosts);
-	} 
-
-	public void remoteInvoke(int destination) {
- 		if (Group.DEBUG) System.out.println("Setting invocation of " + name + " to REMOTE");
-
-		if (destination >= 0 && destination < parent_stub.size) {
-			invocationMode = Group.REMOTE;
-			destinationMember = destination;
-			
-			long memberID = parent_stub.memberIDs[destination];
-			destinationRank = (int) ((memberID >> 32) & 0xFFFFFFFFL);
-			destinationSkeleton = (int) (memberID & 0xFFFFFFFFL);
-
-			sendport = Group.unicast[destinationRank];
-		} else { 
-			System.out.println("Method " + name + " destination " 
-					   + destination + " out of range");
-			System.exit(1);
-		}			
-	} 
-
-	public void personalizedInvoke(Personalizer p) { 
-//		if (Group.DEBUG) 
-		System.out.println("Setting invocation of " + name + " to PERSONAL");
-		
-		Method temp = null;
-
-		try { 
-			temp = p.getClass().getDeclaredMethod("personalize", personalizeParameters);
-		} catch (Exception e) { 
-			throw new RuntimeException("Setting method " + name + "to personalizedInvoke failed " + e);
+	    long memberID = parent_stub.memberIDs[si.destination];
+	    destinationSkeleton = (int) (memberID & 0xFFFFFFFFL);
+	    sendport = Group.unicast[(int) ((memberID >> 32) & 0xFFFFFFFFL)];
+	
+	    if (rep.mode == ReplyScheme.R_RETURN) { 
+		if (si.destination != ((ReturnReply)rep).rank) { 
+		    throw new ConfigurationException("Invalid configuration: invalid reply rank!");
 		} 
-		
-		invocationMode = Group.PERSONALIZE;
-		personalizeMethod = temp;		
-		personalizer = p;
+	    } 
 
-		System.out.println("personalizeMethod = " + temp);
+
+	    invocation_mode = inv.mode;
+	    break;
+	case InvocationScheme.I_GROUP: 
+	    // extra checks ?? 
+	    invocation_mode = inv.mode;			
+	    sendport = Group.getMulticastSendport(parent_stub.multicastHostsID, parent_stub.multicastHosts);
+	    break;
+	case InvocationScheme.I_PERSONAL: 
+	    invocation_mode = inv.mode;
+	    break;
+	case InvocationScheme.I_COMBINED_FLAT:
+	case InvocationScheme.I_COMBINED_BINARY: {
+	    // add more parameter checks here ?
+	    CombinedInvocation ci = (CombinedInvocation)inv;
+
+	    invocation_mode = inv.mode + ci.inv.mode;
+	    info = Group.defineCombinedInvocation(ci, parent_stub.groupID, descriptor, ci.id, inv.mode, ci.rank, ci.size);
+	    info.rank = ci.rank;
+	    }
+	    break;
 	} 
 
-	public void discardResult() { 
-		if (Group.DEBUG) System.out.println("Setting result of " + name + " to DISCARD");
-		resultMode = Group.DISCARD;
-	} 
+	switch (rep.mode) { 
+	case ReplyScheme.R_DISCARD:
+	    result_mode = rep.mode;
+	    break;
+	case ReplyScheme.R_RETURN:
+	    result_mode = rep.mode;
+	    break;
+	case ReplyScheme.R_FORWARD:
+	    result_mode = rep.mode;
+	    break;
+	case ReplyScheme.R_COMBINE_BINARY:
+	    result_mode = rep.mode;
+	    break;
+	case ReplyScheme.R_COMBINE_FLAT:
+	    result_mode = rep.mode;
+	    break;
+	case ReplyScheme.R_PERSONALIZED_RETURN:
+	    result_mode = rep.mode;
+	    break;
+	case ReplyScheme.R_PERSONALIZED_FORWARD:
+	    result_mode = rep.mode;
+	    break;
+	case ReplyScheme.R_PERSONALIZED_COMBINE_BINARY:
+	    result_mode = rep.mode;
+	    break;
+	case ReplyScheme.R_PERSONALIZED_COMBINE_FLAT:
+	    result_mode = rep.mode;
+	    break;
+	}
 
-	public void returnResult(int source) { 
-		if (Group.DEBUG) System.out.println("Setting result of " + name + " to RETURN");
-
-		resultMode = Group.RETURN;
-
-		if (source >= 0 && source < parent_stub.size) {
-			resultMode = Group.RETURN;
-			sourceMember = source;
-			
-			long memberID = parent_stub.memberIDs[source];
-			sourceRank = (int) ((memberID >> 32) & 0xFFFFFFFFL);
-			sourceSkeleton = (int) (memberID & 0xFFFFFFFFL);
-		} else { 
-			System.out.println("Method " + name + " select result " 
-					   + source + " out of range");
-			System.exit(1);
-		}	
-	} 
-
-	public void forwardResult(Forwarder f) { 
-		if (Group.DEBUG) System.out.println("Setting result of " + name + " to FORWARD");
-		resultMode = Group.FORWARD;
-		resultForwarder = f;
-	} 
-
-	public void combineResult(BinaryCombiner c) { 
-		if (Group.DEBUG) System.out.println("Setting result of " + name + " to BINARYCOMBINE using " + c.getClass().getName());
-		resultMode = Group.BINARYCOMBINE;
-		binaryResultCombiner = c;
-	} 
-
-	public void combineResult(FlatCombiner c) { 
-		if (Group.DEBUG) System.out.println("Setting result of " + name + " to FLATCOMBINE using " + c.getClass().getName());
-		resultMode = Group.FLATCOMBINE;
-		flatResultCombiner = c;
-	} 
+	this.inv = inv;
+	this.rep = rep;		
+    } 
 }

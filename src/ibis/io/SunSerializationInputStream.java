@@ -17,13 +17,6 @@ public final class SunSerializationInputStream extends SerializationInputStream 
     public void statistics() {
     }
 
-    public int bytesRead() {
-	return 0;
-    }
-
-    public void resetBytesRead() {
-    }
-
     public void readArraySliceBoolean(boolean[] ref, int off, int len) throws IOException {
 	boolean[] temp;
 	try {

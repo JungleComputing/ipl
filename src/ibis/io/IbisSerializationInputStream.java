@@ -115,15 +115,6 @@ public final class IbisSerializationInputStream
     }
 
 
-    public int bytesRead() {
-		System.err.println("IbisSerializationInputStream: bytesRead() not yet implemented");
-		return 0;
-    }
-
-    public void resetBytesRead() {
-		System.err.println("IbisSerializationInputStream: resetBytesRead() not yet implemented");
-    }
-
     private void receive() throws IOException {
 		int leftover = in.max_handle_index - in.handle_index;
 

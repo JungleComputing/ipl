@@ -1056,7 +1056,7 @@ public abstract class GroupSkeleton {
 		}
 	}
 
-	public abstract void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException;	
+	public abstract void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException, IbisIOException;	
 }
 
 

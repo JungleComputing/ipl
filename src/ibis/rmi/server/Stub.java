@@ -27,7 +27,7 @@ public class Stub extends RemoteStub {
 	private void readObject(java.io.ObjectInputStream in) throws java.io.IOException { 
 		try { 
 			in.defaultReadObject();
-		
+
 			send = RTS.createSendPort();
 			send.connect(skeletonPortId);
 			

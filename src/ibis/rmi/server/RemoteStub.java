@@ -15,5 +15,5 @@ abstract public class RemoteStub extends RemoteObject
     {
 	stub.ref = ref;
     }
-    
+
 }
