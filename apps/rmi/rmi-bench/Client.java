@@ -131,6 +131,12 @@ public class Client {
 		    Thread.sleep(1000);
 		} catch (InterruptedException eI) {
 		}
+	    } catch (java.rmi.ConnectException eC) {
+		try {
+		    System.out.println("Look up server object: sleep a while... " + eC);
+		    Thread.sleep(1000);
+		} catch (InterruptedException eI) {
+		}
 	    } catch (Exception e) {
 		System.out.println("Exception: " + e);
 		e.printStackTrace();
