@@ -1,7 +1,8 @@
 /* $Id$ */
 
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  * This oct tree is designed as follows:

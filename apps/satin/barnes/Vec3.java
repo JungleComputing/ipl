@@ -1,7 +1,7 @@
 /* $Id$ */
 
 
-import java.io.*;
+import java.io.Serializable;
 
 public final class Vec3 implements Serializable, Comparable {
 

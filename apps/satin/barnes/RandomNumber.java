@@ -1,7 +1,6 @@
 /* $Id$ */
 
 
-import java.lang.*;
 
 class RandomNumber {
 
