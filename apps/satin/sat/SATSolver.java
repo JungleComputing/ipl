@@ -153,7 +153,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 
         boolean firstvar = ctx.posDominant( nextvar );
 
-        if( level>30 || ctx.unsatisfied<100 || !needMoreJobs() ){
+        if( level>30 || ctx.unsatisfied<100 ){
 	    // We're nearly there, use the leaf solver.
 	    // We have variable 'nextvar' to branch on.
 	    SATContext subctx = (SATContext) ctx.clone();

@@ -276,6 +276,100 @@ public final class SATContext implements java.io.Serializable {
     }
 
     /**
+     * Given the SAT problem and the index of the conflicting clause,
+     * computes the first clause thas dominates the conflict in the
+     * deductions at this level. Returns the index if this clause.
+     */
+    int registerDistance( SATProblem p, int cno, int level, int dist[], int d )
+    {
+        Clause c = p.clauses[cno];
+        int res = -1;
+
+        if( dist[cno] != 0 && dist[cno]<=d ){
+            // In our walk back over the deductions, we come across
+            // a previous marking with a shorter distance than ours.
+            // This clause dominates more than one chain of deductions,
+            // so return it as the answer. Don't bother updating
+            // the distances upstream, since the previous chain
+            // of deductions has a shorter distance anyway.
+            
+            return cno;
+        }
+
+	int arr[] = c.pos;
+
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            int a = antecedent[v];
+
+            if( dl[v] == level ){
+                // The variable was deduced at our level, so it's
+                // interesting.
+
+                if( a>=0 ){
+                    // The variable is not a decision variable, we're
+                    // still interested.
+                    if( a != cno ){
+                        // Variable is not implied by this clause, we're
+                        // still interested.
+                        int res1 = registerDistance( p, a, level, dist, d+1 );
+                        if( res == -1 || ((res1!=-1) && dist[res1]<dist[res]) ){
+                            res = res1;
+                        }
+                    }
+                }
+            }
+        }
+        arr = c.neg;
+        for( int i=0; i<arr.length; i++ ){
+            int v = arr[i];
+            int a = antecedent[v];
+
+            if( dl[v] == level ){
+                // The variable was deduced at our level, so it's
+                // interesting.
+
+                if( a>=0 ){
+                    // The variable is not a decision variable, we're
+                    // still interested.
+                    if( a != cno ){
+                        // Variable is not implied by this clause, we're
+                        // still interested.
+                        int res1 = registerDistance( p, a, level, dist, d+1 );
+                        if( res == -1 || ((res1!=-1) && dist[res1]<dist[res]) ){
+                            res = res1;
+                        }
+                    }
+                }
+            }
+        }
+        if( dist[cno] != 0 ){
+            // Someone has been here before. Return this one as
+            // dominating clause.
+            res = cno;
+        }
+        // We only get to this point if any previously recorded distance
+        // was longer than 'd', so we can always overwrite.
+        dist[cno] = d;
+        return res;
+    }
+
+    /**
+     * Given the SAT problem and the index of the conflicting clause,
+     * compute the first variable thas dominates the conflict in the
+     * deductions at this level.
+     */
+    int computeDominantClause( SATProblem p, int cno, int level )
+    {
+        // The distance of each clause to the conflicting clause. The 
+        // conflicting clause itself gets distance 1, so that we can use
+        // the default value 0
+        // as indication that we haven't considered this clause yet.
+        int dist[] = new int[satisfied.length];
+        return registerDistance( p, cno, level, dist, 1 );
+    }
+
+    /**
      * Given the index of a conflicting clause, builds a conflict clause.
      * Returns null if no helpful clause can be constructed.
      * @param p The SAT problem.
@@ -346,12 +440,20 @@ public final class SATContext implements java.io.Serializable {
 	else {
 	    int a = antecedent[var];
 
+            int domclause = computeDominantClause( p, cno, level );
+            if( traceLearning ){
+                if( domclause>=0 ){
+                    System.err.println( "Dominant clause: " + p.clauses[domclause] );
+                }
+                else {
+                    System.err.println( "There is no dominant clause" );
+                }
+            }
 	    if( a>=0 ){
 		return Clause.resolve( p.clauses[cno], p.clauses[a], var );
 	    }
 	    return null;
 	}
-
     }
 
     /**
