@@ -426,9 +426,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	public void exit() {
 		/* send exit messages to all others */
 		int size;
+		java.text.NumberFormat nf;
 
 		if(!closed) {
 			ibis.closeWorld();
+		}
+
+		if (stats) {
+			nf = java.text.NumberFormat.getInstance();
 		}
 
 		if(SPAWN_STATS && stats) {
@@ -444,16 +449,16 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(TUPLE_STATS && stats) {
 			out.println("SATIN '" + ident.name() + 
 				    "': TUPLE_STATS: tuple bcast msgs: " + tupleMsgs +
-				    ", bytes = " + tupleBytes);
+				    ", bytes = " + nf.format(tupleBytes));
 		}
 		if(STEAL_STATS && stats) {
 			out.println("SATIN '" + ident.name() + 
 				    "': INTRA_STATS: messages = " + intraClusterMessages +
-				    ", bytes = " + intraClusterBytes);
+				    ", bytes = " + nf.format(intraClusterBytes));
 
 			out.println("SATIN '" + ident.name() + 
 				    "': INTER_STATS: messages = " + interClusterMessages +
-				    ", bytes = " + interClusterBytes);
+				    ", bytes = " + nf.format(interClusterBytes));
 
 			out.println("SATIN '" + ident.name() + 
 				    "': STEAL_STATS 1: attempts = " + stealAttempts +
