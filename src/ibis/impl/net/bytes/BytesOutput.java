@@ -10,7 +10,7 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
 import ibis.io.Conversion;
-import ibis.util.nativeCode.Rdtsc;
+import ibis.util.Timer;
 
 import java.io.IOException;
 
@@ -62,12 +62,12 @@ public final class BytesOutput
 	Conversion conversion = Conversion.loadConversion(false);
 
 	private static final boolean timerOn = false;
-	private Rdtsc writeArrayTimer;
-	private Rdtsc conversionTimer;
+	private Timer writeArrayTimer;
+	private Timer conversionTimer;
 	{
 	    if (timerOn) {
-		writeArrayTimer = new Rdtsc();
-		conversionTimer = new Rdtsc();
+		writeArrayTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+		conversionTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	    }
 	}
 

@@ -34,9 +34,6 @@ public final class NetLog {
 
         {
                 timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-                if (timer == null) {
-                        timer = new Timer();
-                }
         }
 
 

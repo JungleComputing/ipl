@@ -11,7 +11,7 @@ import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.util.ThreadPool;
-import ibis.util.nativeCode.Rdtsc;
+import ibis.util.Timer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -27,15 +27,15 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
     //threadlocal object which holds a timer object for the current thread
     private static ThreadLocal timer = new ThreadLocal() {
 	protected synchronized Object initialValue() {
-	    Rdtsc t = new Rdtsc();
+	    Timer t = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	    timers.add(t);
 	    return t;
 	}
     };
     
     //function to get thread-local timer
-    static Rdtsc timer() {
-	return (Rdtsc) timer.get();
+    static Timer timer() {
+	return (Timer) timer.get();
     }
 
     protected NioPortType type;
@@ -526,7 +526,7 @@ abstract class NioReceivePort implements ReceivePort, Runnable,
 	    synchronized(this) {
 		System.err.println("stats for receiveport: " + ident);
 		for(int i = 0; i < timers.size(); i++) {
-		    System.err.println((Rdtsc) timers.get(i));
+		    System.err.println((Timer) timers.get(i));
 		}
 	    }
 	}

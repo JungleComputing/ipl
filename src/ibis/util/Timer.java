@@ -210,18 +210,18 @@ public class Timer implements java.io.Serializable {
 
 	/**
 	 * Returns a Timer instance indicated by the implementation name provided.
-	 * Returns null when the implementation could not be loaded.
+	 * Returns the default timer when the implementation could not be loaded.
 	 * 
 	 * @param impl
 	 *            the name of the Timer implementation.
-	 * @return the new Timer instance, or <code>null</code>.
+	 * @return the new Timer instance.
 	 */
 	public static Timer newTimer(String impl) {
 		try {
 			Class c = Class.forName(impl);
 			return (Timer) c.newInstance();
 		} catch (Throwable t) {
-			return null;
+			return new Timer();
 		}
 	}
 }

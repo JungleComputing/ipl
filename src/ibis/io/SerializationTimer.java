@@ -9,8 +9,8 @@ public class SerializationTimer {
     private int			starts;
     private int			stops;
 
-    private Timer		timer = new ibis.util.nativeCode.Rdtsc();
-    private Timer		suspend = new ibis.util.nativeCode.Rdtsc();
+    private Timer		timer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+    private Timer		suspend = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
     public SerializationTimer(String name) {
 	this.name = name;

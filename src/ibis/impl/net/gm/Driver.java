@@ -11,6 +11,7 @@ import ibis.impl.net.NetPortType;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.Ibis;
 import ibis.util.Monitor;
+import ibis.util.Timer;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -90,16 +91,16 @@ public final class Driver extends NetDriver {
 	private static native void nStatistics();
 
 	// If (TIMINGS)
-	static ibis.util.nativeCode.Rdtsc t_wait_reply = new ibis.util.nativeCode.Rdtsc();
-	static ibis.util.nativeCode.Rdtsc t_wait_service = new ibis.util.nativeCode.Rdtsc();
+	static Timer t_wait_reply = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	static Timer t_wait_service = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
-	static ibis.util.nativeCode.Rdtsc t_poll = new ibis.util.nativeCode.Rdtsc();
-	static ibis.util.nativeCode.Rdtsc t_lock = new ibis.util.nativeCode.Rdtsc();
-	static ibis.util.nativeCode.Rdtsc t_native = new ibis.util.nativeCode.Rdtsc();
-	static ibis.util.nativeCode.Rdtsc t_native_poll = new ibis.util.nativeCode.Rdtsc();
-	static ibis.util.nativeCode.Rdtsc t_native_flush = new ibis.util.nativeCode.Rdtsc();
-	static ibis.util.nativeCode.Rdtsc t_native_post = new ibis.util.nativeCode.Rdtsc();
-	static ibis.util.nativeCode.Rdtsc t_native_send = new ibis.util.nativeCode.Rdtsc();
+	static Timer t_poll = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	static Timer t_lock = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	static Timer t_native = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	static Timer t_native_poll = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	static Timer t_native_flush = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	static Timer t_native_post = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+	static Timer t_native_send = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
 	static private int	yields;
 	static private int	pollers;

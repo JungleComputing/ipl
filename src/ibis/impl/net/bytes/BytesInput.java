@@ -12,7 +12,7 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
 import ibis.io.Conversion;
-import ibis.util.nativeCode.Rdtsc;
+import ibis.util.Timer;
 
 import java.io.IOException;
 
@@ -77,12 +77,12 @@ public final class BytesInput
 	private int waiters = 0;
 
 	private static final boolean timerOn = false;
-	private Rdtsc readArrayTimer;
-	private Rdtsc conversionTimer;
+	private Timer readArrayTimer;
+	private Timer conversionTimer;
 	{
 	    if (timerOn) {
-		readArrayTimer = new Rdtsc();
-		conversionTimer = new Rdtsc();
+		readArrayTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
+		conversionTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	    }
 	}
 

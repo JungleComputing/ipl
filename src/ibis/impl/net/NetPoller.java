@@ -570,7 +570,7 @@ nCurrent++;
 	log.out();
     }
 
-// private ibis.util.nativeCode.Rdtsc rcveTimer = new ibis.util.nativeCode.Rdtsc();
+// private ibis.util.Timer rcveTimer = new ibis.util.Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 
     /**
      * Called from poll() when the input indicated by ni has a message

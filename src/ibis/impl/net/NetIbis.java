@@ -11,7 +11,7 @@ import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 import ibis.util.IbisSocketFactory;
 import ibis.util.TypedProperties;
-import ibis.util.nativeCode.Rdtsc;
+import ibis.util.Timer;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -183,7 +183,7 @@ public final class NetIbis extends Ibis {
 	    return hostName;
 	}
 
-	private static final Rdtsc nowTimer = new Rdtsc();
+	private static final Timer nowTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 	private static final long t_start = nowTimer.currentTimeNanos();
 
 	public static float now() {

@@ -131,11 +131,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		if (STEAL_TIMING) {
 		     handleStealTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
 		     invocationRecordWriteTimer = Timer.newTimer("ibis.util.nativeCode.Rdtsc");
-		     if(handleStealTimer == null) {
-			 handleStealTimer = new Timer();
-			 invocationRecordWriteTimer = new Timer();
-		     }
-
 		     handleStealTimer.start();
 		}
 
