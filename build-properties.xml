@@ -141,7 +141,7 @@
 		message="ant-contrib home is ${package.home.ant-contrib}"/>
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
 	    <classpath>
-		<pathelement location="${package.home.ant-contrib}/ant-contrib-0.3.jar"/>
+		<pathelement location="${package.home.ant-contrib}/ant-contrib-0.4.jar"/>
 	    </classpath>
 	</taskdef>
 	<property name="contrib.initialized" value="true"/>
