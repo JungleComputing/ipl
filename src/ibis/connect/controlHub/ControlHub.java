@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.Properties;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -77,7 +78,7 @@ public class ControlHub
 {
     private static Map nodes = new Hashtable(); // Hashtable of Ibisnodes; hash key is canonical hostname of node
     private static int nodesNum = 0;
-    static final int port = 9827;
+    static final int defaultPort = 9827;
 
     private static void showCount() {
 	System.err.println("# ControlHub: "+nodesNum+" nodes currently connected");
@@ -99,7 +100,13 @@ public class ControlHub
     }
 
     public static void main(String[] arg) {
+	int port = defaultPort;
 	try {
+	    Properties p = System.getProperties();
+	    String portString = p.getProperty("ibis.connect.hub_port");
+	    if(portString != null){
+		port = Integer.parseInt(portString);
+	    }
 	    ServerSocket server = new ServerSocket(port);
 	    System.err.println("\n# ControlHub: listening on " +
 			       InetAddress.getLocalHost().getHostName()+ ":" +

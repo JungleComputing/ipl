@@ -415,6 +415,11 @@ to the command line.
 	</concat>
 	<chmod file="${ibis}/bin/ibis_nameserver" perm="+x"/>
 
+	<concat destfile="${ibis}/bin/ibis_controlhub">
+	    <filelist dir="${ibis}" files="configuration.sh,scripts/ibis_controlhub" />
+	</concat>
+	<chmod file="${ibis}/bin/ibis_controlhub" perm="+x"/>
+
 	<concat destfile="${ibis}/bin/jdis">
 	    <filelist dir="${ibis}" files="configuration.sh,scripts/jdis" />
 	</concat>

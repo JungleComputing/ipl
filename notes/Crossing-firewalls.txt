@@ -66,16 +66,16 @@ be:
 -- Step 3- start the control hub on a machine visible from every 
 computing node, e.g.:
 
-fs0:~% java -cp $IBIS_ROOT/build/ibis-connect.jar ibis.connect.controlHub.ControlHub
+fs0:~% ibis_controlhub -port 9832
 
 -- Step 4- start the Ibis name server. It is recommanded to run it on the
 same machine as the hub. Set the environment variable IBIS_HUB to the
 hub reference (in the form <host>:<port>), e.g.:
 
-fs0:~% setenv IBIS_HUB fs0.das2.cs.vu.nl:9827
+fs0:~% setenv IBIS_HUB fs0.das2.cs.vu.nl:9832
 fs0:~% ibis_nameserver
 
--- Step 5- run the application as usual, but add the flags:
+-- Step 5- run the application as usual, but add the following flags:
 -Dibis.connect.enable 
 -Dibis.connect.hub_host=fs0.das2.cs.vu.nl
 -Dibis.connect.hub_port=9827 
@@ -102,7 +102,10 @@ Java properties:
    Information on how to contact the hub control process.
    Required when RoutedMessages are used; useless else.
 
--- ibis.connect.debug
-   Enable/disable debug messages in ibis.connect.
+-- ibis.connect.debug=(true|false)
+   Enable/disable full debug messages in ibis.connect.
    Optional. Default is: disabled.
 
+-- ibis.connect.verbose=(true|false)
+   Enable/disable verbose execution in ibis.connect.
+   Optional. Default is: disabled.

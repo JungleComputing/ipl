@@ -1,0 +1,35 @@
+JAVACLASSPATH=$CLASSPATH:$IBIS_ROOT/build:
+
+usage() {
+  echo "Usage: $0 [-port <port>]"
+  echo "Start an Ibis control hub for \"RoutedMessages\" protocol."
+  echo "  -port <port>       start the hub on port number <port>"
+  echo "                     (default is 9827)"
+  echo "  -h, --help         display this help and exit"
+}
+
+if [ $# -ge 1 ]; then
+  case $1 in
+    -h|-help|--help)
+      usage
+      exit 0
+    ;;
+    -port)
+      if [ -z "$2" ]; then
+        usage
+	exit 1
+      fi
+      IBIS_HUB_PORT="$2"
+    ;;
+    *)
+      usage
+      exit 1
+    ;;
+  esac
+fi
+
+if [ ! -z "${IBIS_HUB_PORT}" ]; then
+  Dhub="-Dibis.connect.hub_port=${IBIS_HUB_PORT}"
+fi
+
+$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH $Dhub ibis.connect.controlHub.ControlHub
