@@ -159,105 +159,129 @@ public class DataSerializationInputStream
      * {@inheritDoc}
      */
     public boolean readBoolean() throws IOException {
+	startTimer();
 	while(byte_index == max_byte_index) {
 	    receive();
 	}
+	boolean a = (byte_buffer[byte_index++] != (byte)0);
 	if (DEBUG) {
-	    dbPrint("read boolean: " + ((byte_buffer[byte_index]) != (byte)0));
+	    dbPrint("read boolean: " + a);
 	}
-	return (byte_buffer[byte_index++] != (byte)0);
+	stopTimer();
+	return a;
     }
 
     /**
      * {@inheritDoc}
      */
     public byte readByte() throws IOException {
+	startTimer();
 	while (byte_index == max_byte_index) {
 	    receive();
 	}
+	byte a = byte_buffer[byte_index++];
 	if (DEBUG) {
-	    dbPrint("read byte: " + byte_buffer[byte_index]);
+	    dbPrint("read byte: " + a);
 	}
-	return byte_buffer[byte_index++];
+	stopTimer();
+	return a;
     }
 
     /**
      * {@inheritDoc}
      */
     public char readChar() throws IOException {
+	startTimer();
 	while (char_index == max_char_index) {
 	    receive();
 	}
+	char a = char_buffer[char_index++];
 	if (DEBUG) {
-	    dbPrint("read char: " + char_buffer[char_index]);
+	    dbPrint("read char: " + a);
 	}
-	return char_buffer[char_index++];
+	stopTimer();
+	return a;
     }
 
     /**
      * {@inheritDoc}
      */
     public short readShort() throws IOException {
+	startTimer();
 	while (short_index == max_short_index) {
 	    receive();
 	}
+	short a = short_buffer[short_index++];
 	if (DEBUG) {
-	    dbPrint("read short: " + short_buffer[short_index]);
+	    dbPrint("read short: " + a);
 	}
-	return short_buffer[short_index++];
+	stopTimer();
+	return a;
     }
 
     /**
      * {@inheritDoc}
      */
     public int readInt() throws IOException {
+	startTimer();
 	while (int_index == max_int_index) {
 	    receive();
 	}
+	int a = int_buffer[int_index++];
 	if (DEBUG) {
-	    dbPrint("read int[HEX]: " + int_buffer[int_index] + "[0x" +
-		    Integer.toHexString(int_buffer[int_index]) + "]");
+	    dbPrint("read int[HEX]: " + a + "[0x" +
+		    Integer.toHexString(a) + "]");
 	}
-	return int_buffer[int_index++];
+	stopTimer();
+	return a;
     }
 
     /**
      * {@inheritDoc}
      */
     public long readLong() throws IOException {
+	startTimer();
 	while (long_index == max_long_index) {
 	    receive();
 	}
+	long a = long_buffer[long_index++];
 	if (DEBUG) {
-	    dbPrint("read long: " + long_buffer[long_index]);
+	    dbPrint("read long: " + a);
 	}
-	return long_buffer[long_index++];
+	stopTimer();
+	return a;
     }
 
     /**
      * {@inheritDoc}
      */
     public float readFloat() throws IOException {
+	startTimer();
 	while (float_index == max_float_index) {
 	    receive();
 	}
+	float a = float_buffer[float_index++];
 	if (DEBUG) {
-	    dbPrint("read float: " + float_buffer[float_index]);
+	    dbPrint("read float: " + a);
 	}
-	return float_buffer[float_index++];
+	stopTimer();
+	return a;
     }
 
     /**
      * {@inheritDoc}
      */
     public double readDouble() throws IOException {
+	startTimer();
 	while (double_index == max_double_index) {
 	    receive();
 	}
+	double a = double_buffer[double_index++];
 	if (DEBUG) {
-	    dbPrint("read double: " + double_buffer[double_index]);
+	    dbPrint("read double: " + a);
 	}
-	return double_buffer[double_index++];
+	stopTimer();
+	return a;
     }
 
     /**
@@ -266,8 +290,14 @@ public class DataSerializationInputStream
      */
     protected void readBooleanArray(boolean ref[], int off, int len)
 	    throws IOException {
-	int received = readInt();
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special boolean array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readBoolean();
+	    }
+	}
     }
 
     /**
@@ -276,8 +306,14 @@ public class DataSerializationInputStream
      */
     protected void readByteArray(byte ref[], int off, int len)
 	    throws IOException {
-	int received = readInt();
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special byte array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readByte();
+	    }
+	}
     }
 
     /**
@@ -286,8 +322,14 @@ public class DataSerializationInputStream
      */
     protected void readCharArray(char ref[], int off, int len)
 	    throws IOException {
-	int received = readInt();
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special char array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readChar();
+	    }
+	}
     }
 
     /**
@@ -296,8 +338,14 @@ public class DataSerializationInputStream
      */
     protected void readShortArray(short ref[], int off, int len)
 	    throws IOException {
-	int received = readInt();
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special short array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readShort();
+	    }
+	}
     }
 
     /**
@@ -306,8 +354,14 @@ public class DataSerializationInputStream
      */
     protected void readIntArray(int ref[], int off, int len)
 	    throws IOException {
-	int received = readInt();
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_INT) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special int array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readInt();
+	    }
+	}
     }
 
     /**
@@ -316,8 +370,14 @@ public class DataSerializationInputStream
      */
     protected void readLongArray(long ref[], int off, int len)
 	    throws IOException {
-	int received = readInt();
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_LONG) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special long array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readLong();
+	    }
+	}
     }
 
     /**
@@ -326,8 +386,14 @@ public class DataSerializationInputStream
      */
     protected void readFloatArray(float ref[], int off, int len)
 	    throws IOException {
-	int received = readInt();
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special float array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readFloat();
+	    }
+	}
     }
 
     /**
@@ -336,8 +402,14 @@ public class DataSerializationInputStream
      */
     protected void readDoubleArray(double ref[], int off, int len)
 	    throws IOException {
-	int received = readInt();
-	in.readArray(ref, off, len);
+	if (len >= SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
+	    in.readArray(ref, off, len);
+	} else {
+// System.err.println("Special double array read len " + len);
+	    for (int i = off; i < off + len; i++) {
+		ref[i] = readDouble();
+	    }
+	}
     }
 
     /**
@@ -365,13 +437,18 @@ public class DataSerializationInputStream
      * {@inheritDoc}
      */
     public void readArray(boolean[] ref, int off, int len) throws IOException {
+	startTimer();
+	int received = readInt();
 	readBooleanArray(ref, off, len);
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void readArray(byte[] ref, int off, int len) throws IOException {
+	startTimer();
+	int received = readInt();
 	readByteArray(ref, off, len);
     }
 
@@ -379,48 +456,67 @@ public class DataSerializationInputStream
      * {@inheritDoc}
      */
     public void readArray(char[] ref, int off, int len) throws IOException {
+	startTimer();
+	int received = readInt();
 	readCharArray(ref, off, len);
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void readArray(short[] ref, int off, int len) throws IOException {
+	startTimer();
+	int received = readInt();
 	readShortArray(ref, off, len);
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void readArray(int[] ref, int off, int len) throws IOException {
+	startTimer();
+	int received = readInt();
 	readIntArray(ref, off, len);
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void readArray(long[] ref, int off, int len) throws IOException {
+	startTimer();
+	int received = readInt();
 	readLongArray(ref, off, len);
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void readArray(float[] ref, int off, int len) throws IOException {
+	startTimer();
+	int received = readInt();
 	readFloatArray(ref, off, len);
+	stopTimer();
     }
 
     /**
      * {@inheritDoc}
      */
     public void readArray(double[] ref, int off, int len) throws IOException {
+	startTimer();
+	int received = readInt();
 	readDoubleArray(ref, off, len);
+	stopTimer();
     }
 
     /**
      * @exception IOException is thrown, as this is not allowed.
      */
-    public void readArray(Object[] ref, int off, int len) throws IOException {
+    public void readArray(Object[] ref, int off, int len)
+	    throws IOException, ClassNotFoundException {
 	throw new IOException("Illegal data type read");
     }
 
@@ -442,7 +538,7 @@ public class DataSerializationInputStream
      * Debugging print.
      * @param s	the string to be printed.
      */
-    private void dbPrint(String s) {
+    void dbPrint(String s) {
 	debuggerPrint(this + ": " + s);
     }
 
@@ -550,6 +646,8 @@ public class DataSerializationInputStream
 	    }
 	}
 
+	suspendTimer();
+
 	in.readArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES-BEGIN_TYPES);
 
 	byte_index    = 0;
@@ -599,6 +697,8 @@ public class DataSerializationInputStream
 	if (max_double_index > 0) {
 	    in.readArray(double_buffer, 0, max_double_index);
 	}
+
+	resumeTimer();
     }
 
     /**
@@ -647,7 +747,8 @@ public class DataSerializationInputStream
     /**
      * @exception IOException when called, this is illegal
      */
-    public final Object readObjectOverride() throws IOException
+    public Object readObjectOverride()
+	    throws IOException, ClassNotFoundException
     {
 	throw new IOException("Illegal data type read");
     }
@@ -655,14 +756,14 @@ public class DataSerializationInputStream
     /**
      * @exception IOException when called, this is illegal
      */
-    public GetField readFields() throws IOException {
+    public GetField readFields() throws IOException, ClassNotFoundException {
 	throw new IOException("Illegal data type read");
     }
 
     /**
      * @exception IOException when called, this is illegal
      */
-    public void defaultReadObject() throws IOException {
+    public void defaultReadObject() throws IOException, ClassNotFoundException {
 	throw new IOException("Illegal data type read");
     }
 }

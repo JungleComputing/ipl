@@ -112,10 +112,17 @@ public class DataSerializationOutputStream
      * Structure summarizing an array write.
      */
     private static final class ArrayDescriptor {
-	int	type;
-	Object	array;
-	int	offset;
-	int	len;
+	int		type;
+	boolean[]	booleanArray;
+	byte[]		byteArray;
+	char[]		charArray;
+	short[]		shortArray;
+	int[]		intArray;
+	long[]		longArray;
+	float[]		floatArray;
+	double[]	doubleArray;
+	int		offset;
+	int		len;
     }
 
     /**
@@ -175,30 +182,311 @@ public class DataSerializationOutputStream
     }
 
     /**
-     * Method to put a array in the "array cache". If the cache is full
+     * Method to put a boolean array in the "array cache". If the cache is full
      * it is written to the arrayOutputStream.
      * This method is public because it gets called from rewritten code.
      * @param ref	the array to be written
      * @param offset	the offset at which to start
      * @param len	number of elements to write
-     * @param type	type of the array elements
      *
      * @exception IOException on IO error.
      */
-    public void writeArray(Object ref, int offset, int len, int type)
+    public void writeArrayBoolean(boolean[] ref, int offset, int len)
 	    throws IOException {
-	if (array_index == ARRAY_BUFFER_SIZE) {
-	    flush();
+	startTimer();
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_BOOLEAN) {
+// System.err.println("Special boolean array write len " + len);
+	    /* Maybe lift the check from the writeBoolean? */
+	    for (int i = offset; i < offset + len; i++) {
+		writeBoolean(ref[i]);
+	    }
+
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayBoolean: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_BOOLEAN);
+	    }
+	    array[array_index].type   = TYPE_BOOLEAN;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].booleanArray  = ref;
+	    array_index++;
+
+	    addStatSendArray(ref, TYPE_BOOLEAN, len);
 	}
-	if (DEBUG) {
-	    dbPrint("writeArray: " + ref + " offset: " 
-		    + offset + " len: " + len + " type: " + type);
+	stopTimer();
+    }
+
+    /**
+     * Method to put a byte array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayByte(byte[] ref, int offset, int len)
+	    throws IOException {
+	startTimer();
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_BYTE) {
+// System.err.println("Special byte array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeByte(ref[i]);
+	    }
+
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayByte: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_BYTE);
+	    }
+	    array[array_index].type   = TYPE_BYTE;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].byteArray  = ref;
+	    array_index++;
+
+	    addStatSendArray(ref, TYPE_BYTE, len);
 	}
-	array[array_index].type   = type;
-	array[array_index].offset = offset;
-	array[array_index].len 	  = len;
-	array[array_index].array  = ref;
-	array_index++;
+	stopTimer();
+    }
+
+    /**
+     * Method to put a char array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayChar(char[] ref, int offset, int len)
+	    throws IOException {
+	startTimer();
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_CHAR) {
+// System.err.println("Special char array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeChar(ref[i]);
+	    }
+
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayChar: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_CHAR);
+	    }
+	    array[array_index].type   = TYPE_CHAR;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].charArray  = ref;
+	    array_index++;
+
+	    addStatSendArray(ref, TYPE_CHAR, len);
+	}
+	stopTimer();
+    }
+
+    /**
+     * Method to put a short array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayShort(short[] ref, int offset, int len)
+	    throws IOException {
+	startTimer();
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_SHORT) {
+// System.err.println("Special short array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeShort(ref[i]);
+	    }
+
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayShort: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_SHORT);
+	    }
+	    array[array_index].type   = TYPE_SHORT;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].shortArray  = ref;
+	    array_index++;
+
+	    addStatSendArray(ref, TYPE_SHORT, len);
+	}
+	stopTimer();
+    }
+
+    /**
+     * Method to put a int array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayInt(int[] ref, int offset, int len)
+	    throws IOException {
+	startTimer();
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_INT) {
+// System.err.println("Special int array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeInt(ref[i]);
+	    }
+
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayInt: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_INT);
+	    }
+	    array[array_index].type   = TYPE_INT;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].intArray  = ref;
+	    array_index++;
+
+	    addStatSendArray(ref, TYPE_INT, len);
+	}
+	stopTimer();
+    }
+
+    /**
+     * Method to put a long array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayLong(long[] ref, int offset, int len)
+	    throws IOException {
+	startTimer();
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_LONG) {
+// System.err.println("Special long array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeLong(ref[i]);
+	    }
+
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayLong: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_LONG);
+	    }
+	    array[array_index].type   = TYPE_LONG;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].longArray  = ref;
+	    array_index++;
+
+	    addStatSendArray(ref, TYPE_LONG, len);
+	}
+	stopTimer();
+    }
+
+    /**
+     * Method to put a float array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayFloat(float[] ref, int offset, int len)
+	    throws IOException {
+	startTimer();
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_FLOAT) {
+// System.err.println("Special float array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeFloat(ref[i]);
+	    }
+
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayFloat: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_FLOAT);
+	    }
+	    array[array_index].type   = TYPE_FLOAT;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].floatArray  = ref;
+	    array_index++;
+
+	    addStatSendArray(ref, TYPE_FLOAT, len);
+	}
+	stopTimer();
+    }
+
+    /**
+     * Method to put a double array in the "array cache". If the cache is full
+     * it is written to the arrayOutputStream.
+     * This method is public because it gets called from rewritten code.
+     * @param ref	the array to be written
+     * @param offset	the offset at which to start
+     * @param len	number of elements to write
+     *
+     * @exception IOException on IO error.
+     */
+    public void writeArrayDouble(double[] ref, int offset, int len)
+	    throws IOException {
+	startTimer();
+	if (len < SMALL_ARRAY_BOUND / SIZEOF_DOUBLE) {
+// System.err.println("Special double array write len " + len);
+	    for (int i = offset; i < offset + len; i++) {
+		writeDouble(ref[i]);
+	    }
+
+	} else {
+	    if (array_index == ARRAY_BUFFER_SIZE) {
+		flush();
+	    }
+	    if (DEBUG) {
+		dbPrint("writeArrayDouble: " + ref + " offset: " 
+			+ offset + " len: " + len + " type: " + TYPE_DOUBLE);
+	    }
+	    array[array_index].type   = TYPE_DOUBLE;
+	    array[array_index].offset = offset;
+	    array[array_index].len 	  = len;
+	    array[array_index].doubleArray  = ref;
+	    array_index++;
+
+	    addStatSendArray(ref, TYPE_DOUBLE, len);
+	}
+	stopTimer();
+    }
+
+    void addStatSendArray(Object ref, int type, int len) {
     }
 
     /**
@@ -210,37 +498,40 @@ public class DataSerializationOutputStream
 	if (DEBUG) {
 	    dbPrint("doing a flush()");
 	}
+
+	suspendTimer();
+
 	flushBuffers();
 
 	/* Retain the order in which the arrays were pushed. This 
-	 * costs a cast at send/receive.
+	 * costs a cast at receive time.
 	 */
 	for (int i = 0; i < array_index; i++) {
 	    ArrayDescriptor a = array[i];
 	    switch(a.type) {
 	    case TYPE_BOOLEAN:
-		out.writeArray( (boolean[])(a.array), a.offset, a.len);
+		out.writeArray(a.booleanArray, a.offset, a.len);
 		break;
 	    case TYPE_BYTE:
-		out.writeArray( (byte[])(a.array), a.offset, a.len);
+		out.writeArray(a.byteArray, a.offset, a.len);
 		break;
 	    case TYPE_CHAR:
-		out.writeArray( (char[])(a.array), a.offset, a.len);
+		out.writeArray(a.charArray, a.offset, a.len);
 		break;
 	    case TYPE_SHORT:
-		out.writeArray( (short[])(a.array), a.offset, a.len);
+		out.writeArray(a.shortArray, a.offset, a.len);
 		break;
 	    case TYPE_INT:
-		out.writeArray( (int[])(a.array), a.offset, a.len);
+		out.writeArray(a.intArray, a.offset, a.len);
 		break;
 	    case TYPE_LONG:
-		out.writeArray( (long[])(a.array), a.offset, a.len);
+		out.writeArray(a.longArray, a.offset, a.len);
 		break;
 	    case TYPE_FLOAT:
-		out.writeArray( (float[])(a.array), a.offset, a.len);
+		out.writeArray(a.floatArray, a.offset, a.len);
 		break;
 	    case TYPE_DOUBLE:
-		out.writeArray( (double[])(a.array), a.offset, a.len);
+		out.writeArray(a.doubleArray, a.offset, a.len);
 		break;
 	    }
 	}
@@ -248,6 +539,8 @@ public class DataSerializationOutputStream
 	array_index = 0;
 
 	out.flush();
+
+	resumeTimer();
 
 	if (out instanceof ArrayOutputStream) {
 
@@ -291,6 +584,7 @@ public class DataSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeBoolean(boolean value) throws IOException {
+	startTimer();
 	if (byte_index == BYTE_BUFFER_SIZE) {
 	    flush();
 	}
@@ -298,6 +592,7 @@ public class DataSerializationOutputStream
 	    dbPrint("wrote boolean " + value);
 	}
 	byte_buffer[byte_index++] = (byte) (value ? 1 : 0);
+	stopTimer();
     }
 
 
@@ -307,6 +602,7 @@ public class DataSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeByte(int value) throws IOException {
+	startTimer();
 	if (byte_index == BYTE_BUFFER_SIZE) {
 	    flush();
 	}
@@ -314,6 +610,7 @@ public class DataSerializationOutputStream
 	    dbPrint("wrote byte " + value);
 	}
 	byte_buffer[byte_index++] = (byte) value;
+	stopTimer();
     }
 
     /**
@@ -322,6 +619,7 @@ public class DataSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeChar(char value) throws IOException {
+	startTimer();
 	if (char_index == CHAR_BUFFER_SIZE) {
 	    flush();
 	}
@@ -329,6 +627,7 @@ public class DataSerializationOutputStream
 	    dbPrint("wrote char " + value);
 	}
 	char_buffer[char_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -337,6 +636,7 @@ public class DataSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeShort(int value) throws IOException {
+	startTimer();
 	if (short_index == SHORT_BUFFER_SIZE) {
 	    flush();
 	}
@@ -344,6 +644,7 @@ public class DataSerializationOutputStream
 	    dbPrint("wrote short " + value);
 	}
 	short_buffer[short_index++] = (short) value;
+	stopTimer();
     }
 
     /**
@@ -352,6 +653,7 @@ public class DataSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeInt(int value) throws IOException {
+	startTimer();
 	if (int_index == INT_BUFFER_SIZE) {
 	    flush();
 	}
@@ -360,6 +662,7 @@ public class DataSerializationOutputStream
 		    Integer.toHexString(value) + "]");
 	}
 	int_buffer[int_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -368,6 +671,7 @@ public class DataSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeLong(long value) throws IOException {
+	startTimer();
 	if (long_index == LONG_BUFFER_SIZE) {
 	    flush();
 	}
@@ -375,6 +679,7 @@ public class DataSerializationOutputStream
 	    dbPrint("wrote long " + value);
 	}
 	long_buffer[long_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -383,6 +688,7 @@ public class DataSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeFloat(float value) throws IOException {
+	startTimer();
 	if (float_index == FLOAT_BUFFER_SIZE) {
 	    flush();
 	}
@@ -390,6 +696,7 @@ public class DataSerializationOutputStream
 	    dbPrint("wrote float " + value);
 	}
 	float_buffer[float_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -398,6 +705,7 @@ public class DataSerializationOutputStream
      * @exception IOException on IO error.
      */
     public void writeDouble(double value) throws IOException {
+	startTimer();
 	if (double_index == DOUBLE_BUFFER_SIZE) {
 	    flush();
 	}
@@ -405,6 +713,7 @@ public class DataSerializationOutputStream
 	    dbPrint("wrote double " + value);
 	}
 	double_buffer[double_index++] = value;
+	stopTimer();
     }
 
     /**
@@ -452,7 +761,7 @@ public class DataSerializationOutputStream
      * Debugging print.
      * @param s	the string to be printed.
      */
-    private void dbPrint(String s) {
+    void dbPrint(String s) {
 	DataSerializationInputStream.debuggerPrint(this + ": " + s);
     }
 
@@ -512,7 +821,6 @@ public class DataSerializationOutputStream
 	double_index = 0;
     }
 
-
     /**
      * Flush the primitive arrays.
      *
@@ -527,6 +835,16 @@ public class DataSerializationOutputStream
 	indices_short[TYPE_LONG]    = (short) long_index;
 	indices_short[TYPE_FLOAT]   = (short) float_index;
 	indices_short[TYPE_DOUBLE]  = (short) double_index;
+
+	if (DEBUG) {
+	    dbPrint("writing bytes " + byte_index);
+	    dbPrint("writing chars " + char_index);
+	    dbPrint("writing shorts " + short_index);
+	    dbPrint("writing ints " + int_index);
+	    dbPrint("writing longs " + long_index);
+	    dbPrint("writing floats " + float_index);
+	    dbPrint("writing doubles " + double_index);
+	}
 
 	out.writeArray(indices_short, BEGIN_TYPES, PRIMITIVE_TYPES-BEGIN_TYPES);
 
@@ -583,8 +901,10 @@ public class DataSerializationOutputStream
      * reads its buffer bounds.
      */
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
+	startTimer();
 	writeInt(len);
-	writeArray(ref, off, len, TYPE_BOOLEAN);
+	writeArrayBoolean(ref, off, len);
+	stopTimer();
     }
 
     /**
@@ -594,8 +914,10 @@ public class DataSerializationOutputStream
      * reads its buffer bounds.
      */
     public void writeArray(byte[] ref, int off, int len) throws IOException {
+	startTimer();
 	writeInt(len);
-	writeArray(ref, off, len, TYPE_BYTE);
+	writeArrayByte(ref, off, len);
+	stopTimer();
     }
 
     /**
@@ -605,8 +927,10 @@ public class DataSerializationOutputStream
      * reads its buffer bounds.
      */
     public void writeArray(short[] ref, int off, int len) throws IOException {
+	startTimer();
 	writeInt(len);
-	writeArray(ref, off, len, TYPE_SHORT);
+	writeArrayShort(ref, off, len);
+	stopTimer();
     }
 
     /**
@@ -616,8 +940,10 @@ public class DataSerializationOutputStream
      * reads its buffer bounds.
      */
     public void writeArray(char[] ref, int off, int len) throws IOException {
+	startTimer();
 	writeInt(len);
-	writeArray(ref, off, len, TYPE_CHAR);
+	writeArrayChar(ref, off, len);
+	stopTimer();
     }
 
     /**
@@ -627,8 +953,10 @@ public class DataSerializationOutputStream
      * reads its buffer bounds.
      */
     public void writeArray(int[] ref, int off, int len) throws IOException {
+	startTimer();
 	writeInt(len);
-	writeArray(ref, off, len, TYPE_INT);
+	writeArrayInt(ref, off, len);
+	stopTimer();
     }
 
     /**
@@ -638,8 +966,10 @@ public class DataSerializationOutputStream
      * reads its buffer bounds.
      */
     public void writeArray(long[] ref, int off, int len) throws IOException {
+	startTimer();
 	writeInt(len);
-	writeArray(ref, off, len, TYPE_LONG);
+	writeArrayLong(ref, off, len);
+	stopTimer();
     }
 
     /**
@@ -649,8 +979,10 @@ public class DataSerializationOutputStream
      * reads its buffer bounds.
      */
     public void writeArray(float[] ref, int off, int len) throws IOException {
+	startTimer();
 	writeInt(len);
-	writeArray(ref, off, len, TYPE_FLOAT);
+	writeArrayFloat(ref, off, len);
+	stopTimer();
     }
 
     /**
@@ -660,8 +992,10 @@ public class DataSerializationOutputStream
      * reads its buffer bounds.
      */
     public void writeArray(double[] ref, int off, int len) throws IOException {
+	startTimer();
 	writeInt(len);
-	writeArray(ref, off, len, TYPE_DOUBLE);
+	writeArrayDouble(ref, off, len);
+	stopTimer();
     }
 
     /**
