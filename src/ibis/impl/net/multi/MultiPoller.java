@@ -189,12 +189,6 @@ public class MultiPoller extends NetPoller {
                 log.out();
         }
 
-	public void startReceive() throws IOException {
-	    // If there is not even a plugin, we cannot be a real multipoller.
-	    // So there is no need to keep our subInput(s) interruptible.
-	    super.startReceive(plugin == null);
-	}
-
         protected Object getKey(Integer num) {
                 log.in();
                 Lane lane = (Lane)laneTable.get(num);

@@ -261,18 +261,13 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
     }
 
     public void startReceive() throws IOException {
-	startReceive(false);
-    }
-
-    protected void startReceive(boolean forceNonInterruptible)
-	    throws IOException {
 	if (decouplePoller) {
-	} else {
 	    /*
 	     * If our subclass is a multiplexer, it starts all necessary
 	     * upcall threads. Then we do not want an upcall thread in
 	     * this class.
 	     */
+	} else {
 	    startUpcallThread();
 	}
 
@@ -283,9 +278,6 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	    ReceiveQueue rq  = (ReceiveQueue)i.next();
 	    NetInput in = rq.getInput();
 
-	    if (forceNonInterruptible) {
-		in.setInterruptible(false);
-	    }
 // System.err.println(this + ": startReceive in " + rq.getInput());
 	    in.startReceive();
 	}
