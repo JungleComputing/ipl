@@ -323,6 +323,10 @@ public final class NetIbis extends Ibis {
 		return newPortType;
 	}
 
+	long getSeqno(String name) throws IOException {
+	    return nameServer.getSeqno(name);
+	}
+
 	/**
 	 * Returns the <I>name server</I> {@linkplain #nameServer client} {@linkplain Registry registry}.
 	 *

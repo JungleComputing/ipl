@@ -848,9 +848,10 @@ pollerThread = null;
         public ReadMessage poll()  throws IOException {
                 log.in();
                 if (useUpcall) {
-                        if (!polledLock.trylock())
+                        if (!polledLock.trylock()) {
                                 log.out("poll failure 1");
                                 return null;
+			}
                 } else {
                         if (!_doPoll(false)) {
                                 log.out("poll failure 2");
@@ -1219,7 +1220,7 @@ pollerThread = null;
         public long sequenceNumber() {
                 log.in();
                 log.out();
-                return -1;
+                return input.sequenceNumber();
         }
 
         public SendPortIdentifier origin() {

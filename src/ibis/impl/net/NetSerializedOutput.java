@@ -93,6 +93,7 @@ public abstract class NetSerializedOutput extends NetOutput {
 	public void initSend() throws IOException {
                 super.initSend();
                 subOutput.initSend();
+
                 if (oss == null) {
 		    if (requiresStreamReinit) {
                         subOutput.writeByte((byte)255);
@@ -105,6 +106,12 @@ public abstract class NetSerializedOutput extends NetOutput {
 		    }
 		    oss.reset();
                 }
+
+		if (type.sequenced()) {
+		    long seqno = NetIbis.globalIbis.getSeqno(type.name());
+		    oss.writeLong(seqno);
+		}
+
 		needFlush = true;
 	}
 

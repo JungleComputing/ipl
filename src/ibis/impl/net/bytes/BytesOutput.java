@@ -324,8 +324,6 @@ public final class BytesOutput
         public void writeByteBuffer(NetSendBuffer buffer) throws IOException {
                 log.in();
                 flush();
-if (this.buffer != null)
-System.err.println(this + ": pass along byte buffer size " + buffer.length + " but pending buffer " + this.buffer + " length " + this.buffer.length);
                 subOutput.writeByteBuffer(buffer);
                 log.out();
         }
@@ -359,6 +357,8 @@ System.err.println(this + ": pass along byte buffer size " + buffer.length + " b
                         if (buffer == null) {
                                 allocateBuffer();
                         }
+if (buffer == null) throw new Error("buffer race");
+if (buffer.data == null) throw new Error("buffer corrupted");
 
                         buffer.data[buffer.length++] = v;
                         flushIfNeeded();
@@ -619,26 +619,7 @@ System.err.println(this + ": Ugh... Double");
 
         public void writeArray(boolean [] ub, int o, int l) throws IOException {
                 log.in();
-                if (mtu > 0) {
-                        if (ensureLength(l)) {
-                                conversion.boolean2byte(ub, o, l, buffer.data, buffer.length);
-                                buffer.length += l;
-                                flushIfNeeded();
-                        } else {
-                                while (l > 0) {
-                                        if (buffer == null) {
-                                                allocateBuffer();
-                                        }
-
-                                        int copyLength = Math.min(l, buffer.data.length - buffer.length);
-                                        conversion.boolean2byte(ub, o, copyLength, buffer.data, buffer.length);
-                                        o += copyLength;
-                                        l -= copyLength;
-                                        buffer.length += copyLength;
-                                        flushIfNeeded();
-                                }
-                        }
-                } else {
+                if (mtu <= 0) {
                         if (l <= anThreshold) {
                                 byte [] b = an.allocate();
                                 conversion.boolean2byte(ub, o, l, b, 0);
@@ -649,34 +630,53 @@ System.err.println(this + ": Ugh... Double");
 				conversion.boolean2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
+
+                } else if (ensureLength(l)) {
+			conversion.boolean2byte(ub, o, l, buffer.data, buffer.length);
+			buffer.length += l;
+			flushIfNeeded();
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					allocateBuffer();
+				}
+
+				int copyLength = Math.min(l, buffer.data.length - buffer.length);
+				conversion.boolean2byte(ub, o, copyLength, buffer.data, buffer.length);
+				o += copyLength;
+				l -= copyLength;
+				buffer.length += copyLength;
+				flushIfNeeded();
+			}
                 }
                 log.out();
         }
 
         public void writeArray(byte [] ub, int o, int l) throws IOException {
                 log.in();
-                if (mtu > 0) {
-                        if (ensureLength(l)) {
-                                System.arraycopy(ub, o, buffer.data, buffer.length, l);
-                                buffer.length += l;
-                                flushIfNeeded();
-                        } else {
-                                while (l > 0) {
-                                        if (buffer == null) {
-                                                allocateBuffer();
-                                        }
-
-                                        int copyLength = Math.min(l, buffer.data.length - buffer.length);
-                                        System.arraycopy(ub, o, buffer.data, buffer.length, copyLength);
-                                        o += copyLength;
-                                        l -= copyLength;
-                                        buffer.length += copyLength;
-                                        flushIfNeeded();
-                                }
-                        }
-                } else {
+                if (mtu <= 0) {
                         subOutput.writeArray(ub, o, l);
-                }
+
+                } else if (ensureLength(l)) {
+			System.arraycopy(ub, o, buffer.data, buffer.length, l);
+			buffer.length += l;
+			flushIfNeeded();
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					allocateBuffer();
+				}
+
+				int copyLength = Math.min(l, buffer.data.length - buffer.length);
+				System.arraycopy(ub, o, buffer.data, buffer.length, copyLength);
+				o += copyLength;
+				l -= copyLength;
+				buffer.length += copyLength;
+				flushIfNeeded();
+			}
+		}
 
                 log.out();
         }
@@ -684,38 +684,7 @@ System.err.println(this + ": Ugh... Double");
         public void writeArray(char [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.CHAR_SIZE*(l+1) - 1)) {
-                                conversion.char2byte(ub, o, l, buffer.data, buffer.length);
-                                buffer.length += Conversion.CHAR_SIZE*l;
-                                flushIfNeeded();
-                        } else {
-                                if (mtu < Conversion.CHAR_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                writeChar(ub[o+i]);
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        allocateBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.CHAR_SIZE*l, buffer.data.length - buffer.length) / Conversion.CHAR_SIZE;
-
-                                                if (copyLength == 0) {
-                                                        flush();
-                                                        continue;
-                                                }
-
-                                                conversion.char2byte(ub, o, copyLength, buffer.data, buffer.length);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                buffer.length += Conversion.CHAR_SIZE*copyLength;
-                                                flushIfNeeded();
-                                        }
-                                }
-                        }
-                } else {
+                if (mtu <= 0) {
                         if ((l*Conversion.CHAR_SIZE) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 conversion.char2byte(ub, o, l, b, 0);
@@ -726,45 +695,44 @@ System.err.println(this + ": Ugh... Double");
 				conversion.char2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
-                }
+
+                } else if (ensureLength(Conversion.CHAR_SIZE*(l+1) - 1)) {
+			conversion.char2byte(ub, o, l, buffer.data, buffer.length);
+			buffer.length += Conversion.CHAR_SIZE*l;
+			flushIfNeeded();
+
+		} else if (mtu < Conversion.CHAR_SIZE) {
+			for (int i = 0; i < l; i++) {
+				writeChar(ub[o+i]);
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					allocateBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.CHAR_SIZE*l, buffer.data.length - buffer.length) / Conversion.CHAR_SIZE;
+
+				if (copyLength == 0) {
+					flush();
+					continue;
+				}
+
+				conversion.char2byte(ub, o, copyLength, buffer.data, buffer.length);
+				o += copyLength;
+				l -= copyLength;
+				buffer.length += Conversion.CHAR_SIZE*copyLength;
+				flushIfNeeded();
+			}
+		}
                 log.out();
         }
 
         public void writeArray(short [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.SHORT_SIZE*(l+1) - 1)) {
-                                conversion.short2byte(ub, o, l, buffer.data, buffer.length);
-                                buffer.length += Conversion.SHORT_SIZE*l;
-                                flushIfNeeded();
-                        } else {
-                                if (mtu < Conversion.SHORT_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                writeShort(ub[o+i]);
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        allocateBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.SHORT_SIZE*l, buffer.data.length - buffer.length) / Conversion.SHORT_SIZE;
-                                                log.disp("copyLength = ", copyLength);
-                                                if (copyLength == 0) {
-                                                        flush();
-                                                        continue;
-                                                }
-
-                                                conversion.short2byte(ub, o, copyLength, buffer.data, buffer.length);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                buffer.length += Conversion.SHORT_SIZE*copyLength;
-                                                flushIfNeeded();
-                                        }
-                                }
-                        }
-                } else {
+                if (mtu <= 0) {
                         if ((l*Conversion.SHORT_SIZE) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 conversion.short2byte(ub, o, l, b, 0);
@@ -775,49 +743,44 @@ System.err.println(this + ": Ugh... Double");
 				conversion.short2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
-                }
+
+                } else if (ensureLength(Conversion.SHORT_SIZE*(l+1) - 1)) {
+			conversion.short2byte(ub, o, l, buffer.data, buffer.length);
+			buffer.length += Conversion.SHORT_SIZE*l;
+			flushIfNeeded();
+
+		} else if (mtu < Conversion.SHORT_SIZE) {
+			for (int i = 0; i < l; i++) {
+				writeShort(ub[o+i]);
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					allocateBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.SHORT_SIZE*l, buffer.data.length - buffer.length) / Conversion.SHORT_SIZE;
+				log.disp("copyLength = ", copyLength);
+				if (copyLength == 0) {
+					flush();
+					continue;
+				}
+
+				conversion.short2byte(ub, o, copyLength, buffer.data, buffer.length);
+				o += copyLength;
+				l -= copyLength;
+				buffer.length += Conversion.SHORT_SIZE*copyLength;
+				flushIfNeeded();
+			}
+		}
                 log.out();
         }
 
         public void writeArray(int [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.INT_SIZE*(l+1) - 1)) {
-// System.err.print("e=" + l);
-                                conversion.int2byte(ub, o, l, buffer.data, buffer.length);
-                                buffer.length += Conversion.INT_SIZE*l;
-                                flushIfNeeded();
-                        } else {
-                                if (mtu < Conversion.INT_SIZE) {
-// System.err.print("i=" + l);
-                                        for (int i = 0; i < l; i++) {
-                                                writeInt(ub[o+i]);
-                                        }
-                                } else {
-                                        while (l > 0) {
-// System.err.print("b=" + l);
-                                                if (buffer == null) {
-                                                        allocateBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.INT_SIZE*l, buffer.data.length - buffer.length) / Conversion.INT_SIZE;
-                                                log.disp("copyLength = ", copyLength);
-
-                                                if (copyLength == 0) {
-                                                        flush();
-                                                        continue;
-                                                }
-
-                                                conversion.int2byte(ub, o, copyLength, buffer.data, buffer.length);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                buffer.length += Conversion.INT_SIZE*copyLength;
-                                                flushIfNeeded();
-                                        }
-                                }
-                        }
-                } else {
+                if (mtu <= 0) {
                         if ((l*Conversion.INT_SIZE) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 conversion.int2byte(ub, o, l, b, 0);
@@ -828,45 +791,48 @@ System.err.println(this + ": Ugh... Double");
 				conversion.int2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
-                }
+
+                } else if (ensureLength(Conversion.INT_SIZE*(l+1) - 1)) {
+// System.err.print("e=" + l);
+			conversion.int2byte(ub, o, l, buffer.data, buffer.length);
+			buffer.length += Conversion.INT_SIZE*l;
+			flushIfNeeded();
+
+		} else if (mtu < Conversion.INT_SIZE) {
+// System.err.print("i=" + l);
+			for (int i = 0; i < l; i++) {
+				writeInt(ub[o+i]);
+			}
+
+		} else {
+			while (l > 0) {
+// System.err.print("b=" + l);
+				if (buffer == null) {
+					allocateBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.INT_SIZE*l, buffer.data.length - buffer.length) / Conversion.INT_SIZE;
+				log.disp("copyLength = ", copyLength);
+
+				if (copyLength == 0) {
+					flush();
+					continue;
+				}
+
+				conversion.int2byte(ub, o, copyLength, buffer.data, buffer.length);
+				o += copyLength;
+				l -= copyLength;
+				buffer.length += Conversion.INT_SIZE*copyLength;
+				flushIfNeeded();
+			}
+		}
                 log.out();
         }
 
         public void writeArray(long [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.LONG_SIZE*(l+1) - 1)) {
-                                conversion.long2byte(ub, o, l, buffer.data, buffer.length);
-                                buffer.length += Conversion.LONG_SIZE*l;
-                                flushIfNeeded();
-                        } else {
-                                if (mtu < Conversion.LONG_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                writeLong(ub[o+i]);
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        allocateBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.LONG_SIZE*l, buffer.data.length - buffer.length) / Conversion.LONG_SIZE;
-
-                                                if (copyLength == 0) {
-                                                        flush();
-                                                        continue;
-                                                }
-
-                                                conversion.long2byte(ub, o, copyLength, buffer.data, buffer.length);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                buffer.length += Conversion.LONG_SIZE*copyLength;
-                                                flushIfNeeded();
-                                        }
-                                }
-                        }
-                } else {
+                if (mtu <= 0) {
                         if ((l*Conversion.LONG_SIZE) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 conversion.long2byte(ub, o, l, b, 0);
@@ -878,45 +844,43 @@ System.err.println(this + ": Ugh... Double");
                                 subOutput.writeArray(b);
                         }
 
-                }
+                } else if (ensureLength(Conversion.LONG_SIZE*(l+1) - 1)) {
+			conversion.long2byte(ub, o, l, buffer.data, buffer.length);
+			buffer.length += Conversion.LONG_SIZE*l;
+			flushIfNeeded();
+
+		} else if (mtu < Conversion.LONG_SIZE) {
+			for (int i = 0; i < l; i++) {
+				writeLong(ub[o+i]);
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					allocateBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.LONG_SIZE*l, buffer.data.length - buffer.length) / Conversion.LONG_SIZE;
+
+				if (copyLength == 0) {
+					flush();
+					continue;
+				}
+
+				conversion.long2byte(ub, o, copyLength, buffer.data, buffer.length);
+				o += copyLength;
+				l -= copyLength;
+				buffer.length += Conversion.LONG_SIZE*copyLength;
+				flushIfNeeded();
+			}
+		}
                 log.out();
         }
 
         public void writeArray(float [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.FLOAT_SIZE*(l+1) - 1)) {
-                                conversion.float2byte(ub, o, l, buffer.data, buffer.length);
-                                buffer.length += Conversion.FLOAT_SIZE*l;
-                                flushIfNeeded();
-                        } else {
-                                if (mtu < Conversion.FLOAT_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                writeFloat(ub[o+i]);
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        allocateBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.FLOAT_SIZE*l, buffer.data.length - buffer.length) / Conversion.FLOAT_SIZE;
-
-                                                if (copyLength == 0) {
-                                                        flush();
-                                                        continue;
-                                                }
-
-                                                conversion.float2byte(ub, o, copyLength, buffer.data, buffer.length);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                buffer.length += Conversion.FLOAT_SIZE*copyLength;
-                                                flushIfNeeded();
-                                        }
-                                }
-                        }
-                } else {
+                if (mtu <= 0) {
                         if ((l*Conversion.FLOAT_SIZE) <= anThreshold) {
                                 byte [] b = an.allocate();
                                 conversion.float2byte(ub, o, l, b, 0);
@@ -927,8 +891,38 @@ System.err.println(this + ": Ugh... Double");
 				conversion.float2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
-                }
-                log.out();
+
+                } else if (ensureLength(Conversion.FLOAT_SIZE*(l+1) - 1)) {
+			conversion.float2byte(ub, o, l, buffer.data, buffer.length);
+			buffer.length += Conversion.FLOAT_SIZE*l;
+			flushIfNeeded();
+
+		} else if (mtu < Conversion.FLOAT_SIZE) {
+			for (int i = 0; i < l; i++) {
+				writeFloat(ub[o+i]);
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					allocateBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.FLOAT_SIZE*l, buffer.data.length - buffer.length) / Conversion.FLOAT_SIZE;
+
+				if (copyLength == 0) {
+					flush();
+					continue;
+				}
+
+				conversion.float2byte(ub, o, copyLength, buffer.data, buffer.length);
+				o += copyLength;
+				l -= copyLength;
+				buffer.length += Conversion.FLOAT_SIZE*copyLength;
+				flushIfNeeded();
+			}
+		}
+		log.out();
         }
 
         public void writeArray(double [] ub, int o, int l) throws IOException {
@@ -936,46 +930,7 @@ System.err.println(this + ": Ugh... Double");
 // System.err.println(this + "writeArray: mtu " + mtu + " ensureLength() " + ensureLength(Conversion.DOUBLE_SIZE * (l + 1) - 1) + " anThreshold " + ((l * Conversion.DOUBLE_SIZE) <= anThreshold));
 
 		if (timerOn) writeArrayTimer.start();
-                if (mtu > 0) {
-			buffer.length = Conversion.align(buffer.length, Conversion.DOUBLE_SIZE);
-                        if (ensureLength(Conversion.DOUBLE_SIZE*(l+1) - 1)) {
-// System.err.print("e=" + l);
-				if (timerOn) conversionTimer.start();
-                                conversion.double2byte(ub, o, l, buffer.data, buffer.length);
-				if (timerOn) conversionTimer.stop();
-                                buffer.length += Conversion.DOUBLE_SIZE*l;
-                                flushIfNeeded();
-                        } else {
-                                if (mtu < Conversion.DOUBLE_SIZE) {
-// System.err.print("i=" + l);
-                                        for (int i = 0; i < l; i++) {
-                                                writeDouble(ub[o+i]);
-                                        }
-                                } else {
-// System.err.print("b=" + l);
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        allocateBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.DOUBLE_SIZE*l, buffer.data.length - buffer.length) / Conversion.DOUBLE_SIZE;
-
-                                                if (copyLength == 0) {
-                                                        flush();
-                                                        continue;
-                                                }
-
-						if (timerOn) conversionTimer.start();
-                                                conversion.double2byte(ub, o, copyLength, buffer.data, buffer.length);
-						if (timerOn) conversionTimer.stop();
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                buffer.length += Conversion.DOUBLE_SIZE*copyLength;
-                                                flushIfNeeded();
-                                        }
-                                }
-                        }
-                } else {
+                if (mtu <= 0) {
                         if ((l*Conversion.DOUBLE_SIZE) <= anThreshold) {
 // System.err.print("a=" + l);
                                 byte [] b = an.allocate();
@@ -993,7 +948,44 @@ System.err.println(this + ": Ugh... Double");
 				if (timerOn) conversionTimer.stop();
                                 subOutput.writeArray(b);
                         }
-                }
+
+                } else if (ensureLength(Conversion.DOUBLE_SIZE*(l+1) - 1)) {
+// System.err.print("e=" + l);
+			if (timerOn) conversionTimer.start();
+			conversion.double2byte(ub, o, l, buffer.data, buffer.length);
+			if (timerOn) conversionTimer.stop();
+			buffer.length += Conversion.DOUBLE_SIZE*l;
+			flushIfNeeded();
+
+		} else if (mtu < Conversion.DOUBLE_SIZE) {
+// System.err.print("i=" + l);
+			for (int i = 0; i < l; i++) {
+				writeDouble(ub[o+i]);
+			}
+
+		} else {
+// System.err.print("b=" + l);
+			while (l > 0) {
+				if (buffer == null) {
+					allocateBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.DOUBLE_SIZE*l, buffer.data.length - buffer.length) / Conversion.DOUBLE_SIZE;
+
+				if (copyLength == 0) {
+					flush();
+					continue;
+				}
+
+				if (timerOn) conversionTimer.start();
+				conversion.double2byte(ub, o, copyLength, buffer.data, buffer.length);
+				if (timerOn) conversionTimer.stop();
+				o += copyLength;
+				l -= copyLength;
+				buffer.length += Conversion.DOUBLE_SIZE*copyLength;
+				flushIfNeeded();
+			}
+		}
 		if (timerOn) writeArrayTimer.stop();
                 log.out();
         }

@@ -17,7 +17,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
      * The set of outputs.
      */
     protected HashMap   outputMap = null;
-    private NetOutput   singleton;
+    protected NetOutput	singleton;
 
     protected boolean	writeBufferedSupported = true;
 
@@ -73,6 +73,10 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	    headerOffset = _headersLength;
 	}
 
+	if (outputMap.containsValue(output)) {
+	    throw new Error(this + ": attempt to include subOutput "
+		    + output + " twice");
+	}
 	outputMap.put(rpn, output);
 	log.out();
     }
@@ -298,8 +302,7 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	    Iterator i = outputMap.values().iterator();
 	    do {
 		NetOutput no = (NetOutput)i.next();
-		NetBufferedOutputSupport bo =
-		    (NetBufferedOutputSupport)no;
+		NetBufferedOutputSupport bo = (NetBufferedOutputSupport)no;
 		bo.writeBuffered(data, offset, length);
 // System.err.println(this + ": writeBuffered to NON-singleton " + bo + (i.hasNext() ? "" : "NO ") + " more to come");
 	    } while (i.hasNext());
@@ -316,11 +319,18 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	if (singleton != null) {
 	    singleton.writeByteBuffer(buffer);
 	} else {
+	    boolean mine = ! buffer.ownershipClaimed;
+	    if (mine) {
+		buffer.ownershipClaimed = true;
+	    }
 	    Iterator i = outputMap.values().iterator();
 	    do {
 		NetOutput no = (NetOutput)i.next();
 		no.writeByteBuffer(buffer);
 	    } while (i.hasNext());
+	    if (mine) {
+		buffer.free();
+	    }
 	}
 	log.out();
     }

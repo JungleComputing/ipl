@@ -165,8 +165,6 @@ public final class TcpOutput extends NetBufferedOutput {
 
 			if (! b.ownershipClaimed) {
 				b.free();
-			} else {
-				throw new IOException("buffer is owned, cannot free");
 			}
 		} catch (IOException e) {
 			throw new ConnectionClosedException(e);

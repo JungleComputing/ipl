@@ -689,27 +689,7 @@ public final class BytesInput
 
 	public void readArray(boolean [] ub, int o, int l) throws IOException {
                 log.in();
-                if (mtu > 0) {
-                        if (ensureLength(l)) {
-                                conversion.byte2boolean(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += l;
-                                freeBufferIfNeeded();
-                        } else {
-                                while (l > 0) {
-                                        if (buffer == null) {
-                                                pumpBuffer();
-                                        }
-
-                                        int copyLength = Math.min(l, buffer.length - bufferOffset);
-                                        conversion.byte2boolean(buffer.data, bufferOffset, ub, o, copyLength);
-                                        o += copyLength;
-                                        l -= copyLength;
-                                        bufferOffset += copyLength;
-                                        freeBufferIfNeeded();
-                                }
-                        }
-// System.err.println("readBoolean[] -> bufferOffset " + bufferOffset);
-                } else {
+                if (mtu <= 0) {
                         if (l <= anThreshold) {
                                 byte [] b = an.allocate();
                                 subInput.readArray(b, 0, l);
@@ -720,37 +700,56 @@ public final class BytesInput
                                 subInput.readArray(b);
                                 conversion.byte2boolean(b, 0, ub, o, l);
                         }
+
+                } else if (ensureLength(l)) {
+			conversion.byte2boolean(buffer.data, bufferOffset, ub, o, l);
+			bufferOffset += l;
+			freeBufferIfNeeded();
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					pumpBuffer();
+				}
+
+				int copyLength = Math.min(l, buffer.length - bufferOffset);
+				conversion.byte2boolean(buffer.data, bufferOffset, ub, o, copyLength);
+				o += copyLength;
+				l -= copyLength;
+				bufferOffset += copyLength;
+				freeBufferIfNeeded();
+			}
                 }
+// System.err.println("readBoolean[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
 
 	public void readArray(byte [] ub, int o, int l) throws IOException {
                 log.in();
-                if (mtu > 0) {
-                        if (ensureLength(l)) {
-                                System.arraycopy(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += l;
-                                freeBufferIfNeeded();
-                        } else {
-                                while (l > 0) {
-                                        if (buffer == null) {
-                                                pumpBuffer();
-                                        }
-
-                                        int copyLength = Math.min(l, buffer.length - bufferOffset);
-                                        System.arraycopy(buffer.data, bufferOffset, ub, o, copyLength);
-                                        o += copyLength;
-                                        l -= copyLength;
-                                        bufferOffset += copyLength;
-                                        freeBufferIfNeeded();
-                                }
-                        }
-// System.err.println("readByte[] -> bufferOffset " + bufferOffset);
-
-                } else {
+                if (mtu <= 0) {
                         subInput.readArray(ub, o, l);
-                }
+
+                } else if (ensureLength(l)) {
+			System.arraycopy(buffer.data, bufferOffset, ub, o, l);
+			bufferOffset += l;
+			freeBufferIfNeeded();
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					pumpBuffer();
+				}
+
+				int copyLength = Math.min(l, buffer.length - bufferOffset);
+				System.arraycopy(buffer.data, bufferOffset, ub, o, copyLength);
+				o += copyLength;
+				l -= copyLength;
+				bufferOffset += copyLength;
+				freeBufferIfNeeded();
+			}
+		}
+// System.err.println("readByte[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -758,40 +757,7 @@ public final class BytesInput
 	public void readArray(char [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.CHAR_SIZE*(l+1) - 1)) {
-                                conversion.byte2char(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += Conversion.CHAR_SIZE*l;
-                                freeBufferIfNeeded();
-                        } else {
-                                if (mtu < Conversion.CHAR_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                ub[o+i] = readChar();
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        pumpBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.CHAR_SIZE*l, buffer.length - bufferOffset) / Conversion.CHAR_SIZE;
-
-                                                if (copyLength == 0) {
-                                                        freeBuffer();
-                                                        continue;
-                                                }
-
-                                                conversion.byte2char(buffer.data, bufferOffset, ub, o, copyLength);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                bufferOffset += Conversion.CHAR_SIZE*copyLength;
-                                                freeBufferIfNeeded();
-                                        }
-                                }
-                        }
-// System.err.println("readChar[] -> bufferOffset " + bufferOffset);
-
-                } else {
+                if (mtu <= 0) {
                         if (l*Conversion.CHAR_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
                                 subInput.readArray(b, 0, l*Conversion.CHAR_SIZE);
@@ -802,7 +768,38 @@ public final class BytesInput
                                 subInput.readArray(b);
                                 conversion.byte2char(b, 0, ub, o, l);
                         }
-                }
+
+                } else if (ensureLength(Conversion.CHAR_SIZE*(l+1) - 1)) {
+			conversion.byte2char(buffer.data, bufferOffset, ub, o, l);
+			bufferOffset += Conversion.CHAR_SIZE*l;
+			freeBufferIfNeeded();
+
+		} else if (mtu < Conversion.CHAR_SIZE) {
+			for (int i = 0; i < l; i++) {
+				ub[o+i] = readChar();
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					pumpBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.CHAR_SIZE*l, buffer.length - bufferOffset) / Conversion.CHAR_SIZE;
+
+				if (copyLength == 0) {
+					freeBuffer();
+					continue;
+				}
+
+				conversion.byte2char(buffer.data, bufferOffset, ub, o, copyLength);
+				o += copyLength;
+				l -= copyLength;
+				bufferOffset += Conversion.CHAR_SIZE*copyLength;
+				freeBufferIfNeeded();
+			}
+		}
+// System.err.println("readChar[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -810,41 +807,7 @@ public final class BytesInput
 	public void readArray(short [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.SHORT_SIZE*(l+1) - 1)) {
-                                conversion.byte2short(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += Conversion.SHORT_SIZE*l;
-                                freeBufferIfNeeded();
-                        } else {
-                                if (mtu < Conversion.SHORT_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                ub[o+i] = readShort();
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        pumpBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.SHORT_SIZE*l, buffer.length - bufferOffset) / Conversion.SHORT_SIZE;
-                                                log.disp("copyLength = ", copyLength);
-
-                                                if (copyLength == 0) {
-                                                        freeBuffer();
-                                                        continue;
-                                                }
-
-                                                conversion.byte2short(buffer.data, bufferOffset, ub, o, copyLength);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                bufferOffset += Conversion.SHORT_SIZE*copyLength;
-                                                freeBufferIfNeeded();
-                                        }
-                                }
-                        }
-// System.err.println("readShort[] -> bufferOffset " + bufferOffset);
-
-                } else {
+                if (mtu <= 0) {
                         if (l*Conversion.SHORT_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
                                 subInput.readArray(b, 0, l*Conversion.SHORT_SIZE);
@@ -855,7 +818,39 @@ public final class BytesInput
                                 subInput.readArray(b);
                                 conversion.byte2short(b, 0, ub, o, l);
                         }
-                }
+
+                } else if (ensureLength(Conversion.SHORT_SIZE*(l+1) - 1)) {
+			conversion.byte2short(buffer.data, bufferOffset, ub, o, l);
+			bufferOffset += Conversion.SHORT_SIZE*l;
+			freeBufferIfNeeded();
+
+		} else if (mtu < Conversion.SHORT_SIZE) {
+			for (int i = 0; i < l; i++) {
+				ub[o+i] = readShort();
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					pumpBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.SHORT_SIZE*l, buffer.length - bufferOffset) / Conversion.SHORT_SIZE;
+				log.disp("copyLength = ", copyLength);
+
+				if (copyLength == 0) {
+					freeBuffer();
+					continue;
+				}
+
+				conversion.byte2short(buffer.data, bufferOffset, ub, o, copyLength);
+				o += copyLength;
+				l -= copyLength;
+				bufferOffset += Conversion.SHORT_SIZE*copyLength;
+				freeBufferIfNeeded();
+			}
+		}
+// System.err.println("readShort[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -863,41 +858,7 @@ public final class BytesInput
 	public void readArray(int [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.INT_SIZE*(l+1) - 1)) {
-                                conversion.byte2int(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += Conversion.INT_SIZE*l;
-                                freeBufferIfNeeded();
-                        } else {
-                                if (mtu < Conversion.INT_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                ub[o+i] = readInt();
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        pumpBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.INT_SIZE*l, buffer.length - bufferOffset) / Conversion.INT_SIZE;
-                                                log.disp("copyLength = ", copyLength);
-
-                                                if (copyLength == 0) {
-                                                        freeBuffer();
-                                                        continue;
-                                                }
- 
-                                                conversion.byte2int(buffer.data, bufferOffset, ub, o, copyLength);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                bufferOffset += Conversion.INT_SIZE*copyLength;
-                                                freeBufferIfNeeded();
-                                        }
-                                }
-                        }
-// System.err.println("readInt[] -> bufferOffset " + bufferOffset);
-
-                } else {
+                if (mtu <= 0) {
                         if (l*Conversion.INT_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
                                 subInput.readArray(b, 0, l*Conversion.INT_SIZE);
@@ -908,8 +869,39 @@ public final class BytesInput
                                 subInput.readArray(b);
                                 conversion.byte2int(b, 0, ub, o, l);
                         }
-                }
 
+                } else if (ensureLength(Conversion.INT_SIZE*(l+1) - 1)) {
+			conversion.byte2int(buffer.data, bufferOffset, ub, o, l);
+			bufferOffset += Conversion.INT_SIZE*l;
+			freeBufferIfNeeded();
+
+		} else if (mtu < Conversion.INT_SIZE) {
+			for (int i = 0; i < l; i++) {
+				ub[o+i] = readInt();
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					pumpBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.INT_SIZE*l, buffer.length - bufferOffset) / Conversion.INT_SIZE;
+				log.disp("copyLength = ", copyLength);
+
+				if (copyLength == 0) {
+					freeBuffer();
+					continue;
+				}
+
+				conversion.byte2int(buffer.data, bufferOffset, ub, o, copyLength);
+				o += copyLength;
+				l -= copyLength;
+				bufferOffset += Conversion.INT_SIZE*copyLength;
+				freeBufferIfNeeded();
+			}
+		}
+// System.err.println("readInt[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -917,40 +909,7 @@ public final class BytesInput
 	public void readArray(long [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.LONG_SIZE*(l+1) - 1)) {
-                                conversion.byte2long(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += Conversion.LONG_SIZE*l;
-                                freeBufferIfNeeded();
-                        } else {
-                                if (mtu < Conversion.LONG_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                ub[o+i] = readLong();
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        pumpBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.LONG_SIZE*l, buffer.length - bufferOffset) / Conversion.LONG_SIZE;
-
-                                                if (copyLength == 0) {
-                                                        freeBuffer();
-                                                        continue;
-                                                }
-
-                                                conversion.byte2long(buffer.data, bufferOffset, ub, o, copyLength);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                bufferOffset += Conversion.LONG_SIZE*copyLength;
-                                                freeBufferIfNeeded();
-                                        }
-                                }
-                        }
-// System.err.println("readLong[] -> bufferOffset " + bufferOffset);
-
-                } else {
+                if (mtu <= 0) {
                         if (l*Conversion.LONG_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
                                 subInput.readArray(b, 0, l*Conversion.LONG_SIZE);
@@ -961,7 +920,38 @@ public final class BytesInput
                                 subInput.readArray(b);
                                 conversion.byte2long(b, 0, ub, o, l);
                         }
-                }
+
+                } else if (ensureLength(Conversion.LONG_SIZE*(l+1) - 1)) {
+			conversion.byte2long(buffer.data, bufferOffset, ub, o, l);
+			bufferOffset += Conversion.LONG_SIZE*l;
+			freeBufferIfNeeded();
+
+		} else if (mtu < Conversion.LONG_SIZE) {
+			for (int i = 0; i < l; i++) {
+				ub[o+i] = readLong();
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					pumpBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.LONG_SIZE*l, buffer.length - bufferOffset) / Conversion.LONG_SIZE;
+
+				if (copyLength == 0) {
+					freeBuffer();
+					continue;
+				}
+
+				conversion.byte2long(buffer.data, bufferOffset, ub, o, copyLength);
+				o += copyLength;
+				l -= copyLength;
+				bufferOffset += Conversion.LONG_SIZE*copyLength;
+				freeBufferIfNeeded();
+			}
+		}
+// System.err.println("readLong[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -969,40 +959,7 @@ public final class BytesInput
 	public void readArray(float [] ub, int o, int l) throws IOException {
                 log.in();
 
-                if (mtu > 0) {
-                        if (ensureLength(Conversion.FLOAT_SIZE*(l+1) - 1)) {
-                                conversion.byte2float(buffer.data, bufferOffset, ub, o, l);
-                                bufferOffset += Conversion.FLOAT_SIZE*l;
-                                freeBufferIfNeeded();
-                        } else {
-                                if (mtu < Conversion.FLOAT_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                ub[o+i] = readFloat();
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        pumpBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.FLOAT_SIZE*l, buffer.length - bufferOffset) / Conversion.FLOAT_SIZE;
-
-                                                if (copyLength == 0) {
-                                                        freeBuffer();
-                                                        continue;
-                                                }
-
-                                                conversion.byte2float(buffer.data, bufferOffset, ub, o, copyLength);
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                bufferOffset += Conversion.FLOAT_SIZE*copyLength;
-                                                freeBufferIfNeeded();
-                                        }
-                                }
-                        }
-// System.err.println("readFloat[] -> bufferOffset " + bufferOffset);
-
-                } else {
+                if (mtu <= 0) {
                         if (l*Conversion.FLOAT_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
                                 subInput.readArray(b, 0, l*Conversion.FLOAT_SIZE);
@@ -1013,7 +970,38 @@ public final class BytesInput
                                 subInput.readArray(b);
                                 conversion.byte2float(b, 0, ub, o, l);
                         }
-                }
+
+                } else if (ensureLength(Conversion.FLOAT_SIZE*(l+1) - 1)) {
+			conversion.byte2float(buffer.data, bufferOffset, ub, o, l);
+			bufferOffset += Conversion.FLOAT_SIZE*l;
+			freeBufferIfNeeded();
+
+		} else if (mtu < Conversion.FLOAT_SIZE) {
+			for (int i = 0; i < l; i++) {
+				ub[o+i] = readFloat();
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					pumpBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.FLOAT_SIZE*l, buffer.length - bufferOffset) / Conversion.FLOAT_SIZE;
+
+				if (copyLength == 0) {
+					freeBuffer();
+					continue;
+				}
+
+				conversion.byte2float(buffer.data, bufferOffset, ub, o, copyLength);
+				o += copyLength;
+				l -= copyLength;
+				bufferOffset += Conversion.FLOAT_SIZE*copyLength;
+				freeBufferIfNeeded();
+			}
+		}
+// System.err.println("readFloat[] -> bufferOffset " + bufferOffset);
                 log.out();
         }
 
@@ -1022,45 +1010,7 @@ public final class BytesInput
 // System.err.println(this + ".readArray[" + o + ":" + l + "]: mtu " + mtu + " ensureLength() " + ensureLength(Conversion.DOUBLE_SIZE * (l + 1) - 1) + " bufferOffset " + bufferOffset + " anThreshold " + ((l * Conversion.DOUBLE_SIZE) <= anThreshold));
 
 		if (timerOn) readArrayTimer.start();
-                if (mtu > 0) {
-			bufferOffset = Conversion.align(bufferOffset, Conversion.DOUBLE_SIZE);
-                        if (ensureLength(Conversion.DOUBLE_SIZE*(l+1) - 1)) {
-				if (timerOn) conversionTimer.start();
-                                conversion.byte2double(buffer.data, bufferOffset, ub, o, l);
-				if (timerOn) conversionTimer.stop();
-                                bufferOffset += Conversion.DOUBLE_SIZE*l;
-                                freeBufferIfNeeded();
-                        } else {
-                                if (mtu < Conversion.DOUBLE_SIZE) {
-                                        for (int i = 0; i < l; i++) {
-                                                ub[o+i] = readDouble();
-                                        }
-                                } else {
-                                        while (l > 0) {
-                                                if (buffer == null) {
-                                                        pumpBuffer();
-                                                }
-
-                                                int copyLength = Math.min(Conversion.DOUBLE_SIZE*l, buffer.length - bufferOffset) / Conversion.DOUBLE_SIZE;
-
-                                                if (copyLength == 0) {
-                                                        freeBuffer();
-                                                        continue;
-                                                }
-
-						if (timerOn) conversionTimer.start();
-                                                conversion.byte2double(buffer.data, bufferOffset, ub, o, copyLength);
-						if (timerOn) conversionTimer.stop();
-                                                o += copyLength;
-                                                l -= copyLength;
-                                                bufferOffset += Conversion.DOUBLE_SIZE*copyLength;
-                                                freeBufferIfNeeded();
-                                        }
-                                }
-                        }
-// System.err.println("readDouble[] -> bufferOffset " + bufferOffset);
-
-                } else {
+                if (mtu <= 0) {
                         if (l*Conversion.DOUBLE_SIZE <= anThreshold) {
                                 byte [] b = an.allocate();
                                 subInput.readArray(b, 0, l*Conversion.DOUBLE_SIZE);
@@ -1077,7 +1027,42 @@ public final class BytesInput
                                 conversion.byte2double(b, 0, ub, o, l);
 				if (timerOn) conversionTimer.stop();
                         }
-                }
+
+		} else if (ensureLength(Conversion.DOUBLE_SIZE*(l+1) - 1)) {
+			if (timerOn) conversionTimer.start();
+			conversion.byte2double(buffer.data, bufferOffset, ub, o, l);
+			if (timerOn) conversionTimer.stop();
+			bufferOffset += Conversion.DOUBLE_SIZE*l;
+			freeBufferIfNeeded();
+
+		} else if (mtu < Conversion.DOUBLE_SIZE) {
+			for (int i = 0; i < l; i++) {
+				ub[o+i] = readDouble();
+			}
+
+		} else {
+			while (l > 0) {
+				if (buffer == null) {
+					pumpBuffer();
+				}
+
+				int copyLength = Math.min(Conversion.DOUBLE_SIZE*l, buffer.length - bufferOffset) / Conversion.DOUBLE_SIZE;
+
+				if (copyLength == 0) {
+					freeBuffer();
+					continue;
+				}
+
+				if (timerOn) conversionTimer.start();
+				conversion.byte2double(buffer.data, bufferOffset, ub, o, copyLength);
+				if (timerOn) conversionTimer.stop();
+				o += copyLength;
+				l -= copyLength;
+				bufferOffset += Conversion.DOUBLE_SIZE*copyLength;
+				freeBufferIfNeeded();
+			}
+		}
+// System.err.println("readDouble[] -> bufferOffset " + bufferOffset);
 		if (timerOn) readArrayTimer.stop();
                 log.out();
         }

@@ -27,6 +27,8 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
         private 	volatile 	boolean        		freeCalled             = false;
         final 		private         Integer                 takenNum               = new Integer(-1);
 
+	protected	long		messageSeqno = -1;
+
 	private         int             pollWaiters;
 
         /**
@@ -380,6 +382,10 @@ finishedUpcallThreads--;
                 activeNum = null;
                 log.out();
         }
+
+	public long sequenceNumber() {
+	    return messageSeqno;
+	}
 
         public abstract void initReceive(Integer num) throws IOException;
 
@@ -763,15 +769,6 @@ pollingThreads--;
 	}
 
         protected abstract void doFinish() throws IOException;
-
-        /**
-         * Unimplemented.
-         *
-         * @return 0.
-         */
-	public long sequenceNumber() {
-                return 0;
-        }
 
 
         /**

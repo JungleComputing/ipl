@@ -369,7 +369,6 @@ public class NetBufferFactory {
                 return createBuffer(allocator);
         }
 
-
         /**
          * Free a NetBuffer. If mtu does not equal 0, the buffer is linked into
          * the freeList.

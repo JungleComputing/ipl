@@ -228,6 +228,11 @@ public final class NetPortType extends PortType {
 	private String 		 name 	     	   = null;
 
         /**
+         * Cache if the type is "Sequenced"
+         */
+	private boolean		sequenced          = false;
+
+        /**
          * Store the properties.
          */
 	private StaticProperties staticProperties  = null;
@@ -439,6 +444,8 @@ public final class NetPortType extends PortType {
                 readDefaultProperties();
                 setDefaultProperties();
                 buildPropertyTree();
+
+		sequenced = staticProperties.isProp("communication", "Sequenced");
 	}
 
 	/**
@@ -455,6 +462,13 @@ public final class NetPortType extends PortType {
 	 */
 	public String name() {
 		return name;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean sequenced() {
+		return sequenced;
 	}
 
 	/**
