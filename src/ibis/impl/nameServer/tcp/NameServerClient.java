@@ -64,12 +64,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 		Properties p = System.getProperties();
 
-		String myIp = p.getProperty("ip_address");
-		if (myIp == null) {
-			myAddress = InetAddress.getLocalHost();
-		} else {
-			myAddress = InetAddress.getByName(myIp);
-		}
+		myAddress = IPUtils.getLocalHostAddress();
 
 		server = p.getProperty("ibis.name_server.host");
 		if (server == null) {
