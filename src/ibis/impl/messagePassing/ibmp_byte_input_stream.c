@@ -106,6 +106,8 @@ ibmp_msg_q_enq(ibp_msg_p msg, void *proto)
 {
     ibmp_msg_p	m;
 
+// fprintf(stderr, "<");
+
     m = ibmp_msg_freelist;
     if (m == NULL) {
 	m = pan_malloc(sizeof(*m));
@@ -135,6 +137,8 @@ ibmp_msg_q_deq(void **proto)
     if (m == NULL) {
 	return NULL;
     }
+
+// fprintf(stderr, "-");
 
     msg = m->msg;
     *proto = m->proto;

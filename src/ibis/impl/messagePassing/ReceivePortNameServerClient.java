@@ -58,6 +58,10 @@ class ReceivePortNameServerClient
 
 	void bind(String name, ibis.ipl.impl.messagePassing.ReceivePortIdentifier id) throws IbisIOException {
 
+	    if (ReceivePortNameServerProtocol.DEBUG) {
+		System.err.println("Try to bind ReceivePortId " + id + " ibis " + id.ibis().name());
+	    }
+
 //	    if (! name.equals(id.name)) {
 //		System.out.println("name = " + name);
 //		System.out.println("id.name = " + id.name);
@@ -79,7 +83,7 @@ class ReceivePortNameServerClient
 		    System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
 		    Thread.dumpStack();
 		}
-		ns_bind(name, id.type, id.cpu, id.port);
+		ns_bind(name, id.type, id.ibis().name(), id.cpu, id.port);
 // System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
 
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
@@ -110,6 +114,7 @@ class ReceivePortNameServerClient
 
     native void ns_bind(String name,
 			String type,
+			String ibis_name,
 			int port_cpu,
 			int port_port);
 

@@ -408,6 +408,8 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_msg_1send(
     sent_data += len;
 #endif
 
+// fprintf(stderr, ">");
+
     if (ibmp_send_sync > 0 &&
 	    ! pan_thread_nonblocking() &&
 	    len < ibmp_send_sync) {

@@ -31,6 +31,7 @@ class IbisWorld extends Thread {
 	}
 	opened = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 	setDaemon(true);
+	setName("Ibis world");
 	start();
     }
 

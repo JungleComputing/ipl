@@ -141,6 +141,10 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 
 	    if (ident.ibis().equals(receiver.ibis())) {
 		homeConnection = true;
+// System.err.println("This IS a home connection, my Ibis " + ident.ibis() + " their Ibis " + receiver.ibis());
+	    } else {
+// System.err.println("This is NOT a home connection, my Ibis " + ident.ibis() + " their Ibis " + receiver.ibis());
+// Thread.dumpStack();
 	    }
 	} finally {
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();

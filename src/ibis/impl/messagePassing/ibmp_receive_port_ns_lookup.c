@@ -97,6 +97,7 @@ typedef struct ibp_ns_lookup_reply_hdr {
     jint	port;
     int		name_length;
     int		type_length;
+    int		ibis_length;
     jint	client;
 } ibp_ns_lookup_reply_hdr_t, *ibp_ns_lookup_reply_hdr_p;
 
@@ -109,7 +110,7 @@ ibp_ns_lookup_reply_hdr(void *proto)
 
 typedef struct LOOKUP_REPLY {
     void       *proto;
-    pan_iovec_t	iov[2];
+    pan_iovec_t	iov[3];
 } lookup_reply_t, *lookup_reply_p;
 
 
@@ -121,6 +122,7 @@ lookup_reply_clear(void *v)
     ibp_proto_clear(r->proto);
     pan_free(r->iov[0].data);
     pan_free(r->iov[1].data);
+    pan_free(r->iov[2].data);
 
     pan_free(r);
 }
@@ -135,6 +137,7 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
 	jint client,
 	jstring name,
 	jstring type,
+	jstring ibis_name,
 	jint cpu,
 	jint port)
 {
@@ -163,11 +166,18 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
 	(*env)->ReleaseStringUTFChars(env, type, r->iov[1].data);
 	r->iov[1].data = c;
 
-	iov_len = 2;
+	hdr->ibis_length = ibp_string_push(env, ibis_name, &r->iov[2]);
+	c = pan_malloc(r->iov[2].len);
+	memcpy(c, r->iov[2].data, r->iov[2].len);
+	(*env)->ReleaseStringUTFChars(env, type, r->iov[2].data);
+	r->iov[2].data = c;
+
+	iov_len = 3;
 
     } else {
 	r->iov[0].data = NULL;
 	r->iov[1].data = NULL;
+	r->iov[2].data = NULL;
 	iov_len = 0;
     }
 
@@ -188,17 +198,19 @@ ibp_ns_lookup_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     ibp_ns_lookup_reply_hdr_p hdr = ibp_ns_lookup_reply_hdr(proto);
     jstring	name;
     jstring	type;
+    jstring	ibis_name;
     jobject	id;
     jobject	client = (jobject)hdr->client;
 
     if (hdr->ret == PORT_KNOWN) {
 	name = ibp_string_consume(env, msg, hdr->name_length);
 	type = ibp_string_consume(env, msg, hdr->type_length);
+	ibis_name = ibp_string_consume(env, msg, hdr->ibis_length);
 
-	id = ibmp_new_ReceivePortIdentifier(env, name, type, hdr->cpu,
-					    hdr->port);
+	id = ibmp_new_ReceivePortIdentifier(env, name, type, ibis_name,
+					    hdr->cpu, hdr->port);
     } else {
-	id = ibmp_new_ReceivePortIdentifier(env, NULL, NULL, -1, -1);
+	id = ibmp_new_ReceivePortIdentifier(env, NULL, NULL, NULL, -1, -1);
     }
 
     (*env)->CallVoidMethod(env,

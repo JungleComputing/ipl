@@ -299,7 +299,7 @@ intpt_env_release(JNIEnv *env)
     }
 }
 
-#define POLLS_PER_INTERRUPT	4
+#define POLLS_PER_INTERRUPT	1	// 4
 
 static int	intpts = 0;
 

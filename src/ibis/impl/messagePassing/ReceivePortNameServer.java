@@ -35,14 +35,14 @@ class ReceivePortNameServer implements
 	    bind_reply(PORT_REFUSED, tag, client);
 	} else {
 	    if (ReceivePortNameServerProtocol.DEBUG) {
-		System.err.println(Thread.currentThread() + "Bound new port name \"" + ri.name + "\"");
+		System.err.println(Thread.currentThread() + "Bound new port name \"" + ri.name + "\"" + " ibis " + ri.ibis().name());
 	    }
 	    bind_reply(PORT_ACCEPTED, tag, client);
 	    ports.put(ri.name, ri);
 	}
     }
 
-    native void lookup_reply(int ret, int tag, int client, String name, String type, int cpu, int port);
+    native void lookup_reply(int ret, int tag, int client, String name, String type, String ibis_name, int cpu, int port);
 
     /* Called from native */
     private void lookup(String name, int tag, int client) throws ClassNotFoundException {
@@ -56,12 +56,12 @@ class ReceivePortNameServer implements
 	    if (ReceivePortNameServerProtocol.DEBUG) {
 		System.err.println(Thread.currentThread() + "Give this client his ReceivePort \"" + name + "\"; cpu " + storedId.cpu + " port " + storedId.port);
 	    }
-	    lookup_reply(PORT_KNOWN, tag, client, storedId.name, storedId.type, storedId.cpu, storedId.port);
+	    lookup_reply(PORT_KNOWN, tag, client, storedId.name, storedId.type, storedId.ibis().name(), storedId.cpu, storedId.port);
 	} else {
 	    if (ReceivePortNameServerProtocol.DEBUG) {
 		System.err.println(Thread.currentThread() + "Cannot give this client his ReceivePort \"" + name + "\"");
 	    }
-	    lookup_reply(PORT_UNKNOWN, tag, client, null, null, -1, -1);
+	    lookup_reply(PORT_UNKNOWN, tag, client, null, null, null, -1, -1);
 	}
     }
 

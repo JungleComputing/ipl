@@ -12,6 +12,9 @@ public class Poll implements Runnable {
     private static final boolean STATISTICS = true;
     private static final boolean NEED_POLLER_THREAD = true;
     private static final boolean NONPREEMPTIVE_MAY_POLL = false;
+    private static final boolean PREEMPTIVE_MAY_POLL = true;
+
+    final static int polls_before_yield = 500;	// 1; // 2000;
 
     boolean MANTA_COMPILE;
 
@@ -28,7 +31,7 @@ public class Poll implements Runnable {
 	String compiler = java.lang.System.getProperty("java.compiler");
 	MANTA_COMPILE = compiler != null && compiler.equals("manta");
 
-	peeker = new Thread(this);
+	peeker = new Thread(this, "Poll peeker");
 	peeker.setDaemon(true);
 
 	if (DEBUG) {
@@ -61,8 +64,6 @@ public class Poll implements Runnable {
     private long poll_poll;
     private long poll_poll_direct;
     private long poll_from_thread;
-
-    final static int polls_before_yield = 5000;	// 1; // 2000;
 
     private void insert(PollClient client) {
 	client.setNext(waiting_threads);
@@ -115,7 +116,7 @@ public class Poll implements Runnable {
 	if (STATISTICS) {
 	    if (preempt == PREEMPTIVE) {
 		poll_preempt++;
-	    } else {
+	    } else if (preempt == NON_PREEMPTIVE) {
 		poll_non_preempt++;
 	    }
 	}
@@ -152,7 +153,7 @@ if (false)
 	    }
 
 	    if (! go_to_sleep && poller == null &&
-		    (preempt == PREEMPTIVE ||
+		    ((PREEMPTIVE_MAY_POLL && preempt == PREEMPTIVE) ||
 		     (NONPREEMPTIVE_MAY_POLL && preempt != NON_POLLING))) {
 		// OK, let me become poller
 		poller = me;
@@ -168,8 +169,8 @@ if (false)
 		}
 
 		if (--polls == 0 || poll_succeeded) {
-		    // polls = polls_before_yield;
-		    polls = 1;
+		    polls = polls_before_yield;
+		    // polls = 1;
 
 		    if (NONPREEMPTIVE_MAY_POLL && preempt != PREEMPTIVE) {
 			/* If this is a nonpreemptive thread, polling for one

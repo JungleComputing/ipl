@@ -8,10 +8,17 @@ import ibis.ipl.impl.generic.ConditionVariable;
 class ReceivePort
     implements ibis.ipl.ReceivePort, Protocol, Runnable, PollClient {
 
-    /* A connection between a send port and a receive port within the
+    /** A connection between a send port and a receive port within the
      * same Ibis should not lead to polling for the reply, but to quick
      * reversion to some other thread */
     private static final boolean HOME_CONNECTION_PREEMPTS = false;
+
+    /** After serving a message, the receive thread may optimistically
+     * poll for a while. A new request might arrive in a short while,
+     * and that saves an interrupt. */
+    private static final boolean RECEIVE_THREAD_POLLS = true;
+    // private static final int polls_before_yield = Poll.polls_before_yield;
+    private static final int polls_before_yield = 10;
 
     private static final boolean DEBUG = false;
     private static final int max_sleepers = 8; // 0; // 8;
@@ -36,6 +43,7 @@ class ReceivePort
 
     Thread thread;
     ibis.ipl.Upcall upcall;
+    int upcallThreads;
 
     volatile boolean stop = false;
 
@@ -103,6 +111,8 @@ class ReceivePort
 	    firstCall = false;
 	    if (upcall != null) {
 		thread = new Thread(this);
+		thread.setName("ReceivePort upcall thread " + upcallThreads);
+		upcallThreads++;
 		thread.start();
 	    }
 	    if (connectUpcall != null) {
@@ -110,7 +120,6 @@ class ReceivePort
 System.err.println("And start another AcceptThread(this=" + this + ")");
 		acceptThread.start();
 	    }
-	    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 // System.err.println("In enableConnections: want to bind locally RPort " + this);
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.bindReceivePort(this, ident.port);
@@ -184,7 +193,11 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	    sleepers.cv_signal();
 	}
 	else {
-	    new Thread(this).start();
+System.err.println("Create another UpcallThread because the previous one didn't terminate");
+	    Thread thread = new Thread(this);
+	    thread.setName("ReceivePort upcall thread " + upcallThreads);
+	    upcallThreads++;
+	    thread.start();
 	}
     }
 
@@ -425,7 +438,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	// long t = Ibis.currentTime();
 
 // if (upcall != null) System.err.println("Hit receive() in an upcall()");
-// for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
+// for (int i = 0; queueFront == null && i < polls_before_yield; i++) {
 // ibis.ipl.impl.messagePassing.Ibis.myIbis.pollLocked();
 // }
 
@@ -686,14 +699,14 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
 		    }
 
-		    /* Maybe another request arrives really soon for this
-		     * (or some other) port. Poll a while, only then go
-		     * to wait, and quit polling if some message has arrived,
-		     * whether for me or for some other thread. */
-		    for (int i = 0;
-			 queueFront == null && i < Poll.polls_before_yield;
-			 i++) {
-			if (Ibis.myIbis.pollLocked()) break;
+		    if (RECEIVE_THREAD_POLLS) {
+			for (int i = 0;
+			     queueFront == null && i < polls_before_yield;
+			     i++) {
+			    if (Ibis.myIbis.pollLocked()) {
+				// break;
+			    }
+			}
 		    }
 
 		    if (queueFront == null) {
@@ -756,6 +769,7 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	    System.err.println(Thread.currentThread() + "Receive port " + name +
 			       " upcall thread polls " + upcall_poll);
 	}
+System.err.println("ReceivePort " + this + " upcallThread " + Thread.currentThread().getName() + " snuffs it");
     }
 
     static void end() {

@@ -77,6 +77,8 @@ class ElectionServer
 	}
 	elections = new Hashtable();
 
+	setName("ElectionServer");
+
 	start();
     }
 

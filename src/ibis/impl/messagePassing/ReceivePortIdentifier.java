@@ -12,15 +12,17 @@ final class ReceivePortIdentifier
     String type;
     int cpu;
     int port;
+    ibis.ipl.IbisIdentifier ibisIdentifier;
 
 
-    ReceivePortIdentifier(String name, String type, int cpu, int port) {
+    ReceivePortIdentifier(String name, String type, String ibisName, int cpu, int port) {
 	this.name = name;
 	this.type = type;
 	this.cpu = cpu;
 	this.port = port;
-// System.err.println("Created new ReceivePortID: " + this);
+	ibisIdentifier = Ibis.myIbis.lookupIbis(ibisName, cpu);
     }
+
 
     ReceivePortIdentifier(String name, String type) {
 	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
@@ -29,7 +31,9 @@ final class ReceivePortIdentifier
 	cpu = ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu;
 	this.name = name;
 	this.type = type;
+	ibisIdentifier = Ibis.myIbis.identifier();
     }
+
 
     public boolean equals(ibis.ipl.ReceivePortIdentifier other) {
 	    if(other == this) return true;
@@ -45,26 +49,32 @@ final class ReceivePortIdentifier
 
 	return false;
     }
-    
+
+
     //gosia
     public int hashCode() {
 	return name.hashCode() + type.hashCode() + cpu + port;
     }
 
+
     public String name() {
 	return name;
     }
+
 
     public String type() {
 	return type;
     }
 
+
     public ibis.ipl.IbisIdentifier ibis() {
-	return ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier();
+	return ibisIdentifier;
     }
+
 
     public String toString() {
 	return ("(RecPortIdent: name \"" + name + "\" type \"" + type +
-		"\" cpu " + cpu + " port " + port + ")");
+		"\" cpu " + cpu + " port " + port + " ibis \"" + ibisIdentifier.name() + "\")");
     }
+
 }

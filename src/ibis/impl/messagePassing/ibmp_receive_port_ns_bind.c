@@ -35,6 +35,7 @@ typedef struct IBP_NS_BIND_HDR {
     jint	port;
     int		name_length;
     int		type_length;
+    int		ibis_length;
     jint	client;
 } ibp_ns_bind_hdr_t, *ibp_ns_bind_hdr_p;
 
@@ -51,16 +52,18 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1bind(
 	jobject this,
 	jstring name,
 	jstring type,
+	jstring ibis_name,
 	jint cpu,
 	jint port)
 {
     void       *proto = ibp_proto_create(ibp_ns_bind_proto_size);
     ibp_ns_bind_hdr_p hdr = ibp_ns_bind_hdr(proto);
-    pan_iovec_t	iov[2];
+    pan_iovec_t	iov[3];
     jobject	client = (*env)->NewGlobalRef(env, this);
 
     hdr->name_length = ibp_string_push(env, name, &iov[0]);
     hdr->type_length = ibp_string_push(env, type, &iov[1]);
+    hdr->ibis_length = ibp_string_push(env, ibis_name, &iov[2]);
     assert(hdr->name_length == iov[0].len);
 
     hdr->client = (jint)client;
@@ -69,13 +72,14 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1bind(
 
     IBP_VPRINTF(50, env, ("send MP bind request \"%s\", client %p\n",
 			ibmp_jstring2c(env, name), client));
-    ibp_mp_send_sync(env, ibmp_ns_server, ibp_ns_bind_port, iov, 2,
+    ibp_mp_send_sync(env, ibmp_ns_server, ibp_ns_bind_port, iov, 3,
 		     proto, ibp_ns_bind_proto_size);
 
     ibp_proto_clear(proto);
 
     (*env)->ReleaseStringUTFChars(env, name, iov[0].data);
     (*env)->ReleaseStringUTFChars(env, type, iov[1].data);
+    (*env)->ReleaseStringUTFChars(env, type, iov[2].data);
 }
 
 
@@ -86,12 +90,14 @@ ibp_ns_bind_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
     jobject	id;
     jstring	name;
     jstring	type;
+    jstring	ibis_name;
     jint	sender = (jint)ibp_msg_sender(msg);
 
     name = ibp_string_consume(env, msg, hdr->name_length);
     type = ibp_string_consume(env, msg, hdr->type_length);
+    ibis_name = ibp_string_consume(env, msg, hdr->ibis_length);
 
-    id = ibmp_new_ReceivePortIdentifier(env, name, type, hdr->cpu, hdr->port);
+    id = ibmp_new_ReceivePortIdentifier(env, name, type, ibis_name, hdr->cpu, hdr->port);
     IBP_VPRINTF(50, env, ("In rp-ns bind: made new ReceivePortId for client 0x%x = %d\n", (int)hdr->client, (int)hdr->client));
     ibmp_receive_port_ns_bind(env, id, sender, hdr->client);
     IBP_VPRINTF(50, env, ("Exit rp-ns bind\n"));
