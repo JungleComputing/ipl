@@ -28,18 +28,26 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
     }
 
     // Given a compression move to make, predict the gain of this move.
-    public int lookahead( byte text[], int pos, CompressContext ctx, int move, int depth )
+    public int evaluateMove( byte text[], int pos, CompressContext ctx, int move, int depth )
     {
         int scores[] = new int[Configuration.BACKREFERENCES];
         int forwardGain = 0;
         int localGain = 0;
         int fwdPos = pos;
 
+        int backpos = ctx.backref[(int) text[pos]][move];
+        if( backpos>=0 ){
+            int matchSize = Helpers.matchSpans( text, backpos, pos );
+
+            if( matchSize>=Configuration.MINIMAL_SPAN ){
+                localGain = matchSize-Helpers.refEncodingSize( pos-backpos, matchSize );
+            }
+        }
         ctx.registerRef( text[pos], pos );
         if( depth<Configuration.LOOKAHEAD_DEPTH && pos+Configuration.MINIMAL_SPAN<text.length ){
             for( int mv = 0; move<Configuration.BACKREFERENCES; move++ ){
                 CompressContext c1 = (CompressContext) ctx.clone();
-                scores[move] = lookahead( text, pos, c1, mv, depth+1 );
+                scores[move] = evaluateMove( text, pos, c1, mv, depth+1 );
             }
             sync();
             int bestMove = -1;
@@ -66,7 +74,7 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
         for( int m = 0; m<Configuration.BACKREFERENCES; m++ ){
             CompressContext c1 = (CompressContext) ctx.clone();
-            scores[m] = lookahead( text, pos, c1, m, 0 );
+            scores[m] = evaluateMove( text, pos, c1, m, 0 );
         }
         sync();
         for( int m = 0; m<Configuration.BACKREFERENCES; m++ ){
@@ -96,7 +104,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         while( pos+Configuration.MINIMAL_SPAN<text.length ){
             Move mv = new Move();
 
-            selectBestMove( mv, text, pos, ctx );
+            // selectBestMove( mv, text, pos, ctx );
+            mv.move = -1;
             // TODO: calculate the gain of just copying the character.
             if( mv.move<0 ){
                 // There is no backreference that gives any gain, so
@@ -107,6 +116,9 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
                 // There is a backreference that helps.
                 pos = ctx.outputMove( text, pos, mv.move, out );
             }
+        }
+        while( pos<text.length ){
+            out.append( text[pos++] );
         }
         return out;
     }
@@ -137,5 +149,6 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 	double time = ((double) (endTime - startTime))/1000.0;
 
 	System.out.println( "ExecutionTime: " + time );
+        System.out.println( "In: " + text.length + " bytes, out: " + buf.sz + " bytes." );
     }
 }
