@@ -13,7 +13,7 @@ import java.util.Hashtable;
 /**
  * The GM output implementation (block version).
  */
-public class GmOutput extends NetBufferedOutput {
+public final class GmOutput extends NetBufferedOutput {
 
         /**
          * The peer {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}
@@ -38,6 +38,7 @@ public class GmOutput extends NetBufferedOutput {
         native int  nGetOutputMuxId(long outputHandle) throws IbisIOException;
         native void nConnectOutput(long outputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws IbisIOException;
         native void nSendRequest(long outputHandle) throws IbisIOException;
+        native void nSendBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IbisIOException;
         native void nSendBuffer(long outputHandle, byte []b, int base, int length) throws IbisIOException;
         native void nCloseOutput(long outputHandle) throws IbisIOException;
 
@@ -68,6 +69,10 @@ public class GmOutput extends NetBufferedOutput {
          * @param os {@inheritDoc}
          */
         public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
+                if (this.rpn != null) {
+                        throw new Error("connection already established");
+                }
+
                 this.rpn = rpn;
         
                 Driver.gmAccessLock.lock(false);
@@ -140,24 +145,33 @@ public class GmOutput extends NetBufferedOutput {
          */
         public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
 
-                /* Post the 'request' */
-                Driver.gmAccessLock.lock(true);
-                nSendRequest(outputHandle);
-                Driver.gmAccessLock.unlock(true);
+                if (b.length-b.base > 2048) {
+                        /* Post the 'request' */
+                        Driver.gmAccessLock.lock(true);
+                        nSendRequest(outputHandle);
+                        Driver.gmAccessLock.unlock(true);
 
-                /* Wait for 'request' send completion */
-                pump();
+                        /* Wait for 'request' send completion */
+                        pump();
 
-                /* Wait for 'ack' completion */
-                pump();
+                        /* Wait for 'ack' completion */
+                        pump();
 
-                /* Post the 'buffer' */
-                Driver.gmAccessLock.lock(true);
-                nSendBuffer(outputHandle, b.data, b.base, b.length);
-                Driver.gmAccessLock.unlock(true);
+                        /* Post the 'buffer' */
+                        Driver.gmAccessLock.lock(true);
+                        nSendBuffer(outputHandle, b.data, b.base, b.length-b.base);
+                        Driver.gmAccessLock.unlock(true);
 
-                /* Wait for 'buffer' send */
-                pump();
+                        /* Wait for 'buffer' send */
+                        pump();
+                } else {
+                        Driver.gmAccessLock.lock(true);
+                        nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length-b.base);
+                        Driver.gmAccessLock.unlock(true);
+
+                        /* Wait for 'request' send completion */
+                        pump();
+                }
         }
 
         /**

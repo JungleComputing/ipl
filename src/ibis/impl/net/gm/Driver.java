@@ -14,7 +14,7 @@ import java.net.DatagramSocket;
 /**
  * The NetIbis GM driver with pipelined block transmission.
  */
-public class Driver extends NetDriver {
+public final class Driver extends NetDriver {
 
 	// Native functions
 	//private static native void gm_init();

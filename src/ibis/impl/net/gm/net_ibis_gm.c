@@ -65,7 +65,12 @@
 /* The maximal atomic block size. */
 #define NI_GM_MAX_BLOCK_LEN    (2*1024*1024)
 
-#define NI_GM_PACKET_LEN       8
+#define NI_GM_PACKET_HDR_LEN   8
+//#define NI_GM_PACKET_BODY_LEN  64
+#define NI_GM_PACKET_BODY_LEN  2048
+#define NI_GM_PACKET_LEN       ((NI_GM_PACKET_HDR_LEN)+(NI_GM_PACKET_BODY_LEN))
+#define NI_GM_MIN_PACKETS       12
+#define NI_GM_MAX_PACKETS       18
 
 /*
  *  Types
@@ -91,8 +96,6 @@ struct s_lock {
         jint      id;
 };
 
-
-
 struct s_request {
         struct s_port   *p_port;
         struct s_output *p_out;
@@ -106,6 +109,12 @@ struct s_dev {
         struct s_port *p_port;
 	int            ref_count;
         struct s_drv  *p_drv;
+};
+
+struct s_packet {
+        unsigned char *data;
+        struct s_packet *next;
+        struct s_packet *previous;
 };
 
 /* A NIC port. */
@@ -125,9 +134,10 @@ struct s_port {
 
         struct s_input   *active_input;
 
-        unsigned char    *packet;
-        int               packet_length;
         int               packet_size;
+
+        struct s_packet  *packet_head;
+        int               nb_packets;
 };
 
 /* NetIbis output internal information. */
@@ -135,8 +145,8 @@ struct s_output {
         struct s_lock    *p_lock;
         struct s_cache   *p_cache;
         jbyteArray        j_byte_array;
-        void             *byte_array;
-        void             *buffer;
+        unsigned char    *byte_array;
+        unsigned char    *buffer;
         int               length;
 	struct s_port    *p_port;
 	int               dst_port_id;
@@ -144,7 +154,6 @@ struct s_output {
         int               local_mux_id;
         int               remote_mux_id;
         unsigned char    *packet;
-        int               packet_length;
         int               packet_size;
         int               state;
         struct s_request  request;
@@ -153,13 +162,13 @@ struct s_output {
 /* NetIbis input internal information. */
 struct s_input {
         jobject           ref;
-        jfieldID              len_id;
+        jfieldID          len_id;
         struct   s_lock  *p_lock;
         struct   s_cache *p_cache;
         volatile int      data_available;
         jbyteArray        j_byte_array;
-        void             *byte_array;
-        void             *buffer;
+        unsigned char    *byte_array;
+        unsigned char    *buffer;
         int               length;
 	struct   s_port  *p_port;
 	int               src_port_id;
@@ -167,13 +176,13 @@ struct s_input {
         int               local_mux_id;
         int               remote_mux_id;
         unsigned char    *packet;
-        int               packet_length;
         int               packet_size;
+        struct s_packet  *packet_head;
         struct s_request  request;
 };
 
 struct s_cache {
-        void           *ptr;
+        unsigned char  *ptr;
         int             len;
         int             ref_count;
         struct s_cache *next;
@@ -223,7 +232,6 @@ jlong
 ni_gm_ptr2handle(void  *ptr) {
         union u_conv u;
         
-        assert(sizeof(u.handle) >= sizeof(u.ptr));
         u.handle = 0;
         u.ptr    = ptr;
 
@@ -238,7 +246,6 @@ void *
 ni_gm_handle2ptr(jlong handle) {
         union u_conv u;
         
-        assert(sizeof(u.handle) >= sizeof(u.ptr));
         u.handle = handle;
 
         return u.ptr;
@@ -584,7 +591,7 @@ ni_gm_check_receive_tokens(struct s_port   *p_port) {
 static
 int
 ni_gm_register_block(struct s_port   *p_port,
-                     void            *ptr,
+                     unsigned char   *ptr,
                      int              len,
                      struct s_cache **_pp_cache) {
 	struct gm_port *p_gm_port = p_port->p_gm_port;
@@ -597,7 +604,7 @@ ni_gm_register_block(struct s_port   *p_port,
 
         {
                 unsigned long mask    = (CACHE_GRANULARITY - 1);
-                unsigned long lng     = (long)ptr;
+                unsigned long lng     = (unsigned long)ptr;
                 unsigned long tmp_lng = (lng & ~mask);
                 unsigned long offset  = lng - tmp_lng;
 
@@ -710,7 +717,7 @@ ni_gm_open_port(struct s_dev *p_dev) {
 	unsigned int    node_id   =  0;
 
 	__in__();
-#if 1
+
         while (i < nb_pub_ports) {
                 port_id = pub_port_array[i];
                 __disp__("trying to open GM port %d on device %d", port_id, p_dev->id);
@@ -740,19 +747,6 @@ ni_gm_open_port(struct s_dev *p_dev) {
         
  found:
         ;
-#else
-        port_id = NI_GM_MIN_PORT_NUM;
-        __disp__("opening GM port %d on device %d", port_id, p_dev->id);
-        
-	gms     = gm_open(&p_gm_port, p_dev->id, port_id,
-			  "net_ibis_gm", GM_API_VERSION_1_1);
-        __disp__("status %d", gms);
-	if (gms != GM_SUCCESS) {
-                __error__("gm_open failed");
-		ni_gm_control(gms, __LINE__);
-                goto error;
-	}
-#endif	
 
 	p_port = malloc(sizeof(struct s_port));
         assert(p_port);
@@ -777,36 +771,53 @@ ni_gm_open_port(struct s_dev *p_dev) {
         p_port->local_output_array      = NULL;
 
         p_port->active_input = NULL;
-
-        p_port->packet = gm_dma_malloc(p_gm_port, sizeof(NI_GM_PACKET_LEN));
-        assert(p_port->packet);
+        p_port->nb_packets   = 0;
         
-        p_port->packet_length = NI_GM_PACKET_LEN;
-        p_port->packet_size   = gm_min_size_for_length(p_port->packet_length);
+        p_port->packet_size   = gm_min_size_for_length(NI_GM_PACKET_LEN);
 
-        if (ni_gm_check_receive_tokens(p_port)) {
-                goto error;
-        }
-
-        gm_provide_receive_buffer_with_tag(p_port->p_gm_port, p_port->packet,
-                                           p_port->packet_size,
-                                           GM_HIGH_PRIORITY, 1);
-
-#if 1
         {
+                struct s_packet *p_packet = NULL;
                 const int nb = 16;
                 int i = 0;
-                /*
-                 * The packet memory is never used actually, so we can use the same packet
-                 * several times.
-                 */
+
+                if (ni_gm_check_receive_tokens(p_port)) {
+                        goto error;
+                }
+
+                p_packet = malloc(sizeof(struct s_request));
+                assert(p_packet);
+
+                p_packet->data      = gm_dma_malloc(p_gm_port, NI_GM_PACKET_LEN);
+                assert(p_packet->data);
+
+                p_port->packet_head = p_packet;
+                p_packet->next      = p_packet;
+                p_packet->previous  = p_packet;
+                gm_provide_receive_buffer_with_tag(p_port->p_gm_port, p_packet->data,
+                                           p_port->packet_size,
+                                           GM_HIGH_PRIORITY, 1);
+                p_port->nb_packets++;
+                
                 while (i++ < nb && gm_num_receive_tokens(p_port->p_gm_port) > 1) {
-                        gm_provide_receive_buffer_with_tag(p_port->p_gm_port, p_port->packet,
-                                                           p_port->packet_size,
-                                                           GM_HIGH_PRIORITY, 1);
+                         p_packet = malloc(sizeof(struct s_request));
+                         assert(p_packet);
+                         
+                         p_packet->data = gm_dma_malloc(p_gm_port, NI_GM_PACKET_LEN);
+                         assert(p_packet->data);
+
+                         p_packet->previous       = p_port->packet_head->previous;
+                         p_packet->next           = p_port->packet_head;
+                         p_packet->previous->next = p_packet;
+                         p_packet->next->previous = p_packet;
+                         p_port->packet_head      = p_packet;
+                         gm_provide_receive_buffer_with_tag(p_port->p_gm_port,
+                                                            p_packet->data,
+                                                            p_port->packet_size,
+                                                            GM_HIGH_PRIORITY, 1);
+                         p_port->nb_packets++;
                 }
         }
-#endif
+
         p_dev->p_port     = p_port;
 	p_dev->ref_count++;
         __out__();
@@ -816,13 +827,14 @@ ni_gm_open_port(struct s_dev *p_dev) {
         __err__();
         return -1;
 }
+
 static
 int
-ni_gm_expand_array(void         **pp,
-                   int           *ps,
-                   int            i,
-                   const size_t   o) {
-        void *p = *pp;
+ni_gm_expand_array(unsigned char **pp,
+                   int            *ps,
+                   int             i,
+                   const size_t    o) {
+        unsigned char *p = *pp;
         int   s = *ps;
 
         __in__();
@@ -849,6 +861,126 @@ ni_gm_expand_array(void         **pp,
 }
 
 static
+int
+ni_gm_extract_code(unsigned char *ptr) {
+        int code = 0;
+
+        __in__();
+        code   |= (int)(((unsigned int)ptr[0]) <<  0);
+        assert(code == 0  ||  code == 1);
+        __out__();
+
+        return code;
+}
+
+static
+int
+ni_gm_extract_length(unsigned char *ptr) {
+        int len = 0;
+        
+        __in__();
+        len |= (int)(((unsigned int)ptr[1]) <<  0);
+        len |= (int)(((unsigned int)ptr[2]) <<  8);
+        len |= (int)(((unsigned int)ptr[3]) << 16);
+        __out__();
+
+        return len;
+}
+
+static
+int
+ni_gm_extract_mux_id(unsigned char *ptr) {
+        int mux_id = 0;
+
+        __in__();
+        mux_id |= (int)(((unsigned int)ptr[4]) <<  0);
+        mux_id |= (int)(((unsigned int)ptr[5]) <<  8);
+        mux_id |= (int)(((unsigned int)ptr[6]) << 16);
+        mux_id |= (int)(((unsigned int)ptr[7]) << 24);
+        __out__();
+
+        return mux_id;
+}
+
+static
+void
+ni_gm_add_packet_to_list_head(struct s_packet **pp_packet,
+                              struct s_packet  *p_packet) {
+        struct s_packet *list_head = NULL;
+
+        __in__();
+        list_head = *pp_packet;
+
+        if (list_head) {
+                p_packet->previous       = list_head->previous;
+                p_packet->next           = list_head;
+                p_packet->previous->next = p_packet;
+                p_packet->next->previous = p_packet;
+        } else {
+                p_packet->next      = p_packet;
+                p_packet->previous  = p_packet;
+        }
+        
+        list_head  = p_packet;
+        *pp_packet = list_head;
+        __out__();
+}
+
+static
+void
+ni_gm_add_packet_to_list_tail(struct s_packet **pp_packet,
+                              struct s_packet  *p_packet) {
+        struct s_packet *list_head = NULL;
+
+        __in__();
+        list_head = *pp_packet;
+
+        if (list_head) {
+                p_packet->previous       = list_head->previous;
+                p_packet->next           = list_head;
+                p_packet->previous->next = p_packet;
+                p_packet->next->previous = p_packet;
+        } else {
+
+                p_packet->next      = p_packet;
+                p_packet->previous  = p_packet;
+                list_head           = p_packet;
+        }
+        
+        *pp_packet = list_head;
+        __out__();
+}
+
+static
+struct s_packet *
+ni_gm_remove_packet_from_list(struct s_packet **pp_packet) {
+        struct s_packet *list_head = NULL;
+        struct s_packet *p_packet = NULL;
+
+        __in__();
+        list_head = *pp_packet;
+        
+        if (list_head) {
+                p_packet = list_head;
+                
+                if (p_packet->next != p_packet) {
+                        list_head                 = p_packet->next;
+                        list_head->previous       = p_packet->previous;
+                        list_head->previous->next = list_head;
+                } else {
+                        list_head = NULL;
+                }
+        
+                *pp_packet = list_head;
+        }
+        
+        __out__();
+
+        return p_packet;
+}
+
+
+static
 void
 ni_gm_callback(struct gm_port *port,
                void           *ptr,
@@ -869,10 +1001,14 @@ ni_gm_callback(struct gm_port *port,
                 assert(!p_rq->p_in);
                 p_out = p_rq->p_out;
 
-                assert(p_out->state == 1  ||  p_out->state == 3);
+                assert(p_out->state == 1  ||  p_out->state == 3  ||  p_out->state == 4);
                 
                 if (p_out->state == 1) {
                         p_out->state = 2;
+                        __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
+                        ni_gm_lock_unlock(p_out->p_lock);
+                } else if (p_out->state == 4) {
+                        p_out->state = 0;
                         __disp__("ni_gm_callback: unlock(%d)\n", p_out->p_lock->id);
                         ni_gm_lock_unlock(p_out->p_lock);
                 } else if (p_out->state == 3) {
@@ -923,23 +1059,21 @@ ni_gm_init_output(struct s_dev     *p_dev,
         
         p_out->remote_mux_id  = 0;
 
-        ni_gm_expand_array((void **)&p_port->local_output_array,
+        ni_gm_expand_array((unsigned char **)&p_port->local_output_array,
                            &p_port->local_output_array_size,
                            p_out->local_mux_id,
                            sizeof(struct s_output *));
         assert(!p_port->local_output_array[p_out->local_mux_id]);
-        p_out->packet = gm_dma_malloc(p_port->p_gm_port,
-                                      sizeof(NI_GM_PACKET_LEN));
+        p_out->packet = gm_dma_malloc(p_port->p_gm_port, NI_GM_PACKET_LEN);
         assert(p_out->packet);
-        p_out->packet_length = NI_GM_PACKET_LEN;
-        p_out->packet_size   = gm_min_size_for_length(p_out->packet_length);
+        p_out->packet_size   = gm_min_size_for_length(NI_GM_PACKET_LEN);
 
         p_out->state = 0;
 
         p_out->request.p_port = p_port;
         p_out->request.p_out  = p_out;
         p_out->request.p_in   = NULL;
-        p_out->request.status =    0;
+        p_out->request.status = GM_SUCCESS;
 
         p_port->local_output_array[p_out->local_mux_id] = p_out;
         p_port->ref_count++;
@@ -974,21 +1108,21 @@ ni_gm_init_input(struct s_dev    *p_dev,
         p_in->remote_mux_id  = 0;
         __disp__("%p: mux_id = %d\n", p_in, p_in->local_mux_id);
 
-        ni_gm_expand_array((void **)&p_port->local_input_array,
+        ni_gm_expand_array((unsigned char **)&p_port->local_input_array,
                            &p_port->local_input_array_size,
                            p_in->local_mux_id,
                            sizeof(struct s_input *));
         assert(!p_port->local_input_array[p_in->local_mux_id]);
-        p_in->packet = gm_dma_malloc(p_port->p_gm_port,
-                                     sizeof(NI_GM_PACKET_LEN));
+        p_in->packet = gm_dma_malloc(p_port->p_gm_port, NI_GM_PACKET_LEN);
         assert(p_in->packet);
-        p_in->packet_length = NI_GM_PACKET_LEN;
-        p_in->packet_size   = gm_min_size_for_length(p_in->packet_length);
+        p_in->packet_size   = gm_min_size_for_length(NI_GM_PACKET_LEN);
 
         p_in->request.p_port = p_port;
         p_in->request.p_out  = NULL;
         p_in->request.p_in   = p_in;
-        p_in->request.status = 0;
+        p_in->request.status = GM_SUCCESS;
+
+        p_in->packet_head = NULL;
 
         p_port->local_input_array[p_in->local_mux_id] = p_in;
         p_port->ref_count++;
@@ -1078,10 +1212,10 @@ ni_gm_connect_output(struct s_output *p_out,
         p_out->packet[2] = 0;
         p_out->packet[3] = 0;
 
-        p_out->packet[4] = (remote_mux_id >>  0) & 0xFF;
-        p_out->packet[5] = (remote_mux_id >>  8) & 0xFF;
-        p_out->packet[6] = (remote_mux_id >> 16) & 0xFF;
-        p_out->packet[7] = (remote_mux_id >> 24) & 0xFF;
+        p_out->packet[4] = (unsigned char)((remote_mux_id >>  0) & 0xFF);
+        p_out->packet[5] = (unsigned char)((remote_mux_id >>  8) & 0xFF);
+        p_out->packet[6] = (unsigned char)((remote_mux_id >> 16) & 0xFF);
+        p_out->packet[7] = (unsigned char)((remote_mux_id >> 24) & 0xFF);
         __out__();
 
         return 0;
@@ -1112,10 +1246,10 @@ ni_gm_connect_input(struct s_input *p_in,
         p_in->packet[2] = 0;
         p_in->packet[3] = 0;
 
-        p_in->packet[4] = (remote_mux_id >>  0) & 0xFF;
-        p_in->packet[5] = (remote_mux_id >>  8) & 0xFF;
-        p_in->packet[6] = (remote_mux_id >> 16) & 0xFF;
-        p_in->packet[7] = (remote_mux_id >> 24) & 0xFF;
+        p_in->packet[4] = (unsigned char)((remote_mux_id >>  0) & 0xFF);
+        p_in->packet[5] = (unsigned char)((remote_mux_id >>  8) & 0xFF);
+        p_in->packet[6] = (unsigned char)((remote_mux_id >> 16) & 0xFF);
+        p_in->packet[7] = (unsigned char)((remote_mux_id >> 24) & 0xFF);
         __out__(); 
 
         return 0;
@@ -1132,21 +1266,64 @@ ni_gm_output_send_request(struct s_output *p_out) {
         assert(p_out->state == 0);
         p_out->state = 1;
 
+        assert(p_out->packet[0] == 0  ||  p_out->packet[0] == 1);
         p_port = p_out->p_port;
+        p_out->packet[1] = 0;
+        p_out->packet[2] = 0;
+        p_out->packet[3] = 0;
+        
+        p_rq = &p_out->request;
+        p_rq->status = GM_SUCCESS;
+        
+        if (ni_gm_check_send_tokens(p_port)) {
+                goto error;
+        }
+        gm_send_with_callback(p_port->p_gm_port, p_out->packet,
+                              p_out->packet_size, NI_GM_PACKET_HDR_LEN,
+                              GM_HIGH_PRIORITY,
+                              p_out->dst_node_id, p_out->dst_port_id,
+                              ni_gm_callback, p_rq);
+        __out__();
+        return 0;
+
+ error:
+        __err__();
+        return -1;
+}
+
+static
+int
+ni_gm_output_send_buffer_into_request(struct s_output *p_out, void *b, int len) {
+        struct s_port    *p_port = NULL;
+        struct s_request *p_rq   = NULL;
+
+        __in__();
+        assert(b);
+        assert(len);
+        assert(p_out->state == 0);
+        p_out->state = 4;
+
+        p_port = p_out->p_port;
+        memcpy(p_out->packet+NI_GM_PACKET_HDR_LEN, b, len);
+
+        p_out->packet[1] = (unsigned char)((len >>  0) & 0xFF);
+        p_out->packet[2] = (unsigned char)((len >>  8) & 0xFF);
+        p_out->packet[3] = (unsigned char)((len >> 16) & 0xFF);
 
         p_rq = &p_out->request;
-        p_rq->status = 0;
+        p_rq->status = GM_SUCCESS;
         
         if (ni_gm_check_send_tokens(p_port)) {
                 goto error;
         }
 
         gm_send_with_callback(p_port->p_gm_port, p_out->packet,
-                              p_out->packet_size, p_out->packet_length,
+                              p_out->packet_size, NI_GM_PACKET_HDR_LEN+len,
                               GM_HIGH_PRIORITY,
                               p_out->dst_node_id, p_out->dst_port_id,
                               ni_gm_callback, p_rq);
-        __out__();
+
+        __out__(); 
         return 0;
 
  error:
@@ -1166,12 +1343,13 @@ ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
         assert(p_out->state == 2);
         p_out->state = 3;
 
+        assert(p_out->packet[0] == 0  ||  p_out->packet[0] == 1);
         p_port = p_out->p_port;
         ni_gm_register_block(p_port, b, len, &p_out->p_cache);
         p_out->buffer = b;
         p_out->length = len;
         p_rq = &p_out->request;
-        p_rq->status = 0;
+        p_rq->status = GM_SUCCESS;
         
         if (ni_gm_check_send_tokens(p_port)) {
                 goto error;
@@ -1191,48 +1369,284 @@ ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
         return -1;
 }
 
-
 static
 int
-ni_gm_input_post_buffer(struct s_input *p_in, void *b, int len) {
-        struct s_port    *p_port = NULL;
-        struct s_request *p_rq   = NULL;
+ni_gm_input_post_buffer(struct s_input *p_in, void *b, int len, jint *p_result) {
+        struct s_port    *p_port   = NULL;
+        struct s_request *p_rq     = NULL;
+        struct s_packet  *p_packet = NULL;
+        int               result   = 0;
 
         __in__();
         assert(b);
         assert(len);
         p_port = p_in->p_port;
-        ni_gm_register_block(p_port, b, len, &p_in->p_cache);
-        p_in->buffer = b;
-        p_in->length = len;
-        if (ni_gm_check_receive_tokens(p_port)) {
-                goto error;
+        p_packet = ni_gm_remove_packet_from_list(&p_in->packet_head);
+
+        result = ni_gm_extract_length(p_packet->data);
+
+        if (result) {
+                assert(result <= len);
+                memcpy(b, p_packet->data+NI_GM_PACKET_HDR_LEN, result);
+        }        
+
+        if (p_port->nb_packets < NI_GM_MAX_PACKETS) {
+                if (ni_gm_check_receive_tokens(p_port)) {
+                        goto error;
+                }
+
+                ni_gm_add_packet_to_list_head(&p_port->packet_head, p_packet);
+                gm_provide_receive_buffer_with_tag(p_port->p_gm_port,
+                                                   p_packet->data,
+                                                   p_port->packet_size,
+                                                   GM_HIGH_PRIORITY, 1);
+                p_port->nb_packets++;
+        } else {
+                gm_dma_free(p_port->p_gm_port, p_packet->data);
+                p_packet->data     = NULL;
+                p_packet->previous = NULL;
+                p_packet->next     = NULL;
+                free(p_packet);
+                p_packet = NULL;
         }
 
-        gm_provide_receive_buffer_with_tag(p_port->p_gm_port, b,
-                                           gm_min_size_for_length(NI_GM_MAX_BLOCK_LEN),
-                                           GM_LOW_PRIORITY, 0);
+        if (!result) {
+                ni_gm_register_block(p_port, b, len, &p_in->p_cache);
+                p_in->buffer = b;
+                p_in->length = len;
+                if (ni_gm_check_receive_tokens(p_port)) {
+                        goto error;
+                }
 
-        p_port->active_input = p_in;
+                gm_provide_receive_buffer_with_tag(p_port->p_gm_port, b,
+                                                   gm_min_size_for_length(NI_GM_MAX_BLOCK_LEN),
+                                                   GM_LOW_PRIORITY, 0);
 
-        p_rq = &p_in->request;
-        p_rq->status = 0;
+                p_port->active_input = p_in;
 
-        if (ni_gm_check_send_tokens(p_port)) {
-                goto error;
+                p_rq = &p_in->request;
+                p_rq->status = GM_SUCCESS;
+
+                if (ni_gm_check_send_tokens(p_port)) {
+                        goto error;
+                }
+
+                assert(p_in->packet[0] == 0  ||  p_in->packet[0] == 1);
+                gm_send_with_callback(p_port->p_gm_port, p_in->packet,
+                                      p_in->packet_size, NI_GM_PACKET_HDR_LEN,
+                                      GM_HIGH_PRIORITY,
+                                      p_in->src_node_id, p_in->src_port_id,
+                                      ni_gm_callback, p_rq);
+ 
         }
 
-        gm_send_with_callback(p_port->p_gm_port, p_in->packet,
-                              p_in->packet_size, p_in->packet_length,
-                              GM_HIGH_PRIORITY,
-                              p_in->src_node_id, p_in->src_port_id,
-                              ni_gm_callback, p_rq);
+        *p_result = (jint)result;
+                                                
         __out__(); 
         return 0;
 
  error:
         __err__();
         return -1;
+}
+
+static
+int
+ni_gm_output_flow_control(struct s_port   *p_port,
+                          unsigned char   *msg,
+                          unsigned char   *packet) {
+        struct s_output *p_out          = NULL;
+        int              len            =    0;
+        int              mux_id         =    0;
+        int              remote_node_id =    0;
+        
+        __in__();
+        if (msg) {
+                len = ni_gm_extract_length(msg);
+                mux_id = ni_gm_extract_mux_id(msg);
+                msg = NULL;
+        } else {
+                len = ni_gm_extract_length(packet);
+                mux_id = ni_gm_extract_mux_id(packet);
+        }
+
+        p_out = p_port->local_output_array[mux_id];
+        assert(remote_node_id == p_out->dst_node_id);
+
+        if (ni_gm_check_receive_tokens(p_port)) {
+                goto error;
+        }
+        gm_provide_receive_buffer_with_tag(p_port->p_gm_port,
+                                           packet,
+                                           p_port->packet_size,
+                                           GM_HIGH_PRIORITY, 1);
+
+        ni_gm_lock_unlock(p_out->p_lock);
+
+
+        __out__();
+        return 0;
+
+ error:
+        __err__();
+        return -1;
+}
+
+static
+int
+ni_gm_input_flow_control(struct s_port  *p_port,
+                         unsigned char *msg,
+                         unsigned char *packet) {
+        struct s_input  *p_in     = NULL;
+        struct s_packet *p_packet = p_port->packet_head;
+        int              len            =    0;
+        int              mux_id         =    0;
+
+        __in__();
+        if (msg) {
+                len = ni_gm_extract_length(msg);
+                mux_id = ni_gm_extract_mux_id(msg);
+                memcpy(packet, msg, len+NI_GM_PACKET_HDR_LEN);
+                msg = NULL;
+        } else {
+                len = ni_gm_extract_length(packet);
+                mux_id = ni_gm_extract_mux_id(packet);
+        }
+        
+        __disp__("code = 0");
+
+        p_in = p_port->local_input_array[mux_id];
+
+        do {
+                if (packet == p_port->packet_head->data)
+                        goto found;
+
+                p_port->packet_head = p_port->packet_head->next;
+        } while (p_port->packet_head != p_packet);
+
+        __error__("invalid packet: %p", packet);
+        goto error;
+                                        
+ found:
+        p_packet = ni_gm_remove_packet_from_list(&p_port->packet_head);
+        p_port->nb_packets--;
+        ni_gm_add_packet_to_list_tail(&p_in->packet_head, p_packet);
+                                        
+        if (p_port->nb_packets < NI_GM_MIN_PACKETS) {
+                p_packet = malloc(sizeof(struct s_request));
+                assert(p_packet);
+                         
+                p_packet->data = gm_dma_malloc(p_port->p_gm_port, NI_GM_PACKET_LEN);
+                assert(p_packet->data);
+
+                if (ni_gm_check_receive_tokens(p_port)) {
+                        goto error;
+                }
+
+                ni_gm_add_packet_to_list_head(&p_port->packet_head, p_packet);
+                gm_provide_receive_buffer_with_tag(p_port->p_gm_port,
+                                                   p_packet->data,
+                                                   p_port->packet_size,
+                                                   GM_HIGH_PRIORITY, 1);
+                p_port->nb_packets++;
+        }
+                                        
+        __disp__("gm_high_receive_event: unlock(%d)\n", p_in->p_lock->id);
+        ni_gm_lock_unlock(p_in->p_lock);
+
+
+        __out__();
+        return 0;
+
+ error:
+        __err__();
+        return -1;
+}
+
+static
+int
+ni_gm_process_fast_high_recv_event(struct s_port   *p_port,
+                                   gm_recv_event_t *p_event) {
+        int            code           =    0;
+        unsigned char *msg            = NULL;
+        unsigned char *packet         = NULL;
+        
+        __in__();
+        __disp__("gm_high_receive_event:-->");
+        packet = gm_ntohp(p_event->recv.buffer);
+        msg    = gm_ntohp(p_event->recv.message);
+        code   = ni_gm_extract_code(msg);
+                                
+        if (code == 0) {
+                if (ni_gm_input_flow_control(p_port, msg, packet))
+                        goto error;
+        } else if (code == 1) {
+                if (ni_gm_output_flow_control(p_port, msg, packet))
+                        goto error;
+        } else {
+                abort();
+        }
+        __disp__("gm_high_receive_event:<--");
+
+        __out__();
+        return 0;
+        
+ error:
+        __err__();
+        return -1;
+}                        
+
+static
+int
+ni_gm_process_high_recv_event(struct s_port   *p_port,
+                              gm_recv_event_t *p_event) {
+        int            code           =    0;
+        unsigned char *packet         = NULL;
+        
+        __in__();
+        __disp__("gm_high_receive_event:-->");
+        packet = gm_ntohp(p_event->recv.buffer);
+        code   = ni_gm_extract_code(packet);
+                                
+        if (code == 0) {
+                if (ni_gm_input_flow_control(p_port, NULL, packet))
+                        goto error;
+        } else if (code == 1) {
+                if (ni_gm_output_flow_control(p_port, NULL, packet))
+                        goto error;
+        } else {
+                abort();
+        }
+        __disp__("gm_high_receive_event:<--");
+
+        __out__();
+        return 0;
+        
+ error:
+        __err__();
+        return -1;
+}
+
+int
+ni_gm_process_recv_event(struct s_port   *p_port,
+                         gm_recv_event_t *p_event) {
+        struct s_input *p_in = NULL;
+        int            remote_node_id =    0;
+
+        __in__();
+        __disp__("gm_receive_event:-->");
+        p_in = p_port->active_input;
+
+        remote_node_id = gm_ntohs(p_event->recv.sender_node_id);
+        assert(remote_node_id == p_in->src_node_id);
+
+        ni_gm_deregister_block(p_port, p_in->p_cache);
+        ni_gm_release_byte_array(p_in->j_byte_array, p_in->byte_array);
+        ni_gm_input_unlock(p_in, (int)gm_ntohl(p_event->recv.length));
+        __disp__("gm_receive_event:<--");
+        __out__();
+
+        return 0;
 }
 
 
@@ -1252,6 +1666,11 @@ ni_gm_output_exit(struct s_output *p_out) {
 
 static int ni_gm_input_exit(struct s_input *p_in) {
         __in__();
+        if (p_in->packet_head) {
+                __error__("unprocessed packet");
+                goto error;
+        }
+        
         p_in->p_port->ref_count--;
         memset(p_in->p_lock, 0, sizeof(struct s_lock));
         free(p_in->p_lock);
@@ -1260,13 +1679,16 @@ static int ni_gm_input_exit(struct s_input *p_in) {
         __out__(); 
         
         return 0;
+
+ error:
+        __err__();
+        return -1;
 }
 
 
 static
 int
-ni_gm_dev_init(JNIEnv        *env,
-               struct s_drv  *p_drv,
+ni_gm_dev_init(struct s_drv  *p_drv,
                int            dev_num,
                struct s_dev **pp_dev) {
         struct s_dev *p_dev = NULL;
@@ -1277,24 +1699,6 @@ ni_gm_dev_init(JNIEnv        *env,
             ||
             !p_drv->pp_dev[dev_num]) {
 
-#if 0
-                {        
-                        struct gm_port *p_gm_port = NULL;
-                        gm_status_t     gms       = GM_SUCCESS;
-
-                        /* Try to open the first public port on requested device. */
-                        gms = gm_open(&p_gm_port, dev_num, NI_GM_MIN_PORT_NUM,
-                                      "net_ibis_gm", GM_API_VERSION_1_1);
-                        if (gms != GM_SUCCESS) {
-                                __error__("gm_open failed");
-                                ni_gm_control(gms, __LINE__);
-                                goto error;
-                        }
-
-                        gm_close(p_gm_port);
-                        p_gm_port = NULL;
-                }
-#endif // 0            
                 p_dev = malloc(sizeof(struct s_dev));
                 if (!p_dev) {
                         __error__("memory allocation failed");
@@ -1362,13 +1766,30 @@ int
 ni_gm_close_port(struct s_port *p_port) {
         __in__();
 	assert(!p_port->ref_count);
+
+        {
+                while (p_port->packet_head) {
+                        struct s_packet *p_packet = NULL;
+
+                        p_packet =
+                                ni_gm_remove_packet_from_list(&p_port->packet_head);
+                        p_port->nb_packets--;
+
+                        gm_dma_free(p_port->p_gm_port, p_packet->data);
+                        p_packet->data     = NULL;
+                        p_packet->previous = NULL;
+                        p_packet->next     = NULL;
+                        free(p_packet);
+                }
+        }
+
+        assert(!p_port->nb_packets);
         
         while (p_port->cache_head) {
                 if (ni_gm_deregister_block(p_port, p_port->cache_head)) {
                         __error__("block deregistration failed");
                         goto error;
                 }
-                
         }
         
 	gm_close(p_port->p_gm_port);
@@ -1389,7 +1810,7 @@ ni_gm_close_port(struct s_port *p_port) {
 
 static
 int
-ni_gm_dev_exit(JNIEnv *env, struct s_dev *p_dev) {
+ni_gm_dev_exit(struct s_dev *p_dev) {
         p_dev->ref_count--;
 
         if (!p_dev->ref_count) {
@@ -1774,6 +2195,45 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nSendRequest(JNIEnv     *env,
 JNIEXPORT
 void
 JNICALL
+Java_ibis_ipl_impl_net_gm_GmOutput_nSendBufferIntoRequest(JNIEnv     *env,
+                                                          jobject     output,
+                                                          jlong       output_handle,
+                                                          jbyteArray  b,
+                                                          jint        offset, 
+                                                          jint        length) {
+        struct s_output *p_out   = NULL;
+        jboolean         is_copy = JNI_TRUE;
+        unsigned char   *buffer  = NULL;
+
+        __in__();
+        p_out = ni_gm_handle2ptr(output_handle);
+
+        buffer  = (unsigned char *)(*env)->GetByteArrayElements(env, b, &is_copy);
+
+        assert(buffer);
+        assert(length);
+        
+        if (!buffer) {
+                ni_gm_throw_exception(env, "could not get array elements");
+                goto error;
+        }
+
+        if (ni_gm_output_send_buffer_into_request(p_out, buffer + offset, (int)length)) {
+                ni_gm_throw_exception(env, "could not send a buffer");
+                goto error;
+        } 
+        (*env)->ReleaseByteArrayElements(env, b, (jbyte *)buffer, 0);
+
+        __out__();
+        return;
+
+ error:
+        __err__();
+}
+
+JNIEXPORT
+void
+JNICALL
 Java_ibis_ipl_impl_net_gm_GmOutput_nSendBuffer(JNIEnv     *env,
                                                jobject     output,
                                                jlong       output_handle,
@@ -1782,12 +2242,12 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nSendBuffer(JNIEnv     *env,
                                                jint        length) {
         struct s_output *p_out   = NULL;
         jboolean         is_copy = JNI_TRUE;
-        void            *buffer  = NULL;
+        unsigned char   *buffer  = NULL;
 
         __in__();
         p_out = ni_gm_handle2ptr(output_handle);
 
-        buffer  = (*env)->GetByteArrayElements(env, b, &is_copy);
+        buffer  = (unsigned char *)(*env)->GetByteArrayElements(env, b, &is_copy);
 
         assert(buffer);
         assert(length);
@@ -1814,7 +2274,7 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nSendBuffer(JNIEnv     *env,
 }
 
 JNIEXPORT 
-void 
+jint
 JNICALL 
 Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer(JNIEnv     *env,
                                               jobject     input,
@@ -1824,12 +2284,13 @@ Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer(JNIEnv     *env,
                                               jint        len) {
         struct s_input *p_in = NULL;
         jboolean         is_copy = JNI_TRUE;
-        void            *buffer  = NULL;
+        unsigned char   *buffer  = NULL;
+        jint             result  = 0;
 
         __in__();
         p_in = ni_gm_handle2ptr(input_handle);
         
-        buffer = (*env)->GetByteArrayElements(env, b, &is_copy);
+        buffer = (unsigned char *)(*env)->GetByteArrayElements(env, b, &is_copy);
 
         assert(buffer);
         assert(len);
@@ -1839,21 +2300,25 @@ Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer(JNIEnv     *env,
                 goto error;
         }
 
-        p_in->j_byte_array = b;
-        p_in->byte_array   = buffer;
-
-        buffer += offset;
-        
-        if (ni_gm_input_post_buffer(p_in, buffer, (int)len)) {
+        if (ni_gm_input_post_buffer(p_in, buffer+offset, (int)len, &result)) {
                 ni_gm_throw_exception(env, "could not post a buffer");
                 goto error;
         }
 
+        if (result) {
+                (*env)->ReleaseByteArrayElements(env, b, (jbyte *)buffer, 0);
+        } else {
+                p_in->j_byte_array = b;
+                p_in->byte_array   = buffer;
+        }
+        
         __out__(); 
-        return;
+        __disp__("Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer: returning %d", (int)result);
+        return result;
         
  error:
-        __err__(); 
+        __err__();
+        return 0;
 }
 
 JNIEXPORT
@@ -1917,7 +2382,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint d
         }
         
 
-        if (ni_gm_dev_init(env, _p_drv, (int)device_num, &p_dev)) {
+        if (ni_gm_dev_init(_p_drv, (int)device_num, &p_dev)) {
                 ni_gm_throw_exception(env, "GM device initialization failed");
                 goto error;
         }
@@ -1939,7 +2404,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong
 
         __in__();
         p_dev = ni_gm_handle2ptr(device_handle);
-        if (ni_gm_dev_exit(env, p_dev)) {
+        if (ni_gm_dev_exit(p_dev)) {
                 ni_gm_throw_exception(env, "GM device closing failed");
         }
         if (!_p_drv->ref_count) {
@@ -1958,7 +2423,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
         _current_env = env;
 
         //__in__();
-        while (1) {
+        for (;;) {
                 struct s_port   *p_port  = NULL;
                 gm_recv_event_t *p_event = NULL;
                 struct s_drv    *p_drv   = NULL;
@@ -1989,83 +2454,24 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
                 case GM_FAST_HIGH_PEER_RECV_EVENT:
                 case GM_FAST_HIGH_RECV_EVENT:
                         {
-                                int            code           =    0;
-                                int            mux_id         =    0;
-                                unsigned char *msg            = NULL;
-                                unsigned char *packet         = NULL;
-                                int            remote_node_id =    0;
-                                
-                                __disp__("gm_high_receive_event:-->");
-                                packet = gm_ntohp(p_event->recv.buffer);
-                                assert(packet == p_port->packet);
-
-                                msg = gm_ntohp(p_event->recv.message);
-
-                                code   |= (int)(((unsigned int)msg[0]) <<  0);
-                                code   |= (int)(((unsigned int)msg[1]) <<  8);
-                                code   |= (int)(((unsigned int)msg[2]) << 16);
-                                code   |= (int)(((unsigned int)msg[3]) << 24);
-                                mux_id |= (int)(((unsigned int)msg[4]) <<  0);
-                                mux_id |= (int)(((unsigned int)msg[5]) <<  8);
-                                mux_id |= (int)(((unsigned int)msg[6]) << 16);
-                                mux_id |= (int)(((unsigned int)msg[7]) << 24);
-
-                                assert(code == 0  ||  code == 1);
-                                assert(mux_id >= 0);
-
-                                if (ni_gm_check_receive_tokens(p_port)) {
+                                if (ni_gm_process_fast_high_recv_event(p_port, p_event))
                                         goto error;
-                                }
-                                gm_provide_receive_buffer_with_tag(p_port->p_gm_port,
-                                                                   p_port->packet,
-                                                                   p_port->packet_size,
-                                                                   GM_HIGH_PRIORITY, 1);
-
-                                remote_node_id =
-                                        gm_ntohs(p_event->recv.sender_node_id);
-
-                                if (code == 0) {
-                                        // send flow control
-                                        struct s_input *p_in = NULL;
-
-                                        p_in = p_port->local_input_array[mux_id];
-                                        assert(remote_node_id == p_in->src_node_id);
-                                        __disp__("gm_high_receive_event: unlock(%d)\n", p_in->p_lock->id);
-                                        ni_gm_lock_unlock(p_in->p_lock);
-
-                                } else if (code == 1) {
-                                        // receive flow control
-                                        struct s_output *p_out = NULL;
-
-                                        p_out = p_port->local_output_array[mux_id];
-                                        assert(remote_node_id == p_out->dst_node_id);
-                                        __disp__("gm_high_receive_event: unlock(%d)\n", p_out->p_lock->id);
-                                        ni_gm_lock_unlock(p_out->p_lock);
-
-                                } else {
-                                        abort();
-                                }
-                                __disp__("gm_high_receive_event:<--");
+                        }                        
+                        break;
+                        
+                case GM_HIGH_PEER_RECV_EVENT:
+                case GM_HIGH_RECV_EVENT:
+                        {
+                                if (ni_gm_process_high_recv_event(p_port, p_event))
+                                        goto error;
                         }                        
                         break;
                         
                 case GM_PEER_RECV_EVENT: 
-                case GM_RECV_EVENT: 
+                case GM_RECV_EVENT:
                         {
-                                struct s_input *p_in = NULL;
-                                int            remote_node_id =    0;
-
-                                __disp__("gm_receive_event:-->");
-                                p_in = p_port->active_input;
-
-                                remote_node_id = gm_ntohs(p_event->recv.sender_node_id);
-                                assert(remote_node_id == p_in->src_node_id);
-
-                                ni_gm_deregister_block(p_port, p_in->p_cache);
-                                ni_gm_release_byte_array(p_in->j_byte_array, p_in->byte_array);
-                                __disp__("gm_receive_event: unlock(%d)\n", p_in->p_lock->id);
-                                ni_gm_input_unlock(p_in, (int)gm_ntohl(p_event->recv.length));
-                                __disp__("gm_receive_event:<--");
+                                if (ni_gm_process_recv_event(p_port, p_event))
+                                        goto error;
                         }
                         break;
                         
