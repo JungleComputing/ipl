@@ -12,7 +12,7 @@ public class DataAllocator implements IbisStreamFlags {
     private final static int CACHE_MAX = 64;
 
     /**
-     * The nu,ber of currently cached buffers per type.
+     * The number of currently cached buffers per type.
      */
     private int[] cached = new int[PRIMITIVE_TYPES + 1];
 
