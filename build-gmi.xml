@@ -61,7 +61,7 @@
 		message="All classes to be rewritten: ${gmi-classes}"/>
 	<echo	level="debug"
 		message="Run ibis gmi over all classes under ${build}${file.separator}"/>
-	<java   classname="ibis.frontend.group.Main"
+	<java   classname="ibis.frontend.gmi.Main"
 		taskname="ibis gmi"
 		dir="${build}"
 		fork="true">
