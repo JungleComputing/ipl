@@ -425,11 +425,15 @@ IBIS_CONFIG_SEEN=1
 		<replaceregexp
 		    file="${ibis}/bin/ns-env.bat"
 			flags="g"
-			match="export (.*)="
+			match="(.*)="
 			replace="set \1="/>
 		<replace
 		    file="${ibis}/bin/ns-env.bat"
 			token="#"
+			value="rem "/>
+		<replace
+		    file="${ibis}/bin/ns-env.bat"
+			token="export"
 			value="rem "/>
 	    </then>
 	</if>

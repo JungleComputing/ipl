@@ -84,27 +84,34 @@ then
 fi
 
 #needed for ibm 1.3 JITs and SMPs
-# export LD_ASSUME_KERNEL=2.2.5
+# LD_ASSUME_KERNEL=2.2.5
+# export LD_ASSUME_KERNEL
 
 #
 # Some Panda Ibis stuff
 #
 
 #disable panda interrupts
-#export IBP_NO_INTR=1
+#IBP_NO_INTR=1
+#export IBP_NO_INTR
 
 # fix panda/lfc flow control
-#export LFC_SEND_COPY_ASIDE=1
-#export PAN_SYS_CREDITS=65535
+#LFC_SEND_COPY_ASIDE=1
+#export LFC_SEND_COPY_ASIDE
+#PAN_SYS_CREDITS=65535
+#export PAN_SYS_CREDITS
 
 if [ -z "$LFC_INTR_FIRST" ] ; then
-	export LFC_INTR_FIRST=100
+	LFC_INTR_FIRST=100
+	export LFC_INTR_FIRST
 fi
 if [ -z "$IBP_SEND_SYNC" ] ; then
-	export IBP_SEND_SYNC=0 
+	IBP_SEND_SYNC=0 
+	export IBP_SEND_SYNC
 fi
 if [ -z "$PAN_COMM_NO_IDLE_POLL" ] ; then
-	export PAN_COMM_NO_IDLE_POLL=1
+	PAN_COMM_NO_IDLE_POLL=1
+	export PAN_COMM_NO_IDLE_POLL
 fi
 
 
@@ -277,11 +284,13 @@ then
     JIT_OPTS="$JIT_OPTS -Djava.rmi.server.hostname=$ip_addr"
     if [ ! -z $HOSTS ]
     then
-	export HOSTS="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $HOSTS`"
+	HOSTS="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $HOSTS`"
+	export HOSTS
     fi
     if [ ! -z $PRUN_HOSTNAMES ]
     then
-	export PRUN_HOSTNAMES="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $PRUN_HOSTNAMES`"
+	PRUN_HOSTNAMES="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $PRUN_HOSTNAMES`"
+	export PRUN_HOSTNAMES
     fi
 fi
 
