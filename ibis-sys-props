@@ -41,14 +41,17 @@
 # ibis.name_server.impl		ibis.impl.nameServer.tcp.NameServerClient
 
 # Host on which the nameserver is supposed to run. This property must
-# be specified.
+# be specified. It is provided by the ibis-run script. Its rules are:
+# - if it is specified with the -ns option, use that;
+# - if the -hosts option is specified, use the first host on that list;
+# - otherwise, use the host on which ibis was configured/installed.
 # ibis.name_server.host
 
 # Port number on which the nameserver is supposed accept connections.
 # ibis.name_server.port		9826
 
 #  A key which is supposed to be unique for this run. This property must
-# be specified.
+# be specified. The ibis-run script provides it.
 # ibis.name_server.key
 
 # Only serve a single run.
@@ -142,7 +145,7 @@
 ##########
 
 # The mere presence of the ibis.nio.numbered property is synonymous with
-# the "Numbered" communication property. Remove?
+# the "Numbered" communication property. Remove???
 # ibis.nio.numbered:
 
 # Allows the user to choose between different sendport implementations.
@@ -338,10 +341,10 @@
 # the default is used.
 # ibis.pool.server.port			9827
  
-# ibis.pool.server.host
 # Must contain the hostname of the host on which the PoolInfoServer runs.
 # If not present, ibis.name_server.host is tried. One of the two system
-# properties must be defined.
+# properties must be defined. ibis-run provides ibis.name_server.host.
+# ibis.pool.server.host
 
 # If set to true, have the PoolInfoServer only accept a single registration
 # for each node (multiple Ibis instances on the same node won't work).
