@@ -47,27 +47,6 @@ public final class SATContext implements java.io.Serializable {
     /** The number of unsatisfied clauses. */
     public int unsatisfied;
 
-    // One step in the chain of resolutions that help to construct
-    // a good conflict clause.
-    private static final class Resolution {
-        Resolution next;        // The next one in the chain.
-        int cno;                // The clause to resolve with.
-        int var;                // The variable to resolve on.
-	int dist;		// The distance to the dominator.
-
-        Resolution( Resolution next, int cno, int var, int dist )
-        {
-            this.next = next;
-            this.cno = cno;
-            this.var = var;
-	    this.dist = dist;
-        }
-        public String toString()
-        {
-            return "[(" + cno + "),v" + var + "]";
-        }
-    }
-
     /**
      * Constructs a Context with the specified elements.
      */
@@ -387,25 +366,6 @@ public final class SATContext implements java.io.Serializable {
         }
     }
 
-    /**
-     * Given a link in the resolution chain, print that chain.
-     */
-    static void dumpResolutionChain( Clause cl[], Resolution p )
-    {
-        if( p == null ){
-            return;
-        }
-        System.err.print( "Resolution chain: " );
-        while( p != null ){
-            System.err.print( "(" + cl[p.cno].label + ") on v" + p.var );
-            if( p.next != null ){
-                System.err.print( " -> " );
-            }
-            p = p.next;
-        }
-        System.err.println();
-    }
-
     private int calculateNearestDominator( SATProblem p, int arr[], int cno, int level, int dist[], int distFromConflict )
     {
         int bestDom = -1;
@@ -502,121 +462,6 @@ public final class SATContext implements java.io.Serializable {
 	// this clause yet.
         int dist[] = new int[satisfied.length];
         return calculateNearestDominator( p, cno, level, dist, 1 );
-    }
-
-    private Resolution calculateDominatorPath( SATProblem p, int arr[], int cno, int level, int dom )
-    {
-        Resolution bestPath = null;
-        int bestDist = satisfied.length;
-        int bestVar = -1;
-
-        for( int i=0; i<arr.length; i++ ){
-            int v = arr[i];
-            int a = antecedent[v];
-
-            if( dl[v] == level ){
-                // The variable was deduced at our level, so it's
-                // interesting.
-
-                if( a<0 ){
-                    // The decision variable at our level, not interesting.
-                }
-                else {
-                    // The variable is not a decision variable.
-                    if( a == cno ){
-                        // The implication variable of this clause,
-                        // not interesting.
-                    }
-                    else {
-                        // Variable is not implied by this clause, we're
-                        // still interested.
-                        Resolution newPath = calculateDominatorPath( p, a, level, dom );
-                        if( newPath != null ){
-                            if( bestPath == null || (newPath.dist<bestDist) ){
-                                bestPath = newPath;
-                                bestDist = newPath.dist;
-                                bestVar = v;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if( bestPath == null ){
-            return null;
-        }
-        bestPath.var = bestVar;
-        return new Resolution( bestPath, cno, -1, bestPath.dist+1 );
-    }
-
-    /**
-     * Returns the index of the nearest dominator clause, or -1 if there
-     * is no dominator.
-     */
-    private Resolution calculateDominatorPath( SATProblem p, int cno, int level, int dom )
-    {
-        Clause c = p.clauses[cno];
-        if( traceResolutionChain ){
-            System.err.println( "Calculating path to dominator of clause " + c );
-        }
-	if( cno == dom ){
-            if( traceResolutionChain ){
-                System.err.println( "This is the dominator: " + c );
-            }
-            return new Resolution( null, cno, -1, 0 );
-        }
-        Resolution bestPath;
-
-        Resolution bestPosPath = calculateDominatorPath( p, c.pos, cno, level, dom );
-        Resolution bestNegPath = calculateDominatorPath( p, c.neg, cno, level, dom );
-        if( bestPosPath == null ){
-            bestPath = bestNegPath;
-        }
-        else {
-           if( bestNegPath == null ){
-               bestPath = bestPosPath;
-           }
-           else {
-               if( bestNegPath.dist<bestPosPath.dist ){
-                   bestPath = bestNegPath;
-               }
-               else {
-                   bestPath = bestPosPath;
-               }
-           }
-        }
-        if( traceResolutionChain ){
-            System.err.println( "Best path of clause " + c + " is " + bestPath );
-        }
-        return bestPath;
-    }
-
-    /**
-     * Given the SAT problem and the index of the conflicting clause,
-     * compute the first variable thas dominates the conflict in the
-     * deductions at this level.
-     */
-    Resolution computeResolutionChain( SATProblem p, int cno, int level )
-    {
-	int bestDom = calculateNearestDominator( p, cno, level );
-	if( bestDom == -1 ){
-	    if( traceResolutionChain ){
-                System.err.println( "There is no dominator for clause " + p.clauses[cno] );
-            }
-	    return null;
-	}
-        if( traceResolutionChain ){
-	    System.err.println( "Nearest dominator is " + p.clauses[bestDom] );
-	}
-        Resolution bestPath = calculateDominatorPath( p, cno, level, bestDom );
-        if( bestPath == null ){
-            System.err.println( "Error: clause " + p.clauses[cno] + " has dominator " + p.clauses[bestDom] + " but no path to it" );
-	    return null;
-        }
-        if( traceResolutionChain ){
-	    dumpResolutionChain( p.clauses, bestPath );
-        }
-        return bestPath.next;
     }
 
     /**
