@@ -73,6 +73,30 @@ public final class NoSerializationInputStream extends SerializationInputStream {
         // no statistics for No serialization.
     }
 
+    public long skip(long n) throws IOException {
+	for (long i = 0; i < n; i++) {
+	    int b = in.read();
+	    if (b == -1) {
+		return i;
+	    }
+	}
+	return n;
+    }
+
+    public int skipBytes(int n) throws IOException {
+	for (int i = 0; i < n; i++) {
+	    int b = in.read();
+	    if (b == -1) {
+		return i;
+	    }
+	}
+	return n;
+    }
+
+    public String readLine() throws IOException {
+	throw new IOException("Illegal data type read");
+    }
+
     public final byte readByte() throws IOException {
 	int b = in.read();
 

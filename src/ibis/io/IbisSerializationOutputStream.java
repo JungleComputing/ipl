@@ -287,7 +287,6 @@ public class IbisSerializationOutputStream
 
 	public final void clear() {
 	    init(initSize);
-	    size = 1;
 	    if (STATS) {
 		// finds = 0;
 	    }

@@ -480,6 +480,9 @@ public class DataSerializationInputStream
 	throw new IOException("skipBytes not meaningful in typed input stream");
     }
 
+    public String readLine() throws IOException {
+	throw new IOException("readLine() not implemented");
+    }
 
     public void readFully(byte[] b) throws IOException {
 	readFully(b, 0, b.length);
