@@ -19,6 +19,7 @@
 
     <property name="src"         location="${ibis}/.."/>
     <property name="build"       location="${ibis}/build"/>
+    <property name="docs"        location="${ibis}/docs"/>
 
     <target name="init" depends="property-init">
 	<tstamp/>
@@ -377,12 +378,27 @@
 
     <target name="clean">
 	<delete dir="build"/>
+	<delete dir="${docs}/api"/>
     </target>
 
     <target name="distclean" depends="clean">
 	<delete file="build-properties"/>
     </target>
 
+    <target name="docs" depends="init">
+	<!-- Create the javadoc directory -->
+	<delete dir="${docs}"/>
+	<mkdir dir="${docs}"/>
+	<mkdir dir="${docs}/api"/>
+	<javadoc packagenames="ibis.ipl.*,ibis.group,ibis.rmi,ibis.io,ibis.satin" sourcepath="${src}" destdir="${docs}/api" author="true" version="true" use="true" windowtitle="Ibis API" doctitle="Ibis" bottom="The Ibis project">
+	    <classpath refid="default.classpath"/>
+	    <group title="Ibis group" packages="ibis.group"/>
+	    <group title="Ibis RMI" packages="ibis.rmi"/>
+	    <group title="Ibis IPL" packages="ibis.ipl*"/>
+	    <group title="Ibis IO" packages="ibis.io"/>
+	    <group title="Ibis Satin" packages="ibis.satin"/>
+	</javadoc>
+    </target>
 
 
 </project>
