@@ -1,5 +1,8 @@
 IBIS:
 
+- add writeUTF/readUTF to Dataserialization streams. The Sun DataStreams have
+  them. Sun serialization does not have writeString. Maybe we should'nt either?
+
 After distribution:
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
     After distribution.
