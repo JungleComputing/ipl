@@ -1,4 +1,4 @@
-JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/ibis/classlibs:$IBIS_ROOT/ibis/build:$IBIS_ROOT/ibis/build/lib:$IBIS_ROOT:build:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar
+JAVACLASSPATH=$IBIS_ROOT/classlibs:$IBIS_ROOT/ibis/classlibs:$IBIS_ROOT/ibis/build:$IBIS_ROOT/ibis/build/lib:$IBIS_ROOT:build:.:$JAVA_ROOT/jre/lib/rt.jar:$JAVA_ROOT/jre/lib/core.jar:$JAVA_ROOT/jre/lib/server.jar:$JAVA_ROOT/jre/lib/security.jar
 
 export LD_ASSUME_KERNEL=2.2.5
 
