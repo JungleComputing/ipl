@@ -10,15 +10,8 @@ import java.io.IOException;
 /**
  * Provides a generic multiple network input poller.
  */
-public final class GenPoller extends NetPoller {
+public class GenPoller extends NetPoller {
 
-    /**
-     * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
-     * @param driver the driver of this poller.
-     * @param context the context.
-     * @param inputUpcall the input upcall for upcall receives, or
-     *        <code>null</code> for downcall receives
-     */
     public GenPoller(NetPortType pt,
 	   	     NetDriver driver,
 		     String context,
@@ -26,4 +19,14 @@ public final class GenPoller extends NetPoller {
 	    throws IOException {
 	super(pt, driver, context, inputUpcall);
     }
+
+    public GenPoller(NetPortType pt,
+			   NetDriver driver,
+			   String context,
+			   boolean decouplePoller,
+			   NetInputUpcall inputUpcall)
+	    throws IOException {
+	super(pt, driver, context, decouplePoller, inputUpcall);
+    }
+
 }

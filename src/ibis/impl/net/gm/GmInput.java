@@ -257,7 +257,7 @@ int plld;
 	    if (spn == null) {
 		return null;
 	    }
-System.err.println(this + ": WARNING: use GmPoller i.s.o. GmInput");
+System.err.println(this + ": WARNING: nowadays, you should use GmPoller i.s.o. GmInput");
 
 	    Driver.gmAccessLock.lock(false);
 	    try {
@@ -372,10 +372,11 @@ rcvd++;
 	 * {@inheritDoc}
 	 */
 	public void doFree() throws IOException {
-                log.in();
-		spn = null;
+	    log.in();
+	    spn = null;
 
-                Driver.gmAccessLock.lock();
+	    Driver.gmAccessLock.lock();
+	    try {
 		if (pendingMessage > 0) {
 		    throw new Error(this + ": want to close but pending message");
 		}
@@ -394,8 +395,10 @@ rcvd++;
                         deviceHandle = 0;
                 }
 
+	    } finally {
                 Driver.gmAccessLock.unlock();
                 log.out();
+	    }
 	}
 
 	public void readArray(boolean [] b, int o, int l) throws IOException {

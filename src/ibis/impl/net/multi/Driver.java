@@ -24,6 +24,10 @@ public final class Driver extends NetDriver {
 
         private Hashtable    pluginTable = new Hashtable();
 
+	static {
+	    System.err.println("**** net.multi probably broken by all optimizations");
+	}
+
 	/**
 	 * Constructor.
 	 *
@@ -31,9 +35,6 @@ public final class Driver extends NetDriver {
 	 */
 	public Driver(NetIbis ibis) {
 		super(ibis);
-		System.err.println("This has probably been broken by all");
-		System.err.println("optimizations, e.g. singleton poller,");
-		System.err.println("upcallFunc in constructor etc.");
 	}
 
 	/**
@@ -47,14 +48,20 @@ public final class Driver extends NetDriver {
 	 * {@inheritDoc}
 	 */
 	public NetInput newInput(NetPortType pt, String context, NetInputUpcall inputUpcall) throws IOException {
+	    if (inputUpcall == null && pt.inputSingletonOnly()) {
+System.err.println("multi poller singleton");
+		return new SingletonPoller(pt, this, context, inputUpcall);
+	    } else {
+System.err.println("multi poller NONsingleton");
 		return new MultiPoller(pt, this, context, inputUpcall);
+	    }
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public NetOutput newOutput(NetPortType pt, String context) throws IOException {
-		return new MultiSplitter(pt, this, context);
+	    return new MultiSplitter(pt, this, context);
 	}
 
         protected MultiPlugin loadPlugin(String name) throws IOException {

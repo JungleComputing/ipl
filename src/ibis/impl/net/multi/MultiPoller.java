@@ -19,9 +19,9 @@ import java.util.Hashtable;
 /**
  * Provides a generic multiple network input poller.
  */
-public final class MultiPoller extends NetPoller {
+public class MultiPoller extends NetPoller {
 
-        private final static class Lane {
+        protected final static class Lane {
                 ReceiveQueue  queue        = null;
                 int           headerLength =    0;
                 int           mtu          =    0;
@@ -81,20 +81,23 @@ public final class MultiPoller extends NetPoller {
         /**
          * Our extension to the set of inputs.
          */
-        private Hashtable laneTable = null;
+        protected Hashtable laneTable = null;
 
         private MultiPlugin plugin  = null;
 
-        /**
-	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
-	 * @param driver the driver of this poller.
-	 * @param context the context.
-	 * @param inputUpcall the input upcall for upcall receives, or
-	 *        <code>null</code> for downcall receives
-         */
         public MultiPoller(NetPortType pt, NetDriver driver, String context, NetInputUpcall inputUpcall)
                 throws IOException {
                 super(pt, driver, context, inputUpcall);
+		init();
+	}
+
+        public MultiPoller(NetPortType pt, NetDriver driver, String context, boolean decouplePoller, NetInputUpcall inputUpcall)
+                throws IOException {
+                super(pt, driver, context, decouplePoller, inputUpcall);
+		init();
+	}
+
+	private void init() throws IOException {
                 laneTable = new Hashtable();
 
                 String pluginName = getProperty("Plugin");
@@ -140,7 +143,7 @@ public final class MultiPoller extends NetPoller {
 	    NetDriver subDriver     = driver.getIbis().getDriver(subDriverName);
 
 	    if (upcallFunc == null) {
-		System.err.println("Create a MultiPoller downcall with ReceiveQueue poller thread " + q);
+		System.err.println("Create a MultiPoller downcall with ReceiveQueue poller thread " + q + " subDriver " + subDriver + " subContext " + subContext);
 	    }
 	    return newSubInput(subDriver, subContext, q);
 	}

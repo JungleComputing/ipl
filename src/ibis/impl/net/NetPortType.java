@@ -8,6 +8,8 @@ import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 
+import ibis.util.TypedProperties;
+
 import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -347,7 +349,13 @@ public final class NetPortType extends PortType {
                 String filename = null;
 
                 Properties p = System.getProperties();
-                filename = p.getProperty("netibis.config.filename");
+		filename = p.getProperty("ibis.net.config.filename");
+		if (filename == null) {
+		    filename = p.getProperty("ibis.net.config.file");
+		}
+		if (filename == null) {
+		    filename = p.getProperty("netibis.config.filename");
+		}
                 if (filename == null) {
                         filename = "net_port_type_defaults.txt";
                         in = tryOpen(filename);
@@ -456,6 +464,39 @@ public final class NetPortType extends PortType {
 	 */
 	public StaticProperties properties() {
 		return staticProperties;
+	}
+
+	/**
+	 * Return whether this PortType supports only one incoming connection
+	 * per port.
+	 */
+	public boolean inputSingletonOnly() {
+	    StaticProperties prop = properties();
+	    boolean singletonOnly =
+		TypedProperties.booleanProperty("ibis.porttype.singleton", true)
+		&& ! prop.isProp("communication", "ManyToOne")
+		&& ! prop.isProp("communication", "Poll")
+		&& ! prop.isProp("communication", "ReceiveTimeout");
+	    if (false && singletonOnly) {
+		System.err.println(this + ": set Poller.singletonOnly to " + singletonOnly);
+		System.err.println(this + ": property ManyToOne " + prop.isProp("communication", "ManyToOne"));
+	    }
+	    return singletonOnly;
+	}
+
+	/**
+	 * Return whether this PortType supports only one outgoing connection
+	 * per port.
+	 */
+	public boolean outputSingletonOnly() {
+	    StaticProperties prop = properties();
+	    boolean singletonOnly =
+		TypedProperties.booleanProperty("ibis.poller.singleton", true)
+		&& ! prop.isProp("communication", "OneToMany");
+	    if (false && singletonOnly) {
+		System.err.println(this + ": property OneToMany " + prop.isProp("communication", "OneToMany"));
+	    }
+	    return singletonOnly;
 	}
 
 
