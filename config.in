@@ -288,10 +288,12 @@ TRASH_FILES	+= $(REMOTE_SKELETONS)
 
 rmi_stub_%.java:	%.class
 	-rm -f $@
+	-rm -f $(@:rmi_stub_%.java=rmi_skeleton_%.java)
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
 rmi_skeleton_%.java:	%.class
 	-rm -f $@
+	-rm -f $(@:rmi_skeleton_%.java=rmi_stub_%.java)
 	$(JPATH)/bin/java -classpath $(CLASSPATH) ibis.frontend.rmi.Main -v $*
 
 
