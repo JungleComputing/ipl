@@ -339,9 +339,17 @@ strictfp class BodyTreeNode {
 
     btnCenterOfMassValid = false;
 
+     /* This was a direct comparison (with ==) but this turns out to
+      * be not stable. (Ceriel)
+      */
+    if (Math.abs(c.cofmCenter_x - btnCenter_x) < btnGd.gdDoubleEpsilon &&
+	Math.abs(c.cofmCenter_y - btnCenter_y) < btnGd.gdDoubleEpsilon &&
+	Math.abs(c.cofmCenter_z - btnCenter_z) < btnGd.gdDoubleEpsilon) {
+/*
     if (c.cofmCenter_x == btnCenter_x &&
       c.cofmCenter_y == btnCenter_y &&
       c.cofmCenter_z == btnCenter_z ) {
+*/
 
       // this is the right node, add the center of mass
 	    /*
