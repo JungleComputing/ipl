@@ -7,16 +7,16 @@ class Helpers {
      */
     static int spanEncodingSize( int n )
     {
-        if( n<0 ){
+        if( n<Configuration.MINIMAL_SPAN ){
             return -1;
         }
+        n -= Configuration.MINIMAL_SPAN;
         if( n<256 ){
             return 1;
         }
-        if( n<65536 ){
-            return 2;
-        }
-        return -1;
+        // Note that if a span is too large, we truncate it, so there
+        // is always something to encode.
+        return 2;
     }
 
     /**
