@@ -25,7 +25,7 @@ public class UnicastServerRef extends UnicastRef implements ServerRef, java.io.S
 	} catch (Exception e) {
 		if (RTS.DEBUG)
 			e.printStackTrace();	
-		throw new RemoteException(e.getMessage());
+		throw new RemoteException(e.getMessage(), e);
 	}
     }
 
