@@ -132,6 +132,10 @@ class OpenCell1D implements OpenConfig {
     static int boardsize = DEFAULTBOARDSIZE;
     static boolean idle = true;
     static boolean rightNeighbourIdle = true;
+    static int aimFirstColumn;
+    static int aimFirstNoColumn;
+    static int knownMembers = 0;
+    static RszHandler rszHandler = new RszHandler();
 
     private static void usage()
     {
@@ -629,11 +633,45 @@ class OpenCell1D implements OpenConfig {
         }
     }
 
+    /**
+     * See if any new members have joined the computation, and if so
+     * update the column numbers we should try to own.
+     */
+    static void updateAims( Problem p )
+    {
+        int members = rszHandler.getMemberCount();
+        if( knownMembers<members ){
+            // Some processors have joined the computation.
+            // Redistribute the load.
+
+            // For an equal division of the load, I should get...
+            aimFirstColumn = (me*boardsize)/members;
+            aimFirstNoColumn = ((me+1)*boardsize)/members;
+
+            // Take into account that each node should have at least
+            // two columns.
+            if( aimFirstColumn<2*me ){
+                aimFirstColumn = 2*me;
+            }
+            if( aimFirstNoColumn<aimFirstColumn+2 ){
+                aimFirstNoColumn = aimFirstColumn+2;
+            }
+            if( traceLoadBalancing ){
+                System.out.println( "P" + me + ": there are now " + members + " nodes in the computation (was " + knownMembers + ")" );
+                if( p.firstColumn>=p.firstNoColumn ){
+                    System.out.println( "P" + me + ": I am idle, I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
+                }
+                else {
+                    System.out.println( "P" + me + ": I have columns " + p.firstColumn + "-" + p.firstNoColumn + ", I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
+                }
+            }
+            knownMembers = members;
+        }
+    }
+
     public static void main( String [] args )
     {
         int count = GENERATIONS;
-        RszHandler rszHandler = new RszHandler();
-        int knownMembers = 0;
 
         /** The first column that is my responsibility. */
         int firstColumn = -1;
@@ -712,8 +750,8 @@ class OpenCell1D implements OpenConfig {
             }
 
             // For the moment we're satisfied with the work distribution.
-            int aimFirstColumn = firstColumn;
-            int aimFirstNoColumn = firstNoColumn;
+            aimFirstColumn = firstColumn;
+            aimFirstNoColumn = firstNoColumn;
 
             // First, create an array to hold all columns of the total
             // array size, plus two empty dummy border columns. (The top and
@@ -739,36 +777,7 @@ class OpenCell1D implements OpenConfig {
                     rightReceivePort = createNeighbourReceivePort( updatePort, "downstream" );
                     rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
                 }
-                // TODO: as an idle node, start waiting for work;
-                // as a busy node with an idle right neighbour, send it work.
-                int members = rszHandler.getMemberCount();
-                if( knownMembers<members ){
-                    // Some processors have joined the computation.
-                    // Redistribute the load.
-
-                    // For an equal division of the load, I should get...
-                    aimFirstColumn = (me*boardsize)/members;
-                    aimFirstNoColumn = ((me+1)*boardsize)/members;
-
-                    // Take into account that each node should have at least
-                    // two columns.
-                    if( aimFirstColumn<2*me ){
-                        aimFirstColumn = 2*me;
-                    }
-                    if( aimFirstNoColumn<aimFirstColumn+2 ){
-                        aimFirstNoColumn = aimFirstColumn+2;
-                    }
-                    if( traceLoadBalancing ){
-                        System.out.println( "P" + me + ": there are now " + members + " nodes in the computation (was " + knownMembers + ")" );
-                        if( p.firstColumn>=p.firstNoColumn ){
-                            System.out.println( "P" + me + ": I am idle, I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
-                        }
-                        else {
-                            System.out.println( "P" + me + ": I have columns " + p.firstColumn + "-" + p.firstNoColumn + ", I should have " + aimFirstColumn + "-" + aimFirstNoColumn );
-                        }
-                    }
-                    knownMembers = members;
-                }
+                updateAims( p );
                 if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
                     // We have some work for our lazy right neighbour.
                     // give him the good news.
@@ -776,7 +785,7 @@ class OpenCell1D implements OpenConfig {
                     rightNeighbourIdle = false;
                 }
                 computeNextGeneration( p );
-                // TODO: update the column aims.
+                updateAims( p );
                 if( (me % 2) == 0 ){
                     sendRight( rightSendPort, p, aimFirstColumn, aimFirstNoColumn );
                     receiveRight( rightReceivePort, p );
