@@ -1,12 +1,14 @@
 package ibis.ipl.impl.net;
 
-import ibis.ipl.ConnectUpcall;
 import ibis.ipl.IbisException;
 import ibis.ipl.PortType;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.SendPort;
+import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.Upcall;
+
 import ibis.io.Replacer;
 
 import ibis.util.Input;
@@ -228,7 +230,7 @@ public final class NetPortType implements PortType {
 		this.name             = name;
                 this.propertyTree     = new NetPropertyTree();
                 this.propertyCache    = new HashMap();
-		this.staticProperties = sp;
+		this.staticProperties = sp != null ? sp : new StaticProperties();
 
                 readDefaultProperties();
                 setDefaultProperties();
@@ -262,35 +264,68 @@ public final class NetPortType implements PortType {
 	 * {@inheritDoc}
 	 */
 	public SendPort createSendPort(String name) throws NetIbisException {
-		return new NetSendPort(this, null, name);
+		return new NetSendPort(this, null, name, null);
+	}
+
+        public SendPort createSendPort(String name, SendPortConnectUpcall spcu) throws NetIbisException {
+                return new NetSendPort(this, null, name, spcu);
+        }
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public SendPort createSendPort() throws NetIbisException {
+		return new NetSendPort(this, null, null, null);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public SendPort createSendPort(Replacer r) throws NetIbisException {
-		return new NetSendPort(this, r);
+		return new NetSendPort(this, r, null, null);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public SendPort createSendPort(String name, Replacer r) throws NetIbisException {
-		return new NetSendPort(this, r, name);
+		return new NetSendPort(this, r, name, null);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public SendPort createSendPort() throws NetIbisException {
-		return new NetSendPort(this);
-	}
+	public SendPort createSendPort(ibis.io.Replacer r, SendPortConnectUpcall spcu) throws NetIbisException {
+                return new NetSendPort(this, r, null, spcu);
+        }
+
+        public SendPort createSendPort(String name, ibis.io.Replacer r, SendPortConnectUpcall spcu) throws NetIbisException {
+                return new NetSendPort(this, r, name, spcu);
+        }
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public ReceivePort createReceivePort(String name) throws NetIbisException {
-		NetReceivePort nrp = new NetReceivePort(this, name);
+                return createReceivePort(name, null, null);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public ReceivePort createReceivePort(String name, Upcall u) throws NetIbisException {
+		return createReceivePort(name, u, null);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall rpcu) throws NetIbisException {
+                return createReceivePort(name, null, rpcu);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall rpcu) throws NetIbisException {
+		NetReceivePort nrp = new NetReceivePort(this, name, u, rpcu);
 
                 try {
                         ibis.receivePortNameServerClient().bind(name, nrp);
@@ -299,43 +334,6 @@ public final class NetPortType implements PortType {
                 }
 
 		return nrp;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public ReceivePort createReceivePort(String name, Upcall u)
-		throws NetIbisException {
-		NetReceivePort nrp = new NetReceivePort(this, name, u);
-
-                try {
-                        ibis.receivePortNameServerClient().bind(name, nrp);
-                } catch (ibis.ipl.IbisIOException e) {
-                        throw new NetIbisException(e);
-                }
-
-		return nrp;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public ReceivePort createReceivePort(String        name,
-					     ConnectUpcall cU)
-		throws NetIbisException {
-		__.unimplemented__("createReceivePort(..., ConnectUpcall)");
-		return null;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public ReceivePort createReceivePort(String    	   name,
-					     Upcall    	   u,
-					     ConnectUpcall cU)
-		throws NetIbisException {
-		__.unimplemented__("createReceivePort(..., ConnectUpcall)");
-		return null;
 	}
 
 	/**

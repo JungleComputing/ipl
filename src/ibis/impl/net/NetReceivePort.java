@@ -5,6 +5,7 @@ import ibis.ipl.IbisException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
@@ -21,6 +22,7 @@ import java.io.OutputStream;
 
 import java.util.Iterator;
 import java.util.Hashtable;
+import java.util.Vector;
 
 
 /**
@@ -121,6 +123,11 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                                                 synchronized(connectionTable) {
                                                         connectionTable.put(num, cnx);
+
+                                                        connectedPeers.add(spi);
+                                                        if (rpcu != null) {
+                                                                rpcu.gotConnection(spi);
+                                                        }
                                                 }
 
                                                 if (useUpcall) {
@@ -245,6 +252,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          */
         private Upcall                   upcall              =  null;
 
+
+        private ReceivePortConnectUpcall rpcu		     =  null;
+
         /**
          * The port identifier.
          */
@@ -363,27 +373,29 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
           */
         private volatile Runnable        currentThread       =  null;
 
-         /**
-          * Internal receive port counter, for debugging.
-          */
-         static private volatile int   receivePortCount          = 0;
+        /**
+         * Internal receive port counter, for debugging.
+         */
+        static private volatile int   receivePortCount          = 0;
 
-         /**
-          * Internal receive port id, for debugging.
-          */
-         private int                   receivePortMessageId      = -1;
+        /**
+         * Internal receive port id, for debugging.
+         */
+        private int                   receivePortMessageId      = -1;
 
-         /**
-          * Process rank, for debugging.
-          */
-         private int                   receivePortMessageRank    = 0;
+        /**
+         * Process rank, for debugging.
+         */
+        private int                   receivePortMessageRank    = 0;
 
-         /**
-          * Tracing log message prefix, for debugging.
-          *
-          */
-         private String                receivePortTracePrefix    = null;
+        /**
+         * Tracing log message prefix, for debugging.
+         *
+         */
+        private String                receivePortTracePrefix    = null;
 
+        private Vector                connectedPeers            = null;
+        private Vector                disconnectedPeers         = null;
 
 
 
@@ -471,6 +483,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 {
                                         Integer num = (Integer)event.arg();
                                         NetConnection cnx = null;
+                                        NetSendPortIdentifier nspi = null;
 
                                         /*
                                          * Potential race condition here:
@@ -479,14 +492,22 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                          */
                                         synchronized(connectionTable) {
                                                 cnx = (NetConnection)connectionTable.remove(num);
+
+                                                if (cnx == null)
+                                                        break;
+
+                                                nspi = cnx.getSendId();
+                                                disconnectedPeers.add(nspi);
                                         }
 
-                                        if (cnx != null) {
-                                                try {
-                                                        close(cnx);
-                                                } catch (NetIbisException nie) {
-                                                        throw new Error(nie);
-                                                }
+                                        try {
+                                                close(cnx);
+                                        } catch (NetIbisException nie) {
+                                                throw new Error(nie);
+                                        }
+
+                                        if (rpcu != null) {
+                                                rpcu.lostConnection(nspi);
                                         }
                                 }
                         break;
@@ -507,17 +528,6 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 
         /* --- NetReceivePort part --- */
-        /*
-         * Constructor.
-         *
-         * @param type the {@linkplain NetPortType port type}.
-         * @param name the name of the port.
-         */
-        public NetReceivePort(NetPortType type,
-                              String      name)
-                throws NetIbisException {
-                this(type, name, null);
-        }
 
         /*
          * Constructor.
@@ -526,13 +536,15 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
          * @param name the name of the port.
          * @param upcall the reception upcall callback.
          */
-        public NetReceivePort(NetPortType type,
-                              String      name,
-                              Upcall      upcall)
+        public NetReceivePort(NetPortType              type,
+                              String                   name,
+                              Upcall                   upcall,
+                              ReceivePortConnectUpcall rpcu)
                 throws NetIbisException {
                 this.type              = type;
                 this.name              = name;
                 this.upcall            = upcall;
+                this.rpcu              = rpcu;
 
                 initDebugStreams();
                 initPassiveObjects();
@@ -637,6 +649,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
         private void initActiveObjects() {
                 log.in();
+                connectedPeers     = new Vector();
+                disconnectedPeers  = new Vector();
                 acceptThread       = new AcceptThread(name);
                 eventQueue         = new NetEventQueue();
                 eventQueueListener = new NetEventQueueListener(this, "ReceivePort: "+name, eventQueue);
@@ -715,7 +729,34 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return _receive();
         }
 
-        /**
+        public ReadMessage receive(long millis) throws NetIbisException {
+                if (millis == 0) {
+                        return receive();
+                } else {
+                        long        top = System.currentTimeMillis();
+                        ReadMessage rm  = null;
+
+                        do {
+                                rm = poll();
+                        } while (rm == null
+                                 &&
+                                 (System.currentTimeMillis() - top) < millis);
+
+                        return rm;
+                }
+        }
+
+       public ReadMessage receive(ReadMessage finishMe, long millis) throws NetIbisException {
+               log.in();
+               if (finishMe != null) {
+                       ((NetReceivePort)finishMe).finish();
+               }
+               log.out();
+
+               return receive(millis);
+       }
+
+         /**
          * {@inheritDoc}
          */
         public ReadMessage receive(ReadMessage finishMe) throws NetIbisException {
@@ -809,6 +850,30 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 log.out();
                 return id;
         }
+	public SendPortIdentifier connectedTo() {
+                __.unimplemented__("connectedTo");
+                return null;
+        }
+
+	public SendPortIdentifier[] lostConnections() {
+                synchronized(connectionTable) {
+                        SendPortIdentifier t[] = new SendPortIdentifier[disconnectedPeers.size()];
+                        disconnectedPeers.copyInto(t);
+                        disconnectedPeers.clear();
+
+                        return t;
+                }
+        }
+
+	public SendPortIdentifier[] newConnections() {
+                synchronized(connectionTable) {
+                        SendPortIdentifier t[] = new SendPortIdentifier[connectedPeers.size()];
+                        connectedPeers.copyInto(t);
+                        connectedPeers.clear();
+
+                        return t;
+                }
+         }
 
         /**
          * {@inheritDoc}
@@ -950,6 +1015,14 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                 trace.disp(receivePortTracePrefix+"receive port shutdown<--");
                 log.out();
+        }
+
+        public void forcedClose() {
+                free();
+        }
+
+        public void forcedClose(long timeout) {
+                __.unimplemented__("void forcedClose(long timeout)");
         }
 
         protected void finalize() throws Throwable {

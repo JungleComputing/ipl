@@ -4,6 +4,7 @@ import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
+import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 
@@ -18,6 +19,7 @@ import java.net.Socket;
 
 import java.util.Iterator;
 import java.util.Hashtable;
+import java.util.Vector;
 
 /**
  * Provides an implementation of the {@link SendPort} and {@link
@@ -157,6 +159,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          */
         private String                receiversPrefixes      = null;
 
+        private Vector                disconnectedPeers      = null;
+
+
 
 
 
@@ -172,6 +177,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          * The asynchronous {@link #eventQueue} listening & {@linkplain NetPortEvent event} processing thread.
          */
         private NetEventQueueListener eventQueueListener     = null;
+
+        private SendPortConnectUpcall spcu                   = null;
 
 
 
@@ -219,6 +226,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                 {
                                         Integer num = (Integer)event.arg();
                                         NetConnection cnx = null;
+                                        NetReceivePortIdentifier nrpi = null;
 
                                         /*
                                          * Potential race condition here:
@@ -227,14 +235,21 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                          */
                                         synchronized(connectionTable) {
                                                 cnx = (NetConnection)connectionTable.remove(num);
+                                                if (cnx == null)
+                                                        break;
+
+                                                nrpi = cnx.getReceiveId();
+                                                disconnectedPeers.add(nrpi);
                                         }
 
-                                        if (cnx != null) {
-                                                try {
-                                                        close(cnx);
-                                                } catch (NetIbisException nie) {
-                                                        throw new Error(nie);
-                                                }
+                                        try {
+                                                close(cnx);
+                                        } catch (NetIbisException nie) {
+                                                throw new Error(nie);
+                                        }
+
+                                        if (spcu != null) {
+                                                spcu.lostConnection(nrpi);
                                         }
                                 }
                         break;
@@ -282,36 +297,18 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         /* ----- CONSTRUCTORS ______________________________________________ */
 
 	/**
-	 * Constructor for a anonymous send port.
-	 *
-	 * @param type the {@linkplain NetPortType port type}.
-	 */
-	public NetSendPort(NetPortType type) throws NetIbisException {
-		this(type, null, null);
-	}
-
-	/**
-	 * Constructor for a anonymous replaced send port.
-	 *
-	 * @param type the {@linkplain NetPortType port type}.
-         * @param replacer the replacer for this object.
-	 */
-	public NetSendPort(NetPortType type, Replacer replacer) throws NetIbisException {
-		this(type, replacer, null);
-	}
-
-	/**
 	 * General purpose constructor.
 	 *
 	 * @param type the {@linkplain NetPortType port type}.
          * @param replacer the replacer for this object.
 	 * @param name the name of the port.
 	 */
-	public NetSendPort(NetPortType type, Replacer replacer, String name) throws NetIbisException {
+	public NetSendPort(NetPortType type, Replacer replacer, String name, SendPortConnectUpcall spcu) throws NetIbisException {
 		this.name     = name;
 		this.type     = type;
                 this.replacer = replacer;
                 this.ibis     = type.getIbis();
+                this.spcu     = spcu;
 
                 initDebugStreams();
 
@@ -409,6 +406,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          */
         private void initEventQueue() {
                 log.in();
+                disconnectedPeers  = new Vector();
                 eventQueue         = new NetEventQueue();
                 eventQueueListener = new NetEventQueueListener(this, "SendPort: " + ((name != null)?name:"anonymous"), eventQueue);
                 eventQueueListener.start();
@@ -649,6 +647,24 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		__.unimplemented__("connect");
                 log.out();
 	}
+
+        /*
+         * Shouldn't the return type be an array?
+         */
+	public ReceivePortIdentifier connectedTo() {
+                __.unimplemented__("connectedTo");
+                return null;
+        }
+
+	public ReceivePortIdentifier[] lostConnections() {
+                synchronized(connectionTable) {
+                        ReceivePortIdentifier t[] = new ReceivePortIdentifier[disconnectedPeers.size()];
+                        disconnectedPeers.copyInto(t);
+                        disconnectedPeers.clear();
+
+                        return t;
+                }
+        }
 
 	/**
 	 * Closes the port.
