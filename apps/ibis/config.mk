@@ -1,6 +1,7 @@
 
 APPS =
 APPS += tp-JavaGrande02
+APPS += benchmarks
 
 SIZES = 2
 
