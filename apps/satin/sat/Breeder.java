@@ -227,6 +227,9 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
 
 	SATProblem pl[] = new SATProblem[args.length];
 
+        System.err.println( "Generations=" + GENERATIONS );
+        System.err.println( "Generation size=" + GENERATION_SIZE );
+        System.err.println( "Globals in tuple=" + globalsInTuple );
 	for( int i=0; i<args.length; i++ ){
 	    File f = new File( args[i] );
 	    if( !f.exists() ){
