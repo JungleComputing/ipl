@@ -48,6 +48,13 @@ public final class NoSerializationInputStream extends SerializationInputStream {
     }
 
     /**
+     * Returns the number of bytes available.
+     */
+    public int available() throws IOException {
+	return in.available();
+    }
+
+    /**
      * Dummy reset. For Ibis, we want to be able to remove the object table in
      * a SerializationInputStream.
      * With no serialization, this is accomplished by sending a RESET to it.
