@@ -1,7 +1,6 @@
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 
-public final class DITree implements Serializable {
+public final class DITree implements Externalizable {
 
 	public static final int OBJECT_SIZE = 4*4+2*4;
 	public static final int KARMI_SIZE = 4*4;
@@ -14,6 +13,8 @@ public final class DITree implements Serializable {
 	int i2;
 	int i3;
 	
+	public DITree() {}
+
 	public DITree(int size) {
 		int leftSize = size / 2;
 		if (leftSize > 0) {
@@ -23,8 +24,8 @@ public final class DITree implements Serializable {
 			this.right = new DITree(size - leftSize - 1);
 		}
 	}
-/*
-	private void writeObject(java.io.ObjectOutputStream out)
+
+	public void writeExternal(ObjectOutput out)
 		throws IOException {
 //		System.err.print("w");
 		out.writeInt(i);
@@ -35,7 +36,8 @@ public final class DITree implements Serializable {
 		out.writeObject(right);
 	}
 
-	private void readObject(java.io.ObjectInputStream in)
+	
+	public void readExternal(ObjectInput in)
 		throws IOException, ClassNotFoundException {
 //		System.err.print("r");
 		i = in.readInt();
@@ -45,7 +47,7 @@ public final class DITree implements Serializable {
 		left = (DITree) in.readObject();
 		right = (DITree) in.readObject();
 	}
-*/
+
 }
 
 

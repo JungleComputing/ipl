@@ -27,7 +27,6 @@
     <target name="build-no-satin"
 	    depends="init">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
-	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
     <target name="build"
