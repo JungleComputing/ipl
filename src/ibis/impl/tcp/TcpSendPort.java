@@ -341,7 +341,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	}
 
 	public synchronized ReceivePortIdentifier[] connectedTo() {
-		Conn[] connections = (Conn[]) receivers.toArray();
+		Conn[] connections = (Conn[]) receivers.toArray(new Conn[0]);
 		ReceivePortIdentifier[] res = new ReceivePortIdentifier[connections.length];
 		for(int i=0; i<res.length; i++) {
 			res[i] = connections[i].ident;
