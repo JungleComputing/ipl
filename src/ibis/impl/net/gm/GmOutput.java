@@ -4,15 +4,9 @@ import ibis.ipl.impl.net.*;
 
 import ibis.ipl.IbisIOException;
 
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.SocketException;
-
 import java.io.ObjectInputStream;
-import java.io.InputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 
 import java.util.Hashtable;
 
@@ -60,10 +54,10 @@ public class GmOutput extends NetBufferedOutput {
                 throws IbisIOException {
                 super(pt, driver, up, context);
 
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(false);
                 deviceHandle = Driver.nInitDevice(0);
                 outputHandle = nInitOutput(deviceHandle);
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(false);
         }
 
         /*
@@ -76,7 +70,7 @@ public class GmOutput extends NetBufferedOutput {
         public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
                 this.rpn = rpn;
         
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(false);
                 lnodeId = nGetOutputNodeId(outputHandle);
                 lportId = nGetOutputPortId(outputHandle);
                 lmuxId  = nGetOutputMuxId(outputHandle);
@@ -86,7 +80,7 @@ public class GmOutput extends NetBufferedOutput {
                 lockIds[0] = lockId; // output lock
                 lockIds[1] = 0;      // main   lock
                 Driver.gmLockArray.initLock(lockId, true);
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(false);
 
                 Hashtable rInfo = receiveInfoTable(is);
                 rnodeId = ((Integer) rInfo.get("gm_node_id")).intValue();
@@ -99,9 +93,9 @@ public class GmOutput extends NetBufferedOutput {
                 lInfo.put("gm_mux_id", new Integer(lmuxId));
                 sendInfoTable(os, lInfo);
 
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(false);
                 nConnectOutput(outputHandle, rnodeId, rportId, rmuxId);
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(false);
 
 		try {
                         is.read();
@@ -118,16 +112,16 @@ public class GmOutput extends NetBufferedOutput {
                 int result = Driver.gmLockArray.lockFirst(lockIds);
                 if (result == 1) {
                                 /* got GM main lock, let's pump */
-                        Driver.gmAccessLock.lock();
+                        Driver.gmAccessLock.lock(false);
                         Driver.nGmThread();
-                        Driver.gmAccessLock.unlock();
+                        Driver.gmAccessLock.unlock(false);
                         if (!Driver.gmLockArray.trylock(lockId)) {        
                                 do {
                                 (Thread.currentThread()).yield();
 
-                                        Driver.gmAccessLock.lock();
+                                        Driver.gmAccessLock.lock(false);
                                         Driver.nGmThread();
-                                        Driver.gmAccessLock.unlock();
+                                        Driver.gmAccessLock.unlock(false);
                                 } while (!Driver.gmLockArray.trylock(lockId));
                         }
                         
@@ -147,9 +141,9 @@ public class GmOutput extends NetBufferedOutput {
         public void sendByteBuffer(NetSendBuffer b) throws IbisIOException {
 
                 /* Post the 'request' */
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(true);
                 nSendRequest(outputHandle);
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(true);
 
                 /* Wait for 'request' send completion */
                 pump();
@@ -158,9 +152,9 @@ public class GmOutput extends NetBufferedOutput {
                 pump();
 
                 /* Post the 'buffer' */
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(true);
                 nSendBuffer(outputHandle, b.data, b.base, b.length);
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(true);
 
                 /* Wait for 'buffer' send */
                 pump();
@@ -172,7 +166,7 @@ public class GmOutput extends NetBufferedOutput {
         public void free() throws IbisIOException {
                 rpn = null;
 
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(false);
                 if (outputHandle != 0) {
                         nCloseOutput(outputHandle);
                         outputHandle = 0;
@@ -182,7 +176,7 @@ public class GmOutput extends NetBufferedOutput {
                         Driver.nCloseDevice(deviceHandle);
                         deviceHandle = 0;
                 }
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(false);
 
                 super.free();
         }

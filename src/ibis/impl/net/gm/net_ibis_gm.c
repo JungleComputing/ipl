@@ -1,3 +1,5 @@
+// #define NDEBUG
+
 #include <jni.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -198,7 +200,10 @@ static int 	      successfully_initialized =    0;
 static struct s_drv * volatile _p_drv = NULL;
 
 static JavaVM *_p_vm = NULL;
+static JNIEnv *_current_env = NULL;
 
+static const int pub_port_array[] = { 2, 4, 5, 6, 7 };
+static const int nb_pub_ports   = 5;
 
 /*
  *  Prototypes
@@ -422,10 +427,14 @@ ni_gm_lock_init(JNIEnv          *env,
 static
 int 
 ni_gm_lock_unlock(struct s_lock *p_lock) {
-        JNIEnv *env = NULL;
+        JNIEnv *env = _current_env;
+;
         
         __in__();
-        (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        if (!env) {
+                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        }
+        
         (*env)->CallVoidMethod(env, p_lock->ref, p_lock->unlock_id, p_lock->id);
         __out__();
 
@@ -436,10 +445,13 @@ static
 int 
 ni_gm_input_unlock(struct s_input *p_in, int len) {
         struct s_lock *p_lock = NULL;
-        JNIEnv        *env    = NULL;
+        JNIEnv        *env    = _current_env;
         
         __in__();
-        (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        if (!env) {
+                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        }        
+
         (*env)->SetIntField(env, p_in->ref, p_in->len_id, len);
         p_lock = p_in->p_lock;
         (*env)->CallVoidMethod(env, p_lock->ref, p_lock->unlock_id, p_lock->id);
@@ -498,10 +510,12 @@ ni_gm_mutex_init(JNIEnv          *env,
 static
 int 
 ni_gm_mutex_unlock(struct s_mutex *p_mutex) {
-        JNIEnv *env = NULL;
+        JNIEnv        *env    = _current_env;
         
         __in__();
-        (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        if (!env) {
+                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        }        
         (*env)->CallVoidMethod(env, p_mutex->ref, p_mutex->unlock_id);
         __out__();
 
@@ -512,10 +526,12 @@ ni_gm_mutex_unlock(struct s_mutex *p_mutex) {
 static
 int 
 ni_gm_release_byte_array(jbyteArray b, void *ptr) {
-        JNIEnv *env = NULL;
+        JNIEnv        *env    = _current_env;
         
         __in__();
-        (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        if (!env) {
+                (*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+        }        
         (*env)->ReleaseByteArrayElements(env, b, ptr, 0);
         __out__();
 
@@ -689,11 +705,43 @@ ni_gm_open_port(struct s_dev *p_dev) {
 	struct s_port  *p_port    = NULL;
 	struct gm_port *p_gm_port = NULL;
 	gm_status_t     gms       = GM_SUCCESS;
-	int             port_id   =  0;
+	int             port_id   =  NI_GM_MIN_PORT_NUM;
+        int             i         =  0;
 	unsigned int    node_id   =  0;
 
 	__in__();
-        port_id = 2;
+#if 1
+        while (i < nb_pub_ports) {
+                port_id = pub_port_array[i];
+                __disp__("trying to open GM port %d on device %d", port_id, p_dev->id);
+        
+                gms     = gm_open(&p_gm_port, p_dev->id, port_id,
+                                  "net_ibis_gm", GM_API_VERSION_1_1);
+                __disp__("status %d", gms);
+
+                if (gms == GM_SUCCESS) {
+                        __disp__("port ok");
+                        goto found;
+                }
+                
+
+                if (gms != GM_BUSY) {
+                        __error__("gm_open failed");
+                        ni_gm_control(gms, __LINE__);
+                        goto error;
+                }
+
+                __disp__("port busy");
+                i++;
+        }
+        
+        __error__("no more GM port");
+        goto error;
+        
+ found:
+        ;
+#else
+        port_id = NI_GM_MIN_PORT_NUM;
         __disp__("opening GM port %d on device %d", port_id, p_dev->id);
         
 	gms     = gm_open(&p_gm_port, p_dev->id, port_id,
@@ -704,7 +752,8 @@ ni_gm_open_port(struct s_dev *p_dev) {
 		ni_gm_control(gms, __LINE__);
                 goto error;
 	}
-	
+#endif	
+
 	p_port = malloc(sizeof(struct s_port));
         assert(p_port);
 
@@ -743,6 +792,21 @@ ni_gm_open_port(struct s_dev *p_dev) {
                                            p_port->packet_size,
                                            GM_HIGH_PRIORITY, 1);
 
+#if 1
+        {
+                const int nb = 16;
+                int i = 0;
+                /*
+                 * The packet memory is never used actually, so we can use the same packet
+                 * several times.
+                 */
+                while (i++ < nb && gm_num_receive_tokens(p_port->p_gm_port) > 1) {
+                        gm_provide_receive_buffer_with_tag(p_port->p_gm_port, p_port->packet,
+                                                           p_port->packet_size,
+                                                           GM_HIGH_PRIORITY, 1);
+                }
+        }
+#endif
         p_dev->p_port     = p_port;
 	p_dev->ref_count++;
         __out__();
@@ -1023,7 +1087,6 @@ ni_gm_connect_output(struct s_output *p_out,
         return 0;
 }
 
-
 static 
 int 
 ni_gm_connect_input(struct s_input *p_in,
@@ -1213,21 +1276,25 @@ ni_gm_dev_init(JNIEnv        *env,
         if (dev_num >= p_drv->nb_dev
             ||
             !p_drv->pp_dev[dev_num]) {
-                struct gm_port *p_gm_port = NULL;
-                gm_status_t     gms       = GM_SUCCESS;
 
-                /* Try to open the first public port on requested device. */
-                gms = gm_open(&p_gm_port, dev_num, NI_GM_MIN_PORT_NUM,
-                              "net_ibis_gm", GM_API_VERSION_1_1);
-                if (gms != GM_SUCCESS) {
-                        __error__("gm_open failed");
-                        ni_gm_control(gms, __LINE__);
-                        goto error;
+#if 0
+                {        
+                        struct gm_port *p_gm_port = NULL;
+                        gm_status_t     gms       = GM_SUCCESS;
+
+                        /* Try to open the first public port on requested device. */
+                        gms = gm_open(&p_gm_port, dev_num, NI_GM_MIN_PORT_NUM,
+                                      "net_ibis_gm", GM_API_VERSION_1_1);
+                        if (gms != GM_SUCCESS) {
+                                __error__("gm_open failed");
+                                ni_gm_control(gms, __LINE__);
+                                goto error;
+                        }
+
+                        gm_close(p_gm_port);
+                        p_gm_port = NULL;
                 }
-
-                gm_close(p_gm_port);
-                p_gm_port = NULL;
-
+#endif // 0            
                 p_dev = malloc(sizeof(struct s_dev));
                 if (!p_dev) {
                         __error__("memory allocation failed");
@@ -1484,19 +1551,13 @@ Java_ibis_ipl_impl_net_gm_GmInput_nInitInput(JNIEnv  *env,
         {
                 jclass in_cls = 0;
 
-                __disp__("allocating global ref");
                 p_in->ref = (*env)->NewGlobalRef(env, input);
-                __disp__("allocating global ref: %p", (void *)p_in->ref);
                 assert(p_in->ref);
 
-                __disp__("requesting class");
                 in_cls    = (*env)->GetObjectClass(env, p_in->ref);
-                __disp__("requesting class: %p", (void *)in_cls);
                 assert(in_cls);
          
-                __disp__("requesting field ID");
                 p_in->len_id = (*env)->GetFieldID(env, in_cls, "blockLen", "I");
-                __disp__("requesting field ID: %p", (void *)p_in->len_id);
                 assert(p_in->len_id);
         }
         
@@ -1795,11 +1856,6 @@ Java_ibis_ipl_impl_net_gm_GmInput_nPostBuffer(JNIEnv     *env,
         __err__(); 
 }
 
-/*
- * Class:     GmOutput
- * Method:    nCloseOutput
- * Signature: (J)V
- */
 JNIEXPORT
 void
 JNICALL
@@ -1822,12 +1878,6 @@ Java_ibis_ipl_impl_net_gm_GmOutput_nCloseOutput(JNIEnv  *env,
         __err__();
 }
 
-
-/*
- * Class:     GmInput
- * Method:    nCloseInput
- * Signature: (J)V
- */
 JNIEXPORT
 void
 JNICALL
@@ -1848,11 +1898,6 @@ Java_ibis_ipl_impl_net_gm_GmInput_nCloseInput(JNIEnv *env, jobject input, jlong 
         __err__(); 
 }
 
-/*
- * Class:     Driver
- * Method:    nInitDevice
- * Signature: (I)J
- */
 JNIEXPORT 
 jlong 
 JNICALL 
@@ -1886,11 +1931,6 @@ Java_ibis_ipl_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint d
         return result;
 }
 
-/*
- * Class:     Driver
- * Method:    nCloseDevice
- * Signature: (J)V
- */
 JNIEXPORT 
 void 
 JNICALL
@@ -1909,16 +1949,13 @@ Java_ibis_ipl_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong
         }        
         __out__();
 }
-/*
- * Class:     ibis_ipl_impl_net_gm_Driver
- * Method:    nGmThread
- * Signature: ()V
- */
+
 JNIEXPORT
 void
 JNICALL
 Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
         static int next_dev = 0;
+        _current_env = env;
 
         //__in__();
         while (1) {
@@ -1945,13 +1982,16 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
                 p_dev   = p_drv->pp_dev[dev];
                 p_port  = p_dev->p_port;
                 p_event = gm_receive(p_port->p_gm_port);
+                //p_event = gm_blocking_receive(p_port->p_gm_port);
                 
                 switch (gm_ntohc(p_event->recv.type)) {
                         
-                case GM_HIGH_RECV_EVENT: 
+                case GM_FAST_HIGH_PEER_RECV_EVENT:
+                case GM_FAST_HIGH_RECV_EVENT:
                         {
                                 int            code           =    0;
                                 int            mux_id         =    0;
+                                unsigned char *msg            = NULL;
                                 unsigned char *packet         = NULL;
                                 int            remote_node_id =    0;
                                 
@@ -1959,14 +1999,16 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
                                 packet = gm_ntohp(p_event->recv.buffer);
                                 assert(packet == p_port->packet);
 
-                                code   |= (int)(((unsigned int)packet[0]) <<  0);
-                                code   |= (int)(((unsigned int)packet[1]) <<  8);
-                                code   |= (int)(((unsigned int)packet[2]) << 16);
-                                code   |= (int)(((unsigned int)packet[3]) << 24);
-                                mux_id |= (int)(((unsigned int)packet[4]) <<  0);
-                                mux_id |= (int)(((unsigned int)packet[5]) <<  8);
-                                mux_id |= (int)(((unsigned int)packet[6]) << 16);
-                                mux_id |= (int)(((unsigned int)packet[7]) << 24);
+                                msg = gm_ntohp(p_event->recv.message);
+
+                                code   |= (int)(((unsigned int)msg[0]) <<  0);
+                                code   |= (int)(((unsigned int)msg[1]) <<  8);
+                                code   |= (int)(((unsigned int)msg[2]) << 16);
+                                code   |= (int)(((unsigned int)msg[3]) << 24);
+                                mux_id |= (int)(((unsigned int)msg[4]) <<  0);
+                                mux_id |= (int)(((unsigned int)msg[5]) <<  8);
+                                mux_id |= (int)(((unsigned int)msg[6]) << 16);
+                                mux_id |= (int)(((unsigned int)msg[7]) << 24);
 
                                 assert(code == 0  ||  code == 1);
                                 assert(mux_id >= 0);
@@ -2007,6 +2049,7 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
                         }                        
                         break;
                         
+                case GM_PEER_RECV_EVENT: 
                 case GM_RECV_EVENT: 
                         {
                                 struct s_input *p_in = NULL;
@@ -2030,18 +2073,18 @@ Java_ibis_ipl_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
                         break;
                         
                 default:
-                        //__disp__("gm_default_event:-->");
                         gm_unknown(p_port->p_gm_port, p_event);
-                        //__disp__("gm_default_event:<--");
                         break;
                 }
         }
 
         //__out__();
+        _current_env = NULL;
         return;
 
  error:
         __err__();
+        _current_env = NULL;
 }
 
 

@@ -5,11 +5,6 @@ import ibis.ipl.impl.net.*;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.InetAddress;
-import java.net.SocketException;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -21,16 +16,6 @@ import java.util.Hashtable;
  * The GM input implementation (block version).
  */
 public class GmInput extends NetBufferedInput {
-
-	/**
-	 * The connection socket.
-	 */
-	private ServerSocket 	      gmServerSocket = null;
-
-	/**
-	 * The communication socket.
-	 */
-	private Socket                gmSocket       = null;
 
 	/**
 	 * The peer {@link ibis.ipl.impl.net.NetSendPort NetSendPort}
@@ -78,10 +63,10 @@ public class GmInput extends NetBufferedInput {
 		throws IbisIOException {
                 super(pt, driver, up, context);
 
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(false);
                 deviceHandle = Driver.nInitDevice(0);
                 inputHandle = nInitInput(deviceHandle);
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(false);
 	}
 
 
@@ -95,7 +80,7 @@ public class GmInput extends NetBufferedInput {
 	public void setupConnection(Integer rpn, ObjectInputStream is, ObjectOutputStream os, NetServiceListener nls) throws IbisIOException {
 		this.rpn = rpn;
 		 
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(false);
                 lnodeId = nGetInputNodeId(inputHandle);
                 lportId = nGetInputPortId(inputHandle);
                 lmuxId  = nGetInputMuxId(inputHandle);
@@ -105,7 +90,7 @@ public class GmInput extends NetBufferedInput {
                 lockIds[0] = lockId; // input lock
                 lockIds[1] = 0;      // main  lock
                 Driver.gmLockArray.initLock(lockId, true);
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(false);
 
                 Hashtable lInfo = new Hashtable();
                 lInfo.put("gm_node_id", new Integer(lnodeId));
@@ -118,9 +103,9 @@ public class GmInput extends NetBufferedInput {
                 rportId = ((Integer) rInfo.get("gm_port_id")).intValue();
                 rmuxId  = ((Integer) rInfo.get("gm_mux_id") ).intValue();
 
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(false);
                 nConnectInput(inputHandle, rnodeId, rportId, rmuxId);
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(false);
                 
 		try {
                         os.write(1);
@@ -138,16 +123,16 @@ public class GmInput extends NetBufferedInput {
                 int result = Driver.gmLockArray.lockFirst(lockIds);
                 if (result == 1) {
                                 /* got GM main lock, let's pump */
-                        Driver.gmAccessLock.lock();
+                        Driver.gmAccessLock.lock(false);
                         Driver.nGmThread();
-                        Driver.gmAccessLock.unlock();
+                        Driver.gmAccessLock.unlock(false);
                         if (!Driver.gmLockArray.trylock(lockId)) {
                                 do {                       
                                         (Thread.currentThread()).yield();
                                 
-                                        Driver.gmAccessLock.lock();
+                                        Driver.gmAccessLock.lock(false);
                                         Driver.nGmThread();
-                                        Driver.gmAccessLock.unlock();
+                                        Driver.gmAccessLock.unlock(false);
                                 } while (!Driver.gmLockArray.trylock(lockId));
                         }
                         
@@ -169,9 +154,9 @@ public class GmInput extends NetBufferedInput {
                 } else if (result == 1) {
 
                         /* got GM main lock, let's pump */
-                        if (Driver.gmAccessLock.trylock()) {
+                        if (Driver.gmAccessLock.trylock(false)) {
                                 Driver.nGmThread();
-                                Driver.gmAccessLock.unlock();
+                                Driver.gmAccessLock.unlock(false);
                         }
                         
                         boolean value = Driver.gmLockArray.trylock(lockId);
@@ -218,9 +203,9 @@ public class GmInput extends NetBufferedInput {
                 
                 Driver.gmReceiveLock.lock();
 
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(true);
                 nPostBuffer(inputHandle, buffer.data, 0, buffer.data.length);
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(true);
 
                 /* Ack completion */
                 pump();
@@ -248,7 +233,7 @@ public class GmInput extends NetBufferedInput {
 	public void free() throws IbisIOException {
 		rpn = null;
 
-                Driver.gmAccessLock.lock();
+                Driver.gmAccessLock.lock(false);
                 if (inputHandle != 0) {
                         nCloseInput(inputHandle);
                         inputHandle = 0;
@@ -258,7 +243,7 @@ public class GmInput extends NetBufferedInput {
                         Driver.nCloseDevice(deviceHandle);
                         deviceHandle = 0;
                 }
-                Driver.gmAccessLock.unlock();
+                Driver.gmAccessLock.unlock(false);
 
 		super.free();
 	}

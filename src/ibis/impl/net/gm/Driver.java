@@ -20,9 +20,9 @@ public class Driver extends NetDriver {
 	//private static native void gm_init();
 	//private static native void gm_exit();
 
-        static NetMutex gmReceiveLock   = null;
-        static NetMutex gmAccessLock    = null;
-        static NetLockArray gmLockArray = null;
+        static NetMutex         gmReceiveLock = null;
+        static NetPriorityMutex gmAccessLock  = null;
+        static NetLockArray     gmLockArray   = null;
 
 
 	/**
@@ -37,7 +37,7 @@ public class Driver extends NetDriver {
 	static {
 		System.loadLibrary("net_ibis_gm");
                 gmReceiveLock = new NetMutex(false);
-                gmAccessLock = new NetMutex(false);
+                gmAccessLock = new NetPriorityMutex(false);
                 gmLockArray = new NetLockArray();
                 gmLockArray.initLock(0, false);
 	}
