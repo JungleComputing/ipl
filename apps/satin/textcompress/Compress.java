@@ -56,7 +56,7 @@ class Compress extends ibis.satin.SatinObject
         return res;
     }
 
-    public Backref swallowEvaluateBackref( final byte text[], final int backrefs[], int backpos, int pos )
+    public Backref shallowEvaluateBackref( final byte text[], final int backrefs[], int backpos, int pos )
     {
         Backref r = new Backref();
 
@@ -95,7 +95,7 @@ class Compress extends ibis.satin.SatinObject
             mv = new Backref();
         }
         for( int i=0; i<sites.length; i++ ){
-            Backref r = swallowEvaluateBackref( text, backrefs, sites[i], pos );
+            Backref r = shallowEvaluateBackref( text, backrefs, sites[i], pos );
 
             if( r.gain>0 && depth<Configuration.LOOKAHEAD_DEPTH ){
                 Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
