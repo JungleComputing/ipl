@@ -1,6 +1,6 @@
 import java.lang.*;
 // import java.io.*;
-import ibis.rmi.*;
+import java.rmi.*;
 
 strictfp class OrbTreeNode {
 

@@ -1,4 +1,4 @@
-import ibis.rmi.*;
+import java.rmi.*;
 
 public interface SlaveInterface extends Remote {
 

@@ -1,5 +1,5 @@
-import ibis.rmi.*;
-import ibis.rmi.server.*;
+import java.rmi.*;
+import java.rmi.server.*;
 
 class Reduce extends UnicastRemoteObject implements i_Reduce {
 

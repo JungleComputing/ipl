@@ -1,7 +1,7 @@
-import ibis.rmi.*;
+import java.rmi.*;
 import java.net.*;
 import java.io.*;
-import ibis.rmi.registry.*;
+import java.rmi.registry.*;
 import ibis.util.PoolInfo;
 
 public class Water{

@@ -1,6 +1,6 @@
-import ibis.rmi.*;
-import ibis.rmi.registry.*;
-import ibis.rmi.server.*;
+import java.rmi.*;
+import java.rmi.registry.*;
+import java.rmi.server.*;
 import java.io.IOException;
 import java.net.InetAddress;
 

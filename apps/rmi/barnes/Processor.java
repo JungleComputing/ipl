@@ -1,4 +1,4 @@
-import ibis.rmi.*;
+import java.rmi.*;
 import java.lang.*;
 
 interface Processor extends Remote {

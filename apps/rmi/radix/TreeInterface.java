@@ -1,4 +1,4 @@
-import ibis.rmi.*;
+import java.rmi.*;
  
 public interface TreeInterface extends Remote{
 

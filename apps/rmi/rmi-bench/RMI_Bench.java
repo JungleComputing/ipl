@@ -1,7 +1,7 @@
 import ibis.util.PoolInfo;
 import ibis.ipl.IbisException;
 
-// import ibis.rmi.server.RMISocketFactory;
+// import java.rmi.server.RMISocketFactory;
 // import FastSocket.RMI_FSSocketFactory;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;

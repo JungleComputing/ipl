@@ -1,7 +1,7 @@
 import java.io.*;
-import ibis.rmi.*;
-import ibis.rmi.server.UnicastRemoteObject;
-import ibis.rmi.registry.*;
+import java.rmi.*;
+import java.rmi.server.UnicastRemoteObject;
+import java.rmi.registry.*;
 import ibis.util.PoolInfo;
 
 public class RadixMaster extends UnicastRemoteObject implements RadixMasterInterface, Runnable{

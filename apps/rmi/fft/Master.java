@@ -1,6 +1,6 @@
-import ibis.rmi.server.UnicastRemoteObject;
-import ibis.rmi.registry.*;
-import ibis.rmi.*;
+import java.rmi.server.UnicastRemoteObject;
+import java.rmi.registry.*;
+import java.rmi.*;
 
 class Master extends UnicastRemoteObject implements MasterInterface {
 
@@ -52,7 +52,7 @@ class Master extends UnicastRemoteObject implements MasterInterface {
     }
 
 
-    public void sync() throws ibis.rmi.RemoteException {
+    public void sync() throws java.rmi.RemoteException {
 	innerBarrier.sync();
     }
 }

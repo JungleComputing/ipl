@@ -1,6 +1,6 @@
-import ibis.rmi.*;
-import ibis.rmi.registry.*;
-import ibis.rmi.server.UnicastRemoteObject;
+import java.rmi.*;
+import java.rmi.registry.*;
+import java.rmi.server.UnicastRemoteObject;
 import java.net.*;
 import java.io.*;
 import ibis.util.PoolInfo;
@@ -269,7 +269,7 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
     }
 
 
-    public void doTranspose(int i) throws ibis.rmi.RemoteException {
+    public void doTranspose(int i) throws java.rmi.RemoteException {
 	matrixArray[i].transpose();
     }
 
@@ -397,7 +397,7 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
     }
 
     public void setValues(int i, 
-				double[] values) throws ibis.rmi.RemoteException {
+				double[] values) throws java.rmi.RemoteException {
 //	System.out.println(myCpu + "slave got matrix " + i + " " + values[0]);
 //	    System.out.println(myCpu + "Exchange got matrix " + i + " " + values[0]); 
 	matrixArray[i].setValues(values);
@@ -405,17 +405,17 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
     }
 
     public void setCopyValues(int i, 
-				double[] values) throws ibis.rmi.RemoteException {
+				double[] values) throws java.rmi.RemoteException {
 	// System.out.println("setValues " + i);
 	matrixArray[i].copyValues(values);
 	// matrixArray[i].print();
     }
 
-    public double getMatrixChecksum(int i)  throws ibis.rmi.RemoteException {
+    public double getMatrixChecksum(int i)  throws java.rmi.RemoteException {
 	return matrixArray[i].checksum();
     }
 
-    public void matrixTranspose(int i)  throws ibis.rmi.RemoteException {
+    public void matrixTranspose(int i)  throws java.rmi.RemoteException {
 	matrixArray[i].transpose();
     }
 }

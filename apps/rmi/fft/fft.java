@@ -5,8 +5,8 @@
    date  : 10-5-1999
 */
 
-import ibis.rmi.registry.*;
-import ibis.rmi.*;
+import java.rmi.registry.*;
+import java.rmi.*;
 import java.net.*;
 import java.io.*;
 import ibis.util.PoolInfo;

@@ -1,8 +1,8 @@
 import java.io.*;
 import java.net.*;
-import ibis.rmi.*;
+import java.rmi.*;
 import java.lang.*;
-import ibis.rmi.server.*;
+import java.rmi.server.*;
 import java.util.*;
 
 import ibis.util.PoolInfo;

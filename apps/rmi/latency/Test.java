@@ -1,6 +1,6 @@
-import ibis.rmi.*;
+import java.rmi.*;
 
-public class Test extends ibis.rmi.server.UnicastRemoteObject implements myServer, Runnable { 
+public class Test extends java.rmi.server.UnicastRemoteObject implements myServer, Runnable { 
 
 	int i;
 	boolean finished = false;

@@ -1,4 +1,4 @@
-import ibis.rmi.*;
+import java.rmi.*;
 import ibis.util.PoolInfo;
 
 class Main { 

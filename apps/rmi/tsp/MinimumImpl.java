@@ -1,5 +1,5 @@
-import ibis.rmi.*;
-import ibis.rmi.server.UnicastRemoteObject;
+import java.rmi.*;
+import java.rmi.server.UnicastRemoteObject;
 
 class MinimumImpl extends UnicastRemoteObject implements Minimum {
 	private int minimum;

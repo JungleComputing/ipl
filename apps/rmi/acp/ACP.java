@@ -1,7 +1,7 @@
 import java.io.*;
 import ibis.util.PoolInfo;
-import ibis.rmi.*;
-import ibis.rmi.registry.*;
+import java.rmi.*;
+import java.rmi.registry.*;
 
 class ACP {
       

@@ -1,5 +1,5 @@
 import java.io.*;
-import ibis.rmi.registry.*;
+import java.rmi.registry.*;
 
 class Stats implements Serializable {
 

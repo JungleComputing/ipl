@@ -1,5 +1,5 @@
-import ibis.rmi.*;
-import ibis.rmi.registry.*;
+import java.rmi.*;
+import java.rmi.registry.*;
 import java.io.*;
 import ibis.util.PoolInfo;
 

@@ -1,5 +1,5 @@
 import java.io.*;
-import ibis.rmi.*;
+import java.rmi.*;
 
 public class SlaveSort {
     

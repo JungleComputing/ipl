@@ -1,6 +1,6 @@
 import java.io.*;
-import ibis.rmi.*;
-import ibis.rmi.server.UnicastRemoteObject;
+import java.rmi.*;
+import java.rmi.server.UnicastRemoteObject;
 
 public class Tree extends UnicastRemoteObject implements TreeInterface {
 

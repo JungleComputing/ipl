@@ -9,9 +9,9 @@
 
 import ibis.util.PoolInfo;
 
-import ibis.rmi.*;
-import ibis.rmi.server.UnicastRemoteObject;
-import ibis.rmi.registry.*;
+import java.rmi.*;
+import java.rmi.server.UnicastRemoteObject;
+import java.rmi.registry.*;
 
 class Asp extends UnicastRemoteObject implements i_Asp {
 

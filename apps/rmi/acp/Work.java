@@ -1,5 +1,5 @@
-import ibis.rmi.*;
-import ibis.rmi.server.*;
+import java.rmi.*;
+import java.rmi.server.*;
 
 class Work extends UnicastRemoteObject implements i_Work {
 

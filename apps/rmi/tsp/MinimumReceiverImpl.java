@@ -1,5 +1,5 @@
-import ibis.rmi.*;
-import ibis.rmi.server.UnicastRemoteObject;
+import java.rmi.*;
+import java.rmi.server.UnicastRemoteObject;
 
 class MinimumReceiverImpl extends UnicastRemoteObject implements MinimumReceiver {
 	Client client;
