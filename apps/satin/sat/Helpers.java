@@ -24,11 +24,11 @@ class Helpers {
      * @param n the number of choices
      * @return the information contents of this choice.
      */
-    static public int information( int n )
+    static public float information( int n )
     {
 	if( n == 0 ){
 	    n = 1;
 	}
-        return (1<<16)/(n*n*n);
+        return 1.0f/(n*n*n);
     }
 }
