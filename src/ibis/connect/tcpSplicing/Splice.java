@@ -7,6 +7,8 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -52,7 +54,9 @@ public class Splice
 	    while (true) {
 		try {
 		    Socket s = server.accept();
-		    DataOutputStream out = new DataOutputStream(s.getOutputStream());
+		    DataOutputStream out = new DataOutputStream(
+					     new BufferedOutputStream(
+						s.getOutputStream()));
 		    out.writeInt(hintPort++);
 		    out.flush();
 		    out.close();
@@ -94,7 +98,9 @@ public class Splice
     private int newPort() {
 	try {
 	    Socket s = new Socket(IPUtils.getLocalHostAddress(), serverPort);
-	    DataInputStream in = new DataInputStream(s.getInputStream());
+	    DataInputStream in = new DataInputStream(
+				    new BufferedInputStream(
+					s.getInputStream()));
 	    int port = in.readInt();
 	    in.close();
 	    s.close();

@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.net.Socket;
 
 
@@ -29,12 +31,12 @@ public class TCPSpliceSocketType extends SocketType
 	int    splicePort = theSplice.findPort();
 	String spliceHost = theSplice.getLocalHost();
 
-	DataOutputStream os = new DataOutputStream(out);
+	DataOutputStream os = new DataOutputStream(new BufferedOutputStream(out));
 	os.writeInt(splicePort);
 	os.writeUTF(spliceHost);
 	os.flush();
 	
-	DataInputStream is = new DataInputStream(in);
+	DataInputStream is = new DataInputStream(new BufferedInputStream(in));
 	int splice_port = is.readInt();
 	String splice_host = is.readUTF();
 
