@@ -1,5 +1,7 @@
 package ibis.impl.net;
 
+import java.io.IOException;
+
 /**
  * Provide a common interface to both {@link NetSendPort} and {@link
  * NetReceivePort} objects.
@@ -12,5 +14,7 @@ public interface NetPort {
          * @return the {@linkplain NetPortType port type}.
          */
         public NetPortType getPortType();
+
+	public void closeFromRemote(NetConnection cnx);
 }
 

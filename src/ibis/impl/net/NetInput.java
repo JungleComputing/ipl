@@ -222,7 +222,7 @@ pollSuccess++;
                                                 end = true;
                                                 return;
                                         } catch (InterruptedIOException e) {
-						// System.err.println("PooledUpcallThread + doPoll throws InterruptedIOException. Should I quit??? " + e);
+						System.err.println("PooledUpcallThread + doPoll throws InterruptedIOException; end " + end + ". Should I quit??? " + e);
                                                 if (end) {
                                                         return;
                                                 } else {
@@ -319,7 +319,6 @@ finishedUpcallThreads--;
                                 }
                         }
 // livingUpcallThreads--;
-// System.err.println(Thread.currentThread() + ": call it quits");
                         log.out();
                 }
 
@@ -590,7 +589,6 @@ up.setDaemon(true);
 	}
 
         public final  void close(Integer num) throws IOException {
-// System.err.println("********************** NetInput.close");
                 log.in();
                 synchronized(this) {
                         doClose(num);

@@ -92,6 +92,12 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 */
 	NetSendPort		next = null;
 
+	/**
+	 * Count how message we send. If we disconnect, the receive port
+	 * must await this number of messages.
+	 */
+	private int		msgSeqno;
+
 
 
 
@@ -522,6 +528,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		os.writeObject(identifier);
 		os.writeInt(sendPortMessageRank);
 		os.writeInt(sendPortMessageId);
+		os.writeLong(msgSeqno);
 		os.flush();
 		os.close();
 		ObjectInputStream is = new ObjectInputStream(link.getInputSubStream("__port__"));
@@ -539,7 +546,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
 		is.close();
 
-                NetConnection cnx = new NetConnection(this, num, identifier, nrpi, link, replacer);
+                NetConnection cnx = new NetConnection(this, num, identifier, nrpi, link, 0, replacer);
                 log.out();
 
                 return cnx;
@@ -575,6 +582,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                         return;
                 }
 
+		cnx.disconnect(msgSeqno);
+
                 try {
                         output.close(cnx.getNum());
                 } catch (Exception e) {
@@ -585,6 +594,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 log.out();
         }
 
+	public void closeFromRemote(NetConnection cnx) {
+	    throw new Error("This should not happen in a SendPort");
+	}
 
 
 
@@ -600,6 +612,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 log.in();
 		outputLock.lock();
 		if (closed) {
+		    outputLock.unlock();
 		    throw new IOException("SendPort already closed");
 		}
                 stat.begin();
@@ -654,15 +667,18 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	public synchronized void connect(ReceivePortIdentifier rpi) throws IOException {
                 log.in();
 		outputLock.lock();
-		NetReceivePortIdentifier nrpi = (NetReceivePortIdentifier)rpi;
-                NetConnection cnx = establishServiceConnection(nrpi);
+		try {
+		    NetReceivePortIdentifier nrpi = (NetReceivePortIdentifier)rpi;
+		    NetConnection cnx = establishServiceConnection(nrpi);
 
-                synchronized(connectionTable) {
-                        connectionTable.put(cnx.getNum(), cnx);
-                }
+		    synchronized(connectionTable) {
+			    connectionTable.put(cnx.getNum(), cnx);
+		    }
 
-                establishApplicationConnection(cnx);
-		outputLock.unlock();
+		    establishApplicationConnection(cnx);
+		} finally {
+		    outputLock.unlock();
+		}
                 log.out();
 	}
 
@@ -703,9 +719,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 log.out();
 	}
 
-        /*
-         * Shouldn't the return type be an array?
-         */
 	public ReceivePortIdentifier[] connectedTo() {
                 synchronized(connectionTable) {
                         ReceivePortIdentifier t[] = new ReceivePortIdentifier[connectionTable.size()];
@@ -822,6 +835,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		if (emptyMsg) {
 			output.handleEmptyMsg();
 		}
+		msgSeqno++;
                 log.out();
 	}
 
@@ -830,12 +844,15 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 */
 	public long finish() throws IOException{
                 log.in();
-		_finish();
-		output.finish();
-                stat.end();
-                trace.disp(sendPortTracePrefix, "message send <--");
-		outputLock.unlock();
-                log.out();
+		try {
+		    _finish();
+		    output.finish();
+		    stat.end();
+		    trace.disp(sendPortTracePrefix, "message send <--");
+		} finally {
+		    outputLock.unlock();
+		}
+		log.out();
 		return 0;
 	}
 

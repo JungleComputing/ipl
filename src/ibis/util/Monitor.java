@@ -35,7 +35,7 @@ public final class Monitor {
     private static int	unlock_bcast;
 
     static {
-	DEBUG = false; // TypedProperties.booleanProperty("ibis.monitor.debug");
+	DEBUG = TypedProperties.booleanProperty("ibis.monitor.debug");
 	if (DEBUG) {
 	    System.err.println("Turn on Monitor.DEBUG");
 	}

@@ -6,6 +6,7 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.util.PoolInfoServer;
+import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -26,7 +27,7 @@ public class NameServer implements Protocol {
 	// public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 5678;
 	
 	public static boolean DEBUG = false;
-	public static boolean VERBOSE = false;
+	public static boolean VERBOSE = TypedProperties.booleanProperty("ibis.ns.verbose");
 
 	static class IbisInfo { 		
 		IbisIdentifier identifier;

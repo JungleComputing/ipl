@@ -2,6 +2,8 @@ package ibis.impl.net;
 
 import ibis.ipl.Replacer;
 
+import java.io.DataOutputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 
 /**
@@ -43,6 +45,23 @@ public final class NetConnection {
          */
         private Replacer                 replacer       = null;
 
+	/**
+	 * Manage closing of the streams that belong to this connection.
+	 * Ensure that messages are read up to the closeSeqno before the
+	 * streams are actually closed.
+	 * TODO: check what this does to abnormal closing (link failure etc).
+	 */
+	public long			msgSeqno;
+	public long			closeSeqno;
+
+	public int			regularClosers = 0;
+
+	private DataOutputStream	disconnect_os;
+
+	private DataInputStream		disconnect_is;
+	private Thread			disconnectThread;
+
+
         /**
          * Construct the set of connection attributes.
          *
@@ -61,14 +80,29 @@ public final class NetConnection {
                              NetSendPortIdentifier    sendId     ,
                              NetReceivePortIdentifier receiveId  ,
                              NetServiceLink           serviceLink,
+			     long                     startSeqno,
                              Replacer                 replacer) {
-                this.port        = port       ;
-                this.num         = num        ;
-                this.sendId      = sendId     ;
-                this.receiveId   = receiveId  ;
-                this.serviceLink = serviceLink;
-                this.replacer    = replacer;
-        }
+	    this.port        = port       ;
+	    this.num         = num        ;
+	    this.sendId      = sendId     ;
+	    this.receiveId   = receiveId  ;
+	    this.serviceLink = serviceLink;
+	    this.msgSeqno    = startSeqno;
+	    this.closeSeqno  = Long.MAX_VALUE;
+	    this.replacer    = replacer;
+
+	    try {
+		disconnect_os = new DataOutputStream(serviceLink.getOutputSubStream("disconnect"));
+
+		disconnect_is = new DataInputStream(serviceLink.getInputSubStream("disconnect"));
+		disconnectThread = new DisconnectThread();
+		disconnectThread.setName(this + " disconnect watcher");
+		disconnectThread.setDaemon(true);
+		disconnectThread.start();
+	    } catch (IOException e) {
+		throw new Error("Cannot establish disconnection streams");
+	    }
+	}
 
         /**
          * Construct the set of connection attributes.
@@ -86,13 +120,9 @@ public final class NetConnection {
                              Integer                  num        ,
                              NetSendPortIdentifier    sendId     ,
                              NetReceivePortIdentifier receiveId  ,
-                             NetServiceLink           serviceLink) {
-                this.port        = port       ;
-                this.num         = num        ;
-                this.sendId      = sendId     ;
-                this.receiveId   = receiveId  ;
-                this.serviceLink = serviceLink;
-                this.replacer    = null;
+                             NetServiceLink           serviceLink,
+			     long                     startSeqno) {
+	    this(port, num, sendId, receiveId, serviceLink, startSeqno, null);
         }
 
         /**
@@ -118,7 +148,7 @@ public final class NetConnection {
          */
         public NetConnection(NetConnection model ,
                              Integer       newnum) {
-                this(model.port, newnum, model.sendId, model.receiveId, model.serviceLink);
+                this(model.port, newnum, model.sendId, model.receiveId, model.serviceLink, model.msgSeqno);
         }
 
         /**
@@ -169,6 +199,33 @@ public final class NetConnection {
         public synchronized Replacer getReplacer() {
                 return replacer;
         }
+
+
+	private class DisconnectThread extends Thread {
+
+	    public void run() {
+		try {
+		    NetConnection.this.closeSeqno = disconnect_is.readLong();
+// System.err.println(this + ": receive closeSeqno " + closeSeqno);
+		    // disconnect_is.close();
+		    port.closeFromRemote(NetConnection.this);
+		} catch (IOException e) {
+		    /* If the service connection breaks, give up all. */
+		    if (port instanceof NetReceivePort) {
+			NetConnection.this.closeSeqno = 0;
+			port.closeFromRemote(NetConnection.this);
+		    }
+		}
+	    }
+
+	}
+
+	public void disconnect(long closeSeqno) throws IOException {
+// System.err.println(this + ": send closeSeqno " + closeSeqno);
+	    disconnect_os.writeLong(closeSeqno);
+	    disconnect_os.flush();
+	    // disconnect_os.close();
+	}
 
         /**
          * Closes the connection.

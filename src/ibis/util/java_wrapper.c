@@ -59,8 +59,17 @@ int main(int argc, char *argv[])
 
 #ifdef __linux
     if (cpu_affinity != 3) {
-	fprintf(stderr, "%s: use CPU %lu only\n",
-		wrapper, cpu_affinity);
+	char   *rank_env = getenv("PRUN_CPU_RANK");
+	int	rank = 0;
+
+	if (rank_env != 0 && sscanf(rank_env, "%d", &rank) != 1) {
+	    rank = 0;
+	}
+
+	if (rank == 0) {
+	    fprintf(stderr, "%s: use CPU %lu only\n",
+		    wrapper, cpu_affinity);
+	}
     }
     if (sched_setaffinity(0, len, &cpu_affinity) < 0) {
 	fprintf(stderr, "%s: sched_setaffinity fails",

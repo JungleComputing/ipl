@@ -281,7 +281,6 @@ public final class NetServiceLink {
 			main_ois = new ObjectInputStream(sis);
 		}
 
-
                 serviceThread.start();
         }
 

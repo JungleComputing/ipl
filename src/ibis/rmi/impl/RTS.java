@@ -203,10 +203,21 @@ public final class RTS {
 	    try {
 		skel.upcall(r, method, stubID);
 	    } catch (RemoteException e) {
+// System.err.println("RMI upcall handler meets " + e);
+// e.printStackTrace(System.err);
+// try {
 		WriteMessage w = skel.stubs[stubID].newMessage();
 		w.writeByte(EXCEPTION);
 		w.writeObject(e);
 		w.finish();
+// } catch (RuntimeException et) {
+// System.err.println("RMI error handling meets " + et);
+// et.printStackTrace(System.err);
+// } catch (IOException et) {
+// System.err.println("RMI error handling meets " + et);
+// et.printStackTrace(System.err);
+// throw et;
+// }
 	    }
 	}
     }

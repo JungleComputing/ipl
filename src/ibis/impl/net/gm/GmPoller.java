@@ -180,6 +180,7 @@ public final class GmPoller extends NetPoller {
 		    } catch (InterruptedIOException e) {
 			if (ended) {
 			    return null;
+			    // throw e;
 			}
 
 			// try once more

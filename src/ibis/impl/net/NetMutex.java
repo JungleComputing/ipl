@@ -17,6 +17,7 @@ public final class NetMutex {
          * <code>true</code>.
          */
 	private Thread owner = null;
+	private StackTraceElement[] lockerTrace = null;
 
 	/**
 	 * Store the mutex value, which cannot be negative.
@@ -43,6 +44,7 @@ public final class NetMutex {
 		if (DEBUG) {
 		    if (locked) {
 			owner = Thread.currentThread();
+			lockerTrace = new Throwable().getStackTrace();
 		    }
 		}
 	}
@@ -72,6 +74,7 @@ public final class NetMutex {
 		value--;
 		if (DEBUG) {
 		    owner = Thread.currentThread();
+		    lockerTrace = new Throwable().getStackTrace();
 		}
 	}
 
@@ -100,6 +103,7 @@ public final class NetMutex {
 		value--;
 		if (DEBUG) {
 		    owner = Thread.currentThread();
+		    lockerTrace = new Throwable().getStackTrace();
 		}
 	}
 
@@ -116,6 +120,7 @@ public final class NetMutex {
 			value--;
 			if (DEBUG) {
 			    owner = Thread.currentThread();
+			    lockerTrace = new Throwable().getStackTrace();
 			}
 			return true;
 		}

@@ -539,11 +539,25 @@ public final class NetIbis extends Ibis {
 	public void end() throws IOException {
 		synchronized (this) {
 		    while (sendPortList != null) {
-			// System.err.println("Ibis.end(): Invoke forcedClose() of " + sendPortList);
+// System.err.println("Ibis.end(): Invoke close() of " + sendPortList);
 			sendPortList.close();
 		    }
+		}
+		long start = System.currentTimeMillis();
+		while (System.currentTimeMillis() - start < 1000) {
+		    synchronized (this) {
+			if (receivePortList == null) {
+			    break;
+			}
+		    }
+		    try {
+			Thread.sleep(100);
+		    } catch (InterruptedException e) {
+		    }
+		}
+		synchronized (this) {
 		    while (receivePortList != null) {
-			// System.err.println("Ibis.end(): Invoke forcedClose() of " + receivePortList);
+// System.err.println("Ibis.end(): Invoke forcedClose() of " + receivePortList);
 			receivePortList.forcedClose();
 		    }
 		}

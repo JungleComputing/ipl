@@ -836,6 +836,7 @@ nCurrent++;
     public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws IOException {
 	//
 	NetInput input = rq.getInput();
+// System.err.println(this + ": closeConnection " + rq + " num " + num + " input " + input);
 	if (input != null) {
 	    input.close(num);
 	}
@@ -844,6 +845,7 @@ nCurrent++;
 
     protected synchronized void doClose(Integer num) throws IOException {
 	log.in();
+// System.err.println(this + ": doClose(" + num + ") inputMap " + inputMap);
 	if (inputMap != null) {
 	    Object       key = getKey(num);
 	    ReceiveQueue rq  = (ReceiveQueue)inputMap.get(num);

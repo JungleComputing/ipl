@@ -39,9 +39,10 @@ public final class GmOutput extends NetBufferedOutput {
     private int        rportId      = -1;
     private int        rmuxId       = -1;
     private Driver     gmDriver     = null;
-    private boolean    mustFlush;
+    private boolean	mustFlush;
     private int		toFlush;
-    private int        flushing;
+    private int		flushing;
+    private int		sentMessages;
 
     private boolean	closing = false;
     private ConditionVariable flushFinished = Driver.gmAccessLock.createCV();
@@ -235,6 +236,8 @@ public final class GmOutput extends NetBufferedOutput {
 	    return;
 	}
 
+	sentMessages++;
+
 // System.err.println(this + ": Now flush the buffers");
 // Thread.dumpStack();
 	if (Driver.TIMINGS) Driver.t_native_flush.start();
@@ -391,29 +394,33 @@ public final class GmOutput extends NetBufferedOutput {
 	log.in();
 	if (rpn == num) {
 	    Driver.gmAccessLock.lock();
-	    closing = true;
+	    if (rpn != null) {
+		closing = true;
 if (false)
-	    while (toFlush > 0 || flushing > 0) {
-		try {
-		    flushFinished.cv_wait();
-		} catch (InterruptedException e) {
-		    // Ignore
+		while (toFlush > 0 || flushing > 0) {
+		    try {
+			flushFinished.cv_wait();
+		    } catch (InterruptedException e) {
+			// Ignore
+		    }
 		}
-	    }
 
-	    Driver.gmLockArray.deleteLock(lockId);
+		Driver.gmLockArray.deleteLock(lockId);
 
-	    if (outputHandle != 0) {
-		nCloseOutput(outputHandle);
-		outputHandle = 0;
-	    }
+		if (outputHandle != 0) {
+		    nCloseOutput(outputHandle);
+		    outputHandle = 0;
+		}
 
-	    if (deviceHandle != 0) {
-		Driver.nCloseDevice(deviceHandle);
-		deviceHandle = 0;
+		if (deviceHandle != 0) {
+		    Driver.nCloseDevice(deviceHandle);
+		    deviceHandle = 0;
+		}
+		rpn = null;
+	    } else {
+		System.err.println(this + ": already closed...");
 	    }
 	    Driver.gmAccessLock.unlock();
-	    rpn = null;
 	}
 	log.out();
     }
@@ -424,7 +431,9 @@ if (false)
      */
     public void free() throws IOException {
 	log.in();
-	close(rpn);
+	if (rpn != null) {
+	    close(rpn);
+	}
 
 	super.free();
 	log.out();

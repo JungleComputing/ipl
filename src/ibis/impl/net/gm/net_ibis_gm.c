@@ -1003,7 +1003,7 @@ ni_gm_env(void)
 
     if (!env) {
 	fprintf(stderr, "NNNNNNNNNNNNNNNNOOOOOOOOOOOOOOOOOOOOOOO\n");
-	(*_p_vm)->AttachCurrentThread(_p_vm, (void **)&env, NULL);
+	(*_p_vm)->AttachCurrentThreadAsDaemon(_p_vm, (void **)&env, NULL);
     }
 
     return env;
@@ -3876,8 +3876,8 @@ attach_sigthread(void)
 
     vm = VM[0];
 
-    if ((*vm)->AttachCurrentThread(vm, (void *)&env, NULL) != 0) {
-	__error__("AttachCurrentThread fails");
+    if ((*vm)->AttachCurrentThreadAsDaemon(vm, (void *)&env, NULL) != 0) {
+	__error__("AttachCurrentThreadAsDaemon fails");
     }
 
     return env;

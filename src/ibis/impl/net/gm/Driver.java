@@ -9,6 +9,7 @@ import ibis.impl.net.NetLockArray;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 import ibis.ipl.Ibis;
+import ibis.ipl.ConnectionClosedException;
 import ibis.util.Monitor;
 import ibis.util.TypedProperties;
 
@@ -263,7 +264,8 @@ public final class Driver extends NetDriver {
 		result = gmLockArray.ilockFirst(lockIds);
 	    } catch (ibis.util.IllegalLockStateException e) {
 		System.err.println("On ilockFirst[" + lockIds[0] + "]: catch IllegalLockStateException; Driver.interrupts " + interrupts + " was " + interrupts);
-		throw e;
+		System.err.println("Presume our channel was closed under our hands");
+		throw new ConnectionClosedException(e);
 	    }
 
 	    if (Driver.TIMINGS) {

@@ -79,6 +79,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                                 Integer               num = null;
                                 NetSendPortIdentifier spi = null;
+				long                  startSeqno = 0;
 
                                 num = new Integer(nextSendPortNum++);
 
@@ -95,6 +96,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         spi = (NetSendPortIdentifier)is.readObject();
                                         int rank  = is.readInt();
                                         int spmid = is.readInt();
+					startSeqno = is.readLong();
 
                                         trace.disp(receivePortTracePrefix+"New connection from: _s"+rank+"-"+spmid+"_");
 
@@ -115,10 +117,11 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         connect_loop:
                                 while (!end) {
                                         try {
-                                                connectionLock.ilock();
+					    connectionLock.ilock();
+					    try {
                                                 //inputLock.lock();
 
-                                                NetConnection cnx  = new NetConnection(NetReceivePort.this, num, spi, identifier, link);
+                                                NetConnection cnx  = new NetConnection(NetReceivePort.this, num, spi, identifier, link, startSeqno);
 
                                                 synchronized(connectionTable) {
                                                         connectionTable.put(num, cnx);
@@ -132,7 +135,9 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 						input.setupConnection(cnx);
 
                                                 //inputLock.unlock();
+					    } finally {
                                                 connectionLock.unlock();
+					    }
                                         } catch (InterruptedIOException e) {
 System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                                                 continue connect_loop;
@@ -423,7 +428,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
         /**
          * The network input synchronization lock.
          */
-        private NetMutex                 inputLock           =  null;
+        private ibis.util.Monitor        inputLock           =  null;
 
         private NetMutex                 finishMutex         =  null;
 
@@ -431,13 +436,36 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
 	private int			upcallsPending = 0;
 
-        /* --- Upcall from main input object -- */
-        public void inputUpcall(NetInput input, Integer spn) throws IOException {
-                log.in();
-                if (this.input == null) {
-                        __.warning__("message lost");
-                        return;
-                }
+
+	private NetConnection checkClose() {
+
+	    if (activeSendPortNum == null) {
+		return null;
+	    }
+
+	    NetConnection cnx = (NetConnection)connectionTable.get(activeSendPortNum);
+	    cnx.msgSeqno++;
+	    if (cnx.msgSeqno >= cnx.closeSeqno) {
+// System.err.println("Now we can close the connection");
+		synchronized (connectionTable) {
+		    connectionTable.notifyAll();
+		}
+	    }
+if (cnx.closeSeqno != Long.MAX_VALUE) {
+// System.err.println("Would like to close, but current seqno " + cnx.msgSeqno + " closeSeqno " + cnx.closeSeqno);
+}
+
+	    return cnx;
+	}
+
+
+	/* --- Upcall from main input object -- */
+	public void inputUpcall(NetInput input, Integer spn) throws IOException {
+		log.in();
+		if (this.input == null) {
+			__.warning__("message lost");
+			return;
+		}
 
                 if (spn == null) {
                         throw new Error("invalid state: NetReceivePort.inputUpcall");
@@ -473,6 +501,8 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                                         emptyMsg = false;
                                 }
 
+				checkClose();
+
                                 trace.disp(receivePortTracePrefix, "message receive <--");
                         }
 		} else {
@@ -486,6 +516,16 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
         }
 
 
+	public void closeFromRemote(NetConnection cnx) {
+
+	    synchronized (connectionTable) {
+		if (cnx.regularClosers > 0) {
+		    connectionTable.notifyAll();
+		}
+	    }
+	}
+
+
 
         /* --- NetEventQueueConsumer part --- */
         public void event(NetEvent e) {
@@ -495,39 +535,62 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                 log.disp("IN: event.code() = " + event.code());
 
                 switch (event.code()) {
-                        case NetPortEvent.CLOSE_EVENT:
-                                {
-                                        Integer num = (Integer)event.arg();
-                                        NetConnection cnx = null;
-                                        NetSendPortIdentifier nspi = null;
+		case NetPortEvent.CLOSE_EVENT:
+		    {
+			Integer num = (Integer)event.arg();
+			NetConnection cnx;
 
-                                        /*
-                                         * Potential race condition here:
-                                         * The event can be triggered _before_
-                                         * the connection is added to the table.
-                                         */
-                                        synchronized(connectionTable) {
-                                                cnx = (NetConnection)connectionTable.remove(num);
+			boolean timed_out = false;
+			while (true) {
+			    synchronized(connectionTable) {
+				cnx = (NetConnection)connectionTable.get(num);
+			    }
+			    if (cnx == null) {
+				return;
+			    }
 
-                                                if (cnx == null) {
-                                                        break;
-						}
+			    if (timed_out) {
+				break;
+			    }
 
-                                                nspi = cnx.getSendId();
-                                                disconnectedPeers.add(nspi);
-                                        }
+			    if (cnx.closeSeqno != Long.MAX_VALUE) {
+				// Maybe we overtook the regular disconnect.
+				// Give it a little time to finish
+				try {
+				    Thread.sleep(1000);
+				    timed_out = true;
+				} catch (InterruptedException ei) {
+				}
+			    }
+			}
 
-                                        if (rpcu != null) {
-                                                rpcu.lostConnection(this, nspi, new Exception());
-                                        }
+			NetSendPortIdentifier nspi = null;
 
-                                        try {
-                                                close(cnx);
-                                        } catch (IOException nie) {
-                                                throw new Error(nie);
-                                        }
-                                }
-                        break;
+			synchronized (connectionTable) {
+
+			    nspi = cnx.getSendId();
+
+			    cnx = (NetConnection)connectionTable.remove(cnx.getNum());
+
+			    disconnectedPeers.add(nspi);
+			}
+
+			if (rpcu != null) {
+				rpcu.lostConnection(this, nspi, new Exception());
+			}
+
+			try {
+			    close(cnx, false);
+			} catch (IOException ei) {
+			    throw new Error("close fails");
+			}
+
+			synchronized (connectionTable) {
+			    cnx.closeSeqno = 0;
+			    connectionTable.notifyAll();
+			}
+		    }
+		    break;
 
                 default:
                         throw new Error("invalid event code");
@@ -603,7 +666,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                 polledLock       = new NetMutex(true);
                 pollingLock      = new NetMutex(false);
                 connectionLock   = new NetMutex(true);
-                inputLock        = new NetMutex(false);
+                inputLock        = new ibis.util.Monitor();
                 finishMutex      = new NetMutex(true);
                 log.out();
         }
@@ -681,6 +744,8 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                 log.out();
         }
 
+private Thread pollerThread;
+
         /**
          * The internal synchronous polling function.
          *
@@ -691,8 +756,13 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
         private boolean _doPoll(boolean block) throws IOException {
                 log.in();
                 inputLock.lock();
-                activeSendPortNum = input.poll(block);
-                inputLock.unlock();
+pollerThread = Thread.currentThread();
+		try {
+		    activeSendPortNum = input.poll(block);
+		} finally {
+pollerThread = null;
+		    inputLock.unlock();
+		}
 
                 if (activeSendPortNum == null) {
                         log.out("activeSendPortNum = null");
@@ -937,12 +1007,23 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 
 
 
-        private void close(NetConnection cnx) throws IOException {
+        private void close(NetConnection cnx, boolean forced) throws IOException {
                 log.in();
                 if (cnx == null) {
                         log.out("cnx = null");
                         return;
                 }
+		synchronized (connectionTable) {
+		    while (! forced && cnx.msgSeqno < cnx.closeSeqno) {
+			try {
+			    cnx.regularClosers++;
+			    connectionTable.wait();
+			    cnx.regularClosers--;
+			} catch (InterruptedException e) {
+			    break;
+			}
+		    }
+		}
 
                 trace.disp(receivePortTracePrefix, "network connection shutdown-->");
                 input.close(cnx.getNum());
@@ -960,12 +1041,36 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
          * Closes the port.
          */
         public void close() throws IOException {
+	    close(false, 0);
+	}
+
+
+	private void close(boolean force, long timeout) throws IOException {
                 log.in();
                 trace.disp(receivePortTracePrefix, "receive port shutdown-->");
-                synchronized(this) {
-			if (inputLock != null) {
-				inputLock.lock();
+		if (timeout != 0) {
+		    __.unimplemented__("void forcedClose(long timeout)");
+		}
+
+		if (! force && connectionTable != null) {
+		    synchronized(connectionTable) {
+			Iterator i = connectionTable.values().iterator();
+			while (i.hasNext()) {
+			    NetConnection cnx = (NetConnection)i.next();
+			    while (cnx.msgSeqno < cnx.closeSeqno) {
+				try {
+				    cnx.regularClosers++;
+				    connectionTable.wait();
+				    cnx.regularClosers--;
+				} catch (InterruptedException e) {
+				    break;
+				}
+			    }
 			}
+		    }
+		}
+
+                synchronized(this) {
 
 			trace.disp(receivePortTracePrefix, "receive port shutdown: input locked");
 
@@ -1001,7 +1106,7 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 					}
 
 					if (cnx != null) {
-						close(cnx);
+						close(cnx, force);
 					}
 				}
 			}
@@ -1009,13 +1114,16 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 			trace.disp(receivePortTracePrefix, "receive port shutdown: all connections closed");
 
 			if (input != null) {
-				input.free();
+				inputLock.lock();
+				try {
+				    input.free();
+				    input = null;
+				} finally {
+				    inputLock.unlock();
+				}
 			}
 			trace.disp(receivePortTracePrefix, "receive port shutdown: all inputs freed");
 
-			if (inputLock != null) {
-				inputLock.unlock();
-			}
 			trace.disp(receivePortTracePrefix, "receive port shutdown: input lock released");
                 }
 
@@ -1026,11 +1134,11 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
         }
 
         public void forcedClose() throws IOException {
-                close();
+	    close(true, 0);
         }
 
-        public void forcedClose(long timeout) {
-                __.unimplemented__("void forcedClose(long timeout)");
+        public void forcedClose(long timeout) throws IOException {
+	    close(false, timeout);
         }
 
         protected void finalize() throws Throwable {
@@ -1079,6 +1187,10 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
                         emptyMsg = false;
                 }
                 trace.disp(receivePortTracePrefix, "message receive <--");
+
+		NetConnection cnx = checkClose();
+
+                NetSendPortIdentifier id = cnx.getSendId();
                 activeSendPortNum = null;
                 currentThread = null;
                 input.finish();

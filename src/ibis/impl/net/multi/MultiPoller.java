@@ -72,7 +72,6 @@ public final class MultiPoller extends NetPoller {
                 public void end() {
                         log.in();
                         exit = true;
-System.err.println(this + ": interrupt...");
                         this.interrupt();
                         log.out();
                 }

@@ -64,6 +64,8 @@ public final class GmInput extends NetBufferedInput {
         private int                   rmuxId         =   -1;
         private int                   blockLen       =    0;
         private boolean               firstBlock     = true;
+	private int		receivedMessages;
+	private int		pendingMessage;
 
         private Driver               gmDriver     = null;
 
@@ -255,6 +257,7 @@ int plld;
 	    if (spn == null) {
 		return null;
 	    }
+System.err.println(this + ": WARNING: use GmPoller i.s.o. GmInput");
 
 	    Driver.gmAccessLock.lock(false);
 	    try {
@@ -283,6 +286,8 @@ plld++;
         public void initReceive(Integer num) throws IOException {
                 firstBlock = true;
                 super.initReceive(num);
+		pendingMessage++;
+		receivedMessages++;
         }
 
 
@@ -350,6 +355,7 @@ rcvd++;
                 log.in();
 // System.err.println(this + ": [" + lockId + "] in doFinish");
                 //
+		pendingMessage--;
                 log.out();
         }
 
@@ -370,6 +376,9 @@ rcvd++;
 		spn = null;
 
                 Driver.gmAccessLock.lock();
+		if (pendingMessage > 0) {
+		    throw new Error(this + ": want to close but pending message");
+		}
                 Driver.gmLockArray.deleteLock(lockId);
 		Driver.interruptPump(lockId);
 
