@@ -317,7 +317,7 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 	try {
 	    if(out == null) {
 		//create a new stream, just to say close :(
-		type.createSerializationOutputStream(accumulator);
+		out = type.createSerializationOutputStream(accumulator);
 	    }
 
 	    out.writeByte(CLOSE_ALL_CONNECTIONS);
