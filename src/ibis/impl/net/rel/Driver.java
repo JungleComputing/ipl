@@ -108,7 +108,6 @@ public final class Driver extends NetDriver implements RelConstants {
 	    if (DEBUG) {
 		System.err.println("Register Output " + output + " at index " + index);
 	    }
-	    System.err.println(this + ": Register Output " + output + " at index " + index);
 	    return index;
 	}
 

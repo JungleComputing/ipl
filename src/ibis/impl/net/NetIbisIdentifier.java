@@ -33,6 +33,10 @@ public final class NetIbisIdentifier
 
 	public NetIbisIdentifier(IbisSerializationInputStream stream) throws IOException {
 		stream.addObjectToCycleCheck(this);
+		generated_DefaultReadObject(stream, 0);
+	}
+
+	public final void generated_DefaultReadObject(IbisSerializationInputStream stream, int lvl) throws java.io.IOException {
 		int handle = stream.readInt();
 
 		if(handle < 0) {
@@ -113,5 +117,9 @@ public final class NetIbisIdentifier
 			stream.writeUTF(name);
 			stream.writeUTF(cluster);
 		}
+	}
+
+	public final void generated_DefaultWriteObject(IbisSerializationOutputStream stream, int lvl) throws IOException {
+		generated_WriteObject(stream);
 	}
 }

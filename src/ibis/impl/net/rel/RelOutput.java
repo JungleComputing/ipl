@@ -427,6 +427,7 @@ public final class RelOutput
 			  controlHeaderStart);
 	    }
 	    handleAck(ackPacket.data, controlHeaderStart);
+	    controlInput.finish();
 	    if (windowStart != this.windowStart) {
 		/* It seems there is room to continue sending, return */
 		return messageArrived;
