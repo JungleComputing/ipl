@@ -602,7 +602,7 @@ public final class RTS {
     public static String[] list(String url) throws IOException
     {
 	int urlLength = url.length();
-	String[] names = ibisRegistry.listNames(url + ".*");
+	String[] names = ibisRegistry.listNames("\\Q" + url + "\\E.*");
 	for (int i=0; i<names.length; i++) {
 	    names[i] = names[i].substring(urlLength);
 	}
