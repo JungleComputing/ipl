@@ -148,7 +148,7 @@ class Cell1D implements Config {
 
     private static void usage()
     {
-        System.out.println( "Usage: Cell1D [-u] [-uu] [-ibis] [count]" );
+        System.out.println( "Usage: Cell1D [count]" );
         System.exit( 0 );
     }
 
