@@ -1,17 +1,17 @@
 import java.util.Random;
-import javatimer.*;
+import ibis.util.nativeCode.Rdtsc;
 import java.io.*;
 import java.net.*;
 
 final class TranspositionTable {
-
 	static final boolean SUPPORT_TT = true;
 
-	static final int SIZE = 1 << 20;
+	static final int TT_BITS = 24;
+	static final int SIZE = 1 << TT_BITS;
 	static final int BUF_SIZE = 3000;
-	static final int REPLICATED_DEPTH = 5;  // @@@ experiment with this
+	static final int REPLICATED_DEPTH = 7;  // @@@ experiment with this
 
-	static int lookups = 0, hits = 0, sorts = 0, stores = 0,
+	static long lookups = 0, hits = 0, sorts = 0, stores = 0,
 		overwrites = 0, visited = 0, scoreImprovements = 0, cutOffs = 0,
 		bcasts = 0;
 
@@ -35,8 +35,8 @@ final class TranspositionTable {
 
 	DataOutputStream bcastStream;
 
-	Timer bcastTimer = new Timer();
-	Timer bcastHandlerTimer = new Timer();
+	Rdtsc bcastTimer = new Rdtsc();
+	Rdtsc bcastHandlerTimer = new Rdtsc();
 
 	DasInfo info = new DasInfo();
 	int rank = info.hostNumber();
@@ -70,7 +70,7 @@ final class TranspositionTable {
 
 //			System.err.println(rank + ": all connected!!!");
 			
-			BufferedOutputStream bo = new BufferedOutputStream(splitter, 60*1024);
+			BufferedOutputStream bo = new BufferedOutputStream(splitter, 1024*1024);
 			bcastStream = new DataOutputStream(bo);
 //			bcastStream.flush();
 
@@ -143,13 +143,14 @@ final class TranspositionTable {
 	void store(long tag, short value, short bestChild, byte depth, boolean lowerBound) {
 		if(!SUPPORT_TT) return;
 
-		Thread.yield(); // give receiver threads some time...
+                // give receiver threads some time...
+		if(poolSize > 1) Thread.yield(); 
 
 		int index = (int)tag & (SIZE-1);
 
 		boolean forward = localStore(index, tag, value, bestChild, depth, lowerBound);
 
-		if(forward && depth >= REPLICATED_DEPTH) {
+		if(forward && depth >= REPLICATED_DEPTH && poolSize > 1) {
 			forwardStore(index, tag, value, bestChild, depth, lowerBound);
 		}
 	}
@@ -257,6 +258,8 @@ final class TranspositionTable {
 				   ", stores: " + stores + ", overwrites: " + overwrites + 
 				   ", score incs: " + scoreImprovements + 
 				   ", bcasts: " + bcasts + ", bcast time: " + bcastTimer.totalTime() + ", bcast avg: " + bcastTimer.averageTime() + ", bcast handler time: " + bcastHandlerTimer.totalTime() + ", bcast handler avg: " + bcastHandlerTimer.averageTime() + ", cutoffs: " + cutOffs + ", visited: " + visited);
+		System.err.println("Transposition table size was " + TT_BITS + " bits = " + SIZE + " entries");
+		System.err.println("Replicated depth >= " + REPLICATED_DEPTH);
 	}
 
 	public synchronized void remoteStore(int[] aindex, long[] atag, short[] avalue, short[] abestChild, byte[] adepth, boolean[] alowerBound) {

@@ -75,6 +75,10 @@ final class AwariBoard extends NodeType implements Cloneable {
 			}
 		}
 
+		if(nrChildren == 0) {
+			return null;
+		}
+
 		AwariBoard[] result = new AwariBoard[nrChildren];
 		System.arraycopy(children, 0, result, 0, nrChildren);
 

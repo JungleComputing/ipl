@@ -1,5 +1,5 @@
 import java.util.Random;
-import javatimer.*;
+//import ibis.util.nativeCode.Rdtsc;
 import java.io.*;
 import java.net.*;
 

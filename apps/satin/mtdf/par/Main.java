@@ -65,7 +65,7 @@ class Main {
 		}
 
 		System.out.println("Best move: ");
-		bestChild.print();
+		bestChild.mirror().print();
 		System.out.println("application time Awari (" + depth + "," + (file == null ? "start" : file) + ") took " + ((double)(end - start) / 1000.0) + " seconds");
 		System.out.print("application result Awari (" + depth + "," + (file == null ? "start" : file) + ") = ");
 		bestChild.printCompact();
