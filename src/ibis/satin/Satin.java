@@ -104,6 +104,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	long stealRequests = 0; // used in messageHandler
 	boolean upcalls = true;
 
+	long interClusterMessages = 0;
+	long intraClusterMessages = 0;
+	long interClusterBytes = 0;
+	long intraClusterBytes = 0;
+
 	private int parentStamp = -1;
 	private IbisIdentifier parentOwner = null;
 	public InvocationRecord parent = null; // used in generated code
@@ -341,6 +346,24 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 	}
 
+	public boolean inDifferentCluster(IbisIdentifier other) {
+		InetAddress o = other.address();
+		InetAddress me = ident.address();
+
+		byte[] oa = o.getAddress();
+		byte[] mea = me.getAddress();
+
+		if(oa.length != mea.length) return true;
+
+		for(int i=0; i<oa.length-1; i++) {
+			if(oa[i] != mea[i]) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public void exit() {
                 /* send exit messages to all others */
 		int size;
@@ -357,6 +380,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					   " aborted jobs = " + abortedJobs);
 		}
 		if(STEAL_STATS && stats) {
+			out.println("SATIN '" + ident.name() + 
+				    "': INTRA_STATS: messages = " + intraClusterMessages + ", bytes = " + intraClusterBytes);
+
+			out.println("SATIN '" + ident.name() + 
+				    "': INTER_STATS: messages = " + interClusterMessages + ", bytes = " + interClusterBytes);
+
 			out.println("SATIN '" + ident.name() + 
 					   "': STEAL_STATS 1: attempts = " + stealAttempts + " success = " + stealSuccess + 
 					   " (" + (((double) stealSuccess / stealAttempts) * 100.0) + " %)");
@@ -620,6 +649,17 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeByte(JOB_RESULT);
 			writeMessage.writeObject(r.owner); 
 			writeMessage.writeObject(rr);
+
+			if(STEAL_STATS) {
+				if(inDifferentCluster(r.owner)) {
+					System.err.println("inter-cluster message!");
+					interClusterMessages++;
+					interClusterBytes += writeMessage.getCount();
+				} else {
+					intraClusterMessages++;
+					intraClusterBytes += writeMessage.getCount();
+				}
+			} 
 			writeMessage.send();
 			writeMessage.finish();
 		} catch (IbisIOException e) {
