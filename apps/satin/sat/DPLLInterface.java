@@ -7,5 +7,5 @@
  */
 interface DPLLInterface extends ibis.satin.Spawnable
 {
-    public void solve( int level, DPLLContext ctx, int varix, boolean val ) throws SATException;
+    public void solve( int level, SATProblem p, DPLLContext ctx, int varix, boolean val ) throws SATException;
 }

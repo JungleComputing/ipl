@@ -20,17 +20,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean traceNewCode = true;
     private static final boolean putProblemInTuple = true;
     private static int label = 0;
-    SATProblem p;
-
-    public DPLLSolver( SATProblem p )
-    {
-        if( putProblemInTuple ){
-            this.p = null;
-        }
-        else {
-            this.p = p;
-        }
-    }
 
     /**
      * Solve the leaf part of a SAT problem.
@@ -43,6 +32,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
      */
     public void leafSolve(
 	int level,
+        SATProblem p,
 	DPLLContext ctx,
 	int var,
 	boolean val
@@ -89,10 +79,10 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 
 	boolean firstvar = ctx.posDominant( nextvar );
 	DPLLContext subctx = (DPLLContext) ctx.clone();
-	leafSolve( level+1, subctx, nextvar, firstvar );
+	leafSolve( level+1, p, subctx, nextvar, firstvar );
 	// Since we won't be using our context again, we may as well
 	// give it to the recursion.
-	leafSolve( level+1, ctx, nextvar, !firstvar );
+	leafSolve( level+1, p, ctx, nextvar, !firstvar );
     }
 
     /**
@@ -107,6 +97,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
      */
     public void solve(
 	int level,
+        SATProblem p,
 	DPLLContext ctx,
 	int var,
 	boolean val
@@ -116,7 +107,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
 	}
 
-        if( putProblemInTuple ){
+        if( p == null ){
             p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
         }
 
@@ -160,16 +151,16 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
         boolean firstvar = ctx.posDominant( nextvar );
         if( needMoreJobs() ){
 	    DPLLContext firstctx = (DPLLContext) ctx.clone();
-	    solve( level+1, firstctx, nextvar, firstvar );
+	    solve( level+1, p, firstctx, nextvar, firstvar );
 	    DPLLContext secondctx = (DPLLContext) ctx.clone();
-	    solve( level+1, secondctx, nextvar, !firstvar );
+	    solve( level+1, p, secondctx, nextvar, !firstvar );
 	    sync();
 	}
 	else {
 	    // We're nearly there, use the leaf solver.
 	    DPLLContext subctx = (DPLLContext) ctx.clone();
-	    leafSolve( level+1, subctx, nextvar, firstvar );
-	    leafSolve( level+1, ctx, nextvar, !firstvar );
+	    leafSolve( level+1, p, subctx, nextvar, firstvar );
+	    leafSolve( level+1, p, ctx, nextvar, !firstvar );
 	}
     }
 
@@ -179,7 +170,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
      * @param p The problem to solve.
      * @return a solution of the problem, or <code>null</code> if there is no solution
      */
-    static public SATSolution solveSystem( final SATProblem p )
+    static public SATSolution solveSystem( SATProblem p )
     {
 	SATSolution res = null;
 	long startTime = 0;
@@ -192,8 +183,9 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	}
         if( putProblemInTuple ){
             ibis.satin.SatinTupleSpace.add( "problem", p );
+            p = null;
         }
-        DPLLSolver s = new DPLLSolver( p );
+        DPLLSolver s = new DPLLSolver();
 
         // Now recursively try to find a solution.
 	try {
@@ -228,8 +220,8 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
 	    DPLLContext negctx = (DPLLContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
 	    startTime = System.currentTimeMillis();
-            s.solve( 0, negctx, nextvar, firstvar );
-            s.solve( 0, ctx, nextvar, !firstvar );
+            s.solve( 0, p, negctx, nextvar, firstvar );
+            s.solve( 0, p, ctx, nextvar, !firstvar );
             s.sync();
 	}
 	catch( SATResultException r ){
