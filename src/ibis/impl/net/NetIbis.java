@@ -88,7 +88,7 @@ public final class NetIbis extends Ibis {
 	private   Vector 	    leftIbises       = new Vector();
 
 	/**
-	 * The {@link NetIbis} instances that attempted to be deleted from our {@linkplain #nameServerPool pool} while our world was {@linkplain #open closed}.
+	 * The {@link NetIbis} instances that attempted to be deleted from our pool while our world was {@linkplain #open closed}.
 	 */
 	private   Vector 	    toBeDeletedIbises       = new Vector();
 

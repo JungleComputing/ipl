@@ -27,7 +27,7 @@ public final class NetLockArray {
 	 * global interrupt count, which is incremented for each interrupt.
 	 * Around a cv_wait, we must check if the interrupt count has
 	 * increased. If so, we suffered an interrupt, and must throw an
-	 * {@link #InterruptedIOException}.
+	 * {@link ibis.impl.net.InterruptedIOException InterruptedIOException}.
 	 */
 	private int	interrupts;
 
@@ -57,7 +57,7 @@ public final class NetLockArray {
     /**
      * Construct a lock array with a single lock entry and no live locks.
      *
-     * @param mon The {@link #Monitor} that governs access to the lock array.
+     * @param mon The {@link ibis.util.Monitor Monitor} that governs access to the lock array.
      */
     public NetLockArray(Monitor mon) {
 	this.mon = mon;

@@ -314,11 +314,11 @@ final class IbisHash {
     /**
      * Lazy insert (ref, handle) into the hash table.
      *
-     * @params ref the object that is inserted
-     * @params handle the (int valued) key
-     * @params hashCode the hashCode of ref that may be kept over calls to the
+     * @param  ref the object that is inserted
+     * @param  handle the (int valued) key
+     * @param  hashCode the hashCode of ref that may be kept over calls to the
      * 		hash table
-     * @params lazy if lazy is <code>true</code>, insert (ref, handle) only
+     * @param  lazy if lazy is <code>true</code>, insert (ref, handle) only
      * 		if ref is not yet present.
      * @return if lazy is <code>true</code> and ref is already in the hash
      * 		table, return the value of its stored handle and ignore

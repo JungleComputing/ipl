@@ -1493,8 +1493,8 @@ public class IbisSerializationOutputStream
     }
 
     /**
-     * writes a (new or old) handle for array of primitives <code>ref</code>
-     * to the output stream. returns 1 if the object is new, -1 if not.
+     * Writes a (new or old) handle for array of primitives <code>ref</code>
+     * to the output stream. Returns 1 if the object is new, -1 if not.
      * @param ref		the object whose handle is to be written
      * @param typehandle	the type number
      * @exception IOException	gets thrown when an IO error occurs.

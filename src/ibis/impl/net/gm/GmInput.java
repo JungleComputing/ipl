@@ -125,9 +125,7 @@ public final class GmInput extends NetBufferedInput {
 	/**
 	 * Sets up an incoming GM connection.
 	 *
-	 * @param spn {@inheritDoc}
-	 * @param is {@inheritDoc}
-	 * @param os {@inheritDoc}
+	 * @param cnx {@inheritDoc}
 	 */
 	public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();

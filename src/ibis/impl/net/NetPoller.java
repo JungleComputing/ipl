@@ -238,7 +238,6 @@ System.err.println(this + ": OK, we enabled singleton fastpath");
      *
      * @param cnx the connection attributes.
      * @param key the connection key in the splitter {@link #inputMap map}.
-     * @param ni the connection's input.
      */
     protected synchronized void setupConnection(NetConnection cnx,
 						Object key)

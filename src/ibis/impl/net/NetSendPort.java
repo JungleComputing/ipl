@@ -342,8 +342,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	/**
 	 * The class unloading time cleaning function.
          *
-         * <BR><B>Note 1:</B> the {@link #free} method is forcibly called, just in case it was not called before, in the user application.
-         * <BR><B>Note 2:</B> the eventQueue is closed there (that is, not in the {@link #free} method).
+         * <BR><B>Note 1:</B> the {@link #close} method is forcibly called, just in case it was not called before, in the user application.
+         * <BR><B>Note 2:</B> the eventQueue is closed there (that is, not in the {@link #close} method).
 	 */
 	protected void finalize() throws Throwable {
                 log.in();

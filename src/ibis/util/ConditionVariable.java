@@ -14,10 +14,10 @@ package ibis.util;
  * ConditionVariable.
  *
  * Condition Variables can be <code>interruptible</code>. For interruptible
- * Condition Variables, {@link Thread.interrupt}ing the {@link Thread} that
+ * Condition Variables, <code>Thread.interrupt</code>ing the {@link Thread} that
  * is waiting on this Condition Variable causes the waiting thread to return
  * with an {@link InterruptedException}. Non-interruptible Condition Variables
- * ignore {@link Thread.interrupt}.
+ * ignore <code>Thread.interrupt</code>.
  */
 final public class ConditionVariable {
 

@@ -18,7 +18,7 @@ public final class Stats {
      *
      * @param data the numbers to calculate the mean of
      * @param off offset
-     * @param int len
+     * @param len length
      */
     public static double mean(double[] data, int off, int len) {
 	double total = 0;

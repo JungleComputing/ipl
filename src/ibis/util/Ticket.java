@@ -40,13 +40,13 @@ public class Ticket {
 
 	/**
 	 * Flag indicating whether this bucket may currently be used (i.e., the
-	 * corresponding ticket number has been given out.
+	 * corresponding ticket number has been given out).
 	 */
 	private boolean	valid;
 
 	/**
-	 * Flag indicating whether this bucket is currently initialized,
-	 * i.e. a value has been put in it. A separate flag allows for
+	 * Flag indicating whether this bucket is currently initialized
+	 * (i.e., a value has been put in it). A separate flag allows for
 	 * null values as well.
 	 */
 	private boolean	initialized;
