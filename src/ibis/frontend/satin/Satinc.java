@@ -345,7 +345,7 @@ public final class Satinc {
 		s.replace(i, i+1, "_2");
 		break;
 
-	    case ']':
+	    case '[':
 		s.replace(i, i+1, "_3");
 		break;
 	    
