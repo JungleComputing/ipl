@@ -30,13 +30,7 @@ public class ConnProps {
 	hub_stats,
 	datalinks,
 	controllinks,
-	sizes,
-	PROPERTY_PREFIX + "TCPSplice",
-	PROPERTY_PREFIX + "RoutedMessages",
-	PROPERTY_PREFIX + "PlainTCP",
-	PROPERTY_PREFIX + "ParallelStreams",
-	PROPERTY_PREFIX + "PortRange",
-	PROPERTY_PREFIX + "SSL"
+	sizes
     };
 
     static {
