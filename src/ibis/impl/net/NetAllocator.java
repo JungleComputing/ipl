@@ -38,7 +38,7 @@ public final class NetAllocator {
 	private 	     int      stackPtr        = 0;
 
 
-	private static final boolean	STATISTICS = true;
+	private static final boolean	STATISTICS = false;
 	private int			new_alloc = 0;
 	private int			cached_alloc = 0;
 	private int			real_free = 0;

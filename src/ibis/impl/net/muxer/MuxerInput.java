@@ -15,6 +15,14 @@ import ibis.ipl.impl.net.NetIbisException;
 
 public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
+    /**
+     * Indicate whether a separate thread is desired to perform all polling
+     * of the MuxerInput.
+     */
+    protected static final boolean USE_POLLER_THREAD = false;
+
+    private int			pollerThreads;
+
     private Thread		poller;
 
     protected int		max_mtu       =    0;
@@ -51,10 +59,23 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 	}
 	* but only ma~nana */
 
-	poller = new Thread(this);
-	poller.setDaemon(true);
-	poller.setName("UDP multiplexer poller");
-	poller.start();
+	if (USE_POLLER_THREAD) {
+	    poller = new Thread(this);
+	    poller.setDaemon(true);
+	    poller.setName("UDP multiplexer poller");
+	    poller.start();
+	}
+    }
+
+
+    private void receive() throws NetIbisException {
+	NetReceiveBuffer buffer = receiveByteBuffer(max_mtu);
+	int rKey = NetConvert.readInt(buffer.data, buffer.base);
+	MuxerQueue q = locateQueue(rKey);
+	if (Driver.DEBUG) {
+	    System.err.println("Receive downcall UDP packet len " + buffer.length + " data " + buffer.data + "; key " + rKey + " /bound to " + q);
+	}
+	q.enqueue(buffer);
     }
 
 
@@ -69,9 +90,62 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
     /**
      * @{inheritDoc}
      */
-    public Integer poll() throws NetIbisException {
-	return poll(pollTimeout);
+    public Integer poll(boolean block) throws NetIbisException {
+
+	if (! USE_POLLER_THREAD) {
+	    synchronized (this) {
+		pollerThreads++;
+	    }
+	}
+
+	Integer spn = poll(block ? 0 : pollTimeout);
+
+	if (! USE_POLLER_THREAD) {
+	    synchronized (this) {
+		pollerThreads--;
+	    }
+	}
+
+	return spn;
     }
+
+
+    /**
+     * @method
+     *
+     * Test whether some other thread is busy polling or blocking.
+     * If so, return immediately.
+     * If not, perform poll(block).
+     *
+     * @param block If no other thread is polling, perform a poll.
+     *        This parameter indicates whether it is to be a blocking
+     *        poll or a nonblocking poll.
+     */
+    protected Integer attemptPoll(boolean block) throws NetIbisException {
+	boolean proceed;
+	Integer r = null;
+
+	synchronized (this) {
+	    proceed = (pollerThreads == 0);
+	    if (proceed) {
+		pollerThreads++;
+	    }
+	}
+if (! proceed) System.err.print(proceed ? "v" : "-");
+
+	if (proceed) {
+	    if ((r = poll(block ? 0 : pollTimeout)) != null) {
+		receive();
+	    }
+
+	    synchronized (this) {
+		pollerThreads--;
+	    }
+	}
+
+	return r;
+    }
+
 
 
     /**
@@ -81,7 +155,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
      * any communication takes place.
      */
     protected MuxerQueue createQueue(Integer spn) {
-	MuxerQueue q = new MuxerQueue(spn);
+	MuxerQueue q = new MuxerQueue(this, spn);
 	registerQueue(q);
 
 	return q;
@@ -112,7 +186,9 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 	    System.err.println("Now disconnect localQueue " + q.localKey() + " liveConnections was " + liveConnections());
 	}
 	releaseQueue(q);
-	poller.interrupt();
+	if (USE_POLLER_THREAD) {
+	    poller.interrupt();
+	}
     }
 
 
@@ -173,13 +249,8 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 		    /* try again */
 		}
 
-		NetReceiveBuffer buffer = receiveByteBuffer(max_mtu);
-		int rKey = NetConvert.readInt(buffer.data, buffer.base);
-		MuxerQueue q = locateQueue(rKey);
-		if (Driver.DEBUG) {
-		    System.err.println("Receive downcall UDP packet len " + buffer.length + " data " + buffer.data + "; key " + rKey + " /bound to " + q);
-		}
-		q.enqueue(buffer);
+		receive();
+
 	    } catch (Exception e) {
 		System.err.println("************************ Poller thread handles exception " + e);
 	    }

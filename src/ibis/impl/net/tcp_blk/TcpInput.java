@@ -186,7 +186,7 @@ public final class TcpInput extends NetBufferedInput {
 		// Possibly a subclass overrode the factory, and we must leave
 		// that factory in place.
 		if (factory == null) {
-		    factory = new NetBufferFactory(new NetReceiveBufferFactoryDefaultImpl());
+		    factory = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl());
 		} else {
 		    factory.setMaximumTransferUnit(mtu);
 		}
@@ -197,54 +197,9 @@ public final class TcpInput extends NetBufferedInput {
                 // System.err.println("tcp_blk.TcpInput: setupConnection <--");
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: This TCP polling implementation uses the
-	 * {@link java.io.InputStream#available()} function to test whether at least one
-	 * data byte may be extracted without blocking.
-	 *
-	 * @return {@inheritDoc}
-	 */
-	public synchronized Integer poll() throws NetIbisException {
-                if (activeNum != null) {
-                        throw new Error("invalid call");
-                }
-                
-		if (spn == null) {
-			return null;
-		}
 
-                // System.err.println("tcp_blk: poll -->");
-		try {
-			if (tcpIs.available() > 0) {
-				activeNum = spn;
-                                initReceive();
-			}
-		} catch (IOException e) {
-			throw new NetIbisException(e);
-		} 
-                // System.err.println("tcp_blk: poll <-- : " + activeNum);
-
-		return activeNum;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <BR><B>Note</B>: this function may block if the expected data is not there.
-	 *
-	 * @return {@inheritDoc}
-	 */
-	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
-		throws NetIbisException {
-                // System.err.println("tcp_blk: receiveByteBuffer -->");
-                if (buf != null) {
-                        NetReceiveBuffer temp = buf;
-                        buf = null;
-                        // System.err.println("tcp_blk: receiveByteBuffer <-- quick");
-                        return temp;
-                }
+	/* Create a NetReceiveBuffer and do a blocking receive. */
+	private NetReceiveBuffer receive() throws NetIbisException {
 
 		NetReceiveBuffer buf = createReceiveBuffer(0);
 		byte [] b = buf.data;
@@ -284,7 +239,70 @@ public final class TcpInput extends NetBufferedInput {
 		} 
 
 		buf.length = l;
+		return buf;
+	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <BR><B>Note</B>: This TCP polling implementation uses the
+	 * {@link java.io.InputStream#available()} function to test whether at least one
+	 * data byte may be extracted without blocking.
+	 *
+	 * @param block if true this method blocks until there is some data to read
+	 *
+	 * @return {@inheritDoc}
+	 */
+	public synchronized Integer poll(boolean block) throws NetIbisException {
+                if (activeNum != null) {
+                        throw new Error("invalid call");
+                }
+                
+		if (spn == null) {
+			return null;
+		}
+
+                // System.err.println("tcp_blk: poll -->");
+		try {
+			if (block) {
+				if (buf != null) {
+					return activeNum;
+				}
+				buf = receive();
+				if (buf != null) {
+					activeNum = spn;
+					initReceive();
+				}
+			} else if (tcpIs.available() > 0) {
+				activeNum = spn;
+                                initReceive();
+			}
+		} catch (IOException e) {
+			throw new NetIbisException(e);
+		} 
+                // System.err.println("tcp_blk: poll <-- : " + activeNum);
+
+		return activeNum;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <BR><B>Note</B>: this function may block if the expected data is not there.
+	 *
+	 * @return {@inheritDoc}
+	 */
+	public NetReceiveBuffer receiveByteBuffer(int expectedLength)
+		throws NetIbisException {
+                // System.err.println("tcp_blk: receiveByteBuffer -->");
+                if (buf != null) {
+                        NetReceiveBuffer temp = buf;
+                        buf = null;
+                        // System.err.println("tcp_blk: receiveByteBuffer <-- quick");
+                        return temp;
+                }
+
+		NetReceiveBuffer buf = receive();
                 // System.err.println("tcp_blk: receiveByteBuffer <--");
 		return buf;
 	}

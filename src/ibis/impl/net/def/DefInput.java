@@ -7,9 +7,9 @@ import java.io.InterruptedIOException;
 import java.io.InputStream;
 
 public final class DefInput extends NetBufferedInput {
+
 	private Integer      spn       = null;
 	private InputStream  defIs     = null;
-	private NetAllocator allocator = null;
         private NetReceiveBuffer      buf             = null;
         private UpcallThread          upcallThread = null;
 
@@ -75,7 +75,11 @@ public final class DefInput extends NetBufferedInput {
                 defIs    = cnx.getServiceLink().getInputSubStream(this, "def");
 
                 mtu = 1024;
-		allocator = new NetAllocator(mtu);
+		if (factory == null) {
+		    factoy = new NetBufferFactory(mtu, new NetReceiveBufferFactoryDefaultImpl());
+		} else {
+		    factory.setMaximumTransferUnit(mtu);
+		}
 
                 if (upcallFunc != null) {
                         upcallThread = new UpcallThread("this = " + this);
@@ -83,18 +87,77 @@ public final class DefInput extends NetBufferedInput {
                 }
 	}
 
+	/* Create a NetReceiveBuffer and do a blocking receive. */
+	private NetReceiveBuffer receive() throws NetIbisException {
+
+		NetReceiveBuffer buf = createReceiveBuffer(0);
+		byte [] b = buf.data;
+		int     l = 0;
+
+		try {
+			int offset = 0;
+
+                        do {
+                                int result = defIs.read(b, offset, 4);
+                                if (result == -1) {
+                                        if (offset != 0) {
+                                                throw new Error("broken pipe");
+                                        }
+                                        
+                                        // System.err.println("tcp_blk: receiveByteBuffer <-- null");
+                                        return null;
+                                }
+                                
+                                offset += result;
+                        } while (offset < 4);
+
+                        l = NetConvert.readInt(b);
+                        //System.err.println("received "+l+" bytes");    
+                        
+			do {
+				int result = defIs.read(b, offset, l - offset);
+                                if (result == -1) {
+                                        throw new Error("broken pipe");
+                                }                                
+                                offset += result;
+			} while (offset < l);
+                } catch (SocketException e) {
+                        return null;
+		} catch (IOException e) {
+			throw new NetIbisException(e.getMessage());
+		} 
+
+		buf.length = l;
+		return buf;
+	}
+
+
 	/**
 	 * {@inheritDoc}
 	 */
-	public Integer poll() throws NetIbisException {
+	public Integer poll(boolean block) throws NetIbisException {
 		activeNum = null;
+
+		if (block) {
+		    System.err.println(this + ": no support yet for blocking poll. Implement!");
+		    throw new NetIbisException(this + ": no support yet for blocking poll. Implement!");
+		}
 
 		if (spn == null) {
 			return null;
 		}
 
 		try {
-			if (defIs.available() > 0) {
+			if (block) {
+				if (buf != null) {
+					return activeNum;
+				}
+				buf = receive();
+				if (buf != null) {
+					activeNum = spn;
+					initReceive();
+				}
+			} else if (defIs.available() > 0) {
 				activeNum = spn;
                                 initReceive();
 			}
@@ -125,50 +188,8 @@ public final class DefInput extends NetBufferedInput {
                         return temp;
                 }
 
-                // NetReceiveBuffer b = createReceiveBuffer(expectedLength);
-
-		byte [] b = allocator.allocate();
-		int     l = 0;
-
-		try {
-			int offset = 0;
-
-                        do {
-                                int result = defIs.read(b, offset, 4);
-                                if (result == -1) {
-                                        if (offset != 0) {
-                                                throw new Error("broken pipe");
-                                        }
-                                        
-                                        return null;
-                                }
-                                
-                                if (result == 0) {
-                                        return null;
-                                }
-
-                                offset += result;
-                        } while (offset < 4);
-
-                        l = NetConvert.readInt(b);
-                        
-			do {
-				int result = defIs.read(b, offset, l - offset);
-                                if (result == -1) {
-                                        throw new Error("broken pipe");
-                                }                                
-                                if (result == 0) {
-                                        return null;
-                                }
-                                offset += result;
-			} while (offset < l);
-                } catch (InterruptedIOException e) {
-                        return null;
-		} catch (IOException e) {
-			throw new NetIbisException(e.getMessage());
-		} 
-
-		return new NetReceiveBuffer(b, l, allocator);
+                NetReceiveBuffer buf = receive();
+		return buf;
 	}
 
         public synchronized void close(Integer num) throws NetIbisException {

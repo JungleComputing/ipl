@@ -60,12 +60,18 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 * undefined and data might get lost. Use {@link
 	 * #getActiveSendPortNum} instead.
 	 *
+	 * @param blockForMessage indicate whether this method must block until
+	 *        a message has arrived, or just query the input one.
 	 * @return the send port's corresponding integer or <code>null</code> if
 	 * no data is available.
 	 * @exception NetIbisException if the polling fails (!= the
 	 * polling is unsuccessful).
 	 */
-	public abstract Integer poll() throws NetIbisException;
+	public abstract Integer poll(boolean blockForMessage) throws NetIbisException;
+
+	public Integer poll() throws NetIbisException {
+	    return poll(false);
+	}
 
 	/**
 	 * Returns the active send port related integer or <code>null</code> if

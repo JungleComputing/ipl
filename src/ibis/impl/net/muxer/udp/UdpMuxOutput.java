@@ -90,9 +90,6 @@ public final class UdpMuxOutput
 	}
 
 	packet = new DatagramPacket(new byte[0], 0, null, 0);
-
-	System.err.println("*********************** Now should call postConstructor");
-	// postConstructor();
     }
 
 
@@ -168,6 +165,7 @@ public final class UdpMuxOutput
 	packet.setData(b.data, 0, b.length);
 // System.err.print("|");
 	try {
+// System.err.print("w");
 	    socket.send(packet);
 	} catch (IOException e) {
 	    throw new NetIbisException(e);

@@ -113,7 +113,7 @@ public abstract class NetSerializedInput extends NetInput {
                 // System.err.println("NetSerializedInput: inputUpcall<--");
         }
 
-	public synchronized Integer poll() throws NetIbisException {
+	public synchronized Integer poll(boolean block) throws NetIbisException {
                 if (activeNum != null) {
                         throw new Error("invalid call");
                 }
@@ -121,7 +121,7 @@ public abstract class NetSerializedInput extends NetInput {
                 if (subInput == null)
                         return null;
                 
-                Integer result = subInput.poll();
+                Integer result = subInput.poll(block);
                 if (result != null) {
                         activeNum = result;
                         mtu          = subInput.getMaximumTransfertUnit();

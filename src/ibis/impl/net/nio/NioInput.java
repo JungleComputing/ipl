@@ -167,8 +167,13 @@ public final class NioInput extends NetInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll() throws IbisIOException {
+	public Integer poll(boolean block) throws IbisIOException {
 		activeNum = null;
+
+		if (block) {
+		    System.err.println(this + ": no support yet for blocking poll. Implement!");
+		    throw new NetIbisException(this + ": no support yet for blocking poll. Implement!");
+		}
 
 		if (spn == null) {
 			// not connected yet

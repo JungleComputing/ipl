@@ -138,7 +138,8 @@ public final class UdpMuxInput extends MuxerInput {
     }
 
 
-    protected Integer poll(int timeout) throws NetIbisException {
+    protected Integer poll(int timeout)
+	    throws NetIbisException {
 	if (spn == null) {
 	    return null;
 	}
@@ -158,40 +159,33 @@ public final class UdpMuxInput extends MuxerInput {
 			   buffer.base,
 			   buffer.data.length - buffer.base);
 	    long start = 0;
-	    if (Driver.STATISTICS || timeout != 0) {
+	    if (Driver.STATISTICS && timeout != 0) {
 		start = System.currentTimeMillis();
 	    }
 
 	    try {
-		// setReceiveTimeout(timeout);
-		setReceiveTimeout(0);
+		setReceiveTimeout(timeout);
 		socket.receive(packet);
 		buffer.length = packet.getLength();
 		activeNum = spn;
 		// super.initReceive();
 	    } catch (InterruptedIOException e) {
-System.err.println(this + ": ***************** catch InterruptedIOException " + e);
+// System.err.println(this + ": ***************** catch InterruptedIOException " + e);
+// Thread.dumpStack();
 		buffer.free();
 		buffer = null;
 		if (timeout == 0) {
 		    throw new NetIbisException(e);
-		} else {
+		} else if (Driver.STATISTICS) {
 		    receiveFromPoll++;
 		    t_receiveFromPoll += System.currentTimeMillis() - start;
 		}
+// System.err.print("%");
 	    } catch (IOException e) {
 System.err.println(this + ": ***************** catch Exception " + e);
 		buffer.free();
 		buffer = null;
 		throw new NetIbisException(e);
-	    }
-
-	    if (Driver.STATISTICS) {
-		t_poll_start = System.currentTimeMillis();
-		t_receiveFromPoll += t_poll_start - start;
-		if (Driver.DEBUG && (polls % 1000) == 0) {
-		    System.err.println("UdpMuxInput: <receive> " + polls + " takes " + (t_receiveFromPoll / (1000.0 * polls)) + " s)");
-		}
 	    }
 	}
 
@@ -229,7 +223,9 @@ System.err.println(this + ": ***************** catch Exception " + e);
 
 	    socket = null;
 
-	    System.err.println("UdpMuxInput: receiveFromPoll(timeout) " + receiveFromPoll + " (estimated loss " + (t_receiveFromPoll / 1000.0) + " s)");
+	    if (Driver.STATISTICS) {
+		System.err.println("UdpMuxInput: receiveFromPoll(timeout) " + receiveFromPoll + " (estimated loss " + (t_receiveFromPoll / 1000.0) + " s)");
+	    }
 	}
     }
 

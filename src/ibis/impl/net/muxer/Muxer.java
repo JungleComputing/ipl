@@ -173,6 +173,7 @@ public final class Muxer extends NetBufferedOutput {
 	    rpn   = null;
 
 	    muxer.disconnect(myKey);
+	    myKey.free();
 	}
     }
 

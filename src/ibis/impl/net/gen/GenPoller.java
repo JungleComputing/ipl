@@ -113,7 +113,13 @@ public final class GenPoller extends NetInput {
 	 *
 	 * {@inheritDoc}
 	 */
-	public synchronized Integer poll() throws NetIbisException {		
+	public synchronized Integer poll(boolean block) throws NetIbisException {		
+
+		if (block) {
+		    System.err.println(this + ": no support yet for blocking poll. Implement!");
+		    throw new NetIbisException(this + ": no support yet for blocking poll. Implement!");
+		}
+
 		activeInput = null;
 		activeNum   = null;
 		

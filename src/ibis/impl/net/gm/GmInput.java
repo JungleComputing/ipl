@@ -322,7 +322,13 @@ public final class GmInput extends NetBufferedInput {
         /**
          * {@inheritDoc}
          */
-	public Integer poll() throws NetIbisException {
+	public Integer poll(boolean block) throws NetIbisException {
+
+		if (block) {
+		    System.err.println(this + ": no support yet for blocking poll. Implement!");
+		    throw new NetIbisException(this + ": no support yet for blocking poll. Implement!");
+		}
+
                 if (activeNum != null) {
                         throw new Error("invalid state");
                 }

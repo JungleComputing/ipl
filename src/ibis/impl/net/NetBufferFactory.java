@@ -6,7 +6,7 @@ package ibis.ipl.impl.net;
  */
 public class NetBufferFactory {
 
-    final static boolean DEBUG = true;
+    final static boolean DEBUG = false;
     final static boolean STATISTICS = false;
 
     private int                  mtu       =    0;

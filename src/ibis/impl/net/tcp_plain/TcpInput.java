@@ -171,9 +171,11 @@ public final class TcpInput extends NetInput {
 	 * {@link java.io.InputStream#available()} function to test whether at least one
 	 * data byte may be extracted without blocking.
 	 *
+	 * @param block if true this method blocks until there is some data to read
+	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll() throws NetIbisException {
+	public Integer poll(boolean block) throws NetIbisException {
 		activeNum = null;
 
 		if (spn == null) {
@@ -182,7 +184,18 @@ public final class TcpInput extends NetInput {
 
                 //System.err.println("TcpInput: "+addr+"["+port+"] poll -->");
 		try {
-			if (tcpIs.available() > 0) {
+			if (block) {
+				int i = tcpIs.read();
+				//System.err.println("TcpInput: "+addr+"["+port+"]read success: "+i);
+				
+				if (i < 0)
+					throw new NetIbisException("Broken pipe");
+
+				first = true;
+				firstbyte = (byte)(i & 0xFF);
+
+				activeNum = spn;
+			} else if (tcpIs.available() > 0) {
 				activeNum = spn;
 			}
 		} catch (IOException e) {

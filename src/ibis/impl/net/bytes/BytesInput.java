@@ -59,7 +59,7 @@ public final class BytesInput extends NetInput {
                 }
 	}
 
-	public synchronized Integer poll() throws NetIbisException {
+	public synchronized Integer poll(boolean block) throws NetIbisException {
                 if (activeNum != null) {
                         throw new Error("invalid call");
                 }
@@ -67,7 +67,7 @@ public final class BytesInput extends NetInput {
                 if (subInput == null)
                         return null;
                 
-                Integer result = subInput.poll();
+                Integer result = subInput.poll(block);
                 if (result != null) {
                         mtu          = subInput.getMaximumTransfertUnit();
                         headerOffset = subInput.getHeadersLength();

@@ -9,6 +9,11 @@ import ibis.ipl.impl.net.NetBufferFactory;
 
 public class MuxerQueue extends MuxerKey {
 
+    private final static boolean WAIT_YIELDING = false;
+    private final static int	OPTIMISTIC_YIELDS = 0;
+
+    protected MuxerInput	input;
+
     private NetReceiveBuffer	front;
     private NetReceiveBuffer	tail;
 
@@ -24,6 +29,12 @@ public class MuxerQueue extends MuxerKey {
     private int			n_q_wait;
     private int			n_q_present;
 
+    private int			n_deq_wait;
+    private int			n_poll_blocking;
+    private int			n_poll_nonblocking;
+    private int			n_poll_wait;
+    private int			n_poll_yield;
+
 
     /**
      * @Constructor
@@ -33,8 +44,9 @@ public class MuxerQueue extends MuxerKey {
      * @param spn the (globally unique?) Integer that characterizes our
      *        connection.
      */
-    public MuxerQueue(Integer spn) {
+    public MuxerQueue(MuxerInput input, Integer spn) {
 	super(spn);
+	this.input = input;
     }
 
 
@@ -128,7 +140,10 @@ public class MuxerQueue extends MuxerKey {
 	    }
 	}
 	while (front == null) {
-	    System.err.println("z");
+	    // System.err.println("z");
+	    if (Driver.STATISTICS) {
+		n_deq_wait++;
+	    }
 	    waitingReceivers++;
 	    try {
 		wait();
@@ -179,19 +194,81 @@ public class MuxerQueue extends MuxerKey {
     }
 
 
-    synchronized
-    public Integer poll() {
+    public Integer poll(boolean block) {
 	if (false && Driver.DEBUG) {
 	    System.err.println(this + ": poll; front " + front + " spn " + spn);
 	    if (false && spn.intValue() == 0) {
 		Thread.dumpStack();
 	    }
 	}
-	if (front == null) {
-	    return null;
+if (false && ! block) {
+System.err.println(this + ": Nonblocking poll");
+Thread.dumpStack();
+}
+
+	if (! MuxerInput.USE_POLLER_THREAD) {
+	    try {
+		while (front == null && input.attemptPoll(block) != null) {
+		    // perform this poll
+		}
+	    } catch (NetIbisException e) {
+		// Ignore; if this fails, just continue on the normal route.
+	    }
 	}
 
-	return spn;
+	if (Driver.STATISTICS) {
+	    if (block) {
+		n_poll_blocking++;
+	    } else {
+		n_poll_nonblocking++;
+	    }
+	}
+
+	if (! WAIT_YIELDING) {
+	    for (int i = 0; i < OPTIMISTIC_YIELDS && block && front == null; i++) {
+		Thread.yield();
+		if (Driver.STATISTICS) {
+		    n_poll_yield++;
+		}
+	    }
+	    if (block && front == null) {
+		synchronized (this) {
+		    while (block && front == null) {
+			if (Driver.STATISTICS) {
+			    n_poll_wait++;
+			}
+			// System.err.println("z");
+			waitingReceivers++;
+			try {
+			    wait();
+			} catch (InterruptedException e) {
+			    // Just continue
+			}
+			waitingReceivers--;
+		    }
+		}
+	    }
+	} else {
+	    if (Driver.STATISTICS) {
+		if (block && front == null) {
+		    n_poll_wait++;
+		}
+	    }
+	    while (block && front == null) {
+		/*
+		synchronized (this) {
+		    waitingReceivers++;
+		    waitingReceivers--;
+		}
+		*/
+		Thread.yield();
+		if (Driver.STATISTICS) {
+		    n_poll_yield++;
+		}
+	    }
+	}
+
+	return (front == null) ? null : spn;
     }
 
 
@@ -204,14 +281,27 @@ public class MuxerQueue extends MuxerKey {
      *
      * @return the first delivered buffer
      */
-    synchronized
     public NetReceiveBuffer receiveByteBuffer(int expectedLength)
 	    throws NetIbisException {
 
 	if (Driver.DEBUG) {
 	    System.err.println("Downcall receive q " + this + ": start dequeue");
 	}
-	NetReceiveBuffer buffer = dequeue();
+
+	if (! MuxerInput.USE_POLLER_THREAD) {
+	    try {
+		while (front == null && input.attemptPoll(true) != null) {
+		    // perform this poll
+		}
+	    } catch (NetIbisException e) {
+		// Ignore; if this fails, just continue on the normal route.
+	    }
+	}
+
+	NetReceiveBuffer buffer;
+	synchronized (this) {
+	    buffer = dequeue();
+	}
 	if (Driver.DEBUG) {
 	    System.err.println("Downcall receive q " + this + ": after dequeue; buffer " + buffer + " buffer.data " + buffer.data + " buffer.length " + buffer.length + " buffer.data.length " + buffer.data.length);
 	}
@@ -226,14 +316,27 @@ public class MuxerQueue extends MuxerKey {
      * @param userBuffer Receive data into this buffer. In the general case
      *        a copy is incurred.
      */
-    synchronized
     public void receiveByteBuffer(NetReceiveBuffer userBuffer)
 	    throws NetIbisException {
 
 	if (Driver.DEBUG) {
 	    System.err.println("Post downcall receive q " + this + " userBuffer " + userBuffer + ": start dequeue");
 	}
-	NetReceiveBuffer buffer = dequeue(userBuffer);
+
+	if (! MuxerInput.USE_POLLER_THREAD) {
+	    try {
+		while (front == null && input.attemptPoll(true) != null) {
+		    // perform this poll
+		}
+	    } catch (NetIbisException e) {
+		// Ignore; if this fails, just continue on the normal route.
+	    }
+	}
+
+	NetReceiveBuffer buffer;
+	synchronized (this) {
+	    buffer = dequeue(userBuffer);
+	}
 	if (buffer != userBuffer) {
 	    // The message was delivered before we could post our buffer.
 	    // Incur a copy.
@@ -245,6 +348,19 @@ public class MuxerQueue extends MuxerKey {
 			     buffer.length);
 	    userBuffer.length = buffer.length;
 	    buffer.free();
+	}
+    }
+
+
+    public void free() throws NetIbisException {
+	if (Driver.STATISTICS) {
+	    System.err.println(this + ": #enqueue " + n_q +
+		    "; #wait(poll) " + n_poll_wait +
+		    "; #wait(dequeue) " + n_deq_wait +
+		    "; t(wait) " + ((1000.0 * t_queued) / n_q)  + " us" +
+		    "; poll/block " + n_poll_blocking +
+			" /nonblock " + n_poll_nonblocking +
+		    "; yield " + n_poll_yield);
 	}
     }
 

@@ -203,13 +203,13 @@ dumpBufferFactoryInfo();
      *
      * @return {@inheritDoc}
      */
-    public Integer poll() throws NetIbisException {
+    public Integer poll(boolean block) throws NetIbisException {
 	if (myQueue == null) {
 	    // Still connecting, presumably
 	    return null;
 	}
 
-	return myQueue.poll();
+	return myQueue.poll(block);
     }
 
 
@@ -256,6 +256,7 @@ dumpBufferFactoryInfo();
 	if (spn == num) {
 	    spn = null;
 	    demux.disconnect(myQueue);
+	    myQueue.free();
 	    if (upcallFunc != null) {
 		// Yes, what? How do we stop this thread?
 	    }

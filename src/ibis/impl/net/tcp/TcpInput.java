@@ -127,9 +127,11 @@ public final class TcpInput extends NetInput {
 	 * {@link java.io.InputStream#available()} function to test whether at least one
 	 * data byte may be extracted without blocking.
 	 *
+	 * @param block if true this method blocks until there is some data to read
+	 *
 	 * @return {@inheritDoc}
 	 */
-	public synchronized Integer poll() throws NetIbisException {
+	public synchronized Integer poll(boolean block) throws NetIbisException {
                 if (activeNum != null) {
                         throw new Error("invalid call");
                 }                
@@ -139,7 +141,7 @@ public final class TcpInput extends NetInput {
 		}
 
 		try {
-			if (tcpIs.available() > 0) {
+			if (block || tcpIs.available() > 0) {
                                 tcpIs.read();
 				activeNum = spn;
 			}

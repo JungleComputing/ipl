@@ -167,6 +167,11 @@ public final class NetIbis extends Ibis {
 	 * @return The driver instance.
 	 * @exception NetIbisException if the requested driver class could not be loaded or the requested driver instance could not be initialized.
 	 */
+	/* This must be synchronized: two threads may attempt to create a
+	 * port concurrently; if not synch, the driver may be created twice
+	 *							RFHH
+	 */
+	synchronized
 	public NetDriver getDriver(String name) throws NetIbisException{
 		NetDriver driver = (NetDriver)driverTable.get(name);
 

@@ -104,7 +104,13 @@ public final class PipeInput extends NetBufferedInput {
                 //System.err.println("PipeInput: setupConnection <--");
 	}
 
-	public Integer poll() throws NetIbisException {
+	public Integer poll(boolean block) throws NetIbisException {
+
+		if (block) {
+		    System.err.println(this + ": no support yet for blocking poll. Implement!");
+		    throw new NetIbisException(this + ": no support yet for blocking poll. Implement!");
+		}
+
 		activeNum = null;
 
 		if (spn == null) {

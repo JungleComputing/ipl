@@ -219,8 +219,9 @@ public final class UdpInput extends NetBufferedInput {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	public Integer poll() throws NetIbisException {
-	    return poll(pollTimeout);
+	public Integer poll(boolean block) throws NetIbisException {
+	    // return poll(pollTimeout);
+	    return poll(block ? 0 : pollTimeout);
 	}
 
 
@@ -243,7 +244,7 @@ public final class UdpInput extends NetBufferedInput {
 			long start = 0;
 			packet.setData(buffer.data, 0, buffer.data.length);
 			setReceiveTimeout(timeout);
-			if (timeout != 0) {
+			if (Driver.STATISTICS && timeout != 0) {
 			    start = System.currentTimeMillis();
 			}
 
@@ -254,13 +255,17 @@ public final class UdpInput extends NetBufferedInput {
 				activeNum = spn;
 				super.initReceive();
 				checkReceiveSeqno(buffer);
+
 			} catch (InterruptedIOException e) {
-				receiveFromPoll++;
-				t_receiveFromPoll += System.currentTimeMillis() - start;
-// System.err.print("%");
 				buffer.free();
 				buffer = null;
-				// Nothing
+				if (timeout == 0) {
+				    throw new NetIbisException(e);
+				} else if (Driver.STATISTICS) {
+				    receiveFromPoll++;
+				    t_receiveFromPoll += System.currentTimeMillis() - start;
+				}
+// System.err.print("%");
 			} catch (IOException e) {
 // System.err.print("!");
 				buffer.free();
@@ -314,6 +319,7 @@ public final class UdpInput extends NetBufferedInput {
 			try {
 				/* This is a blocking receive call. Don't
 				 * set a timeout. */
+System.err.print("p");
 				setReceiveTimeout(0);
 				socket.receive(packet);
 				super.initReceive();
@@ -402,7 +408,9 @@ public final class UdpInput extends NetBufferedInput {
 
 		super.free();
 
-		System.err.println("UdpInput: receiveFromPoll(timeout) " + receiveFromPoll + " (estimated loss " + (t_receiveFromPoll / 1000.0) + " s)");
+		if (Driver.STATISTICS) {
+		    System.err.println("UdpInput: receiveFromPoll(timeout) " + receiveFromPoll + " (estimated loss " + (t_receiveFromPoll / 1000.0) + " s)");
+		}
 	}
 	
 }

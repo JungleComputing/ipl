@@ -223,7 +223,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         pollingNotify = true;
                                         
 					inputLock.lock();
-					activeSendPortNum = input.poll();
+					activeSendPortNum = input.poll(false);
 					inputLock.unlock();
 
 					if (activeSendPortNum == null) {
@@ -324,6 +324,13 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 */
 	private boolean                  useYield            =  true;
 
+	/**
+	 * Flag indicating whether receive should block in the poll()
+	 * that necessarily precedes it, or whether we want to poll in a
+	 * busy-wait style from this.
+	 */
+	private boolean                  useBlockingPoll     = true;
+
 
 
 
@@ -370,6 +377,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 */
 	private int          	         nextSendPortNum     =  0;
 
+	/**
+	 * Performance statistic
+	 */
+	// private int			n_yield;
 
 
 
@@ -678,11 +689,11 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	 * the network input locking operation. The function may block
 	 * if the {@linkplain #inputLock network input lock} is not available.
 	 */
-	private boolean _doPoll() throws NetIbisException {
+	private boolean _doPoll(boolean block) throws NetIbisException {
 // System.err.println("NetReceivePort._doPoll() attempts to grab inputLock");
 // System.err.print("[");
 		inputLock.lock();
-		activeSendPortNum = input.poll();
+		activeSendPortNum = input.poll(block);
                 //System.err.println("activeSendPortNum = "+activeSendPortNum);
 		inputLock.unlock();
 // System.err.print("]");
@@ -718,10 +729,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 		} else {
                         //System.err.println("NetReceivePort: receive - active wait");
 			if (useYield) {
-				while (!_doPoll())
+				while (!_doPoll(useBlockingPoll)) {
 					Thread.currentThread().yield();
+					// n_yield++;
+				}
 			} else {
-				while (!_doPoll());
+				while (!_doPoll(useBlockingPoll));
 			}
 			
 		}
@@ -758,7 +771,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 //System.err.println("NetReceivePort: poll<-- failed 1");
 				return null;
 		} else {
-			if (!_doPoll()) {
+			if (!_doPoll(false)) {
                                 //System.err.println("NetReceivePort: poll<-- failed 2");
 				return null;
 			}
@@ -913,6 +926,8 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                 __.fwdAbort__(e);
                         }
                 }
+
+		// System.err.println(this + ": #yield = " + n_yield);
                 //System.err.println("NetReceivePort["+this+"]: free<--");
                 // System.err.println("NetReceivePort: free<--");
 	}

@@ -64,7 +64,7 @@ public final class RelOutput
      * The sliding window descriptor.
      * The window size is in rel.Driver.
      */
-    private static final int DEFAULT_WINDOW_SIZE = 4;
+    private static final int DEFAULT_WINDOW_SIZE = 16; // 4;
     private int		windowSize = DEFAULT_WINDOW_SIZE;
     private int		nextAllocate = FIRST_PACKET_COUNT; // Allocated to send up to here
     private int		windowStart = FIRST_PACKET_COUNT;  // Acked up to here
@@ -380,7 +380,7 @@ public final class RelOutput
 
 
     // Call this synchronized
-    private boolean pollControlChannel() throws NetIbisException {
+    private boolean pollControlChannel(boolean block) throws NetIbisException {
 
 	checkLocked();
 
@@ -394,7 +394,7 @@ public final class RelOutput
 	    System.err.println("Out of credits? Poll control channel");
 	}
 	while (true) {
-	    Integer r = controlInput.poll();
+	    Integer r = controlInput.poll(false /* block */);
 	    if (r == null) {
 		if (DEBUG_ACK) {
 		    System.err.println("Poll control channel fails, messageArrived " + messageArrived);
@@ -402,6 +402,7 @@ public final class RelOutput
 		return messageArrived;
 	    }
 	    messageArrived = true;
+	    int windowStart = this.windowStart;
 	    controlInput.readByteBuffer(ackPacket);
 	    if (DEBUG_ACK) {
 		reportAck(System.err,
@@ -410,6 +411,10 @@ public final class RelOutput
 			  controlHeaderStart);
 	    }
 	    handleAck(ackPacket.data, controlHeaderStart);
+	    if (windowStart != this.windowStart) {
+		/* It seems there is room to continue sending, return */
+		return messageArrived;
+	    }
 	}
     }
 
@@ -452,7 +457,7 @@ public final class RelOutput
 	/* If the send window is closed and we still have packets to
 	 * send out, poll the explicit ack channel */
 	if (allowPoll == 0 && nextToSend != null) {
-	    if (pollControlChannel()) {
+	    if (pollControlChannel(true)) {
 		allowPoll++;
 		handleSendContinuation();
 		allowPoll--;
@@ -572,7 +577,7 @@ public final class RelOutput
 			}
 		    // } else if (now - scan.lastSent < safetyInterval) {
 		    } else {
-			if (DEBUG_ACK || DEBUG_REXMIT) {
+			if (DEBUG_ACK || DEBUG_REXMIT_NACK) {
 			    System.err.println("Packet " + scan.fragCount +
 				    " misses from bitset, rexmit(NACK)");
 			}
@@ -639,6 +644,33 @@ public final class RelOutput
     }
 
 
+    private int pendingRexmits() throws NetIbisException {
+	int	n = 0;
+
+	checkLocked();
+
+	long now = System.currentTimeMillis();
+
+	for (RelSendBuffer scan = front;
+	     scan != null &&
+		scan.sent &&	/* Don't send unsent packets, that
+				 * corrupts nextToSend */
+		scan.fragCount - windowStart < windowSize &&
+		now - scan.lastSent > safetyInterval;
+	     scan = scan.next) {
+	    n++;
+	}
+
+	if (false && DEBUG_REXMIT && n > 0) {
+	    System.err.println("Rexmit: Seems there are " + n +
+		    " pending rexmits up from " + front.fragCount +
+		    "; but first check control channel");
+	}
+
+	return n;
+    }
+
+
     // call this synchronized
     private void handleRexmit() throws NetIbisException {
 
@@ -646,14 +678,14 @@ public final class RelOutput
 
 	long now = System.currentTimeMillis();
 
-	if (DEBUG_REXMIT) {
+	if (false && DEBUG_REXMIT) {
 	    System.err.println("Rexmit: window start " + windowStart +
 		    " nextAllocate " + nextAllocate);
 	}
 	for (RelSendBuffer scan = front;
 	     scan != null &&
 		scan.sent &&	/* Don't send unsent packets, that
-				     * corrupts nextToSend */
+				 * corrupts nextToSend */
 		scan.fragCount - windowStart < windowSize &&
 		now - scan.lastSent > safetyInterval;
 	     scan = scan.next) {
@@ -675,19 +707,22 @@ public final class RelOutput
 	    // Not yet started
 	    return;
 	}
+	if (false && DEBUG_REXMIT) {
+	    System.err.print("->rex-");
+	}
 
 	try {
 	    synchronized (this) {
-		if (nextToSend == null) {
-		    if (DEBUG_REXMIT) {
+		if (pendingRexmits() == 0) {
+		    if (false && DEBUG_REXMIT) {
 			System.err.print("V");
 		    }
 		    return;
 		}
-		if (DEBUG_REXMIT) {
+		if (false && DEBUG_REXMIT) {
 		    System.err.print("_");
 		}
-		pollControlChannel();
+		pollControlChannel(false);
 		handleRexmit();
 	    }
 	} catch (NetIbisException e) {
@@ -786,8 +821,6 @@ public final class RelOutput
      * {@inheritDoc}
      */
     public void free() throws NetIbisException {
-	Thread.dumpStack();
-
 	report();
 
 	if (dataOutput != null) {

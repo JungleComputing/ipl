@@ -8,7 +8,8 @@ import ibis.ipl.impl.net.NetConvert;
 public interface RelConstants {
 
     final static boolean	DEBUG = false; // true;
-    final static boolean	DEBUG_REXMIT = true; // DEBUG;
+    final static boolean	DEBUG_REXMIT_NACK = DEBUG;
+    final static boolean	DEBUG_REXMIT = true; // DEBUG_REXMIT_NACK;
     final static boolean	DEBUG_ACK = DEBUG;
     final static boolean	DEBUG_PIGGY = DEBUG;
     final static boolean	DEBUG_LOCK = DEBUG;

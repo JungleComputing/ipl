@@ -16,7 +16,6 @@ public final class RelInput
 	implements RelConstants, RelSweep {
 
     private final static boolean STATISTICS = Driver.STATISTICS;
-    private final static boolean POLL_DOES_ONE_SHOT = true;
 
     /**
      * My poller flag
@@ -362,6 +361,22 @@ public final class RelInput
 		    nextContiguous + " into ack space; nextNonMissing := " +
 		    nextNonMissing);
 	}
+	if (DEBUG_REXMIT_NACK) {
+	    int i;
+	    for (i = 0; i < ackSendSet.length; i++) {
+		if (ackSendSet[i] != 0) {
+		    break;
+		}
+	    }
+	    if (i != ackSendSet.length) {
+		System.err.print("Request rexmit with bit set; offset " +
+				 nextContiguous + " set = [");
+		for (int j = 0; j < ackSendSet.length; j++) {
+		    System.err.print("0x" + Integer.toHexString(ackSendSet[j]) + " ");
+		}
+		System.err.println("]");
+	    }
+	}
 	NetConvert.writeInt(nextContiguous, data, offset);
 	offset += NetConvert.INT_SIZE;
 	NetConvert.writeArraySliceInt(ackSendSet, 0, ACK_SET_IN_INTS,
@@ -422,7 +437,7 @@ public final class RelInput
 
 	checkLocked();
 
-	if (DEBUG_REXMIT) {
+	if (DEBUG_REXMIT_NACK) {
 	    System.err.println(this + ": !!!!!!!!!!!!!!!!! Receive duplicate packet " + packet.fragCount + "; what should I do?");
 	}
 	packet.free();
@@ -453,7 +468,7 @@ public final class RelInput
 	    nextNonMissing++;
 	}
 
-	if (DEBUG_REXMIT) {
+	if (DEBUG_REXMIT_NACK) {
 	    if (front == null ?
 		    nextDeliver != fragCount :
 		    tail.fragCount + 1 != fragCount) {
@@ -534,7 +549,7 @@ public final class RelInput
     private boolean pollDataInput(boolean block) throws NetIbisException {
 	boolean dataPending;
 	while (true) {
-	    dataPending = dataInput.poll() != null;
+	    dataPending = dataInput.poll(block) != null;
 	    if (dataPending || ! block) {
 		return dataPending;
 	    }
@@ -561,7 +576,7 @@ public final class RelInput
      * {@inheritDoc}
      */
     // Call this non-synchronized
-    public Integer poll() throws NetIbisException {
+    public Integer poll(boolean block) throws NetIbisException {
 
 	checkUnlocked();
 
@@ -577,7 +592,7 @@ public final class RelInput
 	    return activeNum;
 	}
 
-	if (pollDataInput(false)) {
+	if (pollDataInput(block)) {
 	    /* There is something to receive from the dataInput. Take a look */
 	    receiveDataPacket();
 	    pollQueue();
@@ -592,27 +607,29 @@ public final class RelInput
 
 
     /* Block until we have got the buffer we want */
-    // Call this synchronized
+    // Call this nonsynchronized
     private RelReceiveBuffer dequeueReceiveBuffer() throws NetIbisException {
 
-	checkLocked();
+	checkUnlocked();
 
 	while (front == null || front.fragCount != nextDeliver) {
 	    pollDataInput(true);
 	    receiveDataPacket();
 	}
 
-	nextDeliver++;
-	if (nextDeliver > nextContiguous) {
-	    nextContiguous = nextDeliver;
+	synchronized (this) {
+	    nextDeliver++;
+	    if (nextDeliver > nextContiguous) {
+		nextContiguous = nextDeliver;
+	    }
+
+	    RelReceiveBuffer packet = front;
+	    front = front.next;
+
+	    startMsg = packet.isLastFrag;
+
+	    return packet;
 	}
-
-	RelReceiveBuffer packet = front;
-	front = front.next;
-
-	startMsg = packet.isLastFrag;
-
-	return packet;
     }
 
 
@@ -630,7 +647,6 @@ public final class RelInput
     /**
      * {@inheritDoc}
      */
-    synchronized
     public NetReceiveBuffer receiveByteBuffer(int length)
 	    throws NetIbisException {
 	if (DEBUG) {
@@ -686,8 +702,6 @@ public final class RelInput
      * {@inheritDoc}
      */
     public void free() throws NetIbisException {
-	Thread.dumpStack();
-
 	for (int i = 0; i < SHUTDOWN_DELAY / sweepInterval; i++) {
 	    synchronized (this) {
 		sendExplicitAck(true);

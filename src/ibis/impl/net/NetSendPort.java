@@ -491,7 +491,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 
 	/**
 	 * Unconditionnaly completes the message transmission and
-	 * releases the send port.
+	 * releases the send port. The writeMessage is kept by
+	 * the application for the next send.
 	 *
 	 * @param doSend {@inheritDoc}
 	 */
@@ -504,6 +505,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
                 }
 		_finish();
 		output.reset(doSend);
+		emptyMsg = true;
+                output.initSend();
                 //System.err.println("NetSendPort: reset<--");
 	}
 
