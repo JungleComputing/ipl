@@ -5,19 +5,25 @@ import java.io.File;
 class Compress extends ibis.satin.SatinObject implements Configuration
 {
     static boolean doVerification = false;
+    private int top;
+
+    public Compress( int top )
+    {
+        this.top = top;
+    }
 
     /**
      * Applies the given step in the compression process, and any
      * subsequent steps that are also helpful.
      */
-    private static SuffixArray applyFoldingStep( SuffixArray a, Step s, int top )
+    private SuffixArray applyFoldingStep( SuffixArray a, Step s )
         throws VerificationException
     {
         a.applyCompression( s );
         if( traceIntermediateGrammars ){
             a.printGrammar();
         }
-        applyFolding( a, top );
+        applyFolding( a );
         if( doVerification ){
             a.test();
         }
@@ -28,7 +34,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration
      * Applies one step in the folding process.
      * @return True iff a useful compression step could be done.
      */
-    private static SuffixArray applyFolding( SuffixArray a, int top ) throws VerificationException
+    private SuffixArray applyFolding( SuffixArray a ) throws VerificationException
     {
         if( a.getLength() == 0 ){
             return a;
@@ -44,7 +50,7 @@ class Compress extends ibis.satin.SatinObject implements Configuration
             if( traceCompressionCosts ){
                 System.out.println( "Best step: string [" + a.buildString( mv )  + "]: " + mv );
             }
-            a = applyFoldingStep( a, mv, top );
+            a = applyFoldingStep( a, mv );
         }
         return a;
     }
@@ -52,16 +58,16 @@ class Compress extends ibis.satin.SatinObject implements Configuration
     /** Returns a compressed version of the string represented by
      * this suffix array.
      */
-    public ByteBuffer compress( SuffixArray a, int top ) throws VerificationException
+    public ByteBuffer compress( SuffixArray a ) throws VerificationException
     {
-        a = applyFolding( a, top );
+        a = applyFolding( a );
 	return a.getByteBuffer();
     }
 
-    public ByteBuffer compress( byte text[], int top ) throws VerificationException
+    public ByteBuffer compress( byte text[] ) throws VerificationException
     {
 	SuffixArray a = new SuffixArray( text );
-	ByteBuffer out = compress( a, top );
+	ByteBuffer out = compress( a );
         a.printGrammar();
         return out;
     }
@@ -137,8 +143,8 @@ class Compress extends ibis.satin.SatinObject implements Configuration
 	    }
             long startTime = System.currentTimeMillis();
 
-            Compress c = new Compress();
-            ByteBuffer buf = c.compress( text, top );
+            Compress c = new Compress( top );
+            ByteBuffer buf = c.compress( text );
             if( outfile != null ){
                 Helpers.writeFile( outfile, buf );
             }
