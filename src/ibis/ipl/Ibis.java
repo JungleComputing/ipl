@@ -205,8 +205,8 @@ public abstract class Ibis {
      *  or <code>null</code>.
      * @return the new Ibis instance.
      *
-     * @exception NoMatchingIbisException is thrown when the name turns
-     *  out to be not unique.
+     * @exception NoMatchingIbisException is thrown when no Ibis was
+     *  found that matches the properties required.
      */
     public static Ibis createIbis(StaticProperties reqprop,
 				  ResizeHandler r)
@@ -225,30 +225,30 @@ public abstract class Ibis {
 	    hostname = "unknown";
 	}
 
-	String name = null;
+	String implementationname = null;
 
 	String ibisname = p.getProperty("ibis.name");
-	String implementationname = null;
+
+	if (ibisname == null && reqprop == null) {
+	    // default Ibis
+	    ibisname = "tcp";
+	}
+
 	if (ibisname == null) {
-	    if (reqprop == null) {
-		ibisname = "tcp";
-	    }
-	    if (ibisname == null) {
-		String[] impls = list();
-		PropertyMatcher pm = new PropertyMatcher(reqprop);
-		for (int i = 0; i < impls.length; i++) {
-		    StaticProperties ibissp = staticProperties(impls[i]);
+	    String[] impls = list();
+	    PropertyMatcher pm = new PropertyMatcher(reqprop);
+	    for (int i = 0; i < impls.length; i++) {
+		StaticProperties ibissp = staticProperties(impls[i]);
 //		    System.out.println("try " + impls[i]);
-		    if (pm.matchProperties(ibissp)) {
+		if (pm.matchProperties(ibissp)) {
 //			System.out.println("match!");
-			implementationname = impls[i];
-			break;
-		    }
+		    implementationname = impls[i];
+		    break;
 		}
-		if (implementationname == null) {
-		    throw new NoMatchingIbisException(
-				"Could not find a matching Ibis");
-		}
+	    }
+	    if (implementationname == null) {
+		throw new NoMatchingIbisException(
+			    "Could not find a matching Ibis");
 	    }
 	}
 	else {
@@ -269,7 +269,8 @@ public abstract class Ibis {
 
 	while(true) {
 	    try {
-		name = "ibis@" + hostname + "_" + System.currentTimeMillis();
+		String name = "ibis@" + hostname + "_" +
+				System.currentTimeMillis();
 		return createIbis(name, implementationname, r);
 	    } catch (ConnectionRefusedException e) {
 		// retry
