@@ -7,9 +7,7 @@ interface Protocol {
 		IBIS_REFUSED  = 1, 
 		IBIS_ACCEPTED = 2, 
 		IBIS_LEAVE    = 4,
-		IBIS_DELETE   = 5,
-		IBIS_RECONFIGURE = 6,
-		IBIS_PING     = 7,
+		IBIS_PING     = 5,
 
 		PORT_NEW      = 20, 
 		PORT_ACCEPTED = 21, 

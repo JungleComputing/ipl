@@ -147,7 +147,7 @@ public class ClusterReducer extends TreeReducer {
 	    int childrank = localRank[rank] - 2 * localRank[parent] - 1;
 	    reduceSreduce = portTypeReduce.createSendPort("SOR" + rank + "reduceS");
 	    ReceivePortIdentifier id;
-	    id = registry.lookup("SOR" + parent + "_" + childrank + "_reduceR");
+	    id = registry.lookupReceivePort("SOR" + parent + "_" + childrank + "_reduceR");
 	    reduceSreduce.connect(id);
 	}
 
@@ -162,7 +162,7 @@ public class ClusterReducer extends TreeReducer {
 	    for (int c = 0; c < 2; c++) {
 		if (child[c] != LEAF_NODE) {
 		    ReceivePortIdentifier id;
-		    id = registry.lookup("SOR" + child[c] + "reduceR");
+		    id = registry.lookupReceivePort("SOR" + child[c] + "reduceR");
 		    reduceSbcast.connect(id);
 		}
 	    }
@@ -192,7 +192,7 @@ System.err.println(rank + ": local connection OK");
 	    for (int i = 0; i < clusterSize; i++) {
 		if (i != myCluster) {
 		    ReceivePortIdentifier id;
-		    id = registry.lookup("SOR" + clusterRoot[i] + "_" + myCluster + "_interR");
+		    id = registry.lookupReceivePort("SOR" + clusterRoot[i] + "_" + myCluster + "_interR");
 		    reduceSinter.connect(id);
 		}
 	    }

@@ -124,7 +124,7 @@ public final class RTS {
 
                                 systemOut = portType.createSendPort("RepMI Client " + name);
 
-                                ReceivePortIdentifier master = ibisRegistry.lookup("RepMI Master");
+                                ReceivePortIdentifier master = ibisRegistry.lookupReceivePort("RepMI Master");
 
                                 while (master == null) { 
                                         try { 
@@ -132,7 +132,7 @@ public final class RTS {
                                         } catch (InterruptedException e) { 
                                                 // ignore
                                         } 
-                                        master = ibisRegistry.lookup("RepMI Master");
+                                        master = ibisRegistry.lookupReceivePort("RepMI Master");
                                 }
                                         
                                 systemOut.connect(master);

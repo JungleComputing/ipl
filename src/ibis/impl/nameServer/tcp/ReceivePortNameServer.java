@@ -206,9 +206,15 @@ class ReceivePortNameServer extends Thread implements Protocol {
 	}
 	
 	private void handlePortFree() throws IOException, ClassNotFoundException {
-		ReceivePortIdentifier id, old_id;
+		ReceivePortIdentifier id;
 
 		String name = in.readUTF();
+
+		id = (ReceivePortIdentifier) ports.get(name);
+
+		if (id == null) {
+		    out.writeByte(1);
+		}
 		ports.remove(name);
 		out.writeByte(0); 
 	} 

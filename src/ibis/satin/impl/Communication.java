@@ -53,7 +53,7 @@ public abstract class Communication extends SpawnSync {
 
 	//used by GlobalResultTable
 	ReceivePortIdentifier lookup(String name) throws IOException {
-		return ibis.registry().lookup(name);
+		return ibis.registry().lookupReceivePort(name);
 	}
 
 	SendPort getReplyPortWait(IbisIdentifier ident) {
@@ -192,7 +192,7 @@ public abstract class Communication extends SpawnSync {
 
 		// Close the world, no more join and leave upcalls will be received.
 		if (!closed) {
-			ibis.closeWorld();
+			ibis.disableResizeUpcalls();
 		}
 
 		int size;
@@ -254,7 +254,7 @@ public abstract class Communication extends SpawnSync {
 		}
 
 		if (!closed) {
-			ibis.openWorld();
+			ibis.enableResizeUpcalls();
 		}
 
 		if (COMM_DEBUG) {

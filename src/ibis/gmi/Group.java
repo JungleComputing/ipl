@@ -420,7 +420,7 @@ public final class Group implements GroupProtocol {
 
 		systemOut = portType.createSendPort("GMI Client " + localID.name());
 
-		ReceivePortIdentifier master = ibisRegistry.lookup("GMI Master");
+		ReceivePortIdentifier master = ibisRegistry.lookupReceivePort("GMI Master");
 
 		while (master == null) { 
 		    try { 
@@ -428,7 +428,7 @@ public final class Group implements GroupProtocol {
 		    } catch (InterruptedException e) { 
 			// ignore
 		    } 
-		    master = ibisRegistry.lookup("GMI Master");
+		    master = ibisRegistry.lookupReceivePort("GMI Master");
 		}
 
 		systemOut.connect(master);

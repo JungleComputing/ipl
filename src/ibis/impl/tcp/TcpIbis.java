@@ -32,7 +32,6 @@ public final class TcpIbis extends Ibis implements Config {
 
 	private ArrayList joinedIbises = new ArrayList();
 	private ArrayList leftIbises = new ArrayList();
-	private ArrayList toBeDeletedIbises = new ArrayList();
 
 	TcpPortHandler tcpPortHandler;
 	private boolean ended = false;
@@ -88,15 +87,6 @@ public final class TcpIbis extends Ibis implements Config {
 		return nameServer;
 	} 
 	
-	
-	public void sendDelete(IbisIdentifier identifier) throws IOException {
-	    nameServer.delete(identifier);
-	}
-	
-	public void sendReconfigure() throws IOException {
-	    nameServer.reconfigure();
-	}
-
 	public StaticProperties properties() { 
 		return staticProperties(implName);
 	}
@@ -148,7 +138,7 @@ public final class TcpIbis extends Ibis implements Config {
 		}
 
 		if(resizeHandler != null) {
-			resizeHandler.join(joinIdent);
+			resizeHandler.joined(joinIdent);
 			if (! i_joined && joinIdent.equals(ident)) {
 			    synchronized(this) {
 				i_joined = true;
@@ -177,46 +167,15 @@ public final class TcpIbis extends Ibis implements Config {
 		}
 
 		if(resizeHandler != null) {
-			resizeHandler.leave(leaveIdent);
+			resizeHandler.left(leaveIdent);
 		}
 	}
-
-	public void delete(IbisIdentifier deleteIdent) { 
-		synchronized (this) {
-			if(!open && resizeHandler != null) {
-				toBeDeletedIbises.add(deleteIdent);
-				return;
-			}
-
-			// this method forwards the delete to the application running on top of ibis.
-			if(DEBUG) {
-				System.out.println(name + ": Ibis '" + deleteIdent.name() + "' will be deleted"); 
-			}
-		}
-
-		if(resizeHandler != null) {
-			resizeHandler.delete(deleteIdent);
-		}
-	}
-	
-	public void reconfigure() { 
-			// this method forwards the leave to the application running on top of ibis.
-			if(DEBUG) {
-				System.out.println(name + ": reconfiguration"); 
-			}
-
-		if(resizeHandler != null) {
-			resizeHandler.reconfigure();
-		}
-	}
-	
-
 
 	public PortType getPortType(String name) { 
 		return (PortType) portTypeList.get(name);
 	} 
 
-	public void openWorld() {
+	public void enableResizeUpcalls() {
 		TcpIbisIdentifier ident = null;
 
 		if(resizeHandler != null) {
@@ -226,7 +185,7 @@ public final class TcpIbis extends Ibis implements Config {
 					poolSize++;
 					ident = (TcpIbisIdentifier)joinedIbises.remove(0);
 				}
-				resizeHandler.join(ident); // Don't hold the lock during user upcall
+				resizeHandler.joined(ident); // Don't hold the lock during user upcall
 				if (ident.equals(this.ident)) {
 				    i_joined = true;
 				}
@@ -238,19 +197,9 @@ public final class TcpIbis extends Ibis implements Config {
 					poolSize--;
 					ident = (TcpIbisIdentifier)leftIbises.remove(0);
 				}
-				resizeHandler.leave(ident); // Don't hold the lock during user upcall
+				resizeHandler.left(ident); // Don't hold the lock during user upcall
 
 			}
-			
-			while(true) {
-				synchronized(this) {
-					if(toBeDeletedIbises.size() == 0) break;
-					ident = (TcpIbisIdentifier)toBeDeletedIbises.remove(0);
-				}
-				resizeHandler.delete(ident);    				
-			}
-			
-			
 		}
 		
 		synchronized (this) {
@@ -271,7 +220,7 @@ public final class TcpIbis extends Ibis implements Config {
 		}
 	}
 
-	public synchronized void closeWorld() {
+	public synchronized void disableResizeUpcalls() {
 		open = false;
 	}
 

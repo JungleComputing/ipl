@@ -262,47 +262,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 
 	} 
 
-	public void delete(IbisIdentifier ident) throws IOException {
-			System.err.println("NS client: delete");	
-			Socket s = socketFactory.createSocket(serverAddress, port, myAddress, 0 /*retry*/);
-		
-			DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
-
-			out.writeByte(IBIS_DELETE);
-			out.writeUTF(poolName);
-			out.writeObject(ident);
-			out.flush();
-			System.err.println("NS client: delete sent");			
-
-			DummyInputStream di = new DummyInputStream(s.getInputStream());
-			ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
-			
-			int temp = in.readByte();
-			System.err.println("NS client: delete ack received");			
-
-			socketFactory.close(in, out, s);
-			System.err.println("NS client: delete DONE");			
-	}
 	
-	public void reconfigure() throws IOException {
-			Socket s = socketFactory.createSocket(serverAddress, port, myAddress, 0 /*retry*/);
-		
-			DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
-			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(dos));
-
-			out.writeByte(IBIS_RECONFIGURE);
-			out.writeUTF(poolName);
-			out.flush();
-
-			DummyInputStream di = new DummyInputStream(s.getInputStream());
-			ObjectInputStream in  = new ObjectInputStream(new BufferedInputStream(di));
-			
-			int temp = in.readByte();
-
-			socketFactory.close(in, out, s);
-	}
-
 	public void run() {
 		if (DEBUG) { 
 			System.out.println("NameServerClient: stread started");
@@ -376,15 +336,6 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 						ibisImpl.leave(id);
 					}
 					break;
-				case (IBIS_DELETE):
-					id = (IbisIdentifier) in.readObject();
-					socketFactory.close(in, null, s);
-					ibisImpl.delete(id);
-					break;
-				case (IBIS_RECONFIGURE):
-					socketFactory.close(in, null, s);
-					ibisImpl.reconfigure();
-					break;
 				default: 
 					System.out.println("NameServerClient: got an illegal opcode " + opcode);
 				}
@@ -401,24 +352,24 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		}
 	}  
 
-	public ReceivePortIdentifier lookup(String name) throws IOException {
-		return lookup(name, 0);
+	public ReceivePortIdentifier lookupReceivePort(String name) throws IOException {
+		return lookupReceivePort(name, 0);
 	}
 
-	public ReceivePortIdentifier lookup(String name, long timeout) throws IOException {
+	public ReceivePortIdentifier lookupReceivePort(String name, long timeout) throws IOException {
 		return receivePortNameServerClient.lookup(name, timeout);
 	}
 
-	public IbisIdentifier locate(String name) throws IOException {
-		return locate(name, 0);
+	public IbisIdentifier lookupIbis(String name) throws IOException {
+		return lookupIbis(name, 0);
 	} 
 
-	public IbisIdentifier locate(String name, long timeout) throws IOException {
+	public IbisIdentifier lookupIbis(String name, long timeout) throws IOException {
 		/* not implemented yet */
 		return null;
 	} 
 
-	public ReceivePortIdentifier [] query(IbisIdentifier ident)  throws IOException, ClassNotFoundException { 
+	public ReceivePortIdentifier [] listReceivePorts(IbisIdentifier ident)  throws IOException, ClassNotFoundException { 
 		/* not implemented yet */
 		return new ReceivePortIdentifier[0];
 	}
@@ -445,7 +396,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 		receivePortNameServerClient.unbind(name);
 	}
 
-	public String[] list(String pattern) throws IOException {
+	public String[] listNames(String pattern) throws IOException {
 		return receivePortNameServerClient.list(pattern);
 	}
 	//end gosia

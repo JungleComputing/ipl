@@ -75,7 +75,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
     private int members = 0;
     private IbisIdentifier prev = null;
 
-    public void join( IbisIdentifier id )
+    public void joined( IbisIdentifier id )
     {
         if( traceClusterResizing ){
             System.out.println( "Machine " + id.name() + " joins the computation" );
@@ -105,7 +105,7 @@ class RszHandler implements OpenConfig, ResizeHandler {
         prev = id;
     }
 
-    public void leave( IbisIdentifier id )
+    public void left( IbisIdentifier id )
     {
         if( traceClusterResizing ){
             System.out.println( "Machine " + id.name() + " leaves the computation" );
@@ -113,19 +113,16 @@ class RszHandler implements OpenConfig, ResizeHandler {
         members--;
     }
 
-    public void delete( IbisIdentifier id )
+    public void died( IbisIdentifier id )
     {
         if( traceClusterResizing ){
-            System.out.println( "Machine " + id.name() + " is deleted from the computation" );
+            System.out.println( "Machine " + id.name() + " died" );
         }
         members--;
     }
 
-    public void reconfigure()
-    {
-        if( traceClusterResizing ){
-            System.out.println( "Cluster is reconfigured" );
-        }
+    public void mustLeave( IbisIdentifier[] ids ) {
+	// We don't do this.
     }
 
     public synchronized int getMemberCount()
@@ -226,7 +223,7 @@ class OpenCell1D implements OpenConfig {
         if( tracePortCreation ){
             System.out.println( "P" + me + ": created send port " + res  );
         }
-        ReceivePortIdentifier id = registry.lookup( receiveportname );
+        ReceivePortIdentifier id = registry.lookupReceivePort( receiveportname );
         res.connect( id );
         if( tracePortCreation ){
             System.out.println( "P" + me + ": connected " + sendportname + " to " + receiveportname );
@@ -912,7 +909,7 @@ class OpenCell1D implements OpenConfig {
             PortType updatePort = ibis.createPortType( "neighbour update", s );
             PortType stealPort = ibis.createPortType( "loadbalance", s );
 
-            ibis.openWorld();
+            ibis.enableResizeUpcalls();
 
             if( me != 0 && leftNeighbour == null ){
                 System.out.println( "P" + me + ": there is no left neighbour???" );

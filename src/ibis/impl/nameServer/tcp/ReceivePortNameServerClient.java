@@ -2,6 +2,8 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
+
+import ibis.ipl.BindingException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisIdentifier;
@@ -123,7 +125,7 @@ class ReceivePortNameServerClient implements Protocol {
 
 		switch (result) {
 		case PORT_REFUSED:
-			throw new ConnectionRefusedException("Port name \"" + name + "\" is not unique!");
+			throw new BindingException("Port name \"" + name + "\" is not unique!");
 		case PORT_ACCEPTED:
 			break;
 		default:
@@ -198,8 +200,10 @@ class ReceivePortNameServerClient implements Protocol {
 		in  = new ObjectInputStream(new BufferedInputStream(di));
 
 		byte temp = in.readByte();
-
 		NameServerClient.socketFactory.close(in, out, s);
+		if (temp != 0) {
+			throw new BindingException("Port name \"" + name + "\" is not bound!");
+		}
 	}
 
 	//gosia

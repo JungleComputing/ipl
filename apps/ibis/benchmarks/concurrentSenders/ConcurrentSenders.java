@@ -35,7 +35,7 @@ class Sender extends Thread implements Config {
 			SendPort sport = t.createSendPort("send port");
 			ReceivePort rport;
 
-			ReceivePortIdentifier ident = ibis.registry().lookup("receive port");
+			ReceivePortIdentifier ident = ibis.registry().lookupReceivePort("receive port");
 			sport.connect(ident);
 		
 System.err.println(this + ": Connection established -- I'm a Sender");

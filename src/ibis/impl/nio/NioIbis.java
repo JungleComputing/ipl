@@ -47,7 +47,6 @@ public final class NioIbis extends Ibis implements Config {
     private boolean open = false;
     private ArrayList joinedIbises = new ArrayList();
     private ArrayList leftIbises = new ArrayList();
-    private ArrayList toBeDeletedIbises = new ArrayList();
 
     ChannelFactory factory;
     private boolean ended = false;
@@ -94,14 +93,6 @@ public final class NioIbis extends Ibis implements Config {
 	return nameServer;
     }
     
-    public void sendReconfigure() throws IOException {
-	nameServer.reconfigure();
-    }
-    
-    public void sendDelete(IbisIdentifier ident) throws IOException {
-	nameServer.delete(ident);
-    } 
-
     public IbisIdentifier identifier() {
 	return ident;
     }
@@ -157,7 +148,7 @@ public final class NioIbis extends Ibis implements Config {
 	}
 
 	if(resizeHandler != null) {
-	    resizeHandler.join(joinIdent);
+	    resizeHandler.joined(joinIdent);
 	    if (!i_joined && joinIdent.equals(ident)) {
 		synchronized(this) {
 		    i_joined = true;
@@ -188,35 +179,15 @@ public final class NioIbis extends Ibis implements Config {
 	}
 
 	if(resizeHandler != null) {
-	    resizeHandler.leave(leaveIdent);
+	    resizeHandler.left(leaveIdent);
 	}
     }
     
-    public void delete(IbisIdentifier deleteIdent) {
-	synchronized (this) {
-	    if (!open && resizeHandler != null) {
-		toBeDeletedIbises.add(deleteIdent);
-		return;
-	    }
-	}
-	
-	if (resizeHandler != null) {
-	    resizeHandler.delete(deleteIdent);
-	}
-    }
-    
-    public void reconfigure() {
-	    if (resizeHandler != null) {
-		resizeHandler.reconfigure();
-	    }
-    }
-	
-	    
     public PortType getPortType(String name) { 
 	return (PortType) portTypeList.get(name);
     } 
 
-    public void openWorld() {
+    public void enableResizeUpcalls() {
 	NioIbisIdentifier ident = null;
 
 	if (DEBUG) {
@@ -230,7 +201,7 @@ public final class NioIbis extends Ibis implements Config {
 		    poolSize++;
 		    ident = (NioIbisIdentifier)joinedIbises.remove(0);
 		}
-		resizeHandler.join(ident); // Don't hold the lock during user upcall
+		resizeHandler.joined(ident); // Don't hold the lock during user upcall
 		if (ident.equals(this.ident)) {
 		    i_joined = true;
 		}
@@ -242,7 +213,7 @@ public final class NioIbis extends Ibis implements Config {
 		    poolSize--;
 		    ident = (NioIbisIdentifier)leftIbises.remove(0);
 		}
-		resizeHandler.leave(ident); // Don't hold the lock during user upcall
+		resizeHandler.left(ident); // Don't hold the lock during user upcall
 
 	    }
 	}
@@ -264,7 +235,7 @@ public final class NioIbis extends Ibis implements Config {
 	}
     }
 
-    public synchronized void closeWorld() {
+    public synchronized void disableResizeUpcalls() {
 	open = false;
     }
 

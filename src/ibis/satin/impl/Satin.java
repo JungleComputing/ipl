@@ -260,7 +260,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 			}
 		}
 
-		ibis.openWorld();
+		ibis.enableResizeUpcalls();
 
 		if (COMM_DEBUG) {
 			out.println("SATIN '" + hostName + "': pre barrier");

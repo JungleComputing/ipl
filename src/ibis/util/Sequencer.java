@@ -155,7 +155,7 @@ public final class Sequencer {
 	    snd = tp.createSendPort();
 	    rcv = tp.createReceivePort("sequencer port on " + ibis.identifier().name());
 	    rcv.enableConnections();
-	    ReceivePortIdentifier master_id = ibis.registry().lookup("seq recvr");
+	    ReceivePortIdentifier master_id = ibis.registry().lookupReceivePort("seq recvr");
 	    snd.connect(master_id);
 	    ReceivePortIdentifier rid = rcv.identifier();
 	    WriteMessage w = snd.newMessage();

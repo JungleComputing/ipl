@@ -74,10 +74,10 @@ An Ibis instance is identified by a so-called
 \emph{Ibis identifier}.
 An application can find out which Ibis instances are present in the run
 by supplying a so-called \emph{ResizeHandler}.
-This ResizeHandler is an object with, among others, a \texttt{join()}
+This ResizeHandler is an object with, among others, a \texttt{joined()}
 method which gets called by the Ibis system when a new Ibis instance
 joins the run.  The Ibis identifier of this new Ibis is a parameter
-to the \texttt{join()} method.
+to the \texttt{joined()} method.
 
 \mysubsection{Send Ports and Receive Ports}
 
@@ -224,18 +224,18 @@ They are summarized in an object of the
 \ref{StaticProperties}
 
 The second parameter of \texttt{createIbis()} specifies an upcall handler
-with \texttt{join()} and \texttt{leave()} upcalls that get called when an Ibis
+with \texttt{joined()} and \texttt{left()} upcalls that get called when an Ibis
 joins or leaves the run.  In our RPC example, we will not use this, so we
 specify \texttt{null} instead.  However, when such a \texttt{ResizeHandler}
-is used, its \texttt{join()} upcall is called for every Ibis that joins the
+is used, its \texttt{joined()} upcall is called for every Ibis that joins the
 run, including the Ibis being created itself.
 Upcalls to the \texttt{ResizeHandler} must be explicitly enabled by
-invoking the \texttt{openWorld()} method of the Ibis
+invoking the \texttt{enableResizeUpcalls()} method of the Ibis
 just created. This ensures that the \texttt{ResizeHandler} has been
 able to do the necessary initializations.
 
-The \texttt{openWorld()} method blocks until the
-\texttt{join()} upcall for this Ibis has been invoked.  Knowing which Ibises
+The \texttt{enableResizeUpcalls()} method blocks until the
+\texttt{joined()} upcall for this Ibis has been invoked.  Knowing which Ibises
 have joined the run, and how many there are, is often useful in dividing
 the work. See also section \ref{Which Instance Does What?}.
 
@@ -602,11 +602,11 @@ There also is a \texttt{connect()} version with a time-out.
 So, we need a \texttt{ibis.ipl.ReceivePortIdentifier} to set up the
 connection.
 This identifier can be obtained through the Ibis registry, by
-means of the \texttt{lookup()} method, which has the following specification:
+means of the \texttt{lookupReceivePort()} method, which has the following specification:
 
 \begin{quote}
 \begin{verbatim}
-ReceivePortIdentifier lookup(String name)
+ReceivePortIdentifier lookupReceivePort(String name)
         throws IOException;
 \end{verbatim}
 \end{quote}
@@ -617,7 +617,7 @@ Our RPC server would set up the following connection:
 \begin{quote}
 \begin{verbatim}
 try {
-    ReceivePortIdentifier client = rgstry.lookup("client");
+    ReceivePortIdentifier client = rgstry.lookupReceivePort("client");
     serverSender.connect(client);
 } catch(IOException e) {
     ...
@@ -631,7 +631,7 @@ Our RPC client would set up the following connection:
 \begin{quote}
 \begin{verbatim}
 try {
-    ReceivePortIdentifier srvr = rgstry.lookup("server");
+    ReceivePortIdentifier srvr = rgstry.lookupReceivePort("server");
     clientSender.connect(srvr);
 } catch(IOException e) {
     ...

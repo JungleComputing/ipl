@@ -137,11 +137,6 @@ public final class NetIbis extends Ibis {
 	private   Vector 	    leftIbises       = new Vector();
 
 	/**
-	 * The {@link ibis.impl.net.NetIbis} instances that attempted to be deleted from our pool while our world was {@linkplain #open closed}.
-	 */
-	private   Vector 	    toBeDeletedIbises       = new Vector();
-
-	/**
 	 * Make end() reentrant
 	 */
 	private boolean		ended = false;
@@ -429,14 +424,6 @@ public final class NetIbis extends Ibis {
 		return nameServer;
 	}
 	
-	public void sendDelete(IbisIdentifier ident) throws IOException {
-		nameServer.delete(ident);
-	}
-	
-	public void sendReconfigure() throws IOException {
-		nameServer.reconfigure();
-	}
-
 	/**
 	 * Returns the {@linkplain Ibis} instance {@link #identifier}.
 	 *
@@ -476,7 +463,7 @@ public final class NetIbis extends Ibis {
 		}
 
 		if(resizeHandler != null) {
-			resizeHandler.join(joinIdent);
+			resizeHandler.joined(joinIdent);
 			if (! i_joined && joinIdent.equals(identifier)) {
 			    synchronized(this) {
 				i_joined = true;
@@ -497,34 +484,15 @@ public final class NetIbis extends Ibis {
 		}
 
 		if(resizeHandler != null) {
-			resizeHandler.leave(leaveIdent);
+			resizeHandler.left(leaveIdent);
 		}
 	}
 	
-	public void delete(IbisIdentifier deleteIdent) {
-		synchronized (this) {
-		    if (!open && resizeHandler != null) {
-			toBeDeletedIbises.add(deleteIdent);
-			return;
-		    }
-		    
-		    if (resizeHandler != null) {
-			resizeHandler.delete(deleteIdent);
-		    }
-		}
-	}
-	
-	public void reconfigure() {
-		if (resizeHandler != null) {
-		    resizeHandler.reconfigure();
-		}
-	}
-
-	public void openWorld() {
+	public void enableResizeUpcalls() {
 		if(resizeHandler != null) {
 			while(joinedIbises.size() > 0) {
 				NetIbisIdentifier id = (NetIbisIdentifier)joinedIbises.remove(0);
-				resizeHandler.join(id);
+				resizeHandler.joined(id);
 				if (id.equals(identifier)) {
 				    i_joined = true;
 				}
@@ -532,12 +500,8 @@ public final class NetIbis extends Ibis {
 			}
 
 			while(leftIbises.size() > 0) {
-				resizeHandler.leave((NetIbisIdentifier)leftIbises.remove(0));
+				resizeHandler.left((NetIbisIdentifier)leftIbises.remove(0));
 				poolSize--;
-			}
-			
-			while(toBeDeletedIbises.size() > 0) {
-				resizeHandler.delete((NetIbisIdentifier)toBeDeletedIbises.remove(0));
 			}
 		}
 
@@ -554,7 +518,7 @@ public final class NetIbis extends Ibis {
 		}
 	}
 
-	public synchronized void closeWorld() {
+	public synchronized void disableResizeUpcalls() {
 		synchronized (this) {
 			open = false;
 		}

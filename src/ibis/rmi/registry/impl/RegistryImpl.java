@@ -82,7 +82,7 @@ public class RegistryImpl implements Registry
 	try {
 	    RTS.bind(url, obj);
 	} catch (AlreadyBoundException e1) {
-	    throw new AlreadyBoundException(e1.getMessage(), e1);
+	    throw e1;
 	} catch (Exception e2) {
 	    if (RTS.DEBUG) {
 		e2.printStackTrace();		    
@@ -111,7 +111,7 @@ public class RegistryImpl implements Registry
 	try {
 	    RTS.unbind(url);
 	} catch (NotBoundException e1) {
-	    throw new NotBoundException(e1.getMessage(), e1);
+	    throw e1;
 	} catch (Exception e2) {
 	    throw new RemoteException(e2.getMessage(), e2);
 	}

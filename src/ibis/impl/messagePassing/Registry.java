@@ -64,12 +64,12 @@ class Registry implements ibis.ipl.Registry {
     }
 
 
-    public ibis.ipl.ReceivePortIdentifier lookup(String name) throws IOException {
-	return lookup(name, 0);
+    public ibis.ipl.ReceivePortIdentifier lookupReceivePort(String name) throws IOException {
+	return lookupReceivePort(name, 0);
     }
 
 
-    public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IOException {
+    public ibis.ipl.ReceivePortIdentifier lookupReceivePort(String name, long timeout) throws IOException {
 	return nameServerClient.lookup(name, timeout);
     }
 
@@ -79,24 +79,24 @@ class Registry implements ibis.ipl.Registry {
     }
 
 
-    public ibis.ipl.IbisIdentifier locate(String name) throws IOException {
+    public ibis.ipl.IbisIdentifier lookupIbis(String name) throws IOException {
 	/* not implemented yet */
-	return locate(name, 0);
+	return lookupIbis(name, 0);
     }
 
 
-    public ibis.ipl.IbisIdentifier locate(String name, long millis) throws IOException {
-	/* not implemented yet */
-	return null;
-    }
-
-
-    public String[] list(String pattern) throws IOException {
+    public ibis.ipl.IbisIdentifier lookupIbis(String name, long millis) throws IOException {
 	/* not implemented yet */
 	return null;
     }
 
-    public ibis.ipl.ReceivePortIdentifier[] query(ibis.ipl.IbisIdentifier ident)
+
+    public String[] listNames(String pattern) throws IOException {
+	/* not implemented yet */
+	return null;
+    }
+
+    public ibis.ipl.ReceivePortIdentifier[] listReceivePorts(ibis.ipl.IbisIdentifier ident)
 	    throws IOException {
 	/* not implemented yet */
 	return null;

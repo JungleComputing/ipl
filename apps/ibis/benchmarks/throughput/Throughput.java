@@ -115,7 +115,7 @@ System.err.println(">>>>>>>> Righto, I'm the slave");
 			sport = t.createSendPort();
 
 			do {
-				ident = r.lookup("test port " + remoteRank);
+				ident = r.lookupReceivePort("test port " + remoteRank);
 				if(ident == null) {
 					try {
 						Thread.sleep(1000);

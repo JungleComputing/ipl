@@ -43,12 +43,6 @@ final class ReceivePortNameServerClient
 		System.err.println("Try to bind ReceivePortId " + id + " ibis " + id.ibis().name());
 	    }
 
-//	    if (! name.equals(id.name)) {
-//		System.out.println("name = " + name);
-//		System.out.println("id.name = " + id.name);
-//		throw new StreamCorruptedException("Corrupted ReceivePort name");
-//	    }
-
 	    // request a new Port.
 	    Ibis.myIbis.checkLockNotOwned();
 

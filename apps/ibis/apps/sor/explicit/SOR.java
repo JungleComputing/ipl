@@ -279,7 +279,7 @@ public class SOR {
 	if (rank != 0) {
 	    // System.out.println(rank + " looking up " + "SOR" + (rank-1) + "rightR");
 
-	    ReceivePortIdentifier id = registry.lookup("SOR" + (rank-1) + "rightR");
+	    ReceivePortIdentifier id = registry.lookupReceivePort("SOR" + (rank-1) + "rightR");
 	    // System.out.println(rank + " leftS = " + leftS + " id = " + id);
 	    leftS.connect(id);
 	}
@@ -287,7 +287,7 @@ public class SOR {
 	if (rank != size - 1) {
 	    // System.out.println(rank + " looking up " + "SOR" + (rank+1) + "rightR");
 
-	    ReceivePortIdentifier id = registry.lookup("SOR" + (rank+1) + "leftR");
+	    ReceivePortIdentifier id = registry.lookupReceivePort("SOR" + (rank+1) + "leftR");
 	    // System.out.println(rank + " rightS = " + rightS + " id = " + id);
 	    rightS.connect(id);
 	}

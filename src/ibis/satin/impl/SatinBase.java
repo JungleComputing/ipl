@@ -97,7 +97,7 @@ public abstract class SatinBase implements Config {
 	//ft
 	protected long connectTimeout =  1500000; /*
 										   * Timeout for connecting to other
-										   * nodes (in join()) who might be
+										   * nodes (in joined()) who might be
 										   * crashed
 										   */
 

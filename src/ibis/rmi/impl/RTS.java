@@ -1,5 +1,6 @@
 package ibis.rmi.impl;
 
+import ibis.ipl.BindingException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
@@ -457,15 +458,6 @@ public final class RTS {
 
 	ReceivePortIdentifier dest = null;
 
-	try {
-	    dest = ibisRegistry.lookup(url, 1);
-	} catch(IOException e) {
-	}
-
-	if (dest != null) {
-	    throw new AlreadyBoundException(url + " already bound");
-	}
-
 	Skeleton skel = (Skeleton) skeletons.get(new Integer(System.identityHashCode(o)));
 	if (skel == null) {
 	    //		    throw new RemoteException("object not exported");
@@ -475,7 +467,11 @@ public final class RTS {
 	}
 
 	//new method
-	ibisRegistry.bind(url, skeletonReceivePort.identifier());
+	try {
+	    ibisRegistry.bind(url, skeletonReceivePort.identifier());
+	} catch(BindingException e) {
+	    throw new AlreadyBoundException(url + " already bound");
+	}
 
 	urlHash.put(url, skel);
 
@@ -515,16 +511,10 @@ public final class RTS {
 	ReceivePortIdentifier dest = null;
 
 	try {
-	    dest = ibisRegistry.lookup(url, 1);
-	} catch (IOException e) {
-	}
-
-	if (dest == null) {
+	    ibisRegistry.unbind(url);
+	} catch (BindingException e) {
 	    throw new NotBoundException(url + " not bound");
 	}
-
-	//new method
-	ibisRegistry.unbind(url);
     }
 
 
@@ -541,7 +531,7 @@ public final class RTS {
 
 	synchronized(RTS.class) {
 	    try {
-		dest = ibisRegistry.lookup(url, 1);
+		dest = ibisRegistry.lookupReceivePort(url, 1);
 		// System.err.println("ibisRegistry.lookup(" + url + ". 1) is " + dest);
 	    } catch(IOException e) {
 		// System.err.println("ibisRegistry.lookup(" + url + ". 1) throws " + e);
@@ -612,7 +602,7 @@ public final class RTS {
     public static String[] list(String url) throws IOException
     {
 	int urlLength = url.length();
-	String[] names = ibisRegistry.list(url /*+ ".*"*/);
+	String[] names = ibisRegistry.listNames(url + ".*");
 	for (int i=0; i<names.length; i++) {
 	    names[i] = names[i].substring(urlLength);
 	}

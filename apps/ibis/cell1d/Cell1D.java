@@ -54,7 +54,7 @@ class Cell1D implements Config {
         if( tracePortCreation ){
             System.err.println( "P" + me + ": created send port " + sendportname  );
         }
-        ReceivePortIdentifier id = registry.lookup( receiveportname );
+        ReceivePortIdentifier id = registry.lookupReceivePort( receiveportname );
         res.connect( id );
         if( tracePortCreation ){
             System.err.println( "P" + me + ": connected " + sendportname + " to " + receiveportname );

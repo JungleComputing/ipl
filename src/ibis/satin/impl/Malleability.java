@@ -47,7 +47,7 @@ public abstract class Malleability extends FaultTolerance {
 		}
 	}
 
-	public void join(IbisIdentifier joiner) {
+	public void joined(IbisIdentifier joiner) {
 	
 //		System.err.println("SATIN '" + ident.name() + "': '" + joiner.name()  +" is joining");
 
@@ -72,7 +72,11 @@ public abstract class Malleability extends FaultTolerance {
 		}*/
 	}
 
-	public void leave(IbisIdentifier leaver) {
+	public void died(IbisIdentifier corpse) {
+		left(corpse);
+	}
+
+	public void left(IbisIdentifier leaver) {
 		if (leaver.equals(this.ident))
 			return;
 

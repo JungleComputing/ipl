@@ -70,7 +70,7 @@ public class Example {
 	try {
 	    // Create a send port for sending answers
 	    SendPort serverSender = porttype.createSendPort();
-	    ReceivePortIdentifier client = rgstry.lookup("client");
+	    ReceivePortIdentifier client = rgstry.lookupReceivePort("client");
 	    serverSender.connect(client);
 
 	    // Create an upcall handler
@@ -114,7 +114,7 @@ public class Example {
 	    clientReceiver.enableConnections();
 
 	    // Connect send port
-	    ReceivePortIdentifier srvr = rgstry.lookup("server");
+	    ReceivePortIdentifier srvr = rgstry.lookupReceivePort("server");
 	    clientSender.connect(srvr);
 
 	    FileReader f = new FileReader("Example.java");

@@ -31,7 +31,7 @@ class ElectionClient implements ElectionProtocol {
 	rport.enableConnections();
 // System.err.println(Thread.currentThread() + "ElectionClient: receivePort lives");
 
-	server = Ibis.myIbis.registry().lookup("++++ElectionServer-" +
+	server = Ibis.myIbis.registry().lookupReceivePort("++++ElectionServer-" +
 						Ibis.myIbis.myCpu + "++++");
 // System.err.println(Thread.currentThread() + "ElectionClient: server located");
 	sport = type.createSendPort("election_client");

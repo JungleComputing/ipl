@@ -102,7 +102,7 @@ public class TreeReducer extends Reducer {
 	    int childrank = rank - 2 * parent - 1;
 	    reduceSreduce = portTypeReduce.createSendPort("SOR" + rank + "reduceS");
 	    ReceivePortIdentifier id;
-	    id = registry.lookup("SOR" + parent + "_" + childrank + "_reduceR");
+	    id = registry.lookupReceivePort("SOR" + parent + "_" + childrank + "_reduceR");
 	    reduceSreduce.connect(id);
 	}
 
@@ -117,7 +117,7 @@ public class TreeReducer extends Reducer {
 	    for (int c = 0; c < 2; c++) {
 		if (child[c] != LEAF_NODE) {
 		    ReceivePortIdentifier id;
-		    id = registry.lookup("SOR" + child[c] + "reduceR");
+		    id = registry.lookupReceivePort("SOR" + child[c] + "reduceR");
 		    reduceSbcast.connect(id);
 		}
 	    }

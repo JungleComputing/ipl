@@ -1,5 +1,7 @@
 package ibis.satin.impl;
 
+import ibis.ipl.IbisIdentifier;
+
 class DeleteThread extends Thread {
 
 	int milis;
@@ -17,7 +19,7 @@ class DeleteThread extends Thread {
 			//ignore
 		}
 		Satin satin = Satin.this_satin;
-		satin.delete(satin.ident);
+		satin.mustLeave(new IbisIdentifier[] { satin.ident });
 	}
 
 }

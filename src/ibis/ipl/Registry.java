@@ -18,7 +18,7 @@ public interface Registry {
      * @return the identifier.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public ReceivePortIdentifier lookup(String name)
+    public ReceivePortIdentifier lookupReceivePort(String name)
 	throws IOException;
 
     /**
@@ -35,7 +35,7 @@ public interface Registry {
      * 	expires.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public ReceivePortIdentifier lookup(String name, long timeout)
+    public ReceivePortIdentifier lookupReceivePort(String name, long timeout)
 	throws IOException;
 
     /**
@@ -50,7 +50,7 @@ public interface Registry {
      * 	is returned whose class is locally unknown.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public IbisIdentifier locate(String name)
+    public IbisIdentifier lookupIbis(String name)
 	throws IOException, ClassNotFoundException;
 
     /**
@@ -69,7 +69,7 @@ public interface Registry {
      * 	expires.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public IbisIdentifier locate(String name, long timeout)
+    public IbisIdentifier lookupIbis(String name, long timeout)
 	throws IOException, ClassNotFoundException;
 
     /**
@@ -80,7 +80,7 @@ public interface Registry {
      *  identifier is returned whose class is locally unknown.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public ReceivePortIdentifier[] query(IbisIdentifier ident)
+    public ReceivePortIdentifier[] listReceivePorts(IbisIdentifier ident)
 	throws IOException, ClassNotFoundException;
 
     /**
@@ -111,7 +111,7 @@ public interface Registry {
      * @param election the name of this election.
      * @param candidate a candidate for this election.
      * @param formerRuler could be the result of an earlier election, in which
-     *  case it is overridden by a new candidate (which might be the same).
+     *  case it is overridden by a new candidate.
      * @return the object elected.
      * @exception ClassNotFoundException is thrown if an object
      * 	is returned whose class is locally unknown.
@@ -126,7 +126,7 @@ public interface Registry {
      *
      * @param name the name to which a port is being bound.
      * @param port the receiveport identifier to which a binding is made.
-     * @exception ConnectionRefusedException is thrown when the specified name
+     * @exception BindingException is thrown when the specified name
      * 	is already bound.
      * @exception java.io.IOException is thrown in case of trouble.
      */
@@ -147,20 +147,20 @@ public interface Registry {
     /**
      * Removes any binding for the specified name.
      * @param name the name for which any binding is to be removed.
+     * @exception BindingException is thrown when the specified name was not
+     * bound
      * @exception java.io.IOException is thrown in case of trouble.
      */
     public void unbind(String name)
 	throws IOException;
 
     /**
-     * Returns an array of strings, each starting with <code>pattern</code>,
-     * that have a receiveport identifier bound to it.
+     * Returns an array of strings representing names that have a
+     * receiveport identifier bound to it and match the given regular
+     * expression.
      *
-     * @param pattern all strings in the result must start with this.
-     * @return an array of names starting with <code>pattern</code> that have
-     *  a receiveport identifier bound to it.
+     * @param regex the regular expression to match with.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public String[] list(String pattern)
-	throws IOException;
+    public String[] listNames(String regex) throws IOException;
 }

@@ -15,7 +15,7 @@ public class Main {
 		ReceivePortIdentifier temp = null;
 
 		do {
-			temp = registry.lookup(name);
+			temp = registry.lookupReceivePort(name);
 
 			if (temp == null) {
 				try {

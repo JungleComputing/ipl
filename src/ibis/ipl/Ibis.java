@@ -651,17 +651,20 @@ public abstract class Ibis {
     }
 
     /**
-     * Allows for join and leave calls to be received.
+     * Allows reception of {@link ibis.ipl.ResizeHandler ResizeHandler}
+     * upcalls.
      * If a {@link ibis.ipl.ResizeHandler ResizeHandler} is installed,
-     * this call blocks until its join upcall for this Ibis is
-     * invoked.
+     * this call blocks until its
+     * {@link ibis.ipl.ResizeHandler#joined() joined()}
+     * upcall for this Ibis is invoked.
      */
-    public abstract void openWorld();
+    public abstract void enableResizeUpcalls();
 
     /**
-     * Disables reception of join/leave calls.
+     * Disables reception of
+     * {@link ibis.ipl.ResizeHandler ResizeHandler} upcalls.
      */
-    public abstract void closeWorld();
+    public abstract void disableResizeUpcalls();
 
     /**
      * Returns all Ibis recources to the system.
@@ -771,19 +774,6 @@ public abstract class Ibis {
      */
     public abstract Registry registry();
     
-    /** 
-     * Notifies the specified ibis that it has to leave the computation
-     * @param ident the ibis that has to leave.
-     * @exception IOException is thrown when a communication error occurs.
-     */
-    public abstract void sendDelete(IbisIdentifier ident) throws IOException;
-	
-    /**
-     * Notifies all ibises in the run that they have to reconfigure.
-     * @exception IOException is thrown when a communication error occurs.
-     */
-    public abstract void sendReconfigure() throws IOException;
-
     /**
      * Returns the properties of this Ibis implementation.
      * @return the properties of this Ibis implementation.
@@ -852,24 +842,4 @@ public abstract class Ibis {
      *  identifier} of the Ibis instance leaving the run.
      */
     public abstract void leave(IbisIdentifier leaveIdent);
-    
-    /**
-     * Notifies this Ibis instance that this or another Ibis instance has
-     * to leave the run.
-     * <strong>
-     * Note: used by the nameserver, do not call from outside Ibis.
-     * </strong>
-     * @param deleteIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
-     *  identifier} of the Ibis instance that has to leave the run.
-     */
-     public abstract void delete(IbisIdentifier deleteIdent);
-     
-    /**
-     * Notifies this Ibis instance that the application has to reconfigure.
-     * <strong>
-     * Note: used by the nameserver, do not call from outside Ibis.
-     * </strong>
-     */     
-    public abstract void reconfigure();
-    
 } 

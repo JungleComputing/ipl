@@ -73,7 +73,7 @@ public class Reducer {
 	    reduceR.enableConnections();
 	    reduceS = portTypeBroadcast.createSendPort("SOR" + rank + "reduceS");
 	    for (int i = 1 ; i < size; i++) {
-		ReceivePortIdentifier id = registry.lookup("SOR" + i + "reduceR");
+		ReceivePortIdentifier id = registry.lookupReceivePort("SOR" + i + "reduceR");
 		reduceS.connect(id);
 	    }
 
@@ -83,7 +83,7 @@ public class Reducer {
 	    reduceS = portTypeReduce.createSendPort("SOR" + rank + "reduceS");
 
 	    // many-to-one to gather values
-	    ReceivePortIdentifier id = registry.lookup("SOR0reduceR");
+	    ReceivePortIdentifier id = registry.lookupReceivePort("SOR0reduceR");
 	    reduceS.connect(id);
 	}
     }

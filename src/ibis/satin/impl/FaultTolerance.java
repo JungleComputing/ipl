@@ -482,12 +482,13 @@ public abstract class FaultTolerance extends Inlets {
 		}
 	}
 
-	public void delete(IbisIdentifier id) {
-
-		if (ident.equals(id)) {
+	public void mustLeave(IbisIdentifier[] ids) {
+	    for (int i = 0; i < ids.length; i++) {
+		if (ident.equals(ids[i])) {
 			gotDelete = true;
+			break;
 		}
-
+	    }
 	}
 
 	public void deleteCluster(String clusterName) {
@@ -497,10 +498,6 @@ public abstract class FaultTolerance extends Inlets {
 		if (ident.cluster().equals(clusterName)) {
 			gotDeleteCluster = true;
 		}
-	}
-
-	public void reconfigure() {
-		// TODO
 	}
 
 	synchronized void handleDelete() {

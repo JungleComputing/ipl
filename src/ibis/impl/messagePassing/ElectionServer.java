@@ -143,7 +143,7 @@ class ElectionServer
 
 	    for (int i = 0; i < n; i++) {
 // System.err.println(Thread.currentThread() + "Now I'm gonna lookup ElectionClient receive port " + i);
-		ibis.ipl.ReceivePortIdentifier rid = Ibis.myIbis.registry().lookup("++++ElectionClient-" + i + "++++");
+		ibis.ipl.ReceivePortIdentifier rid = Ibis.myIbis.registry().lookupReceivePort("++++ElectionClient-" + i + "++++");
 // System.err.println(Thread.currentThread() + "Now I'm gonna connect to ElectionClient receive port " + i + " RportID " + rid);
 		client_port[i].connect(rid);
 	    }

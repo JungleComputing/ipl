@@ -16,7 +16,7 @@ public abstract class Termination extends Initialization {
 		totalTimer.stop();
 
 		if (!closed) {
-			ibis.closeWorld();
+			ibis.disableResizeUpcalls();
 		}
 
 		if (stats && detailedStats)

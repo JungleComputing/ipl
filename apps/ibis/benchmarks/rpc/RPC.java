@@ -29,7 +29,7 @@ class RszHandler implements ResizeHandler {
 
     java.util.Vector	idents = new java.util.Vector();
 
-    public void join(IbisIdentifier id) {
+    public void joined(IbisIdentifier id) {
 	synchronized (this) {
 	    idents.add(id);
 	    notifyAll();
@@ -37,7 +37,7 @@ class RszHandler implements ResizeHandler {
 System.err.println(this + " See join of " + id + "; n := " + idents.size());
     }
 
-    public void leave(IbisIdentifier id) {
+    public void left(IbisIdentifier id) {
 	synchronized (this) {
 	    idents.remove(id);
 	    notifyAll();
@@ -45,12 +45,12 @@ System.err.println(this + " See join of " + id + "; n := " + idents.size());
 // System.err.println(this + " See leave of " + id + "; n := " + idents.size());
     }
 
-    public void delete(IbisIdentifier id) {
-	System.err.println("No idea what this means");
+    public void died(IbisIdentifier corpse) {
+	left(corpse);
     }
 
-    public void reconfigure() {
-	System.err.println("No idea what this means");
+    public void mustLeave(IbisIdentifier[] ids) {
+	// We don't do this.
     }
 
     void sync(int n) {
@@ -533,12 +533,12 @@ System.err.println(rank + ": Server: seen " + services + " msgs for warmup");
 		send_one(true /* is_server */, 0);
 	    }
 
-	    // myIbis.closeWorld();
+	    // myIbis.disableResizeUpcalls();
 	    if (myIbis instanceof ibis.impl.messagePassing.Ibis) {
 		ibis.impl.messagePassing.Ibis.resetStats();
 	    }
 	    System.gc();
-	    // myIbis.openWorld();
+	    // myIbis.enableResizeUpcalls();
 
 	    // test
 	    synchronized(this) {
@@ -597,7 +597,7 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 	    }
 	}
 
-	myIbis.openWorld();
+	myIbis.enableResizeUpcalls();
 
 	if (connectUpcalls) {
 	    rport = replyPortType.createReceivePort("client port " + rank, (ReceivePortConnectUpcall)this);
@@ -620,7 +620,7 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 
 	for (int i = 0; i < servers; i++) {
 	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " lookup \"server port " + i + "\"");
-	    ReceivePortIdentifier rp = registry.lookup("server port " + i);
+	    ReceivePortIdentifier rp = registry.lookupReceivePort("server port " + i);
 	    sport.connect(rp);
 	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " connected to \"server port " + i + "\"");
 	}
@@ -676,7 +676,7 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 	    }
 	}
 
-	myIbis.openWorld();
+	myIbis.enableResizeUpcalls();
 
 	if (upcall) {
 	    if (connectUpcalls) {
@@ -706,7 +706,7 @@ System.err.println(rank + ": Server: seen " + services + " msgs");
 	rport.enableConnections();
 
 	for (int i = 0; i < clients; i++) {
-	    ReceivePortIdentifier rp = registry.lookup("client port " + i);
+	    ReceivePortIdentifier rp = registry.lookupReceivePort("client port " + i);
 	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " connect to \"client port " + i + "\"");
 	    sport.connect(rp);
 	    // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + " Server: connected to \"client port " + i + "\"");

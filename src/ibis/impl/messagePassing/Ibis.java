@@ -96,14 +96,6 @@ public class Ibis extends ibis.ipl.Ibis {
 	return registry;
     }
     
-    public void sendDelete(ibis.ipl.IbisIdentifier ident) throws IOException {
-	// I guess this is Gosia stuff. No idea what it should implement.
-    }
-    
-    public void sendReconfigure() throws IOException {
-	// I guess this is Gosia stuff. No idea what it should implement.
-    }
-
 
     ReceivePortNameServer createReceivePortNameServer() throws IOException{
 	return new ReceivePortNameServer();
@@ -165,7 +157,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	    Thread.dumpStack();
 	}
 	if (resizeHandler != null) {
-	    resizeHandler.join(id);
+	    resizeHandler.joined(id);
 	    if (! i_joined && id.equals(ident)) {
 		synchronized(this) {
 		    i_joined = true;
@@ -178,22 +170,10 @@ public class Ibis extends ibis.ipl.Ibis {
 
     public void leave(ibis.ipl.IbisIdentifier id) {
 	if (resizeHandler != null) {
-	    resizeHandler.leave(id);
+	    resizeHandler.left(id);
 	}
     }
     
-    public void delete(ibis.ipl.IbisIdentifier id) {
-	if (resizeHandler != null) {
-	    resizeHandler.delete(id);
-	}
-    }
-    
-    public void reconfigure() {
-	if (resizeHandler != null) {
-	    resizeHandler.reconfigure();
-	}
-    }	
-
 
     private static void dumpStack() {
 	new Throwable().printStackTrace();
@@ -292,7 +272,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    public void openWorld() {
+    public void enableResizeUpcalls() {
 	myIbis.lock();
 	world.open();
 	myIbis.unlock();
@@ -310,7 +290,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	}
     }
 
-    public void closeWorld() {
+    public void disableResizeUpcalls() {
 	myIbis.lock();
 	world.close();
 	myIbis.unlock();
