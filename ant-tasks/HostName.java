@@ -31,8 +31,8 @@ public class HostName extends Task {
 	    domainName = hostName.substring(dot + 1);
 	}
 
-	System.err.println("hostname " + hostName);
-	System.err.println("domainname " + domainName);
+	// System.err.println("hostname " + hostName);
+	// System.err.println("domainname " + domainName);
 
 	addProperty("hostname", hostName);
 	addProperty("domainname", domainName);
