@@ -465,7 +465,6 @@ public class BytesInput extends NetInput {
                         byte [] b = new byte[f*length];
                         subInput.readArrayByte(b);
                         NetConvert.readSubArrayFloat(b, userBuffer, offset, length);
-
                 }
         }
 

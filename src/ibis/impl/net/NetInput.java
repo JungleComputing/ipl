@@ -491,7 +491,7 @@ public abstract class NetInput extends NetIO implements ReadMessage {
                         
                         try {
                                 result = readByte();
-                                //System.err.println("Received a byte: ["+ seq++ +"] unsigned = "+(result & 255)+", signed =" + result);
+                                // System.err.println("Received a byte: ["+ seq++ +"] unsigned = "+(result & 255)+", signed =" + result);
                         } catch (IbisIOException e) {
                                 throw new IOException(e.getMessage());
                         }

@@ -465,7 +465,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 public void write(int b) throws IOException {
                         try {
                                 writeByte((byte)b);
-                                //System.err.println("Sent a byte: ["+ seq++ +"] unsigned = "+(b & 255)+", signed =" + (byte)b);
+                                // System.err.println("Sent a byte: ["+ seq++ +"] unsigned = "+(b & 255)+", signed =" + (byte)b);
                         } catch (IbisIOException e) {
                                 throw new IOException(e.getMessage());
                         }
