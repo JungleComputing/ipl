@@ -109,7 +109,7 @@
     <target name="config-init" depends="config.das,config.workstation,config.mac">
     </target>
 
-    <target name="java_wrapper" if="config.is-das" depends="cpptasks-init">
+    <target name="compile.java_wrapper" depends="cpptasks-init">
 	<echo message="Now compile this java_wrapper"/>
 	<cc	outfile="${ibis}/bin/java_wrapper"
 		outtype="executable">
@@ -117,6 +117,12 @@
 		<include name="java_wrapper.c"/>
 	    </fileset>
 	</cc>
+    </target>
+
+    <target name="java_wrapper" if="config.is-das">
+	<ant target="compile.java_wrapper" inheritAll="false">
+	    <property name="ibis" value="${ibis}"/>
+	</ant>
     </target>
 
 

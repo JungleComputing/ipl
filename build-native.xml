@@ -245,7 +245,8 @@
     </target>
 
 
-    <target name="cpptasks-init" unless="cpptasks.initialized">
+    <target name="cpptasks-init" unless="cpptasks.initialized" depends="property-init">
+	<echo message="package.home.ant-cpptasks = ${package.home.ant-cpptasks}"/>
 	<taskdef resource="cpptasks.tasks">
 	    <classpath>
 		<pathelement location="${package.home.ant-cpptasks}"/>
