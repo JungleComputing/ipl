@@ -46,7 +46,9 @@ final class RTS {
 			String ibis_name = p.getProperty("ibis.name");
                        
 			if (ibis_name != null && ibis_name.equals("panda")) {
-			    ibis = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.messagePassing.panda.PandaIbis", null);
+			    ibis = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.messagePassing.PandaIbis", null);
+			} else if (ibis_name != null && ibis_name.equals("mpi")) {
+			    ibis = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.messagePassing.MPIIbis", null);
 			} else {
 			    ibis = Ibis.createIbis("ibis:" + hostname, "ibis.ipl.impl.tcp.TcpIbis", null);
 			}
