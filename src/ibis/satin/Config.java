@@ -46,7 +46,7 @@ public interface Config {
 	static final boolean POLL_RECEIVEPORT = true;
 
 	/** Enable or disable asserts. **/
-	static final boolean ASSERTS = false;
+	static final boolean ASSERTS = true;
 
 	/** Enable or disable aborts and inlets. **/
 	static final boolean ABORTS = true;

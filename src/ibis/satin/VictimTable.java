@@ -180,6 +180,8 @@ final class VictimTable implements Config {
 			v = ((Victim)victims.get(index));
 		} catch (Exception e) {
 			System.err.println(e);
+			e.printStackTrace();
+			System.exit(1);
 		}
 
 		if(ASSERTS && v == null) {

@@ -1077,12 +1077,16 @@ public final class Satin implements Config, ResizeHandler {
 			} else {
 				barrierSendPort.close();
 			}
-
-			ibis.end();
 		} catch (Throwable e) {
 			System.err.println("port.close() throws " + e);
 		}
 
+		try {
+		    ibis.end();
+		} catch (Throwable e) {
+			System.err.println("ibis.end throws " + e);
+		}
+			
 		if(COMM_DEBUG) {
 			out.println("SATIN '" + ident.name() + 
 				    "': exited");
@@ -1789,6 +1793,12 @@ public final class Satin implements Config, ResizeHandler {
 
 		if(r.inletExecuted) return;
 
+		if(r.parentLocals == null) {
+		    System.err.println("empty inlet in handleInlet");
+		    handleEmptyInlet(r);
+		    return;
+		}
+
 		onStack.push(r);
 		oldParent = parent;
 		oldParentStamp = parentStamp;
@@ -1804,7 +1814,21 @@ public final class Satin implements Config, ResizeHandler {
 
 			r.parentLocals.handleException(r.spawnId, r.eek, r);
 			r.inletExecuted = true;
+
+			// restore these, there may be more spawns afterwards...
+			parentStamp = oldParentStamp;
+			parentOwner = oldParentOwner;
+			parent = oldParent;
+			onStack.pop();
+
 		} catch (Throwable t) {
+			r.inletExecuted = true;
+			// restore these, there may be more spawns afterwards...
+			parentStamp = oldParentStamp;
+			parentOwner = oldParentOwner;
+			parent = oldParent;
+			onStack.pop();
+
 			if(INLET_DEBUG) {
 				System.err.println("Got an exception from exception handler! " + t);
 //						t.printStackTrace();
@@ -1813,7 +1837,7 @@ public final class Satin implements Config, ResizeHandler {
 			}
 			if(r.parent == null) {
 				System.err.println("An inlet threw an exception, but there is no parent that handles it." + t);
-//				t.printStackTrace();
+				t.printStackTrace();
 				System.exit(1);
 			}
 
@@ -1829,29 +1853,26 @@ public final class Satin implements Config, ResizeHandler {
 				r.parent.aborted = true;
 				r.parent.eek = t; // rethrow exception
 				killChildrenOf(r.parent.stamp, r.parent.owner);
+			}
 
-				if(!r.parentOwner.equals(ident)) {
-					if(INLET_DEBUG || STEAL_DEBUG) {
-						System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
-					}
-					sendResult(r.parent, null);
-				} else { // two cases here: empty inlet or normal inlet
-				    if(r.parent.parentLocals == null) { // empty inlet
-					handleEmptyInlet(r.parent);
-				    } else { // normal inlet
-					handleInlet(r.parent);
-				    }
-				}
+			if(!r.parentOwner.equals(ident)) {
+			    if(INLET_DEBUG || STEAL_DEBUG) {
+				System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
+			    }
+			    sendResult(r.parent, null);
+			    return;
+			}
+
+			// two cases here: empty inlet or normal inlet
+			if(r.parent.parentLocals == null) { // empty inlet
+			    handleEmptyInlet(r.parent);
+			} else { // normal inlet
+			    handleInlet(r.parent);
 			}
 		}
+        }
 
-		// restore these, there may be more spawns afterwards...
-		parentStamp = oldParentStamp;
-		parentOwner = oldParentOwner;
-		parent = oldParent;
-		onStack.pop();
-	}
-
+/*
         // trace back from the exception, and execute inlets / empty imlets back to the root
         // during this, prematurely send result messages.
 	private void handleEmptyInlet(InvocationRecord r) {
@@ -1905,14 +1926,73 @@ public final class Satin implements Config, ResizeHandler {
 			}
 		}
 	}
+*/
+
+        // trace back from the exception, and execute inlets / empty imlets back to the root
+        // during this, prematurely send result messages.
+	private void handleEmptyInlet(InvocationRecord r) {
+		// if r does not have parentLocals, this means
+		// that the PARENT does not have a try catch block around the spawn.
+		// there is thus no inlet to call in the parent.
+
+		if(r.eek == null) return;
+		if(r.parent == null) return;
+//		if(r.parenLocals != null) return;
+
+		if(ASSERTS && r.parentLocals != null) {
+		    System.err.println("parenlocals is not null in empty inlet");
+		    System.exit(1);
+		}
+
+//		if(INLET_DEBUG) {
+			out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: " + r.eek + 
+				    ": " + r.eek.getMessage());
+//				r.eek.printStackTrace();
+//		}
+
+		InvocationRecord curr = r;
+
+		synchronized(this) {
+			// also kill the parent itself.
+			// It is either on the stack or on a remote machine.
+			// Here, this is OK, the child threw an exception, 
+			// the parent did not catch it, and must therefore die.
+			r.parent.aborted = true;
+			r.parent.eek = r.eek; // rethrow exception
+			killChildrenOf(r.parent.stamp, r.parent.owner);
+		}
+		
+		if(!r.parentOwner.equals(ident)) {
+		    if(INLET_DEBUG || STEAL_DEBUG) {
+			System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
+		    }
+		    sendResult(r.parent, null);
+		    return;
+		}
+
+		// now the recursion step
+		if(r.parent.parentLocals != null) { // parent has inlet
+		    handleInlet(r.parent);
+		} else {
+		    handleEmptyInlet(r.parent);
+		}
+	}
 
 	private synchronized void handleResults() {
 		while (true) {
 			InvocationRecord r = resultList.removeIndex(0);
 			if(r == null) break;
 
-			handleEmptyInlet(r);
+			if(r.eek != null) {
+			    handleInlet(r);
+			}
+
 			r.spawnCounter.value--;
+			if(ASSERTS && r.spawnCounter.value < 0) {
+			    out.println("Just made spawncounter < 0");
+			    new Exception().printStackTrace();
+			    System.exit(1);
+			}
 		}
 
 		receivedResults = false;
@@ -2019,40 +2099,10 @@ public final class Satin implements Config, ResizeHandler {
 					// The semantics of this: all work is aborted,
 					// and the exception is passed on to the spawner.
 					// The parent is aborted, it must handle the exception.
-					if(r.parentStamp == -1) { // root job
-						System.err.println("SATIN '" + ident.name() + ": callSatinFunction: Unexpected exception: " + t);
-						t.printStackTrace();
-						System.exit(1);
-					}
 
-					if(INLET_DEBUG) {
-						out.println("SATIN '" + ident.name() + ": Got exception from an inlet!: " + t + ": " + t.getMessage());
-//						t.printStackTrace();
-					}
-
-					if(SPAWN_STATS) {
-						aborts++;
-					}
-
-					synchronized(this) {
-						// also kill the parent itself. 
-						// It is either on the stack or on a remote machine.
-				                // Here, this is OK, the inlet threw an exception, 
-				                // the parent did not catch it, and must therefore die.
-						r.parent.aborted = true; 
-						r.parent.eek = t; // rethrow exception
-						killChildrenOf(r.parent.stamp, r.parent.owner);
-
-						if(!r.parentOwner.equals(ident)) {
-							if(INLET_DEBUG || STEAL_DEBUG) {
-								System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
-							}
-							sendResult(r.parent, null);
-						}
-					}
+				    r.eek = t;
+				    handleInlet(r);
 				}
-
-				handleEmptyInlet(r);
 			} else { // NO aborts
 				if(SPAWN_STATS) {
 					jobsExecuted++;
@@ -2065,11 +2115,10 @@ public final class Satin implements Config, ResizeHandler {
 			}
 
 			r.spawnCounter.value--;
-
 			if(ASSERTS && r.spawnCounter.value < 0) {
-				out.println("SATIN '" + ident.name() + ": Just made spawncounter < 0");
-				new Exception().printStackTrace();
-				System.exit(1);
+			    out.println("SATIN '" + ident.name() + ": Just made spawncounter < 0");
+			    new Exception().printStackTrace();
+			    System.exit(1);
 			}
 
 			if(ASSERTS && !ABORTS && r.eek != null) {
@@ -2311,15 +2360,7 @@ public final class Satin implements Config, ResizeHandler {
 			}
 
 			//  If there is an inlet, call it.
-			if(r.parentLocals != null) {
-				handleInlet(r);
-			} else {
-				if(INLET_DEBUG) {
-					out.println("SATIN '" + ident.name() + ": empty inlet caused by remote exception: " + r.eek + ", inv = " + r);
-				}
-
-				handleEmptyInlet(r);
-			}
+			handleInlet(r);
 
 			r.spawnCounter.value--;
 			if(ASSERTS && r.spawnCounter.value < 0) {
@@ -2353,6 +2394,11 @@ public final class Satin implements Config, ResizeHandler {
 		}
 
 		while(s.value > 0) {
+//		    if(exiting) {
+//			System.err.println("EXIT FROM SYNC");
+//			exit();
+//		    }
+
 			if(SPAWN_DEBUG) {
 				out.println("SATIN '" + ident.name() + 
 					    "': Sync, counter = " + s.value);
