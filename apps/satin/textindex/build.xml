@@ -1,0 +1,29 @@
+<project
+    name="ibis.apps.satin.sat"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       location="build"/>
+
+    <!--
+    <property name="satinc-flags" value="-no-aborts"/>
+    -->
+
+    <property name="satinc-flags" value="-keep"/>
+
+    <property name="satin-main-class" value="TextIndex"/>
+
+    <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+
+    <target name="docs"
+        description="Build JavaDoc documentation in `docs' directory">
+	<!-- Create the javadoc directory -->
+	<delete dir="docs"/>
+	<mkdir dir="docs"/>
+	<javadoc destdir="docs" sourcepath="${ibis}/src" author="true" version="true" use="true" windowtitle="SAT solver documentation" doctitle="SAT Solver Documentation" bottom="The Ibis project">
+	<FileSet file="*.java"/>
+	<classpath refid="default.classpath"/>
+	</javadoc>
+    </target>
+</project>
