@@ -5,39 +5,43 @@
 
 $header = 1;
 while ( <> ) {
-	if ( $header ) {
-		$line = $_;
-		$header = 0;
-		next;
+	if (/ibis = (\S+) ser = (\S+) count = [0-9]+ size = [0-9]+ app-flags =.*/) {
+		$ibis = $1;
+		$ser  = $2;
 	}
-	# printf "header $line current $_\n";
-	( $ibis, $ser ) = ($line =~ /ibis = (\S+) ser = (\S+) count = [0-9]+ size = [0-9]+ app-flags =.*/);
-	( $calls, $lat ) = ($_ =~ /Latency: ([0-9]+) calls took [0-9.]+ s, time\/call = ([0-9.]+) us/);
-	# printf "ibis $ibis; ser $ser; calls $calls; lat $lat\n";
-	$header = 1;
+	if (/Latency: ([0-9]+) calls took [0-9.]+ s, time\/call = ([0-9.]+) us/) {
+		$calls = $1;
+		$lat   = $2;
 
-	$ix = $ibis . "/" . $ser;
+		# printf "ibis $ibis; ser $ser; calls $calls; lat $lat\n";
+		$header = 1;
 
-	$average{ $ix } += $lat;
-	$n { $ix } ++;
-	if ($min_lat { $ix } == 0 || $lat < $min_lat { $ix } ) {
-		$min_lat { $ix } = $lat;
+		$ix = $ibis . "/" . $ser;
+
+		$average{ $ix } += $lat;
+		$n { $ix } ++;
+		if ($min_lat { $ix } == 0 || $lat < $min_lat { $ix } ) {
+			$min_lat { $ix } = $lat;
+		}
 	}
 }
 
-printf("%-24s %-8s %12s %12s\n", "Ibis", "Ser", "min(us)", "average(us)");
-foreach ( @serializations ) {
-	$ser = $_;
-	foreach ( @ibises ) {
-		$ibis = $_;
+printf("%-4s %-24s %-8s %12s %12s\n",
+	"N", "Ibis", "Ser", "min(us)", "average(us)");
+foreach ( @ibises ) {
+	$ibis = $_;
+	foreach ( @serializations ) {
+		$ser = $_;
 		$ix = $ibis . "/" . $ser;
 		if ( $n { $ix } > 0) {
-			printf("%-24s %-8s %12.1f %12.1f\n",
+			printf("%4d %-24s %-8s %12.1f %12.1f\n",
+				$n { $ix },
 				"$ibis", "$ser", 
 				$min_lat { $ix },
 				$average{ $ix } / $n { $ix } );
 		}
 	}
+	printf("-----------------------------------------------------------\n");
 }
 
 # foreach ( keys %average ) {

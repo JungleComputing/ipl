@@ -1,66 +1,71 @@
-#!/bin/sh
+#!/bin/bash
 
-reserve="-reserve 702731"
+# reserve="-reserve 715713"
+timeout="-t 10:0"
+
+n=10
+
+# sers="ibis sun"
+sers="ibis"
+
+# Byte serialization can only handle bytes
 
 ibises="panda net.gm"
+# ibises="panda"
 
-sers="byte ibis sun"
-# sers="ibis sun"
-
-if `true`
-then
-for ibis in $ibises ; do
-	for x in 0 1 2 3 4 5 6 7 8 9 ; do
-		for ser in $sers ; do
-			sh run-rpc $ibis $ser 10000 100000 "$reserve" "" | tee -a throughput-myrinet.out 2>&1
-		done
+if false ; then
+    ser="byte"
+    data="-byte"
+    for ibis in $ibises ; do
+	for (( i = 0; i < $n; i++ )) ; do
+	    sh run-rpc $ibis $ser 10000 100000 "$reserve $timeout" $data
 	done
-done
+    done
 fi
 
-sers="ibis sun"
-
-if `true`
-then
-for ibis in $ibises ; do
-	for x in 0 1 2 3 4 5 6 7 8 9 ; do
-		for ser in $sers ; do
-			sh run-rpc $ibis $ser 10000 100000 "$reserve" "-int" | tee -a throughput-myrinet.out 2>&1
-			sh run-rpc $ibis $ser 10000 100000 "$reserve" "-double" | tee -a throughput-myrinet.out 2>&1
-			sh run-rpc $ibis $ser 10000 1023 "$reserve" "-tree" | tee -a throughput-myrinet.out 2>&1
+if true ; then
+    for ibis in $ibises ; do
+	for (( i = 0; i < $n; i++ )) ; do
+	    for ser in $sers ; do
+if false; then
+		for data in "-byte" "-int" "-double" ; do
+		    sh run-rpc $ibis $ser 10000 100000 "$reserve $timeout" $data
 		done
+fi
+		sh run-rpc $ibis $ser 10000 1023 "$reserve $timeout" "-tree -one-way"
+	    done
 	done
-done
+    done
 fi
 
-ibises="tcp net.bytes.gen.tcp_blk"
-# ibises="tcp"
+# ibises="tcp net.bytes.gen.tcp_blk"
+ibises="net.bytes.gen.tcp_blk"
 
-sers="byte ibis sun"
-# sers="byte"
+# Byte serialization can only handle bytes
 
-if `true`
-then
-for ibis in $ibises ; do
-	for x in 0 1 2 3 4 5 6 7 8 9 ; do
-		for ser in $sers ; do
-			sh run-rpc $ibis $ser 1000 100000 "$reserve" "" | tee -a throughput.out 2>&1
-		done
+if false ; then
+    ser="byte"
+    data="-byte"
+    for ibis in $ibises ; do
+	for (( i = 0; i < $n; i++ )) ; do
+	    for y in 0 1 2 3 4 ; do
+		sh run-rpc $ibis $ser 2000 100000 "$reserve $timeout" $data
+	    done
 	done
-done
+    done
 fi
 
-sers="ibis sun"
-
-if `true`
-then
-for ibis in $ibises ; do
-	for x in 0 1 2 3 4 5 6 7 8 9 ; do
+if true ; then
+    for ibis in $ibises ; do
+	for (( i = 0; i < $n; i++ )) ; do
+	    for (( j = 0; j < 5; j++ )) ; do
 		for ser in $sers ; do
-			sh run-rpc $ibis $ser 1000 100000 "$reserve" "-int" | tee -a throughput.out 2>&1
-			sh run-rpc $ibis $ser 1000 100000 "$reserve" "-double" | tee -a throughput.out 2>&1
-			sh run-rpc $ibis $ser 1000 1023 "$reserve" "-tree" | tee -a throughput.out 2>&1
+		    for data in "-byte" "-int" "-double" ; do
+			sh run-rpc $ibis $ser 2000 100000 "$reserve $timeout" $data
+		    done
+		    sh run-rpc $ibis $ser 2000 1023 "$reserve $timeout" "-tree"
 		done
+	    done
 	done
-done
+    done
 fi

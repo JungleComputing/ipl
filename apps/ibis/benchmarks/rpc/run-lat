@@ -1,6 +1,9 @@
 #!/bin/sh
 
-reserve="-reserve 702731"
+reserve="-reserve 715713"
+timeout="-t 10:0"
+
+n=10
 
 sers="byte ibis sun"
 # sers="ibis sun"
@@ -8,29 +11,27 @@ sers="byte ibis sun"
 ibises="panda net.gm"
 # ibises="panda"
 
-if `false`
-then
-for ibis in $ibises ; do
-	for x in 0 1 2 3 4 5 6 7 8 9 ; do
-		for ser in $sers ; do
-			sh run-rpc $ibis $ser 1000000 0 "$reserve" "" | tee -a latency-myrinet.out 2>&1
-		done
+if true ; then
+    for ibis in $ibises ; do
+	for (( i = 0; i < $n; i++ )) ; do
+	    for ser in $sers ; do
+		sh run-rpc $ibis $ser 1000000 0 "$reserve $timeout"
+	    done
 	done
-done
+    done
 fi
 
 # ibises="net.tcp_blk net.gen.tcp_blk tcp"
 ibises="tcp net.bytes.gen.tcp_blk"
 
-if `true`
-then
-for ibis in $ibises ; do
-	for x in 0 1 2 3 4 5 6 7 8 9 ; do
-	    for y in 0 1 2 3 4 ; do
+if true ; then
+    for ibis in $ibises ; do
+	for (( i = 0; i < $n; i++ )) ; do
+	    for (( j = 0; j < 5; j++ )) ; do
 		for ser in $sers ; do
-			sh run-rpc $ibis $ser 10000 0 "$reserve" "" | tee -a latency.out 2>&1
+		    sh run-rpc $ibis $ser 10000 0 "$reserve $timeout"
 		done
 	    done
 	done
-done
+    done
 fi
