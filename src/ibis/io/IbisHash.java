@@ -106,7 +106,7 @@ final class IbisHash {
 
 	
 	if (STATS || TIMINGS) {
-	    Runtime.getRuntime().addShutdownHook(new Thread("DataAllocator ShutdownHook") {
+	    Runtime.getRuntime().addShutdownHook(new Thread("IbisHash ShutdownHook") {
 		public void run() {
 		    statistics();
 		}
