@@ -116,10 +116,11 @@ class ByteOutputStream
     }
 
     public void wakeup() {
-	if (outstandingFrags == 0) {
+//	if (outstandingFrags == 0) {
+//	No, we may also be woken up because we are scheduled to poll.
 // System.err.println("ByteOutputStream wakeup");
 		sendComplete.cv_signal();
-	}
+//	}
     }
 
     public void poll_wait(long timeout) {
