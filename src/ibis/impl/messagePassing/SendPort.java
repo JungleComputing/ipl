@@ -8,7 +8,7 @@ import ibis.ipl.impl.generic.ConditionVariable;
 
 public class SendPort implements ibis.ipl.SendPort, Protocol {
 
-    private final static boolean DEBUG = true; // Ibis.DEBUG;
+    private final static boolean DEBUG = Ibis.DEBUG;
 
     PortType type;
     SendPortIdentifier ident;
