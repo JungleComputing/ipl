@@ -1,9 +1,28 @@
 package ibis.util;
 
-public class ConditionVariable {
+/**
+ * Condition variable synchronization construct.
+ *
+ * Condition variables are part of thread synchronization primitives of the
+ * {@link Monitor} construct. Threads can wait on a condition variable,
+ * and condition variables can be signalled by other threads to wake up one
+ * waiting thread. A bcast call wakes up all waiting threads on a
+ * ConditionVariable.
+ *
+ * A thread that calls <code>cv_wait</code>, <code>cv_signal</code> or
+ * <code>cv_bcast<code> must have locked the {@link Monitor} that owns this
+ * ConditionVariable.
+ *
+ * Condition Variables can be <code>interruptible</code>. For interruptible
+ * Condition Variables, {@link Thread.interrupt}ing the {@link Thread} that
+ * is waiting on this Condition Variable causes the waiting thread to return
+ * with an {@link InterruptedException}. Non-interruptible Condition Variables
+ * ignore {@link Thread.interrupt}.
+ */
+final public class ConditionVariable {
 
     private Monitor lock;
-    private final boolean interruptible;
+    private final boolean INTERRUPTIBLE;
 
     static long waits;
     static long timed_waits;
@@ -13,7 +32,7 @@ public class ConditionVariable {
 
     ConditionVariable(Monitor lock, boolean interruptible) {
 	this.lock = lock;
-	this.interruptible = interruptible;
+	INTERRUPTIBLE = interruptible;
     }
 
 
@@ -24,14 +43,14 @@ public class ConditionVariable {
 
     final public void cv_wait() throws InterruptedException {
 	lock.checkImOwner();
-	if (Monitor.DEBUG) {
+	if (Monitor.STATISTICS) {
 	    waits++;
 	}
 
 	try {
 	    synchronized (this) {
 		lock.unlock();
-		if (interruptible) {
+		if (INTERRUPTIBLE) {
 		    wait();
 		} else {
 		    try {
@@ -49,7 +68,7 @@ public class ConditionVariable {
 
     final public boolean cv_wait(long timeout) throws InterruptedException {
 	lock.checkImOwner();
-	if (Monitor.DEBUG) {
+	if (Monitor.STATISTICS) {
 	    timed_waits++;
 	}
 
@@ -59,7 +78,7 @@ public class ConditionVariable {
 	    synchronized (this) {
 		long now = System.currentTimeMillis();
 		lock.unlock();
-		if (interruptible) {
+		if (INTERRUPTIBLE) {
 		    wait(timeout);
 		} else {
 		    try {
@@ -80,7 +99,7 @@ public class ConditionVariable {
 
     final public void cv_signal() {
 	lock.checkImOwner();
-	if (Monitor.DEBUG) {
+	if (Monitor.STATISTICS) {
 	    signals++;
 	}
 
@@ -92,7 +111,7 @@ public class ConditionVariable {
 
     final public void cv_bcast() {
 	lock.checkImOwner();
-	if (Monitor.DEBUG) {
+	if (Monitor.STATISTICS) {
 	    bcasts++;
 	}
 
@@ -102,8 +121,7 @@ public class ConditionVariable {
     }
 
     static public void report(java.io.PrintStream out) {
-	if (Monitor.DEBUG) {
-	    Monitor.report(out);
+	if (Monitor.STATISTICS) {
 	    out.println("Condition variables: wait " + waits +
 			" timed wait " + timed_waits +
 			" signal " + signals +

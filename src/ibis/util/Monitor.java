@@ -1,33 +1,87 @@
 package ibis.util;
 
-public class Monitor {
+/**
+ * Monitor synchronization construct.
+ *
+ * The Monitor can be entered (<code>lock</code>) and exited
+ * (<code>unlock</code>). {@link ConditionVariable}s that are part of this
+ * monitor can be obtained by <code>createCV</code>.
+ *
+ * The Monitor has optional support for priority locking. If the Monitor is
+ * unlocked and some thread has locked it with <code>priority = true</code>,
+ * that thread has preference in waking up above nonpriority lockers.
+ */
+public final class Monitor {
 
-    final static boolean DEBUG = false;
-    private boolean in_use = false;
-    private int waiters = 0;
+    final static boolean DEBUG;
 
-    private Thread owner;
-    private static int lock_occupied;
-    private static int unlock_waiting;
-    private static int unlock_waiters;
+    final static boolean STATISTICS;
+
+    final boolean	PRIORITY;
+
+    private boolean	locked = false;
+    private int		waiters = 0;
+
+    // if (PRIORITY)
+    private int		prio_waiters;
+
+    // if (DEBUG)
+    private Thread	owner;
+
+    // if (STATISTICS)
+    private static int	lock_occupied;
+    private static int	unlock_waiting;
+    private static int	unlock_waiters;
+    private static int	unlock_bcast;
 
     static {
+	DEBUG = TypedProperties.booleanProperty("ibis.monitor.debug");
 	if (DEBUG) {
 	    System.err.println("Turn on Monitor.DEBUG");
+	}
+	STATISTICS = TypedProperties.booleanProperty("ibis.monitor.stats");
+	if (STATISTICS) {
+	    Runtime.getRuntime().addShutdownHook(new Thread() {
+		public void run() {
+		    Monitor.report(System.err);
+		    ConditionVariable.report(System.err);
+		}
+	    });
 	}
     }
 
 
-    final public synchronized void lock() {
+    public Monitor(boolean priority) {
+	PRIORITY = priority;
+    }
+
+
+    public Monitor() {
+	this(false);
+    }
+
+
+    public synchronized void lock() {
+	lock(false);
+    }
+
+
+    public synchronized void lock(boolean priority) {
+	if (! PRIORITY && priority) {
+	    throw new Error("Lock with priority=true for non-PRIORITY Monitor");
+	}
+
 	if (DEBUG && owner == Thread.currentThread()) {
-	    // manta.runtime.RuntimeSystem.DebugMe(1, this);
-	    Thread.dumpStack();
 	    throw new IllegalLockStateException("Already own monitor");
 	}
 
-	while (in_use) {
-	    if (DEBUG) {
+	while (locked
+		|| (PRIORITY && ! priority && prio_waiters > 0)) {
+	    if (STATISTICS) {
 		lock_occupied++;
+	    }
+	    if (PRIORITY && priority) {
+		prio_waiters++;
 	    }
 	    waiters++;
 	    try {
@@ -36,8 +90,17 @@ public class Monitor {
 		// Ignore
 	    }
 	    waiters--;
+	    if (PRIORITY) {
+	       	if (priority) {
+		    prio_waiters--;
+		} else if (prio_waiters > 0) {
+		    // If I am not priority and there is some prio waiter, this
+		    // is not for me, so wake up all and go back to wait
+		    notifyAll();
+		}
+	    }
 	}
-	in_use = true;
+	locked = true;
 
 	if (DEBUG) {
 	    owner = Thread.currentThread();
@@ -45,25 +108,34 @@ public class Monitor {
     }
 
 
-    final public synchronized void unlock() {
+    public synchronized void unlock() {
 	if (DEBUG && owner != Thread.currentThread()) {
-	    // manta.runtime.RuntimeSystem.DebugMe(2, this);
 	    Thread.dumpStack();
 	    throw new IllegalLockStateException("Don't own monitor");
 	}
 
-	in_use = false;
+	locked = false;
 	if (waiters > 0) {
-	    if (DEBUG) {
+	    if (STATISTICS) {
 		unlock_waiting++;
 		unlock_waiters += waiters;
-		if (false && unlock_waiting > 100000) {
-		    // manta.runtime.RuntimeSystem.DebugMe(0x3, this);
-		}
 	    }
-	    /* The only condition that governs Monitor access is lock/unlock.
-	     * We do <standout>NOT</standout> require notifyAll. */
-	    notify();
+
+	    if (! PRIORITY || prio_waiters == waiters) {
+		if (STATISTICS) {
+		    unlock_waiting++;
+		}
+		// either no prio -> wake up anybody
+		// or prio and only prio waiters -> wake up a prio waiter
+		notify();
+	    } else {
+		// Sorry, there are prio and nonprio waiters. To be sure a
+		// prio waiter comes alive, we have no choice but to wake all.
+		if (STATISTICS) {
+		    unlock_bcast++;
+		}
+		notifyAll();
+	    }
 	}
 
 	if (DEBUG) {
@@ -105,8 +177,8 @@ public class Monitor {
 
 
     static public void report(java.io.PrintStream out) {
-	if (Monitor.DEBUG) {
-	    out.println("Monitor: lock occupied " + lock_occupied + " unlock for waiter " + unlock_waiting + " <waiters> " + ((double)unlock_waiters) / unlock_waiting);
+	if (Monitor.STATISTICS) {
+	    out.println("Monitor: lock occupied " + lock_occupied + " unlock for waiter " + unlock_waiting + " prio-bcast " + unlock_bcast + " <waiters> " + ((double)unlock_waiters) / unlock_waiting);
 	}
     }
 

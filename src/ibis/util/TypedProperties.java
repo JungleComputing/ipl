@@ -3,17 +3,32 @@ package ibis.util;
 public class TypedProperties {
 
     /**
-     * Returns true if property name is defined and has a value that is
-     * conventionally associated with 'true' (as in Ant): 1, on, true.
+     * Returns true if property <code>name</code> is defined and has a value
+     * that is conventionally associated with 'true' (as in Ant): any of
+     * 1, on, true, yes.
      *
      * @return true if property is defined and set
      * @param name property name
      */
     public static boolean booleanProperty(String name) {
+	return booleanProperty(name, false);
+    }
+
+    /**
+     * Returns true if property <code>name</code> has a value that is
+     * conventionally associated with 'true' (as in Ant): any of
+     * 1, on, true, yes. If the property is not defined, return the specified
+     * default value.
+     *
+     * @return true if property is defined and set
+     * @param name property name
+     * @param defaultVal the value that is returned if the property is absent
+     */
+    public static boolean booleanProperty(String name, boolean defaultVal) {
 	String prop = System.getProperty(name);
-	
+
 	if (prop == null) {
-	    return false;
+	    return defaultVal;
 	}
 
 	return prop.equals("1")
