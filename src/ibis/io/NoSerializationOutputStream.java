@@ -252,6 +252,27 @@ public final class NoSerializationOutputStream
     public void statistics() {
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public void write(int v) throws IOException {
+	writeByte((byte)(0xff & v));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void write(byte[] b) throws IOException {
+	write(b, 0, b.length);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void write(byte[] b, int off, int len) throws IOException {
+	writeArray(b, off, len);
+    }
+
     public void reset() {
     }
 
