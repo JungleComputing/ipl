@@ -1,7 +1,7 @@
 package ibis.satin;
 import ibis.ipl.IbisIdentifier;
 
-final class StampVector {
+final class StampVector implements Config {
 	int[] stamps = new int[50];
 	IbisIdentifier[] owners = new IbisIdentifier[50];
 	int count=0;
@@ -41,7 +41,14 @@ final class StampVector {
 	}
 
 	void removeIndex(int i) {
-		if(i >= count) return;
+		if(ASSERTS) {
+			if(i >= count || i < 0) {
+				System.err.println("removeIndex of strange index: " + i);
+				new Exception().printStackTrace();
+				System.exit(1);
+			}
+		}
+
 		count--;
 		stamps[i] = stamps[count];
 		owners[i] = owners[count];

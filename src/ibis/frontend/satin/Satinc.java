@@ -2253,7 +2253,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    out.println("                eek = e;");
 	    out.println("        }");
 
-	    out.println("        if (eek != null) {");
+	    out.println("        if (eek != null && !inletExecuted) {");
 	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.out.println(\"runlocal: calling inlet for: \" + this);");
 	    out.println("            if(parentLocals != null)");
 	    out.println("                parentLocals.handleException(spawnId, eek, this);");

@@ -25,8 +25,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-//@@@ because a method has an outstandingSpawns list, the spawn counter is no longer needed! --Rob
-
 /* 
    One important invariant: there is only one thread per machine that spawns
    work.
@@ -262,13 +260,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 							       "ibis.impl.tcp.TcpIbis", this);
 				}
 			} catch (ConnectionRefusedException e) {
-				System.err.println("SATIN '" + hostName + 
-						   "': WARNING Could not start ibis with name '" +
-						   name + "': " + e + ", retrying.");
-				//				e.printStackTrace();
+				if(COMM_DEBUG) {
+					System.err.println("SATIN '" + hostName + 
+							   "': WARNING Could not start ibis with name '" +
+							   name + "': " + e + ", retrying.");
+				}
 			} catch (IbisException e) {
 				System.err.println("SATIN '" + hostName + 
-						   "': WARNING Could not start ibis with name '" +
+						   "': Could not start ibis with name '" +
 						   name + "': " + e);
 				e.printStackTrace();
 				break;
@@ -457,10 +456,12 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				    "': SPAWN_STATS: spawns = " + spawns +
 				    " executed = " + jobsExecuted + 
 				    " syncs = " + syncs);
-			out.println("SATIN '" + ident.name() + 
-				    "': ABORT_STATS 1: aborts = " + aborts +
-				    " abort msgs = " + abortMessages +
-				    " aborted jobs = " + abortedJobs);
+			if(ABORTS) {
+				out.println("SATIN '" + ident.name() + 
+					    "': ABORT_STATS 1: aborts = " + aborts +
+					    " abort msgs = " + abortMessages +
+					    " aborted jobs = " + abortedJobs);
+			}
 		}
 		if(TUPLE_STATS && stats) {
 			out.println("SATIN '" + ident.name() + 
@@ -498,30 +499,38 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					    handleStealTimer.nrTimes() + 
 					    " total time = " + handleStealTimer.totalTime() +
 					    " avg time = " + handleStealTimer.averageTime());
+			}
 
+			if(ABORTS && ABORT_TIMING) {
 				out.println("SATIN '" + ident.name() + 
 					    "': ABORT_STATS 2: aborts = " +
 					    abortTimer.nrTimes() + 
 					    " total time = " + abortTimer.totalTime() +
 					    " avg time = " + abortTimer.averageTime());
+			}
 
+			if(IDLE_TIMING) {
 				out.println("SATIN '" + ident.name() + 
 					    "': IDLE_STATS: idle count = " +
 					    idleTimer.nrTimes() + " total time = " +
 					    idleTimer.totalTime() + " avg time = " +
 					    idleTimer.averageTime());
+			}
 
+			if(POLL_FREQ > 0 && POLL_TIMING) {
 				out.println("SATIN '" + ident.name() + 
 					    "': POLL_STATS: poll count = " +
 					    pollTimer.nrTimes() + " total time = " +
 					    pollTimer.totalTime() + " avg time = " +
 					    pollTimer.averageTime());
+			}
 
+			if(STEAL_TIMING && IDLE_TIMING) {
 				out.println("SATIN '" + ident.name() + 
 					    "': COMM_STATS: software comm time = " +
 					    pollTimer.format(stealTimer.totalTimeVal() +
-							 handleStealTimer.totalTimeVal() -
-							 idleTimer.totalTimeVal()));
+							     handleStealTimer.totalTimeVal() -
+							     idleTimer.totalTimeVal()));
 			}
 
 			if(TUPLE_TIMING) {
@@ -768,6 +777,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 	protected synchronized void sendResult(InvocationRecord r, ReturnRecord rr) {
+		if(r.alreadySentExceptionResult) return;
+
 		if(ASSERTS && r.owner == null) {
 			System.err.println("SATIN '" + ident.name() + 
 					   "': owner is null in sendResult");
@@ -777,15 +788,23 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(STEAL_DEBUG) {
 			out.println("SATIN '" + ident.name() + 
 				    "': sending job result to " +
-				    r.owner.name() + ", exception = " + (rr.eek == null ? "null" : ("" + rr.eek)));
+				    r.owner.name() + ", exception = " + (r.eek == null ? "null" : ("" + r.eek)));
 		}
 
 		try {
 			SendPort s = getReplyPort(r.owner);
 			WriteMessage writeMessage = s.newMessage();
-			writeMessage.writeByte(JOB_RESULT);
-			writeMessage.writeObject(r.owner); 
-			writeMessage.writeObject(rr);
+			if(r.eek == null) {
+				writeMessage.writeByte(JOB_RESULT_NORMAL);
+				writeMessage.writeObject(r.owner);  // hmm, I don't think this is needed --Rob @@@
+				writeMessage.writeObject(rr);
+			} else {
+				if (rr == null) r.alreadySentExceptionResult = true;
+				writeMessage.writeByte(JOB_RESULT_EXCEPTION);
+				writeMessage.writeObject(r.owner);  // hmm, I don't think this is needed --Rob @@@
+				writeMessage.writeObject(r.eek);
+				writeMessage.writeInt(r.stamp);
+			}
 			writeMessage.send();
 			long cnt = writeMessage.finish();
 
@@ -1045,7 +1064,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		exceptionList.add(r);
 		gotExceptions = true;
 		if(INLET_DEBUG) {
-			out.println("got remote exception!");
+			out.println("SATIN '" + ident.name() + ": got remote exception!");
 		}
 	}
 
@@ -1193,12 +1212,23 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	}
 
 
-	synchronized void addJobResult(ReturnRecord rr, SendPortIdentifier sender, IbisIdentifier i) {
+	synchronized void addJobResult(ReturnRecord rr, SendPortIdentifier sender, IbisIdentifier i, 
+				       Throwable eek, int stamp) {
 		receivedResults = true;
+		InvocationRecord r = null;
 
-		InvocationRecord r = getStolenInvocationRecord(rr.stamp, sender, i);
+		if (rr != null) {
+			r = getStolenInvocationRecord(rr.stamp, sender, i);
+		} else {
+			r = getStolenInvocationRecord(stamp, sender, i);
+		}
+
 		if(r != null) {
-			rr.assignTo(r);
+			if(rr != null) {
+				rr.assignTo(r);
+			} else {
+				r.eek = eek;
+			}
 			if(r.eek != null) { // we have an exception, add it to the list. the list will be read during the sync
 				if(ABORTS) {
 					addToExceptionList(r);
@@ -1222,33 +1252,120 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 	}
 
-	private void handleEmptyInlets(InvocationRecord r) {
-		if(r.parentLocals == null && r.eek != null) {
-/*
-  if(r.parentStamp == -1) { // root job
-  System.err.println("SATIN '" + ident.name() + ": handleEmptyInlets: Unexpected exception: " + r.eek);
-  r.eek.printStackTrace();
-  System.exit(1);
-  }
-*/
+	private void handleInlet(InvocationRecord r) {
+		InvocationRecord oldParent;
+		int oldParentStamp;
+		IbisIdentifier oldParentOwner;
 
+		if(r.inletExecuted) return;
+
+		onStack.push(r);
+		oldParent = parent;
+		oldParentStamp = parentStamp;
+		oldParentOwner = parentOwner;
+		parentStamp = r.stamp;
+		parentOwner = r.owner;
+		parent = r;
+
+		try {
 			if(INLET_DEBUG) {
-				out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: " + r.eek + 
-					    ": " + r.eek.getMessage());
-//				r.eek.printStackTrace();
+				System.err.println("SATIN '" + ident.name() + ": calling inlet caused by remote exception");
 			}
 
-			if(SPAWN_STATS) {
+			r.parentLocals.handleException(r.spawnId, r.eek, r);
+			r.inletExecuted = true;
+		} catch (Throwable t) {
+			if(INLET_DEBUG) {
+				System.err.println("Got an exception from exception handler! " + t);
+//						t.printStackTrace();
+				System.err.println("r = " + r);
+				System.err.println("parent = " + r.parent);
+			}
+			if(r.parent == null) {
+				System.err.println("EEEK, root job?");
+				t.printStackTrace();
+				System.exit(1);
+			}
+
+			if(ABORT_STATS) {
 				aborts++;
 			}
+
 			synchronized(this) {
 				// also kill the parent itself.
 				// It is either on the stack or on a remote machine.
 				// Here, this is OK, the child threw an exception, 
 				// the parent did not catch it, and must therefore die.
 				r.parent.aborted = true;
-				r.parent.eek = r.eek; // rethrow exception
+				r.parent.eek = t; // rethrow exception
 				killChildrenOf(r.parent.stamp, r.parent.owner);
+
+				if(!r.parentOwner.equals(ident)) {
+					if(INLET_DEBUG || STEAL_DEBUG) {
+						System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
+					}
+					sendResult(r.parent, null);
+				}
+			}
+		}
+
+		// restore these, there may be more spawns afterwards...
+		parentStamp = oldParentStamp;
+		parentOwner = oldParentOwner;
+		parent = oldParent;
+		onStack.pop();
+	}
+
+        // trace back from the exception, and execute inlets / empty imlets back to the root
+        // during this, prematurely send result messages.
+	private void handleEmptyInlet(InvocationRecord r) {
+		// if r does not have parentLocals, this means
+		// that the PARENT does not have a try catch block around the spawn.
+		// there is thus no inlet to call in the parent.
+
+		if(r.parentLocals != null || r.eek == null) return;
+
+		if(INLET_DEBUG) {
+			out.println("SATIN '" + ident.name() + ": Got exception, empty inlet: " + r.eek + 
+				    ": " + r.eek.getMessage());
+//				r.eek.printStackTrace();
+		}
+
+		InvocationRecord curr = r;
+
+		synchronized(this) {
+			while(curr.parentLocals == null && curr.parent != null) {
+				if(INLET_DEBUG) {
+					System.err.println("SATIN '" + ident.name() + ": unwind");
+				}
+				curr = curr.parent;
+				
+				if(SPAWN_STATS) {
+					aborts++;
+				}
+			}
+ 
+			if(INLET_DEBUG) {
+				System.err.println("SATIN '" + ident.name() + ": unwind stopped, curr = " + curr);
+			}
+
+			// also kill the parent itself.
+			// It is either on the stack or on a remote machine.
+			// Here, this is OK, the child threw an exception, 
+			// the parent did not catch it, and must therefore die.
+			curr.aborted = true;
+			curr.eek = r.eek; // rethrow exception
+			killChildrenOf(curr.stamp, curr.owner);
+
+			if(curr.parentLocals != null) { // parent has inlet
+				handleInlet(curr);
+			}
+
+			if(!curr.parentOwner.equals(ident)) {
+				if(INLET_DEBUG || STEAL_DEBUG) {
+					System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
+				}
+				sendResult(curr, null);
 			}
 		}
 	}
@@ -1258,7 +1375,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			InvocationRecord r = resultList.removeIndex(0);
 			if(r == null) break;
 
-			handleEmptyInlets(r);
+			handleEmptyInlet(r);
 			r.spawnCounter.value--;
 		}
 
@@ -1385,11 +1502,17 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 						r.parent.aborted = true; 
 						r.parent.eek = t; // rethrow exception
 						killChildrenOf(r.parent.stamp, r.parent.owner);
+
+						if(!r.parentOwner.equals(ident)) {
+							System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
+							sendResult(r.parent, null);
+						}
+
 					}
 				}
 
-				handleEmptyInlets(r);
-			} else {
+				handleEmptyInlet(r);
+			} else { // NO aborts
 				if(SPAWN_STATS) {
 					jobsExecuted++;
 				}
@@ -1427,6 +1550,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			}
 			ReturnRecord rr = null;
 			if(ABORTS) {
+				if(SPAWN_STATS) {
+					jobsExecuted++;
+				}
 				try {
 					rr = r.runRemote();
 					// May be needed if the method did not throw an exception,
@@ -1518,6 +1644,18 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			r.parentStamp = parentStamp;
 			r.parentOwner = parentOwner;
 			r.parent = parent;
+
+/*
+			if(parent != null) {
+				for(int i=0; i<parent.parentStamps.size(); i++) {
+					r.parentStamps.add(parent.parentStamps.get(i));
+					r.parentOwners.add(parent.parentOwners.get(i));
+				}
+			}
+
+			r.parentStamps.add(new Integer(parentStamp));
+			r.parentOwners.add(parentOwner);
+*/
 		}
 
 		q.addToHead(r);
@@ -1552,6 +1690,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					    stamp + ", owner = " + owner);
 			}
 			
+			if(ABORT_STATS) {
+				aborts++;
+			}
+
 			killChildrenOf(stamp, owner);
 
 			if(ABORT_DEBUG) {
@@ -1561,8 +1703,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 	}
 
+
+        // both here and in handleEmpty inlets: sendResult NOW if parentOwner is on remote machine
 	void handleExceptions() {
-		if(!ABORTS) {
+		if(ASSERTS && !ABORTS) {
 			System.err.println("cannot handle inlets, set ABORTS to true in Config.java");
 			System.exit(1);
 		}
@@ -1583,51 +1727,14 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 			//  If there is an inlet, call it.
 			if(r.parentLocals != null) {
-				InvocationRecord oldParent;
-				int oldParentStamp;
-				IbisIdentifier oldParentOwner;
-
-				onStack.push(r);
-				oldParent = parent;
-				oldParentStamp = parentStamp;
-				oldParentOwner = parentOwner;
-				parentStamp = r.stamp;
-				parentOwner = r.owner;
-				parent = r;
-
-				try {
-					r.parentLocals.handleException(r.spawnId, r.eek, r);
-				} catch (Throwable t) {
-					if(ABORT_DEBUG) {
-						System.err.println("EEEK, got an exception from exception handler! " + t);
-//						t.printStackTrace();
-						System.err.println("r = " + r);
-						System.err.println("parent = " + r.parent);
-					}
-					if(r.parent == null) {
-						System.err.println("EEEK, root job?");
-						t.printStackTrace();
-						System.exit(1);
-					}
-					synchronized(this) {
-				                // also kill the parent itself.
-				                // It is either on the stack or on a remote machine.
-			                        // Here, this is OK, the child threw an exception, 
-				                // the parent did not catch it, and must therefore die.
-						r.parent.aborted = true;
-						r.parent.eek = t; // rethrow exception
-						killChildrenOf(r.parent.stamp, r.parent.owner);
-					}
+				handleInlet(r);
+			} else {
+				if(INLET_DEBUG) {
+					out.println("SATIN '" + ident.name() + ": impty inlet caused by remote exception: " + r.eek + ", inv = " + r);
 				}
 
-				// restore these, there may be more spawns afterwards...
-				parentStamp = oldParentStamp;
-				parentOwner = oldParentOwner;
-				parent = oldParent;
-				onStack.pop();
+				handleEmptyInlet(r);
 			}
-
-			handleEmptyInlets(r);
 
 			r.spawnCounter.value--;
 			if(ASSERTS && r.spawnCounter.value < 0) {
@@ -1668,15 +1775,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		while(s.value > 0) {
 /*
   // this can happen with aborts, no problemo
-			if (ASSERTS && exiting) {
-				System.err.println("SATIN '" + ident.name() + 
-						   ": EEK! got exit msg while syncing!, spawn counter = " + s.value + 
-						   " abort list count = " + abortList.count + " excep count = " + exceptionList.count + 
-						   " parent = " + parent);
+  if (ASSERTS && exiting) {
+  System.err.println("SATIN '" + ident.name() + 
+  ": EEK! got exit msg while syncing!, spawn counter = " + s.value + 
+  " abort list count = " + abortList.count + " excep count = " + exceptionList.count + 
+  " parent = " + parent);
 //				new Throwable().printStackTrace();
 //				exit();
 //				System.exit(1);
-			}
+}
 */
 			//pollAsyncResult(); // for CRS
 
@@ -1761,13 +1868,27 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		if(ASSERTS) {
 			assertLocked(this);
 		}
+/*
+  int iter = 0;
+  while(true) {
+  long abortCount = abortedJobs;
 
+  System.err.println("killChildrenOf: iter = " + iter + " abort cnt = " + abortedJobs);
+*/
 		// try work queue, outstanding jobs and jobs on the stack
 		// but try stack first, many jobs in q are children of stack jobs.
 		onStack.killChildrenOf(targetStamp, targetOwner);
 		q.killChildrenOf(targetStamp, targetOwner);
 		outstandingJobs.killChildrenOf(targetStamp, targetOwner);
+/*
+  if(abortedJobs == abortCount) {
+				// no more jobs were removed.
+				break;
+				}
 
+				iter++;
+				}
+*/
 		if(ABORT_TIMING) {
 			abortTimer.stop();
 		}
@@ -1781,7 +1902,20 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		return isDescendentOf(child.parent, targetStamp, targetOwner);
 	}
+/*
+  static boolean isDescendentOf(InvocationRecord child, int targetStamp, IbisIdentifier targetOwner) {
+  for(int i = 0; i< child.parentStamps.size(); i++) {
+  int currStamp = ((Integer) child.parentStamps.get(i)).intValue();
+  IbisIdentifier currOwner = (IbisIdentifier) child.parentOwners.get(i);
 
+  if(currStamp == targetStamp && currOwner.equals(targetOwner)) {
+  System.err.print("t");
+  return true;
+  }
+  }
+  return false;
+  }
+*/
 	public static boolean trylock(Object o) {
 		try {
 			o.notify();

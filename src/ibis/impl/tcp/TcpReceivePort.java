@@ -265,6 +265,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			return null;
 		}
 
+		// @@@@ if msg alive return!!!! --Rob
+
 		// Blocking receive...
 		synchronized (this) { // must this be synchronized? --Rob
 			return m;
@@ -393,6 +395,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			// Ignore.
 		}
 
+		/* unregister with porthandler */
+		ibis.tcpPortHandler.deRegister(this);
+
 		while (connectionsIndex > 0) {
 			if (DEBUG) {
 				System.err.println(name + " waiting for all connections to close (" + connectionsIndex + ")");
@@ -439,7 +444,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	public void forcedClose() {
+	public synchronized void forcedClose() {
 		if(m != null) {
 			throw new IbisError("Doing forcedClose while a msg is alive, port = " + name + " fin = " + m.isFinished);
 		}
@@ -466,7 +471,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	public void forcedClose(long timeoutMillis) {
+	public synchronized void forcedClose(long timeoutMillis) {
 		try {
 			wait(timeoutMillis);
 		} catch (Exception e) {

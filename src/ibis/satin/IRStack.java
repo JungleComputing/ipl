@@ -72,6 +72,7 @@ final class IRStack implements Config {
 
 		for(int i=0; i<count; i++) {
 			curr = l[i];
+//			if(curr.aborted) continue; // already handled.
 
 			if((curr.parent != null && curr.parent.aborted) || 
 			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {

@@ -80,7 +80,9 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].write(b);
 			} catch (IOException e2) {
-				System.err.println("splitter got exception");
+				if (DEBUG) {
+					System.err.println("splitter got exception");
+				}
 				if (e == null) {
 					e = new SplitterException();
 				}
@@ -93,7 +95,9 @@ public final class OutputStreamSplitter extends OutputStream {
 		}
 
 		if(e != null) {
-			System.err.println("splitter throwing exception");
+			if (DEBUG) {
+				System.err.println("splitter throwing exception");
+			}
 			throw e;
 		}
 	}
@@ -108,7 +112,9 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].write(b);
 			} catch (IOException e2) {
-				System.err.println("splitter got exception");
+				if (DEBUG) {
+					System.err.println("splitter got exception");
+				}
 				if (e == null) {
 					e = new SplitterException();
 				}
@@ -121,7 +127,9 @@ public final class OutputStreamSplitter extends OutputStream {
 		}
 
 		if(e != null) {
-			System.err.println("splitter throwing exception");
+			if (DEBUG) {
+				System.err.println("splitter throwing exception");
+			}
 			throw e;
 		}
 	}
@@ -136,7 +144,9 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].write(b, off, len);
 			} catch (IOException e2) {
-				System.err.println("splitter got exception");
+				if (DEBUG) {
+					System.err.println("splitter got exception");
+				}
 				if (e == null) {
 					e = new SplitterException();
 				}
@@ -149,7 +159,9 @@ public final class OutputStreamSplitter extends OutputStream {
 		}
 
 		if(e != null) {
-			System.err.println("splitter throwing exception");
+			if (DEBUG) {
+				System.err.println("splitter throwing exception");
+			}
 			throw e;
 		}
 	}
@@ -164,7 +176,9 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].flush();
 			} catch (IOException e2) {
-				System.err.println("splitter got exception");
+				if (DEBUG) {
+					System.err.println("splitter got exception");
+				}
 				if (e == null) {
 					e = new SplitterException();
 				}
@@ -177,7 +191,9 @@ public final class OutputStreamSplitter extends OutputStream {
 		}
 
 		if(e != null) {
-			System.err.println("splitter throwing exception");
+			if (DEBUG) {
+				System.err.println("splitter throwing exception");
+			}
 			throw e;
 		}
 	}
@@ -192,7 +208,9 @@ public final class OutputStreamSplitter extends OutputStream {
 			try {
 				out[i].close();
 			} catch (IOException e2) {
-				System.err.println("splitter got exception");
+				if (DEBUG) {
+					System.err.println("splitter got exception");
+				}
 				if (e == null) {
 					e = new SplitterException();
 				}
@@ -205,7 +223,9 @@ public final class OutputStreamSplitter extends OutputStream {
 		}
 
 		if(e != null) {
-			System.err.println("splitter throwing exception");
+			if (DEBUG) {
+				System.err.println("splitter throwing exception");
+			}
 			throw e;
 		}
 	}

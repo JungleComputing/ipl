@@ -52,7 +52,7 @@ public final class DEQueueNormal extends DEQueue implements Config {
 	}
 
 	public void addToHead(InvocationRecord o) {
-		if(length > 10000) {
+		if(ASSERTS && length > 10000) {
 			System.err.println("LARGE Q");
 		}
 		synchronized(satin) {
@@ -68,7 +68,7 @@ public final class DEQueueNormal extends DEQueue implements Config {
 	}
 
 	public void addtoTail(InvocationRecord o) {
-		if(length > 10000) {
+		if(ASSERTS && length > 10000) {
 			System.err.println("LARGE Q");
 		}
 		synchronized(satin) {
@@ -133,6 +133,12 @@ public final class DEQueueNormal extends DEQueue implements Config {
 
 		InvocationRecord curr = tail;
 		while(curr != null) {
+/*
+			if(curr.aborted) {
+				curr = curr.qprev; // This is correct, even if curr was just removed.
+				continue; // already handled.
+			}
+*/
 			if((curr.parent != null && curr.parent.aborted) ||
 			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
 
@@ -150,10 +156,15 @@ public final class DEQueueNormal extends DEQueue implements Config {
 					satin.abortedJobs++;
 				}
 				curr.aborted = true;
-				removeElement(curr);
+
+				// Curr is removed, but not put back in cache.
+				// this is OK. Moreover, it might have children,
+				// so we should keep it alive.
+				// cleanup is done inside the spawner itself.
+				removeElement(curr); 
 			}
 
-			curr = curr.qprev;
+			curr = curr.qprev; // This is correct, even if curr was just removed.
 		}
 	}
 }

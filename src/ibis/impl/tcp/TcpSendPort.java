@@ -206,7 +206,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	}
 
 	public String name() {
-		return name();
+		return name;
 	}
 
 	public SendPortIdentifier identifier() {

@@ -38,13 +38,22 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		}
 	}
 
-	void handleJobResult(ReadMessage m) {
+	void handleJobResult(ReadMessage m, int opcode) {
 		ReturnRecord rr = null;
 		SendPortIdentifier sender = m.origin();
 		IbisIdentifier i = null;
+		int stamp = -666;
+		Throwable eek = null;
 		try {
 			i = (IbisIdentifier) m.readObject();
-			rr = (ReturnRecord) m.readObject();
+			if(opcode == JOB_RESULT_NORMAL) {
+				rr = (ReturnRecord) m.readObject();
+				stamp = rr.stamp;
+				eek = rr.eek;
+			} else {
+				eek = (Throwable) m.readObject();
+				stamp = m.readInt();
+			}
 			//			m.finish();
 		} catch (IOException e) {
 			System.err.println("SATIN '" + satin.ident.name() + 
@@ -57,16 +66,16 @@ final class MessageHandler implements Upcall, Protocol, Config {
 		}
 
 		if(STEAL_DEBUG) {
-			if(rr.eek != null) {
+			if(eek != null) {
 				System.err.println("SATIN '" + satin.ident.name() + 
-						   "': handleJobResult: exception result: " + rr.eek);
+						   "': handleJobResult: exception result: " + eek);
 			} else {
 				System.err.println("SATIN '" + satin.ident.name() + 
 						   "': handleJobResult: normal result");
 			}
 		}
 		
-		satin.addJobResult(rr, sender, i);
+		satin.addJobResult(rr, sender, i, eek, stamp);
 	}
 
 	/* Just make this method synchronized, than all the methods we call
@@ -336,14 +345,15 @@ final class MessageHandler implements Upcall, Protocol, Config {
 			case BARRIER_REPLY:
 				handleReply(m, opcode);
 				break;
-			case JOB_RESULT:
+			case JOB_RESULT_NORMAL:
+			case JOB_RESULT_EXCEPTION:
 				if (STEAL_DEBUG) {
 					ident = m.origin();
 					satin.out.println("SATIN '" + satin.ident.name() + 
 							  "': got job result message from " + ident.ibis().name());
 				}
 				
-				handleJobResult(m);
+				handleJobResult(m, opcode);
 				break;
 			case ABORT:
 				handleAbort(m);

@@ -1,5 +1,6 @@
 package ibis.satin;
 import ibis.ipl.IbisIdentifier;
+import java.util.ArrayList;
 
 /** An invocation record. */
 
@@ -28,6 +29,11 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 	public transient LocalRecord parentLocals;
 	public transient IbisIdentifier stealer;
 
+	transient boolean alreadySentExceptionResult;
+	protected transient boolean inletExecuted;
+	
+//	ArrayList parentStamps;
+//	ArrayList parentOwners;
 
 	protected InvocationRecord(SpawnCounter spawnCounter, InvocationRecord cacheNext,
 				   int storeId, int spawnId, LocalRecord parentLocals) {
@@ -38,11 +44,16 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 			this.spawnId = spawnId;
 			this.parentLocals = parentLocals;
 		}
+
+//		parentStamps = new ArrayList();
+//		parentOwners = new ArrayList();
+
+		alreadySentExceptionResult = false;
+		inletExecuted = false;
 	}
 
 //	public abstract void delete();
 
-	/* @@@ many of these are not necesary, but useful for debugging */
 	final public void clear() {
 		owner = null;
 		stamp = -2;
@@ -62,6 +73,12 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 			aborted = false;
 			spawnId = -2;
 			parentLocals = null;
+
+//			parentStamps.clear();
+//			parentOwners.clear();
+
+			alreadySentExceptionResult = false;
+			inletExecuted = false;
 		}
 	}
 
@@ -94,28 +111,12 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 			result += ", parentStamp = " + parentStamp;
 			result += ", parentOwner = " + (parentOwner == null ? "NULL" : "" + parentOwner);
 			result += ", aborted = " + aborted;
+			result += ", parent = " + (parent == null ? "NULL" : "" + parent); // recursive :-)
 			result += ", parentLocals = " + (parentLocals == null ? "NULL" : "" + parentLocals) + ")";
 
 			return result;
 	}
 
-/*
-	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-		System.err.print("w");
-		out.writeObject(owner);
-		out.writeObject(parentOwner);
-		out.writeInt(stamp);
-		out.writeInt(parentStamp);
-	}
-
-	private void readObject(java.io.ObjectInputStream in) throws IOException {
-		System.err.print("r");
-		owner = (IbisIdentifier) in.readObject();
-		parentOwner = (IbisIdentifier) in.readObject();
-		stamp = in.readInt();
-		parentStamp = in.readInt();
-	}
-*/
 	public abstract void runLocal();
 	public abstract ReturnRecord runRemote();
 }

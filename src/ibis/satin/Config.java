@@ -12,7 +12,7 @@ public interface Config {
 
 	/* Enable or disable timings */
 	static final boolean STEAL_TIMING = true;
-	static final boolean ABORT_TIMING = false;
+	static final boolean ABORT_TIMING = true;
 	static final boolean IDLE_TIMING = false;
 	static final boolean POLL_TIMING = false;
 	static final boolean TUPLE_TIMING = true;

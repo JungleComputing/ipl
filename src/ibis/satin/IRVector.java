@@ -77,8 +77,11 @@ final class IRVector implements Config {
 		InvocationRecord curr;
 		for(int i=0; i<count; i++) {
 			curr = l[i];
+//			if(curr.aborted) continue; // already handled.
+
 			if((curr.parent != null && curr.parent.aborted) || 
 			   Satin.isDescendentOf(curr, targetStamp, targetOwner)) {
+
 				curr.aborted = true;
 				if(ABORT_DEBUG) {
 					System.out.println("found stolen child: " + curr.stamp + ", it depends on " + targetStamp);
@@ -95,8 +98,14 @@ final class IRVector implements Config {
 				if(STEAL_STATS) {
 					satin.abortMessages++;
 				}
+
+				// Curr is removed, but not put back in cache.
+				// this is OK. Moreover, it might have children,
+				// so we should keep it alive.
+				// cleanup is done inside the spawner itself.
 				removeIndex(i);
 				i--;
+
 				satin.sendAbortMessage(curr);
 			}
 		}

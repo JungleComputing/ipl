@@ -1,5 +1,4 @@
-/** 
-    This class handles all incoming connection requests.
+/** This class handles all incoming connection requests.
  **/
 package ibis.impl.tcp;
 
@@ -50,6 +49,15 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 		}
 		receivePorts.add(p);
 		return port;
+	}
+
+	synchronized void deRegister(TcpReceivePort p) {
+		if(DEBUG) {
+			System.err.println("TcpPortHandler registered " + p.name);
+		}
+		if(!receivePorts.remove(p)) {
+			throw new IbisError("Tcpporthandler: trying to remove unknown reveiveport");
+		}
 	}
 
 	void releaseOutput(TcpReceivePortIdentifier ri, OutputStream out) {
