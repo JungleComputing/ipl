@@ -52,6 +52,7 @@ static int	send_first_frag = 0;
 static int	send_last_frag = 0;
 static int	send_msg = 0;
 static int	send_frag_skip = 0;
+static int	send_sync = 0;
 
 #define COUNT_GLOBAL_REFS 0
 #if COUNT_GLOBAL_REFS
@@ -863,6 +864,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1send(
     if (lastSplitter) {
 	ibmp_msg_release_iov(env, msg);
     }
+    send_sync++;
 
     return JNI_TRUE;
 }
@@ -970,10 +972,12 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
 	return JNI_TRUE;
     }
 
+#ifdef IBP_VERBOSE
     if (! pan_thread_nonblocking() && len < ibmp_send_sync) {
-	fprintf(stderr, "%2d: would like to do a sync bcast size %d, but alas\n",
-		ibmp_me, len);
+	IBP_VPRINTF(25, ("would like to do a sync bcast size %d, but alas\n",
+		    ibmp_me, len));
     }
+#endif
 
     ibmp_msg_freelist_verify(env, __LINE__, byte_os);
     IBP_VPRINTF(450, env, ("Msg %p must be acked/released from upcall\n", msg));
@@ -1211,11 +1215,11 @@ ibmp_byte_output_stream_report(JNIEnv *env)
     fprintf(stderr, "%2d: PandaBufferedOutputStream.sent data %d\n", ibmp_me, sent_data);
 #endif
 #if DISABLE_SENDER_INTERRUPTS
-    fprintf(stderr, "%2d: IBP intr enable %d disable %d send msg %d frag %d (first %d last %d skip %d) \n",
-	    ibmp_me, intr_enable, intr_disable, send_msg, send_frag, send_first_frag, send_last_frag, send_frag_skip);
+    fprintf(stderr, "%2d: IBP intr enable %d disable %d send msg %d frag %d (first %d last %d skip %d sync %d) \n",
+	    ibmp_me, intr_enable, intr_disable, send_msg, send_frag, send_first_frag, send_last_frag, send_frag_skip, send_sync);
 #else
-    fprintf(stderr, "%2d: IBP send msg %d frag %d (skip %d) \n",
-	    ibmp_me, send_msg, send_frag, send_frag_skip);
+    fprintf(stderr, "%2d: IBP send msg %d frag %d (skip %d sync %d) \n",
+	    ibmp_me, send_msg, send_frag, send_frag_skip, send_sync);
 #endif
 }
 
