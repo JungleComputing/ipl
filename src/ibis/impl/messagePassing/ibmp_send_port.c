@@ -57,8 +57,11 @@ ibmp_send_port_init(JNIEnv *env)
     cls_ShadowSendPort = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_ShadowSendPort);
 
     md_createSSP = (*env)->GetStaticMethodID(env, cls_ShadowSendPort, "createShadowSendPort",
-					     "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIII)Libis.ipl.impl.messagePassing.ShadowSendPort;");
+					     "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIII)Libis/ipl/impl/messagePassing/ShadowSendPort;");
     if (md_createSSP == NULL) {
+	if ((*env)->ExceptionOccurred(env)) {
+	    (*env)->ExceptionDescribe(env);
+	}
 	fprintf(stderr, "%s.%d Cannot find method createShadowSendPort(Ljava/lang/String;Ljava/lang/String;IIII)Libis.ipl.impl.messagePassing.ShadowSendPort;\n", __FILE__, __LINE__);
 	abort();
     }

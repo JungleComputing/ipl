@@ -133,6 +133,8 @@ SERIALIZABLE_JAD	:= $(SERIALIZABLE_J:%.java=%.jad) $(SERIALIZABLE_J:%.java=%_ibi
 SERIALIZABLE_JAD_O	:= $(SERIALIZABLE_J:%.java=%_jad.o)
 O_FILES		:= $(filter-out $(SERIALIZABLE_O), $(O_FILES))
 O_FILES		:= $(O_FILES) $(SERIALIZABLE_JAD_O)
+
+SERIALIZABLE_CLASS	:= $(SERIALIZABLE_J:%.java=%.class)
 endif
 
 PKG_SUF		:= .$(PACKAGE_MANGLE)
@@ -159,7 +161,7 @@ TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s $(OUT) *
 
 .java.jad:
 	$(JAVAC_COMMAND) $*.java
-	$(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.io.IOGenerator $*
+	$(IOC_COMMAND) $*
 	$(JAD) $*.class
 	$(JAD) $*_ibis_io_Generator.class
 
@@ -179,6 +181,9 @@ TRASH_FILES	+= $(DEPENDENCIES)
 
 .java.class:
 	$(JAVAC_COMMAND) $*.java
+ifneq ($(filter-out, $*.java, $(SERIALIZABLE_CLASS)), $(SERIALIZABLE_CLASS))
+	$(IOC_COMMAND) $*.class
+endif
 
 .PHONY:	run
 run:

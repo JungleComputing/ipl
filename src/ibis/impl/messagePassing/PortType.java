@@ -22,6 +22,8 @@ public class PortType implements ibis.ipl.PortType {
 	this.p = p;
 
 	String ser = p.find("Serialization");
+System.err.println("PortType sees StaticProperties " + p);
+System.err.println("PortType sees serialization request " + ser);
 	if (ser == null) {
 	    p.add("Serialization", "sun");
 	    serializationType = SERIALIZATION_SUN;

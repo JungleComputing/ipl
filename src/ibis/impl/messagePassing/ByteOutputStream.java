@@ -73,7 +73,7 @@ public abstract class ByteOutputStream
 		    System.err.println(">>>>>>>>>>>>>>>>>> After sync send set msgHandle to 0x" + Integer.toHexString(msgHandle));
 		}
 		this.msgHandle = msgHandle;
-		resetMsg();
+		resetMsg(msgHandle);
 	    }
 	} else {
 	    /* Do it from the sent upcall */
@@ -149,7 +149,7 @@ public abstract class ByteOutputStream
 
     /* Pass our current msgHandle field: we only want to reset
      * a fragment that has been sent-acked */
-    protected abstract void resetMsg();
+    protected abstract void resetMsg(int msgHandle);
 
     private void reset(boolean finish) throws IbisIOException {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
