@@ -603,7 +603,7 @@ final class MethodTable {
     }
 
     static String generatedLocalName(Type type, String name) {
-	return name + "_" + type.toString().replace('.', '_').replace('[', '_').replace(']', '_');
+	return name + "_" + type.toString().replace('.', '_').replace('[', '_').replace(']', '_').replace('$', '_');
     }
 
     static String[] getAllLocalDecls(Method m) {

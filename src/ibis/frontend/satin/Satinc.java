@@ -1,6 +1,8 @@
 package ibis.frontend.satin;
 
 import java.io.BufferedOutputStream;
+import java.io.OutputStream;
+import java.io.FilterOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -122,6 +124,22 @@ public final class Satinc {
     MethodTable mtab;
     boolean failed_verification = false;
     private static boolean toplevel = true;
+
+    /**
+     * Nested classes have '$'-signs in their bytecode names, but
+     * these are not legal in java code, so we filter them out,
+     * by replacing them with a '.'.
+     */
+    private static class DollarFilter extends FilterOutputStream {
+	DollarFilter(OutputStream out) {
+	    super(out);
+	}
+
+	public void write(int b) throws IOException {
+	    if (b == '$') super.write('.');
+	    else super.write(b);
+	}
+    }
 
     private class StoreClass {
 	Instruction store;
@@ -395,17 +413,6 @@ public final class Satinc {
 	
     }
 
-    static String patch_dollar(String str) {
-	StringBuffer s = new StringBuffer(str);
-	for (int i = 0; i < s.length(); i++) {
-	    if (s.charAt(i) == '$') {
-		s.setCharAt(i, '.');
-		break;
-	    }
-	}
-	return s.toString();
-    }
-    
     static String do_mangle(String name, String sig) {
 	StringBuffer s = new StringBuffer(sig);
 
@@ -425,9 +432,7 @@ public final class Satinc {
 	int i = 0;
 	while (i < s.length()) {
 	    switch(s.charAt(i)) {
-		// Fix for nested classes:
 	    case '$':
-
 	    case '.':
 	    case '/':
 		s.setCharAt(i, '_');
@@ -1959,7 +1964,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	FileOutputStream f = new FileOutputStream(name + ".java");
 	BufferedOutputStream b = new BufferedOutputStream(f);
-	PrintStream out = new PrintStream(b);
+	DollarFilter b2 = new DollarFilter(b);
+	PrintStream out = new PrintStream(b2);
 
 	out.println("final class " + name + " extends ibis.satin.LocalRecord {");
 	out.println("    static " + name + " cache;");
@@ -2072,13 +2078,14 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	FileOutputStream f = new FileOutputStream(name + ".java");
 	BufferedOutputStream b = new BufferedOutputStream(f);
-	PrintStream out = new PrintStream(b);
+	DollarFilter b2 = new DollarFilter(b);
+	PrintStream out = new PrintStream(b2);
 	//		PrintStream out = System.err;
 	Type[] params = mtab.typesOfParamsNoThis(m);
 	String[] params_types_as_names = new String[params.length];
 
 	for (int i = 0; i < params.length; i++) {
-	    params_types_as_names[i] = patch_dollar(params[i].toString());
+	    params_types_as_names[i] = params[i].toString();
 	}
 
 	Type returnType = getReturnType(m);
@@ -2312,7 +2319,8 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	FileOutputStream f = new FileOutputStream(name + ".java");
 	BufferedOutputStream b = new BufferedOutputStream(f);
-	PrintStream out = new PrintStream(b);
+	DollarFilter b2 = new DollarFilter(b);
+	PrintStream out = new PrintStream(b2);
 
 	Type returnType = getReturnType(m);
 
