@@ -5,17 +5,17 @@ package ibis.satin;
 // No need to delete aborted invocation records, the spawner keeps an
 // outstandingJobs list.
 
-public final class DEQueueNormal extends DEQueue implements Config {
+final class DEQueueNormal extends DEQueue implements Config {
 	private InvocationRecord head = null;
 	private InvocationRecord tail = null;
 	private int length = 0;
 	private Satin satin;
 
-	public DEQueueNormal(Satin satin) {
+	DEQueueNormal(Satin satin) {
 		this.satin = satin;
 	}
 
-	public InvocationRecord getFromHead() {
+	InvocationRecord getFromHead() {
 		synchronized(satin) {
 			if(length == 0) return null;
 
@@ -33,7 +33,7 @@ public final class DEQueueNormal extends DEQueue implements Config {
 		}
 	}
 
-	public InvocationRecord getFromTail() {
+	InvocationRecord getFromTail() {
 		synchronized(satin) {
 			if(length == 0) return null;
 
@@ -51,7 +51,7 @@ public final class DEQueueNormal extends DEQueue implements Config {
 		}
 	}
 
-	public void addToHead(InvocationRecord o) {
+	void addToHead(InvocationRecord o) {
 		if(ASSERTS && length > 10000) {
 			System.err.println("LARGE Q");
 		}
@@ -67,7 +67,7 @@ public final class DEQueueNormal extends DEQueue implements Config {
   		}
 	}
 
-	public void addtoTail(InvocationRecord o) {
+	void addtoTail(InvocationRecord o) {
 		if(ASSERTS && length > 10000) {
 			System.err.println("LARGE Q");
 		}
@@ -126,7 +126,7 @@ public final class DEQueueNormal extends DEQueue implements Config {
 		}
 	}
 
-	public void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
+	void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
 		if(ASSERTS) {
 			Satin.assertLocked(satin);
 		}

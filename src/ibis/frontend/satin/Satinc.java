@@ -95,12 +95,11 @@ import org.apache.bcel.verifier.VerifierFactory;
 
 public final class Satinc {
     JavaClass satinObjectClass;
-    JavaClass mainClass;
     ObjectType spawnCounterType;
     ObjectType irType;
     ObjectType satinType;
 
-    private final static String satinFieldName = "$satinClass$";
+    private final static String satinFieldName = "this_satin";
 
     JavaClass		c; // the class we are rewriting 
     ClassGen		gen_c;
@@ -114,9 +113,7 @@ public final class Satinc {
     boolean local;
     boolean print;
     boolean invocationRecordCache;
-    Field satinField;
     String classname;
-    String mainClassname;
     String compiler = "javac";
     boolean supportAborts;
     boolean inletOpt;
@@ -197,7 +194,7 @@ public final class Satinc {
     private static Vector javalist = new Vector();
 
     public Satinc(boolean verbose, boolean local, boolean verify, boolean keep, boolean print, boolean invocationRecordCache,
-           String classname, String mainClassname, String compiler, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt) {
+           String classname, String compiler, boolean supportAborts, boolean inletOpt, boolean spawnCounterOpt) {
 	this.verbose = verbose;
 	this.verify = verify;
 	this.keep = keep;
@@ -205,7 +202,6 @@ public final class Satinc {
 	this.local = local;
 	this.invocationRecordCache = invocationRecordCache;
 	this.classname = classname;
-	this.mainClassname = mainClassname;
 	this.compiler = compiler;
 	this.supportAborts = supportAborts;
 	this.inletOpt = inletOpt;
@@ -222,12 +218,6 @@ public final class Satinc {
 	cpg = gen_c.getConstantPool();
 	ins_f = new InstructionFactory(gen_c);
 
-	if (classname.equals(mainClassname)) {
-	    mainClass = c;
-	} else {
-	    mainClass = Repository.lookupClass(mainClassname);
-	}
-
 	satinObjectClass = Repository.lookupClass("ibis.satin.SatinObject");
 	spawnCounterType = new ObjectType("ibis.satin.SpawnCounter");
 	irType = new ObjectType("ibis.satin.InvocationRecord");
@@ -238,7 +228,7 @@ public final class Satinc {
 	return Repository.instanceOf(c, satinObjectClass);
     }
 
-    boolean isRewritten(JavaClass c) {
+    boolean isRewritten() {
 	return Repository.implementationOf(c, "ibis.satin.SatinRewritten");
     }
 
@@ -304,17 +294,12 @@ public final class Satinc {
 				     Type.VOID,
 				     new Type[] {new ArrayType(Type.STRING, 1)},
 				     Constants.INVOKESPECIAL));
-	il.append(new DUP());
-	il.append(ins_f.createFieldAccess(mainClassname,
-					  satinFieldName,
-					  satinType,
-					  Constants.PUTSTATIC));
 	il.append(ins_f.createFieldAccess("ibis.satin.Satin",
 					  "master",
 					  Type.BOOLEAN,
 					  Constants.GETFIELD));
 	BranchHandle ifcmp = il.append(new IFEQ(null));
-	il.append(ins_f.createFieldAccess(mainClassname,
+	il.append(ins_f.createFieldAccess("ibis.satin.Satin",
 					  satinFieldName,
 					  satinType,
 					  Constants.GETSTATIC));
@@ -370,7 +355,7 @@ public final class Satinc {
 	BranchHandle gto2 = il.append(new GOTO(null));
 
 	InstructionHandle ifeq_target = 
-	     il.append(ins_f.createFieldAccess(mainClassname,
+	     il.append(ins_f.createFieldAccess("ibis.satin.Satin",
 					       satinFieldName,
 					       satinType,
 					       Constants.GETSTATIC));
@@ -382,7 +367,7 @@ public final class Satinc {
 				     Constants.INVOKEVIRTUAL));
 
 	InstructionHandle gto_target = 
-	     il.append(ins_f.createFieldAccess(mainClassname,
+	     il.append(ins_f.createFieldAccess("ibis.satin.Satin",
 					       satinFieldName,
 					       satinType,
 					       Constants.GETSTATIC));
@@ -413,21 +398,7 @@ public final class Satinc {
 	
     }
 
-    static String do_mangle(String name, String sig) {
-	StringBuffer s = new StringBuffer(sig);
-
-	int open = s.indexOf("(");
-	if (open == -1) {
-	    return name;
-	}
-	s.delete(0, open+1);
-
-	int close = s.indexOf(")");
-	if (close == -1) {
-	    return name;
-	}
-	s.delete(close, s.length());
-
+    static String do_mangle(StringBuffer s) {
 	// OK, now sanitize parameters
 	int i = 0;
 	while (i < s.length()) {
@@ -455,7 +426,26 @@ public final class Satinc {
 	    }
 	    i++;
 	}
-	return name + "__" + s.toString();
+	return s.toString();
+    }
+
+    static String do_mangle(String name, String sig) {
+	StringBuffer s = new StringBuffer(sig);
+	name = do_mangle(new StringBuffer(name));
+
+	int open = s.indexOf("(");
+	if (open == -1) {
+	    return name;
+	}
+	s.delete(0, open+1);
+
+	int close = s.indexOf(")");
+	if (close == -1) {
+	    return name;
+	}
+	s.delete(close, s.length());
+
+	return name + "__" + do_mangle(s);
     }
 
     static String do_mangle(Method m) {
@@ -562,7 +552,7 @@ public final class Satinc {
     void rewriteAbort(MethodGen m, InstructionList il, InstructionHandle i, int maxLocals) {
 	// in a clone, we have to abort two lists: the outstanding spawns of the parent, and the outstanding
 	// spawns of the clone.
-	Instruction fa = ins_f.createFieldAccess(mainClassname,
+	Instruction fa = ins_f.createFieldAccess("ibis.satin.Satin",
 						 satinFieldName,
 						 satinType,
 						 Constants.GETSTATIC);
@@ -625,7 +615,7 @@ public final class Satinc {
 							 Type.VOID,
 							 new Type[] { spawnCounterType },
 							 Constants.INVOKEVIRTUAL);
-	Instruction satin_field_access = ins_f.createFieldAccess(mainClassname,
+	Instruction satin_field_access = ins_f.createFieldAccess("ibis.satin.Satin",
 								 satinFieldName,
 								 satinType,
 								 Constants.GETSTATIC);
@@ -783,7 +773,7 @@ public final class Satinc {
 
 	    InstructionHandle abo = insertNullReturn(m, il, pos);
 
-	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
+	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
 						   satinFieldName,
 						   satinType,
 						   Constants.GETSTATIC));
@@ -797,7 +787,7 @@ public final class Satinc {
 	    // test for null (root job)
 	    il.insert(abo, new IFNULL(pos));
 
-	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
+	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
 						   satinFieldName,
 						   satinType,
 						   Constants.GETSTATIC));
@@ -815,7 +805,7 @@ public final class Satinc {
 /*
 ////@@@@@@@@@@2 this needs fixing :-(
 	    // Test for parent.eek, if non-null, throw it (exception in inlet).
-	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
+	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
 						   satinFieldName,
 						   satinType,
 						   Constants.GETSTATIC));
@@ -828,7 +818,7 @@ public final class Satinc {
 						   new ObjectType("java.lang.Throwable"),
 						   Constants.GETFIELD));
 	    il.insert(abo, new IFNULL(abo));
-	    il.insert(abo, ins_f.createFieldAccess(mainClassname,
+	    il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
 						   satinFieldName,
 						   satinType,
 						   Constants.GETSTATIC));
@@ -1052,7 +1042,7 @@ public final class Satinc {
 	// Now, we call Satin.spawn(outstandingSpawns) 
 	
 	// push s 
-	i = il.append(i, ins_f.createFieldAccess(mainClassname,
+	i = il.append(i, ins_f.createFieldAccess("ibis.satin.Satin",
 					  satinFieldName,
 					  satinType,
 					  Constants.GETSTATIC));
@@ -2372,7 +2362,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    }
 	}
 
-	if (isRewritten(c)) {
+	if (isRewritten()) {
 	    if (verbose) {
 		System.out.println(classname + " is already rewritten");
 	    }
@@ -2407,29 +2397,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
 	    gen_c.addMethod(main);
 
-	    FieldGen f = new FieldGen(Constants.ACC_STATIC, satinType, satinFieldName, gen_c.getConstantPool());
-
-	    satinField = f.getField();
-	    gen_c.addField(satinField);
-
 	    generateMain(gen_c, main);
-	} else {
-	    satinField = null;
-	    Field f[] = mainClass.getFields();
-	    for (int i = 0; i < f.length; i++) {
-		if (f[i].getName().equals(satinFieldName)) {
-		    satinField = f[i];
-		    break;
-		}
-	    }
-	    if (satinField == null) {
-		// no main field!
-		// we are probably compiling a non-satin application/library then
-		if (verbose) {
-		    System.err.println("no mainclass, returning");
-		}
-		return;
-	    }
 	}
 
 	String src = c.getSourceFileName();
@@ -2507,7 +2475,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    for (int i = 0; i < javalist.size(); i++) {
 		JavaClass cl = (JavaClass) (javalist.get(i));
 		new Satinc(verbose, local, verify, keep, print, invocationRecordCache,
-			    cl.getClassName(), mainClassname, compiler, supportAborts, inletOpt, spawnCounterOpt).start();
+			    cl.getClassName(), compiler, supportAborts, inletOpt, spawnCounterOpt).start();
 	    }
 	}
 
@@ -2521,7 +2489,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 
     public static void usage() {
 	System.err.println("Usage : java Satinc [-v] [-keep] [-dir|-local] [-print] [-irc-off] [-no-sc-opt]" +
-		   "[-compiler \"your compile command\" ] [-no-aborts] [-no-inlet-opt] <classname> [mainClass]");
+		   "[-compiler \"your compile command\" ] [-no-aborts] [-no-inlet-opt] <classname>*");
 	System.exit(1);
     }
 
@@ -2568,8 +2536,6 @@ System.out.println("findMethod: could not find method " + name + sig);
     }
 
     public static void main(String[] args) {
-	String target = null;
-	String mainClass = null;
 	boolean verbose = false;
 	boolean verify = false;
 	boolean keep = false;
@@ -2580,6 +2546,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	String compiler = "javac";
 	boolean inletOpt = true;
 	boolean spawnCounterOpt = true;
+	Vector list = new Vector();
 
 	for (int i=0; i<args.length; i++) {
 	    if (args[i].equals("-v")) {
@@ -2587,13 +2554,7 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    } else if (args[i].equals("-verify")) {
 		verify = true;
 	    } else if (!args[i].startsWith("-")) {
-		if (target == null) {
-		    target = args[i];
-		} else if (mainClass == null) {
-		    mainClass = args[i];
-		} else {
-		    usage();
-		}
+		list.add(args[i]);
 	    } else if (args[i].equals("-compiler")) {
 		compiler = args[i+1];
 		i++;
@@ -2620,15 +2581,13 @@ System.out.println("findMethod: could not find method " + name + sig);
 	    }
 	}
 
-	if (target == null) {
+	if (list.size() == 0) {
 	    usage();
 	}
 
-	if (mainClass == null) {
-	    mainClass = target;
+	for (int i = 0; i < list.size(); i++) {
+	    new Satinc(verbose, local, verify, keep, print, invocationRecordCache, (String) list.get(i), compiler, supportAborts, inletOpt, spawnCounterOpt).start();
 	}
-
-	new Satinc(verbose, local, verify, keep, print, invocationRecordCache, target, mainClass, compiler, supportAborts, inletOpt, spawnCounterOpt).start();
     }
 
     public static void do_satinc(JavaClass cl) {

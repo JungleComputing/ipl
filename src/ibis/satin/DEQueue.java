@@ -5,13 +5,10 @@ package ibis.satin;
 // No need to delete aborted invocation records, the spawner keeps an
 // outstandingJobs list.
 
-public abstract class DEQueue implements Config {
+abstract class DEQueue implements Config {
 
-	public abstract InvocationRecord getFromHead();
-
-	public abstract InvocationRecord getFromTail();
-
-	public abstract void addToHead(InvocationRecord o);
-
-	public abstract void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner);
+	abstract InvocationRecord getFromHead();
+	abstract InvocationRecord getFromTail();
+	abstract void addToHead(InvocationRecord o);
+	abstract void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner);
 }

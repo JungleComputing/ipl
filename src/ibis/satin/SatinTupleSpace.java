@@ -14,7 +14,7 @@ public class SatinTupleSpace implements Config {
 	private static HashMap space;
 
 	static {
-		satin = Satin.me;
+		satin = Satin.this_satin;
 		if(satin == null) {
 			throw new IbisError("Internal error: Satin not initialized");
 		}

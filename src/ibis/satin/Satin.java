@@ -52,7 +52,7 @@ import java.util.Vector;
 
 public final class Satin implements Config, Protocol, ResizeHandler {
 
-	static Satin me = null;
+	public static Satin this_satin = null;
 
 	private Ibis ibis;
 	IbisIdentifier ident; // used in messageHandler
@@ -159,10 +159,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 	public Satin(String[] args) {
 
-		if(me != null) {
+		if(this_satin != null) {
 			throw new IbisError("multiple satin instances are currently not supported");
 		}
-		me = this;
+		this_satin = this;
 
 		if(stealTimer == null) {
 			System.err.println("Native timers not found, using (less accurate) java timers.");
@@ -2081,15 +2081,15 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 	    avoid communication overhead during sequential code.
 	**/
 	public static void pause() {
-		if(me == null || !me.upcalls) return;
-		me.receivePort.disableUpcalls();
+		if(this_satin == null || !this_satin.upcalls) return;
+		this_satin.receivePort.disableUpcalls();
 	}
 
 	/** Resume Satin operation. 
 	    This method can optionally be called after a large sequential part in a program.
 	**/
 	public static void resume() {
-		if(me == null || !me.upcalls) return;
-		me.receivePort.enableUpcalls();
+		if(this_satin == null || !this_satin.upcalls) return;
+		this_satin.receivePort.enableUpcalls();
 	}
 }
