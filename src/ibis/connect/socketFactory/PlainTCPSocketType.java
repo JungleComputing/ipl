@@ -9,7 +9,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Hashtable;
 
 
 // SocketType descriptor for plain TCP sockets
@@ -45,22 +44,19 @@ public class PlainTCPSocketType extends SocketType
 	if(hintIsServer) {
 	    ServerSocket server = this.createServerSocket(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
 	    ObjectOutputStream os = new ObjectOutputStream(out);
-	    Hashtable lInfo = new Hashtable();
-	    lInfo.put("tcp_address", server.getInetAddress());
-	    lInfo.put("tcp_port",    new Integer(server.getLocalPort()));
-	    os.writeObject(lInfo);
+	    os.writeObject(server.getInetAddress());
+	    os.writeInt(server.getLocalPort());
 	    os.flush();
 	    s = server.accept();
 	} else {
 	    ObjectInputStream is = new ObjectInputStream(in);
-	    Hashtable rInfo = null;
+	    InetAddress raddr;
 	    try {
-		rInfo = (Hashtable)is.readObject();
+		raddr = (InetAddress)is.readObject();
 	    } catch (ClassNotFoundException e) {
 		throw new Error(e);
 	    }
-	    InetAddress raddr =  (InetAddress)rInfo.get("tcp_address");
-	    int         rport = ((Integer)    rInfo.get("tcp_port")   ).intValue();
+	    int rport = is.readInt();
 	    s = this.createClientSocket(raddr, rport);
 	}
 	tuneSocket(s);

@@ -1,15 +1,16 @@
 package ibis.connect.tcpSplicing;
 
+import ibis.connect.util.MyDebug;
 import ibis.connect.socketFactory.BrokeredSocketFactory;
 import ibis.connect.socketFactory.SocketType;
+import ibis.connect.socketFactory.PlainTCPSocketType;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.Socket;
-import java.util.Hashtable;
 
 
 // SocketType descriptor for TCP Splicing
@@ -28,22 +29,23 @@ public class TCPSpliceSocketType extends SocketType
 	int    splicePort = theSplice.findPort();
 	String spliceHost = theSplice.getLocalHost();
 
-	Hashtable lInfo = new Hashtable();
-	lInfo.put("splice_port", new Integer(splicePort));
-	lInfo.put("splice_host", spliceHost);
-	ObjectOutputStream os = new ObjectOutputStream(out);
-	os.writeObject(lInfo);
+	DataOutputStream os = new DataOutputStream(out);
+	os.writeInt(splicePort);
+	os.writeUTF(spliceHost);
 	os.flush();
 	
-	Hashtable rInfo = null;
-	ObjectInputStream is = new ObjectInputStream(in);
-	try {
-	    rInfo = (Hashtable)is.readObject();
-	} catch (ClassNotFoundException e) {
-	    throw new Error(e);
+	DataInputStream is = new DataInputStream(in);
+	int splice_port = is.readInt();
+	String splice_host = is.readUTF();
+
+	if (splice_host.equals(spliceHost)) {
+	    // Same hostname. TcpSplice does not seem to work in that case,
+	    // but surely, plain TCP should work in this case.
+	    MyDebug.trace("TCPSplice requested on same node, plain Socket used");
+	    theSplice.close();
+	    PlainTCPSocketType tp = new PlainTCPSocketType();
+	    return tp.createBrokeredSocket(in, out, hint, p);
 	}
-	int    splice_port = ((Integer) rInfo.get("splice_port")).intValue();
-	String splice_host =  (String)  rInfo.get("splice_host");
 
 	Socket s = theSplice.connectSplice(splice_host, splice_port);
 	s.setTcpNoDelay(true);

@@ -5,11 +5,10 @@ import ibis.connect.util.MyDebug;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Hashtable;
 
 public class ParallelStreams
 {
@@ -43,21 +42,14 @@ public class ParallelStreams
     {
 	int i;
 
-	ObjectOutputStream os = new ObjectOutputStream(out);
-	Hashtable lInfo = new Hashtable();
-	lInfo.put("num_ways", new Integer(numWays));
-	os.writeObject(lInfo);
+	DataOutputStream os = new DataOutputStream(out);
+	os.writeInt(numWays);
 	os.flush();
 
-	ObjectInputStream is = new ObjectInputStream(in);
-	Hashtable rInfo = null;
-	try {
-	    rInfo = (Hashtable)is.readObject();
-	} catch (ClassNotFoundException e) {
-	    throw new Error(e);
-	}
+	DataInputStream is = new DataInputStream(in);
+	int rNumWays = is.readInt();
+	
 	MyDebug.out.println("PS: received properties from peer.");
-	int rNumWays = ((Integer) rInfo.get("num_ways")).intValue();
 	if(rNumWays != numWays) {
 	    throw new Error("ParallelStreams: cannot connect- localNumWays = "+numWays+"; remoteNumWays = "+rNumWays);
 	}

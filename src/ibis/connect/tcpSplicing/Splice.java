@@ -60,6 +60,13 @@ public class Splice
 	return localPort;
     }
 
+    public void close() {
+	try {
+	    socket.close();
+	} catch(IOException dummy) {
+	}
+    }
+
     public Socket connectSplice(String rHost, int rPort)
 	throws IOException
     {
