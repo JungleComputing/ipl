@@ -16,7 +16,8 @@ class Compress extends ibis.satin.SatinObject implements Configuration
 
     static void usage()
     {
-        System.err.println( "Usage: [-verify] [-top <n>] <text> <compressedtext>" );
+        System.err.println( "Usage: [-quiet] [-verify] [-top <n>] <text-file> <compressed-file>" );
+	System.err.println( "   or: [-quiet] [-verify] [-top <n>] -string <text-string> <compressed-file>" );
     }
 
     /**
@@ -28,14 +29,28 @@ class Compress extends ibis.satin.SatinObject implements Configuration
 	File infile = null;
 	File outfile = null;
         int top = DEFAULT_TOP;
+        String intext = null;
+        boolean quiet = false;
 
         for( int i=0; i<args.length; i++ ){
             if( args[i].equals( "-verify" ) ){
                 doVerification = true;
             }
+            else if( args[i].equals( "-quiet" ) ){
+                quiet = true;
+            }
             else if( args[i].equals( "-top" ) ){
                 i++;
                 top = Integer.parseInt( args[i] );
+            }
+            else if( args[i].equals( "-string" ) ){
+                i++;
+                if( intext != null || infile != null ){
+                    System.err.println( "More than one text to compress given" );
+                    usage();
+                    System.exit( 1 );
+                }
+                intext = args[i];
             }
             else if( infile == null ){
                 infile = new File( args[i] );
@@ -44,28 +59,43 @@ class Compress extends ibis.satin.SatinObject implements Configuration
                 outfile = new File( args[i] );
             }
             else {
+                System.err.println( "Superfluous parameter `" + args[i] + "'" );
                 usage();
                 System.exit( 1 );
             }
         }
-        if( infile == null || outfile == null ){
+        if( intext == null && (infile == null || outfile == null) ){
             usage();
             System.exit( 1 );
         }
 
         try {
-            byte text[] = Helpers.readFile( infile );
+            byte text[];
+	    if( infile != null ){
+		text = Helpers.readFile( infile );
+	    }
+	    else if( intext != null ){
+		text = intext.getBytes();
+	    }
+	    else {
+		System.err.println( "No text to compress" );
+		usage();
+		System.exit( 1 );
+		text = null;
+	    }
             long startTime = System.currentTimeMillis();
 
             Compress c = new Compress();
             ByteBuffer buf = c.compress( text, top );
             Helpers.writeFile( outfile, buf );
 
-            long endTime = System.currentTimeMillis();
-            double time = ((double) (endTime - startTime))/1000.0;
+	long endTime = System.currentTimeMillis();
+	double time = ((double) (endTime - startTime))/1000.0;
 
+        if( !quiet ){
             System.out.println( "ExecutionTime: " + time );
             System.out.println( "In: " + text.length + " bytes, out: " + buf.getLength() + " bytes." );
+	}
             if( doVerification ){
                 ByteBuffer debuf = Decompress.decompress( buf );
                 byte nt[] = debuf.getText();

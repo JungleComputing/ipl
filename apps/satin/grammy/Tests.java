@@ -34,4 +34,11 @@ public class Tests extends TestCase {
         sbuf.append( 42 );
         assertFalse( sbuf.isEqual( codes ) );
     }
+
+    public void testCompressor()
+        throws java.io.IOException
+    {
+        String args[] = { "-quiet", "-short", "2", "-depth", "2", "-verify", "-string", sample };
+	Compress.main( args );
+    }
 }
