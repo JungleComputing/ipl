@@ -8,7 +8,7 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 
 /**
- * Dissipator which reads from a single channel. reads whenever
+ * Dissipator which reads from a single channel. Reads whenever
  * the SendReceiveThread askes it to.
  */
 final class ThreadNioDissipator extends NioDissipator implements Config {
