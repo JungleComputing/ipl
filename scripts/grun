@@ -157,7 +157,7 @@ for i in $SITES; do
 
 	echo $0: copying ibis to ${!HOSTNAME_VAR}...
 	if ! ssh -p 2222 ${!HOSTNAME_VAR} mkdir tmp$$ ||
-	   ! scp -P 2222 $HOME/proj/ibis$$.tgz ${!HOSTNAME_VAR}:tmp$$/ibis.tgz;
+	   ! scp -P 2222 $IBIS_ROOT/ibis$$.tgz ${!HOSTNAME_VAR}:tmp$$/ibis.tgz;
 	then
 		echo $0: Error while copying ibis to ${!HOSTNAME_VAR}! Aborting!
 		ABORT=true
@@ -223,7 +223,7 @@ if [ "$ABORT" != "true" ]; then
 	mkdir -p grun-output
 
 	#everything's prepared now, start running
-	~/proj/ibis/bin/ibis_nameserver -port $NS_PORT -single &
+	$IBIS_ROOT/ibis/bin/ibis_nameserver -port $NS_PORT -single &
 	globusrun -s -f grun$$.rsl
 fi
 
