@@ -18,7 +18,7 @@ APPS += mmult
 #APPS += two_out_three_non_static
 #APPS += checkers
 
-SIZES = 32
+SIZES = 2
 #SIZES = 1 2 4 16 24 32 48 64
 
 PAR_SCHEDULING  =

@@ -3,7 +3,10 @@ package ibis.ipl.impl.generic;
 class PoolThread extends Thread {
 	Queue q;
 
+	static int id = 0;
+
 	PoolThread(Queue q) {
+		int myId;
 		this.q = q;
 		synchronized(q) {
 			if (ThreadPool.DEBUG) {
@@ -11,8 +14,9 @@ class PoolThread extends Thread {
 						   ThreadPool.numthreads);
 			}
 			ThreadPool.numthreads++;
+			myId = id++;
 		}
-		setName("Pool thread");
+		setName("Pool thread " + myId);
 	}
 
 	public void run() {

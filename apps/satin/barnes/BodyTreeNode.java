@@ -397,7 +397,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
      * when we have to process a leaf node.
      * @param bm (remote) reference to the object that manages the body-array
      */
-    public void barnes( BodyTreeNode interactTree, BodyManager bm ) {
+    public void spawn_barnes( BodyTreeNode interactTree, BodyManager bm ) {
 	int i;
 
 	if (interactTree.children == null) {
@@ -422,7 +422,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 	} else {
 	    for (i = 0; i < 8; i++) {
 		if (interactTree.children[i] != null) {
-		    barnes(interactTree.children[i], bm);
+		    spawn_barnes(interactTree.children[i], bm);
 		}
 	    }
 	    sync();
@@ -436,7 +436,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
      * when we have to process a leaf node.
      * @param bm (remote) reference to the object that manages the body-array
      */
-    public LinkedList barnes( BodyTreeNode interactTree ) {
+    public LinkedList spawn_barnes( BodyTreeNode interactTree ) {
 	LinkedList result;
 	int i;
 
@@ -467,7 +467,7 @@ final class BodyTreeNode extends ibis.satin.SatinObject
 
 	    for (i = 0; i < 8; i++) {
 		if (interactTree.children[i] != null) {
-		    childres[i] = barnes(interactTree.children[i]);
+		    childres[i] = spawn_barnes(interactTree.children[i]);
 		    lastValidChild = i;
 		}
 	    }

@@ -146,6 +146,7 @@ strictfp class BarnesHut extends UnicastRemoteObject implements BodyManager {
 	}
 
 	end = System.currentTimeMillis();
+	System.err.print(".");
 	return end - start;
     }
 

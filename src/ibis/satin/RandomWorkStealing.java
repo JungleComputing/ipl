@@ -8,7 +8,7 @@ final class RandomWorkStealing implements Algorithm {
     }
 
     public void clientIteration() {
-	InvocationRecord r;
+//	InvocationRecord r;
 	Victim v;
 
 //	r = satin.q.getFromHead(); // Try the local queue
@@ -31,7 +31,7 @@ final class RandomWorkStealing implements Algorithm {
 	    satin.stolenJob = ir;
 	    satin.notifyAll();
 	}
-    }	
+    }
 
     public void exit() {
 	// Everything's synchronous, we don't have to wait for/do anything

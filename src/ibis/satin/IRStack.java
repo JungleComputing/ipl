@@ -87,10 +87,10 @@ final class IRStack implements Config {
 	}
 
 	void print(java.io.PrintStream out) {
-		out.println("==============IRVector:=============");
+		out.println("==============IRStack:=============");
 		for(int i=0; i<count; i++) {
 			out.println("elt [" + i + "] = " + l[i]);
 		}
-		out.println("=========end of IRVector:===========");
+		out.println("=========end of IRStack:===========");
 	}
 }
