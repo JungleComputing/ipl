@@ -711,7 +711,7 @@ class OpenCell1D implements OpenConfig {
 
             StaticProperties s = new StaticProperties();
             s.add( "serialization", "data" );
-            s.add( "communication", "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt" );
+            s.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );
             s.add( "worldmodel", "open" );
             ibis = Ibis.createIbis( s, rszHandler );
             myName = ibis.identifier();
@@ -762,6 +762,7 @@ class OpenCell1D implements OpenConfig {
             }
 
             if( me == 0 ){
+                System.out.println( "Using " + ibis.implementationName() );
                 System.out.println( "Started" );
             }
 

@@ -10,9 +10,8 @@ import java.io.IOException;
 interface Config {
     static final boolean tracePortCreation = false;
     static final boolean traceCommunication = false;
-    static final boolean showProgress = true;
+    static final boolean showProgress = false;
     static final boolean showBoard = false;
-    static final boolean traceClusterResizing = true;
     static final int GENERATIONS = 100;
     static final int SHOWNBOARDWIDTH = 60;
     static final int SHOWNBOARDHEIGHT = 30;
@@ -201,7 +200,7 @@ class Cell1D implements Config {
 
     public static void main( String [] args )
     {
-        int count = -1;
+        int count = GENERATIONS;
         int repeat = 10;
         int rank = 0;
         int remoteRank = 1;
@@ -214,17 +213,8 @@ class Cell1D implements Config {
                 boardsize = Integer.parseInt( args[i] );
             }
             else {
-                if( count == -1 ){
-                    count = Integer.parseInt( args[i] );
-                }
-                else {
-                    usage();
-                }
+                count = Integer.parseInt( args[i] );
             }
-        }
-
-        if( count == -1 ) {
-            count = GENERATIONS;
         }
 
         try {
@@ -276,10 +266,11 @@ class Cell1D implements Config {
             byte updatecol[] = new byte[boardsize+2];
             byte nextupdatecol[] = new byte[boardsize+2];
 
-            putTwister( board, 100, 3 );
+            putTwister( board, 3, 100 );
             putPattern( board, 4, 4, glider );
 
             if( me == 0 ){
+                System.out.println( "Using " + ibis.implementationName() );
                 System.out.println( "Started" );
             }
             long startTime = System.currentTimeMillis();
@@ -361,13 +352,13 @@ class Cell1D implements Config {
                     System.out.println();
                 }
             }
-            if( !hasTwister( board, 100, 3 ) ){
+            if( !hasTwister( board, 3, 100 ) ){
                 System.out.println( "Twister has gone missing" );
             }
             if( me == 0 ){
                 long endTime = System.currentTimeMillis();
                 double time = ((double) (endTime - startTime))/1000.0;
-                long updates = boardsize*boardsize*(long) GENERATIONS;
+                long updates = boardsize*boardsize*(long) count;
 
                 System.out.println( "ExecutionTime: " + time );
                 System.out.println( "Did " + updates + " updates" );
