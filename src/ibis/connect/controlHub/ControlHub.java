@@ -86,10 +86,16 @@ class NodeManager extends Thread
 		    if(node == null) {
 			System.err.println("# ControlHub: node not found: "+destHost + ":" + destPort);
 		    } else {
+			if (cls != null) {
+			    if (! ControlHub.hasPort(destHost, destPort, cls.closePort)) {
+				continue;
+			    }
+			}
 			/* replaces the destination with the sender. */
 			node.sendPacket(hostname, hostport, packet);
 			if (cls != null) {
 			    ControlHub.removePort(destHost, destPort, cls.closePort);
+			    // ControlHub.removePort(hostname, hostport, cls.localPort);
 			}
 		    }
 		}
@@ -209,6 +215,14 @@ public class ControlHub extends Thread
 	h.remove(new Integer(portno));
 	MyDebug.trace("# ControlHub: removing portno " + portno + " of " +
 				hostname + ":" + hostport);
+    }
+
+    public static boolean hasPort(String hostname, int hostport, int portno) {
+	Object o = portNodeMap.get(hostname);
+	Hashtable h;
+	if (o == null) return false;
+	h = (Hashtable) o;
+	return h.containsKey(new Integer(portno));
     }
 
     public static int resolvePort(String hostname, int portno) {

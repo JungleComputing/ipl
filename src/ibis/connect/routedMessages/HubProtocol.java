@@ -259,18 +259,22 @@ public class HubProtocol
 
     public static class HubPacketClose extends HubPacket {
 	public int  closePort;
+	public int  localPort;
 	public int getType() { return CLOSE; }
-	HubPacketClose(int port) {
+	HubPacketClose(int port, int lport) {
 	    closePort = port;
+	    localPort = lport;
 	}
 	public void send(ObjectOutputStream out) throws IOException {
 	    MyDebug.out.println("# HubPacketConnect.send()- sending CLOSE of port " + closePort + " to " + h + ":" + p);
 	    out.writeInt(closePort);
+	    out.writeInt(localPort);
 	}
 	static public HubPacket recv(ObjectInputStream in)
 	    throws IOException, ClassNotFoundException {
 	    int port = in.readInt();
-	    return new HubPacketClose(port);
+	    int lport = in.readInt();
+	    return new HubPacketClose(port, lport);
 	}
     }
 }

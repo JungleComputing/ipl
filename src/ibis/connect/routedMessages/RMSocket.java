@@ -52,6 +52,11 @@ public class RMSocket extends Socket
     protected synchronized void enqueueClose() {
 	MyDebug.out.println("# RMSocket.enqueueClose()- port = "+localPort);
 	state = state_CLOSED;
+	// if (localPort != -1) {
+	//     hub.removeSocket(localPort);
+	// }
+	// localPort = -1;
+	// remotePort = -1;
 	this.notifyAll();
     }
     /* Initialization
@@ -125,8 +130,12 @@ public class RMSocket extends Socket
     {
 	MyDebug.out.println("# RMSocket.close()");
 	state = state_CLOSED;
-	hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketClose(remotePort));
-	hub.removeSocket(localPort);
+	// if (remotePort != -1) {
+	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketClose(remotePort, localPort));
+	    hub.removeSocket(localPort);
+	// }
+	// localPort = -1;
+	// remotePort = -1;
     }
 
     /* InputStream for RMSocket
