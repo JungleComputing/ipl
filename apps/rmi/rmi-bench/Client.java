@@ -5,6 +5,8 @@ import java.rmi.NotBoundException;
 
 import java.rmi.registry.Registry;
 
+import java.io.IOException;
+
 public class Client {
 
     private int N = 10000;
@@ -75,7 +77,7 @@ public class Client {
 	    warm_up = N;
 	}
 
-	start(local);
+	client();
     }
 
 
@@ -109,42 +111,17 @@ public class Client {
     }
 
 
-    private void start(Registry reg) {
+    private void client() {
 
 	i_Server s = null;
-	Remote r = null;
 
 	// System.out.println("Try to locate remote object server, server_name = " + server_name);
 
-	for (int i = 0; i < 1000; i++) {
-	    try {
-		if (reg == null) {
-		    r = Naming.lookup("//" + server_name + "/server");
-		} else {
-		    r = reg.lookup("server");
-		} 
-		s = (i_Server)r;
-		break;
-	    } catch (NotBoundException eR) {
-		try {
-		    System.out.println("Look up server object: sleep a while... " + eR);
-		    Thread.sleep(1000);
-		} catch (InterruptedException eI) {
-		}
-	    } catch (java.rmi.ConnectException eC) {
-		try {
-		    System.out.println("Look up server object: sleep a while... " + eC);
-		    Thread.sleep(1000);
-		} catch (InterruptedException eI) {
-		}
-	    } catch (Exception e) {
-		System.out.println("Exception: " + e);
-		e.printStackTrace();
-		System.exit(33);
-	    }
+	try {
+	    s = (i_Server)RMI_init.lookup("//" + server_name + "/server");
+	} catch (IOException e) {
+	    System.err.println("Cannot resolve server name: " + e);
 	}
-
-	System.out.println("Located remote object " + r);
 
 	try {
 	    Object request = null;

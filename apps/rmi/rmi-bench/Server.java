@@ -131,7 +131,7 @@ public class Server extends UnicastRemoteObject implements i_Server, Runnable {
 	    System.out.println("Server: RMIenv done");
 	    local.rebind("server", this);
 
-	    // System.out.println("Server ready.");
+	    System.out.println("Server ready.");
 
 	    if (server_worker) {
 		worker = new Worker("Server worker");
