@@ -31,7 +31,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
      * @param var The next variable to assign.
      * @param val The value to assign.
      */
-    public void leafSolve(
+    private void leafSolve(
 	int level,
         SATProblem p,
 	DPLLContext ctx,
