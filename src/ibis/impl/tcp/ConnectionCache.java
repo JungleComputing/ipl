@@ -60,7 +60,49 @@ class ConnectionCache {
 				System.err.println("ADDED PEER: " + peer);
 			}
 		} 	
+/* -- not used --Rob
+		synchronized boolean killSocket(OutputStream out) {
+			for(int i=0; i<connections.size(); i++) {
+				Connection temp = (Connection) connections.get(i);
+				if(temp.out == out) { // found it
+//					if (DEBUG) { 
+						System.err.println("SOCKET KILL OF CONNECTION(" + out + ")");
+//					}
+					notifyAll();
+					connections.remove(i);
+					temp.kill();
+					return true;
+				}
+			}
 
+//			if (DEBUG) { 
+				System.err.println("CONNECTION (" + out + ", ?) NOT FOUND (IN killsocket)!");
+//			}
+
+			return false;
+		} 
+
+		synchronized boolean killSocket(InputStream in) { 
+			for(int i=0; i<connections.size(); i++) {
+				Connection temp = (Connection) connections.get(i);
+				if(temp.in == in) { // found it
+//					if (DEBUG) { 
+						System.err.println("SOCKET KILL OF CONNECTION(" + in + ")");
+//					}
+					connections.remove(i);
+					temp.kill();
+					notifyAll();
+					return true;
+				}
+			}
+
+			if (DEBUG) { 
+				System.err.println("CONNECTION (" + in + ", ?) NOT FOUND (IN RELEASE INPUT)!");
+			}
+
+			return false;
+		} 
+*/
 		synchronized boolean releaseOutput(OutputStream out) {
 			for(int i=0; i<connections.size(); i++) {
 				Connection temp = (Connection) connections.get(i);
@@ -79,9 +121,9 @@ class ConnectionCache {
 				}
 			}
 
-			if (DEBUG) { 
+//			if (DEBUG) { 
 				System.err.println("CONNECTION (" + out + ", ?) NOT FOUND (IN RELEASE OUTPUT)!");
-			}
+//			}
 
 			return false;
 		} 
@@ -103,9 +145,9 @@ class ConnectionCache {
 				}
 			}
 
-			if (DEBUG) { 
+//			if (DEBUG) { 
 				System.err.println("CONNECTION (" + in + ", ?) NOT FOUND (IN RELEASE INPUT)!");
-			}
+//			}
 
 			return false;
 		} 
@@ -230,7 +272,17 @@ class ConnectionCache {
 		Peer p = getPeer(ibis);
 		p.releaseInput(in);
 	}
+	/*
+	void killSocket(TcpIbisIdentifier ibis, OutputStream out) {
+		Peer p = getPeer(ibis);
+		p.killSocket(out);
+	}
 
+	void killSocket(TcpIbisIdentifier ibis, InputStream in) {
+		Peer p = getPeer(ibis);
+		p.killSocket(in);
+	}
+	*/
 	void addFreeInput(TcpIbisIdentifier ibis, Socket s, InputStream in, OutputStream out) {
 		Peer p = getPeer(ibis);
 		p.addFreeInput(s, in, out);

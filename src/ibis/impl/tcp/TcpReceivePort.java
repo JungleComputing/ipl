@@ -16,6 +16,11 @@ import ibis.ipl.impl.generic.*;
 import java.io.*;
 import java.util.ArrayList;
 
+// why was shouldLeave here?
+// If I create a receiveport, do a receive, and someone leaves, 
+// the user gets an upcall, or can find out with a downcall.
+// why should the receivePort die? --Rob
+
 final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	TcpPortType type;
 	String name; // needed to unbind
@@ -23,7 +28,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private TcpReceivePortIdentifier ident;
 	private int sequenceNumber = 0;
 	private int connectCount = 0;
-	private SerializationStreamConnectionHandler [] connections;
+	private Connectionhandler [] connections;
 	private int connectionsIndex;
 	private volatile boolean stop = false;
 	private boolean allowUpcalls = false;
@@ -31,8 +36,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private ReceivePortConnectUpcall connUpcall;
 	private boolean started = false;
 	private boolean connection_setup_present = false;
-	private SerializationStreamReadMessage m = null;
-	private boolean shouldLeave;
+	private TcpReadMessage m = null;
+//	private boolean shouldLeave;
 	private boolean delivered = false;
 	private ArrayList lostConnections = new ArrayList();
 	private ArrayList newConnections = new ArrayList();
@@ -54,7 +59,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			this.name = name;
 		}
 
-		connections = new SerializationStreamConnectionHandler[2];
+		connections = new Connectionhandler[2];
 		connectionsIndex = 0;
 
 		int port = ibis.tcpPortHandler.register(this);
@@ -62,7 +67,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	// returns:  was the message already finised?
-	private boolean doUpcall(SerializationStreamReadMessage m) throws IOException {
+	private boolean doUpcall(TcpReadMessage m) throws IOException {
 	        synchronized (this) {
 				// Wait until the previous message was finished.
 			while(this.m != null) {
@@ -85,7 +90,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		 * On the other hand, if m is not finished yet, it is valid here.
 		 * Problem here is, we don't know what is the case.
 		 *
-		 * The problem is fixed now, by allocating a new SerializationStreamReadMessage
+		 * The problem is fixed now, by allocating a new TcpReadMessage
 		 * in the finish() call.
 		 */
 		synchronized(this) {
@@ -100,7 +105,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	synchronized void finishMessage() throws IOException {
-		SerializationStreamReadMessage old = m;
+		TcpReadMessage old = m;
 
 		if(m.isFinished) {
 			throw new IOException("Finish is called twice on this message, port = " + name);
@@ -111,22 +116,22 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		notifyAll();
 
 		if(upcall != null) {
-			/* We need to create a new SerializationStreamReadMessage here.
+			/* We need to create a new TcpReadMessage here.
 			 * Otherwise, there is no way to find out later if a message
 			 * was finished or not. The code at the end of doUpcall() (after
 			 * the upcall itself) would be very wrong indeed (it was!)
 			 * if we would not allocate a new message. The point is, after
-			 * a finish(), the SerializationStreamReadMessage is used for new
+			 * a finish(), the TcpReadMessage is used for new
 			 * messages!
 			 */
-			SerializationStreamConnectionHandler h = old.getHandler();
-			h.m = new SerializationStreamReadMessage(old);
+			Connectionhandler h = old.getHandler();
+			h.m = new TcpReadMessage(old);
 			ThreadPool.createNew(h);
 		}
 	}
 
 
-	boolean setMessage(SerializationStreamReadMessage m) throws IOException {
+	boolean setMessage(TcpReadMessage m) throws IOException {
 		m.isFinished = false;
 		if(upcall != null) {
 			return doUpcall(m);
@@ -136,7 +141,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	private synchronized void setBlockingReceiveMessage(SerializationStreamReadMessage m) {
+	private synchronized void setBlockingReceiveMessage(TcpReadMessage m) {
 		// Wait until the previous message was finished.
 		while(this.m != null) {
 			try {
@@ -163,8 +168,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 	}
 
-	private synchronized SerializationStreamReadMessage getMessage(long timeout) {
-		while((m == null || delivered) && ! shouldLeave) {
+	private synchronized TcpReadMessage getMessage(long timeout) {
+		while((m == null || delivered)/* && ! shouldLeave*/) {
 			try {
 				if(timeout > 0) {
 					wait(timeout);
@@ -176,7 +181,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			}
 		}
 		delivered = true;
-
+/*
+		if(shouldLeave) {
+			System.out.println("returned from receive operation");
+		}
+*/
 		return m;
 	}
 
@@ -203,7 +212,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		if (started) { 
 			if(connectionAdministration) {
 				if (connUpcall != null) {
-					if (! connUpcall.gotConnection(id)) {
+					if (! connUpcall.gotConnection(this, id)) {
 						return false;
 					}
 				} else {
@@ -287,12 +296,16 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		return null;
 	}
 
+	public String name() {
+		return name;
+	}
+
 	public ReceivePortIdentifier identifier() {
 		return ident;
 	}
 
 	// called from the connectionHander.
-	void leave(SerializationStreamConnectionHandler leaving) {
+	void leave(Connectionhandler leaving, Exception e) {
 		synchronized(this) {
 			boolean found = false;
 			if (DEBUG) {
@@ -316,20 +329,24 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		// Don't hold the lock when calling user upcall functions. --Rob
 		if(connectionAdministration) {
 			if (connUpcall != null) {
-				connUpcall.lostConnection(leaving.origin, 
-							  new Exception("sender closed connection"));
+				Exception x = e;
+				if(x == null) {
+					x = new Exception("sender closed connection");
+				}
+				connUpcall.lostConnection(this, leaving.origin, x);
 			} else {
 				lostConnections.add(leaving.origin);
 			}
 		}
+
 		synchronized(this) {
-			shouldLeave = true;
+//			shouldLeave = true;
 			notifyAll();
 		}
 	}
 
-	private synchronized SerializationStreamConnectionHandler removeConnection(int index) {
-		SerializationStreamConnectionHandler res = connections[index];
+	private synchronized Connectionhandler removeConnection(int index) {
+		Connectionhandler res = connections[index];
 		connections[index] = connections[connectionsIndex-1];
 		connections[connectionsIndex-1] = null;
 		connectionsIndex--;
@@ -375,12 +392,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	synchronized void connect(TcpSendPortIdentifier origin, InputStream in) {
 		try {
-			SerializationStreamConnectionHandler con = 
-				new SerializationStreamConnectionHandler(ibis, origin, this, in);
+			Connectionhandler con = 
+				new Connectionhandler(ibis, origin, this, in);
 
 			if (connections.length == connectionsIndex) { 
-				SerializationStreamConnectionHandler [] temp = 
-					new SerializationStreamConnectionHandler[2*connections.length];
+				Connectionhandler [] temp = 
+					new Connectionhandler[2*connections.length];
 				for (int i=0;i<connectionsIndex;i++) { 
 					temp[i] = connections[i];
 				}
@@ -412,12 +429,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 
 		while(connectionsIndex > 0) {
-			SerializationStreamConnectionHandler conn = removeConnection(0);
+			Connectionhandler conn = removeConnection(0);
 			conn.die();
 
 			if(connectionAdministration) {
 				if (connUpcall != null) {
-					connUpcall.lostConnection(conn.origin,
+					connUpcall.lostConnection(this, conn.origin,
 						  new Exception("receiver forcibly closed connection"));
 				} else {
 					lostConnections.add(conn.origin);

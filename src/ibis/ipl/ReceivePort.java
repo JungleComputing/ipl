@@ -87,6 +87,8 @@ public interface ReceivePort {
 
 	public ReceivePortIdentifier identifier();
 
+	public String name();
+
 	/** Start accepting new connections. When a ReceivePort is created it will not accept connections, 
 	   until enableConnections() is invoked. This is done to avoid upcalls during initilization.
 	   The implementation is free to postpone registration with the ReceivePortNameServer until

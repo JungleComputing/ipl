@@ -46,7 +46,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	private DummyOutputStream dummy;
 	private SerializationOutputStream out;
 	private ArrayList receivers = new ArrayList();
-	private SerializationStreamWriteMessage message;
+	private TcpWriteMessage message;
 	private boolean connectionAdministration = false;
 	private SendPortConnectUpcall connectUpcall = null;
 	private ArrayList lostConnections = new ArrayList();
@@ -86,8 +86,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		}
 	}
 
-	// probably, this whole method should be synchronized! --Rob @@@
-	public void connect(ReceivePortIdentifier receiver, long timeoutMillis) throws IOException {
+	public synchronized void connect(ReceivePortIdentifier receiver, long timeoutMillis) throws IOException {
 		/* first check the types */
 		if(!type.name().equals(receiver.type())) {
 			throw new PortMismatchException("Cannot connect ports of different PortTypes");
@@ -130,10 +129,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			out.close();
 		}
 
-		synchronized(this) {
-			receivers.add(c);
-			splitter.add(c.out);
-		}
+		receivers.add(c);
+		splitter.add(c.out);
 		
 		switch(type.serializationType) {
 		case TcpPortType.SERIALIZATION_SUN:
@@ -151,7 +148,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 			out.setReplacer(replacer);
 		}
 
-		message = new SerializationStreamWriteMessage(this, out, connectionAdministration);
+		message = new TcpWriteMessage(this, out, connectionAdministration);
 
 		if(DEBUG) {
 			System.err.println("Sendport '" + name + "' connecting to " + receiver + " done"); 
@@ -191,6 +188,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
 	public DynamicProperties properties() {
 		return null;
+	}
+
+	public String name() {
+		return name();
 	}
 
 	public SendPortIdentifier identifier() {
@@ -255,6 +256,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 	void lostConnection(OutputStream s, Exception cause) {
 		TcpReceivePortIdentifier rec = null;
 
+		if(DEBUG) {
+			System.out.println("sendport " + name + " lost connection!");
+		}
+
 		synchronized (this) {
 			for (int i=0;i<receivers.size();i++) { 
 				Conn c = (Conn) receivers.get(i);
@@ -275,7 +280,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		}
 
 		// don't hold lock during upcall
-		connectUpcall.lostConnection(rec, cause);
+		connectUpcall.lostConnection(this, rec, cause);
 	}
 
 	public synchronized ReceivePortIdentifier[] lostConnections() {

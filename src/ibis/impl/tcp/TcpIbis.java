@@ -22,7 +22,7 @@ import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 import java.util.Properties;
 import java.util.Enumeration;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 import java.io.IOException;
@@ -51,8 +51,8 @@ public final class TcpIbis extends Ibis implements Config {
 	private Hashtable portTypeList = new Hashtable();
 
 	private boolean open = false;
-	private Vector joinedIbises = new Vector();
-	private Vector leftIbises = new Vector();
+	private ArrayList joinedIbises = new ArrayList();
+	private ArrayList leftIbises = new ArrayList();
 
 	private final StaticProperties systemProperties = new StaticProperties();	
 
@@ -218,15 +218,26 @@ public final class TcpIbis extends Ibis implements Config {
 	} 
 
 	public void openWorld() {
+		TcpIbisIdentifier ident = null;
+
 		if(resizeHandler != null) {
-			while(joinedIbises.size() > 0) {
-				resizeHandler.join((TcpIbisIdentifier)joinedIbises.remove(0));
-				poolSize++;
+			while(true) {
+				synchronized(this) {
+					if(joinedIbises.size() == 0) break;
+					poolSize++;
+					ident = (TcpIbisIdentifier)joinedIbises.remove(0);
+				}
+				resizeHandler.join(ident); // Don't hold the lock during user upcall
 			}
 
-			while(leftIbises.size() > 0) {
-				resizeHandler.leave((TcpIbisIdentifier)leftIbises.remove(0));
-				poolSize--;
+			while(true) {
+				synchronized(this) {
+					if(leftIbises.size() == 0) break;
+					poolSize--;
+					ident = (TcpIbisIdentifier)leftIbises.remove(0);
+				}
+				resizeHandler.leave(ident); // Don't hold the lock during user upcall
+
 			}
 		}
 		

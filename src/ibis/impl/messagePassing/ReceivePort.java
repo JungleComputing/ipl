@@ -581,6 +581,10 @@ class ReceivePort
 	return null;
     }
 
+	public String name() {
+		return name;
+	}
+
     public ibis.ipl.ReceivePortIdentifier identifier() {
 	return ident;
     }

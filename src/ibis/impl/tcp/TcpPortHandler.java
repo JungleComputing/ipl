@@ -60,7 +60,15 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 	void releaseInput(TcpSendPortIdentifier si, InputStream in) {
 		connectionCache.releaseInput(si.ibis, in);
 	}
+/*
+	void killSocket(TcpReceivePortIdentifier ri, OutputStream out) {
+		connectionCache.killSocket(ri.ibis, out);
+	}
 
+	void killSocket(TcpSendPortIdentifier si, InputStream in) {
+		connectionCache.killSocket(si.ibis, in);
+	}
+*/
 	OutputStream connect(TcpSendPort sp, TcpReceivePortIdentifier receiver, long timeout) throws IOException { 
 		Socket s = null;
 

@@ -10,5 +10,5 @@ public interface SendPortConnectUpcall {
 	   <P>
 	   This upcall may run completely asynchronously, but only at most one is alive at any time.
 	*/
-    public void lostConnection(ReceivePortIdentifier johnDoe, Exception reason);
+    public void lostConnection(SendPort me, ReceivePortIdentifier johnDoe, Exception reason);
 }

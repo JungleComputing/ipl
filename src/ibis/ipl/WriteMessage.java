@@ -42,6 +42,8 @@ public interface WriteMessage {
 	/** Reset the counter */
 	public void resetCount();
 
+	public SendPort localPort();
+
 	/**
 	 * Writes a boolean value to the message.
 	 * @param     value             The boolean value to write.

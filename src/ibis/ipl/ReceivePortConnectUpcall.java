@@ -13,7 +13,7 @@ public interface ReceivePortConnectUpcall {
 	   <P>
 	   This upcall may run completely asynchronously, but only at most one is alive at any time.
 	*/
-	public boolean gotConnection(SendPortIdentifier applicant);
+	public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant);
 	
 	
 	/**
@@ -24,5 +24,5 @@ public interface ReceivePortConnectUpcall {
 	   <P>
 	   This upcall may run completely asynchronously, but only at most one is alive at any time.
 	*/
-	public void lostConnection(SendPortIdentifier johnDoe, Exception reason);
+	public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe, Exception reason);
 }

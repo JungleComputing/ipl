@@ -20,6 +20,10 @@ class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
 
+	public ibis.ipl.SendPort localPort() {
+		return sPort;
+	}
+
     public long getCount() {
 	return out.getCount();
     }

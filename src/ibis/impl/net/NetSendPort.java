@@ -248,7 +248,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                         }
 
                                         if (spcu != null) {
-                                                spcu.lostConnection(nrpi, new Exception());
+                                                spcu.lostConnection(this, nrpi, new Exception());
                                         }
                                 }
                         break;
@@ -587,6 +587,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		return this;
 	}
 
+	public SendPort localPort() {
+		return this;
+	}
+
 	/**
 	 * Unimplemented.
 	 *
@@ -607,6 +611,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 log.in();
                 log.out();
 		return identifier;
+	}
+
+	public String name() {
+		return name;
 	}
 
 	/**
@@ -723,7 +731,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
                                                 if (cnx != null) {
 							if (spcu != null) {
-								spcu.lostConnection(cnx.getReceiveId(), new Exception());
+								spcu.lostConnection(this, cnx.getReceiveId(), new Exception());
 							}
                                                         close(cnx);
                                                 }

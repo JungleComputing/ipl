@@ -16,7 +16,7 @@ package ibis.ipl;
 
 **/
 
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.Properties;
 import ibis.util.Input;
 import java.io.File;
@@ -29,10 +29,9 @@ public abstract class Ibis {
 	protected String name;
 	protected String implName;
 	protected ResizeHandler resizeHandler;
-	protected static Vector implList; /* string vector */
-	protected static Vector implProperties; /* StaticProperties vector */
-	private static Vector loadedIbises = new Vector();
-
+	protected static ArrayList implList; /* string list */
+	protected static ArrayList implProperties; /* StaticProperties list */
+	private static ArrayList loadedIbises = new ArrayList();
 
 	static {
 		readGlobalProperties();
@@ -105,7 +104,7 @@ public abstract class Ibis {
 
 		Ibis[] res = new Ibis[loadedIbises.size()];
 		for(int i=0; i<res.length; i++) {
-			res[i] = (Ibis) loadedIbises.elementAt(i);
+			res[i] = (Ibis) loadedIbises.get(i);
 		}
 
 		return res;
@@ -234,8 +233,10 @@ public abstract class Ibis {
 		}
 		if(!in.eof()) in.readln();
 
-		implList.addElement(name);
-		implProperties.addElement(sp);
+		synchronized(Ibis.class) {
+			implList.add(name);
+			implProperties.add(sp);
+		}
 	}
 
 	private static void readProperties(Input in, StaticProperties sp) {
@@ -258,8 +259,8 @@ public abstract class Ibis {
 	private static void readGlobalProperties() {
 		Input in = openProperties();
 
-		implList = new Vector();
-		implProperties = new Vector();
+		implList = new ArrayList();
+		implProperties = new ArrayList();
 
 		while(!in.eof()) {
 			readImpl(in);
@@ -328,19 +329,19 @@ public abstract class Ibis {
 	}
 
 	/** Return a list of available Ibis implementation names for this system. **/
-	public static String[] list() {
+	public static synchronized String[] list() {
 		String[] res = new String[implList.size()];
 		for(int i=0; i<res.length; i++) {
-			res[i] = (String) implList.elementAt(i);
+			res[i] = (String) implList.get(i);
 		}
 
 		return res;
 	}
 
 	/** Return the static properties for a certain implementation. **/
-	public static StaticProperties staticProperties(String implName) {
+	public static synchronized StaticProperties staticProperties(String implName) {
 		int index = implList.indexOf(implName);
-		return (StaticProperties) implProperties.elementAt(index);
+		return (StaticProperties) implProperties.get(index);
 	}
 
 	/** After openWorld, join and leave calls may be received. **/

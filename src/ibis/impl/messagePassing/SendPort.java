@@ -224,6 +224,10 @@ public class SendPort implements ibis.ipl.SendPort, Protocol {
 	return null;
     }
 
+	public String name() {
+		return name;
+	}
+
     public ibis.ipl.SendPortIdentifier identifier() {
 	return ident;
     }

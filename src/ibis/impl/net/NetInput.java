@@ -1315,6 +1315,11 @@ pollingThreads--;
                 }
         }
 
+	public ibis.ipl.ReceivePort localPort() {
+		// what the @#@ should we do here --Rob
+		throw new ibis.ipl.IbisError("AAAAA");
+	}
+
         /**
          * Atomic packet read function.
          *

@@ -160,6 +160,10 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
             return b;
 	}
 
+	public ibis.ipl.SendPort localPort() {
+		// what the @#@ should we do here --Rob
+		throw new ibis.ipl.IbisError("AAAAA");
+	}
 
         /* fallback serialization implementation */
 

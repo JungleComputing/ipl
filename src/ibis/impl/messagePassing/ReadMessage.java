@@ -36,6 +36,10 @@ public class ReadMessage
     }
 
 
+	public ibis.ipl.ReceivePort localPort() {
+		return port;
+	}
+
     void enqueue(ReadFragment f) {
 	if (fragmentFront == null) {
 	    fragmentFront = f;

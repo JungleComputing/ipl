@@ -116,7 +116,7 @@ final class AcceptThread extends Thread {
 		break;
 	    }
 
-	    q.accept = upcall.gotConnection(q.port);
+	    q.accept = upcall.gotConnection(port, q.port);
 	    q.finished = true;
 	    q.decided.cv_signal();
 	}

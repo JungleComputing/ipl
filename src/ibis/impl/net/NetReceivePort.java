@@ -130,7 +130,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
                                                         connectedPeers.add(spi);
                                                         if (rpcu != null) {
-                                                                rpcu.gotConnection(spi);
+                                                                rpcu.gotConnection(NetReceivePort.this, spi);
                                                         }
                                                 }
 
@@ -499,7 +499,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                                         }
 
                                         if (rpcu != null) {
-                                                rpcu.lostConnection(nspi, new Exception());
+                                                rpcu.lostConnection(this, nspi, new Exception());
                                         }
 
                                         try {
@@ -821,6 +821,10 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                 return identifier;
         }
 
+	public String name() {
+		return name;
+	}
+
         /**
          * Returns the identifier of the current active port peer or <code>null</code>
          * if no peer port is active.
@@ -882,6 +886,11 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         return t;
                 }
          }
+
+
+	public ReceivePort localPort() {
+		return this;
+	}
 
         /**
          * {@inheritDoc}
@@ -995,7 +1004,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 
 						cnx = (NetConnection)i.next();
 						if (rpcu != null) {
-							rpcu.lostConnection(cnx.getSendId(), new Exception());
+							rpcu.lostConnection(this, cnx.getSendId(), new Exception());
 						}
 						i.remove();
 					}
