@@ -455,6 +455,11 @@ pollFail++;
                 return num;
         }
 
+	/*
+	 * Do not make this synchronized. The calling <code>poll</code> will
+	 * ensure concurrency issues. If this is called synchronized and
+	 * block=ttrue, deadlock may ensue with concurrent accept calls.
+	 */
 	protected abstract Integer doPoll(boolean blockForMessage) throws IOException;
 
 	/**

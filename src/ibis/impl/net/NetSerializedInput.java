@@ -156,7 +156,10 @@ public abstract class NetSerializedInput extends NetInput {
                 log.out();
         }
 
-	public synchronized Integer doPoll(boolean block) throws IOException {
+	/**
+	 * {@inheritDoc}
+	 */
+	public Integer doPoll(boolean block) throws IOException {
                 log.in();
                 if (subInput == null) {
                         log.out();

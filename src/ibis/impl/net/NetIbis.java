@@ -94,6 +94,16 @@ public final class NetIbis extends Ibis {
          */
 	private   NetBank           bank             = new NetBank();
 
+	public static ibis.util.PoolInfo poolInfo;
+	static {
+	    try {
+		poolInfo = new ibis.util.PoolInfo();
+	    } catch (ibis.ipl.IbisException e) {
+		System.err.println("What's THIS: " + e);
+		// Let it be null then
+	    }
+	}
+
         private   int               closedPoolRank   = -1;
         private   int               closedPoolSize   =  0;
 
@@ -140,19 +150,9 @@ public final class NetIbis extends Ibis {
 		    }
 		}
 
-                Properties p = System.getProperties();
-
-                String pool_total_hosts = p.getProperty("ibis.pool.total_hosts");
-                if (pool_total_hosts != null) {
-                        closedPoolSize = Integer.parseInt(pool_total_hosts);
-                }
-
-                String pool_host_number = p.getProperty("ibis.pool.host_number");
-                if (pool_total_hosts != null) {
-                        closedPoolRank = Integer.parseInt(pool_host_number);
-                }
-
-
+		closedPoolSize = poolInfo.size();
+		closedPoolRank = poolInfo.rank();
+		// System.err.println("I am node " + closedPoolRank + " out of " + closedPoolSize);
 	}
 
 	/**

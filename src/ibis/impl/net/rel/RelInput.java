@@ -10,6 +10,7 @@ import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetServiceLink;
+
 import ibis.ipl.IbisIdentifier;
 
 import ibis.io.Conversion;

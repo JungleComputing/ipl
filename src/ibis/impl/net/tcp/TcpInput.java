@@ -81,7 +81,7 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
 	 *
 	 * @return {@inheritDoc}
 	 */
-	protected synchronized Integer doPoll(boolean block) throws IOException {
+	protected Integer doPoll(boolean block) throws IOException {
                 log.in();
 		if (spn == null) {
                         log.out("not connected");

@@ -35,6 +35,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     private ReceiveQueue	singleton;
     private boolean		handlingSingleton;
     private int			waitingConnections;
+    private static final boolean SINGLETON_FASTPATH = ! ibis.util.TypedProperties.booleanProperty("ibis.net.poller.nosingleton");
 
     /**
      * The driver used for the inputs.
@@ -149,7 +150,7 @@ System.err.println(this + ": OK, we enabled singleton fastpath");
      * This method must be called synchronized (this).
      */
     private void setSingleton(boolean on) throws IOException {
-	if (on) {
+	if (SINGLETON_FASTPATH && on) {
 	    if (singleton != null) {
 		throw new IllegalArgumentException("Only one singleton is allowed");
 	    }

@@ -125,7 +125,14 @@ public final class BytesInput extends NetInput implements Settings {
                 log.out();
         }
 
-	public synchronized Integer doPoll(boolean block) throws IOException {
+	/*
+	 * {@inheritDoc}
+	 *
+	 * Do not make this synchronized. The calling <code>poll</code> will
+	 * ensure concurrency issues. If this is called synchronized and
+	 * block=true, deadlock may ensue with concurrent accept calls.
+	 */
+	public Integer doPoll(boolean block) throws IOException {
                 log.in();
                 if (activeNum != null) {
                         throw new Error("invalid call");

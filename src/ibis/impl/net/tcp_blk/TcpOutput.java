@@ -7,6 +7,7 @@ import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
+
 import ibis.ipl.ConnectionClosedException;
 
 import ibis.io.Conversion;

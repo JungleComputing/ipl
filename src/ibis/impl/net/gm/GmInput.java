@@ -260,36 +260,14 @@ plld++;
         }
 
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * The buffering in NetBuffererdOutput confuses Ibis serialization.
-	 * Provide a special implementation that bypasses that buffer.
-	 */
-	/*
-	 * Guess we will try to use NetBuffering after all...
-	public byte readByte() throws IOException {
+	private void firstBlock() throws IOException {
 	    if (firstBlock) {
 		firstBlock = false;
 	    } else {
-		// Request reception
+		/* Request reception */
 		pump(lockId, lockIds);
 	    }
-
-
-	    Driver.gmReceiveLock.lock();
-
-	    Driver.gmAccessLock.lock(true);
-	    int result = nPostByte(inputHandle);
-	    Driver.gmAccessLock.unlock();
-
-	    Driver.gmReceiveLock.unlock();
-// System.err.println("Read single byte=" + ((byte)(result & 0xFF)));
-// Thread.dumpStack();
-
-	    return (byte)(result & 0xFF);
 	}
-	*/
 
 	/**
 	 * {@inheritDoc}
@@ -297,12 +275,7 @@ plld++;
 	public void receiveByteBuffer(NetReceiveBuffer b) throws IOException {
                 log.in();
 
-                if (firstBlock) {
-                        firstBlock = false;
-                } else {
-                        /* Request reception */
-                        pump(lockId, lockIds);
-                }
+		firstBlock();
 
                 Driver.gmReceiveLock.lock();
 
@@ -409,12 +382,7 @@ rcvd++;
                 log.in();
                 freeBuffer();
 
-                if (firstBlock) {
-                        firstBlock = false;
-                } else {
-                        /* Request reception */
-                        pump(lockId, lockIds);
-                }
+		firstBlock();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
@@ -458,12 +426,7 @@ rcvd++;
 // System.err.println(this + ": read Byte array, off " + o + " len " + l);
 // Thread.dumpStack();
 
-                if (firstBlock) {
-                        firstBlock = false;
-                } else {
-                        // Request reception
-                        pump(lockId, lockIds);
-                }
+		firstBlock();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
@@ -499,12 +462,7 @@ rcvd++;
                 l <<= 1;
                 o <<= 1;
 
-                if (firstBlock) {
-                        firstBlock = false;
-                } else {
-                        /* Request reception */
-                        pump(lockId, lockIds);
-                }
+		firstBlock();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
@@ -540,14 +498,7 @@ rcvd++;
                 l <<= 1;
                 o <<= 1;
 
-                if (firstBlock) {
-                        firstBlock = false;
-                } else {
-                        /* Request reception */
-                        pump(lockId, lockIds);
-                }
-// System.err.println(Thread.currentThread() + ": Rcve/start short array; byte offset " + o + " size " + l);
-// Thread.dumpStack();
+		firstBlock();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
@@ -587,14 +538,7 @@ rcvd++;
                 l <<= 2;
                 o <<= 2;
 
-                if (firstBlock) {
-                        firstBlock = false;
-                } else {
-                        /* Request reception */
-                        pump(lockId, lockIds);
-                }
-// System.err.println("Rcve/start int array; byte offset " + o + " size " + l);
-// Thread.dumpStack();
+		firstBlock();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
@@ -631,12 +575,7 @@ rcvd++;
                 l <<= 3;
                 o <<= 3;
 
-                if (firstBlock) {
-                        firstBlock = false;
-                } else {
-                        /* Request reception */
-                        pump(lockId, lockIds);
-                }
+		firstBlock();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
@@ -672,12 +611,7 @@ rcvd++;
                 l <<= 2;
                 o <<= 2;
 
-                if (firstBlock) {
-                        firstBlock = false;
-                } else {
-                        /* Request reception */
-                        pump(lockId, lockIds);
-                }
+		firstBlock();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
@@ -713,12 +647,7 @@ rcvd++;
                 l <<= 3;
                 o <<= 3;
 
-                if (firstBlock) {
-                        firstBlock = false;
-                } else {
-                        /* Request reception */
-                        pump(lockId, lockIds);
-                }
+		firstBlock();
 
                 while (l > 0) {
                         int _l = Math.min(l, mtu);

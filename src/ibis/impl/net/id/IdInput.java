@@ -82,8 +82,9 @@ public final class IdInput extends NetInput {
 	 * @return {@inheritDoc}
 	 */
 	public Integer doPoll(boolean block) throws IOException {
-                if (subInput == null)
+                if (subInput == null) {
                         return null;
+		}
 
                 Integer result = subInput.poll(block);
 
