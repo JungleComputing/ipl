@@ -374,11 +374,9 @@ public final class Group implements GroupProtocol {
 	    receivePort = portType.createReceivePort("GMI port on " + localID.name(), groupCallHandler);
 	    receivePort.enableConnections();
 
-	    IbisIdentifier i = (IbisIdentifier) ibisRegistry.elect("GMI Master", localID);
-
 	    PoolInfo info = PoolInfo.createPoolInfo();
 
-	    if (localID.equals(i)) {
+	    if (info.rank() == 0) {
 
 		if (DEBUG) { 
 		    System.out.println(name + " I am master");
@@ -472,7 +470,7 @@ public final class Group implements GroupProtocol {
 	    } 
 
 	    if (_size > 1) { 
-		if (localID.equals(i)) { 
+		if (_rank == 0) { 
 		    for (int j=1;j<_size;j++) { 
 			ReadMessage r = systemIn.receive();
 			r.finish();
