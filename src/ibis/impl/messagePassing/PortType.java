@@ -45,7 +45,10 @@ public class PortType implements ibis.ipl.PortType {
     }
 
     public String name() {
-	return name;
+	if (name != null) {
+	    return name;
+	}
+	return "__anonymous__";
     }
 
     public boolean equals(Object other) {
@@ -57,7 +60,11 @@ public class PortType implements ibis.ipl.PortType {
 
 	PortType temp = (PortType)other;
 
-	return name.equals(temp.name);
+	return name().equals(temp.name()) && myIbis.equals(temp.myIbis);
+    }
+
+    public int hashCode() {
+	return name.hashCode();
     }
 
     public ibis.ipl.StaticProperties properties() {

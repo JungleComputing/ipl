@@ -50,10 +50,15 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
 	    
 	if (other instanceof SendPortIdentifier) {
 	    SendPortIdentifier o = (SendPortIdentifier)other;
-	    return cpu == o.cpu && port == o.port;
+	    return cpu == o.cpu && port == o.port && ibisId.equals(o.ibisId) &&
+		   name().equals(o.name()) && type().equals(o.type());
 	}
 	    
 	return false;
+    }
+
+    public int hashCode() {
+	return name().hashCode() + type().hashCode() + ibisId.hashCode() + cpu + port;
     }
 
     public String name() {
@@ -61,11 +66,14 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
 	    return name;
 	}
 
-	return "anonymous";
+	return "__anonymous__";
     }
 
     public String type() {
-	return type;
+	if (type != null) {
+	    return type;
+	}
+	return "__notype__";
     }
 
     public ibis.ipl.IbisIdentifier ibis() {
@@ -73,7 +81,7 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     }
 
     public String toString() {
-	return ("(SendPortIdent: name \"" + name + "\" type \"" + type +
+	return ("(SendPortIdent: name \"" + name() + "\" type \"" + type() +
 		"\" cpu " + cpu + " port " + port + ")");
     }
 }

@@ -52,17 +52,24 @@ class TcpPortType implements PortType, Config {
 	} 
 
 	public String name() { 
-		return name;
+		if (name != null) {
+			return name;
+		}
+		return "__anonymous__";
 	} 
 
 	private boolean equals(TcpPortType other) {
-		return name.equals(other.name);
+		return name().equals(other.name()) && ibis.equals(other.ibis);
 	} 
 
 	public boolean equals(Object other) {
 		if (other == null) return false;
 		if (! (other instanceof TcpPortType)) return false;
 		return equals((TcpPortType) other);
+	}
+
+	public int hashCode() {
+	    return name().hashCode() + ibis.hashCode();
 	}
 
 	public StaticProperties properties() { 
@@ -152,13 +159,13 @@ class TcpPortType implements PortType, Config {
 		TcpReceivePort p = new TcpReceivePort(this, name, u, cU);
 
 		if(DEBUG) {
-			System.out.println(ibis.name() + ": Receiveport created of type '" + this.name + "', name = '" + name + "'");
+			System.out.println(ibis.name() + ": Receiveport created name = '" + name() + "'");
 		}
 
 		ibis.tcpReceivePortNameServerClient.bind(name, p);
 
 		if(DEBUG) {
-			System.out.println(ibis.name() + ": Receiveport bound in registry, type = '" + this.name + "', name = '" + name + "'");
+			System.out.println(ibis.name() + ": Receiveport bound in registry, name = '" + name() + "'");
 		}
 
 		return p;
@@ -169,6 +176,6 @@ class TcpPortType implements PortType, Config {
 	}
 
 	public String toString() {
-		return ("(TcpPortType: name = " + name + ")");
+		return ("(TcpPortType: name = " + name() + ")");
 	}
 }

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import ibis.ipl.IbisException;
 
-final class ReceivePortIdentifier
+public final class ReceivePortIdentifier
 	implements ibis.ipl.ReceivePortIdentifier,
 		   java.io.Serializable {
 
@@ -55,7 +55,7 @@ final class ReceivePortIdentifier
 	}
 
 	ReceivePortIdentifier temp = (ReceivePortIdentifier)other;
-	return (cpu == temp.cpu && port == temp.port);
+	return (cpu == temp.cpu && port == temp.port && name().equals(temp.name()) && type().equals(temp.type()));
     }
 
 
@@ -66,12 +66,18 @@ final class ReceivePortIdentifier
 
 
     public String name() {
-	return name;
+	if (name != null) {
+	    return name;
+	}
+	return "__anonymous__";
     }
 
 
     public String type() {
-	return type;
+	if (type != null) {
+	    return type;
+	}
+	return "__notype__";
     }
 
 

@@ -52,11 +52,11 @@ public final class NetSendPortIdentifier
 		if (other == null) { 
 			return false;
 		} else { 
-			return (type.equals(other.type)
+			return (type().equals(other.type())
 				&&
 				ibis.equals(other.ibis)
 				&&
-				name.equals(other.name));
+				name().equals(other.name()));
 		}
 	}
 
@@ -72,6 +72,13 @@ public final class NetSendPortIdentifier
 			return false;
 		}
 	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public int hashCode() {
+		return name().hashCode() + ibis.hashCode() + type().hashCode();
+	}
 	
 	/**
 	 * Returns the SendPort type name.
@@ -79,7 +86,10 @@ public final class NetSendPortIdentifier
 	 * @return The type name.
 	 */
 	public String type() {
-		return type;
+		if (type != null) {
+			return type;
+		}
+		return "__notype__";
 	}
 	
 	/**
@@ -92,7 +102,7 @@ public final class NetSendPortIdentifier
 			return name;
 		}
 
-		return "anonymous";
+		return "__anonymous__";
 	}
 	
 	/**

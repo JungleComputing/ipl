@@ -249,7 +249,10 @@ public final class NetPortType implements PortType {
 	 * {@inheritDoc}
 	 */
 	public String name() {
-		return name;
+		if (name != null) {
+			return name;
+		}
+		return "__anonymous__";
 	}
 
 	/**
@@ -341,7 +344,16 @@ public final class NetPortType implements PortType {
 
 		NetPortType temp = (NetPortType) other;
 
-		return name.equals(temp.name);
+		if (temp == this) return true;
+
+		return name().equals(temp.name()) && ibis.equals(temp.ibis);
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public int hashCode() {
+		return name().hashCode() + ibis.hashCode();
 	}
 
         /**

@@ -63,18 +63,25 @@ public final class NetReceivePortIdentifier
 	public boolean equals(NetReceivePortIdentifier other) {
 		if (other == null) { 
 			return false;
-		} else {
-                        Object o1 = this.connectionInfo();
-                        Object o2 = other.connectionInfo();
+		}
 
-			return (type.equals(other.type)
-				&&
-				ibis.equals(other.ibis)
-				&&
-				name.equals(other.name)
-				&&
-				o1 == o2);
-		}		
+		Object o1 = this.connectionInfo();
+		Object o2 = other.connectionInfo();
+
+		return (type().equals(other.type())
+			&&
+			ibis.equals(other.ibis)
+			&&
+			name().equals(other.name())
+			&&
+			o1 == o2);
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public int hashCode() {
+		return name().hashCode() + ibis.hashCode();
 	}
 
 	/**
@@ -97,7 +104,10 @@ public final class NetReceivePortIdentifier
 	 * @return The name.
 	 */
 	public String name() {
-		return name;
+		if (name != null) {
+			return name;
+		}
+		return "__anonymous__";
 	}
 
 	/**
@@ -106,7 +116,10 @@ public final class NetReceivePortIdentifier
 	 * @return The type name.
 	 */
 	public String type() {
-		return type;
+		if (type != null) {
+			return type;
+		}
+		return "__notype__";
 	}
 	
 	/**

@@ -27,8 +27,12 @@ public final class TcpSendPortIdentifier implements SendPortIdentifier, java.io.
 		if (other == null) { 
 			return false;
 		} else { 
-			return (type.equals(other.type) && ibis.equals(other.ibis) && name.equals(other.name));
+			return (type().equals(other.type()) && ibis.equals(other.ibis) && name().equals(other.name()));
 		}
+	}
+
+	public int hashCode() {
+		return type().hashCode() + name().hashCode() + ibis.hashCode();
 	}
 
 	public boolean equals(Object other) { 
@@ -40,16 +44,19 @@ public final class TcpSendPortIdentifier implements SendPortIdentifier, java.io.
 		}
 	} 
 
-	public String name() {
+	public final String name() {
 		if (name != null) {
 			return name;
 		}
 
-		return "anonymous";
+		return "__anonymous__";
 	}
 
-	public String type() {
-		return type;
+	public final String type() {
+		if (type != null) {
+			return type;
+		}
+		return "__notype__";
 	}
 
 	public IbisIdentifier ibis() {
@@ -57,6 +64,6 @@ public final class TcpSendPortIdentifier implements SendPortIdentifier, java.io.
 	}
 
 	public String toString() {
-		return ("(TcpSendPortIdent: name = " + (name != null ? name : "anonymous") + ", type = " + type + ", ibis = " + ibis + ")");
+		return ("(TcpSendPortIdent: name = " + name() + ", type = " + type() + ", ibis = " + ibis + ")");
 	}
 }
