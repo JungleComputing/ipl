@@ -180,10 +180,7 @@ public class TcpInput extends NetInput {
 				offset += tcpIs.read(b, offset, 4);
 			} while (offset < 4);
 
-			l |= ((int)b[0])&0xFF;
-			l |= (((int)b[1])&0xFF) << 8;
-			l |= (((int)b[2])&0xFF) << 16;
-			l |= (((int)b[3])&0xFF) << 24;
+			l = readInt(b, 0);
 
 			do {
 				offset += tcpIs.read(b, offset, l - offset);

@@ -274,6 +274,127 @@ public abstract class NetIO {
 		return mtu - (headerOffset + headerLength);
 	}
 
+
+	/**
+	 * Write an short in a byte buffer.
+	 * The first byte is the least significant byte.
+	 *
+	 * @param b the byte buffer.
+	 * @param offset the offset ar which to write the value.
+	 * @param value the short value to write in the buffer.
+	 */
+	public final void writeShort(byte [] b, int offset, short value) {
+		b[offset] = (byte)value;
+		value >>= 8;
+		b[offset + 1] = (byte)value;
+		value >>= 8;
+	}
+	
+	/**
+	 * Read an integer from a byte buffer.
+	 * The first byte is the least significant byte.
+	 *
+	 * @param b the byte buffer.
+	 * @param offset the offset of the first byte of the integer.
+	 * @return the short value.
+	 */
+	public final short readShort(byte [] b, int offset) {
+		short value = 0;
+
+		value |=  ((short)b[offset + 0])&0xFF;
+		value |= (((short)b[offset + 1])&0xFF) << 8;
+
+		return value;
+	}
+
+
+	/**
+	 * Write an integer in a byte buffer.
+	 * The first byte is the least significant byte.
+	 *
+	 * @param b the byte buffer.
+	 * @param offset the offset ar which to write the value.
+	 * @param value the integer value to write in the buffer.
+	 */
+	public final void writeInt(byte [] b, int offset, int value) {
+		b[offset] = (byte)value;
+		value >>= 8;
+		b[offset + 1] = (byte)value;
+		value >>= 8;
+		b[offset + 2] = (byte)value;
+		value >>= 8;
+		b[offset + 3] = (byte)value;
+	}
+	
+	/**
+	 * Read an integer from a byte buffer.
+	 * The first byte is the least significant byte.
+	 *
+	 * @param b the byte buffer.
+	 * @param offset the offset of the first byte of the integer.
+	 * @return the integer value.
+	 */
+	public final int readInt(byte [] b, int offset) {
+		int value = 0;
+
+		value |=  ((int)b[offset + 0])&0xFF;
+		value |= (((int)b[offset + 1])&0xFF) << 8;
+		value |= (((int)b[offset + 2])&0xFF) << 16;
+		value |= (((int)b[offset + 3])&0xFF) << 24;
+
+		return value;
+	}
+	
+
+	/**
+	 * Write an long in a byte buffer.
+	 * The first byte is the least significant byte.
+	 *
+	 * @param b the byte buffer.
+	 * @param offset the offset ar which to write the value.
+	 * @param value the long value to write in the buffer.
+	 */
+	public final void writeLong(byte [] b, int offset, long value) {
+		b[offset + 0] = (byte)value;
+		value >>= 8;
+		b[offset + 1] = (byte)value;
+		value >>= 8;
+		b[offset + 2] = (byte)value;
+		value >>= 8;
+		b[offset + 3] = (byte)value;
+		value >>= 8;
+		b[offset + 4] = (byte)value;
+		value >>= 8;
+		b[offset + 5] = (byte)value;
+		value >>= 8;
+		b[offset + 6] = (byte)value;
+		value >>= 8;
+		b[offset + 7] = (byte)value;
+	}
+	
+	/**
+	 * Read an long from a byte buffer.
+	 * The first byte is the least significant byte.
+	 *
+	 * @param b the byte buffer.
+	 * @param offset the offset ar which to write the value.
+	 * @return the long value.
+	 */
+	public final long readLong(byte [] b, int offset) {
+		long value = 0;
+
+		value |=  ((long)b[offset + 0])&0xFF;
+		value |= (((long)b[offset + 1])&0xFF) << 8;
+		value |= (((long)b[offset + 2])&0xFF) << 16;
+		value |= (((long)b[offset + 3])&0xFF) << 24;
+		value |= (((long)b[offset + 4])&0xFF) << 32;
+		value |= (((long)b[offset + 5])&0xFF) << 40;
+		value |= (((long)b[offset + 6])&0xFF) << 48;
+		value |= (((long)b[offset + 7])&0xFF) << 56;
+
+		return value;
+	}
+
 	/**
 	 * Actually establish a connection with a remote port.
 	 *

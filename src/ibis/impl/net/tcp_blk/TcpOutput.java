@@ -118,16 +118,7 @@ public class TcpOutput extends NetOutput {
 	 */
 	public void sendBuffer(NetSendBuffer b) throws IbisIOException {
 		try {
-			int l = b.length;
-			
-			b.data[0] = (byte)l;
-			l >>= 8;
-			b.data[1] = (byte)l;
-			l >>= 8;
-			b.data[2] = (byte)l;
-			l >>= 8;
-			b.data[3] = (byte)l;
-
+			writeInt(b.data, 0, b.length);
 			tcpOs.write(b.data, 0, b.length);
 		} catch (IOException e) {
 			throw new IbisIOException(e);
