@@ -32,7 +32,6 @@ public final class TcpInput extends NetInput implements NetPollInterruptible {
         private InetAddress        addr               = null;
         private int                port               =    0;
         private ObjectInputStream _inputConvertStream = null;
-        private long               seq                =    0;
 
 	private static final int   INTERRUPT_TIMEOUT  = 100; // ms
 	private boolean      interrupted = false;
@@ -475,8 +474,6 @@ System.err.println(this + ": interruptiblePoll support is INCOMPLETE. Please imp
 	}
 
         private final class DummyInputStream extends InputStream {
-                private long seq = 0;
-
 
                 public int read() throws IOException {
                         log.in();

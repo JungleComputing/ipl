@@ -27,14 +27,7 @@ public final class NetPropertyTree {
                 levelMap = new HashMap();
         }
 
-        /**
-         * Provide something to throw in case of a successful property lookup.
-         */
-        private final class Found extends Throwable {
-                //
-        }
-
-        /**
+        /*
          * Provide a replacement implementation of {@link String#split} for JDKs < 1.4.
          */
         private String[] split(String s, String chars, int n) {
@@ -52,33 +45,37 @@ public final class NetPropertyTree {
                         while (a < l) {
                                 int b = a;
 
-                                try {
-                                        while (b < l) {
-                                                final char c = chars.charAt(b);
-                                                int  i = 0;
+				boolean actOnFound = false;
 
-                                                while (i < nb_chars) {
-                                                        final char c2 = chars.charAt(i);
+middle:
+				while (b < l) {
+					final char c = chars.charAt(b);
+					int  i = 0;
 
-                                                        if (c == c2) {
-                                                                throw new Found();
-                                                        }
+					while (i < nb_chars) {
+						final char c2 = chars.charAt(i);
 
-                                                        i++;
-                                                }
+						if (c == c2) {
+							actOnFound = true;
+							break middle;
+						}
 
-                                                b++;
-                                        }
+						i++;
+					}
 
-                                        sub = s.substring(a, b);
-                                } catch (Found t) {
+					b++;
+				}
+
+				if (actOnFound) {
                                         if (a == b) {
                                                 sub = "";
                                         } else {
                                                 sub = s.substring(a, b - 1);
                                         }
                                         b++;
-                                }
+                                } else {
+					sub = s.substring(a, b);
+				}
 
                                 a = b;
                         }

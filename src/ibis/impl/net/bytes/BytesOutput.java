@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 public final class BytesOutput extends NetOutput implements Settings {
 
-        private final int splitThreshold = 8;
+        private final static int splitThreshold = 8;
 
 	/**
 	 * The driver used for the 'real' output.

@@ -437,11 +437,11 @@ public final class NetPortType implements PortType {
 		String  value  = (String)getProperty(context, name);
 
 		if (value != null) {
-                        value.toLowerCase();
+                        value = value.toLowerCase();
 			if (value.equals(String.valueOf(true))) {
-				result = new Boolean(true);
+				result = Boolean.valueOf(true);
 			} else if (value.equals(String.valueOf(false))) {
-				result = new Boolean(false);
+				result = Boolean.valueOf(false);
 			} else {
 				__.abort__("invalid property value '"+value+"', should be "+String.valueOf(true)+" or "+String.valueOf(false));
 			}
@@ -462,7 +462,7 @@ public final class NetPortType implements PortType {
 		String  value  = (String)getProperty(context, name);
 
 		if (value != null) {
-                        value.toLowerCase();
+                        value = value.toLowerCase();
 			if (value.equals(String.valueOf(true))) {
 				result = true;
 			} else if (value.equals(String.valueOf(false))) {

@@ -210,12 +210,12 @@ public final class cluster implements MultiPlugin {
 				}
 
 				if (netTable.get(s) != null) {
-					os.writeObject(new Boolean(true));
+					os.writeObject(Boolean.valueOf(true));
 					os.flush();
 					//System.err.println("Incoming: subcontext string = ["+s+"]");
 					return s;
 				}
-				os.writeObject(new Boolean(false));
+				os.writeObject(Boolean.valueOf(false));
 				os.flush();
 			}
 		}

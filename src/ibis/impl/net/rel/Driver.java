@@ -74,7 +74,7 @@ public final class Driver extends NetDriver implements RelConstants {
 	}
 
 
-	class InputElement {
+	private final static class InputElement {
 	    RelInput	input;
 	    boolean	matched;
 	    IbisIdentifier	remote_out_id;
@@ -210,7 +210,7 @@ public final class Driver extends NetDriver implements RelConstants {
     }
 
 
-    class Sweeper extends Thread {
+    private final static class Sweeper extends Thread {
 
 	private NetVector sweep = new NetVector();
 	private long sweepInterval = 30;
@@ -253,7 +253,7 @@ public final class Driver extends NetDriver implements RelConstants {
     }
 
 
-    class Snooper extends Thread {
+    private final static class Snooper extends Thread {
 
 	public void run() {
 	    while (true) {

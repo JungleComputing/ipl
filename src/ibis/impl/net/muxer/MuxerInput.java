@@ -127,12 +127,12 @@ System.err.println("Returned from doPoll(0)");
 	boolean proceed;
 	Integer r = null;
 
-	if (liveConnections == 0) {
-	    // Before start or past shutdown
-	    return null;
-	}
-
 	synchronized (this) {
+	    if (liveConnections == 0) {
+		// Before start or past shutdown
+		return null;
+	    }
+
 	    proceed = (pollerThreads == 0);
 	    if (proceed) {
 		pollerThreads++;
@@ -206,8 +206,8 @@ System.err.println("Returned from doPoll(0)");
 	factory.setMaximumTransferUnit(max_ever_mtu);
 	queue.setBufferFactory(factory);
 	this.factory = factory;
-	if (upcallReceivers++ == 0) {
-	    synchronized (this) {
+	synchronized (this) {
+	    if (upcallReceivers++ == 0) {
 		notify();
 	    }
 	}
@@ -243,6 +243,7 @@ System.err.println(this + ": disconnect; connections was " + liveConnections);
     }
 
 
+    /* Call synchronized(this) */
     protected int liveConnections() {
 	return liveConnections;
     }

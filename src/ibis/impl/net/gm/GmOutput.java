@@ -238,7 +238,6 @@ public final class GmOutput extends NetBufferedOutput {
 	 * {@inheritDoc}
 	 */
 	public void flushBuffer() throws IOException {
-// System.err.println(this + ": flushBuffer()");
 // Thread.dumpStack();
 	    flushing++;
 	    super.flushBuffer();

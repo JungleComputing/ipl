@@ -84,8 +84,6 @@ public final class RelInput
     private int	windowSize;
     private int	lastContiguousAck = FIRST_PACKET_COUNT - 1;
 
-    private boolean	startMsg = true;
-
     /**
      * Cache ack send and receive bitsets.
      */
@@ -665,8 +663,6 @@ public final class RelInput
 	    RelReceiveBuffer packet = front;
 	    front = front.next;
 
-	    startMsg = packet.isLastFrag;
-
 	    return packet;
 	}
     }
@@ -739,7 +735,8 @@ public final class RelInput
     }
 
 
-    synchronized public void doClose(Integer num) throws IOException {
+    // synchronized
+    public void doClose(Integer num) throws IOException {
             // to implement
             //
             // - 'num' is the is the Integer identifier of the connection to close
@@ -754,8 +751,10 @@ public final class RelInput
             // - close is also supposed to be called by the user once the IPL
             //   provide the feature, to remove a connection from the connection set
             //   of the port.
-	if (spn != num) {
-	    return;
+	synchronized (this) {
+	    if (spn != num) {
+		return;
+	    }
 	}
 
 	for (int i = 0; i < SHUTDOWN_DELAY / sweepInterval; i++) {

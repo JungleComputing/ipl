@@ -6,7 +6,6 @@ class ReadFragment {
     int		msgSize;
     ReadMessage msg;
     ReadFragment next;
-    boolean	lastFrag;
 
     ReadFragment() {
 	next = null;

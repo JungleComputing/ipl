@@ -53,7 +53,6 @@ public final class TcpOutput extends NetOutput {
 
         private InetAddress raddr = null;
         private int         rport =    0;
-        private long        seq   =    0;
         private boolean     first = true;
 
 	/**
@@ -370,7 +369,6 @@ public final class TcpOutput extends NetOutput {
 
 
         private final class DummyOutputStream extends OutputStream {
-                private long seq = 0;
 
                 public void write(int b) throws IOException {
                         log.in();

@@ -43,7 +43,7 @@ public class NetEventQueue {
          * interrupted while waiting for an event.
          */
         synchronized public NetEvent get() throws InterruptedIOException {
-                if (v.size() == 0) {
+                while (v.size() == 0) {
 			try {
 				wait();
 			} catch (InterruptedException e) {

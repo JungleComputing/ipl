@@ -68,7 +68,6 @@ final class ReceivePortNameServerClient
 	private boolean	ns_busy = false;
 	private ConditionVariable	ns_free = Ibis.myIbis.createCV();
 
-	private boolean	ns_is_done;
 	private ConditionVariable	ns_done = Ibis.myIbis.createCV();
 	private boolean bound;
 
@@ -199,7 +198,6 @@ final class ReceivePortNameServerClient
 	private boolean	ns_busy = false;
 	private ConditionVariable	ns_free = Ibis.myIbis.createCV();
 
-	private boolean	ns_is_done;
 	private ConditionVariable	ns_done = Ibis.myIbis.createCV();
 	private ReceivePortIdentifier ri;
 

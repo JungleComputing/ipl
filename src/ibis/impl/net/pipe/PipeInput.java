@@ -52,7 +52,7 @@ public final class PipeInput extends NetBufferedInput {
 		Hashtable info = new Hashtable();
 		info.put("pipe_mtu",         new Integer(mtu));
 		info.put("pipe_istream_key", key);
-		info.put("pipe_upcall_mode", new Boolean(upcallMode));
+		info.put("pipe_upcall_mode", Boolean.valueOf(upcallMode));
 
 		ObjectOutputStream os = new ObjectOutputStream(cnx.getServiceLink().getOutputSubStream(this, "pipe"));
 		os.writeObject(info);

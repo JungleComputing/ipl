@@ -52,7 +52,7 @@ public final class NetAllocator {
         /**
          * Provide a byte block caching stack.
          */
-        protected class BlockStack {
+        protected static class BlockStack {
 
                 /**
                  * Store the previously allocated blocks.
@@ -70,7 +70,7 @@ public final class NetAllocator {
         /**
          * The specialization of the {@link NetStat} for the {@linkplain NetAllocator allocator} monitoring.
          */
-        public class NetAllocatorStat extends NetStat {
+        public static class NetAllocatorStat extends NetStat {
 
                 /**
                  * The number of blocks allocated while the cache {@link #stack} is empty.

@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 public final class BytesInput extends NetInput implements Settings {
 
-        private final int splitThreshold = 8;
+        private final static int splitThreshold = 8;
 
 
 	/**

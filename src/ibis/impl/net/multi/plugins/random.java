@@ -30,7 +30,7 @@ public final class random implements MultiPlugin {
 				value = r.nextBoolean();
 			}
 
-			os.writeObject(new Boolean(value));
+			os.writeObject(Boolean.valueOf(value));
 			os.flush();
 		} else {
 			Boolean b;

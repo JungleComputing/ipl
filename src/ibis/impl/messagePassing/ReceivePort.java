@@ -48,7 +48,6 @@ class ReceivePort
 
     private PortType type;
     private ReceivePortIdentifier ident;
-    private int connectCount = 0;
     private String name;	// needed to unbind
 
     private ReadMessage queueFront;
@@ -467,7 +466,6 @@ class ReceivePort
 	}
 
 	f.msg       = msg;
-	f.lastFrag  = lastFrag;
 	f.msgHandle = msgHandle;
 	f.msgSize   = msgSize;
 

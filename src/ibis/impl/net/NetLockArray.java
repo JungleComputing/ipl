@@ -9,7 +9,7 @@ import ibis.util.Monitor;
  */
 public final class NetLockArray {
 
-    class Lock {
+    private static class Lock {
 	/**
 	 * Store the lock values.
 	 */
@@ -102,7 +102,7 @@ public final class NetLockArray {
      * and possibly signal a different CV.
      */
 
-    class WaitingOn {
+    private static class WaitingOn {
 	WaitingOn	next;
 	int		id;
     }

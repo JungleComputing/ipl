@@ -36,7 +36,7 @@ public final class TcpInput extends NetBufferedInput
 	/**
 	 * Debug switch
 	 */
-	private final boolean DEBUG = false; // true;
+	private final static boolean DEBUG = false; // true;
 
 	/**
 	 * The connection socket.

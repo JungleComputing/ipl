@@ -36,7 +36,7 @@ public final class NetServiceLink {
          *
          * @see ServiceThread#run
          */
-        private final int _OP_eof                  = 0;
+        private final static int _OP_eof                  = 0;
 
         /**
          * 'Request substream id' opcode for the commands sent over the main sub-stream.
@@ -46,7 +46,7 @@ public final class NetServiceLink {
          * @see ServiceThread#requestSubstreamId
          * @see ServiceThread#run
          */
-        private final int _OP_request_substream_id = 1;
+        private final static int _OP_request_substream_id = 1;
 
         /**
          * 'Receive substream id' opcode for the commands sent over the main sub-stream.
@@ -55,7 +55,7 @@ public final class NetServiceLink {
          * @see ServiceThread#receiveSubstreamId
          * @see ServiceThread#run
          */
-        private final int _OP_receive_substream_id = 2;
+        private final static int _OP_receive_substream_id = 2;
 
         /**
          * Set to true once the link is closed.
@@ -512,7 +512,7 @@ public final class NetServiceLink {
         /**
          * Store some information about an outgoing sub-stream.
          */
-        private final class OutputClient {
+        private final static class OutputClient {
 
                 /**
                  * The 'name' of the output sub-stream.
@@ -537,7 +537,7 @@ public final class NetServiceLink {
         /**
          * Store some information about an incoming sub-stream.
          */
-        private final class InputClient {
+        private final static class InputClient {
 
                 /**
                  * The 'name' of the input sub-stream.
@@ -714,17 +714,12 @@ public final class NetServiceLink {
         /**
          * Provide a multiplexed input sub-stream over the socket input stream.
          */
-        private final class ServiceInputStream extends InputStream {
+        private final static class ServiceInputStream extends InputStream {
 
                 /**
                  * Provide a double-linked list of incoming buffers.
                  */
-                private class BufferList {
-
-                        /**
-                         * Reference the previous buffer list element.
-                         */
-                        BufferList    previous = null;
+                private static class BufferList {
 
                         /**
                          * Reference the next buffer list element.
@@ -794,12 +789,10 @@ public final class NetServiceLink {
 
                         if (first == null) {
                                 first = bl;
-                                last  = bl;
                         } else {
-                                bl.previous = last;
                                 last.next   = bl;
-                                last = bl;
                         }
+			last = bl;
 
                         avail += bl.buf.length;
 
@@ -847,7 +840,6 @@ public final class NetServiceLink {
                                 first = null;
                                 last  = null;
                         } else {
-                                first.next.previous = null;
                                 BufferList temp = first.next;
                                 first.next = null;
                                 first = temp;

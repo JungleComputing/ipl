@@ -21,7 +21,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
 	 */
 	private		volatile 	Integer                 activeNum              = null;
         private   	volatile 	PooledUpcallThread      activeThread           = null;
-        private   	final    	int                     threadStackSize        =  256;
+        private   	final static   	int                     threadStackSize        =  256;
         private  	volatile        int                     threadStackPtr         =    0;
         private  			PooledUpcallThread[] 	threadStack            = new PooledUpcallThread[threadStackSize];
         private         		NetMutex           	threadStackLock        = new NetMutex(false);

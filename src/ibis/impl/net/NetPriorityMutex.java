@@ -97,6 +97,8 @@ public final class NetPriorityMutex {
 	}
 
 
+	/* This method must be called in a loop that checks the condition
+	 * that is waited on. Hence, there is no loop around wait() here. */
 	private void doWait(boolean priority) throws InterruptedIOException {
 	    registerWait();
 	    try {
@@ -111,6 +113,8 @@ public final class NetPriorityMutex {
 	}
 
 
+	/* This method must be called in a loop that checks the condition
+	 * that is waited on. Hence, there is no loop around wait() here. */
 	private void idoWait(boolean priority) throws InterruptedException {
 	    registerWait();
 	    try {

@@ -90,7 +90,7 @@ public class NetBufferFactory {
         /**
          * Provide a buffer cache list.
          */
-        protected class BufferList {
+        protected static class BufferList {
 
                 /**
                  * Reference the head of the buffer list.
@@ -285,6 +285,7 @@ public class NetBufferFactory {
          *
          * @return the current maximum transfer unit.
          */
+	synchronized
         public int getMaximumTransferUnit() {
                 return mtu;
         }

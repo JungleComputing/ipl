@@ -28,14 +28,14 @@ public final class UdpInput extends NetBufferedInput {
          *
          * <BR><B>Note</B>: this will be replaced by a property setting in the future.
          */
-        private final int             defaultPollTimeout    = 1000; // 1; // milliseconds
+        private final static int      defaultPollTimeout    = 1000; // 1; // milliseconds
 
         /**
          * The default reception timeout in milliseconds.
          *
          * <BR><B>Note</B>: this will be replaced by a property setting in the future.
          */
-        private final int             defaultReceiveTimeout = 1000; // milliseconds
+        private final static int      defaultReceiveTimeout = 1000; // milliseconds
 
         /**
          * The polling timeout in milliseconds.
@@ -438,7 +438,7 @@ public final class UdpInput extends NetBufferedInput {
         }
 
 
-        public final class NetUDPStat extends NetMessageStat {
+        public final static class NetUDPStat extends NetMessageStat {
                 private int  receiveFromPoll   = 0;
                 private long t_receiveFromPoll = 0;
                 private long start             = 0;

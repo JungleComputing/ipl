@@ -8,7 +8,7 @@ public final class __ {
 	/**
 	 * Flag controlling {@link __#debug__(String) __.debug__(String)} output.
 	 */
-	public static boolean debugActivated__ = false;
+	public static final boolean debugActivated__ = false;
 
 	/**
 	 * Aborts the process.

@@ -11,8 +11,6 @@ public abstract class NetStat {
         protected boolean on         = false;
         protected Hashtable pluralExceptions = new Hashtable();
 
-        private Thread reportThread  = null;
-
         public NetStat(boolean on, String moduleName) {
                 this.moduleName = moduleName;
                 this.on         = on;

@@ -26,7 +26,6 @@ public final class GmPoller extends NetPoller {
 	int[]			lockIds;
 	Integer[]		spn;
 	ReceiveQueue[]		rq;
-	int[]			pumpedIds;
 
 	int			blockers;
 
@@ -173,11 +172,13 @@ if (false) {
 		Driver.t_wait_service.start();
 	    }
 
-	    activeQueue = rq[result];
-	    selectConnection(activeQueue);
+	    synchronized (this) {
+		activeQueue = rq[result];
+		selectConnection(activeQueue);
 // System.err.println(Thread.currentThread() + ": " + this + ": return " + spn[result] + " = spn[" + result +"]");
 
-	    return spn[result];
+		return spn[result];
+	    }
 	}
 
 }

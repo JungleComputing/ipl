@@ -37,6 +37,7 @@ public final class RelOutput
 
     /**
      * The communication output.
+     * This is a write-once property, set at connect time.
      */
     private NetOutput	dataOutput = null;
 
@@ -63,6 +64,7 @@ public final class RelOutput
 
     /**
      * The acknowledgement input.
+     * This is a write-once property, set at connect time.
      */
     private NetInput	controlInput = null;
     private int		controlHeaderStart;
@@ -94,11 +96,6 @@ public final class RelOutput
      * Retransmission control
      */
     private long	safetyInterval = Driver.sweepInterval;	// Wait at least this before rexmit
-
-    /**
-     * Packet cache
-     */
-    private RelSendBuffer	freeBuffers = null;
 
 
     private int nRexmit;

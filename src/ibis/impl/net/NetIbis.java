@@ -57,26 +57,6 @@ public final class NetIbis extends Ibis {
 	private   NetIbisIdentifier identifier       = null;
 
 	/**
-	 * This {@link NetIbis} instance <I>name server</I> pool name.
-	 */
-	private   String      	    nameServerPool   = null;
-
-	/**
-	 * The <I>name server</I> host name.
-	 */
-	private   String 	    nameServerName   = null;
-
-	/**
-	 * The <I>name server</I> IP address.
-	 */
-	private   InetAddress 	    nameServerInet   = null;
-
-	/**
-	 * The <I>name server</I> IP port.
-	 */
-	private   int               nameServerPort   = 0;
-
-	/**
 	 * This {@link NetIbis} instance <I>name server</I> client.
 	 */
 	protected NameServer  nameServer = null;
@@ -91,17 +71,17 @@ public final class NetIbis extends Ibis {
 	private   boolean           open             = false;
 
 	/**
-	 * The number of {@link NetIbis} instances in our <I>name server</I> {@linkplain #nameServerPool pool}.
+	 * The number of {@link NetIbis} instances in our <I>name server</I> nameServer pool.
 	 */
 	private   int 	       	    poolSize         = 0;
 
 	/**
-	 * The {@link NetIbis} instances that attempted to join our {@linkplain #nameServerPool pool} while our world was {@linkplain #open closed}.
+	 * The {@link NetIbis} instances that attempted to join our nameServer pool while our world was {@linkplain #open closed}.
 	 */
 	private   Vector 	    joinedIbises     = new Vector();
 
 	/**
-	 * The {@link NetIbis} instances that attempted to leave our {@linkplain #nameServerPool pool} while our world was {@linkplain #open closed}.
+	 * The {@link NetIbis} instances that attempted to leave our nameServer pool while our world was {@linkplain #open closed}.
 	 */
 	private   Vector 	    leftIbises       = new Vector();
 
@@ -121,11 +101,6 @@ public final class NetIbis extends Ibis {
          * The master {@link Ibis} instance for this process.
          */
 	static volatile NetIbis globalIbis;
-
-        /**
-         * The {@link Ibis Ibises} instance identifiers.
-         */
-	IbisIdentifierTable identTable = new IbisIdentifierTable();
 
 	/**
 	 * Default constructor.

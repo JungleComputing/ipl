@@ -19,8 +19,7 @@ import java.util.Iterator;
  */
 public final class MultiSplitter extends NetSplitter {
 
-        private final class Lane {
-                NetConnection cnx          = null;
+        private final static class Lane {
                 NetOutput     output       = null;
                 int           headerLength =    0;
                 int           mtu          =    0;
@@ -121,7 +120,6 @@ public final class MultiSplitter extends NetSplitter {
 		Lane lane = new Lane();
 		lane.os           = os;
 		lane.is           = is;
-		lane.cnx          = cnx;
 		lane.output       = no;
 		lane.headerLength = no.getHeadersLength();
 		lane.mtu          = no.getMaximumTransfertUnit();

@@ -16,9 +16,6 @@ class Registry implements ibis.ipl.Registry {
 
     Registry() throws IOException {
 	if (Ibis.myIbis.myCpu == 0) {
-	    if (nameServer != null) {
-		throw new IOException("ReceivePortNameServer already initialized");
-	    }
 	    nameServer = Ibis.myIbis.createReceivePortNameServer();
 	}
 	nameServerClient = Ibis.myIbis.createReceivePortNameServerClient();

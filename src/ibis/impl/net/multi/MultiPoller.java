@@ -20,8 +20,7 @@ import java.util.Hashtable;
  */
 public final class MultiPoller extends NetPoller {
 
-        private final class Lane {
-                NetConnection cnx          = null;
+        private final static class Lane {
                 ReceiveQueue  queue        = null;
                 int           headerLength =    0;
                 int           mtu          =    0;
@@ -171,7 +170,6 @@ public final class MultiPoller extends NetPoller {
 
 		lane.is           = is;
 		lane.os           = os;
-		lane.cnx          = cnx;
 		lane.queue        = q;
 		lane.mtu          = is.readInt();
 		lane.headerLength = is.readInt();

@@ -10,7 +10,7 @@ final class AcceptThread extends Thread {
     private boolean	stopped;
 
 
-    private class AcceptQ {
+    private static class AcceptQ {
 	AcceptQ		next;
 	boolean		finished;
 	boolean		accept;

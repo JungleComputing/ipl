@@ -80,8 +80,6 @@ public class ReadMessage
 
     /* The PollClient interface */
 
-    private boolean	signalled;
-    private boolean	accepted;
     private ConditionVariable cv = Ibis.myIbis.createCV();
 
     private PollClient	poll_next;
