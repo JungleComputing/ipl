@@ -11,5 +11,6 @@ interface SATInterface extends ibis.satin.Spawnable
 	int varlist[];
     }
 
-    public void solve( Context ctx, int assignments[], int varix ) throws SATResultException;
+    public void solve( int level, Context ctx, int assignments[], int varix, boolean val ) throws SATResultException;
+    public void agressiveSolve( int level, SATProblem p, int var, boolean val ) throws SATResultException;
 }

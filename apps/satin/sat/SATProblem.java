@@ -31,9 +31,9 @@ public class SATProblem implements Cloneable, java.io.Serializable {
     /** The number of deleted clauses. */
     private int deletedClauseCount;
 
-    static final boolean trace_simplification = false;
-    static final boolean trace_propagation = false;
-    static final boolean trace_new_code = true;
+    private static final boolean trace_simplification = false;
+    private static final boolean trace_propagation = false;
+    private static final boolean trace_new_code = true;
     private int label = 0;
 
     /**
@@ -48,7 +48,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
     }
 
     /**
-     * Construct a new SAT Problem with the given fields.
+     * Constructs a SAT Problem with the given fields.
      */
     private SATProblem(
         int vars,
@@ -78,10 +78,10 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	SATVar vl[] = new SATVar[vars];
 
 	for( int i=0; i<clauseCount; i++ ){
-	    cl[i] = clauses[i];
+	    cl[i] = (Clause) clauses[i].clone();
 	}
 	for( int i=0; i<vars; i++ ){
-	    vl[i] = variables[i];
+	    vl[i] = (SATVar) variables[i].clone();
 	}
         return new SATProblem( 
 	    vars,
@@ -339,12 +339,28 @@ public class SATProblem implements Cloneable, java.io.Serializable {
     }
 
     /**
+     * Returns true iff this problem is known to be conflicting for
+     * all assignments.
+     */
+    public boolean isConflicting()
+    {
+	// For now, I know nothing.
+	return false;
+    }
+
+    /**
+     * Returns true iff this problem is known to be satisfied for
+     * all assignments.
+     */
+    public boolean isSatisfied() { return clauseCount == 0; }
+
+    /**
      * Given a variable that is know to be true, propagates this
      * assignment.
      * @param var The variable that is known to be true.
      * @return <code>true</code> iff the propagation deleted any clauses.
      */
-    private boolean propagatePosAssignment( int var )
+    public boolean propagatePosAssignment( int var )
     {
 	boolean changed = false;
 
@@ -358,20 +374,21 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	    return false;
 	}
 	knownVars++;
-	variables[var].setAssignment( 1 );
+	SATVar v = variables[var];
+	v.setAssignment( 1 );
         for( int ix=0; ix<clauses.length; ix++ ){
-	    Clause cl = clauses[ix];
+	    Clause c = clauses[ix];
 
-	    if( cl == null ){
+	    if( c == null ){
 	        continue;
 	    }
-	    boolean sat = cl.propagatePosAssignment( var );
+	    boolean sat = c.propagatePosAssignment( var );
 	    if( sat ){
 	        // This clause is satisfied by the assignment. Remove it.
 		clauses[ix] = null;
 		changed = true;
 		if( trace_simplification ){
-		    System.err.println( "Clause " + cl + " is satisfied by var[" + var + "]=true" ); 
+		    System.err.println( "Clause " + c + " is satisfied by var[" + var + "]=true" ); 
 		}
 	    }
 	}
@@ -384,7 +401,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
      * @param var The variable that is known to be true.
      * @return <code>true</code> iff the propagation deleted any clauses.
      */
-    private boolean propagateNegAssignment( int var )
+    public boolean propagateNegAssignment( int var )
     {
 	boolean changed = false;
 
@@ -401,20 +418,21 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	    return false;
 	}
 	knownVars++;
-	variables[var].setAssignment( 0 );
+	SATVar v = variables[var];
+	v.setAssignment( 0 );
         for( int ix=0; ix<clauses.length; ix++ ){
-	    Clause cl = clauses[ix];
+	    Clause c = clauses[ix];
 
-	    if( cl == null ){
+	    if( c == null ){
 	        continue;
 	    }
-	    boolean sat = cl.propagateNegAssignment( var );
+	    boolean sat = c.propagateNegAssignment( var );
 	    if( sat ){
 	        // This clause is satisfied by the assignment. Remove it.
 		clauses[ix] = null;
 		changed = true;
 		if( trace_simplification | trace_propagation ){
-		    System.err.println( "Clause " + cl + " is satisfied by var[" + var + "]=false" ); 
+		    System.err.println( "Clause " + c + " is satisfied by var[" + var + "]=false" ); 
 		}
 	    }
 	}
@@ -436,7 +454,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
     }
 
     /** Optimizes the problem for solving. */
-    void optimize()
+    public void optimize()
     {
 	boolean changed;
 
@@ -563,7 +581,7 @@ public class SATProblem implements Cloneable, java.io.Serializable {
      * Returns the initial assignment array for this problem.
      * @return an array of assignments for the variables of this problem
      */
-    int [] getInitialAssignments()
+    int [] buildInitialAssignments()
     {
         int res[] = new int[vars];
 
@@ -571,6 +589,31 @@ public class SATProblem implements Cloneable, java.io.Serializable {
 	    res[ix] = variables[ix].getAssignment();
 	}
 	return res;
+    }
+
+    /**
+     * Returns the most frequently used variable of this problem.
+     * Assigned variables are not considered.
+     * @return the index of the most frequently used variable, or -1 if there are no unassigned variables
+     */
+    int getMFUVariable()
+    {
+	SATVar bestvar = null;
+	int bestuse = 0;
+
+	for( int i=0; i<vars; i++ ){
+	    SATVar v = variables[i];
+
+	    if( v != null && v.getAssignment() == -1 ){
+		int use = v.getUseCount();
+
+		if( bestuse<use ){
+		    bestvar = v;
+		    bestuse = use;
+		}
+	    }
+	}
+	return (bestvar == null) ? -1 : bestvar.getIndex();
     }
 
     /**

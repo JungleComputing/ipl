@@ -147,7 +147,7 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
     /** Given a list of symbolic clauses, produce a list of solutions. */
     static SATSolution solveSystem( final SATProblem p )
     {
-	int assignments[] = p.getInitialAssignments();
+	int assignments[] = p.buildInitialAssignments();
 	int varlist[] = p.buildOrderedVarList();
 	SATSolution res = null;
 	int n = firstVariables;

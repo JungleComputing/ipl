@@ -368,7 +368,7 @@ public class ClauseSATSolver {
     {
 	Context ctx = new Context();
 	ctx.problem = p;
-	ctx.assignments = p.getInitialAssignments();
+	ctx.assignments = p.buildInitialAssignments();
 	// The list will be grown if necessary.
 	ctx.solutions = new SATSolution[20];
 	ctx.solutioncount = 0;
