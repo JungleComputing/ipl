@@ -516,7 +516,16 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 	    try {
 		clazz = Class.forName(typeName);        
 	    } catch (ClassNotFoundException e) {
-		throw new IOException("class " + typeName + " not found");
+		// The loading of the class failed.
+		// Maybe, Ibis was loaded using the primordial classloader
+		// and the needed class was not.
+		// Fix is by Fabrice Huet.
+		try {
+		    clazz = Thread.currentThread().getContextClassLoader()
+				.loadClass(typeName);
+		} catch(ClassNotFoundException e1) {
+		    throw new IOException("class " + typeName + " not found");
+		}
 	    }
 
 	    IbisTypeInfo t = new IbisTypeInfo(clazz);
