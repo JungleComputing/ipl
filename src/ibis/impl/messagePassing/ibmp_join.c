@@ -46,7 +46,7 @@ Java_ibis_ipl_impl_messagePassing_Ibis_send_1join(
     join_hdr_p	hdr = join_hdr(proto);
     pan_iovec_t	iov[1];
 
-    IBP_VPRINTF(80, env, ("Send join message to %d", (int)host));
+    IBP_VPRINTF(80, env, ("Send join message to %d\n", (int)host));
 
     hdr->addr_len = ibp_byte_array_push(env, ibisId, &iov[0]);
 
