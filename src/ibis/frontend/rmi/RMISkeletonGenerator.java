@@ -54,6 +54,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 
 	    for (int i = 0; i < ins.length; i++) {
 		if (ins[i] instanceof InvokeInstruction) return false;
+		if (ins[i] instanceof MONITORENTER) return false;
 		if (ins[i] instanceof BranchInstruction) {
 		    BranchInstruction ib = (BranchInstruction) ins[i];
 		    if (ib.getIndex() <= len) {
@@ -116,6 +117,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 			// We can do this if
 			// - the method does not have loops
 			// - the method does not do any other method invocations.
+			// - no synchronization
 			// (Ceriel)
 			if (! simpleMethod(m)) {
 			    output.println("\t\t\tr.finish();");
