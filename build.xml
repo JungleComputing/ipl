@@ -223,11 +223,13 @@
 	    <reference refid="build.sources.ns" torefid="build.sources"/>
 	</antcall>
 
+	<!--
 	<java   classname="ibis.impl.nameServer.tcp.NameServer"
 		fork="true">
 	    <classpath refid="default.classpath"/>
 	    <arg line="-port 7654"/>
 	</java>
+	-->
     </target>
 
 
@@ -403,10 +405,16 @@
     </target>
 
     <target name="jars"
-	    description="Generate jar files for ibis">
+	    depends="ibis.jar,ibis-package-jars"
+	    description="Generate jar files for ibis"/>
+
+    <target name="ibis.jar">
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
 		includes="**/*.class **/properties properties *_properties ibis-properties"/>
+    </target>
+
+    <target name="ibis-package-jars">
 	<foreach target="jar.package"
 		param="ibis.sub-package">
 	    <path>
