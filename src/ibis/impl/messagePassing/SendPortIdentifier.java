@@ -25,7 +25,7 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
 	this.name = name;
 	this.type = type;
 // System.err.println("SendPortIdentifier.<ctor>: Lookup ibisId " + ibisId);
-	this.ibisId = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupIbis(ibisId);
+	this.ibisId = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupIbis(ibisId, cpu);
 	this.cpu = cpu;
 	this.port = port;
     }

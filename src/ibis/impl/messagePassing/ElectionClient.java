@@ -12,6 +12,10 @@ class ElectionClient implements ElectionProtocol {
     ibis.ipl.ReceivePort rport;
 
     ElectionClient() throws IbisException, IbisIOException {
+	if (! ElectionProtocol.NEED_ELECTION) {
+	    return;
+	}
+
 // System.err.println(Thread.currentThread() + "ElectionClient: enter...");
 	ibis.ipl.PortType type = ibis.ipl.impl.messagePassing.Ibis.myIbis.createPortType("++++ElectionPort++++", new ibis.ipl.StaticProperties());
 // System.err.println(Thread.currentThread() + "ElectionClient: portTypes lives");
@@ -31,6 +35,10 @@ class ElectionClient implements ElectionProtocol {
     }
 
     void end() {
+	if (! ElectionProtocol.NEED_ELECTION) {
+	    return;
+	}
+
 	try {
 	    sport.free();
 	} catch (IbisIOException e) {

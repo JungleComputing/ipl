@@ -75,12 +75,14 @@ class ReceivePortNameServerClient
 		ns_busy = true;
 
 		bound = false;
-// System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
+		if (ReceivePortNameServerProtocol.DEBUG) {
+		    System.err.println(Thread.currentThread() + "Call this rp-ns bind() \"" + name + "\"");
+		}
 		ns_bind(name, id.type, id.cpu, id.port);
 // System.err.println(Thread.currentThread() + "Called this rp-ns bind()" + this);
 
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: Wait for my bind reply");
-		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		if (ReceivePortNameServerProtocol.DEBUG) {
 		    if (bound) {
 			System.err.println("******** Reply arrives early, bind=" + this);
 		    }
@@ -172,7 +174,9 @@ class ReceivePortNameServerClient
 
 	public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisIOException {
 
-// System.err.println(Thread.currentThread() + "Lookup receive port \"" + name + "\"");
+	    if (ReceivePortNameServerProtocol.DEBUG) {
+		System.err.println(Thread.currentThread() + "Lookup receive port \"" + name + "\"");
+	    }
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: grab Ibis lock.....");
 
 	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
@@ -244,7 +248,7 @@ class ReceivePortNameServerClient
     Lookup lookup = new Lookup();
 
     public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisIOException {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (ReceivePortNameServerProtocol.DEBUG) {
 	    System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + ": Do a ReceivePortId NS lookup(" + name + ", " + timeout + ") in " + lookup);
 	}
 	return lookup.lookup(name, timeout);

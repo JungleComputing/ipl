@@ -8,12 +8,15 @@ public class Poll implements Runnable {
 
     Thread	poller;
     PollClient	waiting_threads;
+    int		preemptive_waiters;
     int		preemptive_pollers;
     Thread	peeker;
     boolean	last_is_preemptive;
     boolean	comm_lives = true;
 
     private static final boolean DEBUG = false;
+    private static final boolean NEED_POLLER_THREAD = true;
+    private int	dumps = 0;
 
     protected Poll() {
 	// Sun doesn't set java.compiler, so getProperty returns null --Rob
@@ -33,10 +36,12 @@ public class Poll implements Runnable {
 
 
     void wakeup() {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-	    System.err.println("Now start the poll peeker thread. Sure we need it (?)");
+	if (NEED_POLLER_THREAD) {
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		System.err.println("Now start the poll peeker thread. Sure we need it (?)");
+	    }
+	    peeker.start();
 	}
-	peeker.start();
     }
 
 
@@ -115,6 +120,7 @@ public class Poll implements Runnable {
 	    if (DEBUG || ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 		if (preemptive_pollers > 0) {
 		    System.err.println("Gee, some other preemptive poller active");
+		    Thread.dumpStack();
 		}
 		preemptive_pollers++;
 	    }
@@ -167,6 +173,12 @@ public class Poll implements Runnable {
 		    } else {
 			Thread.yield();
 		    }
+		    if (DEBUG || ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+			if (preemptive_pollers > 1 && dumps++ < 10) {
+			    System.err.println("I'm the preemptive poller, but somebody else arrived in between");
+			    Thread.dumpStack();
+			}
+		    }
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 		}
 
@@ -174,16 +186,23 @@ public class Poll implements Runnable {
 		if (DEBUG) {
 		    poll_wait++;
 		}
+		if (preempt) {
+		    preemptive_waiters++;
+		}
 		insert(client);
 		client.poll_wait(timeout);
 		remove(client);
+		if (preempt) {
+		    preemptive_waiters--;
+		}
 	    }
 	}
 
 	if (poller == me) {
 	    // Quit being the poller
 	    poller = null;
-	    if (waiting_threads != null) {
+	    if (waiting_threads != null &&
+		    preemptive_waiters > 0) {
 		// Wake up another poller thread
 		waiting_threads.wakeup();
 	    }

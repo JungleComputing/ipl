@@ -73,6 +73,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	ibis.io.Conversion.classInit();
     }
 
+
     public ibis.ipl.PortType createPortType(String name,
 				   StaticProperties p) throws IbisException {
 
@@ -113,7 +114,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     /* Called from native */
     void join_upcall(String ident_name, int cpu) {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (DEBUG) {
 	    System.err.println("Receive join message " + ident_name + "; now world = " + world);
 	}
 	// checkLockOwned();
@@ -203,7 +204,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	    }
 	    for (int i = 0; i < nrCpus; i++) {
 		if (i != myCpu) {
-		    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		    if (DEBUG) {
 			System.err.println("Send join message to " + i);
 		    }
 		    send_join(i, ident.name());
@@ -295,7 +296,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    IbisIdentifier lookupIbis(String name) {
+    IbisIdentifier lookupIbis(String name, int cpu) {
 // System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
 // manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
 // System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
@@ -311,8 +312,10 @@ public class Ibis extends ibis.ipl.Ibis {
 	    }
 	}
 
-// System.err.println("Not found IbisId " + name);
-	return null;
+	IbisIdentifier id = new IbisIdentifier(name, cpu);
+	ibisNameService.add(id);
+
+	return id;
     }
 
     public ibis.ipl.PortType getPortType(String name) {
@@ -389,7 +392,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    void resetStats() {
+    public void resetStats() {
 	rcve_poll.reset_stats();
     }
 

@@ -41,6 +41,12 @@ class ReceivePort
     ConditionVariable enable = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
 
     private int handlingReceive = 0;
+    /*
+     * If the receive port is connected only to a LOCAL send port,
+     * homeConnection is true. In that case, don't poll optimistically
+     * but immediately yield.
+     */
+    private boolean homeConnection = true;
 
     Vector connections = new Vector();
     ConditionVariable disconnected = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
@@ -139,7 +145,14 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 
     boolean connect(ShadowSendPort sp) {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
-	if (connectUpcall == null || acceptThread.checkAccept(sp.identifier())) {
+	ibis.ipl.SendPortIdentifier id = sp.identifier();
+	if (! id.ibis().equals(ident.ibis())) {
+	    homeConnection = false;
+	} else {
+System.err.println("This IS a home-only connection");
+	}
+
+	if (connectUpcall == null || acceptThread.checkAccept(id)) {
 	    connections.add(sp);
 	    return true;
 	} else {
@@ -155,6 +168,9 @@ System.err.println("And start another AcceptThread(this=" + this + ")");
 	if (connections.size() == 0) {
 	    disconnected.cv_signal();
 	}
+	/* TODO:
+	 * maybe reset homeConnection
+	 */
     }
 
 
@@ -273,7 +289,6 @@ System.err.println("enqueue: Create another UpcallThread because the previous on
 		messageArrived.cv_signal();
 	    }
 	    else if (handlingReceive == 0) {
-System.err.println("finishMessage: Create another UpcallThread because the previous one didn't terminate");
 		createNewUpcallThread();
 	    }
 	}
@@ -372,7 +387,7 @@ System.err.println("finishMessage: Create another UpcallThread because the previ
     }
 
 
-    ibis.ipl.ReadMessage doReceive() throws IbisIOException {
+    private ibis.ipl.ReadMessage doReceive() throws IbisIOException {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
 	if (DEBUG) {
@@ -403,7 +418,7 @@ System.err.println("finishMessage: Create another UpcallThread because the previ
 		System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " queue " + queueFront + " " + messageArrived);
 	    }
 	    arrivedWaiters++;
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
+	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, ! homeConnection);
 	    arrivedWaiters--;
 
 	    if (DEBUG) {
@@ -629,7 +644,8 @@ System.err.println("finishMessage: Create another UpcallThread because the previ
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
 
 		try {
-		    if (stop || (handlingReceive > 0 && sleeping_receivers >= max_sleepers)) {
+		    handlingReceive++;
+		    if (stop || (handlingReceive > 1 && sleeping_receivers >= max_sleepers)) {
 			if (DEBUG) {
 			    System.err.println(Thread.currentThread() + "Receive port daemon " + this +
 					       " upcall thread polls " + upcall_poll);
@@ -652,10 +668,12 @@ System.err.println("finishMessage: Create another UpcallThread because the previ
 		     * (like always one server in this ReceivePort) makes the
 		     * poll for an expected reply very expensive.
 		     * Nowadays, pass 'false' for the preempt flag. */
-		    handlingReceive++;
 		    if (DEBUG) {
 			System.err.println(Thread.currentThread() + "*********** This ReceivePort daemon hits wait, daemon " + this + " queueFront = " + queueFront);
 		    }
+for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
+ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
+}
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, false);
 		    if (DEBUG) {
 			upcall_poll++;
@@ -668,8 +686,8 @@ System.err.println("finishMessage: Create another UpcallThread because the previ
 
 		    msg = doReceive();	// May throw an IbisIOException
 
-		    handlingReceive--;
 		} finally {
+		    handlingReceive--;
 		    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
 		}
 

@@ -11,4 +11,6 @@ interface ReceivePortNameServerProtocol {
 	PORT_FREE = 25,	/* a port is destroyed */
 	PORT_KNOWN = 26,
 	PORT_UNKNOWN = 27;
+    
+    static final boolean DEBUG = true;
 }

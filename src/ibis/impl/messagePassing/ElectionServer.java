@@ -68,6 +68,10 @@ class ElectionServer
 
 
     ElectionServer() throws IbisIOException {
+	if (! ElectionProtocol.NEED_ELECTION) {
+	    return;
+	}
+
 	if (elections != null) {
 	    throw new IbisIOException("Can have only one ElectionServer");
 	}
