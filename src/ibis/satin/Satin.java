@@ -957,6 +957,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		if(m != null) {
 			messageHandler.upcall(m);
+			try {
+				m.finish(); // Finish the message, the upcall does not need to do this.
+			} catch (Exception e) {
+				System.err.println("error in finish: " + e);
+			}
 		}
 
 		if(POLL_TIMING) pollTimer.stop();

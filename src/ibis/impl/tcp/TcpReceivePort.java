@@ -196,6 +196,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	public ReadMessage poll() throws IbisIOException {
+		if(upcall != null) {
+			Thread.yield();
+			return null;
+		}
+/* For some reason, the available call seems to block for sun serialziation! Check this!! --Rob @@@ 
 		while(true) {
 			boolean success = false;
 			synchronized(this) {
@@ -212,6 +217,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 			} else {
 				return null;
 			}
+		}
+*/
+		// Blocking receive...
+		synchronized (this) { // must this be synchronized? --Rob
+			return m;
 		}
 	}
 
