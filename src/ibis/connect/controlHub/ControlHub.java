@@ -53,17 +53,17 @@ class NodeManager extends Thread
 		} else {
 		    /* packet to forward */
 		    if(node == null) {
-			System.out.println("# ControlHub: node not found: "+destHost);
+			System.err.println("# ControlHub: node not found: "+destHost);
 		    } else {
 			node.sendPacket(packet);
 		    }
 		}
 
 	    } catch(EOFException e) {
-		System.out.println("# ControlHub: EOF detected for "+hostname);
+		System.err.println("# ControlHub: EOF detected for "+hostname);
 		nodeRunning = false;
 	    } catch(SocketException e) {
-		System.out.println("# ControlHub: error detected for "+hostname+"; wire closed.");
+		System.err.println("# ControlHub: error detected for "+hostname+"; wire closed.");
 		nodeRunning = false;
 	    } catch(Exception e) {
 		throw new Error(e);
@@ -79,13 +79,20 @@ public class ControlHub
     private static int nodesNum = 0;
     static final int port = 9827;
 
+    private static void showCount() {
+	System.err.println("# ControlHub: "+nodesNum+" nodes currently connected");
+    }
+
     public static void registerNode(String nodename, Object node) {
+	System.err.println("# ControlHub: new connection from "+nodename);
 	nodes.put(nodename.toLowerCase(), node);
 	nodesNum++;
+	showCount();
     }
     public static void unregisterNode(String nodename) {
 	nodes.remove(nodename.toLowerCase());
 	nodesNum--;
+	showCount();
     }
     public static Object resolveNode(String nodename) {
 	return nodes.get(nodename.toLowerCase());
@@ -94,11 +101,10 @@ public class ControlHub
     public static void main(String[] arg) {
 	try {
 	    ServerSocket server = new ServerSocket(port);
-	    System.out.println("\n# ControlHub: listening on " +
+	    System.err.println("\n# ControlHub: listening on " +
 			       InetAddress.getLocalHost().getHostName()+ ":" +
 			       server.getLocalPort());
 	    while(true)	{
-		System.out.println("# ControlHub: ready- "+nodesNum+" nodes currently connected");
 		Socket s = server.accept();
 		try {
 		    NodeManager node = new NodeManager(s);

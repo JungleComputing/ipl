@@ -35,7 +35,7 @@ public class Splice
 	} catch(Exception e) {
 	    localHost = "";
 	}
-	MyDebug.out.println("# Splice: creating splice on host "+localHost);
+	MyDebug.trace("# Splice: creating splice on host "+localHost);
     }
 
     public String getLocalHost()
@@ -53,7 +53,7 @@ public class Splice
 	    try {
 		synchronized(Splice.class)
 		    {
-			MyDebug.out.println("# Splice: trying port "+port);
+			MyDebug.trace("# Splice: trying port "+port);
 			socket.bind(localAddr);
 			localPort = port;
 		    }
@@ -62,7 +62,7 @@ public class Splice
 		port++;
 	    }
 	} while(localPort == -1);
-	MyDebug.out.println("# Splice: found port "+localPort);
+	MyDebug.trace("# Splice: found port "+localPort);
 	return localPort;
     }
 
@@ -72,16 +72,16 @@ public class Splice
 	int i = 0;
 	boolean connected = false;
 
-	MyDebug.out.println("# Splice: connecting to: "+rHost+":"+rPort);
+	MyDebug.trace("# Splice: connecting to: "+rHost+":"+rPort);
 	while(!connected)
 	    {
 		try {
 		    InetSocketAddress remoteAddr = new InetSocketAddress(rHost, rPort);
 		    socket.connect(remoteAddr);
 		    connected = true;
-		    System.out.println("# Splice: success! i="+i);
-		    System.out.println("# Splice:   tcpSendBuffer="+socket.getSendBufferSize()+
-					"; tcpReceiveBuffer="+socket.getReceiveBufferSize());
+		    MyDebug.trace("# Splice: success! i="+i);
+		    MyDebug.trace("# Splice:   tcpSendBuffer="+socket.getSendBufferSize()+
+				  "; tcpReceiveBuffer="+socket.getReceiveBufferSize());
 		}
 		catch (IOException e) {
 		    synchronized(Splice.class) // disallow other spliced sockets creation

@@ -18,6 +18,8 @@ import java.net.InetSocketAddress;
 
 import java.lang.reflect.Constructor;
 
+import ibis.connect.util.MyDebug;
+
 /* A generalized SocketFactory which supports:
    -- client/server connection scheme
    -- brokered connections through a control link
@@ -57,12 +59,10 @@ public class ExtSocketFactory
     // Pick one of the above choices for defaults
     private static String[] defaultTypes = strategyTCP;
 
-    private static final boolean VERBOSE = false;
-
     /* static constructor
      */
     static {
-	if(VERBOSE)
+	if(MyDebug.VERBOSE())
 	    System.out.println("# ### ExtSocketFactory: starting configuration.");
 	
 	// init types table
@@ -80,7 +80,7 @@ public class ExtSocketFactory
 	    defaultClientServer = loadSocketType(cs);
 	    defaultBrokeredLink = loadSocketType(bl);
 	} else {
-	    if(VERBOSE)
+	    if(MyDebug.VERBOSE())
 		System.out.println("# Loading defaults...");
 	    for(int i=0; i<defaultTypes.length; i++)
 		{
@@ -90,7 +90,7 @@ public class ExtSocketFactory
 	    defaultClientServer = findClientServerType();
 	    defaultBrokeredLink = findBrokeredType();
 	}
-	if(VERBOSE) {
+	if(MyDebug.VERBOSE()) {
 	    System.out.println("# Default for client-server: " +
 			       defaultClientServer.getSocketTypeName());
 	    System.out.println("# Default for brokered link: " +
@@ -136,7 +136,7 @@ public class ExtSocketFactory
 	}
 	try {
 	    t = (SocketType)cons.newInstance(null);
-	    if (VERBOSE) {
+	    if (MyDebug.VERBOSE()) {
 		System.out.println("# Registering socket type: "+t.getSocketTypeName());
 		System.out.println("#   class name: "+t.getClass().getName());
 		System.out.println("#   supports client/server:  "+t.supportsClientServer());
@@ -259,7 +259,7 @@ public class ExtSocketFactory
 		SocketType t = (SocketType)types.get(i);
 		if(t.supportsClientServer())
 		    {
-			if (VERBOSE) {
+			if (MyDebug.VERBOSE()) {
 			    System.out.println("# Selected type: '"+
 					       t.getSocketTypeName()+
 					       "' for client/server connection.");
@@ -277,7 +277,7 @@ public class ExtSocketFactory
 		SocketType t = (SocketType)types.get(i);
 		if(t.supportsBrokeredLinks())
 		    {
-			if (VERBOSE) {
+			if (MyDebug.VERBOSE()) {
 			    System.out.println("# Selected type: '"+
 					       t.getSocketTypeName()+
 					       "' for brokered link.");

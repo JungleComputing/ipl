@@ -5,26 +5,46 @@ import java.io.PrintStream;
 
 public class MyDebug
 {
-    public static boolean DEBUG = false;
-    public static boolean VERBOSE = false;
+    /** Some verbosity to trace protocols */
+    private static boolean enableVerbose = false;
 
-    public static PrintStream out = System.out; /* needs a non-null default, ifever a class has 
+    /** Really a lot of debug messages */
+    private static boolean enableDebug   = false;
+
+    public static boolean VERBOSE() {
+	return enableVerbose;
+    }
+
+    public static boolean DEBUG() {
+	return enableDebug;
+    }
+
+    public static void trace(String s) {
+	if(enableVerbose) {
+	    System.err.println(s);
+	}
+    }
+
+    public static void debug(String s) {
+	if(enableDebug) {
+	    System.err.println(s);
+	}
+    }
+
+    public static PrintStream out = System.err; /* needs a non-null default, ifever a class has 
 						   trace messages in its static initializer */
     
     static {
 	String sEnabled = System.getProperty("ibis.connect.debug", "false");
-	boolean enabled = sEnabled.equals("true");
+	enableDebug = sEnabled.equals("true");
 
 	String sVerbose = System.getProperty("ibis.connect.verbose", "false");
-	boolean verbose = sVerbose.equals("true");
+	enableVerbose = sVerbose.equals("true");
 
-	VERBOSE = verbose;
-	DEBUG = enabled;
-
-	if(enabled)
+	if(enableDebug)
 	    {
-		System.out.println("MyDebug: traces enabled");
-		MyDebug.out = System.out;
+		System.err.println("MyDebug: traces enabled");
+		MyDebug.out = System.err;
 	    }
 	else
 	    {
