@@ -142,19 +142,8 @@ public class BT_Analyzer {
 	public void start() {
 
 		String temp = subject.getClassName();
-		StringTokenizer s = new StringTokenizer(temp, ".");
-
-		int tokens = s.countTokens();
-
-		if (tokens > 1) { 
-			packagename = s.nextToken();
-
-			for (int i=1;i<tokens-1;i++) { 
-				packagename += "." + s.nextToken();
-			}
-		} 	
-
-		classname = s.nextToken();	
+		packagename = subject.getPackageName();
+		classname = temp.substring(temp.lastIndexOf('.')+1);
 
 		specialInterfaces = findSpecialInterfaces();
 	
