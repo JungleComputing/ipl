@@ -2,28 +2,30 @@ Satin is a parallel programming environment for divide-and-conquer
 parallelization, and (as a special case) worker-farmer parallelization.
 
 To use Satin, the programmer must label one or more methods in the program
-as Satin tasks. This is done by defining an interface that extends
+as Satin jobs. This is done by defining an interface that extends
 ibis.satin.Spawnable. All methods that implement a method in such an
-interface are Satin tasks. For example, given the following interface:
+interface are Satin jobs. For example, given the following interface:
 
 interface Searcher extends ibis.satin.Spawnable
 {
     public int search( int a[], int from, int to, int val );
 }
 
-all methods that implement Searcher.search() will be Satin tasks.
+all methods that implement Searcher.search() will be Satin jobs.
 In general such a marker interface may contain an arbitrary number
-of methods. A Satin task method may have an arbitrary signature:
+of methods. A Satin job method may have an arbitrary signature:
 there are no restrictions on the type or number of parameters.
 
 A class that implements such an interface must extend
 ibis.satin.SatinObject, and must implement java.io.Serializable.
 
-The result of a task method can only be used after the invocation of
-ibis.satin.SatinObject.sync(). (Remember that a class that implements
-a task method must extend SatinObject.) 
+The result of a job method can only be used after the invocation
+of the method ibis.satin.SatinObject.sync(). (Remember that a class
+that implements a job method must extend SatinObject.) The sync()
+method is guaranteed to only terminate after the earlier job
+invocations have terminated.
 
-Thus we could provide the following implementation of the
+For example, we could provide the following implementation of the
 search method shown above:
 
 class Search1 extends ibis.satin.SatinObject implements java.io.Serializable {
@@ -53,9 +55,9 @@ Now, this method can be invoked as follows:
 
 As part of the Satin `contract', Satin is free to execute the two
 invocations to search() in parallel. In general, an arbitrary number of
-invocation to Satin task methods may be done.
+invocations to Satin job methods may be done.
 
-It is also allowed to invoke task methods from task methods, for example:
+It is also allowed to invoke job methods from job methods, for example:
 
 
 class Search2 extends ibis.satin.SatinObject implements java.io.Serializable {
@@ -75,8 +77,65 @@ class Search2 extends ibis.satin.SatinObject implements java.io.Serializable {
     }
 }
 
-TODO: Exceptions, killing of task trees, spawning lots of methods
-is a good idea.
+A Satin job may throw exceptions in the usual way. This can be
+used to rapidly terminate a large set of jobs, for example because
+a search result was found. In such cases it is often useful to
+terminate other running jobs.  This can be done with the
+SatinObject.abort() method. For example:
+
+
+class SearchResultException extends Exception {
+    int pos;
+    SearchResultException( int p ) { pos = p; }
+}
+
+class Search3 extends ibis.satin.SatinObject implements java.io.Serializable {
+    public void search( int a[], int from, int to, int val )
+    {
+        if( from==to ){
+            return;
+        }
+        if( from+1==to ){
+            if( a[from] == val ){
+                throw new SearchResultException( from );
+            }
+            return;
+        }
+        int mid = (from+to)/2;
+        search( a, from, mid, val );
+        search( a, mid, to, val );
+        sync();
+    }
+}
+
+Note that in this version the search method doesn't return a value,
+since it will only terminate if no result is found.
+
+At top level this exception must be caught, and the other search
+jobs must be terminated. For example:
+
+    Search1 s = new Search1();
+    int a[] = new int[200];
+    int res = -1;
+
+    try {
+        // Do searches on two sub-domains of the array.
+        s.search( a, 0, 100, 0 );
+        s.search( a, 100, 200, 0 );
+
+        // Wait for the results of the two invocations above.
+        s.sync();
+    }
+    catch( SearchResultException x ){
+        res = x.pos;
+    }
+
+TODO:
+- Document the various scheduling strategies.
+- Document other SatinObject methods.
+- Why is is useful to create lots of jobs?
+
+Satin flags:
 
 -satin-closed
 
