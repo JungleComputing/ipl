@@ -255,6 +255,10 @@ to the command line.
 	<echo	file="build-properties.cache"
 		append="true">default.home.gm     = ${default.home.gm}
 </echo>
+	<replace
+		file="${ibis}/build-properties.cache"
+		token="${file.separator}"
+		value="/"/>
 
 	<!--
 	<echo	file="config.status"
@@ -275,51 +279,50 @@ to the command line.
 		overwrite="true">
 	</copy>
 
-	<replaceregexp
+	<replace
 		file="${ibis}/build-properties"
-		flags="g"
-		match="\${file.separator}"
-		replace="/"/>
-	<replaceregexp
+		token="@JAVA@"
+		value="${JAVA_HOME_ENV}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@JAVA@"
-		replace="${JAVA_HOME_ENV}"/>
-	<replaceregexp
+		token="@IBIS@"
+		value="${config.home.ibis}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@IBIS@"
-		replace="${config.home.ibis}"/>
-	<replaceregexp
+		token="@BCEL_HOME@"
+		value="${config.home.bcel}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@BCEL_HOME@"
-		replace="${config.home.bcel}"/>
-	<replaceregexp
+		token="@ANT_CPPTASKS@"
+		value="${config.home.ant-cpptasks}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@ANT_CPPTASKS@"
-		replace="${config.home.ant-cpptasks}"/>
-	<replaceregexp
+		token="@ANT_CONTRIB@"
+		value="${config.home.ant-contrib}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@ANT_CONTRIB@"
-		replace="${config.home.ant-contrib}"/>
-	<replaceregexp
+		token="@GM_HOME@"
+		value="${config.home.gm}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@GM_HOME@"
-		replace="${config.home.gm}"/>
-	<replaceregexp
+		token="@DASLIB_HOME@"
+		value="${config.home.daslib}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@DASLIB_HOME@"
-		replace="${config.home.daslib}"/>
-	<replaceregexp
+		token="@LFC_HOME@"
+		value="${config.home.lfc}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@LFC_HOME@"
-		replace="${config.home.lfc}"/>
-	<replaceregexp
+		token="@PANDA_HOME@"
+		value="${config.home.panda}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@PANDA_HOME@"
-		replace="${config.home.panda}"/>
-	<replaceregexp
+		token="@MPI_HOME@"
+		value="${config.home.mpi}"/>
+	<replace
 		file="${ibis}/build-properties"
-		match="@MPI_HOME@"
-		replace="${config.home.mpi}"/>
+		token="${file.separator}"
+		value="/"/>
 
 
 	<!--
@@ -483,11 +486,10 @@ to the command line.
 		</filterreader>
 	    </filterchain>
 	</copy>
-	<replaceregexp
+	<replace
 		file="${ibis}/bin/cluster_wrapper"
-		flags="g"
-		match="\${file.separator}"
-		replace="/"/>
+		token="${file.separator}"
+		value="/"/>
 	<chmod file="${ibis}/bin/cluster_wrapper" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/csim_run_ibis">
@@ -505,16 +507,14 @@ to the command line.
 		file="${ibis}/configuration.sh"
 		tofile="${ibis}/configuration.bat">
 	</copy>
-	<replaceregexp
+	<replace
 		file="${ibis}/configuration.bat"
-		flags="g"
-		match="#"
-		replace="rem "/>
-	<replaceregexp
+		token="#"
+		value="rem "/>
+	<replace
 		file="${ibis}/configuration.bat"
-		flags="g"
-		match="Shell"
-		replace="Windows cmd"/>
+		token="Shell"
+		value="Windows cmd"/>
 	<replaceregexp
 		file="${ibis}/configuration.bat"
 		flags="g"

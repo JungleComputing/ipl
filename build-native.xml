@@ -41,6 +41,7 @@
 		message="Invoke javah for ${native.class} if it is out of date"/>
 
 	<echo message="${native.class}" file="${build}/include/name-tmp"/>
+
 	<replace
 		file="${build}/include/name-tmp"
 		token="."
@@ -74,9 +75,9 @@
 		srcFile="${build}/include/name-tmp"/>
 
 	<!-- <delete file="${build}/include/name-tmp"/> -->
-	<echo	level="verbose"
+	<echo	level="debug"
 		message="I think class file name for ${native.class} is ${class-file-name}"/>
-	<echo	level="verbose"
+	<echo	level="debug"
 		message="I think include file name for ${native.class} is ${include-file-name}"/>
 
 	<outofdate>
@@ -105,15 +106,15 @@
 	<path id="all-classes">
 	    <fileset dir="${build}">
 		<include name="**/*.class"/>
-		<!--
-		<include name="ibis/impl/net/NetIbisException_ibis_io_Generator.class"/>
-		-->
 	    </fileset>
 	</path>
 	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
 	    <map from="${build}${file.separator}" to=""/>
 	</pathconvert>
-	<pathconvert pathsep="${path.separator}" property="class-files.all" refid="all-classes"/>
+	<pathconvert
+		pathsep="${path.separator}"
+		property="class-files.all"
+		refid="all-classes"/>
 	<echo	level="debug"
 		message="Consider this path for outofdate: ${class-files.all}"/>
 	<!--
@@ -142,12 +143,15 @@
 		    <classpath refid="default.classpath"/>
 		</java>
 
+		<fixcrlf srcDir="${build}" includes="NativeMethodClasses"/>
 		<!--
 		    Do regexp on ${build}/NativeMethodClasses:
 			%s/.class//
 			%s/\${file.separator}/./g
-			%s/\n/ /g
+			%s/\r\n/,/g
+			%s/\n/,/g
 			%s/  */ /g
+			%s/,$//g
 		-->
 		<replaceregexp
 			byline="true"
@@ -160,6 +164,11 @@
 			flags="g"
 			match="\${file.separator}"
 			replace="."/>
+		<replaceregexp
+			file="${build}/NativeMethodClasses"
+			flags="g"
+			match="\r\n"
+			replace=","/>
 		<replaceregexp
 			file="${build}/NativeMethodClasses"
 			flags="g"
