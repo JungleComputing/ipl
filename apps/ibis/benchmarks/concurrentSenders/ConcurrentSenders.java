@@ -2,6 +2,7 @@ import ibis.ipl.*;
 
 import java.util.Properties;
 import java.util.Random;
+import java.util.HashMap;
 
 import java.io.IOException;
 
@@ -15,17 +16,24 @@ class Sender extends Thread implements Config {
 	boolean ibisSer;
 	Ibis ibis;
 	PortType t;
+	boolean sendTree;
 
-	Sender(Ibis ibis, PortType t, int count, int repeat, boolean ibisSer) {
+	Sender(Ibis ibis, PortType t, int count, int repeat, boolean ibisSer, boolean sendTree) {
 		this.ibis = ibis;
 		this.t = t;
 		this.count = count;
 		this.repeat = repeat;
 		this.ibisSer = ibisSer;
+		this.sendTree = sendTree;
 	} 
 	
 	public void run() {
+		DITree tree = null;
 		try {
+			if(sendTree) {
+				tree = new DITree(1023);
+			}
+
 			SendPort sport = t.createSendPort("send port");
 			ReceivePort rport;
 
@@ -43,7 +51,11 @@ class Sender extends Thread implements Config {
 					if(DEBUG) {
 						System.out.println("LAT: send message");
 					}
-					writeMessage.writeObject(new String("total world domination"));
+					if(sendTree) {
+						writeMessage.writeObject(tree);
+					} else {
+						writeMessage.writeObject("total world domination");
+					}
 
 					writeMessage.send();
 					if(DEBUG) {
@@ -171,7 +183,8 @@ class ConcurrentSenders implements Config {
 		boolean panda = false;
 		boolean ibisSer = false;
 		boolean doFinish = false;
-		int count = 10000;
+		boolean sendTree = false;
+		int count = 100;
 		int repeat = 10;
 		int rank = 0;
 		int senders = 2;
@@ -183,6 +196,20 @@ class ConcurrentSenders implements Config {
 				panda = true;
 			} else if(args[i].equals("-ibis")) {
 				ibisSer = true;
+			} else if(args[i].equals("-tree")) {
+				sendTree = true;
+			} else if(args[i].equals("-count")) {
+				try {
+					count = Integer.parseInt(args[++i]);
+				} catch (Exception e) {
+					System.err.println("count must be integer");
+				}
+			} else if(args[i].equals("-senders")) {
+				try {
+					senders = Integer.parseInt(args[++i]);
+				} catch (Exception e) {
+					System.err.println("senders must be integer");
+				}
 			} else if(args[i].equals("-finish")) {
 				doFinish = true;
 			} else {
@@ -220,17 +247,17 @@ class ConcurrentSenders implements Config {
 			}
 
 			StaticProperties s = new StaticProperties();
-			if (ibisSer) { 
+			if (ibisSer) {
 				s.add("Serialization", "ibis");
 			}
 			PortType t = ibis.createPortType("test type", s);
 
-			if (rank == 0) { 
+			if (rank == 0) {
 				new Receiver(ibis, t, count, repeat, senders, ibisSer, doFinish);
-			} else { 
+			} else {
 				// start N senders
 				for (int i=0; i<senders; i++) {
-					new Sender(ibis, t, count, repeat, ibisSer).start();
+					new Sender(ibis, t, count, repeat, ibisSer, sendTree).start();
 				}
 			}
 

@@ -1,4 +1,5 @@
-SRC =
+SRC     =
+SRC     += DITree.java
 
 MAIN = ConcurrentSenders.java
 
