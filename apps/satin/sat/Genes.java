@@ -5,7 +5,7 @@
 // functions on genes.
 
 
-class Genes {
+class Genes implements java.io.Serializable {
     public float floats[];
     public int ints[];
     public boolean bools[];

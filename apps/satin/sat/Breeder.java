@@ -26,8 +26,8 @@ final class CutoffUpdater implements ibis.satin.ActiveTuple {
 
 
 public final class Breeder implements BreederInterface {
-    static final int MAXGEN = 400;
-    static final int GENSIZE = 10;
+    static final int GENERATIONS = 10;
+    static final int GENERATION_SIZE = 5;
 
     /** Maximal number decisions allowed before we give up. Can
      * be updated by the CutoffUpdater class above.
@@ -62,12 +62,17 @@ public final class Breeder implements BreederInterface {
      * @return The number decisions needed, or -1 if that count is
      * larger than <code>cutoff</code>.
      */
-    public int run( SATProblem pl[], Genes genes )
+    public int solve( SATProblem pl[], Genes genes )
     {
 	int total = 0;
+        if( cutoff == 0 ){
+            cutoff = Integer.MAX_VALUE;
+        }
 
         try {
+            System.err.println( "pl.length=" + pl.length );
             for( int i=0; i<pl.length; i++ ){
+                System.err.println( "total=" + total + ", cutoff=" + cutoff );
                 int d = BreederSolver.run( pl[i], genes, cutoff-total );
 		total += d;
             }
@@ -80,7 +85,6 @@ public final class Breeder implements BreederInterface {
 	    // We may have a new cutoff value, broadcast it.
 	    System.err.println( "Broadcasting cutoff update: cutoff=" + cutoff + "->cutoff=" + newCutoff );
 	    SatinTupleSpace.add( "cutoff", new CutoffUpdater( newCutoff ) );
-	    cutoff = newCutoff;
 	}
         return total;
     }
@@ -138,29 +142,28 @@ public final class Breeder implements BreederInterface {
      */
     private Result breedNextGeneration( Random rng, SATProblem pl[], Genes genes, int bestD, Genes maxGenes, Genes minGenes )
     {
-        boolean extrapolating = false;
         float step = 0.2f;
-        int res[] = new int[GENSIZE];
-        Genes g[] = new Genes[GENSIZE];
+        int res[] = new int[GENERATION_SIZE];
+        Genes g[] = new Genes[GENERATION_SIZE];
         int slot = 0;
 
         if( prevBestGenes != null ){
             // If we have changed best genes, fill one trial slot
             // with an extrapolation of the change in genes.
             g[slot] = extrapolateGenes( 0.3f, genes, prevBestGenes, maxGenes, minGenes );
-            extrapolating = true;
-            res[slot] = run( pl, g[slot] );
+            res[slot] = solve( pl, g[slot] );
             slot++;
         }
         prevBestGenes = null;
-        for( int i=slot; i<GENSIZE; i++ ){
+        for( int i=slot; i<GENERATION_SIZE; i++ ){
             // Fill all remaining slots with mutations
             g[i] = mutateGenes( rng, genes, step, maxGenes, minGenes );
-            res[i] = run( pl, g[i] );
+            System.err.println( "Genes = " + g[i] );
+            res[i] = solve( pl, g[i] );
         }
 
         // Now evaluate the results.
-        for( int i=0; i<GENSIZE; i++ ){
+        for( int i=0; i<GENERATION_SIZE; i++ ){
             int nextD = res[i];
             Genes nextGenes = g[i];
 
@@ -188,7 +191,7 @@ public final class Breeder implements BreederInterface {
 	Genes bestGenes = BreederSolver.getInitialGenes();
         int bestD = Integer.MAX_VALUE;
 
-        for( int gen = 0; gen<MAXGEN; gen++ ){
+        for( int gen = 0; gen<GENERATIONS; gen++ ){
             Result res = breedNextGeneration( rng, pl, bestGenes, bestD, maxGenes, minGenes );
             bestGenes = res.genes;
             bestD = res.decisions;
