@@ -149,11 +149,11 @@ public interface SendPort
     /** 
      * Polls to find out whether any connections are lost or closed.
      * Returns the changes since the last <code>lostConnections</code> call,
-     * or, if this is the first call, all connectcions that were lost since
+     * or, if this is the first call, all connections that were lost since
      * the port was created.
      * This call only works if the connectionAdministration parameter was true
      * when this port was created. Otherwise, null is returned.
-     * @return a set of receiveport identifiers to which the connection
+     * @return A set of receiveport identifiers to which the connection
      * is lost.
      */
     public ReceivePortIdentifier[] lostConnections ();
