@@ -79,8 +79,10 @@ public final class BufferedArrayOutputStream extends ArrayOutputStream {
      */
     private final void flush(int incr) throws IOException {
 
-//	System.err.println("flush(" + incr + ") : " + " " +
-//		(index + incr >= BUF_SIZE) + " "  + (index) + ")");
+	if(DEBUG) {
+	    System.err.println("flush(" + incr + ") : " + " " +
+		    (index + incr >= BUF_SIZE) + " "  + (index) + ")");
+	}
 
 	if (index + incr >= BUF_SIZE) { 
 	    bytes += index;
