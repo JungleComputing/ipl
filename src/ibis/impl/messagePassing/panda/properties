@@ -1,5 +1,5 @@
-serialization = ibis, sun
+serialization = ibis, sun, byte
 world = closed
 communication = OneToOne, OneToMany, ManyToOne, TotallyOrderedManyToOne \
-		Reliable, NoPollForUpcalls, \
+		Fifo, Reliable, NoPollForUpcalls, \
 		Upcalls, ExplicitReceipt

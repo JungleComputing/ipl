@@ -42,6 +42,7 @@ public class StaticProperties extends Properties {
      *  is <code>null</code>.
      */
     public void add(String key, String value) { 
+	key = key.toLowerCase();
 	if (containsKey(key)) {
 	    throw new IbisRuntimeException("Property " + key +
 					   " already exists");
@@ -65,6 +66,16 @@ public class StaticProperties extends Properties {
      */
     public String find(String key) {
 	return getProperty(key);
+    }
+
+    /**
+     * Returns the value associated with the specified key,
+     * or <code>null</code>.
+     * @return the value associated with the specified key.
+     */
+    public String getProperty(String key) {
+	key = key.toLowerCase();
+	return super.getProperty(key);
     }
 
     /**

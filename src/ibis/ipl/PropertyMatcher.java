@@ -28,64 +28,69 @@ class PropertyMatcher {
      */
     private static final int ManyToOne 			= 0x00000004;
 
+    /** Indicates that two messages sent over a single sendport
+     *  arrive at the destination in the order in which they were sent.
+     */
+    private static final int Fifo			= 0x00000008;
+
     /** Extra bit indicating total ordering. **/
-    private static final int TotallyOrdered		= 0x00000008;
+    private static final int TotallyOrdered		= 0x00000010;
 
     /** When an Ibis implementation supports totally ordered multicast. */
     private static final int TotallyOrderedManyToOne	=
 	TotallyOrdered | ManyToOne;
 
     /** When an Ibis implementation supports reliable communication. **/
-    private static final int Reliable			= 0x00000010;
+    private static final int Reliable			= 0x00000020;
 
     /** When an Ibis implementation supports unreliable communication.
      *  Note: an Ibis implementation may support both unreliable and
      *  reliable communication.
      */
-    private static final int Unreliable			= 0x00000020;
+    private static final int Unreliable			= 0x00000040;
 
     /** When the user does not have to poll to get upcalls. **/
-    private static final int NoPollForUpcalls		= 0x00000040;
+    private static final int NoPollForUpcalls		= 0x00000080;
 
     /** When the Ibis implementation supports upcalls. **/
-    private static final int Upcalls			= 0x00000080;
+    private static final int Upcalls			= 0x00000100;
 
     /** When the Ibis implementation supports explicit receipt. **/
-    private static final int ExplicitReceipt		= 0x00000100;
+    private static final int ExplicitReceipt		= 0x00000200;
 
     /** When the Ibis implementation supports connection administration. **/
-    private static final int ConnectionAdministration	= 0x00000200;
+    private static final int ConnectionAdministration	= 0x00000400;
 
     /** When the Ibis implementation supports connection upcalls. **/
-    private static final int ConnectionUpcalls		= 0x00000400;
+    private static final int ConnectionUpcalls		= 0x00000800;
 
     //
     // World model properties.
     //
 
     /** When an Ibis implementation supports open-world. */
-    private static final int OpenWorld 			= 0x00000800;
+    private static final int OpenWorld 			= 0x00010000;
 
     /** When an Ibis implementation supports closed-world. */
-    private static final int ClosedWorld		= 0x00001000;
+    private static final int ClosedWorld		= 0x00020000;
 
     //
     // Serialization properties
     //
 
     /** When an Ibis implementation supports bytes and arrays of bytes. **/
-    private static final int Bytes			= 0x00002000;
+    private static final int Bytes			= 0x00100000;
 
     /** When an Ibis implementation supports all primitive types and
      *  arrays of primitive types.
      */
-    private static final int Data			= 0x00004000 | Bytes;
+    private static final int Data			= 0x00200000 | Bytes;
 
     /** When an Ibis implementation supports Ibis serialization. **/
-    private static final int Ibis			= 0x00008000 | Data;
+    private static final int Ibis			= 0x00400000 | Data;
 
     /** When an Ibis implementation supports Sun serialization. **/
-    private static final int Sun			= 0x00010000 | Data;
+    private static final int Sun			= 0x00800000 | Data;
 
     /** Stores a property name with its value. **/
     private static class Prop {
@@ -122,6 +127,7 @@ class PropertyMatcher {
 	new Prop[] { new Prop("OneToOne",	  OneToOne),
 		     new Prop("OneToMany",	  OneToMany),
 		     new Prop("ManyToOne",	  ManyToOne),
+		     new Prop("Fifo",		  Fifo),
 		     new Prop("TotallyOrderedManyToOne",
 			      TotallyOrderedManyToOne),
 		     new Prop("Reliable",	  Reliable),
