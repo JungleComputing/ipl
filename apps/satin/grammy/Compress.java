@@ -2,7 +2,7 @@
 
 import java.io.File;
 
-class Compress extends ibis.satin.SatinObject implements Configuration
+class Compress extends ibis.satin.SatinObject implements Configuration, CompressorInterface
 {
     static boolean doVerification = false;
     private int top;
@@ -16,14 +16,14 @@ class Compress extends ibis.satin.SatinObject implements Configuration
      * Applies the given step in the compression process, and any
      * subsequent steps that are also helpful.
      */
-    private SuffixArray applyFoldingStep( SuffixArray a, Step s )
+    public SuffixArray applyFoldingStep( SuffixArray a, Step s )
         throws VerificationException
     {
         a.applyCompression( s );
         if( traceIntermediateGrammars ){
             a.printGrammar();
         }
-        applyFolding( a );
+        a = applyFolding( a );
         if( doVerification ){
             a.test();
         }
@@ -31,11 +31,14 @@ class Compress extends ibis.satin.SatinObject implements Configuration
     }
 
     /**
-     * Applies one step in the folding process.
+     * Given a (possibly compressed) text with surrounding information,
+     * try to find the optimal compression.
      * @return True iff a useful compression step could be done.
      */
     private SuffixArray applyFolding( SuffixArray a ) throws VerificationException
     {
+        SuffixArray res;
+
         if( a.getLength() == 0 ){
             return a;
         }
@@ -50,9 +53,13 @@ class Compress extends ibis.satin.SatinObject implements Configuration
             if( traceCompressionCosts ){
                 System.out.println( "Best step: string [" + a.buildString( mv )  + "]: " + mv );
             }
-            a = applyFoldingStep( a, mv );
+            res = applyFoldingStep( (SuffixArray) a.clone(), mv );
+            sync();
         }
-        return a;
+        else {
+            res = a;
+        }
+        return res;
     }
 
     /** Returns a compressed version of the string represented by
@@ -60,16 +67,15 @@ class Compress extends ibis.satin.SatinObject implements Configuration
      */
     public ByteBuffer compress( SuffixArray a ) throws VerificationException
     {
-        a = applyFolding( a );
-	return a.getByteBuffer();
+        SuffixArray res = applyFolding( a );
+        res.printGrammar();
+        return res.getByteBuffer();
     }
 
     public ByteBuffer compress( byte text[] ) throws VerificationException
     {
 	SuffixArray a = new SuffixArray( text );
-	ByteBuffer out = compress( a );
-        a.printGrammar();
-        return out;
+	return compress( a );
     }
 
     static void usage()

@@ -1,7 +1,7 @@
 // File: $Id$
 
 // A replacement step, represented as a list of text positions and a length.
-class Step {
+class Step implements java.io.Serializable {
     int occurences[];
     int len;
 

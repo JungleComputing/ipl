@@ -4,7 +4,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class SuffixArray implements Configuration, Magic {
+public class SuffixArray implements Configuration, Magic, java.io.Serializable {
     /** The lowest interesting commonality. */
     private static final int MINCOMMONALITY = 3;
 
