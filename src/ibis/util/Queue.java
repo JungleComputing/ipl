@@ -41,7 +41,7 @@ public class Queue {
 		return result.data;
 	}
 
-	public int size() {
+	public synchronized int size() {
 		return size;
 	}
 }

@@ -17,6 +17,7 @@ public class Stub extends RemoteStub {
     protected ReceivePortIdentifier skeletonPortId;
     protected int skeletonId;
     transient private boolean initialized = false;
+    transient private boolean initializing = false;
 
     public Stub() {
     }
@@ -34,30 +35,40 @@ public class Stub extends RemoteStub {
     public final void initSend() throws IOException {
 	if (! initialized) {
 	    synchronized(this) {
-		if (! initialized) {
-		    if (send == null) {
-// System.out.println("Setting up connection for " + this);
-			send = RTS.getSendPort(skeletonPortId);
-			reply = RTS.getReceivePort();
+		if (initializing) {
+		    while (! initialized) {
+			try {
+			    wait();
+			} catch(Exception e) {
+			}
 		    }
-		    WriteMessage wm = newMessage();
-		    wm.writeInt(-1);
-		    wm.writeInt(0);
-		    wm.writeObject(reply.identifier());
-		    wm.send();
-		    wm.finish();
-
-		    ReadMessage rm = reply.receive();
-		    stubID = rm.readInt();
-		    rm.readInt();
-		    try {
-			Object stubType = rm.readObject();
-		    } catch(Exception e) {
-		    }
-		    rm.finish();		
-
-		    initialized = true;
+		    return;
 		}
+		initializing = true;
+	    }
+	    if (send == null) {
+// System.out.println("Setting up connection for " + this);
+		send = RTS.getSendPort(skeletonPortId);
+		reply = RTS.getReceivePort();
+	    }
+	    WriteMessage wm = newMessage();
+	    wm.writeInt(-1);
+	    wm.writeInt(0);
+	    wm.writeObject(reply.identifier());
+	    wm.send();
+	    wm.finish();
+
+	    ReadMessage rm = reply.receive();
+	    stubID = rm.readInt();
+	    rm.readInt();
+	    try {
+		Object stubType = rm.readObject();
+	    } catch(Exception e) {
+	    }
+	    rm.finish();		
+	    synchronized(this) {
+		initialized = true;
+		notifyAll();
 	    }
 	}
     }

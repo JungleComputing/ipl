@@ -14,12 +14,10 @@ class GMIStubGenerator extends GMIGenerator {
 
     BT_Analyzer data;
     PrintWriter output;
-    boolean verbose;
 
-    GMIStubGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
+    GMIStubGenerator(BT_Analyzer data, PrintWriter output) {
 	this.data   = data;		
 	this.output = output;
-	this.verbose = verbose;
     } 
 
     void methodHeader(Method m) { 
@@ -133,7 +131,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "case ReplyScheme.R_COMBINE_FLAT:");		
 	output.println(spacing + "case ReplyScheme.R_FORWARD:");		
 	output.println(spacing + "case ReplyScheme.R_RETURN:");		
-	output.println(spacing + "\tw.writeInt(Group._rank);");
+	output.println(spacing + "\tw.writeInt(Group.rank());");
 	output.println(spacing + "\tticket = replyStack.get();");
 	output.println(spacing + "\tw.writeInt(shiftedStubID | ticket);");
 	output.println(spacing + "\tbreak;");
@@ -450,7 +448,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t}");
 
 	output.println(spacing + "\tfor (int i=0;i<targetGroupSize;i++) {");
-	output.println(spacing + "\t\tw = Group.unicast[memberRanks[i]].newMessage();");
+	output.println(spacing + "\t\tw = Group.unicast(memberRanks[i]).newMessage();");
 	output.println(spacing + "\t\tw.writeByte(INVOCATION);");
 	output.println(spacing + "\t\tw.writeInt(memberSkels[i]);");
 	output.println(spacing + "\t\tw.writeByte((byte)(InvocationScheme.I_PERSONAL));");
@@ -466,7 +464,7 @@ class GMIStubGenerator extends GMIGenerator {
 	output.println(spacing + "\t\tcase ReplyScheme.R_COMBINE_FLAT:");		
 	output.println(spacing + "\t\tcase ReplyScheme.R_FORWARD:");		
 	output.println(spacing + "\t\tcase ReplyScheme.R_RETURN:");		
-	output.println(spacing + "\t\t\tw.writeInt(Group._rank);");
+	output.println(spacing + "\t\t\tw.writeInt(Group.rank());");
 	output.println(spacing + "\t\t\tif (!haveTicket) {");
 	output.println(spacing + "\t\t\t\tticket = replyStack.get();");
 	output.println(spacing + "\t\t\t\thaveTicket = true;");

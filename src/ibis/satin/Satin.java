@@ -54,7 +54,7 @@ import java.util.ArrayList;
 
 public final class Satin implements Config, Protocol, ResizeHandler {
 
-	public static Satin this_satin = null;
+	static Satin this_satin = null;
 
 	private Ibis ibis;
 	IbisIdentifier ident; // used in messageHandler
@@ -255,6 +255,8 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 
 		StaticProperties s = new StaticProperties();
+
+		ibis = null;
 
 		for(int i=0; (i<10 && ibis == null); i++) {
 			try {
@@ -2152,6 +2154,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			tupleTimer.stop();
 //			System.err.println("SATIN '" + ident.name() + ": bcast of " + count + " bytes took: " + tupleTimer.lastTime());
 		}
+	}
+
+	public static Satin getSatin() {
+	    return this_satin;
 	}
 
         /* ------------------- pause/resume stuff ---------------------- */

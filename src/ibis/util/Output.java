@@ -340,7 +340,7 @@ public class Output {
     	    decimalen = s.substring(0, aantalTientallen) + decimalen;
 	}
 
-	return new String(tientallen + "." + extraNullen + decimalen);
+	return "" + tientallen + "." + extraNullen + decimalen;
     }
 
 
@@ -377,7 +377,7 @@ public class Output {
     	    decimalen = "0";
 	}
 
-	return new String(tientallen + extraNullen + "." + decimalen);
+	return "" + tientallen + extraNullen + "." + decimalen;
     }
 
 

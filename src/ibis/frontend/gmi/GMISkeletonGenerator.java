@@ -14,14 +14,12 @@ class GMISkeletonGenerator extends GMIGenerator {
 
     BT_Analyzer data;
     PrintWriter output;
-    boolean verbose;
 
     String dest_name;
 
-    GMISkeletonGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
+    GMISkeletonGenerator(BT_Analyzer data, PrintWriter output) {
 	this.data   = data;
 	this.output = output;
-	this.verbose = verbose;
     }
 
     void header() {
@@ -77,7 +75,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 	output.println(spacing + "case ReplyScheme.R_FORWARD:");
 
 	output.println(spacing + "\tif (info == null) {");
-	output.println(spacing + "\t\tw = Group.unicast[cpu_rank].newMessage();");
+	output.println(spacing + "\t\tw = Group.unicast(cpu_rank).newMessage();");
 	output.println(spacing + "\t\tw.writeByte(INVOCATION_REPLY);");
 	output.println(spacing + "\t\tw.writeByte((byte) resultMode);");
 	output.println(spacing + "\t\tw.writeInt(ticket);");
@@ -131,7 +129,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 
 
 	output.println(spacing + "\t\tfor (int i = 0; i < info.numInvokers; i++) {");
-	output.println(spacing + "\t\t\tw = Group.unicast[info.participating_cpus[i]].newMessage();");
+	output.println(spacing + "\t\t\tw = Group.unicast(info.participating_cpus[i]).newMessage();");
 	output.println(spacing + "\t\t\tw.writeByte(INVOCATION_REPLY);");
 	output.println(spacing + "\t\t\tw.writeByte((byte) resultMode);");
 	output.println(spacing + "\t\t\tw.writeInt(info.stubids_tickets[i]);");

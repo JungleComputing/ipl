@@ -35,6 +35,10 @@ final class Cluster {
 		}
 	}
 
+	public int hashCode() {
+		return name.hashCode();
+	}
+
 	public void add(Victim v) {
 		victims.add(v);
 	}

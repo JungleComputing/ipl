@@ -397,10 +397,10 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 		info.in[0] = params;
 		info.out = params.getVector();
 		invocation_count = 1;
+		started = true;
 		if (waiters != 0) {
 		    notifyAll();
 		}
-		started = true;
 
 		while (invocation_count < info.numInvokers) {
 		    try {
@@ -408,6 +408,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 		    } catch(Exception e) {
 		    }
 		}
+
 		started = false;
 	    }
 
@@ -516,18 +517,14 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 	    if (waiters != 0) {
 		notifyAll();
 	    }
-	}
 
-	while (mask < size) {
-	    if ((mask & relrank) == 0) {
-		peer = relrank | mask;
-		if (peer < size) {
-		    peer = (peer + lroot) % size;
-		    ParameterVector n = params.getVector();
+	    while (mask < size) {
+		if ((mask & relrank) == 0) {
+		    peer = relrank | mask;
+		    if (peer < size) {
+			peer = (peer + lroot) % size;
+			ParameterVector n = params.getVector();
 
-		    /* Receive parameters from "peer". */
-// System.out.println("Expecting parameters from " + peer);
-		    synchronized(this) {
 			while (info.in[peer] == null) {
 			    try {
 				wait();
@@ -536,33 +533,33 @@ public class GroupStub implements GroupInterface, GroupProtocol {
 			}
 			inv.binCombiner.combine(params, info.in[peer], n);
 			info.in[peer] = null;
-		    }
+
 // System.out.println("Got parameters from " + peer);
 
-		    params = n;
-		}
-	    } else {
-		started = false;
-		peer = ((relrank & (~mask)) + lroot) % size;
+			params = n;
+		    }
+		} else {
+		    peer = ((relrank & (~mask)) + lroot) % size;
 
 // System.out.println("Sending parameters to " + peer);
-		WriteMessage w = Group.unicast[info.participating_cpus[peer]].newMessage();
+		    WriteMessage w = Group.unicast[info.participating_cpus[peer]].newMessage();
 
-		w.writeByte(INVOCATION_BINCOMBINE);
-		w.writeInt(realStubID);
-		w.writeInt(m.index);
-		w.writeInt(rank);
+		    w.writeByte(INVOCATION_BINCOMBINE);
+		    w.writeInt(realStubID);
+		    w.writeInt(m.index);
+		    w.writeInt(rank);
 
-		w.writeObject(info.stubids_tickets);
-		params.writeParameters(w);
-		w.send();
-		w.finish();
-		break;
+		    w.writeObject(info.stubids_tickets);
+		    params.writeParameters(w);
+		    w.send();
+		    w.finish();
+		    break;
+		}
+		mask <<= 1;
 	    }
-	    mask <<= 1;
-	}
 
-	started = false;
+	    started = false;
+	}
 
 	if (rank == lroot) {
 // System.out.println("do_invoke");

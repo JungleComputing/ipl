@@ -90,15 +90,15 @@ class Main {
 
 		if (subject.isInterface()) { 
 		    output = createFile(getFileName(a.packagename, a.classname, "group_stub_"));			
-		    new GMIStubGenerator(a, output, verbose).generate();
+		    new GMIStubGenerator(a, output).generate();
 		    output.flush();
 
 		    output = createFile(getFileName(a.packagename, a.classname, "group_parametervector_"));
-		    new GMIParameterVectorGenerator(a, output, verbose).generate();
+		    new GMIParameterVectorGenerator(a, output).generate();
 		    output.flush();
 		} else {
 		    output = createFile(getFileName(a.packagename, a.classname, "group_skeleton_"));			
-		    new GMISkeletonGenerator(a, output, verbose).generate();
+		    new GMISkeletonGenerator(a, output).generate();
 		    output.flush();
 		}
 

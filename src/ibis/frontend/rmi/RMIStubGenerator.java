@@ -15,12 +15,10 @@ class RMIStubGenerator extends RMIGenerator {
 
 	BT_Analyzer data;
 	PrintWriter output;
-	boolean verbose;
 
-	RMIStubGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
+	RMIStubGenerator(BT_Analyzer data, PrintWriter output) {
 		this.data   = data;		
 		this.output = output;
-		this.verbose = verbose;
 	} 
 
 	void methodHeader(Method m, int number) { 
@@ -66,8 +64,6 @@ class RMIStubGenerator extends RMIGenerator {
 	void methodBody(Method m, int number) { 
 	    Type ret          = getReturnType(m);
 	    Type[] params = getParameterTypes(m);
-	    
-	    //if (verbose) System.out.println(m.getName() + " is a " + (write ? "write" : "read") + " method");
 	    
 //	    output.println("\t\t\tif (RTS.DEBUG) System.out.println(\"rmi_stub_" + data.classname + "." + m.getName() + " doing RMI call\");");	
 

@@ -88,7 +88,7 @@ public class IOGenerator {
 
     private static FieldComparator fieldComparator = new FieldComparator();
 
-    private class SerializationInfo {
+    private static class SerializationInfo {
 
 	String	write_name;
 	String	read_name;
@@ -168,9 +168,20 @@ public class IOGenerator {
 		}
 	    }
 
+	    Class cl = null;
 	    try {
-		Class	cl = Class.forName(classname, false, null);
-		java.io.ObjectStreamClass ocl = java.io.ObjectStreamClass.lookup(cl);
+		cl = Class.forName(classname, false, null);
+	    } catch(ClassNotFoundException e) {
+		return;
+	    }
+	    if (cl != null) {
+		java.io.ObjectStreamClass ocl = null;
+		try {
+		    ocl = java.io.ObjectStreamClass.lookup(cl);
+		} catch(NoClassDefFoundError e) {
+		    System.err.println("Warning: could not get ObjectStreamClass for class " + classname);
+		    return;
+		}
 		if (ocl == null) {
 		    System.err.println("IOGenerator attempts to rewrite non-Serializable class " + classname + " -- ignore");
 		    return;
@@ -184,8 +195,6 @@ public class IOGenerator {
 		gen.addField(f.getField());
 		fields = gen.getFields();
 		java.util.Arrays.sort(fields, fieldComparator);
-	    } catch(ClassNotFoundException e) {
-	    } catch(NoClassDefFoundError e2) {
 	    }
 	}
 
@@ -1764,7 +1773,6 @@ public class IOGenerator {
     boolean file = false;
     boolean force_generated_calls = false;
     boolean verify = false;
-    String pack;
 
     HashMap primitiveSerialization;
     SerializationInfo referenceSerialization;
@@ -1773,13 +1781,12 @@ public class IOGenerator {
     HashMap arguments;
 
 
-    public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean verify, String pack) {
+    public IOGenerator(boolean verbose, boolean local, boolean file, boolean force_generated_calls, boolean verify) {
 	ObjectType tp;
 
 	this.verbose = verbose;
 	this.local = local;
 	this.file = file;
-	this.pack = pack;
 	this.force_generated_calls = force_generated_calls;
 	this.verify = verify;
 	// this.verify = true;
@@ -2021,16 +2028,16 @@ public class IOGenerator {
 	for (int i = lngth-1; i >= 0; i--) {
 	    if (verbose) System.out.println("  Loading class : " + (String)names[i]);
 
+	    String className = (String)names[i];
+
 	    JavaClass clazz = null;
 	    if(!file) {
-		clazz = Repository.lookupClass((String)names[i]);
+		clazz = Repository.lookupClass(className);
 	    } else {
-		String className = new String((String)names[i]);
-		String className2 = new String(className);
 
 		System.err.println("class name = " + className);
 		try {
-		    ClassParser p = new ClassParser(className2.replace('.', java.io.File.separatorChar) + ".class");
+		    ClassParser p = new ClassParser(className.replace('.', java.io.File.separatorChar) + ".class");
 		    clazz = p.parse();
 		    if (clazz != null) {
 			Repository.removeClass(className);
@@ -2189,7 +2196,7 @@ public class IOGenerator {
 	    }
 	}
 
-	new IOGenerator(verbose, local, file, force_generated_calls, verify, pack).scanClass(newArgs);
+	new IOGenerator(verbose, local, file, force_generated_calls, verify).scanClass(newArgs);
     }
 
     private static void processDirectory(File f, Vector args, String name) {

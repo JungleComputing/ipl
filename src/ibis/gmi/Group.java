@@ -37,7 +37,7 @@ public final class Group implements GroupProtocol {
     /**
      * Ibis rank number in this run.
      */
-    public static int _rank;
+    static int _rank;
 
     /**
      * To get tickets from.
@@ -47,7 +47,7 @@ public final class Group implements GroupProtocol {
     /**
      * Unicast send ports, one for each node.
      */
-    public static SendPort [] unicast;
+    static SendPort [] unicast;
 
     /**
      * The total number of nodes involved in this run.
@@ -783,7 +783,7 @@ public final class Group implements GroupProtocol {
 	GroupStubData data = (GroupStubData) stubclasses.get(name);
     
 	if (data == null) {
-
+	    data = new GroupStubData();
 	    try { 		
 		boolean done = false;
 
@@ -799,8 +799,6 @@ public final class Group implements GroupProtocol {
 		    w.send();
 		    w.finish();
 		    
-		    data = new GroupStubData();
-		
 		    ReadMessage r = (ReadMessage) ticketMaster.collect(ticket);
 		    byte result = r.readByte();		
 		    
@@ -858,6 +856,8 @@ public final class Group implements GroupProtocol {
 			} catch (Exception e) { 
 			    throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unknown group!");  
 			} 
+		    default:
+			throw new RuntimeException(Group._rank + " Group.lookup(" + name + ") Failed : unexpected answer!");  
 		    } 
 		} 
 
@@ -952,6 +952,15 @@ public final class Group implements GroupProtocol {
     public static int size() { 
 	return _size;
     }       
+
+    /**
+     * Returns the sendport for the specified group member.
+     * @param mem the group member.
+     * @return the sendport for the specified group member.
+     */
+    public static SendPort unicast(int mem) {
+	return unicast[mem];
+    }
 
     /**
      * Exits from a group and cleans up resources. This method

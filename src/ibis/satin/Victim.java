@@ -20,4 +20,8 @@ final class Victim {
 		if(other == this) return true;
 		return other.ident.equals(ident);
 	}
+
+	public int hashCode() {
+		return ident.hashCode();
+	}
 }

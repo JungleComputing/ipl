@@ -169,14 +169,11 @@ public abstract class Ibis {
 
     /**
      * Returns a list of all Ibis implementations that are currently loaded.
-     * When no Ibises are loaded, this method returns null.
+     * When no Ibises are loaded, this method returns an array with no
+     * elements.
      * @return the list of loaded Ibis implementations.
      */
     public static synchronized Ibis[] loadedIbises() {
-	if(loadedIbises == null || loadedIbises.size() == 0) {
-	    return null;
-	}
-
 	Ibis[] res = new Ibis[loadedIbises.size()];
 	for(int i=0; i<res.length; i++) {
 	    res[i] = (Ibis) loadedIbises.get(i);

@@ -51,6 +51,7 @@ class IbisTypeInfo implements IbisStreamFlags {
 		    if (DEBUG) {
 			System.err.println("Class " + name + " not found!");
 		    }
+		    gen = null;
 		}
 	    }
 	    if (gen_class != null) {
@@ -60,6 +61,7 @@ class IbisTypeInfo implements IbisStreamFlags {
 		    if (DEBUG) {
 			System.out.println("Could not instantiate " + name);
 		    }
+		    gen = null;
 		}
 	    }
 	}

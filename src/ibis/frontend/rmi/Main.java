@@ -276,11 +276,11 @@ class Main {
 		}
 
 		output = createFile(getFileName(a.packagename, a.classname, "rmi_stub_"));
-		new RMIStubGenerator(a, output, verbose).generate();
+		new RMIStubGenerator(a, output).generate();
 		output.flush();
 
 		output = createFile(getFileName(a.packagename, a.classname, "rmi_skeleton_"));
-		new RMISkeletonGenerator(a, output, verbose).generate();
+		new RMISkeletonGenerator(a, output).generate();
 		output.flush();
 
 	    } catch (Exception e) {

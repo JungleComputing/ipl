@@ -20,7 +20,7 @@ public class IbisSerializationInputStream
 	extends SerializationInputStream
 	implements IbisStreamFlags
 {
-    private ClassLoader customClassLoader;
+    private static ClassLoader customClassLoader;
       
     /**
      * List of objects, for cycle checking.
@@ -237,6 +237,21 @@ public class IbisSerializationInputStream
      */
     private int		max_double_index;
 
+    static {
+	String clName = System.getProperty("ibis.serialization.classloader");
+	if (clName != null) {
+	    //we try to instanciate it
+	    try {
+		Class classDefinition = Class.forName(clName);
+		customClassLoader = (ClassLoader) classDefinition.newInstance();
+	    } catch (Exception e) {
+		System.err.println("Warning: could not find or load custom classloader " + clName);
+		if (DEBUG) {
+		    e.printStackTrace();
+		}
+	    }
+	}
+    }
 
     /**
      * Constructor with an <code>IbisDissipator</code>.
@@ -853,7 +868,7 @@ public class IbisSerializationInputStream
      * {@inheritDoc}
      */
     public void readFully(byte[] b, int off, int len) throws IOException {
-	read(b, off, len);
+	readArray(b, off, len);
     }
 
     /**
@@ -1303,7 +1318,7 @@ public class IbisSerializationInputStream
 		    return java.lang.reflect.Array.newInstance(
 				getClassFromName(typeName), dims).getClass();
 		} else {
-                    return this.loadClassFromCustomCL(typeName);
+                    return loadClassFromCustomCL(typeName);
 		}
 	    }
 	}
@@ -1313,22 +1328,6 @@ public class IbisSerializationInputStream
 	    throws ClassNotFoundException {
         if (DEBUG) {
             System.out.println("loadClassTest " + className);
-        }
-        if (customClassLoader == null) {
-            String clName = System.getProperty(
-				"ibis.serialization.classloader");
-            if (clName != null) {
-                //we try to instanciate it
-                try {
-                    Class classDefinition = Class.forName(clName);
-                    customClassLoader = (ClassLoader)
-				classDefinition.newInstance();
-                } catch (Exception e) {
-                    if (DEBUG) {
-                        e.printStackTrace();
-                    }
-                }
-            }
         }
         if (customClassLoader == null) {
             throw new ClassNotFoundException(className);

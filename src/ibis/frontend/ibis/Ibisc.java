@@ -8,7 +8,6 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.JavaClass;
 
 class Ibisc {
-    JavaClass c;
     boolean verbose;
     boolean satinVerbose;
     boolean satinVerify;
@@ -62,51 +61,66 @@ class Ibisc {
     }
 
     void compile(String target) {
+	java.io.BufferedInputStream stdout = null;
+	java.io.BufferedInputStream stderr = null;
+	boolean error_exit = false;
+
+	String command = compiler + " " + target;
+	if (verbose) {
+	    System.out.println("Running: " + command);
+	}
+
 	try {
-	    String command = compiler + " " + target;
-	    if (verbose) {
-		System.out.println("Running: " + command);
-	    }
-	
 	    Runtime r = Runtime.getRuntime();
 	    Process p = r.exec(command);
-	    java.io.BufferedInputStream stdout = new java.io.BufferedInputStream(p.getInputStream());
-	    java.io.BufferedInputStream stderr = new java.io.BufferedInputStream(p.getErrorStream());
-	    int res = p.waitFor();
-	    if (res != 0) {
-		System.err.println("Error compiling code (" + target + ").");
-		System.err.println("Standard output:");
-		while (true) {
-		    try {
-			int c = stdout.read();
-			if (c == -1) {
-			    break;
+	    stdout = new java.io.BufferedInputStream(p.getInputStream());
+	    try {
+		stderr = new java.io.BufferedInputStream(p.getErrorStream());
+		try {
+		    int res = p.waitFor();
+		    if (res != 0) {
+			System.err.println("Error compiling code (" + target + ").");
+			System.err.println("Standard output:");
+			while (true) {
+			    try {
+				int c = stdout.read();
+				if (c == -1) {
+				    break;
+				}
+				System.err.print((char)c);
+			    } catch (IOException e) {
+				break;
+			    }
 			}
-			System.err.print((char)c);
-		    } catch (IOException e) {
-			break;
-		    }
-		}
-		System.err.println("Error output:");
-		while (true) {
-		    try {
-			int c = stderr.read();
-			if (c == -1) {
-			    break;
+			System.err.println("Error output:");
+			while (true) {
+			    try {
+				int c = stderr.read();
+				if (c == -1) {
+				    break;
+				}
+				System.err.print((char)c);
+			    } catch (IOException e) {
+				break;
+			    }
 			}
-			System.err.print((char)c);
-		    } catch (IOException e) {
-			break;
+			error_exit = true;
 		    }
+		    if (verbose) {
+			System.out.println(" Done");
+		    }
+		} finally {
+		    stderr.close();
 		}
-		System.exit(1);
-	    }
-	    if (verbose) {
-		System.out.println(" Done");
+	    } finally {
+		stdout.close();
 	    }
 	} catch (Exception e) {
 	    System.err.println("IO error: " + e);
 	    e.printStackTrace();
+	    error_exit = true;
+	}
+	if (error_exit) {
 	    System.exit(1);
 	}
     }
@@ -193,9 +207,9 @@ class Ibisc {
 	}
 
 	if (packageName.equals("")) {
-	    c = Repository.lookupClass(className);
+	    Repository.lookupClass(className);
 	} else {
-	    c = Repository.lookupClass(packageName + "." + className);
+	    Repository.lookupClass(packageName + "." + className);
 	}
 
 	// Run satinc.
@@ -208,7 +222,7 @@ class Ibisc {
 	    System.out.println("running io generator on all files");
 	}
 
-	new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false, iogenVerify, null).scanClass(factory.getList());
+	new ibis.frontend.io.IOGenerator(iogenVerbose, local, false, false, iogenVerify).scanClass(factory.getList());
 	
 	if (verbose) {
 	    System.out.println(" Done");

@@ -140,7 +140,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
      *
      * @param dest the group member to which this skeleton belongs
      */
-    public void init(GroupMember dest) { 
+    public synchronized void init(GroupMember dest) { 
 	destination = dest;
 	messageQ = new GroupMessageQueue(dest.groupSize);
 

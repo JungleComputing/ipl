@@ -68,8 +68,8 @@ public final class RTS {
      */
     private static ArrayList receiveports;
 
-    protected static String hostname;
-    protected static PortType portType;
+    static String hostname;
+    static PortType portType;
 
     private static Ibis ibis;
     private static IbisIdentifier localID;
@@ -118,8 +118,8 @@ public final class RTS {
 
 	    upcallHandler = new UpcallHandler();
 
-	    hostname = InetAddress.getLocalHost().getHostName();
-	    InetAddress adres = InetAddress.getByName(hostname);
+	    String h = InetAddress.getLocalHost().getHostName();
+	    InetAddress adres = InetAddress.getByName(h);
 	    adres = InetAddress.getByName(adres.getHostAddress());
 	    hostname = adres.getHostName();
 

@@ -153,7 +153,9 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 			}
 		} catch (IOException e) {
 			try {
-				s.close();
+				if (s != null) {
+				    s.close();
+				}
 			} catch (Exception e2) {
 				// Ignore.
 			}
@@ -337,7 +339,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol { //, Config {
 				try {
 					System.err.println("EEK: TcpPortHandler:run: got exception in accept ReceivePort closing!: " + e);
 					e.printStackTrace();
-					if(s != null) s.close();
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}

@@ -292,7 +292,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 
 	public ReceivePortIdentifier [] query(IbisIdentifier ident)  throws IOException, ClassNotFoundException { 
 		/* not implemented yet */
-		return null;
+		return new ReceivePortIdentifier[0];
 	}
 
 	public Object elect(String election, Object candidate) throws IOException, ClassNotFoundException {

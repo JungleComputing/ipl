@@ -27,7 +27,7 @@ import org.apache.bcel.generic.Type;
 
 final class MethodTable {
 
-    class SpawnTableEntry {
+    static class SpawnTableEntry {
 	Vector catchBlocks; 	/* indexed on spawnId */
 	boolean hasInlet;
 	boolean[] isLocalUsed;
@@ -137,7 +137,7 @@ final class MethodTable {
 	}
     }
 
-    class MethodTableEntry {
+    static class MethodTableEntry {
 	Method m;
 	MethodGen mg;
 	boolean containsInlet;
@@ -197,7 +197,6 @@ final class MethodTable {
     private Satinc self;
     private boolean verbose;
     JavaClass c;
-    ClassGen gen_c;
 
     private static HashMap analyzers = new HashMap();
 
@@ -205,7 +204,6 @@ final class MethodTable {
 	this.verbose = verbose;
 	this.self = self;
 	this.c = c;
-	this.gen_c = gen_c;
 
 	spawnableClass = Repository.lookupClass("ibis.satin.Spawnable");
 
@@ -482,7 +480,7 @@ final class MethodTable {
 	return findMethod(m).startLocalAlloc;
     }
 
-    InstructionHandle getEndOfCatchBlock(MethodGen m, CodeExceptionGen catchBlock) {
+    static InstructionHandle getEndOfCatchBlock(MethodGen m, CodeExceptionGen catchBlock) {
 
 	if (catchBlock.getCatchType() == null) {
 	    // finally clause, no local variable!

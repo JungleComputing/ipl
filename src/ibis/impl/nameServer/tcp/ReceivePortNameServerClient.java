@@ -93,7 +93,7 @@ class ReceivePortNameServerClient implements Protocol {
 
 	public ReceivePortIdentifier [] query(IbisIdentifier ident)  throws IOException, ClassNotFoundException {
 		/* not implemented yet */
-		return null;
+		return new ReceivePortIdentifier[0];
 	}
 
 	public void bind(String name, ReceivePort port) throws IOException {

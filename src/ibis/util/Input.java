@@ -43,30 +43,30 @@ public class Input extends BufferedInputStream {
 			       DECIMAL     = 10,
 			       HEXADECIMAL = 16;
 
-    protected static final long[] MIN_VALUE = {Byte.MIN_VALUE,
-                                               Short.MIN_VALUE,
-                                               Integer.MIN_VALUE,
-                                               Long.MIN_VALUE
-                                              },
-                                  MAX_VALUE = {Byte.MAX_VALUE,
-                                               Short.MAX_VALUE,
-                                               Integer.MAX_VALUE,
-                                               Long.MAX_VALUE
-                                              };
+    static final long[] MIN_VALUE = {Byte.MIN_VALUE,
+                                     Short.MIN_VALUE,
+                                     Integer.MIN_VALUE,
+                                     Long.MIN_VALUE
+                                    },
+                        MAX_VALUE = {Byte.MAX_VALUE,
+                                     Short.MAX_VALUE,
+                                     Integer.MAX_VALUE,
+                                     Long.MAX_VALUE
+                                    };
 
-    protected static final int[] LENGTH_MIN_VALUE = {LENGTH_BYTE_MIN_VALUE,
-                                                     LENGTH_SHORT_MIN_VALUE,
-                                                     LENGTH_INT_MIN_VALUE,
-                                                     LENGTH_LONG_MIN_VALUE
-                                                    },
-                                 LENGTH_MAX_VALUE = {LENGTH_BYTE_MAX_VALUE,
-                                                     LENGTH_SHORT_MAX_VALUE,
-                                                     LENGTH_INT_MAX_VALUE,
-                                                     LENGTH_LONG_MAX_VALUE
-                                                    };
+    static final int[] LENGTH_MIN_VALUE = {LENGTH_BYTE_MIN_VALUE,
+					   LENGTH_SHORT_MIN_VALUE,
+					   LENGTH_INT_MIN_VALUE,
+					   LENGTH_LONG_MIN_VALUE
+					  },
+		       LENGTH_MAX_VALUE = {LENGTH_BYTE_MAX_VALUE,
+					   LENGTH_SHORT_MAX_VALUE,
+					   LENGTH_INT_MAX_VALUE,
+					   LENGTH_LONG_MAX_VALUE
+					  };
 
-    protected static final String NAME[] = {"byte", "short", "int",
-                                            "long", "float", "double"};
+    static final String NAME[] = {"byte", "short", "int",
+                                  "long", "float", "double"};
 
     protected String lineSeparator;
     protected int lengthLineSeparator;

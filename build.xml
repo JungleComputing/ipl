@@ -53,7 +53,7 @@
 	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.all" torefid="build.sources"/>
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
@@ -134,7 +134,7 @@
 	<patternset id="build.sources.util">
 	    <include name="ibis/util/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.util" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -144,7 +144,7 @@
 	<patternset id="build.sources.io">
 	    <include name="ibis/io/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.io" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -154,7 +154,7 @@
 	<patternset id="build.sources.frontend">
 	    <include name="ibis/frontend/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.frontend" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -164,7 +164,7 @@
 	<patternset id="build.sources.satin">
 	    <include name="ibis/satin/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.satin" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -174,7 +174,7 @@
 	<patternset id="build.sources.gmi">
 	    <include name="ibis/gmi/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.gmi" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -183,7 +183,7 @@
 	<patternset id="build.sources.rmi">
 	    <include name="ibis/rmi/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.rmi" torefid="build.sources"/>
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
@@ -193,7 +193,7 @@
 	<patternset id="build.sources.ipl">
 	    <include name="ibis/ipl/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.ipl" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -203,7 +203,7 @@
 	<patternset id="build.sources.ns">
 	    <include name="ibis/impl/nameServer/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.ns" torefid="build.sources"/>
 	</antcall>
 
@@ -220,7 +220,7 @@
 	    <include name="ibis/impl/messagePassing/**/*.java"/>
 	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.mp" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -230,7 +230,7 @@
 	<patternset id="build.sources.tcp">
 	    <include name="ibis/impl/tcp/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.tcp" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -251,7 +251,7 @@
 	    <include name="ibis/impl/net/**/*.java"/>
 	    <exclude name="ibis/impl/net/nio/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources.net" torefid="build.sources"/>
 	</antcall>
     </target>
@@ -350,7 +350,7 @@
 	</copy>
     </target>
 
-    <target name="compile"
+    <target name="-compile"
 	    depends="init,bcel"
 	    description="Compile Java source files without preprocessing">
 	    <!-- depend" -->
@@ -423,7 +423,7 @@
 	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources-tcp" torefid="build.sources"/>
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
@@ -464,7 +464,7 @@
 	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources-net" torefid="build.sources"/>
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
@@ -486,7 +486,7 @@
 	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
 	    <exclude name="ibis/repmi/**/*.java"/>
 	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="compile">
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
 	    <reference refid="build.sources-mp" torefid="build.sources"/>
 	</antcall>
 	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>

@@ -102,7 +102,7 @@ class Main {
 				    output.flush();
 
 				    output = createFile(getFileName(a.packagename, a.classname, "repmi_skeleton_"));			
-				    new RepMISkeletonGenerator(a, output, verbose).generate();
+				    new RepMISkeletonGenerator(a, output).generate();
 				    output.flush();
 				}
 

@@ -20,14 +20,12 @@ class RMISkeletonGenerator extends RMIGenerator {
 
     BT_Analyzer data;
     PrintWriter output;
-    boolean verbose;
 
     String dest_name;
 
-    RMISkeletonGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
+    RMISkeletonGenerator(BT_Analyzer data, PrintWriter output) {
 	this.data   = data;
 	this.output = output;
-	this.verbose = verbose;
     }
 
     void header() {

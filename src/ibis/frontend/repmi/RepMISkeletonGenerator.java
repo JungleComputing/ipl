@@ -12,14 +12,12 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 
 	BT_Analyzer data;
 	PrintWriter output;
-	boolean verbose;
 
 	String dest_name;
 
-	RepMISkeletonGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
+	RepMISkeletonGenerator(BT_Analyzer data, PrintWriter output) {
 		this.data   = data;		
 		this.output = output;
-		this.verbose = verbose;
 	} 
      
 	void header() { 

@@ -11,8 +11,8 @@ import java.net.InetAddress;
 
 public class RegistryImpl implements Registry
 {
-    protected static String host = null;
-    protected static int port = 0;
+    static String host = null;
+    static int port = 0;
     
     private String localhostName() {
 	String hostname = null;

@@ -100,8 +100,6 @@ public final class Satinc {
     ObjectType irType;
     ObjectType satinType;
 
-    private final static String satinFieldName = "this_satin";
-
     JavaClass		c; // the class we are rewriting 
     ClassGen		gen_c;
     ConstantPoolGen	cpg;
@@ -139,7 +137,7 @@ public final class Satinc {
 	}
     }
 
-    private class StoreClass {
+    private static class StoreClass {
 	Instruction store;
 	InstructionList load; // for putfield 
 	Method target;
@@ -189,6 +187,13 @@ public final class Satinc {
 	    }
 
 	    return load.equals(c.load);
+	}
+
+	/**
+	 * If you redefine equals(), you should redefine hashCode() as well.
+	 */
+	public int hashCode() {
+	    return target.hashCode();
 	}
     }
 
@@ -266,6 +271,14 @@ public final class Satinc {
 	return null;
     }
 
+    Instruction getSatin(InstructionFactory ins_f) {
+	return ins_f.createInvoke("ibis.satin.Satin",
+				  "getSatin",
+				  satinType,
+				  Type.NO_ARGS,
+				  Constants.INVOKESTATIC);
+    }
+
     void generateMain(ClassGen c, Method origMain) {
 
 	InstructionList il = new InstructionList();
@@ -292,10 +305,7 @@ public final class Satinc {
 					  Type.BOOLEAN,
 					  Constants.GETFIELD));
 	BranchHandle ifcmp = il.append(new IFEQ(null));
-	il.append(ins_f.createFieldAccess("ibis.satin.Satin",
-					  satinFieldName,
-					  satinType,
-					  Constants.GETSTATIC));
+	il.append(getSatin(ins_f));
 	il.append(ins_f.createFieldAccess("ibis.satin.Satin",
 					  "mainArgs",
 					  new ArrayType(Type.STRING, 1),
@@ -347,11 +357,7 @@ public final class Satinc {
 
 	BranchHandle gto2 = il.append(new GOTO(null));
 
-	InstructionHandle ifeq_target = 
-	     il.append(ins_f.createFieldAccess("ibis.satin.Satin",
-					       satinFieldName,
-					       satinType,
-					       Constants.GETSTATIC));
+	InstructionHandle ifeq_target = il.append(getSatin(ins_f));
 	ifcmp.setTarget(ifeq_target);
 	il.append(ins_f.createInvoke("ibis.satin.Satin",
 				     "client",
@@ -359,11 +365,7 @@ public final class Satinc {
 				     Type.NO_ARGS,
 				     Constants.INVOKEVIRTUAL));
 
-	InstructionHandle gto_target = 
-	     il.append(ins_f.createFieldAccess("ibis.satin.Satin",
-					       satinFieldName,
-					       satinType,
-					       Constants.GETSTATIC));
+	InstructionHandle gto_target = il.append(getSatin(ins_f));
 	try_end.setTarget(gto_target);
 	gto2.setTarget(gto_target);
 
@@ -545,10 +547,7 @@ public final class Satinc {
     void rewriteAbort(MethodGen m, InstructionList il, InstructionHandle i, int maxLocals) {
 	// in a clone, we have to abort two lists: the outstanding spawns of the parent, and the outstanding
 	// spawns of the clone.
-	Instruction fa = ins_f.createFieldAccess("ibis.satin.Satin",
-						 satinFieldName,
-						 satinType,
-						 Constants.GETSTATIC);
+	Instruction fa = getSatin(ins_f);
 	Instruction ab = ins_f.createInvoke("ibis.satin.Satin",
 					    "abort",
 					    Type.VOID,
@@ -608,10 +607,7 @@ public final class Satinc {
 							 Type.VOID,
 							 new Type[] { spawnCounterType },
 							 Constants.INVOKEVIRTUAL);
-	Instruction satin_field_access = ins_f.createFieldAccess("ibis.satin.Satin",
-								 satinFieldName,
-								 satinType,
-								 Constants.GETSTATIC);
+	Instruction satin_field_access = getSatin(ins_f);
 
 	// Now find the push-sequence of the sync parameter (the object).
 	InstructionHandle par = i;
@@ -770,10 +766,7 @@ public final class Satinc {
     void insertAbortedCheck(MethodGen m, InstructionList il, InstructionHandle pos) {
 	InstructionHandle abo = insertNullReturn(m, il, pos);
 
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-					       satinFieldName,
-					       satinType,
-					       Constants.GETSTATIC));
+	il.insert(abo, getSatin(ins_f));
 	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
 					       "parent",
 					       irType,
@@ -782,10 +775,7 @@ public final class Satinc {
 	// test for null (root job)
 	il.insert(abo, new IFNULL(pos));
 
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-					       satinFieldName,
-					       satinType,
-					       Constants.GETSTATIC));
+	il.insert(abo, getSatin(ins_f));
 	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
 					       "parent",
 					       irType,
@@ -800,10 +790,7 @@ public final class Satinc {
 /*
 ////@@@@@@@@@@2 this needs fixing :-(
 	// Test for parent.eek, if non-null, throw it (exception in inlet).
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-					       satinFieldName,
-					       satinType,
-					       Constants.GETSTATIC));
+	il.insert(abo, getSatin(ins_f));
 	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
 					       "parent",
 					       irType,
@@ -813,10 +800,7 @@ public final class Satinc {
 					       new ObjectType("java.lang.Throwable"),
 					       Constants.GETFIELD));
 	il.insert(abo, new IFNULL(abo));
-	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
-					       satinFieldName,
-					       satinType,
-					       Constants.GETSTATIC));
+	il.insert(abo, getSatin(ins_f));
 	il.insert(abo, ins_f.createFieldAccess("ibis.satin.Satin",
 					       "parent",
 					       irType,
@@ -1035,10 +1019,7 @@ public final class Satinc {
 	// Now, we call Satin.spawn(outstandingSpawns) 
 	
 	// push s 
-	ih = il.append(ih, ins_f.createFieldAccess("ibis.satin.Satin",
-					  satinFieldName,
-					  satinType,
-					  Constants.GETSTATIC));
+	ih = il.append(ih, getSatin(ins_f));
 	
 	// push outstandingSpawns 
 	ih = il.append(ih, new ALOAD(maxLocals+1));
@@ -1966,107 +1947,111 @@ System.out.println("findMethod: could not find method " + name + sig);
 	DollarFilter b2 = new DollarFilter(b);
 	PrintStream out = new PrintStream(b2);
 
-	out.println("final class " + name + " extends ibis.satin.LocalRecord {");
-	out.println("    static " + name + " cache;");
+	try {
+	    out.println("final class " + name + " extends ibis.satin.LocalRecord {");
+	    out.println("    static " + name + " cache;");
 
-	String[] allLvs = MethodTable.getAllLocalDecls(m);
+	    String[] allLvs = MethodTable.getAllLocalDecls(m);
 
-	for (int i=0; i<allLvs.length; i++) {
-		out.println("    " + allLvs[i]);
-	}
-	out.println();
-
-        // generate constructor, all parameters to the call must be copied.
-	// locals are not initialized yet, so no need to copy them.
-	Type[] params = mtab.typesOfParams(m);
-
-	// ctor 
-	out.print("    " + name + "(");
-
-	for (int i=0; i<params.length; i++) {
-	    String paramName = MethodTable.getParamName(m, i);
-
-	    out.print(params[i] + " " + MethodTable.generatedLocalName(params[i], paramName));
-	    if (i != params.length-1) {
-		out.print(", ");
+	    for (int i=0; i<allLvs.length; i++) {
+		    out.println("    " + allLvs[i]);
 	    }
-	}
-	out.println(") {");
+	    out.println();
 
-	for (int i=0; i<params.length; i++) {
+	    // generate constructor, all parameters to the call must be copied.
+	    // locals are not initialized yet, so no need to copy them.
+	    Type[] params = mtab.typesOfParams(m);
+
+	    // ctor 
+	    out.print("    " + name + "(");
+
+	    for (int i=0; i<params.length; i++) {
 		String paramName = MethodTable.getParamName(m, i);
 
-		out.println("        this." + MethodTable.generatedLocalName(params[i], paramName) + 
-		        " = " + MethodTable.generatedLocalName(params[i], paramName) + ";");
-	}
-
-	out.println("    }\n");
-
-	// cache
-	out.print("    static " + name + " getNew(");
-
-	for (int i=0; i<params.length; i++) {
-	    String paramName = MethodTable.getParamName(m, i);
-
-	    out.print(params[i] + " " + MethodTable.generatedLocalName(params[i], paramName));
-	    if (i != params.length-1) {
-		out.print(", ");
-	    }
-	}
-	out.println(") {");
-
-	out.println("        if (cache == null) {");
-	out.print("            return new " + name + "(");
-	for (int i=0; i<params.length; i++) {
-	    String paramName = MethodTable.getParamName(m, i);
-
-	    out.print( MethodTable.generatedLocalName(params[i], paramName));
-	    if (i != params.length-1) {
-		out.print(", ");
-	    }
-	}
-	out.println(");");
-	out.println("        }");
-
-	out.println("        " + name + " result = cache;");
-	out.println("        cache = (" + name + ") cache.next;");
-
-	for (int i=0; i<params.length; i++) {
-		String paramName = MethodTable.getParamName(m, i);
-
-		out.println("        result." + MethodTable.generatedLocalName(params[i], paramName) + 
-		        " = " + MethodTable.generatedLocalName(params[i], paramName) + ";");
-	}
-
-	out.println("        result.next = null;");
-	out.println("        return result;");
-	out.println("    }\n");
-
-	// delete
-	out.println("    static void delete(" + name + " curr) {");
-
-	// wipe fields for gc
-	Type[] ltypes = MethodTable.getAllLocalTypes(m);
-	String[] lnames = MethodTable.getAllLocalNames(m);
-
-	for (int i=0; i<ltypes.length; i++) {
-		if (ltypes[i] instanceof ReferenceType) {
-		    out.println("        curr." + lnames[i] + " = null;");
+		out.print(params[i] + " " + MethodTable.generatedLocalName(params[i], paramName));
+		if (i != params.length-1) {
+		    out.print(", ");
 		}
+	    }
+	    out.println(") {");
+
+	    for (int i=0; i<params.length; i++) {
+		    String paramName = MethodTable.getParamName(m, i);
+
+		    out.println("        this." + MethodTable.generatedLocalName(params[i], paramName) + 
+			    " = " + MethodTable.generatedLocalName(params[i], paramName) + ";");
+	    }
+
+	    out.println("    }\n");
+
+	    // cache
+	    out.print("    static " + name + " getNew(");
+
+	    for (int i=0; i<params.length; i++) {
+		String paramName = MethodTable.getParamName(m, i);
+
+		out.print(params[i] + " " + MethodTable.generatedLocalName(params[i], paramName));
+		if (i != params.length-1) {
+		    out.print(", ");
+		}
+	    }
+	    out.println(") {");
+
+	    out.println("        if (cache == null) {");
+	    out.print("            return new " + name + "(");
+	    for (int i=0; i<params.length; i++) {
+		String paramName = MethodTable.getParamName(m, i);
+
+		out.print( MethodTable.generatedLocalName(params[i], paramName));
+		if (i != params.length-1) {
+		    out.print(", ");
+		}
+	    }
+	    out.println(");");
+	    out.println("        }");
+
+	    out.println("        " + name + " result = cache;");
+	    out.println("        cache = (" + name + ") cache.next;");
+
+	    for (int i=0; i<params.length; i++) {
+		    String paramName = MethodTable.getParamName(m, i);
+
+		    out.println("        result." + MethodTable.generatedLocalName(params[i], paramName) + 
+			    " = " + MethodTable.generatedLocalName(params[i], paramName) + ";");
+	    }
+
+	    out.println("        result.next = null;");
+	    out.println("        return result;");
+	    out.println("    }\n");
+
+	    // delete
+	    out.println("    static void delete(" + name + " curr) {");
+
+	    // wipe fields for gc
+	    Type[] ltypes = MethodTable.getAllLocalTypes(m);
+	    String[] lnames = MethodTable.getAllLocalNames(m);
+
+	    for (int i=0; i<ltypes.length; i++) {
+		    if (ltypes[i] instanceof ReferenceType) {
+			out.println("        curr." + lnames[i] + " = null;");
+		    }
+	    }
+
+	    out.println("        curr.next = cache;");
+	    out.println("        cache = curr;");
+	    out.println("    }\n");
+
+	    // generate a method that runs the clone in case of exceptions 
+	    out.println("    public void handleException(int spawnId, Throwable t, ibis.satin.InvocationRecord parent) {");
+	    out.println("        if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"handleE: spawnId = \" + spawnId + \", t = \" + t + \", parent = \" + parent + \", this = \" + this);");
+	    // This will later be replaced with call to exception handler
+	    out.println("    }");
+
+	    out.println("}");
 	}
-
-	out.println("        curr.next = cache;");
-	out.println("        cache = curr;");
-	out.println("    }\n");
-
-	// generate a method that runs the clone in case of exceptions 
-	out.println("    public void handleException(int spawnId, Throwable t, ibis.satin.InvocationRecord parent) {");
-	out.println("        if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"handleE: spawnId = \" + spawnId + \", t = \" + t + \", parent = \" + parent + \", this = \" + this);");
-	// This will later be replaced with call to exception handler
-	out.println("    }");
-
-	out.println("}");
-	out.close();
+	finally {
+	    out.close();
+	}
     }
 
     void writeInvocationRecord(Method m, String basename, String classname) throws IOException {
@@ -2080,237 +2065,239 @@ System.out.println("findMethod: could not find method " + name + sig);
 	DollarFilter b2 = new DollarFilter(b);
 	PrintStream out = new PrintStream(b2);
 	//		PrintStream out = System.err;
-	Type[] params = mtab.typesOfParamsNoThis(m);
-	String[] params_types_as_names = new String[params.length];
+	try {
+	    Type[] params = mtab.typesOfParamsNoThis(m);
+	    String[] params_types_as_names = new String[params.length];
 
-	for (int i = 0; i < params.length; i++) {
-	    params_types_as_names[i] = params[i].toString();
-	}
-
-	Type returnType = m.getReturnType();
-
-	out.println("import ibis.satin.*;\n");
-	out.println("final class " + name + " extends InvocationRecord {");
-
-	// fields 
-	out.println("    " + classname + " self;");
-	for (int i=0; i<params_types_as_names.length; i++) {
-	    out.println("    " + params_types_as_names[i] + " param" + i + ";");
-	}
-
-	// result 
-	if (! returnType.equals(Type.VOID)) {
-	    out.println("    transient " + returnType + " result;");
-	    out.println("    transient int index;");
-	    out.println("    transient " + returnType + "[] array;");
-	}
-
-	if (invocationRecordCache) {
-	    out.println("    static " + name + " invocationRecordCache;");
-	}
-	out.println();
-	
-	// ctor 
-	out.print("    " + name + "(");
-	out.print(classname + " self, ");
-	for (int i=0; i<params_types_as_names.length; i++) {
-	    out.print(params_types_as_names[i] + " param" + i + ", ");
-	}
-	out.println("SpawnCounter s, InvocationRecord next, int storeId, int spawnId, LocalRecord parentLocals) {");
-	out.println("        super(s, next, storeId, spawnId, parentLocals);");
-	out.println("        this.self = self;");
-
-	for (int i=0; i<params_types_as_names.length; i++) {
-	    out.println("        this.param" + i + " = param" + i + ";");
-	}
-
-	out.println("    }\n");
-
-	// getNew method 
-	out.print("    static " + name + " getNew(");
-	out.print(classname + " self, ");
-	for (int i=0; i<params_types_as_names.length; i++) {
-	    out.print(params_types_as_names[i] + " param" + i + ", ");
-	}
-	out.println("SpawnCounter s, InvocationRecord next, int storeId, int spawnId, LocalRecord parentLocals) {");
-
-	if (invocationRecordCache) {
-	    out.println("        if (invocationRecordCache == null) {");
-	}
-	out.print("            return new " + name + "(self, ");
-	for (int i=0; i<params_types_as_names.length; i++) {
-	    out.print(" param" + i + ", ");
-	}
-	out.println("s, next, storeId, spawnId, parentLocals);");
-	if (invocationRecordCache) {
-	    out.println("        }\n");
-
-	    out.println("        " + name + " res = invocationRecordCache;");
-	    out.println("        invocationRecordCache = (" + name + ") res.cacheNext;");
-	    out.println("        res.self = self;");
-	    for (int i=0; i<params_types_as_names.length; i++) {
-		out.println("        res.param" + i + " = param" + i + ";");
+	    for (int i = 0; i < params.length; i++) {
+		params_types_as_names[i] = params[i].toString();
 	    }
-	    out.println("        res.spawnCounter = s;");
-	    out.println("        res.cacheNext = next;");
-	    out.println("        res.storeId = storeId;");
 
-	    out.println("        if (ibis.satin.Config.ABORTS) {");
-	    out.println("                res.spawnId = spawnId;");
-	    out.println("                res.parentLocals = parentLocals;");
-	    out.println("        }");
+	    Type returnType = m.getReturnType();
 
-	    out.println("        return res;");
-	}
-	out.println("    }\n");
+	    out.println("import ibis.satin.*;\n");
+	    out.println("final class " + name + " extends InvocationRecord {");
 
-	// getNew method for arrays 
-	if (! returnType.equals(Type.VOID)) {
-	    out.print("    static " + name + " getNewArray(");
-	    out.print(returnType + "[] array, int index, ");
+	    // fields 
+	    out.println("    " + classname + " self;");
+	    for (int i=0; i<params_types_as_names.length; i++) {
+		out.println("    " + params_types_as_names[i] + " param" + i + ";");
+	    }
+
+	    // result 
+	    if (! returnType.equals(Type.VOID)) {
+		out.println("    transient " + returnType + " result;");
+		out.println("    transient int index;");
+		out.println("    transient " + returnType + "[] array;");
+	    }
+
+	    if (invocationRecordCache) {
+		out.println("    static " + name + " invocationRecordCache;");
+	    }
+	    out.println();
+	    
+	    // ctor 
+	    out.print("    " + name + "(");
 	    out.print(classname + " self, ");
 	    for (int i=0; i<params_types_as_names.length; i++) {
 		out.print(params_types_as_names[i] + " param" + i + ", ");
 	    }
 	    out.println("SpawnCounter s, InvocationRecord next, int storeId, int spawnId, LocalRecord parentLocals) {");
-	    out.print("            " + name + " res = getNew(self, ");
+	    out.println("        super(s, next, storeId, spawnId, parentLocals);");
+	    out.println("        this.self = self;");
+
+	    for (int i=0; i<params_types_as_names.length; i++) {
+		out.println("        this.param" + i + " = param" + i + ";");
+	    }
+
+	    out.println("    }\n");
+
+	    // getNew method 
+	    out.print("    static " + name + " getNew(");
+	    out.print(classname + " self, ");
+	    for (int i=0; i<params_types_as_names.length; i++) {
+		out.print(params_types_as_names[i] + " param" + i + ", ");
+	    }
+	    out.println("SpawnCounter s, InvocationRecord next, int storeId, int spawnId, LocalRecord parentLocals) {");
+
+	    if (invocationRecordCache) {
+		out.println("        if (invocationRecordCache == null) {");
+	    }
+	    out.print("            return new " + name + "(self, ");
 	    for (int i=0; i<params_types_as_names.length; i++) {
 		out.print(" param" + i + ", ");
 	    }
 	    out.println("s, next, storeId, spawnId, parentLocals);");
-	    
-	    out.println("        res.index = index;");
-	    out.println("        res.array = array;");
-	    out.println("        return res;");
-	    out.println("    }\n");
-	}
+	    if (invocationRecordCache) {
+		out.println("        }\n");
 
-	// static delete method 
-	out.println("    static void delete(" + name + " w) {");
-	if (invocationRecordCache) {
-	    if (! returnType.equals(Type.VOID)) {
-		out.println("        w.array = null;");
+		out.println("        " + name + " res = invocationRecordCache;");
+		out.println("        invocationRecordCache = (" + name + ") res.cacheNext;");
+		out.println("        res.self = self;");
+		for (int i=0; i<params_types_as_names.length; i++) {
+		    out.println("        res.param" + i + " = param" + i + ";");
+		}
+		out.println("        res.spawnCounter = s;");
+		out.println("        res.cacheNext = next;");
+		out.println("        res.storeId = storeId;");
+
+		out.println("        if (ibis.satin.Config.ABORTS) {");
+		out.println("                res.spawnId = spawnId;");
+		out.println("                res.parentLocals = parentLocals;");
+		out.println("        }");
+
+		out.println("        return res;");
 	    }
-	    // Set everything to null, don't keep references live for gc. 
-	    out.println("        w.clear();");
-	    out.println("        w.self = null;");
-	    
+	    out.println("    }\n");
+
+	    // getNew method for arrays 
+	    if (! returnType.equals(Type.VOID)) {
+		out.print("    static " + name + " getNewArray(");
+		out.print(returnType + "[] array, int index, ");
+		out.print(classname + " self, ");
+		for (int i=0; i<params_types_as_names.length; i++) {
+		    out.print(params_types_as_names[i] + " param" + i + ", ");
+		}
+		out.println("SpawnCounter s, InvocationRecord next, int storeId, int spawnId, LocalRecord parentLocals) {");
+		out.print("            " + name + " res = getNew(self, ");
+		for (int i=0; i<params_types_as_names.length; i++) {
+		    out.print(" param" + i + ", ");
+		}
+		out.println("s, next, storeId, spawnId, parentLocals);");
+		
+		out.println("        res.index = index;");
+		out.println("        res.array = array;");
+		out.println("        return res;");
+		out.println("    }\n");
+	    }
+
+	    // static delete method 
+	    out.println("    static void delete(" + name + " w) {");
+	    if (invocationRecordCache) {
+		if (! returnType.equals(Type.VOID)) {
+		    out.println("        w.array = null;");
+		}
+		// Set everything to null, don't keep references live for gc. 
+		out.println("        w.clear();");
+		out.println("        w.self = null;");
+		
+		for (int i=0; i<params.length; i++) {
+		    if (isRefType(params[i])) {
+			out.println("        w.param" + i + " = null;");
+		    }
+		}
+		out.println("        w.cacheNext = invocationRecordCache;");
+		out.println("        invocationRecordCache = w;");
+	    }
+	    out.println("    }\n");
+
+    /*
+	    // unused ...
+	    // delete method (for abort)
+	    out.println("    public void delete() {");
+	    if (invocationRecordCache) {
+		if (! returnType.equals(Type.VOID)) {
+		    out.println("        array = null;");
+		}
+		// Set everything to null, don't keep references live for gc. 
+		out.println("        clear();");
+		out.println("        self = null;");
+
+		for (int i=0; i<params.length; i++) {
+		    if (isRefType(params[i])) {
+			out.println("        param" + i + " = null;");
+		    }
+		}
+		out.println("        cacheNext = invocationRecordCache;");
+		out.println("        invocationRecordCache = this;");
+	    }
+	    out.println("    }\n");
+    */
+
+
+	    // runLocal method 
+	    out.println("    public void runLocal() {");
+	    if (supportAborts) {
+		out.println("        try {");
+	    }
+
+	    if (! returnType.equals(Type.VOID)) {
+		out.print("            result = ");
+	    }
+	    out.print("            self." + m.getName() + "(");
 	    for (int i=0; i<params.length; i++) {
-		if (isRefType(params[i])) {
-		    out.println("        w.param" + i + " = null;");
+		out.print("param" + i);
+		if (i != params.length-1) {
+		    out.print(", ");
 		}
 	    }
-	    out.println("        w.cacheNext = invocationRecordCache;");
-	    out.println("        invocationRecordCache = w;");
-	}
-	out.println("    }\n");
+	    out.println(");");
+	    if (supportAborts) {
+		out.println("        } catch (Throwable e) {");
+		out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"caught exception in runlocal: \" + e);");
+		out.println("                eek = e;");
+		out.println("        }");
 
-/*
-        // unused ...
-        // delete method (for abort)
-        out.println("    public void delete() {");
-        if (invocationRecordCache) {
-            if (! returnType.equals(Type.VOID)) {
-                out.println("        array = null;");
-            }
-            // Set everything to null, don't keep references live for gc. 
-            out.println("        clear();");
-            out.println("        self = null;");
-
-            for (int i=0; i<params.length; i++) {
-                if (isRefType(params[i])) {
-                    out.println("        param" + i + " = null;");
-                }
-            }
-            out.println("        cacheNext = invocationRecordCache;");
-            out.println("        invocationRecordCache = this;");
-        }
-        out.println("    }\n");
-*/
-
-
-	// runLocal method 
-	out.println("    public void runLocal() {");
-	if (supportAborts) {
-	    out.println("        try {");
-	}
-
-	if (! returnType.equals(Type.VOID)) {
-	    out.print("            result = ");
-	}
-	out.print("            self." + m.getName() + "(");
-	for (int i=0; i<params.length; i++) {
-	    out.print("param" + i);
-	    if (i != params.length-1) {
-		out.print(", ");
+		out.println("        if (eek != null && !inletExecuted) {");
+		out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this);");
+		out.println("            if(parentLocals != null)");
+		out.println("                parentLocals.handleException(spawnId, eek, this);");
+		out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this + \" DONE\");");
+		out.println("        }");
 	    }
-	}
-	out.println(");");
-	if (supportAborts) {
-	    out.println("        } catch (Throwable e) {");
-	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"caught exception in runlocal: \" + e);");
-	    out.println("                eek = e;");
-	    out.println("        }");
+	    out.println("    }\n");
 
-	    out.println("        if (eek != null && !inletExecuted) {");
-	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this);");
-	    out.println("            if(parentLocals != null)");
-	    out.println("                parentLocals.handleException(spawnId, eek, this);");
-	    out.println("            if (ibis.satin.Config.INLET_DEBUG) System.err.println(\"runlocal: calling inlet for: \" + this + \" DONE\");");
-	    out.println("        }");
-	}
-	out.println("    }\n");
+	    // runRemote method 
+	    out.println("    public ibis.satin.ReturnRecord runRemote() {");
 
-	// runRemote method 
-	out.println("    public ibis.satin.ReturnRecord runRemote() {");
+	    // Code below commented out because it is wrong:
+	    // the "eek" field of the invocation record should be used. 
+    //	if (supportAborts) {
+    //	    out.println("        Throwable eek = null;");
+    //	}
+	    if (supportAborts) {
+		if (! returnType.equals(Type.VOID)) {
+		    out.print("        " + returnType + " result = ");
+		    out.print(getInitVal(returnType));
+		    out.println(";");
+		}
+	    } else {
+		if (! returnType.equals(Type.VOID)) {
+		    out.println("        " + returnType + " result;");
+		}
+	    }
 
-	// Code below commented out because it is wrong:
-	// the "eek" field of the invocation record should be used. 
-//	if (supportAborts) {
-//	    out.println("        Throwable eek = null;");
-//	}
-	if (supportAborts) {
+	    if (supportAborts) {
+		out.println("        try {");
+	    }
 	    if (! returnType.equals(Type.VOID)) {
-		out.print("        " + returnType + " result = ");
-		out.print(getInitVal(returnType));
-		out.println(";");
+		out.print("            result = ");
 	    }
-	} else {
+	    out.print("            self." + m.getName() + "(");
+
+	    for (int i=0; i<params.length; i++) {
+		out.print("param" + i);
+		if (i != params.length-1) {
+		    out.print(", ");
+		}
+	    }
+	    out.println(");");
+	    if (supportAborts) {
+		out.println("        } catch (Throwable e) {");
+		out.println("            eek = e;");
+		out.println("        }");
+	    }
+	    out.print("        return new " + returnRecordName(m, classname));
 	    if (! returnType.equals(Type.VOID)) {
-		out.println("        " + returnType + " result;");
+		out.println("(result, eek, stamp);");
+	    } else {
+		out.println("(eek, stamp);");
 	    }
+	    out.println("    }");
+	    out.println("}");
+	} finally {
+	    out.close();
 	}
-
-	if (supportAborts) {
-	    out.println("        try {");
-	}
-	if (! returnType.equals(Type.VOID)) {
-	    out.print("            result = ");
-	}
-	out.print("            self." + m.getName() + "(");
-
-	for (int i=0; i<params.length; i++) {
-	    out.print("param" + i);
-	    if (i != params.length-1) {
-		out.print(", ");
-	    }
-	}
-	out.println(");");
-	if (supportAborts) {
-	    out.println("        } catch (Throwable e) {");
-	    out.println("            eek = e;");
-	    out.println("        }");
-	}
-	out.print("        return new " + returnRecordName(m, classname));
-	if (! returnType.equals(Type.VOID)) {
-	    out.println("(result, eek, stamp);");
-	} else {
-	    out.println("(eek, stamp);");
-	}
-	out.println("    }");
-	out.println("}");
-
-	out.close();
     }
 
     void writeReturnRecord(Method m, String basename, String classname) throws IOException {
@@ -2324,40 +2311,43 @@ System.out.println("findMethod: could not find method " + name + sig);
 	DollarFilter b2 = new DollarFilter(b);
 	PrintStream out = new PrintStream(b2);
 
-	Type returnType = m.getReturnType();
+	try {
+	    Type returnType = m.getReturnType();
 
-	out.println("import ibis.satin.*;\n");
-	out.println("final class " + name + " extends ReturnRecord {");
-	if (! returnType.equals(Type.VOID)) {
-	    out.println("    " + returnType + " result;\n");
+	    out.println("import ibis.satin.*;\n");
+	    out.println("final class " + name + " extends ReturnRecord {");
+	    if (! returnType.equals(Type.VOID)) {
+		out.println("    " + returnType + " result;\n");
+	    }
+
+	    // ctor 
+	    out.print("    " + name + "(");
+	    if (! returnType.equals(Type.VOID)) {
+		out.println(returnType + " result, Throwable eek, int stamp) {");
+	    } else {
+		out.println(" Throwable eek, int stamp) {");
+	    }
+
+	    out.println("        super(eek);");
+	    if (! returnType.equals(Type.VOID)) {
+		out.println("        this.result = result;");
+	    }
+	    out.println("        this.stamp = stamp;");
+	    out.println("    }\n");
+
+	    out.println("    public void assignTo(InvocationRecord rin) {");
+	    out.println("        " + invocationRecordName(m, classname) + " r = (" +
+		    invocationRecordName(m, classname) + ") rin;");
+	    if (! returnType.equals(Type.VOID)) {
+		out.println("        r.result = result;");
+	    }
+	    out.println("        r.eek = eek;");
+	    out.println("    }");
+	    out.println("}");
 	}
-
-	// ctor 
-	out.print("    " + name + "(");
-	if (! returnType.equals(Type.VOID)) {
-	    out.println(returnType + " result, Throwable eek, int stamp) {");
-	} else {
-	    out.println(" Throwable eek, int stamp) {");
+	finally {
+	    out.close();
 	}
-
-	out.println("        super(eek);");
-	if (! returnType.equals(Type.VOID)) {
-	    out.println("        this.result = result;");
-	}
-	out.println("        this.stamp = stamp;");
-	out.println("    }\n");
-
-	out.println("    public void assignTo(InvocationRecord rin) {");
-	out.println("        " + invocationRecordName(m, classname) + " r = (" +
-	        invocationRecordName(m, classname) + ") rin;");
-	if (! returnType.equals(Type.VOID)) {
-	    out.println("        r.result = result;");
-	}
-	out.println("        r.eek = eek;");
-	out.println("    }");
-	out.println("}");
-
-	out.close();
     }
 
     public void start() {

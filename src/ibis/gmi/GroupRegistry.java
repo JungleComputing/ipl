@@ -34,11 +34,6 @@ final class GroupRegistry implements GroupProtocol {
      */
     static private final class GroupRegistryData { 
 	/**
-	 * Name of the group.
-	 */
-	String groupName;
-	
-	/**
 	 * The group interface through which this group is accessed.
 	 */
 	String type;
@@ -76,13 +71,11 @@ final class GroupRegistry implements GroupProtocol {
 	/**
 	 * Constructor.
 	 *
-	 * @param groupName   the name of this group
 	 * @param groupNumber the number this group
 	 * @param groupSize   the number of group members
 	 * @param type        the group interface for this group
 	 */
-	GroupRegistryData(String groupName, int groupNumber, int groupSize, String type) { 
-	    this.groupName   = groupName;
+	GroupRegistryData(int groupNumber, int groupSize, String type) { 
 	    this.groupNumber = groupNumber;
 	    this.groupSize   = groupSize;
 	    this.type        = type;
@@ -128,7 +121,7 @@ final class GroupRegistry implements GroupProtocol {
 	if (groups.contains(groupName)) { 
 	    w.writeByte(CREATE_FAILED);
 	} else { 
-	    groups.put(groupName, new GroupRegistryData(groupName, groupNumber++, groupSize, type));
+	    groups.put(groupName, new GroupRegistryData(groupNumber++, groupSize, type));
 	    w.writeByte(CREATE_OK);
 	}
 

@@ -55,10 +55,9 @@ public class CheckNativeMethods {
 		verbose = true;
 	    } else if (args[i].equals("-f")) {
 		String filename = args[++i];
-		String filename2 = new String(filename);
 
 		try {
-		    ClassParser p = new ClassParser(filename2.replace('.', java.io.File.separatorChar));
+		    ClassParser p = new ClassParser(filename.replace('.', java.io.File.separatorChar));
 		    clazz = increase_one(clazz);
 		    clazz[clazz.length - 1] = p.parse();
 		} catch (Exception e) {
@@ -76,12 +75,14 @@ public class CheckNativeMethods {
 	    }
 	}
 
-	for (int i = 0; i < clazz.length; i++) {
-	    if (clazz[i] != null) {
-		if (verbose) {
-		    System.err.println("Check class " + clazz[i].getClassName());
+	if (clazz != null) {
+	    for (int i = 0; i < clazz.length; i++) {
+		if (clazz[i] != null) {
+		    if (verbose) {
+			System.err.println("Check class " + clazz[i].getClassName());
+		    }
+		    checkNativeMethods(clazz[i]);
 		}
-		checkNativeMethods(clazz[i]);
 	    }
 	}
     }

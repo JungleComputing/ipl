@@ -13,13 +13,11 @@ class GMIParameterVectorGenerator extends GMIGenerator {
     
     BT_Analyzer data;
     PrintWriter output;
-    boolean verbose;
     String name;
 
-    GMIParameterVectorGenerator(BT_Analyzer data, PrintWriter output, boolean verbose) {
+    GMIParameterVectorGenerator(BT_Analyzer data, PrintWriter output) {
 	this.data    = data;		
 	this.output  = output;
-	this.verbose = verbose;
 	name = "group_parameter_vector_" + data.subject.getClassName() + "_";
     } 
 

@@ -61,14 +61,6 @@ public class PoolInfo {
 			throw new IbisException("Property ibis.pool.host_names not set!");
 		}
 		
-		if (ibisHostNames == null) { 
-			ibisHostNames = p.getProperty("hosts");
-
-			if (ibisHostNames == null) { 
-				throw new IbisException("Host names not found!");
-			} 
-		} 
-		
 		if (host_number >= total_hosts || host_number < 0 || total_hosts < 1) {
 			throw new IbisException("Sanity check on host numbers failed!");
 		}
@@ -129,11 +121,11 @@ public class PoolInfo {
 	}
 
 	public InetAddress[] hostAddresses() {
-		return hosts;
+		return (InetAddress[]) hosts.clone();
 	}
 
 	public String[] hostNames() {
-		return host_names;
+		return (String[]) host_names.clone();
 	}
 
 	private static int getIntProperty(Properties p, String name) throws IbisException {

@@ -24,7 +24,7 @@ public class NameServer implements Protocol {
 	public static final boolean DEBUG = false;
 	public static final boolean VERBOSE = true; // false; // true;
 
-	class IbisInfo { 		
+	static class IbisInfo { 		
 		IbisIdentifier identifier;
 		int ibisNameServerport;
 		InetAddress ibisNameServerAddress;
@@ -42,18 +42,20 @@ public class NameServer implements Protocol {
 				return false;
 			}
 		}
+		
+		public int hashCode() {
+		    return identifier.hashCode();
+		}
 	} 
 
-	class RunInfo { 
-		String poolKey;		
+	static class RunInfo { 
 		Vector pool;
 		
 		PortTypeNameServer    portTypeNameServer;   
 		ReceivePortNameServer receivePortNameServer;   
 		ElectionServer electionServer;   
 
-		RunInfo(String poolKey) throws IOException { 
-			this.poolKey = poolKey;
+		RunInfo() throws IOException { 
 			pool = new Vector();
 			portTypeNameServer    = new PortTypeNameServer();
 			receivePortNameServer = new ReceivePortNameServer();
@@ -68,7 +70,6 @@ public class NameServer implements Protocol {
 	private	ObjectOutputStream out;
 
 	private boolean singleRun;
-	private int port;
 
 	private NameServer(boolean singleRun, int port) throws IOException {
 		this.singleRun = singleRun;
@@ -122,7 +123,7 @@ public class NameServer implements Protocol {
 
 		if (p == null) { 
 			// new run
-			p = new RunInfo(key);
+			p = new RunInfo();
 			pools.put(key, p);
 			
 			if (VERBOSE) { 

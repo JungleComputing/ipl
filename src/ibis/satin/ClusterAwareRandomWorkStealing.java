@@ -134,8 +134,8 @@ class ClusterAwareRandomWorkStealing implements Algorithm, Protocol, Config {
 	//wait for a pending async steal reply
 	if (asyncStealInProgress) {
 	    System.err.println("waiting for a pending async steal reply...");
-	    while (!gotAsyncStealReply) {
-		synchronized(this) {
+	    synchronized(this) {
+		while (!gotAsyncStealReply) {
 		    try {
 			wait();
 		    } catch (InterruptedException e) {

@@ -16,7 +16,6 @@ public abstract class Skeleton {
     public String stubType;
     private int num_ports = 0;
     private int max_ports = 0;
-    private int counter = 0;
 
     private static final int INCR = 16;
 
@@ -69,13 +68,13 @@ public abstract class Skeleton {
     private void cleanup() {
 	destination = null;
 	for (int i = 0; i < stubs.length; i++) {
-	    if (stubs[i] != null) {
-		try {
-		    /* stubs[i].free(); */
-		    stubs[i] = null;
-		} catch(Exception e) {
-		}
-	    }
+//	    if (stubs[i] != null) {
+//		try {
+//		    stubs[i].free();
+//		} catch(Exception e) {
+//		}
+//	    }
+	    stubs[i] = null;
 	}
     }
 
