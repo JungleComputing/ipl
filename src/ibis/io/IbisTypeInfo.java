@@ -6,9 +6,6 @@ class IbisTypeInfo implements IbisStreamFlags {
     boolean isString;
     boolean isClass;
 
-    static Class stringClass;
-    static Class classClass;
-
     // for ibis.io.Serializable    
     Generator gen;
 
@@ -18,7 +15,7 @@ class IbisTypeInfo implements IbisStreamFlags {
     IbisTypeInfo(Class clzz) {
 	clazz = clzz;
 	isArray = clazz.isArray();
-	isString = (clazz == stringClass);
+	isString = (clazz == classString);
 	isClass = (clazz == classClass);
 	if (isArray || isString || isClass) {
 	    gen = null;
@@ -56,20 +53,4 @@ class IbisTypeInfo implements IbisStreamFlags {
 	    altInfo = new AlternativeTypeInfo(clazz);
 	}	   
     } 
-
-    static {
-	try { 
-	    stringClass = Class.forName("java.lang.String");
-	} catch (Exception e) { 
-	    System.err.println("Failed to find java.lang.String " + e);
-	    System.exit(1);
-	}
-	try { 
-	    classClass = Class.forName("java.lang.Class");
-	} catch (Exception e) { 
-	    System.err.println("Failed to find java.lang.Class " + e);
-	    System.exit(1);
-	}
-    }
 } 
-
