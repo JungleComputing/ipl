@@ -385,6 +385,8 @@ private boolean shouldLeave;
 			throw new IbisError("Doing free while a msg is alive, port = " + name + " fin = " + m.isFinished);
 		}
 
+		disableConnections();
+
 		 shouldLeave = true;
 		notifyAll();
 
@@ -449,6 +451,8 @@ private boolean shouldLeave;
 		if(m != null) {
 			throw new IbisError("Doing forcedClose while a msg is alive, port = " + name + " fin = " + m.isFinished);
 		}
+
+		disableConnections();
 
 		/* unregister with nameserver */
 		try {
