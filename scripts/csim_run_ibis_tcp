@@ -1,0 +1,13 @@
+echo $*
+
+#used for running tcp-ibis with different -Dcluster settings
+RANK=$1
+TOTAL_NODES=$2
+NODES_PER_CLUSTER=$3
+DNAMESERVER="-Dname_server_pool=$4 -Dname_server_port=$5 -Dname_server=$6"
+shift 6
+
+CLUSTERID=$(($RANK / $NODES_PER_CLUSTER))
+
+$JAVA_ROOT/bin/java -Xmx400M -Dpool_host_number=$RANK -Dpool_total_hosts=$TOTAL_NODES -Dcluster=$CLUSTERID $DNAMESERVER "$@"
+

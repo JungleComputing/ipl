@@ -1,0 +1,228 @@
+#!/bin/bash
+
+#options: -d : debug, don't delete temp files / trees
+
+#The first paramter is the port at which to run the nameserver
+#(to allow multiple simultanuous runs with grun.sh).
+#The second parameter is the file with settings for the application.
+#The other parameters are of the form <site> <count> where
+#    <site> is a file in the sites-dir with settings for a site
+#and <count> is the number of processors to allocate at that site
+
+GRUN_PATH=$HOME/globus
+APPS_PATH=$GRUN_PATH/apps
+SITES_PATH=$GRUN_PATH/sites
+
+USAGE="usage: $0 [-d] <nameserver-port> <application> [ <site> <count> ]+"
+
+DEBUG=off
+#read any options
+while true; do
+	case $1 in
+	-help | -h)
+		echo $USAGE
+		exit 1 ;;
+	-d | -debug)
+		DEBUG=on
+		shift ;;
+	-*)
+		echo invalid option: $1
+		echo $USAGE
+		exit 1 ;;
+	*)
+		break ;;
+	esac
+done
+
+NS_PORT=$1
+APP=$2
+shift 2
+if [ -z "$NS_PORT" -o -z "$APP" ]; then
+	echo $USAGE
+	exit 1
+fi
+
+#check if something already runs on the specified port
+if [ -n "$(netstat -an | grep $NS_PORT | grep LISTEN)" ]; then
+	echo $0: Port $NS_PORT is already in use!
+	exit 1
+fi
+NS_PARAMS="-Dname_server=fs0.das2.cs.vu.nl -Dname_server_port=$NS_PORT"
+NS_PARAMS="$NS_PARAMS -Dname_server_pool=grun$$"
+
+
+#test if the number of other parameters is > 0 and even (i.e., every <site>
+#has an accompanying <count>)
+if [ $# -eq 0 ] || [ $(($# % 2)) -ne 0 ]; then
+	echo "Incorrect parameter count, every <site> should have a <count>,"
+	echo "at least one <site> <count> - pair should be provided."
+	exit 1
+fi
+
+#read settings for the sites, and calculate the total count of jobs
+SITE_SETTINGS="HOSTNAME JOBMGR SPLIT"
+declare -i TOTAL_COUNT=0
+declare -i COUNT
+
+while [ $# -ge 2 ]; do
+	if [ $2 -le 0 ]; then
+		echo Illegal count '('$2')' for site $1.
+		exit 1
+	fi
+
+	if [ ! -f $SITES_PATH/$1 ]; then
+		echo Settings for site $1 not found! Exiting..
+		exit 1
+	fi
+
+	for s in $SITE_SETTINGS; do
+		LINE=$(cat $SITES_PATH/$1 | egrep "^$s=")
+		if [ -z $LINE ]; then
+			echo $s not found in $SITES_PATH/$1, exiting..
+			exit 1
+		fi
+		eval ${1}_$s=$(echo $LINE | sed "s/$s=//")
+	done
+
+	SITES="$SITES $1"
+	eval $1_COUNT=$2
+
+	TOTAL_COUNT=$TOTAL_COUNT+$2
+	shift 2
+done
+
+#read application settings
+APP_SETTINGS="CLASS PARAMS DIR"
+
+if [ ! -f $APPS_PATH/$APP ]; then
+	echo Settings for application $APP not found, exiting...
+	exit 1
+fi
+for s in $APP_SETTINGS; do
+	eval APP_$s=$(cat $APPS_PATH/$APP | egrep "^$s=" | sed "s/$s=//")
+	SETTING_VAR=APP_$s
+	if [ -z "${!SETTING_VAR}" ]; then
+		echo $s not found in $APPS_PATH/$APP, exiting..
+		exit 1
+	fi
+done
+
+#at this point all settings are read, the work can begin...
+
+#create ~/proj/ibis.tgz
+(
+	cd ~/proj;
+	FILES=`find ibis -name *.class -or -name *properties`
+	#also include subdirs in $APP_DIR
+	FILES="$FILES $(find ibis/$APP_DIR -path "ibis/$APP_DIR/*/*")"
+
+	rm -f ibis$$.tgz;
+	tar cfz ibis$$.tgz $FILES
+)
+
+#generate master and slave scripts for this run
+
+echo "#!/bin/sh" > grun-master$$
+echo APP_DIR=$APP_DIR >> grun-master$$
+echo MODE=master >> grun-master$$
+echo JOBID=$$ >> grun-master$$
+cat grun-remote >> grun-master$$
+
+echo "#!/bin/sh" > grun-slave$$
+echo APP_DIR=$APP_DIR >> grun-slave$$
+echo MODE=slave >> grun-slave$$
+echo JOBID=$$ >> grun-slave$$
+cat grun-remote >> grun-slave$$
+
+chmod a+x grun-master$$ grun-slave$$
+
+
+echo creating grun$$.rsl...
+
+#little piece of common rsl
+echo + > grun$$.rsl
+
+for i in $SITES; do
+	#automatically create indirect variables for use later on
+	for s in $SITE_SETTINGS; do
+		eval ${s}_VAR=${i}_$s
+	done
+	eval COUNT_VAR=${i}_COUNT
+
+	declare -i SLAVES=${!COUNT_VAR}-1
+
+	echo copying ibis to ${!HOSTNAME_VAR}...
+	ssh -p 2222 ${!HOSTNAME_VAR} mkdir tmp$$
+	scp -P 2222 $HOME/proj/ibis$$.tgz ${!HOSTNAME_VAR}:tmp$$/ibis.tgz
+
+	#remove any possibly remaining master_is_ready indicator
+	ssh -p 2222 ${!HOSTNAME_VAR} rm grun$$_master_is_ready
+
+	#generate master-rsl for this site
+	echo "(&" >> grun$$.rsl
+	echo "(resourceManagerContact=${!HOSTNAME_VAR}/${!JOBMGR_VAR})" >> grun$$.rsl
+	echo "(subjobStartType=strict-barrier)" >> grun$$.rsl
+	echo "(label=$i-master)" >> grun$$.rsl
+	echo "(maxWallTime=60)" >> grun$$.rsl
+	echo "(count=1)" >> grun$$.rsl
+	echo '(stdout=$(GLOBUSRUN_GASS_URL)'$HOME/globus/out/${i}m$$')' >> grun$$.rsl
+	echo '(stderr=$(GLOBUSRUN_GASS_URL)'$HOME/globus/err/${i}m$$')' >> grun$$.rsl
+	echo '(executable=$(GLOBUSRUN_GASS_URL)'$GRUN_PATH/grun-master$$')' >> grun$$.rsl
+	echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT $NS_PARAMS $APP_CLASS $APP_PARAMS\")" >> grun$$.rsl
+	#(directory) isn't set, grun-master$$ should be run in the (default)
+	#home dir
+	echo ")" >> grun$$.rsl
+
+	if [ $SLAVES -ge 1 ]; then
+		if [ "${!SPLIT_VAR}" = "true" ]; then
+			#generate rsl for each slave separately (needed on rage1)
+			for j in `seq 1 $SLAVES`; do
+				echo "(&" >> grun$$.rsl
+				echo "(resourceManagerContact=${!HOSTNAME_VAR}/${!JOBMGR_VAR})" >> grun$$.rsl
+				echo "(subjobStartType=strict-barrier)" >> grun$$.rsl
+				echo "(label=$i-slave$j)" >> grun$$.rsl
+				echo "(maxWallTime=60)" >> grun$$.rsl
+				echo "(count=1)" >> grun$$.rsl
+				echo '(stdout=$(GLOBUSRUN_GASS_URL)'$HOME/globus/out/${i}-${j}s$$')' >> grun$$.rsl
+				echo '(stderr=$(GLOBUSRUN_GASS_URL)'$HOME/globus/err/${i}-${j}s$$')' >> grun$$.rsl
+				echo '(executable=$(GLOBUSRUN_GASS_URL)'$GRUN_PATH/grun-slave$$')' >> grun$$.rsl
+				echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT $NS_PARAMS $APP_CLASS $APP_PARAMS\")" >> grun$$.rsl
+				#(directory) isn't set, grun-slave$$ should be run in the
+				#(default) #home dir
+				echo ")" >> grun$$.rsl
+			done
+		else 
+			#generate rsl for $SLAVES slaves
+			echo "(&" >> grun$$.rsl
+			echo "(resourceManagerContact=${!HOSTNAME_VAR}/${!JOBMGR_VAR})" >> grun$$.rsl
+			echo "(subjobStartType=strict-barrier)" >> grun$$.rsl
+			echo "(label=$i-slave)" >> grun$$.rsl
+			echo "(maxWallTime=60)" >> grun$$.rsl
+			echo "(count=$SLAVES)" >> grun$$.rsl
+			echo '(stdout=$(GLOBUSRUN_GASS_URL)'$HOME/globus/out/${i}s$$')' >> grun$$.rsl
+			echo '(stderr=$(GLOBUSRUN_GASS_URL)'$HOME/globus/err/${i}s$$')' >> grun$$.rsl
+			echo '(executable=$(GLOBUSRUN_GASS_URL)'$GRUN_PATH/grun-slave$$')' >> grun$$.rsl
+			echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT $NS_PARAMS $APP_CLASS $APP_PARAMS\")" >> grun$$.rsl
+			#(directory) isn't set, grun-slave$$ should be run in the
+			#(default) #home dir
+			echo ")" >> grun$$.rsl
+		fi
+    fi
+done
+
+#everything's prepared now, start running
+~/proj/ibis/bin/ibis_nameserver -port $NS_PORT -single &
+globusrun -s -f grun$$.rsl
+
+#remove temp files
+if [ "$DEBUG" = "off" ]; then
+	echo removing temp files..
+	rm grun$$.rsl grun-master$$ grun-slave$$ ~/proj/ibis$$.tgz
+
+	#grun_remote doesn't know if all jobs at the same site are finished,
+	#so I remove the ibis tree here
+	for i in $SITES; do
+		eval HOSTNAME_VAR=${i}_HOSTNAME
+		ssh -p 2222 ${!HOSTNAME_VAR} rm -rf tmp$$ grun$$_master_is_ready &
+	done
+fi

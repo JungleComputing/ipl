@@ -1,15 +1,20 @@
 #used for running ibis with the panda cluster simulator
 RANK=$1
-NUMHOSTS=$2
-shift 2
+NODES_INCL_GATEWAYS=$2
+CLUSTERS=$3
+NODES_PER_CLUSTER=$4
+shift 4
+
+NODES_EXCL_GATEWAYS=$(( $NODES*$CLUSTERS ))
 
 if [ -z "$PAN_CLD" ]; then
 	PAN_CLD=0
 fi
 
-if [ $RANK -ge $(($NUMHOSTS-$PAN_CLD)) ]; then
-	export LFC_RECV_PKTS=4096
-	$1 ibis.ipl.impl.messagePassing.PandaIbis
+if [ $RANK -ge $NODES_EXCL_GATEWAYS ]; then
+	export LFC_RECV_PKTS=1024
+	$JAVA_ROOT/bin/java ibis.ipl.impl.messagePassing.PandaIbis
 else
-	"$@"
+	CLUSTERID=$(($RANK / $NODES_PER_CLUSTER))
+	$JAVA_ROOT/bin/java -Xmx400M -Dpool_host_number=$RANK -Dpool_total_hosts=$NODES_EXCL_GATEWAYS -Dcluster=$CLUSTERID "$@"
 fi
