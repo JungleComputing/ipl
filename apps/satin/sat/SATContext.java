@@ -144,6 +144,11 @@ public final class SATContext implements java.io.Serializable {
     {
 	int termcount = 0;
 
+        int newCount = p.getClauseCount();
+        if( newCount != terms.length ){
+            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + terms.length );
+            return;
+        }
         if( satisfied[cno] ){
 	    // We don't care.
 	    return;
@@ -212,6 +217,11 @@ public final class SATContext implements java.io.Serializable {
 	int poscount = 0;
 	int negcount = 0;
 
+        int newCount = p.getClauseCount();
+        if( newCount != terms.length ){
+            System.err.println( "Error: problem has " + newCount + " clauses, but context administers " + terms.length );
+            return;
+        }
 	// Count the positive clauses
 	int pos[] = p.getPosClauses( var );
 	for( int i=0; i<pos.length; i++ ){
