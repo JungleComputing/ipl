@@ -374,8 +374,10 @@
 	    <isreference refid="local.libset-ref"/>
 	    <then>
 		<property name="local.libset" refid="local.libset-ref"/>
+		<!--
 		<echo message="Specify extra libs ${local.libset}"/>
 		<echo message="Specify extra libs ref ${local.libset-ref}"/>
+		-->
 	    </then>
 	</if>
 
@@ -386,10 +388,11 @@
 		<fileset dir="${native.dir}" includes="*.c"/>
 	    </sourcefiles>
 	    <targetfiles>
-		<pathelement path="${build}/lib/${library.path}"/>
+		<pathelement path="${library.path}"/>
 	    </targetfiles>
 
 	    <sequential>
+
 		<cc	debug="${c.debug}"
 			objdir="${build}/ibis/${native-path}"
 			outfile="${build}/lib/${local.lib}"
@@ -408,14 +411,40 @@
 			<pathelement path="${default.includes}"/>
 		    </includepath>
 		    <libset refid="local.libset-ref" if="local.libset"/>
-		    <!--
-		    <libset refid="local.libset-ref"/>
-		    <fileset refid="extra.libs-ref" if="extra.libs"/>
-		    <libset dir="${ibis}/3rdparty/omni/OmniTimer/build/lib" libs="OTTimer"/>
-		    -->
 		    <!-- <compilerarg location="mid" value="-E"/> -->
 		    <!-- <compilerarg location="mid" value="-v"/> -->
 		</cc>
+
+		<if>
+		    <os family="mac"/>
+		    <then>
+			<if>
+			    <equals arg1="${cc.outtype}" arg2="shared"/>
+			    <then>
+				<propertyregex
+					input="${library.path}"
+					property="mac-lib"
+					regexp=".jnilib"
+					replace=".dylib"/>
+				<copy	file="${mac-lib}"
+					tofile="${library.path}"/>
+			    </then>
+			<elseif>
+			    <equals arg1="${cc.outtype}" arg2="plugin"/>
+			    <then>
+				<propertyregex
+					input="${library.path}"
+					property="mac-lib"
+					regexp=".jnilib"
+					replace=".bundle"/>
+				<copy	file="${mac-lib}"
+					tofile="${library.path}"/>
+			    </then>
+			</elseif>
+			</if>
+		    </then>
+		</if>
+
 	    </sequential>
 	</outofdate>
     </target>
