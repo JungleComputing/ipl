@@ -301,6 +301,7 @@
 	Compile, run IOGenerator, compile native code for the whole of Ibis
     -->
     <target name="build"
+	    depends="init"
 	    description="Build Ibis">
 	<patternset id="build.sources.all">
 	    <include name="**/*.java"/>

@@ -109,13 +109,13 @@ class RPC implements Upcall, Runnable, ReceivePortConnectUpcall, SendPortConnect
 
     private int		data_type = DATA_BYTES;
 
-    private Rdtsc t_send = new Rdtsc();
-    private Rdtsc t_s_finish = new Rdtsc();
-    private Rdtsc t_get_msg = new Rdtsc();
-    private Rdtsc t_rcve = new Rdtsc();
-    private Rdtsc t_r_finish = new Rdtsc();
-    private Rdtsc t_upcall = new Rdtsc();
-    private Rdtsc t_client = new Rdtsc();
+    // private Rdtsc t_send = new Rdtsc();
+    // private Rdtsc t_s_finish = new Rdtsc();
+    // private Rdtsc t_get_msg = new Rdtsc();
+    // private Rdtsc t_rcve = new Rdtsc();
+    // private Rdtsc t_r_finish = new Rdtsc();
+    // private Rdtsc t_upcall = new Rdtsc();
+    // private Rdtsc t_client = new Rdtsc();
 
 
     private void send_one(boolean is_server, int size, boolean finish)
@@ -1002,8 +1002,8 @@ System.err.println(this + ": call it quits...; I am " + (i_am_client ? "" : "not
 
 	    if (client == null) {
 		createIbis();
-		ibis.ipl.Timer timer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
-		timer.start();
+		// ibis.ipl.Timer timer = Ibis.newTimer("ibis.util.nativeCode.Rdtsc");
+		// timer.start();
 		registerIbis();
 		if (ncpus == 1) {
 		    RPC dl = new RPC(args, this);
@@ -1018,8 +1018,8 @@ System.err.println(this + ": call it quits...; I am " + (i_am_client ? "" : "not
 		}
 		System.err.println(this + ": Regular run; rank " + rank + " ncpus " + ncpus + " clients " + clients + " servers " + servers);
 		run();
-		timer.stop();
-		System.err.println("Nano timering -> " + timer.totalTimeVal());
+		// timer.stop();
+		// System.err.println("Nano timering -> " + timer.totalTimeVal());
 		System.exit(0);
 	    } else {
 		i_am_client = false;
