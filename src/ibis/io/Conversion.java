@@ -14,14 +14,17 @@ public final class Conversion {
          *
          */
 
-	static final boolean USE_NATIVE_CONVERSION = true;
+	static boolean USE_NATIVE_CONVERSION = true;
 
 	public static void classInit() {
 //		System.err.println("pre load");
-		try {
+		if (USE_NATIVE_CONVERSION) {
+		    try {
 			System.loadLibrary("conversion");
-		} catch (Throwable e) {
+		    } catch (Throwable e) {
 			System.err.println("Could not load native library for data conversions, falling back to Java conversion ");
+			USE_NATIVE_CONVERSION = false;
+		    }
 		}
 //		System.err.println("post load");
 	}
@@ -29,22 +32,6 @@ public final class Conversion {
 	static {
 		classInit();
 	}
-
-	static final int BOOLEAN2BYTE_THRESHOLD = 100;
-	static final int CHAR2BYTE_THRESHOLD    = 50;
-	static final int SHORT2BYTE_THRESHOLD   = 50;
-	static final int INT2BYTE_THRESHOLD     = 25;
-	static final int LONG2BYTE_THRESHOLD    = 13;
-	static final int FLOAT2BYTE_THRESHOLD   = 25;
-	static final int DOUBLE2BYTE_THRESHOLD  = 13;
-
-	static final int BYTE2BOOLEAN_THRESHOLD = 100;
-	static final int BYTE2SHORT_THRESHOLD   = 50;
-	static final int BYTE2CHAR_THRESHOLD    = 50;
-	static final int BYTE2INT_THRESHOLD     = 25;
-	static final int BYTE2LONG_THRESHOLD    = 13;
-	static final int BYTE2FLOAT_THRESHOLD   = 25;
-	static final int BYTE2DOUBLE_THRESHOLD  = 13;
 
 	private static final native void n_boolean2byte(boolean[] src, int off, int len, byte [] dst, int off2);
 	private static final native void n_char2byte(char[] src, int off, int len, byte [] dst, int off2);
@@ -64,7 +51,7 @@ public final class Conversion {
 
 	static final void boolean2byte(boolean[] src, int off, int len, byte [] dst, int off2) {
 
-		if (! USE_NATIVE_CONVERSION || len < BOOLEAN2BYTE_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
 			for (int i=0;i<len;i++) { 			
 				dst[off2+i] = (src[off+i] ? (byte)1 : (byte)0);
 			} 
@@ -75,7 +62,7 @@ public final class Conversion {
 
 	static final void byte2boolean(byte[] src, int index_src, boolean[] dst, int index_dst, int len) { 
 
-		if (! USE_NATIVE_CONVERSION || len < BYTE2BOOLEAN_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
 			for (int i=0;i<len;i++) { 			
 				dst[index_dst+i] = (src[i] == 1);
 			}
@@ -86,7 +73,7 @@ public final class Conversion {
 
 	static final void char2byte(char[] src, int off, int len, byte [] dst, int off2) {
 
-		if (! USE_NATIVE_CONVERSION || len < CHAR2BYTE_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
 			char temp;
 			int count = off2;
 			
@@ -102,7 +89,7 @@ public final class Conversion {
 
 	static final void byte2char(byte[] src, int index_src, char[] dst, int index_dst, int len) {
 		
-		if (! USE_NATIVE_CONVERSION || len < BYTE2CHAR_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
  		        int temp;
 			int count = index_src;
 
@@ -120,7 +107,7 @@ public final class Conversion {
 
 	static final void short2byte(short[] src, int off, int len, byte [] dst, int off2) {
 
-		if (! USE_NATIVE_CONVERSION || len < SHORT2BYTE_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
 			short v = 0;
 			int count = off2;
 			
@@ -136,7 +123,7 @@ public final class Conversion {
 
 	static final void byte2short(byte[] src, int index_src, short[] dst, int index_dst, int len) {
 
-		if (! USE_NATIVE_CONVERSION || len < BYTE2SHORT_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
 			int count = index_src;
 			for (int i=0;i<len;i++) { 			
 				dst[index_dst+i] = (short)((src[count] << 8) | (src[count+1] & 0xff));
@@ -149,7 +136,7 @@ public final class Conversion {
 
 	static final void int2byte(int[] src, int off, int len, byte [] dst, int off2) {
 
-		if (! USE_NATIVE_CONVERSION || len < INT2BYTE_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
 		
 			int v = 0;
 			int count = off2;
@@ -170,19 +157,13 @@ public final class Conversion {
 
 	static final void byte2int(byte[] src, int index_src, int[] dst, int index_dst, int len) {
 
-		if (! USE_NATIVE_CONVERSION || len < BYTE2INT_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
 			int count = index_src;
 			for (int i=0;i<len;i++) { 			
-//				dst[index_dst+i] = (int)
-//					((int)(src[count] & 0xff) | 
-//					((int)(src[count+1] & 0xff) <<  8) |
-//					((int)(src[count+2] & 0xff) << 16) |
-//					((int)(src[count+3] & 0xff) << 24));
-
 				 dst[index_dst+i] = (((src[count] & 0xff) << 24)   | 
 						     ((src[count+1] & 0xff) << 16) |
 						     ((src[count+2] & 0xff) << 8)  | 
-						     (src[count+3] & 0xff));
+						      (src[count+3] & 0xff));
 				 count+=4;
 			}
 		} else { 			
@@ -192,7 +173,7 @@ public final class Conversion {
 
 	static final void long2byte(long[] src, int off, int len, byte [] dst, int off2) {
 
-		if (! USE_NATIVE_CONVERSION || len < LONG2BYTE_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
 			long v;
 			int count = off2;
 			
@@ -216,7 +197,7 @@ public final class Conversion {
 
 	static final void byte2long(byte[] src, int index_src, long[] dst, int index_dst, int len) { 		
 
-		if (! USE_NATIVE_CONVERSION || len < BYTE2LONG_THRESHOLD) {
+		if (! USE_NATIVE_CONVERSION) {
 
 			int count = index_src;
 			
@@ -239,7 +220,7 @@ public final class Conversion {
 
 	static final void float2byte(float[] src, int off, int len, byte [] dst, int off2) {
 
-		if (! USE_NATIVE_CONVERSION || len < FLOAT2BYTE_THRESHOLD) { 
+		if (! USE_NATIVE_CONVERSION) {
 
 			int v = 0;
 			int count = off2;
@@ -258,7 +239,7 @@ public final class Conversion {
 
 	static final void byte2float(byte[] src, int index_src, float[] dst, int index_dst, int len) { 
 
-		if (! USE_NATIVE_CONVERSION || len < BYTE2FLOAT_THRESHOLD) {
+		if (! USE_NATIVE_CONVERSION) {
 			int temp = 0;
 			int count = index_src;
 			
@@ -276,18 +257,14 @@ public final class Conversion {
 		}
 	} 
 
-//       private static native void doublesToBytes(double src[], int double_index, byte dest[], int byte_index, int num_doubles);
 
 	static final void double2byte(double[] src, int off, int len, byte [] dst, int off2) {
 
-		if (! USE_NATIVE_CONVERSION || len < DOUBLE2BYTE_THRESHOLD) { 
-		        long v = 0;
-			int temp2 = 0;
-			int temp3 = 0;
+		if (! USE_NATIVE_CONVERSION) {
 			int count = off2;
 			
 			for (int i=0;i<len;i++) { 			
-				v = Double.doubleToLongBits(src[off++]);
+				long v = Double.doubleToLongBits(src[off++]);
 
 				dst[count++] = (byte)(0xff & (v >> 56));
 				dst[count++] = (byte)(0xff & (v >> 48));
@@ -306,9 +283,8 @@ public final class Conversion {
 
 	static final void byte2double(byte[] src, int index_src, double[] dst, int index_dst, int len) { 
 
-		if (! USE_NATIVE_CONVERSION || len < BYTE2DOUBLE_THRESHOLD) {
+		if (! USE_NATIVE_CONVERSION) {
 			
-			long temp = 0;
 			int count = index_src;
 			
 			for (int i=0;i<len;i++) { 			
@@ -332,5 +308,4 @@ public final class Conversion {
     public static void main(String[] arg) {
 	System.loadLibrary("conversion");
     }
-
 } 

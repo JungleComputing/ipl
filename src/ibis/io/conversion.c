@@ -13,16 +13,11 @@ JNIEXPORT void JNICALL Java_ibis_io_Conversion_n_1byte2 ## ntype( \
 	jint off, \
 	jint len) \
 { \
-    jbyte      *buf; \
-    jtype      *a; \
+    jbyte      *buf = (*env)->GetPrimitiveArrayCritical(env, buffer, NULL); \
     \
-    a = (*env)->Get ## Type ## ArrayElements(env, array, NULL); \
-    buf = (*env)->GetByteArrayElements(env, buffer, NULL); \
+    (*env)->Set ## Type ## ArrayRegion(env, array, off, len, (jtype *) (buf + off2)); \
     \
-    memcpy(a + off, buf + off2, len * sizeof(*a)); \
-    \
-    (*env)->Release ## Type ## ArrayElements(env, array, a, 0); \
-    (*env)->ReleaseByteArrayElements(env, buffer, buf, 0); \
+    (*env)->ReleasePrimitiveArrayCritical(env, buffer, buf, JNI_ABORT); \
 }
 
 BYTE2TYPE(boolean, jboolean, Boolean)
@@ -33,7 +28,7 @@ BYTE2TYPE(long,    jlong,    Long)
 BYTE2TYPE(float,   jfloat,   Float)
 BYTE2TYPE(double,  jdouble,  Double)
 
-#define TYPE2BYTE(ntype, jtype, Type) \
+#define TYPE2BYTE(ntype) \
 JNIEXPORT void JNICALL Java_ibis_io_Conversion_n_1 ## ntype ## 2byte( \
 	JNIEnv *env, \
 	jclass clazz, \
@@ -43,25 +38,20 @@ JNIEXPORT void JNICALL Java_ibis_io_Conversion_n_1 ## ntype ## 2byte( \
 	jbyteArray buffer, \
         jint off2) \
 { \
-    jbyte      *buf; \
-    jtype      *a; \
+    j ## ntype      *a = (*env)->GetPrimitiveArrayCritical(env, array, NULL); \
     \
-    a = (*env)->Get ## Type ## ArrayElements(env, array, NULL); \
-    buf = (*env)->GetByteArrayElements(env, buffer, NULL); \
+    (*env)->SetByteArrayRegion(env, buffer, off2, len * sizeof(j ## ntype), (jbyte *) (a + off)); \
     \
-    memcpy(buf + off2, a + off, len * sizeof(*a)); \
-    \
-    (*env)->Release ## Type ## ArrayElements(env, array, a, 0); \
-    (*env)->ReleaseByteArrayElements(env, buffer, buf, 0); \
+    (*env)->ReleasePrimitiveArrayCritical(env, array, a, JNI_ABORT); \
 }
 
-TYPE2BYTE(boolean, jboolean, Boolean)
-TYPE2BYTE(short,   jshort,   Short)
-TYPE2BYTE(char,    jchar,    Char)
-TYPE2BYTE(int,     jint,     Int)
-TYPE2BYTE(long,    jlong,    Long)
-TYPE2BYTE(float,   jfloat,   Float)
-TYPE2BYTE(double,  jdouble,  Double)
+TYPE2BYTE(boolean)
+TYPE2BYTE(short)
+TYPE2BYTE(char)
+TYPE2BYTE(int)
+TYPE2BYTE(long)
+TYPE2BYTE(float)
+TYPE2BYTE(double)
 
 #include "ibis_io_IbisSerializationInputStream.h"
 
