@@ -103,14 +103,15 @@ public abstract class WorkStealing extends Stats {
 			stealAttempts++;
 		}
 
-		sendStealRequest(v, true, blockOnServer);
-		return waitForStealReply();
+		if (! exiting) {
+		    sendStealRequest(v, true, blockOnServer);
+		    return waitForStealReply();
+		}
+		return null;
 	}
 
 	protected void sendStealRequest(Victim v, boolean synchronous,
 			boolean blocking) {
-		if (exiting)
-			return;
 
 		if (STEAL_DEBUG && synchronous) {
 			System.err.println("SATIN '" + ident.name()
