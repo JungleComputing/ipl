@@ -30,7 +30,7 @@ public class Main {
 			
 			int count3 = 100;
 			
-			PoolInfo info = new PoolInfo();
+			PoolInfo info = PoolInfo.createPoolInfo();
 
 			if (info.rank() == 0) {
 								

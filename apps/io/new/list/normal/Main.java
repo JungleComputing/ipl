@@ -28,7 +28,7 @@ public class Main {
 			int count = COUNT;
 			int len = LEN;
 			
-			PoolInfo info = new PoolInfo();
+			PoolInfo info = PoolInfo.createPoolInfo();
 
 			if (info.rank() == 0) {
 								

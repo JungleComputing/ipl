@@ -26,7 +26,7 @@ public class Main {
 
 			int count3 = 10;
 
-			PoolInfo info = new PoolInfo();
+			PoolInfo info = PoolInfo.createPoolInfo();
 
 			if (info.rank() == 0) { 
 				
