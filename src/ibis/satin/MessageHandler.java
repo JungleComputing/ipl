@@ -65,9 +65,11 @@ final class MessageHandler implements Upcall, Protocol, Config {
 				      "': got result for aborted job, ignoring.");
 		}
 	    }
+
+	    // cannot help, it is somewhere in the middle of the stack... --Rob
 	    /* If the main thread is waiting for a steal reply, we [sh|c]ould
 	       somehow inform it that it can process the job result - Maik */
-	    satin.notifyAll();
+//	    satin.notifyAll();
 	}
     }
 
