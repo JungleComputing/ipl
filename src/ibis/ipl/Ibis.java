@@ -853,7 +853,7 @@ public abstract class Ibis {
     public abstract void left(IbisIdentifier leaveIdent);
 
     /**
-     * Notifies this Ibis instance that other Ibis instance died.
+     * Notifies this Ibis instance that another Ibis instance has died.
      * <strong>
      * Note: used by the nameserver, do not call from outside Ibis.
      * </strong>
