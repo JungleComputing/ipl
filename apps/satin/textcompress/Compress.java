@@ -5,7 +5,7 @@ import java.io.File;
 class Compress extends ibis.satin.SatinObject
 {
     static final boolean traceMatches = false;
-    static final boolean traceLookahead = false;
+    static final boolean traceLookahead = true;
 
     // Given a byte array, build an array of backreferences. That is,
     // construct an array that at each text position gives the index
@@ -93,6 +93,7 @@ class Compress extends ibis.satin.SatinObject
         Backref mv = Backref.buildCopyBackref( pos );
         boolean haveAlternatives = false;
         int maxLen = 0;
+        int minLen = text.length;
 
         if( pos+Configuration.MINIMAL_SPAN>=text.length ){
             return mv;
@@ -105,11 +106,17 @@ class Compress extends ibis.satin.SatinObject
             if( r != null ){
                 int cost = r.getCost();
 
-                if( results[cost] == null || results[cost].len<r.len ){
-                    results[cost] = r;
-                    haveAlternatives = true;
-                    if( maxLen<r.len ){
-                        maxLen = r.len;
+                if( cost<r.len ){
+                    if( results[cost] == null || results[cost].len<r.len ){
+                        results[cost] = r;
+                        haveAlternatives = true;
+                        if( maxLen<r.len ){
+                            maxLen = r.len;
+                        }
+                        int minl = 1+cost;
+                        if( minl<minLen ){
+                            minLen = minl;
+                        }
                     }
                 }
             }
@@ -132,11 +139,19 @@ class Compress extends ibis.satin.SatinObject
             mv.addGain( mv1 );
         }
 
+        if( !haveAlternatives ){
+            return mv;
+        }
+
         if( traceLookahead ){
             for( int i=0; i<depth; i++ ){
                 System.out.print( ' ' );
             }
-            System.out.println( "D" + depth + ": considering move: " + mv );
+            System.out.println( "D" + depth + ": minLen=" + minLen + ", maxLen=" + maxLen );
+            for( int i=0; i<depth; i++ ){
+                System.out.print( ' ' );
+            }
+            System.out.println( "D" + depth + ":  considering move: " + mv );
             for( int c=0; c<results.length; c++ ){
                 Backref r = results[c];
                 if( r != null ){
