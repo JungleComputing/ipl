@@ -62,10 +62,6 @@ public class SOR {
     private int size;
     private int rank;        /* process ranks */
 
-    private static final int LEAF_NODE = -1;
-    private int parent;
-    private int[] child = new int[2];
-
     private double[][] g;
 
     private SendPort leftS;
@@ -84,13 +80,10 @@ public class SOR {
     private Syncer leftSyncer;
     private Syncer rightSyncer;
 
-    private final static boolean TIMINGS = TypedProperties.booleanProperty("timing", false);
-    private final static boolean TIMINGS_SUB_REDUCE = TypedProperties.booleanProperty("timing.reduce", false);
+    final static boolean TIMINGS = TypedProperties.booleanProperty("timing", false);
     private Timer t_compute        = Timer.createTimer();
     private Timer t_communicate    = Timer.createTimer();
     private Timer t_reduce         = Timer.createTimer();
-    private Timer t_reduce_send    = Timer.createTimer();
-    private Timer t_reduce_receive = Timer.createTimer();
 
     private PoolInfo info;
     private Ibis ibis;
@@ -98,9 +91,11 @@ public class SOR {
 
     private boolean finished = false;
 
+    private Reducer	reducer;
+
 
     SOR(int N, int maxIters, boolean reduceAlways, boolean async,
-	    boolean upcall, int itersPerReduce)
+	    boolean upcall, int itersPerReduce, boolean clusterReduce)
 	    throws IOException, IbisException {
 
 	info = PoolInfo.createPoolInfo();
@@ -138,7 +133,13 @@ public class SOR {
 	getBounds();
 
 	createNeighbourPorts(name);
-	createReducePorts(name);
+	if (clusterReduce) {
+	    reducer = new ClusterReducer(ibis, info);
+	} else if (USE_O_N_BROADCAST) {
+	    reducer = new Reducer(ibis, info);
+	} else {
+	    reducer = new TreeReducer(ibis, info);
+	}
 
 // System.err.println(rank + ": hi, I'm connected...");
 
@@ -190,37 +191,6 @@ public class SOR {
 		rightS = null;
 	    }
 
-	    if (reduceS != null) {
-		reduceS.close();
-		reduceS = null;
-	    }
-	    if (reduceR != null) {
-		reduceR.close();
-		reduceR = null;
-	    }
-
-	    if (reduceSreduce != null) {
-		reduceSreduce.close();
-		reduceSreduce = null;
-	    }
-	    if (reduceRreduce != null) {
-		for (int c = 0; c < reduceRreduce.length; c++) {
-		    if (reduceRreduce[c] != null) {
-			reduceRreduce[c].close();
-			reduceRreduce[c] = null;
-		    }
-		}
-	    }
-
-	    if (reduceSbcast != null) {
-		reduceSbcast.close();
-		reduceSbcast = null;
-	    }
-	    if (reduceRbcast != null) {
-		reduceRbcast.close();
-		reduceRbcast = null;
-	    }
-
 	    if (leftR != null) {
 		leftR.close();
 		leftR = null;
@@ -230,6 +200,8 @@ public class SOR {
 		rightR.close();
 		rightR = null;
 	    }
+
+	    reducer.end();
 
 	} catch (Exception e) {
 	    System.out.println("Oops " + e);
@@ -269,127 +241,6 @@ public class SOR {
 	    });
 
 	registry = ibis.registry();
-    }
-
-
-    private void createO_N_ReducePorts(String name)
-	    throws IOException, IbisException {
-	StaticProperties reqprops = new StaticProperties();
-	reqprops.add("serialization", "data");
-	// reqprops.add("communication", "OneToOne, Reliable, ExplicitReceipt");
-	reqprops.add("communication",
-		"OneToOne, ManyToOne, Reliable, ExplicitReceipt");
-
-	PortType portTypeReduce = ibis.createPortType("SOR Reduce", reqprops);
-
-
-	reqprops = new StaticProperties();
-	reqprops.add("serialization", "data");
-	reqprops.add("communication",
-		"OneToMany, OneToOne, Reliable, ExplicitReceipt");
-
-	PortType portTypeBroadcast = ibis.createPortType("SOR Broadcast", reqprops);
-	if (rank == 0) {
-	    // one-to-many to bcast result
-	    reduceR = portTypeReduce.createReceivePort(name + "reduceR");
-	    reduceR.enableConnections();
-	    reduceS = portTypeBroadcast.createSendPort(name + "reduceS");
-	    for (int i = 1 ; i < size; i++) {
-		ReceivePortIdentifier id = registry.lookup("SOR" + i + "reduceR");
-		reduceS.connect(id);
-	    }
-
-	} else {
-	    reduceR = portTypeBroadcast.createReceivePort(name + "reduceR");
-	    reduceR.enableConnections();
-	    reduceS = portTypeReduce.createSendPort(name + "reduceS");
-
-	    // many-to-one to gather values
-	    ReceivePortIdentifier id = registry.lookup("SOR0reduceR");
-	    reduceS.connect(id);
-	}
-    }
-
-
-    private void createO_logN_ReducePorts(String name)
-	    throws IOException, IbisException {
-	StaticProperties reqprops = new StaticProperties();
-	reqprops.add("serialization", "data");
-	// reqprops.add("communication", "OneToOne, Reliable, ExplicitReceipt");
-	reqprops.add("communication",
-		"OneToOne, Reliable, ExplicitReceipt");
-
-	PortType portTypeReduce = ibis.createPortType("SOR Reduce", reqprops);
-
-
-	reqprops = new StaticProperties();
-	reqprops.add("serialization", "data");
-	reqprops.add("communication",
-		"OneToMany, OneToOne, Reliable, ExplicitReceipt");
-
-	PortType portTypeBroadcast = ibis.createPortType("SOR Broadcast", reqprops);
-	if (rank == 0) {
-	    parent = LEAF_NODE;
-	} else {
-	    parent = (rank - 1) / 2;
-	}
-
-	int children = 0;
-	for (int c = 0; c < 2; c++) {
-	    child[c] = 2 * rank + c + 1;
-	    if (child[c] >= size) {
-		child[c] = LEAF_NODE;
-	    } else {
-		children++;
-	    }
-	}
-
-	/* Create and connect ports for the reduce phase */
-	if (children > 0) {
-	    reduceRreduce = new ReceivePort[2];
-	    for (int c = 0; c < 2; c++) {
-		if (child[c] != LEAF_NODE) {
-		    reduceRreduce[c] = portTypeReduce.createReceivePort(name + "_" + c + "_reduceR");
-		    reduceRreduce[c].enableConnections();
-		}
-	    }
-	}
-
-	if (parent != LEAF_NODE) {
-	    int childrank = rank - 2 * parent - 1;
-	    reduceSreduce = portTypeReduce.createSendPort(name + "reduceS");
-	    ReceivePortIdentifier id;
-	    id = registry.lookup("SOR" + parent + "_" + childrank + "_reduceR");
-	    reduceSreduce.connect(id);
-	}
-
-	/* Create and connect ports for the bcast phase */
-	if (parent != LEAF_NODE) {
-	    reduceRbcast = portTypeBroadcast.createReceivePort(name + "reduceR");
-	    reduceRbcast.enableConnections();
-	}
-
-	if (children > 0) {
-	    reduceSbcast = portTypeBroadcast.createSendPort(name + "reduceS");
-	    for (int c = 0; c < 2; c++) {
-		if (child[c] != LEAF_NODE) {
-		    ReceivePortIdentifier id;
-		    id = registry.lookup("SOR" + child[c] + "reduceR");
-		    reduceSbcast.connect(id);
-		}
-	    }
-	}
-
-    }
-
-
-    private void createReducePorts(String name)
-	    throws IOException, IbisException {
-	if (USE_O_N_BROADCAST) {
-	    createO_N_ReducePorts(name);
-	} else {
-	    createO_logN_ReducePorts(name);
-	}
     }
 
 
@@ -524,90 +375,6 @@ public class SOR {
 	return i % 2 == 0;
     }
 
-    private double reduce(double value) throws IOException {
-
-	//sanity check
-	//if (Double.isNaN(value)) {
-	//    System.err.println(rank + ": Eek! NaN used in reduce");
-	//    new Exception().printStackTrace(System.err);
-	//    System.exit(1);
-	//}
-
-	// System.err.println(rank + ": BEGIN REDUCE");
-	//
-	//
-	if (TIMINGS && ! TIMINGS_SUB_REDUCE) t_reduce.start();
-
-	if (USE_O_N_BROADCAST) {
-	    if (rank == 0) {
-		if (TIMINGS_SUB_REDUCE) t_reduce_receive.start();
-		for (int i=1;i<size;i++) {
-		    ReadMessage rm = reduceR.receive();
-		    double temp = rm.readDouble();
-
-		    //if (Double.isNaN(value)) {
-		    //    System.err.println(rank + ": Eek! NaN used in reduce");
-		    //    new Exception().printStackTrace(System.err);
-		    //    System.exit(1);
-		    //}
-
-		    value = Math.max(value, temp);
-		    rm.finish();
-		}
-		if (TIMINGS_SUB_REDUCE) t_reduce_receive.stop();
-
-		if (TIMINGS_SUB_REDUCE) t_reduce_send.start();
-		WriteMessage wm = reduceS.newMessage();
-		wm.writeDouble(value);
-		wm.finish();
-		if (TIMINGS_SUB_REDUCE) t_reduce_send.stop();
-	    } else {
-		if (TIMINGS_SUB_REDUCE) t_reduce_send.start();
-		WriteMessage wm = reduceS.newMessage();
-		wm.writeDouble(value);
-		wm.finish();
-		if (TIMINGS_SUB_REDUCE) t_reduce_send.stop();
-
-		if (TIMINGS_SUB_REDUCE) t_reduce_receive.start();
-		ReadMessage rm = reduceR.receive();
-		value = rm.readDouble();
-		rm.finish();
-		if (TIMINGS_SUB_REDUCE) t_reduce_receive.stop();
-	    }
-
-	} else {
-	    for (int c = 0; c < 2; c++) {
-		if (child[c] != LEAF_NODE) {
-		    ReadMessage rm = reduceRreduce[c].receive();
-		    value = Math.max(value, rm.readDouble());
-		    rm.finish();
-		}
-	    }
-
-	    if (parent != LEAF_NODE) {
-		WriteMessage wm = reduceSreduce.newMessage();
-		wm.writeDouble(value);
-		wm.finish();
-
-		ReadMessage rm = reduceRbcast.receive();
-		value = rm.readDouble();
-		rm.finish();
-	    }
-
-	    if (reduceSbcast != null) {
-		WriteMessage wm = reduceSbcast.newMessage();
-		wm.writeDouble(value);
-		wm.finish();
-	    }
-	}
-
-	if (TIMINGS && ! TIMINGS_SUB_REDUCE) t_reduce.stop();
-	// System.err.println(rank + ": END REDUCE result " + value);
-
-	return value;
-    }
-
-
     private void reportTimings() {
 	if (! TIMINGS) {
 	    return;
@@ -617,18 +384,8 @@ public class SOR {
 		+ " av.time " + t_compute.averageTime());
 	System.err.println(rank + ": t_communicate " + t_communicate.nrTimes()
 		+ " av.time " + t_communicate.averageTime());
-
-	if (TIMINGS_SUB_REDUCE) {
-	    System.err.println(rank
-		    + ": t_reduce_send " + t_reduce_send.nrTimes()
-		    + " av.time " + t_reduce_send.averageTime());
-	    System.err.println(rank
-		    + ": t_reduce_rcve " + t_reduce_receive.nrTimes()
-		    + " av.time " + t_reduce_receive.averageTime());
-	} else {
-	    System.err.println(rank + ": t_reduce " + t_reduce.nrTimes()
-		    + " av.time " + t_reduce.averageTime());
-	}
+	System.err.println(rank + ": t_reduce " + t_reduce.nrTimes()
+		+ " av.time " + t_reduce.averageTime());
     }
 
 
@@ -790,7 +547,7 @@ public class SOR {
 
 	// abuse the reduce as a barrier
 	if (size > 1) {
-	    reduce(42.0);
+	    reducer.reduce(42.0);
 	}
 
 	if (rank == 0) {
@@ -802,8 +559,6 @@ public class SOR {
 	    t_compute.reset();
 	    t_communicate.reset();
 	    t_reduce.reset();
-	    t_reduce_receive.reset();
-	    t_reduce_send.reset();
 	}
 
 	/* now do the "real" computation */
@@ -839,7 +594,10 @@ public class SOR {
 	    if (size > 1
 		    && (maxIters < 0 || reduceAlways)
 		    && ((iteration + 1) % itersPerReduce == 0)) {
-		maxdiff = reduce(diff);
+
+		if (TIMINGS) t_reduce.start();
+		maxdiff = reducer.reduce(diff);
+		if (TIMINGS) t_reduce.stop();
 	    }
 
 	    if (rank==0) {
@@ -855,7 +613,7 @@ public class SOR {
 
 	// Another barrier for simultaneous finish
 	if (size > 1) {
-	    reduce(42.0);
+	    reducer.reduce(42.0);
 	}
 
 	t_end = System.currentTimeMillis();
@@ -887,6 +645,7 @@ public class SOR {
 	    boolean async = false;
 	    boolean upcall = false;
 	    int itersPerReduce = 1;
+	    boolean clusterReduce = false;
 
 	    int options = 0;
 	    for (int i = 0; i < args.length; i++) {
@@ -910,6 +669,8 @@ public class SOR {
 		} else if (args[i].equals("-reduce-fac")) {
 		    ++i;
 		    itersPerReduce = Integer.parseInt(args[i]);
+		} else if (args[i].equals("-reduce-cluster")) {
+		    clusterReduce = true;
 		} else if (options == 0) {
 		    N = Integer.parseInt(args[i]);
 		    N += 2;
@@ -924,7 +685,7 @@ public class SOR {
 	    }
 
 	    SOR sor = new SOR(N, maxIters, reduce, async, upcall,
-			      itersPerReduce);
+			      itersPerReduce, clusterReduce);
 	    if (warmup) {
 		sor.start("warmup");
 	    }
