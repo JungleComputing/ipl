@@ -58,25 +58,26 @@ public class PSSocket extends Socket
 	public int read(byte[] b)
 	    throws IOException
 	{
-	    int rc = this.read(b, 0, b.length);
-	    return rc;
+	    return this.read(b, 0, b.length);
 	}
 	public int read(byte[] b, int off, int len)
 	    throws IOException
 	{
-	    int rc = -1;
-	    synchronized(ps) {
-		rc = ps.recv(b, off, len);
-	    }
-	    return rc;
+	    return ps.recv(b, off, len);
 	}
 	public int read()
 	    throws IOException
 	{
-	    int rc = -1;
 	    byte[] b = new byte[1];
-	    rc = this.read(b);
-	    return rc;
+	    int rc = 0;
+	    while (rc == 0) {
+		rc = this.read(b);
+	    }
+	    if (rc == -1) {
+		return -1;
+	    }
+	    return b[0] & 255;
+	    
 	}
 	public int available()
 	    throws IOException
@@ -100,7 +101,7 @@ public class PSSocket extends Socket
 	    throws IOException
 	{
 	    byte[] b = new byte[1];
-	    b[1] = (byte)v;
+	    b[0] = (byte)v;
 	    this.write(b);
 	}
 	public void write(byte[] b)
@@ -111,9 +112,7 @@ public class PSSocket extends Socket
 	public void write(byte[] b, int off, int len)
 	    throws IOException
 	{
-	    synchronized(ps) {
-		ps.send(b, off, len);
-	    }
+	    ps.send(b, off, len);
 	}
 	public void flush()
 	    throws IOException

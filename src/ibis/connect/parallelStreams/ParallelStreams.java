@@ -1,6 +1,8 @@
 package ibis.connect.parallelStreams;
 
 import ibis.connect.socketFactory.ExtSocketFactory;
+import ibis.connect.socketFactory.BrokeredSocketFactory;
+import ibis.connect.socketFactory.SocketType;
 import ibis.connect.util.MyDebug;
 
 import java.io.DataInputStream;
@@ -24,6 +26,9 @@ public class ParallelStreams
     private int sendBlock = 0;
     private int recvPos = 0;
     private int recvBlock = 0;
+
+    private boolean readerBusy = false;
+    private boolean writerBusy = false;
 
     public ParallelStreams(int n, int b)
     {
@@ -54,10 +59,12 @@ public class ParallelStreams
 	    throw new Error("ParallelStreams: cannot connect- localNumWays = "+numWays+"; remoteNumWays = "+rNumWays);
 	}
 
+	BrokeredSocketFactory f = ExtSocketFactory.getBrokeredType();
+
 	for(i=0; i<numWays; i++) {
 	    out.flush();
 	    MyDebug.trace("PS: creating link #"+i+" (hint="+hint+")");
-	    Socket s = ExtSocketFactory.createBrokeredSocket(in, out, hint);;
+	    Socket s = f.createBrokeredSocket(in, out, hint, new SocketType.DefaultConnectProperties());
 	    MyDebug.trace("PS: link #"+i+" done ");
 	    sockets[i] = s;
 	    ins[i] = s.getInputStream();
@@ -65,53 +72,108 @@ public class ParallelStreams
 	}
     }
 
-    public synchronized int poll()
+    public int poll()
 	throws IOException
     {
-	int rc = ins[recvBlock].available();
-	MyDebug.out.println("PS: poll()- rc = "+rc);
-	// AD: TODO- should be a little bit expanded to be more accurate :-)
-	return rc;
-    }
-
-    public synchronized int recv(byte[] b, int off, int len)
-	throws IOException
-    {
-	MyDebug.out.println("PS: recv()- len = "+len);
-	int nextAvail = 0;
-	int done = 0;
-	do {
-	    int nextRead = Math.min(len, blockSize - recvPos);
-	    int rc = ins[recvBlock].read(b, off, nextRead);
-	    done += rc;
-	    off  += rc;
-	    len  -= rc;
-	    recvPos = (recvPos + rc) % blockSize;
-	    if(recvPos == 0) {
-		recvBlock = (recvBlock + 1) % numWays;
+	synchronized(this) {
+	    while (readerBusy) {
+		try {
+		    wait();
+		} catch(Exception e) {
+		}
+		readerBusy = true;
 	    }
-	    nextAvail = ins[recvBlock].available();
-	    if(rc < nextRead || nextAvail == 0)
-		break;
-	    //	} while(nextAvail > 0 && len > 0);
-	} while(len > 0);
-	MyDebug.out.println("PS: recv()- done = "+done);
-	return done;
+	}
+	try {
+	    int rc = ins[recvBlock].available();
+	    MyDebug.out.println("PS: poll()- rc = "+rc);
+	    // AD: TODO- should be a little bit expanded to be more accurate :-)
+	    return rc;
+	} finally {
+	    synchronized(this) {
+		readerBusy = false;
+		notifyAll();
+	    }
+	}
     }
 
-    public synchronized void send(byte[] b, int off, int len)
+    public int recv(byte[] b, int off, int len)
 	throws IOException
     {
-	MyDebug.out.println("PS: send()- len = "+len);
-	while(len > 0) {
-	    int l = Math.min(len, blockSize - sendPos);
-	    outs[sendBlock].write(b, off, l);
-	    outs[sendBlock].flush();
-	    off += l;
-	    len -= l;
-	    sendPos = (sendPos + l) % blockSize;
-	    if(sendPos == 0) {
-		sendBlock = (sendBlock + 1) % numWays;
+	synchronized(this) {
+	    while (readerBusy) {
+		try {
+		    wait();
+		} catch(Exception e) {
+		}
+		readerBusy = true;
+	    }
+	}
+	try {
+	    MyDebug.out.println("PS: recv()- len = "+len);
+	    int nextAvail = 0;
+	    int done = 0;
+	    do {
+		int nextRead = Math.min(len, blockSize - recvPos);
+		int rc = ins[recvBlock].read(b, off, nextRead);
+		if (rc < 0) {
+		    if (done == 0) {
+			MyDebug.out.println("PS: recv()- done = "+-1);
+			return -1;
+		    }
+		    break;
+		}
+		done += rc;
+		off  += rc;
+		len  -= rc;
+		recvPos = (recvPos + rc) % blockSize;
+		if(recvPos == 0) {
+		    recvBlock = (recvBlock + 1) % numWays;
+		}
+		nextAvail = ins[recvBlock].available();
+		if(rc < nextRead || nextAvail == 0)
+		    break;
+		//	} while(nextAvail > 0 && len > 0);
+	    } while(len > 0);
+	    MyDebug.out.println("PS: recv()- done = "+done);
+	    return done;
+	} finally {
+	    synchronized(this) {
+		readerBusy = false;
+		notifyAll();
+	    }
+	}
+    }
+
+    public void send(byte[] b, int off, int len)
+	throws IOException
+    {
+	synchronized(this) {
+	    while (writerBusy) {
+		try {
+		    wait();
+		} catch(Exception e) {
+		}
+		writerBusy = true;
+	    }
+	}
+	try {
+	    MyDebug.out.println("PS: send()- len = "+len);
+	    while(len > 0) {
+		int l = Math.min(len, blockSize - sendPos);
+		outs[sendBlock].write(b, off, l);
+		outs[sendBlock].flush();
+		off += l;
+		len -= l;
+		sendPos = (sendPos + l) % blockSize;
+		if(sendPos == 0) {
+		    sendBlock = (sendBlock + 1) % numWays;
+		}
+	    }
+	} finally {
+	    synchronized(this) {
+		writerBusy = false;
+		notifyAll();
 	    }
 	}
     }

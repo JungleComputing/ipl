@@ -3,6 +3,7 @@ package ibis.connect.socketFactory;
 import ibis.connect.util.MyDebug;
 import ibis.connect.util.ConnProps;
 import ibis.util.IPUtils;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +19,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.StringTokenizer;
 
 /* A generalized SocketFactory which supports:
    -- client/server connection scheme
@@ -58,6 +60,8 @@ public class ExtSocketFactory
     // Pick one of the above choices for defaults
     private static String[] defaultTypes = strategyTCP;
 
+    private static boolean parallel = false;
+
     /* static constructor
      */
     static {
@@ -81,9 +85,23 @@ public class ExtSocketFactory
 			"ibis.connect.socketFactory.AnyTCPSocketType");
 	// Declare new nicknames here.
 
-	Properties p = System.getProperties();
-	String bl = p.getProperty(ConnProps.datalinks);
-	String cs = p.getProperty(ConnProps.controllinks);
+	String bl = TypedProperties.stringPropertyValue(ConnProps.datalinks);
+	String cs = TypedProperties.stringPropertyValue(ConnProps.controllinks);
+
+	if (bl != null) {
+	    StringTokenizer st = new StringTokenizer(bl, " ,\t\n\r\f");
+	    bl = null;
+	    while (st.hasMoreTokens()) {
+		String s = st.nextToken();
+		loadSocketType(s);
+		if (s.equals("ParallelStreams")) {
+		    // ParallelStreams has an underlying brokered socket type.
+		    parallel = true;
+		}
+		else bl = s;
+	    }
+	}
+
 	if(bl == null || cs == null) {
 	    if(MyDebug.VERBOSE())
 		System.err.println("# Loading defaults...");
@@ -243,7 +261,8 @@ public class ExtSocketFactory
 					      boolean hintIsServer)
 	throws IOException
     {
-	SocketType t = defaultBrokeredLink;
+	SocketType t = parallel ? loadSocketType("ParallelStreams") :
+				  defaultBrokeredLink;
 	SocketType.ConnectProperties props =
 	    new SocketType.DefaultConnectProperties();
 	if(t == null)
@@ -370,6 +389,10 @@ public class ExtSocketFactory
 	    }
 	System.err.println("# ExtSocketFactory: warning- no SocketType found for brokered links!");
 	return null;
+    }
+
+    public static BrokeredSocketFactory getBrokeredType() {
+	return (BrokeredSocketFactory) defaultBrokeredLink;
     }
 }
 
