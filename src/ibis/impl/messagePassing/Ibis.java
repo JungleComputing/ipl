@@ -445,7 +445,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	if (ended) {
 	    return;
 	}
-	ended = false;
+	ended = true;
 
 	registry.end();
 

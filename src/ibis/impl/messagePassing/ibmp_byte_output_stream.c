@@ -661,7 +661,7 @@ void Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array(
 	buf = pan_malloc(sz); \
 	ibmp_unlock(env); \
 	msg->iov[msg->iov_len].data = buf; \
-	msg->iov[msg->iov_len].len = len * sizeof(jtype); \
+	msg->iov[msg->iov_len].len = sz; \
 	(*env)->Get ## JType ## ArrayRegion(env, b, (jsize) off, (jsize) len, (jtype *) buf); \
     } else { \
 	iovec_grow(env, msg, 0); \

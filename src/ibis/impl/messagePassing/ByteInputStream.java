@@ -49,14 +49,14 @@ final class ByteInputStream
 
     native void resetMsg(int msgHandle);
 
-    private native int readBooleanArray(boolean[] array, int off, int len);
-    private native int readByteArray(byte[] array, int off, int len);
-    private native int readCharArray(char[] array, int off, int len);
-    private native int readShortArray(short[] array, int off, int len);
-    private native int readIntArray(int[] array, int off, int len);
-    private native int readLongArray(long[] array, int off, int len);
-    private native int readFloatArray(float[] array, int off, int len);
-    private native int readDoubleArray(double[] array, int off, int len);
+    private native int readBooleanArray(boolean[] array, int off, int len, int msgHandle);
+    private native int readByteArray(byte[] array, int off, int len, int msgHandle);
+    private native int readCharArray(char[] array, int off, int len, int msgHandle);
+    private native int readShortArray(short[] array, int off, int len, int msgHandle);
+    private native int readIntArray(int[] array, int off, int len, int msgHandle);
+    private native int readLongArray(long[] array, int off, int len, int msgHandle);
+    private native int readFloatArray(float[] array, int off, int len, int msgHandle);
+    private native int readDoubleArray(double[] array, int off, int len, int msgHandle);
 
     int read(boolean b[], int off, int len) throws IbisIOException {
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
@@ -64,7 +64,7 @@ final class ByteInputStream
 	    if (msgSize == 0) {
 		msg.nextFragment();
 	    }
-	    int rd = readBooleanArray(b, off, len);
+	    int rd = readBooleanArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_BOOLEAN;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
 		throw new IbisIOException("read(boolean[]): insufficient data");
@@ -89,7 +89,7 @@ final class ByteInputStream
 		    System.err.println("After nextFragment() want to read " + len + " bytes, avaible in fragment " + Integer.toHexString(msgHandle) + ": " + msgSize);
 		}
 	    }
-	    int rd = readByteArray(b, off, len);
+	    int rd = readByteArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_BYTE;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 		System.err.println("Now msgSize := " + msgSize);
@@ -110,7 +110,7 @@ final class ByteInputStream
 	    if (msgSize == 0) {
 		msg.nextFragment();
 	    }
-	    int rd = readCharArray(b, off, len);
+	    int rd = readCharArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_CHAR;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
 		throw new IbisIOException("read(char[]): insufficient data");
@@ -128,7 +128,7 @@ final class ByteInputStream
 	    if (msgSize == 0) {
 		msg.nextFragment();
 	    }
-	    int rd = readShortArray(b, off, len);
+	    int rd = readShortArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_SHORT;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
 		throw new IbisIOException("read(short[]): insufficient data");
@@ -146,7 +146,7 @@ final class ByteInputStream
 	    if (msgSize == 0) {
 		msg.nextFragment();
 	    }
-	    int rd = readIntArray(b, off, len);
+	    int rd = readIntArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_INT;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
 		throw new IbisIOException("read(int[]): insufficient data");
@@ -164,7 +164,7 @@ final class ByteInputStream
 	    if (msgSize == 0) {
 		msg.nextFragment();
 	    }
-	    int rd = readLongArray(b, off, len);
+	    int rd = readLongArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_LONG;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
 		throw new IbisIOException("read(long[]): insufficient data");
@@ -182,7 +182,7 @@ final class ByteInputStream
 	    if (msgSize == 0) {
 		msg.nextFragment();
 	    }
-	    int rd = readFloatArray(b, off, len);
+	    int rd = readFloatArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_FLOAT;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
 		throw new IbisIOException("read(float[]): insufficient data");
@@ -200,7 +200,7 @@ final class ByteInputStream
 	    if (msgSize == 0) {
 		msg.nextFragment();
 	    }
-	    int rd = readDoubleArray(b, off, len);
+	    int rd = readDoubleArray(b, off, len, msgHandle);
 	    msgSize -= rd * SIZEOF_DOUBLE;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
 		throw new IbisIOException("read(double[]): insufficient data");

@@ -187,6 +187,7 @@ DUMP_DATA(jlong, "lld ", int64_t)
 DUMP_DATA(jfloat, "f ", float)
 DUMP_DATA(jdouble, "f ", double)
 
+#define COPY_THRESHOLD 64
 
 #define ARRAY_READ(JType, jtype) \
 jint Java_ibis_ipl_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
@@ -194,33 +195,35 @@ jint Java_ibis_ipl_impl_messagePassing_ByteInputStream_read ## JType ## Array( \
 		jobject this, \
 		jtype ## Array a, \
 		jint off, \
-		jint len) \
+		jint len, \
+		jint m) \
 { \
-    jtype      *buf = (*env)->Get ## JType ## ArrayElements(env, a, NULL); \
-    jint	m = (*env)->GetIntField(env, this, fld_msgHandle); \
     ibp_msg_p	msg = (ibp_msg_p)m; \
     int		rd; \
+    int		sz = (int) len * sizeof(jtype); \
     \
     assert(msg != NULL); \
     \
-    rd = ibp_consume(env, msg, buf + off, (int)len * sizeof(jtype)); \
-    IBP_VPRINTF(250, env, ("Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
-		rd / sizeof(jtype), (int)len, #JType, msg, buf, \
-		ibp_msg_consume_left(msg))); \
-if (0 && sizeof(jtype) == sizeof(double)) { \
-int i; \
-int n = rd < len ? rd : len; \
-fprintf(stderr, "Read Data = ["); \
-for (i = off; i < n; i++) { \
-int *p = (int *) &buf[i]; \
-fprintf(stderr, "0x%x 0x%x\n", *p, *(p+1)); \
-} \
-fprintf(stderr, "]\n"); \
-} \
-    dump_ ## jtype(buf + off, rd < len ? rd : len); \
-    \
-    (*env)->Release ## JType ## ArrayElements(env, a, buf, 0); \
-    \
+    if (sz <= COPY_THRESHOLD) { \
+	jtype buf[COPY_THRESHOLD/sizeof(jtype)]; \
+	rd = ibp_consume(env, msg, buf, sz); \
+	IBP_VPRINTF(250, env, ("Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
+		    rd / sizeof(jtype), (int)len, #JType, msg, buf, \
+		    ibp_msg_consume_left(msg))); \
+	dump_ ## jtype(buf, rd < len ? rd : len); \
+	(*env)->Set ## JType ## ArrayRegion(env, a, off, len, buf); \
+    } \
+    else { \
+	jtype      *buf = (*env)->Get ## JType ## ArrayElements(env, a, NULL); \
+	rd = ibp_consume(env, msg, buf + off, sz); \
+	IBP_VPRINTF(250, env, ("Consumed %d (requested %d) %s from msg %p into buf %p, currently holds %d\n", \
+		    rd / sizeof(jtype), (int)len, #JType, msg, buf, \
+		    ibp_msg_consume_left(msg))); \
+	dump_ ## jtype(buf + off, rd < len ? rd : len); \
+	\
+	(*env)->Release ## JType ## ArrayElements(env, a, buf, 0); \
+	\
+    } \
     return (jint)(rd / sizeof(jtype)); \
 }
 
@@ -239,7 +242,7 @@ jboolean Java_ibis_ipl_impl_messagePassing_ByteInputStream_getInputStreamMsg(
 		jclass this,
 		jarray jtags)
 {
-    jint       *tags;
+    jint       tags[6];
     ibp_msg_p   msg;
     void       *proto;
     ibmp_byte_stream_hdr_p hdr;
@@ -251,14 +254,15 @@ jboolean Java_ibis_ipl_impl_messagePassing_ByteInputStream_getInputStreamMsg(
     }
 
     hdr = ibmp_byte_stream_hdr(proto);
-    tags = (*env)->GetIntArrayElements(env, jtags, NULL);
+
     tags[0] = ibp_msg_sender(msg);
     tags[1] = hdr->src_port;
     tags[2] = hdr->dest_port;
     tags[3] = (jint)msg;
     tags[4] = (jint)ibp_msg_consume_left(msg);
     tags[5] = hdr->msgSeqno;
-    (*env)->ReleaseIntArrayElements(env, jtags, tags, 0);
+
+    (*env)->SetIntArrayRegion(env, jtags, (jint)0, (jint)6, tags);
 
     return JNI_TRUE;
 }
