@@ -6,7 +6,6 @@ if "%JAVA_HOME%" == "" goto javahome
 if defined ANT_HOME (
         echo You have the ANT_HOME environment variable set.
 	echo I am resetting it to 3rdparty\apache-ant-1.6.1
-
 )
 
 set ANT_HOME=3rdparty\apache-ant-1.6.1
