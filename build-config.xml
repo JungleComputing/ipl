@@ -395,46 +395,46 @@ to the command line.
 		file="${ibis}/configuration.sh">KARMI=${karmi}
 </echo>
 
-	<!-- Concat the stuff in scripts to the bin directory -->
+	<!-- Concat the stuff in src/scripts to the bin directory -->
 	<mkdir dir="${ibis}/bin"/>
 
 	<concat destfile="${ibis}/bin/ibisc">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/ibisc" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/ibisc" />
 	</concat>
 	<chmod file="${ibis}/bin/ibisc" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/io_gen">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/io_gen" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/io_gen" />
 	</concat>
 	<chmod file="${ibis}/bin/io_gen" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/ibis_nameserver">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/ibis_nameserver" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/ibis_nameserver" />
 	</concat>
 	<chmod file="${ibis}/bin/ibis_nameserver" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/ibis_controlhub">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/ibis_controlhub" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/ibis_controlhub" />
 	</concat>
 	<chmod file="${ibis}/bin/ibis_controlhub" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/jdis">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/jdis" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/jdis" />
 	</concat>
 	<chmod file="${ibis}/bin/jdis" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/jp">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/jp" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/jp" />
 	</concat>
 	<chmod file="${ibis}/bin/jp" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/satinc">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/satinc" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/satinc" />
 	</concat>
 	<chmod file="${ibis}/bin/satinc" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/run_ibis">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/run_ibis" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run_ibis" />
 	</concat>
 	<if>
 	    <os family="mac"/>
@@ -445,32 +445,32 @@ to the command line.
 	<chmod file="${ibis}/bin/run_ibis" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/extract_jars">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/extract_jars" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/extract_jars" />
 	</concat>
 	<chmod file="${ibis}/bin/extract_jars" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/tree_ioc">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/tree_ioc" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/tree_ioc" />
 	</concat>
 	<chmod file="${ibis}/bin/tree_ioc" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/run_ibis_wide_area">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/run_ibis_wide_area" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run_ibis_wide_area" />
 	</concat>
 	<chmod file="${ibis}/bin/run_ibis_wide_area" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/grun">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/grun" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/grun" />
 	</concat>
 	<chmod file="${ibis}/bin/grun" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/pprun">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/pprun" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/pprun" />
 	</concat>
 	<chmod file="${ibis}/bin/pprun" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/frun">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/frun" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/frun" />
 	</concat>
 	<chmod file="${ibis}/bin/frun" perm="+x"/>
 
@@ -481,7 +481,7 @@ to the command line.
 	    use run-das
 	-->
 	<concat destfile="${ibis}/bin/run-das">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/run-das" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/run-das" />
 	</concat>
 	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_PORT@" value="9826"/>
 	<replace file="${ibis}/bin/run-das" token="@IBIS_NS_HOST@" value="${hostname}"/>
@@ -495,7 +495,7 @@ to the command line.
 
 	<copy
 		overwrite="true"
-		file="${ibis}/scripts/cluster_wrapper.in"
+		file="${ibis}/src/scripts/cluster_wrapper.in"
 		tofile="${ibis}/bin/cluster_wrapper">
 	    <filterchain>
 		<filterreader
@@ -516,12 +516,12 @@ to the command line.
 	<chmod file="${ibis}/bin/cluster_wrapper" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/csim_run_ibis">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/csim_run_ibis" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/csim_run_ibis" />
 	</concat>
 	<chmod file="${ibis}/bin/csim_run_ibis" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/csim_run_ibis_tcp">
-	    <filelist dir="${ibis}" files="configuration.sh,scripts/csim_run_ibis_tcp" />
+	    <filelist dir="${ibis}" files="configuration.sh,src/scripts/csim_run_ibis_tcp" />
 	</concat>
 	<chmod file="${ibis}/bin/csim_run_ibis_tcp" perm="+x"/>
 
@@ -545,12 +545,12 @@ to the command line.
 		replace="set \1="/>
 
 	<concat destfile="${ibis}/bin/run_ibis.bat">
-	    <filelist dir="${ibis}" files="configuration.bat,scripts/run_ibis.bat" />
+	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/run_ibis.bat" />
 	</concat>
 	<chmod file="${ibis}/bin/run_ibis.bat" perm="+x"/>
 
 	<concat destfile="${ibis}/bin/ibis_nameserver.bat">
-	    <filelist dir="${ibis}" files="configuration.bat,scripts/ibis_nameserver.bat" />
+	    <filelist dir="${ibis}" files="configuration.bat,src/scripts/ibis_nameserver.bat" />
 	</concat>
 	<chmod file="${ibis}/bin/ibis_nameserver.bat" perm="+x"/>
 
