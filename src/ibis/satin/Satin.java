@@ -283,6 +283,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		    reqprops.add("worldmodel", "open");
 		}
 
+// @@@ need OneToMany if tuplespace is used
 		if (doUpcalls) {
 		    if (upcallPolling) {
 			reqprops.add("communication", "OneToOne, ManyToOne, Reliable, PollUpcalls, ExplicitReceipt");
@@ -1599,10 +1600,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 						killChildrenOf(r.parent.stamp, r.parent.owner);
 
 						if(!r.parentOwner.equals(ident)) {
-							System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
+							if(INLET_DEBUG || STEAL_DEBUG) {
+								System.err.println("SATIN '" + ident.name() + ": prematurely sending exception result");
+							}
 							sendResult(r.parent, null);
 						}
-
 					}
 				}
 
