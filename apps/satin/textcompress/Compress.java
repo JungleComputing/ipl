@@ -5,8 +5,14 @@ import java.io.File;
 class Compress extends ibis.satin.SatinObject
 {
     static final boolean traceMatches = false;
-    static final boolean traceLookahead = true;
+    static final boolean traceLookahead = false;
 
+    private static void generateIndent( java.io.PrintStream str, int n )
+    {
+        for( int i=0; i<n; i++ ){
+            str.print( ' ' );
+        }
+    }
     // Given a byte array, build an array of backreferences. That is,
     // construct an array that at each text position gives the index
     // of the previous occurence of that hash code, or -1 if there is none.
@@ -68,6 +74,27 @@ class Compress extends ibis.satin.SatinObject
             backpos = backrefs[backpos];
         }
         return res;
+    }
+
+    /**
+     * Given a list of backreferences and a match length, return an
+     * adapted version of the nearest (and hence cheapest) backreference that
+     * covers this match length.
+     */
+    Backref buildBestMove( Backref results[] , int n )
+    {
+        Backref r = null;
+
+        for( int i=0; i<results.length; i++ ){
+            Backref b = results[i];
+
+            if( b != null && b.len>=n ){
+                if( r == null || r.backpos<b.backpos ){
+                    r = b;
+                }
+            }
+        }
+        return new Backref( r.backpos, r.pos, n );
     }
 
     public Backref shallowEvaluateBackref( final byte text[], final int backrefs[], int backpos, int pos )
@@ -144,49 +171,72 @@ class Compress extends ibis.satin.SatinObject
         }
 
         if( traceLookahead ){
-            for( int i=0; i<depth; i++ ){
-                System.out.print( ' ' );
-            }
+            generateIndent( System.out, depth );
             System.out.println( "D" + depth + ": minLen=" + minLen + ", maxLen=" + maxLen );
-            for( int i=0; i<depth; i++ ){
-                System.out.print( ' ' );
-            }
-            System.out.println( "D" + depth + ":  considering move: " + mv );
+            generateIndent( System.out, depth );
+            System.out.println( "D" + depth + ":  considering move " + mv );
             for( int c=0; c<results.length; c++ ){
                 Backref r = results[c];
                 if( r != null ){
-                    for( int i=0; i<depth; i++ ){
-                        System.out.print( ' ' );
-                    }
-                    System.out.println( "D" + depth + ": considering move: " + r );
+                    generateIndent( System.out, depth );
+                    System.out.println( "D" + depth + ":  considering move " + r );
                 }
             }
         }
 
         if( depth<Configuration.LOOKAHEAD_DEPTH ){
-            // We have some recursion left, add the best gain from the recursion
-            // to our own score.
+            // We have some recursion depth left. We know we can backreference
+            // a span of at most maxLen characters. In recursion see if it
+            // is worthwile to shorten this to allow a longer subsequent
+            // match.
+            if( minLen<Configuration.MINIMAL_SPAN ){
+                minLen = Configuration.MINIMAL_SPAN;
+            }
+            if( minLen<maxLen-Configuration.MAX_SHORTENING ){
+                minLen = maxLen-Configuration.MAX_SHORTENING;
+            }
+
+            Backref a[] = new Backref[maxLen+1];
+            if( traceLookahead ){
+                generateIndent( System.out, depth );
+                System.out.println( "D" + depth + ": @" + pos + ": evaluating backreferences of " + minLen + "..." + maxLen + " bytes" );
+            }
+
+            for( int i=minLen; i<=maxLen; i++ ){
+                a[i] = selectBestMove( text, backrefs, pos+i, depth );
+            }
+            sync();
+            int bestGain = 0;
+            for( int i=minLen; i<=maxLen; i++ ){
+                Backref r = a[i];
+
+                if( r != null ){
+                    Backref mymv = buildBestMove( results, i );
+                    mymv.addGain( r );
+                    int g = mymv.getGain();
+
+                    if( g>bestGain ){
+                        mv = mymv;
+                        bestGain = g;
+                    }
+                }
+            }
+        }
+        else {
+            // We're at the end of recursion. Simply pick the match
+            // with the best gain.
+            int bestGain = 0;
+
             for( int i=0; i<results.length; i++ ){
                 Backref r = results[i];
 
                 if( r != null ){
-                    Backref m = selectBestMove( text, backrefs, pos+r.len, depth+1 );
-                    sync();
-                    r.addGain( m );
-                }
-            }
-            sync();
-        }
+                    int g = r.getGain();
 
-        int bestGain = 0;
-        for( int i=0; i<results.length; i++ ){
-            Backref r = results[i];
-            if( r != null ){
-                int g = r.getGain();
-
-                if( g>bestGain ){
-                    mv = r;
-                    bestGain = g;
+                    if( g>bestGain ){
+                        mv = r;
+                        bestGain = g;
+                    }
                 }
             }
         }
