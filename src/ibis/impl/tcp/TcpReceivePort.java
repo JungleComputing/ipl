@@ -32,21 +32,18 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 	boolean allowUpcalls = false;
 	Upcall upcall;
+	ReceivePortConnectUpcall connUpcall;
 	
 	private boolean started = false;
 	private boolean connection_setup_present = false;
 
 	private SerializationStreamReadMessage m = null;
 
-
-	TcpReceivePort(TcpPortType type, String name) throws IbisIOException {
-		this(type, name, null);
-	}
-
-	TcpReceivePort(TcpPortType type, String name, Upcall upcall) throws IbisIOException {
+	TcpReceivePort(TcpPortType type, String name, Upcall upcall, ReceivePortConnectUpcall connUpcall) throws IbisIOException {
 		this.type   = type;
 		this.name   = name;
 		this.upcall = upcall;
+		this.connUpcall = connUpcall;
 
 		connections = new SerializationStreamConnectionHandler[2];
 		connectionsSize = 2;
@@ -177,6 +174,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	public synchronized boolean setupConnection(TcpSendPortIdentifier id) { 
 //		System.err.println("setupConnection"); System.err.flush();
 		if (started) { 
+			if (connUpcall != null && ! connUpcall.gotConnection(id)) {
+			    return false;
+			}
 			connection_setup_present = true;
 			notifyAll();
 			return true;
@@ -293,6 +293,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 
 		TcpIbis.tcpPortHandler.releaseInput(si, id);
+		if (connUpcall != null) {
+		    connUpcall.lostConnection(si);
+		}
 		notifyAll();
 	}
 

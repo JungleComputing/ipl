@@ -132,25 +132,21 @@ class TcpPortType implements PortType, Config {
 	}
 
 	public ReceivePort createReceivePort(String name) throws IbisIOException {
-
-		TcpReceivePort p = new TcpReceivePort(this, name);
-
-		if(DEBUG) {
-			System.out.println(ibis.name() + ": Receiveport created of type '" + this.name + "', name = '" + name + "'");
-		}
-
-		ibis.tcpReceivePortNameServerClient.bind(name, p);
-
-		if(DEBUG) {
-			System.out.println(ibis.name() + ": Receiveport bound in registry, type = '" + this.name + "', name = '" + name + "'");
-		}
-
-		return p;
+	    return createReceivePort(name, null, null);
 	}
 
 	public ReceivePort createReceivePort(String name, Upcall u)  throws IbisIOException { 
+	    return createReceivePort(name, u, null);
 
-		TcpReceivePort p = new TcpReceivePort(this, name, u);
+	}
+
+	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall cU) throws IbisIOException {
+	    return createReceivePort(name, null, cU);
+	}
+
+
+	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU)  throws IbisIOException { 
+		TcpReceivePort p = new TcpReceivePort(this, name, u, cU);
 
 		if(DEBUG) {
 			System.out.println(ibis.name() + ": Receiveport created of type '" + this.name + "', name = '" + name + "'");
@@ -163,20 +159,6 @@ class TcpPortType implements PortType, Config {
 		}
 
 		return p;
-	}
-
-	public ReceivePort createReceivePort(String name, ReceivePortConnectUpcall cU) throws IbisIOException {
-
-		System.err.println("Must implement createReceivePort(..., ReceivePortConnectUpcall)");
-
-		return null;
-	}
-
-	public ReceivePort createReceivePort(String name, Upcall u, ReceivePortConnectUpcall cU)  throws IbisIOException { 
-
-		System.err.println("Must implement createReceivePort(..., ReceivePortConnectUpcall)");
-
-		return null;
 	}
 
 	void freeReceivePort(String name) throws IbisIOException {
