@@ -80,7 +80,7 @@ def getCommandOutput( command ):
 def build_run_command( pno, command, port ):
     ot = ''
     if orderedTuples:
-        ot = '-Dsatin.tuplespace.ordened=true '
+        ot = '-Dsatin.tuplespace.numbered=true '
     return "prun -1 -t %s %s %d %d fs0.das2.cs.vu.nl %s%s -satin-closed" % (maxRunTime, run_ibis, pno, port, ot, command)
 
 def runP( P, command, results ):

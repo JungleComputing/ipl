@@ -26,7 +26,7 @@ Gzip compressed SAT problems are also accepted, provided that they
 are stored in a file that ends with `.gz'.
 
 DPLLSolver and SATSolver require the -satin-closed option for all
-parallel runs. SATSolver also requires the -Dsatin.tuplespace.ordened=true
+parallel runs. SATSolver also requires the -Dsatin.tuplespace.numbered=true
 option. We realize that a compulsory option should be handled by
 the software itself, but for the moment we cannot resolve the
 technical problems with that.
@@ -67,12 +67,12 @@ something over 1000).
 After the name server has been started you can run it on just your
 local processor with:
 
-$ ~/ibis/bin/run_ibis 0 1 foo NAMESERVER_PORT NAMESERVER_HOSTNAME SATSolver examples/benchmark-suite/qg5-10.cnf -satin-closed -Dsatin.tuplespace.ordened=true
+$ ~/ibis/bin/run_ibis 0 1 foo NAMESERVER_PORT NAMESERVER_HOSTNAME SATSolver examples/benchmark-suite/qg5-10.cnf -satin-closed -Dsatin.tuplespace.numbered=true
 
 To run it in parallel on the DAS2 you need to start the ibis_nameserver
 on the DAS2 fs0 processor (see above), and you can submit a job with:
 
-$ prun -1 -v ~/ibis/bin/run_ibis 2 9826 fs0.das2.cs.vu.nl SATSolver examples/benchmark-suite/qg5-10.cnf -satin-closed -Dsatin.tuplespace.ordened=true
+$ prun -1 -v ~/ibis/bin/run_ibis 2 9826 fs0.das2.cs.vu.nl SATSolver examples/benchmark-suite/qg5-10.cnf -satin-closed -Dsatin.tuplespace.numbered=true
 
 Where `2' is the number of processors for this particular job, and 9826
 is the number of the nameserver port for this example. 
