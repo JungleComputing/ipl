@@ -76,7 +76,7 @@ public interface Config {
 	static final boolean HANDLE_MESSAGES_IN_LATENCY = false;
 
 	/** Use multicast to update the tuple space */
-	static final boolean SUPPORT_TUPLE_MULTICAST = false;
+	static final boolean SUPPORT_TUPLE_MULTICAST = true;
 
 	/** Enable or disable debug prints concerning communication. **/
 	static final boolean COMM_DEBUG  = false;

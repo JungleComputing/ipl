@@ -3623,7 +3623,10 @@ public final class Satin implements Config, ResizeHandler,
 		} else {
 			for(int i=0; i<size; i++) {
 				try {
-					SendPort s = victims.getPort(i);
+				    SendPort s = null;
+				    synchronized(this) {
+					s = victims.getPort(i);
+				    }
 					WriteMessage writeMessage = s.newMessage();
 					writeMessage.writeByte(Protocol.TUPLE_ADD);
 					writeMessage.writeObject(key);
