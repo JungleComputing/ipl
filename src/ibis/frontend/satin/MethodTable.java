@@ -4,7 +4,6 @@ import ibis.frontend.generic.BT_Analyzer;
 
 import java.util.HashMap;
 import java.util.Vector;
-import java.util.ArrayList;
 
 import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.JavaClass;

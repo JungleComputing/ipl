@@ -1,10 +1,9 @@
 package ibis.impl.net;
 
+import ibis.io.Conversion;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-
-import ibis.io.Conversion;
 
 import java.io.IOException;
 //import java.io.ObjectOutputStream;

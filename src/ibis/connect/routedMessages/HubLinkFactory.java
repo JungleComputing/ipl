@@ -1,7 +1,7 @@
 package ibis.connect.routedMessages;
 
-import ibis.connect.util.MyDebug;
 import ibis.connect.util.ConnProps;
+import ibis.connect.util.MyDebug;
 
 import java.io.IOException;
 import java.util.Properties;

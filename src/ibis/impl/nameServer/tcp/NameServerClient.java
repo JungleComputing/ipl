@@ -1,7 +1,7 @@
 package ibis.impl.nameServer.tcp;
 
-import ibis.impl.nameServer.NameServer;
 import ibis.impl.nameServer.NSProps;
+import ibis.impl.nameServer.NameServer;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
@@ -18,10 +18,10 @@ import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.DataOutputStream;
 import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.ServerSocket;

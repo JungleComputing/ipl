@@ -1,10 +1,10 @@
 package ibis.impl.nio;
 
+import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
-import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.nio.channels.Channel;

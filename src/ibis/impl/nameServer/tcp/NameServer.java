@@ -1,8 +1,7 @@
 package ibis.impl.nameServer.tcp;
 
-import ibis.impl.nameServer.NSProps;
-
 import ibis.connect.controlHub.ControlHub;
+import ibis.impl.nameServer.NSProps;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.IbisIdentifier;
@@ -10,19 +9,19 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.util.PoolInfoServer;
 import ibis.util.TypedProperties;
 
-import java.util.Calendar;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.DataInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Hashtable;
+import java.util.Calendar;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 

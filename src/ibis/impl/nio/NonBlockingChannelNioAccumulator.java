@@ -1,13 +1,13 @@
 package ibis.impl.nio;
 
+import ibis.ipl.IbisError;
+
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
-
-import ibis.ipl.IbisError;
 
 final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 

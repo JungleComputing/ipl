@@ -324,7 +324,7 @@ public class GlobalResultTable implements Upcall, Config {
 			    return;
 		}
 		if (ASSERTS) {
-			    satin.assertLocked(satin);
+			    Satin.assertLocked(satin);
 		}
 				
 		if (toSend.size() == 0) return;

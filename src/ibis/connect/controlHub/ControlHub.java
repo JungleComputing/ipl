@@ -1,8 +1,8 @@
 package ibis.connect.controlHub;
 
 import ibis.connect.routedMessages.HubProtocol;
-import ibis.connect.util.MyDebug;
 import ibis.connect.util.ConnProps;
+import ibis.connect.util.MyDebug;
 import ibis.util.TypedProperties;
 
 import java.io.EOFException;

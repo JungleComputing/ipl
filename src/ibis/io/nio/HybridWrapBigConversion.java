@@ -1,5 +1,7 @@
 package ibis.io.nio;
 
+import ibis.io.SimpleBigConversion;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -8,8 +10,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
-
-import ibis.io.SimpleBigConversion;
 
 public final class HybridWrapBigConversion extends SimpleBigConversion { 
 

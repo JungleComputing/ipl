@@ -1,22 +1,19 @@
 package ibis.impl.net.tcp_plain;
 
-import ibis.impl.net.NetIbis;
-import ibis.impl.net.NetIO;
+import ibis.connect.socketFactory.ConnectProperties;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
+import ibis.impl.net.NetIO;
+import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPort;
+import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceivePort;
 import ibis.impl.net.NetSendPort;
-import ibis.impl.net.NetPortType;
-
 import ibis.ipl.DynamicProperties;
-
-import ibis.connect.socketFactory.ConnectProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 

@@ -1,7 +1,7 @@
 package ibis.connect.socketFactory;
 
-import ibis.connect.util.MyDebug;
 import ibis.connect.util.ConnProps;
+import ibis.connect.util.MyDebug;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
@@ -16,9 +16,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Properties;
-import java.util.Vector;
 import java.util.StringTokenizer;
+import java.util.Vector;
 
 /* A generalized SocketFactory which supports:
    -- client/server connection scheme

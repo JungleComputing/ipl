@@ -9,10 +9,9 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
-
 import ibis.util.IbisSocketFactory;
-import ibis.util.nativeCode.Rdtsc;
 import ibis.util.TypedProperties;
+import ibis.util.nativeCode.Rdtsc;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;

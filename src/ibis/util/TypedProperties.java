@@ -1,7 +1,7 @@
 package ibis.util;
 
-import java.util.Properties;
 import java.util.Enumeration;
+import java.util.Properties;
 
 /**
  * Utility to extract some typed system properties.

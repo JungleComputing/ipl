@@ -11,7 +11,6 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
 import ibis.impl.net.NetReceiveBufferFactoryDefaultImpl;
-import ibis.impl.net.NetIbis;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

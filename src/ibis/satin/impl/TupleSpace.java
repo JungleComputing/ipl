@@ -6,7 +6,6 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 import ibis.satin.ActiveTuple;
-import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.Serializable;

@@ -1,11 +1,10 @@
 package ibis.impl.net;
 
+import ibis.io.Conversion;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
-
-import ibis.io.Conversion;
 
 import java.io.IOException;
 

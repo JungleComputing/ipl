@@ -2,6 +2,7 @@
  **/
 package ibis.impl.tcp;
 
+import ibis.connect.socketFactory.ConnectProperties;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.ConnectionRefusedException;
@@ -10,8 +11,6 @@ import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
 import ibis.util.IbisSocketFactory;
 import ibis.util.ThreadPool;
-
-import ibis.connect.socketFactory.ConnectProperties;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

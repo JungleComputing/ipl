@@ -14,8 +14,6 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.GatheringByteChannel;
 
-import ibis.util.nativeCode.Rdtsc;
-
 /**
  * Nio Accumulator. Writes data to java.nio.ByteBuffer's
  *

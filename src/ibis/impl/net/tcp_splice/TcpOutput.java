@@ -1,7 +1,7 @@
 package ibis.impl.net.tcp_splice;
 
-import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.ExtSocketFactory;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;

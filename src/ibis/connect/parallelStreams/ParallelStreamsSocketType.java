@@ -1,8 +1,8 @@
 package ibis.connect.parallelStreams;
 
 import ibis.connect.socketFactory.BrokeredSocketFactory;
-import ibis.connect.socketFactory.SocketType;
 import ibis.connect.socketFactory.ConnectProperties;
+import ibis.connect.socketFactory.SocketType;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,7 +1,6 @@
 package ibis.impl.messagePassing;
 
 import ibis.ipl.ReceivePortConnectUpcall;
-
 import ibis.util.ConditionVariable;
 import ibis.util.TypedProperties;
 

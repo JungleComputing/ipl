@@ -9,8 +9,6 @@ import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
-import ibis.impl.net.NetIbis;
-
 import ibis.util.ConditionVariable;
 
 import java.io.IOException;

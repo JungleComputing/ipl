@@ -1,14 +1,14 @@
 package ibis.impl.util;
 
-import ibis.ipl.ConnectionTimedOutException;
-import ibis.util.IbisSocketFactory;
-import ibis.util.IPUtils;
 import ibis.connect.socketFactory.ConnectProperties;
+import ibis.ipl.ConnectionTimedOutException;
+import ibis.util.IPUtils;
+import ibis.util.IbisSocketFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;

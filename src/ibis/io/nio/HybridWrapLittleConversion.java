@@ -1,5 +1,7 @@
 package ibis.io.nio;
 
+import ibis.io.SimpleLittleConversion;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
@@ -8,8 +10,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
-
-import ibis.io.SimpleLittleConversion;
 
 public final class HybridWrapLittleConversion extends SimpleLittleConversion { 
 

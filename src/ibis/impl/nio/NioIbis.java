@@ -1,8 +1,6 @@
 package ibis.impl.nio;
 
 import ibis.impl.nameServer.NameServer;
-
-import ibis.util.TypedProperties;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
@@ -10,6 +8,7 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;

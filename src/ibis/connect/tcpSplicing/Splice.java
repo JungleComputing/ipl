@@ -1,7 +1,7 @@
 package ibis.connect.tcpSplicing;
 
-import ibis.connect.util.MyDebug;
 import ibis.connect.util.ConnProps;
+import ibis.connect.util.MyDebug;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 

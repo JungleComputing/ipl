@@ -1,5 +1,6 @@
 package ibis.impl.nio;
 
+import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.IbisError;
 import ibis.ipl.ReadMessage;
@@ -9,16 +10,13 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
-import ibis.ipl.ConnectionClosedException;
-
 import ibis.util.ThreadPool;
+import ibis.util.nativeCode.Rdtsc;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.Channel;
 import java.util.ArrayList;
-
-import ibis.util.nativeCode.Rdtsc;
 
 abstract class NioReceivePort implements ReceivePort, Runnable, 
 					 Config, Protocol {

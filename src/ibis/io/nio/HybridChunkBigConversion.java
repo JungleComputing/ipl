@@ -10,7 +10,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
-import ibis.io.SimpleLittleConversion;
 
 public final class HybridChunkBigConversion extends SimpleBigConversion { 
 

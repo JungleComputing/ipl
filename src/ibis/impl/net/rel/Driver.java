@@ -8,7 +8,6 @@ import ibis.impl.net.NetOutput;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetVector;
 import ibis.ipl.IbisIdentifier;
-
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
