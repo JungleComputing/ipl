@@ -5,8 +5,8 @@ package ibis.impl.tcp;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
 import ibis.io.OutputStreamSplitter;
-import ibis.io.SerializationOutput;
 import ibis.io.SerializationBase;
+import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.DynamicProperties;
@@ -19,7 +19,6 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;

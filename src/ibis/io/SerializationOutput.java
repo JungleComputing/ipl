@@ -2,9 +2,9 @@
 
 package ibis.io;
 
-import java.io.IOException;
-
 import ibis.ipl.Replacer;
+
+import java.io.IOException;
 
 /** 
  * The <code>SerializationOutput</code> interface specifies which methods

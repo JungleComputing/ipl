@@ -85,7 +85,6 @@
 		    <equals arg1="${hostname}" arg2="mercury.cs.vu.nl"/>
 		    <equals arg1="${hostname}" arg2="titan.cs.vu.nl"/>
 		    <equals arg1="${hostname}" arg2="venus.cs.vu.nl"/>
-		    <equals arg1="${hostname}" arg2="mars.cs.vu.nl"/>
 		    <equals arg1="${hostname}" arg2="drum.cs.vu.nl"/>
 		    <equals arg1="${hostname}" arg2="kog.cs.vu.nl"/>
 		    <equals arg1="${hostname}" arg2="swpc429.cs.vu.nl"/>

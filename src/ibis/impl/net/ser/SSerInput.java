@@ -8,10 +8,9 @@ import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSerializedInput;
-
 import ibis.io.DataInputStream;
-import ibis.io.SerializationInput;
 import ibis.io.SerializationBase;
+import ibis.io.SerializationInput;
 
 import java.io.IOException;
 

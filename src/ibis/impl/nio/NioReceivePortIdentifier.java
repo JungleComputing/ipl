@@ -2,8 +2,8 @@
 
 package ibis.impl.nio;
 
-import ibis.io.DataOutputStream;
 import ibis.io.DataInputStream;
+import ibis.io.DataOutputStream;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 

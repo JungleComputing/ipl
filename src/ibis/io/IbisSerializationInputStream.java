@@ -4,15 +4,15 @@ package ibis.io;
 
 import ibis.util.TypedProperties;
 
-import java.io.Externalizable;
 import java.io.EOFException;
+import java.io.Externalizable;
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.io.NotActiveException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamClass;
 import java.io.Serializable;
 import java.io.StreamCorruptedException;
-import java.io.InvalidObjectException;
 import java.lang.reflect.Field;
 
 import sun.misc.Unsafe;

@@ -2,11 +2,8 @@
 
 package ibis.io;
 
-import ibis.util.TypedProperties;
-
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * The <code>ByteSerializationInputStream</code> class can be used when 

@@ -33,7 +33,7 @@ class BodyCanvas extends Canvas {
 		//frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		BodyCanvas bc = new BodyCanvas(800, 800, bodyArray);
+		BodyCanvas bc = new BodyCanvas(500, 500, bodyArray);
 		frame.getContentPane().add(bc);
 
 		//Display the window.
@@ -119,8 +119,23 @@ class BodyCanvas extends Canvas {
 				y = (int) ((bodies[i].pos_y - miny) / (maxy - miny) * (double) height)
 						+ BORDER;
 
+				double col = bodies[i].vel_z;
+				col *= 255;
+				
+				int color = 0;
+				if(col < 0) { // moving away: red
+					col = Math.abs(col);
+					col = Math.min(255, col);
+					col = Math.max(80, col);
+					color = ((int) col) << 16;
+				} else { // moving to the viewer: blue
+					col = Math.min(255, col);
+					col = Math.max(80, col);
+					color = ((int) col);
+				}
+				
 				if (x > 0 && x < width && y > 0 && y < height) {
-					img.setRGB(x, y, 0xffffffff);
+					img.setRGB(x, y, color);
 				}
 			}
 

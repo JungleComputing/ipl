@@ -4,8 +4,8 @@ package ibis.impl.messagePassing;
 
 import ibis.io.SunSerializationInputStream;
 
-import java.io.IOException;
 import java.io.BufferedInputStream;
+import java.io.IOException;
 
 /**
  * Receiver-side stub for a SendPort that performs Sun serialization

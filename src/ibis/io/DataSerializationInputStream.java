@@ -375,7 +375,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
             }
             array_index++;
             if (DEBUG) {
-                dbPrint("readArrayChar: " + ref + " offset: " + off
+                dbPrint("readArrayChar: " + new String(ref) + " offset: " + off
                         + " len: " + len + " type: " + TYPE_CHAR);
             }
             in.readArray(ref, off, len);

@@ -365,6 +365,8 @@ public abstract class Ibis {
             System.out.println();
         }
 
+        NestedException nested = new NestedException("Ibis creation failed");
+        
         for (int i = 0; i < n; i++) {
             if (combinedprops.find("verbose") != null) {
                 System.out.println("trying "
@@ -380,9 +382,10 @@ public abstract class Ibis {
                 } catch (ConnectionRefusedException e) {
                     // retry
                 } catch (IbisException e) {
+                	nested.add((String) implementation_names.get(i), e);
                     if (i == n - 1) {
                         // No more Ibis to try.
-                        throw e;
+                        throw nested;
                     }
 
                     if (combinedprops.find("verbose") != null) {
@@ -395,9 +398,10 @@ public abstract class Ibis {
                     }
                     break;
                 } catch (RuntimeException e) {
+                	nested.add((String) implementation_names.get(i), e);
                     if (i == n - 1) {
                         // No more Ibis to try.
-                        throw e;
+                        throw nested;
                     }
                     if (combinedprops.find("verbose") != null) {
                         System.err.println("Warning: could not create "
@@ -409,9 +413,10 @@ public abstract class Ibis {
                     }
                     break;
                 } catch (Error e) {
+                	nested.add((String) implementation_names.get(i), e);
                     if (i == n - 1) {
                         // No more Ibis to try.
-                        throw e;
+                        throw nested;
                     }
                     if (combinedprops.find("verbose") != null) {
                         System.err.println("Warning: could not create "
@@ -425,7 +430,7 @@ public abstract class Ibis {
                 }
             }
         }
-        throw new IbisException("Could not create Ibis");
+        throw nested;
     }
 
     /**

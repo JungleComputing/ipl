@@ -2,15 +2,12 @@
 
 package ibis.impl.net.ser;
 
-import ibis.impl.net.NetBufferedOutputSupport;
-import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSerializedOutput;
-
 import ibis.io.DataOutputStream;
-import ibis.io.SerializationOutput;
 import ibis.io.SerializationBase;
+import ibis.io.SerializationOutput;
 
 import java.io.IOException;
 

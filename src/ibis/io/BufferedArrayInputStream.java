@@ -6,8 +6,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import ibis.io.Conversion;
-
 /**
  * This is a complete implementation of <code>DataInputStream</code>.
  * It is built on top of an <code>InputStream</code>.

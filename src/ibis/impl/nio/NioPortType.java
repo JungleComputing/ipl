@@ -4,9 +4,9 @@ package ibis.impl.nio;
 
 import ibis.io.DataInputStream;
 import ibis.io.DataOutputStream;
+import ibis.io.SerializationBase;
 import ibis.io.SerializationInput;
 import ibis.io.SerializationOutput;
-import ibis.io.SerializationBase;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
 import ibis.ipl.PortType;

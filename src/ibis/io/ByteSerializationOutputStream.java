@@ -4,10 +4,7 @@ package ibis.io;
 
 import ibis.ipl.Replacer;
 
-import ibis.util.TypedProperties;
-
 import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  * The <code>ByteSerializationOutputStream</code> class can be used when 

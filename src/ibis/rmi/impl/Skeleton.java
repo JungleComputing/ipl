@@ -65,7 +65,7 @@ public abstract class Skeleton {
 
             return id;
         } catch (Exception e) {
-            System.out.println("OOPS " + e);
+            System.out.println("Exception in RMI runtime system: " + e);
             e.printStackTrace();
             System.exit(1);
         }

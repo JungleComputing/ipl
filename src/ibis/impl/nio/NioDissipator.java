@@ -6,8 +6,8 @@ import ibis.io.DataInputStream;
 import ibis.io.SerializationInput;
 import ibis.ipl.IbisError;
 
-import java.io.IOException;
 import java.io.EOFException;
+import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;

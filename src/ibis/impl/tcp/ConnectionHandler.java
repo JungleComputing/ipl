@@ -9,9 +9,9 @@
 package ibis.impl.tcp;
 
 import ibis.io.BufferedArrayInputStream;
-import ibis.io.SerializationInput;
-import ibis.io.SerializationBase;
 import ibis.io.Conversion;
+import ibis.io.SerializationBase;
+import ibis.io.SerializationInput;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIOException;
 

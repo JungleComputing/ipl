@@ -4,7 +4,6 @@ package ibis.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import ibis.io.Conversion;
 
 /**
  * This is a complete implementation of <code>DataOutputStream</code>.
