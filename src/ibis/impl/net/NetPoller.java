@@ -261,6 +261,11 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
     }
 
     public void startReceive() throws IOException {
+	startReceive(false);
+    }
+
+    protected void startReceive(boolean forceNonInterruptible)
+	    throws IOException {
 	if (decouplePoller) {
 	} else {
 	    /*
@@ -276,8 +281,13 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 
 	while (i.hasNext()) {
 	    ReceiveQueue rq  = (ReceiveQueue)i.next();
+	    NetInput in = rq.getInput();
+
+	    if (forceNonInterruptible) {
+		in.setInterruptible(false);
+	    }
 // System.err.println(this + ": startReceive in " + rq.getInput());
-	    rq.getInput().startReceive();
+	    in.startReceive();
 	}
     }
 
@@ -352,12 +362,12 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
     }
 
 
-    protected boolean pollIsInterruptible() throws IOException {
+    public boolean pollIsInterruptible() throws IOException {
 	return singleton != null && singleton.pollIsInterruptible();
     }
 
 
-    protected void interruptPoll() throws IOException {
+    public void interruptPoll() throws IOException {
 	if (singleton != null && singleton.pollIsInterruptible()) {
 	    singleton.interruptPoll();
 	} else {
@@ -374,11 +384,14 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
     }
 
 
-    protected void setInterruptible(boolean interruptible) throws IOException {
-	if (singleton != null) {
-	    singleton.setInterruptible(interruptible);
-	} else {
-	    super.setInterruptible(interruptible);
+    public void setInterruptible(boolean interruptible) throws IOException {
+	Collection c = inputMap.values();
+	Iterator i = c.iterator();
+
+	while (i.hasNext()) {
+	    ReceiveQueue rq  = (ReceiveQueue)i.next();
+	    NetInput in = rq.getInput();
+	    in.setInterruptible(interruptible);
 	}
     }
 
@@ -400,7 +413,7 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
      * If we are not, kinda panic.
      */
     synchronized
-    protected void switchToUpcallMode(NetInputUpcall inputUpcall)
+    public void switchToUpcallMode(NetInputUpcall inputUpcall)
 	    throws IOException {
 // System.err.println(this + ": switchToUpcallMode singleton " + (singleton == null ? null : singleton.getInput()) + " interruptible " + (singleton == null ? "N/A" : (singleton.pollIsInterruptible() ? "true" : "false")));
 	if (activeUpcallThread != null) {

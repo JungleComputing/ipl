@@ -635,7 +635,7 @@ up.setDaemon(true);
 	 * 		to whether this {@linkplain NetInput} supports
 	 * 		switching between upcall mode and downcall mode.
 	 */
-	protected boolean pollIsInterruptible() throws IOException {
+	public boolean pollIsInterruptible() throws IOException {
 	    return false;
 	}
 
@@ -655,7 +655,7 @@ up.setDaemon(true);
 	 * @throws {@link IllegalArgumentException} if this {@linkplain
 	 * 		NetInput} does not actually support poll interrupts.
 	 */
-	protected void setInterruptible(boolean interruptible)
+	public void setInterruptible(boolean interruptible)
 		throws IOException {
 	    throw new IllegalArgumentException("Upcall/downcall mode switch not supported");
 	}
@@ -685,7 +685,7 @@ up.setDaemon(true);
 	 * @throws {@link IllegalArgumentException} if this {@linkplain
 	 * 		NetInput} does not actually support poll interrupts.
 	 */
-	protected void interruptPoll() throws IOException {
+	public void interruptPoll() throws IOException {
 	    throw new IllegalArgumentException("Upcall/downcall mode switch not supported");
 	}
 
@@ -718,7 +718,7 @@ up.setDaemon(true);
 	 *
 	 * @throws {@link IllegalArgumentException} if this {@linkplain
 	 * 		NetInput} does not actually support poll interrupts.
-	protected void switchToDowncallMode() throws IOException {
+	public void switchToDowncallMode() throws IOException {
 	    throw new IllegalArgumentException("Upcall/downcall mode switch not supported");
 	}
 	 */
@@ -758,7 +758,7 @@ up.setDaemon(true);
 	 * @throws {@link IllegalArgumentException} if this {@linkplain
 	 * 		NetInput} does not actually support poll interrupts.
 	 */
-	protected void switchToUpcallMode(NetInputUpcall inputUpcall)
+	public void switchToUpcallMode(NetInputUpcall inputUpcall)
 		throws IOException {
 	    installUpcallFunc(inputUpcall);
 	}

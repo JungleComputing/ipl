@@ -148,12 +148,12 @@ public final class TcpInput extends NetInput {
 	}
 
 
-	protected boolean pollIsInterruptible() throws IOException {
+	public boolean pollIsInterruptible() throws IOException {
 	    return true;
 	}
 
 
-	protected void interruptPoll() throws IOException {
+	public void interruptPoll() throws IOException {
 	    synchronized (new Object()) {
 		// Make this JMM hard
 	    }
@@ -161,7 +161,7 @@ public final class TcpInput extends NetInput {
 	}
 
 
-	protected void setInterruptible(boolean interruptible)
+	public void setInterruptible(boolean interruptible)
 		throws IOException {
 	    this.interruptible = interruptible;
 	    if (tcpSocket != null) {
@@ -175,7 +175,7 @@ public final class TcpInput extends NetInput {
 
 
 	/*
-	protected void switchToDowncallMode() throws IOException {
+	public void switchToDowncallMode() throws IOException {
 	    tcpSocket.setSoTimeout(INTERRUPT_TIMEOUT);
 	    installUpcallFunc(null);
 System.err.println(this + ": interruptiblePoll support is INCOMPLETE. Please implement!");
@@ -183,7 +183,7 @@ System.err.println(this + ": interruptiblePoll support is INCOMPLETE. Please imp
 	*/
 
 
-	protected void switchToUpcallMode(NetInputUpcall upcallFunc) throws IOException {
+	public void switchToUpcallMode(NetInputUpcall upcallFunc) throws IOException {
 	    tcpSocket.setSoTimeout(0);
 	    installUpcallFunc(upcallFunc);
 	}

@@ -173,12 +173,12 @@ public final class TcpInput extends NetBufferedInput {
 	}
 
 
-	protected boolean pollIsInterruptible() throws IOException {
+	public boolean pollIsInterruptible() throws IOException {
 	    return interruptible;
 	}
 
 
-	protected void interruptPoll() throws IOException {
+	public void interruptPoll() throws IOException {
 	    synchronized (new Object()) {
 		// Make this JMM correct?????
 	    }
@@ -187,7 +187,7 @@ public final class TcpInput extends NetBufferedInput {
 	}
 
 
-	protected void setInterruptible(boolean interruptible)
+	public void setInterruptible(boolean interruptible)
 		throws IOException {
 	    this.interruptible = interruptible;
 	    if (tcpSocket != null) {

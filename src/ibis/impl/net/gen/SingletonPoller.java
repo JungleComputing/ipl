@@ -80,6 +80,21 @@ public class SingletonPoller extends GenPoller {
 	subInput.startReceive();
     }
 
+    public void switchToUpcallMode(NetInputUpcall inputUpcall)
+	    throws IOException {
+	installUpcallFunc(inputUpcall);
+	subInput.switchToUpcallMode(this);
+    }
+
+    public boolean pollIsInterruptible() throws IOException {
+	return subInput.pollIsInterruptible();
+    }
+
+    public void setInterruptible(boolean interruptible)
+	    throws IOException {
+	subInput.setInterruptible(interruptible);
+    }
+
 
     public Integer doPoll(boolean block) throws IOException {
 	log.in();

@@ -122,6 +122,21 @@ public final class BytesInput
 	    subInput.startReceive();
 	}
 
+	public void switchToUpcallMode(NetInputUpcall inputUpcall)
+		throws IOException {
+	    installUpcallFunc(inputUpcall);
+	    subInput.switchToUpcallMode(this);
+	}
+
+	public boolean pollIsInterruptible() throws IOException {
+	    return subInput.pollIsInterruptible();
+	}
+
+	public void setInterruptible(boolean interruptible)
+		throws IOException {
+	    subInput.setInterruptible(interruptible);
+	}
+
         public void initReceive(Integer num) throws IOException {
 	    log.in();
 	    synchronized(this) {

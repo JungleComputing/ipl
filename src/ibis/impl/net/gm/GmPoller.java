@@ -140,16 +140,16 @@ public final class GmPoller extends NetPoller {
     }
 
 
-    protected boolean pollIsInterruptible() {
+    public boolean pollIsInterruptible() throws IOException {
 	return true;
     }
 
 
-    protected void setInterruptible(boolean interruptible) throws IOException {
+    public void setInterruptible(boolean interruptible) throws IOException {
     }
 
 
-    protected void interruptPoll() throws IOException {
+    public void interruptPoll() throws IOException {
 	Driver.gmAccessLock.lock();
 	try {
 	    Driver.interruptPump(lockIds);
@@ -166,7 +166,7 @@ public final class GmPoller extends NetPoller {
     */
 
 
-    protected void switchToUpcallMode(NetInputUpcall inputUpcall)
+    public void switchToUpcallMode(NetInputUpcall inputUpcall)
 	    throws IOException {
 	installUpcallFunc(inputUpcall);
     }

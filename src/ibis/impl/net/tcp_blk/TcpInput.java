@@ -199,17 +199,17 @@ public final class TcpInput extends NetBufferedInput {
 	}
 
 
-	protected synchronized boolean pollIsInterruptible() throws IOException {
+	public synchronized boolean pollIsInterruptible() throws IOException {
 	    return interruptible;
 	}
 
 
-	protected synchronized void interruptPoll() throws IOException {
+	public synchronized void interruptPoll() throws IOException {
 	    interrupted = true;
 	}
 
 
-	protected void setInterruptible(boolean interruptible)
+	public void setInterruptible(boolean interruptible)
 		throws IOException {
 	    this.interruptible = interruptible;
 	    if (tcpSocket != null) {
@@ -230,7 +230,7 @@ public final class TcpInput extends NetBufferedInput {
 	*/
 
 
-	protected synchronized void switchToUpcallMode(NetInputUpcall upcallFunc)
+	public synchronized void switchToUpcallMode(NetInputUpcall upcallFunc)
 		throws IOException {
 // System.err.println(Thread.currentThread() + ": " + this + ": switchToUpcallMode, upcallFunc " + upcallFunc);
 	    installUpcallFunc(upcallFunc);
