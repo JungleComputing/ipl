@@ -39,7 +39,7 @@ public class IOGenerator {
 					     field.getName(),
 					     t,
 					     Constants.GETFIELD));
-	    temp.append(fc.createInvoke("ibis.io.MantaOutputStream",
+	    temp.append(fc.createInvoke("ibis.io.IbisSerializationOutputStream",
 					write_name,
 					Type.VOID,
 					new Type[] { tp },
@@ -58,7 +58,7 @@ public class IOGenerator {
 
 	    temp.append(new ALOAD(0));
 	    temp.append(new ALOAD(1));
-	    temp.append(fc.createInvoke("ibis.io.MantaInputStream",
+	    temp.append(fc.createInvoke("ibis.io.IbisSerializationInputStream",
 					read_name,
 					tp,
 					Type.NO_ARGS,
@@ -231,7 +231,7 @@ public class IOGenerator {
 	
 	MethodGen write_method = new MethodGen( Constants.ACC_PUBLIC | (clazz.isFinal() ? Constants.ACC_FINAL : 0),
 						Type.VOID,
-						new Type[] {new ObjectType("ibis.io.MantaOutputStream")},
+						new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream")},
 						new String[] { "os" },
 						"generated_WriteObject",
 						clazz.getClassName(),
@@ -248,7 +248,7 @@ public class IOGenerator {
 	
 	MethodGen read_cons = new MethodGen(Constants.ACC_PUBLIC,
 					    Type.VOID,
-					    new Type[] {new ObjectType("ibis.io.MantaInputStream")},
+					    new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
 					    new String[] { "is" },
 					    "<init>",
 					    clazz.getClassName(),
@@ -294,7 +294,7 @@ public class IOGenerator {
 	il.append(factory.createInvoke(clazz.getClassName(),
 				       "<init>",
 				       Type.VOID,
-				       new Type [] { new ObjectType("ibis.io.MantaInputStream") },
+				       new Type [] { new ObjectType("ibis.io.IbisSerializationInputStream") },
 				       Constants.INVOKESPECIAL));
 	il.append(new ARETURN());
 
@@ -302,13 +302,13 @@ public class IOGenerator {
 	  0       new DITree
 	  3       dup
 	  4       aload_1
-	  5       invokespecial DITree(ibis.io.MantaInputStream)
+	  5       invokespecial DITree(ibis.io.IbisSerializationInputStream)
 	  8       areturn
 	*/
 	
 	MethodGen method = new MethodGen(Constants.ACC_FINAL | Constants.ACC_PUBLIC,
 					 Type.OBJECT,
-					 new Type[] {new ObjectType("ibis.io.MantaInputStream")},
+					 new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
 					 new String[] { "is" },
 					 "generated_newInstance",
 					 name,
@@ -371,11 +371,11 @@ public class IOGenerator {
 	for (int i = 0; i < class_methods.length; i++) {
 //	    System.out.println("name: " + class_methods[i].getName() + ", signature: " + class_methods[i].getSignature());
 	    if (class_methods[i].getName().equals("generated_WriteObject") &&
-		class_methods[i].getSignature().equals("(Libis/io/MantaOutputStream;)V")) {
+		class_methods[i].getSignature().equals("(Libis/io/IbisSerializationOutputStream;)V")) {
 		write_method_index = i;
 	    }
 	    else if (class_methods[i].getName().equals("<init>") &&
-		class_methods[i].getSignature().equals("(Libis/io/MantaInputStream;)V")) {
+		class_methods[i].getSignature().equals("(Libis/io/IbisSerializationInputStream;)V")) {
 		read_cons_index = i;
 	    }
 	}
@@ -416,7 +416,7 @@ public class IOGenerator {
 			!field_type.getSignature().startsWith("Ljava/")) {
 
 			read_cons_il.append(new ALOAD(1));
-			read_cons_il.append(factory.createInvoke("ibis.io.MantaInputStream",
+			read_cons_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
 						       "readKnownTypeHeader",
 						       Type.INT,
 						       Type.NO_ARGS,
@@ -436,7 +436,7 @@ public class IOGenerator {
 			read_cons_il.append(factory.createInvoke(field_class.getClassName(),
 						       "<init>",
 						       Type.VOID,
-						       new Type[] {new ObjectType("ibis.io.MantaInputStream")},
+						       new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
 						       Constants.INVOKESPECIAL));
 			read_cons_il.append(factory.createFieldAccess(clazz.getClassName(),
 							    field.getName(),
@@ -456,7 +456,7 @@ public class IOGenerator {
 			read_cons_il.append(new ALOAD(0));
 			read_cons_il.append(new ALOAD(1));
 			read_cons_il.append(new ILOAD(2));
-			read_cons_il.append(factory.createInvoke("ibis.io.MantaInputStream",
+			read_cons_il.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
 						       "getObjectFromCycleCheck",
 						       Type.OBJECT,
 						       new Type[] { Type.INT },
@@ -480,7 +480,7 @@ public class IOGenerator {
 							    field.getName(),
 							    field_type,
 							    Constants.GETFIELD));
-			write_il.append(factory.createInvoke("ibis.io.MantaOutputStream",
+			write_il.append(factory.createInvoke("ibis.io.IbisSerializationOutputStream",
 						       "writeKnownObjectHeader",
 						       Type.INT,
 						       new Type[] { Type.OBJECT },
@@ -502,7 +502,7 @@ public class IOGenerator {
 			write_il.append(factory.createInvoke(field_class.getClassName(),
 						       "generated_WriteObject",
 						       Type.VOID,
-						       new Type[] {new ObjectType("ibis.io.MantaOutputStream")},
+						       new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream")},
 						       Constants.INVOKEVIRTUAL));
 
 			target = write_il.append(new NOP());
@@ -568,7 +568,7 @@ public class IOGenerator {
 	    temp.append(factory.createInvoke(super_clazz.getClassName(),
 					     "generated_WriteObject",
 					     Type.VOID,
-					     new Type[] {new ObjectType("ibis.io.MantaOutputStream")},
+					     new Type[] {new ObjectType("ibis.io.IbisSerializationOutputStream")},
 					     Constants.INVOKESPECIAL));
 
 	    write_il.insert(temp);	
@@ -580,7 +580,7 @@ public class IOGenerator {
 	    temp.append(factory.createInvoke(super_clazz.getClassName(),
 					     "<init>",
 					     Type.VOID,
-					     new Type[] {new ObjectType("ibis.io.MantaInputStream")},
+					     new Type[] {new ObjectType("ibis.io.IbisSerializationInputStream")},
 					     Constants.INVOKESPECIAL));
 
 	    read_cons_il.insert(temp);
@@ -596,7 +596,7 @@ public class IOGenerator {
 	    temp.append(new ALOAD(1));
 	    temp.append(new ALOAD(0));
 
-	    temp.append(factory.createInvoke("ibis.io.MantaInputStream",
+	    temp.append(factory.createInvoke("ibis.io.IbisSerializationInputStream",
 					     "addObjectToCycleCheck",
 					     Type.VOID,
 					     new Type[] {Type.OBJECT},

@@ -71,6 +71,7 @@ class RMISkeletonGenerator extends RMIGenerator {
 				output.println(readMessageType("\t\t\t\t", temp + " p" + j, "r", temp));
 			}
 			
+			// we should try to optimize this finish away, to avoid thread cration!!! --Rob
 			output.println("\t\t\t\tr.finish();");
 			output.println();
 			
