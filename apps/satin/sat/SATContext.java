@@ -18,10 +18,10 @@ public class SATContext implements java.io.Serializable {
     private int negclauses[];
 
     /** The information of a positive assignment of each variable. */
-    private double posinfo[];
+    private float posinfo[];
 
     /** The information of a negative assignment of each variable. */
-    private double neginfo[];
+    private float neginfo[];
 
     /** Satisified flags for each clause in the problem. */
     private boolean satisfied[];
@@ -37,8 +37,8 @@ public class SATContext implements java.io.Serializable {
 	int al[],
 	int poscl[],
 	int negcl[],
-	double posinfo[],
-	double neginfo[],
+	float posinfo[],
+	float neginfo[],
 	boolean sat[],
 	int us
     ){
@@ -86,8 +86,8 @@ public class SATContext implements java.io.Serializable {
 	    (int []) assignments.clone(),
 	    (int []) posclauses.clone(),
 	    (int []) negclauses.clone(),
-	    (double []) posinfo.clone(),
-	    (double []) neginfo.clone(),
+	    (float []) posinfo.clone(),
+	    (float []) neginfo.clone(),
 	    (boolean []) satisfied.clone(),
 	    unsatisfied
 	);
@@ -572,7 +572,7 @@ public class SATContext implements java.io.Serializable {
         else {
             // For the moment we return the variable that is used the most.
             int bestvar = -1;
-            double bestinfo = -1.0;
+            float bestinfo = -1.0f;
 
             for( int i=0; i<assignments.length; i++ ){
                 if( assignments[i] != -1 ){
@@ -584,8 +584,8 @@ public class SATContext implements java.io.Serializable {
                         System.err.println( "Weird info for variable " + i + ": posinfo=" + posinfo[i] + ", neginfo=" + neginfo[i] );
                     }
                 }
-                //double info = Math.max( posinfo[i], neginfo[i] );
-                double info = posinfo[i] + neginfo[i];
+                //float info = Math.max( posinfo[i], neginfo[i] );
+                float info = posinfo[i] + neginfo[i];
                 if( info>bestinfo ){
                     // This is a better one.
                     bestvar = i;
