@@ -47,6 +47,12 @@ for data links, as it is a brokered link only.
      the classic client/server handshake. This method is brokered only
      (no client/server possible). 
 
+  -- AnyTCP: this is plain TCP except that connection establishment 
+     is different: first, an ordinary client-server connection is tried,
+     if that fails, the roles are reversed (often, firewalls allow for
+     outgoing connections). If that fails as well, TCPSplice is used.
+     This method is brokered only.
+
 * Example
   -------
 
@@ -55,14 +61,9 @@ with TCPSplice.
 
 -- Step 1- build Ibis :-)
 
--- Step 2- configure your application to use NetIbis, and configure your
-'net_port_type_defaults.txt' file so that links WAN links use the 
-'tcp_splice' NetIbis driver. For using TCP splicing everywhere, it can
-be:
-
-/:Driver=s_ibis
-/s_ibis:Driver=bytes
-/s_ibis/bytes:Driver=tcp_splice
+-- Step 2- configure your application to use NetIbis with one of the
+TCP variants: tcp, tcp_plain, or tcp_blk, for instance by using
+-Dibis.name=net.bytes.gen.tcp_blk.
 
 Alternatively, configure your application to use TCPIbis.
 
@@ -98,7 +99,7 @@ Java properties:
 -- ibis.connect.control_links=<method for control links>
 -- ibis.connect.data_links=<method for data links>
    Chooses which method to use for control and data communications.
-   Available methods are: PlainTCP, RoutedMessages, TCPSplice.
+   Available methods are: PlainTCP, RoutedMessages, TCPSplice, AnyTCP.
    Optional. Default is: PlainTCP for both.
 
 -- ibis.connect.hub_host=<hostname where the hub is running>
