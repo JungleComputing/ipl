@@ -128,11 +128,9 @@ public class ProcessorImpl extends UnicastRemoteObject implements Processor {
     if (VERBOSE) {
 	  System.err.println(" initialize 2");
     }
-    if (g.gdMyProc == 0) {
-      ExchangeDestination = new int[ g.gdMaxBodies ];
-    } else {
-      ExchangeDestination = new int[ g.gdMaxLocalBodies ];
-    }
+
+    ExchangeDestination = new int[ g.gdMaxBodies ];
+
     ExchangeNumBodies = new int[ ProcessorCount ];
 
     ReceivedBodies = new Body[ProcessorCount][];
