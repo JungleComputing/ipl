@@ -13,11 +13,20 @@ import java.util.HashMap;
 
 public abstract class TupleSpace extends Communication {
 
-	static HashMap space = new HashMap();
+	public static boolean use_seq;
+	private static HashMap space;
+	private static boolean initialized = false;
 
-	public static boolean use_seq = false;
+	static {
+	    space = new HashMap();
+	    use_seq = SUPPORT_TUPLE_MULTICAST
+			&& TypedProperties.booleanProperty("satin.tuplespace.ordened");
+	}
 
 	public static void initTupleSpace() {
+	    synchronized(TupleSpace.class) {
+		if (initialized) return;
+		initialized = true;
 		if (this_satin != null && !this_satin.closed) {
 			System.err
 					.println("The tuple space currently only works with a closed world. Try running with -satin-closed");
@@ -25,12 +34,11 @@ public abstract class TupleSpace extends Communication {
 			//			throw new IbisError("The tuple space currently only works with a
 			// closed world. Try running with -satin-closed");
 		}
+	    }
 
-		use_seq = SUPPORT_TUPLE_MULTICAST && this_satin != null
-				&& TypedProperties.booleanProperty("satin.tuplespace.ordened");
-		//				System.err.println("TupleSpace: use_seq = " + use_seq);
-		//		newKeys = new ArrayList();
-		//		newData = new ArrayList();
+	    if (use_seq && this_satin != null) {
+		enableActiveTupleOrdening();
+	    }
 	}
 
 	/**
@@ -49,6 +57,7 @@ public abstract class TupleSpace extends Communication {
 	 *            The data associated with the key.
 	 */
 	public static void addTuple(String key, Serializable data) {
+		if (! initialized) initTupleSpace();
 		if (TUPLE_DEBUG) {
 			System.err.println("SATIN '" + this_satin.ident.name()
 					+ ": added key " + key);
@@ -90,6 +99,8 @@ public abstract class TupleSpace extends Communication {
 	public static Serializable peekTuple(String key) {
 		Serializable data = null;
 
+		if (! initialized) initTupleSpace();
+
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + this_satin.ident.name() + ": peek key " + key);
 		}
@@ -111,6 +122,8 @@ public abstract class TupleSpace extends Communication {
 	 */
 	public static Serializable getTuple(String key) {
 		Serializable data = null;
+
+		if (! initialized) initTupleSpace();
 
 		if(TUPLE_DEBUG) {
 			System.err.println("SATIN '" + this_satin.ident.name() + ": get key " + key);
@@ -157,6 +170,8 @@ public abstract class TupleSpace extends Communication {
 	 */
 	public static void removeTuple(String key) {
 
+		if (! initialized) initTupleSpace();
+
 		if (TUPLE_DEBUG) {
 			System.err.println("SATIN '" + this_satin.ident.name()
 					+ ": removed key " + key);
@@ -187,6 +202,7 @@ public abstract class TupleSpace extends Communication {
 	}
 
 	public static void remoteAdd(String key, Serializable data) {
+		if (! initialized) initTupleSpace();
 		if (TUPLE_DEBUG) {
 			System.err.println("SATIN '" + this_satin.ident.name()
 					+ ": remote add of key " + key);
@@ -208,6 +224,7 @@ public abstract class TupleSpace extends Communication {
 	}
 
 	public static void remoteDel(String key) {
+		if (! initialized) initTupleSpace();
 		if (TUPLE_DEBUG) {
 			System.err.println("SATIN '" + this_satin.ident.name()
 					+ ": remote del of key " + key);
@@ -238,7 +255,7 @@ public abstract class TupleSpace extends Communication {
 			size = victims.size();
 		}
 
-		if (size == 0 && ! use_seq) {
+		if (size == 0 && (! use_seq || this_satin == null)) {
 			return; // don't multicast when there is no-one.
 		}
 
@@ -340,7 +357,7 @@ public abstract class TupleSpace extends Communication {
 			size = victims.size();
 		}
 
-		if(! use_seq && size == 0)
+		if(size == 0 && (! use_seq || this_satin == null))
 			return; // don't multicast when there is no-one.
 
 		if (TUPLE_TIMING) {
@@ -452,11 +469,8 @@ public abstract class TupleSpace extends Communication {
 		}
 	}
 
-	void enableActiveTupleOrdening() {
-		if (tuplePortLocalConnection)
-			return;
-
-		connect(tuplePort, tupleReceivePort.identifier());
-		tuplePortLocalConnection = true;
+	private static void enableActiveTupleOrdening() {
+		if (this_satin == null) return;
+		connect(this_satin.tuplePort, this_satin.tupleReceivePort.identifier());
 	}
 }

@@ -140,8 +140,6 @@ public abstract class SatinBase implements Config {
 
 	protected int suggestedQueueSize = 1000;
 
-	boolean tuplePortLocalConnection = false;
-
 	/* Variables that contain statistics. */
 	protected long spawns = 0;
 

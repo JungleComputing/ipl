@@ -268,8 +268,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
 			}
 		}
 
-		initTupleSpace();
-
 		ibis.openWorld();
 
 		if (COMM_DEBUG) {
@@ -292,10 +290,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
 				}
 
 				ibis.closeWorld();
-			}
-
-			if (use_seq) {
-				enableActiveTupleOrdening();
 			}
 
 			barrier();
