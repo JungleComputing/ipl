@@ -59,10 +59,22 @@ static jmethodID md_finished_upcall;
 
 typedef void (*release_func_t)(JNIEnv *env, void *array, void *data, jint mode);
 
+typedef enum jprim_type {
+    jprim_Boolean,
+    jprim_Byte,
+    jprim_Char,
+    jprim_Short,
+    jprim_Int,
+    jprim_Long,
+    jprim_Float,
+    jprim_Double,
+    jprim_n_types
+} jprim_type_t;
+
 typedef struct RELEASE {
     void	       *array;
     void	       *buf;
-    release_func_t	func;
+    jprim_type_t	type;
 } release_t, *release_p;
 
 
@@ -176,17 +188,48 @@ ibmp_msg_release_iov(JNIEnv *env, ibmp_msg_p msg)
     if (msg->copy) {
 	ibmp_lock_check_owned(env);
 	for (i = 0; i < msg->iov_len; i++) {
-	    IBP_VPRINTF(300, NULL, ("Now free msg %p iov %p size %d\n",
+	    IBP_VPRINTF(800, NULL, ("Now free msg %p iov %p size %d\n",
 			msg, msg->iov[i].data, msg->iov[i].len));
 	    pan_free(msg->iov[i].data);
 	}
     } else {
 	for (i = 0; i < msg->iov_len; i++) {
-	    if (msg->release[i].func != NULL) {
-		msg->release[i].func(env,
-				     msg->release[i].array,
-				     msg->release[i].buf,
-				     JNI_ABORT);
+	    IBP_VPRINTF(800, NULL, ("%s: Now release msg %p iov %p size %d release type %d array %p buf %p\n",
+			ibmp_currentThread(env),
+			msg, msg->iov[i].data, msg->iov[i].len,
+			msg->release[i].type, msg->release[i].array,
+			msg->release[i].buf));
+	    if (msg->release[i].type != jprim_n_types) {
+		/* 'type' used to be a function pointer that indicates
+		 * Release ## JType ## ArrayElements; but it seems that
+		 * the Java and native array types must be correctly
+		 * specified -- at least for Borland C++Builder.
+		 * So now we use a switch to release them and cast the
+		 * arrays back to their correct types. */
+		switch (msg->release[i].type) {
+
+#define RELEASE_ARRAY(JType, jtype) \
+		    case jprim_ ## JType: \
+			(*env)->Release ## JType ## ArrayElements(env, \
+					(jtype ## Array)msg->release[i].array, \
+					(jtype *)msg->release[i].buf, \
+					JNI_ABORT); \
+			break;
+
+		    RELEASE_ARRAY(Boolean, jboolean)
+		    RELEASE_ARRAY(Byte, jbyte)
+		    RELEASE_ARRAY(Char, jchar)
+		    RELEASE_ARRAY(Short, jshort)
+		    RELEASE_ARRAY(Int, jint)
+		    RELEASE_ARRAY(Long, jlong)
+		    RELEASE_ARRAY(Float, jfloat)
+		    RELEASE_ARRAY(Double, jdouble)
+
+#undef RELEASE_ARRAY
+		    default:
+			break;
+		}
+		IBP_VPRINTF(300, env, ("Now delete global ref %p\n", msg->release[i].array));
 		(*env)->DeleteGlobalRef(env, msg->release[i].array);
 	    }
 	}
@@ -573,6 +616,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_resetMsg(
 
     IBP_VPRINTF(300, env, ("Now reset msg %p in PandaByteOutputStream\n", msg));
     ibmp_msg_release_iov(env, msg);
+    IBP_VPRINTF(300, env, ("Past reset msg %p in PandaByteOutputStream\n", msg));
 }
 
 
@@ -659,7 +703,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write(
 	*((unsigned char *) (&msg->buf[msg->buf_len])) = (unsigned char)(b & 0xFF);
 	msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]);
 	msg->iov[msg->iov_len].len = sizeof(jbyte);
-	msg->release[msg->iov_len].func = NULL;
+	msg->release[msg->iov_len].type = jprim_n_types;
 	msg->buf_len += incr;
     }
     else {
@@ -717,6 +761,8 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
     \
     if (! msg->copy && sz >= COPY_THRESHOLD) { \
 	b = (*env)->NewGlobalRef(env, b); \
+	IBP_VPRINTF(800, env, ("%s: Now create global ref %p\n", \
+		    ibmp_currentThread(env), b)); \
     } \
     if (msg->copy) { \
 	ibmp_lock(env); \
@@ -734,7 +780,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
 	    msg->iov[msg->iov_len].data = &(msg->buf[msg->buf_len]); \
 	    msg->buf_len += incr; \
 	    msg->iov[msg->iov_len].len  = sz; \
-	    msg->release[msg->iov_len].func  = NULL; \
+	    msg->release[msg->iov_len].type  = jprim_n_types; \
 	} \
 	else { \
 	    jtype *a = (*env)->Get ## JType ## ArrayElements(env, b, NULL); \
@@ -742,7 +788,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write ## JType ## Array( \
 	    msg->iov[msg->iov_len].len  = sz; \
 	    msg->release[msg->iov_len].array = b; \
 	    msg->release[msg->iov_len].buf   = a; \
-	    msg->release[msg->iov_len].func  = (release_func_t)(*env)->Release ## JType ## ArrayElements; \
+	    msg->release[msg->iov_len].type  = jprim_ ## JType; \
 	} \
     } \
     IBP_VPRINTF(300, env, ("Now push ByteOS %p msg %p %s source %p data %p size %d iov %d total %d [%d,%d,%d,%d,...]\n", \

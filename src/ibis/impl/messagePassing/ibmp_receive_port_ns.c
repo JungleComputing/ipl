@@ -24,8 +24,8 @@ ibmp_receive_port_ns_bind(JNIEnv *env,
 {
     IBP_VPRINTF(50, env, ("Do java call NameServer.bind this = %p client = 0x%x = %d\n",
 		obj_Ibis_nameServer, (int)client, (int)client));
-    IBP_VPRINTF(50, env, ("%s", (ibmp_object_toString(env, obj_Ibis_nameServer), "\n")));
-    IBP_VPRINTF(50, env, ("%s", (ibmp_object_toString(env, id), "\n")));
+    IBP_VPRINTF(50, env, ("%s", (ibmp_object_toString(env, obj_Ibis_nameServer, stderr), "\n")));
+    IBP_VPRINTF(50, env, ("%s", (ibmp_object_toString(env, id, stderr), "\n")));
 
     (*env)->CallVoidMethod(env,
 			   obj_Ibis_nameServer,

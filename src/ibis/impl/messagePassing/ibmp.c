@@ -176,7 +176,7 @@ ibmp_jstring2c(JNIEnv *env, jstring name)
 
 
 void
-ibmp_object_toString(JNIEnv *env, jobject obj)
+ibmp_object_toString(JNIEnv *env, jobject obj, FILE *out)
 {
     jstring name;
     jbyte *b;
@@ -194,8 +194,8 @@ IBP_VPRINTF(100, env, ("\n"));
 	ibmp_error(env, "Cannot get string bytes\n");
     }
 
-    printf("object = %s", b);
-    fflush(stdout);
+    fprintf(out, "object = %s", b);
+    fflush(out);
 
     (*env)->ReleaseStringUTFChars(env, name, b);
 }

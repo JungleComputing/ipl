@@ -1,11 +1,13 @@
 #ifndef __IBIS_MANTA_IBIS_IMPL_MESSAGE_PASSING_IBP_H__
 #define __IBIS_MANTA_IBIS_IMPL_MESSAGE_PASSING_IBP_H__
 
+#include <stdio.h>
+
 #include <jni.h>
 
 #include <pan_sys.h>
 
-void ibmp_object_toString(JNIEnv *env, jobject obj);
+void ibmp_object_toString(JNIEnv *env, jobject obj, FILE *out);
 char *ibmp_jstring2c(JNIEnv *env, jstring name);
 void ibmp_thread_yield(JNIEnv *env);
 void ibmp_lock(JNIEnv *env);
