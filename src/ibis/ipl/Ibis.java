@@ -32,7 +32,7 @@ public abstract class Ibis {
     /** A user-defined (or system-invented) name for this Ibis. */
     protected String name;
 
-    /** The implementation name, for instance ibis.tcp.TcpIbis. */
+    /** The implementation name, for instance ibis.impl.tcp.TcpIbis. */
     protected String implName;
 
     /** A user-supplied resize handler, with join/leave upcalls. */
@@ -205,12 +205,12 @@ public abstract class Ibis {
      *  or <code>null</code>.
      * @return the new Ibis instance.
      *
-     * @exception ConnectionRefusedException is thrown when the name turns
+     * @exception NoMatchingIbisException is thrown when the name turns
      *  out to be not unique.
      */
     public static Ibis createIbis(StaticProperties reqprop,
 				  ResizeHandler r)
-	throws IbisException, ConnectionRefusedException
+	throws IbisException
     {
 	Properties p = System.getProperties();
 	String hostname;
@@ -246,7 +246,8 @@ public abstract class Ibis {
 		    }
 		}
 		if (implementationname == null) {
-		    implementationname = "ibis.impl.tcp.TcpIbis";
+		    throw new NoMatchingIbisException(
+				"Could not find a matching Ibis");
 		}
 	    }
 	    else {
@@ -257,6 +258,8 @@ public abstract class Ibis {
 		    implementationname =  "ibis.impl.messagePassing.MPIIbis";
 		} else if (ibisname.startsWith("net")) {
 		    implementationname =  "ibis.impl.net.NetIbis";
+		    StaticProperties sp = staticProperties(implementationname);
+		    sp.add("IbisName", ibisname);
 		} else if (! ibisname.equals("tcp")) {
 		    System.err.println("Warning: name '" + ibisname +
 			    "' not recognized, using TCP version");

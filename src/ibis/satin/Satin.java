@@ -266,10 +266,6 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					ibis = Ibis.createIbis(name,
 							       "ibis.impl.net.NetIbis", this);
 
-					Properties sysP = System.getProperties();
-					String ibisName = sysP.getProperty("ibis.name");
-					s.add("IbisName", ibisName);
-
 				} else {
 					ibis = Ibis.createIbis(name,
 							       "ibis.impl.tcp.TcpIbis", this);

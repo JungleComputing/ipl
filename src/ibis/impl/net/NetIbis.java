@@ -253,6 +253,12 @@ public final class NetIbis extends Ibis {
 		path = path + top;
 	    }
 	    String driver = sp.find("IbisName");
+	    if (driver == null) {
+		StaticProperties p = properties();
+		if (p != null) {
+		    driver = p.find("IbisName");
+		}
+	    }
 	    if (driver != null && driver.startsWith("net.")) {
 		driver = driver.substring("net.".length());
 		while (true) {
@@ -315,11 +321,10 @@ public final class NetIbis extends Ibis {
 
 	/**
 	 * Returns the {@linkplain StaticProperties properties} of the {@link NetIbis} instance.
-	 * Note: currently unimplemented.
-	 * @return <CODE>null</CODE>
+	 * @return the static properties.
 	 */
 	public StaticProperties properties() {
-		return null;
+		return staticProperties(implName);
 	}
 
 	/**

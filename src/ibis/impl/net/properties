@@ -1,0 +1,11 @@
+#
+# Actually, NetIbis can do just about anything. The driver stack
+# determines what it can and cannot do, but the driver stack is
+# determined at port type creation time.
+#
+serialization = bytes, data, ibis, sun
+world = open, closed
+communication = OneToOne, OneToMany, ManyToOne, \
+		Reliable, Unreliable, NoPollForUpcalls, \
+		Upcalls, ExplicitReceipt, ConnectionAdministration, \
+		ConnectionUpcalls

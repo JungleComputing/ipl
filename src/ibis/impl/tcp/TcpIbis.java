@@ -31,16 +31,10 @@ public final class TcpIbis extends Ibis implements Config {
 	private ArrayList joinedIbises = new ArrayList();
 	private ArrayList leftIbises = new ArrayList();
 
-	private final StaticProperties systemProperties = new StaticProperties();	
 	TcpPortHandler tcpPortHandler;
 	private boolean ended = false;
 
 	public TcpIbis() throws IbisException {
-		// Set my properties.
-		systemProperties.add("reliability", "true");
-		systemProperties.add("multicast", "true") ;
-		systemProperties.add("totally ordered multicast", "false") ;
-
 		// this is a 1.4 method.
 		try {
 			Runtime.getRuntime().addShutdownHook(new TcpShutdown());
@@ -72,7 +66,7 @@ public final class TcpIbis extends Ibis implements Config {
 	} 
 
 	public StaticProperties properties() { 
-		return systemProperties;
+		return staticProperties(implName);
 	}
 
 	public IbisIdentifier identifier() {

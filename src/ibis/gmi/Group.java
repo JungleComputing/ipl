@@ -11,6 +11,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.NoMatchingIbisException;
 import ibis.util.PoolInfo;
 import ibis.util.Ticket;
 
@@ -346,8 +347,16 @@ public final class Group implements GroupProtocol {
 		System.out.println(name + ": init Group RTS");
 	    }
 	
-	    // TODO: required properties.
-	    ibis         = Ibis.createIbis(null, null);
+	    StaticProperties reqprops = new StaticProperties();
+	    reqprops.add("serialization", "sun, ibis");
+	    reqprops.add("world", "closed");
+	    reqprops.add("communication", "OneToOne, ManyToOne, OneToMany, Reliable, NoPollForUpcalls, Upcalls");
+	    try {
+		ibis         = Ibis.createIbis(reqprops, null);
+	    } catch(NoMatchingIbisException e) {
+		System.err.println("Could not find an Ibis that can run this GMI implementation");
+		System.exit(1);
+	    }
 	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
 	    

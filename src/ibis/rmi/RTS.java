@@ -2,6 +2,7 @@ package ibis.rmi;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
+import ibis.ipl.NoMatchingIbisException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -137,17 +138,18 @@ public final class RTS {
 	    //			new Exception().printStackTrace();
 	    // But HOW??? --Ceriel
 
-	    ibis = Ibis.createIbis(reqprops, null);
+	    try {
+		ibis = Ibis.createIbis(reqprops, null);
+	    } catch(NoMatchingIbisException e) {
+		System.err.println("Could not find an Ibis that can run this RMI implementation");
+		System.exit(1);
+	    }
 
 	    Properties p = System.getProperties();
-	    String ibis_name = p.getProperty("ibis.name");
 	    String ibis_serialization = p.getProperty("ibis.serialization");
 
 	    StaticProperties s = new StaticProperties();
 
-	    if (ibis_name != null) {
-		s.add("IbisName", ibis_name);
-	    }
 	    if (ibis_serialization != null) {
 		System.out.println("Setting Serialization to " + ibis_serialization);
 		s.add("Serialization", ibis_serialization);

@@ -34,8 +34,6 @@ public class Ibis extends ibis.ipl.Ibis {
     private boolean started = false;
     private Vector ibisNameService = new Vector();
 
-    private final StaticProperties systemProperties = new StaticProperties();
-
     private Poll rcve_poll;
 
 
@@ -67,11 +65,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
     Ibis() throws IbisException {
 
-	// Set my properties.
-	systemProperties.add("reliability", "true");
-	systemProperties.add("multicast", "false");
-	systemProperties.add("totally ordered", "false");
-	systemProperties.add("open world", "false");
 	if (DEBUG) {
 	    System.err.println("Turn on Ibis.DEBUG");
 	}
@@ -134,7 +127,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
 
     public StaticProperties properties() {
-	return systemProperties;
+	return staticProperties(implName);
     }
 
 

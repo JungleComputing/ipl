@@ -22,7 +22,11 @@ ibis.impl.tcp.TcpIbis \
     ibis/impl/tcp/properties \
     system_tcp_properties
 
+ibis.impl.net.NetIbis \
+    ibis/impl/net/properties
+
 order \
     ibis.impl.messagePassing.PandaIbis \
     ibis.impl.messagePassing.MPIIbis \
-    ibis.impl.tcp.TcpIbis
+    ibis.impl.tcp.TcpIbis \
+    ibis.impl.net.NetIbis
