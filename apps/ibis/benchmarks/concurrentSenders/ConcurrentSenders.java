@@ -32,6 +32,8 @@ class Sender extends Thread implements Config {
 			ReceivePortIdentifier ident = ibis.registry().lookup("receive port");
 			sport.connect(ident);
 		
+			long totalTime = System.currentTimeMillis();
+				
 			for (int r=0;r<repeat;r++) { 
 
 				long time = System.currentTimeMillis();
@@ -59,6 +61,10 @@ class Sender extends Thread implements Config {
 				System.err.println("SENDER: " + count + " msgs took " + (time/1000.0) + 
 						   " seconds, time/msg = " + speed + " micros");
 			}
+
+			totalTime = System.currentTimeMillis() - totalTime;
+			System.err.println("SENDER: TOTAL TIME is " + (totalTime/1000.0) + 
+					   " seconds");
 
 			System.err.println("sender done, freeing sport");
 			sport.free();
