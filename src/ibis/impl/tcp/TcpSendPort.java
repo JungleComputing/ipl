@@ -41,6 +41,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
 		return other.ident.equals(ident);
 	    }
+
+	    public int hashCode() {
+		return ident.hashCode();
+	    }
 	}
 
 	private TcpPortType type;
@@ -186,7 +190,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		}
 	}
 
-	public void setReplacer(Replacer r) {
+	public synchronized void setReplacer(Replacer r) {
 		replacer = r;
 		if (out != null) out.setReplacer(r);
 	}

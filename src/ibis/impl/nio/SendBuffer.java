@@ -14,16 +14,16 @@ import java.nio.ShortBuffer;
 final class SendBuffer implements Config {
 
     //primitives are send in order of size, largest first
-    private final int HEADER = 0;
-    private final int LONGS = 1;
-    private final int DOUBLES = 2;
-    private final int INTS = 3;
-    private final int FLOATS = 4;
-    private final int SHORTS = 5;
-    private final int CHARS = 6;
-    private final int BYTES = 7;
-    private final int PADDING = 8;
-    private final int NR_OF_BUFFERS = 9;
+    private static final int HEADER = 0;
+    private static final int LONGS = 1;
+    private static final int DOUBLES = 2;
+    private static final int INTS = 3;
+    private static final int FLOATS = 4;
+    private static final int SHORTS = 5;
+    private static final int CHARS = 6;
+    private static final int BYTES = 7;
+    private static final int PADDING = 8;
+    private static final int NR_OF_BUFFERS = 9;
 
     /**
      * The header contains 1 byte for the byte order,
@@ -31,9 +31,9 @@ final class SendBuffer implements Config {
      * packet (in bytes), and 7 shorts (14 bytes) for the number of each
      * primitive send (in bytes!)
      */
-    private final int SIZEOF_HEADER = 16;
+    private static final int SIZEOF_HEADER = 16;
 
-    private final int SIZEOF_PADDING = 8;
+    private static final int SIZEOF_PADDING = 8;
 
     public static final int SIZEOF_BYTE = 1;
     public static final int SIZEOF_CHAR = 2;

@@ -38,13 +38,13 @@ public abstract class NioDissipator extends Dissipator
     protected static final int BUFFER_LIMIT = BYTE_BUFFER_SIZE 
 					- PRIMITIVE_BUFFER_SIZE;
 
-    private final int LONGS = 1;
-    private final int DOUBLES = 2;
-    private final int INTS = 3;
-    private final int FLOATS = 4;
-    private final int SHORTS = 5;
-    private final int CHARS = 6;
-    private final int BYTES = 7;
+    private static final int LONGS = 1;
+    private static final int DOUBLES = 2;
+    private static final int INTS = 3;
+    private static final int FLOATS = 4;
+    private static final int SHORTS = 5;
+    private static final int CHARS = 6;
+    private static final int BYTES = 7;
 
     protected static final int SIZEOF_HEADER = 16;
 

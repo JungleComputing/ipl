@@ -28,12 +28,12 @@ public class NameServer implements Protocol {
 
 	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9826;
 	// public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 5678;
-        public static final int BUF_SIZE = 1024;
+        private static final int BUF_SIZE = 1024;
 	
-	public static boolean DEBUG = TypedProperties.booleanProperty("ibis.ns.debug");
-	public static boolean VERBOSE = TypedProperties.booleanProperty("ibis.ns.verbose");
+	static boolean DEBUG = TypedProperties.booleanProperty("ibis.ns.debug");
+	static boolean VERBOSE = TypedProperties.booleanProperty("ibis.ns.verbose");
 
-	private static int PINGER_TIMEOUT = TypedProperties.intProperty("ibis.ns.timeout", 300) * 1000;	// Property is in seconds, convert to milliseconds.
+	static int PINGER_TIMEOUT = TypedProperties.intProperty("ibis.ns.timeout", 300) * 1000;	// Property is in seconds, convert to milliseconds.
 
 	static class IbisInfo { 		
 		IbisIdentifier identifier;
