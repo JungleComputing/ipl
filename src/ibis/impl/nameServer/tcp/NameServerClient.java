@@ -93,7 +93,6 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer implements
 			// Try and start a nameserver ...
 			NameServer n = NameServer.createNameServer(true, false, true, false);
 			if (n != null) {
-			    n.setDaemon(true);
 			    n.start();
 			}
 		}
