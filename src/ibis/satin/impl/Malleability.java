@@ -100,6 +100,21 @@ public abstract class Malleability extends FaultTolerance {
              *     globalResultTable.removeReplica(leaver);
              * }
              */
+	    if (FAULT_TOLERANCE) {
+		/* 
+		 * master and cluster coordinators will be reelected
+		 * only if their crash was confirmed by the nameserver
+		 */
+		if (leaver.equals(masterIdent)) {
+		    masterHasCrashed = true;
+		    gotCrashes = true;
+		}
+		if (leaver.equals(clusterCoordinatorIdent)) {
+		    clusterCoordinatorHasCrashed = true;
+		    gotCrashes = true;
+		}
+	    } 
+	     
             v = victims.remove(leaver);
             notifyAll();
 

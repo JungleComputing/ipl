@@ -187,6 +187,12 @@ public abstract class Communication extends SpawnSync {
             if (gotDeleteCluster) {
                 handleDeleteCluster();
             }
+	    if (masterHasCrashed) {
+		handleMasterCrash();
+	    }
+	    if (clusterCoordinatorHasCrashed) {
+		handleClusterCoordinatorCrash();
+	    }
             if (GRT_MESSAGE_COMBINING) {
                 if (updatesToSend) {
                     globalResultTable.sendUpdates();

@@ -216,6 +216,10 @@ public abstract class SatinBase implements Config {
     protected volatile boolean gotDeleteCluster = false;
 
     protected volatile boolean updatesToSend = false;
+    
+    protected volatile boolean masterHasCrashed = false;
+    
+    protected volatile boolean clusterCoordinatorHasCrashed = false;
 
     /**
      * Used for fault tolerance, we must know who the current victim is,
@@ -223,7 +227,7 @@ public abstract class SatinBase implements Config {
      */
     IbisIdentifier currentVictim = null;
 
-    boolean currentVictimCrashed = false;
+    protected volatile boolean currentVictimCrashed = false;
 
     // IbisIdentifier asyncCurrentVictim = null;
 
@@ -379,6 +383,10 @@ public abstract class SatinBase implements Config {
     abstract void handleDelete();
 
     abstract void handleDeleteCluster();
+    
+    abstract void handleMasterCrash();
+    
+    abstract void handleClusterCoordinatorCrash();
 
     abstract void handleDelayedMessages();
 

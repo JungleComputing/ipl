@@ -61,67 +61,6 @@ public abstract class FaultTolerance extends Inlets {
              * }
              */
 
-            if (id.equals(masterIdent) && /*quick hack*/!(killTime > 0)) {
-                //master has crashed, let's elect a new one
-                System.err.println("SATIN '" + ident.name() + "': MASTER ("
-                        + masterIdent + ") HAS CRASHED!!!");
-                try {
-                    masterIdent = r.elect("satin master");
-                    if (masterIdent.equals(ident)) {
-                        master = true;
-                    }
-                    //barrier ports
-                    if (master) {
-                        barrierReceivePort = barrierPortType.createReceivePort(
-                                "satin barrier receive port on "
-                                + ident.name());
-                        barrierReceivePort.enableConnections();
-                    } else {
-                        barrierSendPort.close();
-                        barrierSendPort = barrierPortType.createSendPort(
-                                "satin barrier send port on " + ident.name());
-                        ReceivePortIdentifier barrierIdent = lookup(
-                                "satin barrier receive port on "
-                                + masterIdent.name());
-                        connect(barrierSendPort, barrierIdent);
-                    }
-
-                    //statistics
-                    if (stats && master) {
-                        totalStats = new StatsMessage();
-                    }
-
-                } catch (IOException e) {
-                    System.err.println("SATIN '" + ident.name()
-                            + "' :exception while electing a new master "
-                            + e.getMessage());
-                } catch (ClassNotFoundException e) {
-                    System.err.println("SATIN '" + ident.name()
-                            + "' :exception while electing a new master "
-                            + e.getMessage());
-                }
-                restarted = true;
-            }
-
-            if (id.equals(clusterCoordinatorIdent)
-                    && /*quick hack*/!(killTime > 0)) {
-                try {
-                    clusterCoordinatorIdent = r.elect("satin "
-                            + ident.cluster() + " cluster coordinator");
-                    if (clusterCoordinatorIdent.equals(ident)) {
-                        clusterCoordinator = true;
-                    }
-                } catch (IOException e) {
-                    System.err.println("SATIN '" + ident.name()
-                            + "' :exception while electing a new cluster "
-                            + "coordinator " + e.getMessage());
-                } catch (ClassNotFoundException e) {
-                    System.err.println("SATIN '" + ident.name()
-                            + "' :exception while electing a new cluster "
-                            + "coordinator " + e.getMessage());
-                }
-            }
-
             if (master) {
                 System.err.println(id.name() + " has crashed");
             }
@@ -167,6 +106,71 @@ public abstract class FaultTolerance extends Inlets {
 
         notifyAll();
 
+    }
+    
+    void handleMasterCrash() {
+	masterHasCrashed = false;
+	Registry r = ibis.registry();	    
+        //master has crashed, let's elect a new one
+        System.err.println("SATIN '" + ident.name() + "': MASTER ("
+                + masterIdent + ") HAS CRASHED!!!");
+        try {
+            masterIdent = r.elect("satin master");
+            if (masterIdent.equals(ident)) {
+                master = true;
+            }
+            //barrier ports
+            if (master) {
+                barrierReceivePort = barrierPortType.createReceivePort(
+                        "satin barrier receive port on "
+                        + ident.name());
+                barrierReceivePort.enableConnections();
+            } else {
+                barrierSendPort.close();
+                barrierSendPort = barrierPortType.createSendPort(
+                        "satin barrier send port on " + ident.name());
+                ReceivePortIdentifier barrierIdent = lookup(
+                        "satin barrier receive port on "
+                        + masterIdent.name());
+                connect(barrierSendPort, barrierIdent);
+            }
+
+            //statistics
+            if (stats && master) {
+                totalStats = new StatsMessage();
+            }
+
+        } catch (IOException e) {
+    	    System.err.println("SATIN '" + ident.name()
+            	    + "' :exception while electing a new master "
+                    + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            System.err.println("SATIN '" + ident.name()
+                    + "' :exception while electing a new master "
+                    + e.getMessage());
+        }
+        restarted = true;
+    
+    }
+    
+    void handleClusterCoordinatorCrash() {
+	clusterCoordinatorHasCrashed = false;
+	Registry r = ibis.registry();
+        try {
+            clusterCoordinatorIdent = r.elect("satin "
+                    + ident.cluster() + " cluster coordinator");
+            if (clusterCoordinatorIdent.equals(ident)) {
+                clusterCoordinator = true;
+            }
+        } catch (IOException e) {
+            System.err.println("SATIN '" + ident.name()
+                    + "' :exception while electing a new cluster "
+                    + "coordinator " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            System.err.println("SATIN '" + ident.name()
+                    + "' :exception while electing a new cluster "
+                    + "coordinator " + e.getMessage());
+        }    
     }
 
     // Used for fault tolerance
