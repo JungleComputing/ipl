@@ -24,7 +24,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 
 	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9826;
 
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 	public static final boolean VERBOSE = true;
 
 	class IbisInfo { 		
