@@ -82,7 +82,7 @@
 		failonerror="true"
 		maxmemory="256m"
 		fork="true">
-	    <arg line="-dir ${iogen-files}"/>
+	    <arg line="-silent -dir ${iogen-files}"/>
 	    <classpath refid="default.classpath"/>
 	    <classpath refid="app.classpath"/>
 	</java>
