@@ -18,19 +18,13 @@
 #The <site> <count> pairs are terminated by a - , after which the java
 #class and its parameters follow
 
-
-# $IBIS_ROOT/ibis/config.mk sets LD_LIBRARY_PATH to $IBIS_ROOT/ibis/lib...
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GLOBUS_LOCATION/lib
-
-
 GRUN_PATH=$IBIS_ROOT/globus
 SITES_PATH=$GRUN_PATH/sites
 
-USAGE="usage: $0 [-d] [-icp <extra ibisclasspath> ] <nameserver-port> [ <site> <count> ]+ - <class name>
-       <parameters>"
+USAGE="usage: $0 [-d] [-icp <extra ibisclasspath> ] <nameserver-port> [ <site> <count> ]+ - <class name> <parameters>"
 
 DEBUG=off
-IBISCLASSPATH=ibis/classlibs:.
+IBISCLASSPATH=build
 #read any options
 while true; do
 	case $1 in
@@ -104,7 +98,7 @@ done
 shift 1 #skip the '-'
 APP_CLASS_PARAMS=$*
 
-if [ -z $(pwd | egrep "^$IBIS_ROOT/ibis") ]; then
+if [ -z $(pwd | egrep "^$IBIS_ROOT") ]; then
 	echo $0: You are not running an application in the ibis tree!
 	exit 1
 fi
@@ -119,10 +113,14 @@ ABORT=
 #create $IBIS_ROOT/ibis.tgz
 (
 	cd $IBIS_ROOT;
-	FILES=`find ibis -name *.class -or -name *properties -or -name *.jar`
+	FILES=`find . -name "*properties"` #properties files
+	FILES="$FILES build"               #ibis build tree
+	FILES="$FILES $APP_DIR/*.class"    #application classes
 	#also include the pics subdir for the raytracer
 	#(can't include all dirs, the output directories are also there)
-	FILES="$FILES $(find $APP_DIR -path "$APP_DIR/pics/*")"
+	if [ -d $APP_DIR/pics ]; then
+	    FILES="$FILES $APP_DIR/pics/*"
+	fi
 
 	rm -f ibis$$.tgz;
 	tar cfz ibis$$.tgz $FILES
@@ -229,7 +227,7 @@ if [ "$ABORT" != "true" ]; then
 	mkdir -p grun-output
 
 	#everything's prepared now, start running
-	$IBIS_ROOT/ibis/bin/ibis_nameserver -port $NS_PORT -single &
+	$IBIS_ROOT/bin/ibis_nameserver -port $NS_PORT -single &
 	NS_PID=$!
 	globusrun -s -f grun$$.rsl
 fi
