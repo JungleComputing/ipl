@@ -215,7 +215,12 @@ class ConcurrentSenders implements Config {
 		}	
 
 		try {
-			ibis = Ibis.createIbis(null, null);
+			StaticProperties sp = new StaticProperties();
+			sp.add("serialization", "object");
+			sp.add("communication", "OneToOne, ManyToOne, OneToMany, Reliable, ExplicitReceipt, AutoUpcalls");
+			sp.add("worldmodel", "closed");
+
+			ibis     = Ibis.createIbis(sp, null);
 
 			registry = ibis.registry();
 
@@ -239,7 +244,7 @@ class ConcurrentSenders implements Config {
 				rank = 1;
 			}
 
-			PortType t = ibis.createPortType("test type", null);
+			PortType t = ibis.createPortType("test type", sp);
 
 			if (rank == 0) {
 				new Receiver(ibis, t, count, repeat, senders, doFinish);

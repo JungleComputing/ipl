@@ -11,7 +11,7 @@ import ibis.util.*;
  * results to the master, and the master replies to the workers.
  */
 final class MasterWorker {
-    static final int COUNT = 10000;
+    static final int COUNT = 1000;
     static final boolean ASSERT = true;
 
     Ibis ibis;
@@ -28,7 +28,7 @@ final class MasterWorker {
 
 	    s = new StaticProperties();
 	    s.add("communication", 
-		    "AutoUpcalls OneToOne ManyToOne Reliable ExplicitReceipt");
+		    "OneToOne ManyToOne Reliable ExplicitReceipt");
 	    s.add("serialization", "ibis");
 	    s.add("worldmodel", "closed");
 	    ibis = Ibis.createIbis(s, null);
