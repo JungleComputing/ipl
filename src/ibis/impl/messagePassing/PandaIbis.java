@@ -3,7 +3,7 @@ package ibis.ipl.impl.messagePassing;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 
-public class PandaIbis extends ibis.ipl.impl.messagePassing.Ibis {
+public class PandaIbis extends Ibis {
 
     public PandaIbis() throws IbisException {
 	super();

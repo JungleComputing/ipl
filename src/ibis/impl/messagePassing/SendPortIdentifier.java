@@ -1,5 +1,7 @@
 package ibis.ipl.impl.messagePassing;
 
+import ibis.ipl.IbisIOException;
+
 final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     java.io.Serializable {
 
@@ -8,27 +10,35 @@ final class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     int cpu;
     int port;
     IbisIdentifier ibisId;
+    transient byte[] serialForm;
 
 
-    SendPortIdentifier(String name, String type) {
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    port = ibis.ipl.impl.messagePassing.Ibis.myIbis.sendPort++;
+    SendPortIdentifier(String name, String type)
+	    throws IbisIOException {
+
+	synchronized (Ibis.myIbis) {
+	    port = Ibis.myIbis.sendPort++;
 	}
 	this.name = name;
 	this.type = type;
-	this.ibisId = (IbisIdentifier)ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier();
-	cpu = ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu;
+	this.ibisId = (IbisIdentifier)Ibis.myIbis.identifier();
+	cpu = Ibis.myIbis.myCpu;
+	makeSerialForm();
     }
 
-    SendPortIdentifier(String name, String type, String ibisId,
-		       int cpu, byte[] inetAddr, int port) throws ibis.ipl.IbisIOException {
-	this.name = name;
-	this.type = type;
-// System.err.println("SendPortIdentifier.<ctor>: Lookup ibisId " + ibisId);
-	this.ibisId = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupIbis(ibisId, cpu, inetAddr);
-	this.cpu = cpu;
-	this.port = port;
+
+    private void makeSerialForm() throws IbisIOException {
+	serialForm = SerializeBuffer.writeObject(this);
     }
+
+
+    byte[] getSerialForm() throws IbisIOException {
+	if (serialForm == null) {
+	    makeSerialForm();
+	}
+	return serialForm;
+    }
+
 
     public boolean equals(ibis.ipl.SendPortIdentifier other) {
 	    if (other == this) return true;

@@ -17,16 +17,16 @@ class ElectionClient implements ElectionProtocol {
 	}
 
 // System.err.println(Thread.currentThread() + "ElectionClient: enter...");
-	ibis.ipl.PortType type = ibis.ipl.impl.messagePassing.Ibis.myIbis.createPortType("++++ElectionPort++++", new ibis.ipl.StaticProperties());
+	ibis.ipl.PortType type = Ibis.myIbis.createPortType("++++ElectionPort++++", new ibis.ipl.StaticProperties());
 // System.err.println(Thread.currentThread() + "ElectionClient: portTypes lives");
 
 	rport = type.createReceivePort("++++ElectionClient-" +
-				       ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + "++++");
+				       Ibis.myIbis.myCpu + "++++");
 	rport.enableConnections();
 // System.err.println(Thread.currentThread() + "ElectionClient: receivePort lives");
 
-	server = ibis.ipl.impl.messagePassing.Ibis.myIbis.registry().lookup("++++ElectionServer-" +
-						ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + "++++");
+	server = Ibis.myIbis.registry().lookup("++++ElectionServer-" +
+						Ibis.myIbis.myCpu + "++++");
 // System.err.println(Thread.currentThread() + "ElectionClient: server located");
 	sport = type.createSendPort();
 // System.err.println(Thread.currentThread() + "ElectionClient: sendPort lives");
@@ -62,7 +62,7 @@ class ElectionClient implements ElectionProtocol {
 // System.err.println(Thread.currentThread() + "ElectionClient: elect(): start send");
 
 	ibis.ipl.WriteMessage m = sport.newMessage();
-	m.writeInt(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu);
+	m.writeInt(Ibis.myIbis.myCpu);
 	m.writeObject(election);
 	m.writeObject(candidate);
 	m.send();

@@ -2,7 +2,7 @@ package ibis.ipl.impl.messagePassing;
 
 import ibis.ipl.IbisIOException;
 
-final public class IbisWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
+final public class IbisWriteMessage extends WriteMessage {
 
     SendPort sPort;
     ibis.io.IbisSerializationOutputStream obj_out;
@@ -23,21 +23,21 @@ final public class IbisWriteMessage extends ibis.ipl.impl.messagePassing.WriteMe
 	obj_out.flush();
 	// Do this from obj_out: out.flush();
 
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	Ibis.myIbis.lock();
 	sPort.registerSend();	// No exceptions
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	Ibis.myIbis.unlock();
     }
 
     private void reset(boolean doSend, boolean finish) throws IbisIOException {
 // System.err.println("Reset Ibis WriteMessage " + this + " and its ByteOutput " + out + (finish ? " and also" : " but not") + " its IbisSerializationOutputStream " + obj_out);
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	// Ibis.myIbis.lock();
 	if (doSend) {
 	    obj_out.flush();
 	}
 
 	obj_out.reset();
 
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	Ibis.myIbis.lock();
 	try {
 	    if (doSend) {
 		sPort.registerSend();
@@ -48,7 +48,7 @@ final public class IbisWriteMessage extends ibis.ipl.impl.messagePassing.WriteMe
 		sPort.reset();
 	    }
 	} finally {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	    Ibis.myIbis.unlock();
 	}
     }
 

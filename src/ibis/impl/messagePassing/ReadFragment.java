@@ -4,7 +4,7 @@ class ReadFragment {
 
     int		msgHandle;
     int		msgSize;
-    ibis.ipl.impl.messagePassing.ReadMessage msg;
+    ReadMessage msg;
     ReadFragment next;
     boolean	lastFrag;
 

@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import ibis.ipl.IbisIOException;
 import ibis.io.Replacer;
 
-final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPort {
+final public class SerializeSendPort extends SendPort {
 
     ibis.io.SunSerializationOutputStream obj_out;
 
@@ -14,11 +14,11 @@ final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPo
     SerializeSendPort() {
     }
 
-    public SerializeSendPort(ibis.ipl.impl.messagePassing.PortType type, String name, OutputConnection conn, Replacer r) throws IbisIOException {
+    public SerializeSendPort(PortType type, String name, OutputConnection conn, Replacer r) throws IbisIOException {
 	super(type, name, conn, r,
 	      true,	/* syncMode */
 	      true	/* makeCopy */);
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println("/////////// Created a new SerializeSendPort " + this);
 	}
     }
@@ -28,7 +28,7 @@ final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPo
 			int timeout)
 	    throws IbisIOException {
 
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	Ibis.myIbis.lock();
 	try {
 
 	    // Add the new receiver to our tables.
@@ -44,26 +44,29 @@ final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPo
 		}
 	    }
 
+	    byte[] sf = ident.getSerialForm();
 	    for (int i = 0; i < my_split; i++) {
 		ReceivePortIdentifier r = splitter[i];
-		outConn.ibmp_disconnect(r.cpu, r.port, ident.port, messageCount);
+		outConn.ibmp_disconnect(r.cpu,
+					r.getSerialForm(),
+					sf,
+					messageCount);
 	    }
 	    messageCount = 0;
 
 	    for (int i = 0; i < splitter.length; i++) {
 		ReceivePortIdentifier r = splitter[i];
-		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		if (Ibis.DEBUG) {
 		    System.err.println(Thread.currentThread() + "Now do native connect call to " + r + "; me = " + ident);
-		    System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis " + ibis.ipl.impl.messagePassing.Ibis.myIbis);
-		    System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier() " + ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier());
-		    System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name() " + ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name());
+		    System.err.println("Ibis.myIbis " + Ibis.myIbis);
+		    System.err.println("Ibis.myIbis.identifier() " + Ibis.myIbis.identifier());
+		    System.err.println("Ibis.myIbis.identifier().name() " + Ibis.myIbis.identifier().name());
 		}
-		IbisIdentifier ibisId = (IbisIdentifier)Ibis.myIbis.identifier();
-		outConn.ibmp_connect(r.cpu, r.port, ident.port, ident.type,
-				     ibisId.name(), ibisId.getSerialForm(),
-				     i == my_split ? syncer[i] : null,
-				     type.serializationType);
-		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		outConn.ibmp_connect(r.cpu,
+				     r.getSerialForm(),
+				     ident.getSerialForm(),
+				     i == my_split ? syncer[i] : null);
+		if (Ibis.DEBUG) {
 		    System.err.println(Thread.currentThread() + "Done native connect call to " + r + "; me = " + ident);
 		}
 	    }
@@ -75,7 +78,7 @@ final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPo
 		throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + receiver);
 	    }
 	} finally {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	    Ibis.myIbis.unlock();
 	}
 
 	try {
@@ -87,17 +90,17 @@ final public class SerializeSendPort extends ibis.ipl.impl.messagePassing.SendPo
 		((SerializeWriteMessage)message).obj_out = obj_out;
 	    }
 	    obj_out.flush();
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	    Ibis.myIbis.lock();
 	    try {
 		out.send(true);
 		out.reset(true);
 	    } finally {
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+		Ibis.myIbis.unlock();
 	    }
 	} catch (java.io.IOException e) {
 	    throw new IbisIOException(e);
 	}
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println(Thread.currentThread() + ">>>>>>>>>>>> Created ObjectOutputStream " + obj_out + " on top of " + out);
 	}
     }

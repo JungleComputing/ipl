@@ -5,7 +5,7 @@ import ibis.ipl.impl.generic.ConditionVariable;
 public class Syncer implements PollClient {
     boolean	signalled;
     boolean	accepted;
-    ConditionVariable cv = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
+    ConditionVariable cv = Ibis.myIbis.createCV();
 
     PollClient	next;
     PollClient	prev;
@@ -50,7 +50,7 @@ public class Syncer implements PollClient {
     }
 
     boolean s_wait(int timeout) throws ibis.ipl.IbisIOException {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// Ibis.myIbis.checkLockOwned();
 
 	long	t_start = 0;
 
@@ -58,7 +58,7 @@ public class Syncer implements PollClient {
 	    t_start = System.currentTimeMillis();
 	}
 	while (! signalled) {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, timeout, Poll.PREEMPTIVE);
+	    Ibis.myIbis.waitPolling(this, timeout, Poll.PREEMPTIVE);
 	    if (timeout > 0) {
 		if (System.currentTimeMillis() >= t_start + timeout) {
 		    return false;
@@ -72,7 +72,7 @@ public class Syncer implements PollClient {
     }
 
     void s_signal(boolean accepted) {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// Ibis.myIbis.checkLockOwned();
 	this.accepted = accepted;
 	signalled = true;
 	wakeup();

@@ -15,7 +15,7 @@ final public class ArrayOutputStream
     private boolean[] touched = new boolean[PRIMITIVE_TYPES];
 
     public ArrayOutputStream(ByteOutputStream out) {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println(">>>>>>>>>>>>>>>>>>>>>>> Create a messagePassing.ArrayOutputStream on top of " + out);
 	}
 	this.out = out;

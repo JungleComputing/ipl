@@ -8,7 +8,7 @@ final class PortHash {
     private Object[]	portDataBase;
 
     void bind(int x, Object p) {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// Ibis.myIbis.checkLockOwned();
 
 	// System.err.println("PortHash: now bind port " + x + " to Object " + p);
 
@@ -30,13 +30,13 @@ final class PortHash {
 
 
     Object lookup(int x) {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// Ibis.myIbis.checkLockOwned();
 	return portDataBase[x];
     }
 
 
     void unbind(int x) {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// Ibis.myIbis.checkLockOwned();
 	portDataBase[x] = null;
     }
 

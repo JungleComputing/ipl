@@ -16,7 +16,6 @@
 
 #include "ibmp.h"
 #include "ibmp_receive_port_ns.h"
-#include "ibmp_receive_port_identifier.h"
 #include "ibmp_receive_port_ns_bind.h"
 #include "ibmp_receive_port_ns_lookup.h"
 #include "ibmp_receive_port_ns_unbind.h"
@@ -443,8 +442,6 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
 
     ibmp_poll_init(env);
     IBP_VPRINTF(2000, env, ("here..\n"));
-    ibmp_receive_port_identifier_init(env);
-    IBP_VPRINTF(2000, env, ("here..\n"));
     ibmp_receive_port_ns_init(env);
     IBP_VPRINTF(2000, env, ("here..\n"));
 
@@ -496,7 +493,6 @@ fprintf(stderr, "%2d: ibmp_1end: hi folks... \n", ibmp_me);
     ibmp_receive_port_ns_lookup_end(env);
     ibmp_receive_port_ns_unbind_end(env);
     ibmp_receive_port_ns_end(env);
-    ibmp_receive_port_identifier_end(env);
     ibmp_poll_end(env);
 
     ibp_mp_end(env);

@@ -16,7 +16,7 @@ int		ibmp_ns_server = 0;
 
 
 void
-ibmp_receive_port_ns_bind(JNIEnv *env, jobject id, jint sender, jint client)
+ibmp_receive_port_ns_bind(JNIEnv *env, jbyteArray id, jint sender, jint client)
 {
     IBP_VPRINTF(50, env, ("Do java call NameServer.bind this = %p client = 0x%x = %d\n",
 		obj_Ibis_nameServer, (int)client, (int)client));
@@ -121,9 +121,9 @@ ibmp_receive_port_ns_init(JNIEnv *env)
     md_NameServer_bind = (*env)->GetMethodID(env,
 					     cls_ns,
 					     "bind",
-					     "(Libis/ipl/impl/messagePassing/ReceivePortIdentifier;II)V");
+					     "([BII)V");
     if (md_NameServer_bind == NULL) {
-	fprintf(stderr, "%s.%d Cannot find method bind(Ljava/lang/String;Libis/ipl/impl/messagePassing/ReceivePortIdentifier;II)V\n", __FILE__, __LINE__);
+	fprintf(stderr, "%s.%d Cannot find method bind([BII)V\n", __FILE__, __LINE__);
 	abort();
     }
     md_NameServer_lookup = (*env)->GetMethodID(env,

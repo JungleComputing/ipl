@@ -12,7 +12,6 @@
 #include <pan_util.h>
 
 #include "ibmp.h"
-#include "ibmp_receive_port_identifier.h"
 #include "ibmp_receive_port_ns.h"
 
 #include "ibis_ipl_impl_messagePassing_ReceivePortNameServer.h"
@@ -96,10 +95,7 @@ typedef struct ibp_ns_lookup_reply_hdr {
     jint	ret;
     jint	cpu;
     jint	port;
-    int		name_length;
-    int		type_length;
-    int		ibis_length;
-    int		addr_length;
+    int		rcve_length;
     jint	client;
 } ibp_ns_lookup_reply_hdr_t, *ibp_ns_lookup_reply_hdr_p;
 
@@ -112,7 +108,7 @@ ibp_ns_lookup_reply_hdr(void *proto)
 
 typedef struct LOOKUP_REPLY {
     void       *proto;
-    pan_iovec_t	iov[4];
+    pan_iovec_t	iov[1];
 } lookup_reply_t, *lookup_reply_p;
 
 
@@ -123,9 +119,6 @@ lookup_reply_clear(void *v)
 
     ibp_proto_clear(r->proto);
     pan_free(r->iov[0].data);
-    pan_free(r->iov[1].data);
-    pan_free(r->iov[2].data);
-    pan_free(r->iov[3].data);
 
     pan_free(r);
 }
@@ -138,12 +131,7 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
 	jint ret,
 	jint tag,
 	jint client,
-	jstring name,
-	jstring type,
-	jstring ibis_name,
-	jint cpu,
-	jbyteArray inetAddr,
-	jint port)
+	jbyteArray rcvePortId)
 {
     ibp_ns_lookup_reply_hdr_p hdr;
     int		iov_len;
@@ -158,43 +146,20 @@ Java_ibis_ipl_impl_messagePassing_ReceivePortNameServer_lookup_1reply(
     if (ret == PORT_KNOWN) {
 	jchar *c;
 
-	hdr->name_length = ibp_string_push(env, name, &r->iov[0]);
+	hdr->rcve_length = ibp_byte_array_push(env, rcvePortId, &r->iov[0]);
 	c = pan_malloc(r->iov[0].len);
 	memcpy(c, r->iov[0].data, r->iov[0].len);
-	(*env)->ReleaseStringUTFChars(env, name, r->iov[0].data);
+	(*env)->ReleaseByteArrayElements(env, rcvePortId, r->iov[0].data, JNI_ABORT);
 	r->iov[0].data = c;
 
-	hdr->type_length = ibp_string_push(env, type, &r->iov[1]);
-	c = pan_malloc(r->iov[1].len);
-	memcpy(c, r->iov[1].data, r->iov[1].len);
-	(*env)->ReleaseStringUTFChars(env, type, r->iov[1].data);
-	r->iov[1].data = c;
-
-	hdr->ibis_length = ibp_string_push(env, ibis_name, &r->iov[2]);
-	c = pan_malloc(r->iov[2].len);
-	memcpy(c, r->iov[2].data, r->iov[2].len);
-	(*env)->ReleaseStringUTFChars(env, ibis_name, r->iov[2].data);
-	r->iov[2].data = c;
-
-	hdr->addr_length = ibp_byte_array_push(env, inetAddr, &r->iov[3]);
-	c = pan_malloc(r->iov[3].len);
-	memcpy(c, r->iov[3].data, r->iov[3].len);
-	(*env)->ReleaseByteArrayElements(env, inetAddr, r->iov[3].data, JNI_ABORT);
-	r->iov[3].data = c;
-
-	iov_len = 4;
+	iov_len = 1;
 
     } else {
 	r->iov[0].data = NULL;
-	r->iov[1].data = NULL;
-	r->iov[2].data = NULL;
-	r->iov[3].data = NULL;
 	iov_len = 0;
     }
 
     hdr->ret = ret;
-    hdr->cpu = cpu;
-    hdr->port = port;
     hdr->client = client;
 
     ibp_mp_send_async(env, (int)tag, ibp_ns_lookup_reply_port,
@@ -208,25 +173,17 @@ static int
 ibp_ns_lookup_reply_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     ibp_ns_lookup_reply_hdr_p hdr = ibp_ns_lookup_reply_hdr(proto);
-    jobject	id;
     jobject	client = (jobject)hdr->client;
+    jbyteArray	rcvePortId = NULL;
 
     if (hdr->ret == PORT_KNOWN) {
-	jstring	name = ibp_string_consume(env, msg, hdr->name_length);
-	jstring	type = ibp_string_consume(env, msg, hdr->type_length);
-	jstring	ibis_name = ibp_string_consume(env, msg, hdr->ibis_length);
-	jbyteArray inetAddr = ibp_byte_array_consume(env, msg, hdr->addr_length);
-
-	id = ibmp_new_ReceivePortIdentifier(env, name, type, ibis_name,
-					    hdr->cpu, inetAddr, hdr->port);
-    } else {
-	id = ibmp_new_ReceivePortIdentifier(env, NULL, NULL, NULL, -1, NULL, -1);
+	rcvePortId = ibp_byte_array_consume(env, msg, hdr->rcve_length);
     }
 
     (*env)->CallVoidMethod(env,
 			   client,
 			   md_NameServerClient_lookup_reply,
-			   id);
+			   rcvePortId);
 
     (*env)->DeleteGlobalRef(env, client);
 
@@ -261,7 +218,7 @@ ibmp_receive_port_ns_lookup_init(JNIEnv *env)
 					    env,
 					    cls_PandaReceivePortNameServerClient,
 					    "lookup_reply",
-					    "(Libis/ipl/impl/messagePassing/ReceivePortIdentifier;)V");
+					    "([B)V");
     if (md_NameServerClient_lookup_reply == NULL) {
 	ibmp_error(env, "Cannot find method lookup_reply(Libis/ipl/impl/messagePassing/ReceivePortIdentifier;)V\n");
     }

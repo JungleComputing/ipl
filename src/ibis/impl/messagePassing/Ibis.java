@@ -101,11 +101,16 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
+    synchronized
     public ibis.ipl.PortType createPortType(String name,
 				   StaticProperties p) throws IbisException {
 
-	return new PortType(this, name, p);
+	PortType tp = new PortType(this, name, p);
+	portTypeList.put(name, tp);
+
+	return tp;
     }
+
 
     public ibis.ipl.Registry registry() {
 	return registry;
@@ -136,29 +141,29 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    native void send_join(int to, String ident_name, byte[] inetAddr);
-    native void send_leave(int to, String ident_name);
+    native void send_join(int to, byte[] serialForm);
+    native void send_leave(int to, byte[] serialForm);
 
     /* Called from native */
-    void join_upcall(String ident_name, int cpu, byte[] inetAddr) throws IbisIOException {
-	if (DEBUG) {
-	    System.err.println("Receive join message " + ident_name + "; now world = " + world + "; inetAddr[" + inetAddr.length + "] = " + inetAddr);
-	}
+    void join_upcall(byte[] serialForm) throws IbisIOException {
 	// checkLockOwned();
 //manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 
-	IbisIdentifier id = new IbisIdentifier(ident_name, cpu, inetAddr);
+	IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
+	if (DEBUG) {
+	    System.err.println("Receive join message " + id.name() + "; now world = " + world + "; serialForm[" + serialForm.length + "] = " + serialForm);
+	}
 	ibisNameService.add(id);
-	world.join(cpu, id);
+	world.join(id);
     }
 
     /* Called from native */
-    void leave_upcall(String ident_name, int cpu) {
+    void leave_upcall(byte[] serialForm) {
 	// checkLockOwned();
 	try {
-	    IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
+	    IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
 	    ibisNameService.remove(id);
-	    world.leave(cpu, id);
+	    world.leave(id);
 	} catch (IbisIOException e) {
 	    // just ignore the leave call, then
 	}
@@ -240,12 +245,12 @@ public class Ibis extends ibis.ipl.Ibis {
 		    if (DEBUG) {
 			System.err.println("Send join message to " + i);
 		    }
-		    send_join(i, ident.name(), ident.getSerialForm());
+		    send_join(i, ident.getSerialForm());
 		}
 	    }
 
 	    ibisNameService.add(ident);
-	    world.join(myCpu, ident);
+	    world.join(ident);
 	} finally {
 	    myIbis.unlock();
 	}
@@ -297,13 +302,13 @@ public class Ibis extends ibis.ipl.Ibis {
     SendPort createSendPort(PortType type, Replacer r, String name)
 	    throws IbisIOException {
 	switch (type.serializationType) {
-        case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE:
+        case PortType.SERIALIZATION_NONE:
 	    return new SendPort(type, name, new OutputConnection());
 
-	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
+	case PortType.SERIALIZATION_SUN:
 	    return new SerializeSendPort(type, name, new OutputConnection(), r);
 
-	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_IBIS:
+	case PortType.SERIALIZATION_IBIS:
 	    return new IbisSendPort(type, name, new OutputConnection(), r);
 
 	default:
@@ -331,8 +336,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
 
-    IbisIdentifier lookupIbis(String name, int cpu, byte[] inetAddr)
-	    throws IbisIOException {
+    IbisIdentifier lookupIbis(String name, int cpu) throws IbisIOException {
 // System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
 // manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
 // System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
@@ -348,25 +352,31 @@ public class Ibis extends ibis.ipl.Ibis {
 	    }
 	}
 
-	if (inetAddr == null) {
-	    throw new IbisIOException("Cannot look up Ibis ID that is not registered");
-	}
+	return null;
+    }
 
-	IbisIdentifier id = new IbisIdentifier(name, cpu, inetAddr);
-	ibisNameService.add(id);
+
+    IbisIdentifier lookupIbis(byte[] serialForm) throws IbisIOException {
+// System.err.println("Ibis.lookup(): Want to look up IbisId \"" + name + "\"");
+// manta.runtime.RuntimeSystem.DebugMe(myIbis.ident, myIbis.ident.name());
+// System.err.println("Ibis.lookup(): My ibis.ident = " + myIbis.ident + " ibis.ident.name() = " + myIbis.ident.name());
+	
+	IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
+	String name = id.name();
+	if (lookupIbis(id.name(), id.getCPU()) == null) {
+	    ibisNameService.add(id);
+	}
 
 	return id;
     }
 
-    IbisIdentifier lookupIbis(String name, int cpu)
-	    throws IbisIOException {
-	return lookupIbis(name, cpu, null);
-    }
 
-
+    synchronized
     public ibis.ipl.PortType getPortType(String name) {
-	return (ibis.ipl.PortType)portTypeList.get(name);
+	Object tp = portTypeList.get(name);
+	return (ibis.ipl.PortType)tp;
     }
+
 
     void bindSendPort(ShadowSendPort p, int cpu, int port) {
 	// checkLockOwned();
@@ -383,15 +393,16 @@ public class Ibis extends ibis.ipl.Ibis {
 	return (ShadowSendPort)sendPorts[cpu].lookup(port);
     }
 
-    void unbindSendPort(ShadowSendPort p) {
+    void unbindSendPort(int cpu, int port) {
 	// checkLockOwned();
-	sendPorts[p.ident.cpu].unbind(p.ident.port);
+	sendPorts[cpu].unbind(port);
     }
 
     ReceivePort lookupReceivePort(int port) {
 	// checkLockOwned();
 	return (ReceivePort)rcvePorts.lookup(port);
     }
+
 
     int[] inputStreamMsgTags = new int[6];
 
@@ -419,7 +430,7 @@ public class Ibis extends ibis.ipl.Ibis {
 	    throws IbisIOException {
 	// checkLockOwned();
 // System.err.println(Thread.currentThread() + "receiveFragment");
-	ibis.ipl.impl.messagePassing.ReceivePort port = lookupReceivePort(dest_port);
+	ReceivePort port = lookupReceivePort(dest_port);
 // System.err.println(Thread.currentThread() + "receiveFragment port " + port);
 	ShadowSendPort origin = lookupSendPort(src_cpu, src_port);
 // System.err.println(Thread.currentThread() + "receiveFragment origin " + origin);
@@ -477,19 +488,24 @@ public class Ibis extends ibis.ipl.Ibis {
 	myIbis.lock();
 
 	ibisNameService.remove(ident);
-	for (int i = 0; i < nrCpus; i++) {
-	    if (i != myCpu) {
+	try {
+	    byte[] sf = ident.getSerialForm();
+	    for (int i = 0; i < nrCpus; i++) {
+		if (i != myCpu) {
 // System.err.println("Send leave message to " + i);
-		send_leave(i, ident.name());
+		    send_leave(i, sf);
+		}
 	    }
+	} catch (IbisIOException e) {
+	    System.err.println("Cannot send leave msg");
 	}
-	world.leave(myCpu, ident);
+	world.leave(ident);
 
 	System.err.println("t native poll " + t2d(tMsgPoll) + " send " + t2d(tMsgSend));
 	System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
 	// report();
 
-	// ibis.ipl.impl.messagePassing.ReceivePort.end();
+	// ReceivePort.end();
 
 System.err.println("Call Ibis.ibmp_end");
 	ibmp_end();

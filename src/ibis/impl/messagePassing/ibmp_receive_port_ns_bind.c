@@ -13,7 +13,6 @@
 #include <pan_align.h>
 
 #include "ibmp.h"
-#include "ibmp_receive_port_identifier.h"
 #include "ibmp_receive_port_ns.h"
 
 #include "ibis_ipl_impl_messagePassing_ReceivePortNameServer.h"
@@ -31,12 +30,7 @@ static int	ibp_ns_bind_proto_start;
 static int	ibp_ns_bind_proto_size;
 
 typedef struct IBP_NS_BIND_HDR {
-    jint	cpu;
-    jint	port;
-    int		name_length;
-    int		type_length;
-    int		ibis_length;
-    int		addr_length;
+    int		id_length;
     jint	client;
 } ibp_ns_bind_hdr_t, *ibp_ns_bind_hdr_p;
 
@@ -51,40 +45,27 @@ void
 Java_ibis_ipl_impl_messagePassing_ReceivePortNameServerClient_ns_1bind(
 	JNIEnv *env,
 	jobject this,
-	jstring name,
-	jstring type,
-	jstring ibis_name,
-	jint cpu,
-	jbyteArray inetAddr,
-	jint port)
+	jbyteArray portId)
 {
     void       *proto = ibp_proto_create(ibp_ns_bind_proto_size);
     ibp_ns_bind_hdr_p hdr = ibp_ns_bind_hdr(proto);
-    pan_iovec_t	iov[4];
+    pan_iovec_t	iov[1];
     jobject	client = (*env)->NewGlobalRef(env, this);
 
-    hdr->name_length = ibp_string_push(env, name, &iov[0]);
-    hdr->type_length = ibp_string_push(env, type, &iov[1]);
-    hdr->ibis_length = ibp_string_push(env, ibis_name, &iov[2]);
-    hdr->addr_length = ibp_byte_array_push(env, inetAddr, &iov[3]);
-    assert(hdr->name_length == iov[0].len);
+    hdr->id_length = ibp_byte_array_push(env, portId, &iov[0]);
+    assert(hdr->id_length == iov[0].len);
 
     hdr->client = (jint)client;
-    hdr->port   = port;
-    hdr->cpu    = cpu;
 
-    IBP_VPRINTF(50, env, ("send MP bind request \"%s\", client %p\n",
-			ibmp_jstring2c(env, name), client));
+    IBP_VPRINTF(50, env, ("send MP bind request %p, client %p\n",
+			  portId, client));
     ibp_mp_send_sync(env, ibmp_ns_server, ibp_ns_bind_port,
 		     iov, sizeof(iov) / sizeof(iov[0]),
 		     proto, ibp_ns_bind_proto_size);
 
     ibp_proto_clear(proto);
 
-    (*env)->ReleaseStringUTFChars(env, name, iov[0].data);
-    (*env)->ReleaseStringUTFChars(env, type, iov[1].data);
-    (*env)->ReleaseStringUTFChars(env, type, iov[2].data);
-    (*env)->ReleaseByteArrayElements(env, inetAddr, iov[3].data, JNI_ABORT);
+    (*env)->ReleaseByteArrayElements(env, portId, iov[0].data, JNI_ABORT);
 }
 
 
@@ -92,21 +73,13 @@ static int
 ibp_ns_bind_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     ibp_ns_bind_hdr_p	hdr = ibp_ns_bind_hdr(proto);
-    jobject	id;
-    jstring	name;
-    jstring	type;
-    jstring	ibis_name;
     jint	sender = (jint)ibp_msg_sender(msg);
-    jbyteArray	inetAddr;
+    jbyteArray	portId;
 
-    name = ibp_string_consume(env, msg, hdr->name_length);
-    type = ibp_string_consume(env, msg, hdr->type_length);
-    ibis_name = ibp_string_consume(env, msg, hdr->ibis_length);
-    inetAddr = ibp_byte_array_consume(env, msg, hdr->addr_length);
+    portId = ibp_byte_array_consume(env, msg, hdr->id_length);
 
-    id = ibmp_new_ReceivePortIdentifier(env, name, type, ibis_name, hdr->cpu, inetAddr, hdr->port);
+    ibmp_receive_port_ns_bind(env, portId, sender, hdr->client);
     IBP_VPRINTF(50, env, ("In rp-ns bind: made new ReceivePortId for client 0x%x = %d\n", (int)hdr->client, (int)hdr->client));
-    ibmp_receive_port_ns_bind(env, id, sender, hdr->client);
     IBP_VPRINTF(50, env, ("Exit rp-ns bind\n"));
 
     return 0;

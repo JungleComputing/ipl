@@ -3,7 +3,7 @@ package ibis.ipl.impl.messagePassing;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 
-public class MPIIbis extends ibis.ipl.impl.messagePassing.Ibis {
+public class MPIIbis extends Ibis {
 
     public MPIIbis() throws IbisException {
 	super();

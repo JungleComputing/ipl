@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 
+import ibis.ipl.IbisIOException;
+
 final class ReceivePortIdentifier
 	implements ibis.ipl.ReceivePortIdentifier,
 		   java.io.Serializable {
@@ -13,36 +15,48 @@ final class ReceivePortIdentifier
     int cpu;
     int port;
     ibis.ipl.IbisIdentifier ibisIdentifier;
+    transient byte[] serialForm;
 
 
-    ReceivePortIdentifier(String name, String type, String ibisName, int cpu, byte[] inetAddr, int port) {
-	this.name = name;
-	this.type = type;
-	this.cpu = cpu;
-	this.port = port;
-	if (ibisName != null) {
-	    try {
-		ibisIdentifier = Ibis.myIbis.lookupIbis(ibisName, cpu, inetAddr);
-	    } catch (ibis.ipl.IbisIOException e) {
-		System.err.println("lookup fails " + e);
-	    }
+    ReceivePortIdentifier(String name, String type)
+	    throws IbisIOException {
+
+	synchronized (Ibis.myIbis) {
+	    port = Ibis.myIbis.receivePort++;
 	}
-    }
-
-
-    ReceivePortIdentifier(String name, String type) {
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    port = ibis.ipl.impl.messagePassing.Ibis.myIbis.receivePort++;
-	}
-	cpu = ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu;
+	cpu = Ibis.myIbis.myCpu;
 	this.name = name;
 	this.type = type;
 	ibisIdentifier = Ibis.myIbis.identifier();
+	makeSerialForm();
+    }
+
+
+    static ReceivePortIdentifier createReceivePortIdentifier(byte[] serialForm)
+	    throws IbisIOException {
+	ReceivePortIdentifier id = null;
+	id = (ReceivePortIdentifier)SerializeBuffer.readObject(serialForm);
+	id.serialForm = serialForm;
+
+	return id;
+    }
+
+
+    private void makeSerialForm() throws IbisIOException {
+	serialForm = SerializeBuffer.writeObject(this);
+    }
+
+
+    byte[] getSerialForm() throws IbisIOException {
+	if (serialForm == null) {
+	    makeSerialForm();
+	}
+	return serialForm;
     }
 
 
     public boolean equals(ibis.ipl.ReceivePortIdentifier other) {
-	    if(other == this) return true;
+	if (other == this) return true;
 
 	if (!(other instanceof ReceivePortIdentifier)) {
 	    return false;

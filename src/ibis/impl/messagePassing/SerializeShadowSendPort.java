@@ -15,24 +15,18 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
-    SerializeShadowSendPort(String type,
-			    String name,
-			    String ibisId,
-			    int send_cpu,
-			    byte[] inetAddr,
-			    int send_port,
-			    int rcve_port)
+    SerializeShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId)
 	    throws IbisIOException {
-	super(type, name, ibisId, send_cpu, inetAddr, send_port, rcve_port);
+	super(rId, sId);
 // System.err.println("In SerializeShadowSendPort.<init>");
     }
 
 
-    ibis.ipl.impl.messagePassing.ReadMessage getMessage(int msgSeqno)
+    ReadMessage getMessage(int msgSeqno)
 	    throws IbisIOException {
-	ibis.ipl.impl.messagePassing.ReadMessage msg = cachedMessage;
+	ReadMessage msg = cachedMessage;
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println(this + ": Get a Serialize ReadMessage ");
 	}
 
@@ -41,7 +35,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
 	} else {
 	    msg = new SerializeReadMessage(this, receivePort);
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (Ibis.DEBUG) {
 		System.err.println(Thread.currentThread() + ": Create a -sun- ReadMessage " + msg); 
 	    }
 	}
@@ -52,11 +46,11 @@ final class SerializeShadowSendPort extends ShadowSendPort {
     }
 
 
-    boolean checkStarted(ibis.ipl.impl.messagePassing.ReadMessage msg)
+    boolean checkStarted(ReadMessage msg)
 	    throws IbisIOException {
 
 	if (initializing) {
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (Ibis.DEBUG) {
 		System.err.println(Thread.currentThread() + ": Negotiate the ObjectStream init race " + this + " -- BINGO BINGO");
 	    }
 	    /* Right. We hit a race here. Some thread is reading the
@@ -76,7 +70,7 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 	}
 
 	initializing = true;
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println(Thread.currentThread() + ": Lock ShadowSendPort " + this + " to avoid ObjectStream init race");
 	}
 
@@ -92,12 +86,12 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
 	in.setMsgHandle(msg);
 
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	Ibis.myIbis.unlock();
 	try {
 	    try {
 		obj_in = new ObjectInputStream(new BufferedInputStream(in));
 	    } catch (java.io.IOException e) {
-		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		if (Ibis.DEBUG) {
 		    System.err.println("new ObjectInputStream throws an exception " + e);
 		    e.printStackTrace(System.err);
 		    System.err.println("Reading msg " + msg + " native 0x" + Integer.toHexString(msg.fragmentFront.msgHandle));
@@ -105,10 +99,10 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 		throw new IbisIOException(e);
 	    }
 	} finally {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	    Ibis.myIbis.lock();
 	}
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println(Thread.currentThread() + " ShadowSendPort " + this + " has created ObjectInputStream " + obj_in);
 	    System.err.println("Clear the message " + msg + " handle 0x" + Integer.toHexString(msg.fragmentFront.msgHandle) + " that contains the ObjectStream init stuff");
 	}

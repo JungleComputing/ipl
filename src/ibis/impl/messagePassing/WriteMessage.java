@@ -5,14 +5,14 @@ import ibis.ipl.IbisIOException;
 class WriteMessage implements ibis.ipl.WriteMessage {
 
     SendPort sPort;
-    ibis.ipl.impl.messagePassing.ByteOutputStream out;
+    ByteOutputStream out;
 
 
     WriteMessage() {
     }
 
     WriteMessage(SendPort sPort) {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println("**************************************************Creating new SendPort port = " + sPort);
 	}
 	this.sPort = sPort;
@@ -29,11 +29,11 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	}
 
     private void send(boolean doSend, boolean isReset) throws IbisIOException {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%% Send an Ibis /no-serial/ WriteMessage");
 	}
 
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	Ibis.myIbis.lock();
 	try {
 	    if (doSend) {
 		out.send(true);
@@ -43,7 +43,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 	    }
 	    sPort.registerSend();
 	} finally {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	    Ibis.myIbis.unlock();
 	}
     }
 

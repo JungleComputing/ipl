@@ -21,8 +21,8 @@ static int	ibmp_disconnect_port;
 typedef struct IBP_DISCONNECT_HDR ibmp_disconnect_hdr_t, *ibmp_disconnect_hdr_p;
 
 struct IBP_DISCONNECT_HDR {
-    jint	send_port;
-    jint	rcve_port;
+    jint	rcve_length;
+    jint	send_length;
     jint	messageCount;
 };
 
@@ -38,24 +38,27 @@ Java_ibis_ipl_impl_messagePassing_OutputConnection_ibmp_1disconnect(
 	JNIEnv *env,
 	jobject this,
 	jint cpu,
-	jint rcve_port,
-	jint send_port,
+	jbyteArray rcvePortId,
+	jbyteArray sendPortId,
 	jint messageCount)
 {
     void       *proto = ibp_proto_create(ibmp_disconnect_proto_size);
     ibmp_disconnect_hdr_p hdr = ibmp_disconnect_hdr(proto);
+    pan_iovec_t	iov[2];
 
-    hdr->send_port = send_port;
-    hdr->rcve_port = rcve_port;
-    hdr->messageCount     = messageCount;
+    hdr->rcve_length  = ibp_byte_array_push(env, rcvePortId, &iov[0]);
+    hdr->send_length  = ibp_byte_array_push(env, sendPortId, &iov[1]);
+    hdr->messageCount = messageCount;
 
-    IBP_VPRINTF(10, env, ("Disconnect local port %d from cpu %d port %d\n",
-		(int)send_port, (int)cpu,
-		(int)rcve_port));
-    ibp_mp_send_sync(env, (int)cpu, ibmp_disconnect_port, NULL, 0,
+    IBP_VPRINTF(10, env, ("Disconnect local port\n"));
+    ibp_mp_send_sync(env, (int)cpu, ibmp_disconnect_port,
+		     iov, sizeof(iov) / sizeof(iov[0]),
 		     proto, ibmp_disconnect_proto_size);
 
     ibp_proto_clear(proto);
+
+    (*env)->ReleaseByteArrayElements(env, rcvePortId, iov[0].data, JNI_ABORT);
+    (*env)->ReleaseByteArrayElements(env, sendPortId, iov[1].data, JNI_ABORT);
 }
 
 
@@ -63,12 +66,12 @@ static int
 ibmp_disconnect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     ibmp_disconnect_hdr_p hdr = ibmp_disconnect_hdr(proto);
-    jint sender = (jint)ibp_msg_sender(msg);
-    IBP_VPRINTF(10, env, ("Rcve disconnect upcall local port %d from cpu %d port %d\n",
-		(int)hdr->rcve_port, (int)sender,
-		(int)hdr->send_port));
-    (void)ibmp_send_port_disconnect(env, sender, hdr->send_port,
-				    hdr->rcve_port, hdr->messageCount);
+    jbyteArray rcvePortId = ibp_byte_array_consume(env, msg, hdr->rcve_length);
+    jbyteArray sendPortId = ibp_byte_array_consume(env, msg, hdr->send_length);
+
+    IBP_VPRINTF(10, env, ("Rcve disconnect upcall local port\n"));
+    (void)ibmp_send_port_disconnect(env, rcvePortId, sendPortId,
+				    hdr->messageCount);
 
     return 0;
 }

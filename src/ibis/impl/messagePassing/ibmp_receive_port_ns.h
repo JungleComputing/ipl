@@ -5,7 +5,7 @@
 
 extern int	ibmp_ns_server;
 
-void ibmp_receive_port_ns_bind(JNIEnv *env, jobject id, jint sender, jint client);
+void ibmp_receive_port_ns_bind(JNIEnv *env, jbyteArray id, jint sender, jint client);
 void ibmp_receive_port_ns_lookup(JNIEnv *env, jstring name, jint sender, jint client);
 void ibmp_receive_port_ns_unbind(JNIEnv *env, jstring name);
 

@@ -75,11 +75,8 @@ static int	ibmp_connect_port;
 typedef struct IBP_CONNECT_HDR ibmp_connect_hdr_t, *ibmp_connect_hdr_p;
 
 struct IBP_CONNECT_HDR {
-    jint	rcve_port;
-    jint	send_port;
-    int		type_length;
-    int		ibisId_length;
-    int		addr_length;
+    int		rcve_length;
+    int		send_length;
     jobject	syncer;
     jint	serializationType;
 };
@@ -96,31 +93,23 @@ Java_ibis_ipl_impl_messagePassing_OutputConnection_ibmp_1connect(
 	JNIEnv *env,
 	jobject this,
 	jint rcve_cpu,
-	jint rcve_port,
-	jint send_port,
-	jstring type,
-	jstring ibisId,
-	jbyteArray inetAddr,
-	jobject syncer,
-	jint serializationType)
+	jbyteArray rcvePortId,
+	jbyteArray sendPortId,
+	jobject syncer)
 {
     void       *proto;
     ibmp_connect_hdr_p hdr;
-    pan_iovec_t iov[3];
+    pan_iovec_t iov[2];
 
     proto = ibp_proto_create(ibmp_connect_proto_size);
     hdr = ibmp_connect_hdr(proto);
 
-    hdr->send_port = send_port;
-    hdr->rcve_port = rcve_port;
-    hdr->type_length = ibp_string_push(env, type, &iov[0]);
-    hdr->ibisId_length = ibp_string_push(env, ibisId, &iov[1]);
-    hdr->addr_length = ibp_byte_array_push(env, inetAddr, &iov[2]);
+    hdr->rcve_length = ibp_byte_array_push(env, rcvePortId, &iov[0]);
+    hdr->send_length = ibp_byte_array_push(env, sendPortId, &iov[1]);
     if (syncer != NULL) {
 	syncer = (*env)->NewGlobalRef(env, syncer);
     }
     hdr->syncer = syncer;
-    hdr->serializationType = serializationType;
 
     ibp_mp_send_sync(env, (int)rcve_cpu, ibmp_connect_port,
 		     iov, sizeof(iov) / sizeof(iov[0]),
@@ -128,9 +117,8 @@ Java_ibis_ipl_impl_messagePassing_OutputConnection_ibmp_1connect(
 
     ibp_proto_clear(proto);
 
-    (*env)->ReleaseStringUTFChars(env, type, iov[0].data);
-    (*env)->ReleaseStringUTFChars(env, ibisId, iov[1].data);
-    (*env)->ReleaseByteArrayElements(env, inetAddr, iov[2].data, JNI_ABORT);
+    (*env)->ReleaseByteArrayElements(env, rcvePortId, iov[0].data, JNI_ABORT);
+    (*env)->ReleaseByteArrayElements(env, sendPortId, iov[1].data, JNI_ABORT);
 }
 
 
@@ -139,18 +127,14 @@ ibmp_connect_handle(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     ibmp_connect_hdr_p hdr = ibmp_connect_hdr(proto);
     jint sender = (jint)ibp_msg_sender(msg);
-    jstring type = ibp_string_consume(env, msg, hdr->type_length);
-    jstring ibisId = ibp_string_consume(env, msg, hdr->ibisId_length);
-    jbyteArray inetAddr = ibp_byte_array_consume(env, msg, hdr->addr_length);
+    jbyteArray rcvePortId = ibp_byte_array_consume(env, msg, hdr->rcve_length);
+    jbyteArray sendPortId = ibp_byte_array_consume(env, msg, hdr->send_length);
     jboolean accept;
 
     ibmp_lock_check_owned(env);
-    IBP_VPRINTF(100, env, ("ibp MP port %d start upcall connect_handle() cpu %d port %d local port %d\n",
-		    ibmp_connect_port, (int)sender,
-		    (int)hdr->send_port, (int)hdr->rcve_port));
-    accept = ibmp_send_port_new(env, type, NULL, ibisId, sender, inetAddr,
-				hdr->send_port, hdr->rcve_port,
-				hdr->serializationType);
+    IBP_VPRINTF(100, env, ("ibp MP port %d start upcall connect_handle()\n",
+		    ibmp_connect_port, (int)sender));
+    accept = ibmp_send_port_new(env, rcvePortId, sendPortId);
 
     if (hdr->syncer != NULL) {
 	IBP_VPRINTF(100, env, ("ibp MP port %d send connect_reply()\n",

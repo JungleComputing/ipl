@@ -8,7 +8,7 @@ public class PortType implements ibis.ipl.PortType {
 
     ibis.ipl.StaticProperties p;
     String name;
-    ibis.ipl.impl.messagePassing.Ibis myIbis;
+    Ibis myIbis;
 
     public static final byte SERIALIZATION_NONE = 0;
     public static final byte SERIALIZATION_SUN = 1;
@@ -16,8 +16,9 @@ public class PortType implements ibis.ipl.PortType {
 
     public byte serializationType = SERIALIZATION_SUN;
 
-    PortType(ibis.ipl.impl.messagePassing.Ibis myIbis, String name,
-		  ibis.ipl.StaticProperties p) throws IbisException {
+    PortType(Ibis myIbis,
+	     String name,
+	     ibis.ipl.StaticProperties p) throws IbisException {
 	this.myIbis = myIbis;
 	this.name = name;
 	this.p = p;
@@ -60,9 +61,9 @@ public class PortType implements ibis.ipl.PortType {
     public ibis.ipl.SendPort createSendPort() throws IbisIOException {
 	SendPort s;
 
-	s = ibis.ipl.impl.messagePassing.Ibis.myIbis.createSendPort(this);
+	s = Ibis.myIbis.createSendPort(this);
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.out.println(myIbis.name() + ": Sendport created of of type '" +
 			       name + "'" + " cpu " + s.ident.cpu + " port " + s.ident.port);
 	}
@@ -73,9 +74,9 @@ public class PortType implements ibis.ipl.PortType {
     public ibis.ipl.SendPort createSendPort(Replacer r) throws IbisIOException {
 	SendPort s;
 
-	s = ibis.ipl.impl.messagePassing.Ibis.myIbis.createSendPort(this, r);
+	s = Ibis.myIbis.createSendPort(this, r);
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.out.println(myIbis.name() + ": Sendport created of of type '" +
 			       name + "'" + " cpu " + s.ident.cpu + " port " + s.ident.port);
 	}
@@ -86,9 +87,9 @@ public class PortType implements ibis.ipl.PortType {
     public ibis.ipl.SendPort createSendPort(String portname) throws IbisIOException {
 	SendPort s;
 
-	s = ibis.ipl.impl.messagePassing.Ibis.myIbis.createSendPort(this, portname);
+	s = Ibis.myIbis.createSendPort(this, portname);
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.out.println(myIbis.name() + ": Sendport " + name +
 			       " created of of type '" + this.name + "'");
 	}
@@ -98,9 +99,9 @@ public class PortType implements ibis.ipl.PortType {
 
     public ibis.ipl.SendPort createSendPort(String portname, Replacer r) throws IbisIOException {
 	    SendPort s;
-	    s = ibis.ipl.impl.messagePassing.Ibis.myIbis.createSendPort(this, portname, r);
+	    s = Ibis.myIbis.createSendPort(this, portname, r);
 
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (Ibis.DEBUG) {
 		    System.out.println(myIbis.name() + ": Sendport " + name + " created of of type '" +
 				       name + "'" + " cpu " + s.ident.cpu + " port " + s.ident.port);
 	    }
@@ -135,13 +136,13 @@ public class PortType implements ibis.ipl.PortType {
 
 	ReceivePort p = new ReceivePort(this, name, u, cU);
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.out.println(myIbis.name() + ": Receiveport created of type '" +
 			       this.name + "', name = '" + name + "'" +
 			       " cpu " + p.ident.cpu + " port " + p.ident.port);
 	}
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.out.println(myIbis.name() +
 			       ": Receiveport bound in registry, type = '" +
 			       this.name + "', name = '" + name + "'");

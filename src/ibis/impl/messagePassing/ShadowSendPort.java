@@ -8,9 +8,9 @@ class ShadowSendPort extends SendPort {
 
     boolean	connected;
     boolean	connect_allowed;
-    ibis.ipl.impl.messagePassing.ReadMessage cachedMessage = null;
+    ReadMessage cachedMessage = null;
     private ReadFragment cachedFragment = null;
-    ibis.ipl.impl.messagePassing.ByteInputStream in;
+    ByteInputStream in;
 
     int messageCount;
     int quitCount;
@@ -18,27 +18,31 @@ class ShadowSendPort extends SendPort {
 
     ReceivePort receivePort;
 
-    static ShadowSendPort createShadowSendPort(String type,
-					       String name,
-					       String ibisId,
-					       int send_cpu,
-					       byte[] inetAddr,
-					       int send_port,
-					       int rcve_port,
-					       int serializationType)
+    static ShadowSendPort createShadowSendPort(byte[] rcvePortBuf,
+					       byte[] sendPortBuf)
 	    throws IbisIOException {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+
+// System.err.println("createShadowSendPort: rcvePortBuf[" + rcvePortBuf.length + "] sendPortBuf[" + sendPortBuf.length + "]");
+	ReceivePortIdentifier rId;
+	SendPortIdentifier sId;
+	rId = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortBuf);
+	sId = (SendPortIdentifier)SerializeBuffer.readObject(sendPortBuf);
+
+	PortType portType = (PortType)Ibis.myIbis.getPortType(sId.type);
+// System.err.println("Sender port type " + sId.type + " = " + portType);
+	int serializationType = portType.serializationType;
+	if (Ibis.DEBUG) {
 	    System.err.println("********** Create a ShadowSendPort, my type is " + serializationType);
 	}
 	switch (serializationType) {
-	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE:
-	    return new ShadowSendPort(type, name, ibisId, send_cpu, inetAddr, send_port, rcve_port);
+	case PortType.SERIALIZATION_NONE:
+	    return new ShadowSendPort(rId, sId);
 
-	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
-	    return new SerializeShadowSendPort(type, name, ibisId, send_cpu, inetAddr, send_port, rcve_port);
+	case PortType.SERIALIZATION_SUN:
+	    return new SerializeShadowSendPort(rId, sId);
 
-	case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_IBIS:
-	    return new IbisShadowSendPort(type, name, ibisId, send_cpu, inetAddr, send_port, rcve_port);
+	case PortType.SERIALIZATION_IBIS:
+	    return new IbisShadowSendPort(rId, sId);
 
 	default:
 	    throw new IbisIOException("No such serialization type " + serializationType);
@@ -47,21 +51,18 @@ class ShadowSendPort extends SendPort {
 
 
     /* Create a shadow SendPort, used by the local ReceivePort to refer to */
-    ShadowSendPort(String type,
-		   String name,
-		   String ibisId,
-		   int send_cpu,
-		   byte[] inetAddr,
-		   int send_port,
-		   int rcve_port)
+    ShadowSendPort(ReceivePortIdentifier rId, SendPortIdentifier sId)
 	    throws IbisIOException {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+
+	if (Ibis.DEBUG) {
 	    System.err.println("In ShadowSendPort.<init>");
 	}
-	ident = new SendPortIdentifier(name, type, ibisId, send_cpu, inetAddr, send_port);
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.bindSendPort(this, ident.cpu, ident.port);
-	receivePort = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupReceivePort(rcve_port);
-	if (! receivePort.type.name().equals(type)) {
+
+	ident = sId;
+	Ibis.myIbis.bindSendPort(this, ident.cpu, ident.port);
+
+	receivePort = Ibis.myIbis.lookupReceivePort(rId.port);
+	if (! rId.type().equals(ident.type())) {
 	    System.err.println("********************** ShadowSendPort type does not equal connected ReceivePort type");
 	    throw new IbisIOException("************************** Want to connect send port and receive port of different types: " + type + " <-> " + receivePort.type.name());
 	}
@@ -70,20 +71,19 @@ class ShadowSendPort extends SendPort {
 
 	connect_allowed = receivePort.connect(this);
 	if (! connect_allowed) {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unbindSendPort(this);
+	    Ibis.myIbis.unbindSendPort(ident.cpu, ident.port);
 	}
 	in = new ByteInputStream();
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-	    System.err.println(Thread.currentThread() + "Created shadow send port (" + send_cpu + "," + send_port + "), connect to local port " + rcve_port);
+	if (Ibis.DEBUG) {
+	    System.err.println(Thread.currentThread() + "Created shadow send port (" + sId.cpu + "," + sId.port + "), connect to local port " + rId.port);
 	}
     }
 
 
-    ibis.ipl.impl.messagePassing.ReadMessage getMessage(int msgSeqno)
-	    throws IbisIOException {
-	ibis.ipl.impl.messagePassing.ReadMessage msg = cachedMessage;
+    ReadMessage getMessage(int msgSeqno) throws IbisIOException {
+	ReadMessage msg = cachedMessage;
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println("Get a NONE ReadMessage ");
 	}
 
@@ -91,8 +91,8 @@ class ShadowSendPort extends SendPort {
 	    cachedMessage = null;
 
 	} else {
-	    msg = new ibis.ipl.impl.messagePassing.ReadMessage(this, receivePort);
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    msg = new ReadMessage(this, receivePort);
+	    if (Ibis.DEBUG) {
 		System.err.println("Create a -none- ReadMessage " + msg); 
 	    }
 	}
@@ -105,7 +105,7 @@ class ShadowSendPort extends SendPort {
     /* Serialize streams need a complicated x-phase startup because they start reading
      * in the constructor. Provide a handle to create the Serialize streams after we
      * have deposited the first msg/fragment in the queue. */
-    boolean checkStarted(ibis.ipl.impl.messagePassing.ReadMessage msg)
+    boolean checkStarted(ReadMessage msg)
 	    throws IbisIOException {
 	return true;
     }
@@ -130,22 +130,20 @@ class ShadowSendPort extends SendPort {
     }
 
 
-    protected void ibmp_connect(int cpu,
-				int port,
-				int my_port,
-				String type,
-				String ibisId,
-				byte[] inetAddr,
-				Syncer syncer,
-				int serializationType) throws IbisIOException {
+    protected void ibmp_connect(int remoteCPU,
+				byte[] rcvePortId,
+				byte[] sendPortId,
+				Syncer syncer)
+	    throws IbisIOException {
 	throw new IbisIOException("ShadowSendPort cannot (dis)connect");
     }
 
 
-    protected void ibmp_disconnect(int cpu,
-				   int port,
-				   int receiver_port,
-				   int messageCount) throws IbisIOException {
+    protected void ibmp_disconnect(int remoteCPU,
+				   byte[] rcvePortId,
+				   byte[] sendPortId,
+				   int messageCount)
+	    throws IbisIOException {
 	throw new IbisIOException("ShadowSendPort cannot (dis)connect");
     }
 
@@ -153,16 +151,28 @@ class ShadowSendPort extends SendPort {
     void tickReceive() {
 	messageCount++;
 	if (messageCount == quitCount) {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unbindSendPort(this);
+	    Ibis.myIbis.unbindSendPort(ident.cpu, ident.port);
 	    receivePort.disconnect(this);
 	}
     }
 
 
-    static void disconnect(int cpu, int port, int receiver_port, int count) {
-	ShadowSendPort sp = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupSendPort(cpu, port);
-	ReceivePort rp = ibis.ipl.impl.messagePassing.Ibis.myIbis.lookupReceivePort(receiver_port);
-	if (ibis.ipl.impl.messagePassing.Ibis.myIbis.DEBUG) {
+    static void disconnect(byte[] rcvePortId, byte[] sendPortId, int count) {
+	ReceivePortIdentifier rId = null;
+	SendPortIdentifier sId = null;
+	try {
+	    rId = (ReceivePortIdentifier)SerializeBuffer.readObject(rcvePortId);
+	    sId = (SendPortIdentifier)SerializeBuffer.readObject(sendPortId);
+	} catch (IbisIOException e) {
+	    System.err.println("Cannot deserialize PortIdentifiers");
+	    Thread.dumpStack();
+	    return;
+	}
+
+	ShadowSendPort sp = Ibis.myIbis.lookupSendPort(sId.cpu, sId.port);
+	ReceivePort rp = Ibis.myIbis.lookupReceivePort(rId.port);
+
+	if (Ibis.myIbis.DEBUG) {
 	    System.err.println(Thread.currentThread() + "Receive a disconnect call from SendPort " + sp + ", disconnect from RcvePort " + rp + " count " + count + " sp.messageCount " + sp.messageCount);
 	}
 	if (rp != sp.receivePort) {
@@ -170,7 +180,7 @@ class ShadowSendPort extends SendPort {
 	    Thread.dumpStack();
 	}
 	if (sp.messageCount == count) {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unbindSendPort(sp);
+	    Ibis.myIbis.unbindSendPort(sp.ident.cpu, sp.ident.port);
 	    rp.disconnect(sp);
 	} else if (sp.messageCount > count) {
 	    System.err.println("This cannot happen...");

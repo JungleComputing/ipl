@@ -4,12 +4,12 @@
 #include <jni.h>
 
 
-jboolean ibmp_send_port_new(JNIEnv *env, jstring type, jstring name,
-			   jstring ibisId, jint cpu, jbyteArray inetAddr,
-			   jint port, jint receiver_port,
-			   jint serializationType);
-void ibmp_send_port_disconnect(JNIEnv *env, jint sender, jint port,
-			      jint receiver_port, jint messageCount);
+jboolean ibmp_send_port_new(JNIEnv *env, jbyteArray rcvePort,
+			    jbyteArray sendPort);
+void ibmp_send_port_disconnect(JNIEnv *env,
+			       jbyteArray rcvePort,
+			       jbyteArray sendPort,
+			       jint messageCount);
 
 void ibmp_send_port_init(JNIEnv *env);
 void ibmp_send_port_end(JNIEnv *env);

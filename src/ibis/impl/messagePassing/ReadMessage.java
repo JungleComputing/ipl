@@ -18,14 +18,14 @@ public class ReadMessage
     boolean	finished;	// Use these for upcall receive without
     Thread	creator;	// explicit finish() call
 
-    ibis.ipl.impl.messagePassing.ReadMessage next;
+    ReadMessage	next;
     ReadFragment fragmentFront;
     ReadFragment fragmentTail;
     int		 sleepers = 0;
 
     ReadMessage(ibis.ipl.SendPort s,
 		ReceivePort port) {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// Ibis.myIbis.checkLockOwned();
 
 // System.err.println("**************************************************Creating new ReadMessage");
 
@@ -49,7 +49,7 @@ public class ReadMessage
     void clear() {
 	ReadFragment next;
 	for (ReadFragment f = fragmentFront; f != null; f = next) {
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    if (Ibis.DEBUG) {
 		System.err.println("Now clear fragment " + f + " handle " + Integer.toHexString(f.msgHandle) + "; next " + f.next);
 	    }
 	    next = f.next;
@@ -64,7 +64,7 @@ public class ReadMessage
 
     boolean	signalled;
     boolean	accepted;
-    ConditionVariable cv = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
+    ConditionVariable cv = Ibis.myIbis.createCV();
 
     PollClient	poll_next;
     PollClient	poll_prev;
@@ -118,15 +118,15 @@ public class ReadMessage
 
 
     public void nextFragment() throws IbisIOException {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// Ibis.myIbis.checkLockOwned();
 	while (fragmentFront.next == null) {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this,
+	    Ibis.myIbis.waitPolling(this,
 								 0,
 								 Poll.PREEMPTIVE);
 	}
 	ReadFragment prev = fragmentFront;
 	fragmentFront = fragmentFront.next;
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println("Now set msg " + this + " the next fragment " + Integer.toHexString(fragmentFront.msgHandle));
 	}
 	in.setMsgHandle(this);
@@ -142,9 +142,9 @@ public class ReadMessage
 
 
     public void finish() {
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	Ibis.myIbis.lock();
 	finishLocked();
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	Ibis.myIbis.unlock();
     }
 
 

@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 
 import ibis.ipl.IbisIOException;
 
-final class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
+final class SerializeWriteMessage extends WriteMessage {
 
     ibis.io.SunSerializationOutputStream obj_out;
 
@@ -20,7 +20,7 @@ final class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMess
 
 
     private void send(boolean doSend, boolean isReset) throws IbisIOException {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%%% Send an Ibis SerializeWriteMessage");
 	}
 
@@ -30,7 +30,7 @@ final class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMess
 	    throw new IbisIOException(e);
 	}
 
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	Ibis.myIbis.lock();
 	try {
 // out.report();
 	    if (doSend) {
@@ -41,7 +41,7 @@ final class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMess
 	    }
 	    sPort.registerSend();
 	} finally {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	    Ibis.myIbis.unlock();
 	}
 
 	if (isReset) {

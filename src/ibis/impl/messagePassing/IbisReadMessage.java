@@ -2,7 +2,7 @@ package ibis.ipl.impl.messagePassing;
 
 import ibis.ipl.IbisIOException;
 
-final public class IbisReadMessage extends ibis.ipl.impl.messagePassing.ReadMessage {
+final public class IbisReadMessage extends ReadMessage {
 
     ibis.io.IbisSerializationInputStream obj_in;
 

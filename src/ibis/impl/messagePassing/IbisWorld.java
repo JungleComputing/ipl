@@ -7,29 +7,24 @@ class IbisWorld implements Runnable {
 
     private boolean isOpen = false;
     ConditionVariable opened;
-    ibis.ipl.impl.messagePassing.Ibis myIbis;
 
     IbisIdentifier[] joinId;
     IbisIdentifier[] leaveId;
 
 
     IbisWorld() {
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-	    if (myIbis == null) {
-		System.err.println("Gotcha!");
-	    }
-	    if (ibis.ipl.impl.messagePassing.Ibis.myIbis == null) {
+	if (Ibis.DEBUG) {
+	    if (Ibis.myIbis == null) {
 		System.err.println("Gotcha 2!");
 	    }
-	    System.err.println("ibis = " + myIbis);
+	    System.err.println("ibis = " + Ibis.myIbis);
 	}
-	myIbis = ibis.ipl.impl.messagePassing.Ibis.myIbis;
-	joinId = new IbisIdentifier[myIbis.nrCpus];
-	leaveId = new IbisIdentifier[myIbis.nrCpus];
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-	    System.err.println("static ibis = " + myIbis);
+	joinId = new IbisIdentifier[Ibis.myIbis.nrCpus];
+	leaveId = new IbisIdentifier[Ibis.myIbis.nrCpus];
+	if (Ibis.DEBUG) {
+	    System.err.println("static ibis = " + Ibis.myIbis);
 	}
-	opened = ibis.ipl.impl.messagePassing.Ibis.myIbis.createCV();
+	opened = Ibis.myIbis.createCV();
 
 	Thread thr = new Thread(this, "Ibis world");
 	thr.setDaemon(true);
@@ -48,7 +43,8 @@ class IbisWorld implements Runnable {
     }
 
 
-    void join(int cpu, IbisIdentifier id) {
+    void join(IbisIdentifier id) {
+	int cpu = id.getCPU();
 	joinId[cpu] = id;
 	if (isOpen) {
 	    opened.cv_signal();
@@ -56,7 +52,8 @@ class IbisWorld implements Runnable {
     }
 
 
-    void leave(int cpu, IbisIdentifier id) {
+    void leave(IbisIdentifier id) {
+	int cpu = id.getCPU();
 	leaveId[cpu] = id;
 	if (isOpen) {
 	    opened.cv_signal();
@@ -66,35 +63,35 @@ class IbisWorld implements Runnable {
 
     public void run() {
 
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	Ibis.myIbis.lock();
 	while (! isOpen) {
 	    opened.cv_wait();
 	}
-	ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+	Ibis.myIbis.unlock();
 
-	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	if (Ibis.DEBUG) {
 	    System.err.print("IbisWorld thread: action! joinId = ");
-	    for (int i = 0; i < myIbis.nrCpus; i++) {
+	    for (int i = 0; i < Ibis.myIbis.nrCpus; i++) {
 		System.err.print(joinId[i] + ", ");
 	    }
 	    System.err.println();
 	}
-	for (int i = 0; isOpen && i < myIbis.nrCpus; i++) {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	for (int i = 0; isOpen && i < Ibis.myIbis.nrCpus; i++) {
+	    Ibis.myIbis.lock();
 	    while (joinId[i] == null) {
 		opened.cv_wait();
 	    }
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
-	    myIbis.join(joinId[i]);
+	    Ibis.myIbis.unlock();
+	    Ibis.myIbis.join(joinId[i]);
 	}
 
-	for (int i = 0; isOpen && i < myIbis.nrCpus; i++) {
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+	for (int i = 0; isOpen && i < Ibis.myIbis.nrCpus; i++) {
+	    Ibis.myIbis.lock();
 	    while (leaveId[i] == null) {
 		opened.cv_wait();
 	    }
-	    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
-	    myIbis.leave(leaveId[i]);
+	    Ibis.myIbis.unlock();
+	    Ibis.myIbis.leave(leaveId[i]);
 	}
     }
 

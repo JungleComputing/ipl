@@ -24,7 +24,6 @@ static jmethodID	md_leave_upcall;
 
 
 typedef struct JOIN_HDR {
-    int		len;
     int		addr_len;
 } join_hdr_t, *join_hdr_p;
 
@@ -41,23 +40,21 @@ Java_ibis_ipl_impl_messagePassing_Ibis_send_1join(
 		JNIEnv *env,
 		jobject this,
 		jint host,
-		jstring id,
-		jbyteArray inetAddr)
+		jbyteArray ibisId)
 {
     void       *proto = ibp_proto_create(proto_top);
     join_hdr_p	hdr = join_hdr(proto);
-    pan_iovec_t	iov[2];
+    pan_iovec_t	iov[1];
 
     IBP_VPRINTF(80, env, ("Send join message to %d", (int)host));
 
-    hdr->len = ibp_string_push(env, id, &iov[0]);
-    hdr->addr_len = ibp_byte_array_push(env, inetAddr, &iov[1]);
+    hdr->addr_len = ibp_byte_array_push(env, ibisId, &iov[0]);
 
     ibp_mp_send_sync(env, (int)host, join_port,
 		     iov, sizeof(iov) / sizeof(iov[0]),
 		     proto, proto_top);
 
-    (*env)->ReleaseByteArrayElements(env, inetAddr, iov[1].data, JNI_ABORT);
+    (*env)->ReleaseByteArrayElements(env, ibisId, iov[0].data, JNI_ABORT);
 
     ibp_proto_clear(proto);
 }
@@ -67,12 +64,11 @@ static int
 join_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     join_hdr_p	hdr = join_hdr(proto);
-    jstring	id = ibp_string_consume(env, msg, hdr->len);
-    jbyteArray	inetAddr = ibp_byte_array_consume(env, msg, hdr->addr_len);
+    jbyteArray	ibisId = ibp_byte_array_consume(env, msg, hdr->addr_len);
 
     IBP_VPRINTF(80, env, ("Receive join message from %d", ibp_msg_sender(msg)));
 
-    (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_join_upcall, id, ibp_msg_sender(msg), inetAddr);
+    (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_join_upcall, ibisId);
 
     return 0;
 }
@@ -83,17 +79,19 @@ Java_ibis_ipl_impl_messagePassing_Ibis_send_1leave(
 		JNIEnv *env,
 		jobject this,
 		jint host,
-		jstring id)
+		jbyteArray ibisId)
 {
     void       *proto = ibp_proto_create(proto_top);
     join_hdr_p	hdr = join_hdr(proto);
     pan_iovec_t	iov[1];
 
-    hdr->len = ibp_string_push(env, id, iov);
+    hdr->addr_len = ibp_byte_array_push(env, ibisId, iov);
 
     ibp_mp_send_sync(env, (int)host, leave_port,
 		     iov, sizeof(iov) / sizeof(iov[0]),
 		     proto, proto_top);
+
+    (*env)->ReleaseByteArrayElements(env, ibisId, iov[0].data, JNI_ABORT);
 
     ibp_proto_clear(proto);
 }
@@ -103,9 +101,9 @@ static int
 leave_upcall(JNIEnv *env, ibp_msg_p msg, void *proto)
 {
     join_hdr_p	hdr = join_hdr(proto);
-    jstring	id = ibp_string_consume(env, msg, hdr->len);
+    jstring	ibisId = ibp_byte_array_consume(env, msg, hdr->addr_len);
 
-    (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_leave_upcall, id, ibp_msg_sender(msg));
+    (*env)->CallVoidMethod(env, ibmp_obj_Ibis_ibis, md_leave_upcall, ibisId);
 
     return 0;
 }
@@ -117,17 +115,17 @@ ibmp_join_init(JNIEnv *env)
     md_join_upcall = (*env)->GetMethodID(env,
 					 ibmp_cls_Ibis,
 					 "join_upcall",
-					 "(Ljava/lang/String;I[B)V");
+					 "([B)V");
     if (md_join_upcall == NULL) {
-	ibmp_error(env, "Cannot find method join_upcall(Ljava/lang/String;I)V\n");
+	ibmp_error(env, "Cannot find method join_upcall([B)V\n");
     }
 
     md_leave_upcall = (*env)->GetMethodID(env,
 					  ibmp_cls_Ibis,
 					  "leave_upcall",
-					  "(Ljava/lang/String;I)V");
+					  "([B)V");
     if (md_leave_upcall == NULL) {
-	ibmp_error(env, "Cannot find method leave_upcall(Ljava/lang/String;I)V\n");
+	ibmp_error(env, "Cannot find method leave_upcall([B)V\n");
     }
 
     // ibmp_lock_check_owned(env);

@@ -10,7 +10,6 @@
 #include <pan_align.h>
 
 #include "ibmp.h"
-#include "ibmp_receive_port_identifier.h"
 #include "ibmp_receive_port_ns.h"
 
 #include "ibis_ipl_impl_messagePassing_ReceivePortNameServer.h"

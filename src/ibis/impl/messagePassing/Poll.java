@@ -104,14 +104,14 @@ final public class Poll implements Runnable {
 	}
 	
 	result = msg_poll();
-	return ibis.ipl.impl.messagePassing.Ibis.myIbis.inputStreamPoll() || result;
+	return Ibis.myIbis.inputStreamPoll() || result;
     }
 
 
     final void waitPolling(PollClient client, long timeout, int preempt)
 	    throws IbisIOException {
 
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	// Ibis.myIbis.checkLockOwned();
 
 	long t_start = 0;
 	if (timeout > 0) {
@@ -198,7 +198,7 @@ if (false)
 		    boolean prev_last = last_is_preemptive;
 		    last_is_preemptive = (preempt == PREEMPTIVE);
 
-		    ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+		    Ibis.myIbis.unlock();
 
 		    if (! MANTA_COMPILE &&
 			    NONPREEMPTIVE_MAY_POLL &&
@@ -212,7 +212,7 @@ if (false)
 			Thread.yield();
 		    }
 
-		    ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
+		    Ibis.myIbis.lock();
 		}
 
 	    } else {
@@ -256,9 +256,9 @@ if (false)
     public void run() {
 	// System.err.println("Poll peeker lives");
 	while (comm_lives) {
-	    if (ibis.ipl.impl.messagePassing.Ibis.myIbis != null) {
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.lock();
-// System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + " do a peeker poll...");
+	    if (Ibis.myIbis != null) {
+		Ibis.myIbis.lock();
+// System.err.println(Ibis.myIbis.myCpu + " do a peeker poll...");
 		try {
 		    poll();
 		    if (STATISTICS) {
@@ -268,7 +268,7 @@ if (false)
 		    System.err.println("Poll throws " + e);
 		    e.printStackTrace(System.err);
 		}
-		ibis.ipl.impl.messagePassing.Ibis.myIbis.unlock();
+		Ibis.myIbis.unlock();
 	    }
 	    if (! MANTA_COMPILE) {
 		try {
@@ -284,7 +284,7 @@ if (false)
 
     void report(java.io.PrintStream out) {
 	if (STATISTICS) {
-	    out.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu +
+	    out.println(Ibis.myIbis.myCpu +
 		    ": Poll: /preempt " + poll_preempt +
 		    " /non-preempt " + poll_non_preempt +
 		    " poll " + poll_poll +

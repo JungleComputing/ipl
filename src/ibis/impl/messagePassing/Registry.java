@@ -3,9 +3,6 @@ package ibis.ipl.impl.messagePassing;
 import ibis.ipl.IbisException;
 import ibis.ipl.IbisIOException;
 
-import ibis.ipl.impl.messagePassing.ElectionClient;
-import ibis.ipl.impl.messagePassing.ElectionServer;
-
 class Registry implements ibis.ipl.Registry {
 
     ReceivePortNameServer nameServer;
@@ -17,19 +14,19 @@ class Registry implements ibis.ipl.Registry {
 
 
     Registry() throws IbisIOException {
-	if (ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu == 0) {
+	if (Ibis.myIbis.myCpu == 0) {
 	    if (nameServer != null) {
 		throw new IbisIOException("ReceivePortNameServer already initialized");
 	    }
-	    nameServer = ibis.ipl.impl.messagePassing.Ibis.myIbis.createReceivePortNameServer();
+	    nameServer = Ibis.myIbis.createReceivePortNameServer();
 	}
-	nameServerClient = ibis.ipl.impl.messagePassing.Ibis.myIbis.createReceivePortNameServerClient();
+	nameServerClient = Ibis.myIbis.createReceivePortNameServerClient();
     }
 
 
     void init() throws IbisException, IbisIOException {
 	if (EXPORT_ELECT) {
-	    if (ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu == 0) {
+	    if (Ibis.myIbis.myCpu == 0) {
 		if (electionServer != null) {
 		    throw new IbisIOException("ReceivePortNameServer already initialized");
 		}

@@ -368,8 +368,7 @@ ibmp_msg_check(JNIEnv *env, jobject this, int msgHandle, int locked)
     ibmp_msg_freelist_verify();
 
     msg->copy = (int)(*env)->GetBooleanField(env, this, fld_makeCopy);
-fprintf(stderr, "Make %s intermediate copy in this BytOutputStream\n",
-		 msg->copy ? "an" : "NO");
+// fprintf(stderr, "Make %s intermediate copy in this BytOutputStream\n", msg->copy ? "an" : "NO");
     IBP_VPRINTF(820, env,
 		("Make %s intermediate copy in this BytOutputStream\n",
 		 msg->copy ? "an" : "NO"));

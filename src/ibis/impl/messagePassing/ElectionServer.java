@@ -18,7 +18,7 @@ class ElectionServer
 
 
     public void upcall(ibis.ipl.ReadMessage m) {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+	// Ibis.myIbis.checkLockNotOwned();
 	try {
 	    int sender = m.readInt();
 	    String name = (String)m.readObject();
@@ -90,14 +90,14 @@ class ElectionServer
 
 
     public void run() {
-	int n = ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus;
+	int n = Ibis.myIbis.nrCpus;
 
 	try {
 // System.err.println(Thread.currentThread() + "ElectionServer runs");
-	    server_port = new ibis.ipl.ReceivePort[ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus];
-	    client_port = new ibis.ipl.SendPort[ibis.ipl.impl.messagePassing.Ibis.myIbis.nrCpus];
+	    server_port = new ibis.ipl.ReceivePort[Ibis.myIbis.nrCpus];
+	    client_port = new ibis.ipl.SendPort[Ibis.myIbis.nrCpus];
 
-	    ibis.ipl.PortType type = ibis.ipl.impl.messagePassing.Ibis.myIbis.createPortType("++++ElectionPort++++",
+	    ibis.ipl.PortType type = Ibis.myIbis.createPortType("++++ElectionPort++++",
 							  new ibis.ipl.StaticProperties());
 
 	    for (int i = 0; i < n; i++) {
@@ -113,7 +113,7 @@ class ElectionServer
 
 	    for (int i = 0; i < n; i++) {
 // System.err.println(Thread.currentThread() + "Now I'm gonna lookup ElectionClient receive port " + i);
-		ibis.ipl.ReceivePortIdentifier rid = ibis.ipl.impl.messagePassing.Ibis.myIbis.registry().lookup("++++ElectionClient-" + i + "++++");
+		ibis.ipl.ReceivePortIdentifier rid = Ibis.myIbis.registry().lookup("++++ElectionClient-" + i + "++++");
 // System.err.println(Thread.currentThread() + "Now I'm gonna connect to ElectionClient receive port " + i + " RportID " + rid);
 		client_port[i].connect(rid);
 	    }
