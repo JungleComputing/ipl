@@ -48,6 +48,11 @@ static int	send_msg = 0;
 static int	send_frag_skip = 0;
 static int	send_sync = 0;
 
+static int	bcast_frag = 0;
+static int	bcast_first_frag = 0;
+static int	bcast_last_frag = 0;
+static int	bcast_sync = 0;
+
 #define COUNT_GLOBAL_REFS 0
 #if COUNT_GLOBAL_REFS
 static int	ibmp_global_refs = 0;
@@ -1049,9 +1054,9 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
 	return JNI_TRUE;
     }
 
-    send_frag++;
-    if (msg != NULL && msg->firstFrag) send_first_frag++;
-    if (lastFrag) send_last_frag++;
+    bcast_frag++;
+    if (msg != NULL && msg->firstFrag) bcast_first_frag++;
+    if (lastFrag) bcast_last_frag++;
 
     if (empty_frag(env, msg, forceFirstFrag, lastFrag, JNI_TRUE)) {
 	return JNI_TRUE;
@@ -1115,6 +1120,7 @@ Java_ibis_impl_messagePassing_ByteOutputStream_msg_1bcast(
     assert(ibmp_equals(env, byte_os->byte_output_stream, this));
 
     if (finished_from_send(env, msg)) {
+	bcast_sync++;
 	return JNI_TRUE;
     }
 
@@ -1365,8 +1371,9 @@ ibmp_byte_output_stream_report(JNIEnv *env, FILE *f)
 #ifdef IBP_VERBOSE
     fprintf(stderr, "%2d: ByteOutputStream.sent data %d\n", ibmp_me, sent_data);
 #endif
-    fprintf(f, "send msg %d frag %d (skip %d sync %d) ",
-	    send_msg, send_frag, send_frag_skip, send_sync);
+    fprintf(f, "send msg %d frag %d (skip %d sync %d) bcast %d frag %d sync %d ",
+	    send_last_frag, send_frag, send_frag_skip, send_sync,
+	    bcast_last_frag, bcast_frag, bcast_sync);
 }
 
 

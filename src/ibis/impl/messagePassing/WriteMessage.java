@@ -61,6 +61,7 @@ class WriteMessage implements ibis.ipl.WriteMessage {
 
 
     public long finish() throws IOException {
+	// Shouldn't we do a send here? RFHH
 	Ibis.myIbis.lock();
 	try {
 	    out.reset(true);

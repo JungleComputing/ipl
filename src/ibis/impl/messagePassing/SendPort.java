@@ -6,6 +6,7 @@ import ibis.ipl.PortMismatchException;
 import ibis.ipl.Replacer;
 import ibis.ipl.DynamicProperties;
 import ibis.util.ConditionVariable;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 
@@ -24,7 +25,7 @@ public class SendPort implements ibis.ipl.SendPort {
 	    use_bcast = prop.equals("native");
 	}
 	USE_BCAST = use_bcast;
-	if (USE_BCAST) {
+	if (USE_BCAST && Ibis.myIbis.myCpu == 0) {
 	    System.err.println("Use native MessagePassing broadcast");
 	}
     }
@@ -32,14 +33,8 @@ public class SendPort implements ibis.ipl.SendPort {
     private final static boolean DEFAULT_SERIALIZE_SENDS = false;
     private final static boolean SERIALIZE_SENDS_PER_CPU;
     static {
-	boolean serialize_sends = DEFAULT_SERIALIZE_SENDS;
-	String prop = System.getProperty("ibis.mp.serialize-sends");
-	if (prop != null) {
-	    serialize_sends = prop.equals("1")
-				|| prop.equals("true")
-				|| prop.equals("on");
-	}
-	SERIALIZE_SENDS_PER_CPU = serialize_sends;
+	SERIALIZE_SENDS_PER_CPU =
+		TypedProperties.booleanProperty("ibis.mp.serialize-sends");
     }
 
     protected PortType type;

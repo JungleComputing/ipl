@@ -66,6 +66,7 @@ final class SerializeWriteMessage extends WriteMessage {
     }
 
     public long finish() throws IOException {
+	// Shouldn't we do a send here? RFHH
 	if (DEBUG) {
 	    System.err.println("%%%%%%%%%%%%%%%% Finish SerializeWriteMessage");
 	}

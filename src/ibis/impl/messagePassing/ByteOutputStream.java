@@ -64,6 +64,9 @@ final class ByteOutputStream
     private ibis.io.DataAllocator allocator = null;
 
 
+    static private boolean warningPrinted = false;
+
+
     ByteOutputStream(ibis.ipl.SendPort p, boolean syncMode, boolean makeCopy) {
 	this.syncMode = syncMode;
 	this.makeCopy = makeCopy;
@@ -77,7 +80,10 @@ final class ByteOutputStream
 
     void setAllocator(DataAllocator allocator) {
 	if (TypedProperties.booleanProperty("ibis.mp.allocator")) {
-	    System.err.println(this + ": set allocator " + allocator);
+	    if (Ibis.myIbis.myCpu == 0 && ! warningPrinted) {
+		System.err.println(this + ": set allocator " + allocator);
+		warningPrinted = true;
+	    }
 	    this.allocator = allocator;
 	}
     }

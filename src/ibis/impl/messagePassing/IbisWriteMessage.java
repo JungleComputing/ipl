@@ -55,6 +55,8 @@ final public class IbisWriteMessage extends WriteMessage {
 
 
     public long finish() throws IOException {
+	// Finish nowadays implies a send
+	// reset(true, true);
 	reset(false, true);
 	long after = out.getCount();
 	long retval = after - before;
@@ -64,8 +66,7 @@ final public class IbisWriteMessage extends WriteMessage {
     }
 
     public void reset() throws IOException {
-	// Should not this be (RFHH) : reset(true, false);
-	reset(false, false);
+	reset(true, false);
 	long after = out.getCount();
 	sPort.count += after - before;
 	before = after;
