@@ -1,4 +1,4 @@
-package ibis.ipl.impl.net.s_ibis;
+package ibis.ipl.impl.net.s_sun;
 
 import ibis.ipl.impl.net.*;
 
