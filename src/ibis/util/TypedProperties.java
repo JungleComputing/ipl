@@ -150,6 +150,20 @@ public class TypedProperties {
     }
 
     /**
+     * Get value of property
+     *
+     * @return the value of the property or <code>null</code> if it is not set
+     * @param name property name
+     */
+    public static String stringPropertyValue(String name, String dflt) {
+	String prop = System.getProperty(name);
+	if (prop == null) {
+	    return dflt;
+	}
+	return prop;
+    }
+
+    /**
      * Check validity of a System property.
      * All system properties are checked; when the name starts with the
      * specified prefix, it should be in the specified list of property names,
