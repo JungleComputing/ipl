@@ -26,13 +26,17 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GLOBUS_LOCATION/lib
 GRUN_PATH=$IBIS_ROOT/ibis/globus
 SITES_PATH=$GRUN_PATH/sites
 
-USAGE="usage: $0 [-d] <nameserver-port> [ <site> <count> ]+ - <class name>
+USAGE="usage: $0 [-d] [-icp <extra ibisclasspath> ] <nameserver-port> [ <site> <count> ]+ - <class name>
        <parameters>"
 
 DEBUG=off
+IBISCLASSPATH=ibis/classlibs:.
 #read any options
 while true; do
 	case $1 in
+	-ibisclasspath | -icp)
+		IBISCLASSPATH=$IBISCLASSPATH:$2
+		shift 2 ;;
 	-help | -h)
 		echo $USAGE
 		exit 1 ;;
@@ -115,7 +119,7 @@ ABORT=
 #create $IBIS_ROOT/ibis.tgz
 (
 	cd $IBIS_ROOT;
-	FILES=`find ibis -name *.class -or -name *properties`
+	FILES=`find ibis -name *.class -or -name *properties -or -name *.jar`
 	#also include the pics subdir for the raytracer
 	#(can't include all dirs, the output directories are also there)
 	FILES="$FILES $(find $APP_DIR -path "$APP_DIR/pics/*")"
@@ -130,12 +134,14 @@ echo "#!/bin/sh" > grun-master$$
 echo APP_DIR=$APP_DIR >> grun-master$$
 echo MODE=master >> grun-master$$
 echo JOBID=$$ >> grun-master$$
+echo IBISCLASSPATH=$IBISCLASSPATH >> grun-master$$
 cat $GRUN_PATH/grun-remote >> grun-master$$
 
 echo "#!/bin/sh" > grun-slave$$
 echo APP_DIR=$APP_DIR >> grun-slave$$
 echo MODE=slave >> grun-slave$$
 echo JOBID=$$ >> grun-slave$$
+echo IBISCLASSPATH=$IBISCLASSPATH >> grun-slave$$
 cat $GRUN_PATH/grun-remote >> grun-slave$$
 
 chmod a+x grun-master$$ grun-slave$$
@@ -177,7 +183,7 @@ for i in $SITES; do
 	echo '(stdout=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}m.out')' >> grun$$.rsl
 	echo '(stderr=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}m.err')' >> grun$$.rsl
 	echo '(executable=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-master$$')' >> grun$$.rsl
-	echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT -Dcluster=$i $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
+	echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT -Dcluster=${!HOSTNAME_VAR} $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
 	#(directory) isn't set, grun-master$$ should be run in the (default)
 	#home dir
 	echo ")" >> grun$$.rsl
@@ -195,7 +201,7 @@ for i in $SITES; do
 				echo '(stdout=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}-${j}s.out')' >> grun$$.rsl
 				echo '(stderr=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}-${j}s.err')' >> grun$$.rsl
 				echo '(executable=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-slave$$')' >> grun$$.rsl
-				echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT -Dcluster=$i $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
+				echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT -Dcluster=${!HOSTNAME_VAR} $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
 				#(directory) isn't set, grun-slave$$ should be run in the
 				#(default) #home dir
 				echo ")" >> grun$$.rsl
@@ -211,7 +217,7 @@ for i in $SITES; do
 			echo '(stdout=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}s.out')' >> grun$$.rsl
 			echo '(stderr=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-output/$$${i}s.err')' >> grun$$.rsl
 			echo '(executable=$(GLOBUSRUN_GASS_URL)'`pwd`/grun-slave$$')' >> grun$$.rsl
-			echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT -Dcluster=$i $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
+			echo "(arguments=\"-Dpool_total_hosts=$TOTAL_COUNT -Dcluster=${!HOSTNAME_VAR} $NS_PARAMS $APP_CLASS_PARAMS\")" >> grun$$.rsl
 			#(directory) isn't set, grun-slave$$ should be run in the
 			#(default) #home dir
 			echo ")" >> grun$$.rsl
@@ -224,6 +230,7 @@ if [ "$ABORT" != "true" ]; then
 
 	#everything's prepared now, start running
 	$IBIS_ROOT/ibis/bin/ibis_nameserver -port $NS_PORT -single &
+	NS_PID=$!
 	globusrun -s -f grun$$.rsl
 fi
 
@@ -243,3 +250,5 @@ if [ "$DEBUG" = "off" ]; then
 	#wait for the removes to terminate
 	for i in $RM_PIDS; do wait $i; done
 fi
+
+kill -9 $NS_PID
