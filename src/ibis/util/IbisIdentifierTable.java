@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Iterator;
 import java.util.Vector;
-import java.io.OutputStream;
-import java.io.InputStream;
+//import java.io.OutputStream;
+//import java.io.InputStream;
 
 final class SendNode {
 	Object outStream;

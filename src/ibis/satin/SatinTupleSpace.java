@@ -2,10 +2,10 @@ package ibis.satin;
 
 import ibis.ipl.IbisError;
 
-import java.io.IOException;
+//import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 
 /** This class implements an immutable global tupe space. **/
 public class SatinTupleSpace implements Config {

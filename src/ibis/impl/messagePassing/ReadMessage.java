@@ -74,7 +74,7 @@ public class ReadMessage
 
 
     void resetMsg(int msgHandle) {
-	in.resetMsg(msgHandle);
+	ByteInputStream.resetMsg(msgHandle);
     }
 
 

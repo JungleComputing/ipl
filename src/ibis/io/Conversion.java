@@ -1,6 +1,6 @@
 package ibis.io;
 
-import java.lang.reflect.Constructor;
+//import java.lang.reflect.Constructor;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

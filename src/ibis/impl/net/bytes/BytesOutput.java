@@ -630,7 +630,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.defaultConversion.CHAR_SIZE];
+				byte[] b = new byte[l * Conversion.CHAR_SIZE];
 				Conversion.defaultConversion.char2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
@@ -680,7 +680,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.defaultConversion.SHORT_SIZE];
+				byte[] b = new byte[l * Conversion.SHORT_SIZE];
 				Conversion.defaultConversion.short2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
@@ -731,7 +731,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.defaultConversion.INT_SIZE];
+				byte[] b = new byte[l * Conversion.INT_SIZE];
 				Conversion.defaultConversion.int2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
@@ -781,7 +781,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.defaultConversion.LONG_SIZE];
+				byte[] b = new byte[l * Conversion.LONG_SIZE];
 				Conversion.defaultConversion.long2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
@@ -832,7 +832,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.defaultConversion.FLOAT_SIZE];
+				byte[] b = new byte[l * Conversion.FLOAT_SIZE];
 				Conversion.defaultConversion.float2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }
@@ -882,7 +882,7 @@ public final class BytesOutput extends NetOutput implements Settings {
                                 subOutput.writeArray(b, 0, l*f);
                                 an.free(b);
                         } else {
-				byte[] b = new byte[l * Conversion.defaultConversion.DOUBLE_SIZE];
+				byte[] b = new byte[l * Conversion.DOUBLE_SIZE];
 				Conversion.defaultConversion.double2byte(ub, o, l, b, 0);
                                 subOutput.writeArray(b);
                         }

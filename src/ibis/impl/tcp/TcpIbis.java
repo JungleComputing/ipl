@@ -6,7 +6,7 @@ import ibis.ipl.IbisException;
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
-import ibis.ipl.ReadMessage;
+//import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;

@@ -1,6 +1,6 @@
 package ibis.satin;
 import ibis.ipl.IbisIdentifier;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 
 /** An invocation record. */
 

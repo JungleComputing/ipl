@@ -685,9 +685,10 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		}
 
 		// Do a gc, and run the finalizers. Useful for printing statistics in Satin applications.
+		// The app should register a shutdownhook. --Rob
 		System.gc();
 		System.runFinalization();
-		System.runFinalizersOnExit(true);
+//		System.runFinalizersOnExit(true);
 
 		System.exit(0); /* Needed for IBM jit. */
 	}

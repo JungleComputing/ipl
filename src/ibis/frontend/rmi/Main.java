@@ -9,11 +9,11 @@ import java.io.IOException;
 import java.util.Vector;
 
 import org.apache.bcel.Repository;
-import org.apache.bcel.classfile.Attribute;
+//import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
-import org.apache.bcel.classfile.ConstantCP;
+//import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.Field;
@@ -22,9 +22,9 @@ import org.apache.bcel.classfile.LocalVariableTable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.bcel.generic.FieldGen;
-import org.apache.bcel.generic.MethodGen;
-import org.apache.bcel.generic.Type;
+//import org.apache.bcel.generic.FieldGen;
+//import org.apache.bcel.generic.MethodGen;
+//import org.apache.bcel.generic.Type;
 
 class Main {
     static boolean local = true;

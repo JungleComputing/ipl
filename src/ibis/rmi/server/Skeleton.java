@@ -6,7 +6,7 @@ import ibis.ipl.SendPort;
 import ibis.rmi.RTS;
 import ibis.rmi.RemoteException;
 
-import java.io.IOException;
+//import java.io.IOException;
 
 public abstract class Skeleton {
 

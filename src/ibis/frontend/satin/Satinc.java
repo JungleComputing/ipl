@@ -11,7 +11,7 @@ import java.util.Vector;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;
-import org.apache.bcel.classfile.Field;
+//import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ACONST_NULL;
@@ -36,7 +36,7 @@ import org.apache.bcel.generic.FCONST;
 import org.apache.bcel.generic.FLOAD;
 import org.apache.bcel.generic.FRETURN;
 import org.apache.bcel.generic.FSTORE;
-import org.apache.bcel.generic.FieldGen;
+//import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.GOTO;
 import org.apache.bcel.generic.IADD;
 import org.apache.bcel.generic.ICONST;
