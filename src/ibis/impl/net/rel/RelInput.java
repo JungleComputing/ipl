@@ -137,10 +137,9 @@ public final class RelInput
      * @param sp the properties of the input's
      * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
      * @param driver the REL driver instance.
-     * @param input the controlling input.
      */
-    RelInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-	super(pt, driver, up, context);
+    RelInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+	super(pt, driver, context);
 
 	relDriver = (Driver)driver;
 

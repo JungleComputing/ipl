@@ -32,11 +32,10 @@ public abstract class NetBufferedOutput extends NetOutput {
 	 * @param output the controlling output or <code>null</code>
 	 *               if this output is a root output.
 	 */
-	protected NetBufferedOutput(NetPortType      portType,
-			   NetDriver 	    driver,
-			   NetIO  	    up,
-                           String           context) {
-		super(portType, driver, up, context);
+	protected NetBufferedOutput(NetPortType portType,
+                                    NetDriver 	driver,
+                                    String      context) {
+		super(portType, driver, context);
 	}
 
         protected abstract void sendByteBuffer(NetSendBuffer buffer) throws NetIbisException;

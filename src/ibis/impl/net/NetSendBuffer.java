@@ -6,7 +6,7 @@ package ibis.ipl.impl.net;
 public class NetSendBuffer extends NetBuffer {
 
 	/**
-	 * @{inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public NetSendBuffer(byte[] data,
 			     int    length) {
@@ -14,7 +14,7 @@ public class NetSendBuffer extends NetBuffer {
 	}
 
 	/**
-	 * @{inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public NetSendBuffer(byte[] 	  data,
 			     int    	  base,
@@ -23,7 +23,7 @@ public class NetSendBuffer extends NetBuffer {
 	}
 
 	/**
-	 * @{inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public NetSendBuffer(byte[] 	  data,
 			     int    	  length,
@@ -32,7 +32,7 @@ public class NetSendBuffer extends NetBuffer {
 	}
 
 	/**
-	 * @{inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public NetSendBuffer(byte[] 	  data,
 			     int          base,

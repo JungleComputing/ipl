@@ -7,20 +7,10 @@ import ibis.ipl.impl.net.NetConvert;
  */
 public interface RelConstants {
 
-    final static boolean	DEBUG = false; // true;
-    final static boolean	DEBUG_REXMIT_NACK = DEBUG;
-    final static boolean	DEBUG_REXMIT = true; // DEBUG_REXMIT_NACK;
-    final static boolean	DEBUG_ACK = DEBUG;
-    final static boolean	DEBUG_PIGGY = DEBUG;
-    final static boolean	DEBUG_LOCK = DEBUG;
-
-    final static int		FIRST_PACKET_COUNT = 0;
-    final static int		LAST_FRAG_BIT	= (0x1 << 31);
-
-    final static boolean	USE_EXPLICIT_ACKS = true;
-    final static boolean	USE_PIGGYBACK_ACKS = true;
-
     /**
+     * Reliability driver constants.
+     *
+     * <PRE>
      * Data packet layout:
      *  . fragCount		:: integer	seqno of this fragment
      *  . partnerIndex		:: integer
@@ -33,7 +23,21 @@ public interface RelConstants {
      *  . scatteredRecv		:: integer[ACK_SET_IN_INTS]
      *  					non-contig r'cved, offset from
      *  					nextContiguous
+     * </PRE>
      */
+
+    final static boolean	DEBUG = false; // true;
+    final static boolean	DEBUG_REXMIT_NACK = DEBUG;
+    final static boolean	DEBUG_REXMIT = true; // DEBUG_REXMIT_NACK;
+    final static boolean	DEBUG_ACK = DEBUG;
+    final static boolean	DEBUG_PIGGY = DEBUG;
+    final static boolean	DEBUG_LOCK = DEBUG;
+
+    final static int		FIRST_PACKET_COUNT = 0;
+    final static int		LAST_FRAG_BIT	= (0x1 << 31);
+
+    final static boolean	USE_EXPLICIT_ACKS = true;
+    final static boolean	USE_PIGGYBACK_ACKS = true;
 
     final static int	ACK_SET_SIZE = 32;
 

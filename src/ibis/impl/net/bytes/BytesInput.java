@@ -32,8 +32,8 @@ public final class BytesInput extends NetInput {
         private NetAllocator an = null;
         private volatile Thread activeUpcallThread = null;
 
-	BytesInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+	BytesInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
                 an = new NetAllocator(anThreshold);
 	}
 

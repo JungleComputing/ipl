@@ -28,84 +28,103 @@ import java.lang.reflect.InvocationTargetException;
 public final class NetIbis extends Ibis {
 	
 	/**
-	 * Selects the driver loading mode.
+         * The compiler name.
+         */
+	private static final String compiler = java.lang.System.getProperty("java.lang.compiler");
+
+	/**
+	 * The driver loading mode.
 	 *
 	 * <DL>
 	 * <DT><CODE>true</CODE><DD>known drivers are statically loaded at initialization time.
 	 * <DT><CODE>false</CODE><DD>every driver is loaded dynamically.
 	 * </DL>
+         * Note: if {@linkplain #compiler} is set and equals <code>manta</code>, this
+         * flag is automatically set to <code>true</code>
 	 */
-
-	private static final String compiler = java.lang.System.getProperty("java.lang.compiler");
-	// private static final boolean staticDriverLoading = compiler != null && compiler.equals("manta");
-	private static final boolean staticDriverLoading = false;
+	private static final boolean staticDriverLoading = (compiler != null && compiler.equals("manta")) || false;
 
 	/**
-	 * Caches the previously created port types.
+	 * The cache for previously created port types.
 	 */
 	private   Hashtable         portTypeTable    = new Hashtable();
 
 	/**
-	 * Caches the previously loaded drivers.
+	 * The cache for previously loaded drivers.
 	 */
 	private   Hashtable         driverTable      = new Hashtable();
 
 	/**
-	 * Provides information needed by other NetIbis instances to connect with this one.
+	 * This {@link NetIbis} instance identifier for the <I>name server</I>.
 	 */
 	private   NetIbisIdentifier identifier       = null;
 
 	/**
-	 * Stores the Ibis Name Server host name.
-	 */
-	private   String 	    nameServerName   = null;
-
-	/**
-	 * Stores the Ibis Name Server pool name for the NetIbis instance.
+	 * This {@link NetIbis} instance <I>name server</I> pool name.
 	 */
 	private   String      	    nameServerPool   = null;
 
 	/**
-	 * Stores the Ibis Name Server IP address.
+	 * The <I>name server</I> host name.
+	 */
+	private   String 	    nameServerName   = null;
+
+	/**
+	 * The <I>name server</I> IP address.
 	 */
 	private   InetAddress 	    nameServerInet   = null;
 
 	/**
-	 * Stores the Ibis Name Server IP port.
+	 * The <I>name server</I> IP port.
 	 */
 	private   int               nameServerPort   = 0;
 
 	/**
-	 * Stores the NetIbis instance's Name Server client.
+	 * This {@link NetIbis} instance <I>name server</I> client.
 	 */
 	protected NameServerClient  nameServerClient = null;
 
 	/**
-	 * Indicates whether our <I>world</I> is open or not.
+	 * The openness of our <I>world</I>.
+	 * <DL>
+	 * <DT><CODE>true</CODE><DD>Any {@link NetIbis} instance can connect to this {@link NetIbis} instance
+	 * <DT><CODE>false</CODE><DD>No {@link NetIbis} instance can connect to this {@link NetIbis} instance
+	 * </DL>
 	 */
 	private   boolean           open             = false;
 
 	/**
-	 * Stores the number of NetIbis instances in this instance's pool.
+	 * The number of {@link NetIbis} instances in our <I>name server</I> {@linkplain #nameServerPool pool}.
 	 */
 	private   int 	       	    poolSize         = 0;
 
 	/**
-	 * Stores asynchronous Name Server pool join events.
+	 * The {@link NetIbis} instances that attempted to join our {@linkplain #nameServerPool pool} while our world was {@linkplain #open closed}.
 	 */
 	private   Vector 	    joinedIbises     = new Vector();
 
 	/**
-	 * Stores asynchronous Name Server pool leave events.
+	 * The {@link NetIbis} instances that attempted to leave our {@linkplain #nameServerPool pool} while our world was {@linkplain #open closed}.
 	 */
 	private   Vector 	    leftIbises       = new Vector();
 
 	/**
-	 * The NetIbis bank.
-	 */
+	 * The {@link NetIbis} {@linkplain NetBank bank}.
+         *
+         * This {@linkplain NetBank bank} can be used as general
+         * purpose and relatively safe repository for global object
+         * instances. 
+         */
 	private   NetBank           bank             = new NetBank();
 
-	static NetIbis globalIbis;
+        /**
+         * The master {@link Ibis} instance for this process.
+         */
+	static volatile NetIbis globalIbis;
+
+        /**
+         * The {@link Ibis Ibises} instance identifiers.
+         */
 	IbisIdentifierTable identTable = new IbisIdentifierTable();
 
 	/**
@@ -114,7 +133,6 @@ public final class NetIbis extends Ibis {
 	 * Loads compile-time known drivers if {@link #staticDriverLoading} is set.
 	 */
 	public NetIbis() {
-// System.err.println("NetIbis ...");
 		if (globalIbis == null) {
 			globalIbis = this;
 		}
@@ -142,18 +160,16 @@ public final class NetIbis extends Ibis {
 			}
 		    }
 		}
-// System.err.println("NetIbis created...");
 	}
 
 	/**
-	 * Returns the NetIbis bank instance.
+	 * Returns the {@link #bank}.
 	 *
-	 * @return The NetIbis bank.
+	 * @return The {@link #bank}.
 	 */
 	public NetBank getBank() {
 		return bank;
 	}
-	
 
 	/**
 	 * Returns an instance of the driver corresponding to the given name.
@@ -203,8 +219,8 @@ public final class NetIbis extends Ibis {
 	 *
 	 * @param name the name of the type.
 	 * @param sp   the properties of the type.
-	 * @return The port type.
-	 * @exception NetIbisException if the name server refused to register the new type.
+	 * @return     The port type.
+	 * @exception  NetIbisException if the name server refused to register the new type.
 	 */
 	public PortType createPortType(String name, StaticProperties sp)
 		throws NetIbisException {
@@ -224,7 +240,7 @@ public final class NetIbis extends Ibis {
 	}
 
 	/**
-	 * Returns the NetIbis instance's access to the name server {@linkplain Registry registry}.
+	 * Returns the <I>name server</I> {@linkplain #nameServerClient client} {@linkplain Registry registry}.
 	 *
 	 * @return A reference to the instance's registry access.
 	 */
@@ -233,8 +249,8 @@ public final class NetIbis extends Ibis {
 	} 
 
 	/**
-	 * Returns the {@linkplain StaticProperties properties} of the NetIbis instance.
-	 *
+	 * Returns the {@linkplain StaticProperties properties} of the {@link NetIbis} instance.
+	 * Note: currently unimplemented.
 	 * @return <CODE>null</CODE>
 	 */
 	public StaticProperties properties() {
@@ -242,7 +258,7 @@ public final class NetIbis extends Ibis {
 	}
 
 	/**
-	 * Returns the {@linkplain IbisIdentifier identifier} of the NetIbis instance.
+	 * Returns the {@linkplain Ibis} instance {@link #identifier}.
 	 *
 	 * @return The instance's identifier
 	 */
@@ -254,12 +270,14 @@ public final class NetIbis extends Ibis {
 	 * Initializes the NetIbis instance.
 	 *
 	 * This function should be called before any attempt to use the NetIbis instance.
-	 * This function is not automatically called by the constructor.
+	 * <B>This function is not automatically called by the constructor</B>.
 	 *
 	 * @exception IbisException if the system-wide Ibis properties where not correctly set.
-	 * @exception NetIbisException if the local host name cannot be found or if the Name Server cannot be reached.
+	 * @exception NetIbisException if the local host name cannot be found or if the <I>name server</I> cannot be reached.
 	 */
 	protected void init() throws IbisException, NetIbisException { 
+
+                /* Builds the instance identifier out of our {@link InetAddress}. */
 		try {
 			InetAddress addr = InetAddress.getLocalHost();
 			identifier = new NetIbisIdentifier(name, addr);
@@ -267,7 +285,7 @@ public final class NetIbis extends Ibis {
 			throw new NetIbisException(e);
 		}
 		
-
+                /* Decodes <I>name server</I> properties informations. */
 		{
 			Properties p = System.getProperties();
 		
@@ -295,12 +313,14 @@ public final class NetIbis extends Ibis {
                         }
 		}
 		
+                /* Gets <I>name server<I> {@link InetAddress} */
 		try {
 			nameServerInet = InetAddress.getByName(nameServerName);
 		} catch (UnknownHostException e) {
 			throw new NetIbisException(e);
 		}
 
+                /* Connects to the <I>name server<I> */
                 try {
                         nameServerClient = new NameServerClient(this,
                                                                 identifier,
@@ -321,17 +341,18 @@ public final class NetIbis extends Ibis {
 		return nameServerClient.tcpReceivePortNameServerClient;
 	}
 	
-	/**
+        /*
 	 * Handles synchronous/asynchronous Ibises pool joins.
 	 *
 	 * @param joinIdent the identifier of the joining Ibis instance.
 	 */
+	/**
+         * {@inheritDoc}
+         */
 	public void join(IbisIdentifier joinIdent) { 
-                //System.err.println(this + ": join--> " + joinIdent);
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				joinedIbises.add(joinIdent);
-                                // System.err.println(this + ": join<XX");
 				return;
 			}
 			
@@ -341,16 +362,17 @@ public final class NetIbis extends Ibis {
 		if(resizeHandler != null) {
 			resizeHandler.join(joinIdent);
 		}
-                //System.err.println(this + ": join<--");
 	}
 
-	/**
+	/*
 	 * Handles synchronous/asynchronous Ibises pool leaves.
 	 *
 	 * @param leaveIdent the identifier of the leaving Ibis instance.
 	 */
+	/**
+         * {@inheritDoc}
+         */
 	public void leave(IbisIdentifier leaveIdent) { 
-                //System.err.println(this + ": leave-->");
 		synchronized (this) {
 			if(!open && resizeHandler != null) {
 				leftIbises.add(leaveIdent);
@@ -363,15 +385,12 @@ public final class NetIbis extends Ibis {
 		if(resizeHandler != null) {
 			resizeHandler.leave(leaveIdent);
 		}
-                //System.err.println(this + ": leave<--");
 	}
 
 	public void openWorld() {
-                //System.err.println(this + ": openWorld-->");
 		if(resizeHandler != null) {
 			while(joinedIbises.size() > 0) {
-// System.err.println(this+ ": join/later " + (NetIbisIdentifier)joinedIbises.elementAt(0));
-				resizeHandler.join((NetIbisIdentifier)joinedIbises.remove(0));
+//				resizeHandler.join((NetIbisIdentifier)joinedIbises.remove(0));
 				poolSize++;
 			}
 
@@ -384,15 +403,12 @@ public final class NetIbis extends Ibis {
 		synchronized (this) {
 			open = true;
 		}
-                //System.err.println(this + ": openWorld<--");
 	}
 
 	public synchronized void closeWorld() {
-                //System.err.println("NetIbis: closeWorld-->");
 		synchronized (this) {
 			open = false;
 		}
-                //System.err.println("NetIbis: closeWorld<--");
 	}
 
 	/**
@@ -408,13 +424,11 @@ public final class NetIbis extends Ibis {
 	/** Requests the NetIbis instance to leave the Name Server pool.
 	 */
 	public void end() {
-                //System.err.println("NetIbis: end-->");
 		try {
 			nameServerClient.leave();
 		} catch (Exception e) {
 			__.fwdAbort__(e);
 		}
-                //System.err.println("NetIbis: end<--");
 	}
 
 	public void poll() {

@@ -14,9 +14,9 @@ public final class DefInput extends NetBufferedInput {
         private NetReceiveBuffer      buf             = null;
         private UpcallThread          upcallThread = null;
 
-	DefInput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	DefInput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
 		headerLength = 4;
 	}
 

@@ -75,11 +75,10 @@ public final class UdpOutput extends NetBufferedOutput {
 	 * @param sp the properties of the output's 
 	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
 	 * @param driver the TCP driver instance.
-	 * @param output the controlling output.
 	 */
-	UdpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	UdpOutput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
 
 		if (Driver.DEBUG) {
 		    headerLength = 8;

@@ -47,9 +47,9 @@ public final class Driver extends NetDriver {
 	 * @param input the controlling input.
 	 * @return The new TCP input.
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context)
+	public NetInput newInput(NetPortType pt, String context)
 		throws NetIbisException {
-		return new TcpInput(pt, this, up, context);
+		return new TcpInput(pt, this, context);
 	}
 
 	/**
@@ -60,8 +60,8 @@ public final class Driver extends NetDriver {
 	 * @param output the controlling output.
 	 * @return The new TCP output.
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
+	public NetOutput newOutput(NetPortType pt, String context)
 		throws NetIbisException {
-		return new TcpOutput(pt, this, up, context);
+		return new TcpOutput(pt, this, context);
 	}
 }

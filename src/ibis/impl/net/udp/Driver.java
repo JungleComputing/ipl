@@ -44,11 +44,10 @@ public final class Driver extends NetDriver {
 	 *
 	 * @param sp the properties of the input's 
 	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
-	 * @param input the controlling input.
 	 * @return The new UDP input.
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context) throws NetIbisException {
-		return new UdpInput(pt, this, up, context);
+	public NetInput newInput(NetPortType pt, String context) throws NetIbisException {
+		return new UdpInput(pt, this, context);
 	}
 
 	/**
@@ -56,10 +55,9 @@ public final class Driver extends NetDriver {
 	 *
 	 * @param sp the properties of the output's 
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
-	 * @param output the controlling output.
 	 * @return The new UDP output.
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws NetIbisException {
-		return new UdpOutput(pt, this, up, context);
+	public NetOutput newOutput(NetPortType pt, String context) throws NetIbisException {
+		return new UdpOutput(pt, this, context);
 	}
 }

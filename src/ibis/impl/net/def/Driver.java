@@ -38,16 +38,16 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context)
+	public NetInput newInput(NetPortType pt, String context)
 		throws NetIbisException {
-		return new DefInput(pt, this, up, context);
+		return new DefInput(pt, this, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
+	public NetOutput newOutput(NetPortType pt, String context)
 		throws NetIbisException {
-		return new DefOutput(pt, this, up, context);
+		return new DefOutput(pt, this, context);
 	}
 }

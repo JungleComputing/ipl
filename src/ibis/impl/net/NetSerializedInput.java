@@ -26,8 +26,8 @@ public abstract class NetSerializedInput extends NetInput {
 	private   Hashtable                streamTable = null;
         protected volatile Thread    activeUpcallThread = null;
 
-	public NetSerializedInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+	public NetSerializedInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
                 streamTable = new Hashtable();
 	}
 

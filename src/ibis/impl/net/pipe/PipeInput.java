@@ -19,8 +19,8 @@ public final class PipeInput extends NetBufferedInput {
         private boolean          upcallMode   = false;
         private UpcallThread     upcallThread = null;
 
-	PipeInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+	PipeInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
 		headerLength = 4;
 		// Create the factory in the constructor. This allows
 		// subclasses to override the factory.

@@ -12,21 +12,22 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
- * Provide a generic abstraction of an network Input or network Output.
+ * Provide a generic abstraction of an network {@link NetInput Input} or network {@link NetOutput Output}.
  */
 public abstract class NetIO {
+
 	/**
-	 * the maximum data length that can be sent atomically.
+	 * the maximum data length that can be transmitted atomically.
 	 */
 	protected int       	   mtu           	  = 	0;
 
 	/**
-	 * the offset at which this output's header starts.
+	 * the offset at which this output's header starts for atomic packet.
 	 */
 	protected int       	   headerOffset  	  = 	0;
 
 	/**
-	 * the length of this output's header.
+	 * the length of this output's header for atomic packet.
 	 */
 	protected int       	   headerLength  	  = 	0;
 
@@ -36,39 +37,36 @@ public abstract class NetIO {
 	protected NetDriver 	   driver        	  = null;
 
 	/**
-	 * the type of the corresponing {@linkplain NetSendPort send port}.
+	 * the 'type' of the corresponding {@linkplain NetSendPort send port} or {@linkplain NetReceivePort receive port}.
 	 */
-	protected NetPortType      type                   = null;
+        protected NetPortType      type                   = null;
 
-	/**
-	 * the controling I/O if there is one.
-	 */
-	protected NetIO            up                     = null;
-
+        /**
+         * the path to the driver in the driver tree.
+         */
         protected String           context                = null;
 
 
 	/**
 	 * Current NetBufferFactory
 	 */
-	// protected NetBufferFactory factory;
-	public NetBufferFactory factory;
+	// protected NetBufferFactory factory = null;
+	public NetBufferFactory factory                   = null;
 
 
 	/**
 	 * Constructor.
 	 *
-	 * @param staticProperties the properties of the port.
-	 * @param driver           the driver.
-	 * @param up the controlling I/O or <code>null</code> if this I/O is a root I/O.
+	 * @param type    the port type.
+	 * @param driver  the driver.
+         * @param context the context in which this object is created.
 	 */
 	protected NetIO(NetPortType      type,
 			NetDriver 	 driver,
-			NetIO            up,
                         String           context) {
 		this.type    = type;
 		this.driver  = driver;
-		this.up      = up;
+
                 if (context != null) {
                         this.context = context+"/"+getDriverName();
                 } else {
@@ -76,37 +74,41 @@ public abstract class NetIO {
                 }
 	}
 
-	/**
-	 * Returns the controlling I/O object.
-	 *
-	 * @return the controlling I/O object reference or <code>null</code> if this I/O is a root I/O.
-	 */
-	protected NetIO getUp() {
-		return up;
-	}
-
-        public String context() {
+        /**
+         * Returns the {@link #context} {@linkplain String string}.
+         *
+         * @return the {@link #context} {@linkplain String string}.
+         */
+        public final String context() {
                 return context;
         }
 
 	/**
-	 * Returns the output's driver.
+	 * Returns the {@link #driver}.
 	 *
-	 * @return a reference to the output's driver.
+	 * @return a reference to the {@link #driver}.
 	 */
 	public final NetDriver getDriver() {
 		return driver;
 	}
 
 	/**
-	 * Returns the input driver's name.
+	 * Returns the {@link #driver}'s name.
 	 *
-	 * @return a reference to the input driver's name.
+	 * @return a {@linkplain String string} containing the {@link #driver}'s name.
 	 */
 	public final String getDriverName() {
 		return driver.getName();
 	}
 
+        /**
+         * Creates and returns a subcontext {@linkplain String string}.
+         *
+         * A subcontext string is a context string concatenated with a discriminant.
+         *
+         * @param contextValue the subcontext discriminant {@linkplain String string}.
+         * @return a subcontext {@linkplain String string}.
+         */
         private String subContext(String contextValue) {
                 String sub = context;
                 if (contextValue != null) {
@@ -115,30 +117,80 @@ public abstract class NetIO {
                 return sub;
         }
 
+        /**
+         * Creates and returns a new {@linkplain NetInput input} object.
+         *
+         * @param subDriver the new {@linkplain NetInput input}'s {@linkplain NetDriver driver}.
+         * @param contextValue the {@link #subContext sub-context} discriminant.
+         * @return the new {@linkplain NetInput input}.
+         */
         public final NetInput newSubInput(NetDriver subDriver, String contextValue) throws NetIbisException {
-                return subDriver.newInput(type, this, subContext(contextValue));
+                return subDriver.newInput(type, subContext(contextValue));
         }
 
+        /**
+         * Creates and returns a new {@linkplain NetOutput output} object.
+         *
+         * @param subDriver the new {@linkplain NetOutput output}'s {@linkplain NetDriver driver}.
+         * @param contextValue the {@link #subContext sub-context} discriminant.
+         * @return the new {@linkplain NetOutput output}.
+         */
         public final NetOutput newSubOutput(NetDriver subDriver, String contextValue) throws NetIbisException {
-                return subDriver.newOutput(type, this, subContext(contextValue));
+                return subDriver.newOutput(type, subContext(contextValue));
         }
 
+        /**
+         * Creates and returns a new {@linkplain NetInput input} object with no subcontext discriminant.
+         *
+         * @param subDriver the new {@linkplain NetInput input}'s {@linkplain NetDriver driver}.
+         * @return the new {@linkplain NetInput input}.
+         */
         public final NetInput newSubInput(NetDriver subDriver) throws NetIbisException {
                 return newSubInput(subDriver, null);
         }
 
+        /**
+         * Creates and returns a new {@linkplain NetOutput output} object with no subcontext discriminant.
+         *
+         * @param subDriver the new {@linkplain NetOutput output}'s {@linkplain NetDriver driver}.
+         * @return the new {@linkplain NetOutput output}.
+         */
         public final NetOutput newSubOutput(NetDriver subDriver) throws NetIbisException {
                 return newSubOutput(subDriver, null);
         }
 
+        /**
+         * Returns a context sensitive property {@linkplain String string}.
+         * Note: if the property is not found for that context, a default value
+           is searched for, recursively removing subcontexts discriminants.
+         *
+         * @param contextValue the property context {@linkplain String string}.
+         * @param name the property name {@linkplain String string}.
+         * @return the property {@linkplain String string} value or <code>null</code> if not found.
+         */
         public final String getProperty(String contextValue, String name) {
                 return type.getStringProperty(subContext(contextValue), name);
         }
 
+        /**
+         * Returns a default property {@linkplain String string}.
+         * @param name the property name {@linkplain String string}.
+         * @return the property {@linkplain String string} value or <code>null</code> if not found.
+         */
         public final String getProperty(String name) {
                 return getProperty(null, name);
         }
 
+        /**
+         * Returns a context sensitive property {@linkplain String string}.
+         * Note: if the property is not found for that context, a default value
+           is searched for, recursively removing subcontexts discriminants.
+         *
+         * @param contextValue the property context {@linkplain String string}.
+         * @param name the property name {@linkplain String string}.
+         * @throws Error if the property is not found
+         * @return the property {@linkplain String string} value.
+         */
         public final String getMandatoryProperty(String contextValue, String name) {
                 String s = getProperty(contextValue, name);
                 if (s == null) {
@@ -148,7 +200,17 @@ public abstract class NetIO {
                 return s;
         }
 
-        public final String getMandatoryProperty(String name) {
+        /**
+         * Returns a context sensitive property {@linkplain String string}.
+         * Note: if the property is not found for that context, a default value
+           is searched for, recursively removing subcontexts discriminants.
+         *
+         * @param contextValue the property context {@linkplain String string}.
+         * @param name the property name {@linkplain String string}.
+         * @throws Error if the property is not found
+         * @return the property {@linkplain String string} value.
+         */
+         public final String getMandatoryProperty(String name) {
                 String s = getProperty(name);
                 if (s == null) {
                         throw new Error(name+" property not specified");
@@ -159,7 +221,7 @@ public abstract class NetIO {
 
 
 	/**
-	 * Install a custom {@link NetBufferFactory}.
+	 * Install a custom {@link NetBufferFactory} for atomic packet allocation.
 	 *
 	 * @param factory the {@link NetBuffer} factory
 	 */
@@ -174,6 +236,9 @@ public abstract class NetIO {
 	    }
 	}
 
+        /**
+         * Displays the current {@link NetBufferFactory}.
+         */
 	public void dumpBufferFactoryInfo() {
 	    if (NetBufferFactory.DEBUG) {
 		System.err.println(this + ": +++++++++++ current BufferFactory " + factory);
@@ -184,9 +249,10 @@ public abstract class NetIO {
 	/**
 	 * Create a {@link NetBuffer} using the installed factory.
 	 *
-	 * This is only valid for a Factory with MTU.
+	 * This is only valid for a {@link NetBufferFactory Factory} with MTU.
 	 *
-	 * @throws an {@link NetIbisException} if the factory has no default MTU
+	 * @throws an {@link NetIbisException} if the factory has no default MTU.
+         * @return the new {@link NetBuffer buffer}.
 	 */
 	public NetBuffer createBuffer() throws NetIbisException {
 	    if (factory == null) {
@@ -199,7 +265,9 @@ public abstract class NetIO {
 	 * Create a {@link NetBuffer} using the installed factory.
 	 *
 	 * @param length the length of the data to be stored in the buffer.
-	 *        The buffer is a new byte array
+	 *        The buffer is a new byte array.
+	 * @throws an {@link NetIbisException} if the factory has no default MTU.
+         * @return the new {@link NetBuffer buffer}.
 	 */
 	public NetBuffer createBuffer(int length) throws NetIbisException {
 	    if (factory == null) {
@@ -209,16 +277,16 @@ public abstract class NetIO {
 	}
 
 	/**
-	 * Returns the maximum transfert unit for this input.
+	 * Returns the maximum atomic packet transfert unit for this input.
 	 *
-	 * @return The maximum transfert unit.
+	 * @return the maximum transfert unit.
 	 */
 	public final int getMaximumTransfertUnit() {
 		return mtu;
 	}
 
 	/**
-	 * Changes the offset of the header start for this input.
+	 * Changes the offset of the atomic packet header start for this input.
 	 *
 	 * @param offset the new offset.
 	 */
@@ -227,18 +295,18 @@ public abstract class NetIO {
 	}
 
 	/**
-	 * Returns the total header's part length.
+	 * Returns the total atomic packet header's part length.
 	 *
-	 * @return The total header's part length.
+	 * @return the total header's part length.
 	 */
 	public int getHeadersLength() {
 		return headerOffset + headerLength;
 	}
 
 	/**
-	 * Return this input's header length.
+	 * Return the atomic packet header length for this {@link NetIO}.
 	 *
-	 * @return This input's header length.
+	 * @return the header length.
 	 */
 	public int getHeaderLength() {
 		return headerLength;
@@ -247,7 +315,7 @@ public abstract class NetIO {
 	/**
 	 * Returns the maximum atomic payload size for this input.
 	 *
-	 * @return The maximum payload size.
+	 * @return the maximum payload size.
 	 */
 	public int getMaximumPayloadUnit() {
 		return mtu - (headerOffset + headerLength);
@@ -256,12 +324,19 @@ public abstract class NetIO {
 	/**
 	 * Actually establish a connection with a remote port.
 	 *
-	 * @param cnx the connection data.
+	 * @param cnx the connection attributes.
 	 * @exception NetIbisException if the connection setup fails.
 	 */
 	public abstract void setupConnection(NetConnection cnx) throws NetIbisException;
 
 
+	/**
+	 * Unconditionaly closes the I/O.
+	 *
+	 * Note: this method should not block and can be called at any time and several time for the same connection.
+         * @param num the connection identifier
+         * @exception NetIbisException if this operation fails (that should not happen).
+	 */
         public abstract void close(Integer num) throws NetIbisException;
 
 	/**
@@ -269,6 +344,7 @@ public abstract class NetIO {
 	 *
 	 * Note: methods redefining this one should also call it, just in case
          *       we need to add something here
+         * @exception NetIbisException if this operation fails.
 	 */
 	public void free() throws NetIbisException {
                 // nothing
@@ -277,7 +353,8 @@ public abstract class NetIO {
 	/**
 	 * Finalizes this IO object.
 	 *
-	 * Note: methods redefining this one should call it at the end.
+	 * Note: methods redefining this one should also call the superclass version at the end.
+         * @exception Throwable in case of problem.
 	 */
 	protected void finalize()
 		throws Throwable {

@@ -63,29 +63,25 @@ public abstract class NetDriver {
 	
 	/**
 	 * Creates a new {@link NetInput} according to the
-	 * {@linkplain StaticProperties properties}.
+	 * {@linkplain NetPortType port type} settings and the context {@linkplain String string}.
 	 *
-	 * @param sp The requested properties.
-	 * @param input The optional controlling {@linkplain NetInput input}
-	 *              or <CODE>null</CODE> if the new input is directly 
-	 *              controlled by the {@linkplain NetReceivePort receive port}.
+	 * @param pt the port type.
+         * @param context the context string.
 	 *
 	 * @exception NetIbisException if the input creation fail.
 	 */
-	public abstract NetInput newInput(NetPortType pt, NetIO up, String context)
+	public abstract NetInput newInput(NetPortType pt, String context)
 		throws NetIbisException;
 
 	/**
 	 * Creates a new {@link NetOutput} according to the
-	 * {@linkplain StaticProperties properties}.
+	 * {@linkplain NetPortType port type} settings and the context {@linkplain String string}.
 	 *
-	 * @param sp The requested properties.
-	 * @param output The optional controlling {@linkplain NetOutput output}
-	 *              or <CODE>null</CODE> if the new output is directly 
-	 *              controlled by the {@linkplain NetSendPort send port}.
+	 * @param pt the port type.
+         * @param context the context string.
 	 *
 	 * @exception NetIbisException if the output creation fail.
 	 */
-	public abstract NetOutput newOutput(NetPortType pt, NetIO up, String context)
+	public abstract NetOutput newOutput(NetPortType pt, String context)
 		throws NetIbisException;
 }

@@ -23,40 +23,31 @@ import java.util.Hashtable;
  * Provides an implementation of the {@link SendPort} and {@link
  * WriteMessage} interfaces of the IPL.
  */
-public final class NetSendPort implements SendPort, WriteMessage, NetPort {
+public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEventQueueConsumer {
 
 
-
-
-
-        /* ___ INTERNAL CLASSES ____________________________________________ */
-
-        /*
-        protected final class ReceivePortState {
-                Integer                  num  = null;
-                NetReceivePortIdentifier id   = null;
-                NetServiceLink           link = null;
-        }
-        */
 
 
 
         /* ___ LESS-IMPORTANT OBJECTS ______________________________________ */
 
+        /**
+         * The {@link NetIbis} instance.
+         */
         private NetIbis               ibis                   = null;
 
 	/**
-	 * The type of the port.
+	 * The port settings.
 	 */
 	private NetPortType           type       	     = null;
 
 	/**
-	 * The name of the port, or <code>null</code> if the port is anonymous.
+	 * The port name used for <I>name server</I> lookup requests.
 	 */
 	private String                name       	     = null;
 
 	/**
-	 * The port identifier.
+	 * The port connection identifier.
 	 */
 	private NetSendPortIdentifier identifier 	     = null;
 
@@ -65,6 +56,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
          */
         private Replacer              replacer               = null;
         
+        /**
+         * The next connection identification number.
+         */
 	private int       	      nextReceivePortNum     = 0;
 
 
@@ -73,10 +67,12 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 
         /* ___ IMPORTANT OBJECTS ___________________________________________ */
 
-	private Hashtable 	      connectionTable        = null;        
+	/**
+         * The table of network {@linkplain NetConnection connections} indexed by connection identification numbers. */
+        private Hashtable 	      connectionTable        = null;        
 
 	/**
-	 * The topmost driver.
+	 * The topmost network driver.
 	 */
 	private NetDriver             driver     	     = null;
 
@@ -105,7 +101,14 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 
         /* ___ EVENT QUEUE _________________________________________________ */
 
+        /**
+         * The general purpose {@linkplain NetPortEvent event} queue.
+         */
 	private NetEventQueue         eventQueue             = null;
+
+        /**
+         * The asynchronous {@link #eventQueue} listening & {@linkplain NetPortEvent event} processing thread.
+         */
         private NetEventQueueListener eventQueueListener     = null;
 
 
@@ -117,6 +120,8 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 
 	/**
 	 * The network output synchronization lock.
+         *
+         * Note: Only the owner of this lock may interact with the topmost {@link #output}
 	 */
 	private NetMutex              outputLock   	     = null;
 
@@ -133,13 +138,70 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 
         
 
+        /* ___ NET EVENT QUEUE CONSUMER RELATED FUNCTIONS __________________ */
+
+        /**
+         * The callback function for processing incoming events from the {@link #eventQueue} and called by the {@link #eventQueueListener} thread.
+         *
+         * <BR><B>Note 1:</B> the only {@linkplain NetPortEvent event} supported currently is the <I>close</I> {@linkplain NetPortEvent event} ({@link NetPortEvent#CLOSE_EVENT}) which is added to the {@link #eventQueue} when a {@linkplain NetConnection connection} is detected to have been remotely closed. The argument of the <I>close</I> {@linkplain NetPortEvent event} is the {@linkplain NetConnection connection} identification {@link Integer}.
+         * <BR><B>Note 2:</B> there is a possible race condition in the case that the <I>close</I> {@linkplain NetPortEvent event} is triggered before the {@linkplain NetConnection connection} is added to the {@link #connectionTable}. In that case, the {@linkplain NetPortEvent event} is ignored and when the {@linkplain NetConnection connection} later gets finally added to the {@link #connectionTable}, there is no mechanism to remember that it has actually been closed and has no need to be kept in the {@link #connectionTable}. There is no "simple light" solution to this problem as there is no "simple light way" to know whether a {@linkplain NetConnection connection} is not in the {@link #connectionTable} because it has not yet been added to it or because it as already been closed earlier.
+         *
+         * @param e the {@linkplain NetPortEvent event}.
+         */
+        public void event(NetEvent e) {
+                NetPortEvent event = (NetPortEvent)e;
+
+                switch (event.code()) {
+                        case NetPortEvent.CLOSE_EVENT: 
+                                {
+                                        Integer num = (Integer)event.arg();
+                                        NetConnection cnx = null;
+
+                                        /*
+                                         * Potential race condition here:
+                                         * The event can be triggered _before_
+                                         * the connection is added to the table.
+                                         */
+                                        synchronized(connectionTable) {
+                                                cnx = (NetConnection)connectionTable.remove(num);
+                                        }
+                                                
+                                        if (cnx != null) {
+                                                try {
+                                                        close(cnx);
+                                                } catch (NetIbisException nie) {
+                                                        throw new Error(nie);
+                                                }
+                                        }
+                                }
+                        break;
+
+                default:
+                        throw new Error("invalid event code");
+                }
+                
+        }
+
+        /* ................................................................. */
+
+
+
+
+
+        
+
         /* ___ NETPORT RELATED FUNCTIONS ___________________________________ */
 
 
-
+        /**
+         * Returns the port type.
+         *
+         * @return the contents of {@link #type}.
+         */
         public NetPortType getPortType() {
                 return type;
         }
+
         /* ................................................................. */
 
 
@@ -164,7 +226,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	}
 
 	/**
-	 * Constructor for a anonymous send port.
+	 * Constructor for a anonymous replaced send port.
 	 *
 	 * @param type the {@linkplain NetPortType port type}.
          * @param replacer the replacer for this object.
@@ -174,7 +236,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	}
 
 	/**
-	 * Constructor for a named send port.
+	 * General purpose constructor.
 	 *
 	 * @param type the {@linkplain NetPortType port type}.
          * @param replacer the replacer for this object.
@@ -198,16 +260,17 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
         /* ----- CLEAN-UP __________________________________________________ */
 
 	/**
-	 * Ensures correct clean-up.
+	 * The class unloading time cleaning function.
+         *
+         * <BR><B>Note 1:</B> the {@link #free} method is forcibly called, just in case it was not called before, in the user application.
+         * <BR><B>Note 2:</B> the {@link #eventQueue} is closed there (that is, not in the {@link #free} method).
 	 */
 	protected void finalize() throws Throwable {
-                // System.err.println("SendPort: finalize-->");
 		free();
 
                 if (eventQueueListener != null) {
                         eventQueueListener.end();
                 
-                        //System.err.println("waiting for SendPort eventQueue thread to join");
                         while (true) {
                                 try {
                                         eventQueueListener.join();
@@ -216,16 +279,17 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
                                         //
                                 }
                         }
-                        //System.err.println("SendPort eventQueue thread joined");
                 }
 
 		super.finalize();
-                // System.err.println("SendPort: finalize<--");
 	}
 
 
         /* ----- PASSIVE STATE INITIALIZATION ______________________________ */
 
+        /**
+         * The port connection {@link #identifier} generation.
+         */
         private void initIdentifier() throws NetIbisException {
                 if (this.identifier != null)
                         throw new NetIbisException("identifier already initialized");
@@ -235,6 +299,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 		this.identifier = new NetSendPortIdentifier(name, type.name(), ibisId);
         }
 
+        /**
+         * The <I>passive</I> port state initialization part.
+         */
         private void initPassiveState() throws NetIbisException {
                 initIdentifier();
         }
@@ -245,13 +312,21 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 
         /* ----- ACTIVE STATE INITIALIZATION _______________________________ */
 
+        /**
+         * The {@link #eventQueue} construction and the {@link #eventQueueListener} thread activation.
+         */
         private void initEventQueue() {
                 eventQueue         = new NetEventQueue();
                 eventQueueListener = new NetEventQueueListener(this, "SendPort: " + ((name != null)?name:"anonymous"), eventQueue);
                 eventQueueListener.start();
         }
         
-
+        /**
+         * The topmost {@link #driver} initialization.
+         *
+         * <BR><B>Note:</B> the driver's name is looked for in the <code>"Driver"</code> property of the context <code>'/'</code> and (currently) with the <code>null</code> subcontext.
+         * @exception NetIbisException in case of trouble.
+         */
         private void loadMainDriver() throws NetIbisException {
                 if (this.driver != null)
                         throw new NetIbisException("driver already loaded");
@@ -271,13 +346,21 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
                 this.driver = driver;
         }
 
+        /**
+         * The initialization of communication related data structures and objects.
+         * @exception NetIbisException in case of trouble.
+         */
         private void initCommunicationEngine() throws NetIbisException {
 		this.connectionTable = new Hashtable();
                 loadMainDriver();
 		this.outputLock = new NetMutex(false);
-		this.output     = driver.newOutput(type, null, null);
+		this.output     = driver.newOutput(type, null);
         }        
 
+        /**
+         * The <I>active</I> port state initialization part.
+         * @exception NetIbisException in case of trouble.
+         */
         private void initActiveState() throws NetIbisException {
                 initEventQueue();
                 initCommunicationEngine();
@@ -289,10 +372,26 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 
         /* ----- INTERNAL MANAGEMENT FUNCTIONS _____________________________ */
 
+        /**
+         * The setup of an new outgoing <I>service</I> connection.
+         *
+         * The service connection is an internal-use only streamed connection. A logical NetIbis {@linkplain NetConnection connection} between a {@linkplain NetSendPort send port} and a {@linkplain NetReceivePort receive port} is made of a <I>service</I> connection <B>and</B> an <I>application</I> connection.
+         * <BR><B>Note:</B> establishing the 'service' part of a new {@linkplain NetConnection connection} is the first step in building the connection with a remote {@linkplain NetReceivePort port}.
+         * @return    the new {@linkplain NetConnection connection}.
+         * @exception NetIbisException in case of trouble.
+         */
         private NetConnection establishServiceConnection(NetReceivePortIdentifier nrpi) throws NetIbisException {
                 Hashtable      info = nrpi.connectionInfo();
                 NetServiceLink link = new NetServiceLink(eventQueue, info);
 
+                Integer num = null;
+                
+                synchronized(this) {
+                        num = new Integer(nextReceivePortNum++);
+                }
+                
+                link.init(num);
+                
 		try {
                         ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("__port__"));
                         os.writeObject(identifier);
@@ -302,26 +401,35 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 			throw new NetIbisException(e.getMessage());
 		}
 
-                Integer num = null;
-                
-                synchronized(this) {
-                        num = new Integer(nextReceivePortNum++);
-                }
-                
                 NetConnection cnx = new NetConnection(this, num, identifier, nrpi, link);
 
                 return cnx;
         }
         
+        /**
+         * The setup of an new outgoing <I>application</I> connection.
+         *
+         * The application connection is an application-use only network connection. A logical NetIbis {@linkplain NetConnection connection} between a {@linkplain NetSendPort send port} and a {@linkplain NetReceivePort receive port} is made of a <I>service</I> connection <B>and</B> an <I>application</I> connection.
+         * <BR><B>Note:</B> establishing the 'application' part of a new {@linkplain NetConnection connection} is the last step in building the connection with a remote {@linkplain NetReceivePort port}.
+         * @param     cnx the {@linkplain NetConnection connection} to setup.
+         * @exception NetIbisException in case of trouble.
+         */
         private void establishApplicationConnection(NetConnection cnx) throws NetIbisException {
 		output.setupConnection(cnx);
         }
         
+        /**
+         * The unconditionnal closing of a {@link NetConnection}.
+         *
+         * This function is mainly called by the {@link #event event-processing callback}.
+         * <BR><B>Note:</B> The <code>cnx</code> connection should be removed from the {@link #connectionTable} before being passed to this function.
+         * @param     cnx the {@linkplain NetConnection connection} to close.
+         * @exception NetIbisException in case of trouble.
+         */
         private void close(NetConnection cnx) throws NetIbisException {                
                 if (cnx == null)
                         return;
 
-                // System.err.println("NetSendPort: close-->");
                 try {
                         output.close(cnx.getNum());
                 } catch (Exception e) {
@@ -329,7 +437,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
                 }
 
                 cnx.close();
-                // System.err.println("NetSendPort: close<--");
         }        
 
 
@@ -344,11 +451,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	 * @return The message instance.
 	 */	
 	public WriteMessage newMessage() throws NetIbisException {
-                // System.err.println("NetSendPort: newMessage-->");
 		outputLock.lock();
 		emptyMsg = true;
                 output.initSend();
-                // System.err.println("NetSendPort: newMessage<--");
 		return this;
 	}
 
@@ -376,22 +481,16 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	 * @param rpi the identifier of the peer port.
 	 */
 	public synchronized void connect(ReceivePortIdentifier rpi) throws NetIbisException {
-                // System.err.println("sendport: connect-->");
 		outputLock.lock();
 		NetReceivePortIdentifier nrpi = (NetReceivePortIdentifier)rpi;
-                // System.err.println("sendport: connect - service connection");
                 NetConnection cnx = establishServiceConnection(nrpi);
-                // System.err.println("sendport: connect - service connection ok");
 
                 synchronized(connectionTable) {
                         connectionTable.put(cnx.getNum(), cnx);
                 }
                 
-                // System.err.println("sendport: connect - application connection");
                 establishApplicationConnection(cnx);
-                // System.err.println("sendport: connect - application connection ok");
 		outputLock.unlock();
-                // System.err.println("sendport: connect<--");
 	}
 
 	/**
@@ -414,7 +513,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	 */
 	public void free()
 		throws NetIbisException {
-                // System.err.println("NetSendPort: free-->");
+
                 synchronized(this) {
                         try {
                                 if (outputLock != null) {
@@ -452,7 +551,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
                                 __.fwdAbort__(e);
                         }
                 }
-                // System.err.println("NetSendPort: free<--");
+
 	}
 	
 
@@ -482,11 +581,9 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	 * Completes the message transmission and releases the send port.
 	 */
 	public void finish() throws NetIbisException{
-                // System.err.println("NetSendPort: finish-->");
 		_finish();
 		output.finish();
 		outputLock.unlock();
-                // System.err.println("NetSendPort: finish<--");
 	}
 
 	/**
@@ -497,7 +594,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 	 * @param doSend {@inheritDoc}
 	 */
 	public void reset(boolean doSend) throws NetIbisException {
-                //System.err.println("NetSendPort: reset-->");
 		if (doSend) {
 			send();
 		} else {
@@ -507,7 +603,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort {
 		output.reset(doSend);
 		emptyMsg = true;
                 output.initSend();
-                //System.err.println("NetSendPort: reset<--");
 	}
 
 

@@ -53,9 +53,9 @@ public final class Driver extends NetDriver {
 	 * @param input the controlling input.
 	 * @return The new UDP input.
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context)
+	public NetInput newInput(NetPortType pt, String context)
 		throws NetIbisException {
-		return new UdpMuxInput(pt, this, up, context);
+		return new UdpMuxInput(pt, this, context);
 	}
 
 	/**
@@ -66,8 +66,8 @@ public final class Driver extends NetDriver {
 	 * @param output the controlling output.
 	 * @return The new UDP output.
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
+	public NetOutput newOutput(NetPortType pt, String context)
 		throws NetIbisException {
-		return new UdpMuxOutput(pt, this, up, context);
+		return new UdpMuxOutput(pt, this, context);
 	}
 }

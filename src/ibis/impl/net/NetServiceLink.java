@@ -50,6 +50,8 @@ public final class NetServiceLink {
 
         private NetEventQueue      portEventQueue    = null;
 
+        private Integer            num               = null;
+
 
         /* ___ CONSTRUCTORS ________________________________________________ */
 
@@ -66,8 +68,6 @@ public final class NetServiceLink {
 		} catch (Throwable t) {
 			throw new NetIbisException(t);
                 }
-
-                init();
         }
 
         protected NetServiceLink(NetEventQueue portEventQueue, Hashtable nfo) throws NetIbisException {
@@ -83,8 +83,6 @@ public final class NetServiceLink {
 		} catch (Throwable t) {
 			throw new NetIbisException(t);
                 }
-
-                init();
         }
 
 
@@ -93,7 +91,12 @@ public final class NetServiceLink {
 
         /* ___ CONNECTION MANAGEMENT ROUTINES ______________________________ */
 
-        private void init() throws NetIbisException {
+        protected synchronized void init(Integer num) throws NetIbisException {
+                if (this.num != null) {
+                        throw new Error("invalid call");
+                }
+                this.num = num;
+
 		try {
 			os = socket.getOutputStream();
 			is = socket.getInputStream();
@@ -578,6 +581,7 @@ public final class NetServiceLink {
                 }
 
                 public void run() {
+                main_loop:
                         while (!exit) {
                                 
                                 try {
@@ -605,7 +609,9 @@ public final class NetServiceLink {
                                         sis.addBuffer(b);
                                 } catch (SocketException e) {
                                         exit = true;
-                                        portEventQueue.put(NetServiceLink.this, 0);
+                                        System.err.println("NetServiceLink: posting close event for connection "+num);
+                                        portEventQueue.put(new NetPortEvent(NetServiceLink.this, NetPortEvent.CLOSE_EVENT, num));
+                                        System.err.println("NetServiceLink: close event posted for connection "+num);
                                         continue;
                                 } catch (EOFException e) {
                                         exit = true;

@@ -63,11 +63,10 @@ public final class GmInput extends NetBufferedInput {
 	 * @param sp the properties of the input's 
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the GM driver instance.
-	 * @param input the controlling input.
 	 */
-	GmInput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	GmInput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-                super(pt, driver, up, context);
+                super(pt, driver, context);
                 gmDriver = (Driver)driver;
 
                 Driver.gmAccessLock.lock(false);

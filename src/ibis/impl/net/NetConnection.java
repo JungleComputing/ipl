@@ -1,11 +1,11 @@
 package ibis.ipl.impl.net;
 
 public final class NetConnection {
-        private NetPort                  port        = null;
-        private Integer                  num         = null;
-        private NetSendPortIdentifier    sendId      = null;
-        private NetReceivePortIdentifier receiveId   = null;
-        private NetServiceLink           serviceLink = null;
+        private NetPort                  port           = null;
+        private Integer                  num            = null;
+        private NetSendPortIdentifier    sendId         = null;
+        private NetReceivePortIdentifier receiveId      = null;
+        private NetServiceLink           serviceLink    = null;
 
         public NetConnection(NetPort                  port       ,
                              Integer                  num        ,

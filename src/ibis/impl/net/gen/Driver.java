@@ -30,14 +30,14 @@ public final class Driver extends NetDriver {
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context) throws NetIbisException {
-		return new GenPoller(pt, this, up, context);
+	public NetInput newInput(NetPortType pt, String context) throws NetIbisException {
+		return new GenPoller(pt, this, context);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context) throws NetIbisException {
-		return new GenSplitter(pt, this, up, context);
+	public NetOutput newOutput(NetPortType pt, String context) throws NetIbisException {
+		return new GenSplitter(pt, this, context);
 	}
 }

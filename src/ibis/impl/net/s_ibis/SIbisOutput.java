@@ -10,8 +10,8 @@ import ibis.ipl.impl.net.*;
  * The ID output implementation.
  */
 public final class SIbisOutput extends NetSerializedOutput {
-        public SIbisOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+        public SIbisOutput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
 	}
         public SerializationOutputStream newSerializationOutputStream() throws NetIbisException {
                 ArrayOutputStream aos = new DummyOutputStream();

@@ -69,9 +69,9 @@ public final class UdpInput extends NetBufferedInput {
 	private long		deliver_seqno;	/* For out-of-order debugging */
 
 
-	UdpInput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	UdpInput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
 
 		if (Driver.DEBUG) {
 		    headerLength = 8;

@@ -10,14 +10,6 @@ public class NetEventQueue {
                 v = new Vector();
         }
 
-        public void put(Object source, int code, Object arg) {
-                put(new NetEvent(source, code, arg));
-        }
-
-        public void put(Object source, int code) {
-                put(new NetEvent(source, code));
-        }
-        
         synchronized public void put(NetEvent event) {
                 v.add(event);
                 notifyAll();

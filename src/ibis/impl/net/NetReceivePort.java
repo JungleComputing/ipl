@@ -27,7 +27,7 @@ import java.util.Hashtable;
  * Provides an implementation of the {@link ReceivePort} and {@link
  * ReadMessage} interfaces of the IPL.
  */
-public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputUpcall, NetPort {
+public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputUpcall, NetPort, NetEventQueueConsumer {
 
 
 
@@ -132,7 +132,12 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 				NetSendPortIdentifier spi = null;
 
                                 num = new Integer(nextSendPortNum++);
-
+                                
+                                try {
+                                        link.init(num);
+                                } catch (NetIbisException e) {
+					__.fwdAbort__(e);
+				}
 
                                 try {
                                         ObjectInputStream is = new ObjectInputStream(link.getInputSubStream("__port__"));
@@ -564,6 +569,42 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
         
 
 
+	/* --- NetEventQueueConsumer part --- */
+        public void event(NetEvent e) {
+                NetPortEvent event = (NetPortEvent)e;
+
+                switch (event.code()) {
+                        case NetPortEvent.CLOSE_EVENT: 
+                                {
+                                        Integer num = (Integer)event.arg();
+                                        NetConnection cnx = null;
+
+                                        /*
+                                         * Potential race condition here:
+                                         * The event can be triggered _before_
+                                         * the connection is added to the table.
+                                         */
+                                        synchronized(connectionTable) {
+                                                cnx = (NetConnection)connectionTable.remove(num);
+                                        }
+                                                
+                                        if (cnx != null) {
+                                                try {
+                                                        close(cnx);
+                                                } catch (NetIbisException nie) {
+                                                        throw new Error(nie);
+                                                }
+                                        }
+                                }
+                        break;
+
+                default:
+                        throw new Error("invalid event code");
+                }
+                
+        }
+        
+
 	/* --- NetPort part --- */
         public NetPortType getPortType() {
                 return type;
@@ -621,7 +662,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         }
                 }
                 
-		input                  = driver.newInput(type, null, null);
+		input                  = driver.newInput(type, null);
 
 		usePollingThread       = (type.getBooleanStringProperty(null, "UsePollingThread",     new Boolean(usePollingThread))).booleanValue();
 		useUpcallThread        = (type.getBooleanStringProperty(null, "UseUpcallThread",      new Boolean(useUpcallThread))).booleanValue();
@@ -1013,7 +1054,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	/* --- ReadMessage Part --- */
 	public void finish() throws NetIbisException {
                 //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish-->");
-                // System.err.println("NetReceivePort: finish-->");
+                //System.err.println("NetReceivePort: finish-->");
 		if (emptyMsg) {
 			readByte();
                         emptyMsg = false;
@@ -1032,7 +1073,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
                         pollingLock.unlock();
                 }
 
-                // System.err.println("NetReceivePort: finish<--");
+                //System.err.println("NetReceivePort: finish<--");
                 //System.err.println("["+ibis.util.nativeCode.Rdtsc.rdtsc()+"]: NetReceivePort finish<--");
 	}
 
@@ -1101,6 +1142,7 @@ public final class NetReceivePort implements ReceivePort, ReadMessage, NetInputU
 	
 	public Object readObject()
 		throws NetIbisException {
+		emptyMsg = false;
 		Object v = input.readObject();
                 return v;
 	}

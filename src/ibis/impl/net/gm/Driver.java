@@ -58,13 +58,12 @@ public final class Driver extends NetDriver {
 	 *
 	 * @param sp the properties of the input's 
 	 * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
-	 * @param input the controlling input.
 	 * @return The new GM input.
 	 */
-	public NetInput newInput(NetPortType pt, NetIO up, String context)
+	public NetInput newInput(NetPortType pt, String context)
 		throws NetIbisException {
                 
-		return new GmInput(pt, this, up, context);
+		return new GmInput(pt, this, context);
 	}
 
 	/**
@@ -72,12 +71,11 @@ public final class Driver extends NetDriver {
 	 *
 	 * @param sp the properties of the output's 
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
-	 * @param output the controlling output.
 	 * @return The new GM output.
 	 */
-	public NetOutput newOutput(NetPortType pt, NetIO up, String context)
+	public NetOutput newOutput(NetPortType pt, String context)
 		throws NetIbisException {
-		return new GmOutput(pt, this, up, context);
+		return new GmOutput(pt, this, context);
 	}
 
 

@@ -42,15 +42,13 @@ public abstract class NetBufferedInput extends NetInput {
 	 *              root input.
 	 */
 	protected NetBufferedInput(NetPortType      portType,
-			   NetDriver 	    driver,
-			   NetIO  	    up,
-                           String           context) {
-		super(portType, driver, up, context);
+                                   NetDriver 	    driver,
+                                   String           context) {
+		super(portType, driver, context);
 	}
 
 	/**
-	 * @inheritDoc
-	 * {@link NetBufferFactory}.
+	 * {@inheritDoc}
 	 */
 	public NetReceiveBuffer createReceiveBuffer(int length)
 		throws NetIbisException {

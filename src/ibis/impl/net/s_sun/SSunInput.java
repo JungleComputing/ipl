@@ -13,8 +13,8 @@ import java.io.IOException;
  * The ID input implementation.
  */
 public final class SSunInput extends NetSerializedInput {
-        public SSunInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-                super(pt, driver, up, context);
+        public SSunInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+                super(pt, driver, context);
         }
         
         public SerializationInputStream newSerializationInputStream() throws NetIbisException {

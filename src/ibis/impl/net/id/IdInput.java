@@ -24,11 +24,10 @@ public final class IdInput extends NetInput {
 	 * @param sp the properties of the input's 
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
-	 * @param input the controlling input.
 	 */
-	IdInput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	IdInput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
 	}
 
 	/*

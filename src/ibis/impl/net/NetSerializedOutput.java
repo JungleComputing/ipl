@@ -32,8 +32,8 @@ public abstract class NetSerializedOutput extends NetOutput {
 	 * @param driver the ID driver instance.
 	 * @param output the controlling output.
 	 */
-	public NetSerializedOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+	public NetSerializedOutput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
 	}
 
 	/**

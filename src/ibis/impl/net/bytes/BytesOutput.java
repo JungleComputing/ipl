@@ -35,10 +35,9 @@ public final class BytesOutput extends NetOutput {
 	 * @param sp the properties of the output's 
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the ID driver instance.
-	 * @param output the controlling output.
 	 */
-	BytesOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+	BytesOutput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
                 an = new NetAllocator(anThreshold);
 	}
 

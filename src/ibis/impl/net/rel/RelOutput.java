@@ -141,10 +141,10 @@ public final class RelOutput
      * @param driver the REL driver instance.
      * @param output the controlling output.
      */
-    RelOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
+    RelOutput(NetPortType pt, NetDriver driver, String context)
 	    throws NetIbisException {
 
-	super(pt, driver, up, context);
+	super(pt, driver, context);
 
 	relDriver = (Driver)driver;
 

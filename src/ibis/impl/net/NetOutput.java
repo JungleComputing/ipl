@@ -17,23 +17,20 @@ import java.util.Iterator;
 
 
 /**
- * Provides an abstraction of a network output.
+ * Provide an abstraction of a network output.
  */
 public abstract class NetOutput extends NetIO implements WriteMessage {
 	/**
 	 * Constructor.
 	 *
-	 * @param staticProperties the properties of the corresponding
-	 *                         {@linkplain NetReceivePort receive port}.
-	 * @param driver the output's driver.
-	 * @param output the controlling output or <code>null</code>
-	 *               if this output is a root output.
+	 * @param portType the port {@link NetPortType} type.
+	 * @param driver the driver.
+	 * @param context the context.
 	 */
 	protected NetOutput(NetPortType      portType,
-			   NetDriver 	    driver,
-			   NetIO  	    up,
-                           String           context) {
-		super(portType, driver, up, context);
+                            NetDriver 	     driver,
+                            String           context) {
+		super(portType, driver, context);
 		// factory = new NetBufferFactory(new NetSendBufferFactoryDefaultImpl());
 	}
 
@@ -48,22 +45,22 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /* WriteMessage Interface */                
 
         /**
-	 * Start sending the message to all ReceivePorts this SendPort is connected to.
-	 * Data may be streamed, so the user is not allowed to touch the data, as the send is NON-blocking.
-	 * @exception NetIbisException       an error occurred 
+         * Unimplemented.
+         *
+         * Does nothing.
+         *
+	 * @exception NetIbisException an error occurred 
 	 **/
         public void send() throws NetIbisException {
                 //
         }
 
         /**
-	   Block until the entire message has been sent and clean up the message. Only after finish() or reset(), the data that was written
-	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems. 
-	   When a message is alive and a new messages is requested, the requester is blocked until the
-	   live message is finished. **/
+         * Completes the current outgoing message.
+         *
+         * @exception NetIbisException in case of trouble.
+         */
         public void finish() throws NetIbisException{
-                //(new Throwable()).printStackTrace();
-                //System.err.println("NetOutput: finish -->");
                 if (_outputConvertStream != null) {
                         try {
                                 _outputConvertStream.close();
@@ -73,19 +70,17 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 
                         _outputConvertStream = null;
                 }
-                //System.err.println("NetOutput: finish <--");
         }
 
         /**
-	   If doSend, invoke send().
-           Then block until the entire message has been sent and clear data within the message. Only after finish() or reset(), the data that was written
-	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems. 
-	   When a message is alive and a new messages is requested, the requester is blocked until the
-	   live message is finished.
-	   The message stays alive for subsequent writes and sends.
-	   reset can be seen as a shorthand for (possibly send();) finish(); sendPort.newMessage() **/
+         * Reset the output state.
+         *
+         * The full reset functionality is not implemented. When {#doSend} is true, it is equivalent to the {@link #finish} method. Otherwise, an {@link Error error} is thrown.
+         *
+         * @param doSend if <code>true</code> 
+         * @exception NetIbisException in case of trouble.
+         */
         public void reset(boolean doSend) throws NetIbisException {
-                //System.err.println("NetOutput: reset("+doSend+") -->");
                 if (doSend) {
                         send();
                 } else {
@@ -101,17 +96,20 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 
                         _outputConvertStream = null;
                 }
-                //System.err.println("NetOutput: reset <--");
         }
 
         /**
-	   Return the number of bytes that was written to the message, in the stream dependant format.
-	   This is the number of bytes that will be sent over the network **/
+         * Unimplemented.
+         *
+         * @return 0.
+         */
         public int getCount() {
                 return 0;
         }
 
-        /** Reset the counter */
+        /**
+         * Unimplemented.
+         */
         public void resetCount() {
                 __.unimplemented__("resetCount");
         }
@@ -123,6 +121,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 * This is only valid for a Factory with MTU.
 	 *
 	 * @throws an {@link NetIbisException} if the factory has no default MTU
+         * @return the new {@link NetSendBuffer}.
 	 */
 	public NetSendBuffer createSendBuffer() throws NetIbisException {
 	    return (NetSendBuffer)createBuffer();
@@ -132,6 +131,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 	 * Utility function to get a NetSendBuffer from our NetBuffer factory
 	 *
 	 * @param length the length of the data stored in the buffer
+         * @return the new {@link NetSendBuffer}.
 	 */
 	public NetSendBuffer createSendBuffer(int length)
 		throws NetIbisException {
@@ -143,9 +143,18 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
 
         /**
          * Object stream for the internal fallback serialization.
+         *
+         * Note: the fallback serialization implementation internally uses
+         * a JVM {@link ObjectOutputStream}/{@link ObjectInputStream} pair.
+         * The stream pair is closed upon each message completion to ensure data
+         * consistency.
          */
         private ObjectOutputStream _outputConvertStream = null;
 
+        /**
+         * Check whether the convert stream should be initialized, and
+         * initialize it when needed.
+	 */
         private final void checkConvertStream() throws IOException {
                 if (_outputConvertStream == null) {
                         DummyOutputStream dos = new DummyOutputStream();
@@ -154,6 +163,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }        
 
+        /**
+         * Default implementation of {@link #writeBoolean}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param value the value to write.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteBoolean(boolean value) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -164,6 +181,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeChar}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param value the value to write.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteChar(char value) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -174,6 +199,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeShort}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param value the value to write.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteShort(short value) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -184,6 +217,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeInt}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param value the value to write.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteInt(int value) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -194,6 +235,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeLong}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param value the value to write.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteLong(long value) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -204,6 +253,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeFloat}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param value the value to write.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteFloat(float value) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -214,6 +271,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeDouble}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param value the value to write.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteDouble(double value) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -224,6 +289,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeString}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param value the value to write.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteString(String value) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -234,6 +307,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeObject}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param value the value to write.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteObject(Object value) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -244,6 +325,16 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeArraySliceBoolean}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -256,6 +347,16 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeArraySliceByte}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -263,12 +364,21 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                                 _outputConvertStream.writeByte(b[o++]);
                                 _outputConvertStream.flush();
                         }
-                        // _outputConvertStream.flush();
                 } catch (IOException e) {
                         throw new NetIbisException(e.getMessage());
                 }
         }
         
+        /**
+         * Default implementation of {@link #writeArraySliceChar}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteArraySliceChar(char [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -281,6 +391,16 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeArraySliceShort}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteArraySliceShort(short [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -293,6 +413,16 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeArraySliceInt}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteArraySliceInt(int [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -305,6 +435,16 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeArraySliceLong}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteArraySliceLong(long [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -317,6 +457,16 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeArraySliceFloat}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -329,6 +479,16 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeArraySliceDouble}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -341,6 +501,16 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Default implementation of {@link #writeArraySliceObject}.
+         *
+         * Note: this method must not be changed.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements.
+         * @exception NetIbisException in case of trouble.
+         */
         private final void defaultWriteArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
                 try {
                         checkConvertStream();
@@ -353,6 +523,11 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
                 }
         }
 
+        /**
+         * Atomic packet write function.
+         * @param b the buffer to write.
+         * @exception NetIbisException in case of trouble.
+         */
         public void writeByteBuffer(NetSendBuffer b) throws NetIbisException {
                 defaultWriteInt(b.length);
                 defaultWriteArraySliceByte(b.data, 0, b.length);
@@ -364,6 +539,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a boolean value to the message.
 	 * @param     value             The boolean value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public void writeBoolean(boolean value) throws NetIbisException {
                 defaultWriteBoolean(value);
@@ -372,12 +548,14 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a byte value to the message.
 	 * @param     value             The byte value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public abstract void writeByte(byte value) throws NetIbisException;
 
         /**
 	 * Writes a char value to the message.
 	 * @param     value             The char value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public void writeChar(char value) throws NetIbisException {
                 defaultWriteChar(value);
@@ -386,6 +564,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a short value to the message.
 	 * @param     value             The short value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public void writeShort(short value) throws NetIbisException {
                 defaultWriteShort(value);
@@ -394,6 +573,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a int value to the message.
 	 * @param     value             The int value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public void writeInt(int value) throws NetIbisException {
                 defaultWriteInt(value);
@@ -403,6 +583,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a long value to the message.
 	 * @param     value             The long value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public void writeLong(long value) throws NetIbisException {
                 defaultWriteLong(value);
@@ -411,6 +592,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a float value to the message.
 	 * @param     value             The float value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public void writeFloat(float value) throws NetIbisException {
                 defaultWriteFloat(value);
@@ -419,6 +601,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a double value to the message.
 	 * @param     value             The double value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public void writeDouble(double value) throws NetIbisException {
                 defaultWriteDouble(value);
@@ -427,6 +610,7 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a Serializable object to the message.
 	 * @param     value             The object value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public void writeString(String value) throws NetIbisException {
                 defaultWriteString(value);
@@ -435,100 +619,266 @@ public abstract class NetOutput extends NetIO implements WriteMessage {
         /**
 	 * Writes a Serializable object to the message.
 	 * @param     value             The object value to write.
+         * @exception NetIbisException in case of trouble.
 	 */
         public void writeObject(Object value) throws NetIbisException {
                 defaultWriteObject(value);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public void writeArraySliceBoolean(boolean [] b, int o, int l) throws NetIbisException {
                 defaultWriteArraySliceBoolean(b, o, l);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public void writeArraySliceByte(byte [] b, int o, int l) throws NetIbisException {
                 defaultWriteArraySliceByte(b, o, l);
         }
+
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public void writeArraySliceChar(char [] b, int o, int l) throws NetIbisException {
                 defaultWriteArraySliceChar(b, o, l);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public void writeArraySliceShort(short [] b, int o, int l) throws NetIbisException {
                 defaultWriteArraySliceShort(b, o, l);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public void writeArraySliceInt(int [] b, int o, int l) throws NetIbisException {
                 defaultWriteArraySliceInt(b, o, l);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public void writeArraySliceLong(long [] b, int o, int l) throws NetIbisException {
                 defaultWriteArraySliceLong(b, o, l);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public void writeArraySliceFloat(float [] b, int o, int l) throws NetIbisException {
                 defaultWriteArraySliceFloat(b, o, l);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public void writeArraySliceDouble(double [] b, int o, int l) throws NetIbisException {
                 defaultWriteArraySliceDouble(b, o, l);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public void writeArraySliceObject(Object [] b, int o, int l) throws NetIbisException {
                 defaultWriteArraySliceObject(b, o, l);
         }
 
-
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public final void writeArrayBoolean(boolean [] b) throws NetIbisException {
                 writeArraySliceBoolean(b, 0, b.length);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public final void writeArrayByte(byte [] b) throws NetIbisException {
                 writeArraySliceByte(b, 0, b.length);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public final void writeArrayChar(char [] b) throws NetIbisException {
                 writeArraySliceChar(b, 0, b.length);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public final void writeArrayShort(short [] b) throws NetIbisException {
                 writeArraySliceShort(b, 0, b.length);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public final void writeArrayInt(int [] b) throws NetIbisException {
                 writeArraySliceInt(b, 0, b.length);
         }
 
-
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public final void writeArrayLong(long [] b) throws NetIbisException {
                 writeArraySliceLong(b, 0, b.length);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public final void writeArrayFloat(float [] b) throws NetIbisException {
                 writeArraySliceFloat(b, 0, b.length);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public final void writeArrayDouble(double [] b) throws NetIbisException {
                 writeArraySliceDouble(b, 0, b.length);
         }
 
+        /**
+         * Append some elements to the current message.
+         *
+         * @param b the array.
+         * @param o the offset.
+         * @param l the number of elements to extract.
+         *
+         * @exception NetIbisException in case of trouble. 
+         */
         public final void writeArrayObject(Object [] b) throws NetIbisException {
                 writeArraySliceObject(b, 0, b.length);
         }
 
+        /**
+         * Internal dummy {@link OutputStream} to be used as a byte stream sink for
+         * the {@link ObjectOutputStream} based fallback serialization.
+         */
         private final class DummyOutputStream extends OutputStream {
-                private long seq = 0;
+
+                /**
+                 * {@inheritDoc}
+                 *
+                 * Note: the other write methods must _not_ be overloaded
+                 *       because the ObjectInput/OutputStream do not guaranty
+                 *       symmetrical transactions.
+                 *
+                 */
                 public void write(int b) throws IOException {
                         try {
                                 writeByte((byte)b);
-                                //System.err.println("Sent a byte: ["+ seq++ +"] unsigned = "+(b & 255)+", signed =" + (byte)b);
                         } catch (NetIbisException e) {
                                 throw new IOException(e.getMessage());
                         }
                 }
-
-                /*
-                 * Note: the other write methods must _not_ be overloaded
-                 *       because the ObjectInput/OutputStream do not guaranty
-                 *       symmetrical transactions.
-                 */
         }
-
 }

@@ -29,10 +29,9 @@ public final class GenSplitter extends NetOutput {
 	 *
 	 * @param staticProperties the port's properties.
 	 * @param driver the driver of this poller.
-	 * @param output  the controlling output.
 	 */
-	public GenSplitter(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+	public GenSplitter(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
 		outputMap = new HashMap();
 	}
 

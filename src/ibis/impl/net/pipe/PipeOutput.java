@@ -16,8 +16,8 @@ public final class PipeOutput extends NetBufferedOutput {
 	private PipedOutputStream pipeOs     = null;
         private boolean           upcallMode = false;
 
-	PipeOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+	PipeOutput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
 		headerLength = 4;
 	}
 

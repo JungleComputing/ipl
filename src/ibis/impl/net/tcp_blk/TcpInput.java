@@ -5,6 +5,7 @@ import ibis.ipl.impl.net.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 
 /* Only for java >= 1.4 
@@ -75,11 +76,10 @@ public final class TcpInput extends NetBufferedInput {
 	 * @param sp the properties of the input's 
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
-	 * @param input the controlling input.
 	 */
-	TcpInput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	TcpInput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
 		headerLength = 4;
 	}
 
@@ -140,7 +140,10 @@ public final class TcpInput extends NetBufferedInput {
 		this.spn = cnx.getNum();
 		 
 		try {
-			tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
+			//tcpServerSocket   = new ServerSocket(0, 1, InetAddress.getLocalHost());
+			tcpServerSocket   = new ServerSocket();
+			tcpServerSocket.setReceiveBufferSize(0x8000);
+                        tcpServerSocket.bind(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
 			Hashtable lInfo = new Hashtable();                        
 			lInfo.put("tcp_address", tcpServerSocket.getInetAddress());
 			lInfo.put("tcp_port",    new Integer(tcpServerSocket.getLocalPort()));
@@ -170,8 +173,8 @@ public final class TcpInput extends NetBufferedInput {
 			tcpSocket  = tcpServerSocket.accept();
 
 			tcpSocket.setSendBufferSize(0x8000);
-			tcpSocket.setReceiveBufferSize(0x8000);
-			tcpSocket.setTcpNoDelay(true);
+                        tcpSocket.setTcpNoDelay(true);
+			//tcpSocket.setTcpNoDelay(false);
                         addr = tcpSocket.getInetAddress();
                         port = tcpSocket.getPort();
 

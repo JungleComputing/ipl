@@ -57,7 +57,7 @@ class RelSendBuffer extends NetSendBuffer {
 
 
     /**
-     * @{inheritDoc}
+     * {@inheritDoc}
      */
     public void reset() {
 	reset(true);

@@ -46,9 +46,8 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
      */
     protected MuxerInput(NetPortType portType,
 			 NetDriver   driver,
-			 NetIO       up,
 			 String      context) {
-	super(portType, driver, up, context);
+	super(portType, driver, context);
 	mtu   	     =    0;
 	headerLength = NetConvert.INT_SIZE;
 
@@ -88,7 +87,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
 
 
     /**
-     * @{inheritDoc}
+     * {@inheritDoc}
      */
     public Integer poll(boolean block) throws NetIbisException {
 

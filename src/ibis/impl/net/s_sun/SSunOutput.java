@@ -13,8 +13,8 @@ import java.io.OutputStream;
  * The ID output implementation.
  */
 public final class SSunOutput extends NetSerializedOutput {
-        public SSunOutput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+        public SSunOutput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
 	}
         public SerializationOutputStream newSerializationOutputStream() throws NetIbisException {
                 OutputStream os = new DummyOutputStream();

@@ -72,9 +72,9 @@ public final class TcpInput extends NetInput {
 	 * @param driver the TCP driver instance.
 	 * @param input the controlling input.
 	 */
-	TcpInput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	TcpInput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
 		headerLength = 0;
 	}
 

@@ -34,10 +34,9 @@ public final class MultiSplitter extends NetOutput {
 	 *
 	 * @param staticProperties the port's properties.
 	 * @param driver the driver of this poller.
-	 * @param output  the controlling output.
 	 */
-	public MultiSplitter(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+	public MultiSplitter(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
 		laneTable   = new Hashtable();
                 outputTable = new Hashtable();
 	}

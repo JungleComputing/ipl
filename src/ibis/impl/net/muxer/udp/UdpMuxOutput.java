@@ -69,14 +69,12 @@ public final class UdpMuxOutput
      * @param sp the properties of the output's 
      * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
      * @param driver the TCP driver instance.
-     * @param output the controlling output.
      */
     public UdpMuxOutput(NetPortType portType,
 		        NetDriver   driver,
-		        NetIO       up,
 		        String      context) throws NetIbisException {
 
-	super(portType, driver, up, context);
+	super(portType, driver, context);
 
 	try {
 	    socket = new DatagramSocket(0, InetAddress.getLocalHost());

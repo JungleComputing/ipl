@@ -48,11 +48,11 @@ public final class Demuxer extends NetBufferedInput {
     /**
      * Constructor.
      *
-     * @{inheritDoc}
+     * {@inheritDoc}
      */
-    Demuxer(NetPortType pt, NetDriver driver, NetIO up, String context)
+    Demuxer(NetPortType pt, NetDriver driver, String context)
 	    throws NetIbisException {
-	super(pt, driver, up, context);
+	super(pt, driver, context);
 
 	if (subDriver == null) {
 	    // String subDriverName = getMandatoryProperty("Driver");
@@ -60,13 +60,13 @@ public final class Demuxer extends NetBufferedInput {
 	    String subDriverName = "muxer.udp";
 	    subDriver = driver.getIbis().getDriver(subDriverName);
 	    System.err.println("The subDriver is " + subDriver);
-	    demux = (MuxerInput)subDriver.newInput(null, null, null);
+	    demux = (MuxerInput)subDriver.newInput(null, null);
 	}
     }
 
 
     /**
-     * @{inheritDoc}
+     * {@inheritDoc}
      *
      * Call this when the connection has been established, and the demuxer
      * queue is set. After we have set the buffer factory in our queue, it may

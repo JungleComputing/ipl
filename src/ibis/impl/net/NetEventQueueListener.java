@@ -2,15 +2,15 @@ package ibis.ipl.impl.net;
 
 final class NetEventQueueListener extends Thread {
                 
-        private NetPort port = null;
-        private boolean end = false;
-        private NetEventQueue queue = null;
+        private NetEventQueueConsumer cons  = null;
+        private boolean               end   = false;
+        private NetEventQueue         queue = null;
                 
-        public NetEventQueueListener(NetPort port, String name, NetEventQueue queue) {
+        public NetEventQueueListener(NetEventQueueConsumer cons, String name, NetEventQueue queue) {
                 super("Event queue listener: "+name);
                 setDaemon(true);
 
-                this.port  = port;
+                this.cons  = cons;
                 this.queue = queue;
         }
 
@@ -18,6 +18,7 @@ final class NetEventQueueListener extends Thread {
                 while (!end) {
                         try {
                                 NetEvent event = queue.get();
+                                cons.event(event);
                         } catch (InterruptedException e) {
                                 end = true;
                                 continue;

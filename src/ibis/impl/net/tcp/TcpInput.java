@@ -37,8 +37,8 @@ public final class TcpInput extends NetInput {
         private UpcallThread       upcallThread       = null;
         private NetMutex           upcallEnd          = new NetMutex(true);
 
-	TcpInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-		super(pt, driver, up, context);
+	TcpInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+		super(pt, driver, context);
 	}
 
         private final class UpcallThread extends Thread {
@@ -390,9 +390,8 @@ public final class TcpInput extends NetInput {
 
 
 	/**
-	 * {@inheritDoc}
+	 * Reset the TCP connection if it exists.
 	 */
-
 	public void doFree() throws NetIbisException {
 		try {
 			if (tcpOs != null) {

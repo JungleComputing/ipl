@@ -21,9 +21,8 @@ public abstract class MuxerOutput extends NetBufferedOutput {
      */
     protected MuxerOutput(NetPortType portType,
 			  NetDriver   driver,
-			  NetIO       up,
 			  String      context) {
-	super(portType, driver, up, context);
+	super(portType, driver, context);
 	headerLength = NetConvert.INT_SIZE;
 	mtu          =    0;
     }

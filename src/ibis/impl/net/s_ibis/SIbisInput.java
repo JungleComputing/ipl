@@ -13,8 +13,8 @@ import java.util.Hashtable;
  * The ID input implementation.
  */
 public final class SIbisInput extends NetSerializedInput {
-        public SIbisInput(NetPortType pt, NetDriver driver, NetIO up, String context) throws NetIbisException {
-                super(pt, driver, up, context);
+        public SIbisInput(NetPortType pt, NetDriver driver, String context) throws NetIbisException {
+                super(pt, driver, context);
         }
         
         public SerializationInputStream newSerializationInputStream() throws NetIbisException {

@@ -15,11 +15,10 @@ public final class DefOutput extends NetBufferedOutput {
 	 * @param sp the properties of the output's 
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the DEF driver instance.
-	 * @param output the controlling output.
 	 */
-	DefOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	DefOutput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
 		headerLength = 4;
 	}
 

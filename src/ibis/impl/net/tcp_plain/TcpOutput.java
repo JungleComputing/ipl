@@ -51,11 +51,10 @@ public final class TcpOutput extends NetOutput {
 	 * @param sp the properties of the output's 
 	 * {@link ibis.ipl.impl.net.NetSendPort NetSendPort}.
 	 * @param driver the TCP driver instance.
-	 * @param output the controlling output.
 	 */
-	TcpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	TcpOutput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
 		headerLength = 0;
 	}
 

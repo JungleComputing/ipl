@@ -1,6 +1,6 @@
 package ibis.ipl.impl.net;
 
-public class NetEvent {
+public abstract class NetEvent {
         private Object source = null;
         private int code = 0;
         private Object arg = null;

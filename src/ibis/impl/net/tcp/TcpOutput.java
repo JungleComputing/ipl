@@ -64,9 +64,9 @@ public final class TcpOutput extends NetOutput {
 	 * @param driver the TCP driver instance.
 	 * @param output the controlling output.
 	 */
-	TcpOutput(NetPortType pt, NetDriver driver, NetIO up, String context)
+	TcpOutput(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
 	}
 
 	/*
@@ -348,7 +348,7 @@ public final class TcpOutput extends NetOutput {
 
 
 	/**
-	 * {@inheritDoc}
+	 * Reset the TCP connection if it exists.
 	 */
 	public void doFree() throws NetIbisException {
 		try {

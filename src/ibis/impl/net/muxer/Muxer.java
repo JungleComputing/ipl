@@ -52,11 +52,10 @@ public final class Muxer extends NetBufferedOutput {
      * @param sp the properties of the output's 
      * {@link ibis.ipl.impl.net.NetReceivePort NetReceivePort}.
      * @param driver the TCP driver instance.
-     * @param output the controlling output.
      */
-    Muxer(NetPortType pt, NetDriver driver, NetIO up, String context)
+    Muxer(NetPortType pt, NetDriver driver, String context)
 	    throws NetIbisException {
-	super(pt, driver, up, context);
+	super(pt, driver, context);
 
 	if (subDriver == null) {
 	    // String subDriverName = getMandatoryProperty("Driver");
@@ -64,13 +63,13 @@ public final class Muxer extends NetBufferedOutput {
 	    String subDriverName = "muxer.udp";
 	    subDriver = driver.getIbis().getDriver(subDriverName);
 	    System.err.println("The subDriver is " + subDriver);
-	    muxer = (MuxerOutput)subDriver.newOutput(null, null, null);
+	    muxer = (MuxerOutput)subDriver.newOutput(null, null);
 	}
     }
 
 
     /**
-     * @{inheritDoc}
+     * {@inheritDoc}
      */
     public void setBufferFactory(NetBufferFactory factory) {
 	if (Driver.DEBUG) {

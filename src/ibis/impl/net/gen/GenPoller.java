@@ -34,11 +34,10 @@ public final class GenPoller extends NetInput {
 	 *
 	 * @param staticProperties the port's properties.
 	 * @param driver the driver of this poller.
-	 * @param input  the controlling input.
 	 */
-	public GenPoller(NetPortType pt, NetDriver driver, NetIO up, String context)
+	public GenPoller(NetPortType pt, NetDriver driver, String context)
 		throws NetIbisException {
-		super(pt, driver, up, context);
+		super(pt, driver, context);
                 inputTable = new Hashtable();
 	}
 
