@@ -18,6 +18,8 @@ import java.io.UTFDataFormatException;
  */
 public final class IbisSerializationInputStream extends SerializationInputStream implements IbisStreamFlags {
 
+    private ClassLoader customClassLoader;
+      
     /**
      * List of objects, for cycle checking.
      */
@@ -1093,11 +1095,40 @@ public final class IbisSerializationInputStream extends SerializationInputStream
 		     * then return its class.
 		     */
 		    return java.lang.reflect.Array.newInstance(getClassFromName(typeName), dims).getClass();
+		} else {
+                    return this.loadClassFromCustomCL(typeName);
 		}
-		throw e;
 	    }
 	}
     }
+    
+    private Class loadClassFromCustomCL(String className) throws ClassNotFoundException {
+        if (DEBUG) {
+            System.out.println("loadClassTest " + className);
+        }
+        if (customClassLoader == null) {
+            String clName = System.getProperty("ibis.serialization.classloader");
+            if (clName != null) {
+                //we try to instanciate it
+                try {
+                    Class classDefinition = Class.forName(clName);
+                    customClassLoader = (ClassLoader) classDefinition.newInstance();
+                } catch (Exception e) {
+                    if (DEBUG) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        if (customClassLoader == null) {
+            throw new ClassNotFoundException(className);
+        }
+        if (DEBUG) {
+            System.out.println("******* Calling custom classloader");
+        } 
+        return customClassLoader.loadClass(className);      
+    }
+  
 
     /**
      * Returns the <code>IbisTypeInfo</code> corresponding to the type number given as parameter.
