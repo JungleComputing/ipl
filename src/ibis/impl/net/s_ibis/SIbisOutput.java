@@ -1,6 +1,6 @@
 package ibis.ipl.impl.net.s_ibis;
 
-import ibis.io.ArrayOutputStream;
+import ibis.io.IbisAccumulator;
 import ibis.io.IbisSerializationOutputStream;
 import ibis.io.SerializationOutputStream;
 
@@ -9,82 +9,118 @@ import ibis.ipl.impl.net.*;
 import java.io.IOException;
 
 /**
- * The ID output implementation.
- */
+  * Output part of the s_ibis driver used for serialization. Uses the
+  * IbisSerializationOutputStream to actually do the serialization.
+  */
 public final class SIbisOutput extends NetSerializedOutput {
-
-        public SIbisOutput(NetPortType pt, NetDriver driver, String context) throws IOException {
+        public SIbisOutput(NetPortType pt, NetDriver driver, String context) 
+						    throws IOException {
 		super(pt, driver, context);
 	}
 
-        public SerializationOutputStream newSerializationOutputStream() throws IOException {
-                ArrayOutputStream aos = new DummyOutputStream();
-		return new IbisSerializationOutputStream(aos);
+        public SerializationOutputStream newSerializationOutputStream() 
+						    throws IOException {
+                IbisAccumulator ia = new DummyAccumulator();
+
+		return new IbisSerializationOutputStream(ia);
         }
         
-        private final class DummyOutputStream extends ArrayOutputStream {
-
-                private int byteCounter = 0;
-
-                public void writeArray(boolean[] a, int off, int len) throws IOException {
-                        byteCounter += len;
-                        subOutput.writeArray(a, off, len);
-                }
-
-                public void writeArray(byte[] a, int off, int len) throws IOException {
-                        byteCounter += len;
-                        subOutput.writeArray(a, off, len);
-                }
-                       
-                public void writeArray(short[] a, int off, int len) throws IOException {
-                        byteCounter += len * 2;
-                        subOutput.writeArray(a, off, len);
-                }
-                       
-                public void writeArray(char[] a, int off, int len) throws IOException {
-                        byteCounter += len * 2;
-                        subOutput.writeArray(a, off, len);
-                }
-                       
-                public void writeArray(int[] a, int off, int len) throws IOException {
-                        byteCounter += len * 4;
-
-                        subOutput.writeArray(a, off, len);
-                }
-                       
-                public void writeArray(long[] a, int off, int len) throws IOException {
-                        byteCounter += len * 8;
-                        subOutput.writeArray(a, off, len);
-                }
-                       
-                public void writeArray(float[] a, int off, int len) throws IOException {
-                        byteCounter += len * 4;
-                        subOutput.writeArray(a, off, len);
-                }
-                       
-                public void writeArray(double[] a, int off, int len) throws IOException {
-                        byteCounter += len * 8;
-                        subOutput.writeArray(a, off, len);
-                }
-
-                public int bytesWritten() {
-                        return byteCounter;
-                }
-
-                public void resetBytesWritten() {
-                        byteCounter = 0;
-                }
+	/**
+	  * Accumulator used to output the result of the serialization to
+	  * the next driver. Actually does almost nothing, just passes along
+	  * the data.
+	  */
+        private final class DummyAccumulator implements IbisAccumulator {
 
                 public void flush() throws IOException {
-                        // Nothing
-                }
-
-                public void finish() throws IOException {
-                        // Nothing
+			/* nothing to flush here, no way to flush a
+			   netoutput */
                 }
 
                 public void close() throws IOException {
-                        // Nothing
+			// NOTHING
                 }
-        }
+
+                public int bytesWritten() {
+			return subOutput.getCount();
+                }
+
+                public void resetBytesWritten() {
+			subOutput.resetCount();
+                }
+
+		public void writeBoolean(boolean value)
+						throws IOException {
+			subOutput.writeBoolean(value);
+		}
+
+		public void writeByte(byte value) throws IOException {
+			subOutput.writeByte(value);
+		}
+
+		public void writeChar(char value) throws IOException {
+			subOutput.writeChar(value);
+		}
+
+		public void writeShort(short value) throws IOException {
+			subOutput.writeShort(value);
+		}
+
+		public void writeInt(int value) throws IOException {
+			subOutput.writeInt(value);
+		}
+
+		public void writeLong(long value) throws IOException {
+			subOutput.writeLong(value);
+		}
+
+		public void writeFloat(float value) throws IOException {
+			subOutput.writeFloat(value);
+		}
+
+		public void writeDouble(double value) throws IOException {
+			subOutput.writeDouble(value);
+		}
+
+                public void writeArray(boolean[] a, int off, int len) 
+						    throws IOException {
+                        subOutput.writeArray(a, off, len);
+                }
+
+                public void writeArray(byte[] a, int off, int len) 
+						    throws IOException {
+                        subOutput.writeArray(a, off, len);
+                }
+                       
+                public void writeArray(short[] a, int off, int len) 
+						    throws IOException {
+                        subOutput.writeArray(a, off, len);
+                }
+                       
+                public void writeArray(char[] a, int off, int len) 
+						    throws IOException {
+                        subOutput.writeArray(a, off, len);
+                }
+                       
+                public void writeArray(int[] a, int off, int len) 
+						    throws IOException {
+                        subOutput.writeArray(a, off, len);
+                }
+                       
+                public void writeArray(long[] a, int off, int len) 
+						    throws IOException {
+                        subOutput.writeArray(a, off, len);
+                }
+                       
+                public void writeArray(float[] a, int off, int len) 
+						    throws IOException {
+                        subOutput.writeArray(a, off, len);
+                }
+                       
+                public void writeArray(double[] a, int off, int len) 
+						    throws IOException {
+                        subOutput.writeArray(a, off, len);
+                }
+
+	}
 }
