@@ -65,7 +65,7 @@ public abstract class SerializationInputStream extends ObjectInputStream {
     static {
 	if (TIME_SERIALIZATION) {
 	    System.out.println("SerializationInputStream.TIME_SERIALIZATION enabled");
-	    Runtime.getRuntime().addShutdownHook(new Thread() {
+	    Runtime.getRuntime().addShutdownHook(new Thread("SerializationInputStream ShutdownHook") {
 		public void run() {
 		    printAllTimers();
 		}

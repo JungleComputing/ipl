@@ -290,7 +290,7 @@ public final class RTS {
 	 * This is only supported in SDK 1.4 and upwards. Comment out
 	 * if you run an older SDK.
 	 */
-	Runtime.getRuntime().addShutdownHook(new Thread() {
+	Runtime.getRuntime().addShutdownHook(new Thread("Ibis RMI RTS ShutdownHook") {
 	    public void run() {
 		try {
 		    if (enableRMITimer) {

@@ -95,7 +95,7 @@ public final class Driver extends NetDriver {
 	    gmLockArray.initLock(0, false);
 	    gmAccessLock.unlock();
 
-	    Runtime.getRuntime().addShutdownHook(new Thread() {
+	    Runtime.getRuntime().addShutdownHook(new Thread("NetGm Driver ShutdownHook") {
 		public void run() {
 		    if (Driver.TIMINGS) {
 			System.err.println("t_wait_reply   "

@@ -44,6 +44,7 @@ import java.io.Serializable;
  * @author ngama
  * 28 juil. 2003
  */
+final
 public class VBFField implements Serializable {
 	/** index de la VBF jumelle */
 	public int indexOfRemoteCopy;

@@ -22,13 +22,13 @@ export LD_ASSUME_KERNEL=2.2.5
 #export LFC_SEND_COPY_ASIDE=1
 #export PAN_SYS_CREDITS=65535
 
-if [ -z $LFC_INTR_FIRST ] ; then
+if [ -z "$LFC_INTR_FIRST" ] ; then
 	export LFC_INTR_FIRST=100
 fi
-if [ -z $IBP_SEND_SYNC ] ; then
+if [ -z "$IBP_SEND_SYNC" ] ; then
 	export IBP_SEND_SYNC=100 
 fi
-if [ -z $PAN_COMM_NO_IDLE_POLL ] ; then
+if [ -z "$PAN_COMM_NO_IDLE_POLL" ] ; then
 	export PAN_COMM_NO_IDLE_POLL=1
 fi
 
@@ -48,6 +48,10 @@ cpumask="1"
 attach=0
 noJIT=0
 
+JAVA_EXEC=java
+
+action=eval
+
 Dns_port="-Dibis.name_server.port=@IBIS_NS_PORT@"
 Dns_server="-Dibis.name_server.host=@IBIS_NS_HOST@"
 
@@ -64,11 +68,17 @@ do
 		shift
 		cpumask="$1"
                 ;;
+	-jdb)
+		JAVA_EXEC=jdb
+		;;
 	-no-jit)
 		noJIT=1
 		;;
 	-no-pool)
 		no_pool=1
+		;;
+	-n)
+		action=echo
 		;;
 	-ns)
 		shift
@@ -128,4 +138,4 @@ wrapper_name="$IBIS_ROOT/bin/java_wrapper"
 
 # the -Xmx1024M must be here for the SUN JIT, it does not allocate enough mem for some satin apps --Rob
 
-eval $wrapper_name -cpu $cpumask $JAVA_ROOT/bin/java $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dpool_total $Dpool_host_names $Dns_pool $Dns_port $Dns_server -Dibis.name_server.retry=yes -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH $java_args
+$action $wrapper_name -cpu $cpumask $JAVA_ROOT/bin/$JAVA_EXEC $JIT_OPTS -Xmx1024M $Dlibpath $Dibislibs $Dpool_host_num $Dpool_total $Dpool_host_names $Dns_pool $Dns_port $Dns_server -Dibis.name_server.retry=yes -Xbootclasspath/p:$JAVACLASSPATH $PROFILING -classpath $JAVACLASSPATH $java_args

@@ -34,15 +34,13 @@ public class IbisSerializationInputStream
     static {
 	if (STATS_NONREWRITTEN) {
 	    System.out.println("IbisSerializationInputStream.STATS_NONREWRITTEN enabled");
-	}
-	Runtime.getRuntime().addShutdownHook(new Thread() {
-	    public void run() {
-		if (STATS_NONREWRITTEN) {
+	    Runtime.getRuntime().addShutdownHook(new Thread("IbisSerializationInputStream ShutdownHook") {
+		public void run() {
 		    System.out.print("Serializable objects created nonrewritten: ");
 		    System.out.println(nonRewritten);
 		}
-	    }
-	});
+	    });
+	}
     }
 
     private static ClassLoader customClassLoader;

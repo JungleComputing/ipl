@@ -66,9 +66,12 @@ class Client extends Thread {
 					info.hostName(0) + "/Minimum");
 
 				cont = false;
-			} catch (Exception e) {
+			} catch (java.rmi.NotBoundException e) {
 				System.out.print(".");
 				System.out.flush();
+			} catch (Exception e) {
+				System.err.println("Exception " + e);
+				e.printStackTrace(System.err);
 			}
 		} while (cont);
 
@@ -85,6 +88,14 @@ class Client extends Thread {
 			e.printStackTrace();
 			System.exit(1);
 		}
+
+		try {
+		    jobQueue.allStarted(info.size() + 1);
+		} catch (RemoteException e) {
+		    System.err.println("allStarted throws " + e);
+		}
+
+		long start = System.currentTimeMillis();
 
 		Job job = null;
 

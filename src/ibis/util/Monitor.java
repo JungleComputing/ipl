@@ -41,7 +41,7 @@ public final class Monitor {
 	}
 	STATISTICS = false; // TypedProperties.booleanProperty("ibis.monitor.stats");
 	if (STATISTICS) {
-	    Runtime.getRuntime().addShutdownHook(new Thread() {
+	    Runtime.getRuntime().addShutdownHook(new Thread("Ibis Monitor ShutdownHook") {
 		public void run() {
 		    Monitor.report(System.err);
 		    ConditionVariable.report(System.err);

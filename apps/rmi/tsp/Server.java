@@ -95,12 +95,16 @@ class Server {
 			System.out.println("" + jobQueue.jobsLeft() +
 					   " Jobs generated");
 
+			jobQueue.allStarted(info.size() + 1);
+			long started = System.currentTimeMillis();
+
 			jobQueue.allDone(); // wait until everybody is done.
 			end = System.currentTimeMillis();
 
 			System.out.println("Minimum route = " + minimum.get());
 			System.out.println("Calculation Time = " +
-				(end - begin) + "ms");
+				(end - begin) + " ms; Parallel time "
+				+ (end - started) + " ms");
 			info.printTime("TSP-RMI", end-begin);
 
 		} catch (Exception e) {

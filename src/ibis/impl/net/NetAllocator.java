@@ -252,7 +252,7 @@ public final class NetAllocator {
 
                 if (DEBUG) {
                         debugMap = new HashMap();
-                        Runtime.getRuntime().addShutdownHook(new Thread("NetAllocator's shutdown hook") {
+                        Runtime.getRuntime().addShutdownHook(new Thread("NetAllocator ShutdownHook") {
 			        public void run() {
                                         synchronized (dummy) {
                                                 shutdownHook();

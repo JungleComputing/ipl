@@ -79,14 +79,15 @@ public class Ibis extends ibis.ipl.Ibis {
 	 * This is an 1.3 feature; cannot we use it please?
 	 */
 	Runtime.getRuntime().addShutdownHook(
-		new Thread("Ibis ShutdownHook") {
-		    public void run() {
-			try {
-			    end();
-			} catch (IOException e) {
-			}
+	    new Thread("MP Ibis ShutdownHook") {
+		public void run() {
+		    try {
+			end();
+		    } catch (IOException e) {
+			System.err.println("Ibis ShutdownHook catches " + e);
 		    }
-		});
+		}
+	    });
 	/* */
     }
 
@@ -516,10 +517,15 @@ public class Ibis extends ibis.ipl.Ibis {
     private boolean ended = false;
 
     public void end() throws IOException {
-	if (ended) {
-	    return;
+	myIbis.lock();
+	try {
+	    if (ended || registry == null) {
+		return;
+	    }
+	    ended = true;
+	} finally {
+	    myIbis.unlock();
 	}
-	ended = true;
 
 	registry.end();
 

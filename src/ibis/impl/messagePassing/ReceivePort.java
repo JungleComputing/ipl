@@ -246,6 +246,7 @@ class ReceivePort
 	    Thread thread = new Thread(this, "ReceivePort upcall thread " + upcallThreads);
 	    upcallThreads++;
 	    availableUpcallThread++;
+	    thread.setDaemon(true);
 	    thread.start();
 	    if (STATISTICS) {
 		threadsCreated++;

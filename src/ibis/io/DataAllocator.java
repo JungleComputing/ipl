@@ -79,7 +79,7 @@ public class DataAllocator implements IbisStreamFlags {
 
     {
 	if (STATISTICS) {
-	    Runtime.getRuntime().addShutdownHook(new Thread() {
+	    Runtime.getRuntime().addShutdownHook(new Thread("DataAllocator ShutdownHook") {
 		public void run() {
 		    System.out.println("Alloc" + " X " + alloc_index
 			+ " B " + alloc_byte + " S " + alloc_short

@@ -155,11 +155,12 @@ public final class RelInput
 	}
 
 	if (STATISTICS) {
-	    Runtime.getRuntime().addShutdownHook(new Thread("RelInput stats reporter") {
-			    public void run() {
-				report();
-			    }
-		        });
+	    Runtime.getRuntime().addShutdownHook(
+		new Thread("RelInput ShutdownHook") {
+		    public void run() {
+			report();
+		    }
+		});
 	}
 // System.err.println(this + ": constructed");
 // Thread.dumpStack();

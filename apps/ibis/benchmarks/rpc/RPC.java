@@ -372,6 +372,7 @@ System.err.println("services " + services + " first_warmup " + first_warmup + " 
 
 	} catch (ClassNotFoundException ec) {
 	    System.err.println("upcall catches exception " + ec);
+	    ec.printStackTrace(System.err);
 	    System.exit(177);
 	}
     }
@@ -800,6 +801,7 @@ System.err.println(rank + ": Poor-man's barrier send finished");
 		break;
 	    case DATA_DOUBLES:
 		double_buffer = new double[size];
+System.err.println("Allocated double buffer size " + size);
 		break;
 	    case DATA_VBFField:
 		VBFField_buffer = new VBFField[size];
@@ -870,7 +872,11 @@ System.err.println(rank + ": Poor-man's barrier send finished");
 		    servers = ncpus;
 		}
 		if (clients == -1) {
-		    clients = ncpus - 1;
+		    if (ncpus == 1) {
+			clients = 1;
+		    } else {
+			clients = ncpus - 1;
+		    }
 		}
 		if (servers == -1) {
 		    servers = 1;
@@ -1027,12 +1033,12 @@ System.err.println(rank + ": call it quits...; I am " + (i_am_client ? "" : "not
 		// timer.start();
 		registerIbis();
 		if (servers == ncpus && rank < clients) {
+		    System.err.println("Kick-force server run; my rank " + rank + " ncpus " + ncpus + " clients " + clients + " servers " + servers);
 		    RPC dl = new RPC(args, this);
 		    Thread server = new Thread(dl);
 		    server.setName("RPC server");
 		    server.start();
 		    i_am_client = true;
-		    System.err.println("Kick-force server run; my rank " + rank + " ncpus " + ncpus + " clients " + clients + " servers " + servers);
 		} else {
 		    i_am_client = rank < clients;
 		}

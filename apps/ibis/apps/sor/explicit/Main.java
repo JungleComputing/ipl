@@ -93,7 +93,8 @@ class Main {
 		try {
 			/* set up problem size */
 			
-			int N = 1000;					
+			// int N = 1000;					
+			int N = 200;					
 			int nrow = 0;
 			int ncol = 0;
 			

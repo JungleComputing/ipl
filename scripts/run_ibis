@@ -23,15 +23,15 @@ JAVACLASSPATH=$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:
 #export LFC_SEND_COPY_ASIDE=1
 #export PAN_SYS_CREDITS=65535
 
-if [ -z $LFC_INTR_FIRST ] ; then
+if [ -z "$LFC_INTR_FIRST" ] ; then
 	export LFC_INTR_FIRST=100
 fi
-if [ -z $IBP_SEND_SYNC ] ; then
+if [ -z "$IBP_SEND_SYNC" ] ; then
 # this can deadlock, just use 0 for now...
 #	export IBP_SEND_SYNC=10000
 	export IBP_SEND_SYNC=0
 fi
-if [ -z $PAN_COMM_NO_IDLE_POLL ] ; then
+if [ -z "$PAN_COMM_NO_IDLE_POLL" ] ; then
 	export PAN_COMM_NO_IDLE_POLL=1
 fi
 

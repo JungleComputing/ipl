@@ -21,7 +21,8 @@ import java.util.Vector;
 public class NameServer implements Protocol {
 
 	public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 9826;
-
+	// public static final int TCP_IBIS_NAME_SERVER_PORT_NR = 5678;
+	
 	public static final boolean DEBUG = false;
 	public static final boolean VERBOSE = true;
 
@@ -486,7 +487,7 @@ public class NameServer implements Protocol {
 				NameServerClient.socketFactory.close(in, out, s);
 			} catch (Exception e1) {
 				System.err.println("Got an exception in NameServer.run " + e1.toString());
-//				e1.printStackTrace();
+				e1.printStackTrace();
 				if (s != null) { 
 					NameServerClient.socketFactory.close(null, null, s);
 				}

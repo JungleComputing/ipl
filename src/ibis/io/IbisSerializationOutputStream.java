@@ -104,9 +104,9 @@ public class IbisSerializationOutputStream
 
 
     static {
-	Runtime.getRuntime().addShutdownHook(new Thread() {
-	    public void run() {
-		if (STATS_OBJECTS) {
+	if (STATS_OBJECTS) {
+	    Runtime.getRuntime().addShutdownHook(new Thread("IbisSerializationOutputStream ShutdownHook") {
+		public void run() {
 		    System.out.print("Serializable objects sent: ");
 		    System.out.println(statSendObjects);
 		    System.out.println("Non-array handles sent "
@@ -121,9 +121,7 @@ public class IbisSerializationOutputStream
 			}
 		    }
 		}
-	    }
-	});
-	if (STATS_OBJECTS) {
+	    });
 	    System.out.println("IbisSerializationOutputStream.STATS_OBJECTS enabled");
 	    statSendObjects = new java.util.Hashtable();
 	    statArrayCount = new int[PRIMITIVE_TYPES];

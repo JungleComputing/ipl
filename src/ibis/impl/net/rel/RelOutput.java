@@ -165,7 +165,7 @@ public final class RelOutput
 	}
 
 	if (STATISTICS) {
-	    Runtime.getRuntime().addShutdownHook(new Thread("RelOutput stats reporter") {
+	    Runtime.getRuntime().addShutdownHook(new Thread("RelOutput ShutdownHook") {
 			    public void run() {
 				report();
 			    }

@@ -70,6 +70,24 @@ class JobQueueImpl extends UnicastRemoteObject implements JobQueue {
 	}
 
 
+	private int started = 0;
+
+	public final synchronized void allStarted(int total) {
+	    started++;
+	    if (started == total) {
+		notifyAll();
+	    } else {
+		while (started < total) {
+		    try {
+			wait();
+		    } catch (InterruptedException e) {
+			// ignore
+		    }
+		}
+	    }
+	}
+
+
 	public final synchronized void allDone() {
 		all_jobs_generated = true;
 		while(count != 0 || jobsWorkedOn != 0) {

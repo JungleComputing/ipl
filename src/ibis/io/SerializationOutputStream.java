@@ -67,7 +67,7 @@ public abstract class SerializationOutputStream extends ObjectOutputStream {
     static {
 	if (TIME_SERIALIZATION) {
 	    System.out.println("SerializationOutputStream.TIME_SERIALIZATION enabled");
-	    Runtime.getRuntime().addShutdownHook(new Thread() {
+	    Runtime.getRuntime().addShutdownHook(new Thread("SerializationOutputStream ShutdownHook") {
 		public void run() {
 		    printAllTimers();
 		}
