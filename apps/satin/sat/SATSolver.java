@@ -63,12 +63,14 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * @param ctx The changable context of the solver.
      * @param var The next variable to assign.
      * @param val The value to assign.
+     * @param learnTuple Propagate any learned clauses as active tuple?
      */
     public void leafSolve(
 	int level,
 	SATContext ctx,
 	int var,
-	boolean val
+	boolean val,
+        boolean learnTuple
     ) throws SATResultException, SATRestartException
     {
         ctx.update( p );
@@ -80,10 +82,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         // new clauses that we've learned recently.
 	int res;
 	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level );
+	    res = ctx.propagatePosAssignment( p, var, level, learnTuple );
 	}
 	else {
-	    res = ctx.propagateNegAssignment( p, var, level );
+	    res = ctx.propagateNegAssignment( p, var, level, learnTuple );
 	}
 	if( res == SATProblem.CONFLICTING ){
 	    if( traceSolver ){
@@ -117,7 +119,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	boolean firstvar = ctx.posDominant( nextvar );
 	SATContext subctx = (SATContext) ctx.clone();
         try {
-            leafSolve( level+1, subctx, nextvar, firstvar );
+            leafSolve( level+1, subctx, nextvar, firstvar, learnTuple );
         }
         catch( SATRestartException x ){
 	    if( x.level<level ){
@@ -131,7 +133,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	// give it to the recursion.
 	// Also note that this call is a perfect candidate for tail
 	// call elimination.
-	leafSolve( level+1, ctx, nextvar, !firstvar );
+	leafSolve( level+1, ctx, nextvar, !firstvar, learnTuple );
     }
 
     /**
@@ -142,12 +144,14 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * @param ctx The changable context of the solver.
      * @param var The next variable to assign.
      * @param val The value to assign.
+     * @param learnTuple Propagate any learned clauses as active tuple?
      */
     public void solve(
 	int level,
 	SATContext ctx,
 	int var,
-	boolean val
+	boolean val,
+        boolean learnTuple
 	) throws SATException
     {
 //        if( p == null ){
@@ -161,10 +165,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	}
 	int res;
 	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level );
+	    res = ctx.propagatePosAssignment( p, var, level, learnTuple );
 	}
 	else {
-	    res = ctx.propagateNegAssignment( p, var, level );
+	    res = ctx.propagateNegAssignment( p, var, level, learnTuple );
 	}
 	if( res == SATProblem.CONFLICTING ){
 	    // Propagation reveals a conflict.
@@ -203,9 +207,9 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             try {
                 // We have variable 'nextvar' to branch on.
                 SATContext firstctx = (SATContext) ctx.clone();
-                solve( level+1, firstctx, nextvar, firstvar );
+                solve( level+1, firstctx, nextvar, firstvar, learnTuple );
                 SATContext secondctx = (SATContext) ctx.clone();
-                solve( level+1, secondctx, nextvar, !firstvar );
+                solve( level+1, secondctx, nextvar, !firstvar, learnTuple );
                 sync();
             }
             catch( SATRestartException x ){
@@ -224,7 +228,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    // We have variable 'nextvar' to branch on.
 	    SATContext subctx = (SATContext) ctx.clone();
             try {
-                leafSolve( level+1, subctx, nextvar, firstvar );
+                leafSolve( level+1, subctx, nextvar, firstvar, learnTuple );
             }
             catch( SATRestartException x ){
                 if( x.level<level ){
@@ -236,7 +240,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
                 // We have an untried value, continue with that.
             }
 	    subctx = (SATContext) ctx.clone();
-	    leafSolve( level+1, subctx, nextvar, !firstvar );
+	    leafSolve( level+1, subctx, nextvar, !firstvar, learnTuple );
 	}
     }
 
@@ -246,7 +250,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
      * @param p The problem to solve.
      * @return a solution of the problem, or <code>null</code> if there is no solution
      */
-    static SATSolution solveSystem( final SATProblem p )
+    static SATSolution solveSystem( final SATProblem p, boolean learnTuple )
     {
 	SATSolution res = null;
 
@@ -296,8 +300,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	    SATContext negctx = (SATContext) ctx.clone();
 	    boolean firstvar = ctx.posDominant( nextvar );
 
-            s.solve( 0, negctx, nextvar, firstvar );
-            s.solve( 0, ctx, nextvar, !firstvar );
+            s.solve( 0, negctx, nextvar, firstvar, learnTuple );
+            s.solve( 0, ctx, nextvar, !firstvar, learnTuple );
             s.sync();
 	}
 	catch( SATResultException r ){
@@ -355,7 +359,7 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	ibis.satin.SatinObject.resume();
 
 	long startTime = System.currentTimeMillis();
-	SATSolution res = solveSystem( p );
+	SATSolution res = solveSystem( p, true );
 
 	long endTime = System.currentTimeMillis();
 	double time = ((double) (endTime - startTime))/1000.0;

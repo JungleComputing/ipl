@@ -248,7 +248,7 @@ public final class DPLLContext implements java.io.Serializable {
 
 	    if( assignment[v] == UNASSIGNED ){
 		if( foundIt ){
-		    System.err.println( "Error: a unit clause with multiple unassigned variables" );
+		    System.err.println( "Error: unit clause " + c + " has multiple unassigned variables" );
 		    return SATProblem.UNDETERMINED;
 		}
 		// We have found the unassigned one, propagate it.
@@ -271,7 +271,7 @@ public final class DPLLContext implements java.io.Serializable {
 	    int v = arr[j];
 	    if( assignment[v] == UNASSIGNED ){
 		if( foundIt ){
-		    System.err.println( "Error: a unit clause with multiple unassigned variables" );
+		    System.err.println( "Error: unit clause " + c + " has multiple unassigned variables" );
 		    return SATProblem.UNDETERMINED;
 		}
 		// We have found the unassigned one, propagate it.

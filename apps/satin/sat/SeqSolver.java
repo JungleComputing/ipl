@@ -50,10 +50,10 @@ public final class SeqSolver {
 	}
 	int res;
 	if( val ){
-	    res = ctx.propagatePosAssignment( p, var, level );
+	    res = ctx.propagatePosAssignment( p, var, level, false );
 	}
 	else {
-	    res = ctx.propagateNegAssignment( p, var, level );
+	    res = ctx.propagateNegAssignment( p, var, level, false );
 	}
 	if( res == SATProblem.CONFLICTING ){
 	    if( traceSolver ){
