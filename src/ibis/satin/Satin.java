@@ -3,7 +3,6 @@ package ibis.satin;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisException;
-import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -25,10 +24,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
-import java.util.ArrayList;
 
 /* 
    One important invariant: there is only one thread per machine that spawns
@@ -242,6 +241,14 @@ public final class Satin implements Config, ResizeHandler,
 	   Assumption: ibis identifiers are uniqe in time; the same ibis cannot crash
 	   and join the computation again*/
 	Vector deadIbises = new Vector(); 
+
+	/**
+	 * Require delay of join invocations until our Ibis has been
+	 * completely initialized. Until that time, delay join upcalls
+	 * in a queue.
+	 * 							RFHH
+	 */
+	private JoinHandler joinQueue = new JoinHandler();
 
 
 	/**
@@ -589,6 +596,10 @@ public final class Satin implements Config, ResizeHandler,
 			}
 
 			portType = ibis.createPortType("satin porttype", s);
+
+			joinQueue.setDaemon(true);
+			joinQueue.setName("Satin Ibis join decoupler");
+			joinQueue.start();
 
 			messageHandler = new MessageHandler(this);
 
@@ -1821,18 +1832,70 @@ public final class Satin implements Config, ResizeHandler,
 		return true;
 	}
 
-	public void join(IbisIdentifier joiner) {
-		
-		if(joiner.name().equals("ControlCentreIbis")) return;
-//		allIbises.add(joiner);
-		if(joiner.equals(ident)) return;
 
-		if(COMM_DEBUG) {
-			out.println("SATIN '" + ident.name() + 
-				    "': '" + joiner.name() + "' from cluster '" +
-				    joiner.cluster() + "' is trying to join");
-		}		
-//		if (!victims.contains(joiner)) {		
+	/**
+	 * Add a queue to delay join upcalls until our Ibis portType has
+	 * been safely created.
+	 */
+	private class JoinQueue {
+	    IbisIdentifier joiner;
+	    JoinQueue      next;
+
+	    JoinQueue(IbisIdentifier joiner) {
+		this.joiner = joiner;
+		this.next   = null;
+	    }
+	}
+
+
+	private class JoinHandler extends Thread {
+
+	    private JoinQueue front;
+	    private JoinQueue tail;
+
+	    public void run() {
+		if (portType == null) {
+		    throw new Error("First create Satin portType, then me");
+		}
+
+		while (true) {
+
+		    JoinQueue elt;
+		    synchronized (this) {
+			while (front == null) {
+			    try {
+				wait();
+			    } catch (InterruptedException e) {
+				// Ignore
+			    }
+			}
+
+			elt = front;
+			front = front.next;
+		    }
+
+		    handleJoin(elt.joiner);
+		}
+	    }
+
+	    private synchronized void add(IbisIdentifier joiner) {
+		JoinQueue elt = new JoinQueue(joiner);
+
+		if (front == null) {
+		    front = elt;
+		} else {
+		    tail.next = elt;
+		}
+		tail = elt;
+
+		notify();
+	    }
+
+	}
+
+
+	private void handleJoin(IbisIdentifier joiner) {
+	    if (! joiner.equals(ident)) {
 		try {
 			ReceivePortIdentifier r = null;
 			SendPort s = portType.createSendPort("satin sendport");
@@ -1854,12 +1917,12 @@ public final class Satin implements Config, ResizeHandler,
 				connect(tuplePort,r);
 			}
 
-			synchronized (this) {
+			synchronized (Satin.this) {
 				if (FAULT_TOLERANCE) {
 				    globalResultTable.addReplica(joiner);
 				}			
 				victims.add(joiner, s);
-				notifyAll();				
+				Satin.this.notifyAll();				
 			}
 						
 			if(COMM_DEBUG) {
@@ -1867,11 +1930,29 @@ public final class Satin implements Config, ResizeHandler,
 					    "': " + joiner.name() + " JOINED");
 			}
 		} catch (Exception e) {
-			System.err.println("SATIN '" + ident.name() + 
+			System.err.println("SATIN '" + ident + 
 					   "': got an exception in Satin.join: " + e);
+			e.printStackTrace(System.err);
 			System.exit(1);
 		}
 //		}
+	    }
+	}
+
+
+	public void join(IbisIdentifier joiner) {
+		
+		if(joiner.name().equals("ControlCentreIbis")) return;
+//		allIbises.add(joiner);
+		if(joiner.equals(ident)) return;
+
+		if(COMM_DEBUG) {
+			out.println("SATIN '" + ident.name() + 
+				    "': '" + joiner.name() + "' from cluster '" +
+				    joiner.cluster() + "' is trying to join");
+		}		
+//		if (!victims.contains(joiner)) {		
+		joinQueue.add(joiner);
 	}
 
 	public void leave(IbisIdentifier leaver) {		
