@@ -444,7 +444,7 @@ final class Clause implements java.io.Serializable, Comparable, Cloneable {
 	    else {
 	        first = false;
 	    }
-	    res += "!" + neg[ix];
+	    res += "-" + neg[ix];
 	}
 	res += " (" + label + ")";
 	return res;

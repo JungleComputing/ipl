@@ -44,10 +44,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	ctx.assignment[var] = val?1:0;
 	int res;
 	if( val ){
-	    res = ctx.propagatePosAssignment( p, var );
+	    res = ctx.propagatePosAssignment( p, var, level );
 	}
 	else {
-	    res = ctx.propagateNegAssignment( p, var );
+	    res = ctx.propagateNegAssignment( p, var, level );
 	}
 	if( res == -1 ){
 	    if( traceSolver ){
@@ -114,10 +114,10 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
 	ctx.assignment[var] = val?1:0;
 	int res;
 	if( val ){
-	    res = ctx.propagatePosAssignment( p, var );
+	    res = ctx.propagatePosAssignment( p, var, level );
 	}
 	else {
-	    res = ctx.propagateNegAssignment( p, var );
+	    res = ctx.propagateNegAssignment( p, var, level );
 	}
 	if( res == -1 ){
 	    // Propagation reveals a conflict.
