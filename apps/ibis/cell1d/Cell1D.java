@@ -54,24 +54,6 @@ class Cell1D implements Config {
     static Registry registry;
     static ibis.util.PoolInfo info;
 
-    public static void connect( SendPort s, ReceivePortIdentifier ident ) {
-        boolean success = false;
-        do {
-            try {
-                s.connect( ident );
-                success = true;
-            }
-            catch( Exception e ) {
-                try {
-                    Thread.sleep( 500 );
-                }
-                catch( Exception e2 ) {
-                    // ignore
-                }
-            }
-        } while( !success );
-    }
-
     private static void usage()
     {
         System.out.println( "Usage: Cell1D [count]" );
