@@ -175,6 +175,10 @@ public abstract class SatinBase implements Config {
 
     protected long stealSuccess = 0;
 
+    long asyncStealAttempts;
+
+    long asyncStealSuccess;
+
     protected long tupleMsgs = 0;
 
     protected long tupleBytes = 0;

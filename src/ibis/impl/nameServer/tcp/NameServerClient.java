@@ -155,6 +155,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         serverSocket = socketFactory.createServerSocket(0, myAddress, true);
 
+//	System.err.println("nsclient: serversocket port = " + serverSocket.getLocalPort());
+
         DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
         ObjectOutputStream out = new ObjectOutputStream(
                 new BufferedOutputStream(dos));

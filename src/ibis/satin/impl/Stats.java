@@ -137,6 +137,17 @@ public abstract class Stats extends TupleSpace {
                             / totalStats.stealAttempts) * 100.0)
                     + " %)");
 
+	    if(totalStats.asyncStealAttempts != 0) {
+		out.println("SATIN: ASYNCSTEAL:   "
+			    + nf.format(totalStats.asyncStealAttempts)
+			    + " attempts, "
+			    + nf.format(totalStats.asyncStealSuccess)
+			    + " successes ("
+			    + pf.format(((double) totalStats.asyncStealSuccess
+					 / totalStats.asyncStealAttempts) * 100.0)
+			    + " %)");
+	    }
+
             out.println("SATIN: MESSAGES:    intra "
                     + nf.format(totalStats.intraClusterMessages) + " msgs, "
                     + nf.format(totalStats.intraClusterBytes)

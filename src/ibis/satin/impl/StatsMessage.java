@@ -19,6 +19,10 @@ class StatsMessage implements java.io.Serializable {
 
     long stealSuccess;
 
+    long asyncStealAttempts;
+
+    long asyncStealSuccess;
+
     long tupleMsgs;
 
     long tupleBytes;
@@ -120,6 +124,8 @@ class StatsMessage implements java.io.Serializable {
 
         stealAttempts += s.stealAttempts;
         stealSuccess += s.stealSuccess;
+        asyncStealAttempts += s.asyncStealAttempts;
+        asyncStealSuccess += s.asyncStealSuccess;
         tupleMsgs += s.tupleMsgs;
         tupleBytes += s.tupleBytes;
         stolenJobs += s.stolenJobs;

@@ -36,6 +36,9 @@ public abstract class IbisSocketFactory {
     private static String DEFAULT_SOCKET_FACTORY
             = "ibis.impl.util.IbisConnectSocketFactory";
 
+//    private static String DEFAULT_SOCKET_FACTORY
+//            = "ibis.impl.util.IbisNormalSocketFactory";
+
     private static String socketFactoryName;
 
     protected static final boolean DEBUG 
@@ -62,11 +65,14 @@ public abstract class IbisSocketFactory {
         } else {
             socketFactoryName = DEFAULT_SOCKET_FACTORY;
         }
-        if (range != null) {
+        if (range != null && range.length() != 0) {
             int pos = range.indexOf('-');
+	    if(pos == -1) {
+		pos = range.indexOf(',');
+	    }
             if (pos < 0) {
-                System.err.println("Port range format: 3000-4000.");
-                System.exit(1);
+                System.err.println("Port range format: 3000-4000 or 3000,4000. Ignoring");
+//                System.exit(1);
             } else {
                 String from = range.substring(0, pos);
                 String to = range.substring(pos + 1, range.length());
@@ -76,12 +82,17 @@ public abstract class IbisSocketFactory {
                     endRange = Integer.parseInt(to);
                     firewall = true;
                     portNr = startRange;
+		    if(DEBUG) {
+			System.err.println("IbisSocketFactory: using port range " + startRange + " - " + endRange);
+		    }
                 } catch (Exception e) {
-                    System.err.println("Port range format: 3000-4000.");
-                    System.exit(1);
+                    System.err.println("Port range format: 3000-4000 or 3000,4000. Ignoring");
+//                    System.exit(1);
                 }
             }
-        }
+        } else {
+//	    System.err.println("IbisSocketFactory: no port range");
+	}
         inputBufferSize = TypedProperties.intProperty(inbufsize, 0);
         outputBufferSize = TypedProperties.intProperty(outbufsize, 0);
     }
@@ -133,6 +144,10 @@ public abstract class IbisSocketFactory {
                 System.err.println("WARNING, used more ports than available "
                         + "within specified range. Wrapping around");
             }
+
+	    if(DEBUG) {
+		System.err.println("allocating local port in open range, returning: " + res);
+	    }
             return res;
         }
         return 0; /* any free port */

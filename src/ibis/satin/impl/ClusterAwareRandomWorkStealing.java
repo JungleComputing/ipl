@@ -7,15 +7,16 @@ import ibis.ipl.IbisIdentifier;
 class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
         Config {
 
+    private Satin s;
     private boolean gotAsyncStealReply = false;
 
     private InvocationRecord asyncStolenJob = null;
 
     private IbisIdentifier asyncCurrentVictim = null;
 
-    private long asyncStealAttempts = 0;
+//    private long asyncStealAttempts = 0;
 
-    private long asyncStealSuccess = 0;
+//    private long asyncStealSuccess = 0;
 
     /**
      * This means we have sent an ASYNC request, and are waiting for the reply.
@@ -25,6 +26,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
 
     ClusterAwareRandomWorkStealing(Satin s) {
         super(s);
+	this.s = s;
     }
 
     public InvocationRecord clientIteration() {
@@ -49,7 +51,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
 
             if (remoteJob != null) { //try a saved async job
                 if (STEAL_STATS) {
-                    asyncStealSuccess++;
+                    s.asyncStealSuccess++;
                 }
                 return remoteJob;
             }
@@ -83,7 +85,7 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
             if (!FAULT_TOLERANCE || FT_NAIVE || canDoAsync) {
                 asyncStealInProgress = true;
                 if (STEAL_STATS) {
-                    asyncStealAttempts++;
+                    s.asyncStealAttempts++;
                 }
                 satin.sendStealRequest(remoteVictim, false, false);
             }
@@ -141,14 +143,17 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
     }
 
     public void printStats(java.io.PrintStream out) {
-        out.println("SATIN '" + satin.ident.name()
-                + "': ASYNC STEAL_STATS: attempts = " + asyncStealAttempts
-                + " success = " + asyncStealSuccess + " ("
-                + (((double) asyncStealSuccess / asyncStealAttempts) * 100.0)
-                + " %)");
-
+/*
+	if(asyncStealAttempts != null) {
+	    out.println("SATIN '" + satin.ident.name()
+			+ "': ASYNC STEAL_STATS: attempts = " + asyncStealAttempts
+			+ " success = " + asyncStealSuccess + " ("
+			+ (((double) asyncStealSuccess / asyncStealAttempts) * 100.0)
+			+ " %)");
+	}
+*/
     }
-
+    
     /**
      * Used in fault tolerance; if the owner of the asynchronously stolen job
      * crashed, abort the job
