@@ -6,6 +6,7 @@ import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisRuntimeException;
+import ibis.util.IPUtils;
 import ibis.util.PoolInfoServer;
 import ibis.util.TypedProperties;
 
@@ -37,6 +38,8 @@ public class NameServer extends Thread implements Protocol {
 		    TypedProperties.booleanProperty(NSProps.s_verbose);
 
 	static int PINGER_TIMEOUT = TypedProperties.intProperty(NSProps.s_timeout, 300) * 1000;	// Property is in seconds, convert to milliseconds.
+
+	InetAddress myAddress;
 
 	static class IbisInfo { 		
 		IbisIdentifier identifier;
@@ -123,6 +126,9 @@ public class NameServer extends Thread implements Protocol {
 
 		this.singleRun = singleRun;
 		this.joined = false;
+
+		myAddress = IPUtils.getAlternateLocalHostAddress();
+		myAddress = InetAddress.getByName(myAddress.getHostName());
 
 		String hubPort = System.getProperty("ibis.connect.hub_port");
 		String poolPort = System.getProperty("ibis.pool.server.port");
@@ -440,7 +446,7 @@ public class NameServer extends Thread implements Protocol {
 	}
     
 	private void killThreads(RunInfo p) throws IOException {
-		Socket s = NameServerClient.socketFactory.createSocket(serverSocket.getInetAddress(), 
+		Socket s = NameServerClient.socketFactory.createSocket(myAddress, 
 							  p.portTypeNameServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 
@@ -448,7 +454,7 @@ public class NameServer extends Thread implements Protocol {
 		out1.writeByte(PORTTYPE_EXIT);
 		NameServerClient.socketFactory.close(null, out1, s);
 
-		Socket s2 = NameServerClient.socketFactory.createSocket(serverSocket.getInetAddress(), 
+		Socket s2 = NameServerClient.socketFactory.createSocket(myAddress, 
 							  p.receivePortNameServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
 
@@ -456,7 +462,7 @@ public class NameServer extends Thread implements Protocol {
 		out2.writeByte(PORT_EXIT);
 		NameServerClient.socketFactory.close(null, out2, s2);
 
-		Socket s3 = NameServerClient.socketFactory.createSocket(serverSocket.getInetAddress(), 
+		Socket s3 = NameServerClient.socketFactory.createSocket(myAddress, 
 							  p.electionServer.getPort(), null, 0 /* retry */);
 		DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
 		ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3, BUF_SIZE));
@@ -472,7 +478,7 @@ public class NameServer extends Thread implements Protocol {
 	 * @exception IOException is thrown in case of trouble.
 	 */
 	private void electionKill(RunInfo p, IbisIdentifier[] ids) throws IOException {
-		Socket s = NameServerClient.socketFactory.createSocket(serverSocket.getInetAddress(), 
+		Socket s = NameServerClient.socketFactory.createSocket(myAddress, 
 						  p.electionServer.getPort(), null, -1 /* do not retry */);
 		DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 		ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d, BUF_SIZE));
