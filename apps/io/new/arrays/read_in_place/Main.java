@@ -40,7 +40,7 @@ public class Main {
 		
 		if (rank == 0) { 
 
-			System.err.println("boolean[" + len + "]");
+			System.err.println("Writing boolean[" + len + "]");
 			
 			// Warmup
 			for (int i=0;i<count;i++) {
