@@ -3,7 +3,9 @@
  */
 
 #include <string.h>
-#ifndef _M_IX86
+#ifdef _M_IX86
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -559,7 +561,10 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 
     orig_hosts = getenv("HOSTS");
     if (orig_hosts == NULL) {
-	ibmp_error(env, "HOSTS env var does not exist: use prun\n");
+	orig_hosts = getenv("PRUN_HOSTNAMES");
+	if (orig_hosts == NULL) {
+	    ibmp_error(env, "HOSTS env var does not exist: use prun\n");
+	}
     }
     hosts = strdup(orig_hosts);
 
@@ -572,6 +577,19 @@ ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 	name = strtok(NULL, " \t");
     }
     free(hosts);
+
+#ifdef _M_IX86
+    {
+	WSADATA wsaData;
+	WORD wVersion = MAKEWORD(2, 2);
+	int err;
+
+	if ((err = WSAStartup(wVersion, &wsaData)) != 0) {
+	    fprintf(stderr, "WSAStartup fails, error %d\n", err);
+	}
+    }
+#endif
+
     fs_host_inet = malloc(fs_nhosts * sizeof(struct in_addr));
     for (i = 0; i < fs_nhosts; i++) {
 	h = gethostbyname(fs_host[i]);
