@@ -110,14 +110,14 @@ With ReceivePorts and SendPorts we basically have a 'connection
 oriented' message passing model, based on one-way connections (from
 Sender to Receiver).
 
-<h4>Why is this better then the TCP/IP model?</h4>
+<h3>Why is this better then the TCP/IP model?</h3>
 
 With our model we can support message passing (unicast and
 multicast), and an RPC-style model (using two one-way connections).
 TCP creates two-way connections and private channels, which is 
 inappropriate for multicast.
 
-<h4>Why is it better then UDP or Panda?</h4>
+<h3>Why is it better then UDP or Panda?</h3>
 
 Our model is connection oriented: when a message is created the
 destination is known. This allows the implementation to stream data
@@ -136,7 +136,7 @@ run simultaneously)
 Our model does not have a closed world assumption. JVMs may be 
 added / removed during the computation.
 
-<h4>In general:</h4>
+<h3>In general:</h3>
 
 Our model can be implemented efficiently, both on streams based 
 (TCP/IP) and message passing systems. 
