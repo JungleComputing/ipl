@@ -113,7 +113,7 @@ MANTAC_COMMAND = $(MANTA)/mantac $(MANTACFLAGS)
 O_FILES		:= $(SRC:%.java=%.o)
 
 DEPENDENCIES	:= ibis.depend.Serializable
-GENERATE_PACKAGERS	= 1
+GENERATE_PACKAGERS	= 0
 ifeq (ibis.ipl.impl.tcp,$(PACKAGE))
 GENERATE_PACKAGERS	= 0
 endif

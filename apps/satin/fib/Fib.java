@@ -49,7 +49,6 @@ final class Fib extends ibis.satin.SatinObject implements FibInterface, java.io.
 
 		if(res != res2) {
 			System.err.println("application fib GAVE WRONG RESULT! " + res + " should be " + res2);
-			System.exit(1);
 		} else {
 			System.out.println("application fib (" + n + ") took " + time + 
 					   " seconds, result = " + res);

@@ -1,5 +1,8 @@
+#for a matrix of 4096 x 4096
+APP_OPTIONS = 5 0 128
+
 #for a matrix of 1536x1536
-APP_OPTIONS = 5 0 48
+#APP_OPTIONS = 5 0 48
 
 #for a matrix of 1024x1024
 #APP_OPTIONS = 4 0 64
@@ -18,6 +21,11 @@ java: $(CLASS_FILES) $(MAIN_CLASS)
 
 satin: java
 	$(SATINC_COMMAND) -no-aborts $(MAIN_CLASS_NAME)
+
+satinser: java
+	$(IOC_COMMAND) *.class
+	make satin
+	$(IOC_COMMAND) Satin_*.class
 
 manta: $(MAIN) $(O_FILES)
 	$(MANTAC_COMMAND) -o $(OUT) $(MAIN) $(O_FILES) ../../../../ibis/$(IBIS_LIB)
