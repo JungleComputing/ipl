@@ -120,6 +120,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface,
 			return new TranspositionTable();
 		} catch (RemoteException e) {
 			System.err.println("eek, should not happen: " + e);
+			e.printStackTrace();
 			System.exit(1);
 		}
 		return null;

@@ -9,6 +9,16 @@
     <property name="satin-main-class" value="Mtdf"/>
 
     <import file="${ibis}/apps/satin/build-satin-app.xml"/>
+    <import file="${ibis}/apps/rmi/build-rmi-app.xml"/>
+
+    <target name="build"
+	    depends="init"
+	    description="build Mtdf application">
+	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
+	<antcall inheritRefs="true" target="rmic-sun"/>
+	<antcall inheritRefs="true" target="satin"/>
+	<antcall inheritRefs="true" target="iogen"/>
+    </target>
 
 </project>
 
