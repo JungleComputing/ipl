@@ -52,12 +52,36 @@
 
     <property name="local.includes" refid="net-gm-local.includes-ref"/>
 
+    <!--
+      If both libgm.a and libgm.so exist, I found no way to persuade cpptasks
+      to select libgm.a and do a fully resolved link to libnet_ibis_gm.so.
+      So, we copy libgm.a to the local build/lib and hope nobody minds the
+      manyfold distribution of libs.
+    -->
+    <!--
     <libset id="local.libset-ref"
 	    dir="${gm.lib.dir}"
 	    libs="gm"/>
+    -->
+    <libset id="local.libset-ref"
+	    dir="${ibis}/build/lib"
+	    libs="gm"/>
 
-    <target name="build">
+
+    <target name="build" depends="native-init">
+	<maplibrary
+		property="gm.path"
+		name="${gm.lib.dir}/libgm.a"
+		outtype="static"/>
+	<!--
+	See comments above
+	<echo level="warning" message="The GM library is ${gm.path}"/>
+	-->
+	<copy file="${gm.path}" todir="${ibis}/build/lib"/>
 	<antcall inheritRefs="true" target="native-compile"/>
+	<!--
+	<antcall inheritRefs="true" target="net-gm-lib"/>
+	-->
     </target>
 
 </project>
