@@ -184,6 +184,9 @@ class Compress extends ibis.satin.SatinObject implements Configuration, Compress
             ByteBuffer buf;
 
             if( compression ){
+                if( !quiet ){
+                    System.out.println( "Compressing " + infile );
+                }
                 Compress c = new Compress( top, lookahead );
                 buf = c.compress( text );
             }
