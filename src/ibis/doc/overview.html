@@ -110,14 +110,14 @@ With ReceivePorts and SendPorts we basically have a 'connection
 oriented' message passing model, based on one-way connections (from
 Sender to Receiver).
 
-<h3>Why is this better then the TCP/IP model?</h3>
+<h3>Why is this better than the TCP/IP model?</h3>
 
 With our model we can support message passing (unicast and
 multicast), and an RPC-style model (using two one-way connections).
 TCP creates two-way connections and private channels, which is 
 inappropriate for multicast.
 
-<h3>Why is it better then UDP or Panda?</h3>
+<h3>Why is it better than UDP or Panda?</h3>
 
 Our model is connection oriented: when a message is created the
 destination is known. This allows the implementation to stream data
@@ -129,7 +129,7 @@ Our model allows messages to be send to an object (instead of a
 process). This is much better suited for the Java model (and SMP
 machines).
 
-Our model is less restrictive then Panda. An upcall is a real
+Our model is less restrictive than Panda. An upcall is a real
 thread. It is not restricted in any way. (multiple upcalls may 
 run simultaneously)
 
