@@ -155,6 +155,11 @@ public abstract class Stats extends TupleSpace {
 					+ nf.format(totalStats.pollCount));
 		}
 
+		if (IDLE_TIMING) {
+			out.println("SATIN: IDLE:        idle count = "
+					+ nf.format(totalStats.idleCount));
+		}
+
 		if (STEAL_STATS) {
 			out
 					.println("SATIN: STEAL:       "
@@ -240,6 +245,12 @@ public abstract class Stats extends TupleSpace {
 			out.println("SATIN: POLL_TIME:                total "
 					+ Timer.format(totalStats.pollTime) + " time/poll "
 					+ Timer.format(totalStats.pollTime / totalStats.pollCount));
+		}
+
+		if (IDLE_TIMING) {
+			out.println("SATIN: IDLE_TIME:                total "
+					+ Timer.format(totalStats.idleTime) + " time/idle "
+					+ Timer.format(totalStats.idleTime / totalStats.idleCount));
 		}
 
 		if (FAULT_TOLERANCE && GRT_TIMING) {
