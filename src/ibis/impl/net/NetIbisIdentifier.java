@@ -99,7 +99,10 @@ public final class NetIbisIdentifier
 	 * {@inheritDoc}
 	 */
 	public String toString() {
-		return "(NetId: "+name+" on ["+address.getHostName()+", "+address.getHostAddress()+"])";
+		String a = address == null ? "<null>" : (address.getHostName()+", "+address.getHostAddress());
+		String n = name == null ? "<null>" : name;
+
+		return "(NetId: "+ n +" on ["+ a +"])";
 	}
 
 	/**

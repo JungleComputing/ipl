@@ -137,13 +137,13 @@ public final class NetReceivePortIdentifier
 	 */
 	public String toString() {
 		return ("(" +
-			"NetRecPortIdent: name = " + name +
+			"NetRecPortIdent: name = " + (name == null ? "<null>" : name) +
 			", " +
-			"type = " + type +
+			"type = " + (type == null ? "<null>" : type) +
 			", " +
-			"ibis = " + ibis +
+			"ibis = " + (ibis == null ? "<null>" : ibis.toString()) +
 			", " +
-			"info = " + connectionInfo() +
+			"info = " + (infoBytes == null ? "<null>" : connectionInfo().toString()) +
 			")");
 	}
 
