@@ -26,6 +26,8 @@ import java.util.Vector;
  */
 public final class NetIbis extends Ibis {
 
+	public static final boolean DEBUG_RUTGER = false;
+
 	static final String prefix = "ibis.net.";
 
 	public static final String alloc_stats = prefix + "allocator.stats";
@@ -620,16 +622,11 @@ public final class NetIbis extends Ibis {
 		    ended = true;
 		}
 
-		// try {
-		    synchronized (this) {
-			while (sendPortList != null) {
-// System.err.println("Ibis.end(): Invoke close() of " + sendPortList);
-			    sendPortList.close();
-			}
+		synchronized (this) {
+		    while (sendPortList != null) {
+			sendPortList.close();
 		    }
-		// } catch (IOException e) {
-		    // // Leave the rest alive
-		// }
+		}
 		long start = System.currentTimeMillis();
 		while (System.currentTimeMillis() - start < 1000) {
 		    synchronized (this) {
@@ -646,7 +643,9 @@ public final class NetIbis extends Ibis {
 		// try {
 		    synchronized (this) {
 			while (receivePortList != null) {
-// System.err.println("Ibis.end(): Invoke forced close() of " + receivePortList);
+			    if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
+				System.err.println("Ibis.end(): Invoke forced close() of " + receivePortList);
+			    }
 			    receivePortList.close(-1L);
 			}
 		    }

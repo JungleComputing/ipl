@@ -6,8 +6,6 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
-//import java.io.ObjectOutputStream;
-//import java.io.OutputStream;
 
 
 /**

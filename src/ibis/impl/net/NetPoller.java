@@ -176,8 +176,12 @@ public class NetPoller
 
 	    try {
 		ni.setInterruptible(true);
-// System.err.println("Set the thing to interruptible");
-// System.err.println(this + ": " + q.getInput() + " pollIsInterruptible " + q.pollIsInterruptible());
+		if (VERBOSE_SINGLETON) {
+		    System.err.println("Set the thing to interruptible");
+		    System.err.println(this + ": " + q.getInput()
+			    + " pollIsInterruptible "
+			    + q.pollIsInterruptible());
+		}
 		if (q.pollIsInterruptible()) {
 
 		    if (VERBOSE_SINGLETON) {
@@ -190,7 +194,9 @@ public class NetPoller
 		    ni.setInterruptible(false);
 		}
 	    } catch (IllegalArgumentException e) {
-// System.err.println(this + ": " + q.getInput() + " does not support setInterruptible. Give up singleton");
+		if (VERBOSE_SINGLETON) {
+		    System.err.println(this + ": " + q.getInput() + " does not support setInterruptible. Give up singleton");
+		}
 		// Ah well, the subInput does not even support setInterruptible.
 		// Give up.
 	    }
@@ -222,7 +228,9 @@ public class NetPoller
 	}
 
 	if (switch_to_upcall) {
-// System.err.println(this + ": " + q.getInput() + " Switch to upcall mode");
+	    if (VERBOSE_SINGLETON) {
+		System.err.println(this + ": " + q.getInput() + " Switch to upcall mode");
+	    }
 	    // Since we own the lock on this, no downcall receive can have
 	    // occurred yet. We may safely switch the subInput to upcall mode
 	    // without interrupting.
@@ -291,7 +299,6 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	    ReceiveQueue rq  = (ReceiveQueue)i.next();
 	    NetInput in = rq.getInput();
 
-// System.err.println(this + ": startReceive in " + rq.getInput());
 	    in.startReceive();
 	}
     }
@@ -348,7 +355,9 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 	    q.setInput(ni);
 	} else {
 	    ni = q.getInput();
-// System.err.println(this + ": recycle existing " + q + " for key " + key);
+	    if (VERBOSE_SINGLETON) {
+		System.err.println(this + ": recycle existing " + q + " for key " + key);
+	    }
 	}
 
 	ni.setupConnection(cnx);
@@ -442,7 +451,9 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
     synchronized
     public void switchToUpcallMode(NetInputUpcall inputUpcall)
 	    throws IOException {
-// System.err.println(this + ": switchToUpcallMode singleton " + (singleton == null ? null : singleton.getInput()) + " interruptible " + (singleton == null ? "N/A" : (singleton.pollIsInterruptible() ? "true" : "false")));
+	if (VERBOSE_SINGLETON) {
+	    System.err.println(this + ": switchToUpcallMode singleton " + (singleton == null ? null : singleton.getInput()) + " interruptible " + (singleton == null ? "N/A" : (singleton.pollIsInterruptible() ? "true" : "false")));
+	}
 
 	/*
 	 * This must be done before any calls to ReceiveQueue.switchToUpcallMode
@@ -478,7 +489,6 @@ System.err.println(this + ": OK, we enabled singleton " + singleton.input + " fa
 		// System.err.println(this + ": Oh ho, oh ho -- some subInput has a pending message; how can we handle that?");
 	    }
 	}
-// System.err.println(this + ": switchToUpcall done, upcallFunc " + upcallFunc);
 	// Should we manage upcallSpawnMode?
     }
 
@@ -549,7 +559,6 @@ private int nCurrent;
 	     * an incoming switchToUpcallMode.
 	     */
 	    while (true) {
-// System.err.println(this + "--" + NetPoller.this + ": inputUpcall: try to lock(NetPoller.this)");
 		/*
 		 * Must lock NetPoller.this <strong>before</strong> we attempt
 		 * to read upcallFunc. Its value may be changed by
@@ -557,7 +566,6 @@ private int nCurrent;
 		 */
 		synchronized (NetPoller.this) {
 		    upcallMode = (upcallFunc != null);
-// System.err.println(this + "--" + NetPoller.this + ": inputUpcall; upcallFunc " + upcallFunc);
 		    if (upcallMode) {
 
 			grabUpcallLock(this);
@@ -593,7 +601,6 @@ nCurrent++;
 			    waitingPollers++;
 			    try {
 				wait();
-// System.err.println(this + "--" + NetPoller.this + ": wakeup from deliver, now upcallFunc " + upcallFunc);
 			    } catch (InterruptedException e) {
 				// ignore
 			    }
@@ -605,7 +612,6 @@ nCurrent++;
 		    }
 		}
 	    }
-// System.err.println(this + "--" + NetPoller.this + ": inputUpcall finished; upcallFunc " + upcallFunc);
 
 	    log.out();
 	}
@@ -618,12 +624,8 @@ nCurrent++;
 		if (! NetReceivePort.useBlockingPoll && activeNum == null) {
 		    activeNum = input.poll(block);
 		}
-// else if (NetReceivePort.useBlockingPoll)
-// System.err.print("_");
 	    } else {
-// System.err.print("P>");
 		activeNum = input.poll(block);
-// System.err.print("<");
 	    }
 
 	    return activeNum;
@@ -633,8 +635,6 @@ nCurrent++;
 	/* Call this synchronized (NetPoller.this) */
 	Integer poll() throws IOException {
 	    log.in();
-// System.err.print("p");
-// System.err.println(Thread.currentThread() + ": " + this + ": poll this subInput, activeNum " + activeNum);
 	    if (! NetReceivePort.useBlockingPoll && activeNum == null) {
 		    activeNum = input.poll(false);
 	    }
@@ -667,7 +667,6 @@ nCurrent++;
 	 * queue, where we pick them up to handle them.
 	 */
 	void switchToUpcallMode() throws IOException {
-// System.err.println(this + "--" + NetPoller.this + ": switch to upcall mode, upcallFunc " + upcallFunc + " waitingPollers " + waitingPollers);
 	    if (NetReceivePort.useBlockingPoll || upcallFunc != null) {
 		input.switchToUpcallMode(this);
 	    } else {
@@ -744,7 +743,6 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 	activeQueue = q;
 	mtu = activeQueue.input.getMaximumTransfertUnit();
 	headerOffset = activeQueue.input.getHeadersLength();
-// System.err.println(this + ": grabUpcallLock() activeQueue " + activeQueue);
 
 	log.out();trace.out();
     }
@@ -754,7 +752,6 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
     private void releaseUpcallLock() {
 	log.in();trace.in();
 
-// System.err.println(this + ": releaseUpcallLock() clear activeQueue");
 	activeQueue = null;
 	if (upcallWaiters > 0) {
 	    if (waitingConnections > 0 || waitingThreads > 0) {
@@ -799,7 +796,9 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 	    wait();
 	    if (interrupted) {
 		interrupted = false;
-// System.err.println(this + ": blocked receiver is interrupted. Throw interruptedIOException");
+		if (VERBOSE_SINGLETON) {
+		    System.err.println(this + ": blocked receiver is interrupted. Throw interruptedIOException");
+		}
 		notifyAll();
 		throw new InterruptedIOException("Wait interrupted");
 	    }
@@ -812,7 +811,7 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 	log.out();
     }
 
-// private ibis.util.Timer rcveTimer = new ibis.util.Timer.createTimer();
+    // private ibis.util.Timer rcveTimer = new ibis.util.Timer.createTimer();
 
     /**
      * Called from poll() when the input indicated by ni has a message
@@ -828,8 +827,10 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 	mtu = input.getMaximumTransfertUnit();
 	log.disp("2");
 	headerOffset = input.getHeadersLength();
-// System.err.println(this + ": selectConnection, input " + input + " headerOffset " + headerOffset);
-// rcveTimer.start();
+	if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
+	    System.err.println(this + ": selectConnection, input " + input + " headerOffset " + headerOffset);
+	}
+	// rcveTimer.start();
 	log.out();
     }
 
@@ -859,7 +860,6 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 
 	if ((spn = singleton.poll(block)) != null) {
 	    activeQueue = singleton;
-// System.err.println(this + ": pollSingleton sets activeQueue " + activeQueue);
 	    selectConnection(singleton);
 	}
 
@@ -916,7 +916,9 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 
 		if (spn != null) {
 		    activeQueue = rq;
-// System.err.println(this + ": pollNonSingleton sets activeQueue " + activeQueue);
+		    if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
+			System.err.println(this + ": pollNonSingleton sets activeQueue " + activeQueue);
+		    }
 		    selectConnection(rq);
 		    break;
 		}
@@ -956,14 +958,11 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 		doingPoll = true;
 	    }
 
-// System.err.print(this + ": doPoll [");
 	    try {
 		// Here, should have synchronized access on singleton
 		if (singleton == null) {
-// System.err.print("BLA ");
 		    spn = pollNonSingleton(block);
 		} else {
-// System.err.print("BLUB ");
 		    spn = pollSingleton(block);
 		}
 	    } catch (InterruptedIOException e) {
@@ -988,8 +987,6 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 		}
 	    }
 
-// System.err.print("] doPoll spn=" + spn + " activeQueue=" + activeQueue + " " + activeQueue.getInput());
-// System.err.println();
 	} while (block && spn == null);
 
 	if (false) {
@@ -998,9 +995,6 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 		NetIbis.yield();
 	}
 	log.out();
-// if (spn == null)
-// System.err.println(Thread.currentThread() + ": " + this + ".doPoll returns " + spn);
-// System.err.println(this + ": doPoll returns " + spn);
 
 	return spn;
     }
@@ -1016,7 +1010,6 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 	log.in();
 	if (activeQueue != null) {
 	    activeQueue.finish(implicit);
-// System.err.println(this + ": finishLocked() clear activeQueue");
 	    activeQueue = null;
 	}
 
@@ -1027,7 +1020,7 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 
     public void doFinish() throws IOException {
 	log.in();
-// rcveTimer.stop();
+	// rcveTimer.stop();
 	synchronized (this) {
 	    finishLocked(false);
 	}
@@ -1038,9 +1031,7 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
     public void doFree() throws IOException {
 	log.in();trace.in();
 	trace.disp("0, ", this);
-// // if (singleton != null)
-// System.err.println(this + ": singleton = " + singleton + " nCurrent " + nCurrent);
-// System.err.println("Time between receive and finish " + rcveTimer.averageTime());
+	// System.err.println("Time between receive and finish " + rcveTimer.averageTime());
 	if (inputMap != null) {
 	    Iterator i = inputMap.values().iterator();
 
@@ -1082,7 +1073,6 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
     public synchronized void closeConnection(ReceiveQueue rq, Integer num) throws IOException {
 	//
 	NetInput input = rq.getInput();
-// System.err.println(this + ": closeConnection " + rq + " num " + num + " input " + input);
 	if (input != null) {
 	    input.close(num);
 	}
@@ -1091,7 +1081,6 @@ System.err.println(this + ": Catch " + e  + ". This CANNOT BE");
 
     protected synchronized void doClose(Integer num) throws IOException {
 	log.in();
-// System.err.println(this + ": doClose(" + num + ") inputMap " + inputMap);
 	if (inputMap != null) {
 	    Object       key = getKey(num);
 	    ReceiveQueue rq  = (ReceiveQueue)inputMap.get(key);

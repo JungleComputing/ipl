@@ -44,9 +44,13 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	    Collection c = outputMap.values();
 	    Iterator i = c.iterator();
 	    singleton = (NetOutput)i.next();
-// System.err.println(this + ": this is a singleton splitter");
+	    if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
+		System.err.println(this + ": this is a singleton splitter");
+	    }
 	} else {
-// System.err.println(this + ": this is a NON-singleton splitter");
+	    if (ibis.impl.net.NetIbis.DEBUG_RUTGER) {
+		System.err.println(this + ": this is a NON-singleton splitter");
+	    }
 	    singleton = null;
 	}
     }
@@ -154,7 +158,6 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 
     public void initSend() throws IOException {
 	log.in();
-// System.err.println(this + ": in initSend(); notify singleton " + singleton);
 
 	if (singleton != null) {
 	    singleton.initSend();
@@ -281,14 +284,12 @@ public class NetSplitter extends NetOutput implements NetBufferedOutputSupport {
 	if (singleton != null) {
 	    NetBufferedOutputSupport bo = (NetBufferedOutputSupport)singleton;
 	    bo.writeBuffered(data, offset, length);
-// System.err.println(this + ": writeBuffered to singleton " + bo);
 	} else {
 	    Iterator i = outputMap.values().iterator();
 	    do {
 		NetOutput no = (NetOutput)i.next();
 		NetBufferedOutputSupport bo = (NetBufferedOutputSupport)no;
 		bo.writeBuffered(data, offset, length);
-// System.err.println(this + ": writeBuffered to NON-singleton " + bo + (i.hasNext() ? "" : "NO ") + " more to come");
 	    } while (i.hasNext());
 	}
 	log.out();

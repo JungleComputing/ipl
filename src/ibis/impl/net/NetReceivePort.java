@@ -197,8 +197,6 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 				serverSocket.close();
                         }
 
-// System.err.println(this + ": interrupt...");
-                        // this.interrupt();
                         log.out();
                 }
 
@@ -443,14 +441,10 @@ System.err.println(NetIbis.hostName() + ": While connecting meet " + e);
 	    NetConnection cnx = getActiveConnection();
 	    cnx.msgSeqno++;
 	    if (cnx.msgSeqno >= cnx.closeSeqno) {
-// System.err.println("Now we can close the connection");
 		synchronized (connectionTable) {
 		    connectionTable.notifyAll();
 		}
 	    }
-if (cnx.closeSeqno != Long.MAX_VALUE) {
-// System.err.println("Would like to close, but current seqno " + cnx.msgSeqno + " closeSeqno " + cnx.closeSeqno);
-}
 
 	    return cnx;
 	}
@@ -813,7 +807,6 @@ pollerThread = null;
                         polledLock.lock();
                 } else {
                         if (useYield) {
-// System.err.print("2");
                                 while (!_doPoll(useBlockingPoll)) {
                                         NetIbis.yield();
                                         // n_yield++;
