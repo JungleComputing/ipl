@@ -180,7 +180,7 @@ to the command line.
 ----------------------------------------------------------------
 </echo>
 	<input
-		message="Hit the 'enter' key to contiue"
+		message="Hit the 'enter' key to continue"
 		addproperty="answer.config.continue"/>
 
 	<property name="config.home.ibis" location="${ibis}"/>
