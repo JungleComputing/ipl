@@ -14,11 +14,13 @@ import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.DataInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Hashtable;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Vector;
 
@@ -30,6 +32,8 @@ public class NameServer implements Protocol {
 	
 	public static boolean DEBUG = TypedProperties.booleanProperty("ibis.ns.debug");
 	public static boolean VERBOSE = TypedProperties.booleanProperty("ibis.ns.verbose");
+
+	private static int PINGER_TIMEOUT = TypedProperties.intProperty("ibis.ns.timeout", 300) * 1000;	// Property is in seconds, convert to milliseconds.
 
 	static class IbisInfo { 		
 		IbisIdentifier identifier;
@@ -60,12 +64,14 @@ public class NameServer implements Protocol {
 	} 
 
 	static class RunInfo { 
-	    Vector pool; // a list of IbisInfos
-	    Vector toBeDeleted; // a list of ibis identifiers
+		Vector pool; // a list of IbisInfos
+		Vector toBeDeleted; // a list of ibis identifiers
 
 		PortTypeNameServer    portTypeNameServer;
 		ReceivePortNameServer receivePortNameServer;
 		ElectionServer electionServer;
+
+		long pingLimit;
 
 		RunInfo() throws IOException { 
 			pool = new Vector();
@@ -73,6 +79,7 @@ public class NameServer implements Protocol {
 			portTypeNameServer    = new PortTypeNameServer();
 			receivePortNameServer = new ReceivePortNameServer();
 			electionServer = new ElectionServer();
+			pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
 		}
 
 	    public String toString() {
@@ -147,7 +154,7 @@ public class NameServer implements Protocol {
 	}
 
 	private void handleIbisJoin() throws IOException, ClassNotFoundException { 
-		String key = (String) in.readUTF();
+		String key = in.readUTF();
 		IbisIdentifier id = (IbisIdentifier) in.readObject();
 		InetAddress address = (InetAddress) in.readObject();
 		int port = in.readInt();
@@ -163,6 +170,7 @@ public class NameServer implements Protocol {
 
 		if (p == null) { 
 			// new run
+			poolPinger();
 			p = new RunInfo();
 			
 			pools.put(key, p);
@@ -219,7 +227,77 @@ public class NameServer implements Protocol {
 		}
 	}	
 
-    private void forwardLeave(IbisInfo dest, IbisIdentifier id) {
+	private void poolPinger(String key) {
+		if (DEBUG) {
+			System.err.print("NameServer: ping pool " + key);
+		}
+
+		RunInfo p = (RunInfo) pools.get(key);
+
+		if (p == null) { 
+			return;
+		}
+
+		long t = System.currentTimeMillis();
+
+		// If the pool has not reached its ping-limit yet, return.
+		if (t < p.pingLimit) {
+		    return;
+		}
+
+		for (int i=0;i<p.pool.size();i++) { 
+			IbisInfo temp = (IbisInfo) p.pool.get(i);
+			if (doPing(temp, key)) {
+			    // Pool is still alive. Reset its ping-limit.
+			    p.pingLimit = t + PINGER_TIMEOUT;
+			    return;
+			}
+		}
+
+		// Pool is dead.
+		pools.remove(key);
+		try {
+		    String date = Calendar.getInstance().getTime().toString();
+		    System.out.println(date + " pool " + key + " seems to be dead.");
+		    killThreads(p);
+		} catch(Exception e) {
+		}
+	}	
+
+	/**
+	 * Checks all pools to see if they still are alive. If a pool is dead
+	 * (connect to all members fails), the pool is killed.
+	 */
+	private void poolPinger() {
+		for (Enumeration e = pools.keys(); e.hasMoreElements() ;) {
+		    String key = (String) e.nextElement();
+		    poolPinger(key);
+		}
+	}
+
+	private boolean doPing(IbisInfo dest, String key) {
+		try {
+		    Socket s = NameServerClient.socketFactory.createSocket(dest.ibisNameServerAddress,
+							      dest.ibisNameServerport, null, -1 /* do not retry */);
+
+		    DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
+		    ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
+		    out.writeByte(IBIS_PING);
+		    out.flush();
+		    DummyInputStream i = new DummyInputStream(s.getInputStream());
+		    DataInputStream in = new DataInputStream(new BufferedInputStream(i));
+		    String k = in.readUTF();
+		    NameServerClient.socketFactory.close(in, out, s);
+		    if (! k.equals(key)) {
+			return false;
+		    }
+		} catch (Exception e) {
+		    return false;
+		}
+		return true;
+	}
+
+	private void forwardLeave(IbisInfo dest, IbisIdentifier id) {
 		if (DEBUG) { 
 			System.err.println("NameServer: forwarding leave of " + 
 					   id.toString() + " to " + dest.identifier.toString());
@@ -240,7 +318,7 @@ public class NameServer implements Protocol {
 					   "error = " + e);					   
 //			e.printStackTrace();
 		}
-    }
+	}
     
 	private void killThreads(RunInfo p) throws IOException {
 		Socket s = NameServerClient.socketFactory.createSocket(InetAddress.getLocalHost(), 
@@ -269,7 +347,7 @@ public class NameServer implements Protocol {
 
 
 	private void handleIbisLeave() throws IOException, ClassNotFoundException {
-		String key = (String) in.readUTF();
+		String key = in.readUTF();
 		IbisIdentifier id = (IbisIdentifier) in.readObject();
 
 		RunInfo p = (RunInfo) pools.get(key);
@@ -361,7 +439,7 @@ public class NameServer implements Protocol {
 	}
 
 	private void handleIbisDelete() throws IOException, ClassNotFoundException { 
-		String key = (String) in.readUTF();
+		String key = in.readUTF();
 		IbisIdentifier id = (IbisIdentifier) in.readObject();
 
 		if (DEBUG) {
@@ -438,7 +516,7 @@ public class NameServer implements Protocol {
 	}
 
 	private void handleIbisReconfigure() throws IOException, ClassNotFoundException { 
-		String key = (String) in.readUTF();
+		String key = in.readUTF();
 
 		if (DEBUG) {
 			System.err.println("NameServer: reconfigure of hosts in pool " + key);

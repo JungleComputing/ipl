@@ -20,6 +20,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.DataOutputStream;
 import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -329,6 +330,14 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 				}
 	  
 				switch (opcode) {
+				case (IBIS_PING): {
+					DummyOutputStream dos = new DummyOutputStream(s.getOutputStream());
+					DataOutputStream out =
+					    new DataOutputStream(new BufferedOutputStream(dos));
+					out.writeUTF(poolName);
+					socketFactory.close(in, out, s);
+					}
+					break;
 				case (IBIS_JOIN):
 					id = (IbisIdentifier) in.readObject();
 					if (DEBUG) {
