@@ -89,9 +89,11 @@ public class ClusterReducer extends TreeReducer {
 	    System.err.println("Oh ho oh no cluster root != cluster first");
 	    System.exit(33);
 	}
-	if (localRank[rank] == 0) {
-	    System.err.println(rank + ": I am root for cluster " + myCluster);
-	}
+// if (localRank[rank] == 0)
+// System.err.println(rank + ": I am root for cluster " + myCluster);
+// System.err.print(rank + ": my cluster = {");
+// for (int i = 0; i < clusterSize; i++) System.err.print(globalRank[i] + " ");
+// System.err.println("}");
 
 	StaticProperties reqprops = new StaticProperties();
 	reqprops.add("serialization", "data");
@@ -165,6 +167,7 @@ public class ClusterReducer extends TreeReducer {
 		}
 	    }
 	}
+// System.err.println(rank + ": local connection OK");
 
 
 	if (rank == clusterRoot[myCluster]) {
@@ -189,10 +192,11 @@ public class ClusterReducer extends TreeReducer {
 	    for (int i = 0; i < clusterSize; i++) {
 		if (i != myCluster) {
 		    ReceivePortIdentifier id;
-		    id = registry.lookup("SOR" + clusterRoot[i] + "_" + i + "interR");
+		    id = registry.lookup("SOR" + clusterRoot[i] + "_" + myCluster + "_interR");
 		    reduceSinter.connect(id);
 		}
 	    }
+// System.err.println(rank + ": interlocal connection OK");
 	}
 
     }
