@@ -357,9 +357,8 @@ class QR_Pivot {
 
 		data.put(cpu, ((int) time));
 
-		if (cpu != 0) { 
-			System.exit(0);
+		if (cpu == 0) { 
+		    System.err.println("Application: QR/GMI (" + m + "," + n + "); Ncpus: " + ncpus + "; time: " + time / 1000.0 + " seconds");
 		}
-		System.err.println("Application: QR/GMI (" + m + "," + n + "); Ncpus: " + ncpus + "; time: " + time / 1000.0 + " seconds");
 	}
 }

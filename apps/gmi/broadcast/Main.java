@@ -116,12 +116,11 @@ class Main {
 			}
 
 			group.done(result);
+			Group.exit();
 
 		} catch (Exception e) {
 			System.out.println("Oops " + e);
 			e.printStackTrace();
 		}
-		
-		System.exit(0);
 	}
 }

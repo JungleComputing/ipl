@@ -117,6 +117,8 @@ class Main {
 			if (minimum.getRank() == 0) {
 			    System.out.println("minimum = " + minimum.get());
 			}
+
+			Group.exit();
 			
 		} catch (Exception e) {
 			System.out.println("Oops " + rank + e);

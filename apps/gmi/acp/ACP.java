@@ -233,8 +233,6 @@ class ACP {
 		if (cpu == 0) {		       		
 			System.out.println(data.result());
 		}
-
-		System.exit(0);
 	}
 
 	public String toString() {
@@ -338,6 +336,7 @@ class ACP {
 			m.configure(new SingleInvocation(0), new DiscardReply());
 
 			new ACP(numVariables, numValues, numConnections, numRelations, numRelationPairs, seed, data, work, matrix, group).start();
+			Group.exit();
 		
 		} catch (Exception e) {
 			System.out.println("OOPS: main got exception " + e);

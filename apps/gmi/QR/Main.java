@@ -85,7 +85,7 @@ class Main {
 			
 				System.out.println("time : max = " + max + " avg = " + avg + " stddev = " + stddev);
 			}  
-			System.exit(0);	
+			Group.exit();
 		} catch (Exception e) {
 			System.out.println("Main got " + e);
 			e.printStackTrace();

@@ -196,12 +196,13 @@ class Main {
 					System.out.println("Highest tp " + best + " MByte/s");
 				} 
 			}
+
+			Group.exit();
 			
 		
 		} catch (Exception e) {
 			System.out.println("Oops " + e);
 			e.printStackTrace();
 		}
-		System.exit(0);
 	}
 }

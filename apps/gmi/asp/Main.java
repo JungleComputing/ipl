@@ -34,6 +34,7 @@ class Main {
 	
 	    local.init(group);
 	    local.start();
+	    Group.exit();
 	
 	} catch (Exception e) {
 	    System.out.println("Oops " + rank + " " +  e);

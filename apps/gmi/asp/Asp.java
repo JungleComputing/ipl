@@ -172,6 +172,5 @@ class Asp extends GroupMember implements i_Asp {
 //	    info.printTime("Asp, " + n + "x" + n, end-start);
 	}
 
-	System.exit(0);
     }
 }
