@@ -124,10 +124,38 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	 */
 	private boolean       	      emptyMsg     	     = true;
 
+        /**
+         * Internal message counter, for debugging purpose.
+         */
         private int                   messageCount           = 0;
+
+        /**
+         * Internal send port counter, for debugging purpose.
+         */
         static private volatile int   sendPortCount          = 0;
+
+        /**
+         * Process rank, for debugging purpose.
+         */
+        private int                   sendPortMessageRank    = 0;
+
+        /**
+         * Internal send port ID, for debugging purpose.
+         */
         private int                   sendPortMessageId      = -1;
 
+        /**
+         * Trace log message prefix, for debugging purpose.
+         */
+        private String                sendPortTracePrefix    = null;
+
+        /**
+         * String made of peer receive ports' prefixes, for debugging purpose.
+         *
+         * <BR><B>Node:</B>&nbsp; this is string is currently _not_
+         * updated when a connection is closed.
+         */
+        private String                receiversPrefixes      = null;
 
 
 
@@ -329,6 +357,10 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
         /* ----- PASSIVE STATE INITIALIZATION ______________________________ */
 
         private void initDebugStreams() {
+                sendPortMessageId = sendPortCount++;
+                sendPortMessageRank = ((NetIbis)type.getIbis())._closedPoolRank();
+                sendPortTracePrefix = "_s"+sendPortMessageRank+"-"+sendPortMessageId+"_ ";
+
                 String s = "//"+type.name()+" sendPort("+name+")/";
 
                 boolean log   = type.getBooleanStringProperty(null, "Log",   false);
@@ -340,6 +372,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 this.trace = new NetLog(trace, s, "TRACE");
                 this.disp  = new NetLog(disp,  s, "DISP");
                 this.stat  = new NetMessageStat(stat, s);
+                this.trace.disp(sendPortTracePrefix+" send port created");
         }
 
 
@@ -362,7 +395,6 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
          */
         private void initPassiveState() throws NetIbisException {
                 log.in();
-                sendPortMessageId = sendPortCount++;
                 initIdentifier();
                 log.out();
         }
@@ -462,11 +494,28 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 
                 link.init(num);
 
+                String peerPrefix = null;
 		try {
                         ObjectOutputStream os = new ObjectOutputStream(link.getOutputSubStream("__port__"));
                         os.writeObject(identifier);
+                        os.writeInt(sendPortMessageRank);
+                        os.writeInt(sendPortMessageId);
                         os.flush();
                         os.close();
+                        ObjectInputStream is = new ObjectInputStream(link.getInputSubStream("__port__"));
+                        int rank  = is.readInt();
+                        int rpmid = is.readInt();
+
+                        trace.disp(sendPortTracePrefix+"New connection to: _r"+rank+"-"+rpmid+"_");
+
+                        peerPrefix = "_r"+rank+"-"+rpmid+"_";
+                        if (receiversPrefixes == null) {
+                                receiversPrefixes = peerPrefix;
+                        } else {
+                                receiversPrefixes = ","+peerPrefix;
+                        }
+
+                        is.close();
 		} catch (IOException e) {
 			throw new NetIbisException(e.getMessage());
 		}
@@ -536,7 +585,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                 output.initSend();
                 if (trace.on()) {
                         final String messageId = (((NetIbis)type.getIbis())._closedPoolRank())+"-"+sendPortMessageId+"-"+(messageCount++);
-                        trace.disp("message "+messageId+" send -->");
+                        trace.disp(sendPortTracePrefix+"message "+messageId+" send to "+receiversPrefixes+"-->");
                         writeString(messageId);
                 }
 
@@ -610,14 +659,14 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 	public void free()
 		throws NetIbisException {
                 log.in();
-                trace.disp("send port shutdown-->");
+                trace.disp(sendPortTracePrefix+"send port shutdown-->");
                 synchronized(this) {
                         try {
                                 if (outputLock != null) {
                                         outputLock.lock();
                                 }
 
-                                trace.disp("send port shutdown: output locked");
+                                trace.disp(sendPortTracePrefix+"send port shutdown: output locked");
 
                                 if (connectionTable != null) {
                                         while (true) {
@@ -637,25 +686,25 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
                                                 }
                                         }
                                 }
-                                trace.disp("send port shutdown: all connections closed");
+                                trace.disp(sendPortTracePrefix+"send port shutdown: all connections closed");
 
                                 if (output != null) {
                                         output.free();
                                 }
 
-                                trace.disp("send port shutdown: all outputs freed");
+                                trace.disp(sendPortTracePrefix+"send port shutdown: all outputs freed");
 
                                 if (outputLock != null) {
                                         outputLock.unlock();
                                 }
 
-                                trace.disp("send port shutdown: output lock released");
+                                trace.disp(sendPortTracePrefix+"send port shutdown: output lock released");
                         } catch (Exception e) {
                                 __.fwdAbort__(e);
                         }
                 }
 
-                trace.disp("send port shutdown<--");
+                trace.disp(sendPortTracePrefix+"send port shutdown<--");
                 log.out();
 	}
 
@@ -694,7 +743,7 @@ public final class NetSendPort implements SendPort, WriteMessage, NetPort, NetEv
 		_finish();
 		output.finish();
                 stat.end();
-                trace.disp("message send <--");
+                trace.disp(sendPortTracePrefix+"message send <--");
 		outputLock.unlock();
                 log.out();
 	}

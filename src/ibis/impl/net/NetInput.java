@@ -12,6 +12,7 @@ import java.net.Socket;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.EOFException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
@@ -178,7 +179,7 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                                                 try {
                                                         implicitFinish();
                                                 } catch (Exception e) {
-                                                        throw new Error(e.getMessage());
+                                                        throw new Error(e);
                                                 }
                                                 log.disp("reusing thread");
                                                 utStat.addReuse();
@@ -471,8 +472,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 if (_inputConvertStream != null) {
                         try {
                                 _inputConvertStream.close();
+                        } catch (EOFException e) {
+                                throw new NetIbisClosedException(e);
                         } catch (IOException e) {
-                                throw new NetIbisException(e.getMessage());
+                                String msg = e.getMessage();
+                                if (msg.equalsIgnoreCase("connection closed")) {
+                                        throw new NetIbisClosedException(e);
+                                }
+
+                                throw new NetIbisException(e);
                         }
 
                         _inputConvertStream = null;
@@ -584,8 +592,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readBoolean();
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
 
                 return result;
@@ -605,8 +620,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readChar();
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
 
                 return result;
@@ -626,8 +648,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readShort();
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
 
                 return result;
@@ -647,8 +676,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readInt();
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
 
                 return result;
@@ -668,8 +704,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readLong();
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
 
                 return result;
@@ -689,8 +732,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readFloat();
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
 
                 return result;
@@ -710,8 +760,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readDouble();
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
 
                 return result;
@@ -731,8 +788,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readUTF();
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (Exception e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
 
                 return result;
@@ -752,8 +816,16 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                 try {
                         checkConvertStream();
                         result = _inputConvertStream.readObject();
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
+                } catch (IOException e) {
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+                        throw new NetIbisException(e);
                 } catch (Exception e) {
-                        throw new NetIbisException(e.getMessage());
+                        throw new NetIbisException(e);
                 }
 
                 return result;
@@ -775,8 +847,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readBoolean();
                         }
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
         }
 
@@ -796,7 +875,14 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readByte();
                         }
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
                         throw new NetIbisException(e);
                 }
         }
@@ -817,8 +903,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readChar();
                         }
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
         }
 
@@ -838,8 +931,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readShort();
                         }
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
         }
 
@@ -859,8 +959,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readInt();
                         }
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
         }
 
@@ -880,8 +987,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readLong();
                         }
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
         }
 
@@ -901,8 +1015,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readFloat();
                         }
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
         }
 
@@ -922,8 +1043,15 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readDouble();
                         }
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
                 } catch (IOException e) {
-                        throw new NetIbisException(e.getMessage());
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 }
         }
 
@@ -943,8 +1071,17 @@ public abstract class NetInput extends NetIO implements ReadMessage, NetInputUpc
                         while (l-- > 0) {
                                 b[o++] = _inputConvertStream.readObject();
                         }
+                } catch (EOFException e) {
+                        throw new NetIbisClosedException(e);
+                } catch (IOException e) {
+                        String msg = e.getMessage();
+                        if (msg.equalsIgnoreCase("connection closed")) {
+                                throw new NetIbisClosedException(e);
+                        }
+
+                        throw new NetIbisException(e);
                 } catch (Exception e) {
-                        throw new NetIbisException(e.getMessage());
+                        throw new NetIbisException(e);
                 }
         }
 

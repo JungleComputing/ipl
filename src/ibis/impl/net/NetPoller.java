@@ -27,12 +27,12 @@ public abstract class NetPoller extends NetInput {
 	 */
 	protected volatile ReceiveQueue  activeQueue = null;
         protected volatile Thread    activeUpcallThread = null;
-	private int			upcallWaiters;
+	private volatile int			upcallWaiters;
 
 	/**
 	 * Count the number of application threads that are blocked in a poll
 	 */
-	protected int		waitingThreads = 0;
+	protected volatile int		waitingThreads = 0;
 
 
 	/**
@@ -42,7 +42,7 @@ public abstract class NetPoller extends NetInput {
 
 
         /**
-         * The first queue that should be poll first next time we have to poll the queues.
+         * The first queue that should be polled first next time we have to poll the queues.
          */
         private int             firstToPoll  = 0;
         private boolean         upcallMode = false;
@@ -153,19 +153,21 @@ public abstract class NetPoller extends NetInput {
 		    Thread me;
 
 		    synchronized (NetPoller.this) {
-			activeNum = spn;
-			me = Thread.currentThread();
-			activeUpcallThread = me;
-			log.disp(this + ": NetPoller queue thread poll returns " + activeNum);
 			if (upcallMode) {
 			    grabUpcallLock(this);
 			} else {
 			    wakeupBlockedReceiver();
 			}
+			activeNum = spn;
+			me = Thread.currentThread();
+			activeUpcallThread = me;
+			log.disp(this + ": NetPoller queue thread poll returns " + activeNum);
 		    }
 
 		    if (upcallMode) {
-			upcallFunc.inputUpcall(NetPoller.this, activeNum);
+                            log.disp("upcallFunc.inputUpcall-->");
+			upcallFunc.inputUpcall(NetPoller.this, spn);
+                            log.disp("upcallFunc.inputUpcall<--");
 			if (activeUpcallThread == me) {
 			    // implicit finish()
 			    doFinish();
@@ -228,7 +230,7 @@ public abstract class NetPoller extends NetInput {
 
 	// Call the method synchronized(this)
 	private void grabUpcallLock(ReceiveQueue q) {
-	    log.in();
+                log.in();trace.in();
 
 	    while (activeQueue != null) {
 		upcallWaiters++;
@@ -241,20 +243,20 @@ public abstract class NetPoller extends NetInput {
 	    }
 	    activeQueue = q;
 
-	    log.out();
+	    log.out();trace.out();
 	}
 
 
 	// Call the method synchronized(this)
 	private void releaseUpcallLock() {
-	    log.in();
+                log.in();trace.in();
 
 	    activeQueue = null;
 	    if (upcallWaiters > 0) {
 		notifyAll();
 	    }
 
-	    log.out();
+	    log.out();trace.out();
 	}
 
 
@@ -391,8 +393,11 @@ public abstract class NetPoller extends NetInput {
 	 */
 	private void finishLocked() throws NetIbisException {
 	    log.in();
-	    activeQueue.finish();
-	    activeQueue = null;
+            if (activeQueue != null) {
+                    activeQueue.finish();
+                    activeQueue = null;
+            }
+            
 	    activeUpcallThread = null;
 	    log.out();
 	}
