@@ -21,7 +21,6 @@ public class RegistryImpl implements Registry
 	    InetAddress adres = InetAddress.getByName(hostname);
 	    adres = InetAddress.getByName(adres.getHostAddress());
 	    hostname = adres.getHostName();
-
 	} catch (java.net.UnknownHostException e) {
 if(RTS.DEBUG)	
 	    System.err.println("hmmm... local host is unknown?");
