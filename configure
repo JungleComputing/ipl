@@ -199,6 +199,9 @@ chmod +x globus/grun
 cat scripts/preamble configuration scripts/pprun > globus/pprun
 chmod +x globus/pprun
 
+cat scripts/preamble configuration scripts/frun > globus/frun
+chmod +x globus/frun
+
 (cd bin; sed "s+@IBIS_INSTALL_PATH@+\"$IBIS_ROOT\"+;s+@JAVA@+$JAVA_ROOT+" < cluster_wrapper.in > cluster_wrapper; chmod +x cluster_wrapper)
 
 cat scripts/preamble configuration scripts/csim_run_ibis > bin/csim_run_ibis
