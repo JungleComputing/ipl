@@ -3,6 +3,8 @@ package ibis.ipl;
 public interface ReceivePort { 
 	/** Only one message is alive at one time for a given receiveport. This is done to prevent flow control problems. 
 	    A receiveport can be configured to generate upcalls or to support blocking receive, but NOT both!
+	    The message object always is destoyed when the upcall is finished; it is thus not correct to put it in a 
+	    global variable / queue.
 	 **/
 
 	/** explicit receive. When an receiveport is configured to generate upcalls, this is NOT allowed **/
