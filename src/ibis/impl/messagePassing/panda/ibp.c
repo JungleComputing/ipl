@@ -104,7 +104,7 @@ ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
     extern int pan_msg_sane(pan_msg_p);
 
     if (! pan_msg_sane((pan_msg_p)msg)) {
-	ibmp_error("This seems an insane msg: %p\n", msg);
+	ibmp_error(env, "This seems an insane msg: %p\n", msg);
     }
 #endif
 
@@ -200,7 +200,7 @@ hostname_equal(char *h0, char *h1)
 
 
 static void
-ibp_pan_init(int *java_argc, char **java_argv)
+ibp_pan_init(JNIEnv *env, int *java_argc, char **java_argv)
 {
     int         argc;
     char       *argv[*java_argc + 4];
@@ -220,7 +220,7 @@ ibp_pan_init(int *java_argc, char **java_argv)
 
     orig_hosts = getenv("HOSTS");
     if (orig_hosts == NULL) {
-	ibmp_error("HOSTS env var does not exist: use prun\n");
+	ibmp_error(env, "HOSTS env var does not exist: use prun\n");
     }
     hosts = strdup(orig_hosts);
 
@@ -237,7 +237,7 @@ ibp_pan_init(int *java_argc, char **java_argv)
     for (i = 0; i < fs_nhosts; i++) {
 	h = gethostbyname(fs_host[i]);
 	if (h == NULL) {
-	    ibmp_error("gethostbyname fails");
+	    ibmp_error(env, "gethostbyname fails");
 	}
 	if (h->h_length != sizeof(fs_host_inet)) {
 	    pan_panic("Inet address won't fit");
@@ -256,7 +256,7 @@ ibp_pan_init(int *java_argc, char **java_argv)
     argc = *java_argc + 3;
 
     if (gethostname(hostname, 256) == -1) {
-	ibmp_error("Cannot get hostname");
+	ibmp_error(env, "Cannot get hostname");
     }
 
     env_host_id = getenv("PRUN_HOST_INDEX");
@@ -269,15 +269,15 @@ ibp_pan_init(int *java_argc, char **java_argv)
 	    }
 	}
 	if (i == fs_nhosts) {
-	    ibmp_error("Host name %s does not occur in HOSTS env var %s\n",
+	    ibmp_error(env, "Host name %s does not occur in HOSTS env var %s\n",
 			hostname, orig_hosts);
 	}
     } else {
 	if (sscanf(env_host_id, "%d", &me) != 1) {
-	    ibmp_error("Host id is not a number: %s\n", env_host_id);
+	    ibmp_error(env, "Host id is not a number: %s\n", env_host_id);
 	}
 	if (me < 0 || me >= fs_nhosts) {
-	    ibmp_error("Host id is out of range: %d\n", me);
+	    ibmp_error(env, "Host id is out of range: %d\n", me);
 	}
     }
     sprintf(myproc, "%d", me);
@@ -299,7 +299,7 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
 {
     ibmp_check_ibis_name(env, "ibis.ipl.impl.messagePassing.PandaIbis");
 
-    ibp_pan_init(argc, argv);
+    ibp_pan_init(env, argc, argv);
     IBP_VPRINTF(2000, env, ("here...\n"));
 
     ibmp_nr = pan_nr_processes();

@@ -313,7 +313,7 @@ DUMP_DATA(jboolean, "d ")
 DUMP_DATA(jbyte, "c")
 DUMP_DATA(jchar, "d ")
 DUMP_DATA(jshort, "d ")
-DUMP_DATA(jint, "d ")
+DUMP_DATA(jint, "ld ")
 DUMP_DATA(jlong, "lld ")
 DUMP_DATA(jfloat, "f ")
 DUMP_DATA(jdouble, "f ")
@@ -480,7 +480,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_close(
 	JNIEnv *env, 
 	jobject this)
 {
-    ibmp_error("close not implemented\n");
+    ibmp_error(env, "close not implemented\n");
 }
 
 
@@ -519,7 +519,7 @@ Java_ibis_ipl_impl_messagePassing_ByteOutputStream_write(
     int       *buf;
 
     if (! msg->copy) {
-	ibmp_error("Must implement non-copy transmit of integer\n");
+	ibmp_error(env, "Must implement non-copy transmit of integer\n");
     }
 
     ibmp_lock(env);
@@ -610,7 +610,7 @@ ibmp_byte_output_stream_init(JNIEnv *env)
     cls_PandaByteOutputStream = (*env)->FindClass(env,
 			 "ibis/ipl/impl/messagePassing/ByteOutputStream");
     if (cls_PandaByteOutputStream == NULL) {
-	ibmp_error("Cannot find class ibis/ipl/impl/messagePassing/ByteOutputStream\n");
+	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ByteOutputStream\n");
     }
     cls_PandaByteOutputStream = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_PandaByteOutputStream);
 
@@ -618,35 +618,35 @@ ibmp_byte_output_stream_init(JNIEnv *env)
 					 cls_PandaByteOutputStream,
 					 "msgHandle", "I");
     if (fld_msgHandle == NULL) {
-	ibmp_error("Cannot find static field msgHandle:I\n");
+	ibmp_error(env, "Cannot find static field msgHandle:I\n");
     }
 
     fld_waitingInPoll    = (*env)->GetFieldID(env,
 					 cls_PandaByteOutputStream,
 					 "waitingInPoll", "Z");
     if (fld_waitingInPoll == NULL) {
-	ibmp_error("Cannot find static field waitingInPoll:Z\n");
+	ibmp_error(env, "Cannot find static field waitingInPoll:Z\n");
     }
 
     fld_outstandingFrags = (*env)->GetFieldID(env,
 					 cls_PandaByteOutputStream,
 					 "outstandingFrags", "I");
     if (fld_outstandingFrags == NULL) {
-	ibmp_error("Cannot find static field outstandingFrags:I\n");
+	ibmp_error(env, "Cannot find static field outstandingFrags:I\n");
     }
 
     fld_makeCopy = (*env)->GetFieldID(env,
 					 cls_PandaByteOutputStream,
 					 "makeCopy", "Z");
     if (fld_makeCopy == NULL) {
-	ibmp_error("Cannot find static field makeCopy:Z\n");
+	ibmp_error(env, "Cannot find static field makeCopy:Z\n");
     }
 
     md_finished_upcall    = (*env)->GetMethodID(env,
 						cls_PandaByteOutputStream,
 						"finished_upcall", "()V");
     if (md_finished_upcall == NULL) {
-	ibmp_error("Cannot find method finished_upcall()V\n");
+	ibmp_error(env, "Cannot find method finished_upcall()V\n");
     }
 
     // ibmp_lock_check_owned(env);
@@ -657,7 +657,7 @@ ibmp_byte_output_stream_init(JNIEnv *env)
     ibmp_poll_register(ibmp_msg_q_poll);
 
     if (pan_arg_int(NULL, NULL, "-ibp-send-sync", &ibmp_send_sync) == -1) {
-	ibmp_error("-ibp-send-sync requires an int argument\n");
+	ibmp_error(env, "-ibp-send-sync requires an int argument\n");
     }
 }
 

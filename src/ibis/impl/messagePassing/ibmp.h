@@ -3,6 +3,8 @@
 
 #include <jni.h>
 
+#include <pan_sys.h>
+
 void ibmp_object_toString(JNIEnv *env, jobject obj);
 char *ibmp_jstring2c(JNIEnv *env, jstring name);
 void ibmp_thread_yield(JNIEnv *env);
@@ -19,7 +21,6 @@ void ibmp_lock_check_not_owned(JNIEnv *env);
 #endif
 
 #ifdef IBP_VERBOSE
-#include <pan_sys.h>
 extern int ibmp_verbose;
 int ibmp_stderr_printf(char *fmt, ...);
 #define IBP_VPRINTF(n, env, s) \
@@ -65,7 +66,7 @@ ibmp_iovec_len(pan_iovec_p iov, int n)
 #include <stdio.h>
 #define ibmp_error	\
 	fprintf(stderr, "%s.%d: ", __FILE__, __LINE__); ibmp_error_printf
-void ibmp_error_printf(const char *fmt, ...);
+void ibmp_error_printf(JNIEnv *env, const char *fmt, ...);
 
 void ibmp_init(JNIEnv *env, jobject this);
 void ibmp_end(JNIEnv *env, jobject this);

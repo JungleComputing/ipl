@@ -174,7 +174,7 @@ ibmp_connect_init(JNIEnv *env)
     cls_Syncer = (*env)->FindClass(env,
 	    "ibis/ipl/impl/messagePassing/Syncer");
     if (cls_Syncer == NULL) {
-	ibmp_error("Cannot find class ibis/ipl/impl/messagePassing/Syncer\n");
+	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/Syncer\n");
     }
 
     md_s_signal = (*env)->GetMethodID(env,
@@ -182,13 +182,13 @@ ibmp_connect_init(JNIEnv *env)
 					  "s_signal",
 					  "(Z)V");
     if (md_s_signal == NULL) {
-	ibmp_error("Cannot find method s_signal(Z)V\n");
+	ibmp_error(env, "Cannot find method s_signal(Z)V\n");
     }
 
     cls_ShadowSendPort = (*env)->FindClass(env,
 					   "ibis/ipl/impl/messagePassing/ShadowSendPort");
     if (cls_ShadowSendPort == NULL) {
-	ibmp_error("Cannot find class ibis/ipl/impl/messagePassing/ShadowSendPort\n");
+	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ShadowSendPort\n");
     }
     cls_ShadowSendPort = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_ShadowSendPort);
 

@@ -10,6 +10,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
+#include <das_time.h>
 
 #include <jni.h>
 
@@ -38,6 +41,11 @@ static int		ibmpi_msg_cache_size = RCVE_PROTO_CACHE_SIZE;
 static ibp_msg_p	ibmpi_msg_freelist;
 
 int			ibmpi_alive = 0;
+
+static das_time_t	t_rcve_poll;
+static int		n_rcve_poll;
+static das_time_t	t_send_poll;
+static int		n_send_poll;
 
 
 static ibp_msg_p
@@ -97,7 +105,7 @@ ibmpi_mp_upcall(JNIEnv *env, MPI_Status *status)
     assert(ibmpi_alive);
 
     if (MPI_Get_count(status, MPI_PACKED, &size) != MPI_SUCCESS) {
-	ibmp_error("Cannot successfully query message size");
+	ibmp_error(env, "Cannot successfully query message size");
     }
     msg = ibmpi_msg_create(status->MPI_SOURCE, size);
     proto = (ibmpi_proto_p)(msg + 1);
@@ -114,7 +122,7 @@ ibmpi_mp_upcall(JNIEnv *env, MPI_Status *status)
     if (MPI_Recv(proto, size, MPI_PACKED,
 		 status->MPI_SOURCE, status->MPI_TAG,
 		 MPI_COMM_WORLD, &rcve_status) != MPI_SUCCESS) {
-	ibmp_error("Cannot successfully receive protocol msg");
+	ibmp_error(env, "Cannot successfully receive protocol msg");
     }
     msg->start = proto->proto_size;
 
@@ -291,25 +299,34 @@ ibmpi_finished_poll(void)
 static void
 ibmpi_mp_poll(JNIEnv *env)
 {
-    //fprintf(stderr, "ibmpi_mp-poll\n");
-    // ibmp_set_JNIEnv(env);
     int		ibmpi_upcall_done;
 
+    //fprintf(stderr, "ibmpi_mp-poll\n");
+
     do {
+	das_time_t	start;
+	das_time_t	stop;
+
 	if (! ibmpi_alive) {
 	    return;
 	}
 
 	ibmpi_upcall_done = 1;
+	das_time_get(&start);
 	if (ibmpi_rcve_poll(env)) {
 	    ibmpi_upcall_done = 0;
 	}
+	das_time_get(&stop);
+	t_rcve_poll +=  stop - start;
+	n_rcve_poll++;
+	das_time_get(&start);
 	if (ibmpi_finished_poll() > 0) {
 	    ibmpi_upcall_done = 0;
 	}
+	das_time_get(&stop);
+	t_send_poll +=  stop - start;
+	n_send_poll++;
     } while (! ibmpi_upcall_done);
-
-    // ibmp_unset_JNIEnv();
 }
 
 
@@ -344,11 +361,9 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port,
     }
     assert(off == len);
 
-    // ibmp_set_JNIEnv(env);
     IBP_VPRINTF(200, env, ("Do an MPI send to %d size %d\n", cpu, len));
     MPI_Send(buf, len, MPI_PACKED, cpu, IBMPI_MSG_TAG, MPI_COMM_WORLD);
     IBP_VPRINTF(200, env, ("Done an MPI send\n"));
-    // ibmp_unset_JNIEnv();
 
     if (len > SEND_PROTO_CACHE_SIZE) {
 	free(buf);
@@ -396,12 +411,10 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port,
     }
     assert(off == len);
 
-    // ibmp_set_JNIEnv(env);
     IBP_VPRINTF(200, env, ("Do a Panda MP send async to %d size %d\n",
 		cpu, len));
     MPI_Isend(buf, len, MPI_PACKED, cpu, IBMPI_MSG_TAG, MPI_COMM_WORLD,
 	      &finished_req[f->index]);
-    // ibmp_unset_JNIEnv();
 
     ibmpi_mp_poll(env);
 }
@@ -452,4 +465,10 @@ void
 ibp_mp_end(JNIEnv *env)
 {
     ibmpi_mp_poll(env);
+    fprintf(stdout, "%2d: t_rcve_poll total %.06f (av %.06f in %d)\n",
+	    ibmp_me, das_time_t2d(&t_rcve_poll),
+	    das_time_t2d(&t_rcve_poll) / n_rcve_poll, n_rcve_poll);
+    fprintf(stdout, "%2d: t_send_poll total %.06f (av %.06f in %d)\n",
+	    ibmp_me, das_time_t2d(&t_send_poll),
+	    das_time_t2d(&t_send_poll) / n_send_poll, n_send_poll);
 }

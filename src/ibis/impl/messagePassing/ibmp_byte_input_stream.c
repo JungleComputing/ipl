@@ -177,7 +177,7 @@ DUMP_DATA(jboolean, "d ")
 DUMP_DATA(jbyte, "c")
 DUMP_DATA(jchar, "d ")
 DUMP_DATA(jshort, "d ")
-DUMP_DATA(jint, "d ")
+DUMP_DATA(jint, "ld ")
 DUMP_DATA(jlong, "lld ")
 DUMP_DATA(jfloat, "f ")
 DUMP_DATA(jdouble, "f ")
@@ -275,13 +275,13 @@ ibmp_byte_input_stream_init(JNIEnv *env)
     cls_PandaByteInputStream = (*env)->FindClass(env,
 			    "ibis/ipl/impl/messagePassing/ByteInputStream");
     if (cls_PandaByteInputStream == NULL) {
-	ibmp_error("Cannot find class ibis/ipl/impl/messagePassing/ByteInputStream\n");
+	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ByteInputStream\n");
     }
     cls_PandaByteInputStream = (jobject)(*env)->NewGlobalRef(env, (jobject)cls_PandaByteInputStream);
 
     fld_msgHandle = (*env)->GetFieldID(env, cls_PandaByteInputStream, "msgHandle", "I");
     if (fld_msgHandle == NULL) {
-	ibmp_error("Cannot find field PandaByteInputStream.msgHandle:I");
+	ibmp_error(env, "Cannot find field PandaByteInputStream.msgHandle:I");
     }
 
 }

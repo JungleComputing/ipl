@@ -109,7 +109,7 @@ ibmp_join_init(JNIEnv *env)
 					 "join_upcall",
 					 "(Ljava/lang/String;I)V");
     if (md_join_upcall == NULL) {
-	ibmp_error("Cannot find method join_upcall(Ljava/lang/String;I)V\n");
+	ibmp_error(env, "Cannot find method join_upcall(Ljava/lang/String;I)V\n");
     }
 
     md_leave_upcall = (*env)->GetMethodID(env,
@@ -117,7 +117,7 @@ ibmp_join_init(JNIEnv *env)
 					  "leave_upcall",
 					  "(Ljava/lang/String;I)V");
     if (md_leave_upcall == NULL) {
-	ibmp_error("Cannot find method leave_upcall(Ljava/lang/String;I)V\n");
+	ibmp_error(env, "Cannot find method leave_upcall(Ljava/lang/String;I)V\n");
     }
 
     // ibmp_lock_check_owned(env);

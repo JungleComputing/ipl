@@ -183,7 +183,7 @@ ibmp_receive_port_ns_bind_init(JNIEnv *env)
     cls_NameServerClient = (*env)->FindClass(env,
 		    "ibis/ipl/impl/messagePassing/ReceivePortNameServerClient");
     if (cls_NameServerClient == NULL) {
-	ibmp_error("Cannot find class ibis/ipl/impl/messagePassing/ReceivePortNameServerClient\n");
+	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/ReceivePortNameServerClient\n");
     }
 
     md_NameServerClient_bind_reply = (*env)->GetMethodID(env,
@@ -191,7 +191,7 @@ ibmp_receive_port_ns_bind_init(JNIEnv *env)
 					"bind_reply",
 					"()V");
     if (md_NameServerClient_bind_reply == NULL) {
-	ibmp_error("Cannot find method bind_reply()V\n");
+	ibmp_error(env, "Cannot find method bind_reply()V\n");
     }
 }
 

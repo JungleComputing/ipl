@@ -115,7 +115,7 @@ ibp_consume(JNIEnv *env, ibp_msg_p msg, void *buf, int len)
 
 	if (MPI_Recv(buf, len, MPI_PACKED, msg->sender, msg->send_port_id,
 		     MPI_COMM_WORLD, &status) != MPI_SUCCESS) {
-	    ibmp_error("MPI_Recv of blast message fails");
+	    ibmp_error(env, "MPI_Recv of blast message fails");
 	}
     } else {
 	if (len > msg->size - msg->start) {
@@ -151,6 +151,23 @@ ibp_string_push(JNIEnv *env, jstring s, pan_iovec_p iov)
 			    iov->len, (char *)iov->data));
 
     return iov->len;
+}
+
+
+/* Howlllll.... Compatibility for MPICH fortran */
+
+int f__xargc(void);
+char *getarg_(void);
+
+int f__xargc(void)
+{
+    return 0;
+}
+
+
+char *getarg_(void)
+{
+    return NULL;
 }
 
 
@@ -272,10 +289,10 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
     ibmpi_alive = 1;
 
     if (MPI_Comm_size(MPI_COMM_WORLD, &ibmp_nr) != MPI_SUCCESS) {
-	ibmp_error("MPI_Comm_size() fails\n");
+	ibmp_error(env, "MPI_Comm_size() fails\n");
     }
     if (MPI_Comm_rank(MPI_COMM_WORLD, &ibmp_me) != MPI_SUCCESS) {
-	ibmp_error("MPI_Comm_rank() fails\n");
+	ibmp_error(env, "MPI_Comm_rank() fails\n");
     }
 
     IBP_VPRINTF(10, env, ("ibpi_init\n"));

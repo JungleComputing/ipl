@@ -12,7 +12,7 @@ public class Poll implements Runnable {
     Thread	peeker;
     boolean	last_is_preemptive;
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     protected Poll() {
 	// Sun doesn't set java.compiler, so getProperty returns null --Rob
@@ -48,7 +48,7 @@ public class Poll implements Runnable {
     private long poll_poll_direct;
     private long poll_from_thread;
 
-    final static int polls_before_yield = 2000;	// 1; // 2000;
+    final static int polls_before_yield = 5000;	// 1; // 2000;
 
     private void insert(PollClient client) {
 	client.setNext(waiting_threads);

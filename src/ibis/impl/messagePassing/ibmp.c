@@ -46,6 +46,8 @@ static jmethodID	md_unlock;
 jclass		ibmp_cls_Ibis;
 jobject		ibmp_obj_Ibis_ibis;
 
+static jclass		cls_IbisIOException;
+
 int		ibmp_me;
 int		ibmp_nr;
 
@@ -73,9 +75,10 @@ ibmp_stderr_printf(char *fmt, ...)
 
 
 void
-ibmp_error_printf(const char *fmt, ...)
+ibmp_error_printf(JNIEnv *env, const char *fmt, ...)
 {
     va_list	ap;
+    char	msg[1024];
 
     va_start(ap, fmt);
     fprintf(stderr, "%2d: Fatal Ibis/MessagePassing error: ", ibmp_me);
@@ -83,10 +86,16 @@ ibmp_error_printf(const char *fmt, ...)
     va_end(ap);
     fprintf(stderr, "\n");
 
+    va_start(ap, fmt);
+    sprintf(msg, "%2d: Fatal Ibis/MessagePassing error: ", ibmp_me);
+    vsprintf(strchr(msg, '\0'), fmt, ap);
+    va_end(ap);
+
     if (ibmp_core_on_error) {
 	abort();
     } else {
-	exit(33);
+	(*env)->ThrowNew(env, cls_IbisIOException, msg);
+	// exit(33);
     }
 }
 
@@ -109,7 +118,7 @@ ibmp_currentThread(JNIEnv *env)
 
     b = (jbyte *)(*env)->GetStringUTFChars(env, t, NULL);
     if (b == NULL) {
-	ibmp_error("Cannot get string bytes\n");
+	ibmp_error(env, "Cannot get string bytes\n");
     }
     if (strlen(b) + 1 > n_c) {
 	n_c = 2 * strlen(b) + 1;
@@ -151,13 +160,13 @@ IBP_VPRINTF(100, env, ("\n"));
     name = (*env)->CallObjectMethod(env, obj, md_toString);
 IBP_VPRINTF(100, env, ("\n"));
     if (name == NULL) {
-	ibmp_error("Cannot call toString()\n");
+	ibmp_error(env, "Cannot call toString()\n");
     }
 
     b = (jbyte *)(*env)->GetStringUTFChars(env, name, NULL);
 IBP_VPRINTF(100, env, ("\n"));
     if (b == NULL) {
-	ibmp_error("Cannot get string bytes\n");
+	ibmp_error(env, "Cannot get string bytes\n");
     }
 
     printf("object = %s", b);
@@ -264,12 +273,12 @@ ibmp_check_ibis_name(JNIEnv *env, const char *name)
     classClass = (*env)->GetObjectClass(env, (jobject)c);
     getName = (*env)->GetMethodID(env, (jobject)classClass, "getName", "()Ljava/lang/String;");
     if (getName == NULL) {
-	ibmp_error("Cannot find method java.lang.Class.getName()Ljava/lang/String;");
+	ibmp_error(env, "Cannot find method java.lang.Class.getName()Ljava/lang/String;");
     }
     s = (jstring)(*env)->CallObjectMethod(env, (jobject)c, getName);
     class_name = (*env)->GetStringUTFChars(env, s, NULL);
     if (strcmp(class_name, name) != 0) {
-	ibmp_error("Linked %s native lib with %s Ibis", name, class_name);
+	ibmp_error(env, "Linked %s native lib with %s Ibis", name, class_name);
     }
     (*env)->ReleaseStringUTFChars(env, s, class_name);
 }
@@ -286,7 +295,7 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
 
 #ifdef IBP_VERBOSE
     if (pan_arg_int(NULL, NULL, "-ibp-v", &ibmp_verbose) == -1) {
-	ibmp_error("-ibp-v requires an integer argument\n");
+	ibmp_error(env, "-ibp-v requires an integer argument\n");
     }
     fprintf(stderr, "ibmp_verbose = %d\n", ibmp_verbose);
 #endif
@@ -297,48 +306,54 @@ Java_ibis_ipl_impl_messagePassing_Ibis_ibmp_1init(JNIEnv *env, jobject this, jar
     
     cls_Thread = (*env)->FindClass(env, "java/lang/Thread");
     if (cls_Thread == NULL) {
-	ibmp_error("Cannot find class java/lang/Thread\n");
+	ibmp_error(env, "Cannot find class java/lang/Thread\n");
     }
     cls_Thread = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Thread);
 
     md_yield   = (*env)->GetStaticMethodID(env, cls_Thread, "yield", "()V");
     if (md_yield == NULL) {
-	ibmp_error("Cannot find static method yield()V\n");
+	ibmp_error(env, "Cannot find static method yield()V\n");
     }
 
     md_currentThread   = (*env)->GetStaticMethodID(env, cls_Thread, "currentThread", "()Ljava/lang/Thread;");
     if (md_currentThread == NULL) {
-	ibmp_error("Cannot find static method currentThread()Ljava/lang/Thread;\n");
+	ibmp_error(env, "Cannot find static method currentThread()Ljava/lang/Thread;\n");
     }
 
     cls_Object = (*env)->FindClass(env, "java/lang/Object");
     if (cls_Object == NULL) {
-	ibmp_error("Cannot find class java/lang/Object\n");
+	ibmp_error(env, "Cannot find class java/lang/Object\n");
     }
     cls_Object = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Object);
 
     md_toString = (*env)->GetMethodID(env, cls_Object, "toString", "()Ljava/lang/String;");
     if (md_toString == NULL) {
-	ibmp_error("Cannot find method toString\n");
+	ibmp_error(env, "Cannot find method toString\n");
     }
 
     md_dumpStack   = (*env)->GetStaticMethodID(env, cls_Thread, "dumpStack", "()V");
     // md_dumpStack   = (*env)->GetStaticMethodID(env, ibmp_cls_Ibis, "dumpStack", "()V");
     if (md_dumpStack == NULL) {
-	ibmp_error("Cannot find static method dumpStack()V\n");
+	ibmp_error(env, "Cannot find static method dumpStack()V\n");
     }
 
     ibmp_cls_Ibis = (*env)->FindClass(env, "ibis/ipl/impl/messagePassing/Ibis");
     if (ibmp_cls_Ibis == NULL) {
-	ibmp_error("Cannot find class ibis/ipl/impl/messagePassing/Ibis\n");
+	ibmp_error(env, "Cannot find class ibis/ipl/impl/messagePassing/Ibis\n");
     }
     ibmp_cls_Ibis = (jclass)(*env)->NewGlobalRef(env, (jobject)ibmp_cls_Ibis);
 fprintf(stderr, "%s.%d: ibmp_cls_Ibis = %p\n", __FILE__, __LINE__, ibmp_cls_Ibis);
 
     fld_Ibis_ibis = (*env)->GetStaticFieldID(env, ibmp_cls_Ibis, "myIbis", "Libis/ipl/impl/messagePassing/Ibis;");
     if (fld_Ibis_ibis == NULL) {
-	ibmp_error("Cannot find static field myIbis:Libis/ipl/impl/messagePassing/Ibis;\n");
+	ibmp_error(env, "Cannot find static field myIbis:Libis/ipl/impl/messagePassing/Ibis;\n");
     }
+
+    cls_IbisIOException = (*env)->FindClass(env, "ibis/ipl/IbisIOException");
+    if (cls_IbisIOException == NULL) {
+	ibmp_error(env, "Cannot find class ibis/ipl/IbisIOException\n");
+    }
+    cls_IbisIOException = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_IbisIOException);
 
     ibmp_obj_Ibis_ibis = (*env)->GetStaticObjectField(env, ibmp_cls_Ibis, fld_Ibis_ibis);
     ibmp_obj_Ibis_ibis = (*env)->NewGlobalRef(env, ibmp_obj_Ibis_ibis);
@@ -346,43 +361,51 @@ fprintf(stderr, "%s.%d: ibmp_cls_Ibis = %p\n", __FILE__, __LINE__, ibmp_cls_Ibis
     md_checkLockOwned = (*env)->GetMethodID(env, ibmp_cls_Ibis, "checkLockOwned",
 				       "()V");
     if (md_checkLockOwned == NULL) {
-	ibmp_error("Cannot find method checkLockOwned\n");
+	ibmp_error(env, "Cannot find method checkLockOwned\n");
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 
     md_checkLockNotOwned = (*env)->GetMethodID(env, ibmp_cls_Ibis, "checkLockNotOwned",
 				       "()V");
     if (md_checkLockNotOwned == NULL) {
-	ibmp_error("Cannot find method checkLockNotOwned\n");
+	ibmp_error(env, "Cannot find method checkLockNotOwned\n");
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 
+    if (0) {
+	argv = java2c_args(env, java_args, &argc);
+	ibp_init(env, &argc, argv);
+	java_args = c2java_args(env, argc, argv);
+    } else {
+	int argc = 1;
+	char *argv[2];
+
+	argv[0] = "ibis-executable";
+	argv[1] = NULL;
+	ibp_init(env, &argc, argv);
+    }
+
     md_lock = (*env)->GetMethodID(env, ibmp_cls_Ibis, "lock", "()V");
     if (md_lock == NULL) {
-	ibmp_error("Cannot find method lock\n");
+	ibmp_error(env, "Cannot find method lock\n");
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 
     md_unlock = (*env)->GetMethodID(env, ibmp_cls_Ibis, "unlock", "()V");
     if (md_unlock == NULL) {
-	ibmp_error("Cannot find method unlock\n");
+	ibmp_error(env, "Cannot find method unlock\n");
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 
-    argv = java2c_args(env, java_args, &argc);
-    ibp_init(env, &argc, argv);
-    java_args = c2java_args(env, argc, argv);
-
-    ibp_mp_init(env);
-
     fld_Ibis_nrCpus = (*env)->GetFieldID(env, ibmp_cls_Ibis, "nrCpus", "I");
     if (fld_Ibis_nrCpus == NULL) {
-	ibmp_error("Cannot find field nrCpus:I\n");
+	ibmp_error(env, "Cannot find field nrCpus:I\n");
+	return java_args;
     }
     IBP_VPRINTF(2000, env, ("here...\n"));
     fld_Ibis_myCpu  = (*env)->GetFieldID(env, ibmp_cls_Ibis, "myCpu", "I");
     if (fld_Ibis_myCpu == NULL) {
-	ibmp_error("Cannot find field myCpu:I\n");
+	ibmp_error(env, "Cannot find field myCpu:I\n");
     }
     IBP_VPRINTF(2000, env, ("here...\n"));
 
@@ -392,6 +415,8 @@ fprintf(stderr, "%s.%d: ibmp_cls_Ibis = %p\n", __FILE__, __LINE__, ibmp_cls_Ibis
     (*env)->SetIntField(env, ibmp_obj_Ibis_ibis, fld_Ibis_myCpu,
 		(jint)ibmp_me);
     IBP_VPRINTF(2000, env, ("here...\n"));
+
+    ibp_mp_init(env);
 
     ibmp_poll_init(env);
     IBP_VPRINTF(2000, env, ("here..\n"));

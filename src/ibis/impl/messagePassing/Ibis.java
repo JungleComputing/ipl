@@ -157,7 +157,9 @@ System.err.println("inputStreamMsgTags = " + inputStreamMsgTags);
 	    myIbis = this;
 	}
 
-	System.loadLibrary("ibis_panda");
+// System.err.println("Gonna load libibis_mp.so");
+	// System.loadLibrary("ibis_mp");
+// System.err.println("Loaded libibis_mp.so");
 
 	rcve_poll = new Poll();
 
