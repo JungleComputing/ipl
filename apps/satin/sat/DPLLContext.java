@@ -4,7 +4,7 @@
  * The context of the solve method. The fields in this class are cloned
  * for every recursion of the solve() method.
  */
-public class DPLLContext implements java.io.Serializable {
+public final class DPLLContext implements java.io.Serializable {
     /**
      * A symbolic name for the `unassigned' value in
      * the `assignment' array.
@@ -205,6 +205,21 @@ public class DPLLContext implements java.io.Serializable {
     }
 
     /**
+     * Registers the fact that the specified clause is in conflict with
+     * the current assignments. If useful, this method may throw a
+     * restart exception.
+     * @param p The SAT problem.
+     * @param cno The clause that is in conflict.
+     */
+    private void analyzeConflict( SATProblem p, int cno, int var )
+    {
+        if( tracePropagation ){
+            System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=" + assignment[var] );
+            dumpAssignments();
+        }
+    }
+
+    /**
      * Propagates the specified unit clause.
      * @param p the SAT problem to solve
      * @param i the index of the unit clause
@@ -392,11 +407,7 @@ public class DPLLContext implements java.io.Serializable {
             posinfo[var] -= Helpers.information( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-		// We now have a clause that cannot be satisfied. Conflict.
-		if( tracePropagation ){
-		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=true" );
-		    dumpAssignments();
-		}
+                analyzeConflict( p, cno, var );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
@@ -474,11 +485,7 @@ public class DPLLContext implements java.io.Serializable {
             posinfo[var] -= Helpers.information( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-		// We now have a clause that cannot be satisfied. Conflict.
-		if( tracePropagation ){
-		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=false" );
-		    dumpAssignments();
-		}
+                analyzeConflict( p, cno, var );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){

@@ -218,10 +218,24 @@ public class SATContext implements java.io.Serializable {
     }
 
     /**
+     * Registers the fact that the specified clause is in conflict with
+     * the current assignments. If useful, this method may throw a
+     * restart exception.
+     * @param p The SAT problem.
+     * @param cno The clause that is in conflict.
+     */
+    private void analyzeConflict( SATProblem p, int cno, int var )
+    {
+        if( tracePropagation ){
+            System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=" + assignment[var] );
+            dumpAssignments();
+        }
+    }
+
+    /**
      * Propagates the specified unit clause.
      * @param p the SAT problem to solve
      * @param i the index of the unit clause
-     * @param antec the variable that caused this init clause
      * @return CONFLICTING if the problem is now in conflict, SATISFIED if the problem is now satisified, or UNDETERMINED otherwise
      */
     private int propagateUnitClause( SATProblem p, int i, int antec )
@@ -406,11 +420,7 @@ public class SATContext implements java.io.Serializable {
             posinfo[var] -= Helpers.information( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-		// We now have a clause that cannot be satisfied. Conflict.
-		if( tracePropagation ){
-		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=true" );
-		    dumpAssignments();
-		}
+                analyzeConflict( p, cno, var );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
@@ -488,11 +498,7 @@ public class SATContext implements java.io.Serializable {
             posinfo[var] -= Helpers.information( terms[cno] );
 	    terms[cno]--;
 	    if( terms[cno] == 0 ){
-		// We now have a clause that cannot be satisfied. Conflict.
-		if( tracePropagation ){
-		    System.err.println( "Clause " + p.clauses[cno] + " conflicts with var[" + var + "]=false" );
-		    dumpAssignments();
-		}
+                analyzeConflict( p, cno, var );
 	        return SATProblem.CONFLICTING;
 	    }
 	    if( terms[cno] == 1 ){
