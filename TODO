@@ -1,13 +1,18 @@
 IBIS:
 
-- reverse connection setup if one of the two sites has a firewall, but the other doesn't  -> much better performance than going through a central point]
++ reverse connection setup if one of the two sites has a firewall, but the other doesn't  -> much better performance than going through a central point]
+  Ceriel: not important, as this central point is only used during connection
+  setup.
 
 - autodetect connection setup mechanism (splicing, reverse, direct, central)
+  Ceriel: not so easy. Once you are trying to set up a brokered socket,
+  both sides have to agree on what types to try, use timeouts to detect
+  if a connection setup fails, ...
 
 satin:
 	- add semantic analysis to the compiler
 	  - forgotten sync statements
-	  - all params and return types must be serializable
+	  + all params and return types must be serializable (Ceriel: done)
 
 	- make return / throw an implicit sync again?
 	- add comments to abort / inlet machinism
