@@ -20,7 +20,6 @@ public abstract class SpawnSync extends Termination {
 
 		SpawnCounter res = spawnCounterCache;
 		spawnCounterCache = res.next;
-		res.value = 0;
 
 		return res;
 	}
@@ -40,8 +39,12 @@ public abstract class SpawnSync extends Termination {
 			System.exit(1);
 		}
 
-		s.next = spawnCounterCache;
-		spawnCounterCache = s;
+		// Only put it in the cache if its value is 0.
+		// If not, there may be references to it yet.
+		if (s.value == 0) {
+			s.next = spawnCounterCache;
+			spawnCounterCache = s;
+		}
 	}
 
 	protected void callSatinFunction(InvocationRecord r) {
@@ -63,6 +66,7 @@ public abstract class SpawnSync extends Termination {
 						+ ": EEK, r = null in callSatinFunc");
 				System.exit(1);
 			}
+
 			if (r.aborted) {
 				out.println("SATIN '" + ident.name()
 						+ ": spawning aborted job!");
@@ -109,7 +113,10 @@ public abstract class SpawnSync extends Termination {
 				out.print(": spawning job, parent was aborted! job = " + r);
 				out.println(", parent = " + r.parent + "\n");
 			}
-			r.spawnCounter.value--;
+			if (SPAWN_DEBUG) {
+				r.spawnCounter.decr(r);
+			}
+			else	r.spawnCounter.value--;
 			if (ASSERTS) {
 				if (r.spawnCounter.value < 0) {
 					out.println("SATIN '" + ident.name()
@@ -169,7 +176,10 @@ public abstract class SpawnSync extends Termination {
 				}
 			}
 
-			r.spawnCounter.value--;
+			if (SPAWN_DEBUG) {
+				r.spawnCounter.decr(r);
+			}
+			else	r.spawnCounter.value--;
 			if (ASSERTS && r.spawnCounter.value < 0) {
 				out.println("SATIN '" + ident.name()
 						+ ": Just made spawncounter < 0");
@@ -291,8 +301,6 @@ public abstract class SpawnSync extends Termination {
 			spawns++;
 		}
 
-		r.spawnCounter.value++;
-
 		if (branchingFactor > 0) {
 			//globally unique stamps start from 1 (root job)
 
@@ -308,6 +316,11 @@ public abstract class SpawnSync extends Termination {
 		}
 
 		r.owner = ident;
+
+		if (SPAWN_DEBUG) {
+			r.spawnCounter.incr(r);
+		}
+		else	r.spawnCounter.value++;
 
 		if (ABORTS || FAULT_TOLERANCE) {
 			r.parentStamp = parentStamp;

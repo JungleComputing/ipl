@@ -424,7 +424,10 @@ public abstract class WorkStealing extends Stats {
 				break;
 			
 			if (FAULT_TOLERANCE) {
-				r.spawnCounter.value--;
+				if (SPAWN_DEBUG) {
+					r.spawnCounter.decr(r);
+				}
+				else	r.spawnCounter.value--;
 				if (!FT_WITHOUT_ABORTS && !FT_NAIVE) {
 					attachToParentFinished(r);
 				}
@@ -434,7 +437,10 @@ public abstract class WorkStealing extends Stats {
 				    handleInlet(r);
 				}
 
-				r.spawnCounter.value--;
+				if (SPAWN_DEBUG) {
+					r.spawnCounter.decr(r);
+				}
+				else	r.spawnCounter.value--;
 			}
 
 			

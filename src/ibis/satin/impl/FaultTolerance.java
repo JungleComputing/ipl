@@ -356,7 +356,10 @@ public abstract class FaultTolerance extends Inlets {
 				}
 				ReturnRecord rr = value.result;
 				rr.assignTo(r);
-				r.spawnCounter.value--;
+				if (SPAWN_DEBUG) {
+					r.spawnCounter.decr(r);
+				}
+				else	r.spawnCounter.value--;
 				if (TABLE_CHECK_TIMING) {
 //					redoTimer.stop();
 				}
@@ -431,7 +434,10 @@ public abstract class FaultTolerance extends Inlets {
 					//local result, handle normally
 					ReturnRecord rr = value.result;
 					rr.assignTo(r);	
-					r.spawnCounter.value--;				
+					if (SPAWN_DEBUG) {
+						r.spawnCounter.decr(r);
+					}
+					else	r.spawnCounter.value--;
 					if (TABLE_CHECK_TIMING) {
 //						redoTimer.stop();
 					}

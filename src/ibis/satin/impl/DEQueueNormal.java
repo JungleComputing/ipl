@@ -137,7 +137,10 @@ final class DEQueueNormal extends DEQueue implements Config {
 							+ ", it depends on " + targetStamp);
 				}
 
-				curr.spawnCounter.value--;
+				if (SPAWN_DEBUG) {
+					curr.spawnCounter.decr(curr);
+				}
+				else	curr.spawnCounter.value--;
 				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.err.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
@@ -183,13 +186,18 @@ final class DEQueueNormal extends DEQueue implements Config {
 					|| Satin.isDescendentOf1(curr, owner)
 					|| curr.owner.equals(owner)) //shouldn't happen
 			{
-				curr.spawnCounter.value--;
+				if (SPAWN_DEBUG) {
+					curr.spawnCounter.decr(curr);
+				}
+				else	curr.spawnCounter.value--;
 				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncouter < )");
 					new Exception().printStackTrace();
 					System.exit(1);
 				}
+				
 				curr.aborted = true;
+
 				if (FT_STATS) {
 					satin.killedOrphans++;
 				}

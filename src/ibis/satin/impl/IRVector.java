@@ -123,7 +123,10 @@ final class IRVector implements Config {
 					System.out.println("found stolen child: " + curr.stamp
 							+ ", it depends on " + targetStamp);
 				}
-				curr.spawnCounter.value--;
+				if (SPAWN_DEBUG) {
+					curr.spawnCounter.decr(curr);
+				}
+				else	curr.spawnCounter.value--;
 				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
@@ -166,7 +169,10 @@ final class IRVector implements Config {
 					System.out.println("found stolen child: " + curr.stamp
 							+ ", it depends on " + targetStamp);
 				}
-				curr.spawnCounter.value--;
+				if (SPAWN_DEBUG) {
+					curr.spawnCounter.decr(curr);
+				}
+				else	curr.spawnCounter.value--;
 				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
@@ -211,7 +217,10 @@ final class IRVector implements Config {
 					System.out.println("found stolen child: " + curr.stamp
 							+ ", it depends on " + targetOwner);
 				}
-				curr.spawnCounter.value--; //not necessary?
+				if (SPAWN_DEBUG) {
+					curr.spawnCounter.decr(curr);
+				}
+				else	curr.spawnCounter.value--;
 				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
@@ -252,7 +261,10 @@ final class IRVector implements Config {
 			// actually
 			{
 				curr.aborted = true;
-				curr.spawnCounter.value--; //not necessary?
+				if (SPAWN_DEBUG) {
+					curr.spawnCounter.decr(curr);
+				}
+				else	curr.spawnCounter.value--;
 				if (ASSERTS && curr.spawnCounter.value < 0) {
 					System.out.println("Just made spawncounter < 0");
 					new Exception().printStackTrace();
@@ -276,7 +288,10 @@ final class IRVector implements Config {
 		for (int i = 0; i < count; i++) {
 			curr = l[i];
 			curr.aborted = true;
-			curr.spawnCounter.value--;
+			if (SPAWN_DEBUG) {
+				curr.spawnCounter.decr(curr);
+			}
+			else	curr.spawnCounter.value--;
 			removeIndex(i);
 			i--;
 		}

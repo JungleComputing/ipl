@@ -94,6 +94,9 @@ public abstract class Inlets extends Aborts {
 				// It is either on the stack or on a remote machine.
 				// Here, this is OK, the child threw an exception,
 				// the parent did not catch it, and must therefore die.
+				if (r.parent.aborted) {
+					return;
+				}
 				r.parent.aborted = true;
 				r.parent.eek = t; // rethrow exception
 				killChildrenOf(r.parent.stamp, r.parent.owner);
@@ -210,7 +213,10 @@ public abstract class Inlets extends Aborts {
 			//  If there is an inlet, call it.
 			handleInlet(r);
 
-			r.spawnCounter.value--;
+			if (SPAWN_DEBUG) {
+				r.spawnCounter.decr(r);
+			}
+			else	r.spawnCounter.value--;
 			if (ASSERTS && r.spawnCounter.value < 0) {
 				out.println("Just made spawncounter < 0");
 				new Exception().printStackTrace();

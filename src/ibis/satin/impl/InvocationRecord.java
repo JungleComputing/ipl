@@ -113,6 +113,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 		if (ABORTS) {
 			this.spawnId = spawnId;
 			this.parentLocals = parentLocals;
+			aborted = false;
 		} else if (FAULT_TOLERANCE) {
 			this.spawnId = spawnId;
 		}
