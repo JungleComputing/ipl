@@ -839,8 +839,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
     public SendPortIdentifier[] connectedTo() {
         synchronized (connectionTable) {
-            SendPortIdentifier t[]
-                = new SendPortIdentifier[connectionTable.size()];
+            int size = connectionTable.size();
+            SendPortIdentifier t[] = new SendPortIdentifier[size];
 
             Iterator it = connectionTable.values().iterator();
             int i = 0;
@@ -856,8 +856,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
     public SendPortIdentifier[] lostConnections() {
         synchronized (connectionTable) {
-            SendPortIdentifier t[]
-                = new SendPortIdentifier[disconnectedPeers.size()];
+            int size = disconnectedPeers.size();
+            SendPortIdentifier t[] = new SendPortIdentifier[size];
             disconnectedPeers.copyInto(t);
             disconnectedPeers.clear();
 
@@ -867,8 +867,8 @@ public final class NetReceivePort extends NetPort implements ReceivePort,
 
     public SendPortIdentifier[] newConnections() {
         synchronized (connectionTable) {
-            SendPortIdentifier t[]
-                = new SendPortIdentifier[connectedPeers.size()];
+            int size = connectedPeers.size();
+            SendPortIdentifier t[] = new SendPortIdentifier[size];
             connectedPeers.copyInto(t);
             connectedPeers.clear();
 
