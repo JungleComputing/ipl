@@ -1722,7 +1722,7 @@ ni_gm_process_recv_event(struct s_port   *p_port,
         p_in = p_port->active_input;
 
         remote_node_id = gm_ntohs(p_event->recv.sender_node_id);
-        assert(remote_node_id == p_in->src_node_id);
+        assert(remote_node_id == (int)p_in->src_node_id);
 
         ni_gm_deregister_block(p_port, p_in->p_cache);
         ni_gm_release_byte_array(p_in->j_byte_array, p_in->byte_array);

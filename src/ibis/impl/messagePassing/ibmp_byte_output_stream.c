@@ -2,6 +2,7 @@
  */
 
 #include <string.h>
+#include <inttypes.h>
 #include <jni.h>
 
 #include <pan_sys.h>

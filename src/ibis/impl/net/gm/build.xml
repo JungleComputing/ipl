@@ -4,7 +4,7 @@
 ]>
 
 <project
-    name="ibis.ipl.impl.messagePassing.mpi.native"
+    name="ibis.ipl.impl.net.gm.native"
     default="build"
     basedir=".">
 
@@ -26,15 +26,13 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
-    <property name="closure.lib" value="ibis_mp_mpi"/>
+    <property name="local.lib" value="ibis_local_net_gm"/>
+    <property name="closure.lib" value="net_ibis_gm"/>
 
-    <property name="mpi"          location="/usr/local/mpich/mpich-gm"/>
-    <property name="daslib"       location="/usr/local/VU/daslib"/>
+    <property name="gm"       location="/usr/local/gm/current"/>
 
     <path id="local.includes-ref">
-	<pathelement path="${native.dir}/../include"/>
-	<pathelement path="${daslib}/include"/>
-	<pathelement path="${mpi}/include"/>
+	<pathelement path="${gm}/include"/>
     </path>
     <property name="local.includes" refid="local.includes-ref"/>
 
@@ -42,13 +40,9 @@
     &nativeTargets;
 
 
-    <property name="gm"          location="/usr/local/gm/current"/>
-
-    <property name="das.lib.dir" location="${daslib}/lib/i386_Linux"/>
-    <property name="mpi.lib.dir" location="${mpi}/lib"/>
     <property name="gm.lib.dir"  location="${gm}/lib"/>
 
-    <target name="mpi-lib">
+    <target name="gm-lib">
 	<maplibrary property="library.path" name="${closure.lib}"/>
 	<echo level="warning" message="The library is ${library.path}"/>
 	<outofdate>
@@ -68,17 +62,11 @@
 			runtime="dynamic"
 			warnings="severe"
 			debug="${native.debug.value}">
-		    <libset dir="${mpi.lib.dir}"   libs="mpich"/>
 		    <libset dir="${gm.lib.dir}"    libs="gm"/>
-		    <libset dir="${das.lib.dir}"   libs="das"/>
 		    <includepath>
 			<pathelement path="${local.includes}"/>
 			<pathelement path="${default.includes}"/>
 		    </includepath>
-		    <defineset>
-			<define name="NDEBUG" if="native.optimize"/>
-		    </defineset>
-		    <compilerarg value="-O3" if="native.optimize"/>
 		    <fileset dir="." includes="*.c"/>
 		</cc>
 	    </sequential>
@@ -87,7 +75,7 @@
 
 
     <target name="build"
-	    depends="property-init,native-init,native-compile,mpi-lib">
+	    depends="native-init,native-compile,gm-lib">
     </target>
 
 </project>

@@ -29,7 +29,10 @@
     <property name="local.lib" value="ibis_local_mp_panda"/>
     <property name="closure.lib" value="ibis_mp_panda"/>
 
+    <!--
     <property name="panda"        location="/usr/local/VU/panda"/>
+    -->
+    <property name="panda"        location="/home1/rutger/panda"/>
     <property name="daslib"       location="/usr/local/VU/daslib"/>
 
     <path id="local.includes-ref">
@@ -47,24 +50,17 @@
     <property name="gm"           location="/usr/local/gm/current"/>
     <property name="lfc"          location="/usr/local/VU/lfc/lfc-gm"/>
 
-    <target name="panda-init-opt" depends="native-init" unless="native.debug">
-	<path id="local.libs-ref">
-	    <pathelement path="${daslib}/lib/i386_Linux/libdas.a"/>
-	    <pathelement path="${gm}/lib/libgm.a"/>
-	    <pathelement path="${lfc}/lib/optimized/liblfc.a"/>
-	    <pathelement path="${panda}/panda4.0/lib/i386_linux/lfc/no_threads/optimized/libpanda.a"/>
-	</path>
-	<property name="local.libs" refid="local.libs-ref"/>
+    <target name="panda-init-opt" depends="property-init,native-init" unless="native.debug">
+	<property name="lfc.lib.dir" location="${lfc}/lib/optimized"/>
+	<property name="panda.lib.dir" location="${panda}/panda4.0/lib/i386_linux/lfc/no_threads/optimized"/>
     </target>
     <target name="panda-init-debug" depends="native-init" if="native.debug">
-	<path id="local.libs-ref">
-	    <pathelement path="${daslib}/lib/i386_Linux/libdas.a"/>
-	    <pathelement path="${gm}/lib/libgm.a"/>
-	    <pathelement path="${lfc}/lib/debug/liblfc.a"/>
-	    <pathelement path="${panda}/panda4.0/lib/i386_linux/lfc/no_threads/libpanda.a"/>
-	</path>
-	<property name="local.libs" refid="local.libs-ref"/>
+	<property name="lfc.lib.dir" location="${lfc}/lib/debug"/>
+	<property name="panda.lib.dir" location="${panda}/panda4.0/lib/i386_linux/lfc/no_threads"/>
     </target>
+    <property name="das.lib.dir" location="${daslib}/lib/i386_Linux"/>
+    <property name="gm.lib.dir" location="${gm}/lib"/>
+
     <target name="panda-init" depends="panda-init-opt,panda-init-debug"/>
 
     <target name="-lib.current">
@@ -76,17 +72,14 @@
 	</exec>
     </target>
 
-    <target name="panda-lib" depends="panda-init,native-compile">
+    <target name="panda-lib" depends="panda-init">
+	<!-- ,native-compile -->
 	<maplibrary property="library.path" name="${closure.lib}"/>
 	<echo level="warning" message="The library is ${library.path}"/>
 	<outofdate>
 	    <sourcefiles>
-		<pathelement path="${local.libs}"/>
-		<fileset dir="${build}/ibis/${native-path}/..">
-		    <include name="*.o"/>
-		</fileset>
-		<fileset dir="${build}/ibis/${native-path}">
-		    <include name="*.o"/>
+		<fileset dir=".">
+		    <include name="*.c"/>
 		</fileset>
 	    </sourcefiles>
 	    <targetfiles>
@@ -94,38 +87,33 @@
 	    </targetfiles>
 
 	    <sequential>
-		<mkdir dir="${build}/lib/so"/>
-		<foreach
-			delimiter="${path.separator}"
-			list="${local.libs}"
-			param="lib.current"
-			target="-lib.current"/>
-		<copy
-			todir="${build}/lib/so">
-		    <fileset
-			    dir="${build}/ibis/${native-path}/.."
-			    includes="*.o"/>
-		</copy>
-		<copy
-			todir="${build}/lib/so">
-		    <fileset
-			    dir="${build}/ibis/${native-path}"
-			    includes="*.o"/>
-		</copy>
 		<cc
 			outfile="${build}/lib/${closure.lib}"
 			outtype="shared"
+			runtime="dynamic"
 			warnings="severe"
 			debug="${native.debug.value}">
-		    <fileset dir="${build}/lib/so" includes="*.o"/>
+		    <libset dir="${build}/lib"     libs="ibis_mp"/>
+		    <libset dir="${panda.lib.dir}" libs="panda"/>
+		    <libset dir="${lfc.lib.dir}"   libs="lfc"/>
+		    <libset dir="${gm.lib.dir}"    libs="gm"/>
+		    <libset dir="${das.lib.dir}"   libs="das"/>
+		    <includepath>
+			<pathelement path="${local.includes}"/>
+			<pathelement path="${default.includes}"/>
+		    </includepath>
+		    <defineset>
+			<define name="NDEBUG" if="native.optimize"/>
+		    </defineset>
+		    <compilerarg value="-O3" if="native.optimize"/>
+		    <fileset dir="." includes="*.c"/>
 		</cc>
-		<delete dir="${build}/lib/so"/>
 	    </sequential>
 	</outofdate>
     </target>
 
     <target name="build"
-	    depends="native-init,native-compile,panda-lib">
+	    depends="native-init,panda-lib">
     </target>
 
 </project>

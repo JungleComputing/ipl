@@ -148,12 +148,6 @@
     <target name="javah"
 	    depends="javah-init,find-natives"
 	    description="Invoke javah over list in ${build}/NativeMethodClasses">
-	<!--
-	<javah destdir="${build}/include" verbose="true">
-	    <class name="ibis.io.Conversion"/>
-	    <classpath refid="default.classpath"/>
-	</javah>
-	-->
 	<loadfile
 		property="classes.native"
 		srcFile="${build}/NativeMethodClasses">
@@ -281,24 +275,36 @@
 
 	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
 
-	<cc	debug="${native.debug.value}"
-		objdir="${build}/ibis/${native-path}"
-		outfile="${build}/lib/${local.lib}"
-		outtype="${cc.outtype}"
-		name="${c.compiler}"
-		warnings="severe">
-	    <fileset dir="${native.dir}" includes="*.c"/>
-	    <defineset>
-		<define name="NDEBUG" if="native.optimize"/>
-	    </defineset>
-	    <compilerarg value="-O3" if="native.optimize"/>
-	    <includepath>
-		<pathelement path="${local.includes}"/>
-		<pathelement path="${default.includes}"/>
-	    </includepath>
-	    <!-- <compilerarg location="mid" value="-E"/> -->
-	    <!-- <compilerarg location="mid" value="-v"/> -->
-	</cc>
+	<maplibrary property="library.path" name="${build}/lib/${local.lib}"/>
+	<outofdate>
+	    <sourcefiles>
+		<fileset dir="${native.dir}" includes="*.c"/>
+	    </sourcefiles>
+	    <targetfiles>
+		<pathelement path="${build}/lib/${library.path}"/>
+	    </targetfiles>
+
+	    <sequential>
+		<cc	debug="${native.debug.value}"
+			objdir="${build}/ibis/${native-path}"
+			outfile="${build}/lib/${local.lib}"
+			outtype="${cc.outtype}"
+			name="${c.compiler}"
+			warnings="severe">
+		    <fileset dir="${native.dir}" includes="*.c"/>
+		    <defineset>
+			<define name="NDEBUG" if="native.optimize"/>
+		    </defineset>
+		    <compilerarg value="-O3" if="native.optimize"/>
+		    <includepath>
+			<pathelement path="${local.includes}"/>
+			<pathelement path="${default.includes}"/>
+		    </includepath>
+		    <!-- <compilerarg location="mid" value="-E"/> -->
+		    <!-- <compilerarg location="mid" value="-v"/> -->
+		</cc>
+	    </sequential>
+	</outofdate>
     </target>
 
 
@@ -307,7 +313,8 @@
 	directory
     -->
     <target name="native"
-	    depends="native-init,javah">
+	    depends="native-init">
+	    <!-- ",javah" -->
 	<ant inheritAll="false" dir="." target="native-compile">
 	    <property name="native.dir" value="."/>
 	    <property name="build" value="${build}"/>
@@ -316,6 +323,7 @@
 	    -->
 	    <property name="optimization" value="${optimization}"/>
 	    <property name="package.home.ant-cpptasks" value="${package.home.ant-cpptasks}"/>
+	    <property name="package.home.ant-contrib" value="${package.home.ant-contrib}"/>
 	</ant>
     </target>
 

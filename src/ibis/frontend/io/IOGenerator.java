@@ -104,9 +104,10 @@ public class IOGenerator {
 	    try {
 		Class	cl = Class.forName(classname);
 		java.io.ObjectStreamClass ocl = java.io.ObjectStreamClass.lookup(cl);
-		//@@@ added by rob: it seems that the lookup returns null when not found.
-		// The ClassNotFoundException is not thrown.
-		if(ocl == null) return;
+		if (ocl == null) {
+		    System.err.println("IOGenerator attempts to rewrite non-Serializable class " + classname + " -- ignore");
+		    return;
+		}
 		long	uid = ocl.getSerialVersionUID();
 		FieldGen f = new FieldGen(Constants.ACC_PRIVATE|Constants.ACC_FINAL|Constants.ACC_STATIC, 
 					  Type.LONG,
@@ -1759,6 +1760,7 @@ public class IOGenerator {
 	for (int i=0;i<target_classes.size();i++) {
 	    JavaClass clazz = (JavaClass)target_classes.get(i);
 	    if (! clazz.isInterface()) {
+		if (true || verbose) System.out.println("  Rewrite class : " + clazz.getClassName());
 		new CodeGenerator(clazz).generateCode();
 	    }
 	}

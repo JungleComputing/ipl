@@ -6,7 +6,7 @@
 ]>
 
 <project
-    name="ibis.apps.satin.fib"
+    name="ibis.apps.ibis.benchmarks.rpc"
     default="build"
     basedir=".">
 
@@ -24,13 +24,14 @@
     &nativeTargets;
     &satinTargets;
 
-    <target name="init">
+    <target name="init" depends="property-init">
 	<tstamp/>
 	<mkdir dir="${build}"/>
     </target>
 
     <target name="compile"
 	    depends="init">
+	<echo message="java.debug.value = ${java.debug.value}"/>
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir=".">
@@ -41,6 +42,7 @@
 
     <target name="build"
 	    depends="init">
+	<echo message="package.home.ant-contrib = ${package.home.ant-contrib}"/>
 	<antcall target="compile"/>
 	<antcall target="iogen"/>
     </target>

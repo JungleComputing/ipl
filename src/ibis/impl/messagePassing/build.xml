@@ -26,7 +26,8 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
-    <property name="local.lib" value="ibis_mp"/>
+    <property name="local.lib" value="libibis_mp"/>
+    <property name="cc.outtype" value="static"/>
 
     &sharedProperties;
     &nativeTargets;

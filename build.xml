@@ -15,75 +15,6 @@
 
     <property name="ibis"        location="."/>
 
-    <target name="configure">
-	<input	message="Please enter the install directory of BCEL: "
-		addproperty="config.home.bcel-home"/>
-	<input	message="Please enter the install directory of BCEL-additions: "
-		addproperty="config.home.bcel-additions"/>
-	<input	message="Please enter the install directory of ant-contrib: "
-		addproperty="config.home.ant-contrib"/>
-	<input	message="Please enter the install directory of ant-cpptasks: "
-		addproperty="config.home.ant-cpptasks"/>
-
-	<property name="package.home.ibis"
-		location="${ibis}"/>
-	<property name="package.home.bcel-home"
-		location="${config.home.bcel-home}"/>
-	<property name="package.home.bcel-additions"
-		location="${config.home.bcel-additions}"/>
-	<property name="package.home.ant-contrib"
-		location="${config.home.ant-contrib}"/>
-	<property name="package.home.ant-cpptasks"
-		location="${config.home.ant-cpptasks}"/>
-
-	<!--
-	<echo	file="config.status"
-		append="false">${package.home.bcel-home}
-	</echo>
-	<echo	file="config.status"
-		append="true">${package.home.bcel-additions}
-	</echo>
-	<echo	file="config.status"
-		append="true">${package.home.ant-contrib}
-	</echo>
-	<echo	file="config.status"
-		append="true">${package.home.ant-cpptasks}
-	</echo>
-	-->
-
-	<copy
-		overwrite="true"
-		file="${ibis}/build-properties.in"
-		tofile="${ibis}/build-properties">
-	    <filterchain>
-		<filterreader
-			classname="org.apache.tools.ant.filters.ReplaceTokens">
-		    <param  type="token"
-			    name="IBIS"
-			    value="${package.home.ibis}"/>
-		    <param  type="token"
-			    name="BCEL_HOME"
-			    value="${package.home.bcel}"/>
-		    <param  type="token"
-			    name="BCEL_ADDITIONS"
-			    value="${package.home.bcel-additions}"/>
-		    <param  type="token"
-			    name="ANT_CONTRIB"
-			    value="${package.home.ant-contrib}"/>
-		    <param  type="token"
-			    name="ANT_CPPTASKS"
-			    value="${package.home.ant-cpptasks}"/>
-		</filterreader>
-	    </filterchain>
-	</copy>
-	<replaceregexp
-		file="${ibis}/build-properties"
-		flags="g"
-		match="\${file.separator}"
-		replace="/"/>
-    </target>
-
-
     &sharedProperties;
 
     <property name="src"         location="${ibis}/.."/>
@@ -92,7 +23,7 @@
     <target name="init" depends="property-init">
 	<tstamp/>
 	<echo message="packages:"/>
-	<echo message="package.home.bcel-home      = ${package.home.bcel-home}"/>
+	<echo message="package.home.bcel      = ${package.home.bcel}"/>
 	<echo message="package.home.bcel-additions = ${package.home.bcel-additions}"/>
 	<echo message="package.home.ant-contrib    = ${package.home.ant-contrib}"/>
 	<echo message="package.home.ant-cpptasks   = ${package.home.ant-cpptasks}"/>
@@ -133,8 +64,10 @@
 	<pathelement path="${ibis}/ipl/impl/messagePassing"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing/panda"/>
 	<pathelement path="${ibis}/ipl/impl/messagePassing/mpi"/>
-	<!-- <pathelement path="${ibis}/ipl/impl/net/gm"/> -->
+	<pathelement path="${ibis}/ipl/impl/net/gm"/>
 	<pathelement path="${ibis}/util/nativeCode"/>
+	<!--
+	-->
     </path>
 
     <property name="native.src.path" refid="native.src.dirs"/>
@@ -143,16 +76,72 @@
     &iogenTargets;
 
 
+    <target name="src-file-init" depends="init">
+	<path id="src.files.id">
+	    <fileset dir="${ibis}/..">
+		<include name="ibis/frontend/**/*.java"/>
+		<include name="ibis/group/**/*.java"/>
+		<include name="ibis/io/**/*.java"/>
+
+		<include name="ibis/ipl/**/*.java"/>
+		<exclude name="ibis/ipl/impl/net/nio/**/*.java"/>
+		<!--
+		<exclude name="ibis/ipl/impl/net/gm/**/*.java"/>
+		-->
+		<exclude name="ibis/ipl/impl/net/muxer/tcp_blk/**/*.java"/>
+		<exclude name="ibis/ipl/impl/messagePassing/panda/**/*.java"/>
+
+		<include name="ibis/satin/**/*.java"/>
+		<include name="ibis/classfile/**/*.java"/>
+		<include name="ibis/rmi/**/*.java"/>
+		<include name="ibis/util/**/*.java"/>
+	    </fileset>
+	</path>
+	<property name="src.path.files" refid="src.files.id"/>
+	<echo message="${src.path.files}" file="${build}/source-files"/>
+	<replace file="${build}/source-files" token="${src}${file.separator}" value=""/>
+	<replace file="${build}/source-files" token="${path.separator}" value=","/>
+	<loadfile srcFile="${build}/source-files" property="src.files"/>
+    </target>
+
+
+    <target name="depend">
+	<depend
+		srcDir="${src}"
+		destDir="${build}"
+		cache="${build}/depCache"
+		classpath="${src}"
+		dump="true"
+		>
+		<!-- closure="yes" -->
+	    <include name="ibis/**/*.java"/>
+	    <exclude name="${package.home.ant-contrib}/**/*.java"/>
+	    <exclude name="${package.home.ant-cpptasks}/**/*.java"/>
+	    <!--
+	    <include name="${src.files}"/>
+	    -->
+	</depend>
+    </target>
+
+
     <!--
 	Contains the list of directories where we want to compile sources
     -->
     <target name="compile"
-	    depends="init,bcel"
+	    depends="init,bcel,src-file-init"
 	    description="Compile Ibis to .class">
+	    <!-- depend" -->
+	<echo message="java.debug.value = ${java.debug.value}"/>
+	<!--
+	<echo message="I want to compile under ${src}: ${src.files}"/>
+	-->
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
+		listfiles="true"
+		includes="${src.files}"
 		srcdir="${src}">
 
+	    <!--
 	    <include name="ibis/frontend/**/*.java"/>
 	    <include name="ibis/group/**/*.java"/>
 	    <include name="ibis/io/**/*.java"/>
@@ -167,6 +156,10 @@
 	    <include name="ibis/classfile/**/*.java"/>
 	    <include name="ibis/rmi/**/*.java"/>
 	    <include name="ibis/util/**/*.java"/>
+	    -->
+	    <!--
+	    <include name="${src.files}"/>
+	    -->
 
 	    <classpath refid="default.classpath"/>
 	</javac>
@@ -277,6 +270,7 @@
 	    -->
 	    <property name="optimization" value="${optimization}"/>
 	    <property name="package.home.ant-cpptasks" value="${package.home.ant-cpptasks}"/>
+	    <property name="package.home.ant-contrib" value="${package.home.ant-contrib}"/>
 	</ant>
     </target>
 
@@ -284,8 +278,7 @@
     <!--
 	Compile the native code in all directories indicated by native.src.path
     -->
-    <target name="natives"
-	    depends="javah">
+    <target name="natives">
 	    <!-- depends="compile,javah"-->
 	<echo	level="debug"
 		message="Native directories = ${native.src.path}"/>
@@ -306,6 +299,7 @@
 	    description="Build Ibis">
 	<antcall inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="iogen"/>
+	<antcall inheritRefs="true" target="javah"/>
 	<antcall inheritRefs="true" target="natives"/>
     </target>
 
@@ -388,6 +382,80 @@
     <target name="clean">
 	<delete dir="build"/>
     </target>
+
+    <target name="distclean" depends="clean">
+	<delete file="build-properties"/>
+    </target>
+
+
+    <target name="configure">
+	<input	message="Please enter the install directory of BCEL: "
+		addproperty="config.home.bcel"/>
+	<input	message="Please enter the install directory of BCEL-additions: "
+		addproperty="config.home.bcel-additions"/>
+	<input	message="Please enter the install directory of ant-contrib: "
+		addproperty="config.home.ant-contrib"/>
+	<input	message="Please enter the install directory of ant-cpptasks: "
+		addproperty="config.home.ant-cpptasks"/>
+
+	<property name="package.home.ibis"
+		location="${ibis}"/>
+	<property name="package.home.bcel"
+		location="${config.home.bcel}"/>
+	<property name="package.home.bcel-additions"
+		location="${config.home.bcel-additions}"/>
+	<property name="package.home.ant-contrib"
+		location="${config.home.ant-contrib}"/>
+	<property name="package.home.ant-cpptasks"
+		location="${config.home.ant-cpptasks}"/>
+
+	<!--
+	<echo	file="config.status"
+		append="false">${package.home.bcel}
+	</echo>
+	<echo	file="config.status"
+		append="true">${package.home.bcel-additions}
+	</echo>
+	<echo	file="config.status"
+		append="true">${package.home.ant-contrib}
+	</echo>
+	<echo	file="config.status"
+		append="true">${package.home.ant-cpptasks}
+	</echo>
+	-->
+
+	<copy
+		overwrite="true"
+		file="${ibis}/build-properties.in"
+		tofile="${ibis}/build-properties">
+	    <filterchain>
+		<filterreader
+			classname="org.apache.tools.ant.filters.ReplaceTokens">
+		    <param  type="token"
+			    name="IBIS"
+			    value="${package.home.ibis}"/>
+		    <param  type="token"
+			    name="BCEL_HOME"
+			    value="${package.home.bcel}"/>
+		    <param  type="token"
+			    name="BCEL_ADDITIONS"
+			    value="${package.home.bcel-additions}"/>
+		    <param  type="token"
+			    name="ANT_CONTRIB"
+			    value="${package.home.ant-contrib}"/>
+		    <param  type="token"
+			    name="ANT_CPPTASKS"
+			    value="${package.home.ant-cpptasks}"/>
+		</filterreader>
+	    </filterchain>
+	</copy>
+	<replaceregexp
+		file="${ibis}/build-properties"
+		flags="g"
+		match="\${file.separator}"
+		replace="/"/>
+    </target>
+
 
 
 </project>

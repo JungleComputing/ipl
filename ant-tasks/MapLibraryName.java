@@ -1,11 +1,34 @@
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.types.EnumeratedAttribute;
+
+
+class OutputTypeEnum extends EnumeratedAttribute {
+
+    private final static String[] values = new String[] {
+	"shared",
+	"static"
+    };
+
+    public OutputTypeEnum() {
+	setValue("shared");
+    }
+
+    public String[] getValues() {
+	return (String[]) values.clone();
+    }
+
+}
+
 
 public class MapLibraryName extends Task {
 
     private String property;
     private String name;
+
+    private OutputTypeEnum outtype = new OutputTypeEnum();
+
 
     public void execute() throws BuildException {
 	if (property == null) {
@@ -15,7 +38,12 @@ public class MapLibraryName extends Task {
 	    throw new BuildException("MapLibraryName requires a \"name\" field");
 	}
 
-	String libName = System.mapLibraryName(name);
+	String libName;
+	if (outtype.getValue().equals("shared")) {
+	    libName = System.mapLibraryName(name);
+	} else {
+	    libName = name;
+	}
 	addProperty(property, libName);
     }
 
@@ -33,5 +61,9 @@ public class MapLibraryName extends Task {
 
     public void setName(String name) {
 	this.name = name;
+    }
+
+    public void setOuttype(OutputTypeEnum outputType) {
+	this.outtype = outputType;
     }
 }
