@@ -10,6 +10,7 @@
  */
 
 import ibis.ipl.*;
+import ibis.util.nativeCode.Rdtsc;
 
 class SOR {
 
@@ -37,6 +38,11 @@ class SOR {
 	private final ReceivePort rightR;
 	private final SendPort reduceS;
 	private final ReceivePort reduceR;
+
+	private final boolean TIMINGS = false;
+	private Rdtsc t_compute     = new Rdtsc();
+	private Rdtsc t_communicate = new Rdtsc();
+	private Rdtsc t_reduce      = new Rdtsc();
 	
 	SOR(int nrow, int ncol, int N, int rank, int size, int maxIters,
 	    SendPort leftS, SendPort rightS, 
@@ -89,6 +95,16 @@ class SOR {
 		omega    = temp_omega*0.8;                   /* magic factor */
 	
 		g = createGrid();
+
+		if(rank==0) {
+			System.out.println("Problem parameters");
+			System.out.println("r       : " + r);
+			System.out.println("omega   : " + omega);
+			System.out.println("stopdiff: " + stopdiff);
+			System.out.println("lb      : " + lb);
+			System.out.println("ub      : " + ub);
+			System.out.println("");
+		} 
 	}
 
 	private double [][] createGrid() {
@@ -99,7 +115,11 @@ class SOR {
 			g[i] = new double[ncol]; /* malloc the own range plus one more line */
 			/* of overlap on each border */
 		}
+
+		return g;
+	}
 		
+	private void initGrid() {
 		/* initialize the grid */
 		for (int i = lb-1; i <=ub; i++){
 			for (int j = 0; j < ncol; j++){
@@ -110,8 +130,6 @@ class SOR {
 				else g[i][j] = 0.0;      
 			}
 		}
-
-		return g;
 	}
 	
 	private double stencil (int row, int col) {
@@ -184,20 +202,12 @@ class SOR {
 		return value;
 	} 
 	
-	public void start () throws Exception {
+	public void start (String runName) throws Exception {
 		
 		long t_start,t_end;             /* time values */
 		double maxdiff;
 
-		if(rank==0) {
-			System.out.println("Problem parameters");
-			System.out.println("r       : " + r);
-			System.out.println("omega   : " + omega);
-			System.out.println("stopdiff: " + stopdiff);
-			System.out.println("lb      : " + lb);
-			System.out.println("ub      : " + ub);
-			System.out.println("");
-		} 
+		initGrid();
 
 		// abuse the reduce as a barrier
 		if (size > 1) {
@@ -208,6 +218,12 @@ class SOR {
 			System.out.println("... and they're off !");
 			System.out.flush();
 		}
+
+		if (TIMINGS) {
+		    t_compute.reset();
+		    t_communicate.reset();
+		    t_reduce.reset();
+		}
 		
 		/* now do the "real" computation */
 		t_start = System.currentTimeMillis();
@@ -215,6 +231,7 @@ class SOR {
 		int iteration = 0;
 		
 		do {
+			if (TIMINGS) t_communicate.start();
 			if (even(rank) == 1) { 
 				if(rank != 0) send(PREV, g[lb]);
 				if(rank != size-1) send(NEXT, g[ub-1]);
@@ -226,7 +243,9 @@ class SOR {
 				if(rank != size-1) send(NEXT, g[ub-1]);
 				if(rank != 0) send(PREV, g[lb]);
 			} 
+			if (TIMINGS) t_communicate.stop();
 
+			if (TIMINGS) t_compute.start();
 			maxdiff = 0.0;
 						
 			for (int phase = 0; phase < 2 ; phase++){
@@ -243,9 +262,12 @@ class SOR {
 					}
 				}
 			}
+			if (TIMINGS) t_compute.stop();
 			
 			if (size > 1) {
+				if (TIMINGS) t_reduce.start();
 				maxdiff = reduce(maxdiff);
+				if (TIMINGS) t_reduce.stop();
 			} 
 			
 			if(rank==0) {
@@ -264,8 +286,15 @@ class SOR {
 //	}
 		
 		if (rank == 0){
-			System.out.println("SOR " + nrow + " x " + ncol + " took " + ((t_end - t_start)/1000.0) + " sec.");
+			System.out.println(runName + " " + nrow + " x " + ncol + " took " + ((t_end - t_start)/1000.0) + " sec.");
 			System.out.println("using " + iteration + " iterations, diff is " + maxdiff + " (allowed diff " + stopdiff + ")");
+		}
+		if (TIMINGS && ! runName.equals("warmup")) {
+		    System.err.println(rank + ": t_compute " + t_compute.nrTimes() + " time " + t_compute.averageTime());
+		    System.err.println(rank + ": t_communicate " + t_communicate.nrTimes() + " time " + t_communicate.averageTime());
+		    System.err.println(rank + ": t_reduce " + t_reduce.nrTimes() + " time " + t_reduce.averageTime());
+		    t_communicate = new Rdtsc();
+		    t_reduce      = new Rdtsc();
 		}
 	}
 

@@ -229,7 +229,8 @@ class Main {
 			}
 
 			SOR local = new SOR(nrow, ncol, N, info.rank(), info.size(), maxIters, leftS, rightS, leftR, rightR, reduceS, reduceR);	    
-			local.start();
+			local.start("warmup");
+			local.start("SOR");
 
 			if (leftS != null) {
 				leftS.close();

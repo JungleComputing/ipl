@@ -1,14 +1,20 @@
 #!/bin/bash
 
-reservation="705778"
+reservation="706444"
 reserve="-reserve $reservation"
-nodes="2 4 8 16 32"
+# nodes="2 4 8 16 32"
+nodes="32"
 options="1024 1190"
+# options="128 10"
+runs=10
+# runs=1
 
 preserve -long-list | grep $reservation
 
-sers="data ibis sun"
-ibises="tcp net.bytes.gen.tcp_blk panda net.gm"
+# sers="data ibis sun"
+sers="data"
+# ibises="tcp net.bytes.gen.tcp_blk panda net.gm"
+ibises="panda net.gm"
 
 if false ; then
 	for ibis in $ibises ; do
@@ -16,12 +22,12 @@ if false ; then
 		    for ser in $sers ; do
 			echo "ser=$ser node=$node ibis=$ibis"
 			prun -v -1 -no-panda $reserve /usr/local/bin/kill_finished $node < /dev/null > /dev/null 2>&1
-			prun -t 4:0 -v -1 -no-panda $reserve ~/ibis/bin/run-das $node -Dibis.name=$ibis -Dibis.serialization=$ser Main $options < /dev/null | grep took 2>&1
+			prun -t 4:0 -v -1 -no-panda $reserve ~/ibis/bin/run-das $node -Dibis.name=$ibis -Dibis.serialization=$ser Main $options < /dev/null | egrep "SOR [0-9]+ x [0-9]+ took"
 		    done
 	done
 fi
 
-for (( i = 0; i < 10; i++ )) ; do
+for (( i = 0; i < $runs; i++ )) ; do
     for ibis in $ibises ; do
 	for node in $nodes ; do
 	    for ser in $sers ; do

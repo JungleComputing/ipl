@@ -36,10 +36,10 @@ if ($print_sequential) {
 }
 $sequential = 0;
 $n = 0;
-foreach ( @serializations ) {
-    $ser = $_;
-    foreach ( @ibises ) {
-	$ibis = $_;
+foreach ( @ibises ) {
+    $ibis = $_;
+    foreach ( @serializations ) {
+	$ser = $_;
 	$node = 1;
 	$ix = $ibis . "/" . $ser . "@" . $node;
 	if ( $n { $ix } > 0) {
@@ -58,25 +58,26 @@ foreach ( @serializations ) {
 $sequential /= $n;
 
 printf("*** PARALLEL ***\n");
-printf("%-4s %-24s %-8s %-4s %8s %8s %8s\n",
-	"N", "Ibis", "Ser", "cpus", "min(us)", "av.(us)", "speedup");
-foreach ( @serializations ) {
-    $ser = $_;
-    foreach ( @ibises ) {
-	$ibis = $_;
+printf("%-4s %-24s %-8s %-4s %8s %8s %8s %8s\n",
+	"N", "Ibis", "Ser", "cpus", "min(us)", "av.(us)", "speedup", "eff.");
+foreach ( @ibises ) {
+    $ibis = $_;
+    foreach ( @serializations ) {
+	$ser = $_;
 	foreach ( @nodes ) {
 	    $node = $_;
 	    $ix = $ibis . "/" . $ser . "@" . $node;
 	    if ($node != 1) {
 		if ( $n { $ix } > 0) {
 		    $speedup = $sequential / $min_lat { $ix };
-		    printf("%-4d %-24s %-8s %-4d %8.1f %8.1f %8.3f\n",
+		    printf("%-4d %-24s %-8s %-4d %8.1f %8.1f %8.3f %8.3f\n",
 			    $n { $ix },
 			    "$ibis", "$ser", 
 			    $node,
 			    $min_lat { $ix },
 			    $average{ $ix } / $n { $ix },
-			    $speedup);
+			    $speedup,
+			    $speedup / $node);
 		}
 	    }
 	}
