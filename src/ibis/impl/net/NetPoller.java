@@ -176,7 +176,7 @@ public abstract class NetPoller extends NetInput {
 				try {
 				    NetPoller.this.wait();
 				} catch (InterruptedException e) {
-				    // Ignore
+                                        throw new NetIbisInterruptedException(e);
 				}
 			    }
 			}
