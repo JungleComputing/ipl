@@ -234,7 +234,14 @@ public abstract class Ibis {
 
 	String implementationname = null;
 
-	StaticProperties combinedprops = reqprop.combineWithUserProps();
+	StaticProperties combinedprops;
+
+	if (reqprop == null) {
+	    combinedprops = (new StaticProperties()).combineWithUserProps();
+	}
+	else {
+	    combinedprops = reqprop.combineWithUserProps();
+	}
 
 	String ibisname = combinedprops.find("name");
 
