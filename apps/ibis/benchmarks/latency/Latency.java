@@ -403,7 +403,7 @@ class Latency implements Config {
 			    s.add("Serialization", "ibis");
 			}
 			else if (noneSer) { 
-			    s.add("Serialization", "none");
+			    s.add("Serialization", "byte");
 			}
 			else s.add("Serialization", "sun");
 
