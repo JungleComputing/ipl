@@ -15,17 +15,8 @@ public class Vehicle implements Configuration, java.io.Serializable {
     protected Vehicle( double s, double ds )
     {
 	preferedVelocity = s + ds*r.nextGaussian();
+	velocity = preferedVelocity;
 	label = labeler++;
     }
 
-    void updatePosition( Vehicle front )
-    {
-	if( front != null && position+SAFE_DISTANCE<front.position ){
-	    velocity = front.velocity;
-	}
-	else {
-	    velocity = preferedVelocity;
-	}
-	position += velocity;
-    }
 }

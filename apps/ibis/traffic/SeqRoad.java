@@ -4,19 +4,21 @@ import java.util.Random;
 
 class SeqRoad implements Configuration {
     final int TICKS = 100000;
-    final double launchInterval = 3.1;
+    final double launchInterval = 5.1;
     double launchElapsed = launchInterval;
-    static final int CARS_PER_TRUCK = 3;
+    static final int CARS_PER_TRUCK = 4;
     Vehicle lanes[] = new Vehicle[LANES];
     Random r = new Random( 0 );
-    static final boolean traceVehicleUpdates = true;
-    static final boolean traceRetiring = true;
+    static final boolean traceVehicleUpdates = false;
+    static final boolean traceCreateRetire = true;
+    static final boolean traceBraking = true;
+    static final boolean traceLaneSwitching = true;
 
     SeqRoad()
     {
     }
 
-    private void launchVehicle()
+    private void launchVehicle( int tick )
     {
 	Vehicle v;
 
@@ -26,6 +28,9 @@ class SeqRoad implements Configuration {
 	}
 	else {
 	    v = new Car();
+	}
+	if( traceCreateRetire ){
+	    System.out.println( "T" + tick + ": launching " + v );
 	}
 	v.next = lanes[0];
 	lanes[0] = v;
@@ -54,7 +59,7 @@ class SeqRoad implements Configuration {
      * Cars slow down to avoid hitting the one in front, and switch
      * lanes if their speed is too low.
      */
-    private void updateVehiclePositions()
+    private void updateVehiclePositions( int tick )
     {
 	/** For each lane, the first car we haven't updated yet. */
 	Vehicle front[] = (Vehicle []) lanes.clone();
@@ -70,14 +75,54 @@ class SeqRoad implements Configuration {
 	    }
 	    Vehicle v = front[lane];
 
-	    v.updatePosition( v.next );
 	    if( traceVehicleUpdates ){
 		System.out.println( "Update vehicle in lane " + lane + ": " + v );
 	    }
+	    Vehicle vfront = v.next;
+	    double frontpos = v.position+2*SAFE_DISTANCE;
+	    double frontVelocity = 2*v.preferedVelocity;
+
+	    if( lane+1<LANES ){
+		// If there is a car in the next lane, watch its speed.
+		Vehicle vn = front[lane+1];
+		if( vn != null ){
+		    frontpos = vn.position;
+		    frontVelocity = vn.velocity;
+		}
+	    }
+	    if( v.next != null ){
+		// If there is a car in front of us, watch its speed.
+		Vehicle vn = v.next;
+
+		frontpos = Math.min( frontpos, vn.position );
+		frontVelocity = Math.min( frontVelocity, vn.velocity );
+	    }
+
+	    if( v.position+SAFE_DISTANCE>frontpos ){
+		// If we're too close, brake 
+		v.velocity = v.velocity-STRONG_BRAKE_VELOCITY;
+		if( traceBraking ){
+		    System.out.println( "T" + tick + ": strong braking of " + v );
+		}
+	    }
+	    else if( v.position+COMFORTABLE_DISTANCE>frontpos ){
+		// Too close for comfort but safe, adapt velocity.
+		v.velocity = Math.max( v.velocity-COMFORTABLE_BRAKE_VELOCITY, frontVelocity );
+		if( v.velocity<frontVelocity ){
+		    v.velocity = Math.min( frontVelocity, v.velocity+COMFORTABLE_BRAKE_VELOCITY );
+		}
+		if( traceBraking ){
+		    System.out.println( "T" + tick + ": comfort adjustment of " + v );
+		}
+	    }
+	    else {
+		v.velocity = v.preferedVelocity;
+	    }
+	    v.position += v.velocity;
 	    if( v.position>= ROAD_LENGTH ){
 		// Retire this car.
-		if( traceRetiring ){
-		    System.out.println( "Retiring " + v );
+		if( traceCreateRetire ){
+		    System.out.println( "T" + tick + ": retiring " + v );
 		}
 		if( prev[lane] == null ){
 		    lanes[lane] = v.next;
@@ -95,12 +140,12 @@ class SeqRoad implements Configuration {
 	// TODO: retire vehicles.
     }
 
-    private void runTick()
+    private void runTick( int tick )
     {
-	updateVehiclePositions();
+	updateVehiclePositions( tick );
 	if( launchElapsed >= launchInterval ){
 	    launchElapsed -= launchInterval;
-	    launchVehicle();
+	    launchVehicle( tick );
 	}
 	launchElapsed += 1.0;
     }
@@ -108,7 +153,7 @@ class SeqRoad implements Configuration {
     private void runSimulation()
     {
 	for( int tick=0; tick<TICKS; tick++ ){
-	    runTick();
+	    runTick( tick );
 	}
     }
 
