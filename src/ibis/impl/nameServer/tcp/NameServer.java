@@ -510,6 +510,7 @@ public class NameServer implements Protocol {
 		boolean control_hub = false;
 		NameServer ns = null;
 		int port = TCP_IBIS_NAME_SERVER_PORT_NR;
+		ControlHub h = null;
 
 		for (int i = 0; i < args.length; i++) {
 			if (false) {
@@ -544,7 +545,7 @@ public class NameServer implements Protocol {
 		}
 
 		if (control_hub) {
-		    ControlHub h = new ControlHub();
+		    h = new ControlHub();
 		    h.setDaemon(true);
 		    h.start();
 		}
@@ -569,6 +570,9 @@ public class NameServer implements Protocol {
 		}
 
 		ns.run();
+		if (h != null) {
+		    h.waitForCount(1);
+		}
 		System.exit(0);
 	} 
 }

@@ -224,7 +224,7 @@ public class NameServerClient extends NameServer implements Runnable, Protocol {
 			System.err.println("NS client: leave ack received");
 		}
 
-		socketFactory.close(null, out, s);
+		socketFactory.close(in, out, s);
 
 //		stop = true;
 //		this.interrupt();
