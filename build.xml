@@ -42,6 +42,22 @@
     </target>
 
     <!--
+	Compile only
+    -->
+    <target name="compile"
+	    depends="init">
+	<patternset id="build.sources.all">
+	    <include name="**/*.java"/>
+	    <exclude name="ibis/impl/net/nio/**/*.java"/>
+	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
+	    <exclude name="ibis/repmi/**/*.java"/>
+	</patternset>
+	<antcall inheritAll="true" inheritRefs="true" target="-compile">
+	    <reference refid="build.sources.all" torefid="build.sources"/>
+	</antcall>
+    </target>
+
+    <!--
 	Compile, run IOGenerator, compile native code for the whole of Ibis
     -->
     <target name="build"
@@ -389,7 +405,7 @@
 	    description="Generate jar files for ibis">
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
-		includes="**/*.class **/properties properties *_properties"/>
+		includes="**/*.class **/properties properties *_properties ibis-properties"/>
 	<foreach target="jar.package"
 		param="ibis.sub-package">
 	    <path>
