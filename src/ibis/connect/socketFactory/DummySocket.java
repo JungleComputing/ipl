@@ -17,7 +17,7 @@ import java.nio.channels.SocketChannel;
  * warn implementations for methods that are used but not
  * implemented.
  */
-public class DummySocket extends Socket {
+public abstract class DummySocket extends Socket {
 
     public void bind(SocketAddress p) throws IOException {
         System.err.println("bind(SocketAddress) not implemented by " + this);
