@@ -181,6 +181,12 @@ chmod +x bin/satinc
 cat scripts/preamble configuration scripts/run_ibis > bin/run_ibis
 chmod +x bin/run_ibis
 
+cat scripts/preamble configuration scripts/extract_jars > bin/extract_jars
+chmod +x bin/extract_jars
+
+cat scripts/preamble configuration scripts/tree_ioc > bin/tree_ioc
+chmod +x bin/tree_ioc
+
 cat scripts/preamble configuration scripts/run_ibis_wide_area > bin/run_ibis_wide_area
 chmod +x bin/run_ibis_wide_area
 

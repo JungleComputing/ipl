@@ -9,7 +9,7 @@ do
 	list=`ls *.class 2>/dev/null`
 	case $? in
 	0)
-	    $JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator $list
+	    $JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator -force $list
 	    ;;
 	esac
 	;;
@@ -19,7 +19,7 @@ do
 	    list=`ls *.class 2>/dev/null`
 	    case $? in
 	    0)
-		$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator -package $package_name $list
+		$JAVA_ROOT/bin/java -classpath $JAVACLASSPATH ibis.frontend.io.IOGenerator -force -package $package_name $list
 	        ;;
 	    esac
 	)
