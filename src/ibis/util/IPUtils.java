@@ -1,13 +1,14 @@
 package ibis.util;
 
 import java.net.InetAddress;
+import java.net.Inet4Address;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.Properties;
 
 /**
- * Some utilities that deal with IPv4 addresses.
+ * Some utilities that deal with IP addresses.
  */
 public class IPUtils {
     private static final String prefix = "ibis.util.ip.";
@@ -148,6 +149,7 @@ System.err.println("Specified alt ip addr " + external);
 	} catch(SocketException ex) {
 	    System.err.println("Could not get network interfaces. Trying local.");
 	}
+	boolean first = true;
 	if (e != null) {
 	    for (; e.hasMoreElements();) {
 		NetworkInterface nw = (NetworkInterface) e.nextElement();
@@ -161,16 +163,30 @@ System.err.println("Specified alt ip addr " + external);
 		    if(isExternalAddress(addr)) {
 			if(external == null) {
 			    external = addr;
+			} else if (! (external instanceof Inet4Address) &&
+				   addr instanceof Inet4Address) {
+			    // Preference for IPv4
+			    external = addr;
 			} else {
-			    System.err.println("WARNING, this machine has more than one external " +
+			    if (first) {
+				first = false;
+				System.err.println("WARNING, this machine has more than one external " +
 				    "IP address, using " +
 				    external);
-			    System.err.println("  but found " + addr + " as well");
-			    return external;
+				System.err.println("  but found " + addr + " as well");
+			    } else {
+				System.err.println("  ... and found " + addr + " as well");
+			    }
 			}
 		    }
-		    if (internal == null && ! addr.isLoopbackAddress()) {
-			internal = addr;
+		    if (! addr.isLoopbackAddress()) {
+			if (internal == null) {
+			    internal = addr;
+			} else if (! (internal instanceof Inet4Address) &&
+				   addr instanceof Inet4Address) {
+			    // Preference for IPv4
+			    internal = addr;
+			}
 		    }
 		}
 	    }
