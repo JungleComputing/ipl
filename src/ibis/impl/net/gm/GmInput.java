@@ -74,8 +74,6 @@ public final class GmInput extends NetBufferedInput {
         native int  nGetInputMuxId(long inputHandle) throws IOException;
         native void nConnectInput(long inputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws IOException;
 
-	native int nPostByte(long inputHandle) throws IOException;
-
         native int nPostBuffer(long inputHandle, byte []b, int base, int length) throws IOException;
 
         native int nPostBooleanBuffer(long inputHandle, boolean []b, int base, int length) throws IOException;
@@ -310,7 +308,9 @@ plld++;
 	    try {
 		firstBlock();
 
+		if (Driver.TIMINGS) Driver.t_native_post.start();
                 int result = nPostBuffer(inputHandle, b.data, 0, b.data.length);
+		if (Driver.TIMINGS) Driver.t_native_post.stop();
 
 // System.err.print("<_");
 // System.err.println("[" + lockId + "] Post byte buffer request length " + b.length + " data.length " + b.data.length + " result " + result);
@@ -403,7 +403,9 @@ rcvd++;
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
 
+			if (Driver.TIMINGS) Driver.t_native_post.start();
                         int result = nPostBooleanBuffer(inputHandle, b, o, _l);
+			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
 			    pump();	// Ack completion
@@ -444,7 +446,9 @@ rcvd++;
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
 
+			if (Driver.TIMINGS) Driver.t_native_post.start();
                         int result = nPostByteBuffer(inputHandle, b, o, _l);
+			if (Driver.TIMINGS) Driver.t_native_post.stop();
 // System.err.println(this + ": in readArray(byte[]..); result " + result + " chunk " + _l + " currently l " + l);
 
                         if (result == RENDEZ_VOUS_REQUEST) {
@@ -477,7 +481,9 @@ rcvd++;
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
 
+			if (Driver.TIMINGS) Driver.t_native_post.start();
                         int result = nPostCharBuffer(inputHandle, b, o, _l);
+			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
 			    pump();	// Ack completion
@@ -511,7 +517,9 @@ rcvd++;
                         int _l = Math.min(l, mtu);
 
 			int result;
+			if (Driver.TIMINGS) Driver.t_native_post.start();
                         result = nPostShortBuffer(inputHandle, b, o, _l);
+			if (Driver.TIMINGS) Driver.t_native_post.stop();
 // System.err.println(Thread.currentThread() + ": receive chunk of short, result " + result);
 
                         if (result == RENDEZ_VOUS_REQUEST) {
@@ -548,7 +556,9 @@ rcvd++;
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
 
+			if (Driver.TIMINGS) Driver.t_native_post.start();
                         int result = nPostIntBuffer(inputHandle, b, o, _l);
+			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
 			    pump();	// Ack completion
@@ -582,7 +592,9 @@ rcvd++;
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
 
+			if (Driver.TIMINGS) Driver.t_native_post.start();
                         int result = nPostLongBuffer(inputHandle, b, o, _l);
+			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
 			    pump();	// Ack completion
@@ -615,7 +627,9 @@ rcvd++;
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
 
+			if (Driver.TIMINGS) Driver.t_native_post.start();
                         int result = nPostFloatBuffer(inputHandle, b, o, _l);
+			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
 			    pump();	// Ack completion
@@ -648,7 +662,9 @@ rcvd++;
                 while (l > 0) {
                         int _l = Math.min(l, mtu);
 
+			if (Driver.TIMINGS) Driver.t_native_post.start();
                         int result = nPostDoubleBuffer(inputHandle, b, o, _l);
+			if (Driver.TIMINGS) Driver.t_native_post.stop();
 
                         if (result == RENDEZ_VOUS_REQUEST) {
 			    pump();	// Ack completion

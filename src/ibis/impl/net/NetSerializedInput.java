@@ -30,21 +30,21 @@ public abstract class NetSerializedInput extends NetInput {
         /**
          * The currently active {@linkplain SerializationInputStream serialization input stream}, or <code>null</code>.
          */
-        private         volatile        SerializationInputStream        iss                     = null;
+        protected         volatile        SerializationInputStream        iss                     = null;
 
         /**
          * The table containing each {@linkplain SerializationInputStream serialization input stream}.
          *
          * The table is indexed by connection numbers.
          */
-	private                         Hashtable                       streamTable             = null;
+	protected                         Hashtable                       streamTable             = null;
 
         /**
          * The most recently activated upcall thread if it is still alive, or <code>null</code>.
          */
         protected       volatile        Thread                          activeUpcallThread      = null;
 
-        private         volatile        Integer                         activeNum               = null;
+        protected         volatile        Integer                         activeNum               = null;
 
 	private         int             waiters;
 

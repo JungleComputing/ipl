@@ -20,11 +20,13 @@ public abstract class NetSerializedOutput extends NetOutput {
 	 */
 	protected NetOutput                 subOutput = null;
 
-        private   SerializationOutputStream oss       = null;
+        protected   SerializationOutputStream oss       = null;
 
-        private   Replacer                  replacer  = null;
+	protected   SerializationOutputStream old_oss   = null;
 
-        private   boolean                   needFlush = false;
+        protected   Replacer                  replacer  = null;
+
+        protected   boolean                   needFlush = false;
 
 	/**
 	 * @param pt the {@link ibis.impl.net.NetPortType NetPortType}.
@@ -73,6 +75,7 @@ public abstract class NetSerializedOutput extends NetOutput {
                  * Need to re-initialize the serialization stream state
                  * in order to ensure consistency between multiple receivers.
                  */
+		old_oss = oss;
                 oss = null;
 	}
 

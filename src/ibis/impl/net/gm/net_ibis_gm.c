@@ -12,7 +12,7 @@
 #define DEPRECATED		0
 
 /* How do we easily configure this in a portable way? */
-#define GM_ENABLE_HERALDS	0	/* 1 */
+#define GM_ENABLE_HERALDS	1	/* 1 */
 
 #include <gm.h>
 
@@ -519,9 +519,26 @@ static jboolean		ni_gm_copy_get_elts;
 #define UINT_BITS	(CHAR_BIT * sizeof(unsigned long))
 
 
-static int	sent_eager;
-static int	sent_rndvz_req;
-static int	sent_rndvz_data;
+struct stats {
+    int		sent_eager;
+    int		sent_rndvz_req;
+    int		sent_rndvz_data;
+    int		bytes;
+    int		array_lock_unlock;
+    int		array_lock_unlock_fast;
+    int		access_lock_lock;
+    int		access_lock_unlock;
+    int		input_lock_unlock;
+    int		intr;
+    int		yield;
+    int		native;
+};
+
+static struct stats stats;
+
+#define STATINC(fld)	do stats.fld++; while (0)
+#define STATINCN(fld,n)	do stats.fld += (n); while (0)
+
 
 #define CACHE_LIMIT	(mtu)
 
@@ -943,10 +960,12 @@ ni_gm_lock_unlock(struct s_lock *p_lock)
     front = (*env)->GetObjectField(env, lock, p_lock->lock_array_front);
     if (front != NULL) {
 	(*env)->CallVoidMethod(env, p_lock->ref, p_lock->unlock_id, p_lock->id);
+	STATINC(array_lock_unlock);
     } else {
 	value = (*env)->GetIntField(env, lock, p_lock->lock_array_value);
 	value++;
 	(*env)->SetIntField(env, lock, p_lock->lock_array_value, value);
+	STATINC(array_lock_unlock_fast);
     }
 
     __out__();
@@ -997,6 +1016,7 @@ ni_gm_access_lock_lock(JNIEnv *env)
 {
         __in__();
         (*env)->CallVoidMethod(env, ni_gm_access_lock->ref, ni_gm_access_lock->lock_id, ni_gm_access_lock->priority);
+	STATINC(access_lock_lock);
         __out__();
 
         return 0;
@@ -1008,6 +1028,7 @@ ni_gm_access_lock_unlock(JNIEnv *env)
 {
         __in__();
         (*env)->CallVoidMethod(env, ni_gm_access_lock->ref, ni_gm_access_lock->unlock_id);
+	STATINC(access_lock_unlock);
         __out__();
 
         return 0;
@@ -1028,6 +1049,7 @@ ni_gm_input_unlock(struct s_input *p_in, int len) {
         p_lock = p_in->p_lock;
 	VPRINTF(900, ("unlock(%d)\n", p_lock->id));
         (*env)->CallVoidMethod(env, p_lock->ref, p_lock->unlock_id, p_lock->id);
+	STATINC(input_lock_unlock);
         __out__();
 
         return 0;
@@ -2002,7 +2024,7 @@ ni_gm_output_send_request(struct s_output *p_out) {
                               p_out->dst_node_id,
 			      p_out->dst_port_id,
                               ni_gm_callback, p_rq);
-sent_rndvz_req++;
+	STATINC(sent_rndvz_req);
         __out__();
         return 0;
 
@@ -2075,7 +2097,8 @@ ni_gm_output_flush(struct s_output *p_out)
     p_out->packet = ni_gm_packet_get(p_out);
     pend(GM_SEND);
     pend(GM_SEND_BUFFER);
-sent_eager++;
+    STATINC(sent_eager);
+    STATINCN(bytes, p_out->offset);
     p_out->offset = NI_GM_PACKET_HDR_LEN;
     p_out->byte_buffer = 0;
     ((ni_gm_hdr_p)p_out->packet->data)->byte_buffer_offset = -1;
@@ -2129,7 +2152,8 @@ ni_gm_output_send_buffer(struct s_output *p_out, void *b, int len) {
                               p_out->dst_node_id,
 			      p_out->dst_port_id,
                               ni_gm_callback, p_rq);
-sent_rndvz_data++;
+	STATINC(sent_rndvz_data);
+	STATINCN(bytes, len);
 
         __out__();
         return 0;
@@ -2205,45 +2229,6 @@ ni_gm_input_packet_get(struct s_input *p_in)
     }
 
     return is_rendez_vous;
-}
-
-
-static
-jint
-ni_gm_input_post_byte(struct s_input *p_in)
-{
-    struct s_port      *p_port;
-    struct s_packet    *p_packet;
-    jint		result;
-    jbyte	       *buffer;
-    ni_gm_hdr_p	hdr;
-
-    __in__();
-    p_port = p_in->p_port;
-    ni_gm_input_packet_get(p_in);
-    p_packet = p_in->packet;
-    assert(p_packet != NULL);
-
-    buffer = (jbyte *)(p_packet->data + p_in->offset);
-    result = ((int)buffer[0]) & 0xFF;
-    p_in->offset += sizeof(jbyte);
-    VPRINTF(100, ("Remove one byte=%d\n", (char)result));
-
-    if (p_in->offset == p_in->data_size) {
-	if (! ni_gm_packet_clear(p_packet, p_port)) {
-	    goto error;
-	}
-    } else {
-	/* There is pending data. Signal this for the next post. */
-        ni_gm_lock_unlock(p_in->p_lock);
-    }
-
-    __out__();
-    return result;
-
-error:
-    __err__();
-    return -1;
 }
 
 
@@ -3058,6 +3043,7 @@ Java_ibis_impl_net_gm_GmOutput_nInitOutput(JNIEnv  *env,
         jlong            result =    0;
 
         __in__();
+	STATINC(native);
         p_dev = ni_gm_handle2ptr(device_handle);
         ni_gm_init_output(p_dev, &p_out);
         ni_gm_lock_init(env, p_out->local_mux_id*2 + 1, &p_out->p_lock);
@@ -3084,6 +3070,7 @@ Java_ibis_impl_net_gm_GmInput_nInitInput(JNIEnv  *env,
 	jfieldID fld_RVR;
 
         __in__();
+	STATINC(native);
         p_dev = ni_gm_handle2ptr(device_handle);
         ni_gm_init_input(p_dev, &p_in);
         ni_gm_lock_init(env, p_in->local_mux_id*2 + 2, &p_in->p_lock);
@@ -3122,6 +3109,7 @@ Java_ibis_impl_net_gm_GmOutput_nGetOutputNodeId(JNIEnv  *env,
         int              result = 0;
 
         __in__();
+	STATINC(native);
         p_out = ni_gm_handle2ptr(output_handle);
         ni_gm_get_output_node_id(p_out, &result);
         __out__();
@@ -3144,6 +3132,7 @@ Java_ibis_impl_net_gm_GmInput_nGetInputNodeId(JNIEnv  *env,
         int             result = 0;
 
         __in__();
+	STATINC(native);
         p_in = ni_gm_handle2ptr(input_handle);
         ni_gm_get_input_node_id(p_in, &result);
         __out__();
@@ -3166,6 +3155,7 @@ Java_ibis_impl_net_gm_GmOutput_nGetOutputPortId(JNIEnv  *env,
         int              result = 0;
 
         __in__();
+	STATINC(native);
         p_out = ni_gm_handle2ptr(output_handle);
         ni_gm_get_output_port_id(p_out, &result);
 
@@ -3188,6 +3178,7 @@ Java_ibis_impl_net_gm_GmInput_nGetInputPortId(JNIEnv  *env,
         int             result = 0;
 
         __in__();
+	STATINC(native);
         p_in = ni_gm_handle2ptr(input_handle);
         ni_gm_get_input_port_id(p_in, &result);
         __out__();
@@ -3210,6 +3201,7 @@ Java_ibis_impl_net_gm_GmOutput_nGetOutputMuxId(JNIEnv  *env,
         int              result = 0;
 
         __in__();
+	STATINC(native);
         p_out = ni_gm_handle2ptr(output_handle);
         ni_gm_get_output_mux_id(p_out, &result);
 
@@ -3232,6 +3224,7 @@ Java_ibis_impl_net_gm_GmInput_nGetInputMuxId(JNIEnv  *env,
         int             result = 0;
 
         __in__();
+	STATINC(native);
         p_in = ni_gm_handle2ptr(input_handle);
         ni_gm_get_input_mux_id(p_in, &result);
         __out__();
@@ -3256,6 +3249,7 @@ Java_ibis_impl_net_gm_GmOutput_nConnectOutput(JNIEnv  *env,
         struct s_output *p_out = NULL;
 
         __in__();
+	STATINC(native);
         p_out = ni_gm_handle2ptr(output_handle);
         ni_gm_connect_output(p_out,
                              (int)remote_node_id,
@@ -3281,6 +3275,7 @@ Java_ibis_impl_net_gm_GmInput_nConnectInput(JNIEnv  *env,
         struct s_input *p_in = NULL;
 
         __in__();
+	STATINC(native);
         p_in = ni_gm_handle2ptr(input_handle);
         ni_gm_connect_input(p_in,
                             (int)remote_node_id,
@@ -3304,6 +3299,7 @@ Java_ibis_impl_net_gm_GmOutput_nSendRequest(JNIEnv     *env,
         struct s_output *p_out   = NULL;
 
         __in__();
+	STATINC(native);
 	pstart(SEND_REQUEST);
         p_out = ni_gm_handle2ptr(output_handle);
 	assert(p_out->offset == NI_GM_PACKET_HDR_LEN);
@@ -3333,6 +3329,7 @@ Java_ibis_impl_net_gm_GmOutput_nFlush(JNIEnv *env,
 {
     struct s_output *p_out;
 
+    STATINC(native);
     VPRINTF(300, ("In native nFlush\n"));
     p_out = ni_gm_handle2ptr(output_handle);
     ni_gm_output_flush(p_out);
@@ -3349,13 +3346,14 @@ Java_ibis_impl_net_gm_GmOutput_nTryFlush(JNIEnv *env,
 {
     struct s_output *p_out = ni_gm_handle2ptr(output_handle);
 
+    STATINC(native);
     if (p_out == NULL) {
 	fprintf(stderr, "I get a NULL handle. Havoc!\n");
 	return JNI_FALSE;
     }
 
     if (p_out->offset > NI_GM_PACKET_HDR_LEN &&
-	    p_out->offset + length + sizeof(int) > NI_GM_PACKET_LEN) {
+	    p_out->offset + length + sizeof(length) > NI_GM_PACKET_LEN) {
 	VPRINTF(100, ("Should flush packet; offset %d, size %d, packet_size %d\n", p_out->offset, length, NI_GM_PACKET_LEN));
 	return JNI_TRUE;
     }
@@ -3364,33 +3362,12 @@ Java_ibis_impl_net_gm_GmOutput_nTryFlush(JNIEnv *env,
 }
 
 
-JNIEXPORT
-void
-JNICALL
-Java_ibis_impl_net_gm_GmOutput_nSendByte(JNIEnv *env,
-					 jobject this,
-					 jlong output_handle,
-					 jbyte value)
-{
-    struct s_output *p_out = ni_gm_handle2ptr(output_handle);
-    jbyte      *buffer;
-
-    assert(p_out->offset == NI_GM_PACKET_HDR_LEN ||
-	    p_out->offset + sizeof(value) <= NI_GM_PACKET_LEN);
-    buffer = (jbyte *)(p_out->packet->data + p_out->offset);
-    buffer[0] = value;
-    p_out->offset += sizeof(value);
-    VPRINTF(100, ("Pushed single byte=%d size %d, offset now %d\n",
-		    value, sizeof(value), p_out->offset));
-}
-
-
 #define SEND_BUFFER(E_TYPE, jtype, jarray, Jtype) \
  \
 /* Send an "eager" message, with a data buffer folded in */ \
  \
 JNIEXPORT \
-void \
+jint \
 JNICALL \
 Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## BufferIntoRequest( \
 			JNIEnv     *env, \
@@ -3406,6 +3383,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## BufferIntoRequest( \
     unsigned char *packet_data; \
     \
     __in__(); \
+    STATINC(native); \
     pstart(SEND_BUFFER_REQ); \
     p_out = ni_gm_handle2ptr(output_handle); \
     \
@@ -3433,10 +3411,11 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## BufferIntoRequest( \
     \
     pend(SEND_BUFFER_REQ); \
     __out__(); \
-    return; \
+    return p_out->offset - NI_GM_PACKET_HDR_LEN; \
     \
 error: \
     __err__(); \
+    return -1; \
 } \
  \
 /* Send the data part of a rendez-vous message */ \
@@ -3456,6 +3435,7 @@ Java_ibis_impl_net_gm_GmOutput_nSend ## Jtype ## Buffer(JNIEnv     *env, \
     int              get_region = ni_gm_copy_get_elts || length < COPY_THRESHOLD; \
     \
     __in__(); \
+    STATINC(native); \
     pstart(SEND_BUFFER); \
     if (p_out->offset > NI_GM_PACKET_HDR_LEN) { \
 	ni_gm_output_flush(p_out); \
@@ -3510,7 +3490,7 @@ SEND_BUFFER(E_DOUBLE,  jdouble,  j_double,  Double)
  * See comments in the Java code.
  */
 JNIEXPORT
-void
+int
 JNICALL
 Java_ibis_impl_net_gm_GmOutput_nSendBufferIntoRequest(
 		JNIEnv     *env,
@@ -3527,6 +3507,7 @@ Java_ibis_impl_net_gm_GmOutput_nSendBufferIntoRequest(
     ni_gm_hdr_p	hdr;
 
     __in__();
+    STATINC(native);
     p_out = ni_gm_handle2ptr(output_handle);
     assert(! p_out->byte_buffer);
 
@@ -3565,7 +3546,7 @@ Java_ibis_impl_net_gm_GmOutput_nSendBufferIntoRequest(
 
     pend(SEND_BUFFER_REQ);
     __out__();
-    return;
+    return p_out->offset - NI_GM_PACKET_HDR_LEN;
 
 error:
     __err__();
@@ -3590,43 +3571,6 @@ Java_ibis_impl_net_gm_GmOutput_nSendBuffer(JNIEnv     *env,
 }
 
 
-JNIEXPORT
-jint
-JNICALL
-Java_ibis_impl_net_gm_GmInput_nPostByte(JNIEnv *env,
-					jobject this,
-					jlong   input_handle)
-{
-    struct s_input *p_in = NULL;
-    jbyte          *buffer;
-    int             result = 0;
-
-    __in__();
-
-    pstart(POST_BUFFER);
-    p_in = ni_gm_handle2ptr(input_handle);
-    if (!p_in) {
-	ni_gm_throw_exception(env, "could not get s_input from handle");
-	goto error;
-    }
-
-    result = ni_gm_input_post_byte(p_in);
-    if (result == -1) {
-	ni_gm_throw_exception(env, "could not post a buffer");
-	goto error;
-    }
-    pend(POST_BUFFER);
-
-    __out__();
-    __disp__("Java_ibis_impl_net_gm_GmInput_nPostByte: returning %d", (int)result);
-    return ((jint)result) & 0xFF;
-
-error:
-    __err__();
-    return -1;
-}
-
-
 #define POST_BUFFER(E_TYPE, jtype, jarray, Jtype) \
 JNIEXPORT \
 jint \
@@ -3643,6 +3587,7 @@ Java_ibis_impl_net_gm_GmInput_nPost ## Jtype ## Buffer(JNIEnv     *env, \
     int             result = 0; \
     \
     __in__(); \
+    STATINC(native); \
     \
     pstart(POST_BUFFER); \
     p_in = ni_gm_handle2ptr(input_handle); \
@@ -3696,6 +3641,7 @@ Java_ibis_impl_net_gm_GmInput_nPostBuffer(JNIEnv    *env,
     int             result = 0;
 
     __in__();
+    STATINC(native);
 
     pstart(POST_BUFFER);
     p_in = ni_gm_handle2ptr(input_handle);
@@ -3730,6 +3676,7 @@ Java_ibis_impl_net_gm_GmOutput_nCloseOutput(JNIEnv  *env,
         struct s_output *p_out = NULL;
 
         __in__();
+	STATINC(native);
         p_out = ni_gm_handle2ptr(output_handle);
         if (ni_gm_output_exit(p_out)) {
                 ni_gm_throw_exception(env, "could not close output");
@@ -3750,6 +3697,7 @@ Java_ibis_impl_net_gm_GmInput_nCloseInput(JNIEnv *env, jobject input, jlong inpu
         struct s_input *p_in = NULL;
 
         __in__();
+	STATINC(native);
         p_in = ni_gm_handle2ptr(input_handle);
         if (ni_gm_input_exit(p_in)) {
 		ni_gm_throw_exception(env, "could not close input");
@@ -3796,8 +3744,6 @@ mtu_init(JNIEnv *env)
 }
 
 
-static int		ni_gm_stat_intr = 0;
-
 #if GM_ENABLE_HERALDS
 
 #include <pthread.h>
@@ -3843,7 +3789,9 @@ attach_sigthread(void)
 static void
 ni_gm_intr_handle(JNIEnv *env)
 {
+    STATINCN(native, -1);
     while (! Java_ibis_impl_net_gm_Driver_nGmThread(env, NULL)) {
+	STATINCN(native, -1);
 	// poll the thing
     }
     // fprintf(stderr, "Would like to generate an interrupt NOW\n");
@@ -3901,7 +3849,7 @@ sigthread(void *arg)
 		// fprintf(stderr, "NetGM: intr thread wakes up, evt %d intr_disabled %d\n", evt_type, ni_gm_intr_disabled);
 	    ni_gm_access_lock_lock(env);
 	    ni_gm_sigthread_running++;
-	    ni_gm_stat_intr++;
+	    STATINC(intr);
 		// fprintf(stderr, "NetGM: have the intr lock again\n");
 
 	    if (ni_gm_intr_disabled) {
@@ -4040,6 +3988,7 @@ Java_ibis_impl_net_gm_Driver_nInitDevice(JNIEnv *env, jobject driver, jint devic
         jlong         result =    0;
 
         __in__();
+	STATINC(native);
         if (!ni_gm_p_drv) {
                 struct s_drv *p_drv = NULL;
 
@@ -4088,6 +4037,7 @@ Java_ibis_impl_net_gm_Driver_nCloseDevice(JNIEnv *env, jobject driver, jlong dev
         struct s_dev *p_dev  = NULL;
 
         __in__();
+	STATINC(native);
         p_dev = ni_gm_handle2ptr(device_handle);
         if (ni_gm_dev_exit(p_dev)) {
                 ni_gm_throw_exception(env, "GM device closing failed");
@@ -4180,6 +4130,7 @@ Java_ibis_impl_net_gm_Driver_nGmThread(JNIEnv *env, jclass driver_class) {
 
 dump_monitors(env);
         __in__();
+	STATINC(native);
 	pstart(GM_THREAD);
 
 	for (;;) {
@@ -4273,6 +4224,7 @@ Java_ibis_impl_net_gm_Driver_nGmBlockingThread(JNIEnv *env, jclass driver_class)
         _current_env = env;
 
         __in__();
+	STATINC(native);
 	pstart(GM_BLOCKING_THREAD);
         success_flag = 0;
 
@@ -4368,7 +4320,19 @@ JNICALL
 Java_ibis_impl_net_gm_Driver_nStatistics(JNIEnv  *env,
 					 jclass  clazz)
 {
-    fprintf(stderr, "%s: Net GM: sent: eager %d; rndvz req %d data %d intpt %d\n", hostname, sent_eager, sent_rndvz_req, sent_rndvz_data, ni_gm_stat_intr);
+    jclass	driver_class;
+    jfieldID	fid;
+
+    STATINC(native);
+    driver_class      = ni_findClass(env, "ibis/impl/net/gm/Driver");
+    fid               = ni_getStaticField(env, driver_class, "yields", "I");
+    stats.yield = (*env)->GetStaticIntField(env, driver_class, fid);
+
+    fprintf(stderr, "%s: Net GM: sent: eager %d; rndvz req %d data %d bytes %d intpt %d yield %d\n", hostname, stats.sent_eager, stats.sent_rndvz_req, stats.sent_rndvz_data, stats.bytes, stats.intr, stats.yield);
+    fprintf(stderr, "%s: Net GM: native calls %d; locks: access %d; unlocks: array %d fast-array %d access %d input %d\n",
+	    hostname, stats.native, stats.access_lock_lock, stats.array_lock_unlock,
+	    stats.array_lock_unlock_fast, stats.access_lock_unlock,
+	    stats.input_lock_unlock);
 }
 
 

@@ -204,10 +204,13 @@ public final class BytesOutput extends NetOutput implements Settings {
 	}
 
         /**
-	   Block until the entire message has been sent and clean up the message. Only after finish() or reset(), the data that was written
-	   may be touched. Only one message is alive at one time for a given sendport. This is done to prevent flow control problems.
-	   When a message is alive and a new messages is requested, the requester is blocked until the
-	   live message is finished. **/
+	 * Block until the entire message has been sent and clean up the
+	 * message. Only after finish(), the data that was written
+	 * may be touched. Only one message is alive at one time for a
+	 * given sendport. This is done to prevent flow control problems.
+	 * When a message is alive and a new messages is requested, the
+	 * requester is blocked until the live message is finished.
+	 */
         public long finish() throws IOException{
                 log.in();
                 super.finish();

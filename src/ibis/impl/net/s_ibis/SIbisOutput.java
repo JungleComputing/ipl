@@ -16,30 +16,48 @@ import java.io.IOException;
 public final class SIbisOutput extends NetSerializedOutput {
 
         public SIbisOutput(NetPortType pt, NetDriver driver, String context) 
-						    throws IOException {
-		super(pt, driver, context);
+		throws IOException {
+	    super(pt, driver, context);
 	}
 
         public SerializationOutputStream newSerializationOutputStream() 
-						    throws IOException {
-                Accumulator ia = new DummyAccumulator();
+		throws IOException {
+	    Accumulator ia = new DummyAccumulator();
 
-		return new IbisSerializationOutputStream(ia);
+	    return new IbisSerializationOutputStream(ia);
         }
 
-	/**
-	 * Ibis serialization does not require a sentinel to signal
-	 * serialization read/writes
-	 */
+	// For sentinels, we prefer shorts because things are more aligned
+	public void initSend() throws IOException {
+	    subOutput.initSend();
+	    if (oss == null) {
+		if (old_oss != null) {
+		    old_oss.writeShort((short)1);
+		    old_oss = null;
+		}
+		oss = newSerializationOutputStream();
+		if (replacer != null) {
+		    oss.setReplacer(replacer);
+		}
+		oss.writeShort((short)0);
+	    } else {
+		oss.writeShort((short)0);
+		oss.reset();
+	    }
+	    // For performance testing: oss.writeByte((byte)0);
+	    needFlush = true;
+	}
+
 	protected void handleEmptyMsg() throws IOException {
-	    super.handleEmptyMsg();
+	    // super.handleEmptyMsg();
+	    writeShort((short)0xffff);
 	}
 
 	/**
-	  * Accumulator used to output the result of the serialization to
-	  * the next driver. Actually does almost nothing, just passes along
-	  * the data.
-	  */
+	 * Accumulator used to output the result of the serialization to
+	 * the next driver. Actually does almost nothing, just passes along
+	 * the data.
+	 */
         private final class DummyAccumulator extends Accumulator {
 
                 public void flush() throws IOException {

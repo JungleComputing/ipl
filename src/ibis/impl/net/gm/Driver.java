@@ -32,6 +32,8 @@ public final class Driver extends NetDriver {
 
 	static final boolean	VERBOSE_INTPT = DEBUG; // true; // false;
 
+	static final boolean	TIMINGS = false; // true;
+
         static Monitor		gmAccessLock  = null;
         static NetLockArray	gmLockArray   = null;
 
@@ -51,7 +53,7 @@ public final class Driver extends NetDriver {
 
 	private static int	interrupts = 0;	// Support poll interrupts
 
-	private final static int POLLS_BEFORE_YIELD = 300;	    
+	private final static int POLLS_BEFORE_YIELD = TypedProperties.intProperty("ibis.net.gm.polls", 300);	    
 
 
 	/**
@@ -67,13 +69,20 @@ public final class Driver extends NetDriver {
 
 	private static native void nStatistics();
 
-	static final boolean TIMINGS = false;
-
+	// If (TIMINGS)
 	static ibis.util.nativeCode.Rdtsc t_wait_reply = new ibis.util.nativeCode.Rdtsc();
 	static ibis.util.nativeCode.Rdtsc t_wait_service = new ibis.util.nativeCode.Rdtsc();
 
 	static ibis.util.nativeCode.Rdtsc t_poll = new ibis.util.nativeCode.Rdtsc();
 	static ibis.util.nativeCode.Rdtsc t_lock = new ibis.util.nativeCode.Rdtsc();
+	static ibis.util.nativeCode.Rdtsc t_native = new ibis.util.nativeCode.Rdtsc();
+	static ibis.util.nativeCode.Rdtsc t_native_poll = new ibis.util.nativeCode.Rdtsc();
+	static ibis.util.nativeCode.Rdtsc t_native_flush = new ibis.util.nativeCode.Rdtsc();
+	static ibis.util.nativeCode.Rdtsc t_native_post = new ibis.util.nativeCode.Rdtsc();
+	static ibis.util.nativeCode.Rdtsc t_native_send = new ibis.util.nativeCode.Rdtsc();
+
+	static private int	yields;
+
 
 	static {
 	    if (System.getProperty("ibis.net.gm.dynamic") != null) {
@@ -91,19 +100,43 @@ public final class Driver extends NetDriver {
 
 	    Runtime.getRuntime().addShutdownHook(new Thread() {
 		public void run() {
-		    if (TIMINGS) {
+		    if (Driver.TIMINGS) {
 			System.err.println("t_wait_reply   "
 			    + t_wait_reply.nrTimes() + " "
-			    + t_wait_reply.averageTime());
+			    + t_wait_reply.averageTime() + " "
+			    + t_wait_reply.totalTime());
 			System.err.println("t_wait_service "
 			    + t_wait_service.nrTimes() + " "
-			    + t_wait_service.averageTime());
-			System.err.println("t_poll         "
-			    + t_lock.nrTimes() + " "
-			    + t_poll.averageTime());
+			    + t_wait_service.averageTime() + " "
+			    + t_wait_service.totalTime());
 			System.err.println("t_lock         "
 			    + t_lock.nrTimes() + " "
-			    + t_lock.averageTime());
+			    + t_lock.averageTime() + " "
+			    + t_lock.totalTime());
+			System.err.println("t_poll         "
+			    + t_poll.nrTimes() + " "
+			    + t_poll.averageTime() + " "
+			    + t_poll.totalTime());
+			System.err.println("t_native       "
+			    + Driver.t_native.nrTimes() + " "
+			    + Driver.t_native.averageTime() + " "
+			    + Driver.t_native.totalTime());
+			System.err.println("t_native_poll  "
+			    + Driver.t_native_poll.nrTimes() + " "
+			    + Driver.t_native_poll.averageTime() + " "
+			    + Driver.t_native_poll.totalTime());
+			System.err.println("t_native_flush "
+			    + Driver.t_native_flush.nrTimes() + " "
+			    + Driver.t_native_flush.averageTime() + " "
+			    + Driver.t_native_flush.totalTime());
+			System.err.println("t_native_post  "
+			    + Driver.t_native_post.nrTimes() + " "
+			    + Driver.t_native_post.averageTime() + " "
+			    + Driver.t_native_post.totalTime());
+			System.err.println("t_native_send  "
+			    + Driver.t_native_send.nrTimes() + " "
+			    + Driver.t_native_send.averageTime() + " "
+			    + Driver.t_native_send.totalTime());
 		    }
 		    nStatistics();
 		}
@@ -214,7 +247,7 @@ public final class Driver extends NetDriver {
 		System.err.print(lockIds[i] + ",");
 	    }
 
-	    if (TIMINGS) {
+	    if (Driver.TIMINGS) {
 		t_poll.start();
 		t_lock.start();
 	    }
@@ -226,7 +259,7 @@ public final class Driver extends NetDriver {
 		throw e;
 	    }
 
-	    if (TIMINGS) {
+	    if (Driver.TIMINGS) {
 		t_lock.stop();
 	    }
 
@@ -240,7 +273,9 @@ public final class Driver extends NetDriver {
 		    int pollsBeforeYield = POLLS_BEFORE_YIELD;	    
 		    do {
 // System.err.print(">");
+			if (Driver.TIMINGS) Driver.t_native_poll.start();
 			nGmThread();
+			if (Driver.TIMINGS) Driver.t_native_poll.stop();
 // System.err.print("<");
 
 			if (interrupts != Driver.interrupts) {
@@ -256,6 +291,7 @@ public final class Driver extends NetDriver {
 			if (locked) {
 			    break;
 			} else if (pollsBeforeYield-- == 0) {
+			    yields++;
 			    gmAccessLock.unlock();
 			    Thread.yield();
 			    gmAccessLock.lock(false);
@@ -284,7 +320,7 @@ public final class Driver extends NetDriver {
 
 // System.err.println(Thread.currentThread() + ": blockingPump: return " + result);
 
-	    if (TIMINGS) {
+	    if (Driver.TIMINGS) {
 		t_poll.stop();
 	    }
 	    if (DEBUG) {
