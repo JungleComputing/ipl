@@ -17,10 +17,13 @@ import java.util.ArrayList;
 
 import ibis.connect.util.MyDebug;
 
+import ibis.util.IPUtils;
+
 public class RMServerSocket extends ServerSocket
 {
     private HubLink hub = null;
     private int serverPort = -1;
+    private InetAddress addr;
     
     private boolean socketOpened = false;
     private ArrayList requests = new ArrayList();
@@ -42,6 +45,7 @@ public class RMServerSocket extends ServerSocket
     {
 	hub = HubLinkFactory.getHubLink();
 	serverPort = hub.newPort(port);
+	this.addr = addr;
 	socketOpened = true;
 	hub.addServer(this, serverPort);
 	MyDebug.out.println("# RMServerSocket() addr="+addr+"; port="+serverPort);
@@ -49,8 +53,10 @@ public class RMServerSocket extends ServerSocket
 
     public InetAddress getInetAddress()
     {
-	InetAddress addr = null;
-	try { addr = InetAddress.getLocalHost(); } catch(Exception e) { throw new Error(e); }
+	InetAddress addr = this.addr;
+	if (addr == null) {
+	    try { addr = IPUtils.getLocalHostAddress(); } catch(Exception e) { throw new Error(e); }
+	}
 	MyDebug.out.println("# RMServerSocket.getInetAddress() addr="+addr);
 	return addr;
     }

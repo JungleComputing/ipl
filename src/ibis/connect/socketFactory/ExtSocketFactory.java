@@ -20,6 +20,7 @@ import java.lang.reflect.Constructor;
 
 import ibis.connect.util.MyDebug;
 
+import ibis.util.IPUtils;
 
 /* A generalized SocketFactory which supports:
    -- client/server connection scheme
@@ -289,7 +290,7 @@ public class ExtSocketFactory
     {
 	Socket s = null;
 	if(hintIsServer) {
-	    ServerSocket server = type.createServerSocket(new InetSocketAddress(InetAddress.getLocalHost(), 0), 1);
+	    ServerSocket server = type.createServerSocket(new InetSocketAddress(IPUtils.getLocalHostAddress(), 0), 1);
 	    ObjectOutputStream os = new ObjectOutputStream(out);
 	    Hashtable lInfo = new Hashtable();
 	    lInfo.put("socket_address", server.getInetAddress());

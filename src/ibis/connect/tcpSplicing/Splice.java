@@ -13,6 +13,8 @@ import java.io.OutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import ibis.util.IPUtils;
+
 public class Splice
 {
     private static int hintPort = 20247;
@@ -31,7 +33,7 @@ public class Splice
 	socket.setSendBufferSize(defaultSendBufferSize);
 	socket.setReceiveBufferSize(defaultRecvBufferSize);
 	try {
-	    localHost = InetAddress.getLocalHost().getCanonicalHostName();
+	    localHost = IPUtils.getLocalHostAddress().getCanonicalHostName();
 	} catch(Exception e) {
 	    localHost = "";
 	}
