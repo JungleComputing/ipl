@@ -30,8 +30,9 @@ final class IRStack implements Config {
 
         for (int i = 0; i < count; i++) {
             curr = l[i];
-            if (curr.equals(r))
+            if (curr.equals(r)) {
                 return true;
+            }
         }
 
         return false;
@@ -85,8 +86,9 @@ final class IRStack implements Config {
 
         for (int i = 0; i < count; i++) {
             curr = l[i];
-            if (curr.aborted)
+            if (curr.aborted) {
                 continue; // already handled.
+            }
 
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
@@ -119,8 +121,9 @@ final class IRStack implements Config {
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
 
-                if (curr.aborted)
+                if (curr.aborted) {
                     continue;
+                }
 
                 curr.aborted = true;
                 if (FT_STATS) {
@@ -177,8 +180,9 @@ final class IRStack implements Config {
                     || Aborts.isDescendentOf1(curr, targetOwner)
                     || curr.owner.equals(targetOwner)) {
 
-                if (curr.aborted)
+                if (curr.aborted) {
                     continue;
+                }
 
                 curr.aborted = true;
                 if (FT_STATS) {

@@ -289,8 +289,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
                         m.writeByte(ASYNC_STEAL_REPLY_FAILED);
                     }
                 } else {
-                    System.err
-                            .println("UNHANDLED opcode in handleStealRequest");
+                    System.err.println(
+                            "UNHANDLED opcode in handleStealRequest");
                     System.exit(1);
                 }
 
@@ -349,10 +349,9 @@ final class MessageHandler implements Upcall, Protocol, Config {
         }
 
         if (STEAL_DEBUG && opcode == ASYNC_STEAL_AND_TABLE_REQUEST) {
-            satin.out
-                    .println("SATIN '" + satin.ident.name()
-                            + "': sending SUCCESS_TABLE back to "
-                            + ident.ibis().name());
+            satin.out.println("SATIN '" + satin.ident.name()
+                    + "': sending SUCCESS_TABLE back to "
+                    + ident.ibis().name());
         }
 
         try {
@@ -412,8 +411,8 @@ final class MessageHandler implements Upcall, Protocol, Config {
             long cnt = m.finish();
             if (STEAL_TIMING) {
                 invocationRecordWriteTimer.stop();
-                satin.invocationRecordWriteTimer
-                        .add(invocationRecordWriteTimer);
+                satin.invocationRecordWriteTimer.add(
+                        invocationRecordWriteTimer);
             }
             if (STEAL_STATS) {
                 if (satin.inDifferentCluster(ident.ibis())) {

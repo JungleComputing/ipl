@@ -19,8 +19,9 @@ final class SendNode {
 
     public boolean equals(Object obj) {
         SendNode n = (SendNode) obj;
-        if (ident.equals(n.ident) && outStream == n.outStream)
+        if (ident.equals(n.ident) && outStream == n.outStream) {
             return true;
+        }
         return false;
     }
 
@@ -39,8 +40,9 @@ final class ReceiveNode {
     public boolean equals(Object obj) {
         ReceiveNode n = (ReceiveNode) obj;
 
-        if (handle == n.handle && inStream == n.inStream)
+        if (handle == n.handle && inStream == n.inStream) {
             return true;
+        }
         return false;
     }
 

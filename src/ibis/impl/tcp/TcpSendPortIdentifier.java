@@ -33,8 +33,9 @@ public final class TcpSendPortIdentifier implements SendPortIdentifier,
     }
 
     public boolean equals(Object other) {
-        if (other == null)
+        if (other == null) {
             return false;
+        }
         if (other instanceof TcpSendPortIdentifier) {
             return equals((TcpSendPortIdentifier) other);
         }

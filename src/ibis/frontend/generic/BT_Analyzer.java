@@ -185,8 +185,8 @@ public class BT_Analyzer {
 
             for (int i = 0; i < specialInterfaces.size(); i++) {
                 System.out.println("\t"
-                        + ((JavaClass) specialInterfaces.elementAt(i))
-                                .getClassName());
+                        + ((JavaClass)
+                            specialInterfaces.elementAt(i)).getClassName());
             }
         }
 

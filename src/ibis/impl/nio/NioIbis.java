@@ -227,8 +227,9 @@ public final class NioIbis extends Ibis implements Config {
         if (resizeHandler != null) {
             while (true) {
                 synchronized (this) {
-                    if (joinedIbises.size() == 0)
+                    if (joinedIbises.size() == 0) {
                         break;
+                    }
                     poolSize++;
                     ident = (NioIbisIdentifier) joinedIbises.remove(0);
                 }
@@ -240,8 +241,9 @@ public final class NioIbis extends Ibis implements Config {
 
             while (true) {
                 synchronized (this) {
-                    if (leftIbises.size() == 0)
+                    if (leftIbises.size() == 0) {
                         break;
+                    }
                     poolSize--;
                     ident = (NioIbisIdentifier) leftIbises.remove(0);
                 }
@@ -250,8 +252,9 @@ public final class NioIbis extends Ibis implements Config {
             }
             while (true) {
                 synchronized (this) {
-                    if (diedIbises.size() == 0)
+                    if (diedIbises.size() == 0) {
                         break;
+                    }
                     poolSize--;
                     ident = (NioIbisIdentifier) diedIbises.remove(0);
                 }

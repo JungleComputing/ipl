@@ -148,8 +148,8 @@ class ReceivePortNameServer extends Thread implements Protocol {
                         ArrayList v = (ArrayList) requestedPorts.get(name);
                         if (v != null) {
                             for (int i = v.size() - 1; i >= 0; i--) {
-                                PortLookupRequest p = (PortLookupRequest) v
-                                        .get(i);
+                                PortLookupRequest p
+                                        = (PortLookupRequest) v.get(i);
                                 if (p.timeout != 0) {
                                     if (p.timeout <= current) {
                                         try {
@@ -173,8 +173,9 @@ class ReceivePortNameServer extends Thread implements Protocol {
                         }
                     }
                     try {
-                        if (timeout < 100)
+                        if (timeout < 100) {
                             timeout = 100;
+                        }
                         requestedPorts.wait(timeout);
                     } catch (InterruptedException e) {
                         // ignored
@@ -210,8 +211,9 @@ class ReceivePortNameServer extends Thread implements Protocol {
                     requestedPorts.put(name, v);
                 }
                 v.add(p);
-                if (timeout != 0)
+                if (timeout != 0) {
                     requestedPorts.notify();
+                }
             }
         }
     }
@@ -252,8 +254,8 @@ class ReceivePortNameServer extends Thread implements Protocol {
             try {
                 DummyInputStream di = new DummyInputStream(s.getInputStream());
                 in = new ObjectInputStream(new BufferedInputStream(di));
-                DummyOutputStream dos = new DummyOutputStream(s
-                        .getOutputStream());
+                DummyOutputStream dos
+                        = new DummyOutputStream(s.getOutputStream());
                 out = new ObjectOutputStream(
                         new BufferedOutputStream(dos, 4096));
 

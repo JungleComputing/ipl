@@ -31,8 +31,8 @@ class NodeManager extends Thread {
 
     private int[] nmessages;
 
-    private static final boolean STATS = TypedProperties
-            .booleanProperty(ConnProps.hub_stats);
+    private static final boolean STATS
+            = TypedProperties.booleanProperty(ConnProps.hub_stats);
 
     private static final int np = HubProtocol.getNPacketTypes();
 
@@ -255,8 +255,9 @@ public class ControlHub extends Thread {
             if (o == null) {
                 h = new Hashtable();
                 portNodeMap.put(hostname, h);
-            } else
+            } else {
                 h = (Hashtable) o;
+            }
             if (h.containsKey(new Integer(portno))) {
                 MyDebug.trace("# ControlHub: could not give portno " + portno
                         + " to " + hostname + ":" + hostport);
@@ -277,8 +278,9 @@ public class ControlHub extends Thread {
             if (o == null) {
                 h = new Hashtable();
                 portNodeMap.put(hostname, h);
-            } else
+            } else {
                 h = (Hashtable) o;
+            }
             int i = 1;
             ArrayList a = new ArrayList();
             for (int j = 0; j < 10; j++) {
@@ -299,8 +301,9 @@ public class ControlHub extends Thread {
         synchronized (portNodeMap) {
             Object o = portNodeMap.get(hostname);
             Hashtable h;
-            if (o == null)
+            if (o == null) {
                 return;
+            }
             h = (Hashtable) o;
             h.remove(new Integer(portno));
             MyDebug.trace("# ControlHub: removing portno " + portno + " of "
@@ -314,8 +317,9 @@ public class ControlHub extends Thread {
         synchronized (portNodeMap) {
             Object o = portNodeMap.get(hostname);
             Hashtable h;
-            if (o == null)
+            if (o == null) {
                 return;
+            }
             h = (Hashtable) o;
             for (int i = 0; i < ports.size(); i++) {
                 h.remove(ports.get(i));
@@ -331,8 +335,9 @@ public class ControlHub extends Thread {
         synchronized (portNodeMap) {
             Object o = portNodeMap.get(hostname);
             Hashtable h;
-            if (o == null)
+            if (o == null) {
                 return;
+            }
             h = (Hashtable) o;
             Enumeration keys = h.keys();
             while (keys.hasMoreElements()) {

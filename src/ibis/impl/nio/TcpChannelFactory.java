@@ -34,8 +34,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
     // list of ReceivePorts we listen for
     private ArrayList receivePorts;
 
-    private static IbisSocketFactory socketFactory = IbisSocketFactory
-            .createFactory();
+    private static IbisSocketFactory socketFactory
+            = IbisSocketFactory.createFactory();
 
     TcpChannelFactory() throws IOException {
         int port = socketFactory.allocLocalPort();
@@ -79,8 +79,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             while (addresses != null && addresses.hasMoreElements()) {
                 address = (InetAddress) addresses.nextElement();
 
-                if (!(address.isAnyLocalAddress() | address.isLoopbackAddress() | address
-                        .isLinkLocalAddress())) {
+                if (!(address.isAnyLocalAddress() | address.isLoopbackAddress()
+                            | address.isLinkLocalAddress())) {
                     return address;
                 }
             }
@@ -183,9 +183,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 
                 if (time >= deadline) {
                     if (DEBUG) {
-                        Debug
-                                .exit("connections", this,
-                                        "timeout on connecting");
+                        Debug.exit("connections", this,
+                                "timeout on connecting");
                     }
 
                     throw new IOException("timeout on connecting");
@@ -202,9 +201,9 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                     //nothing selected, so we had a timeout
 
                     if (DEBUG) {
-                        Debug
-                                .exit("connections", this,
-                                        "!timed out while connecting socket to receiver");
+                        Debug.exit("connections", this,
+                                "!timed out while connecting socket "
+                                + "to receiver");
                     }
 
                     throw new ConnectionTimedOutException("timed out while"
@@ -341,9 +340,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 
             if (request != CONNECTION_REQUEST) {
                 if (DEBUG) {
-                    Debug
-                            .exit("connections", this,
-                                    "!received unknown request");
+                    Debug.exit("connections", this,
+                            "!received unknown request");
                 }
                 try {
                     dissipator.close();

@@ -367,8 +367,9 @@ public class IOGenerator {
             if (ui == null) {
                 uid = computeSUID();
                 serialversionids.put(classname, new Long(uid));
-            } else
+            } else {
                 uid = ui.longValue();
+            }
 
             if (uid != 0) {
                 FieldGen f = new FieldGen(Constants.ACC_PRIVATE
@@ -407,8 +408,9 @@ public class IOGenerator {
         private int findMethod(String name, String signature) {
             for (int i = 0; i < methods.length; i++) {
                 if (methods[i].getName().equals(name)
-                        && methods[i].getSignature().equals(signature))
+                        && methods[i].getSignature().equals(signature)) {
                     return i;
+                }
             }
             return -1;
         }
@@ -429,8 +431,9 @@ public class IOGenerator {
             for (int i = 0; i < clMethods.length; i++) {
                 if (clMethods[i].getName().equals("<init>")
                         && clMethods[i].getSignature().equals(
-                                "(Libis/io/IbisSerializationInputStream;)V"))
+                                "(Libis/io/IbisSerializationInputStream;)V")) {
                     return true;
+                }
             }
             return false;
         }
@@ -524,8 +527,8 @@ public class IOGenerator {
                     classname, il, constantpool);
 
             default_read_method.addException("java.io.IOException");
-            default_read_method
-                    .addException("java.lang.ClassNotFoundException");
+            default_read_method.addException(
+                    "java.lang.ClassNotFoundException");
             gen.addMethod(default_read_method.getMethod());
 
             /* Construct a read-of-the-stream constructor, but only when we
@@ -551,8 +554,8 @@ public class IOGenerator {
                         ibis_input_stream_arrtp, new String[] { "is" },
                         "$readObjectWrapper$", classname, il, constantpool);
                 readobjectWrapper.addException("java.io.IOException");
-                readobjectWrapper
-                        .addException("java.lang.ClassNotFoundException");
+                readobjectWrapper.addException(
+                        "java.lang.ClassNotFoundException");
                 gen.addMethod(readobjectWrapper.getMethod());
             }
 
@@ -655,16 +658,18 @@ public class IOGenerator {
             JavaClass field_class = null;
             String basicname = null;
 
-            if (verbose)
+            if (verbose) {
                 System.out.println("    writing reference field "
                         + field.getName() + " of type "
                         + field_type.getSignature());
+            }
 
             if (field_type instanceof ObjectType) {
                 field_class = Repository.lookupClass(
                         ((ObjectType) field_type).getClassName());
-                if (field_class != null && field_class.isFinal())
+                if (field_class != null && field_class.isFinal()) {
                     isfinal = true;
+                }
             } else if (field_type instanceof ArrayType) {
                 isarray = true;
                 Type el_type = ((ArrayType) field_type).getElementType();
@@ -836,8 +841,8 @@ public class IOGenerator {
             GOTO gto = new GOTO(null);
             write_il.append(gto);
 
-            InstructionHandle loop_body_start = write_il
-                    .append(persistent_field_access);
+            InstructionHandle loop_body_start
+                    = write_il.append(persistent_field_access);
             write_il.append(new ILOAD(2));
             write_il.append(new AALOAD());
             write_il.append(
@@ -953,10 +958,11 @@ public class IOGenerator {
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "getShort", Type.SHORT, new Type[] { Type.OBJECT },
                     Constants.INVOKEVIRTUAL));
-            write_il.append(factory
-                    .createInvoke("ibis.io.IbisSerializationOutputStream",
-                            "writeShort", Type.VOID, new Type[] { Type.INT },
-                            Constants.INVOKEVIRTUAL));
+            write_il.append(
+                    factory.createInvoke(
+                        "ibis.io.IbisSerializationOutputStream", "writeShort",
+                        Type.VOID, new Type[] { Type.INT },
+                        Constants.INVOKEVIRTUAL));
             write_il.append(gotos[6]);
 
             case_handles[7] = write_il.append(new ALOAD(1));
@@ -1045,10 +1051,11 @@ public class IOGenerator {
                     Type field_type = Type.getType(field.getSignature());
 
                     if (field_type instanceof BasicType) {
-                        if (verbose)
+                        if (verbose) {
                             System.out.println("    writing basic field "
                                     + field.getName() + " of type "
                                     + field.getSignature());
+                        }
 
                         write_il.append(writeInstructions(field));
                     }
@@ -1065,10 +1072,11 @@ public class IOGenerator {
                     Type field_type = Type.getType(field.getSignature());
 
                     if (field_type instanceof ReferenceType) {
-                        if (verbose)
+                        if (verbose) {
                             System.out.println("    writing field "
                                     + field.getName() + " of type "
                                     + field.getSignature());
+                        }
                         if (!field_type.equals(Type.STRING)
                                 && !field_type.equals(java_lang_class_type)) {
                             write_il.append(writeReferenceField(field));
@@ -1097,10 +1105,11 @@ public class IOGenerator {
             JavaClass field_class = null;
             String basicname = null;
 
-            if (verbose)
+            if (verbose) {
                 System.out.println("    reading reference field "
                         + field.getName() + " of type "
                         + field_type.getSignature());
+            }
 
             if (field_type instanceof ObjectType) {
                 field_class = Repository.lookupClass(
@@ -1213,8 +1222,8 @@ public class IOGenerator {
                         read_il.append(factory.createNew((ObjectType) el_type));
                         read_il.append(new DUP());
                         read_il.append(new ALOAD(1));
-                        read_il.append(createInitInvocation(field_class
-                                .getClassName(), factory));
+                        read_il.append(createInitInvocation(
+                                field_class.getClassName(), factory));
                         read_il.append(new AASTORE());
                         GOTO gto2 = new GOTO(null);
                         read_il.append(gto2);
@@ -1226,9 +1235,9 @@ public class IOGenerator {
                         read_il.append(ifcmpeq2);
 
                         read_il.append(new ALOAD(0));
-                        read_il.append(factory
-                                .createFieldAccess(classname, field.getName(),
-                                        field_type, Constants.GETFIELD));
+                        read_il.append(factory.createFieldAccess(classname,
+                                field.getName(),
+                                field_type, Constants.GETFIELD));
                         read_il.append(new ILOAD(4));
 
                         read_il.append(new ALOAD(1));
@@ -1398,8 +1407,8 @@ public class IOGenerator {
             GOTO gto = new GOTO(null);
             read_il.append(gto);
 
-            InstructionHandle loop_body_start = read_il
-                    .append(persistent_field_access);
+            InstructionHandle loop_body_start
+                    = read_il.append(persistent_field_access);
             read_il.append(new ILOAD(2));
             read_il.append(new AALOAD());
             read_il.append(factory.createInvoke("java.io.ObjectStreamField",
@@ -1471,10 +1480,9 @@ public class IOGenerator {
             read_il.append(new DUP());
             read_il.append(factory.createNew("java.lang.StringBuffer"));
             read_il.append(new DUP());
-            read_il
-                    .append(factory.createInvoke("java.lang.StringBuffer",
-                            "<init>", Type.VOID, Type.NO_ARGS,
-                            Constants.INVOKESPECIAL));
+            read_il.append(factory.createInvoke("java.lang.StringBuffer",
+                    "<init>", Type.VOID, Type.NO_ARGS,
+                    Constants.INVOKESPECIAL));
             read_il.append(new PUSH(constantpool, "Could not read field "));
             read_il.append(factory.createInvoke("java.lang.StringBuffer",
                     "append", Type.STRINGBUFFER, new Type[] { Type.STRING },
@@ -1526,14 +1534,14 @@ public class IOGenerator {
                     Type field_type = Type.getType(field.getSignature());
 
                     if (field_type instanceof BasicType) {
-                        if (verbose)
+                        if (verbose) {
                             System.out.println("    writing basic field "
                                     + field.getName() + " of type "
                                     + field_type.getSignature());
+                        }
 
-                        read_il
-                                .append(readInstructions(field,
-                                        from_constructor));
+                        read_il.append(readInstructions(field,
+                                from_constructor));
                     }
                 }
             }
@@ -1547,10 +1555,11 @@ public class IOGenerator {
                 if (!(field.isStatic() || field.isTransient())) {
                     Type field_type = Type.getType(field.getSignature());
 
-                    if (verbose)
+                    if (verbose) {
                         System.out.println("    writing field "
                                 + field.getName() + " of type "
                                 + field.getSignature());
+                    }
 
                     if (field_type instanceof ReferenceType) {
                         if (!field_type.equals(Type.STRING)
@@ -1640,9 +1649,10 @@ public class IOGenerator {
              *    stream. This cannot be done (efficiently) with newInstance.
              */
 
-            if (verbose)
+            if (verbose) {
                 System.out.println("  Generating InstanceGenerator class for "
                         + classname);
+            }
 
             String name = classname + "_ibis_io_Generator";
 
@@ -2175,8 +2185,8 @@ public class IOGenerator {
     }
 
     SerializationInfo getSerializationInfo(Type tp) {
-        SerializationInfo temp = (SerializationInfo) primitiveSerialization
-                .get(tp);
+        SerializationInfo temp
+                = (SerializationInfo) primitiveSerialization.get(tp);
         return (temp == null ? referenceSerialization : temp);
     }
 
@@ -2197,8 +2207,9 @@ public class IOGenerator {
             String nm = clazz.getClassName();
             if (arguments.containsKey(nm)) {
                 target_classes.add(clazz);
-                if (verbose)
+                if (verbose) {
                     System.out.println("Adding target class : " + nm);
+                }
             }
         }
     }
@@ -2221,17 +2232,19 @@ public class IOGenerator {
     private void addRewriteClass(JavaClass clazz) {
         if (!classes_to_rewrite.contains(clazz) && !isIbisSerializable(clazz)) {
             classes_to_rewrite.add(clazz);
-            if (verbose)
+            if (verbose) {
                 System.out.println("Adding rewrite class : "
                         + clazz.getClassName());
+            }
         }
     }
 
     private void addClass(JavaClass clazz) {
         boolean serializable = false;
 
-        if (!clazz.isClass())
+        if (!clazz.isClass()) {
             return;
+        }
 
         if (!classes_to_rewrite.contains(clazz)) {
 
@@ -2248,10 +2261,11 @@ public class IOGenerator {
                                 addRewriteClass(super_classes[i]);
                             }
                         } else {
-                            if (verbose)
+                            if (verbose) {
                                 System.out.println(clazz.getClassName()
                                         + " already implements "
                                         + "ibis.io.Serializable");
+                            }
                         }
                     }
                 }
@@ -2269,16 +2283,18 @@ public class IOGenerator {
     }
 
     private static boolean isFinal(Type t) {
-        if (t instanceof BasicType)
+        if (t instanceof BasicType) {
             return true;
+        }
         if (t instanceof ArrayType) {
             return isFinal(((ArrayType) t).getBasicType());
         }
         if (t instanceof ObjectType) {
             String name = ((ObjectType) t).getClassName();
             JavaClass c = Repository.lookupClass(name);
-            if (c == null)
+            if (c == null) {
                 return false;
+            }
             return c.isFinal();
         }
         return false;
@@ -2311,14 +2327,17 @@ public class IOGenerator {
         String names[] = clazz.getInterfaceNames();
         String supername = clazz.getSuperclassName();
 
-        if (supername.equals(name))
+        if (supername.equals(name)) {
             return true;
+        }
 
-        if (names == null)
+        if (names == null) {
             return false;
+        }
         for (int i = 0; i < names.length; i++) {
-            if (names[i].equals(name))
+            if (names[i].equals(name)) {
                 return true;
+            }
         }
         return false;
     }
@@ -2327,10 +2346,12 @@ public class IOGenerator {
         String n = c2.getSuperclassName();
 
         // System.out.println("comparing " + c1 + ", " + n);
-        if (n.equals(c1))
+        if (n.equals(c1)) {
             return true;
-        if (n.equals("java.lang.Object"))
+        }
+        if (n.equals("java.lang.Object")) {
             return false;
+        }
         return predecessor(c1, Repository.lookupClass(n));
     }
 
@@ -2393,8 +2414,9 @@ public class IOGenerator {
         }
 
         for (int i = lngth - 1; i >= 0; i--) {
-            if (verbose)
+            if (verbose) {
                 System.out.println("  Loading class : " + (String) names[i]);
+            }
 
             String className = (String) names[i];
 
@@ -2445,8 +2467,9 @@ public class IOGenerator {
             }
         }
 
-        if (verbose)
+        if (verbose) {
             System.out.println("Preparing classes");
+        }
 
         for (int i = 0; i < classes_to_rewrite.size(); i++) {
             JavaClass clazz = (JavaClass) classes_to_rewrite.get(i);
@@ -2463,8 +2486,9 @@ public class IOGenerator {
             new CodeGenerator(clazz).generateMethods();
         }
 
-        if (verbose)
+        if (verbose) {
             System.out.println("Rewriting classes");
+        }
 
         /* Sort target_classes. Super classes first.  */
         do_sort_classes(target_classes);
@@ -2472,15 +2496,17 @@ public class IOGenerator {
         for (int i = 0; i < target_classes.size(); i++) {
             JavaClass clazz = (JavaClass) target_classes.get(i);
             if (!clazz.isInterface()) {
-                if (!silent)
+                if (!silent) {
                     System.out.println("  Rewrite class : "
                             + clazz.getClassName());
+                }
                 new CodeGenerator(clazz).generateCode();
             }
         }
 
-        if (verbose)
+        if (verbose) {
             System.out.println("Saving classes");
+        }
 
         for (int i = 0; i < classes_to_save.size(); i++) {
             JavaClass clazz = (JavaClass) classes_to_save.get(i);
@@ -2495,8 +2521,9 @@ public class IOGenerator {
                     classfile = cl.replace('.', java.io.File.separatorChar)
                             + ".class";
                 }
-                if (verbose)
+                if (verbose) {
                     System.out.println("  Saving class : " + classfile);
+                }
                 clazz.dump(classfile);
             } catch (IOException e) {
                 System.err.println("got exception while writing " + classfile

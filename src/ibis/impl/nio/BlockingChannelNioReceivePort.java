@@ -207,8 +207,8 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
             }
 
             for (int i = 0; i < keys.length; i++) {
-                dissipator = (BlockingChannelNioDissipator) keys[i]
-                        .attachment();
+                dissipator
+                    = (BlockingChannelNioDissipator) keys[i].attachment();
                 SelectableChannel sh;
                 sh = (SelectableChannel) dissipator.channel;
                 sh.configureBlocking(true);

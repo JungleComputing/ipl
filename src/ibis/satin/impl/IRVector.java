@@ -45,8 +45,9 @@ final class IRVector implements Config {
         }
         int c = 0;
         for (int i = 0; i < count; i++) {
-            if (l[i].stealer.equals(owner))
+            if (l[i].stealer.equals(owner)) {
                 c++;
+            }
         }
         return c;
     }
@@ -67,8 +68,8 @@ final class IRVector implements Config {
 
         for (int i = 0; i < count; i++) {
             if (l[i] == null) {
-                System.err
-                        .println("l[i] is null, i: " + i + ",count: " + count);
+                System.err.println(
+                        "l[i] is null, i: " + i + ",count: " + count);
             }
             if (l[i].stamp == stamp && l[i].owner.equals(owner)) {
                 res = l[i];
@@ -176,8 +177,9 @@ final class IRVector implements Config {
                 }
                 if (SPAWN_DEBUG) {
                     curr.spawnCounter.decr(curr);
-                } else
+                } else {
                     curr.spawnCounter.value--;
+                }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
@@ -223,8 +225,9 @@ final class IRVector implements Config {
                 }
                 if (SPAWN_DEBUG) {
                     curr.spawnCounter.decr(curr);
-                } else
+                } else {
                     curr.spawnCounter.value--;
+                }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
@@ -306,8 +309,9 @@ final class IRVector implements Config {
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
         }
-        if (i >= count)
+        if (i >= count) {
             return null;
+        }
 
         InvocationRecord res = l[i];
         count--;

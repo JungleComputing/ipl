@@ -26,9 +26,8 @@ class GMIStubGenerator extends GMIGenerator {
         Type ret = m.getReturnType();
         Type[] params = m.getArgumentTypes();
 
-        output
-                .print("\tpublic final " + getType(ret) + " " + m.getName()
-                        + "(");
+        output.print("\tpublic final " + getType(ret) + " " + m.getName()
+                + "(");
 
         for (int j = 0; j < params.length; j++) {
             output.print(getType(params[j]) + " p" + j);

@@ -26,8 +26,8 @@ public class Splice {
 
     private static NumServer server;
 
-    private static final boolean setBufferSizes = !TypedProperties
-            .booleanProperty(ConnProps.sizes);
+    private static final boolean setBufferSizes
+            = !TypedProperties.booleanProperty(ConnProps.sizes);
 
     private Socket socket = null;
 
@@ -74,8 +74,9 @@ public class Splice {
 
         public void run() {
             while (true) {
-                if (srvr == null)
+                if (srvr == null) {
                     return;
+                }
                 try {
                     Socket s = srvr.accept();
                     DataOutputStream out = new DataOutputStream(
@@ -117,8 +118,8 @@ public class Splice {
     private int newPort() {
         try {
             Socket s = new Socket(IPUtils.getLocalHostAddress(), serverPort);
-            DataInputStream in = new DataInputStream(new BufferedInputStream(s
-                    .getInputStream()));
+            DataInputStream in = new DataInputStream(
+                    new BufferedInputStream(s.getInputStream()));
             int port = in.readInt();
             in.close();
             s.close();

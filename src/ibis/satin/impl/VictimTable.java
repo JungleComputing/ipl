@@ -210,8 +210,9 @@ final class VictimTable implements Config {
             SatinBase.assertLocked(satin);
         }
 
-        if (clusterSize == 0)
+        if (clusterSize == 0) {
             return null;
+        }
 
         // try {
         index = Math.abs(satin.random.nextInt()) % clusterSize;
@@ -248,8 +249,9 @@ final class VictimTable implements Config {
 
         remoteVictims = victims.size() - thisCluster.size();
 
-        if (remoteVictims == 0)
+        if (remoteVictims == 0) {
             return null;
+        }
 
         vIndex = Math.abs(satin.random.nextInt()) % remoteVictims;
 

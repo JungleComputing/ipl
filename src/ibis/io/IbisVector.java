@@ -39,8 +39,9 @@ public final class IbisVector {
             double_array();
         }
         array[index] = data;
-        if (index >= maxfill)
+        if (index >= maxfill) {
             maxfill = index + 1;
+        }
     }
 
     public final Object get(int index) {

@@ -103,8 +103,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         if (myAddress.equals(serverAddress)) {
             // Try and start a nameserver ...
-            NameServer n = NameServer
-                    .createNameServer(true, false, true, false);
+            NameServer n
+                    = NameServer.createNameServer(true, false, true, false);
             if (n != null) {
                 n.setDaemon(true);
                 n.start();
@@ -390,8 +390,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
                 switch (opcode) {
                 case (IBIS_PING): {
-                    DummyOutputStream dos = new DummyOutputStream(s
-                            .getOutputStream());
+                    DummyOutputStream dos
+                            = new DummyOutputStream(s.getOutputStream());
                     DataOutputStream out = new DataOutputStream(
                             new BufferedOutputStream(dos));
                     out.writeUTF(poolName);
@@ -433,8 +433,9 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             } catch (Exception e1) {
                 System.out.println("Got an exception in NameServerClient.run "
                         + "(opcode = " + opcode + ") " + e1.toString());
-                if (stop)
+                if (stop) {
                     return;
+                }
                 e1.printStackTrace();
 
                 if (s != null) {

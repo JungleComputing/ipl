@@ -96,8 +96,8 @@ public class PoolInfoClient extends PoolInfo {
         }
         String serverName = TypedProperties.stringProperty(s_host);
         if (serverName == null) {
-            serverName = TypedProperties
-                    .stringProperty("ibis.name_server.host");
+            serverName
+                    = TypedProperties.stringProperty("ibis.name_server.host");
             if (serverName == null) {
                 throw new RuntimeException("property " + s_host
                         + " is not specified");

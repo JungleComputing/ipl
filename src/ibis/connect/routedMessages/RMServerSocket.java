@@ -54,8 +54,8 @@ public class RMServerSocket extends ServerSocket {
                 throw new Error(e);
             }
         }
-        MyDebug.out
-                .println("# RMServerSocket.getInetAddress() addr=" + address);
+        MyDebug.out.println(
+                "# RMServerSocket.getInetAddress() addr=" + address);
         return address;
     }
 
@@ -73,8 +73,9 @@ public class RMServerSocket extends ServerSocket {
         Request r = null;
         synchronized (this) {
             while (requests.size() == 0) {
-                if (!socketOpened)
+                if (!socketOpened) {
                     throw new SocketException();
+                }
                 try {
                     this.wait();
                 } catch (InterruptedException e) { /* ignore */

@@ -217,8 +217,9 @@ public abstract class Inlets extends Aborts {
 
             if (SPAWN_DEBUG) {
                 r.spawnCounter.decr(r);
-            } else
+            } else {
                 r.spawnCounter.value--;
+            }
             if (ASSERTS && r.spawnCounter.value < 0) {
                 out.println("Just made spawncounter < 0");
                 new Exception().printStackTrace();

@@ -30,8 +30,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      * Record how many objects of any class are sent the expensive way:
      * via the uninitialized native creator.
      */
-    private static final boolean STATS_NONREWRITTEN = TypedProperties
-            .booleanProperty(IOProps.s_stats_nonrewritten);
+    private static final boolean STATS_NONREWRITTEN
+            = TypedProperties.booleanProperty(IOProps.s_stats_nonrewritten);
 
     // if STATS_NONREWRITTEN
     private static java.util.Hashtable nonRewritten = new java.util.Hashtable();
@@ -44,8 +44,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             // unsafe = (Unsafe.getUnsafe();
             // does not work when a classloader is present, so we get it
             // from ObjectStreamClass.
-            Class cl = Class
-                    .forName("java.io.ObjectStreamClass$FieldReflector");
+            Class cl
+                = Class.forName("java.io.ObjectStreamClass$FieldReflector");
             Field uf = cl.getDeclaredField("unsafe");
             uf.setAccessible(true);
             unsafe = (Unsafe) uf.get(null);
@@ -115,36 +115,36 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
     private int stack_size = 0;
 
     /** <code>IbisTypeInfo</code> for <code>boolean</code> arrays. */
-    private static IbisTypeInfo booleanArrayInfo = IbisTypeInfo
-            .getIbisTypeInfo(classBooleanArray);
+    private static IbisTypeInfo booleanArrayInfo
+            = IbisTypeInfo.getIbisTypeInfo(classBooleanArray);
 
     /** <code>IbisTypeInfo</code> for <code>byte</code> arrays. */
-    private static IbisTypeInfo byteArrayInfo = IbisTypeInfo
-            .getIbisTypeInfo(classByteArray);
+    private static IbisTypeInfo byteArrayInfo
+            = IbisTypeInfo.getIbisTypeInfo(classByteArray);
 
     /** <code>IbisTypeInfo</code> for <code>char</code> arrays. */
-    private static IbisTypeInfo charArrayInfo = IbisTypeInfo
-            .getIbisTypeInfo(classCharArray);
+    private static IbisTypeInfo charArrayInfo
+            = IbisTypeInfo.getIbisTypeInfo(classCharArray);
 
     /** <code>IbisTypeInfo</code> for <code>short</code> arrays. */
-    private static IbisTypeInfo shortArrayInfo = IbisTypeInfo
-            .getIbisTypeInfo(classShortArray);
+    private static IbisTypeInfo shortArrayInfo
+            = IbisTypeInfo.getIbisTypeInfo(classShortArray);
 
     /** <code>IbisTypeInfo</code> for <code>int</code> arrays. */
-    private static IbisTypeInfo intArrayInfo = IbisTypeInfo
-            .getIbisTypeInfo(classIntArray);
+    private static IbisTypeInfo intArrayInfo
+            = IbisTypeInfo.getIbisTypeInfo(classIntArray);
 
     /** <code>IbisTypeInfo</code> for <code>long</code> arrays. */
-    private static IbisTypeInfo longArrayInfo = IbisTypeInfo
-            .getIbisTypeInfo(classLongArray);
+    private static IbisTypeInfo longArrayInfo
+            = IbisTypeInfo.getIbisTypeInfo(classLongArray);
 
     /** <code>IbisTypeInfo</code> for <code>float</code> arrays. */
-    private static IbisTypeInfo floatArrayInfo = IbisTypeInfo
-            .getIbisTypeInfo(classFloatArray);
+    private static IbisTypeInfo floatArrayInfo
+            = IbisTypeInfo.getIbisTypeInfo(classFloatArray);
 
     /** <code>IbisTypeInfo</code> for <code>double</code> arrays. */
-    private static IbisTypeInfo doubleArrayInfo = IbisTypeInfo
-            .getIbisTypeInfo(classDoubleArray);
+    private static IbisTypeInfo doubleArrayInfo
+            = IbisTypeInfo.getIbisTypeInfo(classDoubleArray);
 
     static {
         String clName = System.getProperty(IOProps.s_classloader);
@@ -844,8 +844,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             return readArrayDouble();
         default:
             int len = readInt();
-            Object ref = java.lang.reflect.Array.newInstance(clazz
-                    .getComponentType(), len);
+            Object ref = java.lang.reflect.Array.newInstance(
+                    clazz.getComponentType(), len);
             addObjectToCycleCheck(ref);
 
             for (int i = 0; i < len; i++) {
@@ -1344,8 +1344,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         for (int i = 0; i < t.reference_count; i++) {
             if (t.fields_final[temp]) {
                 String fieldname = t.serializable_fields[temp].getName();
-                String fieldtype = t.serializable_fields[temp].getType()
-                        .getName();
+                String fieldtype
+                        = t.serializable_fields[temp].getType().getName();
 
                 if (fieldtype.startsWith("[")) {
                     // do nothing
@@ -1444,8 +1444,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      */
     public void readSerializableObject(Object ref, String classname)
             throws ClassNotFoundException, IOException {
-        AlternativeTypeInfo t = AlternativeTypeInfo
-                .getAlternativeTypeInfo(classname);
+        AlternativeTypeInfo t
+                = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
         push_current_object(ref, 0);
         try {
             alternativeReadObject(t, ref);
@@ -1475,8 +1475,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
     public void defaultReadSerializableObject(Object ref, int depth)
             throws ClassNotFoundException, IOException {
         Class type = ref.getClass();
-        AlternativeTypeInfo t = AlternativeTypeInfo
-                .getAlternativeTypeInfo(type);
+        AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(type);
 
         /*  Find the type info corresponding to the current invocation.
          See the invokeReadObject invocation in alternativeReadObject.
@@ -1526,8 +1525,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
     }
 
     private Object create_uninitialized_object(Class clazz) {
-        AlternativeTypeInfo t = AlternativeTypeInfo
-                .getAlternativeTypeInfo(clazz);
+        AlternativeTypeInfo t
+                = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
         if (STATS_NONREWRITTEN) {
             Integer n = (Integer) nonRewritten.get(clazz);
@@ -1541,8 +1540,9 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
 
         Object o = t.newInstance();
 
-        if (o != null)
+        if (o != null) {
             return o;
+        }
 
         Class t2 = clazz;
         while (Serializable.class.isAssignableFrom(t2)) {
@@ -1783,8 +1783,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             throw new NotActiveException("not in readObject");
         }
         Class type = current_object.getClass();
-        AlternativeTypeInfo t = AlternativeTypeInfo
-                .getAlternativeTypeInfo(type);
+        AlternativeTypeInfo t
+                = AlternativeTypeInfo.getAlternativeTypeInfo(type);
         ImplGetField current_getfield = new ImplGetField(t);
         current_getfield.readFields();
         return current_getfield;
@@ -1916,8 +1916,9 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         Class[] intfs = clazz.getInterfaces();
 
         for (int i = 0; i < intfs.length; i++) {
-            if (intfs[i].equals(ibis.io.Serializable.class))
+            if (intfs[i].equals(ibis.io.Serializable.class)) {
                 return true;
+            }
         }
         return false;
     }
@@ -1940,8 +1941,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             ((ibis.io.Serializable) ref).generated_DefaultReadObject(this,
                     current_level);
         } else if (ref instanceof java.io.Serializable) {
-            AlternativeTypeInfo t = AlternativeTypeInfo
-                    .getAlternativeTypeInfo(type);
+            AlternativeTypeInfo t
+                    = AlternativeTypeInfo.getAlternativeTypeInfo(type);
 
             /*  Find the type info corresponding to the current invocation.
              *  See the invokeReadObject invocation in alternativeReadObject.

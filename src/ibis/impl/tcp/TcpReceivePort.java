@@ -72,8 +72,9 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         this.connUpcall = connUpcall;
         this.ibis = ibis;
         this.connectionAdministration = connectionAdministration;
-        if (connUpcall != null)
+        if (connUpcall != null) {
             this.connectionAdministration = true;
+        }
 
         this.name = name;
 
@@ -259,7 +260,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
                 }
             }
             connections[0].reader();
-        } else
+        } else {
             while ((m == null || delivered) && !shouldLeave) {
                 try {
                     if (timeout > 0) {
@@ -272,6 +273,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
                             "timeout expired in receive()");
                 }
             }
+        }
         delivered = true;
         return m;
     }

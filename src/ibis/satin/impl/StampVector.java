@@ -27,8 +27,9 @@ final class StampVector implements Config {
 
     public boolean containsParentOf(int stamp, ibis.ipl.IbisIdentifier owner) {
         for (int i = 0; i < count; i++) {
-            if (stamps[i] == stamp && owners[i].equals(owner))
+            if (stamps[i] == stamp && owners[i].equals(owner)) {
                 return true;
+            }
         }
 
         return false;

@@ -62,8 +62,8 @@ public abstract class Stats extends TupleSpace {
             s.tableHandleUpdateTime = handleUpdateTimer.totalTimeVal();
             s.tableHandleLookupTime = handleLookupTimer.totalTimeVal();
             s.tableSerializationTime = tableSerializationTimer.totalTimeVal();
-            s.tableDeserializationTime = tableDeserializationTimer
-                    .totalTimeVal();
+            s.tableDeserializationTime
+                    = tableDeserializationTimer.totalTimeVal();
             s.tableCheckTime = redoTimer.totalTimeVal();
             s.crashHandlingTime = crashTimer.totalTimeVal();
             s.addReplicaTime = addReplicaTimer.totalTimeVal();
@@ -126,15 +126,14 @@ public abstract class Stats extends TupleSpace {
         }
 
         if (STEAL_STATS) {
-            out
-                    .println("SATIN: STEAL:       "
-                            + nf.format(totalStats.stealAttempts)
-                            + " attempts, "
-                            + nf.format(totalStats.stealSuccess)
-                            + " successes ("
-                            + pf.format(((double) totalStats.stealSuccess
-                                    / totalStats.stealAttempts) * 100.0)
-                            + " %)");
+            out.println("SATIN: STEAL:       "
+                    + nf.format(totalStats.stealAttempts)
+                    + " attempts, "
+                    + nf.format(totalStats.stealSuccess)
+                    + " successes ("
+                    + pf.format(((double) totalStats.stealSuccess
+                            / totalStats.stealAttempts) * 100.0)
+                    + " %)");
 
             out.println("SATIN: MESSAGES:    intra "
                     + nf.format(totalStats.intraClusterMessages) + " msgs, "
@@ -445,12 +444,11 @@ public abstract class Stats extends TupleSpace {
                     + "': INTER_STATS: messages = " + interClusterMessages
                     + ", bytes = " + nf.format(interClusterBytes));
 
-            out
-                    .println("SATIN '" + ident.name()
-                            + "': STEAL_STATS 1: attempts = " + stealAttempts
-                            + " success = " + stealSuccess + " ("
-                            + (((double) stealSuccess / stealAttempts) * 100.0)
-                            + " %)");
+            out.println("SATIN '" + ident.name()
+                    + "': STEAL_STATS 1: attempts = " + stealAttempts
+                    + " success = " + stealSuccess + " ("
+                    + (((double) stealSuccess / stealAttempts) * 100.0)
+                    + " %)");
 
             out.println("SATIN '" + ident.name()
                     + "': STEAL_STATS 2: requests = " + stealRequests
@@ -585,10 +583,9 @@ public abstract class Stats extends TupleSpace {
 
             }
             if (CRASH_TIMING) {
-                out
-                        .println("SATIN '" + ident.name() + "': "
-                                + crashTimer.totalTime()
-                                + " spent in handling crashes");
+                out.println("SATIN '" + ident.name() + "': "
+                        + crashTimer.totalTime()
+                        + " spent in handling crashes");
             }
             if (TABLE_CHECK_TIMING) {
                 out.println("SATIN '" + ident.name() + "': "

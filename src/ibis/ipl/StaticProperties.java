@@ -132,8 +132,8 @@ public class StaticProperties {
      */
     static {
         // First, read the ibis-properties file.
-        InputStream in = ClassLoader.getSystemClassLoader()
-                .getResourceAsStream("ibis-properties");
+        InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(
+                "ibis-properties");
         if (in == null) {
             System.err.println("could not open ibis-properties");
             System.exit(1);
@@ -191,8 +191,8 @@ public class StaticProperties {
                                 String catValue = (String) j.next();
                                 if (n.equals(catName + "." + catValue)) {
                                     Property p = (Property) 
-                                            user_merge_properties.mappings
-                                            .get(catName);
+                                            user_merge_properties.mappings.get(
+                                                    catName);
                                     if (p == null) {
                                         p = new Property();
                                         user_merge_properties.mappings.put(

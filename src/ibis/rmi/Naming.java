@@ -24,8 +24,9 @@ public final class Naming {
         public RegInfo(String n) throws MalformedURLException, RemoteException,
                 UnknownHostException {
             URL url;
-            if (n.startsWith("rmi:"))
+            if (n.startsWith("rmi:")) {
                 n = n.substring(4);
+            }
             /* Now, if there is a colon before a slash, we have a different
              * protocol (and thus an error).
              */

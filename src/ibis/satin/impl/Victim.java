@@ -9,8 +9,9 @@ final class Victim {
     SendPort s;
 
     public boolean equals(Object o) {
-        if (o == this)
+        if (o == this) {
             return true;
+        }
         if (o instanceof Victim) {
             Victim other = (Victim) o;
             return other.ident.equals(ident);
@@ -19,8 +20,9 @@ final class Victim {
     }
 
     public boolean equals(Victim other) {
-        if (other == this)
+        if (other == this) {
             return true;
+        }
         return other.ident.equals(ident);
     }
 

@@ -23,8 +23,9 @@ final class RandomWorkStealing extends Algorithm implements Config {
                 }
             }
         }
-        if (v == null)
+        if (v == null) {
             return null; //can happen with open world if nobody joined.
+        }
 
         return satin.stealJob(v, false);
     }

@@ -35,8 +35,9 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
     }
 
     public boolean equals(Object other) {
-        if (other == null)
+        if (other == null) {
             return false;
+        }
         if (other instanceof TcpReceivePortIdentifier) {
             return equals((TcpReceivePortIdentifier) other);
         }

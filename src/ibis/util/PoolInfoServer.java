@@ -77,8 +77,8 @@ public class PoolInfoServer extends Thread {
             if (remove_doubles != 0) {
                 for (int i = 0; i < connected_hosts; i++) {
                     if (host_addresses[i].equals(addr)) {
-                        ObjectOutputStream out = new ObjectOutputStream(socket
-                                .getOutputStream());
+                        ObjectOutputStream out
+                            = new ObjectOutputStream(socket.getOutputStream());
                         out.writeInt(-1);
                         out.close();
                         in.close();
@@ -112,8 +112,8 @@ public class PoolInfoServer extends Thread {
             total_hosts -= removed_hosts;
 
             for (int i = 0; i < total_hosts; i++) {
-                ObjectOutputStream out = new ObjectOutputStream(host_sockets[i]
-                        .getOutputStream());
+                ObjectOutputStream out
+                    = new ObjectOutputStream(host_sockets[i].getOutputStream());
                 out.writeInt(i); //give the node a rank
                 out.writeInt(total_hosts);
                 out.writeObject(host_clusters);

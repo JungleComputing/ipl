@@ -17,8 +17,9 @@ public abstract class SocketType {
         public String getProperty(String name) {
             if (prevail != null) {
                 String retval = prevail.getProperty(name);
-                if (retval != null)
+                if (retval != null) {
                     return retval;
+                }
             }
             return System.getProperties().getProperty(
                     ConnProps.PROPERTY_PREFIX + name);
@@ -40,8 +41,8 @@ public abstract class SocketType {
     }
 
     public boolean supportsClientServer() {
-        return ClientServerSocketFactory.class
-                .isAssignableFrom(this.getClass());
+        return ClientServerSocketFactory.class.isAssignableFrom(
+                this.getClass());
     }
 
     public boolean supportsBrokeredLinks() {

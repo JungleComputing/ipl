@@ -13,8 +13,9 @@ final class RMIReplacer implements Replacer {
         }
         if (o instanceof Remote) {
             Object r = RTS.getStub(o);
-            if (r != null)
+            if (r != null) {
                 return r;
+            }
         }
         return o;
     }

@@ -175,33 +175,31 @@ public interface Config {
     static final long POLL_FREQ = TypedProperties.longProperty(s_poll_freq, 0L);
 
     /** When polling, poll the satin receiveport. */
-    static final boolean POLL_RECEIVEPORT = TypedProperties.booleanProperty(
-            s_poll_port, true);
+    static final boolean POLL_RECEIVEPORT
+            = TypedProperties.booleanProperty(s_poll_port, true);
 
     /** Enable or disable asserts. */
-    static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts,
-            false);
+    static final boolean ASSERTS
+            = TypedProperties.booleanProperty(s_asserts, false);
 
     /** Enable or disable aborts and inlets. */
-    static final boolean ABORTS = TypedProperties.booleanProperty(s_aborts,
-            true);
+    static final boolean ABORTS
+            = TypedProperties.booleanProperty(s_aborts, true);
 
     /** Enable fault tolerance. */
-    static final boolean FAULT_TOLERANCE = TypedProperties.booleanProperty(
-            s_ft, false);
+    static final boolean FAULT_TOLERANCE
+            = TypedProperties.booleanProperty(s_ft, false);
 
     /**
      * If true, the global result table is replicated if false, the table is
      * distributed
      */
-    static final boolean GLOBAL_RESULT_TABLE_REPLICATED = TypedProperties
-            .booleanProperty(s_ft_grt_repl, false);
+    static final boolean GLOBAL_RESULT_TABLE_REPLICATED
+            = TypedProperties.booleanProperty(s_ft_grt_repl, false);
 
-    /**
-     *Use message combinining with global result table
-     */
-    static final boolean GRT_MESSAGE_COMBINING = TypedProperties
-            .booleanProperty(s_ft_grt_comb, true);
+    /** Use message combinining with global result table. */
+    static final boolean GRT_MESSAGE_COMBINING
+            = TypedProperties.booleanProperty(s_ft_grt_comb, true);
 
     /** 
      * If true, orphan jobs are not aborted. Pointers are stored immediately
@@ -210,59 +208,59 @@ public interface Config {
      * redone when their parent is on the top of the stack.
      * Do not use with replicated table
      */
-    static final boolean FT_WITHOUT_ABORTS = TypedProperties.booleanProperty(
-            s_ft_noAborts, false);
+    static final boolean FT_WITHOUT_ABORTS
+            = TypedProperties.booleanProperty(s_ft_noAborts, false);
 
     /**
      * Fault tolerance with restarting crashed jobs, but without the table
      */
-    static final boolean FT_NAIVE = TypedProperties.booleanProperty(s_ft_naive,
-            false);
+    static final boolean FT_NAIVE
+            = TypedProperties.booleanProperty(s_ft_naive, false);
 
     /** Enable or disable an optimization for handling delayed messages. */
-    static final boolean HANDLE_MESSAGES_IN_LATENCY = TypedProperties
-            .booleanProperty(s_in_latency, false);
+    static final boolean HANDLE_MESSAGES_IN_LATENCY
+            = TypedProperties.booleanProperty(s_in_latency, false);
 
     /**
      * Enable or disable multicast to update the tuple space.
      * Don't use with fault tolerance. Multicast ports don't work with crashes
      * yet.
      */
-    static final boolean SUPPORT_TUPLE_MULTICAST = TypedProperties
-            .booleanProperty(s_tuple_multi, true);
+    static final boolean SUPPORT_TUPLE_MULTICAST
+            = TypedProperties.booleanProperty(s_tuple_multi, true);
 
-    static final boolean TUPLE_ORDERED = TypedProperties.booleanProperty(
-            s_tuple_ordered, false)
-            || TypedProperties.booleanProperty(s_tuple_ordened, false)
-            || TypedProperties.booleanProperty(s_tuple_numbered, false);
+    static final boolean TUPLE_ORDERED
+            = TypedProperties.booleanProperty(s_tuple_ordered, false)
+                || TypedProperties.booleanProperty(s_tuple_ordened, false)
+                || TypedProperties.booleanProperty(s_tuple_numbered, false);
 
     /** Enable or disable debug prints concerning communication. */
-    static final boolean COMM_DEBUG = TypedProperties.booleanProperty(
-            s_debug_comm, false);
+    static final boolean COMM_DEBUG
+            = TypedProperties.booleanProperty(s_debug_comm, false);
 
     /** Enable or disable debug prints concerning job stealing. */
-    static final boolean STEAL_DEBUG = TypedProperties.booleanProperty(
-            s_debug_steal, false);
+    static final boolean STEAL_DEBUG
+            = TypedProperties.booleanProperty(s_debug_steal, false);
 
     /** Enable or disable debug prints concerning spawns. */
-    static final boolean SPAWN_DEBUG = TypedProperties.booleanProperty(
-            s_debug_spawn, false);
+    static final boolean SPAWN_DEBUG
+            = TypedProperties.booleanProperty(s_debug_spawn, false);
 
     /**
      * Enable or disable debug prints concerning inlets (exception handling).
      */
-    static final boolean INLET_DEBUG = TypedProperties.booleanProperty(
-            s_debug_inlet, false);
+    static final boolean INLET_DEBUG
+            = TypedProperties.booleanProperty(s_debug_inlet, false);
 
     /** Enable or disable debug prints concerning aborts. */
-    static final boolean ABORT_DEBUG = TypedProperties.booleanProperty(
-            s_debug_abort, false);
+    static final boolean ABORT_DEBUG
+            = TypedProperties.booleanProperty(s_debug_abort, false);
 
     /** Enable or disable debug prints concerning the global result table. */
-    static final boolean GRT_DEBUG = TypedProperties.booleanProperty(
-            s_debug_ft_grt, false);
+    static final boolean GRT_DEBUG
+            = TypedProperties.booleanProperty(s_debug_ft_grt, false);
 
     /** Enable or disable debug prints concerning the tuple space. */
-    static final boolean TUPLE_DEBUG = TypedProperties.booleanProperty(
-            s_debug_tuple, false);
+    static final boolean TUPLE_DEBUG
+            = TypedProperties.booleanProperty(s_debug_tuple, false);
 }

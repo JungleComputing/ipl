@@ -25,8 +25,9 @@ public final class SpawnCounter {
     synchronized void incr(InvocationRecord r) {
         Throwable e = new Throwable();
         Throwable x;
-        if (m == null)
+        if (m == null) {
             m = new HashMap();
+        }
         if (value != lastvalue) {
             System.out.println("Incr: lastvalue != value!");
             if (lastIncr != null) {
@@ -57,8 +58,9 @@ public final class SpawnCounter {
     }
 
     synchronized void decr(InvocationRecord r) {
-        if (m == null)
+        if (m == null) {
             m = new HashMap();
+        }
         if (value != lastvalue) {
             System.out.println("Decr: lastvalue != value!");
             if (lastIncr != null) {

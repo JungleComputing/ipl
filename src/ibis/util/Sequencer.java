@@ -144,9 +144,8 @@ public final class Sequencer {
 
         StaticProperties p = new StaticProperties();
         p.add("serialization", "object");
-        p
-                .add("communication",
-                        "OneToOne, ManyToOne, ExplicitReceipt, Reliable");
+        p.add("communication",
+                "OneToOne, ManyToOne, ExplicitReceipt, Reliable");
         try {
             tp = ibis.createPortType("sequencer", p);
         } catch (IbisException e) {
@@ -165,8 +164,8 @@ public final class Sequencer {
             rcv = tp.createReceivePort("sequencer port on "
                     + ibis.identifier().name());
             rcv.enableConnections();
-            ReceivePortIdentifier master_id = ibis.registry()
-                    .lookupReceivePort("seq recvr");
+            ReceivePortIdentifier master_id
+                    = ibis.registry().lookupReceivePort("seq recvr");
             snd.connect(master_id);
             ReceivePortIdentifier rid = rcv.identifier();
             WriteMessage w = snd.newMessage();

@@ -84,8 +84,10 @@ final class DEQueueDijkstra extends DEQueue implements Config {
     boolean contains(InvocationRecord r) {
         for (int i = tail; i < head; i++) {
             InvocationRecord curr = l[i];
-            if (curr.equals(r))
+            if (curr.equals(r)) {
                 return true;
+            }
+
         }
 
         return false;
@@ -125,8 +127,9 @@ final class DEQueueDijkstra extends DEQueue implements Config {
                 }
                 if (SPAWN_DEBUG) {
                     curr.spawnCounter.decr(curr);
-                } else
+                } else {
                     curr.spawnCounter.value--;
+                }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.err.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
@@ -165,8 +168,9 @@ final class DEQueueDijkstra extends DEQueue implements Config {
                 curr.aborted = true;
                 if (SPAWN_DEBUG) {
                     curr.spawnCounter.decr(curr);
-                } else
+                } else {
                     curr.spawnCounter.value--;
+                }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();

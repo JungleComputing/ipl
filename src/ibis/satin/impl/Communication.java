@@ -121,8 +121,9 @@ public abstract class Communication extends SpawnSync {
             prevPoll = curr;
         }
 
-        if (POLL_TIMING)
+        if (POLL_TIMING) {
             pollTimer.start();
+        }
 
         ReadMessage m = null;
         if (POLL_RECEIVEPORT) {
@@ -150,36 +151,46 @@ public abstract class Communication extends SpawnSync {
             }
         }
 
-        if (POLL_TIMING)
+        if (POLL_TIMING) {
             pollTimer.stop();
+        }
 
         return m != null;
     }
 
     void handleDelayedMessages() {
         if (ABORTS) {
-            if (gotAborts)
+            if (gotAborts) {
                 handleAborts();
-            if (gotExceptions)
+            }
+            if (gotExceptions) {
                 handleExceptions();
+            }
         }
-        if (receivedResults)
+        if (receivedResults) {
             handleResults();
-        if (gotActiveTuples)
+        }
+        if (gotActiveTuples) {
             handleActiveTuples();
+        }
 
         if (FAULT_TOLERANCE) {
-            if (gotCrashes)
+            if (gotCrashes) {
                 handleCrashes();
-            if (gotAbortsAndStores)
+            }
+            if (gotAbortsAndStores) {
                 handleAbortsAndStores();
-            if (gotDelete)
+            }
+            if (gotDelete) {
                 handleDelete();
-            if (gotDeleteCluster)
+            }
+            if (gotDeleteCluster) {
                 handleDeleteCluster();
+            }
             if (GRT_MESSAGE_COMBINING) {
-                if (updatesToSend)
+                if (updatesToSend) {
                     globalResultTable.sendUpdates();
+                }
             }
         }
     }
@@ -248,8 +259,8 @@ public abstract class Communication extends SpawnSync {
                 }
             }
         } catch (IOException e) {
-            System.err
-                    .println("SATIN '" + ident.name() + "': error in barrier");
+            System.err.println(
+                    "SATIN '" + ident.name() + "': error in barrier");
             System.exit(1);
         }
 

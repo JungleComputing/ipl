@@ -19,8 +19,9 @@ final class DEQueueNormal extends DEQueue implements Config {
 
     InvocationRecord getFromHead() {
         synchronized (satin) {
-            if (length == 0)
+            if (length == 0) {
                 return null;
+            }
 
             InvocationRecord rtn = head;
             head = head.qnext;
@@ -38,8 +39,9 @@ final class DEQueueNormal extends DEQueue implements Config {
 
     InvocationRecord getFromTail() {
         synchronized (satin) {
-            if (length == 0)
+            if (length == 0) {
                 return null;
+            }
 
             InvocationRecord rtn = tail;
             tail = tail.qprev;
@@ -142,8 +144,9 @@ final class DEQueueNormal extends DEQueue implements Config {
 
                 if (SPAWN_DEBUG) {
                     curr.spawnCounter.decr(curr);
-                } else
+                } else {
                     curr.spawnCounter.value--;
+                }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.err.println("Just made spawncounter < 0");
                     new Exception().printStackTrace();
@@ -187,12 +190,13 @@ final class DEQueueNormal extends DEQueue implements Config {
         while (curr != null) {
             if ((curr.parent != null && curr.parent.aborted)
                     || Aborts.isDescendentOf1(curr, owner)
-                    || curr.owner.equals(owner)) //shouldn't happen
-            {
+                    || curr.owner.equals(owner)) {
+                //shouldn't happen
                 if (SPAWN_DEBUG) {
                     curr.spawnCounter.decr(curr);
-                } else
+                } else {
                     curr.spawnCounter.value--;
+                }
                 if (ASSERTS && curr.spawnCounter.value < 0) {
                     System.out.println("Just made spawncouter < )");
                     new Exception().printStackTrace();

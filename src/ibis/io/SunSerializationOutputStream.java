@@ -64,9 +64,8 @@ public final class SunSerializationOutputStream extends
         /*
          if (off == 0 && len == ref.length) {
          // So no cycle detection is used ...
-         writeUnshared(ref);
-         }
-         else
+             writeUnshared(ref);
+         } else
          */
         {
             boolean[] temp = new boolean[len];
@@ -92,9 +91,8 @@ public final class SunSerializationOutputStream extends
 
         /*
          if (off == 0 && len == ref.length) {
-         writeUnshared(ref);
-         }
-         else
+             writeUnshared(ref);
+         } else
          */
         {
             byte[] temp = new byte[len];
@@ -110,9 +108,8 @@ public final class SunSerializationOutputStream extends
     public void writeArray(short[] ref, int off, int len) throws IOException {
         /*
          if (off == 0 && len == ref.length) {
-         writeUnshared(ref);
-         }
-         else
+             writeUnshared(ref);
+         } else
          */
         {
             short[] temp = new short[len];
@@ -128,9 +125,8 @@ public final class SunSerializationOutputStream extends
     public void writeArray(char[] ref, int off, int len) throws IOException {
         /*
          if (off == 0 && len == ref.length) {
-         writeUnshared(ref);
-         }
-         else
+             writeUnshared(ref);
+         } else
          */
         {
             char[] temp = new char[len];
@@ -146,9 +142,8 @@ public final class SunSerializationOutputStream extends
     public void writeArray(int[] ref, int off, int len) throws IOException {
         /*
          if (off == 0 && len == ref.length) {
-         writeUnshared(ref);
-         }
-         else
+             writeUnshared(ref);
+         } else
          */
         {
             int[] temp = new int[len];
@@ -164,9 +159,8 @@ public final class SunSerializationOutputStream extends
     public void writeArray(long[] ref, int off, int len) throws IOException {
         /*
          if (off == 0 && len == ref.length) {
-         writeUnshared(ref);
-         }
-         else
+             writeUnshared(ref);
+         } else
          */
         {
             long[] temp = new long[len];
@@ -182,9 +176,8 @@ public final class SunSerializationOutputStream extends
     public void writeArray(float[] ref, int off, int len) throws IOException {
         /*
          if (off == 0 && len == ref.length) {
-         writeUnshared(ref);
-         }
-         else
+             writeUnshared(ref);
+         } else
          */
         {
             float[] temp = new float[len];
@@ -200,9 +193,8 @@ public final class SunSerializationOutputStream extends
     public void writeArray(double[] ref, int off, int len) throws IOException {
         /*
          if (off == 0 && len == ref.length) {
-         writeUnshared(ref);
-         }
-         else
+             writeUnshared(ref);
+         } else
          */
         {
             double[] temp = new double[len];
@@ -218,9 +210,8 @@ public final class SunSerializationOutputStream extends
     public void writeArray(Object[] ref, int off, int len) throws IOException {
         /*
          if (off == 0 && len == ref.length) {
-         writeUnshared(ref);
-         }
-         else
+             writeUnshared(ref);
+         } else
          */
         {
             Object[] temp = new Object[len];

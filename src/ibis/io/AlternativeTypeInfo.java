@@ -201,8 +201,8 @@ final class AlternativeTypeInfo {
      */
     public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(
             Class type) {
-        AlternativeTypeInfo t = (AlternativeTypeInfo) alternativeTypes
-                .get(type);
+        AlternativeTypeInfo t
+                = (AlternativeTypeInfo) alternativeTypes.get(type);
 
         if (t == null) {
             t = new AlternativeTypeInfo(type);
@@ -247,12 +247,14 @@ final class AlternativeTypeInfo {
             Method method = clazz.getDeclaredMethod(name, paramTypes);
 
             /* Check return type. */
-            if (method.getReturnType() != returnType)
+            if (method.getReturnType() != returnType) {
                 return null;
+            }
 
             /* Check if method is static. */
-            if ((method.getModifiers() & Modifier.STATIC) != 0)
+            if ((method.getModifiers() & Modifier.STATIC) != 0) {
                 return null;
+            }
 
             /* Make method accessible, so that it may be called. */
             if (!method.isAccessible()) {
@@ -420,8 +422,9 @@ final class AlternativeTypeInfo {
                 for (int i = 0; i < fields.length; i++) {
                     Field field = fields[i];
 
-                    if (field == null)
+                    if (field == null) {
                         continue;
+                    }
 
                     int modifiers = field.getModifiers();
 
@@ -435,8 +438,8 @@ final class AlternativeTypeInfo {
                          */
                         if (!field.isAccessible()) {
                             temporary_field = field;
-                            AccessController
-                                    .doPrivileged(new PrivilegedAction() {
+                            AccessController.doPrivileged(
+                                    new PrivilegedAction() {
                                         public Object run() {
                                             temporary_field.setAccessible(true);
                                             return null;
@@ -553,10 +556,12 @@ final class AlternativeTypeInfo {
 
                 for (int i = 0; i < size; i++) {
                     if (serializable_fields[i] != null) {
-                        fields_final[i] = ((serializable_fields[i]
-                                .getModifiers() & Modifier.FINAL) != 0);
-                    } else
+                        fields_final[i]
+                            = ((serializable_fields[i].getModifiers()
+                                        & Modifier.FINAL) != 0);
+                    } else {
                         fields_final[i] = false;
+                    }
                 }
             } else {
                 serializable_fields = null;
@@ -586,8 +591,8 @@ final class AlternativeTypeInfo {
                         }
                     });
                 }
-                serial_persistent_fields = (java.io.ObjectStreamField[]) f
-                        .get(null);
+                serial_persistent_fields
+                        = (java.io.ObjectStreamField[]) f.get(null);
             }
         } catch (Exception e) {
             // ignored, no serialPersistentFields

@@ -11,8 +11,9 @@ import java.io.IOException;
 public abstract class WorkStealing extends Stats {
 
     protected void sendResult(InvocationRecord r, ReturnRecord rr) {
-        if (/* exiting || */r.alreadySentExceptionResult)
+        if (/* exiting || */r.alreadySentExceptionResult) {
             return;
+        }
 
         if (ASSERTS && r.owner == null) {
             System.err.println("SATIN '" + ident.name()
@@ -71,8 +72,9 @@ public abstract class WorkStealing extends Stats {
                 writeMessage.writeObject(r.owner);
                 writeMessage.writeObject(rr);
             } else {
-                if (rr == null)
+                if (rr == null) {
                     r.alreadySentExceptionResult = true;
+                }
                 writeMessage.writeByte(Protocol.JOB_RESULT_EXCEPTION);
                 writeMessage.writeObject(r.owner);
                 writeMessage.writeObject(r.eek);
@@ -433,14 +435,16 @@ public abstract class WorkStealing extends Stats {
     synchronized void handleResults() {
         while (true) {
             InvocationRecord r = resultList.removeIndex(0);
-            if (r == null)
+            if (r == null) {
                 break;
+            }
 
             if (FAULT_TOLERANCE) {
                 if (SPAWN_DEBUG) {
                     r.spawnCounter.decr(r);
-                } else
+                } else {
                     r.spawnCounter.value--;
+                }
                 if (!FT_WITHOUT_ABORTS && !FT_NAIVE) {
                     attachToParentFinished(r);
                 }
@@ -452,8 +456,9 @@ public abstract class WorkStealing extends Stats {
 
                 if (SPAWN_DEBUG) {
                     r.spawnCounter.decr(r);
-                } else
+                } else {
                     r.spawnCounter.value--;
+                }
             }
 
             if (ASSERTS && r.spawnCounter != null && r.spawnCounter.value < 0) {

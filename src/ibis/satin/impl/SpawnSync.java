@@ -114,8 +114,9 @@ public abstract class SpawnSync extends Termination {
             }
             if (SPAWN_DEBUG) {
                 r.spawnCounter.decr(r);
-            } else
+            } else {
                 r.spawnCounter.value--;
+            }
             if (ASSERTS) {
                 if (r.spawnCounter.value < 0) {
                     out.println("SATIN '" + ident.name()
@@ -178,8 +179,9 @@ public abstract class SpawnSync extends Termination {
 
             if (SPAWN_DEBUG) {
                 r.spawnCounter.decr(r);
-            } else
+            } else {
                 r.spawnCounter.value--;
+            }
             if (ASSERTS && r.spawnCounter.value < 0) {
                 out.println("SATIN '" + ident.name()
                         + ": Just made spawncounter < 0");
@@ -463,12 +465,14 @@ public abstract class SpawnSync extends Termination {
             handleDelayedMessages();
 
             InvocationRecord r = algorithm.clientIteration();
-            if (r != null)
+            if (r != null) {
                 callSatinFunction(r);
+            }
 
             //for ft
-            if (master)
+            if (master) {
                 return;
+            }
         }
 
     }

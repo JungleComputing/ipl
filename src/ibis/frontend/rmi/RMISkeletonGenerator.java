@@ -65,10 +65,12 @@ class RMISkeletonGenerator extends RMIGenerator {
         int len = 0;
 
         for (int i = 0; i < ins.length; i++) {
-            if (ins[i] instanceof InvokeInstruction)
+            if (ins[i] instanceof InvokeInstruction) {
                 return false;
-            if (ins[i] instanceof MONITORENTER)
+            }
+            if (ins[i] instanceof MONITORENTER) {
                 return false;
+            }
             if (ins[i] instanceof BranchInstruction) {
                 BranchInstruction ib = (BranchInstruction) ins[i];
                 if (ib.getIndex() <= len) {
@@ -84,8 +86,9 @@ class RMISkeletonGenerator extends RMIGenerator {
     static boolean throwsRemote(Method m) {
 
         ExceptionTable e = m.getExceptionTable();
-        if (e == null)
+        if (e == null) {
             return false;
+        }
 
         String names[] = e.getExceptionNames();
 

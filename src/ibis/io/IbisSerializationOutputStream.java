@@ -24,8 +24,8 @@ public class IbisSerializationOutputStream extends
     /**
      * Record how many objects of any class are sent.
      */
-    private static final boolean STATS_OBJECTS = TypedProperties
-            .booleanProperty(IOProps.s_stats_written);
+    private static final boolean STATS_OBJECTS
+            = TypedProperties.booleanProperty(IOProps.s_stats_written);
 
     // if STATS_OBJECTS
     static java.util.Hashtable statSendObjects;
@@ -44,11 +44,11 @@ public class IbisSerializationOutputStream extends
      */
     static final class HandleHash {
 
-        private static final boolean STATS = TypedProperties
-                .booleanProperty(IOProps.s_hash_stats);
+        private static final boolean STATS
+                = TypedProperties.booleanProperty(IOProps.s_hash_stats);
 
-        private static final boolean TIMINGS = TypedProperties
-                .booleanProperty(IOProps.s_hash_timings);
+        private static final boolean TIMINGS
+                = TypedProperties.booleanProperty(IOProps.s_hash_timings);
 
         private static final int MIN_BUCKETS = 32;
 
@@ -198,8 +198,9 @@ public class IbisSerializationOutputStream extends
                 t_rebuild.start();
             }
             map = new int[(map.length << 1)];
-            if (map.length > mapsize)
+            if (map.length > mapsize) {
                 mapsize = map.length;
+            }
             sizeThreshold = (int) (map.length * RESIZE_FACTOR);
 
             for (int i = 0; i < size; i++) {
@@ -223,8 +224,9 @@ public class IbisSerializationOutputStream extends
 
         private void growBuckets(int sz) {
             int newsize = (sz << 1) + 1;
-            if (newsize > maxsize)
+            if (newsize > maxsize) {
                 maxsize = newsize;
+            }
             Object[] newDataBucket = new Object[newsize];
             int[] newNextBucket = new int[newsize];
             System.arraycopy(nextBucket, 0, newNextBucket, 0, sz);
@@ -287,8 +289,9 @@ public class IbisSerializationOutputStream extends
          */
         public final int lazyPut(Object ref, int handle, int hashcode) {
             int f = find(ref, hashcode);
-            if (f != 0)
+            if (f != 0) {
                 return f;
+            }
 
             return put(ref, handle, hashcode);
         }
@@ -1285,8 +1288,8 @@ public class IbisSerializationOutputStream extends
      */
     private void writeSerializableObject(Object ref, Class clazz)
             throws IOException {
-        AlternativeTypeInfo t = AlternativeTypeInfo
-                .getAlternativeTypeInfo(clazz);
+        AlternativeTypeInfo t
+                = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
         try {
             push_current_object(ref, 0);
             alternativeWriteObject(t, ref);
@@ -1558,8 +1561,8 @@ public class IbisSerializationOutputStream extends
                 throw new NotActiveException("not in writeObject");
             }
             Class clazz = current_object.getClass();
-            AlternativeTypeInfo t = AlternativeTypeInfo
-                    .getAlternativeTypeInfo(clazz);
+            AlternativeTypeInfo t
+                    = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
             current_putfield = new ImplPutField(t);
         }
         return current_putfield;
@@ -1722,8 +1725,8 @@ public class IbisSerializationOutputStream extends
     public void defaultWriteSerializableObject(Object ref, int depth)
             throws IOException {
         Class clazz = ref.getClass();
-        AlternativeTypeInfo t = AlternativeTypeInfo
-                .getAlternativeTypeInfo(clazz);
+        AlternativeTypeInfo t
+                = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
         /*  Find the type info corresponding to the current invocation.
          See the invokeWriteObject invocation in alternativeWriteObject.
@@ -1765,8 +1768,8 @@ public class IbisSerializationOutputStream extends
             ((ibis.io.Serializable) ref).generated_DefaultWriteObject(this,
                     current_level);
         } else if (ref instanceof java.io.Serializable) {
-            AlternativeTypeInfo t = AlternativeTypeInfo
-                    .getAlternativeTypeInfo(clazz);
+            AlternativeTypeInfo t
+                    = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
             /*	Find the type info corresponding to the current invocation.
              See the invokeWriteObject invocation in alternativeWriteObject.

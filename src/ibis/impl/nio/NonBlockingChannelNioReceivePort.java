@@ -184,12 +184,9 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                 if (nrOfConnections == 0) {
                     if (closing) {
                         if (DEBUG) {
-                            Debug
-                                    .exit(
-                                            "connections",
-                                            this,
-                                            "!exiting "
-                                                    + "because we have no connections (as requested)");
+                            Debug.exit("connections", this,
+                                    "!exiting because we have no connections "
+                                    + "(as requested)");
                         }
                         throw new ConnectionClosedException();
                     } else {
@@ -271,9 +268,8 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                 try {
                     selector.select();
                 } catch (IOException e) {
-                    Debug
-                            .message("connections", this, "!error on select: "
-                                    + e);
+                    Debug.message("connections", this,
+                            "!error on select: " + e);
                     //IGNORE
                 }
             } else {
@@ -288,8 +284,8 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                     try {
                         selector.select(deadline - time);
                     } catch (IOException e) {
-                        Debug.message("connections", this, "!error on select: "
-                                + e);
+                        Debug.message("connections", this,
+                                "!error on select: " + e);
                         //IGNORE
                     }
                 }

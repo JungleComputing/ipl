@@ -222,8 +222,9 @@ public abstract class TupleSpace extends Communication {
     }
 
     public static void remoteAdd(String key, Serializable data) {
-        if (!initialized)
+        if (!initialized) {
             initTupleSpace();
+        }
         if (TUPLE_DEBUG) {
             System.err.println("SATIN '" + this_satin.ident.name()
                     + ": remote add of key " + key);
@@ -245,8 +246,9 @@ public abstract class TupleSpace extends Communication {
     }
 
     public static void remoteDel(String key) {
-        if (!initialized)
+        if (!initialized) {
             initTupleSpace();
+        }
         if (TUPLE_DEBUG) {
             System.err.println("SATIN '" + this_satin.ident.name()
                     + ": remote del of key " + key);
@@ -552,8 +554,9 @@ public abstract class TupleSpace extends Communication {
     }
 
     private static void enableActiveTupleOrdening() {
-        if (this_satin == null)
+        if (this_satin == null) {
             return;
+        }
         connect(this_satin.tuplePort, this_satin.tupleReceivePort.identifier());
     }
 

@@ -19,8 +19,9 @@ public abstract class Termination extends Initialization {
             ibis.disableResizeUpcalls();
         }
 
-        if (stats && detailedStats)
+        if (stats && detailedStats) {
             printDetailedStats();
+        }
 
         connectionUpcallsDisabled = true;
 
@@ -128,8 +129,9 @@ public abstract class Termination extends Initialization {
                 SendPort s;
 
                 synchronized (this) {
-                    if (victims.size() == 0)
+                    if (victims.size() == 0) {
                         break;
+                    }
 
                     s = victims.getPort(0);
 

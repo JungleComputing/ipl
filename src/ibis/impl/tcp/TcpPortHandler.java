@@ -174,8 +174,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                         obj_out.flush();
                         obj_out.close();
 
-                        OutputStream out = connectionCache
-                                .getFreeOutput(receiver.ibis);
+                        OutputStream out
+                                = connectionCache.getFreeOutput(receiver.ibis);
                         if (DEBUG) {
                             System.err.println("--> Reused connection to "
                                     + receiver);
@@ -418,8 +418,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                             = (TcpReceivePortIdentifier) obj_in.readObject();
                     obj_in.close();
                     TcpReceivePort rp = findReceivePort(receive);
-                    final DynamicProperties p = rp == null ? null : rp
-                            .properties();
+                    final DynamicProperties p
+                            = rp == null ? null : rp.properties();
                     ConnectProperties props = new ConnectProperties() {
                         public String getProperty(String name) {
                             return (String) p.find(name);
@@ -443,8 +443,9 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     System.err.println("EEK: TcpPortHandler:run: got exception "
                             + "(closing this socket only: " + e);
                     e.printStackTrace();
-                    if (s != null)
+                    if (s != null) {
                         s.close();
+                    }
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -454,8 +455,9 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
     private void cleanup() {
         try {
-            if (systemServer != null)
+            if (systemServer != null) {
                 systemServer.close();
+            }
             systemServer = null;
         } catch (Exception e) {
             // Ignore

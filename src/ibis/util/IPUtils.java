@@ -44,12 +44,15 @@ public class IPUtils {
      * @return <code>true</code> if <code>addr</code> is an external address.
      */
     public static boolean isExternalAddress(InetAddress address) {
-        if (address.isLoopbackAddress())
+        if (address.isLoopbackAddress()) {
             return false;
-        if (address.isLinkLocalAddress())
+        }
+        if (address.isLinkLocalAddress()) {
             return false;
-        if (address.isSiteLocalAddress())
+        }
+        if (address.isSiteLocalAddress()) {
             return false;
+        }
 
         return true;
     }
@@ -260,8 +263,8 @@ public class IPUtils {
                         return null;
                     }
                     String name = a.getHostName();
-                    external = InetAddress.getByName(InetAddress
-                            .getByName(name).getHostAddress());
+                    external = InetAddress.getByName(
+                            InetAddress.getByName(name).getHostAddress());
                 } catch (java.net.UnknownHostException ex) {
                     System.err.println("Could not find local IP address, you "
                             + "should specify the "

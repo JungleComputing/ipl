@@ -188,8 +188,9 @@ public abstract class FaultTolerance extends Inlets {
 
         try {
             SendPort s = getReplyPortNoWait(r.stealer);
-            if (s == null)
+            if (s == null) {
                 return;
+            }
 
             WriteMessage writeMessage = s.newMessage();
             writeMessage.writeByte(Protocol.ABORT_AND_STORE);
@@ -360,18 +361,18 @@ public abstract class FaultTolerance extends Inlets {
         if (GLOBAL_RESULT_TABLE_REPLICATED) {
 
             if (ASSERTS && value.type != GlobalResultTable.Value.TYPE_RESULT) {
-                out
-                        .println("SATIN '"
-                                + ident.name()
-                                + "': EEK using replicated table, but got a non-result value!");
+                out.println("SATIN '" + ident.name()
+                        + "': EEK using replicated table, but got a non-result "
+                        + "value!");
                 System.exit(1);
             }
             ReturnRecord rr = value.result;
             rr.assignTo(r);
             if (SPAWN_DEBUG) {
                 r.spawnCounter.decr(r);
-            } else
+            } else {
                 r.spawnCounter.value--;
+            }
             if (TABLE_CHECK_TIMING) {
                 // redoTimer.stop();
             }
@@ -451,8 +452,9 @@ public abstract class FaultTolerance extends Inlets {
                 rr.assignTo(r);
                 if (SPAWN_DEBUG) {
                     r.spawnCounter.decr(r);
-                } else
+                } else {
                     r.spawnCounter.value--;
+                }
                 if (TABLE_CHECK_TIMING) {
                     // redoTimer.stop();
                 }

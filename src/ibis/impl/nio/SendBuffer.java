@@ -193,8 +193,8 @@ final class SendBuffer implements Config {
         }
 
         for (int i = 1; i < (NR_OF_BUFFERS - 1); i++) {
-            byteBuffers[i] = ByteBuffer.allocateDirect(PRIMITIVE_BUFFER_SIZE)
-                    .order(order);
+            byteBuffers[i]
+                = ByteBuffer.allocateDirect(PRIMITIVE_BUFFER_SIZE).order(order);
         }
 
         header = byteBuffers[HEADER].asShortBuffer();
@@ -347,8 +347,8 @@ final class SendBuffer implements Config {
     boolean isEmpty() {
         return ((longs.position() == 0) && (doubles.position() == 0)
                 && (ints.position() == 0) && (floats.position() == 0)
-                && (shorts.position() == 0) && (chars.position() == 0) && (bytes
-                .position() == 0));
+                && (shorts.position() == 0) && (chars.position() == 0)
+                && (bytes.position() == 0));
     }
 
     /**

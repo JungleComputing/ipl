@@ -181,8 +181,9 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
      * @return <code>true</code> if equal, <code>false</code> if not.
      */
     public boolean equals(InvocationRecord other) {
-        if (other == this)
+        if (other == this) {
             return true;
+        }
         return stamp == other.stamp && owner.equals(other.owner);
     }
 
@@ -195,8 +196,9 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
      * @return <code>true</code> if equal, <code>false</code> if not.
      */
     final public boolean equals(Object o) {
-        if (o == this)
+        if (o == this) {
             return true;
+        }
         if (o instanceof InvocationRecord) {
             InvocationRecord other = (InvocationRecord) o;
             return stamp == other.stamp && owner.equals(other.owner);

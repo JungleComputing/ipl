@@ -28,8 +28,9 @@ public class DummyInputStream extends InputStream {
         // System.err.println("dummy.read array of len " + b.length
         //         + " result was " + res + " bytes");
         if (SUPPORT_STATS) {
-            if (res >= 0)
+            if (res >= 0) {
                 count += res;
+            }
         }
         return res;
     }
@@ -39,8 +40,9 @@ public class DummyInputStream extends InputStream {
         // System.err.println("dummy.read array of len " + len 
         //         + " result was " + res + " bytes");
         if (SUPPORT_STATS) {
-            if (res >= 0)
+            if (res >= 0) {
                 count += res;
+            }
         }
         return res;
     }

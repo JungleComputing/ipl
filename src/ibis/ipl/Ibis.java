@@ -339,8 +339,8 @@ public abstract class Ibis {
             StaticProperties sp = staticProperties(
                     (String) implementation_names.get(0));
             if (!combinedprops.matchProperties(sp)) {
-                StaticProperties clashes = combinedprops
-                        .unmatchedProperties(sp);
+                StaticProperties clashes
+                        = combinedprops.unmatchedProperties(sp);
                 System.err.println("WARNING: the " + ibisname
                        + " version of Ibis does not match the required "
                        + "properties.\nThe unsupported properties are:\n"
@@ -372,8 +372,9 @@ public abstract class Ibis {
                 try {
                     String name = "ibis@" + hostname + "_"
                             + System.currentTimeMillis();
-                    return createIbis(name, (String) implementation_names
-                            .get(i), combinedprops, reqprop, r);
+                    return createIbis(name,
+                            (String) implementation_names.get(i), combinedprops,
+                            reqprop, r);
                 } catch (ConnectionRefusedException e) {
                     // retry
                 } catch (IbisException e) {
@@ -615,8 +616,9 @@ public abstract class Ibis {
     public static synchronized StaticProperties staticProperties(
             String implName) {
         int index = implList.indexOf(implName);
-        if (index < 0)
+        if (index < 0) {
             return null;
+        }
         return (StaticProperties) implProperties.get(index);
     }
 
@@ -795,8 +797,8 @@ public abstract class Ibis {
      * @return the ibis version.
      */
     public String getVersion() {
-        InputStream in = ClassLoader.getSystemClassLoader()
-                .getResourceAsStream("VERSION");
+        InputStream in
+            = ClassLoader.getSystemClassLoader().getResourceAsStream("VERSION");
         String version = "Unknown Ibis Version ID";
         if (in != null) {
             byte[] b = new byte[512];

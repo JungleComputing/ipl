@@ -191,10 +191,12 @@ class NioPortType extends PortType implements Config {
     }
 
     public boolean equals(Object other) {
-        if (other == null)
+        if (other == null) {
             return false;
-        if (!(other instanceof NioPortType))
+        }
+        if (!(other instanceof NioPortType)) {
             return false;
+        }
         return equals((NioPortType) other);
     }
 

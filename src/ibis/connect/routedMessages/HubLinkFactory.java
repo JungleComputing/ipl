@@ -37,9 +37,10 @@ public class HubLinkFactory {
             }
 
             if (host != null) {
-                if (MyDebug.VERBOSE())
+                if (MyDebug.VERBOSE()) {
                     System.err.println("# Creating link to hub- host=" + host
                             + "; port=" + port);
+                }
                 hub = new HubLink(host, port);
                 hub.setDaemon(true);
                 hub.start();
@@ -69,10 +70,12 @@ public class HubLinkFactory {
     }
 
     public synchronized static HubLink getHubLink() throws IOException {
-        if (closed)
+        if (closed) {
             throw new IOException("HubLinkFactory: wire to hub closed.");
-        if (!enabled)
+        }
+        if (!enabled) {
             throw new IOException("HubLinkFactory: wire to hub disabled.");
+        }
         return hub;
     }
 }

@@ -242,10 +242,11 @@ public final class Group implements GroupProtocol {
                     }
                     ticket = m.readInt();
                     RegistryReply r = (RegistryReply) m.readObject();
-                    if (Group.DEBUG)
+                    if (Group.DEBUG) {
                         System.out.println(Group._rank
                                 + ": REGISTRY_REPLY forwarded to ticketMaster ("
                                 + ticket + ")");
+                    }
                     m.finish(); // ticketMaster may block.
                     Group.ticketMaster.put(ticket, r);
                     break;
@@ -255,8 +256,8 @@ public final class Group implements GroupProtocol {
                         System.out.println(Group._rank
                                 + ": Got a INVOCATION_FLATCOMBINE");
                     }
-                    stubIDStack[m.readInt()]
-                            .handleFlatInvocationCombineMessage(m);
+                    stubIDStack[m.readInt()].handleFlatInvocationCombineMessage(
+                            m);
                     break;
 
                 case INVOCATION_BINCOMBINE:
@@ -264,8 +265,8 @@ public final class Group implements GroupProtocol {
                         System.out.println(Group._rank
                                 + ": Got a INVOCATION_BINCOMBINE");
                     }
-                    stubIDStack[m.readInt()]
-                            .handleBinInvocationCombineMessage(m);
+                    stubIDStack[m.readInt()].handleBinInvocationCombineMessage(
+                            m);
                     break;
 
                 case INVOCATION_REPLY:
@@ -277,10 +278,11 @@ public final class Group implements GroupProtocol {
                     ticket = m.readInt();
                     int stub = ticket >> 16;
                     ticket = ticket & 0xFFFF;
-                    if (Group.DEBUG)
+                    if (Group.DEBUG) {
                         System.out.println(Group._rank
                                 + ": INVOCATION_REPLY forwarded to stub ("
                                 + stub + ", " + ticket + ")");
+                    }
                     stubIDStack[stub].handleResultMessage(m,
                             ticket, resultMode);
                     break;
@@ -409,8 +411,8 @@ public final class Group implements GroupProtocol {
                 systemOut = portType.createSendPort("GMI Client "
                         + localID.name());
 
-                ReceivePortIdentifier master = ibisRegistry
-                        .lookupReceivePort("GMI Master");
+                ReceivePortIdentifier master = ibisRegistry.lookupReceivePort(
+                        "GMI Master");
 
                 while (master == null) {
                     try {
@@ -722,17 +724,19 @@ public final class Group implements GroupProtocol {
                 w.writeInt(o.mySkel);
                 w.finish();
 
-                if (DEBUG)
+                if (DEBUG) {
                     System.out.println(_rank + ": Group.join(" + nm
                             + ") waiting for reply on ticket(" + ticket + ")");
+                }
 
                 r = (RegistryReply) ticketMaster.collect(ticket);
 
                 switch (r.result) {
                 case JOIN_UNKNOWN:
-                    if (DEBUG)
+                    if (DEBUG) {
                         System.out.println(_rank + ": Group.join(" + nm
                                 + ") group not found, retry");
+                    }
                     break;
 
                 case JOIN_WRONG_TYPE:
@@ -762,9 +766,10 @@ public final class Group implements GroupProtocol {
             }
 
             o.init(groupnumber, memberRanks, memberSkels);
-            if (DEBUG)
+            if (DEBUG) {
                 System.out.println(_rank + ": Group.join(" + nm + ", " + o
                         + ") done");
+            }
 
         } catch (Exception e) {
             System.err.println("Got exception" + e);
@@ -802,8 +807,8 @@ public final class Group implements GroupProtocol {
                     w.writeString(nm);
                     w.finish();
 
-                    RegistryReply r = (RegistryReply) ticketMaster
-                            .collect(ticket);
+                    RegistryReply r
+                            = (RegistryReply) ticketMaster.collect(ticket);
                     switch (r.result) {
                     case GROUP_UNKNOWN:
                         throw new RuntimeException(Group._rank

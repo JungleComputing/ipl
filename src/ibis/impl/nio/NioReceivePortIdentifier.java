@@ -73,8 +73,9 @@ public final class NioReceivePortIdentifier implements ReceivePortIdentifier,
     }
 
     public boolean equals(Object other) {
-        if (other == null)
+        if (other == null) {
             return false;
+        }
         if (other instanceof NioReceivePortIdentifier) {
             return equals((NioReceivePortIdentifier) other);
         } else {

@@ -90,8 +90,9 @@ public class Queue {
 
         QueueNode result = head;
         head = result.next;
-        if (head == null)
+        if (head == null) {
             tail = null;
+        }
         size--;
 
         return result.data;

@@ -60,8 +60,9 @@ public class HubLink extends Thread {
     }
 
     protected synchronized int newPort(int port) throws IOException {
-        if (port == 0)
+        if (port == 0) {
             return getPort();
+        }
         while (newPortBusy) {
             try {
                 wait();
@@ -102,10 +103,11 @@ public class HubLink extends Thread {
     }
 
     private synchronized RMServerSocket resolveServer(int port) {
-        RMServerSocket s = (RMServerSocket) serverSockets
-                .get(new Integer(port));
-        if (s == null)
+        RMServerSocket s
+                = (RMServerSocket) serverSockets.get(new Integer(port));
+        if (s == null) {
             throw new Error("HubLink: bad server- port=" + port);
+        }
         return s;
     }
 

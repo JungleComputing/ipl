@@ -199,8 +199,8 @@ public class RMSocket extends DummySocket {
 
         private void checkOpen() throws IOException {
             if ((!open || state != state_CONNECTED)
-                    && (socket.currentArray == null && socket.incomingFragments
-                            .isEmpty())) {
+                    && (socket.currentArray == null
+                        && socket.incomingFragments.isEmpty())) {
                 MyDebug.out.println("# Detected EOF! open=" + open + "; state="
                         + state + "; socket.currentArray="
                         + socket.currentArray + "; incomingFragment: "
@@ -219,8 +219,8 @@ public class RMSocket extends DummySocket {
                         /* ignored */
                     }
                 }
-                socket.currentArray = (byte[]) socket.incomingFragments
-                        .removeFirst();
+                socket.currentArray
+                        = (byte[]) socket.incomingFragments.removeFirst();
                 socket.currentIndex = 0;
             }
         }
@@ -248,8 +248,9 @@ public class RMSocket extends DummySocket {
             synchronized (socket) {
                 int j = 0;
 
-                if (len == 0)
+                if (len == 0) {
                     return 0;
+                }
 
                 try {
                     checkOpen();

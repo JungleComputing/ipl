@@ -80,8 +80,9 @@ class ClusterAwareRandomWorkStealing extends Algorithm implements Protocol,
         if (remoteVictim != null && !asyncStealInProgress) {
             if (!FAULT_TOLERANCE || FT_NAIVE || canDoAsync) {
                 asyncStealInProgress = true;
-                if (STEAL_STATS)
+                if (STEAL_STATS) {
                     asyncStealAttempts++;
+                }
                 satin.sendStealRequest(remoteVictim, false, false);
             }
         }

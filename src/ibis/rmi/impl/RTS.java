@@ -110,8 +110,8 @@ public final class RTS {
 
     private static String[] timerId;
 
-    final static boolean enableRMITimer = TypedProperties
-            .booleanProperty("ibis.rmi.timer");
+    final static boolean enableRMITimer
+            = TypedProperties.booleanProperty("ibis.rmi.timer");
 
     private static double r10(double d) {
         long ld = (long) (d * 10.0);
@@ -206,8 +206,9 @@ public final class RTS {
             if (id == -1) {
                 String url = r.readString();
                 skel = (Skeleton) urlHash.get(url);
-            } else
+            } else {
                 skel = (Skeleton) (skeletonArray.get(id));
+            }
 
             int method = r.readInt();
             int stubID = r.readInt();
@@ -404,8 +405,8 @@ public final class RTS {
         String classname = c.getName();
 
         synchronized (RTS.class) {
-            skel = (Skeleton) skeletons.get(new Integer(System
-                    .identityHashCode(obj)));
+            skel = (Skeleton) skeletons.get(
+                    new Integer(System.identityHashCode(obj)));
         }
         if (skel == null) {
             //create a skeleton
@@ -428,8 +429,8 @@ public final class RTS {
             }
             stub = (Stub) stub_c.newInstance();
 
-            stub.init(null, null, 0, skel.skeletonId, skeletonReceivePort
-                    .identifier(), false, r);
+            stub.init(null, null, 0, skel.skeletonId,
+                    skeletonReceivePort.identifier(), false, r);
 
         } catch (ClassNotFoundException e) {
             throw new StubNotFoundException("class " + get_stub_name(c)
@@ -464,8 +465,8 @@ public final class RTS {
             System.out.println(hostname + ": Trying to bind object to " + url);
         }
 
-        Skeleton skel = (Skeleton) skeletons.get(new Integer(System
-                .identityHashCode(o)));
+        Skeleton skel = (Skeleton) skeletons.get(
+                new Integer(System.identityHashCode(o)));
         if (skel == null) {
             //		    throw new RemoteException("object not exported");
             //or just export it???
@@ -491,12 +492,12 @@ public final class RTS {
     public static synchronized void rebind(String url, Remote o)
             throws IOException {
         if (DEBUG) {
-            System.out
-                    .println(hostname + ": Trying to rebind object to " + url);
+            System.out.println(hostname + ": Trying to rebind object to "
+                    + url);
         }
 
-        Skeleton skel = (Skeleton) skeletons.get(new Integer(System
-                .identityHashCode(o)));
+        Skeleton skel = (Skeleton) skeletons.get(
+                new Integer(System.identityHashCode(o)));
         if (skel == null) {
             // throw new RemoteException("object not exported");
             // or just export it???
@@ -726,8 +727,9 @@ public final class RTS {
 
     public static String getClientHost() {
         Object o = clientHost.get();
-        if (o == null)
+        if (o == null) {
             return "UNKNOWN_HOST";
+        }
         String s = (String) o;
         return s;
     }

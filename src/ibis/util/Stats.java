@@ -34,8 +34,9 @@ public final class Stats {
         for (int i = off; i < (off + len); i++) {
             total += data[i];
         }
-        if (len == 0)
+        if (len == 0) {
             return 0.0;
+        }
         return total / len;
     }
 
@@ -67,8 +68,9 @@ public final class Stats {
             sum += v * v;
         }
 
-        if (len <= 1)
+        if (len <= 1) {
             return 0.0;
+        }
 
         return Math.sqrt(sum / (len - 1));
     }

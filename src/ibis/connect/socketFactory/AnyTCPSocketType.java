@@ -86,8 +86,8 @@ public class AnyTCPSocketType extends SocketType implements
             if (hint) {
                 MyDebug.trace("AnyTCPSocketType server side attempt");
                 ServerInfo srv = getServerSocket();
-                String host = srv.server.getInetAddress()
-                        .getCanonicalHostName();
+                String host
+                    = srv.server.getInetAddress().getCanonicalHostName();
                 int port = srv.server.getLocalPort();
                 MyDebug.trace("AnyTCPSocketType server side host = " + host
                         + ", port = " + port);
@@ -127,8 +127,8 @@ public class AnyTCPSocketType extends SocketType implements
                 }
                 os.flush();
                 if (s != null) {
-                    MyDebug
-                            .trace("AnyTCPSocketType client side attempt succeeds");
+                    MyDebug.trace("AnyTCPSocketType client side attempt "
+                            + "succeeds");
                     return s;
                 }
                 MyDebug.trace("AnyTCPSocketType client side attempt fails");

@@ -13,16 +13,21 @@ final class IbiscFactory implements RepositoryObserver {
     }
 
     public void notify(String className) {
-        if (className.startsWith("ibis."))
+        if (className.startsWith("ibis.")) {
             return;
-        if (className.startsWith("java."))
+        }
+        if (className.startsWith("java.")) {
             return;
-        if (className.startsWith("sun."))
+        }
+        if (className.startsWith("sun.")) {
             return;
-        if (className.startsWith("ibm."))
+        }
+        if (className.startsWith("ibm.")) {
             return;
-        if (className.startsWith("org.apache.bcel."))
+        }
+        if (className.startsWith("org.apache.bcel.")) {
             return;
+        }
 
         // System.out.println("notify " + className);
 

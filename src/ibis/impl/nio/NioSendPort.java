@@ -69,8 +69,8 @@ public final class NioSendPort implements SendPort, Config, Protocol {
             accumulator = new NonBlockingChannelNioAccumulator(this);
             break;
         case NioPortType.IMPLEMENTATION_THREAD:
-            accumulator = new ThreadNioAccumulator(this, ibis
-                    .sendReceiveThread());
+            accumulator
+                    = new ThreadNioAccumulator(this, ibis.sendReceiveThread());
             break;
         default:
             throw new IbisError("unknown send port implementation type");
@@ -205,8 +205,9 @@ public final class NioSendPort implements SendPort, Config, Protocol {
 
     public synchronized void setReplacer(Replacer r) throws IOException {
         replacer = r;
-        if (out != null)
+        if (out != null) {
             out.setReplacer(r);
+        }
     }
 
     public synchronized ibis.ipl.WriteMessage newMessage() throws IOException {

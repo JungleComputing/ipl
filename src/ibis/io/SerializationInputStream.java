@@ -48,9 +48,9 @@ public abstract class SerializationInputStream extends ObjectInputStream {
      * Enable this to measure the time spent in serialization.
      * Each serialization entry/exit point must start/stop the timer.
      */
-    protected final static boolean TIME_SERIALIZATION = TypedProperties
-            .booleanProperty(IOProps.s_timer, false)
-            || TypedProperties.booleanProperty(IOProps.s_timer_in, false);
+    protected final static boolean TIME_SERIALIZATION
+            = TypedProperties.booleanProperty(IOProps.s_timer, false)
+                || TypedProperties.booleanProperty(IOProps.s_timer_in, false);
 
     /**
      * The serialization timer
@@ -63,8 +63,8 @@ public abstract class SerializationInputStream extends ObjectInputStream {
 
     static {
         if (TIME_SERIALIZATION) {
-            System.out
-                    .println("SerializationInputStream.TIME_SERIALIZATION enabled");
+            System.out.println("SerializationInputStream.TIME_SERIALIZATION "
+                    + "enabled");
             Runtime.getRuntime().addShutdownHook(
                     new Thread("SerializationInputStream ShutdownHook") {
                         public void run() {

@@ -25,8 +25,9 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     }
 
     public boolean equals(Object o) {
-        if (o == this)
+        if (o == this) {
             return true;
+        }
         if (o instanceof TcpIbisIdentifier) {
             TcpIbisIdentifier other = (TcpIbisIdentifier) o;
             return equals(other);
@@ -36,8 +37,9 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     }
 
     public boolean equals(TcpIbisIdentifier other) {
-        if (other == this)
+        if (other == this) {
             return true;
+        }
         return /*address.equals(other.address) &&*/name.equals(other.name);
     }
 

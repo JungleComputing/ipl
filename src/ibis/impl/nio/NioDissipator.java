@@ -414,10 +414,9 @@ public abstract class NioDissipator extends Dissipator implements Config,
             buffer.position(0);
             buffer.limit(usedPosition - 1);
             if (DEBUG) {
-                Debug
-                        .message("channels", this, "buffer wrapped, position("
-                                + buffer.position() + ") limit("
-                                + buffer.limit() + ")");
+                Debug.message("channels", this, "buffer wrapped, position("
+                        + buffer.position() + ") limit("
+                        + buffer.limit() + ")");
             }
         }
     }

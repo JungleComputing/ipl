@@ -31,8 +31,8 @@ public class RegistryImpl implements Registry {
             try {
                 InetAddress adres = InetAddress.getByName(host);
                 if (adres.getHostAddress().equals("127.0.0.1")) {
-                    adres = InetAddress.getByName(IPUtils.getLocalHostAddress()
-                            .getHostName());
+                    adres = InetAddress.getByName(
+                            IPUtils.getLocalHostAddress().getHostName());
                 }
                 adres = InetAddress.getByName(adres.getHostAddress());
                 host = adres.getHostName();

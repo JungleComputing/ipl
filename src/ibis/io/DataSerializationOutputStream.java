@@ -19,8 +19,9 @@ public class DataSerializationOutputStream extends SerializationOutputStream
     private final Accumulator out;
 
     /** Allocator for the typed buffer arrays. */
-    private static final DataAllocator allocator = TypedProperties
-            .booleanProperty(IOProps.s_cache, false) ? new DataAllocator()
+    private static final DataAllocator allocator
+        = TypedProperties.booleanProperty(IOProps.s_cache, false)
+            ? new DataAllocator()
             : (DataAllocator) new DummyAllocator();
 
     /** Storage for bytes (or booleans) written. */

@@ -64,8 +64,9 @@ public class ExtSocketFactory {
      */
     static {
         ConnProps.checkProps();
-        if (MyDebug.VERBOSE())
+        if (MyDebug.VERBOSE()) {
             System.err.println("# ExtSocketFactory: starting configuration."); 
+        }
         // init types table
         declareNickname("PlainTCP",
                 "ibis.connect.socketFactory.PlainTCPSocketType");
@@ -94,14 +95,16 @@ public class ExtSocketFactory {
                 if (s.equals("ParallelStreams")) {
                     // ParallelStreams has an underlying brokered socket type.
                     parallel = true;
-                } else
+                } else {
                     bl = s;
+                }
             }
         }
 
         if (bl == null || cs == null) {
-            if (MyDebug.VERBOSE())
+            if (MyDebug.VERBOSE()) {
                 System.err.println("# Loading defaults...");
+            }
             for (int i = 0; i < defaultTypes.length; i++) {
                 String n = defaultTypes[i];
                 loadSocketType(n);
@@ -147,8 +150,9 @@ public class ExtSocketFactory {
         SocketType t = null;
         String className = (String) nicknames.get(socketType.toLowerCase());
         Class c = null;
-        if (className == null)
+        if (className == null) {
             className = socketType;
+        }
         try {
             c = Class.forName(className);
         } catch (Exception e) {
@@ -189,8 +193,9 @@ public class ExtSocketFactory {
             throws IOException {
         Socket s = null;
         SocketType t = defaultClientServer;
-        if (t == null)
+        if (t == null) {
             throw new Error("no socket type found!");
+        }
         ClientServerSocketFactory f = null;
         try {
             f = (ClientServerSocketFactory) t;
@@ -216,8 +221,9 @@ public class ExtSocketFactory {
             int backlog) throws IOException {
         ServerSocket s = null;
         SocketType t = defaultClientServer;
-        if (t == null)
+        if (t == null) {
             throw new Error("no socket type found!");
+        }
         ClientServerSocketFactory f = null;
         try {
             f = (ClientServerSocketFactory) t;
@@ -258,8 +264,9 @@ public class ExtSocketFactory {
         SocketType t = parallel ? loadSocketType("ParallelStreams")
                 : defaultBrokeredLink;
         ConnectProperties props = new SocketType.DefaultConnectProperties();
-        if (t == null)
+        if (t == null) {
             throw new Error("no socket type found!");
+        }
         return createBrokeredSocket(in, out, hintIsServer, t, props);
     }
 
@@ -281,8 +288,9 @@ public class ExtSocketFactory {
             }
             t = findSocketType(st);
         }
-        if (t == null)
+        if (t == null) {
             throw new Error("Socket type not found: " + st);
+        }
         return createBrokeredSocket(in, out, hintIsServer, t, props);
     }
 
@@ -330,8 +338,9 @@ public class ExtSocketFactory {
         SocketType t = null;
         for (int i = 0; i < types.size(); i++) {
             t = (SocketType) types.get(i);
-            if (t.getSocketTypeName().equalsIgnoreCase(name))
+            if (t.getSocketTypeName().equalsIgnoreCase(name)) {
                 return t;
+            }
         }
         return loadSocketType(name);
     }

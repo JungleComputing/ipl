@@ -191,8 +191,9 @@ public final class Satin extends APIMethods implements ResizeHandler,
                 tupleReceivePort = tuplePortType.createReceivePort(
                         "satin tuple port on " + ident.name(),
                         new MessageHandler(this));
-            } else
+            } else {
                 tupleReceivePort = receivePort;
+            }
 
             if (master) {
                 barrierReceivePort = barrierPortType.createReceivePort(
@@ -242,8 +243,9 @@ public final class Satin extends APIMethods implements ResizeHandler,
             out.println("SATIN '" + hostName + "': algorithm created");
         }
 
-        if (upcalls)
+        if (upcalls) {
             receivePort.enableUpcalls();
+        }
         receivePort.enableConnections();
 
         if (SUPPORT_TUPLE_MULTICAST) {

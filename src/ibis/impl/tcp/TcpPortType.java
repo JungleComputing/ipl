@@ -88,10 +88,12 @@ class TcpPortType extends PortType implements Config {
     }
 
     public boolean equals(Object other) {
-        if (other == null)
+        if (other == null) {
             return false;
-        if (!(other instanceof TcpPortType))
+        }
+        if (!(other instanceof TcpPortType)) {
             return false;
+        }
         return equals((TcpPortType) other);
     }
 

@@ -245,8 +245,9 @@ final class MethodTable {
             return false;
         }
         if (t.equals(Type.LONG) || t.equals(Type.DOUBLE)) {
-            if (types[ind + 1] != null)
+            if (types[ind + 1] != null) {
                 return false;
+            }
             types[ind + 1] = Type.VOID;
         }
         types[ind] = t;
@@ -339,8 +340,8 @@ final class MethodTable {
         Method[] methods = gen_c.getMethods();
         for (int i = 0; i < methods.length; i++) {
             Method m = methods[i];
-            MethodGen mg = new MethodGen(m, c.getClassName(), gen_c
-                    .getConstantPool());
+            MethodGen mg = new MethodGen(m, c.getClassName(),
+                    gen_c.getConstantPool());
             rewriteLocals(mg);
             mg.setMaxLocals();
             mg.setMaxStack();
@@ -386,10 +387,10 @@ final class MethodTable {
 
         for (int k = 0; k < ins.length; k++) {
             if (ins[k].getInstruction() instanceof INVOKEVIRTUAL) {
-                Method target = self.findMethod((INVOKEVIRTUAL) (ins[k]
-                        .getInstruction()));
-                JavaClass cl = self.findMethodClass((INVOKEVIRTUAL) (ins[k]
-                        .getInstruction()));
+                Method target = self.findMethod(
+                        (INVOKEVIRTUAL) (ins[k].getInstruction()));
+                JavaClass cl = self.findMethodClass(
+                        (INVOKEVIRTUAL) (ins[k].getInstruction()));
                 if (isSpawnable(target, cl)) {
                     // we have a spawn!
                     analyzeSpawn(me, ins[k], spawnId);
@@ -440,10 +441,11 @@ final class MethodTable {
         if (verbose) {
             System.out.println(me.m + ": unused locals in all inlets: ");
             for (int k = 0; k < se.isLocalUsed.length; k++) {
-                if (!se.isLocalUsed[k])
+                if (!se.isLocalUsed[k]) {
                     System.out.println("local " + k + " is unused");
-                else
+                } else {
                     System.out.println("local " + k + " is used");
+                }
             }
         }
     }
@@ -455,8 +457,9 @@ final class MethodTable {
     private Type[] getParamTypesThis(Method m) {
         Type[] params = getParamTypesNoThis(m);
 
-        if (m.isStatic())
+        if (m.isStatic()) {
             return params;
+        }
 
         Type[] newparams = new Type[1 + params.length];
         newparams[0] = new ObjectType(c.getClassName());
@@ -468,20 +471,22 @@ final class MethodTable {
 
     private int calcNrSpawns(MethodGen mg) {
         InstructionList il = mg.getInstructionList();
-        if (il == null)
+        if (il == null) {
             return 0;
+        }
 
         InstructionHandle[] ins = il.getInstructionHandles();
         int count = 0;
 
         for (int i = 0; i < ins.length; i++) {
             if (ins[i].getInstruction() instanceof INVOKEVIRTUAL) {
-                Method target = self.findMethod((INVOKEVIRTUAL) (ins[i]
-                        .getInstruction()));
-                JavaClass cl = self.findMethodClass((INVOKEVIRTUAL) (ins[i]
-                        .getInstruction()));
-                if (isSpawnable(target, cl))
+                Method target = self.findMethod(
+                        (INVOKEVIRTUAL) (ins[i].getInstruction()));
+                JavaClass cl = self.findMethodClass(
+                        (INVOKEVIRTUAL) (ins[i].getInstruction()));
+                if (isSpawnable(target, cl)) {
                     count++;
+                }
             }
         }
 
@@ -711,8 +716,9 @@ final class MethodTable {
     }
 
     static String getParamNameNoThis(Method m, int paramNr) {
-        if (!m.isStatic())
+        if (!m.isStatic()) {
             paramNr++;
+        }
         return getParamName(m, paramNr);
     }
 
@@ -833,8 +839,9 @@ final class MethodTable {
     boolean containsSpawnedCall(MethodGen m) {
         InstructionList code = m.getInstructionList();
 
-        if (code == null)
+        if (code == null) {
             return false;
+        }
 
         InstructionHandle ih[] = code.getInstructionHandles();
 
@@ -843,8 +850,9 @@ final class MethodTable {
             if (ins instanceof INVOKEVIRTUAL) {
                 Method target = self.findMethod((INVOKEVIRTUAL) (ins));
                 JavaClass cl = self.findMethodClass((INVOKEVIRTUAL) (ins));
-                if (isSpawnable(target, cl))
+                if (isSpawnable(target, cl)) {
                     return true;
+                }
             }
         }
 
@@ -864,8 +872,9 @@ final class MethodTable {
 
     MethodGen getMethodGen(Method m) {
         MethodTableEntry e = findMethod(m);
-        if (e == null)
+        if (e == null) {
             return null;
+        }
         return e.mg;
     }
 

@@ -76,8 +76,9 @@ public abstract class GroupSkeleton implements GroupProtocol {
          * initialized further.
          */
         public GroupMessage enqueue(int from) {
-            if (Group.DEBUG)
+            if (Group.DEBUG) {
                 System.out.println("Got message from cpu " + from);
+            }
             GroupMessage temp = getGroupMessage();
             temp.next = qs[from];
             qs[from] = temp;
@@ -94,8 +95,9 @@ public abstract class GroupSkeleton implements GroupProtocol {
          */
         public GroupMessage dequeue(int from) {
 
-            if (Group.DEBUG)
+            if (Group.DEBUG) {
                 System.out.println("Waiting for message from cpu " + from);
+            }
 
             if (qs[from] == null) {
                 return null;
@@ -275,9 +277,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);
@@ -372,9 +375,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);
@@ -468,9 +472,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);
@@ -563,9 +568,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);
@@ -659,9 +665,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);
@@ -755,9 +762,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);
@@ -852,9 +860,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);
@@ -949,9 +958,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);
@@ -1046,9 +1056,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);
@@ -1143,9 +1154,10 @@ public abstract class GroupSkeleton implements GroupProtocol {
                 /* send result */
                 int peer_rank = destination.memberRanks[peer];
                 int peer_skeleton = destination.memberSkels[peer];
-                if (Group.DEBUG)
+                if (Group.DEBUG) {
                     System.out.println("Sending message to peer " + peer
                             + " on cpu " + peer_rank);
+                }
                 WriteMessage w = Group.unicast[peer_rank].newMessage();
                 w.writeByte(COMBINE);
                 w.writeInt(peer_skeleton);

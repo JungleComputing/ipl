@@ -75,8 +75,8 @@ public class DummySocket extends Socket {
     }
 
     public SocketAddress getLocalSocketAddress() {
-        System.err
-                .println("getLocalSocketAddress() not implemented by " + this);
+        System.err.println(
+                "getLocalSocketAddress() not implemented by " + this);
         throw new RuntimeException(
                 "getLocalSocketAddress() not implemented by " + this);
     }

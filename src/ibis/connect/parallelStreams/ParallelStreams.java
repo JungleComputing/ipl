@@ -166,8 +166,9 @@ public class ParallelStreams {
                     recvBlock = (recvBlock + 1) % numWays;
                 }
                 nextAvail = ins[recvBlock].available();
-                if (rc < nextRead || nextAvail == 0)
+                if (rc < nextRead || nextAvail == 0) {
                     break;
+                }
                 //	} while(nextAvail > 0 && len > 0);
             } while (len > 0);
             MyDebug.out.println("PS: recv()- done = " + done);

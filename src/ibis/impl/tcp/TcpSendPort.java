@@ -88,8 +88,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         this.ibis = ibis;
         this.connectionAdministration = connectionAdministration;
         this.connectUpcall = cU;
-        if (cU != null)
+        if (cU != null) {
             connectionAdministration = true;
+        }
 
         ident = new TcpSendPortIdentifier(name, type.name(),
                 (TcpIbisIdentifier) type.ibis.identifier());
@@ -181,8 +182,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         switch (type.serializationType) {
         case TcpPortType.SERIALIZATION_SUN:
             out = new SunSerializationOutputStream(dummy);
-            if (replacer != null)
+            if (replacer != null) {
                 out.setReplacer(replacer);
+            }
             break;
         case TcpPortType.SERIALIZATION_NONE:
             out = new NoSerializationOutputStream(dummy);
@@ -190,8 +192,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         case TcpPortType.SERIALIZATION_IBIS:
             out = new IbisSerializationOutputStream(
                     new BufferedArrayOutputStream(dummy));
-            if (replacer != null)
+            if (replacer != null) {
                 out.setReplacer(replacer);
+            }
             break;
         case TcpPortType.SERIALIZATION_DATA:
             out = new DataSerializationOutputStream(
@@ -212,8 +215,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     public synchronized void setReplacer(Replacer r) throws IOException {
         replacer = r;
-        if (out != null)
+        if (out != null) {
             out.setReplacer(r);
+        }
     }
 
     public void connect(ReceivePortIdentifier receiver) throws IOException {

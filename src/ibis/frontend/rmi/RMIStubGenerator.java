@@ -42,8 +42,9 @@ class RMIStubGenerator extends RMIGenerator {
             String[] names = et.getExceptionNames();
             for (int i = 0; i < names.length; i++) {
                 output.print(names[i]);
-                if (i < names.length - 1)
+                if (i < names.length - 1) {
                     output.print(", ");
+                }
             }
         } else {
             output.print("RemoteException");

@@ -46,8 +46,8 @@ public final class NioSendPortIdentifier implements SendPortIdentifier,
         if (other == null) {
             return false;
         } else {
-            return (type().equals(other.type()) && ibis.equals(other.ibis) && name()
-                    .equals(other.name()));
+            return (type().equals(other.type()) && ibis.equals(other.ibis)
+                    && name().equals(other.name()));
         }
     }
 

@@ -36,8 +36,9 @@ public class GlobalResultTable implements Upcall, Config {
             if (Satin.this_satin.branchingFactor > 0) {
                 return this.stamp == otherKey.stamp;
             } else {
-                if (other == null)
+                if (other == null) {
                     return false;
+                }
                 return this.parameters.equals(otherKey.parameters);
             }
         }
@@ -234,8 +235,9 @@ public class GlobalResultTable implements Upcall, Config {
         Object oldValue = entries.get(key);
         /* if (entries.size() < max) */entries.put(key, value);
         if (GRT_STATS) {
-            if (entries.size() > maxNumEntries)
+            if (entries.size() > maxNumEntries) {
                 maxNumEntries = entries.size();
+            }
         }
 
         if (numReplicas > 0 && oldValue == null) {
@@ -287,8 +289,8 @@ public class GlobalResultTable implements Upcall, Config {
 
                     if (GRT_TIMING) {
                         tableSerializationTimer.stop();
-                        satin.tableSerializationTimer
-                                .add(tableSerializationTimer);
+                        satin.tableSerializationTimer.add(
+                                tableSerializationTimer);
                     }
                     try {
                         size = m.finish();
@@ -388,8 +390,9 @@ public class GlobalResultTable implements Upcall, Config {
 
         satin.updatesToSend = false;
 
-        if (toSend.size() == 0)
+        if (toSend.size() == 0) {
             return;
+        }
 
         if (GRT_TIMING) {
             updateTimer = satin.createTimer();
@@ -495,8 +498,9 @@ public class GlobalResultTable implements Upcall, Config {
         entries.putAll(contents);
 
         if (GRT_STATS) {
-            if (entries.size() > maxNumEntries)
+            if (entries.size() > maxNumEntries) {
                 maxNumEntries = entries.size();
+            }
         }
 
     }
@@ -507,9 +511,9 @@ public class GlobalResultTable implements Upcall, Config {
         }
 
         try {
-            SendPort send = satin.globalResultTablePortType
-                    .createSendPort("satin global result table send port on "
-                            + satin.ident.name() + System.currentTimeMillis());
+            SendPort send = satin.globalResultTablePortType.createSendPort(
+                    "satin global result table send port on "
+                    + satin.ident.name() + System.currentTimeMillis());
             sends.put(ident, send);
             ReceivePortIdentifier r = null;
             r = satin.lookup("satin global result table receive port on "
@@ -620,8 +624,9 @@ public class GlobalResultTable implements Upcall, Config {
                 }
             }
             if (GRT_STATS) {
-                if (entries.size() > maxNumEntries)
+                if (entries.size() > maxNumEntries) {
                     maxNumEntries = entries.size();
+                }
             }
         }
 

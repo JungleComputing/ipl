@@ -40,8 +40,9 @@ public class Stub extends RemoteStub {
         reply = r;
         skeletonId = skelId;
 
-        if (reference != null)
+        if (reference != null) {
             this.ref = reference;
+        }
         // System.out.println("Stub " + this + " gets ref " + ref);
     }
 

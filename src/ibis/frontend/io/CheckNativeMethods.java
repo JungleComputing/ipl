@@ -66,8 +66,8 @@ public class CheckNativeMethods {
                 clazz = increase_one(clazz);
                 int index = args[i].lastIndexOf('.');
                 if (args[i].substring(index + 1).equals("class")) {
-                    clazz[clazz.length - 1] = Repository.lookupClass(args[i]
-                            .substring(0, index));
+                    clazz[clazz.length - 1]
+                        = Repository.lookupClass(args[i].substring(0, index));
                 } else {
                     clazz[clazz.length - 1] = Repository.lookupClass(args[i]);
                 }

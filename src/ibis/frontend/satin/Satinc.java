@@ -158,10 +158,11 @@ public final class Satinc {
         }
 
         public void write(int b) throws IOException {
-            if (b == '$')
+            if (b == '$') {
                 super.write('.');
-            else
+            } else {
                 super.write(b);
+            }
         }
     }
 
@@ -282,8 +283,9 @@ public final class Satinc {
     }
 
     static String getInitVal(Type s) {
-        if (s instanceof BasicType)
+        if (s instanceof BasicType) {
             return "0";
+        }
         return "null";
     }
 
@@ -320,10 +322,11 @@ public final class Satinc {
 
         InstructionList il = new InstructionList();
 
-        MethodGen new_main = new MethodGen(Constants.ACC_STATIC
-                | Constants.ACC_PUBLIC, Type.VOID, new Type[] { new ArrayType(
-                Type.STRING, 1) }, new String[] { "argv" }, "main", clg
-                .getClassName(), il, clg.getConstantPool());
+        MethodGen new_main = new MethodGen(
+                Constants.ACC_STATIC | Constants.ACC_PUBLIC, Type.VOID,
+                new Type[] { new ArrayType( Type.STRING, 1) },
+                new String[] { "argv" }, "main",
+                clg.getClassName(), il, clg.getConstantPool());
         /*
          il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
          "createSatin",
@@ -347,10 +350,10 @@ public final class Satinc {
         il.append(ins_f.createInvoke("ibis.satin.impl.Satin", "getMainArgs",
                 new ArrayType(Type.STRING, 1), Type.NO_ARGS,
                 Constants.INVOKEVIRTUAL));
-        InstructionHandle try_start = il.append(ins_f.createInvoke(clg
-                .getClassName(), origMain.getName(), Type.VOID,
-                new Type[] { new ArrayType(Type.STRING, 1) },
-                Constants.INVOKESTATIC));
+        InstructionHandle try_start = il.append(
+                ins_f.createInvoke(clg.getClassName(), origMain.getName(),
+                    Type.VOID, new Type[] { new ArrayType(Type.STRING, 1) },
+                    Constants.INVOKESTATIC));
 
         BranchHandle try_end = il.append(new GOTO(null));
 
@@ -483,8 +486,8 @@ public final class Satinc {
     }
 
     String invocationRecordName(Method m, String clnam) {
-        return ("Satin_" + clnam + "_" + do_mangle(m) + "_InvocationRecord")
-                .replace('.', '_');
+        return ("Satin_" + clnam + "_" + do_mangle(m)
+                + "_InvocationRecord").replace('.', '_');
     }
 
     String localRecordName(Method m) {
@@ -498,8 +501,8 @@ public final class Satinc {
     }
 
     String returnRecordName(Method m, String clnam) {
-        return ("Satin_" + clnam + "_" + do_mangle(m) + "_ReturnRecord")
-                .replace('.', '_');
+        return ("Satin_" + clnam + "_" + do_mangle(m)
+                + "_ReturnRecord").replace('.', '_');
     }
 
     String parameterRecordName(Method m) {
@@ -732,9 +735,10 @@ public final class Satinc {
                 il.insert(pos, new DUP());
                 il.insert(pos, new DUP());
                 il.insert(pos, new ASTORE(maxLocals + 3));
-                il.insert(pos, ins_f
-                        .createFieldAccess(invClass, "array", new ArrayType(
-                                target_returntype, 1), Constants.GETFIELD));
+                il.insert(pos,
+                        ins_f.createFieldAccess(invClass, "array",
+                                new ArrayType(target_returntype, 1),
+                                Constants.GETFIELD));
 
                 il.insert(pos, new ALOAD(maxLocals + 3));
                 il.insert(pos, ins_f.createFieldAccess(invClass, "index",
@@ -747,8 +751,8 @@ public final class Satinc {
                 if (getStoreIns(k) != null) { // local
                     if (getLoadIns(k) == null) {
                         il.insert(pos, new DUP());
-                        il.insert(pos, ins_f
-                                .createFieldAccess(invClass, "result",
+                        il.insert(pos,
+                                ins_f.createFieldAccess(invClass, "result",
                                         target_returntype, Constants.GETFIELD));
                         il.insert(pos, getStoreIns(k));
                     } else {
@@ -757,8 +761,8 @@ public final class Satinc {
                         il.insert(pos, new ASTORE(maxLocals + 3));
                         il.insert(pos, getLoadIns(k));
                         il.insert(pos, new ALOAD(maxLocals + 3));
-                        il.insert(pos, ins_f
-                                .createFieldAccess(invClass, "result",
+                        il.insert(pos,
+                                ins_f.createFieldAccess(invClass, "result",
                                         target_returntype, Constants.GETFIELD));
                         il.insert(pos, getStoreIns(k));
                         il.insert(pos, new ALOAD(maxLocals + 3));
@@ -1188,8 +1192,9 @@ public final class Satinc {
             cls = cl.getSuperclassName();
             if (cls != null) {
                 cl = Repository.lookupClass(cls);
-            } else
+            } else {
                 cl = null;
+            }
         }
         System.out.println("findMethod: could not find method " + name + sig);
         return null;
@@ -1221,8 +1226,9 @@ public final class Satinc {
             cls = cl.getSuperclassName();
             if (cls != null) {
                 cl = Repository.lookupClass(cls);
-            } else
+            } else {
                 cl = null;
+            }
         }
         System.out.println("findMethod: could not find method " + name + sig);
         return null;
@@ -1258,10 +1264,10 @@ public final class Satinc {
             CodeExceptionGen[] ceg = m.getExceptionHandlers();
             for (int i = 0; i < ih.length; i++) {
                 if (ih[i].getInstruction() instanceof INVOKEVIRTUAL) {
-                    Method target = findMethod((INVOKEVIRTUAL) (ih[i]
-                            .getInstruction()));
-                    JavaClass cl = findMethodClass((INVOKEVIRTUAL) (ih[i]
-                            .getInstruction()));
+                    Method target = findMethod(
+                            (INVOKEVIRTUAL) (ih[i].getInstruction()));
+                    JavaClass cl = findMethodClass(
+                            (INVOKEVIRTUAL) (ih[i].getInstruction()));
                     if (mtab.isSpawnable(target, cl)) {
                         for (int j = 0; j < i; j++) {
                             for (int k = 0; k < ceg.length; k++) {
@@ -1386,8 +1392,8 @@ public final class Satinc {
 
     InstructionHandle rewriteStore(MethodGen m, InstructionList il,
             InstructionHandle i, int maxLocals, String localClassName) {
-        LocalVariableInstruction curr = (LocalVariableInstruction) (i
-                .getInstruction());
+        LocalVariableInstruction curr
+                = (LocalVariableInstruction) (i.getInstruction());
         Type type = mtab.getLocalType(m, curr, i.getPosition());
         String name = mtab.getLocalName(m, curr, i.getPosition());
         String fieldName = MethodTable.generatedLocalName(type, name);
@@ -1409,8 +1415,8 @@ public final class Satinc {
 
     InstructionHandle rewriteLoad(MethodGen m, InstructionList il,
             InstructionHandle i, int maxLocals, String localClassName) {
-        LocalVariableInstruction curr = (LocalVariableInstruction) (i
-                .getInstruction());
+        LocalVariableInstruction curr
+                = (LocalVariableInstruction) (i.getInstruction());
         Type type = mtab.getLocalType(m, curr, i.getPosition());
         String name = mtab.getLocalName(m, curr, i.getPosition());
         String fieldName = MethodTable.generatedLocalName(type, name);
@@ -1663,24 +1669,24 @@ public final class Satinc {
                     }
 
                     int val = curr.getIncrement();
-                    String fieldName = mtab.getLocalName(m, curr, i
-                            .getPosition());
-                    Type fieldType = mtab
-                            .getLocalType(m, curr, i.getPosition());
+                    String fieldName = mtab.getLocalName(m, curr,
+                            i.getPosition());
+                    Type fieldType = mtab.getLocalType(m, curr,
+                            i.getPosition());
 
                     i.setInstruction(new ALOAD(maxLocals));
                     i = i.getNext();
                     il.insert(i, new DUP());
 
                     il.insert(i, ins_f.createFieldAccess(localClassName,
-                            MethodTable
-                                    .generatedLocalName(fieldType, fieldName),
+                            MethodTable.generatedLocalName(fieldType,
+                                fieldName),
                             fieldType, Constants.GETFIELD));
                     il.insert(i, new BIPUSH((byte) val));
                     il.insert(i, new IADD());
                     i = il.insert(i, ins_f.createFieldAccess(localClassName,
-                            MethodTable
-                                    .generatedLocalName(fieldType, fieldName),
+                            MethodTable.generatedLocalName(fieldType,
+                                fieldName),
                             fieldType, Constants.PUTFIELD));
                 } else {
                     if (verbose) {
@@ -1745,13 +1751,14 @@ public final class Satinc {
 
             InstructionList il = mg.getInstructionList();
 
-            if (il == null)
+            if (il == null) {
                 continue;
+            }
 
             int maxLocals = mg.getMaxLocals();
 
-            for (InstructionHandle i = il.getStart(); i != null; i = i
-                    .getNext()) {
+            for (InstructionHandle i = il.getStart(); i != null;
+                    i = i.getNext()) {
                 Instruction ins = i.getInstruction();
                 if (ins instanceof INVOKEVIRTUAL) {
                     String targetname
@@ -1927,9 +1934,9 @@ public final class Satinc {
 
                 ClassGen recgen = new ClassGen(localRec);
 
-                Method exceptionHandler = recgen
-                        .containsMethod("handleException",
-                                "(ILjava/lang/Throwable;"
+                Method exceptionHandler = recgen.containsMethod(
+                        "handleException",
+                        "(ILjava/lang/Throwable;"
                                 + "Libis/satin/impl/InvocationRecord;)V");
                 MethodGen handler_g = new MethodGen(exceptionHandler,
                         local_record_name, recgen.getConstantPool());
@@ -1964,10 +1971,10 @@ public final class Satinc {
                 il.append(new ALOAD(2));
                 il.append(new ALOAD(3));
 
-                il.append(insf.createInvoke(classname, clone.getName(), clone
-                        .getReturnType(), clone.getArgumentTypes(), clone
-                        .isStatic() ? Constants.INVOKESTATIC
-                        : Constants.INVOKEVIRTUAL));
+                il.append(insf.createInvoke(classname, clone.getName(),
+                        clone.getReturnType(), clone.getArgumentTypes(),
+                        clone.isStatic() ? Constants.INVOKESTATIC
+                                : Constants.INVOKEVIRTUAL));
                 insertReturnPop(m, il);
                 il.append(new RETURN());
 
@@ -1999,9 +2006,10 @@ public final class Satinc {
                     System.out.println("error writing " + dst);
                     System.exit(1);
                 }
-
-                if (verify && !do_verify(newclass))
+ 
+                if (verify && !do_verify(newclass)) {
                     failed_verification = true;
+                }
             }
         }
     }
@@ -2901,12 +2909,12 @@ public final class Satinc {
         Method main = gen_c.containsMethod("main", "([Ljava/lang/String;)V");
 
         if (main != null) {
-            MethodGen m = new MethodGen(main, classname, gen_c
-                    .getConstantPool());
+            MethodGen m = new MethodGen(main, classname,
+                    gen_c.getConstantPool());
 
             if (verbose) {
-                System.out
-                        .println("the class has main, renaming to $origMain$");
+                System.out.println("the class has main, renaming to "
+                        + "$origMain$");
             }
 
             m.setName("$origMain$");
@@ -3016,8 +3024,9 @@ public final class Satinc {
             System.exit(1);
         }
 
-        if (verify && !do_verify(c))
+        if (verify && !do_verify(c)) {
             failed_verification = true;
+        }
 
         if (failed_verification) {
             System.out.println("Verification failed!");

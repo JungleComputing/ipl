@@ -136,8 +136,8 @@ class ConnectionCache implements Config {
             connections.add(c);
             notifyAll();
             if (DEBUG) {
-                System.err
-                        .println("CONNECTION(" + c + ") ADDED TO  FREEOUTPUT");
+                System.err.println(
+                        "CONNECTION(" + c + ") ADDED TO  FREEOUTPUT");
             }
         }
 
@@ -196,8 +196,8 @@ class ConnectionCache implements Config {
                 // not found. Wait until it is added
                 try {
                     if (DEBUG) {
-                        System.err
-                                .println("WAITING FOR CONNECTION TO BE ADDED");
+                        System.err.println(
+                                "WAITING FOR CONNECTION TO BE ADDED");
                     }
                     wait();
                 } catch (InterruptedException e) {

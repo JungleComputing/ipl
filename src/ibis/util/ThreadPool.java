@@ -108,9 +108,8 @@ public final class ThreadPool {
                     // exception that is not caught here. Next, the counters
                     // in the queue are not correct anymore -> havoc
                     // --Rob 
-                    System.err
-                            .println("exception in pool thread (continuing): "
-                                    + t);
+                    System.err.println(
+                            "exception in pool thread (continuing): " + t);
                     t.printStackTrace();
                 }
 

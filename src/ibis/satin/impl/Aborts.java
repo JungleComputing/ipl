@@ -120,8 +120,9 @@ public abstract class Aborts extends WorkStealing {
                 && child.parentOwner.equals(targetOwner)) {
             return true;
         }
-        if (child.parent == null || child.parentStamp < 0)
+        if (child.parent == null || child.parentStamp < 0) {
             return false;
+        }
 
         return isDescendentOf(child.parent, targetStamp, targetOwner);
     }
@@ -131,8 +132,9 @@ public abstract class Aborts extends WorkStealing {
         if (child.parentOwner.equals(targetOwner)) {
             return true;
         }
-        if (child.parent == null)
+        if (child.parent == null) {
             return false;
+        }
 
         return isDescendentOf1(child.parent, targetOwner);
     }
@@ -171,8 +173,9 @@ public abstract class Aborts extends WorkStealing {
 
         try {
             SendPort s = getReplyPortNoWait(r.stealer);
-            if (s == null)
+            if (s == null) {
                 return;
+            }
 
             WriteMessage writeMessage = s.newMessage();
             writeMessage.writeByte(Protocol.ABORT);

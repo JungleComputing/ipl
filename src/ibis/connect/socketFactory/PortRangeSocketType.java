@@ -57,8 +57,9 @@ public class PortRangeSocketType extends SocketType implements
             throws IOException {
         ServerSocket s = new ServerSocket();
         s.setReceiveBufferSize(0x10000);
-        if (addr.getPort() == 0)
+        if (addr.getPort() == 0) {
             addr = new InetSocketAddress(addr.getAddress(), allocLocalPort());
+        }
         s.bind(addr, backlog);
         return s;
     }

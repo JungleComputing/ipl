@@ -89,9 +89,10 @@ class RepMIStubGenerator extends RepMIGenerator {
 
         output.println("\t\ttry {");
 
-        if (verbose)
+        if (verbose) {
             System.out.println(m.getName() + " is a "
                     + (write ? "write" : "read") + " method");
+        }
 
         if (!write) {
             output.println("\t\t\tif (RTS.DEBUG) System.out.println("

@@ -28,14 +28,14 @@ import java.util.Vector;
 
 public class NameServer extends Thread implements Protocol {
 
-    public static final int TCP_IBIS_NAME_SERVER_PORT_NR = TypedProperties
-            .intProperty(NSProps.s_port, 9826);
+    public static final int TCP_IBIS_NAME_SERVER_PORT_NR
+            = TypedProperties.intProperty(NSProps.s_port, 9826);
 
-    static final boolean DEBUG = TypedProperties
-            .booleanProperty(NSProps.s_debug);
+    static final boolean DEBUG
+            = TypedProperties.booleanProperty(NSProps.s_debug);
 
-    static final boolean VERBOSE = TypedProperties
-            .booleanProperty(NSProps.s_verbose);
+    static final boolean VERBOSE
+            = TypedProperties.booleanProperty(NSProps.s_verbose);
 
     static int PINGER_TIMEOUT = TypedProperties.intProperty(NSProps.s_timeout,
             300) * 1000; // Property is in seconds, convert to milliseconds.
@@ -468,9 +468,8 @@ public class NameServer extends Thread implements Protocol {
 
     private void killThreads(RunInfo p) {
         try {
-            Socket s = NameServerClient.socketFactory
-                    .createSocket(myAddress, p.portTypeNameServer.getPort(),
-                            null, -1 /* do not retry */);
+            Socket s = NameServerClient.socketFactory.createSocket(myAddress,
+                    p.portTypeNameServer.getPort(), null, -1 /* no retry */);
             DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
             DataOutputStream out1 = new DataOutputStream(
                     new BufferedOutputStream(d));
@@ -481,9 +480,8 @@ public class NameServer extends Thread implements Protocol {
         }
 
         try {
-            Socket s2 = NameServerClient.socketFactory
-                    .createSocket(myAddress, p.receivePortNameServer.getPort(),
-                            null, -1 /* do not retry */);
+            Socket s2 = NameServerClient.socketFactory.createSocket(myAddress,
+                    p.receivePortNameServer.getPort(), null, -1 /* no retry */);
             DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
             ObjectOutputStream out2 = new ObjectOutputStream(
                     new BufferedOutputStream(d2));
@@ -620,8 +618,8 @@ public class NameServer extends Thread implements Protocol {
             }
 
             try {
-                DummyOutputStream dos = new DummyOutputStream(s
-                        .getOutputStream());
+                DummyOutputStream dos
+                        = new DummyOutputStream(s.getOutputStream());
                 out = new ObjectOutputStream(new BufferedOutputStream(dos));
 
                 DummyInputStream di = new DummyInputStream(s.getInputStream());

@@ -223,8 +223,9 @@ public final class TcpIbis extends Ibis implements Config {
         if (resizeHandler != null) {
             while (true) {
                 synchronized (this) {
-                    if (joinedIbises.size() == 0)
+                    if (joinedIbises.size() == 0) {
                         break;
+                    }
                     poolSize++;
                     id = (TcpIbisIdentifier) joinedIbises.remove(0);
                 }
@@ -237,8 +238,9 @@ public final class TcpIbis extends Ibis implements Config {
 
             while (true) {
                 synchronized (this) {
-                    if (leftIbises.size() == 0)
+                    if (leftIbises.size() == 0) {
                         break;
+                    }
                     poolSize--;
                     id = (TcpIbisIdentifier) leftIbises.remove(0);
                 }
@@ -248,8 +250,9 @@ public final class TcpIbis extends Ibis implements Config {
             }
             while (true) {
                 synchronized (this) {
-                    if (diedIbises.size() == 0)
+                    if (diedIbises.size() == 0) {
                         break;
+                    }
                     poolSize--;
                     id = (TcpIbisIdentifier) diedIbises.remove(0);
                 }
@@ -283,8 +286,9 @@ public final class TcpIbis extends Ibis implements Config {
 
     public void end() {
         synchronized (this) {
-            if (ended)
+            if (ended) {
                 return;
+            }
             ended = true;
         }
         try {

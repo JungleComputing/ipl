@@ -76,8 +76,8 @@ public final class RTS {
                     ch);
             receivePort.enableConnections();
 
-            IbisIdentifier i = (IbisIdentifier) ibisRegistry
-                    .elect("RepMI Master");
+            IbisIdentifier i
+                    = (IbisIdentifier) ibisRegistry.elect("RepMI Master");
 
             if (localID.equals(i)) {
 
@@ -104,10 +104,10 @@ public final class RTS {
                     for (int j = 1; j < _size; j++) {
 
                         ReadMessage r = systemIn.receive();
-                        ReceivePortIdentifier reply = (ReceivePortIdentifier) r
-                                .readObject();
-                        ReceivePortIdentifier id = (ReceivePortIdentifier) r
-                                .readObject();
+                        ReceivePortIdentifier reply
+                                = (ReceivePortIdentifier) r.readObject();
+                        ReceivePortIdentifier id
+                                = (ReceivePortIdentifier) r.readObject();
                         r.finish();
 
                         systemOut.connect(reply);
@@ -130,8 +130,8 @@ public final class RTS {
 
                 systemOut = portType.createSendPort("RepMI Client " + name);
 
-                ReceivePortIdentifier master = ibisRegistry
-                        .lookupReceivePort("RepMI Master");
+                ReceivePortIdentifier master
+                        = ibisRegistry.lookupReceivePort("RepMI Master");
 
                 while (master == null) {
                     try {
@@ -281,8 +281,8 @@ public final class RTS {
 
             Skeleton skel = (Skeleton) skeletons.get(number);
             // this is not correct with package names !!
-            Class stub_class = Class
-                    .forName(get_stub_name(Class.forName(type)));
+            Class stub_class
+                    = Class.forName(get_stub_name(Class.forName(type)));
             Stub stub = (Stub) stub_class.newInstance();
             stub.init(number, skel);
             return stub;

@@ -54,8 +54,8 @@ final class ThreadNioReceivePort extends NioReceivePort implements Config {
             }
             connections = newConnections;
         }
-        connections[nrOfConnections] = new ThreadNioDissipator(ibis
-                .sendReceiveThread(), this, spi, ident,
+        connections[nrOfConnections] = new ThreadNioDissipator(
+                ibis.sendReceiveThread(), this, spi, ident,
                 (ReadableByteChannel) channel, type);
         nrOfConnections++;
 

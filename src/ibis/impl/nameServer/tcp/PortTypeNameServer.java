@@ -145,8 +145,8 @@ class PortTypeNameServer extends Thread implements Protocol {
             try {
                 DummyInputStream di = new DummyInputStream(s.getInputStream());
                 in = new DataInputStream(new BufferedInputStream(di));
-                DummyOutputStream dout = new DummyOutputStream(s
-                        .getOutputStream());
+                DummyOutputStream dout
+                        = new DummyOutputStream(s.getOutputStream());
 
                 out = new DataOutputStream(new BufferedOutputStream(dout));
 

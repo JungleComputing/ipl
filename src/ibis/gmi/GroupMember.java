@@ -47,8 +47,9 @@ public class GroupMember {
      */
     public GroupMember() {
 
-        if (Group.DEBUG)
+        if (Group.DEBUG) {
             System.out.println("GroupMember() starting");
+        }
 
         try {
             String my_package = "";
@@ -106,8 +107,8 @@ public class GroupMember {
             }
 
             for (int i = 0; i < group_interfaces.size(); i++) {
-                groupInterfaces[i] = ((Class) group_interfaces.get(i))
-                        .getName();
+                groupInterfaces[i]
+                        = ((Class) group_interfaces.get(i)).getName();
                 if (Group.DEBUG) {
                     System.out.print(groupInterfaces[i] + " ");
                 }
@@ -124,8 +125,9 @@ public class GroupMember {
             System.exit(1);
         }
 
-        if (Group.DEBUG)
+        if (Group.DEBUG) {
             System.out.println("GroupMember() done");
+        }
     }
 
     /**
@@ -241,7 +243,8 @@ public class GroupMember {
      * object or the size of the group.
      */
     public void groupInit() {
-        if (Group.DEBUG)
+        if (Group.DEBUG) {
             System.out.println("GroupMember.groupInit()");
+        }
     }
 }
