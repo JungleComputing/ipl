@@ -6,7 +6,7 @@ rem %~dp0 is expanded pathname of the current script under NT
 
 set DIR=%~dp0..
 
-%DIR%\configuration.bat
+call "%DIR%\configuration"
 
 set PRUN_CPU_RANK=0
 set NHOSTS=1
