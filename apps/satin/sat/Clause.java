@@ -62,9 +62,26 @@ class Clause implements java.io.Serializable, Comparable {
 	    isSubsetIntList( this.neg, cy.neg );
     }
 
+    /**
+     * Return true iff variable 'v' occurs as a positive term in this clause.
+     */
+    boolean occursPos( int var )
+    {
+        return memberIntList( pos, var );
+    }
 
-    // Given an array of assignments, return true iff this clause is
-    // satisfied by these assignments.
+    /**
+     * Return true iff variable 'v' occurs as a negative term in this clause.
+     */
+    boolean occursNeg( int var )
+    {
+        return memberIntList( neg, var );
+    }
+
+    /**
+     * Given an array of assignments, return true iff this clause is
+     * satisfied by these assignments.
+     */
     public boolean isSatisfied( int assignments[] )
     {
 	for( int ix=0; ix<pos.length; ix++ ){

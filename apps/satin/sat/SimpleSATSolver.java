@@ -48,21 +48,21 @@ public class SimpleSATSolver extends ibis.satin.SatinObject implements SimpleSAT
 	int negassignments[] = (int []) assignments.clone();
 	posassignments[var] = 1;
 	negassignments[var] = 0;
-	solve( p, posassignments, var+1 );
-	solve( p, negassignments, var+1 );
-	sync();
+	try {
+	    solve( p, posassignments, var+1 );
+	    solve( p, negassignments, var+1 );
+	    sync();
+	}
+	catch( SATResultException e ){
+	    throw e;
+	}
     }
 
     // Given a list of symbolic clauses, produce a list of solutions.
     static SATSolution solveSystem( final SATProblem p )
     {
-	int assignments[] = new int[p.getVariableCount()];
+	int assignments[] = p.getInitialAssignments();
 	SATSolution res = null;
-
-	// Start with a vector of unassigned variables.
-	for( int ix=0; ix<assignments.length; ix++ ){
-	    assignments[ix] = -1;
-	}
 
         SimpleSATSolver s = new SimpleSATSolver();
 

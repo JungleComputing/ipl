@@ -15,7 +15,7 @@ class SATProblem implements java.io.Serializable {
     private SATVar variables[];	// The variables of the problem.
     private int clauseCount;	// The number of valid entries in `clauses'.
     private int deletedClauseCount;	// The number of deleted clauses.
-    static final boolean trace_simplification = false;
+    static final boolean trace_simplification = true;
     private int label = 0;
 
     private SATProblem()
@@ -70,6 +70,14 @@ class SATProblem implements java.io.Serializable {
 	return clauseCount;
     }
 
+    // Given a clause 'i', delete it from the list.
+    void deleteClause( int i )
+    {
+	clauseCount--;
+	clauses[i] = clauses[clauseCount];
+	deletedClauseCount++;
+    }
+
     public int addClause( int pos[], int possz, int neg[], int negsz )
     {
 	int apos[] = cloneIntArray( pos, possz );
@@ -98,9 +106,7 @@ class SATProblem implements java.io.Serializable {
 		if( trace_simplification ){
 		    System.err.println( "New clause " + cl + " subsumes existing clause " + ci ); 
 		}
-		clauseCount--;
-		clauses[i] = clauses[clauseCount];
-		deletedClauseCount++;
+		deleteClause( i );
 	    }
 	}
 	if( clauseCount>=clauses.length ){
@@ -185,14 +191,121 @@ class SATProblem implements java.io.Serializable {
 	return false;
     }
 
+    // Given a variable 'var' that we know is true, propagate this
+    // assignment.
+    boolean propagatePosAssignment( int var )
+    {
+	boolean changed = false;
+
+	variables[var].setAssignment( 1 );
+        for( int ix=0; ix<clauses.length; ix++ ){
+	    Clause cl = clauses[ix];
+
+	    if( cl == null ){
+	        continue;
+	    }
+	    if( cl.occursPos( var ) ){
+	        // This clause is satisfied by the assignment. Remove it.
+		clauses[ix] = null;
+		changed = true;
+		if( trace_simplification ){
+		    System.err.println( "Clause " + cl + " is satisfied by var[" + var + "]=true" ); 
+		}
+	    }
+	}
+	return changed;
+    }
+
+    // Given a variable 'var' that we know is false, propagate this
+    // assignment.
+    boolean propagateNegAssignment( int var )
+    {
+	boolean changed = false;
+
+	variables[var].setAssignment( 0 );
+        for( int ix=0; ix<clauses.length; ix++ ){
+	    Clause cl = clauses[ix];
+
+	    if( cl == null ){
+	        continue;
+	    }
+	    if( cl.occursNeg( var ) ){
+	        // This clause is satisfied by the assignment. Remove it.
+		clauses[ix] = null;
+		changed = true;
+		if( trace_simplification ){
+		    System.err.println( "Clause " + cl + " is satisfied by var[" + var + "]=false" ); 
+		}
+	    }
+	}
+	return changed;
+    }
+
+    // Remove null clauses from the clauses array.
+    void compactClauses()
+    {
+	int ix = clauseCount;
+
+	while( ix>0 ){
+	    ix--;
+
+	    if( clauses[ix] == null ){
+	        deleteClause( ix );
+	    }
+	}
+    }
+
     // Optimize the problem for solving.
     void optimize()
     {
-        // For the moment, sort the clauses into shortest-first order.
-	java.util.Arrays.sort( clauses, 0, clauseCount );
-	for( int i=0; i<clauseCount; i++ ){
-	    registerClauseVariables( clauses[i], i );
+	boolean changed;
+
+	do {
+	    changed = false;
+
+	    // For the moment, sort the clauses into shortest-first order.
+	    java.util.Arrays.sort( clauses, 0, clauseCount );
+	    for( int i=0; i<clauseCount; i++ ){
+		registerClauseVariables( clauses[i], i );
+	    }
+	    for( int ix=0; ix<variables.length; ix++ ){
+		SATVar v = variables[ix];
+
+		if( v.isPosOnly() ){
+		    // Variable 'v' only occurs in positive terms, we may as
+		    // well assign to this variable, and propagate this
+		    // assignment.
+		    if( trace_simplification ){
+			System.err.println( "Variable " + v + " only occurs as positive term" ); 
+		    }
+		    changed |= propagatePosAssignment( ix );
+		}
+		else if( v.isNegOnly() ){
+		    // Variable 'v' only occurs in negative terms, we may as
+		    // well assign to this variable, and propagate this
+		    // assignment.
+		    if( trace_simplification ){
+			System.err.println( "Variable " + v + " only occurs as negative term" ); 
+		    }
+		    changed |= propagateNegAssignment( ix );
+		}
+		// TODO: a variable may occur never at all.
+	    }
+	    if( changed ){
+		compactClauses();
+	    }
+	} while( changed );
+    }
+
+    // Return the initial assignment array for this problem.
+    int [] getInitialAssignments()
+    {
+        int res[] = new int[vars];
+
+	for( int ix=0; ix<res.length; ix++ ){
+	    res[ix] = variables[ix].getAssignment();
 	}
+	return res;
     }
 
     // A CNF problem parser. Given a problem in DIMACS format,

@@ -6,6 +6,7 @@ class SATVar implements java.io.Serializable {
     private int label;
     private IntVector pos;	// Clauses in which this var occurs as a pos.
     private IntVector neg;	// Clauses in which this var occurs as a neg.
+    private int assignment = -1;	// 0 or 1 if it is a known variable.
 
     public SATVar( int lbl )
     {
@@ -24,4 +25,21 @@ class SATVar implements java.io.Serializable {
 
     IntVector getPosClauses() { return pos; }
     IntVector getNegClauses() { return neg; }
+
+    // Return true iff the variable only occurs in positive terms
+    boolean isPosOnly() { return neg == null || neg.size() == 0; }
+
+    // Return true iff the variable only occurs in negative terms
+    boolean isNegOnly() { return pos == null || pos.size() == 0; }
+
+    // Register assignment 'v' for this variable.
+    void setAssignment( int v ) { assignment = v; }
+
+    // Get the assignment of this variable.
+    int getAssignment() { return assignment; }
+
+    public String toString()
+    {
+        return "(" + label + ")";
+    }
 }

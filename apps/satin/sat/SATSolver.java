@@ -359,7 +359,7 @@ public class SATSolver {
     {
 	Context ctx = new Context();
 	ctx.problem = p;
-	ctx.assignments = new int[p.getVariableCount()];
+	ctx.assignments = p.getInitialAssignments();
 	// The list will be grown if necessary.
 	ctx.solutions = new SATSolution[20];
 	ctx.solutioncount = 0;
