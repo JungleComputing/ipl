@@ -133,6 +133,7 @@ class SOR {
 			m = rightS.newMessage();
 		} 
 
+		// System.err.print("Write col " + col); for (int i = 0; i < col.length; i++) { System.err.print(col[i] + " "); } System.err.println();
 		m.writeArray(col);
 		m.send();
 		m.finish();
@@ -149,11 +150,13 @@ class SOR {
 		}
 
 		m.readArray(col);
+		// System.err.print("Read col " + col); for (int i = 0; i < col.length; i++) { System.err.print(col[i] + " "); } System.err.println();
 		m.finish();
 	} 
 
 	private double reduce(double value) throws Exception { 
 
+		// System.err.println(rank + ": BEGIN REDUCE");
 		if (rank == 0) { 
 			for (int i=1;i<size;i++) { 				
 				ReadMessage rm = reduceR.receive();
@@ -171,11 +174,12 @@ class SOR {
 			wm.writeDouble(value);
 			wm.send();
 			wm.finish();
-			
+
 			ReadMessage rm = reduceR.receive();
 			value = rm.readDouble();
 			rm.finish();
 		} 
+		// System.err.println(rank + ": END REDUCE result " + value);
 		
 		return value;
 	} 
@@ -244,9 +248,10 @@ class SOR {
 				maxdiff = reduce(maxdiff);
 			} 
 			
-//			if(rank==0) {
-//				System.err.println(iteration + "");			
-//			} 
+			if(rank==0) {
+//				System.err.println(iteration + "");
+//				System.err.print(".");
+			} 
 			
 			iteration++;
 			

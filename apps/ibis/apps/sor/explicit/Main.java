@@ -231,27 +231,25 @@ class Main {
 			SOR local = new SOR(nrow, ncol, N, info.rank(), info.size(), maxIters, leftS, rightS, leftR, rightR, reduceS, reduceR);	    
 			local.start();
 
-                        // This seems to produce a lot of core dumps on PandaIbis ??
-/*
-			if (info.rank() != 0) { 
-				leftS.free();
+			if (leftS != null) {
+				leftS.close();
 			} 
 
-			if (info.rank() != info.size()-1) {
-				rightS.free();
+			if (rightS != null) {
+				rightS.close();
 			}
 
-			reduceS.free();
-			reduceR.free();
+			reduceS.close();
+			reduceR.close();
 
-			if (info.rank() != 0) { 
-				leftR.free();
+			if (leftR != null) {
+				leftR.close();
 			} 
 
-			if (info.rank() != info.size()-1) {
-				rightR.free();
+			if (rightR != null) {
+				rightR.close();
 			}
-*/
+
 			ibis.end();
 			
 		} catch (Exception e) {
