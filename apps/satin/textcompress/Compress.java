@@ -52,6 +52,22 @@ class Compress extends ibis.satin.SatinObject
         return res;
     }
 
+    public Backref evaluateSite( byte text[], int backpos, int pos )
+    {
+        Backref r = new Backref();
+
+        r.backpos = backpos;
+        r.len = Helpers.matchSpans( text, backpos, pos );
+
+        if( r.len>=Configuration.MINIMAL_SPAN ){
+            r.gain = r.len-Helpers.refEncodingSize( pos-backpos, r.len );
+            if( traceMatches ){
+                System.out.println( "A match " + r + " at " + pos );
+            }
+        }
+        return r;
+    }
+
     public ByteBuffer compress( byte text[] )
     {
         int backrefs[] = buildBackrefs( text );
@@ -65,20 +81,15 @@ class Compress extends ibis.satin.SatinObject
             mv.backpos = -1;
 
             int sites[] = collectBackrefs( text, backrefs, pos );
+            Backref results[] = new Backref[sites.length];
             for( int i=0; i<sites.length; i++ ){
-                int backpos = sites[i];
-                int matchSize = Helpers.matchSpans( text, backpos, pos );
+                results[i] = evaluateSite( text, sites[i], pos );
+            }
+            for( int i=0; i<results.length; i++ ){
+                Backref r = results[i];
 
-                if( matchSize>=Configuration.MINIMAL_SPAN ){
-                    if( traceMatches ){
-                        System.out.println( "A match of " + matchSize + " bytes at positions " + backpos + " and " + pos );
-                    }
-                    int gain = matchSize-Helpers.refEncodingSize( pos-backpos, matchSize );
-                    if( gain>0 ){
-                        mv.backpos = backpos;
-                        mv.len = matchSize;
-                        mv.gain = gain;
-                    }
+                if( r.gain>mv.gain ){
+                    mv = r;
                 }
             }
             // TODO: calculate the gain of just copying the character.
