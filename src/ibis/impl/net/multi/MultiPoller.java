@@ -9,6 +9,8 @@ import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPoller;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetServiceLink;
+import ibis.impl.net.NetServiceInputStream;
+import ibis.impl.net.NetServicePopupThread;
 import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
@@ -32,7 +34,9 @@ public class MultiPoller extends NetPoller {
 
         }
 
-        private final class ServiceThread extends Thread {
+        private final class ServiceThread
+			extends Thread
+			implements NetServicePopupThread {
                 private Lane    lane =  null;
                 private boolean exit = false;
 
@@ -41,20 +45,24 @@ public class MultiPoller extends NetPoller {
                         this.lane = lane;
                 }
 
+		public void callBack() throws IOException {
+			int newMtu          = lane.is.readInt();
+			int newHeaderLength = lane.is.readInt();
+
+			synchronized(lane) {
+				lane.mtu          = newMtu;
+				lane.headerLength = newHeaderLength;
+			}
+
+			lane.os.writeInt(3);
+			lane.os.flush();
+		}
+
                 public void run() {
                         log.in();
                         while (!exit) {
                                 try {
-                                        int newMtu          = lane.is.readInt();
-                                        int newHeaderLength = lane.is.readInt();
-
-                                        synchronized(lane) {
-                                                lane.mtu          = newMtu;
-                                                lane.headerLength = newHeaderLength;
-                                        }
-
-                                        lane.os.writeInt(3);
-                                        lane.os.flush();
+					callBack();
                                 } catch (InterruptedIOException e) {
                                         break;
                                 } catch (ConnectionClosedException e) {
@@ -148,10 +156,11 @@ public class MultiPoller extends NetPoller {
         public synchronized void setupConnection(NetConnection cnx) throws IOException {
                 log.in();
 		Integer num  = cnx.getNum();
-		NetServiceLink          link = cnx.getServiceLink();
+		NetServiceLink        link = cnx.getServiceLink();
 
-		ObjectInputStream       is      = new ObjectInputStream (link.getInputSubStream (this, "multi"));
-		ObjectOutputStream      os      = new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
+		NetServiceInputStream sis  = link.getInputSubStream(this, "multi");
+		ObjectInputStream     is   = new ObjectInputStream(sis);
+		ObjectOutputStream    os   = new ObjectOutputStream(link.getOutputSubStream(this, "multi"));
 
 		os.flush();
 
@@ -184,7 +193,11 @@ public class MultiPoller extends NetPoller {
 
 		laneTable.put(num, lane);
 
-		lane.thread.start();
+		if (false) {
+		    lane.thread.start();
+		} else {
+		    sis.registerPopup(lane.thread);
+		}
 
                 log.out();
         }

@@ -57,6 +57,15 @@ public final class NetServiceLink {
          */
         private final static int _OP_receive_substream_id = 2;
 
+	private String _OP_toString(int op) {
+	    switch (op) {
+	    case _OP_eof:			return "_OP_eof";
+	    case _OP_request_substream_id:	return "_OP_request_substream_id";
+	    case _OP_receive_substream_id:	return "_OP_receive_substream_id";
+	    default:				return "" + op;
+	    }
+	}
+
         /**
          * Set to true once the link is closed.
          */
@@ -170,6 +179,8 @@ public final class NetServiceLink {
          */
         private Integer            num               = null;
 
+	private Conversion conversion = Conversion.defaultConversion;
+
 	static {
 	    if (false) {
 		System.err.println("WARNING: Class NetServiceLink (still) uses Conversion.defaultConversion");
@@ -261,7 +272,7 @@ public final class NetServiceLink {
 
                 listenThread = new ListenerThread("is = "+is);
 
-                ServiceInputStream  sis = new ServiceInputStream(0);
+                NetServiceInputStream  sis = new NetServiceInputStream(0);
                 InputClient         ic  = new InputClient();
                 ic.name = "__main__";
                 ic.id  = 0;
@@ -272,7 +283,7 @@ public final class NetServiceLink {
                 inputVector.setElementAt(sis, 0);
 
 
-                ServiceOutputStream sos = new ServiceOutputStream(0);
+                NetServiceOutputStream sos = new NetServiceOutputStream(0, os);
                 OutputClient        oc  = new OutputClient();
                 oc.name = "__main__";
                 oc.id  = 0;
@@ -282,8 +293,6 @@ public final class NetServiceLink {
 
 
                 listenThread.start();
-
-                serviceThread = new ServiceThread("anonymous-" + (threadCount++));
 
 		if (incoming) {
 			main_ois = new ObjectInputStream(sis);
@@ -295,7 +304,13 @@ public final class NetServiceLink {
 			main_ois = new ObjectInputStream(sis);
 		}
 
-                serviceThread.start();
+                serviceThread = new ServiceThread("anonymous-" + (threadCount++));
+
+		if (true) {
+		    sis.registerPopup(serviceThread);
+		} else {
+		    serviceThread.start();
+		}
         }
 
         /**
@@ -314,30 +329,11 @@ public final class NetServiceLink {
                 if (listenThread != null) {
                         listenThread.end();
 
-                        while (true) {
-                                try {
-                                        listenThread.join();
-                                        break;
-                                } catch (InterruptedException e) {
-                                        //
-                                }
-                        }
-
                         listenThread = null;
                 }
 
                 if (serviceThread != null) {
                         serviceThread.end();
-
-                        while (true) {
-                                try {
-                                        serviceThread.join();
-                                        break;
-                                } catch (InterruptedException e) {
-                                        //
-                                }
-                        }
-
                         serviceThread = null;
                 }
 
@@ -389,7 +385,7 @@ public final class NetServiceLink {
          * @param name the name associated to the stream, used to match this with the corresponding input sub-stream on the peer node.
          * @exception IOException when the operation fails.
          */
-        protected synchronized OutputStream getOutputSubStream(String name) throws IOException {
+        protected synchronized NetServiceOutputStream getOutputSubStream(String name) throws IOException {
                 OutputClient oc = null;
 
                 synchronized(outputMap) {
@@ -409,12 +405,12 @@ public final class NetServiceLink {
                                 oc.name = name;
                                 oc.id = ((Integer)requestResult).intValue();
 
-                                oc.sos = new ServiceOutputStream(oc.id);
+                                oc.sos = new NetServiceOutputStream(oc.id, os);
                                 outputMap.put(name, oc);
 			}
                 }
 
-		if (oc.sos.closed) {
+		if (oc.sos.closed()) {
 		    System.err.println(this + ": OutputSubStream already closed!!!!!");
 		}
 
@@ -435,7 +431,7 @@ public final class NetServiceLink {
          *
          * @exception IOException when the operation fails.
          */
-        protected synchronized InputStream getInputSubStream(String name) throws IOException {
+        protected synchronized NetServiceInputStream getInputSubStream(String name) throws IOException {
                 InputClient ic = null;
 
                 synchronized(inputMap) {
@@ -445,7 +441,7 @@ public final class NetServiceLink {
                                 ic = new InputClient();
                                 ic.name = name;
                                 ic.id = nextId++;
-                                ic.sis = new ServiceInputStream(ic.id);
+                                ic.sis = new NetServiceInputStream(ic.id);
 
                                 if (ic.id >= inputVector.size()) {
                                         inputVector.setSize(ic.id+1);
@@ -456,7 +452,7 @@ public final class NetServiceLink {
 			}
                 }
 
-		if (ic.sis.closed) {
+		if (ic.sis.closed()) {
 		    // throw new IOException("InputSubStream already closed!!!!!");
 		    System.err.println(this + ": InputSubStream already closed!!!!!");
 		}
@@ -480,7 +476,7 @@ public final class NetServiceLink {
          *
          * @exception IOException when the operation fails.
          */
-        public OutputStream getOutputSubStream(NetIO io, String name) throws IOException {
+        public NetServiceOutputStream getOutputSubStream(NetIO io, String name) throws IOException {
                 return getOutputSubStream(io.context()+name);
         }
 
@@ -500,7 +496,7 @@ public final class NetServiceLink {
          *
          * @exception IOException when the operation fails.
          */
-        public InputStream getInputSubStream (NetIO io, String name) throws IOException {
+        public NetServiceInputStream getInputSubStream (NetIO io, String name) throws IOException {
                 return getInputSubStream(io.context()+name);
         }
 
@@ -550,7 +546,7 @@ public final class NetServiceLink {
                 /**
                  * The output sub-stream.
                  */
-                ServiceOutputStream sos  = null;
+                NetServiceOutputStream sos  = null;
         }
 
 
@@ -575,359 +571,8 @@ public final class NetServiceLink {
                 /**
                  * The input sub-stream.
                  */
-                ServiceInputStream sis = null;
+                NetServiceInputStream sis = null;
         }
-
-
-
-        /**
-         * Provide a multiplexed output sub-stream over the socket output stream.
-         */
-        private final class ServiceOutputStream extends OutputStream  {
-
-                /**
-                 * Set to true once the stream is closed.
-                 *
-                 * The stream cannot be re-opened after having been closed (same semantics as a socket stream).
-                 */
-                private boolean   closed    = false;
-
-                /**
-                 * Store the packet identifier.
-                 */
-                private int       id        = -1;
-
-                /**
-                 * Indicate the length of the buffer.
-                 */
-                private final int length    = 65536;
-
-                /**
-                 * Store the current bufferized bytes.
-                 */
-                private byte []   buffer    = new byte[length];
-
-                /**
-                 * Store the current offset in the buffer.
-                 */
-                private int       offset    = 0;
-
-                /**
-                 * Permanent Conversion.INT_SIZE-byte buffer for 'buffer-length to bytes' conversion.
-                 */
-                private byte []   intBuffer = new byte[Conversion.INT_SIZE];
-
-
-                /**
-                 * Write a byte block to the sub-stream.
-                 *
-                 * Only this method actually access the sub-stream.
-                 *
-                 * @param b the byte block.
-                 * @param o the offset in the block of the first byte to write.
-                 * @param l the number of bytes to write.
-                 * @exception IOtion when the write operation to the {@link #os socket stream} fails.
-                 */
-                private void writeBlock(byte[] b, int o, int l) throws IOException {
-                        synchronized(os) {
-                                Conversion.defaultConversion.int2byte(l, intBuffer, 0);
-                                os.write(id);
-                                os.write(intBuffer);
-                                os.write(b, o, l);
-                        }
-                }
-
-
-                /**
-                 * Construct an outgoing sub-stream.
-                 *
-                 * The {@link #id} value must be unique among this
-                 * service link outgoing sub-streams.
-                 *
-                 * @param id the sub-stream packets id.
-                 */
-                public ServiceOutputStream(int id) {
-                        this.id = id;
-                }
-
-                /**
-                 * Flush the {@link #buffer} to the stream if the
-                 * current {@link #offset} is not <code>0</code>.
-                 *
-                 * @exception IOException when the flush operation fails.
-                 */
-                private void doFlush() throws IOException {
-                        if (offset > 0) {
-                                writeBlock(buffer, 0, offset);
-				os.flush();
-                                offset = 0;
-                        }
-                }
-
-                public void close() throws IOException {
-                        closed = true;
-                        doFlush();
-                }
-
-                public void flush() throws IOException {
-                        if (closed) {
-                                throw new IOException("stream closed");
-                        }
-                        doFlush();
-                }
-
-                public void write(byte[] buf) throws IOException {
-                        if (closed) {
-                                throw new IOException("stream closed");
-                        }
-
-                        write(buf, 0, buf.length);
-                }
-
-                public void write(byte[] buf, int off, int len) throws IOException {
-                        if (closed) {
-                                throw new IOException("stream closed");
-                        }
-
-                        if (len <= length-offset) {
-                                System.arraycopy(buf, off, buffer, offset, len);
-                                offset += len;
-
-                                if (offset == length) {
-                                        flush();
-                                }
-                        } else {
-                                doFlush();
-                                writeBlock(buf, off, len);
-                        }
-                }
-
-                public void write(int val) throws IOException {
-                        if (closed) {
-                                throw new IOException("stream closed");
-                        }
-
-                        buffer[offset++] = (byte)(val & 0xFF);
-
-                        if (offset == length) {
-                                doFlush();
-                        }
-                }
-
-        }
-
-
-
-        /**
-         * Provide a multiplexed input sub-stream over the socket input stream.
-         */
-        private final static class ServiceInputStream extends InputStream {
-
-                /**
-                 * Provide a double-linked list of incoming buffers.
-                 */
-                private static class BufferList {
-
-                        /**
-                         * Reference the next buffer list element.
-                         */
-                        BufferList    next     = null;
-
-                        /**
-                         * Reference the list element's buffer.
-                         */
-                        byte       [] buf      = null;
-                }
-
-                /**
-                 * Reference the buffer list head.
-                 */
-                private BufferList first  = null;
-
-                /**
-                 * Reference the buffer list tail.
-                 */
-                private BufferList last   = null;
-
-                /**
-                 * Set to true once the stream is closed.
-                 *
-                 * The stream cannot be re-opened after having been closed (same semantics as a socket stream).
-                 */
-                private boolean closed = false;
-
-                /**
-                 * Store the packet identifier.
-                 */
-                private int id     = -1;
-
-                /**
-                 * Store the total number of bytes available in the
-                 * incoming buffer list.
-                 */
-                private int avail  =  0;
-
-                /**
-                 * Store the reading offset in the current buffer.
-                 */
-                private int offset =  0;
-
-                /**
-                 * Construct an incoming sub-stream.
-                 *
-                 * The {@link #id} value must be unique among this
-                 * service link incoming sub-streams.
-                 *
-                 * @param id the sub-stream packets id.
-                 */
-                public ServiceInputStream(int id) {
-                        this.id = id;
-                }
-
-                /**
-                 * Called by the {@link #listenThread} to add a block of bytes
-                 * to the incoming buffer list.
-                 *
-                 * @param b the byte block to add to the list.
-                 */
-                protected synchronized void addBuffer(byte [] b) {
-                        BufferList bl = new BufferList();
-                        bl.buf = b;
-
-                        if (first == null) {
-                                first = bl;
-                        } else {
-                                last.next   = bl;
-                        }
-			last = bl;
-
-                        avail += bl.buf.length;
-
-                        notifyAll();
-                }
-
-                /**
-                 * Return the number of bytes immediately availables.
-                 *
-                 * The value returned is the value of the {@link
-                 * #avail} attribute.
-                 *
-                 * @return the number of bytes immediately availables.
-                 * @exception IOException to conform to the {@link
-                 * InputStream} definition.
-                 */
-                public synchronized int available() throws IOException {
-                        return avail;
-                }
-
-                /**
-                 * Close the stream.
-                 *
-                 * The stream cannot be re-opened afterwards. Any
-                 * unread data is lost.
-                 */
-                public synchronized void close() throws IOException {
-                        closed = true;
-                        notifyAll();
-                }
-
-                /**
-                 * Return false.
-                 */
-                public boolean markSupported() {
-                        return false;
-                }
-
-                /**
-                 * Switch to the next block in the incoming buffer list.
-                 */
-                private void nextBlock() {
-                        offset = 0;
-                        if (first.next == null) {
-                                first = null;
-                                last  = null;
-                        } else {
-                                BufferList temp = first.next;
-                                first.next = null;
-                                first = temp;
-                        }
-                }
-
-                public synchronized int read() throws IOException {
-                        if (closed && avail == 0) {
-                                return -1;
-                        }
-
-                        int result = 0;
-
-                        if (avail == 0) {
-                                try {
-                                        wait();
-                                        if (closed) {
-                                                return -1;
-                                        }
-                                } catch (InterruptedException e) {
-                                        throw new InterruptedIOException(e);
-                                }
-                        }
-
-                        if (avail > 0) {
-                                result = 0xFF & (int)first.buf[offset++];
-                                avail--;
-                        }
-
-                        if (offset == first.buf.length) {
-                                nextBlock();
-                        }
-
-                        return result;
-                }
-
-                public int read(byte[] b) throws IOException {
-                        return read(b, 0, b.length);
-                }
-
-                public synchronized int read(byte[] buf, int off, int len) throws IOException {
-                        if (closed && avail == 0) {
-                                return -1;
-                        }
-
-                        int result = 0;
-
-                        while (len > 0) {
-                                if (avail == 0) {
-                                        if (closed || result > 0) {
-                                                break;
-                                        }
-
-                                        try {
-                                                wait();
-                                                if (closed) {
-                                                        break;
-                                                }
-                                        } catch (InterruptedException e) {
-                                                throw new InterruptedIOException(e);
-                                        }
-                                }
-
-                                int copylength = Math.min(len, first.buf.length - offset);
-                                System.arraycopy(first.buf, offset, buf, off, copylength);
-                                result += copylength;
-                                offset += copylength;
-                                off    += copylength;
-                                len    -= copylength;
-                                avail  -= copylength;
-
-                                if (offset == first.buf.length) {
-                                        nextBlock();
-                                }
-                        }
-
-                        return result;
-                }
-        }
-
-
 
 
 
@@ -979,10 +624,10 @@ public final class NetServiceLink {
                                                 continue;
                                         }
 
-                                        ServiceInputStream sis = null;
+                                        NetServiceInputStream sis = null;
 
                                         synchronized(inputMap) {
-                                                sis = (ServiceInputStream)inputVector.elementAt(id);
+                                                sis = (NetServiceInputStream)inputVector.elementAt(id);
                                         }
 
                                         if (sis == null) {
@@ -990,7 +635,8 @@ public final class NetServiceLink {
                                         }
 
                                         is.read(intBuffer);
-                                        byte [] b = new byte[Conversion.defaultConversion.byte2int(intBuffer, 0)];
+                                        int bufferSize = conversion.byte2int(intBuffer, 0);
+                                        byte [] b = new byte[bufferSize];
                                         is.read(b);
 
                                         sis.addBuffer(b);
@@ -1020,13 +666,27 @@ public final class NetServiceLink {
 				exit = true;
 			}
 			is.close();
+
+                        while (true) {
+                                try {
+                                        join();
+                                        break;
+                                } catch (InterruptedException e) {
+                                        //
+                                }
+                        }
                 }
         }
+
 
         /**
          * Provide a thread processing commands received over the {@linkplain #main_ois main input sub-stream}.
          */
-        private final class ServiceThread extends Thread {
+        private final class ServiceThread
+			/* if Thread */
+			extends Thread
+			/* if Thread */
+			implements NetServicePopupThread {
 
                 /**
                  * If set to true, the end of the thread has been requested.
@@ -1040,8 +700,11 @@ public final class NetServiceLink {
                  * debugging purpose.
                  */
                 ServiceThread(String name) {
+			/* if Thread */
                         super("ServiceThread: "+name);
 			setDaemon(true);
+			/* if Thread */
+			// System.err.println(this + ": create ServiceThread");
                 }
 
                 /**
@@ -1055,6 +718,17 @@ public final class NetServiceLink {
                         exit = true;
 			main_oos.close();
 			main_ois.close();
+
+			/* if Thread */
+                        while (true) {
+                                try {
+                                        join();
+                                        break;
+                                } catch (InterruptedException e) {
+                                        //
+                                }
+                        }
+			/* if Thread */
                 }
 
                 /**
@@ -1080,7 +754,7 @@ public final class NetServiceLink {
                                         ic = new InputClient();
                                         ic.name = name;
                                         ic.id = nextId++;
-                                        ic.sis = new ServiceInputStream(ic.id);
+                                        ic.sis = new NetServiceInputStream(ic.id);
                                         if (ic.id >= inputVector.size()) {
                                                 inputVector.setSize(ic.id+1);
                                         }
@@ -1092,7 +766,7 @@ public final class NetServiceLink {
                                 synchronized(main_oos) {
                                         try {
                                                 main_oos.writeInt(_OP_receive_substream_id);
-                                                main_oos.writeObject(new Integer(ic.id));
+                                                main_oos.writeInt(ic.id);
                                                 main_oos.flush();
                                         } catch (IOException e) {
                                                 throw new Error(e.getMessage());
@@ -1119,8 +793,55 @@ public final class NetServiceLink {
                         requestCompletion.unlock();
                 }
 
+
+		public void callBack() throws IOException {
+			int op = main_ois.readInt();
+			// System.err.println(this + ": msg tag " + _OP_toString(op));
+
+			switch (op) {
+
+			case _OP_eof:
+				{
+					exit = true;
+					close();
+				}
+				break;
+
+			case _OP_request_substream_id:
+				{
+					final String name = main_ois.readUTF();
+					Runnable r = new Runnable() {
+							public void run() {
+							    requestSubstreamId(name);
+							}
+						    };
+					new Thread(r, "request_substream_id").start();
+				}
+				break;
+
+			case _OP_receive_substream_id:
+				{
+					final Integer id = new Integer(main_ois.readInt());
+					Runnable r = new Runnable() {
+							public void run() {
+							    receiveSubstreamId(id);
+							}
+						    };
+					new Thread(r, "receive_substream_id").start();
+				}
+				break;
+
+			default:
+				{
+					throw new Error("invalid operation");
+				}
+			}
+		}
+
                 /**
-                 * Read commands from the {@linkplain #main_ois main object input sub-stream} and dispatch those commands to the right functions.
+                 * Read commands from the {@linkplain #main_ois main object
+		 * input sub-stream} and dispatch those commands to the right
+		 * functions.
                  *
                  * <BR><B>Note:</B>&nbsp;With the exception of the
                  * '{@link #_OP_eof End of file}', each command is
@@ -1135,44 +856,11 @@ public final class NetServiceLink {
                 public void run() {
                         while (!exit) {
                                 try {
-                                        int op = main_ois.readInt();
-
-                                        switch (op) {
-
-                                        case _OP_eof:
-                                                {
-                                                        exit = true;
-                                                        close();
-                                                }
-                                                break;
-
-                                        case _OP_request_substream_id:
-                                                {
-                                                        final String name = main_ois.readUTF();
-                                                        Runnable r = new Runnable() {public void run() {requestSubstreamId(name);}};
-                                                        (new Thread(r, "request_substream_id")).start();
-                                                }
-                                                break;
-
-                                        case _OP_receive_substream_id:
-                                                {
-                                                        final Integer id = (Integer)main_ois.readObject();
-                                                        Runnable r = new Runnable() {public void run() {receiveSubstreamId(id);}};
-                                                        (new Thread(r, "receive_substream_id")).start();
-                                                }
-                                                break;
-
-                                        default:
-                                                {
-                                                        throw new Error("invalid operation");
-                                                }
-                                        }
+					callBack();
                                 } catch (InterruptedIOException e) {
                                         exit = true;
-                                        continue;
                                 } catch (EOFException e) {
                                         exit = true;
-                                        continue;
                                 } catch (Exception e) {
                                         throw new Error(e);
                                 }

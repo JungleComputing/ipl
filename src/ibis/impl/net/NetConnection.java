@@ -66,7 +66,7 @@ public final class NetConnection {
 	private DataOutputStream	disconnect_os;
 
 	private DataInputStream		disconnect_is;
-	private Thread			disconnectThread;
+	private DisconnectThread	disconnectThread;
 
 
         /**
@@ -100,12 +100,16 @@ public final class NetConnection {
 
 	    try {
 		disconnect_os = new DataOutputStream(serviceLink.getOutputSubStream("disconnect"));
-
-		disconnect_is = new DataInputStream(serviceLink.getInputSubStream("disconnect"));
+		NetServiceInputStream sis = serviceLink.getInputSubStream("disconnect");
+		disconnect_is = new DataInputStream(sis);
 		disconnectThread = new DisconnectThread();
-		disconnectThread.setName(this + " disconnect watcher");
-		disconnectThread.setDaemon(true);
-		disconnectThread.start();
+		if (false) {
+		    disconnectThread.setName(this + " disconnect watcher");
+		    disconnectThread.setDaemon(true);
+		    disconnectThread.start();
+		} else {
+		    sis.registerPopup(disconnectThread);
+		}
 	    } catch (IOException e) {
 		throw new Error("Cannot establish disconnection streams");
 	    }
@@ -213,16 +217,23 @@ public final class NetConnection {
         }
 
 
-	private class DisconnectThread extends Thread {
+	private class DisconnectThread
+		extends Thread
+		implements NetServicePopupThread {
+
+	    public void callBack() throws IOException {
+		NetConnection.this.closeSeqno = disconnect_is.readLong();
+		if (DEBUG) {
+		    System.err.println(this + ": receive closeSeqno "
+					+ closeSeqno);
+		}
+		// disconnect_is.close();
+		port.closeFromRemote(NetConnection.this);
+	    }
 
 	    public void run() {
 		try {
-		    NetConnection.this.closeSeqno = disconnect_is.readLong();
-		    if (DEBUG) {
-			System.err.println(this + ": receive closeSeqno " + closeSeqno);
-		    }
-		    // disconnect_is.close();
-		    port.closeFromRemote(NetConnection.this);
+		    callBack();
 		} catch (IOException e) {
 		    /* If the service connection breaks, give up all. */
 		    if (port instanceof NetReceivePort) {
