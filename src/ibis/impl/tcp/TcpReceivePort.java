@@ -33,6 +33,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private SerializationStreamReadMessage m = null;
 	private TcpIbis ibis;
 	protected boolean shouldLeave;
+	private boolean delivered = false;
 
 	TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall, ReceivePortConnectUpcall connUpcall) throws IOException {
 		this.type   = type;
@@ -121,6 +122,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 		}
 
 		this.m = m;
+		delivered = false;
 		notifyAll(); // now handle this message.
 
 		// Wait until the receiver thread finishes this message.
@@ -137,7 +139,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	}
 
 	private synchronized SerializationStreamReadMessage getMessage(long timeout) {
-		while(m == null && ! shouldLeave) {
+		while((m == null || delivered) && ! shouldLeave) {
 			try {
 				if(timeout > 0) {
 					wait(timeout);
@@ -148,6 +150,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 				// Ignore.
 			}
 		}
+		delivered = true;
 
 		return m;
 	}

@@ -27,11 +27,10 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 	public boolean equals(TcpReceivePortIdentifier other) { 		
 		if (other == null) { 
 			return false;
-		} else if(other == this) {
+		if (other == this) {
 			return true;
-		} else {
-			return (type().equals(other.type()) && ibis.equals(other.ibis) && name().equals(other.name()) && port == other.port);
-		}		
+		}
+		return (type().equals(other.type()) && ibis.equals(other.ibis) && name().equals(other.name()) && port == other.port);
 	}
 
 
@@ -46,7 +45,7 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier, ja
 	
 	//gosia
 	public int hashCode() {
-		return name().hashCode() + type().hashCode() + ibis.hashCode() + port;
+		return name().hashCode() + port;
 	}
 	//end gosia
 
