@@ -350,7 +350,7 @@ public final class Group implements GroupProtocol {
 	    StaticProperties reqprops = new StaticProperties();
 	    reqprops.add("serialization", "object");
 	    reqprops.add("worldmodel", "closed");
-	    reqprops.add("communication", "OneToOne, ManyToOne, OneToMany, Reliable, AutoUpcalls");
+	    reqprops.add("communication", "OneToOne, ManyToOne, OneToMany, Reliable, AutoUpcalls, ExplicitReceipt");
 	    try {
 		ibis         = Ibis.createIbis(reqprops, null);
 	    } catch(NoMatchingIbisException e) {
@@ -360,7 +360,7 @@ public final class Group implements GroupProtocol {
 	    localID      = ibis.identifier();
 	    ibisRegistry = ibis.registry();
 	    
-	    portType = ibis.createPortType("GMI", null);
+	    portType = ibis.createPortType("GMI", reqprops);
 
 	    groupCallHandler = new GroupCallHandler();
 
