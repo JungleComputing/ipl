@@ -648,7 +648,7 @@
 	Compile, run IOGenerator, compile native code for NIO Ibis
     -->
     <target name="build-nio"
-	    description="Build TCP Ibis">
+	    description="Build NIO Ibis">
 	<patternset id="build.sources-nio">
 	    <include name="**/*.java"/>
 	    <exclude name="ibis/impl/tcp/**/*.java"/>
