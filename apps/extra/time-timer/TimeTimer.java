@@ -39,7 +39,7 @@ class TimeTimer {
 	    System.err.println("TimeTimer: " + n + " calls " +
 				" wallclock time " + (t / 1000.0) + "s " +
 				" own elapsed " +
-				(outerTimer.totalTimeVal() / 1000.0) + "s " +
+				(outerTimer.totalTimeVal() / 1000000.0) + "s " +
 				" per tick " + (t * 1000.0 / n) + "us");
 	} catch (Exception e) {
 	    System.err.println("Got exception? " + e);
