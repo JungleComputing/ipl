@@ -8,7 +8,6 @@ import java.util.Random;
 import java.io.IOException;
 
 interface OpenConfig {
-    static final boolean doWorkstealing = false;
     static final boolean tracePortCreation = false;
     static final boolean traceGenerations = false;
     static final boolean traceCommunication = false;
@@ -119,25 +118,6 @@ class RszHandler implements OpenConfig, ResizeHandler {
     }
 }
 
-class StealReceiver implements Upcall {
-    public void upcall( ReadMessage m )
-        throws java.io.IOException
-    {
-        int source = m.readInt();
-        int gen = m.readInt();
-        if( OpenCell1D.generation == gen ){
-            if( source>OpenCell1D.me ){
-                // Steal request comes from the right neighbour.
-                 OpenCell1D.rightStealColumn = OpenCell1D.computeColumn;
-            }
-            else {
-                // Steal request comes from the left neighbour.
-                 OpenCell1D.leftStealColumn = OpenCell1D.computeColumn;
-            }
-        }
-    }
-}
-
 class OpenCell1D implements OpenConfig {
     static Ibis ibis;
     static Registry registry;
@@ -145,17 +125,11 @@ class OpenCell1D implements OpenConfig {
     static IbisIdentifier rightNeighbour;
     static IbisIdentifier myName;
     static int computeColumn;
-    static int leftStealColumn;
-    static int rightStealColumn;
     static int me = -1;
     static SendPort leftSendPort;
     static SendPort rightSendPort;
     static ReceivePort leftReceivePort;
     static ReceivePort rightReceivePort;
-    static SendPort leftStealSendPort;
-    static SendPort rightStealSendPort;
-    static ReceivePort leftStealReceivePort;
-    static ReceivePort rightStealReceivePort;
     static int generation = -1;
     static int boardsize = DEFAULTBOARDSIZE;
     static boolean idle = true;
@@ -164,7 +138,6 @@ class OpenCell1D implements OpenConfig {
     static int aimFirstNoColumn;
     static int knownMembers = 0;
     static RszHandler rszHandler = new RszHandler();
-    static StealReceiver stlReceiver = new StealReceiver();
 
     private static void usage()
     {
@@ -684,29 +657,6 @@ class OpenCell1D implements OpenConfig {
     }
 
     /**
-     * Sends a work steal request to the specified port.
-     * @param p The port to send to.
-     */
-    static void sendStealRequest( SendPort p )
-        throws java.io.IOException
-    {
-        if( p == null ){
-            if( traceCommunication ){
-                System.out.println( "P" + me + ":" + generation + ": there is no neighbour to steal work from" );
-            }
-            return;
-        }
-        if( traceCommunication ){
-            System.out.println( "P" + me + ":" + generation + ": sending steal request" );
-        }
-        WriteMessage m = p.newMessage();
-        m.writeInt( me );
-        m.writeInt( generation );
-        m.send();
-        m.finish();
-    }
-
-    /**
      * See if any new members have joined the computation, and if so
      * update the column numbers we should try to own.
      */
@@ -792,9 +742,7 @@ class OpenCell1D implements OpenConfig {
             }
             if( leftNeighbour != null ){
                 leftReceivePort = createNeighbourReceivePort( updatePort, "upstream", null );
-                leftStealReceivePort = createNeighbourReceivePort( loadbalancePort, "upstreamSteal", stlReceiver );
                 leftSendPort = createNeighbourSendPort( updatePort, leftNeighbour, "downstream" );
-                leftStealSendPort = createNeighbourSendPort( loadbalancePort, leftNeighbour, "downstreamSteal" );
             }
 
             if( leftNeighbour == null ){
@@ -846,9 +794,7 @@ class OpenCell1D implements OpenConfig {
                         System.out.println( "P" + me + ": a right neighbour has appeared; creating ports" );
                     }
                     rightReceivePort = createNeighbourReceivePort( updatePort, "downstream", null );
-                    rightStealReceivePort = createNeighbourReceivePort( loadbalancePort, "downstreamSteal", stlReceiver );
                     rightSendPort = createNeighbourSendPort( updatePort, rightNeighbour, "upstream" );
-                    rightStealSendPort = createNeighbourSendPort( loadbalancePort, rightNeighbour, "upstreamSteal" );
                 }
                 updateAims( p );
                 if( rightNeighbourIdle && rightSendPort != null && aimFirstNoColumn<p.firstNoColumn ){
@@ -861,10 +807,6 @@ class OpenCell1D implements OpenConfig {
                     rightNeighbourIdle = false;
                 }
                 computeNextGeneration( p );
-                if( doWorkstealing ){
-                    sendStealRequest( leftStealSendPort );
-                    sendStealRequest( rightStealSendPort );
-                }
                 generation++;
                 updateAims( p );
                 if( (me % 2) == 0 ){
