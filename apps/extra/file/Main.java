@@ -9,7 +9,7 @@ class Main {
 
 			FileOutputStream f = new FileOutputStream("aap");
 			BufferedArrayOutputStream b = new BufferedArrayOutputStream(f);
-			MantaOutputStream m = new MantaOutputStream(b);
+			IbisSerializationOutputStream m = new IbisSerializationOutputStream(b);
 			
 			Tree t = new Tree(16*1024);
 			
@@ -18,7 +18,7 @@ class Main {
 
 			FileInputStream fi = new FileInputStream("aap");
 			BufferedArrayInputStream bi = new BufferedArrayInputStream(fi);
-			MantaInputStream mi = new MantaInputStream(bi);
+			IbisSerializationInputStream mi = new IbisSerializationInputStream(bi);
 			
 			mi.readObject();
 

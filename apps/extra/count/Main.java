@@ -9,7 +9,7 @@ class Main {
 
 			CountingOutputStream c = new CountingOutputStream(null);
 			BufferedArrayOutputStream b = new BufferedArrayOutputStream(c);
-			MantaOutputStream m = new MantaOutputStream(b);
+			IbisSerializationOutputStream m = new IbisSerializationOutputStream(b);
 			
 			Tree t = new Tree(1023);
 			

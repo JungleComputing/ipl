@@ -9,7 +9,6 @@ class Main {
 		try { 
 			int count = Integer.parseInt(args[0]);
 				
-			//MantaHash h = new MantaHash();
 			HashMap h = new HashMap();
 
 			for (int j=16;j<(64*1024);j*=2) { 
