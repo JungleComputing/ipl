@@ -80,7 +80,7 @@ class Main {
 					conap.setSignatureIndex(cpg.addUtf8(sig));
 				}
 
-				System.out.println("Got ConstantNameAndType with name " + name + " and signature " + sig);
+				// System.out.println("Got ConstantNameAndType with name " + name + " and signature " + sig);
 				cpg.setConstant(i, conap);
 			}
 			else if (co instanceof ConstantClass) {
@@ -94,7 +94,7 @@ class Main {
 					cpg.setConstant(i, coc);
 				}
 
-				System.out.println("Got ConstantClass with name " + name);
+				// System.out.println("Got ConstantClass with name " + name);
 			}
 		}
 
