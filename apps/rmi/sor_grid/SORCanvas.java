@@ -105,8 +105,6 @@ System.err.println("min " + min + " max " + max + " scale " + scale);
 				     data[i].length);
 		}
 	    }
-			
-	    repaint();
 	}
 
 }
