@@ -2,6 +2,8 @@ package ibis.connect.routedMessages;
 
 import ibis.connect.util.MyDebug;
 
+import ibis.util.IPUtils;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -36,7 +38,7 @@ public class HubProtocol
 	
 	public HubWire(Socket s) throws IOException, ClassNotFoundException {
 	    socket = s;
-	    localHostName = s.getLocalAddress().getCanonicalHostName();
+	    localHostName = IPUtils.getLocalHostAddress().getHostName();
 	    localPort = s.getLocalPort();
 	    out = new ObjectOutputStream(new BufferedOutputStream(s.getOutputStream(), 4096));
 	    out.writeObject(localHostName);

@@ -87,7 +87,7 @@ public class RMSocket extends Socket
 	throws IOException
     {
 	MyDebug.out.println("# RMSocket("+rAddr+", "+rPort+")");
-	commonInit(rAddr.getCanonicalHostName());
+	commonInit(rAddr.getHostName());
 	localPort = hub.newPort(0);
 	hub.addSocket(this, localPort);
 
