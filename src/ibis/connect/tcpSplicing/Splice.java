@@ -39,8 +39,11 @@ public class Splice
 
     public int findPort()
     {
-	int port = hintPort++;
+	int port;
 	do {
+	    synchronized(Splice.class) {
+		port = hintPort++;
+	    }
 	    try {
 		localAddr = new InetSocketAddress(localHost, port);
 	    } catch(Exception e) { throw new Error(e); }
@@ -53,7 +56,6 @@ public class Splice
 		    }
 	    } catch(IOException e) {
 		localPort = -1;
-		port++;
 	    }
 	} while(localPort == -1);
 	MyDebug.trace("# Splice: found port "+localPort);
@@ -88,6 +90,10 @@ public class Splice
 		    synchronized(Splice.class) // disallow other spliced sockets creation
 			{
 			    try { socket.close(); } catch(IOException dummy) { /*ignore */ }
+			    // There is a race here, if two JVM's running on the
+			    // same node are both creating spliced sockets.
+			    // After this close, another JVM might take this
+			    // localAddr, and then the bind fails. (Ceriel)
 			    i++;
 			    // re-init the socket
 			    try {

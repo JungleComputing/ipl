@@ -10,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Hashtable;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 
@@ -47,14 +48,21 @@ class NodeManager extends Thread
 		String destHost = packet.getHost();
 		int    destPort	= packet.getPort();
 		boolean send = true;
-		HubProtocol.HubPacketClose cls = null;
 
 		switch(action) {
 		case HubProtocol.GETPORT: {
-		    /* packet for the hub itself */
+		    /* packet for the hub itself: obtain port number. */
 		    HubProtocol.HubPacketGetPort p = (HubProtocol.HubPacketGetPort) packet;
 		    int prt = ControlHub.checkPort(hostname, hostport, p.proposedPort);
 		    sendPacket(hostname, hostport, new HubProtocol.HubPacketPutPort(prt));
+		    send = false;
+		    }
+		    break;
+
+		case HubProtocol.PUTPORT: {
+		    /* packet for the hub itself: release port number. */
+		    HubProtocol.HubPacketPutPort p = (HubProtocol.HubPacketPutPort) packet;
+		    ControlHub.removePort(hostname, hostport, p.resultPort);
 		    send = false;
 		    }
 		    break;
@@ -69,13 +77,6 @@ class NodeManager extends Thread
 		    break;
 		    }
 
-		case HubProtocol.CLOSE: {
-		    /* need to remove the port.
-		     * Postpone the removal until after the send!
-		     */
-		    cls = (HubProtocol.HubPacketClose) packet;
-		    }
-
 		default:
 		    break;
 		}
@@ -86,20 +87,8 @@ class NodeManager extends Thread
 		    if(node == null) {
 			System.err.println("# ControlHub: node not found: "+destHost + ":" + destPort);
 		    } else {
-			if (cls != null) {
-			    if (! ControlHub.hasPort(destHost, destPort, cls.closePort)) {
-				continue;
-			    }
-			    if (! ControlHub.hasPort(hostname, hostport, cls.localPort)) {
-				continue;
-			    }
-			}
 			/* replaces the destination with the sender. */
 			node.sendPacket(hostname, hostport, packet);
-			if (cls != null) {
-			    ControlHub.removePort(destHost, destPort, cls.closePort);
-			    ControlHub.removePort(hostname, hostport, cls.localPort);
-			}
 		    }
 		}
 	    } catch(EOFException e) {
@@ -170,6 +159,7 @@ public class ControlHub extends Thread
 
     public void unregisterNode(String nodename, int nodeport) {
 	nodes.remove(new Node(nodeport, nodename.toLowerCase()));
+	removeHostPort(nodename, nodeport);
 	nodesNum--;
 	showCount();
 	synchronized(this) {
@@ -182,68 +172,95 @@ public class ControlHub extends Thread
     }
 
     public static int checkPort(String hostname, int hostport, int portno) {
-	Object o = portNodeMap.get(hostname);
-	Hashtable h;
-	if (o == null) {
-	    h = new Hashtable();
-	    portNodeMap.put(hostname, h);
-	}
-	else h = (Hashtable) o;
-	if (portno == 0) {
-	    int i = 1;
-	    while (h.containsKey(new Integer(i))) {
-		i++;
+	synchronized(portNodeMap) {
+	    Object o = portNodeMap.get(hostname);
+	    Hashtable h;
+	    if (o == null) {
+		h = new Hashtable();
+		portNodeMap.put(hostname, h);
 	    }
-	    h.put(new Integer(i), new Integer(hostport));
-	    MyDebug.trace("# ControlHub: giving portno " + i + " to " +
+	    else h = (Hashtable) o;
+	    if (portno == 0) {
+		int i = 1;
+		while (h.containsKey(new Integer(i))) {
+		    i++;
+		}
+		h.put(new Integer(i), new Integer(hostport));
+		MyDebug.trace("# ControlHub: giving portno " + i + " to " +
+				hostname + ":" + hostport);
+		return i;
+	    }
+	    if (h.containsKey(new Integer(portno))) {
+		MyDebug.trace("# ControlHub: could not give portno " + portno +
+				" to " + hostname + ":" + hostport);
+		return -1;
+	    }
+	    MyDebug.trace("# ControlHub: giving portno " + portno + " to " +
 			    hostname + ":" + hostport);
-	    return i;
+	    h.put(new Integer(portno), new Integer(hostport));
+	    return portno;
 	}
-	if (h.containsKey(new Integer(portno))) {
-	    MyDebug.trace("# ControlHub: could not give portno " + portno +
-			    " to " + hostname + ":" + hostport);
-	    return -1;
-	}
-	MyDebug.trace("# ControlHub: giving portno " + portno + " to " +
-			hostname + ":" + hostport);
-	h.put(new Integer(portno), new Integer(hostport));
-	return portno;
     }
 
     public static void removePort(String hostname, int hostport, int portno) {
-	Object o = portNodeMap.get(hostname);
-	Hashtable h;
-	if (o == null) return;
-	h = (Hashtable) o;
-	h.remove(new Integer(portno));
-	MyDebug.trace("# ControlHub: removing portno " + portno + " of " +
-				hostname + ":" + hostport);
+	synchronized(portNodeMap) {
+	    Object o = portNodeMap.get(hostname);
+	    Hashtable h;
+	    if (o == null) return;
+	    h = (Hashtable) o;
+	    h.remove(new Integer(portno));
+	    MyDebug.trace("# ControlHub: removing portno " + portno + " of " +
+				    hostname + ":" + hostport);
+	}
+    }
+
+    public static void removeHostPort(String hostname, int hostport) {
+	synchronized(portNodeMap) {
+	    Object o = portNodeMap.get(hostname);
+	    Hashtable h;
+	    if (o == null) return;
+	    h = (Hashtable) o;
+	    Enumeration keys = h.keys();
+	    while (keys.hasMoreElements()) {
+		Integer i = (Integer) (keys.nextElement());
+		Integer v = (Integer) h.get(i);
+		if (v.intValue() == hostport) {
+		    h.remove(i);
+		}
+	    }
+	    MyDebug.trace("# ControlHub: removing hostport " + hostport + " of " +
+				    hostname);
+	}
     }
 
     public static boolean hasPort(String hostname, int hostport, int portno) {
-	Object o = portNodeMap.get(hostname);
-	Hashtable h;
-	if (o == null) return false;
-	h = (Hashtable) o;
-	return h.containsKey(new Integer(portno));
+	synchronized(portNodeMap) {
+	    Object o = portNodeMap.get(hostname);
+	    Hashtable h;
+	    if (o == null) return false;
+	    h = (Hashtable) o;
+	    return h.containsKey(new Integer(portno));
+	}
     }
 
     public static int resolvePort(String hostname, int portno) {
-	Object o = portNodeMap.get(hostname);
-	Hashtable h;
-	if (o == null) {
-	    System.err.println("# ControlHub: could not resolve " + portno +
-				" for host " + hostname);
-	    return -1;
+	synchronized(portNodeMap) {
+	    Object o = portNodeMap.get(hostname);
+	    Hashtable h;
+	    if (o == null) {
+		System.err.println("# ControlHub: could not resolve " + portno +
+				    " for host " + hostname);
+		return -1;
+	    }
+	    h = (Hashtable) o;
+	    o = h.get(new Integer(portno));
+	    if (o == null) {
+		System.err.println("# ControlHub: could not resolve " + portno +
+				    " for host " + hostname);
+		return -1;
+	    }
+	    return ((Integer) o).intValue();
 	}
-	h = (Hashtable) o;
-	o = h.get(new Integer(portno));
-	if (o == null) {
-	    System.err.println("# ControlHub: could not resolve " + portno +
-				" for host " + hostname);
-	    return -1;
-	}
-	return ((Integer) o).intValue();
     }
 
     public void run() {

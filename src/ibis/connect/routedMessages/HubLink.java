@@ -70,8 +70,9 @@ public class HubLink extends Thread
     protected synchronized void addSocket(RMSocket s, int port) {
 	connectedSockets.put(new Integer(port), s);
     }
-    protected synchronized void removeSocket(int port) {
+    protected synchronized void removeSocket(int port) throws IOException {
 	connectedSockets.remove(new Integer(port));
+	sendPacket("", 0, new HubProtocol.HubPacketPutPort(port));
     }
     private synchronized RMSocket resolveSocket(int port)
 	throws IOException {
@@ -139,14 +140,14 @@ public class HubLink extends Thread
 			     * CONNECT/ACCEPT were on the wire). Trace it anyway for pathologic
 			     * behavior diagnosis.
 			     */
-			    System.out.println("# HubLink.run()- exception while resolving socket for ACCEPT!");
+			    MyDebug.out.println("# HubLink.run()- exception while resolving socket for ACCEPT!");
 			}
 		    }
 		    break;
 		case HubProtocol.REJECT:
 		    {
 			HubProtocol.HubPacketReject p = (HubProtocol.HubPacketReject)packet;
-			System.out.println("# Received REJECT for port "+p.clientPort+" from host "+p.serverHost);
+			MyDebug.out.println("# HubLink.run()- Received REJECT for port "+p.clientPort+" from host "+p.serverHost);
 			try {
 			    RMSocket s = resolveSocket(p.clientPort);
 			    s.enqueueReject();
@@ -156,22 +157,28 @@ public class HubLink extends Thread
 		case HubProtocol.DATA:
 		    {
 			HubProtocol.HubPacketData p = (HubProtocol.HubPacketData)packet;
-			MyDebug.out.println(" HubLink.run()- Received DATA for port = "+p.port);
+			MyDebug.out.println("# HubLink.run()- Received DATA for port = "+p.port);
 			try {
 			    RMSocket s = resolveSocket(p.port);
 			    s.enqueueFragment(p.b);
 			} catch(Exception e) {
-			    System.out.println("HubLink: received DATA on closed connection.");
+			    MyDebug.out.println("# HubLink.run()- received DATA on closed connection, port = " + p.port + ", sender = " + p.h + ":" + p.senderport);
 			}
 		    }
 		    break;
 		case HubProtocol.CLOSE:
 		    {
 			HubProtocol.HubPacketClose p = (HubProtocol.HubPacketClose)packet;
-			MyDebug.out.println(" HubLink.run()- Received CLOSE for port = "+p.closePort);
+			MyDebug.out.println("# HubLink.run()- Received CLOSE for port = "+p.closePort);
 			try {
 			    RMSocket s = resolveSocket(p.closePort);
-			    s.enqueueClose();
+			    if (p.h.equals(s.remoteHostname) &&
+				    s.remotePort == p.localPort) {
+				s.enqueueClose();
+			    }
+			    else {
+				MyDebug.out.println("# HubLink.run()- got CLOSE of old connection");
+			    }
 			} catch(IOException e) { /* ignore */ }
 		    }
 		    break;
@@ -179,7 +186,7 @@ public class HubLink extends Thread
 		    {
 			HubProtocol.HubPacketPutPort p = (HubProtocol.HubPacketPutPort)packet;
 			synchronized(this) {
-			    MyDebug.out.println(" HubLink.run()- Received PUTPORT = "+p.resultPort);
+			    MyDebug.out.println("# HubLink.run()- Received PUTPORT = "+p.resultPort);
 			    portnum = p.resultPort;
 			    notifyAll();
 			}

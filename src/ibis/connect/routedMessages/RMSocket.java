@@ -13,8 +13,8 @@ import java.util.LinkedList;
 public class RMSocket extends Socket
 {
     private HubLink hub = null;
-    private String  remoteHostname = null;
-    private int     remotePort = -1;
+    String  remoteHostname = null;
+    int     remotePort = -1;
     private int	    remoteHostPort = -1;
     private int     localPort  = -1;
     private RMInputStream  in  = null;
@@ -50,7 +50,7 @@ public class RMSocket extends Socket
 	state = state_REJECTED;
 	this.notifyAll();
     }
-    protected synchronized void enqueueClose() {
+    protected synchronized void enqueueClose() throws IOException {
 	MyDebug.out.println("# RMSocket.enqueueClose()- port = "+localPort + ", remotePort = " + remotePort);
 	state = state_CLOSED;
 	if (localPort != -1) {
@@ -126,7 +126,7 @@ public class RMSocket extends Socket
     {
 	return in;
     }
-    public void close()
+    public synchronized void close()
 	throws IOException
     {
 	MyDebug.out.println("# RMSocket.close(), localPort = " + localPort + ", remotePort = " + remotePort);
@@ -300,14 +300,14 @@ public class RMSocket extends Socket
 	    byte[] b = new byte[1];
 	    b[0] = (byte)v;
 	    MyDebug.out.println("# RMOutputStream: writing- port="+socket.remotePort+" size=1");
-	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, b));
+	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, b, localPort));
 	}
 	public void write(byte[] b)
 	    throws IOException
 	{
 	    checkOpen();
 	    MyDebug.out.println("# RMOutputStream: writing- port="+socket.remotePort+" size="+b.length);
-	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, b));
+	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, b, localPort));
 	}
 	public void write(byte[] b, int off, int len)
 	    throws IOException
@@ -316,7 +316,7 @@ public class RMSocket extends Socket
 	    byte[] a = new byte[len];
 	    System.arraycopy(b, off, a, 0, len);
 	    MyDebug.out.println("# RMOutputStream: writing- port="+socket.remotePort+" size="+len+" offset="+off);
-	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, a));
+	    hub.sendPacket(remoteHostname, remoteHostPort, new HubProtocol.HubPacketData(remotePort, a, localPort));
 	}
 	public void flush()
 	    throws IOException

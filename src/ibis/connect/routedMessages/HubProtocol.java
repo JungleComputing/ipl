@@ -240,26 +240,30 @@ public class HubProtocol
 
     public static class HubPacketData extends HubPacket {
 	int    port;
+	int    senderport;
 	byte[] b;
 	public int getType() { return DATA; }
-	HubPacketData(int port, byte[] b) {
+	HubPacketData(int port, byte[] b, int sport) {
 	    this.port = port;
 	    this.b = b;
+	    senderport = sport;
 	}
 	public void send(DataOutputStream out) throws IOException {
 	    MyDebug.out.println("# HubPacketData.send()- sending- port="+port+"; size="+b.length + " to " + h + ":" + p);
 	    out.writeInt(port);
+	    out.writeInt(senderport);
 	    out.writeInt(b.length);
 	    out.write(b);
 	}
 	static public HubPacket recv(DataInputStream in, String h, int p)
 	    throws IOException, ClassNotFoundException {
 	    int port = in.readInt();
+	    int sport = in.readInt();
 	    int len = in.readInt();
 	    byte[] b = new byte[len];
 	    in.readFully(b);
 	    MyDebug.out.println("# HubPacketData.recv()- got DATA - port="+port+"; size="+b.length + " from " + h + ":" + p);
-	    return new HubPacketData(port, b);
+	    return new HubPacketData(port, b, sport);
 	}
     }
 
