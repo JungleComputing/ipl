@@ -95,7 +95,7 @@ class ByteInputStream
 		System.err.println("Now msgSize := " + msgSize);
 	    }
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
-		throw new IbisIOException("read(boolean[]): insufficient data");
+		throw new IbisIOException("read(byte[]): insufficient data");
 	    }
 	    return rd;
 	} finally {
@@ -113,7 +113,7 @@ class ByteInputStream
 	    int rd = readCharArray(b, off, len);
 	    msgSize -= rd * SIZEOF_CHAR;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
-		throw new IbisIOException("read(boolean[]): insufficient data");
+		throw new IbisIOException("read(char[]): insufficient data");
 	    }
 	    return rd;
 	} finally {
@@ -131,7 +131,7 @@ class ByteInputStream
 	    int rd = readShortArray(b, off, len);
 	    msgSize -= rd * SIZEOF_SHORT;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
-		throw new IbisIOException("read(boolean[]): insufficient data");
+		throw new IbisIOException("read(short[]): insufficient data");
 	    }
 	    return rd;
 	} finally {
@@ -149,7 +149,7 @@ class ByteInputStream
 	    int rd = readIntArray(b, off, len);
 	    msgSize -= rd * SIZEOF_INT;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
-		throw new IbisIOException("read(boolean[]): insufficient data");
+		throw new IbisIOException("read(int[]): insufficient data");
 	    }
 	    return rd;
 	} finally {
@@ -167,7 +167,7 @@ class ByteInputStream
 	    int rd = readLongArray(b, off, len);
 	    msgSize -= rd * SIZEOF_LONG;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
-		throw new IbisIOException("read(boolean[]): insufficient data");
+		throw new IbisIOException("read(long[]): insufficient data");
 	    }
 	    return rd;
 	} finally {
@@ -185,7 +185,7 @@ class ByteInputStream
 	    int rd = readFloatArray(b, off, len);
 	    msgSize -= rd * SIZEOF_FLOAT;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
-		throw new IbisIOException("read(boolean[]): insufficient data");
+		throw new IbisIOException("read(float[]): insufficient data");
 	    }
 	    return rd;
 	} finally {
@@ -203,7 +203,7 @@ class ByteInputStream
 	    int rd = readDoubleArray(b, off, len);
 	    msgSize -= rd * SIZEOF_DOUBLE;
 	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG && msgSize < 0) {
-		throw new IbisIOException("read(boolean[]): insufficient data");
+		throw new IbisIOException("read(double[]): insufficient data");
 	    }
 	    return rd;
 	} finally {
