@@ -1,2 +1,23 @@
 #!/bin/sh
+
+case X$JAVA_HOME in
+X)
+    echo The enviroment variable JAVA_HOME must be set to the current jdk 1>&2
+    echo distribution installed on your computer, which must be a 1.4 version 1>&2
+    echo or newer. 1>&2
+    exit 1
+    ;;
+esac
+
+case X$ANT_HOME in
+X)
+    ;;
+*)
+    echo You have the ANT_HOME environment variable set.
+    echo I am resetting it to `dirname $0`/3rdparty/apache-ant-1.6.1
+    ;;
+esac
+
+export ANT_HOME=`dirname $0`/3rdparty/apache-ant-1.6.1
+
 `dirname $0`/3rdparty/apache-ant-1.6.1/bin/ant $*

@@ -29,7 +29,7 @@ If you do have a high-speed LAN for which you require an Ibis
 module (like GM (Myrinet), MPI, or Panda), you must configure
 Ibis by typing
 
-compile configure
+./compile configure
 
 You will be asked for the path to a number of support libraries. If you
 don't have one or more of these libraries, just type <ENTER>.
@@ -57,11 +57,25 @@ II. Build
 
 Build by typing
 
-compile
+./compile
 
 -----------------------------------------------------------------------
 
-III. System-specific notes
+III. API
+
+The Ibis API documentation can be built by typing
+
+./compile docs
+
+This will build a "docs" directory with an "api" sub-directory.
+Point your favorite HTML viewer to docs/api/index.html to view
+the API documentation.
+Note that the javadoc of the 1.4.1 version of Java may hang. In that
+case, please use a newer version.
+
+-----------------------------------------------------------------------
+
+IV. System-specific notes
 
 MacOS X
 =-=-=-=
@@ -69,15 +83,3 @@ MacOS X
 Set the environment variable `JAVA_HOME' to `/Library/Java/Home'.
 
 For native code generation, you are required to install the Java SDK.
-
-IV. API
-
-The Ibis API documentation can be built by typing
-
-compile docs
-
-This will build a "docs" directory with an "api" sub-directory.
-Point your favorite HTML viewer to docs/api/index.html to view
-the API documentation.
-Note that the javadoc of the 1.4.1 version of Java may hang. In that
-case, please use a newer version.

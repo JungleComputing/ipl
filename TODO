@@ -1,34 +1,17 @@
 IBIS:
 
-+ reverse connection setup if one of the two sites has a firewall,
-  but the other doesn't  -> much better performance than going
-  through a central point
-  Done: use AnyTCP instead of TCPSplice (Ceriel)
-
 - autodetect connection setup mechanism (splicing, reverse, direct, central)
   Ceriel: not so easy. Once you are trying to set up a brokered socket,
   both sides have to agree on what types to try, use timeouts to detect
   if a connection setup fails, ...
 
 satin:
-	- add semantic analysis to the compiler
-	  - forgotten sync statements
-	  + all params and return types must be serializable (Ceriel: done)
+- add semantic analysis to the compiler
+- forgotten sync statements
+- make return / throw an implicit sync again?
+- add comments to abort / inlet machinism
+- als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
 
-	- make return / throw an implicit sync again?
-	- add comments to abort / inlet machinism
-	+ do not crash on sync without spawn (Ceriel: done)
-        - als exception gegooid wordt zonder catch krijgen we nu aborts... / geen print bij top of the stack.
-	+ 3x print ibis serialization
-
-
-tcp ibis:
-+ EEK TcpReceivePort: run: got illegal opcode: -1
-  sluit de connectie gewoon. (met connectionLost upcall)
-  Ceriel: zou niet meer moeten gebeuren.
 
 general:
-	+ ibis.util: splitsen in 2 delen. Sommige utils zijn voor ibis implementaties, andere zijn juist bedoelt voor applicaties bovenop ibis. De laatse zouden ook gejavadoct moeten zijn...
-	Done (Ceriel)
-
-	- IBISC maken / fixen
+- IBISC maken / fixen

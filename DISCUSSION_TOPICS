@@ -6,6 +6,8 @@ Feel free to add.
 Topic		Short explanation
 ----------------------------------------------------------------------------
 Distribution	Bug reports and comments on the upcoming monolithic distibution.
+                Dir structure: move build-*, ant-tasks, bcel-additions to subdir?
+                Code formatting (distro / cvs / both) ?
 
 Grun		Do we include grun in the distribution or make a 
 		seperate release of grun?
