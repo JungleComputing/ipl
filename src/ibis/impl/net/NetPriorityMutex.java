@@ -5,7 +5,7 @@ package ibis.impl.net;
  */
 public final class NetPriorityMutex {
 
-	private final static boolean DEBUG = true;
+	private final static boolean DEBUG = false;
 
 	private Thread owner;
 	private Thread[] waitingThreads = new Thread[32];
@@ -61,7 +61,6 @@ public final class NetPriorityMutex {
 			}
 		    }
 		}
-System.err.println("********************* interrupted in NetPrioMutex.lock ********");
 		throw new InterruptedIOException(e);
 
 	    } finally {
