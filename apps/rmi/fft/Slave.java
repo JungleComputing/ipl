@@ -116,7 +116,7 @@ class Slave extends UnicastRemoteObject implements SlaveInterface {
 	if (myCpu == 0) { 
 		long per_round = total / rounds;
 		System.out.println("FFT, iterate " + rounds + "; M = " + M + " time " + total / 1000.0 + "; per round " + per_round / 1000.0);
-		System.out.println("application time fft (" + M + " -warmup " + (rounds - 1) + ") took " + total / 1000.0 + " s");
+		System.out.println("Application: FFT " + M + " -warmup " + (rounds - 1) + "; time: " + total / 1000.0 + " seconds");
 	}
     }
 
