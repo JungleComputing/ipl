@@ -57,6 +57,8 @@ class Main {
 
 			new LEQ(cpu, cpus, x_val, offset, size, n).start();
 
+			Group.exit();
+
 		} catch (Exception e) { 
 			e.printStackTrace();
 		} 
