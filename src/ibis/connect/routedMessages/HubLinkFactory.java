@@ -29,6 +29,7 @@ public class HubLinkFactory {
 		if(MyDebug.VERBOSE())
 		    System.err.println("# Creating link to hub- host="+host+"; port="+port);
 		hub = new HubLink(host, port);
+		hub.setDaemon(true);
 		hub.start();
 		enabled = true;
 	    } else if(MyDebug.VERBOSE()) {
