@@ -160,7 +160,8 @@ final class BarnesHut {
 
 		BodyCanvas bc = null;
 
-		printBodies();
+		// print the starting problem
+		// printBodies();
 
 		if (viz) {
 			bc = visualize();
@@ -489,10 +490,10 @@ final class BarnesHut {
 					.println("               total: " + total / 1000.0 + " s");
 		}
 
-//		if (verbose) {
+		if (verbose) {
 			System.out.println();
 			printBodies();
-//		}
+		}
 	}
 
 	public static void main(String argv[]) {
