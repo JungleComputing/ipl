@@ -6,6 +6,8 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 {
     static final boolean traceMatches = false;
     static final boolean traceLookahead = false;
+    static final boolean traceSiteCount = false;
+    static final boolean parallelizeShallowEvaluation = false;
     static int max_shortening = Configuration.MAX_SHORTENING;
     static int lookahead_depth = Configuration.LOOKAHEAD_DEPTH;
     static boolean doVerification = false;
@@ -134,6 +136,13 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
         return r;
     }
 
+    public Backref shallowEvaluateBackrefJob( final byte text[], int backpos, int pos )
+    {
+        return shallowEvaluateBackref( text, backpos, pos );
+    }
+
+
+
     /**
      * @param text The text to compress.
      * @param backrefs The index of the first previous occurence of this hash.
@@ -172,9 +181,24 @@ class Compress extends ibis.satin.SatinObject implements CompressorInterface
 
             if( sites.length != 0 ){
                 results = new Backref[Magic.MAX_COST+1];
+                Backref a[] = new Backref[sites.length];
 
+                if( traceSiteCount ){
+                    System.out.println( "D" +  depth + ": @" + pos + ": there are " + sites.length + " sites" );
+                }
+                if( parallelizeShallowEvaluation ){
+                    for( int i=0; i<sites.length; i++ ){
+                        a[i] = shallowEvaluateBackrefJob( text, sites[i], pos );
+                    }
+                    sync();
+                }
+                else {
+                    for( int i=0; i<sites.length; i++ ){
+                        a[i] = shallowEvaluateBackref( text, sites[i], pos );
+                    }
+                }
                 for( int i=0; i<sites.length; i++ ){
-                    Backref r = shallowEvaluateBackref( text, sites[i], pos );
+                    Backref r = a[i];
 
                     if( r != null ){
                         int cost = r.getCost();
