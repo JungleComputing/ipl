@@ -112,7 +112,7 @@ final class IbisIdentifier
     }
 
     public int hashCode() {
-	return name.hashCode();
+	return cpu;
     }
 
     int getCPU() {
