@@ -121,6 +121,30 @@ do
 		ip_map="$1"
 		ip_addr=`$IBIS_ROOT/bin/ip_map.perl $ip_map \`hostname\``
 		JIT_OPTS="$JIT_OPTS -Dibis.util.ip.address=$ip_addr"
+		# This is required if Sun's RMI is used
+		JIT_OPTS="$JIT_OPTS -Djava.rmi.server.hostname=$ip_addr"
+		MAPPED_HOSTS=
+		for h in $HOSTS ; do
+			ip_addr=`$IBIS_ROOT/bin/ip_map.perl $ip_map $h`
+			if [ "x$MAPPED_HOSTS" == x ] ; then
+				MAPPED_HOSTS="$ip_addr"
+			else
+				MAPPED_HOSTS="$MAPPED_HOSTS $ip_addr"
+			fi
+		done
+		export HOSTS="$MAPPED_HOSTS"
+		# echo PRUN_HOSTNAMES $PRUN_HOSTNAMES
+		MAPPED_HOSTS=
+		for h in $PRUN_HOSTNAMES ; do
+			ip_addr=`$IBIS_ROOT/bin/ip_map.perl $ip_map $h`
+			if [ "x$MAPPED_HOSTS" == x ] ; then
+				MAPPED_HOSTS="$ip_addr"
+			else
+				MAPPED_HOSTS="$MAPPED_HOSTS $ip_addr"
+			fi
+		done
+		export PRUN_HOSTNAMES="$MAPPED_HOSTS"
+		# echo PRUN_HOSTNAMES $PRUN_HOSTNAMES
 		;;
         *)      java_args="$java_args $qarg"
                 ;;
