@@ -1,0 +1,3 @@
+HOSTNAME=fs0.das2.cs.vu.nl
+JOBMGR=jobmanager-pbs
+SPLIT=false

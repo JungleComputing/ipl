@@ -1,0 +1,3 @@
+HOSTNAME=fs2.das2.nikhef.nl
+JOBMGR=jobmanager-pbs
+SPLIT=false

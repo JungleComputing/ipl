@@ -1,0 +1,3 @@
+HOSTNAME=bouscat.cs.cf.ac.uk
+JOBMGR=jobmanager-condor
+SPLIT=false

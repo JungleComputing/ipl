@@ -1,0 +1,3 @@
+HOSTNAME=fs4.das2.phys.uu.nl
+JOBMGR=jobmanager-pbs
+SPLIT=false

@@ -1,0 +1,3 @@
+HOSTNAME=fs3.das2.its.tudelft.nl
+JOBMGR=jobmanager-pbs
+SPLIT=false
