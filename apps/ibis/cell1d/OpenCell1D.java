@@ -867,7 +867,11 @@ class OpenCell1D implements OpenConfig {
             max_rsteal = 1;
         }
         if( traceStealRequests ){
-            System.out.println( "P" + me + ":" + OpenCell1D.generation + ": lcol=" + lcol + " rcol=" + rcol + " max_lsteal=" + max_lsteal + " max_rsteal=" + max_rsteal );
+            System.out.println(
+                "P" + me + ":" + OpenCell1D.generation
+                + ": lcol=" + lcol + " rcol=" + rcol
+                + " max_lsteal=" + max_lsteal + " max_rsteal=" + max_rsteal
+            );
         }
     }
 
