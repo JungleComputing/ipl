@@ -34,11 +34,15 @@ public final class RTS {
     
     /**
      * Maps objects to their skeletons.
+     * In fact, it maps hashcodes to skeletons. The reason for this is that some
+     * objects have strange implementations for hashCode()!
      */
     private static HashMap skeletons;
 
     /**
      * Maps objects to their stubs.
+     * In fact, it maps hashcodes to stubs. The reason for this is that some
+     * objects have strange implementations for hashCode()!
      */
     private static HashMap stubs;
 
@@ -259,7 +263,7 @@ public final class RTS {
 	    skeletonArray.add(skel);
 	    skel.init(skelId, obj);
 
-	    skeletons.put(obj, skel);
+	    skeletons.put(new Integer(System.identityHashCode(obj)), skel);
 
 	    return skel;
 	} catch (ClassNotFoundException ec) {
@@ -281,7 +285,7 @@ public final class RTS {
 
 	String class_name = classname.substring(classname.lastIndexOf('.') + 1);
 	synchronized(RTS.class) {
-	    skel = (Skeleton) skeletons.get(obj);
+	    skel = (Skeleton) skeletons.get(new Integer(System.identityHashCode(obj)));
 	}
 	if (skel == null) {
 	    //create a skeleton
@@ -310,13 +314,13 @@ public final class RTS {
 	    System.out.println(hostname + ": Created stub of type rmi_stub_" + classname);
 	}
 
-	stubs.put(obj, stub);
+	stubs.put(new Integer(System.identityHashCode(obj)), stub);
 
 	return (RemoteStub) stub;
     }
 
     public static synchronized Object getStub(Object o) {
-	return stubs.get(o);
+	return stubs.get(new Integer(System.identityHashCode(o)));
     }
 
 
@@ -341,7 +345,7 @@ public final class RTS {
 	    throw new AlreadyBoundException(url + " already bound");
 	}
 
-	Skeleton skel = (Skeleton) skeletons.get(o);
+	Skeleton skel = (Skeleton) skeletons.get(new Integer(System.identityHashCode(o)));
 	if (skel == null) {
 	    //		    throw new RemoteException("object not exported");
 	    //or just export it???
@@ -367,7 +371,7 @@ public final class RTS {
 	    System.out.println(hostname + ": Trying to rebind object to " + url);
 	}
 
-	Skeleton skel = (Skeleton) skeletons.get(o);
+	Skeleton skel = (Skeleton) skeletons.get(new Integer(System.identityHashCode(o)));
 	if (skel == null) {
 	    //		    throw new RemoteException("object not exported");
 	    //or just export it???
