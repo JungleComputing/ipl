@@ -12,7 +12,7 @@ class Sender {
 		this.sport = sport;
 	} 
 	
-	void send(int count) throws IbisException {
+	void send(int count) throws IbisIOException {
 		// warmup
 		for(int i = 0; i< count; i++) {
 			WriteMessage writeMessage = sport.newMessage();
@@ -70,7 +70,7 @@ class ExplicitReceiver {
 		this.sport = sport;
 	} 
 
-	void receive(int count) throws IbisException { 		
+	void receive(int count) throws IbisIOException { 		
 		for(int i = 0; i< count; i++) {
 			ReadMessage readMessage = rport.receive();
 			byte b = readMessage.readByte();
@@ -154,7 +154,7 @@ class Latency {
 	static Ibis ibis;
 	static Registry registry;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisException { 
+	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
 		
 		ReceivePortIdentifier temp = null;
 
@@ -237,7 +237,7 @@ class Latency {
 
                         System.exit(0);
 
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();

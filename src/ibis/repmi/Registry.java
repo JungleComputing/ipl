@@ -24,7 +24,7 @@ final class Registry {
 			r.finish();
 				
 
-		} catch (IbisException e) {
+		} catch (IbisIOException e) {
 			System.out.println(Group._rank + ": Error in GroupRegistry " + e);
 			System.exit(1);
 		}

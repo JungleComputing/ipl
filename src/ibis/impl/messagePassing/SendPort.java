@@ -1,12 +1,11 @@
 package ibis.ipl.impl.messagePassing;
 
 import java.util.Vector;
-import java.io.IOException;
 
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 import ibis.ipl.ConditionVariable;
 
-public abstract class SendPort implements ibis.ipl.SendPort, Protocol {
+public class SendPort implements ibis.ipl.SendPort, Protocol {
 
     ibis.ipl.impl.messagePassing.PortType type;
     SendPortIdentifier ident;
@@ -21,25 +20,61 @@ public abstract class SendPort implements ibis.ipl.SendPort, Protocol {
     int newMessageWaiters;
     int messageCount;
 
-    ibis.ipl.WriteMessage message = null;
+    ibis.ipl.impl.messagePassing.WriteMessage message = null;
+
+    OutputConnection outConn;
+
+    ibis.ipl.impl.messagePassing.ByteOutputStream out;
+
 
     SendPort() {
     }
 
-    protected SendPort(ibis.ipl.impl.messagePassing.PortType type) throws IbisException {
-	this(type, null);
-    }
-
-    protected SendPort(ibis.ipl.impl.messagePassing.PortType type, String name) throws IbisException {
+    public SendPort(ibis.ipl.impl.messagePassing.PortType type,
+		    String name,
+		    OutputConnection conn,
+		    boolean syncMode,
+		    boolean makeCopy)
+	    throws IbisIOException {
 	this.name = name;
 	this.type = type;
 	ident = new SendPortIdentifier(name, type.name());
 	portIsFree = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+	outConn = conn;
+	out = ibis.ipl.impl.messagePassing.Ibis.myIbis.createByteOutputStream(this, syncMode, makeCopy);
+    }
+
+    public SendPort(ibis.ipl.impl.messagePassing.PortType type, String name, OutputConnection conn) throws IbisIOException {
+	this(type, name, conn, true, false);
     }
 
 
-    void addConnection(ReceivePortIdentifier rid) {
+    int addConnection(ReceivePortIdentifier rid)
+	    throws IbisIOException {
+
+	int	my_split;
+	if (splitter == null) {
+	    my_split = 0;
+	} else {
+	    my_split = splitter.length;
+	}
+
+	if (rid.cpu < 0) {
+	    throw new IbisIOException("invalid ReceivePortIdentifier");
+	}
+
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.out.println(name + " connecting to " + rid);
+	}
+
+	if (!type.name().equals(rid.type())) {
+	    throw new IbisIOException("Cannot connect ports of different PortTypes: " + type.name() + " vs. " + rid.type());
+	}
+
 	int n;
+
 	if (splitter == null) {
 	    n = 0;
 	} else {
@@ -59,141 +94,56 @@ public abstract class SendPort implements ibis.ipl.SendPort, Protocol {
 	}
 	s[n] = new Syncer();
 	syncer = s;
+
+	return my_split;
     }
 
 
-    protected abstract void ibmp_connect(int cpu, int port,
-				    int my_port, String type, String ibisId,
-				    Syncer syncer) throws IbisException;
-
     public void connect(ibis.ipl.ReceivePortIdentifier receiver,
 			int timeout)
-			    throws IbisException {
+	    throws IbisIOException {
 
 	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 	    ReceivePortIdentifier rid = (ReceivePortIdentifier)receiver;
-	    int	my_split;
-	    if (splitter == null) {
-		my_split = 0;
-	    } else {
-		my_split = splitter.length;
-	    }
-
-	    if (rid.cpu < 0) {
-		throw new IbisException("invalid ReceivePortIdentifier");
-	    }
-
-	    // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-
-	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-		System.out.println(name + " connecting to " + receiver);
-	    }
-
-// manta.runtime.RuntimeSystem.DebugMe(rid, null);
-System.err.println("receiver.type() " + receiver.type());
-System.err.println("rid.type() " + rid.type());
-	    /* first check the types */
-	    /*
-	    if (!type.name().equals(receiver.type())) {
-		throw new IbisException("Cannot connect ports of different PortTypes: " + type.name() + " vs. " + receiver.type());
-	    }
-	    */
-// System.err.println("Tell Ronald is broken in interface calling: rid().tyype() is OK, receiver.type() crashes");
-// System.err.println(rid.type());
-// System.err.println(receiver.type());
-	    if (!type.name().equals(rid.type())) {
-		throw new IbisException("Cannot connect ports of different PortTypes: " + type.name() + " vs. " + rid.type());
-	    }
 
 	    // Add the new receiver to our tables.
-	    addConnection(rid);
+	    int my_split = addConnection(rid);
 
-	    switch (type.serializationType) {
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE:
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA:
-System.err.println(Thread.currentThread() + "Now do native connect call to " + rid + "; me = " + ident);
-		ibmp_connect(rid.cpu, rid.port, ident.port, ident.type,
-			    ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name(),
-			    syncer[my_split]);
-System.err.println(Thread.currentThread() + "Done native connect call to " + rid + "; me = " + ident);
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		System.err.println(Thread.currentThread() + "Now do native connect call to " + rid + "; me = " + ident);
+	    }
+	    outConn.ibmp_connect(rid.cpu, rid.port, ident.port, ident.type,
+				 ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name(),
+				 syncer[my_split], type.serializationType);
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		System.err.println(Thread.currentThread() + "Done native connect call to " + rid + "; me = " + ident);
+	    }
 
-		if (! syncer[my_split].s_wait(timeout)) {
-		    throw new ibis.ipl.IbisConnectionTimedOutException("No connection to " + rid);
-		}
-		if (! syncer[my_split].accepted) {
-		    throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + rid);
-		}
-		break;
-
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
-		// Reset all our previous connections so the
-		// ObjectStream(BufferedStream()) may go through a stop/restart.
-		for (int i = 0; i < my_split; i++) {
-		    ReceivePortIdentifier r = splitter[i];
-		    ibmp_disconnect(r.cpu, r.port, ident.port, messageCount);
-		}
-		messageCount = 0;
-
-		for (int i = 0; i < splitter.length; i++) {
-		    ReceivePortIdentifier r = splitter[i];
-System.err.println(Thread.currentThread() + "Now do native connect call to " + r + "; me = " + ident);
-System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis " + ibis.ipl.impl.messagePassing.Ibis.myIbis);
-System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier() " + ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier());
-System.err.println("ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name() " + ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name());
-		    ibmp_connect(r.cpu, r.port, ident.port, ident.type,
-				ibis.ipl.impl.messagePassing.Ibis.myIbis.identifier().name(),
-				i == my_split ? syncer[i] : null);
-System.err.println(Thread.currentThread() + "Done native connect call to " + r + "; me = " + ident);
-		}
-
-		if (! syncer[my_split].s_wait(timeout)) {
-		    throw new ibis.ipl.IbisConnectionTimedOutException("No connection to " + rid);
-		}
-		if (! syncer[my_split].accepted) {
-		    throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + rid);
-		}
-
-		/* For the ObjectStream messages: we must reset etc the
-		 * stream so we get a real fresh connection. Accomplish this
-		 * by discarding the cached message: */
-		message = null;
-		break;
-
-	    default:
-		System.out.println("EEK");
-		System.exit(1);
+	    if (! syncer[my_split].s_wait(timeout)) {
+		throw new ibis.ipl.IbisConnectionTimedOutException("No connection to " + rid);
+	    }
+	    if (! syncer[my_split].accepted) {
+		throw new ibis.ipl.IbisConnectionRefusedException("No connection to " + rid);
 	    }
 	}
     }
 
-    public void connect(ibis.ipl.ReceivePortIdentifier receiver) throws IbisException {
+
+    public void connect(ibis.ipl.ReceivePortIdentifier receiver) throws IbisIOException {
 	connect(receiver, 0);
     }
 
 
-    private ibis.ipl.WriteMessage cachedMessage() throws IbisException {
+    ibis.ipl.WriteMessage cachedMessage() throws IbisIOException {
 	if (message == null) {
-	    switch (type.serializationType) {
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE:
-		message = new WriteMessage(this);
-		break;
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
-		message = new SerializeWriteMessage(this);
-		break;
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA:
-		message = new MantaWriteMessage(this);
-		break;
-	    default:
-		System.out.println("EEK");
-		System.exit(1);
-	    }
+	    message = new WriteMessage(this);
 	}
 
 	return message;
     }
 
 
-    public ibis.ipl.WriteMessage newMessage() throws IbisException {
+    public ibis.ipl.WriteMessage newMessage() throws IbisIOException {
 
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 
@@ -207,11 +157,12 @@ System.err.println(Thread.currentThread() + "Done native connect call to " + r +
 	    aMessageIsAlive = true;
 	}
 
+	ibis.ipl.WriteMessage m = cachedMessage();
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
-	    System.err.println("Create a new writeMessage SendPort " + this + " serializationType " + type.serializationType + " message " + message);
+	    System.err.println("Create a new writeMessage SendPort " + this + " serializationType " + type.serializationType + " message " + m);
 	}
 
-	return cachedMessage();
+	return m;
     }
 
 
@@ -220,7 +171,7 @@ System.err.println(Thread.currentThread() + "Done native connect call to " + r +
     }
 
 
-    void reset() throws IbisException {
+    void reset() throws IbisIOException {
 	// Should already be taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 	aMessageIsAlive = false;
@@ -237,20 +188,15 @@ System.err.println(Thread.currentThread() + "Done native connect call to " + r +
 	return ident;
     }
 
-    protected abstract void ibmp_disconnect(int cpu, int port, int receiver_port, int messageCount) throws IbisException;
 
-    public void free() {
+    public void free() throws IbisIOException {
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
 	    System.out.println(type.myIbis.name() + ": ibis.ipl.SendPort.free start");
 	}
 
 	for (int i = 0; i < splitter.length; i++) {
 	    ReceivePortIdentifier rid = splitter[i];
-	    try {
-		ibmp_disconnect(rid.cpu, rid.port, ident.port, messageCount);
-	    } catch (IbisException e) {
-		System.err.println("disconnect call throws " + e);
-	    }
+	    outConn.ibmp_disconnect(rid.cpu, rid.port, ident.port, messageCount);
 	}
 
 	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {

@@ -3,6 +3,8 @@ package ibis.io;
 import java.io.InputStream;
 import java.io.IOException;
 
+import ibis.ipl.IbisIOException;
+
 /**
  *
  * Extends OutputStream with read of array of primitives and readSingleInt
@@ -40,25 +42,34 @@ public class BufferedArrayInputStream
 		return (a > b) ? b : a;
 	}
 
-	public final int read() throws IOException {
-		throw new IOException("byte read has no meaning for typed stream");
+	public final int read() throws IbisIOException {
+		throw new IbisIOException("int read() has no meaning for typed stream");
 	}
 
-	private final void fillbuffer(int len) throws IOException {
+	private final void fillbuffer(int len) throws IbisIOException {
 
 		// This ensures that there are at least 'len' bytes in the buffer
 		// PRECONDITION: 'index + buffered_bytes' should never be larger than BUF_SIZE!!
 
+	    try {
 		while ((buffered_bytes) < len) {
 			buffered_bytes += in.read(buffer, index + buffered_bytes, BUF_SIZE-(index+buffered_bytes));
 		}
+	    } catch (IOException e) {
+		throw new IbisIOException(e);
+	    }
 	}
 
-	public final int available() throws IOException {
+	public final int available() throws IbisIOException {
+	    try {
 		return (buffered_bytes + in.available());
+	    } catch (IOException e) {
+		throw new IbisIOException(e);
+	    }
 	}
 
-	public void readArray(boolean[] a, int off, int len) throws IOException {
+	public void readArray(boolean[] a, int off, int len)
+		throws IbisIOException {
 
 		if (DEBUG) {
 			System.out.println("readArray(boolean[" + off + " ... " + (off+len) + "])");
@@ -105,7 +116,8 @@ public class BufferedArrayInputStream
 		index += to_convert;
 	}
 
-	public void readArray(byte[] a, int off, int len) throws IOException {
+	public void readArray(byte[] a, int off, int len)
+		throws IbisIOException {
 
 		if (DEBUG) {
 			System.out.println("readArray(byte[" + off + " ... " + (off+len) + "])");
@@ -123,6 +135,7 @@ public class BufferedArrayInputStream
 //System.out.println("DONE");
 
 		} else {
+		    try {
 			if (buffered_bytes == 0) {
 //System.out.println("EEK2");
 //System.out.println("NOT IN BUF");
@@ -146,10 +159,14 @@ public class BufferedArrayInputStream
 
 				buffered_bytes = 0;
 			}
+		    } catch (IOException e) {
+			throw new IbisIOException(e);
+		    }
 		}
 	}
 
-	public void readArray(short[] a, int off, int len) throws IOException {
+	public void readArray(short[] a, int off, int len)
+		throws IbisIOException {
 
 		int useable, converted;
 		int to_convert = len * SIZEOF_SHORT;
@@ -198,7 +215,8 @@ public class BufferedArrayInputStream
 		}
 	}
 
-	public void readArray(char[] a, int off, int len) throws IOException {
+	public void readArray(char[] a, int off, int len)
+		throws IbisIOException {
 
 		if (DEBUG) {
 			System.out.println("readArray(char[" + off + " ... " + (off+len) + "])");
@@ -243,7 +261,8 @@ public class BufferedArrayInputStream
 		index += to_convert;
 	}
 
-	public void readArray(int[] a, int off, int len) throws IOException {
+	public void readArray(int[] a, int off, int len)
+		throws IbisIOException {
 
 		if (DEBUG) {
 			System.out.println("readArray(int[" + off + " ... " + (off+len) + "])");
@@ -288,7 +307,8 @@ public class BufferedArrayInputStream
 		index += to_convert;
 	}
 
-	public void readArray(long[] a, int off, int len) throws IOException {
+	public void readArray(long[] a, int off, int len)
+		throws IbisIOException {
 
 		if (DEBUG) {
 			System.out.println("readArray(long[" + off + " ... " + (off+len) + "])");
@@ -334,7 +354,8 @@ public class BufferedArrayInputStream
 	}
 
 
-	public void readArray(float[] a, int off, int len) throws IOException {
+	public void readArray(float[] a, int off, int len)
+		throws IbisIOException {
 		if (DEBUG) {
 			System.out.println("readArray(float[" + off + " ... " + (off+len) + "])");
 		}
@@ -378,7 +399,8 @@ public class BufferedArrayInputStream
 		index += to_convert;
 	}
 
-	public void readArray(double[] a, int off, int len) throws IOException {
+	public void readArray(double[] a, int off, int len)
+		throws IbisIOException {
 
 		if (DEBUG) {
 			System.out.println("readArray(double[" + off + " ... " + (off+len) + "])");

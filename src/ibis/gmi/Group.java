@@ -294,7 +294,7 @@ public final class Group {
 
 			if (DEBUG) System.out.println(_rank + ": Group.create(" + name + ", " + size + ") done");
 
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException(_rank + " Group.create(" + name + ", " + size + ") Failed : communication error !" + e.getMessage());  
 		}
 
@@ -384,8 +384,10 @@ public final class Group {
 			
 			if (DEBUG) System.out.println(_rank + ": Group.join(" + name + ", " + o + ") done");
 
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : communication error !" + e.getMessage());  
+		} catch (ClassNotFoundException e1) { 
+			throw new RuntimeException(_rank + " Group.joinGroup(" + name + ") Failed : communication error !" + e1.getMessage());  
 		}
 	} 
 

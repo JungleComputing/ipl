@@ -1,7 +1,7 @@
 package ibis.group;
 
 import ibis.ipl.ReadMessage;
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 
 // This is a base class for generated group stubs
 
@@ -20,7 +20,7 @@ public abstract class GroupSkeleton {
 		messageQ = new GroupMessageQueue(dest.size);
 	}
 
-	public abstract void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException;	
+	public abstract void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisIOException;	
 }
 
 

@@ -47,7 +47,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 			output.print(", " + getType(params[j]) + " p" + j);
 		}
 
-		output.println(") throws IbisException {");
+		output.println(") throws IbisIOException {");
 		output.println();			       
 
 		//		output.print("\t\tException exception = null;");
@@ -110,7 +110,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 
 	void methodCombinerObject() { 
 
-		output.print("\tpublic final Object GMI_combine(Method combineMethod, boolean to_all, int lroot, Object local_result) throws IbisException {");
+		output.print("\tpublic final Object GMI_combine(Method combineMethod, boolean to_all, int lroot, Object local_result) throws IbisIOException {");
 		output.println();			       
 
 		output.println("\t\tint peer;");
@@ -209,7 +209,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 
 	void methodCombinerVoid() { 
 
-		output.print("\tpublic final void GMI_combine_void(Method combineMethod, boolean to_all, int lroot, Object local_result) throws IbisException {");
+		output.print("\tpublic final void GMI_combine_void(Method combineMethod, boolean to_all, int lroot, Object local_result) throws IbisIOException {");
 		output.println();			       
 
 		output.println("\t\tint peer;");
@@ -312,7 +312,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 
 	void messageHandler(Vector methods) { 
 
-		output.println("\tpublic final void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisException {");
+		output.println("\tpublic final void handleMessage(int invocationMode, int resultMode, ReadMessage r) throws IbisIOException {");
 		output.println();		
 
 		output.println("\t\tint cpu_rank = 0;");		

@@ -5,7 +5,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.EOFException;
 import java.net.InetAddress;
+
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisIOException;
+
 import ibis.io.Serializable;
 import ibis.io.MantaOutputStream;
 import ibis.io.MantaInputStream;
@@ -18,7 +21,7 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 	public TcpIbisIdentifier() { 
 	}
 
-	public TcpIbisIdentifier(MantaInputStream stream) throws IOException, ClassNotFoundException {
+	public TcpIbisIdentifier(MantaInputStream stream) throws IbisIOException, ClassNotFoundException {
 		stream.addObjectToCycleCheck(this);
 		int handle = stream.readInt();
 		if(handle < 0) {
@@ -58,7 +61,7 @@ public final class TcpIbisIdentifier implements IbisIdentifier, java.io.Serializ
 		return name.hashCode();
 	}
 
-	public final void generated_WriteObject(MantaOutputStream stream) throws IOException {
+	public final void generated_WriteObject(MantaOutputStream stream) throws IbisIOException {
 		int handle = TcpIbis.globalIbis.identTable.getHandle(stream, this);
 		stream.writeInt(handle);
 		if(handle < 0) { // First time, send it.

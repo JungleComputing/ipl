@@ -1,6 +1,7 @@
 package ibis.ipl.impl.messagePassing;
 
 import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 
 public class PortType implements ibis.ipl.PortType {
 
@@ -8,11 +9,11 @@ public class PortType implements ibis.ipl.PortType {
     String name;
     ibis.ipl.impl.messagePassing.Ibis myIbis;
 
-    static final byte SERIALIZATION_NONE = 0;
-    static final byte SERIALIZATION_SUN = 1;
-    static final byte SERIALIZATION_MANTA = 2;
+    public static final byte SERIALIZATION_NONE = 0;
+    public static final byte SERIALIZATION_SUN = 1;
+    public static final byte SERIALIZATION_MANTA = 2;
 
-    byte serializationType = SERIALIZATION_SUN;
+    public byte serializationType = SERIALIZATION_SUN;
 
     PortType(ibis.ipl.impl.messagePassing.Ibis myIbis, String name,
 		  ibis.ipl.StaticProperties p) throws IbisException {
@@ -52,7 +53,7 @@ public class PortType implements ibis.ipl.PortType {
 	return p;
     }
 
-    public ibis.ipl.SendPort createSendPort() throws IbisException {
+    public ibis.ipl.SendPort createSendPort() throws IbisIOException {
 	SendPort s;
 
 	s = ibis.ipl.impl.messagePassing.Ibis.myIbis.createSendPort(this);
@@ -65,7 +66,7 @@ public class PortType implements ibis.ipl.PortType {
 	return s;
     }
 
-    public ibis.ipl.SendPort createSendPort(String portname) throws IbisException {
+    public ibis.ipl.SendPort createSendPort(String portname) throws IbisIOException {
 	SendPort s;
 
 	s = ibis.ipl.impl.messagePassing.Ibis.myIbis.createSendPort(this, portname);
@@ -79,21 +80,21 @@ public class PortType implements ibis.ipl.PortType {
     }
 
     public ibis.ipl.ReceivePort createReceivePort(String name)
-	    throws IbisException {
+	    throws IbisIOException {
 	return createReceivePort(name, null, null);
     }
 
     public ibis.ipl.ReceivePort createReceivePort(
 					String name,
 					ibis.ipl.Upcall u)
-					    throws IbisException {
+					    throws IbisIOException {
 	return createReceivePort(name, u, null);
     }
 
     public ibis.ipl.ReceivePort createReceivePort(
 					String name,
 					ibis.ipl.ConnectUpcall cU)
-					    throws IbisException {
+					    throws IbisIOException {
 	return createReceivePort(name, null, cU);
     }
 
@@ -101,7 +102,7 @@ public class PortType implements ibis.ipl.PortType {
 					String name,
 					ibis.ipl.Upcall u,
 					ibis.ipl.ConnectUpcall cU)
-					    throws IbisException {
+					    throws IbisIOException {
 
 	ReceivePort p = new ReceivePort(this, name, u, cU);
 
@@ -120,7 +121,7 @@ public class PortType implements ibis.ipl.PortType {
 	return p;
     }
 
-    void freeReceivePort(String name) throws IbisException {
+    void freeReceivePort(String name) throws IbisIOException {
 	((Registry)myIbis.registry()).unbind(name);
     }
 

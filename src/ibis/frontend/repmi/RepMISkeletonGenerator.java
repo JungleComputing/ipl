@@ -38,7 +38,7 @@ class RepMISkeletonGenerator extends RepMIGenerator {
 
 	void messageHandler(Vector methods) { 
 
-		output.println("\tpublic final void handleMessage(ReadMessage r) throws IbisException {");
+		output.println("\tpublic final void handleMessage(ReadMessage r) throws IbisIOException {");
 		output.println();		
 
 		output.println("\t\tint method = r.readInt();");		

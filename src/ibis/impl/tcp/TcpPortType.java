@@ -6,6 +6,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Upcall;
 import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 import ibis.ipl.ConnectUpcall;
 
 class TcpPortType implements PortType { 
@@ -58,7 +59,7 @@ class TcpPortType implements PortType {
 		return p;
 	}
 
-	public SendPort createSendPort() throws IbisException {
+	public SendPort createSendPort() throws IbisIOException {
 		SendPort s;
 
 		s = new TcpSendPort(this);
@@ -70,7 +71,7 @@ class TcpPortType implements PortType {
 		return s;
 	}
 
-	public SendPort createSendPort(String portname) throws IbisException {
+	public SendPort createSendPort(String portname) throws IbisIOException {
 		SendPort s;
 
 		s = new TcpSendPort(this, portname);
@@ -82,7 +83,7 @@ class TcpPortType implements PortType {
 		return s;
 	}
 
-	public ReceivePort createReceivePort(String name) throws IbisException {
+	public ReceivePort createReceivePort(String name) throws IbisIOException {
 
 		TcpReceivePort p = new TcpReceivePort(this, name);
 
@@ -99,7 +100,7 @@ class TcpPortType implements PortType {
 		return p;
 	}
 
-	public ReceivePort createReceivePort(String name, Upcall u)  throws IbisException { 
+	public ReceivePort createReceivePort(String name, Upcall u)  throws IbisIOException { 
 
 		TcpReceivePort p = new TcpReceivePort(this, name, u);
 
@@ -116,21 +117,21 @@ class TcpPortType implements PortType {
 		return p;
 	}
 
-	public ReceivePort createReceivePort(String name, ConnectUpcall cU) throws IbisException {
+	public ReceivePort createReceivePort(String name, ConnectUpcall cU) throws IbisIOException {
 
 		System.err.println("Must implement createReceivePort(..., ConnectUpcall) RFHH");
 
 		return null;
 	}
 
-	public ReceivePort createReceivePort(String name, Upcall u, ConnectUpcall cU)  throws IbisException { 
+	public ReceivePort createReceivePort(String name, Upcall u, ConnectUpcall cU)  throws IbisIOException { 
 
 		System.err.println("Must implement createReceivePort(..., ConnectUpcall) RFHH");
 
 		return null;
 	}
 
-	void freeReceivePort(String name) throws IbisException {
+	void freeReceivePort(String name) throws IbisIOException {
 		ibis.tcpReceivePortNameServerClient.unbind(name);
 	}
 

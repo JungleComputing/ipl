@@ -1,15 +1,20 @@
+import java.io.Serializable;
+
+
+/* Use the generated version --
+
+
 import ibis.io.Generator;
 import ibis.io.MantaInputStream;
 import ibis.io.MantaOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
+import ibis.ipl.IbisIOException;
 
 
 final class Data1_ibis_io_Generator extends Generator
 {
 
     public final Object generated_newInstance(MantaInputStream mantainputstream)
-        throws IOException, ClassNotFoundException
+        throws IbisIOException, ClassNotFoundException
     {
         return new Data1(mantainputstream);
     }
@@ -38,7 +43,7 @@ final class Data1
     }
 
     public final void generated_WriteObject(MantaOutputStream mantaoutputstream)
-        throws IOException
+        throws IbisIOException
     {
         mantaoutputstream.writeInt(i3);
         mantaoutputstream.writeInt(i2);
@@ -47,7 +52,7 @@ final class Data1
     }
 
     public final void generated_ReadObject(MantaInputStream mantainputstream)
-        throws IOException, ClassNotFoundException
+        throws IbisIOException, ClassNotFoundException
     {
         i3 = mantainputstream.readInt();
         i2 = mantainputstream.readInt();
@@ -56,7 +61,7 @@ final class Data1
     }
 
     public Data1(MantaInputStream mantainputstream)
-        throws IOException, ClassNotFoundException
+        throws IbisIOException, ClassNotFoundException
     {
         mantainputstream.addObjectToCycleCheck(this);
         i3 = mantainputstream.readInt();
@@ -73,7 +78,7 @@ final class Data1
 }
 
 
-/* Use the patched & decompiled version above -----
+* Use the patched & decompiled version above ----- */
 
 final class Data1 implements java.io.Serializable // , ibis.io.Serializable
 {
@@ -94,4 +99,4 @@ final class Data1 implements java.io.Serializable // , ibis.io.Serializable
 
 }
 
- ------ Use the patched & decompiled version above */
+ /* ------ Use the patched & decompiled version above */

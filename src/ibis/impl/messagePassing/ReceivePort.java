@@ -1,10 +1,8 @@
 package ibis.ipl.impl.messagePassing;
 
-import java.io.IOException;
-
 import java.util.Vector;
 
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 import ibis.ipl.ConditionVariable;
 
 class ReceivePort
@@ -23,7 +21,7 @@ class ReceivePort
     boolean aMessageIsAlive = false;
     ConditionVariable messageHandled = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
     int liveWaiters = 0;
-    ibis.ipl.impl.messagePassing.ReadMessage currentMessage = null;
+    private ibis.ipl.impl.messagePassing.ReadMessage currentMessage = null;
 
     Thread thread;
     ibis.ipl.Upcall upcall;
@@ -42,7 +40,7 @@ class ReceivePort
     ConditionVariable disconnected = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
 
 
-    ReceivePort(ibis.ipl.impl.messagePassing.PortType type, String name) throws IbisException {
+    ReceivePort(ibis.ipl.impl.messagePassing.PortType type, String name) throws IbisIOException {
 	this(type, name, null, null);
     }
 
@@ -50,7 +48,7 @@ class ReceivePort
 	        String name,
 		ibis.ipl.Upcall upcall,
 		ibis.ipl.ConnectUpcall connectUpcall)
-			throws IbisException {
+			throws IbisIOException {
 	this.type = type;
 	this.name = name;
 	this.upcall = upcall;
@@ -80,7 +78,7 @@ class ReceivePort
 	    try {
 // System.err.println("In enableConnections: want to bind RPort " + this);
 		((Registry)ibis.ipl.impl.messagePassing.Ibis.myIbis.registry()).bind(name, ident);
-	    } catch (ibis.ipl.IbisException e) {
+	    } catch (ibis.ipl.IbisIOException e) {
 		System.err.println("registry bind of ReceivePortName fails: " + e);
 		System.exit(4);
 	    }
@@ -132,9 +130,36 @@ class ReceivePort
     }
 
 
+    private ibis.ipl.impl.messagePassing.ReadMessage locate(ShadowSendPort ssp,
+							    int msgSeqno) {
+	if (ssp.msgSeqno > msgSeqno) {
+	    ssp.msgSeqno = msgSeqno;
+	    return null;
+	}
+
+	if (currentMessage != null &&
+		currentMessage.shadowSendPort == ssp && currentMessage.msgSeqno == msgSeqno) {
+	    return currentMessage;
+	}
+
+	ibis.ipl.impl.messagePassing.ReadMessage scan;
+	for (scan = queueFront;
+		scan != null &&
+		    scan.shadowSendPort != ssp &&
+		    scan.msgSeqno != msgSeqno;
+		scan = scan.next) {
+	}
+
+	return scan;
+    }
+
+
     void enqueue(ibis.ipl.impl.messagePassing.ReadMessage msg) {
 	// Is already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println(Thread.currentThread() + "Enqueue message " + msg + " in port " + this + " msgHandle " + Integer.toHexString(msg.fragmentFront.msgHandle) + " current queueFront " + queueFront);
+	}
 	if (queueFront == null) {
 	    queueFront = msg;
 	} else {
@@ -148,7 +173,7 @@ class ReceivePort
 	}
 
 	if (upcall != null) {
-// System.err.println("Notify this ReceivePort upcall, this " + this + " queueFront " + queueFront + " msg " + msg + " pandaMessage " + Integer.toHexString(msg.pandaMessage));
+// System.err.println("Notify this ReceivePort upcall, this " + this + " queueFront " + queueFront + " msg " + msg + " msgHandle " + Integer.toHexString(msg.msgHandle));
 	    wakeup();
 
 	    if (handlingReceive == 0) {
@@ -164,8 +189,11 @@ class ReceivePort
 	ibis.ipl.impl.messagePassing.ReadMessage msg = queueFront;
 
 	if (msg != null) {
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		System.err.println("Now dequeue msg " + msg);
+		System.err.println("Now dequeue msg " + msg + " msgHandle " + Integer.toHexString(msg.fragmentFront.msgHandle) + " for ReadMessage " + this + " queueFront := " + msg.next);
+	    }
 	    queueFront = msg.next;
-// System.err.println("Now dequeue msg " + msg + " pandaMessage " + Integer.toHexString(msg.pandaMessage) + " for ReadMessage " + this + " queueFront := " + queueFront);
 	}
 
 	return msg;
@@ -174,28 +202,27 @@ class ReceivePort
 
     void finishMessage() {
 
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
-// System.err.println("Now finish this ReceivePort message:");
-// Thread.dumpStack();
-
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    ShadowSendPort ssp = currentMessage.shadowSendPort;
-	    ssp.in.clearPandaMessage();
-	    if (ssp.cachedMessage == null) {
-		ssp.cachedMessage = currentMessage;
-	    }
-	    currentMessage = null;
-	    aMessageIsAlive = false;
-	    if (liveWaiters > 0) {
-		messageHandled.cv_signal();
-	    }
-	    if (queueFront != null && arrivedWaiters > 0) {
-		messageArrived.cv_signal();
-	    }
-
-	    ssp.tickReceive();
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("******* Now finish this ReceivePort message: " + currentMessage);
+	    // Thread.dumpStack();
 	}
+
+	ShadowSendPort ssp = currentMessage.shadowSendPort;
+	if (ssp.cachedMessage == null) {
+	    ssp.cachedMessage = currentMessage;
+	}
+	currentMessage = null;
+	aMessageIsAlive = false;
+	if (liveWaiters > 0) {
+	    messageHandled.cv_signal();
+	}
+	if (queueFront != null && arrivedWaiters > 0) {
+	    messageArrived.cv_signal();
+	}
+
+	ssp.tickReceive();
     }
 
 
@@ -241,61 +268,69 @@ class ReceivePort
     }
 
 
-    ibis.ipl.impl.messagePassing.ReadMessage createReadMessage(ShadowSendPort origin,
-				       int msg) throws IbisException {
+    void receiveFragment(ShadowSendPort origin,
+			 int msgHandle,
+			 int msgSize,
+			 int msgSeqno)
+	    throws IbisIOException {
 	// checkLockOwned();
-	ibis.ipl.impl.messagePassing.ReadMessage m = origin.cachedMessage;
 
-	if (m == null) {
-	    switch (type.serializationType) {
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE:
-		m = new ibis.ipl.impl.messagePassing.ReadMessage(origin, this, msg);
-System.err.println("Create a -none- ReadMessage " + m);
-		break;
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
-		m = new SerializeReadMessage(origin, this, msg);
-System.err.println("Create a -sun- ReadMessage " + m);
-		break;
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA:
-		m = new MantaReadMessage(origin, this, msg);
-System.err.println("Create a -manta- ReadMessage " + m);
-		break;
-	    }
-	} else {
-	    /*
-	    if (type.serializationType == ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN) {
-		if (((SerializeReadMessage)m).obj_in != origin.obj_in) {
-		    throw new IbisException("ShadowSendPort obj_in has changed under our hands");
-		}
-	    }
-
-	    if (m.shadowSendPort != origin) {
-		throw new IbisException("ReadMessage shadowSendPort has changed under our hands");
-	    }
-	    if (m.port != this) {
-		throw new IbisException("ReadMessage port has changed under our hands");
-	    }
-	*/
-
-	    origin.cachedMessage = null;
-	    m.pandaMessage = msg;
+	/* Let's see whether we already have an envelope for this fragment. */
+	ibis.ipl.impl.messagePassing.ReadMessage msg = locate(origin, msgSeqno);
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println(Thread.currentThread() + " Port " + this + " receive a fragment seqno " + msgSeqno + " size " + msgSize + " that belongs to msg " + msg + "; currentMessage = " + currentMessage + (currentMessage == null ? "" : (" .seqno " + currentMessage.msgSeqno)));
 	}
 
-// System.err.println(Thread.currentThread() + "Enqueue message in port " + this + " id " + identifier() + " pandaMessage " + Integer.toHexString(msg) + " current queueFront " + queueFront);
-	enqueue(m);
+// System.err.println(Thread.currentThread() + "Enqueue message in port " + this + " id " + identifier() + " msgHandle " + Integer.toHexString(msgHandle) + " current queueFront " + queueFront);
+	boolean lastFrag = (msgSeqno < 0);
+	if (lastFrag) {
+	    msgSeqno = -msgSeqno;
+	}
 
-	return m;
+	/* Let's see whether our ShadowSendPort has a fragment cached */
+	ReadFragment f = origin.getFragment();
+
+	boolean firstFrag = (msg == null);
+	if (firstFrag) {
+	    /* This must be the first fragment of a new message.
+	     * Let our ShadowSendPort create an envelope, i.e. a ReadMessage
+	     * for it. */
+	    msg = origin.getMessage(msgSeqno);
+	}
+
+	f.msg       = msg;
+	f.lastFrag  = lastFrag;
+	f.msgHandle = msgHandle;
+	f.msgSize   = msgSize;
+
+	/* Hook up the fragment in the message envelope */
+	msg.enqueue(f);
+
+	    /* Must set in.msgHandle and in.msgSize from here: cannot wait
+	     * until we do a read:
+	     *  - a message may be empty and still must be able to clear it
+	     *  - a Serialized stream starts reading in the constructor */
+	if (firstFrag && origin.checkStarted(msg)) {
+	    enqueue(msg);
+	}
     }
 
 
-    public ibis.ipl.ReadMessage receive() throws IbisException {
+    public ibis.ipl.ReadMessage receive() throws IbisIOException {
 
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 
 	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+// manta.runtime.RuntimeSystem.DebugMe(this, this);
 
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		System.err.println(Thread.currentThread() + "******** enter ReceivePort.receive()" + this.ident);
+	    }
 	    while (aMessageIsAlive && ! stop) {
 		liveWaiters++;
+		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		    System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " aMessageIsAlive is true");
+		}
 		messageHandled.cv_wait();
 		liveWaiters--;
 	    }
@@ -305,45 +340,34 @@ System.err.println("Create a -manta- ReadMessage " + m);
 
 // if (upcall != null) System.err.println("Hit receive() in an upcall()");
 for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
-    ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
+ibis.ipl.impl.messagePassing.Ibis.myIbis.rcve_poll.poll();
 }
 
 	    if (queueFront == null) {
-// System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " queue " + queueFront + " " + messageArrived);
+		if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		    System.err.println(Thread.currentThread() + "Hit wait in ReceivePort.receive()" + this.ident + " queue " + queueFront + " " + messageArrived);
+		}
 		arrivedWaiters++;
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this, 0, true);
 		arrivedWaiters--;
 	    }
-// System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + this.ident);
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		System.err.println(Thread.currentThread() + "Past wait in ReceivePort.receive()" + this.ident);
+	    }
 
 	    currentMessage = dequeue();
+	    if (currentMessage == null) {
+		System.err.println("Dequeue yields a null msg");
+		new Throwable().printStackTrace();
+	    }
+	    currentMessage.in.setMsgHandle(currentMessage);
 
 	    // ibis.ipl.impl.messagePassing.Ibis.myIbis.tReceive += Ibis.currentTime() - t;
 	}
 
-	if (currentMessage != null) {
-// System.err.println(Thread.currentThread() + "Set pandaMessage for reader in ReadMessage.receive()");
-	    currentMessage.shadowSendPort.checkConnection(currentMessage);
-
-// manta.runtime.RuntimeSystem.DebugMe(0, 0);
-// System.err.println("Serialization NONE " + ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE + " SUN " + ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN + " MANTA " + ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA + " current " + type.serializationType);
-	    switch (type.serializationType) {
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_NONE:
-		break;
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_SUN:
-		break;
-	    case ibis.ipl.impl.messagePassing.PortType.SERIALIZATION_MANTA:
-		break;
-	    default:
-		// System.err.println(Thread.currentThread() + "Request serialization type " + type.serializationType + ": unimplemented");
-		System.exit(33);
-		break;
-	    }
-// manta.runtime.RuntimeSystem.DebugMe(0, 1);
-	}
-
 	return currentMessage;
     }
+
 
     public ibis.ipl.DynamicProperties properties() {
 	return null;
@@ -419,7 +443,7 @@ for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
 
 	    try {
 		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(shutdown, 0, false);
-	    } catch (IbisException e) {
+	    } catch (IbisIOException e) {
 		/* well, if it throws an exception, let's quit.. */
 	    }
 	    /*
@@ -434,7 +458,7 @@ for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
 		    }
 		    try {
 			wait();
-		    } catch(Exception e) {
+		    } catch (InterruptedException e) {
 			// Ignore.
 		    }
 		} else {
@@ -473,9 +497,9 @@ for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
 
 	try {
 	    while (true) {
-		ibis.ipl.ReadMessage m;
+		ibis.ipl.ReadMessage msg;
 		
-		m = null;
+		msg = null;
 
 		synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
 		    if (stop || handlingReceive > 0) {
@@ -495,18 +519,20 @@ for (int i = 0; queueFront == null && i < Poll.polls_before_yield; i++) {
 			enable.cv_wait();
 		    }
 
-		    m = receive();
+		    msg = receive();
 
 		    handlingReceive--;
 		}
 
-		if (m != null) {
-System.err.println("Now process this msg " + m + " pandaMessage " + Integer.toHexString(((ibis.ipl.impl.messagePassing.ReadMessage)m).pandaMessage));
+		if (msg != null) {
+		    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+			System.err.println("Now process this msg " + msg + " msg.fragmentFront.msgHandle " + Integer.toHexString(((ibis.ipl.impl.messagePassing.ReadMessage)msg).fragmentFront.msgHandle));
+		    }
 // ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-		    upcall.upcall(m);
+		    upcall.upcall(msg);
 		}
 	    }
-	} catch (IbisException e) {
+	} catch (IbisIOException e) {
 	    System.err.println(e);
 	    e.printStackTrace();
 

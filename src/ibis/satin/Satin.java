@@ -216,6 +216,9 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				ReceivePortIdentifier barrierIdent = lookup("satin barrier receive port");
 				connect(barrierSendPort, barrierIdent);
 			}
+		} catch (IbisIOException e) {
+			System.err.println("SATIN '" + hostName + "': Could not start ibis: " + e);
+			System.exit(1);
 		} catch (IbisException e) {
 			System.err.println("SATIN '" + hostName + "': Could not start ibis: " + e);
 			System.exit(1);
@@ -296,7 +299,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					writeMessage.send();
 					writeMessage.finish();
 					
-				} catch (IbisException e) {
+				} catch (IbisIOException e) {
 					System.err.println("SATIN: Could not send exit message to " + victims.getIdent(i));
 				}
 			}
@@ -306,6 +309,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 
 		// If not closed, free ports. Otherwise, ports will be freed in leave calls.
 		while(true) {
+		    try {
 			SendPort s;
 			
 			synchronized(this) {
@@ -327,14 +331,21 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			if(COMM_DEBUG) {
 				System.out.println(" DONE");
 			}
+		    } catch (IbisIOException e) {
+			System.err.println("port.free() throws " + e);
+		    }
 		}
 		
 		receivePort.free();
 
-		if(master) {
-			barrierReceivePort.free();
-		} else {
-			barrierSendPort.free();
+		try {
+			if(master) {
+				barrierReceivePort.free();
+			} else {
+				barrierSendPort.free();
+			}
+		} catch (IbisIOException e) {
+		    System.err.println("port.free() throws " + e);
 		}
 		ibis.end();
 
@@ -417,7 +428,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 					gotBarrierReply = false; 
 				}
 			}
-		} catch (IbisException e) {
+		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 					   "': error in barrier");
 			System.exit(1);
@@ -480,7 +491,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeObject(rr);
 			writeMessage.send();
 			writeMessage.finish();
-		} catch (IbisException e) {
+		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending steal request: " + e);
 			System.exit(1);
@@ -503,7 +514,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeByte(STEAL_REQUEST);
 			writeMessage.send();
 			writeMessage.finish();
-		} catch (IbisException e) {
+		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending steal request: " + e);
 			System.exit(1);
@@ -541,9 +552,13 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		try {
 			r = (InvocationRecord) m.readObject();
 			m.finish();
-		} catch (IbisException e) {
+		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while reading steal reply: " + e);
+			System.exit(1);
+		} catch (ClassNotFoundException e1) {
+			System.err.println("SATIN '" + ident.name() + 
+						   "': Got Exception while reading steal reply: " + e1);
 			System.exit(1);
 		}
 
@@ -574,7 +589,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 				System.out.println("SATIN '" + ident.name() + 
 						   "': " + joiner.name() + " JOINED");
 			}
-		} catch (IbisException e) {
+		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': got an exception in Satin.join: " + e);
 			System.exit(1);
@@ -596,7 +611,11 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			notifyAll();
 
 			if (v != null && v.s != null) {
+			    try {
 				v.s.free();
+			    } catch (IbisIOException e) {
+				System.err.println("port.free() throws " + e);
+			    }
 			}
 		}
 	}
@@ -607,7 +626,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			try {
 				s.connect(ident);
 				success = true;
-			} catch (IbisException e) {
+			} catch (IbisIOException e) {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e2) {
@@ -617,7 +636,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 		} while (!success);
 	}
 
-	public ReceivePortIdentifier lookup(String name) throws IbisException { 
+	public ReceivePortIdentifier lookup(String name) throws IbisIOException { 
 		ReceivePortIdentifier temp = null;
 		do {
 			temp = ibis.registry().lookup(name);
@@ -697,7 +716,7 @@ public final class Satin implements Config, Protocol, ResizeHandler {
 			writeMessage.writeObject(r.parentOwner);
 			writeMessage.send();
 			writeMessage.finish();
-		} catch (IbisException e) {
+		} catch (IbisIOException e) {
 			System.err.println("SATIN '" + ident.name() + 
 						   "': Got Exception while sending abort message: " + e);
 			System.exit(1);

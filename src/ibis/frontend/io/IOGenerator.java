@@ -237,7 +237,7 @@ public class IOGenerator {
 		
 		BT_Method write_method = new BT_Method(clazz, flags, "void", "generated_WriteObject", "(ibis.io.MantaOutputStream)", new BT_CodeAttribute(write_ins));
 		BT_ClassVector class_vector = new BT_ClassVector();
-		class_vector.addUnique(BT_Class.forName("java.io.IOException"));
+		class_vector.addUnique(BT_Class.forName("ibis.ipl.IbisIOException"));
 		write_method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
 		
 		/* Construct a read method */
@@ -247,7 +247,7 @@ public class IOGenerator {
 		
 		BT_Method read_method = new BT_Method(clazz, flags, "void", "generated_ReadObject", "(ibis.io.MantaInputStream)", new BT_CodeAttribute(read_ins));
 		class_vector = new BT_ClassVector();
-		class_vector.addUnique(BT_Class.forName("java.io.IOException"));
+		class_vector.addUnique(BT_Class.forName("ibis.ipl.IbisIOException"));
 		class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
 		read_method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
 			
@@ -258,7 +258,7 @@ public class IOGenerator {
 		
 		BT_Method read_cons = new BT_Method(clazz, BT_Method.PUBLIC, "void", "<init>", "(ibis.io.MantaInputStream)", new BT_CodeAttribute(read_cons_ins));
 		class_vector = new BT_ClassVector();
-		class_vector.addUnique(BT_Class.forName("java.io.IOException"));
+		class_vector.addUnique(BT_Class.forName("ibis.ipl.IbisIOException"));
 		class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
 		read_cons.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
 	}
@@ -306,7 +306,7 @@ public class IOGenerator {
 		
 		BT_Method method = new BT_Method(gen, (short)(BT_Method.PUBLIC + BT_Method.FINAL), "java.lang.Object", "generated_newInstance", "(ibis.io.MantaInputStream)", new BT_CodeAttribute(method_ins));
 		BT_ClassVector class_vector = new BT_ClassVector();
-		class_vector.addUnique(BT_Class.forName("java.io.IOException"));
+		class_vector.addUnique(BT_Class.forName("ibis.ipl.IbisIOException"));
 		class_vector.addUnique(BT_Class.forName("java.lang.ClassNotFoundException"));
 		method.attributes.addElement(new BT_ExceptionsAttribute(class_vector));
 		

@@ -22,7 +22,7 @@ class Throughput extends Thread {
 		new Throughput(args).start();
 	}
 
-	void send() throws IbisException {
+	void send() throws IbisIOException {
 		int w = windowSize;
 		for(int i = 0; i< count; i++) {
 			WriteMessage writeMessage = sport.newMessage();
@@ -40,7 +40,7 @@ class Throughput extends Thread {
 	}
 
 
-	void rcve() throws IbisException {
+	void rcve() throws IbisIOException {
 		int w = windowSize;
 		for(int i = 0; i< count; i++) {
 			ReadMessage readMessage = rport.receive();
@@ -142,7 +142,7 @@ System.err.println(">>>>>>>> Righto, I'm the slave");
 			
 			System.exit(0);
 
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();

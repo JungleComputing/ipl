@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 
 public abstract class Poll implements Runnable {
 
@@ -23,7 +23,10 @@ public abstract class Poll implements Runnable {
 
 
     void wakeup() {
-	// peeker.start();
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("Now start the poll peeker thread. Sure we need it (?)");
+	}
+	peeker.start();
     }
 
 
@@ -59,19 +62,19 @@ public abstract class Poll implements Runnable {
     }
 
 
-    protected abstract void msg_poll() throws IbisException;
+    protected abstract void msg_poll() throws IbisIOException;
     native void abort();
 
-    void poll() throws IbisException {
+    void poll() throws IbisIOException {
 	poll_poll_direct++;
 	// long t = Ibis.currentTime();
 	msg_poll();
 	ibis.ipl.impl.messagePassing.Ibis.myIbis.inputStreamPoll();
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.tPandaPoll += Ibis.currentTime() - t;
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.tMsgPoll += Ibis.currentTime() - t;
     }
 
     void waitPolling(PollClient client, long timeout, boolean preempt)
-	    throws IbisException {
+	    throws IbisIOException {
 
 	long t_start = 0;
 	if (timeout > 0) {
@@ -188,7 +191,7 @@ preemptive_pollers--;
 		    try {
 // System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + " do a peeker poll...");
 			poll();
-		    } catch (IbisException e) {
+		    } catch (IbisIOException e) {
 			System.err.println("Poll peeker catches exception " + e);
 		    }
 		}

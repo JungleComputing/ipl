@@ -4,7 +4,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 import ibis.ipl.Upcall;
 
 import java.net.ServerSocket;
@@ -46,11 +46,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 	private boolean started = false;
 	private boolean connection_setup_present = false;
 
-	TcpReceivePort(TcpPortType type, String name) throws IbisException {
+	TcpReceivePort(TcpPortType type, String name) throws IbisIOException {
 		this(type, name, null);
 	}
 
-	TcpReceivePort(TcpPortType type, String name, Upcall upcall) throws IbisException {
+	TcpReceivePort(TcpPortType type, String name, Upcall upcall) throws IbisIOException {
 		this.type   = type;
 		this.name   = name;
 		this.upcall = upcall;
@@ -131,7 +131,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		return sequenceNr++;
 	}
 
-	private synchronized ReadMessage doPoll() throws IbisException { 
+	private synchronized ReadMessage doPoll() throws IbisIOException { 
 
 		ReadMessage m = null;
 
@@ -155,7 +155,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 		return m;		
 	}
 
-	public ReadMessage receive() throws IbisException { 
+	public ReadMessage receive() throws IbisIOException { 
 
 		ReadMessage m = null;
 
@@ -220,7 +220,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol {
 						
 						try { 
 							connections[i].poll();						
-						} catch (IbisException e) {
+						} catch (IbisIOException e) {
 							// Ignore
 						}
 					}

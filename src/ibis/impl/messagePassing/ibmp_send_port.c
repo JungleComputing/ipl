@@ -5,7 +5,7 @@
 
 
 static jclass		cls_ShadowSendPort;
-static jmethodID	ctor_ShadowSendPort;
+static jmethodID	md_createSSP;
 static jmethodID	md_disconnect;
 static jfieldID		fld_connect_allowed;
 
@@ -13,20 +13,21 @@ static jfieldID		fld_connect_allowed;
 
 jboolean
 ibmp_send_port_new(JNIEnv *env, jstring type, jstring name, jstring ibisId,
-		   jint cpu, jint port,
-		   jint receiver_port)
+		   jint cpu, jint port, jint receiver_port, jint serializationType)
 {
     jobject s;
 
-    s = (*env)->NewObject(env,
-			  cls_ShadowSendPort,
-			  ctor_ShadowSendPort,
-			  type,
-			  name,
-			  ibisId,
-			  cpu,
-			  port,
-			  receiver_port);
+    IBP_VPRINTF(900, env, ("Now call this method createShadowSendPort...\n"));
+    s = (*env)->CallStaticObjectMethod(env,
+				       cls_ShadowSendPort,
+				       md_createSSP,
+				       type,
+				       name,
+				       ibisId,
+				       cpu,
+				       port,
+				       receiver_port,
+				       serializationType);
     if ((*env)->ExceptionOccurred(env) != NULL) {
 	(*env)->ExceptionDescribe(env);
     }
@@ -51,18 +52,21 @@ ibmp_send_port_init(JNIEnv *env)
 				   "ibis/ipl/impl/messagePassing/ShadowSendPort");
     if (cls_ShadowSendPort == NULL) {
 	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/ShadowSendPort\n", __FILE__, __LINE__);
+	abort();
     }
     cls_ShadowSendPort = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_ShadowSendPort);
 
-    ctor_ShadowSendPort = (*env)->GetMethodID(env, cls_ShadowSendPort, "<init>",
-				   "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;III)V");
-    if (ctor_ShadowSendPort == NULL) {
-	fprintf(stderr, "%s.%d Cannot find constructor ShadowSendPort(Ljava/lang/String;Ljava/lang/String;III)V\n", __FILE__, __LINE__);
+    md_createSSP = (*env)->GetStaticMethodID(env, cls_ShadowSendPort, "createShadowSendPort",
+					     "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIII)Libis.ipl.impl.messagePassing.ShadowSendPort;");
+    if (md_createSSP == NULL) {
+	fprintf(stderr, "%s.%d Cannot find method createShadowSendPort(Ljava/lang/String;Ljava/lang/String;IIII)Libis.ipl.impl.messagePassing.ShadowSendPort;\n", __FILE__, __LINE__);
+	abort();
     }
     md_disconnect = (*env)->GetStaticMethodID(env, cls_ShadowSendPort,
 					      "disconnect", "(IIII)V");
     if (md_disconnect == NULL) {
 	fprintf(stderr, "%s.%d Cannot find static method disconnect(IIII)V\n", __FILE__, __LINE__);
+	abort();
     }
 
     fld_connect_allowed = (*env)->GetFieldID(env, cls_ShadowSendPort,

@@ -8,7 +8,7 @@ public class Main {
 	public static final int LEN   = 1000;
 	public static final int COUNT = 1000;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisException { 
+	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
 		
 		ReceivePortIdentifier temp = null;
 

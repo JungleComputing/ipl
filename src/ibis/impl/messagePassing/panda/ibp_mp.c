@@ -66,14 +66,17 @@ ibp_mp_proto_offset(void)
 }
 
 
+#ifdef IBP_VERBOSE
+static int *mp_upcalls = 0;
+static int *mp_sends = 0;
+#endif
+
+
 
 static void
 ibp_mp_upcall(pan_msg_p msg, void *proto)
 {
     ibp_mp_hdr_p	hdr = ibp_mp_hdr(proto);
-#ifdef IBP_VERBOSE
-    static int mp_upcalls = 0;
-#endif
 
     //    JNIEnv *env;
 
@@ -87,7 +90,7 @@ ibp_mp_upcall(pan_msg_p msg, void *proto)
 
     IBP_VPRINTF(200, ibmp_JNIEnv,
 		     ("Receive ibp MP upcall %d msg %p sender %d size %d\n",
-		       mp_upcalls++, msg, pan_msg_sender(msg),
+		       mp_upcalls[pan_msg_sender(msg)]++, msg, pan_msg_sender(msg),
 		       pan_msg_consume_left(msg)));
 
     ibp_upcall_done = 1;	/* Keep polling */
@@ -101,7 +104,6 @@ ibp_mp_poll(JNIEnv *env)
     //fprintf(stderr, "ibp_mp-poll\n");
 
     ibmp_set_JNIEnv(env);
-
     do {
 	ibp_upcall_done = 0;
 	pan_poll();
@@ -145,8 +147,8 @@ ibp_mp_send_sync(JNIEnv *env, int cpu, int port, pan_iovec_p iov, int iov_size,
     ibp_mp_hdr_p hdr = ibp_mp_hdr(proto);
 
     ibmp_set_JNIEnv(env);
-    IBP_VPRINTF(200, env, ("Do a Panda MP send to %d size %d env %p\n",
-		cpu, pan_msg_iovec_len(iov, iov_size), env));
+    IBP_VPRINTF(200, env, ("Do a Panda MP send %d to %d size %d env %p\n",
+		mp_sends[cpu]++, cpu, pan_msg_iovec_len(iov, iov_size), env));
     hdr->port = port;
     pan_mp_send_sync(cpu, ibp_mp_port, iov, iov_size, proto, proto_size, ack);
     IBP_VPRINTF(200, env, ("Done a Panda MP send\n"));
@@ -163,8 +165,8 @@ ibp_mp_send_async(JNIEnv *env, int cpu, int port, pan_iovec_p iov, int iov_size,
     int		ticket;
 
     ibmp_set_JNIEnv(env);
-    IBP_VPRINTF(200, env, ("Do a Panda MP send async to %d size %d\n",
-		cpu, pan_msg_iovec_len(iov, iov_size)));
+    IBP_VPRINTF(200, env, ("Do a Panda MP send %d async to %d size %d\n",
+		mp_sends[cpu]++, cpu, pan_msg_iovec_len(iov, iov_size)));
     hdr->port = port;
     ticket = pan_mp_send_async(cpu, ibp_mp_port, iov, iov_size,
 			       proto, proto_size, ack,
@@ -193,6 +195,11 @@ ibp_mp_init(JNIEnv *env)
 
     ibp_poll_register(ibp_mp_poll);	// Finding this had been commented out by Jason took me another day... RFHH
     IBP_VPRINTF(2000, env, ("here...\n"));
+
+#ifdef IBP_VERBOSE
+    mp_upcalls = pan_calloc(pan_nr_processes(), sizeof(*mp_upcalls));
+    mp_sends = pan_calloc(pan_nr_processes(), sizeof(*mp_sends));
+#endif
 }
 
 

@@ -1,11 +1,10 @@
 package ibis.ipl.impl.messagePassing;
 
-import java.io.IOException;
-
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Hashtable;
 
+import ibis.ipl.IbisIOException;
 import ibis.ipl.IbisException;
 
 class ElectionServer
@@ -46,8 +45,11 @@ class ElectionServer
 	    r.send();
 	    r.finish();
 // System.err.println(Thread.currentThread() + "ElectionServer election " + name + " done");
-	} catch (IbisException e) {
-	    System.err.println(Thread.currentThread() + "ElectionServer upcall exception: " + e);
+	} catch (ClassNotFoundException e) {
+	    System.err.println(Thread.currentThread() + ": ElectionServer upcall exception " + e);
+	    Thread.dumpStack();
+	} catch (IbisIOException e) {
+	    System.err.println(Thread.currentThread() + ": ElectionServer upcall exception " + e);
 	    Thread.dumpStack();
 	}
     }
@@ -55,9 +57,9 @@ class ElectionServer
     ibis.ipl.ReceivePort[] server_port;
     ibis.ipl.SendPort[] client_port;
 
-    ElectionServer() throws IbisException {
+    ElectionServer() throws IbisIOException {
 	if (elections != null) {
-	    throw new IbisException("Can have only one ElectionServer");
+	    throw new IbisIOException("Can have only one ElectionServer");
 	}
 	elections = new Hashtable();
 
@@ -97,8 +99,10 @@ class ElectionServer
 	    }
 
 // System.err.println(Thread.currentThread() + "ElectionServer up");
-	} catch (IbisException e) {
+	} catch (IbisIOException e) {
 	    System.err.println("ElectionServer meets exception " + e);
+	} catch (IbisException e2) {
+	    System.err.println("ElectionServer meets exception " + e2);
 	}
     }
 

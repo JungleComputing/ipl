@@ -135,7 +135,7 @@ O_FILES		:= $(filter-out $(SERIALIZABLE_O), $(O_FILES))
 O_FILES		:= $(O_FILES) $(SERIALIZABLE_JAD_O)
 endif
 
-PKG_SUF		:= .$(PACKAGE_MANGLE:manta_ibis%=mib%)
+PKG_SUF		:= .$(PACKAGE_MANGLE)
 PKG_O_FILES	:= $(O_FILES:%.o=%$(PKG_SUF))
 
 MANTA_LIB	= $(IBIS_ROOT)/ibis/ipl/libibis.a
@@ -145,6 +145,7 @@ JACKAL_PATCHERS	=
 JACKAL_PATCHERS	+= $(SRC:%.java=diff_patch_%.c)
 JACKAL_PATCHERS	+= $(MAIN:%.java=diff_patch_%.c)
 JACKAL_PATCHERS	+= $(SERIALIZE_J:%.java=diff_patch_%.c)
+JACKAL_PATCHERS	+= $(SERIALIZABLE_JAD:%.jad=diff_patch_%_jad.c)
 
 TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s $(OUT) *.class *.lasm *.d Satin_*_InvocationRecord.java Satin_*_ReturnRecord.java -r LASM_CACHE $(O_FILES) $(PKG_O_FILES) $(JACKAL_PATCHERS) Satin_*
 
@@ -160,9 +161,12 @@ TRASH_FILES=*core *.o stub_*.h packagers_*.c packagers_*.h *.jac *~ *.s $(OUT) *
 	$(JAVAC_COMMAND) $*.java
 	$(JPATH)/bin/java -classpath $(JAVACLASSPATH) ibis.frontend.io.IOGenerator $*
 	$(JAD) $*.class
+	$(JAD) $*_ibis_io_Generator.class
 
 .jad_jad.o:
-	cp $*.jad $*_jad.java
+	grep '^import' $*_ibis_io_Generator.jad > $*_jad.java
+	cat $*.jad >> $*_jad.java
+	grep -v '^import' $*_ibis_io_Generator.jad >> $*_jad.java
 	$(MANTAC_COMMAND) -keep -c $*_jad.java -o $*_jad.o
 
 TRASH_FILES	+= $(SERIALIZABLE_JAD)

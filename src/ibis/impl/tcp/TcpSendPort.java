@@ -4,7 +4,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.DynamicProperties;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 import ibis.ipl.ReceivePortIdentifier;
 
 import java.util.Vector;
@@ -27,11 +27,11 @@ final class TcpSendPort implements SendPort {
 	boolean aMessageIsAlive = false;
 	Sender sender;
 
-	TcpSendPort(TcpPortType type) throws IbisException {
+	TcpSendPort(TcpPortType type) throws IbisIOException {
 		this(type, null);
 	}
 
-	TcpSendPort(TcpPortType type, String name) throws IbisException {
+	TcpSendPort(TcpPortType type, String name) throws IbisIOException {
 
 		try { 
 			
@@ -52,7 +52,7 @@ final class TcpSendPort implements SendPort {
 			}
 
 		} catch (IOException e) { 
-			throw new IbisException("Could not create SendPort");
+			throw new IbisIOException("Could not create SendPort");
 		} 
 	}
 
@@ -60,7 +60,7 @@ final class TcpSendPort implements SendPort {
 		sender.connect(ri, sout, id);
 	}
 
-	public void connect(ReceivePortIdentifier receiver) throws IbisException {
+	public void connect(ReceivePortIdentifier receiver) throws IbisIOException {
 
 		if(TcpIbis.DEBUG) {
 			System.out.println(name + " connecting to " + receiver); 
@@ -68,13 +68,13 @@ final class TcpSendPort implements SendPort {
 
 		/* first check the types */
 		if(!type.name().equals(receiver.type())) {
-			throw new IbisException("Cannot connect ports of different PortTypes");
+			throw new IbisIOException("Cannot connect ports of different PortTypes");
 		}
 
 		TcpReceivePortIdentifier ri = (TcpReceivePortIdentifier) receiver;
 
 		if (!TcpIbis.tcpPortHandler.connect(this, ri)) { 
-			throw new IbisException("Could not connect");
+			throw new IbisIOException("Could not connect");
 		} 
 		
 		if(TcpIbis.DEBUG) {
@@ -82,11 +82,11 @@ final class TcpSendPort implements SendPort {
 		}
 	}
 
-	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IbisException {
+	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IbisIOException {
 	    System.err.println("Implement TcpSendPort.connect(receiver, timeout)");
 	}
 
-	public WriteMessage newMessage() throws IbisException { 
+	public WriteMessage newMessage() throws IbisIOException { 
 		synchronized(this) {
 			while(aMessageIsAlive) {
 				try {

@@ -1,79 +1,37 @@
 package ibis.ipl.impl.messagePassing;
 
-import java.io.IOException;
+import ibis.ipl.IbisIOException;
 
 
 public abstract class ByteInputStream extends java.io.InputStream {
 
-    protected int panda_msg;
+    protected int msgHandle;
+    protected int msgSize;
+    protected ibis.ipl.impl.messagePassing.ReadMessage msg;
 
 
-    void setPandaMessage(int panda_msg) {
-// System.err.println(Thread.currentThread() + "ByteInputStream.panda_msg := " + panda_msg);
-	this.panda_msg = panda_msg;
+    void setMsgHandle(ibis.ipl.impl.messagePassing.ReadMessage msg) {
+// manta.runtime.RuntimeSystem.DebugMe(this, msg);
+	this.msg       = msg;
+	this.msgHandle = msg.fragmentFront.msgHandle;
+	this.msgSize   = msg.fragmentFront.msgSize;
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println(Thread.currentThread() + "ByteInputStream.msgHandle := " + Integer.toHexString(msgHandle) + " msgSize := " + msgSize + " msg " + msg);
+	}
     }
 
 
-    public ByteInputStream() {
-    }
-
-
-    public int read(byte b[]) {
+    public int read(byte b[]) throws IbisIOException {
 	return read(b, 0, b.length);
     }
     
 
-    protected abstract int msg_read(int msg);
+    public abstract int read() throws IbisIOException;
 
-    protected abstract int msg_read_bytes(int msg, byte b[], int off, int len);
+    public abstract int read(byte b[], int off, int len) throws IbisIOException;
 
-    protected abstract long msg_skip(int msg, long n);
+    protected abstract void resetMsg(int msgHandle);
 
-    protected abstract int msg_available(int msg);
-
-    protected abstract void msg_clear(int msg);
-
-
-    public int read() {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    return msg_read(panda_msg);
-	}
-    }
-
-    public int read(byte b[], int off, int len) {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-// System.err.println(Thread.currentThread() + "ByteInputStream: read " + len + " bytes");
-// Thread.dumpStack();
-	if (panda_msg == 0) {
-	    System.err.println("Uh oh -- wanna read but msg = 0");
-	    Thread.dumpStack();
-	}
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    return msg_read_bytes(panda_msg, b, off, len);
-	}
-    }
-
-    public long skip(long n) {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    return msg_skip(panda_msg, n);
-	}
-    }
-
-    public int available() {
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
-	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
-	    return msg_available(panda_msg);
-	}
-    }
-
-    void clearPandaMessage() {
-	// Already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
-	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
-// System.err.println(Thread.currentThread() + "Now clear pandaMessage " + panda_msg + " in ByteInputStream " + this);
-	msg_clear(panda_msg);
-    }
 
     public void close() {
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
@@ -84,8 +42,8 @@ public abstract class ByteInputStream extends java.io.InputStream {
     }
 
 
-    public synchronized void reset() throws IOException {
-	throw new IOException("mark/reset not supported");
+    public synchronized void reset() throws IbisIOException {
+	throw new IbisIOException("mark/reset not supported");
     }
 
 

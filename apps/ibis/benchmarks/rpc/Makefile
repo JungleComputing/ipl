@@ -11,8 +11,10 @@ OUT	:= $(OUT).gprof
 endif
 
 MANTACFLAGS	+= -S
-MANTACFLAGS	+= -v
+# MANTACFLAGS	+= -v
 # MANTACFLAGS	+= -no-opt-comm
+
+# Only for .class compiler O_FILES		+= RszHandler.o
 
 java: $(CLASS_FILES) $(MAIN_CLASS)
 

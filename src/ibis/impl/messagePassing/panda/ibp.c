@@ -100,9 +100,11 @@ ibp_consume(JNIEnv *env, pan_msg_p msg, void *buf, int len)
 	    break;
 	}
 
+	// ibmp_unset_JNIEnv();
 	ibmp_unlock(env);
 	ibmp_thread_yield(env);
 	ibmp_lock(env);
+	// ibmp_set_JNIEnv(env);
     }
 
     ibmp_unset_JNIEnv();
@@ -185,7 +187,6 @@ ibp_pan_init(void)
 	exit(-6);
     }
     hosts = pan_strdup(orig_hosts);
-// fprintf(stderr, "hosts copy = %s\n", hosts);
 
     fs_nhosts = 0;
     name = strtok(hosts, " \t");
@@ -250,7 +251,6 @@ ibp_pan_init(void)
 
     pan_free(fs_host_inet);
 
-// fprintf(stderr, "call pan_init(%d, %s %s %s %s)\n", argc, argv[0], argv[1], argv[2], argv[3]);
     pan_init(&argc, argv);
 }
 
@@ -270,11 +270,13 @@ Java_ibis_ipl_impl_messagePassing_panda_PandaIbis_ibmp_1init(JNIEnv *env, jobjec
     fld_PandaIbis_nrCpus = (*env)->GetFieldID(env, ibmp_cls_Ibis, "nrCpus", "I");
     if (fld_PandaIbis_nrCpus == NULL) {
 	fprintf(stderr, "%s.%d Cannot find static field nrCpus:I\n", __FILE__, __LINE__);
+	abort();
     }
     IBP_VPRINTF(2000, env, ("here...\n"));
     fld_PandaIbis_myCpu  = (*env)->GetFieldID(env, ibmp_cls_Ibis, "myCpu", "I");
     if (fld_PandaIbis_myCpu == NULL) {
 	fprintf(stderr, "%s.%d Cannot find static field myCpu:I\n", __FILE__, __LINE__);
+	abort();
     }
     IBP_VPRINTF(2000, env, ("here...\n"));
 

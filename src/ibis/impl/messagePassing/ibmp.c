@@ -63,6 +63,10 @@ ibmp_currentThread(JNIEnv *env)
     static int	n_c = 0;
 
     cT = (*env)->CallStaticObjectMethod(env, cls_Thread, md_currentThread);
+    if (cT == NULL) {
+	return "--system idle thread--";
+    }
+
     t = (*env)->CallObjectMethod(env, cT, md_toString);
 
     b = (jbyte *)(*env)->GetStringUTFChars(env, t, NULL);
@@ -207,44 +211,52 @@ ibmp_init(JNIEnv *env, jobject this)
     cls_Thread = (*env)->FindClass(env, "java/lang/Thread");
     if (cls_Thread == NULL) {
 	fprintf(stderr, "%s.%d Cannot find class java/lang/Thread\n", __FILE__, __LINE__);
+	abort();
     }
     cls_Thread = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Thread);
 
     md_yield   = (*env)->GetStaticMethodID(env, cls_Thread, "yield", "()V");
     if (md_yield == NULL) {
 	fprintf(stderr, "%s.%d Cannot find static method yield()V\n", __FILE__, __LINE__);
+	abort();
     }
 
     md_currentThread   = (*env)->GetStaticMethodID(env, cls_Thread, "currentThread", "()Ljava/lang/Thread;");
     if (md_currentThread == NULL) {
 	fprintf(stderr, "%s.%d Cannot find static method currentThread()Ljava/laang/Thread;\n", __FILE__, __LINE__);
+	abort();
     }
 
     cls_Object = (*env)->FindClass(env, "java/lang/Object");
     if (cls_Object == NULL) {
 	fprintf(stderr, "Cannot find class java/lang/Object\n");
+	abort();
     }
     cls_Object = (jclass)(*env)->NewGlobalRef(env, (jobject)cls_Object);
 
     md_toString = (*env)->GetMethodID(env, cls_Object, "toString", "()Ljava/lang/String;");
     if (md_toString == NULL) {
 	fprintf(stderr, "Cannot find method toString\n");
+	abort();
     }
 
     md_dumpStack   = (*env)->GetStaticMethodID(env, cls_Thread, "dumpStack", "()V");
     if (md_dumpStack == NULL) {
 	fprintf(stderr, "%s.%d Cannot find static method dumpStack()V\n", __FILE__, __LINE__);
+	abort();
     }
 
     ibmp_cls_Ibis = (*env)->FindClass(env, "ibis/ipl/impl/messagePassing/Ibis");
     if (ibmp_cls_Ibis == NULL) {
 	fprintf(stderr, "%s.%d Cannot find class ibis/ipl/impl/messagePassing/Ibis\n", __FILE__, __LINE__);
+	abort();
     }
     ibmp_cls_Ibis = (jclass)(*env)->NewGlobalRef(env, (jobject)ibmp_cls_Ibis);
 
     fld_Ibis_ibis = (*env)->GetStaticFieldID(env, ibmp_cls_Ibis, "myIbis", "Libis/ipl/impl/messagePassing/Ibis;");
     if (fld_Ibis_ibis == NULL) {
 	fprintf(stderr, "%s.%d Cannot find static field myIbis:Libis/ipl/impl/messagePassing/Ibis;\n", __FILE__, __LINE__);
+	abort();
     }
 
     ibmp_obj_Ibis_ibis = (*env)->GetStaticObjectField(env, ibmp_cls_Ibis, fld_Ibis_ibis);
@@ -254,6 +266,7 @@ ibmp_init(JNIEnv *env, jobject this)
 				       "()V");
     if (md_checkLockOwned == NULL) {
 	fprintf(stderr, "Cannot find method checkLockOwned\n");
+	abort();
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 
@@ -261,6 +274,7 @@ ibmp_init(JNIEnv *env, jobject this)
 				       "()V");
     if (md_checkLockNotOwned == NULL) {
 	fprintf(stderr, "Cannot find method checkLockNotOwned\n");
+	abort();
     }
     IBP_VPRINTF(2000, env, ("here..\n"));
 

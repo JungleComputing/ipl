@@ -2,7 +2,6 @@ package ibis.ipl.impl.messagePassing;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.EOFException;
 
 final class ReceivePortIdentifier

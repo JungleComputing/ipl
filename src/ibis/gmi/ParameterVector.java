@@ -1,7 +1,7 @@
 package ibis.group;
 
 import ibis.ipl.WriteMessage;
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 
 // This class is used as a wrapper for a marhalstruct. Needed for the implementation of a "personalized group invocation".
 
@@ -58,7 +58,7 @@ public class ParameterVector {
 		try {
 			message.writeBoolean(value);
 			next_param++;
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException("ParamVector.add((boolean) " + value + ") : Failed " + e.getMessage()); 
 		} 
 	} 
@@ -70,7 +70,7 @@ public class ParameterVector {
 		try {
 			message.writeChar(value);
 			next_param++;
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException("ParamVector.add((char) " + value + ") : Failed " + e.getMessage()); 
 		} 
 	} 
@@ -82,7 +82,7 @@ public class ParameterVector {
 		try {
 			message.writeByte(value);
 			next_param++;
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException("ParamVector.add((byte) " + value + ") : Failed " + e.getMessage()); 
 		} 
 	}  
@@ -94,7 +94,7 @@ public class ParameterVector {
 		try {
 			message.writeShort(value);
 			next_param++;
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException("ParamVector.add((short) " + value + ") : Failed " + e.getMessage()); 
 		} 
 } 
@@ -106,7 +106,7 @@ public class ParameterVector {
 		try {
 			message.writeInt(value);
 			next_param++;
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException("ParamVector.add((int) " + value + ") : Failed " + e.getMessage()); 
 		} 
 	} 
@@ -118,7 +118,7 @@ public class ParameterVector {
 		try { 
 			message.writeLong(value);
 			next_param++;
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException("ParamVector.add((long) " + value + ") : Failed " + e.getMessage()); 
 		} 
 	} 
@@ -130,7 +130,7 @@ public class ParameterVector {
 		try {
 			message.writeFloat(value);
 			next_param++;
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException("ParamVector.add((float) " + value + ") : Failed " + e.getMessage()); 
 		} 
 	} 
@@ -142,7 +142,7 @@ public class ParameterVector {
 		try {
 			message.writeDouble(value);
 			next_param++;
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException("ParamVector.add((double) " + value + ") : Failed " + e.getMessage()); 
 		} 
 	} 
@@ -154,7 +154,7 @@ public class ParameterVector {
 		try {
 			message.writeObject(value);
 			next_param++;
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			throw new RuntimeException("ParamVector.add((Object) " + value + ") : Failed " + e.getMessage()); 
 		} 
 	}        

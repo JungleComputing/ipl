@@ -3,20 +3,20 @@ package ibis.ipl;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
-public class IbisException extends java.lang.Exception {
+public class IbisIOException extends java.io.IOException {
 	// this space was intensionally left blank, but is now taken...
 
 	private Throwable original;
 
-	public IbisException(String name) {
+	public IbisIOException(String name) {
 		super(name);
 	}
 
-	public IbisException(Throwable t) {
+	public IbisIOException(Throwable t) {
 		super("" + t);
 	}
 
-	public IbisException(String name, Throwable e) {
+	public IbisIOException(String name, Throwable e) {
 		super(name);
 		original = e;
 	}

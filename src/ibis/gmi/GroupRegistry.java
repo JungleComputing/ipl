@@ -14,7 +14,7 @@ final class GroupRegistry implements GroupProtocol {
 		groupNumber = 0;
         }
         
-	private synchronized void newGroup(String groupName, int groupSize, int rank, int ticket) throws IbisException {
+	private synchronized void newGroup(String groupName, int groupSize, int rank, int ticket) throws IbisIOException {
 	       
 		WriteMessage w;
 
@@ -33,7 +33,7 @@ final class GroupRegistry implements GroupProtocol {
 		w.finish();		
 	} 
 
-	private synchronized void joinGroup(String groupName, long memberID, int rank, int ticket) throws IbisException { 	
+	private synchronized void joinGroup(String groupName, long memberID, int rank, int ticket) throws IbisIOException { 	
 
 		WriteMessage w;
 
@@ -83,7 +83,7 @@ final class GroupRegistry implements GroupProtocol {
 		}
 	}
 
-	private synchronized void barrierGroup(String groupName, int rank, int ticket) throws IbisException { 	
+	private synchronized void barrierGroup(String groupName, int rank, int ticket) throws IbisIOException { 	
 
 		WriteMessage w;
 
@@ -173,8 +173,11 @@ final class GroupRegistry implements GroupProtocol {
 				break;		
 			}	       
 
-		} catch (IbisException e) {
+		} catch (IbisIOException e) {
 			System.out.println(Group._rank + ": Error in GroupRegistry " + e);
+			System.exit(1);
+		} catch (ClassNotFoundException e1) {
+			System.out.println(Group._rank + ": Error in GroupRegistry " + e1);
 			System.exit(1);
 		}
 	}        

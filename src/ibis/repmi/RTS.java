@@ -204,7 +204,7 @@ public final class RTS {
 		return null;
 	} 
 
-	protected static void newObject(ReadMessage m) throws IbisException { 
+	protected static void newObject(ReadMessage m) throws IbisIOException { 
 		/* Invoked by callhandler */		
 
 		int num = m.readInt();

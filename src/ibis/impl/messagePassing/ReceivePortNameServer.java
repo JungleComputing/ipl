@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-import java.io.IOException;
+import ibis.ipl.IbisIOException;
 
 import java.util.Hashtable;
 
@@ -9,7 +9,7 @@ public abstract class ReceivePortNameServer implements
 
     private Hashtable ports;
 
-    protected ReceivePortNameServer() throws IOException {
+    protected ReceivePortNameServer() throws IbisIOException {
 	ports = new Hashtable();
     }
 

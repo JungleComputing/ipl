@@ -7,7 +7,7 @@ public class Main {
 	public static final boolean DEBUG = false;
 	public static final int COUNT = 20000;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisException { 
+	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
 		
 		ReceivePortIdentifier temp = null;
 

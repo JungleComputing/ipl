@@ -66,7 +66,7 @@ public abstract class Ibis {
 	    Only ReceivePorts and Sendports of the same PortType can communicate.
 	    Any number of ReceivePorts and Sendports can be created on a JVM
 	    (even of the same PortType). **/
-	public abstract PortType createPortType(String name, StaticProperties p) throws IbisException;
+	public abstract PortType createPortType(String name, StaticProperties p) throws IbisException, IbisIOException;
 	public abstract PortType getPortType(String name) throws IbisException;
 
 	/** Returns the Ibis Registry. **/
@@ -86,5 +86,5 @@ public abstract class Ibis {
 	} 
 
 	public abstract IbisIdentifier identifier();
-	protected abstract void init() throws IbisException;
+	protected abstract void init() throws IbisException, IbisIOException;
 } 

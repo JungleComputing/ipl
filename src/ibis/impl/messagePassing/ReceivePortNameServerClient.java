@@ -1,6 +1,6 @@
 package ibis.ipl.impl.messagePassing;
 
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 import ibis.ipl.ConditionVariable;
 
 public abstract class ReceivePortNameServerClient
@@ -56,10 +56,10 @@ public abstract class ReceivePortNameServerClient
 	ConditionVariable	ns_done = new ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
 	boolean bound;
 
-	void bind(String name, ibis.ipl.impl.messagePassing.ReceivePortIdentifier id) throws IbisException {
+	void bind(String name, ibis.ipl.impl.messagePassing.ReceivePortIdentifier id) throws IbisIOException {
 
 	    if (! name.equals(id.name)) {
-		throw new IbisException("Corrupted ReceivePort name");
+		throw new IbisIOException("Corrupted ReceivePort name");
 	    }
 
 	    // request a new Port.
@@ -103,7 +103,7 @@ public abstract class ReceivePortNameServerClient
 
     Bind bind = new Bind();
 
-    public void bind(String name, ibis.ipl.impl.messagePassing.ReceivePortIdentifier id) throws IbisException {
+    public void bind(String name, ibis.ipl.impl.messagePassing.ReceivePortIdentifier id) throws IbisIOException {
 	bind.bind(name, id);
     }
 
@@ -161,7 +161,7 @@ public abstract class ReceivePortNameServerClient
 
 	private static final int BACKOFF_MILLIS = 1000;
 
-	public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisException {
+	public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisIOException {
 
 // System.err.println(Thread.currentThread() + "Lookup receive port \"" + name + "\"");
 // System.err.println(Thread.currentThread() + "ReceivePortNSClient: grab Ibis lock.....");
@@ -182,7 +182,7 @@ public abstract class ReceivePortNameServerClient
 	    while (true) {
 		long now = System.currentTimeMillis();
 		if (timeout > 0 && now - start > timeout) {
-		    throw new IbisException("panda Ibis ReceivePort lookup failed");
+		    throw new IbisIOException("messagePassing.Ibis ReceivePort lookup failed");
 		}
 		if (now - last_try >= BACKOFF_MILLIS) {
 		    synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
@@ -230,19 +230,21 @@ public abstract class ReceivePortNameServerClient
 
     Lookup lookup = new Lookup();
 
-    public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisException {
-System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + ": Do a ReceivePortId NS lookup(" + name + ", " + timeout + ") in " + lookup);
+    public ibis.ipl.ReceivePortIdentifier lookup(String name, long timeout) throws IbisIOException {
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println(ibis.ipl.impl.messagePassing.Ibis.myIbis.myCpu + ": Do a ReceivePortId NS lookup(" + name + ", " + timeout + ") in " + lookup);
+	}
 	return lookup.lookup(name, timeout);
     }
 
-    public ibis.ipl.ReceivePortIdentifier[] query(ibis.ipl.IbisIdentifier ident) throws IbisException {
+    public ibis.ipl.ReceivePortIdentifier[] query(ibis.ipl.IbisIdentifier ident) throws IbisIOException {
 	/* not implemented yet */
 	return null;
     }
 
     protected abstract void ns_unbind(String public_name);
 
-    void unbind(String name) throws IbisException {
+    void unbind(String name) throws IbisIOException {
 
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
 

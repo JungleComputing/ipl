@@ -7,7 +7,7 @@ class Latency {
 	static Ibis ibis;
 	static Registry registry;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisException { 
+	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
 		
 		ReceivePortIdentifier temp = null;
 
@@ -113,7 +113,7 @@ class Latency {
 			rport.free();			      
 			ibis.end();
 
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();

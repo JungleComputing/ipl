@@ -2,21 +2,24 @@
 // Jad home page: http://www.geocities.com/kpdus/jad.html
 // Decompiler options: packimports(3) 
 
+import java.io.Serializable;
+
+
+/* Use the generated version --
+
 import ibis.io.Generator;
 import ibis.io.MantaInputStream;
 import ibis.io.MantaOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
+import ibis.ipl.IbisIOException;
 
 import ibis.io.MantaTypedBufferInputStream;
 import ibis.io.MantaTypedBufferOutputStream;
-
 
 final class Data2_ibis_io_Generator extends Generator
 {
 
     public final Object generated_newInstance(MantaInputStream mantainputstream)
-	throws IOException, ClassNotFoundException
+	throws IbisIOException, ClassNotFoundException
     {
 	return new Data2(mantainputstream);
     }
@@ -56,19 +59,20 @@ final class Data2
     }
 
 
-    /* ---------- Use inline-expanded version above
+    * ---------- Use inline-expanded version above
     public final void generated_WriteObject(MantaOutputStream mantaoutputstream)
-	throws IOException
+	throws IbisIOException
     {
 	MantaTypedBufferOutputStream o = (MantaTypedBufferOutputStream)mantaoutputstream;
+	ibis.io.ArrayOutputStream out = o.out;
 
-	if (o.int_index + 4 >= o.INT_BUFFER_SIZE) {
-	    o.flush(false);
+	if (out.int_index + 4 >= out.INT_BUFFER_SIZE) {
+	    o.flush();
 	}
-	o.int_buffer[o.int_index++] = i3;
-	o.int_buffer[o.int_index++] = i2;
-	o.int_buffer[o.int_index++] = i1;
-	o.int_buffer[o.int_index++] = i0;
+	out.int_buffer[out.int_index++] = i3;
+	out.int_buffer[out.int_index++] = i2;
+	out.int_buffer[out.int_index++] = i1;
+	out.int_buffer[out.int_index++] = i0;
 
 	int i = o.writeKnownObjectHeader(right);
 	if(i == 1)
@@ -79,7 +83,7 @@ final class Data2
     }
 
     public final void generated_ReadObject(MantaInputStream mantainputstream)
-	throws IOException, ClassNotFoundException
+	throws IbisIOException, ClassNotFoundException
     {
 	i3 = mantainputstream.readInt();
 	i2 = mantainputstream.readInt();
@@ -88,18 +92,18 @@ final class Data2
     }
 
     public Data2(MantaInputStream mantainputstream)
-	throws IOException, ClassNotFoundException
+	throws IbisIOException, ClassNotFoundException
     {
-	MantaTypedBufferInputStream o = (MantaTypedBufferInputStream)mantainputstream;
+	MantaTypedBufferInputStream in = (MantaTypedBufferInputStream)mantainputstream;
 
 	mantainputstream.addObjectToCycleCheck(this);
-	if (o.int_index == o.max_int_index) {
-	    o.receive();
+	if (in.int_index == in.max_int_index) {
+	    in.receive();
 	}
-	i3 = o.int_buffer[o.int_index++];
-	i2 = o.int_buffer[o.int_index++];
-	i1 = o.int_buffer[o.int_index++];
-	i0 = o.int_buffer[o.int_index++];
+	i3 = in.int_buffer[in.int_index++];
+	i2 = in.int_buffer[in.int_index++];
+	i1 = in.int_buffer[in.int_index++];
+	i0 = in.int_buffer[in.int_index++];
 
 	int i = mantainputstream.readKnownTypeHeader();
 	if(i == -1)
@@ -114,13 +118,13 @@ final class Data2
 	if(i != 0)
 	    left = (Data2)mantainputstream.getObjectFromCycleCheck(i);
     }
-    ---------- Use inline-expanded version above */
+    ---------- Use inline-expanded version above *
 
 
-    /*---------- Use inline-expanded version above */
+    *---------- Use inline-expanded version above *
 
     public final void generated_WriteObject(MantaOutputStream mantaoutputstream)
-	throws IOException
+	throws IbisIOException
     {
 	mantaoutputstream.writeInt(i3);
 	mantaoutputstream.writeInt(i2);
@@ -135,7 +139,7 @@ final class Data2
     }
 
     public final void generated_ReadObject(MantaInputStream mantainputstream)
-	throws IOException, ClassNotFoundException
+	throws IbisIOException, ClassNotFoundException
     {
 	i3 = mantainputstream.readInt();
 	i2 = mantainputstream.readInt();
@@ -144,7 +148,7 @@ final class Data2
     }
 
     public Data2(MantaInputStream mantainputstream)
-	throws IOException, ClassNotFoundException
+	throws IbisIOException, ClassNotFoundException
     {
 	mantainputstream.addObjectToCycleCheck(this);
 	i3 = mantainputstream.readInt();
@@ -165,7 +169,7 @@ final class Data2
 	    left = (Data2)mantainputstream.getObjectFromCycleCheck(i);
     }
 
-    /* ---------- Use inline-expanded version above */
+    * ---------- Use inline-expanded version above *
 
 
     static int fill;
@@ -178,7 +182,7 @@ final class Data2
 }
 
 
-/* Use the patched & decompiled version above -----
+* Use the patched & decompiled version above ----- */
 
 final class Data2 implements java.io.Serializable {
 
@@ -205,5 +209,5 @@ final class Data2 implements java.io.Serializable {
 
 }
 
- ------ Use the patched & decompiled version above */
+ /* ------ Use the patched & decompiled version above */
 

@@ -3,19 +3,18 @@ package ibis.ipl.impl.messagePassing;
 import java.util.Vector;
 import java.util.Hashtable;
 
-import java.io.IOException;
-
 import ibis.ipl.ConditionVariable;
 import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 import ibis.ipl.StaticProperties;
 
 public abstract class Ibis extends ibis.ipl.Ibis {
 
-    static final boolean DEBUG = false;
+    public static final boolean DEBUG = false;
 
     private IbisIdentifier ident;
 
-    protected Registry pandaRegistry;
+    protected Registry registry;
 
     private int poolSize;
 
@@ -43,10 +42,10 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     protected abstract void ibmp_start();
     protected abstract void ibmp_end();
 
-    long tPandaPoll;
+    long tMsgPoll;
     long tSend;
     long tReceive;
-    long tPandaSend;
+    long tMsgSend;
 
     public Ibis() throws IbisException {
 
@@ -64,11 +63,11 @@ public abstract class Ibis extends ibis.ipl.Ibis {
     }
 
     public ibis.ipl.Registry registry() {
-	return pandaRegistry;
+	return registry;
     }
 
 
-    protected abstract ReceivePortNameServer createReceivePortNameServer() throws IOException;
+    protected abstract ReceivePortNameServer createReceivePortNameServer() throws IbisIOException;
     protected abstract ReceivePortNameServerClient createReceivePortNameServerClient();
 
     protected abstract boolean getInputStreamMsg(int tags[]);
@@ -87,7 +86,9 @@ public abstract class Ibis extends ibis.ipl.Ibis {
 
     /* Called from native */
     void join_upcall(String ident_name, int cpu) {
-System.err.println("Receive join message " + ident_name + "; now world = " + world);
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("Receive join message " + ident_name + "; now world = " + world);
+	}
 	synchronized (myIbis) {
 //manta.runtime.RuntimeSystem.DebugMe(ibisNameService, world);
 	    IbisIdentifier id = new IbisIdentifier(ident_name, cpu);
@@ -121,10 +122,10 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
     }
 
 
-    protected void init() throws IbisException {
+    protected void init() throws IbisException, IbisIOException {
 
 	if (myIbis != null) {
-	    throw new IbisException("Only one Ibis allowed");
+	    throw new IbisIOException("Only one Ibis allowed");
 	} else {
 	    myIbis = this;
 	}
@@ -133,11 +134,7 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 
 	rcve_poll = createPoll();
 
-	try {
-	    pandaRegistry = new Registry();
-	} catch (java.io.IOException e) {
-	    throw new IbisException("Cannot create registry: " + e);
-	}
+	registry = new Registry();
 
 	    /* Fills in:
 		nrCpus;
@@ -162,7 +159,7 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 	ibmp_start();
 	rcve_poll.wakeup();
 
-	pandaRegistry.init();
+	registry.init();
 	if (DEBUG) {
 	    System.err.println(Thread.currentThread() + "Registry lives...");
 	}
@@ -171,7 +168,9 @@ if (DEBUG) System.err.println(myCpu + ": An Ibis.join call for " + id);
 	    System.err.println("myCpu " + myCpu + " nrCpus " + nrCpus + " world " + world);
 	    for (int i = 0; i < nrCpus; i++) {
 		if (i != myCpu) {
-System.err.println("Send join message to " + i);
+		    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+			System.err.println("Send join message to " + i);
+		    }
 		    send_join(i, ident.name());
 		}
 	    }
@@ -204,12 +203,12 @@ System.err.println("Send join message to " + i);
     protected abstract Poll createPoll();
 
     void waitPolling(PollClient client, long timeout, boolean preempt)
-	    throws IbisException {
+	    throws IbisIOException {
 	rcve_poll.waitPolling(client, timeout, preempt);
     }
 
-    protected abstract SendPort createSendPort(PortType type) throws IbisException;
-    protected abstract SendPort createSendPort(PortType type, String name) throws IbisException;
+    protected abstract SendPort createSendPort(PortType type) throws IbisIOException;
+    protected abstract SendPort createSendPort(PortType type, String name) throws IbisIOException;
 
     native void lock();
     native void unlock();
@@ -290,40 +289,45 @@ System.err.println("Send join message to " + i);
 	return (ReceivePort)rcvePorts.lookup(port);
     }
 
-    int[] inputStreamMsgTags = new int[4];
+    int[] inputStreamMsgTags = new int[6];
 
-    void inputStreamPoll() throws IbisException {
+    void inputStreamPoll() throws IbisIOException {
 	if (getInputStreamMsg(inputStreamMsgTags)) {
-	    createReadMessage(inputStreamMsgTags[0],
-			      inputStreamMsgTags[1],
-			      inputStreamMsgTags[2],
-			      inputStreamMsgTags[3]);
+	    receiveFragment(inputStreamMsgTags[0],
+			    inputStreamMsgTags[1],
+			    inputStreamMsgTags[2],
+			    inputStreamMsgTags[3],
+			    inputStreamMsgTags[4],
+			    inputStreamMsgTags[5]);
 	}
     }
 
-    ibis.ipl.impl.messagePassing.ReadMessage createReadMessage(
-				int src_cpu,
-				int src_port,
-				int dest_port,
-				int msg) throws IbisException {
+    private void receiveFragment(int src_cpu,
+				 int src_port,
+				 int dest_port,
+				 int msgHandle,
+				 int msgSize,
+				 int msgSeqno) throws IbisIOException {
 	// This is already taken: synchronized (Ibis.ibis)
 	// checkLockOwned();
-// System.err.println(Thread.currentThread() + "createReadMessage");
+// System.err.println(Thread.currentThread() + "receiveFragment");
 	ReceivePort port = lookupReceivePort(dest_port);
-// System.err.println(Thread.currentThread() + "createReadMessage port " + port);
+// System.err.println(Thread.currentThread() + "receiveFragment port " + port);
 	ShadowSendPort origin = lookupSendPort(src_cpu, src_port);
-// System.err.println(Thread.currentThread() + "createReadMessage origin " + origin);
+// System.err.println(Thread.currentThread() + "receiveFragment origin " + origin);
 
 	if (origin == null) {
-	    throw new IbisException("They want to lookup sendPort cpu " + src_cpu + " port " + src_port + " which apparently has already been cleared");
+	    throw new IbisIOException("They want to lookup sendPort cpu " + src_cpu + " port " + src_port + " which apparently has already been cleared");
 	}
 
-	return port.createReadMessage(origin, msg);
+	port.receiveFragment(origin, msgHandle, msgSize, msgSeqno);
     }
 
 
     protected abstract ByteInputStream createByteInputStream();
-    protected abstract ByteOutputStream createByteOutputStream(SendPort port);
+    protected abstract ByteOutputStream createByteOutputStream(SendPort port,
+							       boolean syncMode,
+							       boolean makeCopy);
 
     protected abstract ibis.io.ArrayInputStream createMantaInputStream(ByteInputStream byte_in);
     protected abstract ibis.io.MantaOutputStream createMantaOutputStream(ByteOutputStream byte_out);
@@ -343,7 +347,7 @@ System.err.println("Send join message to " + i);
 	}
 	world.leave(myCpu, ident);
 
-	System.err.println("t native poll " + t2d(tPandaPoll) + " send " + t2d(tPandaSend));
+	System.err.println("t native poll " + t2d(tMsgPoll) + " send " + t2d(tMsgSend));
 	System.err.println("t java   send " + t2d(tSend) + " rcve " + t2d(tReceive));
 	ConditionVariable.report(System.out);
 	rcve_poll.finalize();

@@ -4,7 +4,7 @@ public interface SendPort {
 	/** Only one message is alive at one time for a given sendport. This is done to prevent flow control problems. 
 	 when a message is alive, and a new messages is requested, the requester is blocked until the
 	live message is finished. **/
-	public WriteMessage newMessage() throws IbisException;
+	public WriteMessage newMessage() throws IbisIOException;
 
 	public DynamicProperties properties();
 
@@ -15,7 +15,7 @@ public interface SendPort {
 	    If receiver denies the connection, an
 	    IbisConnectionRefusedException is thrown.
 	 */
-	public void connect(ReceivePortIdentifier receiver) throws IbisException;
+	public void connect(ReceivePortIdentifier receiver) throws IbisIOException;
 
 	/**
 	    Attempt a connection with receiver.
@@ -26,10 +26,10 @@ public interface SendPort {
 	    A value timeout_millis of 0 signifies no timeout on the connection
 	    attempt.
 	 */
-	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IbisException;
+	public void connect(ReceivePortIdentifier receiver, int timeout_millis) throws IbisIOException;
 
 	/** Free the resources held by the SendPort. **/
-	public void free();
+	public void free() throws IbisIOException;
 
 } 
 

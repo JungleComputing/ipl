@@ -683,7 +683,7 @@ public class Main {
 		} 
 	} 
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisException { 
+	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
 		
 		ReceivePortIdentifier temp = null;
 

@@ -22,14 +22,18 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 	private Thread thread;
 	private TcpIbisIdentifier me;
 
-	TcpPortHandler(TcpIbisIdentifier me) throws IOException { 
+	TcpPortHandler(TcpIbisIdentifier me) throws IbisIOException { 
 		
 //		f = new FileWriter(me.name + ".TcpPortHandler");
 //		print = new PrintWriter(f);
 		
 		this.me = me;
 
-		systemServer = TcpIbisSocketFactory.createServerSocket(SYSTEMPORT, false);
+		try {
+		    systemServer = TcpIbisSocketFactory.createServerSocket(SYSTEMPORT, false);
+		} catch (IOException e) {
+		    throw new IbisIOException("createServerSocket throws " + e);
+		}
 
 		others = new Hashtable();
 		receivePorts = new Vector();
@@ -77,7 +81,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 	}
 
 
-	boolean connect(TcpSendPort sp, TcpReceivePortIdentifier receiver) throws IbisException { 
+	boolean connect(TcpSendPort sp, TcpReceivePortIdentifier receiver) throws IbisIOException { 
 	
 		Socket s = null;
 
@@ -171,7 +175,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol {
 			} catch (Exception e2) {
 				// Ignore.
 			}
-			throw new IbisException("Could not connect", e);
+			throw new IbisIOException("Could not connect", e);
 		}
 	} 
 

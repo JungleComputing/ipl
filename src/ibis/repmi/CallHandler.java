@@ -26,7 +26,7 @@ final class CallHandler implements Protocol, Upcall {
 			default: 
 				System.out.println(RTS._rank + ": Got an illegal opcode !");
 			} 
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			System.out.println(RTS._rank + ": Got an exception in GroupCallHandler !" + e);
 			e.printStackTrace();
 		} 

@@ -19,8 +19,6 @@ void ibmp_lock_check_not_owned(JNIEnv *env);
 #define IBP_STATISTICS
 #endif
 
-#undef IBP_VERBOSE
-
 #ifdef IBP_VERBOSE
 #include <pan_sys.h>
 extern int ibmp_verbose;
@@ -30,6 +28,7 @@ int ibmp_stderr_printf(char *fmt, ...);
 		fprintf(stderr, "%2d: %s.%d ", pan_my_pid(), __FILE__, __LINE__); \
 		if ((env) != NULL) fprintf(stderr, "%s: ", ibmp_currentThread(env)); \
 		ibmp_stderr_printf s; \
+		fflush(stderr); \
 	    } while (0)
 
 #else

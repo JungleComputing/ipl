@@ -66,11 +66,13 @@ class IbisWorld extends Thread {
 	    }
 	}
 
-System.err.print("IbisWorld thread: action! joinId = ");
-for (int i = 0; i < myIbis.nrCpus; i++) {
-    System.err.print(joinId[i] + ", ");
-}
-System.err.println();
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.print("IbisWorld thread: action! joinId = ");
+	    for (int i = 0; i < myIbis.nrCpus; i++) {
+		System.err.print(joinId[i] + ", ");
+	    }
+	    System.err.println();
+	}
 	for (int i = 0; isOpen && i < myIbis.nrCpus; i++) {
 	    synchronized (myIbis) {
 		while (joinId[i] == null) {

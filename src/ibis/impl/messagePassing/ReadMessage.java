@@ -1,20 +1,25 @@
 package ibis.ipl.impl.messagePassing;
 
-import java.io.IOException;
+import ibis.ipl.IbisIOException;
 
-import ibis.ipl.IbisException;
-
-class ReadMessage implements ibis.ipl.ReadMessage {
+public class ReadMessage
+	implements ibis.ipl.ReadMessage,
+		   PollClient {
 
     long sequenceNr = -1;
     ReceivePort port;
     ShadowSendPort shadowSendPort;
 
-    int pandaMessage;
+    ByteInputStream in;
+
+    int msgSeqno;
 
     ibis.ipl.impl.messagePassing.ReadMessage next;
+    ReadFragment fragmentFront;
+    ReadFragment fragmentTail;
 
-    ReadMessage(ibis.ipl.SendPort s, ReceivePort port, int msg) {
+    ReadMessage(ibis.ipl.SendPort s,
+		ReceivePort port) {
 	// This is already taken: synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis)
 	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockOwned();
 
@@ -22,135 +27,242 @@ class ReadMessage implements ibis.ipl.ReadMessage {
 
 	this.port = port;
 	this.shadowSendPort = (ShadowSendPort)s;
-	pandaMessage = msg;
+	in = this.shadowSendPort.in;
     }
 
-    public void finish() throws IbisException {
-	port.finishMessage();
+
+    void enqueue(ReadFragment f) {
+	if (fragmentFront == null) {
+	    fragmentFront = f;
+	} else {
+	    fragmentTail.next = f;
+	}
+	fragmentTail = f;
     }
+
+
+    void clear() {
+	ReadFragment next;
+	for (ReadFragment f = fragmentFront; f != null; f = next) {
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		System.err.println("Now clear fragment " + f + " handle " + Integer.toHexString(f.msgHandle) + "; next " + f.next);
+	    }
+	    next = f.next;
+	    f.clear();
+	    shadowSendPort.putFragment(f);
+	}
+	fragmentFront = null;
+    }
+
+
+    /* The PollClient interface */
+
+    boolean	signalled;
+    boolean	accepted;
+    ibis.ipl.ConditionVariable cv = new ibis.ipl.ConditionVariable(ibis.ipl.impl.messagePassing.Ibis.myIbis);
+
+    PollClient	poll_next;
+    PollClient	poll_prev;
+
+    public PollClient next() {
+	return poll_next;
+    }
+
+    public PollClient prev() {
+	return poll_prev;
+    }
+
+    public void setNext(PollClient c) {
+	poll_next = c;
+    }
+
+    public void setPrev(PollClient c) {
+	poll_prev = c;
+    }
+
+    public boolean satisfied() {
+	return fragmentFront.next != null;
+    }
+
+    public void wakeup() {
+	cv.cv_signal();
+    }
+
+    public void poll_wait(long timeout) {
+	cv.cv_wait(timeout);
+    }
+
+    Thread me;
+
+    public Thread thread() {
+	return me;
+    }
+
+    public void setThread(Thread thread) {
+	me = thread;
+    }
+
+    /* End of the PollClient interface */
+
+
+    public void nextFragment() throws IbisIOException {
+	// ibis.ipl.impl.messagePassing.Ibis.myIbis.checkLockNotOwned();
+	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    while (fragmentFront.next == null) {
+		ibis.ipl.impl.messagePassing.Ibis.myIbis.waitPolling(this,
+								     0,
+								     true);
+	    }
+	    ReadFragment prev = fragmentFront;
+	    fragmentFront = fragmentFront.next;
+	    if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+		System.err.println("Now set msg " + this + " the next fragment " + Integer.toHexString(fragmentFront.msgHandle));
+	    }
+	    in.setMsgHandle(this);
+	    prev.clear();
+	    shadowSendPort.putFragment(prev);
+	}
+    }
+
+
+    public void finish() throws IbisIOException {
+	synchronized (ibis.ipl.impl.messagePassing.Ibis.myIbis) {
+	    clear();
+	    port.finishMessage();
+	}
+    }
+
 
     public ibis.ipl.SendPortIdentifier origin() {
 	return shadowSendPort.identifier();
     }
 
+
     void setSequenceNumber(long s) {
 	sequenceNr = s;
     }
+
 
     public long sequenceNumber() {
 	return sequenceNr;
     }
 
-    public boolean readBoolean() throws IbisException {
-	throw new IbisException("Read Boolean not supported");
+
+    public boolean readBoolean() throws IbisIOException {
+	throw new IbisIOException("Read Boolean not supported");
     }
 
-    public byte readByte() throws IbisException {
-	throw new IbisException("Read Byte not supported");
+
+    public byte readByte() throws IbisIOException {
+	throw new IbisIOException("Read Byte not supported");
     }
 
-    public char readChar() throws IbisException {
-	throw new IbisException("Read Char not supported");
+
+    public char readChar() throws IbisIOException {
+	throw new IbisIOException("Read Char not supported");
     }
 
-    public short readShort() throws IbisException {
-	throw new IbisException("Read Short not supported");
+
+    public short readShort() throws IbisIOException {
+	throw new IbisIOException("Read Short not supported");
     }
 
-    public int  readInt() throws IbisException {
-	return shadowSendPort.in.read();
+
+    public int  readInt() throws IbisIOException {
+	return in.read();
     }
 
-    public long readLong() throws IbisException {
-	throw new IbisException("Read Long not supported");
+
+    public long readLong() throws IbisIOException {
+	throw new IbisIOException("Read Long not supported");
     }
 
-    public float readFloat() throws IbisException {
-	throw new IbisException("Read Float not supported");
+    public float readFloat() throws IbisIOException {
+	throw new IbisIOException("Read Float not supported");
     }
 
-    public double readDouble() throws IbisException {
-	throw new IbisException("Read Double not supported");
+    public double readDouble() throws IbisIOException {
+	throw new IbisIOException("Read Double not supported");
     }
 
-    public String readString() throws IbisException {
-	throw new IbisException("Read String not supported");
+    public String readString() throws IbisIOException {
+	throw new IbisIOException("Read String not supported");
     }
 
-    public Object readObject() throws IbisException {
-	throw new IbisException("Read Object not supported");
+    public Object readObject() throws IbisIOException, ClassNotFoundException {
+	throw new IbisIOException("Read Object not supported");
     }
 
-    public void readArrayBoolean(boolean[] destination) throws IbisException {
-	throw new IbisException("Read ArrayBoolean not supported");
+    public void readArrayBoolean(boolean[] destination) throws IbisIOException {
+	throw new IbisIOException("Read ArrayBoolean not supported");
     }
 
-    public void readArrayByte(byte[] destination) throws IbisException {
-	shadowSendPort.in.read(destination);
+    public void readArrayByte(byte[] destination) throws IbisIOException {
+	in.read(destination);
     }
 
-    public void readArrayChar(char[] destination) throws IbisException {
-	throw new IbisException("Read ArrayChar not supported");
+    public void readArrayChar(char[] destination) throws IbisIOException {
+	throw new IbisIOException("Read ArrayChar not supported");
     }
 
-    public void readArrayShort(short[] destination) throws IbisException {
-	throw new IbisException("Read ArrayShort not supported");
+    public void readArrayShort(short[] destination) throws IbisIOException {
+	throw new IbisIOException("Read ArrayShort not supported");
     }
 
-    public void readArrayInt(int[] destination) throws IbisException {
-	throw new IbisException("Read ArrayInt not supported");
+    public void readArrayInt(int[] destination) throws IbisIOException {
+	throw new IbisIOException("Read ArrayInt not supported");
     }
 
-    public void readArrayLong(long[] destination) throws IbisException {
-	throw new IbisException("Read ArrayLong not supported");
+    public void readArrayLong(long[] destination) throws IbisIOException {
+	throw new IbisIOException("Read ArrayLong not supported");
     }
 
-    public void readArrayFloat(float[] destination) throws IbisException {
-	throw new IbisException("Read ArrayFloat not supported");
+    public void readArrayFloat(float[] destination) throws IbisIOException {
+	throw new IbisIOException("Read ArrayFloat not supported");
     }
 
-    public void readArrayDouble(double[] destination) throws IbisException {
-	throw new IbisException("Read ArrayDouble not supported");
+    public void readArrayDouble(double[] destination) throws IbisIOException {
+	throw new IbisIOException("Read ArrayDouble not supported");
     }
 
     public void readSubArrayBoolean(boolean[] destination, int offset,
-				    int size) throws IbisException {
-	throw new IbisException("Read SubArrayBoolean not supported");
+				    int size) throws IbisIOException {
+	throw new IbisIOException("Read SubArrayBoolean not supported");
     }
 
     public void readSubArrayByte(byte[] destination, int offset,
-				 int size) throws IbisException {
-	throw new IbisException("Read SubArrayByte not supported");
+				 int size) throws IbisIOException {
+	throw new IbisIOException("Read SubArrayByte not supported");
     }
 
     public void readSubArrayChar(char[] destination, int offset,
-				 int size) throws IbisException {
-	throw new IbisException("Read SubArrayChar not supported");
+				 int size) throws IbisIOException {
+	throw new IbisIOException("Read SubArrayChar not supported");
     }
 
     public void readSubArrayShort(short[] destination, int offset,
-				  int size) throws IbisException {
-	throw new IbisException("Read SubArrayShort not supported");
+				  int size) throws IbisIOException {
+	throw new IbisIOException("Read SubArrayShort not supported");
     }
 
     public void readSubArrayInt(int[] destination, int offset,
-				int size) throws IbisException {
-	throw new IbisException("Read SubArrayInt not supported");
+				int size) throws IbisIOException {
+	throw new IbisIOException("Read SubArrayInt not supported");
     }
 
     public void readSubArrayLong(long[] destination, int offset,
-				 int size) throws IbisException {
-	throw new IbisException("Read SubArrayLong not supported");
+				 int size) throws IbisIOException {
+	throw new IbisIOException("Read SubArrayLong not supported");
     }
 
     public void readSubArrayFloat(float[] destination, int offset,
-				  int size) throws IbisException {
-	throw new IbisException("Read SubArrayFloat not supported");
+				  int size) throws IbisIOException {
+	throw new IbisIOException("Read SubArrayFloat not supported");
     }
 
     public void readSubArrayDouble(double[] destination, int offset,
-				   int size) throws IbisException {
-	throw new IbisException("Read SubArrayDouble not supported");
+				   int size) throws IbisIOException {
+	throw new IbisIOException("Read SubArrayDouble not supported");
     }
 
 }

@@ -2,300 +2,295 @@ package ibis.ipl.impl.messagePassing;
 
 import java.io.BufferedOutputStream;
 import java.io.ObjectOutputStream;
-import java.io.IOException;
 
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 
 class SerializeWriteMessage extends ibis.ipl.impl.messagePassing.WriteMessage {
 
-    ibis.ipl.impl.messagePassing.ByteOutputStream out;
     ObjectOutputStream obj_out;
 
-    SerializeWriteMessage(SendPort sPort) throws IbisException {
-	super(sPort);
-
-// System.err.println("**************************************************Creating new SerializeWriteMessage");
-
-	this.sPort = sPort;
-
-	out = ibis.ipl.impl.messagePassing.Ibis.myIbis.createByteOutputStream(sPort);
-	try {
-	    obj_out = new ObjectOutputStream(new BufferedOutputStream((java.io.OutputStream)out));
-// System.err.println(Thread.currentThread() + "Created ObjectOutputStream " + obj_out);
-	} catch(IOException e) {
-	    throw new IbisException("Could not create message implementation", e);
-	}
-
+    SerializeWriteMessage() {
     }
 
-    public void send() throws IbisException {
+    SerializeWriteMessage(SendPort sPort) throws IbisIOException {
+	super(sPort);
+	obj_out = ((SerializeSendPort)sPort).obj_out;
+// System.err.println("**************************************************Creating new SerializeWriteMessage");
+    }
+
+    public void send() throws IbisIOException {
+	if (ibis.ipl.impl.messagePassing.Ibis.DEBUG) {
+	    System.err.println("%%%%%%%%%%%%%%%% Send an Ibis SerializeWriteMessage");
+	}
 	try {
 	    obj_out.flush();
-// out.report();
-	    out.flush();
-	    out.send();
-	    sPort.registerSend();
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
+// out.report();
+	out.send();
+	// For stream mode (as in Serialize) this is unnecessary: out.send();
+	sPort.registerSend();
     }
 
-    public void finish() throws IbisException {
+
+    public void finish() throws IbisIOException {
+// manta.runtime.RuntimeSystem.DebugMe(1, out);
 	out.finish();
 	/* Are you sure? No need to discard duplicate info here...
 	try {
 	    obj_out.reset();
-	} catch (IOException e) {
-	    throw new IbisException("ObjectOutputStream reset fails: " + e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
 	Are you sure? */
     }
 
 
-    public void reset() throws IbisException {
+    public void reset() throws IbisIOException {
 	out.reset();
 	try {
 	    obj_out.reset();
-	} catch (IOException e) {
-	    throw new IbisException("ObjectOutputStream reset fails: " + e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
 
-    public void writeBoolean(boolean value) throws IbisException {
+    public void writeBoolean(boolean value) throws IbisIOException {
 	try {
 	    obj_out.writeBoolean(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeByte(byte value) throws IbisException {
+    public void writeByte(byte value) throws IbisIOException {
 	try {
 	    obj_out.writeByte(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeChar(char value) throws IbisException {
+    public void writeChar(char value) throws IbisIOException {
 	try {
 	    obj_out.writeChar(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeShort(short value) throws IbisException {
+    public void writeShort(short value) throws IbisIOException {
 	try {
 	    obj_out.writeShort(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeInt(int value) throws IbisException {
+    public void writeInt(int value) throws IbisIOException {
 	try {
 	    obj_out.writeInt(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeLong(long value) throws IbisException {
+    public void writeLong(long value) throws IbisIOException {
 	try {
 	    obj_out.writeLong(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeFloat(float value) throws IbisException {
+    public void writeFloat(float value) throws IbisIOException {
 	try {
 	    obj_out.writeFloat(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeDouble(double value) throws IbisException {
+    public void writeDouble(double value) throws IbisIOException {
 	try {
 	    obj_out.writeDouble(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeString(String value) throws IbisException {
-	try {
-	    obj_out.writeObject(value);
-// sPort.obj_out.flush();
-// sPort.out.report();
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
-	}
-    }
-
-    public void writeObject(Object value) throws IbisException {
+    public void writeString(String value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
 // obj_out.flush();
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
+	}
+// sPort.out.report();
+    }
+
+    public void writeObject(Object value) throws IbisIOException {
+	try {
+	    obj_out.writeObject(value);
+// obj_out.flush();
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
+	}
 // out.report();
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+    }
+
+    public void writeArrayBoolean(boolean[] value) throws IbisIOException {
+	try {
+	    obj_out.writeObject(value);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeArrayBoolean(boolean[] value) throws IbisException {
+    public void writeArrayByte(byte[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeArrayByte(byte[] value) throws IbisException {
+    public void writeArrayChar(char[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeArrayChar(char[] value) throws IbisException {
+    public void writeArrayShort(short[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeArrayShort(short[] value) throws IbisException {
+    public void writeArrayInt(int[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeArrayInt(int[] value) throws IbisException {
+    public void writeArrayLong(long[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeArrayLong(long[] value) throws IbisException {
+    public void writeArrayFloat(float[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
-    public void writeArrayFloat(float[] value) throws IbisException {
+    public void writeArrayDouble(double[] value) throws IbisIOException {
 	try {
 	    obj_out.writeObject(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
-	}
-    }
-
-    public void writeArrayDouble(double[] value) throws IbisException {
-	try {
-	    obj_out.writeObject(value);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
 
     public void writeSubArrayBoolean(boolean[] value, int offset,
-					    int size) throws IbisException {
+					    int size) throws IbisIOException {
+	boolean[] temp = new boolean[size];
+	System.arraycopy(value, offset, temp, 0, size);
 	try {
-	    boolean[] temp = new boolean[size];
-	    System.arraycopy(value, offset, temp, 0, size);
 	    obj_out.writeObject(temp);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
     public void writeSubArrayByte(byte[] value, int offset,
-				  int size) throws IbisException {
+				  int size) throws IbisIOException {
+	byte[] temp = new byte[size];
+	System.arraycopy(value, offset, temp, 0, size);
 	try {
-	    byte[] temp = new byte[size];
-	    System.arraycopy(value, offset, temp, 0, size);
 	    obj_out.writeObject(temp);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
     public void writeSubArrayChar(char[] value, int offset,
-					 int size) throws IbisException {
+					 int size) throws IbisIOException {
+	char[] temp = new char[size];
+	System.arraycopy(value, offset, temp, 0, size);
 	try {
-	    char[] temp = new char[size];
-	    System.arraycopy(value, offset, temp, 0, size);
 	    obj_out.writeObject(temp);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
     public void writeSubArrayShort(short[] value, int offset,
-					  int size) throws IbisException {
+					  int size) throws IbisIOException {
+	short[] temp = new short[size];
+	System.arraycopy(value, offset, temp, 0, size);
 	try {
-	    short[] temp = new short[size];
-	    System.arraycopy(value, offset, temp, 0, size);
 	    obj_out.writeObject(temp);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
     public void writeSubArrayInt(int[] value, int offset,
-					int size) throws IbisException {
+					int size) throws IbisIOException {
+	int[] temp = new int[size];
+	System.arraycopy(value, offset, temp, 0, size);
 	try {
-	    int[] temp = new int[size];
-	    System.arraycopy(value, offset, temp, 0, size);
 	    obj_out.writeObject(temp);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
     public void writeSubArrayLong(long[] value, int offset,
-					 int size) throws IbisException {
+					 int size) throws IbisIOException {
+	long[] temp = new long[size];
+	System.arraycopy(value, offset, temp, 0, size);
 	try {
-	    long[] temp = new long[size];
-	    System.arraycopy(value, offset, temp, 0, size);
 	    obj_out.writeObject(temp);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
     public void writeSubArrayFloat(float[] value, int offset,
-					  int size) throws IbisException {
+					  int size) throws IbisIOException {
+	float[] temp = new float[size];
+	System.arraycopy(value, offset, temp, 0, size);
 	try {
-	    float[] temp = new float[size];
-	    System.arraycopy(value, offset, temp, 0, size);
 	    obj_out.writeObject(temp);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 
     public void writeSubArrayDouble(double[] value, int offset,
-					   int size) throws IbisException {
+					   int size) throws IbisIOException {
+	double[] temp = new double[size];
+	System.arraycopy(value, offset, temp, 0, size);
 	try {
-	    double[] temp = new double[size];
-	    System.arraycopy(value, offset, temp, 0, size);
 	    obj_out.writeObject(temp);
-	} catch (IOException e) {
-	    throw new IbisException("Write error", e);
+	} catch (java.io.IOException e) {
+	    throw new IbisIOException(e);
 	}
     }
 

@@ -8,8 +8,8 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.IbisException;
+import ibis.ipl.IbisIOException;
 import ibis.ipl.Registry;
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.impl.generic.IbisIdentifierTable;
 
@@ -72,7 +72,8 @@ public final class TcpIbis extends Ibis {
 		systemProperties.add("totally ordered", "false") ;
 	}
      
-	public PortType createPortType(String name, StaticProperties p) throws IbisException {
+	public PortType createPortType(String name, StaticProperties p)
+		    throws IbisException, IbisIOException {
 
 		TcpPortType resultPort = new TcpPortType(this, name, p);		
 		p = resultPort.properties();
@@ -103,7 +104,7 @@ public final class TcpIbis extends Ibis {
 		return ident;
 	}
 
-	protected void init() throws IbisException { 
+	protected void init() throws IbisException, IbisIOException { 
 
 		poolSize = 1;
 
@@ -121,7 +122,7 @@ public final class TcpIbis extends Ibis {
 		try {
 			nameServerInet = InetAddress.getByName(nameServerName);
 		} catch (UnknownHostException e) {
-			throw new IbisException("cannot get ip of name server", e);
+			throw new IbisIOException("cannot get ip of name server", e);
 		}
 
 		try {
@@ -129,7 +130,7 @@ public final class TcpIbis extends Ibis {
 			ident.address = InetAddress.getLocalHost();
 			ident.name = name;
 		} catch (UnknownHostException e) {
-			throw new IbisException("cannot get ip of local host", e);
+			throw new IbisIOException("cannot get ip of local host", e);
 		}
 
 		try { 
@@ -141,7 +142,7 @@ public final class TcpIbis extends Ibis {
 			tcpRegistry = tcpIbisNameServerClient.tcpRegistry;
 			tcpPortHandler = new TcpPortHandler(ident);
 		} catch (IOException e) { 
-			throw new IbisException("cannot create TcpIbisNameServerClient", e);
+			throw new IbisIOException("cannot create TcpIbisNameServerClient", e);
 		}
 	}
 

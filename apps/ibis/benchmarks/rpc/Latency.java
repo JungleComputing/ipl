@@ -14,7 +14,7 @@ class Sender implements Upcall {
 		t = new Ticket();
 	} 
 	
-	void send(int count) throws IbisException {
+	void send(int count) throws IbisIOException {
 		// warmup
 		for(int i = 0; i< count; i++) {
 			int ticket = t.get();
@@ -141,7 +141,7 @@ class Latency {
 	static Ibis ibis;
 	static Registry registry;
 
-	public static ReceivePortIdentifier lookup(String name) throws IbisException { 
+	public static ReceivePortIdentifier lookup(String name) throws IbisIOException { 
 		
 		ReceivePortIdentifier temp = null;
 
@@ -216,7 +216,7 @@ class Latency {
 
                         System.exit(0);
 
-		} catch (IbisException e) { 
+		} catch (IbisIOException e) { 
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
 			e.printStackTrace();

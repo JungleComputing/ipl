@@ -7,7 +7,7 @@ public interface Registry {
 	 The registry is polled regularly until a ReceivePortIdentifier with
 	 name name is returned.
 	 */
-	public ReceivePortIdentifier lookup(String name) throws IbisException;
+	public ReceivePortIdentifier lookup(String name) throws IbisIOException;
 
 	/**
 	 Locate the ReceivePortIdentifier that has been bound with name name.
@@ -15,15 +15,15 @@ public interface Registry {
 	 name name is returned or until timeout milliseconds have passed.
 	 If timeout is 0, lookup does not time out.
 	 If the ReceivePortIdentifier has not been found within timeout
-	 milliseconds, an IbisException with corresponding message is thrown.
+	 milliseconds, an IbisIOException with corresponding message is thrown.
 	 */
-	public ReceivePortIdentifier lookup(String name, long timeout) throws IbisException;
+	public ReceivePortIdentifier lookup(String name, long timeout) throws IbisIOException;
 
 	/**
 	 The registry is polled regularly until an Ibis with name name
 	 is returned.
 	 */
-	public IbisIdentifier locate(String name) throws IbisException;
+	public IbisIdentifier locate(String name) throws IbisIOException;
 
 	/**
 	 Locate the IbisIdentifier that has been registered with name name.
@@ -31,11 +31,11 @@ public interface Registry {
 	 is returned or until timeout milliseconds have passed.
 	 If timeout is 0, locate does not time out.
 	 If the IbisIdentifier has not been found within timeout milliseconds,
-	 an IbisException with corresponding message is thrown.
+	 an IbisIOException with corresponding message is thrown.
 	 */
-	public IbisIdentifier locate(String name, long timeout) throws IbisException;
+	public IbisIdentifier locate(String name, long timeout) throws IbisIOException;
 
-	public ReceivePortIdentifier[] query(IbisIdentifier ident)  throws IbisException;
+	public ReceivePortIdentifier[] query(IbisIdentifier ident)  throws IbisIOException;
 
-	public Object elect(String election, Object candidate) throws IbisException;
+	public Object elect(String election, Object candidate) throws IbisIOException;
 }
