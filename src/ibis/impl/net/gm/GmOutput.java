@@ -3,8 +3,9 @@ package ibis.ipl.impl.net.gm;
 import ibis.ipl.impl.net.*;
 
 import java.io.ObjectInputStream;
-import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import java.util.Hashtable;
 
@@ -31,6 +32,7 @@ public final class GmOutput extends NetBufferedOutput {
         private int        rmuxId       = -1;
         private Driver     gmDriver     = null;
 	private boolean    mustFlush;
+	private int        flushing;
 
 
         native long nInitOutput(long deviceHandle) throws IOException;
@@ -39,41 +41,41 @@ public final class GmOutput extends NetBufferedOutput {
         native int  nGetOutputMuxId(long outputHandle) throws IOException;
         native void nConnectOutput(long outputHandle, int remoteNodeId, int remotePortId, int remoteMuxId) throws IOException;
 
-	native boolean nSendByte(long outputHandle, byte value) throws IOException;
+	native void nSendByte(long outputHandle, byte value) throws IOException;
+
+	native boolean nTryFlush(long outputHandle, int length) throws IOException; 
 
         native void nSendRequest(long outputHandle, int base, int length) throws IOException;
-        native boolean nSendBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
+        native void nSendBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
         native void nSendBuffer(long outputHandle, byte []b, int base, int length) throws IOException;
 
-        native boolean nSendBooleanBufferIntoRequest(long outputHandle, boolean []b, int base, int length) throws IOException;
+        native void nSendBooleanBufferIntoRequest(long outputHandle, boolean []b, int base, int length) throws IOException;
         native void nSendBooleanBuffer(long outputHandle, boolean []b, int base, int length) throws IOException;
 
-        native boolean nSendByteBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
+        native void nSendByteBufferIntoRequest(long outputHandle, byte []b, int base, int length) throws IOException;
         native void nSendByteBuffer(long outputHandle, byte []b, int base, int length) throws IOException;
 
-         native boolean nSendShortBufferIntoRequest(long outputHandle, short []b, int base, int length) throws IOException;
+         native void nSendShortBufferIntoRequest(long outputHandle, short []b, int base, int length) throws IOException;
         native void nSendShortBuffer(long outputHandle, short []b, int base, int length) throws IOException;
 
-         native boolean nSendCharBufferIntoRequest(long outputHandle, char []b, int base, int length) throws IOException;
+         native void nSendCharBufferIntoRequest(long outputHandle, char []b, int base, int length) throws IOException;
         native void nSendCharBuffer(long outputHandle, char []b, int base, int length) throws IOException;
 
-         native boolean nSendIntBufferIntoRequest(long outputHandle, int []b, int base, int length) throws IOException;
+         native void nSendIntBufferIntoRequest(long outputHandle, int []b, int base, int length) throws IOException;
         native void nSendIntBuffer(long outputHandle, int []b, int base, int length) throws IOException;
 
-         native boolean nSendLongBufferIntoRequest(long outputHandle, long []b, int base, int length) throws IOException;
+         native void nSendLongBufferIntoRequest(long outputHandle, long []b, int base, int length) throws IOException;
         native void nSendLongBuffer(long outputHandle, long []b, int base, int length) throws IOException;
 
-         native boolean nSendFloatBufferIntoRequest(long outputHandle, float []b, int base, int length) throws IOException;
+         native void nSendFloatBufferIntoRequest(long outputHandle, float []b, int base, int length) throws IOException;
         native void nSendFloatBuffer(long outputHandle, float []b, int base, int length) throws IOException;
 
-         native boolean nSendDoubleBufferIntoRequest(long outputHandle, double []b, int base, int length) throws IOException;
+         native void nSendDoubleBufferIntoRequest(long outputHandle, double []b, int base, int length) throws IOException;
         native void nSendDoubleBuffer(long outputHandle, double []b, int base, int length) throws IOException;
 
 	native void nFlush(long outputHandle) throws IOException;
 
         native void nCloseOutput(long outputHandle) throws IOException;
-
-        static final int packetMTU = 16384; // 4096;
 
         /**
          * Constructor.
@@ -92,6 +94,11 @@ public final class GmOutput extends NetBufferedOutput {
                 deviceHandle = Driver.nInitDevice(0);
                 outputHandle = nInitOutput(deviceHandle);
                 Driver.gmAccessLock.unlock();
+
+		NetBufferFactoryImpl impl = new NetSendBufferFactoryDefaultImpl();
+
+		setBufferFactory(new NetBufferFactory(Driver.byteBufferSize,
+						      impl));
         }
 
         /*
@@ -161,18 +168,56 @@ public final class GmOutput extends NetBufferedOutput {
 
 
 	/**
+	 * Pump in the face of InterruptedIOExceptions
+	 */
+	private void pump(int[] lockIds) throws IOException {
+	    boolean interrupted;
+	    do {
+		try {
+		    gmDriver.blockingPump(lockIds);
+		    interrupted = false;
+		} catch (InterruptedIOException e) {
+		    // try once more
+		    interrupted = true;
+		    System.err.println(this + ": ********** Catch InterruptedIOException " + e);
+		}
+	    } while (interrupted);
+	}
+
+
+	/**
+	 * Pump in the face of InterruptedIOExceptions
+	 */
+	private void pump(int lockId, int[] lockIds) throws IOException {
+	    boolean interrupted;
+	    do {
+		try {
+		    gmDriver.blockingPump(lockId, lockIds);
+		    interrupted = false;
+		} catch (InterruptedIOException e) {
+		    // try once more
+		    interrupted = true;
+		    System.err.println(this + ": ********** Catch InterruptedIOException " + e);
+		}
+	    } while (interrupted);
+	}
+
+
+	/**
 	 * Flush the buffers that the native layer has built up.
 	 */
 	private void flushBuffers() throws IOException {
-	    if (mustFlush) {
-// System.err.println(this + ": Now flush the buffers");
-		Driver.gmAccessLock.lock(true);
-		nFlush(outputHandle);
-		Driver.gmAccessLock.unlock();
-		mustFlush = false;
-		/* Wait for 'request' send completion */
-		gmDriver.blockingPump(lockId, lockIds);
+	    if (! mustFlush) {
+		return;
 	    }
+
+// System.err.println(this + ": Now flush the buffers");
+	    Driver.gmAccessLock.lock(true);
+	    nFlush(outputHandle);
+	    Driver.gmAccessLock.unlock();
+	    mustFlush = false;
+	    /* Wait for buffer send completion */
+	    pump(lockId, lockIds);
 	}
 
 	/**
@@ -181,9 +226,25 @@ public final class GmOutput extends NetBufferedOutput {
 	protected void flush() throws IOException {
 // System.err.println(this + ": flush()");
 // Thread.dumpStack();
+	    flushing++;
 	    super.flush();
 // System.err.println(this + ": past super.flush()");
 	    flushBuffers();
+	    flushing--;
+	}
+
+	/**
+	 * Pre=postcondition: caller must have Driver.gmAccesslock
+	 */
+	private boolean tryFlush(int length) throws IOException {
+	    boolean mustFlush = nTryFlush(outputHandle,
+					  length + available());
+	    if (mustFlush) {
+		Driver.gmAccessLock.unlock();
+		flush();
+		Driver.gmAccessLock.lock(true);
+	    }
+	    return mustFlush;
 	}
 
 	/**
@@ -192,22 +253,31 @@ public final class GmOutput extends NetBufferedOutput {
 	 * The buffering in NetBuffererdOutput confuses Ibis serialization.
 	 * Provide a special implementation that bypasses that buffer.
 	 */
+	/*
+	 * Guess we will try to use NetBuffering after all...
 	public void writeByte(byte value) throws IOException {
+// System.err.println(this + ": write single byte=" + value);
+// Thread.dumpStack();
 	    Driver.gmAccessLock.lock(true);
-	    boolean flushed = nSendByte(outputHandle, value);
+	    boolean flushed = tryFlush(1);
+	    nSendByte(outputHandle, value);
 	    Driver.gmAccessLock.unlock();
 
 	    if (flushed) {
-		/* Wait for 'request' send completion */
-		// gmDriver.blockingPump(lockId, lockIds);
-		gmDriver.blockingPump(lockIds);
+		// Wait for 'request' send completion
+		// pump(lockId, lockIds);
+		pump(lockIds);
 	    }
 	    mustFlush = true;
 	}
-
+	*/
 
 	private void sendRequest(int offset, int length) throws IOException {
-	    flushBuffers();
+	    if (flushing > 0) {
+		flushBuffers();
+	    } else {
+		flush();
+	    }
 
 // System.err.print("[");
 // System.err.println("Post a request");
@@ -218,21 +288,30 @@ public final class GmOutput extends NetBufferedOutput {
 
 // System.err.println("Wait for request sent completion");
 	    /* Wait for 'request' send completion */
-	    gmDriver.blockingPump(lockId, lockIds);
+	    pump(lockId, lockIds);
 
 // System.err.println("Wait for rendez-vous ack");
 	    /* Wait for 'ack' completion */
-	    gmDriver.blockingPump(lockId, lockIds);
+	    pump(lockId, lockIds);
 // System.err.print("]");
 	}
 
 
         /**
          * {@inheritDoc}
+	 *
+	 * The byte buffer that has been accumulated by our super is
+	 * appended in the message buffer, but in a known place.
+	 * The receiver can read it immediately in this way, before
+	 * other typed buffers that may have been pushed earlier.
          */
         public void sendByteBuffer(NetSendBuffer b) throws IOException {
                 log.in();
-                if (b.length > packetMTU) {
+
+                if (b.length > Driver.packetMTU) {
+                        /* Post the 'request' */
+// System.err.print("[");
+// System.err.println("Post a request");
 			sendRequest(b.base, b.length);
 
                         /* Post the 'buffer' */
@@ -240,23 +319,17 @@ public final class GmOutput extends NetBufferedOutput {
                         nSendBuffer(outputHandle, b.data, b.base, b.length);
                         Driver.gmAccessLock.unlock();
 
-                        /* Wait for 'buffer' send */
+                        /* Wait for 'buffer' send completion */
                         gmDriver.blockingPump(lockId, lockIds);
+// System.err.print("]");
 
                 } else {
 // System.err.print("<*");
 // System.err.println("Send byte buffer " + b + " offset " + b.base + " size " + b.length);
 // Thread.dumpStack();
                         Driver.gmAccessLock.lock(true);
-                        boolean flushed = nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length);
+                        nSendBufferIntoRequest(outputHandle, b.data, b.base, b.length);
                         Driver.gmAccessLock.unlock();
-
-			if (flushed) {
-// System.err.println("It seems our eager data post has caused a flush");
-				/* Wait for buffer send completion */
-				// gmDriver.blockingPump(lockId, lockIds);
-				gmDriver.blockingPump(lockIds);
-			}
 
 			/* @@@@@@@@@@@@@@@@@ IS THIS CORRECT?????????????? */
 			mustFlush = true;
@@ -275,6 +348,8 @@ public final class GmOutput extends NetBufferedOutput {
          */
         public synchronized void close(Integer num) throws IOException {
                 log.in();
+// System.err.println(this + ": close");
+// Thread.dumpStack();
                 if (rpn == num) {
                         Driver.gmAccessLock.lock(true);
                         Driver.gmLockArray.deleteLock(lockId);
@@ -327,7 +402,7 @@ public final class GmOutput extends NetBufferedOutput {
                 while (l > 0) {
                         int _l = 0;
 
-                        if (l > packetMTU) {
+                        if (l > Driver.packetMTU) {
                                 _l = Math.min(l, mtu);
 
 				sendRequest(o, l);
@@ -337,19 +412,20 @@ public final class GmOutput extends NetBufferedOutput {
                                 nSendBooleanBuffer(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'buffer' send */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                /* Wait for 'buffer' send completion */
+                                pump(lockId, lockIds);
 
                         } else {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                boolean flushed = nSendBooleanBufferIntoRequest(outputHandle, b, o, _l);
+				boolean flushed = tryFlush(_l);
+                                nSendBooleanBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
 				if (flushed) {
 					/* Wait for 'request' send completion */
-					gmDriver.blockingPump(lockId, lockIds);
+					pump(lockId, lockIds);
 				}
 				mustFlush = true;
                         }
@@ -374,7 +450,7 @@ public final class GmOutput extends NetBufferedOutput {
                 while (l > 0) {
                         int _l = 0;
 
-                        if (l > packetMTU) {
+                        if (l > Driver.packetMTU) {
                                 _l = Math.min(l, mtu);
 
 				sendRequest(o, l);
@@ -384,19 +460,20 @@ public final class GmOutput extends NetBufferedOutput {
                                 nSendByteBuffer(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                // Wait for 'buffer' send
-                                gmDriver.blockingPump(lockId, lockIds);
+                                // Wait for 'buffer' send completion
+                                pump(lockId, lockIds);
 
                         } else {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                boolean flushed = nSendByteBufferIntoRequest(outputHandle, b, o, _l);
+				boolean flushed = tryFlush(_l);
+                                nSendByteBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
 				if (flushed) {
 					// Wait for 'request' send completion
-					gmDriver.blockingPump(lockId, lockIds);
+					pump(lockId, lockIds);
 				}
 				mustFlush = true;
                         }
@@ -416,7 +493,7 @@ public final class GmOutput extends NetBufferedOutput {
                 while (l > 0) {
                         int _l = 0;
 
-                        if (l > packetMTU) {
+                        if (l > Driver.packetMTU) {
                                 _l = Math.min(l, mtu);
 
 				sendRequest(o, l);
@@ -426,19 +503,20 @@ public final class GmOutput extends NetBufferedOutput {
                                 nSendCharBuffer(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'buffer' send */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                /* Wait for 'buffer' send completion */
+                                pump(lockId, lockIds);
 
                         } else {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                boolean flushed = nSendCharBufferIntoRequest(outputHandle, b, o, _l);
+				boolean flushed = tryFlush(_l);
+                                nSendCharBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
 				if (flushed) {
 					/* Wait for 'request' send completion */
-					gmDriver.blockingPump(lockId, lockIds);
+					pump(lockId, lockIds);
 				}
 				mustFlush = true;
                         }
@@ -453,14 +531,14 @@ public final class GmOutput extends NetBufferedOutput {
 
                 l <<= 1;
                 o <<= 1;
-// System.err.println("Send short array; byte offset " + o + " size " + l);
+// System.err.println(this + ": Send short array; byte offset " + o + " size " + l);
 // Thread.dumpStack();
 // for (int i = 0; i < b.length; i++) { System.err.print(b[i] + ","); } System.err.println();
 
                 while (l > 0) {
                         int _l = 0;
 
-                        if (l > packetMTU) {
+                        if (l > Driver.packetMTU) {
                                 _l = Math.min(l, mtu);
 
 				sendRequest(o, l);
@@ -470,19 +548,21 @@ public final class GmOutput extends NetBufferedOutput {
                                 nSendShortBuffer(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'buffer' send */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                /* Wait for 'buffer' send completion */
+                                pump(lockId, lockIds);
 
                         } else {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                boolean flushed = nSendShortBufferIntoRequest(outputHandle, b, o, _l);
+// System.err.println("Locked access lock");
+				boolean flushed = tryFlush(_l);
+                                nSendShortBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
 				if (flushed) {
 					/* Wait for 'request' send completion */
-					gmDriver.blockingPump(lockId, lockIds);
+					pump(lockId, lockIds);
 				}
 				mustFlush = true;
                         }
@@ -503,7 +583,7 @@ public final class GmOutput extends NetBufferedOutput {
                 while (l > 0) {
                         int _l = 0;
 
-                        if (l > packetMTU) {
+                        if (l > Driver.packetMTU) {
                                 _l = Math.min(l, mtu);
 
 				sendRequest(o, l);
@@ -513,8 +593,8 @@ public final class GmOutput extends NetBufferedOutput {
                                 nSendIntBuffer(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'buffer' send */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                /* Wait for 'buffer' send completion */
+                                pump(lockId, lockIds);
 
                         } else {
 // System.err.println("Send int array; byte offset " + o + " size " + l);
@@ -522,12 +602,13 @@ public final class GmOutput extends NetBufferedOutput {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                boolean flushed = nSendIntBufferIntoRequest(outputHandle, b, o, _l);
+				boolean flushed = tryFlush(_l);
+                                nSendIntBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
 				if (flushed) {
 					/* Wait for 'request' send completion */
-					gmDriver.blockingPump(lockId, lockIds);
+					pump(lockId, lockIds);
 				}
 				mustFlush = true;
                         }
@@ -547,7 +628,7 @@ public final class GmOutput extends NetBufferedOutput {
                 while (l > 0) {
                         int _l = 0;
 
-                        if (l > packetMTU) {
+                        if (l > Driver.packetMTU) {
                                 _l = Math.min(l, mtu);
 
 				sendRequest(o, l);
@@ -557,19 +638,20 @@ public final class GmOutput extends NetBufferedOutput {
                                 nSendLongBuffer(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'buffer' send */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                /* Wait for 'buffer' send completion */
+                                pump(lockId, lockIds);
 
                         } else {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                boolean flushed = nSendLongBufferIntoRequest(outputHandle, b, o, _l);
+				boolean flushed = tryFlush(_l);
+                                nSendLongBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
 				if (flushed) {
 					/* Wait for 'request' send completion */
-					gmDriver.blockingPump(lockId, lockIds);
+					pump(lockId, lockIds);
 				}
 				mustFlush = true;
                         }
@@ -589,7 +671,7 @@ public final class GmOutput extends NetBufferedOutput {
                 while (l > 0) {
                         int _l = 0;
 
-                        if (l > packetMTU) {
+                        if (l > Driver.packetMTU) {
                                 _l = Math.min(l, mtu);
 
 				sendRequest(o, l);
@@ -599,19 +681,20 @@ public final class GmOutput extends NetBufferedOutput {
                                 nSendFloatBuffer(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'buffer' send */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                /* Wait for 'buffer' send completion */
+                                pump(lockId, lockIds);
 
                         } else {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                boolean flushed = nSendFloatBufferIntoRequest(outputHandle, b, o, _l);
+				boolean flushed = tryFlush(_l);
+                                nSendFloatBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
 				if (flushed) {
 					/* Wait for 'request' send completion */
-					gmDriver.blockingPump(lockId, lockIds);
+					pump(lockId, lockIds);
 				}
 				mustFlush = true;
                         }
@@ -631,7 +714,7 @@ public final class GmOutput extends NetBufferedOutput {
                 while (l > 0) {
                         int _l = 0;
 
-                        if (l > packetMTU) {
+                        if (l > Driver.packetMTU) {
                                 _l = Math.min(l, mtu);
 
 				sendRequest(o, l);
@@ -641,19 +724,20 @@ public final class GmOutput extends NetBufferedOutput {
                                 nSendDoubleBuffer(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
-                                /* Wait for 'buffer' send */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                /* Wait for 'buffer' send completion */
+                                pump(lockId, lockIds);
 
                         } else {
                                 _l = l;
 
                                 Driver.gmAccessLock.lock(true);
-                                boolean flushed = nSendDoubleBufferIntoRequest(outputHandle, b, o, _l);
+				boolean flushed = tryFlush(_l);
+                                nSendDoubleBufferIntoRequest(outputHandle, b, o, _l);
                                 Driver.gmAccessLock.unlock();
 
 				if (flushed) {
 					/* Wait for 'request' send completion */
-					gmDriver.blockingPump(lockId, lockIds);
+					pump(lockId, lockIds);
 				}
 				mustFlush = true;
                         }

@@ -2,9 +2,10 @@ package ibis.ipl.impl.net.gm;
 
 import ibis.ipl.impl.net.*;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import java.util.Hashtable;
 
@@ -74,8 +75,6 @@ public final class GmInput extends NetBufferedInput {
         native int nPostDoubleBuffer(long inputHandle, double []b, int base, int length) throws IOException;
 
 	native void nCloseInput(long inputHandle) throws IOException;
-
-        static final int packetMTU = 4096;
 
 	/**
 	 * Constructor.
@@ -170,6 +169,43 @@ public final class GmInput extends NetBufferedInput {
                 log.out();
 	}
 
+
+	/**
+	 * Pump in the face of InterruptedIOExceptions
+	 */
+	private void pump(int[] lockIds) throws IOException {
+	    boolean interrupted;
+	    do {
+		try {
+		    gmDriver.blockingPump(lockIds);
+		    interrupted = false;
+		} catch (InterruptedIOException e) {
+		    // try once more
+		    interrupted = true;
+		    System.err.println(this + ": ********** Catch InterruptedIOException " + e);
+		}
+	    } while (interrupted);
+	}
+
+
+	/**
+	 * Pump in the face of InterruptedIOExceptions
+	 */
+	private void pump(int lockId, int[] lockIds) throws IOException {
+	    boolean interrupted;
+	    do {
+		try {
+		    gmDriver.blockingPump(lockId, lockIds);
+		    interrupted = false;
+		} catch (InterruptedIOException e) {
+		    // try once more
+		    interrupted = true;
+		    System.err.println(this + ": ********** Catch InterruptedIOException " + e);
+		}
+	    } while (interrupted);
+	}
+
+
 int rcvd;
 int plld;
 
@@ -183,7 +219,7 @@ int plld;
 		}
 
                 if (block) {
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 } else {
                         if (!gmDriver.tryPump(lockId, lockIds)) {
                                 System.err.println("poll failed");
@@ -213,12 +249,14 @@ plld++;
 	 * The buffering in NetBuffererdOutput confuses Ibis serialization.
 	 * Provide a special implementation that bypasses that buffer.
 	 */
+	/*
+	 * Guess we will try to use NetBuffering after all...
 	public byte readByte() throws IOException {
 	    if (firstBlock) {
 		firstBlock = false;
 	    } else {
-		/* Request reception */
-		gmDriver.blockingPump(lockId, lockIds);
+		// Request reception
+		pump(lockId, lockIds);
 	    }
 
 
@@ -229,11 +267,12 @@ plld++;
 	    Driver.gmAccessLock.unlock();
 
 	    Driver.gmReceiveLock.unlock();
-// System.err.println("Read single byte=" + result);
+// System.err.println("Read single byte=" + ((byte)(result & 0xFF)));
 // Thread.dumpStack();
 
 	    return (byte)(result & 0xFF);
 	}
+	*/
 
 	/**
 	 * {@inheritDoc}
@@ -255,6 +294,7 @@ plld++;
                 Driver.gmAccessLock.unlock();
 
 // System.err.print("<_");
+// System.err.println("Post byte buffer request length " + b.length + " data.length " + b.data.length + " result " + result);
 // Thread.dumpStack();
                 if (result == 0) {
 			// A rendez-vous message. Receive the data part.
@@ -352,7 +392,7 @@ rcvd++;
                         firstBlock = false;
                 } else {
                         /* Request reception */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 }
 
                 while (l > 0) {
@@ -366,10 +406,10 @@ rcvd++;
 
                         if (result == 0) {
                                 /* Ack completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
 
                                 /* Communication transmission */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -388,15 +428,20 @@ rcvd++;
 	 * because super's uses its own buffering, which is incompatible
 	 * with the buffering used in NetGM.
 	 */
+	/* I hope we can use the buffering of the upper layer after all.
+	 * Otherwise, havoc and panic.
+	 */
 	public void readArray(byte [] b, int o, int l) throws IOException {
                 log.in();
                 freeBuffer();
+// System.err.println(this + ": read Byte array, off " + o + " len " + l);
+// Thread.dumpStack();
 
                 if (firstBlock) {
                         firstBlock = false;
                 } else {
                         // Request reception
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 }
 
                 while (l > 0) {
@@ -410,10 +455,10 @@ rcvd++;
 
                         if (result == 0) {
                                 // Ack completion
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
 
                                 // Communication transmission
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -436,7 +481,7 @@ rcvd++;
                         firstBlock = false;
                 } else {
                         /* Request reception */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 }
 
                 while (l > 0) {
@@ -450,10 +495,10 @@ rcvd++;
 
                         if (result == 0) {
                                 /* Ack completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
 
                                 /* Communication transmission */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -477,7 +522,7 @@ rcvd++;
                         firstBlock = false;
                 } else {
                         /* Request reception */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 }
 // System.err.println(Thread.currentThread() + ": Rcve/start short array; byte offset " + o + " size " + l);
 // Thread.dumpStack();
@@ -496,10 +541,10 @@ rcvd++;
                         if (result == 0) {
 // System.err.println(Thread.currentThread() + ": ack completion, this would be a rendez-vous msg");
                                 /* Ack completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
 
                                 /* Communication transmission */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -524,7 +569,7 @@ rcvd++;
                         firstBlock = false;
                 } else {
                         /* Request reception */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 }
 // System.err.println("Rcve/start int array; byte offset " + o + " size " + l);
 // Thread.dumpStack();
@@ -540,10 +585,10 @@ rcvd++;
 
                         if (result == 0) {
                                 /* Ack completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
 
                                 /* Communication transmission */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -568,7 +613,7 @@ rcvd++;
                         firstBlock = false;
                 } else {
                         /* Request reception */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 }
 
                 while (l > 0) {
@@ -582,10 +627,10 @@ rcvd++;
 
                         if (result == 0) {
                                 /* Ack completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
 
                                 /* Communication transmission */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -609,7 +654,7 @@ rcvd++;
                         firstBlock = false;
                 } else {
                         /* Request reception */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 }
 
                 while (l > 0) {
@@ -623,10 +668,10 @@ rcvd++;
 
                         if (result == 0) {
                                 /* Ack completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
 
                                 /* Communication transmission */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
                         }
 
                         Driver.gmReceiveLock.unlock();
@@ -650,7 +695,7 @@ rcvd++;
                         firstBlock = false;
                 } else {
                         /* Request reception */
-                        gmDriver.blockingPump(lockId, lockIds);
+                        pump(lockId, lockIds);
                 }
 
                 while (l > 0) {
@@ -664,10 +709,10 @@ rcvd++;
 
                         if (result == 0) {
                                 /* Ack completion */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
 
                                 /* Communication transmission */
-                                gmDriver.blockingPump(lockId, lockIds);
+                                pump(lockId, lockIds);
                         }
 
                         Driver.gmReceiveLock.unlock();

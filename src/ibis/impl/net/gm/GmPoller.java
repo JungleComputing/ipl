@@ -135,8 +135,10 @@ if (false) {
 		return null;
 	    }
 
-// Driver.t_wait_reply.stop();
-// Driver.t_wait_service.start();
+	    if (Driver.TIMINGS) {
+		Driver.t_wait_reply.stop();
+		Driver.t_wait_service.start();
+	    }
 
 	    activeQueue = rq[result];
 	    selectConnection(activeQueue);
