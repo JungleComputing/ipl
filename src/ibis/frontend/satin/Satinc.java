@@ -2495,7 +2495,11 @@ System.out.println("findMethod: could not find method " + name + sig);
 	for (int i=0; i<params.length-1; i++) {
 	    out.print(params_types_as_names[i] + " param" + i + ",");
 	}
-	out.println(params_types_as_names[params.length-1] + " param" + (params.length-1) + ") {");	
+	if(params.length > 0 ) {
+		out.print(params_types_as_names[params.length-1] + " param" + (params.length-1));
+	}
+	out.println(") {");	
+	
 	for (int i=0; i<params.length; i++) {
 	    out.println("        this.param" + i + " = param" + i + ";");
 	}
@@ -2639,10 +2643,15 @@ System.out.println("findMethod: could not find method " + name + sig);
 	//toString method
 	out.println("    public String toString() {");
 	out.println("        String str = \"(\";");
-	for (int i=0; i<params.length-1; i++) {
-	    out.println("        str += param" + i + " + \",\";");
+
+	if(params.length > 0) {
+		for (int i=0; i<params.length-1; i++) {
+			out.println("        str += param" + i + " + \",\";");
+		}
+		
+		out.println("        str += param" + (params.length-1) + ";");
 	}
-	out.println("        str += param" + (params.length-1) + ";");
+
 	out.println("        str += \")\";");
 	out.println("        return str;");
 	out.println("    }");
