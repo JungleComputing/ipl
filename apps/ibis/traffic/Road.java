@@ -2,385 +2,294 @@
 
 import ibis.ipl.*;
 
-import java.util.Properties;
 import java.util.Random;
-import ibis.util.PoolInfo;
 
-import java.io.IOException;
+class Road implements Configuration {
+    static int TICKS = 100000;
+    static int me = 0;
+    final double launchInterval = 5.1;
+    double launchElapsed = launchInterval;
+    static final int CARS_PER_TRUCK = 4;
+    Vehicle lanes[] = new Vehicle[LANES];
+    Random r = new Random( 0 );
+    static boolean traceVehicleUpdates = false;
+    static boolean traceCreateRetire = false;
+    static boolean traceBraking = false;
+    static boolean traceLaneSwitching = false;
 
-interface Config {
-    static final boolean tracePortCreation = false;
-    static final boolean traceCommunication = false;
-    static final boolean showProgress = false;
-    static final boolean showBoard = false;
-    static final int GENERATIONS = 100;
-    static final int SHOWNBOARDWIDTH = 60;
-    static final int SHOWNBOARDHEIGHT = 30;
-}
-
-class Cell1D implements Config {
-    static Ibis ibis;
-    static Registry registry;
-    static PoolInfo info;
-    static int boardsize = 3000;
-
-    private static void usage()
+    Road()
     {
-        System.out.println( "Usage: Cell1D [count]" );
-        System.exit( 0 );
     }
 
-    /**
-     * Creates an update send port that connected to the specified neighbour.
-     * @param t The type of the port to construct.
-     * @param me My own processor number.
-     * @param procno The processor number to connect to.
-     */
-    private static SendPort createUpdateSendPort( PortType t, int me, int procno )
-        throws java.io.IOException
+    private void launchVehicle( int tick )
     {
-        String portclass;
+        Vehicle v;
 
-        if( me<procno ){
-            portclass = "Upstream";
+        // TODO: make sure we're not too close to the previous one.
+        if( r.nextInt( CARS_PER_TRUCK ) == 0 ){
+            v = new Truck();
         }
         else {
-            portclass = "Downstream";
+            v = new Car();
         }
-        String sendportname = "send" + portclass + me;
-        String receiveportname = "receive" + portclass + procno;
-
-        SendPort res = t.createSendPort( sendportname );
-        if( tracePortCreation ){
-            System.err.println( "P" + me + ": created send port " + sendportname  );
+        if( traceCreateRetire ){
+            System.out.println( "T" + tick + ": launching " + v );
         }
-        ReceivePortIdentifier id = registry.lookupReceivePort( receiveportname );
-        res.connect( id );
-        if( tracePortCreation ){
-            System.err.println( "P" + me + ": connected " + sendportname + " to " + receiveportname );
-        }
-        return res;
+        v.next = lanes[0];
+        lanes[0] = v;
     }
 
-    /**
-     * Creates an update receive port.
-     * @param t The type of the port to construct.
-     * @param me My own processor number.
-     * @param procno The processor to receive from.
+    /** Given the position of the current vehicle in each lane,
+     * select the lane with the backmost one.
      */
-    private static ReceivePort createUpdateReceivePort( PortType t, int me, int procno )
-        throws java.io.IOException
+    private static int selectLane( Vehicle positions[] )
     {
-        String portclass;
+        int lane = -1;
+        double pos = 0.0;
 
-        if( me<procno ){
-            portclass = "receiveDownstream";
-        }
-        else {
-            portclass = "receiveUpstream";
-        }
-        String receiveportname = portclass + me;
+        for( int i=0; i<positions.length; i++ ){
+            Vehicle v = positions[i];
 
-        ReceivePort res = t.createReceivePort( receiveportname );
-        if( tracePortCreation ){
-            System.err.println( "P" + me + ": created receive port " + receiveportname  );
-        }
-        res.enableConnections();
-        return res;
-    }
-
-    private static byte horTwister[][] = {
-        { 0, 0, 0, 0, 0 },
-        { 0, 1, 1, 1, 0 },
-        { 0, 0, 0, 0, 0 },
-    };
-
-    private static byte vertTwister[][] = {
-        { 0, 0, 0 },
-        { 0, 1, 0 },
-        { 0, 1, 0 },
-        { 0, 1, 0 },
-        { 0, 0, 0 },
-    };
-
-    private static byte horTril[][] = {
-        { 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 1, 1, 0, 0 },
-        { 0, 1, 0, 0, 1, 0 },
-        { 0, 0, 1, 1, 0, 0 },
-        { 0, 0, 0, 0, 0, 0 },
-    };
-
-    private static byte vertTril[][] = {
-        { 0, 0, 0, 0, 0 },
-        { 0, 0, 1, 0, 0 },
-        { 0, 1, 0, 1, 0 },
-        { 0, 1, 0, 1, 0 },
-        { 0, 0, 1, 0, 0 },
-        { 0, 0, 0, 0, 0 },
-    };
-
-    private static byte glider[][] = {
-        { 0, 0, 0, 0, 0 },
-        { 0, 1, 1, 1, 0 },
-        { 0, 1, 0, 0, 0 },
-        { 0, 0, 1, 0, 0 },
-        { 0, 0, 0, 0, 0 },
-    };
-
-    /**
-     * Puts the given pattern at the given coordinates.
-     * Since we want the pattern to be readable, we take the first
-     * row of the pattern to be the at the top.
-     */
-    static protected void putPattern( byte board[][], int px, int py, byte pat[][] )
-    {
-        for( int y=pat.length-1; y>=0; y-- ){
-            byte paty[] = pat[y];
-
-            for( int x=0; x<paty.length; x++ ){
-                board[px+x][py+y] = paty[x];
+            if( v != null && (lane<0 || v.getPosition()<pos) ){
+                pos = v.getPosition();
+                lane = i;
             }
         }
+        return lane;
     }
 
-    /**
-     * Returns true iff the given pattern occurs at the given
-     * coordinates.
+    /** Updates all car positions in a back-to-front wavefront.
+     * Cars slow down to avoid hitting the one in front, and switch
+     * lanes if their speed is too low.
      */
-    static protected boolean hasPattern( byte board[][], int px, int py, byte pat[][ ] )
+    private void updateVehiclePositions( int tick )
     {
-        for( int y=pat.length-1; y>=0; y-- ){
-            byte paty[] = pat[y];
+        /** For each lane, the first car we haven't updated yet. */
+        Vehicle front[] = (Vehicle []) lanes.clone();
 
-            for( int x=0; x<paty.length; x++ ){
-                if( board[px+x][py+y] != paty[x] ){
-                    return false;
+        /** For each lane, the position of the car behind the wave front. */
+        Vehicle prev[] = new Vehicle[LANES];
+
+        while( true ) {
+            int lane = selectLane( front );
+
+            if( lane<0 ){
+                break;
+            }
+            Vehicle v = front[lane];
+
+            if( traceVehicleUpdates ){
+                System.out.println( "Update vehicle in lane " + lane + ": " + v );
+            }
+            Vehicle vfront = v.next;
+            double frontpos = 2*ROAD_LENGTH;
+            double frontVelocity = 2*ROAD_LENGTH;
+
+            if( lane+1<LANES ){
+                // If there is a car in the next lane, watch its speed.
+                Vehicle vn = front[lane+1];
+                if( vn != null ){
+                    frontpos = vn.getPosition();
+                    frontVelocity = vn.getVelocity();
                 }
             }
-        }
-        return true;
-    }
+            if( v.next != null ){
+                // If there is a car in front of us, watch its speed.
+                Vehicle vn = v.next;
 
-    // Put a twister (a bar of 3 cells) at the given center cell.
-    static protected void putTwister( byte board[][], int x, int y )
-    {
-        putPattern( board, x-2, y-1, horTwister );
-    }
+                frontpos = Math.min( frontpos, vn.getPosition() );
+                frontVelocity = Math.min( frontVelocity, vn.getVelocity() );
+            }
 
-    // Given a position, return true iff there is a twister in hor or
-    // vertical position at that point.
-    static protected boolean hasTwister( byte board[][], int x, int y )
-    {
-        return hasPattern( board, x-2, y-1, horTwister ) ||
-            hasPattern( board, x-1, y-2, vertTwister );
-    }
+            if( v.isDangerouslyClose( v.next ) ){
+                // If we're too close to the next car in this lane, brake 
+                v.brake();
+                if( traceBraking ){
+                    System.out.println( "T" + tick + ": brake for next vehicle: " + v  + " lane " + lane + " culpit: " + v.next );
+                }
+            }
+            else if( v.isUncomfortablyClose( frontpos ) ){
+                boolean switchedLane = false;
+                if( !v.isComfortableVelocity( frontVelocity ) ){
+                    // We want to switch to a faster lane.
+                    if( lane+1<LANES ){
+                        boolean safeSwitch = true;
 
-    private static void send( int me, SendPort p, byte data[] )
-        throws java.io.IOException
-    {
-        if( traceCommunication ){
-            System.err.println( "P" + me + ": sending from port " + p );
-        }
-        WriteMessage m = p.newMessage();
-        m.writeArray( data );
-        m.send();
-        m.finish();
-    }
+                        Vehicle pv = prev[lane+1];
+                        if( v.isUncomfortablyClose( prev[lane+1] ) ){
+                            // There is a vehicle in the next lane that blocks
+                            // a lane switch.
+                            safeSwitch = false;
+                        }
+                        if( v.isUncomfortablyClose( front[lane+1] )){
+                            // There is a vehicle in the next lane that blocks
+                            // a lane switch.
+                            safeSwitch = false;
+                        }
 
-    private static void receive( int me, ReceivePort p, byte data[] )
-        throws java.io.IOException
-    {
-        if( traceCommunication ){
-            System.err.println( "P" + me + ": receiving on port " + p );
-        }
-        ReadMessage m = p.receive();
-        m.readArray( data );
-        m.finish();
-    }
+                        if( safeSwitch ){
+                            // Ok, switch lanes.
+                            if( traceLaneSwitching ){
+                                System.out.println( "T" + tick + ": switch lane " + lane + "->" + (lane+1) + ": " + v  + " culpit: " + v.next );
+                            }
+                            // Extract the vehicle from this lane.
+                            if( prev[lane] == null ){
+                                lanes[lane] = v.next;
+                            }
+                            else {
+                                prev[lane].next = v.next;
+                            }
+                            front[lane] = v.next;
 
-    public static void main( String [] args )
-    {
-        int count = GENERATIONS;
-        int repeat = 10;
-        int rank = 0;
-        int remoteRank = 1;
-        boolean noneSer = false;
+                            lane++;
 
-        /* Parse commandline parameters. */
-        for( int i=0; i<args.length; i++ ){
-            if( args[i].equals( "-size" ) ){
-                i++;
-                boardsize = Integer.parseInt( args[i] );
+                            // Insert the vehicle in the next lane.
+                            v.next = front[lane];
+                            if( prev[lane] == null ){
+                                lanes[lane] = v;
+                            }
+                            else {
+                                prev[lane].next = v;
+                            }
+                            front[lane] = v;
+                            switchedLane = true;
+                        }
+                    }
+                }
+                if( !switchedLane ){
+                    // Too close for comfort but safe, adapt velocity.
+                    boolean changed = v.adjustToVelocity( frontVelocity );
+                    if( changed && traceBraking ){
+                        System.out.println( "T" + tick + ": comfort adjustment of " + v  + " lane " + lane );
+                    }
+                }
             }
             else {
-                count = Integer.parseInt( args[i] );
-            }
-        }
+                // We're not close to a car, adjust velocity to what we like.
+                boolean changed = v.relaxVelocity();
+                if( changed && traceBraking ){
+                    System.out.println( "T" + tick + ": relaxed velocity of " + v  + " lane " + lane );
+                }
+                // We want to switch to a faster lane.
+                if( lane>0 ){
+                    boolean safeSwitch = true;
 
-        try {
-            info = PoolInfo.createPoolInfo();
-            StaticProperties s = new StaticProperties();
-            s.add( "serialization", "data" );
-            s.add( "communication", "OneToOne, Reliable, ExplicitReceipt" );
-            s.add( "worldmodel", "closed" );
-            ibis = Ibis.createIbis( s, null );
+                    Vehicle pv = prev[lane-1];
+                    if( v.isUncomfortablyClose( prev[lane-1] ) ){
+                        // There is a vehicle in the previous lane that blocks
+                        // a lane switch.
+                        safeSwitch = false;
+                    }
+                    if( v.isUncomfortablyClose( front[lane-1] )){
+                        // There is a vehicle in the previous lane that blocks
+                        // a lane switch.
+                        safeSwitch = false;
+                    }
 
-            registry = ibis.registry();
-
-            // This only works for a closed world...
-            final int me = info.rank();         // My processor number.
-            final int nProcs = info.size();     // Total number of procs.
-
-            PortType t = ibis.createPortType( "neighbour update", s );
-
-            SendPort leftSendPort = null;
-            SendPort rightSendPort = null;
-            ReceivePort leftReceivePort = null;
-            ReceivePort rightReceivePort = null;
-
-            if( me != 0 ){
-                leftReceivePort = createUpdateReceivePort( t, me, me-1 );
-            }
-            if( me != nProcs-1 ){
-                rightReceivePort = createUpdateReceivePort( t, me, me+1 );
-            }
-            if( me != 0 ){
-                leftSendPort = createUpdateSendPort( t, me, me-1 );
-            }
-            if( me != nProcs-1 ){
-                rightSendPort = createUpdateSendPort( t, me, me+1 );
-            }
-
-            // The cells. There is a border of cells that are always empty,
-            // but make the border conditions easy to handle.
-            final int myColumns = boardsize/nProcs;
-
-            // The Life board.
-            byte board[][] = new byte[myColumns+2][boardsize+2];
-
-            // We need two extra column arrays to temporarily store the update
-            // of a column. These arrays will be circulated with the columns of
-            // the board.
-            byte updatecol[] = new byte[boardsize+2];
-            byte nextupdatecol[] = new byte[boardsize+2];
-
-            putTwister( board, 3, 100 );
-            putPattern( board, 4, 4, glider );
-
-            if( me == 0 ){
-                System.out.println( "Using " + ibis.implementationName() );
-                System.out.println( "Started" );
-            }
-            long startTime = System.currentTimeMillis();
-
-            for( int iter=0; iter<count; iter++ ){
-                byte prev[];
-                byte curr[] = board[0];
-                byte next[] = board[1];
-
-                if( showBoard && me == 0 ){
-                    System.out.println( "Generation " + iter );
-                    for( int y=1; y<SHOWNBOARDHEIGHT; y++ ){
-                        for( int x=1; x<SHOWNBOARDWIDTH; x++ ){
-                            System.out.print( board[x][y] );
+                    if( safeSwitch ){
+                        // Ok, switch lanes.
+                        if( traceLaneSwitching ){
+                            System.out.println( "T" + tick + ": switch lane " + lane + "->" + (lane-1) + ": " + v  );
                         }
-                        System.out.println();
+                        // Extract the vehicle from this lane.
+                        if( prev[lane] == null ){
+                            lanes[lane] = v.next;
+                        }
+                        else {
+                            prev[lane].next = v.next;
+                        }
+                        front[lane] = v.next;
+
+                        lane--;
+
+                        // Insert the vehicle in the next lane.
+                        v.next = front[lane];
+                        if( prev[lane] == null ){
+                            lanes[lane] = v;
+                        }
+                        else {
+                            prev[lane].next = v;
+                        }
+                        front[lane] = v;
                     }
                 }
-                for( int i=1; i<=myColumns; i++ ){
-                    prev = curr;
-                    curr = next;
-                    next = board[i+1];
-                    for( int j=1; j<=boardsize; j++ ){
-                        int neighbours =
-                            prev[j-1] +
-                            prev[j] +
-                            prev[j+1] +
-                            curr[j-1] +
-                            curr[j+1] +
-                            next[j-1] +
-                            next[j] +
-                            next[j+1];
-                        boolean alive = (neighbours == 3) || ((neighbours == 2) && (board[i][j]==1));
-                        updatecol[j] = alive?(byte) 1:(byte) 0;
-                    }
-                    
-                    //
-                    byte tmp[] = board[i];
-                    board[i] = updatecol;
-                    updatecol = nextupdatecol;
-                    nextupdatecol = tmp;
+            }
+            v.updatePosition();
+            if( v.getPosition() >= ROAD_LENGTH ){
+                // Retire this car.
+                if( traceCreateRetire ){
+                    System.out.println( "T" + tick + ": retiring " + v );
                 }
-                if( (me % 2) == 0 ){
-                    if( leftSendPort != null ){
-                        send( me, leftSendPort, board[1] );
-                    }
-                    if( rightSendPort != null ){
-                        send( me, rightSendPort, board[myColumns] );
-                    }
-                    if( leftReceivePort != null ){
-                        receive( me, leftReceivePort, board[0] );
-                    }
-                    if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, board[myColumns+1] );
-                    }
+                if( prev[lane] == null ){
+                    lanes[lane] = v.next;
                 }
                 else {
-                    if( rightReceivePort != null ){
-                        receive( me, rightReceivePort, board[myColumns+1] );
-                    }
-                    if( leftReceivePort != null ){
-                        receive( me, leftReceivePort, board[0] );
-                    }
-                    if( rightSendPort != null ){
-                        send( me, rightSendPort, board[myColumns] );
-                    }
-                    if( leftSendPort != null ){
-                        send( me, leftSendPort, board[1] );
-                    }
-                }
-                if( showProgress ){
-                    if( me == 0 ){
-                        System.out.print( '.' );
-                    }
+                    prev[lane].next = v.next;
                 }
             }
-            if( showProgress ){
-                if( me == 0 ){
-                    System.out.println();
-                }
+            else {
+                prev[lane] = front[lane];
             }
-            if( leftSendPort != null ){
-                leftSendPort.close();
-            }
-            if( rightSendPort != null ){
-                rightSendPort.close();
-            }
-            if( leftReceivePort != null ){
-                leftReceivePort.close();
-            }
-            if( rightReceivePort != null ){
-                rightReceivePort.close();
-            }
-            if( !hasTwister( board, 3, 100 ) ){
-                System.out.println( "Twister has gone missing" );
-            }
-            if( me == 0 ){
-                long endTime = System.currentTimeMillis();
-                double time = ((double) (endTime - startTime))/1000.0;
-                long updates = boardsize*boardsize*(long) count;
-
-                System.out.println( "ExecutionTime: " + time );
-                System.out.println( "Did " + updates + " updates" );
-            }
-
-            ibis.end();
+            front[lane] = v.next;
         }
-        catch( Exception e ) {
-            System.err.println( "Got exception " + e );
-            System.err.println( "StackTrace:" );
-            e.printStackTrace();
+    }
+
+    private void runTick( int tick )
+    {
+        updateVehiclePositions( tick );
+        if( launchElapsed >= launchInterval ){
+            launchElapsed -= launchInterval;
+            launchVehicle( tick );
+        }
+        launchElapsed += 1.0;
+    }
+
+    private void runSimulation()
+    {
+        for( int tick=0; tick<TICKS; tick++ ){
+            runTick( tick );
+        }
+    }
+
+    public static void usage()
+    {
+        System.out.println( "usage: Road [-time <ticks>] [-v]" );
+    }
+
+    public static void main( String args[] )
+    {
+        /* Parse commandline parameters. */
+        for( int i=0; i<args.length; i++ ){
+            if( args[i].equals( "-time" ) ){
+                i++;
+                TICKS = Integer.parseInt( args[i] );
+            }
+            else if( args[i].equals( "-v" ) ){
+                traceVehicleUpdates = true;
+                traceCreateRetire = true;
+                traceBraking = true;
+                traceLaneSwitching = true;
+            }
+            else {
+                System.out.println( "Unknown option `" + args[i] + "'" );
+                usage();
+                System.exit( 1 );
+            }
+        }
+        Road r = new Road();
+
+        long startTime = System.currentTimeMillis();
+
+        if( me == 0 ){
+            System.out.println( Helpers.getPlatformVersion() );
+        }
+        r.runSimulation();
+        if( me == 0 ){
+            long endTime = System.currentTimeMillis();
+            double time = ((double) (endTime - startTime))/1000.0;
+
+            System.out.println( "ExecutionTime: " + time );
+            System.out.println( "Launched " + Vehicle.labeler + " vehicles" );
         }
     }
 }
