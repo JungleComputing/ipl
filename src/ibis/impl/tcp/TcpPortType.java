@@ -69,14 +69,11 @@ class TcpPortType extends PortType implements Config {
 	} 
 
 	public String name() { 
-		if (name != null) {
-			return name;
-		}
-		return "__anonymous__";
+		return name;
 	} 
 
 	private boolean equals(TcpPortType other) {
-		return name().equals(other.name()) && ibis.equals(other.ibis);
+		return name.equals(other.name) && ibis.equals(other.ibis);
 	} 
 
 	public boolean equals(Object other) {
@@ -86,7 +83,7 @@ class TcpPortType extends PortType implements Config {
 	}
 
 	public int hashCode() {
-	    return name().hashCode() + ibis.hashCode();
+	    return name.hashCode() + ibis.hashCode();
 	}
 
 	public StaticProperties properties() { 
@@ -122,6 +119,6 @@ class TcpPortType extends PortType implements Config {
 	}
 
 	public String toString() {
-		return ("(TcpPortType: name = " + name() + ")");
+		return ("(TcpPortType: name = " + name + ")");
 	}
 }

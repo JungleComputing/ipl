@@ -247,10 +247,7 @@ public final class NetPortType extends PortType {
 	 * {@inheritDoc}
 	 */
 	public String name() {
-		if (name != null) {
-			return name;
-		}
-		return "__anonymous__";
+		return name;
 	}
 
 	/**
@@ -293,14 +290,14 @@ public final class NetPortType extends PortType {
 
 		if (temp == this) return true;
 
-		return name().equals(temp.name()) && ibis.equals(temp.ibis);
+		return name.equals(temp.name) && ibis.equals(temp.ibis);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public int hashCode() {
-		return name().hashCode() + ibis.hashCode();
+		return name.hashCode() + ibis.hashCode();
 	}
 
         /**

@@ -75,15 +75,11 @@ class NioPortType extends PortType implements Config {
     } 
 
     public String name() { 
-	if (name != null) {
-	    return name;
-	}
-	return "__anonymous__";
+	return name;
     } 
 
-    //FIXME: if name == null, crash! and what if 2x anonymous?
     private boolean equals(NioPortType other) {
-	return name().equals(other.name()) && ibis.equals(other.ibis);
+	return name.equals(other.name) && ibis.equals(other.ibis);
     } 
 
     public boolean equals(Object other) {
@@ -93,7 +89,7 @@ class NioPortType extends PortType implements Config {
     }
 
     public int hashCode() {
-	return name().hashCode() + ibis.hashCode();
+	return name.hashCode() + ibis.hashCode();
     }
 
     public StaticProperties properties() { 
@@ -115,6 +111,6 @@ class NioPortType extends PortType implements Config {
     }
 
     public String toString() {
-	return ("(NioPortType: name = " + name() + ")");
+	return ("(NioPortType: name = " + name + ")");
     }
 }

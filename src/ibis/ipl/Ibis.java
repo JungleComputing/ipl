@@ -38,6 +38,9 @@ public abstract class Ibis {
     /** A user-supplied resize handler, with join/leave upcalls. */
     protected ResizeHandler resizeHandler;
 
+    /** Counter for anonymous port types. **/
+    private static int port_counter = 0;
+
     /** User properties, combined with required properties. */
     private StaticProperties combinedprops;
 
@@ -527,6 +530,11 @@ public abstract class Ibis {
 	throws IOException, IbisException
     {
 	checkPortProperties(p);
+	if (name == null) {
+	    synchronized(Ibis.class) {
+		name = "__Anonymous_PortType_" + port_counter++;
+	    }
+	}
 	return newPortType(name, p);
     }
 
