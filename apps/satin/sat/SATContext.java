@@ -480,6 +480,7 @@ public final class SATContext implements java.io.Serializable {
         boolean anyChange = false;
         Clause res = p.clauses[cno];
         boolean resolvedDominator = false;
+        boolean usedAntecedent[] = new boolean[satisfied.length];
 
         int bestDom = calculateNearestDominator( p, cno, level );
         do {
@@ -491,7 +492,8 @@ public final class SATContext implements java.io.Serializable {
                 if( dl[v] == level ){
                     int a = antecedent[v];
 
-                    if( a>=0 ){
+                    if( a>=0 && !usedAntecedent[a] ){
+                        usedAntecedent[a] = true;
                         Clause newres = Clause.resolve( res, p.clauses[a], v );
                         if( traceLearning ){
                             System.err.println( "Resolving on v" + v + ":" );
@@ -517,7 +519,8 @@ public final class SATContext implements java.io.Serializable {
                     if( dl[v] == level ){
                         int a = antecedent[v];
 
-                        if( a>=0 ){
+                        if( a>=0 && !usedAntecedent[a] ){
+                            usedAntecedent[a] = true;
                             Clause newres = Clause.resolve( res, p.clauses[a], v );
                             if( traceLearning ){
                                 System.err.println( "Resolving on v" + v + ":" );
@@ -549,7 +552,8 @@ public final class SATContext implements java.io.Serializable {
                     int v = arr[i];
                     int a = antecedent[v];
 
-                    if( a>=0 ){
+                    if( a>=0 && !usedAntecedent[a] ){
+                        usedAntecedent[a] = true;
                         Clause newres = Clause.resolve( res, p.clauses[a], v );
                         int l = newres.getTermCount();
 
@@ -564,7 +568,8 @@ public final class SATContext implements java.io.Serializable {
                     int v = arr[i];
                     int a = antecedent[v];
 
-                    if( a>=0 ){
+                    if( a>=0 && !usedAntecedent[a] ){
+                        usedAntecedent[a] = true;
                         Clause newres = Clause.resolve( res, p.clauses[a], v );
                         int l = newres.getTermCount();
 
