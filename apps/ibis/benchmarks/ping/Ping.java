@@ -56,22 +56,22 @@ public final class Ping {
 	 * <BR><B>Note</B>: an additional dummy testing cycle is performed as a warm-up before the
 	 * {@link param_nb_tests} testing cycles.
 	 */
-	final static int     	    param_nb_tests          = 		  5;
+	final static int     	    param_nb_tests          = 		   5;
 
 	/**
 	 * Parameter indicating the number of sample iteration within one testing cycle.
 	 */
-	final static int     	    param_nb_samples        = 	       3000;
+	final static int     	    param_nb_samples        = 	        1000;
 
 	/**
 	 * The minimum message size.
 	 */
-	final static int     	    param_min_size          =             1;
+	final static int     	    param_min_size          =              1;
 
 	/**
 	 * The maximum message size.
 	 */
-	final static int     	    param_max_size          =     1024*1024;
+	final static int     	    param_max_size          =    2*1024*1024;
 
 	/**
 	 * The increasing message size step.
@@ -206,45 +206,44 @@ public final class Ping {
         }
 
 	static void dispTestResult(int test, int _size, double result) {
-		double millionbyte = (_size * (double)param_nb_samples) / (result / (2 - (param_one_way?1:0)));
-		double megabyte    = millionbyte / 1.048576;
-		double latency     = result / param_nb_samples / (2 - (param_one_way?1:0));
+		double	millionbyte = (_size * (double)param_nb_samples) / (result / (2 - (param_one_way?1:0)));
+		double  megabyte    = millionbyte / 1.048576;
+		double  latency     = result / param_nb_samples / (2 - (param_one_way?1:0));
 
-                StringBuffer fb = new StringBuffer("* test "+test+": "+rank+" "+remoteRank+"  ");
+                StringBuffer fb = param_one_way?new StringBuffer("* test "+test+": "+rank+"->"+remoteRank+"  "):new StringBuffer("* test "+test+": ");
                 fb.append(alignRight(_size, 7));
                 fb.append("  ");
-                fb.append(alignRight(millionbyte, 7));
+                fb.append(alignRight(millionbyte, 15));
                 fb.append("  ");
-                fb.append(alignRight(megabyte, 7));
+                fb.append(alignRight(megabyte, 15));
                 fb.append("  ");
-                fb.append(alignRight(latency, 7));
+                fb.append(alignRight(latency, 15));
                 System.err.println(""+fb);
 	}
 
 	static void dispAverageResult(int _size, double result) {
-		double millionbyte = (_size * (double)param_nb_tests * (double)param_nb_samples) / (result / (2 - (param_one_way?1:0)));
-		double megabyte    = millionbyte / 1.048576;
-		double latency     = result / param_nb_tests / param_nb_samples / (2 - (param_one_way?1:0));
+		double 		millionbyte = (_size * (double)param_nb_tests * (double)param_nb_samples) / (result / (2 - (param_one_way?1:0)));
+		double          megabyte    = millionbyte / 1.048576;
+		double          latency     = result / param_nb_tests / param_nb_samples / (2 - (param_one_way?1:0));
+                StringBuffer    fb          = param_one_way?new StringBuffer("= "+rank+"->"+remoteRank+"  "):new StringBuffer("= ");
 
-                StringBuffer fb = new StringBuffer("= "+rank+" "+remoteRank+"  ");
                 fb.append(alignRight(_size, 7));
                 fb.append("  ");
-                fb.append(alignRight(millionbyte, 7));
+                fb.append(alignRight(millionbyte, 15));
                 fb.append("  ");
-                fb.append(alignRight(megabyte, 7));
+                fb.append(alignRight(megabyte, 15));
                 fb.append("  ");
-                fb.append(alignRight(latency, 7));
+                fb.append(alignRight(latency, 15));
                 System.out.println(""+fb);
 	}
 
 	static double oneWayPing(final int _size) throws Exception {
-		double sum      = 0.0;
-		int    nb_tests = param_nb_tests + 1;
+		double  sum      = 0.0;
+		int     nb_tests = param_nb_tests + 1;
 
 		while ((nb_tests--) > 0) {
 			int nb_samples = param_nb_samples;
 
-			double time = System.currentTimeMillis();
 			timer.reset();
 			timer.start();
 			if (param_control_receive) {
@@ -287,16 +286,13 @@ public final class Ping {
                                 System.err.println("Ping: receiving: <--");
                         }
 
-			time = 1000 * (System.currentTimeMillis() - time);
 			timer.stop();
 			double _time =  timer.totalTimeVal();
 
-			dispTestResult(param_nb_tests - nb_tests, _size, time);
 			dispTestResult(param_nb_tests - nb_tests, _size, _time);
-			System.err.println();
 
 			if ((param_nb_tests - nb_tests) > 0) {
-				sum += time;
+				sum += _time;
 			}
 		}
 
@@ -310,7 +306,6 @@ public final class Ping {
 		while ((nb_tests--) > 0) {
 			int  nb_samples = param_nb_samples;
 
-			double time = System.currentTimeMillis();
 			timer.reset();
 			timer.start();
 			while ((nb_samples--) > 0) {
@@ -350,14 +345,12 @@ public final class Ping {
 				}
 			}
 			timer.stop();
-			time = 1000 * (System.currentTimeMillis() - time);
 
 			double _time = timer.totalTimeVal();
-			dispTestResult(param_nb_tests - nb_tests, _size, time);
 			dispTestResult(param_nb_tests - nb_tests, _size, _time);
-			System.err.println();
+
 			if ((param_nb_tests - nb_tests) > 0) {
-				sum += time;
+				sum += _time;
 			}
 		}
 
@@ -388,9 +381,7 @@ public final class Ping {
                                 System.err.println("Pong: sending: -->");
                         }
 			WriteMessage out = sport.newMessage();
-
                         out.writeArray(buffer);
-
 			out.send();
 			out.finish();
                         if (param_log) {
@@ -444,7 +435,7 @@ public final class Ping {
                                 fill_buffer();
                         }
 
-			System.err.println("--------------------");
+			System.err.println("\n--------------------");
 			System.err.println("size = "+_size+"\n");
 
 			if (param_one_way) {
@@ -542,14 +533,12 @@ public final class Ping {
 			//String name = "ibis.ipl.impl.tcp.TcpIbis";
 			//String name = "ibis.ipl.impl.messagePassing.PandaIbis";
 			String name = "ibis.ipl.impl.net.NetIbis";
-			System.err.println("1");
+
 			ibis = Ibis.createIbis(id, name, null);
-			System.err.println("2");
 
 			// Configuration information
 			registry = ibis.registry();
 			IbisIdentifier master = (IbisIdentifier) registry.elect("ping", ibis.identifier());
-			System.err.println("3");
 
 			if(master.equals(ibis.identifier())) {
 				rank       = 0;
@@ -574,6 +563,7 @@ public final class Ping {
 				ReceivePortIdentifier ident = lookup("ping 1");
 				connect(sport, ident);
 
+                                System.err.println("Master: starting test");
 				master();
 			} else {
 				ReceivePortIdentifier ident = lookup("ping 0");
@@ -581,12 +571,12 @@ public final class Ping {
 				rport = t.createReceivePort("ping 1");
 				rport.enableConnections();
 
+                                System.err.println("Slave: starting test");
 				slave();
 			}
                         sport.free();
                         rport.free();
 			ibis.end();
-
 		} catch (Exception e) {
 			System.out.println("Got exception " + e);
 			System.out.println("StackTrace:");
