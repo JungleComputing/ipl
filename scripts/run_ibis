@@ -2,6 +2,13 @@ JAVACLASSPATH=$IBIS_ROOT/ibis/classlibs:$IBIS_ROOT:.:$JAVA_ROOT/jre/lib/rt.jar:$
 
 export LD_ASSUME_KERNEL=2.2.5
 
+#disable panda interrupte
+#export IBP_NO_INTR=1
+
+# fix panda/lfc flow control
+#export LFC_SEND_COPY_ASIDE=1
+#export PAN_SYS_CREDITS=65535
+
 export LFC_INTR_FIRST=100
 export IBP_SEND_SYNC=100 
 export MANTA_NO_PANDA=1
@@ -31,4 +38,4 @@ shift
 Dns_server="-Dname_server=$1"
 shift
 
-$JAVA_ROOT/bin/java $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dhosts="$HOSTS" -Xmx400M -Xbootclasspath:$JAVACLASSPATH -classpath $JAVACLASSPATH "$@"
+$JAVA_ROOT/bin/java $Dlibpath $Dpool_host_num $Dprops  $Dpool_total $Dns_pool $Dns_port $Dns_server -Dhosts="$HOSTS" -Xmx1024M -Xbootclasspath:$JAVACLASSPATH -classpath $JAVACLASSPATH "$@"

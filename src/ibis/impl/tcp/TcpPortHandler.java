@@ -29,7 +29,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 		this.me = me;
 
 		try {
-			systemServer = IbisSocketFactory.createServerSocket(0, true);
+			systemServer = IbisSocketFactory.createServerSocket(0, me.address(), true);
 			port = systemServer.getLocalPort();
 		} catch (IOException e) {
 			throw new IbisIOException("createServerSocket throws " + e);
@@ -94,7 +94,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 			if (DEBUG) {
 			    System.err.println("Creating socket for connection to " + receiver);
 			}
-			s = IbisSocketFactory.createSocket(receiver.ibis.address(), receiver.port, true);
+			s = IbisSocketFactory.createSocket(receiver.ibis.address(), receiver.port, me.address(), true);
 
 			InputStream sin = s.getInputStream();
 			OutputStream sout = s.getOutputStream();
@@ -196,7 +196,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
 	void quit() { 
 		try { 
-			Socket s = IbisSocketFactory.createSocket(me.address(), port, true);
+			Socket s = IbisSocketFactory.createSocket(me.address(), port, me.address(), true);
 			OutputStream sout = s.getOutputStream();
 			sout.write(FREE);
 			sout.flush();

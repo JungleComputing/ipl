@@ -90,7 +90,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier
 
 	public boolean equals(TcpIbisIdentifier other) {
 		if(other == this) return true;
-		return address.equals(other.address) && name.equals(other.name);
+		return /*address.equals(other.address) &&*/ name.equals(other.name);
 	}
 
 	public String toString() {

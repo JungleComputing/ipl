@@ -13,6 +13,7 @@ import java.util.*;
 
 public class IbisSocketFactory {
 	private static final boolean DEBUG = false;
+
 	private static boolean firewall = false;
 	private static int portNr = 0;
 	private static int startRange = 0;
@@ -56,17 +57,32 @@ public class IbisSocketFactory {
 		}
 	}
 
-	public static Socket createSocket(InetAddress dest, int port, boolean retry) throws IbisIOException { 
+        /** A host can have multiple local IPs (sierra)
+	    if localIP is null, try to bind to the first of this machine's IP addresses. **/
+	public static Socket createSocket(InetAddress dest, int port, InetAddress localIP, boolean retry) throws IbisIOException { 
 		boolean connected = false;
 		Socket s = null;
 
+/*
+		if(localIP == null) {
+			try {
+				localIP = InetAddress.getLocalHost();
+			} catch (IOException e1) { 
+				throw new IbisIOException("" + e1);
+			}
+		}
+*/
 		while (!connected) {
 			int localPort = allocLocalPort();
 			if (DEBUG) {
-				System.err.println("Trying to connect Socket (local port " + localPort + ") connect to " + dest + ":" + port);
+				System.err.println("Trying to connect Socket (local:" + (localIP==null?"any" : localIP.toString()) + ":" + localPort + ") to " + dest + ":" + port);
 			}
                         try {
-                                s = new Socket(dest, port, InetAddress.getLocalHost(), localPort);
+				if(localIP == null) {
+					s = new Socket(dest, port);
+				} else {
+					s = new Socket(dest, port, localIP, localPort);
+				}
 
 				if (DEBUG) {
 					System.err.println("DONE, local port: " + s.getLocalPort());
@@ -80,10 +96,11 @@ public class IbisSocketFactory {
 				} else {      
 					if (DEBUG) { 
 						System.err.println("Socket connect to " + dest + ":" + port + " failed (" + e1 + "), retrying");
+						e1.printStackTrace();
 					}
                               
 					try {
-						Thread.sleep(500);
+						Thread.sleep(1000);
 					} catch (InterruptedException e2) { 
 						// don't care
 					}
@@ -94,11 +111,21 @@ public class IbisSocketFactory {
 		return s;
 	} 
 	
-        /** a port of 0 means choose a free port **/
-	public static ServerSocket createServerSocket(int port, boolean retry) throws IbisIOException { 
+        /** A host can have multiple local IPs (sierra)
+	    if localIP is null, try to bind to the first of this machine's IP addresses.
+            port of 0 means choose a free port **/
+	public static ServerSocket createServerSocket(int port, InetAddress localAddress, boolean retry) throws IbisIOException { 
 		boolean connected = false;
 		/*Ibis*/ServerSocket s = null;
 		int localPort;
+
+		if(localAddress == null) {
+			try {
+				localAddress = InetAddress.getLocalHost();
+			} catch (IOException e1) { 
+				throw new IbisIOException("" + e1);
+			}
+		}
 
 		while (!connected) { 
                         try {
@@ -109,10 +136,10 @@ public class IbisSocketFactory {
 				}
 
 				if (DEBUG) {
-					System.err.println("Creating new ServerSocket on port " + localPort);
+					System.err.println("Creating new ServerSocket on " + localAddress + ":" + localPort);
 				}
 
-				s = new /*Ibis*/ServerSocket(localPort);
+				s = new /*Ibis*/ServerSocket(localPort, 50, localAddress);
 
 				if (DEBUG) {
 					System.err.println("DONE, with port = " + s.getLocalPort());
@@ -127,7 +154,7 @@ public class IbisSocketFactory {
 					}
                                                          
 					try { 
-						Thread.sleep(500);
+						Thread.sleep(1000);
 					} catch (InterruptedException e2) { 
 						// don't care
 					}
@@ -150,8 +177,7 @@ public class IbisSocketFactory {
 		}
 
 		if(DEBUG) {
-			System.out.println("accepted new connection from " + s.getInetAddress() + ":" + s.getPort() + 
-					   ", local port = " + s.getLocalPort());
+			System.out.println("accepted new connection from " + s.getInetAddress() + ":" + s.getPort() + ", local = " + s.getLocalAddress() + ":" + s.getLocalPort());
 		}
 		
 		return s;

@@ -80,7 +80,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		}
 
 		// Create a server socket.
-		serverSocket = IbisSocketFactory.createServerSocket(port, true);
+		serverSocket = IbisSocketFactory.createServerSocket(port, null, true);
        		       
 		pools = new Hashtable();
 
@@ -92,10 +92,10 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	private void forwardJoin(IbisInfo dest, IbisIdentifier id) throws IbisIOException { 
 
 		if (DEBUG) { 
-			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString());
+			System.err.println("NameServer: forwarding join of " + id.toString() + " to " + dest.identifier.toString() + ", dest port: " + dest.ibisNameServerport);
 		}
 
-		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), dest.ibisNameServerport, true);
+		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), dest.ibisNameServerport, null, true);
 
 		try {
 			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
@@ -183,7 +183,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 		}
 
 		Socket s = IbisSocketFactory.createSocket(dest.identifier.address(), 
-							     dest.ibisNameServerport, true);
+							     dest.ibisNameServerport, null, true);
 		try {
 			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
@@ -198,7 +198,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 	private void killThreads(RunInfo p) throws IbisIOException {
 		try {
 			Socket s = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
-								  p.portTypeNameServer.getPort(), true);
+								  p.portTypeNameServer.getPort(), null, true);
 			DummyOutputStream d = new DummyOutputStream(s.getOutputStream());
 
 			ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(d));
@@ -206,7 +206,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			IbisSocketFactory.close(null, out, s);
 
 			Socket s2 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
-								  p.receivePortNameServer.getPort(), true);
+								  p.receivePortNameServer.getPort(), null, true);
 			DummyOutputStream d2 = new DummyOutputStream(s2.getOutputStream());
 
 			ObjectOutputStream out2 = new ObjectOutputStream(new BufferedOutputStream(d2));
@@ -214,7 +214,7 @@ public class NameServer implements NameServerProtocol, PortTypeNameServerProtoco
 			IbisSocketFactory.close(null, out2, s2);
 
 			Socket s3 = IbisSocketFactory.createSocket(InetAddress.getLocalHost(), 
-								  p.electionServer.getPort(), true);
+								  p.electionServer.getPort(), null, true);
 			DummyOutputStream d3 = new DummyOutputStream(s3.getOutputStream());
 			ObjectOutputStream out3 = new ObjectOutputStream(new BufferedOutputStream(d3));
 			out3.writeByte(ELECTION_EXIT);

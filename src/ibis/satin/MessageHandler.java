@@ -277,7 +277,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
 		try {
 			byte opcode = m.readByte();
-System.err.println("Receive Satin upcall, opcode " + opcode);
+//System.err.println("Receive Satin upcall, opcode " + opcode);
 			
 			switch(opcode) {
 			case EXIT:

@@ -109,7 +109,7 @@ class ElectionServer
 		server_port[i].enableConnections();
 		server_port[i].enableUpcalls();
 // System.err.println(Thread.currentThread() + "ElectionServer will create SendPort " + i);
-		client_port[i] = type.createSendPort();
+		client_port[i] = type.createSendPort("election_server");
 	    }
 
 	    for (int i = 0; i < n; i++) {

@@ -108,7 +108,6 @@ public final class TcpIbis extends Ibis implements Config {
 	}
 
 	protected void init() throws IbisException, IbisIOException { 
-
 		if(DEBUG) {
 			System.err.println("In TcpIbis.init()");
 		}
@@ -146,13 +145,37 @@ public final class TcpIbis extends Ibis implements Config {
 			System.err.println("Found nameServerInet " + nameServerInet);
 		}
 
-		try {
-			ident = new TcpIbisIdentifier(name, InetAddress.getLocalHost());
-		} catch (UnknownHostException e) {
-			throw new IbisIOException("cannot get ip of local host", e);
+		String myIp = p.getProperty("ip_address");
+		if (myIp == null) {
+			try {
+				ident = new TcpIbisIdentifier(name, InetAddress.getLocalHost());
+			} catch (UnknownHostException e) {
+				throw new IbisIOException("cannot get ip of local host", e);
+			}
+		} else {
+			try {
+				ident = new TcpIbisIdentifier(name, InetAddress.getByName(myIp));
+			} catch (UnknownHostException e) {
+				throw new IbisIOException("cannot get ip of local host", e);
+			}
 		}
+
 		if(DEBUG) {
 			System.err.println("Made IbisIdentifier " + ident);
+
+			try {
+				InetAddress[] res = InetAddress.getAllByName(myIp);
+				for(int i=0; i<res.length; i++) {
+					System.err.println("IP: " + res[i] + 
+					    (res[i].isSiteLocalAddress() ? " SL" : " !SL") + 
+					    (res[i].isLinkLocalAddress() ? " LL" : " !LL") + 
+					    (res[i].isLoopbackAddress() ? " LOOP" : " !LOOP") + 
+					    (res[i].isAnyLocalAddress() ? " ANYL" : " !ANYL") + 
+					    (res[i].isMulticastAddress() ? " MULTI" : " !MULTI"));
+				}
+			} catch (Exception e) {
+				throw new IbisIOException("cannot get ip of local host", e);
+			}
 		}
 
 		try { 

@@ -8,7 +8,7 @@ public interface Config {
 	static final boolean ABORT_STATS = false;
 
 	/* Enable or disable timings */
-	static final boolean STEAL_TIMING = true;
+	static final boolean STEAL_TIMING = false;
 	static final boolean ABORT_TIMING = false;
 	static final boolean IDLE_TIMING = false;
 	static final boolean POLL_TIMING = false;
@@ -21,7 +21,7 @@ public interface Config {
 	static final boolean POLL_RECEIVEPORT = true;
 
 	/* Enable or disable asserts. */
-	static final boolean ASSERTS = false;
+	static final boolean ASSERTS = true;
 
 	/* Enable or disable aborts and inlets. */
 	static final boolean ABORTS = true;
