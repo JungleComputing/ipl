@@ -18,6 +18,7 @@ class TcpPortType extends PortType implements Config {
 	StaticProperties p;
 	String name;
 	TcpIbis ibis;
+	boolean sequenced;
 	
 	static final byte SERIALIZATION_SUN = 0;
 	static final byte SERIALIZATION_IBIS = 1;
@@ -30,6 +31,7 @@ class TcpPortType extends PortType implements Config {
 		this.ibis = ibis;
 		this.name = name;
 		this.p = p;
+		sequenced = p.isProp("communication", "Sequenced");
 
 		String ser = p.find("Serialization");
 		if(ser == null) {

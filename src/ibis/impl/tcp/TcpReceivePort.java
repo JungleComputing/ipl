@@ -43,7 +43,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 	private boolean connectionAdministration = false;
 	private boolean no_connectionhandler_thread = false;
 
-
 	long count = 0;
 
 
@@ -161,9 +160,8 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
 
 	boolean setMessage(TcpReadMessage m) throws IOException {
-		if (type.p.isProp("communication", "Sequenced")) {
-		    long seqno = m.readLong();
-		    m.setSequenceNumber(seqno);
+		if (type.sequenced) {
+		    m.setSequenceNumber(m.readLong());
 		}
 		m.isFinished = false;
 		if (STATS) {

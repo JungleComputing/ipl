@@ -261,7 +261,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 		}
 
 		out.writeByte(NEW_MESSAGE);
-		if (type.p.isProp("communication", "Sequenced")) {
+		if (type.sequenced) {
 		    long seqno = ibis.getSeqno(type.name);
 		    switch(type.serializationType) {
 		    case TcpPortType.SERIALIZATION_SUN:
