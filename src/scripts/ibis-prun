@@ -144,7 +144,7 @@ do
 		;;
 	-ns)
 		shift
-		args="$args -ns \"$1\""
+		args="$args -ns $1"
 		;;
 	-pg)
 		shift
@@ -156,7 +156,7 @@ do
 		;;
 	-ns-port)
 		shift
-		args="$args -ns-port \"$1\""
+		args="$args -ns-port $1"
 		;;
 	-ns-d)
 		dedicated_nameserver=1
@@ -169,14 +169,14 @@ do
 		;;
 	-ip-map)
 		shift
-		args="$args -ip-map \"$1\""
+		args="$args -ip-map $1"
 		ip_map="$1"
 		export HOSTS="`$IBIS_ROOT/bin/ip_map.perl $ip_map $HOSTS`"
 		export PRUN_HOSTNAMES="`$IBIS_ROOT/bin/ip_map.perl $ip_map $PRUN_HOSTNAMES`"
 		;;
 	-sleep)
 		shift
-		args="$args -sleep \"$1\""
+		args="$args -sleep $1"
 		;;
 	-\?|-h|-help|--help)
 		usage
@@ -236,7 +236,7 @@ then
 
 	ns=`last_array_elt $HOSTS`
 	# echo ns $ns
-	args="$args -ns \"$ns\""
+	args="$args -ns $ns"
 
 	NHOSTS=`expr $NHOSTS - 1`
 	export HOSTS=`strip_array $HOSTS`
