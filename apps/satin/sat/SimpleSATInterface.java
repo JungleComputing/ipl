@@ -6,7 +6,7 @@
  */
 interface SimpleSATInterface extends ibis.satin.Spawnable
 {
-    static class Context {
+    static class Context implements java.io.Serializable {
         SATProblem p;
 	int varlist[];
     }
